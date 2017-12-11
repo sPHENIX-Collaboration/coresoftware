@@ -8,26 +8,19 @@
 
 class recoConsts : public PHFlag
 {
-
  public:
-
-  static recoConsts * instance()
-    {
-      if (__instance) return __instance;
-      __instance =  new recoConsts();
-      return __instance;
-    }
+  static recoConsts *instance()
+  {
+    if (__instance) return __instance;
+    __instance = new recoConsts();
+    return __instance;
+  }
 
   void Print() const;
 
- protected: 
+ protected:
   recoConsts() {}
-  
   static recoConsts *__instance;
-
 };
 
-
 #endif /* __RECOCONSTS_H__ */
-
-

@@ -19,12 +19,14 @@ class PHRandomSeed
 
   //! get a seed
   static unsigned int GetSeed();
-  static void LoadSeed(unsigned int iseed);
+  static void LoadSeed(const unsigned int iseed);
+  static void Verbosity(const int iverb);
 
  protected:
   static void InitSeed();
   static bool fFixed;
   static bool fInitialized;
+  static int verbose;
 };
 
 #endif

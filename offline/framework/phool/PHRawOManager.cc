@@ -10,133 +10,131 @@
 #include "PHRawOManager.h"
 #include "PHCompositeNode.h"
 #include "PHRawDataNode.h"
+#include "phool.h"
 
-#include <Event/ogzBuffer.h>
 #include <Event/EventTypes.h>
+#include <Event/ogzBuffer.h>
 #include <Event/packetConstants.h>
 
-#include <iostream>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <iostream>
 
 using namespace std;
 
-PHRawOManager::PHRawOManager(const string &newFile, const int run, const int bufl, const int evtl, const int complvl):
-  filedesc(-1),
-  runNumber(0),
-  bufferSize(0),
-  eventLength(0)
+PHRawOManager::PHRawOManager(const string& newFile, const int run, const int bufl, const int evtl, const int complvl)
+  : filedesc(-1)
+  , runNumber(0)
+  , bufferSize(0)
+  , eventLength(0)
 {
   if (!setFile(newFile, run, bufl, evtl, complvl))
-    {
-      filename         = "file open failed";
-      filedesc         = -1;
-      memBuffer        = NULL;
-      fileBuffer       = NULL;
-      compressionLevel = 0;
-    }
+  {
+    filename = "file open failed";
+    filedesc = -1;
+    memBuffer = nullptr;
+    fileBuffer = nullptr;
+    compressionLevel = 0;
+  }
 }
 
-PHRawOManager::PHRawOManager():
-  filedesc(-1),
-  memBuffer(NULL),
-  fileBuffer(NULL),
-  runNumber(0),
-  bufferSize(0),
-  eventLength(0),
-  compressionLevel(0)
-{}
+PHRawOManager::PHRawOManager()
+  : filedesc(-1)
+  , memBuffer(nullptr)
+  , fileBuffer(nullptr)
+  , runNumber(0)
+  , bufferSize(0)
+  , eventLength(0)
+  , compressionLevel(0)
+{
+}
 
 PHRawOManager::~PHRawOManager()
 {
   closeFile();
 }
 
-void
-PHRawOManager::closeFile()
+void PHRawOManager::closeFile()
 {
   if (fileBuffer)
-    {
-      delete fileBuffer;
-    }
+  {
+    delete fileBuffer;
+  }
   if (memBuffer)
-    {
-      delete memBuffer;
-    }
+  {
+    delete memBuffer;
+  }
   fileBuffer = 0;
   memBuffer = 0;
   if (filedesc >= 0)
-    {
-      close(filedesc);
-      filedesc = -1;
-    }
+  {
+    close(filedesc);
+    filedesc = -1;
+  }
 }
 
-PHBoolean
-PHRawOManager::setFile(const string &setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
+bool PHRawOManager::setFile(const string& setFile, const int setRun, const int setBufl, const int setEvtl, const int complvl)
 {
-  filename         = setFile;
-  runNumber        = setRun;
-  bufferSize       = setBufl;
+  filename = setFile;
+  runNumber = setRun;
+  bufferSize = setBufl;
   compressionLevel = complvl;
 
   if (setEvtl == -1)
-    {
-      eventLength = bufferSize / 4;
-    }
+  {
+    eventLength = bufferSize / 4;
+  }
   else
-    {
-      eventLength = setEvtl;
-    }
+  {
+    eventLength = setEvtl;
+  }
 
   if (filedesc >= 0)
-    {
-      closeFile();  // close the file if it is open (originally unprotected close)
-    }
+  {
+    closeFile();  // close the file if it is open (originally unprotected close)
+  }
 
   // open file
-  filedesc =  open(filename.c_str(), 
-		   O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE ,
-		   S_IRWXU | S_IROTH | S_IRGRP );
+  filedesc = open(filename.c_str(),
+                  O_WRONLY | O_CREAT | O_TRUNC | O_LARGEFILE,
+                  S_IRWXU | S_IROTH | S_IRGRP);
 
   if (filedesc < 0)
-    {
-
-      PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-      return False;
-    }
-  memBuffer  = new PHDWORD[bufferSize];
+  {
+    PHMessage("PHRawOManager::setFile", PHError, "could not open file");
+    return false;
+  }
+  memBuffer = new PHDWORD[bufferSize];
   if (compressionLevel == 0)
+  {
+    int status = 0;
+    fileBuffer = new oBuffer(filedesc, memBuffer, bufferSize, status, runNumber);
+    if (status > 0)
     {
-      int status = 0;
-      fileBuffer = new oBuffer(filedesc, memBuffer, bufferSize, status, runNumber);
-      if (status > 0)
-        {
-          PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-          return False;
-        }
+      PHMessage("PHRawOManager::setFile", PHError, "could not open file");
+      return false;
     }
+  }
   else if (1 <= compressionLevel && compressionLevel <= 9)
+  {
+    int status = 0;
+    fileBuffer = new ogzBuffer(filedesc, memBuffer, bufferSize, status, runNumber, compressionLevel);
+    if (status > 0)
     {
-      int status = 0;
-      fileBuffer = new ogzBuffer(filedesc, memBuffer, bufferSize,  status, runNumber, compressionLevel);
-      if (status > 0)
-        {
-          PHMessage("PHRawOManager::setFile", PHError, "could not open file");
-          return False;
-        }
+      PHMessage("PHRawOManager::setFile", PHError, "could not open file");
+      return false;
     }
+  }
   else
-    {
-      PHMessage("PHRawOManager::setFile", PHWarning, "illegal compression level, no compression done");
-    }
+  {
+    PHMessage("PHRawOManager::setFile", PHWarning, "illegal compression level, no compression done");
+  }
 
-  return True;
+  return true;
 }
 
-PHBoolean
-PHRawOManager::write(PHCompositeNode* topNode)
+bool PHRawOManager::write(PHCompositeNode* topNode)
 {
   //
   // The write function of the PHCompositeNode topNode will
@@ -145,38 +143,36 @@ PHRawOManager::write(PHCompositeNode* topNode)
   // below.
   //
   if (filedesc >= 0 && fileBuffer)
-    {
-      fileBuffer->nextEvent(eventLength, DATAEVENT);
-      topNode->write(this);
-      eventNumber++;
-      return True;
-    }
-  return False;
+  {
+    fileBuffer->nextEvent(eventLength, DATAEVENT);
+    topNode->write(this);
+    eventNumber++;
+    return true;
+  }
+  return false;
 }
 
-PHBoolean
-PHRawOManager::write(PHRawDataNode* node)
+bool PHRawOManager::write(PHRawDataNode* node)
 {
   if (filedesc >= 0 && fileBuffer)
+  {
+    int bytesAddedToBuffer = fileBuffer->addUnstructPacketData(node->getData(), node->getLength(), node->getID(),
+                                                               node->getWordLength(), node->getHitFormat());
+    if (bytesAddedToBuffer <= 0)
     {
-      int bytesAddedToBuffer = fileBuffer->addUnstructPacketData(node->getData(), node->getLength(), node->getID(),
-								 node->getWordLength(), node->getHitFormat());
-      if (bytesAddedToBuffer <= 0)
-        {
-          PHMessage("PHRawOManager::write", PHError, "Zero bytes added to buffer");
-          return False;
-        }
-      return True;
+      PHMessage("PHRawOManager::write", PHError, "Zero bytes added to buffer");
+      return false;
     }
-  return False;
+    return true;
+  }
+  return false;
 }
 
-void
-PHRawOManager::print() const
+void PHRawOManager::print() const
 {
-  cout << "File attached : " << filename    << endl;
-  cout << "Buffer size   : " << bufferSize  << endl;
+  cout << "File attached : " << filename << endl;
+  cout << "Buffer size   : " << bufferSize << endl;
   cout << "Event Length  : " << eventLength << endl;
-  cout << "Run number    : " << runNumber   << endl;
+  cout << "Run number    : " << runNumber << endl;
   cout << "Events written: " << eventNumber << endl;
 }

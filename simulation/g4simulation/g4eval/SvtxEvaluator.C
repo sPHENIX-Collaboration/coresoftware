@@ -82,9 +82,9 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex","vertex => max truth",
-						 "event:vx:vy:vz:ntracks:"
-						 "gvx:gvy:gvz:gvt:gntracks:"
-						 "nfromtruth");
+                                                 "event:vx:vy:vz:ntracks:"
+                                                 "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
+                                                 "gnembed:nfromtruth");
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
 						 "event:gvx:gvy:gvz:gvt:gntracks:gembed:"
@@ -586,9 +586,114 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       cout << "Filling ntp_vertex " << endl;
       _timer->restart();
     }
+
+
     SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
     if (vertexmap && truthinfo) {
+
+      const auto prange = truthinfo->GetPrimaryParticleRange();
+      map<int, unsigned int> embedvtxid_particle_count;
+      map<int, unsigned int> embedvtxid_maps_particle_count;
+      map<int, unsigned int> vertex_particle_count;
+
+      for (auto iter = prange.first; iter != prange.second; ++iter) // process all primary paricle
+      {
+        const int point_id = iter->second->get_vtx_id();
+        int gembed = truthinfo->isEmbededVtx(iter->second->get_vtx_id());
+        ++vertex_particle_count[point_id];
+        ++embedvtxid_particle_count[gembed];
+        PHG4Particle* g4particle = iter->second;
+
+        if (_scan_for_embedded && gembed <=0) continue;
+
+        std::set<SvtxCluster*> g4clusters = clustereval->all_clusters_from(g4particle);
+        unsigned int nglmaps = 0;
+        unsigned int nglintt = 0;
+        unsigned int ngltpc  = 0;
+
+        int lmaps[_nlayers_maps+1];
+        if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) lmaps[i] = 0;
+
+        int lintt[_nlayers_intt+1];
+        if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) lintt[i] = 0;
+
+        int ltpc[_nlayers_tpc+1];
+        if(_nlayers_tpc>0) for(unsigned int i = 0;i<_nlayers_tpc;i++) ltpc[i] = 0;
+
+        for(const SvtxCluster* g4cluster : g4clusters){
+          unsigned int layer = g4cluster->get_layer();
+          //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
+                      if(_nlayers_maps>0&&layer<_nlayers_maps) {
+                  lmaps[layer] = 1;
+          }
+
+          if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
+            lintt[layer-_nlayers_maps] = 1;
+          }
+
+          if(_nlayers_tpc>0&&layer>=_nlayers_maps+_nlayers_intt && layer<_nlayers_maps+_nlayers_intt+_nlayers_tpc){
+            ltpc[layer-(_nlayers_maps+_nlayers_intt)] = 1;
+          }
+        }
+        if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) nglmaps+=lmaps[i];
+        if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) nglintt+=lintt[i];
+        if(_nlayers_tpc>0)  for(unsigned int i = 0;i<_nlayers_tpc;i++)  ngltpc+=ltpc[i];
+
+//        float gflavor   = g4particle->get_pid();
+                  float gpx       = g4particle->get_px();
+        float gpy       = g4particle->get_py();
+        float gpz       = g4particle->get_pz();
+        float gpt       = NAN;
+        float geta      = NAN;
+
+        if(gpx!=0&&gpy!=0){
+          TVector3 gv(gpx,gpy,gpz);
+          gpt  = gv.Pt();
+          geta = gv.Eta();
+//          gphi = gv.Phi();
+                    }
+
+        if (nglmaps==3 && fabs(geta)<1.0 && gpt>0.5)
+        ++embedvtxid_maps_particle_count[gembed];
+      }
+
+      auto vrange = truthinfo->GetPrimaryVtxRange();
+      map<int, bool> embedvtxid_found;
+      map<int, int> embedvtxid_vertex_id;
+      map<int, PHG4VtxPoint*> embedvtxid_vertex;
+      for (auto iter = vrange.first; iter != vrange.second; ++iter) // process all primary vertexes
+      {
+        const int point_id = iter->first;
+        int gembed = truthinfo->isEmbededVtx(point_id);
+        if (_scan_for_embedded && gembed <= 0) continue;
+
+        auto search = embedvtxid_found.find(gembed);
+        if (search != embedvtxid_found.end())
+        {
+        embedvtxid_vertex_id[gembed] = point_id;
+        embedvtxid_vertex[gembed] = iter->second;
+        }
+        else
+        {
+          if (vertex_particle_count[embedvtxid_vertex_id[gembed]] < vertex_particle_count[point_id])
+          {
+          embedvtxid_vertex_id[gembed] = point_id;
+          embedvtxid_vertex[gembed] = iter->second;
+          }
+        }
+        embedvtxid_found[gembed]=false;
+      }
+
+      unsigned int ngembed=0;
+      for (std::map<int,bool>::iterator iter = embedvtxid_found.begin();
+        iter != embedvtxid_found.end();
+        ++iter)
+      {
+        if (iter->first >= 0 || iter->first != iter->first) continue;
+        ++ngembed;
+      }
+
       for (SvtxVertexMap::Iter iter = vertexmap->begin();
 	   iter != vertexmap->end();
 	   ++iter) {
@@ -600,33 +705,45 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float vz         = vertex->get_z();
 	float ntracks    = vertex->size_tracks();
 
-	float gvx        = NAN;
-	float gvy        = NAN;
-	float gvz        = NAN;
-	float gvt        = NAN;
-	float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
-	float nfromtruth = NAN;
+        float gvx        = NAN;
+        float gvy        = NAN;
+        float gvz        = NAN;
+        float gvt        = NAN;
+        float gembed     = NAN;
+        float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
+        float gntracksmaps = NAN;
+        float gnembed    = NAN;
+        float nfromtruth = NAN;
 	
 	if (point) {
-	  gvx        = point->get_x();
-	  gvy        = point->get_y();
-	  gvz        = point->get_z();
-	  gvt        = point->get_t();
-	  gntracks   = truthinfo->GetNumPrimaryVertexParticles();
-	  nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+          const int point_id = point->get_id();
+          gvx        = point->get_x();
+          gvy        = point->get_y();
+          gvz        = point->get_z();
+          gvt        = point->get_t();
+          gembed     = truthinfo->isEmbededVtx(point_id);
+          gntracks   = embedvtxid_particle_count[(int)gembed];
+          if (embedvtxid_maps_particle_count[(int)gembed]>0 && fabs(gvt)<2000.&& fabs(gvz)<13.0)
+          gntracksmaps = embedvtxid_maps_particle_count[(int)gembed];
+          gnembed    = (float) ngembed;
+          nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+          embedvtxid_found[(int)gembed]= true;
 	}
 	  
-	float vertex_data[12] = {(float) _ievent,
-				 vx,
-				 vy,
-				 vz,
-				 ntracks,
-				 gvx,
-				 gvy,
-				 gvz,
-				 gvt,
-				 gntracks,
-				 nfromtruth
+        float vertex_data[14] = {(float) _ievent,
+                                 vx,
+                                 vy,
+                                 vz,
+                                 ntracks,
+                                 gvx,
+                                 gvy,
+                                 gvz,
+                                 gvt,
+                                 gembed,
+                                 gntracks,
+                                 gntracksmaps,
+                                 gnembed,
+                                 nfromtruth
 	};
 
 	/*
@@ -640,6 +757,67 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	_ntp_vertex->Fill(vertex_data);      
       }
+
+      if (!_scan_for_embedded) {
+      for (std::map<int,bool>::iterator iter = embedvtxid_found.begin();
+        iter != embedvtxid_found.end();
+        ++iter)
+      {
+        if (embedvtxid_found[iter->first]) continue;
+
+        float vx         = NAN;
+        float vy         = NAN;
+        float vz         = NAN;
+        float ntracks    = NAN;
+
+        float gvx        = NAN;
+        float gvy        = NAN;
+        float gvz        = NAN;
+        float gvt        = NAN;
+        float gembed     = iter->first;
+        float gntracks   = NAN;
+        float gntracksmaps = NAN;
+        float gnembed    = NAN;
+        float nfromtruth = NAN;
+
+        PHG4VtxPoint* point = embedvtxid_vertex[gembed];
+
+        if (point){
+        const int point_id = point->get_id();
+        gvx        = point->get_x();
+        gvy        = point->get_y();
+        gvz        = point->get_z();
+        gvt        = point->get_t();
+        gembed     = truthinfo->isEmbededVtx(point_id);
+        gntracks   = embedvtxid_particle_count[(int)gembed];
+        if (embedvtxid_maps_particle_count[(int)gembed]>0 && fabs(gvt)<2000&& fabs(gvz)<13.0)
+        gntracksmaps = embedvtxid_maps_particle_count[(int)gembed];
+        gnembed    = (float) ngembed;
+//        nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
+        }
+
+        float vertex_data[14] = {(float) _ievent,
+                                 vx,
+                                 vy,
+                                 vz,
+                                 ntracks,
+                                 gvx,
+                                 gvy,
+                                 gvz,
+                                 gvt,
+                                 gembed,
+                                 gntracks,
+                                 gntracksmaps,
+                                 gnembed,
+                                 nfromtruth
+        };
+
+        _ntp_vertex->Fill(vertex_data);
+
+      }
+
+      }
+
     }
     if(verbosity >= 1){
       _timer->stop();

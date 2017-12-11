@@ -21,6 +21,7 @@ class RawClusterv1 : public RawCluster {
   float get_eta() const { return _eta; }
   float get_phi() const { return _phi; }
   float get_energy() const { return _energy; }
+  float get_ecore() const { return _ecore; }
   float get_chi2() const { return _chi2; }
   float get_prob() const { return _prob; }
 
@@ -28,6 +29,7 @@ class RawClusterv1 : public RawCluster {
   void set_eta(const float eta) { _eta = eta; }
   void set_phi(const float phi) { _phi = phi; }
   void set_energy(const float energy) { _energy = energy; }
+  void set_ecore(const float ecore) { _ecore = ecore; }
   void set_chi2(const float chi2) { _chi2 = chi2; }
   void set_prob(const float prob) { _prob = prob; }
 
@@ -44,13 +46,14 @@ class RawClusterv1 : public RawCluster {
   float _eta;
   float _phi;
   float _energy;
+  float _ecore;
   float _chi2;
   float _prob;
   std::vector<std::pair<int,int> > _towers;
 
   TowerMap towermap;
 
-  ClassDef(RawClusterv1,1)
+  ClassDef(RawClusterv1,2)
 
 };
 
