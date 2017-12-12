@@ -1,5 +1,15 @@
 #include "TrackerHit.h"
 
+TrackerHit::TrackerHit()
+  : hitid(~0x0)
+{
+}
+
+TrackerHit::TrackerHit(TrackerDefs::keytype id)
+  : hitid(id)
+{
+}
+
 void TrackerHit::identify(ostream& os) const
 {
   std::cout << "Class " << this->ClassName() << std::endl;

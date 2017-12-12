@@ -7,6 +7,9 @@
 class TrackerHit : public PHG4Cell
 {
  public:
+  TrackerHit();
+  TrackerHit(TrackerDefs::keytype id);
+
   virtual ~TrackerHit() {}
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Copy(TrackerHit const& hit);

@@ -13,7 +13,7 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
-libg4detectors_la_LIBADD = \
+libtracker_la_LIBADD = \
   -lCLHEP \
   -lphool \
   -lg4detectors
@@ -21,7 +21,8 @@ libg4detectors_la_LIBADD = \
 pkginclude_HEADERS = \
   TrackerCluster.h \
   TrackerDefs.h \
-  TrackerHit.h
+  TrackerHit.h \
+  TrackerHitv1.h
 
 libtracker_la_SOURCES = \
   TrackerCluster.C \
@@ -29,7 +30,9 @@ libtracker_la_SOURCES = \
   TrackerDefs.C \
   TrackerDefs_Dict.C \
   TrackerHit.C \
-  TrackerHit_Dict.C
+  TrackerHit_Dict.C \
+  TrackerHitv1.C \
+  TrackerHitv1_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
