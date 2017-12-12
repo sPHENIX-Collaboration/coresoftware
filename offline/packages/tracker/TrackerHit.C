@@ -1,21 +1,18 @@
 #include "TrackerHit.h"
 
-void
-TrackerHit::identify(ostream& os) const
+void TrackerHit::identify(ostream& os) const
 {
-  cout << "Class " << this->ClassName() << endl;
+  std::cout << "Class " << this->ClassName() << std::endl;
   return;
 }
 
-void
-TrackerHit::Reset()
+void TrackerHit::Reset()
 {
-  cout << "Reset not implemented by daughter class" << endl;
+  std::cout << "Reset not implemented by daughter class" << std::endl;
   return;
 }
 
-void 
-TrackerHit::Copy(TrackerHit const &hit)
+void TrackerHit::Copy(TrackerHit const& hit)
 {
-  set_hitid( hit.get_hitid() );
+  set_hitid(hit.get_hitid());
 }

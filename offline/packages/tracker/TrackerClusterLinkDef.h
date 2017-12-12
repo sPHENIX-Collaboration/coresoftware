@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class TrackerCluster+;
+#pragma link C++ class TrackerCluster + ;
 
 #endif

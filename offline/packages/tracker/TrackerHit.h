@@ -1,31 +1,24 @@
 #ifndef __TRACKERHIT_H__
 #define __TRACKERHIT_H__
 
-#include <PHG4Cell.h>
+#include <g4detectors/PHG4Cell.h>
 #include "TrackerDefs.h"
 
-class TrackerHit: public PHG4Cell
+class TrackerHit : public PHG4Cell
 {
-
-public:
-
+ public:
   virtual ~TrackerHit() {}
-
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Copy(TrackerHit const &hit);
+  virtual void Copy(TrackerHit const& hit);
   virtual void Reset();
 
-  void set_hitid(TrackerDefs::keytype id) { hitid = id; }
-  TrackerDefs::keytype get_hitid() { return hitid; }
+  void set_hitid(const TrackerDefs::keytype id) { hitid = id; }
+  TrackerDefs::keytype get_hitid() const { return hitid; }
+ protected:
+ private:
+  TrackerDefs::keytype hitid;
 
-protected:
-
-private:
-
-  TrackerDefs::keytype hitid; 
-
-  ClassDef(TrackerHit, 2);
-
+  ClassDef(TrackerHit, 1);
 };
 
 #endif
