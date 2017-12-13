@@ -28,7 +28,7 @@ class TrackerCluster : public PHObject
   virtual TrackerCluster* Clone() const { return NULL; }
   // cluster info
 
-  virtual TrackerDefs::keytype get_id() const { return ULLONG_MAX; }
+  virtual TrackerDefs::keytype get_id() const { return TrackerDefs::KEYMAX; }
   virtual void set_id(TrackerDefs::keytype id) {}
   virtual float get_x() const { return NAN; }
   virtual void set_x(float x) {}
