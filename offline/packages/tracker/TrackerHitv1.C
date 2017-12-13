@@ -5,12 +5,12 @@
 #include <iostream>
 
 TrackerHitv1::TrackerHitv1()
-  : TrackerHit()
+  : hitid(TrackerDefs::KEYMAX)
 {
 }
 
 TrackerHitv1::TrackerHitv1(TrackerDefs::keytype id)
-  : TrackerHit(id)
+  : hitid(id)
 {
 }
 
@@ -41,7 +41,7 @@ void TrackerHitv1::Reset()
 
 void TrackerHitv1::identify(std::ostream& os) const
 {
-  os << "New TrackerHitv1  0x" << std::hex << TrackerHit::get_hitid() << std::dec << std::endl;
+  os << "New TrackerHitv1  0x" << std::hex << get_hitid() << std::dec << std::endl;
 
   os << "Associated to " << hitedeps.size() << " hits" << std::endl;
   for (const auto pair : hitedeps)

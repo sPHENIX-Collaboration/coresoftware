@@ -23,6 +23,9 @@ class TrackerHitv1 : public TrackerHit
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
 
+  void set_hitid(const TrackerDefs::keytype id) { hitid = id; }
+  TrackerDefs::keytype get_hitid() const { return hitid; }
+
   void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep);
 
   EdepConstRange get_g4hits()
@@ -38,6 +41,8 @@ class TrackerHitv1 : public TrackerHit
   //                 Is it truly necessary to reimplement here?
  protected:
  private:
+
+  TrackerDefs::keytype hitid;
   EdepMap hitedeps;
   //! container for additional property
   //  there is a typedef as prop_map_t in PHG4Cellv1, but not included here

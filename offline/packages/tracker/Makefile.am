@@ -24,7 +24,8 @@ pkginclude_HEADERS = \
   TrackerClusterContainer.h \
   TrackerDefs.h \
   TrackerHit.h \
-  TrackerHitv1.h
+  TrackerHitv1.h \
+  TrackerHitContainer.h
 
 libtracker_la_SOURCES = \
   TrackerCluster.C \
@@ -38,7 +39,9 @@ libtracker_la_SOURCES = \
   TrackerHit.C \
   TrackerHit_Dict.C \
   TrackerHitv1.C \
-  TrackerHitv1_Dict.C
+  TrackerHitv1_Dict.C \
+  TrackerHitContainer.C \
+  TrackerHitContainer_Dict.C 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
