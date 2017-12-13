@@ -1,13 +1,20 @@
 #ifndef TRACKERDEFS_H
 #define TRACKERDEFS_H
 
+#include <limits.h>
+// #include <climits>
+
 namespace TrackerDefs
 {
 typedef unsigned long long keytype;
 
 // CINT does not know the __attribute__((unused))
-#ifndef __CINT__
 // __attribute__((unused)) prevents warnings about unused variables
+#ifndef __CINT__
+// D. McGlinchey - I don't understand why this needs to be hidden from
+//                 the dictionary generation ...
+static keytype KEYMAX = ULLONG_MAX;
+
 // key layout:
 //  common upper 16 bits
 //   56 - 64  tracker id
