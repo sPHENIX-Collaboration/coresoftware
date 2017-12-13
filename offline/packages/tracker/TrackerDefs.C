@@ -1,8 +1,8 @@
 #include "TrackerDefs.h"
 
-char TrackerDefs::get_detid(const TrackerDefs::keytype key)
+char TrackerDefs::get_trackerid(const TrackerDefs::keytype key)
 {
-  keytype tmp = (key >> bitshift_detid);
+  keytype tmp = (key >> bitshift_trackerid);
   return tmp;
 }
 
@@ -31,12 +31,12 @@ TrackerDefs::get_index(const TrackerDefs::keytype key)
 }
 
 TrackerDefs::keytype
-TrackerDefs::genkey(const char detid, const char layer,
+TrackerDefs::genkey(const char trackerid, const char layer,
                     const char ladder, const char chip,
                     const unsigned int bit32_index)
 {
-  TrackerDefs::keytype tmp = detid;
-  TrackerDefs::keytype key = tmp << TrackerDefs::bitshift_detid;  // detector id
+  TrackerDefs::keytype tmp = trackerid;
+  TrackerDefs::keytype key = tmp << TrackerDefs::bitshift_trackerid;  // detector id
   tmp = layer;
   key |= (tmp << TrackerDefs::bitshift_layer);  // layer
   tmp = ladder;
