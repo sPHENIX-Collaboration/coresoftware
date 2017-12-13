@@ -21,6 +21,7 @@ libtracker_la_LIBADD = \
 pkginclude_HEADERS = \
   TrackerCluster.h \
   TrackerClusterv1.h \
+  TrackerClusterContainer.h \
   TrackerDefs.h \
   TrackerHit.h \
   TrackerHitv1.h
@@ -30,6 +31,8 @@ libtracker_la_SOURCES = \
   TrackerCluster_Dict.C \
   TrackerClusterv1.C \
   TrackerClusterv1_Dict.C \
+  TrackerClusterContainer.C \
+  TrackerClusterContainer_Dict.C \
   TrackerDefs.C \
   TrackerDefs_Dict.C \
   TrackerHit.C \
