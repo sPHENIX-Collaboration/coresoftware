@@ -1,9 +1,9 @@
 #include "MvtxDigitizer.h"
 
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHitMap_v1.h>
-#include <g4hough/SvtxHit.h>
-#include <g4hough/SvtxHit_v1.h>
+#include <tracker/TrackerDefs.h>
+#include <tracker/TrackerHit.h>
+#include <tracker/TrackerHitv1.h>
+#include <tracker/TrackerHitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -12,6 +12,7 @@
 #include <phool/getClass.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 
@@ -29,7 +30,7 @@ MvtxDigitizer::MvtxDigitizer(const string &name) :
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
-  if(verbosity > 0)
+  if (verbosity > 0)
     cout << "Creating MvtxDigitizer with name = " << name << endl;
 }
 
@@ -41,48 +42,52 @@ int MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   PHNodeIterator iter(topNode);
 
   // Looking for the DST node
-  PHCompositeNode *dstNode 
-    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
+  PHCompositeNode *dstNode
+    = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode) {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   PHNodeIterator iter_dst(dstNode);
-    
+
   // Create the SVX node if required
-  PHCompositeNode* svxNode 
-    = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode","SVTX"));
+  PHCompositeNode* svxNode
+    = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!svxNode) {
     svxNode = new PHCompositeNode("SVTX");
     dstNode->addNode(svxNode);
   }
-  
+
   // Create the Hit node if required
-  SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(dstNode,"SvtxHitMap");
-  if (!svxhits) {
-    svxhits = new SvtxHitMap_v1();
-    PHIODataNode<PHObject> *SvtxHitMapNode =
-      new PHIODataNode<PHObject>(svxhits, "SvtxHitMap", "PHObject");
-    svxNode->addNode(SvtxHitMapNode);
+  TrackerHitContainer *mvtxhits =
+    findNode::getClass<TrackerHitContainer>(dstNode, "TrackerHitContainer");
+  if (!mvtxhits) {
+    mvtxhits = new TrackerHitContainer();
+    PHIODataNode<PHObject> *TrackerHitContainerNode =
+      new PHIODataNode<PHObject>(mvtxhits, "TrackerHitContainer", "PHObject");
+    svxNode->addNode(TrackerHitContainerNode);
   }
 
-  CalculateMapsLadderCellADCScale(topNode);
-  
+  CalculateMapsLadderThresholds(topNode);
+
   //----------------
   // Report Settings
   //----------------
-  
+
   if (verbosity > 0) {
     cout << "====================== MvtxDigitizer::InitRun() =====================" << endl;
-    for (std::map<int,unsigned int>::iterator iter = _max_adc.begin();
-   iter != _max_adc.end();
-   ++iter) {
-      cout << " Max ADC in Layer #" << iter->first << " = " << iter->second << endl;
+    for (std::map<int, float>::iterator iter = _fraction_of_mip.begin();
+         iter != _fraction_of_mip.end();
+         ++iter) {
+      cout << " Fraction of expected MIP energy for Layer #" << iter->first << ": ";
+      cout << iter->second;
+      cout << endl;
     }
-    for (std::map<int,float>::iterator iter = _energy_scale.begin();
-   iter != _energy_scale.end();
-   ++iter) {
-      cout << " Energy per ADC in Layer #" << iter->first << " = " << 1.0e6*iter->second << " keV" << endl;
+    for (std::map<int, float>::iterator iter = _thresholds_by_layer.begin();
+         iter != _thresholds_by_layer.end();
+         ++iter) {
+      cout << " Cell Threshold in Layer #" << iter->first << " = " << 1.0e6 * iter->second
+           << " keV based on Short-Axis Penetration" << endl;
     }
     cout << "===========================================================================" << endl;
   }
@@ -94,105 +99,127 @@ int MvtxDigitizer::process_event(PHCompositeNode *topNode) {
 
   _timer.get()->restart();
 
-  _hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
-  if (!_hitmap) 
-    {
-      cout << PHWHERE << " ERROR: Can't find SvtxHitMap." << endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+  _hitmap = findNode::getClass<TrackerHitContainer>(topNode, "TrackerHitContainer");
+  if (!_hitmap)
+  {
+    cout << PHWHERE << " ERROR: Can't find TrackerHitContainer." << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   _hitmap->Reset();
-  
+
   DigitizeMapsLadderCells(topNode);
 
   PrintHits(topNode);
-  
+
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void MvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode) {
+void MvtxDigitizer::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
+{
 
-  // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
-    
   if (!geom_container) return;
 
-  if(Verbosity())
-    cout << "Found CYLINDERGEOM_MAPS node" << endl;
-  
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-      layeriter != layerrange.second;
-      ++layeriter) {
+  for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
 
     int layer = layeriter->second->get_layer();
     float thickness = (layeriter->second)->get_pixel_thickness();
     float pitch = (layeriter->second)->get_pixel_x();
     float length = (layeriter->second)->get_pixel_z();
-   
+
     float minpath = pitch;
     if (length < minpath) minpath = length;
     if (thickness < minpath) minpath = thickness;
-    float mip_e = 0.003876*minpath;  
 
-    if (Verbosity())
-    cout << "mip_e = " << mip_e << endl;
-
-    if (_max_adc.find(layer) == _max_adc.end()) {
-      _max_adc[layer] = 255;
-      _energy_scale[layer] = mip_e / 64;
+    // Si MIP energy = 3.876 MeV / cm
+    float threshold = 0.0;
+    if (_fraction_of_mip.find(layer) != _fraction_of_mip.end())
+    {
+      threshold = _fraction_of_mip[layer] * 0.003876 * minpath;
     }
-  }    
+    _thresholds_by_layer.insert(std::make_pair(layer, threshold));
+    if (verbosity > 2)
+    {
+      cout << " not using thickness:"
+           << " layer " << layer
+           << " threshold = " << threshold
+           << " thickness = " << thickness
+           << " fraction of mip = " << _fraction_of_mip[layer]
+           << endl;
+    }
+  }
 
   return;
 }
 
-void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode) {
+void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
+{
 
   //----------
   // Get Nodes
   //----------
- 
-  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
-  if (!cells) return; 
-  
+
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_MAPS");
+  if (!cells) return;
+
   //-------------
   // Digitization
   //-------------
 
   vector<PHG4Cell*> cell_list;
   PHG4CellContainer::ConstRange cellrange = cells->getCells();
-  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
-      celliter != cellrange.second;
-      ++celliter) {
-    
+  for (PHG4CellContainer::ConstIterator celliter = cellrange.first;
+       celliter != cellrange.second;
+       ++celliter)
+  {
+
     PHG4Cell* cell = celliter->second;
-    
-    SvtxHit_v1 hit;
 
-    hit.set_layer(cell->get_layer());
-    hit.set_cellid(cell->get_cellid());
+    // check that the cell energy is above threshold
+    if ( cell->get_edep() < get_threshold_by_layer(cell->get_layer()) )
+      continue;
 
-    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
-    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
-    float e = _energy_scale[hit.get_layer()] * adc;
-    
-    hit.set_adc(adc);
-    hit.set_e(e);
-        
-    SvtxHit* ptr = _hitmap->insert(&hit);      
-    if (!ptr->isValid()) {
-      static bool first = true;
-      if (first) {
-  cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
-  ptr->identify();
-  first = false;
-      }
+    // get the layer geometry helper for indexing
+    PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
+
+    int pixel_number = cell->get_pixel_index();
+    // binphi is the cell index in the phi direction in the sensor
+    int binphi = geom->get_pixel_X_from_pixel_number(pixel_number);
+    // binz is the cell index in the z direction in the sensor
+    int binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
+
+    // Make a hit
+    TrackerHitv1 * hit;
+
+    TrackerDefs::keytype key =
+      TrackerDefs::MVTXBinning::genhitkey(TrackerDefs::TRACKERID::mvtx_id,
+                                           cell->get_layer(),
+                                           cell->get_stave_index(),
+                                           cell->get_chip_index(),
+                                           binphi, binz);
+
+    hit->set_hitid(key);
+
+    // copy g4hits from cell to TrackerHit
+    PHG4Cell::EdepConstRange g4hitrange = cell->get_g4hits();
+    for (PHG4Cell::EdepConstIterator hititr = g4hitrange.first;
+         hititr != g4hitrange.second;
+         ++hititr)
+    {
+      hit->add_edep(hititr->first, hititr->second);
     }
+
+    _hitmap->AddHitSpecifyKey(key, hit);
+
   }
-  
+
   return;
 }
 
@@ -200,27 +227,30 @@ void MvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
 
   if (verbosity >= 1) {
 
-    SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+    TrackerHitContainer *hitlist = findNode::getClass<TrackerHitContainer>(topNode, "TrackerHitContainer");
     if (!hitlist) return;
-    
-    cout << "================= MvtxDigitizer::process_event() ====================" << endl;
-  
 
-    cout << " Found and recorded the following " << hitlist->size() << " hits: " << endl;
+    TrackerHitContainer::ConstRange mvtxhitrange = hitlist->getHits(TrackerDefs::TRACKERID::mvtx_id);
+
+    cout << "================= MvtxDigitizer::process_event() ====================" << endl;
+
+
+    cout << " Found and recorded the following hits: " << endl;
 
     unsigned int ihit = 0;
-    for (SvtxHitMap::Iter iter = hitlist->begin();
-   iter != hitlist->end();
-   ++iter) {
+    for (TrackerHitContainer::ConstIterator iter = mvtxhitrange.first;
+         iter != mvtxhitrange.second;
+         ++iter)
+    {
 
-      SvtxHit* hit = iter->second;
-      cout << ihit << " of " << hitlist->size() << endl;
+      TrackerHit* hit = iter->second;
+      cout << ihit << endl;
       hit->identify();
       ++ihit;
     }
-    
+
     cout << "===========================================================================" << endl;
   }
-  
+
   return;
 }

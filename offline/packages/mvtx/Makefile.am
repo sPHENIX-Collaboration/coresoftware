@@ -22,16 +22,13 @@ libmvtx_la_LIBADD = \
 
 pkginclude_HEADERS = \
   MvtxClusterizer.h \
-  MvtxDigitizer.h \
-  MvtxThresholds.h
+  MvtxDigitizer.h
 
 libmvtx_la_SOURCES = \
   MvtxClusterizer.C \
   MvtxClusterizer_Dict.C \
   MvtxDigitizer.C \
-  MvtxDigitizer_Dict.C \
-  MvtxThresholds.C \
-  MvtxThresholds_Dict.C
+  MvtxDigitizer_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

@@ -6,7 +6,7 @@
 
 #include <vector>
 
-class SvtxHitMap;
+class TrackerHitContainer;
 
 class MvtxDigitizer : public SubsysReco
 {
@@ -27,24 +27,28 @@ class MvtxDigitizer : public SubsysReco
   //! end of process
   int End(PHCompositeNode *topNode) {return 0;}
   
-  void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc) {
-    _max_adc.insert(std::make_pair(layer,max_adc));
-    _energy_scale.insert(std::make_pair(layer,energy_per_adc));
+  //! set an energy requirement relative to the short-axis MIP expectation
+  void set_threshold(const int layer, const float fraction_of_mip) {
+    _fraction_of_mip.insert(std::make_pair(layer,fraction_of_mip));
   }
-  
+  float get_threshold_by_layer(const int layer) const {
+    if (_thresholds_by_layer.find(layer) == _thresholds_by_layer.end()) return 0.0;
+    return _thresholds_by_layer.find(layer)->second;
+  }
+
  private:
 
-  void CalculateMapsLadderCellADCScale(PHCompositeNode *topNode);
+  void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
 
   void DigitizeMapsLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
   
   // settings
-  std::map<int,unsigned int> _max_adc;
-  std::map<int,float> _energy_scale;
+  std::map<int,float> _fraction_of_mip;
+  std::map<int,float> _thresholds_by_layer;
 
   // storage
-  SvtxHitMap* _hitmap;
+  TrackerHitContainer* _hitmap;
   
   PHTimeServer::timer _timer;   ///< Timer
 };
