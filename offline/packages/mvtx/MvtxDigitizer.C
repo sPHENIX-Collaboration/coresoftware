@@ -12,9 +12,9 @@
 #include <phool/getClass.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
@@ -169,6 +169,9 @@ void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
   PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_MAPS");
   if (!cells) return;
 
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+  if (!geom_container) return;
+
   //-------------
   // Digitization
   //-------------
@@ -187,7 +190,7 @@ void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
       continue;
 
     // get the layer geometry helper for indexing
-    PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
+    PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(cell->get_layer());
 
     int pixel_number = cell->get_pixel_index();
     // binphi is the cell index in the phi direction in the sensor
