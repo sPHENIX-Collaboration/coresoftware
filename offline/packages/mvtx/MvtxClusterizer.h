@@ -6,9 +6,9 @@
 #include <map>
 #include <limits.h>
 
-class SvtxHitMap;
-class SvtxClusterMap;
-class PHG4Cell;
+class TrackerClusterContainer;
+class TrackerHit;
+class TrackerHitContainer;
 
 class MvtxClusterizer : public SubsysReco {
 
@@ -50,18 +50,18 @@ public:
 
 private:
 
-  static bool maps_ladder_lessthan(const PHG4Cell*, 
-			      const PHG4Cell*);
-  bool maps_ladder_are_adjacent(const PHG4Cell*,
-				const PHG4Cell*);
+  static bool maps_ladder_lessthan(const TrackerHit*, 
+			      const TrackerHit*);
+  bool maps_ladder_are_adjacent(const TrackerHit*,
+				const TrackerHit*);
 
-  void ClusterMapsLadderCells(PHCompositeNode *topNode);
+  void ClusterMapsLadderHits(PHCompositeNode *topNode);
 
   void PrintClusters(PHCompositeNode *topNode);
   
   // node tree storage pointers
-  SvtxHitMap* _hits;
-  SvtxClusterMap* _clusterlist;
+  TrackerHitContainer* _hits;
+  TrackerClusterContainer* _clusters;
 
   // settings
   float _fraction_of_mip;
