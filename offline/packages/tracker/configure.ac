@@ -1,4 +1,4 @@
-AC_INIT(g4hough, [1.00])
+AC_INIT(tracker, [1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE

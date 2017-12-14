@@ -4,6 +4,8 @@
 #include <g4main/PHG4Hit.h>
 #include <TObject.h>
 #include "TrackerDefs.h"
+
+#include <limits.h>
 #include <map>
 
 class TrackerHit : public TObject
@@ -22,15 +24,15 @@ class TrackerHit : public TObject
   virtual void Reset();
   virtual void print() {};
 
-  virtual void set_hitid(const TrackerDefs::keytype id) { return; }
-  TrackerDefs::keytype get_hitid() const { return 0; }
-
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
-
   virtual EdepConstRange get_g4hits() {
     std::map <PHG4HitDefs::keytype, float> dummy;
     return std::make_pair(dummy.begin(), dummy.end());
   }
+
+  virtual void set_hitid(const TrackerDefs::keytype id) { return; }
+  TrackerDefs::keytype get_hitid() const { return 0; }
+
 
  protected:
   TrackerHit() {}
