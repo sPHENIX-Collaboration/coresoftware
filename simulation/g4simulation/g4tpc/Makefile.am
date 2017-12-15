@@ -23,6 +23,8 @@ libg4tpc_la_LIBADD = \
 
 libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \
+  PHG4TPCElectronDrift.cc \
+  PHG4TPCElectronDrift_Dict.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCSubsystem.cc \
   PHG4TPCSubsystem_Dict.cc

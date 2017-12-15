@@ -11,6 +11,8 @@
 #endif
 
 class PHCompositeNode;
+class TH1;
+class TNtuple;
 
 class  PHG4TPCElectronDrift: public SubsysReco, public PHG4ParameterInterface
 {
@@ -26,7 +28,12 @@ public:
   void Detector(const std::string &d) {detector = d;}
   std::string Detector() const {return detector;}
   void set_seed(const unsigned int iseed);
+//  void Amplify(const double x, const double y, const double z);
+  void MapToPadPlane(const double x, const double y, const double t);
 private:
+  TH1 *dlong;
+  TH1 *dtrans;
+  TNtuple *nt;
   std::string detector;
   std::string hitnodename;
   unsigned int seed;
@@ -34,6 +41,8 @@ private:
   double diffusion_long;
   double drift_velocity;
   double electrons_per_gev;
+  double min_active_radius;
+  double max_active_radius;
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif

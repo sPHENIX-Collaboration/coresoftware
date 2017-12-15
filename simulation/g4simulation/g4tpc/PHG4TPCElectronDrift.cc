@@ -4,6 +4,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
@@ -12,6 +13,8 @@
 #include <phool/getClass.h>
 
 #include <TSystem.h>
+#include <TH1.h>
+#include <TNtuple.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
 
@@ -24,10 +27,14 @@ using namespace std;
 PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   SubsysReco(name),
   PHG4ParameterInterface(name),
+  dlong(nullptr),
+  dtrans(nullptr),
   diffusion_trans(NAN),
   diffusion_long(NAN),
   drift_velocity(NAN),
-  electrons_per_gev(NAN)
+  electrons_per_gev(NAN),
+  min_active_radius(NAN),
+  max_active_radius(NAN)
 {  
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -71,6 +78,16 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   diffusion_trans = get_double_param("diffusion_trans");
   drift_velocity = get_double_param("drift_velocity");
   electrons_per_gev = get_double_param("electrons_per_gev");
+  min_active_radius = get_double_param("min_active_radius");
+  max_active_radius = get_double_param("max_active_radius");
+
+  Fun4AllServer *se = Fun4AllServer::instance();
+  dlong = new TH1F("difflong","longitudinal diffusion",100,diffusion_long-diffusion_long/2.,diffusion_long+diffusion_long/2.);
+  se->registerHisto(dlong);
+  dtrans = new TH1F("difftrans","transversal diffusion",100,diffusion_trans-diffusion_trans/2.,diffusion_trans+diffusion_trans/2.);
+  se->registerHisto(dtrans);
+  nt = new TNtuple("nt","stuff","ts:tb:tsig:phi:rad:ri:rsig:z");
+  se->registerHisto(nt);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -85,10 +102,6 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   double tpc_length = 211.;
-// apply binning hardcoded 360 in phi, 40 in r, rmin = 30cm, rmax=75
-  double rbins = 40;
-  double rbinwidth = (75.-30.)/rbins;
-  double phibinwidth = 2*M_PI/360.;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
     {
       double eion = hiter->second->get_eion();
@@ -112,44 +125,50 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	x_start += dx;
 	y_start += dy;
 	z_start += dz;
-	double t_start = (tpc_length/2. - fabs(z_start))/drift_velocity;
-// now the drift
-	double z_sigma = sqrt(diffusion_long*diffusion_long*(tpc_length/2. - fabs(z_start)));
-
-	double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
-	double r_sigma =  sqrt(diffusion_trans*diffusion_trans*(tpc_length/2. - fabs(z_start)));
+	double radstart = sqrt(x_start*x_start + y_start*y_start);
+	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
 	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
-	double x_final = x_start + rantrans*cos(ranphi);
-	double y_final = y_start + rantrans*sin(ranphi);
-	double rantime = gsl_ran_gaussian(RandomGenerator,z_sigma)/drift_velocity;
-	double t_final = t_start + rantime;
-	double phi = atan2(y_final,x_final);
-	double rad = sqrt(x_final*x_final + y_final*y_final);
-	// cout << "x_s: " << x_start
-	//      << ", x_f: " << x_final
-	//      << ", y_s: " << y_start
-	//      << ", y_f: " << y_final
-	//      << ", t_s: " << t_start
-	//      << ", t_f: " << t_final
-	//      << ", phi: " << phi
-	//      << ", rad: " << rad
-	//      << endl;
-	if (rad < 30 || rad >75)
+	double rad_final = radstart + rantrans;
+// remove electrons outside of our acceptance
+	if (rad_final<min_active_radius || rad_final >max_active_radius)
 	{
 	  continue;
 	}
-	int phibin = (phi+M_PI)/phibinwidth;
-	int radbin = (rad-30)/rbinwidth;
-	cout << ", phi: " << phi
-	     << ", phibin: " << phibin
-	     << ", rad: " << rad
-	     << ", radbin: " << radbin
-	     << endl;
+	t_start += (tpc_length/2. - fabs(z_start))/drift_velocity;
+// now the drift
+	double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
+	double x_final = x_start + rantrans*cos(ranphi);
+	double y_final = y_start + rantrans*sin(ranphi);
+	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
+	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
+	double t_final = t_start + rantime;
+	MapToPadPlane(x_final,y_final,t_final);
       }
 //      gSystem->Exit(0);
     }
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem)
+{
+// apply binning hardcoded 360 in phi, 40 in r, rmin = 30cm, rmax=75
+  static const double rbins = 40;
+  static const double rbinwidth = (75.-30.)/rbins;
+  static const double phibinwidth = 2*M_PI/360.;
+  double phi = atan2(y_gem,x_gem);
+  double rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);
+  int phibin = (phi+M_PI)/phibinwidth;
+  int radbin = (rad_gem-min_active_radius)/rbinwidth;
+  cout << ", phi: " << phi
+       << ", phibin: " << phibin
+       << ", rad: " << rad_gem
+       << ", radbin: " << radbin
+       << ", t_gem: " << t_gem 
+       << endl;
+
+  return;
+}
+
 
 int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
 {
@@ -166,6 +185,8 @@ void PHG4TPCElectronDrift::SetDefaultParameters()
 {
 // Data on gasses @20 C and 760 Torr from the following source:
 // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
+// diffusion and drift velocity for 400kV for NeCF4 90/10 from calculations:
+// https://www.phenix.bnl.gov/WWW/p/draft/prakhar/tpc/HTML_Gas_Linear/Ne_CF4_90_10.html
 double Ne_dEdx = 1.56;    // keV/cm
 double CF4_dEdx = 7.00;   // keV/cm
 // double Ne_NPrimary = 12;    // Number/cm
@@ -179,5 +200,8 @@ double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
   set_default_double_param("diffusion_trans",0.006); // cm/SQRT(cm)
   set_default_double_param("drift_velocity",8.0 / 1000.0); // cm/ns
   set_default_double_param("electrons_per_gev",TPC_ElectronsPerKeV*1000000.);
+  set_default_double_param("min_active_radius",30.); // cm
+  set_default_double_param("max_active_radius",75.); // cm
   return;
 }
+
