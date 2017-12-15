@@ -154,11 +154,6 @@ bool PHG4TPCClusterizer::is_local_maximum(int phi, int z) {
       for(int ip=-FitRangeP; ip!=FitRangeP+1; ++ip) {
 	if((iz == 0) && (ip == 0)) continue; // skip center
 	int cp = wrap_phibin(phi + ip);
-	/*	if(z>840&&z<870&& phi>510&&phi<560){
-
-	  cout << "z: " << z+iz << " phi: " << phi+ip << " amp " << fAmps[cz*fNPhiBins + cp] << " cent: " << cent_val << endl;
-	}
-	*/
 	if(fAmps[cz*fNPhiBins + cp] > cent_val) {
 	  is_max = false;
 	  break;
@@ -204,12 +199,9 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
     cloud_sig_zz[0] = sqrt( fDiffusionL*fDiffusionL*(105.5 - fabs(zpos)) + sigmaL[0]*sigmaL[0] );
     cloud_sig_zz[1] = sqrt( fDiffusionL*fDiffusionL*(105.5 - fabs(zpos)) + sigmaL[1]*sigmaL[1] );
     
-    //    printf("sPhi: %f sZ: %f|%f\n",cloud_sig_rp,cloud_sig_zz[0],cloud_sig_zz[1]);
-
     int nseg = zrange/cloud_sig_zz[1];// must be odd number
     if(nseg%2==0)nseg+=1;
-    // printf("nseg = %d\n",nseg);
-    // printf("nseg = %d zrange = %f sigz = %f\n",nseg,zrange,cloud_sig_zz[1]);					 
+
     for(int izr =0;izr<nseg;izr++)
       {
 
@@ -219,10 +211,7 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
 	//define the window
 	
 	double zdispseg = z + zsegoffset - hdum->GetXaxis()->GetBinCenter(zbin);
-	//printf("izr: %d (%d) zpos: %f zseg %f zcent: %f zcent diff %f\n",izr,nseg,z,z + zsegoffset,zdispseg);	
-
 	int n_rp = int(3*cloud_sig_rp/(radius*hdum->GetXaxis()->GetBinWidth(2))+1);
-	//printf("cloudsig: %f stepphi: %f n_rp: %d\n",cloud_sig_rp,r*phistepsize,n_rp);
 	int n_zz = int(3*(cloud_sig_zz[0]+cloud_sig_zz[1])/(2.0*zbinwidth)+1);
 	
 	double cloud_sig_rp_inv = 1./cloud_sig_rp;
@@ -233,36 +222,23 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
 	//loop over bins in window
 	
 	for( int iphi = -n_rp; iphi != n_rp+1; ++iphi ) {
-	  //	  int cur_phi_bin = phibin + iphi;
-
-	  //	  printf("iphi: %d (%d) cur %d\n",iphi,n_rp+1,cur_phi_bin);
-
-	  // Get the integral of the charge probability distribution in phi inside the current phi step
 
 	  double phiLim1 = 0.5*m_sqrt2*( (iphi+0.5)*radius*hdum->GetXaxis()->GetBinWidth(2))*cloud_sig_rp_inv;
 	  double phiLim2 = 0.5*m_sqrt2*( (iphi-0.5)*radius*hdum->GetXaxis()->GetBinWidth(2))*cloud_sig_rp_inv;
 	  double phi_integral = 0.5*( TMath::Erf(phiLim1) - TMath::Erf(phiLim2) );
 	  
-	  //	  if(verbosity > 2000) cout << " current phi bin " << cur_phi_bin << " phiLim1 " << phiLim1 << " phiLim2 " << phiLim2 << " phi_integral " << phi_integral << endl;
-	  
 	  for( int iz = -n_zz; iz != n_zz+1; ++iz ) {
-	    // int cur_z_bin = zbinseg + iz;
-	    
-	    // Get the integral of the charge probability distribution in Z inside the current Z step. We only need to get the relative signs correct here, I think
-	    // this is correct for z further from the membrane - charge arrives early
 	    double zLim1 = 0.5*m_sqrt2*( (iz+0.5)*zbinwidth - zdispseg)*cloud_sig_zz_inv[0];
 	    double zLim2 = 0.5*m_sqrt2*( (iz-0.5)*zbinwidth - zdispseg)*cloud_sig_zz_inv[0];
-	    // The above is correct if we are in the leading part of the time distribution. In the tail of the distribution we use the second gaussian width 
-	    // this is correct for z  closer to the membrane - charge arrives late
+
 	    if(zLim1 > 0)
 	      zLim1 =  0.5*m_sqrt2*( (iz+0.5)*zbinwidth - zdispseg )*cloud_sig_zz_inv[1];
 	    if(zLim2 > 0)
 	      zLim2 = 0.5*m_sqrt2*( (iz-0.5)*zbinwidth - zdispseg )*cloud_sig_zz_inv[1];
-	    // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
+
 	    double z_integral = 0.5*( TMath::Erf(zLim1) - TMath::Erf(zLim2) );
 	    
 	    float neffelectrons = (2000/nseg)*nelec*( phi_integral * z_integral ); 
-	    // adding constant electron avalanche (value chosen so that digitizer will not trip)
 	    
 	    if(neffelectrons < 0) continue; // skip no signals
 	    
@@ -275,7 +251,6 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
       } // izr
   }
 
-  //  TH1D *hslice;
   if(fResponse!=NULL){
     for (Int_t i=0;i<fNZBins;i++){
       delete[] fSource[i];
@@ -313,7 +288,6 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
       xmax = bin-1;
     }
   }
-  //  printf("min %d max %d \n",xmin,xmax);
 
   hist1d = hdum->ProjectionY("hist1d",1,fNZBins);
   Int_t ymin = 0; 
@@ -321,22 +295,19 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
 
   for(Int_t bin = 1;bin<=fNZBins;bin++){
     float val = hist1d->GetBinContent(bin);
-    // printf("#%d val = %f \n",bin,val);
     if(ymin==0&&val>0)
       ymin = bin;
     if(ymax==fNZBins&&ymin>0&&val==0.0){
       ymax = bin-1;
-      //      printf("#%d min %d max %d val %f\n",bin,ymin,ymax,val);
     }
   }
-  //  printf("min %d max %d \n",ymin,ymax);
 
   Int_t iy = 0;
   for(Int_t ybin = ymin;ybin<=ymax;ybin++){
     TH1D *hist1d = hdum->ProjectionX("hist1d",ybin,ybin);
     Int_t ix = 0;
     for(Int_t xbin = xmin;xbin<=xmax;xbin++){
-      //      printf("bin %d|%d x %d|%d val %f \n",xbin,ybin,ix,iy,hist1d->GetBinContent(xbin));
+
       fResponse[ix][iy] = hist1d->GetBinContent(xbin);
       htest2D->SetBinContent(ix,iy,hist1d->GetBinContent(xbin));
       ix++;
@@ -350,7 +321,6 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
     TH1D *hist1d = hdum->ProjectionX("hist1d",ybin,ybin);
     Int_t ix = 0;
     for(Int_t xbin = xmin;xbin<=xmax;xbin++){
-      //  printf("bin %d|%d x %d|%d val %f \n",xbin,ybin,ix,iy,hist1d->GetBinContent(xbin));
       fResponse[ix][iy] += hist1d->GetBinContent(xbin);
       htest2D->SetBinContent(ix,iy,fResponse[ix][iy]);
       ix++;
@@ -358,18 +328,6 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
     iy++;
     //    delete hist1d;
   }
-  /*
-  TCanvas *c1 = new TCanvas("c1","Background estimator",600,800);
-  c1->Divide(1,2);
-  c1->cd(1);
-  htest2D->Draw("colz");
-  c1->cd(2);
-  hdum->Draw("colz");
-  //  hfilt2D->Draw("colz");
-  c1->Update();
-  cout << " next? " << endl;
-  getchar();
-  */
   delete hdum;
   delete htest2D;
 }
@@ -388,7 +346,6 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
   for(int ip=0; ip<=fFitRangeP; ++ip) {
     int cp = wrap_phibin(phibin + ip);
     int bin = zbin * fNPhiBins + cp;
-    //cout << " ipup: "  << ip << "amp" <<  fAmps[bin] << endl;
     if(fAmps[bin] < fFitEnergyThreshold*peak){
       phiup = ip;
       break; // skip small (include empty)
@@ -399,7 +356,6 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
     if(ip<fFitRangeP){
       if(fAmps[bin]+fAmps[bin1] < fAmps[bin2]+fAmps[bin3]){//rising again
 	phiup = ip+1;
-	//cout << "rise!" << endl;
 	break;
       }
     }
@@ -407,7 +363,6 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
   for(int ip=0; ip<=fFitRangeP; ++ip) {
     int cp = wrap_phibin(phibin - ip);
     int bin = zbin * fNPhiBins + cp;
-    //cout << " ipdo: "  << ip << "amp" <<  fAmps[bin] << endl;
     if(fAmps[bin] < fFitEnergyThreshold*peak){
       phidown = ip;
       break; // skip small (include empty)
@@ -418,14 +373,13 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
     if(ip<fFitRangeP){
       if(fAmps[bin]+fAmps[bin1] < fAmps[bin2]+fAmps[bin3]){//rising again
 	phidown = ip+1;
-	//cout << "rise!" << endl;
 	break;
       }
     }
   }
   /*
-  if(phiup<1)phiup = 1;
-  if(phidown<1)phidown = 1;
+    if(phiup<1)phiup = 1;
+    if(phidown<1)phidown = 1;
   */
 }
 
@@ -447,7 +401,6 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
       int bin1 = (cz+1) * fNPhiBins + cp;
       int bin2 = (cz+2) * fNPhiBins + cp;
       int bin3 = (cz+3) * fNPhiBins + cp;
-      //cout << " izup: "  << iz << "amp" <<  fAmps[bin] << endl;
       if(fAmps[bin] < fFitEnergyThreshold*peak) {
 	zup = iz;
 	if(verbosity > 1000) cout << " failed threshold cut, set izup to " << zup << endl;
@@ -476,7 +429,6 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
       int bin1 = (cz-1) * fNPhiBins + cp;
       int bin2 = (cz-2) * fNPhiBins + cp;
       int bin3 = (cz-3) * fNPhiBins + cp;
-      //   cout << " izdo: "  << iz << "amp" <<  fAmps[bin] << endl;
       if(fAmps[bin] < fFitEnergyThreshold*peak) {
 	zdown = iz;
 	if(verbosity > 1000) cout << " failed threshold cut, set izdown to " << zdown << endl;
@@ -509,23 +461,6 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   fFitSumPZ = 0;
   fFitSizeP = 0;
   fFitSizeZ = 0;
-  //  bool fixit = true;
-  /*
-  for(int iz=-fFitRangeZ; iz<=fFitRangeZ; ++iz) {
-    int cz = zbin + iz;
-    if(cz < 0) continue; // truncate edge
-    if(cz >= fNZBins) continue; // truncate edge
-    cout << iz << " ";
-    for(int ip=-fFitRangeP; ip<=fFitRangeP; ++ip) {
-      int cp = wrap_phibin(pbin + ip);
-      int bin = cz * fNPhiBins + cp;
-      if(verbosity>1000) {
-	std::cout << Form("%.2f | ",fAmps[bin]);
-	if(ip==fFitRangeP) std::cout << std::endl;
-      }
-    }
-  }
-  */
   // Here we have to allow for highly angled tracks, where the Z range can be much larger than the Z diffusion
   // Check that we do not have to increase this range
   // Start at the peak and go out in both directions until the yield falls below threshold
@@ -535,16 +470,8 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   int ipup   = fFitRangeP;
   int ipdown = fFitRangeP;
 
-
-
-
-
-  //  cout << "Range z: " <<fFitRangeZ  << "phi: " << fFitRangeP  << endl;
-  // cout <<" z: " << zbin << " phi: " << pbin << endl; 
   //Get Phi dimension of cluster at maximum
   find_phi_range(zbin,pbin,ipmost,peak,ipup,ipdown);
-
-  //  cout << " ipup: " << ipup << " ipdown: " << ipdown << endl;
 
   //Get Z Dimension per phi slice
   int izup[2*fFitRangeP+1];
@@ -558,9 +485,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   }
 
   for(int ip  = -1*ipdown;ip<=ipup;ip++){
-    //cout << " ip: " << ip << endl;
     find_z_range(zbin,pbin+ip,izmost,peak,izup[ip+fFitRangeP],izdown[ip+fFitRangeP]);
-    // cout << "zdown: " << izdown[ip+fFitRangeP] << " zup: " << izup[ip+fFitRangeP] << endl;
     if(izup[ip+fFitRangeP]>izupmax)
       izupmax = izup[ip+fFitRangeP];
     if(izdown[ip+fFitRangeP]>izdownmax)
@@ -571,13 +496,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
     std::cout << "max " << fAmps[zbin*fNPhiBins+pbin] << std::endl;
   if(verbosity>1000) 
     std::cout << "izdown " << izdown << " izup " << izup << std::endl;
-  /*
-  cout << " ipup: " << ipup << " ipdown: " << ipdown << endl;
-  cout << "zdownmax: " << izdownmax << " zupmax: " << izupmax << endl;
-  for(int ii = -fFitRangeP;ii<=fFitRangeP;ii++){
-    cout << "ip: " << ii << " zdown " << izdown[ii+fFitRangeP] << " zup " << izup[ii+fFitRangeP] << endl;
-    }
-  */
+
   for(int iz=-izdownmax; iz<izupmax; ++iz) {
     int cz = zbin + iz;
     if(cz < 0) continue; // truncate edge
@@ -588,7 +507,6 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
     for(int ip=-ipdown; ip<=ipup; ++ip) {
       if(iz<-1*izdown[ip+fFitRangeP])continue;
       if(iz>izup[ip+fFitRangeP])continue;
-      //  cout << "fit zbin: " << zbin << " iz: " << iz << " pbin: " << pbin << " ip:" << ip << " izdown: " << -1*izdown[ip+fFitRangeP] << " izup: " << izup[ip+fFitRangeP] << endl;
       int cp = wrap_phibin(pbin + ip);
       int bin = cz * fNPhiBins + cp;
       if(verbosity>1000) {
@@ -766,10 +684,10 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     for(int zbin = 0; zbin!=fNZBins; ++zbin)
       nhits_tot += fNHitsPerZ[zbin];
     if(verbosity>2000) std::cout << " nhits_tot " << nhits_tot << std::endl;
-    // <==
+
     float stepz = fGeoLayer->get_zstep();
     float stepp = fGeoLayer->get_phistep();
-    //std::cout << "STEPP " << stepp << " STEPZ " << stepz << std::endl;
+
     while(nhits_tot > 0) {
       if(verbosity>2000) std::cout << " => nhits_tot " << nhits_tot << std::endl;
       for(int zbin = 0; zbin!=fNZBins; ++zbin) {
@@ -787,18 +705,11 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
         for(int phibin = 0; phibin!=fNPhiBins; ++phibin) {
           float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
 	  fFitRangeP = int( fClusterWindow*sigmaP/(radius*stepp) + 1);
-	  /*
-	    cout << " range: " << fFitRangeP
-	    << " window: " << fClusterWindow
-	    << " sigma: " << sigmaP/(radius*stepp)
-	    << " sigmaP: " << sigmaP
-	    << " step: " << (radius*stepp)
-	    <<  endl;
-	  */
+
 	  if(fFitRangeP<1) fFitRangeP = 1;
 	  if(fFitRangeP>fFitRangeMP) fFitRangeP = fFitRangeMP;
           if(!is_local_maximum(phibin, zbin)) continue;
-	  if(verbosity>2000){//||(zbin>840&&zbin<870&& phibin>510&&phibin<560&&layer==7)){
+	  if(verbosity>2000){
 	    std::cout << " maxima found in window rphi z " << fFitRangeP << " " << fFitRangeZ << std::endl;
 	    cout << " phibin: "  << phibin << " zbin: " << zbin 
 		 << endl;
@@ -813,13 +724,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float zz = fit_z_mean();
 	  float pp_err = radius * fGeoLayer->get_phistep() * _inv_sqrt12;
 	  float zz_err = fGeoLayer->get_zstep() * _inv_sqrt12;
-	  /*
-	  if(zbin>840&&zbin<870&& phibin>510&&phibin<560&&layer==7){
-	    cout << " phi: " << phi << " " << phibin
-		 << " zz: " << zz << " " << zbin 
-		 << endl;
-	  }
-	  */
+
 	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW/2000) );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW/2000) );
 	  //float rr_err = fGeoLayer->get_thickness() * _inv_sqrt12;
@@ -833,13 +738,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
 
-	  /*	  
-	  cout << "layer " << layer 
-	       << " get_zstep() returns "  << fGeoLayer->get_zstep() << " fFitSizeZ = " << fFitSizeZ << " fFitSizeZ*zstep = " << zz_size << endl
-	       << " get_phistep() returns " << fGeoLayer->get_phistep() << " fFitSizeP = " << fFitSizeP << " radius*fFitSizeP*phistep = " << pp_size <<  endl;
-	  */
-	  //float xx_size = TMath::Sqrt(pp_size*sinphi*pp_size*sinphi + fGeoLayer->get_thickness()*cosphi*fGeoLayer->get_thickness()*cosphi); // linearization
-	  //float yy_size = TMath::Sqrt(pp_size*cosphi*pp_size*cosphi + fGeoLayer->get_thickness()*sinphi*fGeoLayer->get_thickness()*sinphi); // linearization
 	  if(verbosity>1) {
 	    fHClusterEnergy->Fill(fFitW/2000);
 	    fHClusterDensity->Fill(layer,zz,fFitW/2000);
@@ -857,7 +755,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  }
 	  if(verbosity>2000)
 	    std::cout << " cluster fitted " << std::endl;
-	  if(verbosity>1000){//||(zbin>840&&zbin<870&& phibin>510&&phibin<560&&layer==7)) {
+	  if(verbosity>1000){
 	    std::cout << " | rad " << radius;
 	    std::cout << " | size rp z " << pp_size << " " << zz_size;
 	    std::cout << " | error_rphi error_z " << pp_err << " " << zz_err << std::endl;
@@ -958,7 +856,6 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  clus.set_error( 2 , 2 , zz_err );
 	  */
 	  svxclusters->insert(&clus);
-	  //	  if(verbosity>1000||(zbin>840&&zbin<870&& phibin>510&&phibin<560&&layer==7)) std::cout << " inserted " << std::endl;
         }
       }
     }
