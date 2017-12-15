@@ -9,6 +9,7 @@ RawClusterv1::RawClusterv1():
   _eta(0.0),
   _phi(0.0),
   _energy(0.0),
+  _ecore(0.0),
   _chi2(numeric_limits<float>::signaling_NaN()),
   _prob(numeric_limits<float>::signaling_NaN())
 {}
@@ -20,6 +21,7 @@ RawClusterv1::Reset()
   _eta = 0.0;
   _phi = 0.0;
   _energy = 0.0;
+  _ecore = 0.0;
   towermap.clear();
 }
 

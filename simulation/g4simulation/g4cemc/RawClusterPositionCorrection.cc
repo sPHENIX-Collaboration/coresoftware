@@ -151,7 +151,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     float etasum = 0;
     float phimult = 0;
     float phisum = 0;
-
+ 
     for (int j = 0; j < ntowers; j++)
     {
       float energymult = towerenergies.at(j) * toweretas.at(j);
@@ -159,12 +159,12 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       etasum += towerenergies.at(j);
 
       int phibin = towerphis.at(j);
-
-      if (phibin - towerphis[0] < -nphibin / 2)
+          
+      if (phibin - towerphis.at(0) < -nphibin / 2)
         phibin += nphibin;
-      else if (phibin - towerphis[0] > +nphibin / 2)
+      else if (phibin - towerphis.at(0) > +nphibin / 2)
         phibin -= nphibin;
-      assert(abs(phibin - towerphis[0]) <= nphibin / 2);
+      assert(abs(phibin - towerphis.at(0)) <= nphibin / 2);
 
       energymult = towerenergies.at(j) * phibin;
       phimult += energymult;
@@ -173,7 +173,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
     float avgphi = phimult / phisum;
     float avgeta = etamult / etasum;
-
+  
     if (avgphi<0) avgphi += nphibin;
 
     //this determines the position of the cluster in the 2x2 block
@@ -208,7 +208,10 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     recalibcluster->set_energy(clus_energy / recalib_val);
     recalibcluster->set_eta(cluster->get_eta());
     recalibcluster->set_phi(cluster->get_phi());
-
+    recalibcluster->set_ecore(cluster->get_ecore() / recalib_val);
+    recalibcluster->set_prob(cluster->get_prob());
+    recalibcluster->set_chi2(cluster->get_chi2());
+    
     //add the towers also
     RawCluster::TowerConstRange towers2 = cluster->get_towers();
     RawCluster::TowerConstIterator titer;

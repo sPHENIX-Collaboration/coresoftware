@@ -12,7 +12,7 @@ using namespace std;
 // Define and initialize static members
 
 // Max number of peaks in cluster; used in EmcCluster::GetPeaks(...)
-int const EmcCluster::fgMaxNofPeaks=10;
+int const EmcCluster::fgMaxNofPeaks=1000;
 
 // Used in EmcCluster::GetPeaks(...), it is the number of iterations
 // when fitting photons to peak areas
@@ -254,17 +254,29 @@ float EmcCluster::GetTotalEnergy()
 
 // ///////////////////////////////////////////////////////////////////////////
 
+float EmcCluster::GetECoreCorrected()
+// Returns the energy in core towers around the cluster Center of Gravity
+// Corrected for energy leak sidewise from core towers
+{
+  const float c0 = 0.950; // For no threshold
+
+  //  float energy = GetTotalEnergy();
+  //  if( energy<=0 ) return 0;
+  float ecore = GetECore();
+  return ecore/c0;
+}
+
 float EmcCluster::GetECore()
-// Returns the energy in 2x2 towers around the cluster Center of Gravity
+// Returns the energy in core towers around the cluster Center of Gravity
 {
     vector<EmcModule>::iterator ph;
     float xcg, ycg, xx, xy, yy, dx, dy;
     float energy, es, et;
     int ix, iy, ixy;
 
-    GetMoments( &xcg, &ycg, &xx, &xy, &yy );
-    xcg /= fOwner->GetModSizex();
-    ycg /= fOwner->GetModSizey();
+    GetMoments( &xcg, &ycg, &xx, &xy, &yy ); // Now it is in cell units
+    //    xcg /= fOwner->GetModSizex();
+    //    ycg /= fOwner->GetModSizey();
     energy = GetTotalEnergy();
     fOwner->SetProfileParameters(0,energy,xcg,ycg);
 
@@ -295,19 +307,23 @@ float EmcCluster::GetECore()
     EmcModule* vv = hlist0;
     while( ph != fHitList.end() ) *vv++ = *ph++;
     int ish = fOwner->ShiftX(0, nhit, hlist0, hlist);
+    if( ish < -fOwner->GetNx() ) return 0;
+    xcg += ish;
+    if( xcg>fOwner->GetNx()-0.5 ) xcg -= fOwner->GetNx();
 
     es=0;
     for( int i=0; i<nhit; i++ ) {
       ixy = hlist[i].ich;
       iy = ixy/fOwner->GetNx();
       ix = ixy - iy*fOwner->GetNx();
-      dx = xcg+ish;
-      if( dx>fOwner->GetNx() ) dx -= fOwner->GetNx();
-      dx -= ix;
+      dx = xcg - ix;
       dy = ycg - iy;
       et = fOwner->PredictEnergy(dx, dy, -1);
-      if( et > 0.02 ) es += hlist[i].amp;
+      if( et > 0.01 ) es += hlist[i].amp; // Thresh = 1%
     }
+
+    delete [] hlist0;
+    delete [] hlist;
     return es;
 }
 
@@ -388,6 +404,8 @@ float EmcCluster::GetE9( int ich )
      while( ph != fHitList.end() ) *vv++ = *ph++;
      
      int ish = fOwner->ShiftX(0, nhit, hlist0, hlist);
+     if( ish < -fOwner->GetNx() ) return 0;
+
      int Nx = fOwner->GetNx();
      int iy = ich / Nx;
      int ix = ich % Nx + ish;
@@ -579,19 +597,21 @@ void EmcCluster::GetChar( float* pe,
 
 // ///////////////////////////////////////////////////////////////////////////
 
-int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
+int EmcCluster::GetPeaks( vector<EmcPeakarea> *PkList, vector<EmcModule> *ppeaks )
 {
   // Splits the cluster onto peakarea's
   // The number of peakarea's is equal to the number of Local Maxima 
   // in the cluster. Local Maxima can have the energy not less then 
   // defined in fgMinPeakEnergy
   //
-  // Output: PkList - the array of peakarea's
-  //         ppeaks - the array of peak EmcModules (one for each peakarea)
+  // Output: PkList - vector of peakarea's
+  //         ppeaks - vector of peak EmcModules (one for each peakarea)
   //
   // Returns: >= 0 Number of Peaks;
   //	      -1 The number of Peaks is greater then fgMaxNofPeaks;
   //		 (just increase parameter fgMaxNofPeaks)
+  //          -2 Too long cluster (in phi)
+  //             (may need to increase tower energy threshold)
   
   int npk, ipk, nhit;
   int ixypk, ixpk, iypk, in, nh, ic;
@@ -601,12 +621,14 @@ int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
   float epk[fgMaxNofPeaks*2], xpk[fgMaxNofPeaks*2], ypk[fgMaxNofPeaks*2];
   float ratio, eg, dx, dy, a, chi, chi0;
   float *Energy[fgMaxNofPeaks], *totEnergy, *tmpEnergy;
-  EmcModule *ip;
   EmcModule *phit, *hlist0, *hlist, *vv;
   EmcPeakarea peak(fOwner);
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hl;
   
+  PkList->clear();
+  ppeaks->clear();
+
   nhit = fHitList.size();
   
   if( nhit <= 0 ) return 0;
@@ -619,6 +641,11 @@ int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
   while( ph != fHitList.end() ) *vv++ = *ph++;
   
   int ish = fOwner->ShiftX(0, nhit, hlist0, hlist);
+  if( ish < -fOwner->GetNx() ) {
+    delete [] hlist0; 
+    delete [] hlist; 
+    return -2;
+  }
 
   // sort by linear channel number
   qsort( hlist, nhit, sizeof(EmcModule), fOwner->HitNCompare );
@@ -651,6 +678,7 @@ int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
       if( npk >= fgMaxNofPeaks ) { 
 	delete [] hlist0; 
 	delete [] hlist; 
+	printf("!!! Error in EmcCluster::GetPeaks(): too many peaks in a cluster. May need tower energy threshold increase for clustering.\n");
 	return -1; 
       }
 
@@ -663,13 +691,13 @@ int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
  
   // there was only one peak
   if( npk <= 1 ) {
-    hl.erase( hl.begin(), hl.end() );
+    hl.clear();
     for( int ich=0; ich<nhit; ich++ ) hl.push_back(hlist0[ich]);
     peak.ReInitialize(hl);
-    PkList[0]=peak;
+    PkList->push_back(peak);
 
-    if( npk == 1 ) *ppeaks = fOwner->ShiftX(-ish, hlist[PeakCh[0]]);
-    else  *ppeaks = GetMaxTower();
+    if( npk == 1 ) ppeaks->push_back(fOwner->ShiftX(-ish, hlist[PeakCh[0]]));
+    else           ppeaks->push_back(GetMaxTower());
 
     delete [] hlist0;
     delete [] hlist;
@@ -842,8 +870,7 @@ int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
       } // for( in
     } // if( ig >= 0
   } // for( ipk
-  
-  ip = ppeaks;
+
   nn=0;
   for( ipk=0; ipk<npk; ipk++ ) {
     nh=0;
@@ -870,13 +897,14 @@ int EmcCluster::GetPeaks( EmcPeakarea* PkList, EmcModule* ppeaks )
     }
     if( nh>0 ) {
       //      *ip++ = hlist[PeakCh[ipk]];
-      *ip++ = fOwner->ShiftX(-ish, hlist[PeakCh[ipk]]);
-      hl.erase( hl.begin(), hl.end() );
+      ppeaks->push_back(fOwner->ShiftX(-ish, hlist[PeakCh[ipk]]));
+      hl.clear();
       //      for( in=0; in<nh; in++ ) hl.push_back(phit[in]);
       for( in=0; in<nh; in++ ) 
 	hl.push_back(fOwner->ShiftX(-ish, phit[in]));
       peak.ReInitialize(hl);
-      PkList[nn++]=peak;
+      PkList->push_back(peak);
+      nn++;
     }
   }
   
