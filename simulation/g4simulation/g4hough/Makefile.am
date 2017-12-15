@@ -16,13 +16,15 @@ AM_CXXFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib
 
 libg4hough_io_la_LIBADD = \
   -lphool
 
 libg4hough_la_LDFLAGS = \
-  `geant4-config --libs`
+  `geant4-config --libs`\
+  `root-config --libs`
 
 libg4hough_la_LIBADD = \
   -lg4detectors \
@@ -36,6 +38,7 @@ libg4hough_la_LIBADD = \
   -lphfield \
   -lgenfit2exp \
   -lPHGenFit \
+  -lSpectrum \
   libg4hough_io.la
 
 pkginclude_HEADERS = \

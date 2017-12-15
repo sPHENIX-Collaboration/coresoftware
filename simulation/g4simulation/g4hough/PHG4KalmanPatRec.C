@@ -1405,10 +1405,27 @@ int PHG4KalmanPatRec::translate_input() {
 
 	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
 			iter != _g4clusters->end(); ++iter) {
-		SvtxCluster* cluster = iter->second;
-
-
-		//unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+	  SvtxCluster* cluster = iter->second;
+	  /*
+	    float vz = 0.0;
+	    float x  = cluster->get_x();
+	    float y  = cluster->get_y();
+	    float z  = cluster->get_z();
+	    float dz = z - vz;
+	    float r  = sqrt(x*x+y*y);
+	    float zsize = cluster->get_z_size();
+	    bool goodhit = false;
+	    
+	    if(TMath::Abs(dz)<40&&zsize<3)
+	    goodhit = true;
+	    
+	    if(zsize > (TMath::Abs(dz)/r * 2.448 + 0.5)&&
+	    zsize < (TMath::Abs(dz)/r * 2.448 + 3.5) )
+	    goodhit = true;
+	    if(goodhit==false) continue;
+	    //ntp_cluster.Draw("zsize:z-gvz","layer==7&&zsize>(abs(z-gvz)*0.08+0.5)&&zsize<(abs(z-gvz)*0.08)+3.5")
+	    */
+	  //unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
 
 //		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
 //		if(ilayer >= _nlayers_seeding) continue;

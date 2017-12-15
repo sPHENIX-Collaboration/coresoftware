@@ -92,21 +92,22 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						 "nfromtruth");
   
   if (_do_g4hit_eval) _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
-					       "event:g4hitID:gx:gy:gz:gt:gedep:gphi"
+					       "event:g4hitID:gx:gy:gz:gt:gedep:geta:gphi:"
+					       "gdphi:gdz:"
 					       "glayer:gtrackID:gflavor:"
 					       "gpx:gpy:gpz:"
 					       "gvx:gvy:gvz:"
 					       "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 					       "gembed:gprimary:nclusters:"
-					       "clusID:x:y:z:e:adc:layer:size:"
-					       "phisize:zsize:efromtruth");
+					       "clusID:x:y:z:eta:phi:e:adc:layer:size:"
+					       "phisize:zsize:efromtruth:dphitru:detatru:dztru:drtru");
 
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
 					   "event:hitID:e:adc:layer:"
 					   "cellID:ecell:phibin:zbin:phi:z:"
 					   "g4hitID:gedep:gx:gy:gz:gt:"
 					   "gtrackID:gflavor:"
-					   "gpx:gpy:gpz:gvx:gvy:gvz:"
+					   "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
 					   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 					   "gembed:gprimary:efromtruth");
 
@@ -115,7 +116,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						   "e:adc:layer:size:phisize:"
 						   "zsize:trackID:g4hitID:gx:"
 						   "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
-						   "gpx:gpy:gpz:gvx:gvy:gvz:"
+						   "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 						   "gembed:gprimary:efromtruth:nparticles");
 
@@ -746,14 +747,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
                                  nfromtruth
 	};
 
-	/*
+	
 	cout << "vertex: " 
 	     << " ievent " << vertex_data[0]
 	     << " vx " << vertex_data[1]
 	     << " vy " << vertex_data[2]
 	     << " vz " << vertex_data[3]
+	     << " gvx " << vertex_data[5]
+	     << " gvy " << vertex_data[6]
+	     << " gvz " << vertex_data[7]
 	     << endl;
-	*/
+	
 
 	_ntp_vertex->Fill(vertex_data);      
       }
@@ -924,7 +928,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gx        = g4hit->get_avg_x();
       float gy        = g4hit->get_avg_y();
       float gz        = g4hit->get_avg_z();
+      TVector3 vg4(gx,gy,gz);
       float gt        = g4hit->get_avg_t();
+      TVector3 vin(g4hit->get_x(0),g4hit->get_y(0),g4hit->get_z(0));
+      TVector3 vout(g4hit->get_x(1),g4hit->get_y(1),g4hit->get_z(1));
+      float gdphi     = vin.DeltaPhi(vout);
+      float gdz       = fabs(g4hit->get_z(1) - g4hit->get_z(0));
       float gedep     = g4hit->get_edep();
       float glayer    = g4hit->get_layer();
   
@@ -935,6 +944,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gpy       = NAN;
       float gpz       = NAN;
       TVector3 vec(g4hit->get_avg_x(),g4hit->get_avg_y(),g4hit->get_avg_z());
+      float geta      = vec.Eta();
       float gphi      = vec.Phi();
       float gvx       = NAN;
       float gvy       = NAN;
@@ -996,6 +1006,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float x          = NAN;
       float y          = NAN;
       float z          = NAN;
+      float eta        = NAN;
+      float phi        = NAN;
       float e          = NAN;
       float adc        = NAN;
       float layer      = NAN;
@@ -1003,31 +1015,45 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float phisize    = NAN;
       float zsize      = NAN;
       float efromtruth = NAN;
+      float dphitru    = NAN;
+      float detatru    = NAN;
+      float dztru      = NAN;
+      float drtru      = NAN;
 
       if (cluster) {
 	clusID     = cluster->get_id();
 	x          = cluster->get_x();
 	y          = cluster->get_y();
 	z          = cluster->get_z();
+	TVector3 vec2(x,y,z);
+	eta        = vec2.Eta();
+	phi        = vec2.Phi();
 	e          = cluster->get_e();
 	adc        = cluster->get_adc();
 	layer      = cluster->get_layer();
 	size       = cluster->size_hits();
 	phisize    = cluster->get_phi_size();
 	zsize      = cluster->get_z_size();
+	dphitru    = vec2.DeltaPhi(vg4);
+	detatru    = eta - geta;
+	dztru      = z - gz;
+	drtru	   = vec2.DeltaR(vg4);
 	if (g4particle) {
 	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
       }
 
-      float g4hit_data[37] = {(float) _ievent,
+      float g4hit_data[46] = {(float) _ievent,
 			      g4hitID,
 			      gx,
 			      gy,
 			      gz,
 			      gt,
 			      gedep,
+			      geta,
 			      gphi,
+			      gdphi,
+			      gdz,
 			      glayer,
 			      gtrackID,
 			      gflavor,
@@ -1049,14 +1075,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      clusID,  
 			      x,      
 			      y,      
-			      z,      
+			      z,  
+			      eta,
+			      phi,
 			      e,      
 			      adc,    
 			      layer,  
 			      size,   
 			      phisize,
 			      zsize,  
-			      efromtruth
+			      efromtruth,
+			      dphitru,
+			      detatru,
+			      dztru,
+			      drtru
       };
 
       _ntp_g4hit->Fill(g4hit_data);
@@ -1105,9 +1137,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
  	int zbin     = NAN;
  	float phi    = NAN;
  	float z      = NAN;
-	PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
 
 	if(layer>=_nlayers_maps+_nlayers_intt){
+	  PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
 	  //"cellID:ecell:phibin:zbin:phi:z"
 	  phibin = PHG4CellDefs::SizeBinning::get_phibin(g4cell->get_cellid());//cell->get_binphi();
 	  zbin = PHG4CellDefs::SizeBinning::get_zbin(g4cell->get_cellid());//cell->get_binz();
@@ -1129,6 +1161,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gvx      = NAN;
 	float gvy      = NAN;
 	float gvz      = NAN;
+	float gvt      = NAN;
 	float gfpx     = NAN;
 	float gfpy     = NAN;
 	float gfpz     = NAN;
@@ -1166,6 +1199,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      gvx      = vtx->get_x();
 	      gvy      = vtx->get_y();
 	      gvz      = vtx->get_z();
+	      gvt      = vtx->get_t();
 	    }
 
 	    PHG4Hit* outerhit = NULL;
@@ -1188,7 +1222,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = hiteval->get_energy_contribution(hit,g4particle);
 	}
 
-	float hit_data[35] = {
+	float hit_data[36] = {
 	  event,
 	  hitID,
 	  e,
@@ -1214,6 +1248,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  gvx,
 	  gvy,
 	  gvz,
+	  gvt,
 	  gfpx,
 	  gfpy,
 	  gfpz,
@@ -1296,6 +1331,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gvx      = NAN;
 	float gvy      = NAN;
 	float gvz      = NAN;
+	float gvt      = NAN;
 	float gfpx     = NAN;
 	float gfpy     = NAN;
 	float gfpz     = NAN;
@@ -1331,6 +1367,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      gvx      = vtx->get_x();
 	      gvy      = vtx->get_y();
 	      gvz      = vtx->get_z();
+	      gvt      = vtx->get_t();
 	    }
 	    
 	    PHG4Hit* outerhit = nullptr;
@@ -1357,7 +1394,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	float nparticles = clustereval->all_truth_particles(cluster).size();
 
-	float cluster_data[45] = {(float) _ievent,
+	float cluster_data[46] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
@@ -1392,6 +1429,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  gvx,
 				  gvy,
 				  gvz,
+				  gvt,
 				  gfpx,
 				  gfpy,
 				  gfpz,
