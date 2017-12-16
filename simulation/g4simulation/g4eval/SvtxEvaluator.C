@@ -746,19 +746,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
                                  gnembed,
                                  nfromtruth
 	};
-
-	
-	cout << "vertex: " 
-	     << " ievent " << vertex_data[0]
-	     << " vx " << vertex_data[1]
-	     << " vy " << vertex_data[2]
-	     << " vz " << vertex_data[3]
-	     << " gvx " << vertex_data[5]
-	     << " gvy " << vertex_data[6]
-	     << " gvz " << vertex_data[7]
-	     << endl;
-	
-
+	      
 	_ntp_vertex->Fill(vertex_data);      
       }
 
