@@ -1,60 +1,92 @@
 #ifndef RAWCLUSTERV1_H__
 #define RAWCLUSTERV1_H__
 
-#include "RawCluster.h"
-#include <vector>
+#include <cmath>
 #include <map>
+#include <vector>
+#include "RawCluster.h"
 
-class RawClusterv1 : public RawCluster {
-
+class RawClusterv1 : public RawCluster
+{
  public:
   RawClusterv1();
   virtual ~RawClusterv1() {}
-
   void Reset();
   int isValid() const { return towermap.size() > 0; }
-  void identify(std::ostream& os=std::cout) const {
-    os << "This is the RawClusterv1 object" << std::endl;
-  }
+  void identify(std::ostream& os = std::cout) const;
 
   RawClusterDefs::keytype get_id() const { return clusterid; }
-  float get_eta() const { return _eta; }
-  float get_phi() const { return _phi; }
+  //! total energy
   float get_energy() const { return _energy; }
+  //!  access to intrinsic cylindrical coordinate system
+  float get_phi() const
+  {
+    return _phi;
+  }
+  float get_r() const
+  {
+    return _r;
+  }
+  float get_z() const
+  {
+    return _z;
+  }
+
+  //! convert cluster location to psuedo-rapidity given a user chosen z-location
+  virtual float get_eta(const float z) const
+  {
+  }
+
+  //! access cartesian coordinate system
+  virtual float get_x() const
+  {
+    return get_r() * std::cos(get_phi());
+  }
+
+  virtual float get_y() const
+  {
+    return get_r() * std::sin(get_phi());
+  }
+
+  //! access additional optional properties
+
   float get_ecore() const { return _ecore; }
   float get_chi2() const { return _chi2; }
   float get_prob() const { return _prob; }
-
-  void set_id(const RawClusterDefs::keytype id) {clusterid = id;}
-  void set_eta(const float eta) { _eta = eta; }
+  void set_id(const RawClusterDefs::keytype id) { clusterid = id; }
   void set_phi(const float phi) { _phi = phi; }
   void set_energy(const float energy) { _energy = energy; }
   void set_ecore(const float ecore) { _ecore = ecore; }
   void set_chi2(const float chi2) { _chi2 = chi2; }
   void set_prob(const float prob) { _prob = prob; }
-
   void addTower(const RawClusterDefs::keytype twrid, const float etower);
-  size_t getNTowers() const { return towermap.size();}
-
+  size_t getNTowers() const { return towermap.size(); }
   RawCluster::TowerConstRange get_towers()
-    {
-      return make_pair(towermap.begin(),towermap.end());
-    }
+  {
+    return make_pair(towermap.begin(), towermap.end());
+  }
 
  private:
   RawClusterDefs::keytype clusterid;
-  float _eta;
+
+  //! location of cluster in cylindrical coordinate
+  float _z;
   float _phi;
+  float _r;
+
+  //! total energy
   float _energy;
+
+  //! optional property tags
   float _ecore;
   float _chi2;
   float _prob;
-  std::vector<std::pair<int,int> > _towers;
+
+  std::vector<std::pair<int, int> > _towers;
 
   TowerMap towermap;
 
-  ClassDef(RawClusterv1,2)
-
+  ClassDef(RawClusterv1, 3)
 };
 
 #endif /*RAWCLUSTERV1_H__ */
