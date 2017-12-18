@@ -86,8 +86,14 @@ class RawCluster : public PHObject
   virtual TowerConstRange get_towers()
   {
     PHOOL_VIRTUAL_WARN("get_towers()");
-    TowerMap dummy;
+    static TowerMap dummy;
     return make_pair(dummy.begin(), dummy.end());
+  }
+  virtual const TowerMap& get_towermap() const
+  {
+    PHOOL_VIRTUAL_WARN("get_towers()");
+    static TowerMap dummy;
+    return dummy;
   }
 
  protected:
