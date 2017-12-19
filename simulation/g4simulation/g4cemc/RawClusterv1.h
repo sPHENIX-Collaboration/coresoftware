@@ -158,9 +158,9 @@ class RawClusterv1 : public RawCluster
   TowerMap towermap;
 
   //! location of cluster in cylindrical coordinate
-  float _z;
-  float _phi;
   float _r;
+  float _phi;
+  float _z;
 
   ClassDef(RawClusterv1, 3)
 };
