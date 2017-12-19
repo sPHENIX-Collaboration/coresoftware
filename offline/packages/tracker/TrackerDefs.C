@@ -1,4 +1,5 @@
 #include "TrackerDefs.h"
+#include <bitset>
 
 char TrackerDefs::get_trackerid(const TrackerDefs::keytype key)
 {
@@ -12,6 +13,21 @@ char TrackerDefs::get_layer(const TrackerDefs::keytype key)
   return tmp;
 }
 
+long
+TrackerDefs::get_index(const TrackerDefs::keytype key)
+{
+  return key;
+}
+
+void 
+TrackerDefs::print_bits(const TrackerDefs::keytype key, std::ostream& os)
+{
+  os << "key: " << std::bitset<64>(key) << std::endl;
+}
+
+//----------------------
+// MVTXBinning Functions
+//----------------------
 char TrackerDefs::MVTXBinning::get_ladder(const TrackerDefs::keytype key)
 {
   keytype tmp = (key >> bitshift_ladder);
@@ -24,16 +40,22 @@ char TrackerDefs::MVTXBinning::get_chip(const TrackerDefs::keytype key)
   return tmp;
 }
 
-long
-TrackerDefs::get_index(const TrackerDefs::keytype key)
+unsigned short TrackerDefs::MVTXBinning::get_row(const TrackerDefs::keytype key)
 {
-  return key;
+  keytype tmp = (key >> bitshift_row);
+  return tmp;
+}
+
+unsigned short TrackerDefs::MVTXBinning::get_col(const TrackerDefs::keytype key)
+{
+  keytype tmp = (key >> bitshift_col);
+  return tmp;
 }
 
 TrackerDefs::keytype
 TrackerDefs::MVTXBinning::genhitkey(const char trackerid, const char layer,
                     const char ladder, const char chip,
-                    const unsigned int row, const unsigned int col)
+                    const unsigned short row, const unsigned short col)
 {
   TrackerDefs::keytype tmp = trackerid;
   TrackerDefs::keytype key = tmp << TrackerDefs::bitshift_trackerid;  // detector id
@@ -44,16 +66,16 @@ TrackerDefs::MVTXBinning::genhitkey(const char trackerid, const char layer,
   tmp = chip;
   key |= (tmp << TrackerDefs::bitshift_chip);  // chip
   tmp = row;
-  key |= (tmp << TrackerDefs::bitshift_row);  // chip
+  key |= (tmp << TrackerDefs::bitshift_row);  // row
   tmp = col;
-  key |= (tmp << TrackerDefs::bitshift_col);  // chip
+  key |= (tmp << TrackerDefs::bitshift_col);  // col
   return key;
 }
 
 TrackerDefs::keytype
 TrackerDefs::MVTXBinning::gencluskey(const char trackerid, const char layer,
                     const char ladder, const char chip,
-                    const long bit32_index)
+                    const unsigned int bit32_index)
 {
   TrackerDefs::keytype tmp = trackerid;
   TrackerDefs::keytype key = tmp << TrackerDefs::bitshift_trackerid;  // detector id

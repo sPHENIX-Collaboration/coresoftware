@@ -3,6 +3,7 @@
 
 #include <limits.h>
 // #include <climits>
+#include <iostream>
 
 namespace TrackerDefs
 {
@@ -36,6 +37,8 @@ char get_trackerid(const TrackerDefs::keytype key);
 char get_layer(const TrackerDefs::keytype key);
 long get_index(const TrackerDefs::keytype key);
 
+void print_bits(const TrackerDefs::keytype key, std::ostream& os = std::cout);
+
 /// Enumeration for tracker id to easily maintain consistency
 enum TRACKERID
 {
@@ -50,15 +53,15 @@ namespace MVTXBinning
 {
 keytype genhitkey(const char trackerid, const char layer,
                const char ladder, const char chip,
-               const unsigned int row, const unsigned int col);
+               const unsigned short row, const unsigned short col);
 keytype gencluskey(const char trackerid, const char layer,
                const char ladder, const char chip,
-               const long bit32_index);
+               const unsigned int bit32_index);
 
 char get_ladder(const TrackerDefs::keytype key);
 char get_chip(const TrackerDefs::keytype key);
-unsigned int get_row(const TrackerDefs::keytype key);
-unsigned int get_col(const TrackerDefs::keytype key);
+unsigned short get_row(const TrackerDefs::keytype key);
+unsigned short get_col(const TrackerDefs::keytype key);
 };
 
 /// INTT binning used for hits & clusters
