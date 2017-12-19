@@ -17,9 +17,6 @@
 #include <vector>
 #include <map>
 
-// TODO: The output clusters assume the event is coming from (0,0,0) in the calculation of eta, phi...
-// that should probably be modified at some point when things are more stable with the tracking vertex
-// calculation.
 
 using namespace std;
 
@@ -171,7 +168,7 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
 
   for (const auto &cluster_pair : _clusters->getClustersMap())
   {
-    int clusterid = cluster_pair.first;
+    const RawClusterDefs::keytype clusterid = cluster_pair.first;
     RawCluster *cluster = cluster_pair.second;
 
     assert(cluster);

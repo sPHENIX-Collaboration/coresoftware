@@ -25,7 +25,7 @@ void RawClusterv1::Reset()
 }
 
 
-virtual PHObject* RawClusterv1::clone() const
+PHObject* RawClusterv1::clone() const
 {
   RawClusterv1 * obj = new RawClusterv1(*this);
   return obj;
