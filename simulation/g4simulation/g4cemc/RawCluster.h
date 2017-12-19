@@ -23,6 +23,13 @@ class RawCluster : public PHObject
 
   virtual ~RawCluster() {}
   virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
+  /// make a copy
+  virtual PHObject* clone() const
+  {
+    PHOOL_VIRTUAL_WARNING;
+    return nullptr;
+  };
+
   virtual int isValid() const
   {
     PHOOL_VIRTUAL_WARNING;

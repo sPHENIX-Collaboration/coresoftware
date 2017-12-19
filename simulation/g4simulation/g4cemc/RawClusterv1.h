@@ -18,9 +18,10 @@ class RawClusterv1 : public RawCluster
  public:
   RawClusterv1();
   virtual ~RawClusterv1() {}
-  void Reset();
-  int isValid() const { return towermap.size() > 0; }
-  void identify(std::ostream& os = std::cout) const;
+  virtual void Reset();
+  virtual PHObject* clone() const;
+  virtual int isValid() const { return towermap.size() > 0; }
+  virtual void identify(std::ostream& os = std::cout) const;
 
   /** @defgroup getters
    *  @{
