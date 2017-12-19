@@ -39,6 +39,7 @@ class RawClusterv1 : public RawCluster
   float get_phi() const { return _phi; }
   float get_r() const { return _r; }
   float get_z() const { return _z; }
+  //
   //! convert cluster location to psuedo-rapidity given a user chosen z-location
   virtual float get_eta(const float z) const;
   //! convert cluster E_T given a user chosen z-location
@@ -50,17 +51,17 @@ class RawClusterv1 : public RawCluster
   //
   //! access additional optional properties
   //! cluster core energy for EM shower
-  float get_ecore() const { return get_property_float(prop_ecore); }
+  virtual float get_ecore() const { return get_property_float(prop_ecore); }
   //! reduced chi2 for EM shower
-  float get_chi2() const { return get_property_float(prop_chi2); }
+  virtual float get_chi2() const { return get_property_float(prop_chi2); }
   //! cluster template probability for EM shower
-  float get_prob() const { return get_property_float(prop_prob); }
+  virtual float get_prob() const { return get_property_float(prop_prob); }
   //! isolation ET
-  float get_et_iso() const { return get_property_float(prop_et_iso); }
+  virtual float get_et_iso() const { return get_property_float(prop_et_iso); }
   //! truth cluster's PHG4Particle ID
-  int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
+  virtual int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
   //! truth cluster's PHG4Particle flavor
-  int get_truth_flavor() const { return get_property_int(prop_truth_flavor); }
+  virtual int get_truth_flavor() const { return get_property_int(prop_truth_flavor); }
   //
   /** @} */  // end of getters
 
@@ -81,17 +82,17 @@ class RawClusterv1 : public RawCluster
   //
   //! access additional optional properties
   //! cluster core energy for EM shower
-  void set_ecore(const float ecore) { set_property(prop_ecore, ecore); }
+  virtual void set_ecore(const float ecore) { set_property(prop_ecore, ecore); }
   //! reduced chi2 for EM shower
-  void set_chi2(const float chi2) { set_property(prop_chi2, chi2); }
+  virtual void set_chi2(const float chi2) { set_property(prop_chi2, chi2); }
   //! cluster template probability for EM shower
-  void set_prob(const float prob) { set_property(prop_prob, prob); }
+  virtual void set_prob(const float prob) { set_property(prop_prob, prob); }
   //! isolation ET
-  void set_et_iso(const float e) { set_property(prop_et_iso, e); }
+  virtual void set_et_iso(const float e) { set_property(prop_et_iso, e); }
   //! truth cluster's PHG4Particle ID
-  void set_truth_track_ID(const int i) { set_property(prop_truth_track_ID, i); }
+  virtual void set_truth_track_ID(const int i) { set_property(prop_truth_track_ID, i); }
   //! truth cluster's PHG4Particle flavor
-  void set_truth_flavor(const int f) { set_property(prop_truth_flavor, f); }
+  virtual void set_truth_flavor(const int f) { set_property(prop_truth_flavor, f); }
   //
   /*
    *

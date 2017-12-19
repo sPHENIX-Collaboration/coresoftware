@@ -29,55 +29,22 @@ class RawCluster : public PHObject
     return 0;
   }
   virtual void identify(std::ostream& os = std::cout) const { PHOOL_VIRTUAL_WARNING; }
+  /** @defgroup getters
+   *  @{
+   */
+  //! cluster ID
   virtual RawClusterDefs::keytype get_id() const
   {
     PHOOL_VIRTUAL_WARN("get_id()");
     return 0;
   }
-
-  //! convert cluster location to psuedo-rapidity with a user chosen z-location
-  virtual float get_eta(const float z) const
-  {
-    PHOOL_VIRTUAL_WARN("get_eta()");
-    return NAN;
-  }
-
-  //! location of cluster in cylindrical coordinate
-
-  virtual float get_phi() const
-  {
-    PHOOL_VIRTUAL_WARN("get_phi()");
-    return NAN;
-  }
-  virtual float get_energy() const
+  //! total energy
+  float get_energy() const
   {
     PHOOL_VIRTUAL_WARN("get_energy()");
     return NAN;
   }
-  virtual float get_ecore() const
-  {
-    PHOOL_VIRTUAL_WARN("get_ecore()");
-    return NAN;
-  }
-  virtual float get_prob() const
-  {
-    PHOOL_VIRTUAL_WARN("get_prob()");
-    return NAN;
-  }
-  virtual float get_chi2() const
-  {
-    PHOOL_VIRTUAL_WARN("get_chi2()");
-    return NAN;
-  }
-
-  virtual void set_id(const RawClusterDefs::keytype id) { PHOOL_VIRTUAL_WARN("set_id(const unsigned int id)"); }
-  //  virtual void set_eta(const float eta) { PHOOL_VIRTUAL_WARN("set_eta(const float eta)");}
-  virtual void set_phi(const float phi) { PHOOL_VIRTUAL_WARN("set_phi(const float phi)"); }
-  virtual void set_energy(const float energy) { PHOOL_VIRTUAL_WARN("set_energy(const float energy)"); }
-  virtual void set_ecore(const float ecore) { PHOOL_VIRTUAL_WARN("set_ecore(const float ecore)"); }
-  virtual void set_prob(const float prob) { PHOOL_VIRTUAL_WARN("set_prob(const float prob)"); }
-  virtual void set_chi2(const float chi2) { PHOOL_VIRTUAL_WARN("set_chi2(const float chi2)"); }
-  virtual void addTower(const RawClusterDefs::keytype twrid, const float etower) { PHOOL_VIRTUAL_WARNING; }
+  //! Tower operations
   virtual size_t getNTowers() const
   {
     PHOOL_VIRTUAL_WARNING;
@@ -89,12 +56,129 @@ class RawCluster : public PHObject
     static TowerMap dummy;
     return make_pair(dummy.begin(), dummy.end());
   }
+  //! return tower map for c++11 range-based for-loop
   virtual const TowerMap& get_towermap() const
   {
     PHOOL_VIRTUAL_WARN("get_towers()");
     static TowerMap dummy;
     return dummy;
   }
+
+  //
+  //!  access to intrinsic cylindrical coordinate system
+  virtual float get_phi() const
+  {
+    PHOOL_VIRTUAL_WARN("get_phi()");
+    return NAN;
+  }
+  virtual float get_r() const
+  {
+    PHOOL_VIRTUAL_WARN("get_r()");
+    return NAN;
+  }
+  virtual float get_z() const
+  {
+    PHOOL_VIRTUAL_WARN("get_z()");
+    return NAN;
+  }
+  //
+  //! convert cluster location to psuedo-rapidity given a user chosen z-location
+  virtual float get_eta(const float z) const
+  {
+    PHOOL_VIRTUAL_WARN("get_eta()");
+    return NAN;
+  }
+  //! convert cluster E_T given a user chosen z-location
+  virtual float get_et(const float z) const
+  {
+    PHOOL_VIRTUAL_WARN("get_et()");
+    return NAN;
+  }
+  //
+  //! access Cartesian coordinate system
+  virtual float get_x() const
+  {
+    PHOOL_VIRTUAL_WARN("get_x()");
+    return NAN;
+  }
+  virtual float get_y() const
+  {
+    PHOOL_VIRTUAL_WARN("get_y()");
+    return NAN;
+  }
+  //
+  //! access additional optional properties
+  //! cluster core energy for EM shower
+  virtual float get_ecore() const
+  {
+    PHOOL_VIRTUAL_WARN("get_ecore()");
+    return NAN;
+  }
+  //! reduced chi2 for EM shower
+  virtual float get_chi2() const
+  {
+    PHOOL_VIRTUAL_WARN("get_chi2()");
+    return NAN;
+  }
+  //! cluster template probability for EM shower
+  virtual float get_prob() const
+  {
+    PHOOL_VIRTUAL_WARN("get_prob()");
+    return NAN;
+  }
+  //! isolation ET
+  virtual float get_et_iso() const
+  {
+    PHOOL_VIRTUAL_WARN("get_et_iso()");
+    return NAN;
+  }
+  //! truth cluster's PHG4Particle ID
+  virtual int get_truth_track_ID() const
+  {
+    PHOOL_VIRTUAL_WARN("get_truth_track_ID()");
+    return 0;
+  }
+  //! truth cluster's PHG4Particle flavor
+  virtual int get_truth_flavor() const
+  {
+    PHOOL_VIRTUAL_WARN("get_truth_flavor()");
+    return 0;
+  }
+  //
+  /** @} */  // end of getters
+
+  /** @defgroup setters
+   *  @{
+   */
+  //! cluster ID
+  virtual void set_id(const RawClusterDefs::keytype id) { PHOOL_VIRTUAL_WARNING; }
+  //! Tower operations
+  virtual void addTower(const RawClusterDefs::keytype twrid, const float etower) { PHOOL_VIRTUAL_WARNING; }
+  //! total energy
+  virtual void set_energy(const float energy) { PHOOL_VIRTUAL_WARNING; }
+  //
+  //!  access to intrinsic cylindrical coordinate system
+  virtual void set_phi(const float phi) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_z(const float z) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_r(const float r) { PHOOL_VIRTUAL_WARNING; }
+  //
+  //! access additional optional properties
+  //! cluster core energy for EM shower
+  virtual void set_ecore(const float ecore) { PHOOL_VIRTUAL_WARNING; }
+  //! reduced chi2 for EM shower
+  virtual void set_chi2(const float chi2) { PHOOL_VIRTUAL_WARNING; }
+  //! cluster template probability for EM shower
+  virtual void set_prob(const float prob) { PHOOL_VIRTUAL_WARNING; }
+  //! isolation ET
+  virtual void set_et_iso(const float e) { PHOOL_VIRTUAL_WARNING; }
+  //! truth cluster's PHG4Particle ID
+  virtual void set_truth_track_ID(const int i) { PHOOL_VIRTUAL_WARNING; }
+  //! truth cluster's PHG4Particle flavor
+  virtual void set_truth_flavor(const int f) { PHOOL_VIRTUAL_WARNING; }
+  //
+  /*
+   *
+   * @} */  // end of setters
 
   /** @defgroup property_map property map definitions
    *  @{
@@ -110,9 +194,9 @@ class RawCluster : public PHObject
     //! cluster core energy for EM shower
     prop_ecore = 0,
     //! cluster template probability for EM shower
-    prop_prob,
+    prop_prob = 1,
     //! reduced chi2 for EM shower
-    prop_chi2,
+    prop_chi2 = 2,
 
     // ----- analysis specific quantities -----
     //! isolation ET
@@ -122,7 +206,7 @@ class RawCluster : public PHObject
     //! truth cluster's PHG4Particle ID
     prop_truth_track_ID = 100,
     //! truth cluster's PHG4Particle flavor
-    prop_truth_flavor,
+    prop_truth_flavor = 101,
 
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX
