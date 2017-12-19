@@ -22,6 +22,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <bitset>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ MvtxDigitizer::MvtxDigitizer(const string &name) :
   _timer(PHTimeServer::get()->insert_new(name)) {
 
   if (verbosity > 0)
-    cout << "Creating MvtxDigitizer with name = " << name << endl;
+    cout << PHWHERE << "Creating MvtxDigitizer with name = " << name << endl;
 }
 
 int MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
@@ -147,7 +148,8 @@ void MvtxDigitizer::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
     _thresholds_by_layer.insert(std::make_pair(layer, threshold));
     if (verbosity > 2)
     {
-      cout << " not using thickness:"
+      cout << PHWHERE
+           << " not using thickness:"
            << " layer " << layer
            << " threshold = " << threshold
            << " thickness = " << thickness
@@ -167,10 +169,19 @@ void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
   //----------
 
   PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_MAPS");
-  if (!cells) return;
+  if (!cells) 
+  {
+    cout << PHWHERE << " - Unable to find node G4CELL_MAPS. Aborting" << endl;
+    return;
+  }
 
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
-  if (!geom_container) return;
+  if (!geom_container)
+  {
+    cout << PHWHERE << " - Unable to find node CYLINDERGEOM_MAPS. Aborting" << endl;
+    return;
+  } 
+
 
   //-------------
   // Digitization
@@ -194,12 +205,12 @@ void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
 
     int pixel_number = cell->get_pixel_index();
     // binphi is the cell index in the phi direction in the sensor
-    int binphi = geom->get_pixel_X_from_pixel_number(pixel_number);
+    unsigned short binphi = geom->get_pixel_X_from_pixel_number(pixel_number);
     // binz is the cell index in the z direction in the sensor
-    int binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
+    unsigned short binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
 
     // Make a hit
-    TrackerHitv1 * hit;
+    TrackerHitv1 * hit = new TrackerHitv1();
 
     TrackerDefs::keytype key =
       TrackerDefs::MVTXBinning::genhitkey(TrackerDefs::TRACKERID::mvtx_id,
@@ -208,19 +219,56 @@ void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
                                            cell->get_chip_index(),
                                            binphi, binz);
 
+
+    if ( verbosity > 2 )
+    {
+      cout << PHWHERE << " - new hit: " 
+           << endl
+           << "       input:  "
+           << " detid:" << TrackerDefs::TRACKERID::mvtx_id
+           << " layer:" << cell->get_layer()
+           << " ladder:" << cell->get_stave_index()
+           << " chip:" << cell->get_chip_index()
+           << " pixel:" << pixel_number
+           << " row:" << binphi
+           << " col:" << binz
+           << " key:0x" << hex << key << dec
+           << endl
+           << "       output: "
+           << " detid:" << int(TrackerDefs::get_trackerid(key))
+           << " layer:" << int(TrackerDefs::get_layer(key))
+           << " ladder:" << int(TrackerDefs::MVTXBinning::get_ladder(key))
+           << " chip:" << int(TrackerDefs::MVTXBinning::get_chip(key))
+           << " pixel:" << pixel_number
+           << " row:" << TrackerDefs::MVTXBinning::get_row(key)
+           << " col:" << TrackerDefs::MVTXBinning::get_col(key)
+           << " key:0x" << hex << key << dec
+           << endl;
+      TrackerDefs::print_bits(key);
+    }
+
     hit->set_hitid(key);
 
     // copy g4hits from cell to TrackerHit
+    if ( verbosity > 2 )
+    {
+      cout << PHWHERE << " - adding g4 hits to TrackerHit" << endl;
+    }
     PHG4Cell::EdepConstRange g4hitrange = cell->get_g4hits();
     for (PHG4Cell::EdepConstIterator hititr = g4hitrange.first;
          hititr != g4hitrange.second;
          ++hititr)
     {
+      if ( verbosity > 2 )
+      {
+        cout << PHWHERE << "        g4hit e:" << hititr->second << " key:0x" << hex << hititr->first << endl;
+      }
       hit->add_edep(hititr->first, hititr->second);
     }
 
     _hitmap->AddHitSpecifyKey(key, hit);
-
+    if ( verbosity >= 1 )
+      cout << PHWHERE << " - Added new TrackerHit with key 0x" << hex << key << endl;
   }
 
   return;
@@ -230,12 +278,13 @@ void MvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
 
   if (verbosity >= 1) {
 
+    cout << "================= MvtxDigitizer::process_event() ====================" << endl;
+
     TrackerHitContainer *hitlist = findNode::getClass<TrackerHitContainer>(topNode, "TrackerHitContainer");
     if (!hitlist) return;
 
     TrackerHitContainer::ConstRange mvtxhitrange = hitlist->getHits(TrackerDefs::TRACKERID::mvtx_id);
 
-    cout << "================= MvtxDigitizer::process_event() ====================" << endl;
 
 
     cout << " Found and recorded the following hits: " << endl;
