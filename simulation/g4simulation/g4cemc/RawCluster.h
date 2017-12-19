@@ -97,10 +97,10 @@ class RawCluster : public PHObject
 //  }
 //  //! convert cluster E_T given a user chosen z-location
 //  virtual float get_et(const float z) const
-  {
-    PHOOL_VIRTUAL_WARN("get_et()");
-    return NAN;
-  }
+//  {
+//    PHOOL_VIRTUAL_WARN("get_et()");
+//    return NAN;
+//  }
   //
   //! access Cartesian coordinate system
   virtual float get_x() const
