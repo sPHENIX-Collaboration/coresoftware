@@ -59,10 +59,10 @@ class RawClusterv1 : public RawCluster
   virtual float get_prob() const { return get_property_float(prop_prob); }
   //! isolation ET
   virtual float get_et_iso() const { return get_property_float(prop_et_iso); }
-  //! truth cluster's PHG4Particle ID
-  virtual int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
-  //! truth cluster's PHG4Particle flavor
-  virtual int get_truth_flavor() const { return get_property_int(prop_truth_flavor); }
+//  //! truth cluster's PHG4Particle ID
+//  virtual int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
+//  //! truth cluster's PHG4Particle flavor
+//  virtual int get_truth_flavor() const { return get_property_int(prop_truth_flavor); }
   //
   /** @} */  // end of getters
 
@@ -90,10 +90,10 @@ class RawClusterv1 : public RawCluster
   virtual void set_prob(const float prob) { set_property(prop_prob, prob); }
   //! isolation ET
   virtual void set_et_iso(const float e) { set_property(prop_et_iso, e); }
-  //! truth cluster's PHG4Particle ID
-  virtual void set_truth_track_ID(const int i) { set_property(prop_truth_track_ID, i); }
-  //! truth cluster's PHG4Particle flavor
-  virtual void set_truth_flavor(const int f) { set_property(prop_truth_flavor, f); }
+//  //! truth cluster's PHG4Particle ID
+//  virtual void set_truth_track_ID(const int i) { set_property(prop_truth_track_ID, i); }
+//  //! truth cluster's PHG4Particle flavor
+//  virtual void set_truth_flavor(const int f) { set_property(prop_truth_flavor, f); }
   //
   /*
    *

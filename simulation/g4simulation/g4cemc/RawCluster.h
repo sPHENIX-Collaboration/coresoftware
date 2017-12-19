@@ -139,18 +139,18 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARN("get_et_iso()");
     return NAN;
   }
-  //! truth cluster's PHG4Particle ID
-  virtual int get_truth_track_ID() const
-  {
-    PHOOL_VIRTUAL_WARN("get_truth_track_ID()");
-    return 0;
-  }
-  //! truth cluster's PHG4Particle flavor
-  virtual int get_truth_flavor() const
-  {
-    PHOOL_VIRTUAL_WARN("get_truth_flavor()");
-    return 0;
-  }
+//  //! truth cluster's PHG4Particle ID
+//  virtual int get_truth_track_ID() const
+//  {
+//    PHOOL_VIRTUAL_WARN("get_truth_track_ID()");
+//    return 0;
+//  }
+//  //! truth cluster's PHG4Particle flavor
+//  virtual int get_truth_flavor() const
+//  {
+//    PHOOL_VIRTUAL_WARN("get_truth_flavor()");
+//    return 0;
+//  }
   //
   /** @} */  // end of getters
 
@@ -178,10 +178,10 @@ class RawCluster : public PHObject
   virtual void set_prob(const float prob) { PHOOL_VIRTUAL_WARNING; }
   //! isolation ET
   virtual void set_et_iso(const float e) { PHOOL_VIRTUAL_WARNING; }
-  //! truth cluster's PHG4Particle ID
-  virtual void set_truth_track_ID(const int i) { PHOOL_VIRTUAL_WARNING; }
-  //! truth cluster's PHG4Particle flavor
-  virtual void set_truth_flavor(const int f) { PHOOL_VIRTUAL_WARNING; }
+//  //! truth cluster's PHG4Particle ID
+//  virtual void set_truth_track_ID(const int i) { PHOOL_VIRTUAL_WARNING; }
+//  //! truth cluster's PHG4Particle flavor
+//  virtual void set_truth_flavor(const int f) { PHOOL_VIRTUAL_WARNING; }
   //
   /*
    *
@@ -209,11 +209,11 @@ class RawCluster : public PHObject
     //! isolation ET
     prop_et_iso = 20,
 
-    // ----- truth cluster quantities -----
-    //! truth cluster's PHG4Particle ID
-    prop_truth_track_ID = 100,
-    //! truth cluster's PHG4Particle flavor
-    prop_truth_flavor = 101,
+//    // ----- truth cluster quantities -----
+//    //! truth cluster's PHG4Particle ID
+//    prop_truth_track_ID = 100,
+//    //! truth cluster's PHG4Particle flavor
+//    prop_truth_flavor = 101,
 
     //! max limit in order to fit into 8 bit unsigned number
     prop_MAX_NUMBER = UCHAR_MAX

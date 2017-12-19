@@ -33,12 +33,12 @@ RawCluster::get_property_info(const PROPERTY prop_id)
     return make_pair("isolation ET", RawCluster::type_float);
     break;
 
-  case prop_truth_track_ID:
-    return make_pair("truth cluster's PHG4Particle ID", RawCluster::type_int);
-    break;
-  case prop_truth_flavor:
-    return make_pair("truth cluster's PHG4Particle flavor", RawCluster::type_int);
-    break;
+//  case prop_truth_track_ID:
+//    return make_pair("truth cluster's PHG4Particle ID", RawCluster::type_int);
+//    break;
+//  case prop_truth_flavor:
+//    return make_pair("truth cluster's PHG4Particle flavor", RawCluster::type_int);
+//    break;
 
   default:
     cout << "RawCluster::get_property_info - Fatal Error - unknown index " << prop_id << endl;
