@@ -112,7 +112,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
   {
-    RawClusterDefs::keytype key = iter->first;
+//    RawClusterDefs::keytype key = iter->first;
     RawCluster *cluster = iter->second;
 
     float clus_energy = cluster->get_energy();

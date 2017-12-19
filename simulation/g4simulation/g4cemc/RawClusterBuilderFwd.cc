@@ -159,9 +159,8 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     assert(cluster);
 
     const twrs_fwd & tmptower = ctitr->second;
-    const int iphi = tmptower.get_binphi();
-    const int ieta = tmptower.get_bineta();
-    const RawTower *rawtower = towers->getTower(ieta, iphi);
+    RawTower *rawtower = towers->getTower(tmptower.get_id());
+
     const double e = rawtower->get_energy();
     cluster->addTower(rawtower->get_id(), e);
   }
