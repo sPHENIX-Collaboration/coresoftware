@@ -31,7 +31,7 @@ class TrackerHit : public TObject
   }
 
   virtual void set_hitid(const TrackerDefs::keytype id) { return; }
-  TrackerDefs::keytype get_hitid() const { return 0; }
+  virtual TrackerDefs::keytype get_hitid() const { return 0; }
 
 
  protected:
