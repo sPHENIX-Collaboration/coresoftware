@@ -165,7 +165,6 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 
   RawCluster *cluster = nullptr;
   int last_id = -1;
-
   std::multimap<int, twrs>::iterator ctitr = clusteredTowers.begin();
   std::multimap<int, twrs>::iterator lastct = clusteredTowers.end();
   for (; ctitr != lastct; ++ctitr)
@@ -182,7 +181,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
     }
     assert(cluster);
 
-    twrs tmptower = ctitr->second;
+    const twrs & tmptower = ctitr->second;
     const int iphi = tmptower.get_binphi();
     const int ieta = tmptower.get_bineta();
     const RawTower *rawtower = towers->getTower(ieta, iphi);

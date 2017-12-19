@@ -26,7 +26,6 @@ class RawClusterBuilder : public SubsysReco {
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
-  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergemom);
 
   RawClusterContainer* _clusters;
 
