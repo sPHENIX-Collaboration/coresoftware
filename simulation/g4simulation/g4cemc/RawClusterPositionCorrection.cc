@@ -203,28 +203,11 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     if (phibin > -1 && etabin > -1)
       recalib_val = calib_constants.at(etabin).at(phibin);
 
-    RawCluster *recalibcluster = new RawClusterv1();
+    RawCluster *recalibcluster = static_cast<RawCluster *>(cluster->clone());
+    assert(recalibcluster);
     recalibcluster->set_id(key);
     recalibcluster->set_energy(clus_energy / recalib_val);
-    recalibcluster->set_eta(cluster->get_eta());
-    recalibcluster->set_phi(cluster->get_phi());
     recalibcluster->set_ecore(cluster->get_ecore() / recalib_val);
-    recalibcluster->set_prob(cluster->get_prob());
-    recalibcluster->set_chi2(cluster->get_chi2());
-    
-    //add the towers also
-    RawCluster::TowerConstRange towers2 = cluster->get_towers();
-    RawCluster::TowerConstIterator titer;
-    for (titer = towers2.first;
-         titer != towers2.second;
-         ++titer)
-    {
-      RawTowerDefs::keytype towerkey = titer->first;
-      RawTower *recalibtower = _towers->getTower(titer->first);
-      float towerenergy = recalibtower->get_energy();
-      recalibcluster->addTower(towerkey, towerenergy);
-    }
-
     _recalib_clusters->AddCluster(recalibcluster);
 
     if (verbosity && clus_energy > 1)
