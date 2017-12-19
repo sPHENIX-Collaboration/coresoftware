@@ -12,6 +12,7 @@ AM_CPPFLAGS = \
   -I${G4_MAIN}/include
 
 libcemc_io_la_SOURCES = \
+  RawCluster.cc \
   RawCluster_Dict.cc \
   RawClusterv1.cc \
   RawClusterv1_Dict.cc \
