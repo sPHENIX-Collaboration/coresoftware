@@ -231,6 +231,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
       pp->GetCorrPos(&xcorr,&ycorr);
       Cell2Abs(towergeom,xcorr,ycorr,phi,eta);
+      const double ref_radius = towergeom->get_radius();
 
       if(phi > M_PI)  phi -= 2.*M_PI; // convert to [-pi,pi]]
 
@@ -241,7 +242,8 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_phi(phi);
-      cluster->set_eta(eta);
+      cluster->set_r(ref_radius);
+      cluster->set_z(ref_radius * sinh(eta));
       cluster->set_prob(prob);
       if( ndf>0 ) cluster->set_chi2(chi2/ndf);
       else        cluster->set_chi2(0);
