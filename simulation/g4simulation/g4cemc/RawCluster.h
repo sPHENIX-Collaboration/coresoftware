@@ -89,14 +89,14 @@ class RawCluster : public PHObject
     return NAN;
   }
   //
-  //! convert cluster location to psuedo-rapidity given a user chosen z-location
-  virtual float get_eta(const float z) const
-  {
-    PHOOL_VIRTUAL_WARN("get_eta()");
-    return NAN;
-  }
-  //! convert cluster E_T given a user chosen z-location
-  virtual float get_et(const float z) const
+//  //! convert cluster location to psuedo-rapidity given a user chosen z-location
+//  virtual float get_eta(const float z) const
+//  {
+//    PHOOL_VIRTUAL_WARN("get_eta()");
+//    return NAN;
+//  }
+//  //! convert cluster E_T given a user chosen z-location
+//  virtual float get_et(const float z) const
   {
     PHOOL_VIRTUAL_WARN("get_et()");
     return NAN;

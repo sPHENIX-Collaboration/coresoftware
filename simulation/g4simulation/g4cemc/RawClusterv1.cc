@@ -71,19 +71,19 @@ void RawClusterv1::identify(std::ostream& os) const
   }
 }
 
-//! convert cluster location to psuedo-rapidity given a user chosen z-location
-float RawClusterv1::get_eta(const float z) const
-{
-  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
-  return asinh((get_z() - z) / get_r());
-}
-
-//! convert cluster E_T given a user chosen z-location
-float RawClusterv1::get_et(const float z) const
-{
-  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
-  return get_energy() * sin(atan2(get_r(), (get_z() - z)));
-}
+////! convert cluster location to psuedo-rapidity given a user chosen z-location
+//float RawClusterv1::get_eta(const float z) const
+//{
+//  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
+//  return asinh((get_z() - z) / get_r());
+//}
+//
+////! convert cluster E_T given a user chosen z-location
+//float RawClusterv1::get_et(const float z) const
+//{
+//  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
+//  return get_energy() * sin(atan2(get_r(), (get_z() - z)));
+//}
 
 bool RawClusterv1::has_property(const PROPERTY prop_id) const
 {

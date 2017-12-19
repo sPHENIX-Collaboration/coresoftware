@@ -41,10 +41,10 @@ class RawClusterv1 : public RawCluster
   float get_r() const { return _r; }
   float get_z() const { return _z; }
   //
-  //! convert cluster location to psuedo-rapidity given a user chosen z-location
-  virtual float get_eta(const float z) const;
-  //! convert cluster E_T given a user chosen z-location
-  virtual float get_et(const float z) const;
+//  //! convert cluster location to psuedo-rapidity given a user chosen z-location
+//  virtual float get_eta(const float z) const;
+//  //! convert cluster E_T given a user chosen z-location
+//  virtual float get_et(const float z) const;
   //
   //! access Cartesian coordinate system
   virtual float get_x() const { return get_r() * std::cos(get_phi()); }
