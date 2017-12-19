@@ -45,3 +45,11 @@ float RawClusterv1::get_eta(const float z) const
   if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
   return asinh((get_z() - z) / get_r());
 }
+
+
+//! convert cluster E_T given a user chosen z-location
+float RawClusterv1::get_et(const float z) const
+{
+  if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
+  return asinh((get_z() - z) / get_r());
+}

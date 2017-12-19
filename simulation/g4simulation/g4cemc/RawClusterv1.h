@@ -15,9 +15,9 @@ class RawClusterv1 : public RawCluster
   int isValid() const { return towermap.size() > 0; }
   void identify(std::ostream& os = std::cout) const;
 
-  //
-  // getters
-  //
+  /** @defgroup getters
+   *  @{
+   */
   //! cluster ID
   RawClusterDefs::keytype get_id() const { return clusterid; }
   //! total energy
@@ -34,6 +34,8 @@ class RawClusterv1 : public RawCluster
   float get_z() const { return _z; }
   //! convert cluster location to psuedo-rapidity given a user chosen z-location
   virtual float get_eta(const float z) const;
+  //! convert cluster E_T given a user chosen z-location
+  virtual float get_et(const float z) const;
   //
   //! access Cartesian coordinate system
   virtual float get_x() const { return get_r() * std::cos(get_phi()); }
@@ -43,9 +45,11 @@ class RawClusterv1 : public RawCluster
   float get_ecore() const { return _ecore; }
   float get_chi2() const { return _chi2; }
   float get_prob() const { return _prob; }
-  //
-  // setters
-  //
+  /** @} */ // end of getters
+
+  /** @defgroup setters
+   *  @{
+   */
   //! cluster ID
   void set_id(const RawClusterDefs::keytype id) { clusterid = id; }
   //! Tower operations
@@ -62,25 +66,32 @@ class RawClusterv1 : public RawCluster
   void set_ecore(const float ecore) { _ecore = ecore; }
   void set_chi2(const float chi2) { _chi2 = chi2; }
   void set_prob(const float prob) { _prob = prob; }
- private:
-  RawClusterDefs::keytype clusterid;
 
- protected:
+
+  /** @} */ // end of setters
+
+  //
+ private:
+  //! cluster ID
+  RawClusterDefs::keytype clusterid;
+  //! total energy
+  float _energy;
+  //! Tower operations
+  TowerMap towermap;
 
   //! location of cluster in cylindrical coordinate
   float _z;
   float _phi;
   float _r;
 
-  //! total energy
-  float _energy;
 
-  //! optional property tags
+  /** @defgroup property_map property map definitions
+   *  @{
+   */
 
 
+  /** @} */ // end of property map definitions
 
-  //! Tower operations
-  TowerMap towermap;
 
   ClassDef(RawClusterv1, 3)
 };

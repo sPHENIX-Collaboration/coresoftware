@@ -6,9 +6,9 @@
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
+#include <climits>
 #include <cmath>  // def of NAN
 #include <map>
-#include <vector>
 
 class RawTower;
 
@@ -95,6 +95,62 @@ class RawCluster : public PHObject
     static TowerMap dummy;
     return dummy;
   }
+
+  /** @defgroup property_map property map definitions
+   *  @{
+   */
+
+ public:
+  //! Procedure to add a new PROPERTY tag:
+  //! 1.add new tag below with unique value,
+  //! 2.add a short name to RawCluster::get_property_info()
+  enum PROPERTY
+  {  //
+    // ----- additional cluster properties -----
+    //! cluster core energy for EM shower
+    prop_ecore = 0,
+    //! cluster template probability for EM shower
+    prop_prob,
+    //! reduced chi2 for EM shower
+    prop_chi2,
+
+    // ----- analysis specific quantities -----
+    //! isolation ET
+    prop_et_iso = 20,
+
+    // ----- truth cluster quantities -----
+    //! truth cluster's PHG4Particle ID
+    prop_truth_track_ID = 100,
+    //! truth cluster's PHG4Particle flavor
+    prop_truth_flavor,
+
+    //! max limit in order to fit into 8 bit unsigned number
+    prop_MAX_NUMBER = UCHAR_MAX
+  };
+
+  enum PROPERTY_TYPE
+  {  //
+    type_int = 1,
+    type_uint = 2,
+    type_float = 3,
+    type_unknown = -1
+  };
+
+  //! getters
+  virtual bool has_property(const PROPERTY prop_id) const { return false; }
+  virtual float get_property_float(const PROPERTY prop_id) const { return NAN; }
+  virtual int get_property_int(const PROPERTY prop_id) const { return INT_MIN; }
+  virtual unsigned int get_property_uint(const PROPERTY prop_id) const { return UINT_MAX; }
+  //! setters
+  virtual void set_property(const PROPERTY prop_id, const float value) { return; }
+  virtual void set_property(const PROPERTY prop_id, const int value) { return; }
+  virtual void set_property(const PROPERTY prop_id, const unsigned int value) { return; }
+  //! type management
+  static std::pair<const std::string, PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
+  static bool check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type);
+  static std::string get_property_type(const PROPERTY_TYPE prop_type);
+
+  /** @} */  // end of property map definitions
 
  protected:
   RawCluster() {}  // make sure nobody calls ctor of base class
