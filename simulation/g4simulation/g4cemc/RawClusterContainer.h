@@ -32,6 +32,8 @@ class RawClusterContainer : public PHObject
   //! return all clusters
   ConstRange getClusters( void ) const;
   Range getClusters( void );
+  const Map & getClustersMap() const {return _clusters;}
+  Map & getClustersMap() {return _clusters;}
 
   unsigned int size() const {return _clusters.size();}
   double getTotalEdep() const;

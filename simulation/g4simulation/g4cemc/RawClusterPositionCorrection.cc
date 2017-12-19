@@ -205,7 +205,6 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
     RawCluster *recalibcluster = static_cast<RawCluster *>(cluster->clone());
     assert(recalibcluster);
-    recalibcluster->set_id(key);
     recalibcluster->set_energy(clus_energy / recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / recalib_val);
     _recalib_clusters->AddCluster(recalibcluster);
