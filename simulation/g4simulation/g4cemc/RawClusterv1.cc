@@ -51,5 +51,119 @@ float RawClusterv1::get_eta(const float z) const
 float RawClusterv1::get_et(const float z) const
 {
   if (get_r() <= 0) return numeric_limits<float>::signaling_NaN();
-  return asinh((get_z() - z) / get_r());
+  return get_energy() * sin;
+}
+
+bool
+RawClusterv1::has_property(const PROPERTY prop_id) const
+{
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+  return i!=prop_map.end();
+}
+
+float
+RawClusterv1::get_property_float(const PROPERTY prop_id) const
+{
+  if (!check_property(prop_id,type_float))
+    {
+      pair<const string,PROPERTY_TYPE> property_info =get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_float) << endl;
+      exit(1);
+    }
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+
+  if (i!=prop_map.end()) return u_property(i->second).fdata;
+
+  return   NAN ;
+}
+
+int
+RawClusterv1::get_property_int(const PROPERTY prop_id) const
+{
+  if (!check_property(prop_id,type_int))
+    {
+      pair<const string,PROPERTY_TYPE> property_info =get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_int) << endl;
+      exit(1);
+    }
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+
+  if (i!=prop_map.end()) return u_property(i->second).idata;
+
+  return INT_MIN;
+}
+
+unsigned int
+RawClusterv1::get_property_uint(const PROPERTY prop_id) const
+{
+  if (!check_property(prop_id,type_uint))
+    {
+      pair<const string,PROPERTY_TYPE> property_info =get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_uint) << endl;
+      exit(1);
+    }
+  prop_map_t::const_iterator i = prop_map.find(prop_id);
+
+  if (i!=prop_map.end()) return u_property(i->second).uidata;
+
+  return UINT_MAX ;
+}
+
+void
+RawClusterv1::set_property(const PROPERTY prop_id, const float value)
+{
+  if (!check_property(prop_id,type_float))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_float) << endl;
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+void
+RawClusterv1::set_property(const PROPERTY prop_id, const int value)
+{
+  if (!check_property(prop_id,type_int))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_int) << endl;
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+void
+RawClusterv1::set_property(const PROPERTY prop_id, const unsigned int value)
+{
+  if (!check_property(prop_id,type_uint))
+    {
+      pair<const string,PROPERTY_TYPE> property_info = get_property_info(prop_id);
+      cout << PHWHERE << " Property " << property_info.first << " with id "
+           << prop_id << " is of type " << get_property_type(property_info.second)
+     << " not " << get_property_type(type_uint) << endl;
+      exit(1);
+    }
+  prop_map[prop_id] = u_property(value).get_storage();
+}
+
+unsigned int
+RawClusterv1::get_property_nocheck(const PROPERTY prop_id) const
+{
+  prop_map_t::const_iterator iter = prop_map.find(prop_id);
+  if (iter != prop_map.end())
+    {
+      return iter->second;
+    }
+  return UINT_MAX;
 }

@@ -1,10 +1,17 @@
 #ifndef RAWCLUSTERV1_H__
 #define RAWCLUSTERV1_H__
 
+#include "RawCluster.h"
+
 #include <cmath>
 #include <map>
 #include <vector>
-#include "RawCluster.h"
+
+#ifdef __CINT__
+#include <stdint.h>
+#else
+#include <cstdint>
+#endif
 
 class RawClusterv1 : public RawCluster
 {
@@ -42,10 +49,20 @@ class RawClusterv1 : public RawCluster
   virtual float get_y() const { return get_r() * std::sin(get_phi()); }
   //
   //! access additional optional properties
-  float get_ecore() const { return _ecore; }
-  float get_chi2() const { return _chi2; }
-  float get_prob() const { return _prob; }
-  /** @} */ // end of getters
+  //! cluster core energy for EM shower
+  float get_ecore() const { return get_property_float(prop_ecore); }
+  //! reduced chi2 for EM shower
+  float get_chi2() const { return get_property_float(prop_chi2); }
+  //! cluster template probability for EM shower
+  float get_prob() const { return get_property_float(prop_prob); }
+  //! isolation ET
+  float get_et_iso() const { return get_property_float(prop_et_iso); }
+  //! truth cluster's PHG4Particle ID
+  int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
+  //! truth cluster's PHG4Particle flavor
+  int get_truth_flavor() const { return get_property_int(prop_truth_flavor); }
+  //
+  /** @} */  // end of getters
 
   /** @defgroup setters
    *  @{
@@ -63,15 +80,76 @@ class RawClusterv1 : public RawCluster
   void set_r(const float r) { _r = r; }
   //
   //! access additional optional properties
-  void set_ecore(const float ecore) { _ecore = ecore; }
-  void set_chi2(const float chi2) { _chi2 = chi2; }
-  void set_prob(const float prob) { _prob = prob; }
+  //! cluster core energy for EM shower
+  void set_ecore(const float ecore) { set_property(prop_ecore, ecore); }
+  //! reduced chi2 for EM shower
+  void set_chi2(const float chi2) { set_property(prop_chi2, chi2); }
+  //! cluster template probability for EM shower
+  void set_prob(const float prob) { set_property(prop_prob, prob); }
+  //! isolation ET
+  void set_et_iso(const float e) { set_property(prop_et_iso, e); }
+  //! truth cluster's PHG4Particle ID
+  void set_truth_track_ID(const int i) { set_property(prop_truth_track_ID, i); }
+  //! truth cluster's PHG4Particle flavor
+  void set_truth_flavor(const int f) { set_property(prop_truth_flavor, f); }
+  //
+  /*
+   *
+   * @} */  // end of setters
 
+  /** @defgroup property_map property map definitions
+   *  @{
+   */
+ public:
+  bool has_property(const PROPERTY prop_id) const;
+  float get_property_float(const PROPERTY prop_id) const;
+  int get_property_int(const PROPERTY prop_id) const;
+  unsigned int get_property_uint(const PROPERTY prop_id) const;
+  void set_property(const PROPERTY prop_id, const float value);
+  void set_property(const PROPERTY prop_id, const int value);
+  void set_property(const PROPERTY prop_id, const unsigned int value);
 
-  /** @} */ // end of setters
+ protected:
+  unsigned int get_property_nocheck(const PROPERTY prop_id) const;
+  void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) { prop_map[prop_id] = ui; }
+  //! storage types for additional property
+  typedef uint8_t prop_id_t;
+  typedef uint32_t prop_storage_t;
+  typedef std::map<prop_id_t, prop_storage_t> prop_map_t;
+
+  //! convert between 32bit inputs and storage type prop_storage_t
+  union u_property {
+    float fdata;
+    int32_t idata;
+    uint32_t uidata;
+
+    u_property(int32_t in)
+      : idata(in)
+    {
+    }
+    u_property(uint32_t in)
+      : uidata(in)
+    {
+    }
+    u_property(float in)
+      : fdata(in)
+    {
+    }
+    u_property()
+      : uidata(0)
+    {
+    }
+
+    prop_storage_t get_storage() const { return uidata; }
+  };
+
+  //! container for additional property
+  prop_map_t prop_map;
+
+  /** @} */  // end of property map definitions
 
   //
- private:
+ protected:
   //! cluster ID
   RawClusterDefs::keytype clusterid;
   //! total energy
@@ -83,15 +161,6 @@ class RawClusterv1 : public RawCluster
   float _z;
   float _phi;
   float _r;
-
-
-  /** @defgroup property_map property map definitions
-   *  @{
-   */
-
-
-  /** @} */ // end of property map definitions
-
 
   ClassDef(RawClusterv1, 3)
 };
