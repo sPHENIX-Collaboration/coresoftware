@@ -33,7 +33,7 @@ TrackerClusterv1::TrackerClusterv1()
 void TrackerClusterv1::identify(ostream& os) const
 {
   os << "---TrackerClusterv1--------------------" << endl;
-  os << "clusid: " << get_id() << endl;
+  os << "clusid: 0x" << std::hex << get_id() << std::dec << endl;
 
   os << " (x,y,z) =  (" << get_position(0);
   os << ", " << get_position(1) << ", ";
@@ -73,7 +73,7 @@ void TrackerClusterv1::identify(ostream& os) const
   os << " list of hits ids: ";
   for (ConstHitIter iter = begin_hits(); iter != end_hits(); ++iter)
   {
-    os << *iter << " ";
+    os << "0x" << std::hex << *iter << std::dec << " ";
   }
   os << endl;
   os << "-----------------------------------------------" << endl;
