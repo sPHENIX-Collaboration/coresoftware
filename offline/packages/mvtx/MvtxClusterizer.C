@@ -1,6 +1,5 @@
 #include "MvtxClusterizer.h"
 
-#include <tracker/TrackerDefs.h>
 #include <tracker/TrackerCluster.h>
 #include <tracker/TrackerClusterv1.h>
 #include <tracker/TrackerClusterContainer.h>
@@ -41,17 +40,17 @@ using namespace std;
 
 static const float twopi = 2.0 * M_PI;
 
-bool MvtxClusterizer::maps_ladder_lessthan(const TrackerHit* lhs,
-    const TrackerHit* rhs)
+bool MvtxClusterizer::pixel_lessthan(const TrackerDefs::keytype lhs,
+    const TrackerDefs::keytype rhs)
 {
-  unsigned int lrow = TrackerDefs::MVTXBinning::get_row(lhs->get_hitid());
-  unsigned int rrow = TrackerDefs::MVTXBinning::get_row(rhs->get_hitid());
+  unsigned short lrow = TrackerDefs::MVTXBinning::get_row(lhs);
+  unsigned short rrow = TrackerDefs::MVTXBinning::get_row(rhs);
 
   if ( lrow < rrow ) return true;
   else if ( lrow == rrow )
   {
-    unsigned int lcol = TrackerDefs::MVTXBinning::get_col(lhs->get_hitid());
-    unsigned int rcol = TrackerDefs::MVTXBinning::get_col(rhs->get_hitid());
+    unsigned short lcol = TrackerDefs::MVTXBinning::get_col(lhs);
+    unsigned short rcol = TrackerDefs::MVTXBinning::get_col(rhs);
 
     if ( lcol < rcol ) return true;
   }
@@ -60,27 +59,24 @@ bool MvtxClusterizer::maps_ladder_lessthan(const TrackerHit* lhs,
   return false;
 }
 
-bool MvtxClusterizer::maps_ladder_are_adjacent(const TrackerHit* lhs,
-    const TrackerHit* rhs)
+bool MvtxClusterizer::pixel_are_adjacent(const TrackerDefs::keytype lhs,
+    const TrackerDefs::keytype rhs)
 {
-  TrackerDefs::keytype lkey = lhs->get_hitid();
-  TrackerDefs::keytype rkey = rhs->get_hitid();
-
   // want to cluster only within a chip
-  if (TrackerDefs::get_layer(lkey) != TrackerDefs::get_layer(rkey))
+  if (TrackerDefs::get_layer(lhs) != TrackerDefs::get_layer(rhs))
     return false;
-  if (TrackerDefs::MVTXBinning::get_ladder(lkey) != TrackerDefs::MVTXBinning::get_ladder(rkey))
+  if (TrackerDefs::MVTXBinning::get_ladder(lhs) != TrackerDefs::MVTXBinning::get_ladder(rhs))
     return false;
-  if (TrackerDefs::MVTXBinning::get_chip(lkey) != TrackerDefs::MVTXBinning::get_chip(rkey))
+  if (TrackerDefs::MVTXBinning::get_chip(lhs) != TrackerDefs::MVTXBinning::get_chip(rhs))
     return false;
 
-  unsigned int lrow = TrackerDefs::MVTXBinning::get_row(lhs->get_hitid());
-  unsigned int rrow = TrackerDefs::MVTXBinning::get_row(rhs->get_hitid());
-  unsigned int lcol = TrackerDefs::MVTXBinning::get_col(lhs->get_hitid());
-  unsigned int rcol = TrackerDefs::MVTXBinning::get_col(rhs->get_hitid());
+  unsigned short lrow = TrackerDefs::MVTXBinning::get_row(lhs);
+  unsigned short rrow = TrackerDefs::MVTXBinning::get_row(rhs);
+  unsigned short lcol = TrackerDefs::MVTXBinning::get_col(lhs);
+  unsigned short rcol = TrackerDefs::MVTXBinning::get_col(rhs);
 
 
-  if (get_z_clustering(TrackerDefs::get_layer(lkey)))
+  if (get_z_clustering(TrackerDefs::get_layer(lhs)))
   {
     if ( fabs(lcol - rcol) <= 1 && fabs(lrow - rrow) <= 1)
       return true;
@@ -100,10 +96,7 @@ MvtxClusterizer::MvtxClusterizer(const string &name,
   SubsysReco(name),
   _hits(NULL),
   _clusters(NULL),
-  _fraction_of_mip(0.5),
-  _thresholds_by_layer(),
   _make_z_clustering(),
-  _make_e_weights(),
   _min_layer(min_layer),
   _max_layer(max_layer),
   _timer(PHTimeServer::get()->insert_new(name))
@@ -161,21 +154,10 @@ int MvtxClusterizer::InitRun(PHCompositeNode* topNode)
 
   if (verbosity > 0) {
     cout << "====================== MvtxClusterizer::InitRun() =====================" << endl;
-    cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << endl;
-    for (std::map<int, float>::iterator iter = _thresholds_by_layer.begin();
-         iter != _thresholds_by_layer.end();
-         ++iter) {
-      cout << " Cluster Threshold in Layer #" << iter->first << " = " << 1.0e6 * iter->second << " keV" << endl;
-    }
     for (std::map<int, bool>::iterator iter = _make_z_clustering.begin();
          iter != _make_z_clustering.end();
          ++iter) {
       cout << " Z-dimension Clustering in Layer #" << iter->first << " = " << boolalpha << iter->second << noboolalpha << endl;
-    }
-    for (std::map<int, bool>::iterator iter = _make_e_weights.begin();
-         iter != _make_e_weights.end();
-         ++iter) {
-      cout << " Energy weighting clusters in Layer #" << iter->first << " = " << boolalpha << iter->second << noboolalpha << endl;
     }
     cout << "===========================================================================" << endl;
   }
@@ -247,19 +229,23 @@ void MvtxClusterizer::ClusterMapsLadderHits(PHCompositeNode *topNode)
     PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
 
     // get all the hits in this layer and put them into a vector
-    vector<TrackerHit*> hit_list;
+    vector<TrackerDefs::keytype> hit_list;
     TrackerHitContainer::ConstRange mvtxhitrange = _hits->getHits(TrackerDefs::TRACKERID::mvtx_id, layer);
     for (TrackerHitContainer::ConstIterator iter = mvtxhitrange.first;
          iter != mvtxhitrange.second;
          ++iter)
     {
-      // D. McGlinchey - Figure out the correct const'ness to use here ...
-      // hit_list.insert(iter->second);
-      hit_list.push_back(_hits->findHit(iter->second->get_hitid()));
+      TrackerHit* hit = iter->second;
+      hit_list.push_back(hit->get_hitid());
+    }
+
+    if ( verbosity > 2 )
+    {
+      cout << PHWHERE << " - layer " << layer << " Nhits: " << hit_list.size() << endl;
     }
 
     // i'm not sure this sorting is ever really used
-    sort(hit_list.begin(), hit_list.end(), MvtxClusterizer::maps_ladder_lessthan);
+    // sort(hit_list.begin(), hit_list.end(), MvtxClusterizer::pixel_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
     Graph G;
@@ -268,8 +254,17 @@ void MvtxClusterizer::ClusterMapsLadderHits(PHCompositeNode *topNode)
     {
       for (unsigned int j = i + 1; j < hit_list.size(); j++)
       {
-        if (maps_ladder_are_adjacent(hit_list[i], hit_list[j]) )
+        if (pixel_are_adjacent(hit_list[i], hit_list[j]) )
+        {
           add_edge(i, j, G);
+          if ( verbosity > 2 )
+          {
+            cout << "     are adjacent: " 
+                 << " 0x" << hex << hit_list[i] << dec
+                 << " 0x" << hex << hit_list[j] << dec
+                 << endl;
+          }
+        }
       }
 
       add_edge(i, i, G);
@@ -286,7 +281,7 @@ void MvtxClusterizer::ClusterMapsLadderHits(PHCompositeNode *topNode)
     // Loop over the components(hit cells) compiling a list of the
     // unique connected groups (ie. clusters).
     set<int> cluster_ids; // unique components
-    multimap<int, TrackerHit*> clusters;
+    multimap<int, TrackerDefs::keytype> clusters;
     for (unsigned int i = 0; i < component.size(); i++)
     {
       cluster_ids.insert( component[i] );
@@ -300,15 +295,15 @@ void MvtxClusterizer::ClusterMapsLadderHits(PHCompositeNode *topNode)
     {
 
       int clusid = *clusiter;
-      pair<multimap<int, TrackerHit*>::iterator,
-           multimap<int, TrackerHit*>::iterator> clusrange = clusters.equal_range(clusid);
+      pair<multimap<int, TrackerDefs::keytype>::iterator,
+           multimap<int, TrackerDefs::keytype>::iterator> clusrange = clusters.equal_range(clusid);
 
-      multimap<int, TrackerHit*>::iterator mapiter = clusrange.first;
+      multimap<int, TrackerDefs::keytype>::iterator mapiter = clusrange.first;
 
       if (verbosity > 2)
         cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
 
-      TrackerClusterv1* clus;
+      TrackerClusterv1* clus = new TrackerClusterv1();
 
       // determine the size of the cluster in phi and z
       // useful for track fitting the cluster
@@ -316,11 +311,14 @@ void MvtxClusterizer::ClusterMapsLadderHits(PHCompositeNode *topNode)
       set<unsigned int> zbins;
       for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ )
       {
-        TrackerHit* hit = mapiter->second;
+        if ( verbosity > 2 )
+        {
+          cout << "    hitid: 0x" << std::hex << mapiter->second << std::dec << endl;
+        }
 
-        unsigned int binphi = TrackerDefs::MVTXBinning::get_row(hit->get_hitid());
+        unsigned int binphi = TrackerDefs::MVTXBinning::get_row(mapiter->second);
         phibins.insert(binphi);
-        unsigned int binz = TrackerDefs::MVTXBinning::get_col(hit->get_hitid());
+        unsigned int binz = TrackerDefs::MVTXBinning::get_col(mapiter->second);
         zbins.insert(binz);
       }
 
@@ -345,12 +343,12 @@ void MvtxClusterizer::ClusterMapsLadderHits(PHCompositeNode *topNode)
 
       for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ )
       {
-        TrackerHit* hit = mapiter->second;
+        TrackerDefs::keytype hitid = mapiter->second;
 
-        clus->insert_hit(hit->get_hitid());
+
+        clus->insert_hit(hitid);
 
         // find the center of the pixel in world coords
-        TrackerDefs::keytype hitid = hit->get_hitid();
         unsigned int row = TrackerDefs::MVTXBinning::get_row(hitid);
         unsigned int col = TrackerDefs::MVTXBinning::get_col(hitid);
         int pixel_number = geom->get_pixel_number_from_xbin_zbin(row, col);
@@ -495,10 +493,9 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode * topNode) {
   if (verbosity >= 1) 
   {
 
-    TrackerClusterContainer::ConstRange clusrange = _clusters->getClusters(TrackerDefs::TRACKERID::mvtx_id);
-
     cout << "================= MvtxClusterizer::process_event() ====================" << endl;
 
+    TrackerClusterContainer::ConstRange clusrange = _clusters->getClusters(TrackerDefs::TRACKERID::mvtx_id);
 
     cout << " Found and recorded the following clusters: " << endl;
 

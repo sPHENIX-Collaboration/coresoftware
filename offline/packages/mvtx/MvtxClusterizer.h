@@ -1,6 +1,7 @@
 #ifndef __PHG4SVTXCLUSTERIZER_H__
 #define __PHG4SVTXCLUSTERIZER_H__
 
+#include <tracker/TrackerDefs.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 #include <map>
@@ -39,21 +40,12 @@ public:
     return _make_z_clustering.find(layer)->second;
   }
 
-  //! option to turn on/off energy weighted clustering
-  void set_energy_weighting(const int layer, const bool make_e_weights) {
-    _make_e_weights.insert(std::make_pair(layer,make_e_weights));
-  }
-  bool get_energy_weighting(const int layer) const {
-    if (_make_e_weights.find(layer) == _make_e_weights.end()) return false;
-    return _make_e_weights.find(layer)->second;
-  }  
-
 private:
 
-  static bool maps_ladder_lessthan(const TrackerHit*, 
-			      const TrackerHit*);
-  bool maps_ladder_are_adjacent(const TrackerHit*,
-				const TrackerHit*);
+  static bool pixel_lessthan(const TrackerDefs::keytype, 
+			      const TrackerDefs::keytype);
+  bool pixel_are_adjacent(const TrackerDefs::keytype,
+				const TrackerDefs::keytype);
 
   void ClusterMapsLadderHits(PHCompositeNode *topNode);
 
@@ -64,10 +56,7 @@ private:
   TrackerClusterContainer* _clusters;
 
   // settings
-  float _fraction_of_mip;
-  std::map<int,float> _thresholds_by_layer; // layer->threshold
   std::map<int,bool> _make_z_clustering;    // layer->z_clustering_option
-  std::map<int,bool> _make_e_weights;       // layer->energy_weighting_option
 
   unsigned int _min_layer;
   unsigned int _max_layer;
