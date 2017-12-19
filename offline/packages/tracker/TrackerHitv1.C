@@ -41,12 +41,24 @@ void TrackerHitv1::Reset()
 
 void TrackerHitv1::identify(std::ostream& os) const
 {
-  os << "New TrackerHitv1  0x" << std::hex << get_hitid() << std::dec << std::endl;
+  os << "TrackerHitv1: 0x" << std::hex << get_hitid() << std::dec << std::endl
+     << "   trackerid: " << int(TrackerDefs::get_trackerid(get_hitid())) << std::endl
+     << "       layer: " << int(TrackerDefs::get_layer(get_hitid())) << std::endl;
+ 
+  if ( TrackerDefs::get_trackerid(get_hitid()) == TrackerDefs::TRACKERID::mvtx_id)
+  {
+    os << "      ladder: " << int(TrackerDefs::MVTXBinning::get_ladder(get_hitid())) << std::endl;
+    os << "        chip: " << int(TrackerDefs::MVTXBinning::get_chip(get_hitid())) << std::endl;
+    os << "         col: " << TrackerDefs::MVTXBinning::get_col(get_hitid()) << std::endl;
+    os << "         row: " << TrackerDefs::MVTXBinning::get_row(get_hitid()) << std::endl;
+
+  }
 
   os << "Associated to " << hitedeps.size() << " hits" << std::endl;
   for (const auto pair : hitedeps)
   {
-    os << "\t PHG4hit " << pair.first << " -> " << pair.second << " GeV" << std::endl;
+    os << "\t PHG4hit 0x" << std::hex << pair.first << std::dec 
+       << " -> " << pair.second << " GeV" << std::endl;
   }
 
   // for (prop_map_t::const_iterator i = prop_map.begin(); i != prop_map.end(); ++i)
