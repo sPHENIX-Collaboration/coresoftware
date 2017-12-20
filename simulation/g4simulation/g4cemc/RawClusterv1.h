@@ -76,6 +76,12 @@ class RawClusterv1 : public RawCluster
   //! total energy
   void set_energy(const float energy) { _energy = energy; }
   //
+  virtual CLHEP::Hep3Vector get_position() const
+  {
+    CLHEP::Hep3Vector pos;
+    pos.setCylindrical(_r,_phi,_z);
+    return pos;
+  }
   //!  access to intrinsic cylindrical coordinate system
   void set_phi(const float phi) { _phi = phi; }
   void set_z(const float z) { _z = z; }
