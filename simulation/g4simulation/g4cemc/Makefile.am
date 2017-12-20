@@ -12,6 +12,8 @@ AM_CPPFLAGS = \
   -I${G4_MAIN}/include
 
 libcemc_io_la_SOURCES = \
+  RawClusterUtility.cc \
+  RawClusterUtility_Dict.cc \
   RawCluster.cc \
   RawCluster_Dict.cc \
   RawClusterv1.cc \
@@ -92,6 +94,7 @@ libcemc_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  RawClusterUtility.h \
   RawCluster.h \
   RawClusterv1.h \
   RawClusterDefs.h \
