@@ -11,9 +11,9 @@
 #ifndef SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RAWCLUSTERUTILITY_H_
 #define SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RAWCLUSTERUTILITY_H_
 
-#include <CLHEP/Vector/ThreeVector.h>
+#include "RawCluster.h"
 
-class RawCluster;
+#include <CLHEP/Vector/ThreeVector.h>
 
 /*!
  * \brief RawClusterUtility

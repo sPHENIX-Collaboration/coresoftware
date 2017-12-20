@@ -36,6 +36,11 @@ class RawClusterv1 : public RawCluster
   //! return tower map for c++11 range-based for-loop
   const TowerMap& get_towermap() const { return towermap; }
   //
+  //! cluster position in 3D
+  virtual CLHEP::Hep3Vector get_position() const
+  {
+    return CLHEP::Hep3Vector(get_x(),get_y(),get_z());
+  }
   //!  access to intrinsic cylindrical coordinate system
   float get_phi() const { return _phi; }
   float get_r() const { return _r; }
@@ -75,13 +80,6 @@ class RawClusterv1 : public RawCluster
   void addTower(const RawClusterDefs::keytype twrid, const float etower);
   //! total energy
   void set_energy(const float energy) { _energy = energy; }
-  //
-  virtual CLHEP::Hep3Vector get_position() const
-  {
-    CLHEP::Hep3Vector pos;
-    pos.setCylindrical(_r,_phi,_z);
-    return pos;
-  }
   //!  access to intrinsic cylindrical coordinate system
   void set_phi(const float phi) { _phi = phi; }
   void set_z(const float z) { _z = z; }

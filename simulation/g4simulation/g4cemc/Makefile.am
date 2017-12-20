@@ -72,7 +72,8 @@ libcemc_io_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libcemc_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lCLHEP
 
 libcemc_la_LDFLAGS = \
   -L$(libdir) \
