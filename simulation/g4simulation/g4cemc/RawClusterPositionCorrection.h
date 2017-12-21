@@ -23,23 +23,35 @@ class RawClusterPositionCorrection : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  const PHG4Parameters &GetCalibrationParameters() const
+  const PHG4Parameters &Get_eclus_CalibrationParameters() const
   {
-    return _calib_params;
+    return _eclus_calib_params;
   }
-  PHG4Parameters &GetCalibrationParameters()
+  PHG4Parameters &Get_eclus_CalibrationParameters()
   {
-    return _calib_params;
+    return _eclus_calib_params;
+  }
+  const PHG4Parameters &Get_eore_CalibrationParameters() const
+  {
+    return _ecore_calib_params;
+  }
+  PHG4Parameters &Get_ecore_CalibrationParameters()
+  {
+    return _ecore_calib_params;
   }
 
-  void SetCalibrationParameters(const PHG4Parameters &calib_params)
+  void Set_eclus_CalibrationParameters(const PHG4Parameters &calib_params)
   {
-    _calib_params = calib_params;
+    _eclus_calib_params = calib_params;
+  }
+  void Set_ecore_CalibrationParameters(const PHG4Parameters &calib_params)
+  {
+    _ecore_calib_params = calib_params;
   }
 
  private:
-  PHG4Parameters _calib_params;
-
+  PHG4Parameters _eclus_calib_params;
+  PHG4Parameters _ecore_calib_params;
   void SetDefaultParameters(PHG4Parameters &param);
   RawClusterContainer *_recalib_clusters;
 
@@ -47,7 +59,8 @@ class RawClusterPositionCorrection : public SubsysReco
 
   int bins;
   std::vector<float> binvals;
-  std::vector<std::vector<double> > calib_constants;
+  std::vector<std::vector<double> > eclus_calib_constants;
+  std::vector<std::vector<double> > ecore_calib_constants;
 };
 
 #endif  // __RAWCLUSTERPOSITIONCORRECTION_H__
