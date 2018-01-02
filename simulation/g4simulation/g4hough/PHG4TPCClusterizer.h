@@ -27,11 +27,19 @@ class PHG4TPCClusterizer : public SubsysReco {
   void setFitEnergyThreshold(float val) { fFitEnergyThreshold = val; }
   void setShapingRMSLead(float val) {fShapingLead = val;}
   void setShapingRMSTail(float val) {fShapingTail = val;}
+  void setClusterWindow(float val)  {fClusterWindow = val;}
+  void setClusterZSplit(bool val)   {fClusterZSplit = val;}
+  void setDeconvolutionMode(bool val)   {fDeconMode = val;}
 
  private:
   void reset();
-  int wrap_phibin(int bin);
+  void prepare_layer(float radius);
+  void deconvolution();
+  int  wrap_phibin(int bin);
   bool is_local_maximum(int phi, int z);
+  void find_z_range(int zbin, int phibin, int zmax, float peak, int& zup, int& zdown);
+  void find_phi_range(int zbin, int phibin, int phimax, float peak, int& phiup, int& phidown);
+
   void fit(int pbin, int zbin, int& nhits_tot);
   float fit_p_mean() {return fFitSumP/fFitW+fFitP0;}
   float fit_z_mean() {return fFitSumZ/fFitW+fFitZ0;}
@@ -67,10 +75,13 @@ class PHG4TPCClusterizer : public SubsysReco {
   unsigned int fMinLayer;
   unsigned int fMaxLayer;
   float fEnergyCut;
-
+  float fClusterWindow;
+  bool  fClusterZSplit;
+  bool  fDeconMode;
   float fDCT;
   float fDCL;
-
+  float **fSource;
+  float **fResponse;
   float _inv_sqrt12;
   float _twopi;
 
