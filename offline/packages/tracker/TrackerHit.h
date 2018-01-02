@@ -12,6 +12,8 @@ class TrackerHit : public TObject
 {
  public:
 
+  TrackerHit() {}
+
   typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
   typedef EdepMap::iterator EdepIterator;
   typedef EdepMap::const_iterator EdepConstIterator;
@@ -34,8 +36,6 @@ class TrackerHit : public TObject
   virtual TrackerDefs::keytype get_hitid() const { return 0; }
 
 
- protected:
-  TrackerHit() {}
  private:
 
   ClassDef(TrackerHit, 1);
