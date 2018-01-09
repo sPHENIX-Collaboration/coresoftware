@@ -1,14 +1,15 @@
 #include "RawClusterBuilderTemplate.h"
-#include "RawClusterContainer.h"
-#include "RawClusterv1.h"
-#include "PHMakeGroups.h"
-
-#include "RawTower.h"
-#include "RawTowerGeomContainer.h"
-#include "RawTowerContainer.h"
 
 #include "BEmcRec.h"
 #include "BEmcCluster.h"
+
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterv1.h>
+
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerContainer.h>
+
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>

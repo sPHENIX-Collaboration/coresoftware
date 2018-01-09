@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
   
 libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph.cc \
-  RawClusterBuilder_Dict.cc \
+  RawClusterBuilderGraph_Dict.cc \
   RawClusterBuilderTemplate.cc \
   RawClusterBuilderTemplate_Dict.cc \
   RawClusterBuilderFwd.cc \
