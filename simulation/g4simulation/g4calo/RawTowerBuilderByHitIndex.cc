@@ -1,10 +1,10 @@
 #include "RawTowerBuilderByHitIndex.h"
 
-#include "RawTowerv1.h"
-#include "RawTowerContainer.h"
+#include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
 
-#include "RawTowerGeomv3.h"
-#include "RawTowerGeomContainerv1.h"
+#include <calobase/RawTowerGeomv3.h>
+#include <calobase/RawTowerGeomContainerv1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
