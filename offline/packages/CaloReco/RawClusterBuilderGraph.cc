@@ -1,4 +1,4 @@
-#include "RawClusterBuilder.h"
+#include "RawClusterBuilderGraph.h"
 
 #include "PHMakeGroups.h"
 #include "RawClusterContainer.h"
@@ -99,7 +99,7 @@ bool operator<(const twrs &a, const twrs &b)
   return a.get_binphi() < b.get_binphi();
 }
 
-RawClusterBuilder::RawClusterBuilder(const std::string &name)
+RawClusterBuilderGraph::RawClusterBuilderGraph(const std::string &name)
   : SubsysReco(name)
   , _clusters(NULL)
   , _min_tower_e(0.0)
@@ -108,7 +108,7 @@ RawClusterBuilder::RawClusterBuilder(const std::string &name)
 {
 }
 
-int RawClusterBuilder::InitRun(PHCompositeNode *topNode)
+int RawClusterBuilderGraph::InitRun(PHCompositeNode *topNode)
 {
   try
   {
@@ -123,7 +123,7 @@ int RawClusterBuilder::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilder::process_event(PHCompositeNode *topNode)
+int RawClusterBuilderGraph::process_event(PHCompositeNode *topNode)
 {
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
@@ -233,7 +233,7 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
 
     if (verbosity > 1)
     {
-      cout << "RawClusterBuilder constucted ";
+      cout << "RawClusterBuilderGraph constucted ";
       cluster->identify();
     }
   }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
@@ -263,12 +263,12 @@ int RawClusterBuilder::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int RawClusterBuilder::End(PHCompositeNode *topNode)
+int RawClusterBuilderGraph::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawClusterBuilder::CreateNodes(PHCompositeNode *topNode)
+void RawClusterBuilderGraph::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 

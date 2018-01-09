@@ -10,11 +10,11 @@ class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class RawClusterBuilder : public SubsysReco {
+class RawClusterBuilderGraph : public SubsysReco {
 
  public:
-  RawClusterBuilder(const std::string& name = "RawClusterBuilder"); 
-  virtual ~RawClusterBuilder() {}
+  RawClusterBuilderGraph(const std::string& name = "RawClusterBuilderGraph");
+  virtual ~RawClusterBuilderGraph() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);

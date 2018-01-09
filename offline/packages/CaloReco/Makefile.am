@@ -10,10 +10,10 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include 
   
 libcalo_reco_la_SOURCES = \
-  RawClusterBuilder.cc \
+  RawClusterBuilderGraph.cc \
   RawClusterBuilder_Dict.cc \
-  RawClusterBuilderv1.cc \
-  RawClusterBuilderv1_Dict.cc \
+  RawClusterBuilderTemplate.cc \
+  RawClusterBuilderTemplate_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
   RawClusterPositionCorrection.cc \

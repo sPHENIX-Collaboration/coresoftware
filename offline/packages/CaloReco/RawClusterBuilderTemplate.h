@@ -1,5 +1,5 @@
-#ifndef RAWCLUSTERBUILDERV1_H__
-#define RAWCLUSTERBUILDERV1_H__
+#ifndef RawClusterBuilderTemplate_H__
+#define RawClusterBuilderTemplate_H__
 
 #include <fun4all/SubsysReco.h>
 #include <string>
@@ -11,11 +11,11 @@ class RawTowerContainer;
 class RawTowerGeomContainer;
 class BEmcRec;
 
-class RawClusterBuilderv1 : public SubsysReco {
+class RawClusterBuilderTemplate : public SubsysReco {
 
  public:
-  RawClusterBuilderv1(const std::string& name = "RawClusterBuilder"); 
-  virtual ~RawClusterBuilderv1();
+  RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilder");
+  virtual ~RawClusterBuilderTemplate();
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -44,4 +44,4 @@ class RawClusterBuilderv1 : public SubsysReco {
 
 };
 
-#endif /* RAWCLUSTERBUILDERV1_H__ */
+#endif /* RawClusterBuilderTemplate_H__ */
