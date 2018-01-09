@@ -34,7 +34,7 @@ libg4calo_la_LIBADD = \
   -lgsl \
   -lgslcblas \
   -lcalo_io \
-  -llibcalo_util
+  -lcalo_util
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -43,7 +43,7 @@ libg4calo_la_LIBADD = \
 ##############################################
 # please add new classes in alphabetical order
 
-# pkginclude_HEADERS = \
+# pkginclude_HEADERS = 
 
 ################################################
 # linking tests
