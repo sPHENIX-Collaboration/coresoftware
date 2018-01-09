@@ -2,18 +2,15 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libcemc_io.la \
-  libcemc.la
+  libcalo_io.la \
+  libcalo_util.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include
+  -I$(ROOTSYS)/include
 
-libcemc_io_la_SOURCES = \
-  RawClusterUtility.cc \
-  RawClusterUtility_Dict.cc \
+libcalo_io_la_SOURCES = \
   RawCluster.cc \
   RawCluster_Dict.cc \
   RawClusterv1.cc \
@@ -41,51 +38,24 @@ libcemc_io_la_SOURCES = \
   RawTowerGeomContainer_Cylinderv1.cc \
   RawTowerGeomContainer_Cylinderv1_Dict.cc
 
-libcemc_la_SOURCES = \
-  HcalRawTowerBuilder.cc \
-  HcalRawTowerBuilder_Dict.cc \
-  Prototype2RawTowerBuilder.cc \
-  Prototype2RawTowerBuilder_Dict.cc \
-  RawClusterBuilder.cc \
-  RawClusterBuilder_Dict.cc \
-  RawClusterBuilderv1.cc \
-  RawClusterBuilderv1_Dict.cc \
-  RawClusterBuilderFwd.cc \
-  RawClusterBuilderFwd_Dict.cc \
-  RawClusterPositionCorrection.cc \
-  RawClusterPositionCorrection_Dict.cc \
-  RawTowerBuilder.cc \
-  RawTowerBuilder_Dict.cc \
-  RawTowerCombiner.cc \
-  RawTowerCombiner_Dict.cc \
-  RawTowerBuilderByHitIndex.cc \
-  RawTowerBuilderByHitIndex_Dict.cc \
-  RawTowerCalibration.cc \
-  RawTowerCalibration_Dict.cc \
-  RawTowerDigitizer.cc \
-  RawTowerDigitizer_Dict.cc \
-  BEmcCluster.cc \
-  BEmcRec.cc
+libcalo_util_la_SOURCES = \
+  RawClusterUtility.cc \
+  RawClusterUtility_Dict.cc
 
-libcemc_io_la_LDFLAGS = \
+libcalo_io_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libcemc_io_la_LIBADD = \
-  -lphool \
-  -lCLHEP
+libcalo_io_la_LIBADD = \
+  -lphool 
 
-libcemc_la_LDFLAGS = \
+libcalo_util_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libcemc_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
-  -lg4detectors \
-  -lgsl \
-  -lgslcblas \
-  libcemc_io.la
+libcalo_util_la_LIBADD = \
+  -lCLHEP \
+  libcalo_io.la
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -115,16 +85,15 @@ pkginclude_HEADERS = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_cemc \
-  testexternals_cemc_io
+  testexternals_calo_util \
+  testexternals_calo_io
 
 
-testexternals_cemc_SOURCES = testexternals.C
-testexternals_cemc_LDADD = libcemc.la
+testexternals_calo_util_SOURCES = testexternals.C
+testexternals_calo_util_LDADD = libcalo_util.la
 
-testexternals_cemc_io_SOURCES = testexternals.C
-testexternals_cemc_io_LDADD = libcemc_io.la
-
+testexternals_calo_io_SOURCES = testexternals.C
+testexternals_calo_io_LDADD = libcalo_io.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
   libcemc_io.la \
-  libcemc.la
+  libg4calo.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
