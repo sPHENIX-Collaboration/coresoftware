@@ -6,7 +6,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
-#include <phool/PHObject.h>
+#include <TObject.h>
 #include <phool/phool.h>
 #include <climits>
 #include <cmath>  // def of NAN
@@ -14,7 +14,7 @@
 
 class RawTower;
 
-class RawCluster : public PHObject
+class RawCluster : public TObject
 {
  public:
   typedef std::map<RawTowerDefs::keytype, float> TowerMap;
@@ -26,11 +26,11 @@ class RawCluster : public PHObject
   virtual ~RawCluster() {}
   virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
   /// make a copy
-  virtual PHObject* clone() const
-  {
-    PHOOL_VIRTUAL_WARNING;
-    return nullptr;
-  };
+//  virtual PHObject* clone() const
+//  {
+//    PHOOL_VIRTUAL_WARNING;
+//    return nullptr;
+//  };
 
   virtual int isValid() const
   {

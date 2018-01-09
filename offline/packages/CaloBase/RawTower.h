@@ -4,12 +4,12 @@
 #include "RawTowerDefs.h"
 #include <g4detectors/PHG4CellDefs.h>
 #include <phool/phool.h>
-#include <phool/PHObject.h>
+#include <TObject.h>
 #include <iostream>
 #include <cmath>
 #include <map>
 
-class RawTower : public PHObject {
+class RawTower : public TObject {
 
  public:
   typedef std::map<PHG4CellDefs::keytype, float> CellMap;
