@@ -35,7 +35,10 @@ libcalo_reco_la_LIBADD = \
   -lgsl \
   -lgslcblas \
   -lcalo_io \
-  -lcalo_util
+  -lcalo_util \
+  -lg4detectors  
+# TODO: g4detectors is used to provide the PHG4Parameters utility. 
+# We should detach parameter from geant4 libs and detach CaloReco from g4simualtion. 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
