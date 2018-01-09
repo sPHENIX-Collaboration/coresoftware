@@ -1,6 +1,6 @@
 ```g4cemc``` is deprecated. Components of this lib has been distributed to various new locations following the following map. Further discussion see https://github.com/sPHENIX-Collaboration/coresoftware/pull/403
 
-![Alt text](https://g.gravizo.com/source/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2FTLmaK0%2Fgravizo%2Fmaster%2FREADME.md)
+![Alt text](https://g.gravizo.com/source/relocation_map?https%3A%2F%2Fgithub.com%2Fblackcathj%2Fcoresoftware%2Fblob%2FClusterizerRelocated%2Fsimulation%2Fg4simulation%2Fg4cemc%2FREADME.md)
 <details> 
 <summary></summary>
 relocation_map
