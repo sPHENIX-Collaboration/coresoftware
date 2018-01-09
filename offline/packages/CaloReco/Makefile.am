@@ -20,8 +20,6 @@ libcalo_reco_la_SOURCES = \
   RawClusterPositionCorrection_Dict.cc \
   RawTowerCombiner.cc \
   RawTowerCombiner_Dict.cc \
-  RawTowerBuilderByHitIndex.cc \
-  RawTowerBuilderByHitIndex_Dict.cc \
   RawTowerCalibration.cc \
   RawTowerCalibration_Dict.cc \
   BEmcCluster.cc \
