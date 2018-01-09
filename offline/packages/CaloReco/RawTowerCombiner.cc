@@ -4,17 +4,14 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTowerv1.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellDefs.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
-#include <g4main/PHG4Utils.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
+
+#include <CLHEP/Vector/ThreeVector.h>
 
 #include <iostream>
 #include <sstream>      // std::stringstream
@@ -295,13 +292,13 @@ RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
         RawTowerGeomv1 * tg = new RawTowerGeomv1(
             RawTowerDefs::encode_towerid(caloid, ieta, iphi));
 
-        tg->set_center_x(r * cos(towergeom->get_phicenter(iphi)));
-        tg->set_center_y(r * sin(towergeom->get_phicenter(iphi)));
-        tg->set_center_z(
-            r
-                / tan(
-                    PHG4Utils::get_theta(
-                        towergeom->get_etacenter(ieta))));
+        CLHEP::Hep3Vector tower_pos;
+        tower_pos.setRhoPhiEta(r,towergeom->get_phicenter(iphi),towergeom->get_etacenter(ieta));
+
+        tg->set_center_x(tower_pos.x());
+        tg->set_center_y(tower_pos.y());
+        tg->set_center_z(tower_pos.z());
+
         towergeom->add_tower_geometry(tg);
       }
   if (verbosity >= VERBOSITY_SOME)
