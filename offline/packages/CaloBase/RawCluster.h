@@ -6,7 +6,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 #include <phool/phool.h>
 #include <climits>
 #include <cmath>  // def of NAN
@@ -14,7 +14,7 @@
 
 class RawTower;
 
-class RawCluster : public TObject
+class RawCluster : public PHObject
 {
  public:
   typedef std::map<RawTowerDefs::keytype, float> TowerMap;
