@@ -25,7 +25,8 @@ class RawCluster : public PHObject
 
   virtual ~RawCluster() {}
   virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
-  /// make a copy
+
+  /// make a copy, using TObject::Clone() function instead
 //  virtual PHObject* clone() const
 //  {
 //    PHOOL_VIRTUAL_WARNING;
