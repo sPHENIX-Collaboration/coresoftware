@@ -228,7 +228,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
     {
       if (!vertexmap->empty())
       {
-        SvtxVertex* vertex = (vertexmap->begin()->second);
+        GlobalVertex* vertex = (vertexmap->begin()->second);
 
         vx = vertex->get_x();
         vy = vertex->get_y();
@@ -377,7 +377,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     {
       if (!vertexmap->empty())
       {
-        SvtxVertex* vertex = (vertexmap->begin()->second);
+        GlobalVertex* vertex = (vertexmap->begin()->second);
 
         vx = vertex->get_x();
         vy = vertex->get_y();
@@ -481,7 +481,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         {
           if (!vertexmap->empty())
           {
-            SvtxVertex* vertex = (vertexmap->begin()->second);
+            GlobalVertex* vertex = (vertexmap->begin()->second);
 
             eta =
                 RawClusterUtility::GetPseudorapidity(
@@ -674,7 +674,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         if (!vertexmap->empty())
         {
-          SvtxVertex* vertex = (vertexmap->begin()->second);
+          GlobalVertex* vertex = (vertexmap->begin()->second);
 
           eta =
               RawClusterUtility::GetPseudorapidity(
