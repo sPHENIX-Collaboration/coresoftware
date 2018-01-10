@@ -21,7 +21,7 @@ libg4eval_la_LIBADD = \
   -lphg4hit \
   -lg4detectors_io \
   -lg4hough_io \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lg4jets_io
 
 pkginclude_HEADERS = \

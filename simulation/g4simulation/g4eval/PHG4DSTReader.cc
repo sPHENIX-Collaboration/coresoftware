@@ -13,8 +13,8 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <g4cemc/RawTowerv1.h>
-#include <g4cemc/RawTowerContainer.h>
+#include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
 
 #include <g4main/PHG4InEvent.h>
 //#include <g4main/PHG4Particle.h>
