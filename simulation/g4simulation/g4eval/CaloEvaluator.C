@@ -492,7 +492,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         }
       }
 
-      float shower_data[19] = {(float) _ievent,
+      float shower_data[] = {(float) _ievent,
                                gparticleID,
                                gflavor,
                                gnhits,
@@ -743,7 +743,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                                           primary);
       }
 
-      float cluster_data[19] = {(float) _ievent,
+      float cluster_data[] = {(float) _ievent,
                                 clusterID,
                                 ntowers,
                                 eta,
