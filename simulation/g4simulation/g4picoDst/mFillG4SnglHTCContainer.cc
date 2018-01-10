@@ -7,11 +7,11 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawClusterContainer.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <phool/PHCompositeNode.h>
