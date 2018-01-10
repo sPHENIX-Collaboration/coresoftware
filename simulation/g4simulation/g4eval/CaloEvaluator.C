@@ -70,7 +70,7 @@ int CaloEvaluator::Init(PHCompositeNode* topNode)
   if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower", "truth shower => best cluster",
                                                    "event:gparticleID:gflavor:gnhits:"
                                                    "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
-                                                   "clusterID:ntowers:eta:phi:e:efromtruth");
+                                                   "clusterID:ntowers:eta:z:phi:e:efromtruth");
 
   if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower", "tower => max truth primary",
                                                "event:towerID:ieta:iphi:eta:phi:e:"
@@ -80,7 +80,7 @@ int CaloEvaluator::Init(PHCompositeNode* topNode)
                                                "efromtruth");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "cluster => max truth primary",
-                                                   "event:clusterID:ntowers:eta:phi:e:"
+                                                   "event:clusterID:ntowers:eta:z:phi:e:"
                                                    "gparticleID:gflavor:gnhits:"
                                                    "geta:gphi:ge:gpt:gvx:gvy:gvz:"
                                                    "gembed:gedep:"
@@ -214,7 +214,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
     }
 
     // need things off of the DST...
-    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
     PHG4VtxPoint* gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float gvx = gvertex->get_x();
@@ -316,15 +316,15 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
         RawCluster* cluster = (*clusiter);
 
         float ntowers = cluster->getNTowers();
-        float eta = cluster->get_eta();
+        float z = cluster->get_z();
         float phi = cluster->get_phi();
         float e = cluster->get_energy();
 
         float efromtruth = clustereval->get_energy_contribution(cluster, primary);
 
-        cout << " => #" << cluster->get_id() << " (eta,phi,e) = (";
+        cout << " => #" << cluster->get_id() << " (z,phi,e) = (";
         cout.width(5);
-        cout << eta;
+        cout << z;
         cout << ",";
         cout.width(5);
         cout << phi;
@@ -363,7 +363,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     // need things off of the DST...
-    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
     PHG4VtxPoint* gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float gvx = gvertex->get_x();
@@ -403,6 +403,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if (_ntp_gshower)
   {
     if (verbosity > 1) cout << Name() << " CaloEvaluator::filling gshower ntuple..." << endl;
+
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
     if (!truthinfo)
@@ -458,6 +460,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float clusterID = NAN;
       float ntowers = NAN;
       float eta = NAN;
+      float z = NAN;
       float phi = NAN;
       float e = NAN;
 
@@ -467,11 +470,25 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         clusterID = cluster->get_id();
         ntowers = cluster->getNTowers();
-        eta = cluster->get_eta();
+        z = cluster->get_z();
         phi = cluster->get_phi();
         e = cluster->get_energy();
 
         efromtruth = clustereval->get_energy_contribution(cluster, primary);
+
+        // require vertex for cluster eta calculation
+        if (vertexmap)
+        {
+          if (!vertexmap->empty())
+          {
+            SvtxVertex* vertex = (vertexmap->begin()->second);
+
+            eta =
+                RawClusterUtility::GetPseudorapidity(
+                    *cluster,
+                    CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+          }
+        }
       }
 
       float shower_data[19] = {(float) _ievent,
@@ -490,6 +507,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                clusterID,
                                ntowers,
                                eta,
+                               z,
                                phi,
                                e,
                                efromtruth};
@@ -627,6 +645,8 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
 
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+
     string clusternode = "CLUSTER_" + _caloname;
     RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, clusternode.c_str());
     if (!clusters)
@@ -644,9 +664,24 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       float clusterID = cluster->get_id();
       float ntowers = cluster->getNTowers();
-      float eta = cluster->get_eta();
+      float z = cluster->get_z();
+      float eta = NAN;
       float phi = cluster->get_phi();
       float e = cluster->get_energy();
+
+      // require vertex for cluster eta calculation
+      if (vertexmap)
+      {
+        if (!vertexmap->empty())
+        {
+          SvtxVertex* vertex = (vertexmap->begin()->second);
+
+          eta =
+              RawClusterUtility::GetPseudorapidity(
+                  *cluster,
+                  CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+        }
+      }
 
       PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
 
@@ -711,6 +746,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                 clusterID,
                                 ntowers,
                                 eta,
+                                z,
                                 phi,
                                 e,
                                 gparticleID,
