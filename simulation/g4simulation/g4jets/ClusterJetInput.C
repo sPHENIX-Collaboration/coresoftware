@@ -12,9 +12,12 @@
 #include <phool/getClass.h>
 
 // PHENIX Geant4 includes
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawTowerGeomContainer.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawClusterUtility.h>
+
+
 #include <g4vertex/GlobalVertexMap.h>
 #include <g4vertex/GlobalVertex.h>
 
@@ -73,8 +76,8 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
 
   // first grab the event vertex or bail
   GlobalVertex* vtx = vertexmap->begin()->second;
-  float vtxz = NAN;
-  if (vtx) vtxz = vtx->get_z();
+  CLHEP::Hep3Vector vertex ;
+  if (vtx) vertex . set(vtx->get_x(),vtx->get_y(),vtx->get_z());
   else return std::vector<Jet*>();
 
   std::vector<Jet*> pseudojets;
@@ -83,25 +86,29 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
   for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
     RawCluster *cluster = rtiter->second;
 
-    double r = geom->get_radius();
-    
-    double eta0 = cluster->get_eta();
-    double phi = cluster->get_phi();
+    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
 
-    double z0 = r * sinh(eta0);
-    double z = z0 - vtxz;
-    
-    double eta = asinh(z/r); // eta after shift from vertex
-    
-    double pt = cluster->get_energy() / cosh(eta);
-    double px = pt * cos(phi);
-    double py = pt * sin(phi);
-    double pz = pt * sinh(eta);
+//    double r = geom->get_radius();
+//
+//    double eta0 = cluster->get_eta();
+//    double phi = cluster->get_phi();
+//
+//    double z0 = r * sinh(eta0);
+//    double z = z0 - vtxz;
+//
+//    double eta = asinh(z/r); // eta after shift from vertex
+//
+//    double pt = cluster->get_energy() / cosh(eta);
+//    double px = pt * cos(phi);
+//    double py = pt * sin(phi);
+//    double pz = pt * sinh(eta);
+
+
 
     Jet *jet = new JetV1();
-    jet->set_px(px);
-    jet->set_py(py);
-    jet->set_pz(pz);
+    jet->set_px(E_vec_cluster.x());
+    jet->set_py(E_vec_cluster.y());
+    jet->set_pz(E_vec_cluster.z());
     jet->set_e(cluster->get_energy());
     jet->insert_comp(_input,cluster->get_id());
     pseudojets.push_back(jet);
