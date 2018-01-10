@@ -138,6 +138,13 @@ PHG4CellDefs::MapsBinning::genkey(const unsigned short detid, const unsigned int
   return key;
 }
 
+PHG4CellDefs::keytype
+PHG4CellDefs::TPCBinning::genkey(const unsigned short detid, const unsigned short mod, const unsigned short pad)
+{
+  PHG4CellDefs::keytype key = generic_16bit_genkey(detid, tpcbinning, mod, pad);
+  return key;
+}
+
 bool
 PHG4CellDefs::has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning)
 {

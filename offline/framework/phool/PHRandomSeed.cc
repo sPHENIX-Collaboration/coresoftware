@@ -1,38 +1,72 @@
 #include "PHRandomSeed.h"
 #include "recoConsts.h"
 
-#include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <queue>
+#include <random>
 
 using namespace std;
 
-unsigned int PHRandomSeed()
+static queue<unsigned int> seedqueue;
+static std::mt19937 fRandomGenerator;
+static std::uniform_int_distribution<unsigned int> fDistribution;
+
+bool PHRandomSeed::fInitialized(false);
+bool PHRandomSeed::fFixed(false);
+int PHRandomSeed::verbose(0);
+
+unsigned int PHRandomSeed::GetSeed()
+{
+  unsigned int iseed;
+  if (!seedqueue.empty())
+  {
+    iseed = seedqueue.front();
+    seedqueue.pop();
+  }
+  else
+  {
+    if (!fInitialized)
+    {
+      InitSeed();
+    }
+    if (fFixed)
+    {
+      iseed = fDistribution(fRandomGenerator);
+    }
+    else
+    {
+      std::random_device rdev;
+      iseed = rdev();
+    }
+  }
+  if (verbose)
+  {
+    cout << "PHRandomSeed::GetSeed() seed: " << iseed << endl;
+  }
+  return iseed;
+}
+
+void PHRandomSeed::InitSeed()
 {
   recoConsts *rc = recoConsts::instance();
   if (rc->FlagExist("RANDOMSEED"))
-    {
-      return rc->get_IntFlag("RANDOMSEED");
-    }
-  //  that's when we switch to c++11
-  //  std::random_device rdev;
-  //  uint32_t random_seed = rdev();
-  unsigned int random_seed;
-  // use /dev/urandom which unlike /dev/random is non blocking 
-  // even if entropy is too low. Not for use in cryptographic apps but
-  // good enough for a random seed
-  FILE *fp = fopen("/dev/urandom", "r");
-  if (!fp)
-    {
-      cout << "could not open /dev/urandom for seed" << endl;
-      exit(1);
-    }
-  size_t readbytes = fread(&random_seed, sizeof(random_seed), 1,fp);
-  fclose(fp);
-  if (!readbytes)
-    {
-      cout << "PHRandomSeed: reading /dev/urandom failed" << endl;
-      exit(1);
-    }
-  return random_seed;
+  {
+    // fixed init seed
+    const unsigned int seed = rc->get_IntFlag("RANDOMSEED");
+    cout << "PHRandomSeed: using fixed seed " << seed << endl;
+    fRandomGenerator.seed(seed);
+    fFixed = true;
+    fInitialized = true;
+  }
+}
+
+void PHRandomSeed::LoadSeed(const unsigned int iseed)
+{
+  seedqueue.push(iseed);
+}
+
+void PHRandomSeed::Verbosity(const int iverb)
+{
+  verbose = iverb;
 }

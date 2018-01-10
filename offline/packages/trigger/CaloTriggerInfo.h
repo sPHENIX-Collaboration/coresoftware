@@ -29,6 +29,15 @@ class CaloTriggerInfo : public PHObject
   virtual float get_best_EMCal_4x4_E() { return 0; }
   virtual float get_best_EMCal_4x4_eta() { return 0; }
   virtual float get_best_EMCal_4x4_phi() { return 0; }
+  
+  // 2nd best
+  virtual void set_best2_EMCal_4x4_E(float E) {}
+  virtual void set_best2_EMCal_4x4_eta(float eta) {}
+  virtual void set_best2_EMCal_4x4_phi(float phi) {}
+
+  virtual float get_best2_EMCal_4x4_E() { return 0; }
+  virtual float get_best2_EMCal_4x4_eta() { return 0; }
+  virtual float get_best2_EMCal_4x4_phi() { return 0; }
 
   // FullCalo 0.2x0.2
   virtual void set_best_FullCalo_0p2x0p2_E(float E) {}

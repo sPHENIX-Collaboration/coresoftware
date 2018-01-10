@@ -130,6 +130,8 @@ public:
   float GetE9( int ich );
   /// Returns the cluster energy taking into account towers with E>Ethresh
   float GetECore();
+  /// Ecore corrected for energy leak sidewise core towers
+  float GetECoreCorrected();
   /// Returns the EmcCluster total energy
   float GetTotalEnergy();
   /// Returns EmcCluster 1-st (pxcg,pycg) and 2-d momenta (pxx,pxy,pyy)
@@ -149,7 +151,8 @@ public:
 		float* pxx, float* pxy, float* pyy,
 		float* pde, float* pdx, float* pdy, float* pdz );
   /// Splits the EmcCluster onto peakarea's; also returns peak tower array corresponding to peakarea array
-  int GetPeaks(EmcPeakarea*, EmcModule*);
+  int GetPeaks( std::vector<EmcPeakarea> *PkList, std::vector<EmcModule> *ppeaks );
+  float GetProb(float &chi2, int &ndf);
 
 protected:
 

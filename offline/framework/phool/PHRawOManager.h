@@ -37,28 +37,28 @@ class PHCompositeNode;
 class PHRawDataNode;
 class oBuffer;
 
-class PHRawOManager : public PHIOManager { 
+class PHRawOManager : public PHIOManager
+{
+ public:
+  PHRawOManager();
+  PHRawOManager(const std::string &, const int run = 0, const int bufl = 100000, const int evtl = -1, const int complvl = 3);
+  virtual ~PHRawOManager();
 
-public: 
-   PHRawOManager(); 
-   PHRawOManager(const std::string &, const int run = 0, const int bufl = 100000, const int evtl = -1, const int complvl = 3); 
-   virtual ~PHRawOManager(); 
+  bool setFile(const std::string &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
+  virtual void closeFile();
+  virtual bool write(PHCompositeNode *);
+  bool write(PHRawDataNode *);
 
-   PHBoolean setFile(const std::string &, const int setRun, const int setBufl, const int setEvtl, const int complvl);
-   virtual void closeFile();
-   virtual PHBoolean write(PHCompositeNode *);
-   PHBoolean write(PHRawDataNode*);
+  virtual void print() const;
 
-   virtual void print() const;
-   
-private: 
-   int    filedesc;
-   PHDWORD   *memBuffer;
-   oBuffer *fileBuffer;
-   int     runNumber;
-   int     bufferSize;
-   int     eventLength;
-   int     compressionLevel;
-}; 
+ private:
+  int filedesc;
+  PHDWORD *memBuffer;
+  oBuffer *fileBuffer;
+  int runNumber;
+  int bufferSize;
+  int eventLength;
+  int compressionLevel;
+};
 
 #endif /* PHRAWOMANAGER_H__ */

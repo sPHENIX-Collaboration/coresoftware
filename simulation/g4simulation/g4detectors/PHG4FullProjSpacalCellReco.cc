@@ -231,12 +231,15 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
       if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
 	{
 	  // half z-range
-	  const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) * sin(tower.pRotationAngleX));
+	  const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) / sin(tower.pRotationAngleX));
 	  const double tower_radial = layergeom->get_tower_radial_position(tower);
 
-	  const double eta_central = -log(tan(0.5 * atan2(tower_radial, tower.centralZ)));
+	  auto z_to_eta = [&tower_radial](const double &z){return -log(tan(0.5 * atan2(tower_radial, z)));};
+
+	  const double eta_central = z_to_eta(tower.centralZ);
 	  // half eta-range
-	  const double deta = fabs(eta_central - (-log(tan(0.5 * atan2(tower_radial, tower.centralZ + dz)))));
+	  const double deta = (z_to_eta( tower.centralZ + dz) - z_to_eta( tower.centralZ - dz))/2;
+	  assert(deta > 0);
 
 	  for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
 	       ++sub_tower_ID_y)
@@ -245,12 +248,31 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 	      // do not overlap to the next bin.
 	      const int sub_tower_etabin = etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
 
-	      layerseggeo->set_etabounds(sub_tower_etabin,
-					 make_pair<double, double>(eta_central - deta + sub_tower_ID_y * 2 * deta / tower.NSubtowerY, 
-								   eta_central - deta + (sub_tower_ID_y + 1) * 2 * deta / tower.NSubtowerY));
-	      layerseggeo->set_zbounds(sub_tower_etabin,
-				       make_pair<double, double>(tower.centralZ - dz + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
-								 tower.centralZ - dz + (sub_tower_ID_y + 1) * 2 * dz / tower.NSubtowerY));
+	      const pair<double, double>etabounds  (eta_central - deta + sub_tower_ID_y * 2 * deta / tower.NSubtowerY,
+            eta_central - deta + (sub_tower_ID_y + 1) * 2 * deta / tower.NSubtowerY);
+
+	      const pair<double, double>zbounds  (tower.centralZ - dz + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
+            tower.centralZ - dz + (sub_tower_ID_y + 1) * 2 * dz / tower.NSubtowerY);
+
+	      layerseggeo->set_etabounds(sub_tower_etabin,etabounds);
+	      layerseggeo->set_zbounds(sub_tower_etabin,zbounds);
+
+	      if (verbosity >= VERBOSITY_SOME)
+	        {
+	          cout << "PHG4FullProjSpacalCellReco::InitRun::" << Name()
+               << "\t tower_ID_z = " << tower_ID_z
+               << "\t tower_ID_phi = " << tower_ID_phi
+               << "\t sub_tower_ID_y = " << sub_tower_ID_y
+               << "\t sub_tower_etabin = " << sub_tower_etabin
+               << "\t dz = " << dz
+               << "\t tower_radial = " << tower_radial
+               << "\t eta_central = " << eta_central
+               << "\t deta = " << deta
+               << "\t etabounds = [" <<etabounds.first << ", " << etabounds.second<<"]"
+               << "\t zbounds = [" <<zbounds.first << ", " << zbounds.second<<"]"
+               <<endl;
+	        }
+
 	    }
 
 	}
@@ -543,10 +565,12 @@ PHG4FullProjSpacalCellReco::LightCollectionModel::load_data_file(
   assert(fin);
   assert(fin->IsOpen());
 
+  if (data_grid_light_guide_efficiency) delete data_grid_light_guide_efficiency;
   data_grid_light_guide_efficiency = dynamic_cast<TH2 *>(fin->Get(histogram_light_guide_model.c_str()));
   assert(data_grid_light_guide_efficiency);
   data_grid_light_guide_efficiency->SetDirectory(nullptr);
 
+  if (data_grid_fiber_trans) delete data_grid_fiber_trans;
   data_grid_fiber_trans = dynamic_cast<TH1 *>(fin->Get(histogram_fiber_model.c_str()));
   assert(data_grid_fiber_trans);
   data_grid_fiber_trans->SetDirectory(nullptr);
@@ -594,7 +618,7 @@ void
 PHG4FullProjSpacalCellReco::SetDefaultParameters()
 {
   set_default_double_param("tmax",60.0);
-  set_default_double_param("tmin",0.0);
+  set_default_double_param("tmin",-20.0); // collision has a timing spread around the triggered event. Accepting negative time too.
   return;
 }
 

@@ -108,7 +108,7 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
       while (truthiter != truth_range.second)
         {
           const int primary_id = (truthiter->second)->get_primary_id();
-          if (truthInfoList->isEmbeded(primary_id) == 0)
+          if (truthInfoList->isEmbeded(primary_id) <= 0)
             {
               // not a embed associated particle
 

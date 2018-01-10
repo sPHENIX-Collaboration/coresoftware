@@ -23,6 +23,10 @@ class PHFieldConfig_v1 : public PHFieldConfig
       FieldConfigTypes field_config,
       const std::string& filename,
       double magfield_rescale = 1.);
+
+  //! default constructor for ROOT file IO
+  PHFieldConfig_v1(): PHFieldConfig_v1(kFieldInvalid, "INVALID FILE") {}
+
   virtual ~PHFieldConfig_v1();
 
   /// Virtual copy constructor.

@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
     -I$(G4_MAIN)/include \
-    -I$(OPT_SPHENIX)/include 
+    -I$(OPT_SPHENIX)/include
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -45,6 +45,8 @@ pkginclude_HEADERS = \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
   PHG4Cell.h \
+  PHG4Cellv1.h \
+  PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
   PHG4CylinderCell.h \
@@ -78,7 +80,8 @@ pkginclude_HEADERS = \
   PHG4ParametersContainer.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
-  PHG4ScintillatorSlatDefs.h
+  PHG4ScintillatorSlatDefs.h \
+  PHG4StepStatusDecode.h
 
 libg4detectors_io_la_SOURCES = \
   PHG4Parameters.cc \
@@ -103,6 +106,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4Cell_Dict.cc \
   PHG4Cellv1.cc \
   PHG4Cellv1_Dict.cc \
+  PHG4Cellv2.cc \
+  PHG4Cellv2_Dict.cc \
   PHG4CellContainer.cc \
   PHG4CellContainer_Dict.cc \
   PHG4CellDefs.cc \
@@ -307,6 +312,8 @@ libg4detectors_la_SOURCES = \
 
 ################################################
 # linking tests
+
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_g4detectors \

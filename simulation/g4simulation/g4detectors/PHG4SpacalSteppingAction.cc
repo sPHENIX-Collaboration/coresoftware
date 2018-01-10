@@ -115,6 +115,15 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         sector_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
       }
 
+      else if (isactive == PHG4SpacalDetector::SUPPORT)
+      {
+        tower_ID = prePoint->GetTouchable()->GetReplicaNumber(0);
+        sector_ID = prePoint->GetTouchable()->GetReplicaNumber(1);
+        fiber_ID =  (1 << (PHG4CylinderGeom_Spacalv3::scint_id_coder::kfiber_bit)) - 1; // use max fiber ID to flag for support strucrtures.
+
+//        cout <<"PHG4SpacalSteppingAction::UserSteppingAction - SUPPORT tower_ID = "<<tower_ID<<endl;
+      }
+
       // compact the tower/sector/fiber ID into 32 bit scint_id, so we could save some space for SPACAL hits
       scint_id = PHG4CylinderGeom_Spacalv3::scint_id_coder(sector_ID, tower_ID, fiber_ID).scint_ID;
     }
@@ -295,7 +304,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         savehitcontainer->AddHit(layer_id, hit);
         if (saveshower)
         {
-          saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
+          saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track

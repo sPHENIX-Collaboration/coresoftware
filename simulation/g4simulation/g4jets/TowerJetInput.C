@@ -46,6 +46,10 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
 
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
   if (!vertexmap) {
+
+    cout <<"TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
+    assert(vertexmap); // force quit
+
     return std::vector<Jet*>();
   }
 
@@ -78,6 +82,12 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
   } else if (_input == Jet::FHCAL_TOWER) {
     towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_FHCAL");
     geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_FHCAL");
+    if (!towers||!geom) {
+      return std::vector<Jet*>();
+    }
+  } else if (_input == Jet::CEMC_TOWER_RETOWER) {
+    towers = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC_RETOWER");
+    geom = findNode::getClass<RawTowerGeomContainer>(topNode,"TOWERGEOM_HCALIN");
     if (!towers||!geom) {
       return std::vector<Jet*>();
     }

@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <limits>
 #include <cstdlib>
 
 using namespace std;
@@ -82,6 +83,9 @@ void PHG4TruthInfoContainer::identify(ostream& os) const {
     cout << "embeded vertex id: " << eter->first
 	 << " flag: " << eter->second << endl;
   }
+
+  cout << "---primary vertex-------------------" << endl;
+  cout <<"Vertex "<<GetPrimaryVertexIndex()<<" is identified as the primary vertex"<<endl;
    
   return;
 }
@@ -304,4 +308,35 @@ bool
 PHG4TruthInfoContainer::is_primary(const PHG4Particle* p) const
 {
   return (p->get_track_id() > 0);
+}
+
+int PHG4TruthInfoContainer::GetPrimaryVertexIndex() const
+{
+  ConstVtxRange vrange = GetPrimaryVtxRange();
+
+  int highest_embedding_ID = numeric_limits<int>::min();
+  int vtx_id_for_highest_embedding_ID = 0;
+
+  for (auto iter = vrange.first; iter != vrange.second; ++iter)
+  {
+    //    cout <<"PHG4TruthInfoContainer::GetPrimaryVertexIndex - vertex ID "<<iter->first<<" embedding ID "<< g4truth->isEmbededVtx(iter->first) <<": "
+    //         ; iter->second->identify();
+    const int embedding_ID = isEmbededVtx(iter->first);
+
+    if (embedding_ID >= highest_embedding_ID)
+    {
+      highest_embedding_ID = embedding_ID;
+      vtx_id_for_highest_embedding_ID = iter->first;
+    }
+  }
+
+  if (highest_embedding_ID == numeric_limits<int>::min())
+  {
+    cout << "PHG4TruthInfoContainer::GetPrimaryVertexIndex - "
+         << "WARNING: no valid primary vertex. Return an invalid ID of 0"
+         << endl;
+    return 0;
+  }
+
+  return vtx_id_for_highest_embedding_ID;
 }

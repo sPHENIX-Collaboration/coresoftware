@@ -128,6 +128,7 @@ libg4testbench_la_LIBADD = \
 pkginclude_HEADERS = \
   HepMCNodeReader.h \
   PHBBox.h \
+  PHG4ColorDefs.h \
   PHG4Detector.h \
   PHG4EventAction.h \
   PHG4EventHeader.h \
@@ -202,6 +203,7 @@ PHG4_Dict.cc: \
   PHG4Reco.h \
   PHG4Subsystem.h \
   PHG4TruthSubsystem.h \
+  PHG4Utils.h \
   ReadEICFiles.h \
   PHG4LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^

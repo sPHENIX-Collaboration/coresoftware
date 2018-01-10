@@ -4,6 +4,7 @@
 #include <phool/PHNode.h>
 
 #include <fstream>
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -12,10 +13,10 @@ DumpObject::DumpObject(const string &NodeName):
   ThisName(NodeName),
   verbosity(0),
   write_run_event(1),
-  fout(NULL),
+  fout(nullptr),
   OutDir("./"),
   fp_precision(-1),
-  myNodeDump(NULL),
+  myNodeDump(nullptr),
   no_output(0)
 {
   return;

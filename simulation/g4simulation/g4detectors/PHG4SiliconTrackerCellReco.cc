@@ -28,9 +28,9 @@ PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
   : SubsysReco(name)
   , _timer(PHTimeServer::get()->insert_new(name.c_str()))
   , chkenergyconservation(0)
-  , tmin_default(0.0)
+  , tmin_default(-20.0)  // FVTX NIM paper Fig 32, collision has a timing spread around the triggered event. Accepting negative time too.
   ,  // ns
-  tmax_default(60.0)
+  tmax_default(80.0) // FVTX NIM paper Fig 32
   ,  // ns
   tmin_max()
 {

@@ -25,6 +25,10 @@ class PHFieldConfig_v2 : public PHFieldConfig
       double field_mag_y,
       double field_mag_z
       );
+
+  //! default constructor for ROOT file IO
+  PHFieldConfig_v2(): PHFieldConfig_v2(0,0,0) {}
+
   virtual ~PHFieldConfig_v2();
 
   /// Virtual copy constructor.

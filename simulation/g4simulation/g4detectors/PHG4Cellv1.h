@@ -18,7 +18,8 @@ class PHG4Cellv1: public PHG4Cell
   PHG4Cellv1(const PHG4CellDefs::keytype g4cellid);
   virtual ~PHG4Cellv1();
 
-  void Reset();
+  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void Reset();
 
   void set_cellid(const PHG4CellDefs::keytype i) {cellid = i;}
 
@@ -71,10 +72,10 @@ class PHG4Cellv1: public PHG4Cell
   void set_stave_index(const int i) {set_property(prop_stave_index,i);}
   int get_stave_index() const {return get_property_int(prop_stave_index);}
 
+//  tpctod* get_train_of_digits() {return &trainOfDigits;}
+
   void set_zbin(const int i) {set_property(prop_zbin,i);}
   int get_zbin() const {return get_property_int(prop_zbin);}
-
-
 
   void print() const;
 
@@ -97,6 +98,7 @@ class PHG4Cellv1: public PHG4Cell
   PHG4CellDefs::keytype cellid;
   EdepMap hitedeps;
   ShowerEdepMap showeredeps;
+//  tpctod trainOfDigits;
 
   //! storage types for additional property
   typedef uint8_t prop_id_t;
@@ -121,7 +123,7 @@ class PHG4Cellv1: public PHG4Cell
   prop_map_t prop_map;
 
 
-  ClassDef(PHG4Cellv1,1)
+  ClassDef(PHG4Cellv1,3)
 };
 
 #endif

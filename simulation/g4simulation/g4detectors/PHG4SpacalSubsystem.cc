@@ -174,5 +174,9 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_int_param("azimuthal_seg_visible", 0.);
   set_default_int_param("virualize_fiber", 0.);
   set_default_int_param("config", static_cast<int>(PHG4CylinderGeom_Spacalv1::kNonProjective));
+
+  set_default_double_param("divider_width", 0); // radial size of the divider between blocks. <=0 means no dividers
+  set_default_string_param("divider_mat", "G4_AIR"); // materials of the divider. G4_AIR is equivalent to not installing one in the term of material distribution
+
   return;
 }
