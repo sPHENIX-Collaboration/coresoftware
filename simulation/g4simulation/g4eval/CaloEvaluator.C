@@ -8,7 +8,8 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <g4hough/SvtxVertexMap.h>
+#include <g4vertex/GlobalVertex.h>
+#include <g4vertex/GlobalVertexMap.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -213,7 +214,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
     }
 
     // need things off of the DST...
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
 
     PHG4VtxPoint* gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float gvx = gvertex->get_x();
@@ -362,7 +363,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     // need things off of the DST...
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
 
     PHG4VtxPoint* gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float gvx = gvertex->get_x();
