@@ -14,7 +14,7 @@ class BEmcRec;
 class RawClusterBuilderTemplate : public SubsysReco {
 
  public:
-  RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilder");
+  RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderGraph");
   virtual ~RawClusterBuilderTemplate();
 
   int InitRun(PHCompositeNode *topNode);
