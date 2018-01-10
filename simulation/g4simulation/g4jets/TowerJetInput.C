@@ -53,6 +53,10 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     return std::vector<Jet*>();
   }
 
+  if (!vertexmap->empty()) {
+    return std::vector<Jet*>();
+  }
+
   RawTowerContainer *towers = NULL;
   RawTowerGeomContainer *geom = NULL;
   if (_input == Jet::CEMC_TOWER) {

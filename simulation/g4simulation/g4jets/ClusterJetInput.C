@@ -49,6 +49,9 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
   if (!vertexmap) {
     return std::vector<Jet*>();
   }
+  if (!vertexmap->empty()) {
+    return std::vector<Jet*>();
+  }
   
   RawClusterContainer *clusters = NULL;
   RawTowerGeomContainer *geom = NULL;
@@ -87,23 +90,6 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
     RawCluster *cluster = rtiter->second;
 
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
-
-//    double r = geom->get_radius();
-//
-//    double eta0 = cluster->get_eta();
-//    double phi = cluster->get_phi();
-//
-//    double z0 = r * sinh(eta0);
-//    double z = z0 - vtxz;
-//
-//    double eta = asinh(z/r); // eta after shift from vertex
-//
-//    double pt = cluster->get_energy() / cosh(eta);
-//    double px = pt * cos(phi);
-//    double py = pt * sin(phi);
-//    double pz = pt * sinh(eta);
-
-
 
     Jet *jet = new JetV1();
     jet->set_px(E_vec_cluster.x());
