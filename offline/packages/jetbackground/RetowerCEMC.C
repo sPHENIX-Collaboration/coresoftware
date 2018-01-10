@@ -9,12 +9,12 @@
 #include <phool/getClass.h>
 
 // sPHENIX includes
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerv1.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 
 // standard includes
 #include <iomanip>

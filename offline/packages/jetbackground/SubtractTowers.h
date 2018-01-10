@@ -15,7 +15,7 @@
 // standard includes
 #include <vector>
 
-#include "g4cemc/RawTowerContainer.h"
+#include "calobase/RawTowerContainer.h"
 
 // forward declarations
 class PHCompositeNode;
