@@ -22,6 +22,7 @@
 #include <boost/foreach.hpp>
 #include<sstream>
 #include <cstdlib>
+#include <cmath>
 
 
 using namespace std;
@@ -226,7 +227,8 @@ mFillG4SnglHTCContainer::process_clr(int detid, RawClusterContainer *clrs, G4Sng
    	 {
 	   snglclr.set_detid( detid );
 	   snglclr.set_ntowers( clr_iter->second->getNTowers() );
-	   snglclr.set_eta( clr_iter->second->get_eta() );
+//     snglclr.set_eta( clr_iter->second->get_eta() );
+     snglclr.set_eta( NAN );
 	   snglclr.set_phi( clr_iter->second->get_phi() );
 	   snglclr.set_edep( clr_iter->second->get_energy() );
 
