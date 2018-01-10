@@ -1,8 +1,8 @@
 #ifndef RAWTOWER_PROTOTYPE2_H_
 #define RAWTOWER_PROTOTYPE2_H_
 
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerDefs.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerDefs.h>
 #include <map>
 #include <stdint.h>
 
