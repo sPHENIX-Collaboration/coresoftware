@@ -55,8 +55,8 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
     return std::vector<Jet*>();
   }
 
-  if (!vertexmap->empty()) {
-    cout <<"ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
+  if (vertexmap->empty()) {
+    cout <<"ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex."<<endl;
     return std::vector<Jet*>();
   }
 
