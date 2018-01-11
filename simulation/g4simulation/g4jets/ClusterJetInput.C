@@ -25,6 +25,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+#include <cassert>
 
 using namespace std;
 
@@ -47,11 +48,18 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
 
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
   if (!vertexmap) {
+
+    cout <<"ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
+    assert(vertexmap); // force quit
+
     return std::vector<Jet*>();
   }
+
   if (!vertexmap->empty()) {
+    cout <<"ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
     return std::vector<Jet*>();
   }
+
   
   RawClusterContainer *clusters = NULL;
   RawTowerGeomContainer *geom = NULL;
