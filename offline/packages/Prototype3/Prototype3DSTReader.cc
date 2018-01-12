@@ -15,7 +15,7 @@
 #include <phool/getClass.h>
 #include <phool/getClass.h>
 
-#include <g4cemc/RawTowerContainer.h>
+#include <calobase/RawTowerContainer.h>
 #include <pdbcalbase/PdbParameterMap.h>
 #include <g4detectors/PHG4Parameters.h>
 

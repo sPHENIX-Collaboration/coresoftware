@@ -1,5 +1,5 @@
-#ifndef RAWCLUSTERBUILDERV1_H__
-#define RAWCLUSTERBUILDERV1_H__
+#ifndef RAWCLUSTERBUILDER_H__
+#define RAWCLUSTERBUILDER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <string>
@@ -9,13 +9,12 @@ class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
-class BEmcRec;
 
-class RawClusterBuilderv1 : public SubsysReco {
+class RawClusterBuilderGraph : public SubsysReco {
 
  public:
-  RawClusterBuilderv1(const std::string& name = "RawClusterBuilder"); 
-  virtual ~RawClusterBuilderv1();
+  RawClusterBuilderGraph(const std::string& name = "RawClusterBuilderGraph");
+  virtual ~RawClusterBuilderGraph() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -23,18 +22,12 @@ class RawClusterBuilderv1 : public SubsysReco {
   void Detector(const std::string &d) {detector = d;}
 
   void set_threshold_energy(const float e) {_min_tower_e = e;}
-  void setEnergyNorm(float norm) {fEnergyNorm = norm;}
   void checkenergy(const int i = 1) {chkenergyconservation = i;}
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
-  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergemom);
-  bool Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float& phi, float& eta);
 
   RawClusterContainer* _clusters;
-
-  BEmcRec* bemc;
-  float fEnergyNorm;
 
   float _min_tower_e;
   int chkenergyconservation;
@@ -44,4 +37,4 @@ class RawClusterBuilderv1 : public SubsysReco {
 
 };
 
-#endif /* RAWCLUSTERBUILDERV1_H__ */
+#endif /* RAWCLUSTERBUILDER_H__ */

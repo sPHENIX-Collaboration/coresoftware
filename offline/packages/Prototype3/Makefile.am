@@ -45,7 +45,8 @@ libPrototype3_la_LIBADD = \
   -lSubsysReco \
   -lphool \
   -lfun4all \
-  -lcemc
+  -lcalo_util \
+  -lg4detectors_io
 
 BUILT_SOURCES = \
   testexternals.C

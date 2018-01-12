@@ -33,7 +33,7 @@ libg4hough_la_LIBADD = \
   -lFitNewton \
   -lSeamstress \
   -lg4bbc_io \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lgenfit2 \
   -lphfield \
   -lgenfit2exp \

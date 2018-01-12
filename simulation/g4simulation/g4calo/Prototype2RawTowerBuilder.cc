@@ -1,8 +1,8 @@
 #include "Prototype2RawTowerBuilder.h"
-#include "RawTowerContainer.h"
-#include "RawTowerGeomContainer_Cylinderv1.h"
-#include "RawTowerGeomv1.h"
-#include "RawTowerv1.h"
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTowerv1.h>
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 #include <g4detectors/PHG4ScintillatorSlatDefs.h>

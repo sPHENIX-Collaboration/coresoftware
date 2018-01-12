@@ -54,6 +54,8 @@ public:
 
 protected:
   SvtxTrackState(float pathlength = 0.0) {}
+
+  ClassDef(SvtxTrackState,1);
 };
 
 #endif

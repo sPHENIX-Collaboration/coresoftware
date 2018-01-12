@@ -1,12 +1,14 @@
 #include "RawClusterBuilderFwd.h"
-#include "RawClusterContainer.h"
-#include "RawClusterv1.h"
+
 #include "PHMakeGroups.h"
 
-#include "RawTower.h"
-#include "RawTowerGeomContainer.h"
-#include "RawTowerGeom.h"
-#include "RawTowerContainer.h"
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterv1.h>
+
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -17,9 +19,6 @@
 #include <vector>
 #include <map>
 
-// TODO: The output clusters assume the event is coming from (0,0,0) in the calculation of eta, phi...
-// that should probably be modified at some point when things are more stable with the tracking vertex
-// calculation.
 
 using namespace std;
 
@@ -142,100 +141,83 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
   std::multimap<int, twrs_fwd> clusteredTowers;
   PHMakeGroups(towerVector, clusteredTowers);
 
-  // extract the clusters
-  std::vector<float> energy;
-  std::vector<float> eta;
-  std::vector<float> phi;
 
+  RawCluster *cluster = nullptr;
+  int last_id = -1;
   std::multimap<int, twrs_fwd>::iterator ctitr = clusteredTowers.begin();
   std::multimap<int, twrs_fwd>::iterator lastct = clusteredTowers.end();
   for (; ctitr != lastct; ++ctitr)
+  {
+    int clusterid = ctitr->first;
+
+    if (last_id != clusterid)
     {
-      int clusterid = ctitr->first;
-      RawCluster *cluster = _clusters->getCluster(clusterid);
-      if (!cluster)
-        {
-          cluster = new RawClusterv1();
-          _clusters->AddCluster(cluster);
-          energy.push_back(0.0);
-          eta.push_back(0.0);
-          phi.push_back(0.0);
-        }
+      // new cluster
+      cluster = new RawClusterv1();
+      _clusters->AddCluster(cluster);
 
-      twrs_fwd tmptower = ctitr->second;
-      int ij = tmptower.get_j_bin();
-      int ik = tmptower.get_k_bin();
-      RawTower *rawtower = towers->getTower(ij, ik);
-      if (tmptower.get_id() != (int) RawTowerDefs::encode_towerid(towers->getCalorimeterID(), ij, ik ))
-	{
-	  cout <<__PRETTY_FUNCTION__<< " - Fatal Error - id mismatch. internal: " << tmptower.get_id()
-	       << ", towercontainer: " << RawTowerDefs::encode_towerid( towers->getCalorimeterID(), ij, ik )
-	       << endl;
-	  exit(1);
-	}
-      float e = rawtower->get_energy();
-      energy[clusterid] += e;
-      RawTowerGeom *tgeo =  
-	towergeom->get_tower_geometry(rawtower->get_id()); 
-      eta[clusterid] += e * tgeo->get_eta();
-      phi[clusterid] += e * tgeo->get_phi();
+      last_id = clusterid;
+    }
+    assert(cluster);
 
-      cluster->addTower(rawtower->get_id(), rawtower->get_energy());
+    const twrs_fwd & tmptower = ctitr->second;
+    RawTower *rawtower = towers->getTower(tmptower.get_id());
 
-      if (verbosity)
-        {
-          std::cout << "RawClusterBuilderFwd id: " << (ctitr->first) << " Tower: "
-                    << " (ieta,iphi) = (" << rawtower->get_bineta() << "," << rawtower->get_binphi() << ") "
-                    << " (eta,phi,e) = (" << tgeo->get_eta() << ","
-                    << tgeo->get_phi() << ","
-                    << rawtower->get_energy() << ")"
-                    << std::endl;
-        }
+    const double e = rawtower->get_energy();
+    cluster->addTower(rawtower->get_id(), e);
+  }
+
+  for (const auto &cluster_pair : _clusters->getClustersMap())
+  {
+    const RawClusterDefs::keytype clusterid = cluster_pair.first;
+    RawCluster *cluster = cluster_pair.second;
+
+    assert(cluster);
+    assert(cluster->get_id() == clusterid);
+
+    double sum_x(0);
+    double sum_y(0);
+    double sum_z(0);
+    double sum_e(0);
+
+    for (const auto tower_pair : cluster->get_towermap())
+    {
+      const RawTower *rawtower = towers->getTower(tower_pair.first);
+      const RawTowerGeom *rawtowergeom = towergeom->get_tower_geometry(tower_pair.first);
+
+      assert(rawtower);
+      assert(rawtowergeom);
+      const double e = rawtower->get_energy();
+
+      sum_e += e;
+
+      if (e > 0)
+      {
+        sum_x += e * rawtowergeom->get_center_x();
+        sum_y += e * rawtowergeom->get_center_y();
+        sum_z += e * rawtowergeom->get_center_z();
+      }
+    }  //     for (const auto tower_pair : cluster->get_towermap())
+
+    cluster->set_energy(sum_e);
+
+    if (sum_e > 0)
+    {
+      sum_x /= sum_e;
+      sum_y /= sum_e;
+      sum_z /= sum_e;
+
+      cluster->set_r(sqrt(sum_y * sum_y + sum_x * sum_x));
+      cluster->set_phi(atan2(sum_y, sum_x));
+      cluster->set_z(sum_z);
     }
 
-  unsigned int nclusters = _clusters->size();
-  for (unsigned int icluster = 0; icluster < nclusters; icluster++)
+    if (verbosity > 1)
     {
-      if (energy[icluster] > 0)
-        {
-          eta[icluster] /= energy[icluster];
-          phi[icluster] /= energy[icluster];
-        }
-      else
-        {
-          eta[icluster] = 0.0;
-          phi[icluster] = 0.0;
-        }
-
-      if(phi[icluster] > M_PI)  phi[icluster] = phi[icluster] - 2.*M_PI; // convert [0,2pi] to [-pi,pi] for slat geometry(L. Xue)
-      RawCluster *cluster = _clusters->getCluster(icluster);
-      cluster->set_energy(energy[icluster]);
-      cluster->set_eta(eta[icluster]);
-      cluster->set_phi(phi[icluster]);
-
-      if (verbosity)
-        {
-          cout << "RawClusterBuilderFwd: Cluster # " << icluster << " of " << nclusters << " "
-                    << " (eta,phi,e) = (" << cluster->get_eta() << ", "
-                    << cluster->get_phi() << ","
-                    << cluster->get_energy() << ")"
-                    << endl;
-        }
+      cout << "RawClusterBuilder constucted ";
+      cluster->identify();
     }
-
-  // Correct mean Phi calculation for clusters at Phi discontinuity
-  // Assumes that Phi goes from -pi to +pi
-  for (unsigned int icluster = 0; icluster < nclusters; icluster++)
-    {
-      RawCluster *cluster = _clusters->getCluster(icluster);
-      float oldphi = cluster->get_phi();
-      bool corr = CorrectPhi(cluster, towers,towergeom);
-      if (corr && verbosity)
-        {
-          std::cout << PHWHERE << " Cluster Phi corrected: " << oldphi << " " << cluster->get_phi() << std::endl;
-        }
-    }
-
+  }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
   if (chkenergyconservation)
     {
       double ecluster = _clusters->getTotalEdep();

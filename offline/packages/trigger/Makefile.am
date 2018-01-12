@@ -23,7 +23,7 @@ libcalotrigger_io_la_LIBADD = \
 
 libcalotrigger_la_LIBADD = \
   -lfun4all \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lCGAL \
   libcalotrigger_io.la
 

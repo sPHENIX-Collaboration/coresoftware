@@ -7,11 +7,11 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawClusterContainer.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <phool/PHCompositeNode.h>
@@ -22,6 +22,7 @@
 #include <boost/foreach.hpp>
 #include<sstream>
 #include <cstdlib>
+#include <cmath>
 
 
 using namespace std;
@@ -226,7 +227,8 @@ mFillG4SnglHTCContainer::process_clr(int detid, RawClusterContainer *clrs, G4Sng
    	 {
 	   snglclr.set_detid( detid );
 	   snglclr.set_ntowers( clr_iter->second->getNTowers() );
-	   snglclr.set_eta( clr_iter->second->get_eta() );
+//     snglclr.set_eta( clr_iter->second->get_eta() );
+     snglclr.set_eta( NAN );
 	   snglclr.set_phi( clr_iter->second->get_phi() );
 	   snglclr.set_edep( clr_iter->second->get_energy() );
 
