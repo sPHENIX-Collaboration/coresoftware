@@ -1,11 +1,11 @@
 #include "RawClusterPositionCorrection.h"
 
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawClusterv1.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeomContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterv1.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -132,7 +132,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
   {
-    RawClusterDefs::keytype key = iter->first;
+//    RawClusterDefs::keytype key = iter->first;
     RawCluster *cluster = iter->second;
 
     float clus_energy = cluster->get_energy();
@@ -226,28 +226,9 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       eclus_recalib_val = eclus_calib_constants.at(etabin).at(phibin);
       ecore_recalib_val = ecore_calib_constants.at(etabin).at(phibin);
     }
-    RawCluster *recalibcluster = new RawClusterv1();
-    recalibcluster->set_id(key);
+        RawCluster *recalibcluster = static_cast<RawCluster *>(cluster->Clone());
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
-    recalibcluster->set_eta(cluster->get_eta());
-    recalibcluster->set_phi(cluster->get_phi());
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
-    recalibcluster->set_prob(cluster->get_prob());
-    recalibcluster->set_chi2(cluster->get_chi2());
-
-    //add the towers also
-    RawCluster::TowerConstRange towers2 = cluster->get_towers();
-    RawCluster::TowerConstIterator titer;
-    for (titer = towers2.first;
-         titer != towers2.second;
-         ++titer)
-    {
-      RawTowerDefs::keytype towerkey = titer->first;
-      RawTower *recalibtower = _towers->getTower(titer->first);
-      float towerenergy = recalibtower->get_energy();
-      recalibcluster->addTower(towerkey, towerenergy);
-    }
-
     _recalib_clusters->AddCluster(recalibcluster);
 
     if (verbosity && clus_energy > 1)

@@ -1,7 +1,7 @@
 #ifndef _RAW_TOWER_BUILDER_BY_HIT_INDEX__
 #define _RAW_TOWER_BUILDER_BY_HIT_INDEX__
 
-#include "RawTowerDefs.h"
+#include <calobase/RawTowerDefs.h>
 
 #include <fun4all/SubsysReco.h>
 

@@ -33,7 +33,7 @@ nodist_libg4picoDst_la_SOURCES = \
 libg4picoDst_la_LDFLAGS = \
    -L$(libdir) \
    -L$(OFFLINE_MAIN)/lib \
-   -lcemc \
+   -lcalo_util \
    -lfun4all \
    -lphg4hit \
    -lg4detectors \

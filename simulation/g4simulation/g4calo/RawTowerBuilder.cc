@@ -1,8 +1,8 @@
 #include "RawTowerBuilder.h"
-#include "RawTowerContainer.h"
-#include "RawTowerGeomContainer_Cylinderv1.h"
-#include "RawTowerGeomv1.h"
-#include "RawTowerv1.h"
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTowerv1.h>
 
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>

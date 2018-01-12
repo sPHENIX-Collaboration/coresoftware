@@ -2,8 +2,8 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeom.h>
 
 #include <string>
 

@@ -13,7 +13,7 @@ libg4dst_la_LDFLAGS = \
   -lphg4hit \
   -lg4detectors_io \
   -lg4hough_io \
-  -lcemc_io \
+  -lcalo_io \
   -lg4vertex_io \
   -lg4jets_io \
   -lphgeom_io \

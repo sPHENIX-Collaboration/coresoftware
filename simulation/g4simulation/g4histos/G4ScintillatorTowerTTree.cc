@@ -2,8 +2,8 @@
 #include "G4RootScintillatorTowerContainer.h"
 #include "G4RootScintillatorTower.h"
 
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTower.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 

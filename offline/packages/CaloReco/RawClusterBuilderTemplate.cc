@@ -1,14 +1,15 @@
-#include "RawClusterBuilderv1.h"
-#include "RawClusterContainer.h"
-#include "RawClusterv1.h"
-#include "PHMakeGroups.h"
-
-#include "RawTower.h"
-#include "RawTowerGeomContainer.h"
-#include "RawTowerContainer.h"
+#include "RawClusterBuilderTemplate.h"
 
 #include "BEmcRec.h"
 #include "BEmcCluster.h"
+
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterv1.h>
+
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerContainer.h>
+
 
 #include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -21,12 +22,12 @@
 using namespace std;
 
 
-RawClusterBuilderv1::~RawClusterBuilderv1()
+RawClusterBuilderTemplate::~RawClusterBuilderTemplate()
 {
   delete bemc;
 }
 
-RawClusterBuilderv1::RawClusterBuilderv1(const std::string& name):
+RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string& name):
   SubsysReco( name ),
   _clusters(NULL),
   _min_tower_e(0.020),
@@ -47,7 +48,7 @@ RawClusterBuilderv1::RawClusterBuilderv1(const std::string& name):
   bemc->SetTowerThreshold(0);
 }
 
-int RawClusterBuilderv1::InitRun(PHCompositeNode *topNode)
+int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
 {
   try
     {
@@ -62,7 +63,7 @@ int RawClusterBuilderv1::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool RawClusterBuilderv1::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float& phi, float& eta)
+bool RawClusterBuilderTemplate::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float& phi, float& eta)
 {
   int NPHI = towergeom->get_phibins();
   int NETA = towergeom->get_etabins();
@@ -72,7 +73,7 @@ bool RawClusterBuilderv1::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC,
 
   int iphi = phiC+0.5; // tower #
   if( iphi<0 || iphi >= NPHI ) {
-    printf("RawClusterBuilderv1::Cell2Abs: wrong input phi: %d\n",iphi);
+    printf("RawClusterBuilderTemplate::Cell2Abs: wrong input phi: %d\n",iphi);
     return false;
   }
 
@@ -89,7 +90,7 @@ bool RawClusterBuilderv1::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC,
 
   int ieta = etaC+0.5; // tower #
   if( ieta<0 || ieta >= NETA ) {
-    printf("RawClusterBuilderv1::Cell2Abs: wrong input eta: %d\n",ieta);
+    printf("RawClusterBuilderTemplate::Cell2Abs: wrong input eta: %d\n",ieta);
     return false;
   }
 
@@ -107,7 +108,7 @@ bool RawClusterBuilderv1::Cell2Abs(RawTowerGeomContainer *towergeom, float phiC,
   return true;
 }
 
-int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
+int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 {
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
@@ -231,6 +232,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 
       pp->GetCorrPos(&xcorr,&ycorr);
       Cell2Abs(towergeom,xcorr,ycorr,phi,eta);
+      const double ref_radius = towergeom->get_radius();
 
       if(phi > M_PI)  phi -= 2.*M_PI; // convert to [-pi,pi]]
 
@@ -241,7 +243,8 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
       cluster->set_energy(ecl);
       cluster->set_ecore(ecore);
       cluster->set_phi(phi);
-      cluster->set_eta(eta);
+      cluster->set_r(ref_radius);
+      cluster->set_z(ref_radius * sinh(eta));
       cluster->set_prob(prob);
       if( ndf>0 ) cluster->set_chi2(chi2/ndf);
       else        cluster->set_chi2(0);
@@ -296,7 +299,7 @@ int RawClusterBuilderv1::process_event(PHCompositeNode *topNode)
 }
 
 
-bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
+bool RawClusterBuilderTemplate::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
 {
   double sum = cluster->get_energy();
   double phimin = 999.;
@@ -345,12 +348,12 @@ bool RawClusterBuilderv1::CorrectPhi(RawCluster* cluster, RawTowerContainer* tow
 }
 
 
-int RawClusterBuilderv1::End(PHCompositeNode *topNode)
+int RawClusterBuilderTemplate::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawClusterBuilderv1::CreateNodes(PHCompositeNode *topNode)
+void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 

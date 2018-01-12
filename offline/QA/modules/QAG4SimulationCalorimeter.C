@@ -7,11 +7,11 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
 
 #include <g4eval/CaloEvalStack.h>
 #include <g4eval/CaloRawClusterEval.h>
@@ -730,11 +730,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
       h->Fill(cluster->get_energy() / (last_primary->get_e() + 1e-9)); //avoids divide zero
 
       // now work on the projection:
-      const double average_r = towergeom->get_radius()
-          + towergeom->get_thickness() / 2;
-      const double theta = 2 * atan(exp(-cluster->get_eta()));
-      TVector3 hit(average_r * cos(cluster->get_phi()),
-          average_r * sin(cluster->get_phi()), average_r / tan(theta));
+      const CLHEP::Hep3Vector hit(cluster->get_position());
 
       const PHG4VtxPoint* primary_vtx = //
           _truth_container->GetPrimaryVtx(last_primary->get_vtx_id());
@@ -747,33 +743,33 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
           primary_vtx->identify();
         }
 
-      const TVector3 vertex(primary_vtx->get_x(), primary_vtx->get_y(),
+      const CLHEP::Hep3Vector  vertex(primary_vtx->get_x(), primary_vtx->get_y(),
           primary_vtx->get_z());
 
       // projection axis
-      TVector3 axis_proj(last_primary->get_px(), last_primary->get_py(),
+      CLHEP::Hep3Vector axis_proj(last_primary->get_px(), last_primary->get_py(),
           last_primary->get_pz());
-      if (axis_proj.Mag() == 0)
-        axis_proj.SetXYZ(0, 0, 1);
-      axis_proj = axis_proj.Unit();
+      if (axis_proj.mag() == 0)
+        axis_proj.set(0, 0, 1);
+      axis_proj = axis_proj.unit();
 
       // azimuthal direction axis
-      TVector3 axis_azimuth = axis_proj.Cross(TVector3(0, 0, 1));
-      if (axis_azimuth.Mag() == 0)
-        axis_azimuth.SetXYZ(1, 0, 0);
-      axis_azimuth = axis_azimuth.Unit();
+      CLHEP::Hep3Vector axis_azimuth = axis_proj.cross(CLHEP::Hep3Vector(0, 0, 1));
+      if (axis_azimuth.mag() == 0)
+        axis_azimuth.set(1, 0, 0);
+      axis_azimuth = axis_azimuth.unit();
 
       // polar direction axis
-      TVector3 axis_polar = axis_proj.Cross(axis_azimuth);
-      assert(axis_polar.Mag() > 0);
-      axis_polar = axis_polar.Unit();
+      CLHEP::Hep3Vector axis_polar = axis_proj.cross(axis_azimuth);
+      assert(axis_polar.mag() > 0);
+      axis_polar = axis_polar.unit();
 
       TH2F * hlat = dynamic_cast<TH2F*>(hm->getHisto(
           get_histo_prefix() + "_Cluster_LateralTruthProjection"));
       assert(hlat);
 
-      const double hit_azimuth = axis_azimuth.Dot(hit - vertex);
-      const double hit_polar = axis_polar.Dot(hit - vertex);
+      const double hit_azimuth = axis_azimuth.dot(hit - vertex);
+      const double hit_polar = axis_polar.dot(hit - vertex);
       hlat->Fill(hit_polar, hit_azimuth);
 
     }

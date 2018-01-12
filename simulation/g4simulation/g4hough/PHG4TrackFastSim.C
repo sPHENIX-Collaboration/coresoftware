@@ -36,8 +36,8 @@
 #include <phgeom/PHGeomUtility.h>
 #include <phfield/PHFieldUtility.h>
 #include <phgenfit/SpacepointMeasurement.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
 
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"

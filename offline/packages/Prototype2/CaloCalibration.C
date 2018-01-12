@@ -2,7 +2,7 @@
 #include "PROTOTYPE2_FEM.h"
 #include "RawTower_Prototype2.h"
 
-#include <g4cemc/RawTowerContainer.h>
+#include <calobase/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
