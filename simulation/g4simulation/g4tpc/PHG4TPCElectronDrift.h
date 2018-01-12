@@ -34,6 +34,8 @@ private:
   TH1 *dlong;
   TH1 *dtrans;
   TNtuple *nt;
+  TNtuple *nthit;
+  TNtuple *ntpad;
   std::string detector;
   std::string hitnodename;
   unsigned int seed;

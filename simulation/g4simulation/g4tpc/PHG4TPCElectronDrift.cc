@@ -86,8 +86,12 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans","transversal diffusion",100,diffusion_trans-diffusion_trans/2.,diffusion_trans+diffusion_trans/2.);
   se->registerHisto(dtrans);
-  nt = new TNtuple("nt","stuff","ts:tb:tsig:phi:rad:ri:rsig:z");
+  nt = new TNtuple("nt","stuff","hit:ts:tb:tsig:rad:z");
+  nthit = new TNtuple("nthit","stuff","hit:nel:eion:eloss:t0:x0:y0:z0");
+  ntpad = new TNtuple("ntpad","padplane stuff","tp:phi:rad:phibin:radbin");
   se->registerHisto(nt);
+  se->registerHisto(nthit);
+  se->registerHisto(ntpad);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -102,50 +106,71 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   double tpc_length = 211.;
+  double ihit = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+  {
+    double eion = hiter->second->get_eion();
+    unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
+    nthit->Fill(ihit,n_electrons,eion,hiter->second->get_edep(),hiter->second->get_t(0),hiter->second->get_x(0),hiter->second->get_y(0),hiter->second->get_z(0));
+    if (n_electrons <= 0)
     {
-      double eion = hiter->second->get_eion();
-      unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
-      double dx = (hiter->second->get_x(1) - hiter->second->get_x(0))/n_electrons;
-      double dy = (hiter->second->get_y(1) - hiter->second->get_y(0))/n_electrons;
-      double dz = (hiter->second->get_z(1) - hiter->second->get_z(0))/n_electrons;
-      double dt = (hiter->second->get_t(1) - hiter->second->get_t(0))/n_electrons;
-      cout << "layer: " << hiter->second->get_layer() << ", dz: " << dz << endl;
-      double x_start = hiter->second->get_x(0) + dx/2.;
-      double y_start = hiter->second->get_y(0) + dy/2.;
-      double z_start = hiter->second->get_z(0) + dz/2.;
-      double t_start = hiter->second->get_t(0) + dt/2.;
-      cout << "g4hit created electrons: " << n_electrons 
-	   << " from " << eion*1000000 << " keV" << endl;
-      for (unsigned int i=0; i<n_electrons; i++)
+      if (n_electrons < 0)
       {
-	// cout << "drift for x: " << x_start
-	//       << ", y: " << y_start
-	//       << ",z: " << z_start << endl;
-	x_start += dx;
-	y_start += dy;
-	z_start += dz;
-	double radstart = sqrt(x_start*x_start + y_start*y_start);
-	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
-	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
-	double rad_final = radstart + rantrans;
-// remove electrons outside of our acceptance
-	if (rad_final<min_active_radius || rad_final >max_active_radius)
-	{
-	  continue;
-	}
-	t_start += (tpc_length/2. - fabs(z_start))/drift_velocity;
-// now the drift
-	double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
-	double x_final = x_start + rantrans*cos(ranphi);
-	double y_final = y_start + rantrans*sin(ranphi);
-	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
-	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
-	double t_final = t_start + rantime;
-	MapToPadPlane(x_final,y_final,t_final);
+	cout << "really bad number of electrons: " << n_electrons
+	     << ", eion: " << eion
+	     << endl;
       }
-//      gSystem->Exit(0);
+      continue;
     }
+    double dx = (hiter->second->get_x(1) - hiter->second->get_x(0))/n_electrons;
+    double dy = (hiter->second->get_y(1) - hiter->second->get_y(0))/n_electrons;
+    double dz = (hiter->second->get_z(1) - hiter->second->get_z(0))/n_electrons;
+    double dt = (hiter->second->get_t(1) - hiter->second->get_t(0))/n_electrons;
+//    cout << "layer: " << hiter->second->get_layer() << ", dz: " << dz << endl;
+    double x_start = hiter->second->get_x(0) + dx/2.;
+    double y_start = hiter->second->get_y(0) + dy/2.;
+    double z_start = hiter->second->get_z(0) + dz/2.;
+    double t_start = hiter->second->get_t(0) + dt/2.;
+    // cout << "g4hit created electrons: " << n_electrons 
+    // 	   << " from " << eion*1000000 << " keV" << endl;
+
+    for (unsigned int i=0; i<n_electrons; i++)
+    {
+      // cout << "drift for x: " << x_start
+      //       << ", y: " << y_start
+      //       << ",z: " << z_start << endl;
+      double radstart = sqrt(x_start*x_start + y_start*y_start);
+      double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
+      double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
+      double rad_final = radstart + rantrans;
+// remove electrons outside of our acceptance
+      if (rad_final<min_active_radius || rad_final >max_active_radius)
+      {
+	continue;
+      }
+      double t_path = t_start + (tpc_length/2. - fabs(z_start))/drift_velocity;
+      if (t_start < 0)
+      {
+	cout << "t_start: " << t_start << endl;
+	cout << "z_start: " << z_start << endl;
+      }
+// now the drift
+      double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
+      double x_final = x_start + rantrans*cos(ranphi);
+      double y_final = y_start + rantrans*sin(ranphi);
+      double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
+      double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
+      double t_final = t_path + rantime;
+      nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
+      MapToPadPlane(x_final,y_final,t_final);
+      x_start += dx;
+      y_start += dy;
+      z_start += dz;
+      t_start += dt;
+    }
+    ihit++;
+//      gSystem->Exit(0);
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -159,12 +184,13 @@ void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   double rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);
   int phibin = (phi+M_PI)/phibinwidth;
   int radbin = (rad_gem-min_active_radius)/rbinwidth;
-  cout << ", phi: " << phi
-       << ", phibin: " << phibin
-       << ", rad: " << rad_gem
-       << ", radbin: " << radbin
-       << ", t_gem: " << t_gem 
-       << endl;
+  ntpad->Fill(t_gem,phi,rad_gem,phibin,radbin);
+  // cout << ", phi: " << phi
+  //      << ", phibin: " << phibin
+  //      << ", rad: " << rad_gem
+  //      << ", radbin: " << radbin
+  //      << ", t_gem: " << t_gem 
+  //      << endl;
 
   return;
 }
