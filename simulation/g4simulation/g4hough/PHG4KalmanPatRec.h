@@ -647,6 +647,9 @@ private:
 	//!
 	int ExportOutput();
 
+	//!
+	void print_timers();
+
 	//--------------------
 	//
 	//--------------------
@@ -784,6 +787,8 @@ private:
 
 	//nodes to get norm vector
 	SvtxHitMap* _svtxhitsmap;
+	int* _hit_used_map;
+	int  _hit_used_map_size;
 
 	PHG4CellContainer* _cells_svtx;
 	PHG4CellContainer* _cells_intt;
@@ -792,7 +797,7 @@ private:
 	PHG4CylinderGeomContainer* _geom_container_intt;
 	PHG4CylinderGeomContainer* _geom_container_maps;
 
-
+	int  _n_iteration;
 	bool _seeding_only_mode;
 	bool _analyzing_mode;
 	TFile* _analyzing_file;
