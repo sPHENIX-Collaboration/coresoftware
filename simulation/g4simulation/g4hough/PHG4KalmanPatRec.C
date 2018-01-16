@@ -180,69 +180,71 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _g4clusters(NULL),
       _g4tracks(NULL),
       _g4vertexes(NULL),
-	  _svtxhitsmap(nullptr),
-	  _cells_svtx(nullptr),
-	  _cells_intt(nullptr),
-	  _cells_maps(nullptr),
-	  _geom_container_intt(nullptr),
-	  _geom_container_maps(nullptr),
-	  _seeding_only_mode(false),
-	  _analyzing_mode(false),
+      _svtxhitsmap(nullptr),
+      _hit_used_map(NULL),
+      _cells_svtx(nullptr),
+      _cells_intt(nullptr),
+      _cells_maps(nullptr),
+      _geom_container_intt(nullptr),
+      _geom_container_maps(nullptr),
+      _n_iteration(0),
+      _seeding_only_mode(false),
+      _analyzing_mode(false),
       _analyzing_file(NULL),
       _analyzing_ntuple(NULL),
-	  _max_merging_dphi(0.1),
-	  _max_merging_deta(0.1),
-	  _max_merging_dr(0.1),
-	  _max_merging_dz(0.1),
-	  _max_share_hits(3),
-	  _fitter(NULL),
-	  _track_fitting_alg_name("DafRef"),
-	  _primary_pid_guess(211),
-	  _cut_min_pT(0.2),
-	  _do_evt_display(false),
-	  _nlayers_maps(nlayers_maps),
-	  _nlayers_intt(nlayers_intt),
-	  _nlayers_tpc(nlayers_tpc),
-	  _nlayers_all(_nlayers_maps+_nlayers_intt+_nlayers_tpc),
-	  _layer_ilayer_map_all(),
-	  _radii_all(),
-
-		_max_search_win_phi_tpc(    0.0040),
-		_min_search_win_phi_tpc(    0.0000),
-		_max_search_win_theta_tpc(  0.0040),
-		_min_search_win_theta_tpc(  0.0000),
-
-		_max_search_win_phi_intt(   0.0050),
-		_min_search_win_phi_intt(   0.0000),
-		_max_search_win_theta_intt( 0.2000),
-		_min_search_win_theta_intt( 0.2000),
-
-		_max_search_win_phi_maps(   0.0050),
-		_min_search_win_phi_maps(   0.0000),
-		_max_search_win_theta_maps( 0.0400),
-		_min_search_win_theta_maps( 0.0000),
-
-	  _search_win_phi(20),
-	  _search_win_theta(20),
-	  _layer_thetaID_phiID_cluserID(),
-	  //_half_max_theta(160),
-	  _half_max_theta(3.1416/2.),
-	  //_half_max_phi(252), //80cm * Pi
-	  _half_max_phi(3.1416),
-	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
-	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/30), //rad
-	  _layer_thetaID_phiID_cluserID_zSize(0.1700/30),
-	  _PHGenFitTracks(),
-	  _init_direction(-1),
-	  _blowup_factor(1.),
-	  _max_consecutive_missing_layer(20),
-	  _max_incr_chi2(20.),
-	  _max_splitting_chi2(20.),
-	  _min_good_track_hits(30)
-	  {
-	_event = 0;
-
-	_user_material.clear();
+      _max_merging_dphi(0.1),
+      _max_merging_deta(0.1),
+      _max_merging_dr(0.1),
+      _max_merging_dz(0.1),
+      _max_share_hits(3),
+      _fitter(NULL),
+      _track_fitting_alg_name("DafRef"),
+      _primary_pid_guess(211),
+      _cut_min_pT(0.2),
+      _do_evt_display(false),
+      _nlayers_maps(nlayers_maps),
+      _nlayers_intt(nlayers_intt),
+      _nlayers_tpc(nlayers_tpc),
+      _nlayers_all(_nlayers_maps+_nlayers_intt+_nlayers_tpc),
+      _layer_ilayer_map_all(),
+      _radii_all(),
+      
+      _max_search_win_phi_tpc(    0.0040),
+      _min_search_win_phi_tpc(    0.0000),
+      _max_search_win_theta_tpc(  0.0040),
+      _min_search_win_theta_tpc(  0.0000),
+      
+      _max_search_win_phi_intt(   0.0050),
+      _min_search_win_phi_intt(   0.0000),
+      _max_search_win_theta_intt( 0.2000),
+      _min_search_win_theta_intt( 0.2000),
+      
+      _max_search_win_phi_maps(   0.0050),
+      _min_search_win_phi_maps(   0.0000),
+      _max_search_win_theta_maps( 0.0400),
+      _min_search_win_theta_maps( 0.0000),
+      
+      _search_win_phi(20),
+      _search_win_theta(20),
+      _layer_thetaID_phiID_cluserID(),
+      //_half_max_theta(160),
+      _half_max_theta(3.1416/2.),
+      //_half_max_phi(252), //80cm * Pi
+      _half_max_phi(3.1416),
+      //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
+      _layer_thetaID_phiID_cluserID_phiSize(0.1200/30), //rad
+      _layer_thetaID_phiID_cluserID_zSize(0.1700/30),
+      _PHGenFitTracks(),
+      _init_direction(-1),
+      _blowup_factor(1.),
+      _max_consecutive_missing_layer(20),
+      _max_incr_chi2(20.),
+      _max_splitting_chi2(20.),
+      _min_good_track_hits(30)
+{
+  _event = 0;
+  
+  _user_material.clear();
 	for(unsigned int i=0;i<_nlayers_maps;++i)
 		_user_material[i] = 0.003;
 	for(unsigned int i=_nlayers_maps;i<_nlayers_maps+_nlayers_intt;++i)
@@ -290,10 +292,15 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
+	int min_layers    = 4;
+	int nlayers_seeds = 7;
+	int seeding_layers[] = {7,13,19,25,31,37,46};
+	set_seeding_layer(seeding_layers, nlayers_seeds);
+	set_min_nlayers_seeding(min_layers);
+	
 	code = InitializeGeometry(topNode);
 	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
+	  return code;
 	code = InitializePHGenFit(topNode);
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
@@ -308,9 +315,9 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	}
 
 	// nightly build 2017-05-04
-//	_search_wins_phi[8]  = 50.;
-//	_search_wins_phi[9]  = 45.;
-//	_search_wins_phi[10] = 40.;
+	//	_search_wins_phi[8]  = 50.;
+	//	_search_wins_phi[9]  = 45.;
+	//	_search_wins_phi[10] = 40.;
 //	_search_wins_phi[11] = 30.;
 //	_search_wins_phi[12] = 30.;
 //	_search_wins_phi[13] = 30.;
@@ -434,97 +441,137 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	_track_errors.clear();
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
-
 	//-----------------------------------
 	// Get Objects off of the Node Tree
 	//-----------------------------------
 
-	GetNodes(topNode);
+	GetNodes(topNode);// Allocate Cluster Use Map allocated in here
 
-	if(verbosity >= 1) _t_seeding->restart();
+	// Iterate over seeding configurations
 
-	//-----------------------------------
-	// Translate into Helix_Hough objects
-	//-----------------------------------
+	for(_n_iteration = 3;_n_iteration<=3;_n_iteration++){
+	  if(_n_iteration==1){
+	    int min_layers    = 4;
+	    int nlayers_seeds = 7;
+	    int seeding_layers[] = {7,13,19,25,31,37,46};
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	  
+	    int code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  if(_n_iteration==2){
+	    int min_layers    = 7;
+	    int nlayers_seeds = 12;
+	    int seeding_layers[] = {7,8,13,14,19,20,26,27,34,35,40,46};
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	  
+	    int code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  if(_n_iteration==3){
+	    int min_layers    = 4;
+	    int nlayers_seeds = 12;
+	    set_min_nlayers_seeding(min_layers);
+	    //
+	    int seeding_layers[] = {7,8,13,14,19,20,26,27,34,35,40,46};
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	    //
+	    int code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  
 
-	int code = translate_input();
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	//-----------------------------------
-	// Guess a vertex position
-	//-----------------------------------
-
-//	code = fast_vertex_guessing();
-//	if (code != Fun4AllReturnCodes::EVENT_OK)
-//		return code;
-
-	// here expect vertex to be better than +/-2.0 cm
-
-	//-----------------------------------
-	// Find an initial vertex with tracks
-	//-----------------------------------
-
-//	code = initial_vertex_finding();
-//	if (code != Fun4AllReturnCodes::EVENT_OK)
-//		return code;
-
-	code = vertexing(topNode);
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-	// here expect vertex to be better than +/- 500 um
-
-	//-----------------------------------
-	// Seeding
-	//-----------------------------------
-	//TODO simplify this function
-	code = full_track_seeding();
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	if(verbosity >= 1) _t_seeding->stop();
-
-
-	if(verbosity >= 1) _t_kalman_pat_rec->restart();
-	//-----------------------------------
-	// Kalman cluster accociation
-	//-----------------------------------
-	if (!_seeding_only_mode) {
-		code = FullTrackFitting(topNode);
-		if (code != Fun4AllReturnCodes::EVENT_OK)
-			return code;
-	}
-	if(verbosity >= 1) _t_kalman_pat_rec->stop();
-
-
-	//-----------------------------------
-	// Translate back into SVTX objects
-	//-----------------------------------
-
-	if(!_seeding_only_mode)
-		code = ExportOutput();
-	else
-		code = export_output();
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	if(verbosity > 1) {
-		std::cout << "=============== Timers: ===============" << std::endl;
-		std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "=======================================" << std::endl;
+	  cout << "Iteration number " << _n_iteration << endl; 
+	  _min_nlayers_seeding--;
+	  if(verbosity >= 1) _t_seeding->restart();
+	  
+	  //-----------------------------------
+	  // Translate into Helix_Hough objects
+	  //-----------------------------------
+	  
+	  int code = translate_input();//Check if cluster is already used in here
+	  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	  
+	  //-----------------------------------
+	  // Guess a vertex position
+	  //-----------------------------------
+	  
+	  //	code = fast_vertex_guessing();
+	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	  // here expect vertex to be better than +/-2.0 cm
+	  
+	  //-----------------------------------
+	  // Find an initial vertex with tracks
+	  //-----------------------------------
+	  
+	  //	code = initial_vertex_finding();
+	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	  if(_n_iteration ==1){
+	    code = vertexing(topNode);
+	    if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	    // here expect vertex to be better than +/- 500 um
+	  }
+	  //-----------------------------------
+	  // Seeding
+	  //-----------------------------------
+	  //TODO simplify this function
+	  code = full_track_seeding();
+	  if (code != Fun4AllReturnCodes::EVENT_OK)
+	    return code;
+	  
+	  if(verbosity >= 1) _t_seeding->stop();
+	  if(verbosity >= 1) _t_kalman_pat_rec->restart();
+	  
+	  //-----------------------------------
+	  // Kalman cluster association
+	  //-----------------------------------
+	  if (!_seeding_only_mode) {
+	    code = FullTrackFitting(topNode);
+	    if (code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  if(verbosity >= 1) _t_kalman_pat_rec->stop();
+	  
+	  //-----------------------------------
+	  // Translate back into SVTX objects
+	  //-----------------------------------
+	  
+	  if(!_seeding_only_mode)
+	    code = ExportOutput();
+	  else
+	    code = export_output();
+	  if (code != Fun4AllReturnCodes::EVENT_OK)
+	    return code;
+	  
+	  if(verbosity > 1) print_timers();
 	}
 	++_event;
-
+	
 	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+void PHG4KalmanPatRec::print_timers() {
+  
+  std::cout << "=============== Timers: ===============" << std::endl;
+  std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "=======================================" << std::endl;
+
 }
 
 int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
@@ -1032,7 +1079,6 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 	}
 
 	// initialize the pattern recogition tools
-
 	setup_tracker_object();
 	setup_initial_tracker_object();
 	setup_seed_tracker_objects();
@@ -1384,6 +1430,15 @@ int PHG4KalmanPatRec::GetNodes(PHCompositeNode* topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
+	if(_hit_used_map_size!=0) delete[] _hit_used_map;
+
+	_hit_used_map_size = static_cast<int>(_g4clusters->size());
+	_hit_used_map = new int[_hit_used_map_size];
+	for (Int_t i=0;i<_hit_used_map_size;i++){
+	  _hit_used_map[i] = 0;
+	}
+
+
 	// Pull the reconstructed track information off the node tree...
 	_g4tracks = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 	if (!_g4tracks) {
@@ -1405,7 +1460,9 @@ int PHG4KalmanPatRec::translate_input() {
 
 	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
 			iter != _g4clusters->end(); ++iter) {
+	  if(_hit_used_map[iter->first]!=0) continue;
 	  SvtxCluster* cluster = iter->second;
+	  //	  cout << "first: " << iter->first << endl; 
 	  /*
 	    float vz = 0.0;
 	    float x  = cluster->get_x();
@@ -1728,7 +1785,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 	// final track finding
 	_tracker->findHelices(_clusters, _min_combo_hits, _max_combo_hits, _tracks);
-
+	cout << "SEEDSTUDY nbefore clean (" << _min_nlayers_seeding << "): " << _tracks.size() << endl;
 	// Cleanup Seeds
 #ifdef _USE_ALAN_TRACK_REFITTING_
 #else
@@ -1736,6 +1793,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	CleanupSeeds();
 	if(verbosity >= 1) _t_seeds_cleanup->stop();
 #endif
+	cout << "SEEDSTUDY nafter clean: " << _tracks.size() << endl;
 	for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
 		_track_covars.push_back((_tracker->getKalmanStates())[tt].C);
 		_track_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
@@ -1860,6 +1918,8 @@ int PHG4KalmanPatRec::export_output() {
 			}
 			SvtxCluster* cluster = _g4clusters->get(
 					track_hits.at(ihit).get_id());
+			//mark hit asu used by iteration number n
+			_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
 			clusterID = cluster->get_id();
 #ifdef _DEBUG_
 			cout
@@ -2722,6 +2782,7 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 
 		for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
 			track.insert_cluster(cluster_ID);
+			_hit_used_map[cluster_ID] = _n_iteration;
 		}
 
 		_g4tracks->insert(&track);
