@@ -1,7 +1,7 @@
 #ifndef HcalRawTowerBuilder_H__
 #define HcalRawTowerBuilder_H__
 
-#include <g4detectors/PHParameterInterface.h>
+#include <phparameter/PHParameterInterface.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 

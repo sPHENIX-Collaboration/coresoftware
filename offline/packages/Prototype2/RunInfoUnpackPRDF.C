@@ -8,7 +8,7 @@
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>

@@ -5,7 +5,7 @@
 #include <string>
 
 #include <phool/PHTimeServer.h>
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 
 class PHCompositeNode;
 class RawTowerContainer;

@@ -17,7 +17,7 @@
 
 #include <calobase/RawTowerContainer.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 
 #include <TTree.h>
 #include <TMath.h>

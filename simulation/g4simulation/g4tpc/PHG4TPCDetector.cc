@@ -1,7 +1,7 @@
 #include "PHG4TPCDetector.h"
 #include "PHG4TPCDefs.h"
 
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4ColorDefs.h>
 #include <g4main/PHG4Utils.h>

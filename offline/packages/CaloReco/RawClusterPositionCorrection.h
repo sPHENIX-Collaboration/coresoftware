@@ -2,7 +2,7 @@
 #define __RAWCLUSTERPOSITIONCORRECTION_H__
 
 #include <fun4all/SubsysReco.h>
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 #include <phool/PHObject.h>
 #include <string>
 

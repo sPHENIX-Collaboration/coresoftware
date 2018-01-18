@@ -3,7 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <g4detectors/PHParameterInterface.h>
+#include <phparameter/PHParameterInterface.h>
 
 // rootcint barfs with this header so we need to hide it
 #ifndef __CINT__

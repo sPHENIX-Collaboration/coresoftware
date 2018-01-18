@@ -1,7 +1,7 @@
 #include "PHG4TPCSteppingAction.h"
 #include "PHG4TPCDetector.h"
 
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 #include <g4detectors/PHG4StepStatusDecode.h>
 
 #include <g4main/PHG4Hit.h>

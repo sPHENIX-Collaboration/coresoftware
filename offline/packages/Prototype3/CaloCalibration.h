@@ -7,7 +7,7 @@
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
 #include <string>
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 
 class RawTowerContainer;
 

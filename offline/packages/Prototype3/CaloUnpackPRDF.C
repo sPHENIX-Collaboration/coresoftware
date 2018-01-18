@@ -13,7 +13,7 @@
 #include <phool/getClass.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHParameters.h>
+#include <phparameter/PHParameters.h>
 
 #include <iostream>
 #include <string>
