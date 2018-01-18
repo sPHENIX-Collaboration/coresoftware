@@ -63,6 +63,12 @@ class PHParameters: public PHObject
   int ReadFromDB();
   int ReadFromDB(const std::string &name, const int layer);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
+
+  //! simple read without super detector and layer structures
+  inline int ReadFromFile(const std::string &name, const std::string &extension, const std::string &dir = ".")
+  {return ReadFromFile(name, extension, 0, 0, dir);}
+
+  //! Fully fledged read
   int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const int issuper, const std::string &dir = ".");
   void CopyToPdbParameterMap(PdbParameterMap *myparm);
 
