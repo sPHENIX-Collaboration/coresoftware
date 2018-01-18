@@ -24,7 +24,7 @@
 // ********************************************************************
 //
 //
-// $Id: PHParameterisationTubsEta.h,v 1.3 2012/07/10 16:48:20 pinkenbu Exp $
+// $Id: PHG4ParameterisationTubsEta.h,v 1.3 2012/07/10 16:48:20 pinkenbu Exp $
 // GEANT4 tag $Name:  $
 //
 // classes G4ParameterisationTubsRho
@@ -41,22 +41,22 @@
 // 09.05.01 - P.Arce, Initial version
 // 08.04.04 - I.Hrivnacova, Implemented reflection
 // --------------------------------------------------------------------
-#ifndef PHParameterisationTubsETA_H
-#define PHParameterisationTubsETA_H 1
+#ifndef PHG4ParameterisationTubsETA_H
+#define PHG4ParameterisationTubsETA_H 1
 
 #include <vector>
 #include <Geant4/G4ParameterisationTubs.hh>
 
 class G4VPhysicalVolume;
 
-class PHParameterisationTubsEta : public G4VParameterisationTubs
+class PHG4ParameterisationTubsEta : public G4VParameterisationTubs
 { 
 public:  // with description
 
-  PHParameterisationTubsEta( EAxis axis, G4int nCopies,
+  PHG4ParameterisationTubsEta( EAxis axis, G4int nCopies,
 			       G4double offset, G4double step,
 			       G4VSolid* motherSolid, DivisionType divType=DivNDIVandWIDTH );
-  virtual ~PHParameterisationTubsEta();
+  virtual ~PHG4ParameterisationTubsEta();
   
   virtual G4double GetMaxParameter() const;
   

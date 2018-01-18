@@ -3,7 +3,7 @@
 // the Z subclass.  See $G4INSTALL/source/volumes/divisions)
 //
 
-#include <phparameter/PHParameterisationTubsEta.h>
+#include "PHG4ParameterisationTubsEta.h"
 
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4RotationMatrix.hh>
@@ -15,7 +15,7 @@
 #include <iomanip>
 
 //--------------------------------------------------------------------------
-PHParameterisationTubsEta::PHParameterisationTubsEta( EAxis axis, G4int nDiv,
+PHG4ParameterisationTubsEta::PHG4ParameterisationTubsEta( EAxis axis, G4int nDiv,
 							  G4double width, G4double offset,
 							  G4VSolid* msolid, DivisionType divType ) :
   G4VParameterisationTubs( axis, nDiv, width, offset, msolid, divType )
@@ -81,12 +81,12 @@ PHParameterisationTubsEta::PHParameterisationTubsEta( EAxis axis, G4int nDiv,
 }
 
 //--------------------------------------------------------------------------
-PHParameterisationTubsEta::~PHParameterisationTubsEta()
+PHG4ParameterisationTubsEta::~PHG4ParameterisationTubsEta()
 {
 }
 
 //------------------------------------------------------------------------
-G4double PHParameterisationTubsEta::GetMaxParameter() const
+G4double PHG4ParameterisationTubsEta::GetMaxParameter() const
 {
   G4Tubs* msol = (G4Tubs*)(fmotherSolid);
   return 2*msol->GetZHalfLength();
@@ -94,7 +94,7 @@ G4double PHParameterisationTubsEta::GetMaxParameter() const
 
 //--------------------------------------------------------------------------
 void
-PHParameterisationTubsEta::ComputeTransformation(const G4int copyNo, G4VPhysicalVolume *physVol) const
+PHG4ParameterisationTubsEta::ComputeTransformation(const G4int copyNo, G4VPhysicalVolume *physVol) const
 {
   //----- set translation: along Z axis
   //G4Tubs* motherTubs = (G4Tubs*)(fmotherSolid);
@@ -108,7 +108,7 @@ PHParameterisationTubsEta::ComputeTransformation(const G4int copyNo, G4VPhysical
 
 #if 0
   {
-    G4cout << " PHParameterisationTubsEta::ComputeTransformation()" << G4endl
+    G4cout << " PHG4ParameterisationTubsEta::ComputeTransformation()" << G4endl
            << " Position: " << posi << " - copyNo: " << copyNo << G4endl
            << " foffset " << foffset/deg << " - fwidth " << fwidth/deg
            << G4endl;
@@ -119,7 +119,7 @@ PHParameterisationTubsEta::ComputeTransformation(const G4int copyNo, G4VPhysical
 
 #if 0
   {
-    G4cout << std::setprecision(8) << " PHParameterisationTubsEta " << copyNo
+    G4cout << std::setprecision(8) << " PHG4ParameterisationTubsEta " << copyNo
            << G4endl
            << " Position: " << origin << " - Width: " << fwidth
            << " - Axis: " << faxis  << G4endl; 
@@ -129,7 +129,7 @@ PHParameterisationTubsEta::ComputeTransformation(const G4int copyNo, G4VPhysical
 
 //--------------------------------------------------------------------------
 void
-PHParameterisationTubsEta::ComputeDimensions( G4Tubs& tubs, const G4int copyNo,
+PHG4ParameterisationTubsEta::ComputeDimensions( G4Tubs& tubs, const G4int copyNo,
 						const G4VPhysicalVolume* ) const
 {
   G4Tubs* msol = (G4Tubs*)(fmotherSolid);
@@ -150,7 +150,7 @@ PHParameterisationTubsEta::ComputeDimensions( G4Tubs& tubs, const G4int copyNo,
 
 #if 0
   {
-    G4cout << " PHParameterisationTubsEta::ComputeDimensions()" << G4endl
+    G4cout << " PHG4ParameterisationTubsEta::ComputeDimensions()" << G4endl
            << " pDz: " << pDz << G4endl;
     tubs.DumpInfo();
   }
