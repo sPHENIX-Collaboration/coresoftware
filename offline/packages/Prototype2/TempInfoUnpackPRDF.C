@@ -8,7 +8,7 @@
 #include <Event/packet.h>
 #include <calobase/RawTowerContainer.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <g4detectors/PHParameters.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>

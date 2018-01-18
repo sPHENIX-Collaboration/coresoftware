@@ -1,6 +1,6 @@
-#include "PHG4ParameterContainerInterface.h"
-#include "PHG4ParametersContainer.h"
-#include "PHG4Parameters.h"
+#include "PHParameterContainerInterface.h"
+#include "PHParametersContainer.h"
+#include "PHParameters.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -11,16 +11,16 @@
 
 using namespace std;
 
-PHG4ParameterContainerInterface::PHG4ParameterContainerInterface(const std::string &name):
-  paramscontainer(new PHG4ParametersContainer(name)),
+PHParameterContainerInterface::PHParameterContainerInterface(const std::string &name):
+  paramscontainer(new PHParametersContainer(name)),
   defaultparams(nullptr)
 {
   string pname(name);
   pname += "_default";
-  defaultparams = new PHG4Parameters(pname);
+  defaultparams = new PHParameters(pname);
 }
 
-PHG4ParameterContainerInterface::~PHG4ParameterContainerInterface()
+PHParameterContainerInterface::~PHParameterContainerInterface()
 {
   delete paramscontainer;
   delete defaultparams;
@@ -34,13 +34,13 @@ PHG4ParameterContainerInterface::~PHG4ParameterContainerInterface()
 
 
 void
-PHG4ParameterContainerInterface::set_name(const string &name)
+PHParameterContainerInterface::set_name(const string &name)
 {
   paramscontainer->set_name(name);
 }
 
 void
-PHG4ParameterContainerInterface::set_default_double_param( const std::string &name, const double dval)
+PHParameterContainerInterface::set_default_double_param( const std::string &name, const double dval)
 {
   if (defaultparams->exist_double_param(name))
     {
@@ -53,7 +53,7 @@ PHG4ParameterContainerInterface::set_default_double_param( const std::string &na
 }
 
 void
-PHG4ParameterContainerInterface::set_default_int_param( const std::string &name, const int ival)
+PHParameterContainerInterface::set_default_int_param( const std::string &name, const int ival)
 {
   if (defaultparams->exist_int_param(name))
     {
@@ -66,7 +66,7 @@ PHG4ParameterContainerInterface::set_default_int_param( const std::string &name,
 }
 
 void
-PHG4ParameterContainerInterface::set_default_string_param( const std::string &name, const string &sval)
+PHParameterContainerInterface::set_default_string_param( const std::string &name, const string &sval)
 {
   if (defaultparams->exist_string_param(name))
     {
@@ -79,7 +79,7 @@ PHG4ParameterContainerInterface::set_default_string_param( const std::string &na
 }
 
 void
-PHG4ParameterContainerInterface::set_double_param(const int detid, const std::string &name, const double dval)
+PHParameterContainerInterface::set_double_param(const int detid, const std::string &name, const double dval)
 {
   if (! defaultparams->exist_double_param(name))
     {
@@ -89,8 +89,8 @@ PHG4ParameterContainerInterface::set_double_param(const int detid, const std::st
       gSystem->Exit(1);
       return;
     }
-  map<int, PHG4Parameters *>::iterator iter = macroparams.find(detid);
-  PHG4Parameters *params = nullptr;
+  map<int, PHParameters *>::iterator iter = macroparams.find(detid);
+  PHParameters *params = nullptr;
   if (iter != macroparams.end())
     {
       params = iter->second;
@@ -99,16 +99,16 @@ PHG4ParameterContainerInterface::set_double_param(const int detid, const std::st
     {
       ostringstream paramname;
       paramname << paramscontainer->Name() << "_" << detid;
-      params = new PHG4Parameters(paramname.str());
+      params = new PHParameters(paramname.str());
       macroparams[detid] = params;
     }
   params->set_double_param(name,dval);
 }
 
 double
-PHG4ParameterContainerInterface::get_double_param(const int detid, const std::string &name) const
+PHParameterContainerInterface::get_double_param(const int detid, const std::string &name) const
 {
-  const PHG4Parameters *params = paramscontainer->GetParameters(detid);
+  const PHParameters *params = paramscontainer->GetParameters(detid);
   if (params)
     {
       return params->get_double_param(name);
@@ -119,7 +119,7 @@ PHG4ParameterContainerInterface::get_double_param(const int detid, const std::st
 }
 
 void
-PHG4ParameterContainerInterface::set_int_param(const int detid, const std::string &name, const int ival)
+PHParameterContainerInterface::set_int_param(const int detid, const std::string &name, const int ival)
 {
   if (! defaultparams->exist_int_param(name))
     {
@@ -129,8 +129,8 @@ PHG4ParameterContainerInterface::set_int_param(const int detid, const std::strin
       gSystem->Exit(1);
       return;
     }
-  map<int, PHG4Parameters *>::iterator iter = macroparams.find(detid);
-  PHG4Parameters *params = nullptr;
+  map<int, PHParameters *>::iterator iter = macroparams.find(detid);
+  PHParameters *params = nullptr;
   if (iter != macroparams.end())
     {
       params = iter->second;
@@ -139,16 +139,16 @@ PHG4ParameterContainerInterface::set_int_param(const int detid, const std::strin
     {
       ostringstream paramname;
       paramname << paramscontainer->Name() << "_" << detid;
-      params = new PHG4Parameters(paramname.str());
-      paramscontainer->AddPHG4Parameters(detid,params);
+      params = new PHParameters(paramname.str());
+      paramscontainer->AddPHParameters(detid,params);
     }
   params->set_int_param(name,ival);
 }
 
 int
-PHG4ParameterContainerInterface::get_int_param(const int detid, const std::string &name) const
+PHParameterContainerInterface::get_int_param(const int detid, const std::string &name) const
 {
-  const PHG4Parameters *params = paramscontainer->GetParameters(detid);
+  const PHParameters *params = paramscontainer->GetParameters(detid);
   if (params)
     {
       return params->get_int_param(name);
@@ -159,7 +159,7 @@ PHG4ParameterContainerInterface::get_int_param(const int detid, const std::strin
 }
 
 void
-PHG4ParameterContainerInterface::set_string_param(const int detid, const std::string &name, const string &sval)
+PHParameterContainerInterface::set_string_param(const int detid, const std::string &name, const string &sval)
 {
   if (! defaultparams->exist_string_param(name))
     {
@@ -170,8 +170,8 @@ PHG4ParameterContainerInterface::set_string_param(const int detid, const std::st
       return;
     }
 
-  map<int, PHG4Parameters *>::iterator iter = macroparams.find(detid);
-  PHG4Parameters *params = nullptr;
+  map<int, PHParameters *>::iterator iter = macroparams.find(detid);
+  PHParameters *params = nullptr;
   if (iter != macroparams.end())
     {
       params = iter->second;
@@ -180,16 +180,16 @@ PHG4ParameterContainerInterface::set_string_param(const int detid, const std::st
     {
       ostringstream paramname;
       paramname << paramscontainer->Name() << "_" << detid;
-      params = new PHG4Parameters(paramname.str());
-      paramscontainer->AddPHG4Parameters(detid,params);
+      params = new PHParameters(paramname.str());
+      paramscontainer->AddPHParameters(detid,params);
     }
   params->set_string_param(name,sval);
 }
 
 string
-PHG4ParameterContainerInterface::get_string_param(const int detid, const std::string &name) const
+PHParameterContainerInterface::get_string_param(const int detid, const std::string &name) const
 {
-  const PHG4Parameters *params = paramscontainer->GetParameters(detid);
+  const PHParameters *params = paramscontainer->GetParameters(detid);
   if (params)
     {
       return params->get_string_param(name);
@@ -200,28 +200,28 @@ PHG4ParameterContainerInterface::get_string_param(const int detid, const std::st
 }
 
 void
-PHG4ParameterContainerInterface::UpdateParametersWithMacro()
+PHParameterContainerInterface::UpdateParametersWithMacro()
 {
-  map<int, PHG4Parameters *>::const_iterator iter;
+  map<int, PHParameters *>::const_iterator iter;
  for (iter = macroparams.begin(); iter != macroparams.end(); ++iter)
     {
       CreateInitialize(iter->first);
 
-      PHG4Parameters *params = paramscontainer->GetParametersToModify(iter->first);
-      std::pair< PHG4Parameters::dIter, PHG4Parameters::dIter> double_begin_end = iter->second->get_all_double_params();
-      for (PHG4Parameters::dIter diter = double_begin_end.first; diter != double_begin_end.second; ++diter)
+      PHParameters *params = paramscontainer->GetParametersToModify(iter->first);
+      std::pair< PHParameters::dIter, PHParameters::dIter> double_begin_end = iter->second->get_all_double_params();
+      for (PHParameters::dIter diter = double_begin_end.first; diter != double_begin_end.second; ++diter)
 	{
 	  params->set_double_param(diter->first,diter->second);
 	}
 
-      std::pair< PHG4Parameters::iIter, PHG4Parameters::iIter> int_begin_end = iter->second->get_all_int_params();
-      for (PHG4Parameters::iIter iiter = int_begin_end.first; iiter != int_begin_end.second; ++iiter)
+      std::pair< PHParameters::iIter, PHParameters::iIter> int_begin_end = iter->second->get_all_int_params();
+      for (PHParameters::iIter iiter = int_begin_end.first; iiter != int_begin_end.second; ++iiter)
 	{
 	  params->set_int_param(iiter->first,iiter->second);
 	}
 
-      std::pair< PHG4Parameters::strIter, PHG4Parameters::strIter> string_begin_end = iter->second->get_all_string_params();
-      for (PHG4Parameters::strIter striter = string_begin_end.first; striter != string_begin_end.second; ++striter)
+      std::pair< PHParameters::strIter, PHParameters::strIter> string_begin_end = iter->second->get_all_string_params();
+      for (PHParameters::strIter striter = string_begin_end.first; striter != string_begin_end.second; ++striter)
 	{
 	  params->set_string_param(striter->first,striter->second);
 	}
@@ -230,40 +230,40 @@ PHG4ParameterContainerInterface::UpdateParametersWithMacro()
 }
 
 void
-PHG4ParameterContainerInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &nodename)
+PHParameterContainerInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &nodename)
 {
   paramscontainer->SaveToNodeTree(runNode, nodename);
   return;
 }
 
 void
-PHG4ParameterContainerInterface::PutOnParNode(PHCompositeNode *parNode, const string &nodename)
+PHParameterContainerInterface::PutOnParNode(PHCompositeNode *parNode, const string &nodename)
 {
-  parNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,nodename));
+  parNode->addNode(new PHDataNode<PHParametersContainer>(paramscontainer,nodename));
 }
 
 void
-PHG4ParameterContainerInterface::InitializeParameters()
+PHParameterContainerInterface::InitializeParameters()
 {
   SetDefaultParameters(); // call method from specific subsystem
 }
 
 void
-PHG4ParameterContainerInterface::CreateInitialize(const int detid)
+PHParameterContainerInterface::CreateInitialize(const int detid)
 {
-  PHG4Parameters *params = paramscontainer->GetParametersToModify(detid);
+  PHParameters *params = paramscontainer->GetParametersToModify(detid);
   if (! params)
     {
       ostringstream paramname;
       paramname << paramscontainer->Name() << "_" << detid;
-      params = new PHG4Parameters(*defaultparams,paramname.str());
-      paramscontainer->AddPHG4Parameters(detid,params);
+      params = new PHParameters(*defaultparams,paramname.str());
+      paramscontainer->AddPHParameters(detid,params);
     }
   return;
 }
 
 int
-PHG4ParameterContainerInterface::ExistDetid(const int detid) const
+PHParameterContainerInterface::ExistDetid(const int detid) const
 {
   return paramscontainer->ExistDetid(detid);
 }

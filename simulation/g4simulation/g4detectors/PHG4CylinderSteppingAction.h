@@ -10,13 +10,13 @@ class PHG4CylinderDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4CylinderSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4CylinderSteppingAction(PHG4CylinderDetector *, const PHG4Parameters *parameters);
+  PHG4CylinderSteppingAction(PHG4CylinderDetector *, const PHParameters *parameters);
 
   //! destructor
   virtual ~PHG4CylinderSteppingAction();
@@ -32,7 +32,7 @@ class PHG4CylinderSteppingAction : public PHG4SteppingAction
   //! pointer to the detector
   PHG4CylinderDetector *detector_;
 
-  const PHG4Parameters *params;
+  const PHParameters *params;
 
   //! pointer to hit container
   PHG4HitContainer *hits_;

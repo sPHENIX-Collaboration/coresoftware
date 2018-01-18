@@ -1,17 +1,17 @@
-#ifndef PHG4ParameterInterface__H
-#define PHG4ParameterInterface__H
+#ifndef PHParameterInterface__H
+#define PHParameterInterface__H
 
 #include <map>
 #include <string>
 
 class PHCompositeNode;
-class PHG4Parameters;
+class PHParameters;
 
-class PHG4ParameterInterface
+class PHParameterInterface
 {
  public:
-  PHG4ParameterInterface(const std::string &name);
-  virtual ~PHG4ParameterInterface(){}
+  PHParameterInterface(const std::string &name);
+  virtual ~PHParameterInterface(){}
 
   void set_paramname(const std::string &name);
   virtual void  SetDefaultParameters() = 0;
@@ -34,7 +34,7 @@ class PHG4ParameterInterface
   void InitializeParameters();
 
  private:
-  PHG4Parameters *params;
+  PHParameters *params;
   std::map<const std::string, double> dparams;
   std::map<const std::string, int> iparams;
   std::map<const std::string, std::string> cparams;

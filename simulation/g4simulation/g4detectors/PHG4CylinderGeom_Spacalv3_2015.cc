@@ -9,7 +9,7 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv3.h"
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>

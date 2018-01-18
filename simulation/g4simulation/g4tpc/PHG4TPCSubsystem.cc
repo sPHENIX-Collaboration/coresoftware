@@ -2,7 +2,7 @@
 #include "PHG4TPCDetector.h"
 #include "PHG4TPCSteppingAction.h"
 
-#include <g4detectors/PHG4Parameters.h>
+#include <g4detectors/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 

@@ -2,7 +2,7 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4HcalDefs.h"
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 
 #include <g4main/PHG4HitContainer.h>
 

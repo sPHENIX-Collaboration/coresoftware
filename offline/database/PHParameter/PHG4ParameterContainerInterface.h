@@ -1,18 +1,18 @@
-#ifndef PHG4ParameterContainerInterface__H
-#define PHG4ParameterContainerInterface__H
+#ifndef PHParameterContainerInterface__H
+#define PHParameterContainerInterface__H
 
 #include <map>
 #include <string>
 
 class PHCompositeNode;
-class PHG4Parameters;
-class PHG4ParametersContainer;
+class PHParameters;
+class PHParametersContainer;
 
-class PHG4ParameterContainerInterface
+class PHParameterContainerInterface
 {
  public:
-  PHG4ParameterContainerInterface(const std::string &name);
-  virtual ~PHG4ParameterContainerInterface();
+  PHParameterContainerInterface(const std::string &name);
+  virtual ~PHParameterContainerInterface();
 
   void set_name(const std::string &name);
   virtual void  SetDefaultParameters() = 0;
@@ -36,14 +36,14 @@ class PHG4ParameterContainerInterface
   void set_default_int_param( const std::string &name, const int ival);
   void set_default_string_param( const std::string &name, const std::string &sval);
   void InitializeParameters();
-  const PHG4ParametersContainer *GetParamsContainer() {return paramscontainer;}
-  PHG4ParametersContainer *GetParamsContainerModify() {return paramscontainer;}
-  const PHG4Parameters *GetDefaultParameters() {return defaultparams;}
+  const PHParametersContainer *GetParamsContainer() {return paramscontainer;}
+  PHParametersContainer *GetParamsContainerModify() {return paramscontainer;}
+  const PHParameters *GetDefaultParameters() {return defaultparams;}
 
  private:
-  PHG4ParametersContainer *paramscontainer;
-  PHG4Parameters *defaultparams;
-  std::map<int, PHG4Parameters *> macroparams;
+  PHParametersContainer *paramscontainer;
+  PHParameters *defaultparams;
+  std::map<int, PHParameters *> macroparams;
 };
 
 #endif

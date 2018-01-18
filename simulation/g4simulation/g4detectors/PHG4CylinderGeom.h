@@ -6,7 +6,7 @@
 #include <phool/phool.h>
 #include <cmath>
 
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4CylinderGeom: public PHObject
 {
@@ -48,8 +48,8 @@ class PHG4CylinderGeom: public PHObject
   virtual double get_pixel_x() const {PHOOL_VIRTUAL_WARN("get_pixel_x"); return NAN;}
   virtual double get_pixel_thickness() const {PHOOL_VIRTUAL_WARN("get_pixel_thickness"); return NAN;}
 
-  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHG4Parameters & param) {return ;}
+  //! load parameters from PHParameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHParameters & param) {return ;}
 
  protected:
   PHG4CylinderGeom() {}

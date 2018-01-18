@@ -7,7 +7,7 @@
 #include <string>
 
 class PHG4OuterHcalDetector;
-class PHG4Parameters;
+class PHParameters;
 class PHG4OuterHcalSteppingAction;
 
 class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem

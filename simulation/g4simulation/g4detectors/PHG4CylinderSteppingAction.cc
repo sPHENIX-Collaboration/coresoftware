@@ -1,6 +1,6 @@
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4CylinderDetector.h"
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 #include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
@@ -21,7 +21,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* detector, const PHG4Parameters* parameters)
+PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* detector, const PHParameters* parameters)
   : detector_(detector)
   , params(parameters)
   , hits_(nullptr)

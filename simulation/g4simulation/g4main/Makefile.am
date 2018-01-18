@@ -78,7 +78,7 @@ libg4testbench_la_SOURCES = \
     PHG4InEventCompress.cc \
     PHG4InEventReadBack.cc \
     PHG4InputFilter.cc \
-    PHG4ParameterisationTubsEta.cc \
+    PHParameterisationTubsEta.cc \
     PHG4PileupGenerator.cc \
     PHG4SimpleEventGenerator.cc \
     PHG4ParticleGun.cc \

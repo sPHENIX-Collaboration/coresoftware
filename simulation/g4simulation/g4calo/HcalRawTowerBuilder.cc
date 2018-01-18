@@ -5,7 +5,7 @@
 #include <calobase/RawTowerv1.h>
 
 #include <g4detectors/PHG4HcalDefs.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <g4detectors/PHParameters.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
@@ -33,7 +33,7 @@ using namespace std;
 
 HcalRawTowerBuilder::HcalRawTowerBuilder(const std::string& name) :
   SubsysReco(name), 
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   _towers(NULL), 
   rawtowergeom(NULL),
   detector("NONE"), 
@@ -349,7 +349,7 @@ HcalRawTowerBuilder::SetDefaultParameters()
 void
 HcalRawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
 {
-  PHG4Parameters *pars = new PHG4Parameters("temp");
+  PHParameters *pars = new PHParameters("temp");
   // we need the number of scintillator plates per tower
   string geonodename = "G4GEOPARAM_" + detector;
   PdbParameterMapContainer *saveparams = findNode::getClass<PdbParameterMapContainer>(topNode,geonodename);

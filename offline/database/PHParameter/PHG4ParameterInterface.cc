@@ -1,5 +1,5 @@
-#include "PHG4ParameterInterface.h"
-#include "PHG4Parameters.h"
+#include "PHParameterInterface.h"
+#include "PHParameters.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -8,18 +8,18 @@
 
 using namespace std;
 
-PHG4ParameterInterface::PHG4ParameterInterface(const std::string &name):
-params(new PHG4Parameters(name))
+PHParameterInterface::PHParameterInterface(const std::string &name):
+params(new PHParameters(name))
 {}
 
 void
-PHG4ParameterInterface::set_paramname(const string &name)
+PHParameterInterface::set_paramname(const string &name)
 {
   params->set_name(name);
 }
 
 void
-PHG4ParameterInterface::set_default_double_param( const std::string &name, const double dval)
+PHParameterInterface::set_default_double_param( const std::string &name, const double dval)
 {
   if (default_double.find(name) == default_double.end())
     {
@@ -35,7 +35,7 @@ PHG4ParameterInterface::set_default_double_param( const std::string &name, const
 }
 
 void
-PHG4ParameterInterface::set_default_int_param( const std::string &name, const int ival)
+PHParameterInterface::set_default_int_param( const std::string &name, const int ival)
 {
   if (default_int.find(name) == default_int.end())
     {
@@ -51,7 +51,7 @@ PHG4ParameterInterface::set_default_int_param( const std::string &name, const in
 }
 
 void
-PHG4ParameterInterface::set_default_string_param( const std::string &name, const string &sval)
+PHParameterInterface::set_default_string_param( const std::string &name, const string &sval)
 {
   if (default_string.find(name) == default_string.end())
     {
@@ -66,7 +66,7 @@ PHG4ParameterInterface::set_default_string_param( const std::string &name, const
   return;
 }
 void
-PHG4ParameterInterface::set_double_param(const std::string &name, const double dval)
+PHParameterInterface::set_double_param(const std::string &name, const double dval)
 {
   if (default_double.find(name) == default_double.end())
     {
@@ -82,13 +82,13 @@ PHG4ParameterInterface::set_double_param(const std::string &name, const double d
 }
 
 double
-PHG4ParameterInterface::get_double_param(const std::string &name) const
+PHParameterInterface::get_double_param(const std::string &name) const
 {
   return params->get_double_param(name);
 }
 
 void
-PHG4ParameterInterface::set_int_param(const std::string &name, const int ival)
+PHParameterInterface::set_int_param(const std::string &name, const int ival)
 {
   if (default_int.find(name) == default_int.end())
     {
@@ -104,13 +104,13 @@ PHG4ParameterInterface::set_int_param(const std::string &name, const int ival)
 }
 
 int
-PHG4ParameterInterface::get_int_param(const std::string &name) const
+PHParameterInterface::get_int_param(const std::string &name) const
 {
   return params->get_int_param(name);
 }
 
 void
-PHG4ParameterInterface::set_string_param(const std::string &name, const string &sval)
+PHParameterInterface::set_string_param(const std::string &name, const string &sval)
 {
   if (default_string.find(name) == default_string.end())
     {
@@ -126,13 +126,13 @@ PHG4ParameterInterface::set_string_param(const std::string &name, const string &
 }
 
 string
-PHG4ParameterInterface::get_string_param(const std::string &name) const
+PHParameterInterface::get_string_param(const std::string &name) const
 {
   return params->get_string_param(name);
 }
 
 void
-PHG4ParameterInterface::UpdateParametersWithMacro()
+PHParameterInterface::UpdateParametersWithMacro()
 {
   for (map<const string,double>::const_iterator iter = dparams.begin(); iter != dparams.end(); ++iter)
     {
@@ -150,20 +150,20 @@ PHG4ParameterInterface::UpdateParametersWithMacro()
 }
 
 void
-PHG4ParameterInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &nodename)
+PHParameterInterface::SaveToNodeTree(PHCompositeNode *runNode, const string &nodename)
 {
   params->SaveToNodeTree(runNode, nodename);
   return;
 }
 
 void
-PHG4ParameterInterface::PutOnParNode(PHCompositeNode *parNode, const string &nodename)
+PHParameterInterface::PutOnParNode(PHCompositeNode *parNode, const string &nodename)
 {
-  parNode->addNode(new PHDataNode<PHG4Parameters>(params,nodename));
+  parNode->addNode(new PHDataNode<PHParameters>(params,nodename));
 }
 
 void
-PHG4ParameterInterface::InitializeParameters()
+PHParameterInterface::InitializeParameters()
 {
   SetDefaultParameters(); // call method from specific subsystem
   // now load those parameters to our params class

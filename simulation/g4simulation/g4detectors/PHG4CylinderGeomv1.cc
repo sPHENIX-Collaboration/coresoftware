@@ -1,6 +1,6 @@
 #include "PHG4CylinderGeomv1.h"
 #include <cmath>
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 
 using namespace std;
 
@@ -28,7 +28,7 @@ PHG4CylinderGeomv1::identify(std::ostream& os) const
 
 
 void
-PHG4CylinderGeomv1::ImportParameters(const PHG4Parameters & param)
+PHG4CylinderGeomv1::ImportParameters(const PHParameters & param)
 {
   PHG4CylinderGeom::ImportParameters(param);
 

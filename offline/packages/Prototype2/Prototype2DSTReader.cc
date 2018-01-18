@@ -17,7 +17,7 @@
 
 #include <calobase/RawTowerContainer.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <g4detectors/PHParameters.h>
 
 #include <TTree.h>
 #include <TMath.h>
@@ -343,7 +343,7 @@ Prototype2DSTReader::process_event(PHCompositeNode* topNode)
 
           assert(info);
 
-          PHG4Parameters run_info_copy("RunInfo");
+          PHParameters run_info_copy("RunInfo");
           run_info_copy.FillFrom(info);
 
           rec._dvalue = run_info_copy.get_double_param(rec._name);

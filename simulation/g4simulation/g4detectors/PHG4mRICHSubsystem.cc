@@ -4,7 +4,7 @@
  *===============================================================*/
 #include "PHG4mRICHSubsystem.h"
 #include "PHG4mRICHDetector.h"
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4mRICHSteppingAction.h"
 
@@ -35,7 +35,7 @@ PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr):
 int
 PHG4mRICHSubsystem::InitSubsystem( PHCompositeNode* topNode )
 {
-  // kludge until the phg4parameters are sorted out (adding layers)
+  // kludge until the PHParameters are sorted out (adding layers)
   GetParams()->set_name(Name());
   GetParams()->set_int_param("active",1);
   GetParams()->set_int_param("blackhole",1);

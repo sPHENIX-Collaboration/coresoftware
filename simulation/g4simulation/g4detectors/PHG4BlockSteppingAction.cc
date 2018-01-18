@@ -1,6 +1,6 @@
 #include "PHG4BlockSteppingAction.h"
 #include "PHG4BlockDetector.h"
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 #include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
@@ -18,7 +18,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4BlockSteppingAction::PHG4BlockSteppingAction(PHG4BlockDetector* detector, const PHG4Parameters* parameters)
+PHG4BlockSteppingAction::PHG4BlockSteppingAction(PHG4BlockDetector* detector, const PHParameters* parameters)
   : detector_(detector)
   , params(parameters)
   , hits_(nullptr)

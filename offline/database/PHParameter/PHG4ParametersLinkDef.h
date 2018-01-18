@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class PHG4Parameters-!;
+#pragma link C++ class PHParameters-!;
 
 #endif /* __CINT__ */

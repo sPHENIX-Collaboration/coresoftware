@@ -1,5 +1,5 @@
-#include "PHG4ParametersContainer.h"
-#include "PHG4Parameters.h"
+#include "PHParametersContainer.h"
+#include "PHParameters.h"
 
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbApplication.h>
@@ -22,11 +22,11 @@
 
 using namespace std;
 
-PHG4ParametersContainer::PHG4ParametersContainer(const string &name):
+PHParametersContainer::PHParametersContainer(const string &name):
   superdetectorname(name)
 {}
 
-PHG4ParametersContainer::~PHG4ParametersContainer()
+PHParametersContainer::~PHParametersContainer()
 {
   while(parametermap.begin() != parametermap.end())
     {
@@ -37,7 +37,7 @@ PHG4ParametersContainer::~PHG4ParametersContainer()
 }
 
 void
-PHG4ParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontainer)
+PHParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontainer)
 {
 // this fill only existing detids - no new ones are created (if the PdbParameterMapContainer contains
 // entries from another detector)
@@ -47,7 +47,7 @@ PHG4ParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamconta
     Iterator pariter = parametermap.find(iter->first);
     if (pariter != parametermap.end())
     {
-      PHG4Parameters *params = pariter->second;
+      PHParameters *params = pariter->second;
       params->FillFrom(iter->second);
     }
   }
@@ -55,7 +55,7 @@ PHG4ParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamconta
 }
 
 void
-PHG4ParametersContainer::AddPHG4Parameters(const int layer, PHG4Parameters *params)
+PHParametersContainer::AddPHParameters(const int layer, PHParameters *params)
 {
   if (parametermap.find(layer) != parametermap.end())
     {
@@ -66,10 +66,10 @@ PHG4ParametersContainer::AddPHG4Parameters(const int layer, PHG4Parameters *para
   parametermap[layer] = params;
 }
 
-const PHG4Parameters *
-PHG4ParametersContainer::GetParameters(const int layer) const
+const PHParameters *
+PHParametersContainer::GetParameters(const int layer) const
 {
-  map<int, PHG4Parameters *>::const_iterator iter = parametermap.find(layer);
+  map<int, PHParameters *>::const_iterator iter = parametermap.find(layer);
 if (iter == parametermap.end())
   {
     cout << "could not find parameters for layer " << layer
@@ -79,10 +79,10 @@ if (iter == parametermap.end())
  return iter->second;
 }
 
-PHG4Parameters *
-PHG4ParametersContainer::GetParametersToModify(const int layer)
+PHParameters *
+PHParametersContainer::GetParametersToModify(const int layer)
 {
-  map<int, PHG4Parameters *>::iterator iter = parametermap.find(layer);
+  map<int, PHParameters *>::iterator iter = parametermap.find(layer);
   if (iter == parametermap.end())
     {
       return NULL;
@@ -91,7 +91,7 @@ PHG4ParametersContainer::GetParametersToModify(const int layer)
 }
 
 int
-PHG4ParametersContainer::WriteToFile(const string &extension, const string &dir)
+PHParametersContainer::WriteToFile(const string &extension, const string &dir)
 {
   ostringstream fullpath;
   ostringstream fnamestream;
@@ -111,7 +111,7 @@ PHG4ParametersContainer::WriteToFile(const string &extension, const string &dir)
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
   fullpath << fname;
 
-  cout <<"PHG4Parameters::WriteToFile - save to "<<fullpath.str()<<endl;
+  cout <<"PHParameters::WriteToFile - save to "<<fullpath.str()<<endl;
 
   PdbParameterMapContainer *myparm = new PdbParameterMapContainer();
   CopyToPdbParameterMapContainer(myparm);
@@ -130,7 +130,7 @@ PHG4ParametersContainer::WriteToFile(const string &extension, const string &dir)
 }
 
 int
-PHG4ParametersContainer::WriteToDB()
+PHParametersContainer::WriteToDB()
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -168,9 +168,9 @@ PHG4ParametersContainer::WriteToDB()
 }
 
 void
-PHG4ParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparmap)
+PHParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparmap)
 {
-  std::map<int, PHG4Parameters *>::const_iterator iter;
+  std::map<int, PHParameters *>::const_iterator iter;
   for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
     {
       PdbParameterMap *myparm = new PdbParameterMap();
@@ -181,10 +181,10 @@ PHG4ParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer
 }
 
 void
-PHG4ParametersContainer::Print() const
+PHParametersContainer::Print() const
 {
   cout << "Name: " << Name() << endl;
-  map<int, PHG4Parameters *>::const_iterator iter;
+  map<int, PHParameters *>::const_iterator iter;
   for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
     {
       cout << "parameter detid: " << iter->first << endl;
@@ -194,7 +194,7 @@ PHG4ParametersContainer::Print() const
 }
 
 void
-PHG4ParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+PHParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
 {
   PdbParameterMapContainer *myparmap = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
   if (! myparmap)
@@ -213,7 +213,7 @@ PHG4ParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &
 }
 
 int
-PHG4ParametersContainer::ExistDetid(const int detid) const
+PHParametersContainer::ExistDetid(const int detid) const
 {
   if (parametermap.find(detid) != parametermap.end())
     {

@@ -44,7 +44,7 @@ using namespace std;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
-                                       const std::string &dnam, PHG4Parameters *parameters, const int lyr, bool init_geom)
+                                       const std::string &dnam, PHParameters *parameters, const int lyr, bool init_geom)
   : PHG4Detector(Node, dnam)
   , _region(NULL)
   , cylinder_solid(NULL)

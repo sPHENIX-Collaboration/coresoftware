@@ -210,7 +210,7 @@ CaloCalibration::End(PHCompositeNode *topNode)
 }
 
 void
-CaloCalibration::SetDefaultParameters(PHG4Parameters & param)
+CaloCalibration::SetDefaultParameters(PHParameters & param)
 {
 
   param.set_int_param("use_chan_calibration", 0);

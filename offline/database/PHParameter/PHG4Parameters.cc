@@ -1,4 +1,4 @@
-#include "PHG4Parameters.h"
+#include "PHParameters.h"
 
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbApplication.h>
@@ -44,20 +44,20 @@
 
 using namespace std;
 
-PHG4Parameters::PHG4Parameters(const PHG4Parameters &params, const std::string &name)
+PHParameters::PHParameters(const PHParameters &params, const std::string &name)
 {
   set_name(name);
   FillFrom(&params);
 }
 
 void
-PHG4Parameters::set_int_param(const std::string &name, const int ival)
+PHParameters::set_int_param(const std::string &name, const int ival)
 {
   intparams[name] = ival;
 }
 
 int
-PHG4Parameters::get_int_param(const std::string &name) const
+PHParameters::get_int_param(const std::string &name) const
 {
   if (intparams.find(name) != intparams.end())
     {
@@ -70,7 +70,7 @@ PHG4Parameters::get_int_param(const std::string &name) const
 }
 
 bool
-PHG4Parameters::exist_int_param(const std::string &name) const
+PHParameters::exist_int_param(const std::string &name) const
 {
   if (intparams.find(name) != intparams.end())
     {
@@ -80,7 +80,7 @@ PHG4Parameters::exist_int_param(const std::string &name) const
 }
 
 void
-PHG4Parameters::printint() const
+PHParameters::printint() const
 {
   cout << "int parameters: " << endl;
   for (map<const string, int>::const_iterator iter = intparams.begin();
@@ -92,13 +92,13 @@ PHG4Parameters::printint() const
 }
 
 void
-PHG4Parameters::set_double_param(const std::string &name, const double dval)
+PHParameters::set_double_param(const std::string &name, const double dval)
 {
   doubleparams[name] = dval;
 }
 
 double
-PHG4Parameters::get_double_param(const std::string &name) const
+PHParameters::get_double_param(const std::string &name) const
 {
   if (doubleparams.find(name) != doubleparams.end())
     {
@@ -111,7 +111,7 @@ PHG4Parameters::get_double_param(const std::string &name) const
 }
 
 bool
-PHG4Parameters::exist_double_param(const std::string &name) const
+PHParameters::exist_double_param(const std::string &name) const
 {
   if (doubleparams.find(name) != doubleparams.end())
     {
@@ -122,7 +122,7 @@ PHG4Parameters::exist_double_param(const std::string &name) const
 
 
 void
-PHG4Parameters::Print() const
+PHParameters::Print() const
 {
   cout << "Parameters for " << detname  << endl;
   printint();
@@ -132,7 +132,7 @@ PHG4Parameters::Print() const
 }
 
 size_t
-PHG4Parameters::get_hash() const
+PHParameters::get_hash() const
 {
   size_t seed = 0;
 
@@ -169,7 +169,7 @@ PHG4Parameters::get_hash() const
 }
 
 void
-PHG4Parameters::printdouble() const
+PHParameters::printdouble() const
 {
   cout << "double parameters: " << endl;
   for (map<const string, double>::const_iterator iter = doubleparams.begin();
@@ -181,13 +181,13 @@ PHG4Parameters::printdouble() const
 }
 
 void
-PHG4Parameters::set_string_param(const std::string &name, const string &str)
+PHParameters::set_string_param(const std::string &name, const string &str)
 {
   stringparams[name] = str;
 }
 
 string
-PHG4Parameters::get_string_param(const std::string &name) const
+PHParameters::get_string_param(const std::string &name) const
 {
   if (stringparams.find(name) != stringparams.end())
     {
@@ -200,7 +200,7 @@ PHG4Parameters::get_string_param(const std::string &name) const
 }
 
 bool
-PHG4Parameters::exist_string_param(const std::string &name) const
+PHParameters::exist_string_param(const std::string &name) const
 {
   if (stringparams.find(name) != stringparams.end())
     {
@@ -210,7 +210,7 @@ PHG4Parameters::exist_string_param(const std::string &name) const
 }
 
 void
-PHG4Parameters::printstring() const
+PHParameters::printstring() const
 {
   cout << "string parameters: " << endl;
   for (map<const string, string>::const_iterator iter = stringparams.begin();
@@ -222,7 +222,7 @@ PHG4Parameters::printstring() const
 }
 
 void
-PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
+PHParameters::FillFrom(const PdbParameterMap *saveparams)
 {
   assert(saveparams);
 
@@ -255,7 +255,7 @@ PHG4Parameters::FillFrom(const PdbParameterMap *saveparams)
 }
 
 void
-PHG4Parameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
+PHParameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
 {
   //  assert(saveparamcontainer != NULL);
 
@@ -293,7 +293,7 @@ PHG4Parameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, con
 }
 
 void
-PHG4Parameters::FillFrom(const PHG4Parameters *saveparams)
+PHParameters::FillFrom(const PHParameters *saveparams)
 {
   assert(saveparams);
 
@@ -313,7 +313,7 @@ PHG4Parameters::FillFrom(const PHG4Parameters *saveparams)
 }
 
 void
-PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
 {
   // write itself since this class is fine with saving by root
   PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
@@ -334,7 +334,7 @@ PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
 }
 
 void
-PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int layer)
+PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int layer)
 {
   // write itself since this class is fine with saving by root
   PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
@@ -360,7 +360,7 @@ PHG4Parameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename,
 }
 
 int
-PHG4Parameters::WriteToDB()
+PHParameters::WriteToDB()
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -398,7 +398,7 @@ PHG4Parameters::WriteToDB()
 }
 
 int
-PHG4Parameters::ReadFromDB(const string &name, const int layer)
+PHParameters::ReadFromDB(const string &name, const int layer)
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -433,7 +433,7 @@ PHG4Parameters::ReadFromDB(const string &name, const int layer)
 }
 
 int
-PHG4Parameters::ReadFromDB()
+PHParameters::ReadFromDB()
 {
   PdbBankManager* bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -468,7 +468,7 @@ PHG4Parameters::ReadFromDB()
 }
 
 int
-PHG4Parameters::WriteToFile(const string &extension, const string &dir)
+PHParameters::WriteToFile(const string &extension, const string &dir)
 {
   ostringstream fullpath;
   ostringstream fnamestream;
@@ -488,7 +488,7 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
   fullpath << fname;
 
-  cout <<"PHG4Parameters::WriteToFile - save to "<<fullpath.str()<<endl;
+  cout <<"PHParameters::WriteToFile - save to "<<fullpath.str()<<endl;
 
   PdbParameterMap *myparm = new PdbParameterMap();
   CopyToPdbParameterMap(myparm);
@@ -507,7 +507,7 @@ PHG4Parameters::WriteToFile(const string &extension, const string &dir)
 }
 
 int
-PHG4Parameters::ReadFromFile(const string &name, const string &extension, const int layer, const int issuper, const string &dir)
+PHParameters::ReadFromFile(const string &name, const string &extension, const int layer, const int issuper, const string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
@@ -567,7 +567,7 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
       cout << "No calibration file like " << dir << "/" << fileprefix << " found" << endl;
       gSystem->Exit(1);
     }
-  cout << "PHG4Parameters::ReadFromFile - Reading from File: " << (calibfiles.rbegin())->second << " ... ";
+  cout << "PHParameters::ReadFromFile - Reading from File: " << (calibfiles.rbegin())->second << " ... ";
   string fname = (calibfiles.rbegin())->second;
   TFile *f = TFile::Open(fname.c_str());
   if (issuper)
@@ -600,7 +600,7 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
 }
 
 void
-PHG4Parameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
+PHParameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 {
   for (map<const string, double>::const_iterator iter = doubleparams.begin();
       iter != doubleparams.end(); ++iter)
@@ -620,7 +620,7 @@ PHG4Parameters::CopyToPdbParameterMap(PdbParameterMap *myparm)
 }
 
 unsigned int
-PHG4Parameters::ConvertStringToUint(const std::string &str) const
+PHParameters::ConvertStringToUint(const std::string &str) const
 {
   unsigned int tics;
   try

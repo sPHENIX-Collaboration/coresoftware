@@ -37,7 +37,7 @@ libcalo_reco_la_LIBADD = \
   -lcalo_io \
   -lcalo_util  \
   -lg4detectors_io
-# TODO: g4detectors_io is used to provide the PHG4Parameters utility. 
+# TODO: g4detectors_io is used to provide the PHParameters utility. 
 # We should detach parameter from geant4 libs and detach CaloReco from g4simualtion. 
 
 # Rule for generating table CINT dictionaries.

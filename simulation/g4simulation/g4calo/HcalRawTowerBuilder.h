@@ -1,7 +1,7 @@
 #ifndef HcalRawTowerBuilder_H__
 #define HcalRawTowerBuilder_H__
 
-#include <g4detectors/PHG4ParameterInterface.h>
+#include <g4detectors/PHParameterInterface.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 
@@ -12,7 +12,7 @@ class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class HcalRawTowerBuilder : public SubsysReco, public PHG4ParameterInterface
+class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 {
 
  public:

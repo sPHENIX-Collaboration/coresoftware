@@ -295,7 +295,7 @@ int RawClusterPositionCorrection::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
-void RawClusterPositionCorrection::SetDefaultParameters(PHG4Parameters &param)
+void RawClusterPositionCorrection::SetDefaultParameters(PHParameters &param)
 {
   param.set_int_param("number_of_bins", 17);
 

@@ -2,7 +2,7 @@
 #define __RAWCLUSTERPOSITIONCORRECTION_H__
 
 #include <fun4all/SubsysReco.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <g4detectors/PHParameters.h>
 #include <phool/PHObject.h>
 #include <string>
 
@@ -23,36 +23,36 @@ class RawClusterPositionCorrection : public SubsysReco
 
   void CreateNodeTree(PHCompositeNode *topNode);
 
-  const PHG4Parameters &Get_eclus_CalibrationParameters() const
+  const PHParameters &Get_eclus_CalibrationParameters() const
   {
     return _eclus_calib_params;
   }
-  PHG4Parameters &Get_eclus_CalibrationParameters()
+  PHParameters &Get_eclus_CalibrationParameters()
   {
     return _eclus_calib_params;
   }
-  const PHG4Parameters &Get_eore_CalibrationParameters() const
+  const PHParameters &Get_eore_CalibrationParameters() const
   {
     return _ecore_calib_params;
   }
-  PHG4Parameters &Get_ecore_CalibrationParameters()
+  PHParameters &Get_ecore_CalibrationParameters()
   {
     return _ecore_calib_params;
   }
 
-  void Set_eclus_CalibrationParameters(const PHG4Parameters &calib_params)
+  void Set_eclus_CalibrationParameters(const PHParameters &calib_params)
   {
     _eclus_calib_params = calib_params;
   }
-  void Set_ecore_CalibrationParameters(const PHG4Parameters &calib_params)
+  void Set_ecore_CalibrationParameters(const PHParameters &calib_params)
   {
     _ecore_calib_params = calib_params;
   }
 
  private:
-  PHG4Parameters _eclus_calib_params;
-  PHG4Parameters _ecore_calib_params;
-  void SetDefaultParameters(PHG4Parameters &param);
+  PHParameters _eclus_calib_params;
+  PHParameters _ecore_calib_params;
+  void SetDefaultParameters(PHParameters &param);
   RawClusterContainer *_recalib_clusters;
 
   std::string _det_name;

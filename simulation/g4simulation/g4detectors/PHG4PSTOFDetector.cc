@@ -1,6 +1,6 @@
 #include "PHG4PSTOFDetector.h"
-#include "PHG4Parameters.h"
-#include "PHG4ParametersContainer.h"
+#include "PHParameters.h"
+#include "PHParametersContainer.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -21,11 +21,11 @@
 
 using namespace std;
 
-PHG4PSTOFDetector::PHG4PSTOFDetector(PHCompositeNode *Node, PHG4ParametersContainer *params, const std::string &dnam)
+PHG4PSTOFDetector::PHG4PSTOFDetector(PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
   : PHG4Detector(Node, dnam)
   , paramscontainer(params)
 {
-  const PHG4Parameters *par = paramscontainer->GetParameters(-1);
+  const PHParameters *par = paramscontainer->GetParameters(-1);
   IsActive = par->get_int_param("active");
   IsAbsorberActive = par->get_int_param("absorberactive");
   nmod = par->get_int_param("modules");
@@ -66,7 +66,7 @@ void PHG4PSTOFDetector::Construct(G4LogicalVolume *logicWorld)
 
     for (int imod = 0; imod < nmod; imod++)
     {
-      const PHG4Parameters *par = paramscontainer->GetParameters(imod);
+      const PHParameters *par = paramscontainer->GetParameters(imod);
       double z = NAN;
       double r = NAN;
       if (rowtype == 0)

@@ -17,7 +17,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4MapsDetector: public PHG4Detector
 {
@@ -25,7 +25,7 @@ class PHG4MapsDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4MapsDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam="BLOCK" );
+  PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam="BLOCK" );
 
   //! destructor
   virtual ~PHG4MapsDetector();

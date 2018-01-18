@@ -23,7 +23,7 @@ using namespace std;
 
 PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   SubsysReco(name),
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   diffusion_trans(NAN),
   diffusion_long(NAN),
   drift_velocity(NAN),

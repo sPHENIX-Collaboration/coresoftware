@@ -11,16 +11,16 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include
 
 libphparameter_io_la_SOURCES = \
-  PHG4Parameters.cc \
-  PHG4Parameters_Dict.cc \
-  PHG4ParametersContainer.cc \
-  PHG4ParametersContainer_Dict.cc 
+  PHParameters.cc \
+  PHParameters_Dict.cc \
+  PHParametersContainer.cc \
+  PHParametersContainer_Dict.cc 
 
 libphparameter_util_la_SOURCES = \
-  PHG4ParameterContainerInterface.cc \
-  PHG4ParameterContainerInterface_Dict.cc \
-  PHG4ParameterInterface.cc \
-  PHG4ParameterInterface_Dict.cc 
+  PHParameterContainerInterface.cc \
+  PHParameterContainerInterface_Dict.cc \
+  PHParameterInterface.cc \
+  PHParameterInterface_Dict.cc 
 
 libphparameter_io_la_LDFLAGS = \
   -L$(libdir) \
@@ -48,10 +48,10 @@ libphparameter_util_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
-  PHG4ParameterContainerInterface.h \
-  PHG4ParameterInterface.h \
-  PHG4Parameters.h \
-  PHG4ParametersContainer.h 
+  PHParameterContainerInterface.h \
+  PHParameterInterface.h \
+  PHParameters.h \
+  PHParametersContainer.h 
   
 ################################################
 # linking tests
