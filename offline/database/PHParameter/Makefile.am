@@ -47,7 +47,6 @@ pkginclude_HEADERS = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_phparameter_util \
   testexternals_phparameter
   
 testexternals_phparameter_SOURCES = testexternals.C
