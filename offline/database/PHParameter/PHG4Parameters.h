@@ -79,6 +79,8 @@ class PHG4Parameters: public PHObject
   iMap intparams;
   strMap stringparams;
 
+
+  //No Class Def since this class is not intended to be persistent
 };
 
 #endif
