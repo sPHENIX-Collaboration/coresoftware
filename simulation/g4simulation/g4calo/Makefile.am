@@ -30,7 +30,8 @@ libg4calo_la_LDFLAGS = \
 libg4calo_la_LIBADD = \
   -lphool \
   -lSubsysReco \
-  -lg4detectors \
+  -lg4detectors_io \
+  -lphparameter \
   -lgsl \
   -lgslcblas \
   -lcalo_io \

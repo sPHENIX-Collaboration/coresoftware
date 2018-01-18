@@ -36,10 +36,8 @@ libcalo_reco_la_LIBADD = \
   -lgslcblas \
   -lcalo_io \
   -lcalo_util  \
-  -lg4detectors_io
-# TODO: g4detectors_io is used to provide the PHParameters utility. 
-# We should detach parameter from geant4 libs and detach CaloReco from g4simualtion. 
-
+  -lphparameter
+  
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
