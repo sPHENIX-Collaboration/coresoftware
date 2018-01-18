@@ -1,7 +1,7 @@
 #ifndef PHG4HcalCellReco_H
 #define PHG4HcalCellReco_H
 
-#include "PHParameterInterface.h"
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>

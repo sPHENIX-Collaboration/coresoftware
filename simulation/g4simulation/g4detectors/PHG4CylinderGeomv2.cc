@@ -1,5 +1,5 @@
 #include "PHG4CylinderGeomv2.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 using namespace std;
 

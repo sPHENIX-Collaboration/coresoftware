@@ -1,7 +1,7 @@
 #ifndef PHG4BLOCKCELLRECO_H
 #define PHG4BLOCKCELLRECO_H
 
-#include "PHParameterContainerInterface.h"
+#include <phparameter/PHParameterContainerInterface.h>
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>

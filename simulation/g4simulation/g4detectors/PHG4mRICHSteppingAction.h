@@ -2,7 +2,7 @@
 #define PHG4mRICHSteppingAction_h
 
 #include "g4main/PHG4SteppingAction.h"
-//#include "PHParameters.h"
+//#include <phparameter/PHParameters.h>
 
 class PHG4mRICHDetector;
 class PHG4Hit;

@@ -1,7 +1,7 @@
 #ifndef PHG4Prototype2InnerHcalDetector_h
 #define PHG4Prototype2InnerHcalDetector_h
 
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>
 

@@ -1,6 +1,6 @@
 #include "PHG4CylinderGeomv1.h"
 #include <cmath>
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 using namespace std;
 

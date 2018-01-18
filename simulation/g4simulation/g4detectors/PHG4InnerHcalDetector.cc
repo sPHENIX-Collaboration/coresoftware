@@ -1,6 +1,6 @@
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4HcalDefs.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 

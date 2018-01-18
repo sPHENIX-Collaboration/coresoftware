@@ -3,7 +3,7 @@
 // the Z subclass.  See $G4INSTALL/source/volumes/divisions)
 //
 
-#include "PHParameterisationTubsEta.h"
+#include <phparameter/PHParameterisationTubsEta.h>
 
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4RotationMatrix.hh>

@@ -11,8 +11,8 @@
 #include "PHG4PSTOFSubsystem.h"
 #include "PHG4PSTOFDetector.h"
 #include "PHG4PSTOFSteppingAction.h"
-#include "PHParameters.h"
-#include "PHParametersContainer.h"
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
 

@@ -2,7 +2,7 @@
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4HcalDefs.h"
 #include "PHG4OuterHcalDetector.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 #include "PHG4StepStatusDecode.h"
 
 // our own headers in alphabetical order

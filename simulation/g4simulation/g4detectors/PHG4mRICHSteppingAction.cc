@@ -9,7 +9,7 @@
  *===============================================================*/
 #include "PHG4mRICHSteppingAction.h"
 #include "PHG4mRICHDetector.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>

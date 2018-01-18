@@ -1,5 +1,5 @@
 #include "PHG4Prototype2OuterHcalSubsystem.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 #include "PHG4Prototype2OuterHcalDetector.h"
 #include "PHG4Prototype2OuterHcalSteppingAction.h"
 

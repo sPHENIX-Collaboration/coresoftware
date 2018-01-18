@@ -1,6 +1,6 @@
 #include "PHG4CylinderSteppingAction.h"
 #include "PHG4CylinderDetector.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 #include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>

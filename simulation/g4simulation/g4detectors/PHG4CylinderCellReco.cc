@@ -8,7 +8,7 @@
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 
-#include "PHParametersContainer.h"
+#include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>

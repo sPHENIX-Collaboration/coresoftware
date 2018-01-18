@@ -17,7 +17,7 @@
  * Materials are defined in gmain/PHG4Reco::DefineMaterials      *
  *===============================================================*/
 #include "PHG4mRICHDetector.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 #include <phool/PHCompositeNode.h>

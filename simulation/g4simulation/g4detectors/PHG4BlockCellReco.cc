@@ -6,8 +6,8 @@
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
-#include "PHParametersContainer.h"
-#include "PHParameters.h"
+#include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>

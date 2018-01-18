@@ -7,8 +7,8 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalPrototypeSteppingAction.h"
 
-#include "PHParametersContainer.h"
-#include "PHParameters.h"
+#include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 #include <g4main/PHG4PhenixDetector.h>

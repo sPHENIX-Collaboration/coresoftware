@@ -1,7 +1,7 @@
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDetector.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 #include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>

@@ -2,7 +2,7 @@
 #include "PHG4MapsDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4MapsSteppingAction.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 #include <Geant4/G4GDMLParser.hh>
 

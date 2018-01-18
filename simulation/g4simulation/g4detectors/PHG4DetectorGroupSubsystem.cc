@@ -1,6 +1,6 @@
 #include "PHG4DetectorGroupSubsystem.h"
-#include "PHParameters.h"
-#include "PHParametersContainer.h"
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>

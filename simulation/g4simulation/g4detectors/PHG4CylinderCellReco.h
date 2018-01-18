@@ -2,7 +2,7 @@
 #define PHG4CYLINDERCELLRECO_H
 
 
-#include "PHParameterContainerInterface.h"
+#include <phparameter/PHParameterContainerInterface.h>
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>

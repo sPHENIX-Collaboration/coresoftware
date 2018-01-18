@@ -1,7 +1,7 @@
 #include "PHG4MapsDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_MAPS.h"
-#include "PHParameters.h"
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 
