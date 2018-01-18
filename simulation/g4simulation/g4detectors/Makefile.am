@@ -34,6 +34,7 @@ libg4detectors_la_LIBADD = \
   -lphool  \
   -lCGAL \
   -lSubsysReco \
+  -lphparameter \
   -lg4testbench 
 
 pkginclude_HEADERS = \
