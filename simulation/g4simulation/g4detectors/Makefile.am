@@ -26,6 +26,7 @@ libg4detectors_io_la_LIBADD = \
   -L$(ROOTSYS)/lib \
   -lCLHEP \
   -lphool \
+  -lphparameter \
   -lXMLIO
 
 libg4detectors_la_LIBADD = \
@@ -34,7 +35,6 @@ libg4detectors_la_LIBADD = \
   -lphool  \
   -lCGAL \
   -lSubsysReco \
-  -lphparameter \
   -lg4testbench 
 
 pkginclude_HEADERS = \
