@@ -11,9 +11,15 @@ Due to its importance, update of this repository require going through a review 
 
 # Useful links 
 
-* [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
-* [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
-* [Build a package](https://wiki.bnl.gov/sPHENIX/index.php/Example_of_using_DST_nodes#Building%20a%20package)
-* ["Pull Request" tutorial](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures). 
+* Tutorials
+  * [Get started on day-1](https://wiki.bnl.gov/sPHENIX/index.php/SPHENIX_software_day-1_checklist)
+  * ["Pull Request" tutorial](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures)
+* Documentation
+  * [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
+  * [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
+  * [Build a package](https://wiki.bnl.gov/sPHENIX/index.php/Example_of_using_DST_nodes#Building%20a%20package)
+* Communication
+  * [Simulation and software meeting series](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/sphenix.png)
+  * [Discussion on this repository](https://lists.bnl.gov/mailman/listinfo/sphenix-github-l)
 
 [![logo](https://avatars3.githubusercontent.com/u/12069843?s=200&v=4)](https://www.sphenix.bnl.gov/)
