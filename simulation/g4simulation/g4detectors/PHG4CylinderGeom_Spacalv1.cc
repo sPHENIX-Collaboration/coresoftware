@@ -9,7 +9,7 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv1.h"
-#include <phparameter/PHParameters.h>
+#include "PHG4Parameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
@@ -154,7 +154,7 @@ PHG4CylinderGeom_Spacalv1::SetDefault()
 }
 
 void
-PHG4CylinderGeom_Spacalv1::ImportParameters(const PHParameters & param)
+PHG4CylinderGeom_Spacalv1::ImportParameters(const PHG4Parameters & param)
 {
   PHG4CylinderGeomv2::ImportParameters(param);
 

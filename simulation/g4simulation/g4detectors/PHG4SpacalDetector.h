@@ -29,7 +29,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
 class PHG4GDMLConfig;
-class PHParameters;
+class PHG4Parameters;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
@@ -38,7 +38,7 @@ public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
   PHG4SpacalDetector(PHCompositeNode* Node, const std::string& dnam,
-      PHParameters *parameters,  const int layer = 0, bool init_geom = true);
+      PHG4Parameters *parameters,  const int layer = 0, bool init_geom = true);
 
   virtual
   ~PHG4SpacalDetector(void);

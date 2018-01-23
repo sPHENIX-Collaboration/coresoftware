@@ -9,7 +9,7 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv3.h"
-#include <phparameter/PHParameters.h>
+#include "PHG4Parameters.h"
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
@@ -100,7 +100,7 @@ PHG4CylinderGeom_Spacalv3::SetDefault()
 }
 
 void
-PHG4CylinderGeom_Spacalv3::ImportParameters(const PHParameters & param)
+PHG4CylinderGeom_Spacalv3::ImportParameters(const PHG4Parameters & param)
 {
   PHG4CylinderGeom_Spacalv2::ImportParameters(param);
 
@@ -260,7 +260,7 @@ PHG4CylinderGeom_Spacalv3::geom_tower::identify(std::ostream& os) const
 
 void
 PHG4CylinderGeom_Spacalv3::geom_tower::ImportParameters(
-    const PHParameters & param, const std::string & param_prefix)
+    const PHG4Parameters & param, const std::string & param_prefix)
 {
 
   id = param.get_int_param(param_prefix + "id");

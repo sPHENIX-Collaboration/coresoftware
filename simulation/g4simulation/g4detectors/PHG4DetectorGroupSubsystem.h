@@ -7,7 +7,7 @@
 #include <set>
 #include <string>
 
-class PHParametersContainer;
+class PHG4ParametersContainer;
 
 class PHG4DetectorGroupSubsystem : public PHG4Subsystem
 {
@@ -36,7 +36,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   virtual int InitSubsystem(PHCompositeNode *) { return 0; }
   void OverlapCheck(const bool chk = true) { overlapcheck = chk; }
   bool CheckOverlap() const { return overlapcheck; }
-  PHParametersContainer *GetParamsContainer() const { return paramscontainer; }
+  PHG4ParametersContainer *GetParamsContainer() const { return paramscontainer; }
   // Get/Set parameters from macro
   void set_double_param(const int detid, const std::string &name, const double dval);
   double get_double_param(const int detid, const std::string &name) const;
@@ -83,8 +83,8 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void PrintMacroParams() const;
 
  private:
-  PHParametersContainer *paramscontainer;
-  PHParametersContainer *paramscontainer_default;
+  PHG4ParametersContainer *paramscontainer;
+  PHG4ParametersContainer *paramscontainer_default;
   PHCompositeNode *savetopNode;
   bool overlapcheck;
   int layer;

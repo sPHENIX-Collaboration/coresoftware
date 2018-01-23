@@ -7,13 +7,13 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class PHParameters;
+class PHG4Parameters;
 
 class PHG4CylinderDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4CylinderDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int layer = 0);
+  PHG4CylinderDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int layer = 0);
 
   //! destructor
   virtual ~PHG4CylinderDetector(void)
@@ -28,7 +28,7 @@ class PHG4CylinderDetector : public PHG4Detector
   const std::string SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }
  private:
-  PHParameters *params;
+  PHG4Parameters *params;
 
   G4VPhysicalVolume *cylinder_physi;
 

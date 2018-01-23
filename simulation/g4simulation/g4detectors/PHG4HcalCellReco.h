@@ -1,7 +1,7 @@
 #ifndef PHG4HcalCellReco_H
 #define PHG4HcalCellReco_H
 
-#include <phparameter/PHParameterInterface.h>
+#include "PHG4ParameterInterface.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -12,7 +12,7 @@
 class PHCompositeNode;
 class PHG4CylinderCell;
 
-class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
+class PHG4HcalCellReco : public SubsysReco, public PHG4ParameterInterface
 {
  public:
 

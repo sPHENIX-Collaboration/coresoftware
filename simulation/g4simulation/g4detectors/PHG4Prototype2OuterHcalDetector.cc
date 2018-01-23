@@ -23,7 +23,7 @@ using namespace std;
 
 double scinti_box_smaller = 0.02*mm;
 
-PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam  ):
+PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
   outerhcalsteelplate(NULL),

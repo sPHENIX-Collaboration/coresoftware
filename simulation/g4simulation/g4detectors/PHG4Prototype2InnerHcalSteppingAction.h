@@ -5,7 +5,7 @@
 
 class PHG4Hit;
 class PHG4HitContainer;
-class PHParameters;
+class PHG4Parameters;
 class PHG4Prototype2InnerHcalDetector;
 class PHG4Shower;
 
@@ -13,7 +13,7 @@ class PHG4Prototype2InnerHcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4Prototype2InnerHcalSteppingAction(PHG4Prototype2InnerHcalDetector *, PHParameters *parameters);
+  PHG4Prototype2InnerHcalSteppingAction(PHG4Prototype2InnerHcalDetector *, PHG4Parameters *parameters);
 
   //! dtor
   virtual ~PHG4Prototype2InnerHcalSteppingAction();
@@ -34,7 +34,7 @@ class PHG4Prototype2InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
-  PHParameters *params;
+  PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   // since getting parameters is a map search we do not want to

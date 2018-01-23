@@ -1,6 +1,6 @@
 #include "PHG4OuterHcalDetector.h"
 #include "PHG4HcalDefs.h"
-#include <phparameter/PHParameters.h>
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -49,7 +49,7 @@ using namespace std;
 // scintilator length takes care of this
 static double subtract_from_scinti_x = 0.1 * mm;
 
-PHG4OuterHcalDetector::PHG4OuterHcalDetector(PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
+PHG4OuterHcalDetector::PHG4OuterHcalDetector(PHCompositeNode *Node, PHG4Parameters *parames, const std::string &dnam)
   : PHG4Detector(Node, dnam)
   , field_setup(nullptr)
   , params(parames)

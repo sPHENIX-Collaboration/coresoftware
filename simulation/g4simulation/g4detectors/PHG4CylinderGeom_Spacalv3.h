@@ -31,9 +31,9 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   virtual void
   SetDefault();
 
-  //! load parameters from PHParameters, which interface to Database/XML/ROOT files
+  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
   virtual void
-  ImportParameters(const PHParameters& param);
+  ImportParameters(const PHG4Parameters& param);
 
   double
   get_sidewall_outer_torr() const
@@ -168,9 +168,9 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
     virtual void
     identify(std::ostream& os = std::cout) const;
 
-    //! read via PHParameters
+    //! read via PHG4Parameters
     void
-    ImportParameters(const PHParameters& param,
+    ImportParameters(const PHG4Parameters& param,
                      const std::string& param_prefix);
 
     ClassDef(PHG4CylinderGeom_Spacalv3::geom_tower, 3)

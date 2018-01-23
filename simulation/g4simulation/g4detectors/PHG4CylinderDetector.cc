@@ -1,5 +1,5 @@
 #include "PHG4CylinderDetector.h"
-#include <phparameter/PHParameters.h>
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -23,7 +23,7 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4CylinderDetector::PHG4CylinderDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+PHG4CylinderDetector::PHG4CylinderDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(Node, dnam)
   , params(parameters)
   , cylinder_physi(nullptr)

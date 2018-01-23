@@ -1,6 +1,6 @@
 #include "PHG4SiliconTrackerSteppingAction.h"
-#include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
+#include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4StepStatusDecode.h"
 
@@ -43,7 +43,7 @@
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHParametersContainer* parameters)
+PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHG4ParametersContainer* parameters)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
@@ -52,10 +52,10 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , saveshower(nullptr)
   , paramscontainer(parameters)
 {
-  PHParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
-  for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  PHG4ParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
+  for (PHG4ParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
   {
-    PHParameters* par = iter->second;
+    PHG4Parameters* par = iter->second;
     IsActive[iter->first] = par->get_int_param("active");
     IsBlackHole[iter->first] = par->get_int_param("blackhole");
     strip_y[iter->first] = par->get_double_param("strip_y") * cm;

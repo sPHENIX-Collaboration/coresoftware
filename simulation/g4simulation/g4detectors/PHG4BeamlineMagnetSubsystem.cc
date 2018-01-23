@@ -1,6 +1,6 @@
 #include "PHG4BeamlineMagnetSubsystem.h"
 #include "PHG4BeamlineMagnetDetector.h"
-#include <phparameter/PHParameters.h>
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Utils.h>
 

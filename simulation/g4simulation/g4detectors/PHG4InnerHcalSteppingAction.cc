@@ -1,7 +1,7 @@
 #include "PHG4InnerHcalSteppingAction.h"
 #include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDetector.h"
-#include <phparameter/PHParameters.h>
+#include "PHG4Parameters.h"
 #include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4Hit.h>
@@ -38,7 +38,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
+PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHG4Parameters* parameters)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)

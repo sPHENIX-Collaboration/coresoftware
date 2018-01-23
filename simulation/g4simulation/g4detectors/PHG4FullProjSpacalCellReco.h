@@ -1,7 +1,7 @@
 #ifndef PHG4FullProjSpacalCellReco_H
 #define PHG4FullProjSpacalCellReco_H
 
-#include <phparameter/PHParameterInterface.h>
+#include "PHG4ParameterInterface.h"
 
 #include <fun4all/SubsysReco.h>
 
@@ -16,7 +16,7 @@ class PHG4Cell;
 class TH2;
 class TH1;
 
-class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHParameterInterface
+class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHG4ParameterInterface
 {
  public:
 

@@ -12,7 +12,7 @@
 #include <Geant4/G4Colour.hh>
 
 class G4LogicalVolume;
-class PHParameters;
+class PHG4Parameters;
 class G4VPhysicalVolume;
 class G4Material;
 
@@ -24,7 +24,7 @@ class PHG4mRICHDetector: public PHG4Detector
  public:
   
   //! constructor
-  PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
+  PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
   
   //! destructor
   virtual ~PHG4mRICHDetector( void ) {}
@@ -49,7 +49,7 @@ class PHG4mRICHDetector: public PHG4Detector
   class PolyPar;
   class LensPar;
 
-  PHParameters *params;
+  PHG4Parameters *params;
   
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);

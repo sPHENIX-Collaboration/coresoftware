@@ -21,7 +21,7 @@
 
 using namespace std;
 
-PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam  ):
+PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
   innerhcalsteelplate(NULL),

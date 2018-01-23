@@ -1,6 +1,6 @@
 #include "PHG4SiliconTrackerSubsystem.h"
-#include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
+#include "PHG4Parameters.h"
+#include "PHG4ParametersContainer.h"
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4SiliconTrackerSteppingAction.h"
 

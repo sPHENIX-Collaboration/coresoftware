@@ -6,8 +6,8 @@
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
-#include <phparameter/PHParametersContainer.h>
-#include <phparameter/PHParameters.h>
+#include "PHG4ParametersContainer.h"
+#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -32,7 +32,7 @@ static vector<PHG4Cell*> cellptarray;
 
 PHG4BlockCellReco::PHG4BlockCellReco(const string &name) :
   SubsysReco(name),
-  PHParameterContainerInterface(name),
+  PHG4ParameterContainerInterface(name),
   sum_energy_g4hit(0),
   _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0)
