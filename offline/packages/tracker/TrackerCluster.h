@@ -26,10 +26,14 @@ class TrackerCluster : public PHObject
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
   virtual TrackerCluster* Clone() const { return NULL; }
-  // cluster info
-
+  //
+  // cluster id
+  //
   virtual TrackerDefs::keytype get_id() const { return TrackerDefs::KEYMAX; }
   virtual void set_id(TrackerDefs::keytype id) {}
+  //
+  // cluster position
+  //
   virtual float get_x() const { return NAN; }
   virtual void set_x(float x) {}
   virtual float get_y() const { return NAN; }
@@ -38,6 +42,12 @@ class TrackerCluster : public PHObject
   virtual void set_z(float z) {}
   virtual float get_position(int coor) const { return NAN; }
   virtual void set_position(int coor, float xi) {}
+  virtual void set_global() {}
+  virtual void set_local() {}
+  virtual bool is_global() { return true; }
+  //
+  // cluster info
+  //
   virtual float get_e() const { return NAN; }
   virtual void set_e(float e) {}
   virtual unsigned int get_adc() const { return UINT_MAX; }

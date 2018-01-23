@@ -20,10 +20,13 @@ class TrackerClusterv1 : public TrackerCluster
   void Reset() {}
   int isValid() const;
   TrackerCluster* Clone() const { return new TrackerClusterv1(*this); }
-  // cluster info
+
 
   TrackerDefs::keytype get_id() const { return _id; }
   void set_id(TrackerDefs::keytype id) { _id = id; }
+  //
+  // cluster position
+  //
   float get_x() const { return _pos[0]; }
   void set_x(float x) { _pos[0] = x; }
   float get_y() const { return _pos[1]; }
@@ -32,6 +35,12 @@ class TrackerClusterv1 : public TrackerCluster
   void set_z(float z) { _pos[2] = z; }
   float get_position(int coor) const { return _pos[coor]; }
   void set_position(int coor, float xi) { _pos[coor] = xi; }
+  void set_global() { _is_global = true; }
+  void set_local() { _is_global = false; }
+  bool is_global() { return _is_global; }
+  // 
+  // cluster info
+  //
   float get_e() const { return _e; }
   void set_e(float e) { _e = e; }
   unsigned int get_adc() const { return _adc; }
@@ -70,8 +79,9 @@ class TrackerClusterv1 : public TrackerCluster
 
   TrackerDefs::keytype _id;  //< unique identifier within container
   float _pos[3];             //< mean position x,y,z
+  bool _is_global;           //< flag for coord sys (true = global)
   float _e;                  //< cluster energy
-  unsigned int _adc;         //< cluster sum adc
+  unsigned int _adc;         //< cluster sum adc (D. McGlinchey - Do we need this)
   float _size[6];            //< size covariance matrix (packed storage) (+/- cm^2)
   float _err[6];             //< covariance matrix: rad, arc and z
   HitSet _hit_ids;           //< list of cell hit ids

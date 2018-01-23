@@ -12,6 +12,7 @@ ClassImp(TrackerClusterv1);
 TrackerClusterv1::TrackerClusterv1()
   : _id(0xFFFFFFFF)
   , _pos()
+  , _is_global(true)
   , _e(NAN)
   , _adc(0xFFFFFFFF)
   , _size()
@@ -37,7 +38,11 @@ void TrackerClusterv1::identify(ostream& os) const
 
   os << " (x,y,z) =  (" << get_position(0);
   os << ", " << get_position(1) << ", ";
-  os << get_position(2) << ") cm" << endl;
+  os << get_position(2) << ") cm";
+  if ( _is_global )
+    os << " - global coordinates" << endl;
+  else
+    os << " - local coordinates" << endl;
 
   os << " e = " << get_e() << " adc = " << get_adc() << endl;
 
@@ -86,7 +91,7 @@ int TrackerClusterv1::isValid() const
   if (_id == 0xFFFFFFFF) return 0;
   for (int i = 0; i < 3; ++i)
   {
-    if (isnan(_pos[i])) return 0;
+    if (isnan(get_position(i))) return 0;
   }
   if (isnan(_e)) return 0;
   if (_adc == 0xFFFFFFFF) return 0;
