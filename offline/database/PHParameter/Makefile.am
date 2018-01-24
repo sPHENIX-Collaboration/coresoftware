@@ -2,43 +2,33 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libg4calo.la
+  libphparameter.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I${G4_MAIN}/include
+  -I$(ROOTSYS)/include
 
+libphparameter_la_SOURCES = \
+  PHParameters.cc \
+  PHParameters_Dict.cc \
+  PHParametersContainer.cc \
+  PHParametersContainer_Dict.cc \
+  PHParameterContainerInterface.cc \
+  PHParameterContainerInterface_Dict.cc \
+  PHParameterInterface.cc \
+  PHParameterInterface_Dict.cc 
 
-libg4calo_la_SOURCES = \
-  HcalRawTowerBuilder.cc \
-  HcalRawTowerBuilder_Dict.cc \
-  Prototype2RawTowerBuilder.cc \
-  Prototype2RawTowerBuilder_Dict.cc \
-  RawTowerBuilder.cc \
-  RawTowerBuilder_Dict.cc \
-  RawTowerBuilderByHitIndex.cc \
-  RawTowerBuilderByHitIndex_Dict.cc \
-  RawTowerDigitizer.cc \
-  RawTowerDigitizer_Dict.cc
-
-libg4calo_la_LDFLAGS = \
+libphparameter_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-libg4calo_la_LIBADD = \
+libphparameter_la_LIBADD = \
+  -L$(ROOTSYS)/lib \
   -lphool \
-  -lSubsysReco \
-  -lfun4all \
-  -lg4detectors_io \
-  -lg4testbench \
-  -lphg4hit \
-  -lphparameter \
-  -lgsl \
-  -lgslcblas \
-  -lcalo_io \
-  -lcalo_util
+  -lpdbcalBase \
+  -lboost_filesystem \
+  -lboost_system 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -47,17 +37,20 @@ libg4calo_la_LIBADD = \
 ##############################################
 # please add new classes in alphabetical order
 
-# pkginclude_HEADERS = 
-
+pkginclude_HEADERS = \
+  PHParameterContainerInterface.h \
+  PHParameterInterface.h \
+  PHParameters.h \
+  PHParametersContainer.h 
+  
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_g4calo
-
-
-testexternals_g4calo_SOURCES = testexternals.C
-testexternals_g4calo_LDADD = libg4calo.la
+  testexternals_phparameter
+  
+testexternals_phparameter_SOURCES = testexternals.C
+testexternals_phparameter_LDADD = libphparameter.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

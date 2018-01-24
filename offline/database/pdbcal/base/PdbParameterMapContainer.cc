@@ -86,7 +86,7 @@ int
 PdbParameterMapContainer::WriteToFile(const std::string &detector_name,
     const string &extension, const string &dir)
 {
-  //Note the naming convention should be consistent with PHG4Parameters::WriteToFile
+  //Note the naming convention should be consistent with PHParameters::WriteToFile
 
   ostringstream fullpath;
   ostringstream fnamestream;

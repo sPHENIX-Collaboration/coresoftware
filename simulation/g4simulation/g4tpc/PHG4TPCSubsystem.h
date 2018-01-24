@@ -8,7 +8,7 @@
 #include <string>
 
 class PHG4TPCDetector;
-class PHG4Parameters;
+class PHParameters;
 class PHG4TPCSteppingAction;
 
 class PHG4TPCSubsystem : public PHG4DetectorSubsystem

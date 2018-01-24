@@ -1,7 +1,10 @@
 #include "PHG4TPCElectronDrift.h"
+#include "PHG4CellTPCv1.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+
+#include <g4detectors/PHG4CellContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -27,6 +30,7 @@ using namespace std;
 PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   SubsysReco(name),
   PHG4ParameterInterface(name),
+  g4cells(nullptr),
   dlong(nullptr),
   dtrans(nullptr),
   diffusion_trans(NAN),
@@ -34,7 +38,9 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   drift_velocity(NAN),
   electrons_per_gev(NAN),
   min_active_radius(NAN),
-  max_active_radius(NAN)
+  max_active_radius(NAN),
+  min_time(NAN),
+  max_time(NAN)
 {  
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -65,6 +71,24 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
+  cellnodename = "G4CELL_" + detector;
+  g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellnodename);
+  if (! g4cells)
+  {
+   PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(detector);
+      dstNode->addNode(DetNode);
+    }
+g4cells = new PHG4CellContainer();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(g4cells, cellnodename.c_str(), "PHObject");
+    DetNode->addNode(newNode);
+  }
+
+
    UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
@@ -109,6 +133,11 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   double ihit = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
+    double t0 = fmax(hiter->second->get_t(0),hiter->second->get_t(1));
+    if (t0 > max_time)
+    {
+      continue;
+    }
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
     nthit->Fill(ihit,n_electrons,eion,hiter->second->get_edep(),hiter->second->get_t(0),hiter->second->get_x(0),hiter->second->get_y(0),hiter->second->get_z(0));
@@ -149,18 +178,17 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	continue;
       }
       double t_path = t_start + (tpc_length/2. - fabs(z_start))/drift_velocity;
-      if (t_start < 0)
-      {
-	cout << "t_start: " << t_start << endl;
-	cout << "z_start: " << z_start << endl;
-      }
 // now the drift
-      double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
-      double x_final = x_start + rantrans*cos(ranphi);
-      double y_final = y_start + rantrans*sin(ranphi);
       double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
       double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
       double t_final = t_path + rantime;
+      if (t_final < min_time || t_final > max_time)
+      {
+	continue;
+      }
+      double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
+      double x_final = x_start + rantrans*cos(ranphi);
+      double y_final = y_start + rantrans*sin(ranphi);
       nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
       MapToPadPlane(x_final,y_final,t_final);
       x_start += dx;
@@ -171,6 +199,12 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     ihit++;
 //      gSystem->Exit(0);
   }
+  PHG4CellContainer::ConstRange cells = g4cells->getCells();
+  PHG4CellContainer::ConstIterator celliter;
+  for (celliter=cells.first;celliter != cells.second; ++celliter)
+  {
+    celliter->second->print();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -180,10 +214,12 @@ void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   static const double rbins = 40;
   static const double rbinwidth = (75.-30.)/rbins;
   static const double phibinwidth = 2*M_PI/360.;
+  static const double tbinwidth = 53.; // 2*Rhic clock = 106/2.
   double phi = atan2(y_gem,x_gem);
   double rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);
   int phibin = (phi+M_PI)/phibinwidth;
   int radbin = (rad_gem-min_active_radius)/rbinwidth;
+  int tbin = t_gem/tbinwidth;
   ntpad->Fill(t_gem,phi,rad_gem,phibin,radbin);
   // cout << ", phi: " << phi
   //      << ", phibin: " << phibin
@@ -191,10 +227,16 @@ void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   //      << ", radbin: " << radbin
   //      << ", t_gem: " << t_gem 
   //      << endl;
-
+  PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(0,radbin,phibin);
+  PHG4Cell *cell = g4cells->findCell(key);
+  if (! cell)
+  {
+    cell = new PHG4CellTPCv1(key);
+    g4cells->AddCell(cell);
+  }
+  cell->add_edep(key,tbin,1.);
   return;
 }
-
 
 int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
 {
@@ -228,6 +270,8 @@ double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
   set_default_double_param("electrons_per_gev",TPC_ElectronsPerKeV*1000000.);
   set_default_double_param("min_active_radius",30.); // cm
   set_default_double_param("max_active_radius",75.); // cm
+  set_default_double_param("min_time",0.); // ns
+  set_default_double_param("max_time",14000.); // ns
   return;
 }
 

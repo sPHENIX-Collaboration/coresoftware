@@ -5,7 +5,7 @@
 #include <string>
 
 #include <phool/PHTimeServer.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -127,7 +127,7 @@ public:
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
-  PHG4Parameters &
+  PHParameters &
   GetCalibrationParameters()
   {
     return _tower_calib_params;
@@ -165,7 +165,7 @@ protected:
   PHTimeServer::timer _timer;
 
   //! Tower by tower calibration parameters
-  PHG4Parameters _tower_calib_params;
+  PHParameters _tower_calib_params;
 
 };
 
