@@ -5,7 +5,7 @@
 
 class G4VPhysicalVolume;
 class PHG4TPCDetector;
-class PHParameters;
+class PHG4Parameters;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -14,7 +14,7 @@ class PHG4TPCSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4TPCSteppingAction(PHG4TPCDetector *, const PHParameters *parameters);
+  PHG4TPCSteppingAction(PHG4TPCDetector *, const PHG4Parameters *parameters);
 
   //! destructor
   virtual ~PHG4TPCSteppingAction();
@@ -33,7 +33,7 @@ class PHG4TPCSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
-  const PHParameters *params;
+  const PHG4Parameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   G4VPhysicalVolume *savevolpre;
