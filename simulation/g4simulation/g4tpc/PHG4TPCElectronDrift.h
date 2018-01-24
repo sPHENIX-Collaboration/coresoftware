@@ -10,7 +10,10 @@
 #include <gsl/gsl_rng.h>
 #endif
 
+class PHG4CellContainer;
 class PHCompositeNode;
+class TH1;
+class TNtuple;
 
 class  PHG4TPCElectronDrift: public SubsysReco, public PHParameterInterface
 {
@@ -26,14 +29,27 @@ public:
   void Detector(const std::string &d) {detector = d;}
   std::string Detector() const {return detector;}
   void set_seed(const unsigned int iseed);
+//  void Amplify(const double x, const double y, const double z);
+  void MapToPadPlane(const double x, const double y, const double t);
 private:
+  PHG4CellContainer *g4cells;
+  TH1 *dlong;
+  TH1 *dtrans;
+  TNtuple *nt;
+  TNtuple *nthit;
+  TNtuple *ntpad;
   std::string detector;
   std::string hitnodename;
+  std::string cellnodename;
   unsigned int seed;
   double diffusion_trans;
   double diffusion_long;
   double drift_velocity;
   double electrons_per_gev;
+  double min_active_radius;
+  double max_active_radius;
+  double min_time;
+  double max_time;
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif
