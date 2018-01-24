@@ -46,7 +46,7 @@ libPrototype3_la_LIBADD = \
   -lphool \
   -lfun4all \
   -lcalo_util \
-  -lg4detectors_io
+  -lphparameter
 
 BUILT_SOURCES = \
   testexternals.C

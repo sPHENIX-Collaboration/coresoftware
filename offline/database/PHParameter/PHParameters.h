@@ -1,5 +1,5 @@
-#ifndef PHG4PARAMETERS_H
-#define PHG4PARAMETERS_H
+#ifndef PHParameterS_H
+#define PHParameterS_H
 
 #include <phool/PHObject.h>
 
@@ -13,9 +13,7 @@ class PHCompositeNode;
 // contains parameters in our units,
 // convert to G4 units inside get access methods
 
-//! This class is deprecated, please use PHG4Parameter instead.
-//! See https://github.com/sPHENIX-Collaboration/coresoftware/pull/405
-class PHG4Parameters: public PHObject
+class PHParameters: public PHObject
 {
  public:
 
@@ -26,10 +24,10 @@ class PHG4Parameters: public PHObject
   typedef std::map<const std::string, std::string> strMap;
   typedef std::map<const std::string, std::string>::const_iterator strIter;
 
-  explicit PHG4Parameters(const std::string &name): pdbparam(NULL),detname(name) {}
-  PHG4Parameters(const PHG4Parameters &params, const std::string &name);
+  explicit PHParameters(const std::string &name): pdbparam(NULL),detname(name) {}
+  PHParameters(const PHParameters &params, const std::string &name);
 
-  virtual ~PHG4Parameters() {}
+  virtual ~PHParameters() {}
 
   void Print() const;
 
@@ -56,7 +54,7 @@ class PHG4Parameters: public PHObject
 
   void FillFrom(const PdbParameterMap *saveparams);
   void FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer);
-  void FillFrom(const PHG4Parameters *saveparams);
+  void FillFrom(const PHParameters *saveparams);
   // save parameters on node tree
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   // save parameters in container on node tree
@@ -65,6 +63,12 @@ class PHG4Parameters: public PHObject
   int ReadFromDB();
   int ReadFromDB(const std::string &name, const int layer);
   int WriteToFile(const std::string &extension, const std::string &dir = ".");
+
+  //! simple read without super detector and layer structures
+  inline int ReadFromFile(const std::string &name, const std::string &extension, const std::string &dir = ".")
+  {return ReadFromFile(name, extension, 0, 0, dir);}
+
+  //! Fully fledged read
   int ReadFromFile(const std::string &name, const std::string &extension, const int layer, const int issuper, const std::string &dir = ".");
   void CopyToPdbParameterMap(PdbParameterMap *myparm);
 
@@ -81,6 +85,8 @@ class PHG4Parameters: public PHObject
   iMap intparams;
   strMap stringparams;
 
+
+  //No Class Def since this class is not intended to be persistent
 };
 
 #endif

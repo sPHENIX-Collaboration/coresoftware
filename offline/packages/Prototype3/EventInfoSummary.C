@@ -9,7 +9,7 @@
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
@@ -73,7 +73,7 @@ EventInfoSummary::process_event(PHCompositeNode *topNode)
 
       map<int, Packet*> packet_list;
 
-      PHG4Parameters Params("EventInfo");
+      PHParameters Params("EventInfo");
 
       // spill indicator
         {

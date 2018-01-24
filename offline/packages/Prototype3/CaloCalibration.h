@@ -7,7 +7,7 @@
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
 #include <string>
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 
 class RawTowerContainer;
 
@@ -56,14 +56,14 @@ public:
   }
 
   //! Get the parameters for readonly
-  const PHG4Parameters &
+  const PHParameters &
   GetCalibrationParameters() const
   {
     return _calib_params;
   }
 
   //! Get the parameters for update. Useful fields are listed in SetDefaultParameters();
-  PHG4Parameters &
+  PHParameters &
   GetCalibrationParameters()
   {
     return _calib_params;
@@ -71,7 +71,7 @@ public:
 
   //! Overwrite the parameter. Useful fields are listed in SetDefaultParameters();
   void
-  SetCalibrationParameters(const PHG4Parameters & calib_params)
+  SetCalibrationParameters(const PHParameters & calib_params)
   {
     _calib_params = calib_params;
   }
@@ -88,11 +88,11 @@ private:
   std::string _calib_tower_node_prefix;
   std::string _raw_tower_node_prefix;
 
-  PHG4Parameters _calib_params;
+  PHParameters _calib_params;
 
   //! load the default parameter to param
   void
-  SetDefaultParameters(PHG4Parameters & param);
+  SetDefaultParameters(PHParameters & param);
 
 };
 
