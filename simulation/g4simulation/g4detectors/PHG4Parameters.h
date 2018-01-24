@@ -13,6 +13,8 @@ class PHCompositeNode;
 // contains parameters in our units,
 // convert to G4 units inside get access methods
 
+//! This class is deprecated, please use PHG4Parameter instead.
+//! See https://github.com/sPHENIX-Collaboration/coresoftware/pull/405
 class PHG4Parameters: public PHObject
 {
  public:
