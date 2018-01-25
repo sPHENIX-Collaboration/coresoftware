@@ -121,6 +121,29 @@ g4cells = new PHG4CellContainer();
 
 int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 {
+/*
+  int radbin1 = 10;
+  int phibin1 = 20;
+  int tbin1 = 200;
+  PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(0,radbin1,phibin1);
+  PHG4Cell *cell = g4cells->findCell(key);
+  if (! cell)
+  {
+    cell = new PHG4CellTPCv1(key);
+    g4cells->AddCell(cell);
+  }
+  cell->add_edep(key,tbin1,1.);
+  cell->add_edep(key,tbin1,2.);
+  {
+  PHG4CellContainer::ConstRange cells = g4cells->getCells();
+  PHG4CellContainer::ConstIterator celliter;
+  for (celliter=cells.first;celliter != cells.second; ++celliter)
+  {
+    celliter->second->print();
+  }
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+*/
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {

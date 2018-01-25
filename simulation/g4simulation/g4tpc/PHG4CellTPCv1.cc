@@ -24,17 +24,45 @@ PHG4CellTPCv1::~PHG4CellTPCv1()
 void
 PHG4CellTPCv1::add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep)
 {
-  EdepMap edepmap;
-  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
-  if (mapiter != timeseq.end())
+// blach that was complicated
+// first we see if we find if the time bin has already been used
+    EdepMap edepmap;
+    pair<map<int,EdepMap>::iterator, bool> ret;
+
+  map<int,EdepMap>::iterator mapiter;
+//  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
+    ret = timeseq.insert(make_pair(tbin,edepmap));
+    mapiter = ret.first;
+//  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
+/*
+  if (mapiter == timeseq.end())
   {
-    edepmap = mapiter->second;
+// if not we use map.insert which returns an iterator
+// to the new entry (the boolean is 
+
+    EdepMap edepmap;
+    pair<map<int,EdepMap>::iterator, bool> ret;
+    ret = timeseq.insert(make_pair(tbin,edepmap));
+    mapiter = ret.first;
+  }
+*/
+  EdepIterator eiter = (mapiter->second).find(g4hitid);
+  cout << "edepmap size: " << (mapiter->second).size() << endl;
+  if (eiter != (mapiter->second).end())
+  {
+    eiter->second += edep;
+    cout << "Adding to 0x" << hex << " edep " << edep << endl;
   }
   else
   {
-    timeseq.insert(make_pair(tbin,edepmap));
+    pair<EdepIterator, bool> ret;
+    ret = (mapiter->second).insert(make_pair(g4hitid,edep));
+    eiter = ret.first;
+    cout << "inserting 0x" << hex << g4hitid << dec << " edep: " << edep << endl;
   }
-  edepmap.insert(make_pair(g4hitid,edep));
+  cout << "inserting 0x" << hex << g4hitid << dec << " with edep: " << edep 
+       << ", size: " << timeseq.size() 
+       << " total edep: " << eiter->second << endl;
   return;
 }
 
@@ -242,9 +270,8 @@ void PHG4CellTPCv1::identify(std::ostream& os) const
 //  os <<"Associated to "<<hitedeps.size()<<" hits"<<endl;
   for (const auto pair :timeseq)
   {
-    os <<" TimeBin "<< pair.first <<endl;
-    EdepMap edepmap = pair.second;
-    for (const auto pair2 :edepmap)
+    os <<" TimeBin "<< pair.first << " size: " << (pair.second).size() << endl;
+    for (const auto pair2 :pair.second)
     {
       os << "\t PHG4Hit " << pair2.first << " -> " << pair2.second << " GeV" << endl;
     }
