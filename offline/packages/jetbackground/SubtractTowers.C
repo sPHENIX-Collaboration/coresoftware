@@ -9,12 +9,12 @@
 #include <phool/getClass.h>
 
 // sPHENIX includes
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerv1.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
@@ -82,7 +82,7 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     std::cout << "SubtractTowers::process_event: starting with " << ohcal_towers->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
   }
 
-  TowerBackground* towerbackground = findNode::getClass<TowerBackground>(topNode,"TowerBackground_Sub1");
+  TowerBackground* towerbackground = findNode::getClass<TowerBackground>(topNode,"TowerBackground_Sub2");
 
   // EMCal
   

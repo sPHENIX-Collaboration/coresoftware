@@ -1,0 +1,66 @@
+AUTOMAKE_OPTIONS = foreign
+
+# List of shared libraries to produce
+lib_LTLIBRARIES = \
+  libphparameter.la
+
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include
+
+libphparameter_la_SOURCES = \
+  PHParameters.cc \
+  PHParameters_Dict.cc \
+  PHParametersContainer.cc \
+  PHParametersContainer_Dict.cc \
+  PHParameterContainerInterface.cc \
+  PHParameterContainerInterface_Dict.cc \
+  PHParameterInterface.cc \
+  PHParameterInterface_Dict.cc 
+
+libphparameter_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
+libphparameter_la_LIBADD = \
+  -L$(ROOTSYS)/lib \
+  -lphool \
+  -lpdbcalBase \
+  -lboost_filesystem \
+  -lboost_system 
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+##############################################
+# please add new classes in alphabetical order
+
+pkginclude_HEADERS = \
+  PHParameterContainerInterface.h \
+  PHParameterInterface.h \
+  PHParameters.h \
+  PHParametersContainer.h 
+  
+################################################
+# linking tests
+
+noinst_PROGRAMS = \
+  testexternals_phparameter
+  
+testexternals_phparameter_SOURCES = testexternals.C
+testexternals_phparameter_LDADD = libphparameter.la
+
+testexternals.C:
+	echo "//*** this is a generated file. Do not commit, do not edit" > $@
+	echo "int main()" >> $@
+	echo "{" >> $@
+	echo "  return 0;" >> $@
+	echo "}" >> $@
+
+##############################################
+# please add new classes in alphabetical order
+
+clean-local:
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

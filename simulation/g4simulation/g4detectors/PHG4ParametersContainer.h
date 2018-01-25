@@ -10,6 +10,8 @@ class PHG4Parameters;
 class PdbParameterMapContainer;
 class PHCompositeNode;
 
+//! This class is deprecated, please use PHG4Parameter instead.
+//! See https://github.com/sPHENIX-Collaboration/coresoftware/pull/405
 class PHG4ParametersContainer : public PHObject
 {
  public:

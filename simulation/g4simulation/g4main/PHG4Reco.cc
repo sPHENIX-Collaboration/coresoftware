@@ -172,7 +172,6 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
   unsigned int iseed = PHRandomSeed();
-  cout << Name() << " G4 Random Seed: " << iseed << endl;
   G4Seed(iseed);  // fixed seed handled in PHRandomSeed()
 
   // create GEANT run manager

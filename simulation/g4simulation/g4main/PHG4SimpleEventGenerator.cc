@@ -243,6 +243,11 @@ int PHG4SimpleEventGenerator::InitRun(PHCompositeNode *topNode) {
 
 int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
 
+  if (verbosity > 0) {
+    cout << "====================== PHG4SimpleEventGenerator::process_event() =====================" << endl;
+    cout <<"PHG4SimpleEventGenerator::process_event - reuse_existing_vertex = "<<reuse_existing_vertex<<endl;
+  }
+
   // vtx_x, vtx_y and vtx_z are doubles from the base class
   // common methods modify those, please no private copies
   // at some point we might rely on them being up to date
@@ -257,6 +262,12 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
   vtx_x += _vertex_offset_x;
   vtx_y += _vertex_offset_y;
   vtx_z += _vertex_offset_z;
+
+  if (verbosity > 0) {
+  cout <<"PHG4SimpleEventGenerator::process_event - vertex center"<<reuse_existing_vertex
+      << vtx_x<<", "<< vtx_y<<", "<< vtx_z<<" cm"
+      <<endl;
+  }
 
   int vtxindex = -1;
   int trackid = -1;
@@ -323,7 +334,6 @@ int PHG4SimpleEventGenerator::process_event(PHCompositeNode *topNode) {
   }
 
   if (verbosity > 0) {
-    cout << "====================== PHG4SimpleEventGenerator::process_event() =====================" << endl;
     _ineve->identify();
     cout << "======================================================================================" << endl;
   } 

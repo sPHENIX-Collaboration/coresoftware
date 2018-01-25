@@ -4,10 +4,10 @@
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTower.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>

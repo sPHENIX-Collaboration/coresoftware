@@ -2,7 +2,7 @@
 #include "PROTOTYPE3_FEM.h"
 #include "RawTower_Prototype3.h"
 
-#include <g4cemc/RawTowerContainer.h>
+#include <calobase/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
@@ -210,7 +210,7 @@ CaloCalibration::End(PHCompositeNode *topNode)
 }
 
 void
-CaloCalibration::SetDefaultParameters(PHG4Parameters & param)
+CaloCalibration::SetDefaultParameters(PHParameters & param)
 {
 
   param.set_int_param("use_chan_calibration", 0);

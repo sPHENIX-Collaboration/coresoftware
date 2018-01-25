@@ -36,8 +36,8 @@
 #include <phgeom/PHGeomUtility.h>
 #include <phfield/PHFieldUtility.h>
 #include <phgenfit/SpacepointMeasurement.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
 
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
@@ -572,7 +572,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
 	// State Projections
 	for (int i = 0; i < _N_STATES; i++) {
 
-	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") ){
+	  if( (_state_names[i]=="FHCAL") || (_state_names[i]=="FEMC") || (_state_names[i]=="EEMC") ){
 	    
 	    // Project to a plane at fixed z
 		  pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0., _state_location[i]),

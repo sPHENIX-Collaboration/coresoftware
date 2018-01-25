@@ -34,7 +34,6 @@ PHG4ParticleGeneratorBase::PHG4ParticleGeneratorBase(const string &name)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   seed = PHRandomSeed();  // fixed seed is handled in this funtcion
-  cout << Name() << " random seed: " << seed << endl;
   gsl_rng_set(RandomGenerator, seed);
   return;
 }
@@ -227,6 +226,14 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
       const HepMC::FourVector &vtx = hepmc_evt->get_collision_vertex();
 
       set_vtx(vtx.x(), vtx.y(), vtx.z());
+
+      if (verbosity > 0) {
+        cout <<"PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
+            << vtx.x()<<", "<< vtx.y()<<", "<< vtx.z()<<" cm. Source event:"
+            <<endl;
+        hepmc_evt->identify();
+      }
+
       return 1;
     }
   }

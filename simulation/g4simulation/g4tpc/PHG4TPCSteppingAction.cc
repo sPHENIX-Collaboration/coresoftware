@@ -89,11 +89,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     return false;
   }
-  int layer_id = 0;
-  if (whichactive < 0)  // support structures
-  {
-    layer_id = fabs(whichactive);  // we want a positive layer id
-  }
+  int layer_id = volume->GetCopyNo();
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;

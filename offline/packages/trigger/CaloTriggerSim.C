@@ -9,11 +9,11 @@
 #include <phool/getClass.h>
 
 // sPHENIX includes
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 
 #include "CaloTriggerInfo_v1.h"
 
@@ -23,7 +23,7 @@
 #include <vector>
 
 CaloTriggerSim::CaloTriggerSim(const std::string &name)
-  : SubsysReco(name)
+  : SubsysReco(name), _emulate_truncation(0)
 {
   // initiate sizes as -1 to tell module they can be set when it sees
   // the EMCal geometry for the first time
@@ -70,6 +70,10 @@ CaloTriggerSim::CaloTriggerSim(const std::string &name)
   _EMCAL_4x4_BEST_PHI = 0;
   _EMCAL_4x4_BEST_ETA = 0;
 
+  _EMCAL_4x4_BEST2_E = 0;
+  _EMCAL_4x4_BEST2_PHI = 0;
+  _EMCAL_4x4_BEST2_ETA = 0;
+
   _FULLCALO_0p2x0p2_BEST_E = 0;
   _FULLCALO_0p2x0p2_BEST_PHI = 0;
   _FULLCALO_0p2x0p2_BEST_ETA = 0;
@@ -94,6 +98,19 @@ CaloTriggerSim::CaloTriggerSim(const std::string &name)
 
 CaloTriggerSim::~CaloTriggerSim()
 {
+}
+
+void CaloTriggerSim::set_truncation( int emulate_truncation ) {
+  _emulate_truncation = emulate_truncation;
+}
+
+float CaloTriggerSim::truncate_8bit( float raw_E  ) {
+
+  if ( raw_E > 45.0 ) raw_E = 45.0;
+  int counts = std::floor( raw_E / ( 45.0 / 256 ) );
+
+  return counts * ( 45.0 / 256 );
+
 }
 
 int CaloTriggerSim::Init(PHCompositeNode *topNode)
@@ -218,6 +235,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       this_sum += _EMCAL_1x1_MAP[2 * ieta + 1][2 * iphi];  // 2 * ieta + 1 is safe, since _EMCAL_2x2_NETA = _EMCAL_1x1_NETA / 2
       this_sum += _EMCAL_1x1_MAP[2 * ieta + 1][2 * iphi + 1];
 
+      if (_emulate_truncation) {
+	this_sum = truncate_8bit( this_sum );
+      }
+
       // populate 2x2 map
       _EMCAL_2x2_MAP[ieta][iphi] = this_sum;
 
@@ -260,6 +281,9 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   _EMCAL_4x4_BEST_PHI = 0;
   _EMCAL_4x4_BEST_ETA = 0;
 
+  int emcal_4x4_best_iphi = -1;
+  int emcal_4x4_best_ieta = -1;
+
   // now reconstruct (sliding) 4x4 map from 2x2 map
   for (int ieta = 0; ieta < _EMCAL_4x4_NETA; ieta++)
   {
@@ -300,18 +324,59 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
         std::cout << "CaloTriggerSim::process_event: EMCal 4x4 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
 
-      if (this_sum > _EMCAL_4x4_BEST_E)
-      {
-        _EMCAL_4x4_BEST_E = this_sum;
-        _EMCAL_4x4_BEST_PHI = this_phi;
-        _EMCAL_4x4_BEST_ETA = this_eta;
+      if (this_sum > _EMCAL_4x4_BEST_E) {
+	
+	_EMCAL_4x4_BEST_E = this_sum;
+	_EMCAL_4x4_BEST_PHI = this_phi;
+	_EMCAL_4x4_BEST_ETA = this_eta;
+	
+	emcal_4x4_best_iphi = iphi;
+	emcal_4x4_best_ieta = ieta;
+  
       }
+    }
+  }
+
+
+  _EMCAL_4x4_BEST2_E = 0;
+  _EMCAL_4x4_BEST2_PHI = 0;
+  _EMCAL_4x4_BEST2_ETA = 0;
+
+  // find second-largest 4x4 which is > 1 tower away...
+  for (int ieta = 0; ieta < _EMCAL_4x4_NETA; ieta++)
+  {
+    for (int iphi = 0; iphi < _EMCAL_4x4_NPHI; iphi++)
+    {
+
+      int deta = ieta - emcal_4x4_best_ieta;
+      int dphi = ( iphi - emcal_4x4_best_iphi ) % _EMCAL_4x4_NPHI ;
+
+      if ( abs( deta ) < 1.5 && abs( dphi ) < 1.5 ) 
+	continue;
+
+      float this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1) + geomEM->get_etacenter(2 * ieta + 2) + geomEM->get_etacenter(2 * ieta + 3));
+      float this_phi = geomEM->get_phicenter(2 * iphi) + 1.5 * (geomEM->get_phicenter(2 * iphi + 1) - geomEM->get_phicenter(2 * iphi));
+
+      if (this_phi > 3.14159) this_phi -= 2 * 3.14159;
+      if (this_phi < -3.14159) this_phi += 2 * 3.14159;
+
+      float this_sum = _EMCAL_4x4_MAP[ieta][iphi];
+      
+      if (this_sum > _EMCAL_4x4_BEST2_E) {
+	
+	_EMCAL_4x4_BEST2_E = this_sum;
+	_EMCAL_4x4_BEST2_PHI = this_phi;
+	_EMCAL_4x4_BEST2_ETA = this_eta;
+
+      }
+
     }
   }
 
   if (verbosity > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best EMCal 4x4 window is at eta / phi = " << _EMCAL_4x4_BEST_ETA << " / " << _EMCAL_4x4_BEST_PHI << " and E = " << _EMCAL_4x4_BEST_E << std::endl;
+    std::cout << "CaloTriggerSim::process_event: 2nd best EMCal 4x4 window is at eta / phi = " << _EMCAL_4x4_BEST2_ETA << " / " << _EMCAL_4x4_BEST2_PHI << " and E = " << _EMCAL_4x4_BEST2_E << std::endl;
   }
 
   // begin full calo sim
@@ -824,11 +889,11 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
   }
 
   // create the CaloTriggerInfo
-  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, "CaloTriggerInfo");
+  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !_emulate_truncation ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate" );
   if (!triggerinfo)
   {
     triggerinfo = new CaloTriggerInfo_v1();
-    PHIODataNode<PHObject> *TriggerNode = new PHIODataNode<PHObject>(triggerinfo, "CaloTriggerInfo", "PHObject");
+    PHIODataNode<PHObject> *TriggerNode = new PHIODataNode<PHObject>(triggerinfo, !_emulate_truncation ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate", "PHObject");
     trigNode->addNode(TriggerNode);
   }
   else
@@ -842,7 +907,7 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
 
 void CaloTriggerSim::FillNode(PHCompositeNode *topNode)
 {
-  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, "CaloTriggerInfo");
+  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !_emulate_truncation ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate" );
   if (!triggerinfo)
   {
     std::cout << " ERROR -- can't find CaloTriggerInfo node after it should have been created" << std::endl;
@@ -857,6 +922,10 @@ void CaloTriggerSim::FillNode(PHCompositeNode *topNode)
     triggerinfo->set_best_EMCal_4x4_E(_EMCAL_4x4_BEST_E);
     triggerinfo->set_best_EMCal_4x4_eta(_EMCAL_4x4_BEST_ETA);
     triggerinfo->set_best_EMCal_4x4_phi(_EMCAL_4x4_BEST_PHI);
+
+    triggerinfo->set_best2_EMCal_4x4_E(_EMCAL_4x4_BEST2_E);
+    triggerinfo->set_best2_EMCal_4x4_eta(_EMCAL_4x4_BEST2_ETA);
+    triggerinfo->set_best2_EMCal_4x4_phi(_EMCAL_4x4_BEST2_PHI);
 
     triggerinfo->set_best_FullCalo_0p2x0p2_E(_FULLCALO_0p2x0p2_BEST_E);
     triggerinfo->set_best_FullCalo_0p2x0p2_eta(_FULLCALO_0p2x0p2_BEST_ETA);

@@ -9,11 +9,11 @@
 #include <phool/getClass.h>
 
 // sPHENIX includes
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
@@ -91,31 +91,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   _seed_eta.resize(0);
   _seed_phi.resize(0);
 
-  // 
-  if (_seed_type == 1) {
-    JetMap* reco2_jets = findNode::getClass<JetMap>(topNode,"AntiKt_Tower_r02");
-
-    if (verbosity > 1)
-      std::cout << "DetermineTowerBackground::proess_event: examining possible seeds ... " << std::endl;
-    
-    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter) {
-      Jet* this_jet = iter->second;
-      
-      float this_pt = this_jet->get_pt();
-      float this_phi = this_jet->get_phi();
-      float this_eta = this_jet->get_eta();
-
-      if (this_jet->get_pt() < 25) continue;
-
-      _seed_eta.push_back( this_eta );
-      _seed_phi.push_back( this_phi );
-
-      if (verbosity > 1)
-	std::cout << "DetermineTowerBackground::proess_event: adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << " ) " << std::endl;
-    }
-    
-  }
-
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
   RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
@@ -128,6 +103,138 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
+
+  // seed type 0 is D > 3 R=0.2 jets run on retowerized CEMC
+  if (_seed_type == 0) {
+    JetMap* reco2_jets = findNode::getClass<JetMap>(topNode,"AntiKt_Tower_HIRecoSeedsRaw_r02");
+
+    if (verbosity > 1)
+      std::cout << "DetermineTowerBackground::process_event: examining possible seeds (1st iteration) ... " << std::endl;
+
+    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter) {
+
+      Jet* this_jet = iter->second;
+
+      float this_pt = this_jet->get_pt();
+      float this_phi = this_jet->get_phi();
+      float this_eta = this_jet->get_eta();
+
+      if (this_jet->get_pt() < 5) continue;
+
+      if (verbosity > 1)
+	std::cout << "DetermineTowerBackground::process_event: possible seed jet with pt / eta / phi = " << this_pt << " / " << this_eta << " / " << this_phi << ", examining constituents..." << std::endl;
+
+      std::map< int, double > constituent_ETsum;
+
+      for (Jet::ConstIter comp = this_jet->begin_comp(); comp !=  this_jet->end_comp(); ++comp) {
+
+	int comp_ieta = -1;
+	int comp_iphi = -1;
+	float comp_ET = 0;
+
+	RawTower *tower;
+	RawTowerGeom *tower_geom;
+	
+        if ( (*comp).first == 5 ) {
+          tower = towersIH3->getTower( (*comp).second );
+          tower_geom = geomIH->get_tower_geometry(tower->get_key());
+
+	  comp_ieta = geomIH->get_etabin( tower_geom->get_eta() );
+	  comp_iphi =  geomIH->get_phibin( tower_geom->get_phi() );
+	  comp_ET = tower->get_energy() / cosh( tower_geom->get_eta() );
+        }
+        else if ( (*comp).first == 7 ) {
+          tower = towersOH3->getTower( (*comp).second );
+          tower_geom = geomOH->get_tower_geometry(tower->get_key());
+
+	  comp_ieta = geomIH->get_etabin( tower_geom->get_eta() );
+	  comp_iphi =  geomIH->get_phibin( tower_geom->get_phi() );
+	  comp_ET = tower->get_energy() / cosh( tower_geom->get_eta() );
+        }
+        else if ( (*comp).first == 13 ) {
+          tower = towersEM3->getTower( (*comp).second );
+          tower_geom = geomIH->get_tower_geometry(tower->get_key());
+
+	  comp_ieta = geomIH->get_etabin( tower_geom->get_eta() );
+	  comp_iphi =  geomIH->get_phibin( tower_geom->get_phi() );
+	  comp_ET = tower->get_energy() / cosh( tower_geom->get_eta() );
+	}
+
+	int comp_ikey = 1000 * comp_ieta + comp_iphi;
+
+	if (verbosity > 4)
+	  std::cout << "DetermineTowerBackground::process_event: --> --> constituent in layer " << (*comp).first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << ", filling map with key = " << comp_ikey << " and ET = " << comp_ET << std::endl;
+
+	constituent_ETsum[ comp_ikey ] += comp_ET;
+
+	if (verbosity > 4)
+	  std::cout << "DetermineTowerBackground::process_event: --> --> ET sum map at key = " << comp_ikey << " now has ET = " << constituent_ETsum[ comp_ikey ] << std::endl;
+	
+      }
+
+      // now iterate over constituent_ET sums to find maximum and mean
+      float constituent_max_ET = 0;
+      float constituent_sum_ET = 0;
+      int nconstituents = 0;
+      
+      if (verbosity > 4)
+	std::cout << "DetermineTowerBackground::process_event: --> now iterating over map..." << std::endl;
+      for (std::map<int,double>::iterator map_iter = constituent_ETsum.begin(); map_iter != constituent_ETsum.end(); ++map_iter) {
+	if (verbosity > 4)
+	  std::cout << "DetermineTowerBackground::process_event: --> --> map has key # " << map_iter->first << " and ET = " << map_iter->second << std::endl;
+	nconstituents++;
+	constituent_sum_ET +=  map_iter->second;
+	if ( map_iter->second > constituent_max_ET ) constituent_max_ET = map_iter->second;
+      }
+
+      float mean_constituent_ET = constituent_sum_ET / nconstituents;
+      float seed_D = constituent_max_ET / mean_constituent_ET;
+      
+      if (verbosity > 1)
+	std::cout << "DetermineTowerBackground::process_event: --> jet has < ET > = " << constituent_sum_ET << " / " << nconstituents << " = " << mean_constituent_ET << ", max-ET = " << constituent_max_ET << ", and D = " << seed_D << std::endl;
+      
+      if ( seed_D > 3 ) {
+	_seed_eta.push_back( this_eta );
+	_seed_phi.push_back( this_phi );
+	
+	if (verbosity > 1)
+	  std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
+      } else {
+	if (verbosity > 1)
+	  std::cout << "DetermineTowerBackground::process_event: --> discarding potential seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
+      }
+      
+    }
+
+  }
+
+  // seed type 1 is the set of those jets above which, when their
+  // kinematics are updated for the first background subtraction, have
+  // pT > 20 GeV
+  if (_seed_type == 1) {
+    JetMap* reco2_jets = findNode::getClass<JetMap>(topNode,"AntiKt_Tower_HIRecoSeedsSub_r02");
+
+    if (verbosity > 1)
+      std::cout << "DetermineTowerBackground::process_event: examining possible seeds (2nd iteration) ... " << std::endl;
+    
+    for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter) {
+      Jet* this_jet = iter->second;
+      
+      float this_pt = this_jet->get_pt();
+      float this_phi = this_jet->get_phi();
+      float this_eta = this_jet->get_eta();
+
+      if (this_jet->get_pt() < 15) continue;
+
+      _seed_eta.push_back( this_eta );
+      _seed_phi.push_back( this_phi );
+
+      if (verbosity > 1)
+	std::cout << "DetermineTowerBackground::process_event: adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << " ) " << std::endl;
+    }
+    
+  }
+
 
   // get the binning from the geometry (different for 1D vs 2D...)
   if (_HCAL_NETA < 0) {

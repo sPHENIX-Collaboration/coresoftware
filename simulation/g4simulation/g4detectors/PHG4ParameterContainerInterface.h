@@ -8,6 +8,8 @@ class PHCompositeNode;
 class PHG4Parameters;
 class PHG4ParametersContainer;
 
+//! This class is deprecated, please use PHG4Parameter instead.
+//! See https://github.com/sPHENIX-Collaboration/coresoftware/pull/405
 class PHG4ParameterContainerInterface
 {
  public:

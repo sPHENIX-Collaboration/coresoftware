@@ -23,7 +23,7 @@ libjetbackground_io_la_LIBADD = \
 
 libjetbackground_la_LIBADD = \
   -lfun4all \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lg4jets \
   -lg4jets_io \
   -lCGAL \
@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   DetermineTowerBackground.h \
   SubtractTowers.h \
   RetowerCEMC.h \
+  CopyAndSubtractJets.h \
   FastJetAlgoSub.h \
   TowerBackground.h \
   TowerBackground_v1.h
@@ -50,7 +51,9 @@ libjetbackground_la_SOURCES = \
   SubtractTowers.C \
   SubtractTowers_Dict.C \
   RetowerCEMC.C \
-  RetowerCEMC_Dict.C
+  RetowerCEMC_Dict.C \
+  CopyAndSubtractJets.C \
+  CopyAndSubtractJets_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

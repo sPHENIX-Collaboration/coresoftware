@@ -14,11 +14,11 @@
 #include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4Particle.h>
 
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
 
 #include <g4eval/CaloEvalStack.h>
 #include <g4eval/SvtxEvalStack.h>

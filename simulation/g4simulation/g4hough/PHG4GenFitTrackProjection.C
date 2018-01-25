@@ -27,11 +27,12 @@
 #include <GenFit/FieldManager.h>
 
 // PHENIX Geant4 includes
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterUtility.h>
 
 //ROOT
 #include <TGeoManager.h>
@@ -394,9 +395,12 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 
 				RawCluster *cluster = clusterList->getCluster(k);
 
+				//! eta as location mark of cluster relative to (0,0,0)
+				const float cluster_eta = RawClusterUtility::GetPseudorapidity(*cluster, CLHEP::Hep3Vector(0,0,0));
+
 				double dphi = atan2(sin(phi - cluster->get_phi()),
 						cos(phi - cluster->get_phi()));
-				double deta = eta - cluster->get_eta();
+				double deta = eta - cluster_eta;
 				double r = sqrt(pow(dphi, 2) + pow(deta, 2));
 
 				if (r < min_r) {
