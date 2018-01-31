@@ -45,14 +45,18 @@ using namespace CLHEP;
 //____________________________________________________________________________..
 PHG4mRICHSteppingAction::PHG4mRICHSteppingAction( PHG4mRICHDetector* detector,PHG4Parameters* params):
   detector_( detector ),
-  active(params->get_int_param("active")),
+  // active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
-  use_g4_steps(params->get_int_param("use_g4steps")),
+  // use_g4_steps(params->get_int_param("use_g4steps")),
   detectorname(params->get_string_param("detectorname")),
   superdetector(params->get_string_param("superdetector")),
   hits_(NULL),
   absorberhits_(NULL),
-  hit(NULL)
+  hit(NULL),
+  savehitcontainer(nullptr),
+  saveshower(nullptr),
+  savetrackid(-1),
+  savepoststepstatus(-1)
 {
 }
 //____________________________________________________________________________..
@@ -63,95 +67,89 @@ PHG4mRICHSteppingAction::~PHG4mRICHSteppingAction()
 //____________________________________________________________________________..
 bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
-  ////int savetrackid;
-  PHG4HitContainer *savehitcontainer=nullptr;
-  PHG4Shower *saveshower=nullptr;
-
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
-  
-  bool whichactive = detector_->IsInmRICH(volume);
-  if ( !whichactive  ) {
-    //cout<<"!!!!!!!!!!!! not active !!!!!!!!!!!!!!!"<<endl;
-    return false;
-  }
-  //cout<<"::::::: volume= "<<volume->GetName()<<" :::::::::::"<<endl;
-  
-  int module_id=GetModuleID(volume);
-  if (!module_id) { 
-    cout<<"!!!!!!!!!!!!!! ERROR: module_id<0 !!!!!!!!!!!!!!!!!"<<endl; 
-    return false;
-  }
 
-  //-----------------------------------------------------------------------------------//
-  /* Get energy deposited by this step */
-  G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
-  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
+  int isactive = detector_->IsInmRICH(volume);
+  // cout << "isactive = " << isactive << endl;
+  if ( isactive > PHG4mRICHDetector::INACTIVE ) 
+  {
+    // collect energy and track length step by step
+    G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
+    G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
-  /* Get pointer to associated Geant4 track */
-  const G4Track* aTrack = aStep->GetTrack();
+    const G4Track* aTrack = aStep->GetTrack();
 
-  //-----------------------------------------------------------------------------------//
-  FILE* outfile;
-  outfile=fopen("outParticle.txt","a");
-  //outfile.open("outParticle.txt", std::ios_base::app);
-
-  int PID=aTrack->GetDefinition()->GetPDGEncoding();
-  fprintf(outfile,"PID= %d ",PID);
-  //fclose(outfile);
-  
-  //-----------------------------------------------------------------------------------//
-  // if this block stops everything, just put all kinetic energy into edep
-  if (IsBlackHole) {
-    edep = aTrack->GetKineticEnergy() / GeV;
-    G4Track* killtrack = const_cast<G4Track *> (aTrack);
-    killtrack->SetTrackStatus(fStopAndKill);
-  }
-
-  //-----------------------------------------------------------------------------------//
-  /* Make sure we are in a volume */
-  if ( active ) {
     /* Check if particle is 'geantino' */
     bool geantino = false;
-    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
-	aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos) {
+    if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos) 
+    {
       geantino = true;
     }
 
+    int module_id=GetModuleID(volume);
+    if (!module_id) 
+    { 
+      cout<<"!!!!!!!!!!!!!! ERROR: module_id<0 !!!!!!!!!!!!!!!!!"<<endl; 
+      return false;
+    }
+
+    int PID=aTrack->GetDefinition()->GetPDGEncoding();
+    // cout << "PID = " << PID << ", trackID = " << aTrack->GetTrackID() << ", Px = " << aTrack->GetMomentum().x()<< endl;
+
+    //-----------------------------------------------------------------------------------//
+    // if this block stops everything, just put all kinetic energy into edep
+    if (IsBlackHole) 
+    {
+      edep = aTrack->GetKineticEnergy() / GeV;
+      G4Track* killtrack = const_cast<G4Track *> (aTrack);
+      killtrack->SetTrackStatus(fStopAndKill);
+    }
+
+    //-----------------------------------------------------------------------------------//
+    /* Make sure we are in a volume */
+    // if ( active ) 
+    // {
     /* Get Geant4 pre- and post-step points */
     G4StepPoint * prePoint = aStep->GetPreStepPoint();
     G4StepPoint * postPoint = aStep->GetPostStepPoint();
 
-    switch (prePoint->GetStepStatus()) {
+    switch (prePoint->GetStepStatus()) 
+    {
       //-----------------
       case fGeomBoundary:
-      //-----------------
+	//-----------------
       case fUndefined:
 	if (! hit) hit = new PHG4Hitv1();
 	/* Set hit location (space point) */
 	hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	hit->set_z( 0, prePoint->GetPosition().z() / cm );
-	
+
 	/* Set hit time */
 	hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
-	
+
 	//set the track ID
 	hit->set_trkid(aTrack->GetTrackID());
-	//savetrackid = aTrack->GetTrackID();
+	savetrackid = aTrack->GetTrackID();
 
 	/* set intial energy deposit */
 	hit->set_edep( 0 );
-	if (whichactive) {
+	if (isactive == PHG4mRICHDetector::SENSOR) 
+	{
 	  hit->set_eion( 0 );
-	  //hit->set_light_yield(0);
 	  savehitcontainer = hits_;
 	}
-	else savehitcontainer = absorberhits_;
-	
+	else 
+	{
+	  savehitcontainer = absorberhits_;
+	}
+
 	// here we set what is common for scintillator and absorber hits
-	if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) {
-	  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
+	if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) 
+	{
+	  if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) 
+	  {
 	    hit->set_trkid(pp->GetUserTrackId());
 	    hit->set_shower_id(pp->GetShower()->get_id());
 	    saveshower = pp->GetShower();
@@ -159,8 +157,27 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	}
 	break;
 	//-----------------
-    default:
+      default:
 	break;
+    }
+    // some sanity checks for inconsistencies
+    // check if this hit was created, if not print out last post step status
+    if (!hit || !isfinite(hit->get_x(0)))
+    {
+    cout << GetName() << ": hit was not created" << endl;
+    cout << "prestep status: " << prePoint->GetStepStatus()
+    << ", last post step status: " << savepoststepstatus << endl;
+    exit(1);
+    }
+    savepoststepstatus = postPoint->GetStepStatus();
+    // check if track id matches the initial one when the hit was created
+    if (aTrack->GetTrackID() != savetrackid)
+    {
+    cout << GetName() << ": hits do not belong to the same track" << endl;
+    cout << "saved track: " << savetrackid
+    << ", current trackid: " << aTrack->GetTrackID()
+    << endl;
+    exit(1);
     }
 
     //-----------------------------------------------------------------------------------//
@@ -169,58 +186,69 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     hit->set_x( 1, postPoint->GetPosition().x() / cm );
     hit->set_y( 1, postPoint->GetPosition().y() / cm );
     hit->set_z( 1, postPoint->GetPosition().z() / cm );
-    
+
     hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
-    
+
     /* sum up the energy to get total deposited */
     hit->set_edep(hit->get_edep() + edep);
     hit->set_eion(hit->get_eion() + eion);
-    
-    if (geantino) {
+
+    if (geantino) 
+    {
       hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       hit->set_eion(-1);
     }
-    if (edep!=0 || PID==0) {
-    //if (edep > 0 /*&& (whichactive > 0 || absorbertruth > 0)*/) {
-      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) {
-	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) {
+    if (edep > 0 && PID == 0) 
+      //if (edep > 0 /*&& (isactive > 0 || absorbertruth > 0)*/)
+    {
+      if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) 
+      {
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) ) 
+	{
 	  pp->SetKeep(1); // we want to keep the track
 	}
       }
+      // edep = aTrack->GetKineticEnergy() / GeV;
+      // G4Track* killtrack = const_cast<G4Track *> (aTrack);
+      // killtrack->SetTrackStatus(fStopAndKill);
     }
 
     //-----------------------------------------------------------------------------------//
     // if any of these conditions is true this is the last step in
     // this volume and we need to save the hit
     if (postPoint->GetStepStatus() == fGeomBoundary ||
-        postPoint->GetStepStatus() == fWorldBoundary ||
-        postPoint->GetStepStatus() == fAtRestDoItProc ||
-        aTrack->GetTrackStatus() == fStopAndKill) {
+	postPoint->GetStepStatus() == fWorldBoundary ||
+	postPoint->GetStepStatus() == fAtRestDoItProc ||
+	aTrack->GetTrackStatus() == fStopAndKill) 
+    {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep() || PID==0){
+      if (hit->get_edep() && PID==0)
+      {
 	savehitcontainer->AddHit(module_id, hit);
-	if (saveshower) { 
+	if (saveshower) 
+	{ 
 	  saveshower->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
-	  //if (PID==0) fprintf(outfile, "saved.\n");
 	}
 	// ownership has been transferred to container, set to null
 	// so we will create a new hit for the next track
 	hit = nullptr;
       }
-      else {
+      else 
+      {
 	// if this hit has no energy deposit, just reset it for reuse
 	// this means we have to delete it in the dtor. If this was
 	// the last hit we processed the memory is still allocated
 	hit->Reset();
       }
     }
-    fclose(outfile);
+    // return true;
+    // }
     return true;
-    
   }
-  //else return false;    //this is not safe. It should always return something.
-  fclose(outfile);
-  return false;
+  else
+  {
+    return false;
+  }
 }
 
 

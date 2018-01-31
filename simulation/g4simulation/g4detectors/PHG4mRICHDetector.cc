@@ -60,21 +60,20 @@ PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *par
   params(parameters),
   //block_physi(NULL),
   layer(lyr),
+  active(0),
+  absorberactive(0),
   mRICH_PV(nullptr)
 {}
 
 //_______________________________________________________________
-bool PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
+int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 {
-  int i=0;
-  for (i=0;i<4;i++) {
-    //cout<<"::::::::::: sensor_PV["<<i<<"]= "<<sensor_PV[i]->GetName()<<" ::::::::::::"<<endl;
-    if (volume==sensor_PV[i]) return true;
+  if (active && sensor_vol.find(volume) != sensor_vol.end())
+  {
+    return SENSOR;
   }
 
-  //else if (volume->GetLogicalVolume()->IsAncestor(mRICH_PV)) return true; 
-  //else if (mRICH_PV->GetLogicalVolume()->IsAncestor(volume)) return true;
-  return false;
+  return INACTIVE;
 }
 //______________________________________________________________
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
@@ -677,10 +676,12 @@ void PHG4mRICHDetector::build_sensor(mRichParameter* detectorParameter,G4Logical
     }
 
     detectorParameter->SetPar_glassWindow(i+1,x,y);
-    //build_box(detectorParameter->GetBoxPar("glassWindow"),motherLV);
 
     detectorParameter->SetPar_sensor(i+1,x,y);
     sensor_PV[i]=build_box(detectorParameter->GetBoxPar("sensor"),motherLV);
+
+    sensor_vol[sensor_PV[i]] = i;
+    // cout << "in build_sensor: sensor_vol = " << sensor_vol[sensor_PV[i]] << endl;
 
     last_x=x;
     last_y=y;

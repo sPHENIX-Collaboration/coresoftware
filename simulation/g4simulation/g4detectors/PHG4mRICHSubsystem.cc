@@ -57,6 +57,8 @@ int PHG4mRICHSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   _detector = new PHG4mRICHDetector(topNode, GetParams(), Name(), GetLayer());
   _detector->SuperDetector(SuperDetector());
   _detector->OverlapCheck(CheckOverlap());
+  _detector->SetActive(GetParams()->get_int_param("active"));
+  _detector->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
   
   //---------------------------------
   // create hit node and stepping action

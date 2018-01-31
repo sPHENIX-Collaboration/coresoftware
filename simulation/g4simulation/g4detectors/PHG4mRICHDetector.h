@@ -34,14 +34,30 @@ class PHG4mRICHDetector: public PHG4Detector
   
   //name volume accessors
   //bool IsInBlock(G4VPhysicalVolume*) const;
-  bool IsInmRICH(G4VPhysicalVolume*) const;
+  int IsInmRICH(G4VPhysicalVolume*) const;
 
   //void BlackHole(const int i=1) {blackhole = i;}
   //int IsBlackHole() const {return blackhole;}
 
+  void SetActive(const int i = 1)
+  {
+    active = i;
+  }
+
+  void SetAbsorberActive(const int i = 1)
+  {
+    absorberactive = i;
+  }
+
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() const {return superdetector;}
   int get_Layer() const {return layer;}
+
+  enum
+  {
+    SENSOR = 1,
+    INACTIVE = -100
+  };
 
  private:
   class mRichParameter;
@@ -66,10 +82,14 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
   
   int layer;
+  int active;
+  int absorberactive;
   //int blackhole;
   std::string superdetector;
   G4VPhysicalVolume *mRICH_PV;         //physical volume of detector box of single module  
   G4VPhysicalVolume *sensor_PV[4];     //physical volume of sensors the sensitive components
+
+  std::map<const G4VPhysicalVolume*, int> sensor_vol; // physical volume of senseors
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::mRichParameter
