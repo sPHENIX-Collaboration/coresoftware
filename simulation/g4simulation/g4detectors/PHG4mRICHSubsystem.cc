@@ -38,8 +38,8 @@ PHG4mRICHSubsystem::InitSubsystem( PHCompositeNode* topNode )
   // kludge until the phg4parameters are sorted out (adding layers)
   GetParams()->set_name(Name());
   GetParams()->set_int_param("active",1);
-  GetParams()->set_int_param("blackhole",1);
   GetParams()->set_int_param("absorberactive",1);
+  GetParams()->set_int_param("blackhole",0);
   GetParams()->set_string_param("superdetector","NONE");
   GetParams()->set_string_param("detectorname","mRICH");
   return 0;
@@ -96,8 +96,7 @@ int PHG4mRICHSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
     BOOST_FOREACH(string node, nodes) {
       if (!_eventAction) _eventAction = new PHG4EventActionClearZeroEdep(topNode, node);
       else {
-	PHG4EventActionClearZeroEdep *evtact =
-	  dynamic_cast<PHG4EventActionClearZeroEdep *>(_eventAction);
+	PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(_eventAction);
 	evtact->AddNode(node);
       }
     }

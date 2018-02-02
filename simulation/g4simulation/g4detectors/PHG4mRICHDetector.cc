@@ -73,6 +73,11 @@ int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
     return SENSOR;
   }
 
+  if (active && aerogel_vol.find(volume) != aerogel_vol.end())
+  {
+    return AEROGEL;
+  }
+
   return INACTIVE;
 }
 //______________________________________________________________
@@ -605,6 +610,7 @@ void PHG4mRICHDetector::build_foamHolder(mRichParameter* detectorParameter,G4Log
 void PHG4mRICHDetector::build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV)
 {
   G4VPhysicalVolume* aerogel=build_box(detectorParameter->GetBoxPar("aerogel"),motherPV->GetLogicalVolume());
+  aerogel_vol[aerogel] = 0;
 
   const G4int num = 2;
   G4double Ephoton[num] = {2.034*eV, 4.136*eV};

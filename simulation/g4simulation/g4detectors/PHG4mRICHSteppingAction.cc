@@ -95,7 +95,9 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     }
 
     int PID=aTrack->GetDefinition()->GetPDGEncoding();
-    // cout << "PID = " << PID << ", trackID = " << aTrack->GetTrackID() << ", Px = " << aTrack->GetMomentum().x()<< endl;
+    string PName = aTrack->GetDefinition()->GetParticleName();
+    // cout << endl;
+    // cout << "PID = " << PID << ", Name = " << PName << ", trackID = " << aTrack->GetTrackID() << ", edep = " << edep << endl;
 
     //-----------------------------------------------------------------------------------//
     // if this block stops everything, just put all kinetic energy into edep
@@ -106,10 +108,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       killtrack->SetTrackStatus(fStopAndKill);
     }
 
-    //-----------------------------------------------------------------------------------//
-    /* Make sure we are in a volume */
-    // if ( active ) 
-    // {
     /* Get Geant4 pre- and post-step points */
     G4StepPoint * prePoint = aStep->GetPreStepPoint();
     G4StepPoint * postPoint = aStep->GetPostStepPoint();
@@ -139,6 +137,12 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	{
 	  hit->set_eion( 0 );
 	  savehitcontainer = hits_;
+	  if(PID == 0)
+	  {
+	    edep = aTrack->GetKineticEnergy() / GeV;
+	    G4Track* killtrack = const_cast<G4Track *> (aTrack);
+	    killtrack->SetTrackStatus(fStopAndKill);
+	  }
 	}
 	else 
 	{
@@ -160,24 +164,26 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       default:
 	break;
     }
+
     // some sanity checks for inconsistencies
     // check if this hit was created, if not print out last post step status
     if (!hit || !isfinite(hit->get_x(0)))
     {
-    cout << GetName() << ": hit was not created" << endl;
-    cout << "prestep status: " << prePoint->GetStepStatus()
-    << ", last post step status: " << savepoststepstatus << endl;
-    exit(1);
+      cout << GetName() << ": hit was not created" << endl;
+      cout << "prestep status: " << prePoint->GetStepStatus()
+	<< ", last post step status: " << savepoststepstatus << endl;
+      exit(1);
     }
     savepoststepstatus = postPoint->GetStepStatus();
+
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != savetrackid)
     {
-    cout << GetName() << ": hits do not belong to the same track" << endl;
-    cout << "saved track: " << savetrackid
-    << ", current trackid: " << aTrack->GetTrackID()
-    << endl;
-    exit(1);
+      cout << GetName() << ": hits do not belong to the same track" << endl;
+      cout << "saved track: " << savetrackid
+	<< ", current trackid: " << aTrack->GetTrackID()
+	<< endl;
+      exit(1);
     }
 
     //-----------------------------------------------------------------------------------//
@@ -192,14 +198,14 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     /* sum up the energy to get total deposited */
     hit->set_edep(hit->get_edep() + edep);
     hit->set_eion(hit->get_eion() + eion);
+    // cout << "trkid = " << hit->get_trkid() << ", edep = " << hit->get_edep() << endl;
 
     if (geantino) 
     {
       hit->set_edep(-1); // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       hit->set_eion(-1);
     }
-    if (edep > 0 && PID == 0) 
-      //if (edep > 0 /*&& (isactive > 0 || absorbertruth > 0)*/)
+    if (hit->get_edep() && PID == 0) 
     {
       if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() ) 
       {
@@ -208,9 +214,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	  pp->SetKeep(1); // we want to keep the track
 	}
       }
-      // edep = aTrack->GetKineticEnergy() / GeV;
-      // G4Track* killtrack = const_cast<G4Track *> (aTrack);
-      // killtrack->SetTrackStatus(fStopAndKill);
     }
 
     //-----------------------------------------------------------------------------------//
@@ -241,8 +244,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	hit->Reset();
       }
     }
-    // return true;
-    // }
     return true;
   }
   else

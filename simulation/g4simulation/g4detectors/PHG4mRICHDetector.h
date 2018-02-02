@@ -56,6 +56,7 @@ class PHG4mRICHDetector: public PHG4Detector
   enum
   {
     SENSOR = 1,
+    AEROGEL = 0,
     INACTIVE = -100
   };
 
@@ -90,6 +91,7 @@ class PHG4mRICHDetector: public PHG4Detector
   G4VPhysicalVolume *sensor_PV[4];     //physical volume of sensors the sensitive components
 
   std::map<const G4VPhysicalVolume*, int> sensor_vol; // physical volume of senseors
+  std::map<const G4VPhysicalVolume*, int> aerogel_vol; // physical volume of senseors
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::mRichParameter
