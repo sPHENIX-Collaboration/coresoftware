@@ -97,19 +97,35 @@ class RawCluster : public PHObject
     return NAN;
   }
   //
-  //  //! convert cluster location to psuedo-rapidity given a user chosen z-location
-  //  virtual float get_eta(const float z) const
-  //  {
-  //    PHOOL_VIRTUAL_WARN("get_eta()");
-  //    return NAN;
-  //  }
-  //  //! convert cluster E_T given a user chosen z-location
-  //  virtual float get_et(const float z) const
-  //  {
-  //    PHOOL_VIRTUAL_WARN("get_et()");
-  //    return NAN;
-  //  }
-  //
+  
+  /*! \page where is RawCluster::get_eta() ? 
+  * 
+  * get_eta() is retired!
+  * eta does not have meaning for cluster unless user choose a vertex, which is totally up to user in case of multiple collision, 
+  * and therefore not an intrinsic property of clusterizer. 
+  * The goal is to force people to calculate it based on r/z and the vertex of choice. 
+  *
+  * There is a utility to help you calculate, a concise example is here to get energy 3-vector:
+  * https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/dc/d23/ClusterJetInput_8C_source.html#l00045
+  * Or this one if you only interest in eta:
+  * https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/d7/daf/CaloEvaluator_8C_source.html#l00487 
+  *
+  * Older code is commented out here: 
+  * 
+  *  //! convert cluster location to psuedo-rapidity given a user chosen z-location
+  *  virtual float get_eta() const
+  *  {
+  *    PHOOL_VIRTUAL_WARN("get_eta()");
+  *    return NAN;
+  *  }
+  *  //! convert cluster E_T given a user chosen z-location
+  *  virtual float get_et() const
+  *  {
+  *    PHOOL_VIRTUAL_WARN("get_et()");
+  *    return NAN;
+  *  }
+  */
+   
   //! access Cartesian coordinate system
   virtual float get_x() const
   {
