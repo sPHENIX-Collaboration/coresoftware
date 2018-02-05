@@ -24,15 +24,14 @@ PHG4CellTPCv1::~PHG4CellTPCv1()
 void
 PHG4CellTPCv1::add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep)
 {
-// blach that was complicated
-// first we see if we find if the time bin has already been used
+// If the returned boolean from the map.insert is
+// true: the element was inserted
+// false: the element existed 
+// in any case an iterator to the element in the map is returned
+ 
     EdepMap edepmap;
-    pair<map<int,EdepMap>::iterator, bool> ret;
-
-  map<int,EdepMap>::iterator mapiter;
-//  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
-    ret = timeseq.insert(make_pair(tbin,edepmap));
-    mapiter = ret.first;
+    pair<map<int,EdepMap>::iterator, bool> ret = timeseq.insert(make_pair(tbin,edepmap));
+     map<int,EdepMap>::iterator mapiter = ret.first;
 //  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
 /*
   if (mapiter == timeseq.end())
@@ -46,20 +45,13 @@ PHG4CellTPCv1::add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, cons
     mapiter = ret.first;
   }
 */
-  EdepIterator eiter = (mapiter->second).find(g4hitid);
-  cout << "edepmap size: " << (mapiter->second).size() << endl;
-  if (eiter != (mapiter->second).end())
-  {
-    eiter->second += edep;
-    cout << "Adding to 0x" << hex << " edep " << edep << endl;
-  }
-  else
-  {
-    pair<EdepIterator, bool> ret;
-    ret = (mapiter->second).insert(make_pair(g4hitid,edep));
-    eiter = ret.first;
-    cout << "inserting 0x" << hex << g4hitid << dec << " edep: " << edep << endl;
-  }
+
+//  EdepIterator eiter = (mapiter->second).find(g4hitid);
+  float dummy_edep = 0.;
+  pair<EdepIterator, bool> edepret = (mapiter->second).insert(make_pair(g4hitid,dummy_edep));
+  EdepIterator eiter = edepret.first;
+  eiter->second += edep;
+
   cout << "inserting 0x" << hex << g4hitid << dec << " with edep: " << edep 
        << ", size: " << timeseq.size() 
        << " total edep: " << eiter->second << endl;
