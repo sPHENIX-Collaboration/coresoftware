@@ -19,7 +19,7 @@ class  PHG4TPCElectronDrift: public SubsysReco, public PHG4ParameterInterface
 {
 public:
   PHG4TPCElectronDrift(const std::string& name = "PHG4TPCElectronDrift");
-  virtual ~PHG4TPCElectronDrift() {}
+  virtual ~PHG4TPCElectronDrift();
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);

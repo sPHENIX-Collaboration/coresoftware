@@ -48,6 +48,11 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   return;
 }
 
+PHG4TPCElectronDrift::~PHG4TPCElectronDrift()
+{
+  gsl_rng_free(RandomGenerator);
+}
+
 int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
