@@ -69,6 +69,7 @@ BEmcRec::BEmcRec()
 {
   fModules=new vector<EmcModule>;
   fClusters=new vector<EmcCluster>;
+  bCYL = true;
   SetPeakThreshold(0.08);
   SetChi2Limit(2);
 }
@@ -146,6 +147,36 @@ void BEmcRec::SetModules(vector<EmcModule> const *modules)
 
 // ///////////////////////////////////////////////////////////////////////////
 
+int BEmcRec::iTowerDist(int ix1, int ix2)
+// Distrance in tower units
+{
+  int idist = ix2-ix1;
+  if( bCYL ) {
+    int idistr = fNx-abs(idist); // Always >0
+    if( idistr < abs(idist) ) { // Then count in opposite direction
+      if( idist<0 ) idist =  idistr;
+      else          idist = -idistr;
+    }
+  }
+  //  printf("Dist %d %d: %d\n",ix1,ix2,idist);
+  return idist;
+}
+
+float BEmcRec::fTowerDist(float x1, float x2)
+{
+  float dist = x2-x1;
+  if( bCYL ) {
+    float distr = fNx-fabs(dist); // Always >0
+    if( distr < abs(dist) ) { // Then count in opposite direction
+      if( dist<0 ) dist =  distr;
+      else         dist = -distr;
+    }
+  }
+  return dist;
+}
+
+// ///////////////////////////////////
+
 int BEmcRec::FindClusters()
 {
   // Cluster search algorithm based on Lednev's one developed for GAMS.
@@ -214,11 +245,11 @@ int BEmcRec::FindClusters()
 	  if( iab-vhit[last].ich > fNx ) goto new_ich;
 	  for( int ichc=last; ichc >= last-leng+1; ichc-- ) {
 
-	    //	    if( iab-vhit[ichc].ich >  fNx ) goto new_icl;
+	    //	    if( iab-vhit[ichc].ich >  fNx ) goto new_icl; // From PHENIX version !!! This may be not right for complicated clusters, where tower ordering is not conserved
 
-	    //	    if( iae-vhit[ichc].ich >= fNx
+	    //	    if( iae-vhit[ichc].ich >= fNx // From PHENIX version
 	    if( (vhit[ichc].ich+fNx <= iae && vhit[ichc].ich+fNx >= iab)
-		|| ((iae%fNx == fNx-1) && (iae-vhit[ichc].ich == fNx-1))  // Only for CYLinder geom !!!!
+		|| (bCYL && (iae%fNx == fNx-1) && (iae-vhit[ichc].ich == fNx-1))  // Only for CYLinder geom !!!!
 		) {
 
 	      // Swap iCl-cluster towers (of length "leng") with whatever was between it and the last subcluster (of length "ib-1-last") - to make it adjecent to the last subcluster
@@ -263,6 +294,7 @@ int BEmcRec::FindClusters()
   return nCl;
   
 }
+
 
 // ///////////////////////////////////////////////////////////////////////////
 void BEmcRec::GetImpactAngle(float x, float y, float *sinT )
@@ -326,7 +358,8 @@ void BEmcRec::SectorToGlobalErr( float dxsec, float dysec, float dzsec,
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::Gamma(int nh, EmcModule* phit, float* pchi, float* pchi0,
+void BEmcRec::Gamma(int nh, EmcModule* phit0, float* pchi, float* pchi0,
+//void BEmcRec::Gamma(int nh, EmcModule* phit, float* pchi, float* pchi0,
 			float* pe1, float* px1, float* py1, float* pe2,
 			float* px2, float* py2, int &ndf)
 {
@@ -359,9 +392,28 @@ void BEmcRec::Gamma(int nh, EmcModule* phit, float* pchi, float* pchi0,
   *px2=0;
   *py2=0;
   if( nh <= 0 ) return;
-  Mom1(nh,phit,&e1,&x1,&y1);
+
+  EmcModule* phit = new EmcModule[nh];
+  int ish = ShiftX(0, nh, phit0, phit);
+  if( ish<-fNx ) {delete [] phit; return;}
+
+  //  int ish = 0;
+  float xx, yy, xy; // Not used anywhere
+  Momenta(nh,phit,&e1,&x1,&y1,&xx,&yy,&xy);
   *pe1=e1;     
-  if( e1 <= 0 ) return;
+
+  //!!!!! Begin: Exclude chi2 minimizitation and 2-phot splitting
+  // Until this is proved working and useful (and ClusterChisq() properly tuned) !!!!!
+  /*
+  *px1=x1-ish;
+  *py1=y1;
+  delete [] phit; 
+  return;
+  */
+  //!!!!! End: Exclude chi2 minimizitation and 2-phot splitting
+
+  if( e1 <= 0 ) {delete [] phit; return;}
+  //  if( e1 <= 0 ) return;
   
   SetProfileParameters(0, e1,x1,y1);
 
@@ -420,18 +472,31 @@ void BEmcRec::Gamma(int nh, EmcModule* phit, float* pchi, float* pchi0,
   
   *pchi0 = chi;
   *pchi = chi;
-  *px1 = x1;
   *py1 = y1;
+  x1 -= float(ish);
+  while(x1<-0.5    ) x1 += float(fNx);
+  while(x1>=fNx-0.5) x1 -= float(fNx);
+  *px1 = x1;
 
-  if( e1 <= fgMinShowerEnergy ) return;
+  if( e1 <= fgMinShowerEnergy ) {delete [] phit; return;}
+  //  if( e1 <= fgMinShowerEnergy ) return;
   
   if( chi > chisave ) {
     TwoGamma(nh,phit,&chi,&e1,&x1,&y1,&e2,&x2,&y2);
+    //    printf("Chi=%f E=%f %f X=%f %f Y=%f %f\n",chi,e1,e2,x1,x2,y1,y2);
     if( e2 > 0 ) {
       d2 = ((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))/zTG/zTG;
       xm2 = e1*e2*d2;
       if( xm2 > 0 ) xm2 = sqrt(xm2);
       if( xm2 > xmcut && e1 > fgMinShowerEnergy && e2 > fgMinShowerEnergy) {
+
+	x1 -= float(ish);
+	while(x1<-0.5    ) x1 += float(fNx);
+	while(x1>=fNx-0.5) x1 -= float(fNx);
+	x2 -= float(ish);
+	while(x2<-0.5    ) x2 += float(fNx);
+	while(x2>=fNx-0.5) x2 -= float(fNx);
+	
 	*pe1 = e1;
 	*px1 = x1;
 	*py1 = y1;
@@ -442,42 +507,9 @@ void BEmcRec::Gamma(int nh, EmcModule* phit, float* pchi, float* pchi0,
       }
     }	
   }
+  delete [] phit;
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-
-void BEmcRec::Mom1(int nh, EmcModule* phit, float* pe, float* px,
-		       float* py)
-{
-  // First momentum calculation
-
-  float a, xw, yw, e;
-  int ix, iy;
-  EmcModule* p;
-  
-  *pe=0;
-  *px=0;
-  *py=0;
-  if( nh <= 0 ) return;
-  p=phit;
-  xw=0;
-  yw=0;
-  e=0;
-  for( int i=0; i<nh; i++ ) {
-    a = p->amp;
-    iy = p->ich / fNx;
-    ix = p->ich - iy*fNx;
-    e += a;
-    xw += ix*a;
-    yw += iy*a;
-    p++;
-  }
-  *pe = e;
-  if( e <= 0 ) return;
-  *px = xw/e;
-  *py = yw/e;
-
-}
 
 // ///////////////////////////////////////////////////////////////////////////
 
@@ -548,7 +580,7 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
   // First and second momenta calculation
   
   float a, x, y, e, xx, yy, yx;
-  int ix, iy, i;
+  int ix, iy, idx, idy, i;
   EmcModule* p;
   
   *pe=0;
@@ -559,31 +591,45 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
   *pyx=0;
   if( nh <= 0 ) return;
   
-  //  p=phit;
-  EmcModule* phit1 = new EmcModule[nh];
-  int ish = ShiftX(0, nh, phit, phit1);
+  // Find max energy tower
+  //
+  p = phit;
+  float emax = 0;
+  int ichmax = 0;
+  for( i=0; i<nh; i++ ) {
+    a = p->amp;
+    if( a>emax ) {emax = a; ichmax = p->ich;}
+    p++;
+  }
+  if( emax<=0 ) return;
 
-  if( ish<-fNx ) return;
+  int iymax = ichmax / fNx;
+  int ixmax = ichmax - iymax*fNx;
 
-  p = phit1;
+  // Calculate CG relative to max energy tower
+
   x=0;
   y=0;
   e=0;
   xx=0;
   yy=0;
   yx=0;
+  p = phit;
   for( i=0; i<nh; i++ ) {
     a = p->amp;
     iy = p->ich / fNx;
     ix = p->ich - iy*fNx;
+    idx = iTowerDist(ixmax,ix);
+    idy = iy - iymax;
     e += a;
-    x += ix*a;
-    y += iy*a;
-    xx += a*ix*ix;
-    yy += a*iy*iy;
-    yx += a*ix*iy;
+    x += idx*a;
+    y += idy*a;
+    xx += a*idx*idx;
+    yy += a*idy*idy;
+    yx += a*idx*idy;
     p++;
   }
+
   *pe = e;
 
   if( e>0 ) {
@@ -592,11 +638,13 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
     xx = xx/e - x*x;
     yy = yy/e - y*y;
     yx = yx/e - y*x;
-    
-    x -= float(ish);
+
+    x += ixmax;
+    y += iymax;
+
     while(x<-0.5    ) x += float(fNx);
     while(x>=fNx-0.5) x -= float(fNx);
-    
+
     *px = x;
     *py = y;
     *pxx = xx;
@@ -604,7 +652,6 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
     *pyx = yx;
   }
 
-  delete [] phit1;
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -711,7 +758,6 @@ void BEmcRec::c3to5(float e0, float x0, float y0, float eps,
   *py1 = y0 + dy*(1-eps)/2;
   *px2 = x0 - dx*(1+eps)/2;
   *py2 = y0 - dy*(1+eps)/2;
-
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -876,7 +922,6 @@ void BEmcRec::CorrectPosition(float Energy, float x, float y,
   
 }
 
-
 // ///////////////////////////////////////////////////////////////////////////
 
 void BEmcRec::CalculateErrors( float e, float x, float y, float* pde,
@@ -928,6 +973,7 @@ void BEmcRec::SetProfileParameters(int sec, float Energy, float x,
     int ix8 = ix%8;
     dx += ix8;
     fSinTx = (dx-4)*fModSizex;
+    fSinTx = 0;
     fSinTy = 0;
     sin2a = fSinTx*fSinTx + fSinTy*fSinTy;
     fSin4T = sin2a*sin2a;
@@ -1023,8 +1069,10 @@ void BEmcRec::TwoGamma(int nh, EmcModule* phit, float* pchi, float* pe1,
   rsg2 = dxy*dxy + 4*yx*yx;
   if( rsg2 < 1e-20 ) rsg2 = 1e-20;
   rsq = sqrt(rsg2);
-  dxc = -sqrt((rsq+dxy)*2);
-  dyc =  sqrt((rsq-dxy)*2);
+  dxc = 0;
+  if( rsq+dxy>0 ) dxc = -sqrt((rsq+dxy)*2); // To avoid the possibility of small negative number due to precision
+  dyc = 0;
+  if(rsq-dxy>0) dyc =  sqrt((rsq-dxy)*2); // To avoid the possibility of small negative number due to precision
   if( yx >= 0 ) dyc = -dyc;
   r = sqrt(dxc*dxc + dyc*dyc);
   epsc = 0;
@@ -1130,7 +1178,6 @@ void BEmcRec::TwoGamma(int nh, EmcModule* phit, float* pchi, float* pe1,
   if( dof < 1 ) dof = 1;
   *pchi = chisq2/dof;
   c3to5(e0,x0,y0,eps0,dx0,dy0,pe1,px1,py1,pe2,px2,py2);
-
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -1175,7 +1222,7 @@ float BEmcRec::GetProb(vector<EmcModule> HitList, float &chi2, int &ndf)
 	break;
       }
     } // if( ee[nn]
-    ++ph;
+    ph++;
   } // while( ph 
 
   if( nn<=0 ) return -1;
