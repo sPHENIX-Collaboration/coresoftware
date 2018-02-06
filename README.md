@@ -19,7 +19,7 @@ Due to its importance, update of this repository require going through a review 
   * [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
   * [Build a package](https://wiki.bnl.gov/sPHENIX/index.php/Example_of_using_DST_nodes#Building%20a%20package)
 * Communication
-  * [Simulation and software meeting series](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/sphenix.png)
+  * [Simulation and software meeting series](https://indico.bnl.gov/categoryDisplay.py?categId=88)
   * [Discussion on this repository](https://lists.bnl.gov/mailman/listinfo/sphenix-github-l)
 
 [![logo](https://avatars3.githubusercontent.com/u/12069843?s=200&v=4)](https://www.sphenix.bnl.gov/)
