@@ -96,7 +96,6 @@ public:
   /// Returns EmcCluster fHitList
 #ifndef __CINT__
 
-  //  void GetHitList(std::vector<EmcModule> &plist)
   std::vector<EmcModule> GetHitList()
   {
     return fHitList;
