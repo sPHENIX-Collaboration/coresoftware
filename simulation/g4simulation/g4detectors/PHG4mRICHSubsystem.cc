@@ -32,8 +32,7 @@ PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr):
 }
 
 //_______________________________________________________________________
-int
-PHG4mRICHSubsystem::InitSubsystem( PHCompositeNode* topNode )
+int PHG4mRICHSubsystem::InitSubsystem( PHCompositeNode* topNode )
 {
   // kludge until the phg4parameters are sorted out (adding layers)
   GetParams()->set_name(Name());

@@ -15,6 +15,7 @@ class G4LogicalVolume;
 class PHG4Parameters;
 class G4VPhysicalVolume;
 class G4Material;
+class G4AssemblyVolume;
 
 using namespace std;
 //___________________________________________________________________________
@@ -27,7 +28,7 @@ class PHG4mRICHDetector: public PHG4Detector
   PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
   
   //! destructor
-  virtual ~PHG4mRICHDetector( void ) {}
+  virtual ~PHG4mRICHDetector();
   
   //! construct
   virtual void Construct( G4LogicalVolume* world );
@@ -71,15 +72,15 @@ class PHG4mRICHDetector: public PHG4Detector
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);
 
-  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);//, int detectorSetup);    //single mRICH
+  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld, int module_id);//, int detectorSetup);    //single mRICH
   G4VPhysicalVolume* build_holderBox(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
   void build_lens(LensPar* par, G4LogicalVolume* motherLV);
   void build_mirror(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
-  void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
+  void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV, int module_id);
 
-  void build_mRICH_wall(G4LogicalVolume* space);
+  G4AssemblyVolume* build_mRICH_wall(G4LogicalVolume* space);
   void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
   
   int layer;
@@ -89,6 +90,7 @@ class PHG4mRICHDetector: public PHG4Detector
   std::string superdetector;
   G4VPhysicalVolume *mRICH_PV;         //physical volume of detector box of single module  
   G4VPhysicalVolume *sensor_PV[4];     //physical volume of sensors the sensitive components
+  G4AssemblyVolume *mRICH_assembly;
 
   std::map<const G4VPhysicalVolume*, int> sensor_vol; // physical volume of senseors
   std::map<const G4VPhysicalVolume*, int> aerogel_vol; // physical volume of senseors
@@ -113,7 +115,7 @@ class PHG4mRICHDetector::mRichParameter
   ~mRichParameter();
 
   void SetPar_glassWindow(int i, G4double x, G4double y);
-  void SetPar_sensor(int i, G4double x, G4double y);
+  void SetPar_sensor(int module_id, int i, G4double x, G4double y);
   BoxPar* GetBoxPar(std::string componentName);
   LensPar* GetLensPar(std::string componentName);
   PolyPar* GetPolyPar(std::string componentName);

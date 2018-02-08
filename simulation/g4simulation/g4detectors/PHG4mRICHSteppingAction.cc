@@ -88,12 +88,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     }
 
     int module_id=GetModuleID(volume);
-    if (!module_id) 
-    { 
-      cout<<"!!!!!!!!!!!!!! ERROR: module_id<0 !!!!!!!!!!!!!!!!!"<<endl; 
-      return false;
-    }
-
     int PID=aTrack->GetDefinition()->GetPDGEncoding();
     string PName = aTrack->GetDefinition()->GetParticleName();
     // cout << endl;
@@ -142,6 +136,7 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	    edep = aTrack->GetKineticEnergy() / GeV;
 	    G4Track* killtrack = const_cast<G4Track *> (aTrack);
 	    killtrack->SetTrackStatus(fStopAndKill);
+	    hit->set_scint_id(module_id);
 	  }
 	}
 	else 
@@ -227,6 +222,7 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // save only hits with energy deposit (or -1 for geantino)
       if (hit->get_edep() && PID==0)
       {
+	// cout << "Name of volume = " << volume->GetName() << ", module_id = " << module_id << endl;
 	savehitcontainer->AddHit(module_id, hit);
 	if (saveshower) 
 	{ 
@@ -307,10 +303,11 @@ int PHG4mRICHSteppingAction::GetModuleID(G4VPhysicalVolume* volume)
   boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
 
   for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter) {
-    if (*tokeniter == "pv") {
+    if (*tokeniter == "module") {
       ++tokeniter;
       if (tokeniter != tok.end()) {
 	module_id = boost::lexical_cast<int>(*tokeniter);
+	// cout << "Name of volume = " << volume->GetName() << ", module_id = " << module_id << endl;
 	//if (module_id<0) cout<<"ERROR: module_id<0"<<endl;
       }
       else {
