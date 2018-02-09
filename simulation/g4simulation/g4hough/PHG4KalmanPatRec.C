@@ -449,7 +449,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
 	// Iterate over seeding configurations
 
-	for(_n_iteration = 3;_n_iteration<=3;_n_iteration++){
+	for(_n_iteration = 1;_n_iteration<=3;_n_iteration++){
 	  if(_n_iteration==1){
 	    int min_layers    = 4;
 	    int nlayers_seeds = 7;
@@ -461,6 +461,19 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    if(code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
 	  }
+	  /*
+	  if(_n_iteration==2){
+	    int min_layers    = 4;
+	    int nlayers_seeds = 7;
+	    int seeding_layers[] = {7,13,19,25,31,37,46};
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	  
+	    int code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  */
 	  if(_n_iteration==2){
 	    int min_layers    = 7;
 	    int nlayers_seeds = 12;
@@ -1458,10 +1471,16 @@ int PHG4KalmanPatRec::GetNodes(PHCompositeNode* topNode) {
 
 int PHG4KalmanPatRec::translate_input() {
 
+  int count = 0;
+  int count7 = 0;
+  int count46 = 0;
 	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
 			iter != _g4clusters->end(); ++iter) {
 	  if(_hit_used_map[iter->first]!=0) continue;
+	  count++;
 	  SvtxCluster* cluster = iter->second;
+	  if(cluster->get_layer()==7)count7++;
+	  if(cluster->get_layer()==47)count46++;
 	  //	  cout << "first: " << iter->first << endl; 
 	  /*
 	    float vz = 0.0;
@@ -1538,6 +1557,10 @@ int PHG4KalmanPatRec::translate_input() {
 				<< endl;
 	}
 
+	cout << "cluster count iter #" << _n_iteration << " : " << count 
+	     << " | l7: " << count7 
+	     << " | l46: " << count46 
+ 	     << endl; 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -2709,7 +2732,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 int PHG4KalmanPatRec::ExportOutput() { return 0;}
 
 int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator iter) {
-
+  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
 //#ifdef _DEBUG_
 //	std::cout << "=========================" << std::endl;
 //	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
@@ -2781,12 +2804,48 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		track.set_z(pos.Z());
 
 		for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
-			track.insert_cluster(cluster_ID);
-			_hit_used_map[cluster_ID] = _n_iteration;
+		  track.insert_cluster(cluster_ID);
 		}
 
-		_g4tracks->insert(&track);
+		//Check track quality
+		bool is_good_track = true;
 
+		Int_t n_maps = 0;
+		Int_t n_intt = 0;
+		Int_t n_tpc  = 0;
+		
+		for (SvtxTrack::ConstClusterIter iter = track.begin_clusters();
+		     iter != track.end_clusters();
+		     ++iter) {
+		  unsigned int cluster_id = *iter;
+		  SvtxCluster* cluster = clustermap->get(cluster_id);
+		  unsigned int layer = cluster->get_layer();
+		  if(_nlayers_maps>0&&layer<_nlayers_maps){ 
+		    n_maps++ ;
+		  }
+		  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
+		    n_intt++;
+		  }
+		  if(_nlayers_tpc>0&&
+		     layer>=(_nlayers_maps+_nlayers_intt)&&
+		     layer<(_nlayers_maps+_nlayers_intt+_nlayers_tpc)){ 
+		    n_tpc++;
+		  }
+		}
+
+		if(n_maps<3) is_good_track = false;
+		if(n_intt<3) is_good_track = false;
+		if(n_tpc<20) is_good_track = false;
+		
+		//		if(is_good_track||_n_iteration==4)
+		if(is_good_track||_n_iteration>=0)
+		  {
+		    for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
+		      _hit_used_map[cluster_ID] = _n_iteration;
+		    }
+		    
+		    _g4tracks->insert(&track);
+		  }
 		if (verbosity > 5) {
 			cout << "track " << _g4tracks->size() << " quality = " << track.get_quality()
 					<< endl;
