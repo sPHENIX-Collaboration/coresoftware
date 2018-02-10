@@ -29,6 +29,20 @@ namespace RawTowerDefs
     NONE, CEMC, HCALOUT, HCALIN, EEMC, FEMC, FHCAL,
   };
 
+  //! topology of the calorimeter
+  enum CalorimeterTopology
+  {
+    //! Complex calorimetery topology that is not simply described by simple shape
+    COMPLEX_CALO_TOPOLOGY = 0,
+
+    //! cylindrical calorimeters around z-axis with a reference radius
+    CYLINDRICAL_CALO_TOPOLOGY = 1,
+
+    //! Planar caloriemters
+    PLANAR_CALO_TOPOLOGY = 2
+  };
+
+
   /*! Returns CaloTowerID for given calorimeter ID, tower index 1, and tower index 2
    */
   inline RawTowerDefs::keytype

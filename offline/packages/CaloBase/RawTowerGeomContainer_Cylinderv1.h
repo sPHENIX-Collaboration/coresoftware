@@ -19,6 +19,12 @@ public:
 
   virtual void Reset();
 
+  //! Topology of calorimeter
+  virtual RawTowerDefs::CalorimeterTopology get_caloimeter_topology() const
+  {
+    return RawTowerDefs::CYLINDRICAL_CALO_TOPOLOGY;
+  }
+
   double
   get_radius() const
   {

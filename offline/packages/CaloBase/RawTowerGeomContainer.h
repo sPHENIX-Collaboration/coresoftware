@@ -24,6 +24,8 @@ class RawTowerGeomContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
+
+
   //! default constructor for ROOT IO
   virtual ~RawTowerGeomContainer() {}
 
@@ -32,6 +34,9 @@ class RawTowerGeomContainer : public PHObject
   //! 8-bit calorimeter ID
   virtual void set_calorimeter_id( RawTowerDefs::CalorimeterId  ) { PHOOL_VIRTUAL_WARN("set_calorimeter_id()");}
   virtual RawTowerDefs::CalorimeterId get_calorimeter_id( ) const { PHOOL_VIRTUAL_WARN("get_calorimeter_id()");return RawTowerDefs::NONE; }
+
+  //! Topology of calorimeter
+  virtual RawTowerDefs::CalorimeterTopology get_caloimeter_topology() const {return RawTowerDefs::COMPLEX_CALO_TOPOLOGY;}
 
   //! go through all towers
   virtual ConstIterator add_tower_geometry(RawTowerGeom *geo) {PHOOL_VIRTUAL_WARN("add_tower_geometry()"); return Map().begin();}
