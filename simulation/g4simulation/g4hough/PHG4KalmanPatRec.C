@@ -453,7 +453,15 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	  if(_n_iteration==1){
 	    int min_layers    = 4;
 	    int nlayers_seeds = 7;
-	    int seeding_layers[] = {7,13,19,25,31,37,46};
+	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
+				    (int)(_nlayers_maps+_nlayers_intt+6),
+				    (int)(_nlayers_maps+_nlayers_intt+12),
+				    (int)(_nlayers_maps+_nlayers_intt+18),
+				    (int)(_nlayers_maps+_nlayers_intt+24),
+				    (int)(_nlayers_maps+_nlayers_intt+30),
+				    (int)(_nlayers_maps+_nlayers_intt+39)
+				    //7,13,19,25,31,37,46
+	    };
 	    set_seeding_layer(seeding_layers, nlayers_seeds);
 	    set_min_nlayers_seeding(min_layers);
 	  
@@ -477,7 +485,21 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	  if(_n_iteration==2){
 	    int min_layers    = 7;
 	    int nlayers_seeds = 12;
-	    int seeding_layers[] = {7,8,13,14,19,20,26,27,34,35,40,46};
+	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
+				    (int)(_nlayers_maps+_nlayers_intt+1),
+				    (int)(_nlayers_maps+_nlayers_intt+6),
+				    (int)(_nlayers_maps+_nlayers_intt+7),
+				    (int)(_nlayers_maps+_nlayers_intt+12),
+				    (int)(_nlayers_maps+_nlayers_intt+13),
+				    (int)(_nlayers_maps+_nlayers_intt+19),
+				    (int)(_nlayers_maps+_nlayers_intt+20),
+				    (int)(_nlayers_maps+_nlayers_intt+27),
+				    (int)(_nlayers_maps+_nlayers_intt+28),
+				    (int)(_nlayers_maps+_nlayers_intt+33),
+				    (int)(_nlayers_maps+_nlayers_intt+39)
+				    //7,13,19,25,31,37,46
+				    //7,8,13,14,19,20,26,27,34,35,40,46
+	    };
 	    set_seeding_layer(seeding_layers, nlayers_seeds);
 	    set_min_nlayers_seeding(min_layers);
 	  
@@ -488,9 +510,21 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	  if(_n_iteration==3){
 	    int min_layers    = 4;
 	    int nlayers_seeds = 12;
-	    set_min_nlayers_seeding(min_layers);
-	    //
-	    int seeding_layers[] = {7,8,13,14,19,20,26,27,34,35,40,46};
+	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
+				    (int)(_nlayers_maps+_nlayers_intt+1),
+				    (int)(_nlayers_maps+_nlayers_intt+6),
+				    (int)(_nlayers_maps+_nlayers_intt+7),
+				    (int)(_nlayers_maps+_nlayers_intt+12),
+				    (int)(_nlayers_maps+_nlayers_intt+13),
+				    (int)(_nlayers_maps+_nlayers_intt+19),
+				    (int)(_nlayers_maps+_nlayers_intt+20),
+				    (int)(_nlayers_maps+_nlayers_intt+27),
+				    (int)(_nlayers_maps+_nlayers_intt+28),
+				    (int)(_nlayers_maps+_nlayers_intt+33),
+				    (int)(_nlayers_maps+_nlayers_intt+39)
+				    //7,13,19,25,31,37,46
+				    //7,8,13,14,19,20,26,27,34,35,40,46
+	    };
 	    set_seeding_layer(seeding_layers, nlayers_seeds);
 	    set_min_nlayers_seeding(min_layers);
 	    //
