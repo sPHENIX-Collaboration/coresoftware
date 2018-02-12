@@ -14,6 +14,8 @@ AM_CPPFLAGS = \
 libg4calo_la_SOURCES = \
   HcalRawTowerBuilder.cc \
   HcalRawTowerBuilder_Dict.cc \
+  SpacalRawTowerBuilder.cc \
+  SpacalRawTowerBuilder_Dict.cc \
   Prototype2RawTowerBuilder.cc \
   Prototype2RawTowerBuilder_Dict.cc \
   RawTowerBuilder.cc \
