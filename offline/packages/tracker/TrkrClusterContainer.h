@@ -2,7 +2,7 @@
 #define __TrkrClusterContainer_H__
 
 #include "TrkrCluster.h"
-#include "TrackerDefs.h"
+#include "TrkrDefUtil.h"
 
 #include <phool/PHObject.h>
 
@@ -13,7 +13,7 @@ class TrkrClusterContainer: public PHObject
 {
 
   public:
-  typedef std::map<TrackerDefs::keytype,TrkrCluster *> Map;
+  typedef std::map<TrkrDefs::cluskey,TrkrCluster *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -28,10 +28,10 @@ class TrkrClusterContainer: public PHObject
   void identify(std::ostream& os = std::cout) const;
 
   ConstIterator AddCluster(TrkrCluster *newClus);
-  ConstIterator AddClusterSpecifyKey(const TrackerDefs::keytype key, TrkrCluster *newClus);
+  ConstIterator AddClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
   
   //! preferred removal method, key is currently the clus id
-  void RemoveCluster(TrackerDefs::keytype key) {
+  void RemoveCluster(TrkrDefs::cluskey key) {
     clusmap.erase(key);
   }
 
@@ -54,15 +54,18 @@ class TrkrClusterContainer: public PHObject
   }
 
 
-  Iterator findOrAddCluster(TrackerDefs::keytype key);
+  Iterator findOrAddCluster(TrkrDefs::cluskey key);
 
   //! return all Clusters matching a given detid
-  ConstRange getClusters(const TrackerDefs::TRACKERID trackerid) const;
+  ConstRange getClusters(const TrkrDefs::TRKRID trackerid) const;
+
+  //! return all Clusters matching a given detid and layer
+  ConstRange getClusters(const TrkrDefs::TRKRID trackerid, const char layer) const;
 
   //! return all clusters
   ConstRange getClusters( void ) const;
 
-  TrkrCluster* findCluster(TrackerDefs::keytype key);
+  TrkrCluster* findCluster(TrkrDefs::cluskey key);
 
   unsigned int size( void ) const
   { return clusmap.size(); }

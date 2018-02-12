@@ -1,6 +1,5 @@
 #include "TrkrClusterContainer.h"
 #include "TrkrClusterv1.h"
-#include "TrackerDefs.h"
 
 #include <cstdlib>
 
@@ -36,18 +35,19 @@ TrkrClusterContainer::identify(ostream& os) const
 TrkrClusterContainer::ConstIterator
 TrkrClusterContainer::AddCluster(TrkrCluster *newclus)
 {
-  TrackerDefs::keytype key = newclus->get_id();
+  TrkrDefs::cluskey key = newclus->get_id();
   if (clusmap.find(key) != clusmap.end())
     {
+      TrkrDefUtil util;
       cout << "overwriting clus 0x" << hex << key << dec << endl;
-      cout << "tracker ID: " << TrackerDefs::get_trackerid(key) << endl;
+      cout << "tracker ID: " << util.get_trackerid(key) << endl;
     }
   clusmap[key] = newclus;
   return clusmap.find(key);
 }
 
 TrkrClusterContainer::ConstIterator
-TrkrClusterContainer::AddClusterSpecifyKey(const TrackerDefs::keytype key, TrkrCluster *newclus)
+TrkrClusterContainer::AddClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newclus)
 {
   if(clusmap.find(key)!=clusmap.end())
    {
@@ -60,16 +60,34 @@ TrkrClusterContainer::AddClusterSpecifyKey(const TrackerDefs::keytype key, TrkrC
 }
 
 TrkrClusterContainer::ConstRange 
-TrkrClusterContainer::getClusters(const TrackerDefs::TRACKERID trackerid) const
+TrkrClusterContainer::getClusters(const TrkrDefs::TRKRID trackerid) const
 {
-  TrackerDefs::keytype tmp = trackerid;
-  TrackerDefs::keytype keylow = tmp << TrackerDefs::bitshift_trackerid;
-  TrackerDefs::keytype keyup = ((tmp + 1)<< TrackerDefs::bitshift_trackerid) -1 ;
+  // TrkrDefs::cluskey tmp = trackerid;
+  // TrkrDefs::cluskey keylow = tmp << TrackerDefs::bitshift_trackerid;
+  // TrkrDefs::cluskey keyup = ((tmp + 1)<< TrackerDefs::bitshift_trackerid) -1 ;
 //   cout << "keylow: 0x" << hex << keylow << dec << endl;
 //   cout << "keyup: 0x" << hex << keyup << dec << endl;
+
+  TrkrDefUtil util;
+  TrkrDefs::cluskey keylo = util.get_cluskeylo(trackerid);
+  TrkrDefs::cluskey keyhi = util.get_cluskeyhi(trackerid);
+
   ConstRange retpair;
-  retpair.first = clusmap.lower_bound(keylow);
-  retpair.second = clusmap.upper_bound(keyup);
+  retpair.first = clusmap.lower_bound(keylo);
+  retpair.second = clusmap.upper_bound(keyhi);
+  return retpair;
+}
+
+TrkrClusterContainer::ConstRange 
+TrkrClusterContainer::getClusters(const TrkrDefs::TRKRID trackerid, const char layer) const
+{
+  TrkrDefUtil util;
+  TrkrDefs::cluskey keylo = util.get_cluskeylo(trackerid, layer);
+  TrkrDefs::cluskey keyhi = util.get_cluskeyhi(trackerid, layer);
+
+  ConstRange retpair;
+  retpair.first = clusmap.lower_bound(keylo);
+  retpair.second = clusmap.upper_bound(keyhi);
   return retpair;
 }
 
@@ -79,7 +97,7 @@ TrkrClusterContainer::getClusters( void ) const
 
 
 TrkrClusterContainer::Iterator 
-TrkrClusterContainer::findOrAddCluster(TrackerDefs::keytype key)
+TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key)
 {
   TrkrClusterContainer::Iterator it = clusmap.find(key);
   if(it == clusmap.end())
@@ -93,7 +111,7 @@ TrkrClusterContainer::findOrAddCluster(TrackerDefs::keytype key)
 }
 
 TrkrCluster* 
-TrkrClusterContainer::findCluster(TrackerDefs::keytype key)
+TrkrClusterContainer::findCluster(TrkrDefs::cluskey key)
 {
   TrkrClusterContainer::ConstIterator it = clusmap.find(key);
 
