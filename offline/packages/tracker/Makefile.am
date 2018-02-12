@@ -23,6 +23,7 @@ pkginclude_HEADERS = \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \
   TrackerDefs.h \
+  TrkrDefUtil.h \
   TrkrHitSet.h \
   TrkrHitSetv1.h \
   TrkrHitSetContainer.h
@@ -36,6 +37,8 @@ libtracker_la_SOURCES = \
   TrkrClusterContainer_Dict.C \
   TrackerDefs.C \
   TrackerDefs_Dict.C \
+  TrkrDefUtil.C \
+  TrkrDefUtil_Dict.C \
   TrkrHitSet.C \
   TrkrHitSet_Dict.C \
   TrkrHitSetv1.C \
