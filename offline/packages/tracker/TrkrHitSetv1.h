@@ -1,7 +1,7 @@
 #ifndef __TrkrHitSetV1_H__
 #define __TrkrHitSetV1_H__
 
-#include "TrackerDefs.h"
+#include "TrkrDefUtil.h"
 #include "TrkrHitSet.h"
 
 #ifdef __CINT__
@@ -23,8 +23,8 @@ class TrkrHitSetv1 : public TrkrHitSet
   virtual void Reset();
   void print() const;
 
-  void set_hitid(const TrackerDefs::hitkeytype id) { hitid = id; }
-  TrackerDefs::hitkeytype get_hitid() const { return hitid; }
+  void set_hitid(const TrkrDefs::hitsetkey id) { hitid = id; }
+  TrkrDefs::hitsetkey get_hitid() const { return hitid; }
 
   void set_truthid(const uint64_t id) { truthid = id; }
   uint64_t get_truthid() const { return truthid; }
@@ -33,7 +33,7 @@ class TrkrHitSetv1 : public TrkrHitSet
  protected:
  private:
 
-  TrackerDefs::hitkeytype hitid;
+  TrkrDefs::hitsetkey hitid;
   uint64_t truthid;
 
 };

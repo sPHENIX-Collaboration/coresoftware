@@ -74,10 +74,14 @@ public:
   uint32_t get_index(const TrkrDefs::cluskey key);
 
   /// Get a valid low / hi range for hitsetkey given tracker id & layer
+  TrkrDefs::hitsetkey get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id);
+  TrkrDefs::hitsetkey get_hitsetkeyhi(const TrkrDefs::TRKRID trkr_id);
   TrkrDefs::hitsetkey get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id, const char lyr);
   TrkrDefs::hitsetkey get_hitsetkeyhi(const TrkrDefs::TRKRID trkr_id, const char lyr);
 
   /// Get a valid low / hi range for cluskey given tracker id & layer
+  TrkrDefs::cluskey get_cluskeylo(const TrkrDefs::TRKRID trkr_id);
+  TrkrDefs::cluskey get_cluskeyhi(const TrkrDefs::TRKRID trkr_id);
   TrkrDefs::cluskey get_cluskeylo(const TrkrDefs::TRKRID trkr_id, const char lyr);
   TrkrDefs::cluskey get_cluskeyhi(const TrkrDefs::TRKRID trkr_id, const char lyr);
 

@@ -3,7 +3,7 @@
 
 #include <g4main/PHG4Hit.h>
 #include <TObject.h>
-#include "TrackerDefs.h"
+#include "TrkrDefUtil.h"
 
 #ifdef __CINT__
 #include <stdint.h>
@@ -24,8 +24,8 @@ class TrkrHitSet : public TObject
   virtual void Reset();
   virtual void print() {};
 
-  virtual void set_hitid(const TrackerDefs::hitkeytype id) { return; }
-  virtual TrackerDefs::hitkeytype get_hitid() const { return 0; }
+  virtual void set_hitid(const TrkrDefs::hitsetkey id) { return; }
+  virtual TrkrDefs::hitsetkey get_hitid() const { return 0; }
 
   virtual void set_truthid(const uint64_t id) { return; }
   virtual uint64_t get_truthid() const { return NULL; }

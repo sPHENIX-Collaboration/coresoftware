@@ -12,7 +12,7 @@ class TrkrHitSetContainer: public PHObject
 {
 
   public:
-  typedef std::map<TrackerDefs::hitkeytype,TrkrHitSet *> Map;
+  typedef std::map<TrkrDefs::hitsetkey,TrkrHitSet *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -27,10 +27,10 @@ class TrkrHitSetContainer: public PHObject
   void identify(std::ostream& os = std::cout) const;
 
   ConstIterator AddHit(TrkrHitSet *newHit);
-  ConstIterator AddHitSpecifyKey(const TrackerDefs::hitkeytype key, TrkrHitSet *newHit);
+  ConstIterator AddHitSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newHit);
   
   //! preferred removal method, key is currently the hit id
-  void RemoveHit(TrackerDefs::hitkeytype key) {
+  void RemoveHit(TrkrDefs::hitsetkey key) {
     hitmap.erase(key);
   }
 
@@ -53,18 +53,18 @@ class TrkrHitSetContainer: public PHObject
   }
 
 
-  Iterator findOrAddHit(TrackerDefs::hitkeytype key);
+  Iterator findOrAddHit(TrkrDefs::hitsetkey key);
 
   //! return all Hits matching a given detid
-  ConstRange getHits(const TrackerDefs::TRACKERID trackerid) const;
+  ConstRange getHits(const TrkrDefs::TRKRID trackerid) const;
 
   //! return all Hits matching a given detid, layer
-  ConstRange getHits(const TrackerDefs::TRACKERID trackerid, const char layer) const;
+  ConstRange getHits(const TrkrDefs::TRKRID trackerid, const char layer) const;
 
   //! return all hist
   ConstRange getHits( void ) const;
 
-  TrkrHitSet* findHit(TrackerDefs::hitkeytype key);
+  TrkrHitSet* findHit(TrkrDefs::hitsetkey key);
 
   unsigned int size( void ) const
   { return hitmap.size(); }

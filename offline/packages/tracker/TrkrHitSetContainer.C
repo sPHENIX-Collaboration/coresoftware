@@ -1,5 +1,6 @@
 #include "TrkrHitSetContainer.h"
 #include "TrkrHitSetv1.h"
+#include "TrkrDefUtil.h"
 
 #include <cstdlib>
 
@@ -35,18 +36,19 @@ TrkrHitSetContainer::identify(ostream& os) const
 TrkrHitSetContainer::ConstIterator
 TrkrHitSetContainer::AddHit(TrkrHitSet *newhit)
 {
-  TrackerDefs::hitkeytype key = newhit->get_hitid();
+  TrkrDefs::hitsetkey key = newhit->get_hitid();
   if (hitmap.find(key) != hitmap.end())
     {
+      TrkrDefUtil util;
       cout << "overwriting hit 0x" << hex << key << dec << endl;
-      cout << "tracker id: " << TrackerDefs::get_trackerid(key) << endl;
+      cout << "tracker id: " << util.get_trackerid(key) << endl;
     }
   hitmap[key] = newhit;
   return hitmap.find(key);
 }
 
 TrkrHitSetContainer::ConstIterator
-TrkrHitSetContainer::AddHitSpecifyKey(const TrackerDefs::hitkeytype key, TrkrHitSet *newhit)
+TrkrHitSetContainer::AddHitSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newhit)
 {
   if(hitmap.find(key)!=hitmap.end())
    {
@@ -59,33 +61,44 @@ TrkrHitSetContainer::AddHitSpecifyKey(const TrackerDefs::hitkeytype key, TrkrHit
 }
 
 TrkrHitSetContainer::ConstRange 
-TrkrHitSetContainer::getHits(const TrackerDefs::TRACKERID trackerid) const
+TrkrHitSetContainer::getHits(const TrkrDefs::TRKRID trackerid) const
 {
-  TrackerDefs::hitkeytype tmp = trackerid;
-  TrackerDefs::hitkeytype keylow = tmp << TrackerDefs::bitshift_trackerid;
-  TrackerDefs::hitkeytype keyup = ((tmp + 1)<< TrackerDefs::bitshift_trackerid) -1 ;
+
+  // TrkrDefs::hitsetkey tmp = trackerid;
+  // TrkrDefs::hitsetkey keylow = tmp << TrackerDefs::bitshift_trackerid;
+  // TrkrDefs::hitsetkey keyup = ((tmp + 1)<< TrackerDefs::bitshift_trackerid) -1 ;
 //   cout << "keylow: 0x" << hex << keylow << dec << endl;
 //   cout << "keyup: 0x" << hex << keyup << dec << endl;
+
+  TrkrDefUtil util;
+  TrkrDefs::hitsetkey keylo = util.get_hitsetkeylo(trackerid);
+  TrkrDefs::hitsetkey keyhi = util.get_hitsetkeyhi(trackerid);
+
   ConstRange retpair;
-  retpair.first = hitmap.lower_bound(keylow);
-  retpair.second = hitmap.upper_bound(keyup);
+  retpair.first = hitmap.lower_bound(keylo);
+  retpair.second = hitmap.upper_bound(keyhi);
   return retpair;
 }
 
 TrkrHitSetContainer::ConstRange 
-TrkrHitSetContainer::getHits(const TrackerDefs::TRACKERID trackerid, 
+TrkrHitSetContainer::getHits(const TrkrDefs::TRKRID trackerid, 
   const char layer) const
 {
-  TrackerDefs::hitkeytype tmp = trackerid;
-  TrackerDefs::hitkeytype keylow = (tmp << TrackerDefs::bitshift_trackerid);
-  tmp = layer;
-  keylow |= (tmp << TrackerDefs::bitshift_layer);
-  TrackerDefs::hitkeytype keyup = ((tmp + 1)<< TrackerDefs::bitshift_layer) -1 ;
+  // TrkrDefs::hitsetkey tmp = trackerid;
+  // TrkrDefs::hitsetkey keylow = (tmp << TrackerDefs::bitshift_trackerid);
+  // tmp = layer;
+  // keylow |= (tmp << TrackerDefs::bitshift_layer);
+  // TrkrDefs::hitsetkey keyup = ((tmp + 1)<< TrackerDefs::bitshift_layer) -1 ;
 //   cout << "keylow: 0x" << hex << keylow << dec << endl;
 //   cout << "keyup: 0x" << hex << keyup << dec << endl;
+
+  TrkrDefUtil util;
+  TrkrDefs::hitsetkey keylo = util.get_hitsetkeylo(trackerid, layer);
+  TrkrDefs::hitsetkey keyhi = util.get_hitsetkeyhi(trackerid, layer);
+
   ConstRange retpair;
-  retpair.first = hitmap.lower_bound(keylow);
-  retpair.second = hitmap.upper_bound(keyup);
+  retpair.first = hitmap.lower_bound(keylo);
+  retpair.second = hitmap.upper_bound(keyhi);
   return retpair;
 }
 
@@ -95,7 +108,7 @@ TrkrHitSetContainer::getHits( void ) const
 
 
 TrkrHitSetContainer::Iterator 
-TrkrHitSetContainer::findOrAddHit(TrackerDefs::hitkeytype key)
+TrkrHitSetContainer::findOrAddHit(TrkrDefs::hitsetkey key)
 {
   TrkrHitSetContainer::Iterator it = hitmap.find(key);
   if(it == hitmap.end())
@@ -109,7 +122,7 @@ TrkrHitSetContainer::findOrAddHit(TrackerDefs::hitkeytype key)
 }
 
 TrkrHitSet* 
-TrkrHitSetContainer::findHit(TrackerDefs::hitkeytype key)
+TrkrHitSetContainer::findHit(TrkrDefs::hitsetkey key)
 {
   TrkrHitSetContainer::ConstIterator it = hitmap.find(key);
 

@@ -55,6 +55,18 @@ TrkrDefUtil::get_index(const TrkrDefs::cluskey key)
 }
 
 TrkrDefs::hitsetkey 
+TrkrDefUtil::get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id)
+{
+
+}
+
+TrkrDefs::hitsetkey 
+TrkrDefUtil::get_hitsetkeyhi(const TrkrDefs::TRKRID trkr_id)
+{
+
+}
+
+TrkrDefs::hitsetkey 
 TrkrDefUtil::get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
 
@@ -62,6 +74,18 @@ TrkrDefUtil::get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id, const char lyr)
 
 TrkrDefs::hitsetkey 
 TrkrDefUtil::get_hitsetkeyhi(const TrkrDefs::TRKRID trkr_id, const char lyr)
+{
+
+}
+
+TrkrDefs::cluskey 
+TrkrDefUtil::get_cluskeylo(const TrkrDefs::TRKRID trkr_id)
+{
+
+}
+
+TrkrDefs::cluskey 
+TrkrDefUtil::get_cluskeyhi(const TrkrDefs::TRKRID trkr_id)
 {
 
 }

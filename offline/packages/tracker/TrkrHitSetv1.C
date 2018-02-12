@@ -5,7 +5,7 @@
 #include <iostream>
 
 TrkrHitSetv1::TrkrHitSetv1()
-  : hitid(TrackerDefs::HITKEYMAX)
+  : hitid(TrkrDefs::HITSETKEYMAX)
   , truthid(UINT64_MAX)
 {
 }
@@ -17,7 +17,7 @@ void TrkrHitSetv1::print() const
 
 void TrkrHitSetv1::Reset()
 {
-  hitid = TrackerDefs::HITKEYMAX;
+  hitid = TrkrDefs::HITSETKEYMAX;
   truthid = UINT64_MAX;
   return;
 }
