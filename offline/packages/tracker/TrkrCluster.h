@@ -2,7 +2,7 @@
 #define __TrkrCluster_H__
 
 #include <phool/PHObject.h>
-#include "TrackerDefs.h"
+#include "TrkrDefUtil.h"
 
 #include <limits.h>
 #include <cmath>
@@ -12,9 +12,9 @@
 class TrkrCluster : public PHObject
 {
  public:
-  typedef std::set<TrackerDefs::keytype> HitSet;
-  typedef std::set<TrackerDefs::keytype>::const_iterator ConstHitIter;
-  typedef std::set<TrackerDefs::keytype>::iterator HitIter;
+  typedef std::set<TrkrDefs::hitsetkey> HitSet;
+  typedef std::set<TrkrDefs::hitsetkey>::const_iterator ConstHitIter;
+  typedef std::set<TrkrDefs::hitsetkey>::iterator HitIter;
 
   virtual ~TrkrCluster() {}
   // PHObject virtual overloads
@@ -29,8 +29,8 @@ class TrkrCluster : public PHObject
   //
   // cluster id
   //
-  virtual TrackerDefs::keytype get_id() const { return TrackerDefs::KEYMAX; }
-  virtual void set_id(TrackerDefs::keytype id) {}
+  virtual TrkrDefs::cluskey get_id() const { return TrkrDefs::CLUSKEYMAX; }
+  virtual void set_id(TrkrDefs::cluskey id) {}
   //
   // cluster position
   //
@@ -60,13 +60,13 @@ class TrkrCluster : public PHObject
   virtual void clear_hits() {}
   virtual bool empty_hits() { return true; }
   virtual size_t size_hits() { return 0; }
-  virtual void insert_hit(TrackerDefs::keytype hit_id) {}
-  virtual size_t erase_hit(TrackerDefs::keytype hit_id) { return 0; }
+  virtual void insert_hit(TrkrDefs::hitsetkey hit_id) {}
+  virtual size_t erase_hit(TrkrDefs::hitsetkey hit_id) { return 0; }
   virtual ConstHitIter begin_hits() const { return HitSet().end(); }
-  virtual ConstHitIter find_hit(TrackerDefs::keytype hitid) const { return HitSet().end(); }
+  virtual ConstHitIter find_hit(TrkrDefs::hitsetkey hitid) const { return HitSet().end(); }
   virtual ConstHitIter end_hits() const { return HitSet().end(); }
   virtual HitIter begin_hits() { return HitSet().end(); }
-  virtual HitIter find_hit(TrackerDefs::keytype hitid) { return HitSet().end(); }
+  virtual HitIter find_hit(TrkrDefs::hitsetkey hitid) { return HitSet().end(); }
   virtual HitIter end_hits() { return HitSet().end(); }
   //
   // convenience interface

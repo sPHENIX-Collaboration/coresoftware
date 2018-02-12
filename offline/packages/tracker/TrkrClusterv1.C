@@ -10,7 +10,7 @@ using namespace std;
 ClassImp(TrkrClusterv1);
 
 TrkrClusterv1::TrkrClusterv1()
-  : _id(0xFFFFFFFF)
+  : _id(TrkrDefs::CLUSKEYMAX)
   , _pos()
   , _is_global(true)
   , _adc(0xFFFFFFFF)
@@ -87,7 +87,7 @@ void TrkrClusterv1::identify(ostream& os) const
 
 int TrkrClusterv1::isValid() const
 {
-  if (_id == 0xFFFFFFFF) return 0;
+  if (_id == TrkrDefs::CLUSKEYMAX) return 0;
   for (int i = 0; i < 3; ++i)
   {
     if (isnan(get_position(i))) return 0;
