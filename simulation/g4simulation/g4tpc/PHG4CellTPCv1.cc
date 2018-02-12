@@ -32,29 +32,10 @@ PHG4CellTPCv1::add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, cons
     EdepMap edepmap;
     pair<map<int,EdepMap>::iterator, bool> ret = timeseq.insert(make_pair(tbin,edepmap));
      map<int,EdepMap>::iterator mapiter = ret.first;
-//  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
-/*
-  if (mapiter == timeseq.end())
-  {
-// if not we use map.insert which returns an iterator
-// to the new entry (the boolean is 
-
-    EdepMap edepmap;
-    pair<map<int,EdepMap>::iterator, bool> ret;
-    ret = timeseq.insert(make_pair(tbin,edepmap));
-    mapiter = ret.first;
-  }
-*/
-
-//  EdepIterator eiter = (mapiter->second).find(g4hitid);
-  float dummy_edep = 0.;
-  pair<EdepIterator, bool> edepret = (mapiter->second).insert(make_pair(g4hitid,dummy_edep));
+// insert 0 edep so edep can be added no matter if hits was found or not
+  pair<EdepIterator, bool> edepret = (mapiter->second).insert(make_pair(g4hitid,0.));
   EdepIterator eiter = edepret.first;
   eiter->second += edep;
-
-  cout << "inserting 0x" << hex << g4hitid << dec << " with edep: " << edep 
-       << ", size: " << timeseq.size() 
-       << " total edep: " << eiter->second << endl;
   return;
 }
 
