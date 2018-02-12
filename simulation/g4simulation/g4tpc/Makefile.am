@@ -27,6 +27,10 @@ libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \
   PHG4TPCElectronDrift.cc \
   PHG4TPCElectronDrift_Dict.cc \
+  PHG4TPCPadPlane.cc \
+  PHG4TPCPadPlane_Dict.cc \
+  PHG4TPCPadPlaneSimple.cc \
+  PHG4TPCPadPlaneSimple_Dict.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCSubsystem.cc \
   PHG4TPCSubsystem_Dict.cc
