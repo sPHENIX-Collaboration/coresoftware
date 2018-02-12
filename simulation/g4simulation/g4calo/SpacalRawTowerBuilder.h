@@ -69,10 +69,8 @@ class SpacalRawTowerBuilder : public SubsysReco {
   std::string TowerGeomNodeName;
   std::string _sim_tower_node_prefix;
 
-  int _cell_binning;
   double emin;	
   int chkenergyconservation;
-  int _nlayers;
   int _nphibins;
   int _netabins;
   double _etamin;
