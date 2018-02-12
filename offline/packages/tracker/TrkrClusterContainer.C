@@ -1,16 +1,16 @@
-#include "TrackerClusterContainer.h"
-#include "TrackerClusterv1.h"
+#include "TrkrClusterContainer.h"
+#include "TrkrClusterv1.h"
 #include "TrackerDefs.h"
 
 #include <cstdlib>
 
 using namespace std;
 
-TrackerClusterContainer::TrackerClusterContainer()
+TrkrClusterContainer::TrkrClusterContainer()
 {}
 
 void
-TrackerClusterContainer::Reset()
+TrkrClusterContainer::Reset()
 {
    while(clusmap.begin() != clusmap.end())
      {
@@ -21,7 +21,7 @@ TrackerClusterContainer::Reset()
 }
 
 void
-TrackerClusterContainer::identify(ostream& os) const
+TrkrClusterContainer::identify(ostream& os) const
 {
    ConstIterator iter;
    os << "Number of clusters: " << size() << endl;
@@ -33,8 +33,8 @@ TrackerClusterContainer::identify(ostream& os) const
   return;
 }
 
-TrackerClusterContainer::ConstIterator
-TrackerClusterContainer::AddCluster(TrackerCluster *newclus)
+TrkrClusterContainer::ConstIterator
+TrkrClusterContainer::AddCluster(TrkrCluster *newclus)
 {
   TrackerDefs::keytype key = newclus->get_id();
   if (clusmap.find(key) != clusmap.end())
@@ -46,12 +46,12 @@ TrackerClusterContainer::AddCluster(TrackerCluster *newclus)
   return clusmap.find(key);
 }
 
-TrackerClusterContainer::ConstIterator
-TrackerClusterContainer::AddClusterSpecifyKey(const TrackerDefs::keytype key, TrackerCluster *newclus)
+TrkrClusterContainer::ConstIterator
+TrkrClusterContainer::AddClusterSpecifyKey(const TrackerDefs::keytype key, TrkrCluster *newclus)
 {
   if(clusmap.find(key)!=clusmap.end())
    {
-     cout << "TrackerClusterContainer::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << endl;
+     cout << "TrkrClusterContainer::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << endl;
      exit(1);
    }
   newclus->set_id(key);
@@ -59,8 +59,8 @@ TrackerClusterContainer::AddClusterSpecifyKey(const TrackerDefs::keytype key, Tr
   return clusmap.find(key);
 }
 
-TrackerClusterContainer::ConstRange 
-TrackerClusterContainer::getClusters(const TrackerDefs::TRACKERID trackerid) const
+TrkrClusterContainer::ConstRange 
+TrkrClusterContainer::getClusters(const TrackerDefs::TRACKERID trackerid) const
 {
   TrackerDefs::keytype tmp = trackerid;
   TrackerDefs::keytype keylow = tmp << TrackerDefs::bitshift_trackerid;
@@ -73,29 +73,29 @@ TrackerClusterContainer::getClusters(const TrackerDefs::TRACKERID trackerid) con
   return retpair;
 }
 
-TrackerClusterContainer::ConstRange 
-TrackerClusterContainer::getClusters( void ) const
+TrkrClusterContainer::ConstRange 
+TrkrClusterContainer::getClusters( void ) const
 { return std::make_pair( clusmap.begin(), clusmap.end() ); }
 
 
-TrackerClusterContainer::Iterator 
-TrackerClusterContainer::findOrAddCluster(TrackerDefs::keytype key)
+TrkrClusterContainer::Iterator 
+TrkrClusterContainer::findOrAddCluster(TrackerDefs::keytype key)
 {
-  TrackerClusterContainer::Iterator it = clusmap.find(key);
+  TrkrClusterContainer::Iterator it = clusmap.find(key);
   if(it == clusmap.end())
   {
-    clusmap[key] = new TrackerClusterv1();
+    clusmap[key] = new TrkrClusterv1();
     it = clusmap.find(key);
-    TrackerCluster* mclus = it->second;
+    TrkrCluster* mclus = it->second;
     mclus->set_id(key);
   }
   return it;
 }
 
-TrackerCluster* 
-TrackerClusterContainer::findCluster(TrackerDefs::keytype key)
+TrkrCluster* 
+TrkrClusterContainer::findCluster(TrackerDefs::keytype key)
 {
-  TrackerClusterContainer::ConstIterator it = clusmap.find(key);
+  TrkrClusterContainer::ConstIterator it = clusmap.find(key);
 
   if(it != clusmap.end())
     {

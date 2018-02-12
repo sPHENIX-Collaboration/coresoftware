@@ -1,5 +1,5 @@
-#ifndef __TRACKERLUSTER_H__
-#define __TRACKERLUSTER_H__
+#ifndef __TrkrCluster_H__
+#define __TrkrCluster_H__
 
 #include <phool/PHObject.h>
 #include "TrackerDefs.h"
@@ -9,23 +9,23 @@
 #include <iostream>
 #include <set>
 
-class TrackerCluster : public PHObject
+class TrkrCluster : public PHObject
 {
  public:
   typedef std::set<TrackerDefs::keytype> HitSet;
   typedef std::set<TrackerDefs::keytype>::const_iterator ConstHitIter;
   typedef std::set<TrackerDefs::keytype>::iterator HitIter;
 
-  virtual ~TrackerCluster() {}
+  virtual ~TrkrCluster() {}
   // PHObject virtual overloads
 
   virtual void identify(std::ostream& os = std::cout) const
   {
-    os << "TrackerCluster base class" << std::endl;
+    os << "TrkrCluster base class" << std::endl;
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual TrackerCluster* Clone() const { return NULL; }
+  virtual TrkrCluster* Clone() const { return NULL; }
   //
   // cluster id
   //
@@ -48,8 +48,6 @@ class TrackerCluster : public PHObject
   //
   // cluster info
   //
-  virtual float get_e() const { return NAN; }
-  virtual void set_e(float e) {}
   virtual unsigned int get_adc() const { return UINT_MAX; }
   virtual void set_adc(unsigned int adc) {}
   virtual float get_size(unsigned int i, unsigned int j) const { return NAN; }
@@ -70,16 +68,17 @@ class TrackerCluster : public PHObject
   virtual HitIter begin_hits() { return HitSet().end(); }
   virtual HitIter find_hit(TrackerDefs::keytype hitid) { return HitSet().end(); }
   virtual HitIter end_hits() { return HitSet().end(); }
+  //
   // convenience interface
-
+  //
   virtual float get_phi_size() const { return NAN; }
   virtual float get_z_size() const { return NAN; }
   virtual float get_phi_error() const { return NAN; }
   virtual float get_rphi_error() const { return NAN; }
   virtual float get_z_error() const { return NAN; }
  protected:
-  TrackerCluster() {}
-  ClassDef(TrackerCluster, 1);
+  TrkrCluster() {}
+  ClassDef(TrkrCluster, 1);
 };
 
 #endif

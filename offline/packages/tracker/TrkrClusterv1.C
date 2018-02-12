@@ -1,4 +1,4 @@
-#include "TrackerClusterv1.h"
+#include "TrkrClusterv1.h"
 
 #include <TMatrixF.h>
 
@@ -7,13 +7,12 @@
 
 using namespace std;
 
-ClassImp(TrackerClusterv1);
+ClassImp(TrkrClusterv1);
 
-TrackerClusterv1::TrackerClusterv1()
+TrkrClusterv1::TrkrClusterv1()
   : _id(0xFFFFFFFF)
   , _pos()
   , _is_global(true)
-  , _e(NAN)
   , _adc(0xFFFFFFFF)
   , _size()
   , _err()
@@ -31,9 +30,9 @@ TrackerClusterv1::TrackerClusterv1()
   }
 }
 
-void TrackerClusterv1::identify(ostream& os) const
+void TrkrClusterv1::identify(ostream& os) const
 {
-  os << "---TrackerClusterv1--------------------" << endl;
+  os << "---TrkrClusterv1--------------------" << endl;
   os << "clusid: 0x" << std::hex << get_id() << std::dec << endl;
 
   os << " (x,y,z) =  (" << get_position(0);
@@ -44,7 +43,7 @@ void TrackerClusterv1::identify(ostream& os) const
   else
     os << " - local coordinates" << endl;
 
-  os << " e = " << get_e() << " adc = " << get_adc() << endl;
+  os << " adc = " << get_adc() << endl;
 
   os << " size phi = " << get_phi_size();
   os << " cm, size z = " << get_z_size() << " cm" << endl;
@@ -86,14 +85,13 @@ void TrackerClusterv1::identify(ostream& os) const
   return;
 }
 
-int TrackerClusterv1::isValid() const
+int TrkrClusterv1::isValid() const
 {
   if (_id == 0xFFFFFFFF) return 0;
   for (int i = 0; i < 3; ++i)
   {
     if (isnan(get_position(i))) return 0;
   }
-  if (isnan(_e)) return 0;
   if (_adc == 0xFFFFFFFF) return 0;
   for (int j = 0; j < 3; ++j)
   {
@@ -108,29 +106,29 @@ int TrackerClusterv1::isValid() const
   return 1;
 }
 
-void TrackerClusterv1::set_size(unsigned int i, unsigned int j, float value)
+void TrkrClusterv1::set_size(unsigned int i, unsigned int j, float value)
 {
   _size[covar_index(i, j)] = value;
   return;
 }
 
-float TrackerClusterv1::get_size(unsigned int i, unsigned int j) const
+float TrkrClusterv1::get_size(unsigned int i, unsigned int j) const
 {
   return _size[covar_index(i, j)];
 }
 
-void TrackerClusterv1::set_error(unsigned int i, unsigned int j, float value)
+void TrkrClusterv1::set_error(unsigned int i, unsigned int j, float value)
 {
   _err[covar_index(i, j)] = value;
   return;
 }
 
-float TrackerClusterv1::get_error(unsigned int i, unsigned int j) const
+float TrkrClusterv1::get_error(unsigned int i, unsigned int j) const
 {
   return _err[covar_index(i, j)];
 }
 
-float TrackerClusterv1::get_phi_size() const
+float TrkrClusterv1::get_phi_size() const
 {
   TMatrixF COVAR(3, 3);
   for (unsigned int i = 0; i < 3; ++i)
@@ -163,19 +161,19 @@ float TrackerClusterv1::get_phi_size() const
   return 2.0 * sqrt(TRANS[1][1]);
 }
 
-float TrackerClusterv1::get_z_size() const
+float TrkrClusterv1::get_z_size() const
 {
   return 2.0 * sqrt(get_size(2, 2));
 }
 
-float TrackerClusterv1::get_phi_error() const
+float TrkrClusterv1::get_phi_error() const
 {
   float rad = sqrt(_pos[0] * _pos[0] + _pos[1] * _pos[1]);
   if (rad > 0) return get_rphi_error() / rad;
   return 0;
 }
 
-float TrackerClusterv1::get_rphi_error() const
+float TrkrClusterv1::get_rphi_error() const
 {
   TMatrixF COVAR(3, 3);
   for (unsigned int i = 0; i < 3; ++i)
@@ -208,12 +206,12 @@ float TrackerClusterv1::get_rphi_error() const
   return sqrt(TRANS[1][1]);
 }
 
-float TrackerClusterv1::get_z_error() const
+float TrkrClusterv1::get_z_error() const
 {
   return sqrt(get_error(2, 2));
 }
 
-unsigned int TrackerClusterv1::covar_index(unsigned int i, unsigned int j) const
+unsigned int TrkrClusterv1::covar_index(unsigned int i, unsigned int j) const
 {
   if (i > j) std::swap(i, j);
   return i + 1 + (j + 1) * (j) / 2 - 1;

@@ -1,41 +1,41 @@
-#ifndef TRACKERHITCONTAINER_H__
-#define TRACKERHITCONTAINER_H__
+#ifndef __TrkrHitSetContainer_H__
+#define __TrkrHitSetContainer_H__
 
-#include "TrackerHit.h"
+#include "TrkrHitSet.h"
 
 #include <phool/PHObject.h>
 
 #include <map>
 #include <set>
 
-class TrackerHitContainer: public PHObject
+class TrkrHitSetContainer: public PHObject
 {
 
   public:
-  typedef std::map<TrackerDefs::keytype,TrackerHit *> Map;
+  typedef std::map<TrackerDefs::hitkeytype,TrkrHitSet *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  TrackerHitContainer();
+  TrkrHitSetContainer();
 
-  virtual ~TrackerHitContainer() {}
+  virtual ~TrkrHitSetContainer() {}
 
   void Reset();
 
   void identify(std::ostream& os = std::cout) const;
 
-  ConstIterator AddHit(TrackerHit *newHit);
-  ConstIterator AddHitSpecifyKey(const TrackerDefs::keytype key, TrackerHit *newHit);
+  ConstIterator AddHit(TrkrHitSet *newHit);
+  ConstIterator AddHitSpecifyKey(const TrackerDefs::hitkeytype key, TrkrHitSet *newHit);
   
   //! preferred removal method, key is currently the hit id
-  void RemoveHit(TrackerDefs::keytype key) {
+  void RemoveHit(TrackerDefs::hitkeytype key) {
     hitmap.erase(key);
   }
 
   //! inefficent, use key where possible instead
-  void RemoveHit(TrackerHit *hit)
+  void RemoveHit(TrkrHitSet *hit)
   {
     Iterator its = hitmap.begin();
     Iterator last = hitmap.end();
@@ -53,7 +53,7 @@ class TrackerHitContainer: public PHObject
   }
 
 
-  Iterator findOrAddHit(TrackerDefs::keytype key);
+  Iterator findOrAddHit(TrackerDefs::hitkeytype key);
 
   //! return all Hits matching a given detid
   ConstRange getHits(const TrackerDefs::TRACKERID trackerid) const;
@@ -64,14 +64,14 @@ class TrackerHitContainer: public PHObject
   //! return all hist
   ConstRange getHits( void ) const;
 
-  TrackerHit* findHit(TrackerDefs::keytype key);
+  TrkrHitSet* findHit(TrackerDefs::hitkeytype key);
 
   unsigned int size( void ) const
   { return hitmap.size(); }
 
  protected:
   Map hitmap;
-  ClassDef(TrackerHitContainer,1)
+  ClassDef(TrkrHitSetContainer,1)
 };
 
 #endif

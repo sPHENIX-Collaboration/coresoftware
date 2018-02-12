@@ -1,7 +1,7 @@
-#ifndef __TRACKERLUSTERV1_H__
-#define __TRACKERLUSTERV1_H__
+#ifndef __TrkrClusterv1_H__
+#define __TrkrClusterv1_H__
 
-#include "TrackerCluster.h"
+#include "TrkrCluster.h"
 #include "TrackerDefs.h"
 
 #include <limits.h>
@@ -9,17 +9,17 @@
 #include <iostream>
 #include <set>
 
-class TrackerClusterv1 : public TrackerCluster
+class TrkrClusterv1 : public TrkrCluster
 {
  public:
-  TrackerClusterv1();
-  virtual ~TrackerClusterv1() {}
+  TrkrClusterv1();
+  virtual ~TrkrClusterv1() {}
   // PHObject virtual overloads
 
   void identify(std::ostream& os = std::cout) const;
   void Reset() {}
   int isValid() const;
-  TrackerCluster* Clone() const { return new TrackerClusterv1(*this); }
+  TrkrCluster* Clone() const { return new TrkrClusterv1(*this); }
 
 
   TrackerDefs::keytype get_id() const { return _id; }
@@ -41,8 +41,6 @@ class TrackerClusterv1 : public TrackerCluster
   // 
   // cluster info
   //
-  float get_e() const { return _e; }
-  void set_e(float e) { _e = e; }
   unsigned int get_adc() const { return _adc; }
   void set_adc(unsigned int adc) { _adc = adc; }
   float get_size(unsigned int i, unsigned int j) const;        //< get cluster dimension covar
@@ -80,13 +78,12 @@ class TrackerClusterv1 : public TrackerCluster
   TrackerDefs::keytype _id;  //< unique identifier within container
   float _pos[3];             //< mean position x,y,z
   bool _is_global;           //< flag for coord sys (true = global)
-  float _e;                  //< cluster energy
   unsigned int _adc;         //< cluster sum adc (D. McGlinchey - Do we need this)
   float _size[6];            //< size covariance matrix (packed storage) (+/- cm^2)
   float _err[6];             //< covariance matrix: rad, arc and z
   HitSet _hit_ids;           //< list of cell hit ids
 
-  ClassDef(TrackerClusterv1, 1);
+  ClassDef(TrkrClusterv1, 1);
 };
 
 #endif

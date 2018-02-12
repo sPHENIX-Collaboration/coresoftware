@@ -19,29 +19,29 @@ libtracker_la_LIBADD = \
   -lg4detectors
 
 pkginclude_HEADERS = \
-  TrackerCluster.h \
-  TrackerClusterv1.h \
-  TrackerClusterContainer.h \
+  TrkrCluster.h \
+  TrkrClusterv1.h \
+  TrkrClusterContainer.h \
   TrackerDefs.h \
-  TrackerHit.h \
-  TrackerHitv1.h \
-  TrackerHitContainer.h
+  TrkrHitSet.h \
+  TrkrHitSetv1.h \
+  TrkrHitSetContainer.h
 
 libtracker_la_SOURCES = \
-  TrackerCluster.C \
-  TrackerCluster_Dict.C \
-  TrackerClusterv1.C \
-  TrackerClusterv1_Dict.C \
-  TrackerClusterContainer.C \
-  TrackerClusterContainer_Dict.C \
+  TrkrCluster.C \
+  TrkrCluster_Dict.C \
+  TrkrClusterv1.C \
+  TrkrClusterv1_Dict.C \
+  TrkrClusterContainer.C \
+  TrkrClusterContainer_Dict.C \
   TrackerDefs.C \
   TrackerDefs_Dict.C \
-  TrackerHit.C \
-  TrackerHit_Dict.C \
-  TrackerHitv1.C \
-  TrackerHitv1_Dict.C \
-  TrackerHitContainer.C \
-  TrackerHitContainer_Dict.C 
+  TrkrHitSet.C \
+  TrkrHitSet_Dict.C \
+  TrkrHitSetv1.C \
+  TrkrHitSetv1_Dict.C \
+  TrkrHitSetContainer.C \
+  TrkrHitSetContainer_Dict.C 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
