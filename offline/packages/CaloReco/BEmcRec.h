@@ -43,6 +43,10 @@ class BEmcRec
   //  void SetGeometry(SecGeom const &geom, PHMatrix * rm, PHVector * tr );
   void SetConf(int nx, int ny) { SetGeometry(nx, ny, 1., 1.); }
 
+  void SetPlaneGeometry() { bCYL=false; }
+  void SetCylindricalGeometry() { bCYL=true; }
+  bool isCylindrical() const { return bCYL; }
+
   int GetNx() const { return fNx; }
   int GetNy() const { return fNy; }
   float GetModSizex() const { return fModSizex; }
@@ -59,6 +63,9 @@ class BEmcRec
   std::vector<EmcModule> *GetModules(){ return fModules; }
   std::vector<EmcCluster> *GetClusters(){ return fClusters; }
 #endif
+
+  int iTowerDist(int ix1, int ix2);
+  float fTowerDist(float x1, float x2);
 
   int FindClusters();
   void GetImpactAngle(float x, float y, float *sinT );
@@ -77,7 +84,6 @@ class BEmcRec
   void Gamma(int, EmcModule*, float*, float*, float*, float*, float*,
 		     float*, float*, float*,
 		     int &ndf); // ndf added MV 28.01.00
-  void Mom1(int, EmcModule*, float*, float*, float*);
   void Momenta(int, EmcModule*, float*, float*, float*, float*, float*,
 	       float* );
   int ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule* phit1);
@@ -118,6 +124,7 @@ class BEmcRec
  protected:
 
   // geometry
+  bool bCYL; // Cylindrical? 
   int fNx; // length in X direction
   int fNy; // length in Y direction
   float fModSizex; // module size in X direction (cm)
