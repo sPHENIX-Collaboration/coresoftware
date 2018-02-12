@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
@@ -12,12 +13,12 @@ RawTowerGeomv1::RawTowerGeomv1()
 
 RawTowerGeomv1::RawTowerGeomv1(RawTowerDefs::keytype id)
   : _towerid(id)
-  , _center_x(0)
-  , _center_y(0)
-  , _center_z(0)
-  , _tower_lenth_vec_x(0)
-  , _tower_lenth_vec_y(0)
-  , _tower_lenth_vec_z(0)
+  , _center_x(numeric_limits<double>::signaling_NaN())
+  , _center_y(numeric_limits<double>::signaling_NaN())
+  , _center_z(numeric_limits<double>::signaling_NaN())
+  , _tower_lenth_vec_x(numeric_limits<double>::signaling_NaN())
+  , _tower_lenth_vec_y(numeric_limits<double>::signaling_NaN())
+  , _tower_lenth_vec_z(numeric_limits<double>::signaling_NaN())
 {
 }
 
