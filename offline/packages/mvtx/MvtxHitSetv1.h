@@ -8,7 +8,6 @@
 
 class MvtxHitSetv1 : public TrkrHitSetv1
 {
-
 public:
 
   typedef std::multimap<uint16_t, uint16_t> HitMap;
@@ -16,7 +15,6 @@ public:
   typedef HitMap::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
-
 
   /// ctor
   MvtxHitSetv1();
@@ -37,12 +35,9 @@ public:
   /// get all hits in a given column (useful?)
   ConstRange get_hits(const uint16_t col);
 
-
 private:
 
-  // storage object for hits
-  HitMap hits;
-
+  HitMap hits; ///< Hit storage object
 
   ClassDef(MvtxHitSetv1, 1);
 };
