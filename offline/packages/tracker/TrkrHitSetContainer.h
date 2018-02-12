@@ -26,16 +26,16 @@ class TrkrHitSetContainer: public PHObject
 
   void identify(std::ostream& os = std::cout) const;
 
-  ConstIterator AddHit(TrkrHitSet *newHit);
-  ConstIterator AddHitSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newHit);
+  ConstIterator AddHitSet(TrkrHitSet *newHit);
+  ConstIterator AddHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newHit);
   
   //! preferred removal method, key is currently the hit id
-  void RemoveHit(TrkrDefs::hitsetkey key) {
+  void RemoveHitSet(TrkrDefs::hitsetkey key) {
     hitmap.erase(key);
   }
 
   //! inefficent, use key where possible instead
-  void RemoveHit(TrkrHitSet *hit)
+  void RemoveHitSet(TrkrHitSet *hit)
   {
     Iterator its = hitmap.begin();
     Iterator last = hitmap.end();
@@ -53,18 +53,18 @@ class TrkrHitSetContainer: public PHObject
   }
 
 
-  Iterator findOrAddHit(TrkrDefs::hitsetkey key);
+  Iterator findOrAddHitSet(TrkrDefs::hitsetkey key);
 
   //! return all Hits matching a given detid
-  ConstRange getHits(const TrkrDefs::TRKRID trackerid) const;
+  ConstRange getHitSets(const TrkrDefs::TRKRID trackerid) const;
 
   //! return all Hits matching a given detid, layer
-  ConstRange getHits(const TrkrDefs::TRKRID trackerid, const char layer) const;
+  ConstRange getHitSets(const TrkrDefs::TRKRID trackerid, const char layer) const;
 
   //! return all hist
-  ConstRange getHits( void ) const;
+  ConstRange getHitSets( void ) const;
 
-  TrkrHitSet* findHit(TrkrDefs::hitsetkey key);
+  TrkrHitSet* findHitSet(TrkrDefs::hitsetkey key);
 
   unsigned int size( void ) const
   { return hitmap.size(); }

@@ -20,7 +20,7 @@ namespace TrkrDefs
 /// Key types
 typedef uint32_t hitsetkey;  // 32 bit TrkrHitSet key type
 typedef uint64_t cluskey;    // 64 but TrkrCluster id type
-typedef uint32_t hitkey;     // 32 bit hit id type in TrkrCluster
+typedef uint32_t clushitkey; // 32 bit hit id type in TrkrCluster
 
 // D. McGlinchey - I don't understand why this needs to be hidden from
 //                 the dictionary generation ...
@@ -30,7 +30,7 @@ typedef uint32_t hitkey;     // 32 bit hit id type in TrkrCluster
 /// Max values for keys (used as defaults or invalid values)
 static hitsetkey HITSETKEYMAX = ULONG_MAX;
 static cluskey CLUSKEYMAX = ULLONG_MAX;
-static hitkey HITKEYMAX = ULONG_MAX;
+static clushitkey CLUSHITKEYMAX = ULONG_MAX;
 
 #endif
 
@@ -96,11 +96,14 @@ protected:
   static const unsigned int bitshift_trackerid = 24; // 32 - 8
   static const unsigned int bitshift_layer = 16; // bitshift_trackerid - 8
 
+  // cluskey layour
+  //  hitsetkey upper 32 bits
+  //  cluster id lower 32 bits
+  static const unsigned int bitshift_clusid = 32;
+
   /// generate the common upper 16 bits for hitsetkey
   TrkrDefs::hitsetkey gen_hitsetkey(const TrkrDefs::TRKRID trkr_id, const char lyr);
 
-  /// generate the common upper 16 bits for cluskey
-  TrkrDefs::cluskey gen_cluskey(const TrkrDefs::TRKRID trkr_id, const char lyr);
 
 };
 

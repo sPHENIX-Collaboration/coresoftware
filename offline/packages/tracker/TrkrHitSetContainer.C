@@ -34,7 +34,7 @@ TrkrHitSetContainer::identify(ostream& os) const
 }
 
 TrkrHitSetContainer::ConstIterator
-TrkrHitSetContainer::AddHit(TrkrHitSet *newhit)
+TrkrHitSetContainer::AddHitSet(TrkrHitSet *newhit)
 {
   TrkrDefs::hitsetkey key = newhit->get_hitid();
   if (hitmap.find(key) != hitmap.end())
@@ -48,7 +48,7 @@ TrkrHitSetContainer::AddHit(TrkrHitSet *newhit)
 }
 
 TrkrHitSetContainer::ConstIterator
-TrkrHitSetContainer::AddHitSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newhit)
+TrkrHitSetContainer::AddHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newhit)
 {
   if(hitmap.find(key)!=hitmap.end())
    {
@@ -61,7 +61,7 @@ TrkrHitSetContainer::AddHitSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet 
 }
 
 TrkrHitSetContainer::ConstRange 
-TrkrHitSetContainer::getHits(const TrkrDefs::TRKRID trackerid) const
+TrkrHitSetContainer::getHitSets(const TrkrDefs::TRKRID trackerid) const
 {
 
   // TrkrDefs::hitsetkey tmp = trackerid;
@@ -81,7 +81,7 @@ TrkrHitSetContainer::getHits(const TrkrDefs::TRKRID trackerid) const
 }
 
 TrkrHitSetContainer::ConstRange 
-TrkrHitSetContainer::getHits(const TrkrDefs::TRKRID trackerid, 
+TrkrHitSetContainer::getHitSets(const TrkrDefs::TRKRID trackerid, 
   const char layer) const
 {
   // TrkrDefs::hitsetkey tmp = trackerid;
@@ -103,12 +103,12 @@ TrkrHitSetContainer::getHits(const TrkrDefs::TRKRID trackerid,
 }
 
 TrkrHitSetContainer::ConstRange 
-TrkrHitSetContainer::getHits( void ) const
+TrkrHitSetContainer::getHitSets( void ) const
 { return std::make_pair( hitmap.begin(), hitmap.end() ); }
 
 
 TrkrHitSetContainer::Iterator 
-TrkrHitSetContainer::findOrAddHit(TrkrDefs::hitsetkey key)
+TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
 {
   TrkrHitSetContainer::Iterator it = hitmap.find(key);
   if(it == hitmap.end())
@@ -122,7 +122,7 @@ TrkrHitSetContainer::findOrAddHit(TrkrDefs::hitsetkey key)
 }
 
 TrkrHitSet* 
-TrkrHitSetContainer::findHit(TrkrDefs::hitsetkey key)
+TrkrHitSetContainer::findHitSet(TrkrDefs::hitsetkey key)
 {
   TrkrHitSetContainer::ConstIterator it = hitmap.find(key);
 

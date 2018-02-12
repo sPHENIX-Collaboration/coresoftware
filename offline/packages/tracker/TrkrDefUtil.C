@@ -30,8 +30,8 @@ TrkrDefUtil::get_trackerid(const TrkrDefs::hitsetkey key)
 uint8_t 
 TrkrDefUtil::get_trackerid(const TrkrDefs::cluskey key)
 {
-  TrkrDefs::cluskey tmp = (key >> bitshift_trackerid);
-  return tmp;
+  TrkrDefs::hitsetkey tmp = (key >> bitshift_clusid);
+  return get_trackerid(tmp);
 }
 
 uint8_t 
@@ -44,8 +44,8 @@ TrkrDefUtil::get_layer(const TrkrDefs::hitsetkey key)
 uint8_t 
 TrkrDefUtil::get_layer(const TrkrDefs::cluskey key)
 {
-  TrkrDefs::cluskey tmp = (key >> bitshift_layer);
-  return tmp;
+  TrkrDefs::hitsetkey tmp = (key >> bitshift_clusid);
+  return get_layer(tmp);
 }
 
 uint32_t 
@@ -107,16 +107,6 @@ TrkrDefUtil::gen_hitsetkey(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
   TrkrDefs::hitsetkey tmp = trkr_id;
   TrkrDefs::hitsetkey key = tmp << bitshift_trackerid;  // detector id
-  tmp = lyr;
-  key |= (tmp << bitshift_layer);  // layer
-  return key;
-}
-
-TrkrDefs::cluskey 
-TrkrDefUtil::gen_cluskey(const TrkrDefs::TRKRID trkr_id, const char lyr)
-{
-  TrkrDefs::cluskey tmp = trkr_id;
-  TrkrDefs::cluskey key = tmp << bitshift_trackerid;  // detector id
   tmp = lyr;
   key |= (tmp << bitshift_layer);  // layer
   return key;
