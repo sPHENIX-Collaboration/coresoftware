@@ -36,7 +36,9 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainerv1.cc \
   RawTowerGeomContainerv1_Dict.cc \
   RawTowerGeomContainer_Cylinderv1.cc \
-  RawTowerGeomContainer_Cylinderv1_Dict.cc
+  RawTowerGeomContainer_Cylinderv1_Dict.cc \
+  RawTowerGeomContainer_Planev1.cc \
+  RawTowerGeomContainer_Planev1_Dict.cc
 
 libcalo_util_la_SOURCES = \
   RawClusterUtility.cc \
@@ -80,7 +82,8 @@ pkginclude_HEADERS = \
   RawTowerGeomv3.h \
   RawTowerGeomContainer.h \
   RawTowerGeomContainerv1.h \
-  RawTowerGeomContainer_Cylinderv1.h
+  RawTowerGeomContainer_Cylinderv1.h \
+  RawTowerGeomContainer_Planev1.h
 ################################################
 # linking tests
 

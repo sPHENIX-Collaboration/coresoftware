@@ -50,7 +50,7 @@ class RawTowerGeomContainer : public PHObject
 
 
   /**
-   * \defgroup cylindrical_calorimeter for cylindrical calorimeter only as implemented in RawTowerGeomContainer_Cylinderv1
+   * \defgroup cylindrical_calorimeter for cylindrical calorimeter as implemented in RawTowerGeomContainer_Cylinderv1
    *
    *  Note these: concept do not apply to generic calorimeters, like forward calorimeters
    * @{
@@ -86,6 +86,43 @@ class RawTowerGeomContainer : public PHObject
 
   /**@}*/
 
+  /**
+   * \defgroup planar_calorimeter planar calorimeter as implemented in RawTowerGeomContainer_Planev1
+   *
+   *  Note these: concept do not apply to generic calorimeters, like forward calorimeters
+   * @{
+   */
+  //! center x of a planar calorimeter from front to back
+  double get_center_x() const  {PHOOL_VIRTUAL_WARN("get_center_x");    return NAN;  }
+
+  //! center x of a planar calorimeter from front to back
+  void set_center_x(double centerX)  {PHOOL_VIRTUAL_WARN("set_center_x");  }
+
+  //! center y of a planar calorimeter from front to back
+  double get_center_y() const  {PHOOL_VIRTUAL_WARN("get_center_y");    return NAN;  }
+
+  //! center y of a planar calorimeter from front to back
+  void set_center_y(double centerY)  {PHOOL_VIRTUAL_WARN("set_center_y");  }
+
+  //! center z of a planar calorimeter from front to back
+  double get_center_z() const  {PHOOL_VIRTUAL_WARN("get_center_z");    return NAN;  }
+
+  //! center z of a planar calorimeter from front to back
+  void set_center_z(double centerZ)  {PHOOL_VIRTUAL_WARN("set_center_z");  }
+
+  //! azimuthal angle of the orientation of a planar calorimeter from front to back from front to back
+  double get_phi() const  {PHOOL_VIRTUAL_WARN("get_phi");    return NAN;  }
+
+  //! azimuthal angle of the orientation of a planar calorimeter from front to back from front to back
+  void set_phi(double phi)  {PHOOL_VIRTUAL_WARN("set_phi");  }
+
+  //! polar angle of the orientation of a planar calorimeter from front to back from front to back
+  double get_theta() const  {PHOOL_VIRTUAL_WARN("get_theta");    return NAN;  }
+
+  //! polar angle of the orientation of a planar calorimeter from front to back from front to back
+  void set_theta(double theta)  {PHOOL_VIRTUAL_WARN("set_theta");  }
+
+  /**@}*/
  protected:
   //! this class is not for use. Base class only
   RawTowerGeomContainer() {}
