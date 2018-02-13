@@ -12,9 +12,9 @@
 class TrkrCluster : public PHObject
 {
  public:
-  typedef std::set<TrkrDefs::hitsetkey> HitSet;
-  typedef std::set<TrkrDefs::hitsetkey>::const_iterator ConstHitIter;
-  typedef std::set<TrkrDefs::hitsetkey>::iterator HitIter;
+  typedef std::set<TrkrDefs::clushitkey> HitSet;
+  typedef std::set<TrkrDefs::clushitkey>::const_iterator ConstHitIter;
+  typedef std::set<TrkrDefs::clushitkey>::iterator HitIter;
 
   virtual ~TrkrCluster() {}
   // PHObject virtual overloads
@@ -60,13 +60,13 @@ class TrkrCluster : public PHObject
   virtual void clear_hits() {}
   virtual bool empty_hits() { return true; }
   virtual size_t size_hits() { return 0; }
-  virtual void insert_hit(TrkrDefs::hitsetkey hit_id) {}
-  virtual size_t erase_hit(TrkrDefs::hitsetkey hit_id) { return 0; }
+  virtual void insert_hit(TrkrDefs::clushitkey hit_id) {}
+  virtual size_t erase_hit(TrkrDefs::clushitkey hit_id) { return 0; }
   virtual ConstHitIter begin_hits() const { return HitSet().end(); }
-  virtual ConstHitIter find_hit(TrkrDefs::hitsetkey hitid) const { return HitSet().end(); }
+  virtual ConstHitIter find_hit(TrkrDefs::clushitkey hitid) const { return HitSet().end(); }
   virtual ConstHitIter end_hits() const { return HitSet().end(); }
   virtual HitIter begin_hits() { return HitSet().end(); }
-  virtual HitIter find_hit(TrkrDefs::hitsetkey hitid) { return HitSet().end(); }
+  virtual HitIter find_hit(TrkrDefs::clushitkey hitid) { return HitSet().end(); }
   virtual HitIter end_hits() { return HitSet().end(); }
   //
   // convenience interface

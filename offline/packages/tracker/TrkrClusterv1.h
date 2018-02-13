@@ -55,13 +55,13 @@ class TrkrClusterv1 : public TrkrCluster
   void clear_hits() { _hit_ids.clear(); }
   bool empty_hits() { return _hit_ids.empty(); }
   size_t size_hits() { return _hit_ids.size(); }
-  void insert_hit(TrkrDefs::hitsetkey hit_id) { _hit_ids.insert(hit_id); }
-  size_t erase_hit(TrkrDefs::hitsetkey hit_id) { return _hit_ids.erase(hit_id); }
+  void insert_hit(TrkrDefs::clushitkey hit_id) { _hit_ids.insert(hit_id); }
+  size_t erase_hit(TrkrDefs::clushitkey hit_id) { return _hit_ids.erase(hit_id); }
   ConstHitIter begin_hits() const { return _hit_ids.begin(); }
-  ConstHitIter find_hit(TrkrDefs::hitsetkey hitid) const { return _hit_ids.find(hitid); }
+  ConstHitIter find_hit(TrkrDefs::clushitkey hitid) const { return _hit_ids.find(hitid); }
   ConstHitIter end_hits() const { return _hit_ids.end(); }
   HitIter begin_hits() { return _hit_ids.begin(); }
-  HitIter find_hit(TrkrDefs::hitsetkey hitid) { return _hit_ids.find(hitid); }
+  HitIter find_hit(TrkrDefs::clushitkey hitid) { return _hit_ids.find(hitid); }
   HitIter end_hits() { return _hit_ids.end(); }
   // convenience interface
 
@@ -78,10 +78,10 @@ class TrkrClusterv1 : public TrkrCluster
   TrkrDefs::cluskey _id; //< unique identifier within container
   float _pos[3];         //< mean position x,y,z
   bool _is_global;       //< flag for coord sys (true = global)
-  unsigned int _adc;     //< cluster sum adc (D. McGlinchey - Do we need this)
+  unsigned int _adc;     //< cluster sum adc (D. McGlinchey - Do we need this?)
   float _size[6];        //< size covariance matrix (packed storage) (+/- cm^2)
   float _err[6];         //< covariance matrix: rad, arc and z
-  HitSet _hit_ids;       //< list of cell hit ids
+  HitSet _hit_ids;       //< list of hit ids
 
   ClassDef(TrkrClusterv1, 1);
 };
