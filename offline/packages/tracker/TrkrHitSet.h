@@ -34,6 +34,9 @@ class TrkrHitSet : public TObject
   // Set/Get the key (ID) for the truth mapping object assoc. to this hit set
   virtual void SetTruthMapKey(const uint64_t key) { return; }
   virtual uint64_t GetTruthMapKey() const { return NULL; }
+  // Set/Get the key (ID) for the mapping between hits & clusters
+  virtual void SetHitClusMapKey(const uint64_t key) { return; }
+  virtual uint64_t GetHitClusMapKey() const { return NULL; }
  private:
   ClassDef(TrkrHitSet, 1);
 };

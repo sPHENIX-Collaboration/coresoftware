@@ -34,10 +34,14 @@ class TrkrHitSetv1 : public TrkrHitSet
   // Set/Get the key (ID) for the truth mapping object assoc. to this hit set
   virtual void SetTruthMapKey(const uint64_t key) { truth_map_key_ = key; }
   virtual uint64_t GetTruthMapKey() const { return truth_map_key_; }
+  // Set/Get the key (ID) for the mapping between hits & clusters
+  virtual void SetHitClusMapKey(const uint64_t key) { hit_clus_map_key_ = key; }
+  virtual uint64_t GetHitClusMapKey() const { return hit_clus_map_key_; }
  protected:
  private:
   TrkrDefs::hitsetkey hitset_key_;
   uint64_t truth_map_key_;
+  uint64_t hit_clus_map_key_;
 };
 
 #endif
