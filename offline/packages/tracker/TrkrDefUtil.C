@@ -1,113 +1,96 @@
-#include "TrkrDefUtil.h"
 #include <bitset>
+#include "TrkrDefUtil.h"
 
-
-void 
-TrkrDefUtil::print_bits(const TrkrDefs::hitsetkey key, std::ostream& os)
+void TrkrDefUtil::PrintBits(const TrkrDefs::hitsetkey key, std::ostream& os)
 {
   os << "key: " << std::bitset<32>(key) << std::endl;
 }
 
-void 
-TrkrDefUtil::print_bits(const TrkrDefs::cluskey key, std::ostream& os)
+void TrkrDefUtil::PrintBits(const TrkrDefs::cluskey key, std::ostream& os)
 {
   os << "key: " << std::bitset<64>(key) << std::endl;
 }
 
-// void 
-// TrkrDefUtil::print_bits(const TrkrDefs::hitkey key, std::ostream& os = std::cout)
-// {
-//   os << "key: " << std::bitset<32>(key) << std::endl;
-// }
-
-uint8_t 
-TrkrDefUtil::get_trackerid(const TrkrDefs::hitsetkey key)
+uint8_t
+TrkrDefUtil::GetTrkrId(const TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> bitshift_trackerid);
+  TrkrDefs::hitsetkey tmp = (key >> kBitShiftTrkrId);
   return tmp;
 }
 
-uint8_t 
-TrkrDefUtil::get_trackerid(const TrkrDefs::cluskey key)
+uint8_t
+TrkrDefUtil::GetTrkrId(const TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> bitshift_clusid);
-  return get_trackerid(tmp);
+  TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
+  return GetTrkrId(tmp);
 }
 
-uint8_t 
-TrkrDefUtil::get_layer(const TrkrDefs::hitsetkey key)
+uint8_t
+TrkrDefUtil::GetLayer(const TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> bitshift_layer);
+  TrkrDefs::hitsetkey tmp = (key >> kBitShiftLayer);
   return tmp;
 }
 
-uint8_t 
-TrkrDefUtil::get_layer(const TrkrDefs::cluskey key)
+uint8_t
+TrkrDefUtil::GetLayer(const TrkrDefs::cluskey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> bitshift_clusid);
-  return get_layer(tmp);
+  TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
+  return GetLayer(tmp);
 }
 
-uint32_t 
-TrkrDefUtil::get_index(const TrkrDefs::cluskey key)
+uint32_t
+TrkrDefUtil::GetClusIndex(const TrkrDefs::cluskey key)
 {
   return key;
 }
 
-TrkrDefs::hitsetkey 
-TrkrDefUtil::get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id)
+TrkrDefs::hitsetkey
+TrkrDefUtil::GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id)
 {
-
 }
 
-TrkrDefs::hitsetkey 
-TrkrDefUtil::get_hitsetkeyhi(const TrkrDefs::TRKRID trkr_id)
+TrkrDefs::hitsetkey
+TrkrDefUtil::GetHitSetKeyHi(const TrkrDefs::TRKRID trkr_id)
 {
-
 }
 
-TrkrDefs::hitsetkey 
-TrkrDefUtil::get_hitsetkeylo(const TrkrDefs::TRKRID trkr_id, const char lyr)
+TrkrDefs::hitsetkey
+TrkrDefUtil::GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
-
 }
 
-TrkrDefs::hitsetkey 
-TrkrDefUtil::get_hitsetkeyhi(const TrkrDefs::TRKRID trkr_id, const char lyr)
+TrkrDefs::hitsetkey
+TrkrDefUtil::GetHitSetKeyHi(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
-
 }
 
-TrkrDefs::cluskey 
-TrkrDefUtil::get_cluskeylo(const TrkrDefs::TRKRID trkr_id)
+TrkrDefs::cluskey
+TrkrDefUtil::GetClusKeyLo(const TrkrDefs::TRKRID trkr_id)
 {
-
 }
 
-TrkrDefs::cluskey 
-TrkrDefUtil::get_cluskeyhi(const TrkrDefs::TRKRID trkr_id)
+TrkrDefs::cluskey
+TrkrDefUtil::GetClusKeyHi(const TrkrDefs::TRKRID trkr_id)
 {
-
 }
 
-TrkrDefs::cluskey 
-TrkrDefUtil::get_cluskeylo(const TrkrDefs::TRKRID trkr_id, const char lyr)
+TrkrDefs::cluskey
+TrkrDefUtil::GetClusKeyLo(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
-
 }
 
-TrkrDefs::cluskey 
-TrkrDefUtil::get_cluskeyhi(const TrkrDefs::TRKRID trkr_id, const char lyr)
+TrkrDefs::cluskey
+TrkrDefUtil::GetClusKeyHi(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
-
 }
 
-TrkrDefs::hitsetkey 
-TrkrDefUtil::gen_hitsetkey(const TrkrDefs::TRKRID trkr_id, const char lyr)
+TrkrDefs::hitsetkey
+TrkrDefUtil::GenHitSetKey(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
   TrkrDefs::hitsetkey tmp = trkr_id;
-  TrkrDefs::hitsetkey key = tmp << bitshift_trackerid;  // detector id
+  TrkrDefs::hitsetkey key = tmp << kBitShiftTrkrId;  // detector id
   tmp = lyr;
-  key |= (tmp << bitshift_layer);  // layer
+  key |= (tmp << kBitShiftLayer);  // layer
   return key;
 }

@@ -9,11 +9,10 @@
 #include <map>
 #include <set>
 
-class TrkrClusterContainer: public PHObject
+class TrkrClusterContainer : public PHObject
 {
-
-  public:
-  typedef std::map<TrkrDefs::cluskey,TrkrCluster *> Map;
+ public:
+  typedef std::map<TrkrDefs::cluskey, TrkrCluster *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -22,57 +21,58 @@ class TrkrClusterContainer: public PHObject
   TrkrClusterContainer();
 
   virtual ~TrkrClusterContainer() {}
-
   void Reset();
 
-  void identify(std::ostream& os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const;
 
   ConstIterator AddCluster(TrkrCluster *newClus);
   ConstIterator AddClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
-  
+
   //! preferred removal method, key is currently the clus id
-  void RemoveCluster(TrkrDefs::cluskey key) {
-    clusmap.erase(key);
+  void RemoveCluster(TrkrDefs::cluskey key)
+  {
+    clusmap_.erase(key);
   }
 
   //! inefficent, use key where possible instead
   void RemoveCluster(TrkrCluster *clus)
   {
-    Iterator its = clusmap.begin();
-    Iterator last = clusmap.end();
+    Iterator its = clusmap_.begin();
+    Iterator last = clusmap_.end();
     for (; its != last;)
+    {
+      if (its->second == clus)
       {
-	if (its->second == clus)
-	  {
-	    clusmap.erase(its++);
-	  }
-	else
-	  {
-	    ++its;
-	  }
+        clusmap_.erase(its++);
       }
+      else
+      {
+        ++its;
+      }
+    }
   }
 
-
-  Iterator findOrAddCluster(TrkrDefs::cluskey key);
+  Iterator FindOrAddCluster(TrkrDefs::cluskey key);
 
   //! return all Clusters matching a given detid
-  ConstRange getClusters(const TrkrDefs::TRKRID trackerid) const;
+  ConstRange GetClusters(const TrkrDefs::TRKRID trackerid) const;
 
   //! return all Clusters matching a given detid and layer
-  ConstRange getClusters(const TrkrDefs::TRKRID trackerid, const char layer) const;
+  ConstRange GetClusters(const TrkrDefs::TRKRID trackerid, const char layer) const;
 
   //! return all clusters
-  ConstRange getClusters( void ) const;
+  ConstRange GetClusters(void) const;
 
-  TrkrCluster* findCluster(TrkrDefs::cluskey key);
+  TrkrCluster *FindCluster(TrkrDefs::cluskey key);
 
-  unsigned int size( void ) const
-  { return clusmap.size(); }
+  unsigned int size(void) const
+  {
+    return clusmap_.size();
+  }
 
  protected:
-  Map clusmap;
-  ClassDef(TrkrClusterContainer,1)
+  Map clusmap_;
+  ClassDef(TrkrClusterContainer, 1)
 };
 
 #endif

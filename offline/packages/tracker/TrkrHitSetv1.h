@@ -12,30 +12,32 @@
 #include <iostream>
 #include <map>
 
+/**
+ * Version 1 of hit container
+ */
 class TrkrHitSetv1 : public TrkrHitSet
 {
  public:
+  // ctor
   TrkrHitSetv1();
 
+  // dtor
   virtual ~TrkrHitSetv1() {}
-
+  // TObject classes
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
   void print() const;
 
-  void set_hitid(const TrkrDefs::hitsetkey id) { hitid = id; }
-  TrkrDefs::hitsetkey get_hitid() const { return hitid; }
-
-  void set_truthid(const uint64_t id) { truthid = id; }
-  uint64_t get_truthid() const { return truthid; }
-
-
+  // Set/Get the key (ID) for this set of hits
+  virtual void SetHitSetKey(const TrkrDefs::hitsetkey key) { hitset_key_ = key; }
+  virtual TrkrDefs::hitsetkey GetHitSetKey() const { return hitset_key_; }
+  // Set/Get the key (ID) for the truth mapping object assoc. to this hit set
+  virtual void SetTruthMapKey(const uint64_t key) { truth_map_key_ = key; }
+  virtual uint64_t GetTruthMapKey() const { return truth_map_key_; }
  protected:
  private:
-
-  TrkrDefs::hitsetkey hitid;
-  uint64_t truthid;
-
+  TrkrDefs::hitsetkey hitset_key_;
+  uint64_t truth_map_key_;
 };
 
 #endif

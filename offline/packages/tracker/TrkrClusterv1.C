@@ -10,22 +10,21 @@ using namespace std;
 ClassImp(TrkrClusterv1);
 
 TrkrClusterv1::TrkrClusterv1()
-  : _id(TrkrDefs::CLUSKEYMAX)
-  , _pos()
-  , _is_global(true)
-  , _adc(0xFFFFFFFF)
-  , _size()
-  , _err()
-  , _hit_ids()
+  : cluskey_(TrkrDefs::CLUSKEYMAX)
+  , pos_()
+  , is_global_(true)
+  , adc_(0xFFFFFFFF)
+  , size_()
+  , err_()
 {
-  for (int i = 0; i < 3; ++i) _pos[i] = NAN;
+  for (int i = 0; i < 3; ++i) pos_[i] = NAN;
 
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      set_size(i, j, NAN);
-      set_error(i, j, NAN);
+      SetSize(i, j, NAN);
+      SetError(i, j, NAN);
     }
   }
 }
@@ -33,52 +32,47 @@ TrkrClusterv1::TrkrClusterv1()
 void TrkrClusterv1::identify(ostream& os) const
 {
   os << "---TrkrClusterv1--------------------" << endl;
-  os << "clusid: 0x" << std::hex << get_id() << std::dec << endl;
+  os << "clusid: 0x" << std::hex << GetClusKey() << std::dec << endl;
 
-  os << " (x,y,z) =  (" << get_position(0);
-  os << ", " << get_position(1) << ", ";
-  os << get_position(2) << ") cm";
-  if ( _is_global )
+  os << " (x,y,z) =  (" << GetPosition(0);
+  os << ", " << GetPosition(1) << ", ";
+  os << GetPosition(2) << ") cm";
+  if (is_global_)
     os << " - global coordinates" << endl;
   else
     os << " - local coordinates" << endl;
 
-  os << " adc = " << get_adc() << endl;
+  os << " adc = " << GetAdc() << endl;
 
-  os << " size phi = " << get_phi_size();
-  os << " cm, size z = " << get_z_size() << " cm" << endl;
+  os << " size phi = " << GetPhiSize();
+  os << " cm, size z = " << GetZSize() << " cm" << endl;
 
   os << "         ( ";
-  os << get_size(0, 0) << " , ";
-  os << get_size(0, 1) << " , ";
-  os << get_size(0, 2) << " )" << endl;
+  os << GetSize(0, 0) << " , ";
+  os << GetSize(0, 1) << " , ";
+  os << GetSize(0, 2) << " )" << endl;
   os << "  size = ( ";
-  os << get_size(1, 0) << " , ";
-  os << get_size(1, 1) << " , ";
-  os << get_size(1, 2) << " )" << endl;
+  os << GetSize(1, 0) << " , ";
+  os << GetSize(1, 1) << " , ";
+  os << GetSize(1, 2) << " )" << endl;
   os << "         ( ";
-  os << get_size(2, 0) << " , ";
-  os << get_size(2, 1) << " , ";
-  os << get_size(2, 2) << " )" << endl;
+  os << GetSize(2, 0) << " , ";
+  os << GetSize(2, 1) << " , ";
+  os << GetSize(2, 2) << " )" << endl;
 
   os << "         ( ";
-  os << get_error(0, 0) << " , ";
-  os << get_error(0, 1) << " , ";
-  os << get_error(0, 2) << " )" << endl;
+  os << GetError(0, 0) << " , ";
+  os << GetError(0, 1) << " , ";
+  os << GetError(0, 2) << " )" << endl;
   os << "  err  = ( ";
-  os << get_error(1, 0) << " , ";
-  os << get_error(1, 1) << " , ";
-  os << get_error(1, 2) << " )" << endl;
+  os << GetError(1, 0) << " , ";
+  os << GetError(1, 1) << " , ";
+  os << GetError(1, 2) << " )" << endl;
   os << "         ( ";
-  os << get_error(2, 0) << " , ";
-  os << get_error(2, 1) << " , ";
-  os << get_error(2, 2) << " )" << endl;
+  os << GetError(2, 0) << " , ";
+  os << GetError(2, 1) << " , ";
+  os << GetError(2, 2) << " )" << endl;
 
-  os << " list of hits ids: ";
-  for (ConstHitIter iter = begin_hits(); iter != end_hits(); ++iter)
-  {
-    os << "0x" << std::hex << *iter << std::dec << " ";
-  }
   os << endl;
   os << "-----------------------------------------------" << endl;
 
@@ -87,59 +81,58 @@ void TrkrClusterv1::identify(ostream& os) const
 
 int TrkrClusterv1::isValid() const
 {
-  if (_id == TrkrDefs::CLUSKEYMAX) return 0;
+  if (cluskey_ == TrkrDefs::CLUSKEYMAX) return 0;
   for (int i = 0; i < 3; ++i)
   {
-    if (isnan(get_position(i))) return 0;
+    if (isnan(GetPosition(i))) return 0;
   }
-  if (_adc == 0xFFFFFFFF) return 0;
+  if (adc_ == 0xFFFFFFFF) return 0;
   for (int j = 0; j < 3; ++j)
   {
     for (int i = j; i < 3; ++i)
     {
-      if (isnan(get_size(i, j))) return 0;
-      if (isnan(get_error(i, j))) return 0;
+      if (isnan(GetSize(i, j))) return 0;
+      if (isnan(GetError(i, j))) return 0;
     }
   }
-  if (_hit_ids.empty()) return 0;
 
   return 1;
 }
 
-void TrkrClusterv1::set_size(unsigned int i, unsigned int j, float value)
+void TrkrClusterv1::SetSize(unsigned int i, unsigned int j, float value)
 {
-  _size[covar_index(i, j)] = value;
+  size_[CovarIndex(i, j)] = value;
   return;
 }
 
-float TrkrClusterv1::get_size(unsigned int i, unsigned int j) const
+float TrkrClusterv1::GetSize(unsigned int i, unsigned int j) const
 {
-  return _size[covar_index(i, j)];
+  return size_[CovarIndex(i, j)];
 }
 
-void TrkrClusterv1::set_error(unsigned int i, unsigned int j, float value)
+void TrkrClusterv1::SetError(unsigned int i, unsigned int j, float value)
 {
-  _err[covar_index(i, j)] = value;
+  err_[CovarIndex(i, j)] = value;
   return;
 }
 
-float TrkrClusterv1::get_error(unsigned int i, unsigned int j) const
+float TrkrClusterv1::GetError(unsigned int i, unsigned int j) const
 {
-  return _err[covar_index(i, j)];
+  return err_[CovarIndex(i, j)];
 }
 
-float TrkrClusterv1::get_phi_size() const
+float TrkrClusterv1::GetPhiSize() const
 {
   TMatrixF COVAR(3, 3);
   for (unsigned int i = 0; i < 3; ++i)
   {
     for (unsigned int j = 0; j < 3; ++j)
     {
-      COVAR[i][j] = get_size(i, j);
+      COVAR[i][j] = GetSize(i, j);
     }
   }
 
-  float phi = -1.0 * atan2(_pos[1], _pos[0]);
+  float phi = -1.0 * atan2(pos_[1], pos_[0]);
 
   TMatrixF ROT(3, 3);
   ROT[0][0] = cos(phi);
@@ -161,30 +154,30 @@ float TrkrClusterv1::get_phi_size() const
   return 2.0 * sqrt(TRANS[1][1]);
 }
 
-float TrkrClusterv1::get_z_size() const
+float TrkrClusterv1::GetZSize() const
 {
-  return 2.0 * sqrt(get_size(2, 2));
+  return 2.0 * sqrt(GetSize(2, 2));
 }
 
-float TrkrClusterv1::get_phi_error() const
+float TrkrClusterv1::GetPhiError() const
 {
-  float rad = sqrt(_pos[0] * _pos[0] + _pos[1] * _pos[1]);
-  if (rad > 0) return get_rphi_error() / rad;
+  float rad = sqrt(pos_[0] * pos_[0] + pos_[1] * pos_[1]);
+  if (rad > 0) return GetRPhiError() / rad;
   return 0;
 }
 
-float TrkrClusterv1::get_rphi_error() const
+float TrkrClusterv1::GetRPhiError() const
 {
   TMatrixF COVAR(3, 3);
   for (unsigned int i = 0; i < 3; ++i)
   {
     for (unsigned int j = 0; j < 3; ++j)
     {
-      COVAR[i][j] = get_error(i, j);
+      COVAR[i][j] = GetError(i, j);
     }
   }
 
-  float phi = -1.0 * atan2(_pos[1], _pos[0]);
+  float phi = -1.0 * atan2(pos_[1], pos_[0]);
 
   TMatrixF ROT(3, 3);
   ROT[0][0] = cos(phi);
@@ -206,12 +199,12 @@ float TrkrClusterv1::get_rphi_error() const
   return sqrt(TRANS[1][1]);
 }
 
-float TrkrClusterv1::get_z_error() const
+float TrkrClusterv1::GetZError() const
 {
-  return sqrt(get_error(2, 2));
+  return sqrt(GetError(2, 2));
 }
 
-unsigned int TrkrClusterv1::covar_index(unsigned int i, unsigned int j) const
+unsigned int TrkrClusterv1::CovarIndex(unsigned int i, unsigned int j) const
 {
   if (i > j) std::swap(i, j);
   return i + 1 + (j + 1) * (j) / 2 - 1;

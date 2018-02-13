@@ -12,13 +12,9 @@
 class TrkrCluster : public PHObject
 {
  public:
-  typedef std::set<TrkrDefs::clushitkey> HitSet;
-  typedef std::set<TrkrDefs::clushitkey>::const_iterator ConstHitIter;
-  typedef std::set<TrkrDefs::clushitkey>::iterator HitIter;
-
+  //! dtor
   virtual ~TrkrCluster() {}
   // PHObject virtual overloads
-
   virtual void identify(std::ostream& os = std::cout) const
   {
     os << "TrkrCluster base class" << std::endl;
@@ -29,53 +25,39 @@ class TrkrCluster : public PHObject
   //
   // cluster id
   //
-  virtual TrkrDefs::cluskey get_id() const { return TrkrDefs::CLUSKEYMAX; }
-  virtual void set_id(TrkrDefs::cluskey id) {}
+  virtual TrkrDefs::cluskey GetClusKey() const { return TrkrDefs::CLUSKEYMAX; }
+  virtual void SetClusKey(TrkrDefs::cluskey id) {}
   //
   // cluster position
   //
-  virtual float get_x() const { return NAN; }
-  virtual void set_x(float x) {}
-  virtual float get_y() const { return NAN; }
-  virtual void set_y(float y) {}
-  virtual float get_z() const { return NAN; }
-  virtual void set_z(float z) {}
-  virtual float get_position(int coor) const { return NAN; }
-  virtual void set_position(int coor, float xi) {}
-  virtual void set_global() {}
-  virtual void set_local() {}
-  virtual bool is_global() { return true; }
+  virtual float GetX() const { return NAN; }
+  virtual void SetX(float x) {}
+  virtual float GetY() const { return NAN; }
+  virtual void SetY(float y) {}
+  virtual float GetZ() const { return NAN; }
+  virtual void SetZ(float z) {}
+  virtual float GetPosition(int coor) const { return NAN; }
+  virtual void SetPosition(int coor, float xi) {}
+  virtual void SetGlobal() {}
+  virtual void SetLocal() {}
+  virtual bool IsGlobal() { return true; }
   //
   // cluster info
   //
-  virtual unsigned int get_adc() const { return UINT_MAX; }
-  virtual void set_adc(unsigned int adc) {}
-  virtual float get_size(unsigned int i, unsigned int j) const { return NAN; }
-  virtual void set_size(unsigned int i, unsigned int j, float value) {}
-  virtual float get_error(unsigned int i, unsigned int j) const { return NAN; }
-  virtual void set_error(unsigned int i, unsigned int j, float value) {}
-  //
-  // clustered hit ids methods
-  //
-  virtual void clear_hits() {}
-  virtual bool empty_hits() { return true; }
-  virtual size_t size_hits() { return 0; }
-  virtual void insert_hit(TrkrDefs::clushitkey hit_id) {}
-  virtual size_t erase_hit(TrkrDefs::clushitkey hit_id) { return 0; }
-  virtual ConstHitIter begin_hits() const { return HitSet().end(); }
-  virtual ConstHitIter find_hit(TrkrDefs::clushitkey hitid) const { return HitSet().end(); }
-  virtual ConstHitIter end_hits() const { return HitSet().end(); }
-  virtual HitIter begin_hits() { return HitSet().end(); }
-  virtual HitIter find_hit(TrkrDefs::clushitkey hitid) { return HitSet().end(); }
-  virtual HitIter end_hits() { return HitSet().end(); }
+  virtual void SetAdc(unsigned int adc) {}
+  virtual unsigned int GetAdc() const { return UINT_MAX; }
+  virtual float GetSize(unsigned int i, unsigned int j) const { return NAN; }
+  virtual void SetSize(unsigned int i, unsigned int j, float value) {}
+  virtual float GetError(unsigned int i, unsigned int j) const { return NAN; }
+  virtual void SetError(unsigned int i, unsigned int j, float value) {}
   //
   // convenience interface
   //
-  virtual float get_phi_size() const { return NAN; }
-  virtual float get_z_size() const { return NAN; }
-  virtual float get_phi_error() const { return NAN; }
-  virtual float get_rphi_error() const { return NAN; }
-  virtual float get_z_error() const { return NAN; }
+  virtual float GetPhiSize() const { return NAN; }
+  virtual float GetZSize() const { return NAN; }
+  virtual float GetPhiError() const { return NAN; }
+  virtual float GetRPhiError() const { return NAN; }
+  virtual float GetZError() const { return NAN; }
  protected:
   TrkrCluster() {}
   ClassDef(TrkrCluster, 1);
