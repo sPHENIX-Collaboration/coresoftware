@@ -71,12 +71,12 @@ class SpacalRawTowerBuilder : public SubsysReco {
 
   double emin;	
   int chkenergyconservation;
-  int _nphibins;
-  int _netabins;
-  double _etamin;
-  double _phimin;
-  double _etastep;
-  double _phistep;
+//  int _nphibins;
+//  int _netabins;
+//  double _etamin;
+//  double _phimin;
+//  double _etastep;
+//  double _phistep;
   enu_tower_energy_src _tower_energy_src;
 
   PHTimeServer::timer _timer;

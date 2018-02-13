@@ -5,7 +5,11 @@
 #include <calobase/RawTowerv1.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeom_Spacalv1.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom_Spacalv3.h>
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
@@ -33,12 +37,6 @@ SpacalRawTowerBuilder::SpacalRawTowerBuilder(const std::string &name)
   , detector("NONE")
   , emin(1e-6)
   , chkenergyconservation(0)
-  , _nphibins(-1)
-  , _netabins(-1)
-  , _etamin(NAN)
-  , _phimin(NAN)
-  , _etastep(NAN)
-  , _phistep(NAN)
   , _tower_energy_src(kLightYield)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
@@ -231,18 +229,33 @@ void SpacalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     runNode->addNode(RunDetNode);
   }
 
-  const RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(detector);
-
-  // get the cell geometry and build up the tower geometry object
-  std::string geonodename = "CYLINDERCELLGEOM_" + detector;
-  PHG4CylinderCellGeomContainer *cellgeos = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, geonodename.c_str());
-  if (!cellgeos)
+  // get the SPACAL geometry
+  const string geonodename = "CYLINDERGEOM_" + detector;
+  PHG4CylinderGeomContainer *spacalgeos =
+      findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  if (!spacalgeos)
   {
-    std::cerr << PHWHERE << " " << geonodename
-              << " Node missing, doing nothing." << std::endl;
-    throw std::runtime_error(
-        "Failed to find " + geonodename + " node in SpacalRawTowerBuilder::CreateNodes");
+    cout << PHWHERE << " - Could not locate geometry node "
+         << geonodename << endl;
+    topNode->print();
+    exit(1);
   }
+  if (verbosity > 0)
+  {
+    cout << PHWHERE << " - incoming geometry:"
+         << endl;
+    spacalgeos->identify();
+  }
+
+  const PHG4CylinderGeom *layergeom_raw = spacalgeos->GetFirstLayerGeom();
+  assert(layergeom_raw);
+
+  // a special implimentation of PHG4CylinderGeom is required here.
+  const PHG4CylinderGeom_Spacalv3 *layergeom =
+      dynamic_cast<const PHG4CylinderGeom_Spacalv3 *>(layergeom_raw);
+
+  //  build up the tower geometry object
+  const RawTowerDefs::CalorimeterId caloid = RawTowerDefs::convert_name_to_caloid(detector);
   TowerGeomNodeName = "TOWERGEOM_" + detector;
   rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName.c_str());
   if (!rawtowergeom)
@@ -252,78 +265,149 @@ void SpacalRawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     RunDetNode->addNode(newNode);
   }
 
-  assert(cellgeos->get_NLayers() == 1);
-  assert(cellgeos->GetFirstLayerCellGeom());
-  assert(cellgeos->GetFirstLayerCellGeom()->get_layer() == 0);
 
-  // Create the tower nodes on the tree
-  PHG4CylinderCellGeom *first_cellgeo = nullptr;
-  double inner_radius = 0;
-  double thickness = 0;
-
-  PHG4CylinderCellGeom *cellgeo = cellgeos->GetFirstLayerCellGeom();
-
-  if (verbosity)
-  {
-    cellgeo->identify();
-  }
-  thickness += cellgeo->get_thickness();
-
-  assert(cellgeo->get_binning() == PHG4CellDefs::spacalbinning);
-
-  _nphibins = cellgeo->get_phibins();
-  _phimin = cellgeo->get_phimin();
-  _phistep = cellgeo->get_phistep();
-
-  // use eta definiton for each row of towers
-  _netabins = cellgeo->get_etabins();
-
-  inner_radius = cellgeo->get_radius();
-
-  rawtowergeom->set_radius(inner_radius);
-  rawtowergeom->set_thickness(thickness);
-  rawtowergeom->set_phibins(_nphibins);
-  //  rawtowergeom->set_phistep(_phistep);
-  //  rawtowergeom->set_phimin(_phimin);
-  rawtowergeom->set_etabins(_netabins);
-
-  if (!first_cellgeo)
-  {
-    cout << "SpacalRawTowerBuilder::CreateNodes - ERROR - can not find first layer of cells "
-         << endl;
-
-    exit(1);
-  }
-
-  for (int ibin = 0; ibin < first_cellgeo->get_phibins(); ibin++)
-  {
-    const pair<double, double> range = first_cellgeo->get_phibounds(ibin);
-
-    rawtowergeom->set_phibounds(ibin, range);
-  }
-
-  const double r = inner_radius + thickness / 2.;
-
-  for (int ibin = 0; ibin < first_cellgeo->get_etabins(); ibin++)
-  {
-    const pair<double, double> range = first_cellgeo->get_etabounds(ibin);
-
-    rawtowergeom->set_etabounds(ibin, range);
-  }
+  //  for (int ibin = 0; ibin < first_cellgeo->get_phibins(); ibin++)
+  //  {
+  //    const pair<double, double> range = first_cellgeo->get_phibounds(ibin);
+  //
+  //    rawtowergeom->set_phibounds(ibin, range);
+  //  }
+  //
+  //  const double r = inner_radius + thickness / 2.;
+  //
+  //  for (int ibin = 0; ibin < first_cellgeo->get_etabins(); ibin++)
+  //  {
+  //    const pair<double, double> range = first_cellgeo->get_etabounds(ibin);
+  //
+  //    rawtowergeom->set_etabounds(ibin, range);
+  //  }
 
   // setup location of all towers
-  for (int iphi = 0; iphi < rawtowergeom->get_phibins(); iphi++)
-  {
-    for (int ieta = 0; ieta < rawtowergeom->get_etabins(); ieta++)
-    {
-      RawTowerGeomv1 *tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(caloid, ieta, iphi));
+  //  for (int iphi = 0; iphi < rawtowergeom->get_phibins(); iphi++)
+  //  {
+  //    for (int ieta = 0; ieta < rawtowergeom->get_etabins(); ieta++)
+  //    {
+  //      RawTowerGeomv1 *tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(caloid, ieta, iphi));
+  //
+  ////      tg->set_center_x(r * cos(rawtowergeom->get_phicenter(iphi)));
+  ////      tg->set_center_y(r * sin(rawtowergeom->get_phicenter(iphi)));
+  ////      tg->set_center_z(r / tan(PHG4Utils::get_theta(rawtowergeom->get_etacenter(ieta))));
+  //
+  //
+  //      rawtowergeom->add_tower_geometry(tg);
+  //    }
+  //  }
 
-      tg->set_center_x(r * cos(rawtowergeom->get_phicenter(iphi)));
-      tg->set_center_y(r * sin(rawtowergeom->get_phicenter(iphi)));
-      tg->set_center_z(r / tan(PHG4Utils::get_theta(rawtowergeom->get_etacenter(ieta))));
-      rawtowergeom->add_tower_geometry(tg);
+  //First round sort towers
+  const int nphibin = layergeom->get_azimuthal_n_sec() // sector`
+    * layergeom->get_max_phi_bin_in_sec() // blocks per sector
+    * layergeom->get_n_subtower_phi(); // subtower per block
+
+  const PHG4CylinderGeom_Spacalv3::tower_map_t &tower_map =
+      layergeom->get_sector_tower_map();
+
+  typedef map<double, int> map_z_tower_z_ID_t;
+  map_z_tower_z_ID_t map_z_tower_z_ID;
+  for (const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type &tower_pair : tower_map)
+  {
+    const int &tower_ID = tower_pair.first;
+    const PHG4CylinderGeom_Spacalv3::geom_tower &tower =
+        tower_pair.second;
+
+    // inspect index in sector 0
+    pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, 0);
+
+    const int &tower_ID_z = tower_z_phi_ID.first;
+    const int &tower_ID_phi = tower_z_phi_ID.second;
+
+    if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
+    {
+      //assign eta min according phi bin 0
+      map_z_tower_z_ID[tower.centralZ] = tower_ID_z;
     }
+    // ...
+  }  //    for (const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type &tower_pair : tower_map)
+
+  // second round, assign tower eta bin ID
+  PHG4CylinderCellGeom_Spacalv1::tower_z_ID_eta_bin_map_t tower_z_ID_eta_bin_map;
+  int eta_bin_cnt = 0;
+  for (map_z_tower_z_ID_t::value_type &z_tower_z_ID : map_z_tower_z_ID)
+  {
+    tower_z_ID_eta_bin_map[z_tower_z_ID.second] = eta_bin_cnt;
+    eta_bin_cnt++;
   }
+
+  //  rawtowergeom->set_radius(inner_radius);
+  //  rawtowergeom->set_thickness(thickness);
+    rawtowergeom->set_phibins(nphibin);
+    rawtowergeom->set_etabins(eta_bin_cnt);
+
+  //build eta-phi bin maps
+  for (int sector_ID = 0; sector_ID < layergeom->get_azimuthal_n_sec(); ++sector_ID)
+  {
+    for (const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type &tower_pair : tower_map)
+    {
+      const int &tower_ID = tower_pair.first;
+      const PHG4CylinderGeom_Spacalv3::geom_tower &tower =
+          tower_pair.second;
+
+      std::pair<int, int> tower_z_phi_ID = layergeom->get_tower_z_phi_ID(tower_ID, sector_ID);
+      const int &tower_ID_z = tower_z_phi_ID.first;
+      const int &tower_ID_phi = tower_z_phi_ID.second;
+      const int &etabin = tower_z_ID_eta_bin_map[tower_ID_z];
+
+      // half z-range
+      const double dz = fabs(0.5 * (tower.pDy1 + tower.pDy2) / sin(tower.pRotationAngleX));
+      const double tower_radial = layergeom->get_tower_radial_position(tower);
+
+      auto z_to_eta = [&tower_radial](const double &z) { return -log(tan(0.5 * atan2(tower_radial, z))); };
+
+      const double eta_central = z_to_eta(tower.centralZ);
+      // half eta-range
+      const double deta = (z_to_eta(tower.centralZ + dz) - z_to_eta(tower.centralZ - dz)) / 2;
+      assert(deta > 0);
+
+      for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
+           ++sub_tower_ID_y)
+      {
+        assert(tower.NSubtowerY <= layergeom->get_n_subtower_eta());
+        // do not overlap to the next bin.
+        const int sub_tower_etabin = etabin * layergeom->get_n_subtower_eta() + sub_tower_ID_y;
+
+        const pair<double, double> etabounds(eta_central - deta + sub_tower_ID_y * 2 * deta / tower.NSubtowerY,
+                                             eta_central - deta + (sub_tower_ID_y + 1) * 2 * deta / tower.NSubtowerY);
+
+        const pair<double, double> zbounds(tower.centralZ - dz + sub_tower_ID_y * 2 * dz / tower.NSubtowerY,
+                                           tower.centralZ - dz + (sub_tower_ID_y + 1) * 2 * dz / tower.NSubtowerY);
+
+        // only udpate eta bound once
+        if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2 and sector_ID == 0)
+          rawtowergeom->set_etabounds(sub_tower_etabin, etabounds);
+        //          layerseggeo->set_zbounds(sub_tower_etabin, zbounds);
+
+        if (verbosity >= VERBOSITY_SOME)
+        {
+          cout << "PHG4FullProjSpacalCellReco::InitRun::" << Name()
+               << "\t tower_ID_z = " << tower_ID_z
+               << "\t tower_ID_phi = " << tower_ID_phi
+               << "\t sub_tower_ID_y = " << sub_tower_ID_y
+               << "\t sub_tower_etabin = " << sub_tower_etabin
+               << "\t dz = " << dz
+               << "\t tower_radial = " << tower_radial
+               << "\t eta_central = " << eta_central
+               << "\t deta = " << deta
+               << "\t etabounds = [" << etabounds.first << ", " << etabounds.second << "]"
+               << "\t zbounds = [" << zbounds.first << ", " << zbounds.second << "]"
+               << endl;
+        }  //          if (verbosity >= VERBOSITY_SOME)
+
+      }  //        for (int sub_tower_ID_y = 0; sub_tower_ID_y < tower.NSubtowerY;
+
+      //      }//      if (tower_ID_phi == layergeom->get_max_phi_bin_in_sec() / 2)
+
+    }  //      for (const PHG4CylinderGeom_Spacalv3::tower_map_t::value_type &tower_pair : tower_map)
+
+  }  //  for (int sector_ID = 0; sector_ID < layergeom->get_N_sensors_in_layer(); ++sector_ID)
 
   if (verbosity >= 1)
   {
