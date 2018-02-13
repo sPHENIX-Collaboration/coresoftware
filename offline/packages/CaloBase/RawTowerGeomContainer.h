@@ -93,34 +93,34 @@ class RawTowerGeomContainer : public PHObject
    * @{
    */
   //! center x of a planar calorimeter from front to back
-  double get_center_x() const  {PHOOL_VIRTUAL_WARN("get_center_x");    return NAN;  }
+  virtual double get_center_x() const  {PHOOL_VIRTUAL_WARN("get_center_x");    return NAN;  }
 
   //! center x of a planar calorimeter from front to back
-  void set_center_x(double centerX)  {PHOOL_VIRTUAL_WARN("set_center_x");  }
+  virtual void set_center_x(double centerX)  {PHOOL_VIRTUAL_WARN("set_center_x");  }
 
   //! center y of a planar calorimeter from front to back
-  double get_center_y() const  {PHOOL_VIRTUAL_WARN("get_center_y");    return NAN;  }
+  virtual double get_center_y() const  {PHOOL_VIRTUAL_WARN("get_center_y");    return NAN;  }
 
   //! center y of a planar calorimeter from front to back
-  void set_center_y(double centerY)  {PHOOL_VIRTUAL_WARN("set_center_y");  }
+  virtual void set_center_y(double centerY)  {PHOOL_VIRTUAL_WARN("set_center_y");  }
 
   //! center z of a planar calorimeter from front to back
-  double get_center_z() const  {PHOOL_VIRTUAL_WARN("get_center_z");    return NAN;  }
+  virtual double get_center_z() const  {PHOOL_VIRTUAL_WARN("get_center_z");    return NAN;  }
 
   //! center z of a planar calorimeter from front to back
-  void set_center_z(double centerZ)  {PHOOL_VIRTUAL_WARN("set_center_z");  }
+  virtual void set_center_z(double centerZ)  {PHOOL_VIRTUAL_WARN("set_center_z");  }
 
   //! azimuthal angle of the orientation of a planar calorimeter from front to back from front to back
-  double get_phi() const  {PHOOL_VIRTUAL_WARN("get_phi");    return NAN;  }
+  virtual double get_phi() const  {PHOOL_VIRTUAL_WARN("get_phi");    return NAN;  }
 
   //! azimuthal angle of the orientation of a planar calorimeter from front to back from front to back
-  void set_phi(double phi)  {PHOOL_VIRTUAL_WARN("set_phi");  }
+  virtual void set_phi(double phi)  {PHOOL_VIRTUAL_WARN("set_phi");  }
 
   //! polar angle of the orientation of a planar calorimeter from front to back from front to back
-  double get_theta() const  {PHOOL_VIRTUAL_WARN("get_theta");    return NAN;  }
+  virtual double get_theta() const  {PHOOL_VIRTUAL_WARN("get_theta");    return NAN;  }
 
   //! polar angle of the orientation of a planar calorimeter from front to back from front to back
-  void set_theta(double theta)  {PHOOL_VIRTUAL_WARN("set_theta");  }
+  virtual void set_theta(double theta)  {PHOOL_VIRTUAL_WARN("set_theta");  }
 
   /**@}*/
  protected:
