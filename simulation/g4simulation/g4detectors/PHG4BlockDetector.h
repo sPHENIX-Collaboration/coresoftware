@@ -4,7 +4,7 @@
 #include <g4main/PHG4Detector.h>
 
 class G4LogicalVolume;
-class PHG4Parameters;
+class PHParameters;
 class G4VPhysicalVolume;
 
 class PHG4BlockDetector: public PHG4Detector
@@ -13,7 +13,7 @@ class PHG4BlockDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4BlockDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4BlockDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0 );
 
   //! destructor
   virtual ~PHG4BlockDetector( void )
@@ -33,7 +33,7 @@ class PHG4BlockDetector: public PHG4Detector
 
   private:
 
-  PHG4Parameters *params;
+  PHParameters *params;
  
   G4VPhysicalVolume* block_physi;
 
