@@ -13,7 +13,7 @@ using namespace std;
 
 PHG4TPCPadPlane::PHG4TPCPadPlane(const std::string &name): 
   SubsysReco(name),
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   detector("TPC")
 {}
 

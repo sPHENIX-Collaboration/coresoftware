@@ -29,7 +29,8 @@ libg4detectors_io_la_LIBADD = \
   -lboost_filesystem \
   -lboost_system \
   -lpdbcalBase \
-  -lXMLIO
+  -lXMLIO \
+  -lphparameter
 
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \

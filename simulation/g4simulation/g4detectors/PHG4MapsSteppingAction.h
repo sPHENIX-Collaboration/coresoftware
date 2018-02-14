@@ -1,7 +1,7 @@
 #ifndef PHG4VMapsSteppingAction_h
 #define PHG4VMapsSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4MapsDetector;
 class PHG4Hit;

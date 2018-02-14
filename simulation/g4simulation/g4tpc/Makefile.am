@@ -19,7 +19,8 @@ libg4tpc_la_LIBADD = \
   -lphool \
   -lg4testbench \
   -lphg4hit \
-  -lg4detectors
+  -lg4detectors \
+  -lphparameter
 
 #pkginclude_HEADERS =
 

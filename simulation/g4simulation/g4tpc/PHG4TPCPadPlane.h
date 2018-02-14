@@ -1,13 +1,13 @@
 #ifndef PHG4TPCPadPlane_h
 #define PHG4TPCPadPlane_h
 
-#include <g4detectors/PHG4ParameterInterface.h>
+#include <phparameter/PHParameterInterface.h>
 #include <fun4all/SubsysReco.h>
 
 class PHG4CellContainer;
 class PHCompositeNode;
 
-class PHG4TPCPadPlane: public SubsysReco, public PHG4ParameterInterface
+class PHG4TPCPadPlane: public SubsysReco, public PHParameterInterface
 {
 public:
   PHG4TPCPadPlane(const std::string &name="PHG4TPCPadPlane"); 
