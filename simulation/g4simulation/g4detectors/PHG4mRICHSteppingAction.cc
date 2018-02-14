@@ -71,7 +71,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   G4VPhysicalVolume* volume = touch->GetVolume();
 
   int isactive = detector_->IsInmRICH(volume);
-  // cout << "isactive = " << isactive << endl;
   if ( isactive > PHG4mRICHDetector::INACTIVE ) 
   {
     // collect energy and track length step by step
@@ -87,11 +86,15 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       geantino = true;
     }
 
-    int module_id=GetModuleID(volume);
+    // cout << "Name of volume: " << volume->GetName() << ", isactive = " << isactive << endl;
+    // G4VPhysicalVolume* v1 = touch->GetVolume(1);
+    // cout << "Name of mother volume: " << v1->GetName() << endl;
+    // G4VPhysicalVolume* v2 = touch->GetVolume(2);
+    // cout << "Name of grand mother volume: " << v2->GetName() << endl;
+
+    int module_id=GetModuleID(touch->GetVolume(2)); // use mother volume to determine module_id
     int PID=aTrack->GetDefinition()->GetPDGEncoding();
     string PName = aTrack->GetDefinition()->GetParticleName();
-    // cout << endl;
-    // cout << "PID = " << PID << ", Name = " << PName << ", trackID = " << aTrack->GetTrackID() << ", edep = " << edep << endl;
 
     //-----------------------------------------------------------------------------------//
     // if this block stops everything, just put all kinetic energy into edep
@@ -193,7 +196,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     /* sum up the energy to get total deposited */
     hit->set_edep(hit->get_edep() + edep);
     hit->set_eion(hit->get_eion() + eion);
-    // cout << "trkid = " << hit->get_trkid() << ", edep = " << hit->get_edep() << endl;
 
     if (geantino) 
     {
@@ -222,7 +224,6 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
       // save only hits with energy deposit (or -1 for geantino)
       if (hit->get_edep() && PID==0)
       {
-	// cout << "Name of volume = " << volume->GetName() << ", module_id = " << module_id << endl;
 	savehitcontainer->AddHit(module_id, hit);
 	if (saveshower) 
 	{ 
@@ -289,33 +290,53 @@ int PHG4mRICHSteppingAction::GetModuleID(G4VPhysicalVolume* volume)
   //     XXX - assembly volume imprint number 
   //     YYY - the name of the placed logical volume
   //     ZZZ - the logical volume index inside the assembly volume
-  // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11 
-  // 82 the number of the scintillator mother volume
-  // HcalInnerScinti_11: name of scintillator slat  
-  // 11: number of scintillator slat logical volume 
+  // e.g. av_1_impr_4_mRICH_module_pv_11 
+  // 4 is the number of the mRICH sector volume
+  // mRICH_module: name of mRICH module 
+  // 11: number of mRICH module logical volume 
   // use boost tokenizer to separate the _, then take value
-  // after "impr" for mother volume and after "pv" for scintillator slat
+  // after "impr" for mRICH sector volume and after "pv" for mRICH module volume
   // use boost lexical cast for string -> int conversion 
   int module_id = -1;
+  int sector_id = -1;
+  int mRICH_id = -1;
 
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char>> tok(volume->GetName(), sep);
   boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
 
   for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter) {
-    if (*tokeniter == "module") {
+    if (*tokeniter == "impr") {
       ++tokeniter;
       if (tokeniter != tok.end()) {
-	module_id = boost::lexical_cast<int>(*tokeniter);
-	// cout << "Name of volume = " << volume->GetName() << ", module_id = " << module_id << endl;
-	//if (module_id<0) cout<<"ERROR: module_id<0"<<endl;
+	sector_id = boost::lexical_cast<int>(*tokeniter);
       }
       else {
 	cout << PHWHERE << " Error parsing " << volume->GetName()
-	     << " for mother scinti slat id " << endl;
+	     << " for mRICH sector id " << endl;
+	gSystem->Exit(1);
+      }
+    }
+    else if (*tokeniter == "pv")
+    {
+      ++tokeniter;
+      if (tokeniter != tok.end())
+      {
+	mRICH_id = boost::lexical_cast<int>(*tokeniter);
+      }
+      else
+      {
+	cout << PHWHERE << " Error parsing " << volume->GetName()
+	  << " for mRICH id " << endl;
 	gSystem->Exit(1);
       }
     }
   }
+
+  module_id = (sector_id-1)*100+mRICH_id;
+
+  // cout << "name of volume: " << volume->GetName() << ", sector_id = " << sector_id << ", mRICH_id = " << mRICH_id << ", module_id = " << module_id << endl;
+  // cout << endl;
+
   return module_id;
 }
