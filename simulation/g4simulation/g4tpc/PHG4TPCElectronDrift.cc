@@ -1,10 +1,14 @@
 #include "PHG4TPCElectronDrift.h"
 #include "PHG4CellTPCv1.h"
+#include "PHG4TPCPadPlane.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4ParametersContainer.h>
+
+#include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -22,7 +26,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <gsl/gsl_randist.h>
-
 #include <iostream>
 
 using namespace std;
@@ -48,6 +51,21 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   return;
 }
 
+PHG4TPCElectronDrift::~PHG4TPCElectronDrift()
+{
+  gsl_rng_free(RandomGenerator);
+}
+
+int PHG4TPCElectronDrift::Init(PHCompositeNode *topNode)
+{
+  for  (auto *padplane: tpcpadplane)
+  {
+    padplane->Init(topNode);
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
 int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -60,8 +78,10 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-//  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
   string paramnodename = "G4CELLPARAM_" + detector;
+  string geonodename = "G4CELLPAR_" + detector;
+  string tpcgeonodename = "G4GEO_" + detector;
   hitnodename = "G4HIT_" + detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -98,12 +118,40 @@ g4cells = new PHG4CellContainer();
       runNode->addNode(RunDetNode);
     }
   SaveToNodeTree(RunDetNode,paramnodename);
+
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+    {
+      ParDetNode = new PHCompositeNode(detector);
+      parNode->addNode(ParDetNode);
+    }
+  PutOnParNode(ParDetNode,geonodename);
+
   diffusion_long = get_double_param("diffusion_long");
   diffusion_trans = get_double_param("diffusion_trans");
   drift_velocity = get_double_param("drift_velocity");
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
+
+// find TPC Geo
+  PHNodeIterator tpcpariter(ParDetNode);
+  PHG4ParametersContainer *tpcparams = findNode::getClass<PHG4ParametersContainer>(ParDetNode,tpcgeonodename);
+  if (!tpcparams)
+  {
+    string runparamname = "G4GEOPARAM_" + detector;
+    PdbParameterMapContainer *tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode,runparamname);
+    if (tpcpdbparams)
+    {
+      tpcparams = new PHG4ParametersContainer(detector);
+      tpcpdbparams->print();
+      tpcparams->CreateAndFillFrom(tpcpdbparams,detector);
+      ParDetNode->addNode(new PHDataNode<PHG4ParametersContainer>(tpcparams,tpcgeonodename));
+    }
+  }
+  tpcparams->Print();
 
   Fun4AllServer *se = Fun4AllServer::instance();
   dlong = new TH1F("difflong","longitudinal diffusion",100,diffusion_long-diffusion_long/2.,diffusion_long+diffusion_long/2.);
@@ -116,6 +164,11 @@ g4cells = new PHG4CellContainer();
   se->registerHisto(nt);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
+  for  (auto *padplane: tpcpadplane)
+  {
+    padplane->InitRun(topNode);
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -211,6 +264,11 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem)
 {
 // apply binning hardcoded 360 in phi, 40 in r, rmin = 30cm, rmax=75
+  for (auto  *padplane: tpcpadplane)
+  {
+    padplane->MapToPadPlane(g4cells,x_gem,y_gem,t_gem);
+  }
+  return;
   static const double rbins = 40;
   static const double rbinwidth = (75.-30.)/rbins;
   static const double phibinwidth = 2*M_PI/360.;
@@ -275,3 +333,9 @@ double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
   return;
 }
 
+void PHG4TPCElectronDrift::registerPadPlane(PHG4TPCPadPlane *padplane)
+{
+  padplane->Detector(Detector());
+tpcpadplane.push_back(padplane);
+return;
+}

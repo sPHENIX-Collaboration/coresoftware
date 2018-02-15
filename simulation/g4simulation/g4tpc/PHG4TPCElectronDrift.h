@@ -10,7 +10,10 @@
 #include <gsl/gsl_rng.h>
 #endif
 
+#include <vector>
+
 class PHG4CellContainer;
+class PHG4TPCPadPlane;
 class PHCompositeNode;
 class TH1;
 class TNtuple;
@@ -19,7 +22,8 @@ class  PHG4TPCElectronDrift: public SubsysReco, public PHG4ParameterInterface
 {
 public:
   PHG4TPCElectronDrift(const std::string& name = "PHG4TPCElectronDrift");
-  virtual ~PHG4TPCElectronDrift() {}
+  virtual ~PHG4TPCElectronDrift();
+  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
@@ -31,6 +35,8 @@ public:
   void set_seed(const unsigned int iseed);
 //  void Amplify(const double x, const double y, const double z);
   void MapToPadPlane(const double x, const double y, const double t);
+  void registerPadPlane(PHG4TPCPadPlane *padplane);
+
 private:
   PHG4CellContainer *g4cells;
   TH1 *dlong;
@@ -50,6 +56,7 @@ private:
   double max_active_radius;
   double min_time;
   double max_time;
+  std::vector<PHG4TPCPadPlane *> tpcpadplane;
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif

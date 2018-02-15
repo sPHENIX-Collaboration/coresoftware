@@ -1,6 +1,7 @@
 #include "PHG4Prototype2OuterHcalSteppingAction.h"
-#include "PHG4Parameters.h"
 #include "PHG4Prototype2OuterHcalDetector.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -33,7 +34,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector* detector, PHG4Parameters* parameters)
+PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector* detector, const PHParameters* parameters)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)

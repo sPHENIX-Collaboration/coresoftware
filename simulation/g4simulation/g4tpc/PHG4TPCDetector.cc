@@ -1,7 +1,7 @@
 #include "PHG4TPCDetector.h"
 #include "PHG4TPCDefs.h"
 
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4ColorDefs.h>
 #include <g4main/PHG4Utils.h>
@@ -28,7 +28,7 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4TPCDetector::PHG4TPCDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam)
+PHG4TPCDetector::PHG4TPCDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(Node, dnam)
   , params(parameters)
   , g4userlimits(nullptr)

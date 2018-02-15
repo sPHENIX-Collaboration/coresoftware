@@ -3,7 +3,8 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv1.h"
 #include "PHG4CylinderSteppingAction.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4PhenixDetector.h>

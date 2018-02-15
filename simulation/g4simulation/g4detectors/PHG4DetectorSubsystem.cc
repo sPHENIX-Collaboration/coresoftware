@@ -1,6 +1,7 @@
 #include "PHG4DetectorSubsystem.h"
-#include "PHG4Parameters.h"
-#include "PHG4ParametersContainer.h"
+
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
@@ -19,7 +20,7 @@ using namespace std;
 
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr): 
   PHG4Subsystem(name),
-  params(new PHG4Parameters(Name())),
+  params(new PHParameters(Name())),
   paramscontainer(NULL),
   savetopNode(NULL),
   overlapcheck(false),
@@ -60,7 +61,7 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
   if (superdetector != "NONE")
     {
       g4geonodename += SuperDetector();
-      paramscontainer = findNode::getClass<PHG4ParametersContainer>(parNode,g4geonodename);
+      paramscontainer = findNode::getClass<PHParametersContainer>(parNode,g4geonodename);
       if (! paramscontainer)
 	{
 	  PHNodeIterator parIter(parNode);
@@ -70,10 +71,10 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
 	      DetNode = new PHCompositeNode(SuperDetector());
 	      parNode->addNode(DetNode);
 	    }
-	  paramscontainer = new PHG4ParametersContainer(superdetector);
-	  DetNode->addNode(new PHDataNode<PHG4ParametersContainer>(paramscontainer,g4geonodename));
+	  paramscontainer = new PHParametersContainer(superdetector);
+	  DetNode->addNode(new PHDataNode<PHParametersContainer>(paramscontainer,g4geonodename));
 	}
-      paramscontainer->AddPHG4Parameters(layer,params);
+      paramscontainer->AddPHParameters(layer,params);
       paramnodename += superdetector;
       calibdetname = superdetector;
       isSuperDetector = 1;
@@ -81,7 +82,7 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
   else
     {
       g4geonodename += params->Name();
-      parNode->addNode(new PHDataNode<PHG4Parameters>(params,g4geonodename));
+      parNode->addNode(new PHDataNode<PHParameters>(params,g4geonodename));
       paramnodename += params->Name();
       calibdetname = params->Name();
     }

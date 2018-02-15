@@ -24,17 +24,18 @@ PHG4CellTPCv1::~PHG4CellTPCv1()
 void
 PHG4CellTPCv1::add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep)
 {
-  EdepMap edepmap;
-  map<int,EdepMap>::iterator mapiter = timeseq.find(tbin);
-  if (mapiter != timeseq.end())
-  {
-    edepmap = mapiter->second;
-  }
-  else
-  {
-    timeseq.insert(make_pair(tbin,edepmap));
-  }
-  edepmap.insert(make_pair(g4hitid,edep));
+// If the returned boolean from the map.insert is
+// true: the element was inserted
+// false: the element existed 
+// in any case an iterator to the element in the map is returned
+ 
+    EdepMap edepmap;
+    pair<map<int,EdepMap>::iterator, bool> ret = timeseq.insert(make_pair(tbin,edepmap));
+     map<int,EdepMap>::iterator mapiter = ret.first;
+// insert 0 edep so edep can be added no matter if hits was found or not
+  pair<EdepIterator, bool> edepret = (mapiter->second).insert(make_pair(g4hitid,0.));
+  EdepIterator eiter = edepret.first;
+  eiter->second += edep;
   return;
 }
 
@@ -242,9 +243,8 @@ void PHG4CellTPCv1::identify(std::ostream& os) const
 //  os <<"Associated to "<<hitedeps.size()<<" hits"<<endl;
   for (const auto pair :timeseq)
   {
-    os <<" TimeBin "<< pair.first <<endl;
-    EdepMap edepmap = pair.second;
-    for (const auto pair2 :edepmap)
+    os <<" TimeBin "<< pair.first << " size: " << (pair.second).size() << endl;
+    for (const auto pair2 :pair.second)
     {
       os << "\t PHG4Hit " << pair2.first << " -> " << pair2.second << " GeV" << endl;
     }

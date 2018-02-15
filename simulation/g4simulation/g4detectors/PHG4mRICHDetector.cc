@@ -17,7 +17,8 @@
  * Materials are defined in gmain/PHG4Reco::DefineMaterials      *
  *===============================================================*/
 #include "PHG4mRICHDetector.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 #include <phool/PHCompositeNode.h>
@@ -53,7 +54,7 @@ using namespace std;
 using namespace CLHEP;
 
 //_______________________________________________________________
-PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
+PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
   //block_physi(NULL),
@@ -94,7 +95,7 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
   /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
   /*mirror                      */ build_mirror(parameters,hollowVol);
   /*sensor plane                */ build_sensor(parameters,hollowVol->GetLogicalVolume());
-  /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+  /*readout electronics         */passive_volumes.insert(build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume()));
 
   printf("============== detector built ================\n");
 
@@ -584,8 +585,8 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_holderBox(mRichParameter* detectorPa
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV)
 {
-  build_box(detectorParameter->GetBoxPar("foamHolderBox"),motherLV);
-  build_polyhedra(detectorParameter->GetPolyPar("foamHolderPoly"),motherLV);
+  passive_volumes.insert(build_box(detectorParameter->GetBoxPar("foamHolderBox"),motherLV));
+  passive_volumes.insert(build_polyhedra(detectorParameter->GetPolyPar("foamHolderPoly"),motherLV));
 }
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV)
@@ -662,10 +663,10 @@ void PHG4mRICHDetector::build_sensor(mRichParameter* detectorParameter,G4Logical
     }
 
     detectorParameter->SetPar_glassWindow(x,y);
-    build_box(detectorParameter->GetBoxPar("glassWindow"),motherLV);
+    passive_volumes.insert(build_box(detectorParameter->GetBoxPar("glassWindow"),motherLV));;
 
     detectorParameter->SetPar_sensor(x,y);
-    build_box(detectorParameter->GetBoxPar("sensor"),motherLV);
+    active_volumes.insert(build_box(detectorParameter->GetBoxPar("sensor"),motherLV));
 
     last_x=x;
     last_y=y;
