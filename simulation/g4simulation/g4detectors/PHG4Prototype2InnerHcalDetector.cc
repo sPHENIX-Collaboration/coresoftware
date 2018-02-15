@@ -1,5 +1,7 @@
 #include "PHG4Prototype2InnerHcalDetector.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
@@ -21,7 +23,7 @@
 
 using namespace std;
 
-PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam  ):
+PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
   params(parameters),
   innerhcalsteelplate(NULL),

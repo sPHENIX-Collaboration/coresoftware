@@ -1,5 +1,6 @@
 #include "PHG4BeamlineMagnetDetector.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
@@ -29,7 +30,7 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4BeamlineMagnetDetector::PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam, const int lyr ):
+PHG4BeamlineMagnetDetector::PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int lyr ):
   PHG4Detector(Node,dnam),
   params(parameters),
   magnet_physi(NULL),

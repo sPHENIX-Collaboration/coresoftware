@@ -26,7 +26,7 @@ class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
-class PHG4Parameters;
+class PHParameters;
 
 //! Fully projective SPACAL built from 2D tapered modules and allow azimuthal tilts
 class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
@@ -35,7 +35,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
   PHG4FullProjTiltedSpacalDetector(PHCompositeNode* Node, const std::string& dnam,
-                                   PHG4Parameters* parameters, const int layer = 0);
+                                   PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
   virtual ~PHG4FullProjTiltedSpacalDetector(void) {}

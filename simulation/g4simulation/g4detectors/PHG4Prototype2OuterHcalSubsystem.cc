@@ -1,7 +1,8 @@
 #include "PHG4Prototype2OuterHcalSubsystem.h"
-#include "PHG4Parameters.h"
 #include "PHG4Prototype2OuterHcalDetector.h"
 #include "PHG4Prototype2OuterHcalSteppingAction.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 

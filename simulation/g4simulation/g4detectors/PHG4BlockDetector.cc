@@ -1,5 +1,6 @@
 #include "PHG4BlockDetector.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 
@@ -22,7 +23,7 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
+PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
   block_physi(nullptr),
