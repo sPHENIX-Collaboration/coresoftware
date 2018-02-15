@@ -425,6 +425,10 @@ public:
 		_init_direction = initDirection;
 	}
 
+	void set_n_iterations(int max_iterations) {
+		_n_max_iterations = max_iterations;
+	}
+
 	float get_max_search_win_phi_tpc() const {
 		return _max_search_win_phi_tpc;
 	}
@@ -636,7 +640,16 @@ private:
 	int export_output();
 
 	//!
+	int add_tracks();
+
+	//!
 	int CleanupSeedsByHitPattern();
+
+	//!
+	int check_track_exists(MapPHGenFitTrack::iterator);
+
+	//!
+	int CleanupTracksByHitPattern();
 
 	//!
 	int CleanupSeeds();
@@ -646,6 +659,9 @@ private:
 
 	//!
 	int ExportOutput();
+
+	//!
+	void print_timers();
 
 	//--------------------
 	//
@@ -763,9 +779,15 @@ private:
 
 	// object storage
 	std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
+
 	std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
 	std::vector<double> _track_errors;     ///< working array of track chisq
 	std::vector<Eigen::Matrix<float, 5, 5> > _track_covars; ///< working array of track covariances
+
+	std::vector<SimpleTrack3D> _all_tracks;    ///< working array of tracks
+	std::vector<double> _all_track_errors;     ///< working array of track chisq
+	std::vector<Eigen::Matrix<float, 5, 5> > _all_track_covars; ///< working array of track covariances
+
 	std::vector<float> _vertex;          ///< working array for collision vertex
 	std::vector<float> _vertex_error;
 
@@ -784,6 +806,8 @@ private:
 
 	//nodes to get norm vector
 	SvtxHitMap* _svtxhitsmap;
+	int* _hit_used_map;
+	int  _hit_used_map_size;
 
 	PHG4CellContainer* _cells_svtx;
 	PHG4CellContainer* _cells_intt;
@@ -792,7 +816,8 @@ private:
 	PHG4CylinderGeomContainer* _geom_container_intt;
 	PHG4CylinderGeomContainer* _geom_container_maps;
 
-
+	int  _n_iteration;
+	int  _n_max_iterations;
 	bool _seeding_only_mode;
 	bool _analyzing_mode;
 	TFile* _analyzing_file;
