@@ -1,4 +1,4 @@
-#include "RawTower_Prototype3.h"
+#include "RawTower_Prototype4.h"
 #include <calobase/RawTowerDefs.h>
 #include <iostream>
 #include <algorithm>
@@ -6,20 +6,20 @@
 #include <map>
 #include <cassert>
 
-#include "PROTOTYPE3_FEM.h"
+#include "PROTOTYPE4_FEM.h"
 
 using namespace std;
 
-ClassImp(RawTower_Prototype3)
+ClassImp(RawTower_Prototype4)
 
-RawTower_Prototype3::RawTower_Prototype3() :
+RawTower_Prototype4::RawTower_Prototype4() :
     towerid(~0), // initialize all bits on
     energy(0), time(NAN), HBD_channel(-1)
 {
   for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
-RawTower_Prototype3::RawTower_Prototype3(const RawTower & tower)
+RawTower_Prototype4::RawTower_Prototype4(const RawTower & tower)
 {
   towerid = (tower.get_id());
   energy = (tower.get_energy());
@@ -28,20 +28,20 @@ RawTower_Prototype3::RawTower_Prototype3(const RawTower & tower)
   for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
-RawTower_Prototype3::RawTower_Prototype3(RawTowerDefs::keytype id) :
+RawTower_Prototype4::RawTower_Prototype4(RawTowerDefs::keytype id) :
     towerid(id), energy(0), time(NAN), HBD_channel(-1)
 {
   for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
-RawTower_Prototype3::RawTower_Prototype3(const unsigned int icol, const unsigned int irow) :
+RawTower_Prototype4::RawTower_Prototype4(const unsigned int icol, const unsigned int irow) :
     towerid(0), energy(0), time(NAN), HBD_channel(-1)
 {
   towerid = RawTowerDefs::encode_towerid(RawTowerDefs::NONE, icol, irow);
   for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
-RawTower_Prototype3::RawTower_Prototype3(const RawTowerDefs::CalorimeterId caloid,
+RawTower_Prototype4::RawTower_Prototype4(const RawTowerDefs::CalorimeterId caloid,
     const unsigned int ieta, const unsigned int iphi) :
     towerid(0), energy(0), time(NAN), HBD_channel(-1)
 {
@@ -49,40 +49,40 @@ RawTower_Prototype3::RawTower_Prototype3(const RawTowerDefs::CalorimeterId caloi
   for (int i=0; i<NSAMPLES; ++i  ) signal_samples[i] = -9999;
 }
 
-RawTower_Prototype3::~RawTower_Prototype3()
+RawTower_Prototype4::~RawTower_Prototype4()
 {
 }
 
 void
-RawTower_Prototype3::Reset()
+RawTower_Prototype4::Reset()
 {
   energy = 0;
   time = NAN;
 }
 
 int
-RawTower_Prototype3::isValid() const
+RawTower_Prototype4::isValid() const
 {
   return get_energy() != 0;
 }
 
 void
-RawTower_Prototype3::identify(std::ostream& os) const
+RawTower_Prototype4::identify(std::ostream& os) const
 {
-  os << "RawTower_Prototype3: etabin: " << get_bineta() << ", phibin: " << get_binphi()
+  os << "RawTower_Prototype4: etabin: " << get_bineta() << ", phibin: " << get_binphi()
       << " energy=" << get_energy() << std::endl;
 }
 
 void
-RawTower_Prototype3::set_signal_samples(int i, RawTower_Prototype3::signal_type sig)
+RawTower_Prototype4::set_signal_samples(int i, RawTower_Prototype4::signal_type sig)
 {
   assert(i>=0);
   assert(i<NSAMPLES);
   signal_samples[i] = sig;
 }
 
-RawTower_Prototype3::signal_type
-RawTower_Prototype3::get_signal_samples(int i) const
+RawTower_Prototype4::signal_type
+RawTower_Prototype4::get_signal_samples(int i) const
 {
   assert(i>=0);
   assert(i<NSAMPLES);
@@ -90,7 +90,7 @@ RawTower_Prototype3::get_signal_samples(int i) const
 }
 
 double
-RawTower_Prototype3::get_energy_power_law_exp(int verbosity)
+RawTower_Prototype4::get_energy_power_law_exp(int verbosity)
 {
   double peak = NAN;
   double peak_sample = NAN;
@@ -102,7 +102,7 @@ RawTower_Prototype3::get_energy_power_law_exp(int verbosity)
       vec_signal_samples.push_back(signal_samples[i]);
     }
 
-  PROTOTYPE3_FEM::
+  PROTOTYPE4_FEM::
   SampleFit_PowerLawExp(vec_signal_samples, peak, peak_sample, pedstal, verbosity);
 
   return peak;

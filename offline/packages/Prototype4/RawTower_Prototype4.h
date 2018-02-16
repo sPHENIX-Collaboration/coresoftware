@@ -1,22 +1,22 @@
-#ifndef RAWTOWER_PROTOTYPE3_H_
-#define RAWTOWER_PROTOTYPE3_H_
+#ifndef RAWTOWER_PROTOTYPE4_H_
+#define RAWTOWER_PROTOTYPE4_H_
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerDefs.h>
 #include <map>
 #include <stdint.h>
 
-#include "PROTOTYPE3_FEM.h"
+#include "PROTOTYPE4_FEM.h"
 
-class RawTower_Prototype3 : public RawTower {
+class RawTower_Prototype4 : public RawTower {
  public:
-  RawTower_Prototype3();
-  RawTower_Prototype3(const RawTower& tower);
-  RawTower_Prototype3(RawTowerDefs::keytype id);
-  RawTower_Prototype3(const unsigned int icol, const unsigned int irow);
-  RawTower_Prototype3(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
+  RawTower_Prototype4();
+  RawTower_Prototype4(const RawTower& tower);
+  RawTower_Prototype4(RawTowerDefs::keytype id);
+  RawTower_Prototype4(const unsigned int icol, const unsigned int irow);
+  RawTower_Prototype4(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
-  virtual ~RawTower_Prototype3();
+  virtual ~RawTower_Prototype4();
 
   void Reset();
   int isValid() const;
@@ -37,7 +37,7 @@ class RawTower_Prototype3 : public RawTower {
 
   enum
   {
-    NSAMPLES = PROTOTYPE3_FEM::NSAMPLES
+    NSAMPLES = PROTOTYPE4_FEM::NSAMPLES
   };
   typedef float signal_type;
 
@@ -67,7 +67,7 @@ class RawTower_Prototype3 : public RawTower {
   signal_type signal_samples[NSAMPLES];  //Low Gain
   int HBD_channel;
 
-  ClassDef(RawTower_Prototype3, 3)
+  ClassDef(RawTower_Prototype4, 3)
 };
 
 #endif /* RAWTOWER_PROTOTYPE3_H_ */

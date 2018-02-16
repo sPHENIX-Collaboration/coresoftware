@@ -1,10 +1,10 @@
-#ifndef __PROTOTYPE3_FEM_H__
-#define __PROTOTYPE3_FEM_H__
+#ifndef __PROTOTYPE4_FEM_H__
+#define __PROTOTYPE4_FEM_H__
 
 #include <string>
 #include <vector>
 
-namespace PROTOTYPE3_FEM
+namespace PROTOTYPE4_FEM
 {
 
   /*! Packet ID */

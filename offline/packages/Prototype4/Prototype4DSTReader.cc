@@ -1,7 +1,7 @@
-// $Id: Prototype3DSTReader.cc,v 1.11 2015/01/06 02:52:07 jinhuang Exp $
+// $Id: Prototype4DSTReader.cc,v 1.11 2015/01/06 02:52:07 jinhuang Exp $
 
 /*!
- * \file Prototype3DSTReader.cc
+ * \file Prototype4DSTReader.cc
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.11 $
@@ -29,21 +29,21 @@
 
 #include<sstream>
 
-#include "Prototype3DSTReader.h"
+#include "Prototype4DSTReader.h"
 
 using namespace std;
 
-Prototype3DSTReader::Prototype3DSTReader(const string &filename) :
-    SubsysReco("Prototype3DSTReader"), nblocks(0), _event(0), //
+Prototype4DSTReader::Prototype4DSTReader(const string &filename) :
+    SubsysReco("Prototype4DSTReader"), nblocks(0), _event(0), //
     _out_file_name(filename), /*_file(NULL), */_T(NULL), //
     _tower_zero_sup(-10000000)
 {
 
 }
 
-Prototype3DSTReader::~Prototype3DSTReader()
+Prototype4DSTReader::~Prototype4DSTReader()
 {
-  cout << "Prototype3DSTReader::destructor - Clean ups" << endl;
+  cout << "Prototype4DSTReader::destructor - Clean ups" << endl;
 
   if (_T)
     {
@@ -54,7 +54,7 @@ Prototype3DSTReader::~Prototype3DSTReader()
 }
 
 int
-Prototype3DSTReader::Init(PHCompositeNode*)
+Prototype4DSTReader::Init(PHCompositeNode*)
 {
 
   const static int arr_size = 100;
@@ -62,7 +62,7 @@ Prototype3DSTReader::Init(PHCompositeNode*)
   if (_tower_postfix.size())
     {
       cout
-          << "Prototype3DSTReader::Init - zero suppression for calorimeter towers = "
+          << "Prototype4DSTReader::Init - zero suppression for calorimeter towers = "
           << _tower_zero_sup << " GeV" << endl;
     }
   for (vector<string>::const_iterator it = _runinfo_list.begin();
@@ -109,7 +109,7 @@ Prototype3DSTReader::Init(PHCompositeNode*)
 
       string hname = Form("TOWER_%s", nodenam.c_str());
 //      _node_name.push_back(hname);
-      cout << "Prototype3DSTReader::Init - saving raw tower info from node: "
+      cout << "Prototype4DSTReader::Init - saving raw tower info from node: "
           << hname << " - " << class_name << endl;
 
       record rec;
@@ -131,7 +131,7 @@ Prototype3DSTReader::Init(PHCompositeNode*)
       const string & nodenam = *it;
       string hname = Form("TOWER_TEMPERATURE_%s", nodenam.c_str());
 
-      cout << "Prototype3DSTReader::Init - saving average tower temperature info from node: "
+      cout << "Prototype4DSTReader::Init - saving average tower temperature info from node: "
           << hname<< endl;
 
       record rec;
@@ -146,7 +146,7 @@ Prototype3DSTReader::Init(PHCompositeNode*)
 
       nblocks++;
     }
-  cout << "Prototype3DSTReader::Init - requested " << nblocks << " nodes"
+  cout << "Prototype4DSTReader::Init - requested " << nblocks << " nodes"
       << endl;
 
   build_tree();
@@ -155,9 +155,9 @@ Prototype3DSTReader::Init(PHCompositeNode*)
 }
 
 void
-Prototype3DSTReader::build_tree()
+Prototype4DSTReader::build_tree()
 {
-  cout << "Prototype3DSTReader::build_tree - output to " << _out_file_name
+  cout << "Prototype4DSTReader::build_tree - output to " << _out_file_name
       << endl;
 
   static const int BUFFER_SIZE = 32000;
@@ -165,14 +165,14 @@ Prototype3DSTReader::build_tree()
   // open TFile
   PHTFileServer::get().open(_out_file_name, "RECREATE");
 
-  _T = new TTree("T", "Prototype3DSTReader");
+  _T = new TTree("T", "Prototype4DSTReader");
 
   nblocks = 0;
   for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
     {
       record & rec = *it;
 
-      cout << "Prototype3DSTReader::build_tree - Add " << rec._name << endl;
+      cout << "Prototype4DSTReader::build_tree - Add " << rec._name << endl;
 
       if (rec._type == record::typ_runinfo)
         {
@@ -211,20 +211,20 @@ Prototype3DSTReader::build_tree()
       nblocks++;
     }
 
-  cout << "Prototype3DSTReader::build_tree - added " << nblocks << " nodes"
+  cout << "Prototype4DSTReader::build_tree - added " << nblocks << " nodes"
       << endl;
 
   _T->SetAutoSave(16000);
 }
 
 int
-Prototype3DSTReader::process_event(PHCompositeNode* topNode)
+Prototype4DSTReader::process_event(PHCompositeNode* topNode)
 {
 
 //  const double significand = _event / TMath::Power(10, (int) (log10(_event)));
 //
 //  if (fmod(significand, 1.0) == 0 && significand <= 10)
-//    cout << "Prototype3DSTReader::process_event - " << _event << endl;
+//    cout << "Prototype4DSTReader::process_event - " << _event << endl;
   _event++;
 
   for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
@@ -244,7 +244,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
           rec._arr->Clear();
 
           if (Verbosity() >= 2)
-            cout << "Prototype3DSTReader::process_event - processing tower "
+            cout << "Prototype4DSTReader::process_event - processing tower "
                 << rec._name << endl;
 
           RawTowerContainer *hits = findNode::getClass<RawTowerContainer>(
@@ -253,7 +253,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
             {
               if (_event < 2)
                 cout
-                    << "Prototype3DSTReader::process_event - Error - can not find node "
+                    << "Prototype4DSTReader::process_event - Error - can not find node "
                     << rec._name << endl;
 
             }
@@ -262,7 +262,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
               RawTowerContainer::ConstRange hit_range = hits->getTowers();
 
               if (Verbosity() >= 2)
-                cout << "Prototype3DSTReader::process_event - processing "
+                cout << "Prototype4DSTReader::process_event - processing "
                     << rec._name << " and received " << hits->size()
                     << " tower hits" << endl;
 
@@ -281,7 +281,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
 
                       if (Verbosity() >= 2)
                         cout
-                            << "Prototype3DSTReader::process_event - suppress low energy tower hit "
+                            << "Prototype4DSTReader::process_event - suppress low energy tower hit "
                             << rec._name << " @ ("
 //                            << hit->get_thetaMin()
 //                            << ", " << hit->get_phiMin()
@@ -294,7 +294,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
 
                   if (Verbosity() >= 2)
                     cout
-                        << "Prototype3DSTReader::process_event - processing Tower hit "
+                        << "Prototype4DSTReader::process_event - processing Tower hit "
                         << rec._name << " @ ("
 //                        << hit->get_thetaMin() << ", "
 //                        << hit->get_phiMin()
@@ -317,7 +317,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
         {
           if (Verbosity() >= 2)
             cout
-                << "Prototype3DSTReader::process_event - processing tower temperature "
+                << "Prototype4DSTReader::process_event - processing tower temperature "
                 << rec._name << endl;
 
           RawTowerContainer *hits = findNode::getClass<RawTowerContainer>(
@@ -326,7 +326,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
             {
               if (_event < 2)
                 cout
-                    << "Prototype3DSTReader::process_event - Error - can not find node "
+                    << "Prototype4DSTReader::process_event - Error - can not find node "
                     << rec._name << endl;
 
             }
@@ -335,7 +335,7 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
               RawTowerContainer::ConstRange hit_range = hits->getTowers();
 
               if (Verbosity() >= 2)
-                cout << "Prototype3DSTReader::process_event - processing "
+                cout << "Prototype4DSTReader::process_event - processing "
                     << rec._name << " and received " << hits->size()
                     << " tower hits" << endl;
 
@@ -406,9 +406,9 @@ Prototype3DSTReader::process_event(PHCompositeNode* topNode)
 } //  for (records_t::iterator it = _records.begin(); it != _records.end(); ++it)
 
 int
-Prototype3DSTReader::End(PHCompositeNode * /*topNode*/)
+Prototype4DSTReader::End(PHCompositeNode * /*topNode*/)
 {
-  cout << "Prototype3DSTReader::End - Clean ups" << endl;
+  cout << "Prototype4DSTReader::End - Clean ups" << endl;
 
   if (_T)
     {

@@ -1,6 +1,6 @@
 #include "CaloCalibration.h"
-#include "PROTOTYPE3_FEM.h"
-#include "RawTower_Prototype3.h"
+#include "PROTOTYPE4_FEM.h"
+#include "RawTower_Prototype4.h"
 
 #include <calobase/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
@@ -71,8 +71,8 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
   for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
     {
       RawTowerDefs::keytype key = rtiter->first;
-      RawTower_Prototype3 *raw_tower =
-          dynamic_cast<RawTower_Prototype3 *>(rtiter->second);
+      RawTower_Prototype4 *raw_tower =
+          dynamic_cast<RawTower_Prototype4 *>(rtiter->second);
       assert(raw_tower);
 
       double calibration_const = calib_const_scale;
@@ -92,7 +92,7 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
         }
 
       vector<double> vec_signal_samples;
-      for (int i = 0; i < RawTower_Prototype3::NSAMPLES; i++)
+      for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
         {
           vec_signal_samples.push_back(
               raw_tower->get_signal_samples(i));
@@ -102,7 +102,7 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
       double peak_sample = NAN;
       double pedstal = NAN;
 
-      PROTOTYPE3_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
+      PROTOTYPE4_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
           peak_sample, pedstal, verbosity);
 
       // store the result - raw_tower
@@ -115,11 +115,11 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
         }
 
       // store the result - calib_tower
-      RawTower_Prototype3 *calib_tower = new RawTower_Prototype3(*raw_tower);
+      RawTower_Prototype4 *calib_tower = new RawTower_Prototype4(*raw_tower);
       calib_tower->set_energy(peak * calibration_const);
       calib_tower->set_time(peak_sample);
 
-      for (int i = 0; i < RawTower_Prototype3::NSAMPLES; i++)
+      for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
         {
           calib_tower->set_signal_samples(i, (vec_signal_samples[i] - pedstal) * calibration_const);
         }

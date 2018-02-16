@@ -1,6 +1,6 @@
 #include "RunInfoUnpackPRDF.h"
-#include "RawTower_Prototype3.h"
-#include "PROTOTYPE3_FEM.h"
+#include "RawTower_Prototype4.h"
+#include "PROTOTYPE4_FEM.h"
 
 #include <ffaobjects/EventHeaderv1.h>
 #include <Event/Event.h>
@@ -90,7 +90,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
         {
           int has_new_EMCal = 0;
 
-          if (event->existPacket(PROTOTYPE3_FEM::PACKET_EMCAL_HIGHETA_FLAG))
+          if (event->existPacket(PROTOTYPE4_FEM::PACKET_EMCAL_HIGHETA_FLAG))
             {
               // react properly - new emcal!
               has_new_EMCal = 1;

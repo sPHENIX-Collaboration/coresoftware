@@ -1,14 +1,14 @@
 // $Id: $                                                                                             
 
 /*!
- * \file PROTOTYPE3_FEM.C
+ * \file PROTOTYPE4_FEM.C
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "PROTOTYPE3_FEM.h"
+#include "PROTOTYPE4_FEM.h"
 
 #include <iostream>
 #include <cassert>
@@ -20,7 +20,7 @@
 using namespace std;
 
 int
-PROTOTYPE3_FEM::GetHBDCh(std::string caloname, int i_column, int i_row)
+PROTOTYPE4_FEM::GetHBDCh(std::string caloname, int i_column, int i_row)
 {
   if (caloname == "HCALIN")
     {
@@ -111,14 +111,14 @@ PROTOTYPE3_FEM::GetHBDCh(std::string caloname, int i_column, int i_row)
       return canmap[tower_index];
     }
 
-  std::cout << "PROTOTYPE3_FEM::GetHBDCh - invalid input caloname " << caloname
+  std::cout << "PROTOTYPE4_FEM::GetHBDCh - invalid input caloname " << caloname
       << " i_column " << i_column << " i_row " << i_row << std::endl;
   exit(1);
   return -9999;
 }
 
 bool
-PROTOTYPE3_FEM::SampleFit_PowerLawExp(//
+PROTOTYPE4_FEM::SampleFit_PowerLawExp(//
     const std::vector<double> & samples, //
     double & peak,//
     double & peak_sample,//
@@ -188,7 +188,7 @@ PROTOTYPE3_FEM::SampleFit_PowerLawExp(//
 
   if (verbosity)
     {
-      TCanvas *canvas = new TCanvas("PROTOTYPE3_FEM_SampleFit_PowerLawExp","PROTOTYPE3_FEM::SampleFit_PowerLawExp");
+      TCanvas *canvas = new TCanvas("PROTOTYPE4_FEM_SampleFit_PowerLawExp","PROTOTYPE4_FEM::SampleFit_PowerLawExp");
       gpulse.DrawClone("ap*l");
       fits.DrawClone("same");
       fits.Print();
@@ -210,7 +210,7 @@ PROTOTYPE3_FEM::SampleFit_PowerLawExp(//
 }
 
 double
-PROTOTYPE3_FEM::SignalShape_PowerLawExp(double *x, double *par)
+PROTOTYPE4_FEM::SignalShape_PowerLawExp(double *x, double *par)
 {
   double pedestal = par[4] + ((x[0] - 1.5* par[1])>0) * par[5]; // quick fix on exting tails on the signal function
   if (x[0] < par[1])

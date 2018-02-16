@@ -1,5 +1,5 @@
 #include "RawTower_Temperature.h"
-#include "PROTOTYPE3_FEM.h"
+#include "PROTOTYPE4_FEM.h"
 #include "TempInfoUnpackPRDF.h"
 
 #include <Event/Event.h>
@@ -125,9 +125,9 @@ int  TempInfoUnpackPRDF::addPacketInfo(Packet *p, PHCompositeNode *topNode, cons
 
   if ( packetid == 974 || packetid == 1074 ) // Inner Hcal
     {
-      for(int ibinz=0; ibinz<PROTOTYPE3_FEM::NCH_IHCAL_ROWS; ibinz++)
+      for(int ibinz=0; ibinz<PROTOTYPE4_FEM::NCH_IHCAL_ROWS; ibinz++)
 	{
-	  for(int ibinphi=0; ibinphi<PROTOTYPE3_FEM::NCH_IHCAL_COLUMNS; ibinphi++)
+	  for(int ibinphi=0; ibinphi<PROTOTYPE4_FEM::NCH_IHCAL_COLUMNS; ibinphi++)
 	    {
 	      tower = dynamic_cast<RawTower_Temperature*>(hcalin_temperature->getTower(ibinz,ibinphi));
 	      if(!tower)
@@ -135,16 +135,16 @@ int  TempInfoUnpackPRDF::addPacketInfo(Packet *p, PHCompositeNode *topNode, cons
 		  tower = new RawTower_Temperature();
 		  hcalin_temperature->AddTower(ibinz,ibinphi,tower);
 		}
-	      tower->add_entry( evtnr, etime, p->iValue(ibinz*PROTOTYPE3_FEM::NCH_IHCAL_COLUMNS + ibinphi)/1000. ); 
+	      tower->add_entry( evtnr, etime, p->iValue(ibinz*PROTOTYPE4_FEM::NCH_IHCAL_COLUMNS + ibinphi)/1000. ); 
 	    }
 	}
     }
 
   else  if ( packetid == 975 || packetid == 1075 ) // outer Hcal
     {
-      for(int ibinz=0; ibinz<PROTOTYPE3_FEM::NCH_OHCAL_ROWS; ibinz++)
+      for(int ibinz=0; ibinz<PROTOTYPE4_FEM::NCH_OHCAL_ROWS; ibinz++)
 	{
-	  for(int ibinphi=0; ibinphi<PROTOTYPE3_FEM::NCH_OHCAL_COLUMNS; ibinphi++)
+	  for(int ibinphi=0; ibinphi<PROTOTYPE4_FEM::NCH_OHCAL_COLUMNS; ibinphi++)
 	    {
 	      tower = dynamic_cast<RawTower_Temperature*>(hcalout_temperature->getTower(ibinz,ibinphi));
 	      if(!tower)
@@ -152,16 +152,16 @@ int  TempInfoUnpackPRDF::addPacketInfo(Packet *p, PHCompositeNode *topNode, cons
 		  tower = new RawTower_Temperature();
 		  hcalout_temperature->AddTower(ibinz,ibinphi,tower);
 		}
-	      tower->add_entry( evtnr, etime, p->iValue(ibinz*PROTOTYPE3_FEM::NCH_OHCAL_COLUMNS + ibinphi)/1000. ); 
+	      tower->add_entry( evtnr, etime, p->iValue(ibinz*PROTOTYPE4_FEM::NCH_OHCAL_COLUMNS + ibinphi)/1000. ); 
 	    }
 	}
     }
 
   else  if ( packetid == 982 || packetid == 1082 ) // emcal
     {
-      for(int ibinz=0; ibinz<PROTOTYPE3_FEM::NCH_EMCAL_ROWS; ibinz++)
+      for(int ibinz=0; ibinz<PROTOTYPE4_FEM::NCH_EMCAL_ROWS; ibinz++)
 	{
-	  for(int ibinphi=0; ibinphi<PROTOTYPE3_FEM::NCH_EMCAL_COLUMNS; ibinphi++)
+	  for(int ibinphi=0; ibinphi<PROTOTYPE4_FEM::NCH_EMCAL_COLUMNS; ibinphi++)
 	    {
 	      tower = dynamic_cast<RawTower_Temperature*>(emcal_temperature->getTower(ibinz,ibinphi));
 	      if(!tower)
@@ -171,7 +171,7 @@ int  TempInfoUnpackPRDF::addPacketInfo(Packet *p, PHCompositeNode *topNode, cons
 		}
 	      // this takes care of the newly found "reverse" mapping. (0,0) is module 7, (0,7) is module 0, and 
 	      // the 63 - (...) takes care of the reversed vector.  
-	      tower->add_entry( evtnr, etime, p->iValue( 63- (ibinz*PROTOTYPE3_FEM::NCH_EMCAL_COLUMNS + (7-ibinphi) ) /1000. ) ); 
+	      tower->add_entry( evtnr, etime, p->iValue( 63- (ibinz*PROTOTYPE4_FEM::NCH_EMCAL_COLUMNS + (7-ibinphi) ) /1000. ) ); 
 	    }
 	}
     }

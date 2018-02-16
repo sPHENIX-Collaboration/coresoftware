@@ -1,6 +1,6 @@
 #include "EventInfoSummary.h"
-#include "RawTower_Prototype3.h"
-#include "PROTOTYPE3_FEM.h"
+#include "RawTower_Prototype4.h"
+#include "PROTOTYPE4_FEM.h"
 
 #include <calobase/RawTowerContainer.h>
 #include <ffaobjects/EventHeaderv1.h>
@@ -81,14 +81,14 @@ EventInfoSummary::process_event(PHCompositeNode *topNode)
               RawTowerContainer>(topNode, "TOWER_RAW_SPILL_WARBLER");
           assert(TOWER_RAW_SPILL_WARBLER);
 
-          RawTower_Prototype3 *raw_tower =
-              dynamic_cast<RawTower_Prototype3 *>(TOWER_RAW_SPILL_WARBLER->getTower(0));
+          RawTower_Prototype4 *raw_tower =
+              dynamic_cast<RawTower_Prototype4 *>(TOWER_RAW_SPILL_WARBLER->getTower(0));
           assert(raw_tower);
 
           accumulator_set<double, features<tag::variance>> acc;
 
           vector<double> vec_signal_samples;
-          for (int i = 0; i < RawTower_Prototype3::NSAMPLES; i++)
+          for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
             {
               acc(raw_tower->get_signal_samples(i));
             }

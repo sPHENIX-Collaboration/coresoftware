@@ -7,7 +7,7 @@
 #include <map>
 #include <cassert>
 
-#include "PROTOTYPE3_FEM.h"
+#include "PROTOTYPE4_FEM.h"
 
 using namespace std;
 

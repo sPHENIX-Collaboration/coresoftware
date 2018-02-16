@@ -1,17 +1,17 @@
-// $Id: Prototype3DSTReader.h,v 1.7 2015/02/27 23:42:23 jinhuang Exp $
+// $Id: Prototype4DSTReader.h,v 1.7 2015/02/27 23:42:23 jinhuang Exp $
 
 /*!
- * \file Prototype3DSTReader.h
+ * \file Prototype4DSTReader.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.7 $
  * \date $Date: 2015/02/27 23:42:23 $
  */
 
-#ifndef Prototype3DSTReader_H_
-#define Prototype3DSTReader_H_
+#ifndef Prototype4DSTReader_H_
+#define Prototype4DSTReader_H_
 
-#include "RawTower_Prototype3.h"
+#include "RawTower_Prototype4.h"
 #include "RawTower_Temperature.h"
 
 #include <HepMC/GenEvent.h>
@@ -31,14 +31,14 @@ class TTree;
 #endif
 
 /*!
- * \brief Prototype3DSTReader save information from DST to an evaluator, which could include hit. particle, vertex, towers and jet (to be activated)
+ * \brief Prototype4DSTReader save information from DST to an evaluator, which could include hit. particle, vertex, towers and jet (to be activated)
  */
-class Prototype3DSTReader : public SubsysReco
+class Prototype4DSTReader : public SubsysReco
 {
 public:
-  Prototype3DSTReader(const std::string &filename);
+  Prototype4DSTReader(const std::string &filename);
   virtual
-  ~Prototype3DSTReader();
+  ~Prototype4DSTReader();
 
   //! full initialization
   int
@@ -123,7 +123,7 @@ protected:
   typedef std::vector<record> records_t;
   records_t _records;
 
-  typedef RawTower_Prototype3 RawTower_type;
+  typedef RawTower_Prototype4 RawTower_type;
 
   typedef RawTower_Temperature RawTowerT_type;
 #endif
@@ -142,4 +142,4 @@ protected:
   build_tree();
 };
 
-#endif /* Prototype3DSTReader_H_ */
+#endif /* Prototype4DSTReader_H_ */

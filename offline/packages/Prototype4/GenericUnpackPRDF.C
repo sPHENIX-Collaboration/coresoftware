@@ -1,5 +1,5 @@
-#include "RawTower_Prototype3.h"
-#include "PROTOTYPE3_FEM.h"
+#include "RawTower_Prototype4.h"
+#include "PROTOTYPE4_FEM.h"
 #include "GenericUnpackPRDF.h"
 
 #include <Event/Event.h>
@@ -84,18 +84,18 @@ GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
         }
       assert(packet);
 
-      packet->setNumSamples(PROTOTYPE3_FEM::NSAMPLES);
+      packet->setNumSamples(PROTOTYPE4_FEM::NSAMPLES);
 
-      RawTower_Prototype3 *tower =
-          dynamic_cast<RawTower_Prototype3*>(_towers->getTower(tower_id));
+      RawTower_Prototype4 *tower =
+          dynamic_cast<RawTower_Prototype4*>(_towers->getTower(tower_id));
       if (!tower)
         {
-          tower = new RawTower_Prototype3();
+          tower = new RawTower_Prototype4();
           tower->set_energy(NAN);
           _towers->AddTower(tower_id, tower);
         }
       tower->set_HBD_channel_number(channel);
-      for (int isamp = 0; isamp < PROTOTYPE3_FEM::NSAMPLES; isamp++)
+      for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
         {
           tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
         }
