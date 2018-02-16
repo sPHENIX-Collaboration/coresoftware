@@ -3,19 +3,20 @@
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerDefs.h>
-#include <map>
 #include <stdint.h>
+#include <map>
 
 #include "PROTOTYPE4_FEM.h"
 
-class RawTower_Prototype4 : public RawTower {
+class RawTower_Prototype4 : public RawTower
+{
  public:
   RawTower_Prototype4();
   RawTower_Prototype4(const RawTower& tower);
   RawTower_Prototype4(RawTowerDefs::keytype id);
   RawTower_Prototype4(const unsigned int icol, const unsigned int irow);
   RawTower_Prototype4(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
-             const unsigned int iphi);
+                      const unsigned int iphi);
   virtual ~RawTower_Prototype4();
 
   void Reset();
@@ -32,7 +33,6 @@ class RawTower_Prototype4 : public RawTower {
   void set_energy(const double e) { energy = e; }
   float get_time() const { return time; }
   void set_time(const float t) { time = t; }
-
   //---Raw data access------------------------------------------------------------
 
   enum
@@ -41,17 +41,20 @@ class RawTower_Prototype4 : public RawTower {
   };
   typedef float signal_type;
 
-  void set_signal_samples(int i,signal_type sig);
+  void set_signal_samples(int i, signal_type sig);
   signal_type get_signal_samples(int i) const;
   void set_HBD_channel_number(int i)
-    { HBD_channel=i; }
+  {
+    HBD_channel = i;
+  }
   int get_HBD_channel_number() const
-    { return HBD_channel; }
+  {
+    return HBD_channel;
+  }
 
   //---Fits------------------------------------------------------------
 
-    double get_energy_power_law_exp(int verbosity = 0);
-
+  double get_energy_power_law_exp(int verbosity = 0);
 
  protected:
   RawTowerDefs::keytype towerid;

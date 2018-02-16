@@ -15,42 +15,28 @@ class RawTower;
 
 class CaloUnpackPRDF : public SubsysReco
 {
-public:
+ public:
   CaloUnpackPRDF();
 
-  int
-  Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode* topNode);
 
-  int
-  InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode* topNode);
 
-  int
-  process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode* topNode);
 
-  int
-  End(PHCompositeNode *topNode);
+  int End(PHCompositeNode* topNode);
 
   void
-  CreateNodeTree(PHCompositeNode *topNode);
+  CreateNodeTree(PHCompositeNode* topNode);
 
-  //! whether to use high eta EMCal
-  void set_use_high_eta_EMCal(bool b)
-  {
-    _use_high_eta_EMCal = b ? 1 : 0;
-  }
-
-private:
-
+ private:
   Event* _event;
   Packet_hbd_fpgashort* _packet;
   int _nevents;
 
-  //! -1 - read from RunInfo, +1, true, 0 false;
-  int _use_high_eta_EMCal;
-
   // HCAL node
-  PHCompositeNode * dst_node;
-  PHCompositeNode * data_node;
+  PHCompositeNode* dst_node;
+  PHCompositeNode* data_node;
 
   //Towers
   RawTowerContainer* hcalin_towers_lg;
@@ -62,4 +48,4 @@ private:
   RawTowerContainer* emcal_towers;
 };
 
-#endif //**CaloUnpackPRDFF**//
+#endif  //**CaloUnpackPRDFF**//

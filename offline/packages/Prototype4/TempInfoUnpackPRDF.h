@@ -3,8 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
-#include <string>
 #include <map>
+#include <string>
 #include <utility>
 
 class Event;
@@ -14,35 +14,27 @@ class RawTower;
 
 class TempInfoUnpackPRDF : public SubsysReco
 {
-public:
+ public:
   TempInfoUnpackPRDF();
-  virtual ~TempInfoUnpackPRDF() {};
+  virtual ~TempInfoUnpackPRDF(){};
 
-  int
-  Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode);
 
-  int
-  InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
 
-  int
-  process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
 
-  int
-  End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
   void
   CreateNodeTree(PHCompositeNode *topNode);
 
+ protected:
+  int addPacketInfo(Packet *p, PHCompositeNode *topNode, const time_t etime, const int evtnr);
 
-protected:
-
-  int addPacketInfo(Packet *p, PHCompositeNode *topNode, const time_t  etime, const int evtnr);
-
-  RawTowerContainer* hcalin_temperature;
-  RawTowerContainer* hcalout_temperature;
-  RawTowerContainer* emcal_temperature;
-
+  RawTowerContainer *hcalin_temperature;
+  RawTowerContainer *hcalout_temperature;
+  RawTowerContainer *emcal_temperature;
 };
 
-
-#endif //**TempInfoUnpackPRDFF**//
+#endif  //**TempInfoUnpackPRDFF**//

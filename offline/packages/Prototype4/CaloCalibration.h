@@ -6,27 +6,23 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
-#include <string>
 #include <phparameter/PHParameters.h>
+#include <string>
 
 class RawTowerContainer;
 
 class CaloCalibration : public SubsysReco
 {
-public:
-  CaloCalibration(const std::string& name);
+ public:
+  CaloCalibration(const std::string &name);
 
-  int
-  Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode);
 
-  int
-  InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
 
-  int
-  process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
 
-  int
-  End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
   void
   CreateNodeTree(PHCompositeNode *topNode);
@@ -71,15 +67,14 @@ public:
 
   //! Overwrite the parameter. Useful fields are listed in SetDefaultParameters();
   void
-  SetCalibrationParameters(const PHParameters & calib_params)
+  SetCalibrationParameters(const PHParameters &calib_params)
   {
     _calib_params = calib_params;
   }
 
-private:
-
-  RawTowerContainer* _calib_towers;
-  RawTowerContainer* _raw_towers;
+ private:
+  RawTowerContainer *_calib_towers;
+  RawTowerContainer *_raw_towers;
 
   std::string detector;
   std::string RawTowerNodeName;
@@ -92,8 +87,7 @@ private:
 
   //! load the default parameter to param
   void
-  SetDefaultParameters(PHParameters & param);
-
+  SetDefaultParameters(PHParameters &param);
 };
 
-#endif //**CaloCalibrationF**//
+#endif  //**CaloCalibrationF**//

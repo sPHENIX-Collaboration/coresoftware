@@ -3,8 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHObject.h>
-#include <string>
 #include <map>
+#include <string>
 #include <utility>
 
 class Event;
@@ -14,39 +14,36 @@ class RawTower;
 
 class RunInfoUnpackPRDF : public SubsysReco
 {
-public:
+ public:
   RunInfoUnpackPRDF();
 
-  int
-  Init(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode);
 
-  int
-  InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
 
-  int
-  process_event(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
 
-  int
-  End(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
   void
   CreateNodeTree(PHCompositeNode *topNode);
 
   //! add stuff to be unpacked
   void
-  add_channel(const std::string & name, //! name of the channel
-      const int packet_id, //! packet id
-      const unsigned int offset, //! offset in packet data
-      const double calibration_const = +1 //! conversion constant from integer to meaningful value
-      );
+  add_channel(const std::string &name,             //! name of the channel
+              const int packet_id,                 //! packet id
+              const unsigned int offset,           //! offset in packet data
+              const double calibration_const = +1  //! conversion constant from integer to meaningful value
+              );
 
-private:
-
+ private:
   class channel_info
   {
-  public:
-    channel_info(int p, unsigned int o, double c) :
-        packet_id(p), offset(o), calibration_const(c)
+   public:
+    channel_info(int p, unsigned int o, double c)
+      : packet_id(p)
+      , offset(o)
+      , calibration_const(c)
     {
     }
 
@@ -63,4 +60,4 @@ private:
   std::string runinfo_node_name;
 };
 
-#endif //**CaloUnpackPRDFF**//
+#endif  //**CaloUnpackPRDFF**//
