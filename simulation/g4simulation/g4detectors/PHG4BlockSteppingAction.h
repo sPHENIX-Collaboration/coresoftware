@@ -7,14 +7,14 @@ class G4VPhysicalVolume;
 class PHG4BlockDetector;
 class PHG4Hit;
 class PHG4HitContainer;
-class PHG4Parameters;
+class PHParameters;
 class PHG4Shower;
 
 class PHG4BlockSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4BlockSteppingAction(PHG4BlockDetector *, const PHG4Parameters *parameters);
+  PHG4BlockSteppingAction(PHG4BlockDetector *, const PHParameters *parameters);
 
   //! destructor
   virtual ~PHG4BlockSteppingAction();
@@ -28,7 +28,7 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4BlockDetector *detector_;
-  const PHG4Parameters *params;
+  const PHParameters *params;
   //! pointer to hit container
   PHG4HitContainer *hits_;
   PHG4Hit *hit;

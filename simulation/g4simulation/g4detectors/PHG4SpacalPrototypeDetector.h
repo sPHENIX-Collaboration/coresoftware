@@ -19,7 +19,7 @@ class G4Material;
 class G4UserLimits;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4SpacalPrototypeDetector : public PHG4Detector
 {
@@ -27,7 +27,7 @@ class PHG4SpacalPrototypeDetector : public PHG4Detector
 public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4SpacalPrototypeDetector(PHCompositeNode* Node, PHG4Parameters *parameters, const std::string& dnam);
+  PHG4SpacalPrototypeDetector(PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam);
 
   virtual
   ~PHG4SpacalPrototypeDetector(void);
@@ -108,7 +108,7 @@ public:
 
 protected:
 
-  PHG4Parameters *construction_params;
+  PHParameters *construction_params;
 
   G4VSolid* cylinder_solid;
   G4LogicalVolume* cylinder_logic;

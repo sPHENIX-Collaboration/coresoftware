@@ -39,6 +39,7 @@ class PHG4ParametersContainer : public PHObject
   int ExistDetid(const int detid) const;
   void clear() { parametermap.clear(); }
   void FillFrom(const PdbParameterMapContainer *saveparamcontainer);
+  void CreateAndFillFrom(const PdbParameterMapContainer *saveparamcontainer, const std::string &name);
 
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);
