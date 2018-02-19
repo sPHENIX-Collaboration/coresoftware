@@ -622,9 +622,9 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 void PHG4KalmanPatRec::print_timers() {
   
   std::cout << "=============== Timers: ===============" << std::endl;
-  std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "CPUSCALE Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
-  std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "CPUSCALE Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -1607,6 +1607,7 @@ int PHG4KalmanPatRec::translate_input() {
 	}
 
 	if(verbosity >= 1){
+	  cout << "CPUSCALE hits: " << count << endl;
 	  cout << "cluster count iter #" << _n_iteration << " : " << count 
 	       << " | l7: " << count7 
 	       << " | l46: " << count46 
