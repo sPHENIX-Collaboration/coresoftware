@@ -27,17 +27,17 @@ public:
   void print() const;
 
   /// add a pixel hit
-  void add_hit(const uint16_t col, const uint16_t row);
+  void AddHit(const uint16_t col, const uint16_t row);
 
   /// get all hits
-  ConstRange get_hits( void );
+  ConstRange GetHits( void );
 
   /// get all hits in a given column (useful?)
-  ConstRange get_hits(const uint16_t col);
+  ConstRange GetHits(const uint16_t col);
 
 private:
 
-  HitMap hits; ///< Hit storage object
+  HitMap hits_; ///< Hit storage object
 
   ClassDef(MvtxHitSetv1, 1);
 };

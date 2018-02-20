@@ -1,9 +1,7 @@
 #include "MvtxDigitizer.h"
 
-#include <tracker/TrackerDefs.h>
-#include <tracker/TrackerHit.h>
-#include <tracker/TrackerHitv1.h>
-#include <tracker/TrackerHitContainer.h>
+#include "MvtxDefUtil.h"
+#include "MvtxHitSetv1.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -28,8 +26,8 @@ using namespace std;
 
 MvtxDigitizer::MvtxDigitizer(const string &name) :
   SubsysReco(name),
-  _hitmap(NULL),
-  _timer(PHTimeServer::get()->insert_new(name)) {
+  hitmap_(NULL),
+  timer_(PHTimeServer::get()->insert_new(name)) {
 
   if (verbosity > 0)
     cout << PHWHERE << "Creating MvtxDigitizer with name = " << name << endl;
@@ -60,13 +58,13 @@ int MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   }
 
   // Create the Hit node if required
-  TrackerHitContainer *mvtxhits =
-    findNode::getClass<TrackerHitContainer>(dstNode, "TrackerHitContainer");
+  TrkrHitSetContainer *mvtxhits =
+    findNode::getClass<TrkrHitSetContainer>(dstNode, "TrkrHitSetContainer");
   if (!mvtxhits) {
-    mvtxhits = new TrackerHitContainer();
-    PHIODataNode<PHObject> *TrackerHitContainerNode =
-      new PHIODataNode<PHObject>(mvtxhits, "TrackerHitContainer", "PHObject");
-    svxNode->addNode(TrackerHitContainerNode);
+    mvtxhits = new TrkrHitSetContainer();
+    PHIODataNode<PHObject> *TrkrHitSetContainerNode =
+      new PHIODataNode<PHObject>(mvtxhits, "TrkrHitSetContainer", "PHObject");
+    svxNode->addNode(TrkrHitSetContainerNode);
   }
 
   CalculateMapsLadderThresholds(topNode);
@@ -77,15 +75,15 @@ int MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
 
   if (verbosity > 0) {
     cout << "====================== MvtxDigitizer::InitRun() =====================" << endl;
-    for (std::map<int, float>::iterator iter = _fraction_of_mip.begin();
-         iter != _fraction_of_mip.end();
+    for (std::map<int, float>::iterator iter = fraction_of_mip_.begin();
+         iter != fraction_of_mip_.end();
          ++iter) {
       cout << " Fraction of expected MIP energy for Layer #" << iter->first << ": ";
       cout << iter->second;
       cout << endl;
     }
-    for (std::map<int, float>::iterator iter = _thresholds_by_layer.begin();
-         iter != _thresholds_by_layer.end();
+    for (std::map<int, float>::iterator iter = thresholds_by_layer_.begin();
+         iter != thresholds_by_layer_.end();
          ++iter) {
       cout << " Cell Threshold in Layer #" << iter->first << " = " << 1.0e6 * iter->second
            << " keV based on Short-Axis Penetration" << endl;
@@ -98,22 +96,22 @@ int MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
 
 int MvtxDigitizer::process_event(PHCompositeNode *topNode) {
 
-  _timer.get()->restart();
+  timer_.get()->restart();
 
-  _hitmap = findNode::getClass<TrackerHitContainer>(topNode, "TrackerHitContainer");
-  if (!_hitmap)
+  hitmap_ = findNode::getClass<TrkrHitSetContainer>(topNode, "TrkrHitSetContainer");
+  if (!hitmap_)
   {
-    cout << PHWHERE << " ERROR: Can't find TrackerHitContainer." << endl;
+    cout << PHWHERE << " ERROR: Can't find TrkrHitSetContainer." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  _hitmap->Reset();
+  hitmap_->Reset();
 
   DigitizeMapsLadderCells(topNode);
 
   PrintHits(topNode);
 
-  _timer.get()->stop();
+  timer_.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -141,11 +139,11 @@ void MvtxDigitizer::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
 
     // Si MIP energy = 3.876 MeV / cm
     float threshold = 0.0;
-    if (_fraction_of_mip.find(layer) != _fraction_of_mip.end())
+    if (fraction_of_mip_.find(layer) != fraction_of_mip_.end())
     {
-      threshold = _fraction_of_mip[layer] * 0.003876 * minpath;
+      threshold = fraction_of_mip_[layer] * 0.003876 * minpath;
     }
-    _thresholds_by_layer.insert(std::make_pair(layer, threshold));
+    thresholds_by_layer_.insert(std::make_pair(layer, threshold));
     if (verbosity > 2)
     {
       cout << PHWHERE
@@ -153,7 +151,7 @@ void MvtxDigitizer::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
            << " layer " << layer
            << " threshold = " << threshold
            << " thickness = " << thickness
-           << " fraction of mip = " << _fraction_of_mip[layer]
+           << " fraction of mip = " << fraction_of_mip_[layer]
            << endl;
     }
   }
@@ -266,7 +264,7 @@ void MvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode)
       hit->add_edep(hititr->first, hititr->second);
     }
 
-    _hitmap->AddHitSpecifyKey(key, hit);
+    hitmap_->AddHitSpecifyKey(key, hit);
     if ( verbosity >= 1 )
       cout << PHWHERE << " - Added new TrackerHit with key 0x" << hex << key << endl;
   }
@@ -280,17 +278,17 @@ void MvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
 
     cout << "================= MvtxDigitizer::process_event() ====================" << endl;
 
-    TrackerHitContainer *hitlist = findNode::getClass<TrackerHitContainer>(topNode, "TrackerHitContainer");
+    TrkrHitSetContainer *hitlist = findNode::getClass<TrkrHitSetContainer>(topNode, "TrkrHitSetContainer");
     if (!hitlist) return;
 
-    TrackerHitContainer::ConstRange mvtxhitrange = hitlist->getHits(TrackerDefs::TRACKERID::mvtx_id);
+    TrkrHitSetContainer::ConstRange mvtxhitrange = hitlist->getHits(TrackerDefs::TRACKERID::mvtx_id);
 
 
 
     cout << " Found and recorded the following hits: " << endl;
 
     unsigned int ihit = 0;
-    for (TrackerHitContainer::ConstIterator iter = mvtxhitrange.first;
+    for (TrkrHitSetContainer::ConstIterator iter = mvtxhitrange.first;
          iter != mvtxhitrange.second;
          ++iter)
     {

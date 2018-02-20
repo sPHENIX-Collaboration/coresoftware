@@ -21,14 +21,14 @@ libmvtx_la_LIBADD = \
   -ltracker
 
 pkginclude_HEADERS = \
-  MvtxClusterizer.h \
-  MvtxDigitizer.h
+  MvtxDefUtil.h \
+  MvtxHitSetv1.h
 
 libmvtx_la_SOURCES = \
-  MvtxClusterizer.C \
-  MvtxClusterizer_Dict.C \
-  MvtxDigitizer.C \
-  MvtxDigitizer_Dict.C
+  MvtxDefUtil.C \
+  MvtxDefUtil_Dict.C \
+  MvtxHitSetv1.C \
+  MvtxHitSetv1_Dict.C
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h

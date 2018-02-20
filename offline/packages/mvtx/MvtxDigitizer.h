@@ -3,6 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+#include <tracker/TrkrHitSetContainer.h>
 
 #include <vector>
 
@@ -28,12 +29,12 @@ class MvtxDigitizer : public SubsysReco
   int End(PHCompositeNode *topNode) {return 0;}
   
   //! set an energy requirement relative to the short-axis MIP expectation
-  void set_threshold(const int layer, const float fraction_of_mip) {
-    _fraction_of_mip.insert(std::make_pair(layer,fraction_of_mip));
+  void SetThreshold(const int layer, const float fraction_of_mip) {
+    fraction_of_mip_.insert(std::make_pair(layer,fraction_of_mip));
   }
-  float get_threshold_by_layer(const int layer) const {
-    if (_thresholds_by_layer.find(layer) == _thresholds_by_layer.end()) return 0.0;
-    return _thresholds_by_layer.find(layer)->second;
+  float GetThresholdByLayer(const int layer) const {
+    if (thresholds_by_layer_.find(layer) == thresholds_by_layer_.end()) return 0.0;
+    return thresholds_by_layer_.find(layer)->second;
   }
 
  private:
@@ -44,13 +45,13 @@ class MvtxDigitizer : public SubsysReco
   void PrintHits(PHCompositeNode *topNode);
   
   // settings
-  std::map<int,float> _fraction_of_mip;
-  std::map<int,float> _thresholds_by_layer;
+  std::map<int,float> fraction_of_mip_;
+  std::map<int,float> thresholds_by_layer_;
 
   // storage
-  TrackerHitContainer* _hitmap;
+  TrkrHitSetContainer* hitmap_;
   
-  PHTimeServer::timer _timer;   ///< Timer
+  PHTimeServer::timer timer_;   ///< Timer
 };
 
 #endif
