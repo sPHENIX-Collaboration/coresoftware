@@ -7,10 +7,10 @@
 namespace PROTOTYPE4_FEM
 {
 /*! Packet ID */
-const int PACKET_ID = 21101;
+const int PACKET_ID = 21351;
 
 /*! Number of ADC Samples per tower */
-const int NSAMPLES = 24;
+const int NSAMPLES = 31;
 
 /*! Number of Inner HCAL towers */
 const int NCH_IHCAL_ROWS = 4;

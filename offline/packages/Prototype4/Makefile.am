@@ -5,21 +5,21 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
-libPrototype3_la_LDFLAGS = \
+libPrototype4_la_LDFLAGS = \
   -nodefaultlibs \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `root-config --libs`
 
 lib_LTLIBRARIES = \
-  libPrototype3.la
+  libPrototype4.la
 
 pkginclude_HEADERS = \
   RawTower_Prototype4.h \
   RawTower_Temperature.h \
   PROTOTYPE4_FEM.h
 
-libPrototype3_la_SOURCES = \
+libPrototype4_la_SOURCES = \
   RawTower_Prototype4.cc \
   RawTower_Prototype4Dict.C \
   Prototype4DSTReader.cc \
@@ -41,7 +41,7 @@ libPrototype3_la_SOURCES = \
   RawTower_Temperature.cc \
   RawTower_TemperatureDict.C
 
-libPrototype3_la_LIBADD = \
+libPrototype4_la_LIBADD = \
   -lSubsysReco \
   -lphool \
   -lfun4all \
@@ -55,7 +55,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_LDADD = \
-  libPrototype3.la
+  libPrototype4.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

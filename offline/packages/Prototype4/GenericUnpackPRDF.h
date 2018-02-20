@@ -38,12 +38,12 @@ class GenericUnpackPRDF : public SubsysReco
   std::string _detector;
 
   //!packet_id, channel number to define a hbd_channel
-  typedef std::pair<int, int> hbd_channel_typ;
+  typedef std::pair<int, int> channel_typ;
 
   //! list of hbd_channel -> channel id which is also tower id
-  typedef std::map<hbd_channel_typ, int> hbd_channel_map;
+  typedef std::map<channel_typ, int> channel_map;
 
-  hbd_channel_map _hbd_channel_map;
+  channel_map _channel_map;
 
   Event *_event;
 
