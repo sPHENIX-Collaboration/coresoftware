@@ -1,8 +1,8 @@
 #include "G4TowerNtuple.h"
 
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTower.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 

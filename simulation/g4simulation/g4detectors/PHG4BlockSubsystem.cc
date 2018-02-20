@@ -3,7 +3,8 @@
 #include "PHG4BlockGeomContainer.h"
 #include "PHG4BlockGeomv1.h"
 #include "PHG4BlockSteppingAction.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Utils.h>

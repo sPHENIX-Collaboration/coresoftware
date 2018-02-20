@@ -21,7 +21,7 @@ libqa_modules_la_LIBADD = \
   -lg4detectors_io \
   -lg4hough_io \
   -lg4hough \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lg4jets_io \
   -lg4eval
 

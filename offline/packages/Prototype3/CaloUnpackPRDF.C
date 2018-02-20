@@ -7,13 +7,13 @@
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include <Event/packet_hbd_fpgashort.h>
-#include <g4cemc/RawTowerContainer.h>
+#include <calobase/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 
 #include <iostream>
 #include <string>
@@ -80,7 +80,7 @@ CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
 
   if (_use_high_eta_EMCal < 0)
   {
-    PHG4Parameters run_info_copy("RunInfo");
+    PHParameters run_info_copy("RunInfo");
     run_info_copy.FillFrom(info);
     emcal_is_higheta = run_info_copy.get_int_param("EMCAL_Is_HighEta");
   }

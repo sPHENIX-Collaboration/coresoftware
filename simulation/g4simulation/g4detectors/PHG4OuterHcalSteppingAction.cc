@@ -2,10 +2,11 @@
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4HcalDefs.h"
 #include "PHG4OuterHcalDetector.h"
-#include "PHG4Parameters.h"
 #include "PHG4StepStatusDecode.h"
 
 // our own headers in alphabetical order
+
+#include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllServer.h>
@@ -54,7 +55,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHG4Parameters* parameters)
+PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHParameters* parameters)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)

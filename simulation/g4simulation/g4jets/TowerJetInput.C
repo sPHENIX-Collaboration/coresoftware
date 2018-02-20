@@ -11,10 +11,10 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeom.h>
-#include <g4cemc/RawTower.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTower.h>
 #include <g4vertex/GlobalVertexMap.h>
 #include <g4vertex/GlobalVertex.h>
 
@@ -50,6 +50,11 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     cout <<"TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
     assert(vertexmap); // force quit
 
+    return std::vector<Jet*>();
+  }
+
+  if (vertexmap->empty()) {
+    cout <<"TowerJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex."<<endl;
     return std::vector<Jet*>();
   }
 

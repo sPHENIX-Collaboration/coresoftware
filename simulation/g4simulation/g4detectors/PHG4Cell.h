@@ -43,6 +43,7 @@ class PHG4Cell: public TObject
 
   // this adds hits to the g4 hit list map
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
+  virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep) {return;}
   // this adds showers to the shower map
   virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
 
@@ -101,7 +102,7 @@ class PHG4Cell: public TObject
   virtual int get_zbin() const {return ~0x0;}
 
 
-  virtual void print() const {std::cout<<"PHG4Cellv1"<<std::endl;}
+  virtual void print() const {std::cout<<"virtual PHG4Cell"<<std::endl;}
 
   //! Procedure to add a new PROPERTY tag:
   //! 1.add new tag below with unique value,

@@ -180,69 +180,72 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _g4clusters(NULL),
       _g4tracks(NULL),
       _g4vertexes(NULL),
-	  _svtxhitsmap(nullptr),
-	  _cells_svtx(nullptr),
-	  _cells_intt(nullptr),
-	  _cells_maps(nullptr),
-	  _geom_container_intt(nullptr),
-	  _geom_container_maps(nullptr),
-	  _seeding_only_mode(false),
-	  _analyzing_mode(false),
+      _svtxhitsmap(nullptr),
+      _hit_used_map(NULL),
+      _cells_svtx(nullptr),
+      _cells_intt(nullptr),
+      _cells_maps(nullptr),
+      _geom_container_intt(nullptr),
+      _geom_container_maps(nullptr),
+      _n_iteration(0),
+      _n_max_iterations(3),
+      _seeding_only_mode(false),
+      _analyzing_mode(false),
       _analyzing_file(NULL),
       _analyzing_ntuple(NULL),
-	  _max_merging_dphi(0.1),
-	  _max_merging_deta(0.1),
-	  _max_merging_dr(0.1),
-	  _max_merging_dz(0.1),
-	  _max_share_hits(3),
-	  _fitter(NULL),
-	  _track_fitting_alg_name("DafRef"),
-	  _primary_pid_guess(211),
-	  _cut_min_pT(0.2),
-	  _do_evt_display(false),
-	  _nlayers_maps(nlayers_maps),
-	  _nlayers_intt(nlayers_intt),
-	  _nlayers_tpc(nlayers_tpc),
-	  _nlayers_all(_nlayers_maps+_nlayers_intt+_nlayers_tpc),
-	  _layer_ilayer_map_all(),
-	  _radii_all(),
-
-		_max_search_win_phi_tpc(    0.0040),
-		_min_search_win_phi_tpc(    0.0000),
-		_max_search_win_theta_tpc(  0.0040),
-		_min_search_win_theta_tpc(  0.0000),
-
-		_max_search_win_phi_intt(   0.0050),
-		_min_search_win_phi_intt(   0.0000),
-		_max_search_win_theta_intt( 0.2000),
-		_min_search_win_theta_intt( 0.2000),
-
-		_max_search_win_phi_maps(   0.0050),
-		_min_search_win_phi_maps(   0.0000),
-		_max_search_win_theta_maps( 0.0400),
-		_min_search_win_theta_maps( 0.0000),
-
-	  _search_win_phi(20),
-	  _search_win_theta(20),
-	  _layer_thetaID_phiID_cluserID(),
-	  //_half_max_theta(160),
-	  _half_max_theta(3.1416/2.),
-	  //_half_max_phi(252), //80cm * Pi
-	  _half_max_phi(3.1416),
-	  //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
-	  _layer_thetaID_phiID_cluserID_phiSize(0.1200/30), //rad
-	  _layer_thetaID_phiID_cluserID_zSize(0.1700/30),
-	  _PHGenFitTracks(),
-	  _init_direction(-1),
-	  _blowup_factor(1.),
-	  _max_consecutive_missing_layer(20),
-	  _max_incr_chi2(20.),
-	  _max_splitting_chi2(20.),
-	  _min_good_track_hits(30)
-	  {
-	_event = 0;
-
-	_user_material.clear();
+      _max_merging_dphi(0.1),
+      _max_merging_deta(0.1),
+      _max_merging_dr(0.1),
+      _max_merging_dz(0.1),
+      _max_share_hits(3),
+      _fitter(NULL),
+      _track_fitting_alg_name("DafRef"),
+      _primary_pid_guess(211),
+      _cut_min_pT(0.2),
+      _do_evt_display(false),
+      _nlayers_maps(nlayers_maps),
+      _nlayers_intt(nlayers_intt),
+      _nlayers_tpc(nlayers_tpc),
+      _nlayers_all(_nlayers_maps+_nlayers_intt+_nlayers_tpc),
+      _layer_ilayer_map_all(),
+      _radii_all(),
+      
+      _max_search_win_phi_tpc(    0.0040),
+      _min_search_win_phi_tpc(    0.0000),
+      _max_search_win_theta_tpc(  0.0040),
+      _min_search_win_theta_tpc(  0.0000),
+      
+      _max_search_win_phi_intt(   0.0050),
+      _min_search_win_phi_intt(   0.0000),
+      _max_search_win_theta_intt( 0.2000),
+      _min_search_win_theta_intt( 0.2000),
+      
+      _max_search_win_phi_maps(   0.0050),
+      _min_search_win_phi_maps(   0.0000),
+      _max_search_win_theta_maps( 0.0400),
+      _min_search_win_theta_maps( 0.0000),
+      
+      _search_win_phi(20),
+      _search_win_theta(20),
+      _layer_thetaID_phiID_cluserID(),
+      //_half_max_theta(160),
+      _half_max_theta(3.1416/2.),
+      //_half_max_phi(252), //80cm * Pi
+      _half_max_phi(3.1416),
+      //_layer_thetaID_phiID_cluserID_phiSize(0.1200),
+      _layer_thetaID_phiID_cluserID_phiSize(0.1200/30), //rad
+      _layer_thetaID_phiID_cluserID_zSize(0.1700/30),
+      _PHGenFitTracks(),
+      _init_direction(-1),
+      _blowup_factor(1.),
+      _max_consecutive_missing_layer(20),
+      _max_incr_chi2(20.),
+      _max_splitting_chi2(20.),
+      _min_good_track_hits(30)
+{
+  _event = 0;
+  
+  _user_material.clear();
 	for(unsigned int i=0;i<_nlayers_maps;++i)
 		_user_material[i] = 0.003;
 	for(unsigned int i=_nlayers_maps;i<_nlayers_maps+_nlayers_intt;++i)
@@ -290,10 +293,15 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
 
+	int min_layers    = 4;
+	int nlayers_seeds = 7;
+	int seeding_layers[] = {7,13,19,25,31,37,46};
+	set_seeding_layer(seeding_layers, nlayers_seeds);
+	set_min_nlayers_seeding(min_layers);
+	
 	code = InitializeGeometry(topNode);
 	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
+	  return code;
 	code = InitializePHGenFit(topNode);
 	if(code != Fun4AllReturnCodes::EVENT_OK)
 		return code;
@@ -308,9 +316,9 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	}
 
 	// nightly build 2017-05-04
-//	_search_wins_phi[8]  = 50.;
-//	_search_wins_phi[9]  = 45.;
-//	_search_wins_phi[10] = 40.;
+	//	_search_wins_phi[8]  = 50.;
+	//	_search_wins_phi[9]  = 45.;
+	//	_search_wins_phi[10] = 40.;
 //	_search_wins_phi[11] = 30.;
 //	_search_wins_phi[12] = 30.;
 //	_search_wins_phi[13] = 30.;
@@ -429,102 +437,203 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 		cout << "PHG4KalmanPatRec::process_event -- entered" << endl;
 
 	// start fresh
+	int code;
+	_n_iteration = 0;
+	if(_n_max_iterations<1)_n_max_iterations = 1;
+	if(_n_max_iterations>3)_n_max_iterations = 3;
 	_clusters.clear();
-	_tracks.clear();
-	_track_errors.clear();
+	_all_tracks.clear();
+	_all_track_errors.clear();
+	_all_track_covars.clear();
+
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
-
 	//-----------------------------------
 	// Get Objects off of the Node Tree
 	//-----------------------------------
 
-	GetNodes(topNode);
+	GetNodes(topNode);// Allocate Cluster Use Map allocated in here
 
-	if(verbosity >= 1) _t_seeding->restart();
+	// Iterate over seeding configurations
 
-	//-----------------------------------
-	// Translate into Helix_Hough objects
-	//-----------------------------------
+	for(_n_iteration = 1;_n_iteration<=_n_max_iterations;_n_iteration++){
+	  _tracks.clear();
+	  _track_errors.clear();
+	  _track_covars.clear();
 
-	int code = translate_input();
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
+	  if(_n_iteration==1){
+	    int min_layers    = 4;
+	    int nlayers_seeds = 7;
+	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
+				    (int)(_nlayers_maps+_nlayers_intt+6),
+				    (int)(_nlayers_maps+_nlayers_intt+12),
+				    (int)(_nlayers_maps+_nlayers_intt+18),
+				    (int)(_nlayers_maps+_nlayers_intt+24),
+				    (int)(_nlayers_maps+_nlayers_intt+30),
+				    (int)(_nlayers_maps+_nlayers_intt+39)
+				    //7,13,19,25,31,37,46
+	    };
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	  
+	    code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  /*
+	  if(_n_iteration==2){
+	    int min_layers    = 4;
+	    int nlayers_seeds = 7;
+	    int seeding_layers[] = {7,13,19,25,31,37,46};
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	  
+	    code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  */
+	  if(_n_iteration==2){
+	    int min_layers    = 7;
+	    int nlayers_seeds = 12;
+	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
+				    (int)(_nlayers_maps+_nlayers_intt+1),
+				    (int)(_nlayers_maps+_nlayers_intt+6),
+				    (int)(_nlayers_maps+_nlayers_intt+7),
+				    (int)(_nlayers_maps+_nlayers_intt+12),
+				    (int)(_nlayers_maps+_nlayers_intt+13),
+				    (int)(_nlayers_maps+_nlayers_intt+19),
+				    (int)(_nlayers_maps+_nlayers_intt+20),
+				    (int)(_nlayers_maps+_nlayers_intt+27),
+				    (int)(_nlayers_maps+_nlayers_intt+28),
+				    (int)(_nlayers_maps+_nlayers_intt+33),
+				    (int)(_nlayers_maps+_nlayers_intt+39)
+				    //7,13,19,25,31,37,46
+				    //7,8,13,14,19,20,26,27,34,35,40,46
+	    };
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	  
+	    code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  if(_n_iteration==3){
+	    int min_layers    = 4;
+	    int nlayers_seeds = 12;
+	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
+				    (int)(_nlayers_maps+_nlayers_intt+1),
+				    (int)(_nlayers_maps+_nlayers_intt+6),
+				    (int)(_nlayers_maps+_nlayers_intt+7),
+				    (int)(_nlayers_maps+_nlayers_intt+12),
+				    (int)(_nlayers_maps+_nlayers_intt+13),
+				    (int)(_nlayers_maps+_nlayers_intt+19),
+				    (int)(_nlayers_maps+_nlayers_intt+20),
+				    (int)(_nlayers_maps+_nlayers_intt+27),
+				    (int)(_nlayers_maps+_nlayers_intt+28),
+				    (int)(_nlayers_maps+_nlayers_intt+33),
+				    (int)(_nlayers_maps+_nlayers_intt+39)
+				    //7,13,19,25,31,37,46
+				    //7,8,13,14,19,20,26,27,34,35,40,46
+	    };
+	    set_seeding_layer(seeding_layers, nlayers_seeds);
+	    set_min_nlayers_seeding(min_layers);
+	    //
+	    code = InitializeGeometry(topNode);
+	    if(code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  
+	  if(verbosity >= 1)
+	    cout << "Iteration number " << _n_iteration << endl; 
+	  _min_nlayers_seeding--;
+	  if(verbosity >= 1) _t_seeding->restart();
+	  
+	  //-----------------------------------
+	  // Translate into Helix_Hough objects
+	  //-----------------------------------
+	  
+	  code = translate_input();//Check if cluster is already used in here
+	  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	  
+	  //-----------------------------------
+	  // Guess a vertex position
+	  //-----------------------------------
+	  
+	  //	code = fast_vertex_guessing();
+	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	  // here expect vertex to be better than +/-2.0 cm
+	  
+	  //-----------------------------------
+	  // Find an initial vertex with tracks
+	  //-----------------------------------
+	  
+	  //	code = initial_vertex_finding();
+	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	  if(_n_iteration ==1){
+	    code = vertexing(topNode);
+	    if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	    // here expect vertex to be better than +/- 500 um
+	  }
+	  //-----------------------------------
+	  // Seeding
+	  //-----------------------------------
+	  //TODO simplify this function
+	  code = full_track_seeding();
+	  if (code != Fun4AllReturnCodes::EVENT_OK)
+	    return code;
+	  
+	  if(verbosity >= 1) _t_seeding->stop();
+	  if(verbosity >= 1) _t_kalman_pat_rec->restart();
+	  
+	  //-----------------------------------
+	  // Kalman cluster association
+	  //-----------------------------------
+	  if (!_seeding_only_mode) {
+	    code = FullTrackFitting(topNode);
+	    if (code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+	  }
+	  if(verbosity >= 1) _t_kalman_pat_rec->stop();
+	  
+	  //-----------------------------------
+	  // Translate back into SVTX objects
+	  //-----------------------------------
 
-	//-----------------------------------
-	// Guess a vertex position
-	//-----------------------------------
-
-//	code = fast_vertex_guessing();
-//	if (code != Fun4AllReturnCodes::EVENT_OK)
-//		return code;
-
-	// here expect vertex to be better than +/-2.0 cm
-
-	//-----------------------------------
-	// Find an initial vertex with tracks
-	//-----------------------------------
-
-//	code = initial_vertex_finding();
-//	if (code != Fun4AllReturnCodes::EVENT_OK)
-//		return code;
-
-	code = vertexing(topNode);
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-	// here expect vertex to be better than +/- 500 um
-
-	//-----------------------------------
-	// Seeding
-	//-----------------------------------
-	//TODO simplify this function
-	code = full_track_seeding();
-	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	if(verbosity >= 1) _t_seeding->stop();
-
-
-	if(verbosity >= 1) _t_kalman_pat_rec->restart();
-	//-----------------------------------
-	// Kalman cluster accociation
-	//-----------------------------------
-	if (!_seeding_only_mode) {
-		code = FullTrackFitting(topNode);
-		if (code != Fun4AllReturnCodes::EVENT_OK)
-			return code;
+	  ///	  add_tracks();
+	  
+	  if(verbosity > 1) print_timers();
 	}
-	if(verbosity >= 1) _t_kalman_pat_rec->stop();
 
-
-	//-----------------------------------
-	// Translate back into SVTX objects
-	//-----------------------------------
-
+	//	CleanupTracksByHitPattern();
+       
 	if(!_seeding_only_mode)
-		code = ExportOutput();
+	  code = ExportOutput();
 	else
-		code = export_output();
+	  code = export_output();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	if(verbosity > 1) {
-		std::cout << "=============== Timers: ===============" << std::endl;
-		std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
-		std::cout << "=======================================" << std::endl;
-	}
+	  return code;
 	++_event;
-
+	
 	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+void PHG4KalmanPatRec::print_timers() {
+  
+  std::cout << "=============== Timers: ===============" << std::endl;
+  std::cout << "Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "=======================================" << std::endl;
+
 }
 
 int PHG4KalmanPatRec::End(PHCompositeNode *topNode) {
@@ -1032,7 +1141,6 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 	}
 
 	// initialize the pattern recogition tools
-
 	setup_tracker_object();
 	setup_initial_tracker_object();
 	setup_seed_tracker_objects();
@@ -1384,6 +1492,15 @@ int PHG4KalmanPatRec::GetNodes(PHCompositeNode* topNode) {
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
 
+	if(_hit_used_map_size!=0) delete[] _hit_used_map;
+
+	_hit_used_map_size = static_cast<int>(_g4clusters->size());
+	_hit_used_map = new int[_hit_used_map_size];
+	for (Int_t i=0;i<_hit_used_map_size;i++){
+	  _hit_used_map[i] = 0;
+	}
+
+
 	// Pull the reconstructed track information off the node tree...
 	_g4tracks = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 	if (!_g4tracks) {
@@ -1403,12 +1520,37 @@ int PHG4KalmanPatRec::GetNodes(PHCompositeNode* topNode) {
 
 int PHG4KalmanPatRec::translate_input() {
 
+  int count = 0;
+  int count7 = 0;
+  int count46 = 0;
 	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
 			iter != _g4clusters->end(); ++iter) {
-		SvtxCluster* cluster = iter->second;
-
-
-		//unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+	  if(_hit_used_map[iter->first]!=0) continue;
+	  count++;
+	  SvtxCluster* cluster = iter->second;
+	  if(cluster->get_layer()==(unsigned int)(_nlayers_maps+_nlayers_intt))count7++;
+	  if(cluster->get_layer()==(unsigned int)(_nlayers_maps+_nlayers_intt+40))count46++;
+	  //	  cout << "first: " << iter->first << endl; 
+	  /*
+	    float vz = 0.0;
+	    float x  = cluster->get_x();
+	    float y  = cluster->get_y();
+	    float z  = cluster->get_z();
+	    float dz = z - vz;
+	    float r  = sqrt(x*x+y*y);
+	    float zsize = cluster->get_z_size();
+	    bool goodhit = false;
+	    
+	    if(TMath::Abs(dz)<40&&zsize<3)
+	    goodhit = true;
+	    
+	    if(zsize > (TMath::Abs(dz)/r * 2.448 + 0.5)&&
+	    zsize < (TMath::Abs(dz)/r * 2.448 + 3.5) )
+	    goodhit = true;
+	    if(goodhit==false) continue;
+	    //ntp_cluster.Draw("zsize:z-gvz","layer==7&&zsize>(abs(z-gvz)*0.08+0.5)&&zsize<(abs(z-gvz)*0.08)+3.5")
+	    */
+	  //unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
 
 //		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
 //		if(ilayer >= _nlayers_seeding) continue;
@@ -1464,6 +1606,12 @@ int PHG4KalmanPatRec::translate_input() {
 				<< endl;
 	}
 
+	if(verbosity >= 1){
+	  cout << "cluster count iter #" << _n_iteration << " : " << count 
+	       << " | l7: " << count7 
+	       << " | l46: " << count46 
+	       << endl; 
+	}
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1711,7 +1859,8 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 	// final track finding
 	_tracker->findHelices(_clusters, _min_combo_hits, _max_combo_hits, _tracks);
-
+	if(verbosity >= 1)
+	  cout << "SEEDSTUDY nbefore clean (" << _min_nlayers_seeding << "): " << _tracks.size() << endl;
 	// Cleanup Seeds
 #ifdef _USE_ALAN_TRACK_REFITTING_
 #else
@@ -1719,6 +1868,8 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	CleanupSeeds();
 	if(verbosity >= 1) _t_seeds_cleanup->stop();
 #endif
+	if(verbosity >= 1)
+	  cout << "SEEDSTUDY nafter clean: " << _tracks.size() << endl;
 	for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
 		_track_covars.push_back((_tracker->getKalmanStates())[tt].C);
 		_track_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
@@ -1806,7 +1957,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 int PHG4KalmanPatRec::export_output() {
 
-	if (_tracks.empty())
+	if (_all_tracks.empty())
 		return Fun4AllReturnCodes::EVENT_OK;
 
 	SvtxVertex_v1 vertex;
@@ -1831,11 +1982,11 @@ int PHG4KalmanPatRec::export_output() {
 	vector<SimpleHit3D> track_hits;
 	int clusterID;
 
-	for (unsigned int itrack = 0; itrack < _tracks.size(); itrack++) {
+	for (unsigned int itrack = 0; itrack < _all_tracks.size(); itrack++) {
 		SvtxTrack_v1 track;
 		track.set_id(itrack);
 		track_hits.clear();
-		track_hits = _tracks.at(itrack).hits;
+		track_hits = _all_tracks.at(itrack).hits;
 
 		for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++) {
 			if ((track_hits.at(ihit).get_id()) >= _g4clusters->size()) {
@@ -1843,6 +1994,8 @@ int PHG4KalmanPatRec::export_output() {
 			}
 			SvtxCluster* cluster = _g4clusters->get(
 					track_hits.at(ihit).get_id());
+			//mark hit asu used by iteration number n
+			_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
 			clusterID = cluster->get_id();
 #ifdef _DEBUG_
 			cout
@@ -1861,11 +2014,11 @@ int PHG4KalmanPatRec::export_output() {
 			//}
 		}
 
-		float kappa = _tracks.at(itrack).kappa;
-		float d = _tracks.at(itrack).d;
-		float phi = _tracks.at(itrack).phi;
-		float dzdl = _tracks.at(itrack).dzdl;
-		float z0 = _tracks.at(itrack).z0;
+		float kappa = _all_tracks.at(itrack).kappa;
+		float d = _all_tracks.at(itrack).d;
+		float phi = _all_tracks.at(itrack).phi;
+		float dzdl = _all_tracks.at(itrack).dzdl;
+		float z0 = _all_tracks.at(itrack).z0;
 
 		//    track.set_helix_phi(phi);
 		//    track.set_helix_kappa(kappa);
@@ -1893,15 +2046,15 @@ int PHG4KalmanPatRec::export_output() {
 		if (dzdl != 1) {
 			pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
 		}
-		int ndf = 2 * _tracks.at(itrack).hits.size() - 5;
-		track.set_chisq(_track_errors[itrack]);
+		int ndf = 2 * _all_tracks.at(itrack).hits.size() - 5;
+		track.set_chisq(_all_track_errors[itrack]);
 		track.set_ndf(ndf);
 		track.set_px(pT * cos(phi - helicity * M_PI / 2));
 		track.set_py(pT * sin(phi - helicity * M_PI / 2));
 		track.set_pz(pZ);
 
 		track.set_dca2d(d);
-		track.set_dca2d_error(sqrt(_track_covars[itrack](1, 1)));
+		track.set_dca2d_error(sqrt(_all_track_covars[itrack](1, 1)));
 
 		if (_magField > 0) {
 			track.set_charge(helicity);
@@ -1912,7 +2065,7 @@ int PHG4KalmanPatRec::export_output() {
 		Eigen::Matrix<float, 6, 6> euclidean_cov =
 				Eigen::Matrix<float, 6, 6>::Zero(6, 6);
 		convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
-				z0, dzdl, _track_covars[itrack], euclidean_cov);
+				z0, dzdl, _all_track_covars[itrack], euclidean_cov);
 
 		for (unsigned int row = 0; row < 6; ++row) {
 			for (unsigned int col = 0; col < 6; ++col) {
@@ -1946,11 +2099,45 @@ int PHG4KalmanPatRec::export_output() {
 
 	// we are done with these now...
 	_clusters.clear();
+	_all_tracks.clear();
+	_all_track_errors.clear();
+	_all_track_covars.clear();
+	_vertex.clear();
+	_vertex.assign(3, 0.0);
+
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4KalmanPatRec::add_tracks() {
+
+	if (_tracks.empty())
+		return Fun4AllReturnCodes::EVENT_OK;
+
+	vector<SimpleHit3D> track_hits;
+
+	//Mark used clusters
+	for (unsigned int itrack = 0; itrack < _tracks.size(); itrack++) {
+	  _all_tracks.push_back(_tracks[itrack]);
+	  _all_track_errors.push_back(_track_errors[itrack]);
+	  _all_track_covars.push_back(_track_covars[itrack]);
+	  
+	  track_hits = _tracks.at(itrack).hits;
+	  
+	  for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++) {
+	    if ((track_hits.at(ihit).get_id()) >= _g4clusters->size()) {
+	      continue;
+	    }
+	    //mark hit as used by iteration number n
+	    _hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
+	  }
+
+	}  // track loop
+
+	// we are done with these now...
+	_clusters.clear();
 	_tracks.clear();
 	_track_errors.clear();
 	_track_covars.clear();
-	_vertex.clear();
-	_vertex.assign(3, 0.0);
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -2257,6 +2444,208 @@ int PHG4KalmanPatRec::CleanupSeedsByHitPattern() {
 
 	
 	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4KalmanPatRec::CleanupTracksByHitPattern() {
+
+        std::vector<SimpleTrack3D> _tracks_cleanup;
+        _tracks_cleanup.clear();
+
+	//	if(verbosity >= 1)
+	{
+	    cout<<__LINE__<< ": Event: "<< _event << ": # tracks before cleanup: "<< _tracks.size() <<endl;
+	  }
+
+	
+	std::vector<double> _track_errors_cleanup;
+	_track_errors_cleanup.clear();	  
+	std::vector<Eigen::Matrix<float, 5, 5> > _track_covars_cleanup;
+	_track_covars_cleanup.clear();
+	
+	std::vector<HelixKalmanState> _kalman_states_cleanup;
+	_kalman_states_cleanup.clear();
+	       
+	typedef std::tuple<int, int, int, int> KeyType;
+	typedef std::multimap< KeyType, unsigned int > MapKeyTrkID;
+	
+	std::set<KeyType> keys;
+	std::vector<bool> v_track_used;
+	MapKeyTrkID m_key_itrack;
+
+
+	typedef std::set<unsigned int> TrackList;
+
+	std::set<unsigned int> OutputList;
+	std::multimap<int, unsigned int > hitIdTrackList;
+
+	unsigned int max_hit_id = 0;
+	//For each hit make list of all associated tracks
+
+	std::vector<bool> good_track;
+	//	printf("build hit track map\n");
+	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+	  good_track.push_back(true);
+	  SimpleTrack3D track = _tracks[itrack];
+	  for( SimpleHit3D hit : track.hits) {
+	    hitIdTrackList.insert(std::make_pair(hit.get_id(),itrack));
+	    if(hit.get_id()>max_hit_id) max_hit_id = hit.get_id();
+	  }
+	}
+	//	printf("build track duplicate map\n");
+	//Check Tracks for duplicates by looking for hits shared
+	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+	  if(good_track[itrack]==false) continue;//already checked this one
+	  if(OutputList.count(itrack)>0)continue;//already got this one
+	  
+	  SimpleTrack3D track = _tracks[itrack];
+
+	  int trackid_max_nhit = itrack;
+	  unsigned int max_nhit = track.hits.size();
+	  int onhit = track.hits.size();
+
+	  TrackList tList;
+	  for( SimpleHit3D hit : track.hits) {
+	    int nmatch = hitIdTrackList.count(hit.get_id());
+	    if(nmatch>1){
+	      multimap<int, unsigned int >::iterator it = hitIdTrackList.find(hit.get_id());
+	      //Loop over track matches and add them to the list, select longest in the process
+	      for(; it != hitIdTrackList.end();++it) {
+		unsigned int match_trackid = (*it).second;
+		if(match_trackid == itrack) continue;//original track
+		if(good_track[match_trackid]==false)continue;
+		tList.insert(match_trackid);
+		SimpleTrack3D mtrack = _tracks[match_trackid];
+	      }
+	    }
+	  }
+	  //	  int tlsize = tList.size();
+
+	  //	  cout << "remove bad matches " << tList.size() << "itrk: " << itrack << endl;
+	  //loop over matches and remove matches with too few shared hits  
+	  TrackList mergeList;
+	  for( unsigned int match : tList) {
+	    //	    cout << "processing " << match << " of " << tList.size() << " itrk " << itrack << endl;
+	    if(match==itrack)continue;
+	    if(good_track[match]==false)continue;
+
+	    SimpleTrack3D mtrack = _tracks[match]; //matched track
+	    int mnhit = mtrack.hits.size();
+ 	    std::set<unsigned int> HitList;
+	    //put hits from both tracks in a set
+	    for( SimpleHit3D hit : track.hits) HitList.insert(hit.get_id());
+	    for( SimpleHit3D hit : mtrack.hits) HitList.insert(hit.get_id());
+	    //set stores only unique hits, tracks overlap if:
+	    int sumnhit = HitList.size();
+	    if(sumnhit<(onhit+mnhit-3)){// more than 3 overlaps 
+	      //not enough overlap, drop track from list
+	      //tList.erase(match);
+	      //good_track[match] = false;
+	      if(sumnhit != onhit){//no subset
+		mergeList.insert(match);
+	      }
+	    }
+
+	  }
+
+	  tList.clear();
+	  //	  cout << "flag bad matches done " << mergeList.size() << " itrk " << itrack << endl;
+	  //loop over matches and flag all tracks bad except the longest 
+	  std::set<unsigned int> MergedHitList;
+	  if(mergeList.size()==0){
+	    for( SimpleHit3D hit : track.hits) MergedHitList.insert(hit.get_id());
+	  }
+	  //	  cout << "merge good matches itrk " << itrack << " #" << mergeList.size() << endl;
+	  for( unsigned int match : mergeList) {
+	    if(match==itrack)continue;
+	    if(good_track[match]==false)continue;
+	    //	    cout << "  adding " << match << endl;
+	    //check number of shared hits
+	    //get tracks
+
+	    SimpleTrack3D mtrack = _tracks[match]; //matched track
+	    if(mtrack.hits.size()>max_nhit){
+	      max_nhit = mtrack.hits.size();
+	      trackid_max_nhit = match;
+	      good_track[itrack] = false;
+	    }else{
+	      good_track[match] = false;
+	    }
+	    for( SimpleHit3D hit : track.hits) MergedHitList.insert(hit.get_id());
+	    for( SimpleHit3D hit : mtrack.hits) MergedHitList.insert(hit.get_id());
+	  }
+
+	  //	  int ntracks = _tracks.size();
+	  //int outtracks = OutputList.size();
+	  //	  printf("CLEANUP: itrack: %5d(%d) => %5d matches max %d(%d) tracks kept: %d\n",
+	  //	 itrack, ntracks,tlsize, max_nhit, trackid_max_nhit, outtracks);
+
+	  //	  printf("keep track %d\n",trackid_max_nhit);
+	  //add merged hit list to merged track 
+	  if(OutputList.count(trackid_max_nhit)==0){
+	    _tracks_cleanup.push_back(_tracks[trackid_max_nhit]);
+	
+	    _kalman_states_cleanup.push_back((_tracker->getKalmanStates())[trackid_max_nhit]);
+	    _track_covars_cleanup.push_back((_tracker->getKalmanStates())[trackid_max_nhit].C);
+	    _track_errors_cleanup.push_back(_tracker->getKalmanStates()[trackid_max_nhit].chi2);
+
+	  }
+	  OutputList.insert(trackid_max_nhit);
+	  
+	  _tracks_cleanup.back().hits.clear();
+	  
+	  for(unsigned int hitID : MergedHitList) {
+	    SimpleHit3D hit;
+	    hit.set_id(hitID);
+	    _tracks_cleanup.back().hits.push_back(hit);
+	  }
+	  
+				    
+	}
+
+	_tracks.clear();
+	_tracks = _tracks_cleanup;
+
+	_track_errors.clear();
+	_track_errors = _track_errors_cleanup;
+	_track_covars.clear();
+	_track_covars = _track_covars_cleanup;
+	_tracker->getKalmanStates().clear();
+	for(auto &kstate :  _kalman_states_cleanup){
+	  _tracker->getKalmanStates().push_back(kstate);
+	}
+	
+		
+       	if(verbosity >= 1)
+	  {
+	    cout<<__LINE__<< ": Event: "<< _event <<endl;
+	    cout << ": # tracks after cleanup: "<< _tracks.size() << " ol:" <<OutputList.size()  <<endl;
+	  }
+	
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+int PHG4KalmanPatRec::check_track_exists(MapPHGenFitTrack::iterator iter){
+	
+  
+  //Loop over hitIDs on current track and check if they have been used
+  unsigned int n_clu = iter->second->get_cluster_IDs().size();
+
+  unsigned int  n_clu_used = 0;
+  const std::vector<unsigned int>& clusterIDs = iter->second->get_cluster_IDs();
+  for(unsigned int iCluId = 0; iCluId < clusterIDs.size(); ++iCluId){
+    unsigned int cluster_ID = clusterIDs[iCluId];
+    if(_hit_used_map[cluster_ID]>0)n_clu_used++;
+  }
+  int code = 0;
+  if(((float)n_clu_used/n_clu)>0.3){
+    if(verbosity>=1)
+      cout << "Found duplicate track. n_clu: " << n_clu << " c_clu_used: " << n_clu_used << " n_iter: " << _n_iteration<< endl;
+
+    return code;
+  }
+  code = 1;
+  return code;
 }
 
 int PHG4KalmanPatRec::CleanupSeeds() {
@@ -2595,8 +2984,9 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 #endif
 
 		auto iter = _PHGenFitTracks.begin();
-
-		if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits) {
+		
+		int track_exists = check_track_exists(iter);
+		if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits && track_exists) {
 			OutputPHGenFitTrack(topNode, iter);
 #ifdef _DEBUG_
 			cout << __LINE__ << endl;
@@ -2632,7 +3022,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 int PHG4KalmanPatRec::ExportOutput() { return 0;}
 
 int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator iter) {
-
+  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
 //#ifdef _DEBUG_
 //	std::cout << "=========================" << std::endl;
 //	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Event: "<< _event << std::endl;
@@ -2704,11 +3094,48 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		track.set_z(pos.Z());
 
 		for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
-			track.insert_cluster(cluster_ID);
+		  track.insert_cluster(cluster_ID);
 		}
 
-		_g4tracks->insert(&track);
+		//Check track quality
+		bool is_good_track = true;
 
+		Int_t n_maps = 0;
+		Int_t n_intt = 0;
+		Int_t n_tpc  = 0;
+		
+		for (SvtxTrack::ConstClusterIter iter = track.begin_clusters();
+		     iter != track.end_clusters();
+		     ++iter) {
+		  unsigned int cluster_id = *iter;
+		  SvtxCluster* cluster = clustermap->get(cluster_id);
+		  unsigned int layer = cluster->get_layer();
+		  if(_nlayers_maps>0&&layer<_nlayers_maps){ 
+		    n_maps++ ;
+		  }
+		  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
+		    n_intt++;
+		  }
+		  if(_nlayers_tpc>0&&
+		     layer>=(_nlayers_maps+_nlayers_intt)&&
+		     layer<(_nlayers_maps+_nlayers_intt+_nlayers_tpc)){ 
+		    n_tpc++;
+		  }
+		}
+		
+		if(n_maps<3&&_nlayers_maps>0) is_good_track = false;
+		if(n_intt<3&&_nlayers_intt>0) is_good_track = false;
+		if(n_tpc<20&&_nlayers_intt>0) is_good_track = false;
+				
+		//		if(is_good_track||_n_iteration==4)
+		if(is_good_track||_n_iteration>=0)
+		  {
+		    for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
+		      _hit_used_map[cluster_ID] = _n_iteration;
+		    }
+		    
+		    _g4tracks->insert(&track);
+		  }
 		if (verbosity > 5) {
 			cout << "track " << _g4tracks->size() << " quality = " << track.get_quality()
 					<< endl;

@@ -2,8 +2,8 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTower.h>
 
 #include <string>
 

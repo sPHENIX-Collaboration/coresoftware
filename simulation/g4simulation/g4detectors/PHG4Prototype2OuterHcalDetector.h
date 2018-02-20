@@ -1,8 +1,6 @@
 #ifndef PHG4Prototype2OuterHcalDetector_h
 #define PHG4Prototype2OuterHcalDetector_h
 
-#include "PHG4Parameters.h"
-
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
@@ -19,6 +17,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHParameters;
 
 class PHG4Prototype2OuterHcalDetector: public PHG4Detector
 {
@@ -26,7 +25,7 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   public:
 
   //! constructor
- PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam);
+ PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4Prototype2OuterHcalDetector(){}
@@ -60,7 +59,7 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   int DisplayVolume(G4LogicalVolume *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
-  PHG4Parameters *params;
+  PHParameters *params;
   G4LogicalVolume *outerhcalsteelplate;
   G4AssemblyVolume *outerhcalassembly;
   G4TwoVector steel_plate_corner_upper_left;

@@ -5,18 +5,18 @@
 #ifndef PHG4mRICHDetector_h
 #define PHG4mRICHDetector_h
 
-#include <string>
-
 #include <g4main/PHG4Detector.h>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Colour.hh>
 
+#include <set>
+#include <string>
+
 class G4LogicalVolume;
-class PHG4Parameters;
+class PHParameters;
 class G4VPhysicalVolume;
 class G4Material;
 
-using namespace std;
 //___________________________________________________________________________
 class PHG4mRICHDetector: public PHG4Detector
 {
@@ -24,7 +24,7 @@ class PHG4mRICHDetector: public PHG4Detector
  public:
   
   //! constructor
-  PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
+  PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
   
   //! destructor
   virtual ~PHG4mRICHDetector( void ) {}
@@ -49,7 +49,7 @@ class PHG4mRICHDetector: public PHG4Detector
   class PolyPar;
   class LensPar;
 
-  PHG4Parameters *params;
+  PHParameters *params;
   
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);
@@ -70,6 +70,8 @@ class PHG4mRICHDetector: public PHG4Detector
   int layer;
   //int blackhole;
   std::string superdetector;
+  std::set<G4VPhysicalVolume*> active_volumes;
+  std::set<G4VPhysicalVolume*> passive_volumes;
   
 };
 //___________________________________________________________________________
@@ -102,7 +104,7 @@ class PHG4mRICHDetector::mRichParameter
 class PHG4mRICHDetector::BoxPar
 {
  public:
-  string name;
+  std::string name;
   G4double halfXYZ[3];
   G4ThreeVector pos;
   G4Material* material;
@@ -120,7 +122,7 @@ class PHG4mRICHDetector::BoxPar
 class PHG4mRICHDetector::PolyPar
 {
  public:
-  string name;
+  std::string name;
   G4ThreeVector pos;
   G4double start;
   G4double theta;
@@ -151,7 +153,7 @@ class PHG4mRICHDetector::LensPar
   G4double centerThickness;
   G4double grooveWidth;
 
-  string name;
+  std::string name;
   G4double halfXYZ[3];
   G4ThreeVector pos;
   G4Material* material;

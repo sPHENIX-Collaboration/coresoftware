@@ -1,7 +1,7 @@
 #include "PHG4TPCSteppingAction.h"
 #include "PHG4TPCDetector.h"
 
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 #include <g4detectors/PHG4StepStatusDecode.h>
 
 #include <g4main/PHG4Hit.h>
@@ -38,7 +38,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4TPCSteppingAction::PHG4TPCSteppingAction(PHG4TPCDetector* detector, const PHG4Parameters* parameters)
+PHG4TPCSteppingAction::PHG4TPCSteppingAction(PHG4TPCDetector* detector, const PHParameters* parameters)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)

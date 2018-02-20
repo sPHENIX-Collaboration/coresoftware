@@ -49,7 +49,7 @@ AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 
 libphnodedump_la_LIBADD = \
   -lg4bbc_io \
-  -lcemc \
+  -lcalo_util \
   -lffaobjects \
   -lg4detectors \
   -lg4hough_io \

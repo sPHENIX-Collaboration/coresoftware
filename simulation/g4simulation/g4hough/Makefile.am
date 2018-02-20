@@ -16,13 +16,15 @@ AM_CXXFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib
 
 libg4hough_io_la_LIBADD = \
   -lphool
 
 libg4hough_la_LDFLAGS = \
-  `geant4-config --libs`
+  `geant4-config --libs`\
+  `root-config --libs`
 
 libg4hough_la_LIBADD = \
   -lg4detectors \
@@ -31,11 +33,12 @@ libg4hough_la_LIBADD = \
   -lFitNewton \
   -lSeamstress \
   -lg4bbc_io \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lgenfit2 \
   -lphfield \
   -lgenfit2exp \
   -lPHGenFit \
+  -lSpectrum \
   libg4hough_io.la
 
 pkginclude_HEADERS = \
@@ -89,6 +92,7 @@ pkginclude_HEADERS = \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
   PHG4TrackFastSim.h \
+  PHRaveVertexing.h \
   PHG4SvtxMomentumRecal.h \
   PHG4GenFitTrackProjection.h \
   PHG4SvtxTrackProjection.h \
@@ -181,6 +185,8 @@ libg4hough_la_SOURCES = \
   PHG4HoughTransformTPC_Dict.C \
   PHG4KalmanPatRec.C \
   PHG4KalmanPatRec_Dict.C \
+  PHRaveVertexing.C \
+  PHRaveVertexing_Dict.C \
   PHG4InitZVertexing.C \
   PHG4InitZVertexing_Dict.C \
   PHG4PatternReco.C \
