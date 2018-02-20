@@ -1,7 +1,7 @@
 #ifndef __MvtxDefUtil_H__
 #define __MvtxDefUtil_H__
 
-#include <tracker/TrkrDefUtil.h>
+#include <trackbase/TrkrDefUtil.h>
 
 class MvtxDefUtil : public TrkrDefUtil
 {

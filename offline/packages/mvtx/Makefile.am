@@ -18,7 +18,8 @@ libmvtx_la_LIBADD = \
   -lphool \
   -lg4detectors \
   -lg4hough \
-  -ltracker
+  -ltrack_io \
+  -ltrack_util
 
 pkginclude_HEADERS = \
   MvtxDefUtil.h \

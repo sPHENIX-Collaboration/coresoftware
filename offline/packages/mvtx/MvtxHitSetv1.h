@@ -1,7 +1,7 @@
 #ifndef __MvtxHitSetv1_H__
 #define __MvtxHitSetv1_H__
 
-#include <tracker/TrkrHitSetv1.h>
+#include <trackbase/TrkrHitSetv1.h>
 
 #include <map>
 #include <utility>
