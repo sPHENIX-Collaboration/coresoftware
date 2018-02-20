@@ -1,7 +1,8 @@
 #include "PHG4Prototype2InnerHcalSubsystem.h"
-#include "PHG4Parameters.h"
 #include "PHG4Prototype2InnerHcalDetector.h"
 #include "PHG4Prototype2InnerHcalSteppingAction.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 

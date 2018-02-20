@@ -4,9 +4,10 @@
  *===============================================================*/
 #include "PHG4mRICHSubsystem.h"
 #include "PHG4mRICHDetector.h"
-#include "PHG4Parameters.h"
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4mRICHSteppingAction.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Utils.h>

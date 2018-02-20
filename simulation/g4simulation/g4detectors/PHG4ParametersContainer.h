@@ -10,6 +10,8 @@ class PHG4Parameters;
 class PdbParameterMapContainer;
 class PHCompositeNode;
 
+//! This class is deprecated, please use PHG4Parameter instead.
+//! See https://github.com/sPHENIX-Collaboration/coresoftware/pull/405
 class PHG4ParametersContainer : public PHObject
 {
  public:
@@ -37,6 +39,7 @@ class PHG4ParametersContainer : public PHObject
   int ExistDetid(const int detid) const;
   void clear() { parametermap.clear(); }
   void FillFrom(const PdbParameterMapContainer *saveparamcontainer);
+  void CreateAndFillFrom(const PdbParameterMapContainer *saveparamcontainer, const std::string &name);
 
  protected:
   void CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparm);

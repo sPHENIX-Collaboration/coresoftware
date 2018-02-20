@@ -13,13 +13,13 @@ class G4LogicalVolume;
 class G4UserLimits;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4TPCDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4TPCDetector(PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam);
+  PHG4TPCDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4TPCDetector(void)
@@ -36,7 +36,7 @@ class PHG4TPCDetector : public PHG4Detector
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm);
   int ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope);
-  PHG4Parameters *params;
+  PHParameters *params;
   G4UserLimits *g4userlimits;
   int active;
   int absorberactive;

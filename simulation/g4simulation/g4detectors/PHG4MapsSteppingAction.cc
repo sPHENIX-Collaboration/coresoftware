@@ -1,5 +1,6 @@
 #include "PHG4MapsSteppingAction.h"
 #include "PHG4MapsDetector.h"
+#include "PHG4CylinderGeom_MAPS.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -7,7 +8,6 @@
 #include <g4main/PHG4TrackUserInfoV1.h>
 #include <g4main/PHG4Shower.h>
 
-#include "PHG4CylinderGeom_MAPS.h"
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>

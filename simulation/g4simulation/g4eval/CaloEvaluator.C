@@ -8,205 +8,216 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <g4hough/SvtxVertexMap.h>
+#include <g4vertex/GlobalVertex.h>
+#include <g4vertex/GlobalVertexMap.h>
 
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTowerGeomContainer.h>
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterUtility.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
 
-#include <TNtuple.h>
 #include <TFile.h>
+#include <TNtuple.h>
 
+#include <cmath>
 #include <iostream>
 #include <set>
-#include <cmath>
 
 using namespace std;
 
-CaloEvaluator::CaloEvaluator(const string &name, const string &caloname, const string &filename) 
-  : SubsysReco(name),
-    _caloname(caloname),
-    _ievent(0),
-    _truth_trace_embed_flags(),
-    _truth_e_threshold(0.0), // 0 GeV before reco is traced
-    _reco_e_threshold(0.0), // 0 GeV before reco is traced
-    _caloevalstack(nullptr),
-    _strict(false),
-    _errors(0),
-    _do_gpoint_eval(true),
-    _do_gshower_eval(true),
-    _do_tower_eval(true),
-    _do_cluster_eval(true),
-    _ntp_gpoint(nullptr),
-    _ntp_gshower(nullptr),
-    _ntp_tower(nullptr),
-    _ntp_cluster(nullptr),
-    _filename(filename),
-    _tfile(nullptr) {
+CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const string& filename)
+  : SubsysReco(name)
+  , _caloname(caloname)
+  , _ievent(0)
+  , _truth_trace_embed_flags()
+  , _truth_e_threshold(0.0)
+  ,  // 0 GeV before reco is traced
+  _reco_e_threshold(0.0)
+  ,  // 0 GeV before reco is traced
+  _caloevalstack(nullptr)
+  , _strict(false)
+  , _errors(0)
+  , _do_gpoint_eval(true)
+  , _do_gshower_eval(true)
+  , _do_tower_eval(true)
+  , _do_cluster_eval(true)
+  , _ntp_gpoint(nullptr)
+  , _ntp_gshower(nullptr)
+  , _ntp_tower(nullptr)
+  , _ntp_cluster(nullptr)
+  , _filename(filename)
+  , _tfile(nullptr)
+{
   verbosity = 0;
 }
 
-int CaloEvaluator::Init(PHCompositeNode *topNode) {
-  
+int CaloEvaluator::Init(PHCompositeNode* topNode)
+{
   _ievent = 0;
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
+  if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint", "primary vertex => best (first) vertex",
+                                                 "event:gvx:gvy:gvz:"
+                                                 "vx:vy:vz");
 
-  if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","primary vertex => best (first) vertex",
-						 "event:gvx:gvy:gvz:"
-						 "vx:vy:vz");
-  
-  if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower","truth shower => best cluster",
-						   "event:gparticleID:gflavor:gnhits:"
-						   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
-						   "clusterID:ntowers:eta:phi:e:efromtruth");
-  
-  if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower","tower => max truth primary",
-					       "event:towerID:ieta:iphi:eta:phi:e:"
-					       "gparticleID:gflavor:gnhits:"
-					       "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-					       "gembed:gedep:"
-					       "efromtruth");
+  if (_do_gshower_eval) _ntp_gshower = new TNtuple("ntp_gshower", "truth shower => best cluster",
+                                                   "event:gparticleID:gflavor:gnhits:"
+                                                   "geta:gphi:ge:gpt:gvx:gvy:gvz:gembed:gedep:"
+                                                   "clusterID:ntowers:eta:z:phi:e:efromtruth");
 
-  if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","cluster => max truth primary",
-						   "event:clusterID:ntowers:eta:phi:e:"
-						   "gparticleID:gflavor:gnhits:"
-						   "geta:gphi:ge:gpt:gvx:gvy:gvz:"
-						   "gembed:gedep:"
-						   "efromtruth");
+  if (_do_tower_eval) _ntp_tower = new TNtuple("ntp_tower", "tower => max truth primary",
+                                               "event:towerID:ieta:iphi:eta:phi:e:"
+                                               "gparticleID:gflavor:gnhits:"
+                                               "geta:gphi:ge:gpt:gvx:gvy:gvz:"
+                                               "gembed:gedep:"
+                                               "efromtruth");
+
+  if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster", "cluster => max truth primary",
+                                                   "event:clusterID:ntowers:eta:z:phi:e:"
+                                                   "gparticleID:gflavor:gnhits:"
+                                                   "geta:gphi:ge:gpt:gvx:gvy:gvz:"
+                                                   "gembed:gedep:"
+                                                   "efromtruth");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloEvaluator::process_event(PHCompositeNode *topNode) {
-
- if (!_caloevalstack) {
-    _caloevalstack = new CaloEvalStack(topNode,_caloname);
+int CaloEvaluator::process_event(PHCompositeNode* topNode)
+{
+  if (!_caloevalstack)
+  {
+    _caloevalstack = new CaloEvalStack(topNode, _caloname);
     _caloevalstack->set_strict(_strict);
-    _caloevalstack->set_verbosity(verbosity+1);
-  } else {
+    _caloevalstack->set_verbosity(verbosity + 1);
+  }
+  else
+  {
     _caloevalstack->next_event(topNode);
   }
 
   //-----------------------------------
   // print what is coming into the code
   //-----------------------------------
-  
+
   printInputInfo(topNode);
-  
+
   //---------------------------
   // fill the Evaluator NTuples
   //---------------------------
 
   fillOutputNtuples(topNode);
-  
+
   //--------------------------------------------------
   // Print out the ancestry information for this event
   //--------------------------------------------------
-  
+
   printOutputInfo(topNode);
-  
+
   ++_ievent;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int CaloEvaluator::End(PHCompositeNode *topNode) {
-  
+int CaloEvaluator::End(PHCompositeNode* topNode)
+{
   _tfile->cd();
 
-  if (_do_gpoint_eval)  _ntp_gpoint->Write();
+  if (_do_gpoint_eval) _ntp_gpoint->Write();
   if (_do_gshower_eval) _ntp_gshower->Write();
-  if (_do_tower_eval)   _ntp_tower->Write();
+  if (_do_tower_eval) _ntp_tower->Write();
   if (_do_cluster_eval) _ntp_cluster->Write();
-  
+
   _tfile->Close();
 
   delete _tfile;
 
-  if (verbosity > 0) {
+  if (verbosity > 0)
+  {
     cout << "========================= " << Name() << "::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
     cout << "===========================================================================" << endl;
   }
 
   if (_caloevalstack) delete _caloevalstack;
-  
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void CaloEvaluator::printInputInfo(PHCompositeNode *topNode) {
-  
+void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
+{
   if (verbosity > 2) cout << "CaloEvaluator::printInputInfo() entered" << endl;
 
   // print out the truth container
 
-  if (verbosity > 1) { 
-
+  if (verbosity > 1)
+  {
     cout << endl;
     cout << PHWHERE << "   NEW INPUT FOR EVENT " << _ievent << endl;
     cout << endl;
 
     // need things off of the DST...
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-    if (!truthinfo) {
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    if (!truthinfo)
+    {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
-    
-    cout << Name() << ": PHG4TruthInfoContainer contents: " << endl; 
+
+    cout << Name() << ": PHG4TruthInfoContainer contents: " << endl;
 
     PHG4TruthInfoContainer::Range truthrange = truthinfo->GetParticleRange();
-    for(PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
-	truthiter != truthrange.second;
-	++truthiter) {
-      PHG4Particle *particle = truthiter->second;
+    for (PHG4TruthInfoContainer::Iterator truthiter = truthrange.first;
+         truthiter != truthrange.second;
+         ++truthiter)
+    {
+      PHG4Particle* particle = truthiter->second;
 
       cout << truthiter->first << " => pid: " << particle->get_pid()
-	   << " pt: " << sqrt(pow(particle->get_px(),2)+pow(particle->get_py(),2)) << endl;
+           << " pt: " << sqrt(pow(particle->get_px(), 2) + pow(particle->get_py(), 2)) << endl;
     }
   }
 
   return;
 }
 
-void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
-  
+void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
+{
   if (verbosity > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
-  CaloTruthEval*        trutheval = _caloevalstack->get_truth_eval();
-  
+  CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
+
   //==========================================
   // print out some useful stuff for debugging
   //==========================================
 
-  if (verbosity > 1) {
-    
+  if (verbosity > 1)
+  {
     // event information
     cout << endl;
     cout << PHWHERE << "   NEW OUTPUT FOR EVENT " << _ievent << endl;
     cout << endl;
 
     // need things off of the DST...
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-    if (!truthinfo) {
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    if (!truthinfo)
+    {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
 
     // need things off of the DST...
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
-      
-    PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+
+    PHG4VtxPoint* gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float gvx = gvertex->get_x();
     float gvy = gvertex->get_y();
     float gvz = gvertex->get_z();
@@ -214,13 +225,15 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
     float vx = NAN;
     float vy = NAN;
     float vz = NAN;
-    if (vertexmap) {
-      if (!vertexmap->empty()) {
-	SvtxVertex* vertex = (vertexmap->begin()->second);
-	
-	vx = vertex->get_x();
-	vy = vertex->get_y();
-	vz = vertex->get_z();
+    if (vertexmap)
+    {
+      if (!vertexmap->empty())
+      {
+        GlobalVertex* vertex = (vertexmap->begin()->second);
+
+        vx = vertex->get_x();
+        vy = vertex->get_y();
+        vz = vertex->get_z();
       }
     }
 
@@ -228,12 +241,13 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
     PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
-	 iter != range.second; 
-	 ++iter) {
+         iter != range.second;
+         ++iter)
+    {
       PHG4Particle* primary = iter->second;
-      
+
       cout << endl;
-      
+
       cout << "===Primary PHG4Particle=========================================" << endl;
       cout << " particle id = " << primary->get_track_id() << endl;
       cout << " flavor = " << primary->get_pid() << endl;
@@ -243,42 +257,53 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
       float gpy = primary->get_py();
       float gpz = primary->get_pz();
       float ge = primary->get_e();
-	
-      cout.width(5); cout << gpx;
+
+      cout.width(5);
+      cout << gpx;
       cout << ",";
-      cout.width(5); cout << gpy;
+      cout.width(5);
+      cout << gpy;
       cout << ",";
-      cout.width(5); cout << gpz;
+      cout.width(5);
+      cout << gpz;
       cout << ",";
-      cout.width(5); cout << ge;
+      cout.width(5);
+      cout << ge;
       cout << ")" << endl;
 
-      float gpt = sqrt(gpx*gpx+gpy*gpy);
+      float gpt = sqrt(gpx * gpx + gpy * gpy);
       float geta = NAN;
-      if (gpt != 0.0) geta = asinh(gpz/gpt);
-      float gphi = atan2(gpy,gpx);
-      
+      if (gpt != 0.0) geta = asinh(gpz / gpt);
+      float gphi = atan2(gpy, gpx);
+
       cout << "(eta,phi,e,pt) = (";
-      cout.width(5); cout << geta;
+      cout.width(5);
+      cout << geta;
       cout << ",";
-      cout.width(5); cout << gphi;
+      cout.width(5);
+      cout << gphi;
       cout << ",";
-      cout.width(5); cout << ge;
+      cout.width(5);
+      cout << ge;
       cout << ",";
-      cout.width(5); cout << gpt;
+      cout.width(5);
+      cout << gpt;
       cout << ")" << endl;
 
-      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
-      float gvx      = vtx->get_x();
-      float gvy      = vtx->get_y();
-      float gvz      = vtx->get_z();
-      
+      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+      float gvx = vtx->get_x();
+      float gvy = vtx->get_y();
+      float gvz = vtx->get_z();
+
       cout << " vtrue = (";
-      cout.width(5); cout << gvx;
+      cout.width(5);
+      cout << gvx;
       cout << ",";
-      cout.width(5); cout << gvy;
+      cout.width(5);
+      cout << gvy;
       cout << ",";
-      cout.width(5); cout << gvz;
+      cout.width(5);
+      cout << gvz;
       cout << ")" << endl;
 
       cout << " embed = " << trutheval->get_embed(primary) << endl;
@@ -286,24 +311,28 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
       std::set<RawCluster*> clusters = clustereval->all_clusters_from(primary);
       for (std::set<RawCluster*>::iterator clusiter = clusters.begin();
-	   clusiter != clusters.end();
-	   ++clusiter) {
-	RawCluster* cluster = (*clusiter);
-	   
-	float ntowers   = cluster->getNTowers();
-	float eta       = cluster->get_eta();
-	float phi       = cluster->get_phi();
-	float e         = cluster->get_energy();
-	
-	float efromtruth     = clustereval->get_energy_contribution(cluster, primary);
-	
-	cout << " => #" << cluster->get_id() << " (eta,phi,e) = (";
-	cout.width(5); cout << eta;
-	cout << ",";
-	cout.width(5); cout << phi;
-	cout << ",";
-	cout.width(5); cout << e;
-	cout << "), ntowers = "<< ntowers <<", efromtruth = " << efromtruth << endl;
+           clusiter != clusters.end();
+           ++clusiter)
+      {
+        RawCluster* cluster = (*clusiter);
+
+        float ntowers = cluster->getNTowers();
+        float z = cluster->get_z();
+        float phi = cluster->get_phi();
+        float e = cluster->get_energy();
+
+        float efromtruth = clustereval->get_energy_contribution(cluster, primary);
+
+        cout << " => #" << cluster->get_id() << " (z,phi,e) = (";
+        cout.width(5);
+        cout << z;
+        cout << ",";
+        cout.width(5);
+        cout << phi;
+        cout << ",";
+        cout.width(5);
+        cout << e;
+        cout << "), ntowers = " << ntowers << ", efromtruth = " << efromtruth << endl;
       }
     }
     cout << endl;
@@ -312,30 +341,32 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   return;
 }
 
-void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
-  
+void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
+{
   if (verbosity > 2) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
-  CaloRawTowerEval*     towereval = _caloevalstack->get_rawtower_eval();
-  CaloTruthEval*        trutheval = _caloevalstack->get_truth_eval();
-  
+  CaloRawTowerEval* towereval = _caloevalstack->get_rawtower_eval();
+  CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
+
   //----------------------
   // fill the Event NTuple
   //----------------------
 
-  if (_do_gpoint_eval) {
+  if (_do_gpoint_eval)
+  {
     // need things off of the DST...
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-    if (!truthinfo) {
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    if (!truthinfo)
+    {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
 
     // need things off of the DST...
-    SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode,"SvtxVertexMap");
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
-    PHG4VtxPoint *gvertex = truthinfo->GetPrimaryVtx( truthinfo->GetPrimaryVertexIndex() );
+    PHG4VtxPoint* gvertex = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
     float gvx = gvertex->get_x();
     float gvy = gvertex->get_y();
     float gvz = gvertex->get_z();
@@ -343,121 +374,144 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float vx = NAN;
     float vy = NAN;
     float vz = NAN;
-    if (vertexmap) {
-      if (!vertexmap->empty()) {
-	SvtxVertex* vertex = (vertexmap->begin()->second);
-	
-	vx = vertex->get_x();
-	vy = vertex->get_y();
-	vz = vertex->get_z();
+    if (vertexmap)
+    {
+      if (!vertexmap->empty())
+      {
+        GlobalVertex* vertex = (vertexmap->begin()->second);
+
+        vx = vertex->get_x();
+        vy = vertex->get_y();
+        vz = vertex->get_z();
       }
     }
-	
-    float gpoint_data[7] = { (float) _ievent,
-			    gvx,
-			    gvy,
-			    gvz,
-			    vx,
-			    vy,
-			    vz
-    };
 
-    _ntp_gpoint->Fill(gpoint_data);   
+    float gpoint_data[7] = {(float) _ievent,
+                            gvx,
+                            gvy,
+                            gvz,
+                            vx,
+                            vy,
+                            vz};
+
+    _ntp_gpoint->Fill(gpoint_data);
   }
-  
+
   //------------------------
   // fill the Gshower NTuple
   //------------------------
-  
-  if (_ntp_gshower) {
 
+  if (_ntp_gshower)
+  {
     if (verbosity > 1) cout << Name() << " CaloEvaluator::filling gshower ntuple..." << endl;
-    
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
-    if (!truthinfo) {
+
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+
+    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+    if (!truthinfo)
+    {
       cerr << PHWHERE << " ERROR: Can't find G4TruthInfo" << endl;
       exit(-1);
     }
-    
+
     PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
     for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
-	 iter != range.second; 
-	 ++iter) {
-    
+         iter != range.second;
+         ++iter)
+    {
       PHG4Particle* primary = iter->second;
 
       if (primary->get_e() < _truth_e_threshold) continue;
-      
-      if (!_truth_trace_embed_flags.empty()) {
-	if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
-	    _truth_trace_embed_flags.end()) continue;
+
+      if (!_truth_trace_embed_flags.empty())
+      {
+        if (_truth_trace_embed_flags.find(trutheval->get_embed(primary)) ==
+            _truth_trace_embed_flags.end()) continue;
       }
-      
+
       float gparticleID = primary->get_track_id();
-      float gflavor     = primary->get_pid();
+      float gflavor = primary->get_pid();
 
-      PHG4Shower* shower = trutheval->get_primary_shower(primary);     
+      PHG4Shower* shower = trutheval->get_primary_shower(primary);
       float gnhits = NAN;
-      if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
-      else gnhits = 0.0;
-      float gpx      = primary->get_px();
-      float gpy      = primary->get_py();
-      float gpz      = primary->get_pz();
-      float ge       = primary->get_e();
+      if (shower)
+        gnhits = shower->get_nhits(trutheval->get_caloid());
+      else
+        gnhits = 0.0;
+      float gpx = primary->get_px();
+      float gpy = primary->get_py();
+      float gpz = primary->get_pz();
+      float ge = primary->get_e();
 
-      float gpt = sqrt(gpx*gpx+gpy*gpy);
+      float gpt = sqrt(gpx * gpx + gpy * gpy);
       float geta = NAN;
-      if (gpt != 0.0) geta = asinh(gpz/gpt);
-      float gphi = atan2(gpy,gpx);
-      
-      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);	
-      float gvx      = vtx->get_x();
-      float gvy      = vtx->get_y();
-      float gvz      = vtx->get_z();
-      
-      float gembed   = trutheval->get_embed(primary);
-      float gedep    = trutheval->get_shower_energy_deposit(primary);
+      if (gpt != 0.0) geta = asinh(gpz / gpt);
+      float gphi = atan2(gpy, gpx);
+
+      PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+      float gvx = vtx->get_x();
+      float gvy = vtx->get_y();
+      float gvz = vtx->get_z();
+
+      float gembed = trutheval->get_embed(primary);
+      float gedep = trutheval->get_shower_energy_deposit(primary);
 
       RawCluster* cluster = clustereval->best_cluster_from(primary);
 
       float clusterID = NAN;
-      float ntowers   = NAN;
-      float eta       = NAN;
-      float phi       = NAN;
-      float e         = NAN;
-      
-      float efromtruth     = NAN;
+      float ntowers = NAN;
+      float eta = NAN;
+      float z = NAN;
+      float phi = NAN;
+      float e = NAN;
 
-      if (cluster) {      
-	clusterID = cluster->get_id();
-	ntowers   = cluster->getNTowers();
-	eta       = cluster->get_eta();
-	phi       = cluster->get_phi();
-	e         = cluster->get_energy();
-	
-	efromtruth     = clustereval->get_energy_contribution(cluster, primary);
+      float efromtruth = NAN;
+
+      if (cluster)
+      {
+        clusterID = cluster->get_id();
+        ntowers = cluster->getNTowers();
+        z = cluster->get_z();
+        phi = cluster->get_phi();
+        e = cluster->get_energy();
+
+        efromtruth = clustereval->get_energy_contribution(cluster, primary);
+
+        // require vertex for cluster eta calculation
+        if (vertexmap)
+        {
+          if (!vertexmap->empty())
+          {
+            GlobalVertex* vertex = (vertexmap->begin()->second);
+
+            eta =
+                RawClusterUtility::GetPseudorapidity(
+                    *cluster,
+                    CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+          }
+        }
       }
-      
-      float shower_data[19] = {(float)_ievent,
-			       gparticleID,
-			       gflavor,
-			       gnhits,
-			       geta,
-			       gphi,
-			       ge,
-			       gpt,
-			       gvx,
-			       gvy,
-			       gvz,
-			       gembed,
-			       gedep,
-			       clusterID,
-			       ntowers,
-			       eta,
-			       phi,
-			       e,
-			       efromtruth
-      };
+
+      float shower_data[] = {(float) _ievent,
+                               gparticleID,
+                               gflavor,
+                               gnhits,
+                               geta,
+                               gphi,
+                               ge,
+                               gpt,
+                               gvx,
+                               gvy,
+                               gvz,
+                               gembed,
+                               gedep,
+                               clusterID,
+                               ntowers,
+                               eta,
+                               z,
+                               phi,
+                               e,
+                               efromtruth};
 
       _ntp_gshower->Fill(shower_data);
     }
@@ -466,115 +520,120 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //----------------------
   // fill the Tower NTuple
   //----------------------
- 
-  if (_do_tower_eval) {
 
+  if (_do_tower_eval)
+  {
     if (verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
-    
+
     string towernode = "TOWER_CALIB_" + _caloname;
-    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode,towernode.c_str());
-    if (!towers) {
+    RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
+    if (!towers)
+    {
       cerr << PHWHERE << " ERROR: Can't find " << towernode << endl;
       exit(-1);
     }
-    
+
     string towergeomnode = "TOWERGEOM_" + _caloname;
-    RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode,towergeomnode.c_str());
-    if (!towergeom) {
+    RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnode.c_str());
+    if (!towergeom)
+    {
       cerr << PHWHERE << " ERROR: Can't find " << towergeomnode << endl;
       exit(-1);
     }
-  
+
     RawTowerContainer::ConstRange begin_end = towers->getTowers();
     RawTowerContainer::ConstIterator rtiter;
-    for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
-      RawTower *tower = rtiter->second;
+    for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+    {
+      RawTower* tower = rtiter->second;
 
       if (tower->get_energy() < _reco_e_threshold) continue;
-      
+
       float towerid = tower->get_id();
-      float ieta    = tower->get_bineta();
-      float iphi    = tower->get_binphi();
-      float eta     = towergeom->get_etacenter(tower->get_bineta());
-      float phi     = towergeom->get_phicenter(tower->get_binphi());
-      float e       = tower->get_energy();
+      float ieta = tower->get_bineta();
+      float iphi = tower->get_binphi();
+      float eta = towergeom->get_etacenter(tower->get_bineta());
+      float phi = towergeom->get_phicenter(tower->get_binphi());
+      float e = tower->get_energy();
 
       PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
       float gparticleID = NAN;
-      float gflavor     = NAN;
-      float gnhits   = NAN;
-      float gpx      = NAN;
-      float gpy      = NAN;
-      float gpz      = NAN;
-      float ge       = NAN;
+      float gflavor = NAN;
+      float gnhits = NAN;
+      float gpx = NAN;
+      float gpy = NAN;
+      float gpz = NAN;
+      float ge = NAN;
 
       float gpt = NAN;
       float geta = NAN;
       float gphi = NAN;
 
-      float gvx      = NAN;
-      float gvy      = NAN;
-      float gvz      = NAN;
+      float gvx = NAN;
+      float gvy = NAN;
+      float gvz = NAN;
 
-      float gembed   = NAN;
-      float gedep    = NAN;
+      float gembed = NAN;
+      float gedep = NAN;
 
       float efromtruth = NAN;
 
-      if (primary) {
+      if (primary)
+      {
+        gparticleID = primary->get_track_id();
+        gflavor = primary->get_pid();
 
-	gparticleID = primary->get_track_id();
-	gflavor = primary->get_pid();
-	
-	PHG4Shower* shower = trutheval->get_primary_shower(primary);     
-	if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
-	else gnhits = 0.0;
-	gpx = primary->get_px();
-	gpy = primary->get_py();
-	gpz = primary->get_pz();
-	ge = primary->get_e();
+        PHG4Shower* shower = trutheval->get_primary_shower(primary);
+        if (shower)
+          gnhits = shower->get_nhits(trutheval->get_caloid());
+        else
+          gnhits = 0.0;
+        gpx = primary->get_px();
+        gpy = primary->get_py();
+        gpz = primary->get_pz();
+        ge = primary->get_e();
 
-	gpt = sqrt(gpx * gpx + gpy * gpy);
-	if (gpt != 0.0) geta = asinh(gpz / gpt);
-	gphi = atan2(gpy, gpx);
+        gpt = sqrt(gpx * gpx + gpy * gpy);
+        if (gpt != 0.0) geta = asinh(gpz / gpt);
+        gphi = atan2(gpy, gpx);
 
-	PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+        PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
 
-	if (vtx) {
-	  gvx = vtx->get_x();
-	  gvy = vtx->get_y();
-	  gvz = vtx->get_z();
-	}
+        if (vtx)
+        {
+          gvx = vtx->get_x();
+          gvy = vtx->get_y();
+          gvz = vtx->get_z();
+        }
 
-	gembed = trutheval->get_embed(primary);
-	gedep = trutheval->get_shower_energy_deposit(primary);
+        gembed = trutheval->get_embed(primary);
+        gedep = trutheval->get_shower_energy_deposit(primary);
 
-	efromtruth = towereval->get_energy_contribution(tower, primary);
+        efromtruth = towereval->get_energy_contribution(tower, primary);
       }
 
-      float tower_data[20] = {(float)_ievent,
-			      towerid,
-			      ieta,
-			      iphi,
-			      eta,
-			      phi,
-			      e,
-			      gparticleID,
-			      gflavor,
-			      gnhits,
-			      geta,
-			      gphi,
-			      ge,
-			      gpt,
-			      gvx,
-			      gvy,
-			      gvz,
-			      gembed,
-			      gedep,
-			      efromtruth
-      };
-      
+      float tower_data[20] = {(float) _ievent,
+                              towerid,
+                              ieta,
+                              iphi,
+                              eta,
+                              phi,
+                              e,
+                              gparticleID,
+                              gflavor,
+                              gnhits,
+                              geta,
+                              gphi,
+                              ge,
+                              gpt,
+                              gvx,
+                              gvy,
+                              gvz,
+                              gembed,
+                              gedep,
+                              efromtruth};
+
       _ntp_tower->Fill(tower_data);
     }
   }
@@ -583,103 +642,127 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Cluster NTuple
   //------------------------
 
-  if (_do_cluster_eval) {
+  if (_do_cluster_eval)
+  {
     if (verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
 
+    GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
+
     string clusternode = "CLUSTER_" + _caloname;
-    RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode,clusternode.c_str());
-    if (!clusters) {
+    RawClusterContainer* clusters = findNode::getClass<RawClusterContainer>(topNode, clusternode.c_str());
+    if (!clusters)
+    {
       cerr << PHWHERE << " ERROR: Can't find " << clusternode << endl;
       exit(-1);
     }
-  
+
     // for every cluster
-    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++) {
-      RawCluster *cluster = clusters->getCluster(icluster);
+    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++)
+    {
+      RawCluster* cluster = clusters->getCluster(icluster);
 
       if (cluster->get_energy() < _reco_e_threshold) continue;
-      
+
       float clusterID = cluster->get_id();
-      float ntowers   = cluster->getNTowers();
-      float eta       = cluster->get_eta();
-      float phi       = cluster->get_phi();
-      float e         = cluster->get_energy();
-      
+      float ntowers = cluster->getNTowers();
+      float z = cluster->get_z();
+      float eta = NAN;
+      float phi = cluster->get_phi();
+      float e = cluster->get_energy();
+
+      // require vertex for cluster eta calculation
+      if (vertexmap)
+      {
+        if (!vertexmap->empty())
+        {
+          GlobalVertex* vertex = (vertexmap->begin()->second);
+
+          eta =
+              RawClusterUtility::GetPseudorapidity(
+                  *cluster,
+                  CLHEP::Hep3Vector(vertex->get_x(), vertex->get_y(), vertex->get_z()));
+        }
+      }
+
       PHG4Particle* primary = clustereval->max_truth_primary_particle_by_energy(cluster);
 
       float gparticleID = NAN;
-      float gflavor     = NAN;
+      float gflavor = NAN;
 
-      float gnhits   = NAN;
-      float gpx      = NAN;
-      float gpy      = NAN;
-      float gpz      = NAN;
-      float ge       = NAN;
+      float gnhits = NAN;
+      float gpx = NAN;
+      float gpy = NAN;
+      float gpz = NAN;
+      float ge = NAN;
 
       float gpt = NAN;
       float geta = NAN;
       float gphi = NAN;
-      
-      float gvx      = NAN;
-      float gvy      = NAN;
-      float gvz      = NAN;
-      
-      float gembed   = NAN;
-      float gedep    = NAN;
+
+      float gvx = NAN;
+      float gvy = NAN;
+      float gvz = NAN;
+
+      float gembed = NAN;
+      float gedep = NAN;
 
       float efromtruth = NAN;
 
-      if (primary) {
-	gparticleID = primary->get_track_id();
-	gflavor = primary->get_pid();
-	
-	PHG4Shower* shower = trutheval->get_primary_shower(primary);     
-	if (shower) gnhits = shower->get_nhits(trutheval->get_caloid());
-	else gnhits = 0.0;
-	gpx = primary->get_px();
-	gpy = primary->get_py();
-	gpz = primary->get_pz();
-	ge = primary->get_e();
+      if (primary)
+      {
+        gparticleID = primary->get_track_id();
+        gflavor = primary->get_pid();
 
-	gpt = sqrt(gpx * gpx + gpy * gpy);
-	if (gpt != 0.0) geta = asinh(gpz / gpt);
-	gphi = atan2(gpy, gpx);
+        PHG4Shower* shower = trutheval->get_primary_shower(primary);
+        if (shower)
+          gnhits = shower->get_nhits(trutheval->get_caloid());
+        else
+          gnhits = 0.0;
+        gpx = primary->get_px();
+        gpy = primary->get_py();
+        gpz = primary->get_pz();
+        ge = primary->get_e();
 
-	PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
+        gpt = sqrt(gpx * gpx + gpy * gpy);
+        if (gpt != 0.0) geta = asinh(gpz / gpt);
+        gphi = atan2(gpy, gpx);
 
-	if (vtx) {
-	  gvx = vtx->get_x();
-	  gvy = vtx->get_y();
-	  gvz = vtx->get_z();
-	}
-	
-	gembed = trutheval->get_embed(primary);
-	gedep = trutheval->get_shower_energy_deposit(primary);
+        PHG4VtxPoint* vtx = trutheval->get_vertex(primary);
 
-	efromtruth = clustereval->get_energy_contribution(cluster,
-							  primary);
+        if (vtx)
+        {
+          gvx = vtx->get_x();
+          gvy = vtx->get_y();
+          gvz = vtx->get_z();
+        }
+
+        gembed = trutheval->get_embed(primary);
+        gedep = trutheval->get_shower_energy_deposit(primary);
+
+        efromtruth = clustereval->get_energy_contribution(cluster,
+                                                          primary);
       }
-      
-      float cluster_data[19] = {(float)_ievent,
-				clusterID,
-				ntowers,
-				eta,
-				phi,
-				e,
-				gparticleID,
-				gflavor,
-				gnhits,
-				geta,
-				gphi,
-				ge,
-				gpt,
-				gvx,
-				gvy,
-				gvz,
-				gembed,
-				gedep,
-				efromtruth
-      };
+
+      float cluster_data[] = {(float) _ievent,
+                                clusterID,
+                                ntowers,
+                                eta,
+                                z,
+                                phi,
+                                e,
+                                gparticleID,
+                                gflavor,
+                                gnhits,
+                                geta,
+                                gphi,
+                                ge,
+                                gpt,
+                                gvx,
+                                gvy,
+                                gvz,
+                                gembed,
+                                gedep,
+                                efromtruth};
 
       _ntp_cluster->Fill(cluster_data);
     }

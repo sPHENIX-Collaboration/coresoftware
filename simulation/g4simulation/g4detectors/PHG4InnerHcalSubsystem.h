@@ -8,7 +8,6 @@
 #include <string>
 
 class PHG4InnerHcalDetector;
-class PHG4Parameters;
 class PHG4InnerHcalSteppingAction;
 
 class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem

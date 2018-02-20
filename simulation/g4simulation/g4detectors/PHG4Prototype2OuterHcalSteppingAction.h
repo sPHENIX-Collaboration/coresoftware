@@ -4,7 +4,7 @@
 #include <g4main/PHG4SteppingAction.h>
 
 class PHG4Prototype2OuterHcalDetector;
-class PHG4Parameters;
+class PHParameters;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -13,7 +13,7 @@ class PHG4Prototype2OuterHcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector *, PHG4Parameters *parameters);
+  PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector *, const PHParameters *parameters);
 
   //! dtor
   virtual ~PHG4Prototype2OuterHcalSteppingAction();
@@ -34,7 +34,7 @@ class PHG4Prototype2OuterHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
-  PHG4Parameters *params;
+  const PHParameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   // since getting parameters is a map search we do not want to

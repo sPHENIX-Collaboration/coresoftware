@@ -55,6 +55,28 @@ PHG4ParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamconta
 }
 
 void
+PHG4ParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *saveparamcontainer, const string &name)
+{
+  PdbParameterMapContainer::parConstRange begin_end =  saveparamcontainer->get_ParameterMaps();
+  for (PdbParameterMapContainer::parIter iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    Iterator pariter = parametermap.find(iter->first);
+    if (pariter != parametermap.end())
+    {
+      PHG4Parameters *params = pariter->second;
+      params->FillFrom(iter->second);
+    }
+    else
+    {
+      PHG4Parameters *params = new PHG4Parameters(name);
+      params->FillFrom(iter->second);
+      AddPHG4Parameters(iter->first,params);
+    }
+  }
+  return;
+}
+
+void
 PHG4ParametersContainer::AddPHG4Parameters(const int layer, PHG4Parameters *params)
 {
   if (parametermap.find(layer) != parametermap.end())

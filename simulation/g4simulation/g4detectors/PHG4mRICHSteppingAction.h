@@ -1,13 +1,12 @@
 #ifndef PHG4mRICHSteppingAction_h
 #define PHG4mRICHSteppingAction_h
 
-#include "g4main/PHG4SteppingAction.h"
-//#include "PHG4Parameters.h"
+#include <g4main/PHG4SteppingAction.h>
 
 class PHG4mRICHDetector;
 class PHG4Hit;
 class PHG4HitContainer;
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4mRICHSteppingAction : public PHG4SteppingAction
 {
@@ -15,7 +14,7 @@ class PHG4mRICHSteppingAction : public PHG4SteppingAction
   public:
 
   //! constructor
-  PHG4mRICHSteppingAction(PHG4mRICHDetector* detector,PHG4Parameters* params );
+  PHG4mRICHSteppingAction(PHG4mRICHDetector* detector,PHParameters* params );
 
   //! destroctor
   virtual ~PHG4mRICHSteppingAction()

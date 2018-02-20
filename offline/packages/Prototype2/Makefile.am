@@ -43,7 +43,8 @@ libPrototype2_la_LIBADD = \
   -lSubsysReco \
   -lphool \
   -lfun4all \
-  -lcemc
+  -lcalo_util \
+  -lphparameter
 
 BUILT_SOURCES = \
   testexternals.C

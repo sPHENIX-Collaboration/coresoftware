@@ -8,7 +8,7 @@
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include <pdbcalbase/PdbParameterMap.h>
-#include <g4detectors/PHG4Parameters.h>
+#include <phparameter/PHParameters.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>
@@ -83,7 +83,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
       map<int, Packet*> packet_list;
 
-      PHG4Parameters Params("RunInfo");
+      PHParameters Params("RunInfo");
 
       for (typ_channel_map::const_iterator it = channel_map.begin();
           it != channel_map.end(); ++it)

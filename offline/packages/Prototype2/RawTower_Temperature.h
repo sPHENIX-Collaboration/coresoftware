@@ -1,8 +1,8 @@
 #ifndef RAWTOWER_TEMPERATURE_H_
 #define RAWTOWER_TEMPERATURE_H_
 
-#include <g4cemc/RawTower.h>
-#include <g4cemc/RawTowerDefs.h>
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerDefs.h>
 #include <vector>
 #include <stdint.h>
 

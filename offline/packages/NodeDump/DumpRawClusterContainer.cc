@@ -2,8 +2,8 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
 
 #include <string>
 
@@ -32,7 +32,7 @@ int DumpRawClusterContainer::process_Node(PHNode *myNode)
       for (hiter = begin_end.first; hiter != begin_end.second; ++hiter)
         {
           *fout << "NTowers: " << hiter->second->getNTowers() << endl;
-          *fout << "eta: " << hiter->second->get_eta() << endl;
+          *fout << "z: " << hiter->second->get_z() << endl;
           *fout << "phi: " << hiter->second->get_phi() << endl;
           *fout << "energy: " << hiter->second->get_energy() << endl;
         }
