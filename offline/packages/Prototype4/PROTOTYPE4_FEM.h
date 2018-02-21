@@ -12,6 +12,9 @@ const int PACKET_ID = 21351;
 /*! Number of ADC Samples per tower */
 const int NSAMPLES = 31;
 
+//! Mask to obtain ADC from DWord data
+const int ADC_DATA_MASK = (1<<14)-1;
+
 /*! Number of Inner HCAL towers */
 const int NCH_IHCAL_ROWS = 4;
 const int NCH_IHCAL_COLUMNS = 4;

@@ -16,6 +16,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -108,7 +109,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
   peakval -= pedestal;
 
   // fit function
-  TF1 fits("f_SignalShape_PowerLawExp", SignalShape_PowerLawExp, 0., 24., 6);
+  TF1 fits("f_SignalShape_PowerLawExp", SignalShape_PowerLawExp, 0., NSAMPLES, 6);
 
   double par[6] =
       {0};
@@ -121,8 +122,9 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
   par[4] = pedestal;
   par[5] = 0;
   fits.SetParameters(par);
+  fits.SetParNames("Amplitude", "Peak Sample", "Power", "Decay","Pedstal","Baseline shift");
   fits.SetParLimits(0, peakval * 0.9, peakval * 1.1);
-  fits.SetParLimits(1, 0, 24);
+  fits.SetParLimits(1, 0, NSAMPLES);
   fits.SetParLimits(2, 2, 4.);
   fits.SetParLimits(3, 1., 2.);
   fits.SetParLimits(4, pedestal - abs(peakval), pedestal + abs(peakval));
@@ -141,7 +143,11 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
 
   if (verbosity)
   {
-    TCanvas *canvas = new TCanvas("PROTOTYPE4_FEM_SampleFit_PowerLawExp", "PROTOTYPE4_FEM::SampleFit_PowerLawExp");
+    static int id = 0;
+    ++id;
+
+    TCanvas *canvas = new TCanvas(
+        (string("PROTOTYPE4_FEM_SampleFit_PowerLawExp") + to_string(id)).c_str(), "PROTOTYPE4_FEM::SampleFit_PowerLawExp");
     gpulse.DrawClone("ap*l");
     fits.DrawClone("same");
     fits.Print();
@@ -169,7 +175,6 @@ PROTOTYPE4_FEM::SignalShape_PowerLawExp(double *x, double *par)
   if (x[0] < par[1])
     return pedestal;
   //double  signal = (-1)*par[0]*pow((x[0]-par[1]),par[2])*exp(-(x[0]-par[1])*par[3]);
-  double signal = par[0] * pow((x[0] - par[1]), par[2])
-      * exp(-(x[0] - par[1]) * par[3]);
+  double signal = par[0] * pow((x[0] - par[1]), par[2]) * exp(-(x[0] - par[1]) * par[3]);
   return pedestal + signal;
 }

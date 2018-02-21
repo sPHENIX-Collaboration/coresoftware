@@ -106,7 +106,7 @@ int GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
     tower->set_HBD_channel_number(channel);
     for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
     {
-      tower->set_signal_samples(isamp, packet->iValue(channel, isamp));
+      tower->set_signal_samples(isamp, (packet->iValue(channel, isamp)) & PROTOTYPE4_FEM::ADC_DATA_MASK);
     }
   }
 
