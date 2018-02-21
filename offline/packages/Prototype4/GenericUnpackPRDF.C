@@ -56,6 +56,10 @@ int GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
   if (verbosity >= VERBOSITY_SOME)
     _event->identify();
 
+  // search for data event
+  if (_event->getEvtType() != DATAEVENT)
+    return Fun4AllReturnCodes::EVENT_OK;
+
   map<int, Packet *> packet_list;
 
   for (channel_map::const_iterator it = _channel_map.begin();
@@ -69,6 +73,13 @@ int GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
     {
       packet_list[packet_id] =
           dynamic_cast<Packet *>(_event->getPacket(packet_id));
+
+      if (packet_list[packet_id] and Verbosity() >= VERBOSITY_MORE)
+      {
+        cout << "GenericUnpackPRDF::process_event - open packet " << packet_id << ":" << endl;
+//        packet_list[packet_id]->identify(cout);
+        packet_list[packet_id]->dump(cout);
+      }
     }
 
     Packet *packet = packet_list[packet_id];
