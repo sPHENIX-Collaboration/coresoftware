@@ -39,7 +39,7 @@ class RawTowerv1 : public RawTower {
   }
   RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
   RawTower::CellConstIterator find_g4cell(int id) const {return ecells.find(id);}
-  void add_ecell(const PHG4CellDefs::keytype g4cellid,
+  void add_ecell(const CellKeyType g4cellid,
                  const float ecell);
   void clear_g4cells() { ecells.clear(); }
 
