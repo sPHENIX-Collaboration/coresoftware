@@ -109,7 +109,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
   peakval -= pedestal;
 
   // fit function
-  TF1 fits("f_SignalShape_PowerLawExp", SignalShape_PowerLawExp, 0., NSAMPLES, 6);
+  TF1 fits("f_SignalShape_PowerLawExp", SignalShape_PowerLawExp, 0., NSAMPLES, 5);
 
   double par[6] =
       {0};
@@ -129,11 +129,11 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
   fits.SetParLimits(3, 1., 2.);
   fits.SetParLimits(4, pedestal - abs(peakval), pedestal + abs(peakval));
   //  fits.SetParLimits(5, - abs(peakval),  + abs(peakval));
-  fits.FixParameter(5, 0);
+//  fits.FixParameter(5, 0);
 
   //Saturation correction - Abhisek
   for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
-    if ((gpulse.GetY())[ipoint] == 0 or (gpulse.GetY())[ipoint] >= 4090)  // drop point if touching max or low limit on ADCs
+    if ((gpulse.GetY())[ipoint] <=10  or (gpulse.GetY())[ipoint] >= ((1<<14) - 10))  // drop point if touching max or low limit on ADCs
     {
       gpulse.RemovePoint(ipoint);
       ipoint--;
@@ -148,11 +148,12 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
 
     TCanvas *canvas = new TCanvas(
         (string("PROTOTYPE4_FEM_SampleFit_PowerLawExp") + to_string(id)).c_str(), "PROTOTYPE4_FEM::SampleFit_PowerLawExp");
-    gpulse.DrawClone("ap*l");
+    TGraph * g_plot = static_cast<TGraph *>(gpulse.DrawClone("ap*l"));
+    g_plot->SetTitle("ADC data and fit;Sample number;ADC value");
     fits.DrawClone("same");
     fits.Print();
     canvas->Update();
-    sleep(1);
+//    sleep(1);
   }
 
   //  peak = fits.GetParameter(0); // not exactly peak height
@@ -171,7 +172,8 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
 double
 PROTOTYPE4_FEM::SignalShape_PowerLawExp(double *x, double *par)
 {
-  double pedestal = par[4] + ((x[0] - 1.5 * par[1]) > 0) * par[5];  // quick fix on exting tails on the signal function
+  double pedestal = par[4];
+//                        + ((x[0] - 1.5 * par[1]) > 0) * par[5];  // quick fix on exting tails on the signal function
   if (x[0] < par[1])
     return pedestal;
   //double  signal = (-1)*par[0]*pow((x[0]-par[1]),par[2])*exp(-(x[0]-par[1])*par[3]);
