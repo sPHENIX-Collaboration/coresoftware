@@ -44,9 +44,18 @@ bool SampleFit_PowerLawExp(              //
     double &pedstal,                     //
     const int verbosity = 0);
 
+bool SampleFit_PowerLawDoubleExp(              //
+    const std::vector<double> &samples,  //
+    double &peak,                        //
+    double &peak_sample,                 //
+    double &pedstal,                     //
+    const int verbosity = 0);
+
 // Abhisek's power-law + exp signal shape model
 double
 SignalShape_PowerLawExp(double *x, double *par);
+double
+SignalShape_PowerLawDoubleExp(double *x, double *par);
 
 //! special treatment for EMCal tagging packet
 //! See also https://wiki.bnl.gov/sPHENIX/index.php/2017_calorimeter_beam_test#What_is_new_in_the_data_structures_in_2017
