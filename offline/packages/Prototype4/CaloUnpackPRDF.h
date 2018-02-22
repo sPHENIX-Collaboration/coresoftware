@@ -9,7 +9,6 @@
 
 class Event;
 class Packet;
-class Packet_hbd_fpgashort;
 class RawTowerContainer;
 class RawTower;
 
@@ -31,7 +30,7 @@ class CaloUnpackPRDF : public SubsysReco
 
  private:
   Event* _event;
-  Packet_hbd_fpgashort* _packet;
+  Packet* _packet;
   int _nevents;
 
   // HCAL node

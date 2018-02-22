@@ -71,8 +71,7 @@ int GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
 
     if (packet_list.find(packet_id) == packet_list.end())
     {
-      packet_list[packet_id] =
-          dynamic_cast<Packet *>(_event->getPacket(packet_id));
+      packet_list[packet_id] =_event->getPacket(packet_id);
 
       if (packet_list[packet_id] and Verbosity() >= VERBOSITY_MORE)
       {
