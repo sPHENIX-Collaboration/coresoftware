@@ -114,6 +114,10 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   vector< HepMC::GenParticle* > hepmc_particles;
   vector< unsigned > origin_index;
 
+  /* save pointers to beam particles */
+  HepMC::GenParticle *hepmc_beam1 = NULL;
+  HepMC::GenParticle *hepmc_beam2 = NULL;
+
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
       /* Get particle / track from event records.
@@ -148,6 +152,14 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       /* append particle to vector */
       hepmc_particles.push_back(hepmcpart);
       origin_index.push_back( track_ii->GetIndex() );
+
+      /* if first particle, call this the first beam particle */
+      if ( ii == 0 )
+	hepmc_beam1 = hepmcpart;
+
+      /* if second particle, call this the second beam particle */
+      if ( ii == 1 )
+	hepmc_beam2 = hepmcpart;
     }
 
   /* Check if hepmc_particles and origin_index vectors are the same size */
@@ -248,6 +260,9 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   /* Add HepMC vertices to event */
   for ( unsigned v = 0; v < hepmc_vertices.size(); v++ )
     evt->add_vertex( hepmc_vertices.at(v) );
+
+  /* set beam particles */
+  evt->set_beam_particles( hepmc_beam1, hepmc_beam2 );
 
   /* pass HepMC to PHNode*/
   PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
