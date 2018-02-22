@@ -21,7 +21,7 @@ class TrkrClusterv1 : public TrkrCluster
   void identify(std::ostream& os = std::cout) const;
   void Reset() {}
   int isValid() const;
-  TrkrCluster* Clone() const { return new TrkrClusterv1(*this); }
+  TrkrCluster* clone() const { return new TrkrClusterv1(*this); }
   void SetClusKey(TrkrDefs::cluskey id) { cluskey_ = id; }
   TrkrDefs::cluskey GetClusKey() const { return cluskey_; }
   //

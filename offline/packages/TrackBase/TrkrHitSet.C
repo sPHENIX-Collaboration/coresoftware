@@ -12,8 +12,8 @@ void TrkrHitSet::Reset()
   return;
 }
 
-void TrkrHitSet::Copy(TrkrHitSet const& hit)
+void TrkrHitSet::Copy(TrkrHitSet& hit)
 {
-  SetHitSetKey(hit.GetHitSetKey());
-  SetTruthMapKey(hit.GetTruthMapKey());
+  hit.SetHitSetKey(GetHitSetKey());
+  hit.SetTruthMapKey(GetTruthMapKey());
 }

@@ -7,6 +7,7 @@
 TrkrHitSetv1::TrkrHitSetv1()
   : hitset_key_(TrkrDefs::HITSETKEYMAX)
   , truth_map_key_(UINT64_MAX)
+  , hit_clus_map_key_(UINT64_MAX)
 {
 }
 

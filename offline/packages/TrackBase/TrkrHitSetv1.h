@@ -26,7 +26,7 @@ class TrkrHitSetv1 : public TrkrHitSet
   // TObject classes
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
-  void print() const;
+  virtual void print() const;
 
   // Set/Get the key (ID) for this set of hits
   virtual void SetHitSetKey(const TrkrDefs::hitsetkey key) { hitset_key_ = key; }
@@ -42,6 +42,7 @@ class TrkrHitSetv1 : public TrkrHitSet
   TrkrDefs::hitsetkey hitset_key_;
   uint64_t truth_map_key_;
   uint64_t hit_clus_map_key_;
+  ClassDef(TrkrHitSetv1,1);
 };
 
 #endif

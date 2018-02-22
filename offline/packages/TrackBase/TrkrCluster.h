@@ -21,7 +21,6 @@ class TrkrCluster : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual TrkrCluster* Clone() const { return NULL; }
   //
   // cluster id
   //

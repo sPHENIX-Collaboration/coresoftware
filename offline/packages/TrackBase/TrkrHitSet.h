@@ -24,9 +24,9 @@ class TrkrHitSet : public TObject
   virtual ~TrkrHitSet() {}
   // TObject functions
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Copy(TrkrHitSet const& hit);
+  virtual void Copy(TrkrHitSet& hit);
   virtual void Reset();
-  virtual void print(){};
+  virtual void print() const {};
 
   // Set/Get the key (ID) for this set of hits
   virtual void SetHitSetKey(const TrkrDefs::hitsetkey key) { return; }
