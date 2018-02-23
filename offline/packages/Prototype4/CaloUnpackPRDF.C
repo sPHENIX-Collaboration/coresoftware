@@ -88,7 +88,7 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
       cout << "CaloUnpackPRDF::Process_Event - Packet not found" << endl;
       _event->identify();
     }
-    return Fun4AllReturnCodes::ABORTEVENT;
+    return Fun4AllReturnCodes::DISCARDEVENT;
   }
   RawTower_Prototype4 *tower_lg = NULL;
   RawTower_Prototype4 *tower_hg = NULL;
