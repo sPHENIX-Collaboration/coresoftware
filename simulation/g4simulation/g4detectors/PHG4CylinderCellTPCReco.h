@@ -16,6 +16,7 @@
 class PHCompositeNode;
 class PHG4TPCDistortion;
 class TH1;
+class TF1;
 class TProfile2D;
 class PHG4CylinderCellGeom;
 
@@ -36,7 +37,9 @@ public:
   
   void Detector(const std::string &d);
   void cellsize(const int i, const double sr, const double sz);
-  void populate_phibins(PHG4CylinderCellGeom *geo, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void setZigzags(const bool zzpads){zigzag_pads = zzpads;}
+  void populate_rectangular_phibins(PHG4CylinderCellGeom *geo, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void populate_zigzag_phibins(PHG4CylinderCellGeom *geo, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zbins(PHG4CylinderCellGeom *geo, const double z,  const double cloud_sig_zz[2], std::vector<int> &pad_zbin, std::vector<double> &pad_zbin_share);
   void OutputDetector(const std::string &d) {outdetector = d;}
 
@@ -90,6 +93,8 @@ protected:
   double sigmaT;
   double elec_per_gev;
   double driftv;
+  TF1 *fpad;
+  TF1 *fcharge;
 
   int num_pixel_layers;
 
@@ -110,6 +115,8 @@ protected:
   double fFractZZsm;
   double fShapingLead;
   double fShapingTail;
+  bool zigzag_pads;
+
 #ifndef __CINT__
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
