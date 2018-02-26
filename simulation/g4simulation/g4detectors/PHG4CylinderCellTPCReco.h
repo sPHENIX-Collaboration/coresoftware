@@ -93,7 +93,7 @@ protected:
   double sigmaT;
   double elec_per_gev;
   double driftv;
-  TF1 *fpad;
+  TF1 *fpad[10];
   TF1 *fcharge;
 
   int num_pixel_layers;
