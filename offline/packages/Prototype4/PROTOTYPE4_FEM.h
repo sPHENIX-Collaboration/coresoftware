@@ -13,7 +13,7 @@ const int PACKET_ID = 21351;
 const int NSAMPLES = 31;
 
 //! Mask to obtain ADC from DWord data
-const int ADC_DATA_MASK = (1<<14)-1;
+const int ADC_DATA_MASK = (1 << 14) - 1;
 
 /*! Number of Inner HCAL towers */
 const int NCH_IHCAL_ROWS = 4;
@@ -34,7 +34,7 @@ const int SATURATED_ADC_ERROR = 100;
 const int DEAD_CHANNEL_ERROR = 300;
 
 //! FEM mapping of channel -> calorimeter col and rows
-int GetHBDCh(std::string caloname, int i_column, int i_row);
+int GetChannelNumber(std::string caloname, int i_column, int i_row);
 
 //! Abhisek's power-law + exp fit
 bool SampleFit_PowerLawExp(              //
@@ -44,7 +44,7 @@ bool SampleFit_PowerLawExp(              //
     double &pedstal,                     //
     const int verbosity = 0);
 
-bool SampleFit_PowerLawDoubleExp(              //
+bool SampleFit_PowerLawDoubleExp(        //
     const std::vector<double> &samples,  //
     double &peak,                        //
     double &peak_sample,                 //
