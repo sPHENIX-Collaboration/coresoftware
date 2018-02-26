@@ -451,7 +451,7 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
 //===================
 void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   float peak = fAmps[zbin * fNPhiBins + pbin];
-  fFitW = peak;
+  fFitW = 0.0;
   fFitP0 = fGeoLayer->get_phicenter( pbin );
   fFitZ0 = fGeoLayer->get_zcenter( zbin );
   fFitSumP = 0;
