@@ -22,53 +22,56 @@
 
 using namespace std;
 
-int PROTOTYPE4_FEM::GetHBDCh(std::string caloname, int i_column, int i_row)
+int PROTOTYPE4_FEM::GetChannelNumber(std::string caloname, int i_column, int i_row)
 {
   if (caloname == "HCALIN")
   {
-    return 64 + 8 * i_column + 2 * i_row;
+    //    > Anthony Hodges
+    //    > PhD. Student, Georgia State University
+    //    > Nuclear and High Energy Physics
+    //    > ahodges21@student.gsu.edu
+
+    static const int hbdchanIHC[4][4] = {{4, 8, 12, 16},
+                                         {3, 7, 11, 15},
+                                         {2, 6, 10, 14},
+                                         {1, 5, 9, 13}};
+
+    assert(i_row >= 0);
+    assert(i_row < NCH_IHCAL_ROWS);
+    assert(i_column >= 0);
+    assert(i_column < NCH_IHCAL_COLUMNS);
+
+    return hbdchanIHC[i_row][i_column] + 64;
   }
   else if (caloname == "HCALOUT")
   {
+    // Place holder
+
     return 112 + 8 * i_column + 2 * i_row;
   }
   else if (caloname == "EMCAL")
   {
-    // EMcal cable mapping from John haggerty
-    assert(i_column >= 0);
-    assert(i_column < NCH_EMCAL_COLUMNS);
-    assert(i_row >= 0);
-    assert(i_row < NCH_EMCAL_ROWS);
+    //    > Anthony Hodges
+    //    > PhD. Student, Georgia State University
+    //    > Nuclear and High Energy Physics
+    //    > ahodges21@student.gsu.edu
 
-    static int canmap[] =
-        {
-            //            > https://docdb.sphenix.bnl.gov/0000/000034/001/T1044-2017a-2.xlsx
-            //            Sean and John spot checked a number of these towers at BNL.  There could be mistakes, but cosmics look reasonable.
-            //            Front view (looking downstream, same as above) but in HBD channel numbers
-            //            3  , 2  , 19 , 18 , 35 , 34 , 51 , 50,
-            //            1  , 0  , 17 , 16 , 33 , 32 , 49 , 48,
-            //            7  , 6  , 23 , 22 , 39 , 38 , 55 , 54,
-            //            5  , 4  , 21 , 20 , 37 , 36 , 53 , 52,
-            //            11 , 10 , 27 , 26 , 43 , 42 , 59 , 58,
-            //            9  , 8  , 25 , 24 , 41 , 40 , 57 , 56,
-            //            15 , 14 , 31 , 30 , 47 , 46 , 63 , 62,
-            //            13 , 12 , 29 , 28 , 45 , 44 , 61 , 60,
-            3, 2, 19, 18, 35, 34, 51, 50,
-            1, 0, 17, 16, 33, 32, 49, 48,
-            7, 6, 23, 22, 39, 38, 55, 54,
-            5, 4, 21, 20, 37, 36, 53, 52,
-            11, 10, 27, 26, 43, 42, 59, 58,
-            9, 8, 25, 24, 41, 40, 57, 56,
-            15, 14, 31, 30, 47, 46, 63, 62,
-            13, 12, 29, 28, 45, 44, 61, 60,
-            0};
+    // mapping taken from John Haggerty's emcalall.C found here:
+    // /gpfs/mnt/gpfs02/sphenix/data/data01/caladc/wd/wd409/macros
+    // This map here takes in a channel number and gives you the corresponding canvas position
+    // Presumably we want the opposite, put in canvas position, output channel number
+    // So we'll work backwards
+    Float_t canmap[64] = {6, 7, 14, 15, 4, 5, 12, 13, 2, 3, 10, 11, 0, 1, 8, 9, 22, 23, 30, 31, 20, 21, 28, 29,
+                          18, 19, 26, 27, 16, 17, 24, 25, 38, 39, 46, 47, 36, 37, 44, 45, 34, 35, 42, 43,
+                          32, 33, 40, 41, 54, 55, 62, 63, 52, 53, 60, 61, 50, 51, 58, 59, 48, 49, 56, 57};
 
-    const int tower_index = i_column + NCH_EMCAL_COLUMNS * (NCH_EMCAL_ROWS - 1 - i_row);
+    static int hbdchanEMC[8][8];  //I'm gonna fill this boy with the above channels
+    for (int chan = 0; chan < 64; chan++)
+    {
+      hbdchanEMC[(int) floor(canmap[chan] / 8)][((int) canmap[chan]) % 8] = chan;
+    }
 
-    assert(tower_index >= 0);
-    assert(tower_index < NCH_EMCAL_ROWS * NCH_EMCAL_COLUMNS);
-
-    return canmap[tower_index];
+    return hbdchanEMC[i_row][i_column];
   }
 
   std::cout << "PROTOTYPE4_FEM::GetHBDCh - invalid input caloname " << caloname
