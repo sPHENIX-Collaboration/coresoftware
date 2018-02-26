@@ -51,6 +51,11 @@ int PROTOTYPE4_FEM::GetChannelNumber(std::string caloname, int i_column, int i_r
   }
   else if (caloname == "EMCAL")
   {
+    assert(i_row >= 0);
+    assert(i_row < NCH_EMCAL_ROWS);
+    assert(i_column >= 0);
+    assert(i_column < NCH_EMCAL_COLUMNS);
+
     //    > Anthony Hodges
     //    > PhD. Student, Georgia State University
     //    > Nuclear and High Energy Physics
@@ -61,17 +66,45 @@ int PROTOTYPE4_FEM::GetChannelNumber(std::string caloname, int i_column, int i_r
     // This map here takes in a channel number and gives you the corresponding canvas position
     // Presumably we want the opposite, put in canvas position, output channel number
     // So we'll work backwards
-    Float_t canmap[64] = {6, 7, 14, 15, 4, 5, 12, 13, 2, 3, 10, 11, 0, 1, 8, 9, 22, 23, 30, 31, 20, 21, 28, 29,
-                          18, 19, 26, 27, 16, 17, 24, 25, 38, 39, 46, 47, 36, 37, 44, 45, 34, 35, 42, 43,
-                          32, 33, 40, 41, 54, 55, 62, 63, 52, 53, 60, 61, 50, 51, 58, 59, 48, 49, 56, 57};
+    //    Float_t canmap[64] = {6, 7, 14, 15, 4, 5, 12, 13, 2, 3, 10, 11, 0, 1, 8, 9, 22, 23, 30, 31, 20, 21, 28, 29,
+    //                          18, 19, 26, 27, 16, 17, 24, 25, 38, 39, 46, 47, 36, 37, 44, 45, 34, 35, 42, 43,
+    //                          32, 33, 40, 41, 54, 55, 62, 63, 52, 53, 60, 61, 50, 51, 58, 59, 48, 49, 56, 57};
+    //    static int hbdchanEMC[8][8];  //I'm gonna fill this boy with the above channels
+    //    for (int chan = 0; chan < 64; chan++)
+    //    {
+    //      hbdchanEMC[(int) floor(canmap[chan] / 8)][((int) canmap[chan]) % 8] = chan;
+    //    }
 
-    static int hbdchanEMC[8][8];  //I'm gonna fill this boy with the above channels
-    for (int chan = 0; chan < 64; chan++)
-    {
-      hbdchanEMC[(int) floor(canmap[chan] / 8)][((int) canmap[chan]) % 8] = chan;
-    }
+    // Revision from Martin with static reverse:
+    //    This is now lining up towers from 0....63, and tells you
+    //
+    //    for tower i, what is the actual ADC index I have to go to?
+    //
+    //    tower[0] -> chvector[0] = 12  is then the adc channel nr.
+    //
+    //
+    //
+    //
+    //
+    //
+    //     static const int  chvector[]=  {12 , 13 , 8 , 9 , 4 ,5 ,0 ,1 ,14 ,15
+    //    ,10 ,11 ,6 ,7 ,2 ,3 ,28 ,29 ,24 ,25 ,20 ,21 ,
+    //                                      16 ,17 ,30 ,31 ,26 ,27 ,22 ,23 ,18 ,19
+    //    ,44 ,45 ,40 ,41 ,36 ,37 ,32 ,33 ,46 ,47 ,42 ,43 ,38 ,
+    //                                      39 ,34 ,35 ,60 ,61 ,56 ,57 ,52 ,53 ,48
+    //    ,49 ,62 ,63 ,58 ,59 ,54 ,55 ,50 ,51};
+    const static int canmap[64] = {
+        12, 13, 8, 9, 4, 5, 0, 1, 14, 15, 10, 11, 6, 7, 2, 3, 28, 29, 24, 25, 20, 21,
+        16, 17, 30, 31, 26, 27, 22, 23, 18, 19, 44, 45, 40, 41, 36, 37, 32, 33, 46, 47, 42, 43, 38,
+        39, 34, 35, 60, 61, 56, 57, 52, 53, 48, 49, 62, 63, 58, 59, 54, 55, 50, 51
+    };
 
-    return hbdchanEMC[i_row][i_column];
+    const int linear_channel_ID = (NCH_EMCAL_ROWS - i_row - 1) * NCH_EMCAL_COLUMNS + i_column;
+
+    assert(linear_channel_ID >= 0);
+    assert(linear_channel_ID < 64);
+
+    return canmap[linear_channel_ID];
   }
 
   std::cout << "PROTOTYPE4_FEM::GetHBDCh - invalid input caloname " << caloname
