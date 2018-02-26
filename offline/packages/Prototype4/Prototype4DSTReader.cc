@@ -24,9 +24,9 @@
 
 #include <boost/foreach.hpp>
 #include <cassert>
+#include <climit>
 #include <map>
 #include <set>
-
 #include <sstream>
 
 #include "Prototype4DSTReader.h"
@@ -375,7 +375,10 @@ int Prototype4DSTReader::process_event(PHCompositeNode *topNode)
       PHParameters event_info_copy("EVENT_INFO");
       event_info_copy.FillFrom(info);
 
-      rec._dvalue = event_info_copy.get_double_param(rec._name);
+      rec._dvalue = numeric_limits<double>::quiet_NaN();
+
+      if (event_info_copy.exist_double_param(rec._name))
+        rec._dvalue = event_info_copy.get_double_param(rec._name);
 
     }  //      if (rec._type == record::typ_hit)
     else if (rec._type == record::typ_part)

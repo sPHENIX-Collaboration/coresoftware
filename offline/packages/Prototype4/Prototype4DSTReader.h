@@ -16,11 +16,11 @@
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/SimpleVector.h>
-#include <fun4all/SubsysReco.h>
-#include <string>
-#include <iostream>
-#include <vector>
 #include <TClonesArray.h>
+#include <fun4all/SubsysReco.h>
+#include <iostream>
+#include <string>
+#include <vector>
 
 class TTree;
 
@@ -35,22 +35,18 @@ class TTree;
  */
 class Prototype4DSTReader : public SubsysReco
 {
-public:
+ public:
   Prototype4DSTReader(const std::string &filename);
-  virtual
-  ~Prototype4DSTReader();
+  virtual ~Prototype4DSTReader();
 
   //! full initialization
-  int
-  Init(PHCompositeNode *);
+  int Init(PHCompositeNode *);
 
   //! event processing method
-  int
-  process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *);
 
   //! end of run method
-  int
-  End(PHCompositeNode *);
+  int End(PHCompositeNode *);
 
   void
   AddTower(const std::string &name)
@@ -89,14 +85,13 @@ public:
     _tower_zero_sup = b;
   }
 
-protected:
-
-//  std::vector<std::string> _node_postfix;
+ protected:
+  //  std::vector<std::string> _node_postfix;
   std::vector<std::string> _tower_postfix;
   //! tower temperature
   std::vector<std::string> _towertemp_postfix;
-//  std::vector<std::string> _jet_postfix;
-//  std::vector<std::string> _node_name;
+  //  std::vector<std::string> _jet_postfix;
+  //  std::vector<std::string> _node_name;
   std::vector<std::string> _runinfo_list;
   std::vector<std::string> _eventinfo_list;
 
@@ -111,12 +106,19 @@ protected:
     unsigned int _cnt;
     std::string _name;
     arr_ptr _arr;
-    TClonesArray * _arr_ptr;
+    TClonesArray *_arr_ptr;
     double _dvalue;
 
     enum enu_type
     {
-      typ_hit, typ_part, typ_vertex, typ_tower, typ_jets, typ_runinfo, typ_eventinfo, typ_towertemp
+      typ_hit,
+      typ_part,
+      typ_vertex,
+      typ_tower,
+      typ_jets,
+      typ_runinfo,
+      typ_eventinfo,
+      typ_towertemp
     };
     enu_type _type;
   };
@@ -132,8 +134,8 @@ protected:
 
   std::string _out_file_name;
 
-//  TFile * _file;
-  TTree * _T;
+  //  TFile * _file;
+  TTree *_T;
 
   //! zero suppression for all calorimeters
   double _tower_zero_sup;
