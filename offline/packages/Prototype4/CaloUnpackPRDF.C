@@ -120,7 +120,7 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
         hcalin_towers_hg->AddTower(ibinz, ibinphi, tower_hg);
       }
 
-      int ich = PROTOTYPE4_FEM::GetHBDCh("HCALIN", ibinz, ibinphi);
+      int ich = PROTOTYPE4_FEM::GetChannelNumber("HCALIN", ibinz, ibinphi);
       tower_lg->set_HBD_channel_number(ich);
       tower_hg->set_HBD_channel_number(ich);
       for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
@@ -157,7 +157,7 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
         tower_hg->set_energy(NAN);
         hcalout_towers_hg->AddTower(ibinz, ibinphi, tower_hg);
       }
-      int ich = PROTOTYPE4_FEM::GetHBDCh("HCALOUT", ibinz, ibinphi);
+      int ich = PROTOTYPE4_FEM::GetChannelNumber("HCALOUT", ibinz, ibinphi);
       tower_lg->set_HBD_channel_number(ich);
       tower_hg->set_HBD_channel_number(ich);
       for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
@@ -185,8 +185,8 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
         emcal_towers->AddTower(ibinz, ibinphi, tower);
       }
 
-      int ich = PROTOTYPE4_FEM::GetHBDCh("EMCAL", ibinz,
-                                         ibinphi);
+      int ich = PROTOTYPE4_FEM::GetChannelNumber("EMCAL", ibinz,
+                                                 ibinphi);
       tower->set_HBD_channel_number(ich);
       for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
       {
