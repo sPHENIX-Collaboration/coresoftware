@@ -346,7 +346,7 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
   for(int ip=0; ip<=fFitRangeP; ++ip) {
     int cp = wrap_phibin(phibin + ip);
     int bin = zbin * fNPhiBins + cp;
-    if(fAmps[bin] < fFitEnergyThreshold*peak){
+    if(fAmps[bin] <= fFitEnergyThreshold*peak){
       phiup = ip;
       break; // skip small (include empty)
     }
@@ -363,7 +363,7 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
   for(int ip=0; ip<=fFitRangeP; ++ip) {
     int cp = wrap_phibin(phibin - ip);
     int bin = zbin * fNPhiBins + cp;
-    if(fAmps[bin] < fFitEnergyThreshold*peak){
+    if(fAmps[bin] <= fFitEnergyThreshold*peak){
       phidown = ip;
       break; // skip small (include empty)
     }
@@ -401,7 +401,7 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
       int bin1 = (cz+1) * fNPhiBins + cp;
       int bin2 = (cz+2) * fNPhiBins + cp;
       int bin3 = (cz+3) * fNPhiBins + cp;
-      if(fAmps[bin] < fFitEnergyThreshold*peak) {
+      if(fAmps[bin] <= fFitEnergyThreshold*peak) {
 	zup = iz;
 	if(verbosity > 1000) cout << " failed threshold cut, set izup to " << zup << endl;
 	break;
@@ -451,7 +451,8 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
 //===================
 void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   float peak = fAmps[zbin * fNPhiBins + pbin];
-  fFitW = peak;
+  //fFitW = peak; // bug!
+  fFitW = 0;
   fFitP0 = fGeoLayer->get_phicenter( pbin );
   fFitZ0 = fGeoLayer->get_zcenter( zbin );
   fFitSumP = 0;
@@ -513,24 +514,34 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 	std::cout << Form("%.2f | ",fAmps[bin]);
 	if(ip==fFitRangeP) std::cout << std::endl;
       }
-      if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
+      if(fAmps[bin] < fFitEnergyThreshold*peak) 
+	{
+	  if(verbosity > 5000)  cout << " skip ip = " << ip << " because ee  " << fAmps[bin] << " smaller than fFitEnergyThreshold " <<  fFitEnergyThreshold << " times peak " << peak <<  endl;
+	  continue; // skip small (include empty)
+	}
       used = true;
+      if(verbosity>5000) cout << " calculating centroid for ip =  " << ip << endl;
       nphis++;
       float ee = fAmps[bin];
       float dz = fGeoLayer->get_zcenter(cz) - fFitZ0;
       float dp = fGeoLayer->get_phicenter(cp) - fFitP0;
+      if(verbosity > 5000) cout << " dp " << dp << " cp " << cp << " phicenter " <<  fGeoLayer->get_phicenter(cp) << " fFitP0 " <<  fFitP0 << endl;
       if(dp<-3.0) dp = dp + _twopi; // binphi has been reduced;
       if(dp>+3.0) dp = dp - _twopi; // binphi has been increased;
+       if(verbosity > 5000) cout << " ee " << ee << " dp " << dp << " fFitSumP before " << fFitSumP;
       fFitW += ee;
       fFitSumP += ee*dp;
       fFitSumZ += ee*dz;
       fFitSumP2 += ee*dp*dp;
       fFitSumZ2 += ee*dz*dz;
       fFitSumPZ += ee*dp*dz;
+      if(verbosity > 5000)  cout << " add  bin with iz " << iz << " cz " << cz << " dz " << dz << " ip " << ip << " cp " << cp << " dp " << dp 
+				 << " bin " << bin << " famps " << ee <<  " fFitSumP after " << fFitSumP << endl;
       nhits_tot -= 1; //taken
       fNHitsPerZ[cz] -= 1; //taken
       fAmps[bin] = 0.; //removed
     }
+    if(verbosity>5000) cout << " fFitSumP " << fFitSumP << " fFitW " << fFitW << " mean " << fFitSumP/fFitW << endl;
     if(used) fFitSizeZ++;
     fFitSizeP = TMath::Max(fFitSizeP,float(nphis));
   }
@@ -707,6 +718,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  fFitRangeP = int( fClusterWindow*sigmaP/(radius*stepp) + 1);
 
 	  if(fFitRangeP<1) fFitRangeP = 1;
+	  if(fFitRangeP < 5)   fFitRangeP = 5;
 	  if(fFitRangeP>fFitRangeMP) fFitRangeP = fFitRangeMP;
           if(!is_local_maximum(phibin, zbin)) continue;
 	  if(verbosity>2000){
