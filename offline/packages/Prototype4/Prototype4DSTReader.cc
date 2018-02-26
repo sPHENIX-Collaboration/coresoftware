@@ -24,7 +24,7 @@
 
 #include <boost/foreach.hpp>
 #include <cassert>
-#include <climit>
+#include <limits>
 #include <map>
 #include <set>
 #include <sstream>
