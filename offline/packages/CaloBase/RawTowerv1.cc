@@ -80,7 +80,7 @@ RawTowerv1::identify(std::ostream& os) const
 }
 
 void
-RawTowerv1::add_ecell(const PHG4CellDefs::keytype g4cellid,
+RawTowerv1::add_ecell(const CellKeyType g4cellid,
     const float ecell)
 {
   if (ecells.find(g4cellid) == ecells.end())

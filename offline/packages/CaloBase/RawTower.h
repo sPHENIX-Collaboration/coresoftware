@@ -12,7 +12,11 @@
 class RawTower : public PHObject {
 
  public:
-  typedef std::map<PHG4CellDefs::keytype, float> CellMap;
+
+  //! key type for cell map which should be consistent with CellKeyType
+  typedef unsigned long long CellKeyType;
+
+  typedef std::map<CellKeyType, float> CellMap;
   typedef CellMap::iterator CellIterator;
   typedef CellMap::const_iterator CellConstIterator;
   typedef std::pair<CellIterator, CellIterator> CellRange;
@@ -59,9 +63,9 @@ class RawTower : public PHObject {
     CellMap dummy;
     return make_pair(dummy.begin(), dummy.end());
   }
-  virtual CellIterator find_g4cell(PHG4CellDefs::keytype id) {return CellMap().end();}
-  virtual CellConstIterator find_g4cell(PHG4CellDefs::keytype id) const {return CellMap().end();}
-  virtual void add_ecell(const PHG4CellDefs::keytype  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const PHG4CellDefs::keytype g4cellid, const float ecell)"); return;}
+  virtual CellIterator find_g4cell(CellKeyType id) {return CellMap().end();}
+  virtual CellConstIterator find_g4cell(CellKeyType id) const {return CellMap().end();}
+  virtual void add_ecell(const CellKeyType  g4cellid, const float ecell) {PHOOL_VIRTUAL_WARN("add_ecell(const CellKeyType g4cellid, const float ecell)"); return;}
   virtual void clear_g4cells() {}
 
   virtual bool empty_g4showers() const {return true;}
