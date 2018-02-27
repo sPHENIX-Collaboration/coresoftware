@@ -268,7 +268,7 @@ int PHG4CylinderCellTPCReco::InitRun(PHCompositeNode *topNode)
       fpad[ipad] = new TF1(name,"[0]-abs(x-[1])");
     }
 
-  cout << "The zigzag pad option is set to " << zigzag_pads << endl;
+  cout << "The TPC zigzag pad option is set to " << zigzag_pads << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -332,24 +332,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       // checking ADC timing integration window cut
       if (hiter->second->get_t(0) > tmin_max[*layer].second) continue;
       if (hiter->second->get_t(1) < tmin_max[*layer].first) continue;
-
-      /*
-      // the matching z-bin window in the corresponding cells
-      int min_cell_zbin = 0;
-      int max_cell_zbin = nzbins-1;
-      if (hiter->second->get_avg_z()>0)
-      {
-        //positive drifting volume
-
-        min_cell_zbin = nzbins/2;
-      }
-      else
-      {
-        //negative drifting volume
-
-        max_cell_zbin = nzbins/2 - 1;
-      }
-      */
 
       double xinout;
       double yinout;
@@ -535,34 +517,6 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 
           // Now distribute the charge between the pads in phi
 	  //====================================
-	  /*
-	  // For rectangular phibins
-	  //=================
-	  pad_phibin.clear();
-	  pad_phibin_share.clear();
-	  populate_rectangular_phibins(geo, phi,  cloud_sig_rp, pad_phibin, pad_phibin_share);
-
-	  // Do a quick phi clustering to check how well phi position matches hit position
-	  double cum = 0.0;
-	  double norm = 0.0;
-	  for(unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
-	    {      
-	      int pad_num = pad_phibin[ipad];
-	      double pad_share = pad_phibin_share[ipad];
-	      cout << "  from populate_rectangular_phibins for ipad = " << ipad << " pad_num " << pad_num << " pad_share " << pad_share << endl; 
-	      
-	      cum += geo->get_phicenter(pad_num) * pad_share;
-	      norm += pad_share;
-	    }
-
-	  // normalize charge fractions to  a total of 1
-	  for(unsigned int iphi = 0; iphi < pad_phibin.size(); ++iphi)
-	      pad_phibin_share[iphi] /= norm;
-	  
-	  cout << "  rect. quick phi centroid " << cum / norm << " phi  " << phi << " diff " << cum/norm - phi 
-	       << " truth phi " << truth_phi  << " diff " << cum/norm - truth_phi << " norm " << norm 
-	       << endl;
-	  */
 
 	  // bin in phi 
 	  // ========
@@ -574,46 +528,15 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	  else
 	    populate_rectangular_phibins(geo, phi,  cloud_sig_rp, pad_phibin, pad_phibin_share);
 
-	  // Do a quick phi clustering to check how well phi position matches hit position
-	  double threshold = 0.20;
-	  double cum1 = 0.0;
+	  // Normalize the shares so they add up to 1
 	  double norm1 = 0.0;
-	  double cum2 = 0.0;
-	  double norm2 = 0.0;
 	  for(unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
 	    {      
-	      int pad_num = pad_phibin[ipad];
 	      double pad_share = pad_phibin_share[ipad];
-	      if(verbosity > 5000)
-		cout << "  from new code with zigzag_pads " << zigzag_pads << " for ipad = " << ipad << " pad_num " << pad_num << " pad_share " << pad_share << endl; 
-
-	      cum1 += geo->get_phicenter(pad_num) * pad_share;
 	      norm1 += pad_share;
-
-	      if(pad_share < threshold)
-		{
-		  if(verbosity>5000) cout << " skip ipad " << ipad << " bacause pad_share " << pad_share << " failed threshold cut " << threshold << endl;
-		  continue;
-		}
-
-	      cum2 += geo->get_phicenter(pad_num) * pad_share;
-	      norm2 += pad_share;
 	    }
-
-	  // normalize charge fractions to  a total of 1
 	  for(unsigned int iphi = 0; iphi < pad_phibin.size(); ++iphi)
 	      pad_phibin_share[iphi] /= norm1;
-
-	  if(verbosity > 5000)
-	    cout << endl << "  new code quick phi centroid " << cum1 / norm1 << " phi  " << phi << " diff " << cum1/norm1 - phi 
-		 << " truth phi " << truth_phi  << " diff " << cum1/norm1 - truth_phi << " norm " << norm1 
-		 << endl;
-
-	  if(verbosity > 5000)
-	    cout << endl << "  new code quick phi centroid w/thresh " << cum2 / norm2 << " phi  " << phi << " diff " << cum2/norm2 - phi 
-		 << " truth phi " << truth_phi  << " diff " << cum2/norm2 - truth_phi << " norm " << norm2 
-		 << endl;
-
 
           // Now distribute the charge between the pads in z
 	  //====================================
@@ -621,29 +544,19 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	  adc_zbin_share.clear();
 	  populate_zbins(geo, z + zsegoffset,  cloud_sig_zz, adc_zbin, adc_zbin_share);
 
-	  // Do a quick z clustering to check how well z position matches hit position
-	  double zcum = 0.0;
+	  // Normalize the shares so that they add up to 1
 	  double znorm = 0.0;
 	  for(unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
 	    {      
-	      int bin_num = adc_zbin[iz];
 	      double bin_share = adc_zbin_share[iz];
-	      //cout << "  from populate_zbins for ipad = " << iz << " bin_num " << bin_num << " bin_share " << bin_share << endl; 
-	      
-	      zcum += geo->get_zcenter(bin_num) * bin_share;
 	      znorm += bin_share;
 	    }
-
 	  for(unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
 	      adc_zbin_share[iz] /= znorm;
 
-	  if(verbosity > 5000)
-	    cout << "  new code quick z centroid  " << zcum / znorm << " z+zsegoffset  " << z + zsegoffset << " diff " << zcum/znorm - z -zsegoffset
-		 << " truth z " << truth_z  << " diff " << zcum/znorm - truth_z << " norm " << znorm 
-		 << endl;
-
 	  // Fill cells
 	  //========
+	  // These are used to do a quick clustering for checking
 	  double phi_integral = 0.0;
 	  double z_integral = 0.0;
 	  double weight = 0.0;
@@ -659,20 +572,21 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 		  double adc_bin_share = adc_zbin_share[iz];
 		  
 		  // adding constant electron avalanche (value chosen so that digitizer will not trip)
-		  float neffelectrons = (2000 / nseg) * nelec * (pad_share) * (adc_bin_share);  
+		  float neffelectrons = (2000.0 / nseg) * nelec * (pad_share) * (adc_bin_share);  
 		  
-		  if (neffelectrons < 50) continue;  // skip no signals
+		  if (neffelectrons < 50) continue;  // skip no or very small signals to keep number of cells down
 		  if(zbin_num >= nzbins) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << nzbins << endl;
 		  if(pad_num >= nphibins) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << nphibins << endl;
 		  unsigned long key = zbin_num * nphibins + pad_num;
 		  
 		  if(verbosity > 5000)
-		    cout << "    new code: zbin " << zbin_num << " z of bin " <<  geo->get_zcenter(zbin_num)  << " z integral " << adc_bin_share
+		    cout << "    zbin " << zbin_num << " z of bin " <<  geo->get_zcenter(zbin_num)  << " z integral " << adc_bin_share
 			 << " pad " << pad_num  << " phi of pad " <<  geo->get_phicenter(pad_num)  << " phi integral " << pad_share 
 			 << " nelectrons = " << neffelectrons << " key = " << key << endl;
 		  
-		  // Try reproducing the clustering in PHG4TPCCellReco here, to compare the results for single track events.
-		  // The only information written to the cell is zbin, pad number, neffelectrons
+		  // collect information to do simple clustering. Checks operation of PHG4CylinderCellTPCReco, and 
+		  // is also useful for comparison with PHG4TPCClusterizer result when running single track events.
+		  // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
 		  double phicenter = geo->get_phicenter(pad_num);
 		  phi_integral += phicenter*neffelectrons;
 		  double zcenter = geo->get_zcenter(zbin_num);
@@ -701,136 +615,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 	  if(verbosity > 5000)
 	    {	  
 	      cout << " quick centroid using neffelectrons " << endl;
-	      cout << "      phi centroid = " << phi_integral / weight << " z centroid = " << z_integral / weight << endl;
+	      cout << "      phi centroid = " << phi_integral / weight << " truth phi " << truth_phi << " z centroid = " << z_integral / weight << " truth z " << truth_z << endl;
 	    }
-
-	  /*	  
-	  //==================================== 
-	  // old code
-	  //====================================
-          int n_rp = int(3 * cloud_sig_rp / (r * phistepsize) + 1);
-          int n_zz = int(3 * (cloud_sig_zz[0] + cloud_sig_zz[1]) / (2.0 * zstepsize) + 1);
-          if (verbosity > 1)
-          {
-            fHErrorRPhi->Fill(float(*layer), z, cloud_sig_rp);
-            fHErrorZ->Fill(float(*layer), z, cloud_sig_zz[0]);
-            fHWindowP->Fill(float(*layer), z, n_rp);
-            fHWindowZ->Fill(float(*layer), z, n_zz);
-          }
-          double cloud_sig_rp_inv = 1. / cloud_sig_rp;
-          double cloud_sig_zz_inv[2];
-          cloud_sig_zz_inv[0] = 1. / cloud_sig_zz[0];
-          cloud_sig_zz_inv[1] = 1. / cloud_sig_zz[1];
-          if (verbosity > 1000)
-          {
-            std::cout << " Summary: Z PHI " << z << " " << phi << " edep " << edep * 1e6 << " nelec " << nelec
-                      << " cloud_sig_rp " << cloud_sig_rp << endl
-                      << " TPC shaping RMS leading " << fShapingLead
-                      << " TPC shaping RMS tail " << fShapingTail << endl
-                      << " cloud_sig_zz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] << std::endl;
-            std::cout << " bin search window: nrp " << n_rp << " nzz " << n_zz << std::endl;
-          }
-
-	  // bin the charge in phi - rectangular pads
-
-	  double phi_cum = 0.0;
-	  double phi_norm = 0.0;
-	  double z_cum = 0.0;
-	  double z_norm = 0.0;
-          for (int iphi = -n_rp; iphi != n_rp + 1; ++iphi)
-          {
-            int cur_phi_bin = phibin + iphi;
-            // correcting for continuity in phi
-            if (cur_phi_bin < 0)
-              cur_phi_bin += nphibins;
-            else if (cur_phi_bin >= nphibins)
-              cur_phi_bin -= nphibins;
-            if ((cur_phi_bin < 0) || (cur_phi_bin >= nphibins))
-            {
-              std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
-              continue;
-            }
-            // Get the integral of the charge probability distribution in phi inside the current phi step
-            double phiLim1 = 0.5 * M_SQRT2 * ((iphi + 0.5) * phistepsize * r - phidisp * r) * cloud_sig_rp_inv;
-            double phiLim2 = 0.5 * M_SQRT2 * ((iphi - 0.5) * phistepsize * r - phidisp * r) * cloud_sig_rp_inv;
-            double phi_integral = 0.5 * (erf(phiLim1) - erf(phiLim2));
-            if (verbosity > 2000) cout << " current phi bin " << cur_phi_bin << " phiLim1 " << phiLim1 << " phiLim2 " << phiLim2 << " phi_integral " << phi_integral << endl;
-
-            for (int iz = -n_zz; iz != n_zz + 1; ++iz)
-            {
-              int cur_z_bin = zbinseg + iz;
-              if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
-              // Get the integral of the charge probability distribution in Z inside the current Z step. We only need to get the relative signs correct here, I think
-              // this is correct for z further from the membrane - charge arrives early
-              double zLim1 = 0.5 * M_SQRT2 * ((iz + 0.5) * zstepsize - zdispseg) * cloud_sig_zz_inv[0];
-              double zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdispseg) * cloud_sig_zz_inv[0];
-              // The above is correct if we are in the leading part of the time distribution. In the tail of the distribution we use the second gaussian width
-              // this is correct for z  closer to the membrane - charge arrives late
-              if (zLim1 > 0)
-                zLim1 = 0.5 * M_SQRT2 * ((iz + 0.5) * zstepsize - zdispseg) * cloud_sig_zz_inv[1];
-              if (zLim2 > 0)
-                zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdispseg) * cloud_sig_zz_inv[1];
-              // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
-              double z_integral = 0.5 * (erf(zLim1) - erf(zLim2));
-
-	      if(iphi == 0)
-		{
-		  z_cum += geo->get_zcenter(cur_z_bin) * z_integral;
-		  z_norm += z_integral;
-		}
-	      if(iz == 0)
-		{
-		  phi_cum += geo->get_phicenter(cur_phi_bin) * phi_integral;
-		  phi_norm += phi_integral;
-		}
-
-              float neffelectrons = (2000 / nseg) * nelec * (phi_integral * z_integral);  // adding constant electron avalanche (value chosen so that digitizer will not trip)
-
-              if (verbosity > 5000)
-              {
-                std::cout << Form("%.3f", neffelectrons) << " ";
-                if (iz == n_zz) std::cout << std::endl;
-              }
-
-              if (neffelectrons < 50) continue;  // skip no signals
-              unsigned long key = cur_z_bin * nphibins + cur_phi_bin;
-
-	      if(verbosity > 5000)
-		cout << "  old code: zbin " << cur_z_bin << " z_integral " << z_integral  
-		     << " phibin " << cur_phi_bin << " phi_integral " << phi_integral << " nelectrons = " << neffelectrons << " key = " << key << endl;
-	      
-	      	      
-              std::map<unsigned long long, PHG4Cell *>::iterator it = cellptmap.find(key);
-              PHG4Cell *cell;
-              if (it != cellptmap.end())
-              {
-                cell = it->second;
-              }
-              else
-              {
-                PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer, cur_z_bin, cur_phi_bin);
-                cell = new PHG4Cellv2(akey);
-                cellptmap[key] = cell;
-              }
-              cell->add_edep(hiter->first, neffelectrons);
-              cell->add_edep(neffelectrons);
-              cell->add_shower_edep(hiter->second->get_shower_id(), neffelectrons);
-	     
-            }  //iz
-          }    //iphi
-
-	  if(verbosity > 5000)
-	    {
-	      cout << " old code: quick phi centroid " << phi_cum / phi_norm << " phi " << phi << " diff " << phi_cum/phi_norm - phi 
-		   <<  " truth_phi " << truth_phi << " diff " << phi_cum/phi_norm - truth_phi << endl;
-	      cout << " old code: quick z centroid " << z_cum / z_norm << " z+zsegoffset " << z + zsegoffset << " diff " << z_cum/z_norm - z - zsegoffset 
-		   <<  " truth_z " << truth_z << " diff " << z_cum/z_norm - truth_z << endl;
-	    }
-
-	  //==============
-	  // end of old code
-	  //==============
-	  */
 	  
         }  // izr
       }
@@ -869,7 +655,6 @@ void PHG4CylinderCellTPCReco::populate_rectangular_phibins(PHG4CylinderCellGeom 
   double phidisp = phi - geo->get_phicenter(phibin);
   double phistepsize = geo->get_phistep();
 
-  //cout << " populate_phi_bins: radius " << radius << " phibin " << phibin << " phistepsize " << phistepsize << endl;  
   // bin the charge in phi - rectangular pads
   int n_rp = int(3 * cloud_sig_rp / (radius * phistepsize) + 1);
   for (int iphi = -n_rp; iphi != n_rp + 1; ++iphi)
@@ -889,7 +674,6 @@ void PHG4CylinderCellTPCReco::populate_rectangular_phibins(PHG4CylinderCellGeom 
       double phiLim1 = 0.5 * M_SQRT2 * ((iphi + 0.5) * phistepsize * radius - phidisp * radius) * cloud_sig_rp_inv;
       double phiLim2 = 0.5 * M_SQRT2 * ((iphi - 0.5) * phistepsize * radius - phidisp * radius) * cloud_sig_rp_inv;
       double phi_integral = 0.5 * (erf(phiLim1) - erf(phiLim2));
-      //cout << " populate_phibins: current phi bin " << cur_phi_bin << " phiLim1 " << phiLim1 << " phiLim2 " << phiLim2 << " phi_integral " << phi_integral << endl;
       
       pad_phibin.push_back(cur_phi_bin);
       pad_phibin_share.push_back(phi_integral);
@@ -923,7 +707,7 @@ void PHG4CylinderCellTPCReco::populate_zigzag_phibins(PHG4CylinderCellGeom *geo,
   if(npads < 0 || npads >9) npads = 9;  // can happen if phibin_high wraps around. If so, limit to 10 pads and fix below
 
 
-  // Calculate the maximum extent in r-phi of pads in this layer. Pads touch the center of the next phi bin both sides.
+  // Calculate the maximum extent in r-phi of pads in this layer. Pads are assumed to touch the center of the next phi bin on both sides.
   double pad_rphi = 2.0 * (geo->get_phistep()) * (geo->get_radius() + geo->get_thickness() / 2.0);  
   // Make a TF1 for each pad in the phi range
   int pad_keep[10];
@@ -975,77 +759,6 @@ void PHG4CylinderCellTPCReco::populate_zigzag_phibins(PHG4CylinderCellGeom *geo,
       pad_phibin_share.push_back(overlap[ipad]);      
       if(verbosity > 5000) cout << "         zigzags: for pad " << ipad  << " integral is " << overlap[ipad] << endl;	     	      
     }
-
-  /*
-  // Find the zigzag pads that will receive charge from this z segment, and get the fraction of charge going to each one.
-  // Calculate the maximum extent in r-phi of pads in this layer. Pads touch the center of the next phi bin both sides.
-  double pad_rphi = 2.0 * (geo->get_phistep()) * (geo->get_radius() + geo->get_thickness() / 2.0);  
-  
-  // make a triangular function to represent the charge efficiency of the pad vs r-phi
-  fpad->SetParameter(0, pad_rphi/2.0);
-  
-  // make the charge distribution gaussian
-  fcharge->SetParameter(0, 1.0);
-  fcharge->SetParameter(1, 0.0);
-  fcharge->SetParameter(2, cloud_sig_rp);
-  
-  
-  for(int ipad = 0; ipad<=npads;ipad++)
-    {
-      int pad_now = phibin_low + ipad;
-      
-      // check that we do not exceed the maximum number of pads, wrap if necessary
-      if(pad_now >= geo->get_phibins())   pad_now -= geo->get_phibins();		
-      
-      // find the offset in r-phi of the zigzag pad center from the charge center		
-      double phi_pad = geo->get_phicenter(pad_now);
-      double offset = phi - phi_pad;  // distance from center of charge distribution to center of pad
-      double offset_rphi =  offset * (geo->get_radius() + geo->get_thickness() / 2.0); 
-     
-      if(verbosity > 2)
-	cout << " zigzags: ipad " << ipad << " pad_now " << pad_now 
-	     << "  pad_rphi/2 " << pad_rphi/2.0
-	     << " phi_pad " << phi_pad <<  " phi " << phi 
-	     << " cloud_sig_rp " << cloud_sig_rp
-	     << " geo->get_phistep " << geo->get_phistep()
-	     << " offset " << offset << " offset r-phi " << offset_rphi 
-	     << endl;
-
-
-      // For each strip, we fold fcharge with fpad
-      // assume the charge distribution is centered at rphi = 0.
-      // then the pad is centered at offset_rphi (+ve for pad lower in phi, -ve for pad higher in phi)
-      // at the same point on the axis, the coordinate is:
-      //        x wrt the center of the charge distribution (-ve for lower phi, +ve for higher phi)
-      //        (offset_rphi + x) wrt to the center of the pad (+ve for pad lower in phi, -ve for pad higher in phi)
-      
-      int ncharge = 60;
-      double overlap_int = 0.0;		
-      for(int ich = 0;ich<ncharge;++ich)
-	{
-	  double xch = 4.5*cloud_sig_rp - (double) ich * 4.5* cloud_sig_rp / (double) (ncharge/2);
-	  double xpad = offset_rphi + xch;
-	  if(xpad > -pad_rphi/2.0 && xpad < pad_rphi/2.0)
-	    {
-	      double product = fcharge->Eval(xch) * fpad->Eval(xpad);
-	      overlap_int += product;
-
-
-	      cout << " ich " << ich 
-		   << " xch " << xch << " xpad " << xpad 
-		   << " fcharge " << fcharge->Eval(xch)   << " fpad " << fpad->Eval(xpad)
-		   << " product " << product << endl; 
-
-	    }
-	}
-
-      pad_phibin.push_back(pad_now);
-      pad_phibin_share.push_back(overlap_int);
-      
-      if(verbosity > 1) cout << "         zigzags: for pad " << ipad  << " with offset " << offset << " integral is " << overlap_int << endl;	     	      
-      
-    }  
-*/
   
   return;
   
