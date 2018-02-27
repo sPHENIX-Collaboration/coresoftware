@@ -217,5 +217,5 @@ void CaloCalibration::SetDefaultParameters(PHParameters &param)
 
   // additional scale for the calibration constant
   // negative pulse -> positive with -1
-  param.set_double_param("calib_const_scale", -1);
+  param.set_double_param("calib_const_scale", 1);
 }
