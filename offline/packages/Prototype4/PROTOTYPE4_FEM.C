@@ -18,6 +18,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 
 using namespace std;
@@ -116,7 +117,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
     const std::vector<double> &samples,      //
     double &peak,                            //
     double &peak_sample,                     //
-    double &pedstal,                         //
+    double &pedestal,                        //
     const int verbosity)
 {
   int peakPos = 0.;
@@ -131,7 +132,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
     (gpulse.GetY())[i] = samples[i];
   }
 
-  double pedestal = gpulse.GetY()[0];  //(double) PEDESTAL;
+  pedestal = gpulse.GetY()[0];  //(double) PEDESTAL;
   double peakval = pedestal;
   const double risetime = 4;
 
@@ -159,7 +160,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
   par[4] = pedestal;
   par[5] = 0;
   fits.SetParameters(par);
-  fits.SetParNames("Amplitude", "Sample Start", "Power", "Decay", "Pedstal", "Baseline shift");
+  fits.SetParNames("Amplitude", "Sample Start", "Power", "Decay", "pedestal", "Baseline shift");
   fits.SetParLimits(0, peakval * 0.5, peakval * 10);
   fits.SetParLimits(1, 0, NSAMPLES);
   fits.SetParLimits(2, 0, 10.);
@@ -208,7 +209,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawExp(  //
 
   // peak integral = p0*Power(p3,-1 - p2)*Gamma(1 + p2). Note yet used in output
 
-  pedstal = fits.GetParameter(4);
+  pedestal = fits.GetParameter(4);
 
   return true;
 }
@@ -229,9 +230,13 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
     const std::vector<double> &samples,            //
     double &peak,                                  //
     double &peak_sample,                           //
-    double &pedstal,                               //
+    double &pedestal,                              //
+    std::map<int, double> &parameters_io,
     const int verbosity)
 {
+  static const int n_parameter = 7;
+
+  // inital guesses
   int peakPos = 0.;
 
   assert(samples.size() == NSAMPLES);
@@ -244,7 +249,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
     (gpulse.GetY())[i] = samples[i];
   }
 
-  double pedestal = gpulse.GetY()[0];  //(double) PEDESTAL;
+  pedestal = gpulse.GetY()[0];  //(double) PEDESTAL;
   double peakval = pedestal;
   const double risetime = 2;
 
@@ -266,40 +271,6 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
          << "peakPos = " << peakPos << endl;
   }
 
-  // fit function
-  TF1 fits("f_SignalShape_PowerLawDoubleExp", SignalShape_PowerLawDoubleExp, 0., NSAMPLES, 7);
-
-  double par[10] =
-      {0};
-  par[0] = peakval * .7;  // /3.;
-  par[1] = peakPos - risetime;
-  if (par[1] < 0.)
-    par[1] = 0.;
-  par[2] = 2.;
-  par[3] = 2.5;
-  par[4] = pedestal;
-  par[5] = peakval * .3;
-  par[6] = 5;
-  fits.SetParameters(par);
-  fits.SetParNames("Amplitude 1", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude 2", "Peak Time 2");
-  if (peakval > 0)
-  {
-    fits.SetParLimits(0, 0, peakval * 1.5);
-    fits.SetParLimits(5, 0, peakval * 1.5);
-  }
-  else
-  {
-    fits.SetParLimits(0, peakval * 1.5, 0);
-    fits.SetParLimits(5, peakval * 1.5, 0);
-  }
-  fits.SetParLimits(1, peakPos - 3 * risetime, peakPos + risetime);
-  fits.SetParLimits(2, 1, 10.);
-  //  fits.SetParLimits(3, 1., 2.5);
-  //  fits.SetParLimits(6, 0.2, 1);
-  fits.SetParLimits(3, risetime*.5, risetime * 4);
-  fits.SetParLimits(6, risetime*.5, risetime * 4);
-  fits.SetParLimits(4, pedestal - abs(peakval), pedestal + abs(peakval));
-
   //Saturation correction - Abhisek
   for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
     if ((gpulse.GetY())[ipoint] <= 10 or (gpulse.GetY())[ipoint] >= ((1 << 14) - 10))  // drop point if touching max or low limit on ADCs
@@ -307,6 +278,68 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
       gpulse.RemovePoint(ipoint);
       ipoint--;
     }
+
+  // build default value
+  struct default_values_t
+  {
+    default_values_t(double default_value, double min_value, double max_value)
+      : def(default_value)
+      , min(min_value)
+      , max(max_value)
+    {
+    }
+    double def;
+    double min;
+    double max;
+  };
+
+  vector<default_values_t> default_values(n_parameter, default_values_t(numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN()));
+
+  if (peakval > 0)
+  {
+    default_values[0] = default_values_t(peakval * .7, 0, peakval * 1.5);
+  }
+  else
+  {
+    default_values[0] = default_values_t(peakval * .7, peakval * 1.5, 0);
+  }
+  default_values[1] = default_values_t(peakPos - risetime, peakPos - 3 * risetime, peakPos + risetime);
+  default_values[2] = default_values_t(2., 1, 10.);
+  default_values[3] = default_values_t(5, risetime * .5, risetime * 4);
+  default_values[4] = default_values_t(pedestal, pedestal - abs(peakval), pedestal + abs(peakval));
+  default_values[5] = default_values_t(.3, 0, 100);
+  default_values[6] = default_values_t(5, risetime * .5, risetime * 4);
+
+  // fit function
+  TF1 fits("f_SignalShape_PowerLawDoubleExp", SignalShape_PowerLawDoubleExp, 0., NSAMPLES, n_parameter);
+  fits.SetParNames("Amplitude 1", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude 2/1 ratio", "Peak Time 2");
+
+  for (int i = 0; i < n_parameter; ++i)
+  {
+    if (parameters_io.find(i) == parameters_io.end())
+    {
+      fits.SetParameter(i, default_values[i].def);
+      fits.SetParLimits(i, default_values[i].min, default_values[i].max);
+
+      if (verbosity)
+      {
+        cout << "PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp - parameter [" << i << "]: "
+             << "default value = " << default_values[i].def
+             << "min value = " << default_values[i].min
+             << "max value = " << default_values[i].max << endl;
+      }
+    }
+    else
+    {
+      fits.SetParLimits(i, parameters_io[i], parameters_io[i]);
+      fits.SetParameter(i, parameters_io[i]);
+
+      if (verbosity)
+      {
+        cout << "PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp - parameter [" << i << "]: fixed to " << parameters_io[i] << endl;
+      }
+    }
+  }
 
   if (verbosity <= 1)
     gpulse.Fit(&fits, "MQRN0W", "goff", 0., (double) NSAMPLES);
@@ -343,7 +376,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
     TF1 f2("f_SignalShape_PowerLawExp2", SignalShape_PowerLawExp, 0., NSAMPLES, 5);
     f2.SetParameters(
-        fits.GetParameter(5) / pow(fits.GetParameter(6), fits.GetParameter(2)) * exp(fits.GetParameter(2)),
+        fits.GetParameter(0) * fits.GetParameter(5) / pow(fits.GetParameter(6), fits.GetParameter(2)) * exp(fits.GetParameter(2)),
         fits.GetParameter(1),
         fits.GetParameter(2),
         fits.GetParameter(2) / fits.GetParameter(6),
@@ -354,7 +387,8 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
     canvas->Update();
   }
 
-  pedstal = fits.GetParameter(4);
+  // store results
+  pedestal = fits.GetParameter(4);
 
   const double peakpos1 = fits.GetParameter(3);
   const double peakpos2 = fits.GetParameter(6);
@@ -365,7 +399,12 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
   else
     peak_sample = fits.GetMinimumX(fits.GetParameter(1), fits.GetParameter(1) + max_peakpos);
 
-  peak = fits.Eval(peak_sample) - pedstal;
+  peak = fits.Eval(peak_sample) - pedestal;
+
+  for (int i = 0; i < n_parameter; ++i)
+  {
+    parameters_io[i] = fits.GetParameter(i);
+  }
 
   if (verbosity)
   {
@@ -374,7 +413,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
          << "max_peakpos = " << max_peakpos << ", "
          << "fits.GetParameter(1) = " << fits.GetParameter(1) << ", "
          << "peak = " << peak << ", "
-         << "pedstal = " << pedstal << endl;
+         << "pedestal = " << pedestal << endl;
   }
 
   return true;
@@ -392,8 +431,9 @@ PROTOTYPE4_FEM::SignalShape_PowerLawDoubleExp(double *x, double *par)
   //  fits.GetParameter(2) / peak_shift =  fits.GetParameter(3);  // signal peak time
 
   double signal =                                                                                    //
-      pow((x[0] - par[1]), par[2])                                                                   //
-      * ((par[0] / pow(par[3], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[3]))    //
+      par[0]                                                                                         //
+      * pow((x[0] - par[1]), par[2])                                                                 //
+      * ((1. / pow(par[3], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[3]))        //
          + (par[5] / pow(par[6], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[6]))  //
          );
   return pedestal + signal;

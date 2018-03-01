@@ -1,6 +1,7 @@
 #ifndef __PROTOTYPE4_FEM_H__
 #define __PROTOTYPE4_FEM_H__
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -44,11 +45,12 @@ bool SampleFit_PowerLawExp(              //
     double &pedstal,                     //
     const int verbosity = 0);
 
-bool SampleFit_PowerLawDoubleExp(        //
-    const std::vector<double> &samples,  //
-    double &peak,                        //
-    double &peak_sample,                 //
-    double &pedstal,                     //
+bool SampleFit_PowerLawDoubleExp(          //
+    const std::vector<double> &samples,    //
+    double &peak,                          //! peak amplitude.
+    double &peak_sample,                   //! peak sample position. Fixed to the input value if NOT NAN
+    double &pedestal,                      //! pedestal
+    std::map<int, double> &parameters_io,  //! IO for fullset of parameters. If a parameter exist and not an NAN, the fit parameter will be fixed to that value. The order of the parameters are ("Amplitude 1", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude 2", "Peak Time 2")
     const int verbosity = 0);
 
 // Abhisek's power-law + exp signal shape model

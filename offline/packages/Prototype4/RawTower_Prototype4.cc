@@ -124,13 +124,15 @@ RawTower_Prototype4::get_energy_power_law_double_exp(int verbosity)
   double pedstal = NAN;
 
   vector<double> vec_signal_samples;
+  map<int, double> parameters_io;
+
   for (int i = 0; i < NSAMPLES; i++)
   {
     vec_signal_samples.push_back(signal_samples[i]);
   }
 
   PROTOTYPE4_FEM::
-      SampleFit_PowerLawDoubleExp(vec_signal_samples, peak, peak_sample, pedstal, verbosity);
+      SampleFit_PowerLawDoubleExp(vec_signal_samples, peak, peak_sample, pedstal, parameters_io, verbosity);
 
   return peak;
 }
