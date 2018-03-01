@@ -253,7 +253,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
   double peakval = pedestal;
   const double risetime = 2;
 
-  for (int iSample = 0; iSample < NSAMPLES; iSample++)
+  for (int iSample = 0; iSample < NSAMPLES - risetime*2; iSample++)
   {
     if (abs(gpulse.GetY()[iSample] - pedestal) > abs(peakval - pedestal))
     {
@@ -325,8 +325,8 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
       {
         cout << "PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp - parameter [" << i << "]: "
              << "default value = " << default_values[i].def
-             << "min value = " << default_values[i].min
-             << "max value = " << default_values[i].max << endl;
+             << ", min value = " << default_values[i].min
+             << ", max value = " << default_values[i].max << endl;
       }
     }
     else
@@ -392,12 +392,13 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
   const double peakpos1 = fits.GetParameter(3);
   const double peakpos2 = fits.GetParameter(6);
-  const double max_peakpos = peakpos1 > peakpos2 ? peakpos1 : peakpos2;
+  double max_peakpos = fits.GetParameter(1) + (peakpos1 > peakpos2 ? peakpos1 : peakpos2);
+  if (max_peakpos > NSAMPLES - 1) max_peakpos = NSAMPLES - 1;
 
   if (peakval > 0)
-    peak_sample = fits.GetMaximumX(fits.GetParameter(1), fits.GetParameter(1) + max_peakpos);
+    peak_sample = fits.GetMaximumX(fits.GetParameter(1), max_peakpos);
   else
-    peak_sample = fits.GetMinimumX(fits.GetParameter(1), fits.GetParameter(1) + max_peakpos);
+    peak_sample = fits.GetMinimumX(fits.GetParameter(1), max_peakpos);
 
   peak = fits.Eval(peak_sample) - pedestal;
 
