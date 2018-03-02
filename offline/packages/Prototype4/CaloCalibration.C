@@ -86,7 +86,7 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
       bool signal_check_pass = true;
       for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
       {
-        if (vec_signal_samples[i] <= 10 or vec_signal_samples[i] >= ((1 << 14) - 10))
+        if (raw_tower->get_signal_samples(i) <= 10 or raw_tower->get_signal_samples(i) >= ((1 << 14) - 10))
         {
           signal_check_pass = false;
           break;
