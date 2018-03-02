@@ -253,7 +253,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
   double peakval = pedestal;
   const double risetime = 2;
 
-  for (int iSample = 0; iSample < NSAMPLES - risetime*2; iSample++)
+  for (int iSample = 0; iSample < NSAMPLES - risetime*3; iSample++)
   {
     if (abs(gpulse.GetY()[iSample] - pedestal) > abs(peakval - pedestal))
     {

@@ -72,6 +72,9 @@ class CaloCalibration : public SubsysReco
     _calib_params = calib_params;
   }
 
+  void
+  SetUseGlobalFitConstraints(bool b = true) {use_global_fit_constraints = b;}
+
  private:
   RawTowerContainer *_calib_towers;
   RawTowerContainer *_raw_towers;
@@ -84,6 +87,8 @@ class CaloCalibration : public SubsysReco
   std::string _raw_tower_node_prefix;
 
   PHParameters _calib_params;
+
+  bool use_global_fit_constraints;
 
   //! load the default parameter to param
   void
