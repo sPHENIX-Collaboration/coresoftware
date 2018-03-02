@@ -295,14 +295,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
   vector<default_values_t> default_values(n_parameter, default_values_t(numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN(), numeric_limits<double>::signaling_NaN()));
 
-  if (peakval > 0)
-  {
-    default_values[0] = default_values_t(peakval * .7, 0, peakval * 1.5);
-  }
-  else
-  {
-    default_values[0] = default_values_t(peakval * .7, peakval * 1.5, 0);
-  }
+  default_values[0] = default_values_t(peakval * .7, peakval * -1.5, peakval * 1.5);
   default_values[1] = default_values_t(peakPos - risetime, peakPos - 3 * risetime, peakPos + risetime);
   default_values[2] = default_values_t(2., 1, 10.);
   default_values[3] = default_values_t(5, risetime * .5, risetime * 4);
@@ -395,12 +388,28 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
   double max_peakpos = fits.GetParameter(1) + (peakpos1 > peakpos2 ? peakpos1 : peakpos2);
   if (max_peakpos > NSAMPLES - 1) max_peakpos = NSAMPLES - 1;
 
-  if (peakval > 0)
+  if (fits.GetParameter(0) > 0)
     peak_sample = fits.GetMaximumX(fits.GetParameter(1), max_peakpos);
   else
     peak_sample = fits.GetMinimumX(fits.GetParameter(1), max_peakpos);
 
   peak = fits.Eval(peak_sample) - pedestal;
+
+
+  if (verbosity)
+  {
+
+    TGraph g_max(NSAMPLES);
+
+    g_max.GetX()[0] = peak_sample;
+    g_max.GetY()[0] = peak + pedestal;
+
+    g_max.SetMarkerStyle(kFullCircle);
+    g_max.SetMarkerSize(2);
+    g_max.SetMarkerColor(kRed);
+
+    static_cast<TGraph *>(g_max.DrawClone("p"));
+  }
 
   for (int i = 0; i < n_parameter; ++i)
   {

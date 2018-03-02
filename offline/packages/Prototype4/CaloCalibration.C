@@ -192,6 +192,12 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
 
       raw_tower->set_energy(peak);
       raw_tower->set_time(peak_sample);
+
+      if (verbosity)
+      {
+        raw_tower->identify();
+      }
+
     }
 
     // store the result - calib_tower
