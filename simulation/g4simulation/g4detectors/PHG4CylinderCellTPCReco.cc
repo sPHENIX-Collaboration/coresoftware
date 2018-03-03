@@ -70,7 +70,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
   , fShapingLead(32.0 * 3.0 / 1000.0)
   ,                                  // ns
   fShapingTail(48.0 * 3.0 / 1000.0)  // ns
-  , zigzag_pads(0) 
+  , zigzag_pads(1) 
 {
   memset(nbins, 0, sizeof(nbins));
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
