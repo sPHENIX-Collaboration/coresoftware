@@ -1,6 +1,6 @@
 /*!
- *  \file		PHInitVertexing.h
- *  \brief		Base class for inital vertexing
+ *  \file		PHTruthVertexing.h
+ *  \brief		Vertexing using truth info
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
@@ -15,9 +15,9 @@
 class PHG4TruthInfoContainer;
 
 
-/// \class PHInitVertexing
+/// \class PHTruthVertexing
 ///
-/// \brief Projects into calorimeters and fills track cal fields
+/// \brief Vertexing using truth info
 ///
 
 
@@ -28,20 +28,22 @@ public:
 	PHTruthVertexing(const std::string &name = "PHTruthVertexing");
   virtual ~PHTruthVertexing() {}
 
-	int Setup(PHCompositeNode *topNode);
-
-	int Process();
-
-	const std::vector<float>& get_vertex_error() const {
-		return _vertex_error;
-	}
-
 	void set_vertex_error(const float & x_err, const float & y_err, const float & z_err) {
 		_vertex_error.resize(3);
 		_vertex_error[0] = x_err;
 		_vertex_error[1] = y_err;
 		_vertex_error[2] = z_err;
 	}
+
+	const std::vector<float>& get_vertex_error() const {
+		return _vertex_error;
+	}
+
+protected:
+
+	int Setup(PHCompositeNode *topNode);
+
+	int Process();
 
 private:
 	/// create new node output pointers

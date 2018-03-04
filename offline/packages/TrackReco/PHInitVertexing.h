@@ -21,7 +21,7 @@ class SvtxVertexMap;
 
 /// \class PHInitVertexing
 ///
-/// \brief Projects into calorimeters and fills track cal fields
+/// \brief Base class for inital vertexing
 ///
 class PHInitVertexing : public SubsysReco
 {
@@ -36,10 +36,14 @@ class PHInitVertexing : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  virtual int Setup(PHCompositeNode *topNode);
-  virtual int Process() = 0;
-
  protected:
+  /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
+  /// overrided in derived classes
+  virtual int Setup(PHCompositeNode *topNode);
+
+  /// process event interface for trackers, called in process_event.
+  /// implemented in derived classes
+  virtual int Process() = 0;
 
   SvtxClusterMap *_cluster_map;
   SvtxVertexMap *_vertex_map;
