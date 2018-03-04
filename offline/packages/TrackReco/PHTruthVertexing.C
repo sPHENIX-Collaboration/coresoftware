@@ -10,6 +10,9 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include <phool/PHRandomSeed.h>
+#include <phool/phool.h>
+
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -108,4 +111,5 @@ int PHTruthVertexing::GetNodes(PHCompositeNode* topNode) {
 		cerr << PHWHERE << " ERROR: Can't find node G4TruthInfo" << endl;
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
+	return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -22,6 +22,7 @@ libtrack_reco_la_LDFLAGS = \
 libtrack_reco_la_LIBADD = \
   -lphool \
   -lSubsysReco \
+  -lg4testbench \
   -lgsl \
   -lgslcblas \
   -lg4hough_io \
