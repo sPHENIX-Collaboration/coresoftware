@@ -1,5 +1,7 @@
 #include "PHTruthTrackSeeding.h"
 
+#include "AssocInfoContainer.h"
+
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxVertexMap_v1.h>
 #include <g4hough/SvtxVertexMap.h>
@@ -123,7 +125,9 @@ int PHTruthTrackSeeding::Process() {
 			trk_clusers_itr!=m_trackID_clusters.end(); ++trk_clusers_itr) {
 		if(trk_clusers_itr->second.size() > _min_clusters_per_track) {
 			std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
-			//SvtxTrack_FastSim* svtx_track = new SvtxTrack_FastSim();
+
+			//TODO implement the track ID
+			svtx_track->set_id(_track_map->size());
 			svtx_track->set_truth_track_id(trk_clusers_itr->first);
 			//to make through minimum pT cut
 			svtx_track->set_px(10.);
@@ -131,6 +135,7 @@ int PHTruthTrackSeeding::Process() {
 			svtx_track->set_pz(0.);
 			for(SvtxCluster *cluster : trk_clusers_itr->second) {
 				svtx_track->insert_cluster(cluster->get_id());
+				_assoc_container->SetClusterTrackAssoc(cluster->get_id(), svtx_track->get_id());
 			}
 			_track_map->insert(svtx_track.get());
 		}
