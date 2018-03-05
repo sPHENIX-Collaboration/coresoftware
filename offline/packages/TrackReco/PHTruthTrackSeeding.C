@@ -6,6 +6,7 @@
 #include <g4hough/SvtxVertex_v1.h>
 #include <g4hough/SvtxTrackMap_v1.h>
 #include <g4hough/SvtxTrack_FastSim.h>
+#include <g4hough/SvtxHitMap.h>
 #include <g4hough/SvtxHit_v1.h>
 
 #include <g4detectors/PHG4Cell.h>

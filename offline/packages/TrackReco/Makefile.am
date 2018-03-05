@@ -29,6 +29,7 @@ libtrack_reco_la_LIBADD = \
   -lphool \
   -lSubsysReco \
   -lg4testbench \
+  -lg4detectors \
   -lgsl \
   -lgslcblas \
   -lg4hough_io \
