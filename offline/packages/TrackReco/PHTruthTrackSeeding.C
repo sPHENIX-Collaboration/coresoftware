@@ -71,6 +71,8 @@ int PHTruthTrackSeeding::Process() {
 	typedef std::map< int, std::set<SvtxCluster*> > TrkClustersMap;
 	TrkClustersMap m_trackID_clusters;
 
+
+	// Build TrackID -> Clusters map
 	for (SvtxClusterMap::ConstIter cluster_itr = _cluster_map->begin();
 			cluster_itr != _cluster_map->end(); ++cluster_itr) {
 		SvtxCluster *cluster = cluster_itr->second;
@@ -121,6 +123,7 @@ int PHTruthTrackSeeding::Process() {
 		}
 	}
 
+	// Build track
 	for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
 			trk_clusers_itr!=m_trackID_clusters.end(); ++trk_clusers_itr) {
 		if(trk_clusers_itr->second.size() > _min_clusters_per_track) {
