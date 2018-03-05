@@ -54,6 +54,7 @@ class RawTower_Prototype4 : public RawTower
 
   //---Fits------------------------------------------------------------
 
+  double get_energy_peak_sample(int verbosity = 0);
   double get_energy_power_law_exp(int verbosity = 0);
   double get_energy_power_law_double_exp(int verbosity = 0);
 

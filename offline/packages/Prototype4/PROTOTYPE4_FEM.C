@@ -253,7 +253,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
   double peakval = pedestal;
   const double risetime = 2;
 
-  for (int iSample = 0; iSample < NSAMPLES - risetime*3; iSample++)
+  for (int iSample = 0; iSample < NSAMPLES - risetime * 3; iSample++)
   {
     if (abs(gpulse.GetY()[iSample] - pedestal) > abs(peakval - pedestal))
     {
@@ -395,10 +395,8 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
   peak = fits.Eval(peak_sample) - pedestal;
 
-
   if (verbosity)
   {
-
     TGraph g_max(NSAMPLES);
 
     g_max.GetX()[0] = peak_sample;
@@ -447,4 +445,47 @@ PROTOTYPE4_FEM::SignalShape_PowerLawDoubleExp(double *x, double *par)
          + (par[5] / pow(par[6], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[6]))  //
          );
   return pedestal + signal;
+}
+
+bool PROTOTYPE4_FEM::SampleFit_PeakSample(  //
+    const std::vector<double> &samples,     //
+    double &peak,                           //
+    double &peak_sample,                    //
+    double &pedestal,                       //
+    const int verbosity)
+{
+  int peakPos = 0.;
+
+  assert(samples.size() == NSAMPLES);
+
+  const static int N_pedestal = 3;
+  pedestal = 0;
+  for (int iSample = 0; iSample < N_pedestal; iSample++)
+  {
+    pedestal += samples[iSample];
+  }
+  pedestal /= N_pedestal;
+
+  double peakval = pedestal;
+  for (int iSample = N_pedestal; iSample < NSAMPLES; iSample++)
+  {
+    if (abs(samples[iSample] - pedestal) > abs(peakval - pedestal))
+    {
+      peakval = samples[iSample];
+      peakPos = iSample;
+    }
+  }
+
+  peak = peakval - pedestal;
+  peak_sample = peakPos;
+
+  if (verbosity)
+  {
+    cout << "PROTOTYPE4_FEM::SampleFit_PeakSample - "
+         << "pedestal = " << pedestal << ", "
+         << "peakval = " << peakval << ", "
+         << "peakPos = " << peakPos << endl;
+  }
+
+  return true;
 }

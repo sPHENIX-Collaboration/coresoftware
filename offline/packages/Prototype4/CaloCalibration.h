@@ -72,8 +72,24 @@ class CaloCalibration : public SubsysReco
     _calib_params = calib_params;
   }
 
+  enum FitMethodType
+  {
+    //! single power-low-exp fit, PROTOTYPE4_FEM::SampleFit_PowerLawExp()
+    kPowerLawExp,
+
+    //! power-low-double-exp fit, PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp
+    kPowerLawDoubleExp,
+
+    //! power-low-double-exp fit, PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp, and constraining all tower take identical shape
+    kPowerLawDoubleExpWithGlobalFitConstraint,
+
+    //! just use the peak sample, PROTOTYPE4_FEM::SampleFit_PeakSample()
+    kPeakSample
+
+  };
+
   void
-  SetUseGlobalFitConstraints(bool b = true) {use_global_fit_constraints = b;}
+  SetFitType(FitMethodType t) {_fit_type = t;}
 
  private:
   RawTowerContainer *_calib_towers;
@@ -88,7 +104,7 @@ class CaloCalibration : public SubsysReco
 
   PHParameters _calib_params;
 
-  bool use_global_fit_constraints;
+  FitMethodType _fit_type;
 
   //! load the default parameter to param
   void

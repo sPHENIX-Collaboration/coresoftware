@@ -25,7 +25,7 @@ CaloCalibration::CaloCalibration(const std::string &name)
   , _calib_tower_node_prefix("CALIB")
   , _raw_tower_node_prefix("RAW")
   , _calib_params(name)
-  , use_global_fit_constraints(true)
+  , _fit_type(kPowerLawDoubleExpWithGlobalFitConstraint)
 {
   SetDefaultParameters(_calib_params);
 }
@@ -61,7 +61,7 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
   }
 
   map<int, double> parameters_constraints;
-  if (use_global_fit_constraints and _raw_towers->size() > 1)
+  if (_fit_type == kPowerLawDoubleExpWithGlobalFitConstraint and _raw_towers->size() > 1)
   {
     if (verbosity)
     {
@@ -115,9 +115,6 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
       double peak_sample = NAN;
       double pedstal = NAN;
       map<int, double> parameters_io;
-
-      //    PROTOTYPE4_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
-      //                                          peak_sample, pedstal, verbosity);
 
       PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
                                                   peak_sample, pedstal, parameters_io, verbosity);
@@ -177,13 +174,41 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
     double peak = NAN;
     double peak_sample = NAN;
     double pedstal = NAN;
-    map<int, double> parameters_io(parameters_constraints);
 
-    //    PROTOTYPE4_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
-    //                                          peak_sample, pedstal, verbosity);
+    switch (_fit_type)
+    {
+    case kPowerLawExp:
+      PROTOTYPE4_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
+                                            peak_sample, pedstal, verbosity);
+      break;
 
-    PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
-                                                peak_sample, pedstal, parameters_io, verbosity);
+    case kPeakSample:
+      PROTOTYPE4_FEM::SampleFit_PeakSample(vec_signal_samples, peak,
+                                            peak_sample, pedstal, verbosity);
+      break;
+
+    case kPowerLawDoubleExp:
+    {
+      map<int, double> parameters_io;
+
+      PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
+                                                  peak_sample, pedstal, parameters_io, verbosity);
+    }
+    break;
+
+    case kPowerLawDoubleExpWithGlobalFitConstraint:
+    {
+      map<int, double> parameters_io(parameters_constraints);
+
+      PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
+                                                  peak_sample, pedstal, parameters_io, verbosity);
+    }
+    break;
+    default:
+      cout << __PRETTY_FUNCTION__ << " - FATAL error - unkown fit type " << _fit_type << endl;
+      exit(3);
+      break;
+    }
 
     // store the result - raw_tower
     if (std::isnan(raw_tower->get_energy()))
@@ -197,7 +222,6 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
       {
         raw_tower->identify();
       }
-
     }
 
     // store the result - calib_tower
