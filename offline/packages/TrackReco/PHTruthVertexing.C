@@ -24,7 +24,8 @@
 using namespace std;
 
 PHTruthVertexing::PHTruthVertexing(const std::string& name) :
-	_vertex_error({0.01, 0.01, 0.01})
+		_g4truth_container(nullptr),
+		_vertex_error({0.01, 0.01, 0.01})
 {}
 
 int PHTruthVertexing::Setup(PHCompositeNode* topNode) {
