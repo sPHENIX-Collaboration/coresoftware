@@ -10,6 +10,7 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include 
   
 libtrack_reco_la_SOURCES = \
+  AssocInfoContainer.C \
   PHInitVertexing.C \
   PHInitVertexing_Dict.C \
   PHTruthVertexing.C \
