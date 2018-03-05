@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
   
 libtrack_reco_la_SOURCES = \
   AssocInfoContainer.C \
+  AssocInfoContainer_Dict.C \
   PHInitVertexing.C \
   PHInitVertexing_Dict.C \
   PHTrackSeeding.C \
