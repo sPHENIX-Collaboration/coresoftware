@@ -119,13 +119,29 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
       PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
                                                   peak_sample, pedstal, parameters_io, verbosity);
       //    std::map<int, double> &parameters_io,  //! IO for fullset of parameters. If a parameter exist and not an NAN, the fit parameter will be fixed to that value. The order of the parameters are
-      //    ("Amplitude 1", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude 2", "Peak Time 2")
+      //    ("Amplitude", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude ratio", "Peak Time 2")
 
       parameters_constraints[1] = parameters_io[1];
       parameters_constraints[2] = parameters_io[2];
       parameters_constraints[3] = parameters_io[3];
       parameters_constraints[5] = parameters_io[5];
       parameters_constraints[6] = parameters_io[6];
+
+//      //special constraint if Peak Time 1 == Peak Time 2
+//      if (abs(parameters_constraints[6] - parameters_constraints[3]) < 0.1)
+//      {
+//        const double average_peak_time = (parameters_constraints[6] + parameters_constraints[3]) / 2.;
+//
+//        std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+//                  << ": two shaping time are too close "
+//                  << parameters_constraints[3] << " VS " << parameters_constraints[6]
+//                  << ". Use average peak time instead: " << average_peak_time
+//                  << std::endl;
+//
+//        parameters_constraints[6] = average_peak_time;
+//        parameters_constraints[3] = average_peak_time;
+//        parameters_constraints[5] = 0;
+//      }
     }
     else
     {
@@ -184,7 +200,7 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
 
     case kPeakSample:
       PROTOTYPE4_FEM::SampleFit_PeakSample(vec_signal_samples, peak,
-                                            peak_sample, pedstal, verbosity);
+                                           peak_sample, pedstal, verbosity);
       break;
 
     case kPowerLawDoubleExp:

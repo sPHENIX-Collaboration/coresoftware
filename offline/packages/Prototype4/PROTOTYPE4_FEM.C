@@ -297,15 +297,15 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
   default_values[0] = default_values_t(peakval * .7, peakval * -1.5, peakval * 1.5);
   default_values[1] = default_values_t(peakPos - risetime, peakPos - 3 * risetime, peakPos + risetime);
-  default_values[2] = default_values_t(2., 1, 10.);
+  default_values[2] = default_values_t(2., 1, 5.);
   default_values[3] = default_values_t(5, risetime * .5, risetime * 4);
   default_values[4] = default_values_t(pedestal, pedestal - abs(peakval), pedestal + abs(peakval));
-  default_values[5] = default_values_t(.3, 0, 100);
+  default_values[5] = default_values_t(.3, 0, 1);
   default_values[6] = default_values_t(5, risetime * .5, risetime * 4);
 
   // fit function
   TF1 fits("f_SignalShape_PowerLawDoubleExp", SignalShape_PowerLawDoubleExp, 0., NSAMPLES, n_parameter);
-  fits.SetParNames("Amplitude 1", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude 2/1 ratio", "Peak Time 2");
+  fits.SetParNames("Amplitude", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude ratio", "Peak Time 2");
 
   for (int i = 0; i < n_parameter; ++i)
   {
@@ -335,9 +335,9 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
   }
 
   if (verbosity <= 1)
-    gpulse.Fit(&fits, "MQRN0W", "goff", 0., (double) NSAMPLES);
+    gpulse.Fit(&fits, "QRN0W", "goff", 0., (double) NSAMPLES);
   else
-    gpulse.Fit(&fits, "MRN0VW", "goff", 0., (double) NSAMPLES);
+    gpulse.Fit(&fits, "RN0VW", "goff", 0., (double) NSAMPLES);
 
   if (verbosity)
   {
@@ -359,7 +359,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
     TF1 f1("f_SignalShape_PowerLawExp1", SignalShape_PowerLawExp, 0., NSAMPLES, 5);
     f1.SetParameters(
-        fits.GetParameter(0) / pow(fits.GetParameter(3), fits.GetParameter(2)) * exp(fits.GetParameter(2)),
+        fits.GetParameter(0) * (1- fits.GetParameter(5)) / pow(fits.GetParameter(3), fits.GetParameter(2)) * exp(fits.GetParameter(2)),
         fits.GetParameter(1),
         fits.GetParameter(2),
         fits.GetParameter(2) / fits.GetParameter(3),
@@ -441,7 +441,7 @@ PROTOTYPE4_FEM::SignalShape_PowerLawDoubleExp(double *x, double *par)
   double signal =                                                                                    //
       par[0]                                                                                         //
       * pow((x[0] - par[1]), par[2])                                                                 //
-      * ((1. / pow(par[3], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[3]))        //
+      * (((1. - par[5]) / pow(par[3], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[3]))        //
          + (par[5] / pow(par[6], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[6]))  //
          );
   return pedestal + signal;
