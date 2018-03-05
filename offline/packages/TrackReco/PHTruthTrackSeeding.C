@@ -76,6 +76,11 @@ int PHTruthTrackSeeding::Process() {
 	for (SvtxClusterMap::ConstIter cluster_itr = _cluster_map->begin();
 			cluster_itr != _cluster_map->end(); ++cluster_itr) {
 		SvtxCluster *cluster = cluster_itr->second;
+
+		if(_seeding_layers.size() > 0 and
+				(_seeding_layers.find(cluster->get_layer()) == _seeding_layers.end()))
+			continue;
+
 		SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
 		PHG4Cell* cell = nullptr;
 

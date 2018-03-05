@@ -10,6 +10,7 @@
 #include "PHTrackSeeding.h"
 
 #include <vector>
+#include <set>
 
 // forward declarations
 class PHG4TruthInfoContainer;
@@ -39,11 +40,11 @@ public:
 		_min_clusters_per_track = minClustersPerTrack;
 	}
 
-	const std::vector<unsigned int>& get_seeding_layers() const {
+	const std::set<unsigned int>& get_seeding_layers() const {
 		return _seeding_layers;
 	}
 
-	void set_seeding_layers(const std::vector<unsigned int>& seedingLayers) {
+	void set_seeding_layers(const std::set<unsigned int>& seedingLayers) {
 		_seeding_layers = seedingLayers;
 	}
 
@@ -73,7 +74,7 @@ private:
 	PHG4CellContainer* cells_maps;
 
 	/// seeding layers
-	std::vector<unsigned int> _seeding_layers;
+	std::set<unsigned int> _seeding_layers;
 
 	unsigned int _min_clusters_per_track;
 
