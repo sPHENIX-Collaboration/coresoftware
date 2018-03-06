@@ -25,6 +25,7 @@ class MvtxDefUtil : public TrkrDefUtil
 
   /// generate cluskey
   TrkrDefs::cluskey GenClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
+  TrkrDefs::cluskey GenClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
 
  private:
   // hitsetkey layout:

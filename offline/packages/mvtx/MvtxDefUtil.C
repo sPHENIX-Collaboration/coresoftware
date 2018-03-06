@@ -47,3 +47,12 @@ MvtxDefUtil::GenClusKey(const char lyr, const uint8_t stave, const uint8_t chip,
   key |= clusid;
   return key;
 }
+
+TrkrDefs::cluskey
+MvtxDefUtil::GenClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid)
+{
+  TrkrDefs::cluskey tmp = hskey;
+  TrkrDefs::cluskey key = (tmp << kBitShiftClusId);
+  key |= clusid;
+  return key;
+}
