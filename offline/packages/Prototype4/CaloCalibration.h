@@ -34,7 +34,7 @@ class CaloCalibration : public SubsysReco
   }
 
   void
-  set_calib_tower_node_prefix(std::string calibTowerNodePrefix)
+  set_calib_tower_node_prefix(const std::string & calibTowerNodePrefix)
   {
     _calib_tower_node_prefix = calibTowerNodePrefix;
   }
@@ -46,7 +46,7 @@ class CaloCalibration : public SubsysReco
   }
 
   void
-  set_raw_tower_node_prefix(std::string rawTowerNodePrefix)
+  set_raw_tower_node_prefix(const std::string & rawTowerNodePrefix)
   {
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
@@ -72,6 +72,25 @@ class CaloCalibration : public SubsysReco
     _calib_params = calib_params;
   }
 
+  enum FitMethodType
+  {
+    //! single power-low-exp fit, PROTOTYPE4_FEM::SampleFit_PowerLawExp()
+    kPowerLawExp,
+
+    //! power-low-double-exp fit, PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp
+    kPowerLawDoubleExp,
+
+    //! power-low-double-exp fit, PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp, and constraining all tower take identical shape
+    kPowerLawDoubleExpWithGlobalFitConstraint,
+
+    //! just use the peak sample, PROTOTYPE4_FEM::SampleFit_PeakSample()
+    kPeakSample
+
+  };
+
+  void
+  SetFitType(FitMethodType t) {_fit_type = t;}
+
  private:
   RawTowerContainer *_calib_towers;
   RawTowerContainer *_raw_towers;
@@ -84,6 +103,8 @@ class CaloCalibration : public SubsysReco
   std::string _raw_tower_node_prefix;
 
   PHParameters _calib_params;
+
+  FitMethodType _fit_type;
 
   //! load the default parameter to param
   void

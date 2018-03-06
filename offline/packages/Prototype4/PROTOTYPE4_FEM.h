@@ -1,6 +1,7 @@
 #ifndef __PROTOTYPE4_FEM_H__
 #define __PROTOTYPE4_FEM_H__
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -34,7 +35,7 @@ const int SATURATED_ADC_ERROR = 100;
 const int DEAD_CHANNEL_ERROR = 300;
 
 //! FEM mapping of channel -> calorimeter col and rows
-int GetChannelNumber(std::string caloname, int i_column, int i_row);
+int GetChannelNumber(const std::string &caloname, int i_column, int i_row);
 
 //! Abhisek's power-law + exp fit
 bool SampleFit_PowerLawExp(              //
@@ -44,12 +45,23 @@ bool SampleFit_PowerLawExp(              //
     double &pedstal,                     //
     const int verbosity = 0);
 
-bool SampleFit_PowerLawDoubleExp(        //
-    const std::vector<double> &samples,  //
-    double &peak,                        //
-    double &peak_sample,                 //
-    double &pedstal,                     //
+//! Power law double exp fit
+bool SampleFit_PowerLawDoubleExp(          //
+    const std::vector<double> &samples,    //
+    double &peak,                          //! peak amplitude.
+    double &peak_sample,                   //! peak sample position. Fixed to the input value if NOT NAN
+    double &pedestal,                      //! pedestal
+    std::map<int, double> &parameters_io,  //! IO for fullset of parameters. If a parameter exist and not an NAN, the fit parameter will be fixed to that value. The order of the parameters are ("Amplitude 1", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude 2", "Peak Time 2")
     const int verbosity = 0);
+
+//! Just return the max sample...
+bool SampleFit_PeakSample(          //
+    const std::vector<double> &samples,    //
+    double &peak,                          //! peak amplitude.
+    double &peak_sample,                   //! peak sample position. Fixed to the input value if NOT NAN
+    double &pedestal,                      //! pedestal
+    const int verbosity = 0);
+
 
 // Abhisek's power-law + exp signal shape model
 double

@@ -8,28 +8,26 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
 #include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 
 using namespace std;
 
 //____________________________________
 CaloCalibration::CaloCalibration(const std::string &name)
-  :  //
-  SubsysReco(string("CaloCalibration_") + name)
-  ,  //
-  _calib_towers(NULL)
+  : SubsysReco(string("CaloCalibration_") + name)
+  , _calib_towers(NULL)
   , _raw_towers(NULL)
   , detector(name)
-  ,  //
-  _calib_tower_node_prefix("CALIB")
-  ,  //
-  _raw_tower_node_prefix("RAW")
-  ,  //
-  _calib_params(name)
+  , _calib_tower_node_prefix("CALIB")
+  , _raw_tower_node_prefix("RAW")
+  , _calib_params(name)
+  , _fit_type(kPowerLawDoubleExpWithGlobalFitConstraint)
 {
   SetDefaultParameters(_calib_params);
 }
@@ -62,6 +60,99 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
   {
     std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
               << "Process event entered" << std::endl;
+  }
+
+  map<int, double> parameters_constraints;
+  if (_fit_type == kPowerLawDoubleExpWithGlobalFitConstraint and _raw_towers->size() > 1)
+  {
+    if (verbosity)
+    {
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+                << "Extract global fit parameter for constraining individual fits" << std::endl;
+    }
+
+    // signal template
+
+    vector<double> vec_signal_samples(PROTOTYPE4_FEM::NSAMPLES, 0);
+
+    int count = 0;
+
+    RawTowerContainer::Range begin_end = _raw_towers->getTowers();
+    RawTowerContainer::Iterator rtiter;
+    for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
+    {
+      RawTower_Prototype4 *raw_tower =
+          dynamic_cast<RawTower_Prototype4 *>(rtiter->second);
+      assert(raw_tower);
+
+      //      bool signal_check_pass = true;
+      //      for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
+      //      {
+      //        if (raw_tower->get_signal_samples(i) <= 10 or raw_tower->get_signal_samples(i) >= ((1 << 14) - 10))
+      //        {
+      //          signal_check_pass = false;
+      //          break;
+      //        }
+      //      }
+
+      //      if (signal_check_pass)
+      //      {
+      ++count;
+
+      for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
+      {
+        if (raw_tower->get_signal_samples(i) <= 10 or raw_tower->get_signal_samples(i) >= ((1 << 14) - 10))
+          vec_signal_samples[i] = numeric_limits<double>::quiet_NaN();  // invalidate this sample
+        else
+          vec_signal_samples[i] += raw_tower->get_signal_samples(i);
+      }
+      //      }
+    }
+
+    if (count > 0)
+    {
+      for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
+      {
+        vec_signal_samples[i] /= count;
+      }
+
+      double peak = NAN;
+      double peak_sample = NAN;
+      double pedstal = NAN;
+      map<int, double> parameters_io;
+
+      PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
+                                                  peak_sample, pedstal, parameters_io, verbosity);
+      //    std::map<int, double> &parameters_io,  //! IO for fullset of parameters. If a parameter exist and not an NAN, the fit parameter will be fixed to that value. The order of the parameters are
+      //    ("Amplitude", "Sample Start", "Power", "Peak Time 1", "Pedestal", "Amplitude ratio", "Peak Time 2")
+
+      parameters_constraints[1] = parameters_io[1];
+      parameters_constraints[2] = parameters_io[2];
+      parameters_constraints[3] = parameters_io[3];
+      parameters_constraints[5] = parameters_io[5];
+      parameters_constraints[6] = parameters_io[6];
+
+      //      //special constraint if Peak Time 1 == Peak Time 2
+      //      if (abs(parameters_constraints[6] - parameters_constraints[3]) < 0.1)
+      //      {
+      //        const double average_peak_time = (parameters_constraints[6] + parameters_constraints[3]) / 2.;
+      //
+      //        std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+      //                  << ": two shaping time are too close "
+      //                  << parameters_constraints[3] << " VS " << parameters_constraints[6]
+      //                  << ". Use average peak time instead: " << average_peak_time
+      //                  << std::endl;
+      //
+      //        parameters_constraints[6] = average_peak_time;
+      //        parameters_constraints[3] = average_peak_time;
+      //        parameters_constraints[5] = 0;
+      //      }
+    }
+    else
+    {
+      std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+                << ": Failed to build signal template! Fit each channel individually instead" << std::endl;
+    }
   }
 
   const double calib_const_scale = _calib_params.get_double_param(
@@ -105,11 +196,40 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
     double peak_sample = NAN;
     double pedstal = NAN;
 
-//    PROTOTYPE4_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
-//                                          peak_sample, pedstal, verbosity);
+    switch (_fit_type)
+    {
+    case kPowerLawExp:
+      PROTOTYPE4_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
+                                            peak_sample, pedstal, verbosity);
+      break;
 
-    PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
-                                          peak_sample, pedstal, verbosity);
+    case kPeakSample:
+      PROTOTYPE4_FEM::SampleFit_PeakSample(vec_signal_samples, peak,
+                                           peak_sample, pedstal, verbosity);
+      break;
+
+    case kPowerLawDoubleExp:
+    {
+      map<int, double> parameters_io;
+
+      PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
+                                                  peak_sample, pedstal, parameters_io, verbosity);
+    }
+    break;
+
+    case kPowerLawDoubleExpWithGlobalFitConstraint:
+    {
+      map<int, double> parameters_io(parameters_constraints);
+
+      PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(vec_signal_samples, peak,
+                                                  peak_sample, pedstal, parameters_io, verbosity);
+    }
+    break;
+    default:
+      cout << __PRETTY_FUNCTION__ << " - FATAL error - unkown fit type " << _fit_type << endl;
+      exit(3);
+      break;
+    }
 
     // store the result - raw_tower
     if (std::isnan(raw_tower->get_energy()))
@@ -118,6 +238,11 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
 
       raw_tower->set_energy(peak);
       raw_tower->set_time(peak_sample);
+
+      if (verbosity)
+      {
+        raw_tower->identify();
+      }
     }
 
     // store the result - calib_tower
