@@ -21,6 +21,7 @@ void TrkrClusterContainer::Reset()
 
 void TrkrClusterContainer::identify(ostream& os) const
 {
+  os << "-----TrkrClusterContainer-----" << endl;
   ConstIterator iter;
   os << "Number of clusters: " << size() << endl;
   for (iter = clusmap_.begin(); iter != clusmap_.end(); ++iter)
@@ -28,6 +29,7 @@ void TrkrClusterContainer::identify(ostream& os) const
     os << "clus key 0x" << hex << iter->first << dec << endl;
     (iter->second)->identify();
   }
+  os << "------------------------------" << endl;
   return;
 }
 
