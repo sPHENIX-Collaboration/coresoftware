@@ -23,7 +23,7 @@
 
 using namespace std;
 
-int PROTOTYPE4_FEM::GetChannelNumber(std::string caloname, int i_column, int i_row)
+int PROTOTYPE4_FEM::GetChannelNumber(const std::string & caloname, int i_column, int i_row)
 {
   if (caloname == "HCALIN")
   {

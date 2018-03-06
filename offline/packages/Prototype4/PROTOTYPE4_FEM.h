@@ -35,7 +35,7 @@ const int SATURATED_ADC_ERROR = 100;
 const int DEAD_CHANNEL_ERROR = 300;
 
 //! FEM mapping of channel -> calorimeter col and rows
-int GetChannelNumber(std::string caloname, int i_column, int i_row);
+int GetChannelNumber(const std::string &caloname, int i_column, int i_row);
 
 //! Abhisek's power-law + exp fit
 bool SampleFit_PowerLawExp(              //
