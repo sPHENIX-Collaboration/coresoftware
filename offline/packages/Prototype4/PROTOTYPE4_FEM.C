@@ -249,6 +249,15 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
     (gpulse.GetY())[i] = samples[i];
   }
 
+  //Saturation correction - Abhisek
+  for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
+    if ((gpulse.GetY())[ipoint] <= 10 or (gpulse.GetY())[ipoint] >= ((1 << 14) - 10)  // drop point if touching max or low limit on ADCs
+        or (not isnormal((gpulse.GetY())[ipoint])))
+    {
+      gpulse.RemovePoint(ipoint);
+      ipoint--;
+    }
+
   pedestal = gpulse.GetY()[0];  //(double) PEDESTAL;
   double peakval = pedestal;
   const double risetime = 2;
@@ -270,14 +279,6 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
          << "peakval = " << peakval << ", "
          << "peakPos = " << peakPos << endl;
   }
-
-  //Saturation correction - Abhisek
-  for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
-    if ((gpulse.GetY())[ipoint] <= 10 or (gpulse.GetY())[ipoint] >= ((1 << 14) - 10))  // drop point if touching max or low limit on ADCs
-    {
-      gpulse.RemovePoint(ipoint);
-      ipoint--;
-    }
 
   // build default value
   struct default_values_t
@@ -359,7 +360,7 @@ bool PROTOTYPE4_FEM::SampleFit_PowerLawDoubleExp(  //
 
     TF1 f1("f_SignalShape_PowerLawExp1", SignalShape_PowerLawExp, 0., NSAMPLES, 5);
     f1.SetParameters(
-        fits.GetParameter(0) * (1- fits.GetParameter(5)) / pow(fits.GetParameter(3), fits.GetParameter(2)) * exp(fits.GetParameter(2)),
+        fits.GetParameter(0) * (1 - fits.GetParameter(5)) / pow(fits.GetParameter(3), fits.GetParameter(2)) * exp(fits.GetParameter(2)),
         fits.GetParameter(1),
         fits.GetParameter(2),
         fits.GetParameter(2) / fits.GetParameter(3),
@@ -438,11 +439,11 @@ PROTOTYPE4_FEM::SignalShape_PowerLawDoubleExp(double *x, double *par)
   //  peak / pow(fits.GetParameter(2) / fits.GetParameter(3), fits.GetParameter(2)) * exp(fits.GetParameter(2)) = fits.GetParameter(0);  // exact peak height is (p0*Power(p2/p3,p2))/Power(E,p2)
   //  fits.GetParameter(2) / peak_shift =  fits.GetParameter(3);  // signal peak time
 
-  double signal =                                                                                    //
-      par[0]                                                                                         //
-      * pow((x[0] - par[1]), par[2])                                                                 //
-      * (((1. - par[5]) / pow(par[3], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[3]))        //
-         + (par[5] / pow(par[6], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[6]))  //
+  double signal =                                                                                         //
+      par[0]                                                                                              //
+      * pow((x[0] - par[1]), par[2])                                                                      //
+      * (((1. - par[5]) / pow(par[3], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[3]))  //
+         + (par[5] / pow(par[6], par[2]) * exp(par[2])) * exp(-(x[0] - par[1]) * (par[2] / par[6]))       //
          );
   return pedestal + signal;
 }

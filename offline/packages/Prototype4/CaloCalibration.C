@@ -8,10 +8,12 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
 #include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <string>
 
 using namespace std;
@@ -83,25 +85,28 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
           dynamic_cast<RawTower_Prototype4 *>(rtiter->second);
       assert(raw_tower);
 
-      bool signal_check_pass = true;
+      //      bool signal_check_pass = true;
+      //      for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
+      //      {
+      //        if (raw_tower->get_signal_samples(i) <= 10 or raw_tower->get_signal_samples(i) >= ((1 << 14) - 10))
+      //        {
+      //          signal_check_pass = false;
+      //          break;
+      //        }
+      //      }
+
+      //      if (signal_check_pass)
+      //      {
+      ++count;
+
       for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
       {
         if (raw_tower->get_signal_samples(i) <= 10 or raw_tower->get_signal_samples(i) >= ((1 << 14) - 10))
-        {
-          signal_check_pass = false;
-          break;
-        }
-      }
-
-      if (signal_check_pass)
-      {
-        ++count;
-
-        for (int i = 0; i < RawTower_Prototype4::NSAMPLES; i++)
-        {
+          vec_signal_samples[i] = numeric_limits<double>::quiet_NaN();  // invalidate this sample
+        else
           vec_signal_samples[i] += raw_tower->get_signal_samples(i);
-        }
       }
+      //      }
     }
 
     if (count > 0)
@@ -127,21 +132,21 @@ int CaloCalibration::process_event(PHCompositeNode *topNode)
       parameters_constraints[5] = parameters_io[5];
       parameters_constraints[6] = parameters_io[6];
 
-//      //special constraint if Peak Time 1 == Peak Time 2
-//      if (abs(parameters_constraints[6] - parameters_constraints[3]) < 0.1)
-//      {
-//        const double average_peak_time = (parameters_constraints[6] + parameters_constraints[3]) / 2.;
-//
-//        std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
-//                  << ": two shaping time are too close "
-//                  << parameters_constraints[3] << " VS " << parameters_constraints[6]
-//                  << ". Use average peak time instead: " << average_peak_time
-//                  << std::endl;
-//
-//        parameters_constraints[6] = average_peak_time;
-//        parameters_constraints[3] = average_peak_time;
-//        parameters_constraints[5] = 0;
-//      }
+      //      //special constraint if Peak Time 1 == Peak Time 2
+      //      if (abs(parameters_constraints[6] - parameters_constraints[3]) < 0.1)
+      //      {
+      //        const double average_peak_time = (parameters_constraints[6] + parameters_constraints[3]) / 2.;
+      //
+      //        std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
+      //                  << ": two shaping time are too close "
+      //                  << parameters_constraints[3] << " VS " << parameters_constraints[6]
+      //                  << ". Use average peak time instead: " << average_peak_time
+      //                  << std::endl;
+      //
+      //        parameters_constraints[6] = average_peak_time;
+      //        parameters_constraints[3] = average_peak_time;
+      //        parameters_constraints[5] = 0;
+      //      }
     }
     else
     {
