@@ -29,6 +29,9 @@ public:
   /// add a pixel hit
   void AddHit(const uint16_t col, const uint16_t row);
 
+  /// remove a pixel hit if it exists
+  int RemoveHit(const uint16_t col, const uint16_t row);
+  
   /// get all hits
   ConstRange GetHits( void );
 

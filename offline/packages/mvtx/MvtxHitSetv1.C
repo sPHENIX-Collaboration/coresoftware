@@ -40,6 +40,22 @@ MvtxHitSetv1::AddHit(const uint16_t col, const uint16_t row)
   hits_.insert(std::make_pair(col, row));
 }
 
+int
+MvtxHitSetv1::RemoveHit(const uint16_t col, const uint16_t row)
+{
+  for ( Iterator iter = hits_.lower_bound(col);
+        iter != hits_.upper_bound(col);
+        iter++)
+  {
+    if ( iter->second == row )
+    {
+      hits_.erase(iter);
+      break;
+    }
+  }
+  return 0;
+}
+
 MvtxHitSetv1::ConstRange
 MvtxHitSetv1::GetHits( void )
 {
