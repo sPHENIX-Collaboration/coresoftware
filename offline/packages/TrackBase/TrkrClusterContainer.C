@@ -115,7 +115,7 @@ TrkrClusterContainer::FindOrAddCluster(TrkrDefs::cluskey key)
 TrkrCluster*
 TrkrClusterContainer::FindCluster(TrkrDefs::cluskey key)
 {
-  TrkrClusterContainer::ConstIterator it = clusmap_.find(key);
+  TrkrClusterContainer::Iterator it = clusmap_.find(key);
 
   if (it != clusmap_.end())
   {
