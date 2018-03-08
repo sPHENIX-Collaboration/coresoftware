@@ -45,6 +45,12 @@ TrkrDefUtil::GetClusIndex(const TrkrDefs::cluskey key)
   return key;
 }
 
+uint32_t 
+TrkrDefUtil::GetHitSetKeyFromClusKey(const TrkrDefs::cluskey key)
+{
+  return (key >> kBitShiftClusId);
+}
+
 TrkrDefs::hitsetkey
 TrkrDefUtil::GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id)
 {

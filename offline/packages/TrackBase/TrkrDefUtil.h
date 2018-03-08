@@ -25,9 +25,9 @@ typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
 #ifndef __CINT__
 
 /// Max values for keys (used as defaults or invalid values)
-static hitsetkey HITSETKEYMAX = ULONG_MAX;
-static cluskey CLUSKEYMAX = ULLONG_MAX;
-static clushitkey CLUSHITKEYMAX = ULONG_MAX;
+static hitsetkey HITSETKEYMAX __attribute__((unused)) = ULONG_MAX;
+static cluskey CLUSKEYMAX __attribute__((unused)) = ULLONG_MAX;
+static clushitkey CLUSHITKEYMAX __attribute__((unused)) = ULONG_MAX;
 
 #endif
 
@@ -67,6 +67,9 @@ class TrkrDefUtil
 
   /// Get the lower 32 bits for cluster keys only
   uint32_t GetClusIndex(const TrkrDefs::cluskey key);
+
+  /// Get the upper 32 bits from cluster keys
+  uint32_t GetHitSetKeyFromClusKey(const TrkrDefs::cluskey key);
 
   /// Get a valid low / hi range for hitsetkey given tracker id & layer
   TrkrDefs::hitsetkey GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id);
