@@ -45,7 +45,7 @@ TrkrDefUtil::GetClusIndex(const TrkrDefs::cluskey key)
   return key;
 }
 
-uint32_t 
+uint32_t
 TrkrDefUtil::GetHitSetKeyFromClusKey(const TrkrDefs::cluskey key)
 {
   return (key >> kBitShiftClusId);
@@ -54,41 +54,53 @@ TrkrDefUtil::GetHitSetKeyFromClusKey(const TrkrDefs::cluskey key)
 TrkrDefs::hitsetkey
 TrkrDefUtil::GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id)
 {
+  return GenHitSetKey(trkr_id, 0);
 }
 
 TrkrDefs::hitsetkey
 TrkrDefUtil::GetHitSetKeyHi(const TrkrDefs::TRKRID trkr_id)
 {
+  return GenHitSetKey(static_cast<TrkrDefs::TRKRID>(trkr_id + 1), 0) - 1;
 }
 
 TrkrDefs::hitsetkey
 TrkrDefUtil::GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
+  return GenHitSetKey(trkr_id, lyr);
 }
 
 TrkrDefs::hitsetkey
 TrkrDefUtil::GetHitSetKeyHi(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
+  return GenHitSetKey(trkr_id, lyr + 1) - 1;
 }
 
 TrkrDefs::cluskey
 TrkrDefUtil::GetClusKeyLo(const TrkrDefs::TRKRID trkr_id)
 {
+  TrkrDefs::cluskey tmp = GenHitSetKey(trkr_id, 0);
+  return (tmp << kBitShiftClusId);
 }
 
 TrkrDefs::cluskey
 TrkrDefUtil::GetClusKeyHi(const TrkrDefs::TRKRID trkr_id)
 {
+  TrkrDefs::cluskey tmp = GenHitSetKey(static_cast<TrkrDefs::TRKRID>(trkr_id + 1), 0);
+  return (tmp << kBitShiftClusId) - 1;
 }
 
 TrkrDefs::cluskey
 TrkrDefUtil::GetClusKeyLo(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
+  TrkrDefs::cluskey tmp = GenHitSetKey(trkr_id, lyr);
+  return (tmp << kBitShiftClusId);
 }
 
 TrkrDefs::cluskey
 TrkrDefUtil::GetClusKeyHi(const TrkrDefs::TRKRID trkr_id, const char lyr)
 {
+  TrkrDefs::cluskey tmp = GenHitSetKey(trkr_id, lyr + 1);
+  return (tmp << kBitShiftClusId) - 1;
 }
 
 TrkrDefs::hitsetkey
