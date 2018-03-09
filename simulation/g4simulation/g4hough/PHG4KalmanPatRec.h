@@ -725,6 +725,9 @@ private:
 
 	int _event;
 	PHTimer *_t_seeding;
+	PHTimer *_t_seed_init1;
+	PHTimer *_t_seed_init2;
+	PHTimer *_t_seed_init3;
 	PHTimer *_t_seeds_cleanup;
 	PHTimer *_t_translate_to_PHGenFitTrack;
 	PHTimer *_t_kalman_pat_rec;
