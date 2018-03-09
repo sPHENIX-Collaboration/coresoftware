@@ -93,7 +93,6 @@
 //ROOT includes for debugging
 #include <TFile.h>
 #include <TNtuple.h>
-#include <TGeoManager.h>
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -1222,11 +1221,6 @@ int PHG4KalmanPatRec::InitializePHGenFit(PHCompositeNode* topNode) {
 	//_fitter = new PHGenFit::Fitter("sPHENIX_Geo.root","sPHENIX.2d.root", 1.4 / 1.5);
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager, field, _track_fitting_alg_name,
 					"RKTrackRep", _do_evt_display);
-  TFile outfile("sPhenixTGeo.root","RECREATE");
-  outfile.cd();
-  tgeo_manager->Write();
-  outfile.Close();
-
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
