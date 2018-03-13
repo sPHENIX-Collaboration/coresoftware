@@ -15,6 +15,7 @@
 using namespace std;
 
 PHInitVertexing::PHInitVertexing(const std::string& name) :
+	SubsysReco(name),
 	_cluster_map(nullptr),
 	_vertex_map(nullptr)
 {}

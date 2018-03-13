@@ -19,6 +19,7 @@
 using namespace std;
 
 PHTrackSeeding::PHTrackSeeding(const std::string& name) :
+	SubsysReco(name),
 	_cluster_map(nullptr),
 	_vertex_map(nullptr),
 	_track_map(nullptr),

@@ -44,8 +44,9 @@ public:
 		return _seeding_layers;
 	}
 
-	void set_seeding_layers(const std::set<unsigned int>& seedingLayers) {
-		_seeding_layers = seedingLayers;
+	void set_seeding_layers(const unsigned int a[], const unsigned int n) {
+		_seeding_layers.clear();
+		for(unsigned int i=0;i<n;++i)_seeding_layers.insert(a[i]);
 	}
 
 protected:

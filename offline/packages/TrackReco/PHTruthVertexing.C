@@ -24,6 +24,7 @@
 using namespace std;
 
 PHTruthVertexing::PHTruthVertexing(const std::string& name) :
+		PHInitVertexing(name),
 		_g4truth_container(nullptr),
 		_vertex_error({0.01, 0.01, 0.01})
 {}
@@ -95,11 +96,11 @@ int PHTruthVertexing::Process() {
   vertex->set_id(0);
   vertex->set_t0(0);
   vertex->set_chisq(0);
-  vertex->set_ndof(0);
+  vertex->set_ndof(1);
 
-	_vertex_map->insert(vertex);
+  _vertex_map->insert(vertex);
 
-	return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHTruthVertexing::CreateNodes(PHCompositeNode* topNode) {

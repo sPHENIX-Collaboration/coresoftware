@@ -38,6 +38,7 @@
 using namespace std;
 
 PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name) :
+		PHTrackSeeding(name),
 		_g4truth_container(nullptr),
 		phg4hits_svtx(nullptr),
 		phg4hits_intt(nullptr),
