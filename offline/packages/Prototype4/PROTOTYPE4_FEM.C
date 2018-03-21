@@ -42,7 +42,7 @@ int PROTOTYPE4_FEM::GetChannelNumber(const std::string & caloname, int i_column,
     assert(i_column >= 0);
     assert(i_column < NCH_IHCAL_COLUMNS);
 
-    return hbdchanIHC[i_row][i_column] + 64;
+    return hbdchanIHC[i_row][i_column] + 64 - 1;
   }
   else if (caloname == "HCALOUT")
   {
