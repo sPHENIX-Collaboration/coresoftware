@@ -1381,15 +1381,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
 
 	float nparticles = clustereval->all_truth_particles(cluster).size();
-	/*
-	  "event:hitID:x:y:z:r:phi:eta:ex:ey:ez:ephi:"
-	  "e:adc:layer:size:phisize:"
-	  "zsize:trackID:g4hitID:gx:"
-	  "gy:gz:gr:gphi:geta:gt:gtrackID:gflavor:"
-	  "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
-	  "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
-	  "gembed:gprimary:efromtruth:nparticles");
-	*/
 	float cluster_data[46] = {(float) _ievent,
 				  hitID,
 				  x,
