@@ -126,7 +126,7 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
       for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
       {
 //        tower_hg->set_signal_samples(isamp, _packet->iValue(isamp, ich) & PROTOTYPE4_FEM::ADC_DATA_MASK);
-        tower_lg->set_signal_samples(isamp, _packet->iValue(isamp, ich + 1) & PROTOTYPE4_FEM::ADC_DATA_MASK);
+        tower_lg->set_signal_samples(isamp, _packet->iValue(isamp, ich) & PROTOTYPE4_FEM::ADC_DATA_MASK);
       }
     }
   }
@@ -162,8 +162,8 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
       tower_hg->set_HBD_channel_number(ich);
       for (int isamp = 0; isamp < PROTOTYPE4_FEM::NSAMPLES; isamp++)
       {
-        tower_hg->set_signal_samples(isamp, _packet->iValue(isamp, ich) & PROTOTYPE4_FEM::ADC_DATA_MASK);
-        tower_lg->set_signal_samples(isamp, _packet->iValue(isamp, ich + 1) & PROTOTYPE4_FEM::ADC_DATA_MASK);
+        tower_lg->set_signal_samples(isamp, _packet->iValue(isamp, ich) & PROTOTYPE4_FEM::ADC_DATA_MASK);
+        tower_hg->set_signal_samples(isamp, _packet->iValue(isamp, ich + 1) & PROTOTYPE4_FEM::ADC_DATA_MASK);
       }
     }
   }
