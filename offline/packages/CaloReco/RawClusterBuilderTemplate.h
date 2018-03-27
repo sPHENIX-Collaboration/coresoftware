@@ -9,7 +9,7 @@ class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
-class BEmcRec;
+class BEmcRecCEMC;
 
 class RawClusterBuilderTemplate : public SubsysReco {
 
@@ -33,7 +33,7 @@ class RawClusterBuilderTemplate : public SubsysReco {
 
   RawClusterContainer* _clusters;
 
-  BEmcRec* bemc;
+  BEmcRecCEMC* bemc;
   float fEnergyNorm;
 
   float _min_tower_e;
