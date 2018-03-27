@@ -8,7 +8,7 @@
 //#include "PHMatrix.h"
 //#include "PHVector.h"
 #include <vector>
-
+#include <map>
 
 class EmcCluster;
 class EmcModule;
@@ -21,6 +21,14 @@ typedef struct SecGeom{
   float Tower_ySize; // Tower size in Y dir
 
 } SecGeom;
+
+typedef struct TowerGeom{
+
+  float Xcenter;     // Tower center position
+  float Ycenter;
+  float Zcenter;
+
+} TowerGeom;
 
 // ///////////////////////////////////////////////////////////////////////////
 
@@ -36,12 +44,14 @@ class BEmcRec
  public:
 
   BEmcRec();
-  ~BEmcRec();
+  virtual ~BEmcRec();
 
   void SetVertex(float *vv){  fVx = vv[0]; fVy = vv[1]; fVz = vv[2]; }
   void SetGeometry(int nx, int ny, float txsz, float tysz);
   //  void SetGeometry(SecGeom const &geom, PHMatrix * rm, PHVector * tr );
   void SetConf(int nx, int ny) { SetGeometry(nx, ny, 1., 1.); }
+  void SetTowerGeometry(int ich, float xx, float yy, float zz);
+  void PrintTowerGeometry();
 
   void SetPlaneGeometry() { bCYL=false; }
   void SetCylindricalGeometry() { bCYL=true; }
@@ -68,7 +78,7 @@ class BEmcRec
   float fTowerDist(float x1, float x2);
 
   int FindClusters();
-  void GetImpactAngle(float x, float y, float *sinT );
+  //  virtual void GetImpactAngle(float x, float y, float *sinT );
   void GlobalToSector(float, float, float, float*, float*, float*);
   void SectorToGlobal(float xsec, float ysec, float zsec, float* px,
 		      float* py, float* pz );
@@ -97,10 +107,13 @@ class BEmcRec
   float ClusterChisq(int, EmcModule*, float, float, float,
 			     int &ndf); // ndf added MV 28.01.00
   float Chi2Correct(float chi2,int ndf);
-  void CorrectPosition(float energy, float x, float y, float *xcorr,
-				float *ycorr, bool callSetPar=true);
-  void CorrectEnergy(float energy, float x, float y, float *ecorr);
-  void CorrectECore(float ecore, float x, float y, float *ecorecorr);
+
+  // Virtual (Calorimeter specific) functions
+  virtual void CorrectEnergy(float energy, float x, float y, float *ecorr)=0;
+  virtual void CorrectPosition(float energy, float x, float y, float *xcorr, float *ycorr)=0;
+  virtual void CorrectECore(float ecore, float x, float y, float *ecorecorr)=0;
+  virtual void Tower2Global(float en, float xsec, float ysec, float& xA, float& yA, float& zA )=0;
+
   void TwoGamma(int, EmcModule*, float*, float*, float*, float*,
 			float*, float*, float*);
   float Chi2Limit(int ndf);
@@ -127,6 +140,7 @@ class BEmcRec
   bool bCYL; // Cylindrical? 
   int fNx; // length in X direction
   int fNy; // length in Y direction
+  std::map<int,TowerGeom> fTowerGeom;
   float fModSizex; // module size in X direction (cm)
   float fModSizey; // module size in Y direction
   float fVx; // vertex position (cm)
