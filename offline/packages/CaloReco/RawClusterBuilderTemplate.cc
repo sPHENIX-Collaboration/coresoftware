@@ -1,12 +1,13 @@
 #include "RawClusterBuilderTemplate.h"
 
-#include "BEmcRec.h"
+#include "BEmcRecCEMC.h"
 #include "BEmcCluster.h"
 
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
 
 #include <calobase/RawTower.h>
+#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
 
@@ -35,7 +36,7 @@ RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string& name):
   detector("NONE")
 {
   fEnergyNorm = 1.;
-  bemc = new BEmcRec();
+  bemc = new BEmcRecCEMC();
   //
   // Some initial values for clustering
   //
@@ -59,6 +60,34 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       std::cout << PHWHERE << ": " << e.what() << std::endl;
       throw;
     }
+
+  string towergeomnodename = "TOWERGEOM_" + detector;
+  RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
+  if (! towergeom)
+    {
+      cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  int ngeom=0;
+  int ixmin= 999999;
+  int ixmax=-999999;
+  int iymin= 999999;
+  int iymax=-999999;
+  RawTowerGeomContainer::ConstRange begin_end_geom = towergeom->get_tower_geometries();
+  RawTowerGeomContainer::ConstIterator itr_geom = begin_end_geom.first;
+  for (; itr_geom != begin_end_geom.second; ++itr_geom) {
+    RawTowerGeom *towerg = itr_geom->second;
+    RawTowerDefs::keytype towerid = towerg->get_id();
+    int ix = RawTowerDefs::decode_index1(towerid);
+    int iy = RawTowerDefs::decode_index2(towerid);
+    if( ixmin>ix ) ixmin=ix;
+    if( ixmax<ix ) ixmax=ix;
+    if( iymin>iy ) iymin=iy;
+    if( iymax<iy ) iymax=iy;
+    ngeom++;
+  }
+  //  printf("************* Init CEMC: N of geom towers: %d; ix=%d-%d iy=%d-%d\n",ngeom,ixmin,ixmax,iymin,iymax);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
