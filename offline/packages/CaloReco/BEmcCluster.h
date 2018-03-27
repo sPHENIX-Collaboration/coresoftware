@@ -139,7 +139,7 @@ public:
   /// Returns the EmcCluster corrected position in Sector (SM) frame
   void GetCorrPos( float* pxc, float* pyc );
   /// Returns the EmcCluster position in PHENIX global coord system
-  void GetGlobalPos( float* pxg, float* pyg, float* pzg );
+  void GetGlobalPos( float& xg, float& yg, float& zg );
   /// Returns the errors for the reconstructed energy and position
   void GetErrors( float* pde, float* pdx, float* pdy, float* pdz);
   /// Substitutes a number of functions above (to save CPU time)
