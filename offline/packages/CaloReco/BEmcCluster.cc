@@ -58,8 +58,10 @@ EmcModule::EmcModule(int ich_, int softkey_, float amp_, float tof_,
 // EmcCluster member functions
 
 void EmcCluster::GetCorrPos(float* px, float* py)
+// Returns the cluster corrected position in tower units
+// Corrected for S-oscilations, not for shower depth
+// Shower depth (z-coord) is defined in fOwner->Tower2Global()
 {
-  // Returns the cluster corrected position in Sector (SM) frame
   
   float e, x, y, xx, yy, xy;
   
@@ -70,16 +72,14 @@ void EmcCluster::GetCorrPos(float* px, float* py)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void EmcCluster::GetGlobalPos( float* px, float* py, float* pz )
+void EmcCluster::GetGlobalPos( float& xA, float& yA, float& zA )
 // Returns the cluster position in PHENIX global coord system
 {
 
    float xc, yc;
-
+   float e = GetTotalEnergy();
    GetCorrPos( &xc, &yc );
-// X in Sector coord is Z in Global coord !!
-   fOwner->SectorToGlobal( xc, yc, 0., px, py, pz );
-
+   fOwner->Tower2Global( e, xc, yc, xA, yA, zA );
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -258,12 +258,12 @@ float EmcCluster::GetECoreCorrected()
 // Returns the energy in core towers around the cluster Center of Gravity
 // Corrected for energy leak sidewise from core towers
 {
-  const float c0 = 0.950; // For no threshold
-
-  //  float energy = GetTotalEnergy();
-  //  if( energy<=0 ) return 0;
-  float ecore = GetECore();
-  return ecore/c0;
+  float x, y, xx, yy, xy;
+  float ecore, ecorecorr;
+  ecore = GetECore();
+  GetMoments(&x, &y, &xx, &xy, &yy);
+  fOwner->CorrectECore(ecore, x, y, &ecorecorr);
+  return ecorecorr;
 }
 
 float EmcCluster::GetECore()
@@ -933,7 +933,7 @@ void EmcPeakarea::GetChar( float* pe, float* pec,
     fOwner->CorrectPosition(*pe, *pxcgmin, *pycgmin, pxc, pyc);
     fOwner->SectorToGlobal( *pxc, *pyc, 0, pxg, pyg, pzg );
     fOwner->CalculateErrors( *pe, *pxc, *pyc, pde, pdx, pdy, pdz);
-    fOwner->CorrectEnergy( *pe, *pxcg, *pycg, pec ); // MM 02.11.2000
+    //    fOwner->CorrectEnergy( *pe, *pxcg, *pycg, pec ); // MM 02.11.2000
     fOwner->CorrectECore( *pecore, *pxc, *pyc, pecorec );
 
     delete [] phit;
