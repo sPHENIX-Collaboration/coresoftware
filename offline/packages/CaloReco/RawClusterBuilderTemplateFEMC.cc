@@ -279,7 +279,7 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
 
     //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
 
-    for( pp=pPList->begin(); pp!=pPList->end(); pp++){
+    for( pp=pPList->begin(); pp!=pPList->end(); ++pp){
 
       // Cluster energy
       ecl = pp->GetTotalEnergy();
