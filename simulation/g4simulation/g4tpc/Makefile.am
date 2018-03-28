@@ -1,6 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
+    libg4tpc_io.la \
     libg4tpc.la
 
 AM_CPPFLAGS = \
@@ -14,18 +15,30 @@ AM_LDFLAGS = \
     -L$(OFFLINE_MAIN)/lib
 
 libg4tpc_la_LIBADD = \
+  libg4tpc_io.la \
   -lphool \
   -lg4testbench \
   -lphg4hit \
-  -lg4detectors
+  -lg4detectors \
+  -lphparameter
 
 #pkginclude_HEADERS =
 
 libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \
+  PHG4TPCElectronDrift.cc \
+  PHG4TPCElectronDrift_Dict.cc \
+  PHG4TPCPadPlane.cc \
+  PHG4TPCPadPlane_Dict.cc \
+  PHG4TPCPadPlaneSimple.cc \
+  PHG4TPCPadPlaneSimple_Dict.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCSubsystem.cc \
   PHG4TPCSubsystem_Dict.cc
+
+libg4tpc_io_la_SOURCES = \
+  PHG4CellTPCv1.cc \
+  PHG4CellTPCv1_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

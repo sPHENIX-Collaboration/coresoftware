@@ -17,7 +17,8 @@
  * Materials are defined in gmain/PHG4Reco::DefineMaterials      *
  *===============================================================*/
 #include "PHG4mRICHDetector.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 #include <phool/PHCompositeNode.h>
@@ -55,7 +56,7 @@ using namespace std;
 using namespace CLHEP;
 
 //_______________________________________________________________
-PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHG4Parameters *parameters, const std::string &dnam, const int lyr):
+PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
   //block_physi(NULL),

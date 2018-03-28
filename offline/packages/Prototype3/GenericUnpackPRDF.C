@@ -7,7 +7,7 @@
 #include <Event/packetConstants.h>
 #include <Event/packet.h>
 #include <Event/packet_hbd_fpgashort.h>
-#include <g4cemc/RawTowerContainer.h>
+#include <calobase/RawTowerContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 #include <phool/getClass.h>

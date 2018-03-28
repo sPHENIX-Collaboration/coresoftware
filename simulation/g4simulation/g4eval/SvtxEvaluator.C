@@ -1381,7 +1381,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
 
 	float nparticles = clustereval->all_truth_particles(cluster).size();
-
 	float cluster_data[46] = {(float) _ievent,
 				  hitID,
 				  x,
@@ -1471,7 +1470,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  float x        = cluster->get_x();
 	  float y        = cluster->get_y();
 	  float z        = cluster->get_z();
-
+	  TVector3 pos(x,y,z);
+	  float r = pos.Perp();
+	  float phi = pos.Phi();
+	  float eta = pos.Eta();
 	  float ex       = sqrt(cluster->get_error(0,0));
 	  float ey       = sqrt(cluster->get_error(1,1));
 	  float ez       = cluster->get_z_error();
@@ -1556,11 +1558,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	  float nparticles = clustereval->all_truth_particles(cluster).size();
 
-	  float cluster_data[39] = {(float) _ievent,
+	  float cluster_data[42] = {(float) _ievent,
 				    hitID,
 				    x,
 				    y,
 				    z,
+				    r,
+				    phi,
+				    eta,
 				    ex,
 				    ey,
 				    ez,

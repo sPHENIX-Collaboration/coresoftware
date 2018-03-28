@@ -18,11 +18,7 @@ libg4eval_la_LDFLAGS = \
 
 libg4eval_la_LIBADD = \
   -lfun4all \
-  -lphg4hit \
-  -lg4detectors_io \
-  -lg4hough_io \
-  -lcemc_io \
-  -lg4jets_io
+  -lg4dst
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \

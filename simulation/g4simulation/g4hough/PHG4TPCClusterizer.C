@@ -393,7 +393,7 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
     {
       int cz = zbin + iz;
       if(cz < 0) continue; // truncate edge
-      if(cz >= fNZBins) continue; // truncate edge
+      if(cz >= fNZBins-3) continue; // truncate edge
       
       // consider only the peak bin in phi when searching for Z limit     
       int cp = wrap_phibin(phibin);
@@ -421,7 +421,7 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
   for(int iz=0; iz< zmax; iz++)
     {
       int cz = zbin - iz;
-      if(cz < 0) continue; // truncate edge
+      if(cz <= 3) continue; // truncate edge
       if(cz >= fNZBins) continue; // truncate edge
       
       int cp = wrap_phibin(phibin);
@@ -451,7 +451,7 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
 //===================
 void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   float peak = fAmps[zbin * fNPhiBins + pbin];
-  fFitW = peak;
+  fFitW = 0.0;
   fFitP0 = fGeoLayer->get_phicenter( pbin );
   fFitZ0 = fGeoLayer->get_zcenter( zbin );
   fFitSumP = 0;

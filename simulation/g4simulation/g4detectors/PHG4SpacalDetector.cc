@@ -8,6 +8,8 @@
 #include "PHG4SpacalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
 
@@ -44,7 +46,7 @@ using namespace std;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
-                                       const std::string &dnam, PHG4Parameters *parameters, const int lyr, bool init_geom)
+                                       const std::string &dnam, PHParameters *parameters, const int lyr, bool init_geom)
   : PHG4Detector(Node, dnam)
   , _region(NULL)
   , cylinder_solid(NULL)

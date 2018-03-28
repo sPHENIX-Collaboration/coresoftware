@@ -2,7 +2,7 @@
 
 #include "G4RootScintillatorTower.h"
 
-#include <g4cemc/RawTower.h>
+#include <calobase/RawTower.h>
 #include <TClonesArray.h>
 
 using namespace std;

@@ -5,7 +5,7 @@
 
 class G4VPhysicalVolume;
 class PHG4InnerHcalDetector;
-class PHG4Parameters;
+class PHParameters;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -14,7 +14,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector *, const PHG4Parameters *parameters);
+  PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector *, const PHParameters *parameters);
 
   //! destructor
   virtual ~PHG4InnerHcalSteppingAction();
@@ -35,7 +35,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *hits_;
   PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
-  const PHG4Parameters *params;
+  const PHParameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
   G4VPhysicalVolume *savevolpre;

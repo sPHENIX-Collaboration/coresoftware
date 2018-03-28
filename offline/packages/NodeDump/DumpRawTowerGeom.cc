@@ -2,7 +2,7 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4cemc/RawTowerGeom.h>
+#include <calobase/RawTowerGeom.h>
 
 #include <string>
 

@@ -7,7 +7,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class PHG4Parameters;
+class PHParameters;
 
 class PHG4BeamlineMagnetDetector: public PHG4Detector
 {
@@ -15,7 +15,7 @@ class PHG4BeamlineMagnetDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam, const int layer = 0 );
+  PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int layer = 0 );
 
   //! destructor
   virtual ~PHG4BeamlineMagnetDetector( void )
@@ -31,7 +31,7 @@ class PHG4BeamlineMagnetDetector: public PHG4Detector
 
   private:
 
-  PHG4Parameters *params;
+  PHParameters *params;
 
   G4VPhysicalVolume* magnet_physi;
   G4VPhysicalVolume* cylinder_physi;

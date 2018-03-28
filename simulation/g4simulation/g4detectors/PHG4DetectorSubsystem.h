@@ -6,8 +6,8 @@
 #include <map>
 #include <string>
 
-class PHG4Parameters;
-class PHG4ParametersContainer;
+class PHParameters;
+class PHParametersContainer;
 
 class PHG4DetectorSubsystem : public PHG4Subsystem
 {
@@ -32,7 +32,7 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
   bool CheckOverlap() const {return overlapcheck;}
 
-  PHG4Parameters *GetParams() const {return params;} 
+  PHParameters *GetParams() const {return params;} 
 
  // Get/Set parameters from macro
   void set_double_param(const std::string &name, const double dval);
@@ -77,8 +77,8 @@ class PHG4DetectorSubsystem : public PHG4Subsystem
   int BeginRunExecuted() const {return beginrunexecuted;}
 
  private:
-  PHG4Parameters *params;
-  PHG4ParametersContainer *paramscontainer;
+  PHParameters *params;
+  PHParametersContainer *paramscontainer;
   PHCompositeNode *savetopNode;
   bool overlapcheck;
   int layer;

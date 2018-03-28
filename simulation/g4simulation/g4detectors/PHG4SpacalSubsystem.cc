@@ -14,7 +14,8 @@
 //#include "PHG4ProjSpacalDetector.h"
 #include "PHG4SpacalDetector.h"
 #include "PHG4SpacalSteppingAction.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4PhenixDetector.h>

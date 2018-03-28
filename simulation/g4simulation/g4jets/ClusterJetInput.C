@@ -12,9 +12,12 @@
 #include <phool/getClass.h>
 
 // PHENIX Geant4 includes
-#include <g4cemc/RawClusterContainer.h>
-#include <g4cemc/RawCluster.h>
-#include <g4cemc/RawTowerGeomContainer.h>
+#include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
+#include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawClusterUtility.h>
+
+
 #include <g4vertex/GlobalVertexMap.h>
 #include <g4vertex/GlobalVertex.h>
 
@@ -22,6 +25,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
+#include <cassert>
 
 using namespace std;
 
@@ -44,8 +48,18 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
 
   GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
   if (!vertexmap) {
+
+    cout <<"ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is missing. Please turn on the do_global flag in the main macro in order to reconstruct the global vertex."<<endl;
+    assert(vertexmap); // force quit
+
     return std::vector<Jet*>();
   }
+
+  if (vertexmap->empty()) {
+    cout <<"ClusterJetInput::get_input - Fatal Error - GlobalVertexMap node is empty. Please turn on the do_bbc or tracking reco flags in the main macro in order to reconstruct the global vertex."<<endl;
+    return std::vector<Jet*>();
+  }
+
   
   RawClusterContainer *clusters = NULL;
   RawTowerGeomContainer *geom = NULL;
@@ -73,8 +87,8 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
 
   // first grab the event vertex or bail
   GlobalVertex* vtx = vertexmap->begin()->second;
-  float vtxz = NAN;
-  if (vtx) vtxz = vtx->get_z();
+  CLHEP::Hep3Vector vertex ;
+  if (vtx) vertex . set(vtx->get_x(),vtx->get_y(),vtx->get_z());
   else return std::vector<Jet*>();
 
   std::vector<Jet*> pseudojets;
@@ -83,25 +97,12 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
   for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
     RawCluster *cluster = rtiter->second;
 
-    double r = geom->get_radius();
-    
-    double eta0 = cluster->get_eta();
-    double phi = cluster->get_phi();
-
-    double z0 = r * sinh(eta0);
-    double z = z0 - vtxz;
-    
-    double eta = asinh(z/r); // eta after shift from vertex
-    
-    double pt = cluster->get_energy() / cosh(eta);
-    double px = pt * cos(phi);
-    double py = pt * sin(phi);
-    double pz = pt * sinh(eta);
+    CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
 
     Jet *jet = new JetV1();
-    jet->set_px(px);
-    jet->set_py(py);
-    jet->set_pz(pz);
+    jet->set_px(E_vec_cluster.x());
+    jet->set_py(E_vec_cluster.y());
+    jet->set_pz(E_vec_cluster.z());
     jet->set_e(cluster->get_energy());
     jet->insert_comp(_input,cluster->get_id());
     pseudojets.push_back(jet);

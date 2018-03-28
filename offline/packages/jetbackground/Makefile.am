@@ -23,7 +23,7 @@ libjetbackground_io_la_LIBADD = \
 
 libjetbackground_la_LIBADD = \
   -lfun4all \
-  -lcemc_io \
+  -lcalo_io -lcalo_util \
   -lg4jets \
   -lg4jets_io \
   -lCGAL \

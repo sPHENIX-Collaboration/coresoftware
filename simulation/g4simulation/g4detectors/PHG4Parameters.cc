@@ -529,7 +529,7 @@ PHG4Parameters::ReadFromFile(const string &name, const string &extension, const 
           // this checks if the filename starts with fileprefix
           // (start pos of substring=0), if not coninue
           string basename = i.filename().string();
-          if (basename.find(fileprefix))
+          if (basename.find(fileprefix) != 0)
             {
               continue;
             }

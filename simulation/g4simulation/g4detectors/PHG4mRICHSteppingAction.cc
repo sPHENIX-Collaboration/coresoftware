@@ -4,7 +4,7 @@
  *===============================================================*/
 #include "PHG4mRICHSteppingAction.h"
 #include "PHG4mRICHDetector.h"
-#include "PHG4Parameters.h"
+#include <phparameter/PHParameters.h>
 #include "PHG4StepStatusDecode.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -43,7 +43,7 @@ using namespace std;
 using namespace CLHEP;
 
 //____________________________________________________________________________..
-PHG4mRICHSteppingAction::PHG4mRICHSteppingAction( PHG4mRICHDetector* detector,PHG4Parameters* params):
+PHG4mRICHSteppingAction::PHG4mRICHSteppingAction( PHG4mRICHDetector* detector,PHParameters* params):
   detector_( detector ),
   // active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),

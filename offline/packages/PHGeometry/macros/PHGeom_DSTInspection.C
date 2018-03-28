@@ -23,7 +23,7 @@ PHGeom_DSTInspection(string DST_file_name = "sPHENIX.root_DST.root",
   gSystem->Load("libphgeom.so");
 
   // in case DST contains sPHENIX stuff
-  gSystem->Load("libcemc.so");
+  gSystem->Load("libg4calo.so");
   gSystem->Load("libg4vertex.so");
   gSystem->Load("libcalotrigger_io.so");
   gSystem->Load("libg4eval.so");

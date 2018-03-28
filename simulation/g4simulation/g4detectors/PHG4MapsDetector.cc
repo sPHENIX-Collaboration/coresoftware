@@ -1,7 +1,8 @@
 #include "PHG4MapsDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_MAPS.h"
-#include "PHG4Parameters.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 
@@ -34,7 +35,7 @@ using namespace std;
 
 //static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
 
-PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHG4Parameters *parameters, const std::string &dnam ):
+PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam ):
   PHG4Detector(Node, dnam),
   //envelope_inner_radius(26.0*mm),
   //envelope_outer_radius(880*mm),

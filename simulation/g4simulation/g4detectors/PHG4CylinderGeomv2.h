@@ -18,8 +18,8 @@ class PHG4CylinderGeomv2: public PHG4CylinderGeomv1
   void set_nscint(const int i) {nscint = i;}
   int get_nscint() const {return nscint;}
 
-  //! load parameters from PHG4Parameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHG4Parameters & param);
+  //! load parameters from PHParameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHParameters & param);
 
  protected:
   int nscint;

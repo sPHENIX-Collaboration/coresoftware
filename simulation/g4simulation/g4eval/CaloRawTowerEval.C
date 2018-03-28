@@ -4,8 +4,8 @@
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <g4cemc/RawTowerContainer.h>
-#include <g4cemc/RawTower.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTower.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4main/PHG4HitContainer.h>
