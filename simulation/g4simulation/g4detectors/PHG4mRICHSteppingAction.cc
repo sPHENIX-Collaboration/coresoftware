@@ -92,6 +92,7 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     // G4VPhysicalVolume* v2 = touch->GetVolume(2);
     // cout << "Name of grand mother volume: " << v2->GetName() << endl;
 
+    // cout << "copyNum = " << touch->GetReplicaNumber() << ", Or = " << touch->GetReplicaNumber(1) << ", Or = " << touch->GetReplicaNumber(2) << ", Or = " << touch->GetReplicaNumber(3) << endl;
     int module_id=GetModuleID(touch->GetVolume(2)); // use mother volume to determine module_id
     int PID=aTrack->GetDefinition()->GetPDGEncoding();
     string PName = aTrack->GetDefinition()->GetParticleName();
@@ -130,9 +131,9 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
 	/* set intial energy deposit */
 	hit->set_edep( 0 );
+	hit->set_eion( 0 );
 	if (isactive == PHG4mRICHDetector::SENSOR) 
 	{
-	  hit->set_eion( 0 );
 	  savehitcontainer = hits_;
 	  if(PID == 0)
 	  {

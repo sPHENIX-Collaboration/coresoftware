@@ -573,7 +573,7 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_box(BoxPar* par, G4LogicalVolume* mo
 {
   G4Box* box = new G4Box(par->name.c_str(),par->halfXYZ[0],par->halfXYZ[1],par->halfXYZ[2]);
   G4LogicalVolume* log = new G4LogicalVolume(box,par->material,par->name.c_str(),0,0,0);
-  G4VPhysicalVolume* phy=new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0);
+  G4VPhysicalVolume* phy=new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0,overlapcheck);
 
   G4VisAttributes* visAtt = new G4VisAttributes(par->color);
   visAtt->SetVisibility(par->visibility);
@@ -589,7 +589,7 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_polyhedra(PolyPar* par, G4LogicalVol
   G4Polyhedra* polyhedra=new G4Polyhedra(par->name.c_str(), par->start,par->theta, par->numSide,
                                          par->num_zLayer,par->z, par->rinner, par->router);
   G4LogicalVolume* log = new G4LogicalVolume(polyhedra,par->material,par->name.c_str(),0,0,0);
-  G4VPhysicalVolume* phy = new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0);
+  G4VPhysicalVolume* phy = new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0,overlapcheck);
 
   G4VisAttributes* visAtt = new G4VisAttributes(par->color);
   visAtt->SetVisibility(par->visibility);
@@ -769,7 +769,7 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
     for (int i=0;i<repeat;i++) {
       Groove_poly[i]=new G4Polycone(par->name.c_str(),phi1,deltaPhi, numOfLayer, lens_poly_z, lens_poly_rmin, lens_poly_rmax);
       Groove_log[i]=new G4LogicalVolume(Groove_poly[i],par->material,par->name.c_str(),0,0,0);
-      new G4PVPlacement(0,par->pos,Groove_log[i],par->name.c_str(),motherLV,false,0);
+      new G4PVPlacement(0,par->pos,Groove_log[i],par->name.c_str(),motherLV,false,0,overlapcheck);
 
       Groove_log[i]->SetVisAttributes(SurfaceVisAtt);
       phi1=phi1+halfpi;   //g4 pre-defined: halfpi=pi/2
@@ -841,7 +841,7 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
   fclose(outputMapFile);
 
   G4ThreeVector pos(0, 0, 0);
-  mRICHwall->MakeImprint(logicWorld,pos, NULL);
+  mRICHwall->MakeImprint(logicWorld,pos,NULL,0,overlapcheck);
 
   printf("-----------------------------------------------------------------------------\n");
   printf("%d detectors are built\n",count);
@@ -905,7 +905,7 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
     G4RotationMatrix* rot=new G4RotationMatrix();
     rot->rotateX(-theta*180*deg/pi);
     rot->rotateZ(i*45*deg);
-    sector->MakeImprint(logicWorld, pos2, rot);
+    sector->MakeImprint(logicWorld, pos2, rot, 0, overlapcheck);
   }
 }
 
