@@ -180,11 +180,11 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
       int phibin = towerphis.at(j);
 
-      if (phibin - towerphis.at(0) < -nphibin / 2)
+      if (phibin - towerphis.at(0) < -nphibin / 2.0)
         phibin += nphibin;
-      else if (phibin - towerphis.at(0) > +nphibin / 2)
+      else if (phibin - towerphis.at(0) > +nphibin / 2.0)
         phibin -= nphibin;
-      assert(abs(phibin - towerphis.at(0)) <= nphibin / 2);
+      assert(abs(phibin - towerphis.at(0)) <= nphibin / 2.0);
 
       energymult = towerenergies.at(j) * phibin;
       phimult += energymult;
