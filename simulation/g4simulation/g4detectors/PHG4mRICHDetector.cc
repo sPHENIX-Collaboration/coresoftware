@@ -47,6 +47,7 @@
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4AssemblyVolume.hh>
 
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <array>
@@ -780,132 +781,100 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
 {
-  FILE* outputMapFile;
-  outputMapFile=fopen("mRICH_wall_map.txt","w");
-  fprintf(outputMapFile,"pv number \t x (mm) \t y (mm) \t z (mm) \t phi (rad) \t theta (rad)\n");
-
-  // build a single mRICH, then get half width, height, and length + air gap
-  G4double gap=3*cm;         //large gap to avoid overlap. temporary solution
-  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
-  G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
-  G4double halfWidth=mRICH_box->GetXHalfLength();// + gap;
-  G4double halfLength=mRICH_box->GetZHalfLength()+gap;
-
-  G4double rinner=params->get_double_param("r_inner") *m;
-  G4double phi_min=2*atan(exp(-1*params->get_double_param("eta_max")));
-  G4double phi_max=2*atan(exp(-1*params->get_double_param("eta_min")));
-  
-  //position and name of each copy of mRICH
-  G4double x, y , z;
-  G4double theta, phi, deltaPhi;
-  G4double phi_x, phi_y, angle_max;
-  G4int n;
-  int count=0;
-
-  deltaPhi=2*atan(halfWidth/rinner);//+pi/180; 
-  n=floor(2*phi_max/deltaPhi);
-  if (n%2==0) angle_max=(n/2)*deltaPhi-deltaPhi/2;
-  else angle_max=((n-1)/2)*deltaPhi;
-
   G4AssemblyVolume* mRICHwall = new G4AssemblyVolume();   //"mother volume"
 
-  for (phi_x=-angle_max;phi_x<angle_max;phi_x=phi_x+deltaPhi) 
+  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
+  std::ifstream inputmap; // read in mRICH placement map
+  inputmap.open("/gpfs/mnt/gpfs04/sphenix/user/xusun/mRICH_sPHENIX/mRICHWallMap.txt");
+
+  G4double module_id, x, y , z, theta, phi;
+  G4int counter_mRICH = 0;
+
+  if( inputmap.is_open() )
   {
-    x=(rinner+halfLength)*sin(phi_x);
-
-    for (phi_y=-angle_max;phi_y<angle_max;phi_y=phi_y+deltaPhi) 
+    std::string map_mRICH;
+    while(!inputmap.eof()) // To get you all the lines.
     {
-      y=(rinner+halfLength)*sin(phi_y);
-      z=sqrt(pow(rinner+halfLength,2)-pow(x,2)-pow(y,2));
+      std::getline(inputmap, map_mRICH);
+      std::istringstream coordinate_mRICH(map_mRICH);
+      if( coordinate_mRICH >> module_id >> x >> y >> z >> theta >> phi ) 
+      {
+	G4ThreeVector pos(x,y,z);
+	G4RotationMatrix* rot=new G4RotationMatrix();
 
-      phi=acos(z/sqrt(pow(x,2)+pow(y,2)+pow(z,2)));      //in radian
-      if (phi<=(phi_min+deltaPhi) || phi>=phi_max-deltaPhi) continue;
-
-      theta=atan2(y,x);                                  //in radian
-
-      G4ThreeVector pos(x,y,z);
-      G4RotationMatrix* rot=new G4RotationMatrix();
-      if (x!=0 || y!=0) {
-	rot->rotateX(phi*(-1)*sin(theta)*180*deg/pi);
-	rot->rotateY(phi*cos(theta)*180*deg/pi);
+	if (x!=0 || y!=0) {
+	  rot->rotateX(theta*(-1)*sin(phi)*180*deg/pi);
+	  rot->rotateY(theta*cos(phi)*180*deg/pi);
+	}
+	mRICHwall->AddPlacedVolume( a_mRICH,pos,rot);
+	// cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << ", theta = " << theta << ", phi = " << phi << endl;
+	counter_mRICH++;
       }
-
-      mRICHwall->AddPlacedVolume( a_mRICH,pos,rot);
-
-      //fprintf(outputMapFile,"%d %d %d ", (int) mRICHwall->GetAssemblyID(), (int) mRICHwall->GetImprintsCount(), count);
-      fprintf(outputMapFile,"%d \t",count);
-      fprintf(outputMapFile,"%.3f \t %.3f \t %.3f \t %.3f \t %.3f\n",x, y, z, phi, theta);
-      count++;
-    }//end of for(phi_x)
-  }//end of for(phi_y)
-  fclose(outputMapFile);
+      else
+      { 
+	break;  // error
+      }
+    }
+  }
+  else
+  {
+    std::perror("Error opening file mRICHWallMap.txt!!!!!");
+  }
 
   G4ThreeVector pos(0, 0, 0);
   mRICHwall->MakeImprint(logicWorld,pos,NULL,0,overlapcheck);
 
   printf("-----------------------------------------------------------------------------\n");
-  printf("%d detectors are built\n",count);
+  printf("%d detectors are built\n",counter_mRICH);
   printf("-----------------------------------------------------------------------------\n");
 }
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector)
 {
-  //build a single mRICH, and get halfWidth (x/y direction) 
-  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0);
-  G4Box* mRICH_box=dynamic_cast<G4Box*>(a_mRICH->GetSolid());
-  G4double halfWidth=mRICH_box->GetXHalfLength();
-  G4double halfLength=mRICH_box->GetZHalfLength();
-
-  //input parameter for the sector
-  G4double phi_min=2*atan(exp(-1*params->get_double_param("eta_max")));
-  G4double phi_max=2*atan(exp(-1*params->get_double_param("eta_min")));
-  G4double z=3*m;   //params->get_double_param("sector_posz")*m;
-  G4double d=0.5*m; //params->get_double_param("sector_d")*m;
- 
-  //parameters for the sector
-  G4double y_min,y_max;
-  G4double h, w, theta, slope;//m;
-  G4double x, y;                    //center of the detector
-  G4double x_max;                   //half length of a row in x direction
-  int n;
-  G4ThreeVector pos;
-
-  y_min=z*tan(phi_min);            //this is correct
-  //y_min=phi_min*0;               //testing
-  h=(z-d)*tan(phi_max)-y_min;
-  w=(h+y_min)*tan((45/2)*pi/180);
-  theta=atan(d/h);                 //in radian
-  y_max=sqrt(h*h+d*d)+y_min;
-  slope=y_max/w;                       //slope of the edge of each sector
-
-  //--------------- a single sector ---------------//
   G4AssemblyVolume* sector = new G4AssemblyVolume();   //"mother volume"
-  for (y=y_min+halfWidth; y<=y_max-halfWidth; y=y+2*halfWidth) {
-    x_max=(G4double)(y-halfWidth)/slope;            //half length of a row
-    n=floor(x_max/halfWidth);
-    x_max=(G4double)(n-1)*halfWidth;      //max x-coordinate of the center of a module in a row
-                                          //adjusting value of x_max to make the sector symmetric
-                                          //add 1cm gap as a temporary solution to due with
-                                          //overlapping on the edge
 
-    
-    for (x=-x_max; x<=x_max+1*mm; x=x+2*halfWidth) {  //+1mm because somehow the statement "x<=x_max"
-                                                      //doesn't work properly. floating number?
-      //cout<<x<<" ";
-      pos=G4ThreeVector(x,y,halfLength);              //align at the front of mRICH
-      //pos=G4ThreeVector(x,y,halfLength+z);      
+  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
+  std::ifstream inputmap; // read in mRICH placement map
+  inputmap.open("/gpfs/mnt/gpfs04/sphenix/user/xusun/mRICH_sPHENIX/mRICHSectorMap.txt");
 
-      sector->AddPlacedVolume( a_mRICH, pos, 0);
-    } //end of for(x)
-  } //end of for (y)
-  //--------------- compose all sectors ---------------//
-  G4ThreeVector pos2(0.0*m, 0.0*m, 3.0*m);    //w.r.t. the logicWorld
-                                                            //not working properly, need to be fixed
-  for (int i=0;i<numSector;i++) {
+  G4double module_id, x, y , z, theta;
+  G4int counter_mRICH = 0;
+
+  if( inputmap.is_open() )
+  {
+    std::string map_mRICH;
+    while(!inputmap.eof()) // To get you all the lines.
+    {
+      std::getline(inputmap, map_mRICH);
+      std::istringstream coordinate_mRICH(map_mRICH);
+      if( coordinate_mRICH >> module_id >> x >> y >> z >> theta ) 
+      {
+	G4ThreeVector pos(x,y,z);
+	G4RotationMatrix* rot=new G4RotationMatrix();
+
+	sector->AddPlacedVolume( a_mRICH, pos, rot);
+	cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << ", theta = " << theta << endl;
+	counter_mRICH++;
+      }
+      else
+      { 
+	break;  // error
+      }
+    }
+  }
+  else
+  {
+    std::perror("Error opening file mRICHSectorMap.txt!!!!!");
+  }
+
+ 
+  for(int i=0;i<numSector;i++) 
+  {
+    G4ThreeVector pos(0, 0, 3.0*m);
     G4RotationMatrix* rot=new G4RotationMatrix();
     rot->rotateX(-theta*180*deg/pi);
     rot->rotateZ(i*45*deg);
-    sector->MakeImprint(logicWorld, pos2, rot, 0, overlapcheck);
+    sector->MakeImprint(logicWorld, pos, rot, 0, overlapcheck);
   }
 }
 

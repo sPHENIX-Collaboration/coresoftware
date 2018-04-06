@@ -93,7 +93,8 @@ bool PHG4mRICHSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     // cout << "Name of grand mother volume: " << v2->GetName() << endl;
 
     // cout << "copyNum = " << touch->GetReplicaNumber() << ", Or = " << touch->GetReplicaNumber(1) << ", Or = " << touch->GetReplicaNumber(2) << ", Or = " << touch->GetReplicaNumber(3) << endl;
-    int module_id=GetModuleID(touch->GetVolume(2)); // use mother volume to determine module_id
+    // int module_id=GetModuleID(touch->GetVolume(2)); // use mother volume to determine module_id
+    int module_id = touch->GetReplicaNumber(2)-1; // use copy number of mother volume to determine module_id
     int PID=aTrack->GetDefinition()->GetPDGEncoding();
     string PName = aTrack->GetDefinition()->GetParticleName();
 
