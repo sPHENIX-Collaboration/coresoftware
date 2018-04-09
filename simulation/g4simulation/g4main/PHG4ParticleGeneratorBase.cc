@@ -139,7 +139,7 @@ int PHG4ParticleGeneratorBase::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4ParticleGeneratorBase::Print(const std::string &what) const
+void PHG4ParticleGeneratorBase::PrintParticles(const std::string &what) const
 {
   vector<PHG4Particle *>::const_iterator iter;
   int i = 0;
