@@ -16,6 +16,8 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderTemplate_Dict.cc \
   RawClusterBuilderTemplateFEMC.cc \
   RawClusterBuilderTemplateFEMC_Dict.cc \
+  RawClusterBuilderTemplateEEMC.cc \
+  RawClusterBuilderTemplateEEMC_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
   RawClusterPositionCorrection.cc \
@@ -27,7 +29,8 @@ libcalo_reco_la_SOURCES = \
   BEmcCluster.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
-  BEmcRecFEMC.cc
+  BEmcRecFEMC.cc \
+  BEmcRecEEMC.cc
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
