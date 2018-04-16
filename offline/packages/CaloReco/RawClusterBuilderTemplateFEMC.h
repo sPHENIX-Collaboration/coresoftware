@@ -28,7 +28,6 @@ class RawClusterBuilderTemplateFEMC : public SubsysReco {
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
-  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergemom);
   bool Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float& phi, float& eta);
 
   RawClusterContainer* _clusters;
