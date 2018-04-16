@@ -50,8 +50,9 @@ class BEmcRec
   void SetGeometry(int nx, int ny, float txsz, float tysz);
   //  void SetGeometry(SecGeom const &geom, PHMatrix * rm, PHVector * tr );
   void SetConf(int nx, int ny) { SetGeometry(nx, ny, 1., 1.); }
-  void SetTowerGeometry(int ich, float xx, float yy, float zz);
-  void PrintTowerGeometry();
+  bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz);
+  bool GetTowerGeometry(int ix, int iy, TowerGeom& geom);
+  void PrintTowerGeometry(const char* fname);
 
   void SetPlaneGeometry() { bCYL=false; }
   void SetCylindricalGeometry() { bCYL=true; }
@@ -130,7 +131,6 @@ class BEmcRec
   static void ZeroVector(int*, int);
   static void ZeroVector(float*, int);
   static void ZeroVector(EmcModule*, int);
-  static void ResizeVector(int* , int, int);
   static void c3to5(float, float, float, float, float, float, float*, float*,
 		    float*,  float*, float*, float*);
 
