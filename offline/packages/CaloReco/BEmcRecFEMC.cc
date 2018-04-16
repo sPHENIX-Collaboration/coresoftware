@@ -13,70 +13,83 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
 
   xA = yA = zA = 0;
 
-  int ich;
-  std::map<int,TowerGeom>::iterator it;
-
   int ix = xC+0.5; // tower #
   if( ix<0 || ix >= fNx ) {
-    printf("Error in BEmcRec::SectorToGlobal: wrong input x: %d\n",ix);
+    printf("Error in BEmcRecEEMC::SectorToGlobal: wrong input x: %d\n",ix);
     return;
   }
 
   int iy = yC+0.5; // tower #
   if( iy<0 || iy >= fNy ) {
-    printf("Error in BEmcRec::SectorToGlobal: wrong input y: %d\n",iy);
+    printf("Error in BEmcRecEEMC::SectorToGlobal: wrong input y: %d\n",iy);
     return;
   }
-
-  ich = iy*fNx + ix;
-  it = fTowerGeom.find(ich);
-  if( it == fTowerGeom.end() ) {
-    printf("Error in BEmcRec::SectorToGlobal: wrong input (x,y): %f %f\n",xC,yC);
-    return;
-  }
-  TowerGeom geom0 = it->second;
 
   // Next tower in x
-  ich = iy*fNx + (ix+1);
-  it = fTowerGeom.find(ich);
-  if( it == fTowerGeom.end() ) {
-    ich = iy*fNx + (ix-1);
-    it = fTowerGeom.find(ich);
-    if( it == fTowerGeom.end() ) {
-      printf("Error in BEmcRec::SectorToGlobal: Error in geometery extraction for x= %f\n",xC);
-      return;
-    }
+  TowerGeom geomx;
+  int idx = 0;
+  if( ix<fNx/2 ) {
+    idx += 1;
+    while(!GetTowerGeometry(ix+idx,iy,geomx) && idx< fNx/2) idx += 1;
   }
-  TowerGeom geomx = it->second;
+  else {
+    idx -= 1;
+    while(!GetTowerGeometry(ix+idx,iy,geomx) && idx>-fNx/2) idx -= 1;
+  }
+  if( idx>=fNx/2 || idx<=-fNx/2 ) {
+    printf("Error in BEmcRecEEMC::Tower2Global: Error in geometery extraction for x= %f (y=%f)\n",xC,yC);
+    return;
+  }
 
   // Next tower in y
-  ich = (iy+1)*fNx + ix;
-  it = fTowerGeom.find(ich);
-  if( it == fTowerGeom.end() ) {
-    ich = (iy-1)*fNx + ix;
-    it = fTowerGeom.find(ich);
-    if( it == fTowerGeom.end() ) {
-      printf("Error in BEmcRec::SectorToGlobal: Error in geometery extraction for y= %f\n",yC);
-      return;
-    }
+  TowerGeom geomy;
+  int idy = 0;
+  if( iy<fNy/2 ) {
+    idy += 1;
+    while(!GetTowerGeometry(ix,iy+idy,geomy) && idy< fNy/2) idy += 1;
   }
-  TowerGeom geomy = it->second;
+  else {
+    idy -= 1;
+    while(!GetTowerGeometry(ix,iy+idy,geomy) && idy>-fNy/2) idy -= 1;
+  }
+  if( idy>=fNy/2 || idy<=-fNy/2 ) {
+    printf("Error in BEmcRecEEMC::Tower2Global: Error in geometery extraction for y= %f (x=%f)\n",yC,xC);
+    return;
+  }
 
-  float dx = fabs(geom0.Xcenter - geomx.Xcenter);
-  float dy = fabs(geom0.Ycenter - geomy.Ycenter);
-  xA = geom0.Xcenter + (xC-ix)*dx;
-  yA = geom0.Ycenter + (yC-iy)*dy;
+  float dx, dy;
+  float Zcenter;
+
+  TowerGeom geom0;
+  if( GetTowerGeometry(ix,iy,geom0) ) { // Found; this is for normal case 
+    dx = (geomx.Xcenter - geom0.Xcenter)/float(idx);
+    dy = (geomy.Ycenter - geom0.Ycenter)/float(idy);
+    xA = geom0.Xcenter + (xC-ix)*dx;
+    yA = geom0.Ycenter + (yC-iy)*dy;
+    Zcenter = geom0.Zcenter;
+  }
+  else { // Not found; weird case (cluster center of gravity outside the EMCal)
+    dx = (geomx.Xcenter - geomy.Xcenter)/float(idx);
+    dy = (geomy.Ycenter - geomx.Ycenter)/float(idy);
+    xA = geomx.Xcenter + (xC-ix)*dx - dx*idx;
+    yA = geomx.Ycenter + (yC-iy)*dy; // Here I take Ycenter from geomx!
+    Zcenter = geomx.Zcenter;
+    //    printf("BEmcRecEEMC::Tower2Global: CG outside EMCal: input=(%f,%f), tower ind=(%d,%d); dd=(%d,%d); global=(%f,%f)\n",xC,yC,ix,iy,idx,idy,xA,yA);
+  }
 
   float logE = log(0.1);
   if( E>0.1 ) logE = log(E);
-  float Zcenter = geom0.Zcenter - fVz;
-  float cosT = Zcenter/sqrt(xA*xA+yA*yA+Zcenter*Zcenter);
-  zA = (geom0.Zcenter-DZ) + (D+X0*logE)*cosT;
+  float ZcenterV = Zcenter - fVz;
+  float cosT = fabs(ZcenterV)/sqrt(xA*xA+yA*yA+ZcenterV*ZcenterV);
+  zA = (Zcenter-DZ) + (D+X0*logE)*cosT;
+
+  //  zA = Zcenter; //!!!!!
 }
 
 void BEmcRecFEMC::CorrectEnergy(float Energy, float x, float y, 
 				   float* Ecorr)
 {
+  *Ecorr = Energy;
 }
 
 float BEmcRecFEMC::GetImpactAngle(float e, float x, float y)
