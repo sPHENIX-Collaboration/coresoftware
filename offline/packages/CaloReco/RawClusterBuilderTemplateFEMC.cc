@@ -123,12 +123,11 @@ int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
       int iy = RawTowerDefs::decode_index2(towerid);
       ix -= BINX0;
       iy -= BINY0;
-      int ich = iy*NBINX + ix;
-      bemc->SetTowerGeometry(ich,towerg->get_center_x(),towerg->get_center_y(),towerg->get_center_z());
+      bemc->SetTowerGeometry(ix,iy,towerg->get_center_x(),towerg->get_center_y(),towerg->get_center_z());
     }
   }
 
-  //  bemc->PrintTowerGeometry();
+  //  bemc->PrintTowerGeometry("geom_femc.txt");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -303,8 +302,9 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
 
       pp->GetGlobalPos(xout,yout,zout);
 
-      prob = pp->GetProb(chi2,ndf);
-      //      printf("Prob/Chi2/NDF= %f %f %d Ecl=%f\n",prob,chi2,ndf,ecl);
+      //      prob = pp->GetProb(chi2,ndf);
+      prob = 0; // !!! No prob for EEMC yet; makes sence only for proj. geom.
+      ndf = 0;
 
       cluster = new RawClusterv1();
       cluster->set_energy(ecl);
@@ -343,55 +343,6 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-
-bool RawClusterBuilderTemplateFEMC::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
-{
-  double sum = cluster->get_energy();
-  double phimin = 999.;
-  double phimax = -999.;
-  RawCluster::TowerConstRange begin_end = cluster->get_towers();
-  RawCluster::TowerConstIterator iter;
-  for (iter =begin_end.first; iter != begin_end.second; ++iter)
-    { 
-      RawTower* tmpt = towers->getTower(iter->first);
-      double phi = towergeom->get_phicenter(tmpt->get_binphi());
-      if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
-      if (phi < phimin)
-        {
-          phimin = phi;
-        }
-      if (phi > phimax)
-        {
-          phimax = phi;
-        }
-    }
-
-  if ((phimax - phimin) < 3.) return false; // cluster is not at phi discontinuity
-
-  float mean = 0.;
-  for (iter =begin_end.first; iter != begin_end.second; ++iter)
-    { 
-      RawTower* tmpt = towers->getTower(iter->first);
-      double e = tmpt->get_energy();
-      double phi = towergeom->get_phicenter(tmpt->get_binphi());
-      if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
-      if (phi < 0.)
-        {
-          phi = phi + 2.*M_PI;  // shift phi range for correct mean calculation
-        }
-      mean += e * phi;
-    }
-  mean = mean / sum;
-  if (mean > M_PI)
-    {
-      mean = mean - 2.*M_PI;  // shift back
-    }
-
-  cluster->set_phi(mean);
-
-  return true; // mean phi was corrected
 }
 
 
