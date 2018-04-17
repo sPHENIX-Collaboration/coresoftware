@@ -424,7 +424,7 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   double bottom_ymiddle_steel_tile = (steel_plate_corner_lower_left.y()+steel_plate_corner_lower_right.y())/2.;
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
 //  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
-  double philow = atan((bottom_ymiddle_steel_tile-(scinti_gap*7./8.))/bottom_xmiddle_steel_tile);
+  double philow = atan((bottom_ymiddle_steel_tile-(scinti_gap*25./32.))/bottom_xmiddle_steel_tile);
 
 /*
   double scinti_left_middle_x = (scinti_corner_upper_left.x() + scinti_corner_lower_left.x())/2.;
@@ -448,8 +448,8 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
       innerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
       if (i > 0)
 	{
-	  double ypos = sin(phi+philow) * middlerad;
-	  double xpos = cos(phi+philow) * middlerad;
+	  double ypos = sin(phi+philow) * (middlerad-0.14*cm);
+	  double xpos = cos(phi+philow) * (middlerad-0.14*cm);
 	  name.str("");
 	  name << "InnerHcalScintiBox_" << i;
 	  Rot = new G4RotationMatrix();
