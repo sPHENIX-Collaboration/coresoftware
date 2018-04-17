@@ -157,6 +157,7 @@ pkginclude_HEADERS = \
   PHG4TrackUserInfoV1.h \
   PHG4TruthInfoContainer.h \
   PHG4TruthSubsystem.h \
+  PHG4Units.h \
   PHG4Utils.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h
