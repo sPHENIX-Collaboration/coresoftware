@@ -1,15 +1,16 @@
-#include "BEmcRecFEMC.h"
+#include "BEmcRecEEMC.h"
 #include "BEmcCluster.h"
 
 #include <cmath>
 
-void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
+void BEmcRecEEMC::Tower2Global(float E, float xC, float yC,
 				 float& xA, float& yA, float& zA ) 
 // With shower depth correction reflected in zA
 {
-  const float DZ = 18; // in cm, tower half length
-  const float D = 13.3; // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
-  const float X0 = 2.2; // in cm; obtained from GEANT (should be ~ rad length)
+  // DZ, D and X0 should be negative for -Z direction
+  const float DZ = -9; // in cm, tower half length
+  const float D = -6.1; // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
+  const float X0 = -0.91; // in cm; obtained from GEANT (should be ~ rad length)
 
   xA = yA = zA = 0;
 
@@ -86,13 +87,13 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
   //  zA = Zcenter; //!!!!!
 }
 
-void BEmcRecFEMC::CorrectEnergy(float Energy, float x, float y, 
+void BEmcRecEEMC::CorrectEnergy(float Energy, float x, float y, 
 				   float* Ecorr)
 {
   *Ecorr = Energy;
 }
 
-float BEmcRecFEMC::GetImpactAngle(float e, float x, float y)
+float BEmcRecEEMC::GetImpactAngle(float e, float x, float y)
 // Get impact angle, (x,y) - position in Sector frame (cm)
 {
   /*
@@ -109,37 +110,20 @@ float BEmcRecFEMC::GetImpactAngle(float e, float x, float y)
   return 0;
 }
 
-void BEmcRecFEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
+void BEmcRecEEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
 {
   // Corrects the EM Shower Core Energy for attenuation in fibers, 
   // long energy leakage and angle dependance
   //
   // (x,y) - shower CG in tower units (not projected anywhere!)
   
-  //  *Ecorr = Ecore;
-  float ec, ec2, corr;
-  const float par1 = 0.938;
-  const float par2 = 0.50;
-  const float par3 = 0.067;
-
   *Ecorr = Ecore;
-  if( Ecore < 0.01 ) return;
-
-  float xA, yA, zA;
-  Tower2Global(Ecore/0.91, x, y, xA, yA, zA); // 0.91 - average correction
-  float tanT = sqrt(xA*xA+yA*yA)/fabs(zA-fVz);
-  corr = par1 * ( 1 - tanT*tanT*tanT*(par2 + par3*log(Ecore)) );
-  ec = Ecore/corr;
-
-  //  CorrectEnergy( ec, x, y, &ec2);
-  ec2 = ec; // !!!!! CorrectEnergy must be implemented
-  *Ecorr = ec2;
 }
 
-void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
+void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
 				     float* pxc, float* pyc )
 {
-  // Corrects the Shower Center of Gravity for the systematic error due to 
+  // Corrects the Shower Center of Gravity for the systematic shift due to 
   // the limited tower size
   //
   // Everything here is in tower units. 
@@ -163,19 +147,18 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   float sin2Tx = sinTx*sinTx;
   float sin2Ty = sinTy*sinTy;
 
-  if( sinTx > 0 ) xZero= -0.417 *sinTx - 1.500 * sin2Tx ;
-  else            xZero= -0.417 *sinTx + 1.500 * sin2Tx ;
+  if( sinTx > 0 ) xZero= -0.6 *sinTx - 1.500 * sin2Tx ;
+  else            xZero= -0.6 *sinTx + 1.500 * sin2Tx ;
 
-  if( sinTy > 0 ) yZero = -0.417 * sinTy - 1.500 * sin2Ty;
-  else            yZero = -0.417 * sinTy + 1.500 * sin2Ty;
+  xZero = -xZero; // Because tower index in X decreases with increasing X in EEMC
+
+  if( sinTy > 0 ) yZero = -0.6 * sinTy - 1.5 * sin2Ty;
+  else            yZero = -0.6 * sinTy + 1.5 * sin2Ty;
 
   t = 0.98 + 0.98*sqrt(Energy);
   t *= 0.7; // Temp correction
-  bx = 0.17-0.009*log(Energy) + t*sin2Tx;
-  by = 0.17-0.009*log(Energy) + t*sin2Ty;
-
-  //  xZero *= 0.5;
-  //  yZero *= 0.5;
+  bx = 0.20-0.009*log(Energy) + t*sin2Tx;
+  by = 0.20-0.009*log(Energy) + t*sin2Ty;
   
   x0 = x + xZero;
   ix0 = EmcCluster::lowint(x0 + 0.5);
@@ -186,7 +169,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   }
   else {
     *pxc =  x;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: x=%f  dx=%f\n", x, x0-ix0);
+    printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: x=%f  dx=%f\n", x, x0-ix0);
   }
 
   y0 = y + yZero;
@@ -198,7 +181,7 @@ void BEmcRecFEMC::CorrectPosition(float Energy, float x, float y,
   }
   else {
     *pyc = y;
-    printf("????? Something wrong in BEmcRecFEMC::CorrectPosition: y=%f  dy=%f\n", y, y0-iy0);
+    printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: y=%f  dy=%f\n", y, y0-iy0);
   }
   
 }

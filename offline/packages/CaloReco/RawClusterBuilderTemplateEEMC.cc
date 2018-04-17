@@ -1,6 +1,6 @@
-#include "RawClusterBuilderTemplateFEMC.h"
+#include "RawClusterBuilderTemplateEEMC.h"
 
-#include "BEmcRecFEMC.h"
+#include "BEmcRecEEMC.h"
 #include "BEmcCluster.h"
 
 #include <calobase/RawClusterContainer.h>
@@ -23,12 +23,12 @@
 using namespace std;
 
 
-RawClusterBuilderTemplateFEMC::~RawClusterBuilderTemplateFEMC()
+RawClusterBuilderTemplateEEMC::~RawClusterBuilderTemplateEEMC()
 {
   delete bemc;
 }
 
-RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string& name):
+RawClusterBuilderTemplateEEMC::RawClusterBuilderTemplateEEMC(const std::string& name):
   SubsysReco( name ),
   _clusters(NULL),
   _min_tower_e(0.020),
@@ -42,7 +42,7 @@ RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string& 
   Zcenter = 0;
 
   fEnergyNorm = 1.;
-  bemc = new BEmcRecFEMC();
+  bemc = new BEmcRecEEMC();
   //
   // Some initial values for clustering
   //
@@ -56,7 +56,7 @@ RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string& 
   bemc->SetTowerThreshold(0);
 }
 
-int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
+int RawClusterBuilderTemplateEEMC::InitRun(PHCompositeNode *topNode)
 {
   try
     {
@@ -87,22 +87,19 @@ int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
   for (; itr_geom != begin_end_geom.second; ++itr_geom) {
     RawTowerGeom *towerg = itr_geom->second;
     RawTowerDefs::keytype towerid = towerg->get_id();
-    int itype = towerg->get_tower_type();
-    if( itype==2 ) { // PbSc
-      int ix = RawTowerDefs::decode_index1(towerid);
-      int iy = RawTowerDefs::decode_index2(towerid);
-      if( ixmin>ix ) ixmin=ix;
-      if( ixmax<ix ) ixmax=ix;
-      if( iymin>iy ) iymin=iy;
-      if( iymax<iy ) iymax=iy;
-      sz += towerg->get_center_z();
-      ngeom++;
-    }
+    int ix = RawTowerDefs::decode_index1(towerid);
+    int iy = RawTowerDefs::decode_index2(towerid);
+    if( ixmin>ix ) ixmin=ix;
+    if( ixmax<ix ) ixmax=ix;
+    if( iymin>iy ) iymin=iy;
+    if( iymax<iy ) iymax=iy;
+    sz += towerg->get_center_z();
+    ngeom++;
   }
   Zcenter = 305.;
   if( ngeom>0 ) Zcenter = sz/ngeom;
 
-  //  printf("************* Init FEMC: N of geom towers: %d; ix=%d-%d iy=%d-%d Zcenter=%f\n",ngeom,ixmin,ixmax,iymin,iymax,Zcenter);
+  //  printf("************* Init EEMC: N of geom towers: %d; ix=%d-%d iy=%d-%d Zcenter=%f\n",ngeom,ixmin,ixmax,iymin,iymax,Zcenter);
 
   if( ixmax<ixmin || iymax<iymin ) return Fun4AllReturnCodes::ABORTEVENT;
 
@@ -117,32 +114,29 @@ int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
   for (; itr_geom != begin_end_geom.second; ++itr_geom) {
     RawTowerGeom *towerg = itr_geom->second;
     RawTowerDefs::keytype towerid = towerg->get_id();
-    int itype = towerg->get_tower_type();
-    if( itype==2 ) { // PbSc
-      int ix = RawTowerDefs::decode_index1(towerid);
-      int iy = RawTowerDefs::decode_index2(towerid);
-      ix -= BINX0;
-      iy -= BINY0;
-      bemc->SetTowerGeometry(ix,iy,towerg->get_center_x(),towerg->get_center_y(),towerg->get_center_z());
-    }
+    int ix = RawTowerDefs::decode_index1(towerid);
+    int iy = RawTowerDefs::decode_index2(towerid);
+    ix -= BINX0;
+    iy -= BINY0;
+    bemc->SetTowerGeometry(ix,iy,towerg->get_center_x(),towerg->get_center_y(),towerg->get_center_z());
   }
 
-  //  bemc->PrintTowerGeometry("geom_femc.txt");
+  //  bemc->PrintTowerGeometry("geom_eemc.txt");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-bool RawClusterBuilderTemplateFEMC::Cell2Abs(RawTowerGeomContainer *towergeom, float xC, float yC, float& xA, float& yA)
+bool RawClusterBuilderTemplateEEMC::Cell2Abs(RawTowerGeomContainer *towergeom, float xC, float yC, float& xA, float& yA)
 {
   int ix = xC+0.5; // tower #
   if( ix<0 || ix >= NBINX ) {
-    printf("RawClusterBuilderTemplateFEMC::Cell2Abs: wrong input x: %d\n",ix);
+    printf("RawClusterBuilderTemplateEEMC::Cell2Abs: wrong input x: %d\n",ix);
     return false;
   }
 
   int iy = yC+0.5; // tower #
   if( iy<0 || iy >= NBINY ) {
-    printf("RawClusterBuilderTemplateFEMC::Cell2Abs: wrong input y: %d\n",iy);
+    printf("RawClusterBuilderTemplateEEMC::Cell2Abs: wrong input y: %d\n",iy);
     return false;
   }
 
@@ -159,7 +153,7 @@ bool RawClusterBuilderTemplateFEMC::Cell2Abs(RawTowerGeomContainer *towergeom, f
     key = RawTowerDefs::encode_towerid(towergeom->get_calorimeter_id(), ix-1, iy);
     geomx = towergeom->get_tower_geometry(key); 
     if( geomx == NULL ) {
-      printf("RawClusterBuilderTemplateFEMC::Cell2Abs: error in geometry extraction: %d %d\n",ix, iy);
+      printf("RawClusterBuilderTemplateEEMC::Cell2Abs: error in geometry extraction: %d %d\n",ix, iy);
       return false;
     }
   }
@@ -171,7 +165,7 @@ bool RawClusterBuilderTemplateFEMC::Cell2Abs(RawTowerGeomContainer *towergeom, f
     key = RawTowerDefs::encode_towerid(towergeom->get_calorimeter_id(), ix, iy-1);
     geomy = towergeom->get_tower_geometry(key); 
     if( geomy == NULL ) {
-      printf("RawClusterBuilderTemplateFEMC::Cell2Abs: error in geometry extraction: %d %d\n",ix, iy);
+      printf("RawClusterBuilderTemplateEEMC::Cell2Abs: error in geometry extraction: %d %d\n",ix, iy);
       return false;
     }
   }
@@ -186,7 +180,7 @@ bool RawClusterBuilderTemplateFEMC::Cell2Abs(RawTowerGeomContainer *towergeom, f
   return true;
 }
 
-int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
+int RawClusterBuilderTemplateEEMC::process_event(PHCompositeNode *topNode)
 {
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
@@ -278,11 +272,13 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
 
     //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
 
-    for( pp=pPList->begin(); pp!=pPList->end(); ++pp){
+    for( pp=pPList->begin(); pp!=pPList->end(); pp++){
 
       // Cluster energy
       ecl = pp->GetTotalEnergy();
-      ecore = pp->GetECoreCorrected();
+      //      ecore = pp->GetECoreCorrected();
+      ecore = ecl; // !!! No ecore for EEMC (spoils resolution)
+
       // 3x3 energy around center of gravity
       //e9 = pp->GetE9();
       // Ecore (basically near 2x2 energy around center of gravity)
@@ -324,9 +320,6 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
 	ich = (*ph).ich;
 	iy = ich/NBINX;
 	ix = ich%NBINX;
-	// that code needs a closer look - here are the towers 
-	// with their energy added to the cluster object where 
-	// the id is the tower id
 	// !!!!! Make sure twrkey is correctly extracted 
 	RawTowerDefs::keytype twrkey = RawTowerDefs::encode_towerid( towers->getCalorimeterID(), ix+BINX0 , iy+BINY0 );
 	//	printf("%d %d: %d e=%f\n",iphi,ieta,twrkey,(*ph).amp);
@@ -345,13 +338,12 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
-int RawClusterBuilderTemplateFEMC::End(PHCompositeNode *topNode)
+int RawClusterBuilderTemplateEEMC::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void RawClusterBuilderTemplateFEMC::CreateNodes(PHCompositeNode *topNode)
+void RawClusterBuilderTemplateEEMC::CreateNodes(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 

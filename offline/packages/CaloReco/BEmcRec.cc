@@ -102,10 +102,17 @@ void  BEmcRec::SetGeometry( int nx, int ny, float txsz, float tysz )
   fModSizey = tysz;
 }
 
-void  BEmcRec::PrintTowerGeometry()
+void  BEmcRec::PrintTowerGeometry(const char* fname)
 {
-  printf("Info: Print from BEmcRec::PrintTowerGeometry():\n");
-  printf("      Number of binx: %d %d\n",fNx,fNy);
+  FILE *pf = fopen(fname,"w");
+  if( !pf ) {
+    printf("Error in BEmcRec::PrintTowerGeometry(): Failed to open file %s\n",fname);
+    return;
+  }
+
+  //  printf("Info: Print from BEmcRec::PrintTowerGeometry():\n");
+  //  printf("      Number of bins: %d %d\n",fNx,fNy);
+  fprintf(pf,"Number of bins: %d %d\n",fNx,fNy);
   int ich;
   TowerGeom geom;
   std::map<int,TowerGeom>::iterator it;
@@ -115,27 +122,39 @@ void  BEmcRec::PrintTowerGeometry()
       it = fTowerGeom.find(ich);
       if( it != fTowerGeom.end() ) {
 	geom = it->second;
-	printf("       %d %d: %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
+	//	printf("       %d %d: %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
+	fprintf(pf,"%d %d %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
       }
     }
   }
-  /*
-  std::map<int,float>::iterator it = mapOfWords.begin();
-  while(it != mapOfWords.end()) {
-      std::cout<<it->first<<" :: "<<it->second<<std::endl;
-      it++;
-    }
-  */
+
+  fclose(pf);
 }
 
-void  BEmcRec::SetTowerGeometry( int ich, float xx, float yy, float zz )
+bool BEmcRec::GetTowerGeometry( int ix, int iy, TowerGeom& geom )
 {
+  if( ix < 0 || ix >= fNx || iy < 0 || iy >= fNy ) return false;
+
+  int ich = iy*fNx + ix;
+  std::map<int,TowerGeom>::iterator it = fTowerGeom.find(ich);
+  if( it == fTowerGeom.end() ) return false; 
+
+  geom = it->second;
+  return true;
+}
+
+bool BEmcRec::SetTowerGeometry( int ix, int iy, float xx, float yy, float zz )
+{
+  if( ix < 0 || ix >= fNx || iy < 0 || iy >= fNy ) return false;
+
   TowerGeom geom;
   geom.Xcenter = xx;
   geom.Ycenter = yy;
   geom.Zcenter = zz;
 
+  int ich = iy*fNx + ix;
   fTowerGeom[ich] = geom;
+  return true;
 }
 
 /*
@@ -261,6 +280,8 @@ int BEmcRec::FindClusters()
       ie=ich-1;
       next=ich;
       if( nCl >= fgMaxLen ) {
+	delete [] vhit;
+	delete [] vt;
 	return -1;
       }
       nCl++;
@@ -769,24 +790,6 @@ void BEmcRec::ZeroVector(EmcModule* v, int N)
   for(int i=0; i<N; i++){ v[i].ich=0; v[i].amp=0; v[i].tof=0; }
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-
-void BEmcRec::ResizeVector(int* Vector, int OldSize, int NewSize)
-{
-
-  int* vsave;
-
-  if( OldSize <= 0 ) { Vector = new int[NewSize]; return; }
-  vsave = new int[OldSize];
-  CopyVector( Vector, vsave, OldSize );
-  delete [] Vector;
-  Vector = new int[NewSize];
-  if( NewSize > OldSize ) CopyVector( vsave, Vector, OldSize );
-  else 			CopyVector( vsave, Vector, NewSize );
-  delete [] vsave;
-  return;
-
-}
 
 // ///////////////////////////////////////////////////////////////////////////
 

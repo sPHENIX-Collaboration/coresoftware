@@ -1,5 +1,5 @@
-#ifndef RawClusterBuilderTemplateFEMC_H__
-#define RawClusterBuilderTemplateFEMC_H__
+#ifndef RawClusterBuilderTemplateEEMC_H__
+#define RawClusterBuilderTemplateEEMC_H__
 
 #include <fun4all/SubsysReco.h>
 #include <string>
@@ -9,13 +9,13 @@ class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
-class BEmcRecFEMC;
+class BEmcRecEEMC;
 
-class RawClusterBuilderTemplateFEMC : public SubsysReco {
+class RawClusterBuilderTemplateEEMC : public SubsysReco {
 
  public:
-  RawClusterBuilderTemplateFEMC(const std::string& name = "RawClusterBuilderGraph");
-  virtual ~RawClusterBuilderTemplateFEMC();
+  RawClusterBuilderTemplateEEMC(const std::string& name = "RawClusterBuilderGraph");
+  virtual ~RawClusterBuilderTemplateEEMC();
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -32,7 +32,7 @@ class RawClusterBuilderTemplateFEMC : public SubsysReco {
 
   RawClusterContainer* _clusters;
 
-  BEmcRecFEMC* bemc;
+  BEmcRecEEMC* bemc;
   float fEnergyNorm;
 
   float _min_tower_e;
@@ -48,4 +48,4 @@ class RawClusterBuilderTemplateFEMC : public SubsysReco {
   float Zcenter;
 };
 
-#endif /* RawClusterBuilderTemplateFEMC_H__ */
+#endif /* RawClusterBuilderTemplateEEMC_H__ */
