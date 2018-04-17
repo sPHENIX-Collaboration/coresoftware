@@ -423,7 +423,6 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   double bottom_xmiddle_steel_tile = (steel_plate_corner_lower_right.x()+steel_plate_corner_lower_left.x())/2.;
   double bottom_ymiddle_steel_tile = (steel_plate_corner_lower_left.y()+steel_plate_corner_lower_right.y())/2.;
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
-//  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
   double philow = atan((bottom_ymiddle_steel_tile-(scinti_gap*25./32.))/bottom_xmiddle_steel_tile);
 
 /*
@@ -437,14 +436,18 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   double philow = atan((midpoint_y-scinti_gap/2.)/midpoint_x);
 */
   double scintiangle = GetScintiAngle();
-  //for (int i = 0; i < n_steel_plates; i++)
-         for (int i = 0; i < 2; i++)
+  cout << "deltaphi: " << deltaphi/deg << endl;
+  deltaphi +=0.00125*deltaphi;
+  double xstart = 0;
+  double xoff = 0.015*cm;
+  for (int i = 0; i < n_steel_plates; i++)
+    //       for (int i = 0; i < 2; i++)
     {
       name.str("");
       name << "InnerHcalSteel_" << i;
       G4RotationMatrix *Rot = new G4RotationMatrix();
       Rot->rotateZ(phi*rad);
-      G4ThreeVector g4vec(0,0,0);
+      G4ThreeVector g4vec(xstart,0,0);
       innerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
       if (i > 0)
 	{
@@ -454,25 +457,13 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
 	  name << "InnerHcalScintiBox_" << i;
 	  Rot = new G4RotationMatrix();
 	  Rot->rotateZ(scintiangle+phislat);
-	  cout << "scintiangle: " << scintiangle/deg << " cur: " << (scintiangle+phislat)/deg << endl;
-	  G4ThreeVector g4vecsc(xpos, ypos, 0);
+	  G4ThreeVector g4vecsc(xpos+xstart, ypos, 0);
 	  innerhcalassembly->AddPlacedVolume(scintibox,g4vecsc,Rot);
 	  phislat += deltaphi;
 	}
       phi += deltaphi;
+      xstart += xoff;
     }
-      std::vector<G4TwoVector> vertexes;
-      vertexes.push_back(scinti_corner_upper_left);
-      vertexes.push_back(scinti_corner_upper_right);
-      vertexes.push_back(scinti_corner_lower_right);
-      vertexes.push_back(scinti_corner_lower_left);
-      G4TwoVector zero(0, 0);
-  G4VSolid* scintifix = new G4ExtrudedSolid("FIX",
-					 vertexes,
-					 size_z  / 2.0,
-					 zero, 1.0,
-					 zero, 1.0);
- DisplayVolume(scintifix,hcalenvelope);
   return 0;
 }
 
