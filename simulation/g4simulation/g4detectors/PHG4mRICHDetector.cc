@@ -784,48 +784,55 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
   G4AssemblyVolume* mRICHwall = new G4AssemblyVolume();   //"mother volume"
 
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
-  std::ifstream inputmap; // read in mRICH placement map
-  inputmap.open("/gpfs/mnt/gpfs04/sphenix/user/xusun/mRICH_sPHENIX/mRICHWallMap.txt");
 
-  G4double module_id, x, y , z, theta, phi;
-  G4int counter_mRICH = 0;
+  int NumOfModule = params->get_int_param("NumOfModule_wall_hside");
 
-  if( inputmap.is_open() )
+  for(int i_mRICH = 0; i_mRICH < NumOfModule; ++i_mRICH)
   {
-    std::string map_mRICH;
-    while(!inputmap.eof()) // To get you all the lines.
-    {
-      std::getline(inputmap, map_mRICH);
-      std::istringstream coordinate_mRICH(map_mRICH);
-      if( coordinate_mRICH >> module_id >> x >> y >> z >> theta >> phi ) 
-      {
-	G4ThreeVector pos(x,y,z);
-	G4RotationMatrix* rot=new G4RotationMatrix();
+    // get moduleID
+    std::stringstream key_moduleID;
+    key_moduleID << "mRICH_wall_hside_" << i_mRICH << "_moduleID";
+    int module_id = params->get_int_param(key_moduleID.str());
 
-	if (x!=0 || y!=0) {
-	  rot->rotateX(theta*(-1)*sin(phi)*180*deg/pi);
-	  rot->rotateY(theta*cos(phi)*180*deg/pi);
-	}
-	mRICHwall->AddPlacedVolume( a_mRICH,pos,rot);
-	// cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << ", theta = " << theta << ", phi = " << phi << endl;
-	counter_mRICH++;
-      }
-      else
-      { 
-	break;  // error
-      }
+    // get position
+    std::stringstream key_position_x;
+    key_position_x << "mRICH_wall_hside_" << i_mRICH << "_position_x";
+    G4double x = params->get_double_param(key_position_x.str());
+
+    std::stringstream key_position_y;
+    key_position_y << "mRICH_wall_hside_" << i_mRICH << "_position_y";
+    G4double y = params->get_double_param(key_position_y.str());
+
+    std::stringstream key_position_z;
+    key_position_z << "mRICH_wall_hside_" << i_mRICH << "_position_z";
+    G4double z = params->get_double_param(key_position_z.str());
+
+    // get rotation
+    std::stringstream key_rotation_theta;
+    key_rotation_theta << "mRICH_wall_hside_" << i_mRICH << "_rotation_theta";
+    G4double theta = params->get_double_param(key_rotation_theta.str());
+
+    std::stringstream key_rotation_phi;
+    key_rotation_phi << "mRICH_wall_hside_" << i_mRICH << "_rotation_phi";
+    G4double phi = params->get_double_param(key_rotation_phi.str());
+
+    // cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << ", theta = " << theta << ", phi = " << phi << endl;
+
+    G4ThreeVector pos(x,y,z);
+    G4RotationMatrix* rot=new G4RotationMatrix();
+
+    if (x!=0 || y!=0) {
+      rot->rotateX(theta*(-1)*sin(phi)*180*deg/pi);
+      rot->rotateY(theta*cos(phi)*180*deg/pi);
     }
-  }
-  else
-  {
-    std::perror("Error opening file mRICHWallMap.txt!!!!!");
+    mRICHwall->AddPlacedVolume(a_mRICH, pos, rot);
   }
 
   G4ThreeVector pos(0, 0, 0);
   mRICHwall->MakeImprint(logicWorld,pos,NULL,0,overlapcheck);
 
   printf("-----------------------------------------------------------------------------\n");
-  printf("%d detectors are built\n",counter_mRICH);
+  printf("%d detectors are built\n",NumOfModule);
   printf("-----------------------------------------------------------------------------\n");
 }
 //________________________________________________________________________//
@@ -834,40 +841,39 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
   G4AssemblyVolume* sector = new G4AssemblyVolume();   //"mother volume"
 
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
-  std::ifstream inputmap; // read in mRICH placement map
-  inputmap.open("/gpfs/mnt/gpfs04/sphenix/user/xusun/mRICH_sPHENIX/mRICHSectorMap.txt");
 
-  G4double module_id, x, y , z, theta;
-  G4int counter_mRICH = 0;
+  G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
 
-  if( inputmap.is_open() )
+  int NumOfModule = params->get_int_param("NumOfModule_sector_hside");
+
+  for(int i_mRICH = 0; i_mRICH < NumOfModule; ++i_mRICH)
   {
-    std::string map_mRICH;
-    while(!inputmap.eof()) // To get you all the lines.
-    {
-      std::getline(inputmap, map_mRICH);
-      std::istringstream coordinate_mRICH(map_mRICH);
-      if( coordinate_mRICH >> module_id >> x >> y >> z >> theta ) 
-      {
-	G4ThreeVector pos(x,y,z);
-	G4RotationMatrix* rot=new G4RotationMatrix();
+    // get moduleID
+    std::stringstream key_moduleID;
+    key_moduleID << "mRICH_sector_hside_" << i_mRICH << "_moduleID";
+    int module_id = params->get_int_param(key_moduleID.str());
 
-	sector->AddPlacedVolume( a_mRICH, pos, rot);
-	cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << ", theta = " << theta << endl;
-	counter_mRICH++;
-      }
-      else
-      { 
-	break;  // error
-      }
-    }
-  }
-  else
-  {
-    std::perror("Error opening file mRICHSectorMap.txt!!!!!");
+    // get position
+    std::stringstream key_position_x;
+    key_position_x << "mRICH_sector_hside_" << i_mRICH << "_position_x";
+    G4double x = params->get_double_param(key_position_x.str());
+
+    std::stringstream key_position_y;
+    key_position_y << "mRICH_sector_hside_" << i_mRICH << "_position_y";
+    G4double y = params->get_double_param(key_position_y.str());
+
+    std::stringstream key_position_z;
+    key_position_z << "mRICH_sector_hside_" << i_mRICH << "_position_z";
+    G4double z = params->get_double_param(key_position_z.str());
+
+    // cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << ", theta = " << theta << endl;
+
+    G4ThreeVector pos(x,y,z);
+    G4RotationMatrix* rot=new G4RotationMatrix();
+
+    sector->AddPlacedVolume( a_mRICH, pos, rot);
   }
 
- 
   for(int i=0;i<numSector;i++) 
   {
     G4ThreeVector pos(0, 0, 3.0*m);
