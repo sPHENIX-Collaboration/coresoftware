@@ -48,27 +48,27 @@ PHG4Prototype3InnerHcalDetector::PHG4Prototype3InnerHcalDetector( PHCompositeNod
   scinti_t9_distance_to_corner(26.44*mm),
   scinti_t9_front_size(140.3*mm),
   scinti_t9_corner_upper_left(0*mm,0*mm),
-  scinti_t9_corner_upper_right(198.1*mm,-134.4*mm),
-  scinti_t9_corner_lower_right(198.1*mm,-198.1*mm/tan(52.02/180.*M_PI)-scinti_t9_front_size),
+  scinti_t9_corner_upper_right(191.*mm,-134.4*191./198.1*mm),
+  scinti_t9_corner_lower_right(191.*mm,-191.*mm/tan(52.02/180.*M_PI)-scinti_t9_front_size),
   scinti_t9_corner_lower_left(0*mm,-scinti_t9_front_size),
 
   scinti_t10_front_size(149.2*mm),
   scinti_t10_corner_upper_left(0*mm,0*mm),
-  scinti_t10_corner_upper_right(198.1*mm,-154.6*mm),
-  scinti_t10_corner_lower_right(198.1*mm,-198.1*mm/tan(48.34/180.*M_PI)-scinti_t10_front_size),
+  scinti_t10_corner_upper_right(191.*mm,-154.6*191./198.1*mm),
+  scinti_t10_corner_lower_right(191.*mm,-191.*mm/tan(48.34/180.*M_PI)-scinti_t10_front_size),
   scinti_t10_corner_lower_left(0*mm,-scinti_t10_front_size),
 
 
   scinti_t11_front_size(144.3*mm),
   scinti_t11_corner_upper_left(0*mm,0*mm),
-  scinti_t11_corner_upper_right(198.1*mm,-176.2*mm),
-  scinti_t11_corner_lower_right(198.1*mm,-198.1*mm/tan(45.14/180.*M_PI)-scinti_t11_front_size),
+  scinti_t11_corner_upper_right(191.*mm,-176.2*191./198.1*mm),
+  scinti_t11_corner_lower_right(191.*mm,-191.*mm/tan(45.14/180.*M_PI)-scinti_t11_front_size),
   scinti_t11_corner_lower_left(0*mm,-scinti_t11_front_size),
 
   scinti_t12_front_size(186.6*mm),
   scinti_t12_corner_upper_left(0*mm,0*mm),
-  scinti_t12_corner_upper_right(198.1*mm,-197.11*mm),
-  scinti_t12_corner_lower_right(198.1*mm,-198.1*mm/tan(41.47/180.*M_PI)-scinti_t12_front_size),
+  scinti_t12_corner_upper_right(191.*mm,-197.11*191./198.1*mm),
+  scinti_t12_corner_lower_right(191.*mm,-191.*mm/tan(41.47/180.*M_PI)-scinti_t12_front_size),
   scinti_t12_corner_lower_left(0*mm,-scinti_t12_front_size),
 
   scinti_x(198.1),
@@ -389,13 +389,7 @@ PHG4Prototype3InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   Rot->rotateX(params->get_double_param("rot_x")*deg);
   Rot->rotateY(params->get_double_param("rot_y")*deg);
   Rot->rotateZ(params->get_double_param("rot_z")*deg);
-  //  ConstructScintiTile9(logicWorld);
-  //    ConstructScintillatorBoxHiEta(logicWorld);
-  //ConstructScintillatorBox(logicWorld);
-  //  return;
   innerhcalassembly = new G4AssemblyVolume();
-  //ConstructSteelPlate(hcal_envelope_log);
-  // return;
   ConstructInnerHcal(logicWorld);
   innerhcalassembly->MakeImprint(logicWorld,g4vec,Rot,0,overlapcheck);
   return;
@@ -425,23 +419,13 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
   double philow = atan((bottom_ymiddle_steel_tile-(scinti_gap*25./32.))/bottom_xmiddle_steel_tile);
 
-/*
-  double scinti_left_middle_x = (scinti_corner_upper_left.x() + scinti_corner_lower_left.x())/2.;
-  double scinti_left_middle_y = (scinti_corner_upper_right.y() + scinti_corner_lower_right.y())/2.;
-  double scinti_right_middle_x = (scinti_corner_upper_right.x() + scinti_corner_lower_right.x())/2.;
-  double scinti_right_middle_y = (scinti_corner_upper_right.y() + scinti_corner_lower_right.y())/2.;
-  double midpoint_x = (scinti_left_middle_x + scinti_right_middle_x)/2.;
-  double midpoint_y = (scinti_left_middle_y + scinti_right_middle_y)/2.;
-  double middlerad = sqrt(midpoint_x*midpoint_x + midpoint_y*midpoint_y);
-  double philow = atan((midpoint_y-scinti_gap/2.)/midpoint_x);
-*/
   double scintiangle = GetScintiAngle();
   cout << "deltaphi: " << deltaphi/deg << endl;
   deltaphi +=0.00125*deltaphi;
   double xstart = 0;
   double xoff = 0.015*cm;
-  for (int i = 0; i < n_steel_plates; i++)
-    //       for (int i = 0; i < 2; i++)
+ for (int i = 0; i < n_steel_plates; i++)
+//           for (int i = 0; i < 2; i++)
     {
       name.str("");
       name << "InnerHcalSteel_" << i;
