@@ -67,7 +67,6 @@ PHG4Prototype3InnerHcalDetector::PHG4Prototype3InnerHcalDetector( PHCompositeNod
   size_z(steel_z),
   scinti_tile_z(steel_z),
   scinti_tile_thickness(7*mm),
-  scinti_box_smaller(0.02*mm), // blargh - off by 20 microns bc scinti tilt angle, need to revisit at some point
   gap_between_tiles(1*mm),
   scinti_gap(10*mm),
   deltaphi(2*M_PI/256.),
@@ -75,14 +74,17 @@ PHG4Prototype3InnerHcalDetector::PHG4Prototype3InnerHcalDetector( PHCompositeNod
   volume_scintillator(NAN),
   scinti_corner_lower_left(45.573*inch,-7.383*inch),
   scinti_corner_lower_right(50.604*inch,-12.972*inch),
-  scinti_corner_upper_left(45.778*inch,-7.198*inch),
-  scinti_corner_upper_right(50.809*inch,-12.787*inch),
+// leave this in in case we ever need those coordinates
+  // scinti_corner_upper_left(45.778*inch,-7.198*inch),
+  // scinti_corner_upper_right(50.809*inch,-12.787*inch),
   n_scinti_plates(16),
   n_steel_plates(n_scinti_plates+1),
   active(params->get_int_param("active")),
   absorberactive(params->get_int_param("absorberactive")),
   layer(0)
-{}
+{
+  deltaphi +=0.00125*deltaphi;
+}
 
 //_______________________________________________________________
 //_______________________________________________________________
@@ -152,7 +154,7 @@ PHG4Prototype3InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 G4LogicalVolume*
 PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* hcalenvelope)
 {
-  G4VSolid* scintiboxsolid = new G4Box("InnerHcalScintiMother",scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
+  G4VSolid* scintiboxsolid = new G4Box("InnerHcalScintiMother",scinti_x/2.,(scinti_gap)/2.,scinti_tile_z/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
 
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String("InnerHcalScintiMother"), 0, 0, 0);
@@ -329,12 +331,14 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
 
   double bottom_xmiddle_steel_tile = (steel_plate_corner_lower_right.x()+steel_plate_corner_lower_left.x())/2.;
   double bottom_ymiddle_steel_tile = (steel_plate_corner_lower_left.y()+steel_plate_corner_lower_right.y())/2.;
-  double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
+// the math is not exact, need to move the middle radius by 14mm to
+// get the upper steel plate right
+  double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile) - 0.14*cm;
   double philow = atan((bottom_ymiddle_steel_tile-(scinti_gap*25./32.))/bottom_xmiddle_steel_tile);
 
   double scintiangle = GetScintiAngle();
-  cout << "deltaphi: " << deltaphi/deg << endl;
-  deltaphi +=0.00125*deltaphi;
+
+// need to shift in x to get the upper steel plate close to right
   double xstart = 0;
   double xoff = 0.015*cm;
  for (int i = 0; i < n_steel_plates; i++)
@@ -348,8 +352,8 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
       innerhcalassembly->AddPlacedVolume(steel_plate,g4vec,Rot);
       if (i > 0)
 	{
-	  double ypos = sin(phi+philow) * (middlerad-0.14*cm);
-	  double xpos = cos(phi+philow) * (middlerad-0.14*cm);
+	  double ypos = sin(phi+philow) * middlerad;
+	  double xpos = cos(phi+philow) * middlerad;
 	  name.str("");
 	  name << "InnerHcalScintiBox_" << i;
 	  Rot = new G4RotationMatrix();
