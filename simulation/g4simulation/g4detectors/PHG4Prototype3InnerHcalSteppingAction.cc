@@ -140,7 +140,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   {
     // cout << "volume: " <<  volume->GetName()
     //      << ", copy id: " << touch->GetCopyNumber() << endl;
-    slat_id = touch->GetCopyNumber()/2+1;  // steel plate id
+    slat_id = touch->GetCopyNumber() / 2 + 1;  // steel plate id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -183,7 +183,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         hit = new PHG4Hitv1();
       }
       hit->set_row(row_id);
-//      if (whichactive > 0)  // only for scintillators
+      //      if (whichactive > 0)  // only for scintillators
       {
         hit->set_scint_id(slat_id);  // the slat id in the mother volume (or steel plate id), the column
       }
