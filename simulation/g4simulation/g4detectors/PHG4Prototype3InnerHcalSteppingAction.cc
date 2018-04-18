@@ -12,6 +12,8 @@
 
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
@@ -70,13 +72,13 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInPrototype2InnerHcal(volume)
+  // detector_->IsInPrototype3InnerHcal(volume)
   // returns
-  //  0 is outside of Prototype2InnerHcal
+  //  0 is outside of Prototype3InnerHcal
   //  1 is inside scintillator
   // -1 is steel absorber
 
-  int whichactive = detector_->IsInPrototype2InnerHcal(volume);
+  int whichactive = detector_->IsInPrototype3InnerHcal(volume);
 
   if (!whichactive)
   {
@@ -86,7 +88,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   int slat_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    // first extract the scintillator id (0-3) from the volume name (OuterScinti_0,1,2,3)
+    // first extract the scintillator id (0-12) from the volume name (OuterScinti_0,1,2,3)
     boost::char_separator<char> sep("_");
     boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
     boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter = tok.begin();
@@ -127,19 +129,17 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         {
           cout << PHWHERE << " Error parsing " << mothervolume->GetName()
                << " for mother scinti slat id " << endl;
-          exit(1);
+          gSystem->Exit(1);
         }
         break;
       }
     }
-    // cout << "mother volume: " <<  mothervolume->GetName()
-    //      << ", volume name " << volume->GetName() << ", row: " << row_id
-    //  	   << ", column: " << slat_id << endl;
+     // cout << "mother volume: " <<  mothervolume->GetName()
+     //      << ", volume name " << volume->GetName() << ", row: " << row_id
+     //  	   << ", column: " << slat_id << endl;
   }
   else
   {
-    // cout << "volume: " <<  volume->GetName()
-    //      << ", copy id: " << touch->GetCopyNumber() << endl;
     slat_id = touch->GetCopyNumber() / 2 + 1;  // steel plate id
   }
   // collect energy and track length step by step
@@ -212,7 +212,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
           (aTrack->GetParticleDefinition()->GetParticleName().find("e-") != string::npos))
         hit->set_hit_type(1);
 
-      if (whichactive > 0)  // return of IsInPrototype2InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+      if (whichactive > 0)  // return of IsInPrototype3InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
         savehitcontainer = hits_;
         hit->set_light_yield(0);  // for scintillator only, initialize light yields
@@ -245,7 +245,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
 
     hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-    if (whichactive > 0)  // return of IsInPrototype2InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+    if (whichactive > 0)  // return of IsInPrototype3InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
       hit->set_eion(hit->get_eion() + eion);
       light_yield = eion;
