@@ -9,6 +9,8 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
@@ -33,17 +35,6 @@ PHG4Prototype3InnerHcalDetector::PHG4Prototype3InnerHcalDetector( PHCompositeNod
   steel_plate_corner_upper_right(1297.94*mm,-349.22*mm), 
   steel_plate_corner_lower_right(1288.18*mm,-357.8*mm),
   steel_plate_corner_lower_left(1157.3*mm,-205.56*mm),
-
-  scinti_u1_front_size(105.9*mm),
-  scinti_u1_corner_upper_left(0*mm,0*mm),
-  scinti_u1_corner_upper_right(198.1*mm,0*mm),
-  scinti_u1_corner_lower_right(198.1*mm,-121.3*mm),
-  scinti_u1_corner_lower_left(0*mm,-scinti_u1_front_size),
-
-  scinti_u2_corner_upper_left(0*mm,0*mm),
-  scinti_u2_corner_upper_right(198.1*mm,-15.4*mm),
-  scinti_u2_corner_lower_right(198.1*mm,-141.5*mm),
-  scinti_u2_corner_lower_left(0*mm,-110.59*mm),
 
   scinti_t9_distance_to_corner(26.44*mm),
   scinti_t9_front_size(140.3*mm),
@@ -219,85 +210,6 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
 }
 
 G4LogicalVolume*
-PHG4Prototype3InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
-{ 
-  G4VSolid* scintiboxsolid = new G4Box("InnerHcalScintiMother",scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
-  //    DisplayVolume(scintiboxsolid,hcalenvelope);
-  G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String("InnerHcalScintiMother"), 0, 0, 0);
-  G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Red());
-  G4LogicalVolume *scintiu1_logic = ConstructScintiTileU1(hcalenvelope);
-  scintiu1_logic->SetVisAttributes(hcalVisAtt);
-
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Cyan());
-  G4LogicalVolume *scintiu2_logic = ConstructScintiTileU2(hcalenvelope);
-  scintiu2_logic->SetVisAttributes(hcalVisAtt);
-  G4RotationMatrix *Rot;  
-  Rot = new G4RotationMatrix();  
-  Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"InnerScinti_0", scintiboxlogical, false, 0, overlapcheck);
-
-  Rot = new G4RotationMatrix();  
-  Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,"InnerScinti_1", scintiboxlogical, false, 0, overlapcheck);
-
-  Rot = new G4RotationMatrix();  
-  Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,gap_between_tiles/2.),scintiu1_logic,"InnerScinti_2", scintiboxlogical, false, 0, overlapcheck);
-
-  Rot = new G4RotationMatrix();  
-  Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,scinti_u1_front_size+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"InnerScinti_3", scintiboxlogical, false, 0, overlapcheck);
-  //  DisplayVolume(scintiboxlogical,hcalenvelope);
-  return scintiboxlogical;
-}
-
-G4LogicalVolume*
-PHG4Prototype3InnerHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenvelope)
-{
-  std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_u1_corner_upper_left);
-  vertexes.push_back(scinti_u1_corner_upper_right);
-  vertexes.push_back(scinti_u1_corner_lower_right);
-  vertexes.push_back(scinti_u1_corner_lower_left);
-  G4TwoVector zero(0, 0);
-  G4VSolid *scintiu1 =  new G4ExtrudedSolid("InnerHcalScintiU1",
-					    vertexes,
-					    scinti_tile_thickness  / 2.0,
-					    zero, 1.0,
-					    zero, 1.0);
-
-  G4LogicalVolume *scintiu1_logic = new G4LogicalVolume(scintiu1,G4Material::GetMaterial("G4_POLYSTYRENE"),"InnerHcalScintiU1", nullptr, nullptr, nullptr);
-  //     DisplayVolume(scintiu1,hcalenvelope);
-  return scintiu1_logic;
-}
-
-G4LogicalVolume*
-PHG4Prototype3InnerHcalDetector::ConstructScintiTileU2(G4LogicalVolume* hcalenvelope)
-{
-  std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_u2_corner_upper_left);
-  vertexes.push_back(scinti_u2_corner_upper_right);
-  vertexes.push_back(scinti_u2_corner_lower_right);
-  vertexes.push_back(scinti_u2_corner_lower_left);
-  G4TwoVector zero(0, 0);
-  G4VSolid *scintiu2 =  new G4ExtrudedSolid("InnerHcalScintiU2",
-					    vertexes,
-					    scinti_tile_thickness  / 2.0,
-					    zero, 1.0,
-					    zero, 1.0);
-
-  G4LogicalVolume *scintiu2_logic = new G4LogicalVolume(scintiu2,G4Material::GetMaterial("G4_POLYSTYRENE"),"InnerHcalScintiU2", nullptr, nullptr, nullptr);
-  //   DisplayVolume(scintiu2,hcalenvelope);
-  return scintiu2_logic;
-}
-
-G4LogicalVolume*
 PHG4Prototype3InnerHcalDetector::ConstructScintiTile9(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
@@ -405,9 +317,10 @@ PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
       scintibox = ConstructScintillatorBoxHiEta(hcalenvelope);
     }
   else
-    {
-      scintibox = ConstructScintillatorBox(hcalenvelope);
-    }
+  {
+    cout << "midrapidity scintillator not implemented" << endl;
+    gSystem->Exit(1);
+  }
   double phi = 0.;
   double phislat = 0.;
   ostringstream name;
