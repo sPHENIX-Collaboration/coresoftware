@@ -135,7 +135,7 @@ G4LogicalVolume*
 PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *hcalenvelope)
 {
   G4VSolid *scintiboxsolid = new G4Box("InnerHcalScintiMother", m_ScintiX / 2., (m_ScintiGap) / 2., m_ScintiTileZ / 2.);
-  //  DisplayVolume(scintiboxsolid,hcalenvelope);
+  //PHG4Utils::DisplayVolume(scintiboxsolid,hcalenvelope);
 
   G4LogicalVolume *scintiboxlogical = new G4LogicalVolume(scintiboxsolid, G4Material::GetMaterial("G4_AIR"), G4String("InnerHcalScintiMother"), 0, 0, 0);
   G4VisAttributes *hcalVisAtt = new G4VisAttributes();
@@ -186,7 +186,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   Rot->rotateX(90 * deg);
   new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, "InnerScinti_12", scintiboxlogical, false, 0, overlapcheck);
 
-  //    DisplayVolume(scintiboxlogical,hcalenvelope);
+  //    PHG4Utils::DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
 }
 
@@ -206,7 +206,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintiTile9(G4LogicalVolume *hcalenvel
                                            zero, 1.0);
 
   G4LogicalVolume *scintit9_logic = new G4LogicalVolume(scintit9, G4Material::GetMaterial("G4_POLYSTYRENE"), "InnerHcalScintiT9", nullptr, nullptr, nullptr);
-  //     DisplayVolume(scintit9,hcalenvelope);
+  //     PHG4Utils::DisplayVolume(scintit9,hcalenvelope);
   m_ActiveVolumeSet.insert(scintit9_logic);
   return scintit9_logic;
 }
@@ -227,7 +227,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintiTile10(G4LogicalVolume *hcalenve
                                             zero, 1.0);
 
   G4LogicalVolume *scintit10_logic = new G4LogicalVolume(scintit10, G4Material::GetMaterial("G4_POLYSTYRENE"), "InnerHcalScintiT10", nullptr, nullptr, nullptr);
-  //     DisplayVolume(scintit10,hcalenvelope);
+  //     PHG4Utils::DisplayVolume(scintit10,hcalenvelope);
   m_ActiveVolumeSet.insert(scintit10_logic);
   return scintit10_logic;
 }
@@ -248,7 +248,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintiTile11(G4LogicalVolume *hcalenve
                                             zero, 1.0);
 
   G4LogicalVolume *scintit11_logic = new G4LogicalVolume(scintit11, G4Material::GetMaterial("G4_POLYSTYRENE"), "InnerHcalScintiT11", nullptr, nullptr, nullptr);
-  //     DisplayVolume(scintit11,hcalenvelope);
+  //     PHG4Utils::DisplayVolume(scintit11,hcalenvelope);
   m_ActiveVolumeSet.insert(scintit11_logic);
   return scintit11_logic;
 }
@@ -269,7 +269,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintiTile12(G4LogicalVolume *hcalenve
                                             zero, 1.0);
 
   G4LogicalVolume *scintit12_logic = new G4LogicalVolume(scintit12, G4Material::GetMaterial("G4_POLYSTYRENE"), "InnerHcalScintiT12", nullptr, nullptr, nullptr);
-  //     DisplayVolume(scintit12,hcalenvelope);
+  //     PHG4Utils::DisplayVolume(scintit12,hcalenvelope);
   m_ActiveVolumeSet.insert(scintit12_logic);
   return scintit12_logic;
 }
@@ -358,53 +358,6 @@ PHG4Prototype3InnerHcalDetector::GetScintiAngle()
   double ylen = m_ScintiCornerLowerRight.y() - m_ScintiCornerLowerLeft.y();
   double angle = atan(ylen / xlen);
   return angle;
-}
-
-int PHG4Prototype3InnerHcalDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
-  DisplayVolume(checksolid, logvol, rotm);
-  return 0;
-}
-
-int PHG4Prototype3InnerHcalDetector::DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  static int i = 0;
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch (i)
-  {
-  case 0:
-    visattchk->SetColour(G4Colour::Red());
-    i++;
-    break;
-  case 1:
-    visattchk->SetColour(G4Colour::Magenta());
-    i++;
-    break;
-  case 2:
-    visattchk->SetColour(G4Colour::Yellow());
-    i++;
-    break;
-  case 3:
-    visattchk->SetColour(G4Colour::Blue());
-    i++;
-    break;
-  case 4:
-    visattchk->SetColour(G4Colour::Cyan());
-    i++;
-    break;
-  default:
-    visattchk->SetColour(G4Colour::Green());
-    i = 0;
-    break;
-  }
-
-  checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
-  //  new G4PVPlacement(rotm, G4ThreeVector(0, -460.3, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
-  return 0;
 }
 
 void PHG4Prototype3InnerHcalDetector::Print(const string& what) const
