@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
 #ifndef G4MAIN_PHG4UTILS_H
 #define G4MAIN_PHG4UTILS_H
 
@@ -8,9 +10,9 @@ class G4VisAttributes;
 class PHG4Utils
 {
  public:
-  static double GetLengthForRapidityCoverage( const double radius, const double eta );
-  static double GetLengthForRapidityCoverage( const double radius);
-  static void SetPseudoRapidityCoverage( const double eta);
+  static double GetLengthForRapidityCoverage(const double radius, const double eta);
+  static double GetLengthForRapidityCoverage(const double radius);
+  static void SetPseudoRapidityCoverage(const double eta);
   static void SetColour(G4VisAttributes *att, const std::string &mat);
   static double get_theta(const double eta);
   static double get_eta(const double theta);
@@ -19,7 +21,6 @@ class PHG4Utils
 
  private:
   static double _eta_coverage;
-
 };
 
-#endif // G4MAIN_PHG4UTILS_H
+#endif  // G4MAIN_PHG4UTILS_H

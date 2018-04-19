@@ -4,17 +4,18 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-PHG4Detector::PHG4Detector(PHCompositeNode *Node, const std::string &nam ):
-    m_topNode(Node),
-    m_Verbosity(0),
-    m_OverlapCheck(false),
-    m_ColorIndex(0),
-    m_Name(nam),
-    topNode(Node),
-    overlapcheck(false),
-    verbosity(0),
-    name(nam)
-{}
+PHG4Detector::PHG4Detector(PHCompositeNode *Node, const std::string &nam)
+  : m_topNode(Node)
+  , m_Verbosity(0)
+  , m_OverlapCheck(false)
+  , m_ColorIndex(0)
+  , m_Name(nam)
+  , topNode(Node)
+  , overlapcheck(false)
+  , verbosity(0)
+  , name(nam)
+{
+}
 
 int PHG4Detector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
 {
