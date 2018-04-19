@@ -1,8 +1,5 @@
 #include "PHG4Utils.h"
 
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
@@ -174,47 +171,3 @@ PHG4Utils::SetColour(G4VisAttributes* att, const string &material)
   return;
 }
 
-void PHG4Utils::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
-  DisplayVolume(checksolid, logvol, rotm);
-  return;
-}
-void PHG4Utils::DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  static int i = 0;
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch (i)
-  {
-  case 0:
-    visattchk->SetColour(G4Colour::Red());
-    i++;
-    break;
-  case 1:
-    visattchk->SetColour(G4Colour::Magenta());
-    i++;
-    break;
-  case 2:
-    visattchk->SetColour(G4Colour::Yellow());
-    i++;
-    break;
-  case 3:
-    visattchk->SetColour(G4Colour::Blue());
-    i++;
-    break;
-  case 4:
-    visattchk->SetColour(G4Colour::Cyan());
-    i++;
-    break;
-  default:
-    visattchk->SetColour(G4Colour::Green());
-    i = 0;
-    break;
-  }
-
-  checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, true);
-  return;
-}

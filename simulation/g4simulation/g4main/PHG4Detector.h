@@ -1,11 +1,14 @@
 #ifndef PHG4Detector_h
 #define PHG4Detector_h
 
+#include <Geant4/G4RotationMatrix.hh>
+
 #include <iostream>
 #include <string>
 
-class G4UserSteppingAction;
 class G4LogicalVolume;
+class G4UserSteppingAction;
+class G4VSolid;
 class PHCompositeNode;
 
 //! base class for phenix detector creation
@@ -16,20 +19,10 @@ class PHG4Detector
   public:
 
   //! constructor
-
-  PHG4Detector( PHCompositeNode *Node ):
-    topNode(Node),
-    verbosity(0),
-    name("NONAME"),
-    overlapcheck(false)
-	{}
-
-    PHG4Detector( PHCompositeNode *Node, const std::string &nam ):
-      topNode(Node),
-      verbosity(0),
-      name(nam),
-      overlapcheck(false)
-	{}
+  // delete default ctor, nobody should use it
+  PHG4Detector() = delete;
+  // this is the ctor we use
+  PHG4Detector( PHCompositeNode *Node, const std::string &nam = "NONE" );
 
   //! destructor
   virtual ~PHG4Detector( void )
@@ -42,24 +35,35 @@ class PHG4Detector
   */
   virtual void Construct( G4LogicalVolume* world ) = 0;
 
-  virtual void Verbosity(const int v) {verbosity = v;}
+  virtual void Verbosity(const int v) {m_Verbosity = v; verbosity = v;}
 
-  virtual int Verbosity()  const {return verbosity;}
+  virtual int Verbosity()  const {return m_Verbosity;}
 
-  virtual G4UserSteppingAction* GetSteppingAction() { return 0; }
+  virtual G4UserSteppingAction* GetSteppingAction() { return nullptr; }
 
-  virtual std::string GetName() const {return name;}
+  virtual std::string GetName() const {return m_Name;}
 
-  virtual void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
+  virtual void OverlapCheck(const bool chk) {m_OverlapCheck = chk; overlapcheck = chk;}
+  virtual bool OverlapCheck() const {return m_OverlapCheck;}
 
   virtual void Print(const std::string &what = "ALL") const 
-  {std::cout << name << ": Print method not implemented" << std::endl;}
+  {std::cout << GetName() << ": Print method not implemented" << std::endl;}
+  virtual int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
+  virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
+//  virtual PHCompositeNode *topNode() {return m_topNode;}
 
- protected:
+private:
+  PHCompositeNode *m_topNode;
+  int m_Verbosity;
+  bool m_OverlapCheck;
+  int m_ColorIndex;
+  std::string m_Name;
+// temporary to make this less disruptive
+protected:
   PHCompositeNode *topNode;
+  bool overlapcheck;
   int verbosity;
   std::string name;
-  bool overlapcheck;
 };
 
 #endif

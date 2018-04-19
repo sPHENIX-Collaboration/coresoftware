@@ -72,6 +72,7 @@ libg4testbench_la_SOURCES = \
     PHG4MagneticField.cc \
     HepMCNodeReader.cc \
     PHG4ConsistencyCheck.cc \
+    PHG4Detector.cc \
     PHG4EtaParameterization.cc \
     PHG4EtaPhiParameterization.cc \
     PHG4HeadReco.cc \
