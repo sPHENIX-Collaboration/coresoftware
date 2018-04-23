@@ -41,18 +41,18 @@ PHG4Prototype3InnerHcalSteppingAction::PHG4Prototype3InnerHcalSteppingAction(PHG
   : m_Detector(detector)
   , m_HitContainer(nullptr)
   , m_AbsorberHitContainer(nullptr)
-  , hit(nullptr)
-  , params(parameters)
-  , savehitcontainer(nullptr)
-  , saveshower(nullptr)
-  , absorbertruth(params->get_int_param("absorbertruth"))
-  , IsActive(params->get_int_param("active"))
-  , IsBlackHole(params->get_int_param("blackhole"))
-  , light_scint_model(params->get_int_param("light_scint_model"))
-  , light_balance_inner_corr(params->get_double_param("light_balance_inner_corr"))
-  , light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm)
-  , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
-  , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
+  , m_Hit(nullptr)
+  , m_params(parameters)
+  , m_SaveHitContainer(nullptr)
+  , m_SaveShower(nullptr)
+  , m_AbsorberTruth(m_params->get_int_param("absorbertruth"))
+  , m_IsActive(m_params->get_int_param("active"))
+  , m_IsBlackHole(m_params->get_int_param("blackhole"))
+  , m_LightScintModel(m_params->get_int_param("light_scint_model"))
+  , light_balance_inner_corr(m_params->get_double_param("light_balance_inner_corr"))
+  , light_balance_inner_radius(m_params->get_double_param("light_balance_inner_radius") * cm)
+  , light_balance_outer_corr(m_params->get_double_param("light_balance_outer_corr"))
+  , light_balance_outer_radius(m_params->get_double_param("light_balance_outer_radius") * cm)
 {
 }
 
@@ -62,7 +62,7 @@ PHG4Prototype3InnerHcalSteppingAction::~PHG4Prototype3InnerHcalSteppingAction()
   // and the memory is still allocated, so we need to delete it here
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
-  delete hit;
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
@@ -109,7 +109,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (IsBlackHole)
+  if (m_IsBlackHole)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -117,7 +117,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   }
   int layer_id = m_Detector->get_Layer();
   // make sure we are in a volume
-  if (IsActive)
+  if (m_IsActive)
   {
     bool geantino = false;
 
@@ -138,58 +138,58 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     {
     case fGeomBoundary:
     case fUndefined:
-      if (!hit)
+      if (!m_Hit)
       {
-        hit = new PHG4Hitv1();
+        m_Hit = new PHG4Hitv1();
       }
-      hit->set_row(row_id);
+      m_Hit->set_row(row_id);
       if (whichactive > 0)  // only for scintillators
       {
-        hit->set_scint_id(slat_id);  // the slat id in the mother volume (or steel plate id), the column
+        m_Hit->set_scint_id(slat_id);  // the slat id in the mother volume (or steel plate id), the column
       }
       //here we set the entrance values in cm
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
       // time in ns
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
-      hit->set_trkid(aTrack->GetTrackID());
+      m_Hit->set_trkid(aTrack->GetTrackID());
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
         }
       }
 
       //set the initial energy deposit
-      hit->set_edep(0);
+      m_Hit->set_edep(0);
 
-      hit->set_hit_type(0);
+      m_Hit->set_hit_type(0);
       if ((aTrack->GetParticleDefinition()->GetParticleName().find("e+") != string::npos) ||
           (aTrack->GetParticleDefinition()->GetParticleName().find("e-") != string::npos))
-        hit->set_hit_type(1);
+        m_Hit->set_hit_type(1);
 
       if (whichactive > 0)  // return of IsInPrototype3InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        savehitcontainer = m_HitContainer;
-        hit->set_light_yield(0);  // for scintillator only, initialize light yields
-        hit->set_eion(0);
+        m_SaveHitContainer = m_HitContainer;
+        m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
+        m_Hit->set_eion(0);
       }
       else
       {
-        savehitcontainer = m_AbsorberHitContainer;
+        m_SaveHitContainer = m_AbsorberHitContainer;
       }
 
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
-          saveshower = pp->GetShower();
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
+          m_SaveShower = pp->GetShower();
         }
       }
       break;
@@ -199,17 +199,17 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
-    hit->set_x(1, postPoint->GetPosition().x() / cm);
-    hit->set_y(1, postPoint->GetPosition().y() / cm);
-    hit->set_z(1, postPoint->GetPosition().z() / cm);
+    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     if (whichactive > 0)  // return of IsInPrototype3InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
-      hit->set_eion(hit->get_eion() + eion);
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
       light_yield = eion;
-      if (light_scint_model)
+      if (m_LightScintModel)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       }
@@ -222,21 +222,21 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         double cor = GetLightCorrection(r);
         light_yield = light_yield * cor;
       }
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
+      m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     //sum up the energy to get total deposited
-    hit->set_edep(hit->get_edep() + edep);
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (geantino)
     {
-      hit->set_edep(-1);    // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+      m_Hit->set_edep(-1);    // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       if (whichactive > 0)  // add light yield for scintillators
       {
-        hit->set_light_yield(-1);
-        hit->set_eion(-1);
+        m_Hit->set_light_yield(-1);
+        m_Hit->set_eion(-1);
       }
     }
-    if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
+    if (edep > 0 && (whichactive > 0 || m_AbsorberTruth > 0))
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -260,27 +260,27 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep())
+      if (m_Hit->get_edep())
       {
-        savehitcontainer->AddHit(layer_id, hit);
-        if (saveshower)
+        m_SaveHitContainer->AddHit(layer_id, m_Hit);
+        if (m_SaveShower)
         {
-          saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
+          m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = nullptr;
+        m_Hit = nullptr;
       }
       else
       {
         // if this hit has no energy deposit, just reset it for reuse
         // this means we have to delete it in the dtor. If this was
         // the last hit we processed the memory is still allocated
-        hit->Reset();
+        m_Hit->Reset();
       }
     }
 
-    //       hit->identify();
+    //       m_Hit->identify();
     // return true to indicate the hit was used
     return true;
   }
@@ -311,7 +311,7 @@ void PHG4Prototype3InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode
   m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
-  if (!m_HitContainer && IsActive)
+  if (!m_HitContainer && m_IsActive)
   {
     std::cout << "PHG4Prototype3InnerHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
