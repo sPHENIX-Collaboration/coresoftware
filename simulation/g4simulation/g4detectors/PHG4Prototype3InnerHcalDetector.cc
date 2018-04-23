@@ -148,7 +148,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   G4RotationMatrix *Rot;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, "InnerScinti_9", scintiboxlogical, false, 0, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, "InnerScinti_9", scintiboxlogical, false, 9, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -160,7 +160,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile9FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, "InnerScinti_10", scintiboxlogical, false, 0, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, "InnerScinti_10", scintiboxlogical, false, 10, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -172,7 +172,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile10FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, "InnerScinti_11", scintiboxlogical, false, 0, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, "InnerScinti_11", scintiboxlogical, false, 11, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -184,7 +184,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile11FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, "InnerScinti_12", scintiboxlogical, false, 0, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, "InnerScinti_12", scintiboxlogical, false, 12, OverlapCheck());
 
   //    DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
@@ -288,24 +288,54 @@ void PHG4Prototype3InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
   m_InnerHcalAssembly = new G4AssemblyVolume();
   ConstructInnerHcal(logicWorld);
   m_InnerHcalAssembly->MakeImprint(logicWorld, g4vec, Rot, 0, OverlapCheck());
+  int isteel = 0;
+  int iscinti = 0;
+  vector<G4VPhysicalVolume*>::iterator it = m_InnerHcalAssembly->GetVolumesIterator();
+  for (unsigned int i=0; i<m_InnerHcalAssembly-> TotalImprintedVolumes();i++)
+  {
+    string volname = (*it)->GetName();
+    if (volname.find("InnerHcalSteelPlate") != string::npos)
+    { 
+      cout << (*it)->GetName() << endl;
+      m_SteelPlateIdMap.insert(make_pair(volname,isteel));
+      ++isteel;
+    }
+    else if (volname.find("InnerHcalScintiMother") != string::npos)
+    {
+      m_ScintillatorIdMap.insert(make_pair(volname,iscinti));
+      ++iscinti;
+    }
+    ++it;
+  }
+  map<string,int>::const_iterator iter;
+  for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
+  {
+    cout << iter->first << ", " << iter->second << endl;
+  }
+  for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
+  {
+    cout << iter->first << ", " << iter->second << endl;
+  }
   return;
 }
 
 int PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
 {
   G4LogicalVolume *steel_plate = ConstructSteelPlate(hcalenvelope);  // bottom steel plate
-  if (m_params->get_int_param("hi_eta"))
+  if (m_params->get_int_param("scintillators"))
   {
-    m_scintibox = ConstructScintillatorBoxHiEta(hcalenvelope);
-  }
-  else
-  {
-    cout << "midrapidity scintillator not implemented" << endl;
-    gSystem->Exit(1);
+    if (m_params->get_int_param("hi_eta"))
+    {
+      m_scintibox = ConstructScintillatorBoxHiEta(hcalenvelope);
+    }
+    else
+    {
+      cout << "midrapidity scintillator not implemented" << endl;
+      gSystem->Exit(1);
+    }
   }
   double phi = 0.;
   double phislat = 0.;
-  ostringstream name;
   // the coordinate of the center of the bottom of the bottom steel plate
   // to get the radius of the circle which is the center of the scintillator box
 
@@ -325,18 +355,14 @@ int PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenv
   for (int i = 0; i < m_NumSteelPlates; i++)
   //           for (int i = 0; i < 2; i++)
   {
-    name.str("");
-    name << "InnerHcalSteel_" << i;
     G4RotationMatrix *Rot = new G4RotationMatrix();
     Rot->rotateZ(phi * rad);
     G4ThreeVector g4vec(xstart, 0, 0);
     m_InnerHcalAssembly->AddPlacedVolume(steel_plate, g4vec, Rot);
-    if (i > 0)
+    if (m_scintibox && i > 0)
     {
       double ypos = sin(phi + philow) * middlerad;
       double xpos = cos(phi + philow) * middlerad;
-      name.str("");
-      name << "InnerHcalScintiBox_" << i;
       Rot = new G4RotationMatrix();
       Rot->rotateZ(scintiangle + phislat);
       G4ThreeVector g4vecsc(xpos + xstart, ypos, 0);
@@ -369,4 +395,35 @@ void PHG4Prototype3InnerHcalDetector::Print(const string &what) const
     cout << "Volume Scintillator: " << m_VolumeScintillator / cm3 << " cm^3" << endl;
   }
   return;
+}
+
+int PHG4Prototype3InnerHcalDetector::get_scinti_row_id(const string &volname)
+{
+  int id=-9999;
+  auto it = m_ScintillatorIdMap.find(volname);
+  if (it != m_ScintillatorIdMap.end())
+  {
+    id = it->second;
+  }
+  else
+  {
+    cout << "unknown scintillator volume name: " << volname << endl;
+  }
+
+  return id;
+}
+
+int PHG4Prototype3InnerHcalDetector::get_steel_plate_id(const string &volname)
+{
+  int id=-9999;
+  auto it = m_SteelPlateIdMap.find(volname);
+  if (it != m_SteelPlateIdMap.end())
+  {
+    id = it->second;
+  }
+  else
+  {
+    cout << "unknown steel volume name: " << volname << endl;
+  }
+  return id;
 }
