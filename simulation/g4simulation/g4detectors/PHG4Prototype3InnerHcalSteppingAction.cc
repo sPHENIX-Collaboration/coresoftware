@@ -38,9 +38,9 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype3InnerHcalSteppingAction::PHG4Prototype3InnerHcalSteppingAction(PHG4Prototype3InnerHcalDetector* detector, const PHParameters* parameters)
-  : detector_(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
+  : m_Detector(detector)
+  , m_HitContainer(nullptr)
+  , m_AbsorberHitContainer(nullptr)
   , hit(nullptr)
   , params(parameters)
   , savehitcontainer(nullptr)
@@ -72,13 +72,13 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInPrototype3InnerHcal(volume)
+  // m_Detector->IsInPrototype3InnerHcal(volume)
   // returns
   //  0 is outside of Prototype3InnerHcal
   //  1 is inside scintillator
   // -1 is steel absorber
 
-  int whichactive = detector_->IsInPrototype3InnerHcal(volume);
+  int whichactive = m_Detector->IsInPrototype3InnerHcal(volume);
 
   if (!whichactive)
   {
@@ -88,59 +88,19 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   int slat_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    // first extract the scintillator id (0-12) from the volume name (OuterScinti_0,1,2,3)
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter = tok.begin();
-    ++tokeniter;
-    slat_id = boost::lexical_cast<int>(*tokeniter);
-    // G4AssemblyVolumes naming convention:
-    //     av_WWW_impr_XXX_YYY_ZZZ
-    // where:
-
-    //     WWW - assembly volume instance number
-    //     XXX - assembly volume imprint number
-    //     YYY - the name of the placed logical volume
-    //     ZZZ - the logical volume index inside the assembly volume
-    // e.g. av_1_impr_2_InnerHcalScintiMother_pv_11
-    // 2 the number of the scintillator mother volume
-    // InnerHcalScintiMother_11: name of scintillator slat
-    // 11: number of scintillator slat logical volume
-    // use boost tokenizer to separate the _, then take value
-    // after "impr" for mother volume and after "pv" for scintillator slat
-    // use boost lexical cast for string -> int conversion
+    // The slat id is just the copy number
+    slat_id = volume->GetCopyNo();
+    // the row id comes from saved info in the detector construction
     G4VPhysicalVolume* mothervolume = touch->GetVolume(1);
-    boost::tokenizer<boost::char_separator<char> > tokm(mothervolume->GetName(), sep);
-    for (tokeniter = tokm.begin(); tokeniter != tokm.end(); ++tokeniter)
-    {
-      if (*tokeniter == "pv")
-      {
-        ++tokeniter;
-        if (tokeniter != tokm.end())
-        {
-          row_id = boost::lexical_cast<int>(*tokeniter);
-          // from the construction via assembly volumes, the mother id starts
-          // at 2 and is incremented by 2 for each new row of slats
-          // this maps it back to 0-nslats
-          row_id -= 2;
-          row_id /= 2;
-        }
-        else
-        {
-          cout << PHWHERE << " Error parsing " << mothervolume->GetName()
-               << " for mother scinti slat id " << endl;
-          gSystem->Exit(1);
-        }
-        break;
-      }
-    }
-     // cout << "mother volume: " <<  mothervolume->GetName()
-     //      << ", volume name " << volume->GetName() << ", row: " << row_id
-     //  	   << ", column: " << slat_id << endl;
+    row_id = m_Detector->get_scinti_row_id(mothervolume->GetName());
+    // cout << "mother volume: " <<  mothervolume->GetName()
+    // 	 << ", volume name " << volume->GetName() << ", row: " << row_id
+    // 	 << ", column: " << slat_id << endl;
   }
   else
   {
-    slat_id = touch->GetCopyNumber() / 2 + 1;  // steel plate id
+    // the row id comes from saved info in the detector construction
+    row_id = m_Detector->get_steel_plate_id(volume->GetName());
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -155,7 +115,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-  int layer_id = detector_->get_Layer();
+  int layer_id = m_Detector->get_Layer();
   // make sure we are in a volume
   if (IsActive)
   {
@@ -183,7 +143,7 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         hit = new PHG4Hitv1();
       }
       hit->set_row(row_id);
-      //      if (whichactive > 0)  // only for scintillators
+      if (whichactive > 0)  // only for scintillators
       {
         hit->set_scint_id(slat_id);  // the slat id in the mother volume (or steel plate id), the column
       }
@@ -214,13 +174,13 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
 
       if (whichactive > 0)  // return of IsInPrototype3InnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        savehitcontainer = hits_;
+        savehitcontainer = m_HitContainer;
         hit->set_light_yield(0);  // for scintillator only, initialize light yields
         hit->set_eion(0);
       }
       else
       {
-        savehitcontainer = absorberhits_;
+        savehitcontainer = m_AbsorberHitContainer;
       }
 
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
@@ -335,27 +295,27 @@ void PHG4Prototype3InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode
 {
   string hitnodename;
   string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
-  if (!hits_)
+  if (!m_HitContainer && IsActive)
   {
     std::cout << "PHG4Prototype3InnerHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
-  if (!absorberhits_)
+  if (!m_AbsorberHitContainer)
   {
     if (verbosity > 1)
     {
