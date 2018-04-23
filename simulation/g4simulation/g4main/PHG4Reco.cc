@@ -772,6 +772,12 @@ void PHG4Reco::DefineMaterials()
   Al5083->AddElement(G4Element::GetElement("Mg"), 0.04);
   Al5083->AddElement(G4Element::GetElement("Al"), 0.956);
 
+// Al 4046 from http://www.matweb.com
+  G4Material *Al4046 = new G4Material("Al4046",density = 2.66 * g / cm3, ncomponents = 3);
+  Al4046->AddElement(G4Element::GetElement("Al"), 0.897);
+  Al4046->AddElement(G4Element::GetElement("Si"), 0.1);
+  Al4046->AddElement(G4Element::GetElement("Mg"), 0.03);
+
   G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
   FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
   FPC->AddMaterial(G4Material::GetMaterial("G4_KAPTON"), 0.9838);
