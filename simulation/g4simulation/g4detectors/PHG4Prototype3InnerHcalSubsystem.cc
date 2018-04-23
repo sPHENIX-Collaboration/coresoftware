@@ -37,7 +37,7 @@ int PHG4Prototype3InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
   set<string> nodes;
-  if (GetParams()->get_int_param("active"))
+  if (GetParams()->get_int_param("active") || GetParams()->get_int_param("absorberactive"))
   {
     PHNodeIterator dstiter(dstNode);
     PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", SuperDetector()));
@@ -48,15 +48,18 @@ int PHG4Prototype3InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     ostringstream nodename;
-    if (SuperDetector() != "NONE")
+    if (GetParams()->get_int_param("active"))
     {
-      nodename << "G4HIT_" << SuperDetector();
+      if (SuperDetector() != "NONE")
+      {
+	nodename << "G4HIT_" << SuperDetector();
+      }
+      else
+      {
+	nodename << "G4HIT_" << Name();
+      }
+      nodes.insert(nodename.str());
     }
-    else
-    {
-      nodename << "G4HIT_" << Name();
-    }
-    nodes.insert(nodename.str());
     if (GetParams()->get_int_param("absorberactive"))
     {
       nodename.str("");
@@ -142,10 +145,11 @@ void PHG4Prototype3InnerHcalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("steplimits", NAN);
 
+  set_default_int_param("hi_eta", 1);
   set_default_int_param("light_scint_model", 1);
-  set_default_int_param("hi_eta", 0);
+  set_default_int_param("scintillators", 1);
 
-  set_default_string_param("material", "SS310");
+  set_default_string_param("material", "Steel_A36");
 }
 
 void PHG4Prototype3InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)
