@@ -47,17 +47,14 @@ class PHG4SteppingAction
 
   virtual void Print(const std::string &what) const {return;}
 
-  void SetOpt(const std::string &name, const int i) {opt_int[name] = i;}
-  bool IntOptExist(const std::string &name);
-  int GetIntOpt(const std::string &name);
   std::string GetName() const {return name;}
+
  protected:
   int verbosity;
   std::string name;
 
  private:
   std::set<std::string> _ScintLightYieldMissingMaterial;
-  std::map<std::string, int> opt_int;
 
 };
 
