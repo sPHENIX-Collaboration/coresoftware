@@ -64,7 +64,7 @@ class PHG4SteppingAction
   double m_LightBalanceInnerCorr;
   double m_LightBalanceOuterRadius;
   double m_LightBalanceOuterCorr;
-  std::set<std::string> _ScintLightYieldMissingMaterial;
+  std::set<std::string> m_ScintLightYieldMissingMaterialSet;
 
 };
 

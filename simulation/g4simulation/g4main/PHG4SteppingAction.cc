@@ -44,11 +44,11 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
       string mname(aMaterial->GetName());
 
       std::set<std::string>::const_iterator it =
-          _ScintLightYieldMissingMaterial.find(mname);
+          m_ScintLightYieldMissingMaterialSet.find(mname);
 
-      if (it == _ScintLightYieldMissingMaterial.end())
+      if (it == m_ScintLightYieldMissingMaterialSet.end())
         {
-          _ScintLightYieldMissingMaterial.insert(mname);
+          m_ScintLightYieldMissingMaterialSet.insert(mname);
 
           cout << "PHG4SteppingAction::GetScintLightYield - WARNING - "
               << "can not find Material Properties Table for material " << mname
@@ -73,11 +73,11 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
       string mname(aMaterial->GetName());
 
       std::set<std::string>::const_iterator it =
-          _ScintLightYieldMissingMaterial.find(mname);
+          m_ScintLightYieldMissingMaterialSet.find(mname);
 
-      if (it == _ScintLightYieldMissingMaterial.end())
+      if (it == m_ScintLightYieldMissingMaterialSet.end())
         {
-          _ScintLightYieldMissingMaterial.insert(mname);
+          m_ScintLightYieldMissingMaterialSet.insert(mname);
 
           cout << "PHG4SteppingAction::GetScintLightYield - WARNING - "
               << "can not find scintillation light yield for material " << mname
