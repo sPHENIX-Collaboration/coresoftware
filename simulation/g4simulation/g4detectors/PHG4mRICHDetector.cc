@@ -790,9 +790,9 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
   for(int i_mRICH = 0; i_mRICH < NumOfModule; ++i_mRICH)
   {
     // get moduleID
-    std::stringstream key_moduleID;
-    key_moduleID << "mRICH_wall_hside_" << i_mRICH << "_moduleID";
-    int module_id = params->get_int_param(key_moduleID.str());
+    // std::stringstream key_moduleID;
+    // key_moduleID << "mRICH_wall_hside_" << i_mRICH << "_moduleID";
+    // int module_id = params->get_int_param(key_moduleID.str());
 
     // get position
     std::stringstream key_position_x;
@@ -842,16 +842,16 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
 
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
 
-  G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
+  // G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
 
   int NumOfModule = params->get_int_param("NumOfModule_sector_hside");
 
   for(int i_mRICH = 0; i_mRICH < NumOfModule; ++i_mRICH)
   {
     // get moduleID
-    std::stringstream key_moduleID;
-    key_moduleID << "mRICH_sector_hside_" << i_mRICH << "_moduleID";
-    int module_id = params->get_int_param(key_moduleID.str());
+    // std::stringstream key_moduleID;
+    // key_moduleID << "mRICH_sector_hside_" << i_mRICH << "_moduleID";
+    // int module_id = params->get_int_param(key_moduleID.str());
 
     // get position
     std::stringstream key_position_x;
@@ -876,7 +876,7 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
 
   for(int i=0;i<numSector;i++) 
   {
-    G4ThreeVector pos(0, 0, 3.0*m);
+    G4ThreeVector pos(0, 0, 3.1*m);
     G4RotationMatrix* rot=new G4RotationMatrix();
     rot->rotateX(-theta*180*deg/pi);
     rot->rotateZ(i*45*deg);
