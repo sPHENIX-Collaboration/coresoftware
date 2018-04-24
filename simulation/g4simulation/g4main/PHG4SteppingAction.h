@@ -10,16 +10,17 @@ class PHG4Hit;
 
 class PHG4SteppingAction
 {
-
-  public:
-  PHG4SteppingAction( const int i = 0 ):
-  verbosity(i),
-    name("NONAME"),
-    m_Verbosity(i)
-  {}
+ public:
+  PHG4SteppingAction(const int i = 0)
+    : verbosity(i)
+    , name("NONAME")
+    , m_Verbosity(i)
+  {
+  }
 
   virtual ~PHG4SteppingAction()
-  {}
+  {
+  }
 
   //! stepping action. This defines processing of a single step in a given volume
   /*!
@@ -27,13 +28,15 @@ class PHG4SteppingAction
   \param step pointer to the geant 4 step class
   \param was_used: true if the hit was already used by a previously registered subsystem
   */
-  virtual bool UserSteppingAction(const G4Step* step, bool was_used ) = 0;
+  virtual bool UserSteppingAction(const G4Step* step, bool was_used) = 0;
 
-  virtual void Verbosity(const int i) {m_Verbosity = i; verbosity = i;}
-  virtual int Verbosity() const {return m_Verbosity;}
-
-  virtual int Init() {return 0;}
-
+  virtual void Verbosity(const int i)
+  {
+    m_Verbosity = i;
+    verbosity = i;
+  }
+  virtual int Verbosity() const { return m_Verbosity; }
+  virtual int Init() { return 0; }
   //! get scintillation photon count. It require a custom set SCINTILLATIONYIELD property to work
   virtual double GetScintLightYield(const G4Step* step);
 
@@ -41,15 +44,12 @@ class PHG4SteppingAction
   virtual double GetVisibleEnergyDeposition(const G4Step* step);
 
   //! Extract local coordinate of the hit and save to PHG4Hit
-  virtual void StoreLocalCoordinate(PHG4Hit * hit, const G4Step* step, const bool do_prepoint, const bool do_postpoint);
+  virtual void StoreLocalCoordinate(PHG4Hit* hit, const G4Step* step, const bool do_prepoint, const bool do_postpoint);
 
-  virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
-
-  virtual void Print(const std::string &what) const {return;}
-
-  std::string GetName() const {return name;}
-
-  virtual void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
+  virtual void SetInterfacePointers(PHCompositeNode*) { return; }
+  virtual void Print(const std::string& what) const { return; }
+  std::string GetName() const { return name; }
+  virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
   virtual double GetLightCorrection(const double r) const;
   virtual double GetLightCorrection(const double xpos, const double ypos) const;
 
@@ -65,7 +65,6 @@ class PHG4SteppingAction
   double m_LightBalanceOuterRadius;
   double m_LightBalanceOuterCorr;
   std::set<std::string> m_ScintLightYieldMissingMaterialSet;
-
 };
 
-#endif // G4MAIN_PHG4STEPPINGACTION_H
+#endif  // G4MAIN_PHG4STEPPINGACTION_H
