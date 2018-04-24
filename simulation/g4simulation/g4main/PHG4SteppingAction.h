@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
 #ifndef G4MAIN_PHG4STEPPINGACTION_H
 #define G4MAIN_PHG4STEPPINGACTION_H
 
