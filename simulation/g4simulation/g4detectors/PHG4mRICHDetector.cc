@@ -842,7 +842,7 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
 
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
 
-  // G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
+  G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
 
   int NumOfModule = params->get_int_param("NumOfModule_sector_hside");
 
