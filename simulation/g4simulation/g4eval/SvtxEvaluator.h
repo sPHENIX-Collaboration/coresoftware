@@ -53,6 +53,7 @@ public:
   void do_cluster_eval(bool b) {_do_cluster_eval = b;}
   void do_gtrack_eval(bool b) {_do_gtrack_eval = b;}
   void do_track_eval(bool b) {_do_track_eval = b;}
+  void do_gseed_eval(bool b) {_do_gseed_eval = b;}
 
   void do_track_match(bool b) {_do_track_match = b;}
   void do_eval_light(bool b) {_do_eval_light = b;}
@@ -78,6 +79,7 @@ public:
   bool _do_cluster_eval;
   bool _do_gtrack_eval;
   bool _do_track_eval;
+  bool _do_gseed_eval;
 
   bool _do_track_match;
   bool _do_eval_light;
@@ -94,6 +96,7 @@ public:
   TNtuple *_ntp_cluster;
   TNtuple *_ntp_gtrack;
   TNtuple *_ntp_track;
+  TNtuple *_ntp_gseed;
 
   // evaluator output file
   std::string _filename;
