@@ -49,11 +49,11 @@ PHG4Prototype3InnerHcalSteppingAction::PHG4Prototype3InnerHcalSteppingAction(PHG
   , m_IsActive(m_params->get_int_param("active"))
   , m_IsBlackHole(m_params->get_int_param("blackhole"))
   , m_LightScintModel(m_params->get_int_param("light_scint_model"))
-  , light_balance_inner_corr(m_params->get_double_param("light_balance_inner_corr"))
-  , light_balance_inner_radius(m_params->get_double_param("light_balance_inner_radius") * cm)
-  , light_balance_outer_corr(m_params->get_double_param("light_balance_outer_corr"))
-  , light_balance_outer_radius(m_params->get_double_param("light_balance_outer_radius") * cm)
 {
+  SetLightCorrection(m_params->get_double_param("light_balance_inner_radius") * cm,
+                     m_params->get_double_param("light_balance_inner_corr"),
+		     m_params->get_double_param("light_balance_outer_radius") * cm,
+		     m_params->get_double_param("light_balance_outer_corr"));
 }
 
 PHG4Prototype3InnerHcalSteppingAction::~PHG4Prototype3InnerHcalSteppingAction()
@@ -213,15 +213,10 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
       {
         light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       }
-      if (isfinite(light_balance_outer_radius) &&
-          isfinite(light_balance_inner_radius) &&
-          isfinite(light_balance_outer_corr) &&
-          isfinite(light_balance_inner_corr))
-      {
-        double r = sqrt(postPoint->GetPosition().x() * postPoint->GetPosition().x() + postPoint->GetPosition().y() * postPoint->GetPosition().y());
-        double cor = GetLightCorrection(r);
-        light_yield = light_yield * cor;
-      }
+// position correction for light yield, code is in base class
+// returns 1 if not implemented
+      light_yield = light_yield *GetLightCorrection(postPoint->GetPosition().x()/cm,postPoint->GetPosition().y()/cm) ;
+
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
@@ -322,16 +317,4 @@ void PHG4Prototype3InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode
       cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
     }
   }
-}
-
-double
-PHG4Prototype3InnerHcalSteppingAction::GetLightCorrection(const double r) const
-{
-  double m = (light_balance_outer_corr - light_balance_inner_corr) / (light_balance_outer_radius - light_balance_inner_radius);
-  double b = light_balance_inner_corr - m * light_balance_inner_radius;
-  double value = m * r + b;
-  if (value > 1.0) return 1.0;
-  if (value < 0.0) return 0.0;
-
-  return value;
 }
