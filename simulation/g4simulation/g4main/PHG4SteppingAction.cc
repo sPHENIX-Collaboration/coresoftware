@@ -22,8 +22,9 @@
 
 
 
-#include <iostream>
+#include <algorithm>
 #include <cassert>
+#include <iostream>
 
 using namespace std;
 
@@ -98,9 +99,9 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
   G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
   if (emSaturation)
     {
-      if (verbosity)
+      if (m_Verbosity)
 	{
-	  emSaturation->SetVerbose(verbosity);
+	  emSaturation->SetVerbose(m_Verbosity);
 	}
       double visen = emSaturation->VisibleEnergyDepositionAtAStep(step) / GeV;
       return visen;
@@ -150,5 +151,48 @@ PHG4SteppingAction::StoreLocalCoordinate(PHG4Hit * hit, const G4Step* aStep,
       hit->set_local_y(1, localPosition.y() / cm);
       hit->set_local_z(1, localPosition.z() / cm);
     }
-
 }
+
+void PHG4SteppingAction::SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr)
+{
+  m_LightBalanceInnerRadius = inner_radius;
+  m_LightBalanceInnerCorr = inner_corr;
+  m_LightBalanceOuterRadius = outer_radius;
+  m_LightBalanceOuterCorr = outer_corr;
+  return;
+}
+
+double PHG4SteppingAction::GetLightCorrection(const double xpos, const double ypos) const
+{
+    double r = sqrt(xpos * xpos + ypos*ypos);
+    double correction =  GetLightCorrection(r);
+  return correction;
+}
+   
+double PHG4SteppingAction::GetLightCorrection(const double r) const
+{
+  double correction = 1.;
+  if (ValidCorrection())
+  {
+  double m = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
+  double b = m_LightBalanceInnerCorr - m * m_LightBalanceInnerRadius;
+  correction = m * r + b;
+  correction = std::min(correction,1.);
+  correction = std::max(correction,0.);
+  }
+  return correction;
+}
+
+bool PHG4SteppingAction::ValidCorrection() const
+{
+  if (isfinite(m_LightBalanceOuterRadius) &&
+      isfinite(m_LightBalanceInnerRadius) &&
+      isfinite(m_LightBalanceOuterCorr) &&
+      isfinite(m_LightBalanceInnerCorr))
+  {
+    return true;
+  }
+  return false;
+}
+
+

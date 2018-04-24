@@ -1,7 +1,6 @@
-#ifndef PHG4SteppingAction_h
-#define PHG4SteppingAction_h
+#ifndef G4MAIN_PHG4STEPPINGACTION_H
+#define G4MAIN_PHG4STEPPINGACTION_H
 
-#include <map>
 #include <set>
 #include <string>
 
@@ -14,8 +13,9 @@ class PHG4SteppingAction
 
   public:
   PHG4SteppingAction( const int i = 0 ):
-    verbosity(i),
-    name("NONAME")
+  verbosity(i),
+    name("NONAME"),
+    m_Verbosity(i)
   {}
 
   virtual ~PHG4SteppingAction()
@@ -29,8 +29,8 @@ class PHG4SteppingAction
   */
   virtual bool UserSteppingAction(const G4Step* step, bool was_used ) = 0;
 
-  virtual void Verbosity(const int i) {verbosity = i;}
-  int Verbosity() const {return verbosity;}
+  virtual void Verbosity(const int i) {m_Verbosity = i; verbosity = i;}
+  virtual int Verbosity() const {return m_Verbosity;}
 
   virtual int Init() {return 0;}
 
@@ -49,14 +49,23 @@ class PHG4SteppingAction
 
   std::string GetName() const {return name;}
 
+  virtual void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
+  virtual double GetLightCorrection(const double r) const;
+  virtual double GetLightCorrection(const double xpos, const double ypos) const;
+
  protected:
   int verbosity;
   std::string name;
 
  private:
+  bool ValidCorrection() const;
+  int m_Verbosity;
+  double m_LightBalanceInnerRadius;
+  double m_LightBalanceInnerCorr;
+  double m_LightBalanceOuterRadius;
+  double m_LightBalanceOuterCorr;
   std::set<std::string> _ScintLightYieldMissingMaterial;
 
 };
 
-
-#endif
+#endif // G4MAIN_PHG4STEPPINGACTION_H
