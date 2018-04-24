@@ -17,7 +17,6 @@
 #include <Geant4/G4StepPoint.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4TouchableHandle.hh>
 #include <Geant4/G4Track.hh>
 
 #include <algorithm>
@@ -55,7 +54,7 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
            << mname << endl;
     }
 
-    return 0;
+    return 0.;
   }
 
   if (aMaterialPropertiesTable->ConstPropertyExists("SCINTILLATIONYIELD"))
@@ -84,7 +83,7 @@ PHG4SteppingAction::GetScintLightYield(const G4Step* step)
            << mname << endl;
     }
 
-    return 0;
+    return 0.;
   }
 
   return light_yield;
@@ -109,7 +108,7 @@ PHG4SteppingAction::GetVisibleEnergyDeposition(const G4Step* step)
         << "PHG4SteppingAction::GetScintLightYield - ERROR - can NOT initialize G4EmSaturation!"
         << endl;
 
-    return 0;
+    return 0.;
   }
 }
 
