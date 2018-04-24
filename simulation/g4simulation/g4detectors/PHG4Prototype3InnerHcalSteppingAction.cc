@@ -305,7 +305,7 @@ void PHG4Prototype3InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
-  // if we do not find the node it's messed up.
+  // if it is active and we do not find the node it's messed up.
   if (!m_HitContainer && m_IsActive)
   {
     std::cout << "PHG4Prototype3InnerHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;

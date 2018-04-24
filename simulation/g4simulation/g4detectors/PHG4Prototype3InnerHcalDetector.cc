@@ -26,6 +26,9 @@
 
 using namespace std;
 
+static const string scintimothername = "InnerHcalScintiMother";
+static const string steelplatename = "InnerHcalSteelPlate";
+
 PHG4Prototype3InnerHcalDetector::PHG4Prototype3InnerHcalDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(Node, dnam)
   , m_params(parameters)
@@ -82,7 +85,13 @@ PHG4Prototype3InnerHcalDetector::PHG4Prototype3InnerHcalDetector(PHCompositeNode
   , m_AbsorberActive(m_params->get_int_param("absorberactive"))
   , m_Layer(0)
 {
+// patch to get the upper steel plate location right within less than a mm
   m_DeltaPhi += 0.00125 * m_DeltaPhi;
+}
+
+PHG4Prototype3InnerHcalDetector::~PHG4Prototype3InnerHcalDetector()
+{
+  delete m_InnerHcalAssembly;
 }
 
 //_______________________________________________________________
@@ -121,7 +130,7 @@ PHG4Prototype3InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelo
                                       zero, 1.0);
 
     m_VolumeSteel = steel_plate->GetCubicVolume() * m_NumSteelPlates;
-    m_InnerHcalSteelPlate = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_params->get_string_param("material")), "InnerHcalSteelPlate", 0, 0, 0);
+    m_InnerHcalSteelPlate = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_params->get_string_param("material")), steelplatename, 0, 0, 0);
     G4VisAttributes *visattchk = new G4VisAttributes();
     visattchk->SetVisibility(true);
     visattchk->SetForceSolid(false);
@@ -134,10 +143,10 @@ PHG4Prototype3InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelo
 G4LogicalVolume *
 PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *hcalenvelope)
 {
-  G4VSolid *scintiboxsolid = new G4Box("InnerHcalScintiMother", m_ScintiX / 2., (m_ScintiGap) / 2., m_ScintiTileZ / 2.);
+  G4VSolid *scintiboxsolid = new G4Box(scintimothername, m_ScintiX / 2., (m_ScintiGap) / 2., m_ScintiTileZ / 2.);
   //DisplayVolume(scintiboxsolid,hcalenvelope);
 
-  G4LogicalVolume *scintiboxlogical = new G4LogicalVolume(scintiboxsolid, G4Material::GetMaterial("G4_AIR"), G4String("InnerHcalScintiMother"), 0, 0, 0);
+  G4LogicalVolume *scintiboxlogical = new G4LogicalVolume(scintiboxsolid, G4Material::GetMaterial("G4_AIR"), G4String(scintimothername), 0, 0, 0);
   G4VisAttributes *hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
   hcalVisAtt->SetForceSolid(false);
@@ -291,34 +300,40 @@ void PHG4Prototype3InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
   m_InnerHcalAssembly = new G4AssemblyVolume();
   ConstructInnerHcal(logicWorld);
   m_InnerHcalAssembly->MakeImprint(logicWorld, g4vec, Rot, 0, OverlapCheck());
+// this is rather pathetic - there is no way to extract the name when a volume is added
+// to the assembly. The only thing we can do is get an iterator over the placed volumes
+// in the order in which they were placed. Since this code does not install the scintillators
+// for the Al version, parsing the volume names to get the id does not work since it changes
+// So now we loop over all volumes and assign consecutive id's to their name by hand which
+// is then used to look those up in the stepping action where we only have the volume name
   int isteel = 0;
   int iscinti = 0;
   vector<G4VPhysicalVolume*>::iterator it = m_InnerHcalAssembly->GetVolumesIterator();
   for (unsigned int i=0; i<m_InnerHcalAssembly-> TotalImprintedVolumes();i++)
   {
     string volname = (*it)->GetName();
-    if (volname.find("InnerHcalSteelPlate") != string::npos)
+    if (volname.find(steelplatename) != string::npos)
     { 
-      cout << (*it)->GetName() << endl;
       m_SteelPlateIdMap.insert(make_pair(volname,isteel));
       ++isteel;
     }
-    else if (volname.find("InnerHcalScintiMother") != string::npos)
+    else if (volname.find(scintimothername) != string::npos)
     {
       m_ScintillatorIdMap.insert(make_pair(volname,iscinti));
       ++iscinti;
     }
     ++it;
   }
-  map<string,int>::const_iterator iter;
-  for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
-  {
-    cout << iter->first << ", " << iter->second << endl;
-  }
-  for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
-  {
-    cout << iter->first << ", " << iter->second << endl;
-  }
+// print out volume names and their assigned id
+  // map<string,int>::const_iterator iter;
+  // for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
+  // {
+  //   cout << iter->first << ", " << iter->second << endl;
+  // }
+  // for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
+  // {
+  //   cout << iter->first << ", " << iter->second << endl;
+  // }
   return;
 }
 
