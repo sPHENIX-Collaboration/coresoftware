@@ -13,7 +13,6 @@
 class BEmcRec;
 class EmcCluster;
 class EmcPeakarea;
-class EmcEmshower;
 
 /** One tower information for internal clustering use.
 @ingroup clustering
@@ -139,7 +138,7 @@ public:
   /// Returns the EmcCluster corrected position in Sector (SM) frame
   void GetCorrPos( float* pxc, float* pyc );
   /// Returns the EmcCluster position in PHENIX global coord system
-  void GetGlobalPos( float* pxg, float* pyg, float* pzg );
+  void GetGlobalPos( float& xg, float& yg, float& zg );
   /// Returns the errors for the reconstructed energy and position
   void GetErrors( float* pde, float* pdx, float* pdy, float* pdz);
   /// Substitutes a number of functions above (to save CPU time)
@@ -279,8 +278,6 @@ public:
 		float* pchi,
 		float* pde, float* pdx, float* pdy, float* pdz );
 
-  /// Splits the peakarea onto 1 or 2 EmcEmshower's
-  int GetGammas( EmcEmshower* );
 
 protected:
 
@@ -291,86 +288,5 @@ protected:
 
 // ///////////////////////////////////////////////////////////////////////////
 
-/** The 3-d level of the EMCal clustering: peakarea with bad Chi2 is splitted
-    onto two EmcEmshowers. 
-    @ingroup clustering
-*/
-class EmcEmshower
-{
-
-public:
-
-  /// Constructor (with energy and position zeroed)
-  EmcEmshower();
-  EmcEmshower(BEmcRec *sector);
-
-  /// Constructor (inputs energy, position and Chi2)
-  EmcEmshower(float e, float x, float y, float chi, int ndf,
-	      BEmcRec *sector);
-
-  /// Reinitializes EmcEmshower
-  void ReInitialize(float e, float x, float y, float chi, int ndf)
-  {
-    fEnergy = e;
-    fXcg = x;
-    fYcg = y;
-    fChisq = chi;
-    fNdf = ndf;
-  }
-
-  /// Returns EmcEmshower total energy
-  float GetTotalEnergy()
-  {
-    return fEnergy;
-  }
-
-  /// Returns EmcEmshower 1-at momentum (Center of Gravity)
-  void GetCG(float* px, float* py)
-  {
-    *px = fXcg;
-    *py = fYcg;
-  }
-
-  /// Returns EmcEmshower corrected position in Sector (SM) frame
-  void GetCorrPos(float*, float* );
-
-  /// Returns EmcEmshower position in PHENIX global coord system
-  void GetGlobalPos(float*, float*, float*);
-
-  /// Returns EmcEmshower Chi2
-    float GetChi2() const
-      {
-        return fChisq;
-      }
-
-  /// Returns CL
-  float GetCL() const
-  {
-    return fCL;
-  } 
-  // get CL (call only after GetChar())
-
-  /// Returns the errors for the reconstructed energy and position
-  void GetErrors( float* pde, float* pdx, float* pdy, float* pdz);
-  
-  /// Substitutes a number of functions above (to save CPU time)
-  void GetChar( float* pe,
-		float* pxcg, float* pysg,
-		float* pxc, float* pyc,
-		float* pxg, float* pyg, float* pzg,
-		float* pchi,
-		float* pde, float* pdx, float* pdy, float* pdz );
-  
-protected:
-
-    BEmcRec* fOwner; // what sector it belongs to
-    int fNdf; // Number of degrees of freedom
-    float fCL; // Confidence level
-    float fEnergy;
-    float fXcg;
-    float fYcg;
-    float fChisq;
-
-};
 
 #endif // #ifdef EMCCLUSTER_H
