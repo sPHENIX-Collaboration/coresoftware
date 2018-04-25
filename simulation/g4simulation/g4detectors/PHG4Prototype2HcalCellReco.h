@@ -22,9 +22,6 @@ class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterf
   //! event processing
   int process_event(PHCompositeNode *topNode);
 
-  //! end of process
-  int End(PHCompositeNode *topNode);
-
   void SetDefaultParameters();
 
   void Detector(const std::string &d) { m_Detector = d; }

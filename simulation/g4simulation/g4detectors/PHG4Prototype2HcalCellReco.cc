@@ -25,8 +25,10 @@
 
 using namespace std;
 // for hcal dimension
-#define ROWDIM 320
-#define COLUMNDIM 22
+// prototype outer hcal, 1st and 2nd prototype inner hcal, 3rd prototype inner hcal is 17 
+#define ROWDIM 21 
+// 12 scintillator tiles per row (index starting at 1)
+#define COLUMNDIM 13
 static array<array<PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
 
 PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name)
@@ -138,7 +140,7 @@ int PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
         cout << "row " << irow
              << " exceed array size: " << ROWDIM
              << " adjust ROWDIM and recompile" << endl;
-        exit(1);
+        gSystem->Exit(1);
       }
 
       if (icolumn >= COLUMNDIM || icolumn < 0)
@@ -146,7 +148,7 @@ int PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
         cout << "column: " << icolumn
              << " exceed array size: " << COLUMNDIM
              << " adjust COLUMNDIM and recompile" << endl;
-        exit(1);
+        gSystem->Exit(1);
       }
 
       if (!slatarray[irow][icolumn])
@@ -185,11 +187,6 @@ int PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
   {
     CheckEnergy(topNode);
   }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4Prototype2HcalCellReco::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
