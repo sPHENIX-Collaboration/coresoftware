@@ -31,10 +31,9 @@ static array< array< PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {nu
 PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name) :
   SubsysReco(name),
   PHG4ParameterInterface(name),
-  _timer(PHTimeServer::get()->insert_new(name.c_str())),
-  chkenergyconservation(0),
-  tmin(NAN),  // ns
-  tmax(NAN) // ns
+  m_CheckEnergyConservationFlag(0),
+  m_Tmin(NAN),  // ns
+  m_Tmax(NAN) // ns
 {
   InitializeParameters();
 }
@@ -51,35 +50,34 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
       std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
       exit(1);
     }
-  hitnodename = "G4HIT_" + detector;
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_HitNodeName = "G4HIT_" + m_Detector;
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
     {
-      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      cout << "Could not locate g4 hit node " << m_HitNodeName << endl;
       Fun4AllServer *se = Fun4AllServer::instance();
       se->Print("NODETREE");
       exit(1);
     }
-  cellnodename = "G4CELL_" + detector;
-  PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode , cellnodename);
+  m_CellNodeName = "G4CELL_" + m_Detector;
+  PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode , m_CellNodeName);
   if (!slats)
     {
       PHNodeIterator dstiter(dstNode);
       PHCompositeNode *DetNode =
-	dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",
-							 detector));
+	dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode", m_Detector));
       if (!DetNode)
         {
-          DetNode = new PHCompositeNode(detector);
+          DetNode = new PHCompositeNode(m_Detector);
           dstNode->addNode(DetNode);
         }
       slats = new PHG4ScintillatorSlatContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(slats, cellnodename.c_str() , "PHObject");
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(slats, m_CellNodeName , "PHObject");
       DetNode->addNode(newNode);
     }
 
-  tmin = get_double_param("tmin");
-  tmax = get_double_param("tmax");
+  m_Tmin = get_double_param("tmin");
+  m_Tmax = get_double_param("tmax");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -87,17 +85,16 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
     {
-      cout << "Could not locate g4 hit node " << hitnodename << endl;
+      cout << "Could not locate g4 hit node " << m_HitNodeName << endl;
       exit(1);
     }
-  PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, cellnodename);
+  PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, m_CellNodeName);
   if (! slats)
     {
-      cout << "could not locate cell node " << cellnodename << endl;
+      cout << "could not locate cell node " << m_CellNodeName << endl;
       exit(1);
     }
 
@@ -109,8 +106,8 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
       PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-	  if (hiter->second->get_t(0)>tmax) continue;
-	  if (hiter->second->get_t(1)<tmin) continue;
+	  if (hiter->second->get_t(0)>m_Tmax) continue;
+	  if (hiter->second->get_t(1)<m_Tmin) continue;
 	  short icolumn = hiter->second->get_scint_id();
 	  short irow = hiter->second->get_row();
 	  if ( irow >= ROWDIM || irow < 0)
@@ -165,11 +162,10 @@ PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
 
 
 
-  if (chkenergyconservation)
+  if (m_CheckEnergyConservationFlag)
     {
       CheckEnergy(topNode);
     }
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -183,8 +179,8 @@ PHG4Prototype2HcalCellReco::End(PHCompositeNode *topNode)
 int
 PHG4Prototype2HcalCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, cellnodename);
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode, m_CellNodeName);
   double sum_energy_g4hit = 0.;
   double sum_energy_cells = 0.;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();

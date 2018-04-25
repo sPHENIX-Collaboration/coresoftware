@@ -6,10 +6,7 @@
 #include "PHG4ParameterInterface.h"
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 #include <string>
-#include <map>
-#include <vector>
 
 class PHCompositeNode;
 class PHG4CylinderCell;
@@ -33,21 +30,21 @@ class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterf
   
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) {detector = d;}
-  void checkenergy(const int i=1) {chkenergyconservation = i;}
+  void Detector(const std::string &d) {m_Detector = d;}
 
-  void   set_timing_window(const double tmi, const double tma);
+  void checkenergy(const int i=1) {m_CheckEnergyConservationFlag = i;}
+
+  void set_timing_window(const double tmi, const double tma);
   
- protected:
+ private:
   int CheckEnergy(PHCompositeNode *topNode);
-  std::string detector;
-  std::string hitnodename;
-  std::string cellnodename;
-  PHTimeServer::timer _timer;
-  int chkenergyconservation;
+  std::string m_Detector;
+  std::string m_HitNodeName;
+  std::string m_CellNodeName;
+  int m_CheckEnergyConservationFlag;
 
-  double tmin;
-  double tmax;
+  double m_Tmin;
+  double m_Tmax;
 };
 
 #endif // G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
