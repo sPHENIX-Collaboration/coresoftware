@@ -15,6 +15,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
+#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -549,12 +550,20 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       if (tower->get_energy() < _reco_e_threshold) continue;
 
-      float towerid = tower->get_id();
-      float ieta = tower->get_bineta();
-      float iphi = tower->get_binphi();
-      float eta = towergeom->get_etacenter(tower->get_bineta());
-      float phi = towergeom->get_phicenter(tower->get_binphi());
-      float e = tower->get_energy();
+      RawTowerGeom * tower_geom =  towergeom->get_tower_geometry(tower->get_id());
+      if (!tower_geom)
+      {
+        cerr << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: "  ;
+        tower->identify();
+        exit(-1);
+      }
+
+      const float towerid = tower->get_id();
+      const float ieta = tower->get_bineta();
+      const float iphi = tower->get_binphi();
+      const float eta = tower_geom->get_eta();
+      const float phi = tower_geom->get_phi();
+      const float e = tower->get_energy();
 
       PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
