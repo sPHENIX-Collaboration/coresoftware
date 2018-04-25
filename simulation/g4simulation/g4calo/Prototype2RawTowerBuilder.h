@@ -10,7 +10,6 @@
 #include <string>
 
 class PHCompositeNode;
-class RawTowerContainer;
 class RawTowerGeomContainer;
 
 class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterface
@@ -26,7 +25,7 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterfa
 
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) {detector = d;}
+  void Detector(const std::string &d) {m_Detector = d;}
   void EminCut(const double e) {emin = e;}
   void checkenergy(const int i = 1) {chkenergyconservation = i;}
 
@@ -72,10 +71,9 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterfa
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer* _towers;
   RawTowerGeomContainer *rawtowergeom;
 
-  std::string detector;
+  std::string m_Detector;
   std::string TowerNodeName;
   std::string TowerGeomNodeName;
   std::string _sim_tower_node_prefix;

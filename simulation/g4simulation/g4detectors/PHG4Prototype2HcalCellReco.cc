@@ -73,8 +73,7 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
   if (!slats)
   {
     PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode(m_Detector);
