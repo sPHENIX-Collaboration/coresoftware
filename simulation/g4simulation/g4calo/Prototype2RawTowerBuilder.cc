@@ -24,15 +24,17 @@ using namespace std;
 
 Prototype2RawTowerBuilder::Prototype2RawTowerBuilder(const std::string& name) :
     SubsysReco(name), 
-    _towers(NULL),
-    rawtowergeom(NULL),
+    PHG4ParameterInterface(name),
+    _towers(nullptr),
+    rawtowergeom(nullptr),
     detector("NONE"), 
-    emin(1e-6),
+    emin(NAN),
     chkenergyconservation(0), 
     _tower_energy_src(kLightYield),
-    ncell_to_tower(5),
-    _timer(PHTimeServer::get()->insert_new(name))
+    ncell_to_tower(5)
+
 {
+  InitializeParameters();
 }
 
 int
@@ -69,7 +71,7 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       else if (_tower_energy_src == kLightYield)
         cout << "save light yield as the weight of the cells" << endl;
     }
-
+  emin = get_double_param("emin");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -253,4 +255,11 @@ Prototype2RawTowerBuilder::get_tower_row(const short cellrow) const
 {
   short twrrow = cellrow/ncell_to_tower;
   return twrrow;
+}
+
+void
+Prototype2RawTowerBuilder::SetDefaultParameters()
+{
+set_default_double_param("emin", 1.e-6);
+return;
 }

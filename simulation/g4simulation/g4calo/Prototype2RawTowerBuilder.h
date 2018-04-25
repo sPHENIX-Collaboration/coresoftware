@@ -1,9 +1,11 @@
-#ifndef Prototype2RawTowerBuilder_H__
-#define Prototype2RawTowerBuilder_H__
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
+#define G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
+
+#include <g4detectors/PHG4ParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
-
-#include <phool/PHTimeServer.h>
 
 #include <string>
 
@@ -11,7 +13,8 @@ class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class Prototype2RawTowerBuilder : public SubsysReco {
+class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterface
+{
 
  public:
   Prototype2RawTowerBuilder(const std::string& name="Prototype2RawTowerBuilder");
@@ -20,6 +23,9 @@ class Prototype2RawTowerBuilder : public SubsysReco {
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+
+  void SetDefaultParameters();
+
   void Detector(const std::string &d) {detector = d;}
   void EminCut(const double e) {emin = e;}
   void checkenergy(const int i = 1) {chkenergyconservation = i;}
@@ -78,8 +84,7 @@ class Prototype2RawTowerBuilder : public SubsysReco {
   int chkenergyconservation;
   enu_tower_energy_src _tower_energy_src;
   int ncell_to_tower;
-  PHTimeServer::timer _timer;
 
 };
 
-#endif /* Prototype2RawTowerBuilder_H__ */
+#endif // G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
