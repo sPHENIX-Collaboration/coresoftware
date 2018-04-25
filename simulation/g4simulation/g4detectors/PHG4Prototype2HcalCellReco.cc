@@ -4,8 +4,12 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+
+#include <phparameter/PHParameters.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -22,16 +26,17 @@ using namespace std;
 // for hcal dimension
 #define ROWDIM 320
 #define COLUMNDIM 22
-static PHG4ScintillatorSlat *slatarray[ROWDIM][COLUMNDIM];
+static array< array< PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
 
 PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name) :
   SubsysReco(name),
+  PHG4ParameterInterface(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   chkenergyconservation(0),
-  tmin(0.0),  // ns
-  tmax(60.0) // ns
+  tmin(NAN),  // ns
+  tmax(NAN) // ns
 {
-  memset(slatarray, 0, sizeof(slatarray));
+  InitializeParameters();
 }
 
 int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
@@ -51,6 +56,8 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
   if (!g4hit)
     {
       cout << "Could not locate g4 hit node " << hitnodename << endl;
+      Fun4AllServer *se = Fun4AllServer::instance();
+      se->Print("NODETREE");
       exit(1);
     }
   cellnodename = "G4CELL_" + detector;
@@ -71,6 +78,8 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
 
+  tmin = get_double_param("tmin");
+  tmax = get_double_param("tmax");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -208,4 +217,20 @@ PHG4Prototype2HcalCellReco::CheckEnergy(PHCompositeNode *topNode)
 	}
     }
   return 0;
+}
+
+void
+PHG4Prototype2HcalCellReco::SetDefaultParameters()
+{
+  set_default_double_param("tmax",60.0);
+  set_default_double_param("tmin",0.0); // collision has a timing spread around the triggered event. Accepting negative time too.
+//  set_default_double_param("tmin",-20.0); // collision has a timing spread around the triggered event. Accepting negative time too.
+  return;
+}
+
+void
+PHG4Prototype2HcalCellReco::set_timing_window(const double tmi, const double tma)
+{
+  set_double_param("tmin",tmi);
+  set_double_param("tmax",tma);
 }

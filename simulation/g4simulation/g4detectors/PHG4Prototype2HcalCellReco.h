@@ -1,5 +1,9 @@
-#ifndef PHG4Prototype2HcalCELLRECO_H
-#define PHG4Prototype2HcalCELLRECO_H
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
+#define G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
+
+#include "PHG4ParameterInterface.h"
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -10,7 +14,7 @@
 class PHCompositeNode;
 class PHG4CylinderCell;
 
-class PHG4Prototype2HcalCellReco : public SubsysReco
+class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterface
 {
  public:
 
@@ -27,10 +31,12 @@ class PHG4Prototype2HcalCellReco : public SubsysReco
   //! end of process
   int End(PHCompositeNode *topNode);
   
+  void SetDefaultParameters();
+
   void Detector(const std::string &d) {detector = d;}
   void checkenergy(const int i=1) {chkenergyconservation = i;}
 
-  void   set_timing_window(const double tmi, const double tma) {tmin = tmi; tmax = tma;}
+  void   set_timing_window(const double tmi, const double tma);
   
  protected:
   int CheckEnergy(PHCompositeNode *topNode);
@@ -44,4 +50,4 @@ class PHG4Prototype2HcalCellReco : public SubsysReco
   double tmax;
 };
 
-#endif
+#endif // G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
