@@ -15,6 +15,7 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
+#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
@@ -557,12 +558,12 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         exit(-1);
       }
 
-      float towerid = tower->get_id();
-      float ieta = tower->get_bineta();
-      float iphi = tower->get_binphi();
-      float eta = tower_geom->get_eta();
-      float phi = tower_geom->get_phi();
-      float e = tower->get_energy();
+      const float towerid = tower->get_id();
+      const float ieta = tower->get_bineta();
+      const float iphi = tower->get_binphi();
+      const float eta = tower_geom->get_eta();
+      const float phi = tower_geom->get_phi();
+      const float e = tower->get_energy();
 
       PHG4Particle* primary = towereval->max_truth_primary_particle_by_energy(tower);
 
