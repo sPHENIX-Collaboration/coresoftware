@@ -15,6 +15,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
 
 #include <cmath>
 #include <cstdlib>
@@ -48,8 +49,14 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
   if (!dstNode)
     {
       std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-      exit(1);
+      gSystem->Exit(1);
     }
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+
+  string paramnodename = "G4CELLPARAM_" + m_Detector;
+  string geonodename = "G4CELLGEO_" + m_Detector;
+ 
   m_HitNodeName = "G4HIT_" + m_Detector;
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
@@ -57,7 +64,7 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
       cout << "Could not locate g4 hit node " << m_HitNodeName << endl;
       Fun4AllServer *se = Fun4AllServer::instance();
       se->Print("NODETREE");
-      exit(1);
+      gSystem->Exit(1);
     }
   m_CellNodeName = "G4CELL_" + m_Detector;
   PHG4ScintillatorSlatContainer *slats = findNode::getClass<PHG4ScintillatorSlatContainer>(topNode , m_CellNodeName);
@@ -75,7 +82,25 @@ int PHG4Prototype2HcalCellReco::InitRun(PHCompositeNode *topNode)
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(slats, m_CellNodeName , "PHObject");
       DetNode->addNode(newNode);
     }
-
+  UpdateParametersWithMacro();
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",m_Detector));
+  if (! RunDetNode)
+    {
+      RunDetNode = new PHCompositeNode(m_Detector);
+      runNode->addNode(RunDetNode);
+    }
+  SaveToNodeTree(RunDetNode,paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",m_Detector));
+  if (! ParDetNode)
+    {
+      ParDetNode = new PHCompositeNode(m_Detector);
+      parNode->addNode(ParDetNode);
+    }
+  PutOnParNode(ParDetNode,geonodename);
+ 
   m_Tmin = get_double_param("tmin");
   m_Tmax = get_double_param("tmax");
   return Fun4AllReturnCodes::EVENT_OK;

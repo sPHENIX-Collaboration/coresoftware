@@ -9,7 +9,6 @@
 #include <string>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
 
 class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterface
 {
