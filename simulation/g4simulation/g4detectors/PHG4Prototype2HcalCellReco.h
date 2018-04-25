@@ -13,28 +13,24 @@ class PHCompositeNode;
 class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterface
 {
  public:
-
   PHG4Prototype2HcalCellReco(const std::string &name = "Prototype2HcalCELLRECO");
 
-  virtual ~PHG4Prototype2HcalCellReco(){}
-  
+  virtual ~PHG4Prototype2HcalCellReco() {}
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
-  
-    //! event processing
+
+  //! event processing
   int process_event(PHCompositeNode *topNode);
-  
+
   //! end of process
   int End(PHCompositeNode *topNode);
-  
+
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) {m_Detector = d;}
-
-  void checkenergy(const int i=1) {m_CheckEnergyConservationFlag = i;}
-
+  void Detector(const std::string &d) { m_Detector = d; }
+  void checkenergy(const int i = 1) { m_CheckEnergyConservationFlag = i; }
   void set_timing_window(const double tmi, const double tma);
-  
+
  private:
   int CheckEnergy(PHCompositeNode *topNode);
   std::string m_Detector;
@@ -46,4 +42,4 @@ class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterf
   double m_Tmax;
 };
 
-#endif // G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
+#endif  // G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
