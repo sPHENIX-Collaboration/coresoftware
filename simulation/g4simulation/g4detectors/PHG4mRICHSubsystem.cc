@@ -33,14 +33,13 @@ PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr):
 }
 
 //_______________________________________________________________________
-int
-PHG4mRICHSubsystem::InitSubsystem( PHCompositeNode* topNode )
+int PHG4mRICHSubsystem::InitSubsystem( PHCompositeNode* topNode )
 {
   // kludge until the phg4parameters are sorted out (adding layers)
   GetParams()->set_name(Name());
   GetParams()->set_int_param("active",1);
-  GetParams()->set_int_param("blackhole",1);
   GetParams()->set_int_param("absorberactive",1);
+  GetParams()->set_int_param("blackhole",0);
   GetParams()->set_string_param("superdetector","NONE");
   GetParams()->set_string_param("detectorname","mRICH");
   return 0;
@@ -58,6 +57,8 @@ int PHG4mRICHSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   _detector = new PHG4mRICHDetector(topNode, GetParams(), Name(), GetLayer());
   _detector->SuperDetector(SuperDetector());
   _detector->OverlapCheck(CheckOverlap());
+  _detector->SetActive(GetParams()->get_int_param("active"));
+  _detector->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
   
   //---------------------------------
   // create hit node and stepping action
@@ -95,8 +96,7 @@ int PHG4mRICHSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
     BOOST_FOREACH(string node, nodes) {
       if (!_eventAction) _eventAction = new PHG4EventActionClearZeroEdep(topNode, node);
       else {
-	PHG4EventActionClearZeroEdep *evtact =
-	  dynamic_cast<PHG4EventActionClearZeroEdep *>(_eventAction);
+	PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(_eventAction);
 	evtact->AddNode(node);
       }
     }
@@ -124,8 +124,16 @@ PHG4mRICHSubsystem::GetDetector( void ) const
 //_______________________________________________________________________
 void PHG4mRICHSubsystem::SetDefaultParameters()
 {
-  set_default_int_param("single_mRICH", 1);    //1 for single mRICH
-                                               //0 for mRICH wall
+  set_default_int_param("detectorSetup", 1);   //1 for full setup
+                                               //0 for skeleton setup: detector box, aerogel, and sensor for quick check
+
+  set_default_int_param("subsystemSetup", 0);  //-1: single module
+                                               //0 : build hemispheric wall
+                                               //>0: mRICH wall as sector. "subsystemSetup" becomes num. of sector (max is 8)
+
+  set_default_double_param("r_inner", 3);      //inner radius of mRICH wall, default=3m;
+  set_default_double_param("eta_min", 1.1);    //limits of rapidity
+  set_default_double_param("eta_max", 1.9);
 
   set_default_int_param("use_g4steps",0);        //for stepping function
 }
