@@ -1,7 +1,6 @@
 #include "PHG4HcalCellReco.h"
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
-#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
