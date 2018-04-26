@@ -30,7 +30,9 @@ libcalo_reco_la_SOURCES = \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \
-  BEmcRecEEMC.cc
+  BEmcRecEEMC.cc \
+  RawTowerDeadMapLoader.cc \
+  RawTowerDeadMapLoader_Dict.cc
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
