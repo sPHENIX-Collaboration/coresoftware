@@ -43,24 +43,65 @@ int
 Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-
-  // Looking for the DST node
-  PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!dstNode)
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!runNode || !dstNode || !parNode)
     {
-      std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-      exit(1);
+      cout << PHWHERE << "Top Nodes missing, quitting after printing node tree" << endl;
+      Fun4AllServer *se = Fun4AllServer::instance();
+       se->Print("NODETREE");
+       gSystem->Exit(1);
     }
+  string paramnodename = "G4TOWERPARAM_" + m_Detector;
+  string geonodename = "G4TOWERGEO_" + m_Detector;
 
-  try
+  if (_sim_tower_node_prefix.empty())
     {
-      CreateNodes(topNode);
+      // no prefix, consistent with older convension
+      TowerNodeName = "TOWER_" + m_Detector;
     }
-  catch (std::exception& e)
+  else
     {
-      std::cout << e.what() << std::endl;
-      //exit(1);
+      TowerNodeName = "TOWER_" + _sim_tower_node_prefix + "_" + m_Detector;
+    }
+  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,TowerNodeName);
+  if (! towers)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(m_Detector);
+      dstNode->addNode(DetNode);
+    }
+ towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_Detector));
+  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers,TowerNodeName, "PHObject");
+  DetNode->addNode(towerNode);
+  }
+
+  TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
+  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName);
+  if (!rawtowergeom)
+    {
+
+      rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_Detector));
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, TowerGeomNodeName.c_str(), "PHObject");
+      runNode->addNode(newNode);
+    }
+  rawtowergeom->set_phibins(4);
+  rawtowergeom->set_etabins(4);
+  for (int irow = 0; irow < rawtowergeom->get_phibins(); irow++)
+    {
+      for (int icolumn=0; icolumn<rawtowergeom->get_etabins(); icolumn++)
+	{
+	  RawTowerGeomv1 * tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_Detector), icolumn, irow));
+            tg->set_center_x(irow*10+icolumn);
+            tg->set_center_y(irow*10+icolumn);
+            tg->set_center_z(irow*10+icolumn);
+
+            rawtowergeom->add_tower_geometry(tg);
+	}
     }
 
   if (verbosity >= 1)
@@ -179,76 +220,6 @@ int
 Prototype2RawTowerBuilder::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void
-Prototype2RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
-{
-
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-  if (!runNode || !dstNode || !parNode)
-    {
-      cout << PHWHERE << "Top Nodes missing, quitting after printing node tree" << endl;
-      Fun4AllServer *se = Fun4AllServer::instance();
-       se->Print("NODETREE");
-       gSystem->Exit(1);
-    }
-  string paramnodename = "G4TOWERPARAM_" + m_Detector;
-  string geonodename = "G4TOWERGEO_" + m_Detector;
-
-  if (_sim_tower_node_prefix.empty())
-    {
-      // no prefix, consistent with older convension
-      TowerNodeName = "TOWER_" + m_Detector;
-    }
-  else
-    {
-      TowerNodeName = "TOWER_" + _sim_tower_node_prefix + "_" + m_Detector;
-    }
-  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,TowerNodeName);
-  if (! towers)
-  {
-    PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(m_Detector);
-      dstNode->addNode(DetNode);
-    }
- towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_Detector));
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers,TowerNodeName, "PHObject");
-  DetNode->addNode(towerNode);
-  }
-
-  TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
-  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName);
-  if (!rawtowergeom)
-    {
-
-      rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_Detector));
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, TowerGeomNodeName.c_str(), "PHObject");
-      runNode->addNode(newNode);
-    }
-  rawtowergeom->set_phibins(4);
-  rawtowergeom->set_etabins(4);
-  for (int irow = 0; irow < rawtowergeom->get_phibins(); irow++)
-    {
-      for (int icolumn=0; icolumn<rawtowergeom->get_etabins(); icolumn++)
-	{
-	  RawTowerGeomv1 * tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(RawTowerDefs::convert_name_to_caloid(m_Detector), icolumn, irow));
-            tg->set_center_x(irow*10+icolumn);
-            tg->set_center_y(irow*10+icolumn);
-            tg->set_center_z(irow*10+icolumn);
-
-            rawtowergeom->add_tower_geometry(tg);
-	}
-    }
-
-
-  return;
 }
 
 short

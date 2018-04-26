@@ -69,7 +69,6 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterfa
   short get_tower_row(const short cellrow) const;
 
  protected:
-  void CreateNodes(PHCompositeNode *topNode);
 
   RawTowerGeomContainer *rawtowergeom;
 
