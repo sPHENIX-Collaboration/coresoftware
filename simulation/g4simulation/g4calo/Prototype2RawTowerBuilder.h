@@ -21,13 +21,11 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterfa
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   void SetDefaultParameters();
 
   void Detector(const std::string &d) {m_Detector = d;}
-  void EminCut(const double e) {emin = e;}
-  void checkenergy(const int i = 1) {chkenergyconservation = i;}
+  void checkenergy(const int i = 1) {m_CheckEnergyConservationFlag = i;}
 
   enum enu_tower_energy_src
   {
@@ -44,43 +42,43 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterfa
   enu_tower_energy_src
   get_tower_energy_src() const
   {
-    return _tower_energy_src;
+    return m_TowerEnergySrc;
   }
 
   void
   set_tower_energy_src(enu_tower_energy_src towerEnergySrc)
   {
-    _tower_energy_src = towerEnergySrc;
+   m_TowerEnergySrc = towerEnergySrc;
   }
 
 
   std::string
   get_sim_tower_node_prefix() const
   {
-    return _sim_tower_node_prefix;
+    return m_SimTowerNodePrefix;
   }
 
   void
   set_sim_tower_node_prefix(std::string simTowerNodePrefix)
   {
-    _sim_tower_node_prefix = simTowerNodePrefix;
+    m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
   short get_tower_row(const short cellrow) const;
 
- protected:
+ private:
 
-  RawTowerGeomContainer *rawtowergeom;
+//  RawTowerGeomContainer *rawtowergeom;
 
   std::string m_Detector;
-  std::string TowerNodeName;
-  std::string TowerGeomNodeName;
-  std::string _sim_tower_node_prefix;
+  std::string m_TowerNodeName;
+  std::string m_TowerGeomNodeName;
+  std::string m_SimTowerNodePrefix;
 
-  double emin;	
-  int chkenergyconservation;
-  enu_tower_energy_src _tower_energy_src;
-  int ncell_to_tower;
+  double m_Emin;	
+  int m_CheckEnergyConservationFlag;
+  enu_tower_energy_src m_TowerEnergySrc;
+  int m_NumCellToTower;
 
 };
 

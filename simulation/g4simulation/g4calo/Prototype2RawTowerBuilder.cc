@@ -28,12 +28,11 @@ using namespace std;
 Prototype2RawTowerBuilder::Prototype2RawTowerBuilder(const std::string& name) :
     SubsysReco(name), 
     PHG4ParameterInterface(name),
-    rawtowergeom(nullptr),
     m_Detector("NONE"), 
-    emin(NAN),
-    chkenergyconservation(0), 
-    _tower_energy_src(kLightYield),
-    ncell_to_tower(5)
+    m_Emin(NAN),
+    m_CheckEnergyConservationFlag(0), 
+    m_TowerEnergySrc(kLightYield),
+    m_NumCellToTower(5)
 
 {
   InitializeParameters();
@@ -56,16 +55,16 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
   string paramnodename = "G4TOWERPARAM_" + m_Detector;
   string geonodename = "G4TOWERGEO_" + m_Detector;
 
-  if (_sim_tower_node_prefix.empty())
+  if (m_SimTowerNodePrefix.empty())
     {
       // no prefix, consistent with older convension
-      TowerNodeName = "TOWER_" + m_Detector;
+      m_TowerNodeName = "TOWER_" + m_Detector;
     }
   else
     {
-      TowerNodeName = "TOWER_" + _sim_tower_node_prefix + "_" + m_Detector;
+      m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
     }
-  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,TowerNodeName);
+  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,m_TowerNodeName);
   if (! towers)
   {
     PHNodeIterator dstiter(dstNode);
@@ -75,18 +74,37 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       DetNode = new PHCompositeNode(m_Detector);
       dstNode->addNode(DetNode);
     }
- towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_Detector));
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers,TowerNodeName, "PHObject");
-  DetNode->addNode(towerNode);
+    towers = new RawTowerContainer(RawTowerDefs::convert_name_to_caloid(m_Detector));
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers,m_TowerNodeName, "PHObject");
+    DetNode->addNode(towerNode);
   }
+  UpdateParametersWithMacro();
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", m_Detector));
+  if (!RunDetNode)
+  {
+    RunDetNode = new PHCompositeNode(m_Detector);
+    runNode->addNode(RunDetNode);
+  }
+  SaveToNodeTree(RunDetNode, paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", m_Detector));
+  if (!ParDetNode)
+  {
+    ParDetNode = new PHCompositeNode(m_Detector);
+    parNode->addNode(ParDetNode);
+  }
+  PutOnParNode(ParDetNode, geonodename);
 
-  TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
-  rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, TowerGeomNodeName);
+
+  m_TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
+  RawTowerGeomContainer *rawtowergeom = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
   if (!rawtowergeom)
     {
 
       rawtowergeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_Detector));
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, TowerGeomNodeName.c_str(), "PHObject");
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(rawtowergeom, m_TowerGeomNodeName, "PHObject");
       runNode->addNode(newNode);
     }
   rawtowergeom->set_phibins(4);
@@ -107,13 +125,17 @@ Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
   if (verbosity >= 1)
     {
       cout << "Prototype2RawTowerBuilder::InitRun :";
-      if (_tower_energy_src == kEnergyDeposition)
+      if (m_TowerEnergySrc == kEnergyDeposition)
+      {
         cout << "save Geant4 energy deposition as the weight of the cells"
             << endl;
-      else if (_tower_energy_src == kLightYield)
+      }
+      else if (m_TowerEnergySrc == kLightYield)
+      {
         cout << "save light yield as the weight of the cells" << endl;
+      }
     }
-  emin = get_double_param("emin");
+  m_Emin = get_double_param("emin");
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -133,10 +155,10 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " " << cellnodename << " Node missing, doing nothing." << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,TowerNodeName);
+  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode,m_TowerNodeName);
   if (! towers)
   {
-      cout << PHWHERE << " " << TowerNodeName << " Node missing, doing nothing." << endl;
+      cout << PHWHERE << " " << m_TowerNodeName << " Node missing, doing nothing." << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
@@ -164,15 +186,15 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
           towers->AddTower(cell->get_column(), twrrow, tower);
         }
       double cell_weight = 0;
-      if (_tower_energy_src == kEnergyDeposition)
+      if (m_TowerEnergySrc == kEnergyDeposition)
 	{
 	  cell_weight = cell->get_edep();
 	}
-      else if (_tower_energy_src == kLightYield)
+      else if (m_TowerEnergySrc == kLightYield)
 	{
 	  cell_weight = cell->get_light_yield();
 	}
-      else if (_tower_energy_src == kIonizationEnergy)
+      else if (m_TowerEnergySrc == kIonizationEnergy)
 	{
 	  cell_weight = cell->get_eion();
 	}
@@ -183,7 +205,7 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
     }
   double towerE = 0;
-  if (chkenergyconservation)
+  if (m_CheckEnergyConservationFlag)
     {
       double cellE = slats->getTotalEdep();
       towerE = towers->getTotalEdep();
@@ -198,10 +220,10 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
       towerE = towers->getTotalEdep();
     }
 
-  towers->compress(emin);
+  towers->compress(m_Emin);
   if (verbosity)
     {
-      cout << "Energy lost by dropping towers with less than " << emin
+      cout << "Energy lost by dropping towers with less than " << m_Emin
           << " energy, lost energy: " << towerE - towers->getTotalEdep()
           << endl;
       towers->identify();
@@ -216,16 +238,10 @@ Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int
-Prototype2RawTowerBuilder::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 short
 Prototype2RawTowerBuilder::get_tower_row(const short cellrow) const
 {
-  short twrrow = cellrow/ncell_to_tower;
+  short twrrow = cellrow/m_NumCellToTower;
   return twrrow;
 }
 
