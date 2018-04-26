@@ -117,7 +117,7 @@ RawTower_Prototype4::get_energy_power_law_exp(int verbosity)
 }
 
 double
-RawTower_Prototype4::get_energy_power_law_double_exp(int verbosity)
+RawTower_Prototype4::get_energy_peak_sample(int verbosity)
 {
   double peak = NAN;
   double peak_sample = NAN;
@@ -130,7 +130,28 @@ RawTower_Prototype4::get_energy_power_law_double_exp(int verbosity)
   }
 
   PROTOTYPE4_FEM::
-      SampleFit_PowerLawDoubleExp(vec_signal_samples, peak, peak_sample, pedstal, verbosity);
+      SampleFit_PeakSample(vec_signal_samples, peak, peak_sample, pedstal, verbosity);
+
+  return peak;
+}
+
+double
+RawTower_Prototype4::get_energy_power_law_double_exp(int verbosity)
+{
+  double peak = NAN;
+  double peak_sample = NAN;
+  double pedstal = NAN;
+
+  vector<double> vec_signal_samples;
+  map<int, double> parameters_io;
+
+  for (int i = 0; i < NSAMPLES; i++)
+  {
+    vec_signal_samples.push_back(signal_samples[i]);
+  }
+
+  PROTOTYPE4_FEM::
+      SampleFit_PowerLawDoubleExp(vec_signal_samples, peak, peak_sample, pedstal, parameters_io, verbosity);
 
   return peak;
 }
