@@ -33,6 +33,10 @@
 #include <iostream>
 
 //#define TESTSINGLESLAT
+#ifdef TESTSINGLESLAT
+static const int nrow = 4;
+static const int nslat = 9;
+#endif
 
 using namespace std;
 //____________________________________________________________________________..
@@ -136,6 +140,16 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     // cout << "mother volume: " <<  mothervolume->GetName()
     //      << ", volume name " << volume->GetName() << ", row: " << row_id
     //  	   << ", column: " << slat_id << endl;
+#ifdef TESTSINGLESLAT
+    if (row_id != nrow)
+    {
+      return false;
+    }
+    if (slat_id != nslat)
+    {
+      return false;
+    }
+#endif
   }
   else
   {
