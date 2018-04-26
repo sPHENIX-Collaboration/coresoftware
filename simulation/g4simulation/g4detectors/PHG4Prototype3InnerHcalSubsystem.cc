@@ -1,6 +1,7 @@
 #include "PHG4Prototype3InnerHcalSubsystem.h"
 #include "PHG4Prototype3InnerHcalDetector.h"
 #include "PHG4Prototype3InnerHcalSteppingAction.h"
+#include "PHG4PrototypeHcalDefs.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -147,6 +148,7 @@ void PHG4Prototype3InnerHcalSubsystem::SetDefaultParameters()
 
   set_default_int_param("hi_eta", 1);
   set_default_int_param("light_scint_model", 1);
+  set_default_int_param(PHG4PrototypeHcalDefs::scipertwr, 4);
   set_default_int_param("scintillators", 1);
 
   set_default_string_param("material", "Steel_A36");

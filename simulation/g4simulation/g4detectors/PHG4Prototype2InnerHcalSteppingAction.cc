@@ -32,6 +32,8 @@
 
 #include <iostream>
 
+//#define TESTSINGLESLAT
+
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype2InnerHcalSteppingAction::PHG4Prototype2InnerHcalSteppingAction(PHG4Prototype2InnerHcalDetector* detector, const PHParameters* parameters)
@@ -138,6 +140,9 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   else
   {
     slat_id = touch->GetCopyNumber();  // steel plate id
+#ifdef TESTSINGLESLAT
+    return false;
+#endif
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
