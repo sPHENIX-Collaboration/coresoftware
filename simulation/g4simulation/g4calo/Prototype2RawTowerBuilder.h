@@ -3,7 +3,7 @@
 #ifndef G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
 #define G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
 
-#include <g4detectors/PHG4ParameterInterface.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
 
@@ -12,13 +12,14 @@
 class PHCompositeNode;
 class RawTowerGeomContainer;
 
-class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterface
+class Prototype2RawTowerBuilder : public SubsysReco, public PHParameterInterface
 {
  public:
   Prototype2RawTowerBuilder(const std::string &name = "Prototype2RawTowerBuilder");
   virtual ~Prototype2RawTowerBuilder() {}
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
+  void Print(const std::string &what = "ALL") const;
 
   void SetDefaultParameters();
 
@@ -49,7 +50,7 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHG4ParameterInterfa
   short get_tower_row(const short cellrow) const;
 
  private:
-  //  RawTowerGeomContainer *rawtowergeom;
+  void ReadParamsFromNodeTree(PHCompositeNode *topNode);
 
   std::string m_Detector;
   std::string m_TowerNodeName;

@@ -3,14 +3,21 @@
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTowerv1.h>
+
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 #include <g4detectors/PHG4ScintillatorSlatDefs.h>
+#include <g4detectors/PHG4PrototypeHcalDefs.h>
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
+#include <pdbcalbase/PdbParameterMap.h>
+#include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -27,7 +34,7 @@ using namespace std;
 
 Prototype2RawTowerBuilder::Prototype2RawTowerBuilder(const std::string &name)
   : SubsysReco(name)
-  , PHG4ParameterInterface(name)
+  , PHParameterInterface(name)
   , m_Detector("NONE")
   , m_Emin(NAN)
   , m_CheckEnergyConservationFlag(0)
@@ -77,7 +84,11 @@ int Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers, m_TowerNodeName, "PHObject");
     DetNode->addNode(towerNode);
   }
-  UpdateParametersWithMacro();
+  // order first default, 
+  // then parameter from g4detector on node tree
+   ReadParamsFromNodeTree(topNode);
+  // then macro setting
+   UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", m_Detector));
   if (!RunDetNode)
@@ -132,6 +143,7 @@ int Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
       cout << "save light yield as the weight of the cells" << endl;
     }
   }
+  m_NumCellToTower = get_int_param(PHG4PrototypeHcalDefs::scipertwr);
   m_Emin = get_double_param("emin");
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -241,6 +253,32 @@ short Prototype2RawTowerBuilder::get_tower_row(const short cellrow) const
 
 void Prototype2RawTowerBuilder::SetDefaultParameters()
 {
+  set_default_int_param(PHG4PrototypeHcalDefs::scipertwr, 0);
   set_default_double_param("emin", 1.e-6);
+  return;
+}
+
+void Prototype2RawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
+{
+  PHParameters *pars = new PHParameters("temp");
+  // we need the number of scintillator plates per tower
+  string geonodename = "G4GEOPARAM_" + m_Detector;
+  PdbParameterMapContainer *saveparams = findNode::getClass<PdbParameterMapContainer>(topNode,geonodename);
+  if (! saveparams)
+    {
+      cout << "could not find " << geonodename << endl;
+      Fun4AllServer *se = Fun4AllServer::instance();
+      se->Print("NODETREE");
+      return;
+    }
+  pars->FillFrom(saveparams,0);
+  set_int_param(PHG4PrototypeHcalDefs::scipertwr,pars->get_int_param(PHG4PrototypeHcalDefs::scipertwr));
+  delete pars;
+  return;
+}
+
+void Prototype2RawTowerBuilder::Print(const std::string &what) const
+{
+  cout << "m_NumCellToTower: " << m_NumCellToTower << endl;
   return;
 }
