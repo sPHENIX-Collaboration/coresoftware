@@ -104,7 +104,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
       if (Verbosity() >= VERBOSITY_MORE)
       {
         cout << " bin " << bineta << "-" << binphi;
-        cout << ". Add neighbors ";
+        cout << ". Add neighbors: ";
       }
 
       assert(bineta >= 0);
