@@ -68,6 +68,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
 
   double recovery_energy = 0;
   int recoverTower = 0;
+  int deadTowerCnt = 0;
 
   if (m_deadTowerMap)
   {
@@ -80,6 +81,8 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
 
     for (const RawTowerDefs::keytype &key : m_deadTowerMap->getDeadTowers())
     {
+      ++deadTowerCnt;
+
       if (Verbosity() >= VERBOSITY_MORE)
       {
         std::cout << Name() << "::" << m_detector << "::"
@@ -135,6 +138,8 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
 
         if (m_deadTowerMap->isDeadTower(ieta, iphi)) continue;
 
+        ++n_neighbor;
+
         assert(m_calibTowers);
         RawTower *neighTower =
             m_calibTowers->getTower(ieta, iphi);
@@ -146,11 +151,10 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
         }
 
         E_SumNeighbor += neighTower->get_energy();
-        ++n_neighbor;
 
       }  // for (const pair<int, int> &neighborIndex : neighborIndexs)
 
-      if (n_neighbor > 0)
+      if (n_neighbor > 0 and E_SumNeighbor != 0)
       {
         RawTower *deadTower = m_calibTowers->getTower(key);
 
@@ -208,9 +212,9 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
     std::cout << Name() << "::" << m_detector << "::"
               << "process_event"
               << "recovery_energy = " << recovery_energy
-              <<" from "<<recoverTower<<" towers"
+              <<" GeV from "<<recoverTower<<" towers out of total "<<deadTowerCnt<<" dead towers"
               << ", output sum energy = "
-              << m_calibTowers->getTotalEdep() << std::endl;
+              << m_calibTowers->getTotalEdep() <<" GeV"<< std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
