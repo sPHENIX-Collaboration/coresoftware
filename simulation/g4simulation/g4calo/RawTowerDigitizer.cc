@@ -1,4 +1,5 @@
 #include "RawTowerDigitizer.h"
+
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerGeom.h>

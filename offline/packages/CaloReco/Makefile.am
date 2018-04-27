@@ -26,6 +26,8 @@ libcalo_reco_la_SOURCES = \
   RawTowerCombiner_Dict.cc \
   RawTowerCalibration.cc \
   RawTowerCalibration_Dict.cc \
+  RawTowerDeadTowerInterp.cc \
+  RawTowerDeadTowerInterp_Dict.cc \
   BEmcCluster.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
