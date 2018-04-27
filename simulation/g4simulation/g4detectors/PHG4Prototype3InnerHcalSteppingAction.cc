@@ -19,21 +19,14 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
 
 #include <iostream>
+
+//#define TESTSINGLESLAT
+#ifdef TESTSINGLESLAT
+static const int nrow = 3;
+static const int nslat = 10;
+#endif
 
 using namespace std;
 //____________________________________________________________________________..
@@ -96,11 +89,24 @@ bool PHG4Prototype3InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     // cout << "mother volume: " <<  mothervolume->GetName()
     // 	 << ", volume name " << volume->GetName() << ", row: " << row_id
     // 	 << ", column: " << slat_id << endl;
+#ifdef TESTSINGLESLAT
+    if (row_id != nrow)
+    {
+      return false;
+    }
+    if (slat_id != nslat)
+    {
+      return false;
+    }
+#endif
   }
   else
   {
     // the row id comes from saved info in the detector construction
     row_id = m_Detector->get_steel_plate_id(volume->GetName());
+#ifdef TESTSINGLESLAT
+    return false;
+#endif
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
