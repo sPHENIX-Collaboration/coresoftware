@@ -3,6 +3,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <map>
+
 class PHG4SiliconTrackerDetector;
 class PHG4ParametersContainer;
 class PHG4Hit;

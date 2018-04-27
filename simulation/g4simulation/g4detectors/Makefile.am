@@ -79,6 +79,7 @@ pkginclude_HEADERS = \
   PHG4ParameterInterface.h \
   PHG4Parameters.h \
   PHG4ParametersContainer.h \
+  PHG4PrototypeHcalDefs.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
@@ -253,6 +254,10 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype2OuterHcalSteppingAction.cc \
   PHG4Prototype2OuterHcalSubsystem.cc \
   PHG4Prototype2OuterHcalSubsystem_Dict.cc \
+  PHG4Prototype3InnerHcalDetector.cc \
+  PHG4Prototype3InnerHcalSteppingAction.cc \
+  PHG4Prototype3InnerHcalSubsystem.cc \
+  PHG4Prototype3InnerHcalSubsystem_Dict.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \

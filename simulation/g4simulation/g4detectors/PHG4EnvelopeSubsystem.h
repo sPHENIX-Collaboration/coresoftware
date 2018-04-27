@@ -2,17 +2,15 @@
 #define PHG4EnvelopeSubsystem_h
 
 #include <g4main/PHG4Subsystem.h>
-#include <g4main/PHG4Detector.h>
-#include <g4main/PHG4SteppingAction.h>
 
-#include <phool/PHCompositeNode.h>
-
-#include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+class PHG4Detector;
 class PHG4EnvelopeDetector;
 class PHG4EnvelopeSteppingAction;
 class PHG4EventAction;
+class PHG4SteppingAction;
+class PHCompositeNode;
 
 class PHG4EnvelopeSubsystem: public PHG4Subsystem
 {
