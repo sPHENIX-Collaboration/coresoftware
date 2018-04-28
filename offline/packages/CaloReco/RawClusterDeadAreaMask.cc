@@ -44,13 +44,14 @@ int RawClusterDeadAreaMask::InitRun(PHCompositeNode *topNode)
 
 int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (Verbosity() >= VERBOSITY_SOME)
   {
-    std::cout << "Processing a NEW EVENT" << std::endl;
+    cout << Name() << "::" << m_detector << "::process_event - Entry" << endl;
   }
+  const int nMasked = 0;
+
   const int eta_bins = m_geometry->get_etabins();
   const int phi_bins = m_geometry->get_phibins();
-
   assert(eta_bins > 0);
   assert(phi_bins > 0);
 
@@ -171,6 +172,8 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
              << "reject cluster " << cluster->get_id() << endl;
         cluster->identify();
       }
+
+      ++nMasked;
       m_rawClusters->getClustersMap().erase(iter++);
     }
     else
@@ -185,6 +188,13 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
 
   }  //  for (iter = begin_end.first; iter != begin_end.second;)
 
+  if (Verbosity() >= VERBOSITY_SOME)
+  {
+    cout << Name() << "::" << m_detector << "::process_event - masked "
+         << nMasked << " clusters. Final cluster containers has "
+         << m_rawClusters->size() << " clusters"
+         << endl;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
