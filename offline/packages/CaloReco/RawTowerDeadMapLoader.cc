@@ -95,7 +95,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
   cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map from " << m_deadMapPath << endl;
 
   PHParameters deadMapParam(m_detector);
-  deadMapParam.ReadFromFile("CEMC", "xml", 0, 0, m_deadMapPath);
+  deadMapParam.ReadFromFile(m_detector, "xml", 0, 0, m_deadMapPath);
 
   const auto in_par_ranges = deadMapParam.get_all_int_params();
 
