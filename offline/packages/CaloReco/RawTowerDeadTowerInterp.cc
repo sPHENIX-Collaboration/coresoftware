@@ -126,9 +126,10 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
         int ieta = bineta + neighborIndex.first;
         int iphi = binphi + neighborIndex.second;
 
-        if (ieta >= eta_bins) ieta -= eta_bins;
+        if (ieta >= eta_bins) continue;
+        if (ieta < 0)  continue;
+
         if (iphi >= phi_bins) iphi -= phi_bins;
-        if (ieta < 0) ieta += eta_bins;
         if (iphi < 0) iphi += phi_bins;
 
         assert(ieta >= 0);
