@@ -80,7 +80,7 @@ int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume *volume) co
 
 void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "PHG4SiliconTrackerDetector::Construct called for layers " << layermin_ << " to " << layermax_ << std::endl;
 
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
@@ -261,7 +261,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const double offsetz = (ncopy % 2 == 0) ? -2. * strip_z / 2. * double(ncopy / 2) + strip_z / 2. : -2. * strip_z / 2. * double(ncopy / 2);
 
       G4VPVParameterisation *fphxparam = new PHG4SiliconTrackerFPHXParameterisation(offsetx, +offsety, offsetz, 2. * strip_z / 2., ncopy);
-      new G4PVParameterised(boost::str(boost::format("fphxcontainer_%d_%d") % sphxlayer % itype).c_str(), fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, overlapcheck);
+      new G4PVParameterised(boost::str(boost::format("fphxcontainer_%d_%d") % sphxlayer % itype).c_str(), fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
 
       /*
          * PGS
@@ -341,38 +341,38 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
          * Carbon stave
          */
       const double TVstave_x = -ladder_x + stave_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVstave_x, 0.0, 0.0), stave_volume, boost::str(boost::format("stave_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
-      new G4PVPlacement(0, G4ThreeVector(TVstave_x, 0.0, 0.0), staveext_volume, boost::str(boost::format("staveext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, overlapcheck);
+      new G4PVPlacement(0, G4ThreeVector(TVstave_x, 0.0, 0.0), stave_volume, boost::str(boost::format("stave_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(0, G4ThreeVector(TVstave_x, 0.0, 0.0), staveext_volume, boost::str(boost::format("staveext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
       /*
          * PGS
          */
       const double TVpgs_x = TVstave_x + stave_x / 2. + pgs_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgs_volume, boost::str(boost::format("pgs_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
-      new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgsext_volume, boost::str(boost::format("pgsext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, overlapcheck);
+      new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgs_volume, boost::str(boost::format("pgs_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgsext_volume, boost::str(boost::format("pgsext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
       /*
          * HDI
          */
       const double TVhdi_x = TVpgs_x + pgs_x / 2. + hdi_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdi_volume, boost::str(boost::format("hdi_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
-      new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdiext_volume, boost::str(boost::format("hdiext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, overlapcheck);
+      new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdi_volume, boost::str(boost::format("hdi_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdiext_volume, boost::str(boost::format("hdiext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
       /*
          * Si-sensor
          */
       const double TVSi_x = TVhdi_x + hdi_x / 2. + siactive_x / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siinactive_volume, boost::str(boost::format("siinactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
-      new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siactive_volume, boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
+      new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siinactive_volume, boost::str(boost::format("siinactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+      new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siactive_volume, boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 
       /*
          * FPHX
          */
       const double TVfphx_x = TVhdi_x + hdi_x / 2. + fphx_x / 2.;
       const double TVfphx_y = sifull_y + gap_sensor_fphx + fphx_y / 2.;
-      new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerp_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
+      new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerp_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 
-      new G4PVPlacement(0, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerm_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, overlapcheck);
+      new G4PVPlacement(0, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerm_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 
       /*----- Step 3 -----
          * We make cylinder volume in each layer and then install the silicon
@@ -409,14 +409,14 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
           sitype[1] = 3;
         }
 
-        new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz[ilayer][itype]), ladder_volume, boost::str(boost::format("ladder_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[0] % icopy).c_str(), trackerenvelope, false, 0, overlapcheck);
-        new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, +posz[ilayer][itype]), ladder_volume, boost::str(boost::format("ladder_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[1] % icopy).c_str(), trackerenvelope, false, 0, overlapcheck);
+        new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz[ilayer][itype]), ladder_volume, boost::str(boost::format("ladder_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[0] % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, +posz[ilayer][itype]), ladder_volume, boost::str(boost::format("ladder_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[1] % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
 
         if (itype != 0)
         {  // HDI tab
           const G4double posz_ext = 2. * (hdi_z_[ilayer][0] + hdi_z) + hdiext_z;
-          new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[0] % icopy).c_str(), trackerenvelope, false, 0, overlapcheck);
-          new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, +posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[1] % icopy).c_str(), trackerenvelope, false, 0, overlapcheck);
+          new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[0] % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+          new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, +posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") % sphxlayer % inttlayer % sitype[1] % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
         }
       }
     }
@@ -461,7 +461,7 @@ int PHG4SiliconTrackerDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume 
   }
 
   checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
+  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
   return 0;
 }
 
@@ -481,11 +481,11 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
   {
     std::string geonode = (superdetector != "NONE") ? boost::str(boost::format("CYLINDERGEOM_%s") % superdetector) : boost::str(boost::format("CYLINDERGEOM_%s") % detector_type);
 
-    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonode.c_str());
+    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.c_str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
-      PHNodeIterator iter(topNode);
+      PHNodeIterator iter(topNode());
       PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.c_str(), "PHObject");
       runNode->addNode(newNode);
@@ -515,7 +515,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           params->get_double_param("offsetphi") * deg / rad,
           params->get_double_param("offsetrot") * deg / rad);
       geo->AddLayerGeom(sphxlayer, mygeom);
-      if (verbosity > 0)
+      if (Verbosity() > 0)
         geo->identify();
     }
   }

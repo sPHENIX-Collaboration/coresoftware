@@ -36,20 +36,12 @@ class PHG4Detector
   */
   virtual void Construct(G4LogicalVolume *world) = 0;
 
-  virtual void Verbosity(const int v)
-  {
-    m_Verbosity = v;
-    verbosity = v;
-  }
+  virtual void Verbosity(const int v) { m_Verbosity = v; }
 
   virtual int Verbosity() const { return m_Verbosity; }
   virtual G4UserSteppingAction *GetSteppingAction() { return nullptr; }
   virtual std::string GetName() const { return m_Name; }
-  virtual void OverlapCheck(const bool chk)
-  {
-    m_OverlapCheck = chk;
-    overlapcheck = chk;
-  }
+  virtual void OverlapCheck(const bool chk) { m_OverlapCheck = chk; }
   virtual bool OverlapCheck() const { return m_OverlapCheck; }
   virtual void Print(const std::string &what = "ALL") const
   {
@@ -57,7 +49,7 @@ class PHG4Detector
   }
   virtual int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
-  //  virtual PHCompositeNode *topNode() {return m_topNode;}
+  virtual PHCompositeNode *topNode() {return m_topNode;}
 
  private:
   PHCompositeNode *m_topNode;
@@ -65,12 +57,6 @@ class PHG4Detector
   bool m_OverlapCheck;
   int m_ColorIndex;
   std::string m_Name;
-  // temporary to make this less disruptive
- protected:
-  PHCompositeNode *topNode;
-  bool overlapcheck;
-  int verbosity;
-  std::string name;
 };
 
 #endif  // G4MAIN_PHG4DETECTOR_H

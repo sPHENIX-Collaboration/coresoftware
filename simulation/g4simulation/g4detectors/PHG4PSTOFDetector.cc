@@ -92,7 +92,7 @@ void PHG4PSTOFDetector::Construct(G4LogicalVolume *logicWorld)
       double y = r * sin(phi);
 
       int modnum = nmod * irow + imod;
-      G4VPhysicalVolume *vol = new G4PVPlacement(rotm, G4ThreeVector(x, y, z), pstof_log_vol, "PSTOF", logicWorld, false, modnum, overlapcheck);
+      G4VPhysicalVolume *vol = new G4PVPlacement(rotm, G4ThreeVector(x, y, z), pstof_log_vol, "PSTOF", logicWorld, false, modnum, OverlapCheck());
       if (IsActive)
       {
 	active_phys_vols[vol] = modnum;

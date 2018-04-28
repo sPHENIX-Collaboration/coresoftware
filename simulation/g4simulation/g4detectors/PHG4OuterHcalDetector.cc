@@ -426,7 +426,7 @@ void PHG4OuterHcalDetector::Construct(G4LogicalVolume *logicWorld)
   hcal_rotm.rotateX(params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(params->get_double_param("rot_z") * deg);
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x") * cm, params->get_double_param("place_y") * cm, params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, overlapcheck);
+  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(params->get_double_param("place_x") * cm, params->get_double_param("place_y") * cm, params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, OverlapCheck());
   ConstructOuterHcal(hcal_envelope_log);
 
   return;
@@ -517,12 +517,12 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     // will start at 1 instead of 0 and there is nothing short of patching this
     // method. I'll take care of this in the decoding of the volume name
     // AAAAAAARHGS
-    scinti_mother_assembly->MakeImprint(hcalenvelope, g4vec, Rot, i, overlapcheck);
+    scinti_mother_assembly->MakeImprint(hcalenvelope, g4vec, Rot, i, OverlapCheck());
     Rot = new G4RotationMatrix();
     Rot->rotateZ(-phi * rad);
     name.str("");
     name << "OuterHcalSteel_" << i;
-    steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, overlapcheck));
+    steel_absorber_vec.insert(new G4PVPlacement(Rot, G4ThreeVector(0, 0, 0), steel_logical, name.str().c_str(), hcalenvelope, 0, i, OverlapCheck()));
     phi += deltaphi;
   }
   hcalenvelope->SetFieldManager(field_setup->get_Field_Manager_Gap(), false);
@@ -568,7 +568,7 @@ int PHG4OuterHcalDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logv
 
   checksolid->SetVisAttributes(visattchk);
   G4PVPlacement *placement = new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, checksolid->GetName(), logvol, 0, false);
-  if (overlapcheck)
+  if (OverlapCheck())
   {
     placement->CheckOverlaps(1000, 0., true, 1);
   }
@@ -850,7 +850,7 @@ void PHG4OuterHcalDetector::SetTiltViaNcross()
     params->set_int_param("ncross",0);
     return;
   }
-  if ((isfinite(tilt_angle)) && (verbosity > 0))
+  if ((isfinite(tilt_angle)) && (Verbosity() > 0))
   {
     cout << "both number of crossings and tilt angle are set" << endl;
     cout << "using number of crossings to determine tilt angle" << endl;

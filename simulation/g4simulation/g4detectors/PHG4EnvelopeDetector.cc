@@ -115,7 +115,7 @@ PHG4EnvelopeDetector::Construct( G4LogicalVolume* logicWorld )
 		logicWorld, 
 		0, 
 		false, 
-		overlapcheck);
+		OverlapCheck());
 
 	//**************
 	//Forward Endcap
@@ -127,7 +127,7 @@ PHG4EnvelopeDetector::Construct( G4LogicalVolume* logicWorld )
 		logicWorld,
 		0,
 		false,
-		overlapcheck);
+		OverlapCheck());
 
 	//*****************************
 	//Cylinder Surrounding Detector
@@ -161,6 +161,6 @@ PHG4EnvelopeDetector::Construct( G4LogicalVolume* logicWorld )
 		logicWorld,
 		0,
 		false,
-		overlapcheck);
+		OverlapCheck());
 	
 }

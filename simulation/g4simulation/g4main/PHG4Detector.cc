@@ -10,10 +10,6 @@ PHG4Detector::PHG4Detector(PHCompositeNode *Node, const std::string &nam)
   , m_OverlapCheck(false)
   , m_ColorIndex(0)
   , m_Name(nam)
-  , topNode(Node)
-  , overlapcheck(false)
-  , verbosity(0)
-  , name(nam)
 {
 }
 

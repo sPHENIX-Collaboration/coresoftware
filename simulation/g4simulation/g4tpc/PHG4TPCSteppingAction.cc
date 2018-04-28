@@ -59,7 +59,7 @@ PHG4TPCSteppingAction::PHG4TPCSteppingAction(PHG4TPCDetector* detector, const PH
   {
     use_g4_steps = 1;
   }
-  name = detector_->GetName();
+  SetName(detector_->GetName());
 }
 
 PHG4TPCSteppingAction::~PHG4TPCSteppingAction()
@@ -313,7 +313,7 @@ void PHG4TPCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
   if (!absorberhits_)
   {
-    if (verbosity > 1)
+    if (Verbosity() > 1)
     {
       cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
     }

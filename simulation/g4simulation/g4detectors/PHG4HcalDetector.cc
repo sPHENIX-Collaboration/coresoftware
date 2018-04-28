@@ -120,7 +120,7 @@ void PHG4HcalDetector::Construct( G4LogicalVolume* logicWorld )
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(xpos, ypos, zpos),
                                      cylinder_logic,
                                      G4String(GetName().c_str()),
-                                     logicWorld, 0, false, overlapcheck);
+                                     logicWorld, 0, false, OverlapCheck());
   // Figure out corners of scintillator inside the containing G4Tubs.
   // Work our way around the scintillator cross section in a counter
   // clockwise fashion: ABCD
@@ -216,7 +216,7 @@ void PHG4HcalDetector::Construct( G4LogicalVolume* logicWorld )
       G4VPhysicalVolume* box_vol_tmp = new G4PVPlacement(G4Transform3D(Rot, G4ThreeVector(myTrans)),
 							 box_logic,
 							 G4String(slatname.str()),
-							 cylinder_logic, 0, false, overlapcheck);
+							 cylinder_logic, 0, false, OverlapCheck());
       box_vol[box_vol_tmp] = i;
     }
   if (active)
@@ -230,11 +230,11 @@ void PHG4HcalDetector::Construct( G4LogicalVolume* logicWorld )
         {
           geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
         }
-      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonode.str().c_str());
+      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode() , geonode.str().c_str());
       if (!geo)
         {
           geo = new PHG4CylinderGeomContainer();
-          PHNodeIterator iter( topNode );
+          PHNodeIterator iter( topNode() );
           PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
           PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
           runNode->addNode(newNode);

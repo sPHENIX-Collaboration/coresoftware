@@ -79,7 +79,7 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* 
   , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
   , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
 {
-  name = detector_->GetName();
+  SetName(detector_->GetName());
 }
 
 PHG4OuterHcalSteppingAction::~PHG4OuterHcalSteppingAction()
