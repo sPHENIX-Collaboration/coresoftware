@@ -48,7 +48,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
   {
     cout << Name() << "::" << m_detector << "::process_event - Entry" << endl;
   }
-  const int nMasked = 0;
+  int nMasked = 0;
 
   const int eta_bins = m_geometry->get_etabins();
   const int phi_bins = m_geometry->get_phibins();
@@ -133,6 +133,7 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
     bool rejecCluster = false;
 
     for (int search_eta = ceil(avgeta - m_deadTowerMaskHalfWidth); search_eta <= floor(avgeta + m_deadTowerMaskHalfWidth); ++search_eta)
+    {
       for (int search_phi = ceil(avgphi - m_deadTowerMaskHalfWidth); search_phi <= floor(avgphi + m_deadTowerMaskHalfWidth); ++search_phi)
       {
         int ieta = search_eta;
@@ -162,6 +163,9 @@ int RawClusterDeadAreaMask::process_event(PHCompositeNode *topNode)
           break;
         }
       }
+
+      if (rejecCluster) break;
+    }
 
     //container operation
     if (rejecCluster)
