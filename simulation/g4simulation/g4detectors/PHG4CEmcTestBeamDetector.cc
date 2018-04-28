@@ -55,7 +55,7 @@ PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector( PHCompositeNode *Node, const
   sandwich_thickness = 2*w_dimension[1] + sc_dimension[1]; // two tungsten plats, one scintillator
   for (int i=0; i<4; i++)
     {
-      sandwich_vol.push_back(NULL);
+      sandwich_vol.push_back(nullptr);
     }
 }
 
@@ -186,7 +186,7 @@ PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
 				 w_dimension[0] / 2., w_dimension[1] / 2., w_dimension[2] / 2.);
   G4VSolid*  block_sc = new G4Box("Scinti_box",
 				  sc_dimension[0] / 2., sc_active_thickness / 2., sc_dimension[2] / 2.);
-  G4VSolid*  block_passive_sc = NULL;
+  G4VSolid*  block_passive_sc = nullptr;
   block_logic.push_back(new G4LogicalVolume(block_w,
 					    AbsorberMaterial,
 					    "Plate_log_W",
@@ -265,7 +265,7 @@ PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
     }
   else
     {
-      sandwich_vol[3] = NULL;
+      sandwich_vol[3] = nullptr;
     }
   return 0;
 }
