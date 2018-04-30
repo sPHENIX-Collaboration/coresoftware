@@ -9,13 +9,13 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class PHG4ParametersContainer;
+class PHParametersContainer;
 
 class PHG4PSTOFDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4PSTOFDetector(PHCompositeNode *Node, PHG4ParametersContainer *params_array, const std::string &dnam = "PSTOF");
+  PHG4PSTOFDetector(PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam = "PSTOF");
 
   //! destructor
   virtual ~PHG4PSTOFDetector(){}
@@ -38,7 +38,7 @@ protected:
   int IsAbsorberActive;
   int nmod;
   int nrows;
-  PHG4ParametersContainer *paramscontainer;
+  PHParametersContainer *paramscontainer;
   std::map<G4VPhysicalVolume *, int> active_phys_vols;
 
   std::string superdetector;

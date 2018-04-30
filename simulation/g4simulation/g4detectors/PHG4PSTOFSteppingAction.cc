@@ -1,8 +1,9 @@
 #include "PHG4PSTOFSteppingAction.h"
 #include "PHG4PSTOFDetector.h"
-#include "PHG4Parameters.h"
-#include "PHG4ParametersContainer.h"
 #include "PHG4StepStatusDecode.h"
+
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -21,7 +22,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHG4ParametersContainer* parameters)
+PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHParametersContainer* parameters)
   : detector_(detector)
   , paramscontainer(parameters)
   , hits_(nullptr)

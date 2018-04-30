@@ -33,7 +33,7 @@ static array<array<PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {null
 
 PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name)
   : SubsysReco(name)
-  , PHG4ParameterInterface(name)
+  , PHParameterInterface(name)
   , m_CheckEnergyConservationFlag(0)
   , m_Tmin(NAN)
   , m_Tmax(NAN)

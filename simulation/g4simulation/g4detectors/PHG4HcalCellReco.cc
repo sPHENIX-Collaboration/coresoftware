@@ -30,7 +30,7 @@ static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
 
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   chkenergyconservation(0),
   tmin(NAN),  // ns

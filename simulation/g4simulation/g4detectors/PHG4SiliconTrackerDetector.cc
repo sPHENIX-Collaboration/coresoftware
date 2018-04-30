@@ -1,9 +1,10 @@
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Siladders.h"
-#include "PHG4Parameters.h"
-#include "PHG4ParametersContainer.h"
 #include "PHG4SiliconTrackerParameterisation.h"
+
+#include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4Utils.h>
 
@@ -28,7 +29,7 @@
 
 using namespace std;
 
-PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHG4ParametersContainer *parameters, const std::string &dnam, const vpair &layerconfig)
+PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const vpair &layerconfig)
   : PHG4Detector(Node, dnam)
   , paramscontainer(parameters)
 {
@@ -46,10 +47,10 @@ PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PH
       assert(!"PHG4SiliconTrackerDetector: check INTT ladder layer.");
     }
   }
-  PHG4ParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
-  for (PHG4ParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  PHParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
+  for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
   {
-    PHG4Parameters *par = iter->second;
+    PHParameters *par = iter->second;
     IsActive[iter->first] = par->get_int_param("active");
     IsAbsorberActive[iter->first] = par->get_int_param("absorberactive");
   }
@@ -98,7 +99,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   {
     const int sphxlayer = layerconfig_[ilayer].first;
     const int inttlayer = layerconfig_[ilayer].second;
-    const PHG4Parameters *params = paramscontainer->GetParameters(inttlayer);
+    const PHParameters *params = paramscontainer->GetParameters(inttlayer);
     const G4double strip_x = params->get_double_param("strip_x") * cm;
     const G4double strip_y = params->get_double_param("strip_y") * cm;
     const int nstrips_phi_cell = params->get_int_param("nstrips_phi_cell");
@@ -496,7 +497,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       const int sphxlayer = layerconfig_[ilayer].first;
       const int inttlayer = layerconfig_[ilayer].second;
 
-      const PHG4Parameters *params = paramscontainer->GetParameters(inttlayer);
+      const PHParameters *params = paramscontainer->GetParameters(inttlayer);
       // parameters are in cm, so no conversion needed here to get to cm (*cm/cm)
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
           sphxlayer,

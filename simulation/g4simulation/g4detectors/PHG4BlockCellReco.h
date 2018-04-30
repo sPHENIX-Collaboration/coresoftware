@@ -1,7 +1,7 @@
 #ifndef PHG4BLOCKCELLRECO_H
 #define PHG4BLOCKCELLRECO_H
 
-#include "PHG4ParameterContainerInterface.h"
+#include <phparameter/PHParameterContainerInterface.h>
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -13,7 +13,7 @@
 class PHCompositeNode;
 class PHG4BlockCell;
 
-class PHG4BlockCellReco : public SubsysReco, public PHG4ParameterContainerInterface
+class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterface
 {
  public:
 
