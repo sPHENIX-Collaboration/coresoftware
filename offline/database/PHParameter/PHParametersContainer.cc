@@ -55,6 +55,28 @@ PHParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontain
 }
 
 void
+PHParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *saveparamcontainer, const string &name)
+{
+  PdbParameterMapContainer::parConstRange begin_end =  saveparamcontainer->get_ParameterMaps();
+  for (PdbParameterMapContainer::parIter iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    Iterator pariter = parametermap.find(iter->first);
+    if (pariter != parametermap.end())
+    {
+      PHParameters *params = pariter->second;
+      params->FillFrom(iter->second);
+    }
+    else
+    {
+      PHParameters *params = new PHParameters(name);
+      params->FillFrom(iter->second);
+      AddPHParameters(iter->first,params);
+    }
+  }
+  return;
+}
+
+void
 PHParametersContainer::AddPHParameters(const int layer, PHParameters *params)
 {
   if (parametermap.find(layer) != parametermap.end())
