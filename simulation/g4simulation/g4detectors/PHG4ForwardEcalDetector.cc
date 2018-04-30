@@ -115,7 +115,7 @@ PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume * volume) const
 void
 PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4ForwardEcalDetector: Begin Construction" << endl;
     }
@@ -161,7 +161,7 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
   name_envelope << _towerlogicnameprefix << "_envelope" << endl;
 
   new G4PVPlacement( G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z) ),
-		     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, overlapcheck);
+		     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
   G4LogicalVolume* singletower0 = ConstructTower(0);
@@ -179,7 +179,7 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 G4LogicalVolume*
 PHG4ForwardEcalDetector::ConstructTower( int type )
 {
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4ForwardEcalDetector: Build logical volume for single tower, type = " << type << endl;
     }
@@ -268,7 +268,7 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
 		     logic_scint,
 		     name_scintillator.str().c_str(),
 		     single_tower_logic,
-		     0, 0, overlapcheck);
+		     0, 0, OverlapCheck());
 
   G4VisAttributes *visattchk = new G4VisAttributes();
   visattchk->SetVisibility(true);
@@ -276,7 +276,7 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
   visattchk->SetColour(G4Colour::Cyan());
   single_tower_logic->SetVisAttributes(visattchk);
 
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4ForwardEcalDetector: Building logical volume for single tower done, type = " << type << endl;
     }
@@ -287,7 +287,7 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
 G4LogicalVolume*
 PHG4ForwardEcalDetector::ConstructTowerType2()
 {
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type 2..." << endl;
     }
@@ -362,7 +362,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 			 logic_absorber,
 			 name_absorber.str().c_str(),
 			 single_tower_logic,
-			 0, 0, overlapcheck);
+			 0, 0, OverlapCheck());
 
       zpos_i += ( thickness_absorber/2. + thickness_scintillator/2. );
 
@@ -370,7 +370,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 			 logic_scint,
 			 name_scintillator.str().c_str(),
 			 single_tower_logic,
-			 0, 0, overlapcheck);
+			 0, 0, OverlapCheck());
 
       zpos_i += ( thickness_absorber/2. + thickness_scintillator/2. );
     }
@@ -382,7 +382,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
   visattchk->SetColour(G4Colour::Cyan());
   single_tower_logic->SetVisAttributes(visattchk);
 
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4EICForwardEcalDetector: Building logical volume for single tower done." << endl;
     }
@@ -399,7 +399,7 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
 
   for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
 
-      if ( verbosity > 0 )
+      if ( Verbosity() > 0 )
 	{
 	  cout << "PHG4ForwardEcalDetector: Place tower " << iterator->first
 	       << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
@@ -419,7 +419,7 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
 			 singletower,
 			 iterator->first.c_str(),
 			 ecalenvelope,
-			 0, 0, overlapcheck);
+			 0, 0, OverlapCheck());
 
   }
 
@@ -449,7 +449,7 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
       /* Skip lines starting with / including a '#' */
       if ( line_mapping.find("#") != string::npos )
 	{
-	  if ( verbosity > 0 )
+	  if ( Verbosity() > 0 )
 	    {
 	      cout << "PHG4ForwardEcalDetector: SKIPPING line in mapping file: " << line_mapping << endl;
 	    }

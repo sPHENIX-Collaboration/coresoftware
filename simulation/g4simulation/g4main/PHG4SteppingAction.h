@@ -14,9 +14,8 @@ class PHG4SteppingAction
 {
  public:
   PHG4SteppingAction(const int i = 0)
-    : verbosity(i)
-    , name("NONAME")
-    , m_Verbosity(i)
+    : m_Verbosity(i)
+    , m_Name("NONAME")
   {
   }
 
@@ -32,11 +31,7 @@ class PHG4SteppingAction
   */
   virtual bool UserSteppingAction(const G4Step* step, bool was_used) = 0;
 
-  virtual void Verbosity(const int i)
-  {
-    m_Verbosity = i;
-    verbosity = i;
-  }
+  virtual void Verbosity(const int i) { m_Verbosity = i; }
   virtual int Verbosity() const { return m_Verbosity; }
   virtual int Init() { return 0; }
   //! get scintillation photon count. It require a custom set SCINTILLATIONYIELD property to work
@@ -50,14 +45,11 @@ class PHG4SteppingAction
 
   virtual void SetInterfacePointers(PHCompositeNode*) { return; }
   virtual void Print(const std::string& what) const { return; }
-  std::string GetName() const { return name; }
+  std::string GetName() const { return m_Name; }
+  void SetName(const std::string &name) { m_Name = name; }
   virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
   virtual double GetLightCorrection(const double r) const;
   virtual double GetLightCorrection(const double xpos, const double ypos) const;
-
- protected:
-  int verbosity;
-  std::string name;
 
  private:
   bool ValidCorrection() const;
@@ -66,6 +58,7 @@ class PHG4SteppingAction
   double m_LightBalanceInnerCorr;
   double m_LightBalanceOuterRadius;
   double m_LightBalanceOuterCorr;
+  std::string m_Name;
   std::set<std::string> m_ScintLightYieldMissingMaterialSet;
 };
 

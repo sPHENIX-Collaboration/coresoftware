@@ -62,7 +62,7 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
   , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
   , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
 {
-  name = detector_->GetName();
+  GetName() = detector_->GetName();
 }
 
 PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
@@ -416,7 +416,7 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
   if (!absorberhits_)
   {
-    if (verbosity > 1)
+    if (Verbosity() > 1)
     {
       cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
     }

@@ -95,7 +95,7 @@ PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * volum
 void
 PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4CrystalCalorimeterDetector: Begin Construction" << endl;
     }
@@ -141,7 +141,7 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
   name_envelope << _towerlogicnameprefix << "_envelope" << endl;
 
   new G4PVPlacement( G4Transform3D(eemc_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z) ),
-		     eemc_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, overlapcheck);
+		     eemc_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
   G4LogicalVolume* singletower = ConstructTower();
@@ -157,7 +157,7 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 G4LogicalVolume*
 PHG4CrystalCalorimeterDetector::ConstructTower()
 {
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4CrystalCalorimeterDetector: Build logical volume for single tower..." << endl;
     }
@@ -255,7 +255,7 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 		     logic_shell,
 		     name_shell.str().c_str(),
 		     single_tower_logic,
-		     0, 0, overlapcheck);
+		     0, 0, OverlapCheck());
 
 
   /* Place crystal in logical tower volume */
@@ -267,11 +267,11 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 		     logic_crystal,
 		     name_crystal.str().c_str(),
 		     single_tower_logic,
-		     0, 0, overlapcheck);
+		     0, 0, OverlapCheck());
 
 
 
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4CrystalCalorimeterDetector: Building logical volume for single tower done." << endl;
     }
@@ -287,7 +287,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
 
   for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
 
-      if ( verbosity > 0 )
+      if ( Verbosity() > 0 )
 	{
 	  cout << "PHG4CrystalCalorimeterDetector: Place tower " << iterator->first
 	       << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
@@ -297,7 +297,7 @@ PHG4CrystalCalorimeterDetector::PlaceTower(G4LogicalVolume* eemcenvelope, G4Logi
 			 singletower,
 			 iterator->first.c_str(),
 			 eemcenvelope,
-			 0, 0, overlapcheck);
+			 0, 0, OverlapCheck());
 
   }
 
@@ -327,7 +327,7 @@ PHG4CrystalCalorimeterDetector::ParseParametersFromTable()
       /* Skip lines starting with / including a '#' */
       if ( line_mapping.find("#") != string::npos )
 	{
-	  if ( verbosity > 0 )
+	  if ( Verbosity() > 0 )
 	    {
 	      cout << "PHG4CrystalCalorimeterDetector: SKIPPING line in mapping file: " << line_mapping << endl;
 	    }

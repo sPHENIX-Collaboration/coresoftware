@@ -118,7 +118,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
 
   Verbosity(_geom->get_construction_verbose());
 
-  if ((verbosity > 0))
+  if ((Verbosity() > 0))
   {
     cout << "PHG4SpacalDetector::Construct::" << GetName()
          << " - Start. Print Geometry:" << endl;
@@ -161,13 +161,13 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
                                      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
                                                    _geom->get_zpos() * cm),
                                      cylinder_logic, G4String(GetName().c_str()),
-                                     logicWorld, false, 0, overlapcheck);
+                                     logicWorld, false, 0, OverlapCheck());
 
   // install sectors
   if (_geom->get_sector_map().size() == 0)
     _geom->init_default_sector_map();
 
-  if ((verbosity > 0))
+  if ((Verbosity() > 0))
   {
     cout << "PHG4SpacalDetector::Construct::" << GetName()
          << " - start constructing " << _geom->get_sector_map().size() << " sectors in total. " << endl;
@@ -189,7 +189,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
 
     G4PVPlacement *calo_phys = new G4PVPlacement(sec_place, sec_logic,
                                                  G4String(name.str().c_str()), cylinder_logic, false, sec,
-                                                 overlapcheck);
+                                                 OverlapCheck());
     calo_vol[calo_phys] = sec;
 
     assert(gdml_config);
@@ -209,11 +209,11 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
       geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
     }
     PHG4CylinderGeomContainer *geo = findNode::getClass<
-        PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+        PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
-      PHNodeIterator iter(topNode);
+      PHNodeIterator iter(topNode());
       PHCompositeNode *runNode =
           dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
                                                          "RUN"));
@@ -240,11 +240,11 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
       geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << layer;
     }
     PHG4CylinderGeomContainer *geo = findNode::getClass<
-        PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+        PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
-      PHNodeIterator iter(topNode);
+      PHNodeIterator iter(topNode());
       PHCompositeNode *runNode =
           dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
                                                          "RUN"));
@@ -259,7 +259,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
     //    geo->identify();
   }
 
-  if ((verbosity > 0))
+  if ((Verbosity() > 0))
   {
     cout << "PHG4SpacalDetector::Construct::" << GetName()
          << " - Completed. Print Geometry:" << endl;
@@ -305,7 +305,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
 
     G4PVPlacement *fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
                                                    G4String(name.str().c_str()), sec_logic, false, fiber_count,
-                                                   overlapcheck);
+                                                   OverlapCheck());
     fiber_vol[fiber_physi] = fiber_count;
     assert(gdml_config);
     gdml_config->exclude_physical_vol(fiber_physi);
@@ -315,7 +315,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   }
   _geom->set_nscint(fiber_count);
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "PHG4SpacalDetector::Construct_AzimuthalSeg::" << GetName()
          << " - constructed " << fiber_count << " fibers" << endl;
@@ -381,7 +381,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
     core_logic->SetVisAttributes(VisAtt);
   }
 
-  const bool overlapcheck_fiber = overlapcheck and (verbosity >= 3);
+  const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);
   G4PVPlacement *core_physi = new G4PVPlacement(0, G4ThreeVector(), core_logic,
                                                 G4String(G4String(GetName() + string("_fiber_core") + id)), fiber_logic,
                                                 false, 0, overlapcheck_fiber);

@@ -181,7 +181,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
           G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
               G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
-              false, val.first, overlapcheck);
+              false, val.first, OverlapCheck());
 
           calo_vol[wall_phys] = val.first;
           assert(gdml_config);
@@ -247,7 +247,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 
           G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
               G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
-              false, val.first, overlapcheck);
+              false, val.first, OverlapCheck());
 
           calo_vol[wall_phys] = val.first;
 
@@ -268,7 +268,7 @@ PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
           * G4TranslateZ3D(g_tower.centralZ * cm)
           * G4RotateX3D(g_tower.pRotationAngleX * rad);
 
-      const bool overlapcheck_block = overlapcheck
+      const bool overlapcheck_block = OverlapCheck()
           and (get_geom_v3()->get_construction_verbose() >= 2);
 
       G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
@@ -427,7 +427,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
       name << GetName() + string("_Tower") << g_tower.id << "_fiber"
           << ss.str();
 
-      const bool overlapcheck_fiber = overlapcheck
+      const bool overlapcheck_fiber = OverlapCheck()
           and (get_geom_v3()->get_construction_verbose() >= 3);
       G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
           G4String(name.str().c_str()), LV_tower, false, fiber_ID,
@@ -552,7 +552,7 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
           name << GetName() + string("_Tower") << g_tower.id << "_fiber"
               << ss.str();
 
-          const bool overlapcheck_fiber = overlapcheck
+          const bool overlapcheck_fiber = OverlapCheck()
               and (get_geom_v3()->get_construction_verbose() >= 3);
           G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place,
               fiber_logic, G4String(name.str().c_str()), LV_tower, false,
