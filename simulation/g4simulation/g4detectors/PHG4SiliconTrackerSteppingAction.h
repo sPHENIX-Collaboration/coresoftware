@@ -6,7 +6,7 @@
 #include <map>
 
 class PHG4SiliconTrackerDetector;
-class PHG4ParametersContainer;
+class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
@@ -14,7 +14,7 @@ class PHG4Shower;
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector *, const PHG4ParametersContainer *parameters);
+  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector *, const PHParametersContainer *parameters);
 
   virtual ~PHG4SiliconTrackerSteppingAction();
 
@@ -32,7 +32,7 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   PHG4Hit *hit;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;
-  const PHG4ParametersContainer *paramscontainer;
+  const PHParametersContainer *paramscontainer;
 
   double strip_y[4];
   double strip_z[4][2];

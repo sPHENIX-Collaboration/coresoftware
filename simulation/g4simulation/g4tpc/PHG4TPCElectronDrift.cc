@@ -6,7 +6,8 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4ParametersContainer.h>
+
+#include <phparameter/PHParametersContainer.h>
 
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
@@ -32,7 +33,7 @@ using namespace std;
 
 PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   SubsysReco(name),
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   g4cells(nullptr),
   dlong(nullptr),
   dtrans(nullptr),
@@ -138,17 +139,17 @@ g4cells = new PHG4CellContainer();
 
 // find TPC Geo
   PHNodeIterator tpcpariter(ParDetNode);
-  PHG4ParametersContainer *tpcparams = findNode::getClass<PHG4ParametersContainer>(ParDetNode,tpcgeonodename);
+  PHParametersContainer *tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode,tpcgeonodename);
   if (!tpcparams)
   {
     string runparamname = "G4GEOPARAM_" + detector;
     PdbParameterMapContainer *tpcpdbparams = findNode::getClass<PdbParameterMapContainer>(RunDetNode,runparamname);
     if (tpcpdbparams)
     {
-      tpcparams = new PHG4ParametersContainer(detector);
+      tpcparams = new PHParametersContainer(detector);
       tpcpdbparams->print();
       tpcparams->CreateAndFillFrom(tpcpdbparams,detector);
-      ParDetNode->addNode(new PHDataNode<PHG4ParametersContainer>(tpcparams,tpcgeonodename));
+      ParDetNode->addNode(new PHDataNode<PHParametersContainer>(tpcparams,tpcgeonodename));
     }
   }
   tpcparams->Print();
@@ -252,11 +253,14 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     ihit++;
 //      gSystem->Exit(0);
   }
-  PHG4CellContainer::ConstRange cells = g4cells->getCells();
-  PHG4CellContainer::ConstIterator celliter;
-  for (celliter=cells.first;celliter != cells.second; ++celliter)
+  if (Verbosity()>1)
   {
-    celliter->second->print();
+    PHG4CellContainer::ConstRange cells = g4cells->getCells();
+    PHG4CellContainer::ConstIterator celliter;
+    for (celliter=cells.first;celliter != cells.second; ++celliter)
+    {
+      celliter->second->print();
+    }
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

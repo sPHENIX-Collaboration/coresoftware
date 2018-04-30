@@ -75,10 +75,6 @@ pkginclude_HEADERS = \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4HcalDefs.h \
-  PHG4ParameterContainerInterface.h \
-  PHG4ParameterInterface.h \
-  PHG4Parameters.h \
-  PHG4ParametersContainer.h \
   PHG4PrototypeHcalDefs.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
@@ -86,14 +82,6 @@ pkginclude_HEADERS = \
   PHG4StepStatusDecode.h
 
 libg4detectors_io_la_SOURCES = \
-  PHG4Parameters.cc \
-  PHG4Parameters_Dict.cc \
-  PHG4ParametersContainer.cc \
-  PHG4ParametersContainer_Dict.cc \
-  PHG4ParameterContainerInterface.cc \
-  PHG4ParameterContainerInterface_Dict.cc \
-  PHG4ParameterInterface.cc \
-  PHG4ParameterInterface_Dict.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \

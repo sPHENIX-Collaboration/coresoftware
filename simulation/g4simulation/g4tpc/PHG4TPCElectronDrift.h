@@ -3,7 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <g4detectors/PHG4ParameterInterface.h>
+#include <phparameter/PHParameterInterface.h>
 
 // rootcint barfs with this header so we need to hide it
 #ifndef __CINT__
@@ -18,7 +18,7 @@ class PHCompositeNode;
 class TH1;
 class TNtuple;
 
-class  PHG4TPCElectronDrift: public SubsysReco, public PHG4ParameterInterface
+class  PHG4TPCElectronDrift: public SubsysReco, public PHParameterInterface
 {
 public:
   PHG4TPCElectronDrift(const std::string& name = "PHG4TPCElectronDrift");

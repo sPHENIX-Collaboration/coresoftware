@@ -3,14 +3,14 @@
 #ifndef G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
 #define G4DETECTORS_PHG4PROTOTYPE2HCALCELLRECO_H
 
-#include "PHG4ParameterInterface.h"
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
 #include <string>
 
 class PHCompositeNode;
 
-class PHG4Prototype2HcalCellReco : public SubsysReco, public PHG4ParameterInterface
+class PHG4Prototype2HcalCellReco : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4Prototype2HcalCellReco(const std::string &name = "Prototype2HcalCELLRECO");
