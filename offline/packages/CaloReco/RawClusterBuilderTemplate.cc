@@ -394,8 +394,18 @@ void RawClusterBuilderTemplate::CreateNodes(PHCompositeNode *topNode)
       throw std::runtime_error("Failed to find DST node in EmcRawTowerBuilder::CreateNodes");
     }
 
+  //Get the _det_name subnode
+  PHCompositeNode *cemcNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", detector));
+
+  //Check that it is there
+  if (!cemcNode)
+  {
+    cemcNode = new PHCompositeNode(detector);
+    dstNode->addNode(cemcNode);
+  }
+
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;
   PHIODataNode<PHObject> *clusterNode = new PHIODataNode<PHObject>(_clusters, ClusterNodeName.c_str(), "PHObject");
-  dstNode->addNode(clusterNode);
+  cemcNode->addNode(clusterNode);
 }

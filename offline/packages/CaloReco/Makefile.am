@@ -22,15 +22,21 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderFwd_Dict.cc \
   RawClusterPositionCorrection.cc \
   RawClusterPositionCorrection_Dict.cc \
+  RawClusterDeadAreaMask.cc \
+  RawClusterDeadAreaMask_Dict.cc \
   RawTowerCombiner.cc \
   RawTowerCombiner_Dict.cc \
   RawTowerCalibration.cc \
   RawTowerCalibration_Dict.cc \
+  RawTowerDeadTowerInterp.cc \
+  RawTowerDeadTowerInterp_Dict.cc \
   BEmcCluster.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \
-  BEmcRecEEMC.cc
+  BEmcRecEEMC.cc \
+  RawTowerDeadMapLoader.cc \
+  RawTowerDeadMapLoader_Dict.cc
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
