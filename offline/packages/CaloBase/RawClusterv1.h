@@ -32,7 +32,7 @@ class RawClusterv1 : public RawCluster
   float get_energy() const { return _energy; }
   //! Tower operations
   size_t getNTowers() const { return towermap.size(); }
-  RawCluster::TowerConstRange get_towers() { return make_pair(towermap.begin(), towermap.end()); }
+  RawCluster::TowerConstRange get_towers() const { return make_pair(towermap.begin(), towermap.end()); }
   //! return tower map for c++11 range-based for-loop
   const TowerMap& get_towermap() const { return towermap; }
   //
