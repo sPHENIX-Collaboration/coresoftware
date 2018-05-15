@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I/opt/sphenix/core/include \
+  -I$(OPT_SPHENIX)/include \
   -I`root-config --incdir` 
 
 AM_CXXFLAGS = -Werror
@@ -18,7 +18,7 @@ pkginclude_HEADERS = \
 libPHSartre_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L/opt/sphenix/core/lib \
+  -L$(OPT_SPHENIX)lib \
   `root-config --libs`
 
 libPHSartre_la_LIBADD = \
