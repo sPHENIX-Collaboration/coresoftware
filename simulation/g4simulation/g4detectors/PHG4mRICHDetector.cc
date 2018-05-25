@@ -94,8 +94,12 @@ void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
   //>0 : number of sectors
 
   if (subsystemSetup==-1) Construct_a_mRICH(logicWorld);
-  else if (subsystemSetup) build_mRICH_sector(logicWorld,subsystemSetup);//cout<<"!!!! PHG4mRICHDetector::Construct !!!! nothing will be done right now."<<endl;
-  if(subsystemSetup == 0) build_mRICH_wall(logicWorld);
+  else if (subsystemSetup)
+  {
+    build_mRICH_sector(logicWorld,subsystemSetup);
+    build_mRICH_wall_eside(logicWorld);
+  }
+  if(subsystemSetup == 0) build_mRICH_wall_hside(logicWorld);
 }
 //_______________________________________________________________
 G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld)//, int detectorSetup )
@@ -280,7 +284,8 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   const G4double grooveDensity=125.0/(2.54*cm);
 
   fresnelLens->n=1.49;
-  fresnelLens->f=6.0*2.54*cm;
+  // fresnelLens->f=6.0*2.54*cm;
+  fresnelLens->f=5.0*2.54*cm;
   fresnelLens->eff_diameter=15.24*cm;
   fresnelLens->diameter=2.0*sqrt(2.0)*lensHalfx;
   fresnelLens->centerThickness=0.06*2.54*cm;
@@ -779,7 +784,7 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
   
 }
 //________________________________________________________________________//
-void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
+void PHG4mRICHDetector::build_mRICH_wall_hside(G4LogicalVolume* logicWorld)
 {
   G4AssemblyVolume* mRICHwall = new G4AssemblyVolume();   //"mother volume"
 
@@ -836,6 +841,55 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
   printf("-----------------------------------------------------------------------------\n");
 }
 //________________________________________________________________________//
+
+//________________________________________________________________________//
+void PHG4mRICHDetector::build_mRICH_wall_eside(G4LogicalVolume* logicWorld)
+{
+  G4AssemblyVolume* mRICHwall = new G4AssemblyVolume();   //"mother volume"
+
+  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
+
+  G4double shift = params->get_double_param("mRICH_wall_eside_shift");
+
+  int NumOfModule = params->get_int_param("NumOfModule_wall_eside");
+
+  for(int i_mRICH = 0; i_mRICH < NumOfModule; ++i_mRICH)
+  {
+    // get moduleID
+    // std::stringstream key_moduleID;
+    // key_moduleID << "mRICH_wall_eside_" << i_mRICH << "_moduleID";
+    // int module_id = params->get_int_param(key_moduleID.str());
+
+    // get position
+    std::stringstream key_position_x;
+    key_position_x << "mRICH_wall_eside_" << i_mRICH << "_position_x";
+    G4double x = params->get_double_param(key_position_x.str());
+
+    std::stringstream key_position_y;
+    key_position_y << "mRICH_wall_eside_" << i_mRICH << "_position_y";
+    G4double y = params->get_double_param(key_position_y.str());
+
+    std::stringstream key_position_z;
+    key_position_z << "mRICH_wall_eside_" << i_mRICH << "_position_z";
+    G4double z = params->get_double_param(key_position_z.str());
+
+    // cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << endl;
+
+    G4ThreeVector pos(x,y,z);
+    G4RotationMatrix* rot=new G4RotationMatrix();
+    mRICHwall->AddPlacedVolume(a_mRICH, pos, rot);
+  }
+
+  G4ThreeVector pos(0, 0, shift);
+  G4RotationMatrix* rot=new G4RotationMatrix();
+  rot->rotateX(180*deg);
+  mRICHwall->MakeImprint(logicWorld,pos,rot,0,overlapcheck);
+
+  printf("-----------------------------------------------------------------------------\n");
+  printf("%d detectors are built\n",NumOfModule);
+  printf("-----------------------------------------------------------------------------\n");
+}
+//________________________________________________________________________//
 void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector)
 {
   G4AssemblyVolume* sector = new G4AssemblyVolume();   //"mother volume"
@@ -843,6 +897,8 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
 
   G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
+
+  G4double shift = params->get_double_param("mRICH_sector_hside_shift");
 
   int NumOfModule = params->get_int_param("NumOfModule_sector_hside");
 
@@ -876,7 +932,9 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
 
   for(int i=0;i<numSector;i++) 
   {
-    G4ThreeVector pos(0, 0, 3.1*m);
+    // G4ThreeVector pos(0, 0, 3.0*m);
+    G4ThreeVector pos(0, 0, shift);
+    // G4ThreeVector pos(0, 0, 2.8085*m);
     G4RotationMatrix* rot=new G4RotationMatrix();
     rot->rotateX(-theta*180*deg/pi);
     rot->rotateZ(i*45*deg);

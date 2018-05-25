@@ -80,7 +80,8 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_mirror(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
   void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
 
-  void build_mRICH_wall(G4LogicalVolume* space);
+  void build_mRICH_wall_hside(G4LogicalVolume* space);
+  void build_mRICH_wall_eside(G4LogicalVolume* space);
   void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
   
   int layer;
