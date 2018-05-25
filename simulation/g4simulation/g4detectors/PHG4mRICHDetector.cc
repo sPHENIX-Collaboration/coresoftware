@@ -64,7 +64,8 @@ PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *param
   layer(lyr),
   active(0),
   absorberactive(0),
-  mRICH_PV(nullptr)
+  mRICH_PV(nullptr),
+  sensor_PV{nullptr,nullptr,nullptr,nullptr}
 {}
 
 PHG4mRICHDetector::~PHG4mRICHDetector()

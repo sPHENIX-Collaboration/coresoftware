@@ -730,6 +730,9 @@ private:
 	PHTimer *_t_seed_init3;
 	PHTimer *_t_seeds_cleanup;
 	PHTimer *_t_translate_to_PHGenFitTrack;
+	PHTimer *_t_translate1;
+	PHTimer *_t_translate2;
+	PHTimer *_t_translate3;
 	PHTimer *_t_kalman_pat_rec;
 	PHTimer *_t_search_clusters;
 	PHTimer *_t_search_clusters_encoding;
