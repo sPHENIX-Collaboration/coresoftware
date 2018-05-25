@@ -34,7 +34,7 @@ class PHG4Prototype3InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *m_HitContainer;
   PHG4HitContainer *m_AbsorberHitContainer;
   PHG4Hit *m_Hit;
-  const PHParameters *m_params;
+  const PHParameters *m_Params;
   PHG4HitContainer *m_SaveHitContainer;
   PHG4Shower *m_SaveShower;
   // since getting parameters is a map search we do not want to

@@ -1,5 +1,5 @@
-#ifndef PHG4TPCElectronDrift_h
-#define PHG4TPCElectronDrift_h
+#ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
+#define G4TPC_PHG4TPCELECTRONDRIFT_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -62,4 +62,4 @@ private:
 #endif
 };
 
-#endif // PHG4TPCElectronDrift_h
+#endif // G4TPC_PHG4TPCELECTRONDRIFT_H
