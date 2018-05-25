@@ -23,8 +23,8 @@ using namespace std;
 //_______________________________________________________________________
 PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
+  , m_Detector(nullptr)
+  , m_SteppingAction(nullptr)
 {
   InitializeParameters();
 }
@@ -36,9 +36,9 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new PHG4InnerHcalDetector(topNode, GetParams(), Name());
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4InnerHcalDetector(topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
   {
@@ -84,14 +84,14 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     // create stepping action
-    steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, GetParams());
+    m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
   }
   else
   {
     // if this is a black hole it does not have to be active
     if (GetParams()->get_int_param("blackhole"))
     {
-      steppingAction_ = new PHG4InnerHcalSteppingAction(detector_, GetParams());
+      m_SteppingAction = new PHG4InnerHcalSteppingAction(m_Detector, GetParams());
     }
   }
   return 0;
@@ -102,9 +102,9 @@ int PHG4InnerHcalSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
@@ -113,13 +113,13 @@ void PHG4InnerHcalSubsystem::Print(const string &what) const
 {
   cout << Name() << " Parameters: " << endl;
   GetParams()->Print();
-  if (detector_)
+  if (m_Detector)
   {
-    detector_->Print(what);
+    m_Detector->Print(what);
   }
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->Print(what);
+    m_SteppingAction->Print(what);
   }
 
   return;
@@ -128,7 +128,7 @@ void PHG4InnerHcalSubsystem::Print(const string &what) const
 //_______________________________________________________________________
 PHG4Detector *PHG4InnerHcalSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
 
 void PHG4InnerHcalSubsystem::SetDefaultParameters()
