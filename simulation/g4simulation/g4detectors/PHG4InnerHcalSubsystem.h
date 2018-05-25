@@ -57,4 +57,4 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   PHG4SteppingAction* m_SteppingAction;
 };
 
-#endif // G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H
+#endif  // G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H

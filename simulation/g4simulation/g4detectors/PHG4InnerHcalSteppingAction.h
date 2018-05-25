@@ -49,7 +49,6 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   int m_IsActive;
   int m_IsBlackHole;
   int m_LightScintModel;
-
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H

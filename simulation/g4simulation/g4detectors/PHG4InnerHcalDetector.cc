@@ -34,8 +34,8 @@
 #include <CGAL/Object.h>
 #include <CGAL/point_generators_2.h>
 
-#include <boost/tokenizer.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
 
 #include <cmath>
 #include <sstream>
@@ -134,7 +134,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume *hcalenvelope)
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_upperedge.x()))
       {
@@ -168,7 +168,7 @@ PHG4InnerHcalDetector::ConstructScintillatorBox(G4LogicalVolume *hcalenvelope)
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > minx)
       {
@@ -212,7 +212,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
       {
@@ -240,7 +240,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
       {
@@ -279,7 +279,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
     for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+      if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
       {
         if (CGAL::to_double(point->first.x()) > pxmax)
         {
@@ -307,7 +307,7 @@ PHG4InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
     for (iter = res.begin(); iter != res.end(); ++iter)
     {
       CGAL::Object obj = *iter;
-      if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+      if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
       {
         if (CGAL::to_double(point->first.x()) > CGAL::to_double(p_loweredge.x()))
         {
@@ -364,7 +364,7 @@ void PHG4InnerHcalDetector::ShiftSecantToTangent(Point_2 &lowleft, Point_2 &uple
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > pxmax)
       {
@@ -411,8 +411,8 @@ void PHG4InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, OverlapCheck());
   ConstructInnerHcal(hcal_envelope_log);
-  vector<G4VPhysicalVolume*>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
-  for (unsigned int i=0; i<m_ScintiMotherAssembly->TotalImprintedVolumes();i++)
+  vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
+  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
   {
     // G4AssemblyVolumes naming convention:
     //     av_WWW_impr_XXX_YYY_ZZZ
@@ -433,8 +433,8 @@ void PHG4InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
     // so we can use the CopyNo rather than decoding the string further
     // looking for "pv"
     boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok((*it)->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+    boost::tokenizer<boost::char_separator<char>> tok((*it)->GetName(), sep);
+    boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
     for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
     {
       if (*tokeniter == "impr")
@@ -447,10 +447,10 @@ void PHG4InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
           // to give the first volume id=0, so they go from id=1 to id=n.
           // I am not going to start with fortran again - our indices start
           // at zero, id=0 to id=n-1. So subtract one here
-	  int tower_id = (*it)->GetCopyNo() - layer_id;
+          int tower_id = (*it)->GetCopyNo() - layer_id;
           layer_id--;
-	  pair<int, int> layer_twr = make_pair(layer_id, tower_id);
-	  m_ScintiTilePhysVolMap.insert(pair<G4VPhysicalVolume *, pair<int, int>> (*it,layer_twr));
+          pair<int, int> layer_twr = make_pair(layer_id, tower_id);
+          m_ScintiTilePhysVolMap.insert(pair<G4VPhysicalVolume *, pair<int, int>>(*it, layer_twr));
           if (layer_id < 0 || layer_id >= m_NumScintiPlates)
           {
             cout << "invalid scintillator row " << layer_id
@@ -464,7 +464,7 @@ void PHG4InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
                << " for mother volume number " << endl;
           gSystem->Exit(1);
         }
-	break;
+        break;
       }
     }
     ++it;
@@ -758,7 +758,7 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
   if (!ncross || isfinite(m_TiltAngle))
   {
     // flag ncrossing as not used
-    m_Params->set_int_param("ncross",0);
+    m_Params->set_int_param("ncross", 0);
     return;
   }
   if ((isfinite(m_TiltAngle)) && (Verbosity() > 0))
@@ -785,7 +785,7 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
       {
@@ -806,7 +806,7 @@ void PHG4InnerHcalDetector::SetTiltViaNcross()
   for (iter = res.begin(); iter != res.end(); ++iter)
   {
     CGAL::Object obj = *iter;
-    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> >(&obj))
+    if (const std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned> *point = CGAL::object_cast<std::pair<CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k>, unsigned>>(&obj))
     {
       if (CGAL::to_double(point->first.x()) > 0)
       {
@@ -855,7 +855,7 @@ std::pair<int, int> PHG4InnerHcalDetector::GetLayerTowerId(G4VPhysicalVolume *vo
   cout << "could not locate volume " << volume->GetName()
        << " in Inner Hcal scintillator map" << endl;
   gSystem->Exit(1);
-// that's dumb but code checkers do not know that gSystem->Exit() 
-// terminates, so using the standard exit() makes them happy
+  // that's dumb but code checkers do not know that gSystem->Exit()
+  // terminates, so using the standard exit() makes them happy
   exit(1);
 }

@@ -95,4 +95,4 @@ class PHG4InnerHcalDetector : public PHG4Detector
   std::string m_ScintiLogicNamePrefix;
 };
 
-#endif // G4DETECTORS_PHG4INNERHCALDETECTOR_H
+#endif  // G4DETECTORS_PHG4INNERHCALDETECTOR_H

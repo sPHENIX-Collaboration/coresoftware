@@ -42,8 +42,8 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
 {
   SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
                      m_Params->get_double_param("light_balance_inner_corr"),
-		     m_Params->get_double_param("light_balance_outer_radius") * cm,
-		     m_Params->get_double_param("light_balance_outer_corr"));
+                     m_Params->get_double_param("light_balance_outer_radius") * cm,
+                     m_Params->get_double_param("light_balance_outer_corr"));
   SetName(m_Detector->GetName());
 }
 
@@ -79,11 +79,11 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int tower_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    pair<int, int> layer_tower =  m_Detector->GetLayerTowerId(volume);
+    pair<int, int> layer_tower = m_Detector->GetLayerTowerId(volume);
     layer_id = layer_tower.first;
     tower_id = layer_tower.second;
-     // cout << "name " << volume->GetName() << ", mid: " << layer_id
-     //  	   << ", twr: " << tower_id << endl;
+    // cout << "name " << volume->GetName() << ", mid: " << layer_id
+    //  	   << ", twr: " << tower_id << endl;
   }
   else
   {
@@ -228,10 +228,9 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-
     //sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
+    if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
       m_Hit->set_eion(m_Hit->get_eion() + eion);
       light_yield = eion;
@@ -239,7 +238,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       }
-      light_yield = light_yield *GetLightCorrection(postPoint->GetPosition().x(),postPoint->GetPosition().y()) ;
+      light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x(), postPoint->GetPosition().y());
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
     if (geantino)
