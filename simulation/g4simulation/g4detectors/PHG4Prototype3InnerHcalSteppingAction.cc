@@ -35,18 +35,18 @@ PHG4Prototype3InnerHcalSteppingAction::PHG4Prototype3InnerHcalSteppingAction(PHG
   , m_HitContainer(nullptr)
   , m_AbsorberHitContainer(nullptr)
   , m_Hit(nullptr)
-  , m_params(parameters)
+  , m_Params(parameters)
   , m_SaveHitContainer(nullptr)
   , m_SaveShower(nullptr)
-  , m_AbsorberTruth(m_params->get_int_param("absorbertruth"))
-  , m_IsActive(m_params->get_int_param("active"))
-  , m_IsBlackHole(m_params->get_int_param("blackhole"))
-  , m_LightScintModel(m_params->get_int_param("light_scint_model"))
+  , m_AbsorberTruth(m_Params->get_int_param("absorbertruth"))
+  , m_IsActive(m_Params->get_int_param("active"))
+  , m_IsBlackHole(m_Params->get_int_param("blackhole"))
+  , m_LightScintModel(m_Params->get_int_param("light_scint_model"))
 {
-  SetLightCorrection(m_params->get_double_param("light_balance_inner_radius") * cm,
-                     m_params->get_double_param("light_balance_inner_corr"),
-		     m_params->get_double_param("light_balance_outer_radius") * cm,
-		     m_params->get_double_param("light_balance_outer_corr"));
+  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
+                     m_Params->get_double_param("light_balance_inner_corr"),
+		     m_Params->get_double_param("light_balance_outer_radius") * cm,
+		     m_Params->get_double_param("light_balance_outer_corr"));
 }
 
 PHG4Prototype3InnerHcalSteppingAction::~PHG4Prototype3InnerHcalSteppingAction()
