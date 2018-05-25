@@ -53,6 +53,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
   int CheckTiltAngle() const;
   int ConsistencyCheck() const;
   void SetTiltViaNcross();
+  std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
  protected:
   int ConstructInnerHcal(G4LogicalVolume *sandwich);
@@ -85,11 +86,11 @@ class PHG4InnerHcalDetector : public PHG4Detector
   int m_AbsorberActive;
 
   int m_Layer;
-//  std::string m_DetectorType;
   std::string m_SuperDetector;
   std::set<G4VPhysicalVolume *> m_SteelAbsorberPhysVolSet;
-  std::vector<G4VSolid *> scinti_tiles_vec;
-  std::string scintilogicnameprefix;
+  std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
+  std::vector<G4VSolid *> m_ScintiTilesVec;
+  std::string m_ScintiLogicNamePrefix;
 };
 
 #endif // G4DETECTORS_PHG4INNERHCALDETECTOR_H

@@ -29,12 +29,12 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4InnerHcalDetector *detector_;
+  PHG4InnerHcalDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
-  PHG4Hit *hit;
+  PHG4HitContainer *m_Hits;
+  PHG4HitContainer *m_Absorberhits;
+  PHG4Hit *m_Hit;
   const PHParameters *params;
   PHG4HitContainer *savehitcontainer;
   PHG4Shower *saveshower;

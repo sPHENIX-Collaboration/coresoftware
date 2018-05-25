@@ -34,6 +34,9 @@
 #include <CGAL/Object.h>
 #include <CGAL/point_generators_2.h>
 
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <cmath>
 #include <sstream>
 
@@ -76,10 +79,10 @@ PHG4InnerHcalDetector::PHG4InnerHcalDetector(PHCompositeNode *Node, PHParameters
   , m_Active(m_Params->get_int_param("active"))
   , m_AbsorberActive(m_Params->get_int_param("absorberactive"))
   , m_Layer(0)
-  , scintilogicnameprefix("HcalInnerScinti")
+  , m_ScintiLogicNamePrefix("HcalInnerScinti")
 {
   // allocate memory for scintillator plates
-  scinti_tiles_vec.assign(2 * m_NumScintiTiles, static_cast<G4VSolid *>(nullptr));
+  m_ScintiTilesVec.assign(2 * m_NumScintiTiles, static_cast<G4VSolid *>(nullptr));
 }
 
 PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
@@ -91,19 +94,6 @@ PHG4InnerHcalDetector::~PHG4InnerHcalDetector()
 //_______________________________________________________________
 int PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume *volume) const
 {
-  // G4AssemblyVolumes naming convention:
-  //     av_WWW_impr_XXX_YYY_ZZZ
-
-  // where:
-
-  //     WWW - assembly volume instance number
-  //     XXX - assembly volume imprint number
-  //     YYY - the name of the placed logical volume
-  //     ZZZ - the logical volume index inside the assembly volume
-  // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11
-  // 82 the number of the scintillator mother volume
-  // HcalInnerScinti_11: name of scintillator slat
-  // 11: number of scintillator slat logical volume
   if (m_AbsorberActive)
   {
     if (m_SteelAbsorberPhysVolSet.find(volume) != m_SteelAbsorberPhysVolSet.end())
@@ -113,7 +103,7 @@ int PHG4InnerHcalDetector::IsInInnerHcal(G4VPhysicalVolume *volume) const
   }
   if (m_Active)
   {
-    if (volume->GetName().find(scintilogicnameprefix) != string::npos)
+    if (m_ScintiTilePhysVolMap.find(volume) != m_ScintiTilePhysVolMap.end())
     {
       return 1;
     }
@@ -421,6 +411,64 @@ void PHG4InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, OverlapCheck());
   ConstructInnerHcal(hcal_envelope_log);
+  vector<G4VPhysicalVolume*>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
+  for (unsigned int i=0; i<m_ScintiMotherAssembly->TotalImprintedVolumes();i++)
+  {
+    // G4AssemblyVolumes naming convention:
+    //     av_WWW_impr_XXX_YYY_ZZZ
+    // where:
+
+    //     WWW - assembly volume instance number
+    //     XXX - assembly volume imprint number
+    //     YYY - the name of the placed logical volume
+    //     ZZZ - the logical volume index inside the assembly volume
+    // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11
+    // 82 the number of the scintillator mother volume
+    // HcalInnerScinti_11: name of scintillator slat
+    // 11: number of scintillator slat logical volume
+    // use boost tokenizer to separate the _, then take value
+    // after "impr" for mother volume and after "pv" for scintillator slat
+    // use boost lexical cast for string -> int conversion
+    // the CopyNo is the mother volume + scinti id
+    // so we can use the CopyNo rather than decoding the string further
+    // looking for "pv"
+    boost::char_separator<char> sep("_");
+    boost::tokenizer<boost::char_separator<char> > tok((*it)->GetName(), sep);
+    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "impr")
+      {
+        ++tokeniter;
+        if (tokeniter != tok.end())
+        {
+          int layer_id = boost::lexical_cast<int>(*tokeniter);
+          // check detector description, for assemblyvolumes it is not possible
+          // to give the first volume id=0, so they go from id=1 to id=n.
+          // I am not going to start with fortran again - our indices start
+          // at zero, id=0 to id=n-1. So subtract one here
+	  int tower_id = (*it)->GetCopyNo() - layer_id;
+          layer_id--;
+	  pair<int, int> layer_twr = make_pair(layer_id, tower_id);
+	  m_ScintiTilePhysVolMap.insert(pair<G4VPhysicalVolume *, pair<int, int>> (*it,layer_twr));
+          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+          {
+            cout << "invalid scintillator row " << layer_id
+                 << ", valid range 0 < row < " << m_NumScintiPlates << endl;
+            gSystem->Exit(1);
+          }
+        }
+        else
+        {
+          cout << PHWHERE << " Error parsing " << (*it)->GetName()
+               << " for mother volume number " << endl;
+          gSystem->Exit(1);
+        }
+	break;
+      }
+    }
+    ++it;
+  }
   return;
 }
 
@@ -566,20 +614,20 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     name.str("");
     name << "scintillator_" << i << "_left";
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, 0));
-    scinti_tiles_vec[i + m_NumScintiTiles] = scinti_tile;
+    m_ScintiTilesVec[i + m_NumScintiTiles] = scinti_tile;
     rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
     name.str("");
     name << "scintillator_" << i << "_right";
     scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, 0));
-    scinti_tiles_vec[m_NumScintiTiles - i - 1] = scinti_tile;
+    m_ScintiTilesVec[m_NumScintiTiles - i - 1] = scinti_tile;
   }
 
-  // for (unsigned int i=0; i<scinti_tiles_vec.size(); i++)
+  // for (unsigned int i=0; i<m_ScintiTilesVec.size(); i++)
   //    {
-  //      if (scinti_tiles_vec[i])
+  //      if (m_ScintiTilesVec[i])
   //  	 {
-  //   	   DisplayVolume(scinti_tiles_vec[i],hcalenvelope );
+  //   	   DisplayVolume(m_ScintiTilesVec[i],hcalenvelope );
   //   	 }
   //     }
 
@@ -625,16 +673,16 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
   G4ThreeVector g4vec;
 
   double steplimits = m_Params->get_double_param("steplimits") * cm;
-  for (unsigned int i = 0; i < scinti_tiles_vec.size(); i++)
+  for (unsigned int i = 0; i < m_ScintiTilesVec.size(); i++)
   {
     name.str("");
-    name << scintilogicnameprefix << i;
+    name << m_ScintiLogicNamePrefix << i;
     G4UserLimits *g4userlimits = nullptr;
     if (isfinite(steplimits))
     {
       g4userlimits = new G4UserLimits(steplimits);
     }
-    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(scinti_tiles_vec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
+    G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
     G4VisAttributes *visattchk = new G4VisAttributes();
     visattchk->SetVisibility(true);
     visattchk->SetForceSolid(true);
@@ -795,4 +843,19 @@ void PHG4InnerHcalDetector::Print(const string &what) const
     cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm3 << " cm^3" << endl;
   }
   return;
+}
+
+std::pair<int, int> PHG4InnerHcalDetector::GetLayerTowerId(G4VPhysicalVolume *volume) const
+{
+  auto it = m_ScintiTilePhysVolMap.find(volume);
+  if (it != m_ScintiTilePhysVolMap.end())
+  {
+    return it->second;
+  }
+  cout << "could not locate volume " << volume->GetName()
+       << " in Inner Hcal scintillator map" << endl;
+  gSystem->Exit(1);
+// that's dumb but code checkers do not know that gSystem->Exit() 
+// terminates, so using the standard exit() makes them happy
+  exit(1);
 }
