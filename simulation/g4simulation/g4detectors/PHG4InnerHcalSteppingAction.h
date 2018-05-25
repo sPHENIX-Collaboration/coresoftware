@@ -1,5 +1,5 @@
-#ifndef PHG4VInnerHcalSteppingAction_h
-#define PHG4VInnerHcalSteppingAction_h
+#ifndef G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -25,8 +25,6 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers(PHCompositeNode *);
 
-  double GetLightCorrection(const double r) const;
-
  private:
   //! pointer to the detector
   PHG4InnerHcalDetector *m_Detector;
@@ -35,27 +33,21 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *m_Hits;
   PHG4HitContainer *m_Absorberhits;
   PHG4Hit *m_Hit;
-  const PHParameters *params;
-  PHG4HitContainer *savehitcontainer;
-  PHG4Shower *saveshower;
-  G4VPhysicalVolume *savevolpre;
-  G4VPhysicalVolume *savevolpost;
-  int savetrackid;
-  int saveprestepstatus;
-  int savepoststepstatus;
+  const PHParameters *m_Params;
+  PHG4HitContainer *m_SaveHitContainer;
+  PHG4Shower *m_SaveShower;
+  G4VPhysicalVolume *m_SaveVolPre;
+  G4VPhysicalVolume *m_SaveVolPost;
+  int m_SaveTrackId;
+  int m_SavePreStepStatus;
+  int m_SavePostStepStatus;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int absorbertruth;
-  int IsActive;
-  int IsBlackHole;
-  int n_scinti_plates;
-  int light_scint_model;
+  int m_IsActive;
+  int m_IsBlackHole;
+  int m_LightScintModel;
 
-  double light_balance_inner_corr;
-  double light_balance_inner_radius;
-  double light_balance_outer_corr;
-  double light_balance_outer_radius;
 };
 
-#endif  // PHG4InnerHcalSteppingAction_h
+#endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H

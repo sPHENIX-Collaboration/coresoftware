@@ -16,24 +16,8 @@
 
 #include <TSystem.h>
 
-#include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-
-#include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
 
 #include <iostream>
 
@@ -44,25 +28,23 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
   , m_Hits(nullptr)
   , m_Absorberhits(nullptr)
   , m_Hit(nullptr)
-  , params(parameters)
-  , savehitcontainer(nullptr)
-  , saveshower(nullptr)
-  , savevolpre(nullptr)
-  , savevolpost(nullptr)
-  , savetrackid(-1)
-  , saveprestepstatus(-1)
-  , savepoststepstatus(-1)
-  , absorbertruth(params->get_int_param("absorbertruth"))
-  , IsActive(params->get_int_param("active"))
-  , IsBlackHole(params->get_int_param("blackhole"))
-  , n_scinti_plates(params->get_int_param(PHG4HcalDefs::scipertwr) * params->get_int_param("n_towers"))
-  , light_scint_model(params->get_int_param("light_scint_model"))
-  , light_balance_inner_corr(params->get_double_param("light_balance_inner_corr"))
-  , light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm)
-  , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
-  , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
+  , m_Params(parameters)
+  , m_SaveHitContainer(nullptr)
+  , m_SaveShower(nullptr)
+  , m_SaveVolPre(nullptr)
+  , m_SaveVolPost(nullptr)
+  , m_SaveTrackId(-1)
+  , m_SavePreStepStatus(-1)
+  , m_SavePostStepStatus(-1)
+  , m_IsActive(m_Params->get_int_param("active"))
+  , m_IsBlackHole(m_Params->get_int_param("blackhole"))
+  , m_LightScintModel(m_Params->get_int_param("light_scint_model"))
 {
-  GetName() = m_Detector->GetName();
+  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
+                     m_Params->get_double_param("light_balance_inner_corr"),
+		     m_Params->get_double_param("light_balance_outer_radius") * cm,
+		     m_Params->get_double_param("light_balance_outer_corr"));
+  SetName(m_Detector->GetName());
 }
 
 PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
@@ -114,7 +96,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (IsBlackHole)
+  if (m_IsBlackHole)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -122,7 +104,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   }
 
   // make sure we are in a volume
-  if (IsActive)
+  if (m_IsActive)
   {
     bool geantino = false;
 
@@ -142,7 +124,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     switch (prePoint->GetStepStatus())
     {
     case fPostStepDoItProc:
-      if (savepoststepstatus != fGeomBoundary)
+      if (m_SavePostStepStatus != fGeomBoundary)
       {
         break;
       }
@@ -151,14 +133,14 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         cout << GetName() << ": New Hit for  " << endl;
         cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
              << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
-        cout << "last track: " << savetrackid
+             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
+        cout << "last track: " << m_SaveTrackId
              << ", current trackid: " << aTrack->GetTrackID() << endl;
         cout << "phys pre vol: " << volume->GetName()
              << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-        cout << " previous phys pre vol: " << savevolpre->GetName()
-             << " previous phys post vol: " << savevolpost->GetName() << endl;
+        cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+             << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
       }
     case fGeomBoundary:
     case fUndefined:
@@ -176,7 +158,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set and save the track ID
       m_Hit->set_trkid(aTrack->GetTrackID());
-      savetrackid = aTrack->GetTrackID();
+      m_SaveTrackId = aTrack->GetTrackID();
       //set the initial energy deposit
       m_Hit->set_edep(0);
       if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
@@ -185,11 +167,11 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         m_Hit->set_eion(0);             // only implemented for v5 otherwise empty
         m_Hit->set_light_yield(0);      // for scintillator only, initialize light yields
         // Now save the container we want to add this hit to
-        savehitcontainer = m_Hits;
+        m_SaveHitContainer = m_Hits;
       }
       else
       {
-        savehitcontainer = m_Absorberhits;
+        m_SaveHitContainer = m_Absorberhits;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -197,7 +179,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
           m_Hit->set_trkid(pp->GetUserTrackId());
           m_Hit->set_shower_id(pp->GetShower()->get_id());
-          saveshower = pp->GetShower();
+          m_SaveShower = pp->GetShower();
         }
       }
       break;
@@ -211,32 +193,32 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       cout << GetName() << ": hit was not created" << endl;
       cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
            << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(saveprestepstatus)
-           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(savepoststepstatus) << endl;
-      cout << "last track: " << savetrackid
+           << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+           << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
+      cout << "last track: " << m_SaveTrackId
            << ", current trackid: " << aTrack->GetTrackID() << endl;
       cout << "phys pre vol: " << volume->GetName()
            << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-      cout << " previous phys pre vol: " << savevolpre->GetName()
-           << " previous phys post vol: " << savevolpost->GetName() << endl;
+      cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+           << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
       exit(1);
     }
     // check if track id matches the initial one when the hit was created
-    if (aTrack->GetTrackID() != savetrackid)
+    if (aTrack->GetTrackID() != m_SaveTrackId)
     {
       cout << GetName() << ": hits do not belong to the same track" << endl;
-      cout << "saved track: " << savetrackid
+      cout << "saved track: " << m_SaveTrackId
            << ", current trackid: " << aTrack->GetTrackID()
            << ", prestep status: " << prePoint->GetStepStatus()
-           << ", previous post step status: " << savepoststepstatus
+           << ", previous post step status: " << m_SavePostStepStatus
            << endl;
 
       exit(1);
     }
-    saveprestepstatus = prePoint->GetStepStatus();
-    savepoststepstatus = postPoint->GetStepStatus();
-    savevolpre = volume;
-    savevolpost = touchpost->GetVolume();
+    m_SavePreStepStatus = prePoint->GetStepStatus();
+    m_SavePostStepStatus = postPoint->GetStepStatus();
+    m_SaveVolPre = volume;
+    m_SaveVolPost = touchpost->GetVolume();
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
@@ -246,32 +228,18 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
-    if (whichactive > 0)  // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
-    {
-      if (light_scint_model)
-      {
-        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
-      }
-      else
-      {
-        light_yield = eion;
-      }
-      if (isfinite(light_balance_outer_radius) &&
-          isfinite(light_balance_inner_radius) &&
-          isfinite(light_balance_outer_corr) &&
-          isfinite(light_balance_inner_corr))
-      {
-        double r = sqrt(postPoint->GetPosition().x() * postPoint->GetPosition().x() + postPoint->GetPosition().y() * postPoint->GetPosition().y());
-        double cor = GetLightCorrection(r);
-        light_yield = light_yield * cor;
-      }
-    }
 
     //sum up the energy to get total deposited
     m_Hit->set_edep(m_Hit->get_edep() + edep);
-    if (whichactive > 0)
+    if (whichactive > 0) // return of IsInInnerHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
       m_Hit->set_eion(m_Hit->get_eion() + eion);
+      light_yield = eion;
+      if (m_LightScintModel)
+      {
+        light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
+      }
+      light_yield = light_yield *GetLightCorrection(postPoint->GetPosition().x(),postPoint->GetPosition().y()) ;
       m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
     if (geantino)
@@ -306,10 +274,10 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
       {
-        savehitcontainer->AddHit(layer_id, m_Hit);
-        if (saveshower)
+        m_SaveHitContainer->AddHit(layer_id, m_Hit);
+        if (m_SaveShower)
         {
-          saveshower->add_g4hit_id(savehitcontainer->GetID(), m_Hit->get_hit_id());
+          m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
@@ -364,16 +332,4 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
       cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
     }
   }
-}
-
-double
-PHG4InnerHcalSteppingAction::GetLightCorrection(const double r) const
-{
-  double m = (light_balance_outer_corr - light_balance_inner_corr) / (light_balance_outer_radius - light_balance_inner_radius);
-  double b = light_balance_inner_corr - m * light_balance_inner_radius;
-  double value = m * r + b;
-  if (value > 1.0) return 1.0;
-  if (value < 0.0) return 0.0;
-
-  return value;
 }
