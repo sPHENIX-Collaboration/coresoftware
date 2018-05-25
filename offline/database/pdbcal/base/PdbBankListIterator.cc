@@ -12,10 +12,6 @@
 
 #include <iostream>
 
-PdbBankListIterator::PdbBankListIterator()
-{
-}
-
 PdbBankListIterator::PdbBankListIterator(PdbBankList & bankList) : PHPointerListIterator<PdbCalBank>(bankList)
 {
 }

@@ -11,19 +11,21 @@ template <class T>
 class PHPointerListIterator
 {
  public:
+#ifndef __CINT__
+  PHPointerListIterator() = delete;
+#else
+private:
+  PHPointerListIterator() {}
+public:
+#endif
+
   PHPointerListIterator(const PHPointerList<T>&);
   virtual ~PHPointerListIterator() {}
- public:
+
   T* operator()();
   void operator--();
   void reset();
   size_t pos() const { return index; }
- protected:
-  PHPointerListIterator()
-    : list(0)
-    , index(0)
-  {
-  }
 
  private:
   const PHPointerList<T>& list;
