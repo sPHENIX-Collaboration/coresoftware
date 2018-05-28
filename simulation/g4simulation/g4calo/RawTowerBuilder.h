@@ -3,32 +3,29 @@
 
 #include <fun4all/SubsysReco.h>
 
-
 #include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class RawTowerBuilder : public SubsysReco {
-
+class RawTowerBuilder : public SubsysReco
+{
  public:
-  RawTowerBuilder(const std::string& name="RawTowerBuilder");
-  virtual ~RawTowerBuilder(){}
-
+  RawTowerBuilder(const std::string &name = "RawTowerBuilder");
+  virtual ~RawTowerBuilder() {}
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {m_Detector = d;}
-  void EminCut(const double e) {m_Emin = e;}
-  void checkenergy(const int i = 1) {m_ChkEnergyConservationFlag = i;}
-
+  void Detector(const std::string &d) { m_Detector = d; }
+  void EminCut(const double e) { m_Emin = e; }
+  void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
   enum enu_tower_energy_src
   {
     //! save Geant4 energy deposition as the weight of the cells
-      kEnergyDeposition,
+    kEnergyDeposition,
 
-      //! save light yield as the weight of the cells
-      kLightYield
+    //! save light yield as the weight of the cells
+    kLightYield
 
   };
 
@@ -43,7 +40,6 @@ class RawTowerBuilder : public SubsysReco {
   {
     m_TowerEnergySrcEnum = towerEnergySrc;
   }
-
 
   std::string
   get_sim_tower_node_prefix() const
@@ -60,7 +56,7 @@ class RawTowerBuilder : public SubsysReco {
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer* m_TowerContainer;
+  RawTowerContainer *m_TowerContainer;
   RawTowerGeomContainer *m_RawTowerGeomContainer;
 
   std::string m_Detector;
@@ -74,12 +70,11 @@ class RawTowerBuilder : public SubsysReco {
   int m_NumLayers;
   int m_NumPhiBins;
   int m_NumEtaBins;
-  double m_Emin;	
+  double m_Emin;
   double m_EtaMin;
   double m_PhiMin;
   double m_EtaStep;
   double m_PhiStep;
-
 };
 
-#endif // G4CALO_RAWTOWERBUILDER_H
+#endif  // G4CALO_RAWTOWERBUILDER_H
