@@ -1,37 +1,37 @@
 #include "MvtxDefUtil.h"
 
 uint8_t
-MvtxDefUtil::GetStaveId(TrkrDefs::hitsetkey key)
+MvtxDefUtil::getStaveId(TrkrDefs::hitsetkey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> kBitShiftStaveId);
   return tmp;
 }
 
 uint8_t
-MvtxDefUtil::GetStaveId(TrkrDefs::cluskey key)
+MvtxDefUtil::getStaveId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
-  return GetStaveId(tmp);
+  return getStaveId(tmp);
 }
 
 uint8_t
-MvtxDefUtil::GetChipId(TrkrDefs::hitsetkey key)
+MvtxDefUtil::getChipId(TrkrDefs::hitsetkey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> kBitShiftChipId);
   return tmp;
 }
 
 uint8_t
-MvtxDefUtil::GetChipId(TrkrDefs::cluskey key)
+MvtxDefUtil::getChipId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> kBitShiftClusId);
-  return GetChipId(tmp);
+  return getChipId(tmp);
 }
 
 TrkrDefs::hitsetkey
-MvtxDefUtil::GenHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip)
+MvtxDefUtil::genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip)
 {
-  TrkrDefs::hitsetkey key = TrkrDefUtil::GenHitSetKey(TrkrDefs::TRKRID::mvtx_id, lyr);
+  TrkrDefs::hitsetkey key = TrkrDefUtil::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
   TrkrDefs::hitsetkey tmp = stave;
   key |= (tmp << kBitShiftStaveId);
   tmp = chip;
@@ -40,9 +40,9 @@ MvtxDefUtil::GenHitSetKey(const char lyr, const uint8_t stave, const uint8_t chi
 }
 
 TrkrDefs::cluskey
-MvtxDefUtil::GenClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid)
+MvtxDefUtil::genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = GenHitSetKey(lyr, stave, chip);
+  TrkrDefs::cluskey tmp = genHitSetKey(lyr, stave, chip);
   TrkrDefs::cluskey key = (tmp << kBitShiftClusId);
   key |= clusid;
   return key;

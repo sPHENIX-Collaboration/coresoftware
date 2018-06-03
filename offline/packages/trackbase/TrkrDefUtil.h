@@ -34,9 +34,9 @@ static clushitkey CLUSHITKEYMAX __attribute__((unused)) = ULONG_MAX;
 /// Enumeration for tracker id to easily maintain consistency
 enum TrkrId
 {
-  mvtxID = 0,
-  inttID = 1,
-  tpcID = 2
+  mvtxId = 0,
+  inttId = 1,
+  tpcId = 2
 };
 }
 

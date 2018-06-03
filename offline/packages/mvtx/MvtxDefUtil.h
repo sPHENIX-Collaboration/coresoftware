@@ -1,5 +1,5 @@
-#ifndef __MvtxDefUtil_H__
-#define __MvtxDefUtil_H__
+#ifndef MVTX_MVTXDEFUTIL_H 
+#define MVTX_MVTXDEFUTIL_H 
 
 #include <trackbase/TrkrDefUtil.h>
 
@@ -13,18 +13,18 @@ class MvtxDefUtil : public TrkrDefUtil
   ~MvtxDefUtil(){};
 
   /// get the stave id
-  uint8_t GetStaveId(TrkrDefs::hitsetkey key);
-  uint8_t GetStaveId(TrkrDefs::cluskey key);
+  uint8_t getStaveId(TrkrDefs::hitsetkey key);
+  uint8_t getStaveId(TrkrDefs::cluskey key);
 
   /// get the chip id
-  uint8_t GetChipId(TrkrDefs::hitsetkey key);
-  uint8_t GetChipId(TrkrDefs::cluskey key);
+  uint8_t getChipId(TrkrDefs::hitsetkey key);
+  uint8_t getChipId(TrkrDefs::cluskey key);
 
   /// generate hitsetkey (This is mvtx so tracker id is already known)
-  TrkrDefs::hitsetkey GenHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip);
+  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip);
 
   /// generate cluskey
-  TrkrDefs::cluskey GenClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
+  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
 
  private:
   // hitsetkey layout:
@@ -37,4 +37,4 @@ class MvtxDefUtil : public TrkrDefUtil
   static const unsigned int kBitShiftChipId = 0;
 };
 
-#endif  //__MvtxDefUtil_H__
+#endif  //MVTX_MVTXDEFUTIL_H 

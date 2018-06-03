@@ -25,21 +25,21 @@ MvtxHitSetv1::print() const
 }
 
 void 
-MvtxHitSetv1::AddHit(const uint16_t col, const uint16_t row)
+MvtxHitSetv1::addHit(const uint16_t col, const uint16_t row)
 {
-  hits_.insert(std::make_pair(col, row));
+  m_hits.insert(std::make_pair(col, row));
 }
 
 MvtxHitSetv1::ConstRange 
-MvtxHitSetv1::GetHits( void )
+MvtxHitSetv1::getHits( void )
 {
-  return std::make_pair(hits_.begin(), hits_.end());
+  return std::make_pair(m_hits.begin(), m_hits.end());
 }
 
 MvtxHitSetv1::ConstRange 
-MvtxHitSetv1::GetHits(const uint16_t col)
+MvtxHitSetv1::getHits(const uint16_t col)
 { 
-  return std::make_pair(hits_.lower_bound(col), hits_.upper_bound(col));
+  return std::make_pair(m_hits.lower_bound(col), m_hits.upper_bound(col));
 }
 
   
