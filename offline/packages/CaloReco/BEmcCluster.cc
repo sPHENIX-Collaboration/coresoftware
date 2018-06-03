@@ -58,8 +58,10 @@ EmcModule::EmcModule(int ich_, int softkey_, float amp_, float tof_,
 // EmcCluster member functions
 
 void EmcCluster::GetCorrPos(float* px, float* py)
+// Returns the cluster corrected position in tower units
+// Corrected for S-oscilations, not for shower depth
+// Shower depth (z-coord) is defined in fOwner->Tower2Global()
 {
-  // Returns the cluster corrected position in Sector (SM) frame
   
   float e, x, y, xx, yy, xy;
   
@@ -70,16 +72,14 @@ void EmcCluster::GetCorrPos(float* px, float* py)
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void EmcCluster::GetGlobalPos( float* px, float* py, float* pz )
+void EmcCluster::GetGlobalPos( float& xA, float& yA, float& zA )
 // Returns the cluster position in PHENIX global coord system
 {
 
    float xc, yc;
-
+   float e = GetTotalEnergy();
    GetCorrPos( &xc, &yc );
-// X in Sector coord is Z in Global coord !!
-   fOwner->SectorToGlobal( xc, yc, 0., px, py, pz );
-
+   fOwner->Tower2Global( e, xc, yc, xA, yA, zA );
 }
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -258,12 +258,12 @@ float EmcCluster::GetECoreCorrected()
 // Returns the energy in core towers around the cluster Center of Gravity
 // Corrected for energy leak sidewise from core towers
 {
-  const float c0 = 0.950; // For no threshold
-
-  //  float energy = GetTotalEnergy();
-  //  if( energy<=0 ) return 0;
-  float ecore = GetECore();
-  return ecore/c0;
+  float x, y, xx, yy, xy;
+  float ecore, ecorecorr;
+  ecore = GetECore();
+  GetMoments(&x, &y, &xx, &xy, &yy);
+  fOwner->CorrectECore(ecore, x, y, &ecorecorr);
+  return ecorecorr;
 }
 
 float EmcCluster::GetECore()
@@ -933,7 +933,7 @@ void EmcPeakarea::GetChar( float* pe, float* pec,
     fOwner->CorrectPosition(*pe, *pxcgmin, *pycgmin, pxc, pyc);
     fOwner->SectorToGlobal( *pxc, *pyc, 0, pxg, pyg, pzg );
     fOwner->CalculateErrors( *pe, *pxc, *pyc, pde, pdx, pdy, pdz);
-    fOwner->CorrectEnergy( *pe, *pxcg, *pycg, pec ); // MM 02.11.2000
+    //    fOwner->CorrectEnergy( *pe, *pxcg, *pycg, pec ); // MM 02.11.2000
     fOwner->CorrectECore( *pecore, *pxc, *pyc, pecorec );
 
     delete [] phit;
@@ -1148,165 +1148,3 @@ void EmcPeakarea::GetCGmin( float* px, float* py )
 
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-
-int EmcPeakarea::GetGammas( EmcEmshower* ShList)
-{
-  // Splits the peakarea onto 1 or 2 EmcEmshower's
-  // Returns Number of Showers (0, 1 or 2)
-  //
-  // If the Chi2 of the peakarea is less then the value determined 
-  // in Chi2Limit(Number_of_Hits) function, 1-photon hypothesis is 
-  // accepted, otherwise the 2-shower hypothesis is checked
-  
-  float chi, chi0, e1, x1, y1, e2, x2, y2;
-  int nh, ig;
-  EmcModule *phit, *vv;
-  EmcEmshower sh1(fOwner), sh2(fOwner);
-  vector<EmcModule>::iterator ph;
-  vector<EmcModule> hl;
-  
-  hl = fHitList;
-  nh = hl.size();
-  if( nh <= 0 ) return 0;
-  
-  phit = new EmcModule[nh];
-  
-  ph = hl.begin();
-  vv = phit;
-  while( ph != hl.end() ) *vv++ = *ph++;
-  
-  chi=fOwner->Chi2Limit(nh); // potential problem for PbGl -- ndf is not known
-                             // beforehand
-  int ndf; // Gamma parameter list changed MV 28.01.00
-  fOwner->Gamma(nh, phit, &chi, &chi0, &e1, &x1, &y1, &e2, &x2, &y2, ndf);
-  if(e1>0)
-    sh1.ReInitialize(e1, x1*fOwner->GetModSizex(), y1*fOwner->GetModSizey(),
-		     chi, ndf);
-  else
-    sh1.ReInitialize(0, fgXABSURD, fgYABSURD, 0, 0);
-  
-  if( e2 > 0 )
-    sh2.ReInitialize(e2, x2*fOwner->GetModSizex(), y2*fOwner->GetModSizey(),
-		     chi, ndf);
-  else
-    sh2.ReInitialize(0, fgXABSURD, fgYABSURD, 0, ndf);
-  
-  if( e2 > e1 ) {
-    sh1.ReInitialize(e2, x2*fOwner->GetModSizex(), y2*fOwner->GetModSizey(),
-		     chi, ndf);
-    sh2.ReInitialize(e1, x1*fOwner->GetModSizex(), y1*fOwner->GetModSizey(),
-		     chi, ndf);
-  }
-  
-  ig = 0;
-  if( e1>0 ) {
-    ShList[ig++]=sh1;
-    if( e2>0 ) {
-      ShList[ig++]=sh2;
-    }
-  }
-  
-  delete [] phit;
-  return ig;
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-// EmcEmshower member functions
-
-EmcEmshower::EmcEmshower():
-  fNdf(0), 
-  fCL(1.),  
-  fEnergy(0.),
-  fXcg(0.),
-  fYcg(0.),
-  fChisq(999.999)
-{}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-EmcEmshower::EmcEmshower(BEmcRec *sector):
-  fOwner(sector),  
-  fNdf(0), 
-  fCL(1.),  
-  fEnergy(0.),
-  fXcg(0.),
-  fYcg(0.),
-  fChisq(999.999)
-{}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-EmcEmshower::EmcEmshower(float e, float x, float y, float chi, int ndf,
-			 BEmcRec *sector):
-  fOwner(sector),  
-  fNdf(ndf), 
-  fCL(1.),  // This should be calculated !!!
-  fEnergy(e),
-  fXcg(x),
-  fYcg(y),
-  fChisq(chi)
-{}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-void EmcEmshower::GetCorrPos( float* px, float* py )
-// Returns EmcEmshower corrected position in Sector (SM) frame
-{
-   fOwner->CorrectPosition(fEnergy, fXcg, fYcg, px, py );
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-void EmcEmshower::GetGlobalPos( float* px, float* py, float* pz )
-// Returns EmcEmshower position in PHENIX global coord system
-{
-   float xc, yc;
-
-   GetCorrPos( &xc, &yc );
-// X in Sector coord is Z in Global coord !!
-   fOwner->SectorToGlobal( xc, yc, 0, px, py, pz );
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-void EmcEmshower::GetErrors( float* pde, float* pdx, float* pdy, float* pdz)
-// Returns the errors for the reconstructed energy and position
-{
-    float e, x, y;
-
-    e = GetTotalEnergy();
-    GetCorrPos( &x, &y );
-    fOwner->CalculateErrors( e, x, y, pde, pdx, pdy, pdz);
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-
-void EmcEmshower::GetChar( float* pe, 
-			   float* pxcg, float* pycg, 
-			   float* pxc, float* pyc, 
-			   float* pxg, float* pyg, float* pzg, 
-			   float* pchi,
-			   float* pde, float* pdx, float* pdy, float* pdz  )
-{
-  // This method replaces methods GetTotalEnergy, GetCG, 
-  // GetCorrPos, GetGlobalPos, GetChi2, GetErrors
-  
-  float tmplvalue; // temporary lvalue
-
-  *pe = GetTotalEnergy();
-  GetCG( pxcg, pycg );
-  fOwner->CorrectPosition( *pe, *pxcg, *pycg, pxc, pyc );
-  fOwner->SectorToGlobal( *pxc, *pyc, 0, pxg, pyg, pzg );
-  fOwner->CalculateErrors( *pe, *pxc, *pyc, pde, pdx, pdy, pdz);
-  *pchi=fChisq;
-  
-  // Calculate CL
-  tmplvalue=fOwner->Chi2Correct(fChisq, fNdf)*fNdf; // nh->ndf MV 28.01.00
-  if(tmplvalue>0.) fCL=TMath::Prob(tmplvalue, fNdf);
-  else fCL=1.; // nothing to say about this peak area
-
-}
-
-// ///////////////////////////////////////////////////////////////////////////
-// EOF

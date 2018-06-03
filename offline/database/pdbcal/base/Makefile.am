@@ -29,7 +29,6 @@ libpdbcalBase_la_SOURCES = \
   PdbApplicationFactory_dict.C \
   PdbBankID.cc \
   PdbBankID_dict.C \
-  PdbBankListIterator.cc \
   PdbBankListIterator_dict.C \
   PdbBankList.cc \
   PdbBankList_dict.C \

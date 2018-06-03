@@ -68,7 +68,7 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* 
   , savetrackid(-1)
   , saveprestepstatus(-1)
   , savepoststepstatus(-1)
-  , enable_field_checker(0)
+  , enable_field_checker(params->get_int_param("field_check"))
   , absorbertruth(params->get_int_param("absorbertruth"))
   , IsActive(params->get_int_param("active"))
   , IsBlackHole(params->get_int_param("blackhole"))
@@ -79,7 +79,7 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* 
   , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
   , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
 {
-  name = detector_->GetName();
+  SetName(detector_->GetName());
 }
 
 PHG4OuterHcalSteppingAction::~PHG4OuterHcalSteppingAction()
@@ -93,7 +93,7 @@ PHG4OuterHcalSteppingAction::~PHG4OuterHcalSteppingAction()
 
 int PHG4OuterHcalSteppingAction::Init()
 {
-  enable_field_checker = GetIntOpt("FieldChecker");
+  enable_field_checker = params->get_int_param("field_check");
   return 0;
 }
 

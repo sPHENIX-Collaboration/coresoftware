@@ -14,16 +14,29 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph_Dict.cc \
   RawClusterBuilderTemplate.cc \
   RawClusterBuilderTemplate_Dict.cc \
+  RawClusterBuilderTemplateFEMC.cc \
+  RawClusterBuilderTemplateFEMC_Dict.cc \
+  RawClusterBuilderTemplateEEMC.cc \
+  RawClusterBuilderTemplateEEMC_Dict.cc \
   RawClusterBuilderFwd.cc \
   RawClusterBuilderFwd_Dict.cc \
   RawClusterPositionCorrection.cc \
   RawClusterPositionCorrection_Dict.cc \
+  RawClusterDeadAreaMask.cc \
+  RawClusterDeadAreaMask_Dict.cc \
   RawTowerCombiner.cc \
   RawTowerCombiner_Dict.cc \
   RawTowerCalibration.cc \
   RawTowerCalibration_Dict.cc \
+  RawTowerDeadTowerInterp.cc \
+  RawTowerDeadTowerInterp_Dict.cc \
   BEmcCluster.cc \
-  BEmcRec.cc
+  BEmcRec.cc \
+  BEmcRecCEMC.cc \
+  BEmcRecFEMC.cc \
+  BEmcRecEEMC.cc \
+  RawTowerDeadMapLoader.cc \
+  RawTowerDeadMapLoader_Dict.cc
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \

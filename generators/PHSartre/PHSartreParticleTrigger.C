@@ -1,6 +1,6 @@
 #include "PHSartreParticleTrigger.h"
 
-#include <Sartre.h>
+#include <sartre/Sartre.h>
 
 using namespace std;
 

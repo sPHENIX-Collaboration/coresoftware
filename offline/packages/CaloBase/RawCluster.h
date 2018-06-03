@@ -60,7 +60,7 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARNING;
     return 0;
   }
-  virtual TowerConstRange get_towers()
+  virtual TowerConstRange get_towers() const
   {
     PHOOL_VIRTUAL_WARN("get_towers()");
     static TowerMap dummy;

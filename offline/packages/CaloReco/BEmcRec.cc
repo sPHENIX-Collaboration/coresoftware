@@ -10,8 +10,6 @@
 #include "BEmcCluster.h"
 #include <TMath.h>
 
-#include <cmath>
-
 using namespace std;
 
 // Define and initialize static members
@@ -102,6 +100,61 @@ void  BEmcRec::SetGeometry( int nx, int ny, float txsz, float tysz )
   fNy = ny;
   fModSizex = txsz;
   fModSizey = tysz;
+}
+
+void  BEmcRec::PrintTowerGeometry(const char* fname)
+{
+  FILE *pf = fopen(fname,"w");
+  if( !pf ) {
+    printf("Error in BEmcRec::PrintTowerGeometry(): Failed to open file %s\n",fname);
+    return;
+  }
+
+  //  printf("Info: Print from BEmcRec::PrintTowerGeometry():\n");
+  //  printf("      Number of bins: %d %d\n",fNx,fNy);
+  fprintf(pf,"Number of bins: %d %d\n",fNx,fNy);
+  int ich;
+  TowerGeom geom;
+  std::map<int,TowerGeom>::iterator it;
+  for( int iy=0; iy<fNy; iy++ ) {
+    for( int ix=0; ix<fNx; ix++ ) {
+      ich = iy*fNx + ix;
+      it = fTowerGeom.find(ich);
+      if( it != fTowerGeom.end() ) {
+	geom = it->second;
+	//	printf("       %d %d: %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
+	fprintf(pf,"%d %d %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
+      }
+    }
+  }
+
+  fclose(pf);
+}
+
+bool BEmcRec::GetTowerGeometry( int ix, int iy, TowerGeom& geom )
+{
+  if( ix < 0 || ix >= fNx || iy < 0 || iy >= fNy ) return false;
+
+  int ich = iy*fNx + ix;
+  std::map<int,TowerGeom>::iterator it = fTowerGeom.find(ich);
+  if( it == fTowerGeom.end() ) return false; 
+
+  geom = it->second;
+  return true;
+}
+
+bool BEmcRec::SetTowerGeometry( int ix, int iy, float xx, float yy, float zz )
+{
+  if( ix < 0 || ix >= fNx || iy < 0 || iy >= fNy ) return false;
+
+  TowerGeom geom;
+  geom.Xcenter = xx;
+  geom.Ycenter = yy;
+  geom.Zcenter = zz;
+
+  int ich = iy*fNx + ix;
+  fTowerGeom[ich] = geom;
+  return true;
 }
 
 /*
@@ -227,6 +280,8 @@ int BEmcRec::FindClusters()
       ie=ich-1;
       next=ich;
       if( nCl >= fgMaxLen ) {
+	delete [] vhit;
+	delete [] vt;
 	return -1;
       }
       nCl++;
@@ -295,22 +350,7 @@ int BEmcRec::FindClusters()
   
 }
 
-
 // ///////////////////////////////////////////////////////////////////////////
-void BEmcRec::GetImpactAngle(float x, float y, float *sinT )
-  // Get impact angle, (x,y) - position in Sector frame (cm)
-{
-  float xVert, yVert, zVert;
-  float vx, vy, vz;
-
-  GlobalToSector( fVx, fVy, fVz, &xVert, &yVert, &zVert );
-  vz = -zVert;
-  vy = y - yVert;
-  vx = x - xVert;
-  // From this point X coord in sector frame is Z coord in Global Coord System !!!
-  *sinT = sqrt((vx*vx+vy*vy)/(vx*vx+vy*vy+vz*vz));
-}
-
 
 void BEmcRec::GlobalToSector(float xgl, float ygl, float zgl, float* px,
 				 float* py, float* pz)
@@ -330,19 +370,66 @@ void BEmcRec::GlobalToSector(float xgl, float ygl, float zgl, float* px,
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::SectorToGlobal(float xsec, float ysec, float zsec,
+void BEmcRec::SectorToGlobal(float xC, float yC, float zC,
 				 float* px, float* py, float* pz ) 
 {
-  *px = xsec - fModSizex*(fNx-1)/2.;
-  *py = ysec - fModSizey*(fNy-1)/2.;
-  *pz = 0.;
-  /*
-  PHPoint emcHit(xsec, ysec, zsec);
-  PHPoint phnxHit  = PHGeometry::transformPoint(emcrm, emctr, emcHit);
-  *px =  phnxHit.getX();
-  *py =  phnxHit.getY();
-  *pz =  phnxHit.getZ();
-  */  
+  *px = *py = *pz;
+
+  int ich;
+  std::map<int,TowerGeom>::iterator it;
+
+  int ix = xC+0.5; // tower #
+  if( ix<0 || ix >= fNx ) {
+    printf("Error in BEmcRec::SectorToGlobal: wrong input x: %d\n",ix);
+    return;
+  }
+
+  int iy = yC+0.5; // tower #
+  if( iy<0 || iy >= fNy ) {
+    printf("Error in BEmcRec::SectorToGlobal: wrong input y: %d\n",iy);
+    return;
+  }
+
+  ich = iy*fNx + ix;
+  it = fTowerGeom.find(ich);
+  if( it == fTowerGeom.end() ) {
+    printf("Error in BEmcRec::SectorToGlobal: wrong input (x,y): %f %f\n",xC,yC);
+    return;
+  }
+  TowerGeom geom0 = it->second;
+
+  // Next tower in x
+  ich = iy*fNx + (ix+1);
+  it = fTowerGeom.find(ich);
+  if( it == fTowerGeom.end() ) {
+    ich = iy*fNx + (ix-1);
+    it = fTowerGeom.find(ich);
+    if( it == fTowerGeom.end() ) {
+      printf("Error in BEmcRec::SectorToGlobal: Error in geometery extraction for x= %f\n",xC);
+      return;
+    }
+  }
+  TowerGeom geomx = it->second;
+
+  // Next tower in y
+  ich = (iy+1)*fNx + ix;
+  it = fTowerGeom.find(ich);
+  if( it == fTowerGeom.end() ) {
+    ich = (iy-1)*fNx + ix;
+    it = fTowerGeom.find(ich);
+    if( it == fTowerGeom.end() ) {
+      printf("Error in BEmcRec::SectorToGlobal: Error in geometery extraction for y= %f\n",yC);
+      return;
+    }
+  }
+  TowerGeom geomy = it->second;
+
+  float dx = fabs(geom0.Xcenter - geomx.Xcenter);
+  float dy = fabs(geom0.Ycenter - geomy.Ycenter);
+  *px = geom0.Xcenter + (xC-ix)*dx;
+  *py = geom0.Ycenter + (yC-iy)*dy;
+  *pz = geom0.Zcenter;
+
 }
 
 
@@ -703,24 +790,6 @@ void BEmcRec::ZeroVector(EmcModule* v, int N)
   for(int i=0; i<N; i++){ v[i].ich=0; v[i].amp=0; v[i].tof=0; }
 }
 
-// ///////////////////////////////////////////////////////////////////////////
-
-void BEmcRec::ResizeVector(int* Vector, int OldSize, int NewSize)
-{
-
-  int* vsave;
-
-  if( OldSize <= 0 ) { Vector = new int[NewSize]; return; }
-  vsave = new int[OldSize];
-  CopyVector( Vector, vsave, OldSize );
-  delete [] Vector;
-  Vector = new int[NewSize];
-  if( NewSize > OldSize ) CopyVector( vsave, Vector, OldSize );
-  else 			CopyVector( vsave, Vector, NewSize );
-  delete [] vsave;
-  return;
-
-}
 
 // ///////////////////////////////////////////////////////////////////////////
 
@@ -810,60 +879,10 @@ float BEmcRec::fgEpar4 = 4.0;
 
 // ///////////////////////////////////////////////////////////////////////////
 
-void BEmcRec::CorrectEnergy(float Energy, float x, float y, 
-				   float* Ecorr)
-{
-  // Corrects the EM Shower Energy for attenuation in fibers and 
-  // long energy leakage
-  //
-  // (x,y) - impact position (cm) in Sector frame
-
-  float sinT;
-  float att, leak, corr;
-  const float leakPar = 0.0033; // parameter from fit
-  const float attPar = 120; // Attenuation in module (cm)
-  const float X0 = 2; // radiation length (cm)
-
-  *Ecorr = Energy;
-  if( Energy < 0.01 ) return;
-
-  GetImpactAngle(x, y, &sinT); // sinT not used so far
-  leak = 2-sqrt(1+leakPar*log(1+Energy)*log(1+Energy));
-  att = exp(log(Energy)*X0/attPar);
-  corr = leak*att;
-  *Ecorr = Energy/corr;
-}
-
 /////////////////////////////////////////////////////////////////
-
-void BEmcRec::CorrectECore(float Ecore, float x, float y, float* Ecorr)
-{
-  // Corrects the EM Shower Core Energy for attenuation in fibers, 
-  // long energy leakage and angle dependance
-  //
-  // (x,y) - impact position (cm) in Sector frame
-
-  float ec, ec2, corr;
-  float sinT;
-  const float par1 = 0.918;
-  const float par2 = 1.35;
-  const float par3 = 0.003;
-
-  *Ecorr = Ecore;
-  if( Ecore < 0.01 ) return;
-
-  GetImpactAngle(x, y, &sinT );
-  corr = par1 * ( 1 - par2*sinT*sinT*sinT*sinT*(1 - par3*log(Ecore)) );
-  ec = Ecore/corr;
-
-  CorrectEnergy( ec, x, y, &ec2);
-  *Ecorr = ec2;
-}
-
-/////////////////////////////////////////////////////////////////////
-
+/*
 void BEmcRec::CorrectPosition(float Energy, float x, float y,
-				     float* pxc, float* pyc, bool callSetPar)
+				     float* pxc, float* pyc)
 {
   // Corrects the Shower Center of Gravity for the systematic error due to 
   // the limited tower size and angle shift
@@ -921,7 +940,7 @@ void BEmcRec::CorrectPosition(float Energy, float x, float y,
   }
   
 }
-
+*/
 // ///////////////////////////////////////////////////////////////////////////
 
 void BEmcRec::CalculateErrors( float e, float x, float y, float* pde,

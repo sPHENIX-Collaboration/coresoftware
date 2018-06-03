@@ -54,7 +54,7 @@ class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
   //int _single_mRICH;
   PHG4mRICHDetector* _detector;
   std::string _detectorName;
-  int layer;
+//  int layer;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */

@@ -1223,7 +1223,7 @@ Fun4AllServer::topNode(const string &name)
        << " send email to off-l with the following printout: " << endl;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
-    cout << iter->first << " is at " << hex << iter->second << endl;
+    cout << iter->first << " is at " << hex << iter->second << dec << endl;
   }
   exit(1);
 }

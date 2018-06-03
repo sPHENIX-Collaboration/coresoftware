@@ -16,6 +16,7 @@ class G4LogicalVolume;
 class PHParameters;
 class G4VPhysicalVolume;
 class G4Material;
+class G4AssemblyVolume;
 
 //___________________________________________________________________________
 class PHG4mRICHDetector: public PHG4Detector
@@ -27,21 +28,38 @@ class PHG4mRICHDetector: public PHG4Detector
   PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
   
   //! destructor
-  virtual ~PHG4mRICHDetector( void ) {}
+  virtual ~PHG4mRICHDetector();
   
   //! construct
   virtual void Construct( G4LogicalVolume* world );
   
   //name volume accessors
   //bool IsInBlock(G4VPhysicalVolume*) const;
-  bool IsInmRICH(G4VPhysicalVolume*) const;
+  int IsInmRICH(G4VPhysicalVolume*) const;
 
   //void BlackHole(const int i=1) {blackhole = i;}
   //int IsBlackHole() const {return blackhole;}
 
+  void SetActive(const int i = 1)
+  {
+    active = i;
+  }
+
+  void SetAbsorberActive(const int i = 1)
+  {
+    absorberactive = i;
+  }
+
   void SuperDetector(const std::string &name) {superdetector = name;}
   const std::string SuperDetector() const {return superdetector;}
   int get_Layer() const {return layer;}
+
+  enum
+  {
+    SENSOR = 1,
+    AEROGEL = 0,
+    INACTIVE = -100
+  };
 
  private:
   class mRichParameter;
@@ -54,9 +72,7 @@ class PHG4mRICHDetector: public PHG4Detector
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);
 
-  G4LogicalVolume* build_Space(G4LogicalVolume* logicWorld, G4double (&bowlPar)[4]);
-
-  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);    //single mRICH
+  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);//, int detectorSetup);    //single mRICH
   G4VPhysicalVolume* build_holderBox(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
   void build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
@@ -64,15 +80,19 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_mirror(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
   void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
 
-  void build_mRICH_wall(G4LogicalVolume* space, G4LogicalVolume* a_mRICH, G4double* bowlPar);
-  G4double eta2polarAngle(G4double eta);
-
+  void build_mRICH_wall(G4LogicalVolume* space);
+  void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
+  
   int layer;
+  int active;
+  int absorberactive;
   //int blackhole;
   std::string superdetector;
-  std::set<G4VPhysicalVolume*> active_volumes;
-  std::set<G4VPhysicalVolume*> passive_volumes;
-  
+  G4VPhysicalVolume *mRICH_PV;         //physical volume of detector box of single module  
+  G4VPhysicalVolume *sensor_PV[4];     //physical volume of sensors the sensitive components
+
+  std::map<const G4VPhysicalVolume*, int> sensor_vol; // physical volume of senseors
+  std::map<const G4VPhysicalVolume*, int> aerogel_vol; // physical volume of senseors
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::mRichParameter
@@ -93,8 +113,8 @@ class PHG4mRICHDetector::mRichParameter
   mRichParameter();
   ~mRichParameter();
 
-  void SetPar_glassWindow(G4double x, G4double y);
-  void SetPar_sensor(G4double x, G4double y);
+  void SetPar_glassWindow(int i, G4double x, G4double y);
+  void SetPar_sensor(int i, G4double x, G4double y);
   BoxPar* GetBoxPar(std::string componentName);
   LensPar* GetLensPar(std::string componentName);
   PolyPar* GetPolyPar(std::string componentName);

@@ -9,6 +9,7 @@
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
+class RawTowerDeadMap;
 
 class RawTower;
 
@@ -22,20 +23,16 @@ class RawTower;
 //! default output DST node is TOWER_RAW_DETECTOR
 class RawTowerDigitizer : public SubsysReco
 {
-
-public:
-  RawTowerDigitizer(const std::string& name = "RawTowerDigitizer");
+ public:
+  RawTowerDigitizer(const std::string &name = "RawTowerDigitizer");
   virtual ~RawTowerDigitizer();
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {detector = d;}
-
-  void TowerType(const int type) {_tower_type = type;} 
-
+  void Detector(const std::string &d) { detector = d; }
+  void TowerType(const int type) { _tower_type = type; }
   void set_seed(const unsigned int iseed);
-  unsigned int get_seed() const {return seed;}
-
+  unsigned int get_seed() const { return seed; }
   enum enu_digi_algorithm
   {
     //! directly pass the energy of sim tower to digitalized tower
@@ -144,7 +141,8 @@ public:
   {
     _sim_tower_node_prefix = simTowerNodePrefix;
   }
-protected:
+
+ protected:
   void CreateNodes(PHCompositeNode *topNode);
 
   enu_digi_algorithm _digi_algorithm;
@@ -152,11 +150,12 @@ protected:
   //! simple digitization with photon statistics, ADC conversion and pedstal
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
-  RawTower *simple_photon_digitization(RawTower * sim_tower);
+  RawTower *simple_photon_digitization(RawTower *sim_tower);
 
-  RawTowerContainer* _sim_towers;
-  RawTowerContainer* _raw_towers;
+  RawTowerContainer *_sim_towers;
+  RawTowerContainer *_raw_towers;
   RawTowerGeomContainer *rawtowergeom;
+  RawTowerDeadMap *m_deadmap;
 
   std::string detector;
   std::string SimTowerNodeName;
@@ -182,7 +181,7 @@ protected:
   double _zero_suppression_ADC;
 
   //! tower type to act on
-  int _tower_type; 
+  int _tower_type;
 
   PHTimeServer::timer _timer;
 
