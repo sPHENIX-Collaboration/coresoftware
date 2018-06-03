@@ -1,5 +1,5 @@
-#ifndef __TrkrClusterContainer_H__
-#define __TrkrClusterContainer_H__
+#ifndef TRACKBASE_TRKRCLUSTERCONTAINER_H
+#define TRACKBASE_TRKRCLUSTERCONTAINER_H
 
 #include "TrkrCluster.h"
 #include "TrkrDefUtil.h"
@@ -25,25 +25,25 @@ class TrkrClusterContainer : public PHObject
 
   void identify(std::ostream &os = std::cout) const;
 
-  ConstIterator AddCluster(TrkrCluster *newClus);
-  ConstIterator AddClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
+  ConstIterator addCluster(TrkrCluster *newClus);
+  ConstIterator addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster *newClus);
 
   //! preferred removal method, key is currently the clus id
-  void RemoveCluster(TrkrDefs::cluskey key)
+  void removeCluster(TrkrDefs::cluskey key)
   {
-    clusmap_.erase(key);
+    m_clusmap.erase(key);
   }
 
   //! inefficent, use key where possible instead
-  void RemoveCluster(TrkrCluster *clus)
+  void removeCluster(TrkrCluster *clus)
   {
-    Iterator its = clusmap_.begin();
-    Iterator last = clusmap_.end();
+    Iterator its = m_clusmap.begin();
+    Iterator last = m_clusmap.end();
     for (; its != last;)
     {
       if (its->second == clus)
       {
-        clusmap_.erase(its++);
+        m_clusmap.erase(its++);
       }
       else
       {
@@ -52,27 +52,27 @@ class TrkrClusterContainer : public PHObject
     }
   }
 
-  Iterator FindOrAddCluster(TrkrDefs::cluskey key);
+  Iterator findOrAddCluster(TrkrDefs::cluskey key);
 
   //! return all Clusters matching a given detid
-  ConstRange GetClusters(const TrkrDefs::TRKRID trackerid) const;
+  ConstRange getClusters(const TrkrDefs::TrkrId trackerid) const;
 
   //! return all Clusters matching a given detid and layer
-  ConstRange GetClusters(const TrkrDefs::TRKRID trackerid, const char layer) const;
+  ConstRange getClusters(const TrkrDefs::TrkrId trackerid, const char layer) const;
 
   //! return all clusters
-  ConstRange GetClusters(void) const;
+  ConstRange getClusters(void) const;
 
-  TrkrCluster *FindCluster(TrkrDefs::cluskey key);
+  TrkrCluster *findCluster(TrkrDefs::cluskey key);
 
   unsigned int size(void) const
   {
-    return clusmap_.size();
+    return m_clusmap.size();
   }
 
  protected:
-  Map clusmap_;
+  Map m_clusmap;
   ClassDef(TrkrClusterContainer, 1)
 };
 
-#endif
+#endif //TRACKBASE_TRKRCLUSTERCONTAINER_H

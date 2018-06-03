@@ -1,5 +1,5 @@
-#ifndef __TrkrDefUtil_H__
-#define __TrkrDefUtil_H__
+#ifndef TRACKBASE_TRKRDEFUTIL_H
+#define TRACKBASE_TRKRDEFUTIL_H
 
 #ifdef __CINT__
 #include <limits.h>
@@ -25,18 +25,18 @@ typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
 #ifndef __CINT__
 
 /// Max values for keys (used as defaults or invalid values)
-static hitsetkey HITSETKEYMAX = ULONG_MAX;
-static cluskey CLUSKEYMAX = ULLONG_MAX;
-static clushitkey CLUSHITKEYMAX = ULONG_MAX;
+static hitsetkey HITSETKEYMAX __attribute__((unused)) = ULONG_MAX;
+static cluskey CLUSKEYMAX __attribute__((unused)) = ULLONG_MAX;
+static clushitkey CLUSHITKEYMAX __attribute__((unused)) = ULONG_MAX;
 
 #endif
 
 /// Enumeration for tracker id to easily maintain consistency
-enum TRKRID
+enum TrkrId
 {
-  mvtx_id = 0,
-  intt_id = 1,
-  tpc_id = 2
+  mvtxID = 0,
+  inttID = 1,
+  tpcID = 2
 };
 }
 
@@ -53,32 +53,35 @@ class TrkrDefUtil
   ~TrkrDefUtil(){};
 
   /// Print the bits for each key type
-  void PrintBits(const TrkrDefs::hitsetkey key, std::ostream& os = std::cout);
-  void PrintBits(const TrkrDefs::cluskey key, std::ostream& os = std::cout);
+  void printBits(const TrkrDefs::hitsetkey key, std::ostream& os = std::cout);
+  void printBits(const TrkrDefs::cluskey key, std::ostream& os = std::cout);
   // void print_bits(const TrkrDefs::hitkey key, std::ostream& os = std::cout);
 
   /// Get the tracker ID from either key type
-  uint8_t GetTrkrId(const TrkrDefs::hitsetkey key);
-  uint8_t GetTrkrId(const TrkrDefs::cluskey key);
+  uint8_t getTrkrId(const TrkrDefs::hitsetkey key);
+  uint8_t getTrkrId(const TrkrDefs::cluskey key);
 
   /// Get the layer number from either key type
-  uint8_t GetLayer(const TrkrDefs::hitsetkey key);
-  uint8_t GetLayer(const TrkrDefs::cluskey key);
+  uint8_t getLayer(const TrkrDefs::hitsetkey key);
+  uint8_t getLayer(const TrkrDefs::cluskey key);
 
   /// Get the lower 32 bits for cluster keys only
-  uint32_t GetClusIndex(const TrkrDefs::cluskey key);
+  uint32_t getClusIndex(const TrkrDefs::cluskey key);
+
+  /// Get the upper 32 bits from cluster keys
+  uint32_t getHitSetKeyFromClusKey(const TrkrDefs::cluskey key);
 
   /// Get a valid low / hi range for hitsetkey given tracker id & layer
-  TrkrDefs::hitsetkey GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id);
-  TrkrDefs::hitsetkey GetHitSetKeyHi(const TrkrDefs::TRKRID trkr_id);
-  TrkrDefs::hitsetkey GetHitSetKeyLo(const TrkrDefs::TRKRID trkr_id, const char lyr);
-  TrkrDefs::hitsetkey GetHitSetKeyHi(const TrkrDefs::TRKRID trkr_id, const char lyr);
+  TrkrDefs::hitsetkey getHitSetKeyLo(const TrkrDefs::TrkrId trkrId);
+  TrkrDefs::hitsetkey getHitSetKeyHi(const TrkrDefs::TrkrId trkrId);
+  TrkrDefs::hitsetkey getHitSetKeyLo(const TrkrDefs::TrkrId trkrId, const char lyr);
+  TrkrDefs::hitsetkey getHitSetKeyHi(const TrkrDefs::TrkrId trkrId, const char lyr);
 
   /// Get a valid low / hi range for cluskey given tracker id & layer
-  TrkrDefs::cluskey GetClusKeyLo(const TrkrDefs::TRKRID trkr_id);
-  TrkrDefs::cluskey GetClusKeyHi(const TrkrDefs::TRKRID trkr_id);
-  TrkrDefs::cluskey GetClusKeyLo(const TrkrDefs::TRKRID trkr_id, const char lyr);
-  TrkrDefs::cluskey GetClusKeyHi(const TrkrDefs::TRKRID trkr_id, const char lyr);
+  TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId);
+  TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId);
+  TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId, const char lyr);
+  TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId, const char lyr);
 
  protected:
   // hitsetkey layout:
@@ -94,7 +97,7 @@ class TrkrDefUtil
   static const unsigned int kBitShiftClusId = 32;
 
   /// generate the common upper 16 bits for hitsetkey
-  TrkrDefs::hitsetkey GenHitSetKey(const TrkrDefs::TRKRID trkr_id, const char lyr);
+  TrkrDefs::hitsetkey genHitSetKey(const TrkrDefs::TrkrId trkrId, const char lyr);
 };
 
-#endif  //__TrkrDefUtil_H__
+#endif  //TRACKBASE_TRKRDEFUTIL_H

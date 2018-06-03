@@ -1,5 +1,5 @@
-#ifndef __TrkrHitSetContainer_H__
-#define __TrkrHitSetContainer_H__
+#ifndef TRACKBASE_TRKRHITSETCONTAINER_H
+#define TRACKBASE_TRKRHITSETCONTAINER_H
 
 #include "TrkrHitSet.h"
 
@@ -30,25 +30,25 @@ class TrkrHitSetContainer : public PHObject
   void identify(std::ostream &os = std::cout) const;
 
   //! Add a TrkrHitSet to the container
-  ConstIterator AddHitSet(TrkrHitSet *newHit);
-  ConstIterator AddHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newHit);
+  ConstIterator addHitSet(TrkrHitSet *newHit);
+  ConstIterator addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet *newHit);
 
   //! preferred removal method, key is currently the hit id
-  void RemoveHitSet(TrkrDefs::hitsetkey key)
+  void removeHitSet(TrkrDefs::hitsetkey key)
   {
-    hitmap_.erase(key);
+    m_hitmap.erase(key);
   }
 
   //! inefficent, use key where possible instead
-  void RemoveHitSet(TrkrHitSet *hit)
+  void removeHitSet(TrkrHitSet *hit)
   {
-    Iterator its = hitmap_.begin();
-    Iterator last = hitmap_.end();
+    Iterator its = m_hitmap.begin();
+    Iterator last = m_hitmap.end();
     for (; its != last;)
     {
       if (its->second == hit)
       {
-        hitmap_.erase(its++);
+        m_hitmap.erase(its++);
       }
       else
       {
@@ -58,28 +58,28 @@ class TrkrHitSetContainer : public PHObject
   }
 
   //! find or add HitSet
-  Iterator FindOrAddHitSet(TrkrDefs::hitsetkey key);
+  Iterator findOrAddHitSet(TrkrDefs::hitsetkey key);
 
   //! return all HitSets matching a given detid
-  ConstRange GetHitSets(const TrkrDefs::TRKRID trackerid) const;
+  ConstRange getHitSets(const TrkrDefs::TrkrId trackerid) const;
 
   //! return all HitSets matching a given detid, layer
-  ConstRange GetHitSets(const TrkrDefs::TRKRID trackerid, const char layer) const;
+  ConstRange getHitSets(const TrkrDefs::TrkrId trackerid, const char layer) const;
 
   //! return all HitSets
-  ConstRange GetHitSets(void) const;
+  ConstRange getHitSets(void) const;
 
   //! return a given HitSet based on its key
-  TrkrHitSet *FindHitSet(TrkrDefs::hitsetkey key);
+  TrkrHitSet *findHitSet(TrkrDefs::hitsetkey key);
 
   unsigned int size(void) const
   {
-    return hitmap_.size();
+    return m_hitmap.size();
   }
 
  protected:
-  Map hitmap_;
+  Map m_hitmap;
   ClassDef(TrkrHitSetContainer, 1)
 };
 
-#endif
+#endif //TRACKBASE_TRKRHITSETCONTAINER_H

@@ -1,5 +1,5 @@
-#ifndef __TrkrHitSetV1_H__
-#define __TrkrHitSetV1_H__
+#ifndef TRACKBASE_TRKRHITSETV1_H
+#define TRACKBASE_TRKRHITSETV1_H
 
 #include "TrkrDefUtil.h"
 #include "TrkrHitSet.h"
@@ -29,20 +29,20 @@ class TrkrHitSetv1 : public TrkrHitSet
   virtual void print() const;
 
   // Set/Get the key (ID) for this set of hits
-  virtual void SetHitSetKey(const TrkrDefs::hitsetkey key) { hitset_key_ = key; }
-  virtual TrkrDefs::hitsetkey GetHitSetKey() const { return hitset_key_; }
+  virtual void setHitSetKey(const TrkrDefs::hitsetkey key) { m_hitSetKey = key; }
+  virtual TrkrDefs::hitsetkey getHitSetKey() const { return m_hitSetKey; }
   // Set/Get the key (ID) for the truth mapping object assoc. to this hit set
-  virtual void SetTruthMapKey(const uint64_t key) { truth_map_key_ = key; }
-  virtual uint64_t GetTruthMapKey() const { return truth_map_key_; }
+  virtual void setTruthMapKey(const uint64_t key) { m_truthMapKey = key; }
+  virtual uint64_t getTruthMapKey() const { return m_truthMapKey; }
   // Set/Get the key (ID) for the mapping between hits & clusters
-  virtual void SetHitClusMapKey(const uint64_t key) { hit_clus_map_key_ = key; }
-  virtual uint64_t GetHitClusMapKey() const { return hit_clus_map_key_; }
+  virtual void setHitClusMapKey(const uint64_t key) { m_hitClusMapKey = key; }
+  virtual uint64_t getHitClusMapKey() const { return m_hitClusMapKey; }
  protected:
  private:
-  TrkrDefs::hitsetkey hitset_key_;
-  uint64_t truth_map_key_;
-  uint64_t hit_clus_map_key_;
+  TrkrDefs::hitsetkey m_hitSetKey;
+  uint64_t m_truthMapKey;
+  uint64_t m_hitClusMapKey;
   ClassDef(TrkrHitSetv1,1);
 };
 
-#endif
+#endif //TRACKBASE_TRKRHITSETV1_H

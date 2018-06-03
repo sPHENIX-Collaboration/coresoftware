@@ -18,23 +18,23 @@ AM_LDFLAGS = \
 
 # sources for util library
 libtrack_util_la_SOURCES = \
-  TrkrDefUtil.C \
-  TrkrDefUtil_Dict.C
+  TrkrDefUtil.cc \
+  TrkrDefUtil_Dict.cc
 
 # sources for io library
 libtrack_io_la_SOURCES = \
-  TrkrCluster.C \
-  TrkrCluster_Dict.C \
-  TrkrClusterv1.C \
-  TrkrClusterv1_Dict.C \
-  TrkrClusterContainer.C \
-  TrkrClusterContainer_Dict.C \
-  TrkrHitSet.C \
-  TrkrHitSet_Dict.C \
-  TrkrHitSetv1.C \
-  TrkrHitSetv1_Dict.C \
-  TrkrHitSetContainer.C \
-  TrkrHitSetContainer_Dict.C 
+  TrkrCluster.cc \
+  TrkrCluster_Dict.cc \
+  TrkrClusterv1.cc \
+  TrkrClusterv1_Dict.cc \
+  TrkrClusterContainer.cc \
+  TrkrClusterContainer_Dict.cc \
+  TrkrHitSet.cc \
+  TrkrHitSet_Dict.cc \
+  TrkrHitSetv1.cc \
+  TrkrHitSetv1_Dict.cc \
+  TrkrHitSetContainer.cc \
+  TrkrHitSetContainer_Dict.cc 
 
 
 libtrack_util_la_LDFLAGS = \
@@ -62,7 +62,7 @@ libtrack_io_la_LIBADD = \
 
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ##############################################
@@ -81,19 +81,19 @@ pkginclude_HEADERS = \
 ################################################
 # linking tests
 
-BUILT_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_track_util \
   testexternals_track_io
 
-testexternals_track_util_SOURCES = testexternals.C
+testexternals_track_util_SOURCES = testexternals.cc
 testexternals_track_util_LDADD = libtrack_util.la
 
-testexternals_track_io_SOURCES = testexternals.C
+testexternals_track_io_SOURCES = testexternals.cc
 testexternals_track_io_LDADD = libtrack_io.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@

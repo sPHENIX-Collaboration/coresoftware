@@ -1,10 +1,9 @@
-#include "TrkrDefUtil.h"
 #include "TrkrHitSetContainer.h"
+
+#include "TrkrDefUtil.h"
 #include "TrkrHitSetv1.h"
 
 #include <cstdlib>
-
-using namespace std;
 
 TrkrHitSetContainer::TrkrHitSetContainer()
 {
@@ -12,74 +11,74 @@ TrkrHitSetContainer::TrkrHitSetContainer()
 
 void TrkrHitSetContainer::Reset()
 {
-  while (hitmap_.begin() != hitmap_.end())
+  while (m_hitmap.begin() != m_hitmap.end())
   {
-    delete hitmap_.begin()->second;
-    hitmap_.erase(hitmap_.begin());
+    delete m_hitmap.begin()->second;
+    m_hitmap.erase(m_hitmap.begin());
   }
   return;
 }
 
-void TrkrHitSetContainer::identify(ostream& os) const
+void TrkrHitSetContainer::identify(std::ostream& os) const
 {
   ConstIterator iter;
-  os << "Number of hits: " << size() << endl;
-  for (iter = hitmap_.begin(); iter != hitmap_.end(); ++iter)
+  os << "Number of hits: " << size() << std::endl;
+  for (iter = m_hitmap.begin(); iter != m_hitmap.end(); ++iter)
   {
-    os << "hit key 0x" << hex << iter->first << dec << endl;
+    os << "hit key 0x" << std::hex << iter->first << std::dec << std::endl;
     (iter->second)->identify();
   }
   return;
 }
 
 TrkrHitSetContainer::ConstIterator
-TrkrHitSetContainer::AddHitSet(TrkrHitSet* newhit)
+TrkrHitSetContainer::addHitSet(TrkrHitSet* newhit)
 {
-  TrkrDefs::hitsetkey key = newhit->GetHitSetKey();
-  if (hitmap_.find(key) != hitmap_.end())
+  TrkrDefs::hitsetkey key = newhit->getHitSetKey();
+  if (m_hitmap.find(key) != m_hitmap.end())
   {
     TrkrDefUtil util;
-    cout << "overwriting hit 0x" << hex << key << dec << endl;
-    cout << "tracker id: " << util.GetTrkrId(key) << endl;
+    std::cout << "overwriting hit 0x" << std::hex << key << std::dec << std::endl;
+    std::cout << "tracker id: " << util.getTrkrId(key) << std::endl;
   }
-  hitmap_[key] = newhit;
-  return hitmap_.find(key);
+  m_hitmap[key] = newhit;
+  return m_hitmap.find(key);
 }
 
 TrkrHitSetContainer::ConstIterator
-TrkrHitSetContainer::AddHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet* newhit)
+TrkrHitSetContainer::addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet* newhit)
 {
-  if (hitmap_.find(key) != hitmap_.end())
+  if (m_hitmap.find(key) != m_hitmap.end())
   {
-    cout << "TrkrHitSetContainer::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << endl;
+    std::cout << "TrkrHitSetContainer::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  newhit->SetHitSetKey(key);
-  hitmap_[key] = newhit;
-  return hitmap_.find(key);
+  newhit->setHitSetKey(key);
+  m_hitmap[key] = newhit;
+  return m_hitmap.find(key);
 }
 
 TrkrHitSetContainer::ConstRange
-TrkrHitSetContainer::GetHitSets(const TrkrDefs::TRKRID trackerid) const
+TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid) const
 {
   // TrkrDefs::hitsetkey tmp = trackerid;
   // TrkrDefs::hitsetkey keylow = tmp << TrackerDefs::bitshift_trackerid;
   // TrkrDefs::hitsetkey keyup = ((tmp + 1)<< TrackerDefs::bitshift_trackerid) -1 ;
-  //   cout << "keylow: 0x" << hex << keylow << dec << endl;
-  //   cout << "keyup: 0x" << hex << keyup << dec << endl;
+  //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
+  //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
   TrkrDefUtil util;
-  TrkrDefs::hitsetkey keylo = util.GetHitSetKeyLo(trackerid);
-  TrkrDefs::hitsetkey keyhi = util.GetHitSetKeyHi(trackerid);
+  TrkrDefs::hitsetkey keylo = util.getHitSetKeyLo(trackerid);
+  TrkrDefs::hitsetkey keyhi = util.getHitSetKeyHi(trackerid);
 
   ConstRange retpair;
-  retpair.first = hitmap_.lower_bound(keylo);
-  retpair.second = hitmap_.upper_bound(keyhi);
+  retpair.first = m_hitmap.lower_bound(keylo);
+  retpair.second = m_hitmap.upper_bound(keyhi);
   return retpair;
 }
 
 TrkrHitSetContainer::ConstRange
-TrkrHitSetContainer::GetHitSets(const TrkrDefs::TRKRID trackerid,
+TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid,
                                 const char layer) const
 {
   // TrkrDefs::hitsetkey tmp = trackerid;
@@ -87,45 +86,45 @@ TrkrHitSetContainer::GetHitSets(const TrkrDefs::TRKRID trackerid,
   // tmp = layer;
   // keylow |= (tmp << TrackerDefs::bitshift_layer);
   // TrkrDefs::hitsetkey keyup = ((tmp + 1)<< TrackerDefs::bitshift_layer) -1 ;
-  //   cout << "keylow: 0x" << hex << keylow << dec << endl;
-  //   cout << "keyup: 0x" << hex << keyup << dec << endl;
+  //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
+  //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
   TrkrDefUtil util;
-  TrkrDefs::hitsetkey keylo = util.GetHitSetKeyLo(trackerid, layer);
-  TrkrDefs::hitsetkey keyhi = util.GetHitSetKeyHi(trackerid, layer);
+  TrkrDefs::hitsetkey keylo = util.getHitSetKeyLo(trackerid, layer);
+  TrkrDefs::hitsetkey keyhi = util.getHitSetKeyHi(trackerid, layer);
 
   ConstRange retpair;
-  retpair.first = hitmap_.lower_bound(keylo);
-  retpair.second = hitmap_.upper_bound(keyhi);
+  retpair.first = m_hitmap.lower_bound(keylo);
+  retpair.second = m_hitmap.upper_bound(keyhi);
   return retpair;
 }
 
 TrkrHitSetContainer::ConstRange
-TrkrHitSetContainer::GetHitSets(void) const
+TrkrHitSetContainer::getHitSets(void) const
 {
-  return std::make_pair(hitmap_.begin(), hitmap_.end());
+  return std::make_pair(m_hitmap.begin(), m_hitmap.end());
 }
 
 TrkrHitSetContainer::Iterator
-TrkrHitSetContainer::FindOrAddHitSet(TrkrDefs::hitsetkey key)
+TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
 {
-  TrkrHitSetContainer::Iterator it = hitmap_.find(key);
-  if (it == hitmap_.end())
+  TrkrHitSetContainer::Iterator it = m_hitmap.find(key);
+  if (it == m_hitmap.end())
   {
-    hitmap_[key] = new TrkrHitSetv1();
-    it = hitmap_.find(key);
+    m_hitmap[key] = new TrkrHitSetv1();
+    it = m_hitmap.find(key);
     TrkrHitSet* mhit = it->second;
-    mhit->SetHitSetKey(key);
+    mhit->setHitSetKey(key);
   }
   return it;
 }
 
 TrkrHitSet*
-TrkrHitSetContainer::FindHitSet(TrkrDefs::hitsetkey key)
+TrkrHitSetContainer::findHitSet(TrkrDefs::hitsetkey key)
 {
-  TrkrHitSetContainer::ConstIterator it = hitmap_.find(key);
+  TrkrHitSetContainer::ConstIterator it = m_hitmap.find(key);
 
-  if (it != hitmap_.end())
+  if (it != m_hitmap.end())
   {
     return it->second;
   }

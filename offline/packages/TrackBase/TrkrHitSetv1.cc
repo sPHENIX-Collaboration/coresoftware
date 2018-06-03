@@ -5,9 +5,9 @@
 #include <iostream>
 
 TrkrHitSetv1::TrkrHitSetv1()
-  : hitset_key_(TrkrDefs::HITSETKEYMAX)
-  , truth_map_key_(UINT64_MAX)
-  , hit_clus_map_key_(UINT64_MAX)
+  : m_hitSetKey(TrkrDefs::HITSETKEYMAX)
+  , m_truthMapKey(UINT64_MAX)
+  , m_hitClusMapKey(UINT64_MAX)
 {
 }
 
@@ -18,14 +18,14 @@ void TrkrHitSetv1::print() const
 
 void TrkrHitSetv1::Reset()
 {
-  hitset_key_ = TrkrDefs::HITSETKEYMAX;
-  truth_map_key_ = UINT64_MAX;
+  m_hitSetKey = TrkrDefs::HITSETKEYMAX;
+  m_truthMapKey = UINT64_MAX;
   return;
 }
 
 void TrkrHitSetv1::identify(std::ostream& os) const
 {
   os << "TrkrHitSetv1: " << std::endl
-     << "       hitid: 0x" << std::hex << GetHitSetKey() << std::dec << std::endl
-     << "     truthid: 0x" << std::hex << GetTruthMapKey() << std::dec << std::endl;
+     << "       hitid: 0x" << std::hex << getHitSetKey() << std::dec << std::endl
+     << "     truthid: 0x" << std::hex << getTruthMapKey() << std::dec << std::endl;
 }
