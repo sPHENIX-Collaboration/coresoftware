@@ -80,7 +80,7 @@ PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume * v
 void
 PHG4ProjCrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  if ( verbosity > 0 )
+  if ( Verbosity() > 0 )
     {
       cout << "PHG4ProjCrystalCalorimeterDetector: Begin Construction" << endl;
     }

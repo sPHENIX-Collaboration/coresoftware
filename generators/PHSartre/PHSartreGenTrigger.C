@@ -1,6 +1,6 @@
 #include "PHSartreGenTrigger.h"
 
-#include <Sartre.h>
+#include <sartre/Sartre.h>
 
 #include <iterator>
 

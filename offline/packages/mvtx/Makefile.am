@@ -26,27 +26,27 @@ pkginclude_HEADERS = \
   MvtxHitSetv1.h
 
 libmvtx_la_SOURCES = \
-  MvtxDefUtil.C \
-  MvtxDefUtil_Dict.C \
-  MvtxHitSetv1.C \
-  MvtxHitSetv1_Dict.C
+  MvtxDefUtil.cc \
+  MvtxDefUtil_Dict.cc \
+  MvtxHitSetv1.cc \
+  MvtxHitSetv1_Dict.cc
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
 
-BUILT_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_tracker
 
-testexternals_tracker_SOURCES = testexternals.C
+testexternals_tracker_SOURCES = testexternals.cc
 testexternals_tracker_LDADD = libmvtx.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@

@@ -188,7 +188,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 		{
 		  once = false;
 
-		  if (verbosity > 0) 
+		  if (Verbosity() > 0) 
 		    {
 		      cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
 			//
@@ -307,7 +307,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNo
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}

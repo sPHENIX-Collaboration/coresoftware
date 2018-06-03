@@ -39,7 +39,7 @@ class RawTowerv1 : public RawTower {
   }
   RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
   RawTower::CellConstIterator find_g4cell(int id) const {return ecells.find(id);}
-  void add_ecell(const PHG4CellDefs::keytype g4cellid,
+  void add_ecell(const CellKeyType g4cellid,
                  const float ecell);
   void clear_g4cells() { ecells.clear(); }
 
@@ -68,7 +68,7 @@ class RawTowerv1 : public RawTower {
   CellMap ecells;      //< default truth storage
   ShowerMap eshowers;  //< alternate truth storage for smaller filesizes
 
-  ClassDef(RawTowerv1, 4)
+  ClassDef(RawTowerv1, 5)
 };
 
 #endif /* RAWTOWERV1_H_ */

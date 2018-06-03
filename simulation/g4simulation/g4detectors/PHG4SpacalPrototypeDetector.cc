@@ -103,7 +103,7 @@ void
 PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 {
 
-  PHNodeIterator iter(topNode);
+  PHNodeIterator iter(topNode());
   PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "RUN"));
   assert(parNode);
@@ -147,15 +147,15 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       + 0.5 * _geom->get_thickness()) * cm + enclosure_x_shift;
   const G4double box_z_shift = 0.5*(_geom->get_zmin() + _geom->get_zmax())* cm;
 
-//  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
+//  G4Tubs* _cylinder_solid = new G4Tubs(G4String(GetName()),
 //      _geom->get_radius() * cm, _geom->get_max_radius() * cm,
 //      _geom->get_length() * cm / 2.0, 0, twopi);
-//  G4VSolid* cylinder_solid = new G4Box(G4String(GetName().c_str()),
+//  G4VSolid* cylinder_solid = new G4Box(G4String(GetName()),
 //      _geom->get_thickness() * 1.1 * 0.5 * cm, //
 //      twopi / _geom->get_azimuthal_n_sec() * _geom->get_sector_map().size()
 //          * 0.5 * _geom->get_max_radius() * cm, //
 //      _geom->get_length() * cm / 2.0);
-  G4VSolid* cylinder_solid = new G4Box(G4String(GetName().c_str()),
+  G4VSolid* cylinder_solid = new G4Box(G4String(GetName()),
       enclosure_x * 0.5, //
       enclosure_y * 0.5, //
       enclosure_z * 0.5);
@@ -168,7 +168,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   assert(cylinder_mat);
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
-      G4String(GetName().c_str()), 0, 0, 0);
+      G4String(GetName()), 0, 0, 0);
   G4VisAttributes* VisAtt = new G4VisAttributes();
   PHG4Utils::SetColour(VisAtt, "W_Epoxy");
   VisAtt->SetVisibility(true);
@@ -186,7 +186,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
               0));
 
   cylinder_physi = new G4PVPlacement(cylinder_place, cylinder_logic,
-      G4String(GetName().c_str()), logicWorld, false, 0, overlapcheck);
+      G4String(GetName()), logicWorld, false, 0, OverlapCheck());
 
   // install sectors
   std::pair<G4LogicalVolume *, G4Transform3D> psec = Construct_AzimuthalSeg();
@@ -204,7 +204,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 
       G4PVPlacement * calo_phys = new G4PVPlacement(sec_place, sec_logic,
           G4String(name.str().c_str()), cylinder_logic, false, sec,
-          overlapcheck);
+          OverlapCheck());
       calo_vol[calo_phys] = sec;
 
     }
@@ -216,7 +216,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   const string electronics_material = construction_params->get_string_param(
       "electronics_material");
 
-  G4VSolid* electronics_solid = new G4Box(G4String(GetName().c_str()),
+  G4VSolid* electronics_solid = new G4Box(G4String(GetName()),
       electronics_thickness / 2.0, //
       sin(
           twopi / _geom->get_azimuthal_n_sec() * _geom->get_sector_map().size()
@@ -238,7 +238,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   assert(electronics_mat);
 
   G4LogicalVolume * electronics_logic = new G4LogicalVolume(electronics_solid,
-      electronics_mat, G4String(GetName().c_str()) + "_Electronics", 0, 0, 0);
+      electronics_mat, G4String(GetName()) + "_Electronics", 0, 0, 0);
   VisAtt = new G4VisAttributes();
   PHG4Utils::SetColour(VisAtt, electronics_material);
   VisAtt->SetVisibility(true);
@@ -246,8 +246,8 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   electronics_logic->SetVisAttributes(VisAtt);
 
   new G4PVPlacement(G4Transform3D::Identity, electronics_logic,
-      G4String(name.c_str()) + "_Electronics", cylinder_logic, false, 0,
-      overlapcheck);
+      G4String(GetName()) + "_Electronics", cylinder_logic, false, 0,
+      OverlapCheck());
 
   // install the enclosure box
   const G4double enclosure_thickness = construction_params->get_double_param(
@@ -256,16 +256,16 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
       "enclosure_material");
 
   G4VSolid* outer_enclosur_solid = new G4Box(
-      G4String(GetName().c_str()) + "_outer_enclosur_solid", enclosure_x * 0.5, //
+      G4String(GetName()) + "_outer_enclosur_solid", enclosure_x * 0.5, //
       enclosure_y * 0.5, //
       enclosure_z * 0.5);
   G4VSolid* inner_enclosur_solid = new G4Box(
-      G4String(GetName().c_str()) + "_inner_enclosur_solid",
+      G4String(GetName()) + "_inner_enclosur_solid",
       enclosure_x * 0.5 - enclosure_thickness, //
       enclosure_y * 0.5 - enclosure_thickness, //
       enclosure_z * 0.5 - enclosure_thickness);
   G4VSolid*enclosure_solid = new G4SubtractionSolid(
-      G4String(GetName().c_str()) + "_enclosure_solid", //
+      G4String(GetName()) + "_enclosure_solid", //
       outer_enclosur_solid, inner_enclosur_solid);
   enclosure_solid = new G4DisplacedSolid(
       G4String(GetName() + "_enclosure_solid_displaced"), enclosure_solid, 0, //
@@ -275,7 +275,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   assert(enclosure_mat);
 
   G4LogicalVolume * enclosure_logic = new G4LogicalVolume(enclosure_solid,
-      enclosure_mat, G4String(GetName().c_str()) + "_enclosure", 0, 0, 0);
+      enclosure_mat, G4String(GetName()) + "_enclosure", 0, 0, 0);
   VisAtt = new G4VisAttributes();
   PHG4Utils::SetColour(VisAtt, enclosure_material);
   VisAtt->SetVisibility(true);
@@ -283,8 +283,8 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
   enclosure_logic->SetVisAttributes(VisAtt);
 
   new G4PVPlacement(G4Transform3D::Identity, enclosure_logic,
-      G4String(name.c_str()) + "_enclosure", cylinder_logic, false, 0,
-      overlapcheck);
+      G4String(GetName()) + "_enclosure", cylinder_logic, false, 0,
+      OverlapCheck());
 
   if (active)
     {
@@ -298,11 +298,11 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
           geonode << "CYLINDERGEOM_" << detector_type;
         }
       PHG4CylinderGeomContainer *geo = findNode::getClass<
-          PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+          PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
       if (!geo)
         {
           geo = new PHG4CylinderGeomContainer();
-          PHNodeIterator iter(topNode);
+          PHNodeIterator iter(topNode());
           PHCompositeNode *runNode =
               dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
                   "RUN"));
@@ -335,11 +335,11 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
           geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << 0;
         }
       PHG4CylinderGeomContainer *geo = findNode::getClass<
-          PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+          PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
       if (!geo)
         {
           geo = new PHG4CylinderGeomContainer();
-          PHNodeIterator iter(topNode);
+          PHNodeIterator iter(topNode());
           PHCompositeNode *runNode =
               dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
                   "RUN"));
@@ -459,8 +459,8 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
 //          G4Transform3D wall_trans = G4TranslateZ3D(val.second);
 //
 //          G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-//              G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
-//              false, val.first, overlapcheck);
+//              G4String(GetName()) + G4String("_EndWall"), sec_logic,
+//              false, val.first, OverlapCheck());
 //
 //          calo_vol[wall_phys] = val.first;
 //        }
@@ -523,8 +523,8 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
 //                          + _geom->get_sidewall_outer_torr() * cm));
 //
 //          G4PVPlacement * wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-//              G4String(GetName().c_str()) + G4String("_EndWall"), sec_logic,
-//              false, val.first, overlapcheck);
+//              G4String(GetName()) + G4String("_EndWall"), sec_logic,
+//              false, val.first, OverlapCheck());
 //
 //          calo_vol[wall_phys] = val.first;
 //        }
@@ -542,7 +542,7 @@ PHG4SpacalPrototypeDetector::Construct_AzimuthalSeg()
           * G4TranslateZ3D(g_tower.centralZ * cm)
           * G4RotateX3D(g_tower.pRotationAngleX * rad);
 
-      const bool overlapcheck_block = overlapcheck
+      const bool overlapcheck_block = OverlapCheck()
           and (_geom->get_construction_verbose() >= 2);
 
       G4PVPlacement * block_phys = new G4PVPlacement(block_trans, LV_tower,
@@ -623,7 +623,7 @@ PHG4SpacalPrototypeDetector::Construct_Fiber(const G4double length,
       core_logic->SetVisAttributes(VisAtt);
     }
 
-  const bool overlapcheck_fiber = overlapcheck
+  const bool overlapcheck_fiber = OverlapCheck()
       and (_geom->get_construction_verbose() >= 3);
   G4PVPlacement * core_physi = new G4PVPlacement(0, G4ThreeVector(), core_logic,
       G4String(G4String(GetName() + string("_fiber_core") + id)), fiber_logic,
@@ -785,7 +785,7 @@ PHG4SpacalPrototypeDetector::Construct_Fibers_SameLengthFiberPerTower(
       name << GetName() + string("_Tower") << g_tower.id << "_fiber"
           << ss.str();
 
-      const bool overlapcheck_fiber = overlapcheck
+      const bool overlapcheck_fiber = OverlapCheck()
           and (_geom->get_construction_verbose() >= 3);
       G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
           G4String(name.str().c_str()), LV_tower, false, fiber_ID,
@@ -829,7 +829,7 @@ PHG4SpacalPrototypeDetector::Construct_Tower(
   //Processed PostionSeeds 1 from 1 1
 
   G4Trap* block_solid = new G4Trap(
-  /*const G4String& pName*/G4String(GetName().c_str()) + sTowerID,
+  /*const G4String& pName*/G4String(GetName()) + sTowerID,
       g_tower.pDz * cm, // G4double pDz,
       g_tower.pTheta * rad, g_tower.pPhi * rad, // G4double pTheta, G4double pPhi,
       g_tower.pDy1 * cm, g_tower.pDx1 * cm, g_tower.pDx2 * cm, // G4double pDy1, G4double pDx1, G4double pDx2,
@@ -910,7 +910,7 @@ PHG4SpacalPrototypeDetector::Construct_LightGuide(
       (-g_tower.NSubtowerY + 1. + 2 * index_y) / (double) (g_tower.NSubtowerY);
 
   G4VSolid* block_solid = new G4Trap(
-  /*const G4String& pName*/G4String(GetName().c_str()) + sTowerID,
+  /*const G4String& pName*/G4String(GetName()) + sTowerID,
       0.5 * g_tower.LightguideHeight * cm, // G4double pDz,
       0 * rad, 0 * rad, // G4double pTheta, G4double pPhi,
       g_tower.LightguideTaperRatio * lg_pDy1 * cm,

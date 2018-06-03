@@ -1,6 +1,7 @@
 #include "PHG4Prototype2OuterHcalSubsystem.h"
 #include "PHG4Prototype2OuterHcalDetector.h"
 #include "PHG4Prototype2OuterHcalSteppingAction.h"
+#include "PHG4PrototypeHcalDefs.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -138,8 +139,9 @@ void PHG4Prototype2OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("steplimits", NAN);
 
-  set_default_int_param("light_scint_model", 1);
   set_default_int_param("hi_eta", 0);
+  set_default_int_param("light_scint_model", 1);
+  set_default_int_param(PHG4PrototypeHcalDefs::scipertwr, 5);
 
   set_default_string_param("material", "SS310");
 }

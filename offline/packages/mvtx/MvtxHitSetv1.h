@@ -27,20 +27,20 @@ public:
   void print() const;
 
   /// add a pixel hit
-  void AddHit(const uint16_t col, const uint16_t row);
+  void addHit(const uint16_t col, const uint16_t row);
 
   /// remove a pixel hit if it exists
   int RemoveHit(const uint16_t col, const uint16_t row);
   
   /// get all hits
-  ConstRange GetHits( void );
+  ConstRange getHits( void );
 
   /// get all hits in a given column (useful?)
-  ConstRange GetHits(const uint16_t col);
+  ConstRange getHits(const uint16_t col);
 
 private:
 
-  HitMap hits_; ///< Hit storage object
+  HitMap m_hits; ///< Hit storage object
 
   ClassDef(MvtxHitSetv1, 1);
 };
