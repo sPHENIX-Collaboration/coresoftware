@@ -30,8 +30,6 @@ libtrack_io_la_SOURCES = \
   TrkrClusterContainer_Dict.cc \
   TrkrHitSet.cc \
   TrkrHitSet_Dict.cc \
-  TrkrHitSetv1.cc \
-  TrkrHitSetv1_Dict.cc \
   TrkrHitSetContainer.cc \
   TrkrHitSetContainer_Dict.cc 
 
@@ -66,8 +64,8 @@ pkginclude_HEADERS = \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \
   TrkrDefUtil.h \
+  TrkrHit.h \
   TrkrHitSet.h \
-  TrkrHitSetv1.h \
   TrkrHitSetContainer.h \
   TrkrTrack.h \
   TrkrTrackContainer.h

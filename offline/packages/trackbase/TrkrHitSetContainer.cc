@@ -1,7 +1,7 @@
 #include "TrkrHitSetContainer.h"
 
 #include "TrkrDefUtil.h"
-#include "TrkrHitSetv1.h"
+#include "TrkrHitSet.h"
 
 #include <cstdlib>
 
@@ -111,7 +111,7 @@ TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
   TrkrHitSetContainer::Iterator it = m_hitmap.find(key);
   if (it == m_hitmap.end())
   {
-    m_hitmap[key] = new TrkrHitSetv1();
+    m_hitmap[key] = new TrkrHitSet();
     it = m_hitmap.find(key);
     TrkrHitSet* mhit = it->second;
     mhit->setHitSetKey(key);
