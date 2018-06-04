@@ -18,8 +18,8 @@ AM_LDFLAGS = \
 
 # sources for util library
 libtrack_util_la_SOURCES = \
-  TrkrDefUtil.cc \
-  TrkrDefUtil_Dict.cc
+  TrkrDefs.cc \
+  TrkrDefs_Dict.cc
 
 # sources for io library
 libtrack_io_la_SOURCES = \
@@ -63,7 +63,7 @@ pkginclude_HEADERS = \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \
-  TrkrDefUtil.h \
+  TrkrDefs.h \
   TrkrHit.h \
   TrkrHitSet.h \
   TrkrHitSetContainer.h \

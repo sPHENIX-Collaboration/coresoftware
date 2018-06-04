@@ -7,7 +7,7 @@
 #ifndef TRACKBASE_TRKRHITSET_H
 #define TRACKBASE_TRKRHITSET_H
 
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 
 #include <TObject.h>
 

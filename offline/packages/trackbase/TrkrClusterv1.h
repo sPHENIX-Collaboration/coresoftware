@@ -2,7 +2,7 @@
 #define __TrkrClusterv1_H__
 
 #include "TrkrCluster.h"
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 
 #include <limits.h>
 #include <cmath>

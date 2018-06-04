@@ -2,7 +2,7 @@
 #define TRACKBASE_TRKRCLUSTERCONTAINER_H
 
 #include "TrkrCluster.h"
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 

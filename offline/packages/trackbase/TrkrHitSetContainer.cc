@@ -1,6 +1,6 @@
 #include "TrkrHitSetContainer.h"
 
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 #include "TrkrHitSet.h"
 
 #include <cstdlib>
@@ -37,9 +37,8 @@ TrkrHitSetContainer::addHitSet(TrkrHitSet* newhit)
   TrkrDefs::hitsetkey key = newhit->getHitSetKey();
   if (m_hitmap.find(key) != m_hitmap.end())
   {
-    TrkrDefUtil util;
     std::cout << "overwriting hit 0x" << std::hex << key << std::dec << std::endl;
-    std::cout << "tracker id: " << util.getTrkrId(key) << std::endl;
+    std::cout << "tracker id: " << TrkrDefs::getTrkrId(key) << std::endl;
   }
   m_hitmap[key] = newhit;
   return m_hitmap.find(key);
@@ -67,9 +66,8 @@ TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid) const
   //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
   //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
-  TrkrDefUtil util;
-  TrkrDefs::hitsetkey keylo = util.getHitSetKeyLo(trackerid);
-  TrkrDefs::hitsetkey keyhi = util.getHitSetKeyHi(trackerid);
+  TrkrDefs::hitsetkey keylo = TrkrDefs::getHitSetKeyLo(trackerid);
+  TrkrDefs::hitsetkey keyhi = TrkrDefs::getHitSetKeyHi(trackerid);
 
   ConstRange retpair;
   retpair.first = m_hitmap.lower_bound(keylo);
@@ -89,9 +87,8 @@ TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid,
   //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
   //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
-  TrkrDefUtil util;
-  TrkrDefs::hitsetkey keylo = util.getHitSetKeyLo(trackerid, layer);
-  TrkrDefs::hitsetkey keyhi = util.getHitSetKeyHi(trackerid, layer);
+  TrkrDefs::hitsetkey keylo = TrkrDefs::getHitSetKeyLo(trackerid, layer);
+  TrkrDefs::hitsetkey keyhi = TrkrDefs::getHitSetKeyHi(trackerid, layer);
 
   ConstRange retpair;
   retpair.first = m_hitmap.lower_bound(keylo);
