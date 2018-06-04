@@ -68,8 +68,9 @@ pkginclude_HEADERS = \
   TrkrDefUtil.h \
   TrkrHitSet.h \
   TrkrHitSetv1.h \
-  TrkrHitSetContainer.h
-
+  TrkrHitSetContainer.h \
+  TrkrTrack.h \
+  TrkrTrackContainer.h
 
 
 ################################################
