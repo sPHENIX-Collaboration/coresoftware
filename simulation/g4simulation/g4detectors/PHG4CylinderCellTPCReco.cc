@@ -50,6 +50,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
   , sigmaT(0.04)
   , elec_per_gev(38. * 1e6)
   , driftv(3.0 / 1000.0)
+  , neffelectrons_threshold(2000.0)
   , fpad{nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr}
   , fcharge(nullptr)
   ,  // cm per ns
