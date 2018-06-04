@@ -14,12 +14,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libmvtx_la_LIBADD = \
-  -lCLHEP \
-  -lphool \
-  -lg4detectors \
-  -lg4hough \
-  -ltrack_io \
-  -ltrack_util
+  -ltrack_io
 
 pkginclude_HEADERS = \
   MvtxDefUtil.h \
