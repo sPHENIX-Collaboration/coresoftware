@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-ClassImp(TrkrClusterv1);
-
 TrkrClusterv1::TrkrClusterv1()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)
   , m_pos()
