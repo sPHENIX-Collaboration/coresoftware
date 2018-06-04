@@ -23,7 +23,6 @@ libtrack_util_la_SOURCES = \
 
 # sources for io library
 libtrack_io_la_SOURCES = \
-  TrkrCluster.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1.cc \
   TrkrClusterv1_Dict.cc \
@@ -55,12 +54,6 @@ libtrack_io_la_LIBADD = \
   libtrack_util.la
 
 
-#libtracker_la_LIBADD = \
-#  -lCLHEP \
-#  -lphool \
-#  -lg4detectors
-
-
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
@@ -76,6 +69,7 @@ pkginclude_HEADERS = \
   TrkrHitSet.h \
   TrkrHitSetv1.h \
   TrkrHitSetContainer.h
+
 
 
 ################################################
