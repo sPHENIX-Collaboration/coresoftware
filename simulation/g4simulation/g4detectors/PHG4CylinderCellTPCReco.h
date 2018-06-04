@@ -49,6 +49,7 @@ public:
   void setSigmaT    (const double gem) {sigmaT = gem;}  //  avalanche-induced charge spread...
   void setElectronsPerKeV(const double epk){elec_per_gev = epk*1e6;}
   void set_drift_velocity(const double cm_per_ns) { driftv = cm_per_ns;}
+ void setEffElectronsThreshold(const double elec_threshold) { neffelectrons_threshold = elec_threshold;}
 
   void setSmearRPhi(const double v) {fFractRPsm=v;}
   void setSmearZ(const double v) {fFractZZsm=v;}
@@ -93,6 +94,8 @@ protected:
   double sigmaT;
   double elec_per_gev;
   double driftv;
+  double neffelectrons_threshold;
+
   TF1 *fpad[10];
   TF1 *fcharge;
 

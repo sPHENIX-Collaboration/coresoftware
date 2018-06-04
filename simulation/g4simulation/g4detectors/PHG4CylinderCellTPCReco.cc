@@ -575,8 +575,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 		  
 		  // adding constant electron avalanche (value chosen so that digitizer will not trip)
 		  float neffelectrons = (2000.0 / nseg) * nelec * (pad_share) * (adc_bin_share);  
-		  
-		  if (neffelectrons < 50) continue;  // skip no or very small signals to keep number of cells down
+		  if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be below the noise suppression threshold
+
 		  if(zbin_num >= nzbins) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << nzbins << endl;
 		  if(pad_num >= nphibins) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << nphibins << endl;
 		  unsigned long key = zbin_num * nphibins + pad_num;
