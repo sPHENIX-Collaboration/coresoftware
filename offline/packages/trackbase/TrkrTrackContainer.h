@@ -2,7 +2,7 @@
 #define TRACKBASE_TRKRTRACKCONTAINER_H
 
 #include "TrkrTrack.h"
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
@@ -13,12 +13,12 @@ class TrkrTrackContainer : public PHObject
 {
  public:
 
-  TrkrTrackContainer();
+  TrkrTrackContainer() {};
 
   virtual ~TrkrTrackContainer() {}
-  void Reset();
+  void Reset() {};
 
-  void identify(std::ostream &os = std::cout) const;
+  void identify(std::ostream &os = std::cout) const {};
 
  protected:
 

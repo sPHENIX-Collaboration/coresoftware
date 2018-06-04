@@ -1,7 +1,7 @@
 #ifndef TRACKBASE_TRKRTRACK_H
 #define TRACKBASE_TRKRTRACK_H
 
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 

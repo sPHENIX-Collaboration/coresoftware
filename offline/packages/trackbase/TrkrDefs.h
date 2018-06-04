@@ -39,13 +39,13 @@ namespace TrkrDefs
   //  common upper 16 bits
   //   24 - 32  tracker id
   //   16 - 24  layer
-  static const unsigned int kBitShiftTrkrId = 24;  // 32 - 8
-  static const unsigned int kBitShiftLayer = 16;   // bitshift_trackerid - 8
+  static const unsigned int kBitShiftTrkrId __attribute__((unused)) = 24;  // 32 - 8
+  static const unsigned int kBitShiftLayer __attribute__((unused)) = 16;   // bitshift_trackerid - 8
 
   // cluskey layour
   //  hitsetkey upper 32 bits
   //  cluster id lower 32 bits
-  static const unsigned int kBitShiftClusId = 32;
+  static const unsigned int kBitShiftClusId __attribute__((unused)) = 32;
   
 #endif
   
