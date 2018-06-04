@@ -71,9 +71,6 @@ class TrkrDefUtil
   /// Get the upper 32 bits from cluster keys
   uint32_t getHitSetKeyFromClusKey(const TrkrDefs::cluskey key);
 
-  /// Get the upper 32 bits from cluster keys
-  uint32_t GetHitSetKeyFromClusKey(const TrkrDefs::cluskey key);
-
   /// Get a valid low / hi range for hitsetkey given tracker id & layer
   TrkrDefs::hitsetkey getHitSetKeyLo(const TrkrDefs::TrkrId trkrId);
   TrkrDefs::hitsetkey getHitSetKeyHi(const TrkrDefs::TrkrId trkrId);
