@@ -28,10 +28,13 @@ libtrack_io_la_SOURCES = \
   TrkrClusterv1_Dict.cc \
   TrkrClusterContainer.cc \
   TrkrClusterContainer_Dict.cc \
+  TrkrHit_Dict.cc \
   TrkrHitSet.cc \
   TrkrHitSet_Dict.cc \
   TrkrHitSetContainer.cc \
-  TrkrHitSetContainer_Dict.cc 
+  TrkrHitSetContainer_Dict.cc \
+  TrkrTrack_Dict.cc \
+  TrkrTrackContainer_Dict.cc
 
 
 libtrack_util_la_LDFLAGS = \

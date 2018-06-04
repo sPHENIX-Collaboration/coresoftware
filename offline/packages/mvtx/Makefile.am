@@ -14,17 +14,18 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libmvtx_la_LIBADD = \
+  -ltrack_util \
   -ltrack_io
 
 pkginclude_HEADERS = \
-  MvtxDefUtil.h \
-  MvtxHitSetv1.h
+  MvtxDefs.h \
+  MvtxHit.h
 
 libmvtx_la_SOURCES = \
-  MvtxDefUtil.cc \
-  MvtxDefUtil_Dict.cc \
-  MvtxHitSetv1.cc \
-  MvtxHitSetv1_Dict.cc
+  MvtxDefs.cc \
+  MvtxDefs_Dict.cc \
+  MvtxHit.cc \
+  MvtxHit_Dict.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

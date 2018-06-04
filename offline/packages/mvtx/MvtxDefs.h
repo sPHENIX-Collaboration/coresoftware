@@ -1,16 +1,26 @@
 #ifndef MVTX_MVTXDEFUTIL_H 
 #define MVTX_MVTXDEFUTIL_H 
 
-#include <trackbase/TrkrDefUtil.h>
+#include <trackbase/TrkrDefs.h>
 
-class MvtxDefUtil : public TrkrDefUtil
+namespace MvtxDefs
 {
- public:
-  /// ctor
-  MvtxDefUtil(){};
 
-  /// dtor
-  ~MvtxDefUtil(){};
+#ifndef __CINT__
+  // hitsetkey layout:
+  //  Mvtx specific lower 16 bits
+  //   24 - 32  tracker id
+  //   16 - 24  layer
+  //   8  - 16  stave id
+  //   0  -  8  chip id
+  static const unsigned int kBitShiftStaveId __attribute__((unused)) = 8;
+  static const unsigned int kBitShiftChipId __attribute__((unused)) = 0;
+
+  // max values for col and row index in chip
+  static const uint16_t MAXCOL __attribute__((unused)) = 1024;
+  static const uint16_t MAXROW __attribute__((unused)) = 512;
+
+#endif // __CINT__
 
   /// get the stave id
   uint8_t getStaveId(TrkrDefs::hitsetkey key);
@@ -28,15 +38,6 @@ class MvtxDefUtil : public TrkrDefUtil
   TrkrDefs::cluskey genClusKey(const TrkrDefs::hitsetkey hskey, const uint32_t clusid);
 
 
- private:
-  // hitsetkey layout:
-  //  Mvtx specific lower 16 bits
-  //   24 - 32  tracker id
-  //   16 - 24  layer
-  //   8  - 16  stave id
-  //   0  -  8  chip id
-  static const unsigned int kBitShiftStaveId = 8;
-  static const unsigned int kBitShiftChipId = 0;
-};
+}
 
 #endif  //MVTX_MVTXDEFUTIL_H 
