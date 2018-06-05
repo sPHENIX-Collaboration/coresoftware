@@ -1,3 +1,9 @@
+/**
+ * @file trackbase/TrkrClusterContainer.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation of TrkrClusterContainer
+ */
 #include "TrkrClusterContainer.h"
 #include "TrkrClusterv1.h"
 

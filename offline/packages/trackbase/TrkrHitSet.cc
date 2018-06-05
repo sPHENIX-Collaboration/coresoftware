@@ -1,3 +1,9 @@
+/**
+ * @file trackbase/TrkrHitSet.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation of TrkrHitSet
+ */
 #include "TrkrHitSet.h"
 
 #include "TrkrHit.h"
@@ -32,9 +38,9 @@ void TrkrHitSet::Reset()
 
 void TrkrHitSet::identify(std::ostream& os) const
 {
-  os << "TrkrHitSetv1: " << std::endl
-     << "          id: 0x" << std::hex << getHitSetKey() << std::dec << std::endl
-     << "       nhits: " << m_hits.size() << std::endl;
+  os << "TrkrHitSet: " << std::endl
+     << "        id: 0x" << std::hex << getHitSetKey() << std::dec << std::endl
+     << "     nhits: " << m_hits.size() << std::endl;
 
   for ( TrkrHit* hit : m_hits )
   {

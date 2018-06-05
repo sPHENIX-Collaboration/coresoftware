@@ -1,3 +1,9 @@
+/**
+ * @file trackbase/TrkrClusterv1.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation of TrkrClusterv1
+ */
 #include "TrkrClusterv1.h"
 
 #include <TMatrixF.h>

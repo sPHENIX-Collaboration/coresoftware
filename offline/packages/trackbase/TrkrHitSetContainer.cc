@@ -1,3 +1,9 @@
+/**
+ * @file trackbase/TrkrHitSetContainer.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation for TrkrHitSetContainer
+ */
 #include "TrkrHitSetContainer.h"
 
 #include "TrkrDefs.h"

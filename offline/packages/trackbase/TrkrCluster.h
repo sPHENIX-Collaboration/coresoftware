@@ -1,3 +1,9 @@
+/**
+ * @file trackbase/TrkrCluster.h
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Base class for cluster object
+ */
 #ifndef TRACKBASE_TRKRCLUSTER_H
 #define TRACKBASE_TRKRCLUSTER_H
 
@@ -8,6 +14,11 @@
 #include <iostream>
 #include <cmath>
 
+/**
+ * @brief Base class for cluster object
+ *
+ * Virtual base class for cluster object used for all tracking subsystems
+ */
 class TrkrCluster : public PHObject
 {
  public:
