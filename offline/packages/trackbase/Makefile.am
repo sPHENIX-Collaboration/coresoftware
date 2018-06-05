@@ -28,6 +28,8 @@ libtrack_io_la_SOURCES = \
   TrkrClusterv1_Dict.cc \
   TrkrClusterContainer.cc \
   TrkrClusterContainer_Dict.cc \
+  TrkrClusterHitAssoc.cc \
+  TrkrClusterHitAssoc_Dict.cc \
   TrkrHit_Dict.cc \
   TrkrHitSet.cc \
   TrkrHitSet_Dict.cc \
@@ -66,6 +68,7 @@ pkginclude_HEADERS = \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \
+  TrkrClusterHitAssoc.h \
   TrkrDefs.h \
   TrkrHit.h \
   TrkrHitSet.h \
