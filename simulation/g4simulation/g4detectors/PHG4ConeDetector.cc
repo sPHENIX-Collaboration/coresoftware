@@ -25,11 +25,11 @@ using namespace std;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4ConeDetector::PHG4ConeDetector( PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
   PHG4Detector(Node, dnam),
-  TrackerMaterial(NULL),
-  InactiveMaterial(NULL),
-  block_solid(NULL),
-  block_logic(NULL),
-  block_physi(NULL),
+  TrackerMaterial(nullptr),
+  InactiveMaterial(nullptr),
+  block_solid(nullptr),
+  block_logic(nullptr),
+  block_physi(nullptr),
   place_in_x(0*cm),
   place_in_y(0*cm),
   place_in_z(300*cm),
@@ -41,7 +41,7 @@ PHG4ConeDetector::PHG4ConeDetector( PHCompositeNode *Node, const std::string &dn
   sPhi(0),
   dPhi(2*M_PI),
   z_rot(0),
-  _region(NULL),
+  _region(nullptr),
   active(0),
   layer(lyr)
 {}
@@ -94,6 +94,6 @@ void PHG4ConeDetector::Construct( G4LogicalVolume* logicWorld )
   block_physi = new G4PVPlacement(rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z),
                                   block_logic,
                                   G4String(GetName().c_str()),
-                                  logicWorld, 0, false, overlapcheck);
+                                  logicWorld, 0, false, OverlapCheck());
 
 }

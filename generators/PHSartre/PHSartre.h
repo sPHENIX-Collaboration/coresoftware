@@ -1,19 +1,13 @@
-#ifndef __PHSARTRE_H__
-#define __PHSARTRE_H__
+#ifndef PHSARTRE_PHSARTRE_H
+#define PHSARTRE_PHSARTRE_H
 
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#ifndef __CINT__
-#include <Pythia8/Pythia.h>
-#endif
-
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
-#endif
-
+#include <cmath>
 #include <iostream>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;

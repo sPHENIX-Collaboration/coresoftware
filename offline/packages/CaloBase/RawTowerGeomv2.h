@@ -15,6 +15,11 @@ class RawTowerGeomv2 : public RawTowerGeom {
   void set_id(RawTowerDefs::keytype key) {_towerid = key;}
   RawTowerDefs::keytype get_id() const { return _towerid;}
 
+  int get_bineta() const { return RawTowerDefs::decode_index1(_towerid); }
+  int get_binphi() const { return RawTowerDefs::decode_index2(_towerid); }
+  int get_column() const { return RawTowerDefs::decode_index1(_towerid); }
+  int get_row() const { return RawTowerDefs::decode_index2(_towerid); }
+
   void set_center_x( double x ) { _center_x = x; return ; }
   void set_center_y( double y ) { _center_y = y; return ; }
   void set_center_z( double z ) { _center_z = z; return ; }

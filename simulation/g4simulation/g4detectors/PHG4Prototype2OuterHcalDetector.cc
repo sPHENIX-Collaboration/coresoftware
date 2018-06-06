@@ -177,19 +177,19 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   G4RotationMatrix *Rot;  
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"OuterScinti_0", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,"OuterScinti_0", scintiboxlogical, false, 0, OverlapCheck());
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,"OuterScinti_1", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,"OuterScinti_1", scintiboxlogical, false, 0, OverlapCheck());
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,gap_between_tiles/2.),scintiu1_logic,"OuterScinti_2", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,gap_between_tiles/2.),scintiu1_logic,"OuterScinti_2", scintiboxlogical, false, 0, OverlapCheck());
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,scinti_u1_front_size+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"OuterScinti_3", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,scinti_u1_front_size+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,"OuterScinti_3", scintiboxlogical, false, 0, OverlapCheck());
 
 
   return scintiboxlogical;
@@ -253,7 +253,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   G4RotationMatrix *Rot;  
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit9_logic,"OuterScinti_9", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit9_logic,"OuterScinti_9", scintiboxlogical, false, 0, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -265,7 +265,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   distance_to_corner += scinti_t9_front_size + gap_between_tiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit10_logic,"OuterScinti_10", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit10_logic,"OuterScinti_10", scintiboxlogical, false, 0, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -277,7 +277,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   distance_to_corner += scinti_t10_front_size + gap_between_tiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit11_logic,"OuterScinti_11", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit11_logic,"OuterScinti_11", scintiboxlogical, false, 0, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -289,7 +289,7 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   distance_to_corner += scinti_t11_front_size + gap_between_tiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit12_logic,"OuterScinti_12", scintiboxlogical, false, 0, overlapcheck);
+  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit12_logic,"OuterScinti_12", scintiboxlogical, false, 0, OverlapCheck());
   //DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
 }
@@ -390,7 +390,7 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   //ConstructSteelPlate(hcal_envelope_log);
   // return;
   ConstructOuterHcal(logicWorld);
-  outerhcalassembly->MakeImprint(logicWorld,g4vec,Rot,0,overlapcheck);
+  outerhcalassembly->MakeImprint(logicWorld,g4vec,Rot,0,OverlapCheck());
   return;
 }
 
@@ -504,8 +504,8 @@ PHG4Prototype2OuterHcalDetector::DisplayVolume(G4LogicalVolume *checksolid,  G4L
     }
 
   checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
-  //  new G4PVPlacement(rotm, G4ThreeVector(0, -460.3, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
+  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
+  //  new G4PVPlacement(rotm, G4ThreeVector(0, -460.3, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
   return 0;
 }
 

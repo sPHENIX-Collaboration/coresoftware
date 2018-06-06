@@ -60,12 +60,12 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parame
   pixel_thickness(parameters->get_double_param("pixel_thickness")),
   stave_geometry_file(parameters->get_string_param("stave_geometry_file"))
 {
-//  verbosity = 2;
+//  Verbosity(2);
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     cout << "PHG4MapsDetector constructor called" << endl;
 
-  if(verbosity > 10)
+  if(Verbosity() > 10)
     cout << " cm " << cm << " mm " << mm << endl;
 
   ostringstream name;
@@ -73,7 +73,7 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parame
   name << "ITSUSensor" << layer;
   layer_string = name.str().c_str();
 
-  if (verbosity > 0) 
+  if (Verbosity() > 0) 
     cout << "PHG4MapsDetector constructor: making layer with sensor string: " << layer_string.c_str() << "using stave_type " << stave_type << endl;
 }
 
@@ -103,7 +103,7 @@ PHG4MapsDetector::Construct( G4LogicalVolume* logicWorld )
 {
   // This is called from PHG4PhenixDetector::Construct()
 
-  if(verbosity>0)
+  if(Verbosity()>0)
     cout << endl << "PHG4MapsDetector::Construct called for layer " << layer << endl;
 
   if(layer_nominal_radius < 0 || stave_type < 0)
@@ -124,7 +124,7 @@ PHG4MapsDetector::Construct( G4LogicalVolume* logicWorld )
 int
 PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
 {
-  if(verbosity>0)
+  if(Verbosity()>0)
     {
       cout << " PHG4MapsDetector::ConstructMaps:" <<endl;
       cout << " Constructing Layer " << layer << endl;
@@ -145,7 +145,7 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   char assemblyname[500];
   sprintf(assemblyname, "ITSUStave%i",layer);
 
-  if (Verbosity())
+  if (Verbosity() > 0)
     cout << "Geting the stave assembly named " << assemblyname << endl;
   G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);
 
@@ -184,7 +184,7 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
       N_staves = int(2.0 * M_PI * layer_nominal_radius / arcstep);  // this is the number of staves used  
 
       // Also suggest the ideal radius for this layer
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << " Calculated N_staves for layer " << layer 
 	       << " layer_nominal_radius " << layer_nominal_radius
@@ -203,7 +203,7 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   if(stave_type != 0)
     phitilt = 0.0;
 
-  if (Verbosity())
+  if (Verbosity() > 0)
     {
       cout << " layer " << layer 
 	   << " layer_nominal_radius " << layer_nominal_radius
@@ -227,7 +227,7 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
       G4RotationMatrix Ra;
       G4ThreeVector Ta;
       
-      if(verbosity >0)
+      if(Verbosity() >0)
 	cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
 
       // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
@@ -239,7 +239,7 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
       Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
       Ta.setZ( z_location );
       
-      if(verbosity > 0)
+      if(Verbosity() > 0)
 	cout << " iphi " << iphi << " phi_rotation " << phi_rotation 
 	     << " x " << layer_nominal_radius * cos(phi_rotation)
 	     << " y " <<  layer_nominal_radius * sin(phi_rotation)
@@ -249,10 +249,10 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
       
       G4Transform3D Tr(Ra,Ta);
       
-      av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, overlapcheck);
+      av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
     } 
   
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     cout << "This layer has a total of " << N_staves << " staves" << endl;
 
   SetDisplayProperty(av_ITSUStave);
@@ -373,11 +373,11 @@ PHG4MapsDetector::AddGeometryNode()
         {
           geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
         }
-      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode , geonode.str().c_str());
+      PHG4CylinderGeomContainer *geo =  findNode::getClass<PHG4CylinderGeomContainer>(topNode() , geonode.str().c_str());
       if (!geo)
         {
           geo = new PHG4CylinderGeomContainer();
-          PHNodeIterator iter( topNode );
+          PHNodeIterator iter( topNode() );
           PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
           PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
           runNode->addNode(newNode);

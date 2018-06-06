@@ -277,7 +277,7 @@ void PHG4mRICHSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
     std::cout << "PHG4mRICHSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
   if ( ! absorberhits_) {
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << "PHG4mRICHSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
     }
   }
