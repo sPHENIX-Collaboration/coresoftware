@@ -896,7 +896,7 @@ void PHG4mRICHDetector::build_mRICH_wall_eside(G4LogicalVolume* logicWorld)
   G4ThreeVector pos(0, 0, shift);
   G4RotationMatrix* rot=new G4RotationMatrix();
   rot->rotateX(180*deg);
-  mRICHwall->MakeImprint(logicWorld,pos,rot,0,overlapcheck);
+  mRICHwall->MakeImprint(logicWorld,pos,rot,0,OverlapCheck());
 
   printf("-----------------------------------------------------------------------------\n");
   printf("%d detectors are built\n",NumOfModule);
