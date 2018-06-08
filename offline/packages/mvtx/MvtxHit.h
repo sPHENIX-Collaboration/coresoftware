@@ -51,6 +51,7 @@ public:
 private:
   uint16_t m_col; /// column index [,]
   uint16_t m_row; /// row index [,]
+  ClassDef(MvtxHit,1);
 };
 
 #endif //MVTX_MVTXHIT_H
