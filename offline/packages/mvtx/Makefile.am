@@ -14,14 +14,18 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libmvtx_la_LIBADD = \
+  -lfun4all \
   -ltrack_util \
   -ltrack_io
 
 pkginclude_HEADERS = \
+  MvtxClusterizer.h \
   MvtxDefs.h \
   MvtxHit.h
 
 libmvtx_la_SOURCES = \
+  MvtxClusterizer.cc \
+  MvtxClusterizer_Dict.cc \
   MvtxDefs.cc \
   MvtxDefs_Dict.cc \
   MvtxHit.cc \
