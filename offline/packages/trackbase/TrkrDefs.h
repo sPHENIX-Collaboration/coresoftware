@@ -22,15 +22,15 @@
 namespace TrkrDefs
 {
   /// Key types
+  typedef uint32_t hitkey;      // 32 bit TrkrHit key type
   typedef uint32_t hitsetkey;   // 32 bit TrkrHitSet key type
   typedef uint64_t cluskey;     // 64 but TrkrCluster id type
   typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
   
-  // D. McGlinchey - I don't understand why this needs to be hidden from
-  //                 the dictionary generation ...
 #ifndef __CINT__
   
   /// Max values for keys (used as defaults or invalid values)
+  static hitkey HITKEYMAX __attribute__((unused)) = ULONG_MAX;
   static hitsetkey HITSETKEYMAX __attribute__((unused)) = ULONG_MAX;
   static cluskey CLUSKEYMAX __attribute__((unused)) = ULLONG_MAX;
   static clushitkey CLUSHITKEYMAX __attribute__((unused)) = ULONG_MAX;

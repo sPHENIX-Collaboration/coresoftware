@@ -26,13 +26,13 @@ void TrkrHitSet::print() const
 void TrkrHitSet::Reset()
 {
   m_hitSetKey = TrkrDefs::HITSETKEYMAX;
-
+  
   while ( m_hits.begin() != m_hits.end() )
   {
-      delete * m_hits.begin();
-      m_hits.erase(m_hits.begin());
+    delete (m_hits.begin())->second;
+    m_hits.erase(m_hits.begin());
   }
-
+  
   return;
 }
 
@@ -41,36 +41,40 @@ void TrkrHitSet::identify(std::ostream& os) const
   os << "TrkrHitSet: " << std::endl
      << "        id: 0x" << std::hex << getHitSetKey() << std::dec << std::endl
      << "     nhits: " << m_hits.size() << std::endl;
-
-  for ( TrkrHit* hit : m_hits )
+  
+  for ( auto& entry : m_hits )
   {
-      hit->identify(os);
+    (entry.second)->identify(os);
   }
 }
 
-unsigned int
-TrkrHitSet::addHit(TrkrHit* hit)
+TrkrHitSet::ConstIterator
+TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 {
-    m_hits.push_back(hit);
-    return m_hits.size() - 1;
+  if (m_hits.find(key) != m_hits.end())
+  {
+    std::cout << "TrkrHitSet::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
+    exit(1);
+  }
+  m_hits[key] = hit;
+  return m_hits.find(key);
 }
 
 TrkrHit*
-TrkrHitSet::getHit(unsigned int ihit)
+TrkrHitSet::getHit(const TrkrDefs::hitkey key)
 {
-    // check for input validity
-    if ( ihit >= m_hits.size() )
-    {
-	std::cout << PHWHERE << " - Asked for hit " << ihit
-		  << " but only " << size() << " hits available."
-		  << " returning nullptr." << std::endl;
-	return nullptr;
-    }
-    return m_hits.at(ihit);
+  TrkrHitSet::ConstIterator it = m_hits.find(key);
+  
+  if (it != m_hits.end())
+  {
+    return it->second;
+  }
+  
+  return nullptr;
 }
 
 TrkrHitSet::ConstRange
 TrkrHitSet::getHits()
 {
-    return std::make_pair(m_hits.begin(), m_hits.end());
+  return std::make_pair(m_hits.begin(), m_hits.end());
 }

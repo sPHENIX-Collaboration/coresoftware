@@ -12,7 +12,7 @@
 #include <TObject.h>
 
 #include <iostream>
-#include <vector>
+#include <map>
 
 class TrkrHit;
 
@@ -28,8 +28,8 @@ class TrkrHitSet : public TObject
 {
  public:
   // iterator typedef
-  typedef std::vector<TrkrHit*> Vec;
-  typedef Vec::const_iterator ConstIterator;
+  typedef std::map<TrkrDefs::hitkey, TrkrHit*> Map;
+  typedef Map::const_iterator ConstIterator;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
   
   //! ctor
@@ -54,24 +54,32 @@ class TrkrHitSet : public TObject
   TrkrDefs::hitsetkey getHitSetKey() const { return m_hitSetKey; }
 
   /**
-   * @brief Add a hit to this container.
-   * @param hit to be added.
-   * @param[out] index of the added hit, which can be used for access.
+   * @brief Add a hit to this container using a specific key.
+   * @param[in] key Hit key
+   * @param[in] hit Hit to be added.
    *
    * NOTE: This TrkrHitSet takes ownership of the passed TrkrHit pointer
    * and will delete it in the Reset() method.
    */
-  unsigned int addHit(TrkrHit* hit);
+  ConstIterator addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit);
+
+  /**
+   * @brief Remove a hit using its key
+   * @param[in] key to be removed
+   */
+  void removeHit(TrkrDefs::hitkey key)
+  {
+    m_hits.erase(key);
+  }
 
   /**
    * @brief Get a specific hit based on its index.
-   * @param index of the desired hit
-   * @param[out] Pointer to the desired hit.
+   * @param key of the desired hit
+   * @param[out] Pointer to the desired hit. nullptr if no hit.
    *
-   * Get a desired hit based on its index in the internal 
-   * storage vector.
+   * Get a desired hit based on its key.
    */
-  TrkrHit* getHit(unsigned int ihit);
+  TrkrHit* getHit(const TrkrDefs::hitkey key);
   
   /**
    * @brief Get all hits
@@ -88,7 +96,7 @@ class TrkrHitSet : public TObject
    
  private:
   TrkrDefs::hitsetkey m_hitSetKey; /// unique key for this object
-  Vec m_hits; /// storage for TrkrHit objects
+  Map m_hits; /// storage for TrkrHit objects
   ClassDef(TrkrHitSet, 1);
 };
 
