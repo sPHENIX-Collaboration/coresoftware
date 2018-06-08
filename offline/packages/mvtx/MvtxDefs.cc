@@ -28,6 +28,29 @@ MvtxDefs::getChipId(TrkrDefs::cluskey key)
   return getChipId(tmp);
 }
 
+uint16_t
+MvtxDefs::getCol(TrkrDefs::hitkey key)
+{
+  TrkrDefs::hitkey tmp = (key >> MvtxDefs::kBitShiftCol);
+  return tmp;
+}
+
+uint16_t
+MvtxDefs::getRow(TrkrDefs::hitkey key)
+{
+  TrkrDefs::hitkey tmp = (key >> MvtxDefs::kBitShiftRow);
+  return tmp;
+}
+
+TrkrDefs::hitkey 
+MvtxDefs::genHitKey(const uint16_t col, const uint16_t row)
+{
+  TrkrDefs::hitkey key = (col << MvtxDefs::kBitShiftCol);
+  TrkrDefs::hitkey tmp = (row << MvtxDefs::kBitShiftRow);
+  key |= tmp;
+  return key;
+}
+
 TrkrDefs::hitsetkey
 MvtxDefs::genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip)
 {
