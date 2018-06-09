@@ -18,6 +18,9 @@
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
+#include <phool/PHRandomSeed.h>
+
+#include <gsl/gsl_randist.h>
 
 #include <iostream>
 #include <cmath>
@@ -26,9 +29,17 @@ using namespace std;
 
 PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   SubsysReco(name),
+  TPCMinLayer(7),
+  ADCThreshold(2000),
+  TPCEnc(500),
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(RandomGenerator, seed);
+  
   if(verbosity > 0)
     cout << "Creating PHG4SvtxDigitizer with name = " << name << endl;
 }
@@ -220,45 +231,305 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
 
 void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
+  // This digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
+
+  // Modified by ADF June 2018 to do the following:
+  //   Add noise to cells before digitizing
+  //   Digitize the first adc time bin to exceed the threshold, and the 4 bins after that
+  //   If the adc value is still above the threshold after 5 bins, repeat for the next 5 bins
+  //   write the results to the hits file
+
+  // The electron production details are:
+  // A MIP produces 32 electrons in 1.25 cm of Ne:CF4 gas
+  // The nominal GEM gain is 2000 => 64,000 electrons
+  // Thus a MIP produces a charge value out of the GEM stack of 64000/6.242x10^18 = 10.2 fC
+
+  // The SAMPA has a maximum output voltage of 2.2 V (but the baseline is about 200 mV)
+  // Conversion gains of 20 mV/fC or 30 mV/fC are possible
+  // At 30 mV/fC, the input signal saturates at 2.2 V / 30 mV/fC = 73 fC (say 67 with pedestal not at zero)
+  // At 20 mV/fC, the input signal saturates at 2.2 V / 20 mV/fC = 110 fC (say 100 fC with pedestal not at zero) - assume 20 mV/fC
+  //    - this saturation occurs at 687,000 electrons out of the GEM stack
+  //    - or at 343 primary input electons
+  // The equivalent noise charge RMS at 20 mV/fC was measured (w/o detector capacitance) at 490 electrons
+  // The noise thus has an RMS of 0.079 fC (probably a bit worse with detector capacitance)
+
+  // The SAMPA shaper is set to 80 ns peaking time
+ // The ADC Digitizes the SAMPA shaper output using 10 bits
+  
+  // The cells that we need to digitize here contain as the energy "edep", which is the number of electrons out of the GEM stack 
+  // We add noise generated with an RMS value of 490 electrons to the charge collected in each time bin for each pad  
+  // We assume the pedestal is zero, for simplicity, so the noise fluctuates above and below zero with sigma 490 electrons
+
+  // Note that zbin = 0 corresponds to -100.5 cm, zbin 248 corresponds to 0 cm, and zbin 497 corresponds to +100.5 cm
+  // increasing time should be 497 -> 249 and 0 -> 248
+
   //----------
   // Get Nodes
   //----------
+
+ PHG4CylinderCellGeomContainer* geom_container =
+    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
+  if (!geom_container) {
+    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+  }
  
   PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SVTX");
   if (!cells) return; 
-  
-  //-------------
-  // Digitization
-  //-------------
 
+  // sort the cells by layer
+  // make an empty vector of vectors of cells for each layer
+  std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
+  PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+  for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) 
+    {
+      if( (unsigned int) layeriter->second->get_layer() < TPCMinLayer) {
+	if(verbosity>-1) std::cout << "Skipping layer " << layeriter->second->get_layer() << std::endl;
+	continue;
+      }
+      // add an empty vector of cells for this layer
+      layer_sorted_cells.push_back(std::vector<const  PHG4Cell*>());
+    }
+  
+  // now we fill each of the empty vectors with the cells for that layer
   PHG4CellContainer::ConstRange cellrange = cells->getCells();
   for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
       celliter != cellrange.second;
-      ++celliter) {
-    
-    PHG4Cell* cell = celliter->second;
-    
-    SvtxHit_v1 hit;
+      ++celliter) 
+    {    
+      PHG4Cell* cell = celliter->second; 
 
-    hit.set_layer(cell->get_layer());
-    hit.set_cellid(cell->get_cellid());
+      if( (unsigned int) cell->get_layer() < TPCMinLayer) 
+	{
+	  if(verbosity>-1) std::cout << "Skipping layer " << cell->get_layer() << std::endl;
+	  continue;
+	}
+      //cout << " layer sorted, adding layer " << cell->get_layer() << " cellid " << cell->get_cellid() << endl;
+      //cout << "   layer_sorted_cells length = " << layer_sorted_cells[cell->get_layer()-TPCMinLayer].size() << endl;
+      layer_sorted_cells[cell->get_layer()-TPCMinLayer].push_back(cell);
+     }
+  
+  // We have the cells sorted by layer, now we loop over the layers and process the hits
+  //==========================================================
+  float adc_saturation_electrons = 680000.0;
+  // cout << "Ready to loop over layers, adc_saturation_electrons = " << adc_saturation_electrons 
+  //    << " TPCMinLayer = " << TPCMinLayer  << " ADCThreshold = " << ADCThreshold << " TPCEnc = " << TPCEnc << endl;
+ 
+ for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+      layeriter != layerrange.second;
+      ++layeriter) 
+    {
+      if( (unsigned int) layeriter->second->get_layer() < TPCMinLayer)
+	  continue;
 
-    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
-    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
-    float e = _energy_scale[hit.get_layer()] * adc;
-    hit.set_adc(adc);
-    hit.set_e(e);
+      unsigned int layer = (unsigned int)layeriter->second->get_layer();
 
-    SvtxHit* ptr = _hitmap->insert(&hit);      
-    if (!ptr->isValid()) {
-      static bool first = true;
-      if (first) {
-	cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
-	ptr->identify();
-	first = false;
-      }
-    }
-  }
+      // for this layer, make a vector of a vector of cells for each phibin
+      std::vector < vector<const PHG4Cell*>  > phi_sorted_cells;
+      
+      // start with an empty vector of cells for each phibin    
+      int nphibins = layeriter->second->get_phibins();
+      for(int iphi = 0;iphi<nphibins;iphi++)
+	phi_sorted_cells.push_back( std::vector<const  PHG4Cell*>() );
+      
+      // Fill the vector of cells for each phibin
+      for(unsigned int i = 0; i < layer_sorted_cells[layer-TPCMinLayer].size(); ++i) 
+	{
+	  unsigned int phibin = PHG4CellDefs::SizeBinning::get_phibin(layer_sorted_cells[layer-TPCMinLayer][i]->get_cellid());	  
+	  phi_sorted_cells[phibin].push_back(layer_sorted_cells[layer-TPCMinLayer][i]);
+	}
+      
+      // For this layer we have the cells sorted into vectors for each phi      
+      // process these vectors one phi bin at a time
+      for(unsigned int iphi=0;iphi<phi_sorted_cells.size();iphi++)
+	{	 
+	  if( phi_sorted_cells[iphi].size() == 0)
+	    continue;
+ 
+	  //unsigned int phibin = PHG4CellDefs::SizeBinning::get_phibin(phi_sorted_cells[iphi][0]->get_cellid());	  
+	  //cout << "  For phibin " << iphi << " actual bin " << phibin << " phi_sorted_cells has length " << phi_sorted_cells[iphi].size() << endl;
+
+	  // Populate a vector of cells ordered by Z for each phibin    
+	  int nzbins = layeriter->second->get_zbins();
+	  std::vector<int> is_populated;
+	  is_populated.assign(nzbins,0);
+	  std::vector < vector<const PHG4Cell*>  > z_sorted_cells;
+	 
+	  // add an empty vector for each z bin
+	  for(int iz=0;iz<nzbins;iz++)
+	    z_sorted_cells.push_back( std::vector<const  PHG4Cell*>() );
+ 
+	  // add a cell for each z bin that has one
+	  for(unsigned int iz=0;iz<phi_sorted_cells[iphi].size();iz++)
+	    {
+	      int zbin = PHG4CellDefs::SizeBinning::get_zbin(phi_sorted_cells[iphi][iz]->get_cellid());
+	      is_populated[zbin]=1;
+	      z_sorted_cells[zbin].push_back(phi_sorted_cells[iphi][iz]);
+	    }
+	  
+          std::vector<float> adc_input; 
+	  std::vector<PHG4CellDefs::keytype> adc_cellid; 
+	  // Now for this phibin we process the cells ordered by Z bin into hits
+	  for(int iz=0;iz<nzbins;iz++)
+	    {    
+	      if(is_populated[iz]==1)
+		{
+		  // This zbin has a filled cell, add noise
+		  float noise = added_noise();
+		  //if(layer == 20) cout << "      for zbin " << iz << " cell edep = " << z_sorted_cells[iz][0]->get_edep() << " added noise = " << noise << " total " <<  z_sorted_cells[iz][0]->get_edep() + noise <<  endl; 
+		  adc_input.push_back(z_sorted_cells[iz][0]->get_edep() + noise);
+		  adc_cellid.push_back(z_sorted_cells[iz][0]->get_cellid());
+		}
+	      else
+		{
+		  // This z bin does not have a filled cell, add noise
+		  float noise = added_noise();
+		  //cout << "      cell edep = 0 " << " added noise = " << noise << endl; 
+		  adc_input.push_back(noise);
+		  adc_cellid.push_back(0);  // not sure what to do here, there is no cell!
+		}
+	    }
+	  
+          // Now we can digitize the stream of z bins 
+	  int binpointer = 0;
+	  // start with negative z, the first to arrive is bin 0
+	  for(int iz=0;iz<nzbins/2;iz++)
+	    {
+	      if(iz < binpointer) continue;
+	      
+              if(adc_input[iz] > ADCThreshold)
+		{
+		  // digitize this bin and the following 4 bins
+		  // 10 bit binary, 2^9 = 512
+		  // max adc range is determined by gain, for 20 mV/fC and 2.2 V max, saturates at 2.2V / 20 mV = 110 fC
+		  // I assume this is fC/pad/time bin?
+                  // Our signals are in equivalent electrons per pad/time bin, the saturation would be at 680,000 electrons
+		  // we will get typically 20,000 electrons at peak per pad/time bin
+
+		  for(int izup=0;izup<5; izup++)
+		    {
+		      if(iz+izup < nzbins && iz + izup > 0)
+			{			  
+			  unsigned int adc_output = adc_input[iz+izup] * (512.0 / adc_saturation_electrons);
+			  if (adc_output > 512) adc_output = 512;
+			  /*			     
+			       cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
+			       << "  adc_input "  << adc_input[iz+izup] << " adc_output " << adc_output << endl;
+			  */
+			  if(is_populated[iz+izup] == 0)
+			    continue;
+			  
+			  SvtxHit_v1 hit;
+			  
+			  hit.set_layer(layer);
+			  hit.set_cellid(adc_cellid[iz+izup]);
+			  //hit.set_cellid(z_sorted_cells[iz+izup][0]->get_cellid());
+			  
+			  float e = adc_output * adc_saturation_electrons / 512.0;
+			  hit.set_adc(adc_output);
+			  hit.set_e(e);
+			  /*
+			    cout << "Added hit for phibin " << phibin  << " zbin " << iz+izup << " with cellid " << hit.get_cellid() 
+			    << " layer " << hit.get_layer() << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
+			    << " cellid check " << z_sorted_cells[iz+izup][0]->get_cellid() << endl;
+			  */
+			  SvtxHit* ptr = _hitmap->insert(&hit);      
+			  if (!ptr->isValid()) 
+			    {
+			      static bool first = true;
+			      if (first) 
+				{
+				  cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
+				  ptr->identify();
+				  first = false;
+				}
+			    }
+			  binpointer ++;
+			} // end nzbins check 
+		    } // end izup loop
+		  
+		}  //  adc threshold if 		  
+	      else 
+		{
+		  // below threshold, move on
+		  binpointer++;
+		} // end adc threshold if/else 		  
+	      
+	    } // end iz loop
+
+	  // now positive z, the first to arrive is bin 497
+	  binpointer = nzbins-1;
+	  for(int iz=nzbins-1;iz>=nzbins/2;iz--)
+	    {
+	      if(iz > binpointer) continue;
+	      
+              if(adc_input[iz] > ADCThreshold)
+		{
+		  // digitize this bin and the following 4 bins
+		  // 10 bit binary, 2^9 = 512
+		  // max adc range is determined by gain, for 20 mV/fC and 2.2 V max, saturates at 2.2V / 20 mV = 110 fC
+		  // I assume this is fC/pad/time bin?
+                  // Our signals are in equivalent electrons per pad/time bin, the saturation would be at 680,000 electrons
+		  // we will get typically 20,000 electrons at peak per pad/time bin
+
+		  //cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
+		  for(int izup=0;izup<5; izup++)
+		    {
+		      if(iz-izup < nzbins && iz - izup > 0)
+			{			  
+			  unsigned int adc_output = adc_input[iz-izup] * (512.0 / adc_saturation_electrons);
+			  if (adc_output > 512) adc_output = 512;
+			  /*			     
+			       cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
+			       << "  adc_input "  << adc_input[iz-izup] << " adc_output " << adc_output << endl;
+			  */
+			  if(is_populated[iz-izup] == 0)
+			    continue;
+			  
+			  SvtxHit_v1 hit;
+			  
+			  hit.set_layer(layer);
+			  hit.set_cellid(adc_cellid[iz-izup]);
+			  //hit.set_cellid(z_sorted_cells[iz+izup][0]->get_cellid());
+			  
+			  float e = adc_output * adc_saturation_electrons / 512.0;
+			  hit.set_adc(adc_output);
+			  hit.set_e(e);
+			  /*
+			    cout << "Added hit for phibin " << phibin  << " zbin " << iz-izup << " with cellid " << hit.get_cellid() 
+			    << " layer " << hit.get_layer() << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
+			    << " cellid check " << z_sorted_cells[iz-izup][0]->get_cellid() << endl;
+			  */
+			  SvtxHit* ptr = _hitmap->insert(&hit);      
+			  if (!ptr->isValid()) 
+			    {
+			      static bool first = true;
+			      if (first) 
+				{
+				  cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
+				  ptr->identify();
+				  first = false;
+				}
+			    }
+			  binpointer--;
+			} // end nzbins check 
+		    } // end izup loop
+		  
+		}  //  adc threshold if 		  
+	      else 
+		{
+		  // below threshold, move on
+		  binpointer--;
+		} // end adc threshold if/else 		  
+	      
+	    } // end iz loop
+	  
+	  
+	} // end phibins loop
+      
+      
+    } // end loop over layers
   
   return;
 }
@@ -384,4 +655,11 @@ void PHG4SvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
   }
   
   return;
+}
+
+float PHG4SvtxDigitizer::added_noise()
+{
+  float noise =  gsl_ran_gaussian(RandomGenerator, TPCEnc);
+
+  return noise;
 }
