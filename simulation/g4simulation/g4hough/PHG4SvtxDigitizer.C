@@ -278,7 +278,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
   // sort the cells by layer
   // make an empty vector of vectors of cells for each layer
-  std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
+  //std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
+  layer_sorted_cells.clear();
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
       layeriter != layerrange.second;
@@ -326,7 +327,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       unsigned int layer = (unsigned int)layeriter->second->get_layer();
 
       // for this layer, make a vector of a vector of cells for each phibin
-      std::vector < vector<const PHG4Cell*>  > phi_sorted_cells;
+      //std::vector < vector<const PHG4Cell*>  > phi_sorted_cells;
+      phi_sorted_cells.clear();
       
       // start with an empty vector of cells for each phibin    
       int nphibins = layeriter->second->get_phibins();
@@ -352,9 +354,11 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
 	  // Populate a vector of cells ordered by Z for each phibin    
 	  int nzbins = layeriter->second->get_zbins();
-	  std::vector<int> is_populated;
+	  //std::vector<int> is_populated;
+	  is_populated.clear();
 	  is_populated.assign(nzbins,0);
-	  std::vector < vector<const PHG4Cell*>  > z_sorted_cells;
+	  //std::vector < vector<const PHG4Cell*>  > z_sorted_cells;
+	  z_sorted_cells.clear();
 	 
 	  // add an empty vector for each z bin
 	  for(int iz=0;iz<nzbins;iz++)
@@ -368,8 +372,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	      z_sorted_cells[zbin].push_back(phi_sorted_cells[iphi][iz]);
 	    }
 	  
-          std::vector<float> adc_input; 
-	  std::vector<PHG4CellDefs::keytype> adc_cellid; 
+          //std::vector<float> adc_input; 
+	  adc_input.clear(); 
+	  //std::vector<PHG4CellDefs::keytype> adc_cellid; 
+	  adc_cellid.clear(); 
 	  // Now for this phibin we process the cells ordered by Z bin into hits
 	  for(int iz=0;iz<nzbins;iz++)
 	    {    

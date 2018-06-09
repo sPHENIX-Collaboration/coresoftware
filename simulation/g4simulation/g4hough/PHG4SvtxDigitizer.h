@@ -3,8 +3,10 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+#include <g4detectors/PHG4CellDefs.h>
 
 #include <vector>
+#include <map>
 
 // rootcint barfs with this header so we need to hide it
 #ifndef __CINT__
@@ -12,6 +14,7 @@
 #endif
 
 class SvtxHitMap;
+class PHG4Cell;
 
 class PHG4SvtxDigitizer : public SubsysReco
 {
@@ -56,6 +59,13 @@ class PHG4SvtxDigitizer : public SubsysReco
   unsigned int TPCMinLayer;  
   float ADCThreshold;
   float TPCEnc;
+
+  std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
+  std::vector< std::vector<const PHG4Cell*>  > phi_sorted_cells;
+  std::vector< std::vector<const PHG4Cell*>  > z_sorted_cells;
+  std::vector<float> adc_input; 
+  std::vector<PHG4CellDefs::keytype> adc_cellid; 
+  std::vector<int> is_populated;
 
   // settings
   std::map<int,unsigned int> _max_adc;
