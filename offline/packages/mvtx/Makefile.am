@@ -1,8 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libmvtx_io.la \
-  libmvtx.la 
+  libmvtx.la \
+  libmvtx_io.la
 
 
 AM_CPPFLAGS = \
@@ -16,17 +16,6 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
-# sources for io library
-libmvtx_io_la_SOURCES = \
-  MvtxHit.cc \
-  MvtxHit_Dict.cc
-
-libmvtx_io_la_LIBADD = \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io
-
-
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   MvtxClusterizer.cc \
@@ -38,6 +27,18 @@ libmvtx_la_LIBADD = \
   -lfun4all \
   -ltrack_util \
   -ltrack_io
+
+# sources for io library
+libmvtx_io_la_SOURCES = \
+  MvtxHit.cc \
+  MvtxHit_Dict.cc
+
+libmvtx_io_la_LIBADD = \
+  -lfun4all \
+  -ltrack_util \
+  -ltrack_io \
+  -lmvtx
+
 
 
 # Rule for generating table CINT dictionaries.

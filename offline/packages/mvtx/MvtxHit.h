@@ -29,28 +29,39 @@ public:
   //! dtor
   virtual ~MvtxHit() {};
 
+  // PHObject virtual overloads
+  virtual void identify(std::ostream& os = std::cout) const;
+  virtual void Reset() overload;
+  virtual int isValid() const;
+  
   /**
    * @brief Set hit information
    * @param[in] col Column index
    * @param[in] row Row index
+   * 
+   * This function sets the key of the TrkrHit base class
+   * using the column and row information given. This is
+   * meant as a convenience interface.
    */
   void setColumnRow(uint16_t col, uint16_t row);
 
   /**
    * @brief Get column index
    * @param[out] Column index
+   *
+   * Get the column index from the hitkey value
    */
-  uint16_t getColumn() { return m_col; }
+  uint16_t getColumn();
 
   /**
    * @brief Get row index
    * @param[out] Row index
+   *
+   * Get the row index from the hitkey value
    */
-  uint16_t getRow() { return m_row; }
+  uint16_t getRow();
 
 private:
-  uint16_t m_col; /// column index [,]
-  uint16_t m_row; /// row index [,]
   ClassDef(MvtxHit,1);
 };
 
