@@ -7,6 +7,8 @@
 #ifndef TRACKBASE_TRKRHIT_H
 #define TRACKBASE_TRKRHIT_H
 
+#include "TrkrDefs.h"
+
 #include <phool/PHObject.h>
 
 #include <iostream>
@@ -22,7 +24,7 @@ class TrkrHit : public PHObject
 {
  public:
   //! ctor
-  TrkrHit() {}
+  TrkrHit() { m_key = TrkrDefs::HITKEYMAX; }
   //! dtor
   virtual ~TrkrHit() {}
   // PHObject virtual overloads
@@ -32,7 +34,21 @@ class TrkrHit : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
+
+  /**
+   * @brief Set the key for this hit
+   * @param[in] key
+   */
+  void setKey(const TrkrDefs::hitkey key) { m_key = key; }
+
+  /**
+   * @brief Get the key for this hit
+   * @param[out] key
+   */
+  TrkrDefs::hitkey getKey() const { return m_key; }
+
  protected:
+  TrkrDefs::hitkey m_key;
   ClassDef(TrkrHit, 1);
 };
 
