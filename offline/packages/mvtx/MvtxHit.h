@@ -31,7 +31,7 @@ public:
 
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() overload;
+  virtual void Reset();
   virtual int isValid() const;
   
   /**
@@ -51,7 +51,7 @@ public:
    *
    * Get the column index from the hitkey value
    */
-  uint16_t getColumn();
+  uint16_t getColumn() const;
 
   /**
    * @brief Get row index
@@ -59,7 +59,7 @@ public:
    *
    * Get the row index from the hitkey value
    */
-  uint16_t getRow();
+  uint16_t getRow() const;
 
 private:
   ClassDef(MvtxHit,1);

@@ -12,8 +12,8 @@ MvtxHit::MvtxHit()
 {
 }
 
-virtual void 
-MvtxHit::identify(std::ostream& os = std::cout) const
+void 
+MvtxHit::identify(std::ostream& os) const
 {
   os << "MvtxHit with key:" << getKey() 
      << " and col:" << getColumn() 
@@ -21,13 +21,13 @@ MvtxHit::identify(std::ostream& os = std::cout) const
      << std::endl;
 }
 
-virtual void 
+void 
 MvtxHit::Reset()
 {
   TrkrHit::Reset();
 }
 
-virtual int 
+int 
 MvtxHit::isValid() const
 {
   // valid if the key is not equal to the default value
@@ -50,13 +50,13 @@ MvtxHit::setColumnRow(uint16_t col, uint16_t row)
 }
 
 uint16_t
-MvtxHit::getColumn()
+MvtxHit::getColumn() const
 {
   return MvtxDefs::getCol(getKey());
 }
 
 uint16_t
-MvtxHit::getRow()
+MvtxHit::getRow() const
 {
   return MvtxDefs::getRow(getKey());
 }
