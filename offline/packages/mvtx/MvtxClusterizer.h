@@ -8,7 +8,6 @@
 #define MVTX_MVTXCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 #include <map>
 #include <limits.h>
 
@@ -61,8 +60,6 @@ private:
 
   // settings
   bool m_makeZClustering;    // z_clustering_option
-
-  PHTimeServer::timer m_timer;
 };
 
 #endif // MVTX_MVTXCLUSTERIZER_H

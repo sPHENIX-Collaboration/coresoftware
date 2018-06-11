@@ -6,8 +6,8 @@
  */
 #include "MvtxClusterizer.h"
 
-#include "mvtx/MvtxDefs.h"
-#include "mvtx/MvtxHit.h"
+#include "MvtxDefs.h"
+#include "MvtxHit.h"
 
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitSet.h>
@@ -71,12 +71,11 @@ bool MvtxClusterizer::are_adjacent(const pixel lhs,
 }
 
 
-MvtxClusterizer::MvtxClusterizer(const string &name) :
-  SubsysReco(name),
-  m_hits(nullptr),
-  m_clusterlist(nullptr),
-  m_makeZClustering(true),
-  m_timer(PHTimeServer::get()->insert_new(name))
+MvtxClusterizer::MvtxClusterizer(const string &name) 
+ : SubsysReco(name)
+ , m_hits(nullptr)
+ , m_clusterlist(nullptr)
+ , m_makeZClustering(true)
 {
   
 }
@@ -136,8 +135,6 @@ int MvtxClusterizer::InitRun(PHCompositeNode* topNode)
 
 int MvtxClusterizer::process_event(PHCompositeNode *topNode) {
   
-  m_timer.get()->restart();
-  
   // get node containing the digitized hits
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TrkrHitSetContainer");
   if (!m_hits)
@@ -160,7 +157,6 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode) {
   PrintClusters(topNode);
   
   // done
-  m_timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -280,9 +276,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
         ++nhits;
       } //mapitr
 
-      float thickness = 50.e-4/28e-4;
-      float phisize = phibins.size();
-      float zsize = zbins.size();
+      double thickness = 50.e-4/28e-4;
+      double phisize = phibins.size();
+      double zsize = zbins.size();
 
       double clusx = NAN;
       double clusy = NAN;
@@ -299,7 +295,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
       
       clus->setAdc(nhits);
 
-      float invsqrt12 = 1.0 / sqrt(12.0);
+      double invsqrt12 = 1.0 / sqrt(12.0);
 
       TMatrixF DIM(3, 3);
       DIM[0][0] = pow(0.5 * phisize, 2);
