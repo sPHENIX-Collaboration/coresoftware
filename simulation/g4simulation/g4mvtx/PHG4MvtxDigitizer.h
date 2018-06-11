@@ -8,9 +8,8 @@
 #define G4MVTX_PHG4MVTXDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
-#include <vector>
+#include <map>
 
 class TrkrHitSetContainer;
 
@@ -54,8 +53,6 @@ class PHG4MvtxDigitizer : public SubsysReco
 
   // storage
   TrkrHitSetContainer* m_hitsets;
-  
-  PHTimeServer::timer m_timer;   ///< Timer
 };
 
 #endif //G4MVTX_PHG4MVTXDIGITIZER_H

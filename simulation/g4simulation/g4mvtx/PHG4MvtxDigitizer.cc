@@ -33,16 +33,17 @@
 
 using namespace std;
 
-PHG4MvtxDigitizer::PHG4MvtxDigitizer(const string &name) :
-  SubsysReco(name),
-  m_hitsets(nullptr),
-  m_timer(PHTimeServer::get()->insert_new(name)) {
+PHG4MvtxDigitizer::PHG4MvtxDigitizer(const string &name)
+  : SubsysReco(name)
+  , m_hitsets(nullptr)
+{
 
   if(verbosity > 0)
     cout << "Creating PHG4MvtxDigitizer with name = " << name << endl;
 }
 
-int PHG4MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
+int PHG4MvtxDigitizer::InitRun(PHCompositeNode* topNode) 
+{
 
   //-------------
   // Add Hit Node
@@ -52,7 +53,8 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   // Looking for the DST node
   PHCompositeNode *dstNode 
     = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST"));
-  if (!dstNode) {
+  if (!dstNode) 
+  {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
@@ -61,7 +63,8 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   // Create the TRKR node if required
   PHCompositeNode* trkrNode 
     = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode","TRKR"));
-  if (!trkrNode) {
+  if (!trkrNode) 
+  {
     trkrNode = new PHCompositeNode("TRKR");
     dstNode->addNode(trkrNode);
   }
@@ -104,10 +107,8 @@ int PHG4MvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4MvtxDigitizer::process_event(PHCompositeNode *topNode) {
-
-  m_timer.get()->restart();
-
+int PHG4MvtxDigitizer::process_event(PHCompositeNode *topNode) 
+{
   m_hitsets = findNode::getClass<TrkrHitSetContainer>(topNode,"TrkrHitSetContainer");
   if (!m_hitsets) 
     {
@@ -121,12 +122,12 @@ int PHG4MvtxDigitizer::process_event(PHCompositeNode *topNode) {
 
   PrintHits(topNode);
   
-  m_timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
-void PHG4MvtxDigitizer::CalculateADCScale(PHCompositeNode *topNode) {
+void PHG4MvtxDigitizer::CalculateADCScale(PHCompositeNode *topNode) 
+{
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
@@ -175,7 +176,8 @@ void PHG4MvtxDigitizer::CalculateADCScale(PHCompositeNode *topNode) {
 }
 
 
-void PHG4MvtxDigitizer::DigitizeCells(PHCompositeNode *topNode) {
+void PHG4MvtxDigitizer::DigitizeCells(PHCompositeNode *topNode) 
+{
 
   //----------
   // Get Nodes

@@ -18,6 +18,7 @@ libg4mvtx_la_LIBADD = \
   -lg4detectors \
   -ltrack_util \
   -ltrack_io \
+  -lmvtx_io \
   -lmvtx
 
 pkginclude_HEADERS = \
