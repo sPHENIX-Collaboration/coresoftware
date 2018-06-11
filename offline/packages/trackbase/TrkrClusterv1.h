@@ -4,16 +4,13 @@
  * @date June 2018
  * @brief Version 1 of TrkrCluster
  */
-#ifndef __TrkrClusterv1_H__
-#define __TrkrClusterv1_H__
+#ifndef TRACKBASE_TRKRCLUSTERV1_H
+#define TRACKBASE_TRKRCLUSTERV1_H
 
 #include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
-#include <limits.h>
-#include <cmath>
 #include <iostream>
-#include <set>
 
 /**
  * @brief Version 1 of TrkrCluster
@@ -86,4 +83,4 @@ class TrkrClusterv1 : public TrkrCluster
   ClassDef(TrkrClusterv1, 1);
 };
 
-#endif
+#endif //TRACKBASE_TRKRCLUSTERV1_H
