@@ -8,8 +8,7 @@
 #define MVTX_MVTXCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <map>
-#include <limits.h>
+#include <utility>
 
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
