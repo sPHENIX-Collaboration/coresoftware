@@ -40,27 +40,22 @@ void TrkrHitSetContainer::identify(std::ostream& os) const
 TrkrHitSetContainer::ConstIterator
 TrkrHitSetContainer::addHitSet(TrkrHitSet* newhit)
 {
-  TrkrDefs::hitsetkey key = newhit->getHitSetKey();
-  if (m_hitmap.find(key) != m_hitmap.end())
-  {
-    std::cout << "overwriting hit 0x" << std::hex << key << std::dec << std::endl;
-    std::cout << "tracker id: " << TrkrDefs::getTrkrId(key) << std::endl;
-  }
-  m_hitmap[key] = newhit;
-  return m_hitmap.find(key);
+  return addHitSetSpecifyKey(newhit->getHitSetKey(), newhit);
 }
 
 TrkrHitSetContainer::ConstIterator
 TrkrHitSetContainer::addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet* newhit)
 {
-  if (m_hitmap.find(key) != m_hitmap.end())
+  auto ret = m_hitmap.insert(std::make_pair(key, newhit));
+  if ( !ret.second )
   {
     std::cout << "TrkrHitSetContainer::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  newhit->setHitSetKey(key);
-  m_hitmap[key] = newhit;
-  return m_hitmap.find(key);
+  else
+  {
+    return ret.first;
+  }
 }
 
 TrkrHitSetContainer::ConstRange
@@ -111,13 +106,14 @@ TrkrHitSetContainer::getHitSets(void) const
 TrkrHitSetContainer::Iterator
 TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
 {
+
   TrkrHitSetContainer::Iterator it = m_hitmap.find(key);
   if (it == m_hitmap.end())
   {
-    m_hitmap[key] = new TrkrHitSet();
-    it = m_hitmap.find(key);
-    TrkrHitSet* mhit = it->second;
-    mhit->setHitSetKey(key);
+    // add new object and set its key
+    auto ret = m_hitmap.insert(std::make_pair(key, new TrkrHitSet()));
+    (ret.first->second)->setHitSetKey(key);
+    it = ret.first;
   }
   return it;
 }

@@ -40,27 +40,22 @@ void TrkrClusterContainer::identify(std::ostream& os) const
 TrkrClusterContainer::ConstIterator
 TrkrClusterContainer::addCluster(TrkrCluster* newclus)
 {
-  TrkrDefs::cluskey key = newclus->getClusKey();
-  if (m_clusmap.find(key) != m_clusmap.end())
-  {
-    std::cout << "overwriting clus 0x" << std::hex << key << std::dec << std::endl;
-    std::cout << "tracker ID: " << TrkrDefs::getTrkrId(key) << std::endl;
-  }
-  m_clusmap[key] = newclus;
-  return m_clusmap.find(key);
+  return addClusterSpecifyKey(newclus->getClusKey(), newclus);
 }
 
 TrkrClusterContainer::ConstIterator
 TrkrClusterContainer::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
-  if (m_clusmap.find(key) != m_clusmap.end())
+  auto ret = m_clusmap.insert(std::make_pair(key, newclus));
+  if ( !ret.second )
   {
     std::cout << "TrkrClusterContainer::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  newclus->setClusKey(key);
-  m_clusmap[key] = newclus;
-  return m_clusmap.find(key);
+  else
+  {
+    return ret.first;
+  }
 }
 
 TrkrClusterContainer::ConstRange
@@ -105,10 +100,10 @@ TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key)
   TrkrClusterContainer::Iterator it = m_clusmap.find(key);
   if (it == m_clusmap.end())
   {
-    m_clusmap[key] = new TrkrClusterv1();
-    it = m_clusmap.find(key);
-    TrkrCluster* mclus = it->second;
-    mclus->setClusKey(key);
+    // add new cluster and set its key
+    auto ret = m_clusmap.insert(std::make_pair(key, new TrkrClusterv1()));
+    (ret.first->second)->setClusKey(key);
+    it = ret.first;
   }
   return it;
 }

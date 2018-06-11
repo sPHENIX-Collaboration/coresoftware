@@ -51,13 +51,17 @@ void TrkrHitSet::identify(std::ostream& os) const
 TrkrHitSet::ConstIterator
 TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 {
-  if (m_hits.find(key) != m_hits.end())
+  auto ret = m_hits.insert(std::make_pair(key, hit));
+
+  if ( !ret.second )
   {
     std::cout << "TrkrHitSet::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  m_hits[key] = hit;
-  return m_hits.find(key);
+  else
+  {
+    return ret.first;
+  }
 }
 
 TrkrHit*
