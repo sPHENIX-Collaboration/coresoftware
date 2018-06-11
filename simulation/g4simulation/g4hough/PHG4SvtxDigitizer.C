@@ -237,31 +237,46 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
   //   Add noise to cells before digitizing
   //   Digitize the first adc time bin to exceed the threshold, and the 4 bins after that
   //   If the adc value is still above the threshold after 5 bins, repeat for the next 5 bins
-  //   write the results to the hits file
 
-  // The electron production details are:
+  // Electron production:
   // A MIP produces 32 electrons in 1.25 cm of Ne:CF4 gas
-  // The nominal GEM gain is 2000 => 64,000 electrons
+  // The nominal GEM gain is 2000 => 64,000 electrons per MIP through 1.25 cm gas
   // Thus a MIP produces a charge value out of the GEM stack of 64000/6.242x10^18 = 10.2 fC
 
-  // The SAMPA has a maximum output voltage of 2.2 V (but the baseline is about 200 mV)
-  // Conversion gains of 20 mV/fC or 30 mV/fC are possible
-  // At 30 mV/fC, the input signal saturates at 2.2 V / 30 mV/fC = 73 fC (say 67 with pedestal not at zero)
-  // At 20 mV/fC, the input signal saturates at 2.2 V / 20 mV/fC = 110 fC (say 100 fC with pedestal not at zero) - assume 20 mV/fC
-  //    - this saturation occurs at 687,000 electrons out of the GEM stack
-  //    - or at 343 primary input electons
-  // The equivalent noise charge RMS at 20 mV/fC was measured (w/o detector capacitance) at 490 electrons
-  // The noise thus has an RMS of 0.079 fC (probably a bit worse with detector capacitance)
-
+  // SAMPA:
+  // See https://indico.cern.ch/event/489996/timetable/#all.detailed "SAMPA Chip: the New ASIC for the ALICE TPC and MCH Upgrades", M Bregant
+  // The SAMPA has a maximum output voltage of 2.2 V (but the pedestal is about 200 mV)
   // The SAMPA shaper is set to 80 ns peaking time
- // The ADC Digitizes the SAMPA shaper output using 10 bits
+  // The ADC Digitizes the SAMPA shaper output into 1024 channels
+  // Conversion gains of 20 mV/fC or 30 mV/fC are possible - 1 fC charge input produces a peak volatge out of the shaper of 20 or 30 mV
+  //   At 30 mV/fC, the input signal saturates at 2.2 V / 30 mV/fC = 73 fC (say 67 with pedestal not at zero)
+  //   At 20 mV/fC, the input signal saturates at 2.2 V / 20 mV/fC = 110 fC (say 100 fC with pedestal not at zero) - assume 20 mV/fC
+  // The equivalent noise charge RMS at 20 mV/fC was measured (w/o detector capacitance) at 490 electrons
+  // Bregant's slides say 670 electrons ENC for the full chip with 18 pf detector, as in ALICE - should use that number
+
+  // Signal:
+  // To normalize the signal in each cell, take the entire charge on the pad and multiply by 20 mV/fC to get the adc input at the peak
+  // The cell contents should then be multipied by the normalization given by:
+  // V_peak = Q_pad (electrons) * 1.6e-04 fC/electron * 20 mV/fC 
+  // From the sims, for 80 ns and 18.8 MHz, the values of Q_(pad,z) have to be scaled up by 2.4 for the peak voltage to come out right
+  // V_(pad,z) = 2.4 * Q_(pad,z) (electrons) * 1.6e-04 fC/electron * 20 mV/fC = Q_(pad,z) * 7.68e-03 (in mV)
+  // ADU_(pad,z) = V_(pad,z) * (1024 ADU / 2200 mV) = V_(pad,z) * 0.465
+
+  // Noise:
+  // The ENC is the spread of the ADC distribution coming out from the SAMPA divided by the corresponding gain. 
+  // The full range of the ADC input is 2.2V (which will become 1024 adc counts, i.e. 1024 ADU's). 
+  // FRom Takao: If you saw the RMS of pedestal in adc counts as 1 at the gain of 20mV/fC, the ENC would be defined by:
+  //             (2200 [mV]) * (1/1024) / (20[mV/fC]) / (1.6*10^-4 [fC]) = 671 [electrons]
+  // The RMS noise voltage would be: V_RMS = ENC (electrons) *1.6e-04 fC/electron * 20 mV/fC = ENC (electrons) * 3.2e-03 (in mV)
+  // The ADC readout would be:  ADU = V_RMS * (1024 ADU / 2200 mV) = V_RMS * 0.465
   
-  // The cells that we need to digitize here contain as the energy "edep", which is the number of electrons out of the GEM stack 
-  // We add noise generated with an RMS value of 490 electrons to the charge collected in each time bin for each pad  
-  // We assume the pedestal is zero, for simplicity, so the noise fluctuates above and below zero with sigma 490 electrons
+  // The cells that we need to digitize here contain as the energy "edep", which is the number of electrons out of the GEM stack
+  // distributed over the pads and ADC time bins according to the output time distribution of the SAMPA shaper 
+  // We convert to volts at the input to the ADC and add noise generated with the RMS value of the noise voltage at the ADC input  
+  // We assume the pedestal is zero, for simplicity, so the noise fluctuates above and below zero
 
   // Note that zbin = 0 corresponds to -100.5 cm, zbin 248 corresponds to 0 cm, and zbin 497 corresponds to +100.5 cm
-  // increasing time should be 497 -> 249 and 0 -> 248
+  // increasing time should be (497 -> 249) and (0 -> 248)
 
   //----------
   // Get Nodes
@@ -306,17 +321,11 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	  if(verbosity>-1) std::cout << "Skipping layer " << cell->get_layer() << std::endl;
 	  continue;
 	}
-      //cout << " layer sorted, adding layer " << cell->get_layer() << " cellid " << cell->get_cellid() << endl;
-      //cout << "   layer_sorted_cells length = " << layer_sorted_cells[cell->get_layer()-TPCMinLayer].size() << endl;
       layer_sorted_cells[cell->get_layer()-TPCMinLayer].push_back(cell);
      }
   
   // We have the cells sorted by layer, now we loop over the layers and process the hits
   //==========================================================
-  float adc_saturation_electrons = 680000.0;
-  // cout << "Ready to loop over layers, adc_saturation_electrons = " << adc_saturation_electrons 
-  //    << " TPCMinLayer = " << TPCMinLayer  << " ADCThreshold = " << ADCThreshold << " TPCEnc = " << TPCEnc << endl;
- 
  for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
       layeriter != layerrange.second;
       ++layeriter) 
@@ -327,7 +336,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       unsigned int layer = (unsigned int)layeriter->second->get_layer();
 
       // for this layer, make a vector of a vector of cells for each phibin
-      //std::vector < vector<const PHG4Cell*>  > phi_sorted_cells;
       phi_sorted_cells.clear();
       
       // start with an empty vector of cells for each phibin    
@@ -354,10 +362,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
 	  // Populate a vector of cells ordered by Z for each phibin    
 	  int nzbins = layeriter->second->get_zbins();
-	  //std::vector<int> is_populated;
 	  is_populated.clear();
 	  is_populated.assign(nzbins,0);
-	  //std::vector < vector<const PHG4Cell*>  > z_sorted_cells;
 	  z_sorted_cells.clear();
 	 
 	  // add an empty vector for each z bin
@@ -372,27 +378,37 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	      z_sorted_cells[zbin].push_back(phi_sorted_cells[iphi][iz]);
 	    }
 	  
-          //std::vector<float> adc_input; 
 	  adc_input.clear(); 
-	  //std::vector<PHG4CellDefs::keytype> adc_cellid; 
 	  adc_cellid.clear(); 
-	  // Now for this phibin we process the cells ordered by Z bin into hits
+	  // Now for this phibin we process the cells ordered by Z bin into hits with noise
+	  //======================================================
+	  // For this step we take the edep value and convert it to mV at the ADC input because it is easier to think about!
+	  // See comments above for how to do this for signal and noise
 	  for(int iz=0;iz<nzbins;iz++)
 	    {    
 	      if(is_populated[iz]==1)
 		{
 		  // This zbin has a filled cell, add noise
-		  float noise = added_noise();
-		  //if(layer == 20) cout << "      for zbin " << iz << " cell edep = " << z_sorted_cells[iz][0]->get_edep() << " added noise = " << noise << " total " <<  z_sorted_cells[iz][0]->get_edep() + noise <<  endl; 
-		  adc_input.push_back(z_sorted_cells[iz][0]->get_edep() + noise);
+		  float noise = added_noise();  // in electrons
+		  float noise_voltage = noise * 3.2e-03;  // mV
+		  float adc_input_voltage = z_sorted_cells[iz][0]->get_edep() * 7.68e-03;  // mV, see comments above
+
+		  adc_input.push_back(adc_input_voltage + noise_voltage);
 		  adc_cellid.push_back(z_sorted_cells[iz][0]->get_cellid());
+
+		  if(layer == 20) cout << "      for zbin " << iz << " cell edep = " << z_sorted_cells[iz][0]->get_edep() 
+				       << " adc_input_voltage " << adc_input_voltage 
+				       << " added noise = " << noise 
+				       << " noise voltage " << noise_voltage
+				       << " total " <<  adc_input_voltage + noise_voltage <<  endl; 
 		}
 	      else
 		{
 		  // This z bin does not have a filled cell, add noise
 		  float noise = added_noise();
+		  float noise_voltage = noise * 3.2e-03; // mV
 		  //cout << "      cell edep = 0 " << " added noise = " << noise << endl; 
-		  adc_input.push_back(noise);
+		  adc_input.push_back(noise_voltage);
 		  adc_cellid.push_back(0);  // not sure what to do here, there is no cell!
 		}
 	    }
@@ -404,25 +420,23 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	    {
 	      if(iz < binpointer) continue;
 	      
-              if(adc_input[iz] > ADCThreshold)
+              if(adc_input[iz] > ADCThreshold*3.2e-03)  // convert threshold in electrons to mV
 		{
 		  // digitize this bin and the following 4 bins
-		  // 10 bit binary, 2^9 = 512
-		  // max adc range is determined by gain, for 20 mV/fC and 2.2 V max, saturates at 2.2V / 20 mV = 110 fC
-		  // I assume this is fC/pad/time bin?
-                  // Our signals are in equivalent electrons per pad/time bin, the saturation would be at 680,000 electrons
-		  // we will get typically 20,000 electrons at peak per pad/time bin
+
+		  if(layer == 20) cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
 
 		  for(int izup=0;izup<5; izup++)
 		    {
 		      if(iz+izup < nzbins && iz + izup > 0)
 			{			  
-			  unsigned int adc_output = adc_input[iz+izup] * (512.0 / adc_saturation_electrons);
-			  if (adc_output > 512) adc_output = 512;
-			  /*			     
-			       cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
-			       << "  adc_input "  << adc_input[iz+izup] << " adc_output " << adc_output << endl;
-			  */
+			  unsigned int adc_output = (unsigned int) (adc_input[iz+izup] * 1024.0  / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+			  if (adc_output > 1024) adc_output = 1024;
+
+			  if(layer == 20) 
+			    cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
+				 << "  adc_input "  << adc_input[iz+izup] << " adc_output " << adc_output << " ADCThreshold " << ADCThreshold * 3.2e-06 << endl;
+			  
 			  if(is_populated[iz+izup] == 0)
 			    continue;
 			  
@@ -430,16 +444,17 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  
 			  hit.set_layer(layer);
 			  hit.set_cellid(adc_cellid[iz+izup]);
-			  //hit.set_cellid(z_sorted_cells[iz+izup][0]->get_cellid());
 			  
-			  float e = adc_output * adc_saturation_electrons / 512.0;
+			  float e = adc_output * (2200 / 1024.0) /  7.68e-03;          // convert ADU's back to mV, then to input electrons
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
-			  /*
-			    cout << "Added hit for phibin " << phibin  << " zbin " << iz+izup << " with cellid " << hit.get_cellid() 
-			    << " layer " << hit.get_layer() << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
-			    << " cellid check " << z_sorted_cells[iz+izup][0]->get_cellid() << endl;
-			  */
+
+			  if(layer == 20)
+			    cout << "Added hit for phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
+				 << " zbin " << iz+izup << " with cellid " << hit.get_cellid() 
+				 << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
+				 << endl;
+		 			  
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
 			  if (!ptr->isValid()) 
 			    {
@@ -470,26 +485,22 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	    {
 	      if(iz > binpointer) continue;
 	      
-              if(adc_input[iz] > ADCThreshold)
+              if(adc_input[iz] > ADCThreshold* 3.2e-03)  // convert threshold in electrons to mV
 		{
 		  // digitize this bin and the following 4 bins
-		  // 10 bit binary, 2^9 = 512
-		  // max adc range is determined by gain, for 20 mV/fC and 2.2 V max, saturates at 2.2V / 20 mV = 110 fC
-		  // I assume this is fC/pad/time bin?
-                  // Our signals are in equivalent electrons per pad/time bin, the saturation would be at 680,000 electrons
-		  // we will get typically 20,000 electrons at peak per pad/time bin
 
-		  //cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
+		  if(layer == 20) cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
 		  for(int izup=0;izup<5; izup++)
 		    {
 		      if(iz-izup < nzbins && iz - izup > 0)
 			{			  
-			  unsigned int adc_output = adc_input[iz-izup] * (512.0 / adc_saturation_electrons);
-			  if (adc_output > 512) adc_output = 512;
-			  /*			     
-			       cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
-			       << "  adc_input "  << adc_input[iz-izup] << " adc_output " << adc_output << endl;
-			  */
+			  unsigned int adc_output = (adc_input[iz-izup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+			  if (adc_output > 1024) adc_output = 1024;
+
+			  if(layer == 20)
+			    cout << "    iz-izup " << iz-izup << " adc_cellid " << adc_cellid[iz-izup] 
+				 << "  adc_input "  << adc_input[iz-izup] << " adc_output " << adc_output << endl;
+
 			  if(is_populated[iz-izup] == 0)
 			    continue;
 			  
@@ -497,16 +508,17 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  
 			  hit.set_layer(layer);
 			  hit.set_cellid(adc_cellid[iz-izup]);
-			  //hit.set_cellid(z_sorted_cells[iz+izup][0]->get_cellid());
 			  
-			  float e = adc_output * adc_saturation_electrons / 512.0;
+			  float e = adc_output * (2200.0 / 1024.0) /  7.68e-03;          // convert ADU's back to mV, then to input electrons
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
-			  /*
-			    cout << "Added hit for phibin " << phibin  << " zbin " << iz-izup << " with cellid " << hit.get_cellid() 
-			    << " layer " << hit.get_layer() << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
-			    << " cellid check " << z_sorted_cells[iz-izup][0]->get_cellid() << endl;
-			  */
+
+			  if(layer == 20)
+			    cout << "Added hit for phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
+				 << " zbin " << iz-izup << " with cellid " << hit.get_cellid() 
+				 << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
+				 << endl;
+			  
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
 			  if (!ptr->isValid()) 
 			    {
