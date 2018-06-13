@@ -1,11 +1,15 @@
+/**
+ * @file trackbase/TrkrClusterv1.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation of TrkrClusterv1
+ */
 #include "TrkrClusterv1.h"
 
 #include <TMatrixF.h>
 
 #include <algorithm>
 #include <cmath>
-
-ClassImp(TrkrClusterv1);
 
 TrkrClusterv1::TrkrClusterv1()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)

@@ -1,7 +1,13 @@
+/**
+ * @file trackbase/TrkrHitSetContainer.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation for TrkrHitSetContainer
+ */
 #include "TrkrHitSetContainer.h"
 
-#include "TrkrDefUtil.h"
-#include "TrkrHitSetv1.h"
+#include "TrkrDefs.h"
+#include "TrkrHitSet.h"
 
 #include <cstdlib>
 
@@ -34,28 +40,22 @@ void TrkrHitSetContainer::identify(std::ostream& os) const
 TrkrHitSetContainer::ConstIterator
 TrkrHitSetContainer::addHitSet(TrkrHitSet* newhit)
 {
-  TrkrDefs::hitsetkey key = newhit->getHitSetKey();
-  if (m_hitmap.find(key) != m_hitmap.end())
-  {
-    TrkrDefUtil util;
-    std::cout << "overwriting hit 0x" << std::hex << key << std::dec << std::endl;
-    std::cout << "tracker id: " << util.getTrkrId(key) << std::endl;
-  }
-  m_hitmap[key] = newhit;
-  return m_hitmap.find(key);
+  return addHitSetSpecifyKey(newhit->getHitSetKey(), newhit);
 }
 
 TrkrHitSetContainer::ConstIterator
 TrkrHitSetContainer::addHitSetSpecifyKey(const TrkrDefs::hitsetkey key, TrkrHitSet* newhit)
 {
-  if (m_hitmap.find(key) != m_hitmap.end())
+  auto ret = m_hitmap.insert(std::make_pair(key, newhit));
+  if ( !ret.second )
   {
     std::cout << "TrkrHitSetContainer::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  newhit->setHitSetKey(key);
-  m_hitmap[key] = newhit;
-  return m_hitmap.find(key);
+  else
+  {
+    return ret.first;
+  }
 }
 
 TrkrHitSetContainer::ConstRange
@@ -67,9 +67,8 @@ TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid) const
   //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
   //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
-  TrkrDefUtil util;
-  TrkrDefs::hitsetkey keylo = util.getHitSetKeyLo(trackerid);
-  TrkrDefs::hitsetkey keyhi = util.getHitSetKeyHi(trackerid);
+  TrkrDefs::hitsetkey keylo = TrkrDefs::getHitSetKeyLo(trackerid);
+  TrkrDefs::hitsetkey keyhi = TrkrDefs::getHitSetKeyHi(trackerid);
 
   ConstRange retpair;
   retpair.first = m_hitmap.lower_bound(keylo);
@@ -89,9 +88,8 @@ TrkrHitSetContainer::getHitSets(const TrkrDefs::TrkrId trackerid,
   //   cout << "keylow: 0x" << hex << keylow << dec << std::endl;
   //   cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
-  TrkrDefUtil util;
-  TrkrDefs::hitsetkey keylo = util.getHitSetKeyLo(trackerid, layer);
-  TrkrDefs::hitsetkey keyhi = util.getHitSetKeyHi(trackerid, layer);
+  TrkrDefs::hitsetkey keylo = TrkrDefs::getHitSetKeyLo(trackerid, layer);
+  TrkrDefs::hitsetkey keyhi = TrkrDefs::getHitSetKeyHi(trackerid, layer);
 
   ConstRange retpair;
   retpair.first = m_hitmap.lower_bound(keylo);
@@ -108,13 +106,14 @@ TrkrHitSetContainer::getHitSets(void) const
 TrkrHitSetContainer::Iterator
 TrkrHitSetContainer::findOrAddHitSet(TrkrDefs::hitsetkey key)
 {
+
   TrkrHitSetContainer::Iterator it = m_hitmap.find(key);
   if (it == m_hitmap.end())
   {
-    m_hitmap[key] = new TrkrHitSetv1();
-    it = m_hitmap.find(key);
-    TrkrHitSet* mhit = it->second;
-    mhit->setHitSetKey(key);
+    // add new object and set its key
+    auto ret = m_hitmap.insert(std::make_pair(key, new TrkrHitSet()));
+    (ret.first->second)->setHitSetKey(key);
+    it = ret.first;
   }
   return it;
 }

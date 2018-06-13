@@ -18,23 +18,27 @@ AM_LDFLAGS = \
 
 # sources for util library
 libtrack_util_la_SOURCES = \
-  TrkrDefUtil.cc \
-  TrkrDefUtil_Dict.cc
+  TrkrDefs.cc \
+  TrkrDefs_Dict.cc
 
 # sources for io library
 libtrack_io_la_SOURCES = \
-  TrkrCluster.cc \
   TrkrCluster_Dict.cc \
   TrkrClusterv1.cc \
   TrkrClusterv1_Dict.cc \
   TrkrClusterContainer.cc \
   TrkrClusterContainer_Dict.cc \
+  TrkrClusterHitAssoc.cc \
+  TrkrClusterHitAssoc_Dict.cc \
+  TrkrHit_Dict.cc \
+  TrkrHitCellAssoc.cc \
+  TrkrHitCellAssoc_Dict.cc \
   TrkrHitSet.cc \
   TrkrHitSet_Dict.cc \
-  TrkrHitSetv1.cc \
-  TrkrHitSetv1_Dict.cc \
   TrkrHitSetContainer.cc \
-  TrkrHitSetContainer_Dict.cc 
+  TrkrHitSetContainer_Dict.cc \
+  TrkrTrack_Dict.cc \
+  TrkrTrackContainer_Dict.cc
 
 
 libtrack_util_la_LDFLAGS = \
@@ -55,12 +59,6 @@ libtrack_io_la_LIBADD = \
   libtrack_util.la
 
 
-#libtracker_la_LIBADD = \
-#  -lCLHEP \
-#  -lphool \
-#  -lg4detectors
-
-
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
@@ -72,10 +70,14 @@ pkginclude_HEADERS = \
   TrkrCluster.h \
   TrkrClusterv1.h \
   TrkrClusterContainer.h \
-  TrkrDefUtil.h \
+  TrkrClusterHitAssoc.h \
+  TrkrDefs.h \
+  TrkrHit.h \
+  TrkrHitCellAssoc.h \
   TrkrHitSet.h \
-  TrkrHitSetv1.h \
-  TrkrHitSetContainer.h
+  TrkrHitSetContainer.h \
+  TrkrTrack.h \
+  TrkrTrackContainer.h
 
 
 ################################################
