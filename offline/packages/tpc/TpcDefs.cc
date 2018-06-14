@@ -7,71 +7,71 @@
 #include "TpcDefs.h"
 
 uint8_t
-TpcDefs::getStaveId(TrkrDefs::hitsetkey key)
+TpcDefs::getSectorId(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TpcDefs::kBitShiftStaveId);
+  TrkrDefs::hitsetkey tmp = (key >> TpcDefs::kBitShiftSectorId);
   return tmp;
 }
 
 uint8_t
-TpcDefs::getStaveId(TrkrDefs::cluskey key)
+TpcDefs::getSectorId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
-  return getStaveId(tmp);
+  return getSectorId(tmp);
 }
 
 uint8_t
-TpcDefs::getChipId(TrkrDefs::hitsetkey key)
+TpcDefs::getSide(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> TpcDefs::kBitShiftChipId);
+  TrkrDefs::hitsetkey tmp = (key >> TpcDefs::kBitShiftSide);
   return tmp;
 }
 
 uint8_t
-TpcDefs::getChipId(TrkrDefs::cluskey key)
+TpcDefs::getSide(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
-  return getChipId(tmp);
+  return getSide(tmp);
 }
 
 uint16_t
-TpcDefs::getCol(TrkrDefs::hitkey key)
+TpcDefs::getPad(TrkrDefs::hitkey key)
 {
-  TrkrDefs::hitkey tmp = (key >> TpcDefs::kBitShiftCol);
+  TrkrDefs::hitkey tmp = (key >> TpcDefs::kBitShiftPad);
   return tmp;
 }
 
 uint16_t
-TpcDefs::getRow(TrkrDefs::hitkey key)
+TpcDefs::getTBin(TrkrDefs::hitkey key)
 {
-  TrkrDefs::hitkey tmp = (key >> TpcDefs::kBitShiftRow);
+  TrkrDefs::hitkey tmp = (key >> TpcDefs::kBitShiftTBin);
   return tmp;
 }
 
 TrkrDefs::hitkey 
-TpcDefs::genHitKey(const uint16_t col, const uint16_t row)
+TpcDefs::genHitKey(const uint16_t pad, const uint16_t tbin)
 {
-  TrkrDefs::hitkey key = (col << TpcDefs::kBitShiftCol);
-  TrkrDefs::hitkey tmp = (row << TpcDefs::kBitShiftRow);
+  TrkrDefs::hitkey key = (pad << TpcDefs::kBitShiftPad);
+  TrkrDefs::hitkey tmp = (tbin << TpcDefs::kBitShiftTBin);
   key |= tmp;
   return key;
 }
 
 TrkrDefs::hitsetkey
-TpcDefs::genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip)
+TpcDefs::genHitSetKey(const char lyr, const uint8_t sector, const uint8_t chip)
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
-  TrkrDefs::hitsetkey tmp = stave;
-  key |= (tmp << TpcDefs::kBitShiftStaveId);
+  TrkrDefs::hitsetkey tmp = sector;
+  key |= (tmp << TpcDefs::kBitShiftSectorId);
   tmp = chip;
-  key |= (tmp << TpcDefs::kBitShiftChipId);
+  key |= (tmp << TpcDefs::kBitShiftSide);
   return key;
 }
 
 TrkrDefs::cluskey
-TpcDefs::genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid)
+TpcDefs::genClusKey(const char lyr, const uint8_t sector, const uint8_t chip, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, stave, chip);
+  TrkrDefs::cluskey tmp = genHitSetKey(lyr, sector, chip);
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
   key |= clusid;
   return key;

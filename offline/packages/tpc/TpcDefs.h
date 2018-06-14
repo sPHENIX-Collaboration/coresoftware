@@ -23,93 +23,95 @@ namespace TpcDefs
   //  Tpc specific lower 16 bits
   //   24 - 32  tracker id
   //   16 - 24  layer
-  //   8  - 16  stave id
-  //   0  -  8  chip id
-  static const unsigned int kBitShiftStaveId __attribute__((unused)) = 8;
-  static const unsigned int kBitShiftChipId __attribute__((unused)) = 0;
+  //   8  - 16  sector id
+  //   0  -  8  side
+  static const unsigned int kBitShiftSectorId __attribute__((unused)) = 8;
+  static const unsigned int kBitShiftSide __attribute__((unused)) = 0;
 
   // bit shift for hitkey
-  static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
-  static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
+  //  16 - 32 pad id
+  //  0  - 16 time bin
+  static const unsigned int kBitShiftPad __attribute__((unused)) = 16;
+  static const unsigned int kBitShiftTBin __attribute__((unused)) = 0;
 
   // max values for col and row index in chip
-  static const uint16_t MAXCOL __attribute__((unused)) = 1024;
-  static const uint16_t MAXROW __attribute__((unused)) = 512;
+  static const uint16_t MAXPAD __attribute__((unused)) = 1024;
+  static const uint16_t MAXTBIN __attribute__((unused)) = 512;
 
 #endif // __CINT__
 
   /**
-   * @brief Get the stave id from hitsetkey
+   * @brief Get the sector id from hitsetkey
    * @param[in] hitsetkey
-   * @param[out] stave id
+   * @param[out] sector id
    */
-  uint8_t getStaveId(TrkrDefs::hitsetkey key);
+  uint8_t getSectorId(TrkrDefs::hitsetkey key);
 
   /**
-   * @brief Get the stave id from cluskey
+   * @brief Get the sector id from cluskey
    * @param[in] cluskey
-   * @param[out] stave id
+   * @param[out] sector id
    */
-  uint8_t getStaveId(TrkrDefs::cluskey key);
+  uint8_t getSectorId(TrkrDefs::cluskey key);
 
   /**
-   * @brief Get the chip id from hitsetkey
+   * @brief Get the side from hitsetkey
    * @param[in] hitsetkey
-   * @param[out] chip id
+   * @param[out] side
    */
-  uint8_t getChipId(TrkrDefs::hitsetkey key);
+  uint8_t getSide(TrkrDefs::hitsetkey key);
 
   /**
-   * @brief Get the chip id from cluskey
+   * @brief Get the side id from cluskey
    * @param[in] cluskey
-   * @param[out] chip id
+   * @param[out] side id
    */
-  uint8_t getChipId(TrkrDefs::cluskey key);
+  uint8_t getSide(TrkrDefs::cluskey key);
 
   /**
-   * @brief Get the column index from hitkey
+   * @brief Get the pad index from hitkey
    * @param[in] hitkey
-   * @param[out] column index
+   * @param[out] pad index
    */
-  uint16_t getCol(TrkrDefs::hitkey key);
+  uint16_t getPad(TrkrDefs::hitkey key);
 
   /**
-   * @brief Get the row index from hitkey
+   * @brief Get the time bin from hitkey
    * @param[in] hitkey
-   * @param[out] row index
+   * @param[out] time bin
    */
-  uint16_t getRow(TrkrDefs::hitkey key);
+  uint16_t getTBin(TrkrDefs::hitkey key);
 
   
   /**
-   * @brief Generate a hitkey from a pixels column and row index
-   * @param[in] col Column index
-   * @param[in] row Row index
+   * @brief Generate a hitkey from a pad index and time bin
+   * @param[in] pad Pad index
+   * @param[in] tbin Time bin
    * @param[out] hitkey
    */
-  TrkrDefs::hitkey genHitKey(const uint16_t col, const uint16_t row);
+  TrkrDefs::hitkey genHitKey(const uint16_t pad, const uint16_t tbin);
 
   /**
    * @brief Generate a hitsetkey for the tpc
    * @param[in] lyr Layer index
-   * @param[in] stave Stave index
-   * @param[in] chip Chip index
+   * @param[in] sector Sector index
+   * @param[in] side Side index
    * @param[out] hitsetkey
    *
    * Generate a hitsetkey for the tpc. The tracker id is known
    * implicitly and used in the function.
    */
-  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip);
+  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t sector, const uint8_t side);
 
   /**
    * @brief Generate a cluster key from indeces 
    * @param[in] lyr Layer index
-   * @param[in] stave Stave index
-   * @param[in] chip Chip index
+   * @param[in] sector Sector index
+   * @param[in] side Side index
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
+  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid);
 
   /**
    * @brief Generate a cluster key using a hitsetkey and cluster id
