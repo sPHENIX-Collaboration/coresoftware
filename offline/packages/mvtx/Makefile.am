@@ -8,8 +8,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -34,10 +33,10 @@ libmvtx_io_la_SOURCES = \
   MvtxHit_Dict.cc
 
 libmvtx_io_la_LIBADD = \
+  libmvtx.la \
   -lfun4all \
   -ltrack_util \
-  -ltrack_io \
-  -lmvtx
+  -ltrack_io
 
 
 
