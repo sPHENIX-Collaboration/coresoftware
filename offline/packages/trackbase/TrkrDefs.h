@@ -30,10 +30,10 @@ namespace TrkrDefs
 #ifndef __CINT__
   
   /// Max values for keys (used as defaults or invalid values)
-  static hitkey HITKEYMAX __attribute__((unused)) = ULONG_MAX;
-  static hitsetkey HITSETKEYMAX __attribute__((unused)) = ULONG_MAX;
-  static cluskey CLUSKEYMAX __attribute__((unused)) = ULLONG_MAX;
-  static clushitkey CLUSHITKEYMAX __attribute__((unused)) = ULONG_MAX;
+  static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;
+  static hitsetkey HITSETKEYMAX __attribute__((unused)) = UINT32_MAX;
+  static cluskey CLUSKEYMAX __attribute__((unused)) = UINT64_MAX;
+  static clushitkey CLUSHITKEYMAX __attribute__((unused)) = UINT32_MAX;
 
   // hitsetkey layout:
   //  common upper 16 bits
