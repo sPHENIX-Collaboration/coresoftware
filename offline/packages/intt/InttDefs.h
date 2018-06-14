@@ -23,93 +23,69 @@ namespace InttDefs
   //  Intt specific lower 16 bits
   //   24 - 32  tracker id
   //   16 - 24  layer
-  //   8  - 16  stave id
-  //   0  -  8  chip id
-  static const unsigned int kBitShiftStaveId __attribute__((unused)) = 8;
-  static const unsigned int kBitShiftChipId __attribute__((unused)) = 0;
-
-  // bit shift for hitkey
-  static const unsigned int kBitShiftCol __attribute__((unused)) = 16;
-  static const unsigned int kBitShiftRow __attribute__((unused)) = 0;
-
-  // max values for col and row index in chip
-  static const uint16_t MAXCOL __attribute__((unused)) = 1024;
-  static const uint16_t MAXROW __attribute__((unused)) = 512;
+  //   8  - 16  ladder id
+  //   0  -  8  sensor id
+  static const unsigned int kBitShiftLadderId __attribute__((unused)) = 8;
+  static const unsigned int kBitShiftSensorId __attribute__((unused)) = 0;
 
 #endif // __CINT__
 
   /**
-   * @brief Get the stave id from hitsetkey
+   * @brief Get the ladder id from hitsetkey
    * @param[in] hitsetkey
-   * @param[out] stave id
+   * @param[out] ladder id
    */
-  uint8_t getStaveId(TrkrDefs::hitsetkey key);
+  uint8_t getLadderId(TrkrDefs::hitsetkey key);
 
   /**
-   * @brief Get the stave id from cluskey
+   * @brief Get the ladder id from cluskey
    * @param[in] cluskey
-   * @param[out] stave id
+   * @param[out] ladder id
    */
-  uint8_t getStaveId(TrkrDefs::cluskey key);
+  uint8_t getLadderId(TrkrDefs::cluskey key);
 
   /**
-   * @brief Get the chip id from hitsetkey
+   * @brief Get the sensor id from hitsetkey
    * @param[in] hitsetkey
-   * @param[out] chip id
+   * @param[out] sensor id
    */
-  uint8_t getChipId(TrkrDefs::hitsetkey key);
+  uint8_t getSensorId(TrkrDefs::hitsetkey key);
 
   /**
-   * @brief Get the chip id from cluskey
+   * @brief Get the sensor id from cluskey
    * @param[in] cluskey
-   * @param[out] chip id
+   * @param[out] sensor id
    */
-  uint8_t getChipId(TrkrDefs::cluskey key);
+  uint8_t getSensorId(TrkrDefs::cluskey key);
 
   /**
-   * @brief Get the column index from hitkey
-   * @param[in] hitkey
-   * @param[out] column index
-   */
-  uint16_t getCol(TrkrDefs::hitkey key);
-
-  /**
-   * @brief Get the row index from hitkey
-   * @param[in] hitkey
-   * @param[out] row index
-   */
-  uint16_t getRow(TrkrDefs::hitkey key);
-
-  
-  /**
-   * @brief Generate a hitkey from a pixels column and row index
-   * @param[in] col Column index
-   * @param[in] row Row index
+   * @brief Generate a hitkey from a strip id
+   * @param[in] strip Strip id
    * @param[out] hitkey
    */
-  TrkrDefs::hitkey genHitKey(const uint16_t col, const uint16_t row);
+  TrkrDefs::hitkey genHitKey(const uint32_t strip);
 
   /**
    * @brief Generate a hitsetkey for the intt
    * @param[in] lyr Layer index
-   * @param[in] stave Stave index
-   * @param[in] chip Chip index
+   * @param[in] ladder Ladder index
+   * @param[in] sensor Sensor index
    * @param[out] hitsetkey
    *
    * Generate a hitsetkey for the intt. The tracker id is known
    * implicitly and used in the function.
    */
-  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip);
+  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t ladder, const uint8_t sensor);
 
   /**
    * @brief Generate a cluster key from indeces 
    * @param[in] lyr Layer index
-   * @param[in] stave Stave index
-   * @param[in] chip Chip index
+   * @param[in] ladder Ladder index
+   * @param[in] sensor Sensor index
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
+  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t ladder, const uint8_t sensor, const uint32_t clusid);
 
   /**
    * @brief Generate a cluster key using a hitsetkey and cluster id

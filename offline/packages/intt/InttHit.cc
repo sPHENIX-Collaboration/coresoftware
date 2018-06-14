@@ -16,8 +16,7 @@ void
 InttHit::identify(std::ostream& os) const
 {
   os << "InttHit with key:" << getKey() 
-     << " and col:" << getColumn() 
-     << " and row:" << getRow() 
+     << " and adc:" << getAdc()
      << std::endl;
 }
 
@@ -34,29 +33,3 @@ InttHit::isValid() const
   return getKey() != TrkrDefs::HITKEYMAX;
 }
 
-void
-InttHit::setColumnRow(uint16_t col, uint16_t row)
-{
-  if ( col > InttDefs::MAXCOL || row > InttDefs::MAXROW )
-  {
-    std::cout << "InttHit::setColumnRow() - Error - Invalid input! " << std::endl
-	      << "  col:" << col << " (MAXCOL:" << InttDefs::MAXCOL << ")" << std::endl
-	      << "  row:" << row << " (MAXROW:" << InttDefs::MAXROW << ")" << std::endl;
-    // reset the hit if we used invalid inputs
-    exit(2);
-  }
-
-  setKey(InttDefs::genHitKey(col, row));
-}
-
-uint16_t
-InttHit::getColumn() const
-{
-  return InttDefs::getCol(getKey());
-}
-
-uint16_t
-InttHit::getRow() const
-{
-  return InttDefs::getRow(getKey());
-}
