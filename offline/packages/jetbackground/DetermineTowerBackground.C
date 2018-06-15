@@ -29,6 +29,9 @@ DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)
 {
 
+  _seed_jet_D = 3.0;
+  _seed_jet_pt = 7.0;
+
   _v2[0] = 0;
   _v2[1] = 0;
   _v2[2] = 0;
@@ -85,7 +88,7 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 {
   if (verbosity > 0)
-    std::cout << "DetermineTowerBackground::process_event: entering" << std::endl;
+    std::cout << "DetermineTowerBackground::process_event: entering with seed D = " << _seed_jet_D << ", pT = " << _seed_jet_pt << std::endl;
 
   // clear seed eta/phi positions
   _seed_eta.resize(0);
@@ -193,7 +196,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       if (verbosity > 1)
 	std::cout << "DetermineTowerBackground::process_event: --> jet has < ET > = " << constituent_sum_ET << " / " << nconstituents << " = " << mean_constituent_ET << ", max-ET = " << constituent_max_ET << ", and D = " << seed_D << std::endl;
       
-      if ( seed_D > 3 ) {
+      if ( seed_D > _seed_jet_D ) {
 	_seed_eta.push_back( this_eta );
 	_seed_phi.push_back( this_phi );
 	
@@ -224,7 +227,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float this_phi = this_jet->get_phi();
       float this_eta = this_jet->get_eta();
 
-      if (this_jet->get_pt() < 15) continue;
+      if (this_jet->get_pt() < _seed_jet_pt ) continue;
 
       _seed_eta.push_back( this_eta );
       _seed_phi.push_back( this_phi );
