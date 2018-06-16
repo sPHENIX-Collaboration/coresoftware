@@ -10,15 +10,9 @@
 template <class T>
 class PHPointerListIterator
 {
- public:
-#ifndef __CINT__
-  PHPointerListIterator() = delete;
-#else
- private:
-  PHPointerListIterator() {}
- public:
-#endif
-
+  protected: 
+ PHPointerListIterator():m_List(0) {} 
+  public:
   PHPointerListIterator(const PHPointerList<T>&);
   virtual ~PHPointerListIterator() {}
   T* operator()();

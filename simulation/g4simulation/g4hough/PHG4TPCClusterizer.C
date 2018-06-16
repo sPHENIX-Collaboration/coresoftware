@@ -73,8 +73,6 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fDeconMode(false),
   fDCT(0.006),
   fDCL(0.012),
-  fSource(NULL),
-  fResponse(NULL),
   _inv_sqrt12( 1.0/TMath::Sqrt(12) ),
   _twopi( TMath::TwoPi() ),
   fHClusterEnergy(NULL),
@@ -91,7 +89,9 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fHClusterWindowP(NULL),
   fHClusterWindowZ(NULL),
   fSW(NULL),
-  fHTime(NULL)
+  fHTime(NULL),
+  fSource(NULL),
+  fResponse(NULL)
 {
 }
 //===================
@@ -260,13 +260,23 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
     delete[] fResponse;
   }
 
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 10, 4)
+  fSource = new double *[fNZBins];  
+  fResponse = new double *[fNZBins];  
+#else
   fSource = new float *[fNZBins];  
   fResponse = new float *[fNZBins];  
+#endif
 
   for (Int_t i=0;i<fNZBins;i++){
+
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 10, 4)
+    fSource[i]=new double[fNPhiBins];
+    fResponse[i]=new double[fNPhiBins];
+#else
     fSource[i]=new float[fNPhiBins];
     fResponse[i]=new float[fNPhiBins];
-
+#endif
     for(Int_t j = 0;j<fNPhiBins;j++){
       fResponse[i][j] = 0;
       fSource[i][j] = 0;

@@ -2,6 +2,7 @@
 #define __PHG4TPCCLUSTERIZER_H__
 
 #include <fun4all/SubsysReco.h>
+#include <RVersion.h>
 #include <vector>
 #include <limits.h>
 
@@ -12,7 +13,7 @@ class TStopwatch;
 
 class PHG4TPCClusterizer : public SubsysReco {
  public:
-  PHG4TPCClusterizer(const char *name = "PHG4SvtxClusterizer");
+  PHG4TPCClusterizer(const char *name = "PHG4TPCClusterizer");
   ~PHG4TPCClusterizer();
 
   int Init(PHCompositeNode *topNode) { return 0; }
@@ -80,8 +81,6 @@ class PHG4TPCClusterizer : public SubsysReco {
   bool  fDeconMode;
   float fDCT;
   float fDCL;
-  float **fSource;
-  float **fResponse;
   float _inv_sqrt12;
   float _twopi;
 
@@ -100,7 +99,15 @@ class PHG4TPCClusterizer : public SubsysReco {
   TProfile2D *fHClusterWindowZ;
   TStopwatch *fSW;
   TH1F *fHTime;
-
+#ifndef __CINT__
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6, 10, 4)
+  double **fSource;
+  double **fResponse;
+#else
+  float **fSource;
+  float **fResponse;
+#endif
+#endif
 };
 
 #endif
