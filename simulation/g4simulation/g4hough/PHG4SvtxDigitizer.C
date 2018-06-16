@@ -232,6 +232,9 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
 
 void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
+  unsigned int print_layer = 100; // to suppress diagnostic outpu
+  //unsigned int print_layer = 20;  // to print diagnostic output for layer 20
+
   // This digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
 
   // Modified by ADF June 2018 to do the following:
@@ -397,7 +400,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		  adc_input.push_back(adc_input_voltage + noise_voltage);
 		  adc_cellid.push_back(z_sorted_cells[iz][0]->get_cellid());
 
-		  if(layer == 20) cout << "      for zbin " << iz << " cell edep = " << z_sorted_cells[iz][0]->get_edep() 
+		  if(layer == print_layer) cout << "      for phibin " << iphi << " zbin " << iz << " cell edep = " << z_sorted_cells[iz][0]->get_edep() 
 				       << " adc_input_voltage " << adc_input_voltage 
 				       << " added noise = " << noise 
 				       << " noise voltage " << noise_voltage
@@ -406,14 +409,14 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	      else
 		{
 		  // This z bin does not have a filled cell, add noise
-		  float noise = added_noise();
-		  float noise_voltage = noise * 3.2e-03; // mV
-		  //cout << "      cell edep = 0 " << " added noise = " << noise << endl; 
-		  adc_input.push_back(noise_voltage);
+		  float noise = added_noise();  // returns "electrons"
+		  float noise_voltage = noise * 3.2e-03; // mV - noise "electrons" x conversion gain
+
+		  adc_input.push_back(noise_voltage); // mV
 		  adc_cellid.push_back(0);  // there is no cell, just add a placeholder in the vector for now, replace it later
 		  is_populated[iz] = 2;  // mark as a noise-only  hit
 
-		  if(layer == 20) cout << "      Noise only for zbin " << iz 
+		  if(layer == print_layer) cout << "      Noise only for phibin " << iphi << " zbin " << iz 
 				       << " added noise = " << noise 
 				       << " noise voltage " << noise_voltage
 				       << " total " <<  noise_voltage <<  endl; 
@@ -431,16 +434,17 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // digitize this bin and the following 4 bins
 
-		  if(layer == 20) cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
+		  if(layer == print_layer) cout << "  Above threshold for phibin " << iphi << " iz " << iz << " with adc_input " << adc_input[iz] << endl;
 
 		  for(int izup=0;izup<5; izup++)
 		    {
 		      if(iz+izup < nzbins && iz + izup >= 0)
 			{			  
 			  unsigned int adc_output = (unsigned int) (adc_input[iz+izup] * 1024.0  / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
-			  if (adc_output > 1024) adc_output = 1024;
+			  if(adc_input[iz+izup] < 0) adc_output = 0;
+			  if (adc_output > 1023) adc_output = 1023;
 
-			  if(layer == 20)  cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
+			  if(layer == print_layer)  cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
 						<< "  adc_input "  << adc_input[iz+izup] << " ADCThreshold " << ADCThreshold*3.2e-03 
 						<< " adc_output " << adc_output << endl;
 			  
@@ -448,15 +452,17 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			    {
 			      // This is a noise-only hit, so there is no cell
 			      // since it is digitized, we will make a hit for it
-			      // first, we have to add a cell for it so things don't break downstream
+			      // but first, we have to add a cell for it, so things don't break downstream
 
 			      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(layer, iz+izup, iphi);
 			      PHG4Cell *cell = new PHG4Cellv2(akey);
 
 			      cell->add_edep(adc_input[iz+izup] / 7.68e-03);  //convert from voltage back to electrons for consistency 
 			      adc_cellid[iz+izup]=cell->get_cellid();
-			      if(layer == 20)  cout << " noise hit for zbin " << iz+izup << " created new cell with cellid " << cell->get_cellid() << endl; 
-
+			      if(layer == print_layer)  cout << " will digitize noise hit for iphi " << iphi << " zbin " << iz+izup 
+							     << " created new cell with cellid " << cell->get_cellid() 
+							     << " adc_input " << adc_input[iz+izup] << " edep " << cell->get_edep() << endl; 
+			      
 			      cells->AddCell(cell);
 			    }
 
@@ -469,10 +475,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
 
-			  if(layer == 20)   cout << "Added hit for phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
-				 << " zbin " << iz+izup << " with cellid " << hit.get_cellid() 
-				 << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
-				 << endl;
+			  if(layer == print_layer)   cout << "Added hit for iphi " << iphi << " phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
+						 << " zbin " << iz+izup << " with cellid " << hit.get_cellid() 
+						 << " adc_input " << adc_input[iz+izup] << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
+						 << endl;
 		 			  
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
 			  if (!ptr->isValid()) 
@@ -508,15 +514,17 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // digitize this bin and the following 4 bins
 
-		  if(layer == 20) cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
+		  if(layer == print_layer) cout << "  Above threshold for iz " << iz << " with adc_input " << adc_input[iz] << endl;
 		  for(int izup=0;izup<5; izup++)
 		    {
 		      if(iz-izup < nzbins && iz - izup >= 0)
 			{			  
-			  unsigned int adc_output = (adc_input[iz-izup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
-			  if (adc_output > 1024) adc_output = 1024;
 
-			  if(layer == 20)  cout << "    iz-izup " << iz-izup << " adc_cellid " << adc_cellid[iz-izup] 
+			  unsigned int adc_output = (unsigned int) (adc_input[iz-izup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+			  if(adc_input[iz-izup] < 0) adc_output = 0;
+			  if (adc_output > 1023) adc_output = 1023;
+
+			  if(layer == print_layer)  cout << "    iz-izup " << iz-izup << " adc_cellid " << adc_cellid[iz-izup] 
 						<< "  adc_input "  << adc_input[iz-izup] << " ADCThreshold " << ADCThreshold*3.2e-03 
 						<< " adc_output " << adc_output << endl;
 
@@ -531,7 +539,9 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
 			      cell->add_edep(adc_input[iz-izup] / 7.68e-03);  //convert from voltage back to electrons for consistency 
 			      adc_cellid[iz-izup]=cell->get_cellid();
-			      if(layer == 20)  cout  << " noise hit for zbin " << iz-izup << " created new cell with cellid " << cell->get_cellid() << endl; 
+			      if(layer == print_layer)  cout  << " will digitize noise hit for iphi " << iphi << " zbin " << iz-izup 
+							      << " created new cell with cellid " << cell->get_cellid() 
+							      << " edep " << cell->get_edep() << endl; 
 			      
 			      cells->AddCell(cell);
 			    }
@@ -545,10 +555,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
 
-			  if(layer == 20)  cout << "Added hit for phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
-				 << " zbin " << iz-izup << " with cellid " << hit.get_cellid() 
-				 << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
-				 << endl;
+			  if(layer == print_layer)  cout << "Added hit for iphi " << iphi << " phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
+						<< " zbin " << iz-izup << " with cellid " << hit.get_cellid() 
+						<< " adc_input " << adc_input[iz-izup] << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
+						<< endl;
 			  
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
 			  if (!ptr->isValid()) 
