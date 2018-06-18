@@ -40,16 +40,12 @@ class DetermineTowerBackground : public SubsysReco
   void SetBackgroundOutputName( std::string name );
   void SetSeedType( int seed_type );
   
+  void SetSeedJetD( float D ) { _seed_jet_D = D; };
+  void SetSeedJetPt( float pt ) { _seed_jet_pt = pt; };
+
  private:
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
-
-  float _seed_jet_D;
-  float _seed_jet_pt;
-
-  void set_seed_jet_D( float D ) { _seed_jet_D = D; };
-  void set_seed_jet_pt( float pt ) { _seed_jet_pt = pt; };
-
 
   float _v2[3];
   float _Psi2[3];
@@ -65,6 +61,8 @@ class DetermineTowerBackground : public SubsysReco
   std::string _backgroundName;
 
   int _seed_type;
+  float _seed_jet_D;
+  float _seed_jet_pt;
 
   std::vector<float> _seed_eta;
   std::vector<float> _seed_phi;
