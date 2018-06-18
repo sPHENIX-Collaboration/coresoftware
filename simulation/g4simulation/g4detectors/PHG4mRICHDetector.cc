@@ -90,17 +90,27 @@ int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
   int subsystemSetup =params->get_int_param("subsystemSetup");
-  //-1 : single module
-  //0  : hemispheric wall
-  //>0 : number of sectors
+  // -1: single module
+  //  0: h-side sectors and e-side wall
+  //  1: h-side sectors
+  //  2: e-side wall
+  //  3: h-side wall
+  //  4: h-side wall and e-side wall
 
-  if (subsystemSetup==-1) Construct_a_mRICH(logicWorld);
-  else if (subsystemSetup)
+  if(subsystemSetup == -1) Construct_a_mRICH(logicWorld);
+  if(subsystemSetup == 0)
   {
-    build_mRICH_sector(logicWorld,subsystemSetup);
+    build_mRICH_sector(logicWorld,8);
     build_mRICH_wall_eside(logicWorld);
   }
-  if(subsystemSetup == 0) build_mRICH_wall_hside(logicWorld);
+  if(subsystemSetup == 1) build_mRICH_sector(logicWorld,8);
+  if(subsystemSetup == 2) build_mRICH_wall_eside(logicWorld);
+  if(subsystemSetup == 3) build_mRICH_wall_hside(logicWorld);
+  if(subsystemSetup == 4) 
+  {
+    build_mRICH_wall_hside(logicWorld);
+    build_mRICH_wall_eside(logicWorld);
+  }
 }
 //_______________________________________________________________
 G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld)//, int detectorSetup )
