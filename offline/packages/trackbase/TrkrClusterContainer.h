@@ -1,14 +1,25 @@
+/**
+ * @file trackbase/TrkrClusterContainer.h
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Cluster container object
+ */
 #ifndef TRACKBASE_TRKRCLUSTERCONTAINER_H
 #define TRACKBASE_TRKRCLUSTERCONTAINER_H
 
 #include "TrkrCluster.h"
-#include "TrkrDefUtil.h"
+#include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
 #include <map>
 #include <set>
 
+/**
+ * @brief Cluster container object
+ *
+ * Container for TrkrCluster objects
+ */
 class TrkrClusterContainer : public PHObject
 {
  public:
