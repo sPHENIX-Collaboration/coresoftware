@@ -61,6 +61,16 @@ class PHG4mRICHDetector: public PHG4Detector
     INACTIVE = -100
   };
 
+  enum DetectorSetUp
+  {
+    kSingle_Modular = -1,
+    kHSector_EWall = 0,
+    kHSector = 1,
+    kEWall = 2,
+    kHWall = 3,
+    kHWall_EWall = 4
+  };
+
  private:
   class mRichParameter;
   class BoxPar;

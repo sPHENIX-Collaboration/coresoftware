@@ -97,16 +97,16 @@ void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
   //  3: h-side wall
   //  4: h-side wall and e-side wall
 
-  if(subsystemSetup == -1) Construct_a_mRICH(logicWorld);
-  if(subsystemSetup == 0)
+  if(subsystemSetup == DetectorSetUp::kSingle_Modular) Construct_a_mRICH(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kHSector_EWall)
   {
     build_mRICH_sector(logicWorld,8);
     build_mRICH_wall_eside(logicWorld);
   }
-  if(subsystemSetup == 1) build_mRICH_sector(logicWorld,8);
-  if(subsystemSetup == 2) build_mRICH_wall_eside(logicWorld);
-  if(subsystemSetup == 3) build_mRICH_wall_hside(logicWorld);
-  if(subsystemSetup == 4) 
+  if(subsystemSetup == DetectorSetUp::kHSector) build_mRICH_sector(logicWorld,8);
+  if(subsystemSetup == DetectorSetUp::kEWall) build_mRICH_wall_eside(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kHWall) build_mRICH_wall_hside(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kHWall_EWall) 
   {
     build_mRICH_wall_hside(logicWorld);
     build_mRICH_wall_eside(logicWorld);
