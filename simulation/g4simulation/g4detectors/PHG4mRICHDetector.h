@@ -61,6 +61,16 @@ class PHG4mRICHDetector: public PHG4Detector
     INACTIVE = -100
   };
 
+  enum DetectorSetUp
+  {
+    kSingle_Modular = -1,
+    kHSector_EWall = 0,
+    kHSector = 1,
+    kEWall = 2,
+    kHWall = 3,
+    kHWall_EWall = 4
+  };
+
  private:
   class mRichParameter;
   class BoxPar;
@@ -80,7 +90,8 @@ class PHG4mRICHDetector: public PHG4Detector
   void build_mirror(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
   void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
 
-  void build_mRICH_wall(G4LogicalVolume* space);
+  void build_mRICH_wall_hside(G4LogicalVolume* space);
+  void build_mRICH_wall_eside(G4LogicalVolume* space);
   void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
   
   int layer;
