@@ -31,8 +31,8 @@ using namespace std;
 PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   SubsysReco(name),
   TPCMinLayer(7),
-  ADCThreshold(2000),
-  TPCEnc(500),
+  ADCThreshold(2700),
+  TPCEnc(670),
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
@@ -232,11 +232,12 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
 
 void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
-  unsigned int print_layer = 100; // to suppress diagnostic outpu
+  unsigned int print_layer = 100; // to suppress diagnostic output
   //unsigned int print_layer = 20;  // to print diagnostic output for layer 20
 
-  // This digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
+  // Digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
 
+  // NOTES:
   // Modified by ADF June 2018 to do the following:
   //   Add noise to cells before digitizing
   //   Digitize the first adc time bin to exceed the threshold, and the 4 bins after that
@@ -249,33 +250,37 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
   // SAMPA:
   // See https://indico.cern.ch/event/489996/timetable/#all.detailed "SAMPA Chip: the New ASIC for the ALICE TPC and MCH Upgrades", M Bregant
-  // The SAMPA has a maximum output voltage of 2.2 V (but the pedestal is about 200 mV)
+  // The SAMPA has a maximum output voltage of 2200 mV (but the pedestal is about 200 mV)
   // The SAMPA shaper is set to 80 ns peaking time
   // The ADC Digitizes the SAMPA shaper output into 1024 channels
   // Conversion gains of 20 mV/fC or 30 mV/fC are possible - 1 fC charge input produces a peak volatge out of the shaper of 20 or 30 mV
   //   At 30 mV/fC, the input signal saturates at 2.2 V / 30 mV/fC = 73 fC (say 67 with pedestal not at zero)
   //   At 20 mV/fC, the input signal saturates at 2.2 V / 20 mV/fC = 110 fC (say 100 fC with pedestal not at zero) - assume 20 mV/fC
   // The equivalent noise charge RMS at 20 mV/fC was measured (w/o detector capacitance) at 490 electrons
+  //      - note: this appears to be just the pedestal RMS voltage spread divided by the conversion gain, so it is a bit of a funny number (see below)
+  //      - it is better to think of noise and signal in terms of voltage at the input of the ADC
   // Bregant's slides say 670 electrons ENC for the full chip with 18 pf detector, as in ALICE - should use that number
 
   // Signal:
-  // To normalize the signal in each cell, take the entire charge on the pad and multiply by 20 mV/fC to get the adc input at the peak
-  // The cell contents should then be multipied by the normalization given by:
+  // To normalize the signal in each cell, take the entire charge on the pad and multiply by 20 mV/fC to get the adc input AT THE PEAK of the shaper
+  // The cell contents should thus be multipied by the normalization given by:
   // V_peak = Q_pad (electrons) * 1.6e-04 fC/electron * 20 mV/fC 
-  // From the sims, for 80 ns and 18.8 MHz, the values of Q_(pad,z) have to be scaled up by 2.4 for the peak voltage to come out right
+  // From the sims, for 80 ns and 18.8 MHz, if we take the input charge and spread it a across the shaping time (which is how it has always been done, and is
+  // not the best way to think about it, because the ADC does not see charge it sees voltage out of a charge integrating preamp followed by a shaper), to get 
+  // the voltage at the ADC input right then the values of Q_(pad,z) have to be scaled up by 2.4
   // V_(pad,z) = 2.4 * Q_(pad,z) (electrons) * 1.6e-04 fC/electron * 20 mV/fC = Q_(pad,z) * 7.68e-03 (in mV)
   // ADU_(pad,z) = V_(pad,z) * (1024 ADU / 2200 mV) = V_(pad,z) * 0.465
 
   // Noise:
-  // The ENC is the spread of the ADC distribution coming out from the SAMPA divided by the corresponding gain. 
+  // The ENC is defined as the RMS spread of the ADC pedestal distribution coming out from the SAMPA divided by the corresponding conversion gain. 
   // The full range of the ADC input is 2.2V (which will become 1024 adc counts, i.e. 1024 ADU's). 
-  // FRom Takao: If you saw the RMS of pedestal in adc counts as 1 at the gain of 20mV/fC, the ENC would be defined by:
+  // If you see the RMS of the pedestal in adc counts as 1 at the gain of 20mV/fC, the ENC would be defined by:
   //             (2200 [mV]) * (1/1024) / (20[mV/fC]) / (1.6*10^-4 [fC]) = 671 [electrons]
   // The RMS noise voltage would be: V_RMS = ENC (electrons) *1.6e-04 fC/electron * 20 mV/fC = ENC (electrons) * 3.2e-03 (in mV)
   // The ADC readout would be:  ADU = V_RMS * (1024 ADU / 2200 mV) = V_RMS * 0.465
   
   // The cells that we need to digitize here contain as the energy "edep", which is the number of electrons out of the GEM stack
-  // distributed over the pads and ADC time bins according to the output time distribution of the SAMPA shaper 
+  // distributed over the pads and ADC time bins according to the output time distribution of the SAMPA shaper - not what really happens, see above
   // We convert to volts at the input to the ADC and add noise generated with the RMS value of the noise voltage at the ADC input  
   // We assume the pedestal is zero, for simplicity, so the noise fluctuates above and below zero
 
@@ -296,8 +301,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
   if (!cells) return; 
 
   // sort the cells by layer
-  // make an empty vector of vectors of cells for each layer
-  //std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
+  // start with an empty vector of vectors of cells for each layer
   layer_sorted_cells.clear();
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -361,9 +365,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	  if( phi_sorted_cells[iphi].size() == 0)
 	    continue;
  
-	  //unsigned int phibin = PHG4CellDefs::SizeBinning::get_phibin(phi_sorted_cells[iphi][0]->get_cellid());	  
-	  //cout << "  For phibin " << iphi << " actual bin " << phibin << " phi_sorted_cells has length " << phi_sorted_cells[iphi].size() << endl;
-
 	  // Populate a vector of cells ordered by Z for each phibin    
 	  int nzbins = layeriter->second->get_zbins();
 	  is_populated.clear();
@@ -386,7 +387,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	  adc_cellid.clear(); 
 	  // Now for this phibin we process the cells ordered by Z bin into hits with noise
 	  //======================================================
-	  // For this step we take the edep value and convert it to mV at the ADC input because it is easier to think about!
+	  // For this step we take the edep value and convert it to mV at the ADC input
 	  // See comments above for how to do this for signal and noise
 	  for(int iz=0;iz<nzbins;iz++)
 	    {    
@@ -394,17 +395,11 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // This zbin has a filled cell, add noise
 		  float noise = added_noise();  // in electrons
-		  float noise_voltage = noise * 3.2e-03;  // mV
+		  float noise_voltage = noise * 3.2e-03;  // mV - from definition of noise charge
 		  float adc_input_voltage = z_sorted_cells[iz][0]->get_edep() * 7.68e-03;  // mV, see comments above
 
 		  adc_input.push_back(adc_input_voltage + noise_voltage);
 		  adc_cellid.push_back(z_sorted_cells[iz][0]->get_cellid());
-
-		  if(layer == print_layer) cout << "      for phibin " << iphi << " zbin " << iz << " cell edep = " << z_sorted_cells[iz][0]->get_edep() 
-				       << " adc_input_voltage " << adc_input_voltage 
-				       << " added noise = " << noise 
-				       << " noise voltage " << noise_voltage
-				       << " total " <<  adc_input_voltage + noise_voltage <<  endl; 
 		}
 	      else
 		{
@@ -415,17 +410,14 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		  adc_input.push_back(noise_voltage); // mV
 		  adc_cellid.push_back(0);  // there is no cell, just add a placeholder in the vector for now, replace it later
 		  is_populated[iz] = 2;  // mark as a noise-only  hit
-
-		  if(layer == print_layer) cout << "      Noise only for phibin " << iphi << " zbin " << iz 
-				       << " added noise = " << noise 
-				       << " noise voltage " << noise_voltage
-				       << " total " <<  noise_voltage <<  endl; 
 		}
 	    }
 	  
           // Now we can digitize the stream of z bins 
-	  int binpointer = 0;
+
 	  // start with negative z, the first to arrive is bin 0
+	  //================================
+	  int binpointer = 0;
 	  for(int iz=0;iz<nzbins/2;iz++)
 	    {
 	      if(iz < binpointer) continue;
@@ -459,6 +451,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
 			      cell->add_edep(adc_input[iz+izup] / 7.68e-03);  //convert from voltage back to electrons for consistency 
 			      adc_cellid[iz+izup]=cell->get_cellid();
+
 			      if(layer == print_layer)  cout << " will digitize noise hit for iphi " << iphi << " zbin " << iz+izup 
 							     << " created new cell with cellid " << cell->get_cellid() 
 							     << " adc_input " << adc_input[iz+izup] << " edep " << cell->get_edep() << endl; 
@@ -505,6 +498,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	    } // end iz loop
 
 	  // now positive z, the first to arrive is bin 497
+	  //===============================
 	  binpointer = nzbins-1;
 	  for(int iz=nzbins-1;iz>=nzbins/2;iz--)
 	    {
