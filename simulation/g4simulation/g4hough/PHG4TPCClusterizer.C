@@ -60,7 +60,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fFitRangeZ(1),
   fFitRangeMP(1),
   fFitRangeMZ(1),
-  fFitEnergyThreshold(0.01),
+  fClusterCut(20), 
+  fPedestal(74.4),
   fFitSizeP(0.0),
   fFitSizeZ(0),
   fShapingLead(32.0*6.0/1000.0),
@@ -357,7 +358,6 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
   for(int ip=0; ip<=fFitRangeP; ++ip) {
     int cp = wrap_phibin(phibin + ip);
     int bin = zbin * fNPhiBins + cp;
-    //if(fAmps[bin] < fFitEnergyThreshold*peak){
     if(fAmps[bin] == 0){
       phiup = ip;
       break; // skip small (include empty)
@@ -375,7 +375,6 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
   for(int ip=0; ip<=fFitRangeP; ++ip) {
     int cp = wrap_phibin(phibin - ip);
     int bin = zbin * fNPhiBins + cp;
-    //if(fAmps[bin] < fFitEnergyThreshold*peak){
     if(fAmps[bin] == 0){
       phidown = ip;
       break; // skip small (include empty)
@@ -414,7 +413,6 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
       int bin1 = (cz+1) * fNPhiBins + cp;
       int bin2 = (cz+2) * fNPhiBins + cp;
       int bin3 = (cz+3) * fNPhiBins + cp;
-      //if(fAmps[bin] < fFitEnergyThreshold*peak) {
       if(fAmps[bin] == 0) {
 	zup = iz;
 	if(verbosity > 1000) cout << " failed threshold cut, set izup to " << zup << endl;
@@ -443,7 +441,6 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
       int bin1 = (cz-1) * fNPhiBins + cp;
       int bin2 = (cz-2) * fNPhiBins + cp;
       int bin3 = (cz-3) * fNPhiBins + cp;
-      //if(fAmps[bin] < fFitEnergyThreshold*peak) {
       if(fAmps[bin] == 0) {
 	zdown = iz;
 	if(verbosity > 1000) cout << " failed threshold cut, set izdown to " << zdown << endl;
@@ -528,7 +525,6 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
 	std::cout << Form("%.2f | ",fAmps[bin]);
 	if(ip==fFitRangeP) std::cout << std::endl;
       }
-      //if(fAmps[bin] < fFitEnergyThreshold*peak) continue; // skip small (include empty)
       if(fAmps[bin] == 0) continue; // skip small (include empty)
       used = true;
       nphis++;
@@ -685,8 +681,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());//cell->get_binz();
       if(verbosity>0) std::cout << " phibin " << phibin << " zbin " << zbin << " z " << fGeoLayer->get_zcenter( zbin ) << " energy " << hit->get_e() << std::endl;
       fNHitsPerZ[zbin] += 1;
-      //fAmps[zbin * fNPhiBins + phibin] += hit->get_e();
-      fAmps[zbin * fNPhiBins + phibin] += hit->get_adc();
+      fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
+      if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
     }
     if(fDeconMode){
@@ -730,11 +726,11 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 		 << endl;
 	  }
           fit(phibin,zbin,nhits_tot);
-          //if(fFitW/2000 < fEnergyCut) continue; // ignore this cluster
+          if(fFitW < fClusterCut) continue; // ignore this cluster
           SvtxCluster_v1 clus;
           clus.set_layer(layer);
-          //clus.set_e( fFitW/2000 );
-	  clus.set_e( fFitW);
+ 	  clus.set_e( fFitW);
+ 	  clus.set_adc( fFitW);
 	  float phi = fit_p_mean();
 	  float pp = radius*phi;
 	  float zz = fit_z_mean();
@@ -751,7 +747,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW*0.14) );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW*0.14) );
-	  if(layer == 20) cout << " number of primary electrons = " << fFitW * 0.14 << endl;
+	  //if(layer == 20) cout << " number of primary electrons = " << fFitW * 0.14 << endl;
 	  //float rr_err = fGeoLayer->get_thickness() * _inv_sqrt12;
 	  //float sinphi = TMath::Sin(phi);
 	  //float cosphi = TMath::Cos(phi);

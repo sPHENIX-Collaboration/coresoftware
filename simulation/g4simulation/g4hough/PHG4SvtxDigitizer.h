@@ -59,6 +59,7 @@ class PHG4SvtxDigitizer : public SubsysReco
   unsigned int TPCMinLayer;  
   float ADCThreshold;
   float TPCEnc;
+  float Pedestal;
 
   std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
   std::vector< std::vector<const PHG4Cell*>  > phi_sorted_cells;
