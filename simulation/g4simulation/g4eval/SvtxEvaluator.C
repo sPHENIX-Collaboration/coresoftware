@@ -85,13 +85,13 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
                                                  "event:vx:vy:vz:ntracks:"
                                                  "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
                                                  "gnembed:nfromtruth:"
-						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_gpoint_eval) _ntp_gpoint = new TNtuple("ntp_gpoint","g4point => best vertex",
 						 "event:gvx:gvy:gvz:gvt:gntracks:gembed:"
 						 "vx:vy:vz:ntracks:"
 						 "nfromtruth:"
-						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+						 "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
   
   if (_do_g4hit_eval) _ntp_g4hit = new TNtuple("ntp_g4hit","g4hit => best svtxcluster",
 					       "event:g4hitID:gx:gy:gz:gt:gedep:geta:gphi:"
@@ -103,7 +103,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 					       "gembed:gprimary:nclusters:"
 					       "clusID:x:y:z:eta:phi:e:adc:layer:size:"
 					       "phisize:zsize:efromtruth:dphitru:detatru:dztru:drtru:"
-					       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+					       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_hit_eval) _ntp_hit = new TNtuple("ntp_hit","svtxhit => max truth",
 					   "event:hitID:e:adc:layer:"
@@ -113,7 +113,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 					   "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
 					   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 					   "gembed:gprimary:efromtruth:"
-					   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+					   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_cluster_eval) _ntp_cluster = new TNtuple("ntp_cluster","svtxcluster => max truth",
 						   "event:hitID:x:y:z:r:phi:eta:ex:ey:ez:ephi:"
@@ -123,7 +123,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						   "gpx:gpy:gpz:gvx:gvy:gvz:gvt:"
 						   "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 						   "gembed:gprimary:efromtruth:nparticles:"
-						   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+						   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_gtrack_eval) _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
 						  "event:gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnlmaps:gnlintt:gnltpc:"
@@ -134,7 +134,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						  "trackID:px:py:pz:pt:eta:phi:"
 						  "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nlmaps:nlintt:nltpc:"
 						  "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:layersfromtruth:"
-						  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+						  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
   
   if (_do_track_eval) _ntp_track = new TNtuple("ntp_track","svtxtrack => max truth",
 					       "event:trackID:px:py:pz:pt:eta:phi:charge:"
@@ -149,7 +149,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 					       "gvx:gvy:gvz:gvt:"
 					       "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
 					       "gembed:gprimary:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:layersfromtruth:"
-					       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+					       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_gseed_eval) _ntp_gseed = new TNtuple("ntp_gseed","seeds from truth",
 					       "event:ntrk:gx:gy:gz:gr:geta:gphi:"
@@ -158,7 +158,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 					       "gvx:gvy:gvz:"
 					       "gembed:gprimary:gflav:"
 					       "dphiprev:detaprev:"
-					       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout");
+					       "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   _timer = new PHTimer("_eval_timer");
   _timer->stop();
@@ -598,6 +598,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   float nhit_tpc_in  = 0;
   float nhit_tpc_mid = 0;
   float nhit_tpc_out = 0;
+  float nclus_all = 0;
+  float nclus_tpc = 0;
+  float nclus_intt = 0;
+  float nclus_maps = 0;
 
   SvtxHitMap* hitmap_in = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
   if (hitmap_in) {
@@ -613,10 +617,40 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     }
   }
 
-
+  SvtxClusterMap* clustermap_in = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
+  nclus_all = clustermap_in->size();
+  for (SvtxClusterMap::Iter iter_cin = clustermap_in->begin();
+	   iter_cin != clustermap_in->end();
+	   ++iter_cin) {
+    
+    SvtxCluster* cluster     = iter_cin->second;   
+    float layer    = cluster->get_layer();
+    if(_nlayers_maps>0)
+      if(layer<_nlayers_maps) nclus_maps++;
+    if(_nlayers_intt>0)
+      if(layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt) nclus_intt++;
+    if(_nlayers_tpc>0)
+      if(layer>=_nlayers_maps+_nlayers_intt) nclus_tpc++;
+  }
+  float gntracks   = 0;
   //-----------------------
   // fill the Vertex NTuple
   //-----------------------
+  //HERE
+
+  PHG4TruthInfoContainer* truthinfo_in = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+
+  PHG4TruthInfoContainer::ConstRange range_in = truthinfo_in->GetPrimaryParticleRange();
+  for (PHG4TruthInfoContainer::ConstIterator iter = range_in.first;
+       iter != range_in.second; 
+       ++iter) {
+	
+	PHG4Particle* g4particle = iter->second;
+	std::set<SvtxCluster*> g4clusters = clustereval->all_clusters_from(g4particle);    
+	float ng4hits = g4clusters.size();
+	if(ng4hits>10)
+	  gntracks++;
+      }
 
   if (_ntp_vertex) {
     if (Verbosity() > 0){
@@ -749,7 +783,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
         float gvz        = NAN;
         float gvt        = NAN;
         float gembed     = NAN;
-        float gntracks   = truthinfo->GetNumPrimaryVertexParticles();
+        //float gntracks   = truthinfo->size();
         float gntracksmaps = NAN;
         float gnembed    = NAN;
         float nfromtruth = NAN;
@@ -761,7 +795,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
           gvz        = point->get_z();
           gvt        = point->get_t();
           gembed     = truthinfo->isEmbededVtx(point_id);
-          gntracks   = embedvtxid_particle_count[(int)gembed];
+	  // gntracks   = embedvtxid_particle_count[(int)gembed];
           if (embedvtxid_maps_particle_count[(int)gembed]>0 && fabs(gvt)<2000.&& fabs(gvz)<13.0)
           gntracksmaps = embedvtxid_maps_particle_count[(int)gembed];
           gnembed    = (float) ngembed;
@@ -769,7 +803,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
           embedvtxid_found[(int)gembed]= true;
 	}
 	  
-        float vertex_data[18] = {(float) _ievent,
+        float vertex_data[] = {(float) _ievent,
                                  vx,
                                  vy,
                                  vz,
@@ -786,7 +820,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 nhit_tpc_all,
 				 nhit_tpc_in,
 				 nhit_tpc_mid,
-				 nhit_tpc_out
+				 nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	};
 	      
 	_ntp_vertex->Fill(vertex_data);      
@@ -809,7 +843,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
         float gvz        = NAN;
         float gvt        = NAN;
         float gembed     = iter->first;
-        float gntracks   = NAN;
+        //float gntracks   = truthinfo->size();
         float gntracksmaps = NAN;
         float gnembed    = NAN;
         float nfromtruth = NAN;
@@ -823,14 +857,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
         gvz        = point->get_z();
         gvt        = point->get_t();
         gembed     = truthinfo->isEmbededVtx(point_id);
-        gntracks   = embedvtxid_particle_count[(int)gembed];
+        //gntracks   = embedvtxid_particle_count[(int)gembed];
         if (embedvtxid_maps_particle_count[(int)gembed]>0 && fabs(gvt)<2000&& fabs(gvz)<13.0)
         gntracksmaps = embedvtxid_maps_particle_count[(int)gembed];
         gnembed    = (float) ngembed;
 //        nfromtruth = vertexeval->get_ntracks_contribution(vertex,point);
         }
 
-        float vertex_data[18] = {(float) _ievent,
+        float vertex_data[] = {(float) _ievent,
                                  vx,
                                  vy,
                                  vz,
@@ -847,7 +881,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 nhit_tpc_all,
 				 nhit_tpc_in,
 				 nhit_tpc_mid,
-				 nhit_tpc_out
+				 nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
         };
 
         _ntp_vertex->Fill(vertex_data);
@@ -935,7 +969,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 nhit_tpc_all,
 				 nhit_tpc_in,
 				 nhit_tpc_mid,
-				 nhit_tpc_out};
+				 nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps};
 	  
           _ntp_gpoint->Fill(gpoint_data);
         }
@@ -1080,7 +1114,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
       }
 
-      float g4hit_data[50] = {(float) _ievent,
+      float g4hit_data[] = {(float) _ievent,
 			      g4hitID,
 			      gx,
 			      gy,
@@ -1129,7 +1163,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			      nhit_tpc_all,
 			      nhit_tpc_in,
 			      nhit_tpc_mid,
-			      nhit_tpc_out
+			      nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
       };
 
       _ntp_g4hit->Fill(g4hit_data);
@@ -1263,7 +1297,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  efromtruth = hiteval->get_energy_contribution(hit,g4particle);
 	}
 
-	float hit_data[40] = {
+	float hit_data[] = {
 	  event,
 	  hitID,
 	  e,
@@ -1302,7 +1336,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  nhit_tpc_all,
 	  nhit_tpc_in,
 	  nhit_tpc_mid,
-	  nhit_tpc_out
+	  nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	};
 	  
 	_ntp_hit->Fill(hit_data);     
@@ -1563,7 +1597,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	}
 	
 	float nparticles = clustereval->all_truth_particles(cluster).size();
-	float cluster_data[50] = {(float) _ievent,
+	float cluster_data[] = {(float) _ievent,
 				  hitID,
 				  x,
 				  y,
@@ -1612,7 +1646,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  nhit_tpc_all,
 				  nhit_tpc_in,
 				  nhit_tpc_mid,
-				  nhit_tpc_out
+				  nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	};
 
 	_ntp_cluster->Fill(cluster_data);
@@ -1744,7 +1778,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 	  float nparticles = clustereval->all_truth_particles(cluster).size();
 
-	  float cluster_data[46] = {(float) _ievent,
+	  float cluster_data[] = {(float) _ievent,
 				    hitID,
 				    x,
 				    y,
@@ -1789,7 +1823,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				    nhit_tpc_all,
 				    nhit_tpc_in,
 				    nhit_tpc_mid,
-				    nhit_tpc_out
+				    nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	  };
 
 	  _ntp_cluster->Fill(cluster_data);
@@ -2028,7 +2062,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track,g4particle);
 	  }
 	}
-	float gtrack_data[66] = {(float) _ievent,
+	float gtrack_data[] = {(float) _ievent,
 				 gtrackID,
 				 gflavor,
 				 ng4hits,
@@ -2093,7 +2127,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 nhit_tpc_all,
 				 nhit_tpc_in,
 				 nhit_tpc_mid,
-				 nhit_tpc_out
+				 nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	};
 
 	/*
@@ -2341,7 +2375,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  }
 	}
       
-	float track_data[82] = {(float) _ievent,
+	float track_data[] = {(float) _ievent,
 				trackID, 
 				px,        
 				py,        
@@ -2416,7 +2450,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				nhit_tpc_all,
 				nhit_tpc_in,
 				nhit_tpc_mid,
-				nhit_tpc_out
+				nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	};
 
 	/*
@@ -2544,7 +2578,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  
 	
 	  
-	  float gseed_data[30] = {(float) _ievent,
+	  float gseed_data[] = {(float) _ievent,
 				  ntrk,
 				  gx,
 				  gy,
@@ -2570,7 +2604,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				  nhit_tpc_all,
 				  nhit_tpc_in,
 				  nhit_tpc_mid,
-				  nhit_tpc_out
+				  nhit_tpc_out,nclus_all, nclus_tpc, nclus_intt, nclus_maps
 	  };
 
 	  
