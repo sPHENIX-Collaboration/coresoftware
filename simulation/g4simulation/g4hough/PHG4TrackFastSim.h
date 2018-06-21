@@ -136,6 +136,17 @@ public:
 	void set_phg4hits_names(const std::vector<std::string>& phg4hitsNames) {
 		_phg4hits_names = phg4hitsNames;
 		_N_DETECTOR_LAYER = _phg4hits_names.size();
+		_phg4_detector_type.push_back(_detector_type);
+	}
+
+	void set_phg4hits_names(const std::string* phg4hitsNames,
+				const DETECTOR_TYPE* phg4dettype, const int nlayer) {
+		_phg4hits_names.clear();
+		for(int i=0;i<nlayer;++i) {
+			_phg4hits_names.push_back(phg4hitsNames[i]);
+			_phg4_detector_type.push_back(phg4dettype[i]);
+		}
+		_N_DETECTOR_LAYER = _phg4hits_names.size();
 	}
 
 	void set_phg4hits_names(const std::string* phg4hitsNames, const int nlayer) {
@@ -264,6 +275,7 @@ private:
 
 	std::vector<PHG4HitContainer*> _phg4hits;
 	std::vector<std::string> _phg4hits_names;
+	std::vector<DETECTOR_TYPE> _phg4_detector_type;
 
 	//! Output Node pointers
 

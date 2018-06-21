@@ -172,10 +172,10 @@ int PHG4TrackFastSim::End(PHCompositeNode *topNode) {
 
 int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 
-	_event++;
+  _event++;
 
 	if (verbosity >= 2)
-		std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
+	  std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
 
 	GetNodes(topNode);
 
@@ -187,10 +187,10 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 //	}
 
 	if (_trackmap_out)
-		_trackmap_out->empty();
+	  _trackmap_out->empty();
 	else {
-		LogError("_trackmap_out not found!");
-		return Fun4AllReturnCodes::ABORTRUN;
+	  LogError("_trackmap_out not found!");
+	  return Fun4AllReturnCodes::ABORTRUN;
 	}
 
 	vector<PHGenFit::Track*> rf_tracks;
@@ -452,6 +452,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 			continue;
 		}
 
+		int dettype = _phg4_detector_type[ilayer];
 #if _DEBUG_MODE_ == 1
 		std::cout<<"DEBUG: ilayer: " << ilayer <<"; nsublayers: " <<_phg4hits[ilayer]->num_layers() <<" \n";
 #endif
@@ -479,11 +480,11 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 
 					if (gRandom->Uniform(0, 1) <= _pat_rec_hit_finding_eff) {
 					  PHGenFit::Measurement* meas = NULL;
-					  if (_detector_type == Vertical_Plane){
+					  if (dettype == Vertical_Plane){
 					    meas = PHG4HitToMeasurementVerticalPlane(hit,
 										     _phi_resolution, _r_resolution);
 					  }
-					  else if (_detector_type == Cylinder){
+					  else if (dettype == Cylinder){
 					    meas = PHG4HitToMeasurementCylinder(hit,
 										_phi_resolution, _z_resolution);
 					  }
