@@ -64,6 +64,8 @@ namespace genfit {
 class GFRaveVertexFactory;
 } /* namespace genfit */
 
+typedef std::multimap<float, unsigned int> PhiIdMap;
+
 /// \class PHG4KalmanPatRec
 ///
 /// \brief A fun4all implementation of Alan's Hough Transform
@@ -618,6 +620,9 @@ private:
 	/// code to translate into the HelixHough universe
 	int translate_input();
 
+	/// Combinatorial seeding
+	int combi_seeding();
+
 	/// code to combine seed tracking vertex with BBCZ if available
 	int fast_composite_seed();
 
@@ -725,9 +730,14 @@ private:
 
 	int _event;
 	PHTimer *_t_seeding;
+	PHTimer *_t_seeding1;
+	PHTimer *_t_seeding2;
+	PHTimer *_t_seeding3;
 	PHTimer *_t_seed_init1;
 	PHTimer *_t_seed_init2;
 	PHTimer *_t_seed_init3;
+	PHTimer *_t_seeds_hough;
+	PHTimer *_t_seeds_final;
 	PHTimer *_t_seeds_cleanup;
 	PHTimer *_t_translate_to_PHGenFitTrack;
 	PHTimer *_t_translate1;
@@ -738,6 +748,8 @@ private:
 	PHTimer *_t_search_clusters_encoding;
 	PHTimer *_t_search_clusters_map_iter;
 	PHTimer *_t_track_propagation;
+	PHTimer *_t_track_prop_tot;
+	PHTimer *_t_track_clean;
 	PHTimer *_t_full_fitting;
 	PHTimer *_t_output_io;
 
@@ -903,6 +915,12 @@ private:
 
 	unsigned int _min_good_track_hits;
 
+	//	typedef multimap<float, unsigned int> PhiIdMap;
+	//	typedef multimap<float, PhiIdMap> EtaPhiIdMap;
+	std::multimap<unsigned int, std::multimap<float,std::multimap<float, unsigned int>>> _cluster_layer_eta_phi_map;
+	//	std::multimap<unsigned int, innerMap> _clusters_per_layer;
+	//	typedef multimap<float, SvtxCluster*> innerMap;
+	std::multimap<unsigned int, PhiIdMap> _clusterID_per_layer;
 #endif // __CINT__
 };
 
