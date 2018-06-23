@@ -47,8 +47,8 @@ class DetermineTowerBackground : public SubsysReco
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
 
-  float _v2[3];
-  float _Psi2[3];
+  float _v2;
+  float _Psi2;
   std::vector< std::vector<float> > _UE;
   
   int _HCAL_NETA;
@@ -57,6 +57,11 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<std::vector<float> > _EMCAL_E;
   std::vector<std::vector<float> > _IHCAL_E;
   std::vector<std::vector<float> > _OHCAL_E;
+
+  // 1-D energies vs. phi (integrated over eta strips with complete
+  // phi coverage, and all layers)
+  std::vector<float> _FULLCALOFLOW_PHI_E;
+  std::vector<float> _FULLCALOFLOW_PHI_VAL;
 
   std::string _backgroundName;
 
