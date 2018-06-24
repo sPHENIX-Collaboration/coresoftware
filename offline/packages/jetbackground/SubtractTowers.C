@@ -29,7 +29,10 @@
 SubtractTowers::SubtractTowers(const std::string &name)
   : SubsysReco(name)
 {
+
   _background_iteration = 0;
+  _use_flow_modulation = false;
+
 }
 
 SubtractTowers::~SubtractTowers()
@@ -55,7 +58,7 @@ int SubtractTowers::InitRun(PHCompositeNode *topNode)
 int SubtractTowers::process_event(PHCompositeNode *topNode)
 {
   if (verbosity > 0)
-    std::cout << "SubtractTowers::process_event: entering" << std::endl;
+    std::cout << "SubtractTowers::process_event: entering, with _use_flow_modulation = " << _use_flow_modulation << std::endl;
 
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
@@ -83,6 +86,10 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
   }
 
   TowerBackground* towerbackground = findNode::getClass<TowerBackground>(topNode,"TowerBackground_Sub2");
+
+  // read these in to use, even if we don't use flow modulation in the subtraction
+  float background_v2 = towerbackground->get_v2();
+  float background_Psi2 = towerbackground->get_Psi2();
 
   // EMCal
   
@@ -118,6 +125,10 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     RawTower *tower = rtiter->second;
     float raw_energy = tower->get_energy();
     float UE = towerbackground->get_UE( 0 ).at( tower->get_bineta() );
+    if ( _use_flow_modulation ) {
+      float tower_phi = geomIH->get_tower_geometry(tower->get_key())->get_phi();
+      UE = UE * ( 1 + 2 * background_v2 * cos( 2 * ( tower_phi - background_Psi2 ) ) );
+    }
     float new_energy = raw_energy - UE;
     tower->set_energy( new_energy );
     if (verbosity > 5) 
@@ -158,6 +169,10 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     RawTower *tower = rtiter->second;
     float raw_energy = tower->get_energy();
     float UE = towerbackground->get_UE( 1 ).at( tower->get_bineta() );
+    if ( _use_flow_modulation ) {
+      float tower_phi = geomIH->get_tower_geometry(tower->get_key())->get_phi();
+      UE = UE * ( 1 + 2 * background_v2 * cos( 2 * ( tower_phi - background_Psi2 ) ) );
+    }
     float new_energy = raw_energy - UE;
     tower->set_energy( new_energy );
   }
@@ -196,6 +211,10 @@ int SubtractTowers::process_event(PHCompositeNode *topNode)
     RawTower *tower = rtiter->second;
     float raw_energy = tower->get_energy();
     float UE = towerbackground->get_UE( 2 ).at( tower->get_bineta() );
+    if ( _use_flow_modulation ) {
+      float tower_phi = geomOH->get_tower_geometry(tower->get_key())->get_phi();
+      UE = UE * ( 1 + 2 * background_v2 * cos( 2 * ( tower_phi - background_Psi2 ) ) );
+    }
     float new_energy = raw_energy - UE;
     tower->set_energy( new_energy );
   }
