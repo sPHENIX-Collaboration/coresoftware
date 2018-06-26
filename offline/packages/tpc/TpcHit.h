@@ -19,7 +19,7 @@
  * @brief Tpc hit object
  *
  * Container for Tpc hit object representing
- * a single hit strip within a chip
+ * the adc for a single phi/z bin
  */
 class TpcHit : public TrkrHit
 {

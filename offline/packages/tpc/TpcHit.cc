@@ -9,6 +9,7 @@
 
 TpcHit::TpcHit()
   : TrkrHit()
+  , m_adc(0)
 {
 }
 
@@ -30,6 +31,6 @@ int
 TpcHit::isValid() const
 {
   // valid if the key is not equal to the default value
-  return getKey() != TrkrDefs::HITKEYMAX;
+  return (getKey() != TrkrDefs::HITKEYMAX && getAdc() != 0);
 }
 

@@ -34,7 +34,7 @@ namespace TpcDefs
   static const unsigned int kBitShiftPad __attribute__((unused)) = 16;
   static const unsigned int kBitShiftTBin __attribute__((unused)) = 0;
 
-  // max values for col and row index in chip
+  // max values for pad and time bin
   static const uint16_t MAXPAD __attribute__((unused)) = 1024;
   static const uint16_t MAXTBIN __attribute__((unused)) = 512;
 
