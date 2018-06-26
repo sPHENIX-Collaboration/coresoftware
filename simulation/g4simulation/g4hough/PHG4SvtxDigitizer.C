@@ -34,6 +34,7 @@ PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   ADCThreshold(2700),   // electrons
   TPCEnc(670),        // electrons
   Pedestal(50000),    // electrons
+  ChargeToPeakVolts(20),    // mV/fC
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
@@ -49,6 +50,13 @@ PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
 int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
 
   ADCThreshold += Pedestal;
+
+  // Factor that convertes the charge in each z bin into a voltage in each z bin
+  // ChargeToPeakVolts relates TOTAL charge collected to peak voltage, while the cell maker actually distributes the signal
+  // GEM output charge in Z bins using the shaper time response. For 80 ns shaping, the scaleup factor of 2.4 gets the peak voltage right.
+  ADCSignalConversionGain = ChargeToPeakVolts * 1.60e-04 * 2.4;  // 20 (or 30) mV/fC * fC/electron * scaleup factor  
+  // The noise is by definition the RMS noise width voltage divided by ChargeToPeakVolts
+  ADCNoiseConversionGain = ChargeToPeakVolts * 1.60e-04;  // 20 (or 30) mV/fC * fC/electron 
 
   //-------------
   // Add Hit Node
@@ -293,6 +301,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
   // Note that zbin = 0 corresponds to -100.5 cm, zbin 248 corresponds to 0 cm, and zbin 497 corresponds to +100.5 cm
   // increasing time should be (497 -> 249) and (0 -> 248)
 
+ 
+  
+
+
   //----------
   // Get Nodes
   //----------
@@ -401,8 +413,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // This zbin has a filled cell, add noise
 		  float noise = added_noise();  // in electrons
-		  float noise_voltage = (Pedestal + noise) * 3.2e-03;  // mV - from definition of noise charge and pedestal charge
-		  float adc_input_voltage = z_sorted_cells[iz][0]->get_edep() * 7.68e-03;  // mV, see comments above
+		  float noise_voltage = (Pedestal + noise) * ADCNoiseConversionGain;  // mV - from definition of noise charge and pedestal charge
+		  float adc_input_voltage = z_sorted_cells[iz][0]->get_edep() * ADCSignalConversionGain;  // mV, see comments above
 
 		  adc_input.push_back(adc_input_voltage + noise_voltage);
 		  adc_cellid.push_back(z_sorted_cells[iz][0]->get_cellid());
@@ -411,7 +423,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // This z bin does not have a filled cell, add noise
 		  float noise = added_noise();  // returns "electrons"
-		  float noise_voltage = (Pedestal + noise) * 3.2e-03; // mV - noise "electrons" x conversion gain
+		  float noise_voltage = (Pedestal + noise) * ADCNoiseConversionGain; // mV - noise "electrons" x conversion gain
 
 		  adc_input.push_back(noise_voltage); // mV
 		  adc_cellid.push_back(0);  // there is no cell, just add a placeholder in the vector for now, replace it later
@@ -434,11 +446,12 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	    {
 	      if(iz < binpointer) continue;
 	      
-              if(adc_input[iz] > ADCThreshold*3.2e-03)  // convert threshold in "equivalent electrons" to mV
+	      if(adc_input[iz] > ADCThreshold*ADCNoiseConversionGain)  // convert threshold in "equivalent electrons" to mV
 		{
 		  // digitize this bin and the following 4 bins
 
-		  if(layer == print_layer) cout << "  Above threshold of " << ADCThreshold*3.2e-03 << " for phibin " << iphi << " iz " << iz << " with adc_input " << adc_input[iz] << endl;
+		  if(layer == print_layer) cout << "  Above threshold of " << ADCThreshold*ADCNoiseConversionGain << " for phibin " << iphi 
+						<< " iz " << iz << " with adc_input " << adc_input[iz] << endl;
 
 		  for(int izup=0;izup<5; izup++)
 		    {
@@ -449,8 +462,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  if (adc_output > 1023) adc_output = 1023;
 
 			  if(layer == print_layer)  cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
-						<< "  adc_input "  << adc_input[iz+izup] << " ADCThreshold " << ADCThreshold*3.2e-03 
-						<< " adc_output " << adc_output << endl;
+							 << "  adc_input "  << adc_input[iz+izup] << " ADCThreshold " << ADCThreshold*ADCNoiseConversionGain 
+							 << " adc_output " << adc_output << endl;
 			  
 			  if(is_populated[iz+izup] == 2)
 			    {
@@ -461,7 +474,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(layer, iz+izup, iphi);
 			      PHG4Cell *cell = new PHG4Cellv2(akey);
 
-			      cell->add_edep(adc_input[iz+izup] / 7.68e-03);  //convert from voltage back to electrons from GEM
+			      cell->add_edep(adc_input[iz+izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM
 			      adc_cellid[iz+izup]=cell->get_cellid();
 
 			      if(layer == print_layer)  cout << " will digitize noise hit for iphi " << iphi << " zbin " << iz+izup 
@@ -477,7 +490,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_layer(layer);
 			  hit.set_cellid(adc_cellid[iz+izup]);
 			  
-			  float e = adc_output * (2200 / 1024.0) /  7.68e-03;          // convert ADU's back to mV, then to input electrons
+			  float e = adc_output * (2200 / 1024.0) /  ADCSignalConversionGain;          // convert ADU's back to mV, then to input electrons
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
 
@@ -517,11 +530,13 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	    {
 	      if(iz > binpointer) continue;
 	      
-              if(adc_input[iz] > ADCThreshold* 3.2e-03)  // convert threshold in electrons to mV
+	      if(adc_input[iz] > ADCThreshold* ADCNoiseConversionGain)  // convert threshold in electrons to mV
 		{
 		  // digitize this bin and the following 4 bins
-
-		  if(layer == print_layer) cout << "  Above threshold  of " << ADCThreshold*3.2e-03 << " for iz " << iz << " with adc_input " << adc_input[iz] << endl;
+		  
+		  if(layer == print_layer) cout << "  Above threshold  of " << ADCThreshold*ADCNoiseConversionGain << " for iz " << iz 
+						<< " with adc_input " << adc_input[iz] << endl;
+		  
 		  for(int izup=0;izup<5; izup++)
 		    {
 		      if(iz-izup < nzbins && iz - izup >= nzbins/2)
@@ -532,8 +547,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  if (adc_output > 1023) adc_output = 1023;
 
 			  if(layer == print_layer)  cout << "    iz-izup " << iz-izup << " adc_cellid " << adc_cellid[iz-izup] 
-						<< "  adc_input "  << adc_input[iz-izup] << " ADCThreshold " << ADCThreshold*3.2e-03 
-						<< " adc_output " << adc_output << endl;
+							 << "  adc_input "  << adc_input[iz-izup] << " ADCThreshold " << ADCThreshold*ADCNoiseConversionGain 
+							 << " adc_output " << adc_output << endl;
 
 			  if(is_populated[iz-izup] == 2)
 			    {
@@ -544,7 +559,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(layer, iz-izup, iphi);
 			      PHG4Cell *cell = new PHG4Cellv2(akey);
 
-			      cell->add_edep(adc_input[iz-izup] / 7.68e-03);  //convert from voltage back to electrons from GEM stack - should be primary ionization instead?
+			      cell->add_edep(adc_input[iz-izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM stack 
 			      adc_cellid[iz-izup]=cell->get_cellid();
 			      if(layer == print_layer)  cout  << " will digitize noise hit for iphi " << iphi << " zbin " << iz-izup 
 							      << " created new cell with cellid " << cell->get_cellid() 
@@ -558,7 +573,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_layer(layer);
 			  hit.set_cellid(adc_cellid[iz-izup]);
 			  
-			  float e = adc_output * (2200.0 / 1024.0) /  7.68e-03;          // convert ADU's back to mV, then to input electrons from GEM
+			  float e = adc_output * (2200.0 / 1024.0) /  ADCSignalConversionGain;          // convert ADU's back to mV, then to input electrons from GEM
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
 

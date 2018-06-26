@@ -60,6 +60,10 @@ class PHG4SvtxDigitizer : public SubsysReco
   float ADCThreshold;
   float TPCEnc;
   float Pedestal;
+  float ChargeToPeakVolts;
+
+  float ADCSignalConversionGain;
+  float ADCNoiseConversionGain;
 
   std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
   std::vector< std::vector<const PHG4Cell*>  > phi_sorted_cells;
