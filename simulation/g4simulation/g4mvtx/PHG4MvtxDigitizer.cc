@@ -220,7 +220,7 @@ void PHG4MvtxDigitizer::DigitizeCells(PHCompositeNode *topNode)
     TrkrDefs::hitkey hkey = MvtxDefs::genHitKey(col, row);
     
     MvtxHit* mhit = new MvtxHit();
-    mhit->setColumnRow(col, row);
+    mhit->setKey(hkey);
 
     hset->addHitSpecificKey(hkey, mhit);
 
