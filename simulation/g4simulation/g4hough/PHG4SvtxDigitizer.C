@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <limits>
 
 using namespace std;
 
@@ -35,6 +36,8 @@ PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   TPCEnc(670),        // electrons
   Pedestal(50000),    // electrons
   ChargeToPeakVolts(20),    // mV/fC
+  ADCSignalConversionGain(numeric_limits<float>::signaling_NaN()), // will be assigned in PHG4SvtxDigitizer::InitRun
+  ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN()), // will be assigned in PHG4SvtxDigitizer::InitRun
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
 
