@@ -134,16 +134,71 @@ public:
 	}
 
 	void set_phg4hits_names(const std::vector<std::string>& phg4hitsNames) {
-		_phg4hits_names = phg4hitsNames;
-		_N_DETECTOR_LAYER = _phg4hits_names.size();
+	  _phg4hits_names.clear();
+	  _phg4_detector_type.clear();
+	  _phg4_detector_radres.clear();
+	  _phg4_detector_phires.clear();
+	  _phg4_detector_lonres.clear();
+	  _phg4_detector_hitfindeff.clear();
+	  _phg4_detector_noise.clear();
+	  //==
+	  _phg4hits_names = phg4hitsNames;
+	  _N_DETECTOR_LAYER = _phg4hits_names.size();
+	  for(int i=0; i!=_N_DETECTOR_LAYER; ++i) { //defaulting
+	    _phg4_detector_type.push_back(Cylinder);
+	    _phg4_detector_radres.push_back(1e-4);
+	    _phg4_detector_phires.push_back(1e-4);
+	    _phg4_detector_lonres.push_back(1e-4);
+	    _phg4_detector_hitfindeff.push_back(1.0);
+	    _phg4_detector_noise.push_back(0.0);
+	  }
 	}
 
 	void set_phg4hits_names(const std::string* phg4hitsNames, const int nlayer) {
-		_phg4hits_names.clear();
-		for(int i=0;i<nlayer;++i) {
-			_phg4hits_names.push_back(phg4hitsNames[i]);
-		}
-		_N_DETECTOR_LAYER = _phg4hits_names.size();
+	  _phg4hits_names.clear();
+	  _phg4_detector_type.clear();
+	  _phg4_detector_radres.clear();
+	  _phg4_detector_phires.clear();
+	  _phg4_detector_lonres.clear();
+	  _phg4_detector_hitfindeff.clear();
+	  _phg4_detector_noise.clear();
+	  for(int i=0;i<nlayer;++i) {
+	    _phg4hits_names.push_back(phg4hitsNames[i]);
+	    _phg4_detector_type.push_back(Cylinder);
+	    _phg4_detector_radres.push_back(1e-4);
+	    _phg4_detector_phires.push_back(1e-4);
+	    _phg4_detector_lonres.push_back(1e-4);
+	    _phg4_detector_hitfindeff.push_back(1.0);
+	    _phg4_detector_noise.push_back(0.0);
+	  }
+	  _N_DETECTOR_LAYER = _phg4hits_names.size();
+	}
+
+	void set_phg4hits_names(const std::string* phg4hitsNames,
+				const DETECTOR_TYPE* phg4dettype, 
+				const float *radres,
+				const float *phires,
+				const float *lonres,
+				const float *eff,
+				const float *noise,
+				const int nlayer) {
+	  _phg4hits_names.clear();
+	  _phg4_detector_type.clear();
+	  _phg4_detector_radres.clear();
+	  _phg4_detector_phires.clear();
+	  _phg4_detector_lonres.clear();
+	  _phg4_detector_hitfindeff.clear();
+	  _phg4_detector_noise.clear();
+	  for(int i=0;i<nlayer;++i) {
+	    _phg4hits_names.push_back(phg4hitsNames[i]);
+	    _phg4_detector_type.push_back(phg4dettype[i]);
+            _phg4_detector_radres.push_back(radres[i]);
+            _phg4_detector_phires.push_back(phires[i]);
+            _phg4_detector_lonres.push_back(lonres[i]);
+	    _phg4_detector_hitfindeff.push_back(eff[i]);
+	    _phg4_detector_noise.push_back(noise[i]);
+	  }
+	  _N_DETECTOR_LAYER = _phg4hits_names.size();
 	}
 
 	void set_state_names(const std::string* stateNames, const int nlayer) {
@@ -257,13 +312,19 @@ private:
 	//! Event counter
 	int _event;
 
-	DETECTOR_TYPE _detector_type;
+	DETECTOR_TYPE _detector_type; // deprecated
 
 	//! Input Node pointers
 	PHG4TruthInfoContainer* _truth_container;
 
 	std::vector<PHG4HitContainer*> _phg4hits;
 	std::vector<std::string> _phg4hits_names;
+	std::vector<DETECTOR_TYPE> _phg4_detector_type;
+	std::vector<float> _phg4_detector_radres;
+	std::vector<float> _phg4_detector_phires;
+	std::vector<float> _phg4_detector_lonres;
+	std::vector<float> _phg4_detector_hitfindeff;
+	std::vector<float> _phg4_detector_noise;
 
 	//! Output Node pointers
 
@@ -307,17 +368,17 @@ private:
 	double _vertex_xy_resolution;
 	double _vertex_z_resolution;
 
-	double _phi_resolution;
+	double _phi_resolution; //deprecated
 
-	double _r_resolution;
+	double _r_resolution; //deprecated
 
-	double _z_resolution;
-
-	//!
-	double _pat_rec_hit_finding_eff;
+	double _z_resolution; //deprecated
 
 	//!
-	double _pat_rec_noise_prob;
+	double _pat_rec_hit_finding_eff; //deprecated
+
+	//!
+	double _pat_rec_noise_prob; //deprecated
 
 	//!
 	int _N_DETECTOR_LAYER;
@@ -334,22 +395,6 @@ private:
 };
 
 #endif /*__PHG4TrackFastSim_H__*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,3 +1,9 @@
+/**
+ * @file trackbase/TrkrClusterContainer.cc
+ * @author D. McGlinchey
+ * @date June 2018
+ * @brief Implementation of TrkrClusterContainer
+ */
 #include "TrkrClusterContainer.h"
 #include "TrkrClusterv1.h"
 
@@ -34,28 +40,22 @@ void TrkrClusterContainer::identify(std::ostream& os) const
 TrkrClusterContainer::ConstIterator
 TrkrClusterContainer::addCluster(TrkrCluster* newclus)
 {
-  TrkrDefs::cluskey key = newclus->getClusKey();
-  if (m_clusmap.find(key) != m_clusmap.end())
-  {
-    TrkrDefUtil util;
-    std::cout << "overwriting clus 0x" << std::hex << key << std::dec << std::endl;
-    std::cout << "tracker ID: " << util.getTrkrId(key) << std::endl;
-  }
-  m_clusmap[key] = newclus;
-  return m_clusmap.find(key);
+  return addClusterSpecifyKey(newclus->getClusKey(), newclus);
 }
 
 TrkrClusterContainer::ConstIterator
 TrkrClusterContainer::addClusterSpecifyKey(const TrkrDefs::cluskey key, TrkrCluster* newclus)
 {
-  if (m_clusmap.find(key) != m_clusmap.end())
+  auto ret = m_clusmap.insert(std::make_pair(key, newclus));
+  if ( !ret.second )
   {
     std::cout << "TrkrClusterContainer::AddClusterSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
-  newclus->setClusKey(key);
-  m_clusmap[key] = newclus;
-  return m_clusmap.find(key);
+  else
+  {
+    return ret.first;
+  }
 }
 
 TrkrClusterContainer::ConstRange
@@ -67,9 +67,8 @@ TrkrClusterContainer::getClusters(const TrkrDefs::TrkrId trackerid) const
   //   std::cout << "keylow: 0x" << hex << keylow << dec << std::endl;
   //   std::cout << "keyup: 0x" << hex << keyup << dec << std::endl;
 
-  TrkrDefUtil util;
-  TrkrDefs::cluskey keylo = util.getClusKeyLo(trackerid);
-  TrkrDefs::cluskey keyhi = util.getClusKeyHi(trackerid);
+  TrkrDefs::cluskey keylo = TrkrDefs::getClusKeyLo(trackerid);
+  TrkrDefs::cluskey keyhi = TrkrDefs::getClusKeyHi(trackerid);
 
   ConstRange retpair;
   retpair.first = m_clusmap.lower_bound(keylo);
@@ -80,9 +79,8 @@ TrkrClusterContainer::getClusters(const TrkrDefs::TrkrId trackerid) const
 TrkrClusterContainer::ConstRange
 TrkrClusterContainer::getClusters(const TrkrDefs::TrkrId trackerid, const char layer) const
 {
-  TrkrDefUtil util;
-  TrkrDefs::cluskey keylo = util.getClusKeyLo(trackerid, layer);
-  TrkrDefs::cluskey keyhi = util.getClusKeyHi(trackerid, layer);
+  TrkrDefs::cluskey keylo = TrkrDefs::getClusKeyLo(trackerid, layer);
+  TrkrDefs::cluskey keyhi = TrkrDefs::getClusKeyHi(trackerid, layer);
 
   ConstRange retpair;
   retpair.first = m_clusmap.lower_bound(keylo);
@@ -102,10 +100,10 @@ TrkrClusterContainer::findOrAddCluster(TrkrDefs::cluskey key)
   TrkrClusterContainer::Iterator it = m_clusmap.find(key);
   if (it == m_clusmap.end())
   {
-    m_clusmap[key] = new TrkrClusterv1();
-    it = m_clusmap.find(key);
-    TrkrCluster* mclus = it->second;
-    mclus->setClusKey(key);
+    // add new cluster and set its key
+    auto ret = m_clusmap.insert(std::make_pair(key, new TrkrClusterv1()));
+    (ret.first->second)->setClusKey(key);
+    it = ret.first;
   }
   return it;
 }
