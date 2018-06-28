@@ -1,6 +1,7 @@
 #include "PHG4TPCElectronDrift.h"
 #include "PHG4CellTPCv1.h"
-#include "PHG4TPCPadPlane.h"
+#include "PHG4TPCPadPlaneReadout.h"
+//#include "PHG4TPCPadPlane.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -46,6 +47,7 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   min_time(NAN),
   max_time(NAN)
 {  
+  cout << "Constructor of PHG4TPCElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed()); // fixed seed is handled in this funtcion
@@ -59,10 +61,8 @@ PHG4TPCElectronDrift::~PHG4TPCElectronDrift()
 
 int PHG4TPCElectronDrift::Init(PHCompositeNode *topNode)
 {
-  for  (auto *padplane: tpcpadplane)
-  {
-    padplane->Init(topNode);
-  }
+  padplane->Init(topNode);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -165,16 +165,15 @@ g4cells = new PHG4CellContainer();
   se->registerHisto(nt);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
-  for  (auto *padplane: tpcpadplane)
-  {
-    padplane->InitRun(topNode);
-  }
-
+  padplane->InitRun(topNode);
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 {
+  cout << "Begin PHG4TPCElectronDrift::process_event" << endl;
+
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {
@@ -188,12 +187,16 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     double t0 = fmax(hiter->second->get_t(0),hiter->second->get_t(1));
+    cout << "  new hit with t0, " <<  t0 << " layer: " << hiter->second->get_layer() << endl;
     if (t0 > max_time)
     {
       continue;
     }
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
+
+    cout << "eion " << eion << " n_electrons " << n_electrons << endl;
+
     nthit->Fill(ihit,n_electrons,eion,hiter->second->get_edep(),hiter->second->get_t(0),hiter->second->get_x(0),hiter->second->get_y(0),hiter->second->get_z(0));
     if (n_electrons <= 0)
     {
@@ -209,70 +212,71 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     double dy = (hiter->second->get_y(1) - hiter->second->get_y(0))/n_electrons;
     double dz = (hiter->second->get_z(1) - hiter->second->get_z(0))/n_electrons;
     double dt = (hiter->second->get_t(1) - hiter->second->get_t(0))/n_electrons;
-//    cout << "layer: " << hiter->second->get_layer() << ", dz: " << dz << endl;
     double x_start = hiter->second->get_x(0) + dx/2.;
     double y_start = hiter->second->get_y(0) + dy/2.;
     double z_start = hiter->second->get_z(0) + dz/2.;
     double t_start = hiter->second->get_t(0) + dt/2.;
     // cout << "g4hit created electrons: " << n_electrons 
     // 	   << " from " << eion*1000000 << " keV" << endl;
-
+    
     for (unsigned int i=0; i<n_electrons; i++)
-    {
-      // cout << "drift for x: " << x_start
-      //       << ", y: " << y_start
-      //       << ",z: " << z_start << endl;
-      double radstart = sqrt(x_start*x_start + y_start*y_start);
-      double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
-      double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
-      double rad_final = radstart + rantrans;
-// remove electrons outside of our acceptance
-      if (rad_final<min_active_radius || rad_final >max_active_radius)
       {
-	continue;
+	cout << "  electron " << i << "  radius " << sqrt(x_start*x_start+y_start*y_start) << " drift for x: " << x_start
+	     << ", y: " << y_start
+	     << ",z: " << z_start << endl;
+	double radstart = sqrt(x_start*x_start + y_start*y_start);
+	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
+	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
+	double rad_final = radstart + rantrans;
+	// remove electrons outside of our acceptance
+	if (rad_final<min_active_radius || rad_final >max_active_radius)
+	  {
+	    continue;
+	  }
+	double t_path = t_start + (tpc_length/2. - fabs(z_start))/drift_velocity;
+	// now the drift
+	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
+	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
+	double t_final = t_path + rantime;
+	if (t_final < min_time || t_final > max_time)
+	  {
+	    continue;
+	  }
+	double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
+	double x_final = x_start + rantrans*cos(ranphi);
+	double y_final = y_start + rantrans*sin(ranphi);
+	cout << "  rad_final " << sqrt(x_final*x_final + y_final*y_final) << " x_final " << x_final << " y_final " << y_final << " t_final " << t_final << endl; 
+	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
+	cout << "  call MapToPadPlane " << endl;
+	MapToPadPlane(x_final,y_final,t_final);
+	x_start += dx;
+	y_start += dy;
+	z_start += dz;
+	t_start += dt;
       }
-      double t_path = t_start + (tpc_length/2. - fabs(z_start))/drift_velocity;
-// now the drift
-      double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
-      double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
-      double t_final = t_path + rantime;
-      if (t_final < min_time || t_final > max_time)
-      {
-	continue;
-      }
-      double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
-      double x_final = x_start + rantrans*cos(ranphi);
-      double y_final = y_start + rantrans*sin(ranphi);
-      nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
-      MapToPadPlane(x_final,y_final,t_final);
-      x_start += dx;
-      y_start += dy;
-      z_start += dz;
-      t_start += dt;
-    }
     ihit++;
-//      gSystem->Exit(0);
+    //      gSystem->Exit(0);
   }
   if (Verbosity()>1)
-  {
-    PHG4CellContainer::ConstRange cells = g4cells->getCells();
-    PHG4CellContainer::ConstIterator celliter;
-    for (celliter=cells.first;celliter != cells.second; ++celliter)
     {
-      celliter->second->print();
+      PHG4CellContainer::ConstRange cells = g4cells->getCells();
+      PHG4CellContainer::ConstIterator celliter;
+      for (celliter=cells.first;celliter != cells.second; ++celliter)
+	{
+	  celliter->second->print();
+	}
     }
-  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem)
 {
-// apply binning hardcoded 360 in phi, 40 in r, rmin = 30cm, rmax=75
-  for (auto  *padplane: tpcpadplane)
-  {
-    padplane->MapToPadPlane(g4cells,x_gem,y_gem,t_gem);
-  }
+
+  padplane->MapToPadPlane(g4cells,x_gem,y_gem,t_gem);
+ 
   return;
+
+  /*
   static const double rbins = 40;
   static const double rbinwidth = (75.-30.)/rbins;
   static const double phibinwidth = 2*M_PI/360.;
@@ -289,6 +293,7 @@ void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
   //      << ", radbin: " << radbin
   //      << ", t_gem: " << t_gem 
   //      << endl;
+
   PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(0,radbin,phibin);
   PHG4Cell *cell = g4cells->findCell(key);
   if (! cell)
@@ -297,6 +302,7 @@ void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
     g4cells->AddCell(cell);
   }
   cell->add_edep(key,tbin,1.);
+  */
   return;
 }
 
@@ -334,12 +340,17 @@ double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
   set_default_double_param("max_active_radius",75.); // cm
   set_default_double_param("min_time",0.); // ns
   set_default_double_param("max_time",14000.); // ns
+
   return;
 }
 
-void PHG4TPCElectronDrift::registerPadPlane(PHG4TPCPadPlane *padplane)
+void PHG4TPCElectronDrift::registerPadPlane(PHG4TPCPadPlane *inpadplane)
 {
+  cout << "Registering padplane " << endl;
+  padplane = inpadplane;
   padplane->Detector(Detector());
-tpcpadplane.push_back(padplane);
+  padplane->UpdateInternalParameters();
+  cout << "padplane registered and parameters updated" << endl;
+
 return;
 }

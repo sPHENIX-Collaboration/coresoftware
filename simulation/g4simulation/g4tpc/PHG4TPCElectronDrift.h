@@ -56,7 +56,8 @@ private:
   double max_active_radius;
   double min_time;
   double max_time;
-  std::vector<PHG4TPCPadPlane *> tpcpadplane;
+  PHG4TPCPadPlane *padplane;
+
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif
