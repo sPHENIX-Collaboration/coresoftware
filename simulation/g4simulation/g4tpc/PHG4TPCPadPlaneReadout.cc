@@ -27,6 +27,7 @@ PHG4TPCPadPlane(name)
       sprintf(name,"fpad%i",ipad);
       fpad[ipad] = new TF1(name,"[0]-abs(x-[1])");
     }
+ output_radius = 32;
 
   return;
 }
@@ -64,43 +65,48 @@ int PHG4TPCPadPlaneReadout::InitRun(PHCompositeNode *topNode, PHG4CylinderCellGe
   return 0;
 }
 
-void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem)
+void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem)
 {
-  cout << "Entering MapToPadPlane " << endl;
+  //cout << "Entering MapToPadPlane " << endl;
 
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width 
-  // The t_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
+  // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
   double phi = atan2(y_gem,x_gem);
  if (phi > +M_PI) phi -= 2 * M_PI;
   if (phi < -M_PI) phi += 2 * M_PI;
 
-  double rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);
-
-  // convert arrival time to z_gem
-  // drift velocity is cm/microsec
-  // t_gem is in microsec
-  double z_gem =  t_gem * tpc_drift_velocity;
-
-  cout << " z_gem " << z_gem << " rad_gem " << rad_gem << " phi " << phi << endl;
+  rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);
 
   int layernum = 0;
+  tpc_region = -1;
 
   // Find which readout layer this electron ends up in
 
   for(int i=0;i<3;++i)
     {
-      if(rad_gem > MinRadius[i] && rad_gem < MaxRadius[i])
+      if(rad_gem >= MinRadius[i] && rad_gem < MaxRadius[i])
 	{
 	  // get the layer number
 	  tpc_region = i;
 	  layernum = MinLayer[i] + (int) ( (double) NTpcLayers[i] * (rad_gem - MinRadius[i]) / (MaxRadius[i]-MinRadius[i]) );
-	  cout << " TPC region " << tpc_region << " readout layernum " << layernum 
-	       << " MinLayer " << MinLayer[i] 
-	       << " NTpcLayers " << NTpcLayers[i] 
-	       << " MaxRadius " << MaxRadius[i] << " MinRadius " << MinRadius[i]
-	       << endl;
+
+	  if(rad_gem < output_radius)
+	    {
+	      cout << " z_gem " << z_gem << " rad_gem " << rad_gem << " phi " << phi << endl; 
+	      cout << " TPC region " << tpc_region << " readout layernum " << layernum 
+		   << " MinLayer " << MinLayer[i] 
+		   << " NTpcLayers " << NTpcLayers[i] 
+		   << " MaxRadius " << MaxRadius[i] << " MinRadius " << MinRadius[i]
+		   << endl;
+	    }
 	}
+    }
+
+  if(layernum == 0 || tpc_region == -1)
+    {
+      cout << "Bad layernum or tpc_region " << endl;
+      return;
     }
 
   // Create the distribution function of charge on the pad plane around the electron position
@@ -119,14 +125,25 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 
   // Distribute the charge between the pads in phi
   //====================================
-  
+
+  if(rad_gem < output_radius)
+    cout << "  populate phi bins for tpc_region " << tpc_region 
+	 << " layernum " << layernum 
+	 << " phi " << phi 
+	 << " sigmaT " << sigmaT
+	 << " zigzag_pads " << zigzag_pads
+	 << endl;
+
   pad_phibin.clear();
   pad_phibin_share.clear();
   if(zigzag_pads)
     populate_zigzag_phibins(tpc_region, layernum, phi,  sigmaT, pad_phibin, pad_phibin_share);
   else
     populate_rectangular_phibins(tpc_region, layernum, phi,  sigmaT, pad_phibin, pad_phibin_share);
-  
+
+  if(rad_gem < output_radius)
+    cout << "  length of pad_phibin is " << pad_phibin.size() << endl;
+
   // Normalize the shares so they add up to 1
   double norm1 = 0.0;
   for(unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
@@ -139,9 +156,15 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   
   // Distribute the charge between the pads in z
   //====================================
+  if(rad_gem < output_radius)
+    cout << "  populate z bins with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
+
   adc_zbin.clear();
   adc_zbin_share.clear();
   populate_zbins(z_gem,  sigmaL, adc_zbin, adc_zbin_share);
+
+  if(rad_gem < output_radius)
+    cout << "  length of adc_zbin is " << adc_zbin.size() << endl;
   
   // Normalize the shares so that they add up to 1
   double znorm = 0.0;
@@ -176,15 +199,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  
 	  if(zbin_num >= NZBins) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << NZBins << endl;
 	  if(pad_num >= NPhiBins[tpc_region]) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << NPhiBins[tpc_region] << endl;
-	  //unsigned long key = zbin_num * NPhiBins + pad_num;
 	  
-	  /*
-	  if(verbosity > 5000)
-	    cout << "    zbin " << zbin_num << " z of bin " <<  geo->get_zcenter(zbin_num)  << " z integral " << adc_bin_share
-		 << " pad " << pad_num  << " phi of pad " <<  geo->get_phicenter(pad_num)  << " phi integral " << pad_share 
-		 << " nelectrons = " << neffelectrons << " key = " << endl;
-	  */
-
 	  // collect information to do simple clustering. Checks operation of PHG4CylinderCellTPCReco, and 
 	  // is also useful for comparison with PHG4TPCClusterizer result when running single track events.
 	  // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
@@ -194,21 +209,6 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  z_integral += zcenter*neffelectrons;
 	  weight += neffelectrons;
 
-	  /*	  
-	  std::map<unsigned long long, PHG4Cell *>::iterator it = cellptmap.find(key);
-	  PHG4Cell *cell;
-	  if (it != cellptmap.end())
-	    {
-	      cell = it->second;
-	    }
-	  else
-	    {
-	      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(*layer, zbin_num, pad_num);
-	      cell = new PHG4Cellv2(akey);
-	      cellptmap[key] = cell;
-	    }
-	  */
-
 	  PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(layernum,zbin_num,pad_num);
 	  PHG4Cell *cell = g4cells->findCell(key);
 	  if (! cell)
@@ -216,7 +216,18 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	      cell = new PHG4CellTPCv1(key);
 	      g4cells->AddCell(cell);
 	    }
-	  cell->add_edep(key, neffelectrons);
+	  cell->add_edep(key, zbin_num, neffelectrons);
+	  cell->identify();
+	  /*
+	  if(layernum == 7)
+	    cout << "    Added cell for layernum " << layernum 
+		 << " with zbin " << zbin_num
+		 << " z center " << zcenter
+		 << " phi bin " << pad_num  
+		 << " phi center " << phicenter
+		 << " neffelectrons = " << neffelectrons << " key = " << endl;
+	  */
+
 	  /*
 	  cell->add_edep(hiter->first, neffelectrons);
 	  cell->add_edep(neffelectrons);
@@ -226,24 +237,17 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	} // end of loop over adc Z bins
     } // end of loop over zigzag pads
 
-  /*  
-  if(verbosity > 5000)
-    {	  
-      cout << " quick centroid using neffelectrons " << endl;
-      cout << "      phi centroid = " << phi_integral / weight << " truth phi " << truth_phi << " z centroid = " << z_integral / weight << " truth z " << truth_z << endl;
-    }
-  */
 
-  /*
-  PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(0,radbin,phibin);
-  PHG4Cell *cell = g4cells->findCell(key);
-  if (! cell)
+  if(rad_gem < output_radius)
     {
-      cell = new PHG4CellTPCv1(key);
-      g4cells->AddCell(cell);
+      cout << " quick centroid using neffelectrons " << endl;
+      cout << "      phi centroid = " << phi_integral / weight 
+	// << " truth phi " << truth_phi 
+	   << " z centroid = " << z_integral / weight 
+	//<< " truth z " << truth_z 
+	   << endl;
     }
-  cell->add_edep(key,tbin,1.);
-  */
+
   return;
 }
 
@@ -301,8 +305,13 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const int tpc_region, const
   fcharge->SetParameter(0, 1.0);
   fcharge->SetParameter(1, rphi);
   fcharge->SetParameter(2, cloud_sig_rp);
-  if(verbosity > 5000) cout << " fcharge created: radius " << radius << " rphi " << rphi << " cloud_sig_rp " << cloud_sig_rp << endl;
-  
+  if(rad_gem < output_radius)  
+    {
+      cout << "     populate_zigzag_phibins for layer " << layernum << " with radius " << radius << " phi " << phi 
+	   << " rphi " << rphi << " phistepsize " << phistepsize << endl;
+      cout << " fcharge created: radius " << radius << " rphi " << rphi << " cloud_sig_rp " << cloud_sig_rp << endl;
+    }
+
   // Get the range of phi values that completely contains all pads  that touch the charge distribution - (nsigmas + 1/2 pad width) in each direction
   double philim_low = phi - (nsigmas * cloud_sig_rp /  radius) -  phistepsize;
   double philim_high = phi + (nsigmas * cloud_sig_rp /  radius) +  phistepsize ;
@@ -311,13 +320,16 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const int tpc_region, const
   int phibin_low = get_phibin(tpc_region, philim_low);
   int phibin_high = get_phibin(tpc_region, philim_high);
   int npads = phibin_high - phibin_low;
-  if(verbosity>5000)   cout << " zigzags: phi " << phi << " philim_low " << philim_low << " phibin_low " << phibin_low 
-			    << " philim_high " << philim_high << " phibin_high " << phibin_high << " npads " << npads << endl;
+  if(rad_gem < output_radius)      
+    cout << "           zigzags: phi " << phi << " philim_low " << philim_low << " phibin_low " << phibin_low 
+	 << " philim_high " << philim_high << " phibin_high " << phibin_high << " npads " << npads << endl;
+
   if(npads < 0 || npads >9) npads = 9;  // can happen if phibin_high wraps around. If so, limit to 10 pads and fix below
   
   
   // Calculate the maximum extent in r-phi of pads in this layer. Pads are assumed to touch the center of the next phi bin on both sides.
   double pad_rphi = 2.0 * PhiBinWidth[tpc_region] * radius;  
+  //cout << "   pad_rphi " << pad_rphi << " npads " << npads << endl;
   // Make a TF1 for each pad in the phi range
   int pad_keep[10];
   for(int ipad = 0; ipad<=npads;ipad++)
@@ -331,9 +343,9 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const int tpc_region, const
       
       fpad[ipad]->SetParameter(0,pad_rphi/2.0);
       fpad[ipad]->SetParameter(1, rphi_pad_now);
-      
-      if(verbosity>5000) cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi/2.0 
-			      << " rphi_pad_now " << rphi_pad_now << endl;
+      if(rad_gem < output_radius)        
+	cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi/2.0 
+	     << " rphi_pad_now " << rphi_pad_now << " tpc_region " << tpc_region << endl;
     }
   
   // Now make a loop that steps through the charge distribution and evaluates the response at that point on each pad
@@ -366,7 +378,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const int tpc_region, const
     {
       pad_phibin.push_back(pad_keep[ipad]);
       pad_phibin_share.push_back(overlap[ipad]);      
-      if(verbosity > 5000) cout << "         zigzags: for pad " << ipad  << " integral is " << overlap[ipad] << endl;	     	      
+      if(rad_gem < output_radius)   cout << "         zigzags: for pad " << ipad  << " integral is " << overlap[ipad] << endl;	     	      
     }
   
   return;
@@ -380,6 +392,9 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
 
   double zstepsize = ZBinWidth;
   double zdisp = z - get_zcenter(zbin);
+
+  if(rad_gem < output_radius)
+    cout << "     z " << z << " zbin " << zbin << " zstepsize " << zstepsize << " z center " << get_zcenter(zbin) << " zdisp " << zdisp << endl;
 
   int min_cell_zbin = 0;
   int max_cell_zbin = NZBins-1;
@@ -397,9 +412,14 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
   cloud_sig_zz_inv[1] = 1. / cloud_sig_zz[1];
 
   int n_zz = int(3 * (cloud_sig_zz[0] + cloud_sig_zz[1]) / (2.0 * zstepsize) + 1);
+  if(rad_gem < output_radius)  cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_zz[0] << endl;
   for (int iz = -n_zz; iz != n_zz + 1; ++iz)
     {
       int cur_z_bin = zbin + iz;
+
+      if(rad_gem < output_radius)
+	cout << " iz " << iz  << " cur_z_bin " << cur_z_bin << " min_cell_zbin " << min_cell_zbin << " max_cell_zbin " << max_cell_zbin  << endl;
+
       if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
       // Get the integral of the charge probability distribution in Z inside the current Z step. We only need to get the relative signs correct here, I think
       // this is correct for z further from the membrane - charge arrives early
@@ -414,7 +434,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
       // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
       double z_integral = 0.5 * (erf(zLim1) - erf(zLim2));
 
-      if(verbosity > 5000) 
+      if(rad_gem < output_radius)
 	cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << get_zcenter(cur_z_bin) 
 	     << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << endl;
       
@@ -427,20 +447,24 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
 
 double PHG4TPCPadPlaneReadout::get_zcenter(const int zbin)
 {
-  return (double) zbin * ZBinWidth;  
+  double zcenter = (zbin - NZBins/2) * ZBinWidth;
+
+    return zcenter;
 }
 
 double PHG4TPCPadPlaneReadout::get_phicenter(const int tpc_region, const int phibin)
 {
-  return (double) phibin * PhiBinWidth[tpc_region];   
+  return (double) phibin * PhiBinWidth[tpc_region] - M_PI;   
 }
 
 
 double PHG4TPCPadPlaneReadout::get_radius(const int tpc_region, const int layernum)
 {
-  double radius = MinRadius[tpc_region] + (double) (layernum - MinLayer[tpc_region]) *  
-    (MaxRadius[tpc_region]-MinRadius[tpc_region])/(double) NTpcLayers[tpc_region];
-
+  double radius = MinRadius[tpc_region] + (double) (layernum - MinLayer[tpc_region]) * Thickness[tpc_region] + Thickness[tpc_region]/2.0;
+  if(rad_gem < output_radius)  
+    cout << "tpc_region " << tpc_region << " layernum " << layernum << " Minradius " << MinRadius[tpc_region] 
+	 << " MinLayer " << MinLayer[tpc_region] << " Thickness " << Thickness[tpc_region] << endl;
+  
   return radius;
 }
 
@@ -453,7 +477,12 @@ int PHG4TPCPadPlaneReadout::get_phibin(const int tpc_region, const double phi)
 
 int PHG4TPCPadPlaneReadout::get_zbin(const double z)
 {
-  int zbin = (int) (z / ZBinWidth);
+  int zbin;
+
+  if(z > 0)
+    zbin = NZBins/2 + (int) (z / ZBinWidth);
+  else
+    zbin = NZBins/2 + (int) (z / ZBinWidth);
 
   return zbin;
 }
@@ -476,12 +505,12 @@ void PHG4TPCPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_mid",60.0); 
   set_default_double_param("tpc_maxradius_outer",78.0); 
 
-  set_default_double_param("neffelectrons_threshold",1000.0); 
+  set_default_double_param("neffelectrons_threshold",100.0); 
   set_default_double_param("maxdriftlength",105.5); // cm
   set_default_double_param("drift_velocity",8.0 / 1000.0); // cm
   set_default_double_param("tpc_adc_clock",53.0); // ns
 
-  set_default_double_param("gem_cloud_sigma",0.40); // cm
+  set_default_double_param("gem_cloud_sigma",0.04); // cm
   set_default_double_param("sampa_shaping_lead",32.0); // ns, for 80 ns SAMPA 
   set_default_double_param("sampa_shaping_tail",48.0);  // ns, for 80 ns SAMPA 
 
@@ -512,6 +541,10 @@ void PHG4TPCPadPlaneReadout::UpdateInternalParameters()
   MinRadius[1] = get_double_param("tpc_minradius_mid");
   MinRadius[2] = get_double_param("tpc_minradius_outer");
 
+  MaxRadius[0] = get_double_param("tpc_maxradius_inner");
+  MaxRadius[1] = get_double_param("tpc_maxradius_mid");
+  MaxRadius[2] = get_double_param("tpc_maxradius_outer");
+
   Thickness[0] = (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
   Thickness[1] = (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
   Thickness[2] = (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
@@ -521,8 +554,8 @@ void PHG4TPCPadPlaneReadout::UpdateInternalParameters()
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
   sigmaT = get_double_param("gem_cloud_sigma");
-  sigmaL[0] = get_double_param("sampa_shaping_lead");
-  sigmaL[1] = get_double_param("sampa_shaping_tail");
+  sigmaL[0] = get_double_param("sampa_shaping_lead") * get_double_param("drift_velocity");
+  sigmaL[1] = get_double_param("sampa_shaping_tail") * get_double_param("drift_velocity");
 
   tpc_drift_velocity = get_double_param("drift_velocity");
   tpc_adc_clock = get_double_param("tpc_adc_clock");
@@ -539,5 +572,6 @@ void PHG4TPCPadPlaneReadout::UpdateInternalParameters()
   PhiBinWidth[1] = 2.0 * M_PI / (double) NPhiBins[1];
   PhiBinWidth[2] = 2.0 * M_PI / (double) NPhiBins[2];
 
+  zigzag_pads = get_int_param("zigzag_pads");
 
 }

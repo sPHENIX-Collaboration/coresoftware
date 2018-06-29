@@ -39,6 +39,7 @@ libg4hough_la_LIBADD = \
   -lgenfit2exp \
   -lPHGenFit \
   -lSpectrum \
+  -lg4tpc \
   libg4hough_io.la
 
 pkginclude_HEADERS = \

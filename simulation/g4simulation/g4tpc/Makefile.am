@@ -22,7 +22,8 @@ libg4tpc_la_LIBADD = \
   -lg4detectors \
   -lphparameter
 
-#pkginclude_HEADERS =
+pkginclude_HEADERS = \
+  PHG4CellTPCv1.h
 
 libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \

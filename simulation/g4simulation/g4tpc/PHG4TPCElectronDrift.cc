@@ -1,5 +1,5 @@
 #include "PHG4TPCElectronDrift.h"
-#include "PHG4CellTPCv1.h"
+#include <PHG4CellTPCv1.h>
 #include "PHG4TPCPadPlaneReadout.h"
 //#include "PHG4TPCPadPlane.h"
 
@@ -198,7 +198,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     double t0 = fmax(hiter->second->get_t(0),hiter->second->get_t(1));
-    cout << "  new hit with t0, " <<  t0 << " layer: " << hiter->second->get_layer() << endl;
+    //cout << "  new hit with t0, " <<  t0 << " layer: " << hiter->second->get_layer() << endl;
     if (t0 > max_time)
     {
       continue;
@@ -232,24 +232,21 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     
     for (unsigned int i=0; i<n_electrons; i++)
       {
-	cout << "  electron " << i << "  radius " << sqrt(x_start*x_start+y_start*y_start) << " drift for x: " << x_start
-	     << ", y: " << y_start
-	     << ",z: " << z_start << endl;
 	double radstart = sqrt(x_start*x_start + y_start*y_start);
 	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
 	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
-	double rad_final = radstart + rantrans;
-	// remove electrons outside of our acceptance
-	if (rad_final<min_active_radius || rad_final >max_active_radius)
-	  {
-	    cout << " skip - outside active area of TPC" << endl;
-	    continue;
-	  }
+
 	double t_path = t_start + (tpc_length/2. - fabs(z_start))/drift_velocity;
 	// now the drift
-	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;
+	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;	
 	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
 	double t_final = t_path + rantime;
+	double z_final;
+	if(z_start < 0)
+	  z_final = -tpc_length/2. + t_final * drift_velocity;
+	else
+	  z_final = tpc_length/2. - t_final * drift_velocity;
+
 	if (t_final < min_time || t_final > max_time)
 	  {
 	    continue;
@@ -257,10 +254,27 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
 	double x_final = x_start + rantrans*cos(ranphi);
 	double y_final = y_start + rantrans*sin(ranphi);
-	cout << "  rad_final " << sqrt(x_final*x_final + y_final*y_final) << " x_final " << x_final << " y_final " << y_final << " t_final " << t_final << endl; 
+	double rad_final = sqrt(x_final*x_final + y_final*y_final);
+	// remove electrons outside of our acceptance
+	if (rad_final<min_active_radius || rad_final >max_active_radius)
+	  {
+	    //cout << " skip - outside active area of TPC" << endl;
+	    continue;
+	  }
+	if(rad_final > 30.0 && rad_final < 35.0)
+	  {
+	    cout << "  electron " << i << "  radstart " << radstart  << " x_start: " << x_start
+		 << ", y_start: " << y_start
+		 << ",z_start: " << z_start 
+		 << " t_start " << t_start
+		 << endl;
+	    cout << "  rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
+		 << " z_final " << z_final << " t_final " << t_final << endl; 
+	  }
+
 	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
-	cout << "  call MapToPadPlane " << endl;
-	MapToPadPlane(x_final,y_final,t_final);
+	//cout << "  call MapToPadPlane " << endl;
+	MapToPadPlane(x_final,y_final,z_final);
 	x_start += dx;
 	y_start += dy;
 	z_start += dz;

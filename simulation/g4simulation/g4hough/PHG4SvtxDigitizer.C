@@ -17,6 +17,7 @@
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4Cellv2.h>
+#include <g4tpc/PHG4CellTPCv1.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 #include <phool/PHRandomSeed.h>
@@ -334,7 +335,8 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	continue;
       }
       // add an empty vector of cells for this layer
-      layer_sorted_cells.push_back(std::vector<const  PHG4Cell*>());
+      //layer_sorted_cells.push_back(std::vector<const  PHG4Cell *>());
+      layer_sorted_cells.push_back(std::vector<const PHG4CellTPCv1*>());
     }
   
   // now we fill each of the empty vectors with the cells for that layer
@@ -343,13 +345,16 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       celliter != cellrange.second;
       ++celliter) 
     {    
-      PHG4Cell* cell = celliter->second; 
+      PHG4CellTPCv1* cell =  (PHG4CellTPCv1*) celliter->second; 
+      //PHG4Cell* cell =  celliter->second; 
 
       if( (unsigned int) cell->get_layer() < TPCMinLayer) 
 	{
 	  if(verbosity>-1) std::cout << "Skipping layer " << cell->get_layer() << std::endl;
 	  continue;
 	}
+      cout << " cell_layer " << cell->get_layer() << " TPCMinLayer " << TPCMinLayer << " key " << cell->get_cellid() << " edep " << cell->get_edep() << endl;  
+      cell->identify();
       layer_sorted_cells[cell->get_layer()-TPCMinLayer].push_back(cell);
      }
   
@@ -370,7 +375,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       // start with an empty vector of cells for each phibin    
       int nphibins = layeriter->second->get_phibins();
       for(int iphi = 0;iphi<nphibins;iphi++)
-	phi_sorted_cells.push_back( std::vector<const  PHG4Cell*>() );
+	phi_sorted_cells.push_back( std::vector<const  PHG4CellTPCv1*>() );
       
       // Fill the vector of cells for each phibin
       for(unsigned int i = 0; i < layer_sorted_cells[layer-TPCMinLayer].size(); ++i) 
@@ -394,7 +399,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	 
 	  // add an empty vector for each z bin
 	  for(int iz=0;iz<nzbins;iz++)
-	    z_sorted_cells.push_back( std::vector<const  PHG4Cell*>() );
+	    z_sorted_cells.push_back( std::vector<const  PHG4CellTPCv1*>() );
  
 	  // add a cell for each z bin that has one
 	  for(unsigned int iz=0;iz<phi_sorted_cells[iphi].size();iz++)
@@ -475,9 +480,9 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      // but first, we have to add a cell for it, so things don't break downstream
 
 			      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(layer, iz+izup, iphi);
-			      PHG4Cell *cell = new PHG4Cellv2(akey);
+			      PHG4CellTPCv1 *cell = new PHG4CellTPCv1(akey);
 
-			      cell->add_edep(adc_input[iz+izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM
+			      cell->add_edep(akey, iz+izup, adc_input[iz+izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM
 			      adc_cellid[iz+izup]=cell->get_cellid();
 
 			      if(layer == print_layer)  cout << " will digitize noise hit for iphi " << iphi << " zbin " << iz+izup 
@@ -560,9 +565,9 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      // first, we have to add a cell for it so things don't break downstream
 
 			      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(layer, iz-izup, iphi);
-			      PHG4Cell *cell = new PHG4Cellv2(akey);
+			      PHG4CellTPCv1 *cell = new PHG4CellTPCv1(akey);
 
-			      cell->add_edep(adc_input[iz-izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM stack 
+			      cell->add_edep(akey, iz-izup, adc_input[iz-izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM stack 
 			      adc_cellid[iz-izup]=cell->get_cellid();
 			      if(layer == print_layer)  cout  << " will digitize noise hit for iphi " << iphi << " zbin " << iz-izup 
 							      << " created new cell with cellid " << cell->get_cellid() 

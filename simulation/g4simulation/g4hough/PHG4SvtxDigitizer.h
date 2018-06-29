@@ -14,7 +14,7 @@
 #endif
 
 class SvtxHitMap;
-class PHG4Cell;
+class PHG4CellTPCv1;
 
 class PHG4SvtxDigitizer : public SubsysReco
 {
@@ -65,9 +65,9 @@ class PHG4SvtxDigitizer : public SubsysReco
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
 
-  std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
-  std::vector< std::vector<const PHG4Cell*>  > phi_sorted_cells;
-  std::vector< std::vector<const PHG4Cell*>  > z_sorted_cells;
+  std::vector<std::vector<const  PHG4CellTPCv1*> > layer_sorted_cells;
+  std::vector< std::vector<const PHG4CellTPCv1*>  > phi_sorted_cells;
+  std::vector< std::vector<const PHG4CellTPCv1*>  > z_sorted_cells;
   std::vector<float> adc_input; 
   std::vector<PHG4CellDefs::keytype> adc_cellid; 
   std::vector<int> is_populated;

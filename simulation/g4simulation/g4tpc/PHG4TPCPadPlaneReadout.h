@@ -45,6 +45,9 @@ protected:
   //double phibinwidth;
   //double tbinwidth;
 
+  double rad_gem;
+  double output_radius;
+
   double neffelectrons_threshold;
 
   int MinLayer[3];
