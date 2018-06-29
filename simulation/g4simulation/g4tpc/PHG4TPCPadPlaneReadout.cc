@@ -217,7 +217,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	      g4cells->AddCell(cell);
 	    }
 	  cell->add_edep(key, zbin_num, neffelectrons);
-	  cell->identify();
+	  //cell->identify();
 	  /*
 	  if(layernum == 7)
 	    cout << "    Added cell for layernum " << layernum 
