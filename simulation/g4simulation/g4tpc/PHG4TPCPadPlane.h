@@ -6,6 +6,7 @@
 
 class PHG4CellContainer;
 class PHCompositeNode;
+class PHG4CylinderCellGeomContainer;
 
 class PHG4TPCPadPlane: public SubsysReco, public PHParameterInterface
 {
@@ -20,6 +21,8 @@ virtual ~PHG4TPCPadPlane(){}
   int process_event(PHCompositeNode *) {return 0;}
 #endif
   int InitRun(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
+
   virtual void UpdateInternalParameters() {return;}
   virtual void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem) {}
   void Detector(const std::string &name) {detector = name;}

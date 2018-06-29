@@ -7,12 +7,15 @@
 
 class TF1;
 class PHG4CellContainer;
+class PHG4CylinderCellGeomContainer;
 
 class PHG4TPCPadPlaneReadout: public PHG4TPCPadPlane
 {
 public:
   PHG4TPCPadPlaneReadout(const std::string& name = "ReadoutPadPlane");
   virtual ~PHG4TPCPadPlaneReadout(){}
+
+  int InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
   void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem);
 
@@ -48,6 +51,9 @@ protected:
   int MaxLayer[3];
   double MinRadius[3];
   double MaxRadius[3];
+  double Thickness[3];
+  double MinZ;
+  double MaxZ;
   double sigmaT;
   double sigmaL[2];
   double PhiBinWidth[3];

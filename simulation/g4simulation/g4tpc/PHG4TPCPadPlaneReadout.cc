@@ -2,8 +2,11 @@
 #include "PHG4CellTPCv1.h"
 
 #include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 #include "TF1.h"
+#include <TSystem.h>
 
 #include <cmath>
 #include <iostream>
@@ -28,6 +31,39 @@ PHG4TPCPadPlane(name)
   return;
 }
 
+int PHG4TPCPadPlaneReadout::InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
+{
+
+  for(int iregion=0;iregion<3;++iregion)
+    {
+      for (int layer = MinLayer[iregion]; layer < MinLayer[iregion]+NTpcLayers[iregion]; ++layer)
+	{
+	  PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
+	  layerseggeo->set_layer(layer);
+	  layerseggeo->set_radius(MinRadius[iregion]+( (double) layer + 0.5 )*Thickness[iregion]);
+	  layerseggeo->set_thickness(Thickness[iregion]);
+	  layerseggeo->set_binning(PHG4CellDefs::sizebinning);
+	  layerseggeo->set_zbins(NZBins);
+	  layerseggeo->set_zmin(MinZ);
+	  layerseggeo->set_zstep(ZBinWidth);
+	  layerseggeo->set_phibins(NPhiBins[iregion]);
+	  layerseggeo->set_phistep(PhiBinWidth[iregion]);
+	  // Chris Pinkenburg: greater causes huge memory growth which causes problems
+	  // on our farm. If you need to increase this - TALK TO ME first
+	  if (NPhiBins[iregion] * NZBins > 5100000)
+	    {
+	      cout << "increase TPC cellsize, number of cells "
+		   << NPhiBins[iregion] * NZBins << " for layer " << layer
+		   << " exceed 5.1M limit" << endl;
+	      gSystem->Exit(1);
+	    }
+	  seggeo->AddLayerCellGeom(layerseggeo);
+	}
+    }
+
+  return 0;
+}
+
 void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem)
 {
   cout << "Entering MapToPadPlane " << endl;
@@ -42,15 +78,13 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   double rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);
 
   // convert arrival time to z_gem
-  double z_gem =  t_gem / tpc_drift_velocity;
+  // drift velocity is cm/microsec
+  // t_gem is in microsec
+  double z_gem =  t_gem * tpc_drift_velocity;
+
+  cout << " z_gem " << z_gem << " rad_gem " << rad_gem << " phi " << phi << endl;
 
   int layernum = 0;
-
-  /*
-  int phibin = (phi+M_PI)/phibinwidth;
-  int radbin = (rad_gem-min_active_radius)/rbinwidth;
- 
-  */
 
   // Find which readout layer this electron ends up in
 
@@ -60,7 +94,12 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	{
 	  // get the layer number
 	  tpc_region = i;
-	  layernum = MinLayer[i] + (int) ( (double) NTpcLayers[i] * rad_gem / (MaxRadius[i]-MinRadius[i]) );
+	  layernum = MinLayer[i] + (int) ( (double) NTpcLayers[i] * (rad_gem - MinRadius[i]) / (MaxRadius[i]-MinRadius[i]) );
+	  cout << " TPC region " << tpc_region << " readout layernum " << layernum 
+	       << " MinLayer " << MinLayer[i] 
+	       << " NTpcLayers " << NTpcLayers[i] 
+	       << " MaxRadius " << MaxRadius[i] << " MinRadius " << MinRadius[i]
+	       << endl;
 	}
     }
 
@@ -423,11 +462,11 @@ int PHG4TPCPadPlaneReadout::get_zbin(const double z)
 
 void PHG4TPCPadPlaneReadout::SetDefaultParameters()
 {
-  set_default_int_param("ntpc_layers_inner",8); 
+  set_default_int_param("ntpc_layers_inner",16); 
   set_default_int_param("ntpc_layers_mid",16); 
   set_default_int_param("ntpc_layers_outer",16); 
 
-  set_default_int_param("tpc_minlayer_inner",0); 
+  set_default_int_param("tpc_minlayer_inner",7); 
 
   set_default_double_param("tpc_minradius_inner",30.0); // cm
   set_default_double_param("tpc_minradius_mid",40.0); 
@@ -473,6 +512,10 @@ void PHG4TPCPadPlaneReadout::UpdateInternalParameters()
   MinRadius[1] = get_double_param("tpc_minradius_mid");
   MinRadius[2] = get_double_param("tpc_minradius_outer");
 
+  Thickness[0] = (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
+  Thickness[1] = (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
+  Thickness[2] = (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
+
   MaxRadius[0] = get_double_param("tpc_maxradius_inner");
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
@@ -484,6 +527,9 @@ void PHG4TPCPadPlaneReadout::UpdateInternalParameters()
   tpc_drift_velocity = get_double_param("drift_velocity");
   tpc_adc_clock = get_double_param("tpc_adc_clock");
   ZBinWidth = tpc_adc_clock * tpc_drift_velocity;
+  MaxZ = get_double_param("maxdriftlength");
+  MinZ = -MaxZ;
+  NZBins = (int) ( (MaxZ-MinZ) / ZBinWidth);
 
   NPhiBins[0] = get_int_param("ntpc_phibins_inner");
   NPhiBins[1] = get_int_param("ntpc_phibins_mid");

@@ -7,6 +7,8 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phparameter/PHParametersContainer.h>
 
@@ -92,7 +94,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
-  cellnodename = "G4CELL_" + detector;
+  cellnodename = "G4CELL_SVTX";  // + detector;
   g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellnodename);
   if (! g4cells)
   {
@@ -104,11 +106,20 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       DetNode = new PHCompositeNode(detector);
       dstNode->addNode(DetNode);
     }
-g4cells = new PHG4CellContainer();
+    g4cells = new PHG4CellContainer();
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(g4cells, cellnodename.c_str(), "PHObject");
     DetNode->addNode(newNode);
   }
 
+  seggeonodename = "CYLINDERCELLGEOM_SVTX"; // + detector;
+  PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
+  if (!seggeo)
+  {
+    seggeo = new PHG4CylinderCellGeomContainer();
+    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str(), "PHObject");
+    runNode->addNode(newNode);
+  }
 
    UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
@@ -165,7 +176,7 @@ g4cells = new PHG4CellContainer();
   se->registerHisto(nt);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
-  padplane->InitRun(topNode);
+  padplane->InitRun(topNode,seggeo);
  
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -231,6 +242,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	// remove electrons outside of our acceptance
 	if (rad_final<min_active_radius || rad_final >max_active_radius)
 	  {
+	    cout << " skip - outside active area of TPC" << endl;
 	    continue;
 	  }
 	double t_path = t_start + (tpc_length/2. - fabs(z_start))/drift_velocity;
@@ -337,7 +349,7 @@ double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
   set_default_double_param("drift_velocity",8.0 / 1000.0); // cm/ns
   set_default_double_param("electrons_per_gev",TPC_ElectronsPerKeV*1000000.);
   set_default_double_param("min_active_radius",30.); // cm
-  set_default_double_param("max_active_radius",75.); // cm
+  set_default_double_param("max_active_radius",78.); // cm
   set_default_double_param("min_time",0.); // ns
   set_default_double_param("max_time",14000.); // ns
 

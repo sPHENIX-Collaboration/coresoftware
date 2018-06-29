@@ -47,6 +47,7 @@ private:
   std::string detector;
   std::string hitnodename;
   std::string cellnodename;
+  std::string seggeonodename;
   unsigned int seed;
   double diffusion_trans;
   double diffusion_long;
