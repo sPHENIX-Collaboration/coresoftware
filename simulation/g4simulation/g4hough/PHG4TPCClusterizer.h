@@ -25,7 +25,8 @@ class PHG4TPCClusterizer : public SubsysReco {
   void setFitWindowSigmas(float rp, float rz) { fDCT = rp; fDCL = rz; }
   void setFitWindowMax(int rp, int rz) { fFitRangeMP = rp; fFitRangeMZ = rz; }
   void setRangeLayers(unsigned int minLayer, unsigned int maxLayer) {fMinLayer=minLayer; fMaxLayer=maxLayer;}
-  void setFitEnergyThreshold(float val) { fFitEnergyThreshold = val; }
+  void setClusterCut(float val) { fClusterCut = val; }
+  void setPedestal(float val) { fPedestal = val; }
   void setShapingRMSLead(float val) {fShapingLead = val;}
   void setShapingRMSTail(float val) {fShapingTail = val;}
   void setClusterWindow(float val)  {fClusterWindow = val;}
@@ -42,9 +43,15 @@ class PHG4TPCClusterizer : public SubsysReco {
   void find_phi_range(int zbin, int phibin, int phimax, float peak, int& phiup, int& phidown);
 
   void fit(int pbin, int zbin, int& nhits_tot);
+  // FitSumP = weighted sum of dphi values in cluster (ee*dphi)
+  // FitSumZ = weighted sum of dz values in cluster
+  // fFitW is the sum of weights in the cluster ( sigma(ee) )
   float fit_p_mean() {return fFitSumP/fFitW+fFitP0;}
   float fit_z_mean() {return fFitSumZ/fFitW+fFitZ0;}
 
+  // FitSumP2 = weighted sum of dphi*dphi values in cluster (ee*dphi^2)
+  // FitSumZ2 = weighted sum of dz*dz values in cluster
+  // So fit_p_cov = sigma(dphi^2*ee)/sigma(ee) - ( sigma(dphi*ee)^2 / sigma(ee)^2 ) = weighted mean of dphi^2 - (weighted mean of dphi)^2 
   float fit_p_cov() {return fFitSumP2/fFitW-fFitSumP/fFitW*fFitSumP/fFitW;}
   float fit_z_cov() {return fFitSumZ2/fFitW-fFitSumZ/fFitW*fFitSumZ/fFitW;}
   float fit_pz_cov() {return fFitSumPZ/fFitW-fFitSumP/fFitW*fFitSumZ/fFitW;}
@@ -68,7 +75,8 @@ class PHG4TPCClusterizer : public SubsysReco {
   int fFitRangeZ;
   int fFitRangeMP;
   int fFitRangeMZ;
-  float fFitEnergyThreshold;
+  float fClusterCut;
+  float fPedestal;;
   float fFitSizeP;
   int fFitSizeZ;
   float fShapingLead;

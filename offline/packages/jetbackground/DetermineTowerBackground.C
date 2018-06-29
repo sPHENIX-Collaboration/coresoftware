@@ -31,11 +31,12 @@ DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)
 {
 
+  _do_flow = false;
+
   _seed_jet_D = 3.0;
   _seed_jet_pt = 7.0;
 
   _v2 = 0;
-
   _Psi2 = 0;
 
   _UE.resize(3, std::vector<float>(1, 0) );
@@ -86,7 +87,7 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 {
   if (verbosity > 0) {
-    std::cout << "DetermineTowerBackground::process_event: entering with seed type = " << _seed_type << ", ";
+    std::cout << "DetermineTowerBackground::process_event: entering with do_flow = " << _do_flow << ", seed type = " << _seed_type << ", ";
     if ( _seed_type == 0 ) std::cout << " D = " << _seed_jet_D << std::endl;
     else if ( _seed_type == 1 ) std::cout << " pT = " << _seed_jet_pt << std::endl;
     else std::cout << " UNDEFINED seed behavior! " << std::endl;
@@ -345,12 +346,127 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     }
   }
 
-  // check for the case when every tower is excluded
+  // first, calculate flow: Psi2 & v2, if enabled
 
-  int nStripsAvailableForFlow = 0;
-  int nStripsUnavailableForFlow = 0;
+  _Psi2 = 0;
+  _v2 = 0;
 
-  // calculate energy densities...
+  if ( _do_flow ) {
+    // check for the case when every tower is excluded
+    int nStripsAvailableForFlow = 0;
+    int nStripsUnavailableForFlow = 0;
+    
+    for (int layer = 0; layer < 3; layer++) {
+      
+      int local_max_eta = _HCAL_NETA;
+      int local_max_phi = _HCAL_NPHI;
+      
+      for (int eta = 0; eta < local_max_eta; eta++) {
+	
+	bool isAnyTowerExcluded = false;
+	
+	for (int phi = 0; phi < local_max_phi; phi++) {
+	  float this_eta = geomIH->get_etacenter( eta );
+	  float this_phi = geomIH->get_phicenter( phi );
+	  
+	  bool isExcluded = false;
+	  
+	  for (unsigned int iseed = 0; iseed < _seed_eta.size(); iseed++) {
+	    
+	    float deta = this_eta - _seed_eta[ iseed ];
+	    float dphi = this_phi - _seed_phi[ iseed ];
+	    if (dphi >  3.14159) dphi -= 2*3.14159;
+	    if (dphi < -3.14159) dphi += 2*3.14159;
+	    float dR = sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
+	    if (dR < 0.4) {
+	      isExcluded = true;
+	      if (verbosity > 10) std::cout << " setting excluded mark from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
+	    }
+	  }
+	  
+	  // if even a single tower in this eta strip is excluded, we
+	  // can't use the strip for flow determination
+	  if (isExcluded)
+	    isAnyTowerExcluded = true;
+	} // close phi loop
+	
+	// if this eta strip can be used for flow determination, fill it now
+	if (!isAnyTowerExcluded) {
+	  
+	  if ( verbosity > 4) 
+	    std::cout << " strip at layer " << layer << ", eta " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
+	  nStripsAvailableForFlow++;
+	  
+	  for (int phi = 0; phi < local_max_phi; phi++) {
+	    float this_phi = geomIH->get_phicenter( phi );
+	    
+	    if ( layer == 0 ) _FULLCALOFLOW_PHI_E[ phi ] += _EMCAL_E[ eta ][ phi ];
+	    if ( layer == 1 ) _FULLCALOFLOW_PHI_E[ phi ] += _IHCAL_E[ eta ][ phi ];
+	    if ( layer == 2 ) _FULLCALOFLOW_PHI_E[ phi ] += _OHCAL_E[ eta ][ phi ];
+	    
+	    _FULLCALOFLOW_PHI_VAL[ phi ] = this_phi; // should really set this globally only one time
+	    
+	  }
+	  
+	} else {
+	  if ( verbosity > 4) 
+	    std::cout << " strip at layer " << layer << ", eta " << eta << " DOES have excluded towers and CANNOT be used for flow determination " << std::endl;
+	  nStripsUnavailableForFlow++;
+	}
+	
+      } // close eta loop
+    } // close layer loop
+    
+    // flow determination
+    
+    float Q_x = 0;
+    float Q_y = 0;
+    float E = 0;
+    
+    float sum_cos2dphi = 0;
+    
+    if (verbosity > 0 )
+      std::cout << "DetermineTowerBackground::process_event: # of strips (summed over layers) available / unavailable for flow determination: " << nStripsAvailableForFlow << " / " << nStripsUnavailableForFlow << std::endl;
+    
+    if ( nStripsAvailableForFlow > 0 ) { 
+      for (int iphi = 0; iphi < _HCAL_NPHI; iphi++) {
+	
+	E += _FULLCALOFLOW_PHI_E[ iphi ];
+	Q_x += _FULLCALOFLOW_PHI_E[ iphi ] * cos( 2 * _FULLCALOFLOW_PHI_VAL[ iphi ] );
+	Q_y += _FULLCALOFLOW_PHI_E[ iphi ] * sin( 2 * _FULLCALOFLOW_PHI_VAL[ iphi ] );
+	
+      }
+      
+      _Psi2 = TMath::ATan2( Q_y, Q_x ) / 2.0 ;
+      
+      for (int iphi = 0; iphi < _HCAL_NPHI; iphi++) {
+	
+	sum_cos2dphi += _FULLCALOFLOW_PHI_E[ iphi ] * cos( 2 * (  _FULLCALOFLOW_PHI_VAL[ iphi ] - _Psi2 ) );
+	
+      }
+      
+      _v2 = sum_cos2dphi / E;
+      
+    } else {
+      _Psi2 = 0;
+      _v2 = 0;
+      if (verbosity > 0 )
+	std::cout << "DetermineTowerBackground::process_event: no full strips available for flow modulation, setting v2 and Psi = 0" << std::endl;
+    }
+
+    if (verbosity > 0 ) {
+      
+      std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << E << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
+    }
+  } // if do flow
+  else {
+    if (verbosity > 0 ) {
+      std::cout << "DetermineTowerBackground::process_event: flow not enabled, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
+    }
+  }
+
+  // now calculate energy densities...
 
   // starting with the EMCal first...
   for (int layer = 0; layer < 3; layer++) {
@@ -363,8 +479,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float total_E = 0;
       int total_tower = 0;
 
-      bool isAnyTowerExcluded = false;
-      
       for (int phi = 0; phi < local_max_phi; phi++) {
 	float this_eta = geomIH->get_etacenter( eta );
 	float this_phi = geomIH->get_phicenter( phi );
@@ -385,42 +499,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	}
 
 	if (!isExcluded) {
-	  if ( layer == 0 ) total_E += _EMCAL_E[ eta ][ phi ];
-	  if ( layer == 1 ) total_E += _IHCAL_E[ eta ][ phi ];
-	  if ( layer == 2 ) total_E += _OHCAL_E[ eta ][ phi ];
+	  if ( layer == 0 ) total_E += _EMCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
+	  if ( layer == 1 ) total_E += _IHCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
+	  if ( layer == 2 ) total_E += _OHCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
 	  total_tower++;
 	} else {
 	  if (verbosity > 10) std::cout << " tower at eta / phi = " << this_eta << " / " << this_phi << " with E = " << total_E << " excluded due to seed " << std::endl;
 	}
 
-	// if even a single tower in this eta strip is excluded, we
-	// can't use the strip for flow determination
-	if (isExcluded)
-	  isAnyTowerExcluded = true;
-      }
-
-      // if this eta strip can be used for flow determination, fill it now
-      if (!isAnyTowerExcluded) {
-	
-	if ( verbosity > 4) 
-	  std::cout << " strip at layer " << layer << ", eta " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
-	nStripsAvailableForFlow++;
-	
-	for (int phi = 0; phi < local_max_phi; phi++) {
-	  float this_phi = geomIH->get_phicenter( phi );
-	  
-	  if ( layer == 0 ) _FULLCALOFLOW_PHI_E[ phi ] += _EMCAL_E[ eta ][ phi ];
-	  if ( layer == 1 ) _FULLCALOFLOW_PHI_E[ phi ] += _IHCAL_E[ eta ][ phi ];
-	  if ( layer == 2 ) _FULLCALOFLOW_PHI_E[ phi ] += _OHCAL_E[ eta ][ phi ];
-
-	  _FULLCALOFLOW_PHI_VAL[ phi ] = this_phi; // should really set this globally only one time
-	  
-	}
-	
-      } else {
-	if ( verbosity > 4) 
-	  std::cout << " strip at layer " << layer << ", eta " << eta << " DOES have excluded towers and CANNOT be used for flow determination " << std::endl;
-	nStripsUnavailableForFlow++;
       }
 
       std::pair< float, float > etabounds = geomIH->get_etabounds( eta );
@@ -448,48 +534,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   }
 
-  // flow determination
-  
-  float Q_x = 0;
-  float Q_y = 0;
-  float E = 0;
-
-  float sum_cos2dphi = 0;
-
-  if (verbosity > 0 )
-    std::cout << "DetermineTowerBackground::process_event: # of strips (summed over layers) available / unavailable for flow determination: " << nStripsAvailableForFlow << " / " << nStripsUnavailableForFlow << std::endl;
-
-  if ( nStripsAvailableForFlow > 0 ) { 
-    for (int iphi = 0; iphi < _HCAL_NPHI; iphi++) {
-      
-      E += _FULLCALOFLOW_PHI_E[ iphi ];
-      Q_x += _FULLCALOFLOW_PHI_E[ iphi ] * cos( 2 * _FULLCALOFLOW_PHI_VAL[ iphi ] );
-      Q_y += _FULLCALOFLOW_PHI_E[ iphi ] * sin( 2 * _FULLCALOFLOW_PHI_VAL[ iphi ] );
-      
-    }
-    
-    _Psi2 = TMath::ATan2( Q_y, Q_x ) / 2.0 ;
-    
-    for (int iphi = 0; iphi < _HCAL_NPHI; iphi++) {
-      
-      sum_cos2dphi += _FULLCALOFLOW_PHI_E[ iphi ] * cos( 2 * (  _FULLCALOFLOW_PHI_VAL[ iphi ] - _Psi2 ) );
-      
-    }
-    
-    _v2 = sum_cos2dphi / E;
-  
-  } else {
-    _Psi2 = 0;
-    _v2 = 0;
-    if (verbosity > 0 )
-      std::cout << "DetermineTowerBackground::process_event: no full strips available for flow modulation, setting v2 and Psi = 0" << std::endl;
-  }
-
-  if (verbosity > 0 ) {
-
-    std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << E << std::endl;
-    std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
-  }
   // 
 
   FillNode(topNode);
