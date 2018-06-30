@@ -16,8 +16,7 @@ TpcHit::TpcHit()
 void 
 TpcHit::identify(std::ostream& os) const
 {
-  os << "TpcHit with key:" << getKey() 
-     << " and adc:" << getAdc() 
+  os << "TpcHit with adc:" << getAdc() 
      << std::endl;
 }
 
@@ -30,7 +29,7 @@ TpcHit::Reset()
 int 
 TpcHit::isValid() const
 {
-  // valid if the key is not equal to the default value
-  return (getKey() != TrkrDefs::HITKEYMAX && getAdc() != 0);
+  // valid if the adc is not equal to the default value
+  return getAdc() != 0;
 }
 
