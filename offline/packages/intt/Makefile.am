@@ -8,8 +8,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(ROOTSYS)/include 
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -32,11 +31,10 @@ libintt_io_la_SOURCES = \
   InttHit_Dict.cc
 
 libintt_io_la_LIBADD = \
+  libintt.la \
   -lfun4all \
   -ltrack_util \
-  -ltrack_io \
-  -lintt
-
+  -ltrack_io 
 
 
 # Rule for generating table CINT dictionaries.
