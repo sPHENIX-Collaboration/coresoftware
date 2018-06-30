@@ -9,14 +9,14 @@
 
 InttHit::InttHit()
   : TrkrHit()
+  , m_adc(0)
 {
 }
 
 void 
 InttHit::identify(std::ostream& os) const
 {
-  os << "InttHit with key:" << getKey() 
-     << " and adc:" << getAdc()
+  os << "InttHit with adc:" << getAdc()
      << std::endl;
 }
 
@@ -30,6 +30,6 @@ int
 InttHit::isValid() const
 {
   // valid if the key is not equal to the default value
-  return getKey() != TrkrDefs::HITKEYMAX;
+  return m_adc != 0;
 }
 

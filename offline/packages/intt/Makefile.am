@@ -18,8 +18,6 @@ AM_LDFLAGS = \
 
 # sources for intt library
 libintt_la_SOURCES = \
-  InttClusterizer.cc \
-  InttClusterizer_Dict.cc \
   InttDefs.cc \
   InttDefs_Dict.cc 
 
@@ -50,7 +48,6 @@ libintt_io_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
-  InttClusterizer.h \
   InttDefs.h \
   InttHit.h
 
