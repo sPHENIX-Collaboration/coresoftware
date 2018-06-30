@@ -638,6 +638,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter) {
+    cout << "Layer " << layeriter->second->get_layer() << endl;
     if( (unsigned int) layeriter->second->get_layer() < fMinLayer) {
       if(verbosity>1000) std::cout << "Skipping layer " << layeriter->second->get_layer() << std::endl;
       continue;

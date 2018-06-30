@@ -1,11 +1,11 @@
 #include "PHG4TPCElectronDrift.h"
-#include <PHG4CellTPCv1.h>
 #include "PHG4TPCPadPlaneReadout.h"
 //#include "PHG4TPCPadPlane.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -176,7 +176,9 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(nt);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
-  padplane->InitRun(topNode,seggeo);
+  cout << "Call InitRun of padplane" << endl;
+  padplane->InitRun(topNode);
+  padplane->CreateReadoutGeometry(topNode,seggeo);
  
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -191,6 +193,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       cout << "Could not locate g4 hit node " << hitnodename << endl;
       gSystem->Exit(1);
     }
+
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   double tpc_length = 211.;
@@ -274,7 +277,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
 	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
 	//cout << "  call MapToPadPlane " << endl;
-	MapToPadPlane(x_final,y_final,z_final);
+	MapToPadPlane(x_final,y_final,z_final, hiter);
 	x_start += dx;
 	y_start += dy;
 	z_start += dz;
@@ -295,10 +298,10 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem)
+void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter)
 {
 
-  padplane->MapToPadPlane(g4cells,x_gem,y_gem,t_gem);
+  padplane->MapToPadPlane(g4cells,x_gem,y_gem,t_gem, hiter);
  
   return;
 

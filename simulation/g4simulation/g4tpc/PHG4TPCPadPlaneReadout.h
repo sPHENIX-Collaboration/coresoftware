@@ -2,6 +2,7 @@
 #define PHG4TPCPadPlaneReadout_h
 
 #include "PHG4TPCPadPlane.h"
+#include <g4main/PHG4HitContainer.h>
 
 #include <vector>
 
@@ -9,15 +10,16 @@ class TF1;
 class PHG4CellContainer;
 class PHG4CylinderCellGeomContainer;
 
+
 class PHG4TPCPadPlaneReadout: public PHG4TPCPadPlane
 {
 public:
   PHG4TPCPadPlaneReadout(const std::string& name = "ReadoutPadPlane");
   virtual ~PHG4TPCPadPlaneReadout(){}
 
-  int InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
+  int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
-  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem);
+  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter);
 
   void populate_rectangular_phibins(const int tpc_region, const int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zigzag_phibins(const int tpc_region, const int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);

@@ -1,9 +1,10 @@
 #include "PHG4TPCPadPlaneReadout.h"
-#include "PHG4CellTPCv1.h"
+#include <g4detectors/PHG4Cellv1.h>
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4main/PHG4HitContainer.h>
 
 #include "TF1.h"
 #include <TSystem.h>
@@ -32,13 +33,16 @@ PHG4TPCPadPlane(name)
   return;
 }
 
-int PHG4TPCPadPlaneReadout::InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
+int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
 {
+  cout << "Enter MapToPadPlane InitRun " << endl;
+  cout << "   region 0, MinLayer " << MinLayer[0] << " NTpcLayers " << NTpcLayers[0] << endl;
 
   for(int iregion=0;iregion<3;++iregion)
     {
       for (int layer = MinLayer[iregion]; layer < MinLayer[iregion]+NTpcLayers[iregion]; ++layer)
 	{
+	  cout << " MapToPadPlane InitRun: iregion " << iregion << " layer " << layer << endl;
 	  PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
 	  layerseggeo->set_layer(layer);
 	  layerseggeo->set_radius(MinRadius[iregion]+( (double) layer + 0.5 )*Thickness[iregion]);
@@ -65,7 +69,7 @@ int PHG4TPCPadPlaneReadout::InitRun(PHCompositeNode *topNode, PHG4CylinderCellGe
   return 0;
 }
 
-void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem)
+void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter)
 {
   //cout << "Entering MapToPadPlane " << endl;
 
@@ -209,14 +213,15 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  z_integral += zcenter*neffelectrons;
 	  weight += neffelectrons;
 
-	  PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(layernum,zbin_num,pad_num);
+	  PHG4CellDefs::keytype key = PHG4CellDefs::SizeBinning::genkey(layernum,zbin_num,pad_num);
 	  PHG4Cell *cell = g4cells->findCell(key);
 	  if (! cell)
 	    {
-	      cell = new PHG4CellTPCv1(key);
+	      cell = new PHG4Cellv1(key);
 	      g4cells->AddCell(cell);
 	    }
-	  cell->add_edep(key, zbin_num, neffelectrons);
+	  cell->add_edep(neffelectrons);
+	  cell->add_edep(hiter->first, neffelectrons);
 	  //cell->identify();
 	  /*
 	  if(layernum == 7)

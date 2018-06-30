@@ -2,6 +2,7 @@
 #define G4TPC_PHG4TPCELECTRONDRIFT_H
 
 #include <fun4all/SubsysReco.h>
+#include <g4main/PHG4HitContainer.h>
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -14,6 +15,7 @@
 
 class PHG4CellContainer;
 class PHG4TPCPadPlane;
+class PHG4TPCPadPlaneReadout;
 class PHCompositeNode;
 class TH1;
 class TNtuple;
@@ -34,8 +36,9 @@ public:
   std::string Detector() const {return detector;}
   void set_seed(const unsigned int iseed);
 //  void Amplify(const double x, const double y, const double z);
-  void MapToPadPlane(const double x, const double y, const double t);
-  void registerPadPlane(PHG4TPCPadPlane *padplane);
+  void MapToPadPlane(const double x, const double y, const double z,  PHG4HitContainer::ConstIterator hiter);
+//void registerPadPlane(PHG4TPCPadPlaneReadout *padplane);
+void registerPadPlane(PHG4TPCPadPlane *padplane);
 
 private:
   PHG4CellContainer *g4cells;
@@ -57,7 +60,8 @@ private:
   double max_active_radius;
   double min_time;
   double max_time;
-  PHG4TPCPadPlane *padplane;
+//PHG4TPCPadPlaneReadout *padplane;
+PHG4TPCPadPlane *padplane;
 
 #ifndef __CINT__
   gsl_rng *RandomGenerator;

@@ -3,8 +3,10 @@
 
 #include <phparameter/PHParameterInterface.h>
 #include <fun4all/SubsysReco.h>
+#include <g4main/PHG4HitContainer.h>
 
 class PHG4CellContainer;
+
 class PHCompositeNode;
 class PHG4CylinderCellGeomContainer;
 
@@ -21,10 +23,9 @@ virtual ~PHG4TPCPadPlane(){}
   int process_event(PHCompositeNode *) {return 0;}
 #endif
   int InitRun(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
-
+  virtual int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo){return 0;}
   virtual void UpdateInternalParameters() {return;}
-  virtual void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem) {}
+  virtual void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter) {}
   void Detector(const std::string &name) {detector = name;}
 protected:
 

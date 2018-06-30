@@ -21,7 +21,7 @@ tbinwidth(NAN)
 }
 
 
-void PHG4TPCPadPlaneSimple::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem)
+void PHG4TPCPadPlaneSimple::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem,  PHG4HitContainer::ConstIterator hiter)
 {
   double phi = atan2(y_gem,x_gem);
   double rad_gem = sqrt(x_gem*x_gem + y_gem*y_gem);

@@ -47,7 +47,3 @@ int PHG4TPCPadPlane::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCPadPlane::InitRun(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
-{
-  return 0;
-}
