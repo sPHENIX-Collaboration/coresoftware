@@ -15,8 +15,7 @@ MvtxHit::MvtxHit()
 void 
 MvtxHit::identify(std::ostream& os) const
 {
-  os << "MvtxHit with key:" << getKey() 
-     << std::endl;
+  os << "I am an MvtxHit" << std::endl;
 }
 
 void 
@@ -28,6 +27,5 @@ MvtxHit::Reset()
 int 
 MvtxHit::isValid() const
 {
-  // valid if the key is not equal to the default value
-  return getKey() != TrkrDefs::HITKEYMAX;
+  return 1;
 }
