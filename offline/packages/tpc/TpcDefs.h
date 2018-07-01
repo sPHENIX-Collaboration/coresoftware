@@ -101,7 +101,7 @@ namespace TpcDefs
    * Generate a hitsetkey for the tpc. The tracker id is known
    * implicitly and used in the function.
    */
-  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t sector, const uint8_t side);
+  TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t side);
 
   /**
    * @brief Generate a cluster key from indeces 
@@ -111,7 +111,7 @@ namespace TpcDefs
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid);
+  TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid);
 
   /**
    * @brief Generate a cluster key using a hitsetkey and cluster id

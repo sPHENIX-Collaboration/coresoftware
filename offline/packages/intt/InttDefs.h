@@ -75,7 +75,7 @@ namespace InttDefs
    * Generate a hitsetkey for the intt. The tracker id is known
    * implicitly and used in the function.
    */
-  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t ladder, const uint8_t sensor);
+  TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t ladder, const uint8_t sensor);
 
   /**
    * @brief Generate a cluster key from indeces 
@@ -85,7 +85,7 @@ namespace InttDefs
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t ladder, const uint8_t sensor, const uint32_t clusid);
+  TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t ladder, const uint8_t sensor, const uint32_t clusid);
 
   /**
    * @brief Generate a cluster key using a hitsetkey and cluster id

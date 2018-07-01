@@ -58,20 +58,20 @@ TpcDefs::genHitKey(const uint16_t pad, const uint16_t tbin)
 }
 
 TrkrDefs::hitsetkey
-TpcDefs::genHitSetKey(const char lyr, const uint8_t sector, const uint8_t chip)
+TpcDefs::genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t side)
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
   TrkrDefs::hitsetkey tmp = sector;
   key |= (tmp << TpcDefs::kBitShiftSectorId);
-  tmp = chip;
+  tmp = side;
   key |= (tmp << TpcDefs::kBitShiftSide);
   return key;
 }
 
 TrkrDefs::cluskey
-TpcDefs::genClusKey(const char lyr, const uint8_t sector, const uint8_t chip, const uint32_t clusid)
+TpcDefs::genClusKey(const uint8_t lyr, const uint8_t sector, const uint8_t side, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, sector, chip);
+  TrkrDefs::cluskey tmp = genHitSetKey(lyr, sector, side);
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
   key |= clusid;
   return key;
