@@ -247,8 +247,8 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
 
 void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
-  //unsigned int print_layer = 100; // to suppress diagnostic output
-  unsigned int print_layer = 7;  // to print diagnostic output for layer 20
+  unsigned int print_layer = 100; // to suppress diagnostic output
+  //unsigned int print_layer = 7;  // to print diagnostic output for layer 20
 
   // Digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
   // These contain as edep the number of electrons out of the GEM stack, distributed between Z bins by shaper response and ADC clock window
@@ -340,18 +340,26 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     {    
       PHG4Cell* cell =  celliter->second; 
 
+      /*
+      for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
+	   g4iter != cell->get_g4hits().second;
+	   ++g4iter) 
+	{
+	  cout << "Digitizer: cellid " << cell->get_cellid() << " g4hit ID " << g4iter->first << endl;
+	}
+      */
+
       if( (unsigned int) cell->get_layer() < TPCMinLayer) 
 	{
-	  if(verbosity>-1) std::cout << "Skipping layer " << cell->get_layer() << std::endl;
+	  if(verbosity>0) std::cout << "Skipping layer " << cell->get_layer() << std::endl;
 	  continue;
 	}
-      cout << " cell_layer " << cell->get_layer() << " TPCMinLayer " << TPCMinLayer << " key " << cell->get_cellid() << " edep " << cell->get_edep() << endl;  
+      //cout << " cell_layer " << cell->get_layer() << " TPCMinLayer " << TPCMinLayer << " key " << cell->get_cellid() << " edep " << cell->get_edep() << endl;  
+      //cout << "Digitizer: cell identify:" << endl;
       //cell->identify();
       layer_sorted_cells[cell->get_layer()-TPCMinLayer].push_back(cell);
      }
 
-  cout << "Now loop over layers and process hits" << endl; 
- 
   // We have the cells sorted by layer, now we loop over the layers and process the hits
   //==========================================================
 
@@ -366,8 +374,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       // start with an empty vector of cells for each phibin
       unsigned int layer = layeriter->second->get_layer();
       int nphibins = layeriter->second->get_phibins();
-      //cout << "Digitizer: layer " << layer << " has nphibins " << nphibins << endl;
-      for(int iphi = 0;iphi<nphibins;iphi++)
+       for(int iphi = 0;iphi<nphibins;iphi++)
 	{
 	  //cout << "Adding empty vector for iphi " << iphi << endl;
 	  phi_sorted_cells.push_back( std::vector<const  PHG4Cell*>() );      
@@ -376,9 +383,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       // Fill the vector of cells for each phibin
       for(unsigned int i = 0; i < layer_sorted_cells[layer-TPCMinLayer].size(); ++i) 
 	{
-	  cout << " Add cell for " << i << " with layer " << layer  << " cellid " <<  layer_sorted_cells[layer-TPCMinLayer][i]->get_cellid() << " to phi_sorted " << endl;
 	  unsigned int phibin = PHG4CellDefs::SizeBinning::get_phibin(layer_sorted_cells[layer-TPCMinLayer][i]->get_cellid());	  
-	  cout <<  "          adding cell to phi_sorted for phibin " << phibin << endl;
 	  phi_sorted_cells[phibin].push_back(layer_sorted_cells[layer-TPCMinLayer][i]);
 	}
       
@@ -391,8 +396,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
  
 	  // Populate a vector of cells ordered by Z for each phibin    
 	  int nzbins = layeriter->second->get_zbins();
-	  cout << "Digitizer: layer " << layer << " has nzbins " << nzbins << endl;
-	  //int nzbins = NZBins;
 	  is_populated.clear();
 	  is_populated.assign(nzbins,2);  // mark all as noise only for now
 	  z_sorted_cells.clear();
@@ -406,7 +409,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	    {
 	      int zbin = PHG4CellDefs::SizeBinning::get_zbin(phi_sorted_cells[iphi][iz]->get_cellid());
 	      is_populated[zbin] = 1;  // this bin is a associated with a cell
-	      cout <<  "          adding cell to z_sorted for zbin " << zbin << endl;
 	      z_sorted_cells[zbin].push_back(phi_sorted_cells[iphi][iz]);
 	    }
 	  
@@ -436,7 +438,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
 		  adc_input.push_back(noise_voltage); // mV
 		  adc_cellid.push_back(0);  // there is no cell, just add a placeholder in the vector for now, replace it later
-		  //is_populated[iz] = 2;  // mark as a noise-only  hit
 		}
 	      else
 		{
@@ -479,7 +480,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      // This is a noise-only hit, so there is no cell
 			      // since it is digitized, we will make a hit for it
 			      // but first, we have to add a cell for it, so things don't break downstream
-			      cout << " generate key for noise hit" << endl;
+			      //cout << " generate key for noise hit" << endl;
 			      PHG4CellDefs::keytype akey = PHG4CellDefs::SizeBinning::genkey(layer, iz+izup, iphi);
 			      PHG4Cell *cell = new PHG4Cellv1(akey);
 
@@ -503,12 +504,15 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
 
-			  if(layer == print_layer)   cout << "Added hit for iphi " << iphi << " phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
-						 << " zbin " << iz+izup << " with cellid " << hit.get_cellid() 
-						 << " adc_input " << adc_input[iz+izup] << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
-						 << endl;
-		 			  
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
+			  if(layer == print_layer)
+			    { 
+			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
+			      ptr->identify();
+			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
+			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
+			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
+			    }
 			  if (!ptr->isValid()) 
 			    {
 			      static bool first = true;
@@ -573,7 +577,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      if(layer == print_layer)  cout  << " will digitize noise hit for iphi " << iphi << " zbin " << iz-izup 
 							      << " created new cell with cellid " << cell->get_cellid() 
 							      << " edep " << cell->get_edep() << endl; 
-			      //cout << " cellid " << cell->get_cellid() << " layer " << layer << " iz-izup " << iz-izup << " iphi " << iphi << endl;			      
+			      
 			      cells->AddCell(cell);
 			    }
 			  
@@ -585,13 +589,16 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  float e = adc_output * (2200.0 / 1024.0) /  ADCSignalConversionGain;          // convert ADU's back to mV, then to input electrons from GEM
 			  hit.set_adc(adc_output);
 			  hit.set_e(e);
-
-			  if(layer == print_layer)  cout << "Added hit for iphi " << iphi << " phibin " << PHG4CellDefs::SizeBinning::get_phibin(hit.get_cellid())  
-						<< " zbin " << iz-izup << " with cellid " << hit.get_cellid() 
-						<< " adc_input " << adc_input[iz-izup] << " adc " <<  hit.get_adc() << " e " << hit.get_e() 
-						<< endl;
-			  
+ 
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
+			  if(layer == print_layer)
+			    {
+			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
+			      ptr->identify();
+			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
+			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
+			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
+			    }
 			  if (!ptr->isValid()) 
 			    {
 			      static bool first = true;

@@ -17,7 +17,6 @@ using namespace std;
 PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name):
 PHG4TPCPadPlane(name)
 {
-  cout << "Constructor of PHG4TPCPadPlaneReadout" << endl;
   InitializeParameters();
 
   fcharge = new TF1("fcharge", "gaus(0)");
@@ -28,24 +27,28 @@ PHG4TPCPadPlane(name)
       sprintf(name,"fpad%i",ipad);
       fpad[ipad] = new TF1(name,"[0]-abs(x-[1])");
     }
- output_radius = 32;
+ output_radius = 0; // turns off diagnostic output
 
   return;
 }
 
 int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
 {
-  cout << "Enter MapToPadPlane InitRun " << endl;
-  cout << "   region 0, MinLayer " << MinLayer[0] << " NTpcLayers " << NTpcLayers[0] << endl;
 
   for(int iregion=0;iregion<3;++iregion)
     {
       for (int layer = MinLayer[iregion]; layer < MinLayer[iregion]+NTpcLayers[iregion]; ++layer)
 	{
-	  cout << " MapToPadPlane InitRun: iregion " << iregion << " layer " << layer << endl;
+	  cout << "CreateReadoutGeometry: " << endl;
+	  cout << "layer " << layer << " region " << iregion << " MinRadius " << MinRadius[iregion] << endl;  	
+	  cout << " radius " << MinRadius[iregion]+( (double) (layer-MinLayer[iregion]) + 0.5 )*Thickness[iregion] << endl;
+	  cout << " thickness " << Thickness[iregion] << endl;
+	  cout << " NZbins " << NZBins << " zmin " << MinZ  << " zstep " << ZBinWidth << endl;
+	  cout << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << endl;
+  
 	  PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
 	  layerseggeo->set_layer(layer);
-	  layerseggeo->set_radius(MinRadius[iregion]+( (double) layer + 0.5 )*Thickness[iregion]);
+	  layerseggeo->set_radius(MinRadius[iregion]+( (double) (layer-MinLayer[iregion]) + 0.5 )*Thickness[iregion]);
 	  layerseggeo->set_thickness(Thickness[iregion]);
 	  layerseggeo->set_binning(PHG4CellDefs::sizebinning);
 	  layerseggeo->set_zbins(NZBins);
@@ -71,8 +74,6 @@ int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
 
 void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter)
 {
-  //cout << "Entering MapToPadPlane " << endl;
-
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width 
   // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
@@ -247,9 +248,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
     {
       cout << " quick centroid using neffelectrons " << endl;
       cout << "      phi centroid = " << phi_integral / weight 
-	// << " truth phi " << truth_phi 
 	   << " z centroid = " << z_integral / weight 
-	//<< " truth z " << truth_z 
 	   << endl;
     }
 

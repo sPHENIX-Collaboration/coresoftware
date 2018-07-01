@@ -638,7 +638,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter) {
-    cout << "Layer " << layeriter->second->get_layer() << endl;
+    //cout << "Layer " << layeriter->second->get_layer() << endl;
     if( (unsigned int) layeriter->second->get_layer() < fMinLayer) {
       if(verbosity>1000) std::cout << "Skipping layer " << layeriter->second->get_layer() << std::endl;
       continue;
@@ -685,6 +685,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
+      //cout << "Clusterizer: Hit identify:" << endl;
+      //hit->identify();
+      //cout << "layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << endl;
     }
     if(fDeconMode){
       cout << "deconvoluting layer: " << layer << endl;
@@ -748,15 +751,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW*0.14) );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW*0.14) );
-	  //if(layer == 20) cout << " number of primary electrons = " << fFitW * 0.14 << endl;
-	  //float rr_err = fGeoLayer->get_thickness() * _inv_sqrt12;
-	  //float sinphi = TMath::Sin(phi);
-	  //float cosphi = TMath::Cos(phi);
-	  //float abscosphi = TMath::Abs(cosphi);
-	  //float xx_err = rr_err*abscosphi;
-	  //float yy_err = pp_err*abscosphi;
-	  //float xx_err = TMath::Sqrt(pp_err*sinphi*pp_err*sinphi + rr_err*cosphi*rr_err*cosphi); // linearization
-	  //float yy_err = TMath::Sqrt(pp_err*cosphi*pp_err*cosphi + rr_err*sinphi*rr_err*sinphi); // linearization
+	  //if(layer > 23) cout << " layer " << layer << " number of primary electrons = " << fFitW * 0.14 << endl;
+
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
 

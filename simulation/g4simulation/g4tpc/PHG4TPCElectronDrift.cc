@@ -176,7 +176,6 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(nt);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
-  cout << "Call InitRun of padplane" << endl;
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode,seggeo);
  
@@ -185,7 +184,6 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  cout << "Begin PHG4TPCElectronDrift::process_event" << endl;
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -209,7 +207,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
 
-    cout << "eion " << eion << " n_electrons " << n_electrons << endl;
+    //cout << "eion " << eion << " n_electrons " << n_electrons << endl;
 
     nthit->Fill(ihit,n_electrons,eion,hiter->second->get_edep(),hiter->second->get_t(0),hiter->second->get_x(0),hiter->second->get_y(0),hiter->second->get_z(0));
     if (n_electrons <= 0)
@@ -264,7 +262,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	    //cout << " skip - outside active area of TPC" << endl;
 	    continue;
 	  }
-	if(rad_final > 30.0 && rad_final < 35.0)
+	if(0)
 	  {
 	    cout << "  electron " << i << "  radstart " << radstart  << " x_start: " << x_start
 		 << ", y_start: " << y_start
@@ -276,7 +274,6 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	  }
 
 	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
-	//cout << "  call MapToPadPlane " << endl;
 	MapToPadPlane(x_final,y_final,z_final, hiter);
 	x_start += dx;
 	y_start += dy;
