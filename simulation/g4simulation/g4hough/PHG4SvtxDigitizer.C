@@ -345,7 +345,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	   g4iter != cell->get_g4hits().second;
 	   ++g4iter) 
 	{
-	  cout << "Digitizer: cellid " << cell->get_cellid() << " g4hit ID " << g4iter->first << endl;
+	  cout << "Digitizer: input cellid " << cell->get_cellid() << " g4hit ID " << g4iter->first << endl;
 	}
       */
 
@@ -354,7 +354,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 	  if(verbosity>0) std::cout << "Skipping layer " << cell->get_layer() << std::endl;
 	  continue;
 	}
-      //cout << " cell_layer " << cell->get_layer() << " TPCMinLayer " << TPCMinLayer << " key " << cell->get_cellid() << " edep " << cell->get_edep() << endl;  
       //cout << "Digitizer: cell identify:" << endl;
       //cell->identify();
       layer_sorted_cells[cell->get_layer()-TPCMinLayer].push_back(cell);
@@ -363,7 +362,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
   // We have the cells sorted by layer, now we loop over the layers and process the hits
   //==========================================================
 
-  //PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
       layeriter != layerrange.second;
       ++layeriter) 
@@ -376,7 +374,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       int nphibins = layeriter->second->get_phibins();
        for(int iphi = 0;iphi<nphibins;iphi++)
 	{
-	  //cout << "Adding empty vector for iphi " << iphi << endl;
 	  phi_sorted_cells.push_back( std::vector<const  PHG4Cell*>() );      
 	}
 
@@ -491,7 +488,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 							     << " created new cell with cellid " << cell->get_cellid() 
 							     << " adc_input " << adc_input[iz+izup] << " edep " << cell->get_edep() << endl; 
 
-			      //cout << " cellid " << cell->get_cellid() << " layer " << layer << " iz+izup " << iz+izup << " iphi " << iphi << endl;
 			      cells->AddCell(cell);
 			    }
 
@@ -505,14 +501,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_e(e);
 
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
-			  if(layer == print_layer)
-			    { 
-			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
-			      ptr->identify();
-			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
-			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
-			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
-			    }
 			  if (!ptr->isValid()) 
 			    {
 			      static bool first = true;
@@ -524,6 +512,16 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 				}
 			    }
 			  binpointer ++;
+
+			  if(layer == print_layer)
+			    { 
+			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
+			      ptr->identify();
+			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
+			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
+			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
+			    }
+			  
 			} // end nzbins check 
 		    } // end izup loop
 		  
@@ -591,14 +589,7 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  hit.set_e(e);
  
 			  SvtxHit* ptr = _hitmap->insert(&hit);      
-			  if(layer == print_layer)
-			    {
-			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
-			      ptr->identify();
-			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
-			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
-			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
-			    }
+
 			  if (!ptr->isValid()) 
 			    {
 			      static bool first = true;
@@ -610,6 +601,16 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 				}
 			    }
 			  binpointer--;
+
+			  if(layer == print_layer)
+			    {
+			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
+			      ptr->identify();
+			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
+			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
+			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
+			    }
+
 			} // end nzbins check 
 		    } // end izup loop
 		  

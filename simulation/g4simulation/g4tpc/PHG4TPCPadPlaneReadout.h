@@ -9,7 +9,7 @@
 class TF1;
 class PHG4CellContainer;
 class PHG4CylinderCellGeomContainer;
-
+class PHG4CylinderCellGeom;
 
 class PHG4TPCPadPlaneReadout: public PHG4TPCPadPlane
 {
@@ -21,15 +21,9 @@ public:
 
   void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter);
 
-  void populate_rectangular_phibins(const int tpc_region, const int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zigzag_phibins(const int tpc_region, const int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void populate_rectangular_phibins(const unsigned int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void populate_zigzag_phibins(const unsigned int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zbins( const double z,  const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
-
-  double get_phicenter(const int tpc_region, const int phibin);
-  int get_phibin(const int tpc_region, const double phi);
-  double get_zcenter(const int zbin);
-  int get_zbin(const double z);
-  double get_radius(const int tpc_region, const int layernum);
 
   void SetDefaultParameters();
   void UpdateInternalParameters();
@@ -46,6 +40,9 @@ protected:
   //double rbinwidth;
   //double phibinwidth;
   //double tbinwidth;
+
+  PHG4CylinderCellGeomContainer *GeomContainer;
+  PHG4CylinderCellGeom *LayerGeom;
 
   double rad_gem;
   double output_radius;
