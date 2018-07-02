@@ -220,7 +220,6 @@ void PHG4MvtxDigitizer::DigitizeCells(PHCompositeNode *topNode)
     TrkrDefs::hitkey hkey = MvtxDefs::genHitKey(col, row);
     
     MvtxHit* mhit = new MvtxHit();
-    mhit->setColumnRow(col, row);
 
     hset->addHitSpecificKey(hkey, mhit);
 
@@ -239,6 +238,7 @@ void PHG4MvtxDigitizer::PrintHits(PHCompositeNode *topNode)
     TrkrHitSetContainer::ConstRange hits = m_hitsets->getHitSets(TrkrDefs::TrkrId::mvtxId);
     for ( auto itr = hits.first; itr != hits.second; ++itr)
     {
+      cout << " key:" << itr->first << endl;
       (itr->second)->identify();
     }
     
