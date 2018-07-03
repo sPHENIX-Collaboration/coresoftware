@@ -1,7 +1,7 @@
 
 # Welcome
 
-This is the core software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
+This is the core-software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
 
 
 Code from the mastrer branch is pulled and build each night (nightly-build) 
@@ -13,7 +13,8 @@ Due to its importance, update of this repository require going through a review 
 
 * Tutorials
   * [Get started on day-1](https://wiki.bnl.gov/sPHENIX/index.php/SPHENIX_software_day-1_checklist)
-  * ["Pull Request" tutorial](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures)
+  * [sPHENIX macros that runs this core-software](https://github.com/sPHENIX-Collaboration/macros)
+  * ["Pull Request" tutorial to update this repository](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures)
 * Documentation
   * [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
   * [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
