@@ -19,6 +19,7 @@ Due to its importance, update of this repository require going through a review 
   * [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
   * [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
   * [Build a package](https://wiki.bnl.gov/sPHENIX/index.php/Example_of_using_DST_nodes#Building%20a%20package)
+  * [Coding convention](https://wiki.bnl.gov/sPHENIX/index.php/Codingconventions#Coding_Convention)
 * Communication
   * [Simulation and software meeting series](https://indico.bnl.gov/categoryDisplay.py?categId=88)
   * [Discussion on this repository](https://lists.bnl.gov/mailman/listinfo/sphenix-github-l)
