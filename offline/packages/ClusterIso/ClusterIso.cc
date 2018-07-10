@@ -14,7 +14,7 @@
 #include <iostream>
 
 //pulling these out for testing purposes
-/*
+
 #include <fun4all/Fun4AllServer.h>  //can't find
 #include <phool/getClass.h>         //good
 #include <phool/PHCompositeNode.h>  //good
@@ -32,7 +32,7 @@
 #include <g4main/PHG4VtxPoint.h> //can't find
 #include <g4vertex/GlobalVertex.h>    //good
 #include <g4vertex/GlobalVertexMap.h> //good
-*/
+
 
 
 ClusterIso::ClusterIso(const std::string &kname, float eTCut, float coneSize) : SubsysReco("ClusterIso"), eTCut(eTCut), coneSize(coneSize){
