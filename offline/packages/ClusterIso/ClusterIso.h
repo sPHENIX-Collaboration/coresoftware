@@ -4,21 +4,21 @@
 
 // --- need to check all these includes...
 
-//#include <fun4all/Fun4AllServer.h>  //can't find
+#include <fun4all/Fun4AllServer.h>  //can't find
 #include <phool/getClass.h>         //good
 #include <phool/PHCompositeNode.h>  //good
 
-//#include <calotrigger/CaloTriggerInfo.h> //can't find, this is for triggers
+#include <calotrigger/CaloTriggerInfo.h> //can't find, this is for triggers
 #include <calobase/RawClusterContainer.h> //good
 #include <calobase/RawCluster.h>          //good
 #include <calobase/RawClusterUtility.h>   //good
 
 #include <calobase/RawTowerContainer.h> //good
-//#include <calobase/RawTowerGeomContainer_Cylinderv1.h> //can't find
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h> //can't find
 #include <calobase/RawTowerGeomContainer.h>  //good
 
-//#include <g4main/PHG4Particle.h> //can't find
-//#include <g4main/PHG4VtxPoint.h> //can't find
+#include <g4main/PHG4Particle.h> //can't find
+#include <g4main/PHG4VtxPoint.h> //can't find
 #include <g4vertex/GlobalVertex.h>    //good
 #include <g4vertex/GlobalVertexMap.h> //good
 
