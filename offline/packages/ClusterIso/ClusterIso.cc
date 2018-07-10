@@ -2,38 +2,14 @@
 /*!
  * \file ClusterIso.cc
  * \brief 
- * \author Francesco Vassalli <@colorado.edu> 
+ * \author Francesco Vassalli <Francesco.Vassalli@colorado.edu> 
  * \author Chase Smith <chsm5267@colorado.edu>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-
-
 #include "ClusterIso.h"
 #include <iostream>
-
-//pulling these out for testing purposes
-
-#include <fun4all/Fun4AllServer.h>  //can't find
-#include <phool/getClass.h>         //good
-#include <phool/PHCompositeNode.h>  //good
-
-#include <calotrigger/CaloTriggerInfo.h> //can't find
-#include <calobase/RawClusterContainer.h> //good
-#include <calobase/RawCluster.h>          //good
-#include <calobase/RawClusterUtility.h>   //good
-
-#include <calobase/RawTowerContainer.h> //good 
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h> //can't find
-#include <calobase/RawTowerGeomContainer.h>  //good
-
-#include <g4main/PHG4Particle.h> //can't find
-#include <g4main/PHG4VtxPoint.h> //can't find
-#include <g4vertex/GlobalVertex.h>    //good
-#include <g4vertex/GlobalVertexMap.h> //good
-
-
 
 ClusterIso::ClusterIso(const std::string &kname, float m_eTCut, float m_coneSize) : SubsysReco("ClusterIso"), m_eTCut(m_eTCut), m_coneSize(m_coneSize){
   std::cout<<"Begining Cluster Isolation Energy Calculation"<<'\n';

@@ -6,23 +6,19 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <phool/getClass.h>         //good
-#include <phool/PHCompositeNode.h>  //good
+#include <phool/getClass.h>         
+#include <phool/PHCompositeNode.h>  
 
-//#include <calotrigger/CaloTriggerInfo.h> //can't find, this is for triggers
-#include <calobase/RawClusterContainer.h> //good
-#include <calobase/RawCluster.h>          //good
-#include <calobase/RawClusterUtility.h>   //good
-#include <calobase/RawTowerContainer.h> //good
+#include <calobase/RawClusterContainer.h> 
+#include <calobase/RawCluster.h>          
+#include <calobase/RawClusterUtility.h>   
+#include <calobase/RawTowerContainer.h> 
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTower.h>
-//#include <calobase/RawTowerGeomContainer_Cylinderv1.h> //can't find
-#include <calobase/RawTowerGeomContainer.h>  //good
+#include <calobase/RawTowerGeomContainer.h>  
 
-//#include <g4main/PHG4Particle.h> //can't find
-//#include <g4main/PHG4VtxPoint.h> //can't find
-#include <g4vertex/GlobalVertex.h>    //good
-#include <g4vertex/GlobalVertexMap.h> //good
+#include <g4vertex/GlobalVertex.h>    
+#include <g4vertex/GlobalVertexMap.h> 
 
 #include <cmath>
 class PHCompositeNode;
