@@ -35,7 +35,7 @@
 
 
 
-ClusterIso::ClusterIso(const std::string &kname, float eTCut, float coneSize) : SubsysReco("ClusterIso"), eTCut(eTCut), coneSize(coneSize){
+ClusterIso::ClusterIso(const std::string &kname, float m_eTCut, float m_coneSize) : SubsysReco("ClusterIso"), m_eTCut(m_eTCut), m_coneSize(m_coneSize){
   std::cout<<"Begining Cluster Isolation Energy Calculation"<<'\n';
   m_vx=m_vy=m_vz=0;
 }
@@ -45,20 +45,20 @@ virtual int ClusterIso::Init(PHCompositeNode *topNode)
   return 0;
 }
 
-void ClusterIso::seteTCut(float eTCut){
-  this->eTCut = eTCut;
+void ClusterIso::setm_eTCut(float eTCut){
+  this->m_eTCut = eTCut;
 }
 
 void ClusterIso::setConeSize(float coneSize){
-  this->coneSize=coneSize;
+  this->m_coneSize=coneSize;
 }
 
-const float ClusterIso::geteTCut(){
-  return eTCut;
+const float ClusterIso::getm_eTCut(){
+  return m_eTCut;
 }
 
 const float ClusterIso::getConeSize(){
-  return coneSize;
+  return m_coneSize;
 }
 
 //must be called after the vertex has been set 
@@ -114,7 +114,7 @@ virtual int ClusterIso::process_event(PHCompositeNode *topNode)
       double et = cluster_energy / cosh( cluster_eta );
       std::cout<<"Et:"<<et<<'\n';
       double isoEt=0;
-      if (et < eTCut){
+      if (et < m_eTCut){
 
         continue; 
       } 
@@ -128,7 +128,7 @@ virtual int ClusterIso::process_event(PHCompositeNode *topNode)
          double this_phi = tower_geom->get_phi();
          double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); //get tower eta using new vertex
 
-          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
+          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
               isoEt += tower->get_energy() / cosh( this_eta );
           }
         }
@@ -140,7 +140,7 @@ virtual int ClusterIso::process_event(PHCompositeNode *topNode)
           RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
          double this_phi = tower_geom->get_phi();
          double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); //get tower eta using new vertex
-          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
+          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
               isoEt += tower->get_energy() / cosh( this_eta );
           }
         }
@@ -152,7 +152,7 @@ virtual int ClusterIso::process_event(PHCompositeNode *topNode)
           RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
          double this_phi = tower_geom->get_phi();
          double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); //get tower eta using new vertex
-          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
+          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
               isoEt += tower->get_energy() / cosh( this_eta );
           }
         }
