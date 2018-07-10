@@ -40,12 +40,12 @@ ClusterIso::ClusterIso(const std::string &kname, float m_eTCut, float m_coneSize
   m_vx=m_vy=m_vz=0;
 }
 
-virtual int ClusterIso::Init(PHCompositeNode *topNode)
+ int ClusterIso::Init(PHCompositeNode *topNode)
 {
   return 0;
 }
 
-void ClusterIso::setm_eTCut(float eTCut){
+void ClusterIso::seteTCut(float eTCut){
   this->m_eTCut = eTCut;
 }
 
@@ -53,7 +53,7 @@ void ClusterIso::setConeSize(float coneSize){
   this->m_coneSize=coneSize;
 }
 
-const float ClusterIso::getm_eTCut(){
+const float ClusterIso::geteTCut(){
   return m_eTCut;
 }
 
@@ -66,7 +66,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
   return CLHEP::Hep3Vector( m_vx, m_vy, m_vz);
 }
 
-virtual int ClusterIso::process_event(PHCompositeNode *topNode)
+ int ClusterIso::process_event(PHCompositeNode *topNode)
 {
 
   RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
@@ -168,7 +168,7 @@ virtual int ClusterIso::process_event(PHCompositeNode *topNode)
 
 
 
-virtual int ClusterIso::End(PHCompositeNode *topNode)
+ int ClusterIso::End(PHCompositeNode *topNode)
 {
   return 0;
 }
