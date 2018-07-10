@@ -16,11 +16,11 @@ lib_LTLIBRARIES = \
   
 include_HEADERS = \
 	ClusterIso.h \
-	ClusterIsoLinkDef.h \
+	ClusterIsoLinkDef.h 
 
 libClusterIso_la_SOURCES = \
 	ClusterIso.cc \
-	ClusterIso_Dict.cc \
+	ClusterIso_Dict.C 
 
 libClusterIso_la_LIBADD = \
   -lg4dst \
