@@ -39,12 +39,9 @@ double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz)
     return tower_geom->get_eta();
   }
   else{
-   double r= tower_geom->get_center_radius();
-   double x = r*cos(tower_geom->get_phi())-vx;
-   double y = r*sin(tower_geom->get_phi())-vy;
-   double z = r/tan(2*atan2(exp(-1*tower_geom->get_eta()),1))-vz;
-   r= sqrt(x*x+y*y);
-   return -log(tan(atan2(r,z)/2.));
+   double r= sqrt(tower_geom->get_center_x()*tower_geom->get_center_x()+tower_geom->get_center_y()*tower_geom->get_center_y());
+   double theta = atan2(r,tower_geom->get_center_z());
+   return -log(tan(theta/2.));
   }
 }
 

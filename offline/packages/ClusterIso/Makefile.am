@@ -5,24 +5,24 @@ INCLUDES = \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
-libClusterIso_la_LDFLAGS = \
+libclusteriso_la_LDFLAGS = \
   -nodefaultlibs \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
  `root-config --libs`
 
 lib_LTLIBRARIES = \
-	libClusterIso.la
+	libclusteriso.la
   
 include_HEADERS = \
 	ClusterIso.h \
 	ClusterIsoLinkDef.h 
 
-libClusterIso_la_SOURCES = \
+libclusteriso_la_SOURCES = \
 	ClusterIso.cc \
 	ClusterIso_Dict.C 
 
-libClusterIso_la_LIBADD = \
+libclusteriso_la_LIBADD = \
   -lg4dst \
   -lg4eval \
   -lcalotrigger \
@@ -36,7 +36,7 @@ noinst_PROGRAMS = \
 	testexternals
 
 testexternals_LDADD = \
-	libClusterIso.la
+	libclusteriso.la
 
 testexternals.C:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
