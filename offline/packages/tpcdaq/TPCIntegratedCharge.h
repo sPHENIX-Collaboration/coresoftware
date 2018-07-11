@@ -15,6 +15,8 @@ class TPCIntegratedCharge : public SubsysReco
 {
  public:
   TPCIntegratedCharge(
+      unsigned int minLayer,
+      unsigned int m_maxLayer,
       const std::string &outputfilename = "TPCIntegratedCharge.root");
 
   virtual ~TPCIntegratedCharge();
