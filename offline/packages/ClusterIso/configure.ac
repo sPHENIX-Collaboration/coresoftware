@@ -1,26 +1,4 @@
-head	1.1;
-access;
-symbols;
-locks; strict;
-comment	@# @;
-
-
-1.1
-date	2018.07.03.19.38.36;	author vassalli;	state Exp;
-branches;
-next	;
-
-
-desc
-@@
-
-
-1.1
-log
-@Initial revision
-@
-text
-@AC_INIT(configure.in)
+AC_INIT(configure.ac)
 
 AM_INIT_AUTOMAKE(ClusterIso, 1.00)
 AC_PROG_CXX(CC g++)
