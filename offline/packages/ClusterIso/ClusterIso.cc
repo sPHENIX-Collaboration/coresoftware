@@ -1,4 +1,3 @@
-
 /*!
  * \file ClusterIso.cc
  * \brief 
@@ -37,104 +36,113 @@ const float ClusterIso::getConeSize(){
   return m_coneSize;
 }
 
-//must be called after the vertex has been set 
+/**
+ * Must be called to set the new vertex for the cluster 
+ */
 const CLHEP::Hep3Vector ClusterIso::getVertex(){
   return CLHEP::Hep3Vector( m_vx, m_vy, m_vz);
 }
 
+/** \Brief process_event is where isolation Energy is calculated for all clusters
+ *
+ * For each cluster in the EMCal go through all of the towers in each calorimeter, 
+ * if the towers are within the iso cone add their energy to the sum. Finally 
+ * subtract the cluster energy from the sum 
+ */
  int ClusterIso::process_event(PHCompositeNode *topNode)
 {
-
+  ///get EMCal towers
   RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
   std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC towers" << '\n';
 
+  ///get InnerHCal towers
   RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
   std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << '\n';
 
+  ///get outerHCal towers
   RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
   std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
 
+  ///get geometry of calorimeter towers
   RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
   RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
 
   {
     RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
-    
     RawClusterContainer::ConstRange begin_end = clusters->getClusters();
     RawClusterContainer::ConstIterator rtiter;
-    
     std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';
     
-    //declare new vertex to get correct cluster and tower eta
+    ///vertexmap is used to get correct collision vertex
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap"); 
     m_vx=m_vy=m_vz=0;
-     if (vertexmap&&!vertexmap->empty())
-     {
-        GlobalVertex* vertex = (vertexmap->begin()->second);
-        m_vx = vertex->get_x();
-        m_vy = vertex->get_y();
-        m_vz = vertex->get_z();
-        std::cout<<"Event Vertex Calculated in ClusterIso x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
-     }
-  for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
+    if (vertexmap&&!vertexmap->empty())
+    {
+       GlobalVertex* vertex = (vertexmap->begin()->second);
+       m_vx = vertex->get_x();
+       m_vy = vertex->get_y();
+       m_vz = vertex->get_z();
+       std::cout<<"Event Vertex Calculated in ClusterIso x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
+    }
 
-     
+    for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
+
       RawCluster *cluster = rtiter->second;
       
-      CLHEP::Hep3Vector vertex( m_vx, m_vy, m_vz); //set new correct vertex for eta calculation
+      CLHEP::Hep3Vector vertex( m_vx, m_vy, m_vz); 
       CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
       double cluster_energy = E_vec_cluster.mag();
       double cluster_eta = E_vec_cluster.pseudoRapidity(); 
       double cluster_phi = E_vec_cluster.phi();
       double et = cluster_energy / cosh( cluster_eta );
-      std::cout<<"Et:"<<et<<'\n';
       double isoEt=0;
-      if (et < m_eTCut){
 
-        continue; 
-      } 
-      //for each cluster go through all of the towers that are not in that cluster 
-      //if the towers are within the iso cone add their energy to the sum 
+      if (et < m_eTCut){continue;} //continue if cluster is under eT cut
+
+      ///calculate EMCal tower contribution to isolation energy
       {
         RawTowerContainer::ConstRange begin_end = towersEM3old->getTowers();
         for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
-         RawTower *tower = rtiter->second; 
-         RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
-         double this_phi = tower_geom->get_phi();
-         double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); //get tower eta using new vertex
-
-          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
-              isoEt += tower->get_energy() / cosh( this_eta );
+          RawTower *tower = rtiter->second; 
+          RawTowerGeom *tower_geom = geomEM->get_tower_geometry(tower->get_key());
+          double this_phi = tower_geom->get_phi();
+          double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz);
+          if(deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){
+            isoEt += tower->get_energy() / cosh( this_eta ); //if tower is in cone, add energy
           }
         }
       }
+
+      ///calculate Inner HCal tower contribution to isolation energy
       {
         RawTowerContainer::ConstRange begin_end = towersIH3->getTowers();
         for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
           RawTower *tower = rtiter->second; 
           RawTowerGeom *tower_geom = geomIH->get_tower_geometry(tower->get_key());
-         double this_phi = tower_geom->get_phi();
-         double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); //get tower eta using new vertex
-          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
-              isoEt += tower->get_energy() / cosh( this_eta );
+          double this_phi = tower_geom->get_phi();
+          double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz);
+          if(deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){
+            isoEt += tower->get_energy() / cosh( this_eta ); //if tower is in cone, add energy
           }
         }
       }
+
+      ///calculate Outer HCal tower contribution to isolation energy
       {
         RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
         for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
           RawTower *tower = rtiter->second; 
           RawTowerGeom *tower_geom = geomOH->get_tower_geometry(tower->get_key());
-         double this_phi = tower_geom->get_phi();
-         double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); //get tower eta using new vertex
-          if ( deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){//if this tower is within .3 (ort the conse size) of the truth photon add its ET to the isolated calorimeter
-              isoEt += tower->get_energy() / cosh( this_eta );
+          double this_phi = tower_geom->get_phi();
+          double this_eta= getTowerEta(tower_geom,m_vx,m_vy,m_vz); 
+          if(deltaR( cluster_eta, this_eta, cluster_phi, this_phi ) < m_coneSize){
+            isoEt += tower->get_energy() / cosh( this_eta ); //if tower is in cone, add energy
           }
         }
       }
-      isoEt-=et; // instead of checking which towers are in the cluster sum all tower et then subtract the cluster 
-      std::cout<<"Set:"<<isoEt<<'\n';
+
+      isoEt-=et; //Subtract cluster eT from isoET
       cluster->set_et_iso(isoEt);
     }
   }
