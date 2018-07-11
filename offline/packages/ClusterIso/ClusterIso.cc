@@ -33,7 +33,7 @@
  * which is incorrect in many collisions. This function 
  * uses geometry to find eta using correct vertex.
  */
-double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz) 
+double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz) 
 {
   if(vx==0&&vy==0&&vz==0){
     return tower_geom->get_eta();

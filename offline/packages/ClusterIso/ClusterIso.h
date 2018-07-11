@@ -3,22 +3,7 @@
 #define ClusterIso_h
 
 #include <fun4all/SubsysReco.h>
-
-#include <phool/getClass.h>         
-#include <phool/PHCompositeNode.h>  
-
-#include <calobase/RawCluster.h>          
-#include <calobase/RawClusterUtility.h>   
-#include <calobase/RawClusterContainer.h> 
-
-#include <calobase/RawTower.h>
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerContainer.h> 
-#include <calobase/RawTowerGeomContainer.h>  
-
-#include <g4vertex/GlobalVertex.h>    
-#include <g4vertex/GlobalVertexMap.h> 
-
+#include <CLHEP/Vector/ThreeVector.h>
 #include <cmath>
 
 class PHCompositeNode;
@@ -70,8 +55,8 @@ private:
 inline const float deltaR( float eta1, float eta2, float phi1, float phi2 ) {
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  if ( dphi > std::M_PI ) dphi -= 2 * std::M_PI ; //corrects to keep range -pi to pi
-  if ( dphi < -1*std::M_PI ) dphi += 2 * std::M_PI ; //corrects to keep range -pi to pi
+  if ( dphi > M_PI ) dphi -= 2 * M_PI ; //corrects to keep range -pi to pi
+  if ( dphi < -1*M_PI ) dphi += 2 * M_PI ; //corrects to keep range -pi to pi
   return sqrt( deta*deta + dphi*dphi);
 }
 
