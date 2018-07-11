@@ -10,6 +10,44 @@
 #include "ClusterIso.h"
 #include <iostream>
 
+#include <fun4all/SubsysReco.h>
+
+#include <phool/getClass.h>         
+#include <phool/PHCompositeNode.h>  
+
+#include <calobase/RawCluster.h>          
+#include <calobase/RawClusterUtility.h>   
+#include <calobase/RawClusterContainer.h> 
+
+#include <calobase/RawTower.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerContainer.h> 
+#include <calobase/RawTowerGeomContainer.h>  
+
+#include <g4vertex/GlobalVertex.h>    
+#include <g4vertex/GlobalVertexMap.h>
+
+/** \Brief Function to get correct tower eta
+ *
+ * Each tower is calculated using the vertex (0,0,0)
+ * which is incorrect in many collisions. This function 
+ * uses geometry to find eta using correct vertex.
+ */
+double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz) 
+{
+  if(vx==0&&vy==0&&vz==0){
+    return tower_geom->get_eta();
+  }
+  else{
+   double r= tower_geom->get_center_radius();
+   double x = r*cos(tower_geom->get_phi())-vx;
+   double y = r*sin(tower_geom->get_phi())-vy;
+   double z = r/tan(2*atan2(exp(-1*tower_geom->get_eta()),1))-vz;
+   r= sqrt(x*x+y*y);
+   return -log(tan(atan2(r,z)/2.));
+  }
+}
+
 ClusterIso::ClusterIso(const std::string &kname, float m_eTCut, float m_coneSize) : SubsysReco("ClusterIso"), m_eTCut(m_eTCut), m_coneSize(m_coneSize){
   std::cout<<"Begining Cluster Isolation Energy Calculation"<<'\n';
   m_vx=m_vy=m_vz=0;
