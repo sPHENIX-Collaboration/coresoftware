@@ -70,8 +70,8 @@ private:
 inline const float deltaR( float eta1, float eta2, float phi1, float phi2 ) {
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
-  if ( dphi > 3.14159 ) dphi -= 2 * 3.14159; //corrects to keep range -pi to pi
-  if ( dphi < -3.14159 ) dphi += 2 * 3.14159; //corrects to keep range -pi to pi
+  if ( dphi > std::M_PI ) dphi -= 2 * std::M_PI ; //corrects to keep range -pi to pi
+  if ( dphi < -1*std::M_PI ) dphi += 2 * std::M_PI ; //corrects to keep range -pi to pi
   return sqrt( deta*deta + dphi*dphi);
 }
 
