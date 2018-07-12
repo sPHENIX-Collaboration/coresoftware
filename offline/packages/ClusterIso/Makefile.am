@@ -14,9 +14,6 @@ libclusteriso_la_LDFLAGS = \
 lib_LTLIBRARIES = \
 	libclusteriso.la
   
-include_HEADERS = \
-	ClusterIso.h \
-	ClusterIsoLinkDef.h 
 
 libclusteriso_la_SOURCES = \
 	ClusterIso.cc \
