@@ -291,7 +291,7 @@ int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
     for (unsigned int side = 0; side < 2; ++side)
     {
       int sumHit = 0;
-      for (unsigned int phibin = 0; phibin < layerChanCellHit.size(); ++phibin)
+      for (unsigned int phibin = 0; phibin < layerChanCellHit[layer][side].size(); ++phibin)
       {
         const int& hit = layerChanCellHit[layer][side][phibin];
         sumHit += hit;
@@ -309,10 +309,16 @@ int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
                << endl;
         }
       }
+
+      if (Verbosity() >= VERBOSITY_MORE)
+      {
+        cout <<"TPCIntegratedCharge::process_event - hLayerSumCellHit->Fill("<< layer <<", "<<sumHit<<")"<<endl;
+      }
+
       hLayerSumCellHit->Fill(layer, sumHit);
 
       double sum_charge_fC = 0;
-      for (unsigned int phibin = 0; phibin < layerChanCellCharge.size(); ++phibin)
+      for (unsigned int phibin = 0; phibin < layerChanCellCharge[layer][side].size(); ++phibin)
       {
         const double& charge_e = layerChanCellCharge[layer][side][phibin];
         const double charge_fC = charge_e * eplus / (1e-15 * coulomb);
