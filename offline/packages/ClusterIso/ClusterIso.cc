@@ -39,7 +39,7 @@ double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, d
     return tower_geom->get_eta();
   }
   else{
-   double r= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy);
+   double r= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy));
    double theta = atan2(r,tower_geom->get_center_z()-vz);
    return -log(tan(theta/2.));
   }
