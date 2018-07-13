@@ -39,14 +39,15 @@ double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, d
     return tower_geom->get_eta();
   }
   else{
-   double r= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy);
+   double r= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy));
    double theta = atan2(r,tower_geom->get_center_z()-vz);
    return -log(tan(theta/2.));
   }
 }
 
-ClusterIso::ClusterIso(const std::string &kname, float m_eTCut, float m_coneSize) : SubsysReco("ClusterIso"), m_eTCut(m_eTCut), m_coneSize(m_coneSize){
+ClusterIso::ClusterIso(const std::string &kname, float eTCut, int coneSize) : SubsysReco("ClusterIso"), m_eTCut(eTCut){
   std::cout<<"Begining Cluster Isolation Energy Calculation"<<'\n';
+  m_coneSize=coneSize/10.0;
   m_vx=m_vy=m_vz=0;
 }
 
@@ -59,16 +60,16 @@ void ClusterIso::seteTCut(float eTCut){
   this->m_eTCut = eTCut;
 }
 
-void ClusterIso::setConeSize(float coneSize){
-  this->m_coneSize=coneSize;
+void ClusterIso::setConeSize(int coneSize){
+  this->m_coneSize=coneSize/10.0;
 }
 
 const float ClusterIso::geteTCut(){
   return m_eTCut;
 }
 
-const float ClusterIso::getConeSize(){
-  return m_coneSize;
+const int ClusterIso::getConeSize(){
+  return (int)m_coneSize*10;
 }
 
 /**
