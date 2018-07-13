@@ -115,7 +115,7 @@ class RawClusterv1 : public RawCluster
   void set_property(const PROPERTY prop_id, const int value);
   void set_property(const PROPERTY prop_id, const unsigned int value);
 
- protected:
+ protected: // protected is declared twice !?
   unsigned int get_property_nocheck(const PROPERTY prop_id) const;
   void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) { prop_map[prop_id] = ui; }
   //! storage types for additional property
@@ -155,7 +155,7 @@ class RawClusterv1 : public RawCluster
   /** @} */  // end of property map definitions
 
   //
- protected:
+ protected: // why it protected declared twice? 
   //! cluster ID
   RawClusterDefs::keytype clusterid;
   //! total energy
