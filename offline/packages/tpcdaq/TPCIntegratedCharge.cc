@@ -14,6 +14,8 @@
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
 
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
@@ -161,11 +163,19 @@ int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
          << "CYLINDERCELLGEOM_SVTX" << endl;
     exit(1);
   }
+  PHHepMCGenEventMap * geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  if (!geneventmap)
+  {
+    std::cout <<PHWHERE<<" - Fatal error - missing node PHHepMCGenEventMap"<<std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   Fun4AllHistoManager* hm = getHistoManager();
   assert(hm);
   TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto("hNormalization"));
   assert(h_norm);
+
+  h_norm->Fill("Collision count",geneventmap->size());
 
   for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   {
