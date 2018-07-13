@@ -164,9 +164,9 @@ class RawCluster : public PHObject
     return NAN;
   }
   //! isolation ET the radius and hueristic can be specified 
-  virtual void get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) 
+  virtual float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const
   { 
-    PHOOL_VIRTUAL_WARNING("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower)");
+    PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower)");
     return NAN;
   }
 
@@ -249,7 +249,7 @@ class RawCluster : public PHObject
      //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_sub_R03 = 24,
      //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
-    prop_et_iso_calotowe_R03 = 25,
+    prop_et_iso_calotower_R03 = 25,
      //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_sub_R04 = 26,
      //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2

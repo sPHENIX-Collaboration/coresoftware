@@ -181,58 +181,54 @@ void RawClusterv1::set_property(const PROPERTY prop_id, const unsigned int value
   }
   prop_map[prop_id] = u_property(value).get_storage();
 }
-void set_et_iso(const float et_iso,const int radiusx10, bool subtracted, bool clusterTower=1){
+void RawClusterv1::set_et_iso(const float et_iso,const int radiusx10, bool subtracted, bool clusterTower=1){
   if (clusterTower)
       {
         if (subtracted)
         {
           switch(radiusx10){
             case 1:
-              r=set_property_float(prop_et_iso_calotower_sub_R01, et_iso);
+              set_property(prop_et_iso_calotower_sub_R01, et_iso);
               break;
             case 2:
-              r=set_property_float(prop_et_iso_calotower_sub_R02, et_iso);
+              set_property(prop_et_iso_calotower_sub_R02, et_iso);
               break;
             case 3:
-              r=set_property_float(prop_et_iso_calotower_sub_R03, et_iso);
+              set_property(prop_et_iso_calotower_sub_R03, et_iso);
               break;
             case 4:
-              r=set_property_float(prop_et_iso_calotower_sub_R04, et_iso);
+              set_property(prop_et_iso_calotower_sub_R04, et_iso);
               break;
             default:
               std::string warning = "set_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - radius:"+std::to_string(radiusx10)+" has not been defined";
-              PHOOL_VIRTUAL_WARNING(warning.c_str());
-              r=NAN;
+              PHOOL_VIRTUAL_WARN(warning.c_str());
               break;
           }
         }
         else{
           switch(radiusx10){
             case 1:
-              r=set_property_float(prop_et_iso_calotower_R01, et_iso);
+              set_property(prop_et_iso_calotower_R01, et_iso);
               break;
             case 2:
-              r=set_property_float(prop_et_iso_calotower_R02, et_iso);
+              set_property(prop_et_iso_calotower_R02, et_iso);
               break;
             case 3:
-              r=set_property_float(prop_et_iso_calotower_R03, et_iso);
+              set_property(prop_et_iso_calotower_R03, et_iso);
               break;
             case 4:
-              r=set_property_float(prop_et_iso_calotower_R04, et_iso);
+              set_property(prop_et_iso_calotower_R04, et_iso);
               break;
             default:
               std::string warning = "set_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - radius:"+std::to_string(radiusx10)+" has not been defined";
-              PHOOL_VIRTUAL_WARNING(warning.c_str());
-              r=NAN;
+              PHOOL_VIRTUAL_WARN(warning.c_str());
               break;
           }
         }
       }
       else{
-        PHOOL_VIRTUAL_WARNING("set_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - nonclusterTower algorithms have not been defined");
-        r=NAN;
+        PHOOL_VIRTUAL_WARN("set_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - nonclusterTower algorithms have not been defined");
       }
-  return r;
 }
 
 
@@ -247,7 +243,7 @@ RawClusterv1::get_property_nocheck(const PROPERTY prop_id) const
   return UINT_MAX;
 }
 
-void get_et_iso(const int radiusx10, bool subtracted, bool clusterTower=1) 
+float RawClusterv1::get_et_iso(const int radiusx10, bool subtracted, bool clusterTower=1) 
   { 
     float r; 
     if (clusterTower)
@@ -269,7 +265,7 @@ void get_et_iso(const int radiusx10, bool subtracted, bool clusterTower=1)
             break;
           default:
             std::string warning = "get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - radius:"+std::to_string(radiusx10)+" has not been defined";
-            PHOOL_VIRTUAL_WARNING(warning.c_str());
+            PHOOL_VIRTUAL_WARN(warning.c_str());
             r=NAN;
             break;
         }
@@ -290,14 +286,14 @@ void get_et_iso(const int radiusx10, bool subtracted, bool clusterTower=1)
             break;
           default:
             std::string warning = "get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - radius:"+std::to_string(radiusx10)+" has not been defined";
-            PHOOL_VIRTUAL_WARNING(warning.c_str());
+            PHOOL_VIRTUAL_WARN(warning.c_str());
             r=NAN;
             break;
         }
       }
     }
     else{
-      PHOOL_VIRTUAL_WARNING("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - nonclusterTower algorithms have not been defined");
+      PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) - nonclusterTower algorithms have not been defined");
       r=NAN;
     }
     return r;
