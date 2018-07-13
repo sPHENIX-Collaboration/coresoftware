@@ -157,7 +157,7 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARN("get_prob()");
     return NAN;
   }
-  //! isolation ET default to R=.3 with substraction by the clusterTower algorithm
+  //! isolation ET default 
   virtual float get_et_iso() const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso()");
