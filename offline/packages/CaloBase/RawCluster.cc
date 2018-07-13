@@ -4,8 +4,9 @@
  * \file RawCluster.cc
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
- * \version $Revision:   $
- * \date $Date: $
+ * \author Francesco Vassalli <Francesco.Vassalli@colorado.edu>
+ * \version $Revision: 2  $
+ * \date $Date: 07/13/18$
  */
 
 #include "RawCluster.h"
