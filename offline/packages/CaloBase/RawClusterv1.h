@@ -63,7 +63,7 @@ class RawClusterv1 : public RawCluster
   //! cluster template probability for EM shower
   virtual float get_prob() const { return get_property_float(prop_prob); }
   //! isolation ET default to R=.3 with substraction by the clusterTower algorithm
-  virtual float get_et_iso() const { return get_property_float(prop_et_iso); }
+  virtual float get_et_iso() const { return get_property_float(prop_et_iso_calotower_sub_R03); }
   //! isolation ET the radius and hueristic can be specified 
   virtual void get_et_iso(const int radiusx10, bool subtracted, bool clusterTower=1);
 //  //! truth cluster's PHG4Particle ID
@@ -95,7 +95,7 @@ class RawClusterv1 : public RawCluster
   //! cluster template probability for EM shower
   virtual void set_prob(const float prob) { set_property(prop_prob, prob); }
   //! isolation ET default to R=.3 with substraction by the clusterTower algorithm
-  virtual void set_et_iso(const float e) { set_property(prop_et_iso, e); }
+  virtual void set_et_iso(const float e) { set_property(prop_et_iso_calotower_sub_R03, e); }
   //! isolation ET the radius and hueristic can be specified 
   virtual void set_et_iso(const float et_iso,const int radiusx10, bool subtracted, bool clusterTower=1);
 //  //! truth cluster's PHG4Particle ID
