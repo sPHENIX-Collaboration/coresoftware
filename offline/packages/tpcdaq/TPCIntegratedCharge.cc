@@ -130,11 +130,11 @@ int TPCIntegratedCharge::InitRun(PHCompositeNode* topNode)
 
   hm->registerHisto(new TH2D("hLayerSumCellHit",  //
                              "Number of ADC time-bin hit integrated over channels per layer;Layer ID;Hit number",
-                             m_maxLayer - m_maxLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
                              10000, -.5, 99999.5));
   hm->registerHisto(new TH2D("hLayerSumCellCharge",  //
                              "Charge integrated over drift window and channel per layer;Layer ID;Charge [fC]",
-                             m_maxLayer - m_maxLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
                              10000, 0, 1000 * 4e6 * eplus / (1e-15 * coulomb)));
 
   return Fun4AllReturnCodes::EVENT_OK;
