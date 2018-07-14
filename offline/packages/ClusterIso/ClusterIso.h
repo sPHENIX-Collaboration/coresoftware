@@ -22,17 +22,19 @@ class ClusterIso: public SubsysReco
 public:
   /**
    * Constructor for ClusterIso Class
+   * the coneSize is taken in as an integer multiple of .1 ie if you want R=.2 pass 2
    */
-  ClusterIso(const std::string& ,float eTCut, float coneSize);
+  ClusterIso(const std::string& ,float eTCut, int coneSize);
 
   virtual int Init(PHCompositeNode*);
   virtual int process_event(PHCompositeNode*);
   virtual int End(PHCompositeNode*);
 
   void seteTCut(float x);
-  void setConeSize(float x);
+  void setConeSize(int x);
   const float geteTCut();
-  const float getConeSize();
+  //! returns coneSize*10 as an int
+  const int getConeSize();
   const CLHEP::Hep3Vector getVertex();
 
 private:
