@@ -243,7 +243,7 @@ RawClusterv1::get_property_nocheck(const PROPERTY prop_id) const
   return UINT_MAX;
 }
 
-float RawClusterv1::get_et_iso(const int radiusx10, bool subtracted, bool clusterTower=1) 
+float RawClusterv1::get_et_iso(const int radiusx10=3, bool subtracted=1, bool clusterTower=1) const
   { 
     float r; 
     if (clusterTower)

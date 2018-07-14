@@ -65,7 +65,7 @@ class RawClusterv1 : public RawCluster
   //! isolation ET default 
   virtual float get_et_iso() const { return get_property_float(prop_et_iso_calotower_sub_R03); }
   //! isolation ET the radius and hueristic can be specified 
-  virtual float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower);
+  virtual float get_et_iso (const int radiusx10, bool subtracted, bool clusterTower) const;
 //  //! truth cluster's PHG4Particle ID
 //  virtual int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
 //  //! truth cluster's PHG4Particle flavor
