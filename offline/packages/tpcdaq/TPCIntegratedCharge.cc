@@ -5,7 +5,6 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
@@ -126,7 +125,7 @@ int TPCIntegratedCharge::InitRun(PHCompositeNode* topNode)
   hm->registerHisto(new TH2D("hLayerCellCharge",  //
                              "Charge integrated over drift window per channel;Layer ID;Charge [fC]",
                              m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                             1000, 0, 4e6 * eplus / (1e-15 * coulomb)));
+                             1000, 0, 1e7 * eplus / (1e-15 * coulomb)));
 
   hm->registerHisto(new TH2D("hLayerSumCellHit",  //
                              "Number of ADC time-bin hit integrated over channels per layer;Layer ID;Hit number",

@@ -3,9 +3,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <memory>
 #include <string>
-#include <utility>  // std::pair, std::make_pair
 
 class PHCompositeNode;
 class Fun4AllHistoManager;

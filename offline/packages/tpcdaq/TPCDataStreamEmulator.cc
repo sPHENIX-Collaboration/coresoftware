@@ -10,12 +10,338 @@
 
 #include "TPCDataStreamEmulator.h"
 
-TPCDataStreamEmulator::TPCDataStreamEmulator()
+#include "TPCDaqDefs.h"
+
+#include <g4detectors/PHG4Cell.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4hough/SvtxHit.h>
+#include <g4hough/SvtxHitMap.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/PHTFileServer.h>
+
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+#include <TFile.h>
+#include <TH1D.h>
+#include <TH2D.h>
+#include <TString.h>
+#include <TTree.h>
+#include <TVector3.h>
+
+#include <CLHEP/Units/SystemOfUnits.h>
+
+#include <boost/format.hpp>
+
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <limits>
+#include <stdexcept>
+
+using namespace std;
+using namespace CLHEP;
+
+TPCDataStreamEmulator::TPCDataStreamEmulator(
+    unsigned int minLayer,
+    unsigned int m_maxLayer,
+    const std::string& outputfilename)
+  : SubsysReco("TPCDataStreamEmulator")
+  , m_saveDataStreamFile(true)
+  , m_outputFileNameBase(outputfilename)
+  , m_minLayer(minLayer)
+  , m_maxLayer(m_maxLayer)
+  , m_evtCounter(-1)
 {
-  // TODO Auto-generated constructor stub
 }
 
 TPCDataStreamEmulator::~TPCDataStreamEmulator()
 {
-  // TODO Auto-generated destructor stub
+}
+
+int TPCDataStreamEmulator::Init(PHCompositeNode* topNode)
+{
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TPCDataStreamEmulator::End(PHCompositeNode* topNode)
+{
+  if (Verbosity() >= VERBOSITY_SOME)
+    cout << "TPCDataStreamEmulator::End - write to " << m_outputFileNameBase + ".root" << endl;
+  PHTFileServer::get().cd(m_outputFileNameBase + ".root");
+
+  Fun4AllHistoManager* hm = getHistoManager();
+  assert(hm);
+  for (unsigned int i = 0; i < hm->nHistos(); i++)
+    hm->getHisto(i)->Write();
+
+  // help index files with TChain
+  TTree* T_Index = new TTree("T_Index", "T_Index");
+  assert(T_Index);
+  T_Index->Write();
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
+{
+  //  PHG4CylinderCellGeomContainer* seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  //  if (!seggeo)
+  //  {
+  //    cout << "could not locate geo node " << "CYLINDERCELLGEOM_SVTX" << endl;
+  //    exit(1);
+  //  }
+
+  if (Verbosity() >= VERBOSITY_SOME)
+    cout << "TPCDataStreamEmulator::get_HistoManager - Making PHTFileServer " << m_outputFileNameBase + ".root"
+         << endl;
+  PHTFileServer::get().open(m_outputFileNameBase + ".root", "RECREATE");
+
+  Fun4AllHistoManager* hm = getHistoManager();
+  assert(hm);
+
+  TH1D* h = new TH1D("hNormalization",  //
+                     "Normalization;Items;Summed quantity", 10, .5, 10.5);
+  int i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Event count");
+  h->GetXaxis()->SetBinLabel(i++, "Collision count");
+  h->GetXaxis()->SetBinLabel(i++, "TPC G4Hit");
+  h->GetXaxis()->SetBinLabel(i++, "TPC G4Hit Edep");
+  h->GetXaxis()->SetBinLabel(i++, "TPC Hit");
+  h->GetXaxis()->SetBinLabel(i++, "TPC Wavelet");
+  h->GetXaxis()->SetBinLabel(i++, "TPC DataSize");
+
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
+
+  //  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  //  {
+  //    const PHG4CylinderCellGeom* layer_geom = seggeo->GetLayerCellGeom(layer);
+
+  //    const string histNameCellHit(boost::str(boost::format{"hCellHit_Layer%1%"} % layer));
+  //    const string histNameCellCharge(boost::str(boost::format{"hCellCharge_Layer%1%"} % layer));
+
+  //  }
+
+  hm->registerHisto(new TH2D("hLayerCellHit",  //
+                             "Number of ADC time-bin hit per channel;Layer ID;Hit number",
+                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                             300, -.5, 299.5));
+  hm->registerHisto(new TH2D("hLayerCellCharge",  //
+                             "Charge integrated over drift window per channel;Layer ID;Charge [fC]",
+                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                             1000, 0, 1e7 * eplus / (1e-15 * coulomb)));
+
+  hm->registerHisto(new TH2D("hLayerSumCellHit",  //
+                             "Number of ADC time-bin hit integrated over channels per layer;Layer ID;Hit number",
+                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                             10000, -.5, 99999.5));
+  hm->registerHisto(new TH2D("hLayerSumCellCharge",  //
+                             "Charge integrated over drift window and channel per layer;Layer ID;Charge [fC]",
+                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                             10000, 0, 1000 * 4e6 * eplus / (1e-15 * coulomb)));
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
+{
+  m_evtCounter += 1;
+
+  PHG4HitContainer* g4hit = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
+  if (!g4hit)
+  {
+    cout << "TPCDataStreamEmulator::process_event - Could not locate g4 hit node G4HIT_SVTX" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  SvtxHitMap* hits = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  if (!hits)
+  {
+    cout << "PCDataStreamEmulator::process_event - ERROR: Can't find node SvtxHitMap" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_SVTX");
+  if (!cells)
+  {
+    cout << "TPCIntegratedCharge::process_event - could not locate cell node "
+         << "G4CELL_SVTX" << endl;
+    exit(1);
+  }
+
+  PHG4CylinderCellGeomContainer* seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!seggeo)
+  {
+    cout << "TPCIntegratedCharge::process_event - could not locate geo node "
+         << "CYLINDERCELLGEOM_SVTX" << endl;
+    exit(1);
+  }
+  PHHepMCGenEventMap* geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  if (!geneventmap)
+  {
+    std::cout << PHWHERE << " - Fatal error - missing node PHHepMCGenEventMap" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  Fun4AllHistoManager* hm = getHistoManager();
+  assert(hm);
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto("hNormalization"));
+  assert(h_norm);
+  h_norm->Fill("Event count", 1);
+
+  h_norm->Fill("Collision count", geneventmap->size());
+
+  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  {
+    PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(layer);
+
+    for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
+    {
+      const double edep = hiter->second->get_edep();
+      h_norm->Fill("TPC G4Hit Edep", edep);
+      h_norm->Fill("TPC G4Hit", 1);
+    }  //     for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
+
+  }  //   for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+
+  // prepreare charge stat.
+  int nZBins = 0;
+  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  {
+    PHG4CylinderCellGeom* layerGeom =
+        seggeo->GetLayerCellGeom(layer);
+    assert(layerGeom);
+
+    // start with an empty vector of cells for each phibin
+    const int nphibins = layerGeom->get_phibins();
+    assert(nphibins > 0);
+
+    if (Verbosity() >= VERBOSITY_MORE)
+    {
+      cout << "TPCIntegratedCharge::process_event - init layer " << layer << " with "
+           << "nphibins = " << nphibins
+           << ", layerGeom->get_zbins() = " << layerGeom->get_zbins() << endl;
+    }
+
+    if (nZBins <= 0)
+    {
+      nZBins = layerGeom->get_zbins();
+      assert(nZBins > 0);
+    }
+    else
+    {
+      if ((int) nZBins != layerGeom->get_zbins())
+      {
+        cout << "TPCIntegratedCharge::process_event - Fatal Error - nZBin at layer " << layer << " is " << layerGeom->get_zbins()
+             << ", which is different from previous layers of nZBin = " << nZBins << endl;
+        exit(1);
+      }
+    }
+  }
+  assert(nZBins > 0);
+
+  int last_layer = -1;
+  int last_side = -1;
+  int last_phibin = -1;
+  int last_zbin = -1;
+  vector<unsigned int> last_wavelet;
+  int last_wavelet_hittime = -1;
+
+  for (SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter)
+  {
+    SvtxHit* hit = iter->second;
+
+    const unsigned int layer = hit->get_layer();
+
+    if (layer < m_minLayer or layer > m_maxLayer) continue;
+
+    PHG4Cell* cell = cells->findCell(hit->get_cellid());                           //not needed once geofixed
+    const int phibin = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());  //cell->get_binphi();
+    const int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());      //cell->get_binz();
+    const int side = (zbin < nZBins / 2) ? 0 : 1;
+
+    if (last_layer != layer or last_phibin != phibin or abs(last_zbin - zbin) != 1)
+    {
+      // save last wavelet
+      if (last_wavelet.size() > 0)
+      {
+        writeWavelet(last_layer, last_side, last_phibin, last_wavelet_hittime, last_wavelet);
+      }
+
+      // new wavelet
+      last_wavelet.clear();
+      last_zbin = -1;
+
+      last_layer = layer;
+      last_side = side;
+      last_phibin = phibin;
+
+      last_wavelet_hittime = (side == 0) ? (zbin) : (nZBins - 1 - zbin);
+      assert(last_wavelet_hittime >= 0);
+      assert(last_wavelet_hittime <= nZBins / 2);
+    }  //     if (last_layer != layer or last_phibin != phibin)
+
+    // more checks on signal continuity
+    if (last_wavelet.size() > 0)
+    {
+      if (side == 0)
+      {
+        assert(zbin - last_zbin == 1);
+      }
+      else
+      {
+        assert(last_zbin - zbin == 1);
+      }
+    }
+
+    unsigned int adc = hit->get_adc();
+    last_wavelet.push_back(adc);
+    last_zbin = zbin;
+  }  //   for(SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter) {
+
+  // save last wavelet
+  if (last_wavelet.size() > 0)
+  {
+    writeWavelet(last_layer, last_side, last_phibin, last_wavelet_hittime, last_wavelet);
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void TPCDataStreamEmulator::writeWavelet(int layer, int side, int phibin, int hittime, const vector<unsigned int>& last_wavelet);
+{
+}
+
+Fun4AllHistoManager*
+TPCDataStreamEmulator::getHistoManager()
+{
+  static string histname("TPCDataStreamEmulator_HISTOS");
+
+  Fun4AllServer* se = Fun4AllServer::instance();
+  Fun4AllHistoManager* hm = se->getHistoManager(histname);
+
+  if (not hm)
+  {
+    cout
+        << "TPCDataStreamEmulator::get_HistoManager - Making Fun4AllHistoManager " << histname
+        << endl;
+    hm = new Fun4AllHistoManager(histname);
+    se->registerHistoManager(hm);
+  }
+
+  assert(hm);
+
+  return hm;
 }
