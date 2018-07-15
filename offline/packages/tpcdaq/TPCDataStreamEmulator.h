@@ -13,6 +13,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <vector>
+
 class PHCompositeNode;
 class Fun4AllHistoManager;
 
@@ -33,12 +35,12 @@ class TPCDataStreamEmulator : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void maxLayer(unsigned int maxLayer)
+  void maxLayer(int maxLayer)
   {
     m_maxLayer = maxLayer;
   }
 
-  void minLayer(unsigned int minLayer)
+  void minLayer(int minLayer)
   {
     m_minLayer = minLayer;
   }
@@ -57,14 +59,14 @@ class TPCDataStreamEmulator : public SubsysReco
 #ifndef __CINT__
 
   Fun4AllHistoManager *getHistoManager();
-  void writeWavelet(int layer, int side, int phibin, int hittime, const std::vector<unsigned int>  &last_wavelet);
+  void writeWavelet(int layer, int side, int phibin, int hittime, const std::vector<unsigned int> &last_wavelet);
 
   bool m_saveDataStreamFile;
 
   std::string m_outputFileNameBase;
 
-  unsigned int m_minLayer;
-  unsigned int m_maxLayer;
+  int m_minLayer;
+  int m_maxLayer;
 
   int m_evtCounter;
 

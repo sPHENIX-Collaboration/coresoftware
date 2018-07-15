@@ -203,7 +203,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
 
   h_norm->Fill("Collision count", geneventmap->size());
 
-  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   {
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(layer);
 
@@ -218,7 +218,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
 
   // prepreare charge stat.
   int nZBins = 0;
-  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   {
     PHG4CylinderCellGeom* layerGeom =
         seggeo->GetLayerCellGeom(layer);
@@ -263,7 +263,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
   {
     SvtxHit* hit = iter->second;
 
-    const unsigned int layer = hit->get_layer();
+    const int layer = hit->get_layer();
 
     if (layer < m_minLayer or layer > m_maxLayer) continue;
 
@@ -320,7 +320,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void TPCDataStreamEmulator::writeWavelet(int layer, int side, int phibin, int hittime, const vector<unsigned int>& last_wavelet);
+void TPCDataStreamEmulator::writeWavelet(int layer, int side, int phibin, int hittime, const vector<unsigned int>& last_wavelet)
 {
 }
 
