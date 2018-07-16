@@ -23,16 +23,16 @@ public:
   /**
    * Constructor for ClusterIso Class
    */
-  ClusterIso(const std::string& ,float eTCut, float coneSize);
+  ClusterIso(const std::string& ,float eTCut, int coneSize);
 
   virtual int Init(PHCompositeNode*);
   virtual int process_event(PHCompositeNode*);
   virtual int End(PHCompositeNode*);
 
   void seteTCut(float x);
-  void setConeSize(float x);
+  void setConeSize(int x);
   const float geteTCut();
-  const float getConeSize();
+  const int getConeSize();
   const CLHEP::Hep3Vector getVertex();
 
 private:
