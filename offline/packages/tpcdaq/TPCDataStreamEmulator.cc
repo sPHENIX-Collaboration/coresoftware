@@ -172,12 +172,12 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
   hm->registerHisto(m_hDataSize =
                         new TH1D("hDataSize",  //
                                  "TPC Data Size per Event;Data size [Byte];Count",
-                                 1000, 0, 20e6));
+                                 10000, 0, 20e6));
 
   hm->registerHisto(m_hWavelet =
                         new TH1D("hWavelet",  //
                                  "TPC Recorded Wavelet per Event;Data size [Byte];Count",
-                                 1000, 0, 4e6));
+                                 10000, 0, 4e6));
 
   hm->registerHisto(m_hLayerWaveletSize =
                         new TH2D("hLayerWaveletSize",  //
@@ -195,7 +195,7 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
                         new TH2D("hLayerDataSize",  //
                                  "Data size per channel;Layer ID;Data size [Byte]",
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                                 1000, 0, 1e6));
+                                 2*nZBins, 0, 2*nZBins));
 
   hm->registerHisto(m_hLayerSumHit =
                         new TH2D("hLayerSumHit",  //
