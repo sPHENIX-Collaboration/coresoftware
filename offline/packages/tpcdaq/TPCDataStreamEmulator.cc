@@ -195,7 +195,7 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
                         new TH2D("hLayerDataSize",  //
                                  "Data size per channel;Layer ID;Data size [Byte]",
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                                 2*nZBins, 0, 2*nZBins));
+                                 2 * nZBins, 0, 2 * nZBins));
 
   hm->registerHisto(m_hLayerSumHit =
                         new TH2D("hLayerSumHit",  //
@@ -207,7 +207,7 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
                         new TH2D("hLayerSumDataSize",  //
                                  "Data size per trigger per layer;Layer ID;Data size [Byte]",
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                                 1000, 0, 10e6));
+                                 1000, 0, .5e6));
 
   hm->registerHisto(m_hLayerZBinHit =
                         new TH2D("hLayerZBinHit",  //
@@ -363,7 +363,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
     const int side = (zbin < nZBins / 2) ? 0 : 1;
 
     // new wavelet?
-    if (last_layer != layer or last_phibin != phibin or abs(last_zbin - zbin) != 1)
+    if (last_layer != layer or last_phibin != phibin or last_side != side or abs(last_zbin - zbin) != 1)
     {
       // save last wavelet
       if (last_wavelet.size() > 0)
@@ -400,6 +400,18 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
       assert(last_wavelet_hittime >= 0);
       assert(last_wavelet_hittime <= nZBins / 2);
     }  //     if (last_layer != layer or last_phibin != phibin)
+
+    if (Verbosity() >= VERBOSITY_A_LOT)
+    {
+      cout << "TPCDataStreamEmulator::process_event -  layer " << layer << " hit with "
+
+           << "phibin = " << phibin
+           << ",zbin = " << zbin
+           << ",side = " << side
+           << ",last_wavelet.size() = " << last_wavelet.size()
+           << ",last_zbin = " << last_zbin
+           << endl;
+    }
 
     // more checks on signal continuity
     if (last_wavelet.size() > 0)
@@ -529,4 +541,4 @@ TPCDataStreamEmulator::getHistoManager()
   assert(hm);
 
   return hm;
-  }
+}
