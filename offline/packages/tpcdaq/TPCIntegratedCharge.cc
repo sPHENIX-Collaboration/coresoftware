@@ -141,6 +141,11 @@ int TPCIntegratedCharge::InitRun(PHCompositeNode* topNode)
 
 int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
 {
+  Fun4AllHistoManager* hm = getHistoManager();
+  assert(hm);
+  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto("hNormalization"));
+  assert(h_norm);
+
   PHG4HitContainer* g4hit = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
   if (!g4hit)
   {
@@ -162,19 +167,21 @@ int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
          << "CYLINDERCELLGEOM_SVTX" << endl;
     exit(1);
   }
-  PHHepMCGenEventMap * geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  PHHepMCGenEventMap* geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
   if (!geneventmap)
   {
-    std::cout <<PHWHERE<<" - Fatal error - missing node PHHepMCGenEventMap"<<std::endl;
-    return Fun4AllReturnCodes::ABORTRUN;
+    static bool once = true;
+    if (once)
+    {
+      once = false;
+
+      std::cout << PHWHERE << " - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
+    }
   }
-
-  Fun4AllHistoManager* hm = getHistoManager();
-  assert(hm);
-  TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto("hNormalization"));
-  assert(h_norm);
-
-  h_norm->Fill("Collision count",geneventmap->size());
+  else
+  {
+    h_norm->Fill("Collision count", geneventmap->size());
+  }
 
   for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   {
@@ -321,7 +328,7 @@ int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
 
       if (Verbosity() >= VERBOSITY_MORE)
       {
-        cout <<"TPCIntegratedCharge::process_event - hLayerSumCellHit->Fill("<< layer <<", "<<sumHit<<")"<<endl;
+        cout << "TPCIntegratedCharge::process_event - hLayerSumCellHit->Fill(" << layer << ", " << sumHit << ")" << endl;
       }
 
       hLayerSumCellHit->Fill(layer, sumHit);
