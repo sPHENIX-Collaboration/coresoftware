@@ -176,7 +176,7 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
 
   hm->registerHisto(m_hWavelet =
                         new TH1D("hWavelet",  //
-                                 "TPC Recorded Wavelet per Event;Data size [Byte];Count",
+                                 "TPC Recorded Wavelet per Event;Wavelet count;Count",
                                  10000, 0, 4e6));
 
   hm->registerHisto(m_hLayerWaveletSize =

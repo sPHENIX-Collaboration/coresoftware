@@ -175,7 +175,7 @@ int TPCIntegratedCharge::process_event(PHCompositeNode* topNode)
     {
       once = false;
 
-      std::cout <<"TPCIntegratedCharge::process_event - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
+      std::cout << "TPCIntegratedCharge::process_event - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
     }
   }
   else
