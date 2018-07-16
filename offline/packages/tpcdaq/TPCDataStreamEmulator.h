@@ -29,7 +29,7 @@ class TPCDataStreamEmulator : public SubsysReco
   TPCDataStreamEmulator(
       unsigned int minLayer,
       unsigned int m_maxLayer,
-      const std::string &outputfilenamebase = "TPCIntegratedCharge.root");
+      const std::string &outputfilenamebase = "TPCDataStreamEmulator");
   virtual ~TPCDataStreamEmulator();
 
   int Init(PHCompositeNode *topNode);

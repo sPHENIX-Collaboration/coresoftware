@@ -107,12 +107,36 @@ int TPCDataStreamEmulator::End(PHCompositeNode* topNode)
 
 int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
 {
-  //  PHG4CylinderCellGeomContainer* seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  //  if (!seggeo)
-  //  {
-  //    cout << "could not locate geo node " << "CYLINDERCELLGEOM_SVTX" << endl;
-  //    exit(1);
-  //  }
+  PHG4CylinderCellGeomContainer* seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!seggeo)
+  {
+    cout << "could not locate geo node "
+         << "CYLINDERCELLGEOM_SVTX" << endl;
+    exit(1);
+  }
+
+  int nZBins = 0;
+  for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  {
+    PHG4CylinderCellGeom* layerGeom =
+        seggeo->GetLayerCellGeom(layer);
+    assert(layerGeom);
+
+    if (nZBins <= 0)
+    {
+      nZBins = layerGeom->get_zbins();
+      assert(nZBins > 0);
+    }
+    else
+    {
+      if ((int) nZBins != layerGeom->get_zbins())
+      {
+        cout << "TPCDataStreamEmulator::InitRun - Fatal Error - nZBin at layer " << layer << " is " << layerGeom->get_zbins()
+             << ", which is different from previous layers of nZBin = " << nZBins << endl;
+        exit(1);
+      }
+    }
+  }  //   for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
 
   if (Verbosity() >= VERBOSITY_SOME)
     cout << "TPCDataStreamEmulator::get_HistoManager - Making PHTFileServer " << m_outputFileNameBase + ".root"
@@ -159,13 +183,13 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
                         new TH2D("hLayerWaveletSize",  //
                                  "Number of Recorded ADC sample per Wavelet;Layer ID;ADC Sample Count per Wavelet",
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                                 300, -.5, 299.5));
+                                 nZBins, -.5, nZBins - .5));
 
   hm->registerHisto(m_hLayerHit =
                         new TH2D("hLayerHit",  //
                                  "Number of Recorded ADC sample per channel;Layer ID;ADC Sample Count",
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                                 300, -.5, 299.5));
+                                 nZBins, -.5, nZBins - .5));
 
   hm->registerHisto(m_hLayerDataSize =
                         new TH2D("hLayerDataSize",  //
@@ -188,13 +212,13 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
   hm->registerHisto(m_hLayerZBinHit =
                         new TH2D("hLayerZBinHit",  //
                                  "Number of Recorded ADC sample per Time Bin;z bin ID;Layer ID",
-                                 300, -.5, 299.5,
+                                 nZBins, -.5, nZBins - .5,
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5));
 
   hm->registerHisto(m_hLayerZBinADC =
                         new TH2D("hLayerZBinADC",  //
                                  "Sum ADC per Time Bin;z bin ID;Layer ID",
-                                 300, -.5, 299.5,
+                                 nZBins, -.5, nZBins - .5,
                                  m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5));
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -371,6 +395,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
       last_side = side;
       last_phibin = phibin;
 
+      // time check
       last_wavelet_hittime = (side == 0) ? (zbin) : (nZBins - 1 - zbin);
       assert(last_wavelet_hittime >= 0);
       assert(last_wavelet_hittime <= nZBins / 2);
