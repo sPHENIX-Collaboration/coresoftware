@@ -17,6 +17,8 @@
 
 class PHCompositeNode;
 class Fun4AllHistoManager;
+class TH1;
+class TH2;
 
 /*!
  * \brief TPCDataStreamEmulator
@@ -59,7 +61,7 @@ class TPCDataStreamEmulator : public SubsysReco
 #ifndef __CINT__
 
   Fun4AllHistoManager *getHistoManager();
-  void writeWavelet(int layer, int side, int phibin, int hittime, const std::vector<unsigned int> &last_wavelet);
+  int writeWavelet(int layer, int side, int phibin, int hittime, const std::vector<unsigned int> &wavelet);
 
   bool m_saveDataStreamFile;
 
@@ -69,6 +71,20 @@ class TPCDataStreamEmulator : public SubsysReco
   int m_maxLayer;
 
   int m_evtCounter;
+
+  double m_vertexZAcceptanceCut;
+  double m_etaAcceptanceCut;
+
+  // histograms
+  TH1 *m_hDataSize;
+  TH1 *m_hWavelet;
+  TH2 *m_hLayerWaveletSize;
+  TH2 *m_hLayerHit;
+  TH2 *m_hLayerZBinHit;
+  TH2 *m_hLayerZBinADC;
+  TH2 *m_hLayerDataSize;
+  TH2 *m_hLayerSumHit;
+  TH2 *m_hLayerSumDataSize;
 
 #endif  // #ifndef __CINT__
 };

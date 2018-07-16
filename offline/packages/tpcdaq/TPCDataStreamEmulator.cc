@@ -63,6 +63,17 @@ TPCDataStreamEmulator::TPCDataStreamEmulator(
   , m_minLayer(minLayer)
   , m_maxLayer(m_maxLayer)
   , m_evtCounter(-1)
+  , m_vertexZAcceptanceCut(10)
+  , m_etaAcceptanceCut(1.1)
+  , m_hDataSize(nullptr)
+  , m_hWavelet(nullptr)
+  , m_hLayerWaveletSize(nullptr)
+  , m_hLayerHit(nullptr)
+  , m_hLayerZBinHit(nullptr)
+  , m_hLayerZBinADC(nullptr)
+  , m_hLayerDataSize(nullptr)
+  , m_hLayerSumHit(nullptr)
+  , m_hLayerSumDataSize(nullptr)
 {
 }
 
@@ -134,24 +145,57 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
 
   //  }
 
-  hm->registerHisto(new TH2D("hLayerCellHit",  //
-                             "Number of ADC time-bin hit per channel;Layer ID;Hit number",
-                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                             300, -.5, 299.5));
-  hm->registerHisto(new TH2D("hLayerCellCharge",  //
-                             "Charge integrated over drift window per channel;Layer ID;Charge [fC]",
-                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                             1000, 0, 1e7 * eplus / (1e-15 * coulomb)));
+  hm->registerHisto(m_hDataSize =
+                        new TH1D("hDataSize",  //
+                                 "TPC Data Size per Event;Data size [Byte];Count",
+                                 1000, 0, 20e6));
 
-  hm->registerHisto(new TH2D("hLayerSumCellHit",  //
-                             "Number of ADC time-bin hit integrated over channels per layer;Layer ID;Hit number",
-                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                             10000, -.5, 99999.5));
-  hm->registerHisto(new TH2D("hLayerSumCellCharge",  //
-                             "Charge integrated over drift window and channel per layer;Layer ID;Charge [fC]",
-                             m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
-                             10000, 0, 1000 * 4e6 * eplus / (1e-15 * coulomb)));
+  hm->registerHisto(m_hWavelet =
+                        new TH1D("hWavelet",  //
+                                 "TPC Recorded Wavelet per Event;Data size [Byte];Count",
+                                 1000, 0, 4e6));
 
+  hm->registerHisto(m_hLayerWaveletSize =
+                        new TH2D("hLayerWaveletSize",  //
+                                 "Number of Recorded ADC sample per Wavelet;Layer ID;ADC Sample Count per Wavelet",
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                                 300, -.5, 299.5));
+
+  hm->registerHisto(m_hLayerHit =
+                        new TH2D("hLayerHit",  //
+                                 "Number of Recorded ADC sample per channel;Layer ID;ADC Sample Count",
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                                 300, -.5, 299.5));
+
+  hm->registerHisto(m_hLayerDataSize =
+                        new TH2D("hLayerDataSize",  //
+                                 "Data size per channel;Layer ID;Data size [Byte]",
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                                 1000, 0, 1e6));
+
+  hm->registerHisto(m_hLayerSumHit =
+                        new TH2D("hLayerSumHit",  //
+                                 "Number of Recorded ADC sample per layer;Layer ID;ADC Sample Count",
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                                 10000, -.5, 99999.5));
+
+  hm->registerHisto(m_hLayerSumDataSize =
+                        new TH2D("hLayerSumDataSize",  //
+                                 "Data size per trigger per layer;Layer ID;Data size [Byte]",
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5,
+                                 1000, 0, 10e6));
+
+  hm->registerHisto(m_hLayerZBinHit =
+                        new TH2D("hLayerZBinHit",  //
+                                 "Number of Recorded ADC sample per Time Bin;z bin ID;Layer ID",
+                                 300, -.5, 299.5,
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5));
+
+  hm->registerHisto(m_hLayerZBinADC =
+                        new TH2D("hLayerZBinADC",  //
+                                 "Sum ADC per Time Bin;z bin ID;Layer ID",
+                                 300, -.5, 299.5,
+                                 m_maxLayer - m_minLayer + 1, m_minLayer - .5, m_maxLayer + .5));
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -176,7 +220,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
   PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_SVTX");
   if (!cells)
   {
-    cout << "TPCIntegratedCharge::process_event - could not locate cell node "
+    cout << "TPCDataStreamEmulator::process_event - could not locate cell node "
          << "G4CELL_SVTX" << endl;
     exit(1);
   }
@@ -184,7 +228,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
   PHG4CylinderCellGeomContainer* seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   if (!seggeo)
   {
-    cout << "TPCIntegratedCharge::process_event - could not locate geo node "
+    cout << "TPCDataStreamEmulator::process_event - could not locate geo node "
          << "CYLINDERCELLGEOM_SVTX" << endl;
     exit(1);
   }
@@ -216,8 +260,12 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
 
   }  //   for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
 
-  // prepreare charge stat.
+  // prepreare stat. storage
   int nZBins = 0;
+  vector<array<vector<int>, 2> > layerChanHit(m_maxLayer + 1);
+  vector<array<vector<int>, 2> > layerChanDataSize(m_maxLayer + 1);
+  int nWavelet = 0;
+  int sumDataSize = 0;
   for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   {
     PHG4CylinderCellGeom* layerGeom =
@@ -230,7 +278,7 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
 
     if (Verbosity() >= VERBOSITY_MORE)
     {
-      cout << "TPCIntegratedCharge::process_event - init layer " << layer << " with "
+      cout << "TPCDataStreamEmulator::process_event - init layer " << layer << " with "
            << "nphibins = " << nphibins
            << ", layerGeom->get_zbins() = " << layerGeom->get_zbins() << endl;
     }
@@ -244,14 +292,24 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
     {
       if ((int) nZBins != layerGeom->get_zbins())
       {
-        cout << "TPCIntegratedCharge::process_event - Fatal Error - nZBin at layer " << layer << " is " << layerGeom->get_zbins()
+        cout << "TPCDataStreamEmulator::process_event - Fatal Error - nZBin at layer " << layer << " is " << layerGeom->get_zbins()
              << ", which is different from previous layers of nZBin = " << nZBins << endl;
         exit(1);
       }
     }
-  }
+
+    for (unsigned int side = 0; side < 2; ++side)
+    {
+      layerChanHit[layer][side].resize(nphibins, 0);
+
+      layerChanDataSize[layer][side].resize(nphibins, 0);
+    }  //     for (unsigned int side = 0; side < 2; ++side)
+
+  }  //   for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+
   assert(nZBins > 0);
 
+  // count hits and make wavelets
   int last_layer = -1;
   int last_side = -1;
   int last_phibin = -1;
@@ -272,18 +330,35 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
     const int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());      //cell->get_binz();
     const int side = (zbin < nZBins / 2) ? 0 : 1;
 
+    // new wavelet?
     if (last_layer != layer or last_phibin != phibin or abs(last_zbin - zbin) != 1)
     {
       // save last wavelet
       if (last_wavelet.size() > 0)
       {
-        writeWavelet(last_layer, last_side, last_phibin, last_wavelet_hittime, last_wavelet);
+        const int datasize = writeWavelet(last_layer, last_side, last_phibin, last_wavelet_hittime, last_wavelet);
+        assert(datasize > 0);
+
+        nWavelet += 1;
+        sumDataSize += datasize;
+        layerChanDataSize[last_layer][last_side][last_phibin] += datasize;
+
+        last_wavelet.clear();
+        last_zbin = -1;
       }
 
-      // new wavelet
-      last_wavelet.clear();
-      last_zbin = -1;
+      // z-R cut on digitized wavelet
+      PHG4CylinderCellGeom* layerGeom =
+          seggeo->GetLayerCellGeom(layer);
+      assert(layerGeom);
+      const double z_abs = fabs(layerGeom->get_zcenter(zbin));
+      const double r = layerGeom->get_radius();
+      TVector3 acceptanceVec(r, 0, z_abs - m_vertexZAcceptanceCut);
+      const double eta = acceptanceVec.PseudoRapidity();
 
+      if (eta > m_etaAcceptanceCut) continue;
+
+      // make new wavelet
       last_layer = layer;
       last_side = side;
       last_phibin = phibin;
@@ -306,22 +381,99 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
       }
     }
 
+    // record adc
     unsigned int adc = hit->get_adc();
     last_wavelet.push_back(adc);
     last_zbin = zbin;
+
+    // statistics
+    layerChanHit[layer][side][phibin] += 1;
+    assert(m_hLayerZBinHit);
+    m_hLayerZBinHit->Fill(zbin, layer, 1);
+    assert(m_hLayerZBinADC);
+    m_hLayerZBinADC->Fill(zbin, layer, adc);
+
   }  //   for(SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter) {
 
   // save last wavelet
   if (last_wavelet.size() > 0)
   {
-    writeWavelet(last_layer, last_side, last_phibin, last_wavelet_hittime, last_wavelet);
+    const int datasize = writeWavelet(last_layer, last_side, last_phibin, last_wavelet_hittime, last_wavelet);
+    assert(datasize > 0);
+
+    nWavelet += 1;
+    sumDataSize += datasize;
+    layerChanDataSize[last_layer][last_side][last_phibin] += datasize;
   }
+
+  // statistics
+  for ( int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+  {
+    for (unsigned int side = 0; side < 2; ++side)
+    {
+      int sumHit = 0;
+      for (const int& hit : layerChanHit[layer][side])
+      {
+        sumHit += hit;
+
+        assert(m_hLayerHit);
+        m_hLayerHit->Fill(layer, hit);
+        h_norm->Fill("TPC Hit", hit);
+
+        if (Verbosity() >= VERBOSITY_MORE)
+        {
+          cout << "TPCDataStreamEmulator::process_event - hit: "
+               << "hit = " << hit
+               << "at layer = " << layer
+               << ", side = " << side
+               << endl;
+        }
+      }
+
+      if (Verbosity() >= VERBOSITY_MORE)
+      {
+        cout << "TPCDataStreamEmulator::process_event - hLayerSumCellHit->Fill(" << layer << ", " << sumHit << ")" << endl;
+      }
+      assert(m_hLayerSumHit);
+      m_hLayerSumHit->Fill(layer, sumHit);
+
+      double sumData = 0;
+      for (const int& data : layerChanDataSize[layer][side])
+      {
+        sumData += data;
+
+        assert(m_hLayerDataSize);
+        m_hLayerDataSize->Fill(layer, data);
+      }
+      assert(m_hLayerSumDataSize);
+      m_hLayerSumDataSize->Fill(layer, sumData);
+    }  //    for (unsigned int side = 0; side < 2; ++side)
+
+  }  //  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
+
+  assert(m_hWavelet);
+  m_hWavelet->Fill(nWavelet);
+  h_norm->Fill("TPC Wavelet", nWavelet);
+  assert(m_hDataSize);
+  m_hDataSize->Fill(sumDataSize);
+  h_norm->Fill("TPC DataSize", sumDataSize);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void TPCDataStreamEmulator::writeWavelet(int layer, int side, int phibin, int hittime, const vector<unsigned int>& last_wavelet)
+int TPCDataStreamEmulator::writeWavelet(int layer, int side, int phibin, int hittime, const vector<unsigned int>& wavelet)
 {
+  static const int headersize = 2;  // 2-byte header per wavelet
+
+  //data in byte aligned and padding
+  const int datasizebit = wavelet.size() * 10;
+  int datasizebyte = datasizebit / 8;
+  if (datasizebyte * 8 < datasizebit) datasizebyte += 1;
+
+  assert(m_hLayerWaveletSize);
+  m_hLayerWaveletSize->Fill(layer, wavelet.size());
+
+  return headersize + datasizebyte;
 }
 
 Fun4AllHistoManager*
