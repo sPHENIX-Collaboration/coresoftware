@@ -3,8 +3,8 @@
  * \brief 
  * \author Francesco Vassalli <Francesco.Vassalli@colorado.edu> 
  * \author Chase Smith <chsm5267@colorado.edu>
- * \version $Revision:   $
- * \date $Date: $
+ * \version $Revision: 2 $
+ * \date $Date: July 17th, 2018 $
  */
 
 #include "ClusterIso.h"
@@ -29,9 +29,9 @@
 
 /** \Brief Function to get correct tower eta
  *
- * Each tower is calculated using the vertex (0,0,0)
+ * Each calorimeter tower's eta is calculated using the vertex (0,0,0)
  * which is incorrect in many collisions. This function 
- * uses geometry to find eta using correct vertex.
+ * uses geometry to find a given tower's eta using the correct vertex.
  */
 double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz) 
 {
@@ -45,7 +45,10 @@ double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, d
   }
 }
 
-
+/**
+ * Contructor takes the argument of the class name, the minimum eT of the clusters which defaults to 0,
+ * and the isolation cone size which defaults to 0.3.
+ */
 ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3) : SubsysReco("ClusterIso"){
   std::cout<<"Begining Cluster Isolation Energy Calculation"<<'\n';
   m_vx=m_vy=m_vz=0;
@@ -58,18 +61,30 @@ ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize
   return 0;
 }
 
+/**
+ * Set the minimum transverse energy required for a cluster to have its isolation calculated
+ */
 void ClusterIso::seteTCut(float eTCut){
   this->m_eTCut = eTCut;
 }
 
+/**
+ * Set the size of isolation cone as integer multiple of 0.1, (i.e. 3 will use an R=0.3 cone)
+ */
 void ClusterIso::setConeSize(int coneSize){
   this->m_coneSize=coneSize/10.0;
 }
 
+/**
+ * Returns the minimum transverse energy required for a cluster to have its isolation calculated
+ */
 const float ClusterIso::geteTCut(){
   return m_eTCut;
 }
 
+/**
+ * Returns size of isolation cone as integer multiple of 0.1 (i.e. 3 is an R=0.3 cone)
+ */
 const int ClusterIso::getConeSize(){
   return (int) m_coneSize*10;
 }
@@ -81,36 +96,36 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
   return CLHEP::Hep3Vector( m_vx, m_vy, m_vz);
 }
 
-/** \Brief process_event is where isolation Energy is calculated for all clusters
+/** \Brief Calculates isolation energy for all electromagnetic calorimeter clusters over the specified eT cut.
  *
- * For each cluster in the EMCal go through all of the towers in each calorimeter, 
- * if the towers are within the iso cone add their energy to the sum. Finally 
- * subtract the cluster energy from the sum 
+ * For each cluster in the EMCal this iterates through all of the towers in each calorimeter, 
+ * if the towers are within the isolation cone their energy is added to the sum of isolation energy.  
+ * Finally subtract the cluster energy from the sum 
  */
  int ClusterIso::process_event(PHCompositeNode *topNode)
 {
   /**
    * If there event is embedded in Au+Au or another larger background we want to 
-   * get isolation energy from the towers with a subtracted background. This boolean
+   * get isolation energy from the towers with a subtracted background. This first section
    * looks at those towers instead of the original objects which include the background.
    * NOTE: that during the background event subtraction the EMCal towers are grouped 
    * together so we have to use the inner HCal geometry. 
    */
 
   {
-    ///get EMCal towers
+    //get EMCal towers
     RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
     std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
 
-    ///get InnerHCal towers
+    //get InnerHCal towers
     RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1");
     std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN_SUB1 towers" << '\n';
 
-    ///get outerHCal towers
+    //get outerHCal towers
     RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1");
     std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
 
-    ///get geometry of calorimeter towers
+    //get geometry of calorimeter towers
     RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
     RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
     RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
@@ -121,7 +136,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
       RawClusterContainer::ConstIterator rtiter;
       std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';
       
-      ///vertexmap is used to get correct collision vertex
+      //vertexmap is used to get correct collision vertex
       GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap"); 
       m_vx=m_vy=m_vz=0;
       if (vertexmap&&!vertexmap->empty())
@@ -147,7 +162,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
 
         if (et < m_eTCut){continue;} //continue if cluster is under eT cut
 
-        ///calculate EMCal tower contribution to isolation energy
+        //calculate EMCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersEM3old->getTowers();
           for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
@@ -161,7 +176,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
           }
         }
 
-        ///calculate Inner HCal tower contribution to isolation energy
+        //calculate Inner HCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersIH3->getTowers();
           for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
@@ -175,7 +190,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
           }
         }
 
-        ///calculate Outer HCal tower contribution to isolation energy
+        //calculate Outer HCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
           for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
@@ -196,24 +211,23 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
   }
 
   /**
-   * If the event is not embedded in any kind of background we just use the original 
-   * tower objects to get isolation energy.
+   * This second section repeats the isolation calculation without any background subtraction 
    */
 
   {
-    ///get EMCal towers
+    //get EMCal towers
     RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
     std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC towers" << '\n';
 
-    ///get InnerHCal towers
+    //get InnerHCal towers
     RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
     std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << '\n';
 
-    ///get outerHCal towers
+    //get outerHCal towers
     RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
     std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
 
-    ///get geometry of calorimeter towers
+    //get geometry of calorimeter towers
     RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
     RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
     RawTowerGeomContainer *geomOH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
@@ -224,7 +238,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
       RawClusterContainer::ConstIterator rtiter;
       std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';
       
-      ///vertexmap is used to get correct collision vertex
+      //vertexmap is used to get correct collision vertex
       GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap"); 
       m_vx=m_vy=m_vz=0;
       if (vertexmap&&!vertexmap->empty())
@@ -250,7 +264,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
 
         if (et < m_eTCut){continue;} //continue if cluster is under eT cut
 
-        ///calculate EMCal tower contribution to isolation energy
+        //calculate EMCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersEM3old->getTowers();
           for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
@@ -264,7 +278,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
           }
         }
 
-        ///calculate Inner HCal tower contribution to isolation energy
+        //calculate Inner HCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersIH3->getTowers();
           for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
@@ -278,7 +292,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
           }
         }
 
-        ///calculate Outer HCal tower contribution to isolation energy
+        //calculate Outer HCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
           for (RawTowerContainer::ConstIterator rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter) {
