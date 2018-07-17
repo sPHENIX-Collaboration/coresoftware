@@ -39,18 +39,18 @@ public:
 
 private:
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz); 
-  float m_eTCut; ///< cluster must be over this energy set in constructor
-  float m_coneSize; ///< delta R around cluster that is considered
-  float m_vx; ///< new vertex x value  
-  float m_vy; ///< new vertex y value 
-  float m_vz; ///< new vertex z value
+  float m_eTCut; ///< The minimum required transverse energy in a cluster for ClusterIso to be run
+  float m_coneSize; ///< Size of the cone used to isolate a given cluster
+  float m_vx; ///< Correct vertex x coordinate 
+  float m_vy; ///< Correct vertex y coordinate
+  float m_vz; ///< Correct vertex z coordinate
 };
 
 
 
 /** \Brief Function to find delta R between 2 objects
  *
- * Takes eta and phi of each object and returns the difference 
+ * Takes the eta and phi of each object and returns the difference 
  * of the etas and phis added in quadrature. Used to find towers
  * inside a cone of delta R around a cluster.
  */
