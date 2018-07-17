@@ -20,6 +20,8 @@
 #include <g4hough/SvtxHitMap.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -31,12 +33,15 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <TDatabasePDG.h>
 #include <TFile.h>
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TString.h>
 #include <TTree.h>
 #include <TVector3.h>
+
+#include <HepMC/GenEvent.h>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
@@ -67,6 +72,7 @@ TPCDataStreamEmulator::TPCDataStreamEmulator(
   , m_etaAcceptanceCut(1.1)
   , m_hDataSize(nullptr)
   , m_hWavelet(nullptr)
+  , m_hNChEta(nullptr)
   , m_hLayerWaveletSize(nullptr)
   , m_hLayerHit(nullptr)
   , m_hLayerZBinHit(nullptr)
@@ -179,6 +185,11 @@ int TPCDataStreamEmulator::InitRun(PHCompositeNode* topNode)
                                  "TPC Recorded Wavelet per Event;Wavelet count;Count",
                                  10000, 0, 4e6));
 
+  hm->registerHisto(m_hNChEta =
+                        new TH1D("hNChEta",  //
+                                 "Charged particle #eta distribution;#eta;Count",
+                                 1000, -5, 5));
+
   hm->registerHisto(m_hLayerWaveletSize =
                         new TH2D("hLayerWaveletSize",  //
                                  "Number of Recorded ADC sample per Wavelet;Layer ID;ADC Sample Count per Wavelet",
@@ -278,6 +289,44 @@ int TPCDataStreamEmulator::process_event(PHCompositeNode* topNode)
   {
     h_norm->Fill("Collision count", geneventmap->size());
   }
+
+  PHG4TruthInfoContainer* truthInfoList = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+                                                                                     "G4TruthInfo");
+  if (!truthInfoList)
+  {
+    cout << "TPCDataStreamEmulator::process_event - Fatal Error - "
+         << "unable to find DST node "
+         << "G4TruthInfo" << endl;
+    assert(truthInfoList);
+  }
+
+  PHG4TruthInfoContainer::ConstRange primary_range =
+      truthInfoList->GetPrimaryParticleRange();
+
+  for (PHG4TruthInfoContainer::ConstIterator particle_iter =
+           primary_range.first;
+       particle_iter != primary_range.second;
+       ++particle_iter)
+  {
+    const PHG4Particle* p = particle_iter->second;
+    assert(p);
+
+    TParticlePDG* pdg_p = TDatabasePDG::Instance()->GetParticle(
+        p->get_pid());
+    assert(pdg_p);
+
+    if (fabs(pdg_p->Charge()) > 0)
+    {
+      TVector3 pvec(p->get_px(), p->get_py(), p->get_pz());
+
+      if (pvec.Perp2()>0)
+      {
+        assert(m_hNChEta);
+        m_hNChEta->Fill(pvec.PseudoRapidity());
+      }
+    }
+
+  }  //          if (_load_all_particle) else
 
   for (int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   {
