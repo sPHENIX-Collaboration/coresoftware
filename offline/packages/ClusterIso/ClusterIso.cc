@@ -51,9 +51,9 @@ double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, d
  * Contructor takes the argument of the class name, the minimum eT of the clusters which defaults to 0,
  * and the isolation cone size which defaults to 0.3.
  */
-ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3) : SubsysReco(kname){
+ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3, bool do_subtracted=1, bool do_unsubstracted=1) : SubsysReco(kname), m_do_subtracted(do_subtracted),m_do_unsubstracted(do_unsubtracted){
   if(Verbosity() >= VERBOSITY_SOME) std::cout<<Name()<<"::ClusterIso constructed"<<'\n';
-  if(coneSize==0) std::cout<<"WARNING in <<Name()<<" cone size is zero"<<'\n';
+  if(coneSize==0&&Verbosity() >= VERBOSITY_QUIET) std::cout<<"WARNING in "<<Name()<<"ClusterIso:: cone size is zero"<<'\n';
   m_vx=m_vy=m_vz=0;
   setConeSize(coneSize);
   seteTCut(eTCut);
@@ -61,6 +61,7 @@ ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize
     std::cout<<NAME()<<"::ClusterIso::m_coneSize is:"<<m_coneSize<<'\n';
     std::cout<<NAME()<<"::ClusterIso::m_eTCut is:"<<m_eTCut<<'\n';
   }
+  if(!do_substracted&&!do_unsubtracted&&Verbosity() >= VERBOSITY_QUIET) std::cout<<"WARNING in "<<Name()<<"ClusterIso:: all processes turned off doing nothing"<<'\n';
 }
 
  int ClusterIso::Init(PHCompositeNode *topNode)
@@ -118,7 +119,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
    * NOTE: that during the background event subtraction the EMCal towers are grouped 
    * together so we have to use the inner HCal geometry. 
    */
-
+if(m_do_subtracted){
   {
     //get EMCal towers
     RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
@@ -167,7 +168,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
         double et = cluster_energy / cosh( cluster_eta );
         double isoEt=0;
 
-        if (et < m_eTCut){continue;} //continue if cluster is under eT cut
+        if (et < m_eTCut){continue;} //skip if cluster is under eT cut
 
         //calculate EMCal tower contribution to isolation energy
         {
@@ -217,6 +218,8 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
       }
     }
   }
+}
+if(m_do_unsubtracted){
 
   /**
    * This second section repeats the isolation calculation without any background subtraction 
@@ -269,8 +272,11 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
         double cluster_phi = E_vec_cluster.phi();
         double et = cluster_energy / cosh( cluster_eta );
         double isoEt=0;
-
-        if (et < m_eTCut){continue;} //continue if cluster is under eT cut
+        if(Verbosity() >= VERBOSITY_MAX)std::cout<<Name()<<"::ClusterIso processing"<<cluster->identify()<<'\n';
+        if (et < m_eTCut){
+          continue;
+          if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t does not pass eT cut"<<'\n';
+        } //skip if cluster is below eT cut
 
         //calculate EMCal tower contribution to isolation energy
         {
@@ -285,7 +291,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
             }
           }
         }
-
+        if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t after EMCal isoEt:"<<isoEt<<'\n';
         //calculate Inner HCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersIH3->getTowers();
@@ -299,7 +305,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
             }
           }
         }
-
+        if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t after innerHCal isoEt:"<<isoEt<<'\n';
         //calculate Outer HCal tower contribution to isolation energy
         {
           RawTowerContainer::ConstRange begin_end = towersOH3->getTowers();
@@ -313,13 +319,14 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
             }
           }
         }
-
+        if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t after outerHCal isoEt:"<<isoEt<<'\n';
         isoEt-=et; //Subtract cluster eT from isoET
         if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for "<<cluster->identify()<<"="<<isoEt<<'\n';
         cluster->set_et_iso(isoEt, (int) 10*m_coneSize,0,1);
       }
     }
   }
+}
   return 0;
 }
 
