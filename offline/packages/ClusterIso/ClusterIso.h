@@ -44,6 +44,8 @@ private:
   float m_vx; ///< Correct vertex x coordinate 
   float m_vy; ///< Correct vertex y coordinate
   float m_vz; ///< Correct vertex z coordinate
+  bool m_do_subtracted;
+  bool m_do_unsubtracted;
 };
 
 
