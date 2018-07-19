@@ -112,6 +112,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
  */
  int ClusterIso::process_event(PHCompositeNode *topNode)
 {
+  if(Verbosity() >= VERBOSITY_MORE)std::cout<<Name()<<"::ClusterIso::process_event"<<'\n';
   /**
    * If there event is embedded in Au+Au or another larger background we want to 
    * get isolation energy from the towers with a subtracted background. This first section
@@ -121,6 +122,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
    */
 if(m_do_subtracted){
   {
+    if(Verbosity() >= VERBOSITY_EVEN_MORE)std::cout<<Name()<<"::ClusterIso starting subtracted calculation"<<'\n';
     //get EMCal towers
     RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
     if(Verbosity() >= VERBOSITY_MORE)std::cout <<Name()<< "::ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
@@ -153,9 +155,9 @@ if(m_do_subtracted){
          m_vx = vertex->get_x();
          m_vy = vertex->get_y();
          m_vz = vertex->get_z();
-         if(Verbosity() >= VERBOSITY_SOME)std::cout<<Name()<<"::ClusterIso Event Vertex Calculated at x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
+         if(Verbosity() >= VERBOSITY_MORE)std::cout<<Name()<<"::ClusterIso Event Vertex Calculated at x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
       }
-      if(Verbosity() >= VERBOSITY_EVEN_MORE)std::cout<<Name()<<"::ClusterIso starting subtracted calculation"<<'\n';
+      
       for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
 
         RawCluster *cluster = rtiter->second;
