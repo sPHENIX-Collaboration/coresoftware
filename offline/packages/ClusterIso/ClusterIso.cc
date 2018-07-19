@@ -35,26 +35,32 @@
  */
 double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz) 
 {
+  float r;
   if(vx==0&&vy==0&&vz==0){
-    return tower_geom->get_eta();
+    r=tower_geom->get_eta(); 
   }
   else{
    double r= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy));
    double theta = atan2(r,tower_geom->get_center_z()-vz);
-   return -log(tan(theta/2.));
+   r= -log(tan(theta/2.));
   }
+  return r;
 }
 
 /**
  * Contructor takes the argument of the class name, the minimum eT of the clusters which defaults to 0,
  * and the isolation cone size which defaults to 0.3.
  */
-ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3) : SubsysReco("ClusterIso"){
-  std::cout<<"Begining Cluster Isolation Energy Calculation"<<'\n';
-  m_coneSize=coneSize/10.0;
+ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3) : SubsysReco(kname){
+  if(Verbosity() >= VERBOSITY_SOME) std::cout<<Name()<<"::ClusterIso constructed"<<'\n';
+  if(coneSize==0) std::cout<<"WARNING in <<Name()<<" cone size is zero"<<'\n';
   m_vx=m_vy=m_vz=0;
   setConeSize(coneSize);
   seteTCut(eTCut);
+  if(Verbosity() >= VERBOSITY_EVEN_MORE){
+    std::cout<<NAME()<<"::ClusterIso::m_coneSize is:"<<m_coneSize<<'\n';
+    std::cout<<NAME()<<"::ClusterIso::m_eTCut is:"<<m_eTCut<<'\n';
+  }
 }
 
  int ClusterIso::Init(PHCompositeNode *topNode)
@@ -116,15 +122,15 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
   {
     //get EMCal towers
     RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
-    std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
+    if(Verbosity() >= VERBOSITY_MORE)std::cout <<Name()<< "::ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
 
     //get InnerHCal towers
     RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN_SUB1");
-    std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN_SUB1 towers" << '\n';
+    if(Verbosity() >= VERBOSITY_MORE)std::cout <<Name()<< "::ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN_SUB1 towers" << '\n';
 
     //get outerHCal towers
     RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT_SUB1");
-    std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
+    if(Verbosity() >= VERBOSITY_MORE)std::cout <<Name()<< "::ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT_SUB1 towers" << std::endl;
 
     //get geometry of calorimeter towers
     RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
@@ -135,7 +141,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
       RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
       RawClusterContainer::ConstRange begin_end = clusters->getClusters();
       RawClusterContainer::ConstIterator rtiter;
-      std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';
+      if(Verbosity() >= VERBOSITY_SOME)std::cout <<Name()<< "::ClusterIso sees " << clusters->size() << " clusters " << '\n';
       
       //vertexmap is used to get correct collision vertex
       GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap"); 
@@ -146,9 +152,9 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
          m_vx = vertex->get_x();
          m_vy = vertex->get_y();
          m_vz = vertex->get_z();
-         std::cout<<"Event Vertex Calculated in ClusterIso x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
+         if(Verbosity() >= VERBOSITY_SOME)std::cout<<Name()<<"::ClusterIso Event Vertex Calculated at x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
       }
-
+      if(Verbosity() >= VERBOSITY_EVEN_MORE)std::cout<<Name()<<"::ClusterIso starting subtracted calculation"<<'\n';
       for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
 
         RawCluster *cluster = rtiter->second;
@@ -206,6 +212,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
         }
 
         isoEt-=et; //Subtract cluster eT from isoET
+        if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for "<<cluster->identify()<<"="<<isoEt<<'\n';
         cluster->set_et_iso(isoEt, (int) 10*m_coneSize,1,1);
       }
     }
@@ -214,19 +221,19 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
   /**
    * This second section repeats the isolation calculation without any background subtraction 
    */
-
+  if(Verbosity() >= VERBOSITY_EVEN_MORE)std::cout<<Name()<<"::ClusterIso starting unsubtracted calculation"<<'\n';
   {
     //get EMCal towers
     RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
-    std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC towers" << '\n';
+    if(Verbosity() >= VERBOSITY_MORE)std::cout << "ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC towers" << '\n';
 
     //get InnerHCal towers
     RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
-    std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << '\n';
+    if(Verbosity() >= VERBOSITY_MORE)std::cout << "ClusterIso::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << '\n';
 
     //get outerHCal towers
     RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-    std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
+    if(Verbosity() >= VERBOSITY_MORE)std::cout << "ClusterIso::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
 
     //get geometry of calorimeter towers
     RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
@@ -237,7 +244,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
       RawClusterContainer *clusters = findNode::getClass<RawClusterContainer>(topNode,"CLUSTER_CEMC");
       RawClusterContainer::ConstRange begin_end = clusters->getClusters();
       RawClusterContainer::ConstIterator rtiter;
-      std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';
+      if(Verbosity() >= VERBOSITY_SOME)std::cout << " ClusterIso sees " << clusters->size() << " clusters " << '\n';
       
       //vertexmap is used to get correct collision vertex
       GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap"); 
@@ -248,7 +255,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
          m_vx = vertex->get_x();
          m_vy = vertex->get_y();
          m_vz = vertex->get_z();
-         std::cout<<"Event Vertex Calculated in ClusterIso x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
+         if(Verbosity() >= VERBOSITY_SOME)std::cout<<Name()<<"ClusterIso Event Vertex Calculated at x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
       }
 
       for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
@@ -308,6 +315,7 @@ const CLHEP::Hep3Vector ClusterIso::getVertex(){
         }
 
         isoEt-=et; //Subtract cluster eT from isoET
+        if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for "<<cluster->identify()<<"="<<isoEt<<'\n';
         cluster->set_et_iso(isoEt, (int) 10*m_coneSize,0,1);
       }
     }
