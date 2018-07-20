@@ -125,6 +125,10 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 			if(Verbosity() >= VERBOSITY_EVEN_MORE)std::cout<<Name()<<"::ClusterIso starting subtracted calculation"<<'\n';
 			//get EMCal towers
 			RawTowerContainer *towersEM3old = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER_SUB1");
+			if(towersEM3old==nullptr){
+			  m_do_subtracted=false;
+			  if(Verbosity()>=VERBOSITY_SOME) std::cout<<"In "<<Name()<<"::ClusterIso WARNING substracted towers do not exist subtracted isolation cannot be preformed \n";
+			}
 			if(Verbosity() >= VERBOSITY_MORE)std::cout <<Name()<< "::ClusterIso::process_event: " << towersEM3old->size() << " TOWER_CALIB_CEMC_RETOWER_SUB1 towers" << '\n';
 
 			//get InnerHCal towers
