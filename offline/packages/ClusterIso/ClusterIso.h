@@ -24,7 +24,7 @@ public:
    * Constructor for ClusterIso Class
    * the coneSize is taken in as an integer multiple of .1 ie if you want R=.2 pass 2
    */
-  ClusterIso(const std::string& ,float eTCut, int coneSize);
+  ClusterIso(const std::string& ,float eTCut, int coneSize, bool do_subtracted, bool do_unsubtracted);
 
   virtual int Init(PHCompositeNode*);
   virtual int process_event(PHCompositeNode*);

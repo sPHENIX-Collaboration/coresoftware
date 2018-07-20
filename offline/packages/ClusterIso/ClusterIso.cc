@@ -40,8 +40,8 @@ double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, d
 		r=tower_geom->get_eta(); 
 	}
 	else{
-		double r= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy));
-		double theta = atan2(r,tower_geom->get_center_z()-vz);
+		double radius= sqrt((tower_geom->get_center_x()-vx)*(tower_geom->get_center_x()-vx)+(tower_geom->get_center_y()-vy)*(tower_geom->get_center_y()-vy));
+		double theta = atan2(radius,tower_geom->get_center_z()-vz);
 		r= -log(tan(theta/2.));
 	}
 	return r;
@@ -51,17 +51,17 @@ double ClusterIso::getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, d
  * Contructor takes the argument of the class name, the minimum eT of the clusters which defaults to 0,
  * and the isolation cone size which defaults to 0.3.
  */
-ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3, bool do_subtracted=1, bool do_unsubstracted=1) : SubsysReco(kname), m_do_subtracted(do_subtracted),m_do_unsubstracted(do_unsubtracted){
+ClusterIso::ClusterIso(const std::string &kname, float eTCut = 0.0, int coneSize = 3, bool do_subtracted=1, bool do_unsubtracted=1) : SubsysReco(kname), m_do_subtracted(do_subtracted),m_do_unsubtracted(do_unsubtracted){
 	if(Verbosity() >= VERBOSITY_SOME) std::cout<<Name()<<"::ClusterIso constructed"<<'\n';
 	if(coneSize==0&&Verbosity() >= VERBOSITY_QUIET) std::cout<<"WARNING in "<<Name()<<"ClusterIso:: cone size is zero"<<'\n';
 	m_vx=m_vy=m_vz=0;
 	setConeSize(coneSize);
 	seteTCut(eTCut);
 	if(Verbosity() >= VERBOSITY_EVEN_MORE){
-		std::cout<<NAME()<<"::ClusterIso::m_coneSize is:"<<m_coneSize<<'\n';
-		std::cout<<NAME()<<"::ClusterIso::m_eTCut is:"<<m_eTCut<<'\n';
+		std::cout<<Name()<<"::ClusterIso::m_coneSize is:"<<m_coneSize<<'\n';
+		std::cout<<Name()<<"::ClusterIso::m_eTCut is:"<<m_eTCut<<'\n';
 	}
-	if(!do_substracted&&!do_unsubtracted&&Verbosity() >= VERBOSITY_QUIET) std::cout<<"WARNING in "<<Name()<<"ClusterIso:: all processes turned off doing nothing"<<'\n';
+	if(!do_subtracted&&!do_unsubtracted&&Verbosity() >= VERBOSITY_QUIET) std::cout<<"WARNING in "<<Name()<<"ClusterIso:: all processes turned off doing nothing"<<'\n';
 }
 
 int ClusterIso::Init(PHCompositeNode *topNode)
@@ -215,7 +215,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					}
 
 					isoEt-=et; //Subtract cluster eT from isoET
-					if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for "<<cluster->identify()<<"="<<isoEt<<'\n';
+					if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for ";cluster->identify();std::cout<<"="<<isoEt<<'\n';
 					cluster->set_et_iso(isoEt, (int) 10*m_coneSize,1,1);
 				}
 			}
@@ -274,7 +274,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					double cluster_phi = E_vec_cluster.phi();
 					double et = cluster_energy / cosh( cluster_eta );
 					double isoEt=0;
-					if(Verbosity() >= VERBOSITY_MAX)std::cout<<Name()<<"::ClusterIso processing"<<cluster->identify()<<'\n';
+					if(Verbosity() >= VERBOSITY_MAX)std::cout<<Name()<<"::ClusterIso processing";cluster->identify();std::cout<<'\n';
 					if (et < m_eTCut){
 						continue;
 						if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t does not pass eT cut"<<'\n';
@@ -323,7 +323,7 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					}
 					if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t after outerHCal isoEt:"<<isoEt<<'\n';
 					isoEt-=et; //Subtract cluster eT from isoET
-					if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for "<<cluster->identify()<<"="<<isoEt<<'\n';
+					if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for ";cluster->identify();std::cout<<"="<<isoEt<<'\n';
 					cluster->set_et_iso(isoEt, (int) 10*m_coneSize,0,1);
 				}
 			}
