@@ -219,7 +219,10 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					}
 
 					isoEt-=et; //Subtract cluster eT from isoET
-					if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for ";cluster->identify();std::cout<<"="<<isoEt<<'\n';
+					if(Verbosity() >= VERBOSITY_EVEN_MORE){
+						std::cout<<Name()<<"::ClusterIso iso_et for ";
+						cluster->identify();std::cout<<"="<<isoEt<<'\n';
+					}
 					cluster->set_et_iso(isoEt, (int) 10*m_coneSize,1,1);
 				}
 			}
@@ -327,7 +330,10 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					}
 					if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t after outerHCal isoEt:"<<isoEt<<'\n';
 					isoEt-=et; //Subtract cluster eT from isoET
-					if(Verbosity() >= VERBOSITY_EVEN_MORE) std::cout<<Name()<<"::ClusterIso iso_et for ";cluster->identify();std::cout<<"="<<isoEt<<'\n';
+					if(Verbosity() >= VERBOSITY_EVEN_MORE){
+						std::cout<<Name()<<"::ClusterIso iso_et for ";
+						cluster->identify();std::cout<<"="<<isoEt<<'\n';
+					}
 					cluster->set_et_iso(isoEt, (int) 10*m_coneSize,0,1);
 				}
 			}
