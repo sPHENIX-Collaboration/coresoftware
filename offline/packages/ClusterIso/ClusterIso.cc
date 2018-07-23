@@ -281,7 +281,10 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					double cluster_phi = E_vec_cluster.phi();
 					double et = cluster_energy / cosh( cluster_eta );
 					double isoEt=0;
-					if(Verbosity() >= VERBOSITY_MAX)std::cout<<Name()<<"::ClusterIso processing";cluster->identify();std::cout<<'\n';
+					if(Verbosity() >= VERBOSITY_MAX){
+						std::cout<<Name()<<"::ClusterIso processing";
+						cluster->identify();std::cout<<'\n';
+					}
 					if (et < m_eTCut){
 						continue;
 						if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t does not pass eT cut"<<'\n';
