@@ -159,7 +159,9 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 					m_vx = vertex->get_x();
 					m_vy = vertex->get_y();
 					m_vz = vertex->get_z();
-					if(Verbosity() >= VERBOSITY_MORE)std::cout<<Name()<<"::ClusterIso Event Vertex Calculated at x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
+					if(Verbosity() >= VERBOSITY_SOME){
+					  std::cout<<Name()<<"::ClusterIso Event Vertex Calculated at x:"<<m_vx<<" y:"<<m_vy<<" z:"<<m_vz<<'\n';
+					}
 				}
 
 				for (rtiter = begin_end.first; rtiter !=  begin_end.second; ++rtiter) {
