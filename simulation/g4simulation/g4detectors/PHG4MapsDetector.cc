@@ -70,7 +70,7 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parame
 
   ostringstream name;
   name.str("");
-  name << "ITSUSensor" << layer;
+  name << "MVTXSensor" << layer;
   layer_string = name.str().c_str();
 
   if (Verbosity() > 0) 
@@ -83,18 +83,43 @@ PHG4MapsDetector::~PHG4MapsDetector()
 //_______________________________________________________________
 //_______________________________________________________________
 int
+PHG4MapsDetector::IsSensor(G4VPhysicalVolume * volume) const
+{
+  // Is this volume one of the sensors?                                                                                                                                                                     
+  // Checks if pointer matches one of our stored sensors for this layer                                                                                                                                     
+  if ( sensor_vol.find(volume) != sensor_vol.end() )
+  {
+    if ( Verbosity() > 0 )
+    {
+      cout << " -- PHG4MapsTelescopeDetector::IsSensor --" << endl;
+      cout << " volume Name : " << volume->GetName() << endl;
+      cout << " -----------------------------------------" << endl;
+    }
+    return 1;
+  }
+
+  return 0;
+}
+
+int
 PHG4MapsDetector::IsInMaps(G4VPhysicalVolume * volume) const
 {
-  // Is this volume one of the sensors?
-
-  if (volume->GetName().find("ITSUSensor") != string::npos)
+  // Does this stave belong to this layer?                                                                                                                                                                  
+  // Since the Assembly volume read from GDML does not give unique pointers                                                                                                                                 
+  // to sensors, we need to check the stave, which is unique                                                                                                                                                
+  if ( stave_vol.find(volume) != stave_vol.end() )
+  {
+    if ( Verbosity() > 0 )
     {
-      // Check to see if this strip is in the layer belonging to this instance of MapsDetector
-      // layer_string contains "layer_n", where n = the layer number for this instance
-      if (volume->GetName().find(layer_string.c_str()) != string::npos)
-      return 1;
+      cout << " -- PHG4MapsTelescopeDetector::IsInMaps --" << endl;
+      cout << " layer: " << layer << endl;
+      cout << " volume Name : " << volume->GetName() << endl;
+      cout << " stave Name  : " << stave_vol.find(volume)->first->GetName() << endl;
+      cout << " -----------------------------------------" << endl;
     }
-  
+    return 1;
+  }
+
   return 0;
 }
 
@@ -143,7 +168,8 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   
   // figure out which assembly we want
   char assemblyname[500];
-  sprintf(assemblyname, "ITSUStave%i",layer);
+  //sprintf(assemblyname, "ITSUStave%i",layer);
+  sprintf(assemblyname, "MVTXStave");
 
   if (Verbosity() > 0)
     cout << "Geting the stave assembly named " << assemblyname << endl;
@@ -250,6 +276,9 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
       G4Transform3D Tr(Ra,Ta);
       
       av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
+
+      FillPVArray(av_ITSUStave);
+
     } 
   
   if(Verbosity() > 0)
@@ -389,4 +418,75 @@ PHG4MapsDetector::AddGeometryNode()
       if (Verbosity())
         geo->identify();
     }
+}
+
+void
+PHG4MapsDetector::FillPVArray( G4AssemblyVolume* av )
+{
+  if ( Verbosity() > 0 )
+    cout << "-- FillPVArray --" << endl;
+
+  std::vector<G4VPhysicalVolume*>::iterator it = av->GetVolumesIterator();
+
+  int nDaughters = av->TotalImprintedVolumes();
+  for (int i = 0; i < nDaughters; ++i, ++it)
+  {
+    G4VPhysicalVolume* pv = (*it);
+
+    G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
+
+    if ( Verbosity() > 0)
+    {
+      cout << "FillPVArray - AV[" << i << "] = " << (*it)->GetName() << endl;
+      cout << "              LV[" << i << "] = " << worldLogical->GetName() << endl;
+    }
+    // we only care about the staves, which contain the sensors, not the structures                                                                                                                         
+    if ( pv->GetName().find("MVTXHalfStave_pv") != string::npos)
+    {
+      stave_vol.insert(pair<G4VPhysicalVolume*, int>(pv, stave_count));
+      stave_count++;
+
+      FindSensor(worldLogical);
+    }
+  }
+
+  if ( Verbosity() > 0 )
+  {
+    cout << "stave count : " << stave_count << endl;
+    cout << "stave size  : " << stave_vol.size() << endl;
+    cout << "sensor count: " << sensor_count << endl;
+    cout << "sensor size : " << sensor_vol.size() << endl;
+    cout << "-----------------" << endl;
+  }
+}
+
+
+void 
+PHG4MapsDetector::FindSensor( G4LogicalVolume* lv )
+{
+  int nDaughters = lv->GetNoDaughters();
+  for (int i = 0; i < nDaughters; ++i)
+  {
+    G4VPhysicalVolume* pv = lv->GetDaughter(i);
+    if ( Verbosity() > 0 )
+      cout << "                 PV[" << i << "]: " << pv->GetName() << endl;
+
+    // cout <<"SetDisplayProperty - PV["<<i<<"] = "<<pv->GetName()<<endl;                                                                                                                                   
+    if (pv->GetName().find("MVTXSensor") != string::npos)
+    {
+      // sensor_vol[pv] = sensor_count;                                                                                                                                                                     
+      sensor_vol.insert(pair<G4VPhysicalVolume*, int>(pv, sensor_count));
+
+      sensor_count++;
+    }
+
+
+    G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
+
+    if ( Verbosity() > 0 )
+      cout << "                 LV[" << i << "]: " << worldLogical->GetName() << endl;
+
+    FindSensor(worldLogical);
+  }
+
 }
