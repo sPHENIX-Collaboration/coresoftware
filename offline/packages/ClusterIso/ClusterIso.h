@@ -22,33 +22,37 @@ class ClusterIso: public SubsysReco
 public:
   /**
    * Constructor for ClusterIso Class
+   * the coneSize is taken in as an integer multiple of .1 ie if you want R=.2 pass 2
    */
-  ClusterIso(const std::string& ,float eTCut, float coneSize);
+  ClusterIso(const std::string& ,float eTCut, int coneSize, bool do_subtracted, bool do_unsubtracted);
 
   virtual int Init(PHCompositeNode*);
   virtual int process_event(PHCompositeNode*);
   virtual int End(PHCompositeNode*);
 
   void seteTCut(float x);
-  void setConeSize(float x);
+  void setConeSize(int x);
   const float geteTCut();
-  const float getConeSize();
+  //! returns coneSize*10 as an int
+  const int getConeSize();
   const CLHEP::Hep3Vector getVertex();
 
 private:
   double getTowerEta(RawTowerGeom* tower_geom, double vx, double vy, double vz); 
-  float m_eTCut; ///< cluster must be over this energy set in constructor
-  float m_coneSize; ///< delta R around cluster that is considered
-  float m_vx; ///< new vertex x value  
-  float m_vy; ///< new vertex y value 
-  float m_vz; ///< new vertex z value
+  float m_eTCut; ///< The minimum required transverse energy in a cluster for ClusterIso to be run
+  float m_coneSize; ///< Size of the cone used to isolate a given cluster
+  float m_vx; ///< Correct vertex x coordinate 
+  float m_vy; ///< Correct vertex y coordinate
+  float m_vz; ///< Correct vertex z coordinate
+  bool m_do_subtracted;
+  bool m_do_unsubtracted;
 };
 
 
 
 /** \Brief Function to find delta R between 2 objects
  *
- * Takes eta and phi of each object and returns the difference 
+ * Takes the eta and phi of each object and returns the difference 
  * of the etas and phis added in quadrature. Used to find towers
  * inside a cone of delta R around a cluster.
  */
