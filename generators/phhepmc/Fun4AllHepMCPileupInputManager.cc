@@ -54,7 +54,6 @@ Fun4AllHepMCPileupInputManager::Fun4AllHepMCPileupInputManager(
   ,  // recalculated
   _first_run(true)
 {
-
   //! repeatedly read the input file
   Repeat(1);
 
@@ -94,7 +93,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       cout << " _ave_coll_per_crossing = " << _ave_coll_per_crossing;
       cout << " _min_crossing = " << _min_crossing;
       cout << " _max_crossing = " << _max_crossing;
-      cout << ". Start first event."<<endl;
+      cout << ". Start first event." << endl;
     }
   }
 
@@ -168,18 +167,18 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
           {
             cout << "hepmc evt no: " << evt->event_number() << endl;
           }
-        }
-        events_total++;
-        events_thisfile++;
-        // check if the local SubsysReco discards this event
-        if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
-        {
-          ResetEvent();
-          //	goto readagain;
-        }
-        else
-        {
-          break;  // got the evt, move on
+          events_total++;
+          events_thisfile++;
+          // check if the local SubsysReco discards this event
+          if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
+          {
+            ResetEvent();
+            //	goto readagain;
+          }
+          else
+          {
+            break;  // got the evt, move on
+          }
         }
       }  // loop until retrieve a valid event
 
@@ -198,6 +197,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         genevent = geneventmap->insert_background_event();
       }
       assert(genevent);
+      assert(evt);
       genevent->addEvent(evt);
       hepmc_helper.move_vertex(genevent);
       // place to the crossing center in time
