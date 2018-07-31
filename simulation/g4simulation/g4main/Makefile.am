@@ -93,6 +93,7 @@ libg4testbench_la_SOURCES = \
     PHG4_Dict.cc \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
+    PHG4ScoringManager.cc \
     PHG4RegionInformation.cc \
     PHG4TrackUserInfoV1.cc \
     PHG4TruthEventAction.cc \

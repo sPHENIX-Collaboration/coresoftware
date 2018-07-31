@@ -45,7 +45,7 @@ class PHG4ScoringManager : public SubsysReco
   int End(PHCompositeNode *);
 
   //! Output result to a ROOT file with this name
-  void setOutputFileName(const std::string &outputfilename){m_outputFileName = outputfilename};
+  void setOutputFileName(const std::string &outputfilename) { m_outputFileName = outputfilename; };
 
   //! \brief Run this Geant4 command after initialization of G4ScoringManager in the InitRun() stage
   //! You can call this command multiple times to stage multiple commands to run
@@ -63,10 +63,9 @@ class PHG4ScoringManager : public SubsysReco
 
       \endcode
    */
-  void PHG4ScoringManager::G4Command(const std::string &cmd);
+  void G4Command(const std::string &cmd);
 
  private:
-
   std::vector<std::string> m_commands;
 
   std::string m_outputFileName;

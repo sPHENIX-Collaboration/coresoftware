@@ -52,6 +52,7 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
 
   //2. Init scoring manager
   G4ScoringManager *scoringManager = G4ScoringManager::GetScoringManager();
+  assert(scoringManager);
 
   //3. run scoring commands
   G4UImanager *UImanager = G4UImanager::GetUIpointer();
