@@ -72,6 +72,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Version.hh>
 #include <Geant4/globals.hh>
+#include <Geant4/G4ScoringManager.hh>
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -188,6 +189,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   }
 
   runManager_ = new G4RunManager();
+  /*G4ScoringManager* scoringManager = */G4ScoringManager::GetScoringManager();
 
   DefineMaterials();
   // create physics processes
