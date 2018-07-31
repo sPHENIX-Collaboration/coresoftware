@@ -202,6 +202,7 @@ PHG4_Dict.cc: \
   PHG4ParticleGeneratorVectorMeson.h \
   PHG4ParticleGeneratorD0.h \
   PHG4Reco.h \
+  PHG4ScoringManager.h \
   PHG4Subsystem.h \
   PHG4TruthSubsystem.h \
   PHG4Utils.h \
