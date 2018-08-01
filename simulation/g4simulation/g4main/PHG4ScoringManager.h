@@ -17,6 +17,7 @@
 #include <vector>
 
 class Fun4AllHistoManager;
+class TH1;
 
 /*!
  * \brief PHG4ScoringManager is the connection between Fun4All to G4ScoringManager
@@ -70,6 +71,7 @@ class PHG4ScoringManager : public SubsysReco
  private:
 
   Fun4AllHistoManager *getHistoManager();
+  void makeScoringHistograms();
 
   std::vector<std::string> m_commands;
 
