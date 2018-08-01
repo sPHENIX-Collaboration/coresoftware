@@ -47,22 +47,6 @@ PHG4ScoringManager::~PHG4ScoringManager()
 //_________________________________________________________________
 int PHG4ScoringManager::Init(PHCompositeNode *topNode)
 {
-  if (Verbosity() >= VERBOSITY_SOME)
-    cout << "PHG4ScoringManager::get_HistoManager - Making PHTFileServer " << m_outputFileName
-         << endl;
-  PHTFileServer::get().open(m_outputFileName, "RECREATE");
-
-  Fun4AllHistoManager *hm = getHistoManager();
-  assert(hm);
-  TH1D *h = new TH1D("hNormalization",  //
-                     "Normalization;Items;Summed quantity", 10, .5, 10.5);
-  int i = 1;
-  h->GetXaxis()->SetBinLabel(i++, "Event count");
-  //  h->GetXaxis()->SetBinLabel(i++, "Collision count");
-  //  h->GetXaxis()->SetBinLabel(i++, "G4Hit count");
-  h->GetXaxis()->LabelsOption("v");
-  hm->registerHisto(h);
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -92,6 +76,23 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
     }
     UImanager->ApplyCommand(cmd.c_str());
   }
+
+  //4 init IOs
+  if (Verbosity() >= VERBOSITY_SOME)
+    cout << "PHG4ScoringManager::InitRun - Making PHTFileServer " << m_outputFileName
+         << endl;
+  PHTFileServer::get().open(m_outputFileName, "RECREATE");
+
+  Fun4AllHistoManager *hm = getHistoManager();
+  assert(hm);
+  TH1D *h = new TH1D("hNormalization",  //
+                     "Normalization;Items;Summed quantity", 10, .5, 10.5);
+  int i = 1;
+  h->GetXaxis()->SetBinLabel(i++, "Event count");
+  //  h->GetXaxis()->SetBinLabel(i++, "Collision count");
+  //  h->GetXaxis()->SetBinLabel(i++, "G4Hit count");
+  h->GetXaxis()->LabelsOption("v");
+  hm->registerHisto(h);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -223,7 +224,7 @@ void PHG4ScoringManager::makeScoringHistograms()
 
             if (value != score.end())
             {
-              h->SetBinContent(x, y, z, *(value->second) / unitValue);
+              h->SetBinContent(x+1, y+1, z+1, *(value->second) / unitValue);
             }
 
           }  //           for (int z = 0; z < fNMeshSegments[2]; z++)
