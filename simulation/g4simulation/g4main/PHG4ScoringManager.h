@@ -16,12 +16,14 @@
 #include <string>
 #include <vector>
 
+class Fun4AllHistoManager;
+
 /*!
  * \brief PHG4ScoringManager is the connection between Fun4All to G4ScoringManager
  *  Track primitive score like flux or energy deposition integrated over events and save to histograms
  *  More on G4ScoringManager see
- *  http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/ForApplicationDeveloper/BackupVersions/V9.6/html/ch04s08.html
- *  And talkhttp://geant4.slac.stanford.edu/JLAB2012/Scoring1.pdf
+ *  Manual http://geant4-userdoc.web.cern.ch/geant4-userdoc/UsersGuides/ForApplicationDeveloper/BackupVersions/V9.6/html/ch04s08.html
+ *  And talk http://geant4.slac.stanford.edu/JLAB2012/Scoring1.pdf
  */
 class PHG4ScoringManager : public SubsysReco
 {
@@ -66,6 +68,9 @@ class PHG4ScoringManager : public SubsysReco
   void G4Command(const std::string &cmd);
 
  private:
+
+  Fun4AllHistoManager *getHistoManager();
+
   std::vector<std::string> m_commands;
 
   std::string m_outputFileName;
