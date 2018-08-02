@@ -10,16 +10,23 @@
 
 #include "PHG4ScoringManager.h"
 
+#include "PHG4InEvent.h"
+#include "PHG4Particle.h"
+
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4ScoringManager.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4VPrimitiveScorer.hh>
 
+#include <TDatabasePDG.h>
 #include <TFile.h>
 #include <TH1.h>
 #include <TH1D.h>
@@ -27,6 +34,7 @@
 #include <TH2D.h>
 #include <TH3D.h>
 #include <TString.h>
+#include <TVector3.h>
 
 #include <boost/format.hpp>
 
@@ -89,10 +97,15 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
                      "Normalization;Items;Summed quantity", 10, .5, 10.5);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Event count");
-  //  h->GetXaxis()->SetBinLabel(i++, "Collision count");
+  h->GetXaxis()->SetBinLabel(i++, "Collision count");
   //  h->GetXaxis()->SetBinLabel(i++, "G4Hit count");
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
+
+  hm->registerHisto(
+      new TH1D("hNChEta",  //
+               "Charged particle #eta distribution;#eta;Count",
+               1000, -5, 5));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -115,6 +128,57 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
   assert(h_norm);
 
   h_norm->Fill("Event count", 1);
+
+  PHHepMCGenEventMap *geneventmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  if (!geneventmap)
+  {
+    static bool once = true;
+    if (once)
+    {
+      once = false;
+      cout << "TPCDataStreamEmulator::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
+    }
+  }
+  else
+  {
+    h_norm->Fill("Collision count", geneventmap->size());
+  }
+
+  TH1D *hNChEta = dynamic_cast<TH1D *>(hm->getHisto("hNChEta"));
+  assert(hNChEta);
+
+  PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
+  if (!ineve)
+  {
+    cout << "TPCDataStreamEmulator::process_event - Error - "
+         << "unable to find DST node "
+         << "PHG4INEVENT" << endl;
+  }
+  else
+  {
+    const auto primary_range =
+        ineve->GetParticles();
+    for (auto particle_iter =
+             primary_range.first;
+         particle_iter != primary_range.second;
+         ++particle_iter)
+    {
+      const PHG4Particle *p = particle_iter->second;
+      assert(p);
+      TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(
+          p->get_pid());
+      assert(pdg_p);
+      if (fabs(pdg_p->Charge()) > 0)
+      {
+        TVector3 pvec(p->get_px(), p->get_py(), p->get_pz());
+        if (pvec.Perp2() > 0)
+        {
+          assert(hNChEta);
+          hNChEta->Fill(pvec.PseudoRapidity());
+        }
+      }
+    }  //          if (_load_all_particle) else
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -224,7 +288,7 @@ void PHG4ScoringManager::makeScoringHistograms()
 
             if (value != score.end())
             {
-              h->SetBinContent(x+1, y+1, z+1, *(value->second) / unitValue);
+              h->SetBinContent(x + 1, y + 1, z + 1, *(value->second) / unitValue);
             }
 
           }  //           for (int z = 0; z < fNMeshSegments[2]; z++)
