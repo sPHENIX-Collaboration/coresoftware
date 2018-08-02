@@ -375,7 +375,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       {
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
-      steppingAction_->AddAction(g4sub->GetSteppingAction());
+//      steppingAction_->AddAction(g4sub->GetSteppingAction());
     }
   }
   runManager_->SetUserAction(steppingAction_);
