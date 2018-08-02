@@ -132,6 +132,69 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
+  // We have only two types of ladders, one with vertical strips (0) and one with horizontal strips (1)
+  // There are 4 sensors in each ladder
+  //     In ladder type 0 the sensor is special and inner and outer sensors are the same. 
+  //     In ladder type 1 there are two different sensor types, inner and outer 
+
+  // We define default parameters for laddertype 0 or 1
+  int nstrips_phi_sensor[2] = {1, 128};  
+  int nstrips_z_sensor_0[2] = {128*5, 8};  // inner sensor  
+  int nstrips_z_sensor_1[2] = {128*5, 5};  // outer sensor
+  double strip_y[2] = {1.6, 0.0070};
+  double strip_z_0[2] = {0.01406, 1.6};
+  double strip_z_1[2] = {0.01406, 2.0};
+  double halfladder_z[2] = {24.0, 24.0};
+  double hdi_y[2] = {2.55, 3.8};
+  double stave_straight_outer_y[2] = {0.672, 0.522};
+  double stave_straight_inner_y[2] = {0.0, 0.344};
+  double stave_straight_cooler_y[2] = {0.47, 0.47};
+
+
+  // We do not want to hard code the ladder types for the layers
+  // We define default ladder types for 4 layers, but these can be changed at the macro level
+  int laddertype[4] = {0, 1, 1, 1};
+  int nladder[4] = {34, 30, 36, 42};
+  double ladder_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
+  double ladder_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
+  for(int i=0;i<4;i++)
+    {
+      set_default_int_param(i, "laddertype", laddertype[i]);
+      set_default_int_param(i, "nladders", nladder[i]);
+      set_default_double_param(i, "ladder_radius_inner", ladder_radius_inner[i]);
+      set_default_double_param(i, "ladder_radius_outer", ladder_radius_outer[i]);
+    }
+
+
+  // Set the parameters for the two laddertypes. All values in cm!
+  for (int i = 0; i < 2; i++)
+  {
+    set_default_int_param(i, "nstrips_z_sensor_0", nstrips_z_sensor_0[i]);
+    set_default_int_param(i, "nstrips_z_sensor_1", nstrips_z_sensor_1[i]);
+    set_default_int_param(i, "nstrips_phi_sensor", nstrips_phi_sensor[i]);
+
+    set_default_int_param(i, "stave_straight_inner_y", stave_straight_inner_y[i]);
+    set_default_int_param(i, "stave_straight_outer_y", stave_straight_outer_y[i]);
+    set_default_int_param(i, "stave_straight_cooler_y", stave_straight_cooler_y[i]);
+
+    set_default_double_param(i, "strip_y", strip_y[i]);
+    set_default_double_param(i, "strip_z_0", strip_z_0[i]);
+    set_default_double_param(i, "strip_z_1", strip_z_1[i]);
+    set_default_double_param(i, "strip_x", 0.032);  // 320 microns deep
+    set_default_double_param(i, "sensor_edge_phi", 0.13);
+    set_default_double_param(i, "sensor_edge_z", 0.10);
+    set_default_double_param(i, "hdi_x", 0.0438);
+    set_default_double_param(i, "hdi_y", hdi_y[i]);
+    set_default_double_param(i, "hdi_edge_z", 0.01);
+    set_default_double_param(i, "fphx_x", 0.032);
+    set_default_double_param(i, "fphx_y", 0.27);
+    set_default_double_param(i, "fphx_z", 0.9);
+    set_default_double_param(i, "gap_sensor_fphx", 0.1);
+    set_default_double_param(i, "pgs_x", 0.02);  // 0.2 mm
+    set_default_double_param(i, "offsetphi", 0.);
+  }
+
+  /*
   int nladder[4] = {20, 26, 32, 38};
   int nstrips_z_sensor_0[4] = {5, 8, 8, 8};
   int nstrips_z_sensor_1[4] = {5, 5, 5, 5};
@@ -171,57 +234,6 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(i, "strip_z_0", strip_z_0[i]);
     set_default_double_param(i, "strip_z_1", strip_z_1[i]);
   }
-
-  /*
-  set_default_int_param(0, "nladder", 22);
-  set_default_int_param(1, "nladder", 26);
-  set_default_int_param(2, "nladder", 32);
-  set_default_int_param(3, "nladder", 38);
-
-  set_default_int_param(0, "nstrips_z_sensor_0", 5);
-  set_default_int_param(1, "nstrips_z_sensor_0", 8);
-  set_default_int_param(2, "nstrips_z_sensor_0", 8);
-  set_default_int_param(3, "nstrips_z_sensor_0", 8);
-
-  set_default_int_param(0, "nstrips_z_sensor_1", 5);
-  set_default_int_param(1, "nstrips_z_sensor_1", 5);
-  set_default_int_param(2, "nstrips_z_sensor_1", 5);
-  set_default_int_param(3, "nstrips_z_sensor_1", 5);
-
-  set_default_double_param(0, "halfladder_z", 22.);
-  set_default_double_param(1, "halfladder_z", 26.8);
-  set_default_double_param(2, "halfladder_z", 26.8);
-  set_default_double_param(3, "halfladder_z", 26.8);
-
-  set_default_double_param(0, "hdi_y", 3.8);
-  set_default_double_param(1, "hdi_y", 4.3);
-  set_default_double_param(2, "hdi_y", 4.3);
-  set_default_double_param(3, "hdi_y", 4.3);
-
-  set_default_double_param(0, "offsetrot", 14.0);
-  set_default_double_param(1, "offsetrot", 14.0);
-  set_default_double_param(2, "offsetrot", 12.0);
-  set_default_double_param(3, "offsetrot", 11.5);
-
-  set_default_double_param(0, "radius", 6.);
-  set_default_double_param(1, "radius", 8.);
-  set_default_double_param(2, "radius", 10.);
-  set_default_double_param(3, "radius", 12.);
-
-  set_default_double_param(0, "strip_y", 0.0078);
-  set_default_double_param(1, "strip_y", 0.0086);
-  set_default_double_param(2, "strip_y", 0.0086);
-  set_default_double_param(3, "strip_y", 0.0086);
-
-  set_default_double_param(0, "strip_z_0", 1.8);
-  set_default_double_param(1, "strip_z_0", 1.6);
-  set_default_double_param(2, "strip_z_0", 1.6);
-  set_default_double_param(3, "strip_z_0", 1.6);
-
-  set_default_double_param(0, "strip_z_1", 1.8);
-  set_default_double_param(1, "strip_z_1", 2.0);
-  set_default_double_param(2, "strip_z_1", 2.0);
-  set_default_double_param(3, "strip_z_1", 2.0);
   */
 
   std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> begin_end = GetDetIds();
