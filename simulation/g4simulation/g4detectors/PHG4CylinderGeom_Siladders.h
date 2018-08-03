@@ -23,6 +23,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
       const double ladder_z0_,
       const double ladder_z1_,
       const double eff_radius_,
+      const double eff_radius_alternate_,
       const double strip_x_offset_,
       const double offsetphi_,
       const double offsetrot_) :
@@ -38,6 +39,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
         ladder_z0(ladder_z0_),
         ladder_z1(ladder_z1_),
         eff_radius(eff_radius_),
+        eff_radius_alternate(eff_radius_alternate_),
         strip_x_offset(strip_x_offset_),
         offsetphi(offsetphi_),
         offsetrot(offsetrot_)
@@ -71,6 +73,11 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
     double get_radius() const
       {
         return eff_radius;
+      }
+
+    double get_radius_alternate() const
+      {
+        return eff_radius_alternate;
       }
 
     bool load_geometry();
@@ -116,6 +123,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
     double ladder_z0;
     double ladder_z1;
     double eff_radius;
+    double eff_radius_alternate;
     double strip_x_offset;
     double offsetphi;
     double offsetrot;

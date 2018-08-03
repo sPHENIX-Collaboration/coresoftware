@@ -23,6 +23,7 @@ PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
   ladder_z0(NAN),
   ladder_z1(NAN),
   eff_radius(NAN),
+  eff_radius_alternate(NAN),
   strip_x_offset(NAN),
   offsetphi(NAN),
   offsetrot(NAN),

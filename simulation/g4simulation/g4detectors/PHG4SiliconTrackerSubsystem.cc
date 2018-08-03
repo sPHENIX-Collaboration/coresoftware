@@ -169,9 +169,12 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   // Set the parameters for the two laddertypes. All values in cm!
   for (int i = 0; i < 2; i++)
   {
+
+
     set_default_int_param(i, "nstrips_z_sensor_0", nstrips_z_sensor_0[i]);
     set_default_int_param(i, "nstrips_z_sensor_1", nstrips_z_sensor_1[i]);
     set_default_int_param(i, "nstrips_phi_sensor", nstrips_phi_sensor[i]);
+    set_default_int_param(i, "nstrips_phi_cell", nstrips_phi_sensor[i]);
 
     set_default_int_param(i, "stave_straight_inner_y", stave_straight_inner_y[i]);
     set_default_int_param(i, "stave_straight_outer_y", stave_straight_outer_y[i]);
@@ -192,6 +195,8 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(i, "gap_sensor_fphx", 0.1);
     set_default_double_param(i, "pgs_x", 0.02);  // 0.2 mm
     set_default_double_param(i, "offsetphi", 0.);
+    set_default_double_param(i, "halfladder_z", halfladder_z[i]);
+
   }
 
   /*
