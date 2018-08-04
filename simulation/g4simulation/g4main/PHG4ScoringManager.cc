@@ -276,13 +276,18 @@ void PHG4ScoringManager::makeScoringHistograms()
       //      fDivisionAxisNames[0] = "Z";
       //      fDivisionAxisNames[1] = "PHI";
       //      fDivisionAxisNames[2] = "R";
-
-      meshBoundMin[0] = (-meshSize[0] + meshTranslate[0]) / cm;
-      meshBoundMax[0] = (meshSize[0] + meshTranslate[0]) / cm;
+//      G4VSolid * tubsSolid = new G4Tubs(tubsName+"0", // name
+//                0.,           // R min
+//                fSize[0],     // R max
+//                fSize[1],     // Dz
+//                0.,           // starting phi
+//                                        twopi*rad);   // segment phi
+      meshBoundMin[0] = (-meshSize[1] + meshTranslate[0]) / cm;
+      meshBoundMax[0] = (meshSize[1] + meshTranslate[0]) / cm;
       meshBoundMin[1] = 0;
       meshBoundMax[1] = 2 * M_PI;
       meshBoundMin[2] = 0;
-      meshBoundMax[2] = meshSize[2] / cm;
+      meshBoundMax[2] = meshSize[0] / cm;
     }
     else
     {
