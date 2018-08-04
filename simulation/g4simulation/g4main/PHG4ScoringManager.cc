@@ -23,6 +23,7 @@
 
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4ScoringManager.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4VPrimitiveScorer.hh>
 
@@ -107,6 +108,11 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
                "Charged particle #eta distribution;#eta;Count",
                1000, -5, 5));
 
+  hm->registerHisto(
+      new TH1D("hVertexZ",  //
+               "Vertex z distribution;z [cm];Count",
+               1000, -200, 200));
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -142,6 +148,17 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
   else
   {
     h_norm->Fill("Collision count", geneventmap->size());
+
+    TH1D *hVertexZ = dynamic_cast<TH1D *>(hm->getHisto("hVertexZ"));
+    assert(hVertexZ);
+
+    for (const auto genevntpair : geneventmap->get_map())
+    {
+      const PHHepMCGenEvent *genevnt = genevntpair.second;
+      assert(genevnt);
+
+      hVertexZ->Fill(genevnt->get_collision_vertex().z());
+    }
   }
 
   TH1D *hNChEta = dynamic_cast<TH1D *>(hm->getHisto("hNChEta"));
@@ -225,7 +242,8 @@ void PHG4ScoringManager::makeScoringHistograms()
     const string meshName(g4mesh->GetWorldName().data());
     if (Verbosity())
     {
-      cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName << endl;
+      cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName << ": " << endl;
+      g4mesh->List();
     }
 
     // descriptors
@@ -234,6 +252,44 @@ void PHG4ScoringManager::makeScoringHistograms()
 
     G4String divisionAxisNames[3];
     g4mesh->GetDivisionAxisNames(divisionAxisNames);
+
+    // process shape
+    const G4ThreeVector meshSize = g4mesh->GetSize();
+    const G4ThreeVector meshTranslate = g4mesh->GetTranslation();
+    const MeshShape meshShape = g4mesh->GetShape();
+    //PHENIX units
+    vector<double> meshBoundMin = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
+    //PHENIX units
+    vector<double> meshBoundMax = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
+
+    if (meshShape == boxMesh)
+    {
+      meshBoundMin[0] = (-meshSize[0] + meshTranslate[0]) / cm;
+      meshBoundMax[0] = (meshSize[0] + meshTranslate[0]) / cm;
+      meshBoundMin[1] = (-meshSize[1] + meshTranslate[1]) / cm;
+      meshBoundMax[1] = (meshSize[1] + meshTranslate[1]) / cm;
+      meshBoundMin[2] = (-meshSize[2] + meshTranslate[2]) / cm;
+      meshBoundMax[2] = (meshSize[2] + meshTranslate[2]) / cm;
+    }
+    else if (meshShape == cylinderMesh)
+    {
+      //      fDivisionAxisNames[0] = "Z";
+      //      fDivisionAxisNames[1] = "PHI";
+      //      fDivisionAxisNames[2] = "R";
+
+      meshBoundMin[0] = (-meshSize[0] + meshTranslate[0]) / cm;
+      meshBoundMax[0] = (meshSize[0] + meshTranslate[0]) / cm;
+      meshBoundMin[1] = 0;
+      meshBoundMax[1] = 2 * M_PI;
+      meshBoundMin[2] = 0;
+      meshBoundMax[2] = meshSize[2] / cm;
+    }
+    else
+    {
+      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << meshShape << ". Skipping this mesh!" << endl;
+      g4mesh->List();
+      continue;
+    }
 
     MeshScoreMap fSMap = g4mesh->GetScoreMap();
     MeshScoreMap::const_iterator msMapItr = fSMap.begin();
@@ -264,16 +320,16 @@ void PHG4ScoringManager::makeScoringHistograms()
       TH3 *h = new TH3D(hname.c_str(),   //
                         htitle.c_str(),  //
                         nMeshSegments[0],
-                        -.5, nMeshSegments[0] - .5,
+                        meshBoundMin[0], meshBoundMax[0],
                         nMeshSegments[1],
-                        -.5, nMeshSegments[1] - .5,
+                        meshBoundMin[1], meshBoundMax[1],
                         nMeshSegments[2],
-                        -.5, nMeshSegments[2] - .5);
+                        meshBoundMin[2], meshBoundMax[2]);
       hm->registerHisto(h);
 
-      h->GetXaxis()->SetTitle(divisionAxisNames[0].data() + TString(" index"));
-      h->GetYaxis()->SetTitle(divisionAxisNames[1].data() + TString(" index"));
-      h->GetZaxis()->SetTitle(divisionAxisNames[2].data() + TString(" index"));
+      h->GetXaxis()->SetTitle(divisionAxisNames[0].data());
+      h->GetYaxis()->SetTitle(divisionAxisNames[1].data());
+      h->GetZaxis()->SetTitle(divisionAxisNames[2].data());
 
       // write quantity
       for (int x = 0; x < nMeshSegments[0]; x++)
