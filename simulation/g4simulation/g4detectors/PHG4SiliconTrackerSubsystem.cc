@@ -137,18 +137,19 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   //     In ladder type 0 the sensor is special and inner and outer sensors are the same. 
   //     In ladder type 1 there are two different sensor types, inner and outer 
 
-  // We define default parameters for laddertype 0 or 1
-  int nstrips_phi_sensor[2] = {1, 128};  
+  // We define default parameters for laddertype 0 or 1, all dimensions in cm
+  int nstrips_phi_sensor[2] = {1, 256};  
   int nstrips_z_sensor_0[2] = {128*5, 8};  // inner sensor  
   int nstrips_z_sensor_1[2] = {128*5, 5};  // outer sensor
-  double strip_y[2] = {1.6, 0.0070};
+  double strip_y[2] = {1.6, 0.0078};
   double strip_z_0[2] = {0.01406, 1.6};
   double strip_z_1[2] = {0.01406, 2.0};
   double halfladder_z[2] = {24.0, 24.0};
   double hdi_y[2] = {2.55, 3.8};
   double stave_straight_outer_y[2] = {0.672, 0.522};
-  double stave_straight_inner_y[2] = {0.0, 0.344};
+  double stave_straight_inner_y[2] = {0.1, 0.344};  // the first value is a dummy, not used, to avoid issues with making a G4Logical;Volume with y = 0
   double stave_straight_cooler_y[2] = {0.47, 0.47};
+  double sensor_offset_y[2] = {0.295, 0.0};
 
 
   // We do not want to hard code the ladder types for the layers
@@ -157,46 +158,50 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   int nladder[4] = {34, 30, 36, 42};
   double ladder_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
   double ladder_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
+
+
+
   for(int i=0;i<4;i++)
     {
+      cout << "radius values in mm are: cm = " << cm << " mm " << mm << " ladder_radius_inner " << ladder_radius_inner[i]*cm << " ladder_radius_outer " << ladder_radius_outer[i]*cm  << endl; 
       set_default_int_param(i, "laddertype", laddertype[i]);
-      set_default_int_param(i, "nladders", nladder[i]);
-      set_default_double_param(i, "ladder_radius_inner", ladder_radius_inner[i]);
-      set_default_double_param(i, "ladder_radius_outer", ladder_radius_outer[i]);
+      set_default_int_param(i, "nladder", nladder[i]);
+      set_default_double_param(i, "ladder_radius_inner", ladder_radius_inner[i]*cm);
+      set_default_double_param(i, "ladder_radius_outer", ladder_radius_outer[i]*cm);
+
+      set_default_double_param(i, "offsetphi", 0.);
+      set_default_double_param(i, "offsetrot", 0.);
     }
 
 
   // Set the parameters for the two laddertypes. All values in cm!
   for (int i = 0; i < 2; i++)
   {
-
-
     set_default_int_param(i, "nstrips_z_sensor_0", nstrips_z_sensor_0[i]);
     set_default_int_param(i, "nstrips_z_sensor_1", nstrips_z_sensor_1[i]);
     set_default_int_param(i, "nstrips_phi_sensor", nstrips_phi_sensor[i]);
     set_default_int_param(i, "nstrips_phi_cell", nstrips_phi_sensor[i]);
 
-    set_default_int_param(i, "stave_straight_inner_y", stave_straight_inner_y[i]);
-    set_default_int_param(i, "stave_straight_outer_y", stave_straight_outer_y[i]);
-    set_default_int_param(i, "stave_straight_cooler_y", stave_straight_cooler_y[i]);
+    set_default_double_param(i, "stave_straight_inner_y", stave_straight_inner_y[i]*cm);
+    set_default_double_param(i, "stave_straight_outer_y", stave_straight_outer_y[i]*cm);
+    set_default_double_param(i, "stave_straight_cooler_y", stave_straight_cooler_y[i]*cm);
 
-    set_default_double_param(i, "strip_y", strip_y[i]);
-    set_default_double_param(i, "strip_z_0", strip_z_0[i]);
-    set_default_double_param(i, "strip_z_1", strip_z_1[i]);
-    set_default_double_param(i, "strip_x", 0.032);  // 320 microns deep
-    set_default_double_param(i, "sensor_edge_phi", 0.13);
-    set_default_double_param(i, "sensor_edge_z", 0.10);
-    set_default_double_param(i, "hdi_x", 0.0438);
-    set_default_double_param(i, "hdi_y", hdi_y[i]);
-    set_default_double_param(i, "hdi_edge_z", 0.01);
-    set_default_double_param(i, "fphx_x", 0.032);
-    set_default_double_param(i, "fphx_y", 0.27);
-    set_default_double_param(i, "fphx_z", 0.9);
-    set_default_double_param(i, "gap_sensor_fphx", 0.1);
-    set_default_double_param(i, "pgs_x", 0.02);  // 0.2 mm
-    set_default_double_param(i, "offsetphi", 0.);
-    set_default_double_param(i, "halfladder_z", halfladder_z[i]);
-
+    set_default_double_param(i, "strip_y", strip_y[i]*cm);
+    set_default_double_param(i, "strip_z_0", strip_z_0[i]*cm);
+    set_default_double_param(i, "strip_z_1", strip_z_1[i]*cm);
+    set_default_double_param(i, "strip_x", 0.032*cm);  // 320 microns deep
+    set_default_double_param(i, "sensor_edge_phi", 0.13*cm);
+    set_default_double_param(i, "sensor_edge_z", 0.10*cm);
+    set_default_double_param(i, "sensor_offset_y", sensor_offset_y[i]*cm);
+    set_default_double_param(i, "hdi_x", 0.0438*cm);
+    set_default_double_param(i, "hdi_y", hdi_y[i]*cm);
+    set_default_double_param(i, "hdi_edge_z", 0.0*cm);
+    set_default_double_param(i, "fphx_x", 0.1*cm);  // guess for now - fix!!!
+    set_default_double_param(i, "fphx_y", 0.27*cm);
+    set_default_double_param(i, "fphx_z", 0.91*cm);
+    set_default_double_param(i, "gap_sensor_fphx", 0.1*cm);
+    set_default_double_param(i, "pgs_x", 0.02*cm);  // 0.2 mm
+    set_default_double_param(i, "halfladder_z", halfladder_z[i]*cm);
   }
 
   /*
