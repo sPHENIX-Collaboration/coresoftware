@@ -270,6 +270,10 @@ void PHG4ScoringManager::makeScoringHistograms()
       meshBoundMax[1] = (meshSize[1] + meshTranslate[1]) / cm;
       meshBoundMin[2] = (-meshSize[2] + meshTranslate[2]) / cm;
       meshBoundMax[2] = (meshSize[2] + meshTranslate[2]) / cm;
+
+      divisionAxisNames[0] += " [cm]";
+      divisionAxisNames[1] += " [cm]";
+      divisionAxisNames[2] += " [cm]";
     }
     else if (meshShape == cylinderMesh)
     {
@@ -288,6 +292,10 @@ void PHG4ScoringManager::makeScoringHistograms()
       meshBoundMax[1] = 2 * M_PI;
       meshBoundMin[2] = 0;
       meshBoundMax[2] = meshSize[0] / cm;
+
+      divisionAxisNames[0] += " [cm]";
+      divisionAxisNames[1] += " [rad]";
+      divisionAxisNames[2] += " [cm]";
     }
     else
     {
