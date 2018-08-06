@@ -672,7 +672,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	    }
 
 	  G4VisAttributes *ladder_vis = new G4VisAttributes();
-	  ladder_vis->SetVisibility(false);
+	  ladder_vis->SetVisibility(true);
 	  ladder_vis->SetForceSolid(false);
 	  ladder_vis->SetColour(G4Colour::Cyan());
 	  ladder_volume->SetVisAttributes(ladder_vis);
@@ -681,7 +681,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  // Now add the components of the ladder to the ladder volume
 	  // The sensor is closest to the beam pipe, the stave cooler is furthest away
 	  // Note that the cooler has been assembled in the stave volume with the top at larger x, so the sensor will be at smaller x
-	  // That will be the configuration when the ladder is at phi = 180 degrees, the positive x direction
+	  // That will be the configuration when the ladder is at phi = 0 degrees, the positive x direction
 	  // So we start at the most positive x value and add the stave first
 
 	  // Carbon stave        
@@ -714,7 +714,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, sensor_offset_y, 0.0), siactive_volume, boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 
 	  // FPHX        
-	  const double TVfphx_x = TVSi_x - TVSi_x / 2. - fphx_x / 2.;
+	  const double TVfphx_x = TVhdi_x - hdi_x / 2. - fphx_x / 2.;
 	  const double TVfphx_y = sifull_y / 2. + gap_sensor_fphx - sensor_offset_y + fphx_y / 2.;
 	  cout << "Place fphxcontainer in ladder with TVfph_x " << TVfphx_x << " TVfphx_y " << TVfphx_y << " z  0"<< endl;
 	  // laddertype 0 has only one FPHX, and the sensor is offset in y
@@ -731,16 +731,16 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  //  at all ladder phi values, and at both positive and negative Z values.
 
 	  // The ladders have no tilt in the new design, they are alternately offset in radius to get overlap in phi        
-	  // radius values are for the center of the sensor, we need the offset from center of ladder to center of sensor
-	  double sensor_offset = 0.0 - TVSi_x; // ladder center is at 0.0 by construction
+	  // given radius values are for the center of the sensor, we need the offset from center of ladder to center of sensor so we can place the ladder
+	  double sensor_offset_ladder = 0.0 - TVSi_x; // ladder center is at 0.0 by construction
 
 	  const double dphi = 2 * TMath::Pi() / nladders_layer;
 
 	  // there is no single radius for a layer
-	  eff_radius[ilayer] = layer_radius_inner + sensor_offset;
-	  eff_radius_alternate[ilayer] = layer_radius_outer + sensor_offset;
+	  eff_radius[ilayer] = layer_radius_inner + sensor_offset_ladder;
+	  eff_radius_alternate[ilayer] = layer_radius_outer + sensor_offset_ladder;
 	  posz[ilayer][itype] = (itype == 0) ? hdi_z / 2. : hdi_z_[ilayer][0] + hdi_z / 2.; // location of center of ladder in Z
-	  strip_x_offset[ilayer] = sensor_offset;
+	  strip_x_offset[ilayer] = sensor_offset_ladder;
 
 	  for (G4int icopy = 0; icopy < nladders_layer; icopy++)
 	    {
@@ -763,7 +763,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	
 	      if (itype != 0)
 		{  
-		  // The HDI extension tab has to be added for the outer sensor
+		  // We have added the outer sensor above, now we add the HDI extension tab to the end of the outer sensor HDI
 		  const G4double posz_ext = (hdi_z_[ilayer][0] + hdi_z) + hdiext_z / 2.;
 		  new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") 
 														       % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
@@ -773,7 +773,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 		}
 
 	      cout << "Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << posz[ilayer][itype] 
-		   << " fRotate " << fRotate << " posx " << posx << " posy " << posy << " sensor_offset " << sensor_offset 
+		   << " fRotate " << fRotate << " posx " << posx << " posy " << posy << " sensor_offset_ladder " << sensor_offset_ladder 
 		   << endl;
 
 	    } // end loop over ladder copy placement in phi and positive and negative Z
