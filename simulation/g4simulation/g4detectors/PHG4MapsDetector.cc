@@ -245,44 +245,46 @@ PHG4MapsDetector::ConstructMaps(G4LogicalVolume* trackerenvelope)
   double phi_offset =  M_PI /2.0;
 
   for (int iphi=0; iphi<N_staves; iphi++)
-    {
-      // Place the ladder segment envelopes at the correct z and phi 
-      // This is the azimuthal angle at which we place the stave
-      G4double phi_rotation = (double) iphi * phistep;
+  {
+    // Place the ladder segment envelopes at the correct z and phi 
+    // This is the azimuthal angle at which we place the stave
+    G4double phi_rotation = (double) iphi * phistep;
+    
+    G4RotationMatrix Ra;
+    G4ThreeVector Ta;
+    
+    if(Verbosity() >0)
+      cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
+    
+    // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
+    
+    Ra.rotateZ(phi_rotation + phi_offset + phitilt); // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
+    // Then translated as follows
+    
+    Ta.setX(layer_nominal_radius * cos(phi_rotation)); 
+    Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
+    Ta.setZ( z_location );
+    
+    if(Verbosity() > 0)
+      cout << " iphi " << iphi << " phi_rotation " << phi_rotation 
+	   << " x " << layer_nominal_radius * cos(phi_rotation)
+	   << " y " <<  layer_nominal_radius * sin(phi_rotation)
+	   << " z " << z_location 
+	   << endl;      	  
+    
+    
+    G4Transform3D Tr(Ra,Ta);
+    
+    av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
+    
 
-      G4RotationMatrix Ra;
-      G4ThreeVector Ta;
-      
-      if(Verbosity() >0)
-	cout << "phi_offset = " << phi_offset << " iphi " << iphi << " phi_rotation = " << phi_rotation << " phitilt " << phitilt << endl;
-
-      // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
-      
-      Ra.rotateZ(phi_rotation + phi_offset + phitilt); // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
-      // Then translated as follows
-      
-      Ta.setX(layer_nominal_radius * cos(phi_rotation)); 
-      Ta.setY(layer_nominal_radius * sin(phi_rotation)) ; 
-      Ta.setZ( z_location );
-      
-      if(Verbosity() > 0)
-	cout << " iphi " << iphi << " phi_rotation " << phi_rotation 
-	     << " x " << layer_nominal_radius * cos(phi_rotation)
-	     << " y " <<  layer_nominal_radius * sin(phi_rotation)
-	     << " z " << z_location 
-	     << endl;      	  
-      
-      
-      G4Transform3D Tr(Ra,Ta);
-      
-      av_ITSUStave->MakeImprint(trackerenvelope, Tr, 0, OverlapCheck());
-
-      FillPVArray(av_ITSUStave);
-
-    } 
+    
+  } 
   
   if(Verbosity() > 0)
     cout << "This layer has a total of " << N_staves << " staves" << endl;
+
+  FillPVArray(av_ITSUStave);
 
   SetDisplayProperty(av_ITSUStave);
   
@@ -472,10 +474,13 @@ PHG4MapsDetector::FindSensor( G4LogicalVolume* lv )
       cout << "                 PV[" << i << "]: " << pv->GetName() << endl;
 
     // cout <<"SetDisplayProperty - PV["<<i<<"] = "<<pv->GetName()<<endl;                                                                                                                                   
-    if (pv->GetName().find("MVTXSensor") != string::npos)
+    if (pv->GetName().find("MVTXSensor_") != string::npos)
     {
       // sensor_vol[pv] = sensor_count;                                                                                                                                                                     
       sensor_vol.insert(pair<G4VPhysicalVolume*, int>(pv, sensor_count));
+
+      if ( Verbosity() > 0 )
+	cout << "                      Adding Sensor Vol <" << pv->GetName() << ", " << sensor_count << "> (" << sensor_vol.size() << ")" << endl;
 
       sensor_count++;
     }

@@ -117,7 +117,8 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
 
-  // chip number is from  "ITSUChip[layer number]_[chip number]
+  //OLD ITS.gdml: chip number is from  "ITSUChip[layer number]_[chip number]
+  //NEW: chip number is from  "MVTXChip_[chip number]
   G4VPhysicalVolume* v1 = touch->GetVolume(1);
   boost::tokenizer<boost::char_separator<char> > tok1(v1->GetName(), sep);
   tokeniter = tok1.begin();

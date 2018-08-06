@@ -33,8 +33,8 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
   //    For mid and outer layer (stave types 1 and 2):   0.7500 x 0.0009 x 1.5000
   if( stave_type == 0 )
     {
-      Zsensor = 3.01;   // cm
-      Xsensor = 1.505;   // cm  
+      Zsensor = 2.994; //3.01;   // cm
+      Xsensor = 1.376; //1.505;   // cm  
     }
   else
     {
