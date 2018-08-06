@@ -306,7 +306,7 @@ void PHG4ScoringManager::makeScoringHistograms()
 
     MeshScoreMap fSMap = g4mesh->GetScoreMap();
     MeshScoreMap::const_iterator msMapItr = fSMap.begin();
-    for (; msMapItr != fSMap.end(); msMapItr++)
+    for (; msMapItr != fSMap.end(); ++msMapItr)
     {
       G4String psname = msMapItr->first;
       std::map<G4int, G4double *> &score = *(msMapItr->second->GetMap());
