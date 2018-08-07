@@ -114,6 +114,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       double layer_radius_inner = params1->get_double_param("ladder_radius_inner");
       double layer_radius_outer = params1->get_double_param("ladder_radius_outer");
       const int nladders_layer = params1->get_int_param("nladder");
+      cout << " Start on INTT layer " << ilayer << " laddertype " << laddertype << " layer radii " << layer_radius_inner << "   " << layer_radius_outer << endl; 
 
       // Look up all remaining parameters by the laddertype for this layer
       const PHParameters *params = paramscontainer->GetParameters(laddertype);
@@ -124,7 +125,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const G4double offsetrot = params->get_double_param("offsetrot");
       const G4double sensor_offset_y = params->get_double_param("sensor_offset_y");
       const G4double hdi_y = params->get_double_param("hdi_y");
-      double hdi_x = params->get_double_param("hdi_x");
+      double hdi_kapton_x = params->get_double_param("hdi_kapton_x");
+      double hdi_copper_x = params->get_double_param("hdi_copper_x");
       double fphx_x = params->get_double_param("fphx_x");
       double fphx_y = params->get_double_param("fphx_y");
       double fphx_z = params->get_double_param("fphx_z");
@@ -225,35 +227,53 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  siinactive_vis->SetColour(G4Colour::Red());
 	  siinactive_volume->SetVisAttributes(siinactive_vis);
       
-	  // Make the HDI volume
-	  // This makes a HDI volume that matches this sensor in Z length
+	  // Make the HDI Kapton and copper volumes
+
+	  // This makes HDI volumes that matche this sensor in Z length
 	  const G4double hdi_z = sifull_z + params->get_double_param("hdi_edge_z");  
 	  hdi_z_[ilayer][itype] = hdi_z;
-	  cout << "make hdi volume with hdi_z " << hdi_z << endl;	  
-	  G4VSolid *hdi_box = new G4Box(boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), hdi_x / 2., hdi_y / 2., hdi_z/2.0);
-	  G4LogicalVolume *hdi_volume = new G4LogicalVolume(hdi_box, G4Material::GetMaterial("FPC"), 
-							    boost::str(boost::format("hdi_box_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
+	  cout << "make hdi Polymide volume with hid_z " << hdi_z << " hdi_kapton_x " << hdi_kapton_x << endl;	  
+	  G4VSolid *hdi_kapton_box = new G4Box(boost::str(boost::format("hdi_kapton_box_%d_%d") % sphxlayer % itype).c_str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z/2.0);
+	  G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, G4Material::GetMaterial("FPC"), 
+							    boost::str(boost::format("hdi_kapton_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
+	  cout << "make hdi copper volume with hdi_copper_x " << hdi_copper_x << endl;	  
+	  G4VSolid *hdi_copper_box = new G4Box(boost::str(boost::format("hdi_copper_box_%d_%d") % sphxlayer % itype).c_str(), hdi_copper_x / 2., hdi_y / 2., hdi_z/2.0);
+	  G4LogicalVolume *hdi_copper_volume = new G4LogicalVolume(hdi_copper_box, G4Material::GetMaterial("G4_Cu"), 
+							    boost::str(boost::format("hdi_copper_%d_%d") % sphxlayer % itype).c_str(), 0, 0, 0);
 	  if ((IsAbsorberActive.find(inttlayer))->second > 0)
 	    {
-	      absorberlogvols.insert(hdi_volume);
+	      absorberlogvols.insert(hdi_kapton_volume);
+	      absorberlogvols.insert(hdi_copper_volume);
 	    }
 
 	  // This is the part of the HDI that extends beyond the sensor
 	  const G4double hdiext_z = (itype == 0) ? 0.000001 : halfladder_z  - hdi_z_[ilayer][0] - hdi_z;  // need to assign nonzero value for itype=0
-	  cout << "make hdiext volume" << endl;	  
-	  G4VSolid *hdiext_box = new G4Box(boost::str(boost::format("hdiext_box_%d_%s") % sphxlayer % itype).c_str(), hdi_x / 2., hdi_y / 2., hdiext_z / 2.0);
-	  G4LogicalVolume *hdiext_volume = new G4LogicalVolume(hdiext_box, G4Material::GetMaterial("FPC"), 
-							       boost::str(boost::format("hdiext_box_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
+	  cout << "make hdiext volume with hdiext_z " << hdiext_z << endl;	  
+	  G4VSolid *hdiext_kapton_box = new G4Box(boost::str(boost::format("hdiext_kapton_box_%d_%s") % sphxlayer % itype).c_str(), 
+						  hdi_kapton_x / 2., hdi_y / 2., hdiext_z / 2.0);
+	  G4LogicalVolume *hdiext_kapton_volume = new G4LogicalVolume(hdiext_kapton_box, G4Material::GetMaterial("FPC"), 
+							       boost::str(boost::format("hdiext_kapton_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
+	  G4VSolid *hdiext_copper_box = new G4Box(boost::str(boost::format("hdiext_copper_box_%d_%s") % sphxlayer % itype).c_str(), 
+						  hdi_copper_x / 2., hdi_y / 2., hdiext_z / 2.0);
+	  G4LogicalVolume *hdiext_copper_volume = new G4LogicalVolume(hdiext_copper_box, G4Material::GetMaterial("G4_Cu"), 
+							       boost::str(boost::format("hdiext_copper_%d_%s") % sphxlayer % itype).c_str(), 0, 0, 0);
 	  if ((IsAbsorberActive.find(inttlayer))->second > 0)
 	    {
-	      absorberlogvols.insert(hdiext_volume);
+	      absorberlogvols.insert(hdiext_kapton_volume);
+	      absorberlogvols.insert(hdiext_copper_volume);
 	    }
-	  G4VisAttributes *hdi_vis = new G4VisAttributes();
-	  hdi_vis->SetVisibility(true);
-	  hdi_vis->SetForceSolid(true);
-	  hdi_vis->SetColour(G4Colour::Yellow());
-	  hdi_volume->SetVisAttributes(hdi_vis);
-	  hdiext_volume->SetVisAttributes(hdi_vis);
+	  G4VisAttributes *hdi_kapton_vis = new G4VisAttributes();
+	  hdi_kapton_vis->SetVisibility(true);
+	  hdi_kapton_vis->SetForceSolid(true);
+	  hdi_kapton_vis->SetColour(G4Colour::Yellow());
+	  hdi_kapton_volume->SetVisAttributes(hdi_kapton_vis);
+	  hdiext_kapton_volume->SetVisAttributes(hdi_kapton_vis);
+	  G4VisAttributes *hdi_copper_vis = new G4VisAttributes();
+	  hdi_copper_vis->SetVisibility(true);
+	  hdi_copper_vis->SetForceSolid(true);
+	  hdi_copper_vis->SetColour(G4Colour::White());
+	  hdi_copper_volume->SetVisAttributes(hdi_copper_vis);
+	  hdiext_copper_volume->SetVisAttributes(hdi_copper_vis);
 
 	  // FPHX
 	  cout << "make fphx volume" << endl;	          
@@ -274,9 +294,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       
 	  //  FPHX Container
 	  // make a container for the FPHX chips needed for this sensor, and  then place them in the container
-	  //const double fphxcontainer_x = fphx_x / 2.;
-	  //const double fphxcontainer_y = fphx_y / 2.;
-	  //const double fphxcontainer_z = hdi_z / 2.0;
 	  cout << "make fphx container volume with x " << fphx_x  << " y " << fphx_y << " hdi_z " << hdi_z  << endl;	  
 	  G4VSolid *fphxcontainer_box = new G4Box(boost::str(boost::format("fphxcontainer_box_%d_%d") % sphxlayer % itype).c_str(), 
 						  fphx_x / 2., fphx_y / 2., hdi_z / 2.);
@@ -432,13 +449,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  stave_vis->SetVisibility(true);
 	  stave_vis->SetForceSolid(true);
 	  stave_vis->SetColour(G4Colour::White());
-	  /*	
-		for(int i=0;i<4;i++)
-		{
-		stave_curve_volume[i]->SetVisAttributes(stave_vis);
-		stave_curve_ext_volume[i]->SetVisAttributes(stave_vis);
-		}
-	  */
 	  stave_straight_cooler_volume->SetVisAttributes(stave_vis);
 	  stave_straight_cooler_ext_volume->SetVisAttributes(stave_vis);
 	  if(laddertype == 1) stave_straight_inner_volume->SetVisAttributes(stave_vis);
@@ -475,7 +485,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  G4VisAttributes *stave_box_vis = new G4VisAttributes();
 	  stave_box_vis->SetVisibility(false);
 	  stave_box_vis->SetForceSolid(false);
-	  stave_box_vis->SetColour(G4Colour::White());
 	  stave_volume->SetVisAttributes(stave_box_vis);
 	  staveext_volume->SetVisAttributes(stave_box_vis);
 	  
@@ -518,9 +527,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 		    }
 		}
 	      // The cooler curved sections are made using 2 curved sections in a recurve on each side of the cooler straight section 
-	      // The tube sections used here have the origin of their volumr at their center of rotation. Rcavge
-	      // Each curve section is moved to the center of the stave volume by a translation of +/- Rcavge
-	      // Then it is moved to the outside or the inside of the stave volume by a translation of +/-  cooler_gap_x / 2.
+	      // The tube sections used here have the origin of their volume at their center of rotation. Rcavge
+	      //      Each curve section is moved to the center of the stave volume by a translation of +/- Rcavge
+	      //      Then it is moved to the outside or the inside of the stave volume by a translation of +/-  cooler_gap_x / 2.
 	      // we start at lowest y and work up in y
 
 	      double x_off_cooler[4] = 
@@ -650,11 +659,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
 	  // Make the ladder volume first
 	  // We are still in the loop over inner or outer sensors. This is the ladder volume corresponding to this sensor. The FPHX is taller than the sensor in x.
-	  const double ladder_x = stave_x  + pgs_x  + hdi_x  + fphx_x;
+	  const double ladder_x = stave_x  + pgs_x  + hdi_kapton_x  + hdi_copper_x + fphx_x;
 	  const double ladder_y = hdi_y;
 	  const double ladder_z = hdi_z;
 	  cout << " sphxlayer " << sphxlayer << " laddertype " << laddertype << " itype " << itype << " stave_x " << stave_x << " pgs_x " 
-	       << pgs_x << " hdi_x " << hdi_x << " fphx_x " << fphx_x << endl;
+	       << pgs_x << " hdi_kapton_x " << hdi_kapton_x << " hdi_copper_x " << hdi_copper_x << " fphx_x " << fphx_x << endl;
 	  cout << "Create ladder volume with ladder_x " << ladder_x  <<  " ladder_y " << ladder_y << " ladder_z " << ladder_z << endl;
 	  G4VSolid *ladder_box = new G4Box(boost::str(boost::format("ladder_box_%d_%d") % sphxlayer % itype).c_str(), ladder_x / 2., ladder_y / 2., ladder_z / 2.);
 	  G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("ladder_%d_%d_%d") % sphxlayer % inttlayer % itype).c_str(), 0, 0, 0);
@@ -672,7 +681,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	    }
 
 	  G4VisAttributes *ladder_vis = new G4VisAttributes();
-	  ladder_vis->SetVisibility(true);
+	  ladder_vis->SetVisibility(false);
 	  ladder_vis->SetForceSolid(false);
 	  ladder_vis->SetColour(G4Colour::Cyan());
 	  ladder_volume->SetVisAttributes(ladder_vis);
@@ -700,23 +709,29 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgsext_volume, boost::str(boost::format("pgsext_%d_%s") % sphxlayer % itype).c_str(), 
 			    ladderext_volume, false, 0, OverlapCheck());
 
-	  // HDI        
-	  const double TVhdi_x = TVpgs_x - pgs_x / 2. - hdi_x / 2.;
-	  cout << "Place hdi in ladder with TVhdi_x " << TVhdi_x << " y 0 " << " z  0"<< endl;
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdi_volume, boost::str(boost::format("hdi_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_x, 0.0, 0.0), hdiext_volume, boost::str(boost::format("hdiext_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
+	  // HDI Kapton        
+	  const double TVhdi_kapton_x = TVpgs_x - pgs_x / 2. - hdi_kapton_x / 2.;
+	  cout << "Place hdi Kapton in ladder with TVhdi_kapton_x " << TVhdi_kapton_x << " y 0 " << " z  0"<< endl;
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, 0.0, 0.0), hdi_kapton_volume, boost::str(boost::format("hdi_kapton_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, 0.0, 0.0), hdiext_kapton_volume, boost::str(boost::format("hdiext_kapton_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
+
+	  // HDI copper        
+	  const double TVhdi_copper_x = TVhdi_kapton_x - hdi_kapton_x / 2. - hdi_copper_x / 2.;
+	  cout << "Place hdi Kapton in ladder with TVhdi_copper_x " << TVhdi_copper_x << " y 0 " << " z  0"<< endl;
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, 0.0, 0.0), hdi_copper_volume, boost::str(boost::format("hdi_copper_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, 0.0, 0.0), hdiext_copper_volume, boost::str(boost::format("hdiext_copper_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
 	  // Si-sensor        
-	  const double TVSi_x = TVhdi_x - hdi_x / 2. - siactive_x / 2.;
+	  const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;
 	  cout << "Place Si sensor in ladder with TVSi_x " << TVSi_x << " y 0 " << " z  0"<< endl;
 	  // laddertype 0 has a sensor offset on the HDI
 	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, sensor_offset_y, 0.0), siinactive_volume, boost::str(boost::format("siinactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, sensor_offset_y, 0.0), siactive_volume, boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 
 	  // FPHX        
-	  const double TVfphx_x = TVhdi_x - hdi_x / 2. - fphx_x / 2.;
+	  const double TVfphx_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_x / 2.;
 	  const double TVfphx_y = sifull_y / 2. + gap_sensor_fphx - sensor_offset_y + fphx_y / 2.;
-	  cout << "Place fphxcontainer in ladder with TVfph_x " << TVfphx_x << " TVfphx_y " << TVfphx_y << " z  0"<< endl;
+	  cout << "Place fphxcontainer in ladder with TVfphx_x " << TVfphx_x << " TVfphx_y " << TVfphx_y << " z  0"<< endl;
 	  // laddertype 0 has only one FPHX, and the sensor is offset in y
 	  if(laddertype == 1)
 	    new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerp_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
