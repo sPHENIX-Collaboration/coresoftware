@@ -156,19 +156,16 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   // We define default ladder types for 4 layers, but these can be changed at the macro level
   int laddertype[4] = {0, 1, 1, 1};
   int nladder[4] = {34, 30, 36, 42};
-  double ladder_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
-  double ladder_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
+  double sensor_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
+  double sensor_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
 
   for(int i=0;i<nlayers;i++)
     {
-      cout << " default radius values in mm are:  " << " ladder_radius_inner " << ladder_radius_inner[i]*cm 
-	   << " ladder_radius_outer " << ladder_radius_outer[i]*cm  << endl; 
-
       // To reconfigure the layers, all you have to do is overide the defaults for these four arrays from the tracking macro
       set_default_int_param(i, "laddertype", laddertype[i]);
       set_default_int_param(i, "nladder", nladder[i]);  // ladders per layer
-      set_default_double_param(i, "ladder_radius_inner", ladder_radius_inner[i]*cm);
-      set_default_double_param(i, "ladder_radius_outer", ladder_radius_outer[i]*cm);
+      set_default_double_param(i, "sensor_radius_inner", sensor_radius_inner[i]*cm);
+      set_default_double_param(i, "sensor_radius_outer", sensor_radius_outer[i]*cm);
 
       // These should be kept at zero in the new design
       set_default_double_param(i, "offsetphi", 0.);

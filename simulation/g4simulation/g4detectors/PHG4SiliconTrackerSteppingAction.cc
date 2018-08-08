@@ -126,7 +126,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
   if (whichactive > 0)  // silicon acrive sensor
   {
-    if (Verbosity() > -1)
+    if (Verbosity() > 0)
     {
       cout << endl
            << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
@@ -177,8 +177,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
 
-    //if(Verbosity() > -1)
-    cout << " sphxlayer " << sphxlayer << " ladderz " << ladderz << " ladderphi " << ladderphi << " zposneg " << zposneg
+    if(Verbosity() > 0)
+      cout << " sphxlayer " << sphxlayer << " inttlayer " << inttlayer << " ladderz " << ladderz << " ladderphi " << ladderphi 
+	   << " zposneg " << zposneg
 	   << " copy no. " <<  volume->GetCopyNo() << " nstrips_z_sensor " <<  nstrips_z_sensor[laddertype[inttlayer]][ladderz] 
 	   << " strip_y_index " << strip_y_index << " strip_z_index " << strip_z_index << endl;
     
@@ -365,10 +366,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     hit->set_y(0, prePoint->GetPosition().y() / cm);
     hit->set_z(0, prePoint->GetPosition().z() / cm);
 
+    /*
     cout << "     hit position x,y,z = " << prePoint->GetPosition().x() / cm
     << "    " << prePoint->GetPosition().y() / cm
     << "     " << prePoint->GetPosition().z() / cm
     << endl;
+    */
 
     hit->set_px(0, prePoint->GetMomentum().x() / GeV);
     hit->set_py(0, prePoint->GetMomentum().y() / GeV);
