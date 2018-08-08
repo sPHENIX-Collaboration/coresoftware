@@ -111,10 +111,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // get the parameters for this layer
       const PHParameters *params1 = paramscontainer->GetParameters(inttlayer);
       const int laddertype = params1->get_int_param("laddertype");
-      double layer_radius_inner = params1->get_double_param("ladder_radius_inner");
-      double layer_radius_outer = params1->get_double_param("ladder_radius_outer");
+      layer_radius_inner[ilayer] = params1->get_double_param("ladder_radius_inner");
+      layer_radius_outer[ilayer] = params1->get_double_param("ladder_radius_outer");
       const int nladders_layer = params1->get_int_param("nladder");
-      cout << " Start on INTT layer " << ilayer << " laddertype " << laddertype << " layer radii " << layer_radius_inner << "   " << layer_radius_outer << endl; 
+      cout << " Start on INTT layer " << ilayer << " laddertype " << laddertype << " layer radii " << layer_radius_inner[ilayer] << "   " << layer_radius_outer[ilayer] << endl; 
 
       // Look up all remaining parameters by the laddertype for this layer
       const PHParameters *params = paramscontainer->GetParameters(laddertype);
@@ -122,7 +122,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const G4double strip_y = params->get_double_param("strip_y");
       const int nstrips_phi_sensor = params->get_int_param("nstrips_phi_sensor");
       const G4double offsetphi = params->get_double_param("offsetphi");
-      const G4double offsetrot = params->get_double_param("offsetrot");
+      G4double offsetrot = params->get_double_param("offsetrot");
       const G4double sensor_offset_y = params->get_double_param("sensor_offset_y");
       const G4double hdi_y = params->get_double_param("hdi_y");
       double hdi_kapton_x = params->get_double_param("hdi_kapton_x");
@@ -660,8 +660,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  // Make the ladder volume first
 	  // We are still in the loop over inner or outer sensors. This is the ladder volume corresponding to this sensor. The FPHX is taller than the sensor in x.
 	  const double ladder_x = stave_x  + pgs_x  + hdi_kapton_x  + hdi_copper_x + fphx_x;
-	  const double ladder_y = hdi_y;
+	  double ladder_y = hdi_y;
 	  const double ladder_z = hdi_z;
+
+	  // For laddertype 0 we need to make the ladder big enough in y so that the sensor can be placed at the center
+	  // Thus when we rotate the ladder into place, the sensor will be at the correct radius and perpendicular to the radial vector through its center
+	  if(laddertype == 0)  ladder_y = ladder_y + 2.0* sensor_offset_y;
+	    
 	  cout << " sphxlayer " << sphxlayer << " laddertype " << laddertype << " itype " << itype << " stave_x " << stave_x << " pgs_x " 
 	       << pgs_x << " hdi_kapton_x " << hdi_kapton_x << " hdi_copper_x " << hdi_copper_x << " fphx_x " << fphx_x << endl;
 	  cout << "Create ladder volume with ladder_x " << ladder_x  <<  " ladder_y " << ladder_y << " ladder_z " << ladder_z << endl;
@@ -694,45 +699,49 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  // So we start at the most positive x value and add the stave first
 
 	  // Carbon stave        
+	  double TVstave_y = 0.0;
+	  if(laddertype == 0) TVstave_y = - sensor_offset_y;
 	  const double TVstave_x = ladder_x / 2. - stave_x / 2.;
 	  cout << "Place Stave in ladder with TVstave_x " << TVstave_x << " y 0 " << " z  0"<< endl;
-	  new G4PVPlacement(0, G4ThreeVector(TVstave_x, 0.0, 0.0), stave_volume, boost::str(boost::format("stave_%d_%d") % sphxlayer % itype).c_str(), 
+	  new G4PVPlacement(0, G4ThreeVector(TVstave_x, TVstave_y, 0.0), stave_volume, boost::str(boost::format("stave_%d_%d") % sphxlayer % itype).c_str(), 
 			    ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVstave_x, 0.0, 0.0), staveext_volume, boost::str(boost::format("staveext_%d_%s") % sphxlayer % itype).c_str(), 
+	  new G4PVPlacement(0, G4ThreeVector(TVstave_x, TVstave_y, 0.0), staveext_volume, boost::str(boost::format("staveext_%d_%s") % sphxlayer % itype).c_str(), 
 			    ladderext_volume, false, 0, OverlapCheck());
 
 	  // PGS
 	  const double TVpgs_x = TVstave_x - stave_x / 2. - pgs_x / 2.;
 	  cout << "Place pgs in ladder with TVpgs_x " << TVpgs_x << " y 0 " << " z  0"<< endl;
-	  new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgs_volume, boost::str(boost::format("pgs_%d_%d") % sphxlayer % itype).c_str(), 
+	  new G4PVPlacement(0, G4ThreeVector(TVpgs_x, TVstave_y, 0.0), pgs_volume, boost::str(boost::format("pgs_%d_%d") % sphxlayer % itype).c_str(), 
 			    ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVpgs_x, 0.0, 0.0), pgsext_volume, boost::str(boost::format("pgsext_%d_%s") % sphxlayer % itype).c_str(), 
+	  new G4PVPlacement(0, G4ThreeVector(TVpgs_x, TVstave_y, 0.0), pgsext_volume, boost::str(boost::format("pgsext_%d_%s") % sphxlayer % itype).c_str(), 
 			    ladderext_volume, false, 0, OverlapCheck());
 
 	  // HDI Kapton        
 	  const double TVhdi_kapton_x = TVpgs_x - pgs_x / 2. - hdi_kapton_x / 2.;
 	  cout << "Place hdi Kapton in ladder with TVhdi_kapton_x " << TVhdi_kapton_x << " y 0 " << " z  0"<< endl;
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, 0.0, 0.0), hdi_kapton_volume, boost::str(boost::format("hdi_kapton_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, 0.0, 0.0), hdiext_kapton_volume, boost::str(boost::format("hdiext_kapton_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdi_kapton_volume, boost::str(boost::format("hdi_kapton_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdiext_kapton_volume, boost::str(boost::format("hdiext_kapton_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
 	  // HDI copper        
 	  const double TVhdi_copper_x = TVhdi_kapton_x - hdi_kapton_x / 2. - hdi_copper_x / 2.;
 	  cout << "Place hdi Kapton in ladder with TVhdi_copper_x " << TVhdi_copper_x << " y 0 " << " z  0"<< endl;
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, 0.0, 0.0), hdi_copper_volume, boost::str(boost::format("hdi_copper_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, 0.0, 0.0), hdiext_copper_volume, boost::str(boost::format("hdiext_copper_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdi_copper_volume, boost::str(boost::format("hdi_copper_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, boost::str(boost::format("hdiext_copper_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
 	  // Si-sensor        
 	  const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;
 	  cout << "Place Si sensor in ladder with TVSi_x " << TVSi_x << " y 0 " << " z  0"<< endl;
-	  // laddertype 0 has a sensor offset on the HDI
-	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, sensor_offset_y, 0.0), siinactive_volume, boost::str(boost::format("siinactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, sensor_offset_y, 0.0), siactive_volume, boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  // sensor is centered in y in the ladder volume for both types
+	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siinactive_volume, 
+			    boost::str(boost::format("siinactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siactive_volume, 
+			    boost::str(boost::format("siactive_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 
-	  // FPHX        
+	  // FPHX container
 	  const double TVfphx_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_x / 2.;
-	  const double TVfphx_y = sifull_y / 2. + gap_sensor_fphx - sensor_offset_y + fphx_y / 2.;
+	  const double TVfphx_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
 	  cout << "Place fphxcontainer in ladder with TVfphx_x " << TVfphx_x << " TVfphx_y " << TVfphx_y << " z  0"<< endl;
-	  // laddertype 0 has only one FPHX, and the sensor is offset in y
+	  // laddertype 0 has only one FPHX, laddertype 1 has two
 	  if(laddertype == 1)
 	    new G4PVPlacement(0, G4ThreeVector(TVfphx_x, +TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerp_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
 	  new G4PVPlacement(0, G4ThreeVector(TVfphx_x, -TVfphx_y, 0.0), fphxcontainer_volume, boost::str(boost::format("fphxcontainerm_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
@@ -745,17 +754,23 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  // We are still in the loops over layer and sensor type, we will place copies of the ladder section for this sensor
 	  //  at all ladder phi values, and at both positive and negative Z values.
 
-	  // The ladders have no tilt in the new design, they are alternately offset in radius to get overlap in phi        
-	  // given radius values are for the center of the sensor, we need the offset from center of ladder to center of sensor so we can place the ladder
-	  double sensor_offset_ladder = 0.0 - TVSi_x; // ladder center is at 0.0 by construction
+	  // given radius values are for the center of the sensor, we need the x offset from center of ladder to center of sensor so we can place the ladder
+	  double sensor_offset_x_ladder = 0.0 - TVSi_x; // ladder center is at x = 0.0 by construction
 
 	  const double dphi = 2 * TMath::Pi() / nladders_layer;
 
 	  // there is no single radius for a layer
-	  eff_radius[ilayer] = layer_radius_inner + sensor_offset_ladder;
-	  eff_radius_alternate[ilayer] = layer_radius_outer + sensor_offset_ladder;
+	  eff_radius[ilayer] = layer_radius_inner[ilayer] + sensor_offset_x_ladder;
+	  eff_radius_alternate[ilayer] = layer_radius_outer[ilayer] + sensor_offset_x_ladder;
 	  posz[ilayer][itype] = (itype == 0) ? hdi_z / 2. : hdi_z_[ilayer][0] + hdi_z / 2.; // location of center of ladder in Z
-	  strip_x_offset[ilayer] = sensor_offset_ladder;
+	  strip_x_offset[ilayer] = sensor_offset_x_ladder;
+
+	  // The sensors have no tilt in the new design
+	  //    The type 1 ladders have the sensor at the center of the ladder in phi, so that is easy
+	  //    The type 0 ladders are more complicated because the sensor center is perpendicular to the radial vector and the sensor is not at the ladder center
+	  //          The radius is to the sensor center, not the ladder center
+	  //          Calculate the radius to the center of the ladder, and added phi tilt, that will put the sensor center at eff_radius
+	  
 
 	  for (G4int icopy = 0; icopy < nladders_layer; icopy++)
 	    {
@@ -763,32 +778,40 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	      double radius = eff_radius[ilayer];
 	      if(icopy%2)
 		radius = eff_radius_alternate[ilayer];  // every odd numbered copy is placed at the larger radius
+
 	      const double posx = radius * cos(phi);
 	      const double posy = radius * sin(phi);
 	      const double fRotate = phi + offsetrot; // no initial rotation, since we assembled the ladder in phi = 0 orientation 
-
 	      G4RotationMatrix *ladderrotation = new G4RotationMatrix();
-	      ladderrotation->rotateZ(-fRotate);
+	      //ladderrotation->rotateZ(-fRotate);
+	      ladderrotation->rotateZ(fRotate);
 
 	      // place the copy at its ladder phi value, and at positive and negative Z
-	      new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz[ilayer][itype]), ladder_volume, boost::str(boost::format("ladder_%d_%d_%d_%d") 
-															   % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
-	      new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, +posz[ilayer][itype]), ladder_volume, boost::str(boost::format("ladder_%d_%d_%d_%d") 
-															   % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+	      new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -posz[ilayer][itype])), ladder_volume, 
+				boost::str(boost::format("ladder_%d_%d_%d_%d_1")  % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+	      new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +posz[ilayer][itype])), ladder_volume, 
+				boost::str(boost::format("ladder_%d_%d_%d_%d_2") % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+
 	
 	      if (itype != 0)
 		{  
 		  // We have added the outer sensor above, now we add the HDI extension tab to the end of the outer sensor HDI
 		  const G4double posz_ext = (hdi_z_[ilayer][0] + hdi_z) + hdiext_z / 2.;
-		  new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, -posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") 
-														       % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
-		  new G4PVPlacement(ladderrotation, G4ThreeVector(posx, posy, +posz_ext), ladderext_volume, boost::str(boost::format("ladderext_%d_%d_%d_%d") 
-														       % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+
+		  new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -posz_ext)), ladderext_volume, 
+				    boost::str(boost::format("ladderext_%d_%d_%d_%d_1") % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+		  new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +posz_ext)), ladderext_volume, 
+				    boost::str(boost::format("ladderext_%d_%d_%d_%d_2") % sphxlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+
+
 		  cout <<"            posz_ext " << posz_ext << endl;
 		}
 
+
+
+
 	      cout << "Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << posz[ilayer][itype] 
-		   << " fRotate " << fRotate << " posx " << posx << " posy " << posy << " sensor_offset_ladder " << sensor_offset_ladder 
+		   << " fRotate " << fRotate << " posx " << posx << " posy " << posy << " sensor_offset_x_ladder " << sensor_offset_x_ladder 
 		   << endl;
 
 	    } // end loop over ladder copy placement in phi and positive and negative Z
@@ -871,23 +894,23 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       cout << "Enter geometry maker for sphxlayer " << sphxlayer << " inttlayer " << inttlayer << endl;
       const PHParameters *params_layer = paramscontainer->GetParameters(inttlayer);
       const int laddertype = params_layer->get_int_param("laddertype");
-      // parameters are in cm, so no conversion needed here to get to cm (*cm/cm)
+      // parameters are in cm, so conversion needed here to get from mm to cm
       const PHParameters *params = paramscontainer->GetParameters(laddertype);
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
           sphxlayer,
-          params->get_double_param("strip_x"),
-          params->get_double_param("strip_y"),
-          params->get_double_param("strip_z_0"),
-          params->get_double_param("strip_z_1"),
+          params->get_double_param("strip_x") / cm,
+          params->get_double_param("strip_y") / cm,
+          params->get_double_param("strip_z_0") / cm,
+          params->get_double_param("strip_z_1") / cm,
           params->get_int_param("nstrips_z_sensor_0"),
           params->get_int_param("nstrips_z_sensor_1"),
-          params->get_int_param("nstrips_phi_sensor"),
+          params->get_int_param("nstrips_phi_sensor") ,
           params->get_int_param("nladder"),
-          posz[ilayer][0],
-          posz[ilayer][1],
-          eff_radius[ilayer],
-          eff_radius_alternate[ilayer],
-          strip_x_offset[ilayer],
+          posz[ilayer][0] / cm,
+          posz[ilayer][1] / cm,
+          layer_radius_inner[ilayer] / cm,
+          layer_radius_outer[ilayer] / cm,
+          strip_x_offset[ilayer] / cm,
           params_layer->get_double_param("offsetphi"),
           params_layer->get_double_param("offsetrot") );
       geo->AddLayerGeom(sphxlayer, mygeom);

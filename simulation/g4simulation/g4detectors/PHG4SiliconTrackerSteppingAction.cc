@@ -120,6 +120,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int inttlayer = 0;
   int ladderz = 0;
   int ladderphi = 0;
+  int zposneg = 0;
   int strip_z_index = 0;
   int strip_y_index = 0;
 
@@ -148,6 +149,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
       ladderz = boost::lexical_cast<int>(*(++tokeniter));  // inner sensor itype = 0, outer sensor itype = 1
       ladderphi = boost::lexical_cast<int>(*(++tokeniter));  // copy number in phi
+      zposneg =  boost::lexical_cast<int>(*(++tokeniter));  // 1 for negative z, 2 for positive z
     }
     else
     {
@@ -166,8 +168,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     {
       return false;
     }
-    // convert ladder type [0-3] to silicon sensor type [0-1]
-    //const int laddertype = (ladderz == 1 || ladderz == 2) ? 0 : 1;
 
     // Find the strip y and z index values from the copy number (integer division, quotient is strip_y, remainder is strip_z)
     div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor[laddertype[inttlayer]][ladderz]);
@@ -177,8 +177,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
 
-    if(Verbosity() > -1)
-      cout << " sphxlayer " << sphxlayer << " ladderz " << ladderz << " ladderphi " << ladderphi 
+    //if(Verbosity() > -1)
+    cout << " sphxlayer " << sphxlayer << " ladderz " << ladderz << " ladderphi " << ladderphi << " zposneg " << zposneg
 	   << " copy no. " <<  volume->GetCopyNo() << " nstrips_z_sensor " <<  nstrips_z_sensor[laddertype[inttlayer]][ladderz] 
 	   << " strip_y_index " << strip_y_index << " strip_z_index " << strip_z_index << endl;
     
@@ -351,6 +351,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     hit->set_layer((unsigned int) sphxlayer);
 
     // set the index values needed to locate the sensor strip
+    if(zposneg == 2) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     hit->set_ladder_z_index(ladderz);
     if (whichactive > 0)
     {
@@ -363,6 +364,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);
     hit->set_z(0, prePoint->GetPosition().z() / cm);
+
+    cout << "     hit position x,y,z = " << prePoint->GetPosition().x() / cm
+    << "    " << prePoint->GetPosition().y() / cm
+    << "     " << prePoint->GetPosition().z() / cm
+    << endl;
 
     hit->set_px(0, prePoint->GetMomentum().x() / GeV);
     hit->set_py(0, prePoint->GetMomentum().y() / GeV);

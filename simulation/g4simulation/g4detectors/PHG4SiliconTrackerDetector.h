@@ -69,6 +69,8 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   std::string detector_type;
   std::string superdetector;
 
+  G4double layer_radius_inner[4];
+  G4double layer_radius_outer[4];
   G4double eff_radius[4];
   G4double eff_radius_alternate[4];
   G4double posz[4][2];

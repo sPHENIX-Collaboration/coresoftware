@@ -149,7 +149,8 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   double stave_straight_outer_y[2] = {0.672, 0.522};
   double stave_straight_inner_y[2] = {0.1, 0.344};  // the first value is a dummy, not used, to avoid issues with making a G4Logical;Volume with y = 0
   double stave_straight_cooler_y[2] = {0.47, 0.47};
-  double sensor_offset_y[2] = {0.295, 0.0};
+  //double sensor_offset_y[2] = {0.295, 0.0};
+  double sensor_offset_y[2] = {0.304, 0.0};
 
   // We do not want to hard code the ladder types for the layers
   // We define default ladder types for 4 layers, but these can be changed at the macro level
