@@ -114,6 +114,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       sensor_radius_inner[ilayer] = params1->get_double_param("sensor_radius_inner");
       sensor_radius_outer[ilayer] = params1->get_double_param("sensor_radius_outer");
       const int nladders_layer = params1->get_int_param("nladder");
+      cout << "Constructing Silicon Tracker layer: " << endl;
+      cout << "   layer " << ilayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer 
+	   << " sensor_radius_inner " << sensor_radius_inner[ilayer] << " sensor_radius_outer " << sensor_radius_outer[ilayer] << endl;
 
       // Look up all remaining parameters by the laddertype for this layer
       const PHParameters *params = paramscontainer->GetParameters(laddertype);
@@ -768,7 +771,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	    } // end loop over ladder copy placement in phi and positive and negative Z
 	} // end loop over inner or outer sensor
     } // end loop over layers
-  
   return 0;
 }
 

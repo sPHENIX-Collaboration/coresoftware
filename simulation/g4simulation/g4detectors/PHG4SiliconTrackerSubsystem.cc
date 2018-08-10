@@ -32,12 +32,53 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
     AddDetId((*piter).second);
   }
 
+  // set the default sensor radii to the current design
+  double sensor_radius_inner_[4] = {6.876, 8.987, 10.835, 12.676};
+  double sensor_radius_outer_[4] = {7.462, 9.545, 11.361, 13.179};
+  for(int i=0;i<nlayers;i++)
+    {
+      sensor_radius_inner[i] = sensor_radius_inner_[i];
+      sensor_radius_outer[i] = sensor_radius_outer_[i];
+    }
+
   InitializeParameters();
   // put the layer into the name so we get unique names
   // for multiple layers
   Name(detectorname);
   SuperDetector(detectorname);
 }
+
+
+//_______________________________________________________________________
+PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &detectorname, const vpair &layerconfig)
+   : PHG4DetectorGroupSubsystem(detectorname)
+  , detector_(0)
+  , steppingAction_(nullptr)
+  , layerconfig_(layerconfig)
+  , detector_type(detectorname)
+{
+  // This constructor is an ugly way to get around a problem with the parameter class - it can be removed once that is fixed
+  nlayers = 0;
+  for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
+  {
+    if(verbosity > 1) cout << PHWHERE << " adding INTT layer " << (*piter).second << endl;
+    nlayers++;
+    AddDetId((*piter).second);
+  }
+
+  for(int i=0;i<nlayers;i++)
+    {
+      sensor_radius_inner[i] = sensor_radius_inner_[i];
+      sensor_radius_outer[i] = sensor_radius_outer_[i];
+    }
+
+  InitializeParameters();
+  // put the layer into the name so we get unique names
+  // for multiple layers
+  Name(detectorname);
+  SuperDetector(detectorname);
+}
+
 
 //_______________________________________________________________________
 int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
@@ -149,15 +190,13 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
   double stave_straight_outer_y[2] = {0.672, 0.522};
   double stave_straight_inner_y[2] = {0.1, 0.344};  // the first value is a dummy, not used, to avoid issues with making a G4Logical;Volume with y = 0
   double stave_straight_cooler_y[2] = {0.47, 0.47};
-  //double sensor_offset_y[2] = {0.295, 0.0};
   double sensor_offset_y[2] = {0.304, 0.0};
 
   // We do not want to hard code the ladder types for the layers
   // We define default ladder types for 4 layers, but these can be changed at the macro level
   int laddertype[4] = {0, 1, 1, 1};
   int nladder[4] = {34, 30, 36, 42};
-  double sensor_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
-  double sensor_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
+  // sensor radius_inner and sensor_radius_outer are set in the constructor for now, to avoid a problem with the parameter class
 
   for(int i=0;i<nlayers;i++)
     {
@@ -166,7 +205,9 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
       set_default_int_param(i, "nladder", nladder[i]);  // ladders per layer
       set_default_double_param(i, "sensor_radius_inner", sensor_radius_inner[i]*cm);
       set_default_double_param(i, "sensor_radius_outer", sensor_radius_outer[i]*cm);
-
+      cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
+      cout << "  layer " << i << " laddertype " << laddertype[i] << " nladder " << nladder[i] 
+	   << " sensor_radius_inner " << sensor_radius_inner[i] << " sensor_radius_outer " << sensor_radius_outer[i] << endl;
       // These should be kept at zero in the new design
       set_default_double_param(i, "offsetphi", 0.);
       set_default_double_param(i, "offsetrot", 0.);
