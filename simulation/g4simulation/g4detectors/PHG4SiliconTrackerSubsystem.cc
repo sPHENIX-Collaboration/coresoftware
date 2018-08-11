@@ -205,9 +205,9 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
       set_default_int_param(i, "nladder", nladder[i]);  // ladders per layer
       set_default_double_param(i, "sensor_radius_inner", sensor_radius_inner[i]*cm);
       set_default_double_param(i, "sensor_radius_outer", sensor_radius_outer[i]*cm);
-      cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
-      cout << "  layer " << i << " laddertype " << laddertype[i] << " nladder " << nladder[i] 
-	   << " sensor_radius_inner " << sensor_radius_inner[i] << " sensor_radius_outer " << sensor_radius_outer[i] << endl;
+      //cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
+      //cout << "  layer " << i << " laddertype " << laddertype[i] << " nladder " << nladder[i] 
+      //   << " sensor_radius_inner " << sensor_radius_inner[i] << " sensor_radius_outer " << sensor_radius_outer[i] << endl;
       // These should be kept at zero in the new design
       set_default_double_param(i, "offsetphi", 0.);
       set_default_double_param(i, "offsetrot", 0.);

@@ -220,12 +220,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _max_search_win_phi_tpc(    0.0040),
       _min_search_win_phi_tpc(    0.0000),
       _max_search_win_theta_tpc(  0.0040),
-      _min_search_win_theta_tpc(  0.0000),
-      
-      _max_search_win_phi_intt(   0.0050),
-      _min_search_win_phi_intt(   0.0000),
-      _max_search_win_theta_intt( 0.2000),
-      _min_search_win_theta_intt( 0.2000),
+      _min_search_win_theta_tpc(  0.0000),      
       
       _max_search_win_phi_maps(   0.0050),
       _min_search_win_phi_maps(   0.0000),
@@ -263,6 +258,26 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 //
 //	unsigned int intt_layers[] = {3, 4, 5, 6};
 //	this->set_intt_layers(intt_layers, 4);
+
+	_max_search_win_phi_intt[0] =    0.20;
+	_max_search_win_phi_intt[1] = 0.0050;
+	_max_search_win_phi_intt[2] = 0.0050;
+	_max_search_win_phi_intt[3] = 0.0050;
+
+	_min_search_win_phi_intt[0] =   0.2000;
+	_min_search_win_phi_intt[1] =   0.0;
+	_min_search_win_phi_intt[2] =   0.0;
+	_min_search_win_phi_intt[3] =   0.0;
+
+	_max_search_win_theta_intt[0] = 0.010;
+	_max_search_win_theta_intt[1] = 0.2000;
+	_max_search_win_theta_intt[2] =  0.2000;
+	_max_search_win_theta_intt[3] =  0.2000;
+
+	_min_search_win_theta_intt[0] = 0.000;
+	_min_search_win_theta_intt[1] = 0.200;
+	_min_search_win_theta_intt[2] = 0.200;
+	_min_search_win_theta_intt[3] = 0.200;
 
 	//int seeding_layers[] = {7,15,25,35,45,55,66};
 	int ninner_layer = _nlayers_maps+_nlayers_intt;
@@ -3191,6 +3206,11 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
 		    n_intt++;
 		  }
+		  if(n_intt >4)
+		    {
+		      cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
+		      exit(1);
+		    }
 		  if(_nlayers_tpc>0&&
 		     layer>=(_nlayers_maps+_nlayers_intt)&&
 		     layer<(_nlayers_maps+_nlayers_intt+_nlayers_tpc)){ 
@@ -3603,10 +3623,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			if (theta_window   > _max_search_win_theta_maps)   theta_window   = _max_search_win_theta_maps;
 			if (theta_window   < _min_search_win_theta_maps)   theta_window   = _min_search_win_theta_maps;
 		} else if(layer < _nlayers_maps + _nlayers_intt) {
-			if (phi_window > _max_search_win_phi_intt) phi_window = _max_search_win_phi_intt;
-			if (phi_window < _min_search_win_phi_intt) phi_window = _min_search_win_phi_intt;
-			if (theta_window   > _max_search_win_theta_intt)   theta_window   = _max_search_win_theta_intt;
-			if (theta_window   < _min_search_win_theta_intt)   theta_window   = _min_search_win_theta_intt;
+			if (phi_window > _max_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _max_search_win_phi_intt[layer - _nlayers_maps];
+			if (phi_window < _min_search_win_phi_intt[layer - _nlayers_maps]) phi_window = _min_search_win_phi_intt[layer - _nlayers_maps];
+			if (theta_window   > _max_search_win_theta_intt[layer - _nlayers_maps])   theta_window   = _max_search_win_theta_intt[layer - _nlayers_maps];
+			if (theta_window   < _min_search_win_theta_intt[layer - _nlayers_maps])   theta_window   = _min_search_win_theta_intt[layer - _nlayers_maps];
 		} else {
 			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
 			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
