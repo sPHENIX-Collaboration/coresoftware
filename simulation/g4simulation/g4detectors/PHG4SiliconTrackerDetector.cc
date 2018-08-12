@@ -771,6 +771,66 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	    } // end loop over ladder copy placement in phi and positive and negative Z
 	} // end loop over inner or outer sensor
     } // end loop over layers
+
+  // Finally, we add some support material for the silicon detectors
+
+  // 
+  /*
+    6 rails, which are 12mm OD and 9mm ID tubes at a radius of 175 mm.  They are spaced equidistantly in phi.
+          For the 6 rails, there should be one at the very top and bottom (ie, along the vertical), and then the rest are symmetrically placed in phi.  
+         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don’t have to put the parts that stick out in the simulation.
+    An inner skin with a OD at 64 mm and a thickness of 0.150 mm.
+    An outer skin with a ID at 157 mm and a thickness of 1 mm (~0.5% rad len).
+    
+    All of the above are carbon fiber.
+  */
+
+  // rails
+  G4Tubs *rail_tube = new G4Tubs(boost::str(boost::format("si_support_rail")).c_str(), 
+			    9.0, 12.0, 2050, -TMath::Pi(), 2.0 * TMath::Pi() );  
+  G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("G4_C"), 
+								      boost::str(boost::format("rail_volume")).c_str(), 0, 0, 0);
+  G4VisAttributes *rail_vis = new G4VisAttributes();
+  rail_vis->SetVisibility(true);
+  rail_vis->SetForceSolid(true);
+  rail_vis->SetColour(G4Colour::Cyan());
+  rail_volume->SetVisAttributes(rail_vis);
+
+  double rail_dphi = TMath::Pi() / 3.0;
+  double rail_phi_start = TMath::Pi() / 6.0;
+  double rail_radius = 175.0;
+  for(int i = 0; i < 6; i++)
+    {
+      double phi = rail_phi_start + i * rail_dphi;
+
+      // place a copy at each rail phi value
+      const double posx = rail_radius * cos(phi);
+      const double posy = rail_radius * sin(phi);      
+
+      new G4PVPlacement(0, G4ThreeVector(posx, posy, 0.0), rail_volume, 
+			boost::str(boost::format("si_support_rail_%d")  % i).c_str(), trackerenvelope, false, 0, OverlapCheck());
+    }
+
+  // Outer skin
+
+  G4Tubs *outer_skin_tube = new G4Tubs(boost::str(boost::format("si_outer_skin")).c_str(), 
+			    157.0, 158.0, 480.0, -TMath::Pi(), 2.0 * TMath::Pi() );  
+  G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("G4_C"), 
+								      boost::str(boost::format("outer_skin_volume")).c_str(), 0, 0, 0);
+  outer_skin_volume->SetVisAttributes(rail_vis);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_volume, 
+		    boost::str(boost::format("si_support_outer_skin") ).c_str(), trackerenvelope, false, 0, OverlapCheck());  
+
+  // Inner skin
+
+  G4Tubs *inner_skin_tube = new G4Tubs(boost::str(boost::format("si_inner_skin")).c_str(), 
+			    63.85, 64.0, 480.0, -TMath::Pi(), 2.0 * TMath::Pi() );  
+  G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, G4Material::GetMaterial("G4_C"), 
+								      boost::str(boost::format("inner_skin_volume")).c_str(), 0, 0, 0);
+  inner_skin_volume->SetVisAttributes(rail_vis);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume, 
+		    boost::str(boost::format("si_support_inner_skin") ).c_str(), trackerenvelope, false, 0, OverlapCheck());
+
   return 0;
 }
 
