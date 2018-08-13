@@ -725,6 +725,12 @@ void PHG4Reco::DefineMaterials()
   quartz->AddElement(G4Element::GetElement("Si"), 1);
   quartz->AddElement(G4Element::GetElement("O"), 2);
 
+  // making carbon fiber epoxy
+  G4Material *cfrp_intt = new G4Material("CFRP_INTT", density = 1.69 * g / cm3, ncomponents = 3);
+  cfrp_intt->AddElement(G4Element::GetElement("C"), 10);
+  cfrp_intt->AddElement(G4Element::GetElement("H"), 6);
+  cfrp_intt->AddElement(G4Element::GetElement("O"), 1);
+
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
   G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);
   IsoButane->AddElement(G4Element::GetElement("C"), 4);
