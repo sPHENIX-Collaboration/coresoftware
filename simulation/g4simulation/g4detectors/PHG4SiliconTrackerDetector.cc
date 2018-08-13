@@ -786,8 +786,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   */
 
   // rails
+  double rail_inner_radius = 4.5; 
+  double rail_outer_radius = 6.0;
+  double rail_length = 410.0 * 10.0;  // TPC length is 410 cm
   G4Tubs *rail_tube = new G4Tubs(boost::str(boost::format("si_support_rail")).c_str(), 
-			    9.0, 12.0, 2050, -TMath::Pi(), 2.0 * TMath::Pi() );  
+			    rail_inner_radius, rail_outer_radius, rail_length / 2.0, -TMath::Pi(), 2.0 * TMath::Pi() );  
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("CFRP_INTT"), 
 								      boost::str(boost::format("rail_volume")).c_str(), 0, 0, 0);
   G4VisAttributes *rail_vis = new G4VisAttributes();
@@ -830,6 +833,42 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   inner_skin_volume->SetVisAttributes(rail_vis);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume, 
 		    boost::str(boost::format("si_support_inner_skin") ).c_str(), trackerenvelope, false, 0, OverlapCheck());
+
+  //=======================================================
+  // Add an outer shell for the MVTX - move this to the MVTX detector module
+  //=======================================================
+  // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
+  double skin_thickness = 0.1;
+  double foam_core_thickness = 1.8;
+  double mvtx_shell_length = 420.0;
+
+  double mvtx_shell_inner_skin_inner_radius = 48.0;
+  double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + skin_thickness;
+  double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + foam_core_thickness;
+
+  G4Tubs *mvtx_shell_inner_skin_tube = new G4Tubs(boost::str(boost::format("mvtx_shell_inner_skin")).c_str(), 
+			    mvtx_shell_inner_skin_inner_radius, mvtx_shell_inner_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -TMath::Pi(), 2.0 * TMath::Pi() );  
+  G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"), 
+								      boost::str(boost::format("mvtx_shell_inner_skin_volume")).c_str(), 0, 0, 0);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume, 
+		    boost::str(boost::format("mvtx_shell_inner_skin") ).c_str(), trackerenvelope, false, 0, OverlapCheck());
+  mvtx_shell_inner_skin_volume->SetVisAttributes(rail_vis);
+
+  G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs(boost::str(boost::format("mvtx_shell_foam_core")).c_str(), 
+			    mvtx_shell_foam_core_inner_radius, mvtx_shell_foam_core_inner_radius + foam_core_thickness, mvtx_shell_length / 2.0, -TMath::Pi(), 2.0 * TMath::Pi() );  
+  G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube, G4Material::GetMaterial("ROHACELL_FOAM_110"), 
+								      boost::str(boost::format("mvtx_shell_foam_core_volume")).c_str(), 0, 0, 0);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume, 
+		    boost::str(boost::format("mvtx_shell_foam_core") ).c_str(), trackerenvelope, false, 0, OverlapCheck());
+  mvtx_shell_foam_core_volume->SetVisAttributes(rail_vis);
+
+  G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs(boost::str(boost::format("mvtx_shell_outer_skin")).c_str(), 
+			    mvtx_shell_outer_skin_inner_radius, mvtx_shell_outer_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -TMath::Pi(), 2.0 * TMath::Pi() );  
+  G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"), 
+								      boost::str(boost::format("mvtx_shell_outer_skin_volume")).c_str(), 0, 0, 0);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume, 
+		    boost::str(boost::format("mvtx_shell_outer_skin") ).c_str(), trackerenvelope, false, 0, OverlapCheck());
+  mvtx_shell_outer_skin_volume->SetVisAttributes(rail_vis);
 
   return 0;
 }

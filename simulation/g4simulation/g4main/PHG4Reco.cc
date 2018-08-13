@@ -731,6 +731,14 @@ void PHG4Reco::DefineMaterials()
   cfrp_intt->AddElement(G4Element::GetElement("H"), 6);
   cfrp_intt->AddElement(G4Element::GetElement("O"), 1);
 
+  // making Rohacell foam 110
+  G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_110", density = 0.110 * g / cm3, ncomponents = 4);
+  rohacell_foam_110->AddElement(G4Element::GetElement("C"), 8);
+  rohacell_foam_110->AddElement(G4Element::GetElement("H"),11);
+  rohacell_foam_110->AddElement(G4Element::GetElement("O"), 2);
+  rohacell_foam_110->AddElement(G4Element::GetElement("N"), 1);
+
+
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
   G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);
   IsoButane->AddElement(G4Element::GetElement("C"), 4);
