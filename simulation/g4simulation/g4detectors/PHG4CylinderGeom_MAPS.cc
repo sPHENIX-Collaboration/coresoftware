@@ -63,7 +63,8 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
   // Units here are cm, same as in the gdml file
 
   // for all layers
-  double loc_sensor_in_chip_data[3] = {0.0, -0.0016, 0.0};
+  //double loc_sensor_in_chip_data[3] = {0.0, -0.0016, 0.0};
+  double loc_sensor_in_chip_data[3] = {0.0620, -0.0016, 0.0}; // mvtx_stave_v01.gdml
   
   for(int i=0;i<3;i++)
     loc_sensor_in_chip[i] = loc_sensor_in_chip_data[i];
@@ -71,6 +72,7 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
   // inner barrel layers stave construction 
   //========================== 
   // (stave_type == 0)
+  /*
   double inner_loc_chip_in_module_data[9][3] = {
     0.0, -0.00875, -12.04,
     0.0, -0.00875, -9.03,
@@ -81,6 +83,21 @@ PHG4CylinderGeom_MAPS::PHG4CylinderGeom_MAPS(int in_layer, int in_stave_type, in
     0.0, -0.00875, 6.02,	   
     0.0, -0.00875, 9.03,	   
     0.0, -0.00875, 12.04};	   
+  double inner_loc_module_in_halfstave_data[3] = {0.0, 0.0, 0.0};   // only one module
+  double inner_loc_halfstave_in_stave_data[3] = {0.0, 0.00625, 0.0}; 
+  */
+
+  // from mvtx_stave_v01.gdml
+  double inner_loc_chip_in_module_data[9][3] = {
+    0.0, -0.00875, -12.060,
+    0.0, -0.00875, -9.0450,
+    0.0, -0.00875, -6.0300,
+    0.0, -0.00875, -3.0150,	   
+    0.0, -0.00875, 0.0,
+    0.0, -0.00875, 3.0150,	   
+    0.0, -0.00875, 6.0300,	   
+    0.0, -0.00875, 9.0450,	   
+    0.0, -0.00875, 12.060};	   
   double inner_loc_module_in_halfstave_data[3] = {0.0, 0.0, 0.0};   // only one module
   double inner_loc_halfstave_in_stave_data[3] = {0.0, 0.00625, 0.0}; 
 
