@@ -157,7 +157,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     layergeom->find_strip_center(ladder_z_index, ladder_phi_index, strip_z_index, strip_y_index, location);
 
     if(verbosity > 2) 
-      {
+    {
 	cout << endl << "  g4 hit:  layer " <<  hiter->second->get_layer() << " edep " <<  hiter->second->get_edep() << endl;
 	cout << "   Hit entry point x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0) << endl;
 	cout << "   Hit exit point x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1) << endl;
@@ -165,7 +165,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 	     << " strip z index " <<  hiter->second->get_strip_z_index() << " strip y index " <<   hiter->second->get_strip_y_index() << endl;
 	cout << "   strip x,y,z from geometry object = " << location[0] << "  " << location[1] << "  " << location[2] << endl;
 	cout << endl;
-      }
+    }
 
     // this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
     std::string key = boost::str(boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % strip_z_index % strip_y_index).c_str();

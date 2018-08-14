@@ -53,18 +53,26 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   , saveshower(nullptr)
   , paramscontainer(parameters)
 {
+  // loop over layers to get laddertype for each layer
   PHParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
   for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
   {
     PHParameters* par = iter->second;
     IsActive[iter->first] = par->get_int_param("active");
     IsBlackHole[iter->first] = par->get_int_param("blackhole");
-    strip_y[iter->first] = par->get_double_param("strip_y") * cm;
-    strip_z[iter->first][0] = par->get_double_param("strip_z_0") * cm;
-    strip_z[iter->first][1] = par->get_double_param("strip_z_1") * cm;
-    nstrips_z_sensor[iter->first][0] = par->get_int_param("nstrips_z_sensor_0");
-    nstrips_z_sensor[iter->first][1] = par->get_int_param("nstrips_z_sensor_1");
-    nstrips_phi_cell[iter->first] = par->get_int_param("nstrips_phi_cell");
+    laddertype[iter->first] = par->get_int_param("laddertype");
+  }
+
+  // Get the parameters for each laddertype
+  for(int laddertype=0;laddertype<2;laddertype++)
+    {
+      const PHParameters *par = paramscontainer->GetParameters(laddertype);
+      strip_y[laddertype] = par->get_double_param("strip_y") * cm;
+      strip_z[laddertype][0] = par->get_double_param("strip_z_0") * cm;
+      strip_z[laddertype][1] = par->get_double_param("strip_z_1") * cm;
+      nstrips_z_sensor[laddertype][0] = par->get_int_param("nstrips_z_sensor_0");
+      nstrips_z_sensor[laddertype][1] = par->get_int_param("nstrips_z_sensor_1");
+      nstrips_phi_cell[laddertype] = par->get_int_param("nstrips_phi_cell");
   }
   AbsorberIndex["ladder"] = -1;
   AbsorberIndex["stave"] = -2;
@@ -112,12 +120,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int inttlayer = 0;
   int ladderz = 0;
   int ladderphi = 0;
+  int zposneg = 0;
   int strip_z_index = 0;
   int strip_y_index = 0;
 
   if (whichactive > 0)  // silicon acrive sensor
   {
-    if (Verbosity() > 1)
+    if (Verbosity() > 0)
     {
       cout << endl
            << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
@@ -138,15 +147,16 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // advance the tokeniter and then cast it if first token is "ladder"
       sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-      ladderz = boost::lexical_cast<int>(*(++tokeniter));
-      ladderphi = boost::lexical_cast<int>(*(++tokeniter));
+      ladderz = boost::lexical_cast<int>(*(++tokeniter));  // inner sensor itype = 0, outer sensor itype = 1
+      ladderphi = boost::lexical_cast<int>(*(++tokeniter));  // copy number in phi
+      zposneg =  boost::lexical_cast<int>(*(++tokeniter));  // 1 for negative z, 2 for positive z
     }
     else
     {
       cout << GetName() << "parsing of " << touch->GetVolume(2)->GetName() << " failed, it does not start with ladder_" << endl;
       exit(1);
     }
-    if (inttlayer < 0 || inttlayer >= 4)
+    if (inttlayer < 0 || inttlayer > 3)
       assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
     map<int, int>::const_iterator activeiter = IsActive.find(inttlayer);
     if (activeiter == IsActive.end())
@@ -158,20 +168,19 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     {
       return false;
     }
-    // convert ladder type [0-3] to silicon sensor type [0-1]
-    const int laddertype = (ladderz == 1 || ladderz == 2) ? 0 : 1;
 
     // Find the strip y and z index values from the copy number (integer division, quotient is strip_y, remainder is strip_z)
-    div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor[inttlayer][laddertype]);
+    div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor[laddertype[inttlayer]][ladderz]);
     strip_y_index = copydiv.quot;
     strip_z_index = copydiv.rem;
     G4ThreeVector strip_pos = volume->GetTranslation();
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
 
-    if(Verbosity() > 1)
-      cout << " sphxlayer " << sphxlayer << " ladderz " << ladderz << " ladderphi " << ladderphi 
-	   << " copy no. " <<  volume->GetCopyNo() << " nstrips_z_sensor " <<  nstrips_z_sensor[inttlayer][laddertype] 
+    if(Verbosity() > 0)
+      cout << " sphxlayer " << sphxlayer << " inttlayer " << inttlayer << " ladderz " << ladderz << " ladderphi " << ladderphi 
+	   << " zposneg " << zposneg
+	   << " copy no. " <<  volume->GetCopyNo() << " nstrips_z_sensor " <<  nstrips_z_sensor[laddertype[inttlayer]][ladderz] 
 	   << " strip_y_index " << strip_y_index << " strip_z_index " << strip_z_index << endl;
     
     // There are two failure modes observed for this stupid parameterised volume:
@@ -216,10 +225,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	G4ThreeVector poststrip_pos = touch->GetHistory()->GetTransform(touch->GetHistory()->GetDepth() - 1).TransformPoint(postworldPos);
 	
 	strip_z_index = 0;
-	for (int i = 0; i < nstrips_z_sensor[inttlayer][laddertype]; ++i)
+	for (int i = 0; i < nstrips_z_sensor[laddertype[inttlayer]][ladderz]; ++i)
           {
-            const double zmin = strip_z[inttlayer][laddertype] * (double) (i) -strip_z[inttlayer][laddertype] / 2. * (double) nstrips_z_sensor[inttlayer][laddertype];
-            const double zmax = strip_z[inttlayer][laddertype] * (double) (i + 1) - strip_z[inttlayer][laddertype] / 2. * (double) nstrips_z_sensor[inttlayer][laddertype];
+            const double zmin = strip_z[laddertype[inttlayer]][ladderz] * (double) (i) -strip_z[laddertype[inttlayer]][ladderz] / 2. * (double) nstrips_z_sensor[laddertype[inttlayer]][ladderz];
+            const double zmax = strip_z[laddertype[inttlayer]][ladderz] * (double) (i + 1) - strip_z[laddertype[inttlayer]][ladderz] / 2. * (double) nstrips_z_sensor[laddertype[inttlayer]][ladderz];
             if (strip_pos.z() / mm > zmin && strip_pos.z() / mm <= zmax)
 	      {
 		strip_z_index = i;
@@ -229,10 +238,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
           }
 	
 	strip_y_index = 0;
-	for (int i = 0; i < 2 * nstrips_phi_cell[inttlayer]; ++i)
+	for (int i = 0; i < 2 * nstrips_phi_cell[laddertype[inttlayer]]; ++i)
           {
-            const double ymin = strip_y[inttlayer] * (double) (i) -strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
-            const double ymax = strip_y[inttlayer] * (double) (i + 1) - strip_y[inttlayer] * (double) nstrips_phi_cell[inttlayer];
+            const double ymin = strip_y[laddertype[inttlayer]] * (double) (i) -strip_y[laddertype[inttlayer]] * (double) nstrips_phi_cell[laddertype[inttlayer]];
+            const double ymax = strip_y[laddertype[inttlayer]] * (double) (i + 1) - strip_y[laddertype[inttlayer]] * (double) nstrips_phi_cell[laddertype[inttlayer]];
             if (strip_pos.y() / mm > ymin && strip_pos.y() / mm <= ymax)
 	      {
 		strip_y_index = i;
@@ -343,6 +352,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     hit->set_layer((unsigned int) sphxlayer);
 
     // set the index values needed to locate the sensor strip
+    if(zposneg == 2) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     hit->set_ladder_z_index(ladderz);
     if (whichactive > 0)
     {
@@ -355,6 +365,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);
     hit->set_z(0, prePoint->GetPosition().z() / cm);
+
+    /*
+    cout << "     hit position x,y,z = " << prePoint->GetPosition().x() / cm
+    << "    " << prePoint->GetPosition().y() / cm
+    << "     " << prePoint->GetPosition().z() / cm
+    << endl;
+    */
 
     hit->set_px(0, prePoint->GetMomentum().x() / GeV);
     hit->set_py(0, prePoint->GetMomentum().y() / GeV);
