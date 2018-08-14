@@ -138,6 +138,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , active_force_decay_(false)
   , force_decay_type_(kAll)
   , save_DST_geometry_(true)
+  , m_disableSteppingActions(false)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
@@ -375,10 +376,21 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       {
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
+
       steppingAction_->AddAction(g4sub->GetSteppingAction());
     }
   }
-  runManager_->SetUserAction(steppingAction_);
+
+  if (m_disableSteppingActions)
+  {
+    cout << "PHG4Reco::InitRun - WARNING - stepping action disabled! "
+         << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
+         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableSteppingActions()" << endl;
+  }
+  else
+  {
+    runManager_->SetUserAction(steppingAction_);
+  }
 
   // create main tracking action, add subsystems and register to GEANT
   trackingAction_ = new PHG4PhenixTrackingAction();
