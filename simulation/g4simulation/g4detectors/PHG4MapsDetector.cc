@@ -40,6 +40,8 @@ PHG4MapsDetector::PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parame
   //envelope_inner_radius(26.0*mm),
   //envelope_outer_radius(880*mm),
   //envelope_z(2300*mm + no_overlap),
+  sensor_count(0),
+  stave_count(0),
   place_in_x(0 * cm),
   place_in_y(0 * cm),
   place_in_z(0 * cm),

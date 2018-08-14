@@ -81,9 +81,9 @@ class PHG4MapsDetector: public PHG4Detector
   int stave_count;
 
   // the cylinder envelope
-  G4double envelope_inner_radius;
-  G4double envelope_outer_radius;
-  G4double envelope_z;
+//  G4double envelope_inner_radius;
+//  G4double envelope_outer_radius;
+//  G4double envelope_z;
   //
    G4double place_in_x;
    G4double place_in_y;
