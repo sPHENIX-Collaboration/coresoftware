@@ -9,8 +9,8 @@
  */
 
 #include "PHG4SvtxDeadMapLoader.h"
+#include "SvtxDeadMapv1.h"
 
-#include <calobase/SvtxDeadMapv1.h>
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
