@@ -4,6 +4,7 @@
 #include "SvtxHitMap_v1.h"
 #include "SvtxHit.h"
 #include "SvtxHit_v1.h"
+#include "SvtxDeadMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -139,8 +140,22 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
   //----------
  
   PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
-  if (!cells) return; 
-  
+  if (!cells) return;
+
+  SvtxDeadMap *deadmap = findNode::getClass<SvtxDeadMap>(topNode, "DEADMAP_SILICON_TRACKER");
+  if (Verbosity())
+  {
+    if (deadmap)
+    {
+      cout << "PHG4SiliconTrackerDigitizer::DigitizeLadderCells - Use deadmap ";
+      deadmap->identify();
+    }
+    else
+    {
+      cout << "PHG4SiliconTrackerDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled "<<endl;
+    }
+  }
+
   //-------------
   // Digitization
   //-------------
@@ -151,7 +166,18 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
       ++celliter) {
     
     PHG4Cell* cell = celliter->second;
-    
+
+    if (deadmap)
+    {
+      deadmap->addDeadChannelINTT(
+          cell->get_layer(),               //const int layer,
+          cell->get_ladder_phi_index(),  //const int ladder_phi,
+          cell->get_ladder_z_index(),  //const int ladder_z,
+          cell->get_zbin(),  //const int strip_z,
+          cell->get_phibin()   //const int strip_phi
+      );
+    }
+
     SvtxHit_v1 hit;
 
     const int layer = cell->get_layer();

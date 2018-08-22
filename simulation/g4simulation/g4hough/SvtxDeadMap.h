@@ -25,7 +25,7 @@ class SvtxDeadMap : public PHObject
 
   virtual bool isDeadChannel(PHG4CellDefs::keytype key);
   bool isDeadChannel(const int layer, const int ieta, const int iphi);
-  bool isDeadChannel(const int layer,
+  bool addDeadChannelINTT(const int layer,
                      const int ladder_phi, const int ladder_z,
                      const int strip_z, const int strip_phi);
 

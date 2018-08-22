@@ -53,7 +53,7 @@ bool SvtxDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi)
   return isDeadChannel(key);
 }
 
-bool SvtxDeadMap::isDeadChannel(const int layer,
+bool SvtxDeadMap::addDeadChannelINTT(const int layer,
                                 const int ladder_phi, const int ladder_z,
                                 const int strip_z, const int strip_phi)
 {
