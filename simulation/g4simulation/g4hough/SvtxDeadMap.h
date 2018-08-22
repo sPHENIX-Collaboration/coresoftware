@@ -17,17 +17,17 @@ class SvtxDeadMap : public PHObject
 
   virtual void identify(std::ostream &os = std::cout) const;
 
-  void addDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
-  void addDeadChannelINTT(const unsigned int layer,
-                          const unsigned int ladder_phi, const unsigned int ladder_z,
-                          const unsigned int strip_z, const unsigned int strip_phi);
+  void addDeadChannel(const int layer, const int ieta, const int iphi);
+  void addDeadChannelINTT(const int layer,
+                          const int ladder_phi, const int ladder_z,
+                          const int strip_z, const int strip_phi);
   virtual void addDeadChannel(PHG4CellDefs::keytype key);
 
   virtual bool isDeadChannel(PHG4CellDefs::keytype key);
-  bool isDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
-  bool isDeadChannel(const unsigned int layer,
-                     const unsigned int ladder_phi, const unsigned int ladder_z,
-                     const unsigned int strip_z, const unsigned int strip_phi);
+  bool isDeadChannel(const int layer, const int ieta, const int iphi);
+  bool isDeadChannel(const int layer,
+                     const int ladder_phi, const int ladder_z,
+                     const int strip_z, const int strip_phi);
 
   //! return all towers
   virtual const Map &getDeadChannels(void) const;
@@ -35,11 +35,11 @@ class SvtxDeadMap : public PHObject
 
   virtual unsigned int size() const { return 0; }
 
-  static PHG4CellDefs::keytype getINTTKey(const unsigned int layer,
-                                          const unsigned int ladder_phi, const unsigned int ladder_z,
-                                          const unsigned int strip_z, const unsigned int strip_phi);
+  static PHG4CellDefs::keytype getINTTKey( int layer,
+                                           int ladder_phi,  int ladder_z,
+                                           int strip_z,  int strip_phi);
 
-  static PHG4CellDefs::keytype getWildCardID() {return s_wildCardID;}
+  static int getWildCardID() {return s_wildCardID;}
 
  protected:
   SvtxDeadMap()
@@ -47,7 +47,7 @@ class SvtxDeadMap : public PHObject
   }
 
  private:
-  static PHG4CellDefs::keytype s_wildCardID;
+  static int s_wildCardID;
 
   ClassDef(SvtxDeadMap, 1)
 };

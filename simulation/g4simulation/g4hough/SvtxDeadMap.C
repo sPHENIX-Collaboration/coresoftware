@@ -1,12 +1,12 @@
 #include "SvtxDeadMap.h"
 
 #include <cassert>
-#include <limits>
 #include <iostream>
+#include <limits>
 
 using namespace std;
 
-PHG4CellDefs::keytype s_wildCardID = std::numeric_limits<PHG4CellDefs::keytype>::max();
+PHG4CellDefs::keytype s_wildCardID = -1;
 
 const SvtxDeadMap::Map&
 SvtxDeadMap::getDeadChannels(void) const
@@ -22,7 +22,7 @@ SvtxDeadMap::getDeadChannels(void)
   return tmp_map;
 }
 
-void SvtxDeadMap::addDeadChannel(const unsigned int layer, const unsigned int ieta, const int unsigned iphi)
+void SvtxDeadMap::addDeadChannel(const int layer, const int ieta, const int iphi)
 {
   const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
   addDeadChannel(key);
@@ -32,12 +32,12 @@ void SvtxDeadMap::addDeadChannel(PHG4CellDefs::keytype key)
 {
 }
 
-void SvtxDeadMap::addDeadChannelINTT(const unsigned int layer,
-    const unsigned int ladder_phi,const unsigned int ladder_z,
-                                     const unsigned int strip_z, const unsigned int strip_phi)
+void SvtxDeadMap::addDeadChannelINTT(const int layer,
+                                     const int ladder_phi, const int ladder_z,
+                                     const int strip_z, const int strip_phi)
 {
   addDeadChannel(getINTTKey(layer,
-                            ladder_z, ladder_phi,
+                            ladder_phi, ladder_z,
                             strip_z, strip_phi));
 }
 
@@ -46,18 +46,38 @@ bool SvtxDeadMap::isDeadChannel(PHG4CellDefs::keytype key)
   return false;
 }
 
-bool SvtxDeadMap::isDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi)
+bool SvtxDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi)
 {
   const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
   return isDeadChannel(key);
 }
-bool SvtxDeadMap::isDeadChannel(const unsigned int layer,
-    const unsigned int ladder_phi,const unsigned int ladder_z,
-                                const unsigned int strip_z, const unsigned int strip_phi)
+
+bool SvtxDeadMap::isDeadChannel(const int layer,
+                                const int ladder_phi, const int ladder_z,
+                                const int strip_z, const int strip_phi)
 {
-  return isDeadChannel(getINTTKey(layer,
-                                  ladder_z, ladder_phi,
-                                  strip_z, strip_phi));
+  if (isDeadChannel(getINTTKey(layer,
+                               ladder_phi, ladder_z,
+                               strip_z, strip_phi)))
+    return true;
+  else if (isDeadChannel(getINTTKey(layer,
+                                    ladder_phi, ladder_z,
+                                    strip_z, s_wildCardID)))
+    return true;
+  else if (isDeadChannel(getINTTKey(layer,
+                                    ladder_phi, ladder_z,
+                                    s_wildCardID, s_wildCardID)))
+    return true;
+  else if (isDeadChannel(getINTTKey(layer,
+                                    ladder_phi, s_wildCardID,
+                                    s_wildCardID, s_wildCardID)))
+    return true;
+  else if (isDeadChannel(getINTTKey(layer,
+                                    s_wildCardID, s_wildCardID,
+                                    s_wildCardID, s_wildCardID)))
+    return true;
+  else
+    return false;
 }
 
 int SvtxDeadMap::isValid() const
@@ -74,28 +94,49 @@ void SvtxDeadMap::identify(std::ostream& os) const
   os << "SvtxDeadMap" << std::endl;
 }
 
-PHG4CellDefs::keytype SvtxDeadMap::getINTTKey(const unsigned int layer,
-                                              const unsigned int ladder_phi,const unsigned int ladder_z,
-                                              const unsigned int strip_z, const unsigned int strip_phi)
+PHG4CellDefs::keytype SvtxDeadMap::getINTTKey(int layer,
+                                              int ladder_phi, int ladder_z,
+                                              int strip_z, int strip_phi)
 {
-  static const unsigned int layer_bit = 8;
-  static const unsigned int ladder_phi_bit = 16;
-  static const unsigned int ladder_z_bit = 8;
-  static const unsigned int strip_z_bit = 16;
-  static const unsigned int strip_phi_bit = 16;
+  static const int layer_bit = 8;
+  static const int ladder_phi_bit = 16;
+  static const int ladder_z_bit = 8;
+  static const int strip_z_bit = 16;
+  static const int strip_phi_bit = 16;
 
-  if (layer == s_wildCardID) layer = (1<<layer_bit) - 1;
-  if (ladder_phi == s_wildCardID) ladder_phi = (1<<ladder_phi_bit) - 1;
-  if (ladder_z == s_wildCardID) ladder_z = (1<<ladder_z_bit) - 1;
-  if (strip_z == s_wildCardID) strip_z = (1<<strip_z_bit) - 1;
-  if (strip_phi == s_wildCardID) strip_phi = (1<<strip_phi_bit) - 1;
+  bool wildcard = false;
 
+  if (layer == s_wildCardID) wildcard = true;
+  if (wildcard) layer = (1 << layer_bit) - 1;
+
+  if (ladder_phi == s_wildCardID) wildcard = true;
+  if (wildcard) ladder_phi = (1 << ladder_phi_bit) - 1;
+
+  if (ladder_z == s_wildCardID) wildcard = true;
+  if (wildcard) ladder_z = (1 << ladder_z_bit) - 1;
+
+  if (strip_z == s_wildCardID) wildcard = true;
+  if (wildcard) strip_z = (1 << strip_z_bit) - 1;
+
+  if (strip_phi == s_wildCardID) wildcard = true;
+  if (wildcard) strip_phi = (1 << strip_phi_bit) - 1;
+
+  //  bit sum check
   assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == numeric_limits<PHG4CellDefs::keytype>::digits);
+
+  //max range check
   assert(layer < (1 << layer_bit));
   assert(ladder_phi < (1 << ladder_phi_bit));
   assert(ladder_z < (1 << ladder_z_bit));
   assert(strip_z < (1 << strip_z_bit));
   assert(strip_phi < (1 << strip_phi_bit));
+
+  //min range check
+  assert(layer >= 0);
+  assert(ladder_phi >= 0);
+  assert(ladder_z >= 0);
+  assert(strip_z >= 0);
+  assert(strip_phi >= 0);
 
   PHG4CellDefs::keytype key = 0;
 

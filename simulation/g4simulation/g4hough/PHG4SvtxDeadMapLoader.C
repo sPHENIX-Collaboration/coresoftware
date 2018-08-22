@@ -108,7 +108,7 @@ int PHG4SvtxDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
       if (Verbosity())
       {
-        cout << "deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
+        cout << "HG4SvtxDeadMapLoader::InitRun - deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
       }
 
       boost::char_separator<char> sep("_");
@@ -117,44 +117,35 @@ int PHG4SvtxDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
       for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
       {
-        if (*tokeniter == "deadtower")
+        if (*tokeniter == "INTT")
         {
-          // Form("deadtower_eta_%d_phi_%d", eta, phi)
+          // Form("INTT_%d_%d_%d_%d", ladder_phi, ladder_z, strip_z, strip_phi)
 
           ++tokeniter;
           assert(tokeniter != tok.end());
+          int ladder_phi = boost::lexical_cast<int>(*tokeniter);
 
-          if (*tokeniter == "eta")
+          ++tokeniter;
+          assert(tokeniter != tok.end());
+          int ladder_z = boost::lexical_cast<int>(*tokeniter);
+
+          ++tokeniter;
+          assert(tokeniter != tok.end());
+          int strip_z = boost::lexical_cast<int>(*tokeniter);
+
+          ++tokeniter;
+          assert(tokeniter != tok.end());
+          int strip_phi = boost::lexical_cast<int>(*tokeniter);
+
+          m_deadmap->addDeadChannelINTT(ilayer, ladder_phi, ladder_z, strip_z, strip_phi);
+          ++counter;
+
+          if (Verbosity())
           {
-            ++tokeniter;
-            assert(tokeniter != tok.end());
-            const unsigned int eta = boost::lexical_cast<unsigned int>(*tokeniter);
-
-            ++tokeniter;
-            assert(tokeniter != tok.end());
-            assert(*tokeniter == "phi");
-
-            ++tokeniter;
-            assert(tokeniter != tok.end());
-            const unsigned int phi = boost::lexical_cast<unsigned int>(*tokeniter);
-
-            m_deadmap->addDeadChannel(ilayer, eta, phi);
-            ++counter;
-
-            if (Verbosity())
-            {
-              cout << "add dead channel eta" << eta << " phi" << phi;
-            }
-          }  // if (*tokeniter == "eta")
-          else
-          {
-            if (Verbosity())
-            {
-              cout << "skip " << deadChanName;
-            }
+            cout << "add INTT dead channel ladder_phi" << ladder_phi << " ladder_z" << ladder_z
+                <<" strip_z" << strip_z<<" strip_phi"<<strip_phi;
           }
-
-        }  //      if (*tokeniter == "deadtower")
+        }  // if (*tokeniter == "INTT")
         else
         {
           if (Verbosity())
