@@ -17,15 +17,15 @@ class SvtxDeadMap : public PHObject
 
   virtual void identify(std::ostream &os = std::cout) const;
 
-  virtual void addDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
-  virtual void addDeadChannelINTT(const unsigned int layer,
+  void addDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
+  void addDeadChannelINTT(const unsigned int layer,
                                   const unsigned int ladder_z, const unsigned int ladder_phi,
                                   const unsigned int strip_z, const unsigned int strip_phi);
   virtual void addDeadChannel(PHG4CellDefs::keytype key);
 
   virtual bool isDeadChannel(PHG4CellDefs::keytype key);
-  virtual bool isDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
-  virtual bool isDeadChannel(const unsigned int layer,
+  bool isDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
+  bool isDeadChannel(const unsigned int layer,
                              const unsigned int ladder_z, const unsigned int ladder_phi,
                              const unsigned int strip_z, const unsigned int strip_phi) ;
 
@@ -38,6 +38,8 @@ class SvtxDeadMap : public PHObject
   static PHG4CellDefs::keytype getINTTKey(const unsigned int layer,
                                           const unsigned int ladder_z, const unsigned int ladder_phi,
                                           const unsigned int strip_z, const unsigned int strip_phi);
+
+  static PHG4CellDefs::keytype s_wildCardID;
 
  protected:
   SvtxDeadMap()

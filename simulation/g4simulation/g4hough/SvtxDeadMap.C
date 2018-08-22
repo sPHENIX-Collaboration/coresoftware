@@ -1,9 +1,12 @@
-#include <iostream>
 #include "SvtxDeadMap.h"
 
 #include <cassert>
+#include <limits>
+#include <iostream>
 
 using namespace std;
+
+PHG4CellDefs::keytype s_wildCardID = std::numeric_limits<PHG4CellDefs::keytype>::max();
 
 const SvtxDeadMap::Map&
 SvtxDeadMap::getDeadChannels(void) const
@@ -81,7 +84,7 @@ PHG4CellDefs::keytype SvtxDeadMap::getINTTKey(const unsigned int layer,
   static const unsigned int strip_z_bit = 16;
   static const unsigned int strip_phi_bit = 16;
 
-  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == sizeof(PHG4CellDefs::keytype) * 8);
+  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == numeric_limits<PHG4CellDefs::keytype>::digits());
   assert(ladder_phi < (1 << ladder_phi_bit));
   assert(ladder_z < (1 << ladder_z_bit));
   assert(strip_z < (1 << strip_z_bit));
