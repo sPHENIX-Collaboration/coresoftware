@@ -6,7 +6,8 @@
 
 using namespace std;
 
-PHG4CellDefs::keytype s_wildCardID = -1;
+int
+SvtxDeadMap::s_wildCardID = -1;
 
 const SvtxDeadMap::Map&
 SvtxDeadMap::getDeadChannels(void) const
