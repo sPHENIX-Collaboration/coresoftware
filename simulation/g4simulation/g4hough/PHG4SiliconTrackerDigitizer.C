@@ -26,7 +26,10 @@ using namespace std;
 PHG4SiliconTrackerDigitizer::PHG4SiliconTrackerDigitizer(const string &name) :
   SubsysReco(name),
   _hitmap(NULL),
-  _timer(PHTimeServer::get()->insert_new(name)) {
+  _timer(PHTimeServer::get()->insert_new(name)),
+  m_nCells(0),
+  m_nDeadCells(0)
+{
 }
 
 int PHG4SiliconTrackerDigitizer::InitRun(PHCompositeNode* topNode) {
@@ -143,7 +146,7 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
   if (!cells) return;
 
   const SvtxDeadMap *deadmap = findNode::getClass<SvtxDeadMap>(topNode, "DEADMAP_SILICON_TRACKER");
-  if (Verbosity())
+  if (Verbosity()>=VERBOSITY_MORE)
   {
     if (deadmap)
     {
@@ -167,16 +170,26 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
     
     PHG4Cell* cell = celliter->second;
 
+    ++m_nCells;
     if (deadmap)
     {
-      deadmap->isDeadChannelINTT(
-          cell->get_layer(),             //const int layer,
-          cell->get_ladder_phi_index(),  //const int ladder_phi,
-          cell->get_ladder_z_index(),    //const int ladder_z,
-          cell->get_zbin(),              //const int strip_z,
-          cell->get_phibin()             //const int strip_phi
-      );
-    }
+      if (deadmap->isDeadChannelINTT(
+              cell->get_layer(),             //const int layer,
+              cell->get_ladder_phi_index(),  //const int ladder_phi,
+              cell->get_ladder_z_index(),    //const int ladder_z,
+              cell->get_zbin(),              //const int strip_z,
+              cell->get_phibin()             //const int strip_phi
+              ))
+      {
+        ++m_nDeadCells;
+        if (Verbosity() >= VERBOSITY_MORE)
+        {
+          cout << "PHG4SiliconTrackerDigitizer::DigitizeLadderCells - dead cell at layer "<<cell->get_layer() <<": ";
+          cell->identify();
+        }
+        continue;
+      }
+    }  //    if (deadmap)
 
     SvtxHit_v1 hit;
 
@@ -221,13 +234,27 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
       }
     }
   }
-  
+
   return;
+}
+
+//! end of process
+int PHG4SiliconTrackerDigitizer::End(PHCompositeNode *topNode)
+{
+  if (Verbosity() >= VERBOSITY_SOME)
+  {
+    cout << "PHG4SiliconTrackerDigitizer::End - processed "
+        << m_nCells << " cell with "
+        << m_nDeadCells << " dead cells masked"
+        <<" ("<<100.*m_nDeadCells/m_nCells<<"%)"<< endl;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode) {
 
-  if (verbosity >= 1) {
+  if (verbosity >= VERBOSITY_EVEN_MORE) {
 
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (!hitlist) return;

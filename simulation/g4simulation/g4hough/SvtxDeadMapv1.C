@@ -43,5 +43,5 @@ void SvtxDeadMapv1::Reset()
 
 void SvtxDeadMapv1::identify(std::ostream& os) const
 {
-  os << "SvtxDeadMapv1, number of towers: " << size() << std::endl;
+  os << "SvtxDeadMapv1, number of dead channel & sensors: " << size() << std::endl;
 }
