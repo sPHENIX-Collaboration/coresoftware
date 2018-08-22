@@ -16,12 +16,6 @@ SvtxDeadMapv1::getDeadChannels(void)
   return m_DeadChannels;
 }
 
-void SvtxDeadMapv1::addDeadChannel(const unsigned int layer, const unsigned int ieta, const int unsigned iphi)
-{
-  PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
-  m_DeadChannels.insert(key);
-}
-
 void SvtxDeadMapv1::addDeadChannel(PHG4CellDefs::keytype key)
 {
   m_DeadChannels.insert(key);
@@ -38,12 +32,6 @@ SvtxDeadMapv1::isDeadChannel(PHG4CellDefs::keytype key)
   return false;
 }
 
-bool
-SvtxDeadMapv1::isDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi)
-{
-  PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
-  return isDeadChannel(key);
-}
 
 int SvtxDeadMapv1::isValid() const
 {

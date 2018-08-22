@@ -20,7 +20,8 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libg4hough_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lg4detectors_io
 
 libg4hough_la_LDFLAGS = \
   `geant4-config --libs`\

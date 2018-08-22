@@ -15,11 +15,9 @@ class SvtxDeadMapv1 : public SvtxDeadMap
   virtual int isValid() const;
 
   virtual void identify(std::ostream &os = std::cout) const;
-  virtual void addDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
-  virtual void addDeadChannel(PHG4CellDefs::keytype key);
+  void addDeadChannel(PHG4CellDefs::keytype key);
 
-  virtual bool isDeadChannel(PHG4CellDefs::keytype key);
-  virtual bool isDeadChannel(const unsigned int layer, const unsigned int ieta, const unsigned int iphi);
+  bool isDeadChannel(PHG4CellDefs::keytype key);
   //! return all towers
   virtual const Map &getDeadChannels(void) const;
   virtual Map &getDeadChannels(void);
