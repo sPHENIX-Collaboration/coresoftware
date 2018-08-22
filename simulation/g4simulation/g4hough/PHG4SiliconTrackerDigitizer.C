@@ -142,7 +142,7 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
   PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   if (!cells) return;
 
-  SvtxDeadMap *deadmap = findNode::getClass<SvtxDeadMap>(topNode, "DEADMAP_SILICON_TRACKER");
+  const SvtxDeadMap *deadmap = findNode::getClass<SvtxDeadMap>(topNode, "DEADMAP_SILICON_TRACKER");
   if (Verbosity())
   {
     if (deadmap)
@@ -169,12 +169,12 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
 
     if (deadmap)
     {
-      deadmap->addDeadChannelINTT(
-          cell->get_layer(),               //const int layer,
+      deadmap->isDeadChannelINTT(
+          cell->get_layer(),             //const int layer,
           cell->get_ladder_phi_index(),  //const int ladder_phi,
-          cell->get_ladder_z_index(),  //const int ladder_z,
-          cell->get_zbin(),  //const int strip_z,
-          cell->get_phibin()   //const int strip_phi
+          cell->get_ladder_z_index(),    //const int ladder_z,
+          cell->get_zbin(),              //const int strip_z,
+          cell->get_phibin()             //const int strip_phi
       );
     }
 

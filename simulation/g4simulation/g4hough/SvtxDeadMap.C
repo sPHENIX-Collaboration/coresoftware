@@ -7,7 +7,7 @@
 using namespace std;
 
 int
-SvtxDeadMap::s_wildCardID = -1;
+    SvtxDeadMap::s_wildCardID = -1;
 
 const SvtxDeadMap::Map&
 SvtxDeadMap::getDeadChannels(void) const
@@ -42,20 +42,20 @@ void SvtxDeadMap::addDeadChannelINTT(const int layer,
                             strip_z, strip_phi));
 }
 
-bool SvtxDeadMap::isDeadChannel(PHG4CellDefs::keytype key)
+bool SvtxDeadMap::isDeadChannel(PHG4CellDefs::keytype key) const
 {
   return false;
 }
 
-bool SvtxDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi)
+bool SvtxDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi) const
 {
   const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
   return isDeadChannel(key);
 }
 
-bool SvtxDeadMap::addDeadChannelINTT(const int layer,
-                                const int ladder_phi, const int ladder_z,
-                                const int strip_z, const int strip_phi)
+bool SvtxDeadMap::isDeadChannelINTT(const int layer,
+                                    const int ladder_phi, const int ladder_z,
+                                    const int strip_z, const int strip_phi) const
 {
   if (isDeadChannel(getINTTKey(layer,
                                ladder_phi, ladder_z,

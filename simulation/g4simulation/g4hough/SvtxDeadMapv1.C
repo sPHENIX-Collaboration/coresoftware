@@ -21,8 +21,7 @@ void SvtxDeadMapv1::addDeadChannel(PHG4CellDefs::keytype key)
   m_DeadChannels.insert(key);
 }
 
-bool
-SvtxDeadMapv1::isDeadChannel(PHG4CellDefs::keytype key)
+bool SvtxDeadMapv1::isDeadChannel(PHG4CellDefs::keytype key) const
 {
   auto it = m_DeadChannels.find(key);
   if (it != m_DeadChannels.end())
@@ -32,10 +31,9 @@ SvtxDeadMapv1::isDeadChannel(PHG4CellDefs::keytype key)
   return false;
 }
 
-
 int SvtxDeadMapv1::isValid() const
 {
-  return size()>0;
+  return size() > 0;
 }
 
 void SvtxDeadMapv1::Reset()
@@ -47,4 +45,3 @@ void SvtxDeadMapv1::identify(std::ostream& os) const
 {
   os << "SvtxDeadMapv1, number of towers: " << size() << std::endl;
 }
-

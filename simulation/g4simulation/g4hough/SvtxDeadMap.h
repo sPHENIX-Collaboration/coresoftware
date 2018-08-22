@@ -23,11 +23,11 @@ class SvtxDeadMap : public PHObject
                           const int strip_z, const int strip_phi);
   virtual void addDeadChannel(PHG4CellDefs::keytype key);
 
-  virtual bool isDeadChannel(PHG4CellDefs::keytype key);
-  bool isDeadChannel(const int layer, const int ieta, const int iphi);
-  bool addDeadChannelINTT(const int layer,
+  virtual bool isDeadChannel(PHG4CellDefs::keytype key) const;
+  bool isDeadChannel(const int layer, const int ieta, const int iphi) const;
+  bool isDeadChannelINTT(const int layer,
                      const int ladder_phi, const int ladder_z,
-                     const int strip_z, const int strip_phi);
+                     const int strip_z, const int strip_phi) const;
 
   //! return all towers
   virtual const Map &getDeadChannels(void) const;
