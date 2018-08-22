@@ -33,7 +33,7 @@ void SvtxDeadMap::addDeadChannel(PHG4CellDefs::keytype key)
 }
 
 void SvtxDeadMap::addDeadChannelINTT(const unsigned int layer,
-                                     const unsigned int ladder_z, const unsigned int ladder_phi,
+    const unsigned int ladder_phi,const unsigned int ladder_z,
                                      const unsigned int strip_z, const unsigned int strip_phi)
 {
   addDeadChannel(getINTTKey(layer,
@@ -52,7 +52,7 @@ bool SvtxDeadMap::isDeadChannel(const unsigned int layer, const unsigned int iet
   return isDeadChannel(key);
 }
 bool SvtxDeadMap::isDeadChannel(const unsigned int layer,
-                                const unsigned int ladder_z, const unsigned int ladder_phi,
+    const unsigned int ladder_phi,const unsigned int ladder_z,
                                 const unsigned int strip_z, const unsigned int strip_phi)
 {
   return isDeadChannel(getINTTKey(layer,
@@ -75,7 +75,7 @@ void SvtxDeadMap::identify(std::ostream& os) const
 }
 
 PHG4CellDefs::keytype SvtxDeadMap::getINTTKey(const unsigned int layer,
-                                              const unsigned int ladder_z, const unsigned int ladder_phi,
+                                              const unsigned int ladder_phi,const unsigned int ladder_z,
                                               const unsigned int strip_z, const unsigned int strip_phi)
 {
   static const unsigned int layer_bit = 8;
@@ -84,7 +84,14 @@ PHG4CellDefs::keytype SvtxDeadMap::getINTTKey(const unsigned int layer,
   static const unsigned int strip_z_bit = 16;
   static const unsigned int strip_phi_bit = 16;
 
-  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == numeric_limits<PHG4CellDefs::keytype>::digits());
+  if (layer == s_wildCardID) layer = (1<<layer_bit) - 1;
+  if (ladder_phi == s_wildCardID) ladder_phi = (1<<ladder_phi_bit) - 1;
+  if (ladder_z == s_wildCardID) ladder_z = (1<<ladder_z_bit) - 1;
+  if (strip_z == s_wildCardID) strip_z = (1<<strip_z_bit) - 1;
+  if (strip_phi == s_wildCardID) strip_phi = (1<<strip_phi_bit) - 1;
+
+  assert(layer_bit + ladder_phi_bit + ladder_z_bit + strip_z_bit + strip_phi_bit == numeric_limits<PHG4CellDefs::keytype>::digits);
+  assert(layer < (1 << layer_bit));
   assert(ladder_phi < (1 << ladder_phi_bit));
   assert(ladder_z < (1 << ladder_z_bit));
   assert(strip_z < (1 << strip_z_bit));
