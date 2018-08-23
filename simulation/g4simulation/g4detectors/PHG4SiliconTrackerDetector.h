@@ -1,6 +1,8 @@
 #ifndef PHG4SiliconTrackerDetector_h
 #define PHG4SiliconTrackerDetector_h
 
+#include "PHG4SiliconTrackerDefs.h"
+
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4RotationMatrix.hh>
@@ -22,9 +24,8 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
 {
  public:
   typedef std::vector<std::pair<int, int>> vpair;
-
   //! constructor
-  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam = "SILICON_TRACKER", const vpair &layerconfig = vpair(0));
+  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> &layer_b_e);
 
   //! destructor
   virtual ~PHG4SiliconTrackerDetector() {}
@@ -59,10 +60,10 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
 
   PHParametersContainer *paramscontainer;
-  vpair layerconfig_;
-  unsigned int nlayer_;
-  int layermin_;
-  int layermax_;
+//  vpair layerconfig_;
+  /* unsigned int nlayer_; */
+  /* int layermin_; */
+  /* int layermax_; */
 
   G4double overlap_fraction;
 
@@ -80,6 +81,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   std::set<G4LogicalVolume *> activelogvols;
   std::map<int, int> IsActive;
   std::map<int, int> IsAbsorberActive;
+  std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> layer_begin_end;
 };
 
 #endif

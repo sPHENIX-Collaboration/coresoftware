@@ -260,6 +260,7 @@ libg4detectors_la_SOURCES = \
   PHG4SectorSubsystem_Dict.cc \
   PHG4SiliconTrackerCellReco.cc \
   PHG4SiliconTrackerCellReco_Dict.cc \
+  PHG4SiliconTrackerDefs_Dict.cc \
   PHG4SiliconTrackerDetector.cc \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \
