@@ -71,10 +71,16 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   for (auto iter = PHG4SiliconTrackerDefs::m_SensorSegmentationSet.begin(); iter != PHG4SiliconTrackerDefs::m_SensorSegmentationSet.end(); ++iter)
   {
 const PHParameters *par = paramscontainer->GetParameters(*iter);
-m_StripYMap.insert(make_pair(*iter, par->get_double_param("strip_y") *mm));
-m_StripZMap.insert(make_pair(*iter,make_pair(par->get_double_param("strip_z_0") *mm, par->get_double_param("strip_z_1") *mm)));
+m_StripYMap.insert(make_pair(*iter, par->get_double_param("strip_y") *cm));
+m_StripZMap.insert(make_pair(*iter,make_pair(par->get_double_param("strip_z_0") *cm, par->get_double_param("strip_z_1") *cm)));
+cout << "laddertype: " << *iter
+     << ", strip_y: " << par->get_double_param("strip_y") *cm
+     << ", strip_z_0: " << par->get_double_param("strip_z_0") *cm
+     << ", strip_z_1: " << par->get_double_param("strip_z_1") *cm
+     << endl;
 m_nStripsPhiCell.insert(make_pair(*iter,par->get_int_param("nstrips_phi_cell")));
 m_nStripsZSensor.insert(make_pair(*iter,make_pair(par->get_int_param("nstrips_z_sensor_0"),par->get_int_param("nstrips_z_sensor_1"))));
+
   }
   AbsorberIndex["ladder"] = -1;
   AbsorberIndex["stave"] = -2;
@@ -125,7 +131,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int zposneg = 0;
   int strip_z_index = 0;
   int strip_y_index = 0;
-
+  int sameevent = 0;
+  int save_strip_z_index = 0;
+  int save_strip_y_index = 0;
+  int save_ladderz = 0;
+  int save_ladderphi = 0;
   if (whichactive > 0)  // silicon acrive sensor
   {
     if (Verbosity() > 0)
@@ -190,16 +200,21 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor);
     strip_y_index = copydiv.quot;
     strip_z_index = copydiv.rem;
+    save_strip_z_index = strip_z_index;
+    save_strip_y_index = strip_y_index;
+    save_ladderz = ladderz;
+    save_ladderphi = ladderphi;
     G4ThreeVector strip_pos = volume->GetTranslation();
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
-
-    if(Verbosity() > 0)
+    if(Verbosity() > 0 || (strip_z_index == 1 && strip_y_index == 50 && ladderz == 1 && ladderphi == 1))
+    {
       cout << " sphxlayer " << sphxlayer << " inttlayer " << inttlayer << " ladderz " << ladderz << " ladderphi " << ladderphi 
 	   << " zposneg " << zposneg
 	   << " copy no. " <<  volume->GetCopyNo() << " nstrips_z_sensor " <<  nstrips_z_sensor 
 	   << " strip_y_index " << strip_y_index << " strip_z_index " << strip_z_index << endl;
-    
+      sameevent = 1;
+    }
     // There are two failure modes observed for this stupid parameterised volume:
     //  1) If the prePoint step status is "fUndefined" then the copy number is sometimes kept from the last hit, which is often an unrelated volume
     //  2) If the  pre and post step are in the same volume but they both have status fGeomBoundary, the volume is assigned the copy number of the next volume, which is usually off by one in strip_y_index
@@ -230,6 +245,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     if( fixit )
       {
+	cout << "fixit: " << fixit << endl;
 	int strip_y_index_old = strip_y_index;
 	int strip_z_index_old = strip_z_index;
 
@@ -258,6 +274,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       cout << "Bad ladderz: " << ladderz << endl;
       gSystem->Exit(1);
 	}
+	cout << "nstrips_z_sensor: " << nstrips_z_sensor 
+	     << ", strip_z: " << strip_z
+	     << endl;
 	for (int i = 0; i < nstrips_z_sensor; ++i)
           {
             const double zmin = strip_z * i - (strip_z / 2.) * nstrips_z_sensor;
@@ -273,6 +292,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	strip_y_index = 0;
 	int nstrips_phi_cell = m_nStripsPhiCell.find(laddertype)->second;
 	double strip_y = m_StripYMap.find(laddertype)->second;
+	cout << "nstrips_phi_cell: " << nstrips_phi_cell
+	     << ", strip_y: " << strip_y
+	     << endl;
 	for (int i = 0; i < 2 * nstrips_phi_cell; ++i)
           {
             const double ymin = strip_y * i - strip_y * nstrips_phi_cell;;
@@ -440,6 +462,18 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
         hit->set_shower_id(pp->GetShower()->get_id());
         saveshower = pp->GetShower();
       }
+    }
+    if (hit->get_strip_z_index() == 1 && 
+        hit->get_strip_y_index() == 178 &&
+        hit->get_ladder_z_index() == 3 &&
+	hit->get_ladder_phi_index() == 1)
+    {
+      hit->identify();
+      cout << "initial strip_z_index: " << save_strip_z_index << endl;
+      cout << "initial strip_y_index: " << save_strip_y_index << endl;
+      cout << "initial ladderz: " << save_ladderz << endl;
+      cout << "initial ladderphi: " << save_ladderphi << endl;
+      cout << "same event: " << sameevent << endl;
     }
 
     break;

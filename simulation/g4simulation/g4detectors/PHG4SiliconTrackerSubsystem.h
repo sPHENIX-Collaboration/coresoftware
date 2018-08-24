@@ -20,7 +20,7 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   //! constructor
   PHG4SiliconTrackerSubsystem(const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));  
 
-  PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
+//  PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
 
   //! destructor
   virtual ~PHG4SiliconTrackerSubsystem(void)

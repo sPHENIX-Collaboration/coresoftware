@@ -51,6 +51,7 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
 
 
 //_______________________________________________________________________
+/*
 PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &detectorname, const vpair &layerconfig)
    : PHG4DetectorGroupSubsystem(detectorname)
   , detector_(0)
@@ -79,7 +80,7 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const double sensor_rad
   Name(detectorname);
   SuperDetector(detectorname);
 }
-
+*/
 
 //_______________________________________________________________________
 int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
