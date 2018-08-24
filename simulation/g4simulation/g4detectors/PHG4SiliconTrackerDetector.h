@@ -64,7 +64,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   int layermin_;
   int layermax_;
 
-  G4double overlap_fraction;
+//  G4double overlap_fraction;
 
   std::string detector_type;
   std::string superdetector;
