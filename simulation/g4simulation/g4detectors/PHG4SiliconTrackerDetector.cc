@@ -99,7 +99,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
 
   {
-    const int sphxlayer = layeriter->first;
+//    const int sphxlayer = layeriter->first;
+    const int sphxlayer = layeriter->second;
       const int inttlayer = layeriter->second;
       int ilayer = inttlayer;
        // get the parameters for this layer

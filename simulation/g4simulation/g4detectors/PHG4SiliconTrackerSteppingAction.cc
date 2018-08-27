@@ -166,10 +166,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     {
       // advance the tokeniter and then cast it if first token is "ladder"
       sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
-      cout << "sphxlayer orig: " << sphxlayer;
+//      cout << "sphxlayer orig: " << sphxlayer;
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
       sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-      cout << ", from intt: " << sphxlayer << endl;
+//      cout << ", from intt: " << sphxlayer << endl;
       ladderz = boost::lexical_cast<int>(*(++tokeniter));  // inner sensor itype = 0, outer sensor itype = 1
       ladderphi = boost::lexical_cast<int>(*(++tokeniter));  // copy number in phi
       zposneg =  boost::lexical_cast<int>(*(++tokeniter));  // 1 for negative z, 2 for positive z
@@ -403,8 +403,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	    {
 	      ladderz = iter->second;
 	    }
+	  cout << "volume: " << touch->GetVolume(0)->GetName();
 	  sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
 	  inttlayer = boost::lexical_cast<int>(*(++tokeniter));
+	  cout << ", inttlayer: " << inttlayer;
+	  cout << ", sphxlayer orig: " << sphxlayer;
+          sphxlayer = m_InttToTrackerLayerMap.find(sphxlayer)->second;
+	  cout << ", sphxlayer(intt): " << sphxlayer << endl;
        }
      catch (...)
        {
