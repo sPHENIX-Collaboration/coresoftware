@@ -51,38 +51,6 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
 
 
 //_______________________________________________________________________
-/*
-PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &detectorname, const vpair &layerconfig)
-   : PHG4DetectorGroupSubsystem(detectorname)
-  , detector_(0)
-  , steppingAction_(nullptr)
-  , layerconfig_(layerconfig)
-  , detector_type(detectorname)
-{
-  // This constructor is an ugly way to get around a problem with the parameter class - it can be removed once that is fixed
-  nlayers = 0;
-  for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
-  {
-    if(verbosity > 1) cout << PHWHERE << " adding INTT layer " << (*piter).second << endl;
-    nlayers++;
-    AddDetId((*piter).second);
-  }
-
-  for(int i=0;i<nlayers;i++)
-    {
-      sensor_radius_inner[i] = sensor_radius_inner_[i];
-      sensor_radius_outer[i] = sensor_radius_outer_[i];
-    }
-
-  InitializeParameters();
-  // put the layer into the name so we get unique names
-  // for multiple layers
-  Name(detectorname);
-  SuperDetector(detectorname);
-}
-*/
-
-//_______________________________________________________________________
 int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   if (verbosity > 0)
@@ -94,7 +62,8 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new PHG4SiliconTrackerDetector(topNode, GetParamsContainer(), Name(), GetDetIds());
+  pair<vector<pair<int,int>>::const_iterator, vector<pair<int,int>>::const_iterator> layer_begin_end = make_pair(layerconfig_.begin(),layerconfig_.end());
+  detector_ = new PHG4SiliconTrackerDetector(topNode, GetParamsContainer(), Name(), layer_begin_end);
   detector_->SuperDetector(SuperDetector());
   detector_->Detector(detector_type);
   detector_->OverlapCheck(CheckOverlap());

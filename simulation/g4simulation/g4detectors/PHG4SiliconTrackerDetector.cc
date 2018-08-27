@@ -33,17 +33,18 @@
 
 using namespace std;
 
-PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> &layer_b_e)
+PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const pair<vector<pair<int,int>>::const_iterator, vector<pair<int,int>>::const_iterator> &layer_b_e)
   : PHG4Detector(Node, dnam)
   , paramscontainer(parameters)
   , layer_begin_end(layer_b_e)
 {
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
-    cout << "getting params for layer " << *layeriter << endl;
-    const PHParameters *par = paramscontainer->GetParameters(*layeriter);
-    IsActive[*layeriter] = par->get_int_param("active");
-    IsAbsorberActive[*layeriter] = par->get_int_param("absorberactive");
+    int layer = layeriter->second;
+    cout << "getting params for layer " << layer << endl;
+    const PHParameters *par = paramscontainer->GetParameters(layer);
+    IsActive[layer] = par->get_int_param("active");
+    IsAbsorberActive[layer] = par->get_int_param("absorberactive");
   }
 }
 
@@ -77,7 +78,7 @@ void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
     std::cout << "PHG4SiliconTrackerDetector::Construct called for layers " << std::endl;
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
-    cout << "layer " << *layeriter << endl;
+    cout << "layer " << layeriter->second << endl;
   }
   }
   // the tracking layers are placed directly in the world volume, since some layers are (touching) double layers
@@ -98,8 +99,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
 
   {
-    const int sphxlayer = *layeriter;
-      const int inttlayer = sphxlayer;
+    const int sphxlayer = layeriter->first;
+      const int inttlayer = layeriter->second;
       int ilayer = inttlayer;
        // get the parameters for this layer
       const PHParameters *params1 = paramscontainer->GetParameters(inttlayer);
@@ -957,9 +958,9 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
 
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
     {
-      const int sphxlayer = *layeriter;
-      const int inttlayer = *layeriter;
-int ilayer = *layeriter;
+      const int sphxlayer = layeriter->first;
+      const int inttlayer = layeriter->second;
+int ilayer = inttlayer;
        const PHParameters *params_layer = paramscontainer->GetParameters(inttlayer);
       const int laddertype = params_layer->get_int_param("laddertype");
       // parameters are in cm, so conversion needed here to get from mm to cm

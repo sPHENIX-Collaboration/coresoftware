@@ -25,7 +25,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
  public:
   typedef std::vector<std::pair<int, int>> vpair;
   //! constructor
-  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> &layer_b_e);
+  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int,int>>::const_iterator, std::vector<std::pair<int,int>>::const_iterator> &layer_b_e);
 
   //! destructor
   virtual ~PHG4SiliconTrackerDetector() {}
@@ -81,7 +81,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   std::set<G4LogicalVolume *> activelogvols;
   std::map<int, int> IsActive;
   std::map<int, int> IsAbsorberActive;
-  std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> layer_begin_end;
+  std::pair<std::vector<std::pair<int,int>>::const_iterator, std::vector<std::pair<int,int>>::const_iterator> layer_begin_end;
 };
 
 #endif
