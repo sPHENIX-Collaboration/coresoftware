@@ -698,13 +698,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
 	  // HDI Kapton        
 	  const double TVhdi_kapton_x = TVpgs_x - pgs_x / 2. - hdi_kapton_x / 2.;
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdi_kapton_volume, boost::str(boost::format("hdi_kapton_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdiext_kapton_volume, boost::str(boost::format("hdiext_kapton_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdi_kapton_volume, boost::str(boost::format("hdikapton_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_kapton_x, TVstave_y, 0.0), hdiext_kapton_volume, boost::str(boost::format("hdiextkapton_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
 	  // HDI copper        
 	  const double TVhdi_copper_x = TVhdi_kapton_x - hdi_kapton_x / 2. - hdi_copper_x / 2.;
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdi_copper_volume, boost::str(boost::format("hdi_copper_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
-	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, boost::str(boost::format("hdiext_copper_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdi_copper_volume, boost::str(boost::format("hdicopper_%d_%d") % sphxlayer % itype).c_str(), ladder_volume, false, 0, OverlapCheck());
+	  new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, boost::str(boost::format("hdiextcopper_%d_%s") % sphxlayer % itype).c_str(), ladderext_volume, false, 0, OverlapCheck());
 
 	  // Si-sensor        
 	  const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;

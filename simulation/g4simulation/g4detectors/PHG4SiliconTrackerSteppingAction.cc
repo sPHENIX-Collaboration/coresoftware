@@ -47,7 +47,7 @@
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHParametersContainer* parameters, const std::pair<std::set<int>::const_iterator, std::set<int>::const_iterator> &layer_begin_end)
+PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHParametersContainer* parameters,  const pair<vector<pair<int,int>>::const_iterator, vector<pair<int,int>>::const_iterator> &layer_begin_end)
   : detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
@@ -61,11 +61,12 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   // for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
-    const PHParameters *par = paramscontainer->GetParameters(*layeriter);
-    IsActive[*layeriter] = par->get_int_param("active");
-    IsBlackHole[*layeriter] = par->get_int_param("blackhole");
-    m_LadderTypeMap.insert(make_pair(*layeriter,par->get_int_param("laddertype")));
-
+    int layer = layeriter->second;
+    const PHParameters *par = paramscontainer->GetParameters(layer);
+    IsActive[layer] = par->get_int_param("active");
+    IsBlackHole[layer] = par->get_int_param("blackhole");
+    m_LadderTypeMap.insert(make_pair(layer,par->get_int_param("laddertype")));
+    m_InttToTrackerLayerMap.insert(make_pair(layeriter->second, layeriter->first));
   }
 
   // Get the parameters for each laddertype
@@ -94,6 +95,10 @@ m_nStripsZSensor.insert(make_pair(*iter,make_pair(par->get_int_param("nstrips_z_
   AbsorberIndex["ladderext"] = -9;
   AbsorberIndex["hdiext"] = -10;
   AbsorberIndex["staveext"] = -11;
+  AbsorberIndex["hdicopper"] = -12;
+  AbsorberIndex["hdikapton"] = -13;
+  AbsorberIndex["hdiextcopper"] = -14;
+  AbsorberIndex["hdiextkapton"] = -15;
 }
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
@@ -122,7 +127,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   const int whichactive = detector_->IsInSiliconTracker(volume);
 
   if (!whichactive)
+  {
     return false;
+  }
 
   // set ladder index
   int sphxlayer = 0;
@@ -159,7 +166,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     {
       // advance the tokeniter and then cast it if first token is "ladder"
       sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
+      cout << "sphxlayer orig: " << sphxlayer;
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
+      sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
+      cout << ", from intt: " << sphxlayer << endl;
       ladderz = boost::lexical_cast<int>(*(++tokeniter));  // inner sensor itype = 0, outer sensor itype = 1
       ladderphi = boost::lexical_cast<int>(*(++tokeniter));  // copy number in phi
       zposneg =  boost::lexical_cast<int>(*(++tokeniter));  // 1 for negative z, 2 for positive z
