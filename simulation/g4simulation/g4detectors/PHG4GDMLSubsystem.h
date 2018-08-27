@@ -19,9 +19,10 @@ class PHG4GDMLDetector;
 /*!
  * \brief PHG4GDMLSubsystem is a generic detector built from a GDML import
  */
-class PHG4GDMLSubsystem : public PHG4Subsystem
+class PHG4GDMLSubsystem : public PHG4DetectorSubsystem
 {
  public:
+
   PHG4GDMLSubsystem(const std::string &name);
   virtual ~PHG4GDMLSubsystem();
 

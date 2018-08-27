@@ -18,10 +18,11 @@
 
 #include <Geant4/globals.hh>
 
-PHG4GDMLSubsystem::PHG4GDMLSubsystem()
+using namespace std;
+
+PHG4GDMLSubsystem::PHG4GDMLSubsystem(const std::string &name)
   : PHG4DetectorSubsystem(name, 0)
   , m_Detector(nullptr)
-  , m_SteppingAction(nullptr)
 {
   InitializeParameters();
 }
@@ -33,11 +34,11 @@ PHG4GDMLSubsystem::~PHG4GDMLSubsystem()
 //_______________________________________________________________________
 int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+//  PHNodeIterator iter(topNode);
+//  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  m_Detector = new PHG4InnerHcalDetector(topNode, Name(), GetParams());
+  m_Detector = new PHG4GDMLDetector(topNode, Name(), GetParams());
   m_Detector->OverlapCheck(CheckOverlap());
 
   //  set<string> nodes;

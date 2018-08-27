@@ -1,34 +1,36 @@
 // $Id: $
 
 /*!
- * \file PHG4GDMDetector.h
+ * \file PHG4GDMLDetector.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#ifndef PHG4GDMDETECTOR_H_
-#define PHG4GDMDETECTOR_H_
+#ifndef PHG4GDMLDetector_H_
+#define PHG4GDMLDetector_H_
 
 #include <g4main/PHG4Detector.h>
 #include <string>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
+#include <Geant4/globals.hh>
 
 class PHCompositeNode;
 class PHParameters;
+class G4UserSteppingAction;
+class G4UserSteppingAction;
 
 /*!
- * \brief PHG4GDMDetector is a generic detector built from a GDML import
+ * \brief PHG4GDMLDetector is a generic detector built from a GDML import
  */
-class PHG4GDMDetector : public PHG4Detector
+class PHG4GDMLDetector : public PHG4Detector
 {
  public:
-  PHG4GDMDetector(PHCompositeNode* Node, const std::string& dnam, PHParameters *parameters);
+  PHG4GDMLDetector(PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
 
-  virtual ~PHG4GDMDetector();
+  virtual ~PHG4GDMLDetector();
 
   //! construct
   void Construct(G4LogicalVolume* world);
@@ -39,7 +41,6 @@ class PHG4GDMDetector : public PHG4Detector
   }
 
   void Print(const std::string& what = "ALL") const;
-
 
  private:
   std::string m_GDMPath;
@@ -54,4 +55,4 @@ class PHG4GDMDetector : public PHG4Detector
   G4double m_rotationZ;
 };
 
-#endif /* PHG4GDMDETECTOR_H_ */
+#endif /* PHG4GDMLDetector_H_ */

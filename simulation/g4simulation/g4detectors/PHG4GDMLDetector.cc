@@ -12,11 +12,16 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/getClass.h>
+
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 using namespace std;
 
