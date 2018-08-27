@@ -19,6 +19,8 @@
 
 class PHCompositeNode;
 class PHParameters;
+class G4LogicalVolume;
+class G4AssemblyVolume;
 class G4UserSteppingAction;
 class G4UserSteppingAction;
 
@@ -43,6 +45,9 @@ class PHG4GDMLDetector : public PHG4Detector
   void Print(const std::string& what = "ALL") const;
 
  private:
+  void SetDisplayProperty( G4AssemblyVolume* av);
+  void SetDisplayProperty( G4LogicalVolume* lv);
+
   std::string m_GDMPath;
   std::string m_TopVolName;
 
