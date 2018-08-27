@@ -542,9 +542,25 @@ void PHG4DetectorGroupSubsystem::SetActive(const int detid, const int i)
   set_int_param(detid, "active", i);
 }
 
+void PHG4DetectorGroupSubsystem::SetActive(const int i)
+{
+  for (auto detid = layers.begin(); detid != layers.end(); ++detid)
+  {
+  set_int_param(*detid, "active", i);
+  }
+}
+
 void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int detid, const int i)
 {
   set_int_param(detid, "absorberactive", i);
+}
+
+void PHG4DetectorGroupSubsystem::SetAbsorberActive(const int i)
+{
+  for (auto detid = layers.begin(); detid != layers.end(); ++detid)
+  {
+  set_int_param(*detid, "absorberactive", i);
+  }
 }
 
 void PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
@@ -552,9 +568,25 @@ void PHG4DetectorGroupSubsystem::BlackHole(const int detid, const int i)
   set_int_param(detid, "blackhole", i);
 }
 
+void PHG4DetectorGroupSubsystem::BlackHole(const int i)
+{
+  for (auto detid = layers.begin(); detid != layers.end(); ++detid)
+  {
+  set_int_param(*detid, "blackhole", i);
+  }
+}
+
 void PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int detid, const int i)
 {
   set_int_param(detid, "absorbertruth", i);
+}
+
+void PHG4DetectorGroupSubsystem::SetAbsorberTruth(const int i)
+{
+  for (auto detid = layers.begin(); detid != layers.end(); ++detid)
+  {
+  set_int_param(*detid, "absorbertruth", i);
+  }
 }
 
 void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
