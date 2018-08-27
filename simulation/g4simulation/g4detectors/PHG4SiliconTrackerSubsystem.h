@@ -62,11 +62,6 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   std::vector<std::pair<int, int>> layerconfig_;
   std::string detector_type;
 
-  int nlayers;
-
-  double sensor_radius_inner[4];
-  double sensor_radius_outer[4];
-
 };
 
 #endif

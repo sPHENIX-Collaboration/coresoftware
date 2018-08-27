@@ -25,22 +25,11 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   , layerconfig_(layerconfig)
   , detector_type(detectorname)
 {
-  nlayers = 0;
   for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
   {
     cout << PHWHERE << " adding INTT layer " << (*piter).second << endl;
-    nlayers++;
     AddDetId((*piter).second);
   }
-
-  // set the default sensor radii to the current design
-  double sensor_radius_inner_[4] = {6.876, 8.987, 10.835, 12.676};
-  double sensor_radius_outer_[4] = {7.462, 9.545, 11.361, 13.179};
-  for(int i=0;i<nlayers;i++)
-    {
-      sensor_radius_inner[i] = sensor_radius_inner_[i];
-      sensor_radius_outer[i] = sensor_radius_outer_[i];
-    }
 
   InitializeParameters();
   // put the layer into the name so we get unique names
@@ -160,8 +149,10 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
 		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI};
   int nladder[4] = {34, 30, 36, 42};
+  double sensor_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
+  double sensor_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
+
   // sensor radius_inner and sensor_radius_outer are set in the constructor for now, to avoid a problem with the parameter class
-  cout << "layers: " << nlayers << endl;
   auto detid = GetDetIds(); // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)
   {
