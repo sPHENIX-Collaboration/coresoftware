@@ -7,15 +7,14 @@
 
 namespace PHG4SiliconTrackerDefs
 {
-  static const int SEGMENTATION_Z = -1;
-  static const int SEGMENTATION_PHI = -2;
+static const int SEGMENTATION_Z = -1;
+static const int SEGMENTATION_PHI = -2;
 // this set only exists so we can iterate over the enum
 // yes it can be made more fancy but this will do
 // and yes stupid CINT does not understand C++11
 #ifndef __CINT__
-  static std::set<int> m_SensorSegmentationSet {SEGMENTATION_Z,SEGMENTATION_PHI};
+static std::set<int> m_SensorSegmentationSet{SEGMENTATION_Z, SEGMENTATION_PHI};
 #endif
-};
+};  // namespace PHG4SiliconTrackerDefs
 
 #endif
-

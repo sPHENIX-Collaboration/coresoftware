@@ -1,7 +1,7 @@
 #include "PHG4SiliconTrackerSubsystem.h"
+#include "PHG4SiliconTrackerDefs.h"
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4SiliconTrackerSteppingAction.h"
-#include "PHG4SiliconTrackerDefs.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -38,7 +38,6 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
   SuperDetector(detectorname);
 }
 
-
 //_______________________________________________________________________
 int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
@@ -51,7 +50,7 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  pair<vector<pair<int,int>>::const_iterator, vector<pair<int,int>>::const_iterator> layer_begin_end = make_pair(layerconfig_.begin(),layerconfig_.end());
+  pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> layer_begin_end = make_pair(layerconfig_.begin(), layerconfig_.end());
   detector_ = new PHG4SiliconTrackerDetector(topNode, GetParamsContainer(), Name(), layer_begin_end);
   detector_->SuperDetector(SuperDetector());
   detector_->Detector(detector_type);
@@ -137,91 +136,89 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
   // We have only two types of ladders, one with vertical strips (0) and one with horizontal strips (1)
   // There are 4 sensors in each ladder
-  //     In ladder type 0 the sensor is special and inner and outer sensors are the same. 
-  //     In ladder type 1 there are two different sensor types, inner and outer 
-
+  //     In ladder type 0 the sensor is special and inner and outer sensors are the same.
+  //     In ladder type 1 there are two different sensor types, inner and outer
 
   // We do not want to hard code the ladder types for the layers
   // We define default ladder types for 4 layers, but these can be changed at the macro level
-  int laddertype[4] = {PHG4SiliconTrackerDefs::SEGMENTATION_Z, 
-		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
-		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
-		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI};
+  int laddertype[4] = {PHG4SiliconTrackerDefs::SEGMENTATION_Z,
+                       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+                       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+                       PHG4SiliconTrackerDefs::SEGMENTATION_PHI};
   int nladder[4] = {34, 30, 36, 42};
   double sensor_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
   double sensor_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
 
   // sensor radius_inner and sensor_radius_outer are set in the constructor for now, to avoid a problem with the parameter class
-  auto detid = GetDetIds(); // get pair of iterators to begin/end of set<int> of detids
+  auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)
   {
-      set_default_int_param(*detiter,"active",1);
+    set_default_int_param(*detiter, "active", 1);
 
-      // To reconfigure the layers, all you have to do is overide the defaults for these four arrays from the tracking macro
-      set_default_int_param(*detiter, "laddertype", laddertype[*detiter]);
-      set_default_int_param(*detiter, "nladder", nladder[*detiter]);  // ladders per layer
-      set_default_double_param(*detiter, "sensor_radius_inner", sensor_radius_inner[*detiter]*cm);
-      set_default_double_param(*detiter, "sensor_radius_outer", sensor_radius_outer[*detiter]*cm);
-      // These offsets should be kept at zero in the new design
-    set_default_double_param(*detiter,"offsetphi",0.);
-    set_default_double_param(*detiter,"offsetrot",0.);
-      cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
-      cout << "  layer " << *detiter << " laddertype " << laddertype[*detiter] << " nladder " << nladder[*detiter] 
-	   << " sensor_radius_inner " << sensor_radius_inner[*detiter] << " sensor_radius_outer " << sensor_radius_outer[*detiter] << endl;
-    }
-  { // just being lazy, using namespace in this scope for less clutter
-    using namespace PHG4SiliconTrackerDefs; 
-    set_default_int_param(SEGMENTATION_Z,"nstrips_phi_cell",1);
-    set_default_int_param(SEGMENTATION_Z,"nstrips_phi_sensor",1);
-    set_default_int_param(SEGMENTATION_Z,"nstrips_z_sensor_0",128*5);
-    set_default_int_param(SEGMENTATION_Z,"nstrips_z_sensor_1",128*5);
-    set_default_double_param(SEGMENTATION_Z,"fphx_x",0.032*cm);
-    set_default_double_param(SEGMENTATION_Z,"fphx_y",0.27*cm);
-    set_default_double_param(SEGMENTATION_Z,"fphx_z",0.91*cm);
-    set_default_double_param(SEGMENTATION_Z,"gap_sensor_fphx",0.1*cm);
-    set_default_double_param(SEGMENTATION_Z,"halfladder_z",48.0*cm);
-    set_default_double_param(SEGMENTATION_Z,"hdi_copper_x",0.0052*cm);
-    set_default_double_param(SEGMENTATION_Z,"hdi_edge_z",0.*cm);
-    set_default_double_param(SEGMENTATION_Z,"hdi_kapton_x",0.038*cm);
-    set_default_double_param(SEGMENTATION_Z,"hdi_y",2.55*cm);
-    set_default_double_param(SEGMENTATION_Z,"pgs_x",0.02*cm);
-    set_default_double_param(SEGMENTATION_Z,"sensor_edge_phi",0.13*cm);
-    set_default_double_param(SEGMENTATION_Z,"sensor_edge_z",0.1*cm);
-    set_default_double_param(SEGMENTATION_Z,"sensor_offset_y",0.304*cm);
-    set_default_double_param(SEGMENTATION_Z,"stave_straight_cooler_y",0.47*cm);
-    set_default_double_param(SEGMENTATION_Z,"stave_straight_inner_y",0.1*cm);
-    set_default_double_param(SEGMENTATION_Z,"stave_straight_outer_y",0.672*cm);
-    set_default_double_param(SEGMENTATION_Z,"strip_x",0.032*cm);
-    set_default_double_param(SEGMENTATION_Z,"strip_y",1.6*cm);
-    set_default_double_param(SEGMENTATION_Z,"strip_z_0",0.01406*cm);
-    set_default_double_param(SEGMENTATION_Z,"strip_z_1",0.01406*cm);
-
-    set_default_int_param(SEGMENTATION_PHI,"nstrips_phi_cell",256);
-    set_default_int_param(SEGMENTATION_PHI,"nstrips_phi_sensor",256);
-    set_default_int_param(SEGMENTATION_PHI,"nstrips_z_sensor_0",8);
-    set_default_int_param(SEGMENTATION_PHI,"nstrips_z_sensor_1",5);
-    set_default_double_param(SEGMENTATION_PHI,"fphx_x",0.032*cm);
-    set_default_double_param(SEGMENTATION_PHI,"fphx_y",0.27*cm);
-    set_default_double_param(SEGMENTATION_PHI,"fphx_z",0.91*cm);
-    set_default_double_param(SEGMENTATION_PHI,"gap_sensor_fphx",0.1*cm);
-    set_default_double_param(SEGMENTATION_PHI,"halfladder_z",48.0*cm);
-    set_default_double_param(SEGMENTATION_PHI,"hdi_copper_x",0.0052*cm);
-    set_default_double_param(SEGMENTATION_PHI,"hdi_edge_z",0.*cm);
-    set_default_double_param(SEGMENTATION_PHI,"hdi_kapton_x",0.038*cm);
-    set_default_double_param(SEGMENTATION_PHI,"hdi_y",3.8*cm);
-    set_default_double_param(SEGMENTATION_PHI,"pgs_x",0.02*cm);
-    set_default_double_param(SEGMENTATION_PHI,"sensor_edge_phi",0.13*cm);
-    set_default_double_param(SEGMENTATION_PHI,"sensor_edge_z",0.1*cm);
-    set_default_double_param(SEGMENTATION_PHI,"sensor_offset_y",0.*cm);
-    set_default_double_param(SEGMENTATION_PHI,"stave_straight_cooler_y",0.47*cm);
-    set_default_double_param(SEGMENTATION_PHI,"stave_straight_inner_y",0.344*cm);
-    set_default_double_param(SEGMENTATION_PHI,"stave_straight_outer_y",0.522*cm);
-    set_default_double_param(SEGMENTATION_PHI,"strip_x",0.032*cm);
-    set_default_double_param(SEGMENTATION_PHI,"strip_y",0.0078*cm);
-    set_default_double_param(SEGMENTATION_PHI,"strip_z_0",1.6*cm);
-    set_default_double_param(SEGMENTATION_PHI,"strip_z_1",2.*cm);
+    // To reconfigure the layers, all you have to do is overide the defaults for these four arrays from the tracking macro
+    set_default_int_param(*detiter, "laddertype", laddertype[*detiter]);
+    set_default_int_param(*detiter, "nladder", nladder[*detiter]);  // ladders per layer
+    set_default_double_param(*detiter, "sensor_radius_inner", sensor_radius_inner[*detiter] * cm);
+    set_default_double_param(*detiter, "sensor_radius_outer", sensor_radius_outer[*detiter] * cm);
+    // These offsets should be kept at zero in the new design
+    set_default_double_param(*detiter, "offsetphi", 0.);
+    set_default_double_param(*detiter, "offsetrot", 0.);
+    cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
+    cout << "  layer " << *detiter << " laddertype " << laddertype[*detiter] << " nladder " << nladder[*detiter]
+         << " sensor_radius_inner " << sensor_radius_inner[*detiter] << " sensor_radius_outer " << sensor_radius_outer[*detiter] << endl;
   }
+  {  // just being lazy, using namespace in this scope for less clutter
+    using namespace PHG4SiliconTrackerDefs;
+    set_default_int_param(SEGMENTATION_Z, "nstrips_phi_cell", 1);
+    set_default_int_param(SEGMENTATION_Z, "nstrips_phi_sensor", 1);
+    set_default_int_param(SEGMENTATION_Z, "nstrips_z_sensor_0", 128 * 5);
+    set_default_int_param(SEGMENTATION_Z, "nstrips_z_sensor_1", 128 * 5);
+    set_default_double_param(SEGMENTATION_Z, "fphx_x", 0.032 * cm);
+    set_default_double_param(SEGMENTATION_Z, "fphx_y", 0.27 * cm);
+    set_default_double_param(SEGMENTATION_Z, "fphx_z", 0.91 * cm);
+    set_default_double_param(SEGMENTATION_Z, "gap_sensor_fphx", 0.1 * cm);
+    set_default_double_param(SEGMENTATION_Z, "halfladder_z", 48.0 * cm);
+    set_default_double_param(SEGMENTATION_Z, "hdi_copper_x", 0.0052 * cm);
+    set_default_double_param(SEGMENTATION_Z, "hdi_edge_z", 0. * cm);
+    set_default_double_param(SEGMENTATION_Z, "hdi_kapton_x", 0.038 * cm);
+    set_default_double_param(SEGMENTATION_Z, "hdi_y", 2.55 * cm);
+    set_default_double_param(SEGMENTATION_Z, "pgs_x", 0.02 * cm);
+    set_default_double_param(SEGMENTATION_Z, "sensor_edge_phi", 0.13 * cm);
+    set_default_double_param(SEGMENTATION_Z, "sensor_edge_z", 0.1 * cm);
+    set_default_double_param(SEGMENTATION_Z, "sensor_offset_y", 0.304 * cm);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_cooler_y", 0.47 * cm);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_inner_y", 0.1 * cm);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_outer_y", 0.672 * cm);
+    set_default_double_param(SEGMENTATION_Z, "strip_x", 0.032 * cm);
+    set_default_double_param(SEGMENTATION_Z, "strip_y", 1.6 * cm);
+    set_default_double_param(SEGMENTATION_Z, "strip_z_0", 0.01406 * cm);
+    set_default_double_param(SEGMENTATION_Z, "strip_z_1", 0.01406 * cm);
 
+    set_default_int_param(SEGMENTATION_PHI, "nstrips_phi_cell", 256);
+    set_default_int_param(SEGMENTATION_PHI, "nstrips_phi_sensor", 256);
+    set_default_int_param(SEGMENTATION_PHI, "nstrips_z_sensor_0", 8);
+    set_default_int_param(SEGMENTATION_PHI, "nstrips_z_sensor_1", 5);
+    set_default_double_param(SEGMENTATION_PHI, "fphx_x", 0.032 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "fphx_y", 0.27 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "fphx_z", 0.91 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "gap_sensor_fphx", 0.1 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "halfladder_z", 48.0 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.0052 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "hdi_edge_z", 0. * cm);
+    set_default_double_param(SEGMENTATION_PHI, "hdi_kapton_x", 0.038 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "hdi_y", 3.8 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "pgs_x", 0.02 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "sensor_edge_phi", 0.13 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "sensor_edge_z", 0.1 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "sensor_offset_y", 0. * cm);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_y", 0.47 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_inner_y", 0.344 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_outer_y", 0.522 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "strip_x", 0.032 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "strip_y", 0.0078 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "strip_z_0", 1.6 * cm);
+    set_default_double_param(SEGMENTATION_PHI, "strip_z_1", 2. * cm);
+  }
 
   return;
 }
@@ -229,8 +226,11 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 void PHG4SiliconTrackerSubsystem::Print(const string &what) const
 {
   PrintDefaultParams();
-  cout << endl << "------" << endl;
+  cout << endl
+       << "------" << endl;
   PrintMacroParams();
-  cout << endl << "------" << endl << endl;
+  cout << endl
+       << "------" << endl
+       << endl;
   GetParamsContainer()->Print();
 }
