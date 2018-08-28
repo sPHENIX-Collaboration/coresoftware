@@ -18,9 +18,9 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   typedef std::vector<std::pair<int, int>> vpair;
 
   //! constructor
-  PHG4SiliconTrackerSubsystem(const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));  
+  PHG4SiliconTrackerSubsystem(const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
 
-  PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
+  //  PHG4SiliconTrackerSubsystem(const double sensor_radius_inner_[], const double sensor_radius_outer_[], const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
 
   //! destructor
   virtual ~PHG4SiliconTrackerSubsystem(void)
@@ -47,7 +47,6 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
   PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
   void Print(const std::string &what = "ALL") const;
 
-
  private:
   void SetDefaultParameters();
 
@@ -61,12 +60,6 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
 
   std::vector<std::pair<int, int>> layerconfig_;
   std::string detector_type;
-
-  int nlayers;
-
-  double sensor_radius_inner[4];
-  double sensor_radius_outer[4];
-
 };
 
 #endif

@@ -56,10 +56,14 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   void SetCalibrationFileDir(const std::string &calibdir) { calibfiledir = calibdir; }
   void UpdateParametersWithMacro();
 
-  void SetActive(const int detid, const int i = 1);
-  void SetAbsorberActive(const int detid, const int i = 1);
-  void SetAbsorberTruth(const int detid, const int i = 1);
-  void BlackHole(const int detid, const int i = 1);
+  void SetActive(const int detid, const int i);
+  void SetActive(const int i = 1);
+  void SetAbsorberActive(const int detid, const int i);
+  void SetAbsorberActive(const int i = 1);
+  void SetAbsorberTruth(const int detid, const int i);
+  void SetAbsorberTruth(const int i = 1);
+  void BlackHole(const int detid, const int i);
+  void BlackHole(const int i = 1);
   void SuperDetector(const std::string &name);
   const std::string SuperDetector() const { return superdetector; }
   int GetLayer() const { return layer; }
