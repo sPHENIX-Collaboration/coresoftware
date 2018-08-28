@@ -311,6 +311,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 	  {
 	    cout << PHWHERE << "invalid laddertype " << laddertype << endl;
 	    gSystem->Exit(1);
+// this is just to make the optimizer happy which otherwise complains about possibly
+// uninitialized variables. It doesn't know gSystem->Exit(1) quits, 
+// this exit here terminates the program for it
+	    exit(1);
 	  }
 	  cell_length_z = strip_z * nstrips_z_sensor / ncopy;
 	  offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. : -2. * cell_length_z / 2. * double(ncopy / 2);
@@ -647,7 +651,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
             ladder_y = ladder_y + 2.0* sensor_offset_y;
 	  }	    
 	  G4VSolid *ladder_box = new G4Box(boost::str(boost::format("ladder_box_%d_%d") % inttlayer % itype).c_str(), ladder_x / 2., ladder_y / 2., ladder_z / 2.);
-	  G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("ladder_%d_%d_%d") % inttlayer % inttlayer % itype).c_str(), 0, 0, 0);
+	  G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, G4Material::GetMaterial("G4_AIR"), boost::str(boost::format("ladder_%d_%d") % inttlayer % itype).c_str(), 0, 0, 0);
 
 	  if ((IsAbsorberActive.find(inttlayer))->second > 0)
 	    {
@@ -762,9 +766,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
 	      // place the copy at its ladder phi value, and at positive (2) and negative (1) Z
 	      new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -posz[inttlayer][itype])), ladder_volume, 
-				boost::str(boost::format("ladder_%d_%d_%d_%d_1")  % inttlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+				boost::str(boost::format("ladder_%d_%d_%d_1") % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
 	      new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +posz[inttlayer][itype])), ladder_volume, 
-				boost::str(boost::format("ladder_%d_%d_%d_%d_2") % inttlayer % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
+				boost::str(boost::format("ladder_%d_%d_%d_2") % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
 
 	
 	      if (itype != 0)

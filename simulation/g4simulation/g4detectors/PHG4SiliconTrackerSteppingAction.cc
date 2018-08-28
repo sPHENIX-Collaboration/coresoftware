@@ -165,7 +165,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     if (*tokeniter == "ladder")
     {
       // advance the tokeniter and then cast it if first token is "ladder"
-      sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
+//      sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
 //      cout << "sphxlayer orig: " << sphxlayer;
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
       sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
@@ -207,6 +207,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     default:
       cout << "Bad ladderz: " << ladderz << endl;
       gSystem->Exit(1);
+// this is just to make the optimizer happy which otherwise complains about possibly
+// uninitialized variables. It doesn't know gSystem->Exit(1) quits, 
+// this exit here terminates the program for it
+	    exit(1);
     }
     div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor);
     strip_y_index = copydiv.quot;
@@ -232,7 +236,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     // in both cases we need to find the correct strip_y_index and strip_z_index values the hard way - that is what is done here
     int fixit = 0;
       G4VPhysicalVolume* volume_post = postPoint->GetTouchableHandle()->GetVolume();
-      G4VPhysicalVolume* volume_pre = prePoint->GetTouchableHandle()->GetVolume();
+//      G4VPhysicalVolume* volume_pre = prePoint->GetTouchableHandle()->GetVolume();
       G4LogicalVolume* logvolpre = volume->GetLogicalVolume();
       G4LogicalVolume* logvolpost = volume_post->GetLogicalVolume();
     if ( prePoint->GetStepStatus() == fGeomBoundary && postPoint->GetStepStatus() == fGeomBoundary)
@@ -316,6 +320,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	default:
       cout << "Bad ladderz: " << ladderz << endl;
       gSystem->Exit(1);
+// this is just to make the optimizer happy which otherwise complains about possibly
+// uninitialized variables. It doesn't know gSystem->Exit(1) quits, 
+// this exit here terminates the program for it
+	    exit(1);
 	}
 	// cout << "nstrips_z_sensor: " << nstrips_z_sensor 
 	//      << ", strip_z: " << strip_z
@@ -403,13 +411,11 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	    {
 	      ladderz = iter->second;
 	    }
-	  cout << "volume: " << touch->GetVolume(0)->GetName();
-	  sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
+//	  cout << "volume: " << touch->GetVolume(0)->GetName();
 	  inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-	  cout << ", inttlayer: " << inttlayer;
-	  cout << ", sphxlayer orig: " << sphxlayer;
-          sphxlayer = m_InttToTrackerLayerMap.find(sphxlayer)->second;
-	  cout << ", sphxlayer(intt): " << sphxlayer << endl;
+//	  cout << ", inttlayer: " << inttlayer;
+          sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
+//	  cout << ", sphxlayer(intt): " << sphxlayer << endl;
        }
      catch (...)
        {

@@ -62,7 +62,6 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   int blackhole = 0;
   for (set<int>::const_iterator parcontaineriter = GetDetIds().first; parcontaineriter != GetDetIds().second; ++parcontaineriter)
   {
-    const PHParameters *par = GetParamsContainer()->GetParameters(*parcontaineriter);
     if (active || GetParamsContainer()->GetParameters(*parcontaineriter)->get_int_param("active"))
     {
       active = 1;
