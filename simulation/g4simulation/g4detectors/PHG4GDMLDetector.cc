@@ -82,7 +82,9 @@ void PHG4GDMLDetector::Construct(G4LogicalVolume* logicWorld)
   // import the staves from the gemetry file
   unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
-  gdmlParser.Read(m_GDMPath, false);
+  gdmlParser.SetOverlapCheck(OverlapCheck());
+//  gdmlParser.Read(m_GDMPath, false);
+  gdmlParser.Read(m_GDMPath, OverlapCheck());
 
   //  G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);
 
