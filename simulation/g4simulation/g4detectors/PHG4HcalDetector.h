@@ -1,7 +1,7 @@
 #ifndef PHG4HcalDetector_h
 #define PHG4HcalDetector_h
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
