@@ -41,7 +41,6 @@ PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PH
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
     int layer = layeriter->second;
-    cout << "getting params for layer " << layer << endl;
     const PHParameters *par = paramscontainer->GetParameters(layer);
     IsActive[layer] = par->get_int_param("active");
     IsAbsorberActive[layer] = par->get_int_param("absorberactive");
@@ -73,9 +72,9 @@ int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume *volume) co
 
 void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
 {
-  // if (Verbosity() > 0)
+  if (Verbosity() > 0)
   {
-    std::cout << "PHG4SiliconTrackerDetector::Construct called for layers " << std::endl;
+    cout << "PHG4SiliconTrackerDetector::Construct called for layers " << endl;
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
     cout << "layer " << layeriter->second << endl;

@@ -75,11 +75,6 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
 const PHParameters *par = paramscontainer->GetParameters(*iter);
 m_StripYMap.insert(make_pair(*iter, par->get_double_param("strip_y") *cm));
 m_StripZMap.insert(make_pair(*iter,make_pair(par->get_double_param("strip_z_0") *cm, par->get_double_param("strip_z_1") *cm)));
-cout << "laddertype: " << *iter
-     << ", strip_y: " << par->get_double_param("strip_y") *cm
-     << ", strip_z_0: " << par->get_double_param("strip_z_0") *cm
-     << ", strip_z_1: " << par->get_double_param("strip_z_1") *cm
-     << endl;
 m_nStripsPhiCell.insert(make_pair(*iter,par->get_int_param("nstrips_phi_cell")));
 m_nStripsZSensor.insert(make_pair(*iter,make_pair(par->get_int_param("nstrips_z_sensor_0"),par->get_int_param("nstrips_z_sensor_1"))));
 
