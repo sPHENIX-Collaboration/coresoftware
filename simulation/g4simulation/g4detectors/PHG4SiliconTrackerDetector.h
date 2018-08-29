@@ -62,11 +62,11 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   G4double m_PosZ[4][2];
   G4double m_StripOffsetX[4];
 
-  std::set<G4LogicalVolume *> absorberlogvols;
-  std::set<G4LogicalVolume *> activelogvols;
-  std::map<int, int> IsActive;
-  std::map<int, int> IsAbsorberActive;
-  std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> layer_begin_end;
+  std::set<G4LogicalVolume *> m_AbsorberLogVolsSet;
+  std::set<G4LogicalVolume *> m_ActiveLogVols;
+  std::map<int, int> m_IsActiveMap;
+  std::map<int, int> m_IsAbsorberActiveMap;
+  std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> m_LayerBeginEndIteratorPair;
 };
 
 #endif
