@@ -27,6 +27,7 @@ PHG4RICHSteppingAction::PHG4RICHSteppingAction(PHG4RICHDetector* detector)
   : detector_(detector)
   , hits_(nullptr)
   , hit(nullptr)
+  , fExpectedNextStatus(Undefined)
 {
 }
 
