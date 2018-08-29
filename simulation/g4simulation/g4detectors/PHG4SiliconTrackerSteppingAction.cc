@@ -11,7 +11,6 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
@@ -19,6 +18,7 @@
 #include <TSystem.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
 #include <Geant4/G4TouchableHistory.hh>

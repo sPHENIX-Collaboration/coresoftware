@@ -23,6 +23,7 @@
 #include <Geant4/G4PVParameterised.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VisAttributes.hh>
 
@@ -35,13 +36,13 @@ using namespace std;
 
 PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> &layer_b_e)
   : PHG4Detector(Node, dnam)
-  , paramscontainer(parameters)
+  , m_ParamsContainer(parameters)
   , layer_begin_end(layer_b_e)
 {
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
     int layer = layeriter->second;
-    const PHParameters *par = paramscontainer->GetParameters(layer);
+    const PHParameters *par = m_ParamsContainer->GetParameters(layer);
     IsActive[layer] = par->get_int_param("active");
     IsAbsorberActive[layer] = par->get_int_param("absorberactive");
   }
@@ -100,19 +101,19 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   {
     int inttlayer = layeriter->second;
     // get the parameters for this layer
-    const PHParameters *params1 = paramscontainer->GetParameters(inttlayer);
+    const PHParameters *params1 = m_ParamsContainer->GetParameters(inttlayer);
     const int laddertype = params1->get_int_param("laddertype");
     const G4double offsetphi = params1->get_double_param("offsetphi") * deg;
     G4double offsetrot = params1->get_double_param("offsetrot") * deg;
-    sensor_radius_inner[inttlayer] = params1->get_double_param("sensor_radius_inner") * cm;
-    sensor_radius_outer[inttlayer] = params1->get_double_param("sensor_radius_outer") * cm;
+    m_SensorRadiusInner[inttlayer] = params1->get_double_param("sensor_radius_inner") * cm;
+    m_SensorRadiusOuter[inttlayer] = params1->get_double_param("sensor_radius_outer") * cm;
     const int nladders_layer = params1->get_int_param("nladder");
     cout << "Constructing Silicon Tracker layer: " << endl;
     cout << "   layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
-         << " sensor_radius_inner " << sensor_radius_inner[inttlayer] << " sensor_radius_outer " << sensor_radius_outer[inttlayer] << endl;
+         << " sensor_radius_inner " << m_SensorRadiusInner[inttlayer] << " sensor_radius_outer " << m_SensorRadiusOuter[inttlayer] << endl;
 
     // Look up all remaining parameters by the laddertype for this layer
-    const PHParameters *params = paramscontainer->GetParameters(laddertype);
+    const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
     const G4double strip_x = params->get_double_param("strip_x") * cm;
     const G4double strip_y = params->get_double_param("strip_y") * cm;
     const int nstrips_phi_sensor = params->get_int_param("nstrips_phi_sensor");
@@ -727,11 +728,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       const double dphi = 2 * M_PI / nladders_layer;
 
-      // there is no single radius for a layer
-      ladder_radius_inner[inttlayer] = sensor_radius_inner[inttlayer] + sensor_offset_x_ladder;
-      ladder_radius_outer[inttlayer] = sensor_radius_outer[inttlayer] + sensor_offset_x_ladder;
-      posz[inttlayer][itype] = (itype == 0) ? hdi_z / 2. : hdi_z_[inttlayer][0] + hdi_z / 2.;  // location of center of ladder in Z
-      strip_x_offset[inttlayer] = sensor_offset_x_ladder;
+      m_PosZ[inttlayer][itype] = (itype == 0) ? hdi_z / 2. : hdi_z_[inttlayer][0] + hdi_z / 2.;  // location of center of ladder in Z
+      m_StripOffsetX[inttlayer] = sensor_offset_x_ladder;
 
       // The sensors have no tilt in the new design
       //    The type 1 ladders have the sensor at the center of the ladder in phi, so that is easy
@@ -740,11 +738,18 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       for (G4int icopy = 0; icopy < nladders_layer; icopy++)
       {
-        const double phi = offsetphi + dphi * (double) icopy;  // offsetphi is zero by default, so we start at zero
-        double radius = ladder_radius_inner[inttlayer];
+        const double phi = offsetphi + dphi * icopy;  // offsetphi is zero by default, so we start at zero
+	double radius;
+      // there is no single radius for a layer
         if (icopy % 2)
-          radius = ladder_radius_outer[inttlayer];  // every odd numbered copy is placed at the larger radius
-
+	{
+          radius = m_SensorRadiusOuter[inttlayer];  // every odd numbered copy is placed at the larger radius
+	}
+	else
+	{
+           radius =  m_SensorRadiusInner[inttlayer];
+	}
+        radius += sensor_offset_x_ladder;
         const double posx = radius * cos(phi);
         const double posy = radius * sin(phi);
         const double fRotate = phi + offsetrot;  // no initial rotation, since we assembled the ladder in phi = 0 orientation
@@ -753,9 +758,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         ladderrotation->rotateZ(fRotate);
 
         // place the copy at its ladder phi value, and at positive (2) and negative (1) Z
-        new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -posz[inttlayer][itype])), ladder_volume,
+        new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
                           boost::str(boost::format("ladder_%d_%d_%d_1") % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
-        new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +posz[inttlayer][itype])), ladder_volume,
+        new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
                           boost::str(boost::format("ladder_%d_%d_%d_2") % inttlayer % itype % icopy).c_str(), trackerenvelope, false, 0, OverlapCheck());
 
         if (itype != 0)
@@ -770,7 +775,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         }
 
         /*
-	      cout << "Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << posz[inttlayer][itype] 
+	      cout << "Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype] 
 		   << " fRotate " << fRotate << " posx " << posx << " posy " << posy << " sensor_offset_x_ladder " << sensor_offset_x_ladder 
 		   << endl;
 	      */
@@ -879,46 +884,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   return 0;
 }
 
-int PHG4SiliconTrackerDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  static int i = 0;
-  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch (i)
-  {
-  case 0:
-    visattchk->SetColour(G4Colour::Red());
-    i++;
-    break;
-  case 1:
-    visattchk->SetColour(G4Colour::Magenta());
-    i++;
-    break;
-  case 2:
-    visattchk->SetColour(G4Colour::Yellow());
-    i++;
-    break;
-  case 3:
-    visattchk->SetColour(G4Colour::Blue());
-    i++;
-    break;
-  case 4:
-    visattchk->SetColour(G4Colour::Cyan());
-    i++;
-    break;
-  default:
-    visattchk->SetColour(G4Colour::Green());
-    i = 0;
-    break;
-  }
-
-  checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
-  return 0;
-}
-
 void PHG4SiliconTrackerDetector::AddGeometryNode()
 {
   int active = 0;
@@ -933,7 +898,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
   }
   if (active)
   {
-    std::string geonode = (superdetector != "NONE") ? boost::str(boost::format("CYLINDERGEOM_%s") % superdetector) : boost::str(boost::format("CYLINDERGEOM_%s") % detector_type);
+    std::string geonode = (m_SuperDetector != "NONE") ? boost::str(boost::format("CYLINDERGEOM_%s") % m_SuperDetector) : boost::str(boost::format("CYLINDERGEOM_%s") % m_DetectorType);
 
     PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.c_str());
     if (!geo)
@@ -950,10 +915,10 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       const int sphxlayer = layeriter->first;
       const int inttlayer = layeriter->second;
       int ilayer = inttlayer;
-      const PHParameters *params_layer = paramscontainer->GetParameters(inttlayer);
+      const PHParameters *params_layer = m_ParamsContainer->GetParameters(inttlayer);
       const int laddertype = params_layer->get_int_param("laddertype");
       // parameters are stored in cm per our convention
-      const PHParameters *params = paramscontainer->GetParameters(laddertype);
+      const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
           sphxlayer,
           params->get_double_param("strip_x"),
@@ -964,11 +929,11 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           params->get_int_param("nstrips_z_sensor_1"),
           params->get_int_param("nstrips_phi_sensor"),
           params_layer->get_int_param("nladder"),
-          posz[ilayer][0] / cm, // posz uses G4 internal units, needs to be converted to cm
-          posz[ilayer][1] / cm,
-          sensor_radius_inner[ilayer]/cm,
-          sensor_radius_outer[ilayer]/cm,
-          //strip_x_offset[ilayer] / cm,
+          m_PosZ[ilayer][0] / cm, // m_PosZ uses G4 internal units, needs to be converted to cm
+          m_PosZ[ilayer][1] / cm,
+          m_SensorRadiusInner[ilayer]/cm,
+          m_SensorRadiusOuter[ilayer]/cm,
+          //m_StripOffsetX[ilayer] / cm,
           0.0,
           params_layer->get_double_param("offsetphi"),
           params_layer->get_double_param("offsetrot"));
