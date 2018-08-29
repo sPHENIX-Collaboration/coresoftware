@@ -104,8 +104,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     const int laddertype = params1->get_int_param("laddertype");
     const G4double offsetphi = params1->get_double_param("offsetphi") * deg;
     G4double offsetrot = params1->get_double_param("offsetrot") * deg;
-    sensor_radius_inner[inttlayer] = params1->get_double_param("sensor_radius_inner") * mm;
-    sensor_radius_outer[inttlayer] = params1->get_double_param("sensor_radius_outer") * mm;
+    sensor_radius_inner[inttlayer] = params1->get_double_param("sensor_radius_inner") * cm;
+    sensor_radius_outer[inttlayer] = params1->get_double_param("sensor_radius_outer") * cm;
     const int nladders_layer = params1->get_int_param("nladder");
     cout << "Constructing Silicon Tracker layer: " << endl;
     cout << "   layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
@@ -113,21 +113,21 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
     // Look up all remaining parameters by the laddertype for this layer
     const PHParameters *params = paramscontainer->GetParameters(laddertype);
-    const G4double strip_x = params->get_double_param("strip_x") * mm;
-    const G4double strip_y = params->get_double_param("strip_y") * mm;
+    const G4double strip_x = params->get_double_param("strip_x") * cm;
+    const G4double strip_y = params->get_double_param("strip_y") * cm;
     const int nstrips_phi_sensor = params->get_int_param("nstrips_phi_sensor");
-    const G4double sensor_offset_y = params->get_double_param("sensor_offset_y") * mm;
-    const G4double hdi_y = params->get_double_param("hdi_y") * mm;
-    double hdi_kapton_x = params->get_double_param("hdi_kapton_x") * mm;
-    double hdi_copper_x = params->get_double_param("hdi_copper_x") * mm;
-    double fphx_x = params->get_double_param("fphx_x") * mm;
-    double fphx_y = params->get_double_param("fphx_y") * mm;
-    double fphx_z = params->get_double_param("fphx_z") * mm;
-    double pgs_x = params->get_double_param("pgs_x") * mm;
-    double halfladder_z = params->get_double_param("halfladder_z") * mm;
-    double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * mm;
-    double stave_straight_inner_y = params->get_double_param("stave_straight_inner_y") * mm;
-    double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * mm;
+    const G4double sensor_offset_y = params->get_double_param("sensor_offset_y") * cm;
+    const G4double hdi_y = params->get_double_param("hdi_y") * cm;
+    double hdi_kapton_x = params->get_double_param("hdi_kapton_x") * cm;
+    double hdi_copper_x = params->get_double_param("hdi_copper_x") * cm;
+    double fphx_x = params->get_double_param("fphx_x") * cm;
+    double fphx_y = params->get_double_param("fphx_y") * cm;
+    double fphx_z = params->get_double_param("fphx_z") * cm;
+    double pgs_x = params->get_double_param("pgs_x") * cm;
+    double halfladder_z = params->get_double_param("halfladder_z") * cm;
+    double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * cm;
+    double stave_straight_inner_y = params->get_double_param("stave_straight_inner_y") * cm;
+    double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * cm;
 
     // We loop over inner, then outer, sensors, where  itype specifies the inner or outer sensor
     // The rest of this loop will construct and put in place a section of a ladder corresponding to the Z range of this sensor only
@@ -142,11 +142,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       switch (itype)
       {
       case 0:
-        strip_z = params->get_double_param("strip_z_0") * mm;
+        strip_z = params->get_double_param("strip_z_0") * cm;
         nstrips_z_sensor = params->get_int_param("nstrips_z_sensor_0");
         break;
       case 1:
-        strip_z = params->get_double_param("strip_z_1") * mm;
+        strip_z = params->get_double_param("strip_z_1") * cm;
         nstrips_z_sensor = params->get_int_param("nstrips_z_sensor_1");
         break;
       default:
@@ -952,22 +952,22 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       int ilayer = inttlayer;
       const PHParameters *params_layer = paramscontainer->GetParameters(inttlayer);
       const int laddertype = params_layer->get_int_param("laddertype");
-      // parameters are in cm, so conversion needed here to get from mm to cm
+      // parameters are stored in cm per our convention
       const PHParameters *params = paramscontainer->GetParameters(laddertype);
       PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
           sphxlayer,
-          params->get_double_param("strip_x") / cm,
-          params->get_double_param("strip_y") / cm,
-          params->get_double_param("strip_z_0") / cm,
-          params->get_double_param("strip_z_1") / cm,
+          params->get_double_param("strip_x"),
+          params->get_double_param("strip_y"),
+          params->get_double_param("strip_z_0"),
+          params->get_double_param("strip_z_1"),
           params->get_int_param("nstrips_z_sensor_0"),
           params->get_int_param("nstrips_z_sensor_1"),
           params->get_int_param("nstrips_phi_sensor"),
           params_layer->get_int_param("nladder"),
-          posz[ilayer][0] / cm,
+          posz[ilayer][0] / cm, // posz uses G4 internal units, needs to be converted to cm
           posz[ilayer][1] / cm,
-          sensor_radius_inner[ilayer] / cm,
-          sensor_radius_outer[ilayer] / cm,
+          sensor_radius_inner[ilayer]/cm,
+          sensor_radius_outer[ilayer]/cm,
           //strip_x_offset[ilayer] / cm,
           0.0,
           params_layer->get_double_param("offsetphi"),
