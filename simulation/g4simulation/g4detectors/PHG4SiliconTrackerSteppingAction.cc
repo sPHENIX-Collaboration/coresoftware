@@ -80,19 +80,21 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   }
   AbsorberIndex["ladder"] = -1;
   AbsorberIndex["stave"] = -2;
-  AbsorberIndex["pgs"] = -3;
-  AbsorberIndex["siinactive"] = -4;
+  AbsorberIndex["pgs"] = -8;
+  AbsorberIndex["pgsext"] = -9;
+  AbsorberIndex["siactive"] = -1;
+  AbsorberIndex["siinactive"] = -2;
   AbsorberIndex["hdi"] = -5;
-  AbsorberIndex["fphxcontainer"] = -6;
+  AbsorberIndex["fphxcontainer"] = -7;
   AbsorberIndex["fphxcontainerm"] = -7;
   AbsorberIndex["fphxcontainerp"] = -8;
   AbsorberIndex["ladderext"] = -9;
   AbsorberIndex["hdiext"] = -10;
   AbsorberIndex["staveext"] = -11;
-  AbsorberIndex["hdicopper"] = -12;
-  AbsorberIndex["hdikapton"] = -13;
-  AbsorberIndex["hdiextcopper"] = -14;
-  AbsorberIndex["hdiextkapton"] = -15;
+  AbsorberIndex["hdicopper"] = -4;
+  AbsorberIndex["hdikapton"] = -3;
+  AbsorberIndex["hdiextcopper"] = -6;
+  AbsorberIndex["hdiextkapton"] = -5;
 }
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
@@ -102,10 +104,6 @@ PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
-  BOOST_FOREACH (string absname, missingabsorbers)
-  {
-    cout << "PHG4SiliconTrackerSteppingAction: need to implement absorber " << absname << endl;
-  }
 }
 
 //____________________________________________________________________________..
@@ -226,7 +224,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // the physics step size is taken rather the geometric step size
       if (logvolpre == logvolpost)
       {
-        if (volume->GetCopyNo() == volume_post->GetCopyNo() || prePoint->GetStepStatus() == fUndefined)
+        if (volume->GetCopyNo() == volume_post->GetCopyNo())
         {
           fixit = 1;
         }
@@ -371,36 +369,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   }     // end of whichactive > 0 block
   else  // whichactive < 0, silicon inactive area, FPHX, stabe etc. as absorbers
   {
-    try
-    {
-      boost::char_separator<char> sep("_");
-      boost::tokenizer<boost::char_separator<char>> tok(touch->GetVolume(0)->GetName(), sep);
-      boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
-      tokeniter = tok.begin();
-      map<string, int>::const_iterator iter = AbsorberIndex.find(*tokeniter);
-      if (iter == AbsorberIndex.end())
-      {
-        cout << "Absorber " << *tokeniter << " not in list" << endl;
-        missingabsorbers.insert(*tokeniter);
-        ladderz = -AbsorberIndex.size();
-        AbsorberIndex[*tokeniter] = ladderz;
-      }
-      else
-      {
-        ladderz = iter->second;
-      }
-      	  cout << "volume: " << touch->GetVolume(0)->GetName();
-      inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-      	  cout << ", inttlayer: " << inttlayer;
+    auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
+    tie(inttlayer,ladderz) = iter->second;
       sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-      //	  cout << ", sphxlayer(intt): " << sphxlayer << endl;
-      cout << ", ladderz: " << ladderz << endl;
-    }
-    catch (...)
-    {
-      cout << " that did not work for " << touch->GetVolume(0)->GetName() << endl;
-      missingabsorbers.insert(touch->GetVolume(0)->GetName());
-    }
   }  // end of si inactive area block
 
   // collect energy and track length step by step

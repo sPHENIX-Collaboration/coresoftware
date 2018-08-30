@@ -49,8 +49,8 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
     return m_DetectorType;
   }
 
-  std::map<G4VPhysicalVolume *,std::tuple<int, int, int, int>>::const_iterator get_ActiveVolumeTuple(G4VPhysicalVolume * physvol) const;
-  std::map<G4VPhysicalVolume *,std::tuple<int, int>>::const_iterator get_PassiveVolumeTuple(G4VPhysicalVolume * physvol) const;
+  std::map<G4VPhysicalVolume *,std::tuple<int, int, int, int>>::const_iterator get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const;
+  std::map<G4LogicalVolume *,std::tuple<int, int>>::const_iterator get_PassiveVolumeTuple(G4LogicalVolume *logvol) const;
 
  private:
   void AddGeometryNode();
@@ -66,13 +66,12 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   G4double m_PosZ[4][2];
   G4double m_StripOffsetX[4];
 
-  std::set<G4LogicalVolume *> m_AbsorberLogVolsSet;
   std::set<G4LogicalVolume *> m_ActiveLogVols;
   std::map<int, int> m_IsActiveMap;
   std::map<int, int> m_IsAbsorberActiveMap;
   std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> m_LayerBeginEndIteratorPair;
   std::map<G4VPhysicalVolume *,std::tuple<int, int, int, int>> m_ActiveVolumeTuple;
-  std::map<G4VPhysicalVolume *,std::tuple<int, int>> m_PassiveVolumeTuple;
+  std::map<G4LogicalVolume *,std::tuple<int, int>> m_PassiveVolumeTuple;
 };
 
 #endif
