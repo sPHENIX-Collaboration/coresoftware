@@ -26,7 +26,7 @@ using namespace std;
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
   : m_Detector(detector)
   , m_Hits(nullptr)
-  , m_Absorberhits(nullptr)
+  , m_AbsorberHits(nullptr)
   , m_Hit(nullptr)
   , m_Params(parameters)
   , m_SaveHitContainer(nullptr)
@@ -171,7 +171,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       }
       else
       {
-        m_SaveHitContainer = m_Absorberhits;
+        m_SaveHitContainer = m_AbsorberHits;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -317,14 +317,14 @@ void PHG4InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 
   //now look for the map and grab a pointer to it.
   m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  m_Absorberhits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
   if (!m_Hits)
   {
     std::cout << "PHG4InnerHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
-  if (!m_Absorberhits)
+  if (!m_AbsorberHits)
   {
     if (Verbosity() > 1)
     {
