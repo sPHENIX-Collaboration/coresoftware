@@ -130,8 +130,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
     // Get the layer and ladder information which are 2 steps up in the volume hierarchy
-// the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
-// if we are in an active logical volume whioch is located in this ladder
+    // the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
+    // if we are in an active logical volume whioch is located in this ladder
     auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(2));
     tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
     if (inttlayer < 0 || inttlayer > 3)
@@ -351,8 +351,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   else  // whichactive < 0, silicon inactive area, FPHX, stabe etc. as absorbers
   {
     auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
-    tie(inttlayer,ladderz) = iter->second;
-      sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
+    tie(inttlayer, ladderz) = iter->second;
+    sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
   }  // end of si inactive area block
 
   // collect energy and track length step by step

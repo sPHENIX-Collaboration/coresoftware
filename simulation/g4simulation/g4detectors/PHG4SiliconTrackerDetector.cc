@@ -61,7 +61,7 @@ int PHG4SiliconTrackerDetector::IsInSiliconTracker(G4VPhysicalVolume *volume) co
   {
     return -1;
   }
-  if ( m_ActiveLogVols.find(logvol) !=  m_ActiveLogVols.end())
+  if (m_ActiveLogVols.find(logvol) != m_ActiveLogVols.end())
   {
     return 1;
   }
@@ -101,8 +101,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     // get the parameters for this layer
     const PHParameters *params1 = m_ParamsContainer->GetParameters(inttlayer);
     const int laddertype = params1->get_int_param("laddertype");
-    const double offsetphi = (params1->get_double_param("offsetphi") * deg)/rad; // use rad internally
-    double offsetrot = (params1->get_double_param("offsetrot") * deg)/rad; // use rad internally
+    const double offsetphi = (params1->get_double_param("offsetphi") * deg) / rad;  // use rad internally
+    double offsetrot = (params1->get_double_param("offsetrot") * deg) / rad;        // use rad internally
     m_SensorRadiusInner[inttlayer] = params1->get_double_param("sensor_radius_inner") * cm;
     m_SensorRadiusOuter[inttlayer] = params1->get_double_param("sensor_radius_outer") * cm;
     const int nladders_layer = params1->get_int_param("nladder");
@@ -165,7 +165,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                                           (boost::format("strip_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
       if ((m_IsActiveMap.find(inttlayer))->second > 0)
       {
-         m_ActiveLogVols.insert(strip_volume);
+        m_ActiveLogVols.insert(strip_volume);
       }
       G4VisAttributes *strip_vis = new G4VisAttributes();
       strip_vis->SetVisibility(false);
@@ -180,7 +180,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *siactive_box = new G4Box((boost::format("siactive_box_%d_%d") % inttlayer % itype).str(), siactive_x / 2, siactive_y / 2., siactive_z / 2.);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"),
                                                              (boost::format("siwafer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-      m_PassiveVolumeTuple.insert(make_pair(siactive_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::SI_WAFER)));
+      m_PassiveVolumeTuple.insert(make_pair(siactive_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::SI_WAFER)));
       G4VisAttributes *siactive_vis = new G4VisAttributes();
       siactive_vis->SetVisibility(true);
       siactive_vis->SetForceSolid(true);
@@ -205,7 +205,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4LogicalVolume *siinactive_volume = new G4LogicalVolume(siinactive_box, G4Material::GetMaterial("G4_Si"),
                                                                (boost::format("siinactive_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-       m_PassiveVolumeTuple.insert(make_pair(siinactive_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::SI_INACTIVE)));
+      m_PassiveVolumeTuple.insert(make_pair(siinactive_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::SI_INACTIVE)));
       G4VisAttributes *siinactive_vis = new G4VisAttributes();
       siinactive_vis->SetVisibility(true);
       siinactive_vis->SetForceSolid(true);
@@ -220,11 +220,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *hdi_kapton_box = new G4Box((boost::format("hdi_kapton_box_%d_%d") % inttlayer % itype).str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z / 2.0);
       G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, G4Material::GetMaterial("G4_KAPTON"),
                                                                (boost::format("hdi_kapton_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-       m_PassiveVolumeTuple.insert(make_pair(hdi_kapton_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::HDI_KAPTON)));
+      m_PassiveVolumeTuple.insert(make_pair(hdi_kapton_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::HDI_KAPTON)));
       G4VSolid *hdi_copper_box = new G4Box((boost::format("hdi_copper_box_%d_%d") % inttlayer % itype).str(), hdi_copper_x / 2., hdi_y / 2., hdi_z / 2.0);
       G4LogicalVolume *hdi_copper_volume = new G4LogicalVolume(hdi_copper_box, G4Material::GetMaterial("G4_Cu"),
                                                                (boost::format("hdi_copper_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-       m_PassiveVolumeTuple.insert(make_pair(hdi_copper_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::HDI_COPPER)));
+      m_PassiveVolumeTuple.insert(make_pair(hdi_copper_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::HDI_COPPER)));
 
       // This is the part of the HDI that extends beyond the sensor
       const double hdiext_z = (itype == 0) ? 0.000001 : halfladder_z - hdi_z_arr[inttlayer][0] - hdi_z;  // need to assign nonzero value for itype=0
@@ -232,13 +232,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                               hdi_kapton_x / 2., hdi_y / 2., hdiext_z / 2.0);
       G4LogicalVolume *hdiext_kapton_volume = new G4LogicalVolume(hdiext_kapton_box, G4Material::GetMaterial("G4_KAPTON"),  // was "FPC"
                                                                   (boost::format("hdiext_kapton_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
-      m_PassiveVolumeTuple.insert(make_pair(hdiext_kapton_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::HDIEXT_KAPTON)));
+      m_PassiveVolumeTuple.insert(make_pair(hdiext_kapton_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::HDIEXT_KAPTON)));
 
       G4VSolid *hdiext_copper_box = new G4Box((boost::format("hdiext_copper_box_%d_%s") % inttlayer % itype).str(),
                                               hdi_copper_x / 2., hdi_y / 2., hdiext_z / 2.0);
       G4LogicalVolume *hdiext_copper_volume = new G4LogicalVolume(hdiext_copper_box, G4Material::GetMaterial("G4_Cu"),
                                                                   (boost::format("hdiext_copper_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
-      m_PassiveVolumeTuple.insert(make_pair(hdiext_copper_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::HDIEXT_COPPER)));
+      m_PassiveVolumeTuple.insert(make_pair(hdiext_copper_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::HDIEXT_COPPER)));
       G4VisAttributes *hdi_kapton_vis = new G4VisAttributes();
       hdi_kapton_vis->SetVisibility(true);
       hdi_kapton_vis->SetForceSolid(true);
@@ -256,7 +256,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *fphx_box = new G4Box((boost::format("fphx_box_%d_%d") % inttlayer % itype).str(), fphx_x / 2., fphx_y / 2., fphx_z / 2.);
       G4LogicalVolume *fphx_volume = new G4LogicalVolume(fphx_box, G4Material::GetMaterial("G4_Si"),
                                                          (boost::format("fphx_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-      m_PassiveVolumeTuple.insert(make_pair(fphx_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::FPHX)));
+      m_PassiveVolumeTuple.insert(make_pair(fphx_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::FPHX)));
 
       G4VisAttributes *fphx_vis = new G4VisAttributes();
       fphx_vis->SetVisibility(true);
@@ -311,13 +311,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *pgs_box = new G4Box((boost::format("pgs_box_%d_%d") % inttlayer % itype).str(), pgs_x / 2., pgs_y / 2., pgs_z / 2.);
       G4LogicalVolume *pgs_volume = new G4LogicalVolume(pgs_box, G4Material::GetMaterial("CFRP_INTT"),
                                                         (boost::format("pgs_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-      m_PassiveVolumeTuple.insert(make_pair(pgs_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::PGS)));
+      m_PassiveVolumeTuple.insert(make_pair(pgs_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::PGS)));
 
       // The part that extends beyond this sensor, see above for hdiext
       G4VSolid *pgsext_box = new G4Box((boost::format("pgsext_box_%d_%s") % inttlayer % itype).str(), pgs_x / 2., pgs_y / 2., hdiext_z / 2.);
       G4LogicalVolume *pgsext_volume = new G4LogicalVolume(pgsext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                            (boost::format("pgsext_volume_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
-      m_PassiveVolumeTuple.insert(make_pair(pgsext_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::PGSEXT)));
+      m_PassiveVolumeTuple.insert(make_pair(pgsext_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::PGSEXT)));
 
       G4VisAttributes *pgs_vis = new G4VisAttributes();
       pgs_vis->SetVisibility(true);
@@ -356,13 +356,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                          Rcmin, Rcmax, stave_z / 2., phic_begin[i], dphic[i]);
         stave_curve_volume[i] = new G4LogicalVolume(stave_curve_cons[i], G4Material::GetMaterial("CFRP_INTT"),
                                                     (boost::format("stave_curve_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_curve_volume[i],make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVE_CURVE)));
+        m_PassiveVolumeTuple.insert(make_pair(stave_curve_volume[i], make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVE_CURVE)));
 
         stave_curve_ext_cons[i] = new G4Tubs((boost::format("stave_curve_ext_cons_%d_%d_%d") % inttlayer % itype % i).str(),
                                              Rcmin, Rcmax, hdiext_z / 2., phic_begin[i], dphic[i]);
         stave_curve_ext_volume[i] = new G4LogicalVolume(stave_curve_ext_cons[i], G4Material::GetMaterial("CFRP_INTT"),
                                                         (boost::format("stave_curve_ext_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_curve_ext_volume[i],make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVEEXT_CURVE)));
+        m_PassiveVolumeTuple.insert(make_pair(stave_curve_ext_volume[i], make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVEEXT_CURVE)));
 
         G4VisAttributes *stave_curve_vis = new G4VisAttributes();
         stave_curve_vis->SetVisibility(true);
@@ -383,37 +383,37 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                                      stave_wall_thickness / 2., stave_straight_outer_y / 2., stave_z / 2.);
       G4LogicalVolume *stave_straight_outer_volume = new G4LogicalVolume(stave_straight_outer_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                          (boost::format("stave_straight_outer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVE_STRAIGHT_OUTER)));
+      m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVE_STRAIGHT_OUTER)));
 
       G4VSolid *stave_straight_outer_ext_box = new G4Box((boost::format("stave_straight_outer_ext_box_%d_%s") % inttlayer % itype).str(),
                                                          stave_wall_thickness / 2., stave_straight_outer_y / 2., hdiext_z / 2.);
       G4LogicalVolume *stave_straight_outer_ext_volume = new G4LogicalVolume(stave_straight_outer_ext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                              (boost::format("stave_straight_outer_ext_volume_%d_%s") % inttlayer % itype).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_ext_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_OUTER)));
+      m_PassiveVolumeTuple.insert(make_pair(stave_straight_outer_ext_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_OUTER)));
 
       // connects cooling tubes together, only needed for laddertype PHG4SiliconTrackerDefs::SEGMENTATION_PHI, for laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z we just make a dummy
       G4VSolid *stave_straight_inner_box = new G4Box((boost::format("stave_straight_inner_box_%d_%d") % inttlayer % itype).str(),
                                                      stave_wall_thickness / 2., stave_straight_inner_y / 2., stave_z / 2.);
       G4LogicalVolume *stave_straight_inner_volume = new G4LogicalVolume(stave_straight_inner_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                          (boost::format("stave_straight_inner_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_straight_inner_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVE_STRAIGHT_INNER)));
+      m_PassiveVolumeTuple.insert(make_pair(stave_straight_inner_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVE_STRAIGHT_INNER)));
       G4VSolid *stave_straight_inner_ext_box = new G4Box((boost::format("stave_straight_inner_ext_box_%d_%d") % inttlayer % itype).str(),
                                                          stave_wall_thickness / 2., stave_straight_inner_y / 2., hdiext_z / 2.);
       G4LogicalVolume *stave_straight_inner_ext_volume = new G4LogicalVolume(stave_straight_inner_ext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                              (boost::format("stave_straight_inner_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_straight_inner_ext_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_INNER)));
+      m_PassiveVolumeTuple.insert(make_pair(stave_straight_inner_ext_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_INNER)));
 
       //Top surface of cooler tube
       G4VSolid *stave_straight_cooler_box = new G4Box((boost::format("stave_straight_cooler_box_%d_%d") % inttlayer % itype).str(),
                                                       stave_wall_thickness / 2., stave_straight_cooler_y / 2., stave_z / 2.);
       G4LogicalVolume *stave_straight_cooler_volume = new G4LogicalVolume(stave_straight_cooler_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                           (boost::format("stave_straight_cooler_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVE_STRAIGHT_COOLER)));
+      m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVE_STRAIGHT_COOLER)));
       G4VSolid *stave_straight_cooler_ext_box = new G4Box((boost::format("stave_straight_cooler_ext_box_%d_%d") % inttlayer % itype).str(),
                                                           stave_wall_thickness / 2., stave_straight_cooler_y / 2., hdiext_z / 2.);
       G4LogicalVolume *stave_straight_cooler_ext_volume = new G4LogicalVolume(stave_straight_cooler_ext_box, G4Material::GetMaterial("CFRP_INTT"),
                                                                               (boost::format("stave_straight_cooler_ext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-	m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_ext_volume,make_tuple(inttlayer,PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_COOLER)));
+      m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_ext_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_COOLER)));
 
       G4VisAttributes *stave_vis = new G4VisAttributes();
       stave_vis->SetVisibility(true);
@@ -708,16 +708,16 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       for (int icopy = 0; icopy < nladders_layer; icopy++)
       {
         const double phi = offsetphi + dphi * icopy;  // offsetphi is zero by default, so we start at zero
-	double radius;
-      // there is no single radius for a layer
+        double radius;
+        // there is no single radius for a layer
         if (icopy % 2)
-	{
+        {
           radius = m_SensorRadiusOuter[inttlayer];  // every odd numbered copy is placed at the larger radius
-	}
-	else
-	{
-           radius =  m_SensorRadiusInner[inttlayer];
-	}
+        }
+        else
+        {
+          radius = m_SensorRadiusInner[inttlayer];
+        }
         radius += sensor_offset_x_ladder;
         const double posx = radius * cos(phi);
         const double posy = radius * sin(phi);
@@ -727,11 +727,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
         // place the copy at its ladder phi value, and at positive (2) and negative (1) Z
         auto pointer = new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
-                          (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-	m_ActiveVolumeTuple.insert(make_pair(pointer,make_tuple(inttlayer, itype, icopy, -1)));
+                                         (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+        m_ActiveVolumeTuple.insert(make_pair(pointer, make_tuple(inttlayer, itype, icopy, -1)));
         pointer = new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
-                          (boost::format("ladder_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-	m_ActiveVolumeTuple.insert(make_pair(pointer,make_tuple(inttlayer, itype, icopy, 1)));
+                                    (boost::format("ladder_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+        m_ActiveVolumeTuple.insert(make_pair(pointer, make_tuple(inttlayer, itype, icopy, 1)));
 
         if (itype != 0)
         {
@@ -899,10 +899,10 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           params->get_int_param("nstrips_z_sensor_1"),
           params->get_int_param("nstrips_phi_sensor"),
           params_layer->get_int_param("nladder"),
-          m_PosZ[ilayer][0] / cm, // m_PosZ uses G4 internal units, needs to be converted to cm
+          m_PosZ[ilayer][0] / cm,  // m_PosZ uses G4 internal units, needs to be converted to cm
           m_PosZ[ilayer][1] / cm,
-          m_SensorRadiusInner[ilayer]/cm,
-          m_SensorRadiusOuter[ilayer]/cm,
+          m_SensorRadiusInner[ilayer] / cm,
+          m_SensorRadiusOuter[ilayer] / cm,
           0.0,
           params_layer->get_double_param("offsetphi"),
           params_layer->get_double_param("offsetrot"));
@@ -915,11 +915,11 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
   }
 }
 
-map<G4VPhysicalVolume *,std::tuple<int, int, int, int>>::const_iterator 
-PHG4SiliconTrackerDetector::get_ActiveVolumeTuple(G4VPhysicalVolume * physvol) const
+map<G4VPhysicalVolume *, std::tuple<int, int, int, int>>::const_iterator
+PHG4SiliconTrackerDetector::get_ActiveVolumeTuple(G4VPhysicalVolume *physvol) const
 {
   auto iter = m_ActiveVolumeTuple.find(physvol);
-  if (iter ==  m_ActiveVolumeTuple.end())
+  if (iter == m_ActiveVolumeTuple.end())
   {
     cout << PHWHERE << " Volume " << physvol->GetName() << " not in active volume tuple" << endl;
     gSystem->Exit(1);
@@ -927,11 +927,11 @@ PHG4SiliconTrackerDetector::get_ActiveVolumeTuple(G4VPhysicalVolume * physvol) c
   return iter;
 }
 
-map<G4LogicalVolume *,std::tuple<int, int>>::const_iterator 
+map<G4LogicalVolume *, std::tuple<int, int>>::const_iterator
 PHG4SiliconTrackerDetector::get_PassiveVolumeTuple(G4LogicalVolume *logvol) const
 {
   auto iter = m_PassiveVolumeTuple.find(logvol);
-  if (iter ==  m_PassiveVolumeTuple.end())
+  if (iter == m_PassiveVolumeTuple.end())
   {
     cout << PHWHERE << " Volume " << logvol->GetName() << " not in passive volume tuple" << endl;
     gSystem->Exit(1);
