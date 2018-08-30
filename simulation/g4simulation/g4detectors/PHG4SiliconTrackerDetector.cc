@@ -903,7 +903,6 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           m_PosZ[ilayer][1] / cm,
           m_SensorRadiusInner[ilayer]/cm,
           m_SensorRadiusOuter[ilayer]/cm,
-          //m_StripOffsetX[ilayer] / cm,
           0.0,
           params_layer->get_double_param("offsetphi"),
           params_layer->get_double_param("offsetrot"));

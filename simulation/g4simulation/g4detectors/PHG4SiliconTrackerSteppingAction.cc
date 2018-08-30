@@ -49,22 +49,20 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
   : m_Detector(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
-  , hit(nullptr)
-  , savehitcontainer(nullptr)
-  , saveshower(nullptr)
-  , paramscontainer(parameters)
+  , m_Hits(nullptr)
+  , m_AbsorberHits(nullptr)
+  , m_Hit(nullptr)
+  , m_SaveHitContainer(nullptr)
+  , m_SaveShower(nullptr)
+  , m_ParamsContainer(parameters)
 {
-  // loop over layers to get laddertype for each layer
-  // PHParametersContainer::ConstRange begin_end = paramscontainer->GetAllParameters();
-  // for (PHParametersContainer::ConstIterator iter = begin_end.first; iter != begin_end.second; ++iter)
+  // loop over layers to get laddertype nd active status for each layer
   for (auto layeriter = layer_begin_end.first; layeriter != layer_begin_end.second; ++layeriter)
   {
     int layer = layeriter->second;
-    const PHParameters* par = paramscontainer->GetParameters(layer);
-    IsActive[layer] = par->get_int_param("active");
-    IsBlackHole[layer] = par->get_int_param("blackhole");
+    const PHParameters* par = m_ParamsContainer->GetParameters(layer);
+    m_IsActiveMap[layer] = par->get_int_param("active");
+    m_IsBlackHoleMap[layer] = par->get_int_param("blackhole");
     m_LadderTypeMap.insert(make_pair(layer, par->get_int_param("laddertype")));
     m_InttToTrackerLayerMap.insert(make_pair(layeriter->second, layeriter->first));
   }
@@ -72,7 +70,7 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   // Get the parameters for each laddertype
   for (auto iter = PHG4SiliconTrackerDefs::m_SensorSegmentationSet.begin(); iter != PHG4SiliconTrackerDefs::m_SensorSegmentationSet.end(); ++iter)
   {
-    const PHParameters* par = paramscontainer->GetParameters(*iter);
+    const PHParameters* par = m_ParamsContainer->GetParameters(*iter);
     m_StripYMap.insert(make_pair(*iter, par->get_double_param("strip_y") * cm));
     m_StripZMap.insert(make_pair(*iter, make_pair(par->get_double_param("strip_z_0") * cm, par->get_double_param("strip_z_1") * cm)));
     m_nStripsPhiCell.insert(make_pair(*iter, par->get_int_param("nstrips_phi_cell")));
@@ -86,7 +84,7 @@ PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
   // and the memory is still allocated, so we need to delete it here
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
-  delete hit;
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
@@ -141,8 +139,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
     }
     sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-    map<int, int>::const_iterator activeiter = IsActive.find(inttlayer);
-    if (activeiter == IsActive.end())
+    map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
+    if (activeiter == m_IsActiveMap.end())
     {
       cout << "PHG4SiliconTrackerSteppingAction: could not find active flag for layer " << inttlayer << endl;
       gSystem->Exit(1);
@@ -362,7 +360,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
 
   // if this block stops everything, just put all kinetic energy into edep
-  if ((IsBlackHole.find(inttlayer))->second == 1)
+  if ((m_IsBlackHoleMap.find(inttlayer))->second == 1)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -388,27 +386,27 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
-    if (!hit)
+    if (!m_Hit)
     {
-      hit = new PHG4Hitv1();
+      m_Hit = new PHG4Hitv1();
     }
 
-    hit->set_layer((unsigned int) sphxlayer);
+    m_Hit->set_layer((unsigned int) sphxlayer);
 
     // set the index values needed to locate the sensor strip
     if (zposneg == 1) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
-    hit->set_ladder_z_index(ladderz);
+    m_Hit->set_ladder_z_index(ladderz);
     if (whichactive > 0)
     {
-      hit->set_strip_z_index(strip_z_index);
-      hit->set_strip_y_index(strip_y_index);
-      hit->set_ladder_phi_index(ladderphi);
+      m_Hit->set_strip_z_index(strip_z_index);
+      m_Hit->set_strip_y_index(strip_y_index);
+      m_Hit->set_ladder_phi_index(ladderphi);
     }
 
     //here we set the entrance values in cm
-    hit->set_x(0, prePoint->GetPosition().x() / cm);
-    hit->set_y(0, prePoint->GetPosition().y() / cm);
-    hit->set_z(0, prePoint->GetPosition().z() / cm);
+    m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+    m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+    m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
     /*
     cout << "     hit position x,y,z = " << prePoint->GetPosition().x() / cm
@@ -417,37 +415,37 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     << endl;
     */
 
-    hit->set_px(0, prePoint->GetMomentum().x() / GeV);
-    hit->set_py(0, prePoint->GetMomentum().y() / GeV);
-    hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
+    m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
+    m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);
+    m_Hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
 
     // time in ns
-    hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
     //set the track ID
-    hit->set_trkid(aTrack->GetTrackID());
+    m_Hit->set_trkid(aTrack->GetTrackID());
 
     //set the initial energy deposit
-    hit->set_edep(0);
-    hit->set_eion(0);  // only implemented for v5 otherwise empty
+    m_Hit->set_edep(0);
+    m_Hit->set_eion(0);  // only implemented for v5 otherwise empty
 
     if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
     {
       // Now save the container we want to add this hit to
-      savehitcontainer = hits_;
+      m_SaveHitContainer = m_Hits;
     }
     else
     {
-      savehitcontainer = absorberhits_;
+      m_SaveHitContainer = m_AbsorberHits;
     }
 
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
     {
       if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
       {
-        hit->set_trkid(pp->GetUserTrackId());
-        hit->set_shower_id(pp->GetShower()->get_id());
-        saveshower = pp->GetShower();
+        m_Hit->set_trkid(pp->GetUserTrackId());
+        m_Hit->set_shower_id(pp->GetShower()->get_id());
+        m_SaveShower = pp->GetShower();
       }
     }
     break;
@@ -459,24 +457,24 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
   // ceases to exist
-  hit->set_x(1, postPoint->GetPosition().x() / cm);
-  hit->set_y(1, postPoint->GetPosition().y() / cm);
-  hit->set_z(1, postPoint->GetPosition().z() / cm);
+  m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+  m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+  m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-  hit->set_px(1, postPoint->GetMomentum().x() / GeV);
-  hit->set_py(1, postPoint->GetMomentum().y() / GeV);
-  hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+  m_Hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+  m_Hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+  m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
 
-  hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+  m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
   //sum up the energy to get total deposited
-  hit->set_edep(hit->get_edep() + edep);
-  hit->set_eion(hit->get_eion() + eion);
+  m_Hit->set_edep(m_Hit->get_edep() + edep);
+  m_Hit->set_eion(m_Hit->get_eion() + eion);
 
   if (geantino)
   {
-    hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-    hit->set_eion(-1);
+    m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+    m_Hit->set_eion(-1);
   }
 
   if (edep > 0)
@@ -512,25 +510,25 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
            << endl;
     }
     // save only hits with energy deposit (or -1 for geantino)
-    if (hit->get_edep())
+    if (m_Hit->get_edep())
     {
-      savehitcontainer->AddHit(sphxlayer, hit);
-      if (saveshower)
+      m_SaveHitContainer->AddHit(sphxlayer, m_Hit);
+      if (m_SaveShower)
       {
-        saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
+        m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
       }
       if (Verbosity() > 1)
-        hit->print();
+        m_Hit->print();
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track
-      hit = nullptr;
+      m_Hit = nullptr;
     }
     else
     {
       // if this hit has no energy deposit, just reset it for reuse
       // this means we have to delete it in the dtor. If this was
       // the last hit we processed the memory is still allocated
-      hit->Reset();
+      m_Hit->Reset();
     }
   }
 
@@ -590,13 +588,13 @@ void PHG4SiliconTrackerSteppingAction::SetInterfacePointers(PHCompositeNode* top
   const string absorbernodename = "G4HIT_ABSORBER_" + detectorname;
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
-  if (!hits_)
+  if (!m_Hits)
     cout << "PHG4SiliconTrackerSteppingAction::SetTopNode - unable to find " << hitnodename << endl;
 
-  if (!absorberhits_ && Verbosity() > 1)
+  if (!m_AbsorberHits && Verbosity() > 1)
     cout << "PHG4SiliconTrackerSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 }
