@@ -26,7 +26,7 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4SiliconTrackerDetector *detector_;
+  PHG4SiliconTrackerDetector *m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer *hits_;

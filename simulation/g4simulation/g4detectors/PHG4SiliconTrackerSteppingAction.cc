@@ -48,7 +48,7 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
-  : detector_(detector)
+  : m_Detector(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
   , hit(nullptr)
@@ -118,7 +118,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
-  const int whichactive = detector_->IsInSiliconTracker(volume);
+  const int whichactive = m_Detector->IsInSiliconTracker(volume);
 
   if (!whichactive)
   {
@@ -138,7 +138,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int save_strip_y_index = 0;
   int save_ladderz = 0;
   int save_ladderphi = 0;
-  if (whichactive > 0)  // silicon acrive sensor
+  if (whichactive > 0)  // silicon active sensor
   {
     if (Verbosity() > 0)
     {
@@ -150,31 +150,16 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
            << endl;
     }
 
-    // Get the layer and ladder information
-    // thi is the same for all strips in the sensor
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char>> tok(touch->GetVolume(2)->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
-    tokeniter = tok.begin();
-    if (*tokeniter == "ladder")
-    {
-      // advance the tokeniter and then cast it if first token is "ladder"
-      //      sphxlayer = boost::lexical_cast<int>(*(++tokeniter));
-      //      cout << "sphxlayer orig: " << sphxlayer;
-      inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-      sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-      //      cout << ", from intt: " << sphxlayer << endl;
-      ladderz = boost::lexical_cast<int>(*(++tokeniter));    // inner sensor itype = 0, outer sensor itype = 1
-      ladderphi = boost::lexical_cast<int>(*(++tokeniter));  // copy number in phi
-      zposneg = boost::lexical_cast<int>(*(++tokeniter));    // 1 for negative z, 2 for positive z
-    }
-    else
-    {
-      cout << GetName() << "parsing of " << touch->GetVolume(2)->GetName() << " failed, it does not start with ladder_" << endl;
-      exit(1);
-    }
+    // Get the layer and ladder information which are 2 steps up in the volume hierarchy
+// the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
+// if we are in an active logical volume whioch is located in this ladder
+    auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(2));
+    tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
     if (inttlayer < 0 || inttlayer > 3)
+    {
       assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
+    }
+    sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
     map<int, int>::const_iterator activeiter = IsActive.find(inttlayer);
     if (activeiter == IsActive.end())
     {
@@ -187,7 +172,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
     // Find the strip y and z index values from the copy number (integer division, quotient is strip_y, remainder is strip_z)
-    //    div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor[laddertype[inttlayer]][ladderz]);
     int laddertype = (m_LadderTypeMap.find(inttlayer))->second;
     int nstrips_z_sensor;
     switch (ladderz)
@@ -385,7 +369,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       }
     }
   }     // end of whichactive > 0 block
-  else  // silicon inactive area, FPHX, stabe etc. as absorbers
+  else  // whichactive < 0, silicon inactive area, FPHX, stabe etc. as absorbers
   {
     try
     {
@@ -405,11 +389,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       {
         ladderz = iter->second;
       }
-      //	  cout << "volume: " << touch->GetVolume(0)->GetName();
+      	  cout << "volume: " << touch->GetVolume(0)->GetName();
       inttlayer = boost::lexical_cast<int>(*(++tokeniter));
-      //	  cout << ", inttlayer: " << inttlayer;
+      	  cout << ", inttlayer: " << inttlayer;
       sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
       //	  cout << ", sphxlayer(intt): " << sphxlayer << endl;
+      cout << ", ladderz: " << ladderz << endl;
     }
     catch (...)
     {
@@ -511,19 +496,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
         saveshower = pp->GetShower();
       }
     }
-    if (hit->get_strip_z_index() == 1 &&
-        hit->get_strip_y_index() == 178 &&
-        hit->get_ladder_z_index() == 3 &&
-        hit->get_ladder_phi_index() == 1)
-    {
-      hit->identify();
-      cout << "initial strip_z_index: " << save_strip_z_index << endl;
-      cout << "initial strip_y_index: " << save_strip_y_index << endl;
-      cout << "initial ladderz: " << save_ladderz << endl;
-      cout << "initial ladderphi: " << save_ladderphi << endl;
-      cout << "same event: " << sameevent << endl;
-    }
-
     break;
 
   default:
@@ -659,7 +631,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 //____________________________________________________________________________..
 void PHG4SiliconTrackerSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
-  const string detectorname = (detector_->SuperDetector() != "NONE") ? detector_->SuperDetector() : detector_->GetName();
+  const string detectorname = (m_Detector->SuperDetector() != "NONE") ? m_Detector->SuperDetector() : m_Detector->GetName();
   const string hitnodename = "G4HIT_" + detectorname;
   const string absorbernodename = "G4HIT_ABSORBER_" + detectorname;
 

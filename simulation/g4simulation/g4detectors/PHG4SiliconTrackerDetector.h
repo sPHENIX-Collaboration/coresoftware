@@ -9,6 +9,7 @@
 
 #include <map>
 #include <set>
+#include <tuple>
 #include <vector>
 
 class G4LogicalVolume;
@@ -48,6 +49,9 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
     return m_DetectorType;
   }
 
+  std::map<G4VPhysicalVolume *,std::tuple<int, int, int, int>>::const_iterator get_ActiveVolumeTuple(G4VPhysicalVolume * physvol) const;
+  std::map<G4VPhysicalVolume *,std::tuple<int, int>>::const_iterator get_PassiveVolumeTuple(G4VPhysicalVolume * physvol) const;
+
  private:
   void AddGeometryNode();
   int ConstructSiliconTracker(G4LogicalVolume *sandwich);
@@ -67,6 +71,8 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
   std::map<int, int> m_IsActiveMap;
   std::map<int, int> m_IsAbsorberActiveMap;
   std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> m_LayerBeginEndIteratorPair;
+  std::map<G4VPhysicalVolume *,std::tuple<int, int, int, int>> m_ActiveVolumeTuple;
+  std::map<G4VPhysicalVolume *,std::tuple<int, int>> m_PassiveVolumeTuple;
 };
 
 #endif
