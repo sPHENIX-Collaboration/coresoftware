@@ -78,23 +78,6 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
     m_nStripsPhiCell.insert(make_pair(*iter, par->get_int_param("nstrips_phi_cell")));
     m_nStripsZSensor.insert(make_pair(*iter, make_pair(par->get_int_param("nstrips_z_sensor_0"), par->get_int_param("nstrips_z_sensor_1"))));
   }
-  AbsorberIndex["ladder"] = -1;
-  AbsorberIndex["stave"] = -2;
-  AbsorberIndex["pgs"] = -8;
-  AbsorberIndex["pgsext"] = -9;
-  AbsorberIndex["siactive"] = -1;
-  AbsorberIndex["siinactive"] = -2;
-  AbsorberIndex["hdi"] = -5;
-  AbsorberIndex["fphxcontainer"] = -7;
-  AbsorberIndex["fphxcontainerm"] = -7;
-  AbsorberIndex["fphxcontainerp"] = -8;
-  AbsorberIndex["ladderext"] = -9;
-  AbsorberIndex["hdiext"] = -10;
-  AbsorberIndex["staveext"] = -11;
-  AbsorberIndex["hdicopper"] = -4;
-  AbsorberIndex["hdikapton"] = -3;
-  AbsorberIndex["hdiextcopper"] = -6;
-  AbsorberIndex["hdiextkapton"] = -5;
 }
 
 PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
@@ -413,7 +396,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     hit->set_layer((unsigned int) sphxlayer);
 
     // set the index values needed to locate the sensor strip
-    if (zposneg == 2) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
+    if (zposneg == 1) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     hit->set_ladder_z_index(ladderz);
     if (whichactive > 0)
     {

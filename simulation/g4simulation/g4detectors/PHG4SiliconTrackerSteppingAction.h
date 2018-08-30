@@ -45,8 +45,6 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 
   std::map<int, int> IsActive;
   std::map<int, int> IsBlackHole;
-  std::map<std::string, int> AbsorberIndex;
-  std::set<std::string> missingabsorbers;
 };
 
 #endif  // PHG4SiliconTrackerSteppingAction_h

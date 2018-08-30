@@ -727,11 +727,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
         // place the copy at its ladder phi value, and at positive (2) and negative (1) Z
         auto pointer = new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
-                          (boost::format("ladder_%d_%d_%d_1") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-	m_ActiveVolumeTuple.insert(make_pair(pointer,make_tuple(inttlayer, itype, icopy, 1)));
+                          (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+	m_ActiveVolumeTuple.insert(make_pair(pointer,make_tuple(inttlayer, itype, icopy, -1)));
         pointer = new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
-                          (boost::format("ladder_%d_%d_%d_2") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-	m_ActiveVolumeTuple.insert(make_pair(pointer,make_tuple(inttlayer, itype, icopy, 2)));
+                          (boost::format("ladder_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+	m_ActiveVolumeTuple.insert(make_pair(pointer,make_tuple(inttlayer, itype, icopy, 1)));
 
         if (itype != 0)
         {
@@ -739,9 +739,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
           const double posz_ext = (hdi_z_arr[inttlayer][0] + hdi_z) + hdiext_z / 2.;
 
           new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -posz_ext)), ladderext_volume,
-                            (boost::format("ladderext_%d_%d_%d_%d_1") % inttlayer % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+                            (boost::format("ladderext_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
           new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +posz_ext)), ladderext_volume,
-                            (boost::format("ladderext_%d_%d_%d_%d_2") % inttlayer % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
+                            (boost::format("ladderext_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         }
 
         /*
@@ -774,7 +774,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   G4Tubs *rail_tube = new G4Tubs((boost::format("si_support_rail")).str(),
                                  rail_inner_radius, rail_outer_radius, rail_length / 2.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                     (boost::format("rail_volume")).str(), 0, 0, 0);
+                                                     "rail_volume", 0, 0, 0);
   G4VisAttributes *rail_vis = new G4VisAttributes();
   rail_vis->SetVisibility(true);
   rail_vis->SetForceSolid(true);
@@ -798,23 +798,23 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
   // Outer skin
 
-  G4Tubs *outer_skin_tube = new G4Tubs((boost::format("si_outer_skin")).str(),
+  G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
                                        157.0, 158.0, 480.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                           (boost::format("outer_skin_volume")).str(), 0, 0, 0);
+                                                           "outer_skin_volume", 0, 0, 0);
   outer_skin_volume->SetVisAttributes(rail_vis);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_volume,
-                    (boost::format("si_support_outer_skin")).str(), trackerenvelope, false, 0, OverlapCheck());
+                    "si_support_outer_skin", trackerenvelope, false, 0, OverlapCheck());
 
   // Inner skin
 
-  G4Tubs *inner_skin_tube = new G4Tubs((boost::format("si_inner_skin")).str(),
+  G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin",
                                        63.85, 64.0, 480.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                           (boost::format("inner_skin_volume")).str(), 0, 0, 0);
+                                                           "inner_skin_volume", 0, 0, 0);
   inner_skin_volume->SetVisAttributes(rail_vis);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
-                    (boost::format("si_support_inner_skin")).str(), trackerenvelope, false, 0, OverlapCheck());
+                    "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
 
   //=======================================================
   // Add an outer shell for the MVTX - move this to the MVTX detector module
@@ -828,26 +828,26 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + skin_thickness;
   double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + foam_core_thickness;
 
-  G4Tubs *mvtx_shell_inner_skin_tube = new G4Tubs((boost::format("mvtx_shell_inner_skin")).str(),
+  G4Tubs *mvtx_shell_inner_skin_tube = new G4Tubs("mvtx_shell_inner_skin",
                                                   mvtx_shell_inner_skin_inner_radius, mvtx_shell_inner_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *mvtx_shell_inner_skin_volume = new G4LogicalVolume(mvtx_shell_inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                                      (boost::format("mvtx_shell_inner_skin_volume")).str(), 0, 0, 0);
+                                                                      "mvtx_shell_inner_skin_volume", 0, 0, 0);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
-                    (boost::format("mvtx_shell_inner_skin")).str(), trackerenvelope, false, 0, OverlapCheck());
+                    "mvtx_shell_inner_skin", trackerenvelope, false, 0, OverlapCheck());
   mvtx_shell_inner_skin_volume->SetVisAttributes(rail_vis);
 
-  G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs((boost::format("mvtx_shell_foam_core")).str(),
+  G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs("mvtx_shell_foam_core",
                                                  mvtx_shell_foam_core_inner_radius, mvtx_shell_foam_core_inner_radius + foam_core_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *mvtx_shell_foam_core_volume = new G4LogicalVolume(mvtx_shell_foam_core_tube, G4Material::GetMaterial("ROHACELL_FOAM_110"),
-                                                                     (boost::format("mvtx_shell_foam_core_volume")).str(), 0, 0, 0);
+                                                                     "mvtx_shell_foam_core_volume", 0, 0, 0);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
-                    (boost::format("mvtx_shell_foam_core")).str(), trackerenvelope, false, 0, OverlapCheck());
+                    "mvtx_shell_foam_core", trackerenvelope, false, 0, OverlapCheck());
   mvtx_shell_foam_core_volume->SetVisAttributes(rail_vis);
 
-  G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs((boost::format("mvtx_shell_outer_skin")).str(),
+  G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs("mvtx_shell_outer_skin",
                                                   mvtx_shell_outer_skin_inner_radius, mvtx_shell_outer_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *mvtx_shell_outer_skin_volume = new G4LogicalVolume(mvtx_shell_outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                                      (boost::format("mvtx_shell_outer_skin_volume")).str(), 0, 0, 0);
+                                                                      "mvtx_shell_outer_skin_volume", 0, 0, 0);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
                     "mvtx_shell_outer_skin", trackerenvelope, false, 0, OverlapCheck());
   mvtx_shell_outer_skin_volume->SetVisAttributes(rail_vis);

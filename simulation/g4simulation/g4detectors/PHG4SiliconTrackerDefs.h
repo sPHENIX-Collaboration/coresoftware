@@ -33,7 +33,6 @@ static const int STAVE_STRAIGHT_INNER = -14;
 static const int STAVEEXT_STRAIGHT_INNER = -15;
 static const int STAVE_STRAIGHT_COOLER = -16;
 static const int STAVEEXT_STRAIGHT_COOLER = -17;
-
 };  // namespace PHG4SiliconTrackerDefs
 
 #endif
