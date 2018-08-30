@@ -112,11 +112,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int zposneg = 0;
   int strip_z_index = 0;
   int strip_y_index = 0;
-  int sameevent = 0;
-  int save_strip_z_index = 0;
-  int save_strip_y_index = 0;
-  int save_ladderz = 0;
-  int save_ladderphi = 0;
+  // int save_strip_z_index = 0;
+  // int save_strip_y_index = 0;
+  // int save_ladderz = 0;
+  // int save_ladderphi = 0;
   if (whichactive > 0)  // silicon active sensor
   {
     if (Verbosity() > 0)
@@ -172,10 +171,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     div_t copydiv = div(volume->GetCopyNo(), nstrips_z_sensor);
     strip_y_index = copydiv.quot;
     strip_z_index = copydiv.rem;
-    save_strip_z_index = strip_z_index;
-    save_strip_y_index = strip_y_index;
-    save_ladderz = ladderz;
-    save_ladderphi = ladderphi;
+    // save_strip_z_index = strip_z_index;
+    // save_strip_y_index = strip_y_index;
+    // save_ladderz = ladderz;
+    // save_ladderphi = ladderphi;
     G4ThreeVector strip_pos = volume->GetTranslation();
     G4ThreeVector prepos = prePoint->GetPosition();
     G4ThreeVector postpos = postPoint->GetPosition();
@@ -185,7 +184,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
            << " zposneg " << zposneg
            << " copy no. " << volume->GetCopyNo() << " nstrips_z_sensor " << nstrips_z_sensor
            << " strip_y_index " << strip_y_index << " strip_z_index " << strip_z_index << endl;
-      sameevent = 1;
     }
     // There are two failure modes observed for this stupid parameterised volume:
     //  1) If the prePoint step status is "fUndefined" then the copy number is sometimes kept from the last hit, which is often an unrelated volume
