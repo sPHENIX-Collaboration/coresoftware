@@ -350,8 +350,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   {
     auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
     tie(inttlayer, ladderz) = iter->second;
-    sphxlayer = inttlayer; //for absorber we use the INTT layer, not the tracking layer in sPHENIX
-  }  // end of si inactive area block
+    sphxlayer = inttlayer;  //for absorber we use the INTT layer, not the tracking layer in sPHENIX
+  }                         // end of si inactive area block
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -384,9 +384,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   case fGeomBoundary:
   case fUndefined:
 
-    if (Verbosity() > 1) 
+    if (Verbosity() > 1)
     {
-cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new hit " << endl;
+      cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new hit " << endl;
     }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
@@ -423,7 +423,6 @@ cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new
     << "     " << prePoint->GetPosition().z() / cm
     << endl;
     */
-
 
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
@@ -466,13 +465,13 @@ cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new
   m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
   m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    if (whichactive > 0)
-    {
-  m_Hit->set_px(1, postPoint->GetMomentum().x() / GeV);
-  m_Hit->set_py(1, postPoint->GetMomentum().y() / GeV);
-  m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
-  m_Hit->set_eion(m_Hit->get_eion() + eion);
-    }
+  if (whichactive > 0)
+  {
+    m_Hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+    m_Hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+    m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+    m_Hit->set_eion(m_Hit->get_eion() + eion);
+  }
 
   m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
@@ -484,7 +483,7 @@ cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new
     m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
     if (whichactive > 0)
     {
-    m_Hit->set_eion(-1);
+      m_Hit->set_eion(-1);
     }
   }
 
