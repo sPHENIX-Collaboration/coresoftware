@@ -34,7 +34,7 @@ int DumpPHG4HitContainer::process_Node(PHNode *myNode)
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; hiter++)
         {
 	  *fout << "id: 0x" << hex << hiter->second->get_hit_id() << dec << endl;
-          *fout << "layer: " << hiter->second->get_layer() << endl;
+          *fout << "detid: " << hiter->second->get_detid() << endl;
           *fout << "trkid: " << hiter->second->get_trkid() << endl;
           *fout << "edep: " << hiter->second->get_edep() << endl;
           for (int i = 0; i < 2; i++)
