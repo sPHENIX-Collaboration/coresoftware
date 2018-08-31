@@ -181,17 +181,51 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *siactive_box = new G4Box(boost::str(boost::format("siactive_box_%d_%d") % inttlayer % itype).c_str(), siactive_x / 2, siactive_y / 2., siactive_z / 2.);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"),
                                                              boost::str(boost::format("siactive_volume_%d_%d") % inttlayer % itype).c_str(), 0, 0, 0);
+      if ((IsActive.find(inttlayer))->second > 0)
+      {
+        activelogvols.insert(siactive_volume);
+      }
       G4VisAttributes *siactive_vis = new G4VisAttributes();
       siactive_vis->SetVisibility(true);
       siactive_vis->SetForceSolid(true);
       siactive_vis->SetColour(G4Colour::White());
       siactive_volume->SetVisAttributes(siactive_vis);
 
+      // We do not subdivide the sensor in G4. We will assign hits to strips in the stepping action, using the geometry object
+
+      /*
       // Now make a G4PVParameterised containing all of the strips in a sensor
       // this works for ladder 0 because there is only one strip type - all cells are identical
       G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_sensor, nstrips_z_sensor, strip_y, strip_z);
       new G4PVParameterised(boost::str(boost::format("siactive_%d_%d") % inttlayer % itype).c_str(),
                             strip_volume, siactive_volume, kZAxis, nstrips_phi_sensor * nstrips_z_sensor, stripparam, false);  // overlap check too long.
+      */
+      /*
+      // Place strips in the active sensor volume
+      const double strip_offsety = nstrips_phi_sensor * strip_y * 0.5;
+      const double strip_offsetz = nstrips_z_sensor * strip_z * 0.5;
+      cout << "   inttlayer " << inttlayer << " layer " << layeriter->first << " laddertype " << laddertype << " itype " << itype 
+	   << " strip_x " << strip_x << " strip_y " << strip_y << " strip_z " << strip_z  << endl;
+      cout << "   strip_offsety " << strip_offsety << " nstrips_phi_sensor " << nstrips_phi_sensor << " strip_y " << strip_y  << endl;  
+      cout << "   strip_offsetz " << strip_offsetz << " nstrips_z_sensor " << nstrips_z_sensor << " strip_z " << strip_z  << endl;  
+
+      int icopy = 0;
+      for(int iy = 0;iy < nstrips_phi_sensor; iy++)
+	{
+	  for(int iz =0; iz < nstrips_z_sensor; iz++)
+	    {
+	      // calculate the location of the strip in the sensor active volume
+	      double fXStrip = 0.0;
+	      double fYStrip = (iy + 0.5) * strip_y - strip_offsety;
+	      double fZStrip = (iz + 0.5) * strip_z - strip_offsetz;	      
+	      new G4PVPlacement(0, G4ThreeVector(fXStrip, fYStrip, fZStrip), strip_volume,
+				boost::str(boost::format("siactive_%d_%d_%d") % inttlayer % itype % icopy).c_str(), siactive_volume, false, 0, OverlapCheck());
+	      //cout << "inttlayer " << inttlayer << " layer " << layeriter->first << " itype " << itype << " strip_x " << strip_x << " strip_y " << strip_y << " strip_z " << strip_z  
+	      //   << " placed strip copy " << icopy << " at x = " << fXStrip << " y = " << fYStrip << " z = " << fZStrip << endl;
+	      icopy++;
+	    }
+	}
+      */      
 
       // Si-sensor full (active+inactive) area
       const double sifull_x = siactive_x;
@@ -216,7 +250,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       // Make the HDI Kapton and copper volumes
 
-      // This makes HDI volumes that matche this sensor in Z length
+      // This makes HDI volumes that matches this sensor in Z length
       const G4double hdi_z = sifull_z + params->get_double_param("hdi_edge_z");
       hdi_z_[inttlayer][itype] = hdi_z;
       G4VSolid *hdi_kapton_box = new G4Box(boost::str(boost::format("hdi_kapton_box_%d_%d") % inttlayer % itype).c_str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z / 2.0);

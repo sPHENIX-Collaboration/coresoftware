@@ -83,6 +83,8 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
     bool load_geometry();
     void find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[]);
     void find_strip_center(  const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[]);
+    void find_strip_index_values(const int segment_z_bin, const double ypos, const double zpos,  int &strip_y_index, int &strip_z_index);
+    void find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[]);
 
     double get_thickness() const
       {
