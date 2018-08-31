@@ -328,7 +328,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       // Carbon stave. This is the formed sheet that sits on the PGS and completes the cooling tube
       // Formed from straight sections and sections of a tube of radius 2.3 mm. All have wall thickness of 0.3 mm.
-      // These are different for laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z  and PHG4SiliconTrackerDefs::SEGMENTATION_PHI, but they use some common elements.
+      // These are different for laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z  and 
+      // PHG4SiliconTrackerDefs::SEGMENTATION_PHI, but they use some common elements.
 
       // The curved section is made from a G4Cons, which is a generalized section of a cone
       // Two curved sections combined should move the inner wall to be 2.0 mm away from the PGS, then 2 more sections bring it back
@@ -775,6 +776,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                  rail_inner_radius, rail_outer_radius, rail_length / 2.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                      "rail_volume", 0, 0, 0);
+  m_PassiveVolumeTuple.insert(make_pair(rail_volume, make_tuple(PHG4SiliconTrackerDefs::SUPPORT_DETID, PHG4SiliconTrackerDefs::SUPPORT_RAIL)));
+
   G4VisAttributes *rail_vis = new G4VisAttributes();
   rail_vis->SetVisibility(true);
   rail_vis->SetForceSolid(true);
@@ -802,6 +805,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                        157.0, 158.0, 480.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "outer_skin_volume", 0, 0, 0);
+  m_PassiveVolumeTuple.insert(make_pair(outer_skin_volume, make_tuple(PHG4SiliconTrackerDefs::SUPPORT_DETID, PHG4SiliconTrackerDefs::INTT_OUTER_SKIN)));
   outer_skin_volume->SetVisAttributes(rail_vis);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_volume,
                     "si_support_outer_skin", trackerenvelope, false, 0, OverlapCheck());
@@ -812,6 +816,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                                        63.85, 64.0, 480.0, -M_PI, 2.0 * M_PI);
   G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "inner_skin_volume", 0, 0, 0);
+  m_PassiveVolumeTuple.insert(make_pair(inner_skin_volume, make_tuple(PHG4SiliconTrackerDefs::SUPPORT_DETID, PHG4SiliconTrackerDefs::INTT_INNER_SKIN)));
   inner_skin_volume->SetVisAttributes(rail_vis);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
                     "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
