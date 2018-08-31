@@ -47,6 +47,10 @@ PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PH
   }
   const PHParameters *par = m_ParamsContainer->GetParameters(PHG4SiliconTrackerDefs::SUPPORTPARAMS);
   m_IsSupportActive = par->get_int_param("supportactive");
+  fill_n(&m_PosZ[0][0],sizeof(m_PosZ)/sizeof(double),NAN);
+  fill_n(m_SensorRadiusInner,sizeof(m_SensorRadiusInner)/sizeof(double),NAN);
+  fill_n(m_SensorRadiusOuter,sizeof(m_SensorRadiusOuter)/sizeof(double),NAN);
+  fill_n(m_StripOffsetX,sizeof(m_StripOffsetX)/sizeof(double),NAN);
 }
 
 //_______________________________________________________________
