@@ -57,7 +57,8 @@ int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   m_Detector->OverlapCheck(CheckOverlap());
 
   int active = 0;
-  int absorberactive = 0;
+  // initialize with support active flag (if support is active we need the absorber hit node)
+  int absorberactive = GetParamsContainer()->GetParameters(PHG4SiliconTrackerDefs::SUPPORTPARAMS)->get_int_param("supportactive");
   int blackhole = 0;
   for (set<int>::const_iterator parcontaineriter = GetDetIds().first; parcontaineriter != GetDetIds().second; ++parcontaineriter)
   {
@@ -218,6 +219,8 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "strip_y", 0.0078);
     set_default_double_param(SEGMENTATION_PHI, "strip_z_0", 1.6);
     set_default_double_param(SEGMENTATION_PHI, "strip_z_1", 2.);
+
+    set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
   }
 
   return;

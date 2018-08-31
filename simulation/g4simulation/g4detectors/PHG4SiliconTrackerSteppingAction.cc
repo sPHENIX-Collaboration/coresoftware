@@ -350,8 +350,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   {
     auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
     tie(inttlayer, ladderz) = iter->second;
-    sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-  }  // end of si inactive area block
+    sphxlayer = inttlayer;  //for absorber we use the INTT layer, not the tracking layer in sPHENIX
+  }                         // end of si inactive area block
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -371,17 +371,23 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   // an expensive string compare for every track when we know
   // geantino or chargedgeantino has pid=0
   if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 && aTrack->GetParticleDefinition()->GetParticleName().find("geantino") != string::npos)
+  {
     geantino = true;
+  }
 
   if (Verbosity() > 1)
+  {
     cout << "prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus() << endl;
+  }
   switch (prePoint->GetStepStatus())
   {
   case fGeomBoundary:
   case fUndefined:
 
-    if (Verbosity() > 1) cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new hit " << endl;
-
+    if (Verbosity() > 1)
+    {
+      cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new hit " << endl;
+    }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
     if (!m_Hit)
@@ -394,11 +400,16 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     // set the index values needed to locate the sensor strip
     if (zposneg == 1) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     m_Hit->set_ladder_z_index(ladderz);
+
     if (whichactive > 0)
     {
       m_Hit->set_strip_z_index(strip_z_index);
       m_Hit->set_strip_y_index(strip_y_index);
       m_Hit->set_ladder_phi_index(ladderphi);
+      m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
+      m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);
+      m_Hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
+      m_Hit->set_eion(0);
     }
 
     //here we set the entrance values in cm
@@ -413,10 +424,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     << endl;
     */
 
-    m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
-    m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);
-    m_Hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
-
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
@@ -425,7 +432,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     //set the initial energy deposit
     m_Hit->set_edep(0);
-    m_Hit->set_eion(0);  // only implemented for v5 otherwise empty
 
     if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
     {
@@ -459,26 +465,38 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
   m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-  m_Hit->set_px(1, postPoint->GetMomentum().x() / GeV);
-  m_Hit->set_py(1, postPoint->GetMomentum().y() / GeV);
-  m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+  if (whichactive > 0)
+  {
+    m_Hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+    m_Hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+    m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+    m_Hit->set_eion(m_Hit->get_eion() + eion);
+  }
 
   m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
   //sum up the energy to get total deposited
   m_Hit->set_edep(m_Hit->get_edep() + edep);
-  m_Hit->set_eion(m_Hit->get_eion() + eion);
 
   if (geantino)
   {
     m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-    m_Hit->set_eion(-1);
+    if (whichactive > 0)
+    {
+      m_Hit->set_eion(-1);
+    }
   }
 
   if (edep > 0)
+  {
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+    {
       if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
+      {
         pp->SetKeep(1);  // we want to keep the track
+      }
+    }
+  }
 
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit
@@ -516,7 +534,9 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
         m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
       }
       if (Verbosity() > 1)
+      {
         m_Hit->print();
+      }
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track
       m_Hit = nullptr;

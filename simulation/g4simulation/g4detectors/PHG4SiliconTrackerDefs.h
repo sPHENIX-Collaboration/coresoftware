@@ -9,6 +9,7 @@ namespace PHG4SiliconTrackerDefs
 {
 static const int SEGMENTATION_Z = -1;
 static const int SEGMENTATION_PHI = -2;
+static const int SUPPORTPARAMS = -3;
 // this set only exists so we can iterate over the enum
 // yes it can be made more fancy but this will do
 // and yes stupid CINT does not understand C++11
@@ -33,6 +34,13 @@ static const int STAVE_STRAIGHT_INNER = -14;
 static const int STAVEEXT_STRAIGHT_INNER = -15;
 static const int STAVE_STRAIGHT_COOLER = -16;
 static const int STAVEEXT_STRAIGHT_COOLER = -17;
+static const int SUPPORT_RAIL = -18;
+static const int INTT_OUTER_SKIN = -19;
+static const int INTT_INNER_SKIN = -20;
+
+// detid of support structures
+static const int SUPPORT_DETID = 100;
+
 };  // namespace PHG4SiliconTrackerDefs
 
 #endif
