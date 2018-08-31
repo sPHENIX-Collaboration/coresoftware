@@ -1,5 +1,7 @@
-#ifndef PHG4VSiliconTrackerSteppingAction_h
-#define PHG4VSiliconTrackerSteppingAction_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
+#define G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -26,15 +28,15 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4SiliconTrackerDetector *detector_;
+  PHG4SiliconTrackerDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
-  PHG4Hit *hit;
-  PHG4HitContainer *savehitcontainer;
-  PHG4Shower *saveshower;
-  const PHParametersContainer *paramscontainer;
+  PHG4HitContainer *m_Hits;
+  PHG4HitContainer *m_AbsorberHits;
+  PHG4Hit *m_Hit;
+  PHG4HitContainer *m_SaveHitContainer;
+  PHG4Shower *m_SaveShower;
+  const PHParametersContainer *m_ParamsContainer;
 
   std::map<int, int> m_InttToTrackerLayerMap;
   std::map<int, int> m_LadderTypeMap;
@@ -43,10 +45,8 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   std::map<int, int> m_nStripsPhiCell;
   std::map<int, std::pair<int, int>> m_nStripsZSensor;
 
-  std::map<int, int> IsActive;
-  std::map<int, int> IsBlackHole;
-  std::map<std::string, int> AbsorberIndex;
-  std::set<std::string> missingabsorbers;
+  std::map<int, int> m_IsActiveMap;
+  std::map<int, int> m_IsBlackHoleMap;
 };
 
-#endif  // PHG4SiliconTrackerSteppingAction_h
+#endif  // G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
