@@ -5,9 +5,6 @@
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4Transform3D.hh>
 
-#include <CLHEP/Vector/ThreeVector.h>
-#include <CLHEP/Vector/Rotation.h>
-
 #include <cmath>
 
 using namespace std;
@@ -29,7 +26,8 @@ PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
   strip_x_offset(NAN),
   offsetphi(NAN),
   offsetrot(NAN),
-  dphi_(NAN)
+  dphi_(NAN),
+  radius(NAN)
 {
   strip_z_[0]  = NAN;
   strip_z_[1]  = NAN;

@@ -26,6 +26,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4VPrimitiveScorer.hh>
+#include <Geant4/G4Version.hh>
 
 #include <TDatabasePDG.h>
 #include <TFile.h>
@@ -309,8 +310,11 @@ void PHG4ScoringManager::makeScoringHistograms()
     for (; msMapItr != fSMap.end(); ++msMapItr)
     {
       G4String psname = msMapItr->first;
+#if G4VERSION_NUMBER >= 1040
+      std::map<G4int, G4StatDouble*> &score = *(msMapItr->second->GetMap());
+#else
       std::map<G4int, G4double *> &score = *(msMapItr->second->GetMap());
-
+#endif
       G4double unitValue = g4mesh->GetPSUnitValue(psname);
       G4String unit = g4mesh->GetPSUnit(psname);
 
@@ -353,11 +357,18 @@ void PHG4ScoringManager::makeScoringHistograms()
           {
             const int idx = x * nMeshSegments[1] * nMeshSegments[2] + y * nMeshSegments[2] + z;
 
+#if G4VERSION_NUMBER >= 1040
+            std::map<G4int, G4StatDouble *>::iterator value = score.find(idx);
+#else
             std::map<G4int, G4double *>::iterator value = score.find(idx);
-
+#endif
             if (value != score.end())
             {
+#if G4VERSION_NUMBER >= 1040
+              h->SetBinContent(x + 1, y + 1, z + 1, (value->second->mean()) / unitValue);
+#else
               h->SetBinContent(x + 1, y + 1, z + 1, *(value->second) / unitValue);
+#endif
             }
 
           }  //           for (int z = 0; z < fNMeshSegments[2]; z++)

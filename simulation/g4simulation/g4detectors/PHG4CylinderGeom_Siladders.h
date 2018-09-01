@@ -42,7 +42,8 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
         sensor_radius_outer(sensor_radius_outer_),
         strip_x_offset(strip_x_offset_),
         offsetphi(offsetphi_),
-        offsetrot(offsetrot_)
+	offsetrot(offsetrot_),
+	radius(NAN)
     {
       // Type-A
       strip_z_[0]          = strip_z0;
