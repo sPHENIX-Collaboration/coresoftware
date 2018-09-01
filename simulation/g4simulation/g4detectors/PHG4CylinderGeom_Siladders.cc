@@ -114,9 +114,9 @@ void PHG4CylinderGeom_Siladders::find_strip_index_values(const int segment_z_bin
       return;
     }
 
-  // convert mm to cm
-  double zpos = zin / 10.0;
-  double ypos = yin / 10.0;
+  // expect cm
+  double zpos = zin;
+  double ypos = yin;
   
   const double strip_z  = strip_z_[itype];
   const int nstrips_z_sensor = nstrips_z_sensor_[itype];

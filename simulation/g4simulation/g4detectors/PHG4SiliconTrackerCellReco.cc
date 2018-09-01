@@ -138,25 +138,37 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     if (hiter->second->get_t(1) < tmin_default)
       continue;
 
+    // I made this (small) diffusion up for now, we will get actual values for the INTT later
+    double diffusion_width = 5.0e-04;   // diffusion radius 5 microns, in cm
+
     const int ladder_z_index = hiter->second->get_ladder_z_index();
     const int ladder_phi_index = hiter->second->get_ladder_phi_index();
 
-     // What we have here is a hit in the sensor. We have not yet assigned the strip(s) that were hit, we do that here.
-    //===========================================================================
+     // What we have is a hit in the sensor. We have not yet assigned the strip(s) that were hit, we do that here
+    //========================================================================
 
     // Get the entry point of the hit in sensor local coordinates
     TVector3 local_in( hiter->second->get_local_x(0),  hiter->second->get_local_y(0),  hiter->second->get_local_z(0) );
     TVector3 local_out( hiter->second->get_local_x(1),  hiter->second->get_local_y(1),  hiter->second->get_local_z(1) );
-    //TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
     TVector3 pathvec = local_in - local_out;
-    double path_length = pathvec.Mag();
 
     int strip_y_index_in, strip_z_index_in, strip_y_index_out, strip_z_index_out;    
     layergeom->find_strip_index_values(ladder_z_index, local_in.y(), local_in.z(), strip_y_index_in, strip_z_index_in);
     layergeom->find_strip_index_values(ladder_z_index, local_out.y(), local_out.z(), strip_y_index_out, strip_z_index_out);
-    
-    // Now we find how many strips were crossed by this track, and divide the energy between them
 
+    if(verbosity > 5)
+      {    
+	// check to see if we get back the positions from these strip index values
+	double check_location[3] = {-1,-1,-1};
+	layergeom->find_strip_center_localcoords(ladder_z_index, strip_y_index_in, strip_z_index_in, check_location);
+	cout << " G4 entry location = " << local_in.X() << "  " << local_in.Y() << "  " << local_in.Z() << endl; 
+	cout << " Check entry location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << endl; 
+	layergeom->find_strip_center_localcoords(ladder_z_index, strip_y_index_out, strip_z_index_out, check_location);
+	cout << " G4 exit location = " << local_out.X() << "  " << local_out.Y() << "  " << local_out.Z() << endl; 
+	cout << " Check exit location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << endl; 
+      }
+
+    // Now we find how many strips were crossed by this track, and divide the energy between them
     int  minstrip_z = strip_z_index_in;
     int maxstrip_z = strip_z_index_out;
     if(minstrip_z > maxstrip_z) swap(minstrip_z, maxstrip_z);
@@ -165,194 +177,165 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     int maxstrip_y = strip_y_index_out;
     if(minstrip_y > maxstrip_y) swap(minstrip_y, maxstrip_y);
 
-    cout << " minstrip_y " << minstrip_y << " maxstrip_y " << maxstrip_y << " minstrip_z " << minstrip_z << " maxstrip_z " << maxstrip_z << endl;
-
-    // define the (assumed) straight line of the path
-    double dzdy = ( local_out.Z() - local_in.Z() ) / ( local_out.Y() - local_in.Y() );
-    double z0 =  local_in.Z()  - dzdy * local_in.Y();
-    TF1* fpath1 = new TF1("fpath1", "[0] + [1]*x");
-    fpath1->SetParameter(0, z0);
-    fpath1->SetParameter(1, dzdy);
-
-    double dydz = ( local_out.Y() - local_in.Y() ) / ( local_out.Z() - local_in.Z() );
-    double y0 =  local_in.Y()  - dydz * local_in.Z();
-    TF1* fpath2 = new TF1("fpath2", "[0] + [1]*x");
-    fpath2->SetParameter(0, y0);
-    fpath2->SetParameter(1, dydz);
-
-    // loop over the strips touched by this track
+    // Use an algorithm similar to the one for the MVTX pixels, since it facilitates adding charge diffusion
+    // for now we assume small charge diffusion
+    
+    vector<int> vybin;
+    vector<int> vzbin;
+    //vector<double> vlen;
+    vector< pair <double, double> > venergy;
+    
+    //====================================================
+    // Beginning of charge sharing implementation
+    //    Find tracklet line inside sensor
+    //    Divide tracklet line into n segments (vary n until answer stabilizes) 
+    //    Find centroid of each segment
+    //    Diffuse charge at each centroid
+    //    Apportion charge between neighboring pixels
+    //    Add the pixel energy contributions from different track segments together
+    //====================================================
+    
+    // skip this hit if it involves an unreasonable  number of pixels
+    // this skips it if either the xbin or ybin range traversed is greater than 8 (for 8 adding two pixels at each end makes the range 12) 
+    if(maxstrip_y - minstrip_y > 12 || maxstrip_z - minstrip_z > 12)
+      continue;
+    
+    // this hit is skipped above if this dimensioning would be exceeded
+    double stripenergy[12][12] = {}; // init to 0
+    double stripeion[12][12] = {}; // init to 0
+    
+    int nsegments = 10;
+    // Loop over track segments and diffuse charge at each segment location, collect energy in pixels
+    for(int i=0;i<nsegments;i++)
+      {
+	// Find the tracklet segment location
+	// If there are n segments of equal length, we want 2*n intervals
+	// The 1st segment is centered at interval 1, the 2nd at interval 3, the nth at interval 2n -1
+	double interval = 2 * (double ) i  + 1;
+	double frac = interval / (double) (2 * nsegments);
+	TVector3 segvec(pathvec.X() * frac, pathvec.Y() * frac, pathvec.Z() * frac);
+	segvec = segvec + local_out;
+	
+	// Caculate the charge diffusion over this drift distance
+	// increases from diffusion width_min to diffusion_width_max 
+	double diffusion_radius = diffusion_width;   
+	
+	if(verbosity > 5)
+	  cout << " segment " << i 
+	       << " interval " << interval
+	       << " frac " << frac
+	       << " local_in.X " << local_in.X()
+	       << " local_in.Z " << local_in.Z()
+	       << " local_in.Y " << local_in.Y()
+	       << " pathvec.X " << pathvec.X()
+	       << " pathvec.Z " << pathvec.Z()
+	       << " pathvec.Y " << pathvec.Y()
+	       << " segvec.X " << segvec.X()
+	       << " segvec.Z " << segvec.Z()
+	       << " segvec.Y " << segvec.Y()
+	       << " diffusion_radius " << diffusion_radius
+	       << endl;
+	
+	// Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
+	for(int iz=minstrip_z; iz <= maxstrip_z; iz++)
+	  {
+	    for(int iy = minstrip_y; iy <= maxstrip_y; iy++)
+	      {
+		// Find the pixel corners for this pixel number
+		double location[3] = {-1,-1,-1};
+		layergeom->find_strip_center_localcoords(ladder_z_index, iy, iz, location);
+		// note that (y1,z1) is the top left corner, (y2,z2) is the bottom right corner of the pixel - circle_rectangle_intersection expects this ordering		
+		double y1 = location[1] - layergeom->get_strip_y_spacing() / 2.0;
+		double y2 = location[1] + layergeom->get_strip_y_spacing() / 2.0;
+		double z1 = location[2] + layergeom->get_strip_z_spacing() / 2.0;
+		double z2 = location[2] - layergeom->get_strip_z_spacing() / 2.0;
+		
+		// here segvec.Y and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
+		// circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
+		double striparea_frac = circle_rectangle_intersection(y1, z1, y2, z2, segvec.Y(), segvec.Z(), diffusion_radius) / (M_PI * pow(diffusion_radius,2) );
+		// assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
+		stripenergy[iy-minstrip_y][iz-minstrip_z] += striparea_frac * hiter->second->get_edep() / (float) nsegments;
+		if (hiter->second->has_property(PHG4Hit::prop_eion))
+		  {
+		    stripeion[iy-minstrip_y][iz-minstrip_z] += striparea_frac * hiter->second->get_eion() / (float) nsegments;
+		  }
+		if(verbosity > 5)
+		  {
+		    cout << "    strip y index " << iy <<  " strip z index  " << iz
+			 << " strip area fraction of circle " << striparea_frac << " accumulated pixel energy " << stripenergy[iy-minstrip_y][iz-minstrip_z]
+			 << endl;
+		  }
+	      }
+	  }
+      }  // end loop over segments
+    
+    // now we have the energy deposited in each pixel, summed over all tracklet segments. We make a vector of all pixels with non-zero energy deposited
     for(int iz=minstrip_z; iz <= maxstrip_z; iz++)
       {
 	for(int iy = minstrip_y; iy <= maxstrip_y; iy++)
 	  {
-	    double point[2][2] = {-10000, -10000, -10000, -10000};
-
-	    double location[3] = {-1,-1,-1};
-	    layergeom->find_strip_center_localcoords(ladder_z_index, iy, iz, location);
-	    // define the rectangular box corresponding to this strip
-	    double strip_ymin = location[1] - layergeom->get_strip_y_spacing() / 2.0;
-	    double strip_ymax = location[1] + layergeom->get_strip_y_spacing() / 2.0;
-	    double strip_zmin = location[2] - layergeom->get_strip_z_spacing() / 2.0;
-	    double strip_zmax = location[2] + layergeom->get_strip_z_spacing() / 2.0;
-
-	    // does the line pass through this box?
-	    int got_it = 0;
-	    double z1 = fpath1->Eval(strip_ymin);
-	    if( z1 > strip_zmin && z1 < strip_zmax) 
-	      {
-		// crosses the boundary at ymin
-		point[got_it][0] = strip_ymin;
-		point[got_it][1] = z1; 
-		got_it++;
-	      }
-	      double z2 = fpath1->Eval(strip_ymax);
-	      if (z2 > strip_zmin && z2 < strip_zmax)
-	      {
-		// crosses the boundary at ymax
-		point[got_it][0] = strip_ymax;
-		point[got_it][1] = z1; 
-		got_it++;
-	      }
-
-	    double y1 = fpath2->Eval(strip_zmin);
-	    if( (y1 > strip_ymin && y1 < strip_ymax))
-	      {
-		// crosses the boundary at zmin
-		point[got_it][0] = y1;
-		point[got_it][1] = strip_zmin; 
-		got_it++;
-	      }
-	    double y2 = fpath2->Eval(strip_zmax);
-	    if( (y2 > strip_ymin && y2 < strip_ymax) )
-	      {
-		// crosses the boundary at zmax
-		point[got_it][0] = y2;
-		point[got_it][1] = strip_zmax; 
-		got_it++;
-	      }
-
-	    // the path does not enter the volume
-	    if(got_it == 0)
-	      {
-		cout << " track did not intersect z or y boundary of strip with iy " << iy << " iz " << iz << "  ---  got_it = " << got_it << endl; 
-		continue;
-	      }
-	      if(got_it != 2)
-		{
-		  cout << "Oops! That's not right: got_it = " << got_it << endl;
-		  continue;
-		}
-
-	      // now we can get the energy deposit in this strip
-	      double plength = sqrt( pow( (point[0][0] - point[1][0]), 2) + pow( (point[0][1] - point[1][1]), 2)  );
-	      double efrac = plength/path_length;
-	      cout << " Make cell for layer " << sphxlayer << " ladder_z_index " << ladder_z_index << " ladder_phi_index " << ladder_phi_index << endl;
-	      cout << "         strip_y_index " << iy << " strip_z_index " << iz << endl; 
-	      cout << "         path_length " << path_length << " plength " << plength << " efrac " << efrac << " strip energy " << efrac * hiter->second->get_edep()
-		   << endl;
-
-	    // Add this strip to the cell list
-	    //====================
-
-	    // this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
-	    std::string key = boost::str(boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % iz % iy).c_str();
-	    PHG4Cell *cell = nullptr;
-	    map<string, PHG4Cell *>::iterator it;
-	    
-	    it = celllist.find(key);
-	    // If there is an existing cell to add this hit to, find it    
-	    if (it != celllist.end())
-	      {
-		cell = it->second;
-		if(verbosity > 2)  cout << " found existing cell with key " << key << endl;
-	      }
-	    
-	    // There is not an existing cell to add this hit to, start a new cell    
-	    if(!cell)
-	      {
-		if(verbosity > 2) cout << " did not find existing cell with key " << key << " start a new one" << endl;
-		unsigned int index = celllist.size();
-		index++;
-		PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
-		cell = new PHG4Cellv1(cellkey);
-		celllist[key] = cell;
-		// This encodes the z and phi position of the sensor
-		//          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
-		
-		cell->set_ladder_z_index(ladder_z_index);
-		cell->set_ladder_phi_index(ladder_phi_index);
-		
-		// The z and phi position of the hit strip within the sensor
-		cell->set_zbin(iz);
-		cell->set_phibin(iy);
-	      }
-	    
-	    // One way or another we have a cell pointer - add this hit to the cell
-	    cell->add_edep(hiter->first, efrac * hiter->second->get_edep());
-	    cell->add_edep(efrac * hiter->second->get_edep());
+	    if( stripenergy[iy-minstrip_y][iz-minstrip_z] > 0.0 )
+	      {	      
+		vybin.push_back(iy);
+		vzbin.push_back(iz);
+		pair <double,double> tmppair = make_pair(stripenergy[iy-minstrip_y][iz-minstrip_z],stripeion[iy-minstrip_y][iz-minstrip_z]);
+		venergy.push_back(tmppair);  	  
+		if(verbosity > 1)
+		  cout << " Added ybin " << iy << " zbin " << iz << " to vectors with energy " << stripenergy[iy-minstrip_y][iz-minstrip_z] << endl;
+	      }		    	
 	  }
       }
     
+    //===================================
+    // End of charge sharing implementation
+    //===================================
     
-
-
-    //=============================================================================
-    /*    
-    // As a check, get the positions of the hit strips from the geo object
-    double location[3] = {-1, -1, -1};
-    layergeom->find_strip_center(ladder_z_index, ladder_phi_index, strip_z_index, strip_y_index, location);
-
-    if(verbosity > 2) 
-    {
-	cout << endl << "  g4 hit:  layer " <<  hiter->second->get_layer() << " edep " <<  hiter->second->get_edep() << endl;
-	cout << "   Hit entry point x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0) << endl;
-	cout << "   Hit exit point x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1) << endl;
-	cout << "  ladder z index " <<  hiter->second->get_ladder_z_index() << " ladder phi index " <<  hiter->second->get_ladder_phi_index() 
-	     << " strip z index " <<  hiter->second->get_strip_z_index() << " strip y index " <<   hiter->second->get_strip_y_index() << endl;
-	cout << "   strip x,y,z from geometry object = " << location[0] << "  " << location[1] << "  " << location[2] << endl;
-	cout << endl;
-    }
-
-    // this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
-    std::string key = boost::str(boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % strip_z_index % strip_y_index).c_str();
-    PHG4Cell *cell = nullptr;
-    map<string, PHG4Cell *>::iterator it;
-
-    it = celllist.find(key);
-    // If there is an existing cell to add this hit to, find it    
-    if (it != celllist.end())
-      {
-	cell = it->second;
-	if(verbosity > 2)  cout << " found existing cell with key " << key << endl;
-      }
+    // Add the strips fired by this hit to the cell list
+    //===============================
     
-    // There is not an existing cell to add this hit to, start a new cell    
-    if(!cell)
+    for (unsigned int i1 = 0; i1 < vybin.size(); i1++)   // loop over all fired cells
       {
-	if(verbosity > 2) cout << " did not find existing cell with key " << key << " start a new one" << endl;
-	unsigned int index = celllist.size();
-	index++;
-	PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
-	cell = new PHG4Cellv1(cellkey);
-	celllist[key] = cell;
-	// This encodes the z and phi position of the sensor
-	//          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
+	// this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
+	std::string key = boost::str(boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % vzbin[i1] % vybin[i1]).c_str();
+	PHG4Cell *cell = nullptr;
+	map<string, PHG4Cell *>::iterator it;
 	
-	cell->set_ladder_z_index(ladder_z_index);
-	cell->set_ladder_phi_index(ladder_phi_index);
+	it = celllist.find(key);
+	// If there is an existing cell to add this hit to, find it    
+	if (it != celllist.end())
+	  {
+	    cell = it->second;
+	    if(verbosity > 2)  
+	      cout << " found existing cell with key " << key << endl;
+	  }
 	
-	// The z and phi position of the hit strip within the sensor
-	cell->set_zbin(strip_z_index);
-	cell->set_phibin(strip_y_index);
+	// There is not an existing cell to add this hit to, start a new cell    
+	if(!cell)
+	  {
+	    if(verbosity > 2) cout << " did not find existing cell with key " << key << " start a new one" << endl;
+	    unsigned int index = celllist.size();
+	    index++;
+	    PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
+	    cell = new PHG4Cellv1(cellkey);
+	    celllist[key] = cell;
+	    // This encodes the z and phi position of the sensor
+	    //          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
+	    
+	    cell->set_ladder_z_index(ladder_z_index);
+	    cell->set_ladder_phi_index(ladder_phi_index);
+	    
+	    // The z and phi position of the hit strip within the sensor
+	    cell->set_zbin(vzbin[i1]);
+	    cell->set_phibin(vybin[i1]);
+	  }
+	
+	// One way or another we have a cell pointer - add this hit to the cell
+	cell->add_edep(venergy[i1].first);
+	cell->add_edep(hiter->first, venergy[i1].first);  // adds the g4hit association to the cell 
+	cell->add_eion(venergy[i1].second);
       }
-
-    // One way or another we have a cell pointer - add this hit to the cell
-    cell->add_edep(hiter->first, hiter->second->get_edep());
-    cell->add_edep(hiter->second->get_edep());
-    */
 
   }  // end loop over g4hits
-
 
   
   int numcells = 0;
@@ -362,19 +345,19 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     numcells++;
 
     if (verbosity > 0)
-    {
-      std::cout << "Adding cell for "
-		<< " layer " << mapiter->second->get_layer()
-                << " ladder z index: " << mapiter->second->get_ladder_z_index()
-                << ", ladder phi index: " << mapiter->second->get_ladder_phi_index()
-                << ", srip z index: " << mapiter->second->get_zbin()
-                << ", strip y index: " << mapiter->second->get_phibin()
-                << ", energy dep: " << mapiter->second->get_edep()
-                << std::endl;
-    }
+      {
+	std::cout << "Adding cell for "
+		  << " layer " << mapiter->second->get_layer()
+		  << " ladder z index: " << mapiter->second->get_ladder_z_index()
+		  << ", ladder phi index: " << mapiter->second->get_ladder_phi_index()
+		  << ", srip z: " << mapiter->second->get_zbin()
+		  << ", strip y: " << mapiter->second->get_phibin()
+		  << ", energy dep: " << mapiter->second->get_edep()
+		  << std::endl;
+      }
   }
   celllist.clear();
-
+  
   if (verbosity > 0)
     std::cout << Name() << ": found " << numcells << " silicon strips with energy deposition" << std::endl;
 
@@ -424,4 +407,75 @@ int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
       std::cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
   }
   return 0;
+}
+
+double  PHG4SiliconTrackerCellReco::circle_rectangle_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r )
+{
+  // Find the area of overlap of a circle and rectangle 
+  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
+
+  // move the rectangle to the frame where the circle is at (0,0)
+  x1 -= mx; 
+  x2 -= mx; 
+  y1 -= my; 
+  y2 -= my;
+
+  if(verbosity > 7)
+    {
+      cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
+      cout << " sA21 " << sA(r,x2,y1)
+	   << " sA11 " << sA(r,x1,y1)
+	   << " sA22 " << sA(r,x2,y2)
+	   << " sA12 " << sA(r,x1,y2)
+	   << endl;
+    }
+
+  return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
+  
+}
+
+double  PHG4SiliconTrackerCellReco::sA(double r, double x, double y) 
+{
+  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
+  // It is called repeatedly to find the overlap area between the circle and rectangle
+  // I found this code implementing the integral on a web forum called "ars technica",
+  // https://arstechnica.com/civis/viewtopic.php?t=306492
+  // posted by "memp"
+
+  double a;
+
+  if (x < 0) 
+    {
+      return -sA(r, -x, y);
+    }
+  
+	if (y < 0) 
+	  {
+	    return -sA(r, x, -y);
+	  }
+
+	if (x > r) 
+	  {
+	    x = r;
+	  }
+	
+	if (y > r) 
+	  {
+	    y = r;
+	  }
+	
+	if (x*x + y*y > r*r) 
+	  {
+	    a = r*r*asin(x/r) + x*sqrt(r*r-x*x)
+	      + r*r*asin(y/r) + y*sqrt(r*r-y*y)
+	      - r*r*M_PI_2;
+	    
+	    a *= 0.5;
+	  } 
+	else 
+	  {
+	    a = x*y;
+	  }
+	
+	return a;
 }

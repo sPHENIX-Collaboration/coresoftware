@@ -162,7 +162,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	  //      cout << "sphxlayer orig: " << sphxlayer;
 	  inttlayer = boost::lexical_cast<int>(*(++tokeniter));
 	  sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-	  //      cout << ", from intt: " << sphxlayer << endl;
+	  cout << " inttlayer " << inttlayer << ", sphhxlayer from intt: " << sphxlayer << endl;
 	  ladderz = boost::lexical_cast<int>(*(++tokeniter));    // inner sensor itype = 0, outer sensor itype = 1
 	  ladderphi = boost::lexical_cast<int>(*(++tokeniter));  // copy number in phi
 	  zposneg = boost::lexical_cast<int>(*(++tokeniter));    // 1 for negative z, 2 for positive z
@@ -248,7 +248,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
       if(prePoint->GetStepStatus() == fUndefined)   cout << PHWHERE << "***** Warning: prePoint step status of fUndefined found " << endl;      
 
-      //if (Verbosity() > 1) 
+      if (Verbosity() > 1) 
       cout << " found prePoint step status of fGeomBoundary (" << fGeomBoundary << ")" << " or fUndefined (" << fUndefined << ") = " << prePoint->GetStepStatus() << "  start a new hit " << endl;
       
       // if previous hit was saved, hit pointer was set to nullptr
