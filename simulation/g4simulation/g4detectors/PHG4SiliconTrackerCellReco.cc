@@ -148,6 +148,17 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     //========================================================================
 
     // Get the entry point of the hit in sensor local coordinates
+    gsl_vector *in_local = gsl_vector_alloc (3);
+    gsl_vector_set(in_local, 0,  hiter->second->get_local_x(0));
+    gsl_vector_set(in_local, 1,  hiter->second->get_local_y(0));
+    gsl_vector_set(in_local, 2,  hiter->second->get_local_z(0));
+    gsl_vector *out_local = gsl_vector_alloc (3);
+    gsl_vector_set(out_local,0, hiter->second->get_local_x(1));
+    gsl_vector_set(out_local,1, hiter->second->get_local_y(1));
+    gsl_vector_set(out_local,2, hiter->second->get_local_z(1));
+gsl_vector *path_vec = gsl_vector_alloc (3);
+gsl_vector_memcpy(path_vec, in_local);
+gsl_vector_sub(path_vec, out_local);
     TVector3 local_in( hiter->second->get_local_x(0),  hiter->second->get_local_y(0),  hiter->second->get_local_z(0) );
     TVector3 local_out( hiter->second->get_local_x(1),  hiter->second->get_local_y(1),  hiter->second->get_local_z(1) );
     TVector3 pathvec = local_in - local_out;
