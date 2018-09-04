@@ -127,7 +127,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
-    const int sphxlayer = hiter->second->get_layer();
+    const int sphxlayer = hiter->second->get_detid();
     PHG4CylinderGeom_Siladders *layergeom = (PHG4CylinderGeom_Siladders*) geo->GetLayerGeom(sphxlayer);
 
     // checking ADC timing integration window cut
