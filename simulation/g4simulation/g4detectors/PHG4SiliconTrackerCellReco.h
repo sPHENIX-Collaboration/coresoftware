@@ -1,5 +1,7 @@
-#ifndef PHG4SILICONTRACKERCELLRECO_H
-#define PHG4SILICONTRACKERCELLRECO_H
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SILICONTRACKERCELLRECO_H
+#define G4DETECTORS_PHG4SILICONTRACKERCELLRECO_H
 
 #include <phparameter/PHParameterInterface.h>
 
