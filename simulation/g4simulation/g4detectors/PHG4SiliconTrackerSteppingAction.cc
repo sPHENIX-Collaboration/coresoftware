@@ -200,16 +200,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       m_Hit = new PHG4Hitv1();
     }
 
-    m_Hit->set_layer((unsigned int) sphxlayer);
-
     // set the index values needed to locate the sensor strip
     if (zposneg == 1) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     m_Hit->set_ladder_z_index(ladderz);
 
     if (whichactive > 0)
     {
-      m_Hit->set_strip_z_index(-1);  // N/A
-      m_Hit->set_strip_y_index(-1);  // N/A
       m_Hit->set_ladder_phi_index(ladderphi);
       m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
       m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);

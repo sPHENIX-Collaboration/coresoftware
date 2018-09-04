@@ -11,9 +11,6 @@
 
 #include <Geant4/globals.hh>
 
-#include <TMath.h>
-#include <TVector2.h>
-
 #include <sstream>
 
 using namespace std;

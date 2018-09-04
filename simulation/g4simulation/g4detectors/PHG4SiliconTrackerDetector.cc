@@ -175,10 +175,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       {
         m_ActiveLogVols.insert(siactive_volume);
       }
-      G4VisAttributes *siactive_vis = new G4VisAttributes();
-      siactive_vis->SetVisibility(true);
-      siactive_vis->SetForceSolid(true);
-      siactive_vis->SetColour(G4Colour::White());
+      G4VisAttributes siactive_vis;
+      siactive_vis.SetVisibility(true);
+      siactive_vis.SetForceSolid(true);
+      siactive_vis.SetColour(G4Colour::White());
       siactive_volume->SetVisAttributes(siactive_vis);
 
       // We do not subdivide the sensor in G4. We will assign hits to strips in the stepping action, using the geometry object
@@ -199,10 +199,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       {
         m_PassiveVolumeTuple.insert(make_pair(siinactive_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::SI_INACTIVE)));
       }
-      G4VisAttributes *siinactive_vis = new G4VisAttributes();
-      siinactive_vis->SetVisibility(true);
-      siinactive_vis->SetForceSolid(true);
-      siinactive_vis->SetColour(G4Colour::Red());
+      G4VisAttributes siinactive_vis;
+      siinactive_vis.SetVisibility(true);
+      siinactive_vis.SetForceSolid(true);
+      siinactive_vis.SetColour(G4Colour::Red());
       siinactive_volume->SetVisAttributes(siinactive_vis);
 
       // Make the HDI Kapton and copper volumes
@@ -243,16 +243,16 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       {
         m_PassiveVolumeTuple.insert(make_pair(hdiext_copper_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::HDIEXT_COPPER)));
       }
-      G4VisAttributes *hdi_kapton_vis = new G4VisAttributes();
-      hdi_kapton_vis->SetVisibility(true);
-      hdi_kapton_vis->SetForceSolid(true);
-      hdi_kapton_vis->SetColour(G4Colour::Yellow());
+      G4VisAttributes hdi_kapton_vis;
+      hdi_kapton_vis.SetVisibility(true);
+      hdi_kapton_vis.SetForceSolid(true);
+      hdi_kapton_vis.SetColour(G4Colour::Yellow());
       hdi_kapton_volume->SetVisAttributes(hdi_kapton_vis);
       hdiext_kapton_volume->SetVisAttributes(hdi_kapton_vis);
-      G4VisAttributes *hdi_copper_vis = new G4VisAttributes();
-      hdi_copper_vis->SetVisibility(true);
-      hdi_copper_vis->SetForceSolid(true);
-      hdi_copper_vis->SetColour(G4Colour::White());
+      G4VisAttributes hdi_copper_vis;
+      hdi_copper_vis.SetVisibility(true);
+      hdi_copper_vis.SetForceSolid(true);
+      hdi_copper_vis.SetColour(G4Colour::White());
       hdi_copper_volume->SetVisAttributes(hdi_copper_vis);
       hdiext_copper_volume->SetVisAttributes(hdi_copper_vis);
 
@@ -265,10 +265,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         m_PassiveVolumeTuple.insert(make_pair(fphx_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::FPHX)));
       }
 
-      G4VisAttributes *fphx_vis = new G4VisAttributes();
-      fphx_vis->SetVisibility(true);
-      fphx_vis->SetForceSolid(true);
-      fphx_vis->SetColour(G4Colour::Blue());
+      G4VisAttributes fphx_vis;
+      fphx_vis.SetVisibility(true);
+      fphx_vis.SetForceSolid(true);
+      fphx_vis.SetColour(G4Colour::Blue());
       fphx_volume->SetVisAttributes(fphx_vis);
 
       const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx");
@@ -330,10 +330,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       {
         m_PassiveVolumeTuple.insert(make_pair(pgsext_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::PGSEXT)));
       }
-      G4VisAttributes *pgs_vis = new G4VisAttributes();
-      pgs_vis->SetVisibility(true);
-      pgs_vis->SetForceSolid(true);
-      pgs_vis->SetColour(G4Colour::Red());
+      G4VisAttributes pgs_vis;
+      pgs_vis.SetVisibility(true);
+      pgs_vis.SetForceSolid(true);
+      pgs_vis.SetColour(G4Colour::Red());
       pgs_volume->SetVisAttributes(pgs_vis);
       pgsext_volume->SetVisAttributes(pgs_vis);
 
@@ -380,10 +380,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         {
           m_PassiveVolumeTuple.insert(make_pair(stave_curve_ext_volume[i], make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVEEXT_CURVE)));
         }
-        G4VisAttributes *stave_curve_vis = new G4VisAttributes();
-        stave_curve_vis->SetVisibility(true);
-        stave_curve_vis->SetForceSolid(true);
-        stave_curve_vis->SetColour(G4Colour::White());
+        G4VisAttributes stave_curve_vis;
+        stave_curve_vis.SetVisibility(true);
+        stave_curve_vis.SetForceSolid(true);
+        stave_curve_vis.SetColour(G4Colour::White());
         stave_curve_volume[i]->SetVisAttributes(stave_curve_vis);
         stave_curve_ext_volume[i]->SetVisAttributes(stave_curve_vis);
       }
@@ -445,10 +445,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       {
         m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_ext_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::STAVEEXT_STRAIGHT_COOLER)));
       }
-      G4VisAttributes *stave_vis = new G4VisAttributes();
-      stave_vis->SetVisibility(true);
-      stave_vis->SetForceSolid(true);
-      stave_vis->SetColour(G4Colour::White());
+      G4VisAttributes stave_vis;
+      stave_vis.SetVisibility(true);
+      stave_vis.SetForceSolid(true);
+      stave_vis.SetColour(G4Colour::White());
       stave_straight_cooler_volume->SetVisAttributes(stave_vis);
       stave_straight_cooler_ext_volume->SetVisAttributes(stave_vis);
       if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_PHI)
@@ -475,9 +475,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *staveext_box = new G4Box((boost::format("staveext_box_%d_%d") % inttlayer % itype).str(), stave_x / 2., stave_y / 2., hdiext_z / 2.);
       G4LogicalVolume *staveext_volume = new G4LogicalVolume(staveext_box, G4Material::GetMaterial("G4_AIR"),
                                                              (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-      G4VisAttributes *stave_box_vis = new G4VisAttributes();
-      stave_box_vis->SetVisibility(false);
-      stave_box_vis->SetForceSolid(false);
+      G4VisAttributes stave_box_vis;
+      stave_box_vis.SetVisibility(false);
+      stave_box_vis.SetForceSolid(false);
       stave_volume->SetVisAttributes(stave_box_vis);
       staveext_volume->SetVisAttributes(stave_box_vis);
 
@@ -653,10 +653,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       G4VSolid *ladderext_box = new G4Box((boost::format("ladderext_box_%d_%s") % inttlayer % itype).str(), ladder_x / 2., ladder_y / 2., hdiext_z / 2.);
       G4LogicalVolume *ladderext_volume = new G4LogicalVolume(ladderext_box, G4Material::GetMaterial("G4_AIR"), (boost::format("ladderext_%d_%d_%d") % inttlayer % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes *ladder_vis = new G4VisAttributes();
-      ladder_vis->SetVisibility(false);
-      ladder_vis->SetForceSolid(false);
-      ladder_vis->SetColour(G4Colour::Cyan());
+      G4VisAttributes ladder_vis;
+      ladder_vis.SetVisibility(false);
+      ladder_vis.SetForceSolid(false);
+      ladder_vis.SetColour(G4Colour::Cyan());
       ladder_volume->SetVisAttributes(ladder_vis);
       ladderext_volume->SetVisAttributes(ladder_vis);
 
@@ -752,13 +752,15 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         const double posx = radius * cos(phi);
         const double posy = radius * sin(phi);
         const double fRotate = phi + offsetrot;  // no initial rotation, since we assembled the ladder in phi = 0 orientation
-        G4RotationMatrix *ladderrotation = new G4RotationMatrix();
-        ladderrotation->rotateZ(fRotate);
+        // G4RotationMatrix *ladderrotation = new G4RotationMatrix();
+        // ladderrotation->rotateZ(fRotate);
+        G4RotationMatrix ladderrotation;
+        ladderrotation.rotateZ(fRotate);
 
         // place the copy at its ladder phi value, and at positive (2) and negative (1) Z
-        auto pointer_negz = new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
+        auto pointer_negz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
                                               (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-        auto pointer_posz = new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
+        auto pointer_posz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
                                               (boost::format("ladder_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         if (m_IsActiveMap.find(inttlayer) != m_IsActiveMap.end())
         {
@@ -771,9 +773,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
           // We have added the outer sensor above, now we add the HDI extension tab to the end of the outer sensor HDI
           const double posz_ext = (hdi_z_arr[inttlayer][0] + hdi_z) + hdiext_z / 2.;
 
-          new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, -posz_ext)), ladderext_volume,
+          new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -posz_ext)), ladderext_volume,
                             (boost::format("ladderext_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
-          new G4PVPlacement(G4Transform3D(*ladderrotation, G4ThreeVector(posx, posy, +posz_ext)), ladderext_volume,
+          new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +posz_ext)), ladderext_volume,
                             (boost::format("ladderext_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         }
 
@@ -812,10 +814,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   {
     m_PassiveVolumeTuple.insert(make_pair(rail_volume, make_tuple(PHG4SiliconTrackerDefs::SUPPORT_DETID, PHG4SiliconTrackerDefs::SUPPORT_RAIL)));
   }
-  G4VisAttributes *rail_vis = new G4VisAttributes();
-  rail_vis->SetVisibility(true);
-  rail_vis->SetForceSolid(true);
-  rail_vis->SetColour(G4Colour::Cyan());
+  G4VisAttributes rail_vis;
+  rail_vis.SetVisibility(true);
+  rail_vis.SetForceSolid(true);
+  rail_vis.SetColour(G4Colour::Cyan());
   rail_volume->SetVisAttributes(rail_vis);
 
   double rail_dphi = M_PI / 3.0;
