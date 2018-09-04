@@ -32,9 +32,9 @@ class PHG4SiliconTrackerCellReco : public SubsysReco, public PHParameterInterfac
   void Detector(const std::string &d) { m_Detector = d; }
   void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
 
-  double circle_rectangle_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r) const;
+  double circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const;
   double sA(double r, double x, double y) const;
-  
+
  protected:
   int CheckEnergy(PHCompositeNode *topNode);
   std::string m_Detector;
