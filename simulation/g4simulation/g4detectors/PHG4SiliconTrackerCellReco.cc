@@ -260,7 +260,6 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     gsl_vector_set(m_LocalOutVec, 1, hiter->second->get_local_y(1));
     gsl_vector_set(m_LocalOutVec, 2, hiter->second->get_local_z(1));
     gsl_vector_sub(m_PathVec, m_LocalOutVec);
-    gsl_vector *segvec = gsl_vector_alloc(3);
     for (int i = 0; i < nsegments; i++)
     {
       // Find the tracklet segment location
