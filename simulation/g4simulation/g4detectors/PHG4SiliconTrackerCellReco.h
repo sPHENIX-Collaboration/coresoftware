@@ -3,6 +3,11 @@
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+
+#ifndef __CINT__
+#include <gsl/gsl_vector.h>
+#endif
+
 #include <map>
 #include <string>
 #include <vector>
@@ -15,7 +20,7 @@ class PHG4SiliconTrackerCellReco : public SubsysReco
  public:
   PHG4SiliconTrackerCellReco(const std::string &name = "SILICON_TRACKER");
 
-  virtual ~PHG4SiliconTrackerCellReco() {}
+  virtual ~PHG4SiliconTrackerCellReco();
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
 
@@ -57,6 +62,11 @@ class PHG4SiliconTrackerCellReco : public SubsysReco
   double tmin_default;
   double tmax_default;
   std::map<int, std::pair<double, double> > tmin_max;
+#ifndef __CINT__
+  gsl_vector *m_LocalOutVec;
+  gsl_vector *m_PathVec;
+  gsl_vector *m_SegmentVec;
+#endif
 };
 
 #endif

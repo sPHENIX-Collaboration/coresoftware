@@ -4,21 +4,22 @@
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderGeomContainer.h"
+#include "PHG4CylinderGeom_Siladders.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hitv1.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-#include <PHG4CylinderGeom_Siladders.h>
-#include <boost/format.hpp>
 #include <TF1.h>
-#include <TVector3.h>
+
+#include <boost/format.hpp>
 
 #include <cmath>
 #include <cstdlib>
@@ -42,6 +43,16 @@ PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
   hitnodename = "G4HIT_" + detector;
   cellnodename = "G4CELL_" + detector;
   geonodename = "CYLINDERGEOM_" + detector;
+  m_LocalOutVec = gsl_vector_alloc(3);
+  m_PathVec = gsl_vector_alloc(3);
+  m_SegmentVec = gsl_vector_alloc(3);
+}
+
+  PHG4SiliconTrackerCellReco::~PHG4SiliconTrackerCellReco()
+{
+  gsl_vector_free(m_LocalOutVec);
+  gsl_vector_free(m_PathVec);
+  gsl_vector_free(m_SegmentVec);
 }
 
 int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
@@ -147,35 +158,19 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
      // What we have is a hit in the sensor. We have not yet assigned the strip(s) that were hit, we do that here
     //========================================================================
 
-    // Get the entry point of the hit in sensor local coordinates
-    gsl_vector *in_local = gsl_vector_alloc (3);
-    gsl_vector_set(in_local, 0,  hiter->second->get_local_x(0));
-    gsl_vector_set(in_local, 1,  hiter->second->get_local_y(0));
-    gsl_vector_set(in_local, 2,  hiter->second->get_local_z(0));
-    gsl_vector *out_local = gsl_vector_alloc (3);
-    gsl_vector_set(out_local,0, hiter->second->get_local_x(1));
-    gsl_vector_set(out_local,1, hiter->second->get_local_y(1));
-    gsl_vector_set(out_local,2, hiter->second->get_local_z(1));
-gsl_vector *path_vec = gsl_vector_alloc (3);
-gsl_vector_memcpy(path_vec, in_local);
-gsl_vector_sub(path_vec, out_local);
-    TVector3 local_in( hiter->second->get_local_x(0),  hiter->second->get_local_y(0),  hiter->second->get_local_z(0) );
-    TVector3 local_out( hiter->second->get_local_x(1),  hiter->second->get_local_y(1),  hiter->second->get_local_z(1) );
-    TVector3 pathvec = local_in - local_out;
-
     int strip_y_index_in, strip_z_index_in, strip_y_index_out, strip_z_index_out;    
-    layergeom->find_strip_index_values(ladder_z_index, local_in.y(), local_in.z(), strip_y_index_in, strip_z_index_in);
-    layergeom->find_strip_index_values(ladder_z_index, local_out.y(), local_out.z(), strip_y_index_out, strip_z_index_out);
+    layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(0), hiter->second->get_local_z(0), strip_y_index_in, strip_z_index_in);
+    layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(1), hiter->second->get_local_z(1), strip_y_index_out, strip_z_index_out);
 
     if(verbosity > 5)
       {    
 	// check to see if we get back the positions from these strip index values
 	double check_location[3] = {-1,-1,-1};
 	layergeom->find_strip_center_localcoords(ladder_z_index, strip_y_index_in, strip_z_index_in, check_location);
-	cout << " G4 entry location = " << local_in.X() << "  " << local_in.Y() << "  " << local_in.Z() << endl; 
+	cout << " G4 entry location = " << hiter->second->get_local_x(0) << "  " << hiter->second->get_local_y(0) << "  " << hiter->second->get_local_z(0) << endl; 
 	cout << " Check entry location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << endl; 
 	layergeom->find_strip_center_localcoords(ladder_z_index, strip_y_index_out, strip_z_index_out, check_location);
-	cout << " G4 exit location = " << local_out.X() << "  " << local_out.Y() << "  " << local_out.Z() << endl; 
+	cout << " G4 exit location = " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << "  " << hiter->second->get_local_z(1) << endl; 
 	cout << " Check exit location = " << check_location[0] << "  " << check_location[1] << "  " << check_location[2] << endl; 
       }
 
@@ -209,14 +204,24 @@ gsl_vector_sub(path_vec, out_local);
     // skip this hit if it involves an unreasonable  number of pixels
     // this skips it if either the xbin or ybin range traversed is greater than 8 (for 8 adding two pixels at each end makes the range 12) 
     if(maxstrip_y - minstrip_y > 12 || maxstrip_z - minstrip_z > 12)
+    {
       continue;
-    
+    }    
     // this hit is skipped above if this dimensioning would be exceeded
     double stripenergy[12][12] = {}; // init to 0
     double stripeion[12][12] = {}; // init to 0
     
     int nsegments = 10;
     // Loop over track segments and diffuse charge at each segment location, collect energy in pixels
+    // Get the entry point of the hit in sensor local coordinates
+    gsl_vector_set(m_PathVec, 0,  hiter->second->get_local_x(0));
+    gsl_vector_set(m_PathVec, 1,  hiter->second->get_local_y(0));
+    gsl_vector_set(m_PathVec, 2,  hiter->second->get_local_z(0));
+    gsl_vector_set(m_LocalOutVec,0, hiter->second->get_local_x(1));
+    gsl_vector_set(m_LocalOutVec,1, hiter->second->get_local_y(1));
+    gsl_vector_set(m_LocalOutVec,2, hiter->second->get_local_z(1));
+    gsl_vector_sub(m_PathVec, m_LocalOutVec);
+    gsl_vector *segvec = gsl_vector_alloc(3);
     for(int i=0;i<nsegments;i++)
       {
 	// Find the tracklet segment location
@@ -224,9 +229,9 @@ gsl_vector_sub(path_vec, out_local);
 	// The 1st segment is centered at interval 1, the 2nd at interval 3, the nth at interval 2n -1
 	double interval = 2 * (double ) i  + 1;
 	double frac = interval / (double) (2 * nsegments);
-	TVector3 segvec(pathvec.X() * frac, pathvec.Y() * frac, pathvec.Z() * frac);
-	segvec = segvec + local_out;
-	
+        gsl_vector_memcpy(m_SegmentVec,m_PathVec);
+	gsl_vector_scale(m_SegmentVec,frac);
+	gsl_vector_add(m_SegmentVec,m_LocalOutVec);
 	// Caculate the charge diffusion over this drift distance
 	// increases from diffusion width_min to diffusion_width_max 
 	double diffusion_radius = diffusion_width;   
@@ -235,15 +240,15 @@ gsl_vector_sub(path_vec, out_local);
 	  cout << " segment " << i 
 	       << " interval " << interval
 	       << " frac " << frac
-	       << " local_in.X " << local_in.X()
-	       << " local_in.Z " << local_in.Z()
-	       << " local_in.Y " << local_in.Y()
-	       << " pathvec.X " << pathvec.X()
-	       << " pathvec.Z " << pathvec.Z()
-	       << " pathvec.Y " << pathvec.Y()
-	       << " segvec.X " << segvec.X()
-	       << " segvec.Z " << segvec.Z()
-	       << " segvec.Y " << segvec.Y()
+	       << " local_in.X " << hiter->second->get_local_x(0)
+	       << " local_in.Z " << hiter->second->get_local_z(0)
+	       << " local_in.Y " << hiter->second->get_local_y(0)
+	       << " pathvec.X " << gsl_vector_get(m_PathVec,0)
+	       << " pathvec.Z " << gsl_vector_get(m_PathVec,2)
+	       << " pathvec.Y " << gsl_vector_get(m_PathVec,1)
+	       << " segvec.X " << gsl_vector_get(m_SegmentVec,0)
+	       << " segvec.Z " << gsl_vector_get(m_SegmentVec,2)
+	       << " segvec.Y " << gsl_vector_get(m_SegmentVec,1) << endl
 	       << " diffusion_radius " << diffusion_radius
 	       << endl;
 	
@@ -261,9 +266,9 @@ gsl_vector_sub(path_vec, out_local);
 		double z1 = location[2] + layergeom->get_strip_z_spacing() / 2.0;
 		double z2 = location[2] - layergeom->get_strip_z_spacing() / 2.0;
 		
-		// here segvec.Y and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
+		// here m_SegmentVec.1 (Y) and m_SegmentVec.2 (Z) are the center of the circle, and diffusion_radius is the circle radius
 		// circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
-		double striparea_frac = circle_rectangle_intersection(y1, z1, y2, z2, segvec.Y(), segvec.Z(), diffusion_radius) / (M_PI * pow(diffusion_radius,2) );
+		double striparea_frac = circle_rectangle_intersection(y1, z1, y2, z2, gsl_vector_get(m_SegmentVec,1), gsl_vector_get(m_SegmentVec,2), diffusion_radius) / (M_PI * (diffusion_radius*diffusion_radius) );
 		// assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
 		stripenergy[iy-minstrip_y][iz-minstrip_z] += striparea_frac * hiter->second->get_edep() / (float) nsegments;
 		if (hiter->second->has_property(PHG4Hit::prop_eion))
@@ -279,7 +284,6 @@ gsl_vector_sub(path_vec, out_local);
 	      }
 	  }
       }  // end loop over segments
-    
     // now we have the energy deposited in each pixel, summed over all tracklet segments. We make a vector of all pixels with non-zero energy deposited
     for(int iz=minstrip_z; iz <= maxstrip_z; iz++)
       {
@@ -307,7 +311,7 @@ gsl_vector_sub(path_vec, out_local);
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)   // loop over all fired cells
       {
 	// this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
-	std::string key = boost::str(boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % vzbin[i1] % vybin[i1]).c_str();
+	std::string key = (boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % vzbin[i1] % vybin[i1]).str();
 	PHG4Cell *cell = nullptr;
 	map<string, PHG4Cell *>::iterator it;
 	
