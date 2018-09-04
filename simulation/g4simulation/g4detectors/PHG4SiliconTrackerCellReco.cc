@@ -29,7 +29,6 @@ using namespace std;
 
 PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
   : SubsysReco(name)
-  , _timer(PHTimeServer::get()->insert_new(name.c_str()))
   , chkenergyconservation(0)
   , tmin_default(-20.0)  // FVTX NIM paper Fig 32, collision has a timing spread around the triggered event. Accepting negative time too.
   ,  // ns
@@ -108,8 +107,6 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
-
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
@@ -380,12 +377,6 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
   {
     CheckEnergy(topNode);
   }
-  _timer.get()->stop();
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4SiliconTrackerCellReco::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

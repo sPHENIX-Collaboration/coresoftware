@@ -2,7 +2,6 @@
 #define PHG4SILICONTRACKERCELLRECO_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
 #ifndef __CINT__
 #include <gsl/gsl_vector.h>
@@ -26,9 +25,6 @@ class PHG4SiliconTrackerCellReco : public SubsysReco
 
   //! event processing
   int process_event(PHCompositeNode *topNode);
-
-  //! end of process
-  int End(PHCompositeNode *topNode);
 
   void Detector(const std::string &d) { detector = d; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
@@ -54,7 +50,6 @@ class PHG4SiliconTrackerCellReco : public SubsysReco
   std::string hitnodename;
   std::string cellnodename;
   std::string geonodename;
-  PHTimeServer::timer _timer;
   int nbins[2];
   int chkenergyconservation;
   std::map<std::string, PHG4Cell *> celllist;  // This map holds the hit cells
