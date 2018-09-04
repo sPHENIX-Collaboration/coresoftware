@@ -164,31 +164,16 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // We add them to the ladder later
       //============================================================
 
-      // Create a volume for the Si-strip. Use half widths to make the box
-      G4VSolid *strip_box = new G4Box((boost::format("strip_box_%d_%d") % inttlayer % itype).str(),
-                                      strip_x / 2., strip_y / 2. - strip_y / 20000., strip_z / 2. - strip_z / 2. / 10000.);
-      G4LogicalVolume *strip_volume = new G4LogicalVolume(strip_box, G4Material::GetMaterial("G4_Si"),
-                                                          (boost::format("strip_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-      if ((m_IsActiveMap.find(inttlayer))->second > 0)
-      {
-        m_ActiveLogVols.insert(strip_volume);
-      }
-      G4VisAttributes *strip_vis = new G4VisAttributes();
-      strip_vis->SetVisibility(false);
-      strip_vis->SetForceSolid(false);
-      strip_vis->SetColour(G4Colour::White());
-      strip_volume->SetVisAttributes(strip_vis);
-
       // Create Si-sensor active volume
       const double siactive_x = strip_x;
       const double siactive_y = strip_y * nstrips_phi_sensor;
       const double siactive_z = strip_z * nstrips_z_sensor;
       G4VSolid *siactive_box = new G4Box((boost::format("siactive_box_%d_%d") % inttlayer % itype).str(), siactive_x / 2, siactive_y / 2., siactive_z / 2.);
       G4LogicalVolume *siactive_volume = new G4LogicalVolume(siactive_box, G4Material::GetMaterial("G4_Si"),
-                                                             (boost::format("siwafer_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-      if ((m_IsAbsorberActiveMap.find(inttlayer))->second > 0)
+                                                             boost::str(boost::format("siactive_volume_%d_%d") % inttlayer % itype).c_str(), 0, 0, 0);
+      if ((m_IsActiveMap.find(inttlayer))->second > 0)
       {
-        m_PassiveVolumeTuple.insert(make_pair(siactive_volume, make_tuple(inttlayer, PHG4SiliconTrackerDefs::SI_WAFER)));
+        m_ActiveLogVols.insert(siactive_volume);
       }
       G4VisAttributes *siactive_vis = new G4VisAttributes();
       siactive_vis->SetVisibility(true);
@@ -196,11 +181,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       siactive_vis->SetColour(G4Colour::White());
       siactive_volume->SetVisAttributes(siactive_vis);
 
-      // Now make a G4PVParameterised containing all of the strips in a sensor
-      // this works for ladder 0 because there is only one strip type - all cells are identical
-      G4VPVParameterisation *stripparam = new PHG4SiliconTrackerStripParameterisation(nstrips_phi_sensor, nstrips_z_sensor, strip_y, strip_z);
-      new G4PVParameterised((boost::format("siactive_%d_%d") % inttlayer % itype).str(),
-                            strip_volume, siactive_volume, kZAxis, nstrips_phi_sensor * nstrips_z_sensor, stripparam, false);  // overlap check too long.
+      // We do not subdivide the sensor in G4. We will assign hits to strips in the stepping action, using the geometry object
 
       // Si-sensor full (active+inactive) area
       const double sifull_x = siactive_x;

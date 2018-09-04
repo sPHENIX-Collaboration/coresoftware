@@ -14,6 +14,8 @@ class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class  PHG4CylinderGeomContainer;
+class PHG4CylinderGeom_Siladders;
 
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
@@ -37,6 +39,7 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   PHG4HitContainer *m_SaveHitContainer;
   PHG4Shower *m_SaveShower;
   const PHParametersContainer *m_ParamsContainer;
+
 
   std::map<int, int> m_InttToTrackerLayerMap;
   std::map<int, int> m_LadderTypeMap;

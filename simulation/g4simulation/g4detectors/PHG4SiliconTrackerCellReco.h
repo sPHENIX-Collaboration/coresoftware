@@ -39,6 +39,9 @@ class PHG4SiliconTrackerCellReco : public SubsysReco
     tmax_default = tmax;
   }
 
+  double circle_rectangle_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r);
+  double sA(double r, double x, double y) ;
+  
  protected:
   int CheckEnergy(PHCompositeNode *topNode);
   std::map<int, int> binning;
