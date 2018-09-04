@@ -17,7 +17,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-#include <TF1.h>
+#include <TSystem.h>
 
 #include <boost/format.hpp>
 
@@ -29,13 +29,12 @@ using namespace std;
 
 PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
   : SubsysReco(name)
+  , PHParameterInterface(name)
   , chkenergyconservation(0)
-  , tmin_default(-20.0)  // FVTX NIM paper Fig 32, collision has a timing spread around the triggered event. Accepting negative time too.
-  ,  // ns
-  tmax_default(80.0) // FVTX NIM paper Fig 32
-  ,  // ns
-  tmin_max()
+  , m_Tmin(NAN)
+  , m_Tmax(NAN)
 {
+  InitializeParameters();
   memset(nbins, 0, sizeof(nbins));
   Detector(name);
 
@@ -63,9 +62,37 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
   {
-    std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    std::cout << PHWHERE << "DST Node missing, exiting." << std::endl;
+    gSystem->Exit(1);
     exit(1);
   }
+
+  PHCompositeNode *runNode;
+  runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+  if (!runNode)
+    {
+      cout << Name() << "RUN Node missing, exiting." << endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+  if (!parNode)
+    {
+      cout << Name() << "PAR Node missing, exiting." << endl;
+      gSystem->Exit(1);
+      exit(1);
+    }
+  string paramnodename = "G4CELLPARAM_" + detector;
+
+  PHNodeIterator runiter(runNode);
+  PHCompositeNode *RunDetNode =
+    dynamic_cast<PHCompositeNode*>(runiter.findFirst("PHCompositeNode",
+						     detector));
+  if (!RunDetNode)
+    {
+      RunDetNode = new PHCompositeNode(detector);
+      runNode->addNode(RunDetNode);
+    }
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -100,7 +127,23 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   }
 
   if (verbosity > 0)
+  {
     geo->identify();
+  }
+
+  UpdateParametersWithMacro();
+  SaveToNodeTree(RunDetNode,paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+    {
+      ParDetNode = new PHCompositeNode(detector);
+      parNode->addNode(ParDetNode);
+    }
+  PutOnParNode(ParDetNode,geonodename);
+  m_Tmin = get_double_param("tmin");
+  m_Tmax = get_double_param("tmax");
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -141,9 +184,9 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     // checking ADC timing integration window cut
     // uses default values for now
     // these should depend on layer radius
-    if (hiter->second->get_t(0) > tmax_default)
+    if (hiter->second->get_t(0) > m_Tmax)
       continue;
-    if (hiter->second->get_t(1) < tmin_default)
+    if (hiter->second->get_t(1) < m_Tmin)
       continue;
 
     // I made this (small) diffusion up for now, we will get actual values for the INTT later
@@ -484,4 +527,15 @@ double  PHG4SiliconTrackerCellReco::sA(double r, double x, double y)
 	  }
 	
 	return a;
+}
+
+void
+PHG4SiliconTrackerCellReco::SetDefaultParameters()
+{
+// if we ever need separate timing windows, don't patch around here!
+// use PHParameterContainerInterface which
+// provides for multiple layers/detector types
+  set_default_double_param("tmax",80.0);  // FVTX NIM paper Fig 32
+  set_default_double_param("tmin",-20.0); // FVTX NIM paper Fig 32, collision has a timing spread around the triggered event. Accepting negative time too.
+  return;
 }
