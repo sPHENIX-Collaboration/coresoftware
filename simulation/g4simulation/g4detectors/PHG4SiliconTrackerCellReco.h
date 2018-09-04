@@ -9,9 +9,7 @@
 #include <gsl/gsl_vector.h>
 #endif
 
-#include <map>
 #include <string>
-#include <vector>
 
 class PHCompositeNode;
 class PHG4Cell;
@@ -31,25 +29,25 @@ class PHG4SiliconTrackerCellReco : public SubsysReco, public PHParameterInterfac
   //! set default parameter values
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) { detector = d; }
-  void checkenergy(const int i = 1) { chkenergyconservation = i; }
+  void Detector(const std::string &d) { m_Detector = d; }
+  void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
 
-  double circle_rectangle_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r);
-  double sA(double r, double x, double y) ;
+  double circle_rectangle_intersection(double x1, double y1,  double x2,  double y2,  double mx, double my,  double r) const;
+  double sA(double r, double x, double y) const;
   
  protected:
   int CheckEnergy(PHCompositeNode *topNode);
-  std::map<int, int> binning;
-  std::string detector;
-  std::string hitnodename;
-  std::string cellnodename;
-  std::string geonodename;
-  int nbins[2];
-  int chkenergyconservation;
-  std::map<std::string, PHG4Cell *> celllist;  // This map holds the hit cells
+  std::string m_Detector;
+  std::string m_HitNodeName;
+  std::string m_CellNodeName;
+  std::string m_GeoNodeName;
+
+  int m_ChkEnergyConservationFlag;
+  std::map<std::string, PHG4Cell *> m_CellList;  // This map holds the hit cells
 
   double m_Tmin;
   double m_Tmax;
+
 #ifndef __CINT__
   gsl_vector *m_LocalOutVec;
   gsl_vector *m_PathVec;

@@ -30,17 +30,16 @@ using namespace std;
 PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , chkenergyconservation(0)
+  , m_ChkEnergyConservationFlag(0)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
 {
   InitializeParameters();
-  memset(nbins, 0, sizeof(nbins));
   Detector(name);
 
-  hitnodename = "G4HIT_" + detector;
-  cellnodename = "G4CELL_" + detector;
-  geonodename = "CYLINDERGEOM_" + detector;
+  m_HitNodeName = "G4HIT_" + m_Detector;
+  m_CellNodeName = "G4CELL_" + m_Detector;
+  m_GeoNodeName = "CYLINDERGEOM_" + m_Detector;
   m_LocalOutVec = gsl_vector_alloc(3);
   m_PathVec = gsl_vector_alloc(3);
   m_SegmentVec = gsl_vector_alloc(3);
@@ -82,47 +81,47 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
-  string paramnodename = "G4CELLPARAM_" + detector;
+  string paramnodename = "G4CELLPARAM_" + m_Detector;
 
   PHNodeIterator runiter(runNode);
   PHCompositeNode *RunDetNode =
     dynamic_cast<PHCompositeNode*>(runiter.findFirst("PHCompositeNode",
-						     detector));
+						     m_Detector));
   if (!RunDetNode)
     {
-      RunDetNode = new PHCompositeNode(detector);
+      RunDetNode = new PHCompositeNode(m_Detector);
       runNode->addNode(RunDetNode);
     }
 
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
   {
-    std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
+    std::cout << "Could not locate g4 hit node " << m_HitNodeName << std::endl;
     exit(1);
   }
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
   if (!cells)
   {
     PHNodeIterator dstiter(dstNode);
 
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
 
     if (!DetNode)
     {
-      DetNode = new PHCompositeNode(detector);
+      DetNode = new PHCompositeNode(m_Detector);
       dstNode->addNode(DetNode);
     }
 
     cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, m_CellNodeName, "PHObject");
     DetNode->addNode(newNode);
   }
 
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
   {
-    std::cout << "Could not locate geometry node " << geonodename << std::endl;
+    std::cout << "Could not locate geometry node " << m_GeoNodeName << std::endl;
     exit(1);
   }
 
@@ -135,13 +134,13 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   SaveToNodeTree(RunDetNode,paramnodename);
   // save this to the parNode for use
   PHNodeIterator parIter(parNode);
-  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",m_Detector));
   if (! ParDetNode)
     {
-      ParDetNode = new PHCompositeNode(detector);
+      ParDetNode = new PHCompositeNode(m_Detector);
       parNode->addNode(ParDetNode);
     }
-  PutOnParNode(ParDetNode,geonodename);
+  PutOnParNode(ParDetNode,m_GeoNodeName);
   m_Tmin = get_double_param("tmin");
   m_Tmax = get_double_param("tmax");
 
@@ -150,25 +149,25 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
 
 int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
   {
-    std::cout << "Could not locate g4 hit node " << hitnodename << std::endl;
+    std::cout << "Could not locate g4 hit node " << m_HitNodeName << std::endl;
     exit(1);
   }
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
   if (!cells)
   {
-    std::cout << "could not locate cell node " << cellnodename << std::endl;
+    std::cout << "could not locate cell node " << m_CellNodeName << std::endl;
     exit(1);
   }
   cells->Reset();
 
-  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
+  PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
   {
-    std::cout << "Could not locate geometry node " << geonodename << std::endl;
+    std::cout << "Could not locate geometry node " << m_GeoNodeName << std::endl;
     exit(1);
   }
 
@@ -355,9 +354,9 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 	PHG4Cell *cell = nullptr;
 	map<string, PHG4Cell *>::iterator it;
 	
-	it = celllist.find(key);
+	it = m_CellList.find(key);
 	// If there is an existing cell to add this hit to, find it    
-	if (it != celllist.end())
+	if (it != m_CellList.end())
 	  {
 	    cell = it->second;
 	    if(verbosity > 2)  
@@ -368,13 +367,13 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 	if(!cell)
 	  {
 	    if(verbosity > 2) cout << " did not find existing cell with key " << key << " start a new one" << endl;
-	    unsigned int index = celllist.size();
+	    unsigned int index = m_CellList.size();
 	    index++;
 	    PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
 	    cell = new PHG4Cellv1(cellkey);
-	    celllist[key] = cell;
+	    m_CellList[key] = cell;
 	    // This encodes the z and phi position of the sensor
-	    //          celllist[key]->set_sensor_index(boost::str(boost::format("%d_%d") %ladder_z_index %ladder_phi_index).c_str());
+	    //          m_CellList[key]->set_sensor_index((boost::format("%d_%d") %ladder_z_index %ladder_phi_index).str());
 	    
 	    cell->set_ladder_z_index(ladder_z_index);
 	    cell->set_ladder_phi_index(ladder_phi_index);
@@ -394,7 +393,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
   
   int numcells = 0;
-  for (std::map<std::string, PHG4Cell *>::const_iterator mapiter = celllist.begin(); mapiter != celllist.end(); ++mapiter)
+  for (std::map<std::string, PHG4Cell *>::const_iterator mapiter = m_CellList.begin(); mapiter != m_CellList.end(); ++mapiter)
   {
     cells->AddCell(mapiter->second);
     numcells++;
@@ -411,12 +410,12 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 		  << std::endl;
       }
   }
-  celllist.clear();
+  m_CellList.clear();
   
   if (verbosity > 0)
     std::cout << Name() << ": found " << numcells << " silicon strips with energy deposition" << std::endl;
 
-  if (chkenergyconservation)
+  if (m_ChkEnergyConservationFlag)
   {
     CheckEnergy(topNode);
   }
@@ -425,8 +424,8 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
 int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
+  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
   double sum_energy_g4hit = 0.;
   double sum_energy_cells = 0.;
 
@@ -458,7 +457,7 @@ int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
   return 0;
 }
 
-double  PHG4SiliconTrackerCellReco::circle_rectangle_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r )
+double  PHG4SiliconTrackerCellReco::circle_rectangle_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r ) const
 {
   // Find the area of overlap of a circle and rectangle 
   // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
@@ -483,7 +482,7 @@ double  PHG4SiliconTrackerCellReco::circle_rectangle_intersection( double x1, do
   
 }
 
-double  PHG4SiliconTrackerCellReco::sA(double r, double x, double y) 
+double  PHG4SiliconTrackerCellReco::sA(double r, double x, double y) const
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
   // It is called repeatedly to find the overlap area between the circle and rectangle
