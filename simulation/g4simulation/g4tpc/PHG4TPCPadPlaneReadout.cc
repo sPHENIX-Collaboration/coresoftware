@@ -35,11 +35,12 @@ PHG4TPCPadPlane(name)
 int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
 {
 
+  cout << "PHG4TPCPadPlaneReadout: CreateReadoutGeometry: " << endl;
+
   for(int iregion=0;iregion<3;++iregion)
     {
       for (int layer = MinLayer[iregion]; layer < MinLayer[iregion]+NTpcLayers[iregion]; ++layer)
 	{
-	  cout << "PHG4TPCPadPlaneReadout: CreateReadoutGeometry: " << endl;
 	  if(verbosity > 0)
 	    {
 	      cout << "layer " << layer << " region " << iregion << " MinRadius " << MinRadius[iregion] << endl;  	
@@ -371,6 +372,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
 						      
 void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
 {
+  int verbosity = 101;
   int zbin = LayerGeom->get_zbin(z);
   if(zbin < 0 || zbin > LayerGeom->get_zbins() )
     {
@@ -451,10 +453,10 @@ void PHG4TPCPadPlaneReadout::SetDefaultParameters()
 
   set_default_double_param("neffelectrons_threshold",100.0); 
   set_default_double_param("maxdriftlength",105.5); // cm
-  set_default_double_param("drift_velocity",8.0 / 1000.0); // cm
+  set_default_double_param("drift_velocity",8.0 / 1000.0); // cm/ns
   set_default_double_param("tpc_adc_clock",53.0); // ns
 
-  set_default_double_param("gem_cloud_sigma",0.04); // cm
+  set_default_double_param("gem_cloud_sigma",0.04); // cm = 400 microns
   set_default_double_param("sampa_shaping_lead",32.0); // ns, for 80 ns SAMPA 
   set_default_double_param("sampa_shaping_tail",48.0);  // ns, for 80 ns SAMPA 
 
