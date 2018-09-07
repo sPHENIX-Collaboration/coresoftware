@@ -30,10 +30,10 @@ namespace TrkrDefs
 #ifndef __CINT__
   
   /// Max values for keys (used as defaults or invalid values)
-  static hitkey HITKEYMAX __attribute__((unused)) = ULONG_MAX;
-  static hitsetkey HITSETKEYMAX __attribute__((unused)) = ULONG_MAX;
-  static cluskey CLUSKEYMAX __attribute__((unused)) = ULLONG_MAX;
-  static clushitkey CLUSHITKEYMAX __attribute__((unused)) = ULONG_MAX;
+  static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;
+  static hitsetkey HITSETKEYMAX __attribute__((unused)) = UINT32_MAX;
+  static cluskey CLUSKEYMAX __attribute__((unused)) = UINT64_MAX;
+  static clushitkey CLUSHITKEYMAX __attribute__((unused)) = UINT32_MAX;
 
   // hitsetkey layout:
   //  common upper 16 bits
@@ -75,7 +75,7 @@ namespace TrkrDefs
   uint32_t getClusIndex(const TrkrDefs::cluskey key);
 
   /// generate the common upper 16 bits for hitsetkey
-  TrkrDefs::hitsetkey genHitSetKey(const TrkrDefs::TrkrId trkrId, const char lyr);
+  TrkrDefs::hitsetkey genHitSetKey(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
 
   /// Get the upper 32 bits from cluster keys
   uint32_t getHitSetKeyFromClusKey(const TrkrDefs::cluskey key);
@@ -83,14 +83,14 @@ namespace TrkrDefs
   /// Get a valid low / hi range for hitsetkey given tracker id & layer
   TrkrDefs::hitsetkey getHitSetKeyLo(const TrkrDefs::TrkrId trkrId);
   TrkrDefs::hitsetkey getHitSetKeyHi(const TrkrDefs::TrkrId trkrId);
-  TrkrDefs::hitsetkey getHitSetKeyLo(const TrkrDefs::TrkrId trkrId, const char lyr);
-  TrkrDefs::hitsetkey getHitSetKeyHi(const TrkrDefs::TrkrId trkrId, const char lyr);
+  TrkrDefs::hitsetkey getHitSetKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
+  TrkrDefs::hitsetkey getHitSetKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
 
   /// Get a valid low / hi range for cluskey given tracker id & layer
   TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId);
   TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId);
-  TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId, const char lyr);
-  TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId, const char lyr);
+  TrkrDefs::cluskey getClusKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
+  TrkrDefs::cluskey getClusKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr);
 
 }
 

@@ -33,7 +33,7 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 
   //! pointer to hit container
   PHG4HitContainer *m_Hits;
-  PHG4HitContainer *m_Absorberhits;
+  PHG4HitContainer *m_AbsorberHits;
   PHG4Hit *m_Hit;
   const PHParameters *m_Params;
   PHG4HitContainer *m_SaveHitContainer;

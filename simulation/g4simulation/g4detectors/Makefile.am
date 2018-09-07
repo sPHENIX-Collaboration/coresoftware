@@ -151,6 +151,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4ScintillatorSlatContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
+  PHG4GDMLDetector.cc \
+  PHG4GDMLSubsystem.cc \
+  PHG4GDMLSubsystem_Dict.cc \
   PHG4BeamlineMagnetDetector.cc \
   PHG4BeamlineMagnetSubsystem.cc \
   PHG4BeamlineMagnetSubsystem_Dict.cc \
@@ -260,6 +263,7 @@ libg4detectors_la_SOURCES = \
   PHG4SectorSubsystem_Dict.cc \
   PHG4SiliconTrackerCellReco.cc \
   PHG4SiliconTrackerCellReco_Dict.cc \
+  PHG4SiliconTrackerDefs_Dict.cc \
   PHG4SiliconTrackerDetector.cc \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \

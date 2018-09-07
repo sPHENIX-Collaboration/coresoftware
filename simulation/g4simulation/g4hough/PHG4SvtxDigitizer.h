@@ -47,11 +47,11 @@ class PHG4SvtxDigitizer : public SubsysReco
  private:
 
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
-  void CalculateLadderCellADCScale(PHCompositeNode *topNode);
+//  void CalculateLadderCellADCScale(PHCompositeNode *topNode);  // obsolete, use PHG4SiliconTrackerDigitizer
   void CalculateMapsLadderCellADCScale(PHCompositeNode *topNode);
 
   void DigitizeCylinderCells(PHCompositeNode *topNode);
-  void DigitizeLadderCells(PHCompositeNode *topNode);
+//  void DigitizeLadderCells(PHCompositeNode *topNode);  // obsolete, use PHG4SiliconTrackerDigitizer
   void DigitizeMapsLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
   float added_noise();

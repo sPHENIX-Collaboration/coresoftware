@@ -62,8 +62,10 @@ class RawClusterv1 : public RawCluster
   virtual float get_chi2() const { return get_property_float(prop_chi2); }
   //! cluster template probability for EM shower
   virtual float get_prob() const { return get_property_float(prop_prob); }
-  //! isolation ET
-  virtual float get_et_iso() const { return get_property_float(prop_et_iso); }
+  //! isolation ET default 
+  virtual float get_et_iso() const { return get_property_float(prop_et_iso_calotower_R03); }
+  //! isolation ET the radius and hueristic can be specified 
+  virtual float get_et_iso (const int radiusx10, bool subtracted, bool clusterTower) const;
 //  //! truth cluster's PHG4Particle ID
 //  virtual int get_truth_track_ID() const { return get_property_int(prop_truth_track_ID); }
 //  //! truth cluster's PHG4Particle flavor
@@ -92,8 +94,10 @@ class RawClusterv1 : public RawCluster
   virtual void set_chi2(const float chi2) { set_property(prop_chi2, chi2); }
   //! cluster template probability for EM shower
   virtual void set_prob(const float prob) { set_property(prop_prob, prob); }
-  //! isolation ET
-  virtual void set_et_iso(const float e) { set_property(prop_et_iso, e); }
+  //! isolation ET default 
+  virtual void set_et_iso(const float e) { set_property(prop_et_iso_calotower_R03, e); }
+  //! isolation ET the radius and hueristic can be specified 
+  virtual void set_et_iso(const float et_iso,const int radiusx10, bool subtracted, bool clusterTower);
 //  //! truth cluster's PHG4Particle ID
 //  virtual void set_truth_track_ID(const int i) { set_property(prop_truth_track_ID, i); }
 //  //! truth cluster's PHG4Particle flavor
@@ -115,7 +119,7 @@ class RawClusterv1 : public RawCluster
   void set_property(const PROPERTY prop_id, const int value);
   void set_property(const PROPERTY prop_id, const unsigned int value);
 
- protected:
+ protected: // protected is declared twice !?
   unsigned int get_property_nocheck(const PROPERTY prop_id) const;
   void set_property_nocheck(const PROPERTY prop_id, const unsigned int ui) { prop_map[prop_id] = ui; }
   //! storage types for additional property
@@ -155,7 +159,7 @@ class RawClusterv1 : public RawCluster
   /** @} */  // end of property map definitions
 
   //
- protected:
+ protected:  
   //! cluster ID
   RawClusterDefs::keytype clusterid;
   //! total energy

@@ -66,13 +66,13 @@ TrkrDefs::getHitSetKeyHi(const TrkrDefs::TrkrId trkrId)
 }
 
 TrkrDefs::hitsetkey
-TrkrDefs::getHitSetKeyLo(const TrkrDefs::TrkrId trkrId, const char lyr)
+TrkrDefs::getHitSetKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
   return genHitSetKey(trkrId, lyr);
 }
 
 TrkrDefs::hitsetkey
-TrkrDefs::getHitSetKeyHi(const TrkrDefs::TrkrId trkrId, const char lyr)
+TrkrDefs::getHitSetKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
   return genHitSetKey(trkrId, lyr + 1) - 1;
 }
@@ -92,21 +92,21 @@ TrkrDefs::getClusKeyHi(const TrkrDefs::TrkrId trkrId)
 }
 
 TrkrDefs::cluskey
-TrkrDefs::getClusKeyLo(const TrkrDefs::TrkrId trkrId, const char lyr)
+TrkrDefs::getClusKeyLo(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
   TrkrDefs::cluskey tmp = genHitSetKey(trkrId, lyr);
   return (tmp << kBitShiftClusId);
 }
 
 TrkrDefs::cluskey
-TrkrDefs::getClusKeyHi(const TrkrDefs::TrkrId trkrId, const char lyr)
+TrkrDefs::getClusKeyHi(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
   TrkrDefs::cluskey tmp = genHitSetKey(trkrId, lyr + 1);
   return (tmp << kBitShiftClusId) - 1;
 }
 
 TrkrDefs::hitsetkey
-TrkrDefs::genHitSetKey(const TrkrDefs::TrkrId trkrId, const char lyr)
+TrkrDefs::genHitSetKey(const TrkrDefs::TrkrId trkrId, const uint8_t lyr)
 {
   TrkrDefs::hitsetkey tmp = trkrId;
   TrkrDefs::hitsetkey key = tmp << kBitShiftTrkrId;  // detector id

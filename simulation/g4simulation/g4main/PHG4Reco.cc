@@ -138,6 +138,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , active_force_decay_(false)
   , force_decay_type_(kAll)
   , save_DST_geometry_(true)
+  , m_disableSteppingActions(false)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
@@ -375,10 +376,21 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       {
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
+
       steppingAction_->AddAction(g4sub->GetSteppingAction());
     }
   }
-  runManager_->SetUserAction(steppingAction_);
+
+  if (m_disableSteppingActions)
+  {
+    cout << "PHG4Reco::InitRun - WARNING - stepping action disabled! "
+         << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
+         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableSteppingActions()" << endl;
+  }
+  else
+  {
+    runManager_->SetUserAction(steppingAction_);
+  }
 
   // create main tracking action, add subsystems and register to GEANT
   trackingAction_ = new PHG4PhenixTrackingAction();
@@ -417,7 +429,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   */
   theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
-  theCerenkovProcess->SetTrackSecondariesFirst(true);
+  theCerenkovProcess->SetTrackSecondariesFirst(false); // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
 
   // theScintillationProcess->SetScintillationYieldFactor(1.);
   // theScintillationProcess->SetTrackSecondariesFirst(true);
@@ -712,6 +724,20 @@ void PHG4Reco::DefineMaterials()
   G4Material *quartz = new G4Material("Quartz", density = 2.200 * g / cm3, ncomponents = 2);
   quartz->AddElement(G4Element::GetElement("Si"), 1);
   quartz->AddElement(G4Element::GetElement("O"), 2);
+
+  // making carbon fiber epoxy
+  G4Material *cfrp_intt = new G4Material("CFRP_INTT", density = 1.69 * g / cm3, ncomponents = 3);
+  cfrp_intt->AddElement(G4Element::GetElement("C"), 10);
+  cfrp_intt->AddElement(G4Element::GetElement("H"), 6);
+  cfrp_intt->AddElement(G4Element::GetElement("O"), 1);
+
+  // making Rohacell foam 110
+  G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_110", density = 0.110 * g / cm3, ncomponents = 4);
+  rohacell_foam_110->AddElement(G4Element::GetElement("C"), 8);
+  rohacell_foam_110->AddElement(G4Element::GetElement("H"),11);
+  rohacell_foam_110->AddElement(G4Element::GetElement("O"), 2);
+  rohacell_foam_110->AddElement(G4Element::GetElement("N"), 1);
+
 
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
   G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);

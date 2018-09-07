@@ -16,7 +16,7 @@
 /**
  * @brief Base class for hit object
  *
- * This is the base class for a hit object.
+ * This is the empyt virtual base class for a hit object.
  * Each subsystem should implement an inherited version
  * which contains the actual storage information.
  */
@@ -24,7 +24,7 @@ class TrkrHit : public PHObject
 {
  public:
   //! ctor
-  TrkrHit() { m_key = TrkrDefs::HITKEYMAX; }
+  TrkrHit() {}
   //! dtor
   virtual ~TrkrHit() {}
   // PHObject virtual overloads
@@ -35,20 +35,7 @@ class TrkrHit : public PHObject
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
 
-  /**
-   * @brief Set the key for this hit
-   * @param[in] key
-   */
-  void setKey(const TrkrDefs::hitkey key) { m_key = key; }
-
-  /**
-   * @brief Get the key for this hit
-   * @param[out] key
-   */
-  TrkrDefs::hitkey getKey() const { return m_key; }
-
  protected:
-  TrkrDefs::hitkey m_key;
   ClassDef(TrkrHit, 1);
 };
 

@@ -22,7 +22,8 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
       const int    nladders_layer_,
       const double ladder_z0_,
       const double ladder_z1_,
-      const double eff_radius_,
+      const double sensor_radius_inner_,
+      const double sensor_radius_outer_,
       const double strip_x_offset_,
       const double offsetphi_,
       const double offsetrot_) :
@@ -37,10 +38,12 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
         nladders_layer(nladders_layer_),
         ladder_z0(ladder_z0_),
         ladder_z1(ladder_z1_),
-        eff_radius(eff_radius_),
+        sensor_radius_inner(sensor_radius_inner_),
+        sensor_radius_outer(sensor_radius_outer_),
         strip_x_offset(strip_x_offset_),
         offsetphi(offsetphi_),
-        offsetrot(offsetrot_)
+	offsetrot(offsetrot_),
+	radius(NAN)
     {
       // Type-A
       strip_z_[0]          = strip_z0;
@@ -70,12 +73,19 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
 
     double get_radius() const
       {
-        return eff_radius;
+        return sensor_radius_inner;
+      }
+
+    double get_radius_outer() const
+      {
+        return sensor_radius_outer;
       }
 
     bool load_geometry();
     void find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[]);
     void find_strip_center(  const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[]);
+    void find_strip_index_values(const int segment_z_bin, const double ypos, const double zpos,  int &strip_y_index, int &strip_z_index);
+    void find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[]);
 
     double get_thickness() const
       {
@@ -115,7 +125,8 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
     int nladders_layer;
     double ladder_z0;
     double ladder_z1;
-    double eff_radius;
+    double sensor_radius_inner;
+    double sensor_radius_outer;
     double strip_x_offset;
     double offsetphi;
     double offsetrot;
@@ -124,6 +135,8 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
     double ladder_z_[2];
     int nstrips_z_sensor_[2];
     double dphi_;
+
+    double radius;
 
     ClassDef(PHG4CylinderGeom_Siladders,1)
   };

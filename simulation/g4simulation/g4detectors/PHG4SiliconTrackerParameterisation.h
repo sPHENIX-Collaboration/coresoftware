@@ -1,26 +1,11 @@
-#ifndef PHG4SiliconTrackerParameterisation_H
-#define PHG4SiliconTrackerParameterisation_H 1
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SILICONTRACKERPARAMETERISATION_H
+#define G4DETECTORS_PHG4SILICONTRACKERPARAMETERISATION_H
 
 #include <Geant4/G4VPVParameterisation.hh>
-#include <Geant4/globals.hh>
 
 class G4VPhysicalVolume;
-
-/*
- * Strip location
- */
-class PHG4SiliconTrackerStripParameterisation : public G4VPVParameterisation
-{
- public:
-  PHG4SiliconTrackerStripParameterisation(const unsigned int ny, const unsigned int nz, const double dy, const double dz);
-  virtual ~PHG4SiliconTrackerStripParameterisation() {}
-  virtual void ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const;
-
- private:
-  G4double fXStrip[128 * 2 * 8];
-  G4double fYStrip[128 * 2 * 8];
-  G4double fZStrip[128 * 2 * 8];
-};
 
 /*
  * FPHX location

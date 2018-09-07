@@ -99,7 +99,7 @@ namespace MvtxDefs
    * Generate a hitsetkey for the mvtx. The tracker id is known
    * implicitly and used in the function.
    */
-  TrkrDefs::hitsetkey genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip);
+  TrkrDefs::hitsetkey genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip);
 
   /**
    * @brief Generate a cluster key from indeces 
@@ -109,7 +109,7 @@ namespace MvtxDefs
    * @param[in] clusid Cluster id
    * @param[out] cluskey
    */
-  TrkrDefs::cluskey genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
+  TrkrDefs::cluskey genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid);
 
   /**
    * @brief Generate a cluster key using a hitsetkey and cluster id

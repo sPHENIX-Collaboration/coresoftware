@@ -36,6 +36,7 @@ class PHG4MapsDetector: public PHG4Detector
   //!@name volume accessors
   //@{
   int IsInMaps(G4VPhysicalVolume*) const;
+  int IsSensor(G4VPhysicalVolume*) const;
   //@}
 
   void set_stave_type(const int st){stave_type = st;}
@@ -70,11 +71,19 @@ class PHG4MapsDetector: public PHG4Detector
   int ConstructMaps(G4LogicalVolume* sandwich);
   void SetDisplayProperty( G4AssemblyVolume* av);
   void SetDisplayProperty( G4LogicalVolume* lv);
+  void FillPVArray( G4AssemblyVolume* av );
+  void FindSensor ( G4LogicalVolume* lv);
+
+  // map of sensor physical volume pointers
+  std::map<G4VPhysicalVolume*, int> sensor_vol;
+  int sensor_count; 
+  std::map<G4VPhysicalVolume*, int> stave_vol;
+  int stave_count;
 
   // the cylinder envelope
-  G4double envelope_inner_radius;
-  G4double envelope_outer_radius;
-  G4double envelope_z;
+//  G4double envelope_inner_radius;
+//  G4double envelope_outer_radius;
+//  G4double envelope_z;
   //
    G4double place_in_x;
    G4double place_in_y;

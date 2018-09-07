@@ -52,7 +52,7 @@ MvtxDefs::genHitKey(const uint16_t col, const uint16_t row)
 }
 
 TrkrDefs::hitsetkey
-MvtxDefs::genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip)
+MvtxDefs::genHitSetKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip)
 {
   TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
   TrkrDefs::hitsetkey tmp = stave;
@@ -63,7 +63,7 @@ MvtxDefs::genHitSetKey(const char lyr, const uint8_t stave, const uint8_t chip)
 }
 
 TrkrDefs::cluskey
-MvtxDefs::genClusKey(const char lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid)
+MvtxDefs::genClusKey(const uint8_t lyr, const uint8_t stave, const uint8_t chip, const uint32_t clusid)
 {
   TrkrDefs::cluskey tmp = genHitSetKey(lyr, stave, chip);
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);

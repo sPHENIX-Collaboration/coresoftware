@@ -94,7 +94,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   }
 
   CalculateCylinderCellADCScale(topNode);
-  CalculateLadderCellADCScale(topNode);
+//  CalculateLadderCellADCScale(topNode); // obsolete, use PHG4SiliconTrackerDigitizer
   CalculateMapsLadderCellADCScale(topNode);
   
   //----------------
@@ -130,10 +130,11 @@ int PHG4SvtxDigitizer::process_event(PHCompositeNode *topNode) {
       return Fun4AllReturnCodes::ABORTRUN;
     }
 
-  _hitmap->Reset();
+  //Jin: don't clear up node. Fun4all server does that. Extra cleaning usually cause problems
+//  _hitmap->Reset();
   
   DigitizeCylinderCells(topNode);
-  DigitizeLadderCells(topNode);
+//  DigitizeLadderCells(topNode);  // obsolete, use PHG4SiliconTrackerDigitizer
   DigitizeMapsLadderCells(topNode);
 
   PrintHits(topNode);
@@ -175,37 +176,37 @@ void PHG4SvtxDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode) 
   return;
 }
 
-void PHG4SvtxDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode) {
-
-  // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
-
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
-    
-  if (!geom_container) return;
-  
-  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-      layeriter != layerrange.second;
-      ++layeriter) {
-
-    int layer = layeriter->second->get_layer();
-    float thickness = (layeriter->second)->get_thickness();
-    float pitch = (layeriter->second)->get_strip_y_spacing();
-    float length = (layeriter->second)->get_strip_z_spacing();
-   
-    float minpath = pitch;
-    if (length < minpath) minpath = length;
-    if (thickness < minpath) minpath = thickness;
-    float mip_e = 0.003876*minpath;  
-
-    if (_max_adc.find(layer) == _max_adc.end()) {
-      _max_adc[layer] = 255;
-      _energy_scale[layer] = mip_e / 64;
-    }
-  }    
-
-  return;
-}
+//void PHG4SvtxDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode) {
+//
+//  // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
+//
+//  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
+//
+//  if (!geom_container) return;
+//
+//  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
+//  for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
+//      layeriter != layerrange.second;
+//      ++layeriter) {
+//
+//    int layer = layeriter->second->get_layer();
+//    float thickness = (layeriter->second)->get_thickness();
+//    float pitch = (layeriter->second)->get_strip_y_spacing();
+//    float length = (layeriter->second)->get_strip_z_spacing();
+//
+//    float minpath = pitch;
+//    if (length < minpath) minpath = length;
+//    if (thickness < minpath) minpath = thickness;
+//    float mip_e = 0.003876*minpath;
+//
+//    if (_max_adc.find(layer) == _max_adc.end()) {
+//      _max_adc[layer] = 255;
+//      _energy_scale[layer] = mip_e / 64;
+//    }
+//  }
+//
+//  return;
+//}
 
 void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode) {
 
@@ -632,52 +633,52 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
   return;
 }
 
-void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
-
-  //----------
-  // Get Nodes
-  //----------
- 
-  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
-  if (!cells) return; 
-  
-  //-------------
-  // Digitization
-  //-------------
-
-  vector<PHG4Cell*> cell_list;
-  PHG4CellContainer::ConstRange cellrange = cells->getCells();
-  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
-      celliter != cellrange.second;
-      ++celliter) {
-    
-    PHG4Cell* cell = celliter->second;
-    
-    SvtxHit_v1 hit;
-
-    hit.set_layer(cell->get_layer());
-    hit.set_cellid(cell->get_cellid());
-
-    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
-    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()]; 
-    float e = _energy_scale[hit.get_layer()] * adc;
-    
-    hit.set_adc(adc);
-    hit.set_e(e);
-        
-    SvtxHit* ptr = _hitmap->insert(&hit);      
-    if (!ptr->isValid()) {
-      static bool first = true;
-      if (first) {
-	cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
-	ptr->identify();
-	first = false;
-      }
-    }
-  }
-  
-  return;
-}
+//void PHG4SvtxDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) {
+//
+//  //----------
+//  // Get Nodes
+//  //----------
+//
+//  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+//  if (!cells) return;
+//
+//  //-------------
+//  // Digitization
+//  //-------------
+//
+//  vector<PHG4Cell*> cell_list;
+//  PHG4CellContainer::ConstRange cellrange = cells->getCells();
+//  for(PHG4CellContainer::ConstIterator celliter = cellrange.first;
+//      celliter != cellrange.second;
+//      ++celliter) {
+//
+//    PHG4Cell* cell = celliter->second;
+//
+//    SvtxHit_v1 hit;
+//
+//    hit.set_layer(cell->get_layer());
+//    hit.set_cellid(cell->get_cellid());
+//
+//    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
+//    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()];
+//    float e = _energy_scale[hit.get_layer()] * adc;
+//
+//    hit.set_adc(adc);
+//    hit.set_e(e);
+//
+//    SvtxHit* ptr = _hitmap->insert(&hit);
+//    if (!ptr->isValid()) {
+//      static bool first = true;
+//      if (first) {
+//	cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
+//	ptr->identify();
+//	first = false;
+//      }
+//    }
+//  }
+//
+//  return;
+//}
 
 void PHG4SvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode) {
 

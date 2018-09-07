@@ -20,7 +20,8 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libg4hough_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lg4detectors_io
 
 libg4hough_la_LDFLAGS = \
   `geant4-config --libs`\
@@ -47,6 +48,8 @@ pkginclude_HEADERS = \
   SvtxVertex_v1.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h \
+  SvtxDeadMap.h \
+  SvtxDeadMapv1.h \
   PHG4SvtxDeadArea.h \
   PHG4SvtxThresholds.h \
   PHG4SvtxDigitizer.h \
@@ -106,6 +109,10 @@ libg4hough_io_la_SOURCES = \
   SvtxHit_Dict.C \
   SvtxHit_v1.C \
   SvtxHit_v1_Dict.C \
+  SvtxDeadMap.C \
+  SvtxDeadMap_Dict.C \
+  SvtxDeadMapv1.C \
+  SvtxDeadMapv1_Dict.C \
   SvtxHitMap.C \
   SvtxHitMap_Dict.C \
   SvtxHitMap_v1.C \
@@ -172,6 +179,8 @@ libg4hough_la_SOURCES = \
   PHG4SiliconTrackerDigitizer_Dict.C \
   PHG4SvtxDeadArea.C \
   PHG4SvtxDeadArea_Dict.C \
+  PHG4SvtxDeadMapLoader.C \
+  PHG4SvtxDeadMapLoader_Dict.C \
   PHG4SvtxThresholds.C \
   PHG4SvtxThresholds_Dict.C \
   PHG4SvtxDigitizer.C \
