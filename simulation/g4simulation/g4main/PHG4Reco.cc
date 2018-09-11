@@ -138,7 +138,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , active_force_decay_(false)
   , force_decay_type_(kAll)
   , save_DST_geometry_(true)
-  , m_disableSteppingActions(false)
+  , m_disableUserActions(false)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
@@ -351,6 +351,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
   runManager_->SetUserInitialization(detector_);
 
+
+  if (m_disableUserActions)
+  {
+    cout << "PHG4Reco::InitRun - WARNING - event/track/stepping action disabled! "
+         << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
+         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableUserActions()" << endl;
+  }
+
   setupInputEventNodeReader(topNode);
   // create main event action, add subsystemts and register to GEANT
   eventAction_ = new PHG4PhenixEventAction();
@@ -363,7 +371,11 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       eventAction_->AddAction(evtact);
     }
   }
-  runManager_->SetUserAction(eventAction_);
+
+  if (not m_disableUserActions)
+  {
+    runManager_->SetUserAction(eventAction_);
+  }
 
   // create main stepping action, add subsystems and register to GEANT
   steppingAction_ = new PHG4PhenixSteppingAction();
@@ -381,13 +393,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (m_disableSteppingActions)
-  {
-    cout << "PHG4Reco::InitRun - WARNING - stepping action disabled! "
-         << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
-         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableSteppingActions()" << endl;
-  }
-  else
+  if (not m_disableUserActions)
   {
     runManager_->SetUserAction(steppingAction_);
   }
@@ -409,7 +415,10 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  runManager_->SetUserAction(trackingAction_);
+  if (not m_disableUserActions)
+  {
+    runManager_->SetUserAction(trackingAction_);
+  }
 
   // initialize
   runManager_->Initialize();
