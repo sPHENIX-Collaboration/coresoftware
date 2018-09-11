@@ -295,17 +295,17 @@ void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
   map<int, map<const std::string, double>>::const_iterator iter;
   for (iter = dparams.begin(); iter != dparams.end(); ++iter)
   {
+    PHParameters *params = GetParamsContainer()->GetParametersToModify(iter->first);
     map<const std::string, double>::const_iterator diter;
     for (diter = iter->second.begin(); diter != iter->second.end(); ++diter)
     {
-      set_double_param(iter->first, diter->first, diter->second);
+      params->set_double_param(diter->first, diter->second);
     }
   }
   map<int, map<const std::string, int>>::const_iterator iiter;
   for (iiter = iparams.begin(); iiter != iparams.end(); ++iiter)
   {
     PHParameters *params = GetParamsContainer()->GetParametersToModify(iiter->first);
-
     map<const std::string, int>::const_iterator iiter2;
     for (iiter2 = iiter->second.begin(); iiter2 != iiter->second.end(); ++iiter2)
     {
@@ -315,10 +315,11 @@ void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
   map<int, map<const std::string, string>>::const_iterator siter;
   for (siter = cparams.begin(); siter != cparams.end(); ++siter)
   {
+    PHParameters *params = GetParamsContainer()->GetParametersToModify(siter->first);
     map<const std::string, string>::const_iterator siter2;
     for (siter2 = siter->second.begin(); siter2 != siter->second.end(); ++siter2)
     {
-      set_string_param(siter->first, siter2->first, siter2->second);
+      params->set_string_param(siter2->first, siter2->second);
     }
   }
   return;
