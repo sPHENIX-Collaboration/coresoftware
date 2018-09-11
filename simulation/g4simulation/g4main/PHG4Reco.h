@@ -131,8 +131,8 @@ class PHG4Reco : public SubsysReco
 
   void G4Verbosity(const int i);
 
-  //! disable stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
-  void setDisableSteppingActions(bool b = true) {m_disableSteppingActions = b;}
+  //! disable event/track/stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
+  void setDisableUserActions(bool b = true) {m_disableUserActions = b;}
 
  protected:
   int InitUImanager();
@@ -186,7 +186,7 @@ class PHG4Reco : public SubsysReco
   EDecayType force_decay_type_;  //< forced decay channel setting
 
   bool save_DST_geometry_;
-  bool m_disableSteppingActions;
+  bool m_disableUserActions;
 
   //! module timer.
   PHTimeServer::timer _timer;
