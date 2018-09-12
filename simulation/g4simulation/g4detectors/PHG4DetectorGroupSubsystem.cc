@@ -13,6 +13,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <TSystem.h>
+
 #include <boost/format.hpp>
 
 #include <iostream>
@@ -242,19 +244,29 @@ void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::strin
 
 int PHG4DetectorGroupSubsystem::get_int_param(const int detid, const std::string &name) const
 {
-  return paramscontainer->GetParameters(detid)->get_int_param(name);
+  const PHParameters *params = paramscontainer->GetParameters(detid);
+  if (params)
+  {
+    return params->get_int_param(name);
+  }
+  else
+  {
+    cout << PHWHERE << " no parameters for detid " << detid << endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
 }
 
 void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::string &name, const string &sval)
 {
-  map<int, map<const std::string, string>>::const_iterator iter = default_string.find(detid);
-  if (iter == default_string.end())
+  auto iter = m_DefaultStringParamsMap.find(detid);
+  if (iter == m_DefaultStringParamsMap.end())
   {
     cout << "detid " << detid << " not implemented" << endl;
     cout << "implemented detector ids: " << endl;
-    for (map<int, map<const std::string, string>>::const_iterator iter2 = default_string.begin(); iter2 != default_string.end(); ++iter2)
+    for (auto &iter2 : m_DefaultStringParamsMap)
     {
-      cout << "detid: " << iter2->first << endl;
+      cout << "detid: " << iter2.first << endl;
     }
     return;
   }
@@ -262,25 +274,27 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
   {
     cout << "string parameter " << name << " not implemented" << endl;
     cout << "implemented string parameters are:" << endl;
-    for (map<const string, string>::const_iterator iter3 = iter->second.begin(); iter3 != iter->second.end(); ++iter3)
+    for (auto &iter2 : iter->second)
     {
-      cout << iter3->first << endl;
+      cout << iter2.first << endl;
     }
     return;
   }
-  // here we know we have entries for the detector id and the variable name exists
-  // in the defaults, so now lets set it
-  map<int, map<const std::string, string>>::iterator smapiter = cparams.find(detid);
-  if (smapiter == cparams.end())
-  {
-    map<const std::string, string> newdmap;
-    newdmap[name] = sval;
-    cparams[detid] = newdmap;
-  }
-  else
-  {
-    smapiter->second[name] = sval;
-  }
+// here we know we have entries for the detector id and the variable name exists
+// in the defaults, so now lets set it
+
+// with C++11 insert returns a pair of an iterator to the element and
+// a boolean if the object was inserted or if it already exist (in which case it
+// does not get replaced). We do not check this because we do not care if a new map 
+// was inserted or not. All we need is the iterator to it
+  map<const std::string, string> newdmap;
+  auto ret = m_MacroStringParamsMap.insert(make_pair(detid,newdmap));
+// here we use the operator [] rather than insert because we
+// want to create a new entry if [name] does not exist. If it does
+// exist we want to overwrite it (so even if a parameter is set twice,
+// the last setting in the macro is used). Using insert would preserve the first
+// parameter setting
+  ret.first->second[name] = sval;
   return;
 }
 
@@ -312,14 +326,14 @@ void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
       params->set_int_param(iiter2->first, iiter2->second);
     }
   }
-  map<int, map<const std::string, string>>::const_iterator siter;
-  for (siter = cparams.begin(); siter != cparams.end(); ++siter)
+  for (auto &cpariter : m_MacroStringParamsMap)
   {
-    PHParameters *params = GetParamsContainer()->GetParametersToModify(siter->first);
-    map<const std::string, string>::const_iterator siter2;
-    for (siter2 = siter->second.begin(); siter2 != siter->second.end(); ++siter2)
+    PHParameters *params = GetParamsContainer()->GetParametersToModify(cpariter.first);
+    for (auto &strmapiter : cpariter.second)
     {
-      params->set_string_param(siter2->first, siter2->second);
+      cout << "first: " << strmapiter.first << ", " << strmapiter.second << endl;
+      params->set_string_param(strmapiter.first, strmapiter.second);
+
     }
   }
   return;
@@ -377,26 +391,18 @@ void PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const st
 
 void PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const std::string &name, const string &sval)
 {
-  map<int, map<const std::string, string>>::iterator smapiter = default_string.find(detid);
-  if (smapiter == default_string.end())
-  {
-    map<const std::string, string> newsmap;
-    newsmap[name] = sval;
-    default_string[detid] = newsmap;
-  }
-  else
-  {
-    if (smapiter->second.find(name) != smapiter->second.end())
+    map<const std::string, string> newstringmap;
+    auto ret = m_DefaultStringParamsMap.insert(make_pair(detid,newstringmap));
+    auto ret2 = ret.first->second.insert(make_pair(name,sval));
+    if (ret2.second == false)
     {
-      cout << "trying to overwrite default string " << name << " "
-           << smapiter->second.find(name)->second << " with " << sval << endl;
+      cout << PHWHERE << "Default String Parameter " << name << " already set to "
+	   << ret.first->second[name] << " will not overwrite with " << sval << endl;
+      cout << "Means: You are calling set_default_string_param twice for the same parameter" << endl;
+      cout << "Please make up your mind and call it only once using the correct default" << endl;
+      gSystem->Exit(1);
       exit(1);
     }
-    else
-    {
-      smapiter->second[name] = sval;
-    }
-  }
   return;
 }
 
@@ -443,7 +449,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
   }
 
   map<int, map<const string, string>>::const_iterator siter;
-  for (siter = default_string.begin(); siter != default_string.end(); ++siter)
+  for (siter = m_DefaultStringParamsMap.begin(); siter != m_DefaultStringParamsMap.end(); ++siter)
   {
     PHParameters *detidparams = paramscontainer_default->GetParametersToModify(siter->first);
     if (!detidparams)
@@ -617,7 +623,7 @@ void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
   }
   cout << "string values: " << endl;
   map<int, map<const std::string, string>>::const_iterator siter;
-  for (siter = default_string.begin(); siter != default_string.end(); ++siter)
+  for (siter = m_DefaultStringParamsMap.begin(); siter != m_DefaultStringParamsMap.end(); ++siter)
   {
     cout << "Detector id: " << siter->first << endl;
     map<const string, string>::const_iterator siter2;
@@ -655,14 +661,12 @@ void PHG4DetectorGroupSubsystem::PrintMacroParams() const
     }
   }
   cout << "string values: " << endl;
-  map<int, map<const std::string, string>>::const_iterator siter;
-  for (siter = cparams.begin(); siter != cparams.end(); ++siter)
+  for (auto &cpariter : m_MacroStringParamsMap)
   {
-    cout << "Detector id: " << siter->first << endl;
-    map<const string, string>::const_iterator siter2;
-    for (siter2 = siter->second.begin(); siter2 != siter->second.end(); ++siter2)
+    cout << "Detector id: " << cpariter.first << endl;
+    for (auto &strmapiter : cpariter.second)
     {
-      cout << siter2->first << ": " << siter2->second << endl;
+      cout << strmapiter.first << " : " << strmapiter.second << endl;
     }
   }
   return;
