@@ -159,13 +159,12 @@ void PHG4DetectorGroupSubsystem::SuperDetector(const std::string &name)
   return;
 }
 
-
 double PHG4DetectorGroupSubsystem::get_double_param(const int detid, const std::string &name) const
 {
   const PHParameters *params = m_ParamsContainer->GetParameters(detid);
   if (params)
   {
-  return params->get_double_param(name);
+    return params->get_double_param(name);
   }
   else
   {
@@ -196,7 +195,7 @@ PHG4DetectorGroupSubsystem::get_string_param(const int detid, const std::string 
   const PHParameters *params = m_ParamsContainer->GetParameters(detid);
   if (params)
   {
-  return params->get_string_param(name);
+    return params->get_string_param(name);
   }
   else
   {
@@ -211,7 +210,7 @@ void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::st
   auto iter = m_DefaultDoubleParamsMap.find(detid);
   if (iter == m_DefaultDoubleParamsMap.end())
   {
-    cout << "called like set_double_param(" << detid << ", \"" 
+    cout << "called like set_double_param(" << detid << ", \""
          << name << "\", " << dval << ")" << endl;
     cout << "detid " << detid << " not implemented" << endl;
     cout << "implemented detector ids: " << endl;
@@ -223,8 +222,8 @@ void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::st
   }
   if (iter->second.find(name) == iter->second.end())
   {
-    cout << "double parameter " << name << " not implemented for detid " 
-	 << detid << endl;
+    cout << "double parameter " << name << " not implemented for detid "
+         << detid << endl;
     cout << "implemented double parameters are:" << endl;
     for (auto &iter2 : iter->second)
     {
@@ -234,28 +233,27 @@ void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::st
   }
   // here we know we have entries for the detector id and the variable name exists
   // in the defaults, so now lets set it
-// with C++11 insert returns a pair of an iterator to the element and
-// a boolean if the object was inserted or if it already exist (in which case it
-// does not get replaced). We do not check this because we do not care if a new map 
-// was inserted or not. All we need is the iterator to it
+  // with C++11 insert returns a pair of an iterator to the element and
+  // a boolean if the object was inserted or if it already exist (in which case it
+  // does not get replaced). We do not check this because we do not care if a new map
+  // was inserted or not. All we need is the iterator to it
   map<const std::string, double> newdmap;
-  auto ret = m_MacroDoubleParamsMap.insert(make_pair(detid,newdmap));
-// here we use the operator [] rather than insert because we
-// want to create a new entry if [name] does not exist. If it does
-// exist we want to overwrite it (so even if a parameter is set twice,
-// the last setting in the macro is used). Using insert would preserve the first
-// parameter setting
+  auto ret = m_MacroDoubleParamsMap.insert(make_pair(detid, newdmap));
+  // here we use the operator [] rather than insert because we
+  // want to create a new entry if [name] does not exist. If it does
+  // exist we want to overwrite it (so even if a parameter is set twice,
+  // the last setting in the macro is used). Using insert would preserve the first
+  // parameter setting
   ret.first->second[name] = dval;
   return;
 }
-
 
 void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &name, const int ival)
 {
   auto iter = m_DefaultIntegerParamsMap.find(detid);
   if (iter == m_DefaultIntegerParamsMap.end())
   {
-    cout << "called like set_int_param(" << detid << ", \"" 
+    cout << "called like set_int_param(" << detid << ", \""
          << name << "\", " << ival << ")" << endl;
     cout << "detid " << detid << " not implemented" << endl;
     cout << "implemented detector ids: " << endl;
@@ -268,7 +266,7 @@ void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::strin
   if (iter->second.find(name) == iter->second.end())
   {
     cout << "int parameter " << name << " not implemented for detid"
-	 << detid << endl;
+         << detid << endl;
     cout << "implemented int parameters are:" << endl;
     for (auto &iter2 : iter->second)
     {
@@ -278,13 +276,13 @@ void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::strin
   }
   // here we know we have entries for the detector id and the variable name exists
   // in the defaults, so now lets set it
-    map<const std::string, int> newintmap;
-  auto ret = m_MacroIntegerParamsMap.insert(make_pair(detid,newintmap));
-// here we use the operator [] rather than insert because we
-// want to create a new entry if [name] does not exist. If it does
-// exist we want to overwrite it (so even if a parameter is set twice,
-// the last setting in the macro is used). Using insert would preserve the first
-// parameter setting
+  map<const std::string, int> newintmap;
+  auto ret = m_MacroIntegerParamsMap.insert(make_pair(detid, newintmap));
+  // here we use the operator [] rather than insert because we
+  // want to create a new entry if [name] does not exist. If it does
+  // exist we want to overwrite it (so even if a parameter is set twice,
+  // the last setting in the macro is used). Using insert would preserve the first
+  // parameter setting
   ret.first->second[name] = ival;
 }
 
@@ -293,7 +291,7 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
   auto iter = m_DefaultStringParamsMap.find(detid);
   if (iter == m_DefaultStringParamsMap.end())
   {
-    cout << "called like set_string_param(" << detid << ", \"" 
+    cout << "called like set_string_param(" << detid << ", \""
          << name << "\", " << sval << ")" << endl;
     cout << "detid " << detid << " not implemented" << endl;
     cout << "implemented detector ids: " << endl;
@@ -306,7 +304,7 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
   if (iter->second.find(name) == iter->second.end())
   {
     cout << "string parameter " << name << " not implemented for detid "
-	 << detid << endl;
+         << detid << endl;
     cout << "implemented string parameters are:" << endl;
     for (auto &iter2 : iter->second)
     {
@@ -314,24 +312,23 @@ void PHG4DetectorGroupSubsystem::set_string_param(const int detid, const std::st
     }
     return;
   }
-// here we know we have entries for the detector id and the variable name exists
-// in the defaults, so now lets set it
+  // here we know we have entries for the detector id and the variable name exists
+  // in the defaults, so now lets set it
 
-// with C++11 insert returns a pair of an iterator to the element and
-// a boolean if the object was inserted or if it already exist (in which case it
-// does not get replaced). We do not check this because we do not care if a new map 
-// was inserted or not. All we need is the iterator to it
+  // with C++11 insert returns a pair of an iterator to the element and
+  // a boolean if the object was inserted or if it already exist (in which case it
+  // does not get replaced). We do not check this because we do not care if a new map
+  // was inserted or not. All we need is the iterator to it
   map<const std::string, string> newdmap;
-  auto ret = m_MacroStringParamsMap.insert(make_pair(detid,newdmap));
-// here we use the operator [] rather than insert because we
-// want to create a new entry if [name] does not exist. If it does
-// exist we want to overwrite it (so even if a parameter is set twice,
-// the last setting in the macro is used). Using insert would preserve the first
-// parameter setting
+  auto ret = m_MacroStringParamsMap.insert(make_pair(detid, newdmap));
+  // here we use the operator [] rather than insert because we
+  // want to create a new entry if [name] does not exist. If it does
+  // exist we want to overwrite it (so even if a parameter is set twice,
+  // the last setting in the macro is used). Using insert would preserve the first
+  // parameter setting
   ret.first->second[name] = sval;
   return;
 }
-
 
 void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
 {
@@ -368,9 +365,9 @@ void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
 // They use the returned pair <iterator, bool> for c++11 map.insert. The boolean tells us
 // if a new element was inserted (true) or an iterator to the exisiting one is returned (false)
 // map.insert does not overwrite existing entries. So what we are doing here is
-// get an iterator to the double/int/string map for a given detector (for us it does not 
+// get an iterator to the double/int/string map for a given detector (for us it does not
 // matter if it already exists or a new one is inserted, we just need an iterator to it)
-// Then we use map.insert to insert the new double/int/string parameter into the 
+// Then we use map.insert to insert the new double/int/string parameter into the
 // double/int/string map. If
 // the return boolean is false, it means an entry for this parameter already exists
 // which is just bad (means you called set_default_XXX_param for the same parameter
@@ -379,54 +376,54 @@ void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
 void PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const std::string &name, const double dval)
 {
   map<const std::string, double> newdoublemap;
-  auto ret = m_DefaultDoubleParamsMap.insert(make_pair(detid,newdoublemap));
-  auto ret2 = ret.first->second.insert(make_pair(name,dval));
-    if (ret2.second == false)
-    {
-      cout << PHWHERE << "Default double Parameter " << name 
-	   << " for detid " << detid << " already set to "
-	   << ret.first->second[name] << " will not overwrite with " << dval << endl;
-      cout << "Means: You are calling set_default_double_param twice for the same parameter" << endl;
-      cout << "Please make up your mind and call it only once using the correct default" << endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
+  auto ret = m_DefaultDoubleParamsMap.insert(make_pair(detid, newdoublemap));
+  auto ret2 = ret.first->second.insert(make_pair(name, dval));
+  if (ret2.second == false)
+  {
+    cout << PHWHERE << "Default double Parameter " << name
+         << " for detid " << detid << " already set to "
+         << ret.first->second[name] << " will not overwrite with " << dval << endl;
+    cout << "Means: You are calling set_default_double_param twice for the same parameter" << endl;
+    cout << "Please make up your mind and call it only once using the correct default" << endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   return;
 }
 
 void PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const std::string &name, const int ival)
 {
   map<const std::string, int> newintmap;
-  auto ret = m_DefaultIntegerParamsMap.insert(make_pair(detid,newintmap));
-  auto ret2 = ret.first->second.insert(make_pair(name,ival));
-    if (ret2.second == false)
-    {
-      cout << PHWHERE << "Default integer Parameter " << name
-	   << " for detid " << detid << " already set to "
-	   << ret.first->second[name] << " will not overwrite with " << ival << endl;
-      cout << "Means: You are calling set_default_int_param twice for the same parameter" << endl;
-      cout << "Please make up your mind and call it only once using the correct default" << endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
+  auto ret = m_DefaultIntegerParamsMap.insert(make_pair(detid, newintmap));
+  auto ret2 = ret.first->second.insert(make_pair(name, ival));
+  if (ret2.second == false)
+  {
+    cout << PHWHERE << "Default integer Parameter " << name
+         << " for detid " << detid << " already set to "
+         << ret.first->second[name] << " will not overwrite with " << ival << endl;
+    cout << "Means: You are calling set_default_int_param twice for the same parameter" << endl;
+    cout << "Please make up your mind and call it only once using the correct default" << endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   return;
 }
 
 void PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const std::string &name, const string &sval)
 {
-    map<const std::string, string> newstringmap;
-    auto ret = m_DefaultStringParamsMap.insert(make_pair(detid,newstringmap));
-    auto ret2 = ret.first->second.insert(make_pair(name,sval));
-    if (ret2.second == false)
-    {
-      cout << PHWHERE << "Default String Parameter " << name
-	   << " for detid " << detid << " already set to "
-	   << ret.first->second[name] << " will not overwrite with " << sval << endl;
-      cout << "Means: You are calling set_default_string_param twice for the same parameter" << endl;
-      cout << "Please make up your mind and call it only once using the correct default" << endl;
-      gSystem->Exit(1);
-      exit(1);
-    }
+  map<const std::string, string> newstringmap;
+  auto ret = m_DefaultStringParamsMap.insert(make_pair(detid, newstringmap));
+  auto ret2 = ret.first->second.insert(make_pair(name, sval));
+  if (ret2.second == false)
+  {
+    cout << PHWHERE << "Default String Parameter " << name
+         << " for detid " << detid << " already set to "
+         << ret.first->second[name] << " will not overwrite with " << sval << endl;
+    cout << "Means: You are calling set_default_string_param twice for the same parameter" << endl;
+    cout << "Please make up your mind and call it only once using the correct default" << endl;
+    gSystem->Exit(1);
+    exit(1);
+  }
   return;
 }
 
@@ -454,7 +451,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
     }
   }
 
-  for ( auto &iter1 : m_DefaultIntegerParamsMap)
+  for (auto &iter1 : m_DefaultIntegerParamsMap)
   {
     PHParameters *detidparams = m_ParamsContainerDefault->GetParametersToModify(iter1.first);
     if (!detidparams)
