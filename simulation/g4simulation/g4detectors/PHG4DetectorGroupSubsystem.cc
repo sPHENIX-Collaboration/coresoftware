@@ -161,12 +161,12 @@ void PHG4DetectorGroupSubsystem::SuperDetector(const std::string &name)
 
 void PHG4DetectorGroupSubsystem::set_double_param(const int detid, const std::string &name, const double dval)
 {
-  map<int, map<const std::string, double>>::const_iterator iter = default_double.find(detid);
-  if (iter == default_double.end())
+  map<int, map<const std::string, double>>::const_iterator iter = m_DefaultDoubleParamsMap.find(detid);
+  if (iter == m_DefaultDoubleParamsMap.end())
   {
     cout << "detid " << detid << " not implemented" << endl;
     cout << "implemented detector ids: " << endl;
-    for (map<int, map<const std::string, double>>::const_iterator iter2 = default_double.begin(); iter2 != default_double.end(); ++iter2)
+    for (map<int, map<const std::string, double>>::const_iterator iter2 = m_DefaultDoubleParamsMap.begin(); iter2 != m_DefaultDoubleParamsMap.end(); ++iter2)
     {
       cout << "detid: " << iter2->first << endl;
     }
@@ -206,12 +206,12 @@ PHG4DetectorGroupSubsystem::get_double_param(const int detid, const std::string 
 
 void PHG4DetectorGroupSubsystem::set_int_param(const int detid, const std::string &name, const int ival)
 {
-  map<int, map<const std::string, int>>::const_iterator iter = default_int.find(detid);
-  if (iter == default_int.end())
+  map<int, map<const std::string, int>>::const_iterator iter = m_DefaultIntegerParamsMap.find(detid);
+  if (iter == m_DefaultIntegerParamsMap.end())
   {
     cout << "detid " << detid << " not implemented" << endl;
     cout << "implemented detector ids: " << endl;
-    for (map<int, map<const std::string, int>>::const_iterator iter2 = default_int.begin(); iter2 != default_int.end(); ++iter2)
+    for (map<int, map<const std::string, int>>::const_iterator iter2 = m_DefaultIntegerParamsMap.begin(); iter2 != m_DefaultIntegerParamsMap.end(); ++iter2)
     {
       cout << "detid: " << iter2->first << endl;
     }
@@ -339,53 +339,51 @@ void PHG4DetectorGroupSubsystem::UpdateParametersWithMacro()
   return;
 }
 
+// all set_default_XXX_param methods work the same way
+// They use the returned pair <iterator, bool> for c++11 map.insert. The boolean tells us
+// if a new element was inserted (true) or an iterator to the exisiting one is returned (false)
+// map.insert does not overwrite existing entries. So what we are doing here is
+// get an iterator to the double/int/string map for a given detector (for us it does not 
+// matter if it already exists or a new one is inserted, we just need an iterator to it)
+// Then we use map.insert to insert the new double/int/string parameter into the 
+// double/int/string map. If
+// the return boolean is false, it means an entry for this parameter already exists
+// which is just bad (means you called set_default_XXX_param for the same parameter
+// twice in your code), so tell the user to fix the code and exit
+
 void PHG4DetectorGroupSubsystem::set_default_double_param(const int detid, const std::string &name, const double dval)
 {
-  map<int, map<const std::string, double>>::iterator dmapiter = default_double.find(detid);
-  if (dmapiter == default_double.end())
-  {
-    map<const std::string, double> newdmap;
-    newdmap[name] = dval;
-    default_double[detid] = newdmap;
-  }
-  else
-  {
-    if (dmapiter->second.find(name) != dmapiter->second.end())
+  map<const std::string, double> newdoublemap;
+  auto ret = m_DefaultDoubleParamsMap.insert(make_pair(detid,newdoublemap));
+  auto ret2 = ret.first->second.insert(make_pair(name,dval));
+    if (ret2.second == false)
     {
-      cout << "trying to overwrite default double " << name << " "
-           << dmapiter->second.find(name)->second << " with " << dval << endl;
+      cout << PHWHERE << "Default double Parameter " << name 
+	   << " for detid " << detid << " already set to "
+	   << ret.first->second[name] << " will not overwrite with " << dval << endl;
+      cout << "Means: You are calling set_default_double_param twice for the same parameter" << endl;
+      cout << "Please make up your mind and call it only once using the correct default" << endl;
+      gSystem->Exit(1);
       exit(1);
     }
-    else
-    {
-      dmapiter->second[name] = dval;
-    }
-  }
   return;
 }
 
 void PHG4DetectorGroupSubsystem::set_default_int_param(const int detid, const std::string &name, const int ival)
 {
-  map<int, map<const std::string, int>>::iterator imapiter = default_int.find(detid);
-  if (imapiter == default_int.end())
-  {
-    map<const std::string, int> newimap;
-    newimap[name] = ival;
-    default_int[detid] = newimap;
-  }
-  else
-  {
-    if (imapiter->second.find(name) != imapiter->second.end())
+  map<const std::string, int> newintmap;
+  auto ret = m_DefaultIntegerParamsMap.insert(make_pair(detid,newintmap));
+  auto ret2 = ret.first->second.insert(make_pair(name,ival));
+    if (ret2.second == false)
     {
-      cout << "trying to overwrite default int " << name << " "
-           << imapiter->second.find(name)->second << " with " << ival << endl;
+      cout << PHWHERE << "Default integer Parameter " << name
+	   << " for detid " << detid << " already set to "
+	   << ret.first->second[name] << " will not overwrite with " << ival << endl;
+      cout << "Means: You are calling set_default_int_param twice for the same parameter" << endl;
+      cout << "Please make up your mind and call it only once using the correct default" << endl;
+      gSystem->Exit(1);
       exit(1);
     }
-    else
-    {
-      imapiter->second[name] = ival;
-    }
-  }
   return;
 }
 
@@ -396,7 +394,8 @@ void PHG4DetectorGroupSubsystem::set_default_string_param(const int detid, const
     auto ret2 = ret.first->second.insert(make_pair(name,sval));
     if (ret2.second == false)
     {
-      cout << PHWHERE << "Default String Parameter " << name << " already set to "
+      cout << PHWHERE << "Default String Parameter " << name
+	   << " for detid " << detid << " already set to "
 	   << ret.first->second[name] << " will not overwrite with " << sval << endl;
       cout << "Means: You are calling set_default_string_param twice for the same parameter" << endl;
       cout << "Please make up your mind and call it only once using the correct default" << endl;
@@ -417,7 +416,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
   SetDefaultParameters();  // call method from specific subsystem
   // now load those parameters to our params class
   map<int, map<const string, double>>::const_iterator diter;
-  for (diter = default_double.begin(); diter != default_double.end(); ++diter)
+  for (diter = m_DefaultDoubleParamsMap.begin(); diter != m_DefaultDoubleParamsMap.end(); ++diter)
   {
     PHParameters *detidparams = paramscontainer_default->GetParametersToModify(diter->first);
     if (!detidparams)
@@ -433,7 +432,7 @@ void PHG4DetectorGroupSubsystem::InitializeParameters()
   }
 
   map<int, map<const string, int>>::const_iterator iiter;
-  for (iiter = default_int.begin(); iiter != default_int.end(); ++iiter)
+  for (iiter = m_DefaultIntegerParamsMap.begin(); iiter != m_DefaultIntegerParamsMap.end(); ++iiter)
   {
     PHParameters *detidparams = paramscontainer_default->GetParametersToModify(iiter->first);
     if (!detidparams)
@@ -601,7 +600,7 @@ void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
   cout << "Default Parameters: " << endl;
   cout << "int values: " << endl;
   map<int, map<const std::string, int>>::const_iterator iiter;
-  for (iiter = default_int.begin(); iiter != default_int.end(); ++iiter)
+  for (iiter = m_DefaultIntegerParamsMap.begin(); iiter != m_DefaultIntegerParamsMap.end(); ++iiter)
   {
     cout << "Detector id: " << iiter->first << endl;
     map<const string, int>::const_iterator iiter2;
@@ -612,7 +611,7 @@ void PHG4DetectorGroupSubsystem::PrintDefaultParams() const
   }
   cout << "double values: " << endl;
   map<int, map<const std::string, double>>::const_iterator diter;
-  for (diter = default_double.begin(); diter != default_double.end(); ++diter)
+  for (diter = m_DefaultDoubleParamsMap.begin(); diter != m_DefaultDoubleParamsMap.end(); ++diter)
   {
     cout << "Detector id: " << diter->first << endl;
     map<const string, double>::const_iterator diter2;

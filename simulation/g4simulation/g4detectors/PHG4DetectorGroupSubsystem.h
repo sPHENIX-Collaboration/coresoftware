@@ -104,8 +104,8 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
   std::map<int, std::map<const std::string, int>> iparams;
   std::map<int, std::map<const std::string, std::string>> m_MacroStringParamsMap;
 
-  std::map<int, std::map<const std::string, double>> default_double;
-  std::map<int, std::map<const std::string, int>> default_int;
+  std::map<int, std::map<const std::string, double>> m_DefaultDoubleParamsMap;
+  std::map<int, std::map<const std::string, int>> m_DefaultIntegerParamsMap;
   std::map<int, std::map<const std::string, std::string>> m_DefaultStringParamsMap;
 };
 
