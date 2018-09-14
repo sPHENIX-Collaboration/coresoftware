@@ -89,7 +89,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     return false;
   }
-  int layer_id = volume->GetCopyNo();
+  int layer_id = 10;  // no layer number for the hit, just use 10
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -265,6 +265,32 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         {
           saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
         }
+
+	/*
+	double rin = sqrt(hit->get_x(0)*hit->get_x(0) + hit->get_y(0)*hit->get_y(0));
+	double rout = sqrt(hit->get_x(1)*hit->get_x(1) + hit->get_y(1)*hit->get_y(1));
+	if(  rout > 70.0 && rout < 71.0)
+	  {
+	    cout << "Added TPC g4hit with " 
+		 << " g4hitid " << hit->get_hit_id() << endl;
+	    cout  << " xin " << hit->get_x(0)
+		  << " yin " << hit->get_y(0)
+		  << " zin " << hit->get_z(0)
+		  << " rin " << rin
+		  << endl;
+	    cout << " xout " << hit->get_x(1)
+		 << " yout " << hit->get_y(1)
+		 << " zout " << hit->get_z(1)
+		 << " rout " << rout
+		 << endl;
+	    cout << " xav " << (hit->get_x(1) + hit->get_x(0)) / 2.0
+		 << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
+		 << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
+		 << " rav " << (rout + rin) / 2.0
+		 << endl;
+	  }
+	*/
+
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
         hit = nullptr;

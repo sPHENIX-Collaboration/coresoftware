@@ -199,7 +199,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     double t0 = fmax(hiter->second->get_t(0),hiter->second->get_t(1));
-    //cout << "  new hit with t0, " <<  t0 << " layer: " << hiter->second->get_layer() << endl;
+    //cout << "  new hit with t0, " <<  t0 << " layer: " << hiter->second->get_layer() << " g4hitid " << hiter->first << endl;
     if (t0 > max_time)
     {
       continue;
@@ -262,18 +262,24 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	    //cout << " skip - outside active area of TPC" << endl;
 	    continue;
 	  }
-	if(0)
+
+	//if(radstart > 70.0 && radstart < 71.0)
+	if(verbosity > 100)
 	  {
-	    cout << "  electron " << i << "  radstart " << radstart  << " x_start: " << x_start
+	    cout << "electron " << i << " g4hitid " << hiter->first << endl; 
+		 cout << "radstart " << radstart  << " x_start: " << x_start
 		 << ", y_start: " << y_start
 		 << ",z_start: " << z_start 
 		 << " t_start " << t_start
+		 << " t_path " << t_path
+		 << " rantime " << rantime
 		 << endl;
-	    cout << "  rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
-		 << " z_final " << z_final << " t_final " << t_final << endl; 
+	    cout << "rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
+		 << " z_final " << z_final << " t_final " << t_final << " t_sigma " << t_sigma << endl; 
 	  }
 
 	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start);
+	// this fills the cells and updates them on the node tree for this drifted electron
 	MapToPadPlane(x_final,y_final,z_final, hiter);
 	x_start += dx;
 	y_start += dy;
@@ -283,13 +289,14 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     ihit++;
     //      gSystem->Exit(0);
   }
-  if (Verbosity()>1)
+if (Verbosity()>1)
     {
       PHG4CellContainer::ConstRange cells = g4cells->getCells();
       PHG4CellContainer::ConstIterator celliter;
       for (celliter=cells.first;celliter != cells.second; ++celliter)
 	{
-	  celliter->second->print();
+	  //celliter->second->print();
+	  celliter->second->identify();
 	}
     }
   return Fun4AllReturnCodes::EVENT_OK;

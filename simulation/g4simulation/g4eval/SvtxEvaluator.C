@@ -1391,17 +1391,57 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gprimary = NAN;
     
 	float efromtruth = NAN;
-      
+
+	/*
+	cout << "evaluator for layer " << cluster->get_layer() << " clusterid " << cluster->get_id() 
+	     << " cluster adc " << cluster->get_adc() << " cluster e " << cluster->get_e() 
+	     << " x " << cluster->get_x() << " y " << cluster->get_y() << " z " << cluster->get_z()
+	     << endl; 
+	*/
+
 	if (g4hit) {
+
+	  // This calculates the truth cluster position from all of the contributing g4hits      
+	  //====================================================
+	  
+	  gx = 0.0; 
+	  gy = 0.0; 
+	  gz = 0.0; 
+	  gt = 0.0;
+	  float gwt = 0.0; 
+
+	  std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster);	  
+	  for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
+	       iter != truth_hits.end();
+	       ++iter) {
+	    PHG4Hit* this_g4hit = *iter;
+
+	    /*
+	    cout << "    evaluator found g4hit " << this_g4hit->get_hit_id() << " with edep " << this_g4hit->get_edep() 
+		 << " gx " << this_g4hit->get_avg_x() << " gy " << this_g4hit->get_avg_y() << " gz " << this_g4hit->get_avg_z() 
+		 << " gt " <<  this_g4hit->get_avg_t() 
+		 << endl;
+	    */
+
+	    // calculate truth centroid
+	    gx +=  this_g4hit->get_avg_x() * this_g4hit->get_edep();
+	    gy +=  this_g4hit->get_avg_y() * this_g4hit->get_edep();
+	    gz +=  this_g4hit->get_avg_z() * this_g4hit->get_edep();
+	    gt  += this_g4hit->get_avg_t() * this_g4hit->get_edep();
+	    gwt +=  this_g4hit->get_edep();
+	  }
+	  gx /= gwt;  
+	  gy /= gwt; 
+	  gz /= gwt; 
+	  gt /= gwt;
+	  //cout << "       truth centroids are:  gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
+	  
 	  g4hitID  = g4hit->get_hit_id();
-	  gx       = g4hit->get_avg_x();
-	  gy       = g4hit->get_avg_y();
-	  gz       = g4hit->get_avg_z();
+	  cout << "       best g4hit has id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
 	  TVector3 gpos(gx,gy,gz);
 	  gr = gpos.Perp();
 	  gphi = gpos.Phi();
 	  geta = gpos.Eta();
-	  gt       = g4hit->get_avg_t();
 
 	  if (g4particle) {
 

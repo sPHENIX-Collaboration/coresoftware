@@ -64,8 +64,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fPedestal(74.4),
   fFitSizeP(0.0),
   fFitSizeZ(0),
-  fShapingLead(32.0*6.0/1000.0),
-  fShapingTail(48.0*6.0/1000.0),
+  fShapingLead(32.0*8.0/1000.0),
+  fShapingTail(48.0*8.0/1000.0),
   fMinLayer(0),
   fMaxLayer(0),
   fEnergyCut(0.0),
@@ -647,6 +647,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
   }
   for(SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter) {
     SvtxHit* hit = iter->second;
+    //cout << " hit_get_layer = " << hit->get_layer() << " fMinLayer " << fMinLayer << endl;
     if( (unsigned int) hit->get_layer() < fMinLayer) continue;
     layer_sorted[hit->get_layer() - fMinLayer].push_back(hit);
   }
@@ -680,7 +681,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       PHG4Cell* cell = cells->findCell(hit->get_cellid()); //not needed once geofixed
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());//cell->get_binphi();
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());//cell->get_binz();
-      if(verbosity>0) std::cout << " phibin " << phibin << " zbin " << zbin << " z " << fGeoLayer->get_zcenter( zbin ) << " energy " << hit->get_e() << std::endl;
+      if(verbosity>0) std::cout << " phibin " << phibin << " zbin " << zbin << " z " << fGeoLayer->get_zcenter( zbin ) << " adc " << hit->get_adc() - fPedestal << std::endl;
       fNHitsPerZ[zbin] += 1;
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
@@ -751,7 +752,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW*0.14) );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW*0.14) );
-	  //if(layer > 23) cout << " layer " << layer << " number of primary electrons = " << fFitW * 0.14 << endl;
+	  if(verbosity > 100) 
+	    if(layer > 23) cout << " layer " << layer << " number of primary electrons = " << fFitW * 0.14 << endl;
 
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();

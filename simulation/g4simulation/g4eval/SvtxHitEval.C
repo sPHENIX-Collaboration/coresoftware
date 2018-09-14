@@ -127,7 +127,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
     if (!g4hit&&_g4hits_svtx)    g4hit = _g4hits_svtx->findHit(g4iter->first);
     if (!g4hit&&_g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
     if (!g4hit&&_g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
-    //if(!g4hit) cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << endl;
+    if(!g4hit) cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << endl;
     if (_strict) assert(g4hit);
     else if (!g4hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; continue;}
     
