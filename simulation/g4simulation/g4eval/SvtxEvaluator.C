@@ -1437,7 +1437,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  //cout << "       truth centroids are:  gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
 	  
 	  g4hitID  = g4hit->get_hit_id();
-	  cout << "       best g4hit has id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
+	  //cout << "       best g4hit has id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
 	  TVector3 gpos(gx,gy,gz);
 	  gr = gpos.Perp();
 	  gphi = gpos.Phi();
