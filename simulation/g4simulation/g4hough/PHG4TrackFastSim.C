@@ -172,10 +172,10 @@ int PHG4TrackFastSim::End(PHCompositeNode *topNode) {
 
 int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 
-	_event++;
+  _event++;
 
 	if (verbosity >= 2)
-		std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
+	  std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
 
 	GetNodes(topNode);
 
@@ -187,10 +187,10 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 //	}
 
 	if (_trackmap_out)
-		_trackmap_out->empty();
+	  _trackmap_out->empty();
 	else {
-		LogError("_trackmap_out not found!");
-		return Fun4AllReturnCodes::ABORTRUN;
+	  LogError("_trackmap_out not found!");
+	  return Fun4AllReturnCodes::ABORTRUN;
 	}
 
 	vector<PHGenFit::Track*> rf_tracks;
@@ -452,6 +452,12 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 			continue;
 		}
 
+		int dettype = _phg4_detector_type[ilayer];
+		float detradres = _phg4_detector_radres[ilayer];
+		float detphires = _phg4_detector_phires[ilayer];
+		float detlonres = _phg4_detector_lonres[ilayer];
+		float dethiteff = _phg4_detector_hitfindeff[ilayer];
+		float detnoise = _phg4_detector_noise[ilayer];
 #if _DEBUG_MODE_ == 1
 		std::cout<<"DEBUG: ilayer: " << ilayer <<"; nsublayers: " <<_phg4hits[ilayer]->num_layers() <<" \n";
 #endif
@@ -462,7 +468,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 			for (PHG4HitContainer::ConstIterator itr =
 					_phg4hits[ilayer]->getHits(*layerit).first;
 					itr != _phg4hits[ilayer]->getHits(*layerit).second; ++itr) {
-
 				PHG4Hit * hit = itr->second;
 				if (!hit) {
 					LogDebug("No PHG4Hit Found!");
@@ -475,17 +480,17 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
 #endif
 
 				if (hit->get_trkid() == particle->get_track_id()
-						|| gRandom->Uniform(0, 1) < _pat_rec_noise_prob) {
+						|| gRandom->Uniform(0, 1) < detnoise) {
 
-					if (gRandom->Uniform(0, 1) <= _pat_rec_hit_finding_eff) {
+					if (gRandom->Uniform(0, 1) <= dethiteff) {
 					  PHGenFit::Measurement* meas = NULL;
-					  if (_detector_type == Vertical_Plane){
+					  if (dettype == Vertical_Plane){
 					    meas = PHG4HitToMeasurementVerticalPlane(hit,
-										     _phi_resolution, _r_resolution);
+										     detphires, detradres);
 					  }
-					  else if (_detector_type == Cylinder){
+					  else if (dettype == Cylinder){
 					    meas = PHG4HitToMeasurementCylinder(hit,
-										_phi_resolution, _z_resolution);
+										detphires, detlonres);
 					  }
 					  else {
 					    LogError("Type not implemented!");

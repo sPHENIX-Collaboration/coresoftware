@@ -275,7 +275,7 @@ void PHG4HcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
 	}

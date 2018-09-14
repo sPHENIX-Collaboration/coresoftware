@@ -18,9 +18,9 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4CEmcTestBeamSteppingAction::PHG4CEmcTestBeamSteppingAction( PHG4CEmcTestBeamDetector* detector ):
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hit(NULL)
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hit(nullptr)
 {}
 
 //____________________________________________________________________________..
@@ -190,7 +190,7 @@ void PHG4CEmcTestBeamSteppingAction::SetInterfacePointers( PHCompositeNode* topN
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}

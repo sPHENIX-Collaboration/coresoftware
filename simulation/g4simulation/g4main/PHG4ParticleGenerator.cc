@@ -72,7 +72,7 @@ PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
     }
   int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
 
-  vector<PHG4Particle *>::const_iterator iter;
+  vector<PHG4Particle *>::iterator iter;
   for (iter = particlelist.begin(); iter != particlelist.end(); ++iter)
     {
       PHG4Particle *particle = new PHG4Particlev2(*iter);
@@ -86,7 +86,13 @@ PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
       particle->set_px(pt*cos(phi));
       particle->set_py(pt*sin(phi));
       particle->set_pz(pt*sinh(eta));
-
+// update internal particle list with changed momenta
+// needed for correct printout of particle kinematics
+// in PHG4ParticleGenerator::Print()
+      (*iter)->set_e(particle->get_e());
+      (*iter)->set_px(particle->get_px());
+      (*iter)->set_py(particle->get_py());
+      (*iter)->set_pz(particle->get_pz());
       ineve->AddParticle(vtxindex, particle);
     }
   if (verbosity > 0)
@@ -94,4 +100,15 @@ PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
     ineve->identify();
   }
   return 0;
+}
+
+void PHG4ParticleGenerator::Print(const std::string &what) const
+{
+  cout << "PHG4ParticleGenerator settings:" << endl;
+  cout << "z_min, z_max: " << z_min << "/" << z_max << endl;
+  cout << "eta_min, eta_max: " << eta_min << "/" << eta_max << endl;
+  cout << "phi_min, phi_max: " << phi_min << "/" << phi_max << endl;
+  cout << "mom_min, mom_max: " << mom_min << "/" << mom_max << endl;
+  PrintParticles(what);
+  return;
 }

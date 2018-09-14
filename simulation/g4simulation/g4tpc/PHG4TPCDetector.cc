@@ -97,7 +97,7 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
                                      params->get_double_param("place_y") * cm,
                                      params->get_double_param("place_z") * cm),
                     tpc_envelope_logic, "tpc_envelope",
-                    logicWorld, 0, false, overlapcheck);
+                    logicWorld, 0, false, OverlapCheck());
 }
 
 int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
@@ -121,7 +121,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   tpc_window_logic->SetVisAttributes(visatt);
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                       tpc_window_logic, "tpc_window",
-							 tpc_envelope, false, PHG4TPCDefs::Window, overlapcheck);
+							 tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
 
   absorbervols.insert(tpc_window_phys);
   G4LogicalVolume *tpc_gas_logic = new G4LogicalVolume(tpc_gas,
@@ -136,13 +136,13 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   tpc_gas_logic->SetVisAttributes(visatt);
   G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length+tpc_window_thickness)/2.),
                                                       tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::North],
-                                                      tpc_envelope, false, PHG4TPCDefs::North, overlapcheck);
+                                                      tpc_envelope, false, PHG4TPCDefs::North, OverlapCheck());
   cout << "north copy no: " << tpc_gas_phys->GetCopyNo() << endl;
 
   activevols.insert(tpc_gas_phys);
   tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length+tpc_window_thickness)/2.),
                                                       tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::South],
-                                                      tpc_envelope, false, PHG4TPCDefs::South, overlapcheck);
+                                                      tpc_envelope, false, PHG4TPCDefs::South, OverlapCheck());
 
   cout << "south copy no: " << tpc_gas_phys->GetCopyNo() << endl;
   activevols.insert(tpc_gas_phys);
@@ -213,7 +213,7 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
     tpc_cage_layer_logic->SetVisAttributes(visatt);
     G4VPhysicalVolume *tpc_cage_layer_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                                tpc_cage_layer_logic, name.str(),
-                                                               tpc_envelope, false, layerno, overlapcheck);
+                                                               tpc_envelope, false, layerno, OverlapCheck());
     absorbervols.insert(tpc_cage_layer_phys);
     tpc_cage_radius += thickness[i];
   }
@@ -236,7 +236,7 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
     tpc_cage_layer_logic->SetVisAttributes(visatt);
     G4VPhysicalVolume *tpc_cage_layer_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                                tpc_cage_layer_logic, name.str(),
-                                                               tpc_envelope, false, layerno, overlapcheck);
+                                                               tpc_envelope, false, layerno, OverlapCheck());
     absorbervols.insert(tpc_cage_layer_phys);
   }
 
@@ -279,6 +279,6 @@ int PHG4TPCDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4
   }
 
   checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, overlapcheck);
+  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
   return 0;
 }

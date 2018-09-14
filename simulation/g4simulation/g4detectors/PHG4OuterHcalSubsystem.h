@@ -44,8 +44,6 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
 
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
-  void EnableFieldChecker(const int i=1) {enable_field_checker = i;}
-
   private:
 
   void SetDefaultParameters();
@@ -58,7 +56,6 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
 
-  int enable_field_checker;
 };
 
 #endif

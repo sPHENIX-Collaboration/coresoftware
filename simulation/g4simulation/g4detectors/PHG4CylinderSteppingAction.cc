@@ -17,6 +17,7 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4UserLimits.hh>
 
+#include <boost/io/ios_state.hpp>
 #include <iomanip>
 #include <iostream>
 
@@ -173,6 +174,7 @@ bool PHG4CylinderSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
       if (hit->get_z(0) * cm > zmax || hit->get_z(0) * cm < zmin)
       {
+	boost::io::ios_precision_saver ips(cout);
         cout << detector_->SuperDetector() << std::setprecision(9)
              << "PHG4CylinderSteppingAction: Entry hit z " << hit->get_z(0) * cm
              << " outside acceptance,  zmin " << zmin

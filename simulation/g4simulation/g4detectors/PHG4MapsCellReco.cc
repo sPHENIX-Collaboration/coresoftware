@@ -8,8 +8,8 @@
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 
-#include "PHG4ParametersContainer.h"
-#include "PHG4ParameterContainerInterface.h"
+#include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameterContainerInterface.h>
 
 
 #include <g4main/PHG4Hit.h>
@@ -33,7 +33,7 @@ using namespace std;
 
 PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   SubsysReco(name),
-  PHG4ParameterContainerInterface(name),
+  PHParameterContainerInterface(name),
   detector(name),
   _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0)

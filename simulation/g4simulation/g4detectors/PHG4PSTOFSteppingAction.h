@@ -7,13 +7,13 @@ class G4VPhysicalVolume;
 class PHG4PSTOFDetector;
 class PHG4Hit;
 class PHG4HitContainer;
-class PHG4ParametersContainer;
+class PHParametersContainer;
 
 class PHG4PSTOFSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4PSTOFSteppingAction(PHG4PSTOFDetector*, const PHG4ParametersContainer*);
+  PHG4PSTOFSteppingAction(PHG4PSTOFDetector*, const PHParametersContainer*);
 
   //! destructor
   virtual ~PHG4PSTOFSteppingAction();
@@ -27,7 +27,7 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
-  const PHG4ParametersContainer* paramscontainer;
+  const PHParametersContainer* paramscontainer;
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;

@@ -1,7 +1,6 @@
 #include "PHG4HcalCellReco.h"
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
-#include "PHG4Parameters.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -31,7 +30,7 @@ static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
 
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())),
   chkenergyconservation(0),
   tmin(NAN),  // ns

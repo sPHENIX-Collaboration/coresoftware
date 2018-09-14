@@ -242,7 +242,7 @@ bool PHG4SpacalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         once = false;
 
-        if (verbosity > 0)
+        if (Verbosity() > 0)
         {
           cout << "PHG4SpacalSteppingAction::UserSteppingAction::"
                //
@@ -355,7 +355,7 @@ void PHG4SpacalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   }
   if (!absorberhits_)
   {
-    if (verbosity > 1)
+    if (Verbosity() > 1)
     {
       std::cout << "PHG4SpacalSteppingAction::SetTopNode - unable to find "
                 << absorbernodename << std::endl;

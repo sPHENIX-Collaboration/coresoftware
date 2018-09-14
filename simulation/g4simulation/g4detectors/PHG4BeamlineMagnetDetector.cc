@@ -33,8 +33,8 @@ using namespace std;
 PHG4BeamlineMagnetDetector::PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int lyr ):
   PHG4Detector(Node,dnam),
   params(parameters),
-  magnet_physi(NULL),
-  cylinder_physi(NULL),
+  magnet_physi(nullptr),
+  cylinder_physi(nullptr),
   layer(lyr)
 {}
 
@@ -91,7 +91,7 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
   rotm->rotateZ(params->get_double_param("rot_z")*deg);
 
   /* Creating a magnetic field */
-  G4MagneticField* magField = NULL;
+  G4MagneticField* magField = nullptr;
 
   string magnettype = params->get_string_param("magtype");
   if ( magnettype == "dipole" )
@@ -99,7 +99,7 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
       G4double fieldValue = params->get_double_param("field_y")*tesla;
       magField = new G4UniformMagField(G4ThreeVector(0.,fieldValue,0.));
 
-      if ( verbosity > 0 )
+      if ( Verbosity() > 0 )
         cout << "Creating DIPOLE with field " << fieldValue << " and name " << GetName() << endl;
     }
   else if ( magnettype == "quadrupole" )
@@ -112,7 +112,7 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
       magField = new G4QuadrupoleMagField ( fieldGradient, origin, rotm );
       //      magField = new PHG4QuadrupoleMagField ( fieldGradient, origin, rotm );
 
-      if ( verbosity > 0 )
+      if ( Verbosity() > 0 )
         {
           cout << "Creating QUADRUPOLE with gradient " << fieldGradient << " and name " << GetName() << endl;
           cout << "at x, y, z = " << origin.x() << " , " << origin.y() << " , " << origin.z() << endl;
@@ -164,7 +164,7 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
                                                                params->get_double_param("place_z")*cm) ),
                                    magnet_logic,
                                    G4String(GetName().c_str()),
-                                   logicWorld, 0, false, overlapcheck);
+                                   logicWorld, 0, false, OverlapCheck());
 
 
   /* Add volume with solid magnet material */
@@ -181,6 +181,6 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(0,0,0),
                                      cylinder_logic,
                                      G4String(GetName().append("_Solid").c_str()),
-                                     magnet_logic, 0, false, overlapcheck);
+                                     magnet_logic, 0, false, OverlapCheck());
 
 }

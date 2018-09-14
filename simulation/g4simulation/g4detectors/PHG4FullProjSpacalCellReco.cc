@@ -40,7 +40,7 @@ using namespace std;
 
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
   SubsysReco(name),
-  PHG4ParameterInterface(name),
+  PHParameterInterface(name),
   _timer(PHTimeServer::get()->insert_new(name.c_str())), 
   sum_energy_g4hit(0),
   chkenergyconservation(0),

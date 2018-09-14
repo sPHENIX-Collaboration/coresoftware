@@ -18,6 +18,8 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <boost/foreach.hpp>
+
 #include <cmath>
 #include <iostream>
 
@@ -25,10 +27,10 @@ using namespace std;
 
 //____________________________________________________________________________
 PHG4PhenixDetector::PHG4PhenixDetector( void ):
-  verbosity(0),
-  defaultMaterial( NULL ),
-  logicWorld( NULL ),
-  physiWorld( NULL ),
+  m_Verbosity(0),
+  defaultMaterial( nullptr ),
+  logicWorld( nullptr ),
+  physiWorld( nullptr ),
   WorldSizeX(1000*cm),
   WorldSizeY(1000*cm),
   WorldSizeZ(1000*cm),
@@ -39,10 +41,10 @@ PHG4PhenixDetector::PHG4PhenixDetector( void ):
 
 PHG4PhenixDetector::~PHG4PhenixDetector()
 {
-  while (detectors_.begin() != detectors_.end())
+  while (m_DetectorList.begin() != m_DetectorList.end())
     {
-      delete detectors_.back();
-      detectors_.pop_back();
+      delete m_DetectorList.back();
+      m_DetectorList.pop_back();
     }
 }
 
@@ -52,18 +54,18 @@ G4VPhysicalVolume* PHG4PhenixDetector::Construct()
 {
 
   recoConsts *rc = recoConsts::instance();
-  if (verbosity > 0) std::cout << "PHG4PhenixDetector::Construct." << std::endl;
+  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct." << std::endl;
   // Clean old geometry, if any
   G4GeometryManager::GetInstance()->OpenGeometry();
   G4PhysicalVolumeStore::GetInstance()->Clean();
   G4LogicalVolumeStore::GetInstance()->Clean();
   G4SolidStore::GetInstance()->Clean();
-  if (verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - cleaning done." << std::endl;
+  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - cleaning done." << std::endl;
   //default materials of the World
   //  defaultMaterial  = nist->FindOrBuildMaterial("G4_AIR");
 
   // World
-  G4VSolid *solidWorld = NULL;
+  G4VSolid *solidWorld = nullptr;
   if (worldshape == "G4BOX")
     {
       solidWorld = new G4Box("World", WorldSizeX / 2, WorldSizeY / 2, WorldSizeZ / 2);
@@ -87,21 +89,21 @@ G4VPhysicalVolume* PHG4PhenixDetector::Construct()
   PHG4RegionInformation* info = new PHG4RegionInformation();
   info->SetWorld();
   defaultRegion->SetUserInformation(info);
-  if (verbosity > 0) {
+  if (m_Verbosity > 0) {
     std::cout << "PHG4PhenixDetector::Construct " << solidWorld->GetEntityType() << " world "
 	      << "material " << logicWorld->GetMaterial()->GetName() << " done." << std::endl;
   }
   
   // construct all detectors
-  for( DetectorList::iterator iter = detectors_.begin(); iter != detectors_.end(); ++iter )
+  BOOST_FOREACH (PHG4Detector *det,  m_DetectorList)
   {
-    if( *iter )
+    if (det)
     {
-      (*iter)->Construct( logicWorld );
+      det->Construct( logicWorld );
     }
   }
 
-  if (verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - done." << std::endl;
+  if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - done." << std::endl;
 
   return physiWorld;
 }

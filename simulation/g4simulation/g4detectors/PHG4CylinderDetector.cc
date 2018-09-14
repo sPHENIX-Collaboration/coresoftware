@@ -91,5 +91,5 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                                       params->get_double_param("place_z") * cm),
                                      cylinder_logic,
                                      G4String(GetName().c_str()),
-                                     logicWorld, 0, false, overlapcheck);
+                                     logicWorld, 0, false, OverlapCheck());
 }

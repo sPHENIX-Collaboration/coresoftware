@@ -35,7 +35,7 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   SetDefaultParameters(_ecore_calib_params);
 }
 
-int RawClusterPositionCorrection::Init(PHCompositeNode *topNode)
+int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 {
   CreateNodeTree(topNode);
 

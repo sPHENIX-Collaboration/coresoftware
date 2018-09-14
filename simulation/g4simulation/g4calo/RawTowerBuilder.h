@@ -1,88 +1,80 @@
-#ifndef RAWTOWERBUILDER_H__
-#define RAWTOWERBUILDER_H__
+#ifndef G4CALO_RAWTOWERBUILDER_H
+#define G4CALO_RAWTOWERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
 
-
-#include <phool/PHTimeServer.h>
 #include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class RawTowerBuilder : public SubsysReco {
-
+class RawTowerBuilder : public SubsysReco
+{
  public:
-  RawTowerBuilder(const std::string& name="RawTowerBuilder");
-  virtual ~RawTowerBuilder(){}
-
+  RawTowerBuilder(const std::string &name = "RawTowerBuilder");
+  virtual ~RawTowerBuilder() {}
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {detector = d;}
-  void EminCut(const double e) {emin = e;}
-  void checkenergy(const int i = 1) {chkenergyconservation = i;}
-
+  void Detector(const std::string &d) { m_Detector = d; }
+  void EminCut(const double e) { m_Emin = e; }
+  void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
   enum enu_tower_energy_src
   {
     //! save Geant4 energy deposition as the weight of the cells
-      kEnergyDeposition,
+    kEnergyDeposition,
 
-      //! save light yield as the weight of the cells
-      kLightYield
+    //! save light yield as the weight of the cells
+    kLightYield
 
   };
 
   enu_tower_energy_src
   get_tower_energy_src() const
   {
-    return _tower_energy_src;
+    return m_TowerEnergySrcEnum;
   }
 
   void
   set_tower_energy_src(enu_tower_energy_src towerEnergySrc)
   {
-    _tower_energy_src = towerEnergySrc;
+    m_TowerEnergySrcEnum = towerEnergySrc;
   }
-
 
   std::string
   get_sim_tower_node_prefix() const
   {
-    return _sim_tower_node_prefix;
+    return m_SimTowerNodePrefix;
   }
 
   void
-  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  set_sim_tower_node_prefix(const std::string simTowerNodePrefix)
   {
-    _sim_tower_node_prefix = simTowerNodePrefix;
+    m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
  protected:
   void CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer* _towers;
-  RawTowerGeomContainer *rawtowergeom;
+  RawTowerContainer *m_TowerContainer;
+  RawTowerGeomContainer *m_RawTowerGeomContainer;
 
-  std::string detector;
-  std::string TowerNodeName;
-  std::string TowerGeomNodeName;
-  std::string _sim_tower_node_prefix;
+  std::string m_Detector;
+  std::string m_TowerNodeName;
+  std::string m_TowerGeomNodeName;
+  std::string m_SimTowerNodePrefix;
 
-  int _cell_binning;
-  double emin;	
-  int chkenergyconservation;
-  int _nlayers;
-  int _nphibins;
-  int _netabins;
-  double _etamin;
-  double _phimin;
-  double _etastep;
-  double _phistep;
-  enu_tower_energy_src _tower_energy_src;
-
-  PHTimeServer::timer _timer;
-
+  enu_tower_energy_src m_TowerEnergySrcEnum;
+  int m_CellBinning;
+  int m_ChkEnergyConservationFlag;
+  int m_NumLayers;
+  int m_NumPhiBins;
+  int m_NumEtaBins;
+  double m_Emin;
+  double m_EtaMin;
+  double m_PhiMin;
+  double m_EtaStep;
+  double m_PhiStep;
 };
 
-#endif /* RAWTOWERBUILDER_H__ */
+#endif  // G4CALO_RAWTOWERBUILDER_H

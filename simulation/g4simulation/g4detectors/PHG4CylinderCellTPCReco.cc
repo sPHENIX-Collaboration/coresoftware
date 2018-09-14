@@ -50,6 +50,7 @@ PHG4CylinderCellTPCReco::PHG4CylinderCellTPCReco(int n_pixel,
   , sigmaT(0.04)
   , elec_per_gev(38. * 1e6)
   , driftv(3.0 / 1000.0)
+  , neffelectrons_threshold(100.0)
   , fpad{nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr,nullptr}
   , fcharge(nullptr)
   ,  // cm per ns
@@ -575,8 +576,8 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 		  
 		  // adding constant electron avalanche (value chosen so that digitizer will not trip)
 		  float neffelectrons = (2000.0 / nseg) * nelec * (pad_share) * (adc_bin_share);  
-		  
-		  if (neffelectrons < 50) continue;  // skip no or very small signals to keep number of cells down
+		  if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be far below noise level, to save memory
+
 		  if(zbin_num >= nzbins) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << nzbins << endl;
 		  if(pad_num >= nphibins) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << nphibins << endl;
 		  unsigned long key = zbin_num * nphibins + pad_num;

@@ -1,5 +1,5 @@
-#ifndef __PHSARTREGENTRIGGER_H__
-#define __PHSARTREGENTRIGGER_H__
+#ifndef PHSARTRE_PHSARTREGENTRIGGER_H
+#define PHSARTRE_PHSARTREGENTRIGGER_H
 
 #include <iostream>
 #include <string>

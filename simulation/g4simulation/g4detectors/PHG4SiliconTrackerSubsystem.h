@@ -1,12 +1,10 @@
-#ifndef PHG4SiliconTrackerSubsystem_h
-#define PHG4SiliconTrackerSubsystem_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SILICONTRACKERSUBSYSTEM_H
+#define G4DETECTORS_PHG4SILICONTRACKERSUBSYSTEM_H
 
 #include "PHG4DetectorGroupSubsystem.h"
 
-#include <Geant4/G4String.hh>
-#include <Geant4/G4Types.hh>
-
-#include <utility>
 #include <vector>
 
 class PHG4SiliconTrackerDetector;
@@ -42,7 +40,7 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const;
-  PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
+  PHG4SteppingAction *GetSteppingAction(void) const { return m_SteppingAction; }
   void Print(const std::string &what = "ALL") const;
 
  private:
@@ -50,16 +48,14 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SiliconTrackerDetector *detector_;
+  PHG4SiliconTrackerDetector *m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *steppingAction_;
+  PHG4SteppingAction *m_SteppingAction;
 
-  std::vector<std::pair<int, int>> layerconfig_;
-  std::string detector_type;
-
-  int nlayers;
+  vpair m_LayerConfigVector;
+  std::string m_DetectorType;
 };
 
 #endif

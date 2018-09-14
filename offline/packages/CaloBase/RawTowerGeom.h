@@ -19,6 +19,11 @@ class RawTowerGeom : public PHObject {
   virtual void set_id(RawTowerDefs::keytype key)  { PHOOL_VIRTUAL_WARN("set_id()");  }
   virtual RawTowerDefs::keytype get_id() const { PHOOL_VIRTUAL_WARN("get_id()"); return 0; }
 
+  virtual int get_bineta() const { PHOOL_VIRTUAL_WARN("get_ieta()"); return -1; }
+  virtual int get_binphi() const { PHOOL_VIRTUAL_WARN("get_iphi()"); return -1; }
+  virtual int get_column() const { PHOOL_VIRTUAL_WARN("get_column()"); return -1; }
+  virtual int get_row() const { PHOOL_VIRTUAL_WARN("get_row()"); return -1; }
+
   virtual void set_center_x( double ) { PHOOL_VIRTUAL_WARN("set_center_x()"); return ; }
   virtual void set_center_y( double ) { PHOOL_VIRTUAL_WARN("set_center_y()"); return ; }
   virtual void set_center_z( double ) { PHOOL_VIRTUAL_WARN("set_center_z()"); return ; }

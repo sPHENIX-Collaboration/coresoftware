@@ -1,18 +1,26 @@
-#ifndef PHG4VSiliconTrackerSteppingAction_h
-#define PHG4VSiliconTrackerSteppingAction_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
+#define G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
+#include <map>
+#include <set>
+#include <vector>
+
 class PHG4SiliconTrackerDetector;
-class PHG4ParametersContainer;
+class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class  PHG4CylinderGeomContainer;
+class PHG4CylinderGeom_Siladders;
 
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector *, const PHG4ParametersContainer *parameters);
+  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector *, const PHParametersContainer *parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_begin_end);
 
   virtual ~PHG4SiliconTrackerSteppingAction();
 
@@ -22,24 +30,26 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4SiliconTrackerDetector *detector_;
+  PHG4SiliconTrackerDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
-  PHG4Hit *hit;
-  PHG4HitContainer *savehitcontainer;
-  PHG4Shower *saveshower;
-  const PHG4ParametersContainer *paramscontainer;
+  PHG4HitContainer *m_Hits;
+  PHG4HitContainer *m_AbsorberHits;
+  PHG4Hit *m_Hit;
+  PHG4HitContainer *m_SaveHitContainer;
+  PHG4Shower *m_SaveShower;
+  const PHParametersContainer *m_ParamsContainer;
 
-  double strip_y[4];
-  double strip_z[4][2];
-  int nstrips_z_sensor[4][2];
-  int nstrips_phi_cell[4];
-  std::map<int, int> IsActive;
-  std::map<int, int> IsBlackHole;
-  std::map<std::string, int> AbsorberIndex;
-  std::set<std::string> missingabsorbers;
+
+  std::map<int, int> m_InttToTrackerLayerMap;
+  std::map<int, int> m_LadderTypeMap;
+  std::map<int, double> m_StripYMap;
+  std::map<int, std::pair<double, double>> m_StripZMap;
+  std::map<int, int> m_nStripsPhiCell;
+  std::map<int, std::pair<int, int>> m_nStripsZSensor;
+
+  std::map<int, int> m_IsActiveMap;
+  std::map<int, int> m_IsBlackHoleMap;
 };
 
-#endif  // PHG4SiliconTrackerSteppingAction_h
+#endif  // G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H

@@ -295,7 +295,7 @@ void PHG4CrystalCalorimeterSteppingAction::SetInterfacePointers( PHCompositeNode
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << "PHG4CrystalCalorimeterSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}

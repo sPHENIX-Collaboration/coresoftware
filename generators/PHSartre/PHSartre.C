@@ -3,27 +3,23 @@
 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
-#include "CLHEP/Vector/LorentzVector.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHRandomSeed.h>
+
+#include <sartre/Sartre.h>
+
+#include <TGenPhaseSpace.h>
+
+#include <CLHEP/Vector/LorentzVector.h>
 
 #include <HepMC/GenEvent.h>
 
 #include <gsl/gsl_randist.h>
 
-#include <TString.h> // needed for Form()
-
-#include <Sartre.h>
-#include <TGenPhaseSpace.h>
 
 using namespace std;
-
-typedef PHIODataNode<PHObject> PHObjectNode_t;
 
 PHSartre::PHSartre(const std::string &name): 
   SubsysReco(name),

@@ -1,5 +1,7 @@
-#ifndef PHG4InnerHcalSubsystem_h
-#define PHG4InnerHcalSubsystem_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H
+#define G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
@@ -22,7 +24,7 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   }
 
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
+  creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
@@ -40,7 +42,7 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const { return steppingAction_; }
+  PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
   void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
 
  private:
@@ -48,11 +50,11 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4InnerHcalDetector* detector_;
+  PHG4InnerHcalDetector* m_Detector;
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction* m_SteppingAction;
 };
 
-#endif
+#endif  // G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H

@@ -666,9 +666,14 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     // for every cluster
-    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++)
-    {
-      RawCluster* cluster = clusters->getCluster(icluster);
+
+    for (const auto & iterator : clusters->getClustersMap()) {
+
+      RawCluster *cluster = iterator.second;
+
+//    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++)
+//    {
+//      RawCluster* cluster = clusters->getCluster(icluster);
 
       if (cluster->get_energy() < _reco_e_threshold) continue;
 

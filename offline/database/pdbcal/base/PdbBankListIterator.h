@@ -1,7 +1,6 @@
 //-----------------------------------------------------------------------------
 //
 //  The pdbcal package
-//  Copyright (C) PHENIX collaboration, 1999
 //
 //  Declaration of class PdbBankListIterator
 //
@@ -11,22 +10,25 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef __PDBBANKLISTITERATOR_HH__
-#define __PDBBANKLISTITERATOR_HH__
+#ifndef PDBCAL_BASE_PDBBANKLISTITERATOR_H
+#define PDBCAL_BASE_PDBBANKLISTITERATOR_H
 
 #include "PdbBankList.h"
 #include "PdbCalBank.h"
 
 #include <phool/PHPointerListIterator.h>
 
-class PdbBankListIterator : public PHPointerListIterator<PdbCalBank> {
-public:
-   PdbBankListIterator(PdbBankList &);
-   ~PdbBankListIterator();
-   
-protected:
-   PdbBankListIterator();
+class PdbBankListIterator : public PHPointerListIterator<PdbCalBank>
+{
+ public:
+  PdbBankListIterator(PdbBankList &bankList)
+    : PHPointerListIterator<PdbCalBank>(bankList)
+  {
+  }
 
+  ~PdbBankListIterator() {}
+  private: 
+   PdbBankListIterator() {} 
 };
 
-#endif /* __PDBBANKLISTITERATOR_HH__ */
+#endif  // PDBCAL_BASE_PDBBANKLISTITERATOR_H

@@ -47,6 +47,5 @@ double RawTowerGeomv1::get_phi() const
 
 void RawTowerGeomv1::identify(std::ostream& os) const
 {
-  os << "RawTowerGeomv1:  x: " << get_center_x() << "  y: " << get_center_y() << "  z: " << get_center_z()
-	    << "\n           dx: " << get_size_x() << " dy: " << get_size_y() << " dz: " << get_size_z() << std::endl;
+  os << "RawTowerGeomv1:  x: " << get_center_x() << "  y: " << get_center_y() << "  z: " << get_center_z() << std::endl;
 }

@@ -27,7 +27,7 @@ class PHG4SiliconTrackerDigitizer : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   
   //! end of process
-  int End(PHCompositeNode *topNode) {return 0;}
+  int End(PHCompositeNode *topNode);
   
   void set_adc_scale(const int &layer, const std::vector<double> &userrange)
   {
@@ -64,6 +64,11 @@ class PHG4SiliconTrackerDigitizer : public SubsysReco
 
   const unsigned int nadcbins = 8;
   std::map<int, std::vector< std::pair<double, double> > > _max_fphx_adc;
+
+
+  unsigned int m_nCells ;
+  unsigned int m_nDeadCells ;
+
 };
 
 #endif

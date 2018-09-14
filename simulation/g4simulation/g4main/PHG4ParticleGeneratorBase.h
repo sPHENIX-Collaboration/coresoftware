@@ -32,7 +32,8 @@ class PHG4ParticleGeneratorBase: public SubsysReco
   virtual double get_vtx_z() const {return vtx_z;}
   virtual double get_t0() const {return t0;}
 
-  virtual void Print(const std::string &what = "ALL") const;
+  virtual void Print(const std::string &what = "ALL") const {PrintParticles(what);}
+  virtual void PrintParticles(const std::string &what = "ALL") const;
   virtual void AddParticle(const std::string &particle, const double x, const double y, const double z);
   virtual void AddParticle(const int pid, const double x, const double y, const double z);
   virtual void Embed(const int i=1) {embedflag = i;}

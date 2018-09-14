@@ -72,13 +72,13 @@ libg4testbench_la_SOURCES = \
     PHG4MagneticField.cc \
     HepMCNodeReader.cc \
     PHG4ConsistencyCheck.cc \
+    PHG4Detector.cc \
     PHG4EtaParameterization.cc \
     PHG4EtaPhiParameterization.cc \
     PHG4HeadReco.cc \
     PHG4InEventCompress.cc \
     PHG4InEventReadBack.cc \
     PHG4InputFilter.cc \
-    PHG4ParameterisationTubsEta.cc \
     PHG4PileupGenerator.cc \
     PHG4SimpleEventGenerator.cc \
     PHG4ParticleGun.cc \
@@ -93,6 +93,7 @@ libg4testbench_la_SOURCES = \
     PHG4_Dict.cc \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
+    PHG4ScoringManager.cc \
     PHG4RegionInformation.cc \
     PHG4TrackUserInfoV1.cc \
     PHG4TruthEventAction.cc \
@@ -157,6 +158,7 @@ pkginclude_HEADERS = \
   PHG4TrackUserInfoV1.h \
   PHG4TruthInfoContainer.h \
   PHG4TruthSubsystem.h \
+  PHG4Units.h \
   PHG4Utils.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h
@@ -201,6 +203,7 @@ PHG4_Dict.cc: \
   PHG4ParticleGeneratorVectorMeson.h \
   PHG4ParticleGeneratorD0.h \
   PHG4Reco.h \
+  PHG4ScoringManager.h \
   PHG4Subsystem.h \
   PHG4TruthSubsystem.h \
   PHG4Utils.h \

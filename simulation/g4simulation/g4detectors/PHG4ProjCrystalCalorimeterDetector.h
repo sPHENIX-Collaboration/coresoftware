@@ -47,7 +47,10 @@ public:
   void GetCarbonFiberAdjustments(G4double& adjust_width, G4double& adjust_length);
 
   void GetCarbonFiberSpacing(G4double& CF_width, G4double& Air_CF, G4double& Air_Cry);
-
+  virtual void SetSupermoduleGeometry(const std::string & filename2)
+  {
+    _4x4_construct_file = filename2;
+  }
 
 private:
 

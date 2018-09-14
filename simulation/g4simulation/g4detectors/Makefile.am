@@ -75,24 +75,13 @@ pkginclude_HEADERS = \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4HcalDefs.h \
-  PHG4ParameterContainerInterface.h \
-  PHG4ParameterInterface.h \
-  PHG4Parameters.h \
-  PHG4ParametersContainer.h \
+  PHG4PrototypeHcalDefs.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
   PHG4StepStatusDecode.h
 
 libg4detectors_io_la_SOURCES = \
-  PHG4Parameters.cc \
-  PHG4Parameters_Dict.cc \
-  PHG4ParametersContainer.cc \
-  PHG4ParametersContainer_Dict.cc \
-  PHG4ParameterContainerInterface.cc \
-  PHG4ParameterContainerInterface_Dict.cc \
-  PHG4ParameterInterface.cc \
-  PHG4ParameterInterface_Dict.cc \
   PHG4BlockCellGeom.cc \
   PHG4BlockCellGeom_Dict.cc \
   PHG4BlockCellGeomContainer.cc \
@@ -162,6 +151,9 @@ libg4detectors_io_la_SOURCES = \
   PHG4ScintillatorSlatContainer_Dict.cc
 
 libg4detectors_la_SOURCES = \
+  PHG4GDMLDetector.cc \
+  PHG4GDMLSubsystem.cc \
+  PHG4GDMLSubsystem_Dict.cc \
   PHG4BeamlineMagnetDetector.cc \
   PHG4BeamlineMagnetSubsystem.cc \
   PHG4BeamlineMagnetSubsystem_Dict.cc \
@@ -253,6 +245,10 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype2OuterHcalSteppingAction.cc \
   PHG4Prototype2OuterHcalSubsystem.cc \
   PHG4Prototype2OuterHcalSubsystem_Dict.cc \
+  PHG4Prototype3InnerHcalDetector.cc \
+  PHG4Prototype3InnerHcalSteppingAction.cc \
+  PHG4Prototype3InnerHcalSubsystem.cc \
+  PHG4Prototype3InnerHcalSubsystem_Dict.cc \
   PHG4RICHDetector.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
@@ -267,6 +263,7 @@ libg4detectors_la_SOURCES = \
   PHG4SectorSubsystem_Dict.cc \
   PHG4SiliconTrackerCellReco.cc \
   PHG4SiliconTrackerCellReco_Dict.cc \
+  PHG4SiliconTrackerDefs_Dict.cc \
   PHG4SiliconTrackerDetector.cc \
   PHG4SiliconTrackerSteppingAction.cc \
   PHG4SiliconTrackerSubsystem.cc \

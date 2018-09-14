@@ -55,7 +55,7 @@ PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector( PHCompositeNode *Node, const
   sandwich_thickness = 2*w_dimension[1] + sc_dimension[1]; // two tungsten plats, one scintillator
   for (int i=0; i<4; i++)
     {
-      sandwich_vol.push_back(NULL);
+      sandwich_vol.push_back(nullptr);
     }
 }
 
@@ -99,7 +99,7 @@ PHG4CEmcTestBeamDetector::Construct( G4LogicalVolume* logicWorld )
   cemc_rotm.rotateX(x_rot);
   cemc_rotm.rotateY(y_rot);
   cemc_rotm.rotateZ(z_rot);
-  new G4PVPlacement(G4Transform3D(cemc_rotm, G4ThreeVector(place_in_x-xcenter, place_in_y-ycenter, place_in_z)), cemc_log, "CEmc", logicWorld, 0, false, overlapcheck);
+  new G4PVPlacement(G4Transform3D(cemc_rotm, G4ThreeVector(place_in_x-xcenter, place_in_y-ycenter, place_in_z)), cemc_log, "CEmc", logicWorld, 0, false, OverlapCheck());
   G4VSolid* tower_tub = new  G4Tubs("TowerTub", inner_radius - no_overlap, outer_radius + no_overlap,  (w_dimension[2] + no_overlap) / 2., 0, tower_angular_coverage);
   G4LogicalVolume* tower_log = new G4LogicalVolume(tower_tub, Air, G4String("CEmcTower"), 0, 0, 0);
   //  G4VisAttributes* towerVisAtt = new G4VisAttributes();
@@ -115,7 +115,7 @@ PHG4CEmcTestBeamDetector::Construct( G4LogicalVolume* logicWorld )
       double phi = -i * tower_angular_coverage;
       G4RotationMatrix *tower_rotm  = new G4RotationMatrix();
       tower_rotm->rotateZ(phi * rad);
-      new G4PVPlacement(tower_rotm, G4ThreeVector(0, 0, 0), tower_log, tower_vol_name.str().c_str(), cemc_log, 0, i , overlapcheck);
+      new G4PVPlacement(tower_rotm, G4ThreeVector(0, 0, 0), tower_log, tower_vol_name.str().c_str(), cemc_log, 0, i , OverlapCheck());
       tower_vol_name.str("");
     }
   ConstructTowerVolume(tower_log);
@@ -157,7 +157,7 @@ PHG4CEmcTestBeamDetector::ConstructTowerVolume( G4LogicalVolume* tower_log )
       new G4PVPlacement(sandwich_rotm, G4ThreeVector(xshift + xcorr, yshift + ycorr , 0),
 					       sandwich_log,
 					       sandwich_name.str().c_str(),
-					       tower_log, false, i, overlapcheck);
+					       tower_log, false, i, OverlapCheck());
       sandwich_name.str("");
     }
   ConstructSandwichVolume(sandwich_log); // put W and scinti into sandwich
@@ -186,7 +186,7 @@ PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
 				 w_dimension[0] / 2., w_dimension[1] / 2., w_dimension[2] / 2.);
   G4VSolid*  block_sc = new G4Box("Scinti_box",
 				  sc_dimension[0] / 2., sc_active_thickness / 2., sc_dimension[2] / 2.);
-  G4VSolid*  block_passive_sc = NULL;
+  G4VSolid*  block_passive_sc = nullptr;
   block_logic.push_back(new G4LogicalVolume(block_w,
 					    AbsorberMaterial,
 					    "Plate_log_W",
@@ -219,14 +219,14 @@ PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
   sandwich_vol[0] =  new G4PVPlacement(0, G4ThreeVector(0, -(w_dimension[1]+sc_dimension[1])/ 2., 0),
 						  block_logic[0],
 						  "CEmc_W_plate_down",
-						  sandwich, 0, 0, overlapcheck);
+						  sandwich, 0, 0, OverlapCheck());
 
   // top of the sandwich - starting at the bottom and add the tungsten and scintillator layer and half tungsten
   // -w/2 -sc/2 -w/2 + w + sc + w/2 = +sc/2 +w/2 = (w+sc)/2
   sandwich_vol[1] =  new G4PVPlacement(0, G4ThreeVector(0, (w_dimension[1]+sc_dimension[1])/ 2., 0),
 						  block_logic[0],
 						  "CEmc_W_plate_up",
-						  sandwich, 0, 0, overlapcheck);
+						  sandwich, 0, 0, OverlapCheck());
 
   // since we split the scintillator into an active and passive part to accomodate
   // for the scintillator fibers not occupying 100% of the volume.
@@ -239,7 +239,7 @@ PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
   sandwich_vol[2] =  new G4PVPlacement(0, G4ThreeVector(0, -sc_passive_thickness/ 2., 0),
 				block_logic[1],
 				"CEmc_Scinti_plate",
-				sandwich, 0, 0, overlapcheck);
+				sandwich, 0, 0, OverlapCheck());
 
 
   if (sc_passive_thickness > 0)
@@ -261,11 +261,11 @@ PHG4CEmcTestBeamDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich)
       sandwich_vol[3] =  new G4PVPlacement(0, G4ThreeVector(0, sc_active_thickness / 2., 0),
                                              block_logic[2],
                                              "CEmc_Passive_Si_plate",
-						  sandwich, 0, 0, overlapcheck);
+						  sandwich, 0, 0, OverlapCheck());
     }
   else
     {
-      sandwich_vol[3] = NULL;
+      sandwich_vol[3] = nullptr;
     }
   return 0;
 }

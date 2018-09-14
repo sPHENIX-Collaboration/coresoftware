@@ -1,29 +1,30 @@
-#ifndef Prototype2RawTowerBuilder_H__
-#define Prototype2RawTowerBuilder_H__
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
+#define G4CALO_PROTOTYPE2RAWTOWERBUILDER_H
+
+#include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
-
-#include <phool/PHTimeServer.h>
 
 #include <string>
 
 class PHCompositeNode;
-class RawTowerContainer;
 class RawTowerGeomContainer;
 
-class Prototype2RawTowerBuilder : public SubsysReco {
-
+class Prototype2RawTowerBuilder : public SubsysReco, public PHParameterInterface
+{
  public:
-  Prototype2RawTowerBuilder(const std::string& name="Prototype2RawTowerBuilder");
-  virtual ~Prototype2RawTowerBuilder(){}
-
+  Prototype2RawTowerBuilder(const std::string &name = "Prototype2RawTowerBuilder");
+  virtual ~Prototype2RawTowerBuilder() {}
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {detector = d;}
-  void EminCut(const double e) {emin = e;}
-  void checkenergy(const int i = 1) {chkenergyconservation = i;}
+  void Print(const std::string &what = "ALL") const;
 
+  void SetDefaultParameters();
+
+  void Detector(const std::string &d) { m_Detector = d; }
+  void checkenergy(const int i = 1) { m_CheckEnergyConservationFlag = i; }
   enum enu_tower_energy_src
   {
     //! save Geant4 energy deposition as the weight of the cells
@@ -36,50 +37,30 @@ class Prototype2RawTowerBuilder : public SubsysReco {
     kIonizationEnergy
   };
 
-  enu_tower_energy_src
-  get_tower_energy_src() const
-  {
-    return _tower_energy_src;
-  }
+  enu_tower_energy_src get_tower_energy_src() const { return m_TowerEnergySrc; }
 
-  void
-  set_tower_energy_src(enu_tower_energy_src towerEnergySrc)
-  {
-    _tower_energy_src = towerEnergySrc;
-  }
+  void set_tower_energy_src(const enu_tower_energy_src towerEnergySrc) 
+   { m_TowerEnergySrc = towerEnergySrc; }
+  
+  std::string get_sim_tower_node_prefix() const { return m_SimTowerNodePrefix; }
 
-
-  std::string
-  get_sim_tower_node_prefix() const
-  {
-    return _sim_tower_node_prefix;
-  }
-
-  void
-  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
-  {
-    _sim_tower_node_prefix = simTowerNodePrefix;
-  }
+  void set_sim_tower_node_prefix(const std::string &simTowerNodePrefix) 
+     { m_SimTowerNodePrefix = simTowerNodePrefix; }
 
   short get_tower_row(const short cellrow) const;
 
- protected:
-  void CreateNodes(PHCompositeNode *topNode);
+ private:
+  void ReadParamsFromNodeTree(PHCompositeNode *topNode);
 
-  RawTowerContainer* _towers;
-  RawTowerGeomContainer *rawtowergeom;
+  std::string m_Detector;
+  std::string m_TowerNodeName;
+  std::string m_TowerGeomNodeName;
+  std::string m_SimTowerNodePrefix;
 
-  std::string detector;
-  std::string TowerNodeName;
-  std::string TowerGeomNodeName;
-  std::string _sim_tower_node_prefix;
-
-  double emin;	
-  int chkenergyconservation;
-  enu_tower_energy_src _tower_energy_src;
-  int ncell_to_tower;
-  PHTimeServer::timer _timer;
-
+  double m_Emin;
+  int m_CheckEnergyConservationFlag;
+  enu_tower_energy_src m_TowerEnergySrc;
+  int m_NumCellToTower;
 };
 
-#endif /* Prototype2RawTowerBuilder_H__ */
+#endif  // G4CALO_PROTOTYPE2RAWTOWERBUILDER_H

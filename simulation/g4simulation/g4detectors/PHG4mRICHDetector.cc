@@ -90,13 +90,27 @@ int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume * volume) const
 void PHG4mRICHDetector::Construct( G4LogicalVolume* logicWorld)
 {
   int subsystemSetup =params->get_int_param("subsystemSetup");
-  //-1 : single module
-  //0  : hemispheric wall
-  //>0 : number of sectors
+  // -1: single module
+  //  0: h-side sectors and e-side wall
+  //  1: h-side sectors
+  //  2: e-side wall
+  //  3: h-side wall
+  //  4: h-side wall and e-side wall
 
-  if (subsystemSetup==-1) Construct_a_mRICH(logicWorld);
-  else if (subsystemSetup) build_mRICH_sector(logicWorld,subsystemSetup);//cout<<"!!!! PHG4mRICHDetector::Construct !!!! nothing will be done right now."<<endl;
-  if(subsystemSetup == 0) build_mRICH_wall(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kSingle_Modular) Construct_a_mRICH(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kHSector_EWall)
+  {
+    build_mRICH_sector(logicWorld,8);
+    build_mRICH_wall_eside(logicWorld);
+  }
+  if(subsystemSetup == DetectorSetUp::kHSector) build_mRICH_sector(logicWorld,8);
+  if(subsystemSetup == DetectorSetUp::kEWall) build_mRICH_wall_eside(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kHWall) build_mRICH_wall_hside(logicWorld);
+  if(subsystemSetup == DetectorSetUp::kHWall_EWall) 
+  {
+    build_mRICH_wall_hside(logicWorld);
+    build_mRICH_wall_eside(logicWorld);
+  }
 }
 //_______________________________________________________________
 G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWorld)//, int detectorSetup )
@@ -115,7 +129,11 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
     /*foam holder for aerogel     */ build_foamHolder(parameters,hollowVol->GetLogicalVolume());
     /*lens                        */ build_lens(parameters->GetLensPar("fresnelLens"), hollowVol->GetLogicalVolume());
     /*mirror                      */ build_mirror(parameters,hollowVol);
-    /*readout electronics         */ build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+    /*readout electronics         */ G4VPhysicalVolume* pol =  build_polyhedra(parameters->GetPolyPar("readout"),hollowVol->GetLogicalVolume());
+      if (!pol)
+    {
+      cout << "readout electronics not placed" << endl;
+    }
   }
   
   return hollowVol->GetMotherLogical();  //return detector holder box.
@@ -281,7 +299,8 @@ PHG4mRICHDetector::mRichParameter::mRichParameter()
   const G4double grooveDensity=125.0/(2.54*cm);
 
   fresnelLens->n=1.49;
-  fresnelLens->f=6.0*2.54*cm;
+  // fresnelLens->f=6.0*2.54*cm;
+  fresnelLens->f=5.0*2.54*cm;
   fresnelLens->eff_diameter=15.24*cm;
   fresnelLens->diameter=2.0*sqrt(2.0)*lensHalfx;
   fresnelLens->centerThickness=0.06*2.54*cm;
@@ -575,7 +594,7 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_box(BoxPar* par, G4LogicalVolume* mo
 {
   G4Box* box = new G4Box(par->name.c_str(),par->halfXYZ[0],par->halfXYZ[1],par->halfXYZ[2]);
   G4LogicalVolume* log = new G4LogicalVolume(box,par->material,par->name.c_str(),0,0,0);
-  G4VPhysicalVolume* phy=new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0,overlapcheck);
+  G4VPhysicalVolume* phy=new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0,OverlapCheck());
 
   G4VisAttributes* visAtt = new G4VisAttributes(par->color);
   visAtt->SetVisibility(par->visibility);
@@ -591,7 +610,7 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_polyhedra(PolyPar* par, G4LogicalVol
   G4Polyhedra* polyhedra=new G4Polyhedra(par->name.c_str(), par->start,par->theta, par->numSide,
                                          par->num_zLayer,par->z, par->rinner, par->router);
   G4LogicalVolume* log = new G4LogicalVolume(polyhedra,par->material,par->name.c_str(),0,0,0);
-  G4VPhysicalVolume* phy = new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0,overlapcheck);
+  G4VPhysicalVolume* phy = new G4PVPlacement(0,par->pos,log,par->name.c_str(),motherLV,false,0,OverlapCheck());
 
   G4VisAttributes* visAtt = new G4VisAttributes(par->color);
   visAtt->SetVisibility(par->visibility);
@@ -610,8 +629,16 @@ G4VPhysicalVolume* PHG4mRICHDetector::build_holderBox(mRichParameter* detectorPa
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV)
 {
-  build_box(detectorParameter->GetBoxPar("foamHolderBox"),motherLV);
-  build_polyhedra(detectorParameter->GetPolyPar("foamHolderPoly"),motherLV);
+  G4VPhysicalVolume* box = build_box(detectorParameter->GetBoxPar("foamHolderBox"),motherLV);
+  if (! box)
+  {
+    cout << "placement of foamholderbox failed" << endl;
+  }
+  box = build_polyhedra(detectorParameter->GetPolyPar("foamHolderPoly"),motherLV);
+  if (! box)
+  {
+    cout << "placement of foamholderpoly failed" << endl;
+  }
 }
 //________________________________________________________________________//
 void PHG4mRICHDetector::build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV)
@@ -771,7 +798,7 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
     for (int i=0;i<repeat;i++) {
       Groove_poly[i]=new G4Polycone(par->name.c_str(),phi1,deltaPhi, numOfLayer, lens_poly_z, lens_poly_rmin, lens_poly_rmax);
       Groove_log[i]=new G4LogicalVolume(Groove_poly[i],par->material,par->name.c_str(),0,0,0);
-      new G4PVPlacement(0,par->pos,Groove_log[i],par->name.c_str(),motherLV,false,0,overlapcheck);
+      new G4PVPlacement(0,par->pos,Groove_log[i],par->name.c_str(),motherLV,false,0,OverlapCheck());
 
       Groove_log[i]->SetVisAttributes(SurfaceVisAtt);
       phi1=phi1+halfpi;   //g4 pre-defined: halfpi=pi/2
@@ -780,7 +807,7 @@ void PHG4mRICHDetector::build_lens(LensPar* par, G4LogicalVolume* motherLV)
   
 }
 //________________________________________________________________________//
-void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
+void PHG4mRICHDetector::build_mRICH_wall_hside(G4LogicalVolume* logicWorld)
 {
   G4AssemblyVolume* mRICHwall = new G4AssemblyVolume();   //"mother volume"
 
@@ -830,7 +857,56 @@ void PHG4mRICHDetector::build_mRICH_wall(G4LogicalVolume* logicWorld)
   }
 
   G4ThreeVector pos(0, 0, 0);
-  mRICHwall->MakeImprint(logicWorld,pos,NULL,0,overlapcheck);
+  mRICHwall->MakeImprint(logicWorld,pos,NULL,0,OverlapCheck());
+
+  printf("-----------------------------------------------------------------------------\n");
+  printf("%d detectors are built\n",NumOfModule);
+  printf("-----------------------------------------------------------------------------\n");
+}
+//________________________________________________________________________//
+
+//________________________________________________________________________//
+void PHG4mRICHDetector::build_mRICH_wall_eside(G4LogicalVolume* logicWorld)
+{
+  G4AssemblyVolume* mRICHwall = new G4AssemblyVolume();   //"mother volume"
+
+  G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
+
+  G4double shift = params->get_double_param("mRICH_wall_eside_shift");
+
+  int NumOfModule = params->get_int_param("NumOfModule_wall_eside");
+
+  for(int i_mRICH = 0; i_mRICH < NumOfModule; ++i_mRICH)
+  {
+    // get moduleID
+    // std::stringstream key_moduleID;
+    // key_moduleID << "mRICH_wall_eside_" << i_mRICH << "_moduleID";
+    // int module_id = params->get_int_param(key_moduleID.str());
+
+    // get position
+    std::stringstream key_position_x;
+    key_position_x << "mRICH_wall_eside_" << i_mRICH << "_position_x";
+    G4double x = params->get_double_param(key_position_x.str());
+
+    std::stringstream key_position_y;
+    key_position_y << "mRICH_wall_eside_" << i_mRICH << "_position_y";
+    G4double y = params->get_double_param(key_position_y.str());
+
+    std::stringstream key_position_z;
+    key_position_z << "mRICH_wall_eside_" << i_mRICH << "_position_z";
+    G4double z = params->get_double_param(key_position_z.str());
+
+    // cout << "module_id = " << module_id << ", x = " << x << ", y = " << y << ", z = " << z << endl;
+
+    G4ThreeVector pos(x,y,z);
+    G4RotationMatrix* rot=new G4RotationMatrix();
+    mRICHwall->AddPlacedVolume(a_mRICH, pos, rot);
+  }
+
+  G4ThreeVector pos(0, 0, shift);
+  G4RotationMatrix* rot=new G4RotationMatrix();
+  rot->rotateX(180*deg);
+  mRICHwall->MakeImprint(logicWorld,pos,rot,0,OverlapCheck());
 
   printf("-----------------------------------------------------------------------------\n");
   printf("%d detectors are built\n",NumOfModule);
@@ -844,6 +920,8 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
   G4LogicalVolume* a_mRICH=Construct_a_mRICH(0); // build a single mRICH
 
   G4double theta = params->get_double_param("mRICH_sector_hside_rotation_theta");
+
+  G4double shift = params->get_double_param("mRICH_sector_hside_shift");
 
   int NumOfModule = params->get_int_param("NumOfModule_sector_hside");
 
@@ -877,11 +955,13 @@ void PHG4mRICHDetector::build_mRICH_sector(G4LogicalVolume* logicWorld, int numS
 
   for(int i=0;i<numSector;i++) 
   {
-    G4ThreeVector pos(0, 0, 3.1*m);
+    // G4ThreeVector pos(0, 0, 3.0*m);
+    G4ThreeVector pos(0, 0, shift);
+    // G4ThreeVector pos(0, 0, 2.8085*m);
     G4RotationMatrix* rot=new G4RotationMatrix();
     rot->rotateX(-theta*180*deg/pi);
     rot->rotateZ(i*45*deg);
-    sector->MakeImprint(logicWorld, pos, rot, 0, overlapcheck);
+    sector->MakeImprint(logicWorld, pos, rot, 0, OverlapCheck());
   }
 }
 

@@ -40,8 +40,12 @@ class CopyAndSubtractJets : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  void SetFlowModulation( bool use_flow_modulation ) { _use_flow_modulation = use_flow_modulation; }
+
  private:
   int CreateNode(PHCompositeNode *topNode);
+
+  bool _use_flow_modulation;
 
 };
 

@@ -348,7 +348,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
       G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
                                                    G4String(GetName().c_str()) + G4String("_EndWall_") + to_string(val.first), sec_logic,
-                                                   false, val.first, overlapcheck);
+                                                   false, val.first, OverlapCheck());
 
       calo_vol[wall_phys] = val.first;
       assert(gdml_config);
@@ -412,7 +412,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
       G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
                                                    G4String(GetName().c_str()) + G4String("_SideWall_") + to_string(val.first), sec_logic,
-                                                   false, val.first, overlapcheck);
+                                                   false, val.first, OverlapCheck());
 
       calo_vol[wall_phys] = val.first;
       assert(gdml_config);
@@ -461,7 +461,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
 
         G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
                                                      G4String(GetName().c_str()) + G4String("_Divider_") + to_string(ID), sec_logic,
-                                                     false, ID, overlapcheck);
+                                                     false, ID, OverlapCheck());
 
         calo_vol[wall_phys] = ID;
         assert(gdml_config);
@@ -501,7 +501,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
         G4TranslateZ3D(g_tower.centralZ * cm) *
         G4RotateX3D(g_tower.pRotationAngleX * rad);
 
-    const bool overlapcheck_block = overlapcheck and (get_geom_v3()->get_construction_verbose() >= 2);
+    const bool overlapcheck_block = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 2);
 
     G4PVPlacement* block_phys = new G4PVPlacement(block_trans, LV_tower,
                                                   G4String(GetName().c_str()) + G4String("_Tower_") + to_string(g_tower.id), sec_logic, false,
@@ -660,7 +660,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     name << GetName() + string("_Tower") << g_tower.id << "_fiber"
          << ss.str();
 
-    const bool overlapcheck_fiber = overlapcheck and (get_geom_v3()->get_construction_verbose() >= 3);
+    const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
     G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
                                                    G4String(name.str().c_str()), LV_tower, false, fiber_ID,
                                                    overlapcheck_fiber);
@@ -762,7 +762,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
       name << GetName() + string("_Tower") << g_tower.id << "_fiber"
            << ss.str();
 
-      const bool overlapcheck_fiber = overlapcheck and (get_geom_v3()->get_construction_verbose() >= 3);
+      const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
       G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place,
                                                      fiber_logic, G4String(name.str().c_str()), LV_tower, false,
                                                      fiber_ID, overlapcheck_fiber);

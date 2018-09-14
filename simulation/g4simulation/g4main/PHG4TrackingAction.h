@@ -1,5 +1,7 @@
-#ifndef PHG4TrackingAction_h
-#define PHG4TrackingAction_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4MAIN_PHG4TRACKINGACTION_H
+#define G4MAIN_PHG4TRACKINGACTION_H
 
 #include <Geant4/G4UserTrackingAction.hh>
 
@@ -14,9 +16,9 @@ public:
   virtual ~PHG4TrackingAction() {}
 
 //   //! tracking action. This defines pre/post processing of a single track in an event
-//   virtual void PreUserTrackingAction(const G4Track*) = 0;
+  virtual void PreUserTrackingAction(const G4Track*) {}
 
-//   virtual void PostUserTrackingAction(const G4Track*) = 0;
+   virtual void PostUserTrackingAction(const G4Track*) {}
 
   //! Set the node pointers
   virtual void SetInterfacePointers( PHCompositeNode* ) {return;}
@@ -26,4 +28,4 @@ public:
 };
 
 
-#endif
+#endif // G4MAIN_PHG4TRACKINGACTION_H

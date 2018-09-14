@@ -226,7 +226,7 @@ PHG4SpacalPrototypeSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
             {
               once = false;
 
-	      if (verbosity > 0) {
+	      if (Verbosity() > 0) {
 		cout << "PHG4SpacalPrototypeSteppingAction::UserSteppingAction::"
                   //
 		     << detector_->GetName() << " - "
@@ -337,7 +337,7 @@ PHG4SpacalPrototypeSteppingAction::SetInterfacePointers(PHCompositeNode* topNode
     }
   if (!absorberhits_)
     {
-      if (verbosity > 1)
+      if (Verbosity() > 1)
         {
           std::cout << "PHG4SpacalPrototypeSteppingAction::SetTopNode - unable to find "
               << absorbernodename << std::endl;

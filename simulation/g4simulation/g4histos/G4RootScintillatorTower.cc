@@ -5,22 +5,21 @@
 #include <cmath>
 #include <iostream>
 
-
 using namespace std;
 
-ClassImp(G4RootScintillatorTower)
+G4RootScintillatorTower::G4RootScintillatorTower()
+  : row(-1)
+  , column(-1)
+  , energy(0)
+{
+}
 
-G4RootScintillatorTower::G4RootScintillatorTower() : 
-  row(-1),
-  column(-1),
-  energy(0)
-{}
-
-G4RootScintillatorTower::G4RootScintillatorTower(const RawTower &tower) :
-  row(tower.get_bineta()),
-  column(tower.get_binphi()),
-  energy(tower.get_energy())
-{}
+G4RootScintillatorTower::G4RootScintillatorTower(const RawTower& tower)
+  : row(tower.get_binphi())
+  , column(tower.get_bineta())
+  , energy(tower.get_energy())
+{
+}
 
 void G4RootScintillatorTower::Reset()
 {
@@ -36,7 +35,6 @@ int G4RootScintillatorTower::isValid() const
 
 void G4RootScintillatorTower::identify(std::ostream& os) const
 {
-  os << "G4RootScintillatorTower: row: " << row << ", column: " << column 
+  os << "G4RootScintillatorTower: row: " << row << ", column: " << column
      << " energy=" << energy << std::endl;
 }
-

@@ -1,5 +1,7 @@
-#ifndef PHG4EventAction_h
-#define PHG4EventAction_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4MAIN_PHG4EVENTACTION_H
+#define G4MAIN_PHG4EVENTACTION_H
 
 class G4Event;
 class PHCompositeNode;
@@ -26,4 +28,4 @@ class PHG4EventAction
 };
 
 
-#endif
+#endif // G4MAIN_PHG4EVENTACTION_H

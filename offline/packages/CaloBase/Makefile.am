@@ -23,6 +23,10 @@ libcalo_io_la_SOURCES = \
   RawTowerv1_Dict.cc \
   RawTowerContainer.cc \
   RawTowerContainer_Dict.cc \
+  RawTowerDeadMap.cc \
+  RawTowerDeadMap_Dict.cc \
+  RawTowerDeadMapv1.cc \
+  RawTowerDeadMapv1_Dict.cc \
   RawTowerGeom.cc \
   RawTowerGeom_Dict.cc \
   RawTowerGeomv1.cc \
@@ -74,6 +78,8 @@ pkginclude_HEADERS = \
   RawTowerDefs.h \
   RawTowerv1.h \
   RawTowerContainer.h  \
+  RawTowerDeadMap.h  \
+  RawTowerDeadMapv1.h  \
   RawTowerGeom.h \
   RawTowerGeomv1.h \
   RawTowerGeomv2.h \

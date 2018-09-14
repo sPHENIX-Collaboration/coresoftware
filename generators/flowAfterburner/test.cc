@@ -12,17 +12,18 @@
 // triggers the uninitialized variable warning which
 // stops compilation because of our -Werror 
 #include <boost/version.hpp> // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && BOOST_VERSION == 106000 )
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 106000  || BOOST_VERSION == 106700 ))
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma message "ignoring bogus gcc warning in boost header ptree.hpp"
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #pragma GCC diagnostic warning "-Wshadow"
+#pragma GCC diagnostic warning "-Wunused-parameter"
 #else
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
 #endif
 
+#include <boost/property_tree/xml_parser.hpp>
 
 #include <gsl/gsl_histogram.h>
 

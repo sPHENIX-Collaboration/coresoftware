@@ -1,5 +1,7 @@
-#ifndef PHG4VInnerHcalSteppingAction_h
-#define PHG4VInnerHcalSteppingAction_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -25,37 +27,28 @@ class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers(PHCompositeNode *);
 
-  double GetLightCorrection(const double r) const;
-
  private:
   //! pointer to the detector
-  PHG4InnerHcalDetector *detector_;
+  PHG4InnerHcalDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
-  PHG4Hit *hit;
-  const PHParameters *params;
-  PHG4HitContainer *savehitcontainer;
-  PHG4Shower *saveshower;
-  G4VPhysicalVolume *savevolpre;
-  G4VPhysicalVolume *savevolpost;
-  int savetrackid;
-  int saveprestepstatus;
-  int savepoststepstatus;
+  PHG4HitContainer *m_Hits;
+  PHG4HitContainer *m_AbsorberHits;
+  PHG4Hit *m_Hit;
+  const PHParameters *m_Params;
+  PHG4HitContainer *m_SaveHitContainer;
+  PHG4Shower *m_SaveShower;
+  G4VPhysicalVolume *m_SaveVolPre;
+  G4VPhysicalVolume *m_SaveVolPost;
+  int m_SaveTrackId;
+  int m_SavePreStepStatus;
+  int m_SavePostStepStatus;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int absorbertruth;
-  int IsActive;
-  int IsBlackHole;
-  int n_scinti_plates;
-  int light_scint_model;
-
-  double light_balance_inner_corr;
-  double light_balance_inner_radius;
-  double light_balance_outer_corr;
-  double light_balance_outer_radius;
+  int m_IsActive;
+  int m_IsBlackHole;
+  int m_LightScintModel;
 };
 
-#endif  // PHG4InnerHcalSteppingAction_h
+#endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H

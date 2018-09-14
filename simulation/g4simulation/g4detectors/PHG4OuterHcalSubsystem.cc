@@ -23,8 +23,7 @@ using namespace std;
 PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
   detector_( nullptr ),
-  steppingAction_( nullptr ),
-  enable_field_checker(0)
+  steppingAction_( nullptr )
 {
   InitializeParameters();
 }
@@ -84,7 +83,6 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	}
       // create stepping action
       steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, GetParams());
-      steppingAction_->SetOpt("FieldChecker",enable_field_checker);
       steppingAction_->Init();
     }
   else
@@ -92,7 +90,6 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
       if (GetParams()->get_int_param("blackhole"))
 	{
 	  steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, GetParams());
-	  steppingAction_->SetOpt("FieldChecker",enable_field_checker);
 	  steppingAction_->Init();
 	}
     }
@@ -186,6 +183,7 @@ PHG4OuterHcalSubsystem::SetDefaultParameters()
   set_default_double_param("tilt_angle", -11.23); // engineering drawing
 // corresponds very closely to 4 crossinge (-11.7826 deg)
 
+  set_default_int_param("field_check", 0);
   set_default_int_param("light_scint_model", 1);
   set_default_int_param("magnet_cutout_first_scinti", 8); // tile start at 0, drawing tile starts at 1
 

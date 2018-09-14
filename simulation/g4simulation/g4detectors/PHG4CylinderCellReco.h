@@ -2,7 +2,7 @@
 #define PHG4CYLINDERCELLRECO_H
 
 
-#include "PHG4ParameterContainerInterface.h"
+#include <phparameter/PHParameterContainerInterface.h>
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -14,7 +14,7 @@
 class PHCompositeNode;
 class PHG4Cell;
 
-class PHG4CylinderCellReco : public SubsysReco, public PHG4ParameterContainerInterface
+class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInterface
 {
  public:
 

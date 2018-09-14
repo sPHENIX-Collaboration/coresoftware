@@ -30,6 +30,7 @@ CopyAndSubtractJets::CopyAndSubtractJets(const std::string &name)
   : SubsysReco(name)
 {
 
+  _use_flow_modulation = false;
 
 }
 
@@ -56,7 +57,7 @@ int CopyAndSubtractJets::InitRun(PHCompositeNode *topNode)
 int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 {
   if (verbosity > 0)
-    std::cout << "CopyAndSubtractJets::process_event: entering" << std::endl;
+    std::cout << "CopyAndSubtractJets::process_event: entering, with _use_flow_modulation = " << _use_flow_modulation << std::endl;
 
   // pull out needed calo tower info
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
@@ -75,6 +76,9 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   std::vector<float> background_UE_0 = background->get_UE( 0 );
   std::vector<float> background_UE_1 = background->get_UE( 1 );
   std::vector<float> background_UE_2 = background->get_UE( 2 );
+
+  float background_v2 = background->get_v2();
+  float background_Psi2 = background->get_Psi2();
 
   if (verbosity > 0) {
     std::cout << "CopyAndSubtractJets::process_event: entering with # unsubtracted jets = " << unsub_jets->size() << std::endl;
@@ -149,6 +153,14 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 	std::cout << "CopyAndSubtractJets::process_event: --> constituent in layer " << (*comp).first << ", has unsub E = " << comp_e << ", is at ieta #" << comp_ieta << ", and has UE = " << comp_background << std::endl;
       }
 
+      // flow modulate background if turned on
+      if ( _use_flow_modulation ) {
+	comp_background = comp_background * ( 1 + 2 * background_v2 * cos( 2 * ( comp_phi - background_Psi2 ) ) );
+	if (verbosity > 4 && this_jet->get_pt() > 5)
+	  std::cout << "CopyAndSubtractJets::process_event: --> --> flow mod, at phi = " << comp_phi << ", v2 and Psi2 are = " << background_v2 << " , " << background_Psi2 << ", UE after modulation = " << comp_background << std::endl;
+	
+      }
+      
       // update constituent energy based on the background
       double comp_sub_e = comp_e - comp_background;
       

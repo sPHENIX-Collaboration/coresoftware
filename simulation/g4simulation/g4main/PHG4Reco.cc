@@ -138,6 +138,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , active_force_decay_(false)
   , force_decay_type_(kAll)
   , save_DST_geometry_(true)
+  , m_disableUserActions(false)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
@@ -350,6 +351,14 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
   runManager_->SetUserInitialization(detector_);
 
+
+  if (m_disableUserActions)
+  {
+    cout << "PHG4Reco::InitRun - WARNING - event/track/stepping action disabled! "
+         << "This is aimed to reduce resource consumption for G4 running only. E.g. dose analysis. "
+         << "Meanwhile, it will disable all Geant4 based analysis. Toggle this feature on/off with PHG4Reco::setDisableUserActions()" << endl;
+  }
+
   setupInputEventNodeReader(topNode);
   // create main event action, add subsystemts and register to GEANT
   eventAction_ = new PHG4PhenixEventAction();
@@ -362,7 +371,11 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       eventAction_->AddAction(evtact);
     }
   }
-  runManager_->SetUserAction(eventAction_);
+
+  if (not m_disableUserActions)
+  {
+    runManager_->SetUserAction(eventAction_);
+  }
 
   // create main stepping action, add subsystems and register to GEANT
   steppingAction_ = new PHG4PhenixSteppingAction();
@@ -375,10 +388,15 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
       {
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
+
       steppingAction_->AddAction(g4sub->GetSteppingAction());
     }
   }
-  runManager_->SetUserAction(steppingAction_);
+
+  if (not m_disableUserActions)
+  {
+    runManager_->SetUserAction(steppingAction_);
+  }
 
   // create main tracking action, add subsystems and register to GEANT
   trackingAction_ = new PHG4PhenixTrackingAction();
@@ -397,7 +415,10 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  runManager_->SetUserAction(trackingAction_);
+  if (not m_disableUserActions)
+  {
+    runManager_->SetUserAction(trackingAction_);
+  }
 
   // initialize
   runManager_->Initialize();
@@ -417,7 +438,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   */
   theCerenkovProcess->SetMaxNumPhotonsPerStep(100);
   theCerenkovProcess->SetMaxBetaChangePerStep(10.0);
-  theCerenkovProcess->SetTrackSecondariesFirst(true);
+  theCerenkovProcess->SetTrackSecondariesFirst(false); // current PHG4TruthTrackingAction does not support suspect active track and track secondary first
 
   // theScintillationProcess->SetScintillationYieldFactor(1.);
   // theScintillationProcess->SetTrackSecondariesFirst(true);
@@ -713,6 +734,20 @@ void PHG4Reco::DefineMaterials()
   quartz->AddElement(G4Element::GetElement("Si"), 1);
   quartz->AddElement(G4Element::GetElement("O"), 2);
 
+  // making carbon fiber epoxy
+  G4Material *cfrp_intt = new G4Material("CFRP_INTT", density = 1.69 * g / cm3, ncomponents = 3);
+  cfrp_intt->AddElement(G4Element::GetElement("C"), 10);
+  cfrp_intt->AddElement(G4Element::GetElement("H"), 6);
+  cfrp_intt->AddElement(G4Element::GetElement("O"), 1);
+
+  // making Rohacell foam 110
+  G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_110", density = 0.110 * g / cm3, ncomponents = 4);
+  rohacell_foam_110->AddElement(G4Element::GetElement("C"), 8);
+  rohacell_foam_110->AddElement(G4Element::GetElement("H"),11);
+  rohacell_foam_110->AddElement(G4Element::GetElement("O"), 2);
+  rohacell_foam_110->AddElement(G4Element::GetElement("N"), 1);
+
+
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
   G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);
   IsoButane->AddElement(G4Element::GetElement("C"), 4);
@@ -771,6 +806,12 @@ void PHG4Reco::DefineMaterials()
   Al5083->AddElement(G4Element::GetElement("Mn"), 0.004);
   Al5083->AddElement(G4Element::GetElement("Mg"), 0.04);
   Al5083->AddElement(G4Element::GetElement("Al"), 0.956);
+
+// Al 4046 from http://www.matweb.com
+  G4Material *Al4046 = new G4Material("Al4046",density = 2.66 * g / cm3, ncomponents = 3);
+  Al4046->AddElement(G4Element::GetElement("Al"), 0.897);
+  Al4046->AddElement(G4Element::GetElement("Si"), 0.1);
+  Al4046->AddElement(G4Element::GetElement("Mg"), 0.003);
 
   G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
   FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
