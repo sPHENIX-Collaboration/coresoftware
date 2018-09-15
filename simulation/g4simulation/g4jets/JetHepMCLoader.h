@@ -11,10 +11,13 @@
 #ifndef JETHEPMCLOADER_H_
 #define JETHEPMCLOADER_H_
 
-#include <fun4all/SubsysReco.h>
-#include <set>
-#include <string>
+#include "Jet.h"
 
+#include <fun4all/SubsysReco.h>
+#include <string>
+#include <vector>
+
+class Fun4AllHistoManager;
 class PHCompositeNode;
 
 /*!
@@ -23,7 +26,6 @@ class PHCompositeNode;
 class JetHepMCLoader : public SubsysReco
 {
  public:
-
   //! \param[in] jetInputCategory is the DST PHCompositeNode name that list the output jet maps, e.g. sHijing_HIJFRG for sHijing HIJFRG truth jets
   JetHepMCLoader(const std::string &jetInputCategory);
   virtual ~JetHepMCLoader();
@@ -40,20 +42,24 @@ class JetHepMCLoader : public SubsysReco
   //!   \endcode
   //! \param[in] name name of the jet category
   //! \param[in] embeddingID hepmc event's embedding ID
+  //! \param[in] algorithm pick one from Jet::ALGO
   //! \param[in] parameter jet parameter, e.g. radius
   //! \param[in] tagPID HepMC entry identifying tag on PID
   //! \param[in] tagStatus HepMC entry identifying tag on status
   void addJet(
       const std::string &name,
       int embeddingID,
-      const std::string &algorithmName,
+      Jet::ALGO algorithm,
       double parameter,
       int tagPID,
       int tagStatus);
 
-  void saveQAPlots(bool b) { m_saveQAPlots = b; }
+  void saveQAPlots(bool b = true) { m_saveQAPlots = b; }
 
  private:
+  int CreateNodes(PHCompositeNode *topNode);
+  Fun4AllHistoManager *getHistoManager();
+
   std::string m_jetInputCategory;
 
   bool m_saveQAPlots;
@@ -69,6 +75,8 @@ class JetHepMCLoader : public SubsysReco
     //! Name of jet algorithm
     std::string m_algorithmName;
 
+    Jet::ALGO m_algorithmID;
+
     //! jet parameter, e.g. radius
     double m_parameter;
 
@@ -79,10 +87,7 @@ class JetHepMCLoader : public SubsysReco
     int m_tagStatus;
   };
 
-  int CreateNodes(PHCompositeNode *topNode);
-
-  std::set< hepmc_jet_src> m_jetSrc;
-
+  std::vector<hepmc_jet_src> m_jetSrc;
 };
 
 #endif /* JETHEPMCLOADER_H_ */
