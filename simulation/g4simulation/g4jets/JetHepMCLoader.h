@@ -22,6 +22,22 @@ class PHCompositeNode;
 
 /*!
  * \brief JetHepMCLoader loads special jet objects encoded in HepMC records to DST Jet nodes. Example use are loading sHijing HIJFRG jets
+ *
+ * Example use for readback HIJFRAG truth jets from the sHijing HepMC records:
+ *
+ * \code{.cpp}
+
+    JetHepMCLoader * hepmcjet = new JetHepMCLoader("sHijing_HIJFRG");
+
+    hepmcjet->saveQAPlots();
+    hepmcjet->addJet("AntiKt_sHijing_HIJFRG_r02",0,Jet::ANTIKT,0.2,2000000,103);
+    hepmcjet->addJet("AntiKt_sHijing_HIJFRG_r04",0,Jet::ANTIKT,0.4,4000000,103);
+    hepmcjet->addJet("AntiKt_sHijing_HIJFRG_r06",0,Jet::ANTIKT,0.6,6000000,103);
+
+    se->registerSubsystem(hepmcjet);
+
+ * \endcode
+ *
  */
 class JetHepMCLoader : public SubsysReco
 {
