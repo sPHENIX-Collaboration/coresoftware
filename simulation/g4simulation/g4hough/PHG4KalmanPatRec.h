@@ -79,7 +79,7 @@ public:
 	PHG4KalmanPatRec(
 			const std::string &name = "PHG4KalmanPatRec",
 			unsigned int nlayers_maps = 3,
-			unsigned int nlayers_intt = 4,
+			unsigned int nlayers_intt = 8,
 			unsigned int nlayers_tpc = 60,
 			unsigned int seeding_nlayer = 7,
 			unsigned int min_seeding_nlayer = 4);
@@ -866,10 +866,10 @@ private:
 	float _max_search_win_theta_tpc;
 	float _min_search_win_theta_tpc;
 
-	float _max_search_win_phi_intt[4];
-	float _min_search_win_phi_intt[4];
-	float _max_search_win_theta_intt[4];
-	float _min_search_win_theta_intt[4];
+	float _max_search_win_phi_intt[8];
+	float _min_search_win_phi_intt[8];
+	float _max_search_win_theta_intt[8];
+	float _min_search_win_theta_intt[8];
 
 	float _max_search_win_phi_maps;
 	float _min_search_win_phi_maps;

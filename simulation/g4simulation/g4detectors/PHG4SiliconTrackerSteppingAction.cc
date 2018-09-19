@@ -132,7 +132,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // if we are in an active logical volume whioch is located in this ladder
       auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(1));
       tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
-      if (inttlayer < 0 || inttlayer > 3)
+      if (inttlayer < 0 || inttlayer > 7)
 	{
 	  assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
 	}

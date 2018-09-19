@@ -3206,9 +3206,9 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
 		    n_intt++;
 		  }
-		  if(n_intt >4)
+		  if(n_intt >8)
 		    {
-		      cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
+		      cout << PHWHERE << " Can not have more than 8 INTT layers, quit!" << endl;
 		      exit(1);
 		    }
 		  if(_nlayers_tpc>0&&
