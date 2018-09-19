@@ -71,7 +71,6 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
 
     double get_radius() const
       {
-        //return sensor_radius_inner;
 	return sensor_radius;
       }
 

@@ -58,6 +58,8 @@ void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, co
   location[0] = radius  * cos(phi);
   location[1] = radius  * sin(phi);
   location[2] = signz * ladder_z_[itype];
+
+  //cout << "radius " << radius << " offsetphi " << offsetphi << " rad  dphi_ " << dphi_ << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
 }
 
 void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
@@ -81,7 +83,6 @@ void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, cons
 
   // Strip rotation
   const double phi    = offsetphi + dphi_ * segment_phi_bin;
-  //const double rotate = phi + offsetrot + M_PI;
   const double rotate = phi + offsetrot;
 
   CLHEP::HepRotation rot;
