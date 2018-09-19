@@ -22,8 +22,6 @@ PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
   ladder_z0(NAN),
   ladder_z1(NAN),
   sensor_radius(NAN),
-  //sensor_radius_inner(NAN),
-  //sensor_radius_outer(NAN),
   strip_x_offset(NAN),
   offsetphi(NAN),
   offsetrot(NAN),
@@ -64,14 +62,7 @@ void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, co
 
 void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
-  // The sub layer radius is determined from the ladder phi index, called segment_phi_bin
-
   radius = sensor_radius;  
-  /*
-  if(segment_phi_bin % 2)
-    radius = sensor_radius_outer;
-  */
-  //cout << "      setting working sensor radius to " << radius << endl;
   
   // Ladder
   find_segment_center(segment_z_bin, segment_phi_bin, location);

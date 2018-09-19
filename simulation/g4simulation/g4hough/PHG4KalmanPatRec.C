@@ -259,25 +259,41 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 //	unsigned int intt_layers[] = {3, 4, 5, 6};
 //	this->set_intt_layers(intt_layers, 4);
 
-	_max_search_win_phi_intt[0] =    0.20;
-	_max_search_win_phi_intt[1] = 0.0050;
+	_max_search_win_phi_intt[0] = 0.20;
+	_max_search_win_phi_intt[1] = 0.20;
 	_max_search_win_phi_intt[2] = 0.0050;
 	_max_search_win_phi_intt[3] = 0.0050;
+	_max_search_win_phi_intt[4] = 0.0050;
+	_max_search_win_phi_intt[5] = 0.0050;
+	_max_search_win_phi_intt[6] = 0.0050;
+	_max_search_win_phi_intt[7] = 0.0050;
 
 	_min_search_win_phi_intt[0] =   0.2000;
-	_min_search_win_phi_intt[1] =   0.0;
+	_min_search_win_phi_intt[1] =   0.2000;
 	_min_search_win_phi_intt[2] =   0.0;
 	_min_search_win_phi_intt[3] =   0.0;
+	_min_search_win_phi_intt[4] =   0.0;
+	_min_search_win_phi_intt[5] =   0.0;
+	_min_search_win_phi_intt[6] =   0.0;
+	_min_search_win_phi_intt[7] =   0.0;
 
 	_max_search_win_theta_intt[0] = 0.010;
-	_max_search_win_theta_intt[1] = 0.2000;
+	_max_search_win_theta_intt[1] = 0.010;
 	_max_search_win_theta_intt[2] =  0.2000;
 	_max_search_win_theta_intt[3] =  0.2000;
+	_max_search_win_theta_intt[4] =  0.2000;
+	_max_search_win_theta_intt[5] =  0.2000;
+	_max_search_win_theta_intt[6] =  0.2000;
+	_max_search_win_theta_intt[7] =  0.2000;
 
 	_min_search_win_theta_intt[0] = 0.000;
-	_min_search_win_theta_intt[1] = 0.200;
+	_min_search_win_theta_intt[1] = 0.000;
 	_min_search_win_theta_intt[2] = 0.200;
 	_min_search_win_theta_intt[3] = 0.200;
+	_min_search_win_theta_intt[4] = 0.200;
+	_min_search_win_theta_intt[5] = 0.200;
+	_min_search_win_theta_intt[6] = 0.200;
+	_min_search_win_theta_intt[7] = 0.200;
 
 	//int seeding_layers[] = {7,15,25,35,45,55,66};
 	int ninner_layer = _nlayers_maps+_nlayers_intt;
