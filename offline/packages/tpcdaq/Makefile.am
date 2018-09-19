@@ -23,6 +23,8 @@ libtpcdaq_la_SOURCES = \
   TPCIntegratedCharge_Dict.C \
   TPCDataStreamEmulator.cc \
   TPCDataStreamEmulator_Dict.C  \
+  TPCFEETestRecov1.cc \
+  TPCFEETestRecov1_Dict.C  \
   TPCDaqDefs.cc \
   TPCDaqDefs_Dict.C 
 
