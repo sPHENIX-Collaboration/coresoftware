@@ -85,7 +85,7 @@ class PHGenIntegral : public PHObject
   {
   }
 
-  ClassDef(PHGenIntegral, 1)
+//  ClassDef(PHGenIntegral, 1)
 };
 
 #endif /* SIMULATION_CORESOFTWARE_GENERATORS_PHHEPMC_PHGENINTEGRAL_H_ */

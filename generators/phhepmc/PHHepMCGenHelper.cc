@@ -76,7 +76,7 @@ int PHHepMCGenHelper::create_node_tree(PHCompositeNode *topNode)
   if (!_geneventmap)
   {
     _geneventmap = new PHHepMCGenEventMap();
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(_geneventmap, "PHHepMCGenEventMap", "PHObject");
+    PHDataNode<PHObject> *newmapnode = new PHDataNode<PHObject>(_geneventmap, "PHHepMCGenEventMap", "PHObject");
     dstNode->addNode(newmapnode);
   }
 
@@ -92,8 +92,11 @@ PHHepMCGenEvent *PHHepMCGenHelper::insert_event(HepMC::GenEvent *evt)
   assert(_geneventmap);
 
   PHHepMCGenEvent *genevent = _geneventmap->insert_event(_embedding_id);
-
-  genevent->addEvent(evt);
+  HepMC::GenEvent *newevt = new HepMC::GenEvent(*evt);
+  genevent->addEvent(newevt);
+  cout << "evt: " << evt << ", evtnum: " << evt->event_number() << endl;
+  cout << "newevt: " << newevt << ", evtnum: " << newevt->event_number() << endl;
+  genevent->identify();
   move_vertex(genevent);
 
   return genevent;
@@ -121,10 +124,10 @@ void PHHepMCGenHelper::move_vertex(PHHepMCGenEvent *genevent)
     }
 
     genevent->moveVertex(
-        vtx_evt->get_collision_vertex().x(),
-        vtx_evt->get_collision_vertex().y(),
-        vtx_evt->get_collision_vertex().z(),
-        vtx_evt->get_collision_vertex().t());
+        vtx_evt->get_collision_vertex()->x(),
+        vtx_evt->get_collision_vertex()->y(),
+        vtx_evt->get_collision_vertex()->z(),
+        vtx_evt->get_collision_vertex()->t());
   }
 
   genevent->moveVertex(

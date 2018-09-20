@@ -18,7 +18,7 @@ class PHCompositeNode;
 class HepMCNodeReader : public SubsysReco
 {
  public:
-  HepMCNodeReader(const std::string &name = "HEPMCREADER");
+  HepMCNodeReader(const std::string &name = "HEPMCNodeREADER");
   virtual ~HepMCNodeReader();
 
   int Init(PHCompositeNode *topNode);

@@ -10,10 +10,12 @@
 
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHRandomSeed.h>
+
+#include <HepMC/FourVector.h>
+
 
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
@@ -223,13 +225,13 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
       assert(hepmc_evt);
 
-      const HepMC::FourVector &vtx = hepmc_evt->get_collision_vertex();
+      const HepMC::FourVector *vtx = hepmc_evt->get_collision_vertex();
 
-      set_vtx(vtx.x(), vtx.y(), vtx.z());
+      set_vtx(vtx->x(), vtx->y(), vtx->z());
 
       if (verbosity > 0) {
         cout <<"PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
-            << vtx.x()<<", "<< vtx.y()<<", "<< vtx.z()<<" cm. Source event:"
+            << vtx->x()<<", "<< vtx->y()<<", "<< vtx->z()<<" cm. Source event:"
             <<endl;
         hepmc_evt->identify();
       }

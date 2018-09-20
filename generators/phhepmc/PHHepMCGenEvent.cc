@@ -6,6 +6,12 @@
 
 #include <RVersion.h>  // root version
 
+#include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>
+#include <HepMC/FourVector.h>
+
+
 #include <boost/foreach.hpp>
 
 #include <algorithm>
@@ -16,14 +22,12 @@
 #include <stdexcept>
 #include <vector>
 
-//ClassImp(PHHepMCGenEvent)
-
 using namespace std;
 
 PHHepMCGenEvent::PHHepMCGenEvent()
   : _embedding_id(0)
   , _isSimulated(false)
-  , _collisionVertex(0, 0, 0, 0)
+  , _collisionVertex(new HepMC::FourVector(0,0,0,0))
   , _theEvt(nullptr)
 {
 }
@@ -31,10 +35,11 @@ PHHepMCGenEvent::PHHepMCGenEvent()
 PHHepMCGenEvent::PHHepMCGenEvent(const PHHepMCGenEvent& event)
   : _embedding_id(event.get_embedding_id())
   , _isSimulated(event.is_simulated())
-  , _collisionVertex(event.get_collision_vertex())
+  , _collisionVertex(nullptr)
   , _theEvt(nullptr)
 {
   _theEvt = new HepMC::GenEvent(*event.getEvent());
+  _collisionVertex = new HepMC::FourVector(*(event.get_collision_vertex()));
   return;
 }
 
@@ -62,12 +67,13 @@ void PHHepMCGenEvent::Reset()
 {
   _embedding_id = 0;
   _isSimulated = false;
-  _collisionVertex.set(0, 0, 0, 0);
+//  _collisionVertex.set(0, 0, 0, 0);
   if (_theEvt)
   {
-    delete _theEvt;
-    _theEvt = NULL;
+  _theEvt->clear();
   }
+  delete _theEvt;
+  _theEvt = nullptr;
 }
 
 HepMC::GenEvent* PHHepMCGenEvent::getEvent()
@@ -82,8 +88,7 @@ const HepMC::GenEvent* PHHepMCGenEvent::getEvent() const
 
 bool PHHepMCGenEvent::addEvent(HepMC::GenEvent* evt)
 {
-  if (_theEvt) delete _theEvt;
-
+  delete _theEvt;
   _theEvt = evt;
   if (!_theEvt) return false;
   return true;
@@ -109,10 +114,10 @@ void PHHepMCGenEvent::clearEvent()
 
 void PHHepMCGenEvent::moveVertex(double x, double y, double z, double t)
 {
-  _collisionVertex.setX(_collisionVertex.x() + x);
-  _collisionVertex.setY(_collisionVertex.y() + y);
-  _collisionVertex.setZ(_collisionVertex.z() + z);
-  _collisionVertex.setT(_collisionVertex.t() + t);
+  _collisionVertex->setX(_collisionVertex->x() + x);
+  _collisionVertex->setY(_collisionVertex->y() + y);
+  _collisionVertex->setZ(_collisionVertex->z() + z);
+  _collisionVertex->setT(_collisionVertex->t() + t);
 }
 
 int PHHepMCGenEvent::size(void) const
@@ -137,7 +142,14 @@ void PHHepMCGenEvent::identify(std::ostream& os) const
   os << "identify yourself: PHHepMCGenEvent Object, ";
   os << " embedding_id = " << _embedding_id;
   os << " isSimulated = " << _isSimulated;
-  os << " collisionVertex = (" << _collisionVertex.x()<<","<< _collisionVertex.y()<<","<< _collisionVertex.z()<<") cm, "<< _collisionVertex.t()<<" ns";
+  if (! _collisionVertex)
+  {
+    os << " no collision vertex";
+  }
+  else
+  {
+  os << " collisionVertex = (" << _collisionVertex->x()<<","<< _collisionVertex->y()<<","<< _collisionVertex->z()<<") cm, "<< _collisionVertex->t()<<" ns";
+  }
   os << ", No of Particles: " << size();
   os << ", No of Vertices:  " << vertexSize();
   os << endl;
@@ -151,5 +163,5 @@ void PHHepMCGenEvent::print(std::ostream& out) const
 
 void PHHepMCGenEvent::PrintEvent()
 {
-  _theEvt->print();
+//  _theEvt->print();
 }

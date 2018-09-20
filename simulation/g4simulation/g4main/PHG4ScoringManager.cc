@@ -17,9 +17,13 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
+
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
+
 #include <phool/getClass.h>
+
+#include <HepMC/FourVector.h>
 
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4ScoringManager.hh>
@@ -158,7 +162,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
       const PHHepMCGenEvent *genevnt = genevntpair.second;
       assert(genevnt);
 
-      hVertexZ->Fill(genevnt->get_collision_vertex().z());
+      hVertexZ->Fill(genevnt->get_collision_vertex()->z());
     }
   }
 

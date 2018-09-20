@@ -4,14 +4,11 @@
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenVertex.h>
-#include <HepMC/SimpleVector.h>
 
 namespace HepMC
 {
-class GenEvent;
+ class GenEvent;
+ class FourVector;
 };
 
 class PHHepMCGenEvent : public PHObject
@@ -53,15 +50,17 @@ class PHHepMCGenEvent : public PHObject
   void is_simulated(bool v) { _isSimulated = v; }
 
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
-  const HepMC::FourVector& get_collision_vertex() const { return _collisionVertex; }
+  const HepMC::FourVector *get_collision_vertex() const { return _collisionVertex; }
 
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
-  void set_collision_vertex(const HepMC::FourVector& v) { _collisionVertex = v; }
+//  void set_collision_vertex(const HepMC::FourVector& v) { _collisionVertex = v; }
 
   //! host an HepMC event
+#ifndef __CINT__
   bool addEvent(HepMC::GenEvent* evt);
   bool addEvent(HepMC::GenEvent& evt);
   bool swapEvent(HepMC::GenEvent* & evt);
+#endif
   void clearEvent();
 
   //! move the collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
@@ -86,7 +85,7 @@ class PHHepMCGenEvent : public PHObject
   bool _isSimulated;
 
   //! collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
-  HepMC::FourVector _collisionVertex;
+  HepMC::FourVector* _collisionVertex;
 
   //! The HEP MC record from event generator. Note the units are recorded in GenEvent
   HepMC::GenEvent* _theEvt;

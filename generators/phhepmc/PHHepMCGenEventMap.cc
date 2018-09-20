@@ -6,7 +6,7 @@
 
 using namespace std;
 
-ClassImp(PHHepMCGenEventMap)
+//ClassImp(PHHepMCGenEventMap)
 
     PHHepMCGenEventMap::PHHepMCGenEventMap()
   : _map()
