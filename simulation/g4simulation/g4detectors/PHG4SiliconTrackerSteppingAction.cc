@@ -339,7 +339,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	if(postPoint->GetStepStatus() != 1 && aTrack->GetParentID() == 0)   // primary tracks should not end strangely!
 	  {
 	    cout << "***** Strange termination of hit from primary track with postPoint->GetStepStatus = " << postPoint->GetStepStatus() << " aTrack->GetTrackStatus = " 
-		 << aTrack->GetTrackStatus() 	<< " aTrack->GetParentID " << aTrack->GetParentID() << endl;
+		 << aTrack->GetTrackStatus() << endl;
+	    cout << "     aTrack->GetTrackID " << aTrack->GetTrackID() << " aTrack->GetParentID " << aTrack->GetParentID() << endl;
+	    cout << "     sphxlayer " << sphxlayer <<  " ladderz " << ladderz << " ladderphi " << ladderphi << endl;
+	    cout  << "     px0 " << m_Hit->get_px(0) << " py0 " << m_Hit->get_py(0) << " pz0 " << m_Hit->get_pz(0) << endl;
+	    cout  << "     px1 " << m_Hit->get_px(1) << " py1 " << m_Hit->get_py(1) << " pz1 " << m_Hit->get_pz(1) << " edep " << m_Hit->get_edep() << endl;
+
 	    /*
 	    cout << " postStepStatus: fWorldBoundary " << fWorldBoundary 
 		 << " fGeomBoundary " << fGeomBoundary 
