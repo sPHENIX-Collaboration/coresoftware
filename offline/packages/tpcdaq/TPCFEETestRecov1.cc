@@ -159,8 +159,6 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
 
 int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
 {
-  ++m_event;
-
   Fun4AllHistoManager* hm = getHistoManager();
   assert(hm);
   TH1D* h_norm = dynamic_cast<TH1D*>(hm->getHisto("hNormalization"));
@@ -181,12 +179,15 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   if (event->getEvtType() != DATAEVENT)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
-  Packet* p = event->getPacket(1024, ID4EVT);
+  m_event = event->getEvtSequence();
+
+  Packet* p = event->getPacket(kPACKET_ID, ID4EVT);
   if (p == nullptr)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
-  if (verbosity >= VERBOSITY_MORE)
-    p->identify();
+  if (verbosity >= VERBOSITY_SOME) p->identify();
+
+  if (verbosity >= VERBOSITY_MORE) p->dump();
 
   uint32_t bx_seed = 0;
   for (unsigned int channel = 0; channel < kN_CHANNELS; channel++)
@@ -234,12 +235,12 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     if (verbosity >= VERBOSITY_MORE)
     {
       cout << "TPCFEETestRecov1::process_event - "
-           << "m_chanHeader.m_size = " << m_chanHeader.m_size << ", "
-           << "m_chanHeader.m_packet_type = " << m_chanHeader.m_packet_type << ", "
-           << "m_chanHeader.m_bx_counter = " << m_chanHeader.m_bx_counter << ", "
-           << "m_chanHeader.m_sampa_address = " << m_chanHeader.m_sampa_address << ", "
-           << "m_chanHeader.m_sampa_channel = " << m_chanHeader.m_sampa_channel << ", "
-           << "m_chanHeader.m_fee_channel = " << m_chanHeader.m_fee_channel << ": "
+           << "m_chanHeader.m_size = " << int(m_chanHeader.m_size) << ", "
+           << "m_chanHeader.m_packet_type = " << int(m_chanHeader.m_packet_type) << ", "
+           << "m_chanHeader.m_bx_counter = " << int(m_chanHeader.m_bx_counter) << ", "
+           << "m_chanHeader.m_sampa_address = " << int(m_chanHeader.m_sampa_address) << ", "
+           << "m_chanHeader.m_sampa_channel = " << int(m_chanHeader.m_sampa_channel) << ", "
+           << "m_chanHeader.m_fee_channel = " << int(m_chanHeader.m_fee_channel) << ": "
            << " ";
 
       for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
