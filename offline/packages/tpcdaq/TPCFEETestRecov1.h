@@ -10,6 +10,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <TObject.h>
+
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -29,6 +31,42 @@ class TPCFEETestRecov1 : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  //! simple channel header class for ROOT file IO
+  class ChannelHeader : public TObject
+  {
+   public:
+    //! = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;        // number of words until the next channel (header included). this is the real packet_length
+    uint16_t m_size;
+    //! = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
+    uint8_t m_packet_type;
+    //! = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
+    uint32_t m_bx_counter;
+    //! = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
+    uint8_t m_sampa_address;
+    //! = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
+    uint16_t m_sampa_channel;
+    //! = (sampa_address << 5) | sampa_channel;
+    uint16_t m_fee_channel;
+
+    //! pad coordinate
+    int m_pad_x;
+    int m_pad_y;
+
+    ChannelHeader()
+      : m_size(0)
+      , m_packet_type(0)
+      , m_bx_counter(0)
+      , m_sampa_address(0)
+      , m_sampa_channel(0)
+      , m_fee_channel(0)
+      , m_pad_x(-1)
+      , m_pad_y(-1)
+    {
+    }
+
+    ClassDef(TPCFEETestRecov1::ChannelHeader, 1)
+  };
+
  private:
 #ifndef __CINT__
 
@@ -42,26 +80,8 @@ class TPCFEETestRecov1 : public SubsysReco
 
   int m_event;
 
-  struct ChannelHeader
-  {
-    uint16_t m_size;           //! = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;        // number of words until the next channel (header included). this is the real packet_length
-    uint8_t m_packet_type;     //! = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
-    uint32_t m_bx_counter;     //! = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
-    uint8_t m_sampa_address;   //! = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
-    uint16_t m_sampa_channel;  //! = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
-    uint16_t m_fee_channel;    //! = (sampa_address << 5) | sampa_channel;
-
-    ChannelHeader()
-      : m_size(0)
-      , m_packet_type(0)
-      , m_bx_counter(0)
-      , m_sampa_address(0)
-      , m_sampa_channel(0)
-      , m_fee_channel(0)
-    {
-    }
-  };
   ChannelHeader m_chanHeader;
+  ChannelHeader *m_pchanHeader;  //! ->m_chanHeader,  for filling TTree
   std::vector<uint32_t> m_chanData;
 
 #endif  // #ifndef __CINT__

@@ -29,7 +29,8 @@
 #include <Event/Event.h>
 #include <Event/EventTypes.h>
 #include <Event/packet.h>
-#include <Event/packetConstants.h>
+//#include <Event/packetConstants.h>
+#include <Event/oncsSubConstants.h>
 
 #include <TFile.h>
 #include <TH1D.h>
@@ -59,6 +60,7 @@ TPCFEETestRecov1::TPCFEETestRecov1(const std::string& outputfilename)
   , m_eventT(nullptr)
   , m_chanT(nullptr)
   , m_event(-1)
+  , m_pchanHeader(&m_chanHeader)
   , m_chanData(kSAMPLE_LENGTH, 0)
 {
 }
@@ -124,8 +126,8 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
   m_chanT = new TTree("chanT", "TPC FEE per-channel Tree");
   assert(m_chanT);
   m_chanT->Branch("event", &m_event, "event/I");
-  m_chanT->Branch("header", &m_chanHeader, "size/I:packet_type/b:bx_counter/i:sampa_address/b:sampa_channel/s:fee_channel/s");
-  m_chanT->Branch("data", m_chanData.data(), str(boost::format("data[%d]/i") % kSAMPLE_LENGTH).c_str());
+  m_chanT->Branch("header", &m_pchanHeader);
+  m_chanT->Branch("adc", m_chanData.data(), str(boost::format("adc[%d]/i") % kSAMPLE_LENGTH).c_str());
 
   //  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   //  {
@@ -205,6 +207,11 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     m_chanHeader.m_sampa_address = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
     m_chanHeader.m_sampa_channel = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
     m_chanHeader.m_fee_channel = (m_chanHeader.m_sampa_address << 5) | m_chanHeader.m_sampa_channel;
+
+    const pair<int, int> pad = SAMPAChan2PadXY(m_chanHeader.m_fee_channel);
+
+    m_chanHeader.m_pad_x = pad.first;
+    m_chanHeader.m_pad_y = pad.second;
 
     if (channel == 0)
     {
