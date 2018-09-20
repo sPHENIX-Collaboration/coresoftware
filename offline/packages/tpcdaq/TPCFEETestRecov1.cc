@@ -187,7 +187,14 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
 
   if (verbosity >= VERBOSITY_SOME) p->identify();
 
-  if (verbosity >= VERBOSITY_MORE) p->dump();
+  if (verbosity >= VERBOSITY_MORE)
+  {
+    cout << "TPCFEETestRecov1::process_event - p->iValue(0) = "
+         << p->iValue(0) << ", p->iValue(1) = " << p->iValue(1)
+         << ", p->iValue(2) = " << p->iValue(2)
+         << ", p->iValue(3) = " << p->iValue(3) << endl;
+    p->dump();
+  }
 
   uint32_t bx_seed = 0;
   for (unsigned int channel = 0; channel < kN_CHANNELS; channel++)
