@@ -56,8 +56,10 @@ using namespace TPCDaqDefs::FEEv1;
 TPCFEETestRecov1::TPCFEETestRecov1(const std::string& outputfilename)
   : SubsysReco("TPCFEETestRecov1")
   , m_outputFileName(outputfilename)
-  , m_T(nullptr)
+  , m_eventT(nullptr)
+  , m_chanT(nullptr)
   , m_event(-1)
+  , m_chanData(kSAMPLE_LENGTH, 0)
 {
 }
 
@@ -86,6 +88,9 @@ int TPCFEETestRecov1::End(PHCompositeNode* topNode)
   assert(T_Index);
   T_Index->Write();
 
+  m_eventT->Write();
+  m_chanT->Write();
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -112,8 +117,15 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
 
-  m_T = new TTree("T", "TPC FEE Tree");
-  assert(m_T);
+  m_eventT = new TTree("eventT", "TPC FEE per-event Tree");
+  assert(m_eventT);
+  m_eventT->Branch("event", &m_event, "event/I");
+
+  m_chanT = new TTree("chanT", "TPC FEE per-channel Tree");
+  assert(m_chanT);
+  m_chanT->Branch("event", &m_event, "event/I");
+  m_chanT->Branch("header", &m_chanHeader, "size/I:packet_type/b:bx_counter/i:sampa_address/b:sampa_channel/s:fee_channel/s");
+  m_chanT->Branch("data", m_chanData.data(), str(boost::format("data[%d]/i") % kSAMPLE_LENGTH).c_str());
 
   //  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
   //  {
@@ -177,31 +189,31 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     p->identify();
 
   uint32_t bx_seed = 0;
-  for (int channel = 0; channel < N_CHANNELS; channel++)
+  for (unsigned int channel = 0; channel < kN_CHANNELS; channel++)
   {
-    uint16_t size = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;        // number of words until the next channel (header included). this is the real packet_length
-    uint8_t packet_type = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
-    uint32_t bx_counter = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
-    uint8_t sampa_address = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
-    uint16_t sampa_channel = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
-    uint16_t fee_channel = (sampa_address << 5) | sampa_channel;
+    m_chanHeader.m_size = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;         // number of words until the next channel (header included). this is the real packet_length
+    m_chanHeader.m_packet_type = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
+    m_chanHeader.m_bx_counter = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
+    m_chanHeader.m_sampa_address = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
+    m_chanHeader.m_sampa_channel = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
+    m_chanHeader.m_fee_channel = (m_chanHeader.m_sampa_address << 5) | m_chanHeader.m_sampa_channel;
 
     if (channel == 0)
     {
-      bx_seed = bx_counter;
+      bx_seed = m_chanHeader.m_bx_counter;
     }
-    else if (bx_seed != bx_counter)
+    else if (bx_seed != m_chanHeader.m_bx_counter)
     {
-      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bx_counter mismatch (expected 0x%x, got 0x%x)\n", m_event, bx_seed, bx_counter);
+      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bx_counter mismatch (expected 0x%x, got 0x%x)\n", m_event, bx_seed, m_chanHeader.m_bx_counter);
 
       event->identify();
       p->identify();
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
-    if (fee_channel > 255 || sampa_address > 7 || sampa_channel > 31)
+    if (m_chanHeader.m_fee_channel > 255 || m_chanHeader.m_sampa_address > 7 || m_chanHeader.m_sampa_channel > 31)
     {
-      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bad channel (got %i, sampa_addr: %i, sampa_chan: %i)\n", m_event, fee_channel, sampa_address, sampa_channel);
+      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bad channel (got %i, sampa_addr: %i, sampa_chan: %i)\n", m_event, m_chanHeader.m_fee_channel, m_chanHeader.m_sampa_address, m_chanHeader.m_sampa_channel);
 
       event->identify();
       p->identify();
@@ -210,14 +222,39 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
 
     //    SampaChannel *chan = fee_data->append(new SampaChannel(fee_channel, bx_counter, packet_type));
 
-    for (int sample = 0; sample < kSAMPLE_LENGTH; sample++)
+    assert(m_chanData.size() == kSAMPLE_LENGTH);
+    fill(m_chanData.begin(), m_chanData.end(), 0);
+    for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
     {
       //        chan->append(p->iValue(channel * PACKET_LENGTH + 9 + sample) & 0xffff);
+      uint32_t value = p->iValue(channel * kPACKET_LENGTH + 9 + sample) & 0xffff;
+      m_chanData[sample] = value;
     }
+
+    if (verbosity >= VERBOSITY_MORE)
+    {
+      cout << "TPCFEETestRecov1::process_event - "
+           << "m_chanHeader.m_size = " << m_chanHeader.m_size << ", "
+           << "m_chanHeader.m_packet_type = " << m_chanHeader.m_packet_type << ", "
+           << "m_chanHeader.m_bx_counter = " << m_chanHeader.m_bx_counter << ", "
+           << "m_chanHeader.m_sampa_address = " << m_chanHeader.m_sampa_address << ", "
+           << "m_chanHeader.m_sampa_channel = " << m_chanHeader.m_sampa_channel << ", "
+           << "m_chanHeader.m_fee_channel = " << m_chanHeader.m_fee_channel << ": "
+           << " ";
+
+      for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
+      {
+        cout << "data[" << sample << "] = " << m_chanData[sample] << " ";
+      }
+
+      cout << endl;
+    }
+
+    m_chanT->Fill();
   }
 
   h_norm->Fill("Event count", 1);
-  m_T->Fill();
+  m_eventT->Fill();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

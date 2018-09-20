@@ -16,7 +16,8 @@ libtpcdaq_la_LDFLAGS = \
 
 libtpcdaq_la_LIBADD = \
   -lfun4all \
-  -lg4dst 
+  -lg4dst \
+  -lphool
 
 libtpcdaq_la_SOURCES = \
   TPCIntegratedCharge.cc \
