@@ -47,7 +47,7 @@ private:
   mutable std::map<unsigned int,const PHGenEvent*> _id_genevent_map; //! exclude from ROOT I/O
 #endif // __CINT__
 
-  ClassDef(PHGenEventListv1,1)
+//  ClassDef(PHGenEventListv1,1)
 };
 
 #endif // PHGENEVENTLISTV1_H__

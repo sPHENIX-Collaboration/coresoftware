@@ -61,7 +61,7 @@ private:
   mutable HepMC::GenEvent* _event;             //! exclude from ROOT I/O
 #endif // __CINT__
   
-  ClassDef(PHGenEventv1,1)    
+//  ClassDef(PHGenEventv1,1)    
 };
 
 #endif

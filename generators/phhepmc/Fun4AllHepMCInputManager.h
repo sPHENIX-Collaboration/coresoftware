@@ -17,6 +17,7 @@
 
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
+#include <HepMC/GenEvent.h>
 #endif
 
 // forward declaration of classes in namespace
@@ -24,6 +25,8 @@ namespace HepMC
 {
 class IO_GenEvent;
 class GenEvent;
+class ReaderAscii;
+class ReaderAsciiHepMC2;
 };
 
 class PHHepMCGenEvent;
@@ -96,10 +99,9 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   std::string topNodeName;
   PHCompositeNode *topNode;
 
-  HepMC::IO_GenEvent *ascii_in;
+  HepMC::ReaderAsciiHepMC2 *ascii_in;
   HepMC::GenEvent *evt;
   HepMC::GenEvent *save_evt;
-
   // some pointers for use in decompression handling
   std::ifstream *filestream;  // holds compressed filestream
   std::istream *unzipstream;  // feed into HepMc
@@ -108,6 +110,9 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
+#ifndef __CINT__
+  HepMC::GenEvent m_genevent;
+#endif
 #ifndef __CINT__
   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
 #endif

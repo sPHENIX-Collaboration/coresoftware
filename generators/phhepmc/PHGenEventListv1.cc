@@ -6,7 +6,7 @@
 
 using namespace std;
 
-ClassImp(PHGenEventListv1)
+//ClassImp(PHGenEventListv1)
 
 PHGenEventListv1::PHGenEventListv1()
 : PHGenEventList(),

@@ -1,4 +1,6 @@
 #include "Fun4AllHepMCInputManager.h"
+#include "PHHepMCGenEvent.h"
+#include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -6,8 +8,6 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
-#include <PHHepMCGenEvent.h>
-#include <PHHepMCGenEventMap.h>
 #include <ffaobjects/RunHeader.h>
 
 #include <frog/FROG.h>
@@ -16,6 +16,9 @@
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/IO_GenEvent.h>
+#include <HepMC/GenVertex.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/ReaderAsciiHepMC2.h>
 
 #include <TPRegexp.h>
 #include <TString.h>
@@ -64,12 +67,11 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   if (!geneventmap)
   {
     geneventmap = new PHHepMCGenEventMap();
-    PHIODataNode<PHObject> *newmapnode = new PHIODataNode<PHObject>(geneventmap, "PHHepMCGenEventMap", "PHObject");
+    PHDataNode<PHObject> *newmapnode = new PHDataNode<PHObject>(geneventmap, "PHHepMCGenEventMap", "PHObject");
     dstNode->addNode(newmapnode);
   }
-
+  m_genevent.set_units(HepMC::Units::GEV,HepMC::Units::CM);
   hepmc_helper.set_geneventmap(geneventmap);
-
   return;
 }
 
@@ -120,7 +122,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
       zinbuffer.push(boost::iostreams::bzip2_decompressor());
       zinbuffer.push(*filestream);
       unzipstream = new istream(&zinbuffer);
-      ascii_in = new HepMC::IO_GenEvent(*unzipstream);
+      //ascii_in = new HepMC::ReaderAsciiHepMC2(*unzipstream);
     }
     else if (tstr.Contains(gzip_ext))
     {
@@ -129,12 +131,14 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
       zinbuffer.push(boost::iostreams::gzip_decompressor());
       zinbuffer.push(*filestream);
       unzipstream = new istream(&zinbuffer);
-      ascii_in = new HepMC::IO_GenEvent(*unzipstream);
+      //ascii_in = new HepMC::ReaderAsciiHepMC2(*unzipstream);
     }
     else
     {
       // expects normal ascii hepmc file
-      ascii_in = new HepMC::IO_GenEvent(fname, std::ios::in);
+      cout << "opening " << fname << endl;
+      ascii_in = new HepMC::ReaderAsciiHepMC2(fname);
+      cout << "status " << ascii_in->failed() << endl;
     }
   }
 
@@ -193,39 +197,53 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       }
       else
       {
-        evt = ascii_in->read_next_event();
+        ascii_in->read_event(m_genevent);
+        auto vtxvec = m_genevent.vertices();
+	cout << "number of vertices: " << vtxvec.size() << endl;
+	auto parvec =  m_genevent.particles();
+	cout << "number of particles: " << parvec.size() << endl;
+	cout << "read event " << m_genevent.event_number() << endl;
       }
     }
 
-    if (!evt)
+    if (ascii_in->failed())
     {
       if (verbosity > 1)
       {
         cout << "Fun4AllHepMCInputManager::run::" << Name()
-             << ": error type: " << ascii_in->error_type()
-             << ", rdstate: " << ascii_in->rdstate() << endl;
+	  //           << ": error type: " << ascii_in->error_type()
+             << ", failed: " << ascii_in->failed() << endl;
       }
       fileclose();
     }
     else
     {
-      mySyncManager->CurrentEvent(evt->event_number());
+      mySyncManager->CurrentEvent(m_genevent.event_number());
       if (verbosity > 0)
       {
         cout << "Fun4AllHepMCInputManager::run::" << Name()
-             << ": hepmc evt no: " << evt->event_number() << endl;
+             << ": hepmc evt no: " << m_genevent.event_number() << endl;
       }
 
       PHHepMCGenEventMap::Iter ievt =
           hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
+// copy the event so we can do what we want with it rather than passing an address around
+      HepMC::GenEvent *tmp_event = new HepMC::GenEvent(m_genevent);
+      cout << "address: " << tmp_event << endl;
+
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
         // override existing event
-        ievt->second->addEvent(evt);
+	cout << "override existing event" << endl;
+        ievt->second->addEvent(tmp_event);
       }
       else
-        hepmc_helper.insert_event(evt);
+      {
+	cout << "inserting event" << endl;
+        hepmc_helper.insert_event(tmp_event);
+      }
 
+      m_genevent.clear();
       events_total++;
       events_thisfile++;
 
@@ -340,12 +358,12 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
   int errorflag = 0;
   while (nevents > 0 && !errorflag)
   {
-    evt = ascii_in->read_next_event();
+//    evt = ascii_in->read_next_event();
     if (!evt)
     {
       cout << "Error after skipping " << i - nevents << endl;
-      cout << "error type: " << ascii_in->error_type()
-           << ", rdstate: " << ascii_in->rdstate() << endl;
+//      cout << "error type: " << ascii_in->error_type()
+       cout    << ", failed: " << ascii_in->failed() << endl;
       errorflag = -1;
       fileclose();
     }
@@ -419,20 +437,20 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
     double py = theEventVec[i][4];
     double pz = theEventVec[i][5];
     double E = theEventVec[i][6];
-    double m = theEventVec[i][7];
+//    double m = theEventVec[i][7];
     int status = 1;  //oscar only writes final state particles
 
     HepMC::GenVertex *v = new HepMC::GenVertex(theVtxVec[i]);
     evt->add_vertex(v);
 
     HepMC::GenParticle *p = new HepMC::GenParticle(HepMC::FourVector(px, py, pz, E), pid, status);
-    p->setGeneratedMass(m);
-    p->suggest_barcode(i + 1);
+//    p->setGeneratedMass(m);
+//    p->suggest_barcode(i + 1);
     v->add_particle_out(p);
   }
   if (verbosity > 3)
   {
-    evt->print();
+//    evt->print();
   }
   return evt;
 }
