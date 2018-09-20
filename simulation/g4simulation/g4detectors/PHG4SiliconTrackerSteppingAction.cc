@@ -119,8 +119,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
   // set ladder index
-  int sphxlayer = 0;
-  int inttlayer = 0;
+  unsigned int sphxlayer = 0;
+  unsigned int inttlayer = 0;
   int ladderz = 0;
   int ladderphi = 0;
   int zposneg = 0;
@@ -137,6 +137,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	  assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
 	}
       sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
+      //cout << " sphxlayer " << sphxlayer << " inttlayer " << inttlayer << " ladderz " << ladderz  << " ladderphi " << ladderphi << " zposneg " << zposneg << endl;
       map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
       if (activeiter == m_IsActiveMap.end())
 	{
@@ -182,7 +183,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
   if (Verbosity() > 1)
   {
-    cout << "prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus() << endl;
+    cout 	 << " aTrack->GetTrackID " << aTrack->GetTrackID()   << " aTrack->GetParentID " << aTrack->GetParentID()
+		 << " INTT layer " << inttlayer
+		 << " prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus() 
+		 << endl;
   }
   switch (prePoint->GetStepStatus())
   {
@@ -191,7 +195,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     if (Verbosity() > 1)
     {
-      cout << " found prePoint step status of fGeomBoundary or fUndefined, start a new hit " << endl;
+      cout 	 << "  start new g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " INTT layer " << inttlayer 
+		 << "   prePoint step status  = " << prePoint->GetStepStatus()   << " postPoint->GetStepStatus = " << postPoint->GetStepStatus() << endl;
     }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
@@ -206,6 +211,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     if (whichactive > 0)
     {
+      m_Hit->set_layer(sphxlayer);
       m_Hit->set_ladder_phi_index(ladderphi);
       m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
       m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);
@@ -220,12 +226,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     StoreLocalCoordinate(m_Hit, aStep, true, false);
 
-    /*
-    cout << "     hit position x,y,z = " << prePoint->GetPosition().x() / cm
-    << "    " << prePoint->GetPosition().y() / cm
-    << "     " << prePoint->GetPosition().z() / cm
-    << endl;
-    */
+    if(Verbosity() > 1)
+      cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
+	   << "    " << prePoint->GetPosition().y() / cm
+	   << "     " << prePoint->GetPosition().z() / cm
+	   << endl;
+    
 
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
@@ -260,6 +266,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   default:
     break;
   }
+
+  //cout << "  Update exit values for prePoint->GetStepStatus = " << prePoint->GetStepStatus() << " and postPoint->GetStepStatus = " << postPoint->GetStepStatus() << endl;
 
   // here we just update the exit values, it will be overwritten
   // for every step until we leave the volume or the particle
@@ -312,16 +320,39 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
   // aTrack->GetTrackStatus() == fStopAndKill is also set)
   // aTrack->GetTrackStatus() == fStopAndKill: track ends
-  if (postPoint->GetStepStatus() == fGeomBoundary ||
-      postPoint->GetStepStatus() == fWorldBoundary ||
-      postPoint->GetStepStatus() == fAtRestDoItProc ||
-      aTrack->GetTrackStatus() == fStopAndKill)
+  if (postPoint->GetStepStatus() == fGeomBoundary ||   // 1    normal
+      postPoint->GetStepStatus() == fWorldBoundary ||   // 0    not normal!
+      postPoint->GetStepStatus() == fAtRestDoItProc ||    // 2    particle stopped
+      aTrack->GetTrackStatus() == fStopAndKill)            // 2    track stopped
     {
       if (Verbosity() > 1)
 	{
-	  cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " save hit and delete it" << endl;
+	  cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to " 
+	       << aTrack->GetTrackStatus() << endl;
+	  cout 	 << "  end g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " eion = " << eion << endl;
+	  cout << "     end hit position x,y,z = " << postPoint->GetPosition().x() / cm
+	       << "    " << postPoint->GetPosition().y() / cm
+	       << "     " << postPoint->GetPosition().z() / cm
+	       << endl;
 	}
 
+	if(postPoint->GetStepStatus() != 1 && aTrack->GetParentID() == 0)   // primary tracks should not end strangely!
+	  {
+	    cout << "***** Strange termination of hit from primary track with postPoint->GetStepStatus = " << postPoint->GetStepStatus() << " aTrack->GetTrackStatus = " 
+		 << aTrack->GetTrackStatus() 	<< " aTrack->GetParentID " << aTrack->GetParentID() << endl;
+	    /*
+	    cout << " postStepStatus: fWorldBoundary " << fWorldBoundary 
+		 << " fGeomBoundary " << fGeomBoundary 
+		 << " fAtRestDoItProc " << fAtRestDoItProc 
+		 <<  " fAlongStepDoItProc " << fAlongStepDoItProc
+		 << " fPostStepDoItProc " << fPostStepDoItProc
+		 << " fUserDefinedLimit " << fUserDefinedLimit
+		 << " fExclusivelyForcedProc " << fExclusivelyForcedProc
+		 << " fUndefined " << fUndefined 
+		 << endl;
+	    cout << " aTrack status: fStopAndKill " << fStopAndKill << endl; 
+	    */	   
+	  }
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
 	{
