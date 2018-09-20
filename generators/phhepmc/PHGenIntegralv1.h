@@ -115,7 +115,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   //! description on the source
   std::string fDescription;
 
-  ClassDef(PHGenIntegralv1, 1)
+//  ClassDef(PHGenIntegralv1, 1)
 };
 
 #endif /* SIMULATION_CORESOFTWARE_GENERATORS_PHHEPMC_PHGENINTEGRALV1_H_ */

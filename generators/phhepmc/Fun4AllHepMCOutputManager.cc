@@ -79,10 +79,10 @@ Fun4AllHepMCOutputManager::~Fun4AllHepMCOutputManager()
         {
           if (comment.size())
             {
-              ascii_out->write_comment(comment);
+//              ascii_out->write_comment(comment);
             }
         }
-      ascii_out->clear();
+//      ascii_out->clear();
     }
 
   delete ascii_out;
@@ -116,7 +116,7 @@ int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
   {
     if (comment.size())
     {
-      ascii_out->write_comment(comment);
+//      ascii_out->write_comment(comment);
     }
     comment_written = 1;
   }

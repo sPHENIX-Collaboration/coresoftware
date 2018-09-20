@@ -34,7 +34,7 @@ protected:
 
 private:
 
-  ClassDef(PHGenEvent,1)    
+//  ClassDef(PHGenEvent,1)    
 };
 
 #endif	// __PHHEPMCEVENT__

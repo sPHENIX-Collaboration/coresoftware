@@ -17,6 +17,7 @@
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/IO_GenEvent.h>
+#include <HepMC/ReaderAsciiHepMC2.h>
 
 #include <TPRegexp.h>
 #include <TString.h>
@@ -147,7 +148,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
           }
           else
           {
-            evt = ascii_in->read_next_event();
+//            evt = ascii_in->read_next_event();
           }
         }
 
@@ -155,8 +156,8 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         {
           if (verbosity > 1)
           {
-            cout << "error type: " << ascii_in->error_type()
-                 << ", rdstate: " << ascii_in->rdstate() << endl;
+//            cout << "error type: " << ascii_in->error_type()
+              cout   << ", failed: " << ascii_in->failed() << endl;
           }
           fileclose();
         }

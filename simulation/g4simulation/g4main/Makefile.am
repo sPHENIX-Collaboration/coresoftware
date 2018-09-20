@@ -14,6 +14,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
     -I$(includedir) \
+  -I/opt/sphenix/core/HepMC-3.0.0/include \
     -I$(XERCESCROOT)/include \
     -isystem $(OFFLINE_MAIN)/include \
     -isystem $(ROOTSYS)/include \
@@ -102,18 +103,20 @@ libg4testbench_la_SOURCES = \
     PHG4TruthTrackingAction.cc \
     PHG4SteppingAction.cc \
     PHG4UIsession.cc \
-    PHG4Utils.cc \
-    ReadEICFiles.cc
+    PHG4Utils.cc
+
+#    ReadEICFiles.cc
 
 libg4testbench_la_LDFLAGS = \
     -L$(libdir) \
+  -L/opt/sphenix/core/HepMC-3.0.0/lib64 \
+    -lHepMC \
     -L$(OFFLINE_MAIN)/lib \
     -lboost_filesystem \
     -lphfield \
     -lg4decayer \
     -lgsl -lgslcblas \
     -lvararray \
-    -lHepMC \
     -lphhepmc \
     -lxerces-c \
     `geant4-config --libs` \
@@ -167,8 +170,9 @@ pkginclude_HEADERS = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals_g4hits \
-  testexternals_g4tb
+  testexternals_g4hits 
+
+#  testexternals_g4tb
 
 BUILT_SOURCES = testexternals.cc
 
@@ -207,7 +211,6 @@ PHG4_Dict.cc: \
   PHG4Subsystem.h \
   PHG4TruthSubsystem.h \
   PHG4Utils.h \
-  ReadEICFiles.h \
   PHG4LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 

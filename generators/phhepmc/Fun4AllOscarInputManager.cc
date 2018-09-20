@@ -17,6 +17,8 @@
 
 #include <HepMC/IO_GenEvent.h>
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>
+#include <HepMC/GenVertex.h>
 
 #include <TString.h>
 #include <TPRegexp.h>
@@ -416,12 +418,12 @@ Fun4AllOscarInputManager::ConvertFromOscar()
       double py = theEventVec[i][4];
       double pz = theEventVec[i][5];
       double E = theEventVec[i][6];
-      double m = theEventVec[i][7];
+//      double m = theEventVec[i][7];
       int status = 1;//oscar only writes final state particles
 
       hepevt_particles[i] = new HepMC::GenParticle( HepMC::FourVector( px, py, pz, E ), pid, status );
-      hepevt_particles[i]->setGeneratedMass(m);
-      hepevt_particles[i]->suggest_barcode(i + 1);
+//      hepevt_particles[i]->setGeneratedMass(m);
+//      hepevt_particles[i]->suggest_barcode(i + 1);
 
     }
 
@@ -460,8 +462,8 @@ Fun4AllOscarInputManager::ConvertFromOscar()
     }
 
   
-  evt->print();
-  if(verbosity > 5) evt->print();
+//  evt->print();
+//  if(verbosity > 5) evt->print();
   if(verbosity > 3) cout << "Adding Event to phhepmcgenevt" << endl;
 
   PHHepMCGenEventMap::Iter ievt =

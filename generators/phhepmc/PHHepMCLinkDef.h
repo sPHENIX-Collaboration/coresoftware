@@ -2,6 +2,7 @@
 #include <string>
 #include <utility>
 #include <functional>
+/*
 #include <HepMC/Flow.h>
 #include <HepMC/GenCrossSection.h>
 #include <HepMC/GenEvent.h>
@@ -21,6 +22,7 @@
 #include <HepMC/StreamInfo.h>
 #include <HepMC/TempParticleMap.h>
 #include <HepMC/WeightContainer.h>
+*/
 
 using namespace HepMC;
 using namespace std;
@@ -30,6 +32,7 @@ typedef long size_type;
 
 
 #pragma link C++ class HepMC::FourVector+;
+/*
 #pragma link C++ class HepMC::ThreeVector+;
 #pragma link C++ class HepMC::ConstGenEventParticleRange+;
 #pragma link C++ class HepMC::ConstGenEventVertexRange+;
@@ -79,5 +82,6 @@ typedef long size_type;
 #pragma link C++ class std::pair<unsigned int,PHHepMCGenEvent*>+;
 #pragma link C++ class std::map<unsigned int,PHHepMCGenEvent*>+;
 #pragma link C++ class PHHepMCGenEventMap+;
+*/
 
 #endif

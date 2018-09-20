@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-ClassImp(PHGenEventv1)
+//ClassImp(PHGenEventv1)
 
 using namespace std;
 
@@ -60,7 +60,7 @@ void PHGenEventv1::set_event(HepMC::GenEvent& event) {
   }
 
   std::stringstream streamer;
-  event.write(streamer);
+//  event.write(streamer);
   _event_record = streamer.str();
   
   refresh();
@@ -75,7 +75,7 @@ void PHGenEventv1::set_event(HepMC::GenEvent* event) {
   }
 
   std::stringstream streamer;
-  event->write(streamer);
+//  event->write(streamer);
   _event_record = streamer.str();
     
   refresh();
@@ -105,7 +105,7 @@ void PHGenEventv1::print(std::ostream& out) const {
   if (stale()) refresh();
   identify(out);
   out << " id = " << _id << endl;
-  _event->print(out);
+//  _event->print(out);
 }
 
 void PHGenEventv1::refresh() const {
@@ -119,6 +119,6 @@ void PHGenEventv1::refresh() const {
   
   std::stringstream streamer;
   streamer << _event_record;
-  _event->read(streamer);
+//  _event->read(streamer);
   _stale = false;
 }

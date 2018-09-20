@@ -37,7 +37,7 @@ protected:
   PHGenEventList() : PHObject() {}
 
 private:
-  ClassDef(PHGenEventList,1)
+//  ClassDef(PHGenEventList,1)
 };
 
 #endif // __PHGENEVENTLIST_H__

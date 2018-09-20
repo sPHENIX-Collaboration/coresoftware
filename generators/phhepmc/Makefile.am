@@ -2,11 +2,13 @@ AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
   -I$(includedir) \
+  -I/opt/sphenix/core/HepMC-3.0.0/include \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
 AM_LDFLAGS = \
   -L$(libdir) \
+  -L/opt/sphenix/core/HepMC-3.0.0/lib64 \
   -L$(OFFLINE_MAIN)/lib \
   -L$(OPT_SPHENIX)/lib
 
@@ -52,21 +54,17 @@ libphhepmc_la_SOURCES = \
   Fun4AllOscarInputManager.cc \
   Fun4AllOscarInputManager_Dict.C \
   PHHepMCGenHelper.cc \
-  PHHepMCGenHelper_Dict.C \
-  PHHepMCParticleSelectorDecayProductChain.cc \
-  PHHepMCParticleSelectorDecayProductChain_Dict.C
+  PHHepMCGenHelper_Dict.C
 
 libphhepmc_io_la_SOURCES = \
   PHGenEventv1.cc \
   PHGenEventListv1.cc \
   PHHepMCGenEvent.cc \
+  PHHepMCGenEvent_Dict.C \
   PHHepMCGenEventMap.cc \
-  PHHepMC_io_Dict.C \
+  PHHepMCGenEventMap_Dict.C \
   PHGenIntegral.cc \
-  PHGenIntegral_Dict.C \
-  PHGenIntegralv1.cc \
-  PHGenIntegralv1_Dict.C
-
+  PHGenIntegralv1.cc
 
 libphhepmc_io_la_LDFLAGS = \
   ${AM_LDFLAGS} \
@@ -98,7 +96,7 @@ testexternals.cc:
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(AM_CPPFLAGS) $^
 
 PHHepMC_io_Dict.C: \
   PHGenEvent.h \
@@ -107,9 +105,11 @@ PHHepMC_io_Dict.C: \
   PHGenEventListv1.h \
   PHHepMCGenEvent.h \
   PHHepMCGenEventMap.h \
-  $(OFFLINE_MAIN)/include/HepMC/*.h \
+  /opt/sphenix/core/HepMC-3.0.0/include/HepMC/*.h \
   PHHepMCLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+	rootcint -f $@ @CINTDEFS@ -c $(AM_CPPFLAGS) $^
+
+
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES)
