@@ -8,9 +8,10 @@
  * \date $Date: 2015/01/06 02:52:07 $
  */
 
+#include "Prototype4DSTReader.h"
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
-//#include <PHGeometry.h>
 
 #include <phool/getClass.h>
 #include <phool/getClass.h>
@@ -19,17 +20,14 @@
 #include <pdbcalbase/PdbParameterMap.h>
 #include <phparameter/PHParameters.h>
 
-#include <TMath.h>
 #include <TTree.h>
 
-#include <boost/foreach.hpp>
 #include <cassert>
 #include <limits>
 #include <map>
 #include <set>
 #include <sstream>
 
-#include "Prototype4DSTReader.h"
 
 using namespace std;
 
@@ -39,7 +37,7 @@ Prototype4DSTReader::Prototype4DSTReader(const string &filename)
   , _event(0)
   ,  //
   _out_file_name(filename)
-  , /*_file(NULL), */ _T(NULL)
+  , /*_file(NULL), */ _T(nullptr)
   ,  //
   _tower_zero_sup(-10000000)
 {
@@ -117,7 +115,7 @@ int Prototype4DSTReader::Init(PHCompositeNode *)
     record rec;
     rec._cnt = 0;
     rec._name = hname;
-    rec._arr = boost::make_shared<TClonesArray>(class_name, arr_size);
+    rec._arr = make_shared<TClonesArray>(class_name, arr_size);
     rec._arr_ptr = rec._arr.get();
     rec._dvalue = 0;
     rec._type = record::typ_tower;
