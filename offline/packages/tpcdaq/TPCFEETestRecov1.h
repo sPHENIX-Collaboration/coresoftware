@@ -29,7 +29,13 @@ class TPCFEETestRecov1 : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
+  int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+
+  void SetClusteringZeroSuppression(int threshold)
+  {
+    m_clusteringZeroSuppression = threshold;
+  }
 
   //! simple event header class for ROOT file IO
   class EventHeader : public TObject
@@ -51,16 +57,20 @@ class TPCFEETestRecov1 : public SubsysReco
   };
 
   //! buffer for full event data
-  class EventData
+  class PadPlaneData
   {
    public:
-    EventData();
+    PadPlaneData();
     void Reset();
 
     static bool IsValidPad(const int pad_x, const int pad_y);
     std::vector<int> &GetPad(const int pad_x, const int pad_y);
 
+    //! 3-D Graph clustering based on PHMakeGroups()
+    void Clustering(int zero_suppression);
+
    private:
+
     //! full event data in index order of m_data[pady][padx][sample]
     std::vector<std::vector<std::vector<int>>> m_data;
   };
@@ -126,13 +136,16 @@ class TPCFEETestRecov1 : public SubsysReco
   std::vector<uint32_t> m_chanData;
 
   // clustering stuff
-  EventData m_eventData;
+  PadPlaneData m_padPlaneData;
 
   //! rough zero suppression by subtracting sample medium value
   //! \return pair of pedestal and max-pedestal
   static std::pair<int,int> RoughZeroSuppression(std::vector<int> &data);
 
+  //! Clustering then prepare IOs
   void Clustering(void);
+
+  int m_clusteringZeroSuppression;
 
 #endif  // #ifndef __CINT__
 };
