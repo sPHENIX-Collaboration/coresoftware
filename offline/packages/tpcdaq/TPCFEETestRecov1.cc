@@ -287,14 +287,14 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     // fill event data
     if (PadPlaneData::IsValidPad(m_chanHeader.pad_x, m_chanHeader.pad_y))
     {
-      vector<int>& paddata = m_padPlaneData.GetPad(m_chanHeader.pad_x, m_chanHeader.pad_y);
+      vector<int>& paddata = m_padPlaneData.getPad(m_chanHeader.pad_x, m_chanHeader.pad_y);
 
       for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
       {
         paddata[sample] = int(m_chanData[sample]);
       }
 
-      auto pedestal_max = RoughZeroSuppression(paddata);
+      auto pedestal_max = roughZeroSuppression(paddata);
       m_chanHeader.pedestal = pedestal_max.first;
       m_chanHeader.max = pedestal_max.second;
     }
@@ -325,6 +325,8 @@ void TPCFEETestRecov1::PadPlaneData::Reset()
       fill(pad.begin(), pad.end(), 0);
     }
   }
+
+  m_groups.clear();
 }
 
 bool TPCFEETestRecov1::PadPlaneData::IsValidPad(const int pad_x, const int pad_y)
@@ -335,7 +337,7 @@ bool TPCFEETestRecov1::PadPlaneData::IsValidPad(const int pad_x, const int pad_y
          (pad_y < int(kMaxPadY));
 }
 
-vector<int>& TPCFEETestRecov1::PadPlaneData::GetPad(const int pad_x, const int pad_y)
+vector<int>& TPCFEETestRecov1::PadPlaneData::getPad(const int pad_x, const int pad_y)
 {
   assert(pad_x >= 0);
   assert(pad_x < int(kMaxPadX));
@@ -345,7 +347,7 @@ vector<int>& TPCFEETestRecov1::PadPlaneData::GetPad(const int pad_x, const int p
   return m_data[pad_y][pad_x];
 }
 
-std::pair<int, int> TPCFEETestRecov1::RoughZeroSuppression(std::vector<int>& data)
+std::pair<int, int> TPCFEETestRecov1::roughZeroSuppression(std::vector<int>& data)
 {
   std::vector<int> sorted_data(data);
 
@@ -360,12 +362,26 @@ std::pair<int, int> TPCFEETestRecov1::RoughZeroSuppression(std::vector<int>& dat
   return make_pair(pedestal, max);
 }
 
+bool operator<(const TPCFEETestRecov1::PadPlaneData::SampleID& s1, const TPCFEETestRecov1::PadPlaneData::SampleID& s2)
+{
+  if (s1.pady == s2.pady)
+  {
+    if (s1.padx == s2.padx)
+    {
+      return s1.sample < s2.sample;
+    }
+    else
+      return s1.padx < s2.padx;
+  }
+  else
+    return s1.pady < s2.pady;
+}
+
 //! 3-D Graph clustering based on PHMakeGroups()
-void TPCFEETestRecov1::PadPlaneData::Clustering(int zero_suppression)
+void TPCFEETestRecov1::PadPlaneData::Clustering(int zero_suppression, bool verbosity)
 {
   using namespace boost;
   typedef adjacency_list<vecS, vecS, undirectedS> Graph;
-  typedef vector<int> SampleID;
   typedef bimap<Graph::vertex_descriptor, SampleID> VertexList;
 
   Graph G;
@@ -400,11 +416,11 @@ void TPCFEETestRecov1::PadPlaneData::Clustering(int zero_suppression)
     const SampleID id = it.first;
     const Graph::vertex_descriptor v = it.second;
 
-    for (const auto& search_direction : search_directions)
+    for (const SampleID& search_direction : search_directions)
     {
       //      const SampleID next_id = id + search_direction;
       SampleID next_id(id);
-      transform(id.begin(), id.end(), search_direction.begin(), next_id.begin(), std::plus<int>());
+      next_id.adjust(search_direction);
 
       auto next_it = vertex_list.right.find(next_id);
       if (next_it != vertex_list.right.end())
@@ -422,34 +438,37 @@ void TPCFEETestRecov1::PadPlaneData::Clustering(int zero_suppression)
 
   // Loop over the components(vertices) compiling a list of the unique
   // connections (ie clusters).
-  set<int> comps;  // Number of unique components
-  multimap<int, SampleID> groups;
+  set<int> comps;                // Number of unique components
+  assert(m_groups.size() == 0);  // no overwrite
 
   for (unsigned int i = 0; i < component.size(); i++)
   {
     comps.insert(component[i]);
-    groups.insert(make_pair(component[i], vertex_list.left.find(vertex(i, G))->second));
+    m_groups.insert(make_pair(component[i], vertex_list.left.find(vertex(i, G))->second));
   }
 
   //debug prints
-  for (const int& comp : comps)
-  {
-    cout <<"TPCFEETestRecov1::PadPlaneData::Clustering - find cluster "<<comp<<" containing ";
-    const auto range = groups.equal_range(comp);
-
-    for (auto iter = range.first; iter != range.second; ++iter)
+  if (verbosity)
+    for (const int& comp : comps)
     {
-      const SampleID& id = iter->second;
-      cout <<"adc["<<id[0]<<"]["<<id[1]<<"]["<<id[2]<<"] = "<<m_data[id[0]][id[1]][id[2]]<<", ";
-    }
-    cout <<endl;
-  }//  for (const int& comp : comps)
+      cout << "TPCFEETestRecov1::PadPlaneData::Clustering - find cluster " << comp << " containing ";
+      const auto range = m_groups.equal_range(comp);
 
+      for (auto iter = range.first; iter != range.second; ++iter)
+      {
+        const SampleID& id = iter->second;
+        cout << "adc[" << id.pady << "][" << id.padx << "][" << id.sample << "] = " << m_data[id.pady][id.padx][id.sample] << ", ";
+      }
+      cout << endl;
+    }  //  for (const int& comp : comps)
 }
 
 void TPCFEETestRecov1::Clustering()
 {
-  m_padPlaneData.Clustering(m_clusteringZeroSuppression);
+  m_padPlaneData.Clustering(m_clusteringZeroSuppression, Verbosity() >= VERBOSITY_SOME);
+
+
+
 }
 
 Fun4AllHistoManager*

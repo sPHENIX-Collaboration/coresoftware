@@ -13,8 +13,10 @@
 #include <TObject.h>
 
 #include <stdint.h>
+#include <map>
 #include <string>
 #include <vector>
+
 class PHCompositeNode;
 class Fun4AllHistoManager;
 class TTree;
@@ -32,7 +34,7 @@ class TPCFEETestRecov1 : public SubsysReco
   int ResetEvent(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void SetClusteringZeroSuppression(int threshold)
+  void setClusteringZeroSuppression(int threshold)
   {
     m_clusteringZeroSuppression = threshold;
   }
@@ -63,16 +65,47 @@ class TPCFEETestRecov1 : public SubsysReco
     PadPlaneData();
     void Reset();
 
+    struct SampleID
+    {
+      int pady;
+      int padx;
+      int sample;
+
+      void adjust(const SampleID &adjustment)
+      {
+        pady += adjustment.pady;
+        padx += adjustment.padx;
+        sample += adjustment.sample;
+      }
+    };
+
     static bool IsValidPad(const int pad_x, const int pad_y);
-    std::vector<int> &GetPad(const int pad_x, const int pad_y);
+    std::vector<int> &getPad(const int pad_x, const int pad_y);
+    int getSample(const SampleID & id) ;
 
     //! 3-D Graph clustering based on PHMakeGroups()
-    void Clustering(int zero_suppression);
+    void Clustering(int zero_suppression, bool verbosity = false);
+
+#ifndef __CINT__
+
+
+    const std::vector<std::vector<std::vector<int>>> &getData() const
+    {
+      return m_data;
+    }
+
+    const std::multimap<int, SampleID> &getGroups() const
+    {
+      return m_groups;
+    }
 
    private:
-
     //! full event data in index order of m_data[pady][padx][sample]
     std::vector<std::vector<std::vector<int>>> m_data;
+
+    std::multimap<int, SampleID> m_groups;
+
+#endif  // #ifndef __CINT__
   };
 
   //! simple channel header class for ROOT file IO
@@ -140,7 +173,7 @@ class TPCFEETestRecov1 : public SubsysReco
 
   //! rough zero suppression by subtracting sample medium value
   //! \return pair of pedestal and max-pedestal
-  static std::pair<int,int> RoughZeroSuppression(std::vector<int> &data);
+  static std::pair<int, int> roughZeroSuppression(std::vector<int> &data);
 
   //! Clustering then prepare IOs
   void Clustering(void);
@@ -149,5 +182,7 @@ class TPCFEETestRecov1 : public SubsysReco
 
 #endif  // #ifndef __CINT__
 };
+
+bool operator<(const TPCFEETestRecov1::PadPlaneData::SampleID &s1, const TPCFEETestRecov1::PadPlaneData::SampleID &s2);
 
 #endif /* CORESOFTWARE_OFFLINE_PACKAGES_TPCDAQ_TPCFEETESTRECOV1_H_ */
