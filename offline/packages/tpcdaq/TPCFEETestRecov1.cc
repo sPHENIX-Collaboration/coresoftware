@@ -184,6 +184,7 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   m_eventHeader = EventHeader();
   m_eventHeader.run = event->getRunNumber();
   m_eventHeader.event = event->getEvtSequence();
+  m_eventData.Reset();
 
   Packet* p = event->getPacket(kPACKET_ID, ID4EVT);
   if (p == nullptr)
@@ -269,6 +270,20 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
       cout << endl;
     }
 
+    if (EventData::IsValidPad(m_chanHeader.pad_x, m_chanHeader.pad_y))
+    {
+      vector<int>& paddata = m_eventData.GetPad(m_chanHeader.pad_x, m_chanHeader.pad_y);
+
+      for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
+      {
+        paddata[sample] = int(m_chanData[sample]);
+      }
+
+      auto pedestal_max = RoughZeroSuppression(paddata);
+      m_chanHeader.pedestal = pedestal_max.first;
+      m_chanHeader.max = pedestal_max.second;
+    }
+    // output per-channel TTree
     m_chanT->Fill();
   }
 
@@ -278,8 +293,54 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void TPCFEETestRecov1::RoughZeroSuppression(std::vector<int>& data)
+TPCFEETestRecov1::EventData::
+    EventData()
+  : m_data(kMaxPadY, vector<vector<int>>(kMaxPadX, vector<int>(kSAMPLE_LENGTH, 0)))
 {
+}
+
+void TPCFEETestRecov1::EventData::Reset()
+{
+  for (auto& padrow : m_data)
+  {
+    for (auto& pad : padrow)
+    {
+      fill(pad.begin(), pad.end(), 0);
+    }
+  }
+}
+
+bool TPCFEETestRecov1::EventData::IsValidPad(const int pad_x, const int pad_y)
+{
+  return (pad_x >= 0) and
+         (pad_x < int(kMaxPadX)) and
+         (pad_y >= 0) and
+         (pad_y < int(kMaxPadY));
+}
+
+vector<int>& TPCFEETestRecov1::EventData::GetPad(const int pad_x, const int pad_y)
+{
+  assert(pad_x >= 0);
+  assert(pad_x < int(kMaxPadX));
+  assert(pad_y >= 0);
+  assert(pad_y < int(kMaxPadY));
+
+  return m_data[pad_y][pad_x];
+}
+
+std::pair<int, int> TPCFEETestRecov1::RoughZeroSuppression(std::vector<int>& data)
+{
+  std::vector<int> sorted_data(data);
+
+  sort(sorted_data.begin(), sorted_data.end());
+
+  const int pedestal = sorted_data[sorted_data.size() / 2];
+  const int max = sorted_data.back() - pedestal;
+
+  for (auto & d : data)
+    d -= pedestal;
+
+  return make_pair(pedestal, max);
 }
 
 void TPCFEETestRecov1::Clustering(void)

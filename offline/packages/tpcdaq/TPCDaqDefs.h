@@ -15,6 +15,8 @@ static const unsigned int kPACKET_LENGTH = 137;
 static const unsigned int kN_CHANNELS = 256;
 static const unsigned int kSAMPLE_LENGTH = 128;
 
+static const unsigned int kMaxPadX = 50;
+static const unsigned int kMaxPadY = 12;
 std::pair<int,int> SAMPAChan2PadXY(uint32_t fee_channel);
 
 }  // namespace FEEv1
