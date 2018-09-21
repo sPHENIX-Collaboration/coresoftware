@@ -31,36 +31,59 @@ class TPCFEETestRecov1 : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
+  //! simple event header class for ROOT file IO
+  class EventHeader : public TObject
+  {
+   public:
+    int run;
+    int event;
+
+    uint32_t bx_counter;
+
+    EventHeader()
+      : run(-1)
+      , event(-1)
+      , bx_counter(0)
+    {
+    }
+
+    ClassDef(TPCFEETestRecov1::EventHeader, 1)
+  };
+
   //! simple channel header class for ROOT file IO
   class ChannelHeader : public TObject
   {
    public:
-    //! = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;        // number of words until the next channel (header included). this is the real packet_length
-    uint16_t m_size;
+    int size;
     //! = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
-    uint8_t m_packet_type;
+    uint8_t packet_type;
     //! = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
-    uint32_t m_bx_counter;
+    uint32_t bx_counter;
     //! = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
-    uint8_t m_sampa_address;
+    uint8_t sampa_address;
     //! = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
-    uint16_t m_sampa_channel;
+    uint16_t sampa_channel;
     //! = (sampa_address << 5) | sampa_channel;
-    uint16_t m_fee_channel;
+    uint16_t fee_channel;
 
     //! pad coordinate
-    int m_pad_x;
-    int m_pad_y;
+    int pad_x;
+    int pad_y;
+
+    uint32_t pedestal;
+    uint32_t max;
 
     ChannelHeader()
-      : m_size(0)
-      , m_packet_type(0)
-      , m_bx_counter(0)
-      , m_sampa_address(0)
-      , m_sampa_channel(0)
-      , m_fee_channel(0)
-      , m_pad_x(-1)
-      , m_pad_y(-1)
+      : size(0)
+      , packet_type(0)
+      , bx_counter(0)
+      , sampa_address(0)
+      , sampa_channel(0)
+      , fee_channel(0)
+      , pad_x(-1)
+      , pad_y(-1)
+      , pedestal(0)
+      , max(0)
     {
     }
 
@@ -70,19 +93,30 @@ class TPCFEETestRecov1 : public SubsysReco
  private:
 #ifndef __CINT__
 
+  // IO stuff
+
   Fun4AllHistoManager *getHistoManager();
 
   std::string m_outputFileName;
 
   TTree *m_eventT;
 
-  TTree *m_chanT;
+  EventHeader m_eventHeader;
+  EventHeader *m_peventHeader;  //! ->m_eventHeader,  for filling TTree
 
-  int m_event;
+  TTree *m_chanT;
 
   ChannelHeader m_chanHeader;
   ChannelHeader *m_pchanHeader;  //! ->m_chanHeader,  for filling TTree
   std::vector<uint32_t> m_chanData;
+
+  // clustering stuff
+
+  //! full event data
+  std::vector<std::vector<std::vector<int>>> m_data;
+
+  void RoughZeroSuppression(std::vector<int> &data);
+  void Clustering(void);
 
 #endif  // #ifndef __CINT__
 };

@@ -58,8 +58,8 @@ TPCFEETestRecov1::TPCFEETestRecov1(const std::string& outputfilename)
   : SubsysReco("TPCFEETestRecov1")
   , m_outputFileName(outputfilename)
   , m_eventT(nullptr)
+  , m_peventHeader(&m_eventHeader)
   , m_chanT(nullptr)
-  , m_event(-1)
   , m_pchanHeader(&m_chanHeader)
   , m_chanData(kSAMPLE_LENGTH, 0)
 {
@@ -121,12 +121,12 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
 
   m_eventT = new TTree("eventT", "TPC FEE per-event Tree");
   assert(m_eventT);
-  m_eventT->Branch("event", &m_event, "event/I");
+  m_eventT->Branch("evthdr", &m_peventHeader);
 
   m_chanT = new TTree("chanT", "TPC FEE per-channel Tree");
   assert(m_chanT);
-  m_chanT->Branch("event", &m_event, "event/I");
-  m_chanT->Branch("header", &m_pchanHeader);
+  m_chanT->Branch("event", &m_eventHeader.event, "event/I");
+  m_chanT->Branch("chanhdr", &m_pchanHeader);
   m_chanT->Branch("adc", m_chanData.data(), str(boost::format("adc[%d]/i") % kSAMPLE_LENGTH).c_str());
 
   //  for (unsigned int layer = m_minLayer; layer <= m_maxLayer; ++layer)
@@ -181,7 +181,9 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   if (event->getEvtType() != DATAEVENT)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
-  m_event = event->getEvtSequence();
+  m_eventHeader = EventHeader();
+  m_eventHeader.run = event->getRunNumber();
+  m_eventHeader.event = event->getEvtSequence();
 
   Packet* p = event->getPacket(kPACKET_ID, ID4EVT);
   if (p == nullptr)
@@ -198,37 +200,39 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     p->dump();
   }
 
-  uint32_t bx_seed = 0;
+  m_eventHeader.bx_counter = 0;
   for (unsigned int channel = 0; channel < kN_CHANNELS; channel++)
   {
-    m_chanHeader.m_size = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;         // number of words until the next channel (header included). this is the real packet_length
-    m_chanHeader.m_packet_type = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
-    m_chanHeader.m_bx_counter = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
-    m_chanHeader.m_sampa_address = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
-    m_chanHeader.m_sampa_channel = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
-    m_chanHeader.m_fee_channel = (m_chanHeader.m_sampa_address << 5) | m_chanHeader.m_sampa_channel;
+    m_chanHeader = ChannelHeader();
 
-    const pair<int, int> pad = SAMPAChan2PadXY(m_chanHeader.m_fee_channel);
+    m_chanHeader.size = p->iValue(channel * kPACKET_LENGTH + 1) & 0xffff;         // number of words until the next channel (header included). this is the real packet_length
+    m_chanHeader.packet_type = p->iValue(channel * kPACKET_LENGTH + 2) & 0xffff;  // that's the Elink packet type
+    m_chanHeader.bx_counter = ((p->iValue(channel * kPACKET_LENGTH + 4) & 0xffff) << 4) | (p->iValue(channel * kPACKET_LENGTH + 5) & 0xffff);
+    m_chanHeader.sampa_address = (p->iValue(channel * kPACKET_LENGTH + 3) >> 5) & 0xf;
+    m_chanHeader.sampa_channel = p->iValue(channel * kPACKET_LENGTH + 3) & 0x1f;
+    m_chanHeader.fee_channel = (m_chanHeader.sampa_address << 5) | m_chanHeader.sampa_channel;
 
-    m_chanHeader.m_pad_x = pad.first;
-    m_chanHeader.m_pad_y = pad.second;
+    const pair<int, int> pad = SAMPAChan2PadXY(m_chanHeader.fee_channel);
+
+    m_chanHeader.pad_x = pad.first;
+    m_chanHeader.pad_y = pad.second;
 
     if (channel == 0)
     {
-      bx_seed = m_chanHeader.m_bx_counter;
+      m_eventHeader.bx_counter = m_chanHeader.bx_counter;
     }
-    else if (bx_seed != m_chanHeader.m_bx_counter)
+    else if (m_eventHeader.bx_counter != m_chanHeader.bx_counter)
     {
-      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bx_counter mismatch (expected 0x%x, got 0x%x)\n", m_event, bx_seed, m_chanHeader.m_bx_counter);
+      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bx_counter mismatch (expected 0x%x, got 0x%x)\n", m_eventHeader.event, m_eventHeader.bx_counter, m_chanHeader.bx_counter);
 
       event->identify();
       p->identify();
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
-    if (m_chanHeader.m_fee_channel > 255 || m_chanHeader.m_sampa_address > 7 || m_chanHeader.m_sampa_channel > 31)
+    if (m_chanHeader.fee_channel > 255 || m_chanHeader.sampa_address > 7 || m_chanHeader.sampa_channel > 31)
     {
-      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bad channel (got %i, sampa_addr: %i, sampa_chan: %i)\n", m_event, m_chanHeader.m_fee_channel, m_chanHeader.m_sampa_address, m_chanHeader.m_sampa_channel);
+      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bad channel (got %i, sampa_addr: %i, sampa_chan: %i)\n", m_eventHeader.event, m_chanHeader.fee_channel, m_chanHeader.sampa_address, m_chanHeader.sampa_channel);
 
       event->identify();
       p->identify();
@@ -249,17 +253,17 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     if (verbosity >= VERBOSITY_MORE)
     {
       cout << "TPCFEETestRecov1::process_event - "
-           << "m_chanHeader.m_size = " << int(m_chanHeader.m_size) << ", "
-           << "m_chanHeader.m_packet_type = " << int(m_chanHeader.m_packet_type) << ", "
-           << "m_chanHeader.m_bx_counter = " << int(m_chanHeader.m_bx_counter) << ", "
-           << "m_chanHeader.m_sampa_address = " << int(m_chanHeader.m_sampa_address) << ", "
-           << "m_chanHeader.m_sampa_channel = " << int(m_chanHeader.m_sampa_channel) << ", "
-           << "m_chanHeader.m_fee_channel = " << int(m_chanHeader.m_fee_channel) << ": "
+           << "m_chanHeader.m_size = " << int(m_chanHeader.size) << ", "
+           << "m_chanHeader.m_packet_type = " << int(m_chanHeader.packet_type) << ", "
+           << "m_chanHeader.m_bx_counter = " << int(m_chanHeader.bx_counter) << ", "
+           << "m_chanHeader.m_sampa_address = " << int(m_chanHeader.sampa_address) << ", "
+           << "m_chanHeader.m_sampa_channel = " << int(m_chanHeader.sampa_channel) << ", "
+           << "m_chanHeader.m_fee_channel = " << int(m_chanHeader.fee_channel) << ": "
            << " ";
 
       for (unsigned int sample = 0; sample < kSAMPLE_LENGTH; sample++)
       {
-        cout << "data[" << sample << "] = " << m_chanData[sample] << " ";
+        cout << "data[" << sample << "] = " << int(m_chanData[sample]) << " ";
       }
 
       cout << endl;
@@ -273,6 +277,15 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void TPCFEETestRecov1::RoughZeroSuppression(std::vector<int>& data)
+{
+}
+
+void TPCFEETestRecov1::Clustering(void)
+{
+}
+
 Fun4AllHistoManager*
 TPCFEETestRecov1::getHistoManager()
 {
