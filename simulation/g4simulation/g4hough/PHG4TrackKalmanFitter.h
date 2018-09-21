@@ -215,7 +215,7 @@ private:
 	 * \param intrack Input SvtxTrack
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
-	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
+	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);//rcc hack: ,const bool use_svtx=true, const bool use_intt=true, const bool use_mvtx=true);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
@@ -330,6 +330,18 @@ private:
 	float _cluster_eval_tree_gy;
 	float _cluster_eval_tree_gz;
 
+	TTree *_kalman_extrapolation_eval_tree;
+	float  _kalman_extrapolation_eval_tree_phi;
+	float _kalman_extrapolation_eval_tree_z;
+	float _kalman_extrapolation_eval_tree_r;
+	bool _kalman_extrapolation_eval_tree_okay;
+	float _kalman_extrapolation_eval_tree_sigma_rphi;
+	float _kalman_extrapolation_eval_tree_sigma_z;
+	float _kalman_extrapolation_eval_tree_sigma_r;
+	float _kalman_extrapolation_eval_tree_sigma_rphi_z;
+	float _kalman_extrapolation_eval_tree_sigma_z_r;
+	float _kalman_extrapolation_eval_tree_sigma_r_rphi;
+	
 	bool _do_evt_display;
 
 };
