@@ -8,6 +8,8 @@
  * \date $Date: 2015/01/06 02:52:07 $
  */
 
+#include "Prototype2DSTReader.h"
+
 #include <fun4all/PHTFileServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 //#include <PHGeometry.h>
@@ -20,16 +22,13 @@
 #include <phparameter/PHParameters.h>
 
 #include <TTree.h>
-#include <TMath.h>
 
-#include <boost/foreach.hpp>
 #include <map>
 #include <set>
 #include <cassert>
 
 #include<sstream>
 
-#include "Prototype2DSTReader.h"
 
 using namespace std;
 
@@ -98,7 +97,7 @@ Prototype2DSTReader::Init(PHCompositeNode*)
       record rec;
       rec._cnt = 0;
       rec._name = hname;
-      rec._arr = boost::make_shared<TClonesArray>(class_name, arr_size);
+      rec._arr = make_shared<TClonesArray>(class_name, arr_size);
       rec._arr_ptr = rec._arr.get();
       rec._dvalue = 0;
       rec._type = record::typ_tower;
