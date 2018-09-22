@@ -131,9 +131,9 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
   m_eventT = new TTree("eventT", "TPC FEE per-event Tree");
   assert(m_eventT);
   m_eventT->Branch("evthdr", &m_peventHeader);
-  m_chanT->Branch("nClusters", &m_nClusters, "nClusters/I");
+  m_eventT->Branch("nClusters", &m_nClusters, "nClusters/I");
   m_IOClusters = new TClonesArray("TPCFEETestRecov1::ClusterData", 1000);
-  m_chanT->Branch("Clusters", &m_IOClusters);
+  m_eventT->Branch("Clusters", &m_IOClusters);
 
   m_chanT = new TTree("chanT", "TPC FEE per-channel Tree");
   assert(m_chanT);

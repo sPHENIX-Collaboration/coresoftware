@@ -45,7 +45,7 @@ bool SampleFit_PowerLawDoubleExp(        //
 
   //Saturation correction - Abhisek
   for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
-    if ((gpulse.GetY())[ipoint] <= 10 or (gpulse.GetY())[ipoint] >= ((1 << 14) - 10)  // drop point if touching max or low limit on ADCs
+    if ((gpulse.GetY())[ipoint] >= ((1 << 10) - 10)  // drop point if touching max or low limit on ADCs
         or (not isnormal((gpulse.GetY())[ipoint])))
     {
       gpulse.RemovePoint(ipoint);
@@ -174,14 +174,11 @@ bool SampleFit_PowerLawDoubleExp(        //
 
     canvas->Update();
 
-    if (id == 1)
-    {
-      canvas->Print("SampleFit_PowerLawDoubleExp.pdf(");
-    }
-    else
-    {
-      canvas->Print("SampleFit_PowerLawDoubleExp.pdf");
-    }
+    //    if (id == 1)
+    //    {
+    //      canvas->Print("SampleFit_PowerLawDoubleExp.pdf(");
+    //    }
+    //    canvas->Print("SampleFit_PowerLawDoubleExp.pdf");
   }
 
   // store results
