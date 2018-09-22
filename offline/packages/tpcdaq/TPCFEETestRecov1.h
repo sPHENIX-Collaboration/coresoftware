@@ -24,6 +24,14 @@ class Fun4AllHistoManager;
 class TTree;
 class TClonesArray;
 
+namespace TPCDaqDefs
+{
+namespace FEEv1
+{
+class SampleFit_PowerLawDoubleExp_PDFMaker;
+}
+}  // namespace TPCDaqDefs
+
 class TPCFEETestRecov1 : public SubsysReco
 {
  public:
@@ -216,7 +224,7 @@ class TPCFEETestRecov1 : public SubsysReco
   EventHeader *m_peventHeader;  //! ->m_eventHeader,  for filling TTree
 
   int m_nClusters;
-  TClonesArray * m_IOClusters;
+  TClonesArray *m_IOClusters;
 
   TTree *m_chanT;
 
@@ -240,6 +248,7 @@ class TPCFEETestRecov1 : public SubsysReco
   int m_clusteringZeroSuppression;
   int m_nPreSample;
   int m_nPostSample;
+  TPCDaqDefs::FEEv1::SampleFit_PowerLawDoubleExp_PDFMaker *m_pdfMaker;
 };
 
 bool operator<(const TPCFEETestRecov1::PadPlaneData::SampleID &s1, const TPCFEETestRecov1::PadPlaneData::SampleID &s2);

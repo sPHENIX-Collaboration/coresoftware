@@ -3,6 +3,7 @@
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TGraph.h>
+#include <TPaveText.h>
 #include <TStyle.h>
 #include <TVirtualFitter.h>
 
@@ -19,6 +20,51 @@ namespace TPCDaqDefs
 //! TPC v1 FEE test stand decoder
 namespace FEEv1
 {
+SampleFit_PowerLawDoubleExp_PDFMaker::SampleFit_PowerLawDoubleExp_PDFMaker()
+{
+  gStyle->SetOptFit(1111);
+
+  m_canvas = new TCanvas("SampleFit_PowerLawDoubleExp_PDFMaker", "SampleFit_PowerLawDoubleExp_PDFMaker");
+  m_pavedtext = new TPaveText(.05, .1, .95, .8);
+
+  m_pavedtext->AddText("SampleFit_PowerLawDoubleExp Fit output");
+  m_pavedtext->AddText("A double-component power-law exponential fit of time-dependent ADC pulses.");
+  m_pavedtext->AddText("Magenta curve is the sum of the two component, the red and blue curves.");
+  m_pavedtext->AddText("Red dot denote the max points");
+  m_pavedtext->Draw();
+
+  m_canvas->Print("SampleFit_PowerLawDoubleExp.pdf(");  //open multiplage PDF
+}
+SampleFit_PowerLawDoubleExp_PDFMaker::~SampleFit_PowerLawDoubleExp_PDFMaker()
+{
+  if (m_pavedtext) delete m_pavedtext;
+  if (m_canvas) delete m_canvas;
+
+  m_canvas = new TCanvas("SampleFit_PowerLawDoubleExp_PDFMaker", "SampleFit_PowerLawDoubleExp_PDFMaker");
+  m_pavedtext = new TPaveText(.05, .1, .95, .8);
+
+  m_pavedtext->AddText("SampleFit_PowerLawDoubleExp Fit output");
+  m_pavedtext->AddText("End of pages");
+  m_pavedtext->Draw();
+
+  m_canvas->Print("SampleFit_PowerLawDoubleExp.pdf)");  //close multiplage PDF
+}
+
+void SampleFit_PowerLawDoubleExp_PDFMaker::MakeSectionPage(const string &title)
+{
+  if (m_pavedtext) delete m_pavedtext;
+  if (m_canvas) delete m_canvas;
+
+  m_canvas = new TCanvas("SampleFit_PowerLawDoubleExp_PDFMaker", "SampleFit_PowerLawDoubleExp_PDFMaker");
+
+  m_pavedtext = new TPaveText(.05, .1, .95, .8);
+
+  m_pavedtext->AddText(title.c_str());
+  m_pavedtext->Draw();
+
+  m_canvas->Print("SampleFit_PowerLawDoubleExp.pdf");
+}
+
 bool SampleFit_PowerLawDoubleExp(        //
     const std::vector<double> &samples,  //
     double &peak,                        //
@@ -44,13 +90,13 @@ bool SampleFit_PowerLawDoubleExp(        //
   }
 
   //Saturation correction - Abhisek
-  for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
-    if ((gpulse.GetY())[ipoint] >= ((1 << 10) - 10)  // drop point if touching max or low limit on ADCs
-        or (not isnormal((gpulse.GetY())[ipoint])))
-    {
-      gpulse.RemovePoint(ipoint);
-      ipoint--;
-    }
+  //  for (int ipoint = 0; ipoint < gpulse.GetN(); ipoint++)
+  //    if ((gpulse.GetY())[ipoint] >= ((1 << 10) - 10)  // drop point if touching max or low limit on ADCs
+  //        or (not isnormal((gpulse.GetY())[ipoint])))
+  //    {
+  //      gpulse.RemovePoint(ipoint);
+  //      ipoint--;
+  //    }
 
   pedestal = gpulse.GetY()[0];  //(double) PEDESTAL;
   double peakval = pedestal;
@@ -132,7 +178,22 @@ bool SampleFit_PowerLawDoubleExp(        //
   if (verbosity <= 1)
     gpulse.Fit(&fits, "QRN0W", "goff", 0., (double) n_samples);
   else
-    gpulse.Fit(&fits, "RN0VW", "goff", 0., (double) n_samples);
+    gpulse.Fit(&fits, "RN0VW+", "goff", 0., (double) n_samples);
+
+  // store results
+  pedestal = fits.GetParameter(4);
+
+  const double peakpos1 = fits.GetParameter(3);
+  const double peakpos2 = fits.GetParameter(6);
+  double max_peakpos = fits.GetParameter(1) + (peakpos1 > peakpos2 ? peakpos1 : peakpos2);
+  if (max_peakpos > n_samples - 1) max_peakpos = n_samples - 1;
+
+  if (fits.GetParameter(0) > 0)
+    peak_sample = fits.GetMaximumX(fits.GetParameter(1), max_peakpos);
+  else
+    peak_sample = fits.GetMinimumX(fits.GetParameter(1), max_peakpos);
+
+  peak = fits.Eval(peak_sample) - pedestal;
 
   if (verbosity)
   {
@@ -146,7 +207,7 @@ bool SampleFit_PowerLawDoubleExp(        //
     canvas->Update();
 
     TGraph *g_plot = static_cast<TGraph *>(gpulse.DrawClone("ap*l"));
-    g_plot->SetTitle("ADC data and fit;Sample number;ADC value");
+    g_plot->SetTitle((string("ADC data and fit #") + to_string(id) + string(";Sample number;ADC value")).c_str());
 
     fits.SetLineColor(kMagenta);
     fits.DrawClone("same");
@@ -172,33 +233,7 @@ bool SampleFit_PowerLawDoubleExp(        //
     f2.SetLineColor(kRed);
     f2.DrawClone("same");
 
-    canvas->Update();
-
-    //    if (id == 1)
-    //    {
-    //      canvas->Print("SampleFit_PowerLawDoubleExp.pdf(");
-    //    }
-    //    canvas->Print("SampleFit_PowerLawDoubleExp.pdf");
-  }
-
-  // store results
-  pedestal = fits.GetParameter(4);
-
-  const double peakpos1 = fits.GetParameter(3);
-  const double peakpos2 = fits.GetParameter(6);
-  double max_peakpos = fits.GetParameter(1) + (peakpos1 > peakpos2 ? peakpos1 : peakpos2);
-  if (max_peakpos > n_samples - 1) max_peakpos = n_samples - 1;
-
-  if (fits.GetParameter(0) > 0)
-    peak_sample = fits.GetMaximumX(fits.GetParameter(1), max_peakpos);
-  else
-    peak_sample = fits.GetMinimumX(fits.GetParameter(1), max_peakpos);
-
-  peak = fits.Eval(peak_sample) - pedestal;
-
-  if (verbosity)
-  {
-    TGraph g_max(n_samples);
+    TGraph g_max(1);
 
     g_max.GetX()[0] = peak_sample;
     g_max.GetY()[0] = peak + pedestal;
@@ -208,7 +243,16 @@ bool SampleFit_PowerLawDoubleExp(        //
     g_max.SetMarkerColor(kRed);
 
     static_cast<TGraph *>(g_max.DrawClone("p"));
+
+    canvas->Update();
+
+    //    if (id == 1)
+    //    {
+    //      canvas->Print("SampleFit_PowerLawDoubleExp.pdf(");
+    //    }
+    canvas->Print("SampleFit_PowerLawDoubleExp.pdf");
   }
+
 
   for (int i = 0; i < n_parameter; ++i)
   {

@@ -7,6 +7,9 @@
 #include <utility>  // std::pair, std::make_pair
 #include <vector>
 
+class TCanvas;
+class TPaveText;
+
 namespace TPCDaqDefs
 {
 //! TPC v1 FEE test stand decoder
@@ -20,6 +23,17 @@ static const unsigned int kSAMPLE_LENGTH = 128;
 static const unsigned int kMaxPadX = 50;
 static const unsigned int kMaxPadY = 12;
 std::pair<int, int> SAMPAChan2PadXY(uint32_t fee_channel);
+
+class SampleFit_PowerLawDoubleExp_PDFMaker
+{
+public:
+  SampleFit_PowerLawDoubleExp_PDFMaker();
+  ~SampleFit_PowerLawDoubleExp_PDFMaker();
+  void MakeSectionPage(const std::string & title);
+private:
+  TCanvas * m_canvas;
+  TPaveText * m_pavedtext;
+};
 
 //! Power law double exp fit
 bool SampleFit_PowerLawDoubleExp(          //

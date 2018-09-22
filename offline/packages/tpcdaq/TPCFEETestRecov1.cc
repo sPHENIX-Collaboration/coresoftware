@@ -74,6 +74,7 @@ TPCFEETestRecov1::TPCFEETestRecov1(const std::string& outputfilename)
   , m_clusteringZeroSuppression(50)
   , m_nPreSample(5)
   , m_nPostSample(5)
+  , m_pdfMaker(nullptr)
 {
 }
 
@@ -83,6 +84,11 @@ TPCFEETestRecov1::~TPCFEETestRecov1()
   {
     m_IOClusters->Clear();
     delete m_IOClusters;
+  }
+
+  if (m_pdfMaker)
+  {
+    delete m_pdfMaker;
   }
 }
 
@@ -108,8 +114,12 @@ int TPCFEETestRecov1::Init(PHCompositeNode* topNode)
 int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
 {
   if (Verbosity() >= VERBOSITY_SOME)
+  {
     cout << "TPCFEETestRecov1::get_HistoManager - Making PHTFileServer " << m_outputFileName
          << endl;
+
+    m_pdfMaker = new SampleFit_PowerLawDoubleExp_PDFMaker();
+  }
   PHTFileServer::get().open(m_outputFileName, "RECREATE");
 
   Fun4AllHistoManager* hm = getHistoManager();
@@ -174,7 +184,9 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
 int TPCFEETestRecov1::End(PHCompositeNode* topNode)
 {
   if (Verbosity() >= VERBOSITY_SOME)
+  {
     cout << "TPCFEETestRecov1::End - write to " << m_outputFileName << endl;
+  }
   PHTFileServer::get().cd(m_outputFileName);
 
   Fun4AllHistoManager* hm = getHistoManager();
@@ -190,6 +202,11 @@ int TPCFEETestRecov1::End(PHCompositeNode* topNode)
   m_eventT->Write();
   m_chanT->Write();
 
+  if (m_pdfMaker)
+  {
+    delete m_pdfMaker;
+    m_pdfMaker = nullptr;
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -217,6 +234,11 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
 
   m_eventHeader.run = event->getRunNumber();
   m_eventHeader.event = event->getEvtSequence();
+
+  if (m_pdfMaker)
+  {
+    m_pdfMaker->MakeSectionPage(str(boost::format("ADC signal fits for Run %1% and event %2%") % m_eventHeader.run % m_eventHeader.event));
+  }
 
   Packet* p = event->getPacket(kPACKET_ID, ID4EVT);
   if (p == nullptr)
@@ -388,6 +410,13 @@ void TPCFEETestRecov1::Clustering()
 
     }  //    for (int pad_x = *cluster.padxs.begin(); pad_x<=*cluster.padxs.rbegin() ;++padx)
 
+
+    if (m_pdfMaker)
+    {
+      m_pdfMaker->MakeSectionPage(str(boost::format("Event %1% Cluster %2%: sum all channel fit followed by fit of X/Y components") % m_eventHeader.event % iter.first));
+    }
+
+
     // fit - overal cluster
     map<int, double> parameters_constraints;
     {
@@ -456,7 +485,8 @@ void TPCFEETestRecov1::Clustering()
   map<double, int> cluster_energy;
   for (auto& iter : m_clusters)
   {
-    cluster_energy[iter.second.peak] = iter.first;
+      //reverse energy sorting
+    cluster_energy[-iter.second.peak] = iter.first;
   }
 
   // save clusters
