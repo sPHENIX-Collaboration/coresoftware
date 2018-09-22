@@ -13,13 +13,16 @@
 #include <TObject.h>
 
 #include <stdint.h>
+#include <cmath>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
 class PHCompositeNode;
 class Fun4AllHistoManager;
 class TTree;
+class TClonesArray;
 
 class TPCFEETestRecov1 : public SubsysReco
 {
@@ -37,6 +40,16 @@ class TPCFEETestRecov1 : public SubsysReco
   void setClusteringZeroSuppression(int threshold)
   {
     m_clusteringZeroSuppression = threshold;
+  }
+
+  void setNPostSample(int nPostSample)
+  {
+    m_nPostSample = nPostSample;
+  }
+
+  void setNPreSample(int nPreSample)
+  {
+    m_nPreSample = nPreSample;
   }
 
   //! simple event header class for ROOT file IO
@@ -81,13 +94,12 @@ class TPCFEETestRecov1 : public SubsysReco
 
     static bool IsValidPad(const int pad_x, const int pad_y);
     std::vector<int> &getPad(const int pad_x, const int pad_y);
-    int getSample(const SampleID & id) ;
+    int getSample(const SampleID &id);
 
     //! 3-D Graph clustering based on PHMakeGroups()
     void Clustering(int zero_suppression, bool verbosity = false);
 
 #ifndef __CINT__
-
 
     const std::vector<std::vector<std::vector<int>>> &getData() const
     {
@@ -106,6 +118,47 @@ class TPCFEETestRecov1 : public SubsysReco
     std::multimap<int, SampleID> m_groups;
 
 #endif  // #ifndef __CINT__
+  };
+
+  //! buffer for a cluster's data
+  class ClusterData : public TObject
+  {
+   public:
+    ClusterData()
+      : min_sample(-1)
+      , max_sample(-1)
+      , peak(NAN)
+      , peak_sample(NAN)
+      , pedstal(NAN)
+      , avg_padx(NAN)
+      , avg_pady(NAN)
+    {
+    }
+
+    std::set<int> padxs;
+    std::set<int> padys;
+    std::set<int> samples;
+
+#ifndef __CINT__
+    std::map<int, std::vector<double>> padx_samples;
+    std::map<int, std::vector<double>> pady_samples;
+    std::vector<double> sum_samples;
+#endif  // #ifndef __CINT__
+
+    int min_sample;
+    int max_sample;
+
+    double peak;
+    double peak_sample;
+    double pedstal;
+
+    std::map<int, double> padx_peaks;
+    std::map<int, double> pady_peaks;
+
+    double avg_padx;
+    double avg_pady;
+
+    ClassDef(ClusterData, 1);
   };
 
   //! simple channel header class for ROOT file IO
@@ -162,6 +215,9 @@ class TPCFEETestRecov1 : public SubsysReco
   EventHeader m_eventHeader;
   EventHeader *m_peventHeader;  //! ->m_eventHeader,  for filling TTree
 
+  int m_nClusters;
+  TClonesArray * m_IOClusters;
+
   TTree *m_chanT;
 
   ChannelHeader m_chanHeader;
@@ -170,6 +226,7 @@ class TPCFEETestRecov1 : public SubsysReco
 
   // clustering stuff
   PadPlaneData m_padPlaneData;
+  std::map<int, ClusterData> m_clusters;
 
   //! rough zero suppression by subtracting sample medium value
   //! \return pair of pedestal and max-pedestal
@@ -178,9 +235,11 @@ class TPCFEETestRecov1 : public SubsysReco
   //! Clustering then prepare IOs
   void Clustering(void);
 
-  int m_clusteringZeroSuppression;
-
 #endif  // #ifndef __CINT__
+
+  int m_clusteringZeroSuppression;
+  int m_nPreSample;
+  int m_nPostSample;
 };
 
 bool operator<(const TPCFEETestRecov1::PadPlaneData::SampleID &s1, const TPCFEETestRecov1::PadPlaneData::SampleID &s2);

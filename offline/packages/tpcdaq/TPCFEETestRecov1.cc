@@ -32,6 +32,7 @@
 //#include <Event/packetConstants.h>
 #include <Event/oncsSubConstants.h>
 
+#include <TClonesArray.h>
 #include <TFile.h>
 #include <TH1D.h>
 #include <TH2D.h>
@@ -65,41 +66,42 @@ TPCFEETestRecov1::TPCFEETestRecov1(const std::string& outputfilename)
   , m_outputFileName(outputfilename)
   , m_eventT(nullptr)
   , m_peventHeader(&m_eventHeader)
+  , m_nClusters(-1)
+  , m_IOClusters(nullptr)
   , m_chanT(nullptr)
   , m_pchanHeader(&m_chanHeader)
   , m_chanData(kSAMPLE_LENGTH, 0)
   , m_clusteringZeroSuppression(50)
+  , m_nPreSample(5)
+  , m_nPostSample(5)
 {
 }
 
 TPCFEETestRecov1::~TPCFEETestRecov1()
 {
+  if (m_IOClusters)
+  {
+    m_IOClusters->Clear();
+    delete m_IOClusters;
+  }
+}
+
+int TPCFEETestRecov1::ResetEvent(PHCompositeNode* topNode)
+{
+  m_eventHeader = EventHeader();
+  m_padPlaneData.Reset();
+  m_clusters.clear();
+  m_chanHeader = ChannelHeader();
+
+  m_nClusters = -1;
+  assert(m_IOClusters);
+  m_IOClusters->Clear();
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TPCFEETestRecov1::Init(PHCompositeNode* topNode)
 {
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int TPCFEETestRecov1::End(PHCompositeNode* topNode)
-{
-  if (Verbosity() >= VERBOSITY_SOME)
-    cout << "TPCFEETestRecov1::End - write to " << m_outputFileName << endl;
-  PHTFileServer::get().cd(m_outputFileName);
-
-  Fun4AllHistoManager* hm = getHistoManager();
-  assert(hm);
-  for (unsigned int i = 0; i < hm->nHistos(); i++)
-    hm->getHisto(i)->Write();
-
-  // help index files with TChain
-  TTree* T_Index = new TTree("T_Index", "T_Index");
-  assert(T_Index);
-  T_Index->Write();
-
-  m_eventT->Write();
-  m_chanT->Write();
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -129,6 +131,9 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
   m_eventT = new TTree("eventT", "TPC FEE per-event Tree");
   assert(m_eventT);
   m_eventT->Branch("evthdr", &m_peventHeader);
+  m_chanT->Branch("nClusters", &m_nClusters, "nClusters/I");
+  m_IOClusters = new TClonesArray("TPCFEETestRecov1::ClusterData", 1000);
+  m_chanT->Branch("Clusters", &m_IOClusters);
 
   m_chanT = new TTree("chanT", "TPC FEE per-channel Tree");
   assert(m_chanT);
@@ -166,11 +171,24 @@ int TPCFEETestRecov1::InitRun(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int TPCFEETestRecov1::ResetEvent(PHCompositeNode* topNode)
+int TPCFEETestRecov1::End(PHCompositeNode* topNode)
 {
-  m_eventHeader = EventHeader();
-  m_padPlaneData.Reset();
-  m_chanHeader = ChannelHeader();
+  if (Verbosity() >= VERBOSITY_SOME)
+    cout << "TPCFEETestRecov1::End - write to " << m_outputFileName << endl;
+  PHTFileServer::get().cd(m_outputFileName);
+
+  Fun4AllHistoManager* hm = getHistoManager();
+  assert(hm);
+  for (unsigned int i = 0; i < hm->nHistos(); i++)
+    hm->getHisto(i)->Write();
+
+  // help index files with TChain
+  TTree* T_Index = new TTree("T_Index", "T_Index");
+  assert(T_Index);
+  T_Index->Write();
+
+  m_eventT->Write();
+  m_chanT->Write();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -308,6 +326,149 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   m_eventT->Fill();
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void TPCFEETestRecov1::Clustering()
+{
+  // find cluster
+  m_padPlaneData.Clustering(m_clusteringZeroSuppression, Verbosity() >= VERBOSITY_SOME);
+  const multimap<int, PadPlaneData::SampleID>& groups = m_padPlaneData.getGroups();
+
+  // export clusters
+  assert(m_clusters.size() == 0);  //already cleared.
+  for (const auto& iter : groups)
+  {
+    const int& i = iter.first;
+    const PadPlaneData::SampleID& id = iter.second;
+    m_clusters[i].padxs.insert(id.padx);
+    m_clusters[i].padys.insert(id.pady);
+    m_clusters[i].samples.insert(id.sample);
+  }
+
+  // process cluster
+  for (auto& iter : m_clusters)
+  {
+    ClusterData& cluster = iter.second;
+
+    assert(cluster.padxs.size() > 0);
+    assert(cluster.padys.size() > 0);
+    assert(cluster.samples.size() > 0);
+
+    cluster.min_sample = max(0, *cluster.samples.begin() - m_nPreSample);
+    cluster.max_sample = min((int) (kSAMPLE_LENGTH) -1, *cluster.samples.rbegin() + m_nPostSample);
+    const int n_sample = cluster.max_sample - cluster.min_sample + 1;
+
+    cluster.sum_samples.assign(n_sample, 0);
+    for (int pad_x = *cluster.padxs.begin(); pad_x <= *cluster.padxs.rbegin(); ++pad_x)
+    {
+      cluster.padx_samples[pad_x].assign(n_sample, 0);
+    }
+    for (int pad_y = *cluster.padys.begin(); pad_y <= *cluster.padys.rbegin(); ++pad_y)
+    {
+      cluster.pady_samples[pad_y].assign(n_sample, 0);
+    }
+
+    for (int pad_x = *cluster.padxs.begin(); pad_x <= *cluster.padxs.rbegin(); ++pad_x)
+    {
+      for (int pad_y = *cluster.padys.begin(); pad_y <= *cluster.padys.rbegin(); ++pad_y)
+      {
+        assert(m_padPlaneData.IsValidPad(pad_x, pad_y));
+
+        vector<int>& padsamples = m_padPlaneData.getPad(pad_x, pad_y);
+
+        for (int i = 0; i < n_sample; ++i)
+        {
+          int adc = padsamples.at(cluster.min_sample + i);
+          cluster.sum_samples[i] += adc;
+          cluster.padx_samples[pad_x][i] += adc;
+          cluster.pady_samples[pad_y][i] += adc;
+        }
+
+      }  //    	    for (int pad_y = *cluster.padys.begin(); pad_y<=*cluster.padys.rbegin() ;++pady)
+
+    }  //    for (int pad_x = *cluster.padxs.begin(); pad_x<=*cluster.padxs.rbegin() ;++padx)
+
+    // fit - overal cluster
+    map<int, double> parameters_constraints;
+    {
+      double peak = NAN;
+      double peak_sample = NAN;
+      double pedstal = NAN;
+      map<int, double> parameters_io;
+      SampleFit_PowerLawDoubleExp(cluster.sum_samples, peak,
+                                  peak_sample, pedstal, parameters_io, Verbosity());
+
+      parameters_constraints[1] = parameters_io[1];
+      parameters_constraints[2] = parameters_io[2];
+      parameters_constraints[3] = parameters_io[3];
+      parameters_constraints[5] = parameters_io[5];
+      parameters_constraints[6] = parameters_io[6];
+
+      cluster.peak = peak;
+      cluster.peak_sample = peak_sample;
+      cluster.pedstal = pedstal;
+    }
+
+    // fit - X
+    {
+      double sum_peak = 0;
+      double sum_peak_padx = 0;
+      for (int pad_x = *cluster.padxs.begin(); pad_x <= *cluster.padxs.rbegin(); ++pad_x)
+      {
+        double peak = NAN;
+        double peak_sample = NAN;
+        double pedstal = NAN;
+        map<int, double> parameters_io(parameters_constraints);
+
+        SampleFit_PowerLawDoubleExp(cluster.padx_samples[pad_x], peak,
+                                    peak_sample, pedstal, parameters_io, Verbosity());
+
+        cluster.padx_peaks[pad_x] = peak;
+        sum_peak += peak;
+        sum_peak_padx += peak * pad_x;
+      }
+      cluster.avg_padx = sum_peak_padx / sum_peak;
+    }
+
+    // fit - Y
+    {
+      double sum_peak = 0;
+      double sum_peak_pady = 0;
+      for (int pad_y = *cluster.padys.begin(); pad_y <= *cluster.padys.rbegin(); ++pad_y)
+      {
+        double peak = NAN;
+        double peak_sample = NAN;
+        double pedstal = NAN;
+        map<int, double> parameters_io(parameters_constraints);
+
+        SampleFit_PowerLawDoubleExp(cluster.pady_samples[pad_y], peak,
+                                    peak_sample, pedstal, parameters_io, Verbosity());
+
+        cluster.pady_peaks[pad_y] = peak;
+        sum_peak += peak;
+        sum_peak_pady += peak * pad_y;
+      }
+      cluster.avg_pady = sum_peak_pady / sum_peak;
+    }
+  }  //   for (auto& iter : m_clusters)
+
+  // sort by energy
+  map<double, int> cluster_energy;
+  for (auto& iter : m_clusters)
+  {
+    cluster_energy[iter.second.peak] = iter.first;
+  }
+
+  // save clusters
+  m_nClusters = 0;
+  assert(m_IOClusters);
+  for (const auto& iter : cluster_energy)
+  {
+    ClusterData& cluster = m_clusters[iter.second];
+
+    // super awkward ways of ROOT filling TClonesArray
+    new ((*m_IOClusters)[m_nClusters++]) ClusterData(cluster);
+  }
 }
 
 TPCFEETestRecov1::PadPlaneData::
@@ -461,14 +622,6 @@ void TPCFEETestRecov1::PadPlaneData::Clustering(int zero_suppression, bool verbo
       }
       cout << endl;
     }  //  for (const int& comp : comps)
-}
-
-void TPCFEETestRecov1::Clustering()
-{
-  m_padPlaneData.Clustering(m_clusteringZeroSuppression, Verbosity() >= VERBOSITY_SOME);
-
-
-
 }
 
 Fun4AllHistoManager*
