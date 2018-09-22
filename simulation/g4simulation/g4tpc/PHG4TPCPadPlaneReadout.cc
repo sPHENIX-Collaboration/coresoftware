@@ -8,6 +8,7 @@
 
 #include "TF1.h"
 #include <TSystem.h>
+#include <TNtuple.h>
 
 #include <cmath>
 #include <iostream>
@@ -17,9 +18,11 @@ using namespace std;
 PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name):
 PHG4TPCPadPlane(name)
 {
-  InitializeParameters();
+ InitializeParameters();
 
-  fcharge = new TF1("fcharge", "gaus(0)");
+ hit = 0;
+
+ fcharge = new TF1("fcharge", "gaus(0)");
 
  for(int ipad = 0;ipad < 10; ipad++)
     {
@@ -75,11 +78,14 @@ int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
   return 0;
 }
 
-void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter)
+void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width 
   // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
+
+  int verbosity = 101;
+
   double phi = atan2(y_gem,x_gem);
  if (phi > +M_PI) phi -= 2 * M_PI;
   if (phi < -M_PI) phi += 2 * M_PI;
@@ -116,7 +122,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // The resolution due to pad readout includes the charge spread during GEM multiplication.
   // this now defaults to 400 microns during construction from Tom (see 8/11 email).
   // Use the setSigmaT(const double) method to update...
-  // We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are 0.19 and 0.285 cm
+  // We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are for 80 ns SAMPA
 
   // amplify the single electron in the gem stack
   //===============================
@@ -127,7 +133,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // Distribute the charge between the pads in phi
   //====================================
 
-  if(verbosity > 100)
+  if(verbosity > 200)
     cout << "  populate phi bins for " 
 	 << " layernum " << layernum 
 	 << " phi " << phi 
@@ -154,7 +160,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   
   // Distribute the charge between the pads in z
   //====================================
-  if(verbosity > 100)
+  if(verbosity > 100 && layernum == 50)
     cout << "  populate z bins for layernum " << layernum 
 	 << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
 
@@ -205,6 +211,9 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  phi_integral += phicenter*neffelectrons;
 	  z_integral += zcenter*neffelectrons;
 	  weight += neffelectrons;
+	  if(verbosity > 100 && layernum == 50)
+	    cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter 
+		 << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl; 
 
 	  PHG4CellDefs::keytype key = PHG4CellDefs::SizeBinning::genkey(layernum,zbin_num,pad_num);
 	  PHG4Cell *cell = g4cells->findCell(key);
@@ -215,19 +224,24 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	    }
 	  cell->add_edep(neffelectrons);
 	  cell->add_edep(hiter->first, neffelectrons);  // associates g4hit with this edep
-	  //cell->identify();
-
+	  //if(verbosity > 100 && layernum == 50)  cell->identify();
 	} // end of loop over adc Z bins
     } // end of loop over zigzag pads
 
+  ntpad->Fill(layernum, phi, phi_integral/weight, z_gem, z_integral/weight);
 
   if(verbosity > 100)
     {
-      cout << " quick centroid using neffelectrons " << endl;
-      cout << "      phi centroid = " << phi_integral / weight 
-	   << " z centroid = " << z_integral / weight 
-	   << endl;
+      cout << " hit " << hit << " quick centroid for this electron " << endl;
+      cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral/weight - phi << endl;
+      cout   << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral/weight - z_gem   << endl;
+      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 50.
+      // The centroid of that should match the cluster centroid found by PHG4TPCClusterizer for layer 50, if everything is working 
+      //   - matches to < .01 cm for a few cases that I checked
+      nthit->Fill(hit, layernum, phi, phi_integral/weight, z_gem, z_integral/weight, weight);
     }
+
+  hit ++;
 
   return;
 }
@@ -368,7 +382,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
 						      
 void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
 {
-  //int verbosity = 0;
+  //int verbosity = 3000;
   int zbin = LayerGeom->get_zbin(z);
   if(zbin < 0 || zbin > LayerGeom->get_zbins() )
     {
@@ -382,47 +396,91 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
   if(verbosity > 100)
     cout << "     input:  z " << z << " zbin " << zbin << " zstepsize " << zstepsize << " z center " << LayerGeom->get_zcenter(zbin) << " zdisp " << zdisp << endl;
 
+  // Because of diffusion, hits can be shared across the membrane, so we allow all z bins
   int min_cell_zbin = 0;
   int max_cell_zbin = NZBins-1;
-  if (z>0)
-    {
-      min_cell_zbin = NZBins/2;       //positive drifting volume
-    }
-  else
-    {
-      max_cell_zbin = NZBins/2 - 1;       //negative drifting volume   
-    }
   
   double cloud_sig_zz_inv[2];
   cloud_sig_zz_inv[0] = 1. / cloud_sig_zz[0];
   cloud_sig_zz_inv[1] = 1. / cloud_sig_zz[1];
 
+  int zsect = 0;
+  if(z < 0)
+    zsect = -1;
+  else
+    zsect = 1;
+  
   int n_zz = int(3 * (cloud_sig_zz[0] + cloud_sig_zz[1]) / (2.0 * zstepsize) + 1);  
   if(verbosity > 100)  cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
   for (int iz = -n_zz; iz != n_zz + 1; ++iz)
     {
       int cur_z_bin = zbin + iz;
+      if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
 
       if(verbosity > 100)
 	cout << " iz " << iz  << " cur_z_bin " << cur_z_bin << " min_cell_zbin " << min_cell_zbin << " max_cell_zbin " << max_cell_zbin  << endl;
 
-      if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
-      // Get the integral of the charge probability distribution in Z inside the current Z step. We only need to get the relative signs correct here, I think
-      // this is correct for z further from the membrane - charge arrives early
-      double zLim1 = 0.5 * M_SQRT2 * ((iz + 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[0];
-      double zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[0];
-      // The above is correct if we are in the leading part of the time distribution. In the tail of the distribution we use the second gaussian width
-      // this is correct for z  closer to the membrane - charge arrives late
-      if (zLim1 > 0)
-	zLim1 = 0.5 * M_SQRT2 * ((iz + 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[1];
-      if (zLim2 > 0)
-	zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[1];
-      // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
-      double z_integral = 0.5 * (erf(zLim1) - erf(zLim2));
+      double z_integral = 0.0;
+      if(iz == 0)
+	{
+	  // the crossover between lead and tail shaping occurs in this bin
+	  int index1 = -1;
+	  int index2 = -1;
+	  if(zsect == -1) 
+	    {
+	      index1 = 0; index2 = 1;
+	    }
+	  else
+	    {
+	      index1 = 1;  index2 = 0;
+	    }
 
-      if(verbosity > 100)
-	cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
-	     << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << endl;
+	  double zLim1 = 0.0;
+	  double zLim2 = 0.5 * M_SQRT2 * (- 0.5 * zstepsize - zdisp) * cloud_sig_zz_inv[index1];  
+	  // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
+	  double z_integral1 = 0.5 * (erf(zLim1) - erf(zLim2));
+	  
+	  if(verbosity > 100)
+	    cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
+		 << " index1 " << index1 << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral1 " << z_integral1 << endl;
+
+	  zLim2 = 0.0;
+	  zLim1 = 0.5 * M_SQRT2 * ( 0.5 * zstepsize - zdisp) * cloud_sig_zz_inv[index2];  
+	  double z_integral2 = 0.5 * (erf(zLim1) - erf(zLim2));
+	  
+	  if(verbosity > 100)
+	    cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
+		 << " index2 " << index2 << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral2 " << z_integral2 << endl;
+	  
+	  z_integral = z_integral1 + z_integral2;
+	}
+      else
+	{
+	  // The non zero bins are entirely in the lead or tail region
+	  // lead or tail depends on which side of the membrane
+	  int index = 0;
+	  if(iz < 0)
+	    {
+	      if(zsect == -1)
+		  index = 0; 
+	      else
+		  index = 1;
+	    }
+	  else
+	    {
+	      if(zsect == -1)
+		  index = 1;
+	      else
+		  index = 0;
+	    }
+	  double zLim1 = 0.5 * M_SQRT2 * ((iz + 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[index];
+	  double zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[index];  
+	  z_integral = 0.5 * (erf(zLim1) - erf(zLim2));  
+
+	  if(verbosity > 100)
+	    cout << "   populate_zbins:  z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
+		 << " index " << index << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << endl;
+	}
      
 	adc_zbin.push_back(cur_z_bin);
 	adc_zbin_share.push_back(z_integral);
@@ -447,7 +505,7 @@ void PHG4TPCPadPlaneReadout::SetDefaultParameters()
   set_default_double_param("tpc_maxradius_mid",60.0); 
   set_default_double_param("tpc_maxradius_outer",78.0); 
 
-  set_default_double_param("neffelectrons_threshold",100.0); 
+  set_default_double_param("neffelectrons_threshold",1.0); 
   set_default_double_param("maxdriftlength",105.5); // cm
   set_default_double_param("drift_velocity",8.0 / 1000.0); // cm/ns
   set_default_double_param("tpc_adc_clock",53.0); // ns, for 18.8 MHz clock

@@ -36,7 +36,7 @@ public:
   std::string Detector() const {return detector;}
   void set_seed(const unsigned int iseed);
 //  void Amplify(const double x, const double y, const double z);
-  void MapToPadPlane(const double x, const double y, const double z,  PHG4HitContainer::ConstIterator hiter);
+  void MapToPadPlane(const double x, const double y, const double z,  PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 //void registerPadPlane(PHG4TPCPadPlaneReadout *padplane);
 void registerPadPlane(PHG4TPCPadPlane *padplane);
 

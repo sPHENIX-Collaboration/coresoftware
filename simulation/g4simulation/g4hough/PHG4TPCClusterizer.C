@@ -76,7 +76,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fDCL(0.012),
   _inv_sqrt12( 1.0/TMath::Sqrt(12) ),
   _twopi( TMath::TwoPi() ),
-  fHClusterEnergy(NULL),
+  zz_shaping_correction(0.0508),  // correction for 80 ns SAMPA
+ fHClusterEnergy(NULL),
   fHClusterSizePP(NULL),
   fHClusterSizeZZ(NULL),
   fHClusterErrorPP(NULL),
@@ -677,7 +678,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     for(unsigned int i = 0; i < layer_sorted[layer - fMinLayer].size(); ++i) {
       const SvtxHit* hit = layer_sorted[layer - fMinLayer][i];
       if(hit->get_e() <= 0.) continue;
-      if(verbosity>2000) std::cout << hit->get_cellid();
+      if(verbosity>2000) 
+	std::cout << hit->get_cellid();
       PHG4Cell* cell = cells->findCell(hit->get_cellid()); //not needed once geofixed
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());//cell->get_binphi();
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());//cell->get_binz();
@@ -686,9 +688,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
-      //cout << "Clusterizer: Hit identify:" << endl;
-      //hit->identify();
-      //cout << "layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << endl;
+      if(layer == 50) 
+	{
+	  cout << "Clusterizer hit:  ";
+	  //hit->identify();
+	  cout << "layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << " adc " << fAmps[zbin * fNPhiBins + phibin] << endl;
+	}
     }
     if(fDeconMode){
       cout << "deconvoluting layer: " << layer << endl;
@@ -739,6 +744,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float phi = fit_p_mean();
 	  float pp = radius*phi;
 	  float zz = fit_z_mean();
+	  // Correction for bias in electron z position due to asymmeteric SAMPA shaping
+	  float zz_raw = zz;
+	  if(zz < 0)
+	    zz -= zz_shaping_correction;
+	  else
+	    zz += zz_shaping_correction;
 	  float pp_err = radius * fGeoLayer->get_phistep() * _inv_sqrt12;
 	  float zz_err = fGeoLayer->get_zstep() * _inv_sqrt12;
 
@@ -752,11 +763,15 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW*0.14) );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW*0.14) );
-	  if(verbosity > 100) 
-	    if(layer > 23) cout << " layer " << layer << " number of primary electrons = " << fFitW * 0.14 << endl;
-
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
+
+	  if(layer == 50) 
+	      {
+		cout << " layer " << layer << " number of primary electrons (adc) = " << fFitW * 0.14 << " zz_raw " << zz_raw << " zz " << zz
+		     << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
+		cout << "       zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << endl;
+	      }
 
 	  if(verbosity>1) {
 	    fHClusterEnergy->Fill(fFitW);

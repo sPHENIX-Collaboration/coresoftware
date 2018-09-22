@@ -93,6 +93,7 @@ class PHG4TPCClusterizer : public SubsysReco {
   float fDCL;
   float _inv_sqrt12;
   float _twopi;
+  float zz_shaping_correction;
 
   TH1F *fHClusterEnergy;
   TProfile2D *fHClusterSizePP;

@@ -6,6 +6,7 @@
 
 #include <vector>
 
+class TNtuple;
 class TF1;
 class PHG4CellContainer;
 class PHG4CylinderCellGeomContainer;
@@ -19,7 +20,7 @@ public:
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
-  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter);
+  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
   void populate_rectangular_phibins(const unsigned int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zigzag_phibins(const unsigned int layernum, const double phi,  const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
@@ -69,6 +70,7 @@ protected:
   int NTpcLayers[3];
   int tpc_region;
   int zigzag_pads;
+  int hit;
 
   std::vector<int> adc_zbin;
   std::vector<int> pad_phibin;
