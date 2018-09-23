@@ -545,7 +545,7 @@ std::pair<int, int> TPCFEETestRecov1::roughZeroSuppression(std::vector<int>& dat
   sort(sorted_data.begin(), sorted_data.end());
 
   const int pedestal = sorted_data[sorted_data.size() / 2];
-  const int max = sorted_data.back() - pedestal;
+  const int max = sorted_data.back();
 
   for (auto& d : data)
     d -= pedestal;

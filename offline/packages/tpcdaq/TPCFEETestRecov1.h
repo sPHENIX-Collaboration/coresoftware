@@ -237,7 +237,7 @@ class TPCFEETestRecov1 : public SubsysReco
   std::map<int, ClusterData> m_clusters;
 
   //! rough zero suppression by subtracting sample medium value
-  //! \return pair of pedestal and max-pedestal
+  //! \return pair of pedestal and max
   static std::pair<int, int> roughZeroSuppression(std::vector<int> &data);
 
   //! Clustering then prepare IOs
