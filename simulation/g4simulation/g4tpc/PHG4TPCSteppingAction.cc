@@ -89,7 +89,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   {
     return false;
   }
-  int layer_id = 10;  // no layer number for the hit, just use 10
+  unsigned int layer_id = 99;  // no layer number for the hit, use a non-existent one for now, replace it later
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
@@ -145,7 +145,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       hit = new PHG4Hitv1();
     }
-    hit->set_layer(layer_id);
+    //hit->set_layer(layer_id);
     //here we set the entrance values in cm
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);

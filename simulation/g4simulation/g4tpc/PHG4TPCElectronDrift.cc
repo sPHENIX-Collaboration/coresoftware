@@ -207,7 +207,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     }
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
-    //if(verbosity > 100) 
+    if(verbosity > 100) 
       cout << "  new hit with t0, " <<  t0 << " g4hitid " << hiter->first 
 	   << " eion " << eion << " n_electrons " << n_electrons 
 	   << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1))/2.0 
@@ -309,7 +309,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       }
     ihit++;
   }
-  //if (Verbosity()>1)
+  if (Verbosity()>1)
     {
       cout << " Cells associated with this hit:" << endl; 
       {

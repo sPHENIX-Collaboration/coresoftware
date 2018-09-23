@@ -688,12 +688,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
-      if(layer == 50) 
-	{
-	  cout << "Clusterizer hit:  ";
-	  //hit->identify();
-	  cout << "layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << " adc " << fAmps[zbin * fNPhiBins + phibin] << endl;
-	}
+      if(verbosity > 100)
+	if(layer == 50) 
+	  {
+	    cout << "Clusterizer hit:  ";
+	    //hit->identify();
+	    cout << "layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << " adc " << fAmps[zbin * fNPhiBins + phibin] << endl;
+	  }
     }
     if(fDeconMode){
       cout << "deconvoluting layer: " << layer << endl;
@@ -715,7 +716,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       for(int zbin = 0; zbin!=fNZBins; ++zbin) {
         if(fNHitsPerZ[zbin]<=0) continue;
 	float abszbincenter = TMath::Abs(fGeoLayer->get_zcenter( zbin ));
-	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangZ
+	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangeZ
 	float TPC_padgeo_sigma = 0.04;  // 0.4 mm (from Tom)
 	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion, used only to calculate FitRangeP
 	fFitRangeZ = int( fClusterWindow*sigmaZ/stepz + 1);
@@ -766,7 +767,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
 
-	  if(layer == 50) 
+	  if(verbosity > 100)
+	    if(layer == 50) 
 	      {
 		cout << " layer " << layer << " number of primary electrons (adc) = " << fFitW * 0.14 << " zz_raw " << zz_raw << " zz " << zz
 		     << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;

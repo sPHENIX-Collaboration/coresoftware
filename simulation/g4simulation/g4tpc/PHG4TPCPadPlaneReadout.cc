@@ -84,7 +84,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width 
   // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
 
-  int verbosity = 101;
+  //int verbosity = 101;
 
   double phi = atan2(y_gem,x_gem);
  if (phi > +M_PI) phi -= 2 * M_PI;
@@ -108,6 +108,8 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	{
 	  LayerGeom = layeriter->second;
 	  layernum = LayerGeom->get_layer();
+	  //cout << " g4hit id " << hiter->first  << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
+	  hiter->second->set_layer(layernum);     // have to set here, since the stepping action knows noting about layers
 	}
     }
 
