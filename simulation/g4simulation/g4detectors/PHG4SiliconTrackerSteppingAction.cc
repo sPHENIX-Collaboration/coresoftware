@@ -4,10 +4,10 @@
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderGeomContainer.h"
+
 #include <PHG4CylinderGeom.h>
 #include <PHG4CylinderGeom_Siladders.h>
 
-#include "PHG4StepStatusDecode.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -28,22 +28,6 @@
 #include <Geant4/G4TouchableHandle.hh>
 #include <Geant4/G4TouchableHistory.hh>
 #include <Geant4/G4VProcess.hh>
-
-#include <boost/foreach.hpp>
-#include <boost/format.hpp>
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
 
 #include <gsl/gsl_math.h>
 
@@ -119,8 +103,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
   // set ladder index
-  unsigned int sphxlayer = 0;
-  unsigned int inttlayer = 0;
+  int sphxlayer = 0;
+  int inttlayer = 0;
   int ladderz = 0;
   int ladderphi = 0;
   int zposneg = 0;
@@ -137,7 +121,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	  assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
 	}
       sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-      //cout << " sphxlayer " << sphxlayer << " inttlayer " << inttlayer << " ladderz " << ladderz  << " ladderphi " << ladderphi << " zposneg " << zposneg << endl;
       map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
       if (activeiter == m_IsActiveMap.end())
 	{
@@ -206,12 +189,15 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
     // set the index values needed to locate the sensor strip
-    if (zposneg == 1) ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
+    if (zposneg == 1) 
+    {
+      ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
+    }
+
     m_Hit->set_ladder_z_index(ladderz);
 
     if (whichactive > 0)
     {
-      m_Hit->set_layer(sphxlayer);
       m_Hit->set_ladder_phi_index(ladderphi);
       m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
       m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);
@@ -227,11 +213,12 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     StoreLocalCoordinate(m_Hit, aStep, true, false);
 
     if(Verbosity() > 1)
+    {
       cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
 	   << "    " << prePoint->GetPosition().y() / cm
 	   << "     " << prePoint->GetPosition().z() / cm
 	   << endl;
-    
+    }    
 
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
@@ -320,10 +307,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
   // aTrack->GetTrackStatus() == fStopAndKill is also set)
   // aTrack->GetTrackStatus() == fStopAndKill: track ends
-  if (postPoint->GetStepStatus() == fGeomBoundary ||   // 1    normal
-      postPoint->GetStepStatus() == fWorldBoundary ||   // 0    not normal!
-      postPoint->GetStepStatus() == fAtRestDoItProc ||    // 2    particle stopped
-      aTrack->GetTrackStatus() == fStopAndKill)            // 2    track stopped
+  if (postPoint->GetStepStatus() == fGeomBoundary ||
+      postPoint->GetStepStatus() == fWorldBoundary ||
+      postPoint->GetStepStatus() == fAtRestDoItProc ||
+      aTrack->GetTrackStatus() == fStopAndKill)
     {
       if (Verbosity() > 1)
 	{
@@ -336,28 +323,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	       << endl;
 	}
 
-	if(postPoint->GetStepStatus() != 1 && aTrack->GetParentID() == 0)   // primary tracks should not end strangely!
-	  {
-	    cout << "***** Strange termination of hit from primary track with postPoint->GetStepStatus = " << postPoint->GetStepStatus() << " aTrack->GetTrackStatus = " 
-		 << aTrack->GetTrackStatus() << endl;
-	    cout << "     aTrack->GetTrackID " << aTrack->GetTrackID() << " aTrack->GetParentID " << aTrack->GetParentID() << endl;
-	    cout << "     sphxlayer " << sphxlayer <<  " ladderz " << ladderz << " ladderphi " << ladderphi << endl;
-	    cout  << "     px0 " << m_Hit->get_px(0) << " py0 " << m_Hit->get_py(0) << " pz0 " << m_Hit->get_pz(0) << endl;
-	    cout  << "     px1 " << m_Hit->get_px(1) << " py1 " << m_Hit->get_py(1) << " pz1 " << m_Hit->get_pz(1) << " edep " << m_Hit->get_edep() << endl;
-
-	    /*
-	    cout << " postStepStatus: fWorldBoundary " << fWorldBoundary 
-		 << " fGeomBoundary " << fGeomBoundary 
-		 << " fAtRestDoItProc " << fAtRestDoItProc 
-		 <<  " fAlongStepDoItProc " << fAlongStepDoItProc
-		 << " fPostStepDoItProc " << fPostStepDoItProc
-		 << " fUserDefinedLimit " << fUserDefinedLimit
-		 << " fExclusivelyForcedProc " << fExclusivelyForcedProc
-		 << " fUndefined " << fUndefined 
-		 << endl;
-	    cout << " aTrack status: fStopAndKill " << fStopAndKill << endl; 
-	    */	   
-	  }
       // save only hits with energy deposit (or -1 for geantino)
       if (m_Hit->get_edep())
 	{
@@ -375,7 +340,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 	  m_Hit = nullptr;
 	}
       
-      if (whichactive > 0 && Verbosity() > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
+      if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
 	{
 	  // if this hit has no energy deposit, just reset it for reuse
 	  // this means we have to delete it in the dtor. If this was
