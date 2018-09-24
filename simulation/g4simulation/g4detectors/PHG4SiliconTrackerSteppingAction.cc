@@ -108,7 +108,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int ladderphi = 0;
   int zposneg = 0;
 
-  if (whichactive > 0)  // silicon acrive sensor
+  if (whichactive > 0)  // silicon active sensor
   {
     // Get the layer and ladder information which is step up in the volume hierarchy
     // the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
