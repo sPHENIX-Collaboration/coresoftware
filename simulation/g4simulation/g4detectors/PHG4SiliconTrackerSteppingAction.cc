@@ -1,13 +1,12 @@
 #include "PHG4SiliconTrackerSteppingAction.h"
-#include "PHG4SiliconTrackerDefs.h"
-#include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderCellGeom.h"
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderGeomContainer.h"
+#include "PHG4SiliconTrackerDefs.h"
+#include "PHG4SiliconTrackerDetector.h"
 
 #include <PHG4CylinderGeom.h>
 #include <PHG4CylinderGeom_Siladders.h>
-
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -94,13 +93,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   }
 
   if (Verbosity() > 0)
-    {
-      cout << endl
-	   << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
-	   << " volume name (1) " << touch->GetVolume(1)->GetName()
-	   << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
-	   << endl;
-    }
+  {
+    cout << endl
+         << "PHG4SilicoTrackerSteppingAction::UserSteppingAction for volume name (pre) " << touch->GetVolume()->GetName()
+         << " volume name (1) " << touch->GetVolume(1)->GetName()
+         << " volume->GetTranslation " << touch->GetVolume()->GetTranslation()
+         << endl;
+  }
 
   // set ladder index
   int sphxlayer = 0;
@@ -109,42 +108,40 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   int ladderphi = 0;
   int zposneg = 0;
 
-  if(whichactive > 0)  // silicon acrive sensor
-    {  
-      // Get the layer and ladder information which is step up in the volume hierarchy
-      // the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
-      // if we are in an active logical volume whioch is located in this ladder
-      auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(1));
-      tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
-      if (inttlayer < 0 || inttlayer > 7)
-	{
-	  assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
-	}
-      sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
-      map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
-      if (activeiter == m_IsActiveMap.end())
-	{
-	  cout << "PHG4SiliconTrackerSteppingAction: could not find active flag for layer " << inttlayer << endl;
-	  gSystem->Exit(1);
-	}
-      if (activeiter->second == 0)
-	{
-	  return false;
-	}
-      
-    }
-  else  // whichactive < 0, silicon inactive area, FPHX, stabe etc. as absorbers
+  if (whichactive > 0)  // silicon acrive sensor
+  {
+    // Get the layer and ladder information which is step up in the volume hierarchy
+    // the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
+    // if we are in an active logical volume whioch is located in this ladder
+    auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(1));
+    tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
+    if (inttlayer < 0 || inttlayer > 7)
     {
-      auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
-      tie(inttlayer, ladderz) = iter->second;
-      sphxlayer = inttlayer;  //for absorber we use the INTT layer, not the tracking layer in sPHENIX
-    }                         // end of si inactive area block
-  
+      assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
+    }
+    sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
+    map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
+    if (activeiter == m_IsActiveMap.end())
+    {
+      cout << "PHG4SiliconTrackerSteppingAction: could not find active flag for layer " << inttlayer << endl;
+      gSystem->Exit(1);
+    }
+    if (activeiter->second == 0)
+    {
+      return false;
+    }
+  }
+  else  // whichactive < 0, silicon inactive area, FPHX, stabe etc. as absorbers
+  {
+    auto iter = m_Detector->get_PassiveVolumeTuple(touch->GetVolume(0)->GetLogicalVolume());
+    tie(inttlayer, ladderz) = iter->second;
+    sphxlayer = inttlayer;  //for absorber we use the INTT layer, not the tracking layer in sPHENIX
+  }                         // end of si inactive area block
 
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
-  
+
   // if this block stops everything, just put all kinetic energy into edep
   if ((m_IsBlackHoleMap.find(inttlayer))->second == 1)
   {
@@ -153,9 +150,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
-
   bool geantino = false;
-  
+
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
   // geantino or chargedgeantino has pid=0
@@ -166,10 +162,10 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
   if (Verbosity() > 1)
   {
-    cout 	 << " aTrack->GetTrackID " << aTrack->GetTrackID()   << " aTrack->GetParentID " << aTrack->GetParentID()
-		 << " INTT layer " << inttlayer
-		 << " prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus() 
-		 << endl;
+    cout << " aTrack->GetTrackID " << aTrack->GetTrackID() << " aTrack->GetParentID " << aTrack->GetParentID()
+         << " INTT layer " << inttlayer
+         << " prePoint step status = " << prePoint->GetStepStatus() << " postPoint step status = " << postPoint->GetStepStatus()
+         << endl;
   }
   switch (prePoint->GetStepStatus())
   {
@@ -178,8 +174,8 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     if (Verbosity() > 1)
     {
-      cout 	 << "  start new g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " INTT layer " << inttlayer 
-		 << "   prePoint step status  = " << prePoint->GetStepStatus()   << " postPoint->GetStepStatus = " << postPoint->GetStepStatus() << endl;
+      cout << "  start new g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " INTT layer " << inttlayer
+           << "   prePoint step status  = " << prePoint->GetStepStatus() << " postPoint->GetStepStatus = " << postPoint->GetStepStatus() << endl;
     }
     // if previous hit was saved, hit pointer was set to nullptr
     // and we have to make a new one
@@ -189,7 +185,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
 
     // set the index values needed to locate the sensor strip
-    if (zposneg == 1) 
+    if (zposneg == 1)
     {
       ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     }
@@ -212,13 +208,13 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     StoreLocalCoordinate(m_Hit, aStep, true, false);
 
-    if(Verbosity() > 1)
+    if (Verbosity() > 1)
     {
       cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
-	   << "    " << prePoint->GetPosition().y() / cm
-	   << "     " << prePoint->GetPosition().z() / cm
-	   << endl;
-    }    
+           << "    " << prePoint->GetPosition().y() / cm
+           << "     " << prePoint->GetPosition().z() / cm
+           << endl;
+    }
 
     // time in ns
     m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
@@ -298,7 +294,6 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     }
   }
 
-
   // if any of these conditions is true this is the last step in
   // this volume and we need to save the hit
   // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
@@ -311,53 +306,53 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       postPoint->GetStepStatus() == fWorldBoundary ||
       postPoint->GetStepStatus() == fAtRestDoItProc ||
       aTrack->GetTrackStatus() == fStopAndKill)
+  {
+    if (Verbosity() > 1)
     {
-      if (Verbosity() > 1)
-	{
-	  cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to " 
-	       << aTrack->GetTrackStatus() << endl;
-	  cout 	 << "  end g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " eion = " << eion << endl;
-	  cout << "     end hit position x,y,z = " << postPoint->GetPosition().x() / cm
-	       << "    " << postPoint->GetPosition().y() / cm
-	       << "     " << postPoint->GetPosition().z() / cm
-	       << endl;
-	}
-
-      // save only hits with energy deposit (or -1 for geantino)
-      if (m_Hit->get_edep())
-	{
-	  m_SaveHitContainer->AddHit(sphxlayer, m_Hit);
-	  if (m_SaveShower)
-	    {
-	      m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
-	    }
-	  if (Verbosity() > 1)
-	    {
-	      m_Hit->print();
-	    }
-	  // ownership has been transferred to container, set to null
-	  // so we will create a new hit for the next track
-	  m_Hit = nullptr;
-	}
-      
-      if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
-	{
-	  // if this hit has no energy deposit, just reset it for reuse
-	  // this means we have to delete it in the dtor. If this was
-	  // the last hit we processed the memory is still allocated
-	  m_Hit->Reset();
-	}
+      cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to "
+           << aTrack->GetTrackStatus() << endl;
+      cout << "  end g4hit for:  aTrack->GetParentID " << aTrack->GetParentID() << " aTrack->GetTrackID " << aTrack->GetTrackID() << " eion = " << eion << endl;
+      cout << "     end hit position x,y,z = " << postPoint->GetPosition().x() / cm
+           << "    " << postPoint->GetPosition().y() / cm
+           << "     " << postPoint->GetPosition().z() / cm
+           << endl;
     }
+
+    // save only hits with energy deposit (or -1 for geantino)
+    if (m_Hit->get_edep())
+    {
+      m_SaveHitContainer->AddHit(sphxlayer, m_Hit);
+      if (m_SaveShower)
+      {
+        m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
+      }
+      if (Verbosity() > 1)
+      {
+        m_Hit->print();
+      }
+      // ownership has been transferred to container, set to null
+      // so we will create a new hit for the next track
+      m_Hit = nullptr;
+    }
+
+    if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
+    {
+      // if this hit has no energy deposit, just reset it for reuse
+      // this means we have to delete it in the dtor. If this was
+      // the last hit we processed the memory is still allocated
+      m_Hit->Reset();
+    }
+  }
   return true;
 }
-				     
+
 //____________________________________________________________________________..
 void PHG4SiliconTrackerSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   const string detectorname = (m_Detector->SuperDetector() != "NONE") ? m_Detector->SuperDetector() : m_Detector->GetName();
   const string hitnodename = "G4HIT_" + detectorname;
   const string absorbernodename = "G4HIT_ABSORBER_" + detectorname;
-  
+
   //now look for the map and grab a pointer to it.
   m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
