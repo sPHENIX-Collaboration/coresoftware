@@ -977,7 +977,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gdz       = fabs(g4hit->get_z(1) - g4hit->get_z(0));
       float gedep     = g4hit->get_edep();
       float glayer    = g4hit->get_layer();
-  
       float gtrackID  = g4hit->get_trkid();
 
       float gflavor   = NAN;

@@ -21,8 +21,7 @@ PHG4CylinderGeom_Siladders::PHG4CylinderGeom_Siladders():
   nladders_layer(-1),
   ladder_z0(NAN),
   ladder_z1(NAN),
-  sensor_radius_inner(NAN),
-  sensor_radius_outer(NAN),
+  sensor_radius(NAN),
   strip_x_offset(NAN),
   offsetphi(NAN),
   offsetrot(NAN),
@@ -59,16 +58,13 @@ void PHG4CylinderGeom_Siladders::find_segment_center(const int segment_z_bin, co
   location[0] = radius  * cos(phi);
   location[1] = radius  * sin(phi);
   location[2] = signz * ladder_z_[itype];
+
+  //cout << "radius " << radius << " offsetphi " << offsetphi << " rad  dphi_ " << dphi_ << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
 }
 
 void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
-  // The sub layer radius is determined from the ladder phi index, called segment_phi_bin
-  
-  radius = sensor_radius_inner;
-  if(segment_phi_bin % 2)
-    radius = sensor_radius_outer;
-  //cout << "      setting working sensor radius to " << radius << endl;
+  radius = sensor_radius;  
   
   // Ladder
   find_segment_center(segment_z_bin, segment_phi_bin, location);
@@ -87,7 +83,6 @@ void PHG4CylinderGeom_Siladders::find_strip_center(const int segment_z_bin, cons
 
   // Strip rotation
   const double phi    = offsetphi + dphi_ * segment_phi_bin;
-  //const double rotate = phi + offsetrot + M_PI;
   const double rotate = phi + offsetrot;
 
   CLHEP::HepRotation rot;

@@ -135,22 +135,25 @@ PHG4Detector *PHG4SiliconTrackerSubsystem::GetDetector(void) const
 
 void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
 {
-  // We have only two types of ladders, one with vertical strips (0) and one with horizontal strips (1)
+  // We have only two types of ladders, one with vertical strips (SEGMENTATION_Z) and one with horizontal strips (SEGMENTATION_PHI)
   // There are 4 sensors in each ladder
   //     In ladder type 0 the sensor is special and inner and outer sensors are the same.
   //     In ladder type 1 there are two different sensor types, inner and outer
-
   // We do not want to hard code the ladder types for the layers
-  // We define default ladder types for 4 layers, but these can be changed at the macro level
-  int laddertype[4] = {PHG4SiliconTrackerDefs::SEGMENTATION_Z,
-                       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
-                       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
-                       PHG4SiliconTrackerDefs::SEGMENTATION_PHI};
-  int nladder[4] = {34, 30, 36, 42};
-  double sensor_radius_inner[4] = {6.876, 8.987, 10.835, 12.676};
-  double sensor_radius_outer[4] = {7.462, 9.545, 11.361, 13.179};
 
-  // sensor radius_inner and sensor_radius_outer are set in the constructor for now, to avoid a problem with the parameter class
+  // We define default ladder types for 8 layers, but these can be changed at the macro level
+
+  int laddertype[8] = {PHG4SiliconTrackerDefs::SEGMENTATION_Z, 
+		       PHG4SiliconTrackerDefs::SEGMENTATION_Z, 
+		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI,
+		       PHG4SiliconTrackerDefs::SEGMENTATION_PHI};  // default
+  int nladder[8] = {17,  17, 15, 15, 18, 18, 21, 21};  // default
+  double sensor_radius[8] = {6.876, 7.462, 8.987, 9.545, 10.835, 11.361, 12.676, 13.179};  // radius of center of sensor for layer default
+
   auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
   for (auto detiter = detid.first; detiter != detid.second; ++detiter)
   {
@@ -159,15 +162,16 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     // To reconfigure the layers, all you have to do is overide the defaults for these four arrays from the tracking macro
     set_default_int_param(*detiter, "laddertype", laddertype[*detiter]);
     set_default_int_param(*detiter, "nladder", nladder[*detiter]);  // ladders per layer
-    set_default_double_param(*detiter, "sensor_radius_inner", sensor_radius_inner[*detiter]);
-    set_default_double_param(*detiter, "sensor_radius_outer", sensor_radius_outer[*detiter]);
+    set_default_double_param(*detiter, "sensor_radius", sensor_radius[*detiter]);
     // These offsets should be kept at zero in the new design
     set_default_double_param(*detiter, "offsetphi", 0.);
     set_default_double_param(*detiter, "offsetrot", 0.);
     cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
     cout << "  layer " << *detiter << " laddertype " << laddertype[*detiter] << " nladder " << nladder[*detiter]
-         << " sensor_radius_inner " << sensor_radius_inner[*detiter] << " sensor_radius_outer " << sensor_radius_outer[*detiter] << endl;
+         << " sensor_radius " << sensor_radius[*detiter]  << endl;
   }
+
+  // These are the parameters that describe the internal ladder geometry for the two ladder types
   {  // just being lazy, using namespace in this scope for less clutter
     using namespace PHG4SiliconTrackerDefs;
     set_default_int_param(SEGMENTATION_Z, "nstrips_phi_cell", 1);
