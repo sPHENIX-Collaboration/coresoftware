@@ -16,10 +16,9 @@ PHG4CylinderGeomSiLadders::PHG4CylinderGeomSiLadders():
   m_StripY(NAN),
   m_SensorRadius(NAN),
   m_StripXOffset(NAN),
-  offsetphi(NAN),
-  offsetrot(NAN),
-  dphi_(NAN),
-  radius(NAN)
+  m_OffsetPhi(NAN),
+  m_OffsetRot(NAN),
+  m_dPhi(NAN)
 {
   fill_n(m_StripZ,sizeof(m_StripZ)/sizeof(double),NAN);
   fill_n(m_LadderZ,sizeof(m_LadderZ)/sizeof(double),NAN);
@@ -41,17 +40,16 @@ void PHG4CylinderGeomSiLadders::find_segment_center(const int segment_z_bin, con
   const int itype    = segment_z_bin % 2;
 
   // Ladder
-  const double phi  = offsetphi + dphi_ * segment_phi_bin;
-  location[0] = radius  * cos(phi);
-  location[1] = radius  * sin(phi);
+  const double phi  = m_OffsetPhi + m_dPhi * segment_phi_bin;
+  location[0] = m_SensorRadius  * cos(phi);
+  location[1] = m_SensorRadius  * sin(phi);
   location[2] = signz * m_LadderZ[itype];
 
-  //cout << "radius " << radius << " offsetphi " << offsetphi << " rad  dphi_ " << dphi_ << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
+  //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
 }
 
 void PHG4CylinderGeomSiLadders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
-  radius = m_SensorRadius;  
   
   // Ladder
   find_segment_center(segment_z_bin, segment_phi_bin, location);
@@ -69,8 +67,8 @@ void PHG4CylinderGeomSiLadders::find_strip_center(const int segment_z_bin, const
   CLHEP::Hep3Vector strip_localpos(m_StripXOffset, strip_localpos_y, strip_localpos_z);
 
   // Strip rotation
-  const double phi    = offsetphi + dphi_ * segment_phi_bin;
-  const double rotate = phi + offsetrot;
+  const double phi    = m_OffsetPhi + m_dPhi * segment_phi_bin;
+  const double rotate = phi + m_OffsetRot;
 
   CLHEP::HepRotation rot;
   rot.rotateZ(rotate);

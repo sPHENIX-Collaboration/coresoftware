@@ -24,17 +24,16 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
       const double ladder_z1,
       const double sensor_radius,
       const double strip_x_offset,
-      const double offsetphi_,
-      const double offsetrot_) :
+      const double offsetphi,
+      const double offsetrot) :
         m_Layer(layer),
         m_NStripsPhiCell(nstrips_phi_cell),
         m_StripX(strip_x),
         m_StripY(strip_y),
         m_SensorRadius(sensor_radius),
         m_StripXOffset(strip_x_offset),
-        offsetphi(offsetphi_),
-	offsetrot(offsetrot_),
-	radius(NAN)
+        m_OffsetPhi(offsetphi),
+	m_OffsetRot(offsetrot)
     {
       // Type-A
       m_StripZ[0]          = strip_z0;
@@ -46,7 +45,7 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
       m_LadderZ[1]         = ladder_z1;
       m_NStripsZSensor[1] = nstrips_z_sensor1;
 
-      dphi_ = 2.*M_PI/nladders_layer;
+      m_dPhi = 2.*M_PI/nladders_layer;
     }
 
     void identify(std::ostream& os = std::cout) const;
@@ -93,7 +92,7 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
 
     double get_strip_phi_tilt() const
       {
-        return offsetrot;
+        return m_OffsetRot;
       }
 
   protected:
@@ -105,14 +104,12 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
     double m_StripY;
     double m_SensorRadius;
     double m_StripXOffset;
-    double offsetphi;
-    double offsetrot;
+    double m_OffsetPhi;
+    double m_OffsetRot;
+    double m_dPhi;
 
     double m_StripZ[2];
     double m_LadderZ[2];
-    double dphi_;
-
-    double radius;
 
     ClassDef(PHG4CylinderGeomSiLadders,1)
   };
