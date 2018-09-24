@@ -1,6 +1,7 @@
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Siladders.h"
+#include "PHG4CylinderGeomSiLadders.h"
 #include "PHG4SiliconTrackerParameterisation.h"
 
 #include <phparameter/PHParameters.h>
@@ -795,13 +796,14 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     
     All of the above are carbon fiber.
   */
+  const PHParameters *supportparams = m_ParamsContainer->GetParameters(PHG4SiliconTrackerDefs::SUPPORTPARAMS);
 
   // rails
-  double rail_inner_radius = 4.5;
-  double rail_outer_radius = 6.0;
-  double rail_length = 410.0 * 10.0;  // TPC length is 410 cm
   G4Tubs *rail_tube = new G4Tubs((boost::format("si_support_rail")).str(),
-                                 rail_inner_radius, rail_outer_radius, rail_length / 2.0, -M_PI, 2.0 * M_PI);
+				 supportparams->get_double_param("rail_inner_radius")*cm,
+				 supportparams->get_double_param("rail_outer_radius")*cm,
+				 supportparams->get_double_param("rail_length")*cm / 2.0,
+                                 -M_PI, 2.0 * M_PI);
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                      "rail_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -814,9 +816,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   rail_vis.SetColour(G4Colour::Cyan());
   rail_volume->SetVisAttributes(rail_vis);
 
-  double rail_dphi = M_PI / 3.0;
-  double rail_phi_start = M_PI / 6.0;
-  double rail_radius = 175.0;
+  double rail_dphi = supportparams->get_double_param("rail_dphi")*deg/rad;
+  double rail_phi_start = supportparams->get_double_param("rail_phi_start")*deg/rad;
+  double rail_radius = supportparams->get_double_param("rail_radius")*cm;
   for (int i = 0; i < 6; i++)
   {
     double phi = rail_phi_start + i * rail_dphi;
@@ -832,7 +834,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // Outer skin
 
   G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
-                                       157.0, 158.0, 480.0, -M_PI, 2.0 * M_PI);
+				       supportparams->get_double_param("outer_skin_inner_radius")*cm,
+				       supportparams->get_double_param("outer_skin_outer_radius")*cm,
+				       supportparams->get_double_param("outer_skin_length")*cm/2.,
+				       -M_PI, 2.0 * M_PI);
   G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "outer_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -846,7 +851,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // Inner skin
 
   G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin",
-                                       63.85, 64.0, 480.0, -M_PI, 2.0 * M_PI);
+				       supportparams->get_double_param("inner_skin_inner_radius")*cm,
+				       supportparams->get_double_param("inner_skin_outer_radius")*cm,
+				       supportparams->get_double_param("inner_skin_length")*cm/2.,
+				       -M_PI, 2.0 * M_PI);
   G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "inner_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -861,11 +869,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // Add an outer shell for the MVTX - move this to the MVTX detector module
   //=======================================================
   // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
-  double skin_thickness = 0.1;
-  double foam_core_thickness = 1.8;
-  double mvtx_shell_length = 420.0;
+  double skin_thickness = supportparams->get_double_param("mvtx_shell_skin_thickness")*cm;
+  double foam_core_thickness = supportparams->get_double_param("mvtx_shell_foam_core_thickness")*cm;
+  double mvtx_shell_length = supportparams->get_double_param("mvtx_shell_length")*cm;
 
-  double mvtx_shell_inner_skin_inner_radius = 48.0;
+  double mvtx_shell_inner_skin_inner_radius = supportparams->get_double_param("mvtx_shell_inner_skin_inner_radius")*cm;
+
   double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + skin_thickness;
   double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + foam_core_thickness;
 
