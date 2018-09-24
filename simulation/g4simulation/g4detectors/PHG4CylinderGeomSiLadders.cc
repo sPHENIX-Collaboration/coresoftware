@@ -27,7 +27,11 @@ PHG4CylinderGeomSiLadders::PHG4CylinderGeomSiLadders():
 }
 
 void PHG4CylinderGeomSiLadders::identify(std::ostream& os) const
-  {}
+  {
+    os << "PHG4CylinderGeomSiLadders Object" << endl;
+    os << "layer: " << get_layer() << endl;
+    os << "Radius: " << get_radius() << endl;
+}
 
 bool PHG4CylinderGeomSiLadders::load_geometry()
 {
