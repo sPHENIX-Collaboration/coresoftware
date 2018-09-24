@@ -1,6 +1,5 @@
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderGeomContainer.h"
-//#include "PHG4CylinderGeom_Siladders.h"
 #include "PHG4CylinderGeomSiLadders.h"
 #include "PHG4SiliconTrackerParameterisation.h"
 
@@ -130,11 +129,13 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     double stave_straight_inner_y = params->get_double_param("stave_straight_inner_y") * cm;
     double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * cm;
 
-    cout << "Constructing Silicon Tracker layer: " << endl;
-    cout << "  layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
-         << " sensor_radius " << m_SensorRadius[inttlayer]  << " offsetphi " << offsetphi << " rad " << " offsetphi " << offsetphi * rad/deg << " deg " 
-	 << endl;
-
+    if (Verbosity() > 0)
+    {
+      cout << "Constructing Silicon Tracker layer: " << endl;
+      cout << "  layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
+	   << " sensor_radius " << m_SensorRadius[inttlayer]  << " offsetphi " << offsetphi << " rad " << " offsetphi " << offsetphi * rad/deg << " deg " 
+	   << endl;
+    }
     // We loop over inner, then outer, sensors, where  itype specifies the inner or outer sensor
     // The rest of this loop will construct and put in place a section of a ladder corresponding to the Z range of this sensor only
     for (int itype = 0; itype < 2; ++itype)
