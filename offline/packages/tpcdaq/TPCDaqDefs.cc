@@ -138,11 +138,13 @@ bool SampleFit_PowerLawDoubleExp(        //
 
   default_values[0] = default_values_t(peakval * .7, peakval * -1.5, peakval * 1.5);
   default_values[1] = default_values_t(peakPos - risetime, peakPos - 3 * risetime, peakPos + risetime);
-  default_values[2] = default_values_t(2., 1, 5.);
-  default_values[3] = default_values_t(5, risetime * .5, risetime * 4);
+  default_values[2] = default_values_t(5., 1, 10.);
+  default_values[3] = default_values_t(risetime, risetime * .2, risetime * 10);
   default_values[4] = default_values_t(pedestal, pedestal - abs(peakval), pedestal + abs(peakval));
-  default_values[5] = default_values_t(.3, 0, 1);
-  default_values[6] = default_values_t(5, risetime * .5, risetime * 4);
+  //  default_values[5] = default_values_t(0.3, 0, 1);
+  //  default_values[6] = default_values_t(5, risetime * .2, risetime * 10);
+  default_values[5] = default_values_t(0, 0, 0);  // disable 2nd component
+  default_values[6] = default_values_t(risetime, risetime, risetime);
 
   // fit function
   TF1 fits("f_SignalShape_PowerLawDoubleExp", SignalShape_PowerLawDoubleExp, 0., n_samples, n_parameter);
@@ -153,7 +155,15 @@ bool SampleFit_PowerLawDoubleExp(        //
     if (parameters_io.find(i) == parameters_io.end())
     {
       fits.SetParameter(i, default_values[i].def);
-      fits.SetParLimits(i, default_values[i].min, default_values[i].max);
+
+      if (default_values[i].min < default_values[i].max)
+      {
+        fits.SetParLimits(i, default_values[i].min, default_values[i].max);
+      }
+      else
+      {
+        fits.FixParameter(i, default_values[i].def);
+      }
 
       if (verbosity)
       {
@@ -165,8 +175,9 @@ bool SampleFit_PowerLawDoubleExp(        //
     }
     else
     {
-      fits.SetParLimits(i, parameters_io[i], parameters_io[i]);
+//      fits.SetParLimits(i, parameters_io[i], parameters_io[i]);
       fits.SetParameter(i, parameters_io[i]);
+      fits.FixParameter(i, parameters_io[i]);
 
       if (verbosity)
       {
@@ -252,7 +263,6 @@ bool SampleFit_PowerLawDoubleExp(        //
     //    }
     canvas->Print("SampleFit_PowerLawDoubleExp.pdf");
   }
-
 
   for (int i = 0; i < n_parameter; ++i)
   {
