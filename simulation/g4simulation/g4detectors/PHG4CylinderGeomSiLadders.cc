@@ -11,31 +11,21 @@ using namespace std;
 
 PHG4CylinderGeomSiLadders::PHG4CylinderGeomSiLadders():
   m_Layer(-1),
-  strip_x(NAN),
-  strip_y(NAN),
-  strip_z0(NAN),
-  strip_z1(NAN),
-  m_NstripsZSensor0(-1),
-  nstrips_z_sensor1(-1),
-  nstrips_phi_cell(-1),
-  nladders_layer(-1),
-  ladder_z0(NAN),
-  ladder_z1(NAN),
-  sensor_radius(NAN),
-  strip_x_offset(NAN),
+  m_NStripsPhiCell(-1),
+  m_StripX(NAN),
+  m_StripY(NAN),
+  m_SensorRadius(NAN),
+  m_StripXOffset(NAN),
   offsetphi(NAN),
   offsetrot(NAN),
   dphi_(NAN),
   radius(NAN)
 {
-  fill_n(strip_z_,sizeof(strip_z_)/sizeof(double),NAN);
-  fill_n(ladder_z_,sizeof(ladder_z_)/sizeof(double),NAN);
-  fill_n(nstrips_z_sensor_,sizeof(nstrips_z_sensor_), -1);
+  fill_n(m_StripZ,sizeof(m_StripZ)/sizeof(double),NAN);
+  fill_n(m_LadderZ,sizeof(m_LadderZ)/sizeof(double),NAN);
+  fill_n(m_NStripsZSensor,sizeof(m_NStripsZSensor), -1);
   return;
 }
-
-PHG4CylinderGeomSiLadders::~PHG4CylinderGeomSiLadders()
-{}
 
 void PHG4CylinderGeomSiLadders::identify(std::ostream& os) const
   {}
@@ -54,14 +44,14 @@ void PHG4CylinderGeomSiLadders::find_segment_center(const int segment_z_bin, con
   const double phi  = offsetphi + dphi_ * segment_phi_bin;
   location[0] = radius  * cos(phi);
   location[1] = radius  * sin(phi);
-  location[2] = signz * ladder_z_[itype];
+  location[2] = signz * m_LadderZ[itype];
 
   //cout << "radius " << radius << " offsetphi " << offsetphi << " rad  dphi_ " << dphi_ << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
 }
 
 void PHG4CylinderGeomSiLadders::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
-  radius = sensor_radius;  
+  radius = m_SensorRadius;  
   
   // Ladder
   find_segment_center(segment_z_bin, segment_phi_bin, location);
@@ -69,14 +59,14 @@ void PHG4CylinderGeomSiLadders::find_strip_center(const int segment_z_bin, const
 
   // Strip
   const int itype = segment_z_bin % 2;
-  const double strip_z       = strip_z_[itype];
-  const int nstrips_z_sensor = nstrips_z_sensor_[itype];
+  const double strip_z       = m_StripZ[itype];
+  const int nstrips_z_sensor = m_NStripsZSensor[itype];
 
   const double strip_localpos_z = strip_z*(strip_column%nstrips_z_sensor) -    strip_z/2.*nstrips_z_sensor + strip_z/2.;
-  // distance from bottom of sensor = strip_y*strip_index +strip_y/2.0, then subtract nstrips_phi_cell * strip_y / 2.0
-  const double strip_localpos_y = strip_y*strip_index + strip_y/2. - nstrips_phi_cell * strip_y / 2.0;
+  // distance from bottom of sensor = m_StripY*strip_index +m_StripY/2.0, then subtract m_NStripsPhiCell * m_StripY / 2.0
+  const double strip_localpos_y = m_StripY*strip_index + m_StripY/2. - m_NStripsPhiCell * m_StripY / 2.0;
 
-  CLHEP::Hep3Vector strip_localpos(strip_x_offset, strip_localpos_y, strip_localpos_z);
+  CLHEP::Hep3Vector strip_localpos(m_StripXOffset, strip_localpos_y, strip_localpos_z);
 
   // Strip rotation
   const double phi    = offsetphi + dphi_ * segment_phi_bin;
@@ -108,21 +98,21 @@ void PHG4CylinderGeomSiLadders::find_strip_index_values(const int segment_z_bin,
   double zpos = zin;
   double ypos = yin;
   
-  const double strip_z  = strip_z_[itype];
-  const int nstrips_z_sensor = nstrips_z_sensor_[itype];
-  const int nstrips_y_sensor = nstrips_phi_cell;
+  const double strip_z  = m_StripZ[itype];
+  const int nstrips_z_sensor = m_NStripsZSensor[itype];
+  const int nstrips_y_sensor = m_NStripsPhiCell;
   
   // get the strip z index
   double zup = (double) nstrips_z_sensor * strip_z / 2.0 + zpos;  
   strip_z_index = (int) (zup / strip_z);
 
   // get the strip y index
-  double yup = (double) nstrips_y_sensor * strip_y / 2.0 + ypos;
-  strip_y_index = (int) (yup / strip_y);
+  double yup = (double) nstrips_y_sensor * m_StripY / 2.0 + ypos;
+  strip_y_index = (int) (yup / m_StripY);
 
   /*
   cout << "segment_z_bin " << segment_z_bin << " ypos " << ypos << " zpos " << zpos << " zup " << zup << " yup " << yup << endl;
-  cout << "      -- itype " << itype << " strip_y " << strip_y << " strip_z " << strip_z << " nstrips_z_sensor " << nstrips_z_sensor 
+  cout << "      -- itype " << itype << " strip_y " << m_StripY << " strip_z " << strip_z << " nstrips_z_sensor " << nstrips_z_sensor 
        << " nstrips_y_sensor " << nstrips_y_sensor << endl;
   cout << "      --  strip_z_index " << strip_z_index << " strip_y_index " << strip_y_index << endl;
   */  
@@ -138,12 +128,12 @@ void PHG4CylinderGeomSiLadders::find_strip_center_localcoords(const int segment_
       return;
     }
 
-  const double strip_z  = strip_z_[itype];
-  const int nstrips_z_sensor = nstrips_z_sensor_[itype];
-  const int nstrips_y_sensor = nstrips_phi_cell;
+  const double strip_z  = m_StripZ[itype];
+  const int nstrips_z_sensor = m_NStripsZSensor[itype];
+  const int nstrips_y_sensor = m_NStripsPhiCell;
 
   // center of strip in y
-  double ypos = (double) strip_y_index * strip_y + strip_y/2.0 - (double) nstrips_y_sensor * strip_y/2.0;
+  double ypos = (double) strip_y_index * m_StripY + m_StripY/2.0 - (double) nstrips_y_sensor * m_StripY/2.0;
 
   // center of strip in z
   double zpos = (double) strip_z_index * strip_z + strip_z/2.0 - (double) nstrips_z_sensor * strip_z/2.0;
@@ -154,4 +144,3 @@ void PHG4CylinderGeomSiLadders::find_strip_center_localcoords(const int segment_
 
 
 }
-

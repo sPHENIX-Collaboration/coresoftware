@@ -11,52 +11,43 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
   public:
     PHG4CylinderGeomSiLadders();
     PHG4CylinderGeomSiLadders(
-      const int    layer_,
-      const double strip_x_,
-      const double strip_y_,
-      const double strip_z0_,
-      const double strip_z1_,
-      const int    nstrips_z_sensor0_,
-      const int    nstrips_z_sensor1_,
-      const int    nstrips_phi_cell_,
-      const int    nladders_layer_,
-      const double ladder_z0_,
-      const double ladder_z1_,
-      const double sensor_radius_,
-      const double strip_x_offset_,
+      const int    layer,
+      const double strip_x,
+      const double strip_y,
+      const double strip_z0,
+      const double strip_z1,
+      const int    nstrips_z_sensor0,
+      const int    nstrips_z_sensor1,
+      const int    nstrips_phi_cell,
+      const int    nladders_layer,
+      const double ladder_z0,
+      const double ladder_z1,
+      const double sensor_radius,
+      const double strip_x_offset,
       const double offsetphi_,
       const double offsetrot_) :
-        m_Layer(layer_),
-        strip_x(strip_x_),
-        strip_y(strip_y_),
-        strip_z0(strip_z0_),
-        strip_z1(strip_z1_),
-        m_NstripsZSensor0(nstrips_z_sensor0_),
-        nstrips_z_sensor1(nstrips_z_sensor1_),
-        nstrips_phi_cell(nstrips_phi_cell_),
-        nladders_layer(nladders_layer_),
-        ladder_z0(ladder_z0_),
-        ladder_z1(ladder_z1_),
-        sensor_radius(sensor_radius_),
-        strip_x_offset(strip_x_offset_),
+        m_Layer(layer),
+        m_NStripsPhiCell(nstrips_phi_cell),
+        m_StripX(strip_x),
+        m_StripY(strip_y),
+        m_SensorRadius(sensor_radius),
+        m_StripXOffset(strip_x_offset),
         offsetphi(offsetphi_),
 	offsetrot(offsetrot_),
 	radius(NAN)
     {
       // Type-A
-      strip_z_[0]          = strip_z0;
-      ladder_z_[0]         = ladder_z0;
-      nstrips_z_sensor_[0] = m_NstripsZSensor0;
+      m_StripZ[0]          = strip_z0;
+      m_LadderZ[0]         = ladder_z0;
+      m_NStripsZSensor[0] = nstrips_z_sensor0;
 
       // Type-B
-      strip_z_[1]          = strip_z1;
-      ladder_z_[1]         = ladder_z1;
-      nstrips_z_sensor_[1] = nstrips_z_sensor1;
+      m_StripZ[1]          = strip_z1;
+      m_LadderZ[1]         = ladder_z1;
+      m_NStripsZSensor[1] = nstrips_z_sensor1;
 
-      dphi_ = 2.*M_PI/(double)nladders_layer;
+      dphi_ = 2.*M_PI/nladders_layer;
     }
-
-    virtual ~PHG4CylinderGeomSiLadders();
 
     void identify(std::ostream& os = std::cout) const;
     void set_layer(const int i)
@@ -71,7 +62,7 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
 
     double get_radius() const
       {
-	return sensor_radius;
+	return m_SensorRadius;
       }
 
     bool load_geometry();
@@ -82,17 +73,17 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
 
     double get_thickness() const
       {
-        return strip_x;
+        return m_StripX;
       }
 
     double get_strip_y_spacing() const
       {
-        return strip_y;
+        return m_StripY;
       }
 
     double get_strip_z_spacing() const
       {
-        return strip_z0;
+        return m_StripZ[0];
       }
 
     double get_strip_tilt() const
@@ -108,24 +99,17 @@ class PHG4CylinderGeomSiLadders: public PHG4CylinderGeom
   protected:
 
     int m_Layer;
-    double strip_x;
-    double strip_y;
-    double strip_z0;
-    double strip_z1;
-    int m_NstripsZSensor0;
-    int nstrips_z_sensor1;
-    int nstrips_phi_cell;
-    int nladders_layer;
-    int nstrips_z_sensor_[2];
-    double ladder_z0;
-    double ladder_z1;
-    double sensor_radius;
-    double strip_x_offset;
+    int m_NStripsPhiCell;
+    int m_NStripsZSensor[2];
+    double m_StripX;
+    double m_StripY;
+    double m_SensorRadius;
+    double m_StripXOffset;
     double offsetphi;
     double offsetrot;
 
-    double strip_z_[2];
-    double ladder_z_[2];
+    double m_StripZ[2];
+    double m_LadderZ[2];
     double dphi_;
 
     double radius;
