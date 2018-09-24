@@ -5,9 +5,6 @@
 #include "PHG4SiliconTrackerDefs.h"
 #include "PHG4SiliconTrackerDetector.h"
 
-#include <PHG4CylinderGeom.h>
-#include <PHG4CylinderGeom_Siladders.h>
-
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 

@@ -1,6 +1,6 @@
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeom_Siladders.h"
+//#include "PHG4CylinderGeom_Siladders.h"
 #include "PHG4CylinderGeomSiLadders.h"
 #include "PHG4SiliconTrackerParameterisation.h"
 
@@ -939,7 +939,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       const int laddertype = params_layer->get_int_param("laddertype");
       // parameters are stored in cm per our convention
       const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomSiLadders(
           sphxlayer,
           params->get_double_param("strip_x"),
           params->get_double_param("strip_y"),
