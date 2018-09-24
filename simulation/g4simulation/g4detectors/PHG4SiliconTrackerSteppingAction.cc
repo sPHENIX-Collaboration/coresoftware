@@ -334,8 +334,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
       // so we will create a new hit for the next track
       m_Hit = nullptr;
     }
-
-    if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
+    else
     {
       // if this hit has no energy deposit, just reset it for reuse
       // this means we have to delete it in the dtor. If this was
