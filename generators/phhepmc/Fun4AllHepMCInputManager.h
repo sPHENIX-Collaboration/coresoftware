@@ -26,7 +26,6 @@ namespace HepMC
 class IO_GenEvent;
 class GenEvent;
 class ReaderAscii;
-class ReaderAsciiHepMC2;
 };
 
 class PHHepMCGenEvent;
@@ -99,7 +98,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   std::string topNodeName;
   PHCompositeNode *topNode;
 
-  HepMC::ReaderAsciiHepMC2 *ascii_in;
+  HepMC::ReaderAscii *ascii_in;
   HepMC::GenEvent *evt;
   HepMC::GenEvent *save_evt;
   // some pointers for use in decompression handling
