@@ -14,21 +14,16 @@
 #include "RawTower_Prototype4.h"
 #include "RawTower_Temperature.h"
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/SimpleVector.h>
-#include <TClonesArray.h>
 #include <fun4all/SubsysReco.h>
+
+#include <TClonesArray.h>
+
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
 class TTree;
-
-#ifndef __CINT__
-
-#include <boost/smart_ptr.hpp>
-
-#endif
 
 /*!
  * \brief Prototype4DSTReader save information from DST to an evaluator, which could include hit. particle, vertex, towers and jet (to be activated)
@@ -99,7 +94,7 @@ class Prototype4DSTReader : public SubsysReco
 
 #ifndef __CINT__
 
-  typedef boost::shared_ptr<TClonesArray> arr_ptr;
+  typedef std::shared_ptr<TClonesArray> arr_ptr;
 
   struct record
   {
