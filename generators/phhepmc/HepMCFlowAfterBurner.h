@@ -6,7 +6,7 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include<string>
+#include <string>
 
 class HepMCFlowAfterBurner : public SubsysReco
 {
@@ -51,7 +51,6 @@ class HepMCFlowAfterBurner : public SubsysReco
   void RestoreRandomState(const std::string &savefile = "HepMCFlowAfterBurner.ransave");
 
  protected:
-
   std::string config_filename;
   std::string algorithmName;
   std::string algorithmName_macro;
@@ -71,8 +70,6 @@ class HepMCFlowAfterBurner : public SubsysReco
   int seedset;
   long seed;
   long randomSeed;
-
-
 };
 
 #endif
