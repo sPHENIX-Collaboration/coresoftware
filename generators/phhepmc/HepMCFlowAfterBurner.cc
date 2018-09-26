@@ -2,14 +2,17 @@
 // Inspired by code from ATLAS.  Thanks!
 //
 #include "HepMCFlowAfterBurner.h"
+
 #include "PHHepMCGenEvent.h"
+#include "PHHepMCGenEventMap.h"
 
 #include <flowafterburner/flowAfterburner.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
+#include <phool/PHRandomSeed.h>
 
 #include <HepMC/GenEvent.h>
 
@@ -66,13 +69,13 @@ HepMCFlowAfterBurner::Init(PHCompositeNode *topNode)
       read_xml (config_file, pt);
     }
   if (seedset)
-    {
-      randomSeed = seed;
-    }
+  {
+    randomSeed = seed;
+  }
   else
-    {
-      randomSeed = pt.get ("FLOWAFTERBURNER.RANDOM.SEED", randomSeed);
-    }
+  {
+   randomSeed = PHRandomSeed();
+  }
 
   engine = new CLHEP::MTwistEngine (randomSeed);
 
@@ -125,7 +128,11 @@ HepMCFlowAfterBurner::Init(PHCompositeNode *topNode)
 int
 HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
 {
-  PHHepMCGenEvent *genevt = findNode::getClass<PHHepMCGenEvent>(topNode,"PHHepMCGenEvent");
+  PHHepMCGenEventMap *genevtmap = findNode::getClass<PHHepMCGenEventMap>(topNode, "PHHepMCGenEventMap");
+  for (PHHepMCGenEventMap::ReverseIter iter = genevtmap->rbegin(); iter != genevtmap->rend(); ++iter)
+  {
+    PHHepMCGenEvent *genevt = iter->second;
+
   HepMC::GenEvent *evt =  genevt->getEvent();
   if (!evt)
     {
@@ -140,6 +147,7 @@ HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
            << ", maxpt: " << maxpt << endl;
     }
   flowAfterburner(evt, engine, algorithmName, mineta, maxeta, minpt, maxpt);
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

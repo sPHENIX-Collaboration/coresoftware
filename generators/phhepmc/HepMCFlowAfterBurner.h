@@ -1,3 +1,6 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+
 #ifndef PHHEPMC_HEPMCFLOWAFTERBURNER_H
 #define PHHEPMC_HEPMCFLOWAFTERBURNER_H
 
@@ -8,7 +11,7 @@
 class HepMCFlowAfterBurner : public SubsysReco
 {
  public:
-  HepMCFlowAfterBurner(const std::string &name = "HEPMCFLOW");
+  HepMCFlowAfterBurner(const std::string &name = "HEPMCFLOWAFTERBURNER");
   virtual ~HepMCFlowAfterBurner() {}
 
   int Init(PHCompositeNode *);
