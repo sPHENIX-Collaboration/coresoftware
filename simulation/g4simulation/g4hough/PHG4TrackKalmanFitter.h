@@ -341,6 +341,34 @@ private:
 	float _kalman_extrapolation_eval_tree_sigma_rphi_z;
 	float _kalman_extrapolation_eval_tree_sigma_z_r;
 	float _kalman_extrapolation_eval_tree_sigma_r_rphi;
+
+	//before rotation:
+	float _kalman_extrapolation_eval_tree_covin_x;
+	float _kalman_extrapolation_eval_tree_covin_y;
+	float _kalman_extrapolation_eval_tree_covin_z;
+
+	//linear data:
+	float _kalman_extrapolation_eval_tree_lin_pos0_x;
+	float _kalman_extrapolation_eval_tree_lin_pos0_y;
+	float _kalman_extrapolation_eval_tree_lin_pos0_z;
+	float _kalman_extrapolation_eval_tree_lin_pos1_x;
+	float _kalman_extrapolation_eval_tree_lin_pos1_y;
+	float _kalman_extrapolation_eval_tree_lin_pos1_z;
+	float _kalman_extrapolation_eval_tree_lin_pos2_x;
+	float _kalman_extrapolation_eval_tree_lin_pos2_y;
+	float _kalman_extrapolation_eval_tree_lin_pos2_z;
+	float _kalman_extrapolation_eval_tree_lin_phi;
+	float _kalman_extrapolation_eval_tree_lin_r;
+	float _kalman_extrapolation_eval_tree_lin_z;
+	float _kalman_extrapolation_eval_tree_lin_sigma0_r;
+	float _kalman_extrapolation_eval_tree_lin_sigma0_rphi;
+	float _kalman_extrapolation_eval_tree_lin_sigma0_z;
+	float _kalman_extrapolation_eval_tree_lin_sigma1_r;
+	float _kalman_extrapolation_eval_tree_lin_sigma1_rphi;
+	float _kalman_extrapolation_eval_tree_lin_sigma1_z;
+	float _kalman_extrapolation_eval_tree_lin_sigma2_r;
+	float _kalman_extrapolation_eval_tree_lin_sigma2_rphi;
+	float _kalman_extrapolation_eval_tree_lin_sigma2_z;
 	
 	bool _do_evt_display;
 

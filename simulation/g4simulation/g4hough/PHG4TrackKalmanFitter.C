@@ -90,7 +90,7 @@
 
 #define _DEBUG_MODE_ 0
 
-//#define _DEBUG_
+#define _DEBUG_
 
 using namespace std;
 
@@ -319,6 +319,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		//RCC do some studies of track extrapolation to the tpc:
 	     
 	       if (_do_eval) {
+		 std::cout << PHWHERE << "Doing Eval RCC"<<endl;
+
 		if (rf_phgf_track){
 		  //line_point and line_direction are the axis of the cylinder.
 		  const TVector3 line_point=TVector3(0.,0.,0.);
@@ -326,8 +328,11 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  const int inner_wall_r=20.0;//cm.  Need tocheck the native units RCC
 
 		  int npoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
+		  std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
+
 		  //this ought to give the same result regardless of where we extrapolate from, since it should pick the best track ref, but... not clear if that's true.  pick the outermost point.  Note that currently this doesn't include extra material effects, so it won't work for points beyond the inner wall of the tpc -- there's an additional scattering growth to the covariance.
 		  std::shared_ptr<genfit::MeasuredStateOnPlane> gf_cylinder_state = NULL;
+
 		  bool covariance_okay=true;
 
 		  try {
@@ -339,9 +344,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  }
 		  if (!gf_cylinder_state) {
 		    covariance_okay=false;
+		    LogWarning("No Cylinder state RCC");
+		    std::cout << PHWHERE << "Cylinder State not filled RCC"<<endl;
 		  }
 
 		  TVector3 pos(NAN,NAN,NAN);
+		  TVector3 pos_linear[3];//(NAN,NAN,NAN);//the linear extrapolation from the last two hits.
+		  TVector3 mom(NAN,NAN,NAN);
 		  //float pos_rphi_error = NAN;
 		  //float pos_z_error  = NAN;
 
@@ -349,13 +358,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  TMatrixF cov_in(3,3);
 		  TMatrixF pos_out(3,1);
 		  TMatrixF cov_out(3,3);
+		  TMatrixF cov_linout[3];//three of these, for the three covariance matrices in the linear approach(3,3);
 		  if(covariance_okay){
 		    try{
 		      TVectorD state6(6); // pos(3), mom(3)
 		      TMatrixDSym cov6(6,6); //
 		      
 		      gf_cylinder_state->get6DStateCov(state6, cov6);
-		      
+		    
 		      //for extrapolation to cylinder, the normal direction is just the xy position of the hit (I think...)
 		      //look at the other instance for confirmation
 		      TVector3 vn(state6[0], state6[1], 0);
@@ -364,7 +374,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		      pos_in[1][0] = state6[1];
 		      pos_in[2][0] = state6[2];
 		      pos.SetXYZ(state6[0],state6[1],state6[2]);
-		      
+		      mom.SetXYZ(state6[3],state6[4],state6[5]);
+
 		      for(int i=0;i<3;++i){
 			for(int j=0;j<3;++j){
 			  cov_in[i][j] = cov6[i][j];
@@ -379,29 +390,145 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		      //pos_z_error  = sqrt(cov_out[2][2]);	
 		    } catch (...) {
 		      if (verbosity > 0)
-			LogWarning("Extrapolation to cylinder failed!");
+			LogWarning("State Covariance unavailable!");
+		      std::cout << PHWHERE << "Extraction of State Cov failed RCC"<<endl;
+
 		      covariance_okay=false;
 		    }
 		  }
+
+		  //also try a straight-line extrapolation:
+		  try{
+		    std::shared_ptr <genfit::TrackPoint> trackpoint[2];
+		    std::shared_ptr <genfit::MeasuredStateOnPlane> trackstate[2];
+
+		    TVectorD hit[3];//don't actually need the last one
+		    //TVector3 pos_linear[3];
+		    TMatrixF cov_linear[3];//(3,3);
+		    //defined earlier, outside the try block: TMatrixF cov_linout[3];//(3,3);
+		    TMatrixF cov_lin6(6,6);
+		    for (int i=0;i<3;i++){
+		      hit[i].ResizeTo(3);
+		      pos_linear[i].SetXYZ(NAN,NAN,NAN);
+		      cov_linear[i].ResizeTo(3,3);
+		      cov_linout[i].ResizeTo(3,3);
+
+		    }
+		    
+		    
+		    //get the info for the last two points in the track, in order:
+		    for (int i=0;i<2;i++){
+		      trackpoint[i]= std::shared_ptr <genfit::TrackPoint> (rf_phgf_track->getGenFitTrack()->getPointWithMeasurement(npoints-2+i));//npoints=lastindex+1, so start at lastindex-1
+		      //std::cout << PHWHERE << "before hit[i]. hit has " <<hit[i].GetNrows() << "elements.  track meas has " << trackpoint[i]->getRawMeasurement()->getRawHitCoords().GetNrows() <<endl;
+		      //genfit::MeasuredStateOnPlane tempstate;
+	
+		      trackstate[i]=std::shared_ptr <genfit::MeasuredStateOnPlane> (trackpoint[i]->getFitterInfo()->getFittedState().clone());
+		      //rf_phgf_track->getGenFitTrack()->getTrackRep(0)->extrapolateToMeasurement(tempstate,trackpoint[i]->getRawMeasurement());
+		      //tempstate.getPosMomCov(pos_linear[i],mom,cov_lin6);
+		      pos_linear[i]=trackstate[i]->getPos();
+		      //		    pos_linear[i]=trackstate[i]->getPos();//MomCov(pos_linear[i],mom,cov_lin6);//=trackstate->getPos();
+		      //strictly speaking, we want the point on the detector closest to the hit, not the point of minimal global DCA, but this is close enough:
+		      //std::cout << PHWHERE << "before trackstate[i] RCC"<<endl;
+		      //trackstate[i] = std::shared_ptr<genfit::MeasuredStateOnPlane> (rf_phgf_track->extrapolateToPoint(pos_linear[i]));
+		      //TODO:  covariance is fine the way it's currently extracted, but change this to get the track points not from the genfit track.  Get them from the sPHENIX data structure, because the genfit one gives two coordinates on a plane which would have to be extracted separately.
+		      cov_lin6=trackstate[i]->get6DCov();
+		      for(int k=0;i<3;++i){
+			for(int j=0;j<3;++j){
+			  (cov_linear[i])[k][j] = cov_lin6[k][j];//not sure this is kosher...
+			}
+		      }
+		    }
+		    
+		    
+		    
+		    TVector3 delta=pos_linear[1]-pos_linear[0];
+		    TMatrixF cov_delta=cov_linear[1]-cov_linear[0];
+		    
+		    //to extrapolate to a cylinder of radius r, we want to solve:
+		    //(pos')^2=R^2, where pos'=delta*t+pos, a vector quantity.
+		    //This leads to a quadratic equation:
+		    double quad_a=delta*delta;
+		    double quad_b=2*delta*(pos_linear[1]);
+		    double quad_c=(pos_linear[1]*pos_linear[1])-inner_wall_r*inner_wall_r;
+		    //pick the positive root to keep going the direction we defined:
+		    float t=(-quad_b+TMath::Sqrt(quad_b*quad_b-4*quad_a*quad_c))/(2*quad_a);
+		    //extrapolate out all the dimensions to the intersection.
+		    pos_linear[2]=pos_linear[1]+delta*t;
+		    cov_linear[2]=cov_linear[1]+cov_delta*t;
+		    //rotate cov_linear to Rzphi for each of our three, just to be sure:
+		    for (int i=0;i<3;i++){
+		      pos_cov_XYZ_to_RZ(pos_linear[2], pos_in, cov_linear[i], pos_out, cov_linout[i]);//don't need the pos rotations, but had to fill those in again anyway.
+		      //std::cout << PHWHERE<< " cov_linout["<<i<<"] has " << cov_linout[i].GetNrows() << " rows and " << cov_linout[i].GetNcols() << " cols."<<endl;
+
+		    }
+
+		    
+		  } catch (...) {
+		    if (verbosity >= 2)
+		      LogWarning("gf_cylinder_state_prev failed!");
+		    //std::cout <<PHWHERE << endl;
+		  }
 		  
 		  
-		  
-		 
+		  if (verbosity > 0){// and !covariance_okay){
+		    std::cout << PHWHERE << "Covariance_okay="<< (covariance_okay?"true":"false") <<" RCC!" <<endl;
+		    }
+	          
 		  _kalman_extrapolation_eval_tree_phi=pos.Phi();
 		  _kalman_extrapolation_eval_tree_z=pos.Z();
 		  _kalman_extrapolation_eval_tree_r=pos.Perp();
 		  //rcchere
 		  _kalman_extrapolation_eval_tree_okay=covariance_okay;
-		  _kalman_extrapolation_eval_tree_sigma_rphi=cov_out[0][0];
-		  _kalman_extrapolation_eval_tree_sigma_z=cov_out[1][1];
-		  _kalman_extrapolation_eval_tree_sigma_r=cov_out[2][2];
-		  _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_out[0][1];
-		  _kalman_extrapolation_eval_tree_sigma_z_r=cov_out[1][2];
-		  _kalman_extrapolation_eval_tree_sigma_r_rphi=cov_out[2][0];
+		  if (covariance_okay){
+		  _kalman_extrapolation_eval_tree_sigma_r=cov_out[0][0];
+		  _kalman_extrapolation_eval_tree_sigma_rphi=cov_out[1][1];
+		  _kalman_extrapolation_eval_tree_sigma_z=cov_out[2][2];
+		  _kalman_extrapolation_eval_tree_sigma_r_rphi=cov_out[0][1];
+		  _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_out[1][2];
+		  _kalman_extrapolation_eval_tree_sigma_z_r=cov_out[2][0];
+		  //before rotation:
+		  _kalman_extrapolation_eval_tree_covin_x=cov_in[0][0];
+		  _kalman_extrapolation_eval_tree_covin_y=cov_in[1][1];
+		  _kalman_extrapolation_eval_tree_covin_z=cov_in[2][2];
+
+		  //linear data:
+		  //std::cout << PHWHERE <<endl;
+		  _kalman_extrapolation_eval_tree_lin_pos0_x=(pos_linear[0]).X();
+		  _kalman_extrapolation_eval_tree_lin_pos0_y=(pos_linear[0]).Y();
+		  _kalman_extrapolation_eval_tree_lin_pos0_z=(pos_linear[0]).Z();
+		  //std::cout << PHWHERE<<endl;
+		  _kalman_extrapolation_eval_tree_lin_pos1_x=(pos_linear[1]).X();
+		  _kalman_extrapolation_eval_tree_lin_pos1_y=(pos_linear[1]).Y();
+		  _kalman_extrapolation_eval_tree_lin_pos1_z=(pos_linear[1]).Z();
+		  //std::cout << PHWHERE<<endl;
+		  _kalman_extrapolation_eval_tree_lin_pos2_x=(pos_linear[2]).X();
+		  _kalman_extrapolation_eval_tree_lin_pos2_y=(pos_linear[2]).Y();
+		  _kalman_extrapolation_eval_tree_lin_pos2_z=(pos_linear[2]).Z();
+		  // std::cout << PHWHERE<<endl;
+		  _kalman_extrapolation_eval_tree_lin_phi=(pos_linear[2]).Phi();
+		  _kalman_extrapolation_eval_tree_lin_r=(pos_linear[2]).Perp();
+		  _kalman_extrapolation_eval_tree_lin_z=(pos_linear[2]).Z();
+		  //std::cout << PHWHERE<< " cov_linout[0] has " << cov_linout[0].GetNrows() << " rows and " << cov_linout[0].GetNcols() << " cols."<<endl;
+		  _kalman_extrapolation_eval_tree_lin_sigma0_r=(cov_linout[0])[0][0];
+		  _kalman_extrapolation_eval_tree_lin_sigma0_rphi=(cov_linout[0])[1][1];
+		  _kalman_extrapolation_eval_tree_lin_sigma0_z=(cov_linout[0])[2][2];
+		  //std::cout << PHWHERE<< " cov_linout[1] has " << cov_linout[1].GetNrows() << " rows and " << cov_linout[1].GetNcols() << " cols."<<endl;
+		  _kalman_extrapolation_eval_tree_lin_sigma1_r=(cov_linout[1])[0][0];
+		  _kalman_extrapolation_eval_tree_lin_sigma1_rphi=(cov_linout[1])[1][1];
+		  _kalman_extrapolation_eval_tree_lin_sigma1_z=(cov_linout[1])[2][2];
+		  //std::cout << PHWHERE<< " cov_linout[2] has " << cov_linout[2].GetNrows() << " rows and " << cov_linout[2].GetNcols() << " cols."<<endl;
+		  _kalman_extrapolation_eval_tree_lin_sigma2_r=(cov_linout[2])[0][0];
+		  _kalman_extrapolation_eval_tree_lin_sigma2_rphi=(cov_linout[2])[1][1];
+		  _kalman_extrapolation_eval_tree_lin_sigma2_z=(cov_linout[2])[2][2];
+		  //std::cout << PHWHERE<<endl;
+
 		  _kalman_extrapolation_eval_tree->Fill();
+		  std::cout << PHWHERE << "end of RCC eval."<<endl;
 		  }
 		}
+	       }
 	}
+
 
 	/*
 	 * add tracks to event display
@@ -479,6 +606,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 //			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
 //					vertex);
+#ifdef _DEBUG_
+			cout<<__LINE__<<endl;
+#endif
 			std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
 					vertex);
 #ifdef _DEBUG_
@@ -523,6 +653,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<endl;
+		cout << "about to clear tracks, if we're told to."<<endl;
+		cout << "size: " << rf_phgf_tracks.size() << endl;
+		cout << "_do_evt_display="<< (_do_evt_display?"true":"false") << endl;
 #endif
 
 	// Need to keep tracks if _do_evt_display
@@ -567,8 +700,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 //					SvtxVertex* vertex = NULL;
 //					if (_vertexmap_refit->size() > 0)
 //						vertex = _vertexmap_refit->get(0);
+#ifdef _DEBUG_
+			cout<<__LINE__<<endl;
+#endif
 					std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
 							rf_phgf_track, vertex);
+#ifdef _DEBUG_
+			cout<<__LINE__<<endl;
+#endif
 					//delete rf_phgf_track;
 					if(!rf_track) {
 #ifdef _DEBUG_
@@ -740,7 +879,7 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("phi", &_kalman_extrapolation_eval_tree_phi, "phi/F");
 	_kalman_extrapolation_eval_tree->Branch("z", &_kalman_extrapolation_eval_tree_z, "z/F");
 	_kalman_extrapolation_eval_tree->Branch("r", &_kalman_extrapolation_eval_tree_r, "r/F");
-	_kalman_extrapolation_eval_tree->Branch("okay", &_kalman_extrapolation_eval_tree_okay, "ok/F");
+	_kalman_extrapolation_eval_tree->Branch("okay", &_kalman_extrapolation_eval_tree_okay, "ok/O");
 	_kalman_extrapolation_eval_tree->Branch("sigma_phi", &_kalman_extrapolation_eval_tree_sigma_rphi, "sigma_rphi/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_z", &_kalman_extrapolation_eval_tree_sigma_z, "sigma_z/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_r", &_kalman_extrapolation_eval_tree_sigma_r, "sigma_r/F");
@@ -748,6 +887,33 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("sigma_z", &_kalman_extrapolation_eval_tree_sigma_z_r, "sigma_z_r/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_r", &_kalman_extrapolation_eval_tree_sigma_r_rphi, "sigma_r_rphi/F");
 
+	//before rotation:
+	_kalman_extrapolation_eval_tree->Branch("sigma_x",&_kalman_extrapolation_eval_tree_covin_x);
+	_kalman_extrapolation_eval_tree->Branch("sigma_y",&_kalman_extrapolation_eval_tree_covin_y);
+	_kalman_extrapolation_eval_tree->Branch("sigma_z",&_kalman_extrapolation_eval_tree_covin_z);
+
+	//linear data:
+	_kalman_extrapolation_eval_tree->Branch("lin_pos0_x",&_kalman_extrapolation_eval_tree_lin_pos0_x);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos0_y",&_kalman_extrapolation_eval_tree_lin_pos0_y);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos0_z",&_kalman_extrapolation_eval_tree_lin_pos0_z);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos1_x",&_kalman_extrapolation_eval_tree_lin_pos1_x);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos1_y",&_kalman_extrapolation_eval_tree_lin_pos1_y);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos1_z",&_kalman_extrapolation_eval_tree_lin_pos1_z);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos2_x",&_kalman_extrapolation_eval_tree_lin_pos2_x);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos2_y",&_kalman_extrapolation_eval_tree_lin_pos2_y);
+	_kalman_extrapolation_eval_tree->Branch("lin_pos2_z",&_kalman_extrapolation_eval_tree_lin_pos2_z);
+	_kalman_extrapolation_eval_tree->Branch("lin_phi",&_kalman_extrapolation_eval_tree_lin_phi);
+	_kalman_extrapolation_eval_tree->Branch("lin_r",&_kalman_extrapolation_eval_tree_lin_r);
+	_kalman_extrapolation_eval_tree->Branch("lin_z",&_kalman_extrapolation_eval_tree_lin_z);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig0_r",&_kalman_extrapolation_eval_tree_lin_sigma0_r);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig0_rphi",&_kalman_extrapolation_eval_tree_lin_sigma0_rphi);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig0_z",&_kalman_extrapolation_eval_tree_lin_sigma0_z);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig1_r",&_kalman_extrapolation_eval_tree_lin_sigma1_r);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig1_rphi",&_kalman_extrapolation_eval_tree_lin_sigma1_rphi);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig1_z",&_kalman_extrapolation_eval_tree_lin_sigma1_z);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig2_r",&_kalman_extrapolation_eval_tree_lin_sigma2_r);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig2_rphi",&_kalman_extrapolation_eval_tree_lin_sigma2_rphi);
+	_kalman_extrapolation_eval_tree->Branch("lin_sig2_z",&_kalman_extrapolation_eval_tree_lin_sigma2_z);
 }
 
 /*
@@ -783,6 +949,34 @@ void PHG4TrackKalmanFitter::reset_eval_variables() {
 	 _kalman_extrapolation_eval_tree_sigma_rphi_z = WILD_FLOAT;
 	 _kalman_extrapolation_eval_tree_sigma_z_r = WILD_FLOAT;
 	 _kalman_extrapolation_eval_tree_sigma_r_rphi = WILD_FLOAT;
+
+	 //before rotation:
+	_kalman_extrapolation_eval_tree_covin_x = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_covin_y = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_covin_z = WILD_FLOAT;
+
+	//linear data:
+	_kalman_extrapolation_eval_tree_lin_pos0_x = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos0_y = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos0_z = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos1_x = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos1_y = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos1_z = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos2_x = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos2_y = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_pos2_z = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_phi = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_r = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_z = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma0_r = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma0_rphi = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma0_z = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma1_r = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma1_rphi = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma1_z = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma2_r = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma2_rphi = WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_lin_sigma2_z = WILD_FLOAT;
 }
 
 int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
@@ -1654,6 +1848,9 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	const genfit::Track *gftrack = phgf_track->getGenFitTrack();
 	const genfit::AbsTrackRep *rep = gftrack->getCardinalRep();
 	for(unsigned int id = 0; id< gftrack->getNumPointsWithMeasurement();++id) {
+#ifdef _DEBUG_
+	  cout << __LINE__ << " Trying to get track with id="<<id<<endl;
+#endif
 		genfit::TrackPoint *trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());
 
 		if(!trpoint) {
@@ -1661,14 +1858,18 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 				LogWarning("!trpoint");
 			continue;
 		}
-
+#ifdef _DEBUG_
+	cout << __LINE__ << endl;
+#endif
 		genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>( trpoint->getFitterInfo(rep) );
 		if(!kfi) {
 			if (verbosity > 1)
 				LogWarning("!kfi");
 			continue;
 		}
-
+#ifdef _DEBUG_
+	cout << __LINE__ << endl;
+#endif
 		std::shared_ptr<const genfit::MeasuredStateOnPlane> gf_state = NULL;
 		try {
 			//gf_state = std::shared_ptr <genfit::MeasuredStateOnPlane> (const_cast<genfit::MeasuredStateOnPlane*> (&(kfi->getFittedState(true))));
@@ -1684,7 +1885,10 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 			continue;
 		}
 		genfit::MeasuredStateOnPlane temp;
-		float pathlength = -phgf_track->extrapolateToPoint(temp,vertex_position,id);
+#ifdef _DEBUG_
+	  cout << __LINE__ << " Trying to extrapolate"<<id<<endl;
+#endif
+	  float pathlength = -phgf_track->extrapolateToPoint(temp,vertex_position,id);
 
 		std::shared_ptr<SvtxTrackState> state = std::shared_ptr<SvtxTrackState> (new SvtxTrackState_v1(pathlength));
 		state->set_x(gf_state->getPos().x());
@@ -1705,7 +1909,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 
 		out_track->insert_state(state.get());
 
-#ifdef _DEBUG_
+		#ifdef _DEBUG_
 		cout
 		<<__LINE__
 		<<": " << id
@@ -2002,6 +2206,7 @@ bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
 
 
 	// R: rotation from u,v,n to n X Z, nX(nXZ), n
+	// these do not scale, they're pure rotation
 	TMatrixF R(3, 3);
 	TMatrixF R_T(3,3);
 
