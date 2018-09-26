@@ -620,10 +620,18 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
         for (int i = 0; i < 8; i++)
         {
-          int ivol = i;
+// initially this was ivol = i; if (ivol > 3) ivol = i -4;
+// but that triggered a false positive in coverity
+// this should make it happy and reduce the noise in the coverity reports
+          int ivol; 
           if (i > 3)
+	  {
             ivol = i - 4;
-
+	  }
+	  else
+	  {
+	    ivol = i;
+	  }
           new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_volume[ivol], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
           new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_ext_volume[ivol], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
         }
