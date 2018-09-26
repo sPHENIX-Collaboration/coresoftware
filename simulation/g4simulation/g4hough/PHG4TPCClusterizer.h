@@ -59,7 +59,9 @@ class PHG4TPCClusterizer : public SubsysReco {
 
   std::vector<int> fNHitsPerZ;
   std::vector<float> fAmps;
-  std::vector<int> fCellIDs;
+  std::vector<unsigned int> fCellIDs;
+  std::vector<int> fCellz;
+  std::vector<int> fCellphi;
   
   int fNPhiBins;
   int fNZBins;

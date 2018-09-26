@@ -50,7 +50,7 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string& name):
   min_time(NAN),
   max_time(NAN)
 {  
-  cout << "Constructor of PHG4TPCElectronDrift" << endl;
+  //cout << "Constructor of PHG4TPCElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed()); // fixed seed is handled in this funtcion
@@ -173,7 +173,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dtrans);
   nt = new TNtuple("nt","stuff","hit:ts:tb:tsig:rad:zstart:zfinal");
   nthit = new TNtuple("nthit","hit stuff","hit:layer:phi:phicenter:z_gem:zcenter:weight");
-  ntpad = new TNtuple("ntpad","padplane stuff","layer:phi:phiclus:z:zclus");
+  ntpad = new TNtuple("ntpad","electron by electron pad centroid","layer:phigem:phiclus:zgem:zclus");
   se->registerHisto(nt);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
@@ -185,7 +185,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  //int verbosity = 500;
+  int verbosity = 100;
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -205,15 +205,15 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     {
       continue;
     }
-    double eion = hiter->second->get_eion();
+    double eion = hiter->second->get_eion();   
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
-    if(verbosity > 100) 
+    //unsigned int n_electrons = eion*electrons_per_gev;       // testing only !!!
+    if(verbosity > 200) 
       cout << "  new hit with t0, " <<  t0 << " g4hitid " << hiter->first 
 	   << " eion " << eion << " n_electrons " << n_electrons 
 	   << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1))/2.0 
 	   << endl;
 
-    //nthit->Fill(ihit,n_electrons,eion,hiter->second->get_edep(),hiter->second->get_t(0),hiter->second->get_x(0),hiter->second->get_y(0),hiter->second->get_z(0));
     if (n_electrons <= 0)
     {
       if (n_electrons < 0)
@@ -232,19 +232,40 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     double y_start = hiter->second->get_y(0) + dy/2.;
     double z_start = hiter->second->get_z(0) + dz/2.;
     double t_start = hiter->second->get_t(0) + dt/2.;
-    // cout << "g4hit created electrons: " << n_electrons 
-    // 	   << " from " << eion*1000000 << " keV" << endl;
-    
+    //if(verbosity > 100)
+    double xin =  hiter->second->get_x(0);
+    double xout =  hiter->second->get_x(1);
+    double yin =  hiter->second->get_y(0);
+    double yout =  hiter->second->get_y(1);
+    //double zin =  hiter->second->get_z(0);
+    //double zout =  hiter->second->get_z(1);
+
+    if(verbosity > 100)
+      {
+	if( (sqrt(xin*xin+yin*yin) > 69.0 && sqrt(xin*xin+yin*yin) < 70.125) ||
+	    (sqrt(xout*xout+yout*yout) > 69.0 && sqrt(xout*xout+yout*yout) < 70.125) ) 
+	  {
+	    cout << endl << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons 
+		 << " from " << eion*1000000 << " keV"  << endl;
+	    cout  << " entry x,y,z = " << hiter->second->get_x(0) << "  " << hiter->second->get_y(0) << "  " << hiter->second->get_z(0) 
+		  << " radius " << sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) ) << endl;
+	    cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1) 
+		 << " radius " << sqrt( pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2) ) << endl;
+	    cout << " dx.dy,dz = " << dx << "  " << dy << "  " << dz << endl;         
+	  }
+      }
+
     for (unsigned int i=0; i<n_electrons; i++)
       {
 	double radstart = sqrt(x_start*x_start + y_start*y_start);
 	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
 	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
-
+	//rantrans = 0.0;  	// testing only !!!!
 	double t_path = (tpc_length/2. - fabs(z_start))/drift_velocity;
 	// now the drift
 	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;	
 	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
+	//rantime = 0.0;  	// testing only!!!!!
 
 	// ADF: note that adding t_start to the path results in an error of t_start * drift_velocity in the final position 
 	// The intention here seems to be to account for the propagation time of the particle to this point in the TPC
@@ -276,28 +297,23 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	    continue;
 	  }
 
-	//if(radstart > 70.0 && radstart < 71.0)
-	if(verbosity > 100)
+	if(Verbosity() > 1000)
 	  {
-	    if(verbosity > 1000)
-	      {
-		cout << "electron " << i << " g4hitid " << hiter->first << endl; 
-		cout << "radstart " << radstart  << " x_start: " << x_start
-		     << ", y_start: " << y_start
-		     << ",z_start: " << z_start 
-		     << " t_start " << t_start
-		     << " t_path " << t_path
-		     << " t_sigma " << t_sigma
-		     << " rantime " << rantime
-		     << endl;
-	      }
-	    //cout << "rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
-	    //	 << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl; 
-
-	    cout << "rad_final " << rad_final << " z_start " << z_start 
-		 << " z_final " << z_final << " zdiff " << z_final - z_start << endl; 
+	    cout << "electron " << i << " g4hitid " << hiter->first << endl; 
+	    cout << "radstart " << radstart  << " x_start: " << x_start
+		 << ", y_start: " << y_start
+		 << ",z_start: " << z_start 
+		 << " t_start " << t_start
+		 << " t_path " << t_path
+		 << " t_sigma " << t_sigma
+		 << " rantime " << rantime
+		 << endl;
+	    
+	    if( sqrt(x_start*x_start+y_start*y_start) > 68.0 && sqrt(x_start*x_start+y_start*y_start) < 72.0)
+	      cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
+		   << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl; 
 	  }
-
+    
 	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start,z_final);
 
 	// this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
@@ -311,23 +327,32 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   }
   if (Verbosity()>1)
     {
-      cout << " Cells associated with this hit:" << endl; 
+      cout << endl << " loop over cells for these hits for layer 47: " << endl;
       {
 	PHG4CellContainer::ConstRange cells = g4cells->getCells();
 	PHG4CellContainer::ConstIterator celliter;
 	for (celliter=cells.first;celliter != cells.second; ++celliter)
 	  {
 	    //celliter->second->identify();
-	    if(celliter->second->get_layer() == 50)
+	    if(celliter->second->get_layer() == 47)
 	      {
 		int phibin = PHG4CellDefs::SizeBinning::get_phibin(celliter->second->get_cellid());//cell->get_binphi();
 		int zbin = PHG4CellDefs::SizeBinning::get_zbin(celliter->second->get_cellid());//cell->get_binz();
-		cout << " cellid " << celliter->second->get_cellid() 
+		cout << " electron drift: cellid " << celliter->second->get_cellid() 
 		     << " layer " << celliter->second->get_layer()
 		     << " zbin " << zbin
 		     << " phibin " << phibin
 		     << " edep " << celliter->second->get_edep()
 		     << endl;
+
+		// list the contrubuting g4 hits for this cell - loop over all the g4hits
+		for (PHG4Cell::EdepConstIterator g4iter = celliter->second->get_g4hits().first;
+		     g4iter != celliter->second->get_g4hits().second;
+		     ++g4iter) 
+		  {
+		    cout << "       g4hitID " << g4iter->first << " in layer " << celliter->second->get_layer() << " with edep " << g4iter->second << endl; 
+		  }
+		
 	      }
 	  }
       }

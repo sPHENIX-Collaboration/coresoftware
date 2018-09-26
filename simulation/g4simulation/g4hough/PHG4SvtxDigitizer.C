@@ -1,5 +1,7 @@
 #include "PHG4SvtxDigitizer.h"
 
+#include <g4main/PHG4Hit.h>
+
 #include "SvtxHitMap.h"
 #include "SvtxHitMap_v1.h"
 #include "SvtxHit.h"
@@ -248,8 +250,8 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
 
 void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
-  unsigned int print_layer = 100; // to suppress diagnostic output
-  //unsigned int print_layer = 7;  // to print diagnostic output for layer 20
+  //unsigned int print_layer = 100; // to suppress diagnostic output
+  unsigned int print_layer = 47;  // to print diagnostic output for layer 47
 
   // Digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
   // These contain as edep the number of electrons out of the GEM stack, distributed between Z bins by shaper response and ADC clock window
@@ -458,8 +460,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // digitize this bin and the following 4 bins
 
-		  if(layer == print_layer) cout << "  Above threshold of " << ADCThreshold*ADCNoiseConversionGain << " for phibin " << iphi 
-						<< " iz " << iz << " with adc_input " << adc_input[iz] << endl;
+
+		  if(verbosity > 100)
+		    if(layer == print_layer) cout << endl << "  (neg z) Above threshold of " << ADCThreshold*ADCNoiseConversionGain << " for phibin " << iphi 
+						  << " iz " << iz << " with adc_input " << adc_input[iz] << " digitize this and 4 following bins: "  << endl;
 
 		  for(int izup=0;izup<5; izup++)
 		    {
@@ -469,9 +473,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  if(adc_input[iz+izup] < 0) adc_output = 0;
 			  if (adc_output > 1023) adc_output = 1023;
 
-			  if(layer == print_layer)  cout << "    iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
-							 << "  adc_input "  << adc_input[iz+izup] << " ADCThreshold " << ADCThreshold*ADCNoiseConversionGain 
-							 << " adc_output " << adc_output << endl;
+			  if(verbosity > 100)
+			    if(layer == print_layer)  cout << "    (neg z) iz+izup " << iz+izup << " adc_cellid " << adc_cellid[iz+izup] 
+							   << "  adc_input "  << adc_input[iz+izup] << " ADCThreshold " << ADCThreshold*ADCNoiseConversionGain 
+							   << " adc_output " << adc_output << endl;
 			  
 			  if(is_populated[iz+izup] == 2)
 			    {
@@ -485,9 +490,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			      cell->add_edep(adc_input[iz+izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM
 			      adc_cellid[iz+izup]=cell->get_cellid();
 
-			      if(layer == print_layer)  cout << " will digitize noise hit for iphi " << iphi << " zbin " << iz+izup 
-							     << " created new cell with cellid " << cell->get_cellid() 
-							     << " adc_input " << adc_input[iz+izup] << " edep " << cell->get_edep() << endl; 
+			      if(verbosity > 100)
+				if(layer == print_layer)  cout << " will digitize noise hit for iphi " << iphi << " zbin " << iz+izup 
+							       << " created new cell with cellid " << cell->get_cellid() 
+							       << " adc_input " << adc_input[iz+izup] << " edep " << cell->get_edep() << endl; 
 
 			      cells->AddCell(cell);
 			    }
@@ -514,14 +520,21 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			    }
 			  binpointer ++;
 
-			  if(layer == print_layer)
-			    { 
-			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
-			      ptr->identify();
-			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
-			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
-			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
-			    }
+			  if(verbosity > 100)
+			    if(layer == print_layer)
+			      { 
+				//cout << endl << "Digitizer: Hit identify after insertion:" << endl;
+				//ptr->identify();
+				PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
+				cout << "   Digitizer (neg z): Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " with contributing g4hits: " << endl;
+				// list the contrubuting g4 hits for this cell - loop over all the g4hits
+				for (PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
+				     g4iter != tmpcell->get_g4hits().second;
+				     ++g4iter) 
+				  {
+				    cout << "       g4hitID " << g4iter->first << " in layer " << tmpcell->get_layer() << " with edep " << g4iter->second << endl; 
+				  }
+			      }
 			  
 			} // end nzbins check 
 		    } // end izup loop
@@ -546,8 +559,9 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 		{
 		  // digitize this bin and the following 4 bins
 		  
-		  if(layer == print_layer) cout << "  Above threshold  of " << ADCThreshold*ADCNoiseConversionGain << " for iz " << iz 
-						<< " with adc_input " << adc_input[iz] << endl;
+		  if(verbosity > 100)
+		    if(layer == print_layer) cout << endl << "  (pos z) Above threshold  of " << ADCThreshold*ADCNoiseConversionGain << " for iz " << iz 
+						  << " with adc_input " << adc_input[iz] << " digitize this and 4 following bins: " << endl;
 		  
 		  for(int izup=0;izup<5; izup++)
 		    {
@@ -558,10 +572,11 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			  if(adc_input[iz-izup] < 0) adc_output = 0;
 			  if (adc_output > 1023) adc_output = 1023;
 
-			  if(layer == print_layer)  cout << "    iz-izup " << iz-izup << " adc_cellid " << adc_cellid[iz-izup] 
-							 << "  adc_input "  << adc_input[iz-izup] << " ADCThreshold " << ADCThreshold*ADCNoiseConversionGain 
-							 << " adc_output " << adc_output << endl;
-
+			  if(verbosity > 100)
+			    if(layer == print_layer)  cout << "    (pos z) iz-izup " << iz-izup << " adc_cellid " << adc_cellid[iz-izup] 
+							   << "  adc_input "  << adc_input[iz-izup] << " ADCThreshold " << ADCThreshold*ADCNoiseConversionGain 
+							   << " adc_output " << adc_output << endl;
+			  
 			  if(is_populated[iz-izup] == 2)
 			    {
 			      // This is a noise-only hit, so there is no cell
@@ -573,9 +588,10 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 
 			      cell->add_edep(adc_input[iz-izup] / ADCSignalConversionGain);  //convert from voltage back to electrons from GEM stack 
 			      adc_cellid[iz-izup]=cell->get_cellid();
-			      if(layer == print_layer)  cout  << " will digitize noise hit for iphi " << iphi << " zbin " << iz-izup 
-							      << " created new cell with cellid " << cell->get_cellid() 
-							      << " edep " << cell->get_edep() << endl; 
+			      if(verbosity > 100)
+				if(layer == print_layer)  cout  << " will digitize noise hit for iphi " << iphi << " zbin " << iz-izup 
+								<< " created new cell with cellid " << cell->get_cellid() 
+								<< " edep " << cell->get_edep() << endl; 
 			      
 			      cells->AddCell(cell);
 			    }
@@ -603,15 +619,23 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
 			    }
 			  binpointer--;
 
-			  if(layer == print_layer)
-			    {
-			      cout << endl << "Digitizer: Hit identify after insertion:" << endl;
-			      ptr->identify();
-			      PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
-			      PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
-			      cout << "   Digitizer: Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " g4hitid " <<   g4iter->first << endl;
-			    }
-
+			  if(verbosity > 100)
+			    if(layer == print_layer)
+			      {
+				//cout << endl << "Digitizer (pos z): Hit identify after insertion:" << endl;
+				//ptr->identify();
+				
+				PHG4Cell *tmpcell =  cells->findCell(ptr->get_cellid());
+				cout << "   Digitizer (pos z): Hit " << ptr->get_id() << " is from cellid " << tmpcell->get_cellid() << " with contributing g4hits: " << endl;			      
+				// list the contrubuting g4 hits for this cell -  loop over all the g4hits
+				for (PHG4Cell::EdepConstIterator g4iter = tmpcell->get_g4hits().first;
+				     g4iter != tmpcell->get_g4hits().second;
+				     ++g4iter) 
+				  {
+				    cout << "       g4hitID " << g4iter->first << " in layer " << tmpcell->get_layer() << " with edep " << g4iter->second << endl; 
+				  }
+			      }
+			  
 			} // end nzbins check 
 		    } // end izup loop
 		  

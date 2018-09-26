@@ -145,7 +145,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       hit = new PHG4Hitv1();
     }
-    //hit->set_layer(layer_id);
+    hit->set_layer(layer_id);
     //here we set the entrance values in cm
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -266,31 +266,30 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
           saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
         }
 
-	/*
 	double rin = sqrt(hit->get_x(0)*hit->get_x(0) + hit->get_y(0)*hit->get_y(0));
 	double rout = sqrt(hit->get_x(1)*hit->get_x(1) + hit->get_y(1)*hit->get_y(1));
-	if(  rout > 70.0 && rout < 71.0)
-	  {
-	    cout << "Added TPC g4hit with " 
-		 << " g4hitid " << hit->get_hit_id() << endl;
-	    cout  << " xin " << hit->get_x(0)
-		  << " yin " << hit->get_y(0)
-		  << " zin " << hit->get_z(0)
-		  << " rin " << rin
-		  << endl;
-	    cout << " xout " << hit->get_x(1)
-		 << " yout " << hit->get_y(1)
-		 << " zout " << hit->get_z(1)
-		 << " rout " << rout
-		 << endl;
-	    cout << " xav " << (hit->get_x(1) + hit->get_x(0)) / 2.0
-		 << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
-		 << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
-		 << " rav " << (rout + rin) / 2.0
-		 << endl;
-	  }
-	*/
-
+	if(Verbosity() > 10)
+	  if( (rin > 69.0 && rin < 70.125) || (rout > 69.0 && rout < 70.125) )
+	    {
+	      cout << "Added TPC g4hit with rin, rout = " << rin << "  " << rout  
+		   << " g4hitid " << hit->get_hit_id() << endl;
+	      cout  << " xin " << hit->get_x(0)
+		    << " yin " << hit->get_y(0)
+		    << " zin " << hit->get_z(0)
+		    << " rin " << rin
+		    << endl;
+	      cout << " xout " << hit->get_x(1)
+		   << " yout " << hit->get_y(1)
+		   << " zout " << hit->get_z(1)
+		   << " rout " << rout
+		   << endl;
+	      cout << " xav " << (hit->get_x(1) + hit->get_x(0)) / 2.0
+		   << " yav " << (hit->get_y(1) + hit->get_y(0)) / 2.0
+		   << " zav " << (hit->get_z(1) + hit->get_z(0)) / 2.0
+		   << " rav " << (rout + rin) / 2.0
+		   << endl;
+	    }
+	
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
         hit = nullptr;

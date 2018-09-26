@@ -76,8 +76,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fDCL(0.012),
   _inv_sqrt12( 1.0/TMath::Sqrt(12) ),
   _twopi( TMath::TwoPi() ),
-  zz_shaping_correction(0.0508),  // correction for 80 ns SAMPA
- fHClusterEnergy(NULL),
+  zz_shaping_correction(0.0557),  // correction for 80 ns SAMPA
+  fHClusterEnergy(NULL),
   fHClusterSizePP(NULL),
   fHClusterSizeZZ(NULL),
   fHClusterErrorPP(NULL),
@@ -540,6 +540,9 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
       fFitSumP2 += ee*dp*dp;
       fFitSumZ2 += ee*dz*dz;
       fFitSumPZ += ee*dp*dz;
+      // add this cell to the list of contributing cells for this cluster
+      fCellz.push_back(cz);
+      fCellphi.push_back(cp);
       nhits_tot -= 1; //taken
       fNHitsPerZ[cz] -= 1; //taken
       fAmps[bin] = 0.; //removed
@@ -688,12 +691,11 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
-      if(verbosity > 100)
-	if(layer == 50) 
+      if(Verbosity() > 100 && layer == 50) 
 	  {
-	    cout << "Clusterizer hit:  ";
+	    cout << "Clusterizer: adding input SvtxHit " <<  hit->get_id() << endl;;
 	    //hit->identify();
-	    cout << "layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << " adc " << fAmps[zbin * fNPhiBins + phibin] << endl;
+	    cout << "      layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << " adc " << fAmps[zbin * fNPhiBins + phibin] << endl;
 	  }
     }
     if(fDeconMode){
@@ -736,6 +738,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	    cout << " phibin: "  << phibin << " zbin: " << zbin 
 		 << endl;
 	  }
+	  fCellz.clear();
+	  fCellphi.clear();
           fit(phibin,zbin,nhits_tot);
           if(fFitW < fClusterCut) continue; // ignore this cluster
           SvtxCluster_v1 clus;
@@ -768,9 +772,10 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
 
 	  if(verbosity > 100)
-	    if(layer == 50) 
+	    if(layer == 47) 
 	      {
-		cout << " layer " << layer << " number of primary electrons (adc) = " << fFitW * 0.14 << " zz_raw " << zz_raw << " zz " << zz
+		cout << endl << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14 
+		     << " zz_raw " << zz_raw << " zz " << zz
 		     << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
 		cout << "       zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << endl;
 	      }
@@ -804,8 +809,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           clus.set_position(0, radius*TMath::Cos( phi ) );
           clus.set_position(1, radius*TMath::Sin( phi ) );
           clus.set_position(2, zz);
-	  clus.insert_hit( fCellIDs[zbin * fNPhiBins + phibin] );
-
+	  for(unsigned int i=0;i<fCellz.size();i++)
+	    {
+	      if(Verbosity() > 10 && layer == 50)
+		cout  << "   Fitted cluster contains SvtxHit " << fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ] << endl;
+	      clus.insert_hit( fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ]);
+	    }
 
 	  TMatrixF DIM(3,3);
 	  DIM[0][0] = 0.0;

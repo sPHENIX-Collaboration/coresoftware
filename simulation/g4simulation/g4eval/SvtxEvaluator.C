@@ -1398,88 +1398,217 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	     << endl; 
 	*/
 
-	if (g4hit) {
+	if (g4hit) 
+	  {
+	    if(layer>=_nlayers_maps+_nlayers_intt)
+	      {
+		// This calculates the truth cluster position for the TPC from all of the contributing g4hits, typically 2-4 for the TPC
+		// Complicated, since only the part of the energy that is collected within a layer contributes to the position
+		//===============================================================================
+		
+		PHG4CylinderCellGeomContainer* geom_container =
+		  findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
+		if (!geom_container) 
+		  {
+		    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+		    return;
+		  }
 
-	  // This calculates the truth cluster position from all of the contributing g4hits      
-	  //====================================================
+		// radii of layer boundaries
+		float rbin = NAN;
+		float rbout = NAN;
+		//if(layer>=_nlayers_maps+_nlayers_intt)
+		//{
+		PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
+		// get layer boundaries here for later use
+		rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
+		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 
+		//}
+	 
+		gx = 0.0; 
+		gy = 0.0; 
+		gz = 0.0; 
+		gt = 0.0;
+		float gwt = 0.0; 
+		
+		std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster);	  
+		for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
+		     iter != truth_hits.end();
+		     ++iter) 
+		  {
+		    PHG4Hit* this_g4hit = *iter;
+		    
+		    /*
+		    cout << endl << "evaluator found g4hit " << this_g4hit->get_hit_id() << " with edep " << this_g4hit->get_edep() 
+			 << " gx " << this_g4hit->get_avg_x() << " gy " << this_g4hit->get_avg_y() << " gz " << this_g4hit->get_avg_z() 
+			 << " gt " <<  this_g4hit->get_avg_t() 
+			 << endl;
+		    */		    
+		    
+
+		    float rbegin = sqrt(this_g4hit->get_x(0)*this_g4hit->get_x(0) + this_g4hit->get_y(0)*this_g4hit->get_y(0));
+		    float rend = sqrt(this_g4hit->get_x(1)*this_g4hit->get_x(1) + this_g4hit->get_y(1)*this_g4hit->get_y(1));
+
+		    unsigned int this_layer = layer;
+		    if(rbegin < rbin && rend < rbin)
+		      this_layer -= 1;
+		    if(rbegin > rbout && rend > rbout)
+		      this_layer += 1;
+
+		    if(this_layer < _nlayers_maps+_nlayers_intt || this_layer >= _nlayers_maps+_nlayers_intt+_nlayers_tpc )
+		      continue;
+
+		    if(this_layer != layer)
+		      {
+			//cout << " change layer from " << layer << " to " << this_layer << " rbin from " << rbin << " rbout from " << rbout 
+			//	 << " rbegin " << rbegin << " rend " << rend << endl;
+			rbin +=  (this_layer - layer) * GeoLayer->get_thickness();
+			rbout +=  (this_layer - layer) * GeoLayer->get_thickness();
+			//cout << " change layer from " << layer << " to " << this_layer << " rbin to " << rbin << " rbout to " << rbout 
+			//      << " rbegin " << rbegin << " rend " << rend << endl;
+		      }
+
+		    // very rarely the layer is off by two, just skip
+		    if( (rbegin < rbin && rend < rbin) || (rbegin > rbout && rend > rbout) )
+		      continue;
+
+
+		    float xl[2];
+		    float yl[2];
+		    float zl[2];
+
+		    if(rbegin < rend)
+		      {
+			xl[0] = this_g4hit->get_x(0);
+			yl[0] = this_g4hit->get_y(0);
+			zl[0] = this_g4hit->get_z(0); 
+			xl[1] = this_g4hit->get_x(1);
+			yl[1] = this_g4hit->get_y(1);
+			zl[1] = this_g4hit->get_z(1); 
+		      }
+		    else
+		      {
+			xl[0] = this_g4hit->get_x(1);
+			yl[0] = this_g4hit->get_y(1);
+			zl[0] = this_g4hit->get_z(1); 
+			xl[1] = this_g4hit->get_x(0);
+			yl[1] = this_g4hit->get_y(0);
+			zl[1] = this_g4hit->get_z(0); 
+			swap(rbegin,rend);
+		      }
+		    //cout << "layer = " << layer << " this_layer " << this_layer << " rbegin = " << rbegin << " rend = " << rend << " rbin " << rbin << " rbout " << rbout << endl;	    
+		    
+		    float xin = xl[0];
+		    float yin = yl[0];
+		    float zin = zl[0];
+		    float xout = xl[1];
+		    float yout = yl[1];
+		    float zout = zl[1];
+		    
+		    float t = NAN;
+		    
+		    if(rbegin < rbin)
+		      {
+			// line segment begins before boundary, find where it crosses
+			// line segment ends after boundary, find where it crosses
+			//cout << "calling line_circle for this_layer " << this_layer << " with rbegin " << rbegin << " rbin " << rbin << endl; 
+			t = line_circle_intersection(xl, yl, zl, rbin);
+			if(t > 0)
+			  {
+			    xin = xl[0] + t * (xl[1]-xl[0]);
+			    yin = yl[0] + t * (yl[1]-yl[0]);
+			    zin = zl[0] + t * (zl[1]-zl[0]);
+			  }
+			else
+			  cout << " invalid t = " << t << " layer " << layer << " this_layer " << this_layer 
+			       << " rbegin " << rbegin << " rend " << rend << " rbin " << rbin << " rbout " << rbout << endl; 
+		      }
+		    
+		    if(rend > rbout)
+		      {
+			// line segment ends after boundary, find where it crosses
+			//cout << "calling line_circle for layer " << this_layer << " with rend " << rend << " rbout " << rbout << endl; 
+			t = line_circle_intersection(xl, yl, zl, rbout);
+			if(t > 0)
+			  {
+			    xout = xl[0] + t * (xl[1]-xl[0]);
+			    yout = yl[0] + t * (yl[1]-yl[0]);
+			    zout = zl[0] + t * (zl[1]-zl[0]);
+			  }
+			else
+			  cout << " invalid t = " << t << " layer " << layer << " this_layer " << this_layer 
+			       << " rebegin " << rbegin << " rend " << rend << " rbin " << rbin << " rbout " << rbout << endl; 
+		      }
+
+		    //cout << "   Final line segment has rbegin " << sqrt(xin*xin+yin*yin) << " rend " << sqrt(xout*xout+yout*yout) << endl;  		    
+
+		    // we want only the fraction of edep inside the layer	    
+		    gx +=  (xin+xout) * 0.5 * this_g4hit->get_edep() * (xout-xin) / (xl[1]-xl[0]);
+		    gy +=  (yin+yout) * 0.5 * this_g4hit->get_edep() * (yout-yin) / (yl[1]-yl[0]);
+		    gz +=  (zin+zout) * 0.5 * this_g4hit->get_edep() * (zout-zin) / (yl[1]-yl[0]);
+		    gt  += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout-zin) / (yl[1]-yl[0]);
+		    gwt +=  this_g4hit->get_edep() * (zout-zin) / (yl[1]-yl[0]);
+		  }   // loop over this_g4hit
+		gx /= gwt;  
+		gy /= gwt; 
+		gz /= gwt; 
+		gt /= gwt;
+		//cout << "       truth centroids are:  gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
+	      }  // if TPC
+	    else
+	      {
+		// not TPC, one g4hit per cluster
+		gx = g4hit->get_avg_x();
+		gy = g4hit->get_avg_y();
+		gz = g4hit->get_avg_z();
+	      }  // not TPC
+
+	    g4hitID  = g4hit->get_hit_id();
+	    //cout << "       best g4hit has id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
+	    TVector3 gpos(gx,gy,gz);
+	    gr = gpos.Perp();
+	    gphi = gpos.Phi();
+	    geta = gpos.Eta();
 	  
-	  gx = 0.0; 
-	  gy = 0.0; 
-	  gz = 0.0; 
-	  gt = 0.0;
-	  float gwt = 0.0; 
-
-	  std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster);	  
-	  for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-	       iter != truth_hits.end();
-	       ++iter) {
-	    PHG4Hit* this_g4hit = *iter;
-
-	    /*
-	    cout << "    evaluator found g4hit " << this_g4hit->get_hit_id() << " with edep " << this_g4hit->get_edep() 
-		 << " gx " << this_g4hit->get_avg_x() << " gy " << this_g4hit->get_avg_y() << " gz " << this_g4hit->get_avg_z() 
-		 << " gt " <<  this_g4hit->get_avg_t() 
-		 << endl;
-	    */
-
-	    // calculate truth centroid
-	    gx +=  this_g4hit->get_avg_x() * this_g4hit->get_edep();
-	    gy +=  this_g4hit->get_avg_y() * this_g4hit->get_edep();
-	    gz +=  this_g4hit->get_avg_z() * this_g4hit->get_edep();
-	    gt  += this_g4hit->get_avg_t() * this_g4hit->get_edep();
-	    gwt +=  this_g4hit->get_edep();
-	  }
-	  gx /= gwt;  
-	  gy /= gwt; 
-	  gz /= gwt; 
-	  gt /= gwt;
-	  //cout << "       truth centroids are:  gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
-	  
-	  g4hitID  = g4hit->get_hit_id();
-	  //cout << "       best g4hit has id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
-	  TVector3 gpos(gx,gy,gz);
-	  gr = gpos.Perp();
-	  gphi = gpos.Phi();
-	  geta = gpos.Eta();
-
-	  if (g4particle) {
-
-	    gtrackID = g4particle->get_track_id();
-	    gflavor  = g4particle->get_pid();
-	    gpx      = g4particle->get_px();
-	    gpy      = g4particle->get_py();
-	    gpz      = g4particle->get_pz();
-	    
-	    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-	    if (vtx) {
-	      gvx      = vtx->get_x();
-	      gvy      = vtx->get_y();
-	      gvz      = vtx->get_z();
-	      gvt      = vtx->get_t();
-	    }
-	    
-	    PHG4Hit* outerhit = nullptr;
-	    if(_do_eval_light == false)
-	      outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-	    if (outerhit) {
-	      gfpx     = outerhit->get_px(1);
-	      gfpy     = outerhit->get_py(1);
-	      gfpz     = outerhit->get_pz(1);
-	      gfx      = outerhit->get_x(1);
-	      gfy      = outerhit->get_y(1);
-	      gfz      = outerhit->get_z(1);
-	    }
-	    
-	    gembed   = trutheval->get_embed(g4particle);
-	    gprimary = trutheval->is_primary(g4particle);
-	    
-	  }      //   if (g4particle){
-	} //  if (g4hit) {
-
+	
+	    if (g4particle) {
+	      
+	      gtrackID = g4particle->get_track_id();
+	      gflavor  = g4particle->get_pid();
+	      gpx      = g4particle->get_px();
+	      gpy      = g4particle->get_py();
+	      gpz      = g4particle->get_pz();
+	      
+	      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+	      if (vtx) {
+		gvx      = vtx->get_x();
+		gvy      = vtx->get_y();
+		gvz      = vtx->get_z();
+		gvt      = vtx->get_t();
+	      }
+	      
+	      PHG4Hit* outerhit = nullptr;
+	      if(_do_eval_light == false)
+		outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	      if (outerhit) {
+		gfpx     = outerhit->get_px(1);
+		gfpy     = outerhit->get_py(1);
+		gfpz     = outerhit->get_pz(1);
+		gfx      = outerhit->get_x(1);
+		gfy      = outerhit->get_y(1);
+		gfz      = outerhit->get_z(1);
+	      }
+	      
+	      gembed   = trutheval->get_embed(g4particle);
+	      gprimary = trutheval->is_primary(g4particle);
+	      
+	    }      //   if (g4particle){
+	  } //  if (g4hit) {
+	
 	if (g4particle){
 	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
-
+	
 	float nparticles = clustereval->all_truth_particles(cluster).size();
 	float cluster_data[50] = {(float) _ievent,
 				  hitID,
@@ -2500,3 +2629,43 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
   return;
 }
+
+float SvtxEvaluator::line_circle_intersection(float x[], float y[], float z[], float radius) 
+{
+  // parameterize the line in terms of t (distance along the line segment, from 0-1) as
+  // x = x0 + t * (x1-x0); y=y0 + t * (y1-y0); z = z0 + t * (z1-z0)
+  // parameterize the cylinder (centered at x,y = 0,0) as  x^2 + y^2 = radius^2,   then
+  // (x0 + t*(x1-z0))^2 + (y0+t*(y1-y0))^2 = radius^2
+  // x0^2 + x0*t*(x1-x0) + t*(x1-x0)*x0 + t^2*(x1-x0)^2 + y0^2 + y0*t*(y1-y0) + t*(y1-y0)*y0 + t^2*(y1-y0)^2 = radius^2
+  // (x0^2 + y0^2 - radius^2) + (2x0*(x1-x0) + 2y0*(y1-y0))*t +  ((x1-x0)^2 + (y1-y0)^2)*t^2 = 0 = C + B*t + A*t^2
+  // quadratic with:  A = (x1-x0)^2+(y1-y0)^2 ;  B = 2x0*(x1-x0) + 2y0*(y1-y0);  C = x0^2 + y0^2 - radius^2
+  // solution: t = (-B +/- sqrt(B^2 - 4*A*C)) / (2*A) 
+  
+  float A = (x[1]-x[0])*(x[1]-x[0]) + (y[1]-y[0])*(y[1]-y[0]);
+  float B = 2.0*x[0]*(x[1]-x[0]) + 2.0*y[0]*(y[1]-y[0]); 
+  float C = x[0]*x[0] + y[0]*y[0] - radius*radius;
+  float tup = (-B + sqrt(B*B - 4.0*A*C)) / (2.0*A); 
+  float tdn = (-B - sqrt(B*B - 4.0*A*C)) / (2.0*A) ;
+
+  float t;
+  if(tdn > 0 && tdn < 1.0)
+    t = tdn;
+  else if(tup > 0 && tup < 1.0)
+    t = tup;
+  else
+    {
+      cout << PHWHERE << "   **** Oops! No valid solution for tup or tdn, tdn = " << tdn << " tup = " << tup << endl;
+      cout << "   radius " << radius << " rbegin " << sqrt(x[0]*x[0]+y[0]*y[0]) << " rend " << sqrt(x[1]*x[1]+y[1]*y[1]) << endl;
+      cout  << "   x0 " << x[0] << " x1 " << x[1] << endl;
+      cout  << "   y0 " << y[0] << " y1 " << y[1] << endl;
+      cout  << "   z0 " << z[0] << " z1 " << z[1] << endl;
+      cout  << "   A " << A << " B " << B << " C " << C << endl;
+      
+      t = -1;
+    }
+
+  return t;
+
+
+}
+ 

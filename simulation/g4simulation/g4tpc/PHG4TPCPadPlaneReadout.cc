@@ -106,13 +106,15 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
  
       if(rad_gem > rad_low && rad_gem < rad_high)
 	{
+	  // capture the layer where this hit starts
 	  LayerGeom = layeriter->second;
 	  layernum = LayerGeom->get_layer();
-	  //cout << " g4hit id " << hiter->first  << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
-	  hiter->second->set_layer(layernum);     // have to set here, since the stepping action knows noting about layers
+	  //cout << " g4hit id " << hiter->first  << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high 
+	  //    << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
+	  hiter->second->set_layer(layernum);     // have to set here, since the stepping action knows nothing about layers
 	}
     }
-
+  
   if(layernum == 0)
     {
       cout << "Bad layernum " << endl;
@@ -207,16 +209,16 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  // collect information to do simple clustering. Checks operation of PHG4CylinderCellTPCReco, and 
 	  // is also useful for comparison with PHG4TPCClusterizer result when running single track events.
 	  // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
-
 	  double zcenter = LayerGeom->get_zcenter(zbin_num);
 	  double phicenter = LayerGeom->get_phicenter(pad_num);
 	  phi_integral += phicenter*neffelectrons;
 	  z_integral += zcenter*neffelectrons;
 	  weight += neffelectrons;
-	  if(verbosity > 100 && layernum == 50)
+	  if(verbosity > 100 && layernum == 47)
 	    cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter 
 		 << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl; 
 
+	  // Add edep from this electron for this zbin and phi bin combination to the appropriate cell
 	  PHG4CellDefs::keytype key = PHG4CellDefs::SizeBinning::genkey(layernum,zbin_num,pad_num);
 	  PHG4Cell *cell = g4cells->findCell(key);
 	  if (! cell)
@@ -230,19 +232,22 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	} // end of loop over adc Z bins
     } // end of loop over zigzag pads
 
+  // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   ntpad->Fill(layernum, phi, phi_integral/weight, z_gem, z_integral/weight);
 
+  
   if(verbosity > 100)
+  if( layernum == 47)
     {
       cout << " hit " << hit << " quick centroid for this electron " << endl;
       cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral/weight - phi << endl;
       cout   << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral/weight - z_gem   << endl;
-      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 50.
+      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 47.
       // The centroid of that should match the cluster centroid found by PHG4TPCClusterizer for layer 50, if everything is working 
       //   - matches to < .01 cm for a few cases that I checked
       nthit->Fill(hit, layernum, phi, phi_integral/weight, z_gem, z_integral/weight, weight);
     }
-
+  
   hit ++;
 
   return;

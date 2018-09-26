@@ -106,6 +106,8 @@ public:
 
   PHTimer *_timer;
 
+  float line_circle_intersection(float x[], float y[], float z[], float radius);
+
   // output subroutines
   void fillOutputNtuples(PHCompositeNode* topNode); ///< dump the evaluator information into ntuple for external analysis
   void printInputInfo(PHCompositeNode* topNode);    ///< print out the input object information (debugging upstream components)
