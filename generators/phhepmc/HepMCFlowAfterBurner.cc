@@ -16,25 +16,19 @@
 
 #include <HepMC/GenEvent.h>
 
-#include <CLHEP/Geometry/Point3D.h>
 #include <CLHEP/Random/MTwistEngine.h>
 #include <CLHEP/Random/RandFlat.h>
 #include <CLHEP/Random/RandomEngine.h>
-#include <CLHEP/Vector/LorentzVector.h>
 
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
-#include <cstdlib>
 #include <iostream>
-#include <memory>
 #include <string>
 
 using namespace std;
 
-CLHEP::HepRandomEngine *engine = NULL;
+CLHEP::HepRandomEngine *engine = nullptr;
 
 HepMCFlowAfterBurner::HepMCFlowAfterBurner(const std::string &name)
   : SubsysReco(name)
@@ -111,7 +105,7 @@ int HepMCFlowAfterBurner::Init(PHCompositeNode *topNode)
     maxpt = pt.get("FLOWAFTERBURNER.CUTS.MAXPT", maxpt);
   }
 
-  if (algorithmName_macro.size() > 0)
+  if (! algorithmName_macro.empty())
   {
     algorithmName = algorithmName_macro;
   }
@@ -170,7 +164,7 @@ void HepMCFlowAfterBurner::SaveRandomState(const string &savefile)
     engine->saveStatus(savefile.c_str());
     return;
   }
-  cout << PHWHERE << " Radom engine not started yet" << endl;
+  cout << PHWHERE << " Random engine not started yet" << endl;
 }
 
 void HepMCFlowAfterBurner::RestoreRandomState(const string &savefile)
@@ -180,5 +174,5 @@ void HepMCFlowAfterBurner::RestoreRandomState(const string &savefile)
     engine->restoreStatus(savefile.c_str());
     return;
   }
-  cout << PHWHERE << " Radom engine not started yet" << endl;
+  cout << PHWHERE << " Random engine not started yet" << endl;
 }
