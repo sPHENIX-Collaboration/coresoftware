@@ -68,11 +68,13 @@ class TPCFEETestRecov1 : public SubsysReco
     int event;
 
     uint32_t bx_counter;
+    bool bx_counter_consistent;
 
     EventHeader()
       : run(-1)
       , event(-1)
       , bx_counter(0)
+      , bx_counter_consistent(true)
     {
     }
 
@@ -140,6 +142,8 @@ class TPCFEETestRecov1 : public SubsysReco
       , pedstal(NAN)
       , avg_padx(NAN)
       , avg_pady(NAN)
+   , size_pad_x(-1)
+   , size_pad_y(-1)
     {
     }
 
@@ -163,8 +167,13 @@ class TPCFEETestRecov1 : public SubsysReco
     std::map<int, double> padx_peaks;
     std::map<int, double> pady_peaks;
 
+    //! pad coordinate
     double avg_padx;
     double avg_pady;
+
+    //! pad size
+    int size_pad_x;
+    int size_pad_y;
 
     ClassDef(ClusterData, 1);
   };

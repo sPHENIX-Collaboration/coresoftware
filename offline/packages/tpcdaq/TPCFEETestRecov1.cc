@@ -256,6 +256,7 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   }
 
   m_eventHeader.bx_counter = 0;
+  bool first_channel = true;
   for (unsigned int channel = 0; channel < kN_CHANNELS; channel++)
   {
     m_chanHeader = ChannelHeader();
@@ -272,17 +273,20 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     m_chanHeader.pad_x = pad.first;
     m_chanHeader.pad_y = pad.second;
 
-    if (channel == 0)
+    if (first_channel)
     {
+      first_channel = false;
       m_eventHeader.bx_counter = m_chanHeader.bx_counter;
     }
     else if (m_eventHeader.bx_counter != m_chanHeader.bx_counter)
     {
-      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bx_counter mismatch (expected 0x%x, got 0x%x)\n", m_eventHeader.event, m_eventHeader.bx_counter, m_chanHeader.bx_counter);
+      m_eventHeader.bx_counter_consistent = false;
 
-      event->identify();
-      p->identify();
-      return Fun4AllReturnCodes::DISCARDEVENT;
+      //      printf("TPCFEETestRecov1::process_event - ERROR: Malformed packet, event number %i, reason: bx_counter mismatch (expected 0x%x, got 0x%x)\n", m_eventHeader.event, m_eventHeader.bx_counter, m_chanHeader.bx_counter);
+      //
+      //      event->identify();
+      //      p->identify();
+      //      return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
     if (m_chanHeader.fee_channel > 255 || m_chanHeader.sampa_address > 7 || m_chanHeader.sampa_channel > 31)
@@ -410,12 +414,10 @@ void TPCFEETestRecov1::Clustering()
 
     }  //    for (int pad_x = *cluster.padxs.begin(); pad_x<=*cluster.padxs.rbegin() ;++padx)
 
-
     if (m_pdfMaker)
     {
       m_pdfMaker->MakeSectionPage(str(boost::format("Event %1% Cluster %2%: sum all channel fit followed by fit of X/Y components") % m_eventHeader.event % iter.first));
     }
-
 
     // fit - overal cluster
     map<int, double> parameters_constraints;
@@ -457,6 +459,7 @@ void TPCFEETestRecov1::Clustering()
         sum_peak_padx += peak * pad_x;
       }
       cluster.avg_padx = sum_peak_padx / sum_peak;
+      cluster.size_pad_x = cluster.padxs.size();
     }
 
     // fit - Y
@@ -478,6 +481,7 @@ void TPCFEETestRecov1::Clustering()
         sum_peak_pady += peak * pad_y;
       }
       cluster.avg_pady = sum_peak_pady / sum_peak;
+      cluster.size_pad_y = cluster.padys.size();
     }
   }  //   for (auto& iter : m_clusters)
 
@@ -485,7 +489,7 @@ void TPCFEETestRecov1::Clustering()
   map<double, int> cluster_energy;
   for (auto& iter : m_clusters)
   {
-      //reverse energy sorting
+    //reverse energy sorting
     cluster_energy[-iter.second.peak] = iter.first;
   }
 
