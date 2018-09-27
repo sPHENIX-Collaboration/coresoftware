@@ -90,7 +90,7 @@
 
 #define _DEBUG_MODE_ 0
 
-#define _DEBUG_
+//#define _DEBUG_
 
 using namespace std;
 
@@ -279,7 +279,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
 
 	if(verbosity > 1)
-		std::cout << PHWHERE << "RCC WAS HERE Events processed: " << _event << std::endl;
+		std::cout << PHWHERE << "(Heads up! You're running a non-stock PHG4TrackKalmanFitter) Events processed: " << _event << std::endl;
 //	if (_event % 1000 == 0)
 //		cout << PHWHERE << "Events processed: " << _event << endl;
 
@@ -319,7 +319,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		//RCC do some studies of track extrapolation to the tpc:
 	     
 	       if (_do_eval) {
-		 std::cout << PHWHERE << "Doing Eval RCC"<<endl;
+		 if (verbosity >= 2) std::cout << PHWHERE << "Starting extrapolation Eval"<<endl;
 
 		if (rf_phgf_track){
 		  //line_point and line_direction are the axis of the cylinder.
@@ -328,7 +328,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  const int inner_wall_r=20.0;//cm.  Need tocheck the native units RCC
 
 		  int npoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
-		  std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
+		   if (verbosity >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
 
 		  //this ought to give the same result regardless of where we extrapolate from, since it should pick the best track ref, but... not clear if that's true.  pick the outermost point.  Note that currently this doesn't include extra material effects, so it won't work for points beyond the inner wall of the tpc -- there's an additional scattering growth to the covariance.
 		  std::shared_ptr<genfit::MeasuredStateOnPlane> gf_cylinder_state = NULL;
@@ -345,7 +345,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  if (!gf_cylinder_state) {
 		    covariance_okay=false;
 		    LogWarning("No Cylinder state RCC");
-		    std::cout << PHWHERE << "Cylinder State not filled RCC"<<endl;
+		    //std::cout << PHWHERE << "Cylinder State not filled RCC"<<endl;
 		  }
 
 		  TVector3 pos(NAN,NAN,NAN);
@@ -389,7 +389,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    } catch (...) {
 		      if (verbosity > 0)
 			LogWarning("State Covariance unavailable!");
-		      std::cout << PHWHERE << "Extraction of State Cov failed RCC"<<endl;
+		      // std::cout << PHWHERE << "Extraction of State Cov failed RCC"<<endl;
 
 		      covariance_okay=false;
 		    }
@@ -419,25 +419,18 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    //get the info for the last two points in the track, in order:
 		    for (int i=0;i<2;i++){
 		      trackpoint[i]= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
-		      //trackpoint[i]= std::shared_ptr <genfit::TrackPoint> (rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i));
-		      //cout<<"trackpoint used.  sorting param:" << trackpoint[i]->getSortingParameter()<<endl;
-		      // trackstate[i]=std::shared_ptr <genfit::MeasuredStateOnPlane> (trackpoint[i]->getFitterInfo()->getFittedState().clone());
 		      trackstate[i]=trackpoint[i]->getFitterInfo()->getFittedState().clone();
-
-		       pos_linear[i]=trackstate[i]->getPos();//my guess of the culprit.
-		      if(1){
+		       pos_linear[i]=trackstate[i]->getPos();
 			cov_lin6=trackstate[i]->get6DCov();
 			for(int k=0;i<3;++i){
 			  for(int j=0;j<3;++j){
 			    (cov_linear[i])[k][j] = cov_lin6[k][j];//not sure this is kosher...
 			  }
 			}
-		      }
 		    }
 		    
 
 		    //extrapolate from those last two points to the cylinder:
-		    if(1){
 		    TVector3 delta=pos_linear[1]-pos_linear[0];
 		    TMatrixF cov_delta=cov_linear[1]-cov_linear[0];
 		    
@@ -452,26 +445,23 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    //extrapolate out all the dimensions to the intersection.
 		    pos_linear[2]=pos_linear[1]+delta*t;
 		    cov_linear[2]=cov_linear[1]+cov_delta*t;
-		    }
 
-		    if(1){
 		    //rotate cov_linear to Rzphi for each of our three matrices:
 		    for (int i=0;i<3;i++){
 		      pos_cov_XYZ_to_RZ(pos_linear[2], pos_in, cov_linear[i], pos_out, cov_linout[i]);//don't need the pos rotations, but had to fill those in again anyway.
 		      //std::cout << PHWHERE<< " cov_linout["<<i<<"] has " << cov_linout[i].GetNrows() << " rows and " << cov_linout[i].GetNcols() << " cols."<<endl;
-		    }
 		    }
 
 		    
 		  } catch (...) {
 		    if (verbosity >= 2)
 		      LogWarning("gf_cylinder_state_prev failed!");
-		    std::cout <<PHWHERE << " Problem in lienar extrapolation."<< endl;
+		    //std::cout <<PHWHERE << " Problem in lienar extrapolation."<< endl;
 		  }
 		  
 		  if (verbosity > 0){// and !covariance_okay){
 		    std::cout << PHWHERE << "Covariance_okay="<< (covariance_okay?"true":"false") <<" RCC!" <<endl;
-		    }
+		  }
 		  _kalman_extrapolation_eval_tree_phi=pos.Phi();
 		  _kalman_extrapolation_eval_tree_z=pos.Z();
 		  _kalman_extrapolation_eval_tree_r=pos.Perp();
@@ -521,7 +511,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  }
 		    
 		    _kalman_extrapolation_eval_tree->Fill();
-		    std::cout << PHWHERE << "end of RCC eval."<<endl;
+		    if (verbosity >= 2) std::cout << PHWHERE << "end of extrapolation eval."<<endl;
 		  
 		}
 	       }
