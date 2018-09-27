@@ -1472,7 +1472,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		    if( (rbegin < rbin && rend < rbin) || (rbegin > rbout && rend > rbout) )
 		      continue;
 
-
 		    float xl[2];
 		    float yl[2];
 		    float zl[2];
@@ -1510,7 +1509,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		    if(rbegin < rbin)
 		      {
 			// line segment begins before boundary, find where it crosses
-			// line segment ends after boundary, find where it crosses
 			//cout << "calling line_circle for this_layer " << this_layer << " with rbegin " << rbegin << " rbin " << rbin << endl; 
 			t = line_circle_intersection(xl, yl, zl, rbin);
 			if(t > 0)
@@ -1545,9 +1543,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		    // we want only the fraction of edep inside the layer	    
 		    gx +=  (xin+xout) * 0.5 * this_g4hit->get_edep() * (xout-xin) / (xl[1]-xl[0]);
 		    gy +=  (yin+yout) * 0.5 * this_g4hit->get_edep() * (yout-yin) / (yl[1]-yl[0]);
-		    gz +=  (zin+zout) * 0.5 * this_g4hit->get_edep() * (zout-zin) / (yl[1]-yl[0]);
-		    gt  += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout-zin) / (yl[1]-yl[0]);
-		    gwt +=  this_g4hit->get_edep() * (zout-zin) / (yl[1]-yl[0]);
+		    gz +=  (zin+zout) * 0.5 * this_g4hit->get_edep() * (zout-zin) / (zl[1]-zl[0]);
+		    gt  += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout-zin) / (zl[1]-zl[0]);
+		    gwt +=  this_g4hit->get_edep() * (zout-zin) / (zl[1]-zl[0]);
 		  }   // loop over this_g4hit
 		gx /= gwt;  
 		gy /= gwt; 
@@ -1564,12 +1562,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	      }  // not TPC
 
 	    g4hitID  = g4hit->get_hit_id();
-	    //cout << "       best g4hit has id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
 	    TVector3 gpos(gx,gy,gz);
 	    gr = gpos.Perp();
 	    gphi = gpos.Phi();
 	    geta = gpos.Eta();
-	  
+	    //cout << "  best g4hit id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << " gphi " << gphi << " eta " << eta << endl;	  
 	
 	    if (g4particle) {
 	      

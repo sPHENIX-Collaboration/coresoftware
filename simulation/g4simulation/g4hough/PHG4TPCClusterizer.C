@@ -778,6 +778,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 		     << " zz_raw " << zz_raw << " zz " << zz
 		     << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
 		cout << "       zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << endl;
+
 	      }
 
 	  if(verbosity>1) {
@@ -797,7 +798,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  }
 	  if(verbosity>2000)
 	    std::cout << " cluster fitted " << std::endl;
-	    if(verbosity>1000){
+	    if(verbosity>1000)
+	    {
 	    std::cout << " | rad " << radius;
 	    std::cout << " | size rp z " << pp_size << " " << zz_size;
 	    std::cout << " | error_rphi error_z " << pp_err << " " << zz_err << std::endl;

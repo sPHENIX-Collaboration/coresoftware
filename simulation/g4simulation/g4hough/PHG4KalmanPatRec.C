@@ -219,8 +219,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       
       _max_search_win_phi_tpc(    0.0040),
       _min_search_win_phi_tpc(    0.0000),
-      //_max_search_win_theta_tpc(  0.0040),
-      _max_search_win_theta_tpc(  0.010),     
+      _max_search_win_theta_tpc(  0.0040),
       _min_search_win_theta_tpc(  0.0000),      
       
       _max_search_win_phi_maps(   0.0050),
