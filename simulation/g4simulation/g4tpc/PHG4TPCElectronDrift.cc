@@ -291,7 +291,8 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double y_final = y_start + rantrans*sin(ranphi);
 	double rad_final = sqrt(x_final*x_final + y_final*y_final);
 	// remove electrons outside of our acceptance
-	if (rad_final<min_active_radius || rad_final >max_active_radius)
+	// careful though, electrons from just inside 30 cm can drift into the 1st active layer, so leave a little margin
+	if (rad_final<min_active_radius-1.0 || rad_final >max_active_radius+1.0)
 	  {
 	    //cout << " skip - outside active area of TPC" << endl;
 	    continue;

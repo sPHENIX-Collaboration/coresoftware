@@ -106,7 +106,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
  
       if(rad_gem > rad_low && rad_gem < rad_high)
 	{
-	  // capture the layer where this hit starts
+	  // capture the layer where this electron hits sthe gem stack
 	  LayerGeom = layeriter->second;
 	  layernum = LayerGeom->get_layer();
 	  //cout << " g4hit id " << hiter->first  << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high 
@@ -114,12 +114,12 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  hiter->second->set_layer(layernum);     // have to set here, since the stepping action knows nothing about layers
 	}
     }
-  
+
   if(layernum == 0)
     {
-      cout << "Bad layernum " << endl;
       return;
     }
+  
 
   // Create the distribution function of charge on the pad plane around the electron position  
 

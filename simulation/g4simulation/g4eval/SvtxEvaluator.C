@@ -2645,9 +2645,9 @@ float SvtxEvaluator::line_circle_intersection(float x[], float y[], float z[], f
   float tdn = (-B - sqrt(B*B - 4.0*A*C)) / (2.0*A) ;
 
   float t;
-  if(tdn > 0 && tdn < 1.0)
+  if(tdn >= 0 && tdn <= 1.0)
     t = tdn;
-  else if(tup > 0 && tup < 1.0)
+  else if(tup >= 0 && tup <= 1.0)
     t = tup;
   else
     {
