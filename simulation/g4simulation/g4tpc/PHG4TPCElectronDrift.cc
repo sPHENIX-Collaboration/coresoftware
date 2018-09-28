@@ -232,16 +232,15 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     double y_start = hiter->second->get_y(0) + dy/2.;
     double z_start = hiter->second->get_z(0) + dz/2.;
     double t_start = hiter->second->get_t(0) + dt/2.;
-    //if(verbosity > 100)
-    double xin =  hiter->second->get_x(0);
-    double xout =  hiter->second->get_x(1);
-    double yin =  hiter->second->get_y(0);
-    double yout =  hiter->second->get_y(1);
-    //double zin =  hiter->second->get_z(0);
-    //double zout =  hiter->second->get_z(1);
+
 
     if(verbosity > 100)
       {
+	double xin =  hiter->second->get_x(0);
+	double xout =  hiter->second->get_x(1);
+	double yin =  hiter->second->get_y(0);
+	double yout =  hiter->second->get_y(1);
+
 	if( (sqrt(xin*xin+yin*yin) > 69.0 && sqrt(xin*xin+yin*yin) < 70.125) ||
 	    (sqrt(xout*xout+yout*yout) > 69.0 && sqrt(xout*xout+yout*yout) < 70.125) ) 
 	  {
@@ -260,12 +259,10 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double radstart = sqrt(x_start*x_start + y_start*y_start);
 	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
 	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
-	//rantrans = 0.0;  	// testing only !!!!
 	double t_path = (tpc_length/2. - fabs(z_start))/drift_velocity;
 	// now the drift
 	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;	
 	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
-	//rantime = 0.0;  	// testing only!!!!!
 
 	// ADF: note that adding t_start to the path results in an error of t_start * drift_velocity in the final position 
 	// The intention here seems to be to account for the propagation time of the particle to this point in the TPC
@@ -290,11 +287,9 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double x_final = x_start + rantrans*cos(ranphi);
 	double y_final = y_start + rantrans*sin(ranphi);
 	double rad_final = sqrt(x_final*x_final + y_final*y_final);
-	// remove electrons outside of our acceptance
-	// careful though, electrons from just inside 30 cm can drift into the 1st active layer, so leave a little margin
+	// remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can drift into the 1st active layer, so leave a little margin
 	if (rad_final<min_active_radius-1.0 || rad_final >max_active_radius+1.0)
 	  {
-	    //cout << " skip - outside active area of TPC" << endl;
 	    continue;
 	  }
 
@@ -313,9 +308,11 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	    if( sqrt(x_start*x_start+y_start*y_start) > 68.0 && sqrt(x_start*x_start+y_start*y_start) < 72.0)
 	      cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
 		   << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl; 
+
+	    nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start,z_final);
 	  }
     
-	nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start,z_final);
+
 
 	// this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
 	MapToPadPlane(x_final,y_final,z_final, hiter,ntpad,nthit);
@@ -372,11 +369,14 @@ void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem,
 
 int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
 {
-  TFile *outf=new TFile("nt_out.root","recreate");
-  outf->WriteTObject(nt);
-  outf->WriteTObject(ntpad);
-  outf->WriteTObject(nthit);
-  outf->Close();
+  if(Verbosity() > 0)
+    {
+      TFile *outf=new TFile("nt_out.root","recreate");
+      outf->WriteTObject(nt);
+      outf->WriteTObject(ntpad);
+      outf->WriteTObject(nthit);
+      outf->Close();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

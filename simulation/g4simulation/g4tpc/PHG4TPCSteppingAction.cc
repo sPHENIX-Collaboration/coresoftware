@@ -116,9 +116,11 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
   int prepointstatus = prePoint->GetStepStatus();
+
   //       cout << "track id " << aTrack->GetTrackID() << endl;
   //       cout << "time prepoint: " << prePoint->GetGlobalTime() << endl;
   //       cout << "time postpoint: " << postPoint->GetGlobalTime() << endl;
+
   if ((use_g4_steps > 0 && whichactive > 0) ||
       prepointstatus == fGeomBoundary ||
       prepointstatus == fUndefined ||

@@ -331,7 +331,6 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
       ++layeriter) 
     {
       // add an empty vector of cells for this layer
-      //cout << "Digitizer: Add empty vector for layer " << layeriter->second->get_layer() << endl;
       layer_sorted_cells.push_back(std::vector<const  PHG4Cell *>());
     }
 	
@@ -343,14 +342,17 @@ void PHG4SvtxDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode) {
     {    
       PHG4Cell* cell =  celliter->second; 
 
-      /*
-      for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
-	   g4iter != cell->get_g4hits().second;
-	   ++g4iter) 
-	{
-	  cout << "Digitizer: input cellid " << cell->get_cellid() << " g4hit ID " << g4iter->first << endl;
-	}
-      */
+      if(verbosity > 100)
+	if( (unsigned int) cell->get_layer() == print_layer)
+	  {
+	    for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
+		 g4iter != cell->get_g4hits().second;
+		 ++g4iter) 
+	      {
+		cout << "Digitizer: input cellid " << cell->get_cellid() << " g4hit ID " << g4iter->first << endl;
+	      }
+	  }
+
 
       if( (unsigned int) cell->get_layer() < TPCMinLayer) 
 	{

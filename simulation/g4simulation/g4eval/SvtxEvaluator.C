@@ -1391,13 +1391,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     
 	float efromtruth = NAN;
 
-	/*
-	cout << "evaluator for layer " << cluster->get_layer() << " clusterid " << cluster->get_id() 
-	     << " cluster adc " << cluster->get_adc() << " cluster e " << cluster->get_e() 
-	     << " x " << cluster->get_x() << " y " << cluster->get_y() << " z " << cluster->get_z()
-	     << endl; 
-	*/
-
 	if (g4hit) 
 	  {
 	    if(layer>=_nlayers_maps+_nlayers_intt)
@@ -1417,13 +1410,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		// radii of layer boundaries
 		float rbin = NAN;
 		float rbout = NAN;
-		//if(layer>=_nlayers_maps+_nlayers_intt)
-		//{
 		PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
 		// get layer boundaries here for later use
 		rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
 		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 
-		//}
 	 
 		gx = 0.0; 
 		gy = 0.0; 
@@ -1438,14 +1428,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		  {
 		    PHG4Hit* this_g4hit = *iter;
 		    
-		    /*
-		    cout << endl << "evaluator found g4hit " << this_g4hit->get_hit_id() << " with edep " << this_g4hit->get_edep() 
-			 << " gx " << this_g4hit->get_avg_x() << " gy " << this_g4hit->get_avg_y() << " gz " << this_g4hit->get_avg_z() 
-			 << " gt " <<  this_g4hit->get_avg_t() 
-			 << endl;
-		    */		    
-		    
-
 		    float rbegin = sqrt(this_g4hit->get_x(0)*this_g4hit->get_x(0) + this_g4hit->get_y(0)*this_g4hit->get_y(0));
 		    float rend = sqrt(this_g4hit->get_x(1)*this_g4hit->get_x(1) + this_g4hit->get_y(1)*this_g4hit->get_y(1));
 
@@ -1460,12 +1442,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 		    if(this_layer != layer)
 		      {
-			//cout << " change layer from " << layer << " to " << this_layer << " rbin from " << rbin << " rbout from " << rbout 
-			//	 << " rbegin " << rbegin << " rend " << rend << endl;
 			rbin +=  (this_layer - layer) * GeoLayer->get_thickness();
 			rbout +=  (this_layer - layer) * GeoLayer->get_thickness();
-			//cout << " change layer from " << layer << " to " << this_layer << " rbin to " << rbin << " rbout to " << rbout 
-			//      << " rbegin " << rbegin << " rend " << rend << endl;
 		      }
 
 		    // very rarely the layer is off by two, just skip
@@ -1495,7 +1473,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			zl[1] = this_g4hit->get_z(0); 
 			swap(rbegin,rend);
 		      }
-		    //cout << "layer = " << layer << " this_layer " << this_layer << " rbegin = " << rbegin << " rend = " << rend << " rbin " << rbin << " rbout " << rbout << endl;	    
 		    
 		    float xin = xl[0];
 		    float yin = yl[0];
@@ -1509,7 +1486,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		    if(rbegin < rbin)
 		      {
 			// line segment begins before boundary, find where it crosses
-			//cout << "calling line_circle for this_layer " << this_layer << " with rbegin " << rbegin << " rbin " << rbin << endl; 
 			t = line_circle_intersection(xl, yl, zl, rbin);
 			if(t > 0)
 			  {
@@ -1517,15 +1493,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			    yin = yl[0] + t * (yl[1]-yl[0]);
 			    zin = zl[0] + t * (zl[1]-zl[0]);
 			  }
-			else
-			  cout << " invalid t = " << t << " layer " << layer << " this_layer " << this_layer 
-			       << " rbegin " << rbegin << " rend " << rend << " rbin " << rbin << " rbout " << rbout << endl; 
 		      }
-		    
+	    
 		    if(rend > rbout)
 		      {
 			// line segment ends after boundary, find where it crosses
-			//cout << "calling line_circle for layer " << this_layer << " with rend " << rend << " rbout " << rbout << endl; 
 			t = line_circle_intersection(xl, yl, zl, rbout);
 			if(t > 0)
 			  {
@@ -1533,13 +1505,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			    yout = yl[0] + t * (yl[1]-yl[0]);
 			    zout = zl[0] + t * (zl[1]-zl[0]);
 			  }
-			else
-			  cout << " invalid t = " << t << " layer " << layer << " this_layer " << this_layer 
-			       << " rebegin " << rbegin << " rend " << rend << " rbin " << rbin << " rbout " << rbout << endl; 
 		      }
 
-		    //cout << "   Final line segment has rbegin " << sqrt(xin*xin+yin*yin) << " rend " << sqrt(xout*xout+yout*yout) << endl;  		    
-
+		    
 		    // we want only the fraction of edep inside the layer	    
 		    gx +=  (xin+xout) * 0.5 * this_g4hit->get_edep() * (xout-xin) / (xl[1]-xl[0]);
 		    gy +=  (yin+yout) * 0.5 * this_g4hit->get_edep() * (yout-yin) / (yl[1]-yl[0]);
@@ -1551,7 +1519,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		gy /= gwt; 
 		gz /= gwt; 
 		gt /= gwt;
-		//cout << "       truth centroids are:  gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << endl;
 	      }  // if TPC
 	    else
 	      {
@@ -1560,13 +1527,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		gy = g4hit->get_avg_y();
 		gz = g4hit->get_avg_z();
 	      }  // not TPC
-
+	    
 	    g4hitID  = g4hit->get_hit_id();
 	    TVector3 gpos(gx,gy,gz);
 	    gr = gpos.Perp();
 	    gphi = gpos.Phi();
 	    geta = gpos.Eta();
-	    //cout << "  best g4hit id " << g4hit->get_hit_id()  << " gx " << gx << " gy " << gy << " gz " << gz << " gt " << gt << " gphi " << gphi << " eta " << eta << endl;	  
 	
 	    if (g4particle) {
 	      
@@ -2633,8 +2599,7 @@ float SvtxEvaluator::line_circle_intersection(float x[], float y[], float z[], f
   // x = x0 + t * (x1-x0); y=y0 + t * (y1-y0); z = z0 + t * (z1-z0)
   // parameterize the cylinder (centered at x,y = 0,0) as  x^2 + y^2 = radius^2,   then
   // (x0 + t*(x1-z0))^2 + (y0+t*(y1-y0))^2 = radius^2
-  // x0^2 + x0*t*(x1-x0) + t*(x1-x0)*x0 + t^2*(x1-x0)^2 + y0^2 + y0*t*(y1-y0) + t*(y1-y0)*y0 + t^2*(y1-y0)^2 = radius^2
-  // (x0^2 + y0^2 - radius^2) + (2x0*(x1-x0) + 2y0*(y1-y0))*t +  ((x1-x0)^2 + (y1-y0)^2)*t^2 = 0 = C + B*t + A*t^2
+   // (x0^2 + y0^2 - radius^2) + (2x0*(x1-x0) + 2y0*(y1-y0))*t +  ((x1-x0)^2 + (y1-y0)^2)*t^2 = 0 = C + B*t + A*t^2
   // quadratic with:  A = (x1-x0)^2+(y1-y0)^2 ;  B = 2x0*(x1-x0) + 2y0*(y1-y0);  C = x0^2 + y0^2 - radius^2
   // solution: t = (-B +/- sqrt(B^2 - 4*A*C)) / (2*A) 
   

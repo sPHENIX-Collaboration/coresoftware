@@ -691,7 +691,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
-      if(Verbosity() > 100 && layer == 50) 
+      if(Verbosity() > 100 && layer == 47) 
 	  {
 	    cout << "Clusterizer: adding input SvtxHit " <<  hit->get_id() << endl;;
 	    //hit->identify();
@@ -813,7 +813,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           clus.set_position(2, zz);
 	  for(unsigned int i=0;i<fCellz.size();i++)
 	    {
-	      if(Verbosity() > 10 && layer == 50)
+	      if(Verbosity() > 10 && layer == 47)
 		cout  << "   Fitted cluster contains SvtxHit " << fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ] << endl;
 	      clus.insert_hit( fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ]);
 	    }
