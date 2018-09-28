@@ -379,6 +379,16 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			  cov_in[i][j] = cov6[i][j];
 			    }
 		      }
+
+		      if (verbosity > 4){
+			cout << "cov_kalman:"<<endl;
+			for (int j=0;j<3;j++){
+			  for (int k=0;k<3;k++){
+			    cout << cov_in[j][k] << '\t';
+			  }
+			  cout << endl;
+			}
+		      }
 		      
 		      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
 		      
@@ -397,6 +407,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		  TVector3 pos_linear[3];//the linear extrapolation from the last two hits.
 		  TMatrixF cov_linout[3];//three of these, for the three covariance matrices in the linear approach(3,3);
+		    float t=0; //path length from [1] to [2] in units of the distance between [0] and [1]
 
 		  //also try a straight-line extrapolation: (rcchere)
 		  try{
@@ -405,8 +416,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    genfit::MeasuredStateOnPlane* trackstate[2];
 
 		    TVectorD hit[3];//don't actually need the last one
+			      
 		    TMatrixF cov_linear[3];//(3,3);
-		    TMatrixF cov_lin6(6,6);
+		    TVectorD state_lin6(6); // pos(3), mom(3)
+		    TMatrixDSym cov_lin6(6,6);
 		    for (int i=0;i<3;i++){
 		      hit[i].ResizeTo(3);
 		      pos_linear[i].SetXYZ(NAN,NAN,NAN);
@@ -420,15 +433,22 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    for (int i=0;i<2;i++){
 		      trackpoint[i]= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
 		      trackstate[i]=trackpoint[i]->getFitterInfo()->getFittedState().clone();
-		       pos_linear[i]=trackstate[i]->getPos();
-			cov_lin6=trackstate[i]->get6DCov();
-			for(int k=0;i<3;++i){
-			  for(int j=0;j<3;++j){
-			    (cov_linear[i])[k][j] = cov_lin6[k][j];//not sure this is kosher...
+		      //not sure this works right: pos_linear[i]=trackstate[i]->getPos();
+		      //cov_lin6=trackstate[i]->get6DCov();  For reasons that aren't clear, this call does not work correctly.  Get as below.
+		      trackstate[i]->get6DStateCov(state_lin6, cov_lin6);
+		      (pos_linear[i]).SetXYZ(state_lin6[0],state_lin6[1],state_lin6[2]);
+
+		      
+		      for(int j=0;j<3;++j){ 
+			  for(int k=0;k<3;++k){
+			    //std::cout << PHWHERE << " filling cov_linear[ "<<j<<"]["<<k<<"]" << std::endl;
+			    //std::cout << PHWHERE << " con_lin6[ "<<j<<"]["<<k<<"]="<<cov_lin6[j][k]<< std::endl;
+			    (cov_linear[i])[j][k] = cov_lin6[j][k];
 			  }
 			}
 		    }
-		    
+
+
 
 		    //extrapolate from those last two points to the cylinder:
 		    TVector3 delta=pos_linear[1]-pos_linear[0];
@@ -441,11 +461,40 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    double quad_b=2*delta*(pos_linear[1]);
 		    double quad_c=(pos_linear[1]*pos_linear[1])-inner_wall_r*inner_wall_r;
 		    //pick the positive root to keep going the direction we defined:
-		    float t=(-quad_b+TMath::Sqrt(quad_b*quad_b-4*quad_a*quad_c))/(2*quad_a);
+		    t=(-quad_b+TMath::Sqrt(quad_b*quad_b-4*quad_a*quad_c))/(2*quad_a);
 		    //extrapolate out all the dimensions to the intersection.
 		    pos_linear[2]=pos_linear[1]+delta*t;
 		    cov_linear[2]=cov_linear[1]+cov_delta*t;
 
+		    if (verbosity > 4){
+		      
+		      for(int i=0;i<3;i++){
+			cout << "pos_linear " << i << ":"<<endl;
+			for (int j=0;j<3;j++){
+			  cout << (pos_linear[i])[j] << '\t';
+			}
+			cout  << "R="<< pos_linear[i].Perp() << " Phi="<<pos_linear[i].Phi() << " Z=" <<pos_linear[i].Z();
+			cout << endl;
+		      }
+		      
+		      cout << "pathlength=" << t << endl;
+		      for(int i=0;i<3;i++){
+			cout << "cov_linear " << i << ":"<<endl;
+			for (int j=0;j<3;j++){
+			  for (int k=0;k<3;k++){
+			    cout << (cov_linear[i])[j][k] << '\t';
+			  }
+			  cout << endl;
+			}
+		      }
+		      cout << "cov_delta:"<<endl;
+		      for (int j=0;j<3;j++){
+			for (int k=0;k<3;k++){
+			  cout << (cov_delta)[j][k] << '\t';
+			}
+			cout << endl;
+		      }
+		    }
 		    //rotate cov_linear to Rzphi for each of our three matrices:
 		    for (int i=0;i<3;i++){
 		      pos_cov_XYZ_to_RZ(pos_linear[2], pos_in, cov_linear[i], pos_out, cov_linout[i]);//don't need the pos rotations, but had to fill those in again anyway.
@@ -479,6 +528,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    _kalman_extrapolation_eval_tree_covin_z=cov_in[2][2];
 		    
 		    //linear data:
+		    _kalman_extrapolation_eval_tree_lin_pathlength=t;
+
 		    //std::cout << PHWHERE <<endl;
 		    _kalman_extrapolation_eval_tree_lin_pos0_x=(pos_linear[0]).X();
 		    _kalman_extrapolation_eval_tree_lin_pos0_y=(pos_linear[0]).Y();
@@ -880,7 +931,8 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("sigma_y",&_kalman_extrapolation_eval_tree_covin_y);
 	_kalman_extrapolation_eval_tree->Branch("sigma_z",&_kalman_extrapolation_eval_tree_covin_z);
 
-	//linear data:
+	//linear data:	
+	_kalman_extrapolation_eval_tree->Branch("lin_path",&_kalman_extrapolation_eval_tree_lin_pathlength);
 	_kalman_extrapolation_eval_tree->Branch("lin_pos0_x",&_kalman_extrapolation_eval_tree_lin_pos0_x);
 	_kalman_extrapolation_eval_tree->Branch("lin_pos0_y",&_kalman_extrapolation_eval_tree_lin_pos0_y);
 	_kalman_extrapolation_eval_tree->Branch("lin_pos0_z",&_kalman_extrapolation_eval_tree_lin_pos0_z);

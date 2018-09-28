@@ -348,6 +348,7 @@ private:
 	float _kalman_extrapolation_eval_tree_covin_z;
 
 	//linear data:
+	float _kalman_extrapolation_eval_tree_lin_pathlength;
 	float _kalman_extrapolation_eval_tree_lin_pos0_x;
 	float _kalman_extrapolation_eval_tree_lin_pos0_y;
 	float _kalman_extrapolation_eval_tree_lin_pos0_z;
