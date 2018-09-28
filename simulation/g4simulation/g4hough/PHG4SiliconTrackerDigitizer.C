@@ -209,9 +209,9 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
     for (unsigned int irange=0; irange<vadcrange.size(); ++irange)
       if (cell->get_edep()>=vadcrange[irange].first*(double)mip_e && cell->get_edep()<vadcrange[irange].second*(double)mip_e)
 	adc = (int)irange;
-
-    if (adc<0) // TODO, underflow is temporarily assigned to ADC=0.
-      adc = 0;
+//
+//    if (adc<0) // TODO, underflow is temporarily assigned to ADC=0.
+//      adc = 0;
 
     float e = 0.0;
     if (adc>=0 && adc<int(vadcrange.size())-1)
