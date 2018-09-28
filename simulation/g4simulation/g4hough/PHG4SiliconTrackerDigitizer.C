@@ -214,29 +214,31 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       if (cell->get_edep() >= vadcrange[irange].first * (double) mip_e && cell->get_edep() < vadcrange[irange].second * (double) mip_e)
         adc = (int) irange;
     //
-    //    if (adc<0) // TODO, underflow is temporarily assigned to ADC=0.
-    //      adc = 0;
-
-    float e = 0.0;
-    if (adc >= 0 && adc < int(vadcrange.size()) - 1)
-      e = 0.5 * (vadcrange[adc].second + vadcrange[adc].first) * mip_e;
-    else if (adc == int(vadcrange.size()) - 1)  // overflow
-      e = vadcrange[adc].first * mip_e;
-    else  // underflow
-      e = 0.5 * vadcrange[0].first * mip_e;
-
-    hit.set_adc(adc);
-    hit.set_e(e);
-
-    SvtxHit *ptr = _hitmap->insert(&hit);
-    if (!ptr->isValid())
+    if (adc >= 0)
     {
-      static bool first = true;
-      if (first)
+      //      adc = 0;
+
+      float e = 0.0;
+      if (adc >= 0 && adc < int(vadcrange.size()) - 1)
+        e = 0.5 * (vadcrange[adc].second + vadcrange[adc].first) * mip_e;
+      else if (adc == int(vadcrange.size()) - 1)  // overflow
+        e = vadcrange[adc].first * mip_e;
+      else  // underflow
+        e = 0.5 * vadcrange[0].first * mip_e;
+
+      hit.set_adc(adc);
+      hit.set_e(e);
+
+      SvtxHit *ptr = _hitmap->insert(&hit);
+      if (!ptr->isValid())
       {
-        cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
-        ptr->identify();
-        first = false;
+        static bool first = true;
+        if (first)
+        {
+          cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
+          ptr->identify();
+          first = false;
+        }
       }
     }
   }
