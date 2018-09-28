@@ -45,7 +45,7 @@ public:
   /// returns true if the GenParticle does not decay
   bool operator()(const HepMC::GenParticlePtr p)
     {
-      if (!p->end_vertex() && p->status() == 1) return 1;
+      if (!p->end_vertex() && p->status() > 0) return 1;
       return 0;
     }
 };
@@ -205,28 +205,29 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     std::list<HepMC::GenParticlePtr> finalstateparticles;
     std::list<HepMC::GenParticlePtr>::const_iterator fiter;
     // units in G4 interface are GeV and CM as in PHENIX convention
+    // HepMC3 doesn't make this easily available (maybe in a future version)
+    // until then just use a testvector and apply the units from the event
+    // to get the conversion factors to our units
     HepMC::FourVector test(1,1,1,1);
     HepMC::Units::convert(test,evt->momentum_unit(),HepMC::Units::GEV);
     const double mom_factor = 1*test.x();
     test.setX(1);
     HepMC::Units::convert(test,evt->length_unit(),HepMC::Units::CM);
     const double length_factor = 1*test.x();
-//    const double mom_factor = 1.; //HepMC::Units::conversion_factor(evt->momentum_unit(), HepMC::Units::GEV);
-//    const double length_factor = 1.;// HepMC::Units::conversion_factor(evt->length_unit(), HepMC::Units::CM);
-    const double time_factor = length_factor / GSL_CONST_CGS_SPEED_OF_LIGHT * 1e9; //HepMC::Units::conversion_factor(evt->length_unit(), HepMC::Units::CM) / GSL_CONST_CGS_SPEED_OF_LIGHT * 1e9;  // from length_unit()/c to ns
-    //     const std::vector<HepMC::GenParticlePtr> particle_vec = evt->particles();
+    const double time_factor = length_factor / GSL_CONST_CGS_SPEED_OF_LIGHT * 1e9;
     ofstream outfile;
     outfile.open("hepmc3.txt",std::ofstream::out | std::ofstream::app);
     outfile << "factor length: " << length_factor
-	 << ", time: " << time_factor
-	 << ", mom: " << mom_factor
-	 << endl;
+	    << ", time: " << time_factor
+	    << ", mom: " << mom_factor
+	    << endl;
+    set<int> pidset;
     for( const HepMC::GenVertexPtr &v : evt->vertices() )  
     {
       outfile << "vtx x: " << v->position().x()
-           << ", y: " << v->position().y()
-           << ", z: " << v->position().z()
-           << ", t: " << v->position().t() << endl;
+	      << ", y: " << v->position().y()
+	      << ", z: " << v->position().z()
+	      << ", t: " << v->position().t() << endl;
       cout << "vtx x: " << v->position().x()
            << ", y: " << v->position().y()
            << ", z: " << v->position().z()
@@ -236,241 +237,160 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
       for( const HepMC::GenParticlePtr &p : v->particles_out())
       {
 	outfile << "px: " << p->momentum().px() 
-             << ", py: " << p->momentum().py() 
-             << ", pz: " << p->momentum().pz() 
-             << ", pid: " << p->pid() 
-             << ", status: " << p->status() 
-             << endl;
+		<< ", py: " << p->momentum().py() 
+		<< ", pz: " << p->momentum().pz() 
+		<< ", pid: " << p->pid() 
+		<< ", status: " << p->status() 
+		<< endl;
+//	if (isfinal(p) && fabs(p->pid()) != 2224 && fabs(p->pid()) != 2214 && fabs(p->pid()) != 2114 && fabs(p->pid()) != 1114 && fabs(p->pid()) != 3124 && fabs(p->pid()) != 3114 && p->pid() > -400)
+	  if (isfinal(p))
+	{
+	  static int ifirst = 1;
+	  if (ifirst)
+	  {
 	cout << "px: " << p->momentum().px() 
              << ", py: " << p->momentum().py() 
              << ", pz: " << p->momentum().pz() 
              << ", pid: " << p->pid() 
              << ", status: " << p->status() 
              << endl;
-	if (isfinal(p))
-	{
 	  finalstateparticles.push_back(p);
+	  pidset.insert(p->pid());
+//	  ifirst = 0;
+	  }
 	}
-	if (!finalstateparticles.empty())
-	{
-	  double xpos = v->position().x() * length_factor + xshift;
-	  double ypos = v->position().y() * length_factor + yshift;
-	  double zpos = v->position().z() * length_factor + zshift;
-	  double time = v->position().t() * time_factor + tshift;
-
-	  if (Verbosity() > 1)
-	  {
-	    cout << "Vertex : " << endl;
-//          (*v)->print();
-//          cout << "id: " << (*v)->barcode() << endl;
-	    cout << "x: " << xpos << endl;
-	    cout << "y: " << ypos << endl;
-	    cout << "z: " << zpos << endl;
-	    cout << "t: " << time << endl;
-	    cout << "Particles" << endl;
-	  }
-
-	  if (ishape == ShapeG4Tubs)
-	  {
-	    if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
-		fabs(zpos) > worldsizez / 2)
-	    {
-	      cout << "vertex x/y/z" << xpos << "/" << ypos << "/" << zpos
-		   << " outside world volume radius/z (+-) " << worldsizex / 2
-		   << "/" << worldsizez / 2 << ", dropping it and its particles"
-		   << endl;
-	      continue;
-	    }
-	  }
-	  else if (ishape == ShapeG4Box)
-	  {
-	    if (fabs(xpos) > worldsizex / 2 || fabs(ypos) > worldsizey / 2 ||
-		fabs(zpos) > worldsizez / 2)
-	    {
-	      cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-		   << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
-		   << worldsizey / 2 << "/" << worldsizez / 2
-		   << ", dropping it and its particles" << endl;
-	      continue;
-	    }
-	  }
-	  else
-	  {
-	    cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
-		 << endl;
-	    exit(1);
-	  }
-	  // For pile-up simulation: vertex position
-	  vtxindex = ineve->AddVtx(xpos, ypos, zpos, time);
-	  int trackid = -1;
-	  for (fiter = finalstateparticles.begin();
-	       fiter != finalstateparticles.end();
-	       ++fiter)
-	  {
-	    ++trackid;
-
-//          if (verbosity > 1) (*fiter)->print();
-
-	    PHG4Particle *particle = new PHG4Particlev1();
-	    particle->set_pid((*fiter)->pdg_id());
-	    particle->set_px((*fiter)->momentum().px() * mom_factor);
-	    particle->set_py((*fiter)->momentum().py() * mom_factor);
-	    particle->set_pz((*fiter)->momentum().pz() * mom_factor);
-//          particle->set_barcode((*fiter)->barcode());
-
-	    ineve->AddParticle(vtxindex, particle);
-
-	    if (embed_flag != 0) ineve->AddEmbeddedParticle(particle, embed_flag);
-	  }
-	}  //      if (!finalstateparticles.empty())
       }
-	outfile.close();
-/*
-  for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
-  v != evt->vertices_end();
-  ++v)
-  {
-  //finalstateparticles.clear();
-  for (HepMC::GenVertex::particle_iterator p =
-  (*v)->particles_begin(HepMC::children);
-  p != (*v)->particles_end(HepMC::children); ++p)
-  {
-//        if (isfinal(*p))
-{
-//finalstateparticles.push_back(*p);
-}
-}
+      if (!finalstateparticles.empty())
+      {
+	double xpos = v->position().x() * length_factor + xshift;
+	double ypos = v->position().y() * length_factor + yshift;
+	double zpos = v->position().z() * length_factor + zshift;
+	double time = v->position().t() * time_factor + tshift;
 
-if (!finalstateparticles.empty())
-{
-double xpos = (*v)->position().x() * length_factor + xshift;
-double ypos = (*v)->position().y() * length_factor + yshift;
-double zpos = (*v)->position().z() * length_factor + zshift;
-double time = (*v)->position().t() * time_factor + tshift;
-
-if (Verbosity() > 1)
-{
-cout << "Vertex : " << endl;
+//	if (Verbosity() > 1)
+	{
+	  cout << "Vertex : " << endl;
 //          (*v)->print();
 //          cout << "id: " << (*v)->barcode() << endl;
-cout << "x: " << xpos << endl;
-cout << "y: " << ypos << endl;
-cout << "z: " << zpos << endl;
-cout << "t: " << time << endl;
-cout << "Particles" << endl;
-}
+	  cout << "x: " << xpos << endl;
+	  cout << "y: " << ypos << endl;
+	  cout << "z: " << zpos << endl;
+	  cout << "t: " << time << endl;
+	  cout << "Particles" << endl;
+	}
 
-if (ishape == ShapeG4Tubs)
-{
-if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
-fabs(zpos) > worldsizez / 2)
-{
-cout << "vertex x/y/z" << xpos << "/" << ypos << "/" << zpos
-<< " outside world volume radius/z (+-) " << worldsizex / 2
-<< "/" << worldsizez / 2 << ", dropping it and its particles"
-<< endl;
-continue;
-}
-}
-else if (ishape == ShapeG4Box)
-{
-if (fabs(xpos) > worldsizex / 2 || fabs(ypos) > worldsizey / 2 ||
-fabs(zpos) > worldsizez / 2)
-{
-cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
-<< " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
-<< worldsizey / 2 << "/" << worldsizez / 2
-<< ", dropping it and its particles" << endl;
-continue;
-}
-}
-else
-{
-cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
-<< endl;
-exit(1);
-}
-
-// For pile-up simulation: vertex position
-vtxindex = ineve->AddVtx(xpos, ypos, zpos, time);
-int trackid = -1;
-for (fiter = finalstateparticles.begin();
-fiter != finalstateparticles.end();
-++fiter)
-{
-++trackid;
+	if (ishape == ShapeG4Tubs)
+	{
+	  if (sqrt(xpos * xpos + ypos * ypos) > worldsizey / 2 ||
+	      fabs(zpos) > worldsizez / 2)
+	  {
+	    cout << "vertex x/y/z" << xpos << "/" << ypos << "/" << zpos
+		 << " outside world volume radius/z (+-) " << worldsizex / 2
+		 << "/" << worldsizez / 2 << ", dropping it and its particles"
+		 << endl;
+	    continue;
+	  }
+	}
+	else if (ishape == ShapeG4Box)
+	{
+	  if (fabs(xpos) > worldsizex / 2 || fabs(ypos) > worldsizey / 2 ||
+	      fabs(zpos) > worldsizez / 2)
+	  {
+	    cout << "Vertex x/y/z " << xpos << "/" << ypos << "/" << zpos
+		 << " outside world volume x/y/z (+-) " << worldsizex / 2 << "/"
+		 << worldsizey / 2 << "/" << worldsizez / 2
+		 << ", dropping it and its particles" << endl;
+	    continue;
+	  }
+	}
+	else
+	{
+	  cout << PHWHERE << " shape " << ishape << " not implemented. exiting"
+	       << endl;
+	  exit(1);
+	}
+	// For pile-up simulation: vertex position
+	vtxindex = ineve->AddVtx(xpos, ypos, zpos, time);
+	int trackid = -1;
+	for (fiter = finalstateparticles.begin();
+	     fiter != finalstateparticles.end();
+	     ++fiter)
+	{
+	  ++trackid;
 
 //          if (verbosity > 1) (*fiter)->print();
 
-PHG4Particle *particle = new PHG4Particlev1();
-particle->set_pid((*fiter)->pdg_id());
-particle->set_px((*fiter)->momentum().px() * mom_factor);
-particle->set_py((*fiter)->momentum().py() * mom_factor);
-particle->set_pz((*fiter)->momentum().pz() * mom_factor);
+	  PHG4Particle *particle = new PHG4Particlev1();
+	  particle->set_pid((*fiter)->pdg_id());
+	  particle->set_px((*fiter)->momentum().px() * mom_factor);
+	  particle->set_py((*fiter)->momentum().py() * mom_factor);
+	  particle->set_pz((*fiter)->momentum().pz() * mom_factor);
 //          particle->set_barcode((*fiter)->barcode());
 
-ineve->AddParticle(vtxindex, particle);
+	  ineve->AddParticle(vtxindex, particle);
 
-if (embed_flag != 0) ineve->AddEmbeddedParticle(particle, embed_flag);
+	  if (embed_flag != 0) ineve->AddEmbeddedParticle(particle, embed_flag);
+	}
+      }  //      if (!finalstateparticles.empty())
+    }
+    for (auto &iter: pidset)
+    {
+      cout << "pid: " << iter << endl;
+    }
+    outfile.close();
+  }  // For pile-up simulation: loop end for PHHepMC event map
+  if (verbosity > 0) ineve->identify();
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
-}  //      if (!finalstateparticles.empty())
 
-}  //    for (HepMC::GenEvent::vertex_iterator v = evt->vertices_begin();
-*/
-  }
-    }  // For pile-up simulation: loop end for PHHepMC event map
-    if (verbosity > 0) ineve->identify();
+double HepMCNodeReader::smeargauss(const double width)
+{
+  if (width == 0) return 0;
+  return gsl_ran_gaussian(RandomGenerator, width);
+}
 
-    return Fun4AllReturnCodes::EVENT_OK;
-  }
+double HepMCNodeReader::smearflat(const double width)
+{
+  if (width == 0) return 0;
+  return 2.0 * width * (gsl_rng_uniform_pos(RandomGenerator) - 0.5);
+}
 
-  double HepMCNodeReader::smeargauss(const double width)
-  {
-    if (width == 0) return 0;
-    return gsl_ran_gaussian(RandomGenerator, width);
-  }
+void HepMCNodeReader::VertexPosition(const double v_x, const double v_y,
+				     const double v_z)
+{
+  cout << "HepMCNodeReader::VertexPosition - WARNING - this function is depreciated. "
+       << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
+       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+       << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+       << endl;
 
-  double HepMCNodeReader::smearflat(const double width)
-  {
-    if (width == 0) return 0;
-    return 2.0 * width * (gsl_rng_uniform_pos(RandomGenerator) - 0.5);
-  }
+  vertex_pos_x = v_x;
+  vertex_pos_y = v_y;
+  vertex_pos_z = v_z;
+  return;
+}
 
-  void HepMCNodeReader::VertexPosition(const double v_x, const double v_y,
-				       const double v_z)
-  {
-    cout << "HepMCNodeReader::VertexPosition - WARNING - this function is depreciated. "
-	 << "HepMCNodeReader::VertexPosition() move all HEPMC subevents to a new vertex location. "
-	 << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
-	 << "Recommendation: the vertex shifts are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-	 << endl;
+void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
+				  const double s_z)
+{
+  cout << "HepMCNodeReader::SmearVertex - WARNING - this function is depreciated. "
+       << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
+       << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
+       << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+       << endl;
 
-    vertex_pos_x = v_x;
-    vertex_pos_y = v_y;
-    vertex_pos_z = v_z;
-    return;
-  }
+  width_vx = s_x;
+  width_vy = s_y;
+  width_vz = s_z;
+  return;
+}
 
-  void HepMCNodeReader::SmearVertex(const double s_x, const double s_y,
-				    const double s_z)
-  {
-    cout << "HepMCNodeReader::SmearVertex - WARNING - this function is depreciated. "
-	 << "HepMCNodeReader::SmearVertex() smear each HEPMC subevents to a new vertex location. "
-	 << "This also leads to a different vertex is used for HepMC subevent in Geant4 than that recorded in the HepMCEvent Node."
-	 << "Recommendation: the vertex smears are better controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-	 << endl;
+void HepMCNodeReader::Embed(const int i)
+{
+  cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
+       << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
+       << endl;
 
-    width_vx = s_x;
-    width_vy = s_y;
-    width_vz = s_z;
-    return;
-  }
-
-  void HepMCNodeReader::Embed(const int i)
-  {
-    cout << "HepMCNodeReader::Embed - WARNING - this function is depreciated. "
-	 << "Embedding IDs are controlled for individually HEPMC subevents in Fun4AllHepMCInputManagers and event generators."
-	 << endl;
-
-    return;
-  }
+  return;
+}
