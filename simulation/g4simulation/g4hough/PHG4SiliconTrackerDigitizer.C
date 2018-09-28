@@ -215,7 +215,7 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode) 
 
     float e = 0.0;
     if (adc>=0 && adc<int(vadcrange.size())-1)
-      e = 0.5*(vadcrange[adc].second - vadcrange[adc].first)*mip_e;
+      e = 0.5*(vadcrange[adc].second + vadcrange[adc].first)*mip_e;
     else if (adc==int(vadcrange.size())-1) // overflow
       e = vadcrange[adc].first*mip_e;
     else // underflow
