@@ -16,13 +16,16 @@ libtpcdaq_la_LDFLAGS = \
 
 libtpcdaq_la_LIBADD = \
   -lfun4all \
-  -lg4dst 
+  -lg4dst \
+  -lphool
 
 libtpcdaq_la_SOURCES = \
   TPCIntegratedCharge.cc \
   TPCIntegratedCharge_Dict.C \
   TPCDataStreamEmulator.cc \
   TPCDataStreamEmulator_Dict.C  \
+  TPCFEETestRecov1.cc \
+  TPCFEETestRecov1_Dict.C  \
   TPCDaqDefs.cc \
   TPCDaqDefs_Dict.C 
 
