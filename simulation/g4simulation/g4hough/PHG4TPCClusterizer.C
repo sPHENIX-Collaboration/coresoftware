@@ -727,7 +727,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  cout << " sigmaZ " << sigmaZ << " fFitRangeZ " << fFitRangeZ << " sigmaP " << sigmaP << endl;
 
         for(int phibin = 0; phibin!=fNPhiBins; ++phibin) {
-          float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
+	  float radius = fGeoLayer->get_radius(); // returns center of layer
 	  fFitRangeP = int( fClusterWindow*sigmaP/(radius*stepp) + 1);
 
 	  if(fFitRangeP<1) fFitRangeP = 1;

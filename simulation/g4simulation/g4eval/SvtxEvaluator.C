@@ -1413,8 +1413,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
 		// get layer boundaries here for later use
 		rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
-		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 
-	 
+		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 	
+ 
 		gx = 0.0; 
 		gy = 0.0; 
 		gz = 0.0; 
@@ -2609,10 +2609,11 @@ float SvtxEvaluator::line_circle_intersection(float x[], float y[], float z[], f
   float tup = (-B + sqrt(B*B - 4.0*A*C)) / (2.0*A); 
   float tdn = (-B - sqrt(B*B - 4.0*A*C)) / (2.0*A) ;
 
+  // The limits are 0 and 1, but we allow a little for floating point precision
   float t;
-  if(tdn >= 0 && tdn <= 1.0)
+  if(tdn >= -0.0e-4 && tdn <= 1.0004)
     t = tdn;
-  else if(tup >= 0 && tup <= 1.0)
+  else if(tup >= -0.0e-4 && tup <= 1.0004)
     t = tup;
   else
     {

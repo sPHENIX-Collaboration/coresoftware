@@ -269,7 +269,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	// But the absolute time at this point in the TPC is not the relevant quantity. It is the time offset relative to the clock. 
 	// We presumably calibrate the TPC to get the average value of z correct, so we should be using 1/2 of the time spread of hits in the TPC
 	// which is about +/- 25% of the absolute time. So ignore t_start for now to make it easier to compare with truth information.
-	// double t_final = t_start + t_path + rantime;
+	//double t_final = t_start + t_path + rantime;
 	double t_final = t_path + rantime;
 
 	double z_final;
@@ -287,8 +287,8 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double x_final = x_start + rantrans*cos(ranphi);
 	double y_final = y_start + rantrans*sin(ranphi);
 	double rad_final = sqrt(x_final*x_final + y_final*y_final);
-	// remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can drift into the 1st active layer, so leave a little margin
-	if (rad_final<min_active_radius-1.0 || rad_final >max_active_radius+1.0)
+	// remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
+	if (rad_final<min_active_radius-2.0 || rad_final >max_active_radius+1.0)
 	  {
 	    continue;
 	  }
@@ -308,11 +308,10 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	    if( sqrt(x_start*x_start+y_start*y_start) > 68.0 && sqrt(x_start*x_start+y_start*y_start) < 72.0)
 	      cout << "       rad_final " << rad_final << " x_final " << x_final << " y_final " << y_final 
 		   << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl; 
-
-	    nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start,z_final);
 	  }
-    
 
+	if(Verbosity() > 0)
+	  nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start,z_final);    
 
 	// this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
 	MapToPadPlane(x_final,y_final,z_final, hiter,ntpad,nthit);
