@@ -171,7 +171,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans","transversal diffusion",100,diffusion_trans-diffusion_trans/2.,diffusion_trans+diffusion_trans/2.);
   se->registerHisto(dtrans);
-  nt = new TNtuple("nt","stuff","hit:ts:tb:tsig:rad:zstart:zfinal");
+  nt = new TNtuple("nt","electron drift stuff","hit:ts:tb:tsig:rad:zstart:zfinal");
   nthit = new TNtuple("nthit","hit stuff","hit:layer:phi:phicenter:z_gem:zcenter:weight");
   ntpad = new TNtuple("ntpad","electron by electron pad centroid","layer:phigem:phiclus:zgem:zclus");
   se->registerHisto(nt);
