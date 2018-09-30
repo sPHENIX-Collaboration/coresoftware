@@ -53,7 +53,9 @@ private:
   std::string seggeonodename;
   unsigned int seed;
   double diffusion_trans;
+  double added_smear_sigma_trans;
   double diffusion_long;
+  double added_smear_sigma_long;
   double drift_velocity;
   double electrons_per_gev;
   double min_active_radius;

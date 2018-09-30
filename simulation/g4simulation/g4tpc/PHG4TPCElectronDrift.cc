@@ -143,7 +143,9 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   PutOnParNode(ParDetNode,geonodename);
 
   diffusion_long = get_double_param("diffusion_long");
+  added_smear_sigma_long = get_double_param("added_smear_long");
   diffusion_trans = get_double_param("diffusion_trans");
+  added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
@@ -259,10 +261,14 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double radstart = sqrt(x_start*x_start + y_start*y_start);
 	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
 	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
+	rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
+	//if(i==0) cout << "rantrans " << rantrans << " r_sigma " << r_sigma << " diffusion_trans " << diffusion_trans  << " trans w/length " << diffusion_trans*sqrt(tpc_length/2. - fabs(z_start))  << " added_smear_sigma_trans " << added_smear_sigma_trans << endl;
+
 	double t_path = (tpc_length/2. - fabs(z_start))/drift_velocity;
-	// now the drift
-	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start))/drift_velocity;	
+	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start)) / drift_velocity;
 	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
+	rantime += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_long)/drift_velocity;
+	//if(i==0) cout << " rantime " << " t_sigma " << t_sigma << " diffusion_long " << diffusion_long << " long w/length " << diffusion_long*sqrt(tpc_length/2. - fabs(z_start)) 	     << " added_smear_sigma_long " << added_smear_sigma_long << endl;
 
 	// ADF: note that adding t_start to the path results in an error of t_start * drift_velocity in the final position 
 	// The intention here seems to be to account for the propagation time of the particle to this point in the TPC
@@ -409,6 +415,11 @@ double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
   set_default_double_param("max_active_radius",78.); // cm
   set_default_double_param("min_time",0.); // ns
   set_default_double_param("max_time",14000.); // ns
+
+  // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
+  // override them from the macro to get a different resolution
+  set_default_double_param("added_smear_trans", 0.12);   // cm
+  set_default_double_param("added_smear_long", 0.15);   // cm
 
   return;
 }
