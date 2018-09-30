@@ -636,7 +636,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // ==> making layer_sorted
+  // ==> making layer_sorted, initially an empty vector of hits for each layer 
   std::vector<std::vector<const SvtxHit*> > layer_sorted;
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -691,7 +691,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
-      if(Verbosity() > 100 && layer == 47) 
+      //if(Verbosity() > 100)
+      if(verbosity > 100)
+	//if(layer == 47) 
 	  {
 	    cout << "Clusterizer: adding input SvtxHit " <<  hit->get_id() << endl;;
 	    //hit->identify();
@@ -772,7 +774,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
 
 	  if(verbosity > 100)
-	    if(layer == 47) 
+	    //if(layer == 47) 
 	      {
 		cout << endl << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14 
 		     << " zz_raw " << zz_raw << " zz " << zz
@@ -813,7 +815,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           clus.set_position(2, zz);
 	  for(unsigned int i=0;i<fCellz.size();i++)
 	    {
-	      if(Verbosity() > 10 && layer == 47)
+	      if(Verbosity() > 10)
+		//if(layer == 47)
 		cout  << "   Fitted cluster contains SvtxHit " << fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ] << endl;
 	      clus.insert_hit( fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ]);
 	    }

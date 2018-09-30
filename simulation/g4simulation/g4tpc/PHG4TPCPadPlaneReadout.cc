@@ -234,9 +234,8 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
     } // end of loop over zigzag pads
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
-  if(Verbosity() > 0)
+  if(verbosity > 0)
     ntpad->Fill(layernum, phi, phi_integral/weight, z_gem, z_integral/weight);
-
   
   if(verbosity > 100)
     if( layernum == 47)
@@ -397,7 +396,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
   int zbin = LayerGeom->get_zbin(z);
   if(zbin < 0 || zbin > LayerGeom->get_zbins() )
     {
-      cout << " z bin is outside range, return" << endl;
+      //cout << " z bin is outside range, return" << endl;
       return;
     }
 

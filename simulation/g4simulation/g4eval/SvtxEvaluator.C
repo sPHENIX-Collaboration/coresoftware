@@ -1411,7 +1411,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		float rbin = NAN;
 		float rbout = NAN;
 		PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
-		// get layer boundaries here for later use
+		// get layer boundaries here (for nominal layer value) for later use
 		rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
 		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 	
  
@@ -1420,7 +1420,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		gz = 0.0; 
 		gt = 0.0;
 		float gwt = 0.0; 
-		
+
+		//cout << "Eval: cluster in layer " << layer << " rbin " << rbin << " rbout " << rbout << endl;		
 		std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster);	  
 		for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
 		     iter != truth_hits.end();
@@ -1430,26 +1431,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		    
 		    float rbegin = sqrt(this_g4hit->get_x(0)*this_g4hit->get_x(0) + this_g4hit->get_y(0)*this_g4hit->get_y(0));
 		    float rend = sqrt(this_g4hit->get_x(1)*this_g4hit->get_x(1) + this_g4hit->get_y(1)*this_g4hit->get_y(1));
+		    //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " rbegin " << rbegin << " rend " << rend << endl;
 
-		    unsigned int this_layer = layer;
-		    if(rbegin < rbin && rend < rbin)
-		      this_layer -= 1;
-		    if(rbegin > rbout && rend > rbout)
-		      this_layer += 1;
-
-		    if(this_layer < _nlayers_maps+_nlayers_intt || this_layer >= _nlayers_maps+_nlayers_intt+_nlayers_tpc )
-		      continue;
-
-		    if(this_layer != layer)
-		      {
-			rbin +=  (this_layer - layer) * GeoLayer->get_thickness();
-			rbout +=  (this_layer - layer) * GeoLayer->get_thickness();
-		      }
-
-		    // very rarely the layer is off by two, just skip
-		    if( (rbegin < rbin && rend < rbin) || (rbegin > rbout && rend > rbout) )
-		      continue;
-
+		    // make sure the entry point is at lower radius
 		    float xl[2];
 		    float yl[2];
 		    float zl[2];
@@ -1472,8 +1456,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			yl[1] = this_g4hit->get_y(0);
 			zl[1] = this_g4hit->get_z(0); 
 			swap(rbegin,rend);
+			//cout << "swapped in and out " << endl;
 		      }
-		    
+
+		    // check that the g4hit is not completely outside the cluster layer. Just skip this g4hit if it is
+		    // this can happen because an electron moves across a layer boundary during drift and readout
+		    // so the g4hit is recorded in the cell as contributing to that layer, even though it was outside the boundaries
+		    if(rbegin < rbin && rend < rbin)
+		      continue;
+		    if(rbegin > rbout && rend > rbout)
+		      continue;
+
 		    float xin = xl[0];
 		    float yin = yl[0];
 		    float zin = zl[0];
@@ -1506,7 +1499,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 			    zout = zl[0] + t * (zl[1]-zl[0]);
 			  }
 		      }
-
 		    
 		    // we want only the fraction of edep inside the layer	    
 		    gx +=  (xin+xout) * 0.5 * this_g4hit->get_edep() * (xout-xin) / (xl[1]-xl[0]);
@@ -1519,6 +1511,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		gy /= gwt; 
 		gz /= gwt; 
 		gt /= gwt;
+		//cout << " weighted means: gx " << gx << " gy " << gy << " gz " << gz << endl;
 	      }  // if TPC
 	    else
 	      {
