@@ -157,7 +157,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   G4RotationMatrix *Rot;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, "InnerScinti_9", scintiboxlogical, false, 9, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, "InnerScinti_9", scintiboxlogical, false, 0, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -169,7 +169,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile9FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, "InnerScinti_10", scintiboxlogical, false, 10, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, "InnerScinti_10", scintiboxlogical, false, 0, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -181,7 +181,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile10FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, "InnerScinti_11", scintiboxlogical, false, 11, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, "InnerScinti_11", scintiboxlogical, false, 0, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -193,7 +193,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile11FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, "InnerScinti_12", scintiboxlogical, false, 12, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, "InnerScinti_12", scintiboxlogical, false, 0, OverlapCheck());
   //    DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
 }
