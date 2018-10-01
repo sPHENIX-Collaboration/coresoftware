@@ -91,11 +91,15 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 //_______________________________________________________________________
 int PHG4PSTOFSubsystem::process_event(PHCompositeNode *topNode)
 {
+  cout << "In PHG4PSTOFSubsystem::process_event()" << endl;
+
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
   if (steppingAction_)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    cout << "Doing stepping action" << endl;
+
+    steppingAction_->SetInterfacePointers( topNode );
   }
   return 0;
 }
@@ -215,6 +219,12 @@ void PHG4PSTOFSubsystem::SetDefaultParameters()
   set_default_double_param(19, "r_mod_1", 85.2);
   set_default_double_param(20, "r_mod_1", 85.3);
 
+  // whether to track through subsystem
+  set_default_int_param(0,"active",1);
+
+  // 
+  set_default_int_param(0,"use_g4steps", 0);
+ 
   // geometry version number
   // we use negative numbers until the "official" version
   // when we build the detector
