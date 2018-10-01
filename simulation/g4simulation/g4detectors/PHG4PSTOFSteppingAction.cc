@@ -27,7 +27,6 @@ PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction( PHG4PSTOFDetector* detector, c
 //____________________________________________________________________________..
 bool PHG4PSTOFSteppingAction::UserSteppingAction( const G4Step* aStep, bool was_used )
 {
-
   // get volume of the current step
   //G4VPhysicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
   G4LogicalVolume* volume = aStep->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetLogicalVolume();
@@ -73,6 +72,7 @@ cout << "XXX " << copyNo << "\t" << motherCopyNo
 
     if (use_g4_steps)
     {
+cout << "IN USE_G4_STEPS" << endl;
       hit = new PHG4Hitv1();
       //here we set the entrance values in cm
       hit->set_x( 0, prePoint->GetPosition().x() / cm);
@@ -136,7 +136,7 @@ cout << "AGGREGATING HITS" << endl;
             }
           }
 
-          hit->set_scint_id(copyNo);
+          hit->set_scint_id(copyNo);  // This is actually the TOF module ID
 
           //set the initial energy deposit
           hit->set_edep(0);
