@@ -21,6 +21,8 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <boost/format.hpp>
+
 #include <cmath>
 #include <sstream>
 
@@ -143,6 +145,7 @@ PHG4Prototype3InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelo
 G4LogicalVolume *
 PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *hcalenvelope)
 {
+  int copynum = 0;
   G4VSolid *scintiboxsolid = new G4Box(scintimothername, m_ScintiX / 2., (m_ScintiGap) / 2., m_ScintiTileZ / 2.);
   //DisplayVolume(scintiboxsolid,hcalenvelope);
 
@@ -157,7 +160,7 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   G4RotationMatrix *Rot;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, "InnerScinti_9", scintiboxlogical, false, 0, OverlapCheck());
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -169,7 +172,8 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile9FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, "InnerScinti_10", scintiboxlogical, false, 0, OverlapCheck());
+  copynum++;
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -181,7 +185,8 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile10FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, "InnerScinti_11", scintiboxlogical, false, 0, OverlapCheck());
+  copynum++;
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   hcalVisAtt = new G4VisAttributes();
   hcalVisAtt->SetVisibility(true);
@@ -193,7 +198,8 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   distance_to_corner += m_ScintiTile11FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();
   Rot->rotateX(90 * deg);
-  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, "InnerScinti_12", scintiboxlogical, false, 0, OverlapCheck());
+  copynum++;
+  new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit12_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
   //    DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
 }
@@ -304,8 +310,7 @@ void PHG4Prototype3InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
 // to the assembly. The only thing we can do is get an iterator over the placed volumes
 // in the order in which they were placed. Since this code does not install the scintillators
 // for the Al version, parsing the volume names to get the id does not work since it changes
-// So now we loop over all volumes and assign consecutive id's to their name by hand which
-// is then used to look those up in the stepping action where we only have the volume name
+// So now we loop over all volumes and store them in a map for fast lookup of the row
   int isteel = 0;
   int iscinti = 0;
   vector<G4VPhysicalVolume*>::iterator it = m_InnerHcalAssembly->GetVolumesIterator();
@@ -325,15 +330,15 @@ void PHG4Prototype3InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
     ++it;
   }
 // print out volume names and their assigned id
-  // map<string,int>::const_iterator iter;
-  // for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
-  // {
-  //   cout << iter->first << ", " << iter->second << endl;
-  // }
-  // for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
-  // {
-  //   cout << iter->first << ", " << iter->second << endl;
-  // }
+   // map<string,int>::const_iterator iter;
+   // for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
+   // {
+   //   cout << iter->first << ", " << iter->second << endl;
+   // }
+   // for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
+   // {
+   //   cout << iter->first << ", " << iter->second << endl;
+   // }
   return;
 }
 
