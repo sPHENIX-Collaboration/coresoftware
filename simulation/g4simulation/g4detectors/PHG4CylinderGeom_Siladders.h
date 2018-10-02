@@ -22,8 +22,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
       const int    nladders_layer_,
       const double ladder_z0_,
       const double ladder_z1_,
-      const double sensor_radius_inner_,
-      const double sensor_radius_outer_,
+      const double sensor_radius_,
       const double strip_x_offset_,
       const double offsetphi_,
       const double offsetrot_) :
@@ -38,8 +37,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
         nladders_layer(nladders_layer_),
         ladder_z0(ladder_z0_),
         ladder_z1(ladder_z1_),
-        sensor_radius_inner(sensor_radius_inner_),
-        sensor_radius_outer(sensor_radius_outer_),
+        sensor_radius(sensor_radius_),
         strip_x_offset(strip_x_offset_),
         offsetphi(offsetphi_),
 	offsetrot(offsetrot_),
@@ -73,12 +71,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
 
     double get_radius() const
       {
-        return sensor_radius_inner;
-      }
-
-    double get_radius_outer() const
-      {
-        return sensor_radius_outer;
+	return sensor_radius;
       }
 
     bool load_geometry();
@@ -125,8 +118,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
     int nladders_layer;
     double ladder_z0;
     double ladder_z1;
-    double sensor_radius_inner;
-    double sensor_radius_outer;
+    double sensor_radius;
     double strip_x_offset;
     double offsetphi;
     double offsetrot;
