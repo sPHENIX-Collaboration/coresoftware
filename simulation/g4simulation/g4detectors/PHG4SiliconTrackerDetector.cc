@@ -344,7 +344,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // These are different for laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z  and
       // PHG4SiliconTrackerDefs::SEGMENTATION_PHI, but they use some common elements.
 
-      // The curved section is made from a G4Cons, which is a generalized section of a cone
+      // The curved section is made from a G4Tubs, which is a generalized section of a cylinder
       // Two curved sections combined should move the inner wall to be 2.0 mm away from the PGS, then 2 more sections bring it back
       // For 1 of these tube sections,starting at 90 degrees, take decrease in y=1 mm at avge R.
       // If avge R = 2.15 mm, dtheta = invcos( (R - y)/R ) = invcos(1.15/2.15) = 53.49 deg
