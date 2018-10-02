@@ -35,7 +35,7 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector* detector, const PHParameters* parameters)
-  : detector_(detector)
+  : m_Detector(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
   , hit(nullptr)
@@ -69,13 +69,13 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInPrototype2OuterHcal(volume)
+  // m_Detector->IsInPrototype2OuterHcal(volume)
   // returns
   //  0 is outside of Prototype2OuterHcal
   //  1 is inside scintillator
   // -1 is steel absorber
 
-  int whichactive = detector_->IsInPrototype2OuterHcal(volume);
+  int whichactive = m_Detector->IsInPrototype2OuterHcal(volume);
 
   if (!whichactive)
   {
@@ -85,63 +85,16 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   int slat_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    // first extract the scintillator id (0-3) from the volume name (OuterScinti_0,1,2,3)
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter = tok.begin();
-    ++tokeniter;
-    slat_id = boost::lexical_cast<int>(*tokeniter);
-    // G4AssemblyVolumes naming convention:
-    //     av_WWW_impr_XXX_YYY_ZZZ
-    // where:
-
-    //     WWW - assembly volume instance number
-    //     XXX - assembly volume imprint number
-    //     YYY - the name of the placed logical volume
-    //     ZZZ - the logical volume index inside the assembly volume
-    // e.g. av_1_impr_1_OuterHcalScintiMother_pv_11
-    // 82 the number of the scintillator mother volume
-    // OuterHcalScintiMother_11: name of scintillator slat
-    // 11: number of scintillator slat logical volume
-    // use boost tokenizer to separate the _, then take value
-    // after "impr" for mother volume and after "pv" for scintillator slat
-    // use boost lexical cast for string -> int conversion
     G4VPhysicalVolume* mothervolume = touch->GetVolume(1);
-    boost::tokenizer<boost::char_separator<char> > tokm(mothervolume->GetName(), sep);
-    for (tokeniter = tokm.begin(); tokeniter != tokm.end(); ++tokeniter)
-    {
-      if (*tokeniter == "pv")
-      {
-        ++tokeniter;
-        if (tokeniter != tokm.end())
-        {
-          row_id = boost::lexical_cast<int>(*tokeniter);
-          // from the construction via assembly volumes, the mother id starts
-          // at 2 and is incremented by 2 for each new row of slats
-          // this maps it back to 0-nslats
-          row_id -= 2;
-          row_id /= 2;
-        }
-        else
-        {
-          cout << PHWHERE << " Error parsing " << mothervolume->GetName()
-               << " for mother scinti slat id " << endl;
-          exit(1);
-        }
-        break;
-      }
-    }
-    int slatid2 = volume->GetCopyNo();
-int rowid2 = detector_->get_scinti_row_id(mothervolume->GetName());
-     cout << "mother volume: " <<  mothervolume->GetName()
-          << ", volume name " << volume->GetName() << ", row: " << row_id
-	  << ", rowid2: " << rowid2
-      	   << ", column: " << slat_id 
-	  << ", slatid2: " << slatid2 << endl;
+    slat_id = volume->GetCopyNo();
+    row_id = m_Detector->get_scinti_row_id(mothervolume->GetName());
+     // cout << "mother volume: " <<  mothervolume->GetName()
+     //      << ", volume name " << volume->GetName() << ", row: " << row_id
+     //  	   << ", column: " << slat_id 
   }
   else
   {
-    row_id = touch->GetCopyNumber();  // steel plate id
+    row_id = m_Detector->get_steel_plate_id(volume->GetName());  // steel plate id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -156,7 +109,7 @@ int rowid2 = detector_->get_scinti_row_id(mothervolume->GetName());
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-  int layer_id = detector_->get_Layer();
+  int layer_id = m_Detector->get_Layer();
 
   // make sure we are in a volume
   if (IsActive)
@@ -337,15 +290,15 @@ void PHG4Prototype2OuterHcalSteppingAction::SetInterfacePointers(PHCompositeNode
 {
   string hitnodename;
   string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.

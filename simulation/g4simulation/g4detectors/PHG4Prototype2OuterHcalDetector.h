@@ -63,8 +63,9 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
 
   private:
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
+  std::set<G4LogicalVolume *> m_ActiveVolumeSet;
   PHParameters *params;
-  G4LogicalVolume *outerhcalsteelplate;
+  G4LogicalVolume *m_OuterHcalSteelPlate;
   G4AssemblyVolume *m_OuterHcalAssembly;
   G4TwoVector steel_plate_corner_upper_left;
   G4TwoVector steel_plate_corner_upper_right;

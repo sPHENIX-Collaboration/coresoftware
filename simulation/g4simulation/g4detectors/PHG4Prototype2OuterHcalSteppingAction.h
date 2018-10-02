@@ -28,7 +28,7 @@ class PHG4Prototype2OuterHcalSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4Prototype2OuterHcalDetector *detector_;
+  PHG4Prototype2OuterHcalDetector *m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer *hits_;
