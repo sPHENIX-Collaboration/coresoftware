@@ -76,7 +76,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fDCL(0.012),
   _inv_sqrt12( 1.0/TMath::Sqrt(12) ),
   _twopi( TMath::TwoPi() ),
-  zz_shaping_correction(0.0557),  // correction for 80 ns SAMPA
+//zz_shaping_correction(0.0557),  // correction for 80 ns SAMPA
+  zz_shaping_correction(0.0754),  // correction for 80 ns SAMPA
   fHClusterEnergy(NULL),
   fHClusterSizePP(NULL),
   fHClusterSizeZZ(NULL),

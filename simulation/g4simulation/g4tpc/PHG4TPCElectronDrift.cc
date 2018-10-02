@@ -265,14 +265,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	double t_sigma =  diffusion_long*sqrt(tpc_length/2. - fabs(z_start)) / drift_velocity;
 	double rantime = gsl_ran_gaussian(RandomGenerator,t_sigma);
 	rantime += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_long)/drift_velocity;
-
-	// ADF: note that adding t_start to the path results in an error of t_start * drift_velocity in the final position 
-	// The intention here seems to be to account for the propagation time of the particle to this point in the TPC
-	// But the absolute time at this point in the TPC is not the relevant quantity. It is the time offset relative to the clock. 
-	// We presumably calibrate the TPC to get the average value of z correct, so we should be using 1/2 of the time spread of hits in the TPC
-	// which is about +/- 25% of the absolute time. So ignore t_start for now to make it easier to compare with truth information.
-	//double t_final = t_start + t_path + rantime;
-	double t_final = t_path + rantime;
+	double t_final = t_start + t_path + rantime;
 
 	double z_final;
 	if(z_start < 0)
