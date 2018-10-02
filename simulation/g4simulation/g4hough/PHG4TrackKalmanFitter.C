@@ -922,9 +922,9 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("sigma_phi", &_kalman_extrapolation_eval_tree_sigma_rphi, "sigma_rphi/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_z", &_kalman_extrapolation_eval_tree_sigma_z, "sigma_z/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_r", &_kalman_extrapolation_eval_tree_sigma_r, "sigma_r/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_phi", &_kalman_extrapolation_eval_tree_sigma_rphi_z, "sigma_phi_z/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_z", &_kalman_extrapolation_eval_tree_sigma_z_r, "sigma_z_r/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_r", &_kalman_extrapolation_eval_tree_sigma_r_rphi, "sigma_r_rphi/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_phi_z", &_kalman_extrapolation_eval_tree_sigma_rphi_z, "sigma_phi_z/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_z_r", &_kalman_extrapolation_eval_tree_sigma_z_r, "sigma_z_r/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_r_rphi", &_kalman_extrapolation_eval_tree_sigma_r_rphi, "sigma_r_rphi/F");
 
 	//before rotation:
 	_kalman_extrapolation_eval_tree->Branch("sigma_x",&_kalman_extrapolation_eval_tree_covin_x);
@@ -2246,7 +2246,7 @@ bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
 
 
 	// R: rotation from u,v,n to n X Z, nX(nXZ), n
-	// these do not scale, they're pure rotation
+	// these do not scale, they're pure rotation, and the basis becomes r, phi, z if done correctly
 	TMatrixF R(3, 3);
 	TMatrixF R_T(3,3);
 
