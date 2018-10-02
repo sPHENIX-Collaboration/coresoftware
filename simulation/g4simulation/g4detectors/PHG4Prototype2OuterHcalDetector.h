@@ -1,5 +1,7 @@
-#ifndef PHG4Prototype2OuterHcalDetector_h
-#define PHG4Prototype2OuterHcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4PROTOTYPE2OUTERHCALDETECTOR_H
+#define G4DETECTORS_PHG4PROTOTYPE2OUTERHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -55,13 +57,15 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   G4LogicalVolume* ConstructScintiTile12(G4LogicalVolume* hcalenvelope);
    double GetScintiAngle();
 
-  protected:
+  int get_scinti_row_id(const std::string &volname);
+  int get_steel_plate_id(const std::string &volname);
+
+
+  private:
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
-  int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
-  int DisplayVolume(G4LogicalVolume *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   PHParameters *params;
   G4LogicalVolume *outerhcalsteelplate;
-  G4AssemblyVolume *outerhcalassembly;
+  G4AssemblyVolume *m_OuterHcalAssembly;
   G4TwoVector steel_plate_corner_upper_left;
   G4TwoVector steel_plate_corner_upper_right;
   G4TwoVector steel_plate_corner_lower_right;
@@ -125,6 +129,8 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   int layer;
   std::string detector_type;
   std::string superdetector;
+  std::map<std::string, int> m_SteelPlateIdMap;
+  std::map<std::string, int> m_ScintillatorIdMap;
 };
 
 #endif

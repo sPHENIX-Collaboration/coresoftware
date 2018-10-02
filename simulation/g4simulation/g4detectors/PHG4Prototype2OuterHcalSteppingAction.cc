@@ -131,9 +131,13 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         break;
       }
     }
-    // cout << "mother volume: " <<  mothervolume->GetName()
-    //      << ", volume name " << volume->GetName() << ", row: " << row_id
-    //  	   << ", column: " << slat_id << endl;
+    int slatid2 = volume->GetCopyNo();
+int rowid2 = detector_->get_scinti_row_id(mothervolume->GetName());
+     cout << "mother volume: " <<  mothervolume->GetName()
+          << ", volume name " << volume->GetName() << ", row: " << row_id
+	  << ", rowid2: " << rowid2
+      	   << ", column: " << slat_id 
+	  << ", slatid2: " << slatid2 << endl;
   }
   else
   {
