@@ -8,8 +8,8 @@
 #include <Geant4/G4TwoVector.hh>
 
 #include <map>
-#include <vector>
 #include <set>
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -17,30 +17,28 @@ class G4VPhysicalVolume;
 class G4VSolid;
 class PHParameters;
 
-class PHG4Prototype2OuterHcalDetector: public PHG4Detector
+class PHG4Prototype2OuterHcalDetector : public PHG4Detector
 {
-
-  public:
-
+ public:
   //! constructor
- PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam);
+  PHG4Prototype2OuterHcalDetector(PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
- virtual ~PHG4Prototype2OuterHcalDetector();
+  virtual ~PHG4Prototype2OuterHcalDetector();
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void Construct(G4LogicalVolume* world);
 
-  virtual void Print(const std::string &what = "ALL") const;
+  virtual void Print(const std::string& what = "ALL") const;
 
   //!@name volume accessors
   //@{
   int IsInPrototype2OuterHcal(G4VPhysicalVolume*) const;
   //@}
 
-  void SuperDetector(const std::string &name) {m_SuperDetector = name;}
-  const std::string SuperDetector() const {return m_SuperDetector;}
-  int get_Layer() const {return m_Layer;}
+  void SuperDetector(const std::string& name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
+  int get_Layer() const { return m_Layer; }
 
   G4LogicalVolume* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
@@ -51,18 +49,17 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   G4LogicalVolume* ConstructScintiTile10(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintiTile11(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintiTile12(G4LogicalVolume* hcalenvelope);
-   double GetScintiAngle();
+  double GetScintiAngle();
 
-  int get_scinti_row_id(const std::string &volname);
-  int get_steel_plate_id(const std::string &volname);
+  int get_scinti_row_id(const std::string& volname);
+  int get_steel_plate_id(const std::string& volname);
 
-
-  private:
+ private:
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
-  std::set<G4LogicalVolume *> m_ActiveVolumeSet;
-  PHParameters *m_Params;
-  G4LogicalVolume *m_OuterHcalSteelPlate;
-  G4AssemblyVolume *m_OuterHcalAssembly;
+  std::set<G4LogicalVolume*> m_ActiveVolumeSet;
+  PHParameters* m_Params;
+  G4LogicalVolume* m_OuterHcalSteelPlate;
+  G4AssemblyVolume* m_OuterHcalAssembly;
   G4TwoVector m_SteelPlateCornerUpperLeft;
   G4TwoVector m_SteelPlateCornerUpperRight;
   G4TwoVector m_SteelPlateCornerLowerRight;
