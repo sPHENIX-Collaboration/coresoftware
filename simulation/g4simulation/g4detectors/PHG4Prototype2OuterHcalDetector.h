@@ -30,7 +30,7 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
  PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4Prototype2OuterHcalDetector(){}
+ virtual ~PHG4Prototype2OuterHcalDetector();
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );

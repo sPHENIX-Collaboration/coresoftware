@@ -96,6 +96,11 @@ scinti_box_smaller(0.02*mm), // blargh - off by 20 microns bc scinti tilt angle,
   layer(0)
 {}
 
+PHG4Prototype2OuterHcalDetector::~PHG4Prototype2OuterHcalDetector()
+{
+  delete m_OuterHcalAssembly;
+}
+
 //_______________________________________________________________
 //_______________________________________________________________
 int
@@ -133,10 +138,10 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 
       volume_steel = steel_plate->GetCubicVolume()*n_steel_plates;
       m_OuterHcalSteelPlate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("Steel_A36"),"OuterHcalSteelPlate", 0, 0, 0);
-      G4VisAttributes* visattchk = new G4VisAttributes();
-      visattchk->SetVisibility(true);
-      visattchk->SetForceSolid(false);
-      visattchk->SetColour(G4Colour::Blue());
+      G4VisAttributes visattchk;
+      visattchk.SetVisibility(true);
+      visattchk.SetForceSolid(false);
+      visattchk.SetColour(G4Colour::Blue());
       m_OuterHcalSteelPlate->SetVisAttributes(visattchk);
     }
   return m_OuterHcalSteelPlate;
@@ -236,10 +241,10 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String(scintimothername), 0, 0, 0);
 
-  G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Magenta());
+  G4VisAttributes hcalVisAtt;
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Magenta());
   G4LogicalVolume *scintit9_logic = ConstructScintiTile9(hcalenvelope);
   scintit9_logic->SetVisAttributes(hcalVisAtt);
 
@@ -249,10 +254,9 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   Rot->rotateX(90*deg);
   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit9_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Blue());
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Blue());
   G4LogicalVolume *scintit10_logic = ConstructScintiTile10(hcalenvelope);
   scintit10_logic->SetVisAttributes(hcalVisAtt);
 
@@ -262,10 +266,9 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   copynum++;
   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit10_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Yellow());
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Yellow());
   G4LogicalVolume *scintit11_logic = ConstructScintiTile11(hcalenvelope);
   scintit11_logic->SetVisAttributes(hcalVisAtt);
 
@@ -275,10 +278,9 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   copynum++;
   new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit11_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Cyan());
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Cyan());
   G4LogicalVolume *scintit12_logic = ConstructScintiTile12(hcalenvelope);
   scintit12_logic->SetVisAttributes(hcalVisAtt);
 
@@ -382,16 +384,16 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4ThreeVector g4vec(params->get_double_param("place_x")*cm,
                       params->get_double_param("place_y")*cm,
 		      params->get_double_param("place_z")*cm);
-  G4RotationMatrix *Rot = new G4RotationMatrix();
-  Rot->rotateX(params->get_double_param("rot_x")*deg);
-  Rot->rotateY(params->get_double_param("rot_y")*deg);
-  Rot->rotateZ(params->get_double_param("rot_z")*deg);
+  G4RotationMatrix Rot;
+  Rot.rotateX(params->get_double_param("rot_x")*deg);
+  Rot.rotateY(params->get_double_param("rot_y")*deg);
+  Rot.rotateZ(params->get_double_param("rot_z")*deg);
   //  ConstructScintillatorBoxHiEta(logicWorld);
   m_OuterHcalAssembly = new G4AssemblyVolume();
   //ConstructSteelPlate(hcal_envelope_log);
   // return;
   ConstructOuterHcal(logicWorld);
-  m_OuterHcalAssembly->MakeImprint(logicWorld,g4vec,Rot,0,OverlapCheck());
+  m_OuterHcalAssembly->MakeImprint(logicWorld,g4vec,&Rot,0,OverlapCheck());
 // this is rather pathetic - there is no way to extract the name when a volume is added
 // to the assembly. The only thing we can do is get an iterator over the placed volumes
 // in the order in which they were placed. Since this code does not install the scintillators
@@ -457,10 +459,10 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
     {
       name.str("");
       name << "OuterHcalSteel_" << i;
-      G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(phi*rad);
+      G4RotationMatrix Rot;// = new G4RotationMatrix();
+      Rot.rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
-      m_OuterHcalAssembly->AddPlacedVolume(steel_plate,g4vec,Rot);
+      m_OuterHcalAssembly->AddPlacedVolume(steel_plate,g4vec,&Rot);
       if (i > 0)
 	{
 	  double ypos = sin(phi+philow) * middlerad;
@@ -472,11 +474,11 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
 	  xpos -= cos((-tilt_angle)/rad - phi);
 	  name.str("");
 	  name << "OuterHcalScintiBox_" << i;
-	  Rot = new G4RotationMatrix();
-	  Rot->rotateZ(scintiangle+phislat);
+	  G4RotationMatrix Rota;// = new G4RotationMatrix();
+	  Rota.rotateZ(scintiangle+phislat);
 	  G4ThreeVector g4vec(xpos, ypos, 0);
 
-	  m_OuterHcalAssembly->AddPlacedVolume(scintibox,g4vec,Rot);
+	  m_OuterHcalAssembly->AddPlacedVolume(scintibox,g4vec,&Rota);
 	  phislat += deltaphi;
 	}
       phi += deltaphi;
