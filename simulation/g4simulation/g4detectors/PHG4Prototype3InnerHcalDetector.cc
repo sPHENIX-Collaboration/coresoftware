@@ -133,10 +133,10 @@ PHG4Prototype3InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelo
 
     m_VolumeSteel = steel_plate->GetCubicVolume() * m_NumSteelPlates;
     m_InnerHcalSteelPlate = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_params->get_string_param("material")), steelplatename, 0, 0, 0);
-    G4VisAttributes *visattchk = new G4VisAttributes();
-    visattchk->SetVisibility(true);
-    visattchk->SetForceSolid(false);
-    visattchk->SetColour(G4Colour::Blue());
+    G4VisAttributes visattchk;
+    visattchk.SetVisibility(true);
+    visattchk.SetForceSolid(false);
+    visattchk.SetColour(G4Colour::Blue());
     m_InnerHcalSteelPlate->SetVisAttributes(visattchk);
   }
   return m_InnerHcalSteelPlate;
@@ -150,10 +150,10 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   //DisplayVolume(scintiboxsolid,hcalenvelope);
 
   G4LogicalVolume *scintiboxlogical = new G4LogicalVolume(scintiboxsolid, G4Material::GetMaterial("G4_AIR"), G4String(scintimothername), 0, 0, 0);
-  G4VisAttributes *hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Magenta());
+  G4VisAttributes hcalVisAtt;
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Magenta());
   G4LogicalVolume *scintit9_logic = ConstructScintiTile9(hcalenvelope);
   scintit9_logic->SetVisAttributes(hcalVisAtt);
   double distance_to_corner = -m_SteelZ / 2. + m_ScintiTile9DistanceToCorner;
@@ -162,10 +162,9 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   Rot->rotateX(90 * deg);
   new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit9_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Blue());
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Blue());
   G4LogicalVolume *scintit10_logic = ConstructScintiTile10(hcalenvelope);
   scintit10_logic->SetVisAttributes(hcalVisAtt);
 
@@ -175,10 +174,9 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   copynum++;
   new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit10_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Yellow());
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Yellow());
   G4LogicalVolume *scintit11_logic = ConstructScintiTile11(hcalenvelope);
   scintit11_logic->SetVisAttributes(hcalVisAtt);
 
@@ -188,10 +186,9 @@ PHG4Prototype3InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume *
   copynum++;
   new G4PVPlacement(Rot, G4ThreeVector(-m_ScintiX / 2., 0, distance_to_corner), scintit11_logic, (boost::format("InnerScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
-  hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(true);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Cyan());
+  hcalVisAtt.SetVisibility(true);
+  hcalVisAtt.SetForceSolid(false);
+  hcalVisAtt.SetColour(G4Colour::Cyan());
   G4LogicalVolume *scintit12_logic = ConstructScintiTile12(hcalenvelope);
   scintit12_logic->SetVisAttributes(hcalVisAtt);
 
@@ -299,13 +296,13 @@ void PHG4Prototype3InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
   G4ThreeVector g4vec(m_params->get_double_param("place_x") * cm,
                       m_params->get_double_param("place_y") * cm,
                       m_params->get_double_param("place_z") * cm);
-  G4RotationMatrix *Rot = new G4RotationMatrix();
-  Rot->rotateX(m_params->get_double_param("rot_x") * deg);
-  Rot->rotateY(m_params->get_double_param("rot_y") * deg);
-  Rot->rotateZ(m_params->get_double_param("rot_z") * deg);
+  G4RotationMatrix Rot;
+  Rot.rotateX(m_params->get_double_param("rot_x") * deg);
+  Rot.rotateY(m_params->get_double_param("rot_y") * deg);
+  Rot.rotateZ(m_params->get_double_param("rot_z") * deg);
   m_InnerHcalAssembly = new G4AssemblyVolume();
   ConstructInnerHcal(logicWorld);
-  m_InnerHcalAssembly->MakeImprint(logicWorld, g4vec, Rot, 0, OverlapCheck());
+  m_InnerHcalAssembly->MakeImprint(logicWorld, g4vec, &Rot, 0, OverlapCheck());
 // this is rather pathetic - there is no way to extract the name when a volume is added
 // to the assembly. The only thing we can do is get an iterator over the placed volumes
 // in the order in which they were placed. Since this code does not install the scintillators
@@ -376,20 +373,19 @@ int PHG4Prototype3InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenv
   double xstart = 0;
   double xoff = 0.015 * cm;
   for (int i = 0; i < m_NumSteelPlates; i++)
-  //           for (int i = 0; i < 2; i++)
   {
-    G4RotationMatrix *Rot = new G4RotationMatrix();
-    Rot->rotateZ(phi * rad);
+    G4RotationMatrix Rot;
+    Rot.rotateZ(phi * rad);
     G4ThreeVector g4vec(xstart, 0, 0);
-    m_InnerHcalAssembly->AddPlacedVolume(steel_plate, g4vec, Rot);
+    m_InnerHcalAssembly->AddPlacedVolume(steel_plate, g4vec, &Rot);
     if (m_scintibox && i > 0)
     {
       double ypos = sin(phi + philow) * middlerad;
       double xpos = cos(phi + philow) * middlerad;
-      Rot = new G4RotationMatrix();
-      Rot->rotateZ(scintiangle + phislat);
+      G4RotationMatrix Rot1;
+      Rot1.rotateZ(scintiangle + phislat);
       G4ThreeVector g4vecsc(xpos + xstart, ypos, 0);
-      m_InnerHcalAssembly->AddPlacedVolume(m_scintibox, g4vecsc, Rot);
+      m_InnerHcalAssembly->AddPlacedVolume(m_scintibox, g4vecsc, &Rot1);
       phislat += m_DeltaPhi;
     }
     phi += m_DeltaPhi;
