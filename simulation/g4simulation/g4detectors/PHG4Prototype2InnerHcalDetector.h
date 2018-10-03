@@ -1,16 +1,18 @@
-#ifndef PHG4Prototype2InnerHcalDetector_h
-#define PHG4Prototype2InnerHcalDetector_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4PROTOTYPE2INNERHCALDETECTOR_H
+#define G4DETECTORS_PHG4PROTOTYPE2INNERHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+//#include <Geant4/globals.hh>
+//#include <Geant4/G4RotationMatrix.hh>
+//#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Types.hh>
+//#include <Geant4/G4Types.hh>
 
 #include <map>
-#include <vector>
+//#include <vector>
 #include <set>
 
 class G4AssemblyVolume;
@@ -55,13 +57,17 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   G4LogicalVolume* ConstructScintiTile12(G4LogicalVolume* hcalenvelope);
   double GetScintiAngle();
 
+  int get_scinti_row_id(const std::string &volname);
+  int get_steel_plate_id(const std::string &volname);
+
   protected:
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
   int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   int DisplayVolume(G4LogicalVolume *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
   PHParameters *params;
-  G4LogicalVolume *innerhcalsteelplate;
-  G4AssemblyVolume *innerhcalassembly;
+  G4LogicalVolume *m_InnerHcalSteelPlate;
+  G4AssemblyVolume *m_InnerHcalAssembly;
+  std::set<G4LogicalVolume *> m_ActiveVolumeSet;
   G4TwoVector steel_plate_corner_upper_left;
   G4TwoVector steel_plate_corner_upper_right;
   G4TwoVector steel_plate_corner_lower_right;
@@ -117,12 +123,15 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   int n_scinti_plates;
   int n_steel_plates;
 
-  int active;
-  int absorberactive;
+  int m_ActiveFlag;
+  int m_AbsorberActiveFlag;
 
   int layer;
-  std::string detector_type;
+//  std::string detector_type;
   std::string superdetector;
+  std::map<std::string,int> m_SteelPlateIdMap;
+  std::map<std::string,int> m_ScintillatorIdMap;
+
 };
 
 #endif

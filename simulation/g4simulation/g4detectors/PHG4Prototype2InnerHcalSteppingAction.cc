@@ -14,6 +14,7 @@
 
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -41,7 +42,7 @@ static const int nslat = 9;
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype2InnerHcalSteppingAction::PHG4Prototype2InnerHcalSteppingAction(PHG4Prototype2InnerHcalDetector* detector, const PHParameters* parameters)
-  : detector_(detector)
+  : m_Detector(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
   , hit(nullptr)
@@ -75,13 +76,13 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInPrototype2InnerHcal(volume)
+  // m_Detector->IsInPrototype2InnerHcal(volume)
   // returns
   //  0 is outside of Prototype2InnerHcal
   //  1 is inside scintillator
   // -1 is steel absorber
 
-  int whichactive = detector_->IsInPrototype2InnerHcal(volume);
+  int whichactive = m_Detector->IsInPrototype2InnerHcal(volume);
 
   if (!whichactive)
   {
@@ -137,9 +138,15 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         break;
       }
     }
-    // cout << "mother volume: " <<  mothervolume->GetName()
-    //      << ", volume name " << volume->GetName() << ", row: " << row_id
-    //  	   << ", column: " << slat_id << endl;
+    if (slat_id != volume->GetCopyNo() || row_id != m_Detector->get_scinti_row_id(mothervolume->GetName()))
+    {
+    cout << "mother volume: " <<  mothervolume->GetName()
+          << ", volume name " << volume->GetName() << ", row: " << row_id
+	 << ", 2: " << m_Detector->get_scinti_row_id(mothervolume->GetName())
+      	   << ", column: " << slat_id 
+	   << ", 2: " << volume->GetCopyNo() << endl;
+    exit(1);
+    }
 #ifdef TESTSINGLESLAT
     if (row_id != nrow)
     {
@@ -171,7 +178,7 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-  int layer_id = detector_->get_Layer();
+  int layer_id = m_Detector->get_Layer();
   // make sure we are in a volume
   if (IsActive)
   {
@@ -351,15 +358,15 @@ void PHG4Prototype2InnerHcalSteppingAction::SetInterfacePointers(PHCompositeNode
 {
   string hitnodename;
   string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.

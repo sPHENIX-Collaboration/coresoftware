@@ -1,5 +1,7 @@
-#ifndef PHG4VPrototype2InnerHcalSteppingAction_h
-#define PHG4VPrototype2InnerHcalSteppingAction_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4VPROTOTYPE2INNERHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4VPROTOTYPE2INNERHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -28,7 +30,7 @@ class PHG4Prototype2InnerHcalSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4Prototype2InnerHcalDetector *detector_;
+  PHG4Prototype2InnerHcalDetector *m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer *hits_;
@@ -51,4 +53,4 @@ class PHG4Prototype2InnerHcalSteppingAction : public PHG4SteppingAction
   double light_balance_outer_radius;
 };
 
-#endif  // PHG4Prototype2InnerHcalSteppingAction_h
+#endif 
