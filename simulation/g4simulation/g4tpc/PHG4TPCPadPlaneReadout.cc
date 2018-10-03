@@ -16,11 +16,35 @@
 using namespace std;
 
 PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name):
-PHG4TPCPadPlane(name)
+  PHG4TPCPadPlane(name),
+  fcharge(nullptr),
+  GeomContainer(nullptr),
+  LayerGeom(nullptr),
+  rad_gem(NAN),
+  output_radius(NAN),
+  neffelectrons_threshold(NAN),
+  MinLayer(),
+  MaxLayer(),
+  MinRadius(),
+  MaxRadius(),
+  Thickness(),
+  MinZ(NAN),
+  MaxZ(NAN),
+  sigmaT(NAN),
+  sigmaL(),
+  PhiBinWidth(),
+  ZBinWidth(NAN),
+  tpc_drift_velocity(NAN),
+  tpc_adc_clock(NAN),
+  NZBins(INT_MAX),
+  NPhiBins(),
+  NTpcLayers(),
+  tpc_region(INT_MAX),
+  zigzag_pads(INT_MAX)
 {
- InitializeParameters();
+  InitializeParameters();
 
- hit = 0;
+  hit = 0;
 
  fcharge = new TF1("fcharge", "gaus(0)");
 
@@ -516,7 +540,7 @@ void PHG4TPCPadPlaneReadout::SetDefaultParameters()
 
   set_default_double_param("tpc_maxradius_inner",40.0); // cm
   set_default_double_param("tpc_maxradius_mid",60.0); 
-  set_default_double_param("tpc_maxradius_outer",78.0); 
+  set_default_double_param("tpc_maxradius_outer",77.0); // from Tom 
 
   set_default_double_param("neffelectrons_threshold",1.0); 
   set_default_double_param("maxdriftlength",105.5); // cm
