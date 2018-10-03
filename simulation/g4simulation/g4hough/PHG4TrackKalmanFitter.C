@@ -380,18 +380,31 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			    }
 		      }
 
-		      if (verbosity > 4){
-			cout << "cov_kalman:"<<endl;
-			for (int j=0;j<3;j++){
-			  for (int k=0;k<3;k++){
-			    cout << cov_in[j][k] << '\t';
-			  }
-			  cout << endl;
-			}
-		      }
+
 		      
 		      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
-		      
+
+
+		      if (verbosity > 4){
+			cout << "pos.Phi=" << pos.Phi() << "\t vn.Phi=" << vn.Phi() << endl;
+			cout << "cov_kalman (x,y,z):"<<endl<<"{";
+			for (int j=0;j<3;j++){
+			  cout << "{";
+			  for (int k=0;k<3;k++){
+			    cout << cov_in[j][k] << ",\t";
+			  }
+			  cout << "},"<< endl;
+			}
+
+			cout << "cov_kalman (r,phi,z):"<<endl<<"{";
+			for (int j=0;j<3;j++){
+			  cout << "{";
+			  for (int k=0;k<3;k++){
+			    cout << cov_out[j][k] << ",\t";
+			  }
+			  cout << "},"<< endl;
+			}
+		      }
 		      //pos_rphi = pos_out[1][0];
 		      //pos_z  = pos_out[2][0];
 		      //pos_rphi_error = sqrt(cov_out[0][0]);
@@ -464,7 +477,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    t=(-quad_b+TMath::Sqrt(quad_b*quad_b-4*quad_a*quad_c))/(2*quad_a);
 		    //extrapolate out all the dimensions to the intersection.
 		    pos_linear[2]=pos_linear[1]+delta*t;
-		    cov_linear[2]=cov_linear[1]+cov_delta*t;
+		    cov_linear[2]=cov_linear[1]+cov_delta*t;//this isn't right.  If the cov of one point is smaller than the previous, then this implies it continues to DECREASE as we go out, where as it MUST increase:
+		    //find cov from the calculation of pos_linear!
 
 		    if (verbosity > 4){
 		      
@@ -516,12 +530,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  _kalman_extrapolation_eval_tree_r=pos.Perp();
 		  _kalman_extrapolation_eval_tree_okay=covariance_okay;
 		  if (covariance_okay){
-		    _kalman_extrapolation_eval_tree_sigma_r=cov_out[0][0];
-		    _kalman_extrapolation_eval_tree_sigma_rphi=cov_out[1][1];
+		    _kalman_extrapolation_eval_tree_sigma_r=cov_out[1][1];
+		    _kalman_extrapolation_eval_tree_sigma_rphi=cov_out[0][0];
 		    _kalman_extrapolation_eval_tree_sigma_z=cov_out[2][2];
 		    _kalman_extrapolation_eval_tree_sigma_r_rphi=cov_out[0][1];
-		    _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_out[1][2];
-		    _kalman_extrapolation_eval_tree_sigma_z_r=cov_out[2][0];
+		    _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_out[0][2];
+		    _kalman_extrapolation_eval_tree_sigma_z_r=cov_out[2][1];
 		    //before rotation:
 		    _kalman_extrapolation_eval_tree_covin_x=cov_in[0][0];
 		    _kalman_extrapolation_eval_tree_covin_y=cov_in[1][1];
@@ -547,16 +561,16 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    _kalman_extrapolation_eval_tree_lin_r=(pos_linear[2]).Perp();
 		    _kalman_extrapolation_eval_tree_lin_z=(pos_linear[2]).Z();
 		    //std::cout << PHWHERE<< " cov_linout[0] has " << cov_linout[0].GetNrows() << " rows and " << cov_linout[0].GetNcols() << " cols."<<endl;
-		    _kalman_extrapolation_eval_tree_lin_sigma0_r=(cov_linout[0])[0][0];
-		    _kalman_extrapolation_eval_tree_lin_sigma0_rphi=(cov_linout[0])[1][1];
+		    _kalman_extrapolation_eval_tree_lin_sigma0_r=(cov_linout[0])[1][1];
+		    _kalman_extrapolation_eval_tree_lin_sigma0_rphi=(cov_linout[0])[0][0];
 		    _kalman_extrapolation_eval_tree_lin_sigma0_z=(cov_linout[0])[2][2];
 		    //std::cout << PHWHERE<< " cov_linout[1] has " << cov_linout[1].GetNrows() << " rows and " << cov_linout[1].GetNcols() << " cols."<<endl;
-		    _kalman_extrapolation_eval_tree_lin_sigma1_r=(cov_linout[1])[0][0];
-		    _kalman_extrapolation_eval_tree_lin_sigma1_rphi=(cov_linout[1])[1][1];
+		    _kalman_extrapolation_eval_tree_lin_sigma1_r=(cov_linout[1])[1][1];
+		    _kalman_extrapolation_eval_tree_lin_sigma1_rphi=(cov_linout[1])[0][0];
 		    _kalman_extrapolation_eval_tree_lin_sigma1_z=(cov_linout[1])[2][2];
 		    //std::cout << PHWHERE<< " cov_linout[2] has " << cov_linout[2].GetNrows() << " rows and " << cov_linout[2].GetNcols() << " cols."<<endl;
-		    _kalman_extrapolation_eval_tree_lin_sigma2_r=(cov_linout[2])[0][0];
-		    _kalman_extrapolation_eval_tree_lin_sigma2_rphi=(cov_linout[2])[1][1];
+		    _kalman_extrapolation_eval_tree_lin_sigma2_r=(cov_linout[2])[1][1];
+		    _kalman_extrapolation_eval_tree_lin_sigma2_rphi=(cov_linout[2])[0][0];
 		    _kalman_extrapolation_eval_tree_lin_sigma2_z=(cov_linout[2])[2][2];
 		    //std::cout << PHWHERE<<endl;
 		  }
@@ -2222,37 +2236,53 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3& u,
 	return true;
 }
 
-
+//todo convert h
 bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
-		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
+	        const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
-	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
-		if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
-		return false;
+        if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
+	  if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+	  return false;
 	}
-
+	
 	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
-		if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
-		return false;
+	  if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+	  return false;
 	}
-
+	
 	TVector3 r = n.Cross(TVector3(0.,0.,1.));
-
+	
 	if(r.Mag() < 0.00001){
-		if(verbosity > 0) LogWarning("n is parallel to z");
-		return false;
+	  if(verbosity > 0) LogWarning("n is parallel to z");
+	  return false;
+	}
+	
+
+	//for precision when dealing with small numbers in covariance, we up-scale the calculation to double precision:
+	TMatrixD pos_d(3,1);
+	TMatrixD cov_d(3,3);
+
+	for (int i=0;i<3;i++){
+	  pos_d[i][0]=pos_in[i][0];
+	}
+	for (int i=0;i<3;i++){
+	  for (int j=0;j<3;j++){
+	  cov_d[i][j]=cov_in[i][j];
+	  }
 	}
 
-
+	
 	// R: rotation from u,v,n to n X Z, nX(nXZ), n
-	// these do not scale, they're pure rotation, and the basis becomes r, phi, z if done correctly
-	TMatrixF R(3, 3);
-	TMatrixF R_T(3,3);
-
+	// these do not scale, they're pure rotation, and the basis becomes phi, r, z in that order if done correctly
+	TMatrixD R(3, 3);
+	TMatrixD R_T(3,3);
+	
 	try {
 		// rotate u along z to up
-		float phi = -TMath::ATan2(r.Y(), r.X());
+		//float phi = -TMath::ATan2(r.Y(), r.X());
+		float phi= -r.Phi();
+		//cout << "phi from atan="<<phi<<"\t phi from vector="<<r.Phi()<<endl;
 		R[0][0] = cos(phi);
 		R[0][1] = -sin(phi);
 		R[0][2] = 0;
@@ -2274,8 +2304,17 @@ bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
 	pos_out.ResizeTo(3, 1);
 	cov_out.ResizeTo(3, 3);
 
-	pos_out = R * pos_in;
-	cov_out = R * cov_in * R_T;
+	TMatrixD pos_mid = R * pos_d;
+	TMatrixD cov_mid = R * cov_d * R_T;
+
+	for (int i=0;i<3;i++){
+	  pos_out[i][0]=pos_mid[i][0];
+	}
+	for (int i=0;i<3;i++){
+	  for (int j=0;j<3;j++){
+	  cov_out[i][j]=cov_mid[i][j];
+	  }
+	}
 
 	return true;
 }
