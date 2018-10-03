@@ -5,11 +5,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Types.hh>
 
 #include <map>
 #include <vector>
@@ -42,9 +38,9 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   int IsInPrototype2OuterHcal(G4VPhysicalVolume*) const;
   //@}
 
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
+  void SuperDetector(const std::string &name) {m_SuperDetector = name;}
+  const std::string SuperDetector() const {return m_SuperDetector;}
+  int get_Layer() const {return m_Layer;}
 
   G4LogicalVolume* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
@@ -64,72 +60,71 @@ class PHG4Prototype2OuterHcalDetector: public PHG4Detector
   private:
   int ConstructOuterHcal(G4LogicalVolume* sandwich);
   std::set<G4LogicalVolume *> m_ActiveVolumeSet;
-  PHParameters *params;
+  PHParameters *m_Params;
   G4LogicalVolume *m_OuterHcalSteelPlate;
   G4AssemblyVolume *m_OuterHcalAssembly;
-  G4TwoVector steel_plate_corner_upper_left;
-  G4TwoVector steel_plate_corner_upper_right;
-  G4TwoVector steel_plate_corner_lower_right;
-  G4TwoVector steel_plate_corner_lower_left;
+  G4TwoVector m_SteelPlateCornerUpperLeft;
+  G4TwoVector m_SteelPlateCornerUpperRight;
+  G4TwoVector m_SteelPlateCornerLowerRight;
+  G4TwoVector m_SteelPlateCornerLowerLeft;
 
-  double scinti_u1_front_size;
-  G4TwoVector scinti_u1_corner_upper_left;
-  G4TwoVector scinti_u1_corner_upper_right;
-  G4TwoVector scinti_u1_corner_lower_right;
-  G4TwoVector scinti_u1_corner_lower_left;
+  double m_ScintiUoneFrontSize;
+  G4TwoVector m_ScintiUoneCornerUpperLeft;
+  G4TwoVector m_ScintiUoneCornerUpperRight;
+  G4TwoVector m_ScintiUoneCornerLowerRight;
+  G4TwoVector m_ScintiUoneCornerLowerLeft;
 
-  G4TwoVector scinti_u2_corner_upper_left;
-  G4TwoVector scinti_u2_corner_upper_right;
-  G4TwoVector scinti_u2_corner_lower_right;
-  G4TwoVector scinti_u2_corner_lower_left;
-  double scinti_t9_distance_to_corner;
-  double scinti_t9_front_size;
-  G4TwoVector scinti_t9_corner_upper_left;
-  G4TwoVector scinti_t9_corner_upper_right;
-  G4TwoVector scinti_t9_corner_lower_right;
-  G4TwoVector scinti_t9_corner_lower_left;
+  G4TwoVector m_ScintiU2CornerUpperLeft;
+  G4TwoVector m_ScintiU2CornerUpperRight;
+  G4TwoVector m_ScintiU2CornerLowerRight;
+  G4TwoVector m_ScintiU2CornerLowerLeft;
+  double m_ScintiT9DistanceToCorner;
+  double m_ScintiT9FrontSize;
+  G4TwoVector m_ScintiT9CornerUpperLeft;
+  G4TwoVector m_ScintiT9CornerUpperRight;
+  G4TwoVector m_ScintiT9CornerLowerRight;
+  G4TwoVector m_ScintiT9CornerLowerLeft;
 
-  double scinti_t10_front_size;
-  G4TwoVector scinti_t10_corner_upper_left;
-  G4TwoVector scinti_t10_corner_upper_right;
-  G4TwoVector scinti_t10_corner_lower_right;
-  G4TwoVector scinti_t10_corner_lower_left;
+  double m_ScintiT10FrontSize;
+  G4TwoVector m_ScintiT10CornerUpperLeft;
+  G4TwoVector m_ScintiT10CornerUpperRight;
+  G4TwoVector m_ScintiT10CornerLowerRight;
+  G4TwoVector m_ScintiT10CornerLowerLeft;
 
-  double scinti_t11_front_size;
-  G4TwoVector scinti_t11_corner_upper_left;
-  G4TwoVector scinti_t11_corner_upper_right;
-  G4TwoVector scinti_t11_corner_lower_right;
-  G4TwoVector scinti_t11_corner_lower_left;
+  double m_ScintiT11FrontSize;
+  G4TwoVector m_ScintiT11CornerUpperLeft;
+  G4TwoVector m_ScintiT11CornerUpperRight;
+  G4TwoVector m_ScintiT11CornerLowerRight;
+  G4TwoVector m_ScintiT11CornerLowerLeft;
 
-  double scinti_t12_front_size;
-  G4TwoVector scinti_t12_corner_upper_left;
-  G4TwoVector scinti_t12_corner_upper_right;
-  G4TwoVector scinti_t12_corner_lower_right;
-  G4TwoVector scinti_t12_corner_lower_left;
+  double m_ScintiT12FrontSize;
+  G4TwoVector m_ScintiT12CornerUpperLeft;
+  G4TwoVector m_ScintiT12CornerUpperRight;
+  G4TwoVector m_ScintiT12CornerLowerRight;
+  G4TwoVector m_ScintiT12CornerLowerLeft;
 
-  double scinti_x;
-  double scinti_x_hi_eta;
-  double steel_z;
-  double size_z;
-  double scinti_tile_z;
-  double scinti_tile_thickness;
-  double scinti_box_smaller;
-  double gap_between_tiles;
-  double scinti_gap;
-  double tilt_angle;
-  double deltaphi;
-  double volume_steel;
-  double volume_scintillator;
+  double m_ScintiX;
+  double m_ScintiXHiEta;
+  double m_SteelZ;
+  double m_SizeZ;
+  double m_ScintiTileZ;
+  double m_ScintiTileThickness;
+  double m_ScintiBoxSmaller;
+  double m_GapBetweenTiles;
+  double m_ScintiGap;
+  double m_TiltAngle;
+  double m_DeltaPhi;
+  double m_VolumeSteel;
+  double m_VolumeScintillator;
 
-  int n_scinti_plates;
-  int n_steel_plates;
+  int m_NScintiPlates;
+  int m_NSteelPlates;
 
-  int active;
-  int absorberactive;
+  int m_ActiveFlag;
+  int m_AbsorberActiveFlag;
 
-  int layer;
-  std::string detector_type;
-  std::string superdetector;
+  int m_Layer;
+  std::string m_SuperDetector;
   std::map<std::string, int> m_SteelPlateIdMap;
   std::map<std::string, int> m_ScintillatorIdMap;
 };

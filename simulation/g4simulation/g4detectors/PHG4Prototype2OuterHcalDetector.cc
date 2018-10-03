@@ -17,6 +17,7 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/format.hpp>
 
@@ -28,72 +29,70 @@ using namespace std;
 static const string scintimothername = "OuterHcalScintiMother";
 static const string steelplatename = "OuterHcalSteelPlate";
 
-double scinti_box_smaller = 0.02*mm;
-
 PHG4Prototype2OuterHcalDetector::PHG4Prototype2OuterHcalDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam  ):
   PHG4Detector(Node, dnam),
-  params(parameters),
+  m_Params(parameters),
   m_OuterHcalSteelPlate(nullptr),
   m_OuterHcalAssembly(nullptr),
-  steel_plate_corner_upper_left(1777.6*mm,-433.5*mm),
-  steel_plate_corner_upper_right(2600.4*mm,-417.4*mm), 
-  steel_plate_corner_lower_right(2601.2*mm,-459.8*mm),
-  steel_plate_corner_lower_left(1770.9*mm,-459.8*mm),
+  m_SteelPlateCornerUpperLeft(1777.6*mm,-433.5*mm),
+  m_SteelPlateCornerUpperRight(2600.4*mm,-417.4*mm), 
+  m_SteelPlateCornerLowerRight(2601.2*mm,-459.8*mm),
+  m_SteelPlateCornerLowerLeft(1770.9*mm,-459.8*mm),
 
-  scinti_u1_front_size(166.2*mm),
-  scinti_u1_corner_upper_left(0*mm,0*mm),
-  scinti_u1_corner_upper_right(828.9*mm,0*mm),
-  scinti_u1_corner_lower_right(828.9*mm,-240.54*mm),
-  scinti_u1_corner_lower_left(0*mm,-scinti_u1_front_size),
+  m_ScintiUoneFrontSize(166.2*mm),
+  m_ScintiUoneCornerUpperLeft(0*mm,0*mm),
+  m_ScintiUoneCornerUpperRight(828.9*mm,0*mm),
+  m_ScintiUoneCornerLowerRight(828.9*mm,-240.54*mm),
+  m_ScintiUoneCornerLowerLeft(0*mm,-m_ScintiUoneFrontSize),
 
-  scinti_u2_corner_upper_left(0*mm,0*mm),
-  scinti_u2_corner_upper_right(828.9*mm,-74.3*mm),
-  scinti_u2_corner_lower_right(828.9*mm,-320.44*mm),
-  scinti_u2_corner_lower_left(0*mm,-171.0*mm),
+  m_ScintiU2CornerUpperLeft(0*mm,0*mm),
+  m_ScintiU2CornerUpperRight(828.9*mm,-74.3*mm),
+  m_ScintiU2CornerLowerRight(828.9*mm,-320.44*mm),
+  m_ScintiU2CornerLowerLeft(0*mm,-171.0*mm),
 
-  scinti_t9_distance_to_corner(0.86*mm),
-  scinti_t9_front_size(241.5*mm),
-  scinti_t9_corner_upper_left(0*mm,0*mm),
-  scinti_t9_corner_upper_right(697.4*mm,-552.2*mm),
-  scinti_t9_corner_lower_right(697.4*mm,-697.4*mm/tan(47.94/180.*M_PI)-scinti_t9_front_size),
-  scinti_t9_corner_lower_left(0*mm,-scinti_t9_front_size),
+  m_ScintiT9DistanceToCorner(0.86*mm),
+  m_ScintiT9FrontSize(241.5*mm),
+  m_ScintiT9CornerUpperLeft(0*mm,0*mm),
+  m_ScintiT9CornerUpperRight(697.4*mm,-552.2*mm),
+  m_ScintiT9CornerLowerRight(697.4*mm,-697.4*mm/tan(47.94/180.*M_PI)-m_ScintiT9FrontSize),
+  m_ScintiT9CornerLowerLeft(0*mm,-m_ScintiT9FrontSize),
 
-  scinti_t10_front_size(241.4*mm),
-  scinti_t10_corner_upper_left(0*mm,0*mm),
-  scinti_t10_corner_upper_right(697.4*mm,-629.3*mm),
-  scinti_t10_corner_lower_right(697.4*mm,-697.4*mm/tan(44.2/180.*M_PI)-scinti_t10_front_size),
-  scinti_t10_corner_lower_left(0*mm,-scinti_t10_front_size),
+  m_ScintiT10FrontSize(241.4*mm),
+  m_ScintiT10CornerUpperLeft(0*mm,0*mm),
+  m_ScintiT10CornerUpperRight(697.4*mm,-629.3*mm),
+  m_ScintiT10CornerLowerRight(697.4*mm,-697.4*mm/tan(44.2/180.*M_PI)-m_ScintiT10FrontSize),
+  m_ScintiT10CornerLowerLeft(0*mm,-m_ScintiT10FrontSize),
 
-  scinti_t11_front_size(241.4*mm),
-  scinti_t11_corner_upper_left(0*mm,0*mm),
-  scinti_t11_corner_upper_right(697.4*mm,-717.1*mm),
-  scinti_t11_corner_lower_right(697.4*mm,-697.4*mm/tan(42.47/180.*M_PI)-scinti_t11_front_size),
-  scinti_t11_corner_lower_left(0*mm,-scinti_t11_front_size),
+  m_ScintiT11FrontSize(241.4*mm),
+  m_ScintiT11CornerUpperLeft(0*mm,0*mm),
+  m_ScintiT11CornerUpperRight(697.4*mm,-717.1*mm),
+  m_ScintiT11CornerLowerRight(697.4*mm,-697.4*mm/tan(42.47/180.*M_PI)-m_ScintiT11FrontSize),
+  m_ScintiT11CornerLowerLeft(0*mm,-m_ScintiT11FrontSize),
 
-  scinti_t12_front_size(312.7*mm),
-  scinti_t12_corner_upper_left(0*mm,0*mm),
-  scinti_t12_corner_upper_right(697.4*mm,-761.8*mm),
-  scinti_t12_corner_lower_right(392.9*mm,-827.7),
-  scinti_t12_corner_lower_left(0*mm,-scinti_t12_front_size),
+  m_ScintiT12FrontSize(312.7*mm),
+  m_ScintiT12CornerUpperLeft(0*mm,0*mm),
+  m_ScintiT12CornerUpperRight(697.4*mm,-761.8*mm),
+  m_ScintiT12CornerLowerRight(392.9*mm,-827.7),
+  m_ScintiT12CornerLowerLeft(0*mm,-m_ScintiT12FrontSize),
 
-  scinti_x(828.9),
-  scinti_x_hi_eta(697.4*mm+121.09*mm),
-  steel_z(1600.*mm),
-  size_z(steel_z),
-  scinti_tile_z(steel_z),
-  scinti_tile_thickness(7*mm),
-scinti_box_smaller(0.02*mm), // blargh - off by 20 microns bc scinti tilt angle, need to revisit at some point
-  gap_between_tiles(1*mm),
-  scinti_gap(8.5*mm),
-  tilt_angle(12*deg),
-  deltaphi(2*M_PI/320.),
-  volume_steel(NAN),
-  volume_scintillator(NAN),
-  n_scinti_plates(20),
-  n_steel_plates(n_scinti_plates+1),
-  active(params->get_int_param("active")),
-  absorberactive(params->get_int_param("absorberactive")),
-  layer(0)
+  m_ScintiX(828.9),
+  m_ScintiXHiEta(697.4*mm+121.09*mm),
+  m_SteelZ(1600.*mm),
+  m_SizeZ(m_SteelZ),
+  m_ScintiTileZ(m_SteelZ),
+  m_ScintiTileThickness(7*mm),
+  m_ScintiBoxSmaller(0.02*mm), // blargh - off by 20 microns bc scinti tilt angle, need to revisit at some point
+  m_GapBetweenTiles(1*mm),
+  m_ScintiGap(8.5*mm),
+  m_TiltAngle(12*deg),
+  m_DeltaPhi(2*M_PI/320.),
+  m_VolumeSteel(NAN),
+  m_VolumeScintillator(NAN),
+  m_NScintiPlates(20),
+  m_NSteelPlates(m_NScintiPlates+1),
+  m_ActiveFlag(m_Params->get_int_param("active")),
+  m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive")),
+  m_Layer(0)
 {}
 
 PHG4Prototype2OuterHcalDetector::~PHG4Prototype2OuterHcalDetector()
@@ -107,11 +106,11 @@ int
 PHG4Prototype2OuterHcalDetector::IsInPrototype2OuterHcal(G4VPhysicalVolume * volume) const
 {
   G4LogicalVolume *logvol = volume->GetLogicalVolume();
-  if (absorberactive && logvol == m_OuterHcalSteelPlate)
+  if (m_AbsorberActiveFlag && logvol == m_OuterHcalSteelPlate)
     {
       return -1;
     }
-  if (active && m_ActiveVolumeSet.find(logvol) != m_ActiveVolumeSet.end())
+  if (m_ActiveFlag && m_ActiveVolumeSet.find(logvol) != m_ActiveVolumeSet.end())
     {
       return 1;
     }
@@ -125,18 +124,18 @@ PHG4Prototype2OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
     {
       G4VSolid* steel_plate;
       std::vector<G4TwoVector> vertexes;
-      vertexes.push_back(steel_plate_corner_upper_left);
-      vertexes.push_back(steel_plate_corner_upper_right);
-      vertexes.push_back(steel_plate_corner_lower_right);
-      vertexes.push_back(steel_plate_corner_lower_left);
+      vertexes.push_back(m_SteelPlateCornerUpperLeft);
+      vertexes.push_back(m_SteelPlateCornerUpperRight);
+      vertexes.push_back(m_SteelPlateCornerLowerRight);
+      vertexes.push_back(m_SteelPlateCornerLowerLeft);
       G4TwoVector zero(0, 0);
       steel_plate =  new G4ExtrudedSolid("OuterHcalSteelPlateSolid",
 					 vertexes,
-					 size_z  / 2.0,
+					 m_SizeZ  / 2.0,
 					 zero, 1.0,
 					 zero, 1.0);
 
-      volume_steel = steel_plate->GetCubicVolume()*n_steel_plates;
+      m_VolumeSteel = steel_plate->GetCubicVolume()*m_NSteelPlates;
       m_OuterHcalSteelPlate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("Steel_A36"),"OuterHcalSteelPlate", 0, 0, 0);
       G4VisAttributes visattchk;
       visattchk.SetVisibility(true);
@@ -151,7 +150,7 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcalenvelope)
 { 
   int copynum=0;
-  G4VSolid* scintiboxsolid = new G4Box(scintimothername,scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
+  G4VSolid* scintiboxsolid = new G4Box(scintimothername,m_ScintiX/2.,(m_ScintiGap-m_ScintiBoxSmaller)/2.,m_ScintiTileZ/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String(scintimothername), 0, 0, 0);
   G4VisAttributes* hcalVisAtt = new G4VisAttributes();
@@ -170,22 +169,22 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume* hcale
   G4RotationMatrix *Rot;  
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-scinti_u1_front_size-gap_between_tiles/2.-gap_between_tiles),scintiu2_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiX/2.,0,-m_ScintiUoneFrontSize-m_GapBetweenTiles/2.-m_GapBetweenTiles),scintiu2_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(-90*deg);
   copynum++;
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,-gap_between_tiles/2.),scintiu1_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiX/2.,0,-m_GapBetweenTiles/2.),scintiu1_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
   copynum++;
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,gap_between_tiles/2.),scintiu1_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiX/2.,0,m_GapBetweenTiles/2.),scintiu1_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
   copynum++;
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x/2.,0,scinti_u1_front_size+gap_between_tiles/2.+gap_between_tiles),scintiu2_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiX/2.,0,m_ScintiUoneFrontSize+m_GapBetweenTiles/2.+m_GapBetweenTiles),scintiu2_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
 
   return scintiboxlogical;
@@ -195,14 +194,14 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTileU1(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_u1_corner_upper_left);
-  vertexes.push_back(scinti_u1_corner_upper_right);
-  vertexes.push_back(scinti_u1_corner_lower_right);
-  vertexes.push_back(scinti_u1_corner_lower_left);
+  vertexes.push_back(m_ScintiUoneCornerUpperLeft);
+  vertexes.push_back(m_ScintiUoneCornerUpperRight);
+  vertexes.push_back(m_ScintiUoneCornerLowerRight);
+  vertexes.push_back(m_ScintiUoneCornerLowerLeft);
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu1 =  new G4ExtrudedSolid("OuterHcalScintiU1",
 					    vertexes,
-					    scinti_tile_thickness  / 2.0,
+					    m_ScintiTileThickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -216,14 +215,14 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTileU2(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_u2_corner_upper_left);
-  vertexes.push_back(scinti_u2_corner_upper_right);
-  vertexes.push_back(scinti_u2_corner_lower_right);
-  vertexes.push_back(scinti_u2_corner_lower_left);
+  vertexes.push_back(m_ScintiU2CornerUpperLeft);
+  vertexes.push_back(m_ScintiU2CornerUpperRight);
+  vertexes.push_back(m_ScintiU2CornerLowerRight);
+  vertexes.push_back(m_ScintiU2CornerLowerLeft);
   G4TwoVector zero(0, 0);
   G4VSolid *scintiu2 =  new G4ExtrudedSolid("OuterHcalScintiU2",
 					    vertexes,
-					    scinti_tile_thickness  / 2.0,
+					    m_ScintiTileThickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -237,7 +236,7 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* hcalenvelope)
 { 
   int copynum=0;
-  G4VSolid* scintiboxsolid = new G4Box(scintimothername,scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
+  G4VSolid* scintiboxsolid = new G4Box(scintimothername,m_ScintiX/2.,(m_ScintiGap-m_ScintiBoxSmaller)/2.,m_ScintiTileZ/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
   G4LogicalVolume* scintiboxlogical = new G4LogicalVolume(scintiboxsolid,G4Material::GetMaterial("G4_AIR"),G4String(scintimothername), 0, 0, 0);
 
@@ -248,11 +247,11 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   G4LogicalVolume *scintit9_logic = ConstructScintiTile9(hcalenvelope);
   scintit9_logic->SetVisAttributes(hcalVisAtt);
 
-  double distance_to_corner = -size_z/2.+scinti_t9_distance_to_corner;
+  double distance_to_corner = -m_SizeZ/2.+m_ScintiT9DistanceToCorner;
   G4RotationMatrix *Rot;  
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit9_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiXHiEta/2.,0,distance_to_corner),scintit9_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   hcalVisAtt.SetVisibility(true);
   hcalVisAtt.SetForceSolid(false);
@@ -260,11 +259,11 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   G4LogicalVolume *scintit10_logic = ConstructScintiTile10(hcalenvelope);
   scintit10_logic->SetVisAttributes(hcalVisAtt);
 
-  distance_to_corner += scinti_t9_front_size + gap_between_tiles;
+  distance_to_corner += m_ScintiT9FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
   copynum++;
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit10_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiXHiEta/2.,0,distance_to_corner),scintit10_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   hcalVisAtt.SetVisibility(true);
   hcalVisAtt.SetForceSolid(false);
@@ -272,11 +271,11 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   G4LogicalVolume *scintit11_logic = ConstructScintiTile11(hcalenvelope);
   scintit11_logic->SetVisAttributes(hcalVisAtt);
 
-  distance_to_corner += scinti_t10_front_size + gap_between_tiles;
+  distance_to_corner += m_ScintiT10FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
   copynum++;
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit11_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiXHiEta/2.,0,distance_to_corner),scintit11_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
 
   hcalVisAtt.SetVisibility(true);
   hcalVisAtt.SetForceSolid(false);
@@ -284,11 +283,11 @@ PHG4Prototype2OuterHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* 
   G4LogicalVolume *scintit12_logic = ConstructScintiTile12(hcalenvelope);
   scintit12_logic->SetVisAttributes(hcalVisAtt);
 
-  distance_to_corner += scinti_t11_front_size + gap_between_tiles;
+  distance_to_corner += m_ScintiT11FrontSize + m_GapBetweenTiles;
   Rot = new G4RotationMatrix();  
   Rot->rotateX(90*deg);
   copynum++;
-  new G4PVPlacement(Rot,G4ThreeVector(-scinti_x_hi_eta/2.,0,distance_to_corner),scintit12_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
+  new G4PVPlacement(Rot,G4ThreeVector(-m_ScintiXHiEta/2.,0,distance_to_corner),scintit12_logic,(boost::format("OuterScinti_%d") % copynum).str(), scintiboxlogical, false, copynum, OverlapCheck());
   //DisplayVolume(scintiboxlogical,hcalenvelope);
   return scintiboxlogical;
 }
@@ -296,14 +295,14 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTile9(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_t9_corner_upper_left);
-  vertexes.push_back(scinti_t9_corner_upper_right);
-  vertexes.push_back(scinti_t9_corner_lower_right);
-  vertexes.push_back(scinti_t9_corner_lower_left);
+  vertexes.push_back(m_ScintiT9CornerUpperLeft);
+  vertexes.push_back(m_ScintiT9CornerUpperRight);
+  vertexes.push_back(m_ScintiT9CornerLowerRight);
+  vertexes.push_back(m_ScintiT9CornerLowerLeft);
   G4TwoVector zero(0, 0);
   G4VSolid *scintit9 =  new G4ExtrudedSolid("OuterHcalScintiT9",
 					    vertexes,
-					    scinti_tile_thickness  / 2.0,
+					    m_ScintiTileThickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -317,14 +316,14 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTile10(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_t10_corner_upper_left);
-  vertexes.push_back(scinti_t10_corner_upper_right);
-  vertexes.push_back(scinti_t10_corner_lower_right);
-  vertexes.push_back(scinti_t10_corner_lower_left);
+  vertexes.push_back(m_ScintiT10CornerUpperLeft);
+  vertexes.push_back(m_ScintiT10CornerUpperRight);
+  vertexes.push_back(m_ScintiT10CornerLowerRight);
+  vertexes.push_back(m_ScintiT10CornerLowerLeft);
   G4TwoVector zero(0, 0);
   G4VSolid *scintit10 =  new G4ExtrudedSolid("OuterHcalScintiT10",
 					    vertexes,
-					    scinti_tile_thickness  / 2.0,
+					    m_ScintiTileThickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -338,14 +337,14 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTile11(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_t11_corner_upper_left);
-  vertexes.push_back(scinti_t11_corner_upper_right);
-  vertexes.push_back(scinti_t11_corner_lower_right);
-  vertexes.push_back(scinti_t11_corner_lower_left);
+  vertexes.push_back(m_ScintiT11CornerUpperLeft);
+  vertexes.push_back(m_ScintiT11CornerUpperRight);
+  vertexes.push_back(m_ScintiT11CornerLowerRight);
+  vertexes.push_back(m_ScintiT11CornerLowerLeft);
   G4TwoVector zero(0, 0);
   G4VSolid *scintit11 =  new G4ExtrudedSolid("OuterHcalScintiT11",
 					    vertexes,
-					    scinti_tile_thickness  / 2.0,
+					    m_ScintiTileThickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -359,14 +358,14 @@ G4LogicalVolume*
 PHG4Prototype2OuterHcalDetector::ConstructScintiTile12(G4LogicalVolume* hcalenvelope)
 {
   std::vector<G4TwoVector> vertexes;
-  vertexes.push_back(scinti_t12_corner_upper_left);
-  vertexes.push_back(scinti_t12_corner_upper_right);
-  vertexes.push_back(scinti_t12_corner_lower_right);
-  vertexes.push_back(scinti_t12_corner_lower_left);
+  vertexes.push_back(m_ScintiT12CornerUpperLeft);
+  vertexes.push_back(m_ScintiT12CornerUpperRight);
+  vertexes.push_back(m_ScintiT12CornerLowerRight);
+  vertexes.push_back(m_ScintiT12CornerLowerLeft);
   G4TwoVector zero(0, 0);
   G4VSolid *scintit12 =  new G4ExtrudedSolid("OuterHcalScintiT12",
 					    vertexes,
-					    scinti_tile_thickness  / 2.0,
+					    m_ScintiTileThickness  / 2.0,
 					    zero, 1.0,
 					    zero, 1.0);
 
@@ -381,13 +380,13 @@ PHG4Prototype2OuterHcalDetector::ConstructScintiTile12(G4LogicalVolume* hcalenve
 void
 PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  G4ThreeVector g4vec(params->get_double_param("place_x")*cm,
-                      params->get_double_param("place_y")*cm,
-		      params->get_double_param("place_z")*cm);
+  G4ThreeVector g4vec(m_Params->get_double_param("place_x")*cm,
+                      m_Params->get_double_param("place_y")*cm,
+		      m_Params->get_double_param("place_z")*cm);
   G4RotationMatrix Rot;
-  Rot.rotateX(params->get_double_param("rot_x")*deg);
-  Rot.rotateY(params->get_double_param("rot_y")*deg);
-  Rot.rotateZ(params->get_double_param("rot_z")*deg);
+  Rot.rotateX(m_Params->get_double_param("rot_x")*deg);
+  Rot.rotateY(m_Params->get_double_param("rot_y")*deg);
+  Rot.rotateZ(m_Params->get_double_param("rot_z")*deg);
   //  ConstructScintillatorBoxHiEta(logicWorld);
   m_OuterHcalAssembly = new G4AssemblyVolume();
   //ConstructSteelPlate(hcal_envelope_log);
@@ -418,15 +417,15 @@ PHG4Prototype2OuterHcalDetector::Construct( G4LogicalVolume* logicWorld )
     ++it;
   }
 // print out volume names and their assigned id
-   map<string,int>::const_iterator iter;
-   for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
-   {
-     cout << iter->first << ", " << iter->second << endl;
-   }
-   for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
-   {
-     cout << iter->first << ", " << iter->second << endl;
-   }
+   // map<string,int>::const_iterator iter;
+   // for (iter = m_SteelPlateIdMap.begin(); iter != m_SteelPlateIdMap.end(); ++iter)
+   // {
+   //   cout << iter->first << ", " << iter->second << endl;
+   // }
+   // for (iter = m_ScintillatorIdMap.begin(); iter != m_ScintillatorIdMap.end(); ++iter)
+   // {
+   //   cout << iter->first << ", " << iter->second << endl;
+   // }
 
   return;
 }
@@ -436,7 +435,7 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
 {
   G4LogicalVolume* steel_plate = ConstructSteelPlate(hcalenvelope); // bottom steel plate
   G4LogicalVolume* scintibox = nullptr;
-  if (params->get_int_param("hi_eta"))
+  if (m_Params->get_int_param("hi_eta"))
     {
       scintibox = ConstructScintillatorBoxHiEta(hcalenvelope);
     }
@@ -446,20 +445,16 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
     }
   double phi = 0.;
   double phislat = 0.;
-  ostringstream name;
   // the coordinate of the center of the bottom of the bottom steel plate
   // to get the radius of the circle which is the center of the scintillator box
-  double bottom_xmiddle_steel_tile = (steel_plate_corner_lower_right.x()-steel_plate_corner_lower_left.x())/2.+steel_plate_corner_lower_left.x();
-  double bottom_ymiddle_steel_tile = steel_plate_corner_lower_right.y();
+  double bottom_xmiddle_steel_tile = (m_SteelPlateCornerLowerRight.x()-m_SteelPlateCornerLowerLeft.x())/2.+m_SteelPlateCornerLowerLeft.x();
+  double bottom_ymiddle_steel_tile = m_SteelPlateCornerLowerRight.y();
   double middlerad = sqrt(bottom_xmiddle_steel_tile*bottom_xmiddle_steel_tile + bottom_ymiddle_steel_tile * bottom_ymiddle_steel_tile);
-  double philow = atan((bottom_ymiddle_steel_tile-scinti_gap/2.)/bottom_xmiddle_steel_tile);
+  double philow = atan((bottom_ymiddle_steel_tile-m_ScintiGap/2.)/bottom_xmiddle_steel_tile);
   double scintiangle = GetScintiAngle();
-  for (int i = 0; i < n_steel_plates; i++)
-    //      for (int i = 0; i < 2; i++)
+  for (int i = 0; i < m_NSteelPlates; i++)
     {
-      name.str("");
-      name << "OuterHcalSteel_" << i;
-      G4RotationMatrix Rot;// = new G4RotationMatrix();
+      G4RotationMatrix Rot;
       Rot.rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
       m_OuterHcalAssembly->AddPlacedVolume(steel_plate,g4vec,&Rot);
@@ -470,18 +465,16 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
 	  // the center of the scintillator is not the center of the inner hcal
 	  // but depends on the tilt angle. Therefore we need to shift
 	  // the center from the mid point
-	  ypos += sin((-tilt_angle)/rad - phi);
-	  xpos -= cos((-tilt_angle)/rad - phi);
-	  name.str("");
-	  name << "OuterHcalScintiBox_" << i;
-	  G4RotationMatrix Rota;// = new G4RotationMatrix();
+	  ypos += sin((-m_TiltAngle)/rad - phi);
+	  xpos -= cos((-m_TiltAngle)/rad - phi);
+	  G4RotationMatrix Rota;
 	  Rota.rotateZ(scintiangle+phislat);
 	  G4ThreeVector g4vec(xpos, ypos, 0);
 
 	  m_OuterHcalAssembly->AddPlacedVolume(scintibox,g4vec,&Rota);
-	  phislat += deltaphi;
+	  phislat += m_DeltaPhi;
 	}
-      phi += deltaphi;
+      phi += m_DeltaPhi;
     }
   return 0;
 }
@@ -491,8 +484,8 @@ PHG4Prototype2OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume* hcalenvelop
 double
 PHG4Prototype2OuterHcalDetector::GetScintiAngle()
 {
-  double xlen = steel_plate_corner_upper_right.x() - steel_plate_corner_upper_left.x();
-  double ylen = steel_plate_corner_upper_right.y() - steel_plate_corner_upper_left.y();
+  double xlen = m_SteelPlateCornerUpperRight.x() - m_SteelPlateCornerUpperLeft.x();
+  double ylen = m_SteelPlateCornerUpperRight.y() - m_SteelPlateCornerUpperLeft.y();
   double angle =  atan(ylen/xlen);
   return angle;
 }
@@ -503,8 +496,8 @@ PHG4Prototype2OuterHcalDetector::Print(const string &what) const
   cout << "Outer Hcal Detector:" << endl;
   if (what == "ALL" || what == "VOLUME")
     {
-      cout << "Volume Steel: " << volume_steel/cm/cm/cm << " cm^3" << endl;
-      cout << "Volume Scintillator: " << volume_scintillator/cm/cm/cm << " cm^3" << endl;
+      cout << "Volume Steel: " << m_VolumeSteel/cm3 << " cm^3" << endl;
+      cout << "Volume Scintillator: " << m_VolumeScintillator/cm3 << " cm^3" << endl;
     }
   return;
 }
