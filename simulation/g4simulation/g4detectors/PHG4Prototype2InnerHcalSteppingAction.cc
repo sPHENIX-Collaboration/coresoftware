@@ -16,21 +16,6 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
-
 #include <iostream>
 
 //#define TESTSINGLESLAT
@@ -92,61 +77,13 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   int slat_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    // first extract the scintillator id (0-3) from the volume name (OuterScinti_0,1,2,3)
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter = tok.begin();
-    ++tokeniter;
-    slat_id = boost::lexical_cast<int>(*tokeniter);
-    // G4AssemblyVolumes naming convention:
-    //     av_WWW_impr_XXX_YYY_ZZZ
-    // where:
-
-    //     WWW - assembly volume instance number
-    //     XXX - assembly volume imprint number
-    //     YYY - the name of the placed logical volume
-    //     ZZZ - the logical volume index inside the assembly volume
-    // e.g. av_1_impr_2_InnerHcalScintiMother_pv_11
-    // 2 the number of the scintillator mother volume
-    // InnerHcalScintiMother_11: name of scintillator slat
-    // 11: number of scintillator slat logical volume
-    // use boost tokenizer to separate the _, then take value
-    // after "impr" for mother volume and after "pv" for scintillator slat
-    // use boost lexical cast for string -> int conversion
+    slat_id = volume->GetCopyNo();
+    // the row id comes from saved info in the detector construction
     G4VPhysicalVolume* mothervolume = touch->GetVolume(1);
-    boost::tokenizer<boost::char_separator<char> > tokm(mothervolume->GetName(), sep);
-    for (tokeniter = tokm.begin(); tokeniter != tokm.end(); ++tokeniter)
-    {
-      if (*tokeniter == "pv")
-      {
-        ++tokeniter;
-        if (tokeniter != tokm.end())
-        {
-          row_id = boost::lexical_cast<int>(*tokeniter);
-          // from the construction via assembly volumes, the mother id starts
-          // at 2 and is incremented by 2 for each new row of slats
-          // this maps it back to 0-nslats
-          row_id -= 2;
-          row_id /= 2;
-        }
-        else
-        {
-          cout << PHWHERE << " Error parsing " << mothervolume->GetName()
-               << " for mother scinti slat id " << endl;
-          exit(1);
-        }
-        break;
-      }
-    }
-    if (slat_id != volume->GetCopyNo() || row_id != m_Detector->get_scinti_row_id(mothervolume->GetName()))
-    {
-    cout << "mother volume: " <<  mothervolume->GetName()
-          << ", volume name " << volume->GetName() << ", row: " << row_id
-	 << ", 2: " << m_Detector->get_scinti_row_id(mothervolume->GetName())
-      	   << ", column: " << slat_id 
-	   << ", 2: " << volume->GetCopyNo() << endl;
-    exit(1);
-    }
+    row_id = m_Detector->get_scinti_row_id(mothervolume->GetName());
+    // cout << "mother volume: " <<  mothervolume->GetName()
+    //       << ", volume name " << volume->GetName() << ", row: " << row_id
+    // 	 << ", column: " << slat_id << endl;
 #ifdef TESTSINGLESLAT
     if (row_id != nrow)
     {
@@ -160,7 +97,8 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   }
   else
   {
-    slat_id = touch->GetCopyNumber();  // steel plate id
+    // the row id comes from saved info in the detector construction
+    row_id = m_Detector->get_steel_plate_id(volume->GetName());
 #ifdef TESTSINGLESLAT
     return false;
 #endif
