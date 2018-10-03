@@ -25,7 +25,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_Siladders.h>
+#include <g4detectors/PHG4CylinderGeomSiLadders.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -1486,9 +1486,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeom_Siladders* geom =
-					(PHG4CylinderGeom_Siladders*) geom_container_intt->GetLayerGeom(
-							layer);
+			PHG4CylinderGeomSiLadders* geom =
+			  dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);
