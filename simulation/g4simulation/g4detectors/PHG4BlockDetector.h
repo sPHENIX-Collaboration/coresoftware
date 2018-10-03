@@ -1,5 +1,7 @@
-#ifndef PHG4BlockDetector_h
-#define PHG4BlockDetector_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4BLOCKDETECTOR_H
+#define G4DETECTORS_PHG4BLOCKDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -27,19 +29,19 @@ class PHG4BlockDetector: public PHG4Detector
   bool IsInBlock(G4VPhysicalVolume*) const;
   //@}
 
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
+  void SuperDetector(const std::string &name) {m_SuperDetector = name;}
+  const std::string SuperDetector() const {return m_SuperDetector;}
+  int get_Layer() const {return m_Layer;}
 
   private:
 
-  PHParameters *params;
+  PHParameters *m_Params;
  
-  G4VPhysicalVolume* block_physi;
+  G4VPhysicalVolume* m_BlockPhysi;
 
 
-  int layer;
-  std::string superdetector;
+  int m_Layer;
+  std::string m_SuperDetector;
   
 };
 
