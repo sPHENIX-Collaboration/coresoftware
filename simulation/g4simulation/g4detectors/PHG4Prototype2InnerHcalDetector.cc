@@ -95,6 +95,11 @@ PHG4Prototype2InnerHcalDetector::PHG4Prototype2InnerHcalDetector( PHCompositeNod
   layer(0)
 {}
 
+PHG4Prototype2InnerHcalDetector::~PHG4Prototype2InnerHcalDetector()
+{
+  delete m_InnerHcalAssembly;
+}
+
 //_______________________________________________________________
 //_______________________________________________________________
 int
@@ -132,10 +137,10 @@ PHG4Prototype2InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 
       volume_steel = steel_plate->GetCubicVolume()*n_steel_plates;
       m_InnerHcalSteelPlate = new G4LogicalVolume(steel_plate,G4Material::GetMaterial("Steel_A36"),steelplatename, 0, 0, 0);
-      G4VisAttributes* visattchk = new G4VisAttributes();
-      visattchk->SetVisibility(true);
-      visattchk->SetForceSolid(false);
-      visattchk->SetColour(G4Colour::Blue());
+      G4VisAttributes visattchk;
+      visattchk.SetVisibility(true);
+      visattchk.SetForceSolid(false);
+      visattchk.SetColour(G4Colour::Blue());
       m_InnerHcalSteelPlate->SetVisAttributes(visattchk);
     }
   return m_InnerHcalSteelPlate;
@@ -378,10 +383,10 @@ PHG4Prototype2InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4ThreeVector g4vec(params->get_double_param("place_x")*cm,
                       params->get_double_param("place_y")*cm,
 		      params->get_double_param("place_z")*cm);
-  G4RotationMatrix *Rot = new G4RotationMatrix();
-  Rot->rotateX(params->get_double_param("rot_x")*deg);
-  Rot->rotateY(params->get_double_param("rot_y")*deg);
-  Rot->rotateZ(params->get_double_param("rot_z")*deg);
+  G4RotationMatrix Rot;
+  Rot.rotateX(params->get_double_param("rot_x")*deg);
+  Rot.rotateY(params->get_double_param("rot_y")*deg);
+  Rot.rotateZ(params->get_double_param("rot_z")*deg);
   //  ConstructScintiTile9(logicWorld);
   //    ConstructScintillatorBoxHiEta(logicWorld);
   //ConstructScintillatorBox(logicWorld);
@@ -390,7 +395,7 @@ PHG4Prototype2InnerHcalDetector::Construct( G4LogicalVolume* logicWorld )
   //ConstructSteelPlate(hcal_envelope_log);
   // return;
   ConstructInnerHcal(logicWorld);
-  m_InnerHcalAssembly->MakeImprint(logicWorld,g4vec,Rot,0,OverlapCheck());
+  m_InnerHcalAssembly->MakeImprint(logicWorld,g4vec,&Rot,0,OverlapCheck());
 // this is rather pathetic - there is no way to extract the name when a volume is added
 // to the assembly. The only thing we can do is get an iterator over the placed volumes
 // in the order in which they were placed. Since this code does not install the scintillators
@@ -455,20 +460,20 @@ PHG4Prototype2InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume* hcalenvelop
     {
       name.str("");
       name << "InnerHcalSteel_" << i;
-      G4RotationMatrix *Rot = new G4RotationMatrix();
-      Rot->rotateZ(phi*rad);
+      G4RotationMatrix Rot;
+      Rot.rotateZ(phi*rad);
       G4ThreeVector g4vec(0,0,0);
-      m_InnerHcalAssembly->AddPlacedVolume(steel_plate,g4vec,Rot);
+      m_InnerHcalAssembly->AddPlacedVolume(steel_plate,g4vec,&Rot);
       if (i > 0)
 	{
 	  double ypos = sin(phi+philow) * middlerad;
 	  double xpos = cos(phi+philow) * middlerad;
 	  name.str("");
 	  name << "InnerHcalScintiBox_" << i;
-	  Rot = new G4RotationMatrix();
-	  Rot->rotateZ(scintiangle+phislat);
+	  G4RotationMatrix Rot1;
+	  Rot1.rotateZ(scintiangle+phislat);
 	  G4ThreeVector g4vecsc(xpos, ypos, 0);
-	  m_InnerHcalAssembly->AddPlacedVolume(scintibox,g4vecsc,Rot);
+	  m_InnerHcalAssembly->AddPlacedVolume(scintibox,g4vecsc,&Rot1);
 	  phislat += deltaphi;
 	}
       phi += deltaphi;

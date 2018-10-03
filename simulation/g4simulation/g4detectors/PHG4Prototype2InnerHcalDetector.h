@@ -5,14 +5,9 @@
 
 #include <g4main/PHG4Detector.h>
 
-//#include <Geant4/globals.hh>
-//#include <Geant4/G4RotationMatrix.hh>
-//#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4TwoVector.hh>
-//#include <Geant4/G4Types.hh>
 
 #include <map>
-//#include <vector>
 #include <set>
 
 class G4AssemblyVolume;
@@ -30,7 +25,7 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
  PHG4Prototype2InnerHcalDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4Prototype2InnerHcalDetector(){}
+ virtual ~PHG4Prototype2InnerHcalDetector();
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
