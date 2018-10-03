@@ -33,8 +33,8 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
 
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }
- 
-private:
+
+ private:
   //! pointer to the detector
   PHG4OuterHcalDetector *m_Detector;
 
