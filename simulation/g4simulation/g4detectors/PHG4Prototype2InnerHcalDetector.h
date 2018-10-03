@@ -16,30 +16,28 @@ class G4VPhysicalVolume;
 class G4VSolid;
 class PHParameters;
 
-class PHG4Prototype2InnerHcalDetector: public PHG4Detector
+class PHG4Prototype2InnerHcalDetector : public PHG4Detector
 {
-
-  public:
-
+ public:
   //! constructor
- PHG4Prototype2InnerHcalDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam);
+  PHG4Prototype2InnerHcalDetector(PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
- virtual ~PHG4Prototype2InnerHcalDetector();
+  virtual ~PHG4Prototype2InnerHcalDetector();
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void Construct(G4LogicalVolume* world);
 
-  virtual void Print(const std::string &what = "ALL") const;
+  virtual void Print(const std::string& what = "ALL") const;
 
   //!@name volume accessors
   //@{
   int IsInPrototype2InnerHcal(G4VPhysicalVolume*) const;
   //@}
 
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return m_Layer;}
+  void SuperDetector(const std::string& name) { superdetector = name; }
+  const std::string SuperDetector() const { return superdetector; }
+  int get_Layer() const { return m_Layer; }
 
   G4LogicalVolume* ConstructSteelPlate(G4LogicalVolume* hcalenvelope);
   G4LogicalVolume* ConstructScintillatorBox(G4LogicalVolume* hcalenvelope);
@@ -52,20 +50,20 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   G4LogicalVolume* ConstructScintiTile12(G4LogicalVolume* hcalenvelope);
   double GetScintiAngle();
 
-  int get_scinti_row_id(const std::string &volname);
-  int get_steel_plate_id(const std::string &volname);
+  int get_scinti_row_id(const std::string& volname);
+  int get_steel_plate_id(const std::string& volname);
 
-  protected:
+ protected:
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
-  int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
-  int DisplayVolume(G4LogicalVolume *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
-  std::set<G4LogicalVolume *> m_ActiveVolumeSet;
+  int DisplayVolume(G4VSolid* volume, G4LogicalVolume* logvol, G4RotationMatrix* rotm = NULL);
+  int DisplayVolume(G4LogicalVolume* volume, G4LogicalVolume* logvol, G4RotationMatrix* rotm = NULL);
+  std::set<G4LogicalVolume*> m_ActiveVolumeSet;
   std::string superdetector;
-  std::map<std::string,int> m_SteelPlateIdMap;
-  std::map<std::string,int> m_ScintillatorIdMap;
-  PHParameters *m_Params;
-  G4LogicalVolume *m_InnerHcalSteelPlate;
-  G4AssemblyVolume *m_InnerHcalAssembly;
+  std::map<std::string, int> m_SteelPlateIdMap;
+  std::map<std::string, int> m_ScintillatorIdMap;
+  PHParameters* m_Params;
+  G4LogicalVolume* m_InnerHcalSteelPlate;
+  G4AssemblyVolume* m_InnerHcalAssembly;
   G4TwoVector m_SteelPlateCornerUpperLeft;
   G4TwoVector m_SteelPlateCornerUpperRight;
   G4TwoVector m_SteelPlateCornerLowerRight;
@@ -125,7 +123,6 @@ class PHG4Prototype2InnerHcalDetector: public PHG4Detector
   int m_AbsorberActiveFlag;
 
   int m_Layer;
-
 };
 
 #endif

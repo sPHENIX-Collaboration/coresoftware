@@ -230,7 +230,7 @@ bool PHG4Prototype2InnerHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (geantino)
     {
-      m_Hit->set_edep(-1);    // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       if (whichactive > 0)  // add light yield for scintillators
       {
         m_Hit->set_light_yield(-1);

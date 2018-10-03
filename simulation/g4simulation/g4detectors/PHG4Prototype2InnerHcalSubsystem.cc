@@ -146,7 +146,6 @@ void PHG4Prototype2InnerHcalSubsystem::SetDefaultParameters()
   set_default_int_param("hi_eta", 0);
   set_default_int_param("light_scint_model", 1);
   set_default_int_param(PHG4PrototypeHcalDefs::scipertwr, 5);
-
 }
 
 void PHG4Prototype2InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)

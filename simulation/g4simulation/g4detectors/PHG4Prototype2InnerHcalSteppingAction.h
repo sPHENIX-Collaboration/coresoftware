@@ -53,4 +53,4 @@ class PHG4Prototype2InnerHcalSteppingAction : public PHG4SteppingAction
   double m_LightBalanceOuterRadius;
 };
 
-#endif 
+#endif
