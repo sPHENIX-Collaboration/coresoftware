@@ -149,7 +149,7 @@ PHG4Prototype2InnerHcalDetector::ConstructSteelPlate(G4LogicalVolume* hcalenvelo
 G4LogicalVolume*
 PHG4Prototype2InnerHcalDetector::ConstructScintillatorBoxHiEta(G4LogicalVolume* hcalenvelope)
 {
-  int copynum = 9;
+  int copynum = 0;
   G4VSolid* scintiboxsolid = new G4Box(scintimothername,scinti_x/2.,(scinti_gap-scinti_box_smaller)/2.,scinti_tile_z/2.);
   //  DisplayVolume(scintiboxsolid,hcalenvelope);
 
