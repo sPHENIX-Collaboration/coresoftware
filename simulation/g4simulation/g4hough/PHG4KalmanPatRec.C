@@ -32,7 +32,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_Siladders.h>
+#include <g4detectors/PHG4CylinderGeomSiLadders.h>
 
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
@@ -3896,9 +3896,9 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 		//n.Print();
 	} else if (cell_intt) {
 		PHG4Cell* cell = cell_intt;
-		PHG4CylinderGeom_Siladders* geom =
-				(PHG4CylinderGeom_Siladders*) _geom_container_intt->GetLayerGeom(
-						layer);
+		PHG4CylinderGeomSiLadders* geom =
+		  dynamic_cast<PHG4CylinderGeomSiLadders*> (_geom_container_intt->GetLayerGeom(
+							      layer));
 		double hit_location[3] = { 0.0, 0.0, 0.0 };
 		geom->find_segment_center(cell->get_ladder_z_index(),
 				cell->get_ladder_phi_index(), hit_location);

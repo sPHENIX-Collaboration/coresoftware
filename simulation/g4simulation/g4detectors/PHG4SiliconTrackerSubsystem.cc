@@ -27,7 +27,6 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
 {
   for (vector<pair<int, int>>::const_iterator piter = layerconfig.begin(); piter != layerconfig.end(); ++piter)
   {
-    cout << PHWHERE << " adding INTT layer " << (*piter).second << endl;
     AddDetId((*piter).second);
   }
 
@@ -122,7 +121,9 @@ int PHG4SiliconTrackerSubsystem::process_event(PHCompositeNode *topNode)
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
   if (m_SteppingAction)
+  {
     m_SteppingAction->SetInterfacePointers(topNode);
+  }
 
   return 0;
 }
@@ -166,9 +167,6 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     // These offsets should be kept at zero in the new design
     set_default_double_param(*detiter, "offsetphi", 0.);
     set_default_double_param(*detiter, "offsetrot", 0.);
-    cout << " PHG4SiliconTrackerSubsystem setting default parameters to: " << endl;
-    cout << "  layer " << *detiter << " laddertype " << laddertype[*detiter] << " nladder " << nladder[*detiter]
-         << " sensor_radius " << sensor_radius[*detiter]  << endl;
   }
 
   // These are the parameters that describe the internal ladder geometry for the two ladder types
@@ -225,6 +223,26 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "strip_z_1", 2.);
 
     set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
+
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius",6.385);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_length",96);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius",6.4);
+
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness",0.18);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius",4.8);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_length",42.);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_skin_thickness",0.01);
+
+    set_default_double_param(SUPPORTPARAMS, "rail_dphi",60.); // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
+    set_default_double_param(SUPPORTPARAMS, "rail_length", 410); // tpc length
+    set_default_double_param(SUPPORTPARAMS, "rail_outer_radius", 0.6);
+    set_default_double_param(SUPPORTPARAMS, "rail_phi_start",30.); // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_radius",17.5);
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius",15.7);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius",15.8);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_length",96);
   }
 
   return;
