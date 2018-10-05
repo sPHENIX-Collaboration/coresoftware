@@ -94,9 +94,8 @@ PHHepMCGenEvent *PHHepMCGenHelper::insert_event(HepMC::GenEvent *evt)
   PHHepMCGenEvent *genevent = _geneventmap->insert_event(_embedding_id);
   HepMC::GenEvent *newevt = new HepMC::GenEvent(*evt);
   genevent->addEvent(newevt);
-  cout << "evt: " << evt << ", evtnum: " << evt->event_number() << endl;
-  cout << "newevt: " << newevt << ", evtnum: " << newevt->event_number() << endl;
-  genevent->identify();
+;
+//  genevent->identify();
   move_vertex(genevent);
 
   return genevent;

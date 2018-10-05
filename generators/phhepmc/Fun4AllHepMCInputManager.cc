@@ -136,9 +136,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     else
     {
       // expects normal ascii hepmc file
-      cout << "opening " << fname << endl;
       ascii_in = new HepMC::ReaderAscii(fname);
-      cout << "status " << ascii_in->failed() << endl;
     }
   }
 
@@ -198,11 +196,6 @@ int Fun4AllHepMCInputManager::run(const int nevents)
       else
       {
         ascii_in->read_event(m_genevent);
-        auto vtxvec = m_genevent.vertices();
-	cout << "number of vertices: " << vtxvec.size() << endl;
-	auto parvec =  m_genevent.particles();
-	cout << "number of particles: " << parvec.size() << endl;
-	cout << "read event " << m_genevent.event_number() << endl;
       }
     }
 
@@ -229,17 +222,14 @@ int Fun4AllHepMCInputManager::run(const int nevents)
           hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());
 // copy the event so we can do what we want with it rather than passing an address around
       HepMC::GenEvent *tmp_event = new HepMC::GenEvent(m_genevent);
-      cout << "address: " << tmp_event << endl;
 
       if (ievt != hepmc_helper.get_geneventmap()->end())
       {
         // override existing event
-	cout << "override existing event" << endl;
         ievt->second->addEvent(tmp_event);
       }
       else
       {
-	cout << "inserting event" << endl;
         hepmc_helper.insert_event(tmp_event);
       }
 
