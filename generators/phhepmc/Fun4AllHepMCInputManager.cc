@@ -18,7 +18,7 @@
 #include <HepMC/IO_GenEvent.h>
 #include <HepMC/GenVertex.h>
 #include <HepMC/GenParticle.h>
-#include <HepMC/ReaderAsciiHepMC2.h>
+#include <HepMC/ReaderAscii.h>
 
 #include <TPRegexp.h>
 #include <TString.h>
@@ -137,7 +137,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     {
       // expects normal ascii hepmc file
       cout << "opening " << fname << endl;
-      ascii_in = new HepMC::ReaderAsciiHepMC2(fname);
+      ascii_in = new HepMC::ReaderAscii(fname);
       cout << "status " << ascii_in->failed() << endl;
     }
   }

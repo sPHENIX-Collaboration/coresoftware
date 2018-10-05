@@ -14,7 +14,7 @@
 
 #include <HepMC/GenEvent.h>
 #include <Pythia8/Pythia.h>
-#include <Pythia8Plugins/HepMC2.h>
+//#include <Pythia8Plugins/HepMC2.h>
 
 #include <boost/format.hpp>
 
@@ -53,10 +53,10 @@ PHPythia8::PHPythia8(const std::string &name)
   thePath += "/xmldoc/";
   _pythia = new Pythia8::Pythia(thePath.c_str());
 
-  _pythiaToHepMC = new HepMC::Pythia8ToHepMC();
-  _pythiaToHepMC->set_store_proc(true);
-  _pythiaToHepMC->set_store_pdf(true);
-  _pythiaToHepMC->set_store_xsec(true);
+  // _pythiaToHepMC = new HepMC::Pythia8ToHepMC();
+  // _pythiaToHepMC->set_store_proc(true);
+  // _pythiaToHepMC->set_store_pdf(true);
+  // _pythiaToHepMC->set_store_xsec(true);
 
   hepmc_helper.set_embedding_id(1);  // default embedding ID to 1
 }
@@ -229,7 +229,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
   // fill HepMC object with event & pass to
 
   HepMC::GenEvent *genevent = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
-  _pythiaToHepMC->fill_next_event(*_pythia, genevent, _eventcount);
+//  _pythiaToHepMC->fill_next_event(*_pythia, genevent, _eventcount);
 
   /* pass HepMC to PHNode*/
   PHHepMCGenEvent *success = hepmc_helper.insert_event(genevent);

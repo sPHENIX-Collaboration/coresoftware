@@ -15,6 +15,7 @@
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenVertex.h>
 
 #include <gsl/gsl_randist.h>
 
@@ -259,9 +260,9 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
   genevent->set_event_number(_eventcount);
 
   // Set the PDF information
-  HepMC::PdfInfo pdfinfo;
-  pdfinfo.set_scalePDF(event->Q2);
-  genevent->set_pdf_info(pdfinfo); 
+  // HepMC::PdfInfo pdfinfo;
+  // pdfinfo.set_scalePDF(event->Q2);
+  // genevent->set_pdf_info(pdfinfo); 
 
   // We would also like to save:
   //
@@ -285,11 +286,11 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 
   // First, the emitter(electron)-virtual photon vertex:
 
-  HepMC::GenVertex* egammavtx = new HepMC::GenVertex(CLHEP::HepLorentzVector(0.0,0.0,0.0,0.0));
+  HepMC::GenVertex* egammavtx = new HepMC::GenVertex(HepMC::FourVector(0.0,0.0,0.0,0.0));
   genevent->add_vertex(egammavtx); 
 
   egammavtx->add_particle_in( 
-			 new HepMC::GenParticle( CLHEP::HepLorentzVector(eIn->Px(),
+                               new HepMC::GenParticle( HepMC::FourVector(eIn->Px(),
 									 eIn->Py(),
 									 eIn->Pz(),
 									 eIn->E()), 
@@ -297,7 +298,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 						 3 ) 
 			  );
 
-  HepMC::GenParticle *hgamma =  new HepMC::GenParticle( CLHEP::HepLorentzVector(gamma->Px(),
+  HepMC::GenParticle *hgamma =  new HepMC::GenParticle( HepMC::FourVector(gamma->Px(),
 									 gamma->Py(),
 									 gamma->Pz(),
 									 gamma->E()), 
@@ -307,7 +308,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
   egammavtx->add_particle_out(hgamma);
 
   egammavtx->add_particle_out( 
-			 new HepMC::GenParticle( CLHEP::HepLorentzVector(eOut->Px(),
+			 new HepMC::GenParticle( HepMC::FourVector(eOut->Px(),
 									 eOut->Py(),
 									 eOut->Pz(),
 									 eOut->E()), 
@@ -317,12 +318,12 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 
   // Next, the hadron-pomeron vertex:
 
-  HepMC::GenVertex* ppomvtx = new HepMC::GenVertex(CLHEP::HepLorentzVector(0.0,0.0,0.0,0.0));
+  HepMC::GenVertex* ppomvtx = new HepMC::GenVertex(HepMC::FourVector(0.0,0.0,0.0,0.0));
   genevent->add_vertex(ppomvtx); 
 
 
   ppomvtx->add_particle_in( 
-			 new HepMC::GenParticle( CLHEP::HepLorentzVector(pIn->Px(),
+			 new HepMC::GenParticle( HepMC::FourVector(pIn->Px(),
 									 pIn->Py(),
 									 pIn->Pz(),
 									 pIn->E()), 
@@ -330,7 +331,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 						 3 ) 
 			     );
 
-  HepMC::GenParticle *hPomOut = new HepMC::GenParticle( CLHEP::HepLorentzVector(PomOut->Px(),
+  HepMC::GenParticle *hPomOut = new HepMC::GenParticle( HepMC::FourVector(PomOut->Px(),
 									 PomOut->Py(),
 									 PomOut->Pz(),
 									 PomOut->E()), 
@@ -348,7 +349,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
       if(event->particles[iParticle].status == 1) {  // Final-state particle
 	const Particle& particle = event->particles[iParticle];	  
 	ppomvtx->add_particle_out( 
-			       new HepMC::GenParticle( CLHEP::HepLorentzVector(particle.p.Px(),
+			       new HepMC::GenParticle( HepMC::FourVector(particle.p.Px(),
 								 particle.p.Py(),
 								 particle.p.Pz(),
 								 particle.p.E()), 
@@ -361,7 +362,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
   else{
 
     ppomvtx->add_particle_out( 
-			      new HepMC::GenParticle( CLHEP::HepLorentzVector(pOut->Px(),
+			      new HepMC::GenParticle( HepMC::FourVector(pOut->Px(),
 									      pOut->Py(),
 									      pOut->Pz(),
 									      pOut->E()), 
@@ -372,7 +373,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 
   // The Pomeron-Photon vertex
 
-  HepMC::GenVertex* gammapomvtx = new HepMC::GenVertex(CLHEP::HepLorentzVector(0.0,0.0,0.0,0.0));
+  HepMC::GenVertex* gammapomvtx = new HepMC::GenVertex(HepMC::FourVector(0.0,0.0,0.0,0.0));
   genevent->add_vertex(gammapomvtx); 
   
   gammapomvtx->add_particle_in(hgamma); 
@@ -381,7 +382,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
   int isVMFinal = 1; 
   if(doPerformDecay) isVMFinal = 2; 
 
-  HepMC::GenParticle *hvm = new HepMC::GenParticle( CLHEP::HepLorentzVector(vm->Px(),
+  HepMC::GenParticle *hvm = new HepMC::GenParticle( HepMC::FourVector(vm->Px(),
 									    vm->Py(),
 									    vm->Pz(),
 									    vm->E()), 
@@ -396,13 +397,13 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 
     if(vmDecay1 && vmDecay2){
 
-      HepMC::GenVertex* fvtx = new HepMC::GenVertex(CLHEP::HepLorentzVector(0.0,0.0,0.0,0.0));
+      HepMC::GenVertex* fvtx = new HepMC::GenVertex(HepMC::FourVector(0.0,0.0,0.0,0.0));
       genevent->add_vertex(fvtx); 
 
       fvtx->add_particle_in( hvm ); 
 
       fvtx->add_particle_out( 
-			 new HepMC::GenParticle( CLHEP::HepLorentzVector(vmDecay1->Px(),
+			 new HepMC::GenParticle( HepMC::FourVector(vmDecay1->Px(),
 							   vmDecay1->Py(),
 							   vmDecay1->Pz(),
 							   vmDecay1->E()), 
@@ -410,7 +411,7 @@ int PHSartre::process_event(PHCompositeNode *topNode) {
 					  1 ) 
 			  );
       fvtx->add_particle_out( 
-			 new HepMC::GenParticle( CLHEP::HepLorentzVector(vmDecay2->Px(),
+			 new HepMC::GenParticle( HepMC::FourVector(vmDecay2->Px(),
 							   vmDecay2->Py(),
 							   vmDecay2->Pz(),
 							   vmDecay2->E()), 
