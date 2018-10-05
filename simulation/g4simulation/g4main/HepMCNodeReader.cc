@@ -45,6 +45,10 @@ public:
   /// returns true if the GenParticle does not decay
   bool operator()(const HepMC::GenParticlePtr p)
     {
+// this is a problem in jetscape - the status does not comply
+// to HepMC where status=1 means valid final state particle 
+// status assignments for HepMC2:
+// http://lcgapp.cern.ch/project/simu/HepMC/205/status.html
       if (!p->end_vertex() && p->status() > 0) return 1;
       return 0;
     }
@@ -83,7 +87,7 @@ int HepMCNodeReader::Init(PHCompositeNode *topNode)
     dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
     ineve = new PHG4InEvent();
-    PHDataNode<PHObject> *newNode =
+    PHDataNode<PHObject> *newNode = 
       new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
     dstNode->addNode(newNode);
   }
@@ -215,49 +219,14 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
     HepMC::Units::convert(test,evt->length_unit(),HepMC::Units::CM);
     const double length_factor = 1*test.x();
     const double time_factor = length_factor / GSL_CONST_CGS_SPEED_OF_LIGHT * 1e9;
-    ofstream outfile;
-    outfile.open("hepmc3.txt",std::ofstream::out | std::ofstream::app);
-    outfile << "factor length: " << length_factor
-	    << ", time: " << time_factor
-	    << ", mom: " << mom_factor
-	    << endl;
-    set<int> pidset;
     for( const HepMC::GenVertexPtr &v : evt->vertices() )  
     {
-      outfile << "vtx x: " << v->position().x()
-	      << ", y: " << v->position().y()
-	      << ", z: " << v->position().z()
-	      << ", t: " << v->position().t() << endl;
-      cout << "vtx x: " << v->position().x()
-           << ", y: " << v->position().y()
-           << ", z: " << v->position().z()
-           << ", t: " << v->position().t() << endl;
-
       finalstateparticles.clear();
       for( const HepMC::GenParticlePtr &p : v->particles_out())
       {
-	outfile << "px: " << p->momentum().px() 
-		<< ", py: " << p->momentum().py() 
-		<< ", pz: " << p->momentum().pz() 
-		<< ", pid: " << p->pid() 
-		<< ", status: " << p->status() 
-		<< endl;
-//	if (isfinal(p) && fabs(p->pid()) != 2224 && fabs(p->pid()) != 2214 && fabs(p->pid()) != 2114 && fabs(p->pid()) != 1114 && fabs(p->pid()) != 3124 && fabs(p->pid()) != 3114 && p->pid() > -400)
-	  if (isfinal(p))
+	if (isfinal(p))
 	{
-	  static int ifirst = 1;
-	  if (ifirst)
-	  {
-	cout << "px: " << p->momentum().px() 
-             << ", py: " << p->momentum().py() 
-             << ", pz: " << p->momentum().pz() 
-             << ", pid: " << p->pid() 
-             << ", status: " << p->status() 
-             << endl;
 	  finalstateparticles.push_back(p);
-	  pidset.insert(p->pid());
-//	  ifirst = 0;
-	  }
 	}
       }
       if (!finalstateparticles.empty())
@@ -267,11 +236,9 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	double zpos = v->position().z() * length_factor + zshift;
 	double time = v->position().t() * time_factor + tshift;
 
-//	if (Verbosity() > 1)
+	if (Verbosity() > 1)
 	{
 	  cout << "Vertex : " << endl;
-//          (*v)->print();
-//          cout << "id: " << (*v)->barcode() << endl;
 	  cout << "x: " << xpos << endl;
 	  cout << "y: " << ypos << endl;
 	  cout << "z: " << zpos << endl;
@@ -325,7 +292,6 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	  particle->set_px((*fiter)->momentum().px() * mom_factor);
 	  particle->set_py((*fiter)->momentum().py() * mom_factor);
 	  particle->set_pz((*fiter)->momentum().pz() * mom_factor);
-//          particle->set_barcode((*fiter)->barcode());
 
 	  ineve->AddParticle(vtxindex, particle);
 
@@ -333,11 +299,6 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 	}
       }  //      if (!finalstateparticles.empty())
     }
-    for (auto &iter: pidset)
-    {
-      cout << "pid: " << iter << endl;
-    }
-    outfile.close();
   }  // For pile-up simulation: loop end for PHHepMC event map
   if (verbosity > 0) ineve->identify();
 
