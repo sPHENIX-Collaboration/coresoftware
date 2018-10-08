@@ -2,6 +2,7 @@
 // This file is really -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4PROTOTYPE3INNERHCALDETECTOR_H
 #define G4DETECTORS_PHG4PROTOTYPE3INNERHCALDETECTOR_H
+
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4RotationMatrix.hh>

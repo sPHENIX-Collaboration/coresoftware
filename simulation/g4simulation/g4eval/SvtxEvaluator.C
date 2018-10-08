@@ -383,7 +383,6 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	++nhits[hit->get_layer()];
       }
     }
-    
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     unsigned int nclusters[100] = {0};
     if (clustermap) {
@@ -2495,7 +2494,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	     iter != truth_hits.end();
 	     ++iter) {
 	  PHG4Hit* g4hit = *iter;
-	  unsigned int layer = g4hit->get_layer();
+	  int layer = g4hit->get_layer();
+	  if (layer < 0)
+	  {
+	    cout << PHWHERE << " skipping negative detector id " << layer << endl;
+	    continue;
+	  }
 	  xval[layer] = g4hit->get_avg_x();
 	  yval[layer] = g4hit->get_avg_y();
 	  zval[layer] = g4hit->get_avg_z();

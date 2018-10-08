@@ -14,42 +14,28 @@
 
 #include <Geant4/G4MaterialCutsCouple.hh>
 #include <Geant4/G4Step.hh>
-
-#include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <iostream>
 
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector* detector, const PHParameters* parameters)
-  : detector_(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
-  , hit(nullptr)
-  , params(parameters)
-  , savehitcontainer(nullptr)
-  , saveshower(nullptr)
-  , absorbertruth(params->get_int_param("absorbertruth"))
-  , IsActive(params->get_int_param("active"))
-  , IsBlackHole(params->get_int_param("blackhole"))
-  , light_scint_model(params->get_int_param("light_scint_model"))
-  , light_balance_inner_corr(params->get_double_param("light_balance_inner_corr"))
-  , light_balance_inner_radius(params->get_double_param("light_balance_inner_radius") * cm)
-  , light_balance_outer_corr(params->get_double_param("light_balance_outer_corr"))
-  , light_balance_outer_radius(params->get_double_param("light_balance_outer_radius") * cm)
+  : m_Detector(detector)
+  , m_Hits(nullptr)
+  , m_AbsorberHits(nullptr)
+  , m_Hit(nullptr)
+  , m_Params(parameters)
+  , m_SaveHitContainer(nullptr)
+  , m_SaveShower(nullptr)
+  , m_AbsorberTruthFlag(m_Params->get_int_param("absorbertruth"))
+  , m_IsActiveFlag(m_Params->get_int_param("active"))
+  , m_IsBlackHoleFlag(m_Params->get_int_param("blackhole"))
+  , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
+  , m_LightBalanceInnerCorr(m_Params->get_double_param("light_balance_inner_corr"))
+  , m_LightBalanceInnerRadius(m_Params->get_double_param("light_balance_inner_radius") * cm)
+  , m_LightBalanceOuterCorr(m_Params->get_double_param("light_balance_outer_corr"))
+  , m_LightBalanceOuterRadius(m_Params->get_double_param("light_balance_outer_radius") * cm)
 {
 }
 
@@ -59,7 +45,7 @@ PHG4Prototype2OuterHcalSteppingAction::~PHG4Prototype2OuterHcalSteppingAction()
   // and the memory is still allocated, so we need to delete it here
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
-  delete hit;
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
@@ -69,13 +55,13 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInPrototype2OuterHcal(volume)
+  // m_Detector->IsInPrototype2OuterHcal(volume)
   // returns
   //  0 is outside of Prototype2OuterHcal
   //  1 is inside scintillator
   // -1 is steel absorber
 
-  int whichactive = detector_->IsInPrototype2OuterHcal(volume);
+  int whichactive = m_Detector->IsInPrototype2OuterHcal(volume);
 
   if (!whichactive)
   {
@@ -85,59 +71,16 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   int slat_id = -1;
   if (whichactive > 0)  // scintillator
   {
-    // first extract the scintillator id (0-3) from the volume name (OuterScinti_0,1,2,3)
-    boost::char_separator<char> sep("_");
-    boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
-    boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter = tok.begin();
-    ++tokeniter;
-    slat_id = boost::lexical_cast<int>(*tokeniter);
-    // G4AssemblyVolumes naming convention:
-    //     av_WWW_impr_XXX_YYY_ZZZ
-    // where:
-
-    //     WWW - assembly volume instance number
-    //     XXX - assembly volume imprint number
-    //     YYY - the name of the placed logical volume
-    //     ZZZ - the logical volume index inside the assembly volume
-    // e.g. av_1_impr_1_OuterHcalScintiMother_pv_11
-    // 82 the number of the scintillator mother volume
-    // OuterHcalScintiMother_11: name of scintillator slat
-    // 11: number of scintillator slat logical volume
-    // use boost tokenizer to separate the _, then take value
-    // after "impr" for mother volume and after "pv" for scintillator slat
-    // use boost lexical cast for string -> int conversion
     G4VPhysicalVolume* mothervolume = touch->GetVolume(1);
-    boost::tokenizer<boost::char_separator<char> > tokm(mothervolume->GetName(), sep);
-    for (tokeniter = tokm.begin(); tokeniter != tokm.end(); ++tokeniter)
-    {
-      if (*tokeniter == "pv")
-      {
-        ++tokeniter;
-        if (tokeniter != tokm.end())
-        {
-          row_id = boost::lexical_cast<int>(*tokeniter);
-          // from the construction via assembly volumes, the mother id starts
-          // at 2 and is incremented by 2 for each new row of slats
-          // this maps it back to 0-nslats
-          row_id -= 2;
-          row_id /= 2;
-        }
-        else
-        {
-          cout << PHWHERE << " Error parsing " << mothervolume->GetName()
-               << " for mother scinti slat id " << endl;
-          exit(1);
-        }
-        break;
-      }
-    }
-    // cout << "mother volume: " <<  mothervolume->GetName()
-    //      << ", volume name " << volume->GetName() << ", row: " << row_id
-    //  	   << ", column: " << slat_id << endl;
+    slat_id = volume->GetCopyNo();
+    row_id = m_Detector->get_scinti_row_id(mothervolume->GetName());
+     // cout << "mother volume: " <<  mothervolume->GetName()
+     //      << ", volume name " << volume->GetName() << ", row: " << row_id
+     //  	   << ", column: " << slat_id 
   }
   else
   {
-    row_id = touch->GetCopyNumber();  // steel plate id
+    row_id = m_Detector->get_steel_plate_id(volume->GetName());  // steel plate id
   }
   // collect energy and track length step by step
   G4double edep = aStep->GetTotalEnergyDeposit() / GeV;
@@ -146,16 +89,16 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (IsBlackHole)
+  if (m_IsBlackHoleFlag)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
-  int layer_id = detector_->get_Layer();
+  int layer_id = m_Detector->get_Layer();
 
   // make sure we are in a volume
-  if (IsActive)
+  if (m_IsActiveFlag)
   {
     bool geantino = false;
 
@@ -176,58 +119,58 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     {
     case fGeomBoundary:
     case fUndefined:
-      if (!hit)
+      if (!m_Hit)
       {
-        hit = new PHG4Hitv1();
+        m_Hit = new PHG4Hitv1();
       }
-      hit->set_row(row_id);  // this is the row
+      m_Hit->set_row(row_id);  // this is the row
       if (whichactive > 0)   // only for scintillators
       {
-        hit->set_scint_id(slat_id);  // the slat id in the mother volume (or steel plate id), the column
+        m_Hit->set_scint_id(slat_id);  // the slat id in the mother volume (or steel plate id), the column
       }
       //here we set the entrance values in cm
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
       // time in ns
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
-      hit->set_trkid(aTrack->GetTrackID());
+      m_Hit->set_trkid(aTrack->GetTrackID());
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
         }
       }
 
       //set the initial energy deposit
-      hit->set_edep(0);
+      m_Hit->set_edep(0);
 
-      hit->set_hit_type(0);
+      m_Hit->set_hit_type(0);
       if ((aTrack->GetParticleDefinition()->GetParticleName().find("e+") != string::npos) ||
           (aTrack->GetParticleDefinition()->GetParticleName().find("e-") != string::npos))
-        hit->set_hit_type(1);
+        m_Hit->set_hit_type(1);
 
       // here we do things which are different between scintillator and absorber hits
       if (whichactive > 0)  // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
       {
-        savehitcontainer = hits_;
-        hit->set_light_yield(0);  // for scintillator only, initialize light yields
-        hit->set_eion(0);
+        m_SaveHitContainer = m_Hits;
+        m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
+        m_Hit->set_eion(0);
       }
       else
       {
-        savehitcontainer = absorberhits_;
+        m_SaveHitContainer = m_AbsorberHits;
       }
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
-          saveshower = pp->GetShower();
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
+          m_SaveShower = pp->GetShower();
         }
       }
       break;
@@ -237,44 +180,44 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist
-    hit->set_x(1, postPoint->GetPosition().x() / cm);
-    hit->set_y(1, postPoint->GetPosition().y() / cm);
-    hit->set_z(1, postPoint->GetPosition().z() / cm);
+    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     if (whichactive > 0)  // return of IsInPrototype2OuterHcalDetector, > 0 hit in scintillator, < 0 hit in absorber
     {
-      hit->set_eion(hit->get_eion() + eion);
+      m_Hit->set_eion(m_Hit->get_eion() + eion);
       light_yield = eion;
-      if (light_scint_model)
+      if (m_LightScintModelFlag)
       {
         light_yield = GetVisibleEnergyDeposition(aStep);  // for scintillator only, calculate light yields
       }
-      if (isfinite(light_balance_outer_radius) &&
-          isfinite(light_balance_inner_radius) &&
-          isfinite(light_balance_outer_corr) &&
-          isfinite(light_balance_inner_corr))
+      if (isfinite(m_LightBalanceOuterRadius) &&
+          isfinite(m_LightBalanceInnerRadius) &&
+          isfinite(m_LightBalanceOuterCorr) &&
+          isfinite(m_LightBalanceInnerCorr))
       {
         double r = sqrt(postPoint->GetPosition().x() * postPoint->GetPosition().x() + postPoint->GetPosition().y() * postPoint->GetPosition().y());
         double cor = GetLightCorrection(r);
         light_yield = light_yield * cor;
       }
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
+      m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     //sum up the energy to get total deposited
-    hit->set_edep(hit->get_edep() + edep);
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (geantino)
     {
-      hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
       if (whichactive > 0)
       {
-        hit->set_light_yield(-1);
-        hit->set_eion(-1);
+        m_Hit->set_light_yield(-1);
+        m_Hit->set_eion(-1);
       }
     }
-    if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
+    if (edep > 0 && (whichactive > 0 || m_AbsorberTruthFlag > 0))
     {
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
@@ -299,26 +242,26 @@ bool PHG4Prototype2OuterHcalSteppingAction::UserSteppingAction(const G4Step* aSt
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep())
+      if (m_Hit->get_edep())
       {
-        savehitcontainer->AddHit(layer_id, hit);
-        if (saveshower)
+        m_SaveHitContainer->AddHit(layer_id, m_Hit);
+        if (m_SaveShower)
         {
-          saveshower->add_g4hit_id(savehitcontainer->GetID(), hit->get_hit_id());
+          m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = nullptr;
+        m_Hit = nullptr;
       }
       else
       {
         // if this hit has no energy deposit, just reset it for reuse
         // this means we have to delete it in the dtor. If this was
         // the last hit we processed the memory is still allocated
-        hit->Reset();
+        m_Hit->Reset();
       }
     }
-    //       hit->identify();
+    //       m_Hit->identify();
     // return true to indicate the hit was used
     return true;
   }
@@ -333,27 +276,27 @@ void PHG4Prototype2OuterHcalSteppingAction::SetInterfacePointers(PHCompositeNode
 {
   string hitnodename;
   string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_Hits = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_AbsorberHits = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
-  if (!hits_)
+  if (!m_Hits)
   {
     std::cout << "PHG4Prototype2OuterHcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
-  if (!absorberhits_)
+  if (!m_AbsorberHits)
   {
     if (Verbosity() > 1)
     {
@@ -365,8 +308,8 @@ void PHG4Prototype2OuterHcalSteppingAction::SetInterfacePointers(PHCompositeNode
 double
 PHG4Prototype2OuterHcalSteppingAction::GetLightCorrection(const double r) const
 {
-  double m = (light_balance_outer_corr - light_balance_inner_corr) / (light_balance_outer_radius - light_balance_inner_radius);
-  double b = light_balance_inner_corr - m * light_balance_inner_radius;
+  double m = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
+  double b = m_LightBalanceInnerCorr - m * m_LightBalanceInnerRadius;
   double value = m * r + b;
   if (value > 1.0) return 1.0;
   if (value < 0.0) return 0.0;

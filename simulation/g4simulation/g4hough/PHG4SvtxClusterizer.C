@@ -19,7 +19,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_Siladders.h>
+#include <g4detectors/PHG4CylinderGeomSiLadders.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
@@ -819,7 +819,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       
       int layer = mapiter->second->get_layer();
       //PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
-      PHG4CylinderGeom_Siladders* geom = (PHG4CylinderGeom_Siladders*) geom_container->GetLayerGeom(layer);
+      PHG4CylinderGeomSiLadders* geom = dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container->GetLayerGeom(layer));
       
       SvtxCluster_v1 clus;
       clus.set_layer( layer );

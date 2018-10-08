@@ -303,7 +303,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
   
   std::set<SvtxHit*> hits;
 
-  unsigned int hit_layer = g4hit->get_layer();
+   unsigned int hit_layer = g4hit->get_layer();
   
   // loop over all the hits
   for (SvtxHitMap::Iter iter = _hitmap->begin();
