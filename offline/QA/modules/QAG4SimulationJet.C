@@ -73,7 +73,7 @@ QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
                   > (new JetEvalStack(topNode, reco_jet, _truth_jet));
               assert(_jetevalstacks[reco_jet]);
               _jetevalstacks[reco_jet]->set_strict(true);
-              _jetevalstacks[reco_jet]->set_verbosity(verbosity + 1);
+              _jetevalstacks[reco_jet]->set_verbosity(Verbosity() + 1);
             }
           else
             {
@@ -90,7 +90,7 @@ QAG4SimulationJet::InitRun(PHCompositeNode *topNode)
 
       assert(_jettrutheval);
       _jettrutheval->set_strict(true);
-      _jettrutheval->set_verbosity(verbosity + 1);
+      _jettrutheval->set_verbosity(Verbosity() + 1);
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -112,7 +112,7 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
 
   if (flag(kProcessTruthSpectrum))
     {
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationJet::Init - Process TruthSpectrum " << _truth_jet
             << endl;
       Init_Spectrum(topNode, _truth_jet);
@@ -124,7 +124,7 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
         {
           const string & reco_jet = *it_reco_jets;
-          if (verbosity >= 1)
+          if (Verbosity() >= 1)
             cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
                 << reco_jet << endl;
           Init_Spectrum(topNode, reco_jet);
@@ -137,7 +137,7 @@ QAG4SimulationJet::Init(PHCompositeNode *topNode)
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
         {
           const string & reco_jet = *it_reco_jets;
-          if (verbosity >= 1)
+          if (Verbosity() >= 1)
             cout << "QAG4SimulationJet::Init - Process Reco jet spectrum "
                 << reco_jet << endl;
           Init_TruthMatching(topNode, reco_jet);
@@ -151,7 +151,7 @@ int
 QAG4SimulationJet::process_event(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationJet::process_event() entered" << endl;
 
   for (jetevalstacks_map::iterator it_jetevalstack = _jetevalstacks.begin();
@@ -165,7 +165,7 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
 
   if (flag(kProcessTruthSpectrum))
     {
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationJet::process_event - Process TruthSpectrum "
             << _truth_jet << endl;
       process_Spectrum(topNode, _truth_jet, false);
@@ -177,7 +177,7 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
         {
           const string & reco_jet = *it_reco_jets;
-          if (verbosity >= 1)
+          if (Verbosity() >= 1)
             cout
                 << "QAG4SimulationJet::process_event - Process Reco jet spectrum "
                 << reco_jet << endl;
@@ -191,7 +191,7 @@ QAG4SimulationJet::process_event(PHCompositeNode *topNode)
           it_reco_jets != _reco_jets.end(); ++it_reco_jets)
         {
           const string & reco_jet = *it_reco_jets;
-          if (verbosity >= 1)
+          if (Verbosity() >= 1)
             cout
                 << "QAG4SimulationJet::process_event - Process Reco jet spectrum "
                 << reco_jet << endl;
@@ -415,7 +415,7 @@ QAG4SimulationJet::process_Spectrum(PHCompositeNode *topNode,
 
   if (leading_jet)
     {
-      if (verbosity)
+      if (Verbosity())
         {
           cout
               << "QAG4SimulationJet::process_Spectrum - processing leading jet with # comp = "
@@ -727,7 +727,7 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
   // match leading truth
   if (truthjet)
     {
-      if (verbosity > 1)
+      if (Verbosity() > 1)
         {
           cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
               << " process truth jet ";
@@ -739,7 +739,7 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
         { // inclusive best energy match
 
           const Jet* recojet = recoeval->best_jet_from(truthjet);
-          if (verbosity > 1)
+          if (Verbosity() > 1)
             {
               cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
                   << " inclusively matched with best reco jet: ";
@@ -787,7 +787,7 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
           if (recojet)
             {
 
-              if (verbosity > 1)
+              if (Verbosity() > 1)
                 {
                   cout << "QAG4SimulationJet::process_TruthMatching - " << _truth_jet
                       << " uniquely matched with reco jet: ";
@@ -856,7 +856,7 @@ QAG4SimulationJet::process_TruthMatching(PHCompositeNode *topNode,
   // match leading reco jet
   if (recojet)
     {
-      if (verbosity > 1)
+      if (Verbosity() > 1)
         {
           cout << "QAG4SimulationJet::process_TruthMatching - " << reco_jet_name
               << " process reco jet ";
