@@ -28,7 +28,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
     }
   pair<multimap<int, PHG4Particle *>::iterator, multimap<int, PHG4Particle *>::iterator > beginend =   ineve->GetParticles_Modify();
   multimap<int, PHG4Particle *>::iterator particleiter;
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "PHG4InputFilter before filter" << endl;
       ineve->identify();
@@ -86,7 +86,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
         }
       ++particleiter;
     }
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "PHG4InputFilter: after filter" << endl;
       ineve->identify();
