@@ -37,9 +37,9 @@ Fun4AllSyncManager::~Fun4AllSyncManager()
   delete MasterSync;
   while (InManager.begin() != InManager.end())
     {
-      if (verbosity)
+      if (Verbosity())
         {
-          InManager.back()->Verbosity(verbosity);
+          InManager.back()->Verbosity(Verbosity());
         }
       delete InManager.back();
       InManager.pop_back();
@@ -59,7 +59,7 @@ Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
         }
     }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "Registering InputManager " << InputManager->Name() << endl;
     }
@@ -163,14 +163,14 @@ Fun4AllSyncManager::run(const int nevnts)
               InIter = InManager.begin();
               for (iter = iretInManager.begin(); iter != iretInManager.end(); ++iter)
                 {
-                  if (verbosity > 0)
+                  if (Verbosity() > 0)
                     {
                       cout << (*InIter)->Name() << ": return code: " << *iter << endl;
                     }
                   if (!(*iter))
                     {
                       (*InIter)->PushBackEvents(1);
-                      if (verbosity > 0)
+                      if (Verbosity() > 0)
                         {
                           cout << (*InIter)->Name() << ": push evts: " << *iter  << endl;
                         }
@@ -207,9 +207,9 @@ Fun4AllSyncManager::run(const int nevnts)
 	  for (iter = InManager.begin(); iter != InManager.end(); ++iter)
 	    {
 	      int runno = (*iter)->RunNumber();
-	      if (verbosity > 2)
+	      if (Verbosity() > 2)
 		{
-		  cout << ThisName << " input mgr " << (*iter)->Name() << " run: " << runno << endl;
+		  cout << Name() << " input mgr " << (*iter)->Name() << " run: " << runno << endl;
 		}
 	      if (runno != 0)
 		{
@@ -415,7 +415,7 @@ Fun4AllSyncManager::ResetEvent()
   int iret = 0;
   BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
         {
           cout << "Resetting Event for Input Manager " << inman->Name() << endl;
         }

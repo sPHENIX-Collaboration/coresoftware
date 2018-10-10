@@ -22,7 +22,7 @@ Fun4AllNoSyncDstInputManager::NoRunTTree()
     }
   else
     {
-      cout << ThisName 
+      cout << Name() 
            << "NoRunTTree() has to be done before opening a file" << endl;
       exit(1);
     }

@@ -5,15 +5,15 @@
 using namespace std;
 
 Fun4AllBase::Fun4AllBase(const string &name):
-  ThisName(name),
-  verbosity(VERBOSITY_QUIET)
+  m_ThisName(name),
+  m_Verbosity(VERBOSITY_QUIET)
 {
   return;
 }
 
 Fun4AllBase::~Fun4AllBase()
 {
-  if (verbosity >= VERBOSITY_MORE)
+  if (Verbosity() >= VERBOSITY_MORE)
     {
       cout << "Deleting " << Name () << endl;
     }
