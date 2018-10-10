@@ -22,10 +22,10 @@ class Fun4AllBase
   virtual ~Fun4AllBase();
 
   /// Returns the name of this module.
-  virtual const std::string Name() const;
+  virtual const std::string Name() const {return m_ThisName;}
 
   /// Sets the name of this module.
-  virtual void Name(const std::string &name);
+  virtual void Name(const std::string &name) {m_ThisName = name;}
 
   /** Print out some info about this module. 
       @param what can be used to specify what to print exactly.
@@ -57,13 +57,13 @@ class Fun4AllBase
   } ;
 
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(const int ival);
+  virtual void Verbosity(const int ival) {m_Verbosity = ival;}
 
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(enu_Verbosity ival);
+  virtual void Verbosity(enu_Verbosity ival) {m_Verbosity = ival;}
 
   /// Gets the verbosity of this module.
-  virtual int Verbosity() const;
+  virtual int Verbosity() const {return m_Verbosity;}
 
  protected:
 
@@ -72,15 +72,11 @@ class Fun4AllBase
   Fun4AllBase(const std::string &name = "NONAME");
 
 private:
+  std::string m_ThisName;
 
-  mutable std::string m_ThisName;
-  mutable int m_Verbosity;
-
-protected:
-  std::string ThisName;
   /// The verbosity level. 0 means not verbose at all.
-  int verbosity;
+  int m_Verbosity;
 };
 
-#endif /* __FUN4ALLBASE_H__ */
+#endif
 
