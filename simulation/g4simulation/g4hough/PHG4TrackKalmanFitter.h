@@ -251,6 +251,12 @@ private:
 			TMatrixF & cov_out
 			) const;
 
+	bool extrapolateTrackToRadiusPhiRZ(
+			const float radius,
+			std::shared_ptr<PHGenFit::Track>& rf_phgf_track,
+			TMatrixF& pos_out,
+			TMatrixF& cov_out);
+
 	/*!
 	 * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
 	 * Default rotate local to global, or rotate vector in global to local representation

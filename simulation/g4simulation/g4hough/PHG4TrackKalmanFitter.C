@@ -317,15 +317,25 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		}
 
 		//RCC do some studies of track extrapolation to the tpc:
-	     
+		
 	       if (_do_eval) {
 		 if (verbosity >= 2) std::cout << PHWHERE << "Starting extrapolation Eval"<<endl;
 
 		if (rf_phgf_track){
+		  //get the MC particle best-associated with the track
+		  /* this block won't work... rcc
+		  SvtxTruthEval*     trutheval = _svtxevalstack->get_truth_eval();
+		  PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
+		  if (truth) {      
+		    if (trutheval->get_embed(truth) <= 0) continue;
+		  }
+		  */
+
+		  
 		  //line_point and line_direction are the axis of the cylinder.
 		  const TVector3 line_point=TVector3(0.,0.,0.);
 		  const TVector3 line_direction=TVector3(0.,0.,1.);
-		  const int inner_wall_r=20.0;//cm.  Need tocheck the native units RCC
+		  const float  inner_wall_r=20.0;//cm.  Need tocheck the native units RCC
 
 		  int npoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
 		   if (verbosity >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
@@ -334,7 +344,11 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  std::shared_ptr<genfit::MeasuredStateOnPlane> gf_cylinder_state = NULL;
 
 		  bool covariance_okay=true;
-
+		  TMatrixF postest(3,1);
+		  TMatrixF covtest(3,3);
+		  
+		  covariance_okay=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,postest,covtest);
+		  
 		  try {
 		    gf_cylinder_state = std::shared_ptr < genfit::MeasuredStateOnPlane
 							  > (rf_phgf_track->extrapolateToCylinder(inner_wall_r,line_point,line_direction,npoints-1,1));
@@ -385,7 +399,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
 
 
-		      if (verbosity > 4){
+		      if (verbosity > -1){
 			cout << "pos.Phi=" << pos.Phi() << "\t vn.Phi=" << vn.Phi() << endl;
 			cout << "cov_kalman (x,y,z):"<<endl<<"{";
 			for (int j=0;j<3;j++){
@@ -401,6 +415,15 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			  cout << "{";
 			  for (int k=0;k<3;k++){
 			    cout << cov_out[j][k] << ",\t";
+			  }
+			  cout << "},"<< endl;
+			}
+		      
+		      cout << "cov_test (r,phi,z):"<<endl<<"{";
+			for (int j=0;j<3;j++){
+			  cout << "{";
+			  for (int k=0;k<3;k++){
+			    cout << covtest[j][k] << ",\t";
 			  }
 			  cout << "},"<< endl;
 			}
@@ -525,6 +548,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  if (verbosity > 0){// and !covariance_okay){
 		    std::cout << PHWHERE << "Covariance_okay="<< (covariance_okay?"true":"false") <<" RCC!" <<endl;
 		  }
+
+
+		  //get some truth information:
+		  //const Map truth_particles=_truth_container->GetMap();
+		  //need something here to get the true particle for this track
+		    
 		  _kalman_extrapolation_eval_tree_phi=pos.Phi();
 		  _kalman_extrapolation_eval_tree_z=pos.Z();
 		  _kalman_extrapolation_eval_tree_r=pos.Perp();
@@ -804,8 +833,6 @@ int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 		_eval_tree->Write();
 		_cluster_eval_tree->Write();
 		_kalman_extrapolation_eval_tree->Write();
-		//put it on the same place as those trees, or make our own file per KalmanPatRec.
-		//RCC add ntuple write.
 	}
 
 	if (_do_evt_display)
@@ -2452,4 +2479,108 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 	}
 
 	return R;
+}
+
+
+
+/*!
+ * Get Phi R Z coords and covariance from a kalman extrapolation/interpolation to a given radius
+ * Currently will not work correctly for radii smaller than the last point on the track.
+ * pos_out and cov_out will be filled with the Phi, R, Z values of position and covariance terms.
+ * returns true if all the manipulations were successful.
+ */
+bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
+       std::shared_ptr<PHGenFit::Track>& rf_phgf_track,TMatrixF& pos_out, TMatrixF& cov_out){
+  bool worked=true;
+  const TVector3 line_point=TVector3(0.,0.,0.);
+  const TVector3 line_direction=TVector3(0.,0.,1.);
+  int npoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
+
+
+  std::shared_ptr < genfit::MeasuredStateOnPlane> gf_cylinder_state;
+  if (verbosity >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
+  //standing question:  is the track rep robust enough that picking from any point on the track is equivalent?
+  //I should try to find the closest point to the desired radius and extrapolate back/forward.  For now, replicate 'v1' of the code.
+  //should get the sense of whether radius is smaller or larger than last point, too.
+  try {
+    gf_cylinder_state = std::shared_ptr < genfit::MeasuredStateOnPlane
+					  > (rf_phgf_track->extrapolateToCylinder(radius,line_point,line_direction,npoints-1,1));
+    //second to last number there is which point to start from.  The last is the direction +1 = continue forward on track.
+  } catch (...) {
+    if (verbosity >= 2)
+      LogWarning("extrapolateToCylinder failed!");
+  }
+  if (!gf_cylinder_state) {
+    worked=false;
+    LogWarning("No Cylinder state RCC");
+    //std::cout << PHWHERE << "Cylinder State not filled RCC"<<endl;
+  }
+
+  TVector3 pos(NAN,NAN,NAN);
+  TVector3 mom(NAN,NAN,NAN);
+  //  TMatrixF pos_in(3,1);
+  //TMatrixF cov_in(3,3);
+  //float pos_rphi_error = NAN;
+  //float pos_z_error  = NAN;
+
+  TMatrixF pos_in(3,1);
+  TMatrixF cov_in(3,3);
+  if(worked){
+    try{
+      TVectorD state6(6); // pos(3), mom(3)
+      TMatrixDSym cov6(6,6); //
+		      
+      gf_cylinder_state->get6DStateCov(state6, cov6);
+		    
+      //for extrapolation to cylinder, the normal direction is just the xy position of the hit
+      //look at the other instance for confirmation
+      TVector3 vn(state6[0], state6[1], 0);
+		      
+      pos_in[0][0] = state6[0];
+      pos_in[1][0] = state6[1];
+      pos_in[2][0] = state6[2];
+      pos.SetXYZ(state6[0],state6[1],state6[2]);
+      mom.SetXYZ(state6[3],state6[4],state6[5]);
+
+      for(int i=0;i<3;++i){
+	for(int j=0;j<3;++j){
+	  cov_in[i][j] = cov6[i][j];
+	}
+      }
+
+
+      //this call resize pos_out and cov_out to the correct size.
+      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
+
+
+      if (verbosity > 4){
+	cout << "pos.Phi=" << pos.Phi() << "\t vn.Phi=" << vn.Phi() << endl;
+	cout << "cov_kalman (x,y,z):"<<endl<<"{";
+	for (int j=0;j<3;j++){
+	  cout << "{";
+	  for (int k=0;k<3;k++){
+	    cout << cov_in[j][k] << ",\t";
+	  }
+	  cout << "},"<< endl;
+	}
+
+	cout << "cov_kalman (r,phi,z):"<<endl<<"{";
+	for (int j=0;j<3;j++){
+	  cout << "{";
+	  for (int k=0;k<3;k++){
+	    cout << cov_out[j][k] << ",\t";
+	  }
+	  cout << "},"<< endl;
+	}
+      }
+    } catch (...) {
+      if (verbosity > 0)
+	LogWarning("State Covariance unavailable!");
+      // std::cout << PHWHERE << "Extraction of State Cov failed RCC"<<endl;
+
+      worked=false;
+    }
+  }
+
+  return worked;
 }

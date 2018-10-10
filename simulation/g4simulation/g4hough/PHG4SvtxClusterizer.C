@@ -7,6 +7,7 @@
 #include "SvtxCluster.h"
 #include "SvtxCluster_v1.h"
 
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -20,6 +21,8 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4CylinderGeomSiLadders.h>
+//was here
+//#include <g4detectors/PHG4CylinderGeomSiLadders.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
