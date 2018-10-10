@@ -63,16 +63,16 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
   if (isopen)
     {
       cout << "Closing currently open file "
-           << filename
+           << FileName()
            << " and opening " << filenam << endl;
       fileclose();
     }
-  filename = filenam;
+  FileName(filenam);
   FROG frog;
-  string fname = frog.location(filename.c_str());
-  if (verbosity > 0)
+  string fname = frog.location(FileName());
+  if (Verbosity() > 0)
     {
-      cout << ThisName << ": opening file " << filename.c_str() << endl;
+      cout << Name() << ": opening file " << FileName() << endl;
     }
   int status = 0;
   eventiterator = new fileEventiterator(fname.c_str(), status);
@@ -81,7 +81,7 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
     {
       delete eventiterator;
       eventiterator = NULL;
-      cout << PHWHERE << ThisName << ": could not open file " << fname << endl;
+      cout << PHWHERE << Name() << ": could not open file " << fname << endl;
       return -1;
     }
   pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
@@ -99,7 +99,7 @@ int Fun4AllPrdfInputManager::run(const int nevents)
       if (filelist.empty())
 
 	{
-	  if (verbosity > 0)
+	  if (Verbosity() > 0)
 	    {
 	      cout << Name() << ": No Input file open" << endl;
 	    }
@@ -114,7 +114,7 @@ int Fun4AllPrdfInputManager::run(const int nevents)
             }
         }
     }
-  if (verbosity > 3)
+  if (Verbosity() > 3)
     {
       cout << "Getting Event from " << Name() << endl;
     }
@@ -138,9 +138,9 @@ int Fun4AllPrdfInputManager::run(const int nevents)
       fileclose();
       goto readagain;
     }
-  if (verbosity > 1)
+  if (Verbosity() > 1)
     {
-      cout << ThisName << " PRDF run " << evt->getRunNumber() << ", evt no: " << evt->getEvtSequence() << endl;
+      cout << Name() << " PRDF run " << evt->getRunNumber() << ", evt no: " << evt->getEvtSequence() << endl;
     }
   events_total++;
   events_thisfile++;
@@ -203,7 +203,7 @@ Fun4AllPrdfInputManager::OpenNextFile()
   while (!filelist.empty())
     {
       list<string>::const_iterator iter = filelist.begin();
-      if (verbosity)
+      if (Verbosity())
         {
           cout << PHWHERE << " opening next file: " << *iter << endl;
         }
@@ -248,14 +248,14 @@ Fun4AllPrdfInputManager::PushBackEvents(const int i)
 	  save_evt = evt;
 	  return 0;
 	}
-      cout << PHWHERE << ThisName
+      cout << PHWHERE << Name()
            << " Fun4AllPrdfInputManager cannot push back " << i << " events into file"
            << endl;
       return -1;
     }
   if (!eventiterator)
     {
-      cout << PHWHERE << ThisName
+      cout << PHWHERE << Name()
 	   << " no file open" << endl;
       return -1;
     }
@@ -276,7 +276,7 @@ Fun4AllPrdfInputManager::PushBackEvents(const int i)
 	}
       else
 	{
-	  if (verbosity > 3)
+	  if (Verbosity() > 3)
 	    {
 	      cout << "Skipping evt no: " << evt->getEvtSequence() << endl;
 	    }

@@ -54,7 +54,7 @@ Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
       int snprintfbytes = snprintf(outfilename, filenamesize, filerule.c_str(), irun, iseq);
       if (static_cast<unsigned>(snprintfbytes) > filenamesize)
 	{
-	  cout << PHWHERE << " " << ThisName << ": filename exceeds length " << filenamesize
+	  cout << PHWHERE << " " << Name() << ": filename exceeds length " << filenamesize
 	       << ", tried " << snprintfbytes
 	       << ". probably it is the filerule" << filerule 
 	       << " which uses other than %010d-%04d for runnumber/segment" << endl;
@@ -68,7 +68,7 @@ Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
 	  cout << "could not open " << outfilename << " quitting" << endl;
 	  exit(1);
 	}
-      if (verbosity > 0)
+      if (Verbosity() > 0)
         {
           cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << endl;
         }
@@ -82,7 +82,7 @@ Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
   int status = ob->addEvent(evt);
   if (status)
     {
-      cout << ThisName << ": ERROR WRITING OUT FILTERED EVENT "
+      cout << Name() << ": ERROR WRITING OUT FILTERED EVENT "
 	   << evt->getEvtSequence() << " FOR RUN "
 	   << evt->getRunNumber() << " Status: " << status << endl;
     }

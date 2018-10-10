@@ -1,5 +1,7 @@
-#ifndef __FUN4ALLBASE_H__
-#define __FUN4ALLBASE_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FUN4ALL_FUN4ALLBASE_H
+#define FUN4ALL_FUN4ALLBASE_H
 
 #include <string>
 #include <climits>       // std::numeric_limits
@@ -20,10 +22,10 @@ class Fun4AllBase
   virtual ~Fun4AllBase();
 
   /// Returns the name of this module.
-  virtual const std::string Name() const {return ThisName;}
+  virtual const std::string Name() const;
 
   /// Sets the name of this module.
-  virtual void Name(const std::string &name) {ThisName = name;}
+  virtual void Name(const std::string &name);
 
   /** Print out some info about this module. 
       @param what can be used to specify what to print exactly.
@@ -55,13 +57,13 @@ class Fun4AllBase
   } ;
 
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(const int ival) {verbosity = static_cast<enu_Verbosity>(ival);}
+  virtual void Verbosity(const int ival);
 
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(enu_Verbosity ival) {verbosity = ival;}
+  virtual void Verbosity(enu_Verbosity ival);
 
   /// Gets the verbosity of this module.
-  virtual int Verbosity() const {return verbosity;}
+  virtual int Verbosity() const;
 
  protected:
 
@@ -69,8 +71,13 @@ class Fun4AllBase
   */
   Fun4AllBase(const std::string &name = "NONAME");
 
-  std::string ThisName;
+private:
 
+  mutable std::string m_ThisName;
+  mutable int m_Verbosity;
+
+protected:
+  std::string ThisName;
   /// The verbosity level. 0 means not verbose at all.
   int verbosity;
 };
