@@ -2460,7 +2460,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
  */
 TVector3 PHG4TrackKalmanFitter::getClusterPosAtRadius(const float radius, const SvtxTrack* intrack){
   
-  TVector3 bestpos(0,0,0);
+  TVector3 bestpos(-9000,-9000,-9000);
   float bestdelta=9999;
   for (auto iter = intrack->begin_clusters();
        iter != intrack->end_clusters(); ++iter) {
@@ -2468,7 +2468,7 @@ TVector3 PHG4TrackKalmanFitter::getClusterPosAtRadius(const float radius, const 
     SvtxCluster* cluster = _clustermap->get(cluster_id);
     float x = cluster->get_x();
     float y = cluster->get_y();
-    float z = cluster->get_y();
+    float z = cluster->get_z();
     float r = sqrt(x*x+y*y);
     float delta= (TMath::Abs(r-radius));
     
@@ -2549,10 +2549,9 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
       //this call resize pos_out and cov_out to the correct size.
       pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
 
-
       if (verbosity > 4){
 	cout << "pos: Phi=" << pos.Phi() << "\t R="<<pos.Perp() << "\t Z="<<pos.Z()<<endl;
-	cout << "pos_out: Phi=" << pos_out[0][0] << "\t R="<<pos_out[1][0] << "\t Z="<<pos_out[2][0]<<endl;
+	cout << "pos_after_rotation: Phi=(should be zero!)" << pos_out[0][0] << "\t R="<<pos_out[1][0] << "\t Z="<<pos_out[2][0]<<endl;
 	cout << "cov_kalman (x,y,z):"<<endl<<"{";
 	for (int j=0;j<3;j++){
 	  cout << "{";
@@ -2579,6 +2578,8 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
       worked=false;
     }
   }
+  //the rotation makes phi=0, so we restore the correct phi:
+  pos_out[0][0]=pos.Phi();
 
   return worked;
 }
