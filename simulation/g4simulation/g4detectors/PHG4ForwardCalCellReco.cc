@@ -127,7 +127,7 @@ PHG4ForwardCalCellReco::process_event(PHCompositeNode *topNode)
 	  numcells++;
 	}
       celllist.clear();
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << Name() << ": found " << numcells << " eta/slat cells with energy deposition" << endl;
 	}
@@ -182,7 +182,7 @@ PHG4ForwardCalCellReco::CheckEnergy(PHCompositeNode *topNode)
     }
   else
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
 	}

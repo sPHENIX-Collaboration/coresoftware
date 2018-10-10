@@ -107,7 +107,7 @@ void PHG4CylinderCellTPCReco::cellsize(const int i, const double sr, const doubl
 
 int PHG4CylinderCellTPCReco::Init(PHCompositeNode *top_node)
 {
-  if (verbosity > 1)
+  if (Verbosity() > 1)
   {
     Fun4AllServer *se = Fun4AllServer::instance();
     fHWindowP = new TProfile2D("TPCGEO_WindowP", "TPCGEO_WindowP", 50, -0.5, 49.5, 220, -110, +110);
@@ -307,7 +307,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
     PHG4HitContainer::ConstIterator hiter;
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
     PHG4CylinderCellGeom *geo = seggeo->GetLayerCellGeom(*layer);
-    if (verbosity > 1000)
+    if (Verbosity() > 1000)
     {
       std::cout << "Layer " << (*layer);
       std::cout << " Radius " << geo->get_radius();
@@ -347,7 +347,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double r = sqrt(xinout * xinout + yinout * yinout);
       phi = atan2(hiter->second->get_avg_y(), hiter->second->get_avg_x());
       z = hiter->second->get_avg_z();
-      if (verbosity > 2000)
+      if (Verbosity() > 2000)
         cout << "loop over hits, hit avge z = " << hiter->second->get_avg_z()
              << " hit avge x = " << hiter->second->get_avg_x()
              << " hit avge y = " << hiter->second->get_avg_y()
@@ -398,11 +398,11 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       double zdisp = z - geo->get_zcenter(zbin);
 
       double edep = hiter->second->get_edep();
-      if (verbosity > 1)
+      if (Verbosity() > 1)
       {
         fHMeanEDepPerCell->Fill(float(*layer), z, edep);
       }
-      if (verbosity > 2000) cout << "Find or start a cell for this hit" << endl;
+      if (Verbosity() > 2000) cout << "Find or start a cell for this hit" << endl;
 
       if ((*layer) < (unsigned int) num_pixel_layers)
       {  // MAPS + ITT
@@ -438,7 +438,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           continue;
         }
         double nelec = gsl_ran_poisson(RandomGenerator, elec_per_gev * eion);
-        if (verbosity > 1)
+        if (Verbosity() > 1)
         {
           fHElectrons->Fill(nelec);
         }
@@ -484,7 +484,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         cloud_sig_zz[0] *= (1 + fFractZZsm);
         cloud_sig_zz[1] *= (1 + fFractZZsm);
 
-        if (verbosity > 2000)
+        if (Verbosity() > 2000)
           cout << "After adding random displacement: phi = " << phi << " z = " << z << " phibin = " << phibin << " zbin = " << zbin << endl
                << " phidisp = " << phidisp << " zdisp = " << zdisp << " new cloud_sig_rp " << cloud_sig_rp << " cloud_sig_zz[0] " << cloud_sig_zz[0]
                << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
@@ -499,7 +499,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
         // Note that we ignore the difference in drift-diffusion between segments here, for convenience - it will be tiny
 
         double zrange = fabs(hiter->second->get_z(1) - hiter->second->get_z(0));
-        if (verbosity > 2000) cout << " *********** zrange " << zrange << " zout " << hiter->second->get_z(1) << " zin " << hiter->second->get_z(0) << endl;
+        if (Verbosity() > 2000) cout << " *********** zrange " << zrange << " zout " << hiter->second->get_z(1) << " zin " << hiter->second->get_z(0) << endl;
 
 	int nseg = (int)zrange/cloud_sig_zz[0];  // must be odd number
 	if(nseg%2==0)nseg+=1;
@@ -516,7 +516,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
           }
           double zdispseg = z + zsegoffset - geo->get_zcenter(zbinseg);
 
-          if (verbosity > 2000) cout << " ---------- segment izr = " << izr << " with zsegoffset " << zsegoffset << " zbinseg " << zbinseg << " zdispseg " << zdispseg << endl;
+          if (Verbosity() > 2000) cout << " ---------- segment izr = " << izr << " with zsegoffset " << zsegoffset << " zbinseg " << zbinseg << " zdispseg " << zdispseg << endl;
 
           // Now distribute the charge between the pads in phi
 	  //====================================
@@ -582,7 +582,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 		  if(pad_num >= nphibins) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << nphibins << endl;
 		  unsigned long key = zbin_num * nphibins + pad_num;
 		  
-		  if(verbosity > 5000)
+		  if(Verbosity() > 5000)
 		    cout << "    zbin " << zbin_num << " z of bin " <<  geo->get_zcenter(zbin_num)  << " z integral " << adc_bin_share
 			 << " pad " << pad_num  << " phi of pad " <<  geo->get_phicenter(pad_num)  << " phi integral " << pad_share 
 			 << " nelectrons = " << neffelectrons << " key = " << key << endl;
@@ -615,7 +615,7 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
 		} // end of loop over adc bins
 	    } // end of loop over zigzag pads
 
-	  if(verbosity > 5000)
+	  if(Verbosity() > 5000)
 	    {	  
 	      cout << " quick centroid using neffelectrons " << endl;
 	      cout << "      phi centroid = " << phi_integral / weight << " truth phi " << truth_phi << " z centroid = " << z_integral / weight << " truth z " << truth_z << endl;
@@ -630,19 +630,19 @@ int PHG4CylinderCellTPCReco::process_event(PHCompositeNode *topNode)
       cells->AddCell(it->second);
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(it->second->get_cellid());
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(it->second->get_cellid());
-      if (verbosity > 1)
+      if (Verbosity() > 1)
       {
         float zthis = geo->get_zcenter(zbin);
         fHMeanElectronsPerCell->Fill(float(*layer), zthis, it->second->get_edep());
       }
-      if (verbosity > 2000)
+      if (Verbosity() > 2000)
         std::cout << " Adding phibin " << phibin << " zbin " << zbin << " with edep " << it->second->get_edep() << std::endl;
       count += 1;
     }
-    if (verbosity > 1000)
+    if (Verbosity() > 1000)
       std::cout << " || Number of cells hit " << count << std::endl;
   }
-  if (verbosity > 1000) std::cout << "PHG4CylinderCellTPCReco end" << std::endl;
+  if (Verbosity() > 1000) std::cout << "PHG4CylinderCellTPCReco end" << std::endl;
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -695,7 +695,7 @@ void PHG4CylinderCellTPCReco::populate_zigzag_phibins(PHG4CylinderCellGeom *geo,
   fcharge->SetParameter(0, 1.0);
   fcharge->SetParameter(1, rphi);
   fcharge->SetParameter(2, cloud_sig_rp);
-  if(verbosity > 5000) cout << " fcharge created: radius " << (geo->get_radius() + geo->get_thickness() / 2.0) << " rphi " << rphi << " cloud_sig_rp " << cloud_sig_rp << endl;
+  if(Verbosity() > 5000) cout << " fcharge created: radius " << (geo->get_radius() + geo->get_thickness() / 2.0) << " rphi " << rphi << " cloud_sig_rp " << cloud_sig_rp << endl;
   
   // Get the range of phi values that completely contains all pads  that touch the charge distribution - (nsigmas + 1/2 pad width) in each direction
   double philim_low = phi - nsigmas * cloud_sig_rp /  ( (geo->get_radius() + geo->get_thickness() / 2.0) -  geo->get_phistep() );
@@ -705,7 +705,7 @@ void PHG4CylinderCellTPCReco::populate_zigzag_phibins(PHG4CylinderCellGeom *geo,
   double phibin_low = geo->get_phibin(philim_low);
   double phibin_high = geo->get_phibin(philim_high);
   int npads = phibin_high - phibin_low;
-  if(verbosity>5000)   cout << " zigzags: phi " << phi << " philim_low " << philim_low << " phibin_low " << phibin_low 
+  if(Verbosity()>5000)   cout << " zigzags: phi " << phi << " philim_low " << philim_low << " phibin_low " << phibin_low 
 			    << " philim_high " << philim_high << " phibin_high " << phibin_high << " npads " << npads << endl;
   if(npads < 0 || npads >9) npads = 9;  // can happen if phibin_high wraps around. If so, limit to 10 pads and fix below
 
@@ -726,7 +726,7 @@ void PHG4CylinderCellTPCReco::populate_zigzag_phibins(PHG4CylinderCellGeom *geo,
       fpad[ipad]->SetParameter(0,pad_rphi/2.0);
       fpad[ipad]->SetParameter(1, rphi_pad_now);
 
-      if(verbosity>5000) cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi/2.0 
+      if(Verbosity()>5000) cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi/2.0 
 			      << " rphi_pad_now " << rphi_pad_now << endl;
     }
 
@@ -760,7 +760,7 @@ void PHG4CylinderCellTPCReco::populate_zigzag_phibins(PHG4CylinderCellGeom *geo,
     {
       pad_phibin.push_back(pad_keep[ipad]);
       pad_phibin_share.push_back(overlap[ipad]);      
-      if(verbosity > 5000) cout << "         zigzags: for pad " << ipad  << " integral is " << overlap[ipad] << endl;	     	      
+      if(Verbosity() > 5000) cout << "         zigzags: for pad " << ipad  << " integral is " << overlap[ipad] << endl;	     	      
     }
   
   return;
@@ -808,7 +808,7 @@ void PHG4CylinderCellTPCReco::populate_zbins(PHG4CylinderCellGeom *geo, const do
       // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
       double z_integral = 0.5 * (erf(zLim1) - erf(zLim2));
 
-      if(verbosity > 5000) 
+      if(Verbosity() > 5000) 
 	cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << geo->get_zcenter(cur_z_bin) 
 	     << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << endl;
       

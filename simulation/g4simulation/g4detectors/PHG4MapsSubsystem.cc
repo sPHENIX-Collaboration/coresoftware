@@ -58,7 +58,7 @@ PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr, in
 //_______________________________________________________________________
 int PHG4MapsSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
-  if(verbosity>0)
+  if(Verbosity()>0)
     cout << "PHG4MapsSubsystem::Init started" << endl;
 
   PHNodeIterator iter( topNode );

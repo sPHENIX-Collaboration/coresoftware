@@ -125,7 +125,7 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     geo->identify();
   }
@@ -173,7 +173,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
-  if (verbosity > 2) cout << " PHG4SiliconTrackerCellReco: Loop over hits" << endl;
+  if (Verbosity() > 2) cout << " PHG4SiliconTrackerCellReco: Loop over hits" << endl;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -201,7 +201,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(0), hiter->second->get_local_z(0), strip_y_index_in, strip_z_index_in);
     layergeom->find_strip_index_values(ladder_z_index, hiter->second->get_local_y(1), hiter->second->get_local_z(1), strip_y_index_out, strip_z_index_out);
 
-    if (verbosity > 5)
+    if (Verbosity() > 5)
     {
       // check to see if we get back the positions from these strip index values
       double check_location[3] = {-1, -1, -1};
@@ -274,7 +274,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       // increases from diffusion width_min to diffusion_width_max
       double diffusion_radius = diffusion_width;
 
-      if (verbosity > 5)
+      if (Verbosity() > 5)
         cout << " segment " << i
              << " interval " << interval
              << " frac " << frac
@@ -313,7 +313,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
           {
             stripeion[iy - minstrip_y][iz - minstrip_z] += striparea_frac * hiter->second->get_eion() / (float) nsegments;
           }
-          if (verbosity > 5)
+          if (Verbosity() > 5)
           {
             cout << "    strip y index " << iy << " strip z index  " << iz
                  << " strip area fraction of circle " << striparea_frac << " accumulated pixel energy " << stripenergy[iy - minstrip_y][iz - minstrip_z]
@@ -333,7 +333,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
           vzbin.push_back(iz);
           pair<double, double> tmppair = make_pair(stripenergy[iy - minstrip_y][iz - minstrip_z], stripeion[iy - minstrip_y][iz - minstrip_z]);
           venergy.push_back(tmppair);
-          if (verbosity > 1)
+          if (Verbosity() > 1)
             cout << " Added ybin " << iy << " zbin " << iz << " to vectors with energy " << stripenergy[iy - minstrip_y][iz - minstrip_z] << endl;
         }
       }
@@ -358,7 +358,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       if (it != m_CellList.end())
       {
         cell = it->second;
-        if (verbosity > 2)
+        if (Verbosity() > 2)
         {
           cout << " found existing cell with key " << key << endl;
         }
@@ -367,7 +367,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
       // There is not an existing cell to add this hit to, start a new cell
       if (!cell)
       {
-        if (verbosity > 2)
+        if (Verbosity() > 2)
         {
           cout << " did not find existing cell with key " << key << " start a new one" << endl;
         }
@@ -401,7 +401,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
     cells->AddCell(mapiter->second);
     numcells++;
 
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       std::cout << "Adding cell for "
                 << " layer " << mapiter->second->get_layer()
@@ -415,7 +415,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
   }
   m_CellList.clear();
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << Name() << ": found " << numcells << " silicon strips with energy deposition" << std::endl;
 
   if (m_ChkEnergyConservationFlag)
@@ -457,7 +457,7 @@ int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
   }
   else
   {
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       std::cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
     }
@@ -476,7 +476,7 @@ double PHG4SiliconTrackerCellReco::circle_rectangle_intersection(double x1, doub
   y1 -= my;
   y2 -= my;
 
-  if (verbosity > 7)
+  if (Verbosity() > 7)
   {
     cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
     cout << " sA21 " << sA(r, x2, y1)
