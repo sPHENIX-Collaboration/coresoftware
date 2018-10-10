@@ -6,23 +6,23 @@
 #include <string>
 namespace odbc
 {
-  class Connection;
+ class Connection;
 }
 
-class FROG 
+class FROG
 {
-public:
+ public:
   FROG();
-  virtual ~FROG(){}
+  virtual ~FROG() {}
 
-  const char * location(const std::string &logical_name);
+  const char *location(const std::string &logical_name);
   bool localSearch(const std::string &lname);
   bool dCacheSearch(const std::string &lname);
   bool PGSearch(const std::string &lname);
-  void Verbosity(const int i) {m_Verbosity = i;}
-  int Verbosity() const {return m_Verbosity;}
+  void Verbosity(const int i) { m_Verbosity = i; }
+  int Verbosity() const { return m_Verbosity; }
 
-private:
+ private:
   bool GetConnection();
   void Disconnect();
   std::string pfn;

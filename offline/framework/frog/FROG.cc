@@ -1,31 +1,27 @@
 #include "FROG.h"
-#include "pgsearch.h"
-#include "dCachesearch.h"
 
 #include <phool/phool.h>
-
-#include <boost/tokenizer.hpp>
-
-#include <sys/stat.h>
-#include <string>
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
 #include <odbc++/resultset.h>
 
+#include <boost/tokenizer.hpp>
+
+#include <chrono>
 #include <cstdlib>
-#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <chrono>
+#include <string>
 #include <thread>
 
 using namespace std;
 
-FROG::FROG():
-m_Verbosity(0),
-  m_OdbcConnection(nullptr)
-{}
+FROG::FROG()
+  : m_Verbosity(0)
+  , m_OdbcConnection(nullptr)
+{
+}
 
 const char *
 FROG::location(const string &logical_name)
@@ -37,18 +33,18 @@ FROG::location(const string &logical_name)
     {
       if (logical_name.empty())
       {
-	cout << "FROG: empty string as filename" << endl;
+        cout << "FROG: empty string as filename" << endl;
       }
       else if (logical_name.find("/") != string::npos)
       {
-	cout << "FROG: found / in filename, assuming it contains a full path" << endl;
+        cout << "FROG: found / in filename, assuming it contains a full path" << endl;
       }
     }
     return pfn.c_str();
   }
   try
   {
-    string gsearchpath( getenv("GSEARCHPATH"));
+    string gsearchpath(getenv("GSEARCHPATH"));
     if (Verbosity() > 0)
     {
       cout << "FROG: GSEARCHPATH: " << gsearchpath << endl;
@@ -59,68 +55,66 @@ FROG::location(const string &logical_name)
     {
       if (iter == "PG")
       {
-	if (Verbosity() > 1)
-	{
-	  cout << "Searching FileCatalog for disk resident file " 
-	       << logical_name << endl;
-	}
+        if (Verbosity() > 1)
+        {
+          cout << "Searching FileCatalog for disk resident file "
+               << logical_name << endl;
+        }
         if (PGSearch(logical_name))
-	{
-	  if (Verbosity() > 1)
-	  {
-	    cout << "Found " << logical_name << " in FileCatalog, returning "
-		 << pfn << endl;
-	  }
-	  break;
-	}
+        {
+          if (Verbosity() > 1)
+          {
+            cout << "Found " << logical_name << " in FileCatalog, returning "
+                 << pfn << endl;
+          }
+          break;
+        }
       }
       else if (iter == "DCACHE")
       {
-	if (Verbosity() > 1)
-	{
-	  cout << "Searching FileCatalog for dCache file " 
-	       << logical_name << endl;
-	}
+        if (Verbosity() > 1)
+        {
+          cout << "Searching FileCatalog for dCache file "
+               << logical_name << endl;
+        }
         if (dCacheSearch(logical_name))
-	{
-	  if (Verbosity() > 1)
-	  {
-	    cout << "Found " << logical_name << " in dCache, returning "
-		 << pfn << endl;
-	  }
-	  break;
-	}
+        {
+          if (Verbosity() > 1)
+          {
+            cout << "Found " << logical_name << " in dCache, returning "
+                 << pfn << endl;
+          }
+          break;
+        }
       }
-      else // assuming this is a file path
+      else  // assuming this is a file path
       {
-	if (Verbosity() > 0)
-	{
-	  cout << "Trying path " << iter << endl;
-	}
-	string fullfile = iter + "/" + logical_name;
-	if (localSearch(fullfile))
-	{
-	  break;
-	}
+        if (Verbosity() > 0)
+        {
+          cout << "Trying path " << iter << endl;
+        }
+        string fullfile = iter + "/" + logical_name;
+        if (localSearch(fullfile))
+        {
+          break;
+        }
       }
     }
- 
   }
   catch (...)
   {
     if (Verbosity() > 0)
     {
-      cout << "FROG: GSEARCHPATH not set " <<endl;
+      cout << "FROG: GSEARCHPATH not set " << endl;
     }
   }
   Disconnect();
   return pfn.c_str();
 }
 
-bool
-FROG::localSearch(const string &logical_name)
+bool FROG::localSearch(const string &logical_name)
 {
-  if(std::ifstream(logical_name))
+  if (std::ifstream(logical_name))
   {
     pfn = logical_name;
     return true;
@@ -133,33 +127,30 @@ bool FROG::GetConnection()
   int icount = 0;
   do
   {
-  try
+    try
     {
       m_OdbcConnection = odbc::DriverManager::getConnection("FileCatalog", "argouser", "Brass_Ring");
       return true;
     }
-  catch (odbc::SQLException& e)
+    catch (odbc::SQLException &e)
     {
       cout << PHWHERE
-	   << " Exception caught during DriverManager::getConnection" << endl;
+           << " Exception caught during DriverManager::getConnection" << endl;
       cout << "Message: " << e.getMessage() << endl;
     }
-  icount++;
-  std::this_thread::sleep_for(std::chrono::seconds(30)); // sleep 30 seconds before retry
-  }
-  while (icount < 5);
+    icount++;
+    std::this_thread::sleep_for(std::chrono::seconds(30));  // sleep 30 seconds before retry
+  } while (icount < 5);
   return false;
 }
 
-void
-FROG::Disconnect()
+void FROG::Disconnect()
 {
   delete m_OdbcConnection;
   m_OdbcConnection = nullptr;
 }
 
-bool
-FROG::PGSearch(const string &lname)
+bool FROG::PGSearch(const string &lname)
 {
   bool bret = false;
   if (!GetConnection())
@@ -172,17 +163,16 @@ FROG::PGSearch(const string &lname)
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
-    {
-      pfn = rs->getString(1);
-      bret = true;
-    }
+  {
+    pfn = rs->getString(1);
+    bret = true;
+  }
   delete rs;
   delete stmt;
   return bret;
 }
 
-bool
-FROG::dCacheSearch(const string &lname)
+bool FROG::dCacheSearch(const string &lname)
 {
   bool bret = false;
   if (!GetConnection())
@@ -195,26 +185,24 @@ FROG::dCacheSearch(const string &lname)
   odbc::ResultSet *rs = stmt->executeQuery(sqlquery);
 
   if (rs->next())
-    {
-string hpssfile = rs->getString(1);
-string dcachedir = "/pnfs/rcf.bnl.gov/phenix/phnxreco/";
-if (Verbosity()>1)
-{
-  cout << "hpssfile before replace: " << hpssfile << endl;
-}
-hpssfile.replace(0,24,dcachedir);
-if (Verbosity()>1)
-{
-
-  cout << "hpssfile after replace: " << hpssfile << endl;
-    }
-  if(std::ifstream(hpssfile))
   {
-
-pfn = "dcache:" + hpssfile;
-      bret = true;
-  }
+    string hpssfile = rs->getString(1);
+    string dcachedir = "/pnfs/rcf.bnl.gov/phenix/phnxreco/";
+    if (Verbosity() > 1)
+    {
+      cout << "hpssfile before replace: " << hpssfile << endl;
     }
+    hpssfile.replace(0, 24, dcachedir);
+    if (Verbosity() > 1)
+    {
+      cout << "hpssfile after replace: " << hpssfile << endl;
+    }
+    if (std::ifstream(hpssfile))
+    {
+      pfn = "dcache:" + hpssfile;
+      bret = true;
+    }
+  }
   delete rs;
   delete stmt;
   return bret;
