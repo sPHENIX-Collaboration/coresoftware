@@ -108,7 +108,6 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width 
   // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
 
-  //int verbosity = 101;
 
   double phi = atan2(y_gem,x_gem);
  if (phi > +M_PI) phi -= 2 * M_PI;
@@ -162,7 +161,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // Distribute the charge between the pads in phi
   //====================================
 
-  if(verbosity > 200)
+  if(Verbosity() > 200)
     cout << "  populate phi bins for " 
 	 << " layernum " << layernum 
 	 << " phi " << phi 
@@ -189,7 +188,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   
   // Distribute the charge between the pads in z
   //====================================
-  if(verbosity > 100 && layernum == 47)
+  if(Verbosity() > 100 && layernum == 47)
     cout << "  populate z bins for layernum " << layernum 
 	 << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
 
@@ -239,7 +238,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	  phi_integral += phicenter*neffelectrons;
 	  z_integral += zcenter*neffelectrons;
 	  weight += neffelectrons;
-	  if(verbosity > 100 && layernum == 47)
+	  if(Verbosity() > 100 && layernum == 47)
 	    cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter 
 		 << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl; 
 
@@ -253,15 +252,15 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 	    }
 	  cell->add_edep(neffelectrons);
 	  cell->add_edep(hiter->first, neffelectrons);  // associates g4hit with this edep
-	  //if(verbosity > 100 && layernum == 50)  cell->identify();
+	  //if(Verbosity() > 100 && layernum == 50)  cell->identify();
 	} // end of loop over adc Z bins
     } // end of loop over zigzag pads
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     ntpad->Fill(layernum, phi, phi_integral/weight, z_gem, z_integral/weight);
   
-  if(verbosity > 100)
+  if(Verbosity() > 100)
     if( layernum == 47)
       {
 	cout << " hit " << hit << " quick centroid for this electron " << endl;
@@ -331,7 +330,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   fcharge->SetParameter(0, 1.0);
   fcharge->SetParameter(1, rphi);
   fcharge->SetParameter(2, cloud_sig_rp);
-  if(verbosity > 100)
+  if(Verbosity() > 100)
     if(LayerGeom->get_layer() == 47)
       {
 	cout << "     populate_zigzag_phibins for layer " << layernum << " with radius " << radius << " phi " << phi 
@@ -348,7 +347,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   int phibin_high = LayerGeom->get_phibin(philim_high);
   int npads = phibin_high - phibin_low;
 
-  if(verbosity > 100)
+  if(Verbosity() > 100)
     if(layernum == 47)
       cout << "           zigzags: phi " << phi << " philim_low " << philim_low << " phibin_low " << phibin_low 
 	   << " philim_high " << philim_high << " phibin_high " << phibin_high << " npads " << npads << endl;
@@ -373,7 +372,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
       fpad[ipad]->SetParameter(0,pad_rphi/2.0);
       fpad[ipad]->SetParameter(1, rphi_pad_now);
 
-      if(verbosity > 100)
+      if(Verbosity() > 100)
 	if(layernum == 47)
 	  cout << " zigzags: make fpad for ipad " << ipad << " pad_now " << pad_now << " pad_rphi/2 " << pad_rphi/2.0 
 	       << " rphi_pad_now " << rphi_pad_now << endl;
@@ -427,7 +426,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
   double zstepsize = LayerGeom->get_zstep();
   double zdisp = z - LayerGeom->get_zcenter(zbin);
 
-  if(verbosity > 100)
+  if(Verbosity() > 100)
     cout << "     input:  z " << z << " zbin " << zbin << " zstepsize " << zstepsize << " z center " << LayerGeom->get_zcenter(zbin) << " zdisp " << zdisp << endl;
 
   // Because of diffusion, hits can be shared across the membrane, so we allow all z bins
@@ -445,13 +444,13 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
     zsect = 1;
   
   int n_zz = int(3 * (cloud_sig_zz[0] + cloud_sig_zz[1]) / (2.0 * zstepsize) + 1);  
-  if(verbosity > 100)  cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
+  if(Verbosity() > 100)  cout << " n_zz " << n_zz << " cloud_sigzz[0] " << cloud_sig_zz[0] << " cloud_sig_zz[1] " << cloud_sig_zz[1] << endl;
   for (int iz = -n_zz; iz != n_zz + 1; ++iz)
     {
       int cur_z_bin = zbin + iz;
       if ((cur_z_bin < min_cell_zbin) || (cur_z_bin > max_cell_zbin)) continue;
 
-      if(verbosity > 100)
+      if(Verbosity() > 100)
 	cout << " iz " << iz  << " cur_z_bin " << cur_z_bin << " min_cell_zbin " << min_cell_zbin << " max_cell_zbin " << max_cell_zbin  << endl;
 
       double z_integral = 0.0;
@@ -474,7 +473,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
 	  // 1/2 * the erf is the integral probability from the argument Z value to zero, so this is the integral probability between the Z limits
 	  double z_integral1 = 0.5 * (erf(zLim1) - erf(zLim2));
 	  
-	  if(verbosity > 100)
+	  if(Verbosity() > 100)
 	    if(LayerGeom->get_layer() == 47)
 	    cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
 		 << " index1 " << index1 << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral1 " << z_integral1 << endl;
@@ -483,7 +482,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
 	  zLim1 = 0.5 * M_SQRT2 * ( 0.5 * zstepsize - zdisp) * cloud_sig_zz_inv[index2];  
 	  double z_integral2 = 0.5 * (erf(zLim1) - erf(zLim2));
 	  
-	  if(verbosity > 100)
+	  if(Verbosity() > 100)
 	    if(LayerGeom->get_layer() == 47)
 	      cout << "   populate_zbins:  cur_z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
 		   << " index2 " << index2 << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral2 " << z_integral2 << endl;
@@ -513,7 +512,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins( const double z,  const double cloud
 	  double zLim2 = 0.5 * M_SQRT2 * ((iz - 0.5) * zstepsize - zdisp) * cloud_sig_zz_inv[index];  
 	  z_integral = 0.5 * (erf(zLim1) - erf(zLim2));  
 
-	  if(verbosity > 100)
+	  if(Verbosity() > 100)
 	    if(LayerGeom->get_layer() == 47)
 	      cout << "   populate_zbins:  z_bin " << cur_z_bin << "  center z " << LayerGeom->get_zcenter(cur_z_bin) 
 		   << " index " << index << "  zLim1 " << zLim1 << " zLim2 " << zLim2 << " z_integral " << z_integral << endl;
