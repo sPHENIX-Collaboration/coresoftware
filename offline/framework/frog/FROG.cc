@@ -124,6 +124,10 @@ bool FROG::localSearch(const string &logical_name)
 
 bool FROG::GetConnection()
 {
+  if (m_OdbcConnection)
+  {
+    return true;
+  }
   int icount = 0;
   do
   {
