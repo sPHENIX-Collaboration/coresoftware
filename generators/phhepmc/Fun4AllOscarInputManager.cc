@@ -94,9 +94,9 @@ Fun4AllOscarInputManager::fileopen(const string &filenam)
   filename = filenam;
   FROG frog;
   string fname(frog.location(filename.c_str()));
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
-      cout << ThisName << ": opening file " << fname << endl;
+      cout << Name() << ": opening file " << fname << endl;
     }
 
   TString tstr(fname);
@@ -148,7 +148,7 @@ int Fun4AllOscarInputManager::run(const int nevents)
     {
       if (!filelist.size())
 	{
-	  if (verbosity > 0)
+	  if (Verbosity() > 0)
 	    {
 	      cout << Name() << ": No Input file open" << endl;
 	    }
@@ -175,12 +175,12 @@ int Fun4AllOscarInputManager::run(const int nevents)
   */
   if (code == 1 || evt == NULL) 
     {
-      if (verbosity > 1) cout << "Finished file!" << endl;
+      if (Verbosity() > 1) cout << "Finished file!" << endl;
       fileclose();
       goto readagain;
     }
 
-//  if(verbosity > 4) cout << "SIZE: " << phhepmcgenevt->size() << endl;
+//  if(Verbosity() > 4) cout << "SIZE: " << phhepmcgenevt->size() << endl;
   //mySyncManager->CurrentEvent(evt->event_number());
   events_total++;
   events_thisfile++;
@@ -249,7 +249,7 @@ Fun4AllOscarInputManager::OpenNextFile()
   while (filelist.size() > 0)
     {
       list<string>::const_iterator iter = filelist.begin();
-      if (verbosity)
+      if (Verbosity())
 	{
 	  cout << PHWHERE << " opening next file: " << *iter << endl;
 	}
@@ -331,7 +331,7 @@ Fun4AllOscarInputManager::ConvertFromOscar()
     }
   evt = new HepMC::GenEvent(HepMC::Units::GEV, HepMC::Units::MM);
 
-  if(verbosity > 1) cout << "Reading Oscar Event " <<  events_total+skippedEvents+1 << endl;
+  if(Verbosity() > 1) cout << "Reading Oscar Event " <<  events_total+skippedEvents+1 << endl;
   //Grab New Event From Oscar
   string theLine;
   vector< vector<double> > theEventVec;
@@ -398,7 +398,7 @@ Fun4AllOscarInputManager::ConvertFromOscar()
   if(skippedEvents < skipEvents)
     {
       skippedEvents++;
-      if (verbosity > 5) cout << "Skipping event " << skippedEvents << endl;
+      if (Verbosity() > 5) cout << "Skipping event " << skippedEvents << endl;
       return 2;
     }
   */
@@ -461,8 +461,8 @@ Fun4AllOscarInputManager::ConvertFromOscar()
 
   
   evt->print();
-  if(verbosity > 5) evt->print();
-  if(verbosity > 3) cout << "Adding Event to phhepmcgenevt" << endl;
+  if(Verbosity() > 5) evt->print();
+  if(Verbosity() > 3) cout << "Adding Event to phhepmcgenevt" << endl;
 
   PHHepMCGenEventMap::Iter ievt =
       hepmc_helper.get_geneventmap()->find(hepmc_helper.get_embedding_id());

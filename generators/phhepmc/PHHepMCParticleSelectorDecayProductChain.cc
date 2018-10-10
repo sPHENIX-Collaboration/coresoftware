@@ -74,7 +74,7 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
   HepMC::GenEvent* event = inEvent->getEvent();
   int npart = event->particles_size();
   int nvert = event->vertices_size();
-  if(verbosity > 0) cout << "=========== Event " << event->event_number() << " contains " << npart << " particles and " << nvert << " vertices." << endl;
+  if(Verbosity() > 0) cout << "=========== Event " << event->event_number() << " contains " << npart << " particles and " << nvert << " vertices." << endl;
 
   // list of vertices to keep
   vector<HepMC::GenVertex> vkeep;
@@ -156,7 +156,7 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
       if(!goodvertex)
 	{
 	  bool tmp = event->remove_vertex((*v));
-	  if(verbosity > 10 && tmp)
+	  if(Verbosity() > 10 && tmp)
 	    {
 	      cout << PHWHERE << " Erasing empty vertex." << endl;
 	    }
@@ -227,7 +227,7 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
 
 
   int partcount = 0;
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     {
       cout << "FINAL Event " << event->event_number() << " contains " << event->particles_size() << " particles and " << event->vertices_size() << " vertices." << endl;
       cout << "FINAL LIST OF PARTICLES:" << endl;
@@ -240,7 +240,7 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
       double pt = ((*p)->momentum()).perp();
       double eta = ((*p)->momentum()).eta();
       double mass  = ((*p)->momentum()).m();
-      if(verbosity > 0)
+      if(Verbosity() > 0)
 	{
 	  cout << pid << " " << mass << " " << status << " " << pt << " " << pz << " " << eta << " " << (*p)->production_vertex() << " " << (*p)->end_vertex() << endl;
 	}
@@ -250,7 +250,7 @@ int PHHepMCParticleSelectorDecayProductChain::process_event(PHCompositeNode *top
   // if there is nothing to write out the code crashes
   if(partcount == 0)
     {
-      if(verbosity > 0)
+      if(Verbosity() > 0)
 	{
 	  cout << "EVENT ABORTED: No particles to write out." << endl;
 	}
