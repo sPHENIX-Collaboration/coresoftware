@@ -322,7 +322,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		 if (verbosity >= 2) std::cout << PHWHERE << "Starting extrapolation Eval"<<endl;
 
 		if (rf_phgf_track){
-		  //get the MC particle best-associated with the track
+		  //get the truth particle best-associated with the track
 		  /* this block won't work... rcc
 		  SvtxTruthEval*     trutheval = _svtxevalstack->get_truth_eval();
 		  PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
@@ -330,6 +330,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    if (trutheval->get_embed(truth) <= 0) continue;
 		  }
 		  */
+		  //get the momentum from the svtxtrack -- not sure if this is the truth or reco:
+		  TVector3 mom(svtx_track->get_px(),svtx_track->get_py(),svtx_track->get_pz());
 
 		  
 		  //line_point and line_direction are the axis of the cylinder.
@@ -344,102 +346,46 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  std::shared_ptr<genfit::MeasuredStateOnPlane> gf_cylinder_state = NULL;
 
 		  bool covariance_okay=true;
-		  TMatrixF postest(3,1);
-		  TMatrixF covtest(3,3);
+		  TMatrixF pos_ifc_m(3,1);
+		  TMatrixF cov_ifc(3,3);
+		  TVector3 pos_ifc(-9000,-9000,-9000);
 		  
-		  covariance_okay=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,postest,covtest);
 		  
-		  try {
-		    gf_cylinder_state = std::shared_ptr < genfit::MeasuredStateOnPlane
-							  > (rf_phgf_track->extrapolateToCylinder(inner_wall_r,line_point,line_direction,npoints-1,1));
-		  } catch (...) {
-		    if (verbosity >= 2)
-		      LogWarning("extrapolateToCylinder failed!");
-		  }
-		  if (!gf_cylinder_state) {
-		    covariance_okay=false;
-		    LogWarning("No Cylinder state RCC");
-		    //std::cout << PHWHERE << "Cylinder State not filled RCC"<<endl;
-		  }
+		  covariance_okay=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,pos_ifc_m,cov_ifc);
+		  pos_ifc.SetZ(pos_ifc_m[2][0]);
+		  pos_ifc.SetPerp(pos_ifc_m[1][0]);
+		  pos_ifc.SetPhi(pos_ifc_m[0][0]);
 
-		  TVector3 pos(NAN,NAN,NAN);
-		  TVector3 mom(NAN,NAN,NAN);
-		  //float pos_rphi_error = NAN;
-		  //float pos_z_error  = NAN;
+		  TVector3 pos_30_true(0,0,0);
+		  pos_30_true=getClusterPosAtRadius(30.0,svtx_track);
+		  TMatrixF pos_30_m(3,1);
+		  TMatrixF cov_30(3,3);
+		  TVector3 pos_30(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
+		  
+		  
+		  bool cov2_okay=extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_30_m,cov_30);
+		  pos_30.SetZ(pos_30_m[2][0]);
+		  pos_30.SetPerp(pos_30_m[1][0]);
+		  pos_30.SetPhi(pos_30_m[0][0]);
 
-		  TMatrixF pos_in(3,1);
-		  TMatrixF cov_in(3,3);
-		  TMatrixF pos_out(3,1);
-		  TMatrixF cov_out(3,3);
-		  if(covariance_okay){
-		    try{
-		      TVectorD state6(6); // pos(3), mom(3)
-		      TMatrixDSym cov6(6,6); //
-		      
-		      gf_cylinder_state->get6DStateCov(state6, cov6);
-		    
-		      //for extrapolation to cylinder, the normal direction is just the xy position of the hit (I think...)
-		      //look at the other instance for confirmation
-		      TVector3 vn(state6[0], state6[1], 0);
-		      
-		      pos_in[0][0] = state6[0];
-		      pos_in[1][0] = state6[1];
-		      pos_in[2][0] = state6[2];
-		      pos.SetXYZ(state6[0],state6[1],state6[2]);
-		      mom.SetXYZ(state6[3],state6[4],state6[5]);
 
-		      for(int i=0;i<3;++i){
-			for(int j=0;j<3;++j){
-			  cov_in[i][j] = cov6[i][j];
-			    }
+
+		  if (verbosity > 2){
+		    	cout << "pos_30: Phi=" << pos_30.Phi() << "\t R="<<pos_30.Perp() << "\t Z="<<pos_30.Z()<<endl;
+			cout << "pos_30_m: Phi=" << pos_30_m[0][0] << "\t R="<<pos_30_m[1][0] << "\t Z="<<pos_30_m[2][0]<<endl;
+
+		    cout << "pos: .Phi=" << pos_30.Phi() << endl;
+		    cout << "cov_kalman (r,phi,z):"<<endl<<"{";
+		    for (int j=0;j<3;j++){
+		      cout << "{";
+		      for (int k=0;k<3;k++){
+			cout << cov_30[j][k] << ",\t";
 		      }
-
-
-		      
-		      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
-
-
-		      if (verbosity > -1){
-			cout << "pos.Phi=" << pos.Phi() << "\t vn.Phi=" << vn.Phi() << endl;
-			cout << "cov_kalman (x,y,z):"<<endl<<"{";
-			for (int j=0;j<3;j++){
-			  cout << "{";
-			  for (int k=0;k<3;k++){
-			    cout << cov_in[j][k] << ",\t";
-			  }
-			  cout << "},"<< endl;
-			}
-
-			cout << "cov_kalman (r,phi,z):"<<endl<<"{";
-			for (int j=0;j<3;j++){
-			  cout << "{";
-			  for (int k=0;k<3;k++){
-			    cout << cov_out[j][k] << ",\t";
-			  }
-			  cout << "},"<< endl;
-			}
-		      
-		      cout << "cov_test (r,phi,z):"<<endl<<"{";
-			for (int j=0;j<3;j++){
-			  cout << "{";
-			  for (int k=0;k<3;k++){
-			    cout << covtest[j][k] << ",\t";
-			  }
-			  cout << "},"<< endl;
-			}
-		      }
-		      //pos_rphi = pos_out[1][0];
-		      //pos_z  = pos_out[2][0];
-		      //pos_rphi_error = sqrt(cov_out[0][0]);
-		      //pos_z_error  = sqrt(cov_out[2][2]);	
-		    } catch (...) {
-		      if (verbosity > 0)
-			LogWarning("State Covariance unavailable!");
-		      // std::cout << PHWHERE << "Extraction of State Cov failed RCC"<<endl;
-
-		      covariance_okay=false;
+		      cout << "},"<< endl;
 		    }
 		  }
+		
+		      
 
 		  TVector3 pos_linear[3];//the linear extrapolation from the last two hits.
 		  TMatrixF cov_linout[3];//three of these, for the three covariance matrices in the linear approach(3,3);
@@ -533,6 +479,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		      }
 		    }
 		    //rotate cov_linear to Rzphi for each of our three matrices:
+		    TMatrixF pos_in(3,1);
+		    TMatrixF pos_out(3,1);
+
+		    TMatrixF cov_in(3,3);
 		    for (int i=0;i<3;i++){
 		      pos_cov_XYZ_to_RZ(pos_linear[2], pos_in, cov_linear[i], pos_out, cov_linout[i]);//don't need the pos rotations, but had to fill those in again anyway.
 		      //std::cout << PHWHERE<< " cov_linout["<<i<<"] has " << cov_linout[i].GetNrows() << " rows and " << cov_linout[i].GetNcols() << " cols."<<endl;
@@ -554,21 +504,32 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  //const Map truth_particles=_truth_container->GetMap();
 		  //need something here to get the true particle for this track
 		    
-		  _kalman_extrapolation_eval_tree_phi=pos.Phi();
-		  _kalman_extrapolation_eval_tree_z=pos.Z();
-		  _kalman_extrapolation_eval_tree_r=pos.Perp();
+		  _kalman_extrapolation_eval_tree_phi=pos_ifc.Phi();
+		  _kalman_extrapolation_eval_tree_z=pos_ifc.Z();
+		  _kalman_extrapolation_eval_tree_r=pos_ifc.Perp();
 		  _kalman_extrapolation_eval_tree_okay=covariance_okay;
 		  if (covariance_okay){
-		    _kalman_extrapolation_eval_tree_sigma_r=cov_out[1][1];
-		    _kalman_extrapolation_eval_tree_sigma_rphi=cov_out[0][0];
-		    _kalman_extrapolation_eval_tree_sigma_z=cov_out[2][2];
-		    _kalman_extrapolation_eval_tree_sigma_r_rphi=cov_out[0][1];
-		    _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_out[0][2];
-		    _kalman_extrapolation_eval_tree_sigma_z_r=cov_out[2][1];
-		    //before rotation:
-		    _kalman_extrapolation_eval_tree_covin_x=cov_in[0][0];
-		    _kalman_extrapolation_eval_tree_covin_y=cov_in[1][1];
-		    _kalman_extrapolation_eval_tree_covin_z=cov_in[2][2];
+		    _kalman_extrapolation_eval_tree_sigma_r=cov_ifc[1][1];
+		    _kalman_extrapolation_eval_tree_sigma_rphi=cov_ifc[0][0];
+		    _kalman_extrapolation_eval_tree_sigma_z=cov_ifc[2][2];
+		    _kalman_extrapolation_eval_tree_sigma_r_rphi=cov_ifc[0][1];
+		    _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_ifc[0][2];
+		    _kalman_extrapolation_eval_tree_sigma_z_r=cov_ifc[2][1];
+
+		    _kalman_extrapolation_eval_tree_okay2=cov2_okay;
+		    _kalman_extrapolation_eval_tree_phi2=pos_30.Phi();
+		    _kalman_extrapolation_eval_tree_z2=pos_30.Z();
+		    _kalman_extrapolation_eval_tree_r2=pos_30.Perp();
+		    _kalman_extrapolation_eval_tree_phi2_true=pos_30_true.Phi();
+		    _kalman_extrapolation_eval_tree_z2_true=pos_30_true.Z();
+		    _kalman_extrapolation_eval_tree_r2_true=pos_30_true.Perp();
+		    if (cov2_okay){
+		    _kalman_extrapolation_eval_tree_sigma_r2=cov_30[1][1];
+		    _kalman_extrapolation_eval_tree_sigma_rphi2=cov_30[0][0];
+		    _kalman_extrapolation_eval_tree_sigma_z2=cov_30[2][2];
+
+		    }
+
 		    
 		    //linear data:
 		    _kalman_extrapolation_eval_tree_lin_pathlength=t;
@@ -966,6 +927,18 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("sigma_phi_z", &_kalman_extrapolation_eval_tree_sigma_rphi_z, "sigma_phi_z/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_z_r", &_kalman_extrapolation_eval_tree_sigma_z_r, "sigma_z_r/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_r_rphi", &_kalman_extrapolation_eval_tree_sigma_r_rphi, "sigma_r_rphi/F");
+
+	//extrapolation to an alternate radius, along with true hit info at that radius.
+	_kalman_extrapolation_eval_tree->Branch("phi2", &_kalman_extrapolation_eval_tree_phi2, "phi2/F");
+	_kalman_extrapolation_eval_tree->Branch("z2", &_kalman_extrapolation_eval_tree_z2, "z2/F");
+	_kalman_extrapolation_eval_tree->Branch("r2", &_kalman_extrapolation_eval_tree_r2, "r2/F");
+	_kalman_extrapolation_eval_tree->Branch("okay2", &_kalman_extrapolation_eval_tree_okay, "ok2/O");
+	_kalman_extrapolation_eval_tree->Branch("sigma_phi2", &_kalman_extrapolation_eval_tree_sigma_rphi, "sigma_rphi2/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_z2", &_kalman_extrapolation_eval_tree_sigma_z, "sigma_z2/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_r2", &_kalman_extrapolation_eval_tree_sigma_r, "sigma_r2/F");
+	_kalman_extrapolation_eval_tree->Branch("phi2t", &_kalman_extrapolation_eval_tree_phi2_true, "phi2t/F");
+	_kalman_extrapolation_eval_tree->Branch("z2t", &_kalman_extrapolation_eval_tree_z2_true, "z2t/F");
+	_kalman_extrapolation_eval_tree->Branch("r2t", &_kalman_extrapolation_eval_tree_r2_true, "r2t/F");
 
 	//before rotation:
 	_kalman_extrapolation_eval_tree->Branch("sigma_x",&_kalman_extrapolation_eval_tree_covin_x);
@@ -2482,6 +2455,30 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 }
 
 
+/*!
+ * Returns the x,y,z coords of the cluster in the given track that is closest to the requested radius.
+ */
+TVector3 PHG4TrackKalmanFitter::getClusterPosAtRadius(const float radius, const SvtxTrack* intrack){
+  
+  TVector3 bestpos(0,0,0);
+  float bestdelta=9999;
+  for (auto iter = intrack->begin_clusters();
+       iter != intrack->end_clusters(); ++iter) {
+    unsigned int cluster_id = *iter;
+    SvtxCluster* cluster = _clustermap->get(cluster_id);
+    float x = cluster->get_x();
+    float y = cluster->get_y();
+    float z = cluster->get_y();
+    float r = sqrt(x*x+y*y);
+    float delta= (TMath::Abs(r-radius));
+    
+    if (delta<bestdelta){
+      bestpos.SetXYZ(x,y,z);
+      bestdelta=delta;
+    }
+  }
+  return bestpos;
+}
 
 /*!
  * Get Phi R Z coords and covariance from a kalman extrapolation/interpolation to a given radius
@@ -2554,7 +2551,8 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
 
 
       if (verbosity > 4){
-	cout << "pos.Phi=" << pos.Phi() << "\t vn.Phi=" << vn.Phi() << endl;
+	cout << "pos: Phi=" << pos.Phi() << "\t R="<<pos.Perp() << "\t Z="<<pos.Z()<<endl;
+	cout << "pos_out: Phi=" << pos_out[0][0] << "\t R="<<pos_out[1][0] << "\t Z="<<pos_out[2][0]<<endl;
 	cout << "cov_kalman (x,y,z):"<<endl<<"{";
 	for (int j=0;j<3;j++){
 	  cout << "{";

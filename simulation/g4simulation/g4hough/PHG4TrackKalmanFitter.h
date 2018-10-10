@@ -257,6 +257,9 @@ private:
 			TMatrixF& pos_out,
 			TMatrixF& cov_out);
 
+	TVector3 getClusterPosAtRadius(const float radius, const SvtxTrack* intrack);
+
+
 	/*!
 	 * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
 	 * Default rotate local to global, or rotate vector in global to local representation
@@ -348,7 +351,18 @@ private:
 	float _kalman_extrapolation_eval_tree_sigma_z_r;
 	float _kalman_extrapolation_eval_tree_sigma_r_rphi;
 
-	//before rotation:
+	//at larger radius:
+	float  _kalman_extrapolation_eval_tree_phi2_true;
+	float _kalman_extrapolation_eval_tree_z2_true;
+	float _kalman_extrapolation_eval_tree_r2_true;
+	float  _kalman_extrapolation_eval_tree_phi2;
+	float _kalman_extrapolation_eval_tree_z2;
+	float _kalman_extrapolation_eval_tree_r2;
+	bool _kalman_extrapolation_eval_tree_okay2;
+	float _kalman_extrapolation_eval_tree_sigma_rphi2;
+	float _kalman_extrapolation_eval_tree_sigma_z2;
+	float _kalman_extrapolation_eval_tree_sigma_r2;
+	//before rotation: //defunct now!
 	float _kalman_extrapolation_eval_tree_covin_x;
 	float _kalman_extrapolation_eval_tree_covin_y;
 	float _kalman_extrapolation_eval_tree_covin_z;
