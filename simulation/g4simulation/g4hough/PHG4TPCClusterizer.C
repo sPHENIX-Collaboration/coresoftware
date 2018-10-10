@@ -64,8 +64,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fPedestal(74.4),
   fFitSizeP(0.0),
   fFitSizeZ(0),
-  fShapingLead(32.0*6.0/1000.0),
-  fShapingTail(48.0*6.0/1000.0),
+  fShapingLead(32.0*8.0/1000.0),
+  fShapingTail(48.0*8.0/1000.0),
   fMinLayer(0),
   fMaxLayer(0),
   fEnergyCut(0.0),
@@ -76,6 +76,8 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
   fDCL(0.012),
   _inv_sqrt12( 1.0/TMath::Sqrt(12) ),
   _twopi( TMath::TwoPi() ),
+//zz_shaping_correction(0.0557),  // correction for 80 ns SAMPA
+  zz_shaping_correction(0.0754),  // correction for 80 ns SAMPA
   fHClusterEnergy(NULL),
   fHClusterSizePP(NULL),
   fHClusterSizeZZ(NULL),
@@ -539,6 +541,9 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
       fFitSumP2 += ee*dp*dp;
       fFitSumZ2 += ee*dz*dz;
       fFitSumPZ += ee*dp*dz;
+      // add this cell to the list of contributing cells for this cluster
+      fCellz.push_back(cz);
+      fCellphi.push_back(cp);
       nhits_tot -= 1; //taken
       fNHitsPerZ[cz] -= 1; //taken
       fAmps[bin] = 0.; //removed
@@ -632,12 +637,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // ==> making layer_sorted
+  // ==> making layer_sorted, initially an empty vector of hits for each layer 
   std::vector<std::vector<const SvtxHit*> > layer_sorted;
   PHG4CylinderCellGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
        layeriter != layerrange.second;
        ++layeriter) {
+    //cout << "Layer " << layeriter->second->get_layer() << endl;
     if( (unsigned int) layeriter->second->get_layer() < fMinLayer) {
       if(verbosity>1000) std::cout << "Skipping layer " << layeriter->second->get_layer() << std::endl;
       continue;
@@ -646,6 +652,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
   }
   for(SvtxHitMap::Iter iter = hits->begin(); iter != hits->end(); ++iter) {
     SvtxHit* hit = iter->second;
+    //cout << " hit_get_layer = " << hit->get_layer() << " fMinLayer " << fMinLayer << endl;
     if( (unsigned int) hit->get_layer() < fMinLayer) continue;
     layer_sorted[hit->get_layer() - fMinLayer].push_back(hit);
   }
@@ -675,15 +682,24 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     for(unsigned int i = 0; i < layer_sorted[layer - fMinLayer].size(); ++i) {
       const SvtxHit* hit = layer_sorted[layer - fMinLayer][i];
       if(hit->get_e() <= 0.) continue;
-      if(verbosity>2000) std::cout << hit->get_cellid();
+      if(verbosity>2000) 
+	std::cout << hit->get_cellid();
       PHG4Cell* cell = cells->findCell(hit->get_cellid()); //not needed once geofixed
       int phibin = PHG4CellDefs::SizeBinning::get_phibin(cell->get_cellid());//cell->get_binphi();
       int zbin = PHG4CellDefs::SizeBinning::get_zbin(cell->get_cellid());//cell->get_binz();
-      if(verbosity>0) std::cout << " phibin " << phibin << " zbin " << zbin << " z " << fGeoLayer->get_zcenter( zbin ) << " energy " << hit->get_e() << std::endl;
+      if(verbosity>0) std::cout << " phibin " << phibin << " zbin " << zbin << " z " << fGeoLayer->get_zcenter( zbin ) << " adc " << hit->get_adc() - fPedestal << std::endl;
       fNHitsPerZ[zbin] += 1;
       fAmps[zbin * fNPhiBins + phibin] += hit->get_adc() - fPedestal;  // subtract pedestal in ADC counts, determined elsewhere
       if(fAmps[zbin * fNPhiBins + phibin] < 0)  fAmps[zbin * fNPhiBins + phibin]  = 0;  // our simple clustering algorithm does not handle negative bins well
       fCellIDs[zbin * fNPhiBins + phibin] = hit->get_id();
+      //if(Verbosity() > 100)
+      if(verbosity > 100)
+	//if(layer == 47) 
+	  {
+	    cout << "Clusterizer: adding input SvtxHit " <<  hit->get_id() << endl;;
+	    //hit->identify();
+	    cout << "      layer " << layer << " zbin " << zbin << " phibin " << phibin << " cellid " << hit->get_cellid() << " adc " << fAmps[zbin * fNPhiBins + phibin] << endl;
+	  }
     }
     if(fDeconMode){
       cout << "deconvoluting layer: " << layer << endl;
@@ -705,7 +721,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
       for(int zbin = 0; zbin!=fNZBins; ++zbin) {
         if(fNHitsPerZ[zbin]<=0) continue;
 	float abszbincenter = TMath::Abs(fGeoLayer->get_zcenter( zbin ));
-	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangZ
+	float sigmaZ = TMath::Sqrt(pow((fShapingTail), 2) + fDCL*fDCL*(105.5-abszbincenter));  // shaping time + drift diffusion, used only to calculate FitRangeZ
 	float TPC_padgeo_sigma = 0.04;  // 0.4 mm (from Tom)
 	float sigmaP = TMath::Sqrt(pow(TPC_padgeo_sigma, 2) + fDCT*fDCT*(105.5-abszbincenter)); // readout geometry + drift diffusion, used only to calculate FitRangeP
 	fFitRangeZ = int( fClusterWindow*sigmaZ/stepz + 1);
@@ -714,7 +730,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  cout << " sigmaZ " << sigmaZ << " fFitRangeZ " << fFitRangeZ << " sigmaP " << sigmaP << endl;
 
         for(int phibin = 0; phibin!=fNPhiBins; ++phibin) {
-          float radius = fGeoLayer->get_radius() + 0.5*fGeoLayer->get_thickness();
+	  float radius = fGeoLayer->get_radius(); // returns center of layer
 	  fFitRangeP = int( fClusterWindow*sigmaP/(radius*stepp) + 1);
 
 	  if(fFitRangeP<1) fFitRangeP = 1;
@@ -725,6 +741,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	    cout << " phibin: "  << phibin << " zbin: " << zbin 
 		 << endl;
 	  }
+	  fCellz.clear();
+	  fCellphi.clear();
           fit(phibin,zbin,nhits_tot);
           if(fFitW < fClusterCut) continue; // ignore this cluster
           SvtxCluster_v1 clus;
@@ -734,6 +752,12 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  float phi = fit_p_mean();
 	  float pp = radius*phi;
 	  float zz = fit_z_mean();
+	  // Correction for bias in electron z position due to asymmeteric SAMPA shaping
+	  float zz_raw = zz;
+	  if(zz < 0)
+	    zz -= zz_shaping_correction;
+	  else
+	    zz += zz_shaping_correction;
 	  float pp_err = radius * fGeoLayer->get_phistep() * _inv_sqrt12;
 	  float zz_err = fGeoLayer->get_zstep() * _inv_sqrt12;
 
@@ -747,17 +771,18 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 	  if(fFitSizeP>1) pp_err = radius * TMath::Sqrt( fit_p_cov()/(fFitW*0.14) );
 	  if(fFitSizeZ>1) zz_err = TMath::Sqrt( fit_z_cov()/(fFitW*0.14) );
-	  //if(layer == 20) cout << " number of primary electrons = " << fFitW * 0.14 << endl;
-	  //float rr_err = fGeoLayer->get_thickness() * _inv_sqrt12;
-	  //float sinphi = TMath::Sin(phi);
-	  //float cosphi = TMath::Cos(phi);
-	  //float abscosphi = TMath::Abs(cosphi);
-	  //float xx_err = rr_err*abscosphi;
-	  //float yy_err = pp_err*abscosphi;
-	  //float xx_err = TMath::Sqrt(pp_err*sinphi*pp_err*sinphi + rr_err*cosphi*rr_err*cosphi); // linearization
-	  //float yy_err = TMath::Sqrt(pp_err*cosphi*pp_err*cosphi + rr_err*sinphi*rr_err*sinphi); // linearization
 	  float pp_size = radius*fFitSizeP*fGeoLayer->get_phistep();
 	  float zz_size = fFitSizeZ*fGeoLayer->get_zstep();
+
+	  if(verbosity > 100)
+	    //if(layer == 47) 
+	      {
+		cout << endl << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14 
+		     << " zz_raw " << zz_raw << " zz " << zz
+		     << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
+		cout << "       zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << endl;
+
+	      }
 
 	  if(verbosity>1) {
 	    fHClusterEnergy->Fill(fFitW);
@@ -776,7 +801,8 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
 	  }
 	  if(verbosity>2000)
 	    std::cout << " cluster fitted " << std::endl;
-	    if(verbosity>1000){
+	    if(verbosity>1000)
+	    {
 	    std::cout << " | rad " << radius;
 	    std::cout << " | size rp z " << pp_size << " " << zz_size;
 	    std::cout << " | error_rphi error_z " << pp_err << " " << zz_err << std::endl;
@@ -788,8 +814,13 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
           clus.set_position(0, radius*TMath::Cos( phi ) );
           clus.set_position(1, radius*TMath::Sin( phi ) );
           clus.set_position(2, zz);
-	  clus.insert_hit( fCellIDs[zbin * fNPhiBins + phibin] );
-
+	  for(unsigned int i=0;i<fCellz.size();i++)
+	    {
+	      if(Verbosity() > 10)
+		//if(layer == 47)
+		cout  << "   Fitted cluster contains SvtxHit " << fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ] << endl;
+	      clus.insert_hit( fCellIDs[ fCellz[i] * fNPhiBins + fCellphi[i] ]);
+	    }
 
 	  TMatrixF DIM(3,3);
 	  DIM[0][0] = 0.0;

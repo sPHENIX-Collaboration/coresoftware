@@ -535,7 +535,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 				    (int)(_nlayers_maps+_nlayers_intt+24),
 				    (int)(_nlayers_maps+_nlayers_intt+32),
 				    (int)(_nlayers_maps+_nlayers_intt+40),
-				    (int)(_nlayers_maps+_nlayers_intt+47)
+				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
 				    //7,13,19,25,31,37,46
 	    };
 
@@ -555,7 +555,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
 				    (int)(_nlayers_maps+_nlayers_intt+1),
 				    (int)(_nlayers_maps+_nlayers_intt+2),
-
+				    
 				    (int)(_nlayers_maps+_nlayers_intt+9),
 				    (int)(_nlayers_maps+_nlayers_intt+10),
 				    (int)(_nlayers_maps+_nlayers_intt+11),
@@ -568,7 +568,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
 				    (int)(_nlayers_maps+_nlayers_intt+38),
 
-				    (int)(_nlayers_maps+_nlayers_intt+47)
+				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
 				    //7,13,19,25,31,37,46
 				    //7,8,13,14,19,20,26,27,34,35,40,46
 	    };
@@ -598,7 +598,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 				    (int)(_nlayers_maps+_nlayers_intt+32),
 				    (int)(_nlayers_maps+_nlayers_intt+33),
 				    (int)(_nlayers_maps+_nlayers_intt+40),
-				    (int)(_nlayers_maps+_nlayers_intt+47)
+				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
 				    //7,13,19,25,31,37,46
 				    //7,8,13,14,19,20,26,27,34,35,40,46
 	    };
