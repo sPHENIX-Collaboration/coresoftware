@@ -3,8 +3,8 @@
 #ifndef FUN4ALL_FUN4ALLBASE_H
 #define FUN4ALL_FUN4ALLBASE_H
 
+#include <climits>  // std::numeric_limits
 #include <string>
-#include <climits>       // std::numeric_limits
 
 /** Base class for all Fun4All Classes
  *
@@ -14,25 +14,24 @@
 class Fun4AllBase
 {
  public:
-
-
   /** dtor. 
       Does nothing as this is a base class only.
   */
   virtual ~Fun4AllBase();
 
   /// Returns the name of this module.
-  virtual const std::string Name() const {return m_ThisName;}
+  virtual const std::string Name() const { return m_ThisName; }
 
   /// Sets the name of this module.
-  virtual void Name(const std::string &name) {m_ThisName = name;}
+  virtual void Name(const std::string &name) { m_ThisName = name; }
 
   /** Print out some info about this module. 
       @param what can be used to specify what to print exactly.
   */
   virtual void Print(const std::string &what = "ALL") const;
 
-  enum enu_Verbosity{
+  enum enu_Verbosity
+  {
 
     //! Quiet mode. Only output critical messages. Intended for batch production mode.
     VERBOSITY_QUIET = 0,
@@ -52,26 +51,25 @@ class Fun4AllBase
     // ... use your imagination ...
 
     //! Show all messages. Useful for step-by-step debugging
-    VERBOSITY_MAX =  INT_MAX - 10
+    VERBOSITY_MAX = INT_MAX - 10
 
-  } ;
-
-  /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(const int ival) {m_Verbosity = ival;}
+  };
 
   /// Sets the verbosity of this module (0 by default=quiet).
-  virtual void Verbosity(enu_Verbosity ival) {m_Verbosity = ival;}
+  virtual void Verbosity(const int ival) { m_Verbosity = ival; }
+
+  /// Sets the verbosity of this module (0 by default=quiet).
+  virtual void Verbosity(enu_Verbosity ival) { m_Verbosity = ival; }
 
   /// Gets the verbosity of this module.
-  virtual int Verbosity() const {return m_Verbosity;}
+  virtual int Verbosity() const { return m_Verbosity; }
 
  protected:
-
   /** ctor.
   */
   Fun4AllBase(const std::string &name = "NONAME");
 
-private:
+ private:
   std::string m_ThisName;
 
   /// The verbosity level. 0 means not verbose at all.
@@ -79,4 +77,3 @@ private:
 };
 
 #endif
-
