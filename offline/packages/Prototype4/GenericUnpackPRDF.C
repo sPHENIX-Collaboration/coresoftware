@@ -53,7 +53,7 @@ int GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
     _event->identify();
 
   // search for data event

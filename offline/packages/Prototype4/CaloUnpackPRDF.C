@@ -70,12 +70,12 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
     return -1;
   }
 
-  if (verbosity)
+  if (Verbosity())
   {
     cout << PHWHERE << "Process event entered" << std::endl;
   }
 
-  if (verbosity)
+  if (Verbosity())
     _event->identify();
 
   _packet = _event->getPacket(PROTOTYPE4_FEM::PACKET_ID);
@@ -195,7 +195,7 @@ int CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity)
+  if (Verbosity())
   {
     cout << "HCALIN Towers: " << endl;
     hcalin_towers_hg->identify();
