@@ -2481,6 +2481,64 @@ TVector3 PHG4TrackKalmanFitter::getClusterPosAtRadius(const float radius, const 
 }
 
 /*!
+ * Returns the x,y,z coords of the g4hit in the current record that is closest to the target position.
+ */
+TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target){
+
+  PHG4HitContainer* _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
+  TVector3 bestpos(-9000,-9000,-9000);
+  float bestdelta=9999;
+  float bestr=9999;
+  int numhits_at_this_radius=0;
+  const float mindiff=0.01;//minimum increment for a 'better' position.
+  // loop over all the g4hits in the TPC layers
+  if (_g4hits_svtx) {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_svtx->getHits().first;
+     g4iter != _g4hits_svtx->getHits().second;
+     ++g4iter) {
+
+      PHG4Hit* g4hit = g4iter->second;
+      float x = (g4hit->get_x(0) + candidate->get_x(1)) / 2.0; // use average position
+      float y = (g4hit->get_y(0) + candidate->get_y(1)) / 2.0; 
+      float r   = sqrt(x*x+y*y);
+      float delta= (TMath::Abs(r-target.Perp()));
+      float delta_from_best=(TMath::Abs(r-target.Perp()));
+      if (delta_from_best<mindiff){
+	numhits_at_this_radius++;
+      }
+      if (delta<bestdelta-mindiff){
+	numhits_at_this_radius=1;
+	float z = (g4hit->get_z(0) + candidate->get_z(1)) / 2.0; 
+	bestpos.SetXYZ(x,y,z);
+	bestdelta=delta;
+      }
+    }
+    if (verbosity>2 && numhits_at_this_radius>1){
+      cout << "Finding Closest g4hit.  "<<numhits_at_this_radius << " hits have the same radius.  Selection was arbitrary"<<endl;
+    return bestpos;
+  }
+  
+  TVector3 bestpos(-9000,-9000,-9000);
+  float bestdelta=9999;
+  for (auto iter = intrack->begin_clusters();
+       iter != intrack->end_clusters(); ++iter) {
+    unsigned int cluster_id = *iter;
+    SvtxCluster* cluster = _clustermap->get(cluster_id);
+    float x = cluster->get_x();
+    float y = cluster->get_y();
+    float z = cluster->get_z();
+    float r = sqrt(x*x+y*y);
+    float delta= (TMath::Abs(r-radius));
+    
+    if (delta<bestdelta){
+      bestpos.SetXYZ(x,y,z);
+      bestdelta=delta;
+    }
+  }
+  return bestpos;
+}
+
+/*!
  * Get Phi R Z coords and covariance from a kalman extrapolation/interpolation to a given radius
  * Currently will not work correctly for radii smaller than the last point on the track.
  * pos_out and cov_out will be filled with the Phi, R, Z values of position and covariance terms.
