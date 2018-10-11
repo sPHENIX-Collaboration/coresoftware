@@ -40,7 +40,7 @@ PHG4SiliconTrackerSubsystem::PHG4SiliconTrackerSubsystem(const std::string &dete
 //_______________________________________________________________________
 int PHG4SiliconTrackerSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "PHG4SiliconTrackerSubsystem::Init started" << std::endl;
   }

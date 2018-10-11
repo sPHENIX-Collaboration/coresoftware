@@ -159,7 +159,7 @@ bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4Cell* lhs,
 
 bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cell* rhs) {
 
-  if(verbosity > 2)
+  if(Verbosity() > 2)
     {
       cout << " lhs layer " <<  lhs->get_layer() 
 	   << " lhs ladder z index " <<  lhs->get_ladder_z_index() 
@@ -192,7 +192,7 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cel
   } else {
     if( fabs(lhs->get_zbin() - rhs->get_zbin()) == 0 ) {
       if( fabs(lhs->get_phibin() - rhs->get_phibin()) <= 1 ){
-	if(verbosity > 2) cout << "    accepted " << endl;
+	if(Verbosity() > 2) cout << "    accepted " << endl;
 	return true;
       } 
     }
@@ -269,7 +269,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   // Report Settings
   //----------------
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "====================== PHG4SvtxClusterizer::InitRun() =====================" << endl;
     cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << endl;
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
@@ -674,13 +674,13 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 	  }
 	}
 	
-	if (verbosity>1) {
+	if (Verbosity()>1) {
 	  cout << "r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	  cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	       << ", " << clus.get_position(2) << ")" << endl;
 	  cout << endl;
 	}
-      }	else if (verbosity>1) {
+      }	else if (Verbosity()>1) {
 	cout << "silicon cylinder cell: removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	     << ", " << clus.get_position(2) << ")" << endl;
@@ -694,7 +694,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 
 void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     cout << "Entering PHG4SvtxClusterizer::ClusterLadderCells " << endl;
 
   //----------
@@ -737,7 +737,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       ++layeriter) {
 
     int layer = layeriter->second->get_layer();
-    if(verbosity > 0)
+    if(Verbosity() > 0)
       cout << " layer loop, current layer = " << layer << endl;
 
     if ((unsigned int)layer < _min_layer) continue;
@@ -750,7 +750,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	 ++hiter) {
       SvtxHit* hit = hiter->second;
       PHG4Cell* cell = cells->findCell(hit->get_cellid());
-      if(verbosity > 2) 
+      if(Verbosity() > 2) 
 	{
 	  cout << "adding cell to cell_hit_map: ";
 	  cell->print();
@@ -768,10 +768,10 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     Graph G;
 
     // Find adjacent cell
-    if(verbosity > 2) cout << "Find adjacent cells for layer " << layer << endl;
+    if(Verbosity() > 2) cout << "Find adjacent cells for layer " << layer << endl;
     for(unsigned int i=0; i<cell_list.size(); i++) {
       for(unsigned int j=i+1; j<cell_list.size(); j++) {
-	if(verbosity > 2) 
+	if(Verbosity() > 2) 
 	  {
 	    cout << "compare cells " << i << " and " << j << endl;
 	    cell_list[i]->print();
@@ -780,7 +780,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
         if(ladder_are_adjacent(cell_list[i], cell_list[j]) )
 	  {
 	    add_edge(i,j,G);
-	    if(verbosity > 2) 
+	    if(Verbosity() > 2) 
 	      {
 		cout << "Found edge " << i << "   " << j << endl;
 		cell_list[i]->print();
@@ -791,7 +791,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       
       add_edge(i,i,G);
     }
-    if(verbosity > 2) cout << "finished looking for adjacent cells for layer " << layer << endl;
+    if(Verbosity() > 2) cout << "finished looking for adjacent cells for layer " << layer << endl;
 
     // Find the connections between the vertices of the graph (vertices are the rawhits, 
     // connections are made when they are adjacent to one another)
@@ -862,7 +862,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
         PHG4Cell* cell = mapiter->second;
 	SvtxHit* hit = cell_hit_map[cell];
-	if(verbosity>0)
+	if(Verbosity()>0)
 	  {
 	    cout << "Add hit: "; 
 	    hit->identify();
@@ -894,8 +894,8 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	  zsum += hit_location[2];
 	}
 	++nhits;
-	if(verbosity > 2) cout << "     nhits = " << nhits << endl;
-	if(verbosity > 2)
+	if(Verbosity() > 2) cout << "     nhits = " << nhits << endl;
+	if(Verbosity() > 2)
 	  {
 	    cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2]  << endl;
 	    cout << "     nhits " << nhits << " clusx  = " << xsum/nhits << " clusy " << ysum/nhits << " clusz " << zsum/nhits  << endl;
@@ -1029,7 +1029,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	  }
 	}
 
-	if(verbosity > 1)
+	if(Verbosity() > 1)
 	  {
 	    // fairly complete sanity check:
 	    // Get the list of g4hit positions for this cluster and compare positions	    
@@ -1072,7 +1072,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	    cout << endl;
 	  }
 	
-	if (verbosity>1) {
+	if (Verbosity()>1) {
 	  double radius = sqrt(clusx*clusx+clusy*clusy);
 	  double clusphi = atan2(clusy,clusx);
 	  cout << "INTT ladder cluster r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
@@ -1080,7 +1080,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	       << ", " << clus.get_position(2) << ")" << endl;
 	  cout << endl;
 	}
-      }	else if (verbosity>1) {
+      }	else if (Verbosity()>1) {
 	double radius = sqrt(clusx*clusx+clusy*clusy);
 	double clusphi = atan2(clusy,clusx);
 	cout << "removed r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
@@ -1096,7 +1096,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
 void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     cout << "Entering PHG4SvtxClusterizer::ClusterMapsLadderCells " << endl;
 
   //----------
@@ -1152,7 +1152,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
     double hitx=0, hity=0, hitz =0;
 
-    if(verbosity >4)
+    if(Verbosity() >4)
       {
 	cout << "get g4_hit hit positions for layer  " << layer << endl;
 	PHG4HitContainer::ConstIterator hiter;
@@ -1212,7 +1212,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       int layer = mapiter->second->get_layer();
       PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
 
-      if(verbosity > 2)
+      if(Verbosity() > 2)
 	cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
       
       SvtxCluster_v1 clus;
@@ -1236,7 +1236,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	int binz = geom->get_pixel_Z_from_pixel_number(pixel_number);
 	zbins.insert(binz);
 
-	if(verbosity > 2)
+	if(Verbosity() > 2)
 	  cout << "   pixel number " << pixel_number << " binphi = " << binphi  << " binz = " << binz  << endl;
       }
 
@@ -1262,7 +1262,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       for(mapiter = clusrange.first; mapiter != clusrange.second; mapiter++ ) {
         PHG4Cell* cell = mapiter->second;
 
-	//if(verbosity > 2)	
+	//if(Verbosity() > 2)	
 	  //cell->identify();
 	
 	SvtxHit* hit = cell_hit_map[cell];
@@ -1293,7 +1293,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	  zsum += hit_location[2];
 	}
 	
-	if(verbosity > 2)
+	if(Verbosity() > 2)
 	  {
 	    cout << "  From  geometry object: hit x " << hit_location[0] << " hit y " << hit_location[1] << " hit z " << hit_location[2] << " from hit object: e " << hit->get_e() << " hit adc " << hit->get_adc() << " e weight " << _make_e_weights[layer] << endl;
 	  }
@@ -1418,7 +1418,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	    first = false;
 	  }
 	}
-	if(verbosity > 1)
+	if(Verbosity() > 1)
 	  {
 	    // fairly complete sanity check:
 	    // Get the list of g4hit positions for this cluster and compare positions	    
@@ -1453,7 +1453,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	    cout << endl;
 	  }
 
-	if (verbosity>1) {
+	if (Verbosity()>1) {
 	  double radius = sqrt(clusx*clusx+clusy*clusy);
 	  double clusphi = atan2(clusy,clusx);
 	  cout << "clus energy " << clus_energy << " clus_adc " << clus_adc << " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
@@ -1461,7 +1461,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 	       << ", " << clus.get_position(2) << ")" << endl;
 	  cout << endl;
 	}
-      }	else if (verbosity>1) {
+      }	else if (Verbosity()>1) {
 	double radius = sqrt(clusx*clusx+clusy*clusy);
 	double clusphi = atan2(clusy,clusx);
 	cout << "MAPS ladder cell: removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
@@ -1478,7 +1478,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
 
 void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
 
-  if (verbosity >= 1) {
+  if (Verbosity() >= 1) {
 
     SvtxClusterMap *clusterlist = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (!clusterlist) return;

@@ -54,13 +54,13 @@ int Fun4AllPrdfOutputManager::InitPrdfNode( PHCompositeNode* top_node, const str
 int Fun4AllPrdfOutputManager::outfileopen(const string &fname)
 {
   if( prdfOut ) {
-    if( verbosity ) cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << outfilename << "\"" << endl;
+    if( Verbosity() ) cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << outfilename << "\"" << endl;
     delete prdfOut;
     prdfOut = 0;
   }
 
   outfilename = fname;
-  if( verbosity ) cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << outfilename << "\"" << endl;
+  if( Verbosity() ) cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << outfilename << "\"" << endl;
 
   return 0;
   

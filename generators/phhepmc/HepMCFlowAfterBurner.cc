@@ -130,7 +130,7 @@ int HepMCFlowAfterBurner::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " no evt pointer under HEPMC Node found" << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       cout << "calling flowAfterburner with algorithm "
            << algorithmName << ", mineta " << mineta

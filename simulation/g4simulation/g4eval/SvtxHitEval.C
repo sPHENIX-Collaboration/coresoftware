@@ -117,16 +117,17 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
   if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF)) assert(cell);
   else if (!cell) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; return truth_hits;}
 
+  //cout << "Eval: hitid " << hit->get_id() << " cellid " << cell->get_cellid() << endl;
   // loop over all the g4hits in this cell
   for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
        g4iter != cell->get_g4hits().second;
        ++g4iter) {
-      
+    //cout << "    Looking for hit " << g4iter->first << " in layer " << cell->get_layer() << " with edep " << g4iter->second << endl;      
     PHG4Hit* g4hit = nullptr;
     if (!g4hit&&_g4hits_svtx)    g4hit = _g4hits_svtx->findHit(g4iter->first);
     if (!g4hit&&_g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
     if (!g4hit&&_g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
-
+    if(!g4hit) cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << endl;
     if (_strict) assert(g4hit);
     else if (!g4hit) {++_errors; cout << PHWHERE << " nerr: " << _errors << endl; continue;}
     
@@ -302,7 +303,7 @@ std::set<SvtxHit*> SvtxHitEval::all_hits_from(PHG4Hit* g4hit) {
   
   std::set<SvtxHit*> hits;
 
-  unsigned int hit_layer = g4hit->get_detid();
+   unsigned int hit_layer = g4hit->get_layer();
   
   // loop over all the hits
   for (SvtxHitMap::Iter iter = _hitmap->begin();
@@ -449,7 +450,8 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
   _g4cells_tracker = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
   _g4cells_maps = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
 
-  _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
+  //  _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
+  _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
   _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
   

@@ -110,7 +110,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode *topNode) {
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	_fitter->set_verbosity(verbosity);
+	_fitter->set_verbosity(Verbosity());
 
 	// tower geometry for track states
 
@@ -174,7 +174,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 
   _event++;
 
-	if (verbosity >= 2)
+	if (Verbosity() >= 2)
 	  std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
 
 	GetNodes(topNode);
@@ -239,7 +239,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 				   seed_cov);
 
 	  if (measurements.size() < 3) {
-	    if (verbosity >= 2) {
+	    if (Verbosity() >= 2) {
 	      //LogWarning("measurements.size() < 3");
 	      std::cout << "event: " << _event << " : measurements.size() < 3"
 			<< "\n";
@@ -285,7 +285,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode *topNode) {
 	  int fitting_err = _fitter->processTrack(track, false);
 
 	  if (fitting_err != 0) {
-	    if (verbosity >= 2) {
+	    if (Verbosity() >= 2) {
 	      //LogWarning("measurements.size() < 3");
 	      std::cout << "event: " << _event
 			<< " : fitting_err != 0, next track." << "\n";
@@ -346,7 +346,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode *topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode(_sub_top_node_name.c_str());
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << _sub_top_node_name.c_str() << " node added" << endl;
 	}
 
@@ -355,7 +355,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode *topNode) {
 //	PHIODataNode<PHObject>* clusters_node = new PHIODataNode<PHObject>(
 //			_clustermap_out, _clustermap_out_name.c_str(), "PHObject");
 //	tb_node->addNode(clusters_node);
-//	if (verbosity > 0)
+//	if (Verbosity() > 0)
 //		cout << _clustermap_out_name.c_str() <<" node added" << endl;
 
 	_trackmap_out = new SvtxTrackMap_v1;
@@ -363,7 +363,7 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode *topNode) {
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
 			_trackmap_out, _trackmap_out_name.c_str(), "PHObject");
 	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << _trackmap_out_name.c_str() << " node added" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;

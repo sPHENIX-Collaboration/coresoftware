@@ -131,14 +131,14 @@ int PHRaveVertexing::InitRun(PHCompositeNode *topNode) {
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
 	    field, "DafRef",
 			"RKTrackRep", false);
-	_fitter->set_verbosity(verbosity);
+	_fitter->set_verbosity(Verbosity());
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
+	_vertex_finder = new genfit::GFRaveVertexFactory(Verbosity());
 	_vertex_finder->setMethod(_vertexing_method.data());
 	//_vertex_finder->setBeamspot();
 
@@ -164,7 +164,7 @@ int PHRaveVertexing::InitRun(PHCompositeNode *topNode) {
 int PHRaveVertexing::process_event(PHCompositeNode *topNode) {
 	_event++;
 
-	if(verbosity > 1)
+	if(Verbosity() > 1)
 		std::cout << PHWHERE << "Events processed: " << _event << std::endl;
 
 	GetNodes(topNode);
@@ -172,7 +172,7 @@ int PHRaveVertexing::process_event(PHCompositeNode *topNode) {
 	//! stands for Refit_GenFit_Tracks
 	GenFitTrackMap gf_track_map;
 	vector<genfit::Track*> gf_tracks;
-	if(verbosity > 1) _t_translate->restart();
+	if(Verbosity() > 1) _t_translate->restart();
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
 			++iter) {
 		SvtxTrack* svtx_track = iter->second;
@@ -189,24 +189,24 @@ int PHRaveVertexing::process_event(PHCompositeNode *topNode) {
 		gf_track_map.insert({genfit_track, iter->first});
 		gf_tracks.push_back(const_cast<genfit::Track*> (genfit_track));
 	}
-	if(verbosity > 1) _t_translate->stop();
+	if(Verbosity() > 1) _t_translate->stop();
 
-	if(verbosity > 1) _t_rave->restart();
+	if(Verbosity() > 1) _t_rave->restart();
 	vector<genfit::GFRaveVertex*> rave_vertices;
 	if (gf_tracks.size() >= 2) {
 		try {
 			_vertex_finder->findVertices(&rave_vertices, gf_tracks);
 		} catch (...) {
-			if(verbosity > 1)
+			if(Verbosity() > 1)
 				std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
 		}
 	}
-	if(verbosity > 1) _t_rave->stop();
+	if(Verbosity() > 1) _t_rave->stop();
 	FillSvtxVertexMap(rave_vertices, gf_track_map);
 
 	for(auto iter : gf_track_map) delete iter.first;
 
-	if(verbosity > 1) {
+	if(Verbosity() > 1) {
 		std::cout << "=============== Timers: ===============" << std::endl;
 		std::cout << "Event: " << _event << std::endl;
 		std::cout << "Translate:                "<<_t_translate->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -250,7 +250,7 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode *topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -259,14 +259,14 @@ int PHRaveVertexing::CreateNodes(PHCompositeNode *topNode) {
 		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 				_vertexmap_refit, _svtxvertexmaprefit_node_name.c_str(), "PHObject");
 		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
 	} else if (!findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap")) {
 		_vertexmap = new SvtxVertexMap_v1;
 		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 				_vertexmap, "SvtxVertexMap", "PHObject");
 		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "Svtx/SvtxVertexMap node added" << endl;
 	}
 

@@ -130,6 +130,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster)
          iter != new_g4hits.end();
          ++iter)
     {
+      //cout << "cluster_eval insert g4hit " << *iter->
       truth_hits.insert(*iter);
     }
   }
@@ -384,7 +385,7 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)
   }
   std::set<SvtxCluster*> clusters;
 
-  unsigned int hit_layer = truthhit->get_detid();
+  unsigned int hit_layer = truthhit->get_layer();
   // loop over all the clusters
 
   int count = 0;

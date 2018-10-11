@@ -104,7 +104,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
   
   int code = CreateNodes(topNode);
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "====================== PHG4HoughTransform::InitRun() ======================" << endl;
     cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
     cout << " Number of tracking layers: " << _nlayers << endl;
@@ -144,7 +144,7 @@ int PHG4HoughTransform::InitRun(PHCompositeNode* topNode) {
 
 int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
   
-  if (verbosity > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
+  if (Verbosity() > 0) cout << "PHG4HoughTransform::process_event -- entered" << endl;
 
   // start fresh  
   _clusters.clear();
@@ -434,20 +434,20 @@ int PHG4HoughTransform::CreateNodes(PHCompositeNode* topNode) {
   if (!tb_node) {
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);
-    if (verbosity > 0) cout << "SVTX node added" << endl;
+    if (Verbosity() > 0) cout << "SVTX node added" << endl;
   }
 
   _g4tracks = new SvtxTrackMap_v1;
   PHIODataNode<PHObject>* tracks_node =
     new PHIODataNode<PHObject>(_g4tracks, "SvtxTrackMap", "PHObject");
   tb_node->addNode(tracks_node);
-  if (verbosity > 0) cout << "Svtx/SvtxTrackMap node added" << endl;
+  if (Verbosity() > 0) cout << "Svtx/SvtxTrackMap node added" << endl;
 
   _g4vertexes = new SvtxVertexMap_v1;
   PHIODataNode<PHObject>* vertexes_node =
     new PHIODataNode<PHObject>(_g4vertexes, "SvtxVertexMap", "PHObject");
   tb_node->addNode(vertexes_node);
-  if (verbosity > 0) cout << "Svtx/SvtxVertexMap node added" << endl;
+  if (Verbosity() > 0) cout << "Svtx/SvtxVertexMap node added" << endl;
 
   /*
   PHG4CylinderGeomContainer* geoms =
@@ -556,7 +556,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderCellGeom *cellgeo = miter->second;
       
-      if (verbosity > 1) cellgeo->identify();
+      if (Verbosity() > 1) cellgeo->identify();
       
       _radii[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius();      
     }
@@ -568,7 +568,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderGeom *geo = miter->second;
       
-      if (verbosity > 1) geo->identify();
+      if (Verbosity() > 1) geo->identify();
       
       _radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
     }
@@ -580,7 +580,7 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderGeom *geo = miter->second;
       
-      if (verbosity > 1) geo->identify();
+      if (Verbosity() > 1) geo->identify();
       
       _radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
     }
@@ -852,7 +852,7 @@ int PHG4HoughTransform::setup_tracker_object() {
   _tracker->setChi2RemovalCut(_chi2_cut_full*0.5);
   _tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
   _tracker->setPrintTimings(false);
-  //_tracker->setVerbosity(verbosity);
+  //_tracker->setVerbosity(Verbosity());
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dcaxy_cut);
   _tracker->setSmoothBack(true);
@@ -937,7 +937,7 @@ int PHG4HoughTransform::translate_input() {
     _clusters.push_back(hit3d);
   }
 
-  if (verbosity > 20) {
+  if (Verbosity() > 20) {
     cout << "-------------------------------------------------------------------" << endl;
     cout << "PHG4HoughTransform::process_event has the following input clusters:" << endl;
 
@@ -965,7 +965,7 @@ int PHG4HoughTransform::fast_vertex_from_bbc() {
       _vertex[1] = 0.0;
       _vertex[2] = vertex->get_z();
 
-      if (verbosity) cout << " initial bbc vertex guess: "
+      if (Verbosity()) cout << " initial bbc vertex guess: "
 			  << _vertex[0] << " "
 			  << _vertex[1] << " "
 			  << _vertex[2] << endl;      
@@ -1019,7 +1019,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   _vertex.clear();
   _vertex.assign(3,0.0);
   
-  if (verbosity) cout << " seed track finding count: " << _tracks.size() << endl;
+  if (Verbosity()) cout << " seed track finding count: " << _tracks.size() << endl;
 
   if (!_tracks.empty()) {
 
@@ -1033,7 +1033,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
 
     _vertex[2] = zsum / _tracks.size();
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << " seed track vertex pre-fit: "
 	   << _vertex[0] << " "
 	   << _vertex[1] << " "
@@ -1051,7 +1051,7 @@ int PHG4HoughTransform::fast_vertex_guessing() {
   _track_errors.clear();
   _track_covars.clear();
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << " seed track vertex post-fit: "
 	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }  
@@ -1094,7 +1094,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
   // don't need the tracker object anymore
   _tracker_vertex->clear();
   
-  if (verbosity) cout << " initial track finding count: " << _tracks.size() << endl;
+  if (Verbosity()) cout << " initial track finding count: " << _tracks.size() << endl;
 
   if (!_tracks.empty()) {
 
@@ -1114,7 +1114,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
     _vertex[1] = ysum / _tracks.size();
     _vertex[2] = zsum / _tracks.size();
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << " initial track vertex pre-fit: "
 	   << _vertex[0] - shift_dx << " "
 	   << _vertex[1] - shift_dy << " "
@@ -1135,7 +1135,7 @@ int PHG4HoughTransform::initial_vertex_finding() {
   // shift back to the global coordinates
   shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << " initial track vertex post-fit: "
 	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }  
@@ -1170,11 +1170,11 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
   // we will need the tracker object below to refit the tracks... so we won't
   // reset it here
   
-  if (verbosity > 0) cout << " final track count: " << _tracks.size() << endl;
+  if (Verbosity() > 0) cout << " final track count: " << _tracks.size() << endl;
 
   if (!_tracks.empty()) {
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << " final vertex pre-fit: "
 	   << _vertex[0] - shift_dx << " "
 	   << _vertex[1] - shift_dy << " "
@@ -1186,7 +1186,7 @@ int PHG4HoughTransform::full_tracking_and_vertexing() {
     _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.020, false );
     _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.005, false );
   
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << " final vertex post-fit: "
 	   << _vertex[0] - shift_dx << " "
 	   << _vertex[1] - shift_dy << " "
@@ -1342,7 +1342,7 @@ int PHG4HoughTransform::export_output() {
     _g4tracks->insert(&track);
     vertex.insert_track(track.get_id());
 
-    if (verbosity > 5) {
+    if (Verbosity() > 5) {
       cout << "track " << itrack << " quality = " << track.get_quality()
            << endl;
       cout << "px = " << track.get_px() << " py = " << track.get_py()
@@ -1351,9 +1351,9 @@ int PHG4HoughTransform::export_output() {
   }  // track loop
 
   SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
-  if (verbosity > 5) vtxptr->identify();
+  if (Verbosity() > 5) vtxptr->identify();
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "PHG4HoughTransform::process_event -- leaving process_event"
          << endl;
   }

@@ -34,7 +34,7 @@ RetowerCEMC::~RetowerCEMC()
 
 int RetowerCEMC::Init(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "RetowerCEMC::Init: initialized" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -50,7 +50,7 @@ int RetowerCEMC::InitRun(PHCompositeNode *topNode)
 
 int RetowerCEMC::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "RetowerCEMC::process_event: entering" << std::endl;
 
   // pull out the tower containers and geometry objects at the start
@@ -60,7 +60,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
   RawTowerGeomContainer *geomEM = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
   RawTowerGeomContainer *geomIH = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     std::cout << "RetowerCEMC::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC towers" << std::endl;
   }
 
@@ -96,7 +96,7 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
 
   RawTowerContainer* emcal_retower = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC_RETOWER");
   
-  if (verbosity > 0) std::cout << "RetowerCEMC::process_event: filling TOWER_CALIB_CEMC_RETOWER node, with initial size = " << emcal_retower->size() << std::endl;
+  if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: filling TOWER_CALIB_CEMC_RETOWER node, with initial size = " << emcal_retower->size() << std::endl;
 
   // create new towers
   for (int eta = 0; eta < _NETA; eta++) {
@@ -110,9 +110,9 @@ int RetowerCEMC::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0) std::cout << "RetowerCEMC::process_event: finished filling TOWER_CALIB_CEMC_RETOWER node, with final size = " << emcal_retower->size() << std::endl;
+  if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: finished filling TOWER_CALIB_CEMC_RETOWER node, with final size = " << emcal_retower->size() << std::endl;
 
-  if (verbosity > 0) std::cout << "RetowerCEMC::process_event: exiting" << std::endl;
+  if (Verbosity() > 0) std::cout << "RetowerCEMC::process_event: exiting" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -142,7 +142,7 @@ int RetowerCEMC::CreateNode(PHCompositeNode *topNode)
   RawTowerContainer* test_emcal_retower = findNode::getClass<RawTowerContainer>(topNode,"TOWER_CALIB_CEMC_RETOWER");
   if ( !test_emcal_retower ) {
 
-    if (verbosity > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWER_CALIB_CEMC_RETOWER node " << std::endl;
+    if (Verbosity() > 0) std::cout << "RetowerCEMC::CreateNode : creating TOWER_CALIB_CEMC_RETOWER node " << std::endl;
 
     RawTowerContainer *emcal_retower = new RawTowerContainer( RawTowerDefs::CalorimeterId::HCALIN );
     PHIODataNode<PHObject> *emcalTowerNode = new PHIODataNode<PHObject>( emcal_retower, "TOWER_CALIB_CEMC_RETOWER", "PHObject");

@@ -99,10 +99,10 @@ class PHRaveVertexFactory {
 
 public:
 	//! ctor
-	PHRaveVertexFactory(const int verbosity) {
+	PHRaveVertexFactory(const int Verbosity()) {
 		rave::ConstantMagneticField mfield(0., 0., 0.); // RAVE use Tesla
 		_factory = new rave::VertexFactory(mfield, rave::VacuumPropagator(),
-				"default", verbosity);
+				"default", Verbosity());
 
 		IdGFTrackStateMap_.clear();
 	}
@@ -239,7 +239,7 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 	_fitter = PHGenFit::Fitter::getInstance(tgeo_manager,
 	    field, _track_fitting_alg_name,
 			"RKTrackRep", _do_evt_display);
-	_fitter->set_verbosity(verbosity);
+	_fitter->set_verbosity(Verbosity());
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
@@ -248,12 +248,12 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 
 	//LogDebug(genfit::FieldManager::getInstance()->getFieldVal(TVector3(0, 0, 0)).Z());
 
-	_vertex_finder = new genfit::GFRaveVertexFactory(verbosity);
+	_vertex_finder = new genfit::GFRaveVertexFactory(Verbosity());
 	//_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
 	_vertex_finder->setMethod(_vertexing_method.data());
 	//_vertex_finder->setBeamspot();
 
-	//_vertex_finder = new PHRaveVertexFactory(verbosity);
+	//_vertex_finder = new PHRaveVertexFactory(Verbosity());
 
 	if (!_vertex_finder) {
 		cerr << PHWHERE << endl;
@@ -261,7 +261,7 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 	}
 
 	if (_do_eval) {
-		if(verbosity >= 1)
+		if(Verbosity() >= 1)
 			cout << PHWHERE << " Opening file: " << _eval_outname << endl;
 		PHTFileServer::get().open(_eval_outname, "RECREATE");
 		init_eval_tree();
@@ -278,10 +278,8 @@ int PHG4TrackKalmanFitter::InitRun(PHCompositeNode *topNode) {
 int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
 
-	if(verbosity > 1)
+	if(Verbosity() > 1)
 		std::cout << PHWHERE << "(Heads up! You're running a non-stock PHG4TrackKalmanFitter) Events processed: " << _event << std::endl;
-//	if (_event % 1000 == 0)
-//		cout << PHWHERE << "Events processed: " << _event << endl;
 
 	GetNodes(topNode);
 
@@ -490,12 +488,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		    
 		  } catch (...) {
-		    if (verbosity >= 2)
+		    if (Verbosity() >= 2)
 		      LogWarning("gf_cylinder_state_prev failed!");
 		    //std::cout <<PHWHERE << " Problem in lienar extrapolation."<< endl;
 		  }
 		  
-		  if (verbosity > 0){// and !covariance_okay){
+		  if (Verbosity() > 0){// and !covariance_okay){
 		    std::cout << PHWHERE << "Covariance_okay="<< (covariance_okay?"true":"false") <<" RCC!" <<endl;
 		  }
 
@@ -594,7 +592,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		try {
 			_vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
 		} catch (...) {
-			if(verbosity > 1)
+			if(Verbosity() > 1)
 				std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
 		}
 	}
@@ -788,7 +786,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 
 	if (_do_eval) {
-		if(verbosity >= 1)
+		if(Verbosity() >= 1)
 			cout << PHWHERE << " Writing to file: " << _eval_outname << endl;
 		PHTFileServer::get().cd(_eval_outname);
 		_eval_tree->Write();
@@ -1051,7 +1049,7 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -1060,7 +1058,7 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 		PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
 				_trackmap_refit, "SvtxTrackMapRefit", "PHObject");
 		tb_node->addNode(tracks_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "Svtx/SvtxTrackMapRefit node added" << endl;
 	}
 
@@ -1070,7 +1068,7 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 				new PHIODataNode<PHObject>(_primary_trackmap, "PrimaryTrackMap",
 						"PHObject");
 		tb_node->addNode(primary_tracks_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "Svtx/PrimaryTrackMap node added" << endl;
 	}
 
@@ -1079,14 +1077,14 @@ int PHG4TrackKalmanFitter::CreateNodes(PHCompositeNode *topNode) {
 		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 				_vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
 		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "Svtx/SvtxVertexMapRefit node added" << endl;
 	} else if (!findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap")) {
 		_vertexmap = new SvtxVertexMap_v1;
 		PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 				_vertexmap, "SvtxVertexMap", "PHObject");
 		tb_node->addNode(vertexes_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "Svtx/SvtxVertexMap node added" << endl;
 	}
 
@@ -1212,7 +1210,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			topNode, "G4CELL_MAPS");
 
 	if (!cells_svtx and !cells_intt and !cells_maps) {
-		if (verbosity >= 0) {
+		if (Verbosity() >= 0) {
 			LogError("No PHG4CellContainer found!");
 		}
 		return nullptr;
@@ -1246,7 +1244,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	 * if fit track as a primary track
 	 */
 
-//	if(invertex and verbosity >= 2)
+//	if(invertex and Verbosity() >= 2)
 //	{
 //		LogDebug(invertex->size_tracks());
 //		LogDebug(invertex->get_chisq());
@@ -1320,7 +1318,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
 					pos, cov);
 			measurements.push_back(meas);
-//			if(verbosity >= 2)
+//			if(Verbosity() >= 2)
 //			{
 //				meas->getMeasurement()->Print();
 //			}
@@ -1374,7 +1372,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 					PHG4HitContainer>(topNode, "G4HIT_MAPS");
 
 			if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
-				if (verbosity >= 0) {
+				if (Verbosity() >= 0) {
 					LogError("No PHG4HitContainer found!");
 				}
 				continue;
@@ -1387,7 +1385,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			if(!cell && cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
 			if(!cell && cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
 			if(!cell){
-				if(verbosity>=0)
+				if(Verbosity()>=0)
 					LogError("!cell");
 				continue;
 			}
@@ -1398,7 +1396,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
 
 			if (!phg4hit) {
-				if (verbosity >= 0)
+				if (Verbosity() >= 0)
 					LogError("!phg4hit");
 				continue;
 			}
@@ -1447,7 +1445,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		if(cells_intt) cell_intt = cells_intt->findCell(svtxhit->get_cellid());
 		if(cells_maps) cell_maps = cells_maps->findCell(svtxhit->get_cellid());
 		if(!(cell_svtx or cell_intt or cell_maps)){
-			if(verbosity>=0)
+			if(Verbosity()>=0)
 				LogError("!(cell_svtx or cell_intt or cell_maps)");
 			continue;
 		}
@@ -1564,7 +1562,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	 *  ret code 0 means 0 error or good status
 	 */
 	if (_fitter->processTrack(track.get(), false) != 0) {
-		if (verbosity >= 1)
+		if (Verbosity() >= 1)
 			LogWarning("Track fitting failed");
 		//delete track;
 		return NULL;
@@ -1592,7 +1590,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	if(_use_truth_vertex) {
 		PHG4VtxPoint* first_point = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
 		vertex_position.SetXYZ(first_point->get_x(), first_point->get_y(), first_point->get_z());
-		if(verbosity > 1) {
+		if(Verbosity() > 1) {
 			cout<<"Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " <<endl;
 		}
 	} else if (vertex) {
@@ -1612,7 +1610,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		gf_state_beam_line_ca = std::shared_ptr<genfit::MeasuredStateOnPlane>(phgf_track->extrapolateToLine(vertex_position,
 				TVector3(0., 0., 1.)));
 	} catch (...) {
-		if (verbosity >= 2)
+		if (Verbosity() >= 2)
 			LogWarning("extrapolateToLine failed!");
 	}
 	if(!gf_state_beam_line_ca) return NULL;
@@ -1646,7 +1644,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		gf_state_vertex_ca = std::shared_ptr < genfit::MeasuredStateOnPlane
 				> (phgf_track->extrapolateToPoint(vertex_position));
 	} catch (...) {
-		if (verbosity >= 2)
+		if (Verbosity() >= 2)
 			LogWarning("extrapolateToPoint failed!");
 	}
 	if (!gf_state_vertex_ca) {
@@ -1805,7 +1803,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 #endif
 
 	} catch (...) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("DCA calculationfailed!");
 	}
 
@@ -1856,11 +1854,11 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 //					> (phgf_track->extrapolateToCylinder(radius,
 //							TVector3(0, 0, 0), TVector3(0, 0, 1), 0));
 //		} catch (...) {
-//			if (verbosity >= 2)
+//			if (Verbosity() >= 2)
 //				LogWarning("Exrapolation failed!");
 //		}
 //		if (!gf_state) {
-//			if (verbosity > 1)
+//			if (Verbosity() > 1)
 //				LogWarning("Exrapolation failed!");
 //			continue;
 //		}
@@ -1907,7 +1905,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		genfit::TrackPoint *trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, gftrack->getCardinalRep());
 
 		if(!trpoint) {
-			if (verbosity > 1)
+			if (Verbosity() > 1)
 				LogWarning("!trpoint");
 			continue;
 		}
@@ -1916,7 +1914,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 #endif
 		genfit::KalmanFitterInfo* kfi = static_cast<genfit::KalmanFitterInfo*>( trpoint->getFitterInfo(rep) );
 		if(!kfi) {
-			if (verbosity > 1)
+			if (Verbosity() > 1)
 				LogWarning("!kfi");
 			continue;
 		}
@@ -1929,11 +1927,11 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 			const genfit::MeasuredStateOnPlane* temp_state = &(kfi->getFittedState(true));
 			gf_state = std::shared_ptr <genfit::MeasuredStateOnPlane> (new genfit::MeasuredStateOnPlane(*temp_state));
 		} catch (...) {
-			if (verbosity > 1)
+			if (Verbosity() > 1)
 				LogWarning("Exrapolation failed!");
 		}
 		if (!gf_state) {
-			if (verbosity > 1)
+			if (Verbosity() > 1)
 				LogWarning("Exrapolation failed!");
 			continue;
 		}
@@ -2030,7 +2028,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 			}
 		}
 
-//		if (verbosity >= 2) {
+//		if (Verbosity() >= 2) {
 //			cout << PHWHERE << endl;
 //			svtx_vtx->Print();
 //			_vertexmap_refit->Print();
@@ -2047,18 +2045,18 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //		TMatrixF& pos_out, TMatrixF& cov_out) const {
 //
 //	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
-//		if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+//		if(Verbosity() > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
 //		return false;
 //	}
 //
 //	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
-//		if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+//		if(Verbosity() > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
 //		return false;
 //	}
 //
 //	TVector3 up = TVector3(0., 0., 1.).Cross(n);
 //	if(up.Mag() < 0.00001){
-//		if(verbosity > 0) LogWarning("n is parallel to z");
+//		if(Verbosity() > 0) LogWarning("n is parallel to z");
 //		return false;
 //	}
 //
@@ -2119,7 +2117,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //		R_inv_T.Transpose(R_inv);
 //
 //	} catch (...) {
-//		if (verbosity > 0)
+//		if (Verbosity() > 0)
 //			LogWarning("Can't get rotation matrix");
 //
 //		return false;
@@ -2139,12 +2137,12 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3&
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
 	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
-		if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+		if(Verbosity() > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
 		return false;
 	}
 
 	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
-		if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+		if(Verbosity() > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
 		return false;
 	}
 
@@ -2152,7 +2150,7 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3&
 	TVector3 up_uvn = TVector3(0., 0., 1.).Cross(Z_uvn); // n_uvn X Z_uvn
 
 	if(up_uvn.Mag() < 0.00001){
-		if(verbosity > 0) LogWarning("n is parallel to z");
+		if(Verbosity() > 0) LogWarning("n is parallel to z");
 		return false;
 	}
 
@@ -2176,7 +2174,7 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3&
 
 		R_T.Transpose(R);
 	} catch (...) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("Can't get rotation matrix");
 
 		return false;
@@ -2207,19 +2205,19 @@ bool PHG4TrackKalmanFitter::get_vertex_error_uvn(const TVector3& u,
 //	cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
 	if(!(abs(R.Determinant()-1)<0.01)) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("!(abs(R.Determinant()-1)<0.0001)");
 		return false;
 	}
 
 	if (R.GetNcols() != 3 || R.GetNrows() != 3) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("R.GetNcols() != 3 || R.GetNrows() != 3");
 		return false;
 	}
 
 	if (cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
 		return false;
 	}
@@ -2240,21 +2238,23 @@ bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
 	        const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
-        if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
-	  if(verbosity > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
-	  return false;
+
+	if(pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3) {
+		if(Verbosity() > 0) LogWarning("pos_in.GetNcols() != 1 || pos_in.GetNrows() != 3");
+		return false;
 	}
 	
 	if(cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3) {
-	  if(verbosity > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
-	  return false;
+
+		if(Verbosity() > 0) LogWarning("cov_in.GetNcols() != 3 || cov_in.GetNrows() != 3");
+		return false;
 	}
 	
 	TVector3 r = n.Cross(TVector3(0.,0.,1.));
 	
 	if(r.Mag() < 0.00001){
-	  if(verbosity > 0) LogWarning("n is parallel to z");
-	  return false;
+		if(Verbosity() > 0) LogWarning("n is parallel to z");
+		return false;
 	}
 	
 
@@ -2294,7 +2294,7 @@ bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
 
 		R_T.Transpose(R);
 	} catch (...) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("Can't get rotation matrix");
 
 		return false;
@@ -2339,7 +2339,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 			abs(xu*zu) < max_diff and
 			abs(yu*zu) < max_diff
 			)) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("input frame error!");
 		return R;
 	}
@@ -2353,7 +2353,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 			abs(xpu*zpu) < max_diff and
 			abs(ypu*zpu) < max_diff
 			)) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("output frame error!");
 		return R;
 	}
@@ -2445,7 +2445,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 //		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
 	} catch (...) {
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			LogWarning("Can't get rotation matrix");
 
 		return R;
@@ -2513,7 +2513,7 @@ TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target){
 	bestdelta=delta;
       }
     }
-    if (verbosity>2 && numhits_at_this_radius>1){
+    if (Verbosity()>2 && numhits_at_this_radius>1){
       cout << "Finding Closest g4hit.  "<<numhits_at_this_radius << " hits have the same radius.  Selection was arbitrary"<<endl;
     return bestpos;
   }
@@ -2553,7 +2553,7 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
 
 
   std::shared_ptr < genfit::MeasuredStateOnPlane> gf_cylinder_state;
-  if (verbosity >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
+  if (Verbosity() >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
   //standing question:  is the track rep robust enough that picking from any point on the track is equivalent?
   //I should try to find the closest point to the desired radius and extrapolate back/forward.  For now, replicate 'v1' of the code.
   //should get the sense of whether radius is smaller or larger than last point, too.
@@ -2562,7 +2562,7 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
 					  > (rf_phgf_track->extrapolateToCylinder(radius,line_point,line_direction,npoints-1,1));
     //second to last number there is which point to start from.  The last is the direction +1 = continue forward on track.
   } catch (...) {
-    if (verbosity >= 2)
+    if (Verbosity() >= 2)
       LogWarning("extrapolateToCylinder failed!");
   }
   if (!gf_cylinder_state) {
@@ -2607,7 +2607,7 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
       //this call resize pos_out and cov_out to the correct size.
       pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
 
-      if (verbosity > 4){
+      if (Verbosity() > 4){
 	cout << "pos: Phi=" << pos.Phi() << "\t R="<<pos.Perp() << "\t Z="<<pos.Z()<<endl;
 	cout << "pos_after_rotation: Phi=(should be zero!)" << pos_out[0][0] << "\t R="<<pos_out[1][0] << "\t Z="<<pos_out[2][0]<<endl;
 	cout << "cov_kalman (x,y,z):"<<endl<<"{";
@@ -2629,7 +2629,7 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
 	}
       }
     } catch (...) {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	LogWarning("State Covariance unavailable!");
       // std::cout << PHWHERE << "Extraction of State Cov failed RCC"<<endl;
 

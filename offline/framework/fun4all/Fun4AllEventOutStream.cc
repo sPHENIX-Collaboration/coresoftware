@@ -115,7 +115,7 @@ Fun4AllEventOutStream::WriteEvent(Event *evt)
         }
       else
         {
-          if (verbosity > 0)
+          if (Verbosity() > 0)
             {
               cout << "Fun4AllEventOutStream: dropping packet " << i
                    << " in list with id " << plist[i]->getIdentifier() << endl;

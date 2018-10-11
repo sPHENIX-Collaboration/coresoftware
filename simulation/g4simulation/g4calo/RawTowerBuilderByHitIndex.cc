@@ -129,13 +129,13 @@ RawTowerBuilderByHitIndex::process_event(PHCompositeNode *topNode)
 
   float towerE = 0.;
 
-  if (verbosity)
+  if (Verbosity())
     {
       towerE = towers_->getTotalEdep();
     }
 
   towers_->compress(emin_);
-  if (verbosity)
+  if (Verbosity())
     {
       cout << "Energy lost by dropping towers with less than " << emin_
 	   << " energy, lost energy: "  << towerE - towers_->getTotalEdep() << endl;
@@ -244,7 +244,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
       /* Skip lines starting with / including a '#' */
       if ( line_mapping.find("#") != string::npos )
 	{
-	  if ( verbosity > 0 )
+	  if ( Verbosity() > 0 )
 	    {
 	      cout << "RawTowerBuilderByHitIndex: SKIPPING line in mapping file: " << line_mapping << endl;
 	    }
@@ -364,7 +364,7 @@ bool RawTowerBuilderByHitIndex::ReadGeometryFromTable() {
       it->second->set_center_y( y_temp_rt );
       it->second->set_center_z( z_temp_rt );
 
-      if ( verbosity > 2 )
+      if ( Verbosity() > 2 )
 	{
 	  cout << "* Local tower x y z : " << x_temp << " " << y_temp << " " << z_temp << endl;
 	  cout << "* Globl tower x y z : " << x_temp_rt << " " << y_temp_rt << " " << z_temp_rt << endl;

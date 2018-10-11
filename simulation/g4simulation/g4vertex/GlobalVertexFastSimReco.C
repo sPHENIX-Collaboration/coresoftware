@@ -52,7 +52,7 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
   unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "=================== GlobalVertexFastSimReco::InitRun() ====================" << endl;
     cout << " x smearing: " << _x_smear << " cm " << endl;
     cout << " y smearing: " << _y_smear << " cm " << endl;
@@ -67,7 +67,7 @@ int GlobalVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
 
 int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "GlobalVertexFastSimReco::process_event -- entered" << endl;
+  if (Verbosity() > 1) cout << "GlobalVertexFastSimReco::process_event -- entered" << endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree

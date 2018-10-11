@@ -191,6 +191,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 
     if (whichactive > 0)
     {
+      m_Hit->set_layer(sphxlayer);
       m_Hit->set_ladder_phi_index(ladderphi);
       m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
       m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);

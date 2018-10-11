@@ -277,7 +277,7 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
 	{
 		PHG4Hit* hit = iter->second;
 
-		int layer = hit->get_detid();
+		int layer = hit->get_layer();
 		float length = outer_z_length;
 		if(((unsigned int)layer)<n_inner_layers){length=inner_z_length;}
 		if(fabs(hit->get_z(0))>length){continue;}
@@ -288,17 +288,17 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
 			trkids[trk_id].first = 0;
 			trkids[trk_id].second = 0;
 		}
-		if( hit->get_detid() < 32 )
+		if( hit->get_layer() < 32 )
 		{
-			trkids[trk_id].first = (trkids[trk_id].first | (1<<(hit->get_detid())));
+		  trkids[trk_id].first = (trkids[trk_id].first | (1<<(hit->get_layer())));
 		}
 		else
 		{
-			trkids[trk_id].second = (trkids[trk_id].second | (1<<(hit->get_detid()-32)));
+		  trkids[trk_id].second = (trkids[trk_id].second | (1<<(hit->get_layer()-32)));
 		}
 		
 		// cout<<"trk_id = "<<trk_id<<endl;
-		// cout<<"layer = "<<hit->get_detid()<<endl;
+		// cout<<"layer = "<<hit->get_layer()<<endl;
 		// cout<<"nlayer = "<<__builtin_popcount(trkids[trk_id].first)+__builtin_popcount(trkids[trk_id].second)<<endl<<endl;
 		// trkids.insert(trk_id);
 	}

@@ -1,6 +1,7 @@
 #ifndef __PHG4TPCCLUSTERIZER_H__
 #define __PHG4TPCCLUSTERIZER_H__
 
+#include <g4detectors/PHG4CellDefs.h>
 #include <fun4all/SubsysReco.h>
 #include <RVersion.h>
 #include <vector>
@@ -58,7 +59,10 @@ class PHG4TPCClusterizer : public SubsysReco {
 
   std::vector<int> fNHitsPerZ;
   std::vector<float> fAmps;
-  std::vector<int> fCellIDs;
+  std::vector<unsigned int> fCellIDs;
+  std::vector<int> fCellz;
+  std::vector<int> fCellphi;
+  
   int fNPhiBins;
   int fNZBins;
   PHG4CylinderCellGeom *fGeoLayer;
@@ -91,6 +95,7 @@ class PHG4TPCClusterizer : public SubsysReco {
   float fDCL;
   float _inv_sqrt12;
   float _twopi;
+  float zz_shaping_correction;
 
   TH1F *fHClusterEnergy;
   TProfile2D *fHClusterSizePP;

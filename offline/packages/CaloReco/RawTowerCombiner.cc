@@ -82,7 +82,7 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
   const double input_e_sum = _towers->getTotalEdep();
   const double input_n_tower = _towers->size();
 
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << __PRETTY_FUNCTION__ << "Process event entered" << std::endl;
     }
@@ -113,7 +113,7 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
           assert(output_tower);
           new_tower_map[make_pair(output_eta, output_phi)] = output_tower;
 
-          if (verbosity >= VERBOSITY_MORE)
+          if (Verbosity() >= VERBOSITY_MORE)
             {
               std::cout << __PRETTY_FUNCTION__ << "::" << detector << "::"
                   << " new output tower (prior to tower ID assignment): ";
@@ -152,7 +152,7 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
                   shower_iter->second);
             }
 
-          if (verbosity >= VERBOSITY_MORE)
+          if (Verbosity() >= VERBOSITY_MORE)
             {
               std::cout << __PRETTY_FUNCTION__ << "::" << detector << "::"
                   << " merget into output tower (prior to tower ID assignment) : ";
@@ -176,7 +176,7 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
       _towers->AddTower(eta, phi, tower);
     }
 
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << "input sum energy = " << input_e_sum <<" from "<<input_n_tower<< " towers, merged sum energy = "
@@ -301,7 +301,7 @@ RawTowerCombiner::CreateNodes(PHCompositeNode *topNode)
 
         towergeom->add_tower_geometry(tg);
       }
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
     {
       towergeom->identify();
     }
