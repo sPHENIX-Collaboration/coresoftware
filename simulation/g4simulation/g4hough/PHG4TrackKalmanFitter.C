@@ -2483,6 +2483,7 @@ TVector3 PHG4TrackKalmanFitter::getClusterPosAtRadius(const float radius, const 
 /*!
  * Returns the x,y,z coords of the g4hit in the current record that is closest to the target position.
  */
+/*
 TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target){
 
   PHG4HitContainer* _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
@@ -2537,7 +2538,7 @@ TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target){
   }
   return bestpos;
 }
-
+*/
 /*!
  * Get Phi R Z coords and covariance from a kalman extrapolation/interpolation to a given radius
  * Currently will not work correctly for radii smaller than the last point on the track.
