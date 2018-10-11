@@ -66,11 +66,6 @@ public:
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  /// set verbosity
-  void Verbosity(int verb) {
-    verbosity = verb; // SubsysReco verbosity
-  }
-
   /// external handle for projecting tracks into the calorimetry
   static void projectToRadius(const SvtxTrack* track,
 			      double magfield, // in Tesla

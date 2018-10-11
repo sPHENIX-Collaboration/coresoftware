@@ -345,7 +345,7 @@ void PHPythia6::print_config() const {
 
 int PHPythia6::process_event(PHCompositeNode *topNode) {
 
-  if (verbosity > 1) cout << "PHPythia6::process_event - event: " << _eventcount << endl;
+  if (Verbosity() > 1) cout << "PHPythia6::process_event - event: " << _eventcount << endl;
 
   bool passedTrigger = false;
   std::vector<bool> theTriggerResults;
@@ -394,14 +394,14 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
     // test trigger logic
     
     bool andScoreKeeper = true;
-    if (verbosity > 2) {
+    if (Verbosity() > 2) {
       cout << "PHPythia6::process_event - triggersize: " << _registeredTriggers.size() << endl;
     }
 
     for (unsigned int tr = 0; tr < _registeredTriggers.size(); tr++) { 
       bool trigResult = _registeredTriggers[tr]->Apply(evt);
 
-      if (verbosity > 2) {
+      if (Verbosity() > 2) {
 	cout << "PHPythia6::process_event trigger: "
 	     << _registeredTriggers[tr]->GetName() << "  " << trigResult << endl;
       }
@@ -413,7 +413,7 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
 	andScoreKeeper &= trigResult;
       }
       
-      if (verbosity > 2 && !passedTrigger) {
+      if (Verbosity() > 2 && !passedTrigger) {
 	cout << "PHPythia8::process_event - failed trigger: "
 	     << _registeredTriggers[tr]->GetName() <<  endl;
       }
@@ -444,7 +444,7 @@ int PHPythia6::process_event(PHCompositeNode *topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
   /* print outs*/
-  if (verbosity > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
+  if (Verbosity() > 2) cout << "PHPythia6::process_event - FINISHED WHOLE EVENT" << endl;
 
   ++_eventcount;
   return Fun4AllReturnCodes::EVENT_OK;
@@ -475,6 +475,6 @@ int PHPythia6::ResetEvent(PHCompositeNode *topNode) {
 }
 
 void PHPythia6::register_trigger(PHPy6GenTrigger *theTrigger) {
-  if(verbosity > 1) cout << "PHPythia6::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
+  if(Verbosity() > 1) cout << "PHPythia6::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
   _registeredTriggers.push_back(theTrigger);
 }

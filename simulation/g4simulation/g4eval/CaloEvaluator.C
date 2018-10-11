@@ -55,9 +55,7 @@ CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const s
   , _ntp_cluster(nullptr)
   , _filename(filename)
   , _tfile(nullptr)
-{
-  verbosity = 0;
-}
+{}
 
 int CaloEvaluator::Init(PHCompositeNode* topNode)
 {
@@ -97,7 +95,7 @@ int CaloEvaluator::process_event(PHCompositeNode* topNode)
   {
     _caloevalstack = new CaloEvalStack(topNode, _caloname);
     _caloevalstack->set_strict(_strict);
-    _caloevalstack->set_verbosity(verbosity + 1);
+    _caloevalstack->set_verbosity(Verbosity() + 1);
   }
   else
   {
@@ -140,7 +138,7 @@ int CaloEvaluator::End(PHCompositeNode* topNode)
 
   delete _tfile;
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "========================= " << Name() << "::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
@@ -154,11 +152,11 @@ int CaloEvaluator::End(PHCompositeNode* topNode)
 
 void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
 {
-  if (verbosity > 2) cout << "CaloEvaluator::printInputInfo() entered" << endl;
+  if (Verbosity() > 2) cout << "CaloEvaluator::printInputInfo() entered" << endl;
 
   // print out the truth container
 
-  if (verbosity > 1)
+  if (Verbosity() > 1)
   {
     cout << endl;
     cout << PHWHERE << "   NEW INPUT FOR EVENT " << _ievent << endl;
@@ -191,7 +189,7 @@ void CaloEvaluator::printInputInfo(PHCompositeNode* topNode)
 
 void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 {
-  if (verbosity > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
+  if (Verbosity() > 2) cout << "CaloEvaluator::printOutputInfo() entered" << endl;
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   CaloTruthEval* trutheval = _caloevalstack->get_truth_eval();
@@ -200,7 +198,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
   // print out some useful stuff for debugging
   //==========================================
 
-  if (verbosity > 1)
+  if (Verbosity() > 1)
   {
     // event information
     cout << endl;
@@ -344,7 +342,7 @@ void CaloEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
 void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
-  if (verbosity > 2) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 2) cout << "CaloEvaluator::fillOutputNtuples() entered" << endl;
 
   CaloRawClusterEval* clustereval = _caloevalstack->get_rawcluster_eval();
   CaloRawTowerEval* towereval = _caloevalstack->get_rawtower_eval();
@@ -404,7 +402,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_ntp_gshower)
   {
-    if (verbosity > 1) cout << Name() << " CaloEvaluator::filling gshower ntuple..." << endl;
+    if (Verbosity() > 1) cout << Name() << " CaloEvaluator::filling gshower ntuple..." << endl;
 
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 
@@ -524,7 +522,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_tower_eval)
   {
-    if (verbosity > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
+    if (Verbosity() > 1) cout << "CaloEvaluator::filling tower ntuple..." << endl;
 
     string towernode = "TOWER_CALIB_" + _caloname;
     RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernode.c_str());
@@ -653,7 +651,7 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
   if (_do_cluster_eval)
   {
-    if (verbosity > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
+    if (Verbosity() > 1) cout << "CaloEvaluator::filling gcluster ntuple..." << endl;
 
     GlobalVertexMap* vertexmap = findNode::getClass<GlobalVertexMap>(topNode, "GlobalVertexMap");
 

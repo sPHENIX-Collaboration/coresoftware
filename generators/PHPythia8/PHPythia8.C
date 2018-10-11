@@ -108,9 +108,9 @@ int PHPythia8::Init(PHCompositeNode *topNode)
 
 int PHPythia8::End(PHCompositeNode *topNode)
 {
-  if (verbosity >= VERBOSITY_MORE) cout << "PHPythia8::End - I'm here!" << endl;
+  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::End - I'm here!" << endl;
 
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
   {
     //-* dump out closing info (cross-sections, etc)
     _pythia->stat();
@@ -143,7 +143,7 @@ int PHPythia8::read_config(const char *cfg_file)
 {
   if (cfg_file) _configFile = cfg_file;
 
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
     cout << "PHPythia8::read_config - Reading " << _configFile << endl;
 
   ifstream infile(_configFile.c_str());
@@ -166,7 +166,7 @@ void PHPythia8::print_config() const
 
 int PHPythia8::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity >= VERBOSITY_MORE) cout << "PHPythia8::process_event - event: " << _eventcount << endl;
+  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - event: " << _eventcount << endl;
 
   bool passedGen = false;
   bool passedTrigger = false;
@@ -185,7 +185,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
     // test trigger logic
 
     bool andScoreKeeper = true;
-    if (verbosity >= VERBOSITY_EVEN_MORE)
+    if (Verbosity() >= VERBOSITY_EVEN_MORE)
     {
       cout << "PHPythia8::process_event - triggersize: " << _registeredTriggers.size() << endl;
     }
@@ -194,7 +194,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
     {
       bool trigResult = _registeredTriggers[tr]->Apply(_pythia);
 
-      if (verbosity >= VERBOSITY_EVEN_MORE)
+      if (Verbosity() >= VERBOSITY_EVEN_MORE)
       {
         cout << "PHPythia8::process_event trigger: "
              << _registeredTriggers[tr]->GetName() << "  " << trigResult << endl;
@@ -210,7 +210,7 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
         andScoreKeeper &= trigResult;
       }
 
-      if (verbosity >= VERBOSITY_EVEN_MORE && !passedTrigger)
+      if (Verbosity() >= VERBOSITY_EVEN_MORE && !passedTrigger)
       {
         cout << "PHPythia8::process_event - failed trigger: "
              << _registeredTriggers[tr]->GetName() << endl;
@@ -241,9 +241,9 @@ int PHPythia8::process_event(PHCompositeNode *topNode)
 
   // print outs
 
-  if (verbosity >= VERBOSITY_MORE) cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
-  if (_eventcount < 2 && verbosity >= VERBOSITY_SOME) _pythia->event.list();
-  if (_eventcount >= 2 && verbosity >= VERBOSITY_A_LOT) _pythia->event.list();
+  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::process_event - FINISHED WHOLE EVENT" << endl;
+  if (_eventcount < 2 && Verbosity() >= VERBOSITY_SOME) _pythia->event.list();
+  if (_eventcount >= 2 && Verbosity() >= VERBOSITY_A_LOT) _pythia->event.list();
 
   ++_eventcount;
 
@@ -302,6 +302,6 @@ int PHPythia8::ResetEvent(PHCompositeNode *topNode)
 
 void PHPythia8::register_trigger(PHPy8GenTrigger *theTrigger)
 {
-  if (verbosity >= VERBOSITY_MORE) cout << "PHPythia8::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
+  if (Verbosity() >= VERBOSITY_MORE) cout << "PHPythia8::registerTrigger - trigger " << theTrigger->GetName() << " registered" << endl;
   _registeredTriggers.push_back(theTrigger);
 }

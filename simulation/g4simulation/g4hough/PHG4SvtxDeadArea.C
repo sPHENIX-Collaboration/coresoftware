@@ -53,7 +53,7 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   GenericFillDeadAreaMap(topNode,"SVTX");
   GenericFillDeadAreaMap(topNode,"SILICON_TRACKER");
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "====================== PHG4SvtxDeadArea::InitRun() ========================" << endl;
     cout << " Random number seed = " << seed << endl;    
     for (std::map<int,float>::iterator iter = _eff_by_layer.begin();
@@ -80,7 +80,7 @@ int PHG4SvtxDeadArea::process_event(PHCompositeNode *topNode) {
 
     if (gsl_rng_uniform_pos(RandomGenerator) > get_hit_efficiency(hit->get_layer())) {
       remove_hits.push_back(hit->get_id());
-      if(verbosity > 5)
+      if(Verbosity() > 5)
 	cout << "removing hit" << hit->get_id() << endl;
     }
   }
@@ -101,7 +101,7 @@ PHG4SvtxDeadArea::GenericFillDeadAreaMap(PHCompositeNode *topNode, const std::st
     
   if (!geom_container) return;
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     cout << "Found " << nodename << endl;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();

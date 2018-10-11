@@ -48,7 +48,7 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
   unsigned int seed = PHRandomSeed(); // fixed random seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "===================== BbcVertexFastSimReco::InitRun() =====================" << endl;
     cout << " t smearing: " << _t_smear << " cm " << endl;
     cout << "  z smearing: " << _z_smear << " cm " << endl;
@@ -61,7 +61,7 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
 
 int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
+  if (Verbosity() > 1) cout << "BbcVertexFastSimReco::process_event -- entered" << endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree

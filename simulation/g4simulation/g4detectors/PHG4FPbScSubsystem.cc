@@ -28,13 +28,13 @@ int PHG4FPbScSubsystem::Init( PHCompositeNode* topNode )
   hitnodename <<  "G4HIT_" << Name(); 
  
   // create hit list
-  PHG4HitContainer* fcal_hits =  findNode::getClass<PHG4HitContainer>( topNode , ("G4HIT_"+ThisName).c_str() );
+  PHG4HitContainer* fcal_hits =  findNode::getClass<PHG4HitContainer>( topNode , ("G4HIT_"+Name()).c_str() );
   if ( !fcal_hits )
   {
     
     PHNodeIterator iter( topNode );
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST" ));
-    dstNode->addNode( new PHIODataNode<PHObject>( fcal_hits = new PHG4HitContainer(("G4HIT_"+ThisName)), ("G4HIT_"+ThisName).c_str(),"PHObject" ));
+    dstNode->addNode( new PHIODataNode<PHObject>( fcal_hits = new PHG4HitContainer(("G4HIT_"+Name())), ("G4HIT_"+Name()),"PHObject" ));
   }
   
   // create detector

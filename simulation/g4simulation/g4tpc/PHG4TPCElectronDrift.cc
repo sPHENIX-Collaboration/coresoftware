@@ -187,7 +187,6 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 {
-  //int verbosity = 101;
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -209,7 +208,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     }
     double eion = hiter->second->get_eion();   
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator,eion*electrons_per_gev);
-    if(verbosity > 100) 
+    if(Verbosity() > 100) 
       cout << "  new hit with t0, " <<  t0 << " g4hitid " << hiter->first 
 	   << " eion " << eion << " n_electrons " << n_electrons 
 	   << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1))/2.0 
@@ -235,7 +234,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     double t_start = hiter->second->get_t(0) + dt/2.;
 
 
-    if(verbosity > 100)
+    if(Verbosity() > 100)
       {
 	//double xin =  hiter->second->get_x(0);
 	//double xout =  hiter->second->get_x(1);
@@ -288,7 +287,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	    continue;
 	  }
 
-	if(verbosity > 1000)
+	if(Verbosity() > 1000)
 	  {
 	    cout << "electron " << i << " g4hitid " << hiter->first << endl; 
 	    cout << "radstart " << radstart  << " x_start: " << x_start
@@ -305,7 +304,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 		   << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl; 
 	  }
 
-	if(verbosity > 0)
+	if(Verbosity() > 0)
 	  nt->Fill(ihit,t_start,t_final,t_sigma,rad_final,z_start,z_final);    
 
 	// this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
@@ -318,7 +317,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     ihit++;
   }
 
-  if (verbosity > 1)
+  if (Verbosity() > 1)
     {
       cout << endl << " loop over cells for these hits for layer 47 " << endl;
       {

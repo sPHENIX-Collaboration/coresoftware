@@ -117,7 +117,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         {
           if (!filelist.size())
           {
-            if (verbosity > 0)
+            if (Verbosity() > 0)
             {
               cout << Name() << ": No Input file open" << endl;
             }
@@ -153,7 +153,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
 
         if (!evt)
         {
-          if (verbosity > 1)
+          if (Verbosity() > 1)
           {
             cout << "error type: " << ascii_in->error_type()
                  << ", rdstate: " << ascii_in->rdstate() << endl;
@@ -163,7 +163,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         else
         {
           mySyncManager->CurrentEvent(evt->event_number());
-          if (verbosity > 0)
+          if (Verbosity() > 0)
           {
             cout << "hepmc evt no: " << evt->event_number() << endl;
           }

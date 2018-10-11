@@ -70,7 +70,7 @@ RawTowerCalibration::InitRun(PHCompositeNode *topNode)
 int
 RawTowerCalibration::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << "Process event entered" << std::endl;
@@ -147,7 +147,7 @@ RawTowerCalibration::process_event(PHCompositeNode *topNode)
         }
     } //  for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
 
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << "input sum energy = " << _raw_towers->getTotalEdep()
@@ -191,7 +191,7 @@ RawTowerCalibration::CreateNodes(PHCompositeNode *topNode)
               + " node in RawTowerCalibration::CreateNodes");
     }
 
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
     {
       rawtowergeom->identify();
     }

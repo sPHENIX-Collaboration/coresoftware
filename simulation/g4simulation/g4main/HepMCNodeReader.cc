@@ -281,7 +281,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
         {
           ++trackid;
 
-          if (verbosity > 1) (*fiter)->print();
+          if (Verbosity() > 1) (*fiter)->print();
 
           PHG4Particle *particle = new PHG4Particlev1();
           particle->set_pid((*fiter)->pdg_id());
@@ -300,7 +300,7 @@ int HepMCNodeReader::process_event(PHCompositeNode *topNode)
 
   }  // For pile-up simulation: loop end for PHHepMC event map
 
-  if (verbosity > 0) ineve->identify();
+  if (Verbosity() > 0) ineve->identify();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

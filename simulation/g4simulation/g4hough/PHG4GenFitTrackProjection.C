@@ -94,14 +94,14 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 			"DafRef",
 			"RKTrackRep", false);
 
-	_fitter->set_verbosity(verbosity);
+	_fitter->set_verbosity(Verbosity());
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
 
-	if (verbosity > 0) {
+	if (Verbosity() > 0) {
 		cout
 				<< "================== PHG4GenFitTrackProjection::InitRun() ====================="
 				<< endl;
@@ -125,7 +125,7 @@ int PHG4GenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 }
 
 int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
-	if (verbosity > 1)
+	if (Verbosity() > 1)
 		cout << "PHG4GenFitTrackProjection::process_event -- entered" << endl;
 
 	//---------------------------------
@@ -145,7 +145,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		if (std::isnan(_cal_radii[i]))
 			continue;
 
-		if (verbosity > 1)
+		if (Verbosity() > 1)
 			cout << "Projecting tracks into: " << _cal_names[i] << endl;
 
 		// pull the tower geometry
@@ -189,14 +189,14 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			<<endl;
 #endif
 			if(!track) {
-				if(verbosity >= 2) LogWarning("!track");
+				if(Verbosity() >= 2) LogWarning("!track");
 				continue;
 			}
 
-			if (verbosity > 1)
+			if (Verbosity() > 1)
 				cout << "projecting track id " << track->get_id() << endl;
 
-			if (verbosity > 1) {
+			if (Verbosity() > 1) {
 				cout << " track pt = " << track->get_pt() << endl;
 			}
 
@@ -208,7 +208,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			SvtxTrackState * trackstate = last_state_iter->second;
 
 			if(!trackstate) {
-				if(verbosity >= 2) LogWarning("!trackstate");
+				if(Verbosity() >= 2) LogWarning("!trackstate");
 				continue;
 			}
 
@@ -273,7 +273,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 				rep->extrapolateToCylinder(*msop80, _cal_radii[i], TVector3(0,0,0),  TVector3(0,0,1));
 				//rep->extrapolateToCylinder(*msop80, 5., TVector3(0,0,0),  TVector3(0,0,1));
 			} catch (...) {
-				if(verbosity >= 2) LogWarning("extrapolateToCylinder failed");
+				if(Verbosity() >= 2) LogWarning("extrapolateToCylinder failed");
 				continue;
 			}
 
@@ -327,7 +327,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			double phi = atan2(y, x);
 			double eta = asinh(z / sqrt(x * x + y * y));
 
-			if (verbosity > 1) {
+			if (Verbosity() > 1) {
 				cout << " initial track phi = " << track->get_phi();
 				cout << ", eta = " << track->get_eta() << endl;
 				cout << " calorimeter phi = " << phi << ", eta = " << eta
@@ -371,7 +371,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 						if (abs(iphi - binphi) <= 1 and abs(ieta - bineta) <= 1)
 							energy_3x3 += tower->get_energy();
 
-						if (verbosity > 1)
+						if (Verbosity() > 1)
 							cout << " tower " << ieta << " " << wrapphi
 									<< " energy = " << tower->get_energy()
 									<< endl;
@@ -428,7 +428,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 			<<endl;
 #endif
 
-				if (verbosity > 1) {
+				if (Verbosity() > 1) {
 					cout << " nearest cluster dphi = " << min_dphi << " deta = "
 							<< min_deta << " e = " << min_e << endl;
 				}
@@ -437,7 +437,7 @@ int PHG4GenFitTrackProjection::process_event(PHCompositeNode *topNode) {
 		} // end track loop
 	} // end calorimeter layer loop
 
-	if (verbosity > 1)
+	if (Verbosity() > 1)
 		cout << "PHG4GenFitTrackProjection::process_event -- exited" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;

@@ -39,7 +39,7 @@ int PHG4SvtxThresholds::InitRun(PHCompositeNode* topNode) {
   CalculateLadderThresholds(topNode);
   CalculateMapsLadderThresholds(topNode);
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "====================== PHG4SvtxThresholds::InitRun() ======================" << endl;
     for (std::map<int,float>::iterator iter = _fraction_of_mip.begin();
 	 iter != _fraction_of_mip.end();
@@ -79,7 +79,7 @@ int PHG4SvtxThresholds::process_event(PHCompositeNode *topNode)
     SvtxHit* hit = iter->second;
    
     if (hit->get_e() < get_threshold_by_layer(hit->get_layer())) {
-      if(verbosity > 2)
+      if(Verbosity() > 2)
 	cout << "Removing hit with energy " << hit->get_e() <<  " in layer " << hit->get_layer() << " threshold = " << get_threshold_by_layer(hit->get_layer()) << endl;
       remove_hits.push_back(hit->get_id());
     }
@@ -119,7 +119,7 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
       float threshold = 0.0;      
       if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {	
 	threshold = _fraction_of_mip[layer]*0.003876*thickness;
-	if(verbosity >2) 
+	if(Verbosity() >2) 
 	  cout << " using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
       }	  
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
@@ -134,7 +134,7 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 	threshold = _fraction_of_mip[layer]*0.003876*minpath;  
       }	      
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
-      if(verbosity >2) 
+      if(Verbosity() >2) 
 	cout << " not using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
     }
   }
@@ -203,7 +203,7 @@ void PHG4SvtxThresholds::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
       float threshold = 0.0;
       if (_fraction_of_mip.find(layer) != _fraction_of_mip.end()) {
 	threshold = _fraction_of_mip[layer]*0.003876*thickness;
-	if(verbosity >2) 
+	if(Verbosity() >2) 
 	  cout << " using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
       }
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
@@ -218,7 +218,7 @@ void PHG4SvtxThresholds::CalculateMapsLadderThresholds(PHCompositeNode* topNode)
 	threshold = _fraction_of_mip[layer]*0.003876*minpath;
       }
       _thresholds_by_layer.insert(std::make_pair(layer,threshold));
-	if(verbosity >2) 
+	if(Verbosity() >2) 
 	  cout << " not using thickness: threshold = " << threshold << " thickness = " << thickness << " fraction of mip = " << _fraction_of_mip[layer] << " layer " << layer << endl;
     }
   }

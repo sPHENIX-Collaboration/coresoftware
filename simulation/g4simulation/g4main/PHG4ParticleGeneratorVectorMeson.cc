@@ -429,7 +429,7 @@ PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     }
     // List what has been put into ineve for this event
 
-    if(verbosity > 0)
+    if(Verbosity() > 0)
       {  
       ineve->identify();
 

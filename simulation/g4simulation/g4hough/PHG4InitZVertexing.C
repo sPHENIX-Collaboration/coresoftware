@@ -233,7 +233,7 @@ int PHG4InitZVertexing::InitRun(PHCompositeNode* topNode) {
 	_t_output_io = new PHTimer("_t_output_io");
 	_t_output_io->stop();
 
-	if (verbosity > 0) {
+	if (Verbosity() > 0) {
 		cout
 				<< "====================== PHG4InitZVertexing::InitRun() ======================"
 				<< endl;
@@ -265,7 +265,7 @@ int PHG4InitZVertexing::InitRun(PHCompositeNode* topNode) {
 int PHG4InitZVertexing::process_event(PHCompositeNode *topNode) 
 {
 
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "PHG4InitZVertexing::process_event -- entered" << endl;
 
 	// start fresh
@@ -499,7 +499,7 @@ int PHG4InitZVertexing::create_nodes(PHCompositeNode* topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -507,14 +507,14 @@ int PHG4InitZVertexing::create_nodes(PHCompositeNode* topNode) {
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_trackmap,
 			"SvtxTrackMap", "PHObject");
 	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxTrackMap node added" << endl;
 
 	_vertexmap = new SvtxVertexMap_v1;
 	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 			_vertexmap, "SvtxVertexMap", "PHObject");
 	tb_node->addNode(vertexes_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxVertexMap node added" << endl;
 
 
@@ -604,7 +604,7 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 
 			//if(cellgeo->get_layer() > (int) _radii.size() ) continue;
 
-//			if (verbosity >= 2)
+//			if (Verbosity() >= 2)
 //			cellgeo->identify();
 
 			//TODO
@@ -628,7 +628,7 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 
 			//if(geo->get_layer() > (int) _radii.size() ) continue;
 
-//			if (verbosity >= 2)
+//			if (Verbosity() >= 2)
 //			geo->identify();
 
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
@@ -650,7 +650,7 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 
 			//if(geo->get_layer() > (int) _radii.size() ) continue;
 
-//			if (verbosity >= 2)
+//			if (Verbosity() >= 2)
 //				geo->identify();
 
 			_radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
@@ -750,7 +750,7 @@ int PHG4InitZVertexing::translate_input(PHCompositeNode* topNode) {
 		hits_used.insert(std::pair<unsigned int, bool>(hit3d.get_id(),false));
         }
 	
-        if (verbosity > 10) {
+        if (Verbosity() > 10) {
         cout << "-------------------------------------------------------------------"
              << endl;
         cout << "PHG4InitZVertexing::process_event has the following input clusters:"
@@ -905,7 +905,7 @@ int PHG4InitZVertexing::export_output(){
                 _trackmap->insert(&track);
                 svtx_vertex_list[vid].insert_track(track.get_id());
 
-                if (verbosity > 5) {
+                if (Verbosity() > 5) {
                         cout << "track " << itrack << " quality = " << track.get_quality()
                         << endl;
                         cout << "px = " << track.get_px() << " py = " << track.get_py()
@@ -916,7 +916,7 @@ int PHG4InitZVertexing::export_output(){
 //	cout<<"track loop"<<endl;
 	for (unsigned int vid = 0; vid < _vertex_list.size(); ++vid ){
         SvtxVertex *vtxptr = _vertexmap->insert(&svtx_vertex_list[vid]);
-        if (verbosity > 5) vtxptr->identify();
+        if (Verbosity() > 5) vtxptr->identify();
 	}
 
         hits_map.clear();
@@ -2186,7 +2186,7 @@ int PHG4InitZVertexing::fit_vertex(){
 	{
 		if (_multi_vtx_tracks[i].size()==0) continue;
 		_vertex[2] = _multi_vtx[i];
-    		if (verbosity > 0) {
+    		if (Verbosity() > 0) {
       		cout << " seed track vertex pre-fit: "
            		<< _vertex[0] << " "
         		<< _vertex[1] << " "
@@ -2200,7 +2200,7 @@ int PHG4InitZVertexing::fit_vertex(){
 		n_vtx_tracks = _multi_vtx_tracks[i].size();
 		cout<<"number of fitted tracks for vertex "<<i<< " : "<<n_vtx_tracks <<endl;
 
-  		if (verbosity > 0) {
+  		if (Verbosity() > 0) {
     			cout << " seed track vertex post-fit: "
          		<< _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   		}

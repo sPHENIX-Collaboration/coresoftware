@@ -73,9 +73,7 @@ SvtxEvaluator::SvtxEvaluator(const string &name, const string &filename, const s
   _trackmapname(trackmapname),
   _tfile(nullptr),
   _timer(nullptr)
-{
-  verbosity = 0;
-}
+{}
 
 int SvtxEvaluator::Init(PHCompositeNode *topNode) {
   
@@ -174,14 +172,14 @@ int SvtxEvaluator::InitRun(PHCompositeNode *topNode) {
   
 int SvtxEvaluator::process_event(PHCompositeNode *topNode) {
   
-  if ((verbosity > 0)&&(_ievent%100==0)) {
+  if ((Verbosity() > 0)&&(_ievent%100==0)) {
     cout << "SvtxEvaluator::process_event - Event = " << _ievent << endl;
   }
 
   if (!_svtxevalstack) {
     _svtxevalstack = new SvtxEvalStack(topNode);
     _svtxevalstack->set_strict(_strict);
-    _svtxevalstack->set_verbosity(verbosity+1);
+    _svtxevalstack->set_verbosity(Verbosity()+1);
   } else {
     _svtxevalstack->next_event(topNode);
   }
@@ -225,7 +223,7 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
 
   delete _tfile;
 
-  if (verbosity >  0) {
+  if (Verbosity() >  0) {
     cout << "========================= SvtxEvaluator::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
     cout << "===========================================================================" << endl;
@@ -233,8 +231,8 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
 
   _errors += _svtxevalstack->get_errors();
   
-  if (verbosity > -1) {
-    if ((_errors > 0)||(verbosity > 0)) {
+  if (Verbosity() > -1) {
+    if ((_errors > 0)||(Verbosity() > 0)) {
       cout << "SvtxEvaluator::End() - Error Count: " << _errors << endl;
     }
   }
@@ -246,9 +244,9 @@ int SvtxEvaluator::End(PHCompositeNode *topNode) {
 
 void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "SvtxEvaluator::printInputInfo() entered" << endl;
+  if (Verbosity() > 1) cout << "SvtxEvaluator::printInputInfo() entered" << endl;
 
-  if (verbosity > 3) {
+  if (Verbosity() > 3) {
     
     // event information
     cout << endl;
@@ -320,13 +318,13 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode *topNode) {
 
 void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "SvtxEvaluator::printOutputInfo() entered" << endl;
+  if (Verbosity() > 1) cout << "SvtxEvaluator::printOutputInfo() entered" << endl;
 
   //==========================================
   // print out some useful stuff for debugging
   //==========================================
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     
     SvtxTrackEval*     trackeval = _svtxevalstack->get_track_eval();
     SvtxClusterEval* clustereval = _svtxevalstack->get_cluster_eval();
@@ -408,7 +406,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
     else cout << 0 << endl;
 
     // cluster wise information
-    if (verbosity > 1) {
+    if (Verbosity() > 1) {
  
       for(std::set<PHG4Hit*>::iterator iter = g4hits.begin();
 	  iter != g4hits.end();
@@ -581,14 +579,14 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
       
     cout << endl;
 
-  } // if verbosity
+  } // if Verbosity()
 
   return;
 }
 
 void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
-  if (verbosity > 0) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 0) cout << "SvtxEvaluator::fillOutputNtuples() entered" << endl;
 
   SvtxVertexEval*   vertexeval = _svtxevalstack->get_vertex_eval();
   SvtxTrackEval*     trackeval = _svtxevalstack->get_track_eval();
@@ -621,7 +619,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-----------------------
 
   if (_ntp_vertex) {
-    if (verbosity > 0){
+    if (Verbosity() > 0){
       cout << "Filling ntp_vertex " << endl;
       cout << "start vertex time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
       _timer->restart();
@@ -859,7 +857,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       }
 
     }
-    if(verbosity >= 1){
+    if(Verbosity() >= 1){
       _timer->stop();
       cout << "vertex time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
     }
@@ -871,7 +869,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
   if (_ntp_gpoint)
   {
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       cout << "Filling ntp_gpoint " << endl;
       _timer->restart();
@@ -943,7 +941,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
         }
       }
     }
-    if (verbosity >= 1)
+    if (Verbosity() >= 1)
     {
       _timer->stop();
       cout << "gpoint time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
@@ -955,7 +953,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //---------------------
 
   if (_ntp_g4hit) {
-    if (verbosity > 0) {cout << "Filling ntp_g4hit " << endl;_timer->restart();}
+    if (Verbosity() > 0) {cout << "Filling ntp_g4hit " << endl;_timer->restart();}
     std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits();
     for (std::set<PHG4Hit*>::iterator iter = g4hits.begin();
 	 iter != g4hits.end();
@@ -1136,7 +1134,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       _ntp_g4hit->Fill(g4hit_data);
     }
-    if(verbosity >= 1){
+    if(Verbosity() >= 1){
       _timer->stop();
       cout << "g4hit time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
     }
@@ -1147,7 +1145,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //--------------------
 
   if (_ntp_hit) {
-    if (verbosity > 0){ cout << "Filling ntp_hit " << endl;_timer->restart();}
+    if (Verbosity() > 0){ cout << "Filling ntp_hit " << endl;_timer->restart();}
     // need things off of the DST...
     SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     PHG4CylinderCellGeomContainer* geom_container =
@@ -1310,7 +1308,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	_ntp_hit->Fill(hit_data);     
       }
     }
-    if(verbosity >= 1){
+    if(Verbosity() >= 1){
       _timer->stop();
       cout << "hit time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
     }
@@ -1320,10 +1318,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   // fill the Cluster NTuple
   //------------------------
 
-  if (verbosity > 0){ cout << "check for ntp_cluster" << endl;_timer->restart();}
+  if (Verbosity() > 0){ cout << "check for ntp_cluster" << endl;_timer->restart();}
 
   if (_ntp_cluster && !_scan_for_embedded) {
-    if (verbosity > 0) cout << "Filling ntp_cluster (all of them) " << endl;
+    if (Verbosity() > 0) cout << "Filling ntp_cluster (all of them) " << endl;
     // need things off of the DST...
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (clustermap) {
@@ -1623,7 +1621,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     
   } else if (_ntp_cluster && _scan_for_embedded) {
 
-    if (verbosity > 0) cout << "Filling ntp_cluster (embedded only) " << endl;
+    if (Verbosity() > 0) cout << "Filling ntp_cluster (embedded only) " << endl;
 
     // if only scanning embedded signals, loop over all the tracks from
     // embedded particles and report all of their clusters, including those
@@ -1799,7 +1797,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       }
     }
   }
-  if(verbosity >= 1){
+  if(Verbosity() >= 1){
     _timer->stop();
     cout << "cluster time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
   }
@@ -1812,7 +1810,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //cout << "check for ntp_gtrack" << endl;
 
   if (_ntp_gtrack) {
-    if (verbosity > 0){ cout << "Filling ntp_gtrack " << endl;_timer->restart();}
+    if (Verbosity() > 0){ cout << "Filling ntp_gtrack " << endl;_timer->restart();}
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");   
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
@@ -2110,7 +2108,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
       }	     
     }
-    if(verbosity >= 1){
+    if(Verbosity() >= 1){
       _timer->stop();
       cout << "gtrack time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
     }
@@ -2123,7 +2121,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 
 
   if (_ntp_track) {
-    if (verbosity > 0){ cout << "Filling ntp_track " << endl;_timer->restart();}
+    if (Verbosity() > 0){ cout << "Filling ntp_track " << endl;_timer->restart();}
 
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode,_trackmapname.c_str());
@@ -2435,7 +2433,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	_ntp_track->Fill(track_data);
       }
     }
-    if(verbosity >= 1){
+    if(Verbosity() >= 1){
       _timer->stop();
       cout << "track time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
     }
@@ -2446,7 +2444,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //---------------------
 
   if (_ntp_gseed ) {
-    if (verbosity > 0) {cout << "Filling ntp_gseed " << endl;_timer->restart();}
+    if (Verbosity() > 0) {cout << "Filling ntp_gseed " << endl;_timer->restart();}
     
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
     
@@ -2581,7 +2579,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       }
     }
 
-    if(verbosity >= 1){
+    if(Verbosity() >= 1){
       _timer->stop();
       cout << "g4hit time:                "<<_timer->get_accumulated_time()/1000. << " sec" <<endl;
     }

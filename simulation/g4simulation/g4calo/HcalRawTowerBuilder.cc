@@ -100,7 +100,7 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   _tower_energy_src = get_int_param("tower_energy_source");
   emin = get_double_param("emin");
   ncell_to_tower = get_int_param("n_scinti_plates_per_tower");
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
     {
       cout << "HcalRawTowerBuilder::InitRun :";
       if (_tower_energy_src == kEnergyDeposition)
@@ -165,7 +165,7 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
 	  rawtowergeom->add_tower_geometry(tg);
 	}
     }
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       rawtowergeom->identify();
     }
@@ -175,7 +175,7 @@ HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
 int
 HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity>3)
+  if (Verbosity()>3)
     {
       std::cout << PHWHERE << "Process event entered" << std::endl;
     }
@@ -198,7 +198,7 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
     {
       PHG4Cell *cell = cell_iter->second;
 
-      if (verbosity > 2)
+      if (Verbosity() > 2)
         {
           std::cout << PHWHERE << " print out the cell:" << std::endl;
           cell->identify();
@@ -255,13 +255,13 @@ HcalRawTowerBuilder::process_event(PHCompositeNode *topNode)
               << cellE - towerE << endl;
         }
     }
-  if (verbosity)
+  if (Verbosity())
     {
       towerE = _towers->getTotalEdep();
     }
 
   _towers->compress(emin);
-  if (verbosity)
+  if (Verbosity())
     {
       cout << "Energy lost by dropping towers with less than " << emin
           << " energy, lost energy: " << towerE - _towers->getTotalEdep()

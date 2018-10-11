@@ -39,7 +39,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 {
   CreateNodeTree(topNode);
 
-  if (verbosity)
+  if (Verbosity())
   {
     std::cout << "RawClusterPositionCorrection is running for clusters in the EMCal with eclus parameters:" << endl;
     _eclus_calib_params.Print();
@@ -98,7 +98,7 @@ int RawClusterPositionCorrection::InitRun(PHCompositeNode *topNode)
 
 int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (Verbosity())
   {
     std::cout << "Processing a NEW EVENT" << std::endl;
   }
@@ -213,9 +213,9 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       if (fmodeta >= binvals.at(j) && fmodeta <= binvals.at(j + 1))
         etabin = j;
 
-    if ((phibin < 0 || etabin < 0) && verbosity)
+    if ((phibin < 0 || etabin < 0) && Verbosity())
     {
-      if (verbosity)
+      if (Verbosity())
         std::cout << "couldn't recalibrate cluster, something went wrong??" << std::endl;
     }
 
@@ -231,7 +231,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
     _recalib_clusters->AddCluster(recalibcluster);
 
-    if (verbosity && clus_energy > 1)
+    if (Verbosity() && clus_energy > 1)
     {
       std::cout << "Input eclus cluster energy: " << clus_energy << endl;
       std::cout << "Recalib value: " << eclus_recalib_val << endl;
