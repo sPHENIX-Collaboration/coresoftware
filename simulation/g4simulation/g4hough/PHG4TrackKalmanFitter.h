@@ -258,6 +258,8 @@ private:
 			TMatrixF& cov_out);
 
 	TVector3 getClusterPosAtRadius(const float radius, const SvtxTrack* intrack);
+	TVector3 getClosestG4HitPos(const TVector3 target, PHCompositeNode * topNode);
+
 
 
 	/*!
