@@ -43,7 +43,7 @@ PHG4SpacalPrototypeSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     cout
         << "PHG4SpacalPrototypeSubsystem::InitRun - use PHG4SpacalPrototypeDetector"
         << endl;

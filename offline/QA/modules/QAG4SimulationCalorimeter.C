@@ -105,7 +105,7 @@ QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
         {
           _caloevalstack.reset( new CaloEvalStack(topNode, _calo_name));
           _caloevalstack->set_strict(true);
-          _caloevalstack->set_verbosity(verbosity + 1);
+          _caloevalstack->set_verbosity(Verbosity() + 1);
         }
       else
         {
@@ -143,21 +143,21 @@ QAG4SimulationCalorimeter::Init(PHCompositeNode *topNode)
   if (flag(kProcessG4Hit))
     {
 
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationCalorimeter::Init - Process sampling fraction"
             << endl;
       Init_G4Hit(topNode);
     }
   if (flag(kProcessTower))
     {
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
             << endl;
       Init_Tower(topNode);
     }
   if (flag(kProcessCluster))
     {
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationCalorimeter::Init - Process tower occupancies"
             << endl;
       Init_Cluster(topNode);
@@ -170,7 +170,7 @@ int
 QAG4SimulationCalorimeter::process_event(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeter::process_event() entered" << endl;
 
   if (_caloevalstack)
@@ -276,7 +276,7 @@ int
 QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit() entered" << endl;
 
   TH1F* h = nullptr;
@@ -306,7 +306,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
       _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     {
       cout
           << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this truth particle"
@@ -316,7 +316,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
   const PHG4VtxPoint* primary_vtx = //
       _truth_container->GetPrimaryVtx(last_primary->get_vtx_id());
   assert(primary_vtx);
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     {
       cout
           << "QAG4SimulationCalorimeter::process_event_G4Hit() handle this vertex"
@@ -422,7 +422,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
         }
     }
 
-  if (verbosity > 3)
+  if (Verbosity() > 3)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
         << " - SF = " << e_calo / (e_calo + ea_calo + 1e-9) << ", VSF = "
         << ev_calo / (e_calo + ea_calo + 1e-9) << endl;
@@ -451,7 +451,7 @@ QAG4SimulationCalorimeter::process_event_G4Hit(PHCompositeNode *topNode)
       h->Fill(ev_calo_em / (ev_calo));
     }
 
-  if (verbosity > 3)
+  if (Verbosity() > 3)
     cout << "QAG4SimulationCalorimeter::process_event_G4Hit::" << _calo_name
         << " - histogram " << h->GetName() << " Get Sum = " << h->GetSum()
         << endl;
@@ -525,7 +525,7 @@ QAG4SimulationCalorimeter::process_event_Tower(PHCompositeNode *topNode)
 {
   const string detector(_calo_name);
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeter::process_event_Tower() entered" << endl;
 
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
@@ -667,7 +667,7 @@ int
 QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeter::process_event_Cluster() entered"
         << endl;
 
@@ -700,7 +700,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
   PHG4Particle * last_primary = _truth_container->GetMap().rbegin()->second;
   assert(last_primary);
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     {
       cout
           << "QAG4SimulationCalorimeter::process_event_Cluster() handle this truth particle"
@@ -721,7 +721,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     {
       // has a cluster matched and best cluster selected
 
-      if (verbosity > 3)
+      if (Verbosity() > 3)
         cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
             << _calo_name << " - get cluster with energy "
             << cluster->get_energy() << " VS primary energy "
@@ -735,7 +735,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
       const PHG4VtxPoint* primary_vtx = //
           _truth_container->GetPrimaryVtx(last_primary->get_vtx_id());
       assert(primary_vtx);
-      if (verbosity > 2)
+      if (Verbosity() > 2)
         {
           cout
               << "QAG4SimulationCalorimeter::process_event_Cluster() handle this vertex"
@@ -775,7 +775,7 @@ QAG4SimulationCalorimeter::process_event_Cluster(PHCompositeNode *topNode)
     }
   else
     {
-      if (verbosity > 3)
+      if (Verbosity() > 3)
         cout << "QAG4SimulationCalorimeter::process_event_Cluster::"
             << _calo_name << " - missing cluster !";
       h->Fill(0); // no cluster matched

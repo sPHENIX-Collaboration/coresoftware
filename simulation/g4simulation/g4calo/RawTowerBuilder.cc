@@ -85,7 +85,7 @@ int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
     //exit(1);
   }
 
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
   {
     cout << "RawTowerBuilder::InitRun :";
     if (m_TowerEnergySrcEnum == kEnergyDeposition)
@@ -104,7 +104,7 @@ int RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 
 int RawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (Verbosity())
   {
     std::cout << PHWHERE << "Process event entered" << std::endl;
   }
@@ -126,7 +126,7 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
   {
     PHG4Cell *cell = cell_iter->second;
 
-    if (verbosity > 2)
+    if (Verbosity() > 2)
     {
       std::cout << PHWHERE << " print out the cell:" << std::endl;
       cell->identify();
@@ -181,7 +181,7 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
 
     tower->set_energy(tower->get_energy() + cell_weight);
 
-    if (verbosity > 2)
+    if (Verbosity() > 2)
     {
       m_RawTowerGeomContainer = findNode::getClass<RawTowerGeomContainer>(topNode, m_TowerGeomNodeName);
       tower->identify();
@@ -198,13 +198,13 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
            << cellE - towerE << endl;
     }
   }
-  if (verbosity)
+  if (Verbosity())
   {
     towerE = m_TowerContainer->getTotalEdep();
   }
 
   m_TowerContainer->compress(m_Emin);
-  if (verbosity)
+  if (Verbosity())
   {
     cout << "Energy lost by dropping towers with less than " << m_Emin
          << " GeV energy, lost energy: " << towerE - m_TowerContainer->getTotalEdep()
@@ -276,7 +276,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     PHG4CylinderCellGeom *cellgeo = miter->second;
     first_cellgeo = miter->second;
 
-    if (verbosity)
+    if (Verbosity())
     {
       cellgeo->identify();
     }
@@ -469,7 +469,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     exit(1);
   }
 
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
   {
     m_RawTowerGeomContainer->identify();
   }

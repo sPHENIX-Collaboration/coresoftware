@@ -60,7 +60,7 @@ class Fun4AllServer : public Fun4AllBase
   PHCompositeNode *topNode(const std::string &name);
   int outfileclose();
   virtual int process_event();
-  PHCompositeNode *getNode(const char *name, const char *topnodename = "TOP");
+  PHCompositeNode *getNode(const std::string &name, const std::string &topnodename = "TOP");
   int AddTopNode(const std::string &name);
   int MakeNodesTransient(PHCompositeNode *startNode);
   int MakeNodesPersistent(PHCompositeNode *startNode);

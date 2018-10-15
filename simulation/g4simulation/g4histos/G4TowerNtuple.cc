@@ -61,7 +61,7 @@ G4TowerNtuple::process_event( PHCompositeNode* topNode )
     {
       int detid = (_detid.find(*iter))->second;
       nodename.str("");
-      nodename << "TOWER_CALIB_" << *iter;
+      nodename << "TOWER_" << _tower_type[*iter];
       geonodename.str("");
       geonodename << "TOWERGEOM_" << *iter;
       RawTowerGeomContainer* towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, geonodename.str().c_str());
@@ -119,9 +119,12 @@ G4TowerNtuple::End(PHCompositeNode * topNode)
 }
 
 void
-G4TowerNtuple::AddNode(const std::string &name, const int detid)
+G4TowerNtuple::AddNode(const std::string &name, const std::string &twrtype, const int detid)
 {
+  ostringstream twrname;
+  twrname << twrtype << "_" << name;
  _node_postfix.insert(name);
+  _tower_type.insert(make_pair(name,twrname.str()));
  _detid[name] = detid;
  return;
 }

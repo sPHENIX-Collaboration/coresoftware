@@ -115,7 +115,7 @@ float CaloTriggerSim::truncate_8bit( float raw_E  ) {
 
 int CaloTriggerSim::Init(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "CaloTriggerSim::Init: initialized" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -128,14 +128,14 @@ int CaloTriggerSim::InitRun(PHCompositeNode *topNode)
 
 int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "CaloTriggerSim::process_event: entering" << std::endl;
 
   // pull out the tower containers and geometry objects at the start
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
   RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
   RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     std::cout << "CaloTriggerSim::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC towers" << std::endl;
     std::cout << "CaloTriggerSim::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
     std::cout << "CaloTriggerSim::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
@@ -171,7 +171,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     _EMCAL_2x2_MAP.resize(_EMCAL_2x2_NETA, std::vector<float>(_EMCAL_2x2_NPHI, 0));
     _EMCAL_4x4_MAP.resize(_EMCAL_4x4_NETA, std::vector<float>(_EMCAL_4x4_NPHI, 0));
 
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       std::cout << "CaloTriggerSim::process_event: setting number of window in eta / phi,";
       std::cout << "1x1 are " << _EMCAL_1x1_NETA << " / " << _EMCAL_1x1_NPHI << ", ";
@@ -204,7 +204,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     _EMCAL_1x1_MAP[this_etabin][this_phibin] += this_E;
 
-    if (verbosity > 1 && tower->get_energy() > 1)
+    if (Verbosity() > 1 && tower->get_energy() > 1)
     {
       std::cout << "CaloTriggerSim::process_event: EMCal 1x1 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
     }
@@ -249,7 +249,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       if (this_phi > 3.14159) this_phi -= 2 * 3.14159;
       if (this_phi < -3.14159) this_phi += 2 * 3.14159;
 
-      if (verbosity > 1 && this_sum > 1)
+      if (Verbosity() > 1 && this_sum > 1)
       {
         std::cout << "CaloTriggerSim::process_event: EMCal 2x2 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -263,7 +263,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best EMCal 2x2 window is at eta / phi = " << _EMCAL_2x2_BEST_ETA << " / " << _EMCAL_2x2_BEST_PHI << " and E = " << _EMCAL_2x2_BEST_E << std::endl;
   }
@@ -319,7 +319,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       _EMCAL_4x4_MAP[ieta][iphi] = this_sum;
 
-      if (verbosity > 1 && this_sum > 1)
+      if (Verbosity() > 1 && this_sum > 1)
       {
         std::cout << "CaloTriggerSim::process_event: EMCal 4x4 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -373,7 +373,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best EMCal 4x4 window is at eta / phi = " << _EMCAL_4x4_BEST_ETA << " / " << _EMCAL_4x4_BEST_PHI << " and E = " << _EMCAL_4x4_BEST_E << std::endl;
     std::cout << "CaloTriggerSim::process_event: 2nd best EMCal 4x4 window is at eta / phi = " << _EMCAL_4x4_BEST2_ETA << " / " << _EMCAL_4x4_BEST2_PHI << " and E = " << _EMCAL_4x4_BEST2_E << std::endl;
@@ -428,7 +428,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     _FULLCALO_0p8x0p8_MAP.resize(_FULLCALO_0p8x0p8_NETA, std::vector<float>(_FULLCALO_0p8x0p8_NPHI, 0));
     _FULLCALO_1p0x1p0_MAP.resize(_FULLCALO_1p0x1p0_NETA, std::vector<float>(_FULLCALO_1p0x1p0_NPHI, 0));
 
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       std::cout << "CaloTriggerSim::process_event: determining phi range for 0.1x0.1 full calo map: " << _FULLCALO_PHI_START << " to " << _FULLCALO_PHI_END << std::endl;
       std::cout << "CaloTriggerSim::process_event: setting number of full calo window in eta / phi:" << std::endl;
@@ -470,7 +470,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     _FULLCALO_0p1x0p1_MAP[ this_etabin ][ this_phibin ] += this_E;
 
-    if (verbosity > 1 && tower->get_energy() > 1)
+    if (Verbosity() > 1 && tower->get_energy() > 1)
     {
       std::cout << "CaloTriggerSim::process_event: EMCal tower at eta / phi (added to fullcalo map with etabin / phibin ) / E = " << std::setprecision(6) << this_eta << " / " << this_phi << " ( " << this_etabin << " / " << this_phibin << " ) / " << this_E << std::endl;
     }
@@ -496,7 +496,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     _FULLCALO_0p1x0p1_MAP[ this_etabin ][ this_phibin ] += this_E;
 
-    if (verbosity > 1 && tower->get_energy() > 0.5)
+    if (Verbosity() > 1 && tower->get_energy() > 0.5)
     {
       std::cout << "CaloTriggerSim::process_event: IHCal tower at eta / phi (added to fullcalo map with etabin / phibin ) / E = " << std::setprecision(6) << this_eta << " / " << this_phi << " ( " << this_etabin << " / " << this_phibin << " ) / " << this_E << std::endl;
     }
@@ -522,7 +522,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     _FULLCALO_0p1x0p1_MAP[ this_etabin ][ this_phibin ] += this_E;
 
-    if (verbosity > 1 && tower->get_energy() > 0.5)
+    if (Verbosity() > 1 && tower->get_energy() > 0.5)
     {
       std::cout << "CaloTriggerSim::process_event: OHCal tower at eta / phi (added to fullcalo map with etabin / phibin ) / E = " << std::setprecision(6) << this_eta << " / " << this_phi << " ( " << this_etabin << " / " << this_phibin << " ) / " << this_E << std::endl;
     }
@@ -561,7 +561,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       float this_eta = 0.5 * (geomOH->get_etacenter(2 * ieta) + geomOH->get_etacenter(2 * ieta + 1));
       float this_phi = 0.5 * (geomOH->get_phicenter(2 * iphi) + geomOH->get_phicenter(2 * iphi + 1));
 
-      if (verbosity > 1 && this_sum > 1)
+      if (Verbosity() > 1 && this_sum > 1)
       {
         std::cout << "CaloTriggerSim::process_event: FullCalo 0.2x0.2 window eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -575,7 +575,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best FullCalo 0.2x0.2 window is at eta / phi = " << _FULLCALO_0p2x0p2_BEST_ETA << " / " << _FULLCALO_0p2x0p2_BEST_PHI << " and E = " << _FULLCALO_0p2x0p2_BEST_E << std::endl;
   }
@@ -617,7 +617,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       _FULLCALO_0p4x0p4_MAP[ieta][iphi] = this_sum;
 
-      if (verbosity > 1 && this_sum > 2)
+      if (Verbosity() > 1 && this_sum > 2)
       {
         std::cout << "CaloTriggerSim::process_event: FullCalo  0.4x0.4 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -631,7 +631,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best FullCalo 0.4x0.4 window is at eta / phi = " << _FULLCALO_0p4x0p4_BEST_ETA << " / " << _FULLCALO_0p4x0p4_BEST_PHI << " and E = " << _FULLCALO_0p4x0p4_BEST_E << std::endl;
   }
@@ -680,7 +680,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       _FULLCALO_0p6x0p6_MAP[ieta][iphi] = this_sum;
 
-      if (verbosity > 1 && this_sum > 3)
+      if (Verbosity() > 1 && this_sum > 3)
       {
         std::cout << "CaloTriggerSim::process_event: FullCalo  0.6x0.6 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -694,7 +694,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best FullCalo 0.6x0.6 window is at eta / phi = " << _FULLCALO_0p6x0p6_BEST_ETA << " / " << _FULLCALO_0p6x0p6_BEST_PHI << " and E = " << _FULLCALO_0p6x0p6_BEST_E << std::endl;
   }
@@ -752,7 +752,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       _FULLCALO_0p8x0p8_MAP[ieta][iphi] = this_sum;
 
-      if (verbosity > 1 && this_sum > 4)
+      if (Verbosity() > 1 && this_sum > 4)
       {
         std::cout << "CaloTriggerSim::process_event: FullCalo  0.8x0.8 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -766,7 +766,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best FullCalo 0.8x0.8 window is at eta / phi = " << _FULLCALO_0p8x0p8_BEST_ETA << " / " << _FULLCALO_0p8x0p8_BEST_PHI << " and E = " << _FULLCALO_0p8x0p8_BEST_E << std::endl;
   }
@@ -835,7 +835,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       _FULLCALO_1p0x1p0_MAP[ieta][iphi] = this_sum;
 
-      if (verbosity > 1 && this_sum > 5)
+      if (Verbosity() > 1 && this_sum > 5)
       {
         std::cout << "CaloTriggerSim::process_event: FullCalo  1.0x1.0 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
@@ -849,7 +849,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     std::cout << "CaloTriggerSim::process_event: best FullCalo 1.0x1.0 window is at eta / phi = " << _FULLCALO_1p0x1p0_BEST_ETA << " / " << _FULLCALO_1p0x1p0_BEST_PHI << " and E = " << _FULLCALO_1p0x1p0_BEST_E << std::endl;
   }
@@ -858,7 +858,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
   FillNode(topNode);
 
-  if (verbosity > 0) std::cout << "CaloTriggerSim::process_event: exiting" << std::endl;
+  if (Verbosity() > 0) std::cout << "CaloTriggerSim::process_event: exiting" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

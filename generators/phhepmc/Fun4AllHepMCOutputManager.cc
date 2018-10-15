@@ -99,7 +99,7 @@ Fun4AllHepMCOutputManager::~Fun4AllHepMCOutputManager()
 void
 Fun4AllHepMCOutputManager::Print(const string &what) const
 {
-  cout << ThisName << " writes " << outfilename << endl;
+  cout << Name() << " writes " << outfilename << endl;
   if (comment.size())
     {
       cout << "comment : " << comment << endl;

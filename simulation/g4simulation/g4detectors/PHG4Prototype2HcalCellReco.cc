@@ -176,7 +176,7 @@ int PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
         }
       }
     }
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       cout << Name() << ": found " << nslathits << " slats with energy deposition" << endl;
     }
@@ -218,7 +218,7 @@ int PHG4Prototype2HcalCellReco::CheckEnergy(PHCompositeNode *topNode)
   }
   else
   {
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
     }

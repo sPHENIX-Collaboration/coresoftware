@@ -134,7 +134,7 @@ int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
 {
   int code = CreateNodes(topNode);
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "====================== PHG4HoughTransformTPC::InitRun() ======================" << endl;
     cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
     cout << " Number of tracking layers: " << _nlayers << endl;
@@ -178,11 +178,11 @@ int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
 
 int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
 {
-  if(verbosity>1000) std::cout << "PHG4HoughTransformTPC::Process_Event" << std::endl;
+  if(Verbosity()>1000) std::cout << "PHG4HoughTransformTPC::Process_Event" << std::endl;
   _timer.get()->restart();
   if(_write_reco_tree==true){ _recoevent->tracks.clear();}
 
-  if(verbosity > 0) cout << "PHG4HoughTransformTPC::process_event -- entered" << endl;
+  if(Verbosity() > 0) cout << "PHG4HoughTransformTPC::process_event -- entered" << endl;
 
   _clusters_init.clear();
   _clusters.clear();
@@ -208,7 +208,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   // Find an initial z-vertex position
   //------------------------------------
 
-  if (verbosity>0 || _use_bbc){
+  if (Verbosity()>0 || _use_bbc){
     fast_vertex_from_bbc();
     if(!_use_bbc)  _vertex[2]=0.0;
   }
@@ -235,7 +235,7 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   }
 
   _timer.get()->stop();
-  if(verbosity>1000) std::cout << "PHG4HoughTransformTPC::Process_Event DONE" << std::endl;
+  if(Verbosity()>1000) std::cout << "PHG4HoughTransformTPC::Process_Event DONE" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -477,18 +477,18 @@ int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
   {
   tb_node = new PHCompositeNode("SVTX");
   dstNode->addNode(tb_node);
-  if (verbosity>0) cout << "SVTX node added" << endl;
+  if (Verbosity()>0) cout << "SVTX node added" << endl;
   }
 
   _g4tracks = new SvtxTrackMap_v1;
   PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_g4tracks,"SvtxTrackMap","PHObject");
   tb_node->addNode(tracks_node);
-  if (verbosity>0) cout << "Svtx/SvtxTrackMap node added" << endl;
+  if (Verbosity()>0) cout << "Svtx/SvtxTrackMap node added" << endl;
   
   _g4vertexes = new SvtxVertexMap_v1;
   PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(_g4vertexes,"SvtxVertexMap","PHObject");
   tb_node->addNode(vertexes_node);
-  if (verbosity>0) cout << "Svtx/SvtxVertexMap node added" << endl;
+  if (Verbosity()>0) cout << "Svtx/SvtxVertexMap node added" << endl;
 
   return InitializeGeometry(topNode);
 }
@@ -625,7 +625,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
       for( ; miter != begin_end.second; miter++) {
 	PHG4CylinderCellGeom *cellgeo = miter->second;
       
-	if (verbosity > 1) cellgeo->identify();
+	if (Verbosity() > 1) cellgeo->identify();
 
 	_radii[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius();      
 	_smear_xy_layer[_layer_ilayer_map[cellgeo->get_layer()]] = cellgeo->get_radius()*cellgeo->get_phistep();
@@ -639,7 +639,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
       for( ; miter != begin_end.second; miter++) {
 	PHG4CylinderGeom *geo = miter->second;
 	
-	if (verbosity > 1) geo->identify();
+	if (Verbosity() > 1) geo->identify();
 	
 	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
 	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_strip_y_spacing();
@@ -653,7 +653,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
       for( ; miter != begin_end.second; miter++) {
 	PHG4CylinderGeom *geo = miter->second;
 	
-	if (verbosity > 1) geo->identify();
+	if (Verbosity() > 1) geo->identify();
 	
 	_radii[_layer_ilayer_map[geo->get_layer()]] = geo->get_radius();      
 	_smear_xy_layer[_layer_ilayer_map[geo->get_layer()]] = geo->get_pixel_x();
@@ -965,7 +965,7 @@ int PHG4HoughTransformTPC::translate_input(){
     which_vec->push_back(hit3d);
   }
 
-  if (verbosity > 20) {
+  if (Verbosity() > 20) {
     cout << "-------------------------------------------------------------------" << endl;
     cout << "PHG4HoughTransformTPC::process_event has the following input clusters:" << endl;
 
@@ -1004,19 +1004,19 @@ int PHG4HoughTransformTPC::initial_zvertex_finding() {
   // loop over initial tracking windows
   std::vector<SimpleTrack3D> newtracks;
 
-  if(verbosity) std::cout <<" positive eta seeded track finding.. "<< std::endl;
+  if(Verbosity()) std::cout <<" positive eta seeded track finding.. "<< std::endl;
   _tracker_etap_seed->clear();
   _tracker_etap_seed->findHelices(_clusters_init, _min_vtx_hits, _max_vtx_hits,
                                   newtracks, maxtracks);
 
-  if (verbosity) cout << " seed track finding count: " << newtracks.size() << endl;
+  if (Verbosity()) cout << " seed track finding count: " << newtracks.size() << endl;
   for (unsigned int t = 0; t < newtracks.size(); ++t) {
     if(newtracks[t].z0 < _min_z0 || newtracks[t].z0 > _max_z0 
 				|| (newtracks[t].z0)!=newtracks[t].z0){
-      if (verbosity) cout << " z0 out of bound: " << newtracks[t].z0 << endl;
+      if (Verbosity()) cout << " z0 out of bound: " << newtracks[t].z0 << endl;
       continue;
     }
-    if (verbosity) cout << " z0: " << newtracks[t].z0 << endl;
+    if (Verbosity()) cout << " z0: " << newtracks[t].z0 << endl;
     _tracks.push_back(newtracks[t]);
     _track_covars.push_back( (_tracker_etap_seed->getKalmanStates())[t].C );
   }
@@ -1024,19 +1024,19 @@ int PHG4HoughTransformTPC::initial_zvertex_finding() {
   _tracker_etap_seed->clear();
   newtracks.clear();
 
-  if(verbosity) std::cout <<" negative eta seeded track finding.. "<< std::endl;
+  if(Verbosity()) std::cout <<" negative eta seeded track finding.. "<< std::endl;
   _tracker_etam_seed->clear();
   _tracker_etam_seed->findHelices(_clusters_init, _min_vtx_hits, _max_vtx_hits,
                                   newtracks, maxtracks);
 
-  if (verbosity) cout << " seed track finding count: " << newtracks.size() << endl;
+  if (Verbosity()) cout << " seed track finding count: " << newtracks.size() << endl;
   for (unsigned int t = 0; t < newtracks.size(); ++t) {
     if(newtracks[t].z0 < _min_z0 || newtracks[t].z0 > _max_z0 
 				|| (newtracks[t].z0)!=newtracks[t].z0){
-      if (verbosity) cout << " z0 out of bound: " << newtracks[t].z0 << endl;
+      if (Verbosity()) cout << " z0 out of bound: " << newtracks[t].z0 << endl;
       continue;
     }
-    if (verbosity) cout << " z0: " << newtracks[t].z0 << endl;
+    if (Verbosity()) cout << " z0: " << newtracks[t].z0 << endl;
     _tracks.push_back(newtracks[t]);
     _track_covars.push_back( (_tracker_etam_seed->getKalmanStates())[t].C );
   }
@@ -1048,7 +1048,7 @@ int PHG4HoughTransformTPC::initial_zvertex_finding() {
   _vertex.assign(3,0.0);
 
 
-  if (verbosity) cout << " seed track used count: " << _tracks.size() << endl;
+  if (Verbosity()) cout << " seed track used count: " << _tracks.size() << endl;
 
   if (!_tracks.empty()) {
 
@@ -1069,7 +1069,7 @@ int PHG4HoughTransformTPC::initial_zvertex_finding() {
     zmse /= (_tracks.size()-1);
     zmse = sqrt(zmse);
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
 	cout << " seed track vertex pre-fit: "
            << _vertex[0] << " "
            << _vertex[1] << " "
@@ -1082,7 +1082,7 @@ int PHG4HoughTransformTPC::initial_zvertex_finding() {
     _vertexFinder.findVertex( _tracks, _track_covars, _vertex, 0.02, true);
   }
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << " seed track vertex post-fit: "
          << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }
@@ -1108,10 +1108,10 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
   _timer_initial_hough.get()->restart();
 
   // final track finding
-  if(verbosity) std::cout <<" final track finding.. "<< std::endl;
+  if(Verbosity()) std::cout <<" final track finding.. "<< std::endl;
   _tracker->findHelices(_clusters_init, _min_combo_hits, _max_combo_hits, _tracks);
 
-  if (verbosity > 0){
+  if (Verbosity() > 0){
     cout << " final track count, 1st pass: " << _tracks.size() << endl;
   }
 
@@ -1148,7 +1148,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
 
   // we will need the tracker object below to refit the tracks... so we won't
   // reset it here
-  if (verbosity > 0){ 
+  if (Verbosity() > 0){ 
     cout << " final track count, 2nd pass: " << _tracks.size() << endl;
     cout<< "PHG4HoughTransformTPC::process_event -- calculating final vertex" << endl;
   }
@@ -1178,7 +1178,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
       }
     }
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << " final vertex pre-fit: "
            << _vertex[0] - shift_dx << " "
            << _vertex[1] - shift_dy << " "
@@ -1190,7 +1190,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
     _vertexFinder.findVertex( vtx_tracks, vtx_covars, _vertex, 0.020, false );
     _vertexFinder.findVertex( vtx_tracks, vtx_covars, _vertex, 0.005, false );
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       cout << " final vertex post-fit: "
            << _vertex[0] - shift_dx << " "
            << _vertex[1] - shift_dy << " "
@@ -1201,7 +1201,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
   // shift back to global coordinates
   shift_coordinate_system(-shift_dx,-shift_dy,-shift_dz);
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
   {
     cout << "PHG4HoughTransformTPC::process_event -- final vertex: " 
 	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
@@ -1243,7 +1243,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
 
 int PHG4HoughTransformTPC::export_output() {
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
   {
     cout << "PHG4HoughTransformTPC::process_event -- producing PHG4Track objects..." << endl;
   }
@@ -1364,7 +1364,7 @@ int PHG4HoughTransformTPC::export_output() {
     _g4tracks->insert(&track);
     vertex.insert_track(track.get_id());
 
-    if (verbosity > 5) {
+    if (Verbosity() > 5) {
       cout << "track " << itrack << " quality = " << track.get_quality()
            << endl;
       cout << "px = " << track.get_px() << " py = " << track.get_py()
@@ -1373,9 +1373,9 @@ int PHG4HoughTransformTPC::export_output() {
   }  // track loop
 
   SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
-  if (verbosity > 5) vtxptr->identify();
+  if (Verbosity() > 5) vtxptr->identify();
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "PHG4HoughTransform::process_event -- leaving process_event"
          << endl;
   }
@@ -1570,7 +1570,7 @@ int PHG4HoughTransformTPC::fast_vertex_from_bbc() {
       _vertex[1] = 0.0;
       _vertex[2] = vertex->get_z();
      
-      if (verbosity) cout << " initial bbc vertex guess: "
+      if (Verbosity()) cout << " initial bbc vertex guess: "
 			  << _vertex[0] << " "
 			  << _vertex[1] << " "
 			  << _vertex[2] << endl;      

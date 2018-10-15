@@ -35,7 +35,7 @@ public:
                 const std::string &filename = "g4eval.root",
                 const std::string &trackmapname = "SvtxTrackMap",
 		unsigned int nlayers_maps = 3,
-		unsigned int nlayers_intt = 4,
+		unsigned int nlayers_intt = 8,
 		unsigned int nlayers_tpc = 60);
   virtual ~SvtxEvaluator() {}
 		
@@ -86,7 +86,7 @@ public:
   bool _scan_for_embedded;
 
   unsigned int _nlayers_maps = 3;
-  unsigned int _nlayers_intt = 4;
+  unsigned int _nlayers_intt = 8;
   unsigned int _nlayers_tpc = 60;
 
   TNtuple *_ntp_vertex;
@@ -105,6 +105,8 @@ public:
   TFile *_tfile;
 
   PHTimer *_timer;
+
+  float line_circle_intersection(float x[], float y[], float z[], float radius);
 
   // output subroutines
   void fillOutputNtuples(PHCompositeNode* topNode); ///< dump the evaluator information into ntuple for external analysis

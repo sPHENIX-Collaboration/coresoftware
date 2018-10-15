@@ -41,7 +41,7 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   SetDefaultParameters();   // sets default timing window
   memset(nbins, 0, sizeof(nbins));
 
-  if(verbosity > 0)  
+  if(Verbosity() > 0)  
     cout << "Creating PHG4MapsCellReco for name = " << name << endl;
 }
 
@@ -90,7 +90,7 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
       cout << "Could not locate geometry node " << geonodename << endl;
       exit(1);
     }
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       geo->identify();
     }
@@ -144,7 +144,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       if(!layergeom)
 	exit(1);
 
-      if(verbosity > 2)
+      if(Verbosity() > 2)
 	layergeom->identify();
 
       // Get some layer parameters for later use
@@ -158,7 +158,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
 	  //cout << "From PHG4MapsCellReco: Call hit print method: " << endl;
-	  if(verbosity >4)
+	  if(Verbosity() >4)
 	    hiter->second->print();
 
 	  // checking ADC timing integration window cut
@@ -167,7 +167,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      cout  << PHWHERE << "Maps layers only go up to three! Quit." << endl;
 	      exit(1);
 	    }
-	  if(verbosity > 1)
+	  if(Verbosity() > 1)
 	    cout << " layer " << *layer << " t0 " << hiter->second->get_t(0) << " t1 " << hiter->second->get_t(1)
 		 << " tmin " <<  tmin_max[*layer].first << " tmax " <<  tmin_max[*layer].second
 		 << endl;
@@ -184,7 +184,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
  	  TVector3 local_out( hiter->second->get_local_x(1),  hiter->second->get_local_y(1),  hiter->second->get_local_z(1) );
 	  TVector3 midpoint( (local_in.X() + local_out.X()) / 2.0, (local_in.Y() + local_out.Y()) / 2.0, (local_in.Z() + local_out.Z()) / 2.0 );
 
-	  if(verbosity > 4)
+	  if(Verbosity() > 4)
 	    {
 	      cout << endl << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
 	      cout << "  world exit point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
@@ -197,7 +197,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      cout << endl;
 	    }
 
-	  if(verbosity > 2)
+	  if(Verbosity() > 2)
 	    {
 	      // As a check, get the positions of the hit pixels in world coordinates from the geo object 
 	      TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
@@ -270,7 +270,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 	    }
 
-	  if(verbosity > 0)
+	  if(Verbosity() > 0)
 	    cout << "entry pixel number " << pixel_number_in << " exit pixel number " << pixel_number_out << endl;
 
 	  vector<int> vpixel;
@@ -350,7 +350,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  if(xbin_max > maxNX) xbin_max = maxNX;
 	  if(zbin_max > maxNZ) xbin_max = maxNZ;
 
-	  if(verbosity > 1)
+	  if(Verbosity() > 1)
 	    {
 	      cout << " xbin_in " << xbin_in << " xbin_out " << xbin_out << " xbin_min " << xbin_min << " xbin_max " << xbin_max << endl;
 	      cout << " zbin_in " << zbin_in << " zbin_out " << zbin_out << " zbin_min " << zbin_min << " zbin_max " << zbin_max << endl;
@@ -384,7 +384,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      // increases from diffusion width_min to diffusion_width_max 
 	      double ydiffusion_radius = diffusion_width_min + (ydrift / ydrift_max) * (diffusion_width_max - diffusion_width_min);  
 	      
-	      if(verbosity > 5)
+	      if(Verbosity() > 5)
 		cout << " segment " << i 
 		     << " interval " << interval
 		     << " frac " << frac
@@ -437,7 +437,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 			{
                           pixeion[ix-xbin_min][iz-zbin_min] += pixarea_frac * hiter->second->get_eion() / (float) nsegments;
 			}
-		      if(verbosity > 5)
+		      if(Verbosity() > 5)
 			{
 			  cout << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
 			       << " pixel_area fraction of circle " << pixarea_frac << " accumulated pixel energy " << pixenergy[ix-xbin_min][iz-zbin_min]
@@ -460,7 +460,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		      vzbin.push_back(iz);
 		      pair <double,double> tmppair = make_pair(pixenergy[ix-xbin_min][iz-zbin_min],pixeion[ix-xbin_min][iz-zbin_min]);
 		      venergy.push_back(tmppair);  	  
-		      if(verbosity > 1)
+		      if(Verbosity() > 1)
 			cout << " Added pixel number " << pixnum << " xbin " << ix << " zbin " << iz << " to vectors with energy " << pixenergy[ix-xbin_min][iz-zbin_min] << endl;
 		    }		    	
 		}
@@ -553,7 +553,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		}
 	      cell->add_edep( venergy[i1].first);
 	      
-	      if(verbosity > 1)
+	      if(Verbosity() > 1)
 		{
 		  cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec 
 		       << " cell energy " << venergy[i1].first
@@ -569,7 +569,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  cells->AddCell(mapiter->second);
 	  numcells++;
 	  
-	  if (verbosity > 0)
+	  if (Verbosity() > 0)
 	    {
 	      cout << "From MapsCellReco: Adding cell for stave: " << mapiter->second->get_stave_index()
 		   << " , half stave index: " << mapiter->second->get_half_stave_index()
@@ -581,7 +581,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	    }
 	}
       celllist.clear();
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << Name() << ": found " << numcells << " silicon pixels with energy deposition" << endl;
 	}
@@ -632,7 +632,7 @@ PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
     }
   else
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
 	}
@@ -803,7 +803,7 @@ double  PHG4MapsCellReco::circle_rectangle_intersection( double x1, double y1,  
   y1 -= my; 
   y2 -= my;
 
-  if(verbosity > 7)
+  if(Verbosity() > 7)
     {
       cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
       cout << " sA21 " << sA(r,x2,y1)

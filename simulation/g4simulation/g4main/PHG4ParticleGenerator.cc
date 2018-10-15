@@ -95,7 +95,7 @@ PHG4ParticleGenerator::process_event(PHCompositeNode *topNode)
       (*iter)->set_pz(particle->get_pz());
       ineve->AddParticle(vtxindex, particle);
     }
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     ineve->identify();
   }

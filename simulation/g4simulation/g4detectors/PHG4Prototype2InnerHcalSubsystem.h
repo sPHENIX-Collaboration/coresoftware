@@ -1,5 +1,7 @@
-#ifndef PHG4Prototype2InnerHcalSubsystem_h
-#define PHG4Prototype2InnerHcalSubsystem_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4PROTOTYPE2INNERHCALSUBSYSTEM_H
+#define G4DETECTORS_PHG4PROTOTYPE2INNERHCALSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
@@ -38,7 +40,7 @@ class PHG4Prototype2InnerHcalSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   virtual PHG4Detector* GetDetector(void) const;
-  virtual PHG4SteppingAction* GetSteppingAction(void) const { return steppingAction_; }
+  virtual PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
   void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
 
  protected:
@@ -46,11 +48,11 @@ class PHG4Prototype2InnerHcalSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4Prototype2InnerHcalDetector* detector_;
+  PHG4Prototype2InnerHcalDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingAction */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction* m_SteppingAction;
 };
 
 #endif

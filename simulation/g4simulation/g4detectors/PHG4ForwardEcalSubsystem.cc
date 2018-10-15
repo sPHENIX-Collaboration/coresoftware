@@ -48,7 +48,7 @@ int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
   detector_->SetAbsorberActive(absorber_active);
   detector_->BlackHole(blackhole);
   detector_->OverlapCheck(overlapcheck);
-  detector_->Verbosity(verbosity);
+  detector_->Verbosity(Verbosity());
   detector_->SetTowerMappingFile( mappingfile_ );
 
   if (active)

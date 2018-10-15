@@ -35,7 +35,7 @@ int PHG4TrackGhostRejection::Init(PHCompositeNode *topNode)
 
 int PHG4TrackGhostRejection::InitRun(PHCompositeNode *topNode)
 {
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "================== PHG4TrackGhostRejection::InitRun() =====================" << endl;
     cout << " Maximum allowed shared hits: " << _max_shared_hits << endl;
     for (unsigned int i=0;i<_layer_enabled.size();++i) {
@@ -49,7 +49,7 @@ int PHG4TrackGhostRejection::InitRun(PHCompositeNode *topNode)
 
 int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
 {
-  if(verbosity > 0) cout << "PHG4TrackGhostRejection::process_event -- entered" << endl;
+  if(Verbosity() > 0) cout << "PHG4TrackGhostRejection::process_event -- entered" << endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -63,7 +63,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  if (verbosity > 1) {
+  if (Verbosity() > 1) {
     _g4tracks->identify();
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
@@ -196,7 +196,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 1) {
+  if (Verbosity() > 1) {
     _g4tracks->identify();
     for (SvtxTrackMap::Iter iter = _g4tracks->begin();
 	 iter != _g4tracks->end();
@@ -206,12 +206,12 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     cout << "PHG4TrackGhostRejection - rejected and removed " 
          << initial_size - _g4tracks->size()
          << " tracks" << endl;;
   
-  if(verbosity > 0) cout << "PHG4TrackGhostRejection::process_event -- exited" << endl;
+  if(Verbosity() > 0) cout << "PHG4TrackGhostRejection::process_event -- exited" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

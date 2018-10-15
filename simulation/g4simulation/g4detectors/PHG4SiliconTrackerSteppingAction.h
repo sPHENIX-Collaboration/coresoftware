@@ -14,8 +14,7 @@ class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
-class  PHG4CylinderGeomContainer;
-class PHG4CylinderGeom_Siladders;
+class PHG4CylinderGeomContainer;
 
 class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 {

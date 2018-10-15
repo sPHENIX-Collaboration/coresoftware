@@ -11,7 +11,7 @@ public:
   PHG4TPCPadPlaneSimple(const std::string& name = "SimplePadPlane");
   virtual ~PHG4TPCPadPlaneSimple(){}
 
-  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem);
+  void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter);
 
   void SetDefaultParameters();
   void UpdateInternalParameters();

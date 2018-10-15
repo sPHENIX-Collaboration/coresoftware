@@ -57,7 +57,7 @@ using namespace std;
 using namespace boost;
 using namespace boost::property_tree;
 
-void hijfst_control(int, vector<string>, vector<float>, vector<int>);
+void hijfst_control(int, vector<string>, vector<float>, vector<int>, vector<float>, vector<float>, vector<float>);
 
 CLHEP::HepRandomEngine * engine;
 
@@ -161,6 +161,9 @@ main (int argc, char **argv)
   std::vector<string> algorithm_v;
   std::vector<float> R_v;
   std::vector<int> PID_v;
+  std::vector<float> EtaMin_v;
+  std::vector<float> EtaMax_v;
+  std::vector<float> EtMin_v;
 
   iptree &it = pt.get_child("HIJING.FASTJET", null);
   BOOST_FOREACH(iptree::value_type &v, it)
@@ -169,10 +172,15 @@ main (int argc, char **argv)
       algorithm_v.push_back(to_upper_copy(v.second.get("NAME", "ANTIKT")));
       R_v.push_back(v.second.get("R", 0.2));
       PID_v.push_back(v.second.get("PID", 2000000));
+
+      EtaMin_v.push_back(v.second.get("EtaMin", -2));
+      EtaMax_v.push_back(v.second.get("EtaMax", 2));
+      EtMin_v.push_back(v.second.get("EtMin", 5));
+
       fastjet_enable_p = 1;
     }
 
-  hijfst_control(fastjet_enable_p, algorithm_v, R_v, PID_v);
+  hijfst_control(fastjet_enable_p, algorithm_v, R_v, PID_v, EtaMin_v, EtaMax_v, EtMin_v);
 
   // The call to Hijing needs simple C-style strings.
   m_frame.copy(frame,m_frame.size());

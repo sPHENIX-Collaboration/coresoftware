@@ -39,7 +39,7 @@ Fun4AllEventOutputManager::~Fun4AllEventOutputManager()
 void
 Fun4AllEventOutputManager::Print(const string &what) const
 {
-  cout << ThisName << " writes " << outfilerule << endl;
+  cout << Name() << " writes " << outfilerule << endl;
   // base class print method
   Fun4AllOutputManager::Print( what );
 

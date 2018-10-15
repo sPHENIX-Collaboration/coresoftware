@@ -47,14 +47,14 @@ void Fun4AllOutputManager::Print(const string &what) const
     unsigned icnt = 0;
     for (vector<string>::const_iterator iter = EventSelectors.begin(); iter != EventSelectors.end(); ++iter)
     {
-      cout << ThisName << ": Reco Module " << *iter << " select Events" << endl;
-      cout << ThisName << ": Reco Module Index: " << recomoduleindex[icnt] << endl;
+      cout << Name() << ": Reco Module " << *iter << " select Events" << endl;
+      cout << Name() << ": Reco Module Index: " << recomoduleindex[icnt] << endl;
       icnt++;
     }
   }
   if (what == "ALL" || what == "EVENTSWRITTEN")
   {
-    cout << ThisName << " wrote " << EventsWritten() << " Events" << endl;
+    cout << Name() << " wrote " << EventsWritten() << " Events" << endl;
   }
   return;
 }

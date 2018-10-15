@@ -71,7 +71,7 @@ int PHG4SiliconTrackerDigitizer::InitRun(PHCompositeNode* topNode) {
   // Report Settings
   //----------------
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "====================== PHG4SiliconTrackerDigitizer::InitRun() =====================" << endl;
     for (std::map<int,unsigned int>::iterator iter = _max_adc.begin();
 	 iter != _max_adc.end();
@@ -254,7 +254,7 @@ int PHG4SiliconTrackerDigitizer::End(PHCompositeNode *topNode)
 
 void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode) {
 
-  if (verbosity >= VERBOSITY_EVEN_MORE) {
+  if (Verbosity() >= VERBOSITY_EVEN_MORE) {
 
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (!hitlist) return;
