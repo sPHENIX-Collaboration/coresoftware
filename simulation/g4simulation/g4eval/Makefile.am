@@ -23,25 +23,23 @@ libg4eval_la_LIBADD = \
 pkginclude_HEADERS = \
   BaseTruthEval.h \
   CaloEvalStack.h \
-  CaloTruthEval.h \
-  CaloRawTowerEval.h \
-  CaloRawClusterEval.h \
   CaloEvaluator.h \
+  CaloRawClusterEval.h \
+  CaloRawTowerEval.h \
+  CaloTruthEval.h \
   JetEvalStack.h \
-  JetTruthEval.h \
-  JetRecoEval.h \
   JetEvaluator.h \
+  JetRecoEval.h \
+  JetTruthEval.h \
+  MomentumEvaluator.h \
+  PHG4DstCompressReco.h \
   SvtxEvalStack.h \
-  SvtxTruthEval.h \
+  SvtxEvaluator.h \
   SvtxHitEval.h \
   SvtxClusterEval.h \
   SvtxTrackEval.h \
-  SvtxVertexEval.h \
-  SvtxEvaluator.h \
-  MomentumEvaluator.h \
-  PHG4DstCompressReco.h
-
-#pkginclude_HEADERS = $(include_HEADERS)
+  SvtxTruthEval.h \
+  SvtxVertexEval.h
 
 libg4eval_la_SOURCES = \
   BaseTruthEval.C \

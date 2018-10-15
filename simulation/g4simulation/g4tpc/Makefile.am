@@ -23,7 +23,12 @@ libg4tpc_la_LIBADD = \
   -lphparameter
 
 pkginclude_HEADERS = \
-  PHG4CellTPCv1.h
+  PHG4CellTPCv1.h \
+  PHG4TPCElectronDrift.h \
+  PHG4TPCPadPlane.h \
+  PHG4TPCPadPlaneReadout.h \
+  PHG4TPCSubsystem.h
+
 
 libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \

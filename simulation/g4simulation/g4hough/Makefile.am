@@ -44,35 +44,10 @@ libg4hough_la_LIBADD = \
   libg4hough_io.la
 
 pkginclude_HEADERS = \
-  SvtxVertex.h \
-  SvtxVertex_v1.h \
-  SvtxVertexMap.h \
-  SvtxVertexMap_v1.h \
-  SvtxDeadMap.h \
-  SvtxDeadMapv1.h \
-  PHG4SvtxDeadArea.h \
-  PHG4SvtxThresholds.h \
-  PHG4SvtxDigitizer.h \
-  PHG4SvtxClusterizer.h \
-  SvtxHit.h \
-  SvtxHit_v1.h \
-  SvtxHitMap.h \
-  SvtxHitMap_v1.h \
-  SvtxCluster.h \
-  SvtxCluster_v1.h \
-  SvtxClusterMap.h \
-  SvtxClusterMap_v1.h \
-  SvtxTrackState.h \
-  SvtxTrackState_v1.h \
-  SvtxTrack.h \
-  SvtxTrack_v1.h \
-  SvtxTrack_FastSim.h \
-  SvtxTrackMap.h \
-  SvtxTrackMap_v1.h \
-  SvtxBeamSpot.h \
+  CellularAutomaton.h \
+  CellularAutomaton_v1.h \
   Cluster3D.h \
-  Track3D.h \
-  HelixTrackState.h \
+  FunctionGradHessian.h \
   HelixHoughSpace.h \
   HelixHoughSpace_v1.h \
   HelixHoughBin.h \
@@ -80,29 +55,55 @@ pkginclude_HEADERS = \
   HelixHoughFuncs.h \
   HelixHoughFuncs_v1.h \
   HelixKalmanFilter.h \
-  CellularAutomaton.h \
-  CellularAutomaton_v1.h \
-  FunctionGradHessian.h \
-  SquareGradient.h \
+  HelixTrackState.h \
   NewtonMinimizerGradHessian.h \
-  VertexFitter.h \
-  VertexFitFuncs.h \
+  PHG4GenFitTrackProjection.h \
   PHG4HoughTransform.h \
   PHG4HoughTransformTPC.h \
-  PHG4KalmanPatRec.h \
   PHG4InitZVertexing.h \
+  PHG4KalmanPatRec.h \
   PHG4PatternReco.h \
+  PHG4SiliconTrackerDigitizer.h \
+  PHG4SvtxBeamSpotReco.h \
+  PHG4SvtxClusterizer.h \
+  PHG4SvtxDeadArea.h \
+  PHG4SvtxDigitizer.h \
+  PHG4SvtxMomentumRecal.h \
+  PHG4SvtxThresholds.h \
+  PHG4SvtxTrackProjection.h \
+  PHG4TPCClusterizer.h \
+  PHG4TrackFastSim.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
-  PHG4TrackFastSim.h \
   PHRaveVertexing.h \
-  PHG4SvtxMomentumRecal.h \
-  PHG4GenFitTrackProjection.h \
-  PHG4SvtxTrackProjection.h \
-  PHG4SvtxBeamSpotReco.h \
-  PHG4TPCClusterizer.h \
-  SimpleTrack.h
+  SimpleTrack.h \
+  SquareGradient.h \
+  SvtxBeamSpot.h \
+  SvtxDeadMap.h \
+  SvtxDeadMapv1.h \
+  SvtxCluster.h \
+  SvtxCluster_v1.h \
+  SvtxClusterMap.h \
+  SvtxClusterMap_v1.h \
+  SvtxHit.h \
+  SvtxHit_v1.h \
+  SvtxHitMap.h \
+  SvtxHitMap_v1.h \
+  SvtxTrack.h \
+  SvtxTrack_v1.h \
+  SvtxTrack_FastSim.h \
+  SvtxTrackMap.h \
+  SvtxTrackMap_v1.h \
+  SvtxTrackState.h \
+  SvtxTrackState_v1.h \
+  SvtxVertex.h \
+  SvtxVertex_v1.h \
+  SvtxVertexMap.h \
+  SvtxVertexMap_v1.h \
+  Track3D.h \
+  VertexFitter.h \
+  VertexFitFuncs.h
 
 libg4hough_io_la_SOURCES = \
   SvtxHit.C \

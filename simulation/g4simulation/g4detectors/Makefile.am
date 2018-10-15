@@ -76,11 +76,18 @@ pkginclude_HEADERS = \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4HcalDefs.h \
+  PHG4MapsCellReco.h \
+  PHG4MapsSubsystem.h \
   PHG4PrototypeHcalDefs.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
-  PHG4StepStatusDecode.h
+  PHG4SiliconTrackerCellReco.h \
+  PHG4SiliconTrackerDefs.h \
+  PHG4SiliconTrackerSubsystem.h \
+  PHG4StepStatusDecode.h \
+  PHG4TPCDistortion.h \
+  PHG4TPCSpaceChargeDistortion.h
 
 libg4detectors_io_la_SOURCES = \
   PHG4BlockCellGeom.cc \
