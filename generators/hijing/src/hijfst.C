@@ -13,6 +13,9 @@ struct algo_info
   JetAlgorithm algorithm;
   double R;
   int PID;
+  double EtaMin;
+  double EtaMax;
+  double EtMin;
 };
 vector<algo_info> algo_info_vec;
 
@@ -40,7 +43,7 @@ struct loaderObj
 loaderObj loader;
 
 void
-hijfst_control(int enable, vector<string> valgorithm, vector<float> vR, vector<int> vPID)
+hijfst_control(int enable, vector<string> valgorithm, vector<float> vR, vector<int> vPID, vector<float> vEtaMin, vector<float> vEtaMax, vector<float> vEtMin)
 {
   enablep = (enable==1) ? true: false;
   
@@ -53,6 +56,9 @@ hijfst_control(int enable, vector<string> valgorithm, vector<float> vR, vector<i
       algo.algorithm = ((algorithms.find(algorithmName) == algorithms.end()) ? antikt_algorithm : algorithms[algorithmName]);
       algo.R = vR[i];
       algo.PID = vPID[i];
+      algo.EtaMin = vEtaMin[i];
+      algo.EtaMax = vEtaMax[i];
+      algo.EtMin = vEtMin[i];
       algo_info_vec.push_back(algo);
     }
 }
@@ -109,7 +115,8 @@ hijfst_(int *n, int *N, int *K, float *P, float *V)
       for (unsigned i = 0; i < jets.size(); i++) 
 	{
 	  // These cuts should be configurable!
-	  if (abs(jets[i].eta()) > 2.0 or jets[i].E() < 5.0)
+//        if (abs(jets[i].eta()) > 2.0 or jets[i].E() < 5.0)
+      if (jets[i].eta() < a.EtaMin or jets[i].eta() > a.EtaMax or  jets[i].Et() < a.EtMin)
 	    {
 	      continue;
 	    }

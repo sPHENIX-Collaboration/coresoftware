@@ -25,9 +25,17 @@ public:
     FHCAL_TOWER=11, FHCAL_CLUSTER=12,
     CEMC_TOWER_RETOWER=13,                                           /* needed for HI jet reco */
     CEMC_TOWER_SUB1=14, HCALIN_TOWER_SUB1=15, HCALOUT_TOWER_SUB1=16, /* needed for HI jet reco */
+    HEPMC_IMPORT = 20, /*Direct import HEPMC containers, such as sHijing HIJFRG truth jets loaded by JetHepMCLoader*/
   };
 
-  enum PROPERTY {prop_JetCharge = 1,prop_BFrac = 2};
+  enum PROPERTY {
+
+    //! jet charge
+    prop_JetCharge = 1,
+
+    //! b-jet fraction
+    prop_BFrac = 2,
+  };
 
   Jet();
   virtual ~Jet() {}
