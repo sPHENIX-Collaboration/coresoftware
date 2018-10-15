@@ -72,7 +72,7 @@ PHG4HeadReco::process_event(PHCompositeNode *topNode)
 	}
     }
   evtheader->set_EvtSequence(evtseq);
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       evtheader->identify();
     }

@@ -34,7 +34,7 @@ class G4TowerNtuple: public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void AddNode(const std::string &name, const int detid=0);
+  void AddNode(const std::string &name, const std::string &twrtype, const int detid);
 
 protected:
   int nblocks;
@@ -44,6 +44,7 @@ protected:
   //  std::vector<TH2 *> nhit_edep;
   std::string _filename;
   std::set<std::string> _node_postfix;
+  std::map<std::string, std::string> _tower_type;
   std::map<std::string, int> _detid;
   TNtuple *ntup;
   TFile *outfile;

@@ -63,7 +63,7 @@ int EventInfoSummary::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   else  // DATAEVENT
   {
-    if (verbosity >= VERBOSITY_SOME)
+    if (Verbosity() >= VERBOSITY_SOME)
     {
       cout << "EventInfoSummary::process_event - with DATAEVENT events ";
       event->identify();
@@ -220,7 +220,7 @@ int EventInfoSummary::process_event(PHCompositeNode* topNode)
 
       const double dvalue = ivalue * info.calibration_const;
 
-      if (verbosity >= VERBOSITY_SOME)
+      if (Verbosity() >= VERBOSITY_SOME)
       {
         cout << "EventInfoSummary::process_event - " << name << " = "
              << dvalue << ", raw = " << ivalue << " @ packet "
@@ -239,7 +239,7 @@ int EventInfoSummary::process_event(PHCompositeNode* topNode)
 
     Params.SaveToNodeTree(topNode, eventinfo_node_name);
 
-    if (verbosity >= VERBOSITY_SOME)
+    if (Verbosity() >= VERBOSITY_SOME)
       Params.Print();
   }
   return Fun4AllReturnCodes::EVENT_OK;

@@ -30,9 +30,8 @@ GlobalVertexReco::GlobalVertexReco(const string &name)
     _ydefault(0.0),
     _yerr(0.3),
     _tdefault(0.0),
-    _terr(0.2) {
-  verbosity = 0;
-}
+    _terr(0.2) 
+{}
 
 GlobalVertexReco::~GlobalVertexReco() {}
 
@@ -42,7 +41,7 @@ int GlobalVertexReco::Init(PHCompositeNode *topNode) {
 
 int GlobalVertexReco::InitRun(PHCompositeNode *topNode) {
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "======================= GlobalVertexReco::InitRun() =======================" << endl;
     cout << "===========================================================================" << endl;
   }
@@ -52,7 +51,7 @@ int GlobalVertexReco::InitRun(PHCompositeNode *topNode) {
 
 int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
   
-  if (verbosity > 1) cout << "GlobalVertexReco::process_event -- entered" << endl;
+  if (Verbosity() > 1) cout << "GlobalVertexReco::process_event -- entered" << endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -87,7 +86,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
   
   if (svtxmap && bbcmap) {
 
-    if (verbosity) cout <<"GlobalVertexReco::process_event - svtxmap && bbcmap"<<endl;
+    if (Verbosity()) cout <<"GlobalVertexReco::process_event - svtxmap && bbcmap"<<endl;
     
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
@@ -134,14 +133,14 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       
       globalmap->insert(vertex);
 
-      if (verbosity) vertex->identify();
+      if (Verbosity()) vertex->identify();
     }
   }
 
   // okay now loop over all unused SVTX vertexes (2nd class)...
   if (svtxmap) {
 
-    if (verbosity) cout <<"GlobalVertexReco::process_event - svtxmap "<<endl;
+    if (Verbosity()) cout <<"GlobalVertexReco::process_event - svtxmap "<<endl;
     
     for (SvtxVertexMap::ConstIter svtxiter = svtxmap->begin();
 	 svtxiter != svtxmap->end();
@@ -173,14 +172,14 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 
       globalmap->insert(vertex);      
 
-      if (verbosity) vertex->identify();
+      if (Verbosity()) vertex->identify();
     }    
   }
 
   // okay now loop over all unused BBC vertexes (3rd class)...
   if (bbcmap) {
 
-    if (verbosity) cout <<"GlobalVertexReco::process_event -  bbcmap"<<endl;
+    if (Verbosity()) cout <<"GlobalVertexReco::process_event -  bbcmap"<<endl;
 
     for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
 	 bbciter != bbcmap->end();
@@ -218,7 +217,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 
       globalmap->insert(vertex);    
 
-      if (verbosity) vertex->identify();
+      if (Verbosity()) vertex->identify();
     }
   }
   

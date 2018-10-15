@@ -54,7 +54,7 @@ GenericUnpackPRDF::process_event(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::DISCARDEVENT;
     }
 
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
     _event->identify();
 
   map<int, Packet_hbd_fpgashort*> packet_list;

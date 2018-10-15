@@ -261,7 +261,7 @@ void RawTowerDeadTowerInterp::CreateNodes(PHCompositeNode *topNode)
         "Failed to find " + geometry_node + " node in RawTowerDeadTowerInterp::CreateNodes");
   }
 
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
   {
     m_geometry->identify();
   }

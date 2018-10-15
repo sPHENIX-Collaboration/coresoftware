@@ -1,5 +1,7 @@
-#ifndef FUN4ALLINPUTMANAGER_H__
-#define FUN4ALLINPUTMANAGER_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FUN4ALL_FUN4ALLINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLINPUTMANAGER_H
 
 #include "Fun4AllBase.h"
 #include "Fun4AllReturnCodes.h"
@@ -22,7 +24,8 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int isOpen() { return 0; }
   virtual int run(const int /*nevents=0*/) { return -1; }
   virtual int ReadInRunNode(PHCompositeNode * /*RunNode*/) { return -1; }
-  virtual std::string Filename() { return filename; }
+  std::string FileName() const {return m_FileName;}
+  void FileName(const std::string &fn) {m_FileName = fn;}
   virtual int GetSyncObject(SyncObject ** /*mastersync*/) { return 0; }
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
@@ -46,11 +49,17 @@ class Fun4AllInputManager : public Fun4AllBase
   void AddToFileOpened(const std::string &filename) { filelist_opened.push_back(filename); }
   const std::list<std::string> GetFileList() const { return filelist_copy; }
   const std::list<std::string> GetFileOpenedList() const { return filelist_opened; }
+  std::string InputNode() {return m_InputNode;}
+  void InputNode(const std::string &innode) {m_InputNode = innode;}
+
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
+
   std::vector<SubsysReco *> Subsystems;
-  std::string InputNode;
-  std::string filename;
+private:
+  std::string m_InputNode;
+  std::string m_FileName;
+protected:
   std::string topNodeName;
   std::list<std::string> filelist;
   std::list<std::string> filelist_copy;
@@ -61,4 +70,4 @@ class Fun4AllInputManager : public Fun4AllBase
   int initrun;
 };
 
-#endif /* __FUN4ALLINPUTMANAGER_H__ */
+#endif

@@ -64,6 +64,7 @@ pkginclude_HEADERS = \
   PHG4CylinderGeom_Spacalv1.h \
   PHG4CylinderGeom_MAPS.h \
   PHG4CylinderGeom_Siladders.h \
+  PHG4CylinderGeomSiLadders.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
@@ -114,6 +115,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeomv4_Dict.cc \
   PHG4CylinderGeom_Siladders.cc \
   PHG4CylinderGeom_Siladders_Dict.cc \
+  PHG4CylinderGeomSiLadders.cc \
+  PHG4CylinderGeomSiLadders_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
   PHG4CylinderGeom_MAPS.cc \

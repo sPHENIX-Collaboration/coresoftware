@@ -12,7 +12,7 @@ using namespace std;
 
 Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllBase(name)
-  , InputNode(nodename)
+  , m_InputNode(nodename)
   , topNodeName(topnodename)
   , mySyncManager(NULL)
   , repeat(0)
@@ -26,9 +26,9 @@ Fun4AllInputManager::~Fun4AllInputManager()
 {
   while (Subsystems.begin() != Subsystems.end())
   {
-    if (verbosity)
+    if (Verbosity())
     {
-      Subsystems.back()->Verbosity(verbosity);
+      Subsystems.back()->Verbosity(Verbosity());
     }
     delete Subsystems.back();
     Subsystems.pop_back();
@@ -37,7 +37,7 @@ Fun4AllInputManager::~Fun4AllInputManager()
 
 int Fun4AllInputManager::AddFile(const string &filename)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "Adding " << filename << " to list of input files for "
          << Name() << endl;
@@ -94,7 +94,7 @@ int Fun4AllInputManager::AddListFile(const string &filename, const int do_it)
     }
     else if (FullLine.size())
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
       {
         cout << "Found Comment: " << FullLine << endl;
       }
@@ -147,7 +147,7 @@ int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
          << subsystem->Name() << ", return code: " << iret << endl;
     return iret;
   }
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "Registering Subsystem " << subsystem->Name() << endl;
   }
@@ -168,7 +168,7 @@ int Fun4AllInputManager::RejectEvent()
         (*iter)->InitRun(se->topNode(topNodeName));
         initrun = 1;
       }
-      if (verbosity > 0)
+      if (Verbosity() > 0)
       {
         cout << Name() << ": Fun4AllInpuManager::EventReject processing " << (*iter)->Name() << endl;
       }

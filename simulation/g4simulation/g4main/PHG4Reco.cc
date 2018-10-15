@@ -168,7 +168,7 @@ PHG4Reco::~PHG4Reco(void)
 //_________________________________________________________________
 int PHG4Reco::Init(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "========================= PHG4Reco::Init() ================================" << endl;
   }
@@ -176,10 +176,10 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   G4Seed(iseed);  // fixed seed handled in PHRandomSeed()
 
   // create GEANT run manager
-  if (verbosity > 1) cout << "PHG4Reco::Init - create run manager" << endl;
+  if (Verbosity() > 1) cout << "PHG4Reco::Init - create run manager" << endl;
 
   // redirect GEANT verbosity to nowhere
-//  if (verbosity < 1)
+//  if (Verbosity() < 1)
   if (0)
   {
     G4UImanager *uimanager = G4UImanager::GetUIpointer();
@@ -195,39 +195,39 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   G4VModularPhysicsList *myphysicslist = nullptr;
   if (physicslist == "FTFP_BERT")
   {
-    myphysicslist = new FTFP_BERT(verbosity);
+    myphysicslist = new FTFP_BERT(Verbosity());
   }
   else if (physicslist == "QGSP_BERT")
   {
-    myphysicslist = new QGSP_BERT(verbosity);
+    myphysicslist = new QGSP_BERT(Verbosity());
   }
   else if (physicslist == "QGSP_BIC")
   {
-    myphysicslist = new QGSP_BIC(verbosity);
+    myphysicslist = new QGSP_BIC(Verbosity());
   }
   else if (physicslist == "QGSP_BIC_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new QGSP_BIC_HP(verbosity);
+    myphysicslist = new QGSP_BIC_HP(Verbosity());
   }
 #ifdef HAVE_LHEP
   else if (physicslist == "LHEP")
   {
-    myphysicslist = new LHEP(verbosity);
+    myphysicslist = new LHEP(Verbosity());
   }
 #endif
 #ifdef HAVE_FTFP_BERT_HP
   else if (physicslist == "FTFP_BERT_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new FTFP_BERT_HP(verbosity);
+    myphysicslist = new FTFP_BERT_HP(Verbosity());
   }
 #endif
 #ifdef HAVE_QGSP_BERT_HP
   else if (physicslist == "QGSP_BERT_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new QGSP_BERT_HP(verbosity);
+    myphysicslist = new QGSP_BERT_HP(Verbosity());
   }
 #endif
   else
@@ -262,7 +262,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     reco->Init(topNode);
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "===========================================================================" << endl;
   }
@@ -271,7 +271,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
 
 int PHG4Reco::InitField(PHCompositeNode *topNode)
 {
-  if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+  if (Verbosity() > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
 
   unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
@@ -284,7 +284,7 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
     default_field_cfg.reset(new PHFieldConfig_v2(0, 0, magfield * magfield_rescale));
   }
 
-  if (verbosity > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
+  if (Verbosity() > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
 
   PHField * phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity()+1);
   assert(phfield);
@@ -310,7 +310,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   }
   InitRunDone = 1;
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "========================= PHG4Reco::InitRun() ================================" << endl;
   }
@@ -332,9 +332,9 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // create phenix detector, add subsystems, and register to GEANT
-  if (verbosity > 1) cout << "PHG4Reco::Init - create detector" << endl;
+  if (Verbosity() > 1) cout << "PHG4Reco::Init - create detector" << endl;
   detector_ = new PHG4PhenixDetector();
-  detector_->Verbosity(verbosity);
+  detector_->Verbosity(Verbosity());
   detector_->SetWorldSizeX(WorldSize[0] * cm);
   detector_->SetWorldSizeY(WorldSize[1] * cm);
   detector_->SetWorldSizeZ(WorldSize[2] * cm);
@@ -384,7 +384,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     PHG4SteppingAction *action = g4sub->GetSteppingAction();
     if (action)
     {
-      if (verbosity > 1)
+      if (Verbosity() > 1)
       {
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
@@ -430,7 +430,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // G4Scintillation* theScintillationProcess      = new G4Scintillation("Scintillation");
 
   /*
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
     // This segfaults
     theCerenkovProcess->DumpPhysicsTable();
@@ -489,7 +489,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   G4HadronicProcessStore::Instance()->SetVerbose(0);
   G4LossTableManager::Instance()->SetVerbose(1);
 
-  if ((verbosity < 1) && (uisession_))
+  if ((Verbosity() < 1) && (uisession_))
   {
     uisession_->Verbosity(1);  // let messages after setup come through
   }
@@ -509,7 +509,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
     PHGeomUtility::RemoveGeometryFile(filename);
   }
 
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "===========================================================================" << endl;
   }
@@ -972,7 +972,7 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   LiF->AddElement(G4Element::GetElement("Li"), natoms = 1);
   LiF->AddElement(G4Element::GetElement("F"), natoms = 1);
 
-  if (verbosity > 1)
+  if (Verbosity() > 1)
   {
     cout << "g4_lif: " << g4_lif << endl;
     cout << "LiF: " << LiF << endl;
@@ -1326,7 +1326,7 @@ PHG4Reco::getSubsystem(const string &name)
   {
     if (subsys->Name() == name)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
       {
         cout << "Found Subsystem " << name << endl;
       }

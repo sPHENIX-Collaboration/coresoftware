@@ -69,7 +69,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			topNode, "G4HIT_MAPS");
 
 	if (!phg4hits_svtx and phg4hits_intt and !phg4hits_maps) {
-		if (verbosity >= 0) {
+		if (Verbosity() >= 0) {
 			LogError("No PHG4HitContainer found!");
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
@@ -93,7 +93,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			topNode, "G4CELL_MAPS");
 
 	if (!cells_svtx and !cells_intt and !cells_maps) {
-		if (verbosity >= 0) {
+		if (Verbosity() >= 0) {
 			LogError("No PHG4CellContainer found!");
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
@@ -113,7 +113,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		if(!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
 
 		if(!cell){
-			if(verbosity >= 1) {
+			if(Verbosity() >= 1) {
 				LogError("!cell");
 			}
 			continue;
@@ -130,7 +130,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
 
 			if(!phg4hit){
-				if(verbosity >= 1) {
+				if(Verbosity() >= 1) {
 					LogError("!phg4hit");
 				}
 				continue;
@@ -169,7 +169,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 		}
 	}
 
-	if (verbosity >= 2) {
+	if (Verbosity() >= 2) {
 		for (SvtxTrackMap::Iter iter = _trackmap->begin();
 				iter != _trackmap->end(); ++iter) {
 			SvtxTrack* svtx_track = iter->second;
@@ -250,7 +250,7 @@ int PHG4TruthPatRec::CreateNodes(PHCompositeNode* topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -258,7 +258,7 @@ int PHG4TruthPatRec::CreateNodes(PHCompositeNode* topNode) {
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_trackmap,
 			"SvtxTrackMap", "PHObject");
 	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxTrackMap node added" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;

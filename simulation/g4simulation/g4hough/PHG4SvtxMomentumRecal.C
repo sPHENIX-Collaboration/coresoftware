@@ -27,7 +27,7 @@ int PHG4SvtxMomentumRecal::Init(PHCompositeNode *topNode)
 
 int PHG4SvtxMomentumRecal::InitRun(PHCompositeNode *topNode) 
 {
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "================== PHG4SvtxMomentumRecal::InitRun() =====================" << endl;
     cout << "===========================================================================" << endl;
   }
@@ -37,7 +37,7 @@ int PHG4SvtxMomentumRecal::InitRun(PHCompositeNode *topNode)
 
 int PHG4SvtxMomentumRecal::process_event(PHCompositeNode *topNode)
 {
-  if(verbosity > 1) cout << "PHG4SvtxMomentumRecal::process_event -- entered" << endl;
+  if(Verbosity() > 1) cout << "PHG4SvtxMomentumRecal::process_event -- entered" << endl;
 
   if (!_corr) return Fun4AllReturnCodes::EVENT_OK;
   
@@ -75,7 +75,7 @@ int PHG4SvtxMomentumRecal::process_event(PHCompositeNode *topNode)
     track->set_pz( track->get_pz() * rescale );
   } // end track loop
 
-  if (verbosity > 1) cout << "PHG4SvtxMomentumRecal::process_event -- exited" << endl;
+  if (Verbosity() > 1) cout << "PHG4SvtxMomentumRecal::process_event -- exited" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

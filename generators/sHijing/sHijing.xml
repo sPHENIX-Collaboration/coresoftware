@@ -30,17 +30,26 @@
     <Algorithm>
       <Name>AntikT</Name>
       <R>0.2</R>		
-      <PID>2000000</PID>		
+      <PID>2000000</PID>		    
+      <EtaMin>-2</EtaMin>	      
+      <EtaMax>2</EtaMax>	      
+      <EtMin>2</EtMin>	 	
     </Algorithm>
     <Algorithm>
       <Name>AntikT</Name>
       <R>0.4</R>		
-      <PID>4000000</PID>		
+      <PID>4000000</PID>		    
+      <EtaMin>-2</EtaMin>	      
+      <EtaMax>2</EtaMax>	      
+      <EtMin>2</EtMin>	 	
     </Algorithm>
     <Algorithm>
       <Name>AntikT</Name>
       <R>0.6</R>		
-      <PID>6000000</PID>		
+      <PID>6000000</PID>		    
+      <EtaMin>-2</EtaMin>	      
+      <EtaMax>2</EtaMax>	      
+      <EtMin>2</EtMin>	 	
     </Algorithm>
   </FastJet>
 </HIJING>

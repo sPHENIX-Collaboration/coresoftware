@@ -75,18 +75,18 @@ void Fun4AllDstOutputManager::Print(const string &what) const
   if (what == "ALL" || what == "WRITENODES")
   {
 //    vector<string>::const_iterator iter;
-    cout << ThisName << " writes " << outfilename << endl;
+    cout << Name() << " writes " << outfilename << endl;
     if (savenodes.empty())
     {
       if (stripnodes.empty())
       {
-        cout << ThisName << ": All Nodes will be written out" << endl;
+        cout << Name() << ": All Nodes will be written out" << endl;
       }
       else
       {
         BOOST_FOREACH (string nodename, stripnodes)
         {
-          cout << ThisName << ": Node " << nodename << " will be stripped" << endl;
+          cout << Name() << ": Node " << nodename << " will be stripped" << endl;
         }
       }
     }
@@ -94,7 +94,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
     {
       BOOST_FOREACH (string nodename, savenodes)
       {
-        cout << ThisName << ": Node " << nodename << " is written out" << endl;
+        cout << Name() << ": Node " << nodename << " is written out" << endl;
       }
     }
   }
@@ -132,9 +132,9 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
         }
         else
         {
-          if (verbosity > 0)
+          if (Verbosity() > 0)
           {
-            cout << PHWHERE << ThisName << ": Node " << nodename
+            cout << PHWHERE << Name() << ": Node " << nodename
                  << " does not exist" << endl;
           }
         }
@@ -152,9 +152,9 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
       }
       else
       {
-        if (verbosity > 0)
+        if (Verbosity() > 0)
         {
-          cout << PHWHERE << ThisName << ": Node " << nodename
+          cout << PHWHERE << Name() << ": Node " << nodename
                << " does not exist" << endl;
         }
       }
