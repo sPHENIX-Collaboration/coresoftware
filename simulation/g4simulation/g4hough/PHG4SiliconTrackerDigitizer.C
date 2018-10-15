@@ -259,19 +259,11 @@ int PHG4SiliconTrackerDigitizer::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-<<<<<<< HEAD
-void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode)
-{
-  if (verbosity >= VERBOSITY_EVEN_MORE)
-  {
-    SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-=======
 void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode) {
 
   if (Verbosity() >= VERBOSITY_EVEN_MORE) {
 
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
->>>>>>> a1eee2cc24a3b9bc7b602f196e37e4034deaa143
     if (!hitlist) return;
 
     cout << "================= PHG4SiliconTrackerDigitizer::process_event() ====================" << endl;
