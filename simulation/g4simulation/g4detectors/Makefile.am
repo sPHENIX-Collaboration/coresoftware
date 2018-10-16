@@ -79,12 +79,14 @@ pkginclude_HEADERS = \
   PHG4MapsCellReco.h \
   PHG4MapsSubsystem.h \
   PHG4PrototypeHcalDefs.h \
+  PHG4PSTOFSubsystem.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
   PHG4SiliconTrackerCellReco.h \
   PHG4SiliconTrackerDefs.h \
   PHG4SiliconTrackerSubsystem.h \
+  PHG4SpacalSubsystem.h \
   PHG4StepStatusDecode.h \
   PHG4TPCDistortion.h \
   PHG4TPCSpaceChargeDistortion.h
