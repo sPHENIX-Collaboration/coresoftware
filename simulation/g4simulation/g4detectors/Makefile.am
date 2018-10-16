@@ -76,8 +76,10 @@ pkginclude_HEADERS = \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4HcalDefs.h \
+  PHG4InnerHcalSubsystem.h \
   PHG4MapsCellReco.h \
   PHG4MapsSubsystem.h \
+  PHG4OuterHcalSubsystem.h \
   PHG4PrototypeHcalDefs.h \
   PHG4PSTOFSubsystem.h \
   PHG4ScintillatorSlat.h \

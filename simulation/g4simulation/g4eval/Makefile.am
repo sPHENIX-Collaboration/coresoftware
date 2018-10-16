@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   JetTruthEval.h \
   MomentumEvaluator.h \
   PHG4DstCompressReco.h \
+  PHG4DSTReader.h \
   SvtxEvalStack.h \
   SvtxEvaluator.h \
   SvtxHitEval.h \
