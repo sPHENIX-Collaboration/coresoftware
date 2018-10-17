@@ -224,6 +224,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       }
       continue;
     }
+    /*
     double dx = (hiter->second->get_x(1) - hiter->second->get_x(0))/n_electrons;
     double dy = (hiter->second->get_y(1) - hiter->second->get_y(0))/n_electrons;
     double dz = (hiter->second->get_z(1) - hiter->second->get_z(0))/n_electrons;
@@ -232,7 +233,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     double y_start = hiter->second->get_y(0) + dy/2.;
     double z_start = hiter->second->get_z(0) + dz/2.;
     double t_start = hiter->second->get_t(0) + dt/2.;
-
+    */
 
     if(Verbosity() > 100)
       {
@@ -249,12 +250,20 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 		  << " radius " << sqrt( pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2) ) << endl;
 	    cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1) 
 		 << " radius " << sqrt( pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2) ) << endl;
-	    cout << " dx.dy,dz = " << dx << "  " << dy << "  " << dz << endl;         
 	  }
       }
 
     for (unsigned int i=0; i<n_electrons; i++)
       {
+	// We choose the electron starting position at random from a flat distribution along the path length
+	// the parameter t is the fraction of the distance along the path betwen entry and exit points, it has values between 0 and 1
+	double f = gsl_ran_flat(RandomGenerator, 0.0, 1.0);
+
+	double x_start = hiter->second->get_x(0) + f * (hiter->second->get_x(1) - hiter->second->get_x(0)); 
+	double y_start = hiter->second->get_y(0) + f * (hiter->second->get_y(1) - hiter->second->get_y(0)); 
+	double z_start = hiter->second->get_z(0) + f * (hiter->second->get_z(1) - hiter->second->get_z(0)); 
+	double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0)); 
+
 	double radstart = sqrt(x_start*x_start + y_start*y_start);
 	double r_sigma =  diffusion_trans*sqrt(tpc_length/2. - fabs(z_start));
 	double rantrans = gsl_ran_gaussian(RandomGenerator,r_sigma);
@@ -289,7 +298,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
 	if(Verbosity() > 1000)
 	  {
-	    cout << "electron " << i << " g4hitid " << hiter->first << endl; 
+	    cout << "electron " << i << " g4hitid " << hiter->first << " f " << f << endl; 
 	    cout << "radstart " << radstart  << " x_start: " << x_start
 		 << ", y_start: " << y_start
 		 << ",z_start: " << z_start 
@@ -309,10 +318,12 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
 	// this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
 	MapToPadPlane(x_final,y_final,z_final, hiter,ntpad,nthit);
+	/*
 	x_start += dx;
 	y_start += dy;
 	z_start += dz;
 	t_start += dt;
+	*/
       }
     ihit++;
   }
