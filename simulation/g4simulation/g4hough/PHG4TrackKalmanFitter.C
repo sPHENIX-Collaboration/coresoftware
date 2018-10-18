@@ -357,12 +357,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  //get the cluster closest to the desired radius (gives us the correct radius, too):
 		  TVector3 pos_30_clust(0,0,0);
 		  pos_30_clust=getClusterPosAtRadius(30.0,svtx_track);
-				  
+
+		  //extrapolation to the cluster position:
 		  TMatrixF pos_30_m(3,1);
 		  TMatrixF cov_30(3,3);
 		  TVector3 pos_30(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
 		  
-		  
+		  //rcc note to self:  this is a very messy procedure, converting into the cartesian coords that briefly correspond to phi,r,z, with lots of caveats.  Don't leave this in here forever, please... (look at the function call for why it still /works/.)
 		  bool cov2_okay=extrapolateTrackToRadiusPhiRZ(pos_30_clust.Perp(),rf_phgf_track,pos_30_m,cov_30);
 		  pos_30.SetZ(pos_30_m[2][0]);
 		  pos_30.SetPerp(pos_30_m[1][0]);
@@ -372,6 +373,15 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  TVector3 pos_30_true(0,0,0);
 		  pos_30_true=getClosestG4HitPos(pos_30,topNode);
 
+		  //extrapolate the track to the g4 hit position as well:
+		  //extrapolation to the cluster position:
+		  TMatrixF pos_ex_g4_m(3,1);
+		  TMatrixF cov_ex_g4(3,3);
+		  TVector3 pos_ex_g4(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
+		  covariance_okay=extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4_m,cov_ex_g4);
+		  pos_ex_g4.SetZ(pos_ex_g4_m[2][0]);
+		  pos_ex_g4.SetPerp(pos_ex_g4_m[1][0]);
+		  pos_ex_g4.SetPhi(pos_ex_g4_m[0][0]);
 
 
 		  if (Verbosity() > 2){
@@ -420,6 +430,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    _kalman_extrapolation_eval_tree_phi2_clust=pos_30_clust.Phi();
 		    _kalman_extrapolation_eval_tree_z2_clust=pos_30_clust.Z();
 		    _kalman_extrapolation_eval_tree_r2_clust=pos_30_clust.Perp();
+		    
+		    _kalman_extrapolation_eval_tree_phi_ex_g4=pos_ex_g4.Phi();
+		    _kalman_extrapolation_eval_tree_z_ex_g4=pos_ex_g4.Z();
+		    _kalman_extrapolation_eval_tree_r_ex_g4=pos_ex_g4.Perp();
 		    if (cov2_okay){
 		    _kalman_extrapolation_eval_tree_sigma_r2=cov_30[1][1];
 		    _kalman_extrapolation_eval_tree_sigma_rphi2=cov_30[0][0];
@@ -808,6 +822,13 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("phi2c", &_kalman_extrapolation_eval_tree_phi2_clust,"phi2c/F");
 	_kalman_extrapolation_eval_tree->Branch("z2c", &_kalman_extrapolation_eval_tree_z2_clust, "z2c/F");
 	_kalman_extrapolation_eval_tree->Branch("r2c", &_kalman_extrapolation_eval_tree_r2_clust, "r2c/F");
+
+	//extrapolation to exactly the true hit radius:
+		_kalman_extrapolation_eval_tree->Branch("phi2te",&_kalman_extrapolation_eval_tree_phi_ex_g4,"phi2te/F");
+	_kalman_extrapolation_eval_tree->Branch("z2te",&_kalman_extrapolation_eval_tree_z_ex_g4,"z2te/F");
+	_kalman_extrapolation_eval_tree->Branch("r2te",&_kalman_extrapolation_eval_tree_r_ex_g4,"r2te/F");
+
+	
 	//before rotation:
 	_kalman_extrapolation_eval_tree->Branch("sigma_x",&_kalman_extrapolation_eval_tree_covin_x);
 	_kalman_extrapolation_eval_tree->Branch("sigma_y",&_kalman_extrapolation_eval_tree_covin_y);

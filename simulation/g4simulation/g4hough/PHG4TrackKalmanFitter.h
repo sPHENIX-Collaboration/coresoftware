@@ -363,6 +363,11 @@ private:
 	float  _kalman_extrapolation_eval_tree_phi2;
 	float _kalman_extrapolation_eval_tree_z2;
 	float _kalman_extrapolation_eval_tree_r2;
+	float _kalman_extrapolation_eval_tree_phi_ex_g4;
+	float _kalman_extrapolation_eval_tree_z_ex_g4;
+	float _kalman_extrapolation_eval_tree_r_ex_g4;
+
+	
 	bool _kalman_extrapolation_eval_tree_okay2;
 	float _kalman_extrapolation_eval_tree_sigma_rphi2;
 	float _kalman_extrapolation_eval_tree_sigma_z2;
