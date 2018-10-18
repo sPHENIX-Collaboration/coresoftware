@@ -72,10 +72,14 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
+  PHG4CylinderCellReco.h \
+  PHG4CylinderCellTPCReco.h \
   PHG4CylinderSubsystem.h \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
+  PHG4FullProjSpacalCellReco.h \
   PHG4HcalDefs.h \
+  PHG4HcalCellReco.h \
   PHG4InnerHcalSubsystem.h \
   PHG4MapsCellReco.h \
   PHG4MapsSubsystem.h \
@@ -85,6 +89,8 @@ pkginclude_HEADERS = \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
+  PHG4SectorConstructor.h \
+  PHG4SectorSubsystem.h \
   PHG4SiliconTrackerCellReco.h \
   PHG4SiliconTrackerDefs.h \
   PHG4SiliconTrackerSubsystem.h \
