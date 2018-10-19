@@ -41,6 +41,7 @@ libg4detectors_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
+  ePHENIXRICHConstruction.h \
   PHG4BlockCellGeom.h \
   PHG4BlockCellGeomContainer.h \
   PHG4BlockGeom.h \
@@ -50,6 +51,7 @@ pkginclude_HEADERS = \
   PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
+  PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
   PHG4CylinderCell_MAPS.h \
@@ -77,6 +79,9 @@ pkginclude_HEADERS = \
   PHG4CylinderSubsystem.h \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
+  PHG4ForwardCalCellReco.h \
+  PHG4ForwardEcalSubsystem.h \
+  PHG4ForwardHcalSubsystem.h \
   PHG4FullProjSpacalCellReco.h \
   PHG4HcalDefs.h \
   PHG4HcalCellReco.h \
@@ -86,6 +91,7 @@ pkginclude_HEADERS = \
   PHG4OuterHcalSubsystem.h \
   PHG4PrototypeHcalDefs.h \
   PHG4PSTOFSubsystem.h \
+  PHG4RICHSubsystem.h \
   PHG4ScintillatorSlat.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
