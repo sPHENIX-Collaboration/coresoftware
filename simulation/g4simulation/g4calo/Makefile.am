@@ -50,6 +50,7 @@ libg4calo_la_LIBADD = \
 pkginclude_HEADERS = \
   HcalRawTowerBuilder.h \
   RawTowerBuilder.h \
+  RawTowerBuilderByHitIndex.h \
   RawTowerDigitizer.h
 
 ################################################
