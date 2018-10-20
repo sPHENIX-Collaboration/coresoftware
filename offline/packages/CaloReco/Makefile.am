@@ -59,6 +59,7 @@ libcalo_reco_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTemplate.h \
   RawClusterPositionCorrection.h \
