@@ -51,6 +51,7 @@ pkginclude_HEADERS = \
   PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
+  PHG4ConeSubsystem.h \
   PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
