@@ -404,9 +404,78 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  }
 
 
-		  //get some truth information:
-		  //const Map truth_particles=_truth_container->GetMap();
-		  //need something here to get the true particle for this track
+
+		  //do christof's extrapolation:
+		  // [10/19/18, 9:40:31 AM] Christof Roland:
+		  std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
+		  state = std::unique_ptr < genfit::MeasuredStateOnPlane > 
+		    (rf_phgf_track->extrapolateToCylinder(pos_ex_g4.Perp(), 
+						  TVector3(0, 0, 0),
+						  TVector3(0, 0, 1), 
+						  npoints-1, 
+						  1));
+		  TVector3 pos_chr = state->getPos();
+
+		  //do the exact, linear extrapolation:
+		  //get the info for the last two points in the track, in order:
+		  float target_radius=pos_ex_g4.Perp();
+		  TVector3 pos_linear[3];
+		  TVector3 mom_linear[3];
+		  TVectorD state6(6); // pos(3), mom(3)
+		  TMatrixDSym cov6(6,6); //
+		  for (int i=0;i<2;i++){
+		    genfit::TrackPoint* trackpoint= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
+		    genfit::MeasuredStateOnPlane* trackstate;trackstate=trackpoint->getFitterInfo()->getFittedState().clone();
+		    trackstate->get6DStateCov(state6, cov6);
+		    (pos_linear[i]).SetXYZ(state6[0],state6[1],state6[2]);
+		    (mom_linear[i]).SetXYZ(state6[3],state6[4],state6[5]);
+
+		  }
+		  
+
+		    
+		    //extrapolate from those last two points to the cylinder:
+		    TVector3 delta=pos_linear[1]-pos_linear[0];
+		    
+		    //to extrapolate to a cylinder of radius r, we want to solve:
+		    //(pos')^2=R^2, where pos'=delta*t+pos, a vector quantity.
+		    //This leads to a quadratic equation: 
+		    double quad_a=delta*delta;
+		    double quad_b=2*delta*(pos_linear[1]);
+		    double quad_c=(pos_linear[1]*pos_linear[1])-target_radius*target_radius;
+		    //pick the positive root to keep going the direction we defined:
+		    float t=(-quad_b+TMath::Sqrt(quad_b*quad_b-4*quad_a*quad_c))/(2*quad_a);
+		    //extrapolate out all the dimensions to the intersection.
+		    pos_linear[2]=pos_linear[1]+delta*t;
+
+		    if (Verbosity() > 4){
+		      
+		      
+		      cout << "pos_lin_g4:  "<<  "X="<< pos_linear[2].X() << " Y="<<pos_linear[2].Y() << " Z=" <<pos_linear[2].Z();
+		      cout << "\tR="<< pos_linear[2].Perp() << " Phi="<<pos_linear[2].Phi() << " Z=" <<pos_linear[2].Z() <<endl;
+		      cout << "pos_chr_g4:  "<<  "X="<< pos_chr.X() << " Y="<<pos_chr.Y() << " Z=" <<pos_chr.Z();
+		      cout << "\tR="<< pos_chr.Perp() << " Phi="<<pos_chr.Phi() << " Z=" <<pos_chr.Z() <<endl;
+		      cout << "pos_ex_g4:  "<<  "X="<< pos_ex_g4.X() << " Y="<<pos_ex_g4.Y() << " Z=" <<pos_ex_g4.Z();
+		      cout << "\tR="<< pos_ex_g4.Perp() << " Phi="<<pos_ex_g4.Phi() << " Z=" <<pos_ex_g4.Z() <<endl;
+		      cout << "pos_g4:  "<<  "X="<< pos_30_true.X() << " Y="<<pos_30_true.Y() << " Z=" <<pos_30_true.Z();
+		      cout << "\tR="<< pos_30_true.Perp() << " Phi="<<pos_30_true.Phi() << " Z=" <<pos_30_true.Z() <<endl;
+		      cout << "pos_clust:  "<<  "X="<< pos_30_clust.X() << " Y="<<pos_30_clust.Y() << " Z=" <<pos_30_clust.Z();
+		      cout << "\tR="<< pos_30_clust.Perp() << " Phi="<<pos_30_clust.Phi() << " Z=" <<pos_30_clust.Z() <<endl;
+		      cout << "pos_ex_clust:  "<<  "X="<< pos_30.X() << " Y="<<pos_30.Y() << " Z=" <<pos_30.Z();
+		      cout << "\tR="<< pos_30.Perp() << " Phi="<<pos_30.Phi() << " Z=" <<pos_30.Z() <<endl;
+
+		    }
+
+		    
+		    _kalman_extrapolation_eval_tree_pti=mom.Perp();
+		    _kalman_extrapolation_eval_tree_pxi=mom.X();
+		    _kalman_extrapolation_eval_tree_pyi=mom.Y();
+		    _kalman_extrapolation_eval_tree_pzi=mom.Z();
+		    _kalman_extrapolation_eval_tree_pt=mom_linear[1].Perp();
+		    _kalman_extrapolation_eval_tree_px=mom_linear[1].X();
+		    _kalman_extrapolation_eval_tree_py=mom_linear[1].Y();
+		    _kalman_extrapolation_eval_tree_pz=mom_linear[1].Z();
+
 		    
 		  _kalman_extrapolation_eval_tree_phi=pos_ifc.Phi();
 		  _kalman_extrapolation_eval_tree_z=pos_ifc.Z();
@@ -434,6 +503,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    _kalman_extrapolation_eval_tree_phi_ex_g4=pos_ex_g4.Phi();
 		    _kalman_extrapolation_eval_tree_z_ex_g4=pos_ex_g4.Z();
 		    _kalman_extrapolation_eval_tree_r_ex_g4=pos_ex_g4.Perp();
+
+		    _kalman_extrapolation_eval_tree_phi_chr=pos_chr.Phi();
+		    _kalman_extrapolation_eval_tree_z_chr=pos_chr.Z();
+		    _kalman_extrapolation_eval_tree_r_chr=pos_chr.Perp();
+
+		    _kalman_extrapolation_eval_tree_phi_lin_g4=pos_linear[2].Phi();
+		    _kalman_extrapolation_eval_tree_z_lin_g4=pos_linear[2].Z();
+		    _kalman_extrapolation_eval_tree_r_lin_g4=pos_linear[2].Perp();
 		    if (cov2_okay){
 		    _kalman_extrapolation_eval_tree_sigma_r2=cov_30[1][1];
 		    _kalman_extrapolation_eval_tree_sigma_rphi2=cov_30[0][0];
@@ -797,6 +874,17 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 
 	//RCC add extrapolation branch to the output so we can check resolutions:
 	_kalman_extrapolation_eval_tree = new TTree("kalman_extrapolation_eval","kalman extrapolation eval tree");
+
+	//initial and final momentum estimates from the kalman fit.
+	_kalman_extrapolation_eval_tree->Branch("pt", &_kalman_extrapolation_eval_tree_pt, "pt/F");
+	_kalman_extrapolation_eval_tree->Branch("px", &_kalman_extrapolation_eval_tree_px, "px/F");
+	_kalman_extrapolation_eval_tree->Branch("py", &_kalman_extrapolation_eval_tree_py, "py/F");
+	_kalman_extrapolation_eval_tree->Branch("pz", &_kalman_extrapolation_eval_tree_pz, "pz/F");
+	_kalman_extrapolation_eval_tree->Branch("pti", &_kalman_extrapolation_eval_tree_pti, "pti/F");
+	_kalman_extrapolation_eval_tree->Branch("pxi", &_kalman_extrapolation_eval_tree_pxi, "pxi/F");
+	_kalman_extrapolation_eval_tree->Branch("pyi", &_kalman_extrapolation_eval_tree_pyi, "pyi/F");
+	_kalman_extrapolation_eval_tree->Branch("pzi", &_kalman_extrapolation_eval_tree_pzi, "pzi/F");
+	
 	_kalman_extrapolation_eval_tree->Branch("phi", &_kalman_extrapolation_eval_tree_phi, "phi/F");
 	_kalman_extrapolation_eval_tree->Branch("z", &_kalman_extrapolation_eval_tree_z, "z/F");
 	_kalman_extrapolation_eval_tree->Branch("r", &_kalman_extrapolation_eval_tree_r, "r/F");
@@ -824,10 +912,19 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("r2c", &_kalman_extrapolation_eval_tree_r2_clust, "r2c/F");
 
 	//extrapolation to exactly the true hit radius:
-		_kalman_extrapolation_eval_tree->Branch("phi2te",&_kalman_extrapolation_eval_tree_phi_ex_g4,"phi2te/F");
+	_kalman_extrapolation_eval_tree->Branch("phi2te",&_kalman_extrapolation_eval_tree_phi_ex_g4,"phi2te/F");
 	_kalman_extrapolation_eval_tree->Branch("z2te",&_kalman_extrapolation_eval_tree_z_ex_g4,"z2te/F");
 	_kalman_extrapolation_eval_tree->Branch("r2te",&_kalman_extrapolation_eval_tree_r_ex_g4,"r2te/F");
 
+	//linear fit to exactly the true hit radius:
+	_kalman_extrapolation_eval_tree->Branch("phi2lin",&_kalman_extrapolation_eval_tree_phi_lin_g4,"phi2lin/F");
+	_kalman_extrapolation_eval_tree->Branch("z2lin",&_kalman_extrapolation_eval_tree_z_lin_g4,"z2lin/F");
+	_kalman_extrapolation_eval_tree->Branch("r2lin",&_kalman_extrapolation_eval_tree_r_lin_g4,"r2lin/F");
+
+	//extrapolation to exactly the true hit radius with Christof's method:
+	_kalman_extrapolation_eval_tree->Branch("phi2chr",&_kalman_extrapolation_eval_tree_phi_chr,"phi2chr/F");
+	_kalman_extrapolation_eval_tree->Branch("z2chr",&_kalman_extrapolation_eval_tree_z_chr,"z2chr/F");
+	_kalman_extrapolation_eval_tree->Branch("r2chr",&_kalman_extrapolation_eval_tree_r_chr,"r2chr/F");
 	
 	//before rotation:
 	_kalman_extrapolation_eval_tree->Branch("sigma_x",&_kalman_extrapolation_eval_tree_covin_x);
@@ -2356,7 +2453,7 @@ TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target, PHComp
       float r   = sqrt(x*x+y*y);
       float delta= (TMath::Abs(r-target.Perp()));
       float delta_from_best=(TMath::Abs(r-bestpos.Perp()));
-       if (Verbosity()>2 ){
+       if (Verbosity()>10 ){
 	 cout << "Considering R="<< r << " delta="<<delta << endl;
   }
       if (delta_from_best<mindiff){

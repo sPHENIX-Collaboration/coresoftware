@@ -342,6 +342,17 @@ private:
 	float _cluster_eval_tree_gz;
 
 	TTree *_kalman_extrapolation_eval_tree;
+
+
+	float	_kalman_extrapolation_eval_tree_pt;
+	float	_kalman_extrapolation_eval_tree_px;
+	float	_kalman_extrapolation_eval_tree_py;
+	float	_kalman_extrapolation_eval_tree_pz;
+	float	_kalman_extrapolation_eval_tree_pti;
+	float	_kalman_extrapolation_eval_tree_pxi;
+	float	_kalman_extrapolation_eval_tree_pyi;
+	float	_kalman_extrapolation_eval_tree_pzi;
+	
 	float  _kalman_extrapolation_eval_tree_phi;
 	float _kalman_extrapolation_eval_tree_z;
 	float _kalman_extrapolation_eval_tree_r;
@@ -366,6 +377,12 @@ private:
 	float _kalman_extrapolation_eval_tree_phi_ex_g4;
 	float _kalman_extrapolation_eval_tree_z_ex_g4;
 	float _kalman_extrapolation_eval_tree_r_ex_g4;
+	float _kalman_extrapolation_eval_tree_phi_lin_g4;
+	float _kalman_extrapolation_eval_tree_z_lin_g4;
+	float _kalman_extrapolation_eval_tree_r_lin_g4;
+	float _kalman_extrapolation_eval_tree_phi_chr;
+	float _kalman_extrapolation_eval_tree_z_chr;
+	float _kalman_extrapolation_eval_tree_r_chr;
 
 	
 	bool _kalman_extrapolation_eval_tree_okay2;
