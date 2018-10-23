@@ -259,7 +259,8 @@ private:
 
 	TVector3 getClusterPosAtRadius(const float radius, const SvtxTrack* intrack);
 	TVector3 getClosestG4HitPos(const TVector3 target, PHCompositeNode * topNode);
-
+	TVector3 getClosestG4HitPos(const TVector3 target, PHCompositeNode * topNode, int& nhits);
+  
 
 
 	/*!
@@ -343,7 +344,8 @@ private:
 
 	TTree *_kalman_extrapolation_eval_tree;
 
-
+	int _kalman_extrapolation_eval_tree_nhits;
+	int _kalman_extrapolation_eval_tree_ng4hits;
 	float	_kalman_extrapolation_eval_tree_pt;
 	float	_kalman_extrapolation_eval_tree_px;
 	float	_kalman_extrapolation_eval_tree_py;

@@ -885,9 +885,9 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 	ladder_phi_index = cell->get_ladder_phi_index();
 
 	if (_make_e_weights[layer]) {
-	  xsum += hit_location[0] * hit->get_adc();
-	  ysum += hit_location[1] * hit->get_adc();
-	  zsum += hit_location[2] * hit->get_adc();  
+	  xsum += hit_location[0] * hit->get_e();
+	  ysum += hit_location[1] * hit->get_e();
+	  zsum += hit_location[2] * hit->get_e();
 	} else {
 	  xsum += hit_location[0];
 	  ysum += hit_location[1];
@@ -914,9 +914,9 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       double clusz = NAN;
 
       if (_make_e_weights[layer]) {
-	clusx = xsum / clus_adc;
-	clusy = ysum / clus_adc;
-	clusz = zsum / clus_adc;	
+	clusx = xsum / clus_energy;
+	clusy = ysum / clus_energy;
+	clusz = zsum / clus_energy;
       } else {
 	clusx = xsum / nhits;
 	clusy = ysum / nhits;

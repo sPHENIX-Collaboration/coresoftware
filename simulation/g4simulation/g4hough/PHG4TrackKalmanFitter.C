@@ -371,7 +371,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
 		  TVector3 pos_30_true(0,0,0);
-		  pos_30_true=getClosestG4HitPos(pos_30,topNode);
+		  //now getting the number of hits, passsed in by reference:
+		  int ng4hits=0;
+		  pos_30_true=getClosestG4HitPos(pos_30,topNode, ng4hits);
 
 		  //extrapolate the track to the g4 hit position as well:
 		  //extrapolation to the cluster position:
@@ -403,7 +405,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    std::cout << PHWHERE << "Covariance_okay="<< (covariance_okay?"true":"false") <<" RCC!" <<endl;
 		  }
 
-
+		  if (Verbosity() > 2){
+		    	cout << "pos_30_true: Phi=" << pos_30_true.Phi() << "\t R="<<pos_30_true.Perp() << "\t Z="<<pos_30_true.Z()<<endl;
+			cout << "pos_ex_g4: Phi=" << pos_ex_g4.Phi() << "\t R="<<pos_ex_g4.Perp() << "\t Z="<<pos_ex_g4.Z()<<endl;
+		  }
 
 		  //do christof's extrapolation:
 		  // [10/19/18, 9:40:31 AM] Christof Roland:
@@ -414,22 +419,25 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 						  TVector3(0, 0, 1), 
 						  npoints-1, 
 						  1));
-		  TVector3 pos_chr = state->getPos();
+		  TVector3 pos_chr(-9000,-9000,-9000);
+		  if (state) pos_chr= state->getPos();
 
 		  //do the exact, linear extrapolation:
 		  //get the info for the last two points in the track, in order:
+		  
 		  float target_radius=pos_ex_g4.Perp();
 		  TVector3 pos_linear[3];
 		  TVector3 mom_linear[3];
 		  TVectorD state6(6); // pos(3), mom(3)
 		  TMatrixDSym cov6(6,6); //
+		  if (npoints>1){ //make sure we're not working with too few points.
 		  for (int i=0;i<2;i++){
 		    genfit::TrackPoint* trackpoint= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
 		    genfit::MeasuredStateOnPlane* trackstate;trackstate=trackpoint->getFitterInfo()->getFittedState().clone();
 		    trackstate->get6DStateCov(state6, cov6);
 		    (pos_linear[i]).SetXYZ(state6[0],state6[1],state6[2]);
 		    (mom_linear[i]).SetXYZ(state6[3],state6[4],state6[5]);
-
+		  }
 		  }
 		  
 
@@ -449,8 +457,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    pos_linear[2]=pos_linear[1]+delta*t;
 
 		    if (Verbosity() > 4){
-		      
-		      
 		      cout << "pos_lin_g4:  "<<  "X="<< pos_linear[2].X() << " Y="<<pos_linear[2].Y() << " Z=" <<pos_linear[2].Z();
 		      cout << "\tR="<< pos_linear[2].Perp() << " Phi="<<pos_linear[2].Phi() << " Z=" <<pos_linear[2].Z() <<endl;
 		      cout << "pos_chr_g4:  "<<  "X="<< pos_chr.X() << " Y="<<pos_chr.Y() << " Z=" <<pos_chr.Z();
@@ -463,7 +469,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		      cout << "\tR="<< pos_30_clust.Perp() << " Phi="<<pos_30_clust.Phi() << " Z=" <<pos_30_clust.Z() <<endl;
 		      cout << "pos_ex_clust:  "<<  "X="<< pos_30.X() << " Y="<<pos_30.Y() << " Z=" <<pos_30.Z();
 		      cout << "\tR="<< pos_30.Perp() << " Phi="<<pos_30.Phi() << " Z=" <<pos_30.Z() <<endl;
-
 		    }
 
 		    
@@ -476,6 +481,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    _kalman_extrapolation_eval_tree_py=mom_linear[1].Y();
 		    _kalman_extrapolation_eval_tree_pz=mom_linear[1].Z();
 
+
+
+		    //two more things for bookkeeping:
+		    //1) How many INTT layers were hit?
+		    //_kalman_extrapolation_eval_tree_intt_hits
+		    _kalman_extrapolation_eval_tree_nhits=npoints;//number of points in the kalman track rep.
+		    //2) How many g4 hits were at the layer of interest?
+		    _kalman_extrapolation_eval_tree_ng4hits=ng4hits;
 		    
 		  _kalman_extrapolation_eval_tree_phi=pos_ifc.Phi();
 		  _kalman_extrapolation_eval_tree_z=pos_ifc.Z();
@@ -876,6 +889,8 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree = new TTree("kalman_extrapolation_eval","kalman extrapolation eval tree");
 
 	//initial and final momentum estimates from the kalman fit.
+	_kalman_extrapolation_eval_tree->Branch("nhits", &_kalman_extrapolation_eval_tree_nhits, "nhits/I");
+	_kalman_extrapolation_eval_tree->Branch("ng4hits", &_kalman_extrapolation_eval_tree_ng4hits, "ng4hits/I");
 	_kalman_extrapolation_eval_tree->Branch("pt", &_kalman_extrapolation_eval_tree_pt, "pt/F");
 	_kalman_extrapolation_eval_tree->Branch("px", &_kalman_extrapolation_eval_tree_px, "px/F");
 	_kalman_extrapolation_eval_tree->Branch("py", &_kalman_extrapolation_eval_tree_py, "py/F");
@@ -2427,12 +2442,16 @@ TVector3 PHG4TrackKalmanFitter::getClusterPosAtRadius(const float radius, const 
 /*!
  * Returns the x,y,z coords of the g4hit in the current record that is closest to the target position.
  */
-
 TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target, PHCompositeNode * topNode){
+  int nhits=0;
+  TVector3 bestpos=getClosestG4HitPos(target,topNode, nhits);
+  return bestpos;
+}
+TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target, PHCompositeNode * topNode, int& nhits){
   PHG4HitContainer* _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
   TVector3 bestpos(-9000,-9000,-9000);
   float bestdelta=9999;
-  int numhits_at_this_radius=0;
+  nhits=0;
   const float mindiff=0.01;//minimum increment for a 'better' position.
 
  
@@ -2457,10 +2476,10 @@ TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target, PHComp
 	 cout << "Considering R="<< r << " delta="<<delta << endl;
   }
       if (delta_from_best<mindiff){
-	numhits_at_this_radius++;
+	nhits++;
       }
       if (delta<bestdelta-mindiff){
-	numhits_at_this_radius=1;
+	nhits=1;
 	float z = (g4hit->get_z(0) + g4hit->get_z(1)) / 2.0; 
 	bestpos.SetXYZ(x,y,z);
 	bestdelta=delta;
@@ -2472,8 +2491,8 @@ TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target, PHComp
       cout << "Finding g4hit closest to R="<< target.Perp() << " Phi="<<target.Phi() << " Z=" <<target.Z()  << " but no TPC hits! " << endl;
     }
   }
-  if (Verbosity()>2 && numhits_at_this_radius>1){
-    cout << "Finding Closest g4hit.  "<<numhits_at_this_radius << " hits have the same radius.  Selection was arbitrary"<<endl;
+  if (Verbosity()>2 && nhits>1){
+    cout << "Finding Closest g4hit.  "<<nhits << " hits have the same radius.  Selection was arbitrary"<<endl;
   }
   if (Verbosity()>2 && bestdelta>9000){
     cout << "No g4hit within 9000 of requested radius."<<endl;
