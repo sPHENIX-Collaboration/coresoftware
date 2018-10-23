@@ -228,7 +228,7 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
     event->identify();
 
   // search for data event
@@ -256,9 +256,9 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   if (p == nullptr)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
-  if (verbosity >= VERBOSITY_SOME) p->identify();
+  if (Verbosity() >= VERBOSITY_SOME) p->identify();
 
-  if (verbosity >= VERBOSITY_MORE)
+  if (Verbosity() >= VERBOSITY_MORE)
   {
     cout << "TPCFEETestRecov1::process_event - p->iValue(0) = "
          << p->iValue(0) << ", p->iValue(1) = " << p->iValue(1)
@@ -321,7 +321,7 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
       m_chanData[sample] = value;
     }
 
-    if (verbosity >= VERBOSITY_MORE)
+    if (Verbosity() >= VERBOSITY_MORE)
     {
       cout << "TPCFEETestRecov1::process_event - "
            << "m_chanHeader.m_size = " << int(m_chanHeader.size) << ", "
