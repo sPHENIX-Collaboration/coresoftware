@@ -313,10 +313,10 @@ flowAfterburner(HepMC::GenEvent *event,
       HepMC::GenParticle *parent = (*it);
 
       // Skip the "jets" found during the Hijing run itself
-      if (parent->status() == 103)
-	{
-	  continue;
-	}
+      // if (parent->status() == 103)
+      // 	{
+      // 	  continue;
+      // 	}
       CLHEP::HepLorentzVector momentum (parent->momentum().px(),
 					parent->momentum().py(),
 					parent->momentum().pz(),

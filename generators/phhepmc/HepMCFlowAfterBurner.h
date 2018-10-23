@@ -16,34 +16,26 @@ class HepMCFlowAfterBurner : public SubsysReco
 
   int Init(PHCompositeNode *);
   int process_event(PHCompositeNode *);
-  void setConfigFileName(const std::string &fnam)
-  {
-    config_filename = fnam;
-  }
-  void setAlgorithmName(const std::string &name)
-  {
-    algorithmName_macro = name;
-    algorithmName = algorithmName_macro;
-  }
+
+  void Print(const std::string &what = "ALL") const;
+
+  void setAlgorithmName(const std::string &name);
+
   void setMinEta(const float f)
   {
-    mineta_macro = f;
-    mineta = mineta_macro;
+    mineta = f;
   }
   void setMaxEta(const float f)
   {
-    maxeta_macro = f;
-    maxeta = maxeta_macro;
+    maxeta = f;
   }
   void setMinPt(const float f)
   {
-    minpt_macro = f;
-    minpt = minpt_macro;
+    minpt = f;
   }
   void setMaxPt(const float f)
   {
-    maxpt_macro = f;
-    maxpt = maxpt_macro;
+    maxpt = f;
   }
   void setSeed(const long il);
 
@@ -53,19 +45,12 @@ class HepMCFlowAfterBurner : public SubsysReco
  protected:
   std::string config_filename;
   std::string algorithmName;
-  std::string algorithmName_macro;
 
   float mineta;
   float maxeta;
 
-  float mineta_macro;
-  float maxeta_macro;
-
   float minpt;
   float maxpt;
-
-  float minpt_macro;
-  float maxpt_macro;
 
   int seedset;
   long seed;

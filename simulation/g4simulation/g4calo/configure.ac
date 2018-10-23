@@ -1,4 +1,4 @@
-AC_INIT(g4cemc,[1.00])
+AC_INIT(g4calo,[1.00])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE
