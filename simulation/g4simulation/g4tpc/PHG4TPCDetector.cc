@@ -125,7 +125,6 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                       tpc_window_logic, "tpc_window",
 							 tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
-
   absorbervols.insert(tpc_window_phys);
 
 
@@ -140,7 +139,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                           G4Material::GetMaterial(params->get_string_param("window_core_material")),
                                                           "tpc_window_core");
 
-  G4VisAttributes *visatt = new G4VisAttributes();
+  visatt = new G4VisAttributes();
   visatt->SetVisibility(true);
   visatt->SetForceSolid(true);
   visatt->SetColor(PHG4TPCColorDefs::tpc_honeycomb_color);
