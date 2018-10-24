@@ -749,11 +749,11 @@ void PHG4Reco::DefineMaterials()
 
   // making Rohacell foam ROHACELL 51 WF
   // Source of density: https://www.rohacell.com/product/peek-industrial/downloads/rohacell%20wf%20product%20information.pdf
-  G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_51", density = 0.052 * g / cm3, ncomponents = 4);
-  rohacell_foam_110->AddElement(G4Element::GetElement("C"), 8);
-  rohacell_foam_110->AddElement(G4Element::GetElement("H"),11);
-  rohacell_foam_110->AddElement(G4Element::GetElement("O"), 2);
-  rohacell_foam_110->AddElement(G4Element::GetElement("N"), 1);
+  G4Material *rohacell_foam_51 = new G4Material("ROHACELL_FOAM_51", density = 0.052 * g / cm3, ncomponents = 4);
+  rohacell_foam_51->AddElement(G4Element::GetElement("C"), 8);
+  rohacell_foam_51->AddElement(G4Element::GetElement("H"),11);
+  rohacell_foam_51->AddElement(G4Element::GetElement("O"), 2);
+  rohacell_foam_51->AddElement(G4Element::GetElement("N"), 1);
 
 
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
