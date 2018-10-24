@@ -178,6 +178,16 @@ void PHG4TPCSubsystem::SetDefaultParameters()
   set_default_string_param("cage_layer_9_material", "G4_Cu");
   set_default_double_param("cage_layer_9_thickness", 0.00347 / 2.);
 
-  set_default_string_param("window_material", "G4_KAPTON");
-  set_default_double_param("window_thickness", 0.05); // 50 um
+//  The total thickness along Zed would be 5.6 millimeters (+/- 2.8 mm around Zed=0).
+//  The outer surfaces would have 0.005 inches (125 um) FR4 coated with a negligible thickness of Al.
+//  The interior would be some stiffener of either honeycomb or rohacell.  The range of radiation lengths for this material are:
+//  Large cell honeycomb:  1450 cm  (0.028 g/cm^3 density)
+//  rohacell:  760 cm (0.052 g/cm^3 density)
+//  Close cell honeycomb:  635 cm (0.064 g/cm^3 density)
+//  I think a calculation just for the rohacell would be more than sufficient.
+
+  set_default_string_param("window_core_material", "ROHACELL_FOAM_51");
+  set_default_double_param("window_thickness", 0.56); // overall thickness
+  set_default_string_param("window_surface_material", "FR4");
+  set_default_double_param("window_surface_thickness", 0.0125 ); // 125  um
 }
