@@ -485,7 +485,31 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		    //two more things for bookkeeping:
 		    //1) How many INTT layers were hit?
-		    //_kalman_extrapolation_eval_tree_intt_hits
+		    //count the number of MVTX and INTT hits:
+		    SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+		    PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+											  topNode, "G4CELL_SILICON_TRACKER");
+		    PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+											  topNode, "G4CELL_MAPS");
+		    
+		    int n_mvtx=0;
+		    int n_intt=0;
+		    for (auto iter = svtx_track->begin_clusters();
+			 iter != svtx_track->end_clusters(); ++iter) {
+		      unsigned int cluster_id = *iter;
+		      SvtxCluster* cluster = _clustermap->get(cluster_id);
+		      SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+		      
+		      if(cells_intt && cells_intt->findCell(svtxhit->get_cellid())) {
+			n_intt++;
+		      } else if(cells_maps && cells_maps->findCell(svtxhit->get_cellid())){
+			n_mvtx++;
+		      }
+
+		    }
+
+		    _kalman_extrapolation_eval_tree_nintt=n_intt;
+		    _kalman_extrapolation_eval_tree_nmvtx=n_mvtx;
 		    _kalman_extrapolation_eval_tree_nhits=npoints;//number of points in the kalman track rep.
 		    //2) How many g4 hits were at the layer of interest?
 		    _kalman_extrapolation_eval_tree_ng4hits=ng4hits;
@@ -890,6 +914,8 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 
 	//initial and final momentum estimates from the kalman fit.
 	_kalman_extrapolation_eval_tree->Branch("nhits", &_kalman_extrapolation_eval_tree_nhits, "nhits/I");
+	_kalman_extrapolation_eval_tree->Branch("nintt", &_kalman_extrapolation_eval_tree_nintt, "nintt/I");
+	_kalman_extrapolation_eval_tree->Branch("nmvtx", &_kalman_extrapolation_eval_tree_nmvtx, "nmvtx/I");
 	_kalman_extrapolation_eval_tree->Branch("ng4hits", &_kalman_extrapolation_eval_tree_ng4hits, "ng4hits/I");
 	_kalman_extrapolation_eval_tree->Branch("pt", &_kalman_extrapolation_eval_tree_pt, "pt/F");
 	_kalman_extrapolation_eval_tree->Branch("px", &_kalman_extrapolation_eval_tree_px, "px/F");

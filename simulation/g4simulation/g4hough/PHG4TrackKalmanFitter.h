@@ -345,6 +345,8 @@ private:
 	TTree *_kalman_extrapolation_eval_tree;
 
 	int _kalman_extrapolation_eval_tree_nhits;
+	int _kalman_extrapolation_eval_tree_nintt;
+	int _kalman_extrapolation_eval_tree_nmvtx;
 	int _kalman_extrapolation_eval_tree_ng4hits;
 	float	_kalman_extrapolation_eval_tree_pt;
 	float	_kalman_extrapolation_eval_tree_px;
