@@ -55,6 +55,7 @@
 #include <iostream>
 #include <limits>
 #include <map>
+#include <sstream>
 #include <stdexcept>
 #include <tuple>
 
@@ -74,6 +75,8 @@ TPCFEETestRecov1::TPCFEETestRecov1(const std::string& outputfilename)
   , m_clusteringZeroSuppression(50)
   , m_nPreSample(5)
   , m_nPostSample(5)
+  , m_XRayLocationX(-1)
+  , m_XRayLocationY(-1)
   , m_pdfMaker(nullptr)
 {
 }
@@ -225,15 +228,24 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::DISCARDEVENT;
   }
 
-  if (verbosity >= VERBOSITY_SOME)
+  if (Verbosity() >= VERBOSITY_SOME)
     event->identify();
 
   // search for data event
+  if (event->getEvtType() == BEGRUNEVENT)
+  {
+    get_motor_loc(event);
+
+    return Fun4AllReturnCodes::EVENT_OK;
+  }
   if (event->getEvtType() != DATAEVENT)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
   m_eventHeader.run = event->getRunNumber();
   m_eventHeader.event = event->getEvtSequence();
+
+  m_eventHeader.xray_x = m_XRayLocationX;
+  m_eventHeader.xray_y = m_XRayLocationY;
 
   if (m_pdfMaker)
   {
@@ -244,9 +256,9 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
   if (p == nullptr)
     return Fun4AllReturnCodes::DISCARDEVENT;
 
-  if (verbosity >= VERBOSITY_SOME) p->identify();
+  if (Verbosity() >= VERBOSITY_SOME) p->identify();
 
-  if (verbosity >= VERBOSITY_MORE)
+  if (Verbosity() >= VERBOSITY_MORE)
   {
     cout << "TPCFEETestRecov1::process_event - p->iValue(0) = "
          << p->iValue(0) << ", p->iValue(1) = " << p->iValue(1)
@@ -309,7 +321,7 @@ int TPCFEETestRecov1::process_event(PHCompositeNode* topNode)
       m_chanData[sample] = value;
     }
 
-    if (verbosity >= VERBOSITY_MORE)
+    if (Verbosity() >= VERBOSITY_MORE)
     {
       cout << "TPCFEETestRecov1::process_event - "
            << "m_chanHeader.m_size = " << int(m_chanHeader.size) << ", "
@@ -678,4 +690,31 @@ TPCFEETestRecov1::getHistoManager()
   assert(hm);
 
   return hm;
+}
+
+void TPCFEETestRecov1::get_motor_loc(Event* evt)
+{
+  assert(evt);
+
+  Packet* motor_loc_p = evt->getPacket(910, IDCSTR);
+
+  if (motor_loc_p)
+  {
+    string content;
+
+    for (int i = 0; i < motor_loc_p->getLength(); i++)
+    {
+      content.push_back((char) motor_loc_p->iValue(i));
+    }
+
+    stringstream is(content);
+    is >> m_XRayLocationX >> m_XRayLocationY;
+
+    if (is.fail())
+    {
+      cout << "TPCFEETestRecov1::get_motor_loc - failed to load motor location from record [" << content << "]" << endl;
+    }
+    else if (Verbosity())
+      cout << "TPCFEETestRecov1::get_motor_loc - received motor location " << m_XRayLocationX << ", " << m_XRayLocationY << " from record [" << content << "]" << endl;
+  }
 }
