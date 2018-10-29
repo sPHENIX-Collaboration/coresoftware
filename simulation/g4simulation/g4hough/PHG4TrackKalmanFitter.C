@@ -369,6 +369,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  pos_30.SetPerp(pos_30_m[1][0]);
 		  pos_30.SetPhi(pos_30_m[0][0]);
 
+
+
+
+		  //look for a position close to the first pad row.
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
 		  TVector3 pos_30_true(0,0,0);
 		  //now getting the number of hits, passsed in by reference:
@@ -380,10 +384,39 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  TMatrixF pos_ex_g4_m(3,1);
 		  TMatrixF cov_ex_g4(3,3);
 		  TVector3 pos_ex_g4(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		  covariance_okay=extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4_m,cov_ex_g4);
+		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4_m,cov_ex_g4);
 		  pos_ex_g4.SetZ(pos_ex_g4_m[2][0]);
 		  pos_ex_g4.SetPerp(pos_ex_g4_m[1][0]);
 		  pos_ex_g4.SetPhi(pos_ex_g4_m[0][0]);
+
+
+
+
+
+
+		  //look for a position close to the outermost padrow.
+		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
+		  TVector3 pos_80(80,0,0);//x=80 so we have a radius of 80.  More thoroughly we could look for an appropriate cluster position, but that's not needed here.
+		  TVector3 pos_80_true(0,0,0);
+		  //now getting the number of hits, passsed in by reference:
+		  pos_80_true=getClosestG4HitPos(pos_80,topNode);
+
+		  //extrapolate the track to the g4 hit position as well:
+		  //extrapolation to the cluster position:
+		  TMatrixF pos_ex_80_m(3,1);
+		  TMatrixF cov_ex_80(3,3);
+		  TVector3 pos_ex_80(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
+		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_80_true.Perp(),rf_phgf_track,pos_ex_80_m,cov_ex_80);
+		  pos_ex_80.SetZ(pos_ex_80_m[2][0]);
+		  pos_ex_80.SetPerp(pos_ex_80_m[1][0]);
+		  pos_ex_80.SetPhi(pos_ex_80_m[0][0]);
+
+
+
+
+
+
+		  
 
 
 		  if (Verbosity() > 2){
@@ -541,6 +574,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    _kalman_extrapolation_eval_tree_z_ex_g4=pos_ex_g4.Z();
 		    _kalman_extrapolation_eval_tree_r_ex_g4=pos_ex_g4.Perp();
 
+		    //extrapolation to outer tpc:
+		    _kalman_extrapolation_eval_tree_phi_g4_80=pos_80_true.Phi();
+		    _kalman_extrapolation_eval_tree_z_g4_80=pos_80_true.Z();
+		    _kalman_extrapolation_eval_tree_r_g4_80=pos_80_true.Perp();
+		    _kalman_extrapolation_eval_tree_phi_ex_80=pos_ex_80.Phi();
+		    _kalman_extrapolation_eval_tree_z_ex_80=pos_ex_80.Z();
+		    _kalman_extrapolation_eval_tree_r_ex_80=pos_ex_80.Perp();
+		    
 		    _kalman_extrapolation_eval_tree_phi_chr=pos_chr.Phi();
 		    _kalman_extrapolation_eval_tree_z_chr=pos_chr.Z();
 		    _kalman_extrapolation_eval_tree_r_chr=pos_chr.Perp();
@@ -962,6 +1003,14 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("z2lin",&_kalman_extrapolation_eval_tree_z_lin_g4,"z2lin/F");
 	_kalman_extrapolation_eval_tree->Branch("r2lin",&_kalman_extrapolation_eval_tree_r_lin_g4,"r2lin/F");
 
+
+	_kalman_extrapolation_eval_tree->Branch("phi80t",&_kalman_extrapolation_eval_tree_phi_g4_80,"phi80t/F");
+	_kalman_extrapolation_eval_tree->Branch("z80t",&_kalman_extrapolation_eval_tree_z_g4_80,"z80t/F");
+	_kalman_extrapolation_eval_tree->Branch("r80t",&_kalman_extrapolation_eval_tree_r_g4_80,"r80t/F");
+	_kalman_extrapolation_eval_tree->Branch("phi80e",&_kalman_extrapolation_eval_tree_phi_ex_80,"phi80e/F");
+	_kalman_extrapolation_eval_tree->Branch("z80e",&_kalman_extrapolation_eval_tree_z_ex_80,"z80e/F");
+	_kalman_extrapolation_eval_tree->Branch("r80e",&_kalman_extrapolation_eval_tree_r_ex_80,"r80e/F");
+	
 	//extrapolation to exactly the true hit radius with Christof's method:
 	_kalman_extrapolation_eval_tree->Branch("phi2chr",&_kalman_extrapolation_eval_tree_phi_chr,"phi2chr/F");
 	_kalman_extrapolation_eval_tree->Branch("z2chr",&_kalman_extrapolation_eval_tree_z_chr,"z2chr/F");

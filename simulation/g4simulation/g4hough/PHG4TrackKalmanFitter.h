@@ -388,6 +388,13 @@ private:
 	float _kalman_extrapolation_eval_tree_z_chr;
 	float _kalman_extrapolation_eval_tree_r_chr;
 
+	//at outer radius:
+	float _kalman_extrapolation_eval_tree_phi_g4_80;
+	float _kalman_extrapolation_eval_tree_z_g4_80;
+	float _kalman_extrapolation_eval_tree_r_g4_80;
+	float _kalman_extrapolation_eval_tree_phi_ex_80;
+	float _kalman_extrapolation_eval_tree_z_ex_80;
+	float _kalman_extrapolation_eval_tree_r_ex_80;
 	
 	bool _kalman_extrapolation_eval_tree_okay2;
 	float _kalman_extrapolation_eval_tree_sigma_rphi2;
