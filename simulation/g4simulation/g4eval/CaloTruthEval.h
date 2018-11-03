@@ -126,6 +126,7 @@ private:
   int _caloid;
   PHG4TruthInfoContainer* _truthinfo;
   PHG4HitContainer* _g4hits;
+  int _g4hit_container_id;
 
   bool _strict;
   int _verbosity;
