@@ -142,16 +142,19 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     }
   PutOnParNode(ParDetNode,geonodename);
 
+  tpc_length = 211.;
   diffusion_long = get_double_param("diffusion_long");
   added_smear_sigma_long = get_double_param("added_smear_long");
   diffusion_trans = get_double_param("diffusion_trans");
   added_smear_sigma_trans = get_double_param("added_smear_trans");
   drift_velocity = get_double_param("drift_velocity");
+  min_time = 0.0;
+  max_time = (tpc_length/ 2.) / drift_velocity;
   electrons_per_gev = get_double_param("electrons_per_gev");
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
-// find TPC Geo
+  // find TPC Geo
   PHNodeIterator tpcpariter(ParDetNode);
   PHParametersContainer *tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode,tpcgeonodename);
   if (!tpcparams)
@@ -197,7 +200,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
   PHG4HitContainer::ConstIterator hiter;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  double tpc_length = 211.;
+
   double ihit = 0;
   for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
@@ -283,7 +286,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
 	if (t_final < min_time || t_final > max_time)
 	  {
-	    cout << "skip this, t_final out of range" << endl;
+	    //cout << "skip this, t_final = " << t_final << " is out of range " << min_time <<  " to " << max_time << endl;
 	    continue;
 	  }
 	double ranphi = gsl_ran_flat(RandomGenerator,-M_PI,M_PI);
@@ -407,15 +410,13 @@ double CF4_NTotal = 100;   // Number/cm
 double TPC_NTot = 0.9*Ne_NTotal + 0.1*CF4_NTotal;
 double TPC_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
 double  TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
-  set_default_double_param("diffusion_long",0.015); // cm/SQRT(cm)
-  set_default_double_param("diffusion_trans",0.006); // cm/SQRT(cm)
-  set_default_double_param("drift_velocity",8.0 / 1000.0); // cm/ns
-  set_default_double_param("electrons_per_gev",TPC_ElectronsPerKeV*1000000.);
-  set_default_double_param("min_active_radius",30.); // cm
-  set_default_double_param("max_active_radius",78.); // cm
-  set_default_double_param("min_time",0.); // ns
-  set_default_double_param("max_time",14000.); // ns
-
+ set_default_double_param("diffusion_long",0.015); // cm/SQRT(cm)
+ set_default_double_param("diffusion_trans",0.006); // cm/SQRT(cm)
+ set_default_double_param("electrons_per_gev",TPC_ElectronsPerKeV*1000000.);
+ set_default_double_param("min_active_radius",30.); // cm
+ set_default_double_param("max_active_radius",78.); // cm
+ set_default_double_param("drift_velocity",8.0 / 1000.0);  // cm/ns 
+ 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
   set_default_double_param("added_smear_trans", 0.12);   // cm

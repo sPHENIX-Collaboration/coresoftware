@@ -57,6 +57,7 @@ private:
   double diffusion_long;
   double added_smear_sigma_long;
   double drift_velocity;
+  double tpc_length;
   double electrons_per_gev;
   double min_active_radius;
   double max_active_radius;
