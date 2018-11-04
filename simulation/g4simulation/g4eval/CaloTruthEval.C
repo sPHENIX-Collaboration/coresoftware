@@ -23,6 +23,7 @@ CaloTruthEval::CaloTruthEval(PHCompositeNode* topNode, const std::string &calona
     _caloid(PHG4HitDefs::get_volume_id(caloname)),
     _truthinfo(nullptr),
     _g4hits(nullptr),
+    _g4hit_container_id(-1),
     _strict(false),
     _verbosity(1),
     _errors(0),
@@ -134,7 +135,7 @@ float CaloTruthEval::get_shower_energy_deposit(PHG4Particle* primary) {
 
   float shower_e = 0.0;  
   PHG4Shower* shower = get_primary_shower(primary);  
-  if (shower) shower_e = shower->get_edep(_g4hits->GetID());
+  if (shower) shower_e = shower->get_edep(_g4hit_container_id);
   
   if (_do_cache) _cache_get_shower_energy_deposit.insert(make_pair(primary,shower_e));
   
@@ -177,6 +178,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Shower* shower) {
   
   if (_strict) {assert(shower);}
   else if (!shower) {++_errors; return std::set<PHG4Hit*>();}
+  else if (!_g4hits) {++_errors; return std::set<PHG4Hit*>();}
   
   if (_do_cache) {
     std::map<PHG4Shower*,std::set<PHG4Hit*> >::iterator iter =
@@ -189,7 +191,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Shower* shower) {
   std::set<PHG4Hit*> truth_hits;
 
   // loop over all g4hits on the shower
-  PHG4Shower::HitIdIter iter = shower->find_g4hit_id(_g4hits->GetID());
+  PHG4Shower::HitIdIter iter = shower->find_g4hit_id(_g4hit_container_id);
   if (iter != shower->end_g4hit_id()) return truth_hits;
 
   for (std::set<PHG4HitDefs::keytype>::iterator jter = iter->second.begin();
@@ -214,6 +216,7 @@ std::set<PHG4Hit*> CaloTruthEval::all_truth_hits(PHG4Particle* particle) {
   
   if (_strict) {assert(particle);}
   else if (!particle) {++_errors; return std::set<PHG4Hit*>();}
+  if (!_g4hits) {++_errors; return std::set<PHG4Hit*>();}
   
   if (_do_cache) {
     std::map<PHG4Particle*,std::set<PHG4Hit*> >::iterator iter =
@@ -313,6 +316,7 @@ void CaloTruthEval::get_node_pointers(PHCompositeNode *topNode) {
  
   std::string name = "G4HIT_" + _caloname;
   _g4hits = findNode::getClass<PHG4HitContainer>(topNode,name.c_str());
+  _g4hit_container_id = PHG4HitDefs::get_volume_id(name);
   
   return;
 }
