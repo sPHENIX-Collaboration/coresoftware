@@ -26,13 +26,13 @@ class CaloTriggerSim : public SubsysReco
 {
  public:
   CaloTriggerSim(const std::string &name = "CaloTriggerSim");
-  virtual ~CaloTriggerSim(){}
+  virtual ~CaloTriggerSim() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
-  void set_truncation(const int emulate_truncation );
-  double truncate_8bit(const double raw_E ) const;
+  void set_truncation(const int emulate_truncation);
+  double truncate_8bit(const double raw_E) const;
 
  private:
   int CreateNode(PHCompositeNode *topNode);
@@ -83,7 +83,7 @@ class CaloTriggerSim : public SubsysReco
 
   int m_FULLCALO_1p0x1p0_NETA;
   int m_FULLCALO_1p0x1p0_NPHI;
-  
+
   // highest full calo window energies
   float m_FULLCALO_0p2x0p2_BEST_E;
   float m_FULLCALO_0p2x0p2_BEST_PHI;
@@ -114,7 +114,6 @@ class CaloTriggerSim : public SubsysReco
   std::vector<std::vector<double> > m_FULLCALO_0p6x0p6_MAP;
   std::vector<std::vector<double> > m_FULLCALO_0p8x0p8_MAP;
   std::vector<std::vector<double> > m_FULLCALO_1p0x1p0_MAP;
-
 };
 
 #endif  // TRIGGER_CALOTRIGGERSIM_H

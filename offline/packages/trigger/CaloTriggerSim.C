@@ -1,5 +1,5 @@
-#include "CaloTriggerSim.h"
 #include "CaloTriggerInfo_v1.h"
+#include "CaloTriggerSim.h"
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -16,7 +16,6 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 
-
 // standard includes
 #include <cmath>
 #include <iomanip>
@@ -25,85 +24,98 @@
 
 CaloTriggerSim::CaloTriggerSim(const std::string &name)
   : SubsysReco(name)
-, m_EmulateTruncationFlag(0)
+  , m_EmulateTruncationFlag(0)
   // initiate sizes as -1 to tell module they can be set when it sees
   // the EMCal geometry for the first time
   , m_EMCAL_1x1_NETA(-1)
-  ,m_EMCAL_1x1_NPHI(-1)
-  , m_EMCAL_2x2_NETA(-1),
-  m_EMCAL_2x2_NPHI(-1),
-  m_EMCAL_4x4_NETA(-1),
-  m_EMCAL_4x4_NPHI(-1),
-  m_EMCAL_2x2_BEST_E(0),
-  m_EMCAL_2x2_BEST_PHI(0),
-  m_EMCAL_2x2_BEST_ETA(0),
+  , m_EMCAL_1x1_NPHI(-1)
+  , m_EMCAL_2x2_NETA(-1)
+  , m_EMCAL_2x2_NPHI(-1)
+  , m_EMCAL_4x4_NETA(-1)
+  , m_EMCAL_4x4_NPHI(-1)
+  , m_EMCAL_2x2_BEST_E(0)
+  , m_EMCAL_2x2_BEST_PHI(0)
+  , m_EMCAL_2x2_BEST_ETA(0)
+  ,
 
-  m_EMCAL_4x4_BEST_E(0),
-  m_EMCAL_4x4_BEST_PHI(0),
-  m_EMCAL_4x4_BEST_ETA(0),
+  m_EMCAL_4x4_BEST_E(0)
+  , m_EMCAL_4x4_BEST_PHI(0)
+  , m_EMCAL_4x4_BEST_ETA(0)
+  ,
 
-  m_EMCAL_4x4_BEST2_E(0),
-  m_EMCAL_4x4_BEST2_PHI(0),
-  m_EMCAL_4x4_BEST2_ETA(0),
+  m_EMCAL_4x4_BEST2_E(0)
+  , m_EMCAL_4x4_BEST2_PHI(0)
+  , m_EMCAL_4x4_BEST2_ETA(0)
+  ,
 
   // do the same for full calo
-  m_FULLCALO_PHI_START(0),
-  m_FULLCALO_PHI_END(2*M_PI),
-  
-  m_FULLCALO_0p1x0p1_NETA(-1),
-  m_FULLCALO_0p1x0p1_NPHI(-1),
+  m_FULLCALO_PHI_START(0)
+  , m_FULLCALO_PHI_END(2 * M_PI)
+  ,
 
-  m_FULLCALO_0p2x0p2_NETA(-1),
-  m_FULLCALO_0p2x0p2_NPHI(-1),
+  m_FULLCALO_0p1x0p1_NETA(-1)
+  , m_FULLCALO_0p1x0p1_NPHI(-1)
+  ,
 
-  m_FULLCALO_0p4x0p4_NETA(-1),
-  m_FULLCALO_0p4x0p4_NPHI(-1),
+  m_FULLCALO_0p2x0p2_NETA(-1)
+  , m_FULLCALO_0p2x0p2_NPHI(-1)
+  ,
 
-  m_FULLCALO_0p6x0p6_NETA(-1),
-  m_FULLCALO_0p6x0p6_NPHI(-1),
+  m_FULLCALO_0p4x0p4_NETA(-1)
+  , m_FULLCALO_0p4x0p4_NPHI(-1)
+  ,
 
-  m_FULLCALO_0p8x0p8_NETA(-1),
-  m_FULLCALO_0p8x0p8_NPHI(-1),
+  m_FULLCALO_0p6x0p6_NETA(-1)
+  , m_FULLCALO_0p6x0p6_NPHI(-1)
+  ,
 
-  m_FULLCALO_1p0x1p0_NETA(-1),
-  m_FULLCALO_1p0x1p0_NPHI(-1),
+  m_FULLCALO_0p8x0p8_NETA(-1)
+  , m_FULLCALO_0p8x0p8_NPHI(-1)
+  ,
 
-  m_FULLCALO_0p2x0p2_BEST_E(0),
-  m_FULLCALO_0p2x0p2_BEST_PHI(0),
-  m_FULLCALO_0p2x0p2_BEST_ETA(0),
+  m_FULLCALO_1p0x1p0_NETA(-1)
+  , m_FULLCALO_1p0x1p0_NPHI(-1)
+  ,
 
-  m_FULLCALO_0p4x0p4_BEST_E(0),
-  m_FULLCALO_0p4x0p4_BEST_PHI(0),
-  m_FULLCALO_0p4x0p4_BEST_ETA(0),
+  m_FULLCALO_0p2x0p2_BEST_E(0)
+  , m_FULLCALO_0p2x0p2_BEST_PHI(0)
+  , m_FULLCALO_0p2x0p2_BEST_ETA(0)
+  ,
 
-  m_FULLCALO_0p6x0p6_BEST_E(0),
-  m_FULLCALO_0p6x0p6_BEST_PHI(0),
-  m_FULLCALO_0p6x0p6_BEST_ETA(0),
+  m_FULLCALO_0p4x0p4_BEST_E(0)
+  , m_FULLCALO_0p4x0p4_BEST_PHI(0)
+  , m_FULLCALO_0p4x0p4_BEST_ETA(0)
+  ,
 
-  m_FULLCALO_0p8x0p8_BEST_E(0),
-  m_FULLCALO_0p8x0p8_BEST_PHI(0),
-  m_FULLCALO_0p8x0p8_BEST_ETA(0),
+  m_FULLCALO_0p6x0p6_BEST_E(0)
+  , m_FULLCALO_0p6x0p6_BEST_PHI(0)
+  , m_FULLCALO_0p6x0p6_BEST_ETA(0)
+  ,
 
-  m_FULLCALO_1p0x1p0_BEST_E(0),
-  m_FULLCALO_1p0x1p0_BEST_PHI(0),
-  m_FULLCALO_1p0x1p0_BEST_ETA(0)
+  m_FULLCALO_0p8x0p8_BEST_E(0)
+  , m_FULLCALO_0p8x0p8_BEST_PHI(0)
+  , m_FULLCALO_0p8x0p8_BEST_ETA(0)
+  ,
+
+  m_FULLCALO_1p0x1p0_BEST_E(0)
+  , m_FULLCALO_1p0x1p0_BEST_PHI(0)
+  , m_FULLCALO_1p0x1p0_BEST_ETA(0)
 
 {
   return;
 }
 
-void CaloTriggerSim::set_truncation( const int emulate_truncation ) 
+void CaloTriggerSim::set_truncation(const int emulate_truncation)
 {
   m_EmulateTruncationFlag = emulate_truncation;
 }
 
-double CaloTriggerSim::truncate_8bit(const double raw_E  ) const 
+double CaloTriggerSim::truncate_8bit(const double raw_E) const
 {
-  double rawE = std::min(raw_E,45.0);
-  int counts = std::floor( rawE / ( 45.0 / 256 ) );
+  double rawE = std::min(raw_E, 45.0);
+  int counts = std::floor(rawE / (45.0 / 256));
 
-  return counts * ( 45.0 / 256 );
-
+  return counts * (45.0 / 256);
 }
 int CaloTriggerSim::InitRun(PHCompositeNode *topNode)
 {
@@ -119,7 +131,8 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
   RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
   RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-  if (Verbosity() > 0) {
+  if (Verbosity() > 0)
+  {
     std::cout << "CaloTriggerSim::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC towers" << std::endl;
     std::cout << "CaloTriggerSim::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
     std::cout << "CaloTriggerSim::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
@@ -219,8 +232,9 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       this_sum += m_EMCAL_1x1_MAP[2 * ieta + 1][2 * iphi];  // 2 * ieta + 1 is safe, since m_EMCAL_2x2_NETA = m_EMCAL_1x1_NETA / 2
       this_sum += m_EMCAL_1x1_MAP[2 * ieta + 1][2 * iphi + 1];
 
-      if (m_EmulateTruncationFlag) {
-	this_sum = truncate_8bit( this_sum );
+      if (m_EmulateTruncationFlag)
+      {
+        this_sum = truncate_8bit(this_sum);
       }
 
       // populate 2x2 map
@@ -308,19 +322,17 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
         std::cout << "CaloTriggerSim::process_event: EMCal 4x4 tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << ieta << " ) / " << this_phi << " ( " << iphi << " ) / " << this_sum << std::endl;
       }
 
-      if (this_sum > m_EMCAL_4x4_BEST_E) {
-	
-	m_EMCAL_4x4_BEST_E = this_sum;
-	m_EMCAL_4x4_BEST_PHI = this_phi;
-	m_EMCAL_4x4_BEST_ETA = this_eta;
-	
-	emcal_4x4_best_iphi = iphi;
-	emcal_4x4_best_ieta = ieta;
-  
+      if (this_sum > m_EMCAL_4x4_BEST_E)
+      {
+        m_EMCAL_4x4_BEST_E = this_sum;
+        m_EMCAL_4x4_BEST_PHI = this_phi;
+        m_EMCAL_4x4_BEST_ETA = this_eta;
+
+        emcal_4x4_best_iphi = iphi;
+        emcal_4x4_best_ieta = ieta;
       }
     }
   }
-
 
   m_EMCAL_4x4_BEST2_E = 0;
   m_EMCAL_4x4_BEST2_PHI = 0;
@@ -331,12 +343,11 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     for (int iphi = 0; iphi < m_EMCAL_4x4_NPHI; iphi++)
     {
-
       int deta = ieta - emcal_4x4_best_ieta;
-      int dphi = ( iphi - emcal_4x4_best_iphi ) % m_EMCAL_4x4_NPHI ;
+      int dphi = (iphi - emcal_4x4_best_iphi) % m_EMCAL_4x4_NPHI;
 
-      if ( abs( deta ) < 1.5 && abs( dphi ) < 1.5 ) 
-	continue;
+      if (abs(deta) < 1.5 && abs(dphi) < 1.5)
+        continue;
 
       double this_eta = 0.25 * (geomEM->get_etacenter(2 * ieta) + geomEM->get_etacenter(2 * ieta + 1) + geomEM->get_etacenter(2 * ieta + 2) + geomEM->get_etacenter(2 * ieta + 3));
       double this_phi = geomEM->get_phicenter(2 * iphi) + 1.5 * (geomEM->get_phicenter(2 * iphi + 1) - geomEM->get_phicenter(2 * iphi));
@@ -345,15 +356,13 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
       if (this_phi < -M_PI) this_phi += 2 * M_PI;
 
       double this_sum = m_EMCAL_4x4_MAP[ieta][iphi];
-      
-      if (this_sum > m_EMCAL_4x4_BEST2_E) {
-	
-	m_EMCAL_4x4_BEST2_E = this_sum;
-	m_EMCAL_4x4_BEST2_PHI = this_phi;
-	m_EMCAL_4x4_BEST2_ETA = this_eta;
 
+      if (this_sum > m_EMCAL_4x4_BEST2_E)
+      {
+        m_EMCAL_4x4_BEST2_E = this_sum;
+        m_EMCAL_4x4_BEST2_PHI = this_phi;
+        m_EMCAL_4x4_BEST2_ETA = this_eta;
       }
-
     }
   }
 
@@ -372,8 +381,8 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   // if internal knowledge of geometry is unset, set it now
   if (m_FULLCALO_0p1x0p1_NETA < 0)
   {
-    m_FULLCALO_PHI_START = geomOH->get_phibounds( 0 ).first;
-    m_FULLCALO_PHI_END = geomOH->get_phibounds( geomOH_phibins - 1 ).second;
+    m_FULLCALO_PHI_START = geomOH->get_phibounds(0).first;
+    m_FULLCALO_PHI_END = geomOH->get_phibounds(geomOH_phibins - 1).second;
 
     m_FULLCALO_0p1x0p1_NETA = geomOH_etabins;
     m_FULLCALO_0p1x0p1_NPHI = geomOH_phibins;
@@ -443,16 +452,16 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     double this_eta = tower_geom->get_eta();
     double this_phi = tower_geom->get_phi();
-    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2*M_PI;
-    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2*M_PI;
- 
+    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2 * M_PI;
+    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2 * M_PI;
+
     // note: look up eta/phi index based on OHCal geometry, since this
     // defines the 0.1x0.1 regions
-    int this_etabin = geomOH->get_etabin( this_eta );
-    int this_phibin = geomOH->get_phibin( this_phi );
+    int this_etabin = geomOH->get_etabin(this_eta);
+    int this_phibin = geomOH->get_phibin(this_phi);
     double this_E = tower->get_energy();
 
-    m_FULLCALO_0p1x0p1_MAP[ this_etabin ][ this_phibin ] += this_E;
+    m_FULLCALO_0p1x0p1_MAP[this_etabin][this_phibin] += this_E;
 
     if (Verbosity() > 1 && tower->get_energy() > 1)
     {
@@ -469,16 +478,16 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     double this_eta = tower_geom->get_eta();
     double this_phi = tower_geom->get_phi();
-    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2*M_PI;
-    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2*M_PI;
- 
+    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2 * M_PI;
+    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2 * M_PI;
+
     // note: look up eta/phi index based on OHCal geometry, even though I
     // think it is by construction the same as the IHCal geometry...
-    int this_etabin = geomOH->get_etabin( this_eta );
-    int this_phibin = geomOH->get_phibin( this_phi );
+    int this_etabin = geomOH->get_etabin(this_eta);
+    int this_phibin = geomOH->get_phibin(this_phi);
     double this_E = tower->get_energy();
 
-    m_FULLCALO_0p1x0p1_MAP[ this_etabin ][ this_phibin ] += this_E;
+    m_FULLCALO_0p1x0p1_MAP[this_etabin][this_phibin] += this_E;
 
     if (Verbosity() > 1 && tower->get_energy() > 0.5)
     {
@@ -495,16 +504,16 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
     double this_eta = tower_geom->get_eta();
     double this_phi = tower_geom->get_phi();
-    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2*M_PI;
-    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2*M_PI;
- 
+    if (this_phi < m_FULLCALO_PHI_START) this_phi += 2 * M_PI;
+    if (this_phi > m_FULLCALO_PHI_END) this_phi -= 2 * M_PI;
+
     // note: use the nominal eta/phi index, since the fullcalo 0.1x0.1
     // map is defined by the OHCal geometry itself
-    int this_etabin = geomOH->get_etabin( this_eta );
-    int this_phibin = geomOH->get_phibin( this_phi );
+    int this_etabin = geomOH->get_etabin(this_eta);
+    int this_phibin = geomOH->get_phibin(this_phi);
     double this_E = tower->get_energy();
 
-    m_FULLCALO_0p1x0p1_MAP[ this_etabin ][ this_phibin ] += this_E;
+    m_FULLCALO_0p1x0p1_MAP[this_etabin][this_phibin] += this_E;
 
     if (Verbosity() > 1 && tower->get_energy() > 0.5)
     {
@@ -517,7 +526,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     for (int iphi = 0; iphi < m_FULLCALO_0p2x0p2_NPHI; iphi++)
     {
-      m_FULLCALO_0p2x0p2_MAP[ ieta ][ iphi ] = 0;
+      m_FULLCALO_0p2x0p2_MAP[ieta][iphi] = 0;
     }
   }
 
@@ -569,7 +578,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     for (int iphi = 0; iphi < m_FULLCALO_0p4x0p4_NPHI; iphi++)
     {
-      m_FULLCALO_0p4x0p4_MAP[ ieta ][ iphi ] = 0;
+      m_FULLCALO_0p4x0p4_MAP[ieta][iphi] = 0;
     }
   }
 
@@ -584,10 +593,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 1.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 1.5 * ( geomOH->get_etacenter( 1 ) - geomOH->get_etacenter( 0 ) );
+      double this_eta = geomOH->get_etacenter(2 * ieta) + 1.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
       // for phi calculation, use position of corner tower and add 1.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 1.5 * (geomOH->get_phicenter( 1 ) - geomOH->get_phicenter( 0 ) );
+      double this_phi = geomOH->get_phicenter(2 * iphi) + 1.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
 
       double this_sum = 0;
 
@@ -596,8 +605,8 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       // add 1 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
 
       m_FULLCALO_0p4x0p4_MAP[ieta][iphi] = this_sum;
 
@@ -625,7 +634,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     for (int iphi = 0; iphi < m_FULLCALO_0p6x0p6_NPHI; iphi++)
     {
-      m_FULLCALO_0p6x0p6_MAP[ ieta ][ iphi ] = 0;
+      m_FULLCALO_0p6x0p6_MAP[ieta][iphi] = 0;
     }
   }
 
@@ -640,10 +649,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 2.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 2.5 * ( geomOH->get_etacenter( 1 ) - geomOH->get_etacenter( 0 ) );
+      double this_eta = geomOH->get_etacenter(2 * ieta) + 2.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
       // for phi calculation, use position of corner tower and add 2.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 2.5 * (geomOH->get_phicenter( 1 ) - geomOH->get_phicenter( 0 ) );
+      double this_phi = geomOH->get_phicenter(2 * iphi) + 2.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
 
       double this_sum = 0;
 
@@ -653,14 +662,14 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       // add 1 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
       // add 2 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
 
       m_FULLCALO_0p6x0p6_MAP[ieta][iphi] = this_sum;
 
@@ -688,7 +697,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     for (int iphi = 0; iphi < m_FULLCALO_0p8x0p8_NPHI; iphi++)
     {
-      m_FULLCALO_0p8x0p8_MAP[ ieta ][ iphi ] = 0;
+      m_FULLCALO_0p8x0p8_MAP[ieta][iphi] = 0;
     }
   }
 
@@ -703,10 +712,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 3.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 3.5 * ( geomOH->get_etacenter( 1 ) - geomOH->get_etacenter( 0 ) );
+      double this_eta = geomOH->get_etacenter(2 * ieta) + 3.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
       // for phi calculation, use position of corner tower and add 3.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 3.5 * (geomOH->get_phicenter( 1 ) - geomOH->get_phicenter( 0 ) );
+      double this_phi = geomOH->get_phicenter(2 * iphi) + 3.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
 
       double this_sum = 0;
 
@@ -717,22 +726,22 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       // add 1 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
       // add 2 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
       // add 3 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
 
       m_FULLCALO_0p8x0p8_MAP[ieta][iphi] = this_sum;
 
@@ -760,7 +769,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     for (int iphi = 0; iphi < m_FULLCALO_1p0x1p0_NPHI; iphi++)
     {
-      m_FULLCALO_1p0x1p0_MAP[ ieta ][ iphi ] = 0;
+      m_FULLCALO_1p0x1p0_MAP[ieta][iphi] = 0;
     }
   }
 
@@ -775,10 +784,10 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
     {
       // for eta calculation, use position of corner tower and add 4.5
       // tower widths
-      double this_eta = geomOH->get_etacenter(2 * ieta) + 4.5 * ( geomOH->get_etacenter( 1 ) - geomOH->get_etacenter( 0 ) );
+      double this_eta = geomOH->get_etacenter(2 * ieta) + 4.5 * (geomOH->get_etacenter(1) - geomOH->get_etacenter(0));
       // for phi calculation, use position of corner tower and add 4.5
       // tower widths
-      double this_phi = geomOH->get_phicenter(2 * iphi) + 4.5 * (geomOH->get_phicenter( 1 ) - geomOH->get_phicenter( 0 ) );
+      double this_phi = geomOH->get_phicenter(2 * iphi) + 4.5 * (geomOH->get_phicenter(1) - geomOH->get_phicenter(0));
 
       double this_sum = 0;
 
@@ -790,32 +799,32 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
 
       // add 1 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 1 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][(iphi + 1) % m_FULLCALO_0p2x0p2_NPHI];
       // add 2 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 2 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][(iphi + 2) % m_FULLCALO_0p2x0p2_NPHI];
       // add 3 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 3 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][(iphi + 3) % m_FULLCALO_0p2x0p2_NPHI];
       // add 4 to phi, but take modulus w.r.t. m_FULLCALO_0p2x0p2_NPHI
       // in case we have wrapped back around
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][ ( iphi + 4 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][ ( iphi + 4 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][ ( iphi + 4 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][ ( iphi + 4 ) % m_FULLCALO_0p2x0p2_NPHI ];
-      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][ ( iphi + 4 ) % m_FULLCALO_0p2x0p2_NPHI ];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta][(iphi + 4) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 1][(iphi + 4) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 2][(iphi + 4) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 3][(iphi + 4) % m_FULLCALO_0p2x0p2_NPHI];
+      this_sum += m_FULLCALO_0p2x0p2_MAP[ieta + 4][(iphi + 4) % m_FULLCALO_0p2x0p2_NPHI];
 
       m_FULLCALO_1p0x1p0_MAP[ieta][iphi] = this_sum;
 
@@ -837,8 +846,6 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   {
     std::cout << "CaloTriggerSim::process_event: best FullCalo 1.0x1.0 window is at eta / phi = " << m_FULLCALO_1p0x1p0_BEST_ETA << " / " << m_FULLCALO_1p0x1p0_BEST_PHI << " and E = " << m_FULLCALO_1p0x1p0_BEST_E << std::endl;
   }
-
-
 
   FillNode(topNode);
 
@@ -868,7 +875,7 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
   }
 
   // create the CaloTriggerInfo
-  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate" );
+  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate");
   if (!triggerinfo)
   {
     triggerinfo = new CaloTriggerInfo_v1();
@@ -886,7 +893,7 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
 
 void CaloTriggerSim::FillNode(PHCompositeNode *topNode)
 {
-  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate" );
+  CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate");
   if (!triggerinfo)
   {
     std::cout << " ERROR -- can't find CaloTriggerInfo node after it should have been created" << std::endl;
@@ -925,7 +932,6 @@ void CaloTriggerSim::FillNode(PHCompositeNode *topNode)
     triggerinfo->set_best_FullCalo_1p0x1p0_E(m_FULLCALO_1p0x1p0_BEST_E);
     triggerinfo->set_best_FullCalo_1p0x1p0_eta(m_FULLCALO_1p0x1p0_BEST_ETA);
     triggerinfo->set_best_FullCalo_1p0x1p0_phi(m_FULLCALO_1p0x1p0_BEST_PHI);
-
   }
 
   return;

@@ -35,7 +35,6 @@ CaloTriggerInfo_v1::CaloTriggerInfo_v1()
   m_FULLCALO_1p0x1p0_BEST_E = 0;
   m_FULLCALO_1p0x1p0_BEST_ETA = 0;
   m_FULLCALO_1p0x1p0_BEST_PHI = 0;
-
 }
 
 CaloTriggerInfo_v1::~CaloTriggerInfo_v1()

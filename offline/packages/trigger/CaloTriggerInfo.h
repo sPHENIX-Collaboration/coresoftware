@@ -6,7 +6,7 @@
 class CaloTriggerInfo : public PHObject
 {
  public:
-  virtual ~CaloTriggerInfo() {};
+  virtual ~CaloTriggerInfo(){};
 
   virtual void identify(std::ostream &os = std::cout) const { os << "CaloTriggerInfo base class" << std::endl; };
   virtual void Reset() {}
@@ -29,7 +29,7 @@ class CaloTriggerInfo : public PHObject
   virtual float get_best_EMCal_4x4_E() const { return 0; }
   virtual float get_best_EMCal_4x4_eta() const { return 0; }
   virtual float get_best_EMCal_4x4_phi() const { return 0; }
-  
+
   // 2nd best
   virtual void set_best2_EMCal_4x4_E(const float E) {}
   virtual void set_best2_EMCal_4x4_eta(const float eta) {}
@@ -88,7 +88,6 @@ class CaloTriggerInfo : public PHObject
   CaloTriggerInfo() {}
 
  private:
-
   ClassDef(CaloTriggerInfo, 1);
 };
 
