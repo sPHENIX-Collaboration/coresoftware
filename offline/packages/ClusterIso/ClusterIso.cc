@@ -288,8 +288,8 @@ int ClusterIso::process_event(PHCompositeNode *topNode)
 						cluster->identify();std::cout<<'\n';
 					}
 					if (et < m_eTCut){
-						continue;
 						if(Verbosity() >= VERBOSITY_MAX)std::cout<<"\t does not pass eT cut"<<'\n';
+						continue;
 					} //skip if cluster is below eT cut
 
 					//calculate EMCal tower contribution to isolation energy
