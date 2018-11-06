@@ -94,13 +94,12 @@ void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
 
 int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *trackerenvelope)
 {
-  // We have an arbitray number of layers (nlayer_)
+  // We have an arbitray number of layers (nlayer_) up to 8
   // We have 2 types of ladders (vertical strips and horizontal strips)
   // We have 2 types of sensors (inner and outer)
-  double hdi_z_arr[4][2];
+  double hdi_z_arr[8][2];
   // we loop over layers. All layers have only one laddertype
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
-
   {
     int inttlayer = layeriter->second;
     // get the parameters for this layer
@@ -187,8 +186,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       // Si-sensor full (active+inactive) area
       const double sifull_x = siactive_x;
-      const double sifull_y = siactive_y + 2.0 * params->get_double_param("sensor_edge_phi");
-      const double sifull_z = siactive_z + 2.0 * params->get_double_param("sensor_edge_z");
+      const double sifull_y = siactive_y + 2.0 * params->get_double_param("sensor_edge_phi") * cm;
+      const double sifull_z = siactive_z + 2.0 * params->get_double_param("sensor_edge_z") * cm;
       G4VSolid *sifull_box = new G4Box((boost::format("sifull_box_%d_%d") % inttlayer % itype).str(), sifull_x / 2., sifull_y / 2.0, sifull_z / 2.0);
 
       // Si-sensor inactive area
@@ -210,7 +209,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // Make the HDI Kapton and copper volumes
 
       // This makes HDI volumes that matche this sensor in Z length
-      const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z");
+      const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z") * cm;
       hdi_z_arr[inttlayer][itype] = hdi_z;
       G4VSolid *hdi_kapton_box = new G4Box((boost::format("hdi_kapton_box_%d_%d") % inttlayer % itype).str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z / 2.0);
       G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, G4Material::GetMaterial("G4_KAPTON"),
@@ -273,7 +272,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       fphx_vis.SetColour(G4Colour::Blue());
       fphx_volume->SetVisAttributes(fphx_vis);
 
-      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx");
+      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx") * cm;
 
       //  FPHX Container
       // make a container for the FPHX chips needed for this sensor, and  then place them in the container
