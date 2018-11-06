@@ -26,7 +26,7 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
-
+#include <array>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
@@ -97,7 +97,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // We have an arbitray number of layers (nlayer_) up to 8
   // We have 2 types of ladders (vertical strips and horizontal strips)
   // We have 2 types of sensors (inner and outer)
-  double hdi_z_arr[8][2];
+  array<array<double, 2>, 8> hdi_z_arr;
   // we loop over layers. All layers have only one laddertype
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
   {
@@ -798,7 +798,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   /*
     6 rails, which are 12mm OD and 9mm ID tubes at a radius of 175 mm.  They are spaced equidistantly in phi.
           For the 6 rails, there should be one at the very top and bottom (ie, along the vertical), and then the rest are symmetrically placed in phi.  
-         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don’t have to put the parts that stick out in the simulation.
+         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
     An inner skin with a OD at 64 mm and a thickness of 0.150 mm.
     An outer skin with a ID at 157 mm and a thickness of 1 mm (~0.5% rad len).
     
