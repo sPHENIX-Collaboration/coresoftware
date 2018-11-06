@@ -2,6 +2,7 @@
 #include "DumpObject.h"
 
 #include "DumpBbcVertexMap.h"
+#include "DumpCaloTriggerInfo.h"
 #include "DumpGlobalVertexMap.h"
 #include "DumpJetMap.h"
 #include "DumpPdbParameterMap.h"
@@ -165,6 +166,10 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
           if (tmp->InheritsFrom("BbcVertexMap"))
             {
               newdump = new DumpBbcVertexMap(NodeName);
+            }
+          else if (tmp->InheritsFrom("CaloTriggerInfo"))
+            {
+              newdump = new DumpCaloTriggerInfo(NodeName);
             }
           else if (tmp->InheritsFrom("GlobalVertexMap"))
             {
