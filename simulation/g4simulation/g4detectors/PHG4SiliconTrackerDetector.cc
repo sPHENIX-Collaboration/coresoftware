@@ -26,7 +26,7 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
-
+#include <array>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
@@ -94,13 +94,12 @@ void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
 
 int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *trackerenvelope)
 {
-  // We have an arbitray number of layers (nlayer_)
+  // We have an arbitray number of layers (nlayer_) up to 8
   // We have 2 types of ladders (vertical strips and horizontal strips)
   // We have 2 types of sensors (inner and outer)
-  double hdi_z_arr[4][2];
+  array<array<double, 2>, 8> hdi_z_arr;
   // we loop over layers. All layers have only one laddertype
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
-
   {
     int inttlayer = layeriter->second;
     // get the parameters for this layer
@@ -188,8 +187,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       // Si-sensor full (active+inactive) area
       const double sifull_x = siactive_x;
-      const double sifull_y = siactive_y + 2.0 * params->get_double_param("sensor_edge_phi");
-      const double sifull_z = siactive_z + 2.0 * params->get_double_param("sensor_edge_z");
+      const double sifull_y = siactive_y + 2.0 * params->get_double_param("sensor_edge_phi") * cm;
+      const double sifull_z = siactive_z + 2.0 * params->get_double_param("sensor_edge_z") * cm;
       G4VSolid *sifull_box = new G4Box((boost::format("sifull_box_%d_%d") % inttlayer % itype).str(), sifull_x / 2., sifull_y / 2.0, sifull_z / 2.0);
 
       // Si-sensor inactive area
@@ -211,7 +210,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // Make the HDI Kapton and copper volumes
 
       // This makes HDI volumes that matche this sensor in Z length
-      const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z");
+      const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z") * cm;
       hdi_z_arr[inttlayer][itype] = hdi_z;
       G4VSolid *hdi_kapton_box = new G4Box((boost::format("hdi_kapton_box_%d_%d") % inttlayer % itype).str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z / 2.0);
       G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, G4Material::GetMaterial("G4_KAPTON"),
@@ -274,7 +273,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       fphx_vis.SetColour(G4Colour::Blue());
       fphx_volume->SetVisAttributes(fphx_vis);
 
-      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx");
+      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx") * cm;
 
       //  FPHX Container
       // make a container for the FPHX chips needed for this sensor, and  then place them in the container
@@ -800,7 +799,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   /*
     6 rails, which are 12mm OD and 9mm ID tubes at a radius of 175 mm.  They are spaced equidistantly in phi.
           For the 6 rails, there should be one at the very top and bottom (ie, along the vertical), and then the rest are symmetrically placed in phi.  
-         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don’t have to put the parts that stick out in the simulation.
+         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
     An inner skin with a OD at 64 mm and a thickness of 0.150 mm.
     An outer skin with a ID at 157 mm and a thickness of 1 mm (~0.5% rad len).
     
