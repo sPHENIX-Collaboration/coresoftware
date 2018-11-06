@@ -34,11 +34,11 @@ pkginclude_HEADERS = \
 
 libcalotrigger_io_la_SOURCES = \
   CaloTriggerInfo_Dict.C \
-  CaloTriggerInfo_v1.C \
+  CaloTriggerInfo_v1.cc \
   CaloTriggerInfo_v1_Dict.C
 
 libcalotrigger_la_SOURCES = \
-  CaloTriggerSim.C \
+  CaloTriggerSim.cc \
   CaloTriggerSim_Dict.C
 
 # Rule for generating table CINT dictionaries.
