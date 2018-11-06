@@ -11,6 +11,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameters.h>
 
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
@@ -97,6 +98,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
+
   cellnodename = "G4CELL_SVTX";  // + detector;
   g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellnodename);
   if (! g4cells)
@@ -184,6 +186,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   min_active_radius = get_double_param("min_active_radius");
   max_active_radius = get_double_param("max_active_radius");
 
+
   Fun4AllServer *se = Fun4AllServer::instance();
   dlong = new TH1F("difflong","longitudinal diffusion",100,diffusion_long-diffusion_long/2.,diffusion_long+diffusion_long/2.);
   se->registerHisto(dlong);
@@ -197,7 +200,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(ntpad);
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode,seggeo);
- 
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

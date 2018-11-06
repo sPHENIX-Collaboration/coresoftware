@@ -61,41 +61,43 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name):
 
 int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
 {
+  if (Verbosity()) cout << "PHG4TPCPadPlaneReadout: CreateReadoutGeometry: " << endl;
 
-  cout << "PHG4TPCPadPlaneReadout: CreateReadoutGeometry: " << endl;
-
-  for(int iregion=0;iregion<3;++iregion)
+  for (int iregion = 0; iregion < 3; ++iregion)
+  {
+    for (int layer = MinLayer[iregion]; layer < MinLayer[iregion] + NTpcLayers[iregion]; ++layer)
     {
-      for (int layer = MinLayer[iregion]; layer < MinLayer[iregion]+NTpcLayers[iregion]; ++layer)
-	{
-	  cout << " layer " << layer << " MinLayer " << MinLayer[iregion] << " region " << iregion 
-	       << " radius " << MinRadius[iregion]+( (double) (layer-MinLayer[iregion]) + 0.5 )*Thickness[iregion] 
-	       << " thickness " << Thickness[iregion] 
-	       << " NZbins " << NZBins << " zmin " << MinZ  << " zstep " << ZBinWidth 
-	       << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << endl;
-	
-	  PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
-	  layerseggeo->set_layer(layer);
-	  layerseggeo->set_radius(MinRadius[iregion]+( (double) (layer-MinLayer[iregion]) + 0.5 )*Thickness[iregion]);
-	  layerseggeo->set_thickness(Thickness[iregion]);
-	  layerseggeo->set_binning(PHG4CellDefs::sizebinning);
-	  layerseggeo->set_zbins(NZBins);
-	  layerseggeo->set_zmin(MinZ);
-	  layerseggeo->set_zstep(ZBinWidth);
-	  layerseggeo->set_phibins(NPhiBins[iregion]);
-	  layerseggeo->set_phistep(PhiBinWidth[iregion]);
-	  // Chris Pinkenburg: greater causes huge memory growth which causes problems
-	  // on our farm. If you need to increase this - TALK TO ME first
-	  if (NPhiBins[iregion] * NZBins > 5100000)
-	    {
-	      cout << "increase TPC cellsize, number of cells "
-		   << NPhiBins[iregion] * NZBins << " for layer " << layer
-		   << " exceed 5.1M limit" << endl;
-	      gSystem->Exit(1);
-	    }
-	  seggeo->AddLayerCellGeom(layerseggeo);
-	}
+      if (Verbosity())
+      {
+        cout << " layer " << layer << " MinLayer " << MinLayer[iregion] << " region " << iregion
+             << " radius " << MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]
+             << " thickness " << Thickness[iregion]
+             << " NZbins " << NZBins << " zmin " << MinZ << " zstep " << ZBinWidth
+             << " phibins " << NPhiBins[iregion] << " phistep " << PhiBinWidth[iregion] << endl;
+      }
+
+      PHG4CylinderCellGeom *layerseggeo = new PHG4CylinderCellGeom();
+      layerseggeo->set_layer(layer);
+      layerseggeo->set_radius(MinRadius[iregion] + ((double) (layer - MinLayer[iregion]) + 0.5) * Thickness[iregion]);
+      layerseggeo->set_thickness(Thickness[iregion]);
+      layerseggeo->set_binning(PHG4CellDefs::sizebinning);
+      layerseggeo->set_zbins(NZBins);
+      layerseggeo->set_zmin(MinZ);
+      layerseggeo->set_zstep(ZBinWidth);
+      layerseggeo->set_phibins(NPhiBins[iregion]);
+      layerseggeo->set_phistep(PhiBinWidth[iregion]);
+      // Chris Pinkenburg: greater causes huge memory growth which causes problems
+      // on our farm. If you need to increase this - TALK TO ME first
+      if (NPhiBins[iregion] * NZBins > 5100000)
+      {
+        cout << "increase TPC cellsize, number of cells "
+             << NPhiBins[iregion] * NZBins << " for layer " << layer
+             << " exceed 5.1M limit" << endl;
+        gSystem->Exit(1);
+      }
+      seggeo->AddLayerCellGeom(layerseggeo);
     }
+  }
 
   GeomContainer = seggeo;
 
