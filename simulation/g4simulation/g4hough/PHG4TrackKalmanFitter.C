@@ -305,6 +305,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		//! stands for Refit_PHGenFit_Track
 		std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
+		std::shared_ptr<PHGenFit::Track> g4_phgf_track = FitG4Track(topNode, svtx_track);
+
 
 		if (rf_phgf_track) {
 			svtxtrack_genfittrack_map[svtx_track->get_id()] =
@@ -319,101 +321,105 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	       if (_do_eval) {
 		 if (Verbosity() >= 2) std::cout << PHWHERE << "Starting extrapolation Eval"<<endl;
 
-		if (rf_phgf_track){
-		  //get the truth particle best-associated with the track
-		  /* this block won't work... rcc
-		  SvtxTruthEval*     trutheval = _svtxevalstack->get_truth_eval();
-		  PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
-		  if (truth) {      
-		    if (trutheval->get_embed(truth) <= 0) continue;
-		  }
-		  */
-		  //get the momentum from the svtxtrack -- not sure if this is the truth or reco:
-		  TVector3 mom(svtx_track->get_px(),svtx_track->get_py(),svtx_track->get_pz());
+		 bool cluster_track_okay=false;
+		 bool g4_track_okay=false;
 
+		 //generic information that doesn't require the refits to work:
+		 TVector3 mom(svtx_track->get_px(),svtx_track->get_py(),svtx_track->get_pz());
+
+		 //count the number of MVTX and INTT hits:
+		 SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+		 PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+										       topNode, "G4CELL_SILICON_TRACKER");
+		 PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+										       topNode, "G4CELL_MAPS");
+		 int n_mvtx=0;
+		 int n_intt=0;
+		 for (auto iter = svtx_track->begin_clusters();
+		      iter != svtx_track->end_clusters(); ++iter) {
+		   unsigned int cluster_id = *iter;
+		   SvtxCluster* cluster = _clustermap->get(cluster_id);
+		   SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+		   
+		   if(cells_intt && cells_intt->findCell(svtxhit->get_cellid())) {
+		     n_intt++;
+		   } else if(cells_maps && cells_maps->findCell(svtxhit->get_cellid())){
+		     n_mvtx++;
+		   }
+		 }
+
+		 
+		 //utilities for extrapolations: line_point and line_direction are the axis of the cylinder.
+		 const TVector3 line_point=TVector3(0.,0.,0.);
+		 const TVector3 line_direction=TVector3(0.,0.,1.);
+		 const float  inner_wall_r=20.0;//cm. 
+		 
+		 if (g4_phgf_track){
+		   g4_track_okay=true;
+
+		   //look for a position close to the innermost padrow.
+		   //find the g4hit closest to the extrapolated hit in radius (arbitrarily picks the first hit it finds in that layer)
+		   TVector3 g4track_pos(30,0,0);//x=30 so we have a radius of 30.
+		   TVector3 g4track_pos_true(-9000,-9000,-9000);
+		   g4track_pos_true=getClosestG4HitPos(g4track_pos,topNode);
+		   //extrapolate the track to the g4 hit position as well:
+		   //extrapolation to the cluster position:
+		   TMatrixF g4track_cov_ex_g4(3,3);
+		   TVector3 g4track_pos_ex_g4(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
+		   bool g4track_to_30_okay= extrapolateTrackToRadiusPhiRZ(g4track_pos_true.Perp(),g4_phgf_track,g4track_pos_ex_g4,g4track_cov_ex_g4);
 		  
-		  //line_point and line_direction are the axis of the cylinder.
-		  const TVector3 line_point=TVector3(0.,0.,0.);
-		  const TVector3 line_direction=TVector3(0.,0.,1.);
-		  const float  inner_wall_r=20.0;//cm.  Need tocheck the native units RCC
+		   _kalman_extrapolation_eval_tree_g4track_to_30_okay=g4track_to_30_okay;
+		   _kalman_extrapolation_eval_tree_g4_phi_ex_g4=g4track_pos_ex_g4.Phi();
+		   _kalman_extrapolation_eval_tree_g4_z_ex_g4=g4track_pos_ex_g4.Z();
+		   _kalman_extrapolation_eval_tree_g4_r_ex_g4=g4track_pos_ex_g4.Perp();	   
+		 }
+		if (rf_phgf_track){
+		  cluster_track_okay=true;
+
 
 		  int npoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
 		  if (Verbosity() >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
 
 		  //this ought to give the same result regardless of where we extrapolate from, since it should pick the best track ref, but... not clear if that's true.  pick the outermost point.  Note that currently this doesn't include extra material effects, so it won't work for points beyond the inner wall of the tpc -- there's an additional scattering growth to the covariance.
-		  std::shared_ptr<genfit::MeasuredStateOnPlane> gf_cylinder_state = NULL;
-
 		  bool covariance_okay=true;
-		  TMatrixF pos_ifc_m(3,1);
 		  TMatrixF cov_ifc(3,3);
 		  TVector3 pos_ifc(-9000,-9000,-9000);
-		  
-		  
-		  covariance_okay=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,pos_ifc_m,cov_ifc);
-		  pos_ifc.SetZ(pos_ifc_m[2][0]);
-		  pos_ifc.SetPerp(pos_ifc_m[1][0]);
-		  pos_ifc.SetPhi(pos_ifc_m[0][0]);
+		  covariance_okay=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,pos_ifc,cov_ifc);
+
 
 		  //get the cluster closest to the desired radius (gives us the correct radius, too):
 		  TVector3 pos_30_clust(0,0,0);
 		  pos_30_clust=getClusterPosAtRadius(30.0,svtx_track);
 
 		  //extrapolation to the cluster position:
-		  TMatrixF pos_30_m(3,1);
 		  TMatrixF cov_30(3,3);
 		  TVector3 pos_30(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		  
-		  //rcc note to self:  this is a very messy procedure, converting into the cartesian coords that briefly correspond to phi,r,z, with lots of caveats.  Don't leave this in here forever, please... (look at the function call for why it still /works/.)
-		  bool cov2_okay=extrapolateTrackToRadiusPhiRZ(pos_30_clust.Perp(),rf_phgf_track,pos_30_m,cov_30);
-		  pos_30.SetZ(pos_30_m[2][0]);
-		  pos_30.SetPerp(pos_30_m[1][0]);
-		  pos_30.SetPhi(pos_30_m[0][0]);
-
-
-
+		    bool cov2_okay=extrapolateTrackToRadiusPhiRZ(pos_30_clust.Perp(),rf_phgf_track,pos_30,cov_30);
 
 		  //look for a position close to the first pad row.
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
-		  TVector3 pos_30_true(0,0,0);
-		  //now getting the number of hits, passsed in by reference:
+		  TVector3 pos_30_true(-9000,-9000,-9000);
 		  int ng4hits=0;
 		  pos_30_true=getClosestG4HitPos(pos_30,topNode, ng4hits);
 
 		  //extrapolate the track to the g4 hit position as well:
 		  //extrapolation to the cluster position:
-		  TMatrixF pos_ex_g4_m(3,1);
 		  TMatrixF cov_ex_g4(3,3);
 		  TVector3 pos_ex_g4(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4_m,cov_ex_g4);
-		  pos_ex_g4.SetZ(pos_ex_g4_m[2][0]);
-		  pos_ex_g4.SetPerp(pos_ex_g4_m[1][0]);
-		  pos_ex_g4.SetPhi(pos_ex_g4_m[0][0]);
-
-
-
-
-
+		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4,cov_ex_g4);
 
 		  //look for a position close to the outermost padrow.
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
 		  TVector3 pos_80(80,0,0);//x=80 so we have a radius of 80.  More thoroughly we could look for an appropriate cluster position, but that's not needed here.
-		  TVector3 pos_80_true(0,0,0);
-		  //now getting the number of hits, passsed in by reference:
-		  pos_80_true=getClosestG4HitPos(pos_80,topNode);
+		  TVector3 pos_80_true(-9000,-9000,-9000);
+		  int ng4hits80=0;
+		  pos_80_true=getClosestG4HitPos(pos_80,topNode,ng4hits80);
 
 		  //extrapolate the track to the g4 hit position as well:
 		  //extrapolation to the cluster position:
-		  TMatrixF pos_ex_80_m(3,1);
 		  TMatrixF cov_ex_80(3,3);
 		  TVector3 pos_ex_80(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_80_true.Perp(),rf_phgf_track,pos_ex_80_m,cov_ex_80);
-		  pos_ex_80.SetZ(pos_ex_80_m[2][0]);
-		  pos_ex_80.SetPerp(pos_ex_80_m[1][0]);
-		  pos_ex_80.SetPhi(pos_ex_80_m[0][0]);
-
-
-
-
+		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_80_true.Perp(),rf_phgf_track,pos_ex_80,cov_ex_80);
 
 
 		  
@@ -421,9 +427,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		  if (Verbosity() > 2){
 		    	cout << "pos_30: Phi=" << pos_30.Phi() << "\t R="<<pos_30.Perp() << "\t Z="<<pos_30.Z()<<endl;
-			cout << "pos_30_m: Phi=" << pos_30_m[0][0] << "\t R="<<pos_30_m[1][0] << "\t Z="<<pos_30_m[2][0]<<endl;
-
-		    cout << "pos: .Phi=" << pos_30.Phi() << endl;
 		    cout << "cov_kalman (r,phi,z):"<<endl<<"{";
 		    for (int j=0;j<3;j++){
 		      cout << "{";
@@ -516,30 +519,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 
 
-		    //two more things for bookkeeping:
-		    //1) How many INTT layers were hit?
-		    //count the number of MVTX and INTT hits:
-		    SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-		    PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-											  topNode, "G4CELL_SILICON_TRACKER");
-		    PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-											  topNode, "G4CELL_MAPS");
-		    
-		    int n_mvtx=0;
-		    int n_intt=0;
-		    for (auto iter = svtx_track->begin_clusters();
-			 iter != svtx_track->end_clusters(); ++iter) {
-		      unsigned int cluster_id = *iter;
-		      SvtxCluster* cluster = _clustermap->get(cluster_id);
-		      SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-		      
-		      if(cells_intt && cells_intt->findCell(svtxhit->get_cellid())) {
-			n_intt++;
-		      } else if(cells_maps && cells_maps->findCell(svtxhit->get_cellid())){
-			n_mvtx++;
-		      }
 
-		    }
 
 		    _kalman_extrapolation_eval_tree_nintt=n_intt;
 		    _kalman_extrapolation_eval_tree_nmvtx=n_mvtx;
@@ -599,11 +579,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    
 
 		  }
-		    
+		}
+		_kalman_extrapolation_eval_tree_has_g4_track=g4_track_okay;
+		_kalman_extrapolation_eval_tree_has_cluster_track=cluster_track_okay;
 		    _kalman_extrapolation_eval_tree->Fill();
 		    if (Verbosity() >= 2) std::cout << PHWHERE << "end of extrapolation eval."<<endl;
 		  
-		}
+	       
 	       }
 	}
 
@@ -659,31 +641,6 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 					vertex = _vertexmap_refit->get(0);
 			}
 
-			//BEGIN DEBUG
-//			vertex = NULL;
-//
-//			PHG4VtxPoint *truth_vtx = _truth_container->GetVtx(
-//					_truth_container->GetPrimaryVertexIndex());
-//			if(!truth_vtx) {
-//				LogDebug("!truth_vtx");
-//				return Fun4AllReturnCodes::ABORTEVENT;
-//			}
-//
-//			LogDebug("");
-//			truth_vtx->identify();
-//
-//			vertex = new SvtxVertex_v1();
-//			vertex->set_x(truth_vtx->get_x());
-//			vertex->set_y(truth_vtx->get_y());
-//			vertex->set_z(truth_vtx->get_z());
-//
-//			for(int i=0;i<3;i++)
-//				for(int j=0;j<3;j++)
-//					vertex->set_error(i,j,0);
-			//END DEBUG
-
-//			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
-//					vertex);
 #ifdef _DEBUG_
 			cout<<__LINE__<<endl;
 #endif
@@ -953,6 +910,10 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	//RCC add extrapolation branch to the output so we can check resolutions:
 	_kalman_extrapolation_eval_tree = new TTree("kalman_extrapolation_eval","kalman extrapolation eval tree");
 
+	_kalman_extrapolation_eval_tree->Branch("has_cl", &_kalman_extrapolation_eval_tree_has_cluster_track, "has_cl/O");
+	_kalman_extrapolation_eval_tree->Branch("has_g4", &_kalman_extrapolation_eval_tree_has_g4_track, "has_g4/O");
+
+	
 	//initial and final momentum estimates from the kalman fit.
 	_kalman_extrapolation_eval_tree->Branch("nhits", &_kalman_extrapolation_eval_tree_nhits, "nhits/I");
 	_kalman_extrapolation_eval_tree->Branch("nintt", &_kalman_extrapolation_eval_tree_nintt, "nintt/I");
@@ -978,6 +939,12 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("sigma_z_r", &_kalman_extrapolation_eval_tree_sigma_z_r, "sigma_z_r/F");
 	_kalman_extrapolation_eval_tree->Branch("sigma_r_rphi", &_kalman_extrapolation_eval_tree_sigma_r_rphi, "sigma_r_rphi/F");
 
+	//extrapolation using the g4hits as track points rather than the cluster hits:
+	_kalman_extrapolation_eval_tree->Branch("g4_okay30",&_kalman_extrapolation_eval_tree_g4track_to_30_okay,"g4_okay30/O");
+	_kalman_extrapolation_eval_tree->Branch("g4_phi30",&_kalman_extrapolation_eval_tree_g4_phi_ex_g4,"g4_phi30/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_z30",&_kalman_extrapolation_eval_tree_g4_z_ex_g4,"g4_z30/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_r30",&_kalman_extrapolation_eval_tree_g4_r_ex_g4,"g4_r30/F");
+	
 	//extrapolation to an alternate radius, along with true hit info at that radius.
 	_kalman_extrapolation_eval_tree->Branch("phi2", &_kalman_extrapolation_eval_tree_phi2, "phi2/F");
 	_kalman_extrapolation_eval_tree->Branch("z2", &_kalman_extrapolation_eval_tree_z2, "z2/F");
@@ -1604,6 +1571,294 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 	return track;
 }
+
+
+
+
+
+
+
+
+
+
+/*
+FitG4Track takes the g4hit position rather than the cluster position when doing the tracking.
+ */
+
+std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::FitG4Track(PHCompositeNode *topNode, const SvtxTrack* intrack,
+								   const SvtxVertex* invertex){
+  //rcc temporarily turning off the tpc:
+  bool use_svtx=false;
+  bool use_intt=true;
+  bool use_maps=true;
+
+  
+  if (!intrack) {
+		cerr << PHWHERE << " FitG4Track Input SvtxTrack is NULL!" << endl;
+		return NULL;
+	}
+
+	// get node containing the digitized hits
+	SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+	if (!hitsmap) {
+		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+		return NULL;
+	}
+
+	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
+			"G4CELL_SVTX");
+
+	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SILICON_TRACKER");
+
+	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+	if (!cells_svtx and !cells_intt and !cells_maps) {
+		if (Verbosity() >= 0) {
+			LogError("No PHG4CellContainer found!");
+		}
+		return nullptr;
+	}
+
+	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+
+	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+
+	if (!cells_svtx && !cells_maps && !cells_intt) {
+		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
+		return NULL;
+	}
+
+	// prepare seed
+	TVector3 seed_mom(100, 0, 0);
+	TVector3 seed_pos(0, 0, 0);
+	TMatrixDSym seed_cov(6);
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < 6; j++) {
+			seed_cov[i][j] = 100.;
+		}
+	}
+
+	// Create measurements
+	std::vector<PHGenFit::Measurement*> measurements;
+
+
+
+	//! 1000 is a arbitrary number for now
+	const double vertex_chi2_over_dnf_cut = 1000;
+	const double vertex_cov_element_cut = 10000; //arbitrary cut cm*cm
+
+	if (invertex and invertex->size_tracks() > 1
+			and invertex->get_chisq() / invertex->get_ndof()
+					< vertex_chi2_over_dnf_cut) {
+		TVector3 pos(invertex->get_x(), invertex->get_y(), invertex->get_z());
+		TMatrixDSym cov(3);
+		cov.Zero();
+		bool is_vertex_cov_sane = true;
+		for (unsigned int i = 0; i < 3; i++)
+			for (unsigned int j = 0; j < 3; j++) {
+
+				cov(i, j) = invertex->get_error(i, j);
+
+				if (i == j) {
+					if (!(invertex->get_error(i, j) > 0
+							and invertex->get_error(i, j)
+									< vertex_cov_element_cut))
+						is_vertex_cov_sane = false;
+				}
+			}
+
+		if (is_vertex_cov_sane) {
+			PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
+					pos, cov);
+			measurements.push_back(meas);
+//			if(Verbosity() >= 2)
+//			{
+//				meas->getMeasurement()->Print();
+//			}
+		}
+	}
+
+	// sort clusters with radius before fitting
+
+	std::map<float, unsigned int> m_r_cluster_id;
+	for (auto iter = intrack->begin_clusters();
+			iter != intrack->end_clusters(); ++iter) {
+		unsigned int cluster_id = *iter;
+		SvtxCluster* cluster = _clustermap->get(cluster_id);
+		float x = cluster->get_x();
+		float y = cluster->get_y();
+		float r = sqrt(x*x+y*y);
+		m_r_cluster_id.insert(std::pair<float, unsigned int>(r, cluster_id));
+	}
+
+
+
+
+	// RCC Get the g4 position instad of the cluster position, cribbed from the _do_eval section of ReFitTrack
+	//get the g4 hit structures:
+	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
+	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
+	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MAPS");
+	if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
+	  if (Verbosity() >= 0) {
+	    LogError("No PHG4HitContainer found!");
+	  }
+	  return NULL;
+	}
+	//for each cluster in the real track, find the g4hit(s) associated:
+	for (auto iter = m_r_cluster_id.begin();
+	     iter != m_r_cluster_id.end();
+	     ++iter) {
+	  
+	  unsigned int cluster_id = iter->second;
+	  SvtxCluster* cluster = _clustermap->get(cluster_id);
+	  if (!cluster) {
+	    LogError("No cluster Found!");
+	    continue;
+	  }
+	  	  
+	  SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+
+	  //find the g4cell that contains the cluster
+	  PHG4Cell* cell = nullptr;
+	  if(cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
+	  if(!cell && cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
+	  if(!cell && cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
+	  if(!cell){
+	    if(Verbosity()>=0)
+	      LogError("!cell");
+	    continue;
+	  }
+
+	  //find the first g4hit that is in that cell:
+	  PHG4Hit *phg4hit = nullptr;
+	  if(phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(cell->get_g4hits().first->first);
+	  if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(cell->get_g4hits().first->first);
+	  if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
+	  
+	  if (!phg4hit) {
+	    if (Verbosity() >= 0)
+	      LogError("!phg4hit");
+	    continue;
+	  }
+	  
+	  TVector3 pos(phg4hit->get_avg_x(),
+		       phg4hit->get_avg_y(), phg4hit->get_avg_z());
+
+		
+
+
+
+	TVector3 n(cluster->get_x(), cluster->get_y(), 0);
+
+	//note the subtle difference between 'cells_svtx' and 'cell_svtx'.
+	//find the structure that contains the hit (again) for normals and other geometry details:
+	PHG4Cell* cell_svtx = nullptr;
+	PHG4Cell* cell_intt = nullptr;
+	PHG4Cell* cell_maps = nullptr;
+
+	if(cells_svtx) cell_svtx = cells_svtx->findCell(svtxhit->get_cellid());
+	if(cells_intt) cell_intt = cells_intt->findCell(svtxhit->get_cellid());
+	if(cells_maps) cell_maps = cells_maps->findCell(svtxhit->get_cellid());
+	if(!(cell_svtx or cell_intt or cell_maps)){
+	  if(Verbosity()>=0)
+	    LogError("!(cell_svtx or cell_intt or cell_maps)");
+	  continue;
+	}
+
+	//if the detector is turned off by the bools, avoid adding it to the measurement vector by short circuiting here RCC
+	if ( (cell_maps and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx) ) continue;
+
+	seed_mom.SetPhi(pos.Phi());
+	seed_mom.SetTheta(pos.Theta());
+		
+
+		unsigned int layer = cluster->get_layer();
+		//std::cout << "cluster layer: " << layer << std::endl;
+		if (cell_maps) {
+			PHG4Cell* cell = cell_maps;
+
+			int stave_index = cell->get_stave_index();
+			int half_stave_index = cell->get_half_stave_index();
+			int module_index = cell->get_module_index();
+			int chip_index = cell->get_chip_index();
+
+			double ladder_location[3] = { 0.0, 0.0, 0.0 };
+			PHG4CylinderGeom_MAPS *geom =
+					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
+							layer);
+			// returns the center of the sensor in world coordinates - used to get the ladder phi location
+			geom->find_sensor_center(stave_index, half_stave_index,
+					module_index, chip_index, ladder_location);
+			//n.Print();
+			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
+			n.RotateZ(geom->get_stave_phi_tilt());
+			//n.Print();
+		} else if (cell_intt) {
+			PHG4Cell* cell = cell_intt;
+			PHG4CylinderGeomSiLadders* geom =
+			  dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container_intt->GetLayerGeom(layer));
+			double hit_location[3] = { 0.0, 0.0, 0.0 };
+			geom->find_segment_center(cell->get_ladder_z_index(),
+					cell->get_ladder_phi_index(), hit_location);
+
+			n.SetXYZ(hit_location[0], hit_location[1], 0);
+			n.RotateZ(geom->get_strip_phi_tilt());
+		}
+
+		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+				cluster->get_rphi_error(), cluster->get_z_error());
+		measurements.push_back(meas);
+	}
+
+	/*!
+	 * mu+:	-13
+	 * mu-:	13
+	 * pi+:	211
+	 * pi-:	-211
+	 * e-:	11
+	 * e+:	-11
+	 */
+	//TODO Add multiple TrackRep choices.
+	//int pid = 211;
+	genfit::AbsTrackRep* rep = new genfit::RKTrackRep(_primary_pid_guess);
+	std::shared_ptr<PHGenFit::Track> track(new PHGenFit::Track(rep, seed_pos, seed_mom,
+			seed_cov));
+
+	track->addMeasurements(measurements);
+
+	/*!
+	 *  Fit the track
+	 *  ret code 0 means 0 error or good status
+	 */
+	if (_fitter->processTrack(track.get(), false) != 0) {
+		if (Verbosity() >= 1)
+			LogWarning("Track fitting failed");
+		//delete track;
+		return NULL;
+	}
+
+	return track;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*
  * Make SvtxTrack from PHGenFit::Track and SvtxTrack
@@ -2584,7 +2839,7 @@ TVector3 PHG4TrackKalmanFitter::getClosestG4HitPos(const TVector3 target, PHComp
  * returns true if all the manipulations were successful.
  */
 bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
-       std::shared_ptr<PHGenFit::Track>& rf_phgf_track,TMatrixF& pos_out, TMatrixF& cov_out){
+       std::shared_ptr<PHGenFit::Track>& rf_phgf_track,TVector3& pos_out, TMatrixF& cov_out){
   bool worked=true;
   const TVector3 line_point=TVector3(0.,0.,0.);
   const TVector3 line_direction=TVector3(0.,0.,1.);
@@ -2610,7 +2865,7 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
     //std::cout << PHWHERE << "Cylinder State not filled RCC"<<endl;
   }
 
-  TVector3 pos(NAN,NAN,NAN);
+  pos_out.SetXYZ(NAN,NAN,NAN);
   TVector3 mom(NAN,NAN,NAN);
   //  TMatrixF pos_in(3,1);
   //TMatrixF cov_in(3,3);
@@ -2633,7 +2888,7 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
       pos_in[0][0] = state6[0];
       pos_in[1][0] = state6[1];
       pos_in[2][0] = state6[2];
-      pos.SetXYZ(state6[0],state6[1],state6[2]);
+      pos_out.SetXYZ(state6[0],state6[1],state6[2]);
       mom.SetXYZ(state6[3],state6[4],state6[5]);
 
       for(int i=0;i<3;++i){
@@ -2643,12 +2898,13 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
       }
 
 
-      //this call resize pos_out and cov_out to the correct size.
-      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
+      //this call resize pos_m and cov_out to the correct size.
+      TMatrixF pos_m(3,1);
+      pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_m, cov_out);
 
       if (Verbosity() > 4){
-	cout << "pos: Phi=" << pos.Phi() << "\t R="<<pos.Perp() << "\t Z="<<pos.Z()<<endl;
-	cout << "pos_after_rotation: Phi=(should be zero!)" << pos_out[0][0] << "\t R="<<pos_out[1][0] << "\t Z="<<pos_out[2][0]<<endl;
+	cout << "pos: Phi=" << pos_out.Phi() << "\t R="<<pos_out.Perp() << "\t Z="<<pos_out.Z()<<endl;
+	cout << "pos_after_rotation: Phi=(should be zero!)" << pos_m[0][0] << "\t R="<<pos_m[1][0] << "\t Z="<<pos_m[2][0]<<endl;
 	cout << "cov_kalman (x,y,z):"<<endl<<"{";
 	for (int j=0;j<3;j++){
 	  cout << "{";
@@ -2675,8 +2931,6 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
       worked=false;
     }
   }
-  //the rotation makes phi=0, so we restore the correct phi:
-  pos_out[0][0]=pos.Phi();
 
   return worked;
 }

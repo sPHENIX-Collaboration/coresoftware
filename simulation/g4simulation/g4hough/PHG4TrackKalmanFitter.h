@@ -216,6 +216,7 @@ private:
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
 	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);//rcc hack: ,const bool use_svtx=true, const bool use_intt=true, const bool use_mvtx=true);
+	std::shared_ptr<PHGenFit::Track> FitG4Track(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);//rcc hack: ,const bool use_svtx=true, const bool use_intt=true, const bool use_mvtx=true);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
 	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
@@ -254,7 +255,7 @@ private:
 	bool extrapolateTrackToRadiusPhiRZ(
 			const float radius,
 			std::shared_ptr<PHGenFit::Track>& rf_phgf_track,
-			TMatrixF& pos_out,
+			TVector3& pos_out,
 			TMatrixF& cov_out);
 
 	TVector3 getClusterPosAtRadius(const float radius, const SvtxTrack* intrack);
@@ -357,6 +358,7 @@ private:
 	float	_kalman_extrapolation_eval_tree_pyi;
 	float	_kalman_extrapolation_eval_tree_pzi;
 	
+	bool _kalman_extrapolation_eval_tree_has_cluster_track;
 	float  _kalman_extrapolation_eval_tree_phi;
 	float _kalman_extrapolation_eval_tree_z;
 	float _kalman_extrapolation_eval_tree_r;
@@ -368,6 +370,13 @@ private:
 	float _kalman_extrapolation_eval_tree_sigma_z_r;
 	float _kalman_extrapolation_eval_tree_sigma_r_rphi;
 
+	//with g4track:
+	bool _kalman_extrapolation_eval_tree_has_g4_track;
+	bool _kalman_extrapolation_eval_tree_g4track_to_30_okay;
+	float	   _kalman_extrapolation_eval_tree_g4_phi_ex_g4;
+	float	   _kalman_extrapolation_eval_tree_g4_z_ex_g4;
+	float	   _kalman_extrapolation_eval_tree_g4_r_ex_g4;
+	
 	//at larger radius:
 	float  _kalman_extrapolation_eval_tree_phi2_true;
 	float _kalman_extrapolation_eval_tree_z2_true;
