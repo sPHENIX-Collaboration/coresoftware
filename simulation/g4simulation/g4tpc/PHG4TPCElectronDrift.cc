@@ -11,6 +11,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameters.h>
 
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
@@ -31,7 +32,9 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <gsl/gsl_randist.h>
+
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -95,6 +98,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       gSystem->Exit(1);
       exit(1);
     }
+
   cellnodename = "G4CELL_SVTX";  // + detector;
   g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellnodename);
   if (! g4cells)
@@ -142,17 +146,6 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     }
   PutOnParNode(ParDetNode,geonodename);
 
-  tpc_length = 211.;
-  diffusion_long = get_double_param("diffusion_long");
-  added_smear_sigma_long = get_double_param("added_smear_long");
-  diffusion_trans = get_double_param("diffusion_trans");
-  added_smear_sigma_trans = get_double_param("added_smear_trans");
-  drift_velocity = get_double_param("drift_velocity");
-  min_time = 0.0;
-  max_time = (tpc_length/ 2.) / drift_velocity;
-  electrons_per_gev = get_double_param("electrons_per_gev");
-  min_active_radius = get_double_param("min_active_radius");
-  max_active_radius = get_double_param("max_active_radius");
 
   // find TPC Geo
   PHNodeIterator tpcpariter(ParDetNode);
@@ -164,12 +157,35 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     if (tpcpdbparams)
     {
       tpcparams = new PHParametersContainer(detector);
-      tpcpdbparams->print();
+      if (Verbosity())  tpcpdbparams->print();
       tpcparams->CreateAndFillFrom(tpcpdbparams,detector);
       ParDetNode->addNode(new PHDataNode<PHParametersContainer>(tpcparams,tpcgeonodename));
     }
+    else
+    {
+      cout <<"PHG4TPCElectronDrift::InitRun - failed to find "<<runparamname<<" in order to initialize "<<tpcgeonodename<<". Aborting run ..."<<endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
   }
-  tpcparams->Print();
+  assert(tpcparams);
+
+  if (Verbosity())  tpcparams->Print();
+  const PHParameters * tpcparam = tpcparams->GetParameters(0);
+  assert(tpcparam);
+  tpc_length = tpcparam->get_double_param("tpc_length") ;
+
+
+  diffusion_long = get_double_param("diffusion_long");
+  added_smear_sigma_long = get_double_param("added_smear_long");
+  diffusion_trans = get_double_param("diffusion_trans");
+  added_smear_sigma_trans = get_double_param("added_smear_trans");
+  drift_velocity = get_double_param("drift_velocity");
+  min_time = 0.0;
+  max_time = (tpc_length/ 2.) / drift_velocity;
+  electrons_per_gev = get_double_param("electrons_per_gev");
+  min_active_radius = get_double_param("min_active_radius");
+  max_active_radius = get_double_param("max_active_radius");
+
 
   Fun4AllServer *se = Fun4AllServer::instance();
   dlong = new TH1F("difflong","longitudinal diffusion",100,diffusion_long-diffusion_long/2.,diffusion_long+diffusion_long/2.);
@@ -184,7 +200,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(ntpad);
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode,seggeo);
- 
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
