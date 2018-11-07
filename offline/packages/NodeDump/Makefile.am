@@ -42,6 +42,7 @@ libphnodedump_la_SOURCES = \
   DumpSvtxTrackMap.cc \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
+  DumpTowerBackground.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
   PHNodeDump.cc \

@@ -26,6 +26,7 @@
 #include "DumpSvtxTrackMap.h"
 #include "DumpSvtxVertexMap.h"
 #include "DumpSyncObject.h"
+#include "DumpTowerBackground.h"
 #include "DumpVariableArray.h"
 
 #include <phool/getClass.h>
@@ -259,6 +260,14 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
             {
               newdump = new DumpSvtxVertexMap(NodeName);
             }
+          else if (tmp->InheritsFrom("SyncObject"))
+            {
+              newdump = new DumpSyncObject(NodeName);
+            }
+	  else if (tmp->InheritsFrom("TowerBackground"))
+	  {
+	    newdump = new DumpTowerBackground(NodeName);
+	  }
           else if (tmp->InheritsFrom("VariableArray"))
             {
               newdump = new DumpVariableArray(NodeName);
