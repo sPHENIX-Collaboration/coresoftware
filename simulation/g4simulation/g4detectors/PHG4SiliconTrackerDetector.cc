@@ -122,6 +122,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     double fphx_x = params->get_double_param("fphx_x") * cm;
     double fphx_y = params->get_double_param("fphx_y") * cm;
     double fphx_z = params->get_double_param("fphx_z") * cm;
+    double fphx_offset_z = params->get_double_param("fphx_offset_z") * cm;
     double pgs_x = params->get_double_param("pgs_x") * cm;
     double halfladder_z = params->get_double_param("halfladder_z") * cm;
     double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * cm;
@@ -307,7 +308,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         exit(1);
       }
       cell_length_z = strip_z * nstrips_z_sensor / ncopy;
-      offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. : -2. * cell_length_z / 2. * double(ncopy / 2);
+      offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. + fphx_offset_z : -2. * cell_length_z / 2. * double(ncopy / 2) + fphx_offset_z ;
       G4VPVParameterisation *fphxparam = new PHG4SiliconTrackerFPHXParameterisation(offsetx, +offsety, offsetz, 2. * cell_length_z / 2., ncopy);
       new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(),
                             fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
