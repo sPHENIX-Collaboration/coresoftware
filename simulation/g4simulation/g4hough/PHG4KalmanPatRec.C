@@ -49,6 +49,8 @@
  //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
 
 // sGeant4 includes
 #include <Geant4/G4MagneticField.hh>
@@ -94,6 +96,30 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
+//BOOST for combi seeding
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/box.hpp>
+
+#include <boost/geometry/index/rtree.hpp>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/LU>
+using namespace Eigen;
+// to store queries results
+#include <vector>
+// just for output
+#include <iostream>
+#include <boost/foreach.hpp>
+
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
+
+//typedef bg::model::point<float, 3, bg::cs::spherical<boost::geometry::radian>> point;
+typedef bg::model::point<float, 3, bg::cs::cartesian> point;
+typedef bg::model::box<point> box;
+typedef std::pair<point, unsigned int> pointId;
+
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -126,23 +152,30 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 		unsigned int min_nlayers_seeding
 		)
     : SubsysReco(name),
-	  _t_seeding(nullptr),
-	  _t_seed_init1(nullptr),
-	  _t_seed_init2(nullptr),
-	  _t_seed_init3(nullptr),
-	  _t_seeds_cleanup(nullptr),
-	  _t_translate_to_PHGenFitTrack(nullptr),
-	  _t_translate1(nullptr),
-	  _t_translate2(nullptr),
-	  _t_translate3(nullptr),
-	  _t_kalman_pat_rec(nullptr),
-	  _t_search_clusters(nullptr),
-	  _t_search_clusters_encoding(nullptr),
-	  _t_search_clusters_map_iter(nullptr),
-	  _t_track_propagation(nullptr),
-	  _t_full_fitting(nullptr),
-	  _t_output_io(nullptr),
-	  _seeding_layer(),
+      _t_seeding(nullptr),
+      _t_seeding1(nullptr),
+      _t_seeding2(nullptr),
+      _t_seeding3(nullptr),
+      _t_seed_init1(nullptr),
+      _t_seed_init2(nullptr),
+      _t_seed_init3(nullptr),
+      _t_seeds_hough(nullptr),
+      _t_seeds_final(nullptr),
+      _t_seeds_cleanup(nullptr),
+      _t_translate_to_PHGenFitTrack(nullptr),
+      _t_translate1(nullptr),
+      _t_translate2(nullptr),
+      _t_translate3(nullptr),
+      _t_kalman_pat_rec(nullptr),
+      _t_search_clusters(nullptr),
+      _t_search_clusters_encoding(nullptr),
+      _t_search_clusters_map_iter(nullptr),
+      _t_track_propagation(nullptr),
+      _t_track_prop_tot(nullptr),
+      _t_track_clean(nullptr),
+      _t_full_fitting(nullptr),
+      _t_output_io(nullptr),
+      _seeding_layer(),
       _nlayers_seeding(nlayers_seeding),
       _min_nlayers_seeding(min_nlayers_seeding),
       _radii(),
@@ -196,6 +229,7 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _n_iteration(0),
       _n_max_iterations(2),
       _seeding_only_mode(false),
+      _run_number(0),
       _analyzing_mode(false),
       _analyzing_file(NULL),
       _analyzing_ntuple(NULL),
@@ -243,7 +277,9 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
       _max_consecutive_missing_layer(20),
       _max_incr_chi2(20.),
       _max_splitting_chi2(20.),
-      _min_good_track_hits(30)
+      _min_good_track_hits(30),
+      _do_combi_seeds(0),
+      _do_truth_seeds(0)
 {
   _event = 0;
   
@@ -313,11 +349,17 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 }
 
 int PHG4KalmanPatRec::Init(PHCompositeNode* topNode) {
+
+
 	if(_analyzing_mode){
 	  cout << "Ana Mode, creating ntuples! " << endl;
-	  _analyzing_file = new TFile("./PatRecAnalysis.root","RECREATE");
+	  Char_t outputFile[256];
+	  sprintf(outputFile,"./data_singles/extrap_ana_%d.root",_run_number);
+	  _analyzing_file = new TFile(outputFile,"RECREATE");
+
 	  //	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas");
-	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","pt:kappa:d:phi:dzdl:z0:nhit:ml:rec:dt");
+	  //_analyzing_ntuple = new TNtuple("ana_nt","ana_nt","pt:kappa:d:phi:dzdl:z0:nhit:ml:rec:dt");
+	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","pt:eta:phi:gpt:geta:gphi:tx:ty:tz:teta:tphi:tr:ex:ey:ez:eeta:ephi:er:dxy:dz:dphi:dist:nhits");
 	  cout << "Done" << endl;
 	  
 	}
@@ -406,6 +448,12 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
 	_t_seeding = new PHTimer("_t_seeding");
 	_t_seeding->stop();
+	_t_seeding1 = new PHTimer("_t_seeding1");
+	_t_seeding1->stop();
+	_t_seeding2 = new PHTimer("_t_seeding2");
+	_t_seeding2->stop();
+	_t_seeding3 = new PHTimer("_t_seeding3");
+	_t_seeding3->stop();
 
 	_t_seed_init1 = new PHTimer("_t_seed_init1");
 	_t_seed_init1->stop();
@@ -416,6 +464,10 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	_t_seed_init3 = new PHTimer("_t_seed_init3");
 	_t_seed_init3->stop();
 
+	_t_seeds_hough = new PHTimer("_t_seeds_hough");
+	_t_seeds_hough->stop();
+	_t_seeds_final = new PHTimer("_t_seeds_final");
+	_t_seeds_final->stop();
 	_t_seeds_cleanup = new PHTimer("_t_seeds_cleanup");
 	_t_seeds_cleanup->stop();
 
@@ -444,6 +496,12 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
 	_t_track_propagation = new PHTimer("_t_track_propergation");
 	_t_track_propagation->stop();
+
+	_t_track_prop_tot = new PHTimer("_t_track_prop_tot");
+	_t_track_prop_tot->stop();
+
+	_t_track_clean = new PHTimer("_t_track_clean");
+	_t_track_clean->stop();
 
 	_t_full_fitting = new PHTimer("_t_full_fitting");
 	_t_full_fitting->stop();
@@ -523,6 +581,9 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	
 	for(_n_iteration = 1;_n_iteration<=_n_max_iterations;_n_iteration++){
 	  _tracks.clear();
+	  _target_hit_x.clear();
+	  _target_hit_y.clear();
+	  _target_hit_z.clear();
 	  _track_errors.clear();
 	  _track_covars.clear();
 	  
@@ -617,56 +678,124 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	  if(Verbosity() >= 1)
 	    cout << "Iteration number " << _n_iteration << endl; 
 	  _min_nlayers_seeding--;
-	  if(Verbosity() >= 1) _t_seeding->restart();
-	  
+	  if(Verbosity() >= 1){
+	    _t_seeding->restart();
+	    if(_n_iteration==1) _t_seeding1->restart();
+	    if(_n_iteration==2) _t_seeding2->restart();
+	    if(_n_iteration==3) _t_seeding3->restart();
+	  }
 	  //-----------------------------------
 	  // Translate into Helix_Hough objects
 	  //-----------------------------------
-	  
-	  code = translate_input();//Check if cluster is already used in here
-	  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-	  
-	  //-----------------------------------
-	  // Guess a vertex position
-	  //-----------------------------------
-	  
-	  //	code = fast_vertex_guessing();
-	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-	  // here expect vertex to be better than +/-2.0 cm
-	  
-	  //-----------------------------------
-	  // Find an initial vertex with tracks
-	  //-----------------------------------
-	  
-	  //	code = initial_vertex_finding();
-	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-	  if(_n_iteration ==1){
-	    code = vertexing(topNode);
-	    if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-	    // here expect vertex to be better than +/- 500 um
+	  if(_do_combi_seeds){
+	    _vertex[0] = 0;
+	    _vertex[1] = 0;
+	    _vertex[2] = 0;
+	    
+	    _vertex_error[0] = 0.01;
+	    _vertex_error[1] = 0.01;
+	    _vertex_error[2] = 0.03;
+	    cout << " start combi seeding" << endl;
+	    PHTimer *t_combi = new PHTimer("t_combi");
+	    t_combi->stop();
+	    t_combi->restart();
+	    code = combi_seeding(_nlayers_maps+_nlayers_intt+_nlayers_tpc-2 -(_n_iteration-1)*5  );
+	    //	    code = combi_seeding(_nlayers_maps+_nlayers_intt+(_n_iteration-1)*5 +7);
+	    t_combi->stop();
+	    std::cout << "combi time: "<<t_combi->get_accumulated_time()/1000. << " sec" <<std::endl;
+	    cout << " end combi seeding, found " << _tracks.size() << " seeds" << endl; 
+	    
+	    // FIT TRACK
+	    code = SeedFitting(topNode);
+	    if (code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
 	  }
-	  //-----------------------------------
-	  // Seeding
-	  //-----------------------------------
-	  //TODO simplify this function
-	  code = full_track_seeding();
-	  if (code != Fun4AllReturnCodes::EVENT_OK)
-	    return code;
+	  if(_do_truth_seeds){
+	    _vertex[0] = 0;
+	    _vertex[1] = 0;
+	    _vertex[2] = 0;
+
+	    _vertex_error[0] = 0.01;
+	    _vertex_error[1] = 0.01;
+	    _vertex_error[2] = 0.03;
+	    cout << " start truth seeding" << endl;
+	    PHTimer *t_truth = new PHTimer("t_truth");
+	    t_truth->stop();
+	    t_truth->restart();
+	    code = truth_seeding(0,topNode);
+	    //	    code = combi_seeding(_nlayers_maps+_nlayers_intt+(_n_iteration-1)*5 +7);
+	    t_truth->stop();
+	    std::cout << "truth time: "<<t_truth->get_accumulated_time()/1000. << " sec" <<std::endl;
+	    cout << " end truth seeding, found " << _tracks.size() << " seeds" << endl; 
+	
+	    // FIT TRACK
+	    code = SeedFitting(topNode);
+	    if (code != Fun4AllReturnCodes::EVENT_OK)
+	      return code;
+
+	    //	    return Fun4AllReturnCodes::EVENT_OK;
+
+	  }
+	  if(!_do_combi_seeds&&!_do_truth_seeds)  
+	    {
+	      code = translate_input();//Check if cluster is already used in here
+	      if (code != Fun4AllReturnCodes::EVENT_OK) return code;
 	  
-	  if(Verbosity() >= 1) _t_seeding->stop();
+	      //-----------------------------------
+	      // Guess a vertex position
+	      //-----------------------------------
+	      
+	      //	code = fast_vertex_guessing();
+	      //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	      // here expect vertex to be better than +/-2.0 cm
+	      
+	      //-----------------------------------
+	      // Find an initial vertex with tracks
+	      //-----------------------------------
+	      
+	      //	code = initial_vertex_finding();
+	      //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+	      if(_n_iteration ==1){
+		code = vertexing(topNode);
+		if (code != Fun4AllReturnCodes::EVENT_OK) return code;
+		// here expect vertex to be better than +/- 500 um
+	      }
+	      //-----------------------------------
+	      // Seeding
+	      //-----------------------------------
+	      //TODO simplify this function
+	      code = full_track_seeding();
+	      if (code != Fun4AllReturnCodes::EVENT_OK)
+		return code;
+	    }
+	  if(Verbosity() >= 1){
+	    _t_seeding->stop();
+	    if(_n_iteration==1) _t_seeding1->stop();
+	    if(_n_iteration==2) _t_seeding2->stop();
+	    if(_n_iteration==3) _t_seeding3->stop();
+	  }
 	  if(Verbosity() >= 1&&_n_iteration==3) _t_seed_init3->stop();
 	  if(Verbosity() >= 1&&_n_iteration==2) _t_seed_init2->stop();
 	  if(Verbosity() >= 1&&_n_iteration==1) _t_seed_init1->stop();
-
+	  
 	  if(Verbosity() >= 1) _t_kalman_pat_rec->restart();
 	  
 	  //-----------------------------------
 	  // Kalman cluster association
 	  //-----------------------------------
 	  if (!_seeding_only_mode) {
-	    code = FullTrackFitting(topNode);
+	    if(!_do_combi_seeds){
+	      code = FullTrackFitting(topNode);
+	    }else{
+	      code = CombiTrackPropagation(topNode);
+	    }
 	    if (code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
+	  }
+	  else{
+	    cout << " adding tracks " << _tracks.size() << " " << _track_covars.size() << endl;
+	    add_tracks();
+	    cout << " done adding tracks" << endl;
 	  }
 	  if(Verbosity() >= 1) _t_kalman_pat_rec->stop();
 	  
@@ -701,7 +830,11 @@ void PHG4KalmanPatRec::print_timers() {
   std::cout << "CPUSCALE Init Seed1 time:                "<<_t_seed_init1->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "CPUSCALE Init Seed2 time:                "<<_t_seed_init2->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "CPUSCALE Init Seed3 time:                "<<_t_seed_init3->get_accumulated_time()/1000. << " sec" <<std::endl;
+
+  std::cout << "\t - Seeds Hough:          "<<_t_seeds_hough->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Seeds Final:          "<<_t_seeds_final->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
+
   std::cout << "CPUSCALE Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t -    - Translation1 time: "<<_t_translate1->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -710,6 +843,8 @@ void PHG4KalmanPatRec::print_timers() {
   std::cout << "\t - Cluster searching time: "<<_t_search_clusters->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t\t - Encoding time:        "<<_t_search_clusters_encoding->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t\t - Map iteration:        "<<_t_search_clusters_map_iter->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Propagation time:    "<<_t_track_prop_tot->get_accumulated_time()/1000. << " sec" <<std::endl;
+  std::cout << "\t - Cleaning time:    "<<_t_track_clean->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Kalman updater time:    "<<_t_track_propagation->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "Full fitting time:           "<<_t_full_fitting->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "Output IO time:              "<<_t_output_io->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -1715,6 +1850,634 @@ int PHG4KalmanPatRec::translate_input() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+#define WORKS
+#ifdef WORKS
+
+//////TRUTH
+int PHG4KalmanPatRec::truth_seeding(int start_layer, PHCompositeNode *topNode) {
+
+  PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(
+      	            topNode, "G4HIT_TPC");
+
+  PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
+                        topNode, "G4HIT_SILICON_TRACKER");
+  
+  PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_MAPS");
+  PHG4TruthInfoContainer* _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+  if (!phg4hits_svtx){
+    LogError("No TPC PHG4HitContainer found!");
+  }else{
+    cout << " N TPC hits:" << phg4hits_svtx->size() <<  endl;
+  }
+  if (!phg4hits_intt or !phg4hits_maps) {
+    if (Verbosity() >= 0) {
+      LogError("No PHG4HitContainer found!");
+    }
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  
+  SvtxHitMap* hitsmap = nullptr;
+  // get node containing the digitized hits
+  hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  if (!hitsmap) {
+    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_SVTX");
+
+  PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
+                        topNode, "G4CELL_SILICON_TRACKER");
+  
+  PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MAPS");
+
+  if (!cells_intt or !cells_maps) {
+    if (Verbosity() >= 0) {
+      LogError("No PHG4CellContainer found!");
+    }
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  typedef std::map< int, std::set<SvtxCluster*> > TrkClustersMap;
+  typedef std::map< int, std::set<PHG4Hit*> > TrkG4TargetMap;
+  TrkClustersMap m_trackID_clusters;
+  TrkG4TargetMap m_trackID_g4target;
+
+  for (SvtxClusterMap::ConstIter cluster_itr = _g4clusters->begin();
+       cluster_itr != _g4clusters->end(); ++cluster_itr) {
+    SvtxCluster *cluster = cluster_itr->second;
+    SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+    PHG4Cell* cell = nullptr;
+
+    if(!cell and cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
+    if(!cell and cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
+    if(!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
+
+    if(!cell){
+      if(Verbosity() >= 100) {
+	LogError("!cell");
+      }
+      continue;
+    }
+
+    for(PHG4Cell::EdepConstIterator hits_it = cell->get_g4hits().first;
+	hits_it != cell->get_g4hits().second; hits_it++){
+      
+      PHG4Hit *phg4hit = nullptr;
+      if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(hits_it->first);
+      if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
+      if(!phg4hit and phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
+
+      if(!phg4hit){
+	if(Verbosity() >= 1000) {
+	  LogError("!phg4hit");
+	}
+	continue;
+      }
+      //      cout << " layer " << cluster->get_layer() << endl;
+      int particle_id = phg4hit->get_trkid();
+      if(cluster->get_layer() > (_nlayers_maps + _nlayers_intt))
+	continue;
+      if(cluster->get_layer() < (_nlayers_maps + _nlayers_intt)){
+
+	TrkClustersMap::iterator it = m_trackID_clusters.find(particle_id);
+	
+	if(it != m_trackID_clusters.end()){
+	  it->second.insert(cluster);
+	} else {
+	  std::set<SvtxCluster*> clusters;
+	  clusters.insert(cluster);
+	  m_trackID_clusters.insert(std::pair< int, std::set<SvtxCluster*> >(particle_id,clusters));
+	}
+      }
+      
+      if(cluster->get_layer() == (_nlayers_maps + _nlayers_intt)){
+	TrkG4TargetMap::iterator it_tg4 = m_trackID_g4target.find(particle_id);
+	if(it_tg4 != m_trackID_g4target.end()){
+	  it_tg4->second.insert(phg4hit);
+	} else {
+	  std::set<PHG4Hit*> g4hits;
+	  g4hits.insert(phg4hit);
+	  m_trackID_g4target.insert(std::pair< int, std::set<PHG4Hit*> >(particle_id,g4hits));
+	}
+       }
+    }
+  }
+
+  cout << "m_trackID_g4target.size: " << m_trackID_g4target.size() << endl;
+
+  for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
+       trk_clusers_itr!=m_trackID_clusters.end(); ++trk_clusers_itr) {
+    int trk_id = trk_clusers_itr->first;
+    if(trk_clusers_itr->second.size() >3){//== _nlayers_maps + _nlayers_intt) {
+      SimpleTrack3D temp_track;
+
+      //      svtx_track->set_truth_track_id(trk_clusers_itr->first);
+      //to make through minimum pT cut
+      //      temp_track.set_px(10.);
+      // temp_track.set_py(0.);
+      // temp_track.set_pz(0.);
+      for(SvtxCluster *cluster : trk_clusers_itr->second) {
+	//	svtx_track->insert_cluster(cluster->get_id());
+	//SvtxCluster *cluster = _g4clusters->get(cluster->get_id());
+	SimpleHit3D hit3d;
+	
+	unsigned int ilayer = cluster->get_layer();
+	hit3d.set_id(cluster->get_id());
+	hit3d.set_layer(ilayer);
+	      
+	hit3d.set_x(cluster->get_x());
+	hit3d.set_y(cluster->get_y());
+	hit3d.set_z(cluster->get_z());
+	// copy covariance over
+	for (int i = 0; i < 3; ++i) {
+	  for (int j = i; j < 3; ++j) {
+	    hit3d.set_error(i, j, cluster->get_error(i, j));
+	    hit3d.set_size(i, j, cluster->get_error(i, j)*sqrt(12.));
+	  }
+	}
+	temp_track.hits.push_back(hit3d);
+      }
+      
+      cout << " trk_id: " << trk_id << endl;
+      TrkG4TargetMap::iterator it_tg4 = m_trackID_g4target.find(trk_id);
+      cout << "n hits in target layer: " << it_tg4->second.size() << endl;
+      if(it_tg4->second.size()!=0){
+	PHG4Hit* thit = *it_tg4->second.begin();
+	_target_hit_x.push_back(thit->get_avg_x());
+	_target_hit_y.push_back(thit->get_avg_y());
+	_target_hit_z.push_back(thit->get_avg_z());
+      }else{
+	_target_hit_x.push_back(0.0);
+	_target_hit_y.push_back(0.0);
+	_target_hit_z.push_back(666.0);
+      }
+      PHG4Particle* particle = NULL;
+      if(trk_id!=0)
+	particle = _truthinfo->GetParticle( trk_id );
+      _particles.push_back(particle);
+      _tracks.push_back(temp_track);
+    }
+
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHG4KalmanPatRec::combi_seeding(int start_layer) {
+
+  PHTimer *t_fill = new PHTimer("t_fill");
+  t_fill->stop();
+
+  int do_print = 0;
+  bgi::rtree< pointId, bgi::quadratic<16> > rtree;
+  // point phi,eta,r + id
+
+  if(do_print) cout << "hello combi : nclus" << _g4clusters->size() << endl;
+  //  int num = 0;
+  int nlayer[60];
+  for(int j =0 ; j<60;j++)nlayer[j] = 0;
+  for (SvtxClusterMap::Iter iter = _g4clusters->begin();
+       iter != _g4clusters->end(); ++iter) {
+    if(_hit_used_map[iter->first]!=0){
+      continue;
+    }
+    //    cout << "num: " << num++ << endl;
+    SvtxCluster* cluster = iter->second;
+    //    unsigned int ilayer = cluster->get_layer();
+    //FIXIT correct for vertex position
+    unsigned int layer = cluster->get_layer();
+    if(layer<_nlayers_maps +_nlayers_intt)
+      continue;
+    TVector3 vec(cluster->get_x(),cluster->get_y(),cluster->get_z());
+    float clus_phi = vec.Phi();
+    float clus_theta = vec.Eta();
+
+    float clus_r =  _radii_all[layer];
+    unsigned int cid = cluster->get_id();
+
+    nlayer[layer]++;
+    //    cout << "filling rtree phi" << clus_phi << " theta " << clus_theta
+    //	 << " r " << clus_r << " cid " << cid << endl;
+    t_fill->restart();
+    rtree.insert(std::make_pair(point(clus_phi,clus_theta,clus_r),cid));
+    //fast_approx_atan2(cluster->get_y(), cluster->get_x());
+    t_fill->stop();
+  }
+
+  std::cout << "fill time: "<<t_fill->get_accumulated_time()/1000. << " sec" <<std::endl;
+
+  if(do_print) cout << "RTree entries: "<< rtree.size() << endl;
+  int n_all = 0;
+  for(unsigned int i = 0;i<_nlayers_maps +_nlayers_intt + _nlayers_tpc;i++){
+    std::vector<pointId> returned_values;
+    box box_region(point(-1*TMath::Pi(),-2,_radii_all[i]-0.3),
+		   point(TMath::Pi(),2,_radii_all[i]+0.3));
+    bgi::query(rtree, bgi::within(box_region), std::back_inserter(returned_values));
+    n_all+= returned_values.size();
+    if(do_print) cout << " Entries layer["<< i << " | " << _radii_all[i] << "] dr: " << _radii_all[i+1] - _radii_all[i]<< " : " << returned_values.size() << " | " << nlayer[i] << " | " << n_all<< endl;
+  }
+  cout << "ALL HITS : " << n_all << endl;
+
+  //start nearest neighbor search
+  //  int start_layer = _nlayers_maps +_nlayers_intt + _nlayers_tpc -1;
+  std::vector<pointId> returned_values;
+  box box_region(point(-1*TMath::Pi(),-1.02,_radii_all[start_layer]-0.3),
+		 point(TMath::Pi(),1.02,_radii_all[start_layer]+0.3));
+
+  bgi::query(rtree, bgi::within(box_region), std::back_inserter(returned_values));
+
+  int n_start = returned_values.size();
+
+  int n_track = 0;
+  int n_seed = 0;
+  int n_good = 0;
+  int n_more = 0;
+  int n_bad  = 0;
+
+  int n_good2 = 0;
+  int n_more2 = 0;
+  int n_bad2 = 0;
+  int fini[60];
+  for(int ii = 0;ii<60;ii++ ) fini[ii] = 0;
+  //LOOP OVER   OUTERMOST LAYER
+  //  for(auto first_point = returned_values.begin();
+
+  float seed_window_phi = 0.02;
+  float seed_window_phi2 = 0.01;//0.005
+  float seed_window_phi2_shift = 0.003;
+  float seed_window_eta = 0.01;//0.005
+  float seed_window_eta_shift = 0.0025;
+
+  for(std::vector<pointId>::iterator first_point = returned_values.begin();
+      first_point != returned_values.end();
+      ++first_point) { 
+    //find a track from each point
+    //get a seed
+
+    std::vector<pointId> search_values;
+    if(do_print)cout << "First_point id: " << first_point->second << " phi: " << first_point->first.get<0>() << " eta: " << first_point->first.get<1>() << " r: " << first_point->first.get<2>()<< endl;
+    //SEARCH OUT -1
+    box search_box(point(
+			 first_point->first.get<0>()-seed_window_phi,
+			 first_point->first.get<1>()-seed_window_eta+seed_window_eta_shift,
+			 _radii_all[start_layer-1]-0.3),
+		   point(first_point->first.get<0>()+seed_window_phi,
+			 first_point->first.get<1>()+seed_window_eta+seed_window_eta_shift,
+			 _radii_all[start_layer-1]+0.3));
+    bgi::query(rtree, bgi::within(search_box), std::back_inserter(search_values));
+    
+    if(search_values.size()==0) continue;
+
+    for(std::vector<pointId>::iterator second_point = search_values.begin();
+	    second_point != search_values.end(); second_point++) { 
+    
+      if(do_print) cout << "#seed " << n_seed++<<  " (" << n_start << ") : " << search_values.size() << endl;
+      if(search_values.size()>1)
+	n_more++;
+      else if(search_values.size()>0)
+	n_good++;
+      else{
+	n_bad++;
+      }
+      //Step 2:
+      int n2_seed = 0;
+      /*
+	float seed_window_phi = 0.01;
+	float seed_window_phi2 = 0.0025;
+	float seed_window_phi2_shift = 0.0025;
+	float seed_window_eta = 0.0025;
+	float seed_window_eta_shift = 0.0025;
+      */
+      float first_dphi = second_point->first.get<0>()- first_point->first.get<0>();
+      
+      if(do_print)cout << "Hit2 id: " << second_point->second << " phi: " << second_point->first.get<0>() << " eta: " << second_point->first.get<1>()<< " r: " << second_point->first.get<2>() << endl;
+      std::vector<pointId> search2_values;
+
+      float this_phi_window_hi;
+      float this_phi_window_lo;
+      if(first_dphi<0){
+	this_phi_window_lo = seed_window_phi2+seed_window_phi2_shift;
+	this_phi_window_hi = seed_window_phi2-seed_window_phi2_shift;
+      }else{
+	this_phi_window_lo = seed_window_phi2-seed_window_phi2_shift;
+	this_phi_window_hi = seed_window_phi2+seed_window_phi2_shift;
+      }
+      box search2_box(point(
+			    second_point->first.get<0>()-this_phi_window_lo,
+			    second_point->first.get<1>()-seed_window_eta+seed_window_eta_shift,
+			    _radii_all[start_layer-2]-0.3),
+		      point(second_point->first.get<0>()+this_phi_window_hi,
+			    second_point->first.get<1>()+seed_window_eta+seed_window_eta_shift,
+			    _radii_all[start_layer-2]+0.3));
+
+      bgi::query(rtree, bgi::within(search2_box), std::back_inserter(search2_values));
+      
+      if(do_print) cout << "#2seed " << n2_seed++<<  " (" << n_start << ") : " << search2_values.size() << endl;
+      
+      if(search2_values.size()==0) continue;
+
+      for(std::vector<pointId>::iterator third_point = search2_values.begin();
+	  third_point != search2_values.end();
+	  ++third_point) { 
+	int n3_seed = 0;
+	
+	if(do_print)cout << "#" << n3_seed++ << "Hit3 id: " << third_point->second << " phi: " << third_point->first.get<0>() << " eta: " << second_point->first.get<1>() << " r: " << third_point->first.get<2>() << endl;
+	
+	if(search2_values.size()>1)
+	  n_more2++;
+	else if(search2_values.size()>0)
+	  n_good2++;
+	else
+	  n_bad2++;
+	std::vector<pointId> track;
+	std::vector<int> track_layers;
+	track.push_back(*first_point);
+	track_layers.push_back(start_layer);
+	track.push_back(*second_point);
+	track_layers.push_back(start_layer-1);
+	track.push_back(*third_point);
+	track_layers.push_back(start_layer-2);
+
+
+	if(track.size()<3) continue;
+	//Got a triplet, now run with it
+	//Quality check
+	std::vector<pointId>::iterator tr_point1 = track.begin();
+	std::vector<pointId>::iterator tr_point2 = track.begin()+1;
+	std::vector<pointId>::iterator tr_point3 = track.begin()+2;
+
+	float dphi1 = tr_point2->first.get<0>()- tr_point1->first.get<0>();
+	float dphi2 = tr_point3->first.get<0>()- tr_point2->first.get<0>();
+	float dphi3;
+	float dr;
+	// calculate extrapolation from last 3 points
+	//remove zig zags
+	
+	if(do_print){
+	  cout << "tripplet check " << track.size() << endl; 
+	  cout << "#1 " << "id: " << tr_point1->second << " phi: " << tr_point1->first.get<0>() << " eta: " << tr_point1->first.get<1>() << " r: " << tr_point1->first.get<2>() << endl;
+	  cout << "#2 " << "id: " << tr_point2->second << " phi: " << tr_point2->first.get<0>() << " eta: " << tr_point2->first.get<1>() << " r: " << tr_point2->first.get<2>() << endl;
+	  cout << "#3 " << "id: " << tr_point3->second << " phi: " << tr_point3->first.get<0>() << " eta: " << tr_point3->first.get<1>() << " r: " << tr_point3->first.get<2>() << endl;
+	  cout << "dphi1: " << dphi1 << " dphi2: " << dphi2 << " diff " <<  dphi1-dphi2 << endl;
+	}
+
+	if(dphi1-dphi2>0.1) continue;//0.01
+	
+	//step through layers...
+	unsigned int iLayer = start_layer-3;
+	while(iLayer>=_nlayers_maps+_nlayers_intt){
+	  if(track.size()==10){
+
+	    SimpleTrack3D temp_track;
+	    //	    temp_track.hits.assign(track.size(), SimpleHit3D());
+	    int index = 0;
+	    for(int ti = track.size()-1;ti>=0;ti--){
+	      //	    for(std::vector<pointId>::iterator track_point = track.end();
+	      //track_point != track.end(); track_point++) { 
+	      pointId track_point = track.at(ti);
+	      SimpleHit3D hit3d;
+	      SvtxCluster *cluster = _g4clusters->get(track_point.second);
+	      unsigned int ilayer = cluster->get_layer();
+	      hit3d.set_id(cluster->get_id());
+	      hit3d.set_layer(ilayer);
+	      
+	      hit3d.set_x(cluster->get_x());
+	      hit3d.set_y(cluster->get_y());
+	      hit3d.set_z(cluster->get_z());
+	      TVector3 vec(cluster->get_x(),cluster->get_y(),cluster->get_z());
+	      cout << "point seed: " << vec.Perp() << " " 
+		   << vec.Eta() << " " 
+		   << vec.Phi() << " " 
+		   << cluster->get_id()
+		   << endl;
+	      // copy covariance over
+	      for (int i = 0; i < 3; ++i) {
+		for (int j = i; j < 3; ++j) {
+		  hit3d.set_error(i, j, cluster->get_error(i, j));
+		  hit3d.set_size(i, j, cluster->get_error(i, j)*sqrt(12.));
+		}
+	      }
+
+	      temp_track.hits.push_back(hit3d);
+	      index++;
+	    }
+	    _tracks.push_back(temp_track);
+	    fini[iLayer]++; n_track++;
+	    break;
+	  }
+	  tr_point1 = track.end()-3;
+	  tr_point2 = track.end()-2;
+	  tr_point3 = track.end()-1;
+	  dphi1 = tr_point2->first.get<0>()- tr_point1->first.get<0>();
+	  dphi2 = tr_point3->first.get<0>()- tr_point2->first.get<0>();
+
+	  dr = tr_point1->first.get<2>() - tr_point3->first.get<2>();
+	  
+	  if(do_print){
+	    cout << "Stepping to layer" << iLayer << endl; 
+	    cout << "   #" << iLayer + 3 << "id: " << tr_point1->second << " phi: " << tr_point1->first.get<0>() << " eta: " << tr_point1->first.get<1>() << " r: " << tr_point1->first.get<2>() << endl;
+	    cout << "   #" << iLayer + 2 << "id: " << tr_point2->second << " phi: " << tr_point2->first.get<0>() << " eta: " << tr_point2->first.get<1>() << " r: " << tr_point2->first.get<2>() << endl;
+	    cout << "   #" << iLayer + 1 << "id: " << tr_point3->second << " phi: " << tr_point3->first.get<0>() << " eta: " << tr_point3->first.get<1>() << " r: " << tr_point3->first.get<2>() << endl;
+	    cout << "dphi2: " << dphi2 << " dphi3: " << dphi3 << " diff " <<  dphi1-dphi2 << endl;
+	  }
+	  float dphi;
+	  float deta;
+	  
+	  dphi = (dphi1 + dphi2)/dr;
+	  deta = (tr_point3->first.get<1>()- tr_point1->first.get<1>())/dr;
+	  
+	  if(do_print) cout << "stepping phi: " << dphi << " deta: " << deta << " dr: " << dr <<endl;
+	  
+	  // get candidates
+	  std::vector<pointId> candidates;
+	  
+	  //0.005 - 474
+	  float search_window = 0.005;
+	  /*
+	    if(iLayer==39) dphi *=1.06;
+	    if(iLayer==38) dphi *=1.056;
+	    if(iLayer==23) dphi*=0.75;
+	    if(iLayer==22) dphi*=0.571;
+	  */
+	  float step_r = tr_point3->first.get<2>() - _radii_all[iLayer];
+	  if(do_print) cout << "step r: " << step_r << endl;
+	  dphi*=step_r;
+	  deta*=step_r;
+	  float phi_prediction = tr_point3->first.get<0>()+dphi;
+	  float eta_prediction = tr_point3->first.get<1>()+deta;
+	  box search_box(point(phi_prediction-search_window,eta_prediction-search_window,_radii_all[iLayer]-0.3),
+			 point(phi_prediction+search_window,eta_prediction+search_window,_radii_all[iLayer]+0.3));
+	  bgi::query(rtree, bgi::within(search_box), std::back_inserter(candidates));
+	  
+	  if(do_print) cout << "#L " << iLayer <<  " : " << candidates.size() << endl;
+
+	  if(candidates.size()==0){
+	    //try next layer
+	    std::vector<pointId> candidates2;
+	    
+	    if(iLayer==39) dphi *=1.06;
+	    if(iLayer==38) dphi *=1.125;
+
+	    if(iLayer==23) dphi *=0.75;
+	    if(iLayer==22) dphi *=0.5;
+
+	    float phi_prediction2 = tr_point3->first.get<0>()+2*dphi;
+	    float eta_prediction2 = tr_point3->first.get<1>()+2*deta;
+	    box search_box2(point(phi_prediction2-search_window,eta_prediction2-search_window,_radii_all[iLayer-1]-0.3),
+			    point(phi_prediction2+search_window,eta_prediction2+search_window,_radii_all[iLayer-1]+0.3));
+	    bgi::query(rtree, bgi::within(search_box2), std::back_inserter(candidates2));
+	    if(candidates2.size()==0){
+	      fini[iLayer]++; n_track++;
+	      if(do_print) cout << "Ending in Layer " << iLayer << endl;
+	      
+	      std::vector<pointId> candidates3;
+	      float search_window3 = 0.005;
+	      if(do_print) cout << "      last #" << iLayer << "id: " << tr_point3->second << " phi: " << tr_point3->first.get<0>() << " eta: " << tr_point3->first.get<1>() << " r: " << tr_point3->first.get<2>() << endl;
+	      if(do_print) cout << "      box #" << iLayer << " 1 " << phi_prediction2-search_window << " " << eta_prediction2-search_window << "  " << _radii_all[iLayer-1]-0.3 << endl;
+	      if(do_print) cout << "      box #" << iLayer << " 2 " << phi_prediction2+search_window << " " << eta_prediction2+search_window << "  " << _radii_all[iLayer-1]+0.3 << endl;
+
+	      box search_box3(point(phi_prediction2-search_window3,eta_prediction2-search_window3,_radii_all[iLayer-1]-0.3),
+			      point(phi_prediction2+search_window3,eta_prediction2+search_window3,_radii_all[iLayer-1]+0.3));
+	      bgi::query(rtree, bgi::within(search_box3), std::back_inserter(candidates3));
+	      for(std::vector<pointId>::iterator check_point3 = candidates3.begin();
+		  check_point3 != candidates3.end(); check_point3++) { 
+		if(do_print) cout << "      check #" << iLayer << "id: " << check_point3->second << " phi: " << check_point3->first.get<0>() << " eta: " << check_point3->first.get<1>() << " r: " << check_point3->first.get<2>() << endl;
+	      }
+	    
+	      break;
+	    }else{
+	      int index = 0;
+	      int min_index = 666;
+	      float min_dphi = 666.6;
+	      for(std::vector<pointId>::iterator check_point = candidates2.begin();
+		  check_point != candidates2.end(); check_point++) { 
+		float check_dphi = check_point->first.get<0>() - phi_prediction;
+		if(check_dphi < min_dphi){
+		  min_dphi = check_dphi;
+		  min_index = index;
+		}
+		index++;
+	      }
+	      track.push_back(candidates2.at(min_index));
+	      track_layers.push_back(iLayer);
+	      iLayer--;
+	    }
+	    
+	  } else if(candidates.size()==1){
+	    track.push_back(*candidates.begin());
+	    track_layers.push_back(iLayer);
+	  } else{
+	    int index = 0;
+	    int min_index = 666;
+	    float min_dphi = 666.6;
+	    for(std::vector<pointId>::iterator check_point = candidates.begin();
+		check_point != candidates.end(); check_point++) { 
+	      float check_dphi = check_point->first.get<0>() - phi_prediction;
+	      if(check_dphi < min_dphi){
+		min_dphi = check_dphi;
+		min_index = index;
+	      }
+	      index++;
+	    }
+	    track.push_back(candidates.at(min_index));
+	    track_layers.push_back(iLayer);
+	  }
+	  --iLayer;
+	  if(iLayer<_nlayers_maps+_nlayers_intt){
+	    fini[iLayer]++; n_track++;
+	  }
+	}
+      }
+    }
+  }
+  cout << "all : " << n_seed << endl;
+  cout << "good1: " << n_good << endl;
+  cout << "bad1:  " << n_bad << endl;
+  cout << "more1: " << n_more << endl;
+
+  cout << "good2: " << n_good2 << endl;
+  cout << "bad2:  " << n_bad2 << endl;
+  cout << "more2: " << n_more2 << endl;
+
+  cout << "ntrack: " << n_track << endl;
+  for(int ii = 0;ii<60;ii++ ){
+    cout << "  trackend layer : " << ii << " -> " << fini[ii] << endl;
+  }
+
+#ifdef KAKA
+  _clusters.clear();
+
+  for (SvtxClusterMap::Iter iter = _g4clusters->begin();
+       iter != _g4clusters->end(); ++iter) {
+    if(_hit_used_map[iter->first]!=0){
+      continue;
+    }
+
+    // create cluster to eta phi map
+    SvtxCluster* cluster = iter->second;
+    
+    unsigned int ilayer = UINT_MAX;
+    std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(cluster->get_layer());
+    if(it != _layer_ilayer_map.end())
+      ilayer = it->second;
+    if(ilayer >= _nlayers_seeding) continue;
+    
+    SimpleHit3D hit3d;
+    
+    hit3d.set_id(cluster->get_id());
+    hit3d.set_layer(ilayer);
+    
+    hit3d.set_x(cluster->get_x());
+    hit3d.set_y(cluster->get_y());
+    hit3d.set_z(cluster->get_z());
+    
+    // copy covariance over
+    for (int i = 0; i < 3; ++i) {
+      for (int j = i; j < 3; ++j) {
+	hit3d.set_error(i, j, cluster->get_error(i, j));
+	
+	//FIXME
+	//hit3d.set_size(i, j, cluster->get_size(i, j)); // original
+	hit3d.set_size(i, j, cluster->get_error(i, j)*sqrt(12.)); // yuhw 2017-05-08
+      }
+    }
+    _clusters.push_back(hit3d);
+  }
+  
+  // find nearest neighbor in innner layers
+
+
+	// reset track storage and tracker
+	_tracks.clear();
+	_track_errors.clear();
+	_track_covars.clear();
+
+	_tracker->clear();
+	// final track finding
+	_tracker->findHelices(_clusters, _min_combo_hits, _max_combo_hits, _tracks);
+
+
+	for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
+		_track_covars.push_back((_tracker->getKalmanStates())[tt].C);
+		_track_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
+	}
+
+	// okay now we are done with the tracker
+	_tracker->clear();
+
+	//FIXME yuhw
+	_clusters.clear();
+
+
+#endif	
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+#endif
+
 int PHG4KalmanPatRec::fast_vertex_from_bbc() {
 
 	// fail over to bbc vertex if no tracks were found...
@@ -1951,6 +2714,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 	// reset track storage and tracker
 	_tracks.clear();
+	_particles.clear();
 	_track_errors.clear();
 	_track_covars.clear();
 
@@ -2972,147 +3736,328 @@ int PHG4KalmanPatRec::CleanupSeeds() {
 }
 
 int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
-
+  
+  //#ifdef _DEBUG_
+  std::cout << "=========================" << std::endl;
+  std::cout << "PHG4KalmanPatRec::FullTrackFitting: Start: Event: "<< _event << std::endl;
+  std::cout << "Total Raw Tracks: " << _tracks.size() << std::endl;
+  std::cout << "=========================" << std::endl;
+  //#endif
+  unsigned int ntracks = _tracks.size();
+  /*!
+   *   sort clusters
+   */
+  BuildLayerZPhiHitMap();
+  
+  vector<genfit::Track*> evt_disp_copy;
+  
+  _PHGenFitTracks.clear();
+  
+  //	for(unsigned int itrack = 0; itrack < ( (_tracks.size() < 100) ? _tracks.size() : 100); ++itrack) {
+  for (unsigned int itrack = 0; itrack < ntracks; ++itrack) {
+    //#ifdef _DEBUG_
+    std::cout
+      << __LINE__
+      << ": Processing itrack: " << itrack
+      << ": Total tracks: " << _g4tracks->size()
+      <<endl;
+    //#endif
+    
+    /*!
+     * Translate SimpleTrack3D To PHGenFitTracks
+     */
+    if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
+    if(SimpleTrack3DToPHGenFitTracks(topNode, itrack)<0)
+      continue;
+    if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
+    
+    /**/
+    if( _target_hit_z.at(itrack) < 110){
+      int nhits = _tracks.at(itrack).hits.size();
+      auto track_iter = _PHGenFitTracks.begin();
+      cout << " N GenFit " <<  _PHGenFitTracks.size() << endl;
+      if(_PHGenFitTracks.size()==0)continue;
+      std::shared_ptr<PHGenFit::Track> &test_track = track_iter->second;
+      std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
+      double target_r = sqrt(_target_hit_x.at(itrack)*_target_hit_x.at(itrack)+_target_hit_y.at(itrack)*_target_hit_y.at(itrack));
+      state = std::unique_ptr < genfit::MeasuredStateOnPlane > 
+	(test_track->extrapolateToCylinder(target_r, 
+					   TVector3(0, 0, 0),
+					   TVector3(0, 0, 1)));
+      TVector3 pos = state->getPos();
+      TVector3 targ( _target_hit_x.at(itrack),_target_hit_y.at(itrack),_target_hit_z.at(itrack));
+      cout << "target xyz: " <<
+	_target_hit_x.at(itrack) << " | " <<
+	_target_hit_y.at(itrack) << " | " << 
+	_target_hit_z.at(itrack) << " | " <<
+	endl;
+      
+      cout << "extrap xyz: " <<
+	pos.X() << " | " <<
+	pos.Y() << " | " << 
+	pos.Z() << " | " <<
+	endl;
+      double dx = pos.X() - targ.X();
+      double dy = pos.Y() - targ.Y();
+      double dxy = sqrt(dx*dx+dy*dy);
+      double dz = pos.Z() - targ.Z();
+      double dphi = pos.Phi() - targ.Phi();
+      
+      cout << "dist: " << dphi << "rphi: " << pos.Perp()*pos.DeltaPhi(targ) << endl;
+      TVector3 fitmom = test_track->get_mom();
+      PHG4Particle* particle =  _particles.at(itrack);
+      if(particle != NULL){
+	TVector3 genmom(particle->get_px(),particle->get_py(),particle->get_pz());
+	if(_analyzing_mode){
+	  /*pt:eta:phi:
+	    gpt:geta:gphi:
+	    tx:ty:tz:teta:tphi:tr:
+	    ex:ey:ez:eeta:ephi:er:
+	    dphi:dist
+	    :er:dxy:dz:dphi:dist
+	  */
+	  Float_t fx[23];
+	  int n  = 0;
+	  fx[n++] = fitmom.Pt();
+	  fx[n++] = fitmom.Eta();
+	  fx[n++] = fitmom.Phi();
+	  fx[n++] = genmom.Pt();
+	  fx[n++] = genmom.Eta();
+	  fx[n++] = genmom.Phi();
+	  fx[n++] = targ.X();
+	  fx[n++] = targ.Y();
+	  fx[n++] = targ.Z();
+	  fx[n++] = targ.Eta();
+	  fx[n++] = targ.Phi();
+	  fx[n++] = targ.Pt();
+	  fx[n++] = pos.X();
+	  fx[n++] = pos.Y();
+	  fx[n++] = pos.Z();
+	  fx[n++] = pos.Eta();
+	  fx[n++] = pos.Phi();
+	  fx[n++] = pos.Pt();
+	  fx[n++] = dxy;
+	  fx[n++] = dz;
+	  fx[n++] = dphi;
+	  fx[n++] = pos.Perp()*pos.DeltaPhi(targ);
+	  fx[n++] = nhits;
+	  _analyzing_ntuple->Fill(fx);
+	}
+      }
+    }
+    /**/
+    
+    /*!
+     * Handle track propagation, termination, output and evt disp.
+     */
+    bool is_splitting_track = false;
 #ifdef _DEBUG_
-	std::cout << "=========================" << std::endl;
-	std::cout << "PHG4KalmanPatRec::FullTrackFitting: Start: Event: "<< _event << std::endl;
-	std::cout << "Total Raw Tracks: " << _tracks.size() << std::endl;
-	std::cout << "=========================" << std::endl;
+    int i = 0;
 #endif
+    for (auto iter = _PHGenFitTracks.begin();
+	 iter != _PHGenFitTracks.end(); ++iter) {
+#ifdef _DEBUG_
+      cout
+	<< __LINE__
+	<< ": propergating: " << i <<"/" << itrack
+	<< endl;
+#endif
+      
+      std::vector<unsigned int> clusterIDs = iter->second->get_cluster_IDs();
+      
+      unsigned int init_layer = UINT_MAX;
+      
+      if(!is_splitting_track) {
+	if(_init_direction == 1) {
+	  init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+	  TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, true);
+	  TrackPropPatRec(topNode, iter, init_layer, 0, false);
+	} else {
+	  init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+	  TrackPropPatRec(topNode, iter, init_layer, 0, true);
+	  TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+	}
+	is_splitting_track = true;
+      } else {
+	if(_init_direction == 1) {
+	  init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+	  TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+	} else {
+	  init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+	  TrackPropPatRec(topNode, iter, init_layer, 0, false);
+	}
+      }
+      
+#ifdef _DEBUG_
+      cout
+	<< __LINE__
+	<< ": tracki: " << i
+	<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
+	<< ": quality: " << iter->first
+	<< endl;
+      ++i;
+#endif
+      
+      //_trackID_PHGenFitTrack.erase(iter);
+    }// loop _PHGenFitTracks
+    
+    if(_PHGenFitTracks.size()==0) continue;
+    
+#ifdef _DEBUG_
+    i = 0;
+    for (auto iter = _PHGenFitTracks.begin();
+	 iter != _PHGenFitTracks.end(); ++iter) {
+      cout
+	<< __LINE__
+	<< ": track: " << i++
+	<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
+	<< ": quality: " << iter->first
+	<< endl;
+    }
+#endif
+    
+    //std::sort(_PHGenFitTracks.begin(), _PHGenFitTracks.end());
+    _PHGenFitTracks.sort();
+    
+#ifdef _DEBUG_
+    for (auto iter = _PHGenFitTracks.begin();
+	 iter != _PHGenFitTracks.end(); ++iter) {
+      cout
+	<< __LINE__
+	<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
+	<< ": quality: " << iter->first
+	<< endl;
+    }
+#endif
+    
+    auto iter = _PHGenFitTracks.begin();
+    
+    int track_exists = check_track_exists(iter);
+    if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits && track_exists) {
+      OutputPHGenFitTrack(topNode, iter);
+#ifdef _DEBUG_
+      cout << __LINE__ << endl;
+#endif
+      if (_do_evt_display) {
+	evt_disp_copy.push_back(
+				new genfit::Track(*iter->second->getGenFitTrack()));
+      }
+    }
+    
+    _PHGenFitTracks.clear();
+  }
+  
+#ifdef _DEBUG_
+  std::cout << "=========================" << std::endl;
+  std::cout << "PHG4KalmanPatRec::FullTrackFitting: End: Event: "<< _event << std::endl;
+  std::cout << "Total Final Tracks: " << _g4tracks->size() << std::endl;
+  std::cout << "=========================" << std::endl;
+#endif
+  
+  if (_do_evt_display) {
+    _fitter->getEventDisplay()->addEvent(evt_disp_copy);
+  } else {
+    evt_disp_copy.clear();
+  }
+  
+  _tracks.clear();
+  _particles.clear();
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+  
+
+int PHG4KalmanPatRec::CombiTrackPropagation(PHCompositeNode* topNode) {
 
 	/*!
 	 *   sort clusters
 	 */
+	if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
 	BuildLayerZPhiHitMap();
 
 	vector<genfit::Track*> evt_disp_copy;
-
 	_PHGenFitTracks.clear();
+	if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
 
-	//	for(unsigned int itrack = 0; itrack < ( (_tracks.size() < 100) ? _tracks.size() : 100); ++itrack) {
+
 	for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
-#ifdef _DEBUG_
-		std::cout
-		<< __LINE__
-		<< ": Processing itrack: " << itrack
-		<< ": Total tracks: " << _g4tracks->size()
-		<<endl;
-#endif
+	  /*!
+	   * Translate SimpleTrack3D To PHGenFitTracks
+	   */
+	  if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
+	  SimpleTrack3DToPHGenFitTracks(topNode, itrack);
+	  if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
+	  cout << "done translating, found: " <<  _PHGenFitTracks.size() << endl;
+	  _t_track_prop_tot->restart();
+	  /*!
+	   * Handle track propagation, termination, output and evt disp.
+	   */
+	  bool is_splitting_track = false;
 
-		/*!
-		 * Translate SimpleTrack3D To PHGenFitTracks
-		 */
-		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
-		SimpleTrack3DToPHGenFitTracks(topNode, itrack);
-		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
+	  for (auto iter = _PHGenFitTracks.begin();
+	       iter != _PHGenFitTracks.end(); ++iter) {
+	    std::vector<unsigned int> clusterIDs = iter->second->get_cluster_IDs();
+	    cout << " #hits before extrap: " << iter->second->get_cluster_IDs().size() << endl;
+	    unsigned int inner_layer;
+	    unsigned int outer_layer;
 
-		/*!
-		 * Handle track propagation, termination, output and evt disp.
-		 */
-		bool is_splitting_track = false;
-#ifdef _DEBUG_
-		int i = 0;
-#endif
-		for (auto iter = _PHGenFitTracks.begin();
-				iter != _PHGenFitTracks.end(); ++iter) {
-#ifdef _DEBUG_
-			cout
-			<< __LINE__
-			<< ": propergating: " << i <<"/" << itrack
-			<< endl;
-#endif
+	    unsigned int front_layer =  _g4clusters->get(clusterIDs.front())->get_layer();
+	    unsigned int back_layer  =  _g4clusters->get( clusterIDs.back())->get_layer();
+	    if(front_layer < back_layer){
+	      inner_layer = front_layer;
+	      outer_layer =  back_layer;
+	    }else{
+	      inner_layer =  back_layer;
+	      outer_layer = front_layer;
+	    }
+	    //	    unsigned int init_layer = UINT_MAX;
+	    if(!is_splitting_track) {
+	      if(_init_direction == 1) {
+		//		init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+		TrackPropPatRec(topNode, iter, outer_layer, _nlayers_all, true);
+		TrackPropPatRec(topNode, iter, inner_layer, 0, false);
+	      } else {
+		//	init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+		TrackPropPatRec(topNode, iter, inner_layer, 0, true);
+		TrackPropPatRec(topNode, iter, outer_layer, _nlayers_all, false);
+	      }
+	      is_splitting_track = true;
+	    } else {
+	      if(_init_direction == 1) {
+		//init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
+		TrackPropPatRec(topNode, iter, outer_layer, _nlayers_all, false);
+	      } else {
+		//	init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
+		TrackPropPatRec(topNode, iter, inner_layer, 0, false);
+	      }
+	    }
+	    cout << " #hits after extrap: " << iter->second->get_cluster_IDs().size() << endl;
+	    //_trackID_PHGenFitTrack.erase(iter);
+	  }// loop _PHGenFitTracks
+	  _t_track_prop_tot->stop();
+	  if(_PHGenFitTracks.size()==0) continue;
+	
+	  _t_track_prop_tot->restart();
+	  //std::sort(_PHGenFitTracks.begin(), _PHGenFitTracks.end());
+	  _PHGenFitTracks.sort();
+	  _t_track_prop_tot->stop();
 
-			std::vector<unsigned int> clusterIDs = iter->second->get_cluster_IDs();
-
-			unsigned int init_layer = UINT_MAX;
-
-			if(!is_splitting_track) {
-				if(_init_direction == 1) {
-					init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, true);
-					TrackPropPatRec(topNode, iter, init_layer, 0, false);
-				} else {
-					init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, 0, true);
-					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
-				}
-				is_splitting_track = true;
-			} else {
-				if(_init_direction == 1) {
-					init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
-				} else {
-					init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, 0, false);
-				}
-			}
-
-#ifdef _DEBUG_
-			cout
-			<< __LINE__
-			<< ": tracki: " << i
-			<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
-			<< ": quality: " << iter->first
-			<< endl;
-			++i;
-#endif
-
-			//_trackID_PHGenFitTrack.erase(iter);
-		}// loop _PHGenFitTracks
-
-		if(_PHGenFitTracks.size()==0) continue;
-
-#ifdef _DEBUG_
-		i = 0;
-		for (auto iter = _PHGenFitTracks.begin();
-				iter != _PHGenFitTracks.end(); ++iter) {
-			cout
-			<< __LINE__
-			<< ": track: " << i++
-			<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
-			<< ": quality: " << iter->first
-			<< endl;
-		}
-#endif
-
-		//std::sort(_PHGenFitTracks.begin(), _PHGenFitTracks.end());
-		_PHGenFitTracks.sort();
-
-#ifdef _DEBUG_
-		for (auto iter = _PHGenFitTracks.begin();
-				iter != _PHGenFitTracks.end(); ++iter) {
-			cout
-			<< __LINE__
-			<< ": clusterIDs size:  " << iter->second->get_cluster_IDs().size()
-			<< ": quality: " << iter->first
-			<< endl;
-		}
-#endif
-
-		auto iter = _PHGenFitTracks.begin();
-		
-		int track_exists = check_track_exists(iter);
-		if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits && track_exists) {
-			OutputPHGenFitTrack(topNode, iter);
-#ifdef _DEBUG_
-			cout << __LINE__ << endl;
-#endif
-			if (_do_evt_display) {
-				evt_disp_copy.push_back(
-						new genfit::Track(*iter->second->getGenFitTrack()));
-			}
-		}
-
-		_PHGenFitTracks.clear();
+	  auto iter = _PHGenFitTracks.begin();
+	   _t_track_clean->restart();
+	  int track_exists = check_track_exists(iter);
+	  if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits && track_exists) {
+	    OutputPHGenFitTrack(topNode, iter);
+	    if (_do_evt_display) {
+	      evt_disp_copy.push_back(
+				      new genfit::Track(*iter->second->getGenFitTrack()));
+	    }
+	  }
+	  _t_track_clean->stop();
+	  _PHGenFitTracks.clear();
 	}
 
-#ifdef _DEBUG_
-	std::cout << "=========================" << std::endl;
-	std::cout << "PHG4KalmanPatRec::FullTrackFitting: End: Event: "<< _event << std::endl;
 	std::cout << "Total Final Tracks: " << _g4tracks->size() << std::endl;
-	std::cout << "=========================" << std::endl;
-#endif
-
 	if (_do_evt_display) {
 		_fitter->getEventDisplay()->addEvent(evt_disp_copy);
 	} else {
@@ -3121,9 +4066,79 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 
 	_tracks.clear();
 
+
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int PHG4KalmanPatRec::SeedFitting(PHCompositeNode* topNode) {
+
+  for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+    //    float init_chi2 = 
+    _tracker->fitTrack( _tracks.at(itrack));
+    SimpleTrack3D temp_track = _tracks.at(itrack);
+    /*
+      float fast_chi2_cut_max  = FLT_MAX;
+      if (init_chi2 > fast_chi2_cut_max) {
+      continue;
+      }
+    */
+    HelixKalmanState state;
+    TVector3 vec(temp_track.hits.front().get_x(),
+		 temp_track.hits.front().get_y(),
+		 temp_track.hits.front().get_z());
+    // cout << "nu phi " << vec.Phi() << endl;
+    // state.phi = vec.Phi();//
+    //temp_track.phi = vec.Phi();
+    // _tracks.at(itrack).phi = vec.Phi();
+    // _tracks.at(itrack).kappa = ptToKappa(1.0);
+    /*
+    if (state.phi < 0.) {
+      state.phi += 2. * M_PI;
+    }
+    */
+    if(temp_track.kappa > ptToKappa(0.2))
+      temp_track.kappa = ptToKappa(1.0);
+    //    cout << "nu kappa " << temp_track.kappa << " pt" << kappaToPt(temp_track.kappa) << endl;
+    state.d = 0.001;//temp_track.d;
+    state.kappa = temp_track.kappa;
+    state.nu = sqrt(state.kappa);
+    state.z0 = temp_track.z0;
+    //_tracks.at(itrack).z0 = 0.001;
+    //    state.dzdl = vec.Z()/sqrt(vec.Perp()*vec.Perp()+vec.Z()*vec.Z());//temp_track.dzdl;
+    state.dzdl = temp_track.dzdl;
+    //_tracks.at(itrack).dzdl = vec.Z()/sqrt(vec.Perp()*vec.Perp()+vec.Z()*vec.Z());//temp_track.dzdl;
+    state.C = Matrix<float, 5, 5>::Zero(5, 5);
+    state.C(0, 0) = pow(0.01, 2.);
+    state.C(1, 1) = pow(0.01, 2.);
+    state.C(2, 2) = pow(0.01 * state.nu, 2.);
+    state.C(3, 3) = pow(0.05, 2.);
+    state.C(4, 4) = pow(0.05, 2.);
+    state.chi2 = 0.;
+    state.position = 0;
+    state.x_int = 0.;
+    state.y_int = 0.;
+    state.z_int = 0.;
+	      
+    // fudge factor for non-gaussian hit sizes
+    state.C *= 3.;
+    state.chi2 *= 6.;
+    /*   
+    if (!(temp_track.kappa == temp_track.kappa)) {
+      continue;
+    }
+
+    if (!(state.chi2 == state.chi2)) {
+      continue;
+    }
+    */
+    //tracks.push_back(temp_track);
+    //    _track_states.push_back(state);
+    _track_covars.push_back(state.C);
+    _track_errors.push_back(state.chi2);
+  }
+  //_tracks.clear();
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 
 int PHG4KalmanPatRec::ExportOutput() { return 0;}
 
@@ -3269,12 +4284,12 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	// clean up working array for each event
 	_PHGenFitTracks.clear();
 
-	double time1 = 0;
-	double time2 = 0;
+	//	double time1 = 0;
+	//	double time2 = 0;
 
 	if(Verbosity() > 1){
-	  time1 = _t_translate1->get_accumulated_time();
-	  time2 = _t_translate1->get_accumulated_time();
+	  // time1 = _t_translate1->get_accumulated_time();
+	  // time2 = _t_translate1->get_accumulated_time();
 	  _t_translate1->restart();
 	}
 
@@ -3285,10 +4300,10 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	float phi = _tracks.at(itrack).phi;
 	float dzdl = _tracks.at(itrack).dzdl;
 	float z0 = _tracks.at(itrack).z0;
-	float nhit = (float) _tracks.at(itrack).hits.size();
+	//	float nhit = (float) _tracks.at(itrack).hits.size();
 	float ml = 0;
-	float rec = 0;
-	float dt = 0;
+	//	float rec = 0;
+	//	float dt = 0;
 
 	if(_tracks.at(itrack).hits.size() == 0) {
 	  if(Verbosity() > 1) _t_translate1->stop();
@@ -3421,17 +4436,17 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	if(Verbosity() > 1) _t_translate2->stop();
 	if(Verbosity() > 1) _t_translate3->restart();
 
-	if (_fitter->processTrack(track.get(), false) != 0) {
+	if ( _fitter->processTrack(track.get(), false)!= 0) {
 		if (Verbosity() >= 1)
 			LogWarning("Seed fitting failed")<<std::endl;
 		if(Verbosity() > 1) _t_translate3->stop();
 		if(Verbosity() > 1){
 		  _t_translate1->stop();
-		  time2 = _t_translate1->get_accumulated_time();
+		  //		  time2 = _t_translate1->get_accumulated_time();
 		}
-		dt = time2 - time1;
-		if(_analyzing_mode == true)
-		  _analyzing_ntuple->Fill(pT,kappa,d,phi,dzdl,z0,nhit,ml/nhit,rec,dt);
+		//		dt = time2 - time1;
+		//		if(_analyzing_mode == true)
+		//  _analyzing_ntuple->Fill(pT,kappa,d,phi,dzdl,z0,nhit,ml/nhit,rec,dt);
 		return -1;
 	}
 
@@ -3448,12 +4463,12 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	if(Verbosity() > 1) _t_translate3->stop();
 	if(Verbosity() > 1){
 	  _t_translate1->stop();
-	  time2 = _t_translate1->get_accumulated_time();
+	  //time2 = _t_translate1->get_accumulated_time();
 	}
-	dt = time2 - time1;
-	rec = 1;
-	if(_analyzing_mode == true)
-	  _analyzing_ntuple->Fill(pT,kappa,d,phi,dzdl,z0,nhit,rec,dt);
+	//	dt = time2 - time1;
+	//rec = 1;
+	//	if(_analyzing_mode == true)
+	//  _analyzing_ntuple->Fill(pT,kappa,d,phi,dzdl,z0,nhit,rec,dt);
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -3814,21 +4829,19 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 			std::cout << __LINE__ << ": IncrChi2: "<< iter->first << std::endl;
 		}
 #endif
+		/*
 		if(_analyzing_mode){
 		  int ncand = 0;
 		  for (auto iter =
 			 incr_chi2s_new_tracks.begin();
 		       iter != incr_chi2s_new_tracks.end(); iter++) {
 		    if(iter->first<_max_incr_chi2s[layer] and iter->first > 0) ncand++;
-		  }
-		  /*
-		    float this_pt = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Pt();
-		    float this_phi = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Phi();
-		    float this_eta = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Eta();
-		  */
-		  //"spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas"
-		  //_analyzing_ntuple->Fill(init_pt,init_eta,init_phi,this_pt,this_eta,this_phi,layer,ncand,measurements.size());
-		}
+		    }
+		    
+		    //"spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas"
+		    //_analyzing_ntuple->Fill(init_pt,init_eta,init_phi,this_pt,this_eta,this_phi,layer,ncand,measurements.size());
+		    }
+		*/
 		if(!layer_updated)
 			++consecutive_missing_layer;
 	} // layer loop
