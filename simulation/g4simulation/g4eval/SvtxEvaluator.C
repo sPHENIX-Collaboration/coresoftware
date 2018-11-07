@@ -126,7 +126,10 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_gtrack_eval) _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
-						  "event:gtrackID:gflavor:gnhits:gnmaps:gnintt:gntpc:gnlmaps:gnlintt:gnltpc:"
+						  "event:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
+						  "gnintt1:gnintt2:gnintt3:gnintt4:"
+						  "gnintt5:gnintt6:gnintt7:gnintt8:"
+						  "gntpc:gnlmaps:gnlintt:gnltpc:"
 						  "gpx:gpy:gpz:gpt:geta:gphi:"
 						  "gvx:gvy:gvz:gvt:"
 						  "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
@@ -381,6 +384,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 	++nhits[hit->get_layer()];
       }
     }
+    
     SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     unsigned int nclusters[100] = {0};
     if (clustermap) {
@@ -1008,6 +1012,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
       float gdz       = fabs(g4hit->get_z(1) - g4hit->get_z(0));
       float gedep     = g4hit->get_edep();
       float glayer    = g4hit->get_layer();
+  
       float gtrackID  = g4hit->get_trkid();
 
       float gflavor   = NAN;
@@ -1421,181 +1426,56 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float gprimary = NAN;
     
 	float efromtruth = NAN;
+      
+	if (g4hit) {
+	  g4hitID  = g4hit->get_hit_id();
+	  gx       = g4hit->get_avg_x();
+	  gy       = g4hit->get_avg_y();
+	  gz       = g4hit->get_avg_z();
+	  TVector3 gpos(gx,gy,gz);
+	  gr = gpos.Perp();
+	  gphi = gpos.Phi();
+	  geta = gpos.Eta();
+	  gt       = g4hit->get_avg_t();
 
-	if (g4hit) 
-	  {
-	    if(layer>=_nlayers_maps+_nlayers_intt)
-	      {
-		// This calculates the truth cluster position for the TPC from all of the contributing g4hits, typically 2-4 for the TPC
-		// Complicated, since only the part of the energy that is collected within a layer contributes to the position
-		//===============================================================================
-		
-		PHG4CylinderCellGeomContainer* geom_container =
-		  findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
-		if (!geom_container) 
-		  {
-		    std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-		    return;
-		  }
+	  if (g4particle) {
 
-		// radii of layer boundaries
-		float rbin = NAN;
-		float rbout = NAN;
-		PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
-		// get layer boundaries here (for nominal layer value) for later use
-		rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
-		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 	
- 
-		gx = 0.0; 
-		gy = 0.0; 
-		gz = 0.0; 
-		gt = 0.0;
-		float gwt = 0.0; 
-
-		//cout << "Eval: cluster in layer " << layer << " rbin " << rbin << " rbout " << rbout << endl;		
-		std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster);	  
-		for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-		     iter != truth_hits.end();
-		     ++iter) 
-		  {
-		    PHG4Hit* this_g4hit = *iter;
-		    
-		    float rbegin = sqrt(this_g4hit->get_x(0)*this_g4hit->get_x(0) + this_g4hit->get_y(0)*this_g4hit->get_y(0));
-		    float rend = sqrt(this_g4hit->get_x(1)*this_g4hit->get_x(1) + this_g4hit->get_y(1)*this_g4hit->get_y(1));
-		    //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " rbegin " << rbegin << " rend " << rend << endl;
-
-		    // make sure the entry point is at lower radius
-		    float xl[2];
-		    float yl[2];
-		    float zl[2];
-
-		    if(rbegin < rend)
-		      {
-			xl[0] = this_g4hit->get_x(0);
-			yl[0] = this_g4hit->get_y(0);
-			zl[0] = this_g4hit->get_z(0); 
-			xl[1] = this_g4hit->get_x(1);
-			yl[1] = this_g4hit->get_y(1);
-			zl[1] = this_g4hit->get_z(1); 
-		      }
-		    else
-		      {
-			xl[0] = this_g4hit->get_x(1);
-			yl[0] = this_g4hit->get_y(1);
-			zl[0] = this_g4hit->get_z(1); 
-			xl[1] = this_g4hit->get_x(0);
-			yl[1] = this_g4hit->get_y(0);
-			zl[1] = this_g4hit->get_z(0); 
-			swap(rbegin,rend);
-			//cout << "swapped in and out " << endl;
-		      }
-
-		    // check that the g4hit is not completely outside the cluster layer. Just skip this g4hit if it is
-		    // this can happen because an electron moves across a layer boundary during drift and readout
-		    // so the g4hit is recorded in the cell as contributing to that layer, even though it was outside the boundaries
-		    if(rbegin < rbin && rend < rbin)
-		      continue;
-		    if(rbegin > rbout && rend > rbout)
-		      continue;
-
-		    float xin = xl[0];
-		    float yin = yl[0];
-		    float zin = zl[0];
-		    float xout = xl[1];
-		    float yout = yl[1];
-		    float zout = zl[1];
-		    
-		    float t = NAN;
-		    
-		    if(rbegin < rbin)
-		      {
-			// line segment begins before boundary, find where it crosses
-			t = line_circle_intersection(xl, yl, zl, rbin);
-			if(t > 0)
-			  {
-			    xin = xl[0] + t * (xl[1]-xl[0]);
-			    yin = yl[0] + t * (yl[1]-yl[0]);
-			    zin = zl[0] + t * (zl[1]-zl[0]);
-			  }
-		      }
+	    gtrackID = g4particle->get_track_id();
+	    gflavor  = g4particle->get_pid();
+	    gpx      = g4particle->get_px();
+	    gpy      = g4particle->get_py();
+	    gpz      = g4particle->get_pz();
 	    
-		    if(rend > rbout)
-		      {
-			// line segment ends after boundary, find where it crosses
-			t = line_circle_intersection(xl, yl, zl, rbout);
-			if(t > 0)
-			  {
-			    xout = xl[0] + t * (xl[1]-xl[0]);
-			    yout = yl[0] + t * (yl[1]-yl[0]);
-			    zout = zl[0] + t * (zl[1]-zl[0]);
-			  }
-		      }
-		    
-		    // we want only the fraction of edep inside the layer	    
-		    gx +=  (xin+xout) * 0.5 * this_g4hit->get_edep() * (xout-xin) / (xl[1]-xl[0]);
-		    gy +=  (yin+yout) * 0.5 * this_g4hit->get_edep() * (yout-yin) / (yl[1]-yl[0]);
-		    gz +=  (zin+zout) * 0.5 * this_g4hit->get_edep() * (zout-zin) / (zl[1]-zl[0]);
-		    gt  += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout-zin) / (zl[1]-zl[0]);
-		    gwt +=  this_g4hit->get_edep() * (zout-zin) / (zl[1]-zl[0]);
-		  }   // loop over this_g4hit
-		gx /= gwt;  
-		gy /= gwt; 
-		gz /= gwt; 
-		gt /= gwt;
-		//cout << " weighted means: gx " << gx << " gy " << gy << " gz " << gz << endl;
-	      }  // if TPC
-	    else
-	      {
-		// not TPC, one g4hit per cluster
-		gx = g4hit->get_avg_x();
-		gy = g4hit->get_avg_y();
-		gz = g4hit->get_avg_z();
-	      }  // not TPC
+	    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+	    if (vtx) {
+	      gvx      = vtx->get_x();
+	      gvy      = vtx->get_y();
+	      gvz      = vtx->get_z();
+	      gvt      = vtx->get_t();
+	    }
 	    
-	    g4hitID  = g4hit->get_hit_id();
-	    TVector3 gpos(gx,gy,gz);
-	    gr = gpos.Perp();
-	    gphi = gpos.Phi();
-	    geta = gpos.Eta();
-	
-	    if (g4particle) {
-	      
-	      gtrackID = g4particle->get_track_id();
-	      gflavor  = g4particle->get_pid();
-	      gpx      = g4particle->get_px();
-	      gpy      = g4particle->get_py();
-	      gpz      = g4particle->get_pz();
-	      
-	      PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-	      if (vtx) {
-		gvx      = vtx->get_x();
-		gvy      = vtx->get_y();
-		gvz      = vtx->get_z();
-		gvt      = vtx->get_t();
-	      }
-	      
-	      PHG4Hit* outerhit = nullptr;
-	      if(_do_eval_light == false)
-		outerhit = trutheval->get_outermost_truth_hit(g4particle);	
-	      if (outerhit) {
-		gfpx     = outerhit->get_px(1);
-		gfpy     = outerhit->get_py(1);
-		gfpz     = outerhit->get_pz(1);
-		gfx      = outerhit->get_x(1);
-		gfy      = outerhit->get_y(1);
-		gfz      = outerhit->get_z(1);
-	      }
-	      
-	      gembed   = trutheval->get_embed(g4particle);
-	      gprimary = trutheval->is_primary(g4particle);
-	      
-	    }      //   if (g4particle){
-	  } //  if (g4hit) {
-	
+	    PHG4Hit* outerhit = nullptr;
+	    if(_do_eval_light == false)
+	      outerhit = trutheval->get_outermost_truth_hit(g4particle);	
+	    if (outerhit) {
+	      gfpx     = outerhit->get_px(1);
+	      gfpy     = outerhit->get_py(1);
+	      gfpz     = outerhit->get_pz(1);
+	      gfx      = outerhit->get_x(1);
+	      gfy      = outerhit->get_y(1);
+	      gfz      = outerhit->get_z(1);
+	    }
+	    
+	    gembed   = trutheval->get_embed(g4particle);
+	    gprimary = trutheval->is_primary(g4particle);
+	    
+	  }      //   if (g4particle){
+	} //  if (g4hit) {
+
 	if (g4particle){
 	  efromtruth = clustereval->get_energy_contribution(cluster,g4particle);
 	}
-	
+
 	float nparticles = clustereval->all_truth_particles(cluster).size();
 	float cluster_data[] = {(float) _ievent,
 				  hitID,
@@ -1870,6 +1750,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	float ng4hits = g4clusters.size();
 	unsigned int ngmaps  = 0;
 	unsigned int ngintt  = 0;
+	unsigned int ngintt1  = 0;
+	unsigned int ngintt2  = 0;
+	unsigned int ngintt3  = 0;
+	unsigned int ngintt4  = 0;
+	unsigned int ngintt5  = 0;
+	unsigned int ngintt6  = 0;
+	unsigned int ngintt7  = 0;
+	unsigned int ngintt8  = 0;
 	unsigned int ngtpc   = 0;
 	unsigned int nglmaps = 0;
 	unsigned int nglintt = 0;
@@ -1897,6 +1785,37 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    ngintt++;
 	  }
 
+	  if(_nlayers_intt>0&&layer==_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt1++;
+	  }
+
+	  if(_nlayers_intt>1&&layer==_nlayers_maps+1&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt2++;
+	  }
+
+	  if(_nlayers_intt>2&&layer==_nlayers_maps+2&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt3++;
+	  }
+
+	  if(_nlayers_intt>3&&layer==_nlayers_maps+3&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt4++;
+	  }
+
+	  if(_nlayers_intt>4&&layer==_nlayers_maps+4&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt5++;
+	  }
+
+	  if(_nlayers_intt>5&&layer==_nlayers_maps+5&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt6++;
+	  }
+
+	  if(_nlayers_intt>6&&layer==_nlayers_maps+6&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt7++;
+	  }
+
+	  if(_nlayers_intt>7&&layer==_nlayers_maps+7&&layer<_nlayers_maps+_nlayers_intt){ 
+	    ngintt8++;
+	  }
 	  if(_nlayers_tpc>0&&layer>=_nlayers_maps+_nlayers_intt && layer<_nlayers_maps+_nlayers_intt+_nlayers_tpc){ 
 	    ltpc[layer-(_nlayers_maps+_nlayers_intt)] = 1;
 	    ngtpc++;
@@ -2068,6 +1987,14 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 				 ng4hits,
 				 (float)ngmaps,
 				 (float)ngintt,
+				 (float)ngintt1,
+				 (float)ngintt2,
+				 (float)ngintt3,
+				 (float)ngintt4,
+			         (float)ngintt5,
+				 (float)ngintt6,
+				 (float)ngintt7,
+				 (float)ngintt8,
 				 (float)ngtpc,
 				 (float)nglmaps,
 				 (float)nglintt,
@@ -2526,12 +2453,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	     iter != truth_hits.end();
 	     ++iter) {
 	  PHG4Hit* g4hit = *iter;
-	  int layer = g4hit->get_layer();
-	  if (layer < 0)
-	  {
-	    cout << PHWHERE << " skipping negative detector id " << layer << endl;
-	    continue;
-	  }
+	  unsigned int layer = g4hit->get_layer();
 	  xval[layer] = g4hit->get_avg_x();
 	  yval[layer] = g4hit->get_avg_y();
 	  zval[layer] = g4hit->get_avg_z();
@@ -2621,43 +2543,3 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
   return;
 }
-
-float SvtxEvaluator::line_circle_intersection(float x[], float y[], float z[], float radius) 
-{
-  // parameterize the line in terms of t (distance along the line segment, from 0-1) as
-  // x = x0 + t * (x1-x0); y=y0 + t * (y1-y0); z = z0 + t * (z1-z0)
-  // parameterize the cylinder (centered at x,y = 0,0) as  x^2 + y^2 = radius^2,   then
-  // (x0 + t*(x1-z0))^2 + (y0+t*(y1-y0))^2 = radius^2
-   // (x0^2 + y0^2 - radius^2) + (2x0*(x1-x0) + 2y0*(y1-y0))*t +  ((x1-x0)^2 + (y1-y0)^2)*t^2 = 0 = C + B*t + A*t^2
-  // quadratic with:  A = (x1-x0)^2+(y1-y0)^2 ;  B = 2x0*(x1-x0) + 2y0*(y1-y0);  C = x0^2 + y0^2 - radius^2
-  // solution: t = (-B +/- sqrt(B^2 - 4*A*C)) / (2*A) 
-  
-  float A = (x[1]-x[0])*(x[1]-x[0]) + (y[1]-y[0])*(y[1]-y[0]);
-  float B = 2.0*x[0]*(x[1]-x[0]) + 2.0*y[0]*(y[1]-y[0]); 
-  float C = x[0]*x[0] + y[0]*y[0] - radius*radius;
-  float tup = (-B + sqrt(B*B - 4.0*A*C)) / (2.0*A); 
-  float tdn = (-B - sqrt(B*B - 4.0*A*C)) / (2.0*A) ;
-
-  // The limits are 0 and 1, but we allow a little for floating point precision
-  float t;
-  if(tdn >= -0.0e-4 && tdn <= 1.0004)
-    t = tdn;
-  else if(tup >= -0.0e-4 && tup <= 1.0004)
-    t = tup;
-  else
-    {
-      cout << PHWHERE << "   **** Oops! No valid solution for tup or tdn, tdn = " << tdn << " tup = " << tup << endl;
-      cout << "   radius " << radius << " rbegin " << sqrt(x[0]*x[0]+y[0]*y[0]) << " rend " << sqrt(x[1]*x[1]+y[1]*y[1]) << endl;
-      cout  << "   x0 " << x[0] << " x1 " << x[1] << endl;
-      cout  << "   y0 " << y[0] << " y1 " << y[1] << endl;
-      cout  << "   z0 " << z[0] << " z1 " << z[1] << endl;
-      cout  << "   A " << A << " B " << B << " C " << C << endl;
-      
-      t = -1;
-    }
-
-  return t;
-
-
-}
- 
