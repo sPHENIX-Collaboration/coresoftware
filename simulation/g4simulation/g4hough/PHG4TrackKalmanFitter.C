@@ -348,6 +348,15 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		   }
 		 }
 
+		 //tree elements that only need data from the svtx track:
+		 _kalman_extrapolation_eval_tree_pti=mom.Perp();
+		 _kalman_extrapolation_eval_tree_pxi=mom.X();
+		 _kalman_extrapolation_eval_tree_pyi=mom.Y();
+		 _kalman_extrapolation_eval_tree_pzi=mom.Z();
+		 _kalman_extrapolation_eval_tree_nintt=n_intt;
+		 _kalman_extrapolation_eval_tree_nmvtx=n_mvtx;		 
+
+		 
 		 
 		 //utilities for extrapolations: line_point and line_direction are the axis of the cylinder.
 		 const TVector3 line_point=TVector3(0.,0.,0.);
@@ -356,8 +365,25 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		 
 		 if (g4_phgf_track){
 		   g4_track_okay=true;
+		_kalman_extrapolation_eval_tree_has_g4_track=g4_track_okay;
 
-		   //look for a position close to the innermost padrow.
+		  int ng4trackpoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
+		  _kalman_extrapolation_eval_tree_g4_nhits=ng4trackpoints;//number of points in the g4 kalman track rep.
+
+		  //get the g4 track momentum from its final point:
+		  TVector3 g4mom(-9000,-9000,-9000);
+		  TVectorD g4state6(6); // pos(3), mom(3)
+		  TMatrixDSym g4cov6(6,6); //
+		  genfit::TrackPoint* g4trackpoint= g4_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(ng4trackpoints-1);
+		  genfit::MeasuredStateOnPlane* g4trackstate=g4trackpoint->getFitterInfo()->getFittedState().clone();
+		  g4trackstate->get6DStateCov(g4state6, g4cov6);
+		  g4mom.SetXYZ(g4state6[3],g4state6[4],g4state6[5]);
+		  _kalman_extrapolation_eval_tree_g4_pt=g4mom.Perp();
+		  _kalman_extrapolation_eval_tree_g4_px=g4mom.X();
+		  _kalman_extrapolation_eval_tree_g4_py=g4mom.Y();
+		  _kalman_extrapolation_eval_tree_g4_pz=g4mom.Z();
+
+		//look for a position close to the innermost padrow.
 		   //find the g4hit closest to the extrapolated hit in radius (arbitrarily picks the first hit it finds in that layer)
 		   TVector3 g4track_pos(30,0,0);//x=30 so we have a radius of 30.
 		   TVector3 g4track_pos_true(-9000,-9000,-9000);
@@ -366,61 +392,112 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		   //extrapolation to the cluster position:
 		   TMatrixF g4track_cov_ex_g4(3,3);
 		   TVector3 g4track_pos_ex_g4(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		   bool g4track_to_30_okay= extrapolateTrackToRadiusPhiRZ(g4track_pos_true.Perp(),g4_phgf_track,g4track_pos_ex_g4,g4track_cov_ex_g4);
-		  
-		   _kalman_extrapolation_eval_tree_g4track_to_30_okay=g4track_to_30_okay;
+		   bool okay_g4track_ex_g4= extrapolateTrackToRadiusPhiRZ(g4track_pos_true.Perp(),g4_phgf_track,g4track_pos_ex_g4,g4track_cov_ex_g4);
+		   _kalman_extrapolation_eval_tree_g4_okay_ex_g4=okay_g4track_ex_g4;
 		   _kalman_extrapolation_eval_tree_g4_phi_ex_g4=g4track_pos_ex_g4.Phi();
 		   _kalman_extrapolation_eval_tree_g4_z_ex_g4=g4track_pos_ex_g4.Z();
-		   _kalman_extrapolation_eval_tree_g4_r_ex_g4=g4track_pos_ex_g4.Perp();	   
+		   _kalman_extrapolation_eval_tree_g4_r_ex_g4=g4track_pos_ex_g4.Perp();
+
+
+
+		   
 		 }
 		if (rf_phgf_track){
 		  cluster_track_okay=true;
+		_kalman_extrapolation_eval_tree_has_cluster_track=cluster_track_okay;
 
 
 		  int npoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
+		  _kalman_extrapolation_eval_tree_cluster_nhits=npoints;//number of points in the kalman track rep.
+
 		  if (Verbosity() >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
 
 		  //this ought to give the same result regardless of where we extrapolate from, since it should pick the best track ref, but... not clear if that's true.  pick the outermost point.  Note that currently this doesn't include extra material effects, so it won't work for points beyond the inner wall of the tpc -- there's an additional scattering growth to the covariance.
-		  bool covariance_okay=true;
-		  TMatrixF cov_ifc(3,3);
+		  
+		  TMatrixF cov_ifc(3,3); //this zeroes the matrix automatically, too.
 		  TVector3 pos_ifc(-9000,-9000,-9000);
-		  covariance_okay=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,pos_ifc,cov_ifc);
+		  bool okay_ifc=extrapolateTrackToRadiusPhiRZ(inner_wall_r,rf_phgf_track,pos_ifc,cov_ifc);
+		  _kalman_extrapolation_eval_tree_okay_ifc=okay_ifc;
+		  _kalman_extrapolation_eval_tree_phi_ifc=pos_ifc.Phi();
+		  _kalman_extrapolation_eval_tree_z_ifc=pos_ifc.Z();
+		  _kalman_extrapolation_eval_tree_r_ifc=pos_ifc.Perp();
 
+		  _kalman_extrapolation_eval_tree_sigma_r_ifc=cov_ifc[1][1];
+		  _kalman_extrapolation_eval_tree_sigma_rphi_ifc=cov_ifc[0][0];
+		  _kalman_extrapolation_eval_tree_sigma_z_ifc=cov_ifc[2][2];
+		  _kalman_extrapolation_eval_tree_sigma_r_rphi_ifc=cov_ifc[0][1];
+		  _kalman_extrapolation_eval_tree_sigma_rphi_z_ifc=cov_ifc[0][2];
+		  _kalman_extrapolation_eval_tree_sigma_z_r_ifc=cov_ifc[2][1];
 
+		    
 		  //get the cluster closest to the desired radius (gives us the correct radius, too):
 		  TVector3 pos_30_clust(0,0,0);
 		  pos_30_clust=getClusterPosAtRadius(30.0,svtx_track);
+		  bool okay_30_clust=pos_30_clust.Mag()>0;
+		  _kalman_extrapolation_eval_tree_okay_30_clust=okay_30_clust;
+		  _kalman_extrapolation_eval_tree_phi_30_clust=pos_30_clust.Phi();
+		  _kalman_extrapolation_eval_tree_z_30_clust=pos_30_clust.Z();
+		  _kalman_extrapolation_eval_tree_r_30_clust=pos_30_clust.Perp();
 
 		  //extrapolation to the cluster position:
 		  TMatrixF cov_30(3,3);
 		  TVector3 pos_30(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		    bool cov2_okay=extrapolateTrackToRadiusPhiRZ(pos_30_clust.Perp(),rf_phgf_track,pos_30,cov_30);
-
+		  bool okay_30=extrapolateTrackToRadiusPhiRZ(pos_30_clust.Perp(),rf_phgf_track,pos_30,cov_30);
+		  _kalman_extrapolation_eval_tree_okay_30=okay_30;
+		  _kalman_extrapolation_eval_tree_phi_30=pos_30.Phi();
+		  _kalman_extrapolation_eval_tree_z_30=pos_30.Z();
+		  _kalman_extrapolation_eval_tree_r_30=pos_30.Perp();
+		  
 		  //look for a position close to the first pad row.
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
 		  TVector3 pos_30_true(-9000,-9000,-9000);
 		  int ng4hits=0;
 		  pos_30_true=getClosestG4HitPos(pos_30,topNode, ng4hits);
+		  _kalman_extrapolation_eval_tree_ng4hits_30_true=ng4hits;
+		  _kalman_extrapolation_eval_tree_okay_30_true=pos_30_true.X()>-9000;
+		  _kalman_extrapolation_eval_tree_phi_30_true=pos_30_true.Phi();
+		  _kalman_extrapolation_eval_tree_z_30_true=pos_30_true.Z();
+		  _kalman_extrapolation_eval_tree_r_30_true=pos_30_true.Perp();
 
 		  //extrapolate the track to the g4 hit position as well:
 		  //extrapolation to the cluster position:
 		  TMatrixF cov_ex_g4(3,3);
 		  TVector3 pos_ex_g4(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4,cov_ex_g4);
+		  bool okay_ex_g4= extrapolateTrackToRadiusPhiRZ(pos_30_true.Perp(),rf_phgf_track,pos_ex_g4,cov_ex_g4);
+		  _kalman_extrapolation_eval_tree_okay_ex_g4=okay_ex_g4;
+		  _kalman_extrapolation_eval_tree_phi_ex_g4=pos_ex_g4.Phi();
+		  _kalman_extrapolation_eval_tree_z_ex_g4=pos_ex_g4.Z();
+		  _kalman_extrapolation_eval_tree_r_ex_g4=pos_ex_g4.Perp();
 
+		  _kalman_extrapolation_eval_tree_sigma_r_ex_g4=cov_ex_g4[1][1];
+		  _kalman_extrapolation_eval_tree_sigma_rphi_ex_g4=cov_ex_g4[0][0];
+		  _kalman_extrapolation_eval_tree_sigma_z_ex_g4=cov_ex_g4[2][2];
+		  _kalman_extrapolation_eval_tree_sigma_r_rphi_ex_g4=cov_ex_g4[0][1];
+		  _kalman_extrapolation_eval_tree_sigma_rphi_z_ex_g4=cov_ex_g4[0][2];
+		  _kalman_extrapolation_eval_tree_sigma_z_r_ex_g4=cov_ex_g4[2][1];
+
+
+		  
 		  //look for a position close to the outermost padrow.
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
 		  TVector3 pos_80(80,0,0);//x=80 so we have a radius of 80.  More thoroughly we could look for an appropriate cluster position, but that's not needed here.
 		  TVector3 pos_80_true(-9000,-9000,-9000);
 		  int ng4hits80=0;
 		  pos_80_true=getClosestG4HitPos(pos_80,topNode,ng4hits80);
-
+		  _kalman_extrapolation_eval_tree_ng4hits_80_true=ng4hits80;
+		  _kalman_extrapolation_eval_tree_okay_80_true=pos_80_true.X()>-9000;
+		  _kalman_extrapolation_eval_tree_phi_80_true=pos_80_true.Phi();
+		  _kalman_extrapolation_eval_tree_z_80_true=pos_80_true.Z();
+		  _kalman_extrapolation_eval_tree_r_80_true=pos_80_true.Perp();
 		  //extrapolate the track to the g4 hit position as well:
 		  //extrapolation to the cluster position:
 		  TMatrixF cov_ex_80(3,3);
 		  TVector3 pos_ex_80(-9000,-9000,-9000);//note that if you set this to 0,0,0 the setZ,setPerp,SetPhi will not work.
-		  covariance_okay=covariance_okay && extrapolateTrackToRadiusPhiRZ(pos_80_true.Perp(),rf_phgf_track,pos_ex_80,cov_ex_80);
-
+		  bool okay_ex_80= extrapolateTrackToRadiusPhiRZ(pos_80_true.Perp(),rf_phgf_track,pos_ex_80,cov_ex_80);
+		  _kalman_extrapolation_eval_tree_okay_ex_80=okay_ex_80;
+		  _kalman_extrapolation_eval_tree_phi_ex_80=pos_ex_80.Phi();
+		  _kalman_extrapolation_eval_tree_z_ex_80=pos_ex_80.Z();
+		  _kalman_extrapolation_eval_tree_r_ex_80=pos_ex_80.Perp();
 
 		  
 
@@ -437,26 +514,12 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    }
 		  }
 		  
-		  if (Verbosity() > 0){// and !covariance_okay){
-		    std::cout << PHWHERE << "Covariance_okay="<< (covariance_okay?"true":"false") <<" RCC!" <<endl;
-		  }
 
 		  if (Verbosity() > 2){
 		    	cout << "pos_30_true: Phi=" << pos_30_true.Phi() << "\t R="<<pos_30_true.Perp() << "\t Z="<<pos_30_true.Z()<<endl;
 			cout << "pos_ex_g4: Phi=" << pos_ex_g4.Phi() << "\t R="<<pos_ex_g4.Perp() << "\t Z="<<pos_ex_g4.Z()<<endl;
 		  }
 
-		  //do christof's extrapolation:
-		  // [10/19/18, 9:40:31 AM] Christof Roland:
-		  std::unique_ptr<genfit::MeasuredStateOnPlane> state = nullptr;
-		  state = std::unique_ptr < genfit::MeasuredStateOnPlane > 
-		    (rf_phgf_track->extrapolateToCylinder(pos_ex_g4.Perp(), 
-						  TVector3(0, 0, 0),
-						  TVector3(0, 0, 1), 
-						  npoints-1, 
-						  1));
-		  TVector3 pos_chr(-9000,-9000,-9000);
-		  if (state) pos_chr= state->getPos();
 
 		  //do the exact, linear extrapolation:
 		  //get the info for the last two points in the track, in order:
@@ -467,13 +530,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  TVectorD state6(6); // pos(3), mom(3)
 		  TMatrixDSym cov6(6,6); //
 		  if (npoints>1){ //make sure we're not working with too few points.
-		  for (int i=0;i<2;i++){
-		    genfit::TrackPoint* trackpoint= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
-		    genfit::MeasuredStateOnPlane* trackstate;trackstate=trackpoint->getFitterInfo()->getFittedState().clone();
-		    trackstate->get6DStateCov(state6, cov6);
-		    (pos_linear[i]).SetXYZ(state6[0],state6[1],state6[2]);
-		    (mom_linear[i]).SetXYZ(state6[3],state6[4],state6[5]);
-		  }
+		    for (int i=0;i<2;i++){
+		      genfit::TrackPoint* trackpoint= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
+		    
+		      genfit::MeasuredStateOnPlane* trackstate;trackstate=trackpoint->getFitterInfo()->getFittedState().clone();
+		      trackstate->get6DStateCov(state6, cov6);
+		      (pos_linear[i]).SetXYZ(state6[0],state6[1],state6[2]);
+		      (mom_linear[i]).SetXYZ(state6[3],state6[4],state6[5]);
+		    }
 		  }
 		  
 
@@ -495,8 +559,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    if (Verbosity() > 4){
 		      cout << "pos_lin_g4:  "<<  "X="<< pos_linear[2].X() << " Y="<<pos_linear[2].Y() << " Z=" <<pos_linear[2].Z();
 		      cout << "\tR="<< pos_linear[2].Perp() << " Phi="<<pos_linear[2].Phi() << " Z=" <<pos_linear[2].Z() <<endl;
-		      cout << "pos_chr_g4:  "<<  "X="<< pos_chr.X() << " Y="<<pos_chr.Y() << " Z=" <<pos_chr.Z();
-		      cout << "\tR="<< pos_chr.Perp() << " Phi="<<pos_chr.Phi() << " Z=" <<pos_chr.Z() <<endl;
+		      //cout << "pos_chr_g4:  "<<  "X="<< pos_chr.X() << " Y="<<pos_chr.Y() << " Z=" <<pos_chr.Z();
+		      //cout << "\tR="<< pos_chr.Perp() << " Phi="<<pos_chr.Phi() << " Z=" <<pos_chr.Z() <<endl;
 		      cout << "pos_ex_g4:  "<<  "X="<< pos_ex_g4.X() << " Y="<<pos_ex_g4.Y() << " Z=" <<pos_ex_g4.Z();
 		      cout << "\tR="<< pos_ex_g4.Perp() << " Phi="<<pos_ex_g4.Phi() << " Z=" <<pos_ex_g4.Z() <<endl;
 		      cout << "pos_g4:  "<<  "X="<< pos_30_true.X() << " Y="<<pos_30_true.Y() << " Z=" <<pos_30_true.Z();
@@ -508,80 +572,29 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    }
 
 		    
-		    _kalman_extrapolation_eval_tree_pti=mom.Perp();
-		    _kalman_extrapolation_eval_tree_pxi=mom.X();
-		    _kalman_extrapolation_eval_tree_pyi=mom.Y();
-		    _kalman_extrapolation_eval_tree_pzi=mom.Z();
+		
+
+		
 		    _kalman_extrapolation_eval_tree_pt=mom_linear[1].Perp();
 		    _kalman_extrapolation_eval_tree_px=mom_linear[1].X();
 		    _kalman_extrapolation_eval_tree_py=mom_linear[1].Y();
 		    _kalman_extrapolation_eval_tree_pz=mom_linear[1].Z();
 
-
-
-
-
-		    _kalman_extrapolation_eval_tree_nintt=n_intt;
-		    _kalman_extrapolation_eval_tree_nmvtx=n_mvtx;
-		    _kalman_extrapolation_eval_tree_nhits=npoints;//number of points in the kalman track rep.
-		    //2) How many g4 hits were at the layer of interest?
-		    _kalman_extrapolation_eval_tree_ng4hits=ng4hits;
-		    
-		  _kalman_extrapolation_eval_tree_phi=pos_ifc.Phi();
-		  _kalman_extrapolation_eval_tree_z=pos_ifc.Z();
-		  _kalman_extrapolation_eval_tree_r=pos_ifc.Perp();
-		  _kalman_extrapolation_eval_tree_okay=covariance_okay;
-		  if (covariance_okay){
-		    _kalman_extrapolation_eval_tree_sigma_r=cov_ifc[1][1];
-		    _kalman_extrapolation_eval_tree_sigma_rphi=cov_ifc[0][0];
-		    _kalman_extrapolation_eval_tree_sigma_z=cov_ifc[2][2];
-		    _kalman_extrapolation_eval_tree_sigma_r_rphi=cov_ifc[0][1];
-		    _kalman_extrapolation_eval_tree_sigma_rphi_z=cov_ifc[0][2];
-		    _kalman_extrapolation_eval_tree_sigma_z_r=cov_ifc[2][1];
-
-		    _kalman_extrapolation_eval_tree_okay2=cov2_okay;
-		    _kalman_extrapolation_eval_tree_phi2=pos_30.Phi();
-		    _kalman_extrapolation_eval_tree_z2=pos_30.Z();
-		    _kalman_extrapolation_eval_tree_r2=pos_30.Perp();
-		    _kalman_extrapolation_eval_tree_phi2_true=pos_30_true.Phi();
-		    _kalman_extrapolation_eval_tree_z2_true=pos_30_true.Z();
-		    _kalman_extrapolation_eval_tree_r2_true=pos_30_true.Perp();
-		    _kalman_extrapolation_eval_tree_phi2_clust=pos_30_clust.Phi();
-		    _kalman_extrapolation_eval_tree_z2_clust=pos_30_clust.Z();
-		    _kalman_extrapolation_eval_tree_r2_clust=pos_30_clust.Perp();
-		    
-		    _kalman_extrapolation_eval_tree_phi_ex_g4=pos_ex_g4.Phi();
-		    _kalman_extrapolation_eval_tree_z_ex_g4=pos_ex_g4.Z();
-		    _kalman_extrapolation_eval_tree_r_ex_g4=pos_ex_g4.Perp();
-
-		    //extrapolation to outer tpc:
-		    _kalman_extrapolation_eval_tree_phi_g4_80=pos_80_true.Phi();
-		    _kalman_extrapolation_eval_tree_z_g4_80=pos_80_true.Z();
-		    _kalman_extrapolation_eval_tree_r_g4_80=pos_80_true.Perp();
-		    _kalman_extrapolation_eval_tree_phi_ex_80=pos_ex_80.Phi();
-		    _kalman_extrapolation_eval_tree_z_ex_80=pos_ex_80.Z();
-		    _kalman_extrapolation_eval_tree_r_ex_80=pos_ex_80.Perp();
-		    
-		    _kalman_extrapolation_eval_tree_phi_chr=pos_chr.Phi();
-		    _kalman_extrapolation_eval_tree_z_chr=pos_chr.Z();
-		    _kalman_extrapolation_eval_tree_r_chr=pos_chr.Perp();
-
-		    _kalman_extrapolation_eval_tree_phi_lin_g4=pos_linear[2].Phi();
-		    _kalman_extrapolation_eval_tree_z_lin_g4=pos_linear[2].Z();
-		    _kalman_extrapolation_eval_tree_r_lin_g4=pos_linear[2].Perp();
-		    if (cov2_okay){
-		    _kalman_extrapolation_eval_tree_sigma_r2=cov_30[1][1];
-		    _kalman_extrapolation_eval_tree_sigma_rphi2=cov_30[0][0];
-		    _kalman_extrapolation_eval_tree_sigma_z2=cov_30[2][2];
-
-		    }
-
-		    
-
-		  }
 		}
-		_kalman_extrapolation_eval_tree_has_g4_track=g4_track_okay;
-		_kalman_extrapolation_eval_tree_has_cluster_track=cluster_track_okay;
+
+
+
+
+		    //2) How many g4 hits were at the layer of interest?
+	       
+	       
+
+		    
+
+	
+	
+
+
 		    _kalman_extrapolation_eval_tree->Fill();
 		    if (Verbosity() >= 2) std::cout << PHWHERE << "end of extrapolation eval."<<endl;
 		  
@@ -908,85 +921,96 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_cluster_eval_tree->Branch("gz", &_cluster_eval_tree_gz, "gz/F");
 
 	//RCC add extrapolation branch to the output so we can check resolutions:
-	_kalman_extrapolation_eval_tree = new TTree("kalman_extrapolation_eval","kalman extrapolation eval tree");
+	_kalman_extrapolation_eval_tree = new TTree("kalman_eval","kalman extrapolation eval tree");
 
-	_kalman_extrapolation_eval_tree->Branch("has_cl", &_kalman_extrapolation_eval_tree_has_cluster_track, "has_cl/O");
-	_kalman_extrapolation_eval_tree->Branch("has_g4", &_kalman_extrapolation_eval_tree_has_g4_track, "has_g4/O");
-
-	
-	//initial and final momentum estimates from the kalman fit.
-	_kalman_extrapolation_eval_tree->Branch("nhits", &_kalman_extrapolation_eval_tree_nhits, "nhits/I");
-	_kalman_extrapolation_eval_tree->Branch("nintt", &_kalman_extrapolation_eval_tree_nintt, "nintt/I");
-	_kalman_extrapolation_eval_tree->Branch("nmvtx", &_kalman_extrapolation_eval_tree_nmvtx, "nmvtx/I");
-	_kalman_extrapolation_eval_tree->Branch("ng4hits", &_kalman_extrapolation_eval_tree_ng4hits, "ng4hits/I");
-	_kalman_extrapolation_eval_tree->Branch("pt", &_kalman_extrapolation_eval_tree_pt, "pt/F");
-	_kalman_extrapolation_eval_tree->Branch("px", &_kalman_extrapolation_eval_tree_px, "px/F");
-	_kalman_extrapolation_eval_tree->Branch("py", &_kalman_extrapolation_eval_tree_py, "py/F");
-	_kalman_extrapolation_eval_tree->Branch("pz", &_kalman_extrapolation_eval_tree_pz, "pz/F");
+	//data from the svtx track alone:
 	_kalman_extrapolation_eval_tree->Branch("pti", &_kalman_extrapolation_eval_tree_pti, "pti/F");
 	_kalman_extrapolation_eval_tree->Branch("pxi", &_kalman_extrapolation_eval_tree_pxi, "pxi/F");
 	_kalman_extrapolation_eval_tree->Branch("pyi", &_kalman_extrapolation_eval_tree_pyi, "pyi/F");
 	_kalman_extrapolation_eval_tree->Branch("pzi", &_kalman_extrapolation_eval_tree_pzi, "pzi/F");
+	_kalman_extrapolation_eval_tree->Branch("nintt", &_kalman_extrapolation_eval_tree_nintt, "nintt/I");
+	_kalman_extrapolation_eval_tree->Branch("nmvtx", &_kalman_extrapolation_eval_tree_nmvtx, "nmvtx/I");
+
+	//data from the g4 hits track:
+	_kalman_extrapolation_eval_tree->Branch("has_g4", &_kalman_extrapolation_eval_tree_has_g4_track, "has_g4/O");
+	_kalman_extrapolation_eval_tree->Branch("g4_nhits", &_kalman_extrapolation_eval_tree_g4_nhits, "g4_nhits/I");
+	//g4track extrapolated to the innermost g4TPC hit.
+	_kalman_extrapolation_eval_tree->Branch("g4_ok30te",&_kalman_extrapolation_eval_tree_g4_okay_ex_g4,"g4_ok30te/O");
+	_kalman_extrapolation_eval_tree->Branch("g4_phi30te",&_kalman_extrapolation_eval_tree_g4_phi_ex_g4,"g4_phi30te/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_z30te",&_kalman_extrapolation_eval_tree_g4_z_ex_g4,"g4_z30te/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_r30te",&_kalman_extrapolation_eval_tree_g4_r_ex_g4,"g4_r30te/F");
+	//g4track momentum from last hit on track:
+	_kalman_extrapolation_eval_tree->Branch("g4_pt", &_kalman_extrapolation_eval_tree_g4_pt, "g4_pt/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_px", &_kalman_extrapolation_eval_tree_g4_px, "g4_px/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_py", &_kalman_extrapolation_eval_tree_g4_py, "g4_py/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_pz", &_kalman_extrapolation_eval_tree_g4_pz, "g4_pz/F");
+
 	
-	_kalman_extrapolation_eval_tree->Branch("phi", &_kalman_extrapolation_eval_tree_phi, "phi/F");
-	_kalman_extrapolation_eval_tree->Branch("z", &_kalman_extrapolation_eval_tree_z, "z/F");
-	_kalman_extrapolation_eval_tree->Branch("r", &_kalman_extrapolation_eval_tree_r, "r/F");
-	_kalman_extrapolation_eval_tree->Branch("okay", &_kalman_extrapolation_eval_tree_okay, "ok/O");
-	_kalman_extrapolation_eval_tree->Branch("sigma_phi", &_kalman_extrapolation_eval_tree_sigma_rphi, "sigma_rphi/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_z", &_kalman_extrapolation_eval_tree_sigma_z, "sigma_z/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_r", &_kalman_extrapolation_eval_tree_sigma_r, "sigma_r/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_phi_z", &_kalman_extrapolation_eval_tree_sigma_rphi_z, "sigma_phi_z/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_z_r", &_kalman_extrapolation_eval_tree_sigma_z_r, "sigma_z_r/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_r_rphi", &_kalman_extrapolation_eval_tree_sigma_r_rphi, "sigma_r_rphi/F");
+	//data from the cluster track:
+	_kalman_extrapolation_eval_tree->Branch("has_cl", &_kalman_extrapolation_eval_tree_has_cluster_track, "has_cl/O");
+	_kalman_extrapolation_eval_tree->Branch("nhits", &_kalman_extrapolation_eval_tree_cluster_nhits, "nhits/I");
 
-	//extrapolation using the g4hits as track points rather than the cluster hits:
-	_kalman_extrapolation_eval_tree->Branch("g4_okay30",&_kalman_extrapolation_eval_tree_g4track_to_30_okay,"g4_okay30/O");
-	_kalman_extrapolation_eval_tree->Branch("g4_phi30",&_kalman_extrapolation_eval_tree_g4_phi_ex_g4,"g4_phi30/F");
-	_kalman_extrapolation_eval_tree->Branch("g4_z30",&_kalman_extrapolation_eval_tree_g4_z_ex_g4,"g4_z30/F");
-	_kalman_extrapolation_eval_tree->Branch("g4_r30",&_kalman_extrapolation_eval_tree_g4_r_ex_g4,"g4_r30/F");
+	//cluster track extrapolated to the ifc radius.
+	_kalman_extrapolation_eval_tree->Branch("ok20e", &_kalman_extrapolation_eval_tree_okay_ifc, "ok20e/O");
+	_kalman_extrapolation_eval_tree->Branch("phi20e", &_kalman_extrapolation_eval_tree_phi_ifc, "phi20e/F");
+	_kalman_extrapolation_eval_tree->Branch("z20e", &_kalman_extrapolation_eval_tree_z_ifc, "z20e/F");
+	_kalman_extrapolation_eval_tree->Branch("r20e", &_kalman_extrapolation_eval_tree_r_ifc, "r20e/F");
+	//with covariance info thoroughness:
+	_kalman_extrapolation_eval_tree->Branch("sigma_phi20e", &_kalman_extrapolation_eval_tree_sigma_rphi_ifc, "sigma_rphi20e/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_z20e", &_kalman_extrapolation_eval_tree_sigma_z_ifc, "sigma_z20e/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_r20e", &_kalman_extrapolation_eval_tree_sigma_r_ifc, "sigma_r20e/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_phi_z20e", &_kalman_extrapolation_eval_tree_sigma_rphi_z_ifc, "sigma_phi_z20e/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_z_r20e", &_kalman_extrapolation_eval_tree_sigma_z_r_ifc, "sigma_z_r20e/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_r_rphi20e", &_kalman_extrapolation_eval_tree_sigma_r_rphi_ifc, "sigma_r_rphi20e/F");
+	//TPC cluster position nearest R=30:
+	_kalman_extrapolation_eval_tree->Branch("ok30c", &_kalman_extrapolation_eval_tree_okay_30_clust, "ok30c/O");
+	_kalman_extrapolation_eval_tree->Branch("phi30c", &_kalman_extrapolation_eval_tree_phi_30_clust, "phi30c/F");
+	_kalman_extrapolation_eval_tree->Branch("z30c", &_kalman_extrapolation_eval_tree_z_30_clust, "z30c/F");
+	_kalman_extrapolation_eval_tree->Branch("r30c", &_kalman_extrapolation_eval_tree_r_30_clust, "r30c/F");
+	//cluster track extrapolated to the TPC cluster position.
+	_kalman_extrapolation_eval_tree->Branch("ok30ce", &_kalman_extrapolation_eval_tree_okay_30, "ok30ce/O");
+	_kalman_extrapolation_eval_tree->Branch("phi30ce", &_kalman_extrapolation_eval_tree_phi_30, "phi30ce/F");
+	_kalman_extrapolation_eval_tree->Branch("z30ce", &_kalman_extrapolation_eval_tree_z_30, "z30ce/F");
+	_kalman_extrapolation_eval_tree->Branch("r30ce", &_kalman_extrapolation_eval_tree_r_30, "r30ce/F");
+	//g4TPC hit nearest R=30:
+	_kalman_extrapolation_eval_tree->Branch("ng430t", &_kalman_extrapolation_eval_tree_ng4hits_30_true, "ng430t/I");
+	_kalman_extrapolation_eval_tree->Branch("ok30t", &_kalman_extrapolation_eval_tree_okay_30_true, "ok30t/O");
+	_kalman_extrapolation_eval_tree->Branch("phi30t", &_kalman_extrapolation_eval_tree_phi_30_true, "phi30t/F");
+	_kalman_extrapolation_eval_tree->Branch("z30t", &_kalman_extrapolation_eval_tree_z_30_true, "z30t/F");
+	_kalman_extrapolation_eval_tree->Branch("r30t", &_kalman_extrapolation_eval_tree_r_30_true, "r30t/F");
+
+	//cluster extrapolated to that R=30 g4TPC hit.
+	_kalman_extrapolation_eval_tree->Branch("ok30te", &_kalman_extrapolation_eval_tree_okay_ex_g4, "ok30te/O");
+	_kalman_extrapolation_eval_tree->Branch("phi30te", &_kalman_extrapolation_eval_tree_phi_ex_g4, "phi30te/F");
+	_kalman_extrapolation_eval_tree->Branch("z30te", &_kalman_extrapolation_eval_tree_z_ex_g4, "z30te/F");
+	_kalman_extrapolation_eval_tree->Branch("r30te", &_kalman_extrapolation_eval_tree_r_ex_g4, "r30te/F");
+	//with covariance info thoroughness:
+	_kalman_extrapolation_eval_tree->Branch("sigma_phi30te", &_kalman_extrapolation_eval_tree_sigma_rphi_ex_g4, "sigma_rphi30te/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_z30te", &_kalman_extrapolation_eval_tree_sigma_z_ex_g4, "sigma_z30te/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_r30te", &_kalman_extrapolation_eval_tree_sigma_r_ex_g4, "sigma_r30te/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_phi_z30te", &_kalman_extrapolation_eval_tree_sigma_rphi_z_ex_g4, "sigma_phi_z30te/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_z_r30te", &_kalman_extrapolation_eval_tree_sigma_z_r_ex_g4, "sigma_z_r30te/F");
+	_kalman_extrapolation_eval_tree->Branch("sigma_r_rphi30te", &_kalman_extrapolation_eval_tree_sigma_r_rphi_ex_g4, "sigma_r_rphi30te/F");
+	//g4TPC hit nearest R=80:
+	_kalman_extrapolation_eval_tree->Branch("ng480t", &_kalman_extrapolation_eval_tree_ng4hits_80_true, "ng480t/I");
+	_kalman_extrapolation_eval_tree->Branch("ok80t", &_kalman_extrapolation_eval_tree_okay_80_true, "ok80t/O");
+	_kalman_extrapolation_eval_tree->Branch("phi80t", &_kalman_extrapolation_eval_tree_phi_80_true, "phi80t/F");
+	_kalman_extrapolation_eval_tree->Branch("z80t", &_kalman_extrapolation_eval_tree_z_80_true, "z80t/F");
+	_kalman_extrapolation_eval_tree->Branch("r80t", &_kalman_extrapolation_eval_tree_r_80_true, "r80t/F");
+	//cluster extrapolated to that R=80 g4TPC hit.
+	_kalman_extrapolation_eval_tree->Branch("ok80te", &_kalman_extrapolation_eval_tree_okay_ex_80, "ok80te/O");
+	_kalman_extrapolation_eval_tree->Branch("phi80te", &_kalman_extrapolation_eval_tree_phi_ex_80, "phi80te/F");
+	_kalman_extrapolation_eval_tree->Branch("z80te", &_kalman_extrapolation_eval_tree_z_ex_80, "z80te/F");
+	_kalman_extrapolation_eval_tree->Branch("r80te", &_kalman_extrapolation_eval_tree_r_ex_80, "r80te/F");
+
+	//cluster track momentum from last hit on track:
+	_kalman_extrapolation_eval_tree->Branch("pt", &_kalman_extrapolation_eval_tree_pt, "pt/F");
+	_kalman_extrapolation_eval_tree->Branch("px", &_kalman_extrapolation_eval_tree_px, "px/F");
+	_kalman_extrapolation_eval_tree->Branch("py", &_kalman_extrapolation_eval_tree_py, "py/F");
+	_kalman_extrapolation_eval_tree->Branch("pz", &_kalman_extrapolation_eval_tree_pz, "pz/F");
+
 	
-	//extrapolation to an alternate radius, along with true hit info at that radius.
-	_kalman_extrapolation_eval_tree->Branch("phi2", &_kalman_extrapolation_eval_tree_phi2, "phi2/F");
-	_kalman_extrapolation_eval_tree->Branch("z2", &_kalman_extrapolation_eval_tree_z2, "z2/F");
-	_kalman_extrapolation_eval_tree->Branch("r2", &_kalman_extrapolation_eval_tree_r2, "r2/F");
-	_kalman_extrapolation_eval_tree->Branch("okay2", &_kalman_extrapolation_eval_tree_okay, "ok2/O");
-	_kalman_extrapolation_eval_tree->Branch("sigma_phi2", &_kalman_extrapolation_eval_tree_sigma_rphi, "sigma_rphi2/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_z2", &_kalman_extrapolation_eval_tree_sigma_z, "sigma_z2/F");
-	_kalman_extrapolation_eval_tree->Branch("sigma_r2", &_kalman_extrapolation_eval_tree_sigma_r, "sigma_r2/F");
-	_kalman_extrapolation_eval_tree->Branch("phi2t", &_kalman_extrapolation_eval_tree_phi2_true, "phi2t/F");
-	_kalman_extrapolation_eval_tree->Branch("z2t", &_kalman_extrapolation_eval_tree_z2_true, "z2t/F");
-	_kalman_extrapolation_eval_tree->Branch("r2t", &_kalman_extrapolation_eval_tree_r2_true, "r2t/F");
-	_kalman_extrapolation_eval_tree->Branch("phi2c", &_kalman_extrapolation_eval_tree_phi2_clust,"phi2c/F");
-	_kalman_extrapolation_eval_tree->Branch("z2c", &_kalman_extrapolation_eval_tree_z2_clust, "z2c/F");
-	_kalman_extrapolation_eval_tree->Branch("r2c", &_kalman_extrapolation_eval_tree_r2_clust, "r2c/F");
 
-	//extrapolation to exactly the true hit radius:
-	_kalman_extrapolation_eval_tree->Branch("phi2te",&_kalman_extrapolation_eval_tree_phi_ex_g4,"phi2te/F");
-	_kalman_extrapolation_eval_tree->Branch("z2te",&_kalman_extrapolation_eval_tree_z_ex_g4,"z2te/F");
-	_kalman_extrapolation_eval_tree->Branch("r2te",&_kalman_extrapolation_eval_tree_r_ex_g4,"r2te/F");
-
-	//linear fit to exactly the true hit radius:
-	_kalman_extrapolation_eval_tree->Branch("phi2lin",&_kalman_extrapolation_eval_tree_phi_lin_g4,"phi2lin/F");
-	_kalman_extrapolation_eval_tree->Branch("z2lin",&_kalman_extrapolation_eval_tree_z_lin_g4,"z2lin/F");
-	_kalman_extrapolation_eval_tree->Branch("r2lin",&_kalman_extrapolation_eval_tree_r_lin_g4,"r2lin/F");
-
-
-	_kalman_extrapolation_eval_tree->Branch("phi80t",&_kalman_extrapolation_eval_tree_phi_g4_80,"phi80t/F");
-	_kalman_extrapolation_eval_tree->Branch("z80t",&_kalman_extrapolation_eval_tree_z_g4_80,"z80t/F");
-	_kalman_extrapolation_eval_tree->Branch("r80t",&_kalman_extrapolation_eval_tree_r_g4_80,"r80t/F");
-	_kalman_extrapolation_eval_tree->Branch("phi80e",&_kalman_extrapolation_eval_tree_phi_ex_80,"phi80e/F");
-	_kalman_extrapolation_eval_tree->Branch("z80e",&_kalman_extrapolation_eval_tree_z_ex_80,"z80e/F");
-	_kalman_extrapolation_eval_tree->Branch("r80e",&_kalman_extrapolation_eval_tree_r_ex_80,"r80e/F");
-	
-	//extrapolation to exactly the true hit radius with Christof's method:
-	_kalman_extrapolation_eval_tree->Branch("phi2chr",&_kalman_extrapolation_eval_tree_phi_chr,"phi2chr/F");
-	_kalman_extrapolation_eval_tree->Branch("z2chr",&_kalman_extrapolation_eval_tree_z_chr,"z2chr/F");
-	_kalman_extrapolation_eval_tree->Branch("r2chr",&_kalman_extrapolation_eval_tree_r_chr,"r2chr/F");
-	
-	//before rotation:
-	_kalman_extrapolation_eval_tree->Branch("sigma_x",&_kalman_extrapolation_eval_tree_covin_x);
-	_kalman_extrapolation_eval_tree->Branch("sigma_y",&_kalman_extrapolation_eval_tree_covin_y);
-	_kalman_extrapolation_eval_tree->Branch("sigma_z",&_kalman_extrapolation_eval_tree_covin_z);
 
 
 }
@@ -1014,21 +1038,88 @@ void PHG4TrackKalmanFitter::reset_eval_variables() {
 	_cluster_eval_tree_gy = WILD_FLOAT;
 	_cluster_eval_tree_gz = WILD_FLOAT;
 
-	_kalman_extrapolation_eval_tree_phi = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_z = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_r = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_okay = false;
-	 _kalman_extrapolation_eval_tree_sigma_rphi = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_sigma_z = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_sigma_r = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_sigma_rphi_z = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_sigma_z_r = WILD_FLOAT;
-	 _kalman_extrapolation_eval_tree_sigma_r_rphi = WILD_FLOAT;
 
-	 //before rotation:
-	_kalman_extrapolation_eval_tree_covin_x = WILD_FLOAT;
-	_kalman_extrapolation_eval_tree_covin_y = WILD_FLOAT;
-	_kalman_extrapolation_eval_tree_covin_z = WILD_FLOAT;
+	
+	_kalman_extrapolation_eval_tree_pti=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_pxi=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_pyi=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_pzi=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_nintt=-9999;
+	_kalman_extrapolation_eval_tree_nmvtx=-9999;
+
+	//data from the g4 hits track:
+	_kalman_extrapolation_eval_tree_has_g4_track=false;
+	 _kalman_extrapolation_eval_tree_g4_nhits=-9999;
+	//g4track extrapolated to the innermost g4TPC hit.
+	 _kalman_extrapolation_eval_tree_g4_okay_ex_g4=false;
+	_kalman_extrapolation_eval_tree_g4_phi_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_g4_z_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_g4_r_ex_g4=WILD_FLOAT;
+	//g4track momentum from last hit on track:
+	_kalman_extrapolation_eval_tree_g4_pt=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_g4_px=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_g4_py=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_g4_pz=WILD_FLOAT;
+
+	//data from the cluster track:
+	 _kalman_extrapolation_eval_tree_has_cluster_track=false;
+	 _kalman_extrapolation_eval_tree_cluster_nhits=-9999;
+	//cluster track extrapolated to the ifc radius.
+	 _kalman_extrapolation_eval_tree_okay_ifc=false;
+	_kalman_extrapolation_eval_tree_phi_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_ifc=WILD_FLOAT;
+	//with covariance info thoroughness:
+	_kalman_extrapolation_eval_tree_sigma_r_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_rphi_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_z_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_r_rphi_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_rphi_z_ifc=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_z_r_ifc=WILD_FLOAT;
+	//TPC cluster position nearest R=30:
+	 _kalman_extrapolation_eval_tree_okay_30_clust=false;
+	_kalman_extrapolation_eval_tree_phi_30_clust=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_30_clust=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_30_clust=WILD_FLOAT;
+	//cluster track extrapolated to the TPC cluster position.
+	 _kalman_extrapolation_eval_tree_okay_30=false;
+	_kalman_extrapolation_eval_tree_phi_30=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_30=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_30=WILD_FLOAT;
+	//g4TPC hit nearest R=30:
+	 _kalman_extrapolation_eval_tree_ng4hits_30_true=-9999; //number of hits nearby
+	 _kalman_extrapolation_eval_tree_okay_30_true=false;
+	_kalman_extrapolation_eval_tree_phi_30_true=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_30_true=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_30_true=WILD_FLOAT;
+	//cluster extrapolated to that R=30 g4TPC hit.
+	 _kalman_extrapolation_eval_tree_okay_ex_g4=false;
+	_kalman_extrapolation_eval_tree_phi_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_ex_g4=WILD_FLOAT;
+	//with covariance info thoroughness:
+	_kalman_extrapolation_eval_tree_sigma_r_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_rphi_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_z_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_r_rphi_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_rphi_z_ex_g4=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_sigma_z_r_ex_g4=WILD_FLOAT;
+	//g4TPC hit nearest R=80:
+	 _kalman_extrapolation_eval_tree_ng4hits_80_true=-9999; //number of hits nearby
+	 _kalman_extrapolation_eval_tree_okay_80_true=false;
+	_kalman_extrapolation_eval_tree_phi_80_true=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_80_true=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_80_true=WILD_FLOAT;
+	//cluster extrapolated to that R=80 g4TPC hit.
+	 _kalman_extrapolation_eval_tree_okay_ex_80=false;
+	_kalman_extrapolation_eval_tree_phi_ex_80=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_z_ex_80=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_r_ex_80=WILD_FLOAT;
+	//cluster track momentum from last hit on track:
+	_kalman_extrapolation_eval_tree_pt=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_px=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_py=WILD_FLOAT;
+	_kalman_extrapolation_eval_tree_pz=WILD_FLOAT;
 
 }
 

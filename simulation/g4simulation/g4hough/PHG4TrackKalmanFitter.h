@@ -345,75 +345,88 @@ private:
 
 	TTree *_kalman_extrapolation_eval_tree;
 
-	int _kalman_extrapolation_eval_tree_nhits;
+	//data from the svtx track alone:
+	float _kalman_extrapolation_eval_tree_pti;
+	float _kalman_extrapolation_eval_tree_pxi;
+	float _kalman_extrapolation_eval_tree_pyi;
+	float _kalman_extrapolation_eval_tree_pzi;
 	int _kalman_extrapolation_eval_tree_nintt;
 	int _kalman_extrapolation_eval_tree_nmvtx;
-	int _kalman_extrapolation_eval_tree_ng4hits;
-	float	_kalman_extrapolation_eval_tree_pt;
-	float	_kalman_extrapolation_eval_tree_px;
-	float	_kalman_extrapolation_eval_tree_py;
-	float	_kalman_extrapolation_eval_tree_pz;
-	float	_kalman_extrapolation_eval_tree_pti;
-	float	_kalman_extrapolation_eval_tree_pxi;
-	float	_kalman_extrapolation_eval_tree_pyi;
-	float	_kalman_extrapolation_eval_tree_pzi;
-	
-	bool _kalman_extrapolation_eval_tree_has_cluster_track;
-	float  _kalman_extrapolation_eval_tree_phi;
-	float _kalman_extrapolation_eval_tree_z;
-	float _kalman_extrapolation_eval_tree_r;
-	bool _kalman_extrapolation_eval_tree_okay;
-	float _kalman_extrapolation_eval_tree_sigma_rphi;
-	float _kalman_extrapolation_eval_tree_sigma_z;
-	float _kalman_extrapolation_eval_tree_sigma_r;
-	float _kalman_extrapolation_eval_tree_sigma_rphi_z;
-	float _kalman_extrapolation_eval_tree_sigma_z_r;
-	float _kalman_extrapolation_eval_tree_sigma_r_rphi;
 
-	//with g4track:
+	//data from the g4 hits track:
 	bool _kalman_extrapolation_eval_tree_has_g4_track;
-	bool _kalman_extrapolation_eval_tree_g4track_to_30_okay;
-	float	   _kalman_extrapolation_eval_tree_g4_phi_ex_g4;
-	float	   _kalman_extrapolation_eval_tree_g4_z_ex_g4;
-	float	   _kalman_extrapolation_eval_tree_g4_r_ex_g4;
-	
-	//at larger radius:
-	float  _kalman_extrapolation_eval_tree_phi2_true;
-	float _kalman_extrapolation_eval_tree_z2_true;
-	float _kalman_extrapolation_eval_tree_r2_true;
-	float  _kalman_extrapolation_eval_tree_phi2_clust;
-	float _kalman_extrapolation_eval_tree_z2_clust;
-	float _kalman_extrapolation_eval_tree_r2_clust;
-	float  _kalman_extrapolation_eval_tree_phi2;
-	float _kalman_extrapolation_eval_tree_z2;
-	float _kalman_extrapolation_eval_tree_r2;
+	int _kalman_extrapolation_eval_tree_g4_nhits;
+	//g4track extrapolated to the innermost g4TPC hit.
+	bool _kalman_extrapolation_eval_tree_g4_okay_ex_g4;
+	float _kalman_extrapolation_eval_tree_g4_phi_ex_g4;
+	float _kalman_extrapolation_eval_tree_g4_z_ex_g4;
+	float _kalman_extrapolation_eval_tree_g4_r_ex_g4;
+	//g4track momentum from last hit on track:
+	float _kalman_extrapolation_eval_tree_g4_pt;
+	float _kalman_extrapolation_eval_tree_g4_px;
+	float _kalman_extrapolation_eval_tree_g4_py;
+	float _kalman_extrapolation_eval_tree_g4_pz;
+
+	//data from the cluster track:
+	bool _kalman_extrapolation_eval_tree_has_cluster_track;
+	int _kalman_extrapolation_eval_tree_cluster_nhits;
+	//cluster track extrapolated to the ifc radius.
+	bool _kalman_extrapolation_eval_tree_okay_ifc;
+	float _kalman_extrapolation_eval_tree_phi_ifc;
+	float _kalman_extrapolation_eval_tree_z_ifc;
+	float _kalman_extrapolation_eval_tree_r_ifc;
+	//with covariance info thoroughness:
+	float _kalman_extrapolation_eval_tree_sigma_r_ifc;
+	float _kalman_extrapolation_eval_tree_sigma_rphi_ifc;
+	float _kalman_extrapolation_eval_tree_sigma_z_ifc;
+	float _kalman_extrapolation_eval_tree_sigma_r_rphi_ifc;
+	float _kalman_extrapolation_eval_tree_sigma_rphi_z_ifc;
+	float _kalman_extrapolation_eval_tree_sigma_z_r_ifc;
+	//TPC cluster position nearest R=30:
+	bool _kalman_extrapolation_eval_tree_okay_30_clust;
+	float _kalman_extrapolation_eval_tree_phi_30_clust;
+	float _kalman_extrapolation_eval_tree_z_30_clust;
+	float _kalman_extrapolation_eval_tree_r_30_clust;
+	//cluster track extrapolated to the TPC cluster position.
+	bool _kalman_extrapolation_eval_tree_okay_30;
+	float _kalman_extrapolation_eval_tree_phi_30;
+	float _kalman_extrapolation_eval_tree_z_30;
+	float _kalman_extrapolation_eval_tree_r_30;
+	//g4TPC hit nearest R=30:
+	int _kalman_extrapolation_eval_tree_ng4hits_30_true; //number of hits nearby
+	bool _kalman_extrapolation_eval_tree_okay_30_true;
+	float _kalman_extrapolation_eval_tree_phi_30_true;
+	float _kalman_extrapolation_eval_tree_z_30_true;
+	float _kalman_extrapolation_eval_tree_r_30_true;
+	//cluster extrapolated to that R=30 g4TPC hit.
+	bool _kalman_extrapolation_eval_tree_okay_ex_g4;
 	float _kalman_extrapolation_eval_tree_phi_ex_g4;
 	float _kalman_extrapolation_eval_tree_z_ex_g4;
 	float _kalman_extrapolation_eval_tree_r_ex_g4;
-	float _kalman_extrapolation_eval_tree_phi_lin_g4;
-	float _kalman_extrapolation_eval_tree_z_lin_g4;
-	float _kalman_extrapolation_eval_tree_r_lin_g4;
-	float _kalman_extrapolation_eval_tree_phi_chr;
-	float _kalman_extrapolation_eval_tree_z_chr;
-	float _kalman_extrapolation_eval_tree_r_chr;
-
-	//at outer radius:
-	float _kalman_extrapolation_eval_tree_phi_g4_80;
-	float _kalman_extrapolation_eval_tree_z_g4_80;
-	float _kalman_extrapolation_eval_tree_r_g4_80;
+	//with covariance info thoroughness:
+	float _kalman_extrapolation_eval_tree_sigma_r_ex_g4;
+	float _kalman_extrapolation_eval_tree_sigma_rphi_ex_g4;
+	float _kalman_extrapolation_eval_tree_sigma_z_ex_g4;
+	float _kalman_extrapolation_eval_tree_sigma_r_rphi_ex_g4;
+	float _kalman_extrapolation_eval_tree_sigma_rphi_z_ex_g4;
+	float _kalman_extrapolation_eval_tree_sigma_z_r_ex_g4;
+	//g4TPC hit nearest R=80:
+	int _kalman_extrapolation_eval_tree_ng4hits_80_true; //number of hits nearby
+	bool _kalman_extrapolation_eval_tree_okay_80_true;
+	float _kalman_extrapolation_eval_tree_phi_80_true;
+	float _kalman_extrapolation_eval_tree_z_80_true;
+	float _kalman_extrapolation_eval_tree_r_80_true;
+	//cluster extrapolated to that R=80 g4TPC hit.
+	bool _kalman_extrapolation_eval_tree_okay_ex_80;
 	float _kalman_extrapolation_eval_tree_phi_ex_80;
 	float _kalman_extrapolation_eval_tree_z_ex_80;
 	float _kalman_extrapolation_eval_tree_r_ex_80;
+	//cluster track momentum from last hit on track:
+	float _kalman_extrapolation_eval_tree_pt;
+	float _kalman_extrapolation_eval_tree_px;
+	float _kalman_extrapolation_eval_tree_py;
+	float _kalman_extrapolation_eval_tree_pz;
 	
-	bool _kalman_extrapolation_eval_tree_okay2;
-	float _kalman_extrapolation_eval_tree_sigma_rphi2;
-	float _kalman_extrapolation_eval_tree_sigma_z2;
-	float _kalman_extrapolation_eval_tree_sigma_r2;
-	//before rotation: //defunct now!
-	float _kalman_extrapolation_eval_tree_covin_x;
-	float _kalman_extrapolation_eval_tree_covin_y;
-	float _kalman_extrapolation_eval_tree_covin_z;
-
 
 	
 	bool _do_evt_display;
