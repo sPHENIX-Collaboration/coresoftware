@@ -387,7 +387,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		   //find the g4hit closest to the extrapolated hit in radius (arbitrarily picks the first hit it finds in that layer)
 		   TVector3 g4track_pos(30,0,0);//x=30 so we have a radius of 30.
 		   TVector3 g4track_pos_true(-9000,-9000,-9000);
-		   g4track_pos_true=getClosestG4HitPos(g4track_pos,topNode);
+		   int ng4g4hits=-999;
+
+		   g4track_pos_true=getClosestG4HitPos(g4track_pos,topNode,ng4g4hits);
+		   _kalman_extrapolation_eval_tree_g4_ng4hits_30_true=ng4g4hits;
+		  _kalman_extrapolation_eval_tree_g4_okay_30_true=g4track_pos_true.X()>-9000;
+		  _kalman_extrapolation_eval_tree_g4_phi_30_true=g4track_pos_true.Phi();
+		  _kalman_extrapolation_eval_tree_g4_z_30_true=g4track_pos_true.Z();
+		  _kalman_extrapolation_eval_tree_g4_r_30_true=g4track_pos_true.Perp();
 		   //extrapolate the track to the g4 hit position as well:
 		   //extrapolation to the cluster position:
 		   TMatrixF g4track_cov_ex_g4(3,3);
@@ -431,9 +438,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		    
 		  //get the cluster closest to the desired radius (gives us the correct radius, too):
-		  TVector3 pos_30_clust(0,0,0);
+		  TVector3 pos_30_clust(-9000,-9000,-9000);
 		  pos_30_clust=getClusterPosAtRadius(30.0,svtx_track);
-		  bool okay_30_clust=pos_30_clust.Mag()>0;
+		  bool okay_30_clust=pos_30_clust.X()>-9000;
 		  _kalman_extrapolation_eval_tree_okay_30_clust=okay_30_clust;
 		  _kalman_extrapolation_eval_tree_phi_30_clust=pos_30_clust.Phi();
 		  _kalman_extrapolation_eval_tree_z_30_clust=pos_30_clust.Z();
@@ -448,11 +455,13 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  _kalman_extrapolation_eval_tree_z_30=pos_30.Z();
 		  _kalman_extrapolation_eval_tree_r_30=pos_30.Perp();
 		  
-		  //look for a position close to the first pad row.
+		  //look for a g4 position close to the first pad row.
 		  //find the g4hit closest to the extrapolated hit in radius (aribtrarily picks the first hit it finds in that layer)
 		  TVector3 pos_30_true(-9000,-9000,-9000);
+		  TVector3 target_pos(30,0,0);//x=30 so we have a radius of 30.
+
 		  int ng4hits=0;
-		  pos_30_true=getClosestG4HitPos(pos_30,topNode, ng4hits);
+		  pos_30_true=getClosestG4HitPos(target_pos,topNode, ng4hits);//previously looked near the cluster
 		  _kalman_extrapolation_eval_tree_ng4hits_30_true=ng4hits;
 		  _kalman_extrapolation_eval_tree_okay_30_true=pos_30_true.X()>-9000;
 		  _kalman_extrapolation_eval_tree_phi_30_true=pos_30_true.Phi();
@@ -797,6 +806,7 @@ int PHG4TrackKalmanFitter::End(PHCompositeNode *topNode) {
 			cout << PHWHERE << " Writing to file: " << _eval_outname << endl;
 		PHTFileServer::get().cd(_eval_outname);
 		_eval_tree->Write();
+		_lost_hit_eval->Write();
 		_cluster_eval_tree->Write();
 		_kalman_extrapolation_eval_tree->Write();
 	}
@@ -921,6 +931,18 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_cluster_eval_tree->Branch("gz", &_cluster_eval_tree_gz, "gz/F");
 
 	//RCC add extrapolation branch to the output so we can check resolutions:
+
+	_lost_hit_eval=new TTree("lost_hit_eval","eval of hits lost from kalman filter");
+	_lost_hit_eval->Branch("r", &_lost_hit_eval_r,"r/F");
+	_lost_hit_eval->Branch("x", &_lost_hit_eval_x,"x/F");
+	_lost_hit_eval->Branch("y", &_lost_hit_eval_y,"y/F");
+	_lost_hit_eval->Branch("z", &_lost_hit_eval_z,"z/F");
+	_lost_hit_eval->Branch("found",&_lost_hit_eval_found,"found/O");
+	_lost_hit_eval->Branch("has_svtx",&_lost_hit_eval_has_svtx,"has_svtx/O");
+	_lost_hit_eval->Branch("has_intt",&_lost_hit_eval_has_intt,"has_intt/O");
+	_lost_hit_eval->Branch("has_mvtx",&_lost_hit_eval_has_maps,"has_mvtx/O");
+
+	
 	_kalman_extrapolation_eval_tree = new TTree("kalman_eval","kalman extrapolation eval tree");
 
 	//data from the svtx track alone:
@@ -934,6 +956,12 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	//data from the g4 hits track:
 	_kalman_extrapolation_eval_tree->Branch("has_g4", &_kalman_extrapolation_eval_tree_has_g4_track, "has_g4/O");
 	_kalman_extrapolation_eval_tree->Branch("g4_nhits", &_kalman_extrapolation_eval_tree_g4_nhits, "g4_nhits/I");
+	//g4TPC hit nearest R=30:
+	_kalman_extrapolation_eval_tree->Branch("g4_ng430t", &_kalman_extrapolation_eval_tree_g4_ng4hits_30_true, "g4_ng430t/I");
+	_kalman_extrapolation_eval_tree->Branch("g4_ok30t", &_kalman_extrapolation_eval_tree_g4_okay_30_true, "g4_ok30t/O");
+	_kalman_extrapolation_eval_tree->Branch("g4_phi30t", &_kalman_extrapolation_eval_tree_g4_phi_30_true, "g4_phi30t/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_z30t", &_kalman_extrapolation_eval_tree_g4_z_30_true, "g4_z30t/F");
+	_kalman_extrapolation_eval_tree->Branch("g4_r30t", &_kalman_extrapolation_eval_tree_g4_r_30_true, "g4_r30t/F");
 	//g4track extrapolated to the innermost g4TPC hit.
 	_kalman_extrapolation_eval_tree->Branch("g4_ok30te",&_kalman_extrapolation_eval_tree_g4_okay_ex_g4,"g4_ok30te/O");
 	_kalman_extrapolation_eval_tree->Branch("g4_phi30te",&_kalman_extrapolation_eval_tree_g4_phi_ex_g4,"g4_phi30te/F");
@@ -1487,6 +1515,17 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(cell->get_g4hits().first->first);
 			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
 
+			
+			_lost_hit_eval_r=pos.Perp();
+			_lost_hit_eval_x=pos.X();
+			_lost_hit_eval_y=pos.Y();
+			_lost_hit_eval_z=pos.Z();
+			_lost_hit_eval_found=(phg4hit!=nullptr);
+			_lost_hit_eval_has_svtx=(phg4hits_svtx!=nullptr);
+			_lost_hit_eval_has_intt=(phg4hits_intt!=nullptr);
+			_lost_hit_eval_has_maps=(phg4hits_maps!=nullptr);
+			_lost_hit_eval->Fill();
+			
 			if (!phg4hit) {
 				if (Verbosity() >= 0)
 					LogError("!phg4hit");

@@ -343,6 +343,16 @@ private:
 	float _cluster_eval_tree_gy;
 	float _cluster_eval_tree_gz;
 
+	TTree* _lost_hit_eval;
+	float _lost_hit_eval_r;
+	float _lost_hit_eval_x;
+	float _lost_hit_eval_y;
+	float _lost_hit_eval_z;
+	float _lost_hit_eval_found;
+	bool _lost_hit_eval_has_svtx;
+	bool _lost_hit_eval_has_intt;
+	bool _lost_hit_eval_has_maps;
+	
 	TTree *_kalman_extrapolation_eval_tree;
 
 	//data from the svtx track alone:
@@ -356,7 +366,14 @@ private:
 	//data from the g4 hits track:
 	bool _kalman_extrapolation_eval_tree_has_g4_track;
 	int _kalman_extrapolation_eval_tree_g4_nhits;
-	//g4track extrapolated to the innermost g4TPC hit.
+
+	//innermost g4tpc hit (found by looking for 30cm directly)
+	int _kalman_extrapolation_eval_tree_g4_ng4hits_30_true;
+	float _kalman_extrapolation_eval_tree_g4_okay_30_true;
+	float _kalman_extrapolation_eval_tree_g4_phi_30_true;
+	float _kalman_extrapolation_eval_tree_g4_z_30_true;
+	float _kalman_extrapolation_eval_tree_g4_r_30_true;
+	//g4track extrapolated to that innermost g4TPC hit.
 	bool _kalman_extrapolation_eval_tree_g4_okay_ex_g4;
 	float _kalman_extrapolation_eval_tree_g4_phi_ex_g4;
 	float _kalman_extrapolation_eval_tree_g4_z_ex_g4;
