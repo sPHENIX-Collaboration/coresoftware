@@ -25,6 +25,10 @@ libqa_modules_la_LIBADD = \
   -lg4jets_io \
   -lg4eval
 
+pkginclude_HEADERS = \
+  QAG4SimulationCalorimeter.h \
+  QAHistManagerDef.h
+
 libqa_modules_la_SOURCES = \
   QAHistManagerDef.C \
   QAHistManagerDef_Dict.C \

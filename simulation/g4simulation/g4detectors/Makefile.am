@@ -46,6 +46,7 @@ pkginclude_HEADERS = \
   PHG4BlockCellGeomContainer.h \
   PHG4BlockGeom.h \
   PHG4BlockGeomContainer.h \
+  PHG4BlockSubsystem.h \
   PHG4Cell.h \
   PHG4Cellv1.h \
   PHG4Cellv2.h \
@@ -91,6 +92,10 @@ pkginclude_HEADERS = \
   PHG4MapsSubsystem.h \
   PHG4OuterHcalSubsystem.h \
   PHG4PrototypeHcalDefs.h \
+  PHG4Prototype2HcalCellReco.h \
+  PHG4Prototype2OuterHcalSubsystem.h \
+  PHG4Prototype2InnerHcalSubsystem.h \
+  PHG4Prototype3InnerHcalSubsystem.h \
   PHG4PSTOFSubsystem.h \
   PHG4RICHSubsystem.h \
   PHG4ScintillatorSlat.h \
@@ -102,6 +107,7 @@ pkginclude_HEADERS = \
   PHG4SiliconTrackerDefs.h \
   PHG4SiliconTrackerSubsystem.h \
   PHG4SpacalSubsystem.h \
+  PHG4SpacalPrototypeSubsystem.h \
   PHG4StepStatusDecode.h \
   PHG4TPCDistortion.h \
   PHG4TPCSpaceChargeDistortion.h
