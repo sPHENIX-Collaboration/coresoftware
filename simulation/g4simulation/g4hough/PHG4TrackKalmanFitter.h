@@ -355,6 +355,12 @@ private:
 	
 	TTree *_kalman_extrapolation_eval_tree;
 
+	//data from the truth container:
+	float _kalman_extrapolation_eval_tree_true_pti;
+       	float _kalman_extrapolation_eval_tree_true_pxi;
+	float _kalman_extrapolation_eval_tree_true_pyi;
+	float _kalman_extrapolation_eval_tree_true_pzi;
+	int _kalman_extrapolation_eval_tree_true_npart;
 	//data from the svtx track alone:
 	float _kalman_extrapolation_eval_tree_pti;
 	float _kalman_extrapolation_eval_tree_pxi;

@@ -327,6 +327,29 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		 //generic information that doesn't require the refits to work:
 		 TVector3 mom(svtx_track->get_px(),svtx_track->get_py(),svtx_track->get_pz());
 
+		 //rccrccrcc
+		 //try to find the right truth particle:
+		 //should already be taken care of:	_truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+
+		 TVector3 true_mom(0,0,0);
+		 int n_particles=0;
+		 for (PHG4TruthInfoContainer::ConstIterator itr =
+			_truth_container->GetPrimaryParticleRange().first;
+		      itr != _truth_container->GetPrimaryParticleRange().second; ++itr){
+		   PHG4Particlev2* part=dynamic_cast<PHG4Particlev2*>(itr->second);
+		   n_particles++;
+		   TVector3 cand_mom(part->get_px(),part->get_py(),part->get_pz());
+		   if (cand_mom.Mag()>true_mom.Mag()){ //for single track events, highest momentum should be the primary particle
+		     true_mom=cand_mom;
+		   }
+		 }
+		 _kalman_extrapolation_eval_tree_true_pti=mom.Perp();
+		 _kalman_extrapolation_eval_tree_true_pxi=mom.X();
+		 _kalman_extrapolation_eval_tree_true_pyi=mom.Y();
+		 _kalman_extrapolation_eval_tree_true_pzi=mom.Z();
+		 _kalman_extrapolation_eval_tree_true_npart=n_particles;
+		   
+		 
 		 //count the number of MVTX and INTT hits:
 		 SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
 		 PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
@@ -945,6 +968,11 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	
 	_kalman_extrapolation_eval_tree = new TTree("kalman_eval","kalman extrapolation eval tree");
 
+	_kalman_extrapolation_eval_tree->Branch("true_pti", &_kalman_extrapolation_eval_tree_true_pti, "true_pti/F");
+	_kalman_extrapolation_eval_tree->Branch("true_pxi", &_kalman_extrapolation_eval_tree_true_pxi, "true_pxi/F");
+	_kalman_extrapolation_eval_tree->Branch("true_pyi", &_kalman_extrapolation_eval_tree_true_pyi, "true_pyi/F");
+	_kalman_extrapolation_eval_tree->Branch("true_pzi", &_kalman_extrapolation_eval_tree_true_pzi, "true_pzi/F");
+	_kalman_extrapolation_eval_tree->Branch("true_npart", &_kalman_extrapolation_eval_tree_true_npart, "true_npart/I");
 	//data from the svtx track alone:
 	_kalman_extrapolation_eval_tree->Branch("pti", &_kalman_extrapolation_eval_tree_pti, "pti/F");
 	_kalman_extrapolation_eval_tree->Branch("pxi", &_kalman_extrapolation_eval_tree_pxi, "pxi/F");
