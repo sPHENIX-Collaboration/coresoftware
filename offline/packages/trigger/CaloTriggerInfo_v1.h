@@ -120,7 +120,7 @@ class CaloTriggerInfo_v1 : public CaloTriggerInfo
   float m_FULLCALO_1p0x1p0_BEST_ETA;
   float m_FULLCALO_1p0x1p0_BEST_PHI;
 
-  ClassDef(CaloTriggerInfo_v1, 2);
+  ClassDef(CaloTriggerInfo_v1, 3);
 };
 
 #endif  // __CALOTRIGGERINFO_V1_H__
