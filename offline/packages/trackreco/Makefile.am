@@ -25,7 +25,15 @@ libtrack_reco_la_SOURCES = \
   PHTruthVertexing.C \
   PHTruthVertexing_Dict.C \
   PHTruthTrackSeeding.C \
-  PHTruthTrackSeeding_Dict.C
+  PHTruthTrackSeeding_Dict.C \
+  PHHoughSeeding.C \
+  PHHoughSeeding_Dict.C \
+  PHKalmanTrkProp.C \
+  PHKalmanTrkProp_Dict.C \
+  PHKalmanTrkFitter.C \
+  PHKalmanTrkFitter_Dict.C \
+  PHRaveVertexing.C \
+  PHRaveVertexing_Dict.C
 
 libtrack_reco_la_LDFLAGS = \
   -L$(libdir) \
