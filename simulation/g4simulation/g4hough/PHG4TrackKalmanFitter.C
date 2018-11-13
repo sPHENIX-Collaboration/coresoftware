@@ -343,10 +343,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		     true_mom=cand_mom;
 		   }
 		 }
-		 _kalman_extrapolation_eval_tree_true_pti=mom.Perp();
-		 _kalman_extrapolation_eval_tree_true_pxi=mom.X();
-		 _kalman_extrapolation_eval_tree_true_pyi=mom.Y();
-		 _kalman_extrapolation_eval_tree_true_pzi=mom.Z();
+		 _kalman_extrapolation_eval_tree_true_pti=true_mom.Perp();
+		 _kalman_extrapolation_eval_tree_true_pxi=true_mom.X();
+		 _kalman_extrapolation_eval_tree_true_pyi=true_mom.Y();
+		 _kalman_extrapolation_eval_tree_true_pzi=true_mom.Z();
 		 _kalman_extrapolation_eval_tree_true_npart=n_particles;
 		   
 		 
@@ -964,6 +964,9 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_lost_hit_eval->Branch("has_svtx",&_lost_hit_eval_has_svtx,"has_svtx/O");
 	_lost_hit_eval->Branch("has_intt",&_lost_hit_eval_has_intt,"has_intt/O");
 	_lost_hit_eval->Branch("has_mvtx",&_lost_hit_eval_has_maps,"has_mvtx/O");
+	_lost_hit_eval->Branch("in_svtx",&_lost_hit_eval_in_svtx,"in_svtx/O");
+	_lost_hit_eval->Branch("in_intt",&_lost_hit_eval_in_intt,"in_intt/O");
+	_lost_hit_eval->Branch("in_mvtx",&_lost_hit_eval_in_maps,"in_mvtx/O");
 
 	
 	_kalman_extrapolation_eval_tree = new TTree("kalman_eval","kalman extrapolation eval tree");
@@ -1548,10 +1551,34 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			_lost_hit_eval_x=pos.X();
 			_lost_hit_eval_y=pos.Y();
 			_lost_hit_eval_z=pos.Z();
-			_lost_hit_eval_found=(phg4hit!=nullptr);
-			_lost_hit_eval_has_svtx=(phg4hits_svtx!=nullptr);
-			_lost_hit_eval_has_intt=(phg4hits_intt!=nullptr);
-			_lost_hit_eval_has_maps=(phg4hits_maps!=nullptr);
+			
+			_lost_hit_eval_found=false;
+			if (phg4hit) _lost_hit_eval_found=true;
+			
+			_lost_hit_eval_has_svtx=false;
+			_lost_hit_eval_in_svtx=false;
+			if(phg4hits_svtx){
+			  _lost_hit_eval_has_svtx=true;
+			  if (phg4hits_intt->findHit(cell->get_g4hits().first->first))
+			    _lost_hit_eval_in_svtx=true;
+			}
+			
+			_lost_hit_eval_has_intt=false;
+			_lost_hit_eval_in_intt=false;
+			if(phg4hits_intt){
+			  _lost_hit_eval_has_intt=true;
+			  if (phg4hits_intt->findHit(cell->get_g4hits().first->first))
+			    _lost_hit_eval_in_intt=true;
+			}
+			
+			_lost_hit_eval_has_maps=false;
+			_lost_hit_eval_in_maps=false;
+			if(phg4hits_maps){
+			  _lost_hit_eval_has_maps=true;
+			  if (phg4hits_intt->findHit(cell->get_g4hits().first->first))
+			    _lost_hit_eval_in_maps=true;
+			}
+			
 			_lost_hit_eval->Fill();
 			
 			if (!phg4hit) {

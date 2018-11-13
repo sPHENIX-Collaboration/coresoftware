@@ -352,6 +352,9 @@ private:
 	bool _lost_hit_eval_has_svtx;
 	bool _lost_hit_eval_has_intt;
 	bool _lost_hit_eval_has_maps;
+	bool _lost_hit_eval_in_svtx;
+	bool _lost_hit_eval_in_intt;
+	bool _lost_hit_eval_in_maps;
 	
 	TTree *_kalman_extrapolation_eval_tree;
 
@@ -361,6 +364,7 @@ private:
 	float _kalman_extrapolation_eval_tree_true_pyi;
 	float _kalman_extrapolation_eval_tree_true_pzi;
 	int _kalman_extrapolation_eval_tree_true_npart;
+	
 	//data from the svtx track alone:
 	float _kalman_extrapolation_eval_tree_pti;
 	float _kalman_extrapolation_eval_tree_pxi;
