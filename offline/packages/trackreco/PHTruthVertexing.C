@@ -72,7 +72,7 @@ int PHTruthVertexing::Process() {
 	gsl_rng_free(RandomGenerator);
 #endif
 
-	if (verbosity > 1) {
+	if (Verbosity() > 1) {
 		cout << __LINE__ << " PHTruthVertexing::Process: {" << pos[0]
 				<< ", " << pos[1] << ", " << pos[2] << "} +- {"
 				<< _vertex_error[0] << ", " << _vertex_error[1] << ", "

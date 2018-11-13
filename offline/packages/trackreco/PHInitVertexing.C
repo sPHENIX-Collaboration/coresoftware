@@ -68,7 +68,7 @@ int PHInitVertexing::CreateNodes(PHCompositeNode* topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -76,7 +76,7 @@ int PHInitVertexing::CreateNodes(PHCompositeNode* topNode) {
 	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 			_vertex_map, "SvtxVertexMap", "PHObject");
 	tb_node->addNode(vertexes_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxVertexMap node added" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;

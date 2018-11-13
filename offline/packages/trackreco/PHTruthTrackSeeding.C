@@ -90,7 +90,7 @@ int PHTruthTrackSeeding::Process() {
 		if(!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
 
 		if(!cell){
-			if(verbosity >= 1) {
+			if(Verbosity() >= 1) {
 				LogError("!cell");
 			}
 			continue;
@@ -107,7 +107,7 @@ int PHTruthTrackSeeding::Process() {
 			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
 
 			if(!phg4hit){
-				if(verbosity >= 1) {
+				if(Verbosity() >= 1) {
 					LogError("!phg4hit");
 				}
 				continue;
@@ -150,7 +150,7 @@ int PHTruthTrackSeeding::Process() {
 		}
 	}
 
-	if (verbosity >= 2) {
+	if (Verbosity() >= 2) {
 		for (SvtxTrackMap::Iter iter = _track_map->begin();
 				iter != _track_map->end(); ++iter) {
 			SvtxTrack* svtx_track = iter->second;
@@ -198,7 +198,7 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode) {
 			topNode, "G4HIT_MAPS");
 
 	if (!phg4hits_svtx and phg4hits_intt and !phg4hits_maps) {
-		if (verbosity >= 0) {
+		if (Verbosity() >= 0) {
 			cerr << PHWHERE << " ERROR: No PHG4HitContainer found!" << endl;
 		}
 		return Fun4AllReturnCodes::ABORTRUN;
@@ -222,7 +222,7 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode) {
 			topNode, "G4CELL_MAPS");
 
 	if (!cells_svtx and !cells_intt and !cells_maps) {
-		if (verbosity >= 0) {
+		if (Verbosity() >= 0) {
 			cerr << PHWHERE << " ERROR: No PHG4CellContainer found!" << endl;
 		}
 		return Fun4AllReturnCodes::ABORTRUN;

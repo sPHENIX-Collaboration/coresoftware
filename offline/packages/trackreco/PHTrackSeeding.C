@@ -74,7 +74,7 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -82,14 +82,14 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode) {
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
 			_track_map, "SvtxTrackMap", "PHObject");
 	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxTrackMap node added" << endl;
 
 	_assoc_container = new AssocInfoContainer;
 	PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
 			_assoc_container, "AssocInfoContainer", "PHObject");
 	tb_node->addNode(assoc_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/AssocInfoContainer node added" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;
