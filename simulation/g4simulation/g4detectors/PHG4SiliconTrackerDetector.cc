@@ -1,6 +1,6 @@
 #include "PHG4SiliconTrackerDetector.h"
 #include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeom_Siladders.h"
+#include "PHG4CylinderGeomSiLadders.h"
 #include "PHG4SiliconTrackerParameterisation.h"
 
 #include <phparameter/PHParameters.h>
@@ -26,7 +26,7 @@
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
-
+#include <array>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
 
@@ -48,8 +48,7 @@ PHG4SiliconTrackerDetector::PHG4SiliconTrackerDetector(PHCompositeNode *Node, PH
   const PHParameters *par = m_ParamsContainer->GetParameters(PHG4SiliconTrackerDefs::SUPPORTPARAMS);
   m_IsSupportActive = par->get_int_param("supportactive");
   fill_n(&m_PosZ[0][0], sizeof(m_PosZ) / sizeof(double), NAN);
-  fill_n(m_SensorRadiusInner, sizeof(m_SensorRadiusInner) / sizeof(double), NAN);
-  fill_n(m_SensorRadiusOuter, sizeof(m_SensorRadiusOuter) / sizeof(double), NAN);
+  fill_n(m_SensorRadius, sizeof(m_SensorRadius) / sizeof(double), NAN);
   fill_n(m_StripOffsetX, sizeof(m_StripOffsetX) / sizeof(double), NAN);
 }
 
@@ -95,26 +94,21 @@ void PHG4SiliconTrackerDetector::Construct(G4LogicalVolume *logicWorld)
 
 int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *trackerenvelope)
 {
-  // We have an arbitray number of layers (nlayer_)
+  // We have an arbitray number of layers (nlayer_) up to 8
   // We have 2 types of ladders (vertical strips and horizontal strips)
   // We have 2 types of sensors (inner and outer)
-  double hdi_z_arr[4][2];
+  array<array<double, 2>, 8> hdi_z_arr;
   // we loop over layers. All layers have only one laddertype
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
-
   {
     int inttlayer = layeriter->second;
     // get the parameters for this layer
     const PHParameters *params1 = m_ParamsContainer->GetParameters(inttlayer);
     const int laddertype = params1->get_int_param("laddertype");
     const double offsetphi = (params1->get_double_param("offsetphi") * deg) / rad;  // use rad internally
-    double offsetrot = (params1->get_double_param("offsetrot") * deg) / rad;        // use rad internally
-    m_SensorRadiusInner[inttlayer] = params1->get_double_param("sensor_radius_inner") * cm;
-    m_SensorRadiusOuter[inttlayer] = params1->get_double_param("sensor_radius_outer") * cm;
+    double offsetrot = (params1->get_double_param("offsetrot") * deg) / rad;        // offsetrot is specified in deg, we convert to rad here
+    m_SensorRadius[inttlayer] = params1->get_double_param("sensor_radius") * cm;
     const int nladders_layer = params1->get_int_param("nladder");
-    cout << "Constructing Silicon Tracker layer: " << endl;
-    cout << "   layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
-         << " sensor_radius_inner " << m_SensorRadiusInner[inttlayer] << " sensor_radius_outer " << m_SensorRadiusOuter[inttlayer] << endl;
 
     // Look up all remaining parameters by the laddertype for this layer
     const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
@@ -128,12 +122,20 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
     double fphx_x = params->get_double_param("fphx_x") * cm;
     double fphx_y = params->get_double_param("fphx_y") * cm;
     double fphx_z = params->get_double_param("fphx_z") * cm;
+    double fphx_offset_z = params->get_double_param("fphx_offset_z") * cm;
     double pgs_x = params->get_double_param("pgs_x") * cm;
     double halfladder_z = params->get_double_param("halfladder_z") * cm;
     double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * cm;
     double stave_straight_inner_y = params->get_double_param("stave_straight_inner_y") * cm;
     double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * cm;
 
+    if (Verbosity() > 0)
+    {
+      cout << "Constructing Silicon Tracker layer: " << endl;
+      cout << "  layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
+	   << " sensor_radius " << m_SensorRadius[inttlayer]  << " offsetphi " << offsetphi << " rad " << " offsetphi " << offsetphi * rad/deg << " deg " 
+	   << endl;
+    }
     // We loop over inner, then outer, sensors, where  itype specifies the inner or outer sensor
     // The rest of this loop will construct and put in place a section of a ladder corresponding to the Z range of this sensor only
     for (int itype = 0; itype < 2; ++itype)
@@ -185,8 +187,8 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       // Si-sensor full (active+inactive) area
       const double sifull_x = siactive_x;
-      const double sifull_y = siactive_y + 2.0 * params->get_double_param("sensor_edge_phi");
-      const double sifull_z = siactive_z + 2.0 * params->get_double_param("sensor_edge_z");
+      const double sifull_y = siactive_y + 2.0 * params->get_double_param("sensor_edge_phi") * cm;
+      const double sifull_z = siactive_z + 2.0 * params->get_double_param("sensor_edge_z") * cm;
       G4VSolid *sifull_box = new G4Box((boost::format("sifull_box_%d_%d") % inttlayer % itype).str(), sifull_x / 2., sifull_y / 2.0, sifull_z / 2.0);
 
       // Si-sensor inactive area
@@ -208,7 +210,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // Make the HDI Kapton and copper volumes
 
       // This makes HDI volumes that matche this sensor in Z length
-      const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z");
+      const double hdi_z = sifull_z + params->get_double_param("hdi_edge_z") * cm;
       hdi_z_arr[inttlayer][itype] = hdi_z;
       G4VSolid *hdi_kapton_box = new G4Box((boost::format("hdi_kapton_box_%d_%d") % inttlayer % itype).str(), hdi_kapton_x / 2., hdi_y / 2., hdi_z / 2.0);
       G4LogicalVolume *hdi_kapton_volume = new G4LogicalVolume(hdi_kapton_box, G4Material::GetMaterial("G4_KAPTON"),
@@ -271,7 +273,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       fphx_vis.SetColour(G4Colour::Blue());
       fphx_volume->SetVisAttributes(fphx_vis);
 
-      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx");
+      const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx") * cm;
 
       //  FPHX Container
       // make a container for the FPHX chips needed for this sensor, and  then place them in the container
@@ -306,7 +308,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
         exit(1);
       }
       cell_length_z = strip_z * nstrips_z_sensor / ncopy;
-      offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. : -2. * cell_length_z / 2. * double(ncopy / 2);
+      offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. + fphx_offset_z : -2. * cell_length_z / 2. * double(ncopy / 2) + fphx_offset_z ;
       G4VPVParameterisation *fphxparam = new PHG4SiliconTrackerFPHXParameterisation(offsetx, +offsety, offsetz, 2. * cell_length_z / 2., ncopy);
       new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(),
                             fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
@@ -342,7 +344,7 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       // These are different for laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z  and
       // PHG4SiliconTrackerDefs::SEGMENTATION_PHI, but they use some common elements.
 
-      // The curved section is made from a G4Cons, which is a generalized section of a cone
+      // The curved section is made from a G4Tubs, which is a generalized section of a cylinder
       // Two curved sections combined should move the inner wall to be 2.0 mm away from the PGS, then 2 more sections bring it back
       // For 1 of these tube sections,starting at 90 degrees, take decrease in y=1 mm at avge R.
       // If avge R = 2.15 mm, dtheta = invcos( (R - y)/R ) = invcos(1.15/2.15) = 53.49 deg
@@ -618,10 +620,18 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
         for (int i = 0; i < 8; i++)
         {
-          int ivol = i;
+// initially this was ivol = i; if (ivol > 3) ivol = i -4;
+// but that triggered a false positive in coverity
+// this should make it happy and reduce the noise in the coverity reports
+          int ivol; 
           if (i > 3)
+	  {
             ivol = i - 4;
-
+	  }
+	  else
+	  {
+	    ivol = i;
+	  }
           new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_volume[ivol], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
           new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_ext_volume[ivol], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
         }
@@ -641,12 +651,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       const double ladder_x = stave_x + pgs_x + hdi_kapton_x + hdi_copper_x + fphx_x;
       double ladder_y = hdi_y;
 
-      // For laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z we need to make the ladder big enough in y so that the sensor can be placed at the center
-      // Thus when we rotate the ladder into place, the sensor will be at the correct radius and perpendicular to the radial vector through its center
-      if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_Z)
-      {
-        ladder_y = ladder_y + 2.0 * sensor_offset_y;
-      }
       G4VSolid *ladder_box = new G4Box((boost::format("ladder_box_%d_%d") % inttlayer % itype).str(), ladder_x / 2., ladder_y / 2., hdi_z / 2.);
       G4LogicalVolume *ladder_volume = new G4LogicalVolume(ladder_box, G4Material::GetMaterial("G4_AIR"), (boost::format("ladder_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
@@ -669,10 +673,6 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       // Carbon stave
       double TVstave_y = 0.0;
-      if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_Z)
-      {
-        TVstave_y = -sensor_offset_y;  // for type PHG4SiliconTrackerDefs::SEGMENTATION_Z the stave is offset from the sensor center, and the sensor center is the middle of the stave volume
-      }
       const double TVstave_x = ladder_x / 2. - stave_x / 2.;
       new G4PVPlacement(0, G4ThreeVector(TVstave_x, TVstave_y, 0.0), stave_volume, (boost::format("stave_%d_%d") % inttlayer % itype).str(),
                         ladder_volume, false, 0, OverlapCheck());
@@ -697,16 +697,21 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
       new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, (boost::format("hdiextcopper_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0, OverlapCheck());
 
       // Si-sensor
+      double TVSi_y = 0.0;  
+      // sensor is not centered in y in the ladder volume for the Z sensitive ladders
+      if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_Z)
+	TVSi_y = +sensor_offset_y;
       const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;
-      // sensor is centered in y in the ladder volume for both types
-      new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siinactive_volume,
+      new G4PVPlacement(0, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siinactive_volume,
                         (boost::format("siinactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
-      new G4PVPlacement(0, G4ThreeVector(TVSi_x, 0.0, 0.0), siactive_volume,
+      new G4PVPlacement(0, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siactive_volume,
                         (boost::format("siactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
 
       // FPHX container
       const double TVfphx_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_x / 2.;
-      const double TVfphx_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
+      double TVfphx_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
+      if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_Z)
+	TVfphx_y -= sensor_offset_y;
       // laddertype PHG4SiliconTrackerDefs::SEGMENTATION_Z has only one FPHX, laddertype PHG4SiliconTrackerDefs::SEGMENTATION_PHI has two
       if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_PHI)
       {
@@ -737,27 +742,32 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
 
       for (int icopy = 0; icopy < nladders_layer; icopy++)
       {
-        const double phi = offsetphi + dphi * icopy;  // offsetphi is zero by default, so we start at zero
+	// sensor center
+        const double phi = offsetphi + dphi * icopy;  // if offsetphi is zero we start at zero
+
         double radius;
-        // there is no single radius for a layer
-        if (icopy % 2)
-        {
-          radius = m_SensorRadiusOuter[inttlayer];  // every odd numbered copy is placed at the larger radius
-        }
-        else
-        {
-          radius = m_SensorRadiusInner[inttlayer];
-        }
+	// Make each layer at a single radius - i.e. what was formerly a sub-layer is now considered a layer
+	radius = m_SensorRadius[inttlayer];
         radius += sensor_offset_x_ladder;
-        const double posx = radius * cos(phi);
-        const double posy = radius * sin(phi);
-        const double fRotate = phi + offsetrot;  // no initial rotation, since we assembled the ladder in phi = 0 orientation
-        // G4RotationMatrix *ladderrotation = new G4RotationMatrix();
-        // ladderrotation->rotateZ(fRotate);
+
+	double p = 0.0;
+	if (laddertype == PHG4SiliconTrackerDefs::SEGMENTATION_Z)
+	  {
+	    // The Z sensitive ladders have the sensors offset in y relative to the ladder center
+	    // We have to slightly rotate the ladder in its own frame to make the radial vector to the sensor center normal to the sensor face
+	    p = atan(sensor_offset_y / radius);
+	    // then we adjust the distance to the center of the ladder to put the sensor at the requested distance from the center of the barrel
+	    radius /= cos(p);
+	  }
+
+	// these describe the center of the ladder volume, placing it so that the center of the sensor is at phi = dphi * icopy, and at the correct radius
+        const double posx = radius * cos(phi - p);
+        const double posy = radius * sin(phi - p);
+        const double fRotate = p + (phi-p) + offsetrot;  // rotate in its own frame to make sensor perp to radial vector (p), then additionally rotate to account for ladder phi
         G4RotationMatrix ladderrotation;
         ladderrotation.rotateZ(fRotate);
 
-        // place the copy at its ladder phi value, and at positive (2) and negative (1) Z
+	// this placement version rotates the ladder in its own frame by fRotate, then translates the center to posx, posy, +/- m_PosZ
         auto pointer_negz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
                                               (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         auto pointer_posz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
@@ -767,6 +777,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
           m_ActiveVolumeTuple.insert(make_pair(pointer_negz, make_tuple(inttlayer, itype, icopy, -1)));
           m_ActiveVolumeTuple.insert(make_pair(pointer_posz, make_tuple(inttlayer, itype, icopy, 1)));
         }
+
+	// The net effect of the above manipulations for the Z sensitive ladders is that the center of the sensor is at dphi * icopy and at the requested radius
+	// That us all that the geometry object needs to know, so no changes to that are necessary
 
         if (itype != 0)
         {
@@ -779,12 +792,11 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
                             (boost::format("ladderext_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         }
 
-        /*
-	      cout << "Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype] 
-		   << " fRotate " << fRotate << " posx " << posx << " posy " << posy << " sensor_offset_x_ladder " << sensor_offset_x_ladder 
-		   << endl;
-	      */
-
+	if (Verbosity() > 100)
+	  cout << "   Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype] 
+	       << " fRotate " << fRotate << " posx " << posx << " posy " << posy 
+	       << endl;
+		
       }  // end loop over ladder copy placement in phi and positive and negative Z
     }    // end loop over inner or outer sensor
   }      // end loop over layers
@@ -795,19 +807,20 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   /*
     6 rails, which are 12mm OD and 9mm ID tubes at a radius of 175 mm.  They are spaced equidistantly in phi.
           For the 6 rails, there should be one at the very top and bottom (ie, along the vertical), and then the rest are symmetrically placed in phi.  
-         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don’t have to put the parts that stick out in the simulation.
+         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
     An inner skin with a OD at 64 mm and a thickness of 0.150 mm.
     An outer skin with a ID at 157 mm and a thickness of 1 mm (~0.5% rad len).
     
     All of the above are carbon fiber.
   */
+  const PHParameters *supportparams = m_ParamsContainer->GetParameters(PHG4SiliconTrackerDefs::SUPPORTPARAMS);
 
   // rails
-  double rail_inner_radius = 4.5;
-  double rail_outer_radius = 6.0;
-  double rail_length = 410.0 * 10.0;  // TPC length is 410 cm
   G4Tubs *rail_tube = new G4Tubs((boost::format("si_support_rail")).str(),
-                                 rail_inner_radius, rail_outer_radius, rail_length / 2.0, -M_PI, 2.0 * M_PI);
+				 supportparams->get_double_param("rail_inner_radius")*cm,
+				 supportparams->get_double_param("rail_outer_radius")*cm,
+				 supportparams->get_double_param("rail_length")*cm / 2.0,
+                                 -M_PI, 2.0 * M_PI);
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                      "rail_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -820,9 +833,9 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   rail_vis.SetColour(G4Colour::Cyan());
   rail_volume->SetVisAttributes(rail_vis);
 
-  double rail_dphi = M_PI / 3.0;
-  double rail_phi_start = M_PI / 6.0;
-  double rail_radius = 175.0;
+  double rail_dphi = supportparams->get_double_param("rail_dphi")*deg/rad;
+  double rail_phi_start = supportparams->get_double_param("rail_phi_start")*deg/rad;
+  double rail_radius = supportparams->get_double_param("rail_radius")*cm;
   for (int i = 0; i < 6; i++)
   {
     double phi = rail_phi_start + i * rail_dphi;
@@ -838,7 +851,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // Outer skin
 
   G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
-                                       157.0, 158.0, 480.0, -M_PI, 2.0 * M_PI);
+				       supportparams->get_double_param("outer_skin_inner_radius")*cm,
+				       supportparams->get_double_param("outer_skin_outer_radius")*cm,
+				       supportparams->get_double_param("outer_skin_length")*cm/2.,
+				       -M_PI, 2.0 * M_PI);
   G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "outer_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -852,7 +868,10 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // Inner skin
 
   G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin",
-                                       63.85, 64.0, 480.0, -M_PI, 2.0 * M_PI);
+				       supportparams->get_double_param("inner_skin_inner_radius")*cm,
+				       supportparams->get_double_param("inner_skin_outer_radius")*cm,
+				       supportparams->get_double_param("inner_skin_length")*cm/2.,
+				       -M_PI, 2.0 * M_PI);
   G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "inner_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -867,11 +886,12 @@ int PHG4SiliconTrackerDetector::ConstructSiliconTracker(G4LogicalVolume *tracker
   // Add an outer shell for the MVTX - move this to the MVTX detector module
   //=======================================================
   // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
-  double skin_thickness = 0.1;
-  double foam_core_thickness = 1.8;
-  double mvtx_shell_length = 420.0;
+  double skin_thickness = supportparams->get_double_param("mvtx_shell_skin_thickness")*cm;
+  double foam_core_thickness = supportparams->get_double_param("mvtx_shell_foam_core_thickness")*cm;
+  double mvtx_shell_length = supportparams->get_double_param("mvtx_shell_length")*cm;
 
-  double mvtx_shell_inner_skin_inner_radius = 48.0;
+  double mvtx_shell_inner_skin_inner_radius = supportparams->get_double_param("mvtx_shell_inner_skin_inner_radius")*cm;
+
   double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + skin_thickness;
   double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + foam_core_thickness;
 
@@ -936,7 +956,7 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
       const int laddertype = params_layer->get_int_param("laddertype");
       // parameters are stored in cm per our convention
       const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeom_Siladders(
+      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomSiLadders(
           sphxlayer,
           params->get_double_param("strip_x"),
           params->get_double_param("strip_y"),
@@ -948,11 +968,10 @@ void PHG4SiliconTrackerDetector::AddGeometryNode()
           params_layer->get_int_param("nladder"),
           m_PosZ[ilayer][0] / cm,  // m_PosZ uses G4 internal units, needs to be converted to cm
           m_PosZ[ilayer][1] / cm,
-          m_SensorRadiusInner[ilayer] / cm,
-          m_SensorRadiusOuter[ilayer] / cm,
+          m_SensorRadius[ilayer] / cm,
           0.0,
-          params_layer->get_double_param("offsetphi"),
-          params_layer->get_double_param("offsetrot"));
+          params_layer->get_double_param("offsetphi") * deg/rad,    // expects radians
+          params_layer->get_double_param("offsetrot") * deg/rad );   
       geo->AddLayerGeom(sphxlayer, mygeom);
       if (Verbosity() > 0)
       {

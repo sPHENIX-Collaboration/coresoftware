@@ -123,7 +123,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode* topNode)
   // Report Settings
   //----------------
   
-  if (verbosity > 0)
+  if (Verbosity() > 0)
   {
     cout << "====================== MvtxClusterizer::InitRun() =====================" << endl;
     cout << " Z-dimension Clustering = " << boolalpha << m_makeZClustering << noboolalpha << endl;
@@ -162,7 +162,7 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode) {
 
 void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
   
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
   
   //-----------
@@ -179,7 +179,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
     
     TrkrHitSet* hitset = hitsetitr->second;
 
-    if (verbosity>2)
+    if (Verbosity()>2)
       hitset->identify();
     
 
@@ -197,7 +197,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
       unsigned int row = MvtxDefs::getRow(hitr->first);
       hitvec.push_back(make_pair(col, row));
     }
-    if ( verbosity>2 )
+    if ( Verbosity()>2 )
       cout << "hitvec.size(): " << hitvec.size() << endl;
     
     // do the clustering
@@ -244,7 +244,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
 
       multimap<int, pixel>::iterator mapiter = clusrange.first;
 
-      if (verbosity > 2)
+      if (Verbosity() > 2)
         cout << "Filling cluster id " << clusid << endl;
 
       // make cluster
@@ -342,7 +342,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
       clus->setError( 2 , 2 , ERR[2][2] );
 
 
-      if ( verbosity > 2 )
+      if ( Verbosity() > 2 )
         clus->identify();
 
     } // clusitr
@@ -355,7 +355,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode) {
 void MvtxClusterizer::PrintClusters(PHCompositeNode * topNode)
 {
 
-  if (verbosity >= 1) {
+  if (Verbosity() >= 1) {
 
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TrkrClusterContainer");
     if (!clusterlist) return;

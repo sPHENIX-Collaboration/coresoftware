@@ -145,6 +145,7 @@ pkginclude_HEADERS = \
   PHG4ParticleGenerator.h \
   PHG4ParticleGeneratorBase.h \
   PHG4ParticleGeneratorVectorMeson.h \
+  PHG4ParticleGun.h \
   PHG4PhenixDetector.h \
   PHG4PileupGenerator.h \
   PHG4Reco.h \

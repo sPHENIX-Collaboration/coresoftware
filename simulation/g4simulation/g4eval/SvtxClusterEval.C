@@ -130,6 +130,7 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(SvtxCluster* cluster)
          iter != new_g4hits.end();
          ++iter)
     {
+      //cout << "cluster_eval insert g4hit " << *iter->
       truth_hits.insert(*iter);
     }
   }

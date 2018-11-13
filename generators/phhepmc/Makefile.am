@@ -39,6 +39,7 @@ libphhepmc_la_LIBADD = \
   -lSubsysReco \
   -lboost_iostreams \
   -lfun4all \
+  -lflowafterburner \
   -lgsl \
   -lgslcblas
 
@@ -51,6 +52,8 @@ libphhepmc_la_SOURCES = \
   Fun4AllHepMCOutputManager_Dict.C \
   Fun4AllOscarInputManager.cc \
   Fun4AllOscarInputManager_Dict.C \
+  HepMCFlowAfterBurner.cc \
+  HepMCFlowAfterBurner_Dict.C \
   PHHepMCGenHelper.cc \
   PHHepMCGenHelper_Dict.C \
   PHHepMCParticleSelectorDecayProductChain.cc \

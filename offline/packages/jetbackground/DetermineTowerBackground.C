@@ -73,7 +73,7 @@ void DetermineTowerBackground::SetSeedType( int seed_type ) {
 
 int DetermineTowerBackground::Init(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "DetermineTowerBackground::Init: initialized" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -86,7 +86,7 @@ int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 
 int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     std::cout << "DetermineTowerBackground::process_event: entering with do_flow = " << _do_flow << ", seed type = " << _seed_type << ", ";
     if ( _seed_type == 0 ) std::cout << " D = " << _seed_jet_D << std::endl;
     else if ( _seed_type == 1 ) std::cout << " pT = " << _seed_jet_pt << std::endl;
@@ -101,7 +101,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   RawTowerContainer *towersEM3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC_RETOWER");
   RawTowerContainer *towersIH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALIN");
   RawTowerContainer *towersOH3 = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_HCALOUT");
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     std::cout << "DetermineTowerBackground::process_event: " << towersEM3->size() << " TOWER_CALIB_CEMC_RETOWER towers" << std::endl;
     std::cout << "DetermineTowerBackground::process_event: " << towersIH3->size() << " TOWER_CALIB_HCALIN towers" << std::endl;
     std::cout << "DetermineTowerBackground::process_event: " << towersOH3->size() << " TOWER_CALIB_HCALOUT towers" << std::endl;
@@ -114,7 +114,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   if (_seed_type == 0) {
     JetMap* reco2_jets = findNode::getClass<JetMap>(topNode,"AntiKt_Tower_HIRecoSeedsRaw_r02");
 
-    if (verbosity > 1)
+    if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (1st iteration) ... " << std::endl;
 
     for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter) {
@@ -127,7 +127,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
       if (this_jet->get_pt() < 5) continue;
 
-      if (verbosity > 2)
+      if (Verbosity() > 2)
 	std::cout << "DetermineTowerBackground::process_event: possible seed jet with pt / eta / phi = " << this_pt << " / " << this_eta << " / " << this_phi << ", examining constituents..." << std::endl;
 
       std::map< int, double > constituent_ETsum;
@@ -168,12 +168,12 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
 	int comp_ikey = 1000 * comp_ieta + comp_iphi;
 
-	if (verbosity > 4)
+	if (Verbosity() > 4)
 	  std::cout << "DetermineTowerBackground::process_event: --> --> constituent in layer " << (*comp).first << " at ieta / iphi = " << comp_ieta << " / " << comp_iphi << ", filling map with key = " << comp_ikey << " and ET = " << comp_ET << std::endl;
 
 	constituent_ETsum[ comp_ikey ] += comp_ET;
 
-	if (verbosity > 4)
+	if (Verbosity() > 4)
 	  std::cout << "DetermineTowerBackground::process_event: --> --> ET sum map at key = " << comp_ikey << " now has ET = " << constituent_ETsum[ comp_ikey ] << std::endl;
 	
       }
@@ -183,10 +183,10 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float constituent_sum_ET = 0;
       int nconstituents = 0;
       
-      if (verbosity > 4)
+      if (Verbosity() > 4)
 	std::cout << "DetermineTowerBackground::process_event: --> now iterating over map..." << std::endl;
       for (std::map<int,double>::iterator map_iter = constituent_ETsum.begin(); map_iter != constituent_ETsum.end(); ++map_iter) {
-	if (verbosity > 4)
+	if (Verbosity() > 4)
 	  std::cout << "DetermineTowerBackground::process_event: --> --> map has key # " << map_iter->first << " and ET = " << map_iter->second << std::endl;
 	nconstituents++;
 	constituent_sum_ET +=  map_iter->second;
@@ -196,17 +196,17 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float mean_constituent_ET = constituent_sum_ET / nconstituents;
       float seed_D = constituent_max_ET / mean_constituent_ET;
       
-      if (verbosity > 3)
+      if (Verbosity() > 3)
 	std::cout << "DetermineTowerBackground::process_event: --> jet has < ET > = " << constituent_sum_ET << " / " << nconstituents << " = " << mean_constituent_ET << ", max-ET = " << constituent_max_ET << ", and D = " << seed_D << std::endl;
       
       if ( seed_D > _seed_jet_D ) {
 	_seed_eta.push_back( this_eta );
 	_seed_phi.push_back( this_phi );
 	
-	if (verbosity > 1)
+	if (Verbosity() > 1)
 	  std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
       } else {
-	if (verbosity > 3)
+	if (Verbosity() > 3)
 	  std::cout << "DetermineTowerBackground::process_event: --> discarding potential seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
       }
       
@@ -220,7 +220,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   if (_seed_type == 1) {
     JetMap* reco2_jets = findNode::getClass<JetMap>(topNode,"AntiKt_Tower_HIRecoSeedsSub_r02");
 
-    if (verbosity > 1)
+    if (Verbosity() > 1)
       std::cout << "DetermineTowerBackground::process_event: examining possible seeds (2nd iteration) ... " << std::endl;
     
     for (JetMap::Iter iter = reco2_jets->begin(); iter != reco2_jets->end(); ++iter) {
@@ -235,7 +235,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       _seed_eta.push_back( this_eta );
       _seed_phi.push_back( this_phi );
 
-      if (verbosity > 1)
+      if (Verbosity() > 1)
 	std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << " ) " << std::endl;
     }
     
@@ -263,7 +263,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     _FULLCALOFLOW_PHI_E.resize( _HCAL_NPHI, 0 );
     _FULLCALOFLOW_PHI_VAL.resize( _HCAL_NPHI, 0 );
 
-    if (verbosity > 0) {
+    if (Verbosity() > 0) {
       std::cout << "DetermineTowerBackground::process_event: setting number of towers in eta / phi: " << _HCAL_NETA << " / " << _HCAL_NPHI << std::endl;
     }
 
@@ -298,7 +298,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
     _EMCAL_E[ this_etabin ][ this_phibin ] += this_E;
     
-    if (verbosity > 2 && tower->get_energy() > 1)
+    if (Verbosity() > 2 && tower->get_energy() > 1)
       {
 	std::cout << "DetermineTowerBackground::process_event: EMCal tower eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
       }
@@ -319,7 +319,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
     _IHCAL_E[ this_etabin ][ this_phibin ] += this_E;
 
-    if (verbosity > 2 && tower->get_energy() > 1)
+    if (Verbosity() > 2 && tower->get_energy() > 1)
     {
       std::cout << "DetermineTowerBackground::process_event: IHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
     }
@@ -340,7 +340,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
     _OHCAL_E[ this_etabin ][ this_phibin ] += this_E;
 
-    if (verbosity > 2 && tower->get_energy() > 1)
+    if (Verbosity() > 2 && tower->get_energy() > 1)
     {
       std::cout << "DetermineTowerBackground::process_event: OHCal tower at eta ( bin ) / phi ( bin ) / E = " << std::setprecision(6) << this_eta << " ( " << this_etabin << " ) / " << this_phi << " ( " << this_phibin << " ) / " << this_E << std::endl;
     }
@@ -380,7 +380,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	    float dR = sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
 	    if (dR < 0.4) {
 	      isExcluded = true;
-	      if (verbosity > 10) std::cout << " setting excluded mark from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
+	      if (Verbosity() > 10) std::cout << " setting excluded mark from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
 	    }
 	  }
 	  
@@ -393,7 +393,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	// if this eta strip can be used for flow determination, fill it now
 	if (!isAnyTowerExcluded) {
 	  
-	  if ( verbosity > 4) 
+	  if ( Verbosity() > 4) 
 	    std::cout << " strip at layer " << layer << ", eta " << eta << " has no excluded towers and can be used for flow determination " << std::endl;
 	  nStripsAvailableForFlow++;
 	  
@@ -409,7 +409,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  }
 	  
 	} else {
-	  if ( verbosity > 4) 
+	  if ( Verbosity() > 4) 
 	    std::cout << " strip at layer " << layer << ", eta " << eta << " DOES have excluded towers and CANNOT be used for flow determination " << std::endl;
 	  nStripsUnavailableForFlow++;
 	}
@@ -425,7 +425,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     
     float sum_cos2dphi = 0;
     
-    if (verbosity > 0 )
+    if (Verbosity() > 0 )
       std::cout << "DetermineTowerBackground::process_event: # of strips (summed over layers) available / unavailable for flow determination: " << nStripsAvailableForFlow << " / " << nStripsUnavailableForFlow << std::endl;
     
     if ( nStripsAvailableForFlow > 0 ) { 
@@ -450,18 +450,18 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     } else {
       _Psi2 = 0;
       _v2 = 0;
-      if (verbosity > 0 )
+      if (Verbosity() > 0 )
 	std::cout << "DetermineTowerBackground::process_event: no full strips available for flow modulation, setting v2 and Psi = 0" << std::endl;
     }
 
-    if (verbosity > 0 ) {
+    if (Verbosity() > 0 ) {
       
       std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << E << std::endl;
       std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
     }
   } // if do flow
   else {
-    if (verbosity > 0 ) {
+    if (Verbosity() > 0 ) {
       std::cout << "DetermineTowerBackground::process_event: flow not enabled, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
     }
   }
@@ -494,7 +494,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  float dR = sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
 	  if (dR < 0.4) {
 	    isExcluded = true;
-	    if (verbosity > 10) std::cout << " setting excluded mark from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
+	    if (Verbosity() > 10) std::cout << " setting excluded mark from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
 	  }
 	}
 
@@ -504,7 +504,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  if ( layer == 2 ) total_E += _OHCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
 	  total_tower++;
 	} else {
-	  if (verbosity > 10) std::cout << " tower at eta / phi = " << this_eta << " / " << this_phi << " with E = " << total_E << " excluded due to seed " << std::endl;
+	  if (Verbosity() > 10) std::cout << " tower at eta / phi = " << this_eta << " / " << this_phi << " with E = " << total_E << " excluded due to seed " << std::endl;
 	}
 
       }
@@ -517,14 +517,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float total_area = total_tower * deta * dphi;
       _UE[ layer ].at( eta ) = total_E / total_tower;
       
-      if (verbosity > 3 ) {
+      if (Verbosity() > 3 ) {
 	std::cout << "DetermineTowerBackground::process_event: at layer / eta index ( eta range ) = " << layer << " / " << eta << " ( " << etabounds.first << " - " << etabounds.second << " ) , total E / total Ntower / total area = " << total_E << " / " << total_tower << " / " << total_area << " , UE per tower = " << total_E / total_tower << std::endl;
       }
       
     }
   }
 
-  if (verbosity > 0 ) {
+  if (Verbosity() > 0 ) {
 
     for (int layer = 0; layer < 3; layer++) {
       std::cout << "DetermineTowerBackground::process_event: summary UE in layer " << layer << " : ";
@@ -538,7 +538,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   FillNode(topNode);
 
-  if (verbosity > 0) std::cout << "DetermineTowerBackground::process_event: exiting" << std::endl;
+  if (Verbosity() > 0) std::cout << "DetermineTowerBackground::process_event: exiting" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

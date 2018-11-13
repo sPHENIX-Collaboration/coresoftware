@@ -58,7 +58,7 @@ PHG4GenHit::process_event(PHCompositeNode *topNode)
   hit->set_edep(eloss);
   hit->set_trkid(-1);
   hits_->AddHit(layer, hit);
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
   cout << "phi " << phi << " inner rad: " << inner_radius
        << ", outer rad: " << outer_radius

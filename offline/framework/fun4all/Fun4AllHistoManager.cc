@@ -82,7 +82,7 @@ Fun4AllHistoManager::dumpHistos(const string &filename, const string &openmode)
     {
       const std::string & hname = hiter->first;
       const TNamed*       hptr  = hiter->second;
-      if ( verbosity > 0 )
+      if ( Verbosity() > 0 )
         {
           std::cout << PHWHERE << " Saving histo "
 		    << hname
@@ -101,7 +101,7 @@ Fun4AllHistoManager::dumpHistos(const string &filename, const string &openmode)
           dirname = "";
         }
 
-      if (verbosity)
+      if (Verbosity())
         {
           cout << " Histogram named " << hptr->GetName();
 	  cout << " key " << hname;
@@ -163,7 +163,7 @@ Fun4AllHistoManager::registerHisto(const string &hname, TNamed *h1d, const int r
   {
     histoname = hname.substr(pos + 1);
   }
-  if (verbosity > 1)
+  if (Verbosity() > 1)
   {
     if (histoname != h1d->GetName())
     {
@@ -224,7 +224,7 @@ Fun4AllHistoManager::getHistoName(const unsigned int ihisto) const
 {
   map<const string, TNamed *>::const_iterator histoiter = Histo.begin();
   unsigned int size = Histo.size();
-  if (verbosity > 3)
+  if (Verbosity() > 3)
     {
       cout << "Map contains " << size << " Elements" << endl;
     }

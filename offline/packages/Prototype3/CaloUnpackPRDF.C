@@ -84,12 +84,12 @@ CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
     run_info_copy.FillFrom(info);
     emcal_is_higheta = run_info_copy.get_int_param("EMCAL_Is_HighEta");
   }
-  if (verbosity)
+  if (Verbosity())
     {
       cout << PHWHERE << "Process event entered" << std::endl;
     }
 
-  if (verbosity)
+  if (Verbosity())
     _event->identify();
   _packet = dynamic_cast<Packet_hbd_fpgashort*>(_event->getPacket(
       PROTOTYPE3_FEM::PACKET_ID));
@@ -214,7 +214,7 @@ CaloUnpackPRDF::process_event(PHCompositeNode *topNode)
         }
     }
 
-  if (verbosity)
+  if (Verbosity())
     {
       cout << "HCALIN Towers: " << endl;
       hcalin_towers_hg->identify();

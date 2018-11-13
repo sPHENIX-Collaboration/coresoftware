@@ -130,7 +130,7 @@ int Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
   {
     cout << "Prototype2RawTowerBuilder::InitRun :";
     if (m_TowerEnergySrc == kEnergyDeposition)
@@ -150,7 +150,7 @@ int Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
 
 int Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity > 3)
+  if (Verbosity() > 3)
   {
     std::cout << PHWHERE << "Process event entered" << std::endl;
   }
@@ -178,7 +178,7 @@ int Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
   {
     PHG4ScintillatorSlat *cell = cell_iter->second;
 
-    if (verbosity > 2)
+    if (Verbosity() > 2)
     {
       std::cout << PHWHERE << " print out the cell:" << std::endl;
       cell->identify();
@@ -222,13 +222,13 @@ int Prototype2RawTowerBuilder::process_event(PHCompositeNode *topNode)
            << cellE - towerE << endl;
     }
   }
-  if (verbosity)
+  if (Verbosity())
   {
     towerE = towers->getTotalEdep();
   }
 
   towers->compress(m_Emin);
-  if (verbosity)
+  if (Verbosity())
   {
     cout << "Energy lost by dropping towers with less than " << m_Emin
          << " energy, lost energy: " << towerE - towers->getTotalEdep()

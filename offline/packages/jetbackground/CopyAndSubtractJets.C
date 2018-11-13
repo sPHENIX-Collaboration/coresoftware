@@ -40,7 +40,7 @@ CopyAndSubtractJets::~CopyAndSubtractJets()
 
 int CopyAndSubtractJets::Init(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "CopyAndSubtractJets::Init: initialized" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -56,7 +56,7 @@ int CopyAndSubtractJets::InitRun(PHCompositeNode *topNode)
 
 int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     std::cout << "CopyAndSubtractJets::process_event: entering, with _use_flow_modulation = " << _use_flow_modulation << std::endl;
 
   // pull out needed calo tower info
@@ -80,7 +80,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
   float background_v2 = background->get_v2();
   float background_Psi2 = background->get_Psi2();
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     std::cout << "CopyAndSubtractJets::process_event: entering with # unsubtracted jets = " << unsub_jets->size() << std::endl;
     std::cout << "CopyAndSubtractJets::process_event: entering with # subtracted jets = " << sub_jets->size() << std::endl;
   }
@@ -104,7 +104,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
     //if (this_jet->get_pt() < 5) continue;
     
-    if (verbosity > 1 && this_jet->get_pt() >  5)
+    if (Verbosity() > 1 && this_jet->get_pt() >  5)
       std::cout << "CopyAndSubtractJets::process_event: unsubtracted jet with pt / eta / phi = " << this_pt << " / " << this_eta << " / " << this_phi << std::endl;
     
     for (Jet::ConstIter comp = this_jet->begin_comp(); comp !=  this_jet->end_comp(); ++comp) {
@@ -149,14 +149,14 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 	comp_phi = tower_geom->get_phi();
       }
       
-      if (verbosity > 4 && this_jet->get_pt() > 5) {
+      if (Verbosity() > 4 && this_jet->get_pt() > 5) {
 	std::cout << "CopyAndSubtractJets::process_event: --> constituent in layer " << (*comp).first << ", has unsub E = " << comp_e << ", is at ieta #" << comp_ieta << ", and has UE = " << comp_background << std::endl;
       }
 
       // flow modulate background if turned on
       if ( _use_flow_modulation ) {
 	comp_background = comp_background * ( 1 + 2 * background_v2 * cos( 2 * ( comp_phi - background_Psi2 ) ) );
-	if (verbosity > 4 && this_jet->get_pt() > 5)
+	if (Verbosity() > 4 && this_jet->get_pt() > 5)
 	  std::cout << "CopyAndSubtractJets::process_event: --> --> flow mod, at phi = " << comp_phi << ", v2 and Psi2 are = " << background_v2 << " , " << background_Psi2 << ", UE after modulation = " << comp_background << std::endl;
 	
       }
@@ -184,7 +184,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
 
     sub_jets->insert( new_jet );
 
-    if (verbosity > 1 && this_pt > 5) {
+    if (Verbosity() > 1 && this_pt > 5) {
       std::cout << "CopyAndSubtractJets::process_event: old jet #" << ijet << ", old px / py / pz / e = " << this_jet->get_px() << " / " << this_jet->get_py() << " / " << this_jet->get_pz() << " / " << this_jet->get_e() << std::endl;
       std::cout << "CopyAndSubtractJets::process_event: new jet #" << ijet << ", new px / py / pz / e = " << new_jet->get_px() << " / " << new_jet->get_py() << " / " << new_jet->get_pz() << " / " << new_jet->get_e() << std::endl;
     }
@@ -193,7 +193,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
       
   }	
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     std::cout << "CopyAndSubtractJets::process_event: exiting with # subtracted jets = " << sub_jets->size() << std::endl;
   }
 
@@ -234,7 +234,7 @@ int CopyAndSubtractJets::CreateNode(PHCompositeNode *topNode)
   JetMap* test_jets = findNode::getClass<JetMap>(topNode,"AntiKt_Tower_HIRecoSeedsSub_r02");
   if ( !test_jets ) {
 
-    if (verbosity > 0) std::cout << "CopyAndSubtractJets::CreateNode : creating AntiKt_Tower_HIRecoSeedsSub_r02 node " << std::endl;
+    if (Verbosity() > 0) std::cout << "CopyAndSubtractJets::CreateNode : creating AntiKt_Tower_HIRecoSeedsSub_r02 node " << std::endl;
     
     JetMap *sub_jets = new JetMapV1();
     PHIODataNode<PHObject> *subjetNode = new PHIODataNode<PHObject>( sub_jets, "AntiKt_Tower_HIRecoSeedsSub_r02", "PHObject");

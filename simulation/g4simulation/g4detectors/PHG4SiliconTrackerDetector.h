@@ -63,10 +63,9 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
 
   int m_IsSupportActive;
 
-  double m_PosZ[4][2];
-  double m_SensorRadiusInner[4];
-  double m_SensorRadiusOuter[4];
-  double m_StripOffsetX[4];
+  double m_PosZ[8][2];
+  double m_SensorRadius[8];
+  double m_StripOffsetX[8];
 
   std::set<G4LogicalVolume *> m_ActiveLogVols;
   std::map<int, int> m_IsActiveMap;

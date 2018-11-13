@@ -195,7 +195,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 
   }  // end loop over root field map file
 
-  if (rootinput) rootinput->Close();
+  rootinput->Close();
 
   cout << "\n ---> ... read file successfully "
          << "\n ---> Z Boundaries ~ zlow, zhigh: "
@@ -296,25 +296,25 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   }
 
   vector<float>::const_iterator ziter = upper_bound(z_map_.begin(), z_map_.end(), z);
-  unsigned int z_index0 = distance(z_map_.begin(), ziter) - 1;
-  unsigned int z_index1 = z_index0 + 1;
+  int z_index0 = distance(z_map_.begin(), ziter) - 1;
+  int z_index1 = z_index0 + 1;
 
   assert(z_index0>=0);
   assert(z_index1>=0);
-  assert(z_index0<z_map_.size());
-  assert(z_index1<z_map_.size());
+  assert(z_index0<(int)z_map_.size());
+  assert(z_index1<(int)z_map_.size());
 
   vector<float>::const_iterator riter = upper_bound(r_map_.begin(), r_map_.end(), r);
-  unsigned int r_index0 = distance(r_map_.begin(), riter) - 1;
-  if (r_index0 >= r_map_.size())
+  int r_index0 = distance(r_map_.begin(), riter) - 1;
+  if (r_index0 >=(int) r_map_.size())
   {
     if (verb_ > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
     return;
   }
 
-  unsigned int r_index1 = r_index0 + 1;
-  if (r_index1 >= r_map_.size())
+  int r_index1 = r_index0 + 1;
+  if (r_index1 >= (int)r_map_.size())
   {
     if (verb_ > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
@@ -325,13 +325,13 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   assert(r_index1>=0);
 
   vector<float>::const_iterator phiiter = upper_bound(phi_map_.begin(), phi_map_.end(), phi);
-  unsigned int phi_index0 = distance(phi_map_.begin(), phiiter) - 1;
-  unsigned int phi_index1 = phi_index0 + 1;
-  if (phi_index1 >= phi_map_.size())
+  int phi_index0 = distance(phi_map_.begin(), phiiter) - 1;
+  int phi_index1 = phi_index0 + 1;
+  if (phi_index1 >= (int)phi_map_.size())
     phi_index1 = 0;
 
   assert(phi_index0>=0);
-  assert(phi_index0<phi_map_.size());
+  assert(phi_index0<(int)phi_map_.size());
   assert(phi_index1>=0);
 
   double Br000 = BFieldR_[z_index0][r_index0][phi_index0];

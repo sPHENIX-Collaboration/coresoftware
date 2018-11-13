@@ -99,7 +99,7 @@ int RawTowerDigitizer::InitRun(PHCompositeNode *topNode)
 
 int RawTowerDigitizer::process_event(PHCompositeNode *topNode)
 {
-  if (verbosity)
+  if (Verbosity())
   {
     cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
          << "Process event entered. "
@@ -231,7 +231,7 @@ RawTowerDigitizer::simple_photon_digitization(RawTower *sim_tower)
     digi_tower->set_energy((double) sum_ADC);
   }
 
-  if (verbosity >= 2)
+  if (Verbosity() >= 2)
   {
     cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
          << endl;
@@ -283,7 +283,7 @@ void RawTowerDigitizer::CreateNodes(PHCompositeNode *topNode)
     throw std::runtime_error("Failed to find " + TowerGeomNodeName + " node in RawTowerDigitizer::CreateNodes");
   }
 
-  if (verbosity >= 1)
+  if (Verbosity() >= 1)
   {
     rawtowergeom->identify();
   }

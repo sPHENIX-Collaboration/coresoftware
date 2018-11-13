@@ -80,21 +80,21 @@ QAG4SimulationCalorimeterSum::InitRun(PHCompositeNode *topNode)
           _caloevalstack_cemc.reset(
               new CaloEvalStack(topNode, _calo_name_cemc));
           _caloevalstack_cemc->set_strict(true);
-          _caloevalstack_cemc->set_verbosity(verbosity + 1);
+          _caloevalstack_cemc->set_verbosity(Verbosity() + 1);
         }
       if (!_caloevalstack_hcalin)
         {
           _caloevalstack_hcalin.reset(
               new CaloEvalStack(topNode, _calo_name_hcalin));
           _caloevalstack_hcalin->set_strict(true);
-          _caloevalstack_hcalin->set_verbosity(verbosity + 1);
+          _caloevalstack_hcalin->set_verbosity(Verbosity() + 1);
         }
       if (!_caloevalstack_hcalout)
         {
           _caloevalstack_hcalout.reset(
               new CaloEvalStack(topNode, _calo_name_hcalout));
           _caloevalstack_hcalout->set_strict(true);
-          _caloevalstack_hcalout->set_verbosity(verbosity + 1);
+          _caloevalstack_hcalout->set_verbosity(Verbosity() + 1);
         }
     }
 
@@ -104,7 +104,7 @@ QAG4SimulationCalorimeterSum::InitRun(PHCompositeNode *topNode)
         {
           _svtxevalstack.reset(new SvtxEvalStack(topNode));
           _svtxevalstack->set_strict(true);
-          _svtxevalstack->set_verbosity(verbosity + 1);
+          _svtxevalstack->set_verbosity(Verbosity() + 1);
         }
     }
   return Fun4AllReturnCodes::EVENT_OK;
@@ -139,14 +139,14 @@ QAG4SimulationCalorimeterSum::Init(PHCompositeNode *topNode)
 
 //  if (flag(kProcessTower))
 //    {
-//      if (verbosity >= 1)
+//      if (Verbosity() >= 1)
 //        cout << "QAG4SimulationCalorimeterSum::Init - Process tower occupancies"
 //            << endl;
 //      Init_Tower(topNode);
 //    }
   if (flag(kProcessCluster))
     {
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationCalorimeterSum::Init - Process tower occupancies"
             << endl;
       Init_Cluster(topNode);
@@ -155,7 +155,7 @@ QAG4SimulationCalorimeterSum::Init(PHCompositeNode *topNode)
   if (flag(kProcessTrackProj))
     {
 
-      if (verbosity >= 1)
+      if (Verbosity() >= 1)
         cout << "QAG4SimulationCalorimeterSum::Init - Process sampling fraction"
             << endl;
       Init_TrackProj(topNode);
@@ -167,7 +167,7 @@ int
 QAG4SimulationCalorimeterSum::process_event(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeterSum::process_event() entered" << endl;
 
   if (_caloevalstack_cemc)
@@ -283,7 +283,7 @@ int
 QAG4SimulationCalorimeterSum::process_event_TrackProj(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeterSum::process_event_TrackProj() entered"
         << endl;
 
@@ -358,7 +358,7 @@ QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTrack * 
   const
   double radius = towergeo->get_radius() + towergeo->get_thickness() * 0.5;
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     {
       towergeo->identify();
     }
@@ -368,7 +368,7 @@ QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTrack * 
       towernodename.c_str());
   assert(towerList);
 
-  if (verbosity > 3)
+  if (Verbosity() > 3)
     {
       cout << __PRETTY_FUNCTION__ << " - info - handling track track p = ("
           << track->get_px() << ", " << track->get_py() << ", "
@@ -424,7 +424,7 @@ QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTrack * 
       towergeo->get_phicenter(binphi) - phi + 5 * M_PI, 2 * M_PI) - M_PI)
       / phibin_width;
 
-  if (verbosity > 3)
+  if (Verbosity() > 3)
     cout << __PRETTY_FUNCTION__ << " - info - handling track proj. (" << x
         << ", " << y << ", " << z << ")" << ", eta " << eta << ", phi" << phi
         << ", bineta " << bineta << " - ["
@@ -460,7 +460,7 @@ QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTrack * 
         if (ieta >= towergeo->get_etabins())
           continue;
 
-        if (verbosity > 3)
+        if (Verbosity() > 3)
           cout << __PRETTY_FUNCTION__ << " - info - processing tower"
               << ", bineta " << ieta << " - ["
               << towergeo->get_etabounds(ieta).first << ", "
@@ -472,7 +472,7 @@ QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTrack * 
         double energy = 0;
         if (tower)
           {
-            if (verbosity > 1)
+            if (Verbosity() > 1)
               cout << __PRETTY_FUNCTION__ << " - info - tower " << ieta << " "
                   << wrapphi << " energy = " << tower->get_energy() << endl;
 
@@ -502,7 +502,7 @@ QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTrack * 
 //int
 //QAG4SimulationCalorimeterSum::process_event_Tower(PHCompositeNode *topNode)
 //{
-//  if (verbosity > 2)
+//  if (Verbosity() > 2)
 //    cout << "QAG4SimulationCalorimeterSum::process_event_Tower() entered"
 //        << endl;
 //
@@ -575,7 +575,7 @@ int
 QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode *topNode)
 {
 
-  if (verbosity > 2)
+  if (Verbosity() > 2)
     cout << "QAG4SimulationCalorimeterSum::process_event_Cluster() entered"
         << endl;
 
@@ -620,7 +620,7 @@ QAG4SimulationCalorimeterSum::process_event_Cluster(PHCompositeNode *topNode)
   if (cluster_cemc_e + cluster_hcalin_e + cluster_hcalout_e > 0)
     {
 
-      if (verbosity)
+      if (Verbosity())
         {
           cout << "QAG4SimulationCalorimeterSum::process_event_Cluster - "
               << " cluster_cemc_e = " << cluster_cemc_e

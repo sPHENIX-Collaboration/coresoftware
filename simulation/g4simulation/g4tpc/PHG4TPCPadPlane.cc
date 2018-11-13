@@ -46,3 +46,4 @@ int PHG4TPCPadPlane::InitRun(PHCompositeNode *topNode)
   UpdateInternalParameters();
   return Fun4AllReturnCodes::EVENT_OK;
 }
+

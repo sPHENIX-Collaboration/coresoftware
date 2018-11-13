@@ -53,7 +53,7 @@ int PHG4SvtxTrackProjection::InitRun(PHCompositeNode *topNode)
     if (geo) _cal_radii[i] = geo->get_radius();
   }
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "================== PHG4SvtxTrackProjection::InitRun() =====================" << endl;
     for (int i=0;i<_num_cal_layers;++i) {
       if (!std::isnan(_cal_radii[i])) {
@@ -71,7 +71,7 @@ int PHG4SvtxTrackProjection::InitRun(PHCompositeNode *topNode)
 
 int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 {
-  if(verbosity > 1) cout << "PHG4SvtxTrackProjection::process_event -- entered" << endl;
+  if(Verbosity() > 1) cout << "PHG4SvtxTrackProjection::process_event -- entered" << endl;
 
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -88,7 +88,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 
     if (std::isnan(_cal_radii[i])) continue;
 
-    if (verbosity > 1) cout << "Projecting tracks into: " << _cal_names[i] << endl;
+    if (Verbosity() > 1) cout << "Projecting tracks into: " << _cal_names[i] << endl;
 
     // pull the tower geometry
     string towergeonodename = "TOWERGEOM_" + _cal_names[i];
@@ -120,9 +120,9 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 	 ++iter) {
       SvtxTrack *track = iter->second;
 
-      if (verbosity > 1) cout << "projecting track id " << track->get_id() << endl;
+      if (Verbosity() > 1) cout << "projecting track id " << track->get_id() << endl;
 
-      if (verbosity > 1) {
+      if (Verbosity() > 1) {
 	cout << " track pt = " << track->get_pt() << endl;
       }
 
@@ -164,7 +164,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
       double phi = atan2(y,x);
       double eta = asinh(z/sqrt(x*x+y*y));
 
-      if (verbosity > 1) {
+      if (Verbosity() > 1) {
 	cout << " initial track phi = " << track->get_phi();
 	cout << ", eta = " << track->get_eta() << endl;
 	cout << " calorimeter phi = " << phi << ", eta = " << eta << endl;
@@ -204,7 +204,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 	      if (abs(iphi - binphi)<=1 and abs(ieta - bineta)<=1 )
 	        energy_3x3 += tower->get_energy();
 
-	    if (verbosity > 1) cout << " tower " << ieta << " " << wrapphi << " energy = " << tower->get_energy() << endl;
+	    if (Verbosity() > 1) cout << " tower " << ieta << " " << wrapphi << " energy = " << tower->get_energy() << endl;
 	  }
       	}
       }
@@ -244,7 +244,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
 	track->set_cal_cluster_id(_cal_types[i],min_index);
 	track->set_cal_cluster_e(_cal_types[i],min_e);
 
-	if (verbosity > 1) {
+	if (Verbosity() > 1) {
 	  cout << " nearest cluster dphi = " << min_dphi << " deta = " << min_deta << " e = " << min_e << endl;
 	}
       }
@@ -253,7 +253,7 @@ int PHG4SvtxTrackProjection::process_event(PHCompositeNode *topNode)
   } // end calorimeter layer loop
 
  
-  if(verbosity > 1) cout << "PHG4SvtxTrackProjection::process_event -- exited" << endl;
+  if(Verbosity() > 1) cout << "PHG4SvtxTrackProjection::process_event -- exited" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

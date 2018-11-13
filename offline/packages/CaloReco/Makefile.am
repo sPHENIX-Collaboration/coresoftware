@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include 
-  
+
 libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderGraph_Dict.cc \
@@ -58,7 +58,12 @@ libcalo_reco_la_LIBADD = \
 ##############################################
 # please add new classes in alphabetical order
 
-# pkginclude_HEADERS = 
+pkginclude_HEADERS = \
+  RawClusterBuilderFwd.h \
+  RawClusterBuilderGraph.h \
+  RawClusterBuilderTemplate.h \
+  RawClusterPositionCorrection.h \
+  RawTowerCalibration.h
 
 ################################################
 # linking tests

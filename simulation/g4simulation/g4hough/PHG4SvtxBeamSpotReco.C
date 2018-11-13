@@ -65,7 +65,7 @@ int PHG4SvtxBeamSpotReco::InitRun(PHCompositeNode* topNode) {
     return Fun4AllReturnCodes::ABORTEVENT;
   }
   
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "=================== PHG4SvtxBeamSpotReco::InitRun() =======================" << endl;
     cout << " Storing cumulative beam spot location under PAR/SVTX/SvtxBeamSpot" << endl;
     cout << "===========================================================================" << endl;
@@ -102,7 +102,7 @@ int PHG4SvtxBeamSpotReco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  if (verbosity > 1) _beamspot->identify();
+  if (Verbosity() > 1) _beamspot->identify();
   
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
@@ -110,7 +110,7 @@ int PHG4SvtxBeamSpotReco::process_event(PHCompositeNode *topNode)
 
 int PHG4SvtxBeamSpotReco::End(PHCompositeNode* topNode) {
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "=================== PHG4SvtxBeamSpotReco::End() ===========================" << endl;
     _beamspot->identify();
     cout << "===========================================================================" << endl;

@@ -32,7 +32,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeom_Siladders.h>
+#include <g4detectors/PHG4CylinderGeomSiLadders.h>
 
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
@@ -259,25 +259,41 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
 //	unsigned int intt_layers[] = {3, 4, 5, 6};
 //	this->set_intt_layers(intt_layers, 4);
 
-	_max_search_win_phi_intt[0] =    0.20;
-	_max_search_win_phi_intt[1] = 0.0050;
+	_max_search_win_phi_intt[0] = 0.20;
+	_max_search_win_phi_intt[1] = 0.20;
 	_max_search_win_phi_intt[2] = 0.0050;
 	_max_search_win_phi_intt[3] = 0.0050;
+	_max_search_win_phi_intt[4] = 0.0050;
+	_max_search_win_phi_intt[5] = 0.0050;
+	_max_search_win_phi_intt[6] = 0.0050;
+	_max_search_win_phi_intt[7] = 0.0050;
 
 	_min_search_win_phi_intt[0] =   0.2000;
-	_min_search_win_phi_intt[1] =   0.0;
+	_min_search_win_phi_intt[1] =   0.2000;
 	_min_search_win_phi_intt[2] =   0.0;
 	_min_search_win_phi_intt[3] =   0.0;
+	_min_search_win_phi_intt[4] =   0.0;
+	_min_search_win_phi_intt[5] =   0.0;
+	_min_search_win_phi_intt[6] =   0.0;
+	_min_search_win_phi_intt[7] =   0.0;
 
 	_max_search_win_theta_intt[0] = 0.010;
-	_max_search_win_theta_intt[1] = 0.2000;
+	_max_search_win_theta_intt[1] = 0.010;
 	_max_search_win_theta_intt[2] =  0.2000;
 	_max_search_win_theta_intt[3] =  0.2000;
+	_max_search_win_theta_intt[4] =  0.2000;
+	_max_search_win_theta_intt[5] =  0.2000;
+	_max_search_win_theta_intt[6] =  0.2000;
+	_max_search_win_theta_intt[7] =  0.2000;
 
 	_min_search_win_theta_intt[0] = 0.000;
-	_min_search_win_theta_intt[1] = 0.200;
+	_min_search_win_theta_intt[1] = 0.000;
 	_min_search_win_theta_intt[2] = 0.200;
 	_min_search_win_theta_intt[3] = 0.200;
+	_min_search_win_theta_intt[4] = 0.200;
+	_min_search_win_theta_intt[5] = 0.200;
+	_min_search_win_theta_intt[6] = 0.200;
+	_min_search_win_theta_intt[7] = 0.200;
 
 	//int seeding_layers[] = {7,15,25,35,45,55,66};
 	int ninner_layer = _nlayers_maps+_nlayers_intt;
@@ -436,7 +452,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 	_t_output_io = new PHTimer("_t_output_io");
 	_t_output_io->stop();
 
-	if (verbosity > 0) {
+	if (Verbosity() > 0) {
 		cout
 				<< "====================== PHG4KalmanPatRec::InitRun() ======================"
 				<< endl;
@@ -481,7 +497,7 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
 
 int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
-  if (verbosity > 0){
+  if (Verbosity() > 0){
 	  cout << "PHG4KalmanPatRec::process_event -- entered" << endl;
 	  cout << "nMapsLayers = " << _nlayers_maps << endl;
 	  cout << "nInttLayers = " << _nlayers_intt << endl;
@@ -519,7 +535,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 				    (int)(_nlayers_maps+_nlayers_intt+24),
 				    (int)(_nlayers_maps+_nlayers_intt+32),
 				    (int)(_nlayers_maps+_nlayers_intt+40),
-				    (int)(_nlayers_maps+_nlayers_intt+47)
+				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
 				    //7,13,19,25,31,37,46
 	    };
 
@@ -528,7 +544,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    _min_combo_hits = min_layers;
 	    _max_combo_hits = nlayers_seeds;
 	    code = InitializeGeometry(topNode);
-	    if(verbosity >= 1) _t_seed_init1->restart();
+	    if(Verbosity() >= 1) _t_seed_init1->restart();
 	    if(code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
 	  }
@@ -539,7 +555,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
 				    (int)(_nlayers_maps+_nlayers_intt+1),
 				    (int)(_nlayers_maps+_nlayers_intt+2),
-
+				    
 				    (int)(_nlayers_maps+_nlayers_intt+9),
 				    (int)(_nlayers_maps+_nlayers_intt+10),
 				    (int)(_nlayers_maps+_nlayers_intt+11),
@@ -552,7 +568,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 
 				    (int)(_nlayers_maps+_nlayers_intt+38),
 
-				    (int)(_nlayers_maps+_nlayers_intt+47)
+				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
 				    //7,13,19,25,31,37,46
 				    //7,8,13,14,19,20,26,27,34,35,40,46
 	    };
@@ -562,7 +578,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    _min_combo_hits = min_layers;
 	    _max_combo_hits = nlayers_seeds;
 	    code = InitializeGeometry(topNode);
-	    if(verbosity >= 1) _t_seed_init2->restart();
+	    if(Verbosity() >= 1) _t_seed_init2->restart();
 
 	    if(code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
@@ -582,7 +598,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 				    (int)(_nlayers_maps+_nlayers_intt+32),
 				    (int)(_nlayers_maps+_nlayers_intt+33),
 				    (int)(_nlayers_maps+_nlayers_intt+40),
-				    (int)(_nlayers_maps+_nlayers_intt+47)
+				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
 				    //7,13,19,25,31,37,46
 				    //7,8,13,14,19,20,26,27,34,35,40,46
 	    };
@@ -593,15 +609,15 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    _max_combo_hits = nlayers_seeds;
 
 	    code = InitializeGeometry(topNode);
-	    if(verbosity >= 1) _t_seed_init3->restart();
+	    if(Verbosity() >= 1) _t_seed_init3->restart();
 	    if(code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
 	  }
 
-	  if(verbosity >= 1)
+	  if(Verbosity() >= 1)
 	    cout << "Iteration number " << _n_iteration << endl; 
 	  _min_nlayers_seeding--;
-	  if(verbosity >= 1) _t_seeding->restart();
+	  if(Verbosity() >= 1) _t_seeding->restart();
 	  
 	  //-----------------------------------
 	  // Translate into Helix_Hough objects
@@ -637,12 +653,12 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	  if (code != Fun4AllReturnCodes::EVENT_OK)
 	    return code;
 	  
-	  if(verbosity >= 1) _t_seeding->stop();
-	  if(verbosity >= 1&&_n_iteration==3) _t_seed_init3->stop();
-	  if(verbosity >= 1&&_n_iteration==2) _t_seed_init2->stop();
-	  if(verbosity >= 1&&_n_iteration==1) _t_seed_init1->stop();
+	  if(Verbosity() >= 1) _t_seeding->stop();
+	  if(Verbosity() >= 1&&_n_iteration==3) _t_seed_init3->stop();
+	  if(Verbosity() >= 1&&_n_iteration==2) _t_seed_init2->stop();
+	  if(Verbosity() >= 1&&_n_iteration==1) _t_seed_init1->stop();
 
-	  if(verbosity >= 1) _t_kalman_pat_rec->restart();
+	  if(Verbosity() >= 1) _t_kalman_pat_rec->restart();
 	  
 	  //-----------------------------------
 	  // Kalman cluster association
@@ -652,7 +668,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	    if (code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
 	  }
-	  if(verbosity >= 1) _t_kalman_pat_rec->stop();
+	  if(Verbosity() >= 1) _t_kalman_pat_rec->stop();
 	  
 	  //-----------------------------------
 	  // Translate back into SVTX objects
@@ -660,7 +676,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode *topNode) {
 	  
 	  //	  add_tracks();
 	  
-	  if(verbosity > 1) print_timers();
+	  if(Verbosity() > 1) print_timers();
 	  
 	  
 	}
@@ -973,7 +989,7 @@ int PHG4KalmanPatRec::CreateNodes(PHCompositeNode* topNode) {
 	if (!tb_node) {
 		tb_node = new PHCompositeNode("SVTX");
 		dstNode->addNode(tb_node);
-		if (verbosity > 0)
+		if (Verbosity() > 0)
 			cout << "SVTX node added" << endl;
 	}
 
@@ -981,14 +997,14 @@ int PHG4KalmanPatRec::CreateNodes(PHCompositeNode* topNode) {
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_g4tracks,
 			"SvtxTrackMap", "PHObject");
 	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxTrackMap node added" << endl;
 
 	_g4vertexes = new SvtxVertexMap_v1;
 	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
 			_g4vertexes, "SvtxVertexMap", "PHObject");
 	tb_node->addNode(vertexes_node);
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << "Svtx/SvtxVertexMap node added" << endl;
 
 	/*
@@ -1088,7 +1104,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
   
-  //	if (verbosity >= 2) {
+  //	if (Verbosity() >= 2) {
   //		for (map<float, int>::const_iterator iter = radius_layer_map.begin();
   //				iter != radius_layer_map.end(); iter++) {
   //			cout << "radius_layer_map: first: " << iter->first << "; second: "
@@ -1112,7 +1128,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
     //if(ilayer >= (int) _radii.size()) break; //yuhw
   }
   
-  //	if (verbosity >= 10) {
+  //	if (Verbosity() >= 10) {
   //		for (map<int, unsigned int>::const_iterator iter = _layer_ilayer_map_all.begin();
   //				iter != _layer_ilayer_map_all.end(); iter++) {
   //			cout << "_layer_ilayer_map_all: first: " << iter->first << "; second: "
@@ -1130,7 +1146,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
       
       //if(cellgeo->get_layer() > (int) _radii.size() ) continue;
       
-      //			if (verbosity >= 2)
+      //			if (Verbosity() >= 2)
       //				cellgeo->identify();
       
       //TODO
@@ -1155,7 +1171,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
       
       //if(geo->get_layer() > (int) _radii.size() ) continue;
       
-      //			if (verbosity >= 2)
+      //			if (Verbosity() >= 2)
       //				geo->identify();
       
       _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
@@ -1177,7 +1193,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
       
       //if(geo->get_layer() > (int) _radii.size() ) continue;
       
-      //			if (verbosity >= 2)
+      //			if (Verbosity() >= 2)
       //				geo->identify();
       
       //TODO
@@ -1232,7 +1248,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 						      topNode, "G4CELL_MAPS");
   
   if (!_cells_svtx and !_cells_intt and !_cells_maps) {
-    if (verbosity >= 0) {
+    if (Verbosity() >= 0) {
       LogError("No PHG4CellContainer found!");}
     return Fun4AllReturnCodes::ABORTRUN;
   }
@@ -1521,9 +1537,9 @@ int PHG4KalmanPatRec::setup_tracker_object() {
 	_tracker->setChi2RemovalCut(_chi2_cut_full * 0.5);
 	_tracker->setCellularAutomatonChi2Cut(_ca_chi2_cut);
 	_tracker->setPrintTimings(false);
-	if(verbosity >= 2)
+	if(Verbosity() >= 2)
 		_tracker->setPrintTimings(true);
-	//_tracker->setVerbosity(verbosity);
+	//_tracker->setVerbosity(Verbosity());
 	_tracker->setCutOnDca(_cut_on_dca);
 	_tracker->setDcaCut(_dcaxy_cut);
 	_tracker->setSmoothBack(true);
@@ -1670,7 +1686,7 @@ int PHG4KalmanPatRec::translate_input() {
     _clusters.push_back(hit3d);
   }
   
-  if (verbosity > 20) {
+  if (Verbosity() > 20) {
     cout
       << "-------------------------------------------------------------------"
       << endl;
@@ -1688,10 +1704,10 @@ int PHG4KalmanPatRec::translate_input() {
       << endl;
   }
   
-  if(verbosity >= 1){
+  if(Verbosity() >= 1){
     cout << "CPUSCALE hits: " << count << endl;
     }
-  if(verbosity >= 10){
+  if(Verbosity() >= 10){
     for(int i  = 0;i<60;i++){
       cout << "layer: " << i << " << hits: " << nhits[i] << " | " << nhits_all[i] << endl;
     }
@@ -1712,7 +1728,7 @@ int PHG4KalmanPatRec::fast_vertex_from_bbc() {
 			_vertex[1] = 0.0;
 			_vertex[2] = vertex->get_z();
 
-			if (verbosity)
+			if (Verbosity())
 				cout << " initial bbc vertex guess: " << _vertex[0] << " "
 						<< _vertex[1] << " " << _vertex[2] << endl;
 		}
@@ -1765,7 +1781,7 @@ int PHG4KalmanPatRec::fast_vertex_guessing() {
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
 
-	if (verbosity)
+	if (Verbosity())
 		cout << " seed track finding count: " << _tracks.size() << endl;
 
 	if (!_tracks.empty()) {
@@ -1780,7 +1796,7 @@ int PHG4KalmanPatRec::fast_vertex_guessing() {
 
 		_vertex[2] = zsum / _tracks.size();
 
-		if (verbosity > 0) {
+		if (Verbosity() > 0) {
 			cout << " seed track vertex pre-fit: " << _vertex[0] << " "
 					<< _vertex[1] << " " << _vertex[2] << endl;
 		}
@@ -1796,7 +1812,7 @@ int PHG4KalmanPatRec::fast_vertex_guessing() {
 	_track_errors.clear();
 	_track_covars.clear();
 
-	if (verbosity > 0) {
+	if (Verbosity() > 0) {
 		cout << " seed track vertex post-fit: " << _vertex[0] << " "
 				<< _vertex[1] << " " << _vertex[2] << endl;
 	}
@@ -1839,7 +1855,7 @@ int PHG4KalmanPatRec::initial_vertex_finding() {
 	// don't need the tracker object anymore
 	_tracker_vertex->clear();
 
-	if (verbosity)
+	if (Verbosity())
 		cout << " initial track finding count: " << _tracks.size() << endl;
 
 	if (!_tracks.empty()) {
@@ -1860,7 +1876,7 @@ int PHG4KalmanPatRec::initial_vertex_finding() {
 		_vertex[1] = ysum / _tracks.size();
 		_vertex[2] = zsum / _tracks.size();
 
-		if (verbosity > 0) {
+		if (Verbosity() > 0) {
 			cout << " initial track vertex pre-fit: " << _vertex[0] - shift_dx
 					<< " " << _vertex[1] - shift_dy << " "
 					<< _vertex[2] - shift_dz << endl;
@@ -1881,7 +1897,7 @@ int PHG4KalmanPatRec::initial_vertex_finding() {
 	// shift back to the global coordinates
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
 
-	if (verbosity > 0) {
+	if (Verbosity() > 0) {
 		cout << " initial track vertex post-fit: " << _vertex[0] << " "
 				<< _vertex[1] << " " << _vertex[2] << endl;
 	}
@@ -1915,7 +1931,7 @@ int PHG4KalmanPatRec::vertexing(PHCompositeNode* topNode) {
 	gsl_rng_free(RandomGenerator);
 #endif
 
-	if (verbosity > 1) {
+	if (Verbosity() > 1) {
 		cout << __LINE__ << " PHG4KalmanPatRec::vertexing: {" << _vertex[0]
 				<< ", " << _vertex[1] << ", " << _vertex[2] << "} +- {"
 				<< _vertex_error[0] << ", " << _vertex_error[1] << ", "
@@ -1941,16 +1957,16 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	_tracker->clear();
 	// final track finding
 	_tracker->findHelices(_clusters, _min_combo_hits, _max_combo_hits, _tracks);
-	if(verbosity >= 1)
+	if(Verbosity() >= 1)
 	  cout << "SEEDSTUDY nbefore clean (" << _min_nlayers_seeding << "): " << _tracks.size() << endl;
 	// Cleanup Seeds
 #ifdef _USE_ALAN_TRACK_REFITTING_
 #else
-	if(verbosity >= 1) _t_seeds_cleanup->restart();
+	if(Verbosity() >= 1) _t_seeds_cleanup->restart();
 	CleanupSeeds();
-	if(verbosity >= 1) _t_seeds_cleanup->stop();
+	if(Verbosity() >= 1) _t_seeds_cleanup->stop();
 #endif
-	if(verbosity >= 1)
+	if(Verbosity() >= 1)
 	  cout << "SEEDSTUDY nafter clean: " << _tracks.size() << endl;
 	for (unsigned int tt = 0; tt < _tracks.size(); ++tt) {
 		_track_covars.push_back((_tracker->getKalmanStates())[tt].C);
@@ -1960,12 +1976,12 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	// we will need the tracker object below to refit the tracks... so we won't
 	// reset it here
 
-	if (verbosity > 0)
+	if (Verbosity() > 0)
 		cout << " final track count: " << _tracks.size() << endl;
 #ifdef _USE_ALAN_FULL_VERTEXING_
 	if (!_tracks.empty()) {
 
-		if (verbosity > 0) {
+		if (Verbosity() > 0) {
 			cout << " final vertex pre-fit: " << _vertex[0] - shift_dx << " "
 					<< _vertex[1] - shift_dy << " " << _vertex[2] - shift_dz
 					<< endl;
@@ -1976,7 +1992,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 		_vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.020, false);
 		_vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.005, false);
 
-		if (verbosity > 0) {
+		if (Verbosity() > 0) {
 			cout << " final vertex post-fit: " << _vertex[0] - shift_dx << " "
 					<< _vertex[1] - shift_dy << " " << _vertex[2] - shift_dz
 					<< endl;
@@ -1987,7 +2003,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
 
 #ifdef _USE_ALAN_TRACK_REFITTING_
-	if(verbosity >= 1) _t_seeds_cleanup->restart();
+	if(Verbosity() >= 1) _t_seeds_cleanup->restart();
 	// we still need to update the track fields for DCA and PCA
 	// we can do that from the final vertex position
 
@@ -2003,13 +2019,13 @@ int PHG4KalmanPatRec::full_track_seeding() {
 	std::vector<double> refit_errors;
 	std::vector<Eigen::Matrix<float, 5, 5> > refit_covars;
 
-	if(verbosity >= 1){
+	if(Verbosity() >= 1){
 	  cout<<__LINE__<< ": Event: "<< _event << ": # tracks before cleanup: "<< _tracks.size() <<endl;
 	}
 
 	_tracker->finalize(_tracks, refit_tracks);
 
-	if(verbosity >= 1){
+	if(Verbosity() >= 1){
 	  cout<<__LINE__<< ": Event: "<< _event << ": # tracks after cleanup: "<< _tracks.size()  <<endl;
 	}
 
@@ -2025,7 +2041,7 @@ int PHG4KalmanPatRec::full_track_seeding() {
 
 	// shift back to global coordinates
 	shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
-	if(verbosity >= 1) _t_seeds_cleanup->stop();
+	if(Verbosity() >= 1) _t_seeds_cleanup->stop();
 #endif
 
 	// okay now we are done with the tracker
@@ -2162,7 +2178,7 @@ int PHG4KalmanPatRec::export_output() {
 		_g4tracks->insert(&track);
 		vertex.insert_track(track.get_id());
 
-		if (verbosity > 5) {
+		if (Verbosity() > 5) {
 			cout << "track " << itrack << " quality = " << track.get_quality()
 					<< endl;
 			cout << "px = " << track.get_px() << " py = " << track.get_py()
@@ -2171,10 +2187,10 @@ int PHG4KalmanPatRec::export_output() {
 	}  // track loop
 
 	SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
-	if (verbosity > 5)
+	if (Verbosity() > 5)
 		vtxptr->identify();
 
-	if (verbosity > 0) {
+	if (Verbosity() > 0) {
 		cout << "PHG4KalmanPatRec::process_event -- leaving process_event"
 				<< endl;
 	}
@@ -2355,7 +2371,7 @@ int PHG4KalmanPatRec::CleanupSeedsByHitPattern() {
         std::vector<SimpleTrack3D> _tracks_cleanup;
         _tracks_cleanup.clear();
 
-	if(verbosity >= 1){
+	if(Verbosity() >= 1){
 	  cout<<__LINE__<< ": Event: "<< _event << ": # tracks before cleanup: "<< _tracks.size() <<endl;
 	}
 
@@ -2519,7 +2535,7 @@ int PHG4KalmanPatRec::CleanupSeedsByHitPattern() {
 	  }
 	*/
 		
-	if(verbosity >= 1){
+	if(Verbosity() >= 1){
 	  cout<<__LINE__<< ": Event: "<< _event <<endl;
 	  cout << ": # tracks after cleanup: "<< _tracks.size() << " ol:" <<OutputList.size()  <<endl;
 	}
@@ -2533,7 +2549,7 @@ int PHG4KalmanPatRec::CleanupTracksByHitPattern() {
         std::vector<SimpleTrack3D> _tracks_cleanup;
         _tracks_cleanup.clear();
 
-	//	if(verbosity >= 1)
+	//	if(Verbosity() >= 1)
 	{
 	    cout<<__LINE__<< ": Event: "<< _event << ": # tracks before cleanup: "<< _tracks.size() <<endl;
 	  }
@@ -2697,7 +2713,7 @@ int PHG4KalmanPatRec::CleanupTracksByHitPattern() {
 	}
 	
 		
-       	if(verbosity >= 1)
+       	if(Verbosity() >= 1)
 	  {
 	    cout<<__LINE__<< ": Event: "<< _event <<endl;
 	    cout << ": # tracks after cleanup: "<< _tracks.size() << " ol:" <<OutputList.size()  <<endl;
@@ -2721,7 +2737,7 @@ int PHG4KalmanPatRec::check_track_exists(MapPHGenFitTrack::iterator iter){
   }
   int code = 0;
   if(((float)n_clu_used/n_clu)>0.3){
-    if(verbosity>=1)
+    if(Verbosity()>=1)
       cout << "Found duplicate track. n_clu: " << n_clu << " c_clu_used: " << n_clu_used << " n_iter: " << _n_iteration<< endl;
     /*
     for(unsigned int iCluId = 0; iCluId < clusterIDs.size(); ++iCluId){
@@ -2986,9 +3002,9 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode) {
 		/*!
 		 * Translate SimpleTrack3D To PHGenFitTracks
 		 */
-		if(verbosity > 1) _t_translate_to_PHGenFitTrack->restart();
+		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
 		SimpleTrack3DToPHGenFitTracks(topNode, itrack);
-		if(verbosity > 1) _t_translate_to_PHGenFitTrack->stop();
+		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
 
 		/*!
 		 * Handle track propagation, termination, output and evt disp.
@@ -3137,16 +3153,16 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		track.set_id(_g4tracks->size());
 
 #ifdef _DO_FULL_FITTING_
-		if(verbosity >= 1) _t_full_fitting->restart();
+		if(Verbosity() >= 1) _t_full_fitting->restart();
 		if (_fitter->processTrack(iter->second.get(), false) != 0) {
-			if (verbosity >= 1)
+			if (Verbosity() >= 1)
 				LogWarning("Track fitting failed\n");
 			//delete track;
 			return -1;
 		}
-		if(verbosity >= 1) _t_full_fitting->stop();
+		if(Verbosity() >= 1) _t_full_fitting->stop();
 
-		if(verbosity >= 1) _t_output_io->restart();
+		if(Verbosity() >= 1) _t_output_io->restart();
 //		iter->second->getGenFitTrack()->Print();
 
 		track.set_chisq(iter->second->get_chi2());
@@ -3159,7 +3175,7 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 			gf_state_vertex_ca = std::unique_ptr < genfit::MeasuredStateOnPlane
 					> (iter->second->extrapolateToPoint(vertex_position));
 		} catch (...) {
-			if (verbosity >= 2)
+			if (Verbosity() >= 2)
 				LogWarning("extrapolateToPoint failed!");
 		}
 		if (!gf_state_vertex_ca) {
@@ -3206,9 +3222,9 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		  if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
 		    n_intt++;
 		  }
-		  if(n_intt >4)
+		  if(n_intt >8)
 		    {
-		      cout << PHWHERE << " Can not have more than 4 INTT layers, quit!" << endl;
+		      cout << PHWHERE << " Can not have more than 8 INTT layers, quit!" << endl;
 		      exit(1);
 		    }
 		  if(_nlayers_tpc>0&&
@@ -3232,14 +3248,14 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 		    
 		    _g4tracks->insert(&track);
 		  }
-		if (verbosity > 5) {
+		if (Verbosity() > 5) {
 			cout << "track " << _g4tracks->size() << " quality = " << track.get_quality()
 					<< endl;
 			cout << "px = " << track.get_px() << " py = " << track.get_py()
 					<< " pz = " << track.get_pz() << endl;
 		}
 
-		if(verbosity >= 1) _t_output_io->stop();
+		if(Verbosity() >= 1) _t_output_io->stop();
 //	}
 
 
@@ -3256,7 +3272,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	double time1 = 0;
 	double time2 = 0;
 
-	if(verbosity > 1){
+	if(Verbosity() > 1){
 	  time1 = _t_translate1->get_accumulated_time();
 	  time2 = _t_translate1->get_accumulated_time();
 	  _t_translate1->restart();
@@ -3275,17 +3291,17 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	float dt = 0;
 
 	if(_tracks.at(itrack).hits.size() == 0) {
-	  if(verbosity > 1) _t_translate1->stop();
+	  if(Verbosity() > 1) _t_translate1->stop();
 	  return 1;
 	}
 
 	if(!(kappa==kappa && d==d && phi==phi && dzdl==dzdl && z0==z0)) {
-	  if(verbosity > 1) _t_translate1->stop();
+	  if(Verbosity() > 1) _t_translate1->stop();
 	  return 1;
 	}
 
 	if(kappa == 0) {
-	  if(verbosity > 1) _t_translate1->stop();
+	  if(Verbosity() > 1) _t_translate1->stop();
 	  return 1;
 	}
 
@@ -3338,7 +3354,7 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
 			z0, dzdl, _track_covars[itrack], euclidean_cov);
 
-	if(verbosity > 1) _t_translate2->restart();
+	if(Verbosity() > 1) _t_translate2->restart();
 
 	//TODO optimize
 	const float blowup_factor = 1.;
@@ -3402,14 +3418,14 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 	}
 	track->addMeasurements(measurements);
 
-	if(verbosity > 1) _t_translate2->stop();
-	if(verbosity > 1) _t_translate3->restart();
+	if(Verbosity() > 1) _t_translate2->stop();
+	if(Verbosity() > 1) _t_translate3->restart();
 
 	if (_fitter->processTrack(track.get(), false) != 0) {
-		if (verbosity >= 1)
+		if (Verbosity() >= 1)
 			LogWarning("Seed fitting failed")<<std::endl;
-		if(verbosity > 1) _t_translate3->stop();
-		if(verbosity > 1){
+		if(Verbosity() > 1) _t_translate3->stop();
+		if(Verbosity() > 1){
 		  _t_translate1->stop();
 		  time2 = _t_translate1->get_accumulated_time();
 		}
@@ -3429,8 +3445,8 @@ int PHG4KalmanPatRec::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, un
 						PHG4KalmanPatRec::TrackQuality(nhits, chi2, ndf, nhits, 0, 0), track)
 		);
 	}
-	if(verbosity > 1) _t_translate3->stop();
-	if(verbosity > 1){
+	if(Verbosity() > 1) _t_translate3->stop();
+	if(Verbosity() > 1){
 	  _t_translate1->stop();
 	  time2 = _t_translate1->get_accumulated_time();
 	}
@@ -3482,7 +3498,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 	}
 
 	if(first_extrapolate_base_TP_id < 0) {
-		if(verbosity > 0)
+		if(Verbosity() > 0)
 			LogError("first_extrapolate_base_TP_id < 0");
 		return -1;
 	}
@@ -3506,7 +3522,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		 * if miss too many layers terminate track propagating
 		 */
 		if(consecutive_missing_layer > _max_consecutive_missing_layer) {
-			if(verbosity > 1) {
+			if(Verbosity() > 1) {
 				LogWarning ("consecutive_missing_layer > ") << _max_consecutive_missing_layer << endl;
 			}
 			if(track->get_cluster_IDs().size() >= _min_good_track_hits)
@@ -3574,14 +3590,14 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 //		genfit::MeasuredStateOnPlane *state = track->extrapolateToCylinder(
 //				layer_r, TVector3(0, 0, 0), TVector3(0, 0, 1), 0);
 		} catch (...) {
-			if (verbosity > 1) {
+			if (Verbosity() > 1) {
 				LogWarning("Can not extrapolate to Cylinder!")<<std::endl;
 			}
 			continue;
 		}
 
 		if(!state) {
-			if (verbosity > 1) {
+			if (Verbosity() > 1) {
 				LogWarning("Can not extrapolate to Cylinder!")<<std::endl;
 			}
 			continue;
@@ -3657,10 +3673,10 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 //				);
 #endif
 
-		if(verbosity >= 1) _t_search_clusters->restart();
+		if(Verbosity() >= 1) _t_search_clusters->restart();
 		std::vector<unsigned int> new_cluster_IDs = SearchHitsNearBy(layer,
 				theta_center, phi_center, theta_window, phi_window);
-		if(verbosity >= 1) _t_search_clusters->stop();
+		if(Verbosity() >= 1) _t_search_clusters->stop();
 
 #ifdef _DEBUG_
 		cout<<__LINE__<< ": new_cluster_IDs size: " << new_cluster_IDs.size() << std::endl;
@@ -3687,11 +3703,11 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 		cout<<__LINE__<<": measurements.size(): "<<measurements.size()<<endl;
 #endif
 
-		if(verbosity >= 1) _t_track_propagation->restart();
+		if(Verbosity() >= 1) _t_track_propagation->restart();
 		track->updateOneMeasurementKalman(measurements, incr_chi2s_new_tracks, extrapolate_base_TP_id, direction, blowup_factor, use_fitted_state);
 		use_fitted_state = false;
 		blowup_factor = 1.;
-		if(verbosity >= 1) _t_track_propagation->stop();
+		if(Verbosity() >= 1) _t_track_propagation->stop();
 
 #ifdef _DEBUG_
 		cout<<__LINE__<<": incr_chi2s_new_tracks.size(): "<<incr_chi2s_new_tracks.size()<<endl;
@@ -3849,7 +3865,7 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 	if(_cells_intt) cell_intt = _cells_intt->findCell(svtxhit->get_cellid());
 	if(_cells_maps) cell_maps = _cells_maps->findCell(svtxhit->get_cellid());
 	if(!(cell_svtx or cell_intt or cell_maps)){
-		if(verbosity>=0)
+		if(Verbosity()>=0)
 			LogError("!(cell_svtx or cell_intt or cell_maps)");
 		return nullptr;
 	}
@@ -3880,9 +3896,9 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 		//n.Print();
 	} else if (cell_intt) {
 		PHG4Cell* cell = cell_intt;
-		PHG4CylinderGeom_Siladders* geom =
-				(PHG4CylinderGeom_Siladders*) _geom_container_intt->GetLayerGeom(
-						layer);
+		PHG4CylinderGeomSiLadders* geom =
+		  dynamic_cast<PHG4CylinderGeomSiLadders*> (_geom_container_intt->GetLayerGeom(
+							      layer));
 		double hit_location[3] = { 0.0, 0.0, 0.0 };
 		geom->find_segment_center(cell->get_ladder_z_index(),
 				cell->get_ladder_phi_index(), hit_location);
@@ -3992,9 +4008,9 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 	for (unsigned int iz = lower_z_bin; iz <= upper_z_bin; ++iz) {
 		for (unsigned int irphi = lower_phi_bin; irphi <= upper_phi_bin;
 				++irphi) {
-			if(verbosity >= 2) _t_search_clusters_encoding->restart();
+			if(Verbosity() >= 2) _t_search_clusters_encoding->restart();
 			unsigned int idx = encode_cluster_index(layer, iz, irphi);
-			if(verbosity >= 2) _t_search_clusters_encoding->stop();
+			if(Verbosity() >= 2) _t_search_clusters_encoding->stop();
 
 //#ifdef _DEBUG_
 //			cout
@@ -4007,7 +4023,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 //			<<_layer_thetaID_phiID_cluserID.count(idx)
 //			<<endl;
 //#endif
-			if(verbosity >= 2) _t_search_clusters_map_iter->restart();
+			if(Verbosity() >= 2) _t_search_clusters_map_iter->restart();
 			for (auto iter = _layer_thetaID_phiID_cluserID.lower_bound(idx);
 					iter != _layer_thetaID_phiID_cluserID.upper_bound(idx);
 					++iter) {
@@ -4029,7 +4045,7 @@ std::vector<unsigned int> PHG4KalmanPatRec::SearchHitsNearBy(const unsigned int 
 				<<endl;
 #endif
 			}
-			if(verbosity >= 2) _t_search_clusters_map_iter->stop();
+			if(Verbosity() >= 2) _t_search_clusters_map_iter->stop();
 		}
 	}
 

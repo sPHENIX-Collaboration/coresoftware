@@ -56,7 +56,7 @@ int TempInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
   Packet *p_hcalout;
   Packet *p_emcal;
 
-  // if (verbosity >= VERBOSITY_SOME)
+  // if (Verbosity() >= VERBOSITY_SOME)
   //   {
   //     cout << "TempInfoUnpackPRDF::process_event - ";
   //     event->identify();
@@ -78,7 +78,7 @@ int TempInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
   time_t etime = event->getTime();
   int evtnr = event->getEvtSequence();
 
-  if (verbosity >= VERBOSITY_SOME && (p_hcalin || p_hcalout || p_emcal))
+  if (Verbosity() >= VERBOSITY_SOME && (p_hcalin || p_hcalout || p_emcal))
   {
     cout << "TempInfoUnpackPRDF::found temperature packet in Event - ";
     event->identify();
@@ -87,21 +87,21 @@ int TempInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
   if (p_hcalin)
   {
     addPacketInfo(p_hcalin, topNode, etime, evtnr);
-    if (verbosity > VERBOSITY_SOME) p_hcalin->dump();
+    if (Verbosity() > VERBOSITY_SOME) p_hcalin->dump();
     delete p_hcalin;
   }
 
   if (p_hcalout)
   {
     addPacketInfo(p_hcalout, topNode, etime, evtnr);
-    if (verbosity > VERBOSITY_SOME) p_hcalout->dump();
+    if (Verbosity() > VERBOSITY_SOME) p_hcalout->dump();
     delete p_hcalout;
   }
 
   if (p_emcal)
   {
     addPacketInfo(p_emcal, topNode, etime, evtnr);
-    if (verbosity > VERBOSITY_SOME) p_emcal->dump();
+    if (Verbosity() > VERBOSITY_SOME) p_emcal->dump();
     delete p_emcal;
   }
 

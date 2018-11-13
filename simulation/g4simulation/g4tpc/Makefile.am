@@ -22,7 +22,13 @@ libg4tpc_la_LIBADD = \
   -lg4detectors \
   -lphparameter
 
-#pkginclude_HEADERS =
+pkginclude_HEADERS = \
+  PHG4CellTPCv1.h \
+  PHG4TPCElectronDrift.h \
+  PHG4TPCPadPlane.h \
+  PHG4TPCPadPlaneReadout.h \
+  PHG4TPCSubsystem.h
+
 
 libg4tpc_la_SOURCES = \
   PHG4TPCDetector.cc \
@@ -32,6 +38,8 @@ libg4tpc_la_SOURCES = \
   PHG4TPCPadPlane_Dict.cc \
   PHG4TPCPadPlaneSimple.cc \
   PHG4TPCPadPlaneSimple_Dict.cc \
+  PHG4TPCPadPlaneReadout.cc \
+  PHG4TPCPadPlaneReadout_Dict.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCSubsystem.cc \
   PHG4TPCSubsystem_Dict.cc

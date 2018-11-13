@@ -11,8 +11,9 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include
 
 pkginclude_HEADERS = \
-  PHNodeDump.h \
-  DumpObject.h
+  Dumper.h \
+  DumpObject.h \
+  PHNodeDump.h
 
 libphnodedump_la_SOURCES = \
   Dumper.cc \
