@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <set>
-#include "../trackreco/PHTrackSeeding.h"
+#include "PHTrackSeeding.h"
 
 // forward declarations
 class PHG4TruthInfoContainer;

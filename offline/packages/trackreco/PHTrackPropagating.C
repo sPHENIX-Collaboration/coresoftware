@@ -1,4 +1,4 @@
-#include "../trackreco/PHTrackPropagating.h"
+#include "PHTrackPropagating.h"
 #include "AssocInfoContainer.h"
 
 #include <g4hough/SvtxClusterMap.h>
@@ -12,7 +12,6 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-#include "../trackreco/AssocInfoContainer.h"
 
 
 

@@ -1,4 +1,4 @@
-#include "../trackreco/AssocInfoContainer.h"
+#include "AssocInfoContainer.h"
 
 using namespace std;
 
