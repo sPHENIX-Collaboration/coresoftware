@@ -1,5 +1,4 @@
-#include "PHTrackSeeding.h"
-
+#include "../trackreco/PH3DVertexing.h"
 #include "AssocInfoContainer.h"
 
 #include <g4hough/SvtxClusterMap.h>
@@ -13,12 +12,13 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
+#include "../trackreco/AssocInfoContainer.h"
 
 
 
 using namespace std;
 
-PHTrackSeeding::PHTrackSeeding(const std::string& name) :
+PH3DVertexing::PH3DVertexing(const std::string& name) :
 	SubsysReco(name),
 	_cluster_map(nullptr),
 	_vertex_map(nullptr),
@@ -26,24 +26,24 @@ PHTrackSeeding::PHTrackSeeding(const std::string& name) :
 	_assoc_container(nullptr)
 {}
 
-int PHTrackSeeding::Init(PHCompositeNode* topNode) {
+int PH3DVertexing::Init(PHCompositeNode* topNode) {
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTrackSeeding::InitRun(PHCompositeNode* topNode) {
+int PH3DVertexing::InitRun(PHCompositeNode* topNode) {
 	return Setup(topNode);
 }
 
-int PHTrackSeeding::process_event(PHCompositeNode* topNode) {
+int PH3DVertexing::process_event(PHCompositeNode* topNode) {
 	return Process();
 }
 
-int PHTrackSeeding::End(PHCompositeNode* topNode) {
+int PH3DVertexing::End(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTrackSeeding::Setup(PHCompositeNode* topNode) {
+int PH3DVertexing::Setup(PHCompositeNode* topNode) {
 	int ret = Fun4AllReturnCodes::ABORTRUN;
 
 	ret = CreateNodes(topNode);
@@ -55,47 +55,11 @@ int PHTrackSeeding::Setup(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode) {
-	// create nodes...
-	PHNodeIterator iter(topNode);
-
-	PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
-			"PHCompositeNode", "DST"));
-	if (!dstNode) {
-		cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
-	}
-	PHNodeIterator iter_dst(dstNode);
-
-	// Create the SVTX node
-	PHCompositeNode* tb_node =
-			dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode",
-					"SVTX"));
-	if (!tb_node) {
-		tb_node = new PHCompositeNode("SVTX");
-		dstNode->addNode(tb_node);
-		if (verbosity > 0)
-			cout << "SVTX node added" << endl;
-	}
-
-	_track_map = new SvtxTrackMap_v1;
-	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-			_track_map, "SvtxTrackMap", "PHObject");
-	tb_node->addNode(tracks_node);
-	if (verbosity > 0)
-		cout << "Svtx/SvtxTrackMap node added" << endl;
-
-	_assoc_container = new AssocInfoContainer;
-	PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
-			_assoc_container, "AssocInfoContainer", "PHObject");
-	tb_node->addNode(assoc_node);
-	if (verbosity > 0)
-		cout << "Svtx/AssocInfoContainer node added" << endl;
-
+int PH3DVertexing::CreateNodes(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTrackSeeding::GetNodes(PHCompositeNode* topNode) {
+int PH3DVertexing::GetNodes(PHCompositeNode* topNode) {
 
 	//---------------------------------
 	// Get Objects off of the Node Tree

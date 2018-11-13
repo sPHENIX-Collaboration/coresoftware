@@ -7,10 +7,9 @@
 #ifndef __H_PHTruthTrackSeeding_H__
 #define __H_PHTruthTrackSeeding_H__
 
-#include "PHTrackSeeding.h"
-
 #include <vector>
 #include <set>
+#include "../trackreco/PHTrackSeeding.h"
 
 // forward declarations
 class PHG4TruthInfoContainer;

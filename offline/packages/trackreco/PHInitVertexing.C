@@ -1,4 +1,4 @@
-#include "PHInitVertexing.h"
+#include "../trackreco/PHInitVertexing.h"
 
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxVertexMap_v1.h>

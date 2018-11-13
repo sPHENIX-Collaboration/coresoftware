@@ -7,9 +7,8 @@
 #ifndef __H_PHTruthVertexing_H__
 #define __H_PHTruthVertexing_H__
 
-#include "PHInitVertexing.h"
-
 #include <vector>
+#include "../trackreco/PHInitVertexing.h"
 
 // forward declarations
 class PHG4TruthInfoContainer;

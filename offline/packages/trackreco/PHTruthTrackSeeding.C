@@ -1,5 +1,4 @@
-#include "PHTruthTrackSeeding.h"
-
+#include "../trackreco/PHTruthTrackSeeding.h"
 #include "AssocInfoContainer.h"
 
 #include <g4hough/SvtxClusterMap.h>
@@ -28,6 +27,7 @@
 #include <g4main/PHG4VtxPoint.h>
 
 #include <memory>
+#include "../trackreco/AssocInfoContainer.h"
 
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl

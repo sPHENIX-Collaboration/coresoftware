@@ -16,6 +16,12 @@ libtrack_reco_la_SOURCES = \
   PHInitVertexing_Dict.C \
   PHTrackSeeding.C \
   PHTrackSeeding_Dict.C \
+  PHTrackPropagating.C \
+  PHTrackPropagating_Dict.C \
+  PHTrackFitting.C \
+  PHTrackFitting_Dict.C \
+  PH3DVertexing.C \
+  PH3DVertexing_Dict.C \
   PHTruthVertexing.C \
   PHTruthVertexing_Dict.C \
   PHTruthTrackSeeding.C \

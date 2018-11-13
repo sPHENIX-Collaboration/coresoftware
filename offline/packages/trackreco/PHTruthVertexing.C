@@ -1,4 +1,4 @@
-#include "PHTruthVertexing.h"
+#include "../trackreco/PHTruthVertexing.h"
 
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxVertexMap_v1.h>
