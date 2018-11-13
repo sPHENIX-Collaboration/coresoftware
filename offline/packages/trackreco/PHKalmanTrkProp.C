@@ -8,19 +8,19 @@
 #include "PHKalmanTrkProp.h"
 
 // g4hough includes
-#include "SvtxVertexMap.h"
-#include "SvtxVertexMap_v1.h"
-#include "SvtxVertex.h"
-#include "SvtxVertex_v1.h"
-#include "SvtxTrackMap.h"
-#include "SvtxTrackMap_v1.h"
-#include "SvtxTrack.h"
-#include "SvtxTrack_v1.h"
-#include "SvtxTrackState.h"
-#include "SvtxClusterMap.h"
-#include "SvtxCluster.h"
-#include "SvtxHit_v1.h"
-#include "SvtxHitMap.h"
+#include <g4hough/SvtxVertexMap.h>
+#include <g4hough/SvtxVertexMap_v1.h>
+#include <g4hough/SvtxVertex.h>
+#include <g4hough/SvtxVertex_v1.h>
+#include <g4hough/SvtxTrackMap.h>
+#include <g4hough/SvtxTrackMap_v1.h>
+#include <g4hough/SvtxTrack.h>
+#include <g4hough/SvtxTrack_v1.h>
+#include <g4hough/SvtxTrackState.h>
+#include <g4hough/SvtxClusterMap.h>
+#include <g4hough/SvtxCluster.h>
+#include <g4hough/SvtxHit_v1.h>
+#include <g4hough/SvtxHitMap.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>

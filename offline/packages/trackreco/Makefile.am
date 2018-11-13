@@ -7,8 +7,13 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include 
-  
+  -I${G4_MAIN}/include \
+  -I$(ROOTSYS)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3
+
+AM_CXXFLAGS = \
+ -Werror -msse2 -DRAVE -DRaveDllExport=
+   
 libtrack_reco_la_SOURCES = \
   AssocInfoContainer.C \
   AssocInfoContainer_Dict.C \
@@ -46,6 +51,13 @@ libtrack_reco_la_LIBADD = \
   -lg4detectors \
   -lgsl \
   -lgslcblas \
+  -lHelixHough \
+  -lFitNewton \
+  -lSeamstress \
+  -lgenfit2 \
+  -lgenfit2exp \
+  -lPHGenFit \
+  -lg4bbc_io \
   -lg4hough_io \
   -lphparameter
   

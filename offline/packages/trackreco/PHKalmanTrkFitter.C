@@ -6,17 +6,17 @@
  */
 
 #include "PHKalmanTrkFitter.h"
-#include "SvtxCluster.h"
-#include "SvtxClusterMap.h"
-#include "SvtxTrackState_v1.h"
-#include "SvtxHit_v1.h"
-#include "SvtxHitMap.h"
-#include "SvtxTrack.h"
-#include "SvtxTrack_v1.h"
-#include "SvtxVertex_v1.h"
-#include "SvtxTrackMap.h"
-#include "SvtxTrackMap_v1.h"
-#include "SvtxVertexMap_v1.h"
+#include <g4hough/SvtxCluster.h>
+#include <g4hough/SvtxClusterMap.h>
+#include <g4hough/SvtxTrackState_v1.h>
+#include <g4hough/SvtxHit_v1.h>
+#include <g4hough/SvtxHitMap.h>
+#include <g4hough/SvtxTrack.h>
+#include <g4hough/SvtxTrack_v1.h>
+#include <g4hough/SvtxVertex_v1.h>
+#include <g4hough/SvtxTrackMap.h>
+#include <g4hough/SvtxTrackMap_v1.h>
+#include <g4hough/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
