@@ -179,6 +179,7 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_Z, "fphx_x", 0.032);
     set_default_double_param(SEGMENTATION_Z, "fphx_y", 0.27);
     set_default_double_param(SEGMENTATION_Z, "fphx_z", 0.91);
+    set_default_double_param(SEGMENTATION_Z, "fphx_offset_z", 0.005);
     set_default_double_param(SEGMENTATION_Z, "gap_sensor_fphx", 0.1);
     set_default_double_param(SEGMENTATION_Z, "halfladder_z", 48.0);
     set_default_double_param(SEGMENTATION_Z, "hdi_copper_x", 0.0052);
@@ -204,6 +205,7 @@ void PHG4SiliconTrackerSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "fphx_x", 0.032);
     set_default_double_param(SEGMENTATION_PHI, "fphx_y", 0.27);
     set_default_double_param(SEGMENTATION_PHI, "fphx_z", 0.91);
+    set_default_double_param(SEGMENTATION_PHI, "fphx_offset_z", 0.005);
     set_default_double_param(SEGMENTATION_PHI, "gap_sensor_fphx", 0.1);
     set_default_double_param(SEGMENTATION_PHI, "halfladder_z", 48.0);
     set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.0052);

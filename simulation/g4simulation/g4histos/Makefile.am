@@ -18,7 +18,6 @@ noinst_HEADERS = \
   G4CellNtuple.h \
   G4EdepNtuple.h \
   G4EvtTree.h \
-  G4HitNtuple.h \
   G4HitTTree.h \
   G4RawTowerTTree.h \
   G4RootHitContainer.h \
@@ -26,6 +25,9 @@ noinst_HEADERS = \
   G4RootRawTowerContainer.h \
   G4SnglNtuple.h \
   G4SnglTree.h
+
+pkginclude_HEADERS = \
+  G4HitNtuple.h
 
 libg4histos_la_SOURCES = \
   G4CellNtuple.cc \
