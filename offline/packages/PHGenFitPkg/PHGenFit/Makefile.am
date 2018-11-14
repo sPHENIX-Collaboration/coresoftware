@@ -4,7 +4,8 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir` \
-  -I$(GENFIT)/include
+  -I$(GENFIT)/include \
+  -I$(OFFLINE_MAIN)/include/eigen3
 
 libPHGenFit_la_LDFLAGS = \
   -nodefaultlibs \
