@@ -348,7 +348,7 @@ private:
 	float _lost_hit_eval_x;
 	float _lost_hit_eval_y;
 	float _lost_hit_eval_z;
-	float _lost_hit_eval_found;
+	bool _lost_hit_eval_found;
 	bool _lost_hit_eval_has_svtx;
 	bool _lost_hit_eval_has_intt;
 	bool _lost_hit_eval_has_maps;

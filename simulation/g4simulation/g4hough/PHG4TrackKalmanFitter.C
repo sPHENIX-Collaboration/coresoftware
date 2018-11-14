@@ -1584,7 +1584,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			if (!phg4hit) {
 			  if (Verbosity() >= 0){
 			    LogError("!phg4hit");
-			    LogError(Form("x=%f,y=%f,z=%f\tr=%f,found=%d",pos.X(),pos.Y(),pos.Z(),,pos.Perp(),_lost_hit_eval_found));
+			    LogError(Form("x=%f,y=%f,z=%f\tr=%f,found=%d",pos.X(),pos.Y(),pos.Z(),pos.Perp(),_lost_hit_eval_found));
 			  }
 			  continue;
 			}
