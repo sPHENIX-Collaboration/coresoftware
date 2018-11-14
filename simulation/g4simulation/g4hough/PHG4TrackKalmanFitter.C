@@ -1582,9 +1582,11 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			_lost_hit_eval->Fill();
 			
 			if (!phg4hit) {
-				if (Verbosity() >= 0)
-					LogError("!phg4hit");
-				continue;
+			  if (Verbosity() >= 0){
+			    LogError("!phg4hit");
+			    LogError(Form("x=%f,y=%f,z=%f\tr=%f,found=%d",pos.X(),pos.Y(),pos.Z(),,pos.Perp(),_lost_hit_eval_found));
+			  }
+			  continue;
 			}
 
 			TVector3 phg4hit_position(phg4hit->get_avg_x(),
