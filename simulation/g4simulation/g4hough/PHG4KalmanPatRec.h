@@ -38,6 +38,18 @@
 #include "SvtxTrackState.h"
 //#include <g4main/PHG4Particle.h>
 
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4Particle.h>
+
+#ifndef __CINT__
+//BOOST for combi seeding
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/box.hpp>
+
+#include <boost/geometry/index/rtree.hpp>
+#endif
+
 // forward declarations
 class PHCompositeNode;
 class SvtxClusterMap;
@@ -51,8 +63,11 @@ class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;
+<<<<<<< HEAD
 class PHG4Hit;
 class PHG4Particle;
+=======
+>>>>>>> 21b85e5634aa474c95a28d9ca6cfb8427a95b58b
 class PHG4TruthInfoContainer;
 
 class TNtuple;
@@ -77,6 +92,11 @@ namespace genfit {
 class GFRaveVertexFactory;
 } /* namespace genfit */
 
+<<<<<<< HEAD
+=======
+typedef std::multimap<float, unsigned int> PhiIdMap;
+
+>>>>>>> 21b85e5634aa474c95a28d9ca6cfb8427a95b58b
 #ifndef __CINT__
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -356,6 +376,7 @@ public:
 		_run_number = runNumber;
 	}
 
+<<<<<<< HEAD
 	void set_do_combi_seeds(int combiSeeds) {
 		_do_combi_seeds = combiSeeds;
 	}
@@ -372,6 +393,8 @@ public:
  		_truth_seed_max_layer = max_layer;
  	}
 
+=======
+>>>>>>> 21b85e5634aa474c95a28d9ca6cfb8427a95b58b
 	void set_analyzing_mode(bool analyzingMode) {
 		_analyzing_mode = analyzingMode;
 	}
@@ -623,6 +646,14 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
+	void set_do_combi_seeds(int combiSeeds) {
+		_do_combi_seeds = combiSeeds;
+	}
+
+	void set_do_truth_seeds(int truthSeeds) {
+		_do_truth_seeds = truthSeeds;
+	}
+
 #ifndef __CINT__
 
 private:
@@ -665,10 +696,13 @@ private:
 	/// Combinatorial seeding
 	int combi_seeding(int start_layer);
 	int truth_seeding(int start_layer,PHCompositeNode *topNode);
+<<<<<<< HEAD
 	int SeedFitting(PHCompositeNode* topNode);
 
  	//!
  	int CombiTrackPropagation(PHCompositeNode* topNode);
+=======
+>>>>>>> 21b85e5634aa474c95a28d9ca6cfb8427a95b58b
 
 	/// code to combine seed tracking vertex with BBCZ if available
 	int fast_composite_seed();
@@ -705,6 +739,12 @@ private:
 
 	//!
 	int CleanupSeeds();
+
+	//!
+	int SeedFitting(PHCompositeNode* topNode);
+
+	//!
+	int CombiTrackPropagation(PHCompositeNode* topNode);
 
 	//!
 	int FullTrackFitting(PHCompositeNode* topNode);
@@ -846,7 +886,15 @@ private:
 	std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
 
 	std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
+<<<<<<< HEAD
 
+=======
+	std::vector<PHG4Particle*> _particles;    ///< working array of tracks
+	  PHG4TruthInfoContainer* _truthinfo;
+	std::vector<double> _target_hit_x;    ///< working array of tracks
+	std::vector<double> _target_hit_y;    ///< working array of tracks
+	std::vector<double> _target_hit_z;    ///< working array of tracks
+>>>>>>> 21b85e5634aa474c95a28d9ca6cfb8427a95b58b
 	std::vector<double> _track_errors;     ///< working array of track chisq
 	std::vector<PHG4Particle*> _particles;    ///< working array of tracks
 	  PHG4TruthInfoContainer* _truthinfo;
@@ -970,9 +1018,18 @@ private:
 	unsigned int _min_good_track_hits;
 	int _do_combi_seeds;
 	int _do_truth_seeds;
+<<<<<<< HEAD
 	unsigned int _truth_seed_min_layer;
 	unsigned int _truth_seed_max_layer;
 
+=======
+	//	typedef multimap<float, unsigned int> PhiIdMap;
+	//	typedef multimap<float, PhiIdMap> EtaPhiIdMap;
+	std::multimap<unsigned int, std::multimap<float,std::multimap<float, unsigned int>>> _cluster_layer_eta_phi_map;
+	//	std::multimap<unsigned int, innerMap> _clusters_per_layer;
+	//	typedef multimap<float, SvtxCluster*> innerMap;
+	std::multimap<unsigned int, PhiIdMap> _clusterID_per_layer;
+>>>>>>> 21b85e5634aa474c95a28d9ca6cfb8427a95b58b
 #endif // __CINT__
 };
 

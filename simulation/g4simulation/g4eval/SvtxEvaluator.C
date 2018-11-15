@@ -1984,7 +1984,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  }
 	}
 	float gtrack_data[] = {(float) _ievent,
-			       gntracks,
+			         gntracks,
 				 gtrackID,
 				 gflavor,
 				 ng4hits,
