@@ -1,8 +1,9 @@
-#include "PHG4TPCClusterizer.h"
-#include "SvtxCluster.h"
-#include "SvtxClusterMap.h"
-#include "SvtxClusterMap_v1.h"
-#include "SvtxCluster_v1.h"
+#include "TPCClusterizer.h"
+#include <g4hough/SvtxCluster.h>
+#include <g4hough/SvtxClusterMap.h>
+#include <g4hough/SvtxClusterMap_v1.h>
+#include <g4hough/SvtxCluster_v1.h>
+
 #include <g4detectors/SvtxHit.h>
 #include <g4detectors/SvtxHitMap.h>
 
@@ -43,7 +44,7 @@
 
 using namespace std;
 
-PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) : 
+TPCClusterizer::TPCClusterizer(const char *name) : 
   SubsysReco(name),
   fNPhiBins(1),
   fNZBins(1),
@@ -98,7 +99,7 @@ PHG4TPCClusterizer::PHG4TPCClusterizer(const char *name) :
 {
 }
 //===================
-PHG4TPCClusterizer::~PHG4TPCClusterizer() {
+TPCClusterizer::~TPCClusterizer() {
   if(fHClusterEnergy) delete fHClusterEnergy;
   if(fHClusterSizePP) delete fHClusterSizePP;
   if(fHClusterSizeZZ) delete fHClusterSizeZZ;
@@ -112,13 +113,13 @@ PHG4TPCClusterizer::~PHG4TPCClusterizer() {
   if(fHClusterDensity2) delete fHClusterDensity2;
 }
 //===================
-int PHG4TPCClusterizer::wrap_phibin(int bin) {
+int TPCClusterizer::wrap_phibin(int bin) {
   if(bin < 0) bin += fNPhiBins;
   if(bin >= fNPhiBins) bin -= fNPhiBins;
   return bin;
 }
 //===================
-bool PHG4TPCClusterizer::is_local_maximum(int phi, int z) {
+bool TPCClusterizer::is_local_maximum(int phi, int z) {
   bool is_max = true;
 
   if(fDeconMode){
@@ -168,7 +169,7 @@ bool PHG4TPCClusterizer::is_local_maximum(int phi, int z) {
   return is_max;
 }
 
-void PHG4TPCClusterizer::prepare_layer(float radius){
+void TPCClusterizer::prepare_layer(float radius){
   double m_sqrt2 = sqrt(2.0);
   TH2F *hdum = new TH2F("hdum","",fNZBins,-105.5,105.5,fNPhiBins,-3.14159,3.14159);
 
@@ -347,14 +348,14 @@ void PHG4TPCClusterizer::prepare_layer(float radius){
 }
 
 //===================
-void PHG4TPCClusterizer::deconvolution() {
+void TPCClusterizer::deconvolution() {
   TSpectrum2 pfinder;
   pfinder.Deconvolution(fSource,fResponse,fNZBins,fNPhiBins,10,10,5);
   return;
 }
 
 //===================
-void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float peak, int& phiup, int& phidown){
+void TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float peak, int& phiup, int& phidown){
 
   
   for(int ip=0; ip<=fFitRangeP; ++ip) {
@@ -398,7 +399,7 @@ void PHG4TPCClusterizer::find_phi_range(int zbin, int phibin, int phimax, float 
 }
 
 //===================
-void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak, int& zup, int& zdown){
+void TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak, int& zup, int& zdown){
 
   zup   = fFitRangeZ;
   zdown = fFitRangeZ;
@@ -463,7 +464,7 @@ void PHG4TPCClusterizer::find_z_range(int zbin, int phibin, int zmax, float peak
 }
 
 //===================
-void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
+void TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   float peak = fAmps[zbin * fNPhiBins + pbin];
   fFitW = 0.0;
   fFitP0 = fGeoLayer->get_phicenter( pbin );
@@ -557,7 +558,7 @@ void PHG4TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot) {
   }
 }
 //===================
-int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
+int TPCClusterizer::InitRun(PHCompositeNode* topNode) {
   if(Verbosity()>1) {
     fHClusterEnergy = new TH1F("CLUSTER_Energy","CLUSTER_Energy",1000,0,1000);
     fHClusterDensity = new TProfile2D("CLUSTER_Density","CLUSTER_Density;LayerNo;ZZ;<E>",50,-0.5,49.5,220,-110,+110);
@@ -593,10 +594,10 @@ int PHG4TPCClusterizer::InitRun(PHCompositeNode* topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 //===================
-void PHG4TPCClusterizer::reset() {}
+void TPCClusterizer::reset() {}
 //===================
-int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
-  if(Verbosity()>1000) std::cout << "PHG4TPCClusterizer::Process_Event" << std::endl;
+int TPCClusterizer::process_event(PHCompositeNode* topNode) {
+  if(Verbosity()>1000) std::cout << "TPCClusterizer::Process_Event" << std::endl;
   if(Verbosity()>1) {
     fSW->Reset();
     fSW->Start();
@@ -913,7 +914,7 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     }
   }
   reset();
-  if(Verbosity()>1000) std::cout << "PHG4TPCClusterizer::Process_Event DONE" << std::endl;
+  if(Verbosity()>1000) std::cout << "TPCClusterizer::Process_Event DONE" << std::endl;
   if(Verbosity()>1) fHTime->Fill( fSW->RealTime() );
   return Fun4AllReturnCodes::EVENT_OK;
 }

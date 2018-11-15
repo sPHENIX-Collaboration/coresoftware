@@ -1,10 +1,6 @@
 #include "PHG4SiliconTrackerDigitizer.h"
 
 #include "SvtxDeadMap.h"
-#include <g4detectors/SvtxHit.h>
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHitMap_v1.h>
-#include <g4detectors/SvtxHit_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
@@ -13,6 +9,11 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/SvtxHit.h>
+#include <g4detectors/SvtxHitMap.h>
+#include <g4detectors/SvtxHitMap_v1.h>
+#include <g4detectors/SvtxHit_v1.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>

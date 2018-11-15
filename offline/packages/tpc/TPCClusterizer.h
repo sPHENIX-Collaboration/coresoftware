@@ -1,5 +1,5 @@
-#ifndef __PHG4TPCCLUSTERIZER_H__
-#define __PHG4TPCCLUSTERIZER_H__
+#ifndef __TPCCLUSTERIZER_H__
+#define __TPCCLUSTERIZER_H__
 
 #include <g4detectors/PHG4CellDefs.h>
 #include <fun4all/SubsysReco.h>
@@ -12,10 +12,10 @@ class TH1F;
 class TProfile2D;
 class TStopwatch;
 
-class PHG4TPCClusterizer : public SubsysReco {
+class TPCClusterizer : public SubsysReco {
  public:
-  PHG4TPCClusterizer(const char *name = "PHG4TPCClusterizer");
-  ~PHG4TPCClusterizer();
+  TPCClusterizer(const char *name = "TPCClusterizer");
+  ~TPCClusterizer();
 
   int Init(PHCompositeNode *topNode) { return 0; }
   int InitRun(PHCompositeNode *topNode);
