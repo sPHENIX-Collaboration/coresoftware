@@ -27,6 +27,7 @@ pkginclude_HEADERS = \
   PHG4TPCElectronDrift.h \
   PHG4TPCPadPlane.h \
   PHG4TPCPadPlaneReadout.h \
+  PHG4TPCDigitizer.h \
   PHG4TPCSubsystem.h
 
 
@@ -41,8 +42,10 @@ libg4tpc_la_SOURCES = \
   PHG4TPCPadPlaneReadout.cc \
   PHG4TPCPadPlaneReadout_Dict.cc \
   PHG4TPCSteppingAction.cc \
+  PHG4TPCDigitizer.cc \
+  PHG4TPCDigitizer_Dict.cc \
   PHG4TPCSubsystem.cc \
-  PHG4TPCSubsystem_Dict.cc
+  PHG4TPCSubsystem_Dict.cc 
 
 libg4tpc_io_la_SOURCES = \
   PHG4CellTPCv1.cc \

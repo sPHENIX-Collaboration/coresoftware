@@ -86,10 +86,6 @@ pkginclude_HEADERS = \
   SvtxCluster_v1.h \
   SvtxClusterMap.h \
   SvtxClusterMap_v1.h \
-  SvtxHit.h \
-  SvtxHit_v1.h \
-  SvtxHitMap.h \
-  SvtxHitMap_v1.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_FastSim.h \
@@ -106,18 +102,10 @@ pkginclude_HEADERS = \
   VertexFitFuncs.h
 
 libg4hough_io_la_SOURCES = \
-  SvtxHit.C \
-  SvtxHit_Dict.C \
-  SvtxHit_v1.C \
-  SvtxHit_v1_Dict.C \
   SvtxDeadMap.C \
   SvtxDeadMap_Dict.C \
   SvtxDeadMapv1.C \
   SvtxDeadMapv1_Dict.C \
-  SvtxHitMap.C \
-  SvtxHitMap_Dict.C \
-  SvtxHitMap_v1.C \
-  SvtxHitMap_v1_Dict.C \
   SvtxCluster.C \
   SvtxCluster_Dict.C \
   SvtxCluster_v1.C \

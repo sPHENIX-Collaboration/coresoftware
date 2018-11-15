@@ -99,7 +99,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       exit(1);
     }
 
-  cellnodename = "G4CELL_SVTX";  // + detector;
+  cellnodename = "G4CELL_TPC";  // + detector;
   g4cells = findNode::getClass<PHG4CellContainer>(topNode,cellnodename);
   if (! g4cells)
   {

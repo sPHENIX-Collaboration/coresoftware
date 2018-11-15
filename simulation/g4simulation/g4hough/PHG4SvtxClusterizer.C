@@ -1,7 +1,7 @@
 #include "PHG4SvtxClusterizer.h"
 
-#include "SvtxHitMap.h"
-#include "SvtxHit.h"
+#include <g4detectors/SvtxHitMap.h>
+#include <g4detectors/SvtxHit.h>
 #include "SvtxClusterMap.h"
 #include "SvtxClusterMap_v1.h"
 #include "SvtxCluster.h"

@@ -3,8 +3,8 @@
 #include "SvtxClusterMap.h"
 #include "SvtxClusterMap_v1.h"
 #include "SvtxCluster_v1.h"
-#include "SvtxHit.h"
-#include "SvtxHitMap.h"
+#include <g4detectors/SvtxHit.h>
+#include <g4detectors/SvtxHitMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -613,9 +613,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  PHCompositeNode* svxNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
+  PHCompositeNode* svxNode = dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode", "TPC"));
   if (!svxNode) {
-    svxNode = new PHCompositeNode("SVTX");
+    svxNode = new PHCompositeNode("TPC");
     dstNode->addNode(svxNode);
   }
   SvtxClusterMap* svxclusters = findNode::getClass<SvtxClusterMap>(dstNode, "SvtxClusterMap");
@@ -631,9 +631,9 @@ int PHG4TPCClusterizer::process_event(PHCompositeNode* topNode) {
     std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(dstNode,"G4CELL_SVTX");
+  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(dstNode,"G4CELL_TPC");
   if (!cells) {
-    std::cout << PHWHERE << "ERROR: Can't find node G4CELL_SVTX" << std::endl;
+    std::cout << PHWHERE << "ERROR: Can't find node G4CELL_TPC" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 

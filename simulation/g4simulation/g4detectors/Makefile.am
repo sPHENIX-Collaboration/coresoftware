@@ -52,6 +52,10 @@ pkginclude_HEADERS = \
   PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
+  SvtxHit.h \
+  SvtxHit_v1.h \
+  SvtxHitMap.h \
+  SvtxHitMap_v1.h \
   PHG4ConeSubsystem.h \
   PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
@@ -133,6 +137,14 @@ libg4detectors_io_la_SOURCES = \
   PHG4CellContainer_Dict.cc \
   PHG4CellDefs.cc \
   PHG4CellDefs_Dict.cc \
+  SvtxHit.cc \
+  SvtxHit_Dict.cc \
+  SvtxHit_v1.cc \
+  SvtxHit_v1_Dict.cc \
+  SvtxHitMap.cc \
+  SvtxHitMap_Dict.cc \
+  SvtxHitMap_v1.cc \
+  SvtxHitMap_v1_Dict.cc \
   PHG4CylinderGeom.cc \
   PHG4CylinderGeom_Dict.cc \
   PHG4CylinderGeomv1.cc \

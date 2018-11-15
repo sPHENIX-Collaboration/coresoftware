@@ -1,10 +1,10 @@
 #include "PHG4SiliconTrackerDigitizer.h"
 
 #include "SvtxDeadMap.h"
-#include "SvtxHit.h"
-#include "SvtxHitMap.h"
-#include "SvtxHitMap_v1.h"
-#include "SvtxHit_v1.h"
+#include <g4detectors/SvtxHit.h>
+#include <g4detectors/SvtxHitMap.h>
+#include <g4detectors/SvtxHitMap_v1.h>
+#include <g4detectors/SvtxHit_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
@@ -103,7 +103,7 @@ int PHG4SiliconTrackerDigitizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  _hitmap->Reset();
+  // _hitmap->Reset();
 
   DigitizeLadderCells(topNode);
 

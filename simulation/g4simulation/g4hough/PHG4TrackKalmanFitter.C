@@ -9,14 +9,15 @@
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
 #include "SvtxTrackState_v1.h"
-#include "SvtxHit_v1.h"
-#include "SvtxHitMap.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_v1.h"
 #include "SvtxVertex_v1.h"
 #include "SvtxTrackMap.h"
 #include "SvtxTrackMap_v1.h"
 #include "SvtxVertexMap_v1.h"
+
+#include <g4detectors/SvtxHit_v1.h>
+#include <g4detectors/SvtxHitMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
@@ -837,7 +838,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	}
 
 	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-			"G4CELL_SVTX");
+			"G4CELL_TPC");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_SILICON_TRACKER");
@@ -999,7 +1000,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		// DEBUG: BEGIN
 		if (_do_eval) {
 			PHG4HitContainer* phg4hits_svtx = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SVTX");
+					PHG4HitContainer>(topNode, "G4HIT_TPC");
 
 			PHG4HitContainer* phg4hits_intt = findNode::getClass<
 					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");

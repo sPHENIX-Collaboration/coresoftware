@@ -8,11 +8,12 @@
 #include "PHG4TruthPatRec.h"
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
-#include "SvtxHit.h"
-#include "SvtxHitMap.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_FastSim.h"
 #include "SvtxTrackMap_v1.h"
+
+#include <g4detectors/SvtxHit.h>
+#include <g4detectors/SvtxHitMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
@@ -84,7 +85,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	}
 
 	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_SVTX");
+			topNode, "G4CELL_TPC");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_SILICON_TRACKER");

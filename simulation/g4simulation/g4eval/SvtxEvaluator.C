@@ -14,8 +14,8 @@
 #include <g4hough/SvtxTrack.h>
 #include <g4hough/SvtxClusterMap.h>
 #include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHit.h>
+#include <g4detectors/SvtxHitMap.h>
+#include <g4detectors/SvtxHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>

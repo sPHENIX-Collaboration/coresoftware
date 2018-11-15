@@ -9,8 +9,6 @@
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
 #include "SvtxTrackState_v1.h"
-#include "SvtxHit_v1.h"
-#include "SvtxHitMap.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_v1.h"
 #include "SvtxVertex_v1.h"
@@ -20,6 +18,9 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
+
+#include <g4detectors/SvtxHit_v1.h>
+#include <g4detectors/SvtxHitMap.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>

@@ -40,30 +40,11 @@ class PHG4SvtxDigitizer : public SubsysReco
     _energy_scale.insert(std::make_pair(layer,energy_per_adc));
   }
     
-  void SetTPCMinLayer(const int minlayer) {TPCMinLayer = minlayer;};
-  void SetADCThreshold(const float thresh) {ADCThreshold = thresh;};
-  void SetENC(const float enc){TPCEnc = enc;};
-    
  private:
 
-  void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
-//  void CalculateLadderCellADCScale(PHCompositeNode *topNode);  // obsolete, use PHG4SiliconTrackerDigitizer
   void CalculateMapsLadderCellADCScale(PHCompositeNode *topNode);
-
-  void DigitizeCylinderCells(PHCompositeNode *topNode);
-//  void DigitizeLadderCells(PHCompositeNode *topNode);  // obsolete, use PHG4SiliconTrackerDigitizer
   void DigitizeMapsLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
-  float added_noise();
-
-  unsigned int TPCMinLayer;  
-  float ADCThreshold;
-  float TPCEnc;
-  float Pedestal;
-  float ChargeToPeakVolts;
-
-  float ADCSignalConversionGain;
-  float ADCNoiseConversionGain;
 
   std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;
   std::vector< std::vector<const PHG4Cell*>  > phi_sorted_cells;

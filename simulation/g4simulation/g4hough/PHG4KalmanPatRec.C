@@ -19,10 +19,10 @@
 #include "SvtxTrackState.h"
 #include "SvtxClusterMap.h"
 #include "SvtxCluster.h"
-#include "SvtxHit_v1.h"
-#include "SvtxHitMap.h"
 
 // sPHENIX Geant4 includes
+#include <g4detectors/SvtxHit_v1.h>
+#include <g4detectors/SvtxHitMap.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -1239,7 +1239,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
   }
   
   _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-						      "G4CELL_SVTX");
+						      "G4CELL_TPC");
   
   _cells_intt = findNode::getClass<PHG4CellContainer>(
 						      topNode, "G4CELL_SILICON_TRACKER");
