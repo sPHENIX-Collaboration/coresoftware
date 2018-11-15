@@ -36,18 +36,7 @@
 
 // g4hough includes
 #include "SvtxTrackState.h"
-
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-
-#ifndef __CINT__
-//BOOST for combi seeding
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/geometry/geometries/box.hpp>
-
-#include <boost/geometry/index/rtree.hpp>
-#endif
+//#include <g4main/PHG4Particle.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -62,6 +51,8 @@ class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;
+class PHG4Hit;
+class PHG4Particle;
 class PHG4TruthInfoContainer;
 
 class TNtuple;
@@ -73,11 +64,18 @@ class Track;
 class Measurement;
 } /* namespace PHGenFit */
 
+#ifndef __CINT__
+//BOOST for combi seeding
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/geometries/box.hpp>
+
+#include <boost/geometry/index/rtree.hpp>
+#endif
+
 namespace genfit {
 class GFRaveVertexFactory;
 } /* namespace genfit */
-
-typedef std::multimap<float, unsigned int> PhiIdMap;
 
 #ifndef __CINT__
 namespace bg = boost::geometry;
@@ -358,6 +356,22 @@ public:
 		_run_number = runNumber;
 	}
 
+	void set_do_combi_seeds(int combiSeeds) {
+		_do_combi_seeds = combiSeeds;
+	}
+
+	void set_do_truth_seeds(int truthSeeds) {
+ 		_do_truth_seeds = truthSeeds;
+ 	}
+
+	void set_truth_seed_min_layer(unsigned int min_layer) {
+ 		_truth_seed_min_layer = min_layer;
+ 	}
+
+	void set_truth_seed_max_layer(unsigned int max_layer) {
+ 		_truth_seed_max_layer = max_layer;
+ 	}
+
 	void set_analyzing_mode(bool analyzingMode) {
 		_analyzing_mode = analyzingMode;
 	}
@@ -609,14 +623,6 @@ public:
 		_primary_pid_guess = primaryPidGuess;
 	}
 
-	void set_do_combi_seeds(int combiSeeds) {
-		_do_combi_seeds = combiSeeds;
-	}
-
-	void set_do_truth_seeds(int truthSeeds) {
-		_do_truth_seeds = truthSeeds;
-	}
-
 #ifndef __CINT__
 
 private:
@@ -659,6 +665,10 @@ private:
 	/// Combinatorial seeding
 	int combi_seeding(int start_layer);
 	int truth_seeding(int start_layer,PHCompositeNode *topNode);
+	int SeedFitting(PHCompositeNode* topNode);
+
+ 	//!
+ 	int CombiTrackPropagation(PHCompositeNode* topNode);
 
 	/// code to combine seed tracking vertex with BBCZ if available
 	int fast_composite_seed();
@@ -695,12 +705,6 @@ private:
 
 	//!
 	int CleanupSeeds();
-
-	//!
-	int SeedFitting(PHCompositeNode* topNode);
-
-	//!
-	int CombiTrackPropagation(PHCompositeNode* topNode);
 
 	//!
 	int FullTrackFitting(PHCompositeNode* topNode);
@@ -842,12 +846,14 @@ private:
 	std::vector<SimpleHit3D> _clusters;    ///< working array of clusters
 
 	std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
+
+	std::vector<double> _track_errors;     ///< working array of track chisq
 	std::vector<PHG4Particle*> _particles;    ///< working array of tracks
 	  PHG4TruthInfoContainer* _truthinfo;
 	std::vector<double> _target_hit_x;    ///< working array of tracks
 	std::vector<double> _target_hit_y;    ///< working array of tracks
 	std::vector<double> _target_hit_z;    ///< working array of tracks
-	std::vector<double> _track_errors;     ///< working array of track chisq
+
 	std::vector<Eigen::Matrix<float, 5, 5> > _track_covars; ///< working array of track covariances
 
 	std::vector<SimpleTrack3D> _all_tracks;    ///< working array of tracks
@@ -889,7 +895,6 @@ private:
 	bool _analyzing_mode;
 	TFile* _analyzing_file;
 	TNtuple* _analyzing_ntuple;
-
 	//! Cleanup Seeds
 	float _max_merging_dphi;
 	float _max_merging_deta;
@@ -965,12 +970,9 @@ private:
 	unsigned int _min_good_track_hits;
 	int _do_combi_seeds;
 	int _do_truth_seeds;
-	//	typedef multimap<float, unsigned int> PhiIdMap;
-	//	typedef multimap<float, PhiIdMap> EtaPhiIdMap;
-	std::multimap<unsigned int, std::multimap<float,std::multimap<float, unsigned int>>> _cluster_layer_eta_phi_map;
-	//	std::multimap<unsigned int, innerMap> _clusters_per_layer;
-	//	typedef multimap<float, SvtxCluster*> innerMap;
-	std::multimap<unsigned int, PhiIdMap> _clusterID_per_layer;
+	unsigned int _truth_seed_min_layer;
+	unsigned int _truth_seed_max_layer;
+
 #endif // __CINT__
 };
 
