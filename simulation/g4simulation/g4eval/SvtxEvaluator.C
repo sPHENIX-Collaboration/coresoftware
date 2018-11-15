@@ -29,6 +29,7 @@
 #include <TFile.h>
 #include <TNtuple.h>
 #include <TVector3.h>
+#include <TLorentzVector.h>
 
 #include <iostream>
 #include <set>
@@ -126,7 +127,7 @@ int SvtxEvaluator::Init(PHCompositeNode *topNode) {
 						   "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_gtrack_eval) _ntp_gtrack  = new TNtuple("ntp_gtrack","g4particle => best svtxtrack",
-						  "event:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
+						  "event:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
 						  "gnintt1:gnintt2:gnintt3:gnintt4:"
 						  "gnintt5:gnintt6:gnintt7:gnintt8:"
 						  "gntpc:gnlmaps:gnlintt:gnltpc:"
@@ -1731,6 +1732,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     if (truthinfo) {
 
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+      Float_t gntracks = (Float_t)truthinfo->size();
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
 	   iter != range.second; 
 	 ++iter) {
@@ -1982,6 +1984,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	  }
 	}
 	float gtrack_data[] = {(float) _ievent,
+			       gntracks,
 				 gtrackID,
 				 gflavor,
 				 ng4hits,
