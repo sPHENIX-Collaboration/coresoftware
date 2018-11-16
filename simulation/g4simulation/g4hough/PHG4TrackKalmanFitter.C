@@ -26,7 +26,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
+
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -841,7 +842,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			"G4CELL_TPC");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_SILICON_TRACKER");
+			topNode, "G4CELL_INTT");
 
 	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_MAPS");
@@ -854,7 +855,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	}
 
 	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
 	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
 			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
@@ -1003,7 +1004,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 					PHG4HitContainer>(topNode, "G4HIT_TPC");
 
 			PHG4HitContainer* phg4hits_intt = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
+					PHG4HitContainer>(topNode, "G4HIT_INTT");
 
 			PHG4HitContainer* phg4hits_maps = findNode::getClass<
 					PHG4HitContainer>(topNode, "G4HIT_MAPS");
@@ -1114,8 +1115,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeomSiLadders* geom =
-			  dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container_intt->GetLayerGeom(layer));
+			PHG4CylinderGeomINTT* geom =
+			  dynamic_cast<PHG4CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);

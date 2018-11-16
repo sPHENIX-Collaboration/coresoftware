@@ -139,7 +139,7 @@ int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode) {
 
   DigitizeCylinderCells(topNode);
 
-  cout << PHWHERE << "Ending size of SvtxHitMap is " << _hitmap->size() << endl;
+  //cout << PHWHERE << "Ending size of SvtxHitMap is " << _hitmap->size() << endl;
 
   PrintHits(topNode);
 

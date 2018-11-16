@@ -61,10 +61,10 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	GetNodes(topNode);
 
 	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_SVTX");
+			topNode, "G4HIT_TPC");
 
 	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_SILICON_TRACKER");
+			topNode, "G4HIT_INTT");
 
 	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
 			topNode, "G4HIT_MAPS");
@@ -88,7 +88,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			topNode, "G4CELL_TPC");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_SILICON_TRACKER");
+			topNode, "G4CELL_INTT");
 
 	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_MAPS");

@@ -1,16 +1,16 @@
-#ifndef G4DETECTORS_PHG4CYLINDERGEOMSILADDERS_H
-#define G4DETECTORS_PHG4CYLINDERGEOMSILADDERS_H
+#ifndef G4INTT_PHG4CYLINDERGEOMINTT_H
+#define G4INTT_PHG4CYLINDERGEOMINTT_H
 
-#include "PHG4CylinderGeom.h"
+#include <g4detectors/PHG4CylinderGeom.h>
 
 #include <phool/phool.h>
 #include <cmath>
 
-class PHG4CylinderGeomSiLadders : public PHG4CylinderGeom
+class PHG4CylinderGeomINTT : public PHG4CylinderGeom
 {
  public:
-  PHG4CylinderGeomSiLadders();
-  PHG4CylinderGeomSiLadders(
+  PHG4CylinderGeomINTT();
+  PHG4CylinderGeomINTT(
       const int layer,
       const double strip_x,
       const double strip_y,
@@ -110,7 +110,7 @@ class PHG4CylinderGeomSiLadders : public PHG4CylinderGeom
   double m_StripZ[2];
   double m_LadderZ[2];
 
-  ClassDef(PHG4CylinderGeomSiLadders, 1)
+  ClassDef(PHG4CylinderGeomINTT, 1)
 };
 
 #endif

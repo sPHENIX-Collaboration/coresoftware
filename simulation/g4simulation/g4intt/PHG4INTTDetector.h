@@ -1,9 +1,9 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4SILICONTRACKERDETECTOR_H
-#define G4DETECTORS_PHG4SILICONTRACKERDETECTOR_H
+#ifndef G4INTT_PHG4INTTDETECTOR_H
+#define G4INTT_PHG4INTTDETECTOR_H
 
-#include "PHG4SiliconTrackerDefs.h"
+#include "PHG4INTTDefs.h"
 
 #include <g4main/PHG4Detector.h>
 
@@ -16,20 +16,20 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHParametersContainer;
 
-class PHG4SiliconTrackerDetector : public PHG4Detector
+class PHG4INTTDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4SiliconTrackerDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
+  PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
-  virtual ~PHG4SiliconTrackerDetector() {}
+  virtual ~PHG4INTTDetector() {}
   //! construct
   virtual void Construct(G4LogicalVolume *world);
 
   //!@name volume accessors
   //@{
-  int IsInSiliconTracker(G4VPhysicalVolume *) const;
+  int IsInINTT(G4VPhysicalVolume *) const;
   //@}
 
   void SuperDetector(const std::string &name)
@@ -54,7 +54,7 @@ class PHG4SiliconTrackerDetector : public PHG4Detector
 
  private:
   void AddGeometryNode();
-  int ConstructSiliconTracker(G4LogicalVolume *sandwich);
+  int ConstructINTT(G4LogicalVolume *sandwich);
 
   PHParametersContainer *m_ParamsContainer;
 

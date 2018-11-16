@@ -1,16 +1,16 @@
-#ifndef PHG4CylinderGeom_Siladders_H__
-#define PHG4CylinderGeom_Siladders_H__
+#ifndef PHG4CylinderGeom_INTT_H__
+#define PHG4CylinderGeom_INTT_H__
 
-#include "PHG4CylinderGeom.h"
+#include <g4detectors/PHG4CylinderGeom.h>
 
 #include <phool/phool.h>
 #include <cmath>
 
-class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
+class PHG4CylinderGeom_INTT: public PHG4CylinderGeom
   {
   public:
-    PHG4CylinderGeom_Siladders();
-    PHG4CylinderGeom_Siladders(
+    PHG4CylinderGeom_INTT();
+    PHG4CylinderGeom_INTT(
       const int    layer_,
       const double strip_x_,
       const double strip_y_,
@@ -56,7 +56,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
       dphi_ = 2.*M_PI/(double)nladders_layer;
     }
 
-    virtual ~PHG4CylinderGeom_Siladders();
+    virtual ~PHG4CylinderGeom_INTT();
 
     void identify(std::ostream& os = std::cout) const;
     void set_layer(const int i)
@@ -130,7 +130,7 @@ class PHG4CylinderGeom_Siladders: public PHG4CylinderGeom
 
     double radius;
 
-    ClassDef(PHG4CylinderGeom_Siladders,1)
+    ClassDef(PHG4CylinderGeom_INTT,1)
   };
 
 #endif

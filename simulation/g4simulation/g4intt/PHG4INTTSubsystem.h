@@ -1,25 +1,25 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4SILICONTRACKERSUBSYSTEM_H
-#define G4DETECTORS_PHG4SILICONTRACKERSUBSYSTEM_H
+#ifndef G4INTT_PHG4INTTSUBSYSTEM_H
+#define G4INTT_PHG4INTTSUBSYSTEM_H
 
-#include "PHG4DetectorGroupSubsystem.h"
+#include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
 #include <vector>
 
-class PHG4SiliconTrackerDetector;
-class PHG4SiliconTrackerSteppingAction;
+class PHG4INTTDetector;
+class PHG4INTTSteppingAction;
 
-class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
+class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
 {
  public:
   typedef std::vector<std::pair<int, int>> vpair;
 
   //! constructor
-  PHG4SiliconTrackerSubsystem(const std::string &name = "SILICONTRACKER", const vpair &layerconfig = vpair(0));
+  PHG4INTTSubsystem(const std::string &name = "INTT", const vpair &layerconfig = vpair(0));
 
   //! destructor
-  virtual ~PHG4SiliconTrackerSubsystem(void)
+  virtual ~PHG4INTTSubsystem(void)
   {
   }
 
@@ -48,7 +48,7 @@ class PHG4SiliconTrackerSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SiliconTrackerDetector *m_Detector;
+  PHG4INTTDetector *m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */

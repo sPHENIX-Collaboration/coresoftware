@@ -1,10 +1,12 @@
-#include "PHG4SiliconTrackerCellReco.h"
-#include "PHG4CellContainer.h"
-#include "PHG4Cellv1.h"
-#include "PHG4CylinderCellGeom.h"
-#include "PHG4CylinderCellGeomContainer.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomSiLadders.h"
+#include "PHG4INTTCellReco.h"
+#include "PHG4CylinderGeomINTT.h"
+
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cellv1.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -27,7 +29,7 @@
 
 using namespace std;
 
-PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
+PHG4INTTCellReco::PHG4INTTCellReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_ChkEnergyConservationFlag(0)
@@ -45,14 +47,14 @@ PHG4SiliconTrackerCellReco::PHG4SiliconTrackerCellReco(const std::string &name)
   m_SegmentVec = gsl_vector_alloc(3);
 }
 
-PHG4SiliconTrackerCellReco::~PHG4SiliconTrackerCellReco()
+PHG4INTTCellReco::~PHG4INTTCellReco()
 {
   gsl_vector_free(m_LocalOutVec);
   gsl_vector_free(m_PathVec);
   gsl_vector_free(m_SegmentVec);
 }
 
-int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
+int PHG4INTTCellReco::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -147,7 +149,7 @@ int PHG4SiliconTrackerCellReco::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
+int PHG4INTTCellReco::process_event(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
@@ -173,12 +175,12 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
 
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
-  if (Verbosity() > 2) cout << " PHG4SiliconTrackerCellReco: Loop over hits" << endl;
+  if (Verbosity() > 2) cout << " PHG4INTTCellReco: Loop over hits" << endl;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     const int sphxlayer = hiter->second->get_detid();
-    PHG4CylinderGeomSiLadders *layergeom = dynamic_cast<PHG4CylinderGeomSiLadders *> (geo->GetLayerGeom(sphxlayer));
+    PHG4CylinderGeomINTT *layergeom = dynamic_cast<PHG4CylinderGeomINTT *> (geo->GetLayerGeom(sphxlayer));
 
     // checking ADC timing integration window cut
     // uses default values for now
@@ -425,7 +427,7 @@ int PHG4SiliconTrackerCellReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
+int PHG4INTTCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
@@ -465,7 +467,7 @@ int PHG4SiliconTrackerCellReco::CheckEnergy(PHCompositeNode *topNode)
   return 0;
 }
 
-double PHG4SiliconTrackerCellReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const
+double PHG4INTTCellReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const
 {
   // Find the area of overlap of a circle and rectangle
   // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
@@ -489,7 +491,7 @@ double PHG4SiliconTrackerCellReco::circle_rectangle_intersection(double x1, doub
   return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
 }
 
-double PHG4SiliconTrackerCellReco::sA(double r, double x, double y) const
+double PHG4INTTCellReco::sA(double r, double x, double y) const
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
   // It is called repeatedly to find the overlap area between the circle and rectangle
@@ -533,7 +535,7 @@ double PHG4SiliconTrackerCellReco::sA(double r, double x, double y) const
   return a;
 }
 
-void PHG4SiliconTrackerCellReco::SetDefaultParameters()
+void PHG4INTTCellReco::SetDefaultParameters()
 {
   // if we ever need separate timing windows, don't patch around here!
   // use PHParameterContainerInterface which

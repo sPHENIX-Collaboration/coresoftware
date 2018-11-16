@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
-#define G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
+#ifndef G4INTT_PHG4INTTSTEPPINGACTION_H
+#define G4INTT_PHG4INTTSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -9,19 +9,19 @@
 #include <set>
 #include <vector>
 
-class PHG4SiliconTrackerDetector;
+class PHG4INTTDetector;
 class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
 class PHG4CylinderGeomContainer;
 
-class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
+class PHG4INTTSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector *, const PHParametersContainer *parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_begin_end);
+  PHG4INTTSteppingAction(PHG4INTTDetector *, const PHParametersContainer *parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_begin_end);
 
-  virtual ~PHG4SiliconTrackerSteppingAction();
+  virtual ~PHG4INTTSteppingAction();
 
   virtual bool UserSteppingAction(const G4Step *, bool);
 
@@ -29,7 +29,7 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4SiliconTrackerDetector *m_Detector;
+  PHG4INTTDetector *m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer *m_Hits;
@@ -51,4 +51,4 @@ class PHG4SiliconTrackerSteppingAction : public PHG4SteppingAction
   std::map<int, int> m_IsBlackHoleMap;
 };
 
-#endif  // G4DETECTORS_PHG4SILICONTRACKERSTEPPINGACTION_H
+#endif  // G4INTT_PHG4INTTSTEPPINGACTION_H

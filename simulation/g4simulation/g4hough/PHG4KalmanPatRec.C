@@ -32,7 +32,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
+
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
@@ -1028,9 +1029,8 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
   PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
   PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
-  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
   
   //  if (cellgeos || laddergeos || mapsladdergeos) {
   //    unsigned int ncelllayers = 0;
@@ -1042,7 +1042,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
   //    _nlayers_seeding = ncelllayers + nladderlayers + nmapsladderlayers;
   //  } else {
   //    cerr << PHWHERE
-  //         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
+  //         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_INTT or CYLINDERGEOM_MAPS"
   //            "available, bail"
   //         << std::endl;
   //    return Fun4AllReturnCodes::ABORTRUN;
@@ -1242,7 +1242,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
 						      "G4CELL_TPC");
   
   _cells_intt = findNode::getClass<PHG4CellContainer>(
-						      topNode, "G4CELL_SILICON_TRACKER");
+						      topNode, "G4CELL_INTT");
   
   _cells_maps = findNode::getClass<PHG4CellContainer>(
 						      topNode, "G4CELL_MAPS");
@@ -1254,7 +1254,7 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode *topNode) {
   }
   
   _geom_container_intt = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   
   _geom_container_maps = findNode::getClass<
   PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
@@ -3896,8 +3896,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
 		//n.Print();
 	} else if (cell_intt) {
 		PHG4Cell* cell = cell_intt;
-		PHG4CylinderGeomSiLadders* geom =
-		  dynamic_cast<PHG4CylinderGeomSiLadders*> (_geom_container_intt->GetLayerGeom(
+		PHG4CylinderGeomINTT* geom =
+		  dynamic_cast<PHG4CylinderGeomINTT*> (_geom_container_intt->GetLayerGeom(
 							      layer));
 		double hit_location[3] = { 0.0, 0.0, 0.0 };
 		geom->find_segment_center(cell->get_ladder_z_index(),

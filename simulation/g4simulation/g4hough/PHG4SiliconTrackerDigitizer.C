@@ -118,8 +118,8 @@ void PHG4SiliconTrackerDigitizer::CalculateLadderCellADCScale(PHCompositeNode *t
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_SILICON_TRACKER");
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
   if (!geom_container || !cells) return;
 
@@ -146,7 +146,7 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   // Get Nodes
   //----------
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_SILICON_TRACKER");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
   if (!cells) return;
 
   const SvtxDeadMap *deadmap = findNode::getClass<SvtxDeadMap>(topNode, "DEADMAP_SILICON_TRACKER");
@@ -263,6 +263,7 @@ int PHG4SiliconTrackerDigitizer::End(PHCompositeNode *topNode)
 void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode) {
 
   if (Verbosity() >= VERBOSITY_EVEN_MORE) {
+    //if (Verbosity() >= 0) {
 
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (!hitlist) return;

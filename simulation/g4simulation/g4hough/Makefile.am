@@ -41,6 +41,7 @@ libg4hough_la_LIBADD = \
   -lPHGenFit \
   -lSpectrum \
   -lg4tpc \
+  -lg4intt \
   libg4hough_io.la
 
 pkginclude_HEADERS = \

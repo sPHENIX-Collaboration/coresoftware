@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4SILICONTRACKERCELLRECO_H
-#define G4DETECTORS_PHG4SILICONTRACKERCELLRECO_H
+#ifndef G4INTT_PHG4INTTCELLRECO_H
+#define G4INTT_PHG4INTTCELLRECO_H
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -16,12 +16,12 @@
 class PHCompositeNode;
 class PHG4Cell;
 
-class PHG4SiliconTrackerCellReco : public SubsysReco, public PHParameterInterface
+class PHG4INTTCellReco : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4SiliconTrackerCellReco(const std::string &name = "SILICON_TRACKER");
+  PHG4INTTCellReco(const std::string &name = "INTT");
 
-  virtual ~PHG4SiliconTrackerCellReco();
+  virtual ~PHG4INTTCellReco();
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
 

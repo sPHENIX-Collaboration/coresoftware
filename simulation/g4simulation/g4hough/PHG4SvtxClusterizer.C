@@ -19,9 +19,10 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
+
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/format.hpp>
@@ -347,10 +348,10 @@ void PHG4SvtxClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) 
 
 void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_INTT");
   if (!cells) return;
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_INTT");
   if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
@@ -699,13 +700,13 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   //----------
 
   // get the SVX geometry object
-  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_INTT");
   if (!geom_container) return;
   
-  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
+  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_INTT");
   if (!g4hits) return;
   
-  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
+  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_INTT");
   if (!cells) return; 
  
   //-----------
@@ -819,7 +820,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
       
       int layer = mapiter->second->get_layer();
       //PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
-      PHG4CylinderGeomSiLadders* geom = dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container->GetLayerGeom(layer));
+      PHG4CylinderGeomINTT* geom = dynamic_cast<PHG4CylinderGeomINTT*> (geom_container->GetLayerGeom(layer));
       
       SvtxCluster_v1 clus;
       clus.set_layer( layer );

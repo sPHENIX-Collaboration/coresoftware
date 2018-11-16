@@ -1,9 +1,9 @@
-#include "PHG4SiliconTrackerSteppingAction.h"
-#include "PHG4CylinderCellGeom.h"
-#include "PHG4CylinderCellGeomContainer.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4SiliconTrackerDefs.h"
-#include "PHG4SiliconTrackerDetector.h"
+#include "PHG4INTTSteppingAction.h"
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include "PHG4INTTDefs.h"
+#include "PHG4INTTDetector.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -32,7 +32,7 @@
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTrackerDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
+PHG4INTTSteppingAction::PHG4INTTSteppingAction(PHG4INTTDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
   : m_Detector(detector)
   , m_Hits(nullptr)
   , m_AbsorberHits(nullptr)
@@ -53,7 +53,7 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   }
 
   // Get the parameters for each laddertype
-  for (auto iter = PHG4SiliconTrackerDefs::m_SensorSegmentationSet.begin(); iter != PHG4SiliconTrackerDefs::m_SensorSegmentationSet.end(); ++iter)
+  for (auto iter = PHG4INTTDefs::m_SensorSegmentationSet.begin(); iter != PHG4INTTDefs::m_SensorSegmentationSet.end(); ++iter)
   {
     const PHParameters* par = m_ParamsContainer->GetParameters(*iter);
     m_StripYMap.insert(make_pair(*iter, par->get_double_param("strip_y") * cm));
@@ -63,7 +63,7 @@ PHG4SiliconTrackerSteppingAction::PHG4SiliconTrackerSteppingAction(PHG4SiliconTr
   }
 }
 
-PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
+PHG4INTTSteppingAction::~PHG4INTTSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
@@ -73,7 +73,7 @@ PHG4SiliconTrackerSteppingAction::~PHG4SiliconTrackerSteppingAction()
 }
 
 //____________________________________________________________________________..
-bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4INTTSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
@@ -82,7 +82,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   G4StepPoint* prePoint = aStep->GetPreStepPoint();
   G4StepPoint* postPoint = aStep->GetPostStepPoint();
 
-  const int whichactive = m_Detector->IsInSiliconTracker(volume);
+  const int whichactive = m_Detector->IsInINTT(volume);
 
   if (!whichactive)
   {
@@ -108,19 +108,19 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
   if (whichactive > 0)  // silicon active sensor
   {
     // Get the layer and ladder information which is step up in the volume hierarchy
-    // the ladder also contains inactive volumes but we check in m_Detector->IsInSiliconTracker(volume)
+    // the ladder also contains inactive volumes but we check in m_Detector->IsInINTT(volume)
     // if we are in an active logical volume whioch is located in this ladder
     auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(1));
     tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
     if (inttlayer < 0 || inttlayer > 7)
     {
-      assert(!"PHG4SiliconTrackerSteppingAction: check INTT ladder layer.");
+      assert(!"PHG4INTTSteppingAction: check INTT ladder layer.");
     }
     sphxlayer = m_InttToTrackerLayerMap.find(inttlayer)->second;
     map<int, int>::const_iterator activeiter = m_IsActiveMap.find(inttlayer);
     if (activeiter == m_IsActiveMap.end())
     {
-      cout << "PHG4SiliconTrackerSteppingAction: could not find active flag for layer " << inttlayer << endl;
+      cout << "PHG4INTTSteppingAction: could not find active flag for layer " << inttlayer << endl;
       gSystem->Exit(1);
     }
     if (activeiter->second == 0)
@@ -223,7 +223,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
     //set the initial energy deposit
     m_Hit->set_edep(0);
 
-    if (whichactive > 0)  // return of IsInSiliconTracker, > 0 hit in si-strip, < 0 hit in absorber
+    if (whichactive > 0)  // return of IsInINTT, > 0 hit in si-strip, < 0 hit in absorber
     {
       // Now save the container we want to add this hit to
       m_SaveHitContainer = m_Hits;
@@ -344,7 +344,7 @@ bool PHG4SiliconTrackerSteppingAction::UserSteppingAction(const G4Step* aStep, b
 }
 
 //____________________________________________________________________________..
-void PHG4SiliconTrackerSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
+void PHG4INTTSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   const string detectorname = (m_Detector->SuperDetector() != "NONE") ? m_Detector->SuperDetector() : m_Detector->GetName();
   const string hitnodename = "G4HIT_" + detectorname;
@@ -356,8 +356,8 @@ void PHG4SiliconTrackerSteppingAction::SetInterfacePointers(PHCompositeNode* top
 
   // if we do not find the node it's messed up.
   if (!m_Hits)
-    cout << "PHG4SiliconTrackerSteppingAction::SetTopNode - unable to find " << hitnodename << endl;
+    cout << "PHG4INTTSteppingAction::SetTopNode - unable to find " << hitnodename << endl;
 
   if (!m_AbsorberHits && Verbosity() > 1)
-    cout << "PHG4SiliconTrackerSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+    cout << "PHG4INTTSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 }

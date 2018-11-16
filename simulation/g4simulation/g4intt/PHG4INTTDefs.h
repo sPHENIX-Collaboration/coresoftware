@@ -1,11 +1,11 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4SILICONTRACKERDEFS_H
-#define G4DETECTORS_PHG4SILICONTRACKERDEFS_H
+#ifndef G4INTT_PHG4INTTDEFS_H
+#define G4INTT_PHG4INTTDEFS_H
 
 #include <set>
 
-namespace PHG4SiliconTrackerDefs
+namespace PHG4INTTDefs
 {
 static const int SEGMENTATION_Z = -1;
 static const int SEGMENTATION_PHI = -2;
@@ -42,6 +42,6 @@ static const int INTT_INNER_SKIN = -20;
 // detid of support structures
 static const int SUPPORT_DETID = 100;
 
-};  // namespace PHG4SiliconTrackerDefs
+};  // namespace PHG4INTTDefs
 
 #endif
