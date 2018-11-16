@@ -115,7 +115,7 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
   if (!cells)
   {
     cout << PHWHERE << " " << cellnodename
-              << " Node missing, doing nothing." << std::endl;
+         << " Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -247,7 +247,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   if (!cellgeos)
   {
     cout << PHWHERE << " " << geonodename
-              << " Node missing, doing nothing." << std::endl;
+         << " Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find " + geonodename + " node in RawTowerBuilder::CreateNodes");
   }
@@ -491,7 +491,6 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   }
 
   // Create the tower nodes on the tree
-  m_TowerContainer = new RawTowerContainer(caloid);
   if (m_SimTowerNodePrefix.empty())
   {
     // no prefix, consistent with older convention
@@ -501,8 +500,14 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   {
     m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
   }
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_TowerContainer, m_TowerNodeName, "PHObject");
-  DetNode->addNode(towerNode);
+  m_TowerContainer = findNode::getClass<RawTowerContainer>(DetNode, m_TowerNodeName.c_str());
+  if (m_TowerContainer == nullptr)
+  {
+    m_TowerContainer = new RawTowerContainer(caloid);
+
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_TowerContainer, m_TowerNodeName, "PHObject");
+    DetNode->addNode(towerNode);
+  }
 
   return;
 }
