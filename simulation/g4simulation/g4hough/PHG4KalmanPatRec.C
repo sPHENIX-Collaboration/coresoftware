@@ -3985,6 +3985,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode)
       if (Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
       continue;
     }
+#ifdef EXTRAP_STUDY
     /**/
     if (_target_hit_z.at(itrack) < 110)
     {
@@ -4054,6 +4055,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode)
       }
     }
     /**/
+#endif
     /*!
 		 * Handle track propagation, termination, output and evt disp.
 		 */
