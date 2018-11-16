@@ -323,10 +323,11 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		 bool cluster_track_okay=false;
 		 bool g4_track_okay=false;
+		 if (Verbosity() >= 2) LogError(Form("svtx track pointer %p",(void*)svtx_track));
 
 		 //generic information that doesn't require the refits to work:
 		 TVector3 mom(svtx_track->get_px(),svtx_track->get_py(),svtx_track->get_pz());
-
+		if (Verbosity() >= 2) LogError("mom found.");
 		 //rccrccrcc
 		 //try to find the right truth particle:
 		 //should already be taken care of:	_truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
@@ -343,6 +344,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		     true_mom=cand_mom;
 		   }
 		 }
+		 if (Verbosity() >= 2) LogError(Form("true mom found.  pt= %f",true_mom.Perp()));
+
 		 _kalman_extrapolation_eval_tree_true_pti=true_mom.Perp();
 		 _kalman_extrapolation_eval_tree_true_pxi=true_mom.X();
 		 _kalman_extrapolation_eval_tree_true_pyi=true_mom.Y();
@@ -356,13 +359,19 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 										       topNode, "G4CELL_SILICON_TRACKER");
 		 PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
 										       topNode, "G4CELL_MAPS");
+		 if (!hitsmap)
+		   if (Verbosity() >= 2) LogError("no hit map!");
+
 		 int n_mvtx=0;
 		 int n_intt=0;
+
+		 if (hitsmap){
 		 for (auto iter = svtx_track->begin_clusters();
 		      iter != svtx_track->end_clusters(); ++iter) {
 		   unsigned int cluster_id = *iter;
 		   SvtxCluster* cluster = _clustermap->get(cluster_id);
-		   SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
+		   SvtxHit* svtxhit=nullptr;
+		   if (hitsmap) svtxhit= hitsmap->find(*cluster->begin_hits())->second;
 		   
 		   if(cells_intt && cells_intt->findCell(svtxhit->get_cellid())) {
 		     n_intt++;
@@ -370,6 +379,11 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		     n_mvtx++;
 		   }
 		 }
+		 }else {
+		   n_mvtx=-9;
+		   n_intt=-9;
+		 }
+	      
 
 		 //tree elements that only need data from the svtx track:
 		 _kalman_extrapolation_eval_tree_pti=mom.Perp();
@@ -388,9 +402,9 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		 
 		 if (g4_phgf_track){
 		   g4_track_okay=true;
-		_kalman_extrapolation_eval_tree_has_g4_track=g4_track_okay;
+		   _kalman_extrapolation_eval_tree_has_g4_track=g4_track_okay;
 
-		  int ng4trackpoints=rf_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
+		  int ng4trackpoints=g4_phgf_track->getGenFitTrack()->getNumPointsWithMeasurement();
 		  _kalman_extrapolation_eval_tree_g4_nhits=ng4trackpoints;//number of points in the g4 kalman track rep.
 
 		  //get the g4 track momentum from its final point:
