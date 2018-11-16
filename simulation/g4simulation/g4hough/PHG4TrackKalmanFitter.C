@@ -456,6 +456,35 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 		  if (Verbosity() >= 2) std::cout << PHWHERE << npoints << " points in measured track RCC"<<endl;
 
+
+		  TVector3 mom_final;
+		  TVector3 pos_final;
+		  bool mom_okay=false;
+		  TVectorD state6(6); // pos(3), mom(3)
+		  TMatrixDSym cov6(6,6); //
+		  if (npoints>0){ //make sure we're not working with too few points.
+		    genfit::TrackPoint* trackpoint= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-1);
+		    genfit::MeasuredStateOnPlane* trackstate=nullptr;
+		    if (trackpoint){
+		      trackstate=trackpoint->getFitterInfo()->getFittedState().clone();
+		      trackstate->get6DStateCov(state6, cov6);
+		    }
+		    if (trackstate){
+		      mom_okay=true;
+		      pos_final.SetXYZ(state6[0],state6[1],state6[2]);
+		      mom_final.SetXYZ(state6[3],state6[4],state6[5]);
+		    }
+		  
+		  }
+		  
+		  _kalman_extrapolation_eval_tree_p_okay=mom_okay;
+		  _kalman_extrapolation_eval_tree_pt=mom_final.Perp();
+		  _kalman_extrapolation_eval_tree_px=mom_final.X();
+		  _kalman_extrapolation_eval_tree_py=mom_final.Y();
+		  _kalman_extrapolation_eval_tree_pz=mom_final.Z();
+
+		  
+
 		  //this ought to give the same result regardless of where we extrapolate from, since it should pick the best track ref, but... not clear if that's true.  pick the outermost point.  Note that currently this doesn't include extra material effects, so it won't work for points beyond the inner wall of the tpc -- there's an additional scattering growth to the covariance.
 		  
 		  TMatrixF cov_ifc(3,3); //this zeroes the matrix automatically, too.
@@ -570,41 +599,14 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		  //do the exact, linear extrapolation:
 		  //get the info for the last two points in the track, in order:
 		  
-		  float target_radius=pos_ex_g4.Perp();
-		  TVector3 pos_linear[3];
-		  TVector3 mom_linear[3];
-		  TVectorD state6(6); // pos(3), mom(3)
-		  TMatrixDSym cov6(6,6); //
-		  if (npoints>1){ //make sure we're not working with too few points.
-		    for (int i=0;i<2;i++){
-		      genfit::TrackPoint* trackpoint= rf_phgf_track->getGenFitTrack()->getPointWithMeasurementAndFitterInfo(npoints-2+i);
-		    
-		      genfit::MeasuredStateOnPlane* trackstate;trackstate=trackpoint->getFitterInfo()->getFittedState().clone();
-		      trackstate->get6DStateCov(state6, cov6);
-		      (pos_linear[i]).SetXYZ(state6[0],state6[1],state6[2]);
-		      (mom_linear[i]).SetXYZ(state6[3],state6[4],state6[5]);
-		    }
-		  }
+
 		  
 
 		    
-		    //extrapolate from those last two points to the cylinder:
-		    TVector3 delta=pos_linear[1]-pos_linear[0];
-		    
-		    //to extrapolate to a cylinder of radius r, we want to solve:
-		    //(pos')^2=R^2, where pos'=delta*t+pos, a vector quantity.
-		    //This leads to a quadratic equation: 
-		    double quad_a=delta*delta;
-		    double quad_b=2*delta*(pos_linear[1]);
-		    double quad_c=(pos_linear[1]*pos_linear[1])-target_radius*target_radius;
-		    //pick the positive root to keep going the direction we defined:
-		    float t=(-quad_b+TMath::Sqrt(quad_b*quad_b-4*quad_a*quad_c))/(2*quad_a);
-		    //extrapolate out all the dimensions to the intersection.
-		    pos_linear[2]=pos_linear[1]+delta*t;
 
 		    if (Verbosity() > 4){
-		      cout << "pos_lin_g4:  "<<  "X="<< pos_linear[2].X() << " Y="<<pos_linear[2].Y() << " Z=" <<pos_linear[2].Z();
-		      cout << "\tR="<< pos_linear[2].Perp() << " Phi="<<pos_linear[2].Phi() << " Z=" <<pos_linear[2].Z() <<endl;
+		      //cout << "pos_lin_g4:  "<<  "X="<< pos_linear[2].X() << " Y="<<pos_linear[2].Y() << " Z=" <<pos_linear[2].Z();
+		      //cout << "\tR="<< pos_linear[2].Perp() << " Phi="<<pos_linear[2].Phi() << " Z=" <<pos_linear[2].Z() <<endl;
 		      //cout << "pos_chr_g4:  "<<  "X="<< pos_chr.X() << " Y="<<pos_chr.Y() << " Z=" <<pos_chr.Z();
 		      //cout << "\tR="<< pos_chr.Perp() << " Phi="<<pos_chr.Phi() << " Z=" <<pos_chr.Z() <<endl;
 		      cout << "pos_ex_g4:  "<<  "X="<< pos_ex_g4.X() << " Y="<<pos_ex_g4.Y() << " Z=" <<pos_ex_g4.Z();
@@ -620,22 +622,10 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		    
 		
 
-		
-		    _kalman_extrapolation_eval_tree_pt=mom_linear[1].Perp();
-		    _kalman_extrapolation_eval_tree_px=mom_linear[1].X();
-		    _kalman_extrapolation_eval_tree_py=mom_linear[1].Y();
-		    _kalman_extrapolation_eval_tree_pz=mom_linear[1].Z();
 
 		}
 
 
-
-
-		    //2) How many g4 hits were at the layer of interest?
-	       
-	       
-
-		    
 
 	
 	
@@ -1077,6 +1067,7 @@ void PHG4TrackKalmanFitter::init_eval_tree() {
 	_kalman_extrapolation_eval_tree->Branch("r80te", &_kalman_extrapolation_eval_tree_r_ex_80, "r80te/F");
 
 	//cluster track momentum from last hit on track:
+	_kalman_extrapolation_eval_tree->Branch("p_ok",&_kalman_extrapolation_eval_tree_p_okay,"p_ok/O");
 	_kalman_extrapolation_eval_tree->Branch("pt", &_kalman_extrapolation_eval_tree_pt, "pt/F");
 	_kalman_extrapolation_eval_tree->Branch("px", &_kalman_extrapolation_eval_tree_px, "px/F");
 	_kalman_extrapolation_eval_tree->Branch("py", &_kalman_extrapolation_eval_tree_py, "py/F");

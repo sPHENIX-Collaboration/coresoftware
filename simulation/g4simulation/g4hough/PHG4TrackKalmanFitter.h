@@ -449,6 +449,7 @@ private:
 	float _kalman_extrapolation_eval_tree_z_ex_80;
 	float _kalman_extrapolation_eval_tree_r_ex_80;
 	//cluster track momentum from last hit on track:
+	bool _kalman_extrapolation_eval_tree_p_okay;
 	float _kalman_extrapolation_eval_tree_pt;
 	float _kalman_extrapolation_eval_tree_px;
 	float _kalman_extrapolation_eval_tree_py;
