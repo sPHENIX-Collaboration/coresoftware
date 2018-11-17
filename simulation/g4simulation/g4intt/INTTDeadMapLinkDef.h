@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class SvtxDeadMapv1+;
+#pragma link C++ class INTTDeadMap+;
 
 #endif /* __CINT__ */

@@ -64,7 +64,6 @@ pkginclude_HEADERS = \
   PHG4InitZVertexing.h \
   PHG4KalmanPatRec.h \
   PHG4PatternReco.h \
-  PHG4SiliconTrackerDigitizer.h \
   PHG4SvtxBeamSpotReco.h \
   PHG4SvtxClusterizer.h \
   PHG4SvtxDeadArea.h \
@@ -80,8 +79,6 @@ pkginclude_HEADERS = \
   SimpleTrack.h \
   SquareGradient.h \
   SvtxBeamSpot.h \
-  SvtxDeadMap.h \
-  SvtxDeadMapv1.h \
   SvtxCluster.h \
   SvtxCluster_v1.h \
   SvtxClusterMap.h \
@@ -102,10 +99,6 @@ pkginclude_HEADERS = \
   VertexFitFuncs.h
 
 libg4hough_io_la_SOURCES = \
-  SvtxDeadMap.C \
-  SvtxDeadMap_Dict.C \
-  SvtxDeadMapv1.C \
-  SvtxDeadMapv1_Dict.C \
   SvtxCluster.C \
   SvtxCluster_Dict.C \
   SvtxCluster_v1.C \
@@ -164,12 +157,8 @@ libg4hough_io_la_SOURCES = \
   VertexFitFuncs.C
 
 libg4hough_la_SOURCES = \
-  PHG4SiliconTrackerDigitizer.C \
-  PHG4SiliconTrackerDigitizer_Dict.C \
   PHG4SvtxDeadArea.C \
   PHG4SvtxDeadArea_Dict.C \
-  PHG4SvtxDeadMapLoader.C \
-  PHG4SvtxDeadMapLoader_Dict.C \
   PHG4SvtxThresholds.C \
   PHG4SvtxThresholds_Dict.C \
   PHG4SvtxDigitizer.C \

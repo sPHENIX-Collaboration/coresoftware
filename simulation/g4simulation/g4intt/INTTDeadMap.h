@@ -1,17 +1,17 @@
-#ifndef SvtxDeadMap_H__
-#define SvtxDeadMap_H__
+#ifndef INTTDeadMap_H__
+#define INTTDeadMap_H__
 
 #include <g4detectors/PHG4CellDefs.h>
 
 #include <phool/PHObject.h>
 #include <set>
 
-class SvtxDeadMap : public PHObject
+class INTTDeadMap : public PHObject
 {
  public:
   typedef std::set<PHG4CellDefs::keytype> Map;
 
-  virtual ~SvtxDeadMap() {}
+  virtual ~INTTDeadMap() {}
   virtual void Reset();
   virtual int isValid() const;
 
@@ -42,14 +42,14 @@ class SvtxDeadMap : public PHObject
   static int getWildCardID() {return s_wildCardID;}
 
  protected:
-  SvtxDeadMap()
+  INTTDeadMap()
   {
   }
 
  private:
   static int s_wildCardID;
 
-  ClassDef(SvtxDeadMap, 1)
+  ClassDef(INTTDeadMap, 1)
 };
 
-#endif /* SvtxDeadMap_H__ */
+#endif /* INTTDeadMap_H__ */

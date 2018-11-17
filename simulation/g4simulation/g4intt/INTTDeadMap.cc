@@ -1,4 +1,4 @@
-#include "SvtxDeadMap.h"
+#include "INTTDeadMap.h"
 
 #include <cassert>
 #include <iostream>
@@ -7,33 +7,33 @@
 using namespace std;
 
 int
-    SvtxDeadMap::s_wildCardID = -1;
+    INTTDeadMap::s_wildCardID = -1;
 
-const SvtxDeadMap::Map&
-SvtxDeadMap::getDeadChannels(void) const
+const INTTDeadMap::Map&
+INTTDeadMap::getDeadChannels(void) const
 {
   static Map tmp_map;
   return tmp_map;
 }
 
-SvtxDeadMap::Map&
-SvtxDeadMap::getDeadChannels(void)
+INTTDeadMap::Map&
+INTTDeadMap::getDeadChannels(void)
 {
   static Map tmp_map;
   return tmp_map;
 }
 
-void SvtxDeadMap::addDeadChannel(const int layer, const int ieta, const int iphi)
+void INTTDeadMap::addDeadChannel(const int layer, const int ieta, const int iphi)
 {
   const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
   addDeadChannel(key);
 }
 
-void SvtxDeadMap::addDeadChannel(PHG4CellDefs::keytype key)
+void INTTDeadMap::addDeadChannel(PHG4CellDefs::keytype key)
 {
 }
 
-void SvtxDeadMap::addDeadChannelINTT(const int layer,
+void INTTDeadMap::addDeadChannelINTT(const int layer,
                                      const int ladder_phi, const int ladder_z,
                                      const int strip_z, const int strip_phi)
 {
@@ -42,18 +42,18 @@ void SvtxDeadMap::addDeadChannelINTT(const int layer,
                             strip_z, strip_phi));
 }
 
-bool SvtxDeadMap::isDeadChannel(PHG4CellDefs::keytype key) const
+bool INTTDeadMap::isDeadChannel(PHG4CellDefs::keytype key) const
 {
   return false;
 }
 
-bool SvtxDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi) const
+bool INTTDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi) const
 {
   const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
   return isDeadChannel(key);
 }
 
-bool SvtxDeadMap::isDeadChannelINTT(const int layer,
+bool INTTDeadMap::isDeadChannelINTT(const int layer,
                                     const int ladder_phi, const int ladder_z,
                                     const int strip_z, const int strip_phi) const
 {
@@ -81,21 +81,21 @@ bool SvtxDeadMap::isDeadChannelINTT(const int layer,
     return false;
 }
 
-int SvtxDeadMap::isValid() const
+int INTTDeadMap::isValid() const
 {
   return size() > 0;
 }
 
-void SvtxDeadMap::Reset()
+void INTTDeadMap::Reset()
 {
 }
 
-void SvtxDeadMap::identify(std::ostream& os) const
+void INTTDeadMap::identify(std::ostream& os) const
 {
-  os << "SvtxDeadMap" << std::endl;
+  os << "INTTDeadMap" << std::endl;
 }
 
-PHG4CellDefs::keytype SvtxDeadMap::getINTTKey(int layer,
+PHG4CellDefs::keytype INTTDeadMap::getINTTKey(int layer,
                                               int ladder_phi, int ladder_z,
                                               int strip_z, int strip_phi)
 {

@@ -1,32 +1,32 @@
 // $Id: $
 
 /*!
- * \file PHG4SvtxDeadMapLoader.h
+ * \file PHG4INTTDeadMapLoader.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#ifndef SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_PHG4SvtxDeadMapLoader_H_
-#define SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_PHG4SvtxDeadMapLoader_H_
+#ifndef SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_PHG4INTTDeadMapLoader_H_
+#define SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_PHG4INTTDeadMapLoader_H_
 
 #include <fun4all/SubsysReco.h>
 #include <string>
 #include <map>
 
-class SvtxDeadMap;
+class INTTDeadMap;
 
 
 /*!
- * \brief PHG4SvtxDeadMapLoader loads dead map at inti run
+ * \brief PHG4INTTDeadMapLoader loads dead map at inti run
  */
-class PHG4SvtxDeadMapLoader : public SubsysReco
+class PHG4INTTDeadMapLoader : public SubsysReco
 {
  public:
-  explicit PHG4SvtxDeadMapLoader(const std::string& detector = "SILICON_TRACKER");
+  explicit PHG4INTTDeadMapLoader(const std::string& detector = "SILICON_TRACKER");
 
-  virtual ~PHG4SvtxDeadMapLoader();
+  virtual ~PHG4INTTDeadMapLoader();
 
   virtual int InitRun(PHCompositeNode *topNode);
 
@@ -50,7 +50,7 @@ class PHG4SvtxDeadMapLoader : public SubsysReco
   std::map<unsigned int, std::string> m_deadMapPathMap;
 
   std::string m_detector;
-  SvtxDeadMap * m_deadmap;
+  INTTDeadMap * m_deadmap;
 };
 
-#endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_PHG4SvtxDeadMapLoader_H_ */
+#endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_PHG4INTTDeadMapLoader_H_ */

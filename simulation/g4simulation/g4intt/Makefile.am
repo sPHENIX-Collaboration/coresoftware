@@ -43,19 +43,30 @@ libg4intt_la_LIBADD = \
   -lg4detectors
 
 pkginclude_HEADERS = \
-   PHG4CylinderGeom_INTT.h \
+  PHG4CylinderGeom_INTT.h \
   PHG4CylinderGeomINTT.h \
-   PHG4INTTCellReco.h \
+  PHG4INTTCellReco.h \
   PHG4INTTDefs.h \
-  PHG4INTTSubsystem.h 
+  INTTDeadMap.h \
+  INTTDeadMapv1.h \
+  PHG4INTTSubsystem.h \
+  PHG4INTTDigitizer.h 
  
 libg4intt_io_la_SOURCES = \
+  INTTDeadMap.cc \
+  INTTDeadMap_Dict.cc \
+  INTTDeadMapv1.cc \
+  INTTDeadMapv1_Dict.cc \
   PHG4CylinderGeom_INTT.cc \
   PHG4CylinderGeom_INTT_Dict.cc \
   PHG4CylinderGeomINTT.cc \
   PHG4CylinderGeomINTT_Dict.cc 
 
 libg4intt_la_SOURCES = \
+  PHG4INTTDeadMapLoader.cc \
+  PHG4INTTDeadMapLoader_Dict.cc \
+  PHG4INTTDigitizer.cc \
+  PHG4INTTDigitizer_Dict.cc \
   PHG4INTTCellReco.cc \
   PHG4INTTCellReco_Dict.cc \
   PHG4INTTDefs_Dict.cc \

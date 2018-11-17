@@ -1,16 +1,16 @@
-#ifndef SvtxDeadMapv1_H__
-#define SvtxDeadMapv1_H__
+#ifndef INTTDeadMapv1_H__
+#define INTTDeadMapv1_H__
 
-#include "SvtxDeadMap.h"
+#include "INTTDeadMap.h"
 
-class SvtxDeadMapv1 : public SvtxDeadMap
+class INTTDeadMapv1 : public INTTDeadMap
 {
  public:
 
-  SvtxDeadMapv1()
+  INTTDeadMapv1()
   {
   }
-  virtual ~SvtxDeadMapv1() {}
+  virtual ~INTTDeadMapv1() {}
   virtual void Reset();
   virtual int isValid() const;
 
@@ -27,7 +27,7 @@ class SvtxDeadMapv1 : public SvtxDeadMap
  private:
   Map m_DeadChannels;
 
-  ClassDef(SvtxDeadMapv1, 1)
+  ClassDef(INTTDeadMapv1, 1)
 };
 
-#endif /* SvtxDeadMapv1_H__ */
+#endif /* INTTDeadMapv1_H__ */

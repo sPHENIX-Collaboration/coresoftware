@@ -1,15 +1,15 @@
 // $Id: $
 
 /*!
- * \file PHG4SvtxDeadMapLoader.cc
+ * \file PHG4INTTDeadMapLoader.cc
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "PHG4SvtxDeadMapLoader.h"
-#include "SvtxDeadMapv1.h"
+#include "PHG4INTTDeadMapLoader.h"
+#include "INTTDeadMapv1.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -43,18 +43,18 @@
 
 using namespace std;
 
-PHG4SvtxDeadMapLoader::PHG4SvtxDeadMapLoader(const std::string &detector)
-  : SubsysReco("PHG4SvtxDeadMapLoader_" + detector)
+PHG4INTTDeadMapLoader::PHG4INTTDeadMapLoader(const std::string &detector)
+  : SubsysReco("PHG4INTTDeadMapLoader_" + detector)
   , m_detector(detector)
   , m_deadmap(nullptr)
 {
 }
 
-PHG4SvtxDeadMapLoader::~PHG4SvtxDeadMapLoader()
+PHG4INTTDeadMapLoader::~PHG4INTTDeadMapLoader()
 {
 }
 
-int PHG4SvtxDeadMapLoader::InitRun(PHCompositeNode *topNode)
+int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst(
@@ -79,10 +79,10 @@ int PHG4SvtxDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   // Be careful as a previous calibrator may have been registered for this detector
   string deadMapName = "DEADMAP_" + m_detector;
-  SvtxDeadMap *m_deadmap = findNode::getClass<SvtxDeadMapv1>(DetNode, deadMapName);
+  INTTDeadMap *m_deadmap = findNode::getClass<INTTDeadMapv1>(DetNode, deadMapName);
   if (!m_deadmap)
   {
-    m_deadmap = new SvtxDeadMapv1();
+    m_deadmap = new INTTDeadMapv1();
     PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(
         m_deadmap, deadMapName, "PHObject");
     DetNode->addNode(towerNode);
@@ -108,7 +108,7 @@ int PHG4SvtxDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
       if (Verbosity())
       {
-        cout << "HG4SvtxDeadMapLoader::InitRun - deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
+        cout << "HG4INTTDeadMapLoader::InitRun - deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
       }
 
       boost::char_separator<char> sep("_");
@@ -163,13 +163,13 @@ int PHG4SvtxDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
     }  //  for (const auto iter = in_par_ranges.first; iter != in_par_ranges.second; ++iter)
 
-    cout << "PHG4SvtxDeadMapLoader::" << m_detector << "::InitRun - loading " << counter << " dead channel for layer "
+    cout << "PHG4INTTDeadMapLoader::" << m_detector << "::InitRun - loading " << counter << " dead channel for layer "
          << ilayer << " from " << deadMapPath << ". Total dead chan = " << m_deadmap->size() << endl;
   }
 
   if (Verbosity())
   {
-    cout << "PHG4SvtxDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
+    cout << "PHG4INTTDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
     m_deadmap->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;

@@ -1,6 +1,6 @@
-#include "PHG4SiliconTrackerDigitizer.h"
+#include "PHG4INTTDigitizer.h"
 
-#include "SvtxDeadMap.h"
+#include "INTTDeadMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
@@ -24,7 +24,7 @@
 
 using namespace std;
 
-PHG4SiliconTrackerDigitizer::PHG4SiliconTrackerDigitizer(const string &name)
+PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   : SubsysReco(name)
   , _hitmap(NULL)
   , _timer(PHTimeServer::get()->insert_new(name))
@@ -33,7 +33,7 @@ PHG4SiliconTrackerDigitizer::PHG4SiliconTrackerDigitizer(const string &name)
 {
 }
 
-int PHG4SiliconTrackerDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
 {
   //-------------
   // Add Hit Node
@@ -74,7 +74,7 @@ int PHG4SiliconTrackerDigitizer::InitRun(PHCompositeNode *topNode)
   //----------------
   
   if (Verbosity() > 0) {
-    cout << "====================== PHG4SiliconTrackerDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4INTTDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
          ++iter)
@@ -93,7 +93,7 @@ int PHG4SiliconTrackerDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4SiliconTrackerDigitizer::process_event(PHCompositeNode *topNode)
+int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
 {
   _timer.get()->restart();
 
@@ -114,7 +114,7 @@ int PHG4SiliconTrackerDigitizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4SiliconTrackerDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
+void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
@@ -140,7 +140,7 @@ void PHG4SiliconTrackerDigitizer::CalculateLadderCellADCScale(PHCompositeNode *t
   return;
 }
 
-void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
+void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 {
   //----------
   // Get Nodes
@@ -149,17 +149,17 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
   if (!cells) return;
 
-  const SvtxDeadMap *deadmap = findNode::getClass<SvtxDeadMap>(topNode, "DEADMAP_SILICON_TRACKER");
+  const INTTDeadMap *deadmap = findNode::getClass<INTTDeadMap>(topNode, "DEADMAP_INTT");
   if (Verbosity() >= VERBOSITY_MORE)
   {
     if (deadmap)
     {
-      cout << "PHG4SiliconTrackerDigitizer::DigitizeLadderCells - Use deadmap ";
+      cout << "PHG4INTTDigitizer::DigitizeLadderCells - Use deadmap ";
       deadmap->identify();
     }
     else
     {
-      cout << "PHG4SiliconTrackerDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
+      cout << "PHG4INTTDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
     }
   }
 
@@ -188,7 +188,7 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
         ++m_nDeadCells;
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << "PHG4SiliconTrackerDigitizer::DigitizeLadderCells - dead cell at layer " << cell->get_layer() << ": ";
+          cout << "PHG4INTTDigitizer::DigitizeLadderCells - dead cell at layer " << cell->get_layer() << ": ";
           cell->identify();
         }
         continue;
@@ -247,11 +247,11 @@ void PHG4SiliconTrackerDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 }
 
 //! end of process
-int PHG4SiliconTrackerDigitizer::End(PHCompositeNode *topNode)
+int PHG4INTTDigitizer::End(PHCompositeNode *topNode)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "PHG4SiliconTrackerDigitizer::End - processed "
+    cout << "PHG4INTTDigitizer::End - processed "
          << m_nCells << " cell with "
          << m_nDeadCells << " dead cells masked"
          << " (" << 100. * m_nDeadCells / m_nCells << "%)" << endl;
@@ -260,7 +260,7 @@ int PHG4SiliconTrackerDigitizer::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode) {
+void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode) {
 
   if (Verbosity() >= VERBOSITY_EVEN_MORE) {
     //if (Verbosity() >= 0) {
@@ -268,7 +268,7 @@ void PHG4SiliconTrackerDigitizer::PrintHits(PHCompositeNode *topNode) {
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (!hitlist) return;
 
-    cout << "================= PHG4SiliconTrackerDigitizer::process_event() ====================" << endl;
+    cout << "================= PHG4INTTDigitizer::process_event() ====================" << endl;
 
     cout << " Found and recorded the following " << hitlist->size() << " hits: " << endl;
 
