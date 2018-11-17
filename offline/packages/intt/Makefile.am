@@ -18,12 +18,15 @@ AM_LDFLAGS = \
 # sources for intt library
 libintt_la_SOURCES = \
   InttDefs.cc \
-  InttDefs_Dict.cc 
+  InttDefs_Dict.cc \
+  INTTClusterizer.cc \
+  INTTClusterizer_Dict.cc 
 
 libintt_la_LIBADD = \
   -lfun4all \
   -ltrack_util \
-  -ltrack_io
+  -ltrack_io \
+  -lg4hough
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -47,8 +50,8 @@ libintt_io_la_LIBADD = \
 
 pkginclude_HEADERS = \
   InttDefs.h \
-  InttHit.h
-
+  InttHit.h \
+  INTTClusterizer.h 
 
 
 ################################################

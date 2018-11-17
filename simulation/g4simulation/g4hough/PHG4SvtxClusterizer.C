@@ -259,8 +259,9 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   // Calculate Thresholds
   //---------------------
   
-  CalculateCylinderThresholds(topNode);
-  CalculateLadderThresholds(topNode);
+  //CalculateCylinderThresholds(topNode);
+  //CalculateLadderThresholds(topNode);
+  // this module now does only MVTX clustering
   CalculateMapsLadderThresholds(topNode);
 
   //----------------
@@ -301,10 +302,10 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
       cout << PHWHERE << " ERROR: Can't find SvtxClusterMap." << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
-  _clusterlist->Reset();
+  //_clusterlist->Reset();
   
-  ClusterCylinderCells(topNode);
-  ClusterLadderCells(topNode);
+  //ClusterCylinderCells(topNode);
+  //ClusterLadderCells(topNode);
   ClusterMapsLadderCells(topNode);
 
   PrintClusters(topNode);
