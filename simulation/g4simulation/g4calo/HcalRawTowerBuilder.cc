@@ -198,7 +198,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
           cout << "HcalRawTowerBuilder::InitRun - building tower geometry " << key << "" << endl;
         }
 
-        tg = new RawTowerGeomv1();
+        tg = new RawTowerGeomv1(key);
 
         tg->set_center_x(x);
         tg->set_center_y(y);
