@@ -37,7 +37,7 @@ int PHG4SvtxThresholds::InitRun(PHCompositeNode* topNode) {
   
   CalculateCylinderThresholds(topNode);
   CalculateLadderThresholds(topNode);
-  CalculateMapsLadderThresholds(topNode);
+  CalculateMVTXLadderThresholds(topNode);
 
   if (Verbosity() > 0) {
     cout << "====================== PHG4SvtxThresholds::InitRun() ======================" << endl;
@@ -144,7 +144,7 @@ void PHG4SvtxThresholds::CalculateCylinderThresholds(PHCompositeNode* topNode) {
 
 void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_INTT");
 
   if (!geom_container) return;
   
@@ -182,9 +182,9 @@ void PHG4SvtxThresholds::CalculateLadderThresholds(PHCompositeNode* topNode) {
   return;
 }
 
-void PHG4SvtxThresholds::CalculateMapsLadderThresholds(PHCompositeNode* topNode) {
+void PHG4SvtxThresholds::CalculateMVTXLadderThresholds(PHCompositeNode* topNode) {
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MVTX");
 
   if (!geom_container) return;
   

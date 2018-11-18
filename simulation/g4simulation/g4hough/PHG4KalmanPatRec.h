@@ -78,7 +78,7 @@ public:
 
 	PHG4KalmanPatRec(
 			const std::string &name = "PHG4KalmanPatRec",
-			unsigned int nlayers_maps = 3,
+			unsigned int nlayers_mvtx = 3,
 			unsigned int nlayers_intt = 8,
 			unsigned int nlayers_tpc = 60,
 			unsigned int seeding_nlayer = 7,
@@ -94,13 +94,13 @@ public:
 
 		int ntpc;
 		int nintt;
-		int nmaps;
+		int nmvtx;
 
 		TrackQuality(int nhits_, float chi2_, int ndf_) :
-			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(0), nintt(0), nmaps(0) {}
+			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(0), nintt(0), nmvtx(0) {}
 
-		TrackQuality(int nhits_, float chi2_, int ndf_, int ntpc_, int nintt_, int nmaps_) :
-			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(ntpc_), nintt(nintt_), nmaps(nmaps_) {}
+		TrackQuality(int nhits_, float chi2_, int ndf_, int ntpc_, int nintt_, int nmvtx_) :
+			nhits(nhits_), chi2(chi2_), ndf(ndf_), ntpc(ntpc_), nintt(nintt_), nmvtx(nmvtx_) {}
 
 		bool operator < (const TrackQuality& b) const {
 			if(nhits != b.nhits) return nhits > b.nhits;
@@ -111,7 +111,7 @@ public:
 			os
 			<< tq.nhits <<", "
 			<< tq.chi2 <<", "<<tq.ndf <<", "
-			<<tq.ntpc <<", "<<tq.nintt<<", " <<tq.nmaps
+			<<tq.ntpc <<", "<<tq.nintt<<", " <<tq.nmvtx
 			<<std::endl;
 
 			return os;
@@ -461,12 +461,12 @@ public:
 		_max_search_win_phi_intt[inttlayer] = maxSearchWinPhiIntt;
 	}
 
-	float get_max_search_win_phi_maps() const {
-		return _max_search_win_phi_maps;
+	float get_max_search_win_phi_mvtx() const {
+		return _max_search_win_phi_mvtx;
 	}
 
-	void set_max_search_win_phi_maps(float maxSearchWinPhiMaps) {
-		_max_search_win_phi_maps = maxSearchWinPhiMaps;
+	void set_max_search_win_phi_mvtx(float maxSearchWinPhiMvtx) {
+		_max_search_win_phi_mvtx = maxSearchWinPhiMvtx;
 	}
 
 	float get_max_search_win_theta_intt(int inttlayer) const {
@@ -477,12 +477,12 @@ public:
 		_max_search_win_theta_intt[inttlayer] = maxSearchWinThetaIntt;
 	}
 
-	float get_max_search_win_theta_maps() const {
-		return _max_search_win_theta_maps;
+	float get_max_search_win_theta_mvtx() const {
+		return _max_search_win_theta_mvtx;
 	}
 
-	void set_max_search_win_theta_maps(float maxSearchWinThetaMaps) {
-		_max_search_win_theta_maps = maxSearchWinThetaMaps;
+	void set_max_search_win_theta_mvtx(float maxSearchWinThetaMvtx) {
+		_max_search_win_theta_mvtx = maxSearchWinThetaMvtx;
 	}
 
 	float get_min_search_win_phi_intt(int inttlayer) const {
@@ -493,12 +493,12 @@ public:
 		_min_search_win_phi_intt[inttlayer] = minSearchWinPhiIntt;
 	}
 
-	float get_min_search_win_phi_maps() const {
-		return _min_search_win_phi_maps;
+	float get_min_search_win_phi_mvtx() const {
+		return _min_search_win_phi_mvtx;
 	}
 
-	void set_min_search_win_phi_maps(float minSearchWinPhiMaps) {
-		_min_search_win_phi_maps = minSearchWinPhiMaps;
+	void set_min_search_win_phi_mvtx(float minSearchWinPhiMvtx) {
+		_min_search_win_phi_mvtx = minSearchWinPhiMvtx;
 	}
 
 	float get_min_search_win_phi_tpc() const {
@@ -517,12 +517,12 @@ public:
 		_min_search_win_theta_intt[inttlayer] = minSearchWinThetaIntt;
 	}
 
-	float get_min_search_win_theta_maps() const {
-		return _min_search_win_theta_maps;
+	float get_min_search_win_theta_mvtx() const {
+		return _min_search_win_theta_mvtx;
 	}
 
-	void set_min_search_win_theta_maps(float minSearchWinThetaMaps) {
-		_min_search_win_theta_maps = minSearchWinThetaMaps;
+	void set_min_search_win_theta_mvtx(float minSearchWinThetaMvtx) {
+		_min_search_win_theta_mvtx = minSearchWinThetaMvtx;
 	}
 
 	float get_min_search_win_theta_tpc() const {
@@ -548,13 +548,13 @@ public:
 //		_intt_layers.assign(layers, layers+n);
 //	}
 //
-//	const std::vector<unsigned int>& get_maps_layers() const {
-//		return _maps_layers;
+//	const std::vector<unsigned int>& get_mvtx_layers() const {
+//		return _mvtx_layers;
 //	}
 //
-//	void set_maps_layers(const unsigned int * layers, const unsigned int n) {
-//		_maps_layers.clear();
-//		_maps_layers.assign(layers, layers+n);
+//	void set_mvtx_layers(const unsigned int * layers, const unsigned int n) {
+//		_mvtx_layers.clear();
+//		_mvtx_layers.assign(layers, layers+n);
 //	}
 //
 //	int get_nlayers_all() const {
@@ -817,10 +817,10 @@ private:
 
 	PHG4CellContainer* _cells_svtx;
 	PHG4CellContainer* _cells_intt;
-	PHG4CellContainer* _cells_maps;
+	PHG4CellContainer* _cells_mvtx;
 
 	PHG4CylinderGeomContainer* _geom_container_intt;
-	PHG4CylinderGeomContainer* _geom_container_maps;
+	PHG4CylinderGeomContainer* _geom_container_mvtx;
 
 	int  _n_iteration;
 	int  _n_max_iterations;
@@ -849,14 +849,14 @@ private:
 
 	bool _do_evt_display;
 
-	unsigned int _nlayers_maps;
+	unsigned int _nlayers_mvtx;
 	unsigned int _nlayers_intt;
 	unsigned int _nlayers_tpc;
 
 	int _nlayers_all;
 
 //	std::vector<unsigned int> _intt_layers;
-//	std::vector<unsigned int> _maps_layers;
+//	std::vector<unsigned int> _mvtx_layers;
 
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
@@ -871,10 +871,10 @@ private:
 	float _max_search_win_theta_intt[8];
 	float _min_search_win_theta_intt[8];
 
-	float _max_search_win_phi_maps;
-	float _min_search_win_phi_maps;
-	float _max_search_win_theta_maps;
-	float _min_search_win_theta_maps;
+	float _max_search_win_phi_mvtx;
+	float _min_search_win_phi_mvtx;
+	float _max_search_win_theta_mvtx;
+	float _min_search_win_theta_mvtx;
 
 	float _search_win_phi;
 	float _search_win_theta;

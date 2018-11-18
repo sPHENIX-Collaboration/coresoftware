@@ -42,8 +42,8 @@ class PHG4SvtxDigitizer : public SubsysReco
     
  private:
 
-  void CalculateMapsLadderCellADCScale(PHCompositeNode *topNode);
-  void DigitizeMapsLadderCells(PHCompositeNode *topNode);
+  void CalculateMVTXLadderCellADCScale(PHCompositeNode *topNode);
+  void DigitizeMVTXLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
 
   std::vector<std::vector<const  PHG4Cell*> > layer_sorted_cells;

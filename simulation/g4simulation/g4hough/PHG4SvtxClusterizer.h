@@ -63,23 +63,23 @@ private:
 		       const PHG4Cell*);
   static bool ladder_lessthan(const PHG4Cell*, 
 			      const PHG4Cell*);
-  static bool maps_ladder_lessthan(const PHG4Cell*, 
+  static bool mvtx_ladder_lessthan(const PHG4Cell*, 
 			      const PHG4Cell*);
   bool are_adjacent(const PHG4Cell*, 
 		    const PHG4Cell*, 
 		    const int &);
   bool ladder_are_adjacent(const PHG4Cell*, 
 			   const PHG4Cell*);
-  bool maps_ladder_are_adjacent(const PHG4Cell*,
+  bool mvtx_ladder_are_adjacent(const PHG4Cell*,
 				const PHG4Cell*);
 
   void CalculateCylinderThresholds(PHCompositeNode *topNode);
   void CalculateLadderThresholds(PHCompositeNode *topNode);
-  void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
+  void CalculateMVTXLadderThresholds(PHCompositeNode *topNode);
   
   void ClusterCylinderCells(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);
-  void ClusterMapsLadderCells(PHCompositeNode *topNode);
+  void ClusterMVTXLadderCells(PHCompositeNode *topNode);
 
   void PrintClusters(PHCompositeNode *topNode);
   

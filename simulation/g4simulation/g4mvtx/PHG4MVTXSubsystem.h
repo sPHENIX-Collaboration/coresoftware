@@ -1,25 +1,25 @@
-#ifndef PHG4MapsSubsystem_h
-#define PHG4MapsSubsystem_h
+#ifndef PHG4MVTXSubsystem_h
+#define PHG4MVTXSubsystem_h
 
-#include "PHG4DetectorSubsystem.h"
+#include <g4detectors/PHG4DetectorSubsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
-class PHG4MapsDetector;
-class PHG4MapsSteppingAction;
+class PHG4MVTXDetector;
+class PHG4MVTXSteppingAction;
 class PHG4EventAction;
 
-class PHG4MapsSubsystem: public PHG4DetectorSubsystem
+class PHG4MVTXSubsystem: public PHG4DetectorSubsystem
 {
 
   public:
 
   //! constructor
-  PHG4MapsSubsystem( const std::string &name = "BLOCK", const int layer = 0 , int stave_type = 0);
+  PHG4MVTXSubsystem( const std::string &name = "BLOCK", const int layer = 0 , int stave_type = 0);
 
   //! destructor
-  virtual ~PHG4MapsSubsystem( void )
+  virtual ~PHG4MVTXSubsystem( void )
   {}
 
   //! init
@@ -73,11 +73,11 @@ class PHG4MapsSubsystem: public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4MapsDetector* detector_;
+  PHG4MVTXDetector* detector_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4MapsSteppingAction* steppingAction_;
+  PHG4MVTXSteppingAction* steppingAction_;
   PHG4EventAction *eventAction_;
 //  G4double dimension[3];
 //  G4double place_in_x;

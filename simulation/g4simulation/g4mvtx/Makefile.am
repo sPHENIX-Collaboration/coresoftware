@@ -4,6 +4,7 @@ lib_LTLIBRARIES = libg4mvtx.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
+   -I$(G4_MAIN)/include \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
@@ -15,18 +16,28 @@ AM_LDFLAGS = \
 
 libg4mvtx_la_LIBADD = \
   -lfun4all \
-  -lg4detectors \
-  -ltrack_util \
-  -ltrack_io \
-  -lmvtx_io \
-  -lmvtx
+  -lphool \
+  -lg4testbench \
+  -lphg4hit \
+  -lg4detectors 
 
 pkginclude_HEADERS = \
-  PHG4MvtxDigitizer.h 
+  PHG4MVTXCellReco.h \
+  PHG4MVTXSubsystem.h \
+  PHG4CylinderCell_MVTX.h \
+  PHG4CylinderGeom_MVTX.h 
 
 libg4mvtx_la_SOURCES = \
-  PHG4MvtxDigitizer.cc \
-  PHG4MvtxDigitizer_Dict.cc
+  PHG4MVTXCellReco.cc \
+  PHG4MVTXCellReco_Dict.cc \
+  PHG4MVTXDetector.cc \
+  PHG4MVTXSteppingAction.cc \
+  PHG4MVTXSubsystem.cc \
+  PHG4MVTXSubsystem_Dict.cc \
+  PHG4CylinderGeom_MVTX.cc \
+  PHG4CylinderGeom_MVTX_Dict.cc \
+  PHG4CylinderCell_MVTX.cc \
+  PHG4CylinderCell_MVTX_Dict.cc 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

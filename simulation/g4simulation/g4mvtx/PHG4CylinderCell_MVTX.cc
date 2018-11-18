@@ -1,15 +1,15 @@
-#include "PHG4CylinderCell_MAPS.h"
+#include "PHG4CylinderCell_MVTX.h"
 
 using namespace std;
 
-PHG4CylinderCell_MAPS::PHG4CylinderCell_MAPS()
+PHG4CylinderCell_MVTX::PHG4CylinderCell_MVTX()
 : PHG4CylinderCellv2()
 {}
 
 void
-PHG4CylinderCell_MAPS::identify(std::ostream& os) const
+PHG4CylinderCell_MVTX::identify(std::ostream& os) const
 {
-  os << "PHG4CylinderCell_MAPS: ";
+  os << "PHG4CylinderCell_MVTX: ";
   os << " layer, stave number, half stave number, module, chip, pixel =  "
      << layer << ","; 
   os << get_stave_index() << ",";

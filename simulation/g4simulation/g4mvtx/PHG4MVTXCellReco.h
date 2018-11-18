@@ -1,5 +1,5 @@
-#ifndef PHG4MAPSCELLRECO_H
-#define PHG4MAPSCELLRECO_H
+#ifndef PHG4MVTXCELLRECO_H
+#define PHG4MVTXCELLRECO_H
 
 #include <phparameter/PHParameterContainerInterface.h>
 
@@ -13,13 +13,13 @@
 class PHCompositeNode;
 class PHG4Cell;
 
-class PHG4MapsCellReco : public SubsysReco, public PHParameterContainerInterface
+class PHG4MVTXCellReco : public SubsysReco, public PHParameterContainerInterface
 {
  public:
 
-  explicit PHG4MapsCellReco(const std::string &name = "MAPSRECO");
+  explicit PHG4MVTXCellReco(const std::string &name = "MVTXRECO");
 
-  virtual ~PHG4MapsCellReco(){}
+  virtual ~PHG4MVTXCellReco(){}
   
   //! module initialization
   int InitRun(PHCompositeNode *topNode);

@@ -42,6 +42,7 @@ libg4hough_la_LIBADD = \
   -lSpectrum \
   -lg4tpc \
   -lg4intt \
+  -lg4mvtx \
   libg4hough_io.la
 
 pkginclude_HEADERS = \

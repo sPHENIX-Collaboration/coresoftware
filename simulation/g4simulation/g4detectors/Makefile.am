@@ -52,6 +52,7 @@ pkginclude_HEADERS = \
   PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
+  PHG4EventActionClearZeroEdep.h \
   SvtxHit.h \
   SvtxHit_v1.h \
   SvtxHitMap.h \
@@ -60,7 +61,6 @@ pkginclude_HEADERS = \
   PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
-  PHG4CylinderCell_MAPS.h \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
@@ -70,7 +70,6 @@ pkginclude_HEADERS = \
   PHG4CylinderGeomv3.h \
   PHG4CylinderGeomv4.h \
   PHG4CylinderGeom_Spacalv1.h \
-  PHG4CylinderGeom_MAPS.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
@@ -90,8 +89,6 @@ pkginclude_HEADERS = \
   PHG4HcalDefs.h \
   PHG4HcalCellReco.h \
   PHG4InnerHcalSubsystem.h \
-  PHG4MapsCellReco.h \
-  PHG4MapsSubsystem.h \
   PHG4OuterHcalSubsystem.h \
   PHG4PrototypeHcalDefs.h \
   PHG4Prototype2HcalCellReco.h \
@@ -152,8 +149,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeomv4_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
-  PHG4CylinderGeom_MAPS.cc \
-  PHG4CylinderGeom_MAPS_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeom_Spacalv3.cc \
@@ -164,8 +159,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv1_Dict.cc \
-  PHG4CylinderCell_MAPS.cc \
-  PHG4CylinderCell_MAPS_Dict.cc \
   PHG4CylinderCellv2.cc \
   PHG4CylinderCellv2_Dict.cc \
   PHG4CylinderCellv3.cc \
@@ -299,12 +292,6 @@ libg4detectors_la_SOURCES = \
   PHG4SectorSubsystem_Dict.cc \
   PHG4StepStatusDecode.cc \
   PHG4TrackStatusDecode.cc \
-  PHG4MapsCellReco.cc \
-  PHG4MapsCellReco_Dict.cc \
-  PHG4MapsDetector.cc \
-  PHG4MapsSteppingAction.cc \
-  PHG4MapsSubsystem.cc \
-  PHG4MapsSubsystem_Dict.cc \
   PHG4PSTOFDetector.cc \
   PHG4PSTOFSteppingAction.cc \
   PHG4PSTOFSubsystem.cc \

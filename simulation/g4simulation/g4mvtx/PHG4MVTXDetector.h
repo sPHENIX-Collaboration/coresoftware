@@ -1,5 +1,5 @@
-#ifndef PHG4MapsDetector_h
-#define PHG4MapsDetector_h
+#ifndef PHG4MVTXDetector_h
+#define PHG4MVTXDetector_h
 
 #include <g4main/PHG4Detector.h>
 
@@ -19,23 +19,23 @@ class G4VPhysicalVolume;
 class G4VSolid;
 class PHParameters;
 
-class PHG4MapsDetector: public PHG4Detector
+class PHG4MVTXDetector: public PHG4Detector
 {
 
   public:
 
   //! constructor
-  PHG4MapsDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam="BLOCK" );
+  PHG4MVTXDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam="BLOCK" );
 
   //! destructor
-  virtual ~PHG4MapsDetector();
+  virtual ~PHG4MVTXDetector();
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
 
   //!@name volume accessors
   //@{
-  int IsInMaps(G4VPhysicalVolume*) const;
+  int IsInMVTX(G4VPhysicalVolume*) const;
   int IsSensor(G4VPhysicalVolume*) const;
   //@}
 
@@ -68,7 +68,7 @@ class PHG4MapsDetector: public PHG4Detector
 
   private:
   void AddGeometryNode();
-  int ConstructMaps(G4LogicalVolume* sandwich);
+  int ConstructMVTX(G4LogicalVolume* sandwich);
   void SetDisplayProperty( G4AssemblyVolume* av);
   void SetDisplayProperty( G4LogicalVolume* lv);
   void FillPVArray( G4AssemblyVolume* av );

@@ -18,10 +18,10 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 #include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <boost/tuple/tuple.hpp>
@@ -78,7 +78,7 @@ bool PHG4SvtxClusterizer::ladder_lessthan(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::maps_ladder_lessthan(const PHG4Cell* lhs, 
+bool PHG4SvtxClusterizer::mvtx_ladder_lessthan(const PHG4Cell* lhs, 
 					  const PHG4Cell* rhs) {
 
 
@@ -126,7 +126,7 @@ bool PHG4SvtxClusterizer::are_adjacent(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::maps_ladder_are_adjacent(const PHG4Cell* lhs, 
+bool PHG4SvtxClusterizer::mvtx_ladder_are_adjacent(const PHG4Cell* lhs, 
 					      const PHG4Cell* rhs) {
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
@@ -262,7 +262,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   //CalculateCylinderThresholds(topNode);
   //CalculateLadderThresholds(topNode);
   // this module now does only MVTX clustering
-  CalculateMapsLadderThresholds(topNode);
+  CalculateMVTXLadderThresholds(topNode);
 
   //----------------
   // Report Settings
@@ -306,7 +306,7 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
   
   //ClusterCylinderCells(topNode);
   //ClusterLadderCells(topNode);
-  ClusterMapsLadderCells(topNode);
+  ClusterMVTXLadderCells(topNode);
 
   PrintClusters(topNode);
   
@@ -381,12 +381,12 @@ void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
   return;
 }
 
-void PHG4SvtxClusterizer::CalculateMapsLadderThresholds(PHCompositeNode *topNode) {
+void PHG4SvtxClusterizer::CalculateMVTXLadderThresholds(PHCompositeNode *topNode) {
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
   if (!cells) return;
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MVTX");
   if (!geom_container) return;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
@@ -1093,23 +1093,23 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   return;
 }
 
-void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
+void PHG4SvtxClusterizer::ClusterMVTXLadderCells(PHCompositeNode *topNode) {
 
   if(Verbosity() > 0)
-    cout << "Entering PHG4SvtxClusterizer::ClusterMapsLadderCells " << endl;
+    cout << "Entering PHG4SvtxClusterizer::ClusterMVTXLadderCells " << endl;
 
   //----------
   // Get Nodes
   //----------
 
   // get the SVX geometry object
-  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MVTX");
   if (!geom_container) return;
   
-  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
+  PHG4HitContainer* g4hits =  findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MVTX");
   if (!g4hits) return;
   
-  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer* cells =  findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
   if (!cells) return; 
  
   //-----------
@@ -1166,14 +1166,14 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       }
     
     // i'm not sure this sorting is ever really used
-    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::maps_ladder_lessthan);
+    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::mvtx_ladder_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
     Graph G;
 
     for(unsigned int i=0; i<cell_list.size(); i++) {
       for(unsigned int j=i+1; j<cell_list.size(); j++) {
-        if(maps_ladder_are_adjacent(cell_list[i], cell_list[j]) )
+        if(mvtx_ladder_are_adjacent(cell_list[i], cell_list[j]) )
           add_edge(i,j,G);
       }
       
@@ -1209,7 +1209,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       multimap<int, PHG4Cell*>::iterator mapiter = clusrange.first;
       
       int layer = mapiter->second->get_layer();
-      PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(layer);
+      PHG4CylinderGeom_MVTX *geom = (PHG4CylinderGeom_MVTX*) geom_container->GetLayerGeom(layer);
 
       if(Verbosity() > 2)
 	cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
@@ -1244,7 +1244,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       float length = geom->get_pixel_z();
       float phisize = phibins.size()*pitch;
       float zsize = zbins.size()*length;
-      // tilt refers to a rotation around the radial vector from the origin, and this is zero for the MAPS ladders
+      // tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
       float tilt = 0.0;
 
       // determine the cluster position...
@@ -1463,7 +1463,7 @@ void PHG4SvtxClusterizer::ClusterMapsLadderCells(PHCompositeNode *topNode) {
       }	else if (Verbosity()>1) {
 	double radius = sqrt(clusx*clusx+clusy*clusy);
 	double clusphi = atan2(clusy,clusx);
-	cout << "MAPS ladder cell: removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
+	cout << "MVTX ladder cell: removed, clus_energy = " << clus_energy << " below threshold of " <<  get_threshold_by_layer(layer)  << " clus_adc " << clus_adc <<  " r=" << radius << " phi=" << clusphi << " z=" << clusz << endl;
 	cout << "pos=(" << clus.get_position(0) << ", " << clus.get_position(1)
 	     << ", " << clus.get_position(2) << ")" << endl;
 	cout << endl;

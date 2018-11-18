@@ -472,22 +472,22 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
           topNode, "CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer* laddergeos =
       findNode::getClass<PHG4CylinderGeomContainer>(
-          topNode, "CYLINDERGEOM_SILICON_TRACKER");
-  PHG4CylinderGeomContainer* mapsladdergeos =
+          topNode, "CYLINDERGEOM_INTT");
+  PHG4CylinderGeomContainer* mvtxladdergeos =
       findNode::getClass<PHG4CylinderGeomContainer>(
-          topNode, "CYLINDERGEOM_MAPS");
+          topNode, "CYLINDERGEOM_MVTX");
 
-  if (cellgeos || laddergeos || mapsladdergeos) {
+  if (cellgeos || laddergeos || mvtxladdergeos) {
     unsigned int ncelllayers = 0;
     if (cellgeos) ncelllayers += cellgeos->get_NLayers();
     unsigned int nladderlayers = 0;
     if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    unsigned int nmapsladderlayers = 0;
-    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers + nmapsladderlayers;
+    unsigned int nmvtxladderlayers = 0;
+    if (mvtxladdergeos) nmvtxladderlayers += mvtxladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers + nmvtxladderlayers;
   } else {
     cerr << PHWHERE
-         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
+         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_INTT or CYLINDERGEOM_MVTX"
             "available, bail"
          << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -528,8 +528,8 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
-  if (mapsladdergeos) {
-    PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+  if (mvtxladdergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange = mvtxladdergeos->get_begin_end();
     for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
 	layeriter != layerrange.second;
 	++layeriter) {
@@ -574,8 +574,8 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
-  if (mapsladdergeos) {    
-    PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
+  if (mvtxladdergeos) {    
+    PHG4CylinderGeomContainer::ConstRange begin_end = mvtxladdergeos->get_begin_end();
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderGeom *geo = miter->second;

@@ -295,7 +295,7 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode) {
 
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_INTT");
-  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
+  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MVTX");
 
   return;
 }

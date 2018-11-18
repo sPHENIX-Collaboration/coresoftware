@@ -19,7 +19,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
+#include <g4detectors/PHG4CylinderGeom_MVTX.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -131,12 +131,12 @@ void PHG4MvtxDigitizer::CalculateADCScale(PHCompositeNode *topNode)
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MVTX");
     
   if (!geom_container) return;
 
   if(Verbosity())
-    cout << "Found CYLINDERGEOM_MAPS node" << endl;
+    cout << "Found CYLINDERGEOM_MVTX node" << endl;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -183,10 +183,10 @@ void PHG4MvtxDigitizer::DigitizeCells(PHCompositeNode *topNode)
   // Get Nodes
   //----------
 
-  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MVTX");
   if (!geom_container) return;
  
-  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
   if (!cells) return; 
   
   //-------------
@@ -207,7 +207,7 @@ void PHG4MvtxDigitizer::DigitizeCells(PHCompositeNode *topNode)
     int chip = cell->get_chip_index();
     int pxl = cell->get_pixel_index();
 
-    PHG4CylinderGeom_MAPS *geom = (PHG4CylinderGeom_MAPS*) geom_container->GetLayerGeom(lyr);
+    PHG4CylinderGeom_MVTX *geom = (PHG4CylinderGeom_MVTX*) geom_container->GetLayerGeom(lyr);
     int col = geom->get_pixel_Z_from_pixel_number(pxl);
     int row = geom->get_pixel_X_from_pixel_number(pxl);
 

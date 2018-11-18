@@ -1,22 +1,22 @@
-#ifndef PHG4VMapsSteppingAction_h
-#define PHG4VMapsSteppingAction_h
+#ifndef PHG4VMVTXSteppingAction_h
+#define PHG4VMVTXSteppingAction_h
 
 #include <g4main/PHG4SteppingAction.h>
 
-class PHG4MapsDetector;
+class PHG4MVTXDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 
-class PHG4MapsSteppingAction : public PHG4SteppingAction
+class PHG4MVTXSteppingAction : public PHG4SteppingAction
 {
 
   public:
 
   //! constructor
-  PHG4MapsSteppingAction( PHG4MapsDetector* );
+  PHG4MVTXSteppingAction( PHG4MVTXDetector* );
 
   //! destroctor
-  virtual ~PHG4MapsSteppingAction()
+  virtual ~PHG4MVTXSteppingAction()
   {}
 
   //! stepping action
@@ -28,7 +28,7 @@ class PHG4MapsSteppingAction : public PHG4SteppingAction
   private:
 
   //! pointer to the detector
-  PHG4MapsDetector* detector_;
+  PHG4MVTXDetector* detector_;
 
   //! pointer to hit container
   PHG4HitContainer * hits_;
@@ -37,4 +37,4 @@ class PHG4MapsSteppingAction : public PHG4SteppingAction
 };
 
 
-#endif // PHG4MapsSteppingAction_h
+#endif // PHG4MVTXSteppingAction_h

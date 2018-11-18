@@ -25,7 +25,7 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <g4intt/PHG4CylinderGeomINTT.h>
 
@@ -844,10 +844,10 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_INTT");
 
-	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_MAPS");
+	PHG4CellContainer* cells_mvtx = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MVTX");
 
-	if (!cells_svtx and !cells_intt and !cells_maps) {
+	if (!cells_svtx and !cells_intt and !cells_mvtx) {
 		if (Verbosity() >= 0) {
 			LogError("No PHG4CellContainer found!");
 		}
@@ -857,10 +857,10 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
 			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
-	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+	PHG4CylinderGeomContainer* geom_container_mvtx = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
-	if (!cells_svtx && !cells_maps && !cells_intt) {
+	if (!cells_svtx && !cells_mvtx && !cells_intt) {
 		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
 		return NULL;
 	}
@@ -1006,10 +1006,10 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			PHG4HitContainer* phg4hits_intt = findNode::getClass<
 					PHG4HitContainer>(topNode, "G4HIT_INTT");
 
-			PHG4HitContainer* phg4hits_maps = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_MAPS");
+			PHG4HitContainer* phg4hits_mvtx = findNode::getClass<
+					PHG4HitContainer>(topNode, "G4HIT_MVTX");
 
-			if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
+			if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_mvtx) {
 				if (Verbosity() >= 0) {
 					LogError("No PHG4HitContainer found!");
 				}
@@ -1021,7 +1021,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			PHG4Cell* cell = nullptr;
 			if(cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
 			if(!cell && cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
-			if(!cell && cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
+			if(!cell && cells_mvtx) cell = cells_mvtx->findCell(svtxhit->get_cellid());
 			if(!cell){
 				if(Verbosity()>=0)
 					LogError("!cell");
@@ -1031,7 +1031,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			PHG4Hit *phg4hit = nullptr;
 			if(phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(cell->get_g4hits().first->first);
 			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(cell->get_g4hits().first->first);
-			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
+			if(!phg4hit and phg4hits_mvtx) phg4hit = phg4hits_mvtx->findHit(cell->get_g4hits().first->first);
 
 			if (!phg4hit) {
 				if (Verbosity() >= 0)
@@ -1078,14 +1078,14 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 		PHG4Cell* cell_svtx = nullptr;
 		PHG4Cell* cell_intt = nullptr;
-		PHG4Cell* cell_maps = nullptr;
+		PHG4Cell* cell_mvtx = nullptr;
 
 		if(cells_svtx) cell_svtx = cells_svtx->findCell(svtxhit->get_cellid());
 		if(cells_intt) cell_intt = cells_intt->findCell(svtxhit->get_cellid());
-		if(cells_maps) cell_maps = cells_maps->findCell(svtxhit->get_cellid());
-		if(!(cell_svtx or cell_intt or cell_maps)){
+		if(cells_mvtx) cell_mvtx = cells_mvtx->findCell(svtxhit->get_cellid());
+		if(!(cell_svtx or cell_intt or cell_mvtx)){
 			if(Verbosity()>=0)
-				LogError("!(cell_svtx or cell_intt or cell_maps)");
+				LogError("!(cell_svtx or cell_intt or cell_mvtx)");
 			continue;
 		}
 
@@ -1094,8 +1094,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
-		if (cell_maps) {
-			PHG4Cell* cell = cell_maps;
+		if (cell_mvtx) {
+			PHG4Cell* cell = cell_mvtx;
 
 			int stave_index = cell->get_stave_index();
 			int half_stave_index = cell->get_half_stave_index();
@@ -1103,8 +1103,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			int chip_index = cell->get_chip_index();
 
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
-			PHG4CylinderGeom_MAPS *geom =
-					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
+			PHG4CylinderGeom_MVTX *geom =
+					(PHG4CylinderGeom_MVTX*) geom_container_mvtx->GetLayerGeom(
 							layer);
 			// returns the center of the sensor in world coordinates - used to get the ladder phi location
 			geom->find_sensor_center(stave_index, half_stave_index,

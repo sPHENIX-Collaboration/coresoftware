@@ -66,10 +66,10 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
 			topNode, "G4HIT_INTT");
 
-	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_MAPS");
+	PHG4HitContainer* phg4hits_mvtx = findNode::getClass<PHG4HitContainer>(
+			topNode, "G4HIT_MVTX");
 
-	if (!phg4hits_svtx and phg4hits_intt and !phg4hits_maps) {
+	if (!phg4hits_svtx and phg4hits_intt and !phg4hits_mvtx) {
 		if (Verbosity() >= 0) {
 			LogError("No PHG4HitContainer found!");
 		}
@@ -90,10 +90,10 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_INTT");
 
-	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_MAPS");
+	PHG4CellContainer* cells_mvtx = findNode::getClass<PHG4CellContainer>(
+			topNode, "G4CELL_MVTX");
 
-	if (!cells_svtx and !cells_intt and !cells_maps) {
+	if (!cells_svtx and !cells_intt and !cells_mvtx) {
 		if (Verbosity() >= 0) {
 			LogError("No PHG4CellContainer found!");
 		}
@@ -111,7 +111,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 
 		if(!cell and cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
 		if(!cell and cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
-		if(!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
+		if(!cell and cells_mvtx) cell = cells_mvtx->findCell(svtxhit->get_cellid());
 
 		if(!cell){
 			if(Verbosity() >= 1) {
@@ -128,7 +128,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 			PHG4Hit *phg4hit = nullptr;
 			if(!phg4hit and phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
 			if(!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(hits_it->first);
-			if(!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
+			if(!phg4hit and phg4hits_mvtx) phg4hit = phg4hits_mvtx->findHit(hits_it->first);
 
 			if(!phg4hit){
 				if(Verbosity() >= 1) {

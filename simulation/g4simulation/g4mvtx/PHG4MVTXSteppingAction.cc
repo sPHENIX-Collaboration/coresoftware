@@ -1,6 +1,6 @@
-#include "PHG4MapsSteppingAction.h"
-#include "PHG4MapsDetector.h"
-#include "PHG4CylinderGeom_MAPS.h"
+#include "PHG4MVTXSteppingAction.h"
+#include "PHG4MVTXDetector.h"
+#include "PHG4CylinderGeom_MVTX.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -32,32 +32,32 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4MapsSteppingAction::PHG4MapsSteppingAction( PHG4MapsDetector* detector ):
+PHG4MVTXSteppingAction::PHG4MVTXSteppingAction( PHG4MVTXDetector* detector ):
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),
   hit(NULL)
 {
-//  cout << "PHG4MapsSteppingAction created" << endl;
+//  cout << "PHG4MVTXSteppingAction created" << endl;
 
   //Verbosity(3);
 }
 
 //____________________________________________________________________________..
-bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
+bool PHG4MVTXSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 {
 
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   // get volume of the current step
   G4VPhysicalVolume* sensor_volume = touch->GetVolume();
 
-  // PHG4MapsDetector_->IsInMaps(volume)
+  // PHG4MVTXDetector_->IsInMVTX(volume)
   // returns 
-  //  0 if outside of Maps
+  //  0 if outside of MVTX
   //  1 if inside sensor
 
   // This checks if the volume is a sensor (doesn't tell us unique layer)
-  // PHG4MapsTelescopeDetector_->IsSensor(volume)
+  // PHG4MVTXTelescopeDetector_->IsSensor(volume)
   // returns
   //  1 if volume is a sensor
   //  0 if not
@@ -70,12 +70,12 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
   // This tells us if the volume belongs to the right stave for this layer
   // From the GDML file the 3rd volume up should be the half-stave
-  // PHG4MapsTelescopeDetector_->IsInMaps(volume)
+  // PHG4MVTXTelescopeDetector_->IsInMVTX(volume)
   // returns
   //  1 if in ladder belonging to this layer
   //  0 if not
   G4VPhysicalVolume* vstave = touch->GetVolume(3);
-  whichactive = detector_->IsInMaps(vstave);
+  whichactive = detector_->IsInMVTX(vstave);
 
 
   if (!whichactive)
@@ -87,15 +87,15 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
     {
       // make sure we know where we are!
       G4VPhysicalVolume* vtest = touch->GetVolume();
-      cout << "Entering PHG4MapsSteppingAction::UserSteppingAction for volume " <<  vtest->GetName() << endl;
+      cout << "Entering PHG4MVTXSteppingAction::UserSteppingAction for volume " <<  vtest->GetName() << endl;
       G4VPhysicalVolume* vtest1 = touch->GetVolume(1);
-      cout << "Entering PHG4MapsSteppingAction::UserSteppingAction for volume 1 up " <<  vtest1->GetName() << endl;
+      cout << "Entering PHG4MVTXSteppingAction::UserSteppingAction for volume 1 up " <<  vtest1->GetName() << endl;
       G4VPhysicalVolume* vtest2 = touch->GetVolume(2);
-      cout << "Entering PHG4MapsSteppingAction::UserSteppingAction for volume 2 up " <<  vtest2->GetName() << endl;
+      cout << "Entering PHG4MVTXSteppingAction::UserSteppingAction for volume 2 up " <<  vtest2->GetName() << endl;
       G4VPhysicalVolume* vtest3 = touch->GetVolume(3);
-      cout << "Entering PHG4MapsSteppingAction::UserSteppingAction for volume 3 up " <<  vtest3->GetName() << endl;
+      cout << "Entering PHG4MVTXSteppingAction::UserSteppingAction for volume 3 up " <<  vtest3->GetName() << endl;
       G4VPhysicalVolume* vtest4 = touch->GetVolume(4);
-      cout << "Entering PHG4MapsSteppingAction::UserSteppingAction for volume 4 up " <<  vtest4->GetName() << endl;
+      cout << "Entering PHG4MVTXSteppingAction::UserSteppingAction for volume 4 up " <<  vtest4->GetName() << endl;
     }
 
   //=======================================================================
@@ -349,7 +349,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	{  
 	  G4StepPoint * prePoint = aStep->GetPreStepPoint();
 	  G4StepPoint * postPoint = aStep->GetPostStepPoint();
-	  cout << "----- PHg4MapsSteppingAction::UserSteppingAction - active volume = " << sensor_volume->GetName() << endl;
+	  cout << "----- PHg4MVTXSteppingAction::UserSteppingAction - active volume = " << sensor_volume->GetName() << endl;
 	  cout << "       stave number = " << stave_number << " half_stave_number = " << half_stave_number << endl;
 	  cout << "       module number  = " << module_number << endl;
 	  cout << "       chip number = " << chip_number << endl;
@@ -382,7 +382,7 @@ bool PHG4MapsSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 } 
 
 //____________________________________________________________________________..
-void PHG4MapsSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
+void PHG4MVTXSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
 {
 
   string hitnodename;
@@ -405,13 +405,13 @@ void PHG4MapsSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
   // if we do not find the node it's messed up.
   if ( ! hits_ )
     {
-      std::cout << "PHG4MapsSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+      std::cout << "PHG4MVTXSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
     }
   if ( ! absorberhits_)
     {
       if (Verbosity() > 0)
 	{
-	  cout << "PHG4MapsSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+	  cout << "PHG4MVTXSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}
     }
 }

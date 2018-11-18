@@ -1,12 +1,12 @@
-#include "PHG4MapsCellReco.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeom_MAPS.h"
-#include "PHG4CylinderCell_MAPS.h"
-#include "PHG4CylinderCellContainer.h"
+#include "PHG4MVTXCellReco.h"
+#include "PHG4CylinderGeom_MVTX.h"
+#include "PHG4CylinderCell_MVTX.h"
 
-#include "PHG4Cellv1.h"
-#include "PHG4CellContainer.h"
-#include "PHG4CellDefs.h"
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderCellContainer.h>
+#include <g4detectors/PHG4Cellv1.h>
+#include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4CellDefs.h>
 
 #include <phparameter/PHParametersContainer.h>
 #include <phparameter/PHParameterContainerInterface.h>
@@ -31,7 +31,7 @@
 
 using namespace std;
 
-PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
+PHG4MVTXCellReco::PHG4MVTXCellReco(const string &name) :
   SubsysReco(name),
   PHParameterContainerInterface(name),
   detector(name),
@@ -42,10 +42,10 @@ PHG4MapsCellReco::PHG4MapsCellReco(const string &name) :
   memset(nbins, 0, sizeof(nbins));
 
   if(Verbosity() > 0)  
-    cout << "Creating PHG4MapsCellReco for name = " << name << endl;
+    cout << "Creating PHG4MVTXCellReco for name = " << name << endl;
 }
 
-int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
+int PHG4MVTXCellReco::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -100,9 +100,9 @@ int PHG4MapsCellReco::InitRun(PHCompositeNode *topNode)
 
 
 int
-PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
+PHG4MVTXCellReco::process_event(PHCompositeNode *topNode)
 {
-  //cout << PHWHERE << "Entering process_event for PHG4MapsCellreco" << endl;
+  //cout << PHWHERE << "Entering process_event for PHG4MVTXCellreco" << endl;
   
   _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
@@ -133,14 +133,14 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();
   for (layer = layer_begin_end.first; layer != layer_begin_end.second; ++layer)
     {
-      //cout << "---------- PHG4MapsCellReco:  Looping over layers " << endl;
+      //cout << "---------- PHG4MVTXCellReco:  Looping over layers " << endl;
 
       // loop over the hits in this layer
       PHG4HitContainer::ConstIterator hiter;
       PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
 
       // we need the geometry object for this layer
-      PHG4CylinderGeom_MAPS *layergeom = dynamic_cast<PHG4CylinderGeom_MAPS *> (geo->GetLayerGeom(*layer));
+      PHG4CylinderGeom_MVTX *layergeom = dynamic_cast<PHG4CylinderGeom_MVTX *> (geo->GetLayerGeom(*layer));
       if(!layergeom)
 	exit(1);
 
@@ -157,14 +157,14 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
       for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
 	{
-	  //cout << "From PHG4MapsCellReco: Call hit print method: " << endl;
+	  //cout << "From PHG4MVTXCellReco: Call hit print method: " << endl;
 	  if(Verbosity() >4)
 	    hiter->second->print();
 
 	  // checking ADC timing integration window cut
 	  if(*layer > 2)
 	    {
-	      cout  << PHWHERE << "Maps layers only go up to three! Quit." << endl;
+	      cout  << PHWHERE << "MVTX layers only go up to three! Quit." << endl;
 	      exit(1);
 	    }
 	  if(Verbosity() > 1)
@@ -203,7 +203,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	      TVector3 location_in = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_in);
 	      TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
 	      
-	      cout << endl << "      PHG4MapsCellReco:  Found world entry location from geometry for  " 
+	      cout << endl << "      PHG4MVTXCellReco:  Found world entry location from geometry for  " 
 		   << " stave number " << stave_number
 		   << " half stave number " << half_stave_number 
 		   << " module number" << module_number 
@@ -214,7 +214,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " radius " << sqrt( pow(location_in.X(), 2) + pow(location_in.Y(), 2) ) 
 		   << " angle " << atan( location_in.Y() / location_in.X() )
 		   << endl;
-	      cout << "     PHG4MapsCellReco: The world entry location from G4 was "
+	      cout << "     PHG4MVTXCellReco: The world entry location from G4 was "
 		   << endl
 		   << " x = " <<   hiter->second->get_x( 0)
 		   << " y " <<  hiter->second->get_y( 0)
@@ -229,7 +229,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " in angle = " <<  atan( hiter->second->get_y(0) / hiter->second->get_x(0) )  -  atan( location_in.Y() / location_in.X() )  
 		   << endl << endl;
 	      
-	      cout << "      PHG4MapsCellReco:  Found world exit location from geometry for  " 
+	      cout << "      PHG4MVTXCellReco:  Found world exit location from geometry for  " 
 		   << " stave number " << stave_number
 		   << " half stave number " << half_stave_number 
 		   << " module number" << module_number 
@@ -240,7 +240,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 		   << " radius " << sqrt( pow(location_out.X(), 2) + pow(location_out.Y(), 2) ) 
 		   << " angle " << atan( location_out.Y() / location_out.X() )
 		   << endl;
-	      cout << "     PHG4MapsCellReco: The world exit location from G4 was "
+	      cout << "     PHG4MVTXCellReco: The world exit location from G4 was "
 		   << endl
 		   << " x = " <<   hiter->second->get_x( 1)
 		   << " y " <<  hiter->second->get_y( 1)
@@ -535,7 +535,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 
 		  unsigned int index = celllist.size();
 		  index++;
-		  PHG4CellDefs::keytype key = PHG4CellDefs::MapsBinning::genkey(*layer,index);
+		  PHG4CellDefs::keytype key = PHG4CellDefs::MVTXBinning::genkey(*layer,index);
 		  cell = new PHG4Cellv1(key);
 		  celllist[inkey] = cell;
 		  cell->set_stave_index(stave_number);
@@ -571,7 +571,7 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 	  
 	  if (Verbosity() > 0)
 	    {
-	      cout << "From MapsCellReco: Adding cell for stave: " << mapiter->second->get_stave_index()
+	      cout << "From MVTXCellReco: Adding cell for stave: " << mapiter->second->get_stave_index()
 		   << " , half stave index: " << mapiter->second->get_half_stave_index()
 		   << ", module index: " << mapiter->second->get_module_index()
 		   << ", chip index: " << mapiter->second->get_chip_index()
@@ -596,13 +596,13 @@ PHG4MapsCellReco::process_event(PHCompositeNode *topNode)
 }
 
 int
-PHG4MapsCellReco::End(PHCompositeNode *topNode)
+PHG4MVTXCellReco::End(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int
-PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
+PHG4MVTXCellReco::CheckEnergy(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
@@ -640,7 +640,7 @@ PHG4MapsCellReco::CheckEnergy(PHCompositeNode *topNode)
   return 0;
 }
 
-bool PHG4MapsCellReco::lines_intersect(
+bool PHG4MVTXCellReco::lines_intersect(
 				       double ax,
 				       double ay,
 				       double bx,
@@ -699,7 +699,7 @@ bool PHG4MapsCellReco::lines_intersect(
   return false;
 }
 
-bool  PHG4MapsCellReco::line_and_rectangle_intersect(
+bool  PHG4MVTXCellReco::line_and_rectangle_intersect(
 						     double ax,
 						     double ay,
 						     double bx,
@@ -792,7 +792,7 @@ bool  PHG4MapsCellReco::line_and_rectangle_intersect(
   return false;
 }
 
-double  PHG4MapsCellReco::circle_rectangle_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r )
+double  PHG4MVTXCellReco::circle_rectangle_intersection( double x1, double y1,  double x2,  double y2,  double mx,  double my,  double r )
 {
   // Find the area of overlap of a circle and rectangle 
   // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
@@ -817,7 +817,7 @@ double  PHG4MapsCellReco::circle_rectangle_intersection( double x1, double y1,  
   
 }
 
-double  PHG4MapsCellReco::sA(double r, double x, double y) 
+double  PHG4MVTXCellReco::sA(double r, double x, double y) 
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
   // It is called repeatedly to find the overlap area between the circle and rectangle
@@ -864,19 +864,19 @@ double  PHG4MapsCellReco::sA(double r, double x, double y)
 }
 
 void
-PHG4MapsCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
+PHG4MVTXCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
   if (Verbosity())
-    cout << "PHG4MapsCellReco: Setting MAPS timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
+    cout << "PHG4MVTXCellReco: Setting MVTX timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
   tmin_max.insert(std::make_pair(detid, std::make_pair(tmin, tmax)));
 
   return;
 }
 
 void
-PHG4MapsCellReco::SetDefaultParameters()
+PHG4MVTXCellReco::SetDefaultParameters()
 {
-  cout << "PHG4MapsCellReco: Setting MAPS timing window defaults to tmin = -2000 and  tmax = 2000 " << endl;
+  cout << "PHG4MVTXCellReco: Setting MVTX timing window defaults to tmin = -2000 and  tmax = 2000 " << endl;
   for(int ilayer = 0;ilayer<3;ilayer++)
     tmin_max.insert(std::make_pair(ilayer, std::make_pair(-2000, 2000)));
 

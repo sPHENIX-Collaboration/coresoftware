@@ -1,7 +1,8 @@
-#include "PHG4MapsSubsystem.h"
-#include "PHG4MapsDetector.h"
-#include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4MapsSteppingAction.h"
+#include "PHG4MVTXSubsystem.h"
+#include "PHG4MVTXDetector.h"
+#include "PHG4MVTXSteppingAction.h"
+
+#include <g4detectors/PHG4EventActionClearZeroEdep.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -17,7 +18,7 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr, int in_stave_type ):
+PHG4MVTXSubsystem::PHG4MVTXSubsystem( const std::string &name, const int lyr, int in_stave_type ):
     PHG4DetectorSubsystem( name, lyr ),
   detector_( 0 ),
   steppingAction_( NULL ),
@@ -56,10 +57,10 @@ PHG4MapsSubsystem::PHG4MapsSubsystem( const std::string &name, const int lyr, in
 }
 
 //_______________________________________________________________________
-int PHG4MapsSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
+int PHG4MVTXSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
   if(Verbosity()>0)
-    cout << "PHG4MapsSubsystem::Init started" << endl;
+    cout << "PHG4MVTXSubsystem::Init started" << endl;
 
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
@@ -68,9 +69,9 @@ int PHG4MapsSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   // These values are set from the calling macro using the setters defined in the .h file
   if (Verbosity())
     {
-      cout << "    create MAPS detector for layer " << layer << endl;
+      cout << "    create MVTX detector for layer " << layer << endl;
     }
-  detector_ = new PHG4MapsDetector(topNode, GetParams(), Name());
+  detector_ = new PHG4MVTXDetector(topNode, GetParams(), Name());
   detector_->Verbosity(Verbosity());
 //  detector_->set_nominal_layer_radius(layer_nominal_radius);
 //  detector_->set_pixel_x(pixel_x);
@@ -136,11 +137,11 @@ int PHG4MapsSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	}
       eventAction_ = dynamic_cast<PHG4EventAction *> (eventaction);
       // create stepping action
-      steppingAction_ = new PHG4MapsSteppingAction(detector_);
+      steppingAction_ = new PHG4MVTXSteppingAction(detector_);
     }
   if (GetParams()->get_int_param("blackhole") && !(GetParams()->get_int_param("active")))
     {
-      steppingAction_ = new PHG4MapsSteppingAction(detector_);
+      steppingAction_ = new PHG4MVTXSteppingAction(detector_);
     }
   return 0;
 
@@ -148,7 +149,7 @@ int PHG4MapsSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 
 //_______________________________________________________________________
 int
-PHG4MapsSubsystem::process_event( PHCompositeNode * topNode )
+PHG4MVTXSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -161,19 +162,19 @@ PHG4MapsSubsystem::process_event( PHCompositeNode * topNode )
 
 
 //_______________________________________________________________________
-PHG4Detector* PHG4MapsSubsystem::GetDetector( void ) const
+PHG4Detector* PHG4MVTXSubsystem::GetDetector( void ) const
 {
     return detector_;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4MapsSubsystem::GetSteppingAction( void ) const
+PHG4SteppingAction* PHG4MVTXSubsystem::GetSteppingAction( void ) const
 {
     return steppingAction_;
 }
 
 void
-PHG4MapsSubsystem::SetDefaultParameters()
+PHG4MVTXSubsystem::SetDefaultParameters()
 {
 //  set_default_double_param("place_in_x",0);
 //  set_default_double_param("place_in_y",0);

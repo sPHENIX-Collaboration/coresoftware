@@ -1,17 +1,18 @@
-#ifndef PHG4CYLINDERCELL_MAPS_H
-#define PHG4CYLINDERCELL_MAPS_H
+#ifndef PHG4CYLINDERCELL_MVTX_H
+#define PHG4CYLINDERCELL_MVTX_H
 
-#include "PHG4CylinderCellv2.h"
+#include <g4detectors/PHG4CylinderCellv2.h>
+
 #include <cmath>
 #include <map>
 #include <iostream>
 
-class PHG4CylinderCell_MAPS : public PHG4CylinderCellv2
+class PHG4CylinderCell_MVTX : public PHG4CylinderCellv2
 {
  public:
 
-  PHG4CylinderCell_MAPS();
-  virtual ~PHG4CylinderCell_MAPS(){}
+  PHG4CylinderCell_MVTX();
+  virtual ~PHG4CylinderCell_MVTX(){}
 
   void identify(std::ostream& os = std::cout) const;
 
@@ -40,7 +41,7 @@ class PHG4CylinderCell_MAPS : public PHG4CylinderCellv2
   int pixel_number;
 
   
-  ClassDef(PHG4CylinderCell_MAPS,1)
+  ClassDef(PHG4CylinderCell_MVTX,1)
 };
 
 #endif

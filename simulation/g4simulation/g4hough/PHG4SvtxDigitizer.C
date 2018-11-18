@@ -81,7 +81,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
     svxNode->addNode(SvtxHitMapNode);
   }
 
-  CalculateMapsLadderCellADCScale(topNode);
+  CalculateMVTXLadderCellADCScale(topNode);
   
   //----------------
   // Report Settings
@@ -120,7 +120,7 @@ int PHG4SvtxDigitizer::process_event(PHCompositeNode *topNode) {
   //  _hitmap->Reset();
   
   // This code now only does the MVTX 
-  DigitizeMapsLadderCells(topNode);
+  DigitizeMVTXLadderCells(topNode);
   
   PrintHits(topNode);
   
@@ -128,16 +128,16 @@ int PHG4SvtxDigitizer::process_event(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode) {
+void PHG4SvtxDigitizer::CalculateMVTXLadderCellADCScale(PHCompositeNode *topNode) {
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
-  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_MVTX");
     
   if (!geom_container) return;
 
   if(Verbosity())
-    cout << "Found CYLINDERGEOM_MAPS node" << endl;
+    cout << "Found CYLINDERGEOM_MVTX node" << endl;
   
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -166,13 +166,13 @@ void PHG4SvtxDigitizer::CalculateMapsLadderCellADCScale(PHCompositeNode *topNode
   return;
 }
 
-void PHG4SvtxDigitizer::DigitizeMapsLadderCells(PHCompositeNode *topNode) {
+void PHG4SvtxDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode) {
 
   //----------
   // Get Nodes
   //----------
  
-  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
+  PHG4CellContainer* cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
   if (!cells) return; 
   
   //-------------

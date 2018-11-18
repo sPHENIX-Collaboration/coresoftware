@@ -531,9 +531,9 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 	PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
 			PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 	PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
-	PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+	PHG4CylinderGeomContainer* mvtxladdergeos = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
 
 	_nlayers = _seeding_layer.size();
@@ -566,9 +566,9 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 		}
 	}
 
-	if (mapsladdergeos) {
+	if (mvtxladdergeos) {
 		PHG4CylinderGeomContainer::ConstRange layerrange =
-				mapsladdergeos->get_begin_end();
+				mvtxladdergeos->get_begin_end();
 		for (PHG4CylinderGeomContainer::ConstIterator layeriter =
 				layerrange.first; layeriter != layerrange.second; ++layeriter) {
 			radius_layer_map.insert(
@@ -642,9 +642,9 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 		}
 	}
 
-	if (mapsladdergeos) {
+	if (mvtxladdergeos) {
 		PHG4CylinderGeomContainer::ConstRange begin_end =
-			mapsladdergeos->get_begin_end();
+			mvtxladdergeos->get_begin_end();
 		PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
 		for (; miter != begin_end.second; ++miter) {
 			PHG4CylinderGeom *geo = miter->second;

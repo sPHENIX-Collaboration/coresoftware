@@ -448,11 +448,11 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
   // need things off of the DST...
   _g4cells_svtx    = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_TPC");
   _g4cells_tracker = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_INTT");
-  _g4cells_maps = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
+  _g4cells_maps = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
 
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_INTT");
-  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
+  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MVTX");
   
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   
