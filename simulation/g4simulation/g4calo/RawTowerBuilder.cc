@@ -437,25 +437,25 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Tower geometry " << key << " already exists" << endl;
+            cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << endl;
           }
 
           if (fabs(tg->get_center_x() - x) > 1e-4)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
                  << endl;
 
             exit(1);
           }
           if (fabs(tg->get_center_y() - y) > 1e-4)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
                  << endl;
             exit(1);
           }
           if (fabs(tg->get_center_z() - z) > 1e-4)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
                  << endl;
             exit(1);
           }
@@ -464,10 +464,10 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "HcalRawTowerBuilder::InitRun - building tower geometry " << key << "" << endl;
+            cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << endl;
           }
 
-          tg = new RawTowerGeomv1();
+          tg = new RawTowerGeomv1(key);
 
           tg->set_center_x(x);
           tg->set_center_y(y);
@@ -506,25 +506,25 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Tower geometry " << key << " already exists" << endl;
+            cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << endl;
           }
 
           if (fabs(tg->get_center_x() - x) > 1e-4)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
                  << endl;
 
             exit(1);
           }
           if (fabs(tg->get_center_y() - y) > 1e-4)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
                  << endl;
             exit(1);
           }
           if (fabs(tg->get_center_z() - z) > 1e-4)
           {
-            cout << "HcalRawTowerBuilder::InitRun - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
                  << endl;
             exit(1);
           }
@@ -533,10 +533,10 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
         {
           if (Verbosity() > 0)
           {
-            cout << "HcalRawTowerBuilder::InitRun - building tower geometry " << key << "" << endl;
+            cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << endl;
           }
 
-          tg = new RawTowerGeomv1();
+          tg = new RawTowerGeomv1(key);
 
           tg->set_center_x(x);
           tg->set_center_y(y);
