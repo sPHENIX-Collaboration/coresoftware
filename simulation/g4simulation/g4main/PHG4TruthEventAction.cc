@@ -310,8 +310,11 @@ void PHG4TruthEventAction::PruneShowers() {
     PHG4Shower* shower = iter->second;
 
     if (shower->empty_g4particle_id() && shower->empty_g4hit_id()) {
-      truthInfoList_->delete_shower(iter++);
-      continue;
+      if (shower ->get_edep() == 0) // check whether this shower has already been processed in the previous simulation cycles
+      {
+        truthInfoList_->delete_shower(iter++);
+        continue;
+      }
     }
 
     ++iter;
