@@ -23,6 +23,7 @@ class PHCompositeNode;
 class Fun4AllHistoManager;
 class TTree;
 class TClonesArray;
+class Event;
 
 namespace TPCDaqDefs
 {
@@ -70,11 +71,16 @@ class TPCFEETestRecov1 : public SubsysReco
     uint32_t bx_counter;
     bool bx_counter_consistent;
 
+    int xray_x;
+    int xray_y;
+
     EventHeader()
       : run(-1)
       , event(-1)
       , bx_counter(0)
       , bx_counter_consistent(true)
+      , xray_x(-1)
+      , xray_y(-1)
     {
     }
 
@@ -142,8 +148,8 @@ class TPCFEETestRecov1 : public SubsysReco
       , pedstal(NAN)
       , avg_padx(NAN)
       , avg_pady(NAN)
-   , size_pad_x(-1)
-   , size_pad_y(-1)
+      , size_pad_x(-1)
+      , size_pad_y(-1)
     {
     }
 
@@ -257,6 +263,12 @@ class TPCFEETestRecov1 : public SubsysReco
   int m_clusteringZeroSuppression;
   int m_nPreSample;
   int m_nPostSample;
+
+  void get_motor_loc(Event *evt);
+
+  int m_XRayLocationX;
+  int m_XRayLocationY;
+
   TPCDaqDefs::FEEv1::SampleFit_PowerLawDoubleExp_PDFMaker *m_pdfMaker;
 };
 

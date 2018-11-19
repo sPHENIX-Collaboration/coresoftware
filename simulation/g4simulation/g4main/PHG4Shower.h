@@ -63,9 +63,11 @@ public:
   virtual unsigned int get_nhits(int volume) const {return 0;}
   virtual void         set_nhits(int volume, unsigned int nhits) {}
   
+  virtual double       get_edep() const {return NAN;}
   virtual float        get_edep(int volume) const {return NAN;}
   virtual void         set_edep(int volume, float edep) {}
 
+  virtual double       get_eion() const {return NAN;}
   virtual float        get_eion(int volume) const {return NAN;}
   virtual void         set_eion(int volume, float eion) {}
 
