@@ -1,12 +1,11 @@
 #ifndef HcalRawTowerBuilder_H__
 #define HcalRawTowerBuilder_H__
 
-#include <phparameter/PHParameterInterface.h>
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
+#include <phparameter/PHParameterInterface.h>
 
 #include <string>
-
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -14,16 +13,15 @@ class RawTowerGeomContainer;
 
 class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 {
-
  public:
-  HcalRawTowerBuilder(const std::string& name="HcalRawTowerBuilder");
-  virtual ~HcalRawTowerBuilder(){}
+  HcalRawTowerBuilder(const std::string &name = "HcalRawTowerBuilder");
+  virtual ~HcalRawTowerBuilder() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {detector = d;}
-  void EminCut(const double e) {emin = e;}
-  void checkenergy(const int i = 1) {chkenergyconservation = i;}
+  void Detector(const std::string &d) { detector = d; }
+  void EminCut(const double e) { emin = e; }
+  void checkenergy(const int i = 1) { chkenergyconservation = i; }
 
   enum enu_tower_energy_src
   {
@@ -39,8 +37,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
     unknown = -1
   };
 
-  int
-  get_tower_energy_src() const
+  int get_tower_energy_src() const
   {
     return _tower_energy_src;
   }
@@ -65,7 +62,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   void CreateNodes(PHCompositeNode *topNode);
   void ReadParamsFromNodeTree(PHCompositeNode *topNode);
 
-  RawTowerContainer* _towers;
+  RawTowerContainer *_towers;
   RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
@@ -73,12 +70,11 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   std::string TowerGeomNodeName;
   std::string _sim_tower_node_prefix;
 
-  double emin;	
+  double emin;
   int chkenergyconservation;
   int _tower_energy_src;
   int ncell_to_tower;
   PHTimeServer::timer _timer;
-
 };
 
 #endif /* HcalRawTowerBuilder_H__ */
