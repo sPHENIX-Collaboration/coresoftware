@@ -1,4 +1,4 @@
-#include "PHG4SvtxDigitizer.h"
+#include "PHG4MVTXDigitizer.h"
 
 #include <g4main/PHG4Hit.h>
 
@@ -32,7 +32,7 @@
 
 using namespace std;
 
-PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
+PHG4MVTXDigitizer::PHG4MVTXDigitizer(const string &name) :
   SubsysReco(name),
   _hitmap(NULL),
   _timer(PHTimeServer::get()->insert_new(name)) {
@@ -43,10 +43,10 @@ PHG4SvtxDigitizer::PHG4SvtxDigitizer(const string &name) :
   gsl_rng_set(RandomGenerator, seed);
 
   if(Verbosity() > 0)
-    cout << "Creating PHG4SvtxDigitizer with name = " << name << endl;
+    cout << "Creating PHG4MVTXDigitizer with name = " << name << endl;
 }
 
-int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
+int PHG4MVTXDigitizer::InitRun(PHCompositeNode* topNode) {
 
   //-------------
   // Add Hit Node
@@ -88,7 +88,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   //----------------
   
   if (Verbosity() > 0) {
-    cout << "====================== PHG4SvtxDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4MVTXDigitizer::InitRun() =====================" << endl;
     for (std::map<int,unsigned int>::iterator iter = _max_adc.begin();
 	 iter != _max_adc.end();
 	 ++iter) {
@@ -105,7 +105,7 @@ int PHG4SvtxDigitizer::InitRun(PHCompositeNode* topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4SvtxDigitizer::process_event(PHCompositeNode *topNode) {
+int PHG4MVTXDigitizer::process_event(PHCompositeNode *topNode) {
 
   _timer.get()->restart();
 
@@ -128,7 +128,7 @@ int PHG4SvtxDigitizer::process_event(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4SvtxDigitizer::CalculateMVTXLadderCellADCScale(PHCompositeNode *topNode) {
+void PHG4MVTXDigitizer::CalculateMVTXLadderCellADCScale(PHCompositeNode *topNode) {
 
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
@@ -166,7 +166,7 @@ void PHG4SvtxDigitizer::CalculateMVTXLadderCellADCScale(PHCompositeNode *topNode
   return;
 }
 
-void PHG4SvtxDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode) {
+void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode) {
 
   //----------
   // Get Nodes
@@ -213,14 +213,14 @@ void PHG4SvtxDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode) {
   return;
 }
 
-void PHG4SvtxDigitizer::PrintHits(PHCompositeNode *topNode) {
+void PHG4MVTXDigitizer::PrintHits(PHCompositeNode *topNode) {
 
   if (Verbosity() >= 1) {
 
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
     if (!hitlist) return;
     
-    cout << "================= PHG4SvtxDigitizer::process_event() ====================" << endl;
+    cout << "================= PHG4MVTXDigitizer::process_event() ====================" << endl;
   
 
     cout << " Found and recorded the following " << hitlist->size() << " hits: " << endl;

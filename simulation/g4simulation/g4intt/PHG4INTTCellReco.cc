@@ -375,7 +375,7 @@ int PHG4INTTCellReco::process_event(PHCompositeNode *topNode)
         }
         unsigned int index = m_CellList.size();
         index++;
-        PHG4CellDefs::keytype cellkey = PHG4CellDefs::MapsBinning::genkey(sphxlayer, index);
+        PHG4CellDefs::keytype cellkey = PHG4CellDefs::MVTXBinning::genkey(sphxlayer, index);
         cell = new PHG4Cellv1(cellkey);
         m_CellList[key] = cell;
         // This encodes the z and phi position of the sensor

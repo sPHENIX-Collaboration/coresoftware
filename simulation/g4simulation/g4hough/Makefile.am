@@ -68,7 +68,6 @@ pkginclude_HEADERS = \
   PHG4SvtxBeamSpotReco.h \
   PHG4SvtxClusterizer.h \
   PHG4SvtxDeadArea.h \
-  PHG4SvtxDigitizer.h \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxThresholds.h \
   PHG4SvtxTrackProjection.h \
@@ -162,8 +161,6 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDeadArea_Dict.C \
   PHG4SvtxThresholds.C \
   PHG4SvtxThresholds_Dict.C \
-  PHG4SvtxDigitizer.C \
-  PHG4SvtxDigitizer_Dict.C \
   PHG4SvtxClusterizer.C \
   PHG4SvtxClusterizer_Dict.C \
    PHG4HoughTransform.C \

@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXDIGITIZER_H__
-#define __PHG4SVTXDIGITIZER_H__
+#ifndef __PHG4MVTXDIGITIZER_H__
+#define __PHG4MVTXDIGITIZER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -16,12 +16,12 @@
 class SvtxHitMap;
 class PHG4Cell;
 
-class PHG4SvtxDigitizer : public SubsysReco
+class PHG4MVTXDigitizer : public SubsysReco
 {
  public:
 
-  PHG4SvtxDigitizer(const std::string &name = "PHG4SvtxDigitizer");
-  virtual ~PHG4SvtxDigitizer(){}
+  PHG4MVTXDigitizer(const std::string &name = "PHG4MVTXDigitizer");
+  virtual ~PHG4MVTXDigitizer(){}
   
   //! module initialization
   int Init(PHCompositeNode *topNode){return 0;}

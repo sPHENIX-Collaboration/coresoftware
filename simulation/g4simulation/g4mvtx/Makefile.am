@@ -25,7 +25,8 @@ pkginclude_HEADERS = \
   PHG4MVTXCellReco.h \
   PHG4MVTXSubsystem.h \
   PHG4CylinderCell_MVTX.h \
-  PHG4CylinderGeom_MVTX.h 
+  PHG4CylinderGeom_MVTX.h \
+  PHG4MVTXDigitizer.h 
 
 libg4mvtx_la_SOURCES = \
   PHG4MVTXCellReco.cc \
@@ -37,7 +38,10 @@ libg4mvtx_la_SOURCES = \
   PHG4CylinderGeom_MVTX.cc \
   PHG4CylinderGeom_MVTX_Dict.cc \
   PHG4CylinderCell_MVTX.cc \
-  PHG4CylinderCell_MVTX_Dict.cc 
+  PHG4CylinderCell_MVTX_Dict.cc \
+  PHG4MVTXDigitizer.cc \
+  PHG4MVTXDigitizer_Dict.cc 
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
