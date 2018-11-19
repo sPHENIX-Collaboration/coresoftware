@@ -53,9 +53,11 @@ public:
   unsigned int get_nhits(int volume) const;
   void         set_nhits(int volume, unsigned int nhits) {_nhits[volume] = nhits;}
   
+  double       get_edep() const ;
   float        get_edep(int volume) const;
   void         set_edep(int volume, float edep) {_edep[volume] = edep;}
 
+  double       set_eion() const ;
   float        get_eion(int volume) const;
   void         set_eion(int volume, float eion) {_eion[volume] = eion;}
 
