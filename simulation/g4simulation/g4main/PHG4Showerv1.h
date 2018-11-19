@@ -57,7 +57,7 @@ public:
   float        get_edep(int volume) const;
   void         set_edep(int volume, float edep) {_edep[volume] = edep;}
 
-  double       set_eion() const ;
+  double       get_eion() const ;
   float        get_eion(int volume) const;
   void         set_eion(int volume, float eion) {_eion[volume] = eion;}
 
