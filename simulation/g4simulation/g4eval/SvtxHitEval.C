@@ -1,7 +1,8 @@
 #include "SvtxHitEval.h"
 
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
+
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4main/PHG4HitContainer.h>

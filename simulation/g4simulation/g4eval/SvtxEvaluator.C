@@ -12,10 +12,11 @@
 #include <g4hough/SvtxVertex.h>
 #include <g4hough/SvtxTrackMap.h>
 #include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxCluster.h>
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHit.h>
+
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>

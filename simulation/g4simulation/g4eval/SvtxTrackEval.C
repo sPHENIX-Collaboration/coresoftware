@@ -2,8 +2,9 @@
 
 #include "SvtxClusterEval.h"
 
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+
 #include <g4hough/SvtxTrack.h>
 #include <g4hough/SvtxTrackMap.h>
 #include <g4main/PHG4Hit.h>
