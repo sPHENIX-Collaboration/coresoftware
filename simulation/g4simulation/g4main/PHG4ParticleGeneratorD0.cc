@@ -184,7 +184,7 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   double gamma = vd0.Gamma();
   double lifetime = gsl_ran_exponential(RandomGenerator,410.1e-03)* 1.0e-12; // life time in seconds
   double lifepath = lifetime*gamma*beta*cc;  // path in cm
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "D0 px,py,pz: " << vd0.Px() << " " << vd0.Py() << " " << vd0.Pz() << " " << beta << " " << gamma << endl;
       cout << "   ctau = " << ctau << " " << lifetime << " " << lifepath << " " << lifepath*1.0e+04 << endl;
@@ -195,7 +195,7 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   vtx_z = vtx_z + vd0.Pz()/vd0.P()*lifepath;
   t0 = lifetime;
   int vtxindex = ineve->AddVtx(vtx_x,vtx_y,vtx_z,t0);
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "  XY vertex: " << sqrt(vtx_x*vtx_x+vtx_y*vtx_y) << " " << sqrt(vtx_x*vtx_x+vtx_y*vtx_y)*1.0e+04 << endl;
     }
@@ -251,7 +251,7 @@ PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
 
   // List what has been put into ineve for this event
 
-  if(verbosity > 0)
+  if(Verbosity() > 0)
     {  
       ineve->identify();
 

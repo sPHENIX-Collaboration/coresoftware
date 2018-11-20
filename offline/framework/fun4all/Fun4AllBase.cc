@@ -4,19 +4,19 @@
 
 using namespace std;
 
-Fun4AllBase::Fun4AllBase(const string &name):
-  ThisName(name),
-  verbosity(VERBOSITY_QUIET)
+Fun4AllBase::Fun4AllBase(const string& name)
+  : m_ThisName(name)
+  , m_Verbosity(VERBOSITY_QUIET)
 {
   return;
 }
 
 Fun4AllBase::~Fun4AllBase()
 {
-  if (verbosity >= VERBOSITY_MORE)
-    {
-      cout << "Deleting " << Name () << endl;
-    }
+  if (Verbosity() >= VERBOSITY_MORE)
+  {
+    cout << "Deleting " << Name() << endl;
+  }
   return;
 }
 
@@ -25,4 +25,3 @@ void Fun4AllBase::Print(const string& /*what*/) const
   cout << Name() << " did not implement Print method" << endl;
   return;
 }
-

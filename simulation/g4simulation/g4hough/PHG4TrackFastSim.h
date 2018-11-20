@@ -69,11 +69,6 @@ public:
 	//!End, write and close files
 	int End(PHCompositeNode *);
 
-	/// set verbosity
-	void Verbosity(int verb) {
-		verbosity = verb; // SubsysReco verbosity
-	}
-
 	bool is_do_evt_display() const {
 		return _do_evt_display;
 	}

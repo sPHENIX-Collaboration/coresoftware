@@ -40,7 +40,7 @@ CaloCalibration::InitRun(PHCompositeNode *topNode)
 {
   CreateNodeTree(topNode);
 
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << " - print calibration parameters: "<<endl;
@@ -55,7 +55,7 @@ int
 CaloCalibration::process_event(PHCompositeNode *topNode)
 {
 
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << "Process event entered" << std::endl;
@@ -103,7 +103,7 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
       double pedstal = NAN;
 
       PROTOTYPE3_FEM::SampleFit_PowerLawExp(vec_signal_samples, peak,
-          peak_sample, pedstal, verbosity);
+          peak_sample, pedstal, Verbosity());
 
       // store the result - raw_tower
       if (std::isnan(raw_tower->get_energy()))
@@ -128,7 +128,7 @@ CaloCalibration::process_event(PHCompositeNode *topNode)
 
     } //  for (rtiter = begin_end.first; rtiter != begin_end.second; ++rtiter)
 
-  if (verbosity)
+  if (Verbosity())
     {
       std::cout << Name() << "::" << detector << "::" << __PRETTY_FUNCTION__
           << "input sum energy = " << _raw_towers->getTotalEdep()

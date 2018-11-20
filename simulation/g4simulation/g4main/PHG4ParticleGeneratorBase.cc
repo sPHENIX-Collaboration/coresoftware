@@ -227,7 +227,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
       set_vtx(vtx.x(), vtx.y(), vtx.z());
 
-      if (verbosity > 0) {
+      if (Verbosity() > 0) {
         cout <<"PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
             << vtx.x()<<", "<< vtx.y()<<", "<< vtx.z()<<" cm. Source event:"
             <<endl;
@@ -254,7 +254,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
       cout << PHWHERE << "::Error - PHG4SimpleEventGenerator expects an existing vertex in PHG4InEvent, but none exists" << endl;
       exit(1);
     }
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       cout << PHWHERE << "::Info - use this primary vertex from PHG4InEvent:" << endl;
       vtx->identify();
@@ -283,7 +283,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
       exit(1);
     }
 
-    if (verbosity > 0)
+    if (Verbosity() > 0)
     {
       cout << PHWHERE << "::Info - use this primary vertex from PHG4TruthInfoContainer:" << endl;
       vtx->identify();

@@ -212,7 +212,7 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
       cluster->set_z(sum_z);
     }
 
-    if (verbosity > 1)
+    if (Verbosity() > 1)
     {
       cout << "RawClusterBuilder constucted ";
       cluster->identify();

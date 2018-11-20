@@ -1,5 +1,6 @@
 #include "Fun4AllDummyInputManager.h"
 #include "Fun4AllSyncManager.h"
+
 #include <phool/recoConsts.h>
 
 #include <iostream>
@@ -10,7 +11,7 @@ Fun4AllDummyInputManager::Fun4AllDummyInputManager(const string &name, const str
   Fun4AllInputManager(name, nodename),
   numevents(0)
 {
-  filename = "NOFILE-0000000000-0000.root";
+  FileName("NOFILE-0000000000-0000.root");
   return;
 }
 
@@ -34,7 +35,7 @@ int
 Fun4AllDummyInputManager::run(const int nevents)
 {
   numevents+= nevents;
-  if (verbosity>0)
+  if (Verbosity()>0)
     {
       cout << "Event No: " << numevents << endl;
     }

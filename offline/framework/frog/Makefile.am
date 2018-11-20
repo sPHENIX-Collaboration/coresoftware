@@ -19,16 +19,12 @@ libFROG_la_LIBADD = \
 noinst_HEADERS = FROGLinkDef.h
 
 pkginclude_HEADERS =    \
-  pgsearch.h \
-  dCachesearch.h  \
   FROG.h
 
 libFROG_la_SOURCES = \
-  pgsearch.cc  dCachesearch.cc \
   FROG.cc       \
   FROG_Dict.cc
 
-BUILT_SOURCES = testexternals.cc
 noinst_PROGRAMS = testexternals
 testexternals_SOURCES = testexternals.cc
 
@@ -44,10 +40,10 @@ testexternals.cc:
 
 # Rule for generating CINT dictionaries from class headers.
 FROG_Dict.cc:   \
-  pgsearch.h   \
   FROG.h       \
   FROGLinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
 	rm -f *Dict* *.pcm
+	rm -f testexternals.cc

@@ -29,6 +29,7 @@ libg4vertex_la_LIBADD = \
 pkginclude_HEADERS = \
   GlobalVertex.h \
   GlobalVertex_v1.h \
+  GlobalVertexFastSimReco.h \
   GlobalVertexMap.h \
   GlobalVertexMap_v1.h \
   GlobalVertexReco.h

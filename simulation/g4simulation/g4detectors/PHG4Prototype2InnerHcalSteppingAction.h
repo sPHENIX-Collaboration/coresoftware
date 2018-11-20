@@ -1,5 +1,7 @@
-#ifndef PHG4VPrototype2InnerHcalSteppingAction_h
-#define PHG4VPrototype2InnerHcalSteppingAction_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4VPROTOTYPE2INNERHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4VPROTOTYPE2INNERHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -28,27 +30,27 @@ class PHG4Prototype2InnerHcalSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4Prototype2InnerHcalDetector *detector_;
+  PHG4Prototype2InnerHcalDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4HitContainer *absorberhits_;
-  PHG4Hit *hit;
-  const PHParameters *params;
-  PHG4HitContainer *savehitcontainer;
-  PHG4Shower *saveshower;
+  PHG4HitContainer *m_HitContainer;
+  PHG4HitContainer *m_AbsorberHitContainer;
+  PHG4Hit *m_Hit;
+  const PHParameters *m_Params;
+  PHG4HitContainer *m_SaveHitContainer;
+  PHG4Shower *m_SaveShower;
   // since getting parameters is a map search we do not want to
   // do this in every step, the parameters used are cached
   // in the following variables
-  int absorbertruth;
-  int IsActive;
-  int IsBlackHole;
-  int light_scint_model;
+  int m_AbsorberTruthFlag;
+  int m_IsActiveFlag;
+  int m_IsBlackHoleFlag;
+  int m_LightScintModelFlag;
 
-  double light_balance_inner_corr;
-  double light_balance_inner_radius;
-  double light_balance_outer_corr;
-  double light_balance_outer_radius;
+  double m_LightBalanceInnerCorr;
+  double m_LightBalanceInnerRadius;
+  double m_LightBalanceOuterCorr;
+  double m_LightBalanceOuterRadius;
 };
 
-#endif  // PHG4Prototype2InnerHcalSteppingAction_h
+#endif

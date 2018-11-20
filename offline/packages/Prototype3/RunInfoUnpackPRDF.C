@@ -64,7 +64,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
       eventheader->set_EvtSequence(event->getEvtSequence());
       eventheader->set_EvtType(event->getEvtType());
       eventheader->set_TimeStamp(event->getTime());
-      if (verbosity)
+      if (Verbosity())
         {
           eventheader->identify();
         }
@@ -75,7 +75,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::EVENT_OK;
   else
     {
-      if (verbosity >= VERBOSITY_SOME)
+      if (Verbosity() >= VERBOSITY_SOME)
         {
           cout << "RunInfoUnpackPRDF::process_event - with BEGRUNEVENT events ";
           event->identify();
@@ -130,7 +130,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
           const double dvalue = ivalue * info.calibration_const;
 
-          if (verbosity >= VERBOSITY_SOME)
+          if (Verbosity() >= VERBOSITY_SOME)
             {
               cout << "RunInfoUnpackPRDF::process_event - " << name << " = "
                   << dvalue << ", raw = " << ivalue << " @ packet "
@@ -149,7 +149,7 @@ RunInfoUnpackPRDF::process_event(PHCompositeNode *topNode)
 
       Params.SaveToNodeTree(topNode, runinfo_node_name);
 
-      if (verbosity >= VERBOSITY_SOME)
+      if (Verbosity() >= VERBOSITY_SOME)
         Params.Print();
     }
   return Fun4AllReturnCodes::EVENT_OK;

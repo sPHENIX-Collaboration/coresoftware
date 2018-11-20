@@ -35,9 +35,8 @@ JetEvaluator::JetEvaluator(const string &name,
     _ntp_recojet(nullptr),
     _ntp_truthjet(nullptr),
     _filename(filename),
-    _tfile(nullptr) {
-  verbosity = 0;
-}
+    _tfile(nullptr) 
+{}
 
 int JetEvaluator::Init(PHCompositeNode *topNode) {
   
@@ -63,7 +62,7 @@ int JetEvaluator::process_event(PHCompositeNode *topNode) {
   if (!_jetevalstack) {
     _jetevalstack = new JetEvalStack(topNode,_recojetname,_truthjetname); 
     _jetevalstack->set_strict(_strict);
-    _jetevalstack->set_verbosity(verbosity+1);
+    _jetevalstack->set_verbosity(Verbosity()+1);
   } else {
     _jetevalstack->next_event(topNode);
   }
@@ -102,7 +101,7 @@ int JetEvaluator::End(PHCompositeNode *topNode) {
 
   delete _tfile;
 
-  if (verbosity > 0) {
+  if (Verbosity() > 0) {
     cout << "========================== JetEvaluator::End() ============================" << endl;
     cout << " " << _ievent << " events of output written to: " << _filename << endl;
     cout << "===========================================================================" << endl;
@@ -125,7 +124,7 @@ void JetEvaluator::printOutputInfo(PHCompositeNode *topNode) {
 
 void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   
-  if (verbosity > 2) cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
+  if (Verbosity() > 2) cout << "JetEvaluator::fillOutputNtuples() entered" << endl;
 
   JetRecoEval*   recoeval = _jetevalstack->get_reco_eval();
   //JetTruthEval* trutheval = _jetevalstack->get_truth_eval();
@@ -135,7 +134,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-------------------------
 
   if (_do_recojet_eval) {
-    if (verbosity > 1) cout << "JetEvaluator::filling recojet ntuple..." << endl;
+    if (Verbosity() > 1) cout << "JetEvaluator::filling recojet ntuple..." << endl;
 
     JetMap* recojets = findNode::getClass<JetMap>(topNode,_recojetname.c_str());
     if (!recojets) {
@@ -200,7 +199,7 @@ void JetEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
   //-------------------------
 
   if (_do_truthjet_eval) {
-    if (verbosity > 1) cout << "JetEvaluator::filling truthjet ntuple..." << endl;
+    if (Verbosity() > 1) cout << "JetEvaluator::filling truthjet ntuple..." << endl;
 
     JetMap* truthjets = findNode::getClass<JetMap>(topNode,_truthjetname.c_str());
     if (!truthjets) {

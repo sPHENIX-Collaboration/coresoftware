@@ -290,11 +290,11 @@ int MomentumEvaluator::process_event( PHCompositeNode *topNode )
 		}
 		if( hit->get_layer() < 32 )
 		{
-			trkids[trk_id].first = (trkids[trk_id].first | (1<<(hit->get_layer())));
+		  trkids[trk_id].first = (trkids[trk_id].first | (1<<(hit->get_layer())));
 		}
 		else
 		{
-			trkids[trk_id].second = (trkids[trk_id].second | (1<<(hit->get_layer()-32)));
+		  trkids[trk_id].second = (trkids[trk_id].second | (1<<(hit->get_layer()-32)));
 		}
 		
 		// cout<<"trk_id = "<<trk_id<<endl;

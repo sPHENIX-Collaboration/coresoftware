@@ -47,7 +47,11 @@ libg4calo_la_LIBADD = \
 ##############################################
 # please add new classes in alphabetical order
 
-# pkginclude_HEADERS = 
+pkginclude_HEADERS = \
+  HcalRawTowerBuilder.h \
+  RawTowerBuilder.h \
+  RawTowerBuilderByHitIndex.h \
+  RawTowerDigitizer.h
 
 ################################################
 # linking tests

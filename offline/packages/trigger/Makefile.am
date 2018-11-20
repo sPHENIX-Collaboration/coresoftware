@@ -3,7 +3,6 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -11,21 +10,19 @@ lib_LTLIBRARIES = \
    libcalotrigger.la
 
 AM_CXXFLAGS = \
- -Werror -msse2
+ -Werror
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs`
+  -L$(OFFLINE_MAIN)/lib
 
 libcalotrigger_io_la_LIBADD = \
   -lphool
 
 libcalotrigger_la_LIBADD = \
+  libcalotrigger_io.la \
   -lfun4all \
-  -lcalo_io -lcalo_util \
-  -lCGAL \
-  libcalotrigger_io.la
+  -lcalo_io
 
 pkginclude_HEADERS = \
   CaloTriggerSim.h \
@@ -34,11 +31,11 @@ pkginclude_HEADERS = \
 
 libcalotrigger_io_la_SOURCES = \
   CaloTriggerInfo_Dict.C \
-  CaloTriggerInfo_v1.C \
+  CaloTriggerInfo_v1.cc \
   CaloTriggerInfo_v1_Dict.C
 
 libcalotrigger_la_SOURCES = \
-  CaloTriggerSim.C \
+  CaloTriggerSim.cc \
   CaloTriggerSim_Dict.C
 
 # Rule for generating table CINT dictionaries.
