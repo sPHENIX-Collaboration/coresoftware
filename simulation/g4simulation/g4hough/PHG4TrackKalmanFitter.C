@@ -6,8 +6,6 @@
  */
 
 #include "PHG4TrackKalmanFitter.h"
-#include "SvtxCluster.h"
-#include "SvtxClusterMap.h"
 #include "SvtxTrackState_v1.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_v1.h"
@@ -16,8 +14,10 @@
 #include "SvtxTrackMap_v1.h"
 #include "SvtxVertexMap_v1.h"
 
-#include <g4detectors/SvtxHit_v1.h>
-#include <g4detectors/SvtxHitMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHitMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>

@@ -18,7 +18,7 @@ libg4eval_la_LDFLAGS = \
 
 libg4eval_la_LIBADD = \
   -lfun4all \
-  -lg4dst
+  -lg4dst 
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \

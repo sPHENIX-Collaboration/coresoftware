@@ -2,10 +2,10 @@
 
 #include <g4main/PHG4Hit.h>
 
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHitMap_v1.h>
-#include <g4hough/SvtxHit.h>
-#include <g4hough/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHitMap_v1.h>
+#include <trackbase_historic/SvtxHit.h>
+#include <trackbase_historic/SvtxHit_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>

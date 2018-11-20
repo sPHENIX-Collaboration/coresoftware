@@ -13,11 +13,11 @@
 #include "SvtxTrack.h"
 #include "SvtxTrack_v1.h"
 #include "SvtxTrackState.h"
-#include "SvtxClusterMap.h"
-#include "SvtxCluster.h"
 
-#include <g4detectors/SvtxHit_v1.h>
-#include <g4detectors/SvtxHitMap.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHitMap.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>

@@ -21,7 +21,7 @@ AM_LDFLAGS = \
 
 libg4hough_io_la_LIBADD = \
   -lphool \
-  -lg4detectors_io
+  -lg4detectors_io 
 
 libg4hough_la_LDFLAGS = \
   `geant4-config --libs`\
@@ -43,6 +43,7 @@ libg4hough_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -ltrackbase_historic_io \
   libg4hough_io.la
 
 pkginclude_HEADERS = \
@@ -66,7 +67,6 @@ pkginclude_HEADERS = \
   PHG4KalmanPatRec.h \
   PHG4PatternReco.h \
   PHG4SvtxBeamSpotReco.h \
-  PHG4SvtxClusterizer.h \
   PHG4SvtxDeadArea.h \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxThresholds.h \
@@ -79,10 +79,6 @@ pkginclude_HEADERS = \
   SimpleTrack.h \
   SquareGradient.h \
   SvtxBeamSpot.h \
-  SvtxCluster.h \
-  SvtxCluster_v1.h \
-  SvtxClusterMap.h \
-  SvtxClusterMap_v1.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_FastSim.h \
@@ -99,14 +95,6 @@ pkginclude_HEADERS = \
   VertexFitFuncs.h
 
 libg4hough_io_la_SOURCES = \
-  SvtxCluster.C \
-  SvtxCluster_Dict.C \
-  SvtxCluster_v1.C \
-  SvtxCluster_v1_Dict.C \
-  SvtxClusterMap.C \
-  SvtxClusterMap_Dict.C \
-  SvtxClusterMap_v1.C \
-  SvtxClusterMap_v1_Dict.C \
   SvtxTrackState.C \
   SvtxTrackState_Dict.C \
   SvtxTrackState_v1.C \
@@ -161,8 +149,6 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDeadArea_Dict.C \
   PHG4SvtxThresholds.C \
   PHG4SvtxThresholds_Dict.C \
-  PHG4SvtxClusterizer.C \
-  PHG4SvtxClusterizer_Dict.C \
    PHG4HoughTransform.C \
   PHG4HoughTransform_Dict.C \
   PHG4HoughTransformTPC.C \

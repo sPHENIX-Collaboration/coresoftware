@@ -23,9 +23,6 @@ libtpc_la_SOURCES = \
 
 libtpc_la_LIBADD = \
   -lfun4all \
-  -ltrack_util \
-  -ltrack_io \
-  -lg4hough \
   -lg4detectors
 
 # sources for io library
@@ -39,7 +36,8 @@ libtpc_io_la_LIBADD = \
   -ltrack_util \
   -ltrack_io \
   -lg4hough_io \
-  -lg4detectors_io
+  -lg4detectors_io \
+  -ltrackbase_historic_io
 
 
 # Rule for generating table CINT dictionaries.

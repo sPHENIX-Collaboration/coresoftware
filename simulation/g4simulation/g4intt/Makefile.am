@@ -31,7 +31,7 @@ libg4intt_io_la_LIBADD = \
   -lpdbcalBase \
   -lXMLIO \
   -lphparameter \
-  -lg4detectors 
+  -lg4detectors_io 
 
 libg4intt_la_LIBADD = \
   libg4intt_io.la \
@@ -40,7 +40,8 @@ libg4intt_la_LIBADD = \
   -lCGAL \
   -lSubsysReco \
   -lg4testbench \
-  -lg4detectors
+  -lg4detectors \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   PHG4CylinderGeom_INTT.h \

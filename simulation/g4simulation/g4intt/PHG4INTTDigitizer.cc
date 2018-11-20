@@ -9,10 +9,11 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/SvtxHit.h>
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHitMap_v1.h>
-#include <g4detectors/SvtxHit_v1.h>
+
+#include <trackbase_historic/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHitMap_v1.h>
+#include <trackbase_historic/SvtxHit_v1.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>

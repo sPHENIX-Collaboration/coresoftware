@@ -1,7 +1,7 @@
 #include "PHG4SvtxDeadArea.h"
 
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
 
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>

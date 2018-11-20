@@ -1,7 +1,7 @@
 #include "PHG4SvtxThresholds.h"
 
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>

@@ -4,7 +4,6 @@ lib_LTLIBRARIES = \
   libmvtx.la \
   libmvtx_io.la
 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -17,15 +16,21 @@ AM_LDFLAGS = \
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
+  MVTXClusterizer.cc \
+  MVTXClusterizer_Dict.cc \
   MvtxClusterizer.cc \
   MvtxClusterizer_Dict.cc \
   MvtxDefs.cc \
-  MvtxDefs_Dict.cc 
+  MvtxDefs_Dict.cc
 
 libmvtx_la_LIBADD = \
   -lfun4all \
   -ltrack_util \
-  -ltrack_io
+  -ltrack_io \
+  -ltrackbase_historic_io \
+  -lg4detectors \
+  -lg4detectors_io \
+  -lg4mvtx
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
@@ -36,7 +41,9 @@ libmvtx_io_la_LIBADD = \
   libmvtx.la \
   -lfun4all \
   -ltrack_util \
-  -ltrack_io
+  -ltrack_io \
+  -lg4detectors_io \
+  -ltrackbase_historic_io 
 
 
 
@@ -49,10 +56,10 @@ libmvtx_io_la_LIBADD = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  MVTXClusterizer.h \
   MvtxClusterizer.h \
   MvtxDefs.h \
   MvtxHit.h
-
 
 
 ################################################

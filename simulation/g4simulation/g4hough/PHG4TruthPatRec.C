@@ -6,14 +6,14 @@
  */
 
 #include "PHG4TruthPatRec.h"
-#include "SvtxCluster.h"
-#include "SvtxClusterMap.h"
 #include "SvtxTrack.h"
 #include "SvtxTrack_FastSim.h"
 #include "SvtxTrackMap_v1.h"
 
-#include <g4detectors/SvtxHit.h>
-#include <g4detectors/SvtxHitMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>

@@ -1,11 +1,11 @@
-#include "PHG4SvtxClusterizer.h"
+#include "MVTXClusterizer.h"
 
-#include <g4detectors/SvtxHitMap.h>
-#include <g4detectors/SvtxHit.h>
-#include "SvtxClusterMap.h"
-#include "SvtxClusterMap_v1.h"
-#include "SvtxCluster.h"
-#include "SvtxCluster_v1.h"
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxClusterMap_v1.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxCluster_v1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -22,7 +22,6 @@
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
-#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/format.hpp>
@@ -44,7 +43,7 @@ using namespace std;
 
 static const float twopi = 2.0*M_PI;
 
-bool PHG4SvtxClusterizer::lessthan(const PHG4Cell* lhs, 
+bool MVTXClusterizer::lessthan(const PHG4Cell* lhs, 
 				   const PHG4Cell* rhs) {
   int lhsphibin = PHG4CellDefs::SizeBinning::get_phibin(lhs->get_cellid());
   int rhsphibin =  PHG4CellDefs::SizeBinning::get_phibin(rhs->get_cellid());
@@ -59,7 +58,7 @@ bool PHG4SvtxClusterizer::lessthan(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::ladder_lessthan(const PHG4Cell* lhs, 
+bool MVTXClusterizer::ladder_lessthan(const PHG4Cell* lhs, 
 					  const PHG4Cell* rhs) {
 
   if ( lhs->get_ladder_z_index() == rhs->get_ladder_z_index() &&
@@ -78,7 +77,7 @@ bool PHG4SvtxClusterizer::ladder_lessthan(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::mvtx_ladder_lessthan(const PHG4Cell* lhs, 
+bool MVTXClusterizer::mvtx_ladder_lessthan(const PHG4Cell* lhs, 
 					  const PHG4Cell* rhs) {
 
 
@@ -91,7 +90,7 @@ bool PHG4SvtxClusterizer::mvtx_ladder_lessthan(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::are_adjacent(const PHG4Cell* lhs, 
+bool MVTXClusterizer::are_adjacent(const PHG4Cell* lhs, 
 				       const PHG4Cell* rhs,
                                        const int &nphibins) {
 
@@ -126,7 +125,7 @@ bool PHG4SvtxClusterizer::are_adjacent(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::mvtx_ladder_are_adjacent(const PHG4Cell* lhs, 
+bool MVTXClusterizer::mvtx_ladder_are_adjacent(const PHG4Cell* lhs, 
 					      const PHG4Cell* rhs) {
   int lhs_layer = lhs->get_layer();
   int rhs_layer = rhs->get_layer();
@@ -155,7 +154,7 @@ bool PHG4SvtxClusterizer::mvtx_ladder_are_adjacent(const PHG4Cell* lhs,
   return false;
 }
 
-bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cell* rhs) {
+bool MVTXClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cell* rhs) {
 
   if(Verbosity() > 2)
     {
@@ -199,7 +198,7 @@ bool PHG4SvtxClusterizer::ladder_are_adjacent(const PHG4Cell* lhs, const PHG4Cel
   return false;
 }
 
-PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name,
+MVTXClusterizer::MVTXClusterizer(const string &name,
 					 unsigned int min_layer,
 					 unsigned int max_layer) :
   SubsysReco(name),
@@ -213,7 +212,7 @@ PHG4SvtxClusterizer::PHG4SvtxClusterizer(const string &name,
   _max_layer(max_layer),
   _timer(PHTimeServer::get()->insert_new(name)) {}
 
-int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
+int MVTXClusterizer::InitRun(PHCompositeNode* topNode) {
 
   // get node containing the digitized hits
   _hits = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
@@ -259,9 +258,6 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   // Calculate Thresholds
   //---------------------
   
-  //CalculateCylinderThresholds(topNode);
-  //CalculateLadderThresholds(topNode);
-  // this module now does only MVTX clustering
   CalculateMVTXLadderThresholds(topNode);
 
   //----------------
@@ -269,7 +265,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   //----------------
 
   if (Verbosity() > 0) {
-    cout << "====================== PHG4SvtxClusterizer::InitRun() =====================" << endl;
+    cout << "====================== MVTXClusterizer::InitRun() =====================" << endl;
     cout << " Fraction of expected thickness MIP energy = " << _fraction_of_mip << endl;
     for (std::map<int,float>::iterator iter = _thresholds_by_layer.begin();
 	 iter != _thresholds_by_layer.end();
@@ -292,7 +288,7 @@ int PHG4SvtxClusterizer::InitRun(PHCompositeNode* topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
+int MVTXClusterizer::process_event(PHCompositeNode *topNode) {
 
   _timer.get()->restart();
   
@@ -304,8 +300,6 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
     }
   //_clusterlist->Reset();
   
-  //ClusterCylinderCells(topNode);
-  //ClusterLadderCells(topNode);
   ClusterMVTXLadderCells(topNode);
 
   PrintClusters(topNode);
@@ -313,8 +307,8 @@ int PHG4SvtxClusterizer::process_event(PHCompositeNode *topNode) {
   _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
-void PHG4SvtxClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) {
+/*
+void MVTXClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) {
 
   // get the SVX geometry object
   PHG4CylinderCellGeomContainer* geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode,"CYLINDERCELLGEOM_SVTX");
@@ -346,10 +340,11 @@ void PHG4SvtxClusterizer::CalculateCylinderThresholds(PHCompositeNode *topNode) 
   
   return;
 }
+*/
+/*
+void MVTXClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
 
-void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
-
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_INTT");
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
   if (!cells) return;
 
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode,"CYLINDERGEOM_INTT");
@@ -380,8 +375,9 @@ void PHG4SvtxClusterizer::CalculateLadderThresholds(PHCompositeNode *topNode) {
   
   return;
 }
+*/
 
-void PHG4SvtxClusterizer::CalculateMVTXLadderThresholds(PHCompositeNode *topNode) {
+void MVTXClusterizer::CalculateMVTXLadderThresholds(PHCompositeNode *topNode) {
 
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
   if (!cells) return;
@@ -414,8 +410,8 @@ void PHG4SvtxClusterizer::CalculateMVTXLadderThresholds(PHCompositeNode *topNode
   
   return;
 }
-
-void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
+/*
+void MVTXClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 
   //----------
   // Get Nodes
@@ -471,7 +467,7 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
 
     if (cell_list.size() == 0) continue; // if no cells, go to the next layer
     
-    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::lessthan);
+    sort(cell_list.begin(), cell_list.end(), MVTXClusterizer::lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
     Graph G;
@@ -690,11 +686,12 @@ void PHG4SvtxClusterizer::ClusterCylinderCells(PHCompositeNode *topNode) {
   
   return;
 }
-
-void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
+*/
+/*
+void MVTXClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
 
   if(Verbosity() > 0)
-    cout << "Entering PHG4SvtxClusterizer::ClusterLadderCells " << endl;
+    cout << "Entering MVTXClusterizer::ClusterLadderCells " << endl;
 
   //----------
   // Get Nodes
@@ -761,7 +758,7 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
     if (cell_list.size() == 0) continue; // if no cells, go to the next layer
     
     // i'm not sure this sorting is ever really used
-    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::ladder_lessthan);
+    sort(cell_list.begin(), cell_list.end(), MVTXClusterizer::ladder_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
     Graph G;
@@ -1092,11 +1089,12 @@ void PHG4SvtxClusterizer::ClusterLadderCells(PHCompositeNode *topNode) {
   
   return;
 }
+*/
 
-void PHG4SvtxClusterizer::ClusterMVTXLadderCells(PHCompositeNode *topNode) {
+void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode *topNode) {
 
   if(Verbosity() > 0)
-    cout << "Entering PHG4SvtxClusterizer::ClusterMVTXLadderCells " << endl;
+    cout << "Entering MVTXClusterizer::ClusterMVTXLadderCells " << endl;
 
   //----------
   // Get Nodes
@@ -1166,7 +1164,7 @@ void PHG4SvtxClusterizer::ClusterMVTXLadderCells(PHCompositeNode *topNode) {
       }
     
     // i'm not sure this sorting is ever really used
-    sort(cell_list.begin(), cell_list.end(), PHG4SvtxClusterizer::mvtx_ladder_lessthan);
+    sort(cell_list.begin(), cell_list.end(), MVTXClusterizer::mvtx_ladder_lessthan);
 
     typedef adjacency_list <vecS, vecS, undirectedS> Graph;
     Graph G;
@@ -1475,14 +1473,14 @@ void PHG4SvtxClusterizer::ClusterMVTXLadderCells(PHCompositeNode *topNode) {
 }
 
 
-void PHG4SvtxClusterizer::PrintClusters(PHCompositeNode *topNode) {
+void MVTXClusterizer::PrintClusters(PHCompositeNode *topNode) {
 
   if (Verbosity() >= 1) {
 
     SvtxClusterMap *clusterlist = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
     if (!clusterlist) return;
     
-    cout << "================= PHG4SvtxClusterizer::process_event() ====================" << endl;
+    cout << "================= MVTXClusterizer::process_event() ====================" << endl;
   
 
     cout << " Found and recorded the following " << clusterlist->size() << " clusters: " << endl;

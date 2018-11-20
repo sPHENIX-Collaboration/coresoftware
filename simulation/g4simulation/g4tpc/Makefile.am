@@ -21,7 +21,8 @@ libg4tpc_la_LIBADD = \
   -lg4testbench \
   -lphg4hit \
   -lg4detectors \
-  -lphparameter
+  -lphparameter \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   PHG4CellTPCv1.h \

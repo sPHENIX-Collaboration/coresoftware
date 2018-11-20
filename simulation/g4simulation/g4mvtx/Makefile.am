@@ -1,6 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = libg4mvtx.la
+lib_LTLIBRARIES = \
+  libg4mvtx_io.la \
+  libg4mvtx.la 
+
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -9,17 +12,21 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
+
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+
 libg4mvtx_la_LIBADD = \
+  libg4mvtx_io.la \
   -lfun4all \
   -lphool \
   -lg4testbench \
   -lphg4hit \
-  -lg4detectors 
+  -lg4detectors \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   PHG4MVTXCellReco.h \
@@ -37,10 +44,13 @@ libg4mvtx_la_SOURCES = \
   PHG4MVTXSubsystem_Dict.cc \
   PHG4CylinderGeom_MVTX.cc \
   PHG4CylinderGeom_MVTX_Dict.cc \
-  PHG4CylinderCell_MVTX.cc \
-  PHG4CylinderCell_MVTX_Dict.cc \
   PHG4MVTXDigitizer.cc \
   PHG4MVTXDigitizer_Dict.cc 
+
+
+libg4mvtx_io_la_SOURCES = \
+  PHG4CylinderCell_MVTX.cc \
+  PHG4CylinderCell_MVTX_Dict.cc 
 
 
 # Rule for generating table CINT dictionaries.

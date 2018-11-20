@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXCLUSTERIZER_H__
-#define __PHG4SVTXCLUSTERIZER_H__
+#ifndef __MVTXCLUSTERIZER_H__
+#define __MVTXCLUSTERIZER_H__
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -10,13 +10,13 @@ class SvtxHitMap;
 class SvtxClusterMap;
 class PHG4Cell;
 
-class PHG4SvtxClusterizer : public SubsysReco {
+class MVTXClusterizer : public SubsysReco {
 
 public:
 
-  PHG4SvtxClusterizer(const std::string &name = "PHG4SvtxClusterizer",
+  MVTXClusterizer(const std::string &name = "MVTXClusterizer",
 		      unsigned int min_layer = 0, unsigned int max_layer = UINT_MAX);
-  virtual ~PHG4SvtxClusterizer(){}
+  virtual ~MVTXClusterizer(){}
   
   //! module initialization
   int Init(PHCompositeNode *topNode){return 0;}
@@ -73,13 +73,8 @@ private:
   bool mvtx_ladder_are_adjacent(const PHG4Cell*,
 				const PHG4Cell*);
 
-  void CalculateCylinderThresholds(PHCompositeNode *topNode);
-  void CalculateLadderThresholds(PHCompositeNode *topNode);
   void CalculateMVTXLadderThresholds(PHCompositeNode *topNode);
-  
-  void ClusterCylinderCells(PHCompositeNode *topNode);
-  void ClusterLadderCells(PHCompositeNode *topNode);
-  void ClusterMVTXLadderCells(PHCompositeNode *topNode);
+    void ClusterMVTXLadderCells(PHCompositeNode *topNode);
 
   void PrintClusters(PHCompositeNode *topNode);
   
