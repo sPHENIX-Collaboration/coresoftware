@@ -30,8 +30,8 @@ libg4detectors_io_la_LIBADD = \
   -lboost_system \
   -lpdbcalBase \
   -lXMLIO \
-  -lphparameter \
-  -ltrackbase_historic_io
+  -lphparameter 
+
 
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
