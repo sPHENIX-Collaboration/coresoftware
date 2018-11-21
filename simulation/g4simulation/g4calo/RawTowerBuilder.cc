@@ -115,7 +115,7 @@ int RawTowerBuilder::process_event(PHCompositeNode *topNode)
   if (!cells)
   {
     cout << PHWHERE << " " << cellnodename
-              << " Node missing, doing nothing." << std::endl;
+         << " Node missing, doing nothing." << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -247,7 +247,7 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   if (!cellgeos)
   {
     cout << PHWHERE << " " << geonodename
-              << " Node missing, doing nothing." << std::endl;
+         << " Node missing, doing nothing." << std::endl;
     throw std::runtime_error(
         "Failed to find " + geonodename + " node in RawTowerBuilder::CreateNodes");
   }
@@ -425,12 +425,55 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     {
       for (int ieta = 0; ieta < m_RawTowerGeomContainer->get_etabins(); ieta++)
       {
-        RawTowerGeomv1 *tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(caloid, ieta, iphi));
+        const RawTowerDefs::keytype key =
+            RawTowerDefs::encode_towerid(caloid, ieta, iphi);
 
-        tg->set_center_x(r * cos(m_RawTowerGeomContainer->get_phicenter(iphi)));
-        tg->set_center_y(r * sin(m_RawTowerGeomContainer->get_phicenter(iphi)));
-        tg->set_center_z(r / tan(PHG4Utils::get_theta(m_RawTowerGeomContainer->get_etacenter(ieta))));
-        m_RawTowerGeomContainer->add_tower_geometry(tg);
+        const double x(r * cos(m_RawTowerGeomContainer->get_phicenter(iphi)));
+        const double y(r * sin(m_RawTowerGeomContainer->get_phicenter(iphi)));
+        const double z(r / tan(PHG4Utils::get_theta(m_RawTowerGeomContainer->get_etacenter(ieta))));
+
+        RawTowerGeom *tg = m_RawTowerGeomContainer->get_tower_geometry(key);
+        if (tg)
+        {
+          if (Verbosity() > 0)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << endl;
+          }
+
+          if (fabs(tg->get_center_x() - x) > 1e-4)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+                 << endl;
+
+            exit(1);
+          }
+          if (fabs(tg->get_center_y() - y) > 1e-4)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+                 << endl;
+            exit(1);
+          }
+          if (fabs(tg->get_center_z() - z) > 1e-4)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+                 << endl;
+            exit(1);
+          }
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+            cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << endl;
+          }
+
+          tg = new RawTowerGeomv1(key);
+
+          tg->set_center_x(x);
+          tg->set_center_y(y);
+          tg->set_center_z(z);
+          m_RawTowerGeomContainer->add_tower_geometry(tg);
+        }
       }
     }
   }
@@ -452,13 +495,54 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
     {
       for (int ibin = 0; ibin < first_cellgeo->get_zbins(); ibin++)
       {
-        RawTowerGeomv1 *tg = new RawTowerGeomv1(RawTowerDefs::encode_towerid(caloid, ibin, iphi));
+        const RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(caloid, ibin, iphi);
 
-        tg->set_center_x(r * cos(m_RawTowerGeomContainer->get_phicenter(iphi)));
-        tg->set_center_y(r * sin(m_RawTowerGeomContainer->get_phicenter(iphi)));
-        tg->set_center_z(first_cellgeo->get_zcenter(ibin));
+        const double x(r * cos(m_RawTowerGeomContainer->get_phicenter(iphi)));
+        const double y(r * sin(m_RawTowerGeomContainer->get_phicenter(iphi)));
+        const double z(first_cellgeo->get_zcenter(ibin));
 
-        m_RawTowerGeomContainer->add_tower_geometry(tg);
+        RawTowerGeom *tg = m_RawTowerGeomContainer->get_tower_geometry(key);
+        if (tg)
+        {
+          if (Verbosity() > 0)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Tower geometry " << key << " already exists" << endl;
+          }
+
+          if (fabs(tg->get_center_x() - x) > 1e-4)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing x = " << tg->get_center_x() << " and expected x = " << x
+                 << endl;
+
+            exit(1);
+          }
+          if (fabs(tg->get_center_y() - y) > 1e-4)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing y = " << tg->get_center_y() << " and expected y = " << y
+                 << endl;
+            exit(1);
+          }
+          if (fabs(tg->get_center_z() - z) > 1e-4)
+          {
+            cout << "RawTowerBuilder::CreateNodes - Fatal Error - duplicated Tower geometry " << key << " with existing z= " << tg->get_center_z() << " and expected z = " << z
+                 << endl;
+            exit(1);
+          }
+        }
+        else
+        {
+          if (Verbosity() > 0)
+          {
+            cout << "RawTowerBuilder::CreateNodes - building tower geometry " << key << "" << endl;
+          }
+
+          tg = new RawTowerGeomv1(key);
+
+          tg->set_center_x(x);
+          tg->set_center_y(y);
+          tg->set_center_z(z);
+          m_RawTowerGeomContainer->add_tower_geometry(tg);
+        }
       }
     }
   }
@@ -491,7 +575,6 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   }
 
   // Create the tower nodes on the tree
-  m_TowerContainer = new RawTowerContainer(caloid);
   if (m_SimTowerNodePrefix.empty())
   {
     // no prefix, consistent with older convention
@@ -501,8 +584,14 @@ void RawTowerBuilder::CreateNodes(PHCompositeNode *topNode)
   {
     m_TowerNodeName = "TOWER_" + m_SimTowerNodePrefix + "_" + m_Detector;
   }
-  PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_TowerContainer, m_TowerNodeName, "PHObject");
-  DetNode->addNode(towerNode);
+  m_TowerContainer = findNode::getClass<RawTowerContainer>(DetNode, m_TowerNodeName.c_str());
+  if (m_TowerContainer == nullptr)
+  {
+    m_TowerContainer = new RawTowerContainer(caloid);
+
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_TowerContainer, m_TowerNodeName, "PHObject");
+    DetNode->addNode(towerNode);
+  }
 
   return;
 }

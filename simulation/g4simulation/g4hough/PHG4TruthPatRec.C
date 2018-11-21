@@ -60,7 +60,7 @@ int PHG4TruthPatRec::process_event(PHCompositeNode* topNode) {
 	GetNodes(topNode);
 
 	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(
-			topNode, "G4HIT_SVTX");
+			topNode, "G4HIT_TPC");
 
 	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
 			topNode, "G4HIT_SILICON_TRACKER");
