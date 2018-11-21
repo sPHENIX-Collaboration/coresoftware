@@ -1,5 +1,5 @@
-#ifndef __CALOTRIGGERSIM_H__
-#define __CALOTRIGGERSIM_H__
+#ifndef TRIGGER_CALOTRIGGERSIM_H
+#define TRIGGER_CALOTRIGGERSIM_H
 
 //===========================================================
 /// \file CaloTriggerSim.h
@@ -7,10 +7,8 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
+// sPHENIX includes
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
 // standard includes
 #include <vector>
@@ -28,97 +26,94 @@ class CaloTriggerSim : public SubsysReco
 {
  public:
   CaloTriggerSim(const std::string &name = "CaloTriggerSim");
-  virtual ~CaloTriggerSim();
+  virtual ~CaloTriggerSim() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
-  void set_truncation( int emulate_truncation );
-  float truncate_8bit( float raw_E );
+  void set_truncation(const int emulate_truncation);
+  double truncate_8bit(const double raw_E) const;
 
  private:
   int CreateNode(PHCompositeNode *topNode);
   void FillNode(PHCompositeNode *topNode);
 
-  int _emulate_truncation;
+  int m_EmulateTruncationFlag;
 
-  int _EMCAL_1x1_NETA;
-  int _EMCAL_1x1_NPHI;
-  std::vector<std::vector<float> > _EMCAL_1x1_MAP;
+  int m_EMCAL_1x1_NETA;
+  int m_EMCAL_1x1_NPHI;
 
-  int _EMCAL_2x2_NETA;
-  int _EMCAL_2x2_NPHI;
-  std::vector<std::vector<float> > _EMCAL_2x2_MAP;
+  int m_EMCAL_2x2_NETA;
+  int m_EMCAL_2x2_NPHI;
 
-  int _EMCAL_4x4_NETA;
-  int _EMCAL_4x4_NPHI;
-  std::vector<std::vector<float> > _EMCAL_4x4_MAP;
+  int m_EMCAL_4x4_NETA;
+  int m_EMCAL_4x4_NPHI;
 
-  float _EMCAL_2x2_BEST_E;
-  float _EMCAL_2x2_BEST_PHI;
-  float _EMCAL_2x2_BEST_ETA;
+  float m_EMCAL_2x2_BEST_E;
+  float m_EMCAL_2x2_BEST_PHI;
+  float m_EMCAL_2x2_BEST_ETA;
 
-  float _EMCAL_4x4_BEST_E;
-  float _EMCAL_4x4_BEST_PHI;
-  float _EMCAL_4x4_BEST_ETA;
+  float m_EMCAL_4x4_BEST_E;
+  float m_EMCAL_4x4_BEST_PHI;
+  float m_EMCAL_4x4_BEST_ETA;
 
-  float _EMCAL_4x4_BEST2_E;
-  float _EMCAL_4x4_BEST2_PHI;
-  float _EMCAL_4x4_BEST2_ETA;
+  float m_EMCAL_4x4_BEST2_E;
+  float m_EMCAL_4x4_BEST2_PHI;
+  float m_EMCAL_4x4_BEST2_ETA;
 
   // needed since phi ranges are potentially different in EMCal vs. HCal
-  float _FULLCALO_PHI_START;
-  float _FULLCALO_PHI_END;
+  float m_FULLCALO_PHI_START;
+  float m_FULLCALO_PHI_END;
 
   // full calo (based on 0.1x0.1 HCal towers) limits and maps
-  int _FULLCALO_0p1x0p1_NETA;
-  int _FULLCALO_0p1x0p1_NPHI;
-  std::vector<std::vector<float> > _FULLCALO_0p1x0p1_MAP;
+  int m_FULLCALO_0p1x0p1_NETA;
+  int m_FULLCALO_0p1x0p1_NPHI;
 
-  int _FULLCALO_0p2x0p2_NETA;
-  int _FULLCALO_0p2x0p2_NPHI;
-  std::vector<std::vector<float> > _FULLCALO_0p2x0p2_MAP;
+  int m_FULLCALO_0p2x0p2_NETA;
+  int m_FULLCALO_0p2x0p2_NPHI;
 
-  int _FULLCALO_0p4x0p4_NETA;
-  int _FULLCALO_0p4x0p4_NPHI;
-  std::vector<std::vector<float> > _FULLCALO_0p4x0p4_MAP;
+  int m_FULLCALO_0p4x0p4_NETA;
+  int m_FULLCALO_0p4x0p4_NPHI;
 
-  int _FULLCALO_0p6x0p6_NETA;
-  int _FULLCALO_0p6x0p6_NPHI;
-  std::vector<std::vector<float> > _FULLCALO_0p6x0p6_MAP;
+  int m_FULLCALO_0p6x0p6_NETA;
+  int m_FULLCALO_0p6x0p6_NPHI;
 
-  int _FULLCALO_0p8x0p8_NETA;
-  int _FULLCALO_0p8x0p8_NPHI;
-  std::vector<std::vector<float> > _FULLCALO_0p8x0p8_MAP;
+  int m_FULLCALO_0p8x0p8_NETA;
+  int m_FULLCALO_0p8x0p8_NPHI;
 
-  int _FULLCALO_1p0x1p0_NETA;
-  int _FULLCALO_1p0x1p0_NPHI;
-  std::vector<std::vector<float> > _FULLCALO_1p0x1p0_MAP;
-  
+  int m_FULLCALO_1p0x1p0_NETA;
+  int m_FULLCALO_1p0x1p0_NPHI;
+
   // highest full calo window energies
-  float _FULLCALO_0p2x0p2_BEST_E;
-  float _FULLCALO_0p2x0p2_BEST_PHI;
-  float _FULLCALO_0p2x0p2_BEST_ETA;
+  float m_FULLCALO_0p2x0p2_BEST_E;
+  float m_FULLCALO_0p2x0p2_BEST_PHI;
+  float m_FULLCALO_0p2x0p2_BEST_ETA;
 
-  float _FULLCALO_0p4x0p4_BEST_E;
-  float _FULLCALO_0p4x0p4_BEST_PHI;
-  float _FULLCALO_0p4x0p4_BEST_ETA;
+  float m_FULLCALO_0p4x0p4_BEST_E;
+  float m_FULLCALO_0p4x0p4_BEST_PHI;
+  float m_FULLCALO_0p4x0p4_BEST_ETA;
 
-  float _FULLCALO_0p6x0p6_BEST_E;
-  float _FULLCALO_0p6x0p6_BEST_PHI;
-  float _FULLCALO_0p6x0p6_BEST_ETA;
+  float m_FULLCALO_0p6x0p6_BEST_E;
+  float m_FULLCALO_0p6x0p6_BEST_PHI;
+  float m_FULLCALO_0p6x0p6_BEST_ETA;
 
-  float _FULLCALO_0p8x0p8_BEST_E;
-  float _FULLCALO_0p8x0p8_BEST_PHI;
-  float _FULLCALO_0p8x0p8_BEST_ETA;
+  float m_FULLCALO_0p8x0p8_BEST_E;
+  float m_FULLCALO_0p8x0p8_BEST_PHI;
+  float m_FULLCALO_0p8x0p8_BEST_ETA;
 
-  float _FULLCALO_1p0x1p0_BEST_E;
-  float _FULLCALO_1p0x1p0_BEST_PHI;
-  float _FULLCALO_1p0x1p0_BEST_ETA;
+  float m_FULLCALO_1p0x1p0_BEST_E;
+  float m_FULLCALO_1p0x1p0_BEST_PHI;
+  float m_FULLCALO_1p0x1p0_BEST_ETA;
 
-  //int verbosity;
+  std::vector<std::vector<double> > m_EMCAL_1x1_MAP;
+  std::vector<std::vector<double> > m_EMCAL_2x2_MAP;
+  std::vector<std::vector<double> > m_EMCAL_4x4_MAP;
+  std::vector<std::vector<double> > m_FULLCALO_0p1x0p1_MAP;
+  std::vector<std::vector<double> > m_FULLCALO_0p2x0p2_MAP;
+  std::vector<std::vector<double> > m_FULLCALO_0p4x0p4_MAP;
+  std::vector<std::vector<double> > m_FULLCALO_0p6x0p6_MAP;
+  std::vector<std::vector<double> > m_FULLCALO_0p8x0p8_MAP;
+  std::vector<std::vector<double> > m_FULLCALO_1p0x1p0_MAP;
 };
 
-#endif  // __CALOTRIGGERSIM_H__
+#endif  // TRIGGER_CALOTRIGGERSIM_H

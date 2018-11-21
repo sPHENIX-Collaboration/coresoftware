@@ -347,8 +347,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	FillSvtxVertexMap(rave_vertices, rf_gf_tracks);
 
-	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-			++iter) {
+	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();) {
 		std::shared_ptr<PHGenFit::Track> rf_phgf_track = NULL;
 
 		if (svtxtrack_genfittrack_map.find(iter->second->get_id())
@@ -405,36 +404,35 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 #ifdef _DEBUG_
 						LogDebug("!rf_track, continue.");
 #endif
-				if (_over_write_svtxtrackmap)
-					_trackmap->erase(iter->first);
-
-				continue;
+				if (_over_write_svtxtrackmap) {
+					auto key = iter->first;
+					++iter;
+					_trackmap->erase(key);
+					continue;
+				}
 			}
 
-//			delete vertex;//DEBUG
-
-//			rf_phgf_tracks.push_back(rf_phgf_track);
-//			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-
-			if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
+			if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode) {
 				if (_trackmap_refit) {
 					_trackmap_refit->insert(rf_track.get());
-//					delete rf_track;
 				}
+			}
 
 			if (_over_write_svtxtrackmap
 					|| _output_mode == DebugMode) {
 				*(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
 						*(dynamic_cast<SvtxTrack_v1*>(rf_track.get()));
-//				delete rf_track;
-#ifdef _DEBUG_
-		cout<<__LINE__<<endl;
-#endif
 			}
 		} else {
-			if (_over_write_svtxtrackmap)
-				_trackmap->erase(iter->first);
+			if (_over_write_svtxtrackmap) {
+				auto key = iter->first;
+				++iter;
+				_trackmap->erase(key);
+				continue;
+			}
 		}
+
+		++iter;
 	}
 
 #ifdef _DEBUG_

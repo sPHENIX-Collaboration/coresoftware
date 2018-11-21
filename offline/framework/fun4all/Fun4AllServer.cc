@@ -1426,6 +1426,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       Verbosity(--iverb);
     }
 
+    ++icnt;// completed one event processing
     if (require_nevents)
     {
       if (std::find(RetCodes.begin(),
@@ -1435,7 +1436,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       if (iret || (nevnts > 0 && icnt_good >= nevnts))
         break;
     }
-    else if (iret || (nevnts > 0 && ++icnt >= nevnts))
+    else if (iret || (nevnts > 0 && icnt >= nevnts))
     {
       break;
     }

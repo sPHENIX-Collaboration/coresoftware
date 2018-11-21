@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
 libphnodedump_la_SOURCES = \
   Dumper.cc \
   DumpBbcVertexMap.cc \
+  DumpCaloTriggerInfo.cc \
   DumpGlobalVertexMap.cc \
   DumpJetMap.cc \
   DumpPdbParameterMap.cc \
@@ -41,6 +42,7 @@ libphnodedump_la_SOURCES = \
   DumpSvtxTrackMap.cc \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
+  DumpTowerBackground.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
   PHNodeDump.cc \
@@ -51,6 +53,7 @@ AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
 libphnodedump_la_LIBADD = \
   -lg4bbc_io \
   -lcalo_util \
+  -lcalotrigger_io \
   -lffaobjects \
   -lg4detectors \
   -lg4hough_io \
