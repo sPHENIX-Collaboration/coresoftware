@@ -34,8 +34,7 @@
 #include <phgenfit/Fitter.h>
 //#include <phgenfit/Measurement.h>
 
-// g4hough includes
-#include "SvtxTrackState.h"
+#include <trackbase_historic/SvtxTrackState.h>
 
 // forward declarations
 class PHCompositeNode;

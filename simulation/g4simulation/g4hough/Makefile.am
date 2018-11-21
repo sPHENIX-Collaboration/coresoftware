@@ -79,46 +79,11 @@ pkginclude_HEADERS = \
   SimpleTrack.h \
   SquareGradient.h \
   SvtxBeamSpot.h \
-  SvtxTrack.h \
-  SvtxTrack_v1.h \
-  SvtxTrack_FastSim.h \
-  SvtxTrackMap.h \
-  SvtxTrackMap_v1.h \
-  SvtxTrackState.h \
-  SvtxTrackState_v1.h \
-  SvtxVertex.h \
-  SvtxVertex_v1.h \
-  SvtxVertexMap.h \
-  SvtxVertexMap_v1.h \
   Track3D.h \
   VertexFitter.h \
   VertexFitFuncs.h
 
 libg4hough_io_la_SOURCES = \
-  SvtxTrackState.C \
-  SvtxTrackState_Dict.C \
-  SvtxTrackState_v1.C \
-  SvtxTrackState_v1_Dict.C \
-  SvtxTrack.C \
-  SvtxTrack_Dict.C \
-  SvtxTrack_v1.C \
-  SvtxTrack_FastSim.C \
-  SvtxTrack_v1_Dict.C \
-  SvtxTrack_FastSim_Dict.C \
-  SvtxBeamSpot.C \
-  SvtxBeamSpot_Dict.C \
-  SvtxTrackMap.C \
-  SvtxTrackMap_Dict.C \
-  SvtxTrackMap_v1.C \
-  SvtxTrackMap_v1_Dict.C \
-  SvtxVertex.C \
-  SvtxVertex_Dict.C \
-  SvtxVertex_v1.C \
-  SvtxVertex_v1_Dict.C \
-  SvtxVertexMap.C \
-  SvtxVertexMap_Dict.C \
-  SvtxVertexMap_v1.C \
-  SvtxVertexMap_v1_Dict.C \
   Cluster3D.C \
   Track3D.C \
   HelixTrackState.C \
@@ -140,6 +105,8 @@ libg4hough_io_la_SOURCES = \
   CellularAutomaton_v1.C \
   CellularAutomaton_v1_Dict.C \
   SquareGradient.C \
+  SvtxBeamSpot.C \
+  SvtxBeamSpot_Dict.C \
   NewtonMinimizerGradHessian.C \
   VertexFitter.C \
   VertexFitFuncs.C

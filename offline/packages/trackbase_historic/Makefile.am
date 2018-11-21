@@ -32,8 +32,29 @@ libtrackbase_historic_io_la_SOURCES = \
   SvtxHitMap.cc \
   SvtxHitMap_Dict.cc \
   SvtxHitMap_v1.cc \
-  SvtxHitMap_v1_Dict.cc 
-
+  SvtxHitMap_v1_Dict.cc \
+  SvtxTrackState.cc \
+  SvtxTrackState_Dict.cc \
+  SvtxTrackState_v1.cc \
+  SvtxTrackState_v1_Dict.cc \
+  SvtxTrack.cc \
+  SvtxTrack_Dict.cc \
+  SvtxTrack_v1.cc \
+  SvtxTrack_FastSim.cc \
+  SvtxTrack_v1_Dict.cc \
+  SvtxTrack_FastSim_Dict.cc \
+  SvtxTrackMap.cc \
+  SvtxTrackMap_Dict.cc \
+  SvtxTrackMap_v1.cc \
+  SvtxTrackMap_v1_Dict.cc \
+  SvtxVertex.cc \
+  SvtxVertex_Dict.cc \
+  SvtxVertex_v1.cc \
+  SvtxVertex_v1_Dict.cc \
+  SvtxVertexMap.cc \
+  SvtxVertexMap_Dict.cc \
+  SvtxVertexMap_v1.cc \
+  SvtxVertexMap_v1_Dict.cc 
 
 libtrackbase_historic_io_la_LDFLAGS = \
   -L$(libdir) \
@@ -66,7 +87,18 @@ pkginclude_HEADERS = \
   SvtxClusterMap.h \
   SvtxClusterMapLinkDef.h \
   SvtxClusterMap_v1.h \
-  SvtxClusterMap_v1LinkDef.h
+  SvtxClusterMap_v1LinkDef.h \
+  SvtxTrack.h \
+  SvtxTrack_v1.h \
+  SvtxTrack_FastSim.h \
+  SvtxTrackMap.h \
+  SvtxTrackMap_v1.h \
+  SvtxTrackState.h \
+  SvtxTrackState_v1.h \
+  SvtxVertex.h \
+  SvtxVertex_v1.h \
+  SvtxVertexMap.h \
+  SvtxVertexMap_v1.h 
 
 
 ################################################

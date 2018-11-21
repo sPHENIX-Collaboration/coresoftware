@@ -6,10 +6,10 @@
  */
 
 #include "PHG4TruthPatRec.h"
-#include "SvtxTrack.h"
-#include "SvtxTrack_FastSim.h"
-#include "SvtxTrackMap_v1.h"
 
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHit.h>
