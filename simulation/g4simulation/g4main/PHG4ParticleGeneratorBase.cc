@@ -81,7 +81,7 @@ PHG4ParticleGeneratorBase::get_mass(const int pdgcode) const
   G4ParticleDefinition *particledef = particleTable->FindParticle(get_pdgname(pdgcode));
   if (particledef)
   {
-    return particledef->GetPDGMass();
+    return particledef->GetPDGMass()/CLHEP::GeV;
   }
   return 0;
 }
