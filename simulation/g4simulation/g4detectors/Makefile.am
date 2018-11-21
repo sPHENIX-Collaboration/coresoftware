@@ -75,8 +75,7 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4CylinderCellReco.h \
-  PHG4CylinderCellTPCReco.h \
-  PHG4CylinderSubsystem.h \
+   PHG4CylinderSubsystem.h \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4ForwardCalCellReco.h \
@@ -101,9 +100,7 @@ pkginclude_HEADERS = \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
   PHG4SpacalPrototypeSubsystem.h \
-  PHG4StepStatusDecode.h \
-  PHG4TPCDistortion.h \
-  PHG4TPCSpaceChargeDistortion.h
+  PHG4StepStatusDecode.h 
 
 libg4detectors_io_la_SOURCES = \
   PHG4BlockCellGeom.cc \
@@ -297,13 +294,7 @@ libg4detectors_la_SOURCES = \
   PHG4SpacalSubsystem_Dict.cc \
   PHG4SpacalPrototypeSubsystem.cc \
   PHG4SpacalPrototypeSubsystem_Dict.cc \
-  PHG4CylinderCellTPCReco.cc \
-  PHG4CylinderCellTPCReco_Dict.cc\
-  PHG4TPCDistortion.cc \
-  PHG4TPCDistortion_Dict.cc\
-  PHG4TPCSpaceChargeDistortion.cc \
-  PHG4TPCSpaceChargeDistortion_Dict.cc \
-  PHG4mRICHDetector.cc \
+   PHG4mRICHDetector.cc \
   PHG4mRICHSteppingAction.cc \
   PHG4mRICHSubsystem.cc \
   PHG4mRICHSubsystem_Dict.cc

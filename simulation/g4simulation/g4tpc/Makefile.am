@@ -30,7 +30,9 @@ pkginclude_HEADERS = \
   PHG4TPCPadPlane.h \
   PHG4TPCPadPlaneReadout.h \
   PHG4TPCDigitizer.h \
-  PHG4TPCSubsystem.h
+  PHG4TPCSubsystem.h \
+  PHG4TPCDistortion.h \
+  PHG4TPCSpaceChargeDistortion.h
 
 
 libg4tpc_la_SOURCES = \
@@ -47,7 +49,11 @@ libg4tpc_la_SOURCES = \
   PHG4TPCDigitizer.cc \
   PHG4TPCDigitizer_Dict.cc \
   PHG4TPCSubsystem.cc \
-  PHG4TPCSubsystem_Dict.cc 
+  PHG4TPCSubsystem_Dict.cc \
+  PHG4TPCDistortion.cc \
+  PHG4TPCDistortion_Dict.cc\
+  PHG4TPCSpaceChargeDistortion.cc \
+  PHG4TPCSpaceChargeDistortion_Dict.cc 
 
 libg4tpc_io_la_SOURCES = \
   PHG4CellTPCv1.cc \
