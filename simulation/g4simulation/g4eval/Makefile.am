@@ -18,6 +18,7 @@ libg4eval_la_LDFLAGS = \
 
 libg4eval_la_LIBADD = \
   -lfun4all \
+  -ltrackbase_historic_io \
   -lg4dst 
 
 pkginclude_HEADERS = \

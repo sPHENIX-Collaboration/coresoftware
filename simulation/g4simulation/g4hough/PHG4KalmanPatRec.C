@@ -8,19 +8,19 @@
 #include "PHG4KalmanPatRec.h"
 
 // trackbase_historic includes
-#include <trackbase_historic/SvtxVertexMap.h>
-#include  <trackbase_historic/SvtxVertexMap_v1.h>
-#include  <trackbase_historic/SvtxVertex.h>
-#include  <trackbase_historic/SvtxVertex_v1.h>
-#include  <trackbase_historic/SvtxTrackMap.h>
-#include  <trackbase_historic/SvtxTrackMap_v1.h>
-#include  <trackbase_historic/SvtxTrack.h>
-#include  <trackbase_historic/SvtxTrack_v1.h>
-#include  <trackbase_historic/SvtxTrackState.h>
-#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHitMap.h>
 #include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4Cell.h>
@@ -31,8 +31,9 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+//#include <g4intt/PHG4CylinderGeom_INTT.h>
 #include <g4intt/PHG4CylinderGeomINTT.h>
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
@@ -365,39 +366,6 @@ int PHG4KalmanPatRec::Init(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-<<<<<<< HEAD
-int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode) {
-
-	int code = Fun4AllReturnCodes::ABORTRUN;
-
-	code = CreateNodes(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	int min_layers    = 4;
-	int nlayers_seeds = 7;
-	int seeding_layers[] = {(int)(_nlayers_mvtx+_nlayers_intt),
-				(int)(_nlayers_mvtx+_nlayers_intt+6),
-				(int)(_nlayers_mvtx+_nlayers_intt+12),
-				(int)(_nlayers_mvtx+_nlayers_intt+18),
-				(int)(_nlayers_mvtx+_nlayers_intt+24),
-				(int)(_nlayers_mvtx+_nlayers_intt+30),
-				(int)(_nlayers_mvtx+_nlayers_intt+39)
-				//7,13,19,25,31,37,46
-	};
-	
-	set_seeding_layer(seeding_layers, nlayers_seeds);
-	set_min_nlayers_seeding(min_layers);
-	
-	code = InitializeGeometry(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-	  return code;
-	code = InitializePHGenFit(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	/*!
-=======
 int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode)
 {
   int code = Fun4AllReturnCodes::ABORTRUN;
@@ -430,7 +398,6 @@ int PHG4KalmanPatRec::InitRun(PHCompositeNode* topNode)
     return code;
 
   /*!
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 	 * Initilize parameters
 	 */
   for (int layer = 0; layer < _nlayers_all; ++layer)
@@ -865,128 +832,9 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode* topNode)
 
     //	  add_tracks();
 
-<<<<<<< HEAD
-  if (Verbosity() > 0){
-	  cout << "PHG4KalmanPatRec::process_event -- entered" << endl;
-	  cout << "nMvtxLayers = " << _nlayers_mvtx << endl;
-	  cout << "nInttLayers = " << _nlayers_intt << endl;
-	  cout << "nTPCLayers = " << _nlayers_tpc << endl;
-  }
-	// start fresh
-	int code;
-	_n_iteration = 0;
-	if(_n_max_iterations<1)_n_max_iterations = 1;
-	if(_n_max_iterations>3)_n_max_iterations = 3;
-	_clusters.clear();
-	_all_tracks.clear();
-	_all_track_errors.clear();
-	_all_track_covars.clear();
-
-	_vertex.clear();
-	_vertex.assign(3, 0.0);
-	//-----------------------------------
-	// Get Objects off of the Node Tree
-	//-----------------------------------
-
-	GetNodes(topNode);// Allocate Cluster Use Map allocated in here
-	
-	for(_n_iteration = 1;_n_iteration<=_n_max_iterations;_n_iteration++){
-	  _tracks.clear();
-	  _track_errors.clear();
-	  _track_covars.clear();
-	  
-	  if(_n_iteration==1){    
-	    int min_layers    = 4;
-	    int nlayers_seeds = 7;
-	    int seeding_layers[] = {(int)(_nlayers_mvtx+_nlayers_intt),
-				    (int)(_nlayers_mvtx+_nlayers_intt+8),
-				    (int)(_nlayers_mvtx+_nlayers_intt+16),
-				    (int)(_nlayers_mvtx+_nlayers_intt+24),
-				    (int)(_nlayers_mvtx+_nlayers_intt+32),
-				    (int)(_nlayers_mvtx+_nlayers_intt+40),
-				    (int)(_nlayers_mvtx+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
-				    //7,13,19,25,31,37,46
-	    };
-
-	    set_seeding_layer(seeding_layers, nlayers_seeds);
-	    set_min_nlayers_seeding(min_layers);
-	    _min_combo_hits = min_layers;
-	    _max_combo_hits = nlayers_seeds;
-	    code = InitializeGeometry(topNode);
-	    if(Verbosity() >= 1) _t_seed_init1->restart();
-	    if(code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
-	  }
-	  
-	  if(_n_iteration==2){
-	    int min_layers    = 6;
-	    int nlayers_seeds = 12;
-	    int seeding_layers[] = {(int)(_nlayers_mvtx+_nlayers_intt),
-				    (int)(_nlayers_mvtx+_nlayers_intt+1),
-				    (int)(_nlayers_mvtx+_nlayers_intt+2),
-				    
-				    (int)(_nlayers_mvtx+_nlayers_intt+9),
-				    (int)(_nlayers_mvtx+_nlayers_intt+10),
-				    (int)(_nlayers_mvtx+_nlayers_intt+11),
-
-				    (int)(_nlayers_mvtx+_nlayers_intt+20),
-				    (int)(_nlayers_mvtx+_nlayers_intt+21),
-
-				    (int)(_nlayers_mvtx+_nlayers_intt+31),
-				    (int)(_nlayers_mvtx+_nlayers_intt+32),
-
-				    (int)(_nlayers_mvtx+_nlayers_intt+38),
-
-				    (int)(_nlayers_mvtx+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
-				    //7,13,19,25,31,37,46
-				    //7,8,13,14,19,20,26,27,34,35,40,46
-	    };
-	    
-	    set_seeding_layer(seeding_layers, nlayers_seeds);
-	    set_min_nlayers_seeding(min_layers);
-	    _min_combo_hits = min_layers;
-	    _max_combo_hits = nlayers_seeds;
-	    code = InitializeGeometry(topNode);
-	    if(Verbosity() >= 1) _t_seed_init2->restart();
-
-	    if(code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
-	  }
-	  if(_n_iteration==3){
-	    int min_layers    = 4;
-	    int nlayers_seeds = 12;
-	    
-	    int seeding_layers[] = {(int)(_nlayers_mvtx+_nlayers_intt),
-				    (int)(_nlayers_mvtx+_nlayers_intt+1),
-				    (int)(_nlayers_mvtx+_nlayers_intt+8),
-				    (int)(_nlayers_mvtx+_nlayers_intt+9),
-				    (int)(_nlayers_mvtx+_nlayers_intt+16),
-				    (int)(_nlayers_mvtx+_nlayers_intt+17),
-				    (int)(_nlayers_mvtx+_nlayers_intt+24),
-				    (int)(_nlayers_mvtx+_nlayers_intt+25),
-				    (int)(_nlayers_mvtx+_nlayers_intt+32),
-				    (int)(_nlayers_mvtx+_nlayers_intt+33),
-				    (int)(_nlayers_mvtx+_nlayers_intt+40),
-				    (int)(_nlayers_mvtx+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
-				    //7,13,19,25,31,37,46
-				    //7,8,13,14,19,20,26,27,34,35,40,46
-	    };
-	    
-	    set_seeding_layer(seeding_layers, nlayers_seeds);
-	    set_min_nlayers_seeding(min_layers);
-	    _min_combo_hits = min_layers;
-	    _max_combo_hits = nlayers_seeds;
-
-	    code = InitializeGeometry(topNode);
-	    if(Verbosity() >= 1) _t_seed_init3->restart();
-	    if(code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
-	  }
-=======
     if (Verbosity() > 1) print_timers();
   }
   //	CleanupTracksByHitPattern();
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
   if (!_seeding_only_mode)
     code = ExportOutput();
@@ -1359,25 +1207,18 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode* topNode)
   PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
       PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-<<<<<<< HEAD
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  PHG4CylinderGeomContainer* mvtxladdergeos = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-  
-  //  if (cellgeos || laddergeos || mvtxladdergeos) {
-=======
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
   //  if (cellgeos || laddergeos || mapsladdergeos) {
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
   //    unsigned int ncelllayers = 0;
   //    if (cellgeos) ncelllayers += cellgeos->get_NLayers();
   //    unsigned int nladderlayers = 0;
   //    if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-  //    unsigned int nmvtxladderlayers = 0;
-  //    if (mvtxladdergeos) nmvtxladderlayers += mvtxladdergeos->get_NLayers();
-  //    _nlayers_seeding = ncelllayers + nladderlayers + nmvtxladderlayers;
+  //    unsigned int nmapsladderlayers = 0;
+  //    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
+  //    _nlayers_seeding = ncelllayers + nladderlayers + nmapsladderlayers;
   //  } else {
   //    cerr << PHWHERE
   //         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_INTT or CYLINDERGEOM_MVTX"
@@ -1436,18 +1277,11 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode* topNode)
                     layeriter->second->get_layer()));
     }
   }
-<<<<<<< HEAD
-  
-  if (mvtxladdergeos) {
-    PHG4CylinderGeomContainer::ConstRange layerrange =
-      mvtxladdergeos->get_begin_end();
-=======
 
   if (mapsladdergeos)
   {
     PHG4CylinderGeomContainer::ConstRange layerrange =
         mapsladdergeos->get_begin_end();
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
     for (PHG4CylinderGeomContainer::ConstIterator layeriter =
              layerrange.first;
          layeriter != layerrange.second; ++layeriter)
@@ -1542,18 +1376,11 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode* topNode)
       }
     }
   }
-<<<<<<< HEAD
-  
-  if (mvtxladdergeos) {
-    PHG4CylinderGeomContainer::ConstRange begin_end =
-      mvtxladdergeos->get_begin_end();
-=======
 
   if (mapsladdergeos)
   {
     PHG4CylinderGeomContainer::ConstRange begin_end =
         mapsladdergeos->get_begin_end();
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
     for (; miter != begin_end.second; miter++)
     {
@@ -1609,26 +1436,13 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode* topNode)
   }
 
   _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-<<<<<<< HEAD
-						      "G4CELL_TPC");
-  
-  _cells_intt = findNode::getClass<PHG4CellContainer>(
-						      topNode, "G4CELL_INTT");
-  
-  _cells_mvtx = findNode::getClass<PHG4CellContainer>(
-						      topNode, "G4CELL_MVTX");
-  
-  if (!_cells_svtx and !_cells_intt and !_cells_mvtx) {
-    if (Verbosity() >= 0) {
-      LogError("No PHG4CellContainer found!");}
-=======
-                                                      "G4CELL_SVTX");
+                                                      "G4CELL_TPC");
 
   _cells_intt = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_SILICON_TRACKER");
+      topNode, "G4CELL_INTT");
 
   _cells_maps = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_MAPS");
+      topNode, "G4CELL_MVTX");
 
   if (!_cells_svtx and !_cells_intt and !_cells_maps)
   {
@@ -1636,27 +1450,17 @@ int PHG4KalmanPatRec::InitializeGeometry(PHCompositeNode* topNode)
     {
       LogError("No PHG4CellContainer found!");
     }
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   _geom_container_intt = findNode::getClass<
-<<<<<<< HEAD
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-  
-  _geom_container_mvtx = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-  
-  if (!_cells_svtx && !_cells_mvtx && !_cells_intt) {
-=======
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
   _geom_container_maps = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
   if (!_cells_svtx && !_cells_maps && !_cells_intt)
   {
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
     cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
@@ -2030,15 +1834,9 @@ int PHG4KalmanPatRec::translate_input()
     count++;
     SvtxCluster* cluster = iter->second;
     nhits_all[cluster->get_layer()]++;
-<<<<<<< HEAD
-    if(cluster->get_layer()==(unsigned int)(_nlayers_mvtx+_nlayers_intt))count7++;
-    if(cluster->get_layer()==(unsigned int)(_nlayers_mvtx+_nlayers_intt+40))count46++;
-    //	  cout << "first: " << iter->first << endl; 
-=======
     if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
     if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
     //	  cout << "first: " << iter->first << endl;
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
     /*
       float vz = 0.0;
       float x  = cluster->get_x();
@@ -2146,10 +1944,10 @@ int PHG4KalmanPatRec::truth_seeding(int start_layer, PHCompositeNode* topNode)
       topNode, "G4HIT_TPC");
 
   PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_SILICON_TRACKER");
+      topNode, "G4HIT_INTT");
 
   PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_MAPS");
+      topNode, "G4HIT_MVTX");
 
   PHG4TruthInfoContainer* _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
   if (!phg4hits_svtx)
@@ -2179,13 +1977,13 @@ int PHG4KalmanPatRec::truth_seeding(int start_layer, PHCompositeNode* topNode)
   }
 
   PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_SVTX");
+      topNode, "G4CELL_TPC");
 
   PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_SILICON_TRACKER");
+      topNode, "G4CELL_INTT");
 
   PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_MAPS");
+      topNode, "G4CELL_MVTX");
 
   if (!cells_intt or !cells_maps)
   {
@@ -4656,52 +4454,6 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
   TVector3 pos(state(0), state(1), state(2));
   TVector3 mom(state(3), state(4), state(5));
 #endif
-<<<<<<< HEAD
-		track.set_px(mom.Px());
-		track.set_py(mom.Py());
-		track.set_pz(mom.Pz());
-
-		track.set_x(pos.X());
-		track.set_y(pos.Y());
-		track.set_z(pos.Z());
-
-		for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
-		  track.insert_cluster(cluster_ID);
-		}
-
-		//Check track quality
-		//		bool is_good_track = true;
-
-		Int_t n_mvtx = 0;
-		Int_t n_intt = 0;
-		Int_t n_tpc  = 0;
-		
-		for (SvtxTrack::ConstClusterIter iter = track.begin_clusters();
-		     iter != track.end_clusters();
-		     ++iter) {
-		  unsigned int cluster_id = *iter;
-		  SvtxCluster* cluster = clustermap->get(cluster_id);
-		  unsigned int layer = cluster->get_layer();
-		  if(_nlayers_mvtx>0&&layer<_nlayers_mvtx){ 
-		    n_mvtx++ ;
-		  }
-		  if(_nlayers_intt>0&&layer>=_nlayers_mvtx&&layer<_nlayers_mvtx+_nlayers_intt){
-		    n_intt++;
-		  }
-		  if(n_intt >8)
-		    {
-		      cout << PHWHERE << " Can not have more than 8 INTT layers, quit!" << endl;
-		      exit(1);
-		    }
-		  if(_nlayers_tpc>0&&
-		     layer>=(_nlayers_mvtx+_nlayers_intt)&&
-		     layer<(_nlayers_mvtx+_nlayers_intt+_nlayers_tpc)){ 
-		    n_tpc++;
-		  }
-		}
-		/*
-		  if(n_mvtx<3&&_nlayers_mvtx>0) is_good_track = false;
-=======
   track.set_px(mom.Px());
   track.set_py(mom.Py());
   track.set_pz(mom.Pz());
@@ -4751,7 +4503,6 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
   }
   /*
 		  if(n_maps<3&&_nlayers_maps>0) is_good_track = false;
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 		  if(n_intt<3&&_nlayers_intt>0) is_good_track = false;
 		  if(n_tpc<20&&_nlayers_tpc>0) is_good_track = false;
 		*/
@@ -5043,11 +4794,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
   {
     if (!(layer >= 0 and layer < (unsigned int) _nlayers_all)) break;
 
-<<<<<<< HEAD
-//		if(layer >= _nlayers_mvtx and layer < _nlayers_mvtx+_nlayers_intt) continue;
-=======
     //		if(layer >= _nlayers_maps and layer < _nlayers_maps+_nlayers_intt) continue;
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
     /*!
 		 * if miss too many layers terminate track propagating
@@ -5168,35 +4915,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
       theta_window = 3000e-4;
     }
 #else
-<<<<<<< HEAD
-		TMatrixDSym cov = state->get6DCov();
-
-		float phi_window     = _search_wins_phi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
-		float theta_window   = _search_wins_theta[layer]    * sqrt(cov[2][2]) / pos.Perp();
-
-		if(layer < _nlayers_mvtx){
-			if (phi_window > _max_search_win_phi_mvtx) phi_window = _max_search_win_phi_mvtx;
-			if (phi_window < _min_search_win_phi_mvtx) phi_window = _min_search_win_phi_mvtx;
-			if (theta_window   > _max_search_win_theta_mvtx)   theta_window   = _max_search_win_theta_mvtx;
-			if (theta_window   < _min_search_win_theta_mvtx)   theta_window   = _min_search_win_theta_mvtx;
-		} else if(layer < _nlayers_mvtx + _nlayers_intt) {
-			if (phi_window > _max_search_win_phi_intt[layer - _nlayers_mvtx]) phi_window = _max_search_win_phi_intt[layer - _nlayers_mvtx];
-			if (phi_window < _min_search_win_phi_intt[layer - _nlayers_mvtx]) phi_window = _min_search_win_phi_intt[layer - _nlayers_mvtx];
-			if (theta_window   > _max_search_win_theta_intt[layer - _nlayers_mvtx])   theta_window   = _max_search_win_theta_intt[layer - _nlayers_mvtx];
-			if (theta_window   < _min_search_win_theta_intt[layer - _nlayers_mvtx])   theta_window   = _min_search_win_theta_intt[layer - _nlayers_mvtx];
-		} else {
-			if (phi_window > _max_search_win_phi_tpc) phi_window = _max_search_win_phi_tpc;
-			if (phi_window < _min_search_win_phi_tpc) phi_window = _min_search_win_phi_tpc;
-			if (theta_window   > _max_search_win_theta_tpc)   theta_window   = _max_search_win_theta_tpc;
-			if (theta_window   < _min_search_win_theta_tpc)   theta_window   = _min_search_win_theta_tpc;
-		}
-
-		//FIXME optimize this
-//		if(layer == _nlayers_mvtx + _nlayers_intt -1) {
-//			phi_window = 0.02;
-//			theta_window = 0.04;
-//		}
-=======
     TMatrixDSym cov = state->get6DCov();
 
     float phi_window = _search_wins_phi[layer] * sqrt(cov[0][0] + cov[1][1] + cov[0][1] + cov[1][0]) / pos.Perp();
@@ -5229,7 +4947,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
     //			phi_window = 0.02;
     //			theta_window = 0.04;
     //		}
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
 #endif
 
@@ -5312,21 +5029,12 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
         //				track_iter->first += iter->first;
 
-<<<<<<< HEAD
-				track_iter->first.nhits = tq.nhits + 1;
-				track_iter->first.chi2  = tq.chi2  + iter->first;
-				track_iter->first.ndf   = tq.ndf   + 2;
-				track_iter->first.ntpc  = tq.ntpc  + ((layer >= _nlayers_mvtx + _nlayers_intt) ? 1 : 0);
-				track_iter->first.nintt = tq.nintt + ((layer >= _nlayers_mvtx and layer < _nlayers_mvtx + _nlayers_intt) ? 1 : 0);
-				track_iter->first.nmvtx = tq.nmvtx + ((layer < _nlayers_mvtx) ? 1 : 0);
-=======
         track_iter->first.nhits = tq.nhits + 1;
         track_iter->first.chi2 = tq.chi2 + iter->first;
         track_iter->first.ndf = tq.ndf + 2;
         track_iter->first.ntpc = tq.ntpc + ((layer >= _nlayers_maps + _nlayers_intt) ? 1 : 0);
         track_iter->first.nintt = tq.nintt + ((layer >= _nlayers_maps and layer < _nlayers_maps + _nlayers_intt) ? 1 : 0);
         track_iter->first.nmaps = tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0);
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
         track_iter->second = std::shared_ptr<PHGenFit::Track>(iter->second);
 
@@ -5346,19 +5054,8 @@ int PHG4KalmanPatRec::TrackPropPatRec(
             << iter->first
             << endl;
 #endif
-<<<<<<< HEAD
-			}
-		}
-
-		// Update other candidates
-		if (incr_chi2s_new_tracks.size() > 1 and
-				(layer >= _nlayers_mvtx and layer < _nlayers_mvtx + _nlayers_intt)) {
-			for (auto iter = (++incr_chi2s_new_tracks.begin());
-					iter != incr_chi2s_new_tracks.end(); ++iter) {
-=======
       }
     }
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
     // Update other candidates
     if (incr_chi2s_new_tracks.size() > 1 and
@@ -5376,24 +5073,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
                   << "IncrChi2: " << iter->first << std::endl;
 #endif
 
-<<<<<<< HEAD
-//				_PHGenFitTracks.insert(
-//						MapPHGenFitTrack::value_type(track_iter->first + iter->first,
-//								std::shared_ptr < PHGenFit::Track> (iter->second)));
-
-				_PHGenFitTracks.push_back(
-						MapPHGenFitTrack::value_type(
-								PHG4KalmanPatRec::TrackQuality(
-										tq.nhits + 1,
-										tq.chi2  + iter->first,
-										tq.ndf   + 2,
-										tq.ntpc  + ((layer >= _nlayers_mvtx + _nlayers_intt) ? 1 : 0),
-										tq.nintt + ((layer >= _nlayers_mvtx and layer < _nlayers_mvtx + _nlayers_intt) ? 1 : 0),
-										tq.nmvtx + ((layer < _nlayers_mvtx) ? 1 : 0)
-										),
-								std::shared_ptr < PHGenFit::Track> (iter->second)));
-			}
-=======
         //				_PHGenFitTracks.insert(
         //						MapPHGenFitTrack::value_type(track_iter->first + iter->first,
         //								std::shared_ptr < PHGenFit::Track> (iter->second)));
@@ -5409,7 +5088,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
                     tq.nmaps + ((layer < _nlayers_maps) ? 1 : 0)),
                 std::shared_ptr<PHGenFit::Track>(iter->second)));
       }
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
 #ifdef _DEBUG_
       std::cout << __LINE__ << ": "
@@ -5467,74 +5145,6 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 }
 
 PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
-<<<<<<< HEAD
-		const SvtxCluster* cluster) {
-
-	if(!cluster) return nullptr;
-
-	TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
-	TVector3 n(cluster->get_x(), cluster->get_y(), 0);
-
-	unsigned int begin_hit_id = *(cluster->begin_hits());
-	//LogDebug(begin_hit_id);
-	SvtxHit* svtxhit = _svtxhitsmap->find(begin_hit_id)->second;
-	//LogDebug(svtxhit->get_cellid());
-
-	PHG4Cell* cell_svtx = nullptr;
-	PHG4Cell* cell_intt = nullptr;
-	PHG4Cell* cell_mvtx = nullptr;
-
-	if(_cells_svtx) cell_svtx = _cells_svtx->findCell(svtxhit->get_cellid());
-	if(_cells_intt) cell_intt = _cells_intt->findCell(svtxhit->get_cellid());
-	if(_cells_mvtx) cell_mvtx = _cells_mvtx->findCell(svtxhit->get_cellid());
-	if(!(cell_svtx or cell_intt or cell_mvtx)){
-		if(Verbosity()>=0)
-			LogError("!(cell_svtx or cell_intt or cell_mvtx)");
-		return nullptr;
-	}
-
-	//17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-	//float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
-
-	unsigned int layer = cluster->get_layer();
-	//std::cout << "cluster layer: " << layer << std::endl;
-	if (cell_mvtx) {
-		PHG4Cell* cell = cell_mvtx;
-
-		int stave_index = cell->get_stave_index();
-		int half_stave_index = cell->get_half_stave_index();
-		int module_index = cell->get_module_index();
-		int chip_index = cell->get_chip_index();
-
-		double ladder_location[3] = { 0.0, 0.0, 0.0 };
-		PHG4CylinderGeom_MVTX *geom =
-				(PHG4CylinderGeom_MVTX*) _geom_container_mvtx->GetLayerGeom(
-						layer);
-		// returns the center of the sensor in world coordinates - used to get the ladder phi location
-		geom->find_sensor_center(stave_index, half_stave_index,
-				module_index, chip_index, ladder_location);
-		//n.Print();
-		n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-		n.RotateZ(geom->get_stave_phi_tilt());
-		//n.Print();
-	} else if (cell_intt) {
-		PHG4Cell* cell = cell_intt;
-		PHG4CylinderGeomINTT* geom =
-		  dynamic_cast<PHG4CylinderGeomINTT*> (_geom_container_intt->GetLayerGeom(
-							      layer));
-		double hit_location[3] = { 0.0, 0.0, 0.0 };
-		geom->find_segment_center(cell->get_ladder_z_index(),
-				cell->get_ladder_phi_index(), hit_location);
-
-		n.SetXYZ(hit_location[0], hit_location[1], 0);
-		n.RotateZ(geom->get_strip_phi_tilt());
-	}
-
-	PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-			cluster->get_rphi_error(), cluster->get_z_error());
-
-	meas->set_cluster_ID(cluster->get_id());
-=======
     const SvtxCluster* cluster)
 {
   if (!cluster) return nullptr;
@@ -5576,8 +5186,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
     int chip_index = cell->get_chip_index();
 
     double ladder_location[3] = {0.0, 0.0, 0.0};
-    PHG4CylinderGeom_MAPS* geom =
-        (PHG4CylinderGeom_MAPS*) _geom_container_maps->GetLayerGeom(
+    PHG4CylinderGeom_MVTX* geom =
+        (PHG4CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
             layer);
     // returns the center of the sensor in world coordinates - used to get the ladder phi location
     geom->find_sensor_center(stave_index, half_stave_index,
@@ -5590,8 +5200,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
   else if (cell_intt)
   {
     PHG4Cell* cell = cell_intt;
-    PHG4CylinderGeomSiLadders* geom =
-        dynamic_cast<PHG4CylinderGeomSiLadders*>(_geom_container_intt->GetLayerGeom(
+    PHG4CylinderGeomINTT* geom =
+        dynamic_cast<PHG4CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(
             layer));
     double hit_location[3] = {0.0, 0.0, 0.0};
     geom->find_segment_center(cell->get_ladder_z_index(),
@@ -5605,7 +5215,6 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
                                                                 cluster->get_rphi_error(), cluster->get_z_error());
 
   meas->set_cluster_ID(cluster->get_id());
->>>>>>> 39de3af6accd9f54fca38ac9cae0ef8c3e360409
 
 #ifdef _DEBUG_
   cout

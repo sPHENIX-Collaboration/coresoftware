@@ -1,9 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libintt.la \
-  libintt_io.la
-
+  libintt_io.la \
+  libintt.la 
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -23,6 +22,7 @@ libintt_la_SOURCES = \
   INTTClusterizer_Dict.cc 
 
 libintt_la_LIBADD = \
+  libintt_io.la \
   -lfun4all \
   -lg4detectors 
 
@@ -33,9 +33,10 @@ libintt_io_la_SOURCES = \
   InttHit_Dict.cc
 
 libintt_io_la_LIBADD = \
-  libintt.la \
   -lfun4all \
-  -lg4detectors_io
+  -lg4detectors_io \
+  -lg4intt \
+  -ltrack_io \
   -ltrackbase_historic_io 
 
 # Rule for generating table CINT dictionaries.

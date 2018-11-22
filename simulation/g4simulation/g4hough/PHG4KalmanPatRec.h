@@ -34,6 +34,7 @@
 #include <phgenfit/Fitter.h>
 //#include <phgenfit/Measurement.h>
 
+// trackbase_historic includes
 #include <trackbase_historic/SvtxTrackState.h>
 
 //#include <g4main/PHG4Particle.h>
@@ -106,7 +107,6 @@ typedef std::pair<point, unsigned int> pointId;
 /// on the SvxClusterList of the event. It will produce both
 /// SvxTrack and SvxSegments for the time being.
 ///
-
 class PHG4KalmanPatRec : public SubsysReco
 {
  public:

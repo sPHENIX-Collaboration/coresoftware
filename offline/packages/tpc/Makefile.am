@@ -23,7 +23,10 @@ libtpc_la_SOURCES = \
 
 libtpc_la_LIBADD = \
   -lfun4all \
-  -lg4detectors
+  -lg4detectors \
+  -lSpectrum \
+  -ltrack_io \
+  -lg4mvtx
 
 # sources for io library
 libtpc_io_la_SOURCES = \
