@@ -16,6 +16,9 @@ AM_LDFLAGS = \
     -L$(OFFLINE_MAIN)/lib
 
 libg4tpc_la_LIBADD = \
+  -lg4detectors_io
+
+libg4tpc_la_LIBADD = \
   libg4tpc_io.la \
   -lphool \
   -lg4testbench \

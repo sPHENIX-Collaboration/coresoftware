@@ -1,8 +1,9 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libmvtx.la \
-  libmvtx_io.la
+  libmvtx_io.la \
+  libmvtx.la 
+
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -24,13 +25,13 @@ libmvtx_la_SOURCES = \
   MvtxDefs_Dict.cc
 
 libmvtx_la_LIBADD = \
+  libmvtx_io.la \
   -lfun4all \
   -ltrack_util \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lg4detectors \
-  -lg4detectors_io \
-  -lg4mvtx
+  -lg4mvtx 
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
@@ -38,7 +39,6 @@ libmvtx_io_la_SOURCES = \
   MvtxHit_Dict.cc
 
 libmvtx_io_la_LIBADD = \
-  libmvtx.la \
   -lfun4all \
   -ltrack_util \
   -ltrack_io \

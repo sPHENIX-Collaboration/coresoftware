@@ -18,6 +18,8 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+libg4mvtx_io_la_LIBADD = \
+  -lg4detectors_io 
 
 libg4mvtx_la_LIBADD = \
   libg4mvtx_io.la \

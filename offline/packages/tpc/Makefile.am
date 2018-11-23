@@ -22,11 +22,11 @@ libtpc_la_SOURCES = \
   TPCClusterizer_Dict.cc 
 
 libtpc_la_LIBADD = \
+  libtpc_io.la \
   -lfun4all \
   -lg4detectors \
   -lSpectrum \
-  -ltrack_io \
-  -lg4mvtx
+  -lg4tpc
 
 # sources for io library
 libtpc_io_la_SOURCES = \
@@ -34,7 +34,6 @@ libtpc_io_la_SOURCES = \
   TpcHit_Dict.cc
 
 libtpc_io_la_LIBADD = \
-  libtpc.la \
   -lfun4all \
   -ltrack_util \
   -ltrack_io \
