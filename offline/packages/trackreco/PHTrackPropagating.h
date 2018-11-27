@@ -48,6 +48,9 @@ class PHTrackPropagating : public SubsysReco
   /// implemented in derived classes
   virtual int Process() = 0;
 
+  ///
+  virtual int End() = 0;
+
   SvtxClusterMap *_cluster_map;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
