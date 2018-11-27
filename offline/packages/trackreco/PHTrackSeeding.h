@@ -7,6 +7,8 @@
 #ifndef __H_PHTrackSeeding_H__
 #define __H_PHTrackSeeding_H__
 
+#include "AssocInfoContainer.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 
@@ -51,6 +53,9 @@ class PHTrackSeeding : public SubsysReco
   /// process event interface for trackers, called in process_event.
   /// implemented in derived classes
   virtual int Process() = 0;
+
+  /// Called in SubsysReco::End
+  virtual int End() = 0;
 
   SvtxClusterMap *_cluster_map;
   SvtxVertexMap *_vertex_map;

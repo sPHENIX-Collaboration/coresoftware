@@ -8,6 +8,8 @@
 #ifndef __H_PHHoughSeeding_H__
 #define __H_PHHoughSeeding_H__
 
+#include "PHTrackSeeding.h"
+
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -72,7 +74,7 @@ class GFRaveVertexFactory;
 /// on the SvxClusterList of the event. It will produce both
 /// SvxTrack and SvxSegments for the time being.
 ///
-class PHHoughSeeding: public SubsysReco {
+class PHHoughSeeding: public PHTrackSeeding {
 
 public:
 
@@ -86,6 +88,28 @@ public:
 
 	virtual ~PHHoughSeeding() {
 	}
+
+protected:
+
+	int Setup(PHCompositeNode *topNode);
+
+	int Process();
+
+	int End();
+
+private:
+	/// create new node output pointers
+	int CreateNodes(PHCompositeNode *topNode);
+
+	/// fetch node pointers
+	int GetNodes(PHCompositeNode *topNode);
+
+public:
+
+	//	int Init(PHCompositeNode *topNode);
+	//	int InitRun(PHCompositeNode *topNode);
+	//	int process_event(PHCompositeNode *topNode);
+	//	int End(PHCompositeNode *topNode);
 
 	struct TrackQuality {
 		int nhits;
@@ -125,22 +149,6 @@ public:
 	//typedef std::vector< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
 	typedef std::list< std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
 #endif
-
-	int Init(PHCompositeNode *topNode);
-	int InitRun(PHCompositeNode *topNode);
-	int process_event(PHCompositeNode *topNode);
-	int End(PHCompositeNode *topNode);
-
-	/// external handle for projecting tracks into the calorimetry
-	static void projectToRadius(const SvtxTrack* track, double magfield, // in Tesla
-			double radius,   // in cm
-			std::vector<double>& intersection);
-
-	/// external handle for state objects
-	static void projectToRadius(const SvtxTrackState* state, int charge,
-			double magfield, // in Tesla
-			double radius,   // in cm
-			std::vector<double>& intersection);
 
 	void set_mag_field(float magField) {
 		_magField = magField;
@@ -591,7 +599,7 @@ private:
 	//--------------
 
 	/// create new node output pointers
-	int CreateNodes(PHCompositeNode *topNode);
+	//int CreateNodes(PHCompositeNode *topNode);
 
 	/// scan tracker geometry objects
 	int InitializeGeometry(PHCompositeNode *topNode);
@@ -613,7 +621,7 @@ private:
 	//--------------------
 
 	/// fetch node pointers
-	int GetNodes(PHCompositeNode *topNode);
+	//int GetNodes(PHCompositeNode *topNode);
 
 	/// code to translate into the HelixHough universe
 	int translate_input();
@@ -630,17 +638,14 @@ private:
 	/// code to produce an initial track vertex from the seed
 	int initial_vertex_finding();
 
-
-	int vertexing(PHCompositeNode* topNode);
+	/// SvtxVtxMap[0] -> _vertex and _vertex_error
+	int vertexing();
 
 	/// code to perform the final tracking and vertexing
 	int full_track_seeding();
 
 	/// code to translate back to the SVTX universe
 	int export_output();
-
-	//!
-	int add_tracks();
 
 	//!
 	int CleanupSeedsByHitPattern();
@@ -655,7 +660,8 @@ private:
 	int CleanupSeeds();
 
 	//!
-	int FullTrackFitting(PHCompositeNode* topNode);
+	//int KalmanTrkProp(PHCompositeNode* topNode);
+	int KalmanTrkProp();
 
 	//!
 	int ExportOutput();
@@ -667,7 +673,7 @@ private:
 	//
 	//--------------------
 
-	//! FullTrackFitting Call.
+	//! KalmanTrkProp Call.
 	int BuildLayerZPhiHitMap();
 
 	//! layer: 7 bits, z: 11 bits, phi: 14 bits
@@ -675,9 +681,16 @@ private:
 
 	unsigned int encode_cluster_index(const unsigned int layer, const unsigned int iz, const unsigned int irphi);
 
-	//! FullTrackFitting Call.
-	int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
-	int TrackPropPatRec(PHCompositeNode* topNode,
+	//! KalmanTrkProp Call.
+	//int SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack);
+	int SimpleTrack3DToPHGenFitTracks(unsigned int itrack);
+
+//	int TrackPropPatRec(PHCompositeNode* topNode,
+//			//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+//			MapPHGenFitTrack::iterator &track_iter,
+//			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
+//			const bool use_fitted_state_once = false);
+	int TrackPropPatRec(
 			//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
 			MapPHGenFitTrack::iterator &track_iter,
 			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
@@ -692,7 +705,7 @@ private:
 
 	//! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
 	//std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
-	int OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator);
+	int OutputPHGenFitTrack(MapPHGenFitTrack::iterator);
 
 	//------------------
 	// Subfunction Calls
@@ -712,16 +725,6 @@ private:
 
 	/// translate the clusters, tracks, and vertex from one origin to another
 	void shift_coordinate_system(double dx, double dy, double dz);
-
-	/// helper function for projection code
-	static bool circle_line_intersections(double x0, double y0, double r0,
-			double x1, double y1, double vx1, double vy1,
-			std::set<std::vector<double> >* points);
-
-	/// helper function for projection code
-	static bool circle_circle_intersections(double x0, double y0, double r0,
-			double x1, double y1, double r1,
-			std::set<std::vector<double> >* points);
 
 	int _event;
 	PHTimer *_t_seeding;
@@ -795,7 +798,7 @@ private:
 	std::vector<Eigen::Matrix<float, 5, 5> > _all_track_covars; ///< working array of track covariances
 
 	std::vector<float> _vertex;          ///< working array for collision vertex
-	std::vector<float> _vertex_error;
+	std::vector<float> _vertex_error;    ///< sqrt(cov)
 
 	// track finding routines
 	sPHENIXSeedFinder *_tracker;           ///< finds full tracks
@@ -806,12 +809,13 @@ private:
 
 	// node pointers
 	BbcVertexMap* _bbc_vertexes;
-	SvtxClusterMap* _g4clusters;
-	SvtxTrackMap* _g4tracks;
-	SvtxVertexMap* _g4vertexes;
+	//SvtxClusterMap* _cluster_map;
+	//SvtxTrackMap* _track_map;
+	//SvtxVertexMap* _vertex_map;
 
 	//nodes to get norm vector
 	SvtxHitMap* _svtxhitsmap;
+
 	int* _hit_used_map;
 	int  _hit_used_map_size;
 

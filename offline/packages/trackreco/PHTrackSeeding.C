@@ -39,7 +39,7 @@ int PHTrackSeeding::process_event(PHCompositeNode* topNode) {
 }
 
 int PHTrackSeeding::End(PHCompositeNode* topNode) {
-	return Fun4AllReturnCodes::EVENT_OK;
+	return End();
 }
 
 int PHTrackSeeding::Setup(PHCompositeNode* topNode) {
