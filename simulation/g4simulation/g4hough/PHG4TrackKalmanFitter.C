@@ -1644,9 +1644,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 
 		//if the detector is turned off by the bools, avoid adding it to the measurement vector by short circuiting here (check variable name conventions! RCC)
-		//if ( (cell_maps and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx) ) continue;
-		if (cell_svtx and !use_svtx){
-		  if (added_one_tpc_hit) continue; //continue if it's a tpc hit and we have one already.
+		if ( (cell_maps and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx and added_one_tpc_hit) ) continue;
+		if (cell_svtx and !use_svtx and !added_one_tpc_hit){
 		  if (pos.Perp()<50.0) continue; //continue if it's a tpc hit under 50cm.
 		  added_one_tpc_hit=true; //mark that we have our tpc hit for future reference.
 		  //rcc this is a temporary hack to study the impact of a TPC hit added to the track.
