@@ -100,10 +100,10 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     {
       nodename << "G4HIT_" <<  Name() << "_" << GetLayer();
     }
-    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!cylinder_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     cylinder_hits->AddLayer(GetLayer());
     if (GetParams()->get_int_param("absorberactive"))
@@ -117,10 +117,10 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       {
         nodename << "G4HIT_ABSORBER_" << Name() << "_" << GetLayer();
       }
-      PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+      PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
       if (!cylinder_hits)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
       }
       cylinder_hits->AddLayer(GetLayer());
     }
