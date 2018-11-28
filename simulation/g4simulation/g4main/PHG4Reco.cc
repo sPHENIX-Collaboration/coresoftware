@@ -139,7 +139,6 @@ PHG4Reco::PHG4Reco(const string &name)
   , force_decay_type_(kAll)
   , save_DST_geometry_(true)
   , m_disableUserActions(false)
-  , _timer(PHTimeServer::get()->insert_new(name))
 {
   for (int i = 0; i < 3; i++)
   {
@@ -347,7 +346,10 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
   {
-    detector_->AddDetector(g4sub->GetDetector());
+    if (g4sub->GetDetector())
+    {
+      detector_->AddDetector(g4sub->GetDetector());
+    }
   }
   runManager_->SetUserInitialization(detector_);
 
@@ -585,8 +587,6 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
     }
   }
 
-  _timer.get()->restart();
-
   // run one event
   if (Verbosity() >= 2)
   {
@@ -595,7 +595,6 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
     ineve->identify();
   }
   runManager_->BeamOn(1);
-  _timer.get()->stop();
 
   BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
   {
