@@ -1493,6 +1493,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		m_r_cluster_id.insert(std::pair<float, unsigned int>(r, cluster_id));
 	}
 
+	bool added_one_tpc_hit=false;
 	for (auto iter = m_r_cluster_id.begin();
 			iter != m_r_cluster_id.end();
 			++iter) {
@@ -1643,8 +1644,14 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 
 		//if the detector is turned off by the bools, avoid adding it to the measurement vector by short circuiting here (check variable name conventions! RCC)
-		if ( (cell_maps and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx) ) continue;
-
+		//if ( (cell_maps and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx) ) continue;
+		if (cell_svtx and !use_svtx){
+		  if (added_one_tpc_hit) continue; //continue if it's a tpc hit and we have one already.
+		  if (pos.Perp()<50.0) continue; //continue if it's a tpc hit under 50cm.
+		  added_one_tpc_hit=true; //mark that we have our tpc hit for future reference.
+		  //rcc this is a temporary hack to study the impact of a TPC hit added to the track.
+		}
+		  
 		//RCC moved the seed updating to not update unless we're including the hits in the measurement set.
 		seed_mom.SetPhi(pos.Phi());
 		seed_mom.SetTheta(pos.Theta());
@@ -3043,8 +3050,9 @@ bool PHG4TrackKalmanFitter::extrapolateTrackToRadiusPhiRZ(float radius,
   //should get the sense of whether radius is smaller or larger than last point, too.
   try {
     gf_cylinder_state = std::shared_ptr < genfit::MeasuredStateOnPlane
-					  > (rf_phgf_track->extrapolateToCylinder(radius,line_point,line_direction,npoints-1,1));
+					  > (rf_phgf_track->extrapolateToCylinder(radius,line_point,line_direction,npoints-1,-1));
     //second to last number there is which point to start from.  The last is the direction +1 = continue forward on track.
+    //rcc hacked to track backward from the TPC hit.
   } catch (...) {
     if (Verbosity() >= 2)
       LogWarning("extrapolateToCylinder failed!");
