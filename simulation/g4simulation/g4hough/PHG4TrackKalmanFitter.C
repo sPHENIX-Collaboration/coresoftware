@@ -1691,9 +1691,16 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			n.RotateZ(geom->get_strip_phi_tilt());
 		}
 
-		PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
+		PHGenFit::Measurement* meas;
+		//rcc temporary hack
+		if(!cell_svtx){
+		  meas	= new PHGenFit::PlanarMeasurement(pos, n,
 				cluster->get_rphi_error(), cluster->get_z_error());
-
+		}
+		if(cell_svtx){
+		  meas = new PHGenFit::PlanarMeasurement(pos, n,
+			        1.0, cluster->get_z_error());//hopefully this is in cm like most things have been.
+		}
 //		TMatrixF cov_uvn(3,3);
 //		TMatrixF cov_xyz(3,3);
 //
