@@ -140,7 +140,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
     exit(-1);
   }
 
-  G4Tubs *_cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
+  G4Tubs *_cylinder_solid = new G4Tubs(G4String(GetName()),
                                        _geom->get_radius() * cm, _geom->get_max_radius() * cm,
                                        _geom->get_length() * cm / 2.0, 0, twopi);
 
@@ -150,7 +150,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
   assert(cylinder_mat);
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
-                                       G4String(GetName().c_str()), 0, 0, 0);
+                                       G4String(GetName()), 0, 0, 0);
   G4VisAttributes *VisAtt = new G4VisAttributes();
   PHG4Utils::SetColour(VisAtt, "W_Epoxy");
   VisAtt->SetVisibility(true);
@@ -160,7 +160,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
   cylinder_physi = new G4PVPlacement(0,
                                      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
                                                    _geom->get_zpos() * cm),
-                                     cylinder_logic, G4String(GetName().c_str()),
+                                     cylinder_logic, G4String(GetName()),
                                      logicWorld, false, 0, OverlapCheck());
 
   // install sectors
@@ -188,7 +188,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
     name << GetName() << "_sec" << sec;
 
     G4PVPlacement *calo_phys = new G4PVPlacement(sec_place, sec_logic,
-                                                 G4String(name.str().c_str()), cylinder_logic, false, sec,
+                                                 G4String(name.str()), cylinder_logic, false, sec,
                                                  OverlapCheck());
     calo_vol[calo_phys] = sec;
 
@@ -209,7 +209,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
       geonode << "CYLINDERGEOM_" << detector_type << "_" << layer;
     }
     PHG4CylinderGeomContainer *geo = findNode::getClass<
-        PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
+        PHG4CylinderGeomContainer>(topNode(), geonode.str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
@@ -218,7 +218,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
           dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
                                                          "RUN"));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
-                                                                   geonode.str().c_str(), "PHObject");
+                                                                   geonode.str(), "PHObject");
       runNode->addNode(newNode);
     }
     // here in the detector class we have internal units, convert to cm
@@ -240,7 +240,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
       geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << layer;
     }
     PHG4CylinderGeomContainer *geo = findNode::getClass<
-        PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
+        PHG4CylinderGeomContainer>(topNode(), geonode.str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
@@ -249,7 +249,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
           dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode",
                                                          "RUN"));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
-                                                                   geonode.str().c_str(), "PHObject");
+                                                                   geonode.str(), "PHObject");
       runNode->addNode(newNode);
     }
     // here in the detector class we have internal units, convert to cm
@@ -304,7 +304,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
     name << GetName() << "_fiber_" << fiber_count;
 
     G4PVPlacement *fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
-                                                   G4String(name.str().c_str()), sec_logic, false, fiber_count,
+                                                   G4String(name.str()), sec_logic, false, fiber_count,
                                                    OverlapCheck());
     fiber_vol[fiber_physi] = fiber_count;
     assert(gdml_config);
