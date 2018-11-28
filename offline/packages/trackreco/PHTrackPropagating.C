@@ -39,6 +39,7 @@ int PHTrackPropagating::process_event(PHCompositeNode* topNode) {
 }
 
 int PHTrackPropagating::End(PHCompositeNode* topNode) {
+	End();
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
