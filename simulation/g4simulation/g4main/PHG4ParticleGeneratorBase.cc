@@ -17,6 +17,7 @@
 
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <gsl/gsl_rng.h>
 #include <cassert>
@@ -81,7 +82,7 @@ PHG4ParticleGeneratorBase::get_mass(const int pdgcode) const
   G4ParticleDefinition *particledef = particleTable->FindParticle(get_pdgname(pdgcode));
   if (particledef)
   {
-    return particledef->GetPDGMass();
+    return particledef->GetPDGMass()/GeV;
   }
   return 0;
 }
