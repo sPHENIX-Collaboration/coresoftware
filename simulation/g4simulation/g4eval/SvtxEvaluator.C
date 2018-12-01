@@ -2565,9 +2565,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	     ++iter) {
 	  PHG4Hit* g4hit = *iter;
 	  unsigned int layer = g4hit->get_layer();
-	  if (layer < 0)
+	  if (layer >= _nlayers_maps+_nlayers_intt+_nlayers_tpc)
 	  {
-	    cout << PHWHERE << " skipping negative detector id " << layer << endl;
+	    cout << PHWHERE << " skipping out of bounds detector id " << layer << endl;
 	    continue;
 	  }
 	  xval[layer] = g4hit->get_avg_x();
