@@ -1518,7 +1518,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		// DEBUG: BEGIN
 		if (_do_eval) {
 			PHG4HitContainer* phg4hits_svtx = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SVTX");
+					PHG4HitContainer>(topNode, "G4HIT_TPC");
 
 			PHG4HitContainer* phg4hits_intt = findNode::getClass<
 					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
@@ -1563,7 +1563,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			_lost_hit_eval_in_svtx=false;
 			if(phg4hits_svtx){
 			  _lost_hit_eval_has_svtx=true;
-			  if (phg4hits_intt->findHit(cell->get_g4hits().first->first))
+			  if (phg4hits_svtx->findHit(cell->get_g4hits().first->first))
 			    _lost_hit_eval_in_svtx=true;
 			}
 			
@@ -1579,7 +1579,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			_lost_hit_eval_in_maps=false;
 			if(phg4hits_maps){
 			  _lost_hit_eval_has_maps=true;
-			  if (phg4hits_intt->findHit(cell->get_g4hits().first->first))
+			  if (phg4hits_maps->findHit(cell->get_g4hits().first->first))
 			    _lost_hit_eval_in_maps=true;
 			}
 			
@@ -1903,7 +1903,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::FitG4Track(PHCompositeNo
 
 	// RCC Get the g4 position instad of the cluster position, cribbed from the _do_eval section of ReFitTrack
 	//get the g4 hit structures:
-	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SVTX");
+	PHG4HitContainer* phg4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
 	PHG4HitContainer* phg4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
 	PHG4HitContainer* phg4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MAPS");
 	if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
