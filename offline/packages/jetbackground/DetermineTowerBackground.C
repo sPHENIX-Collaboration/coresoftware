@@ -18,9 +18,13 @@
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
 
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4Particle.h>
+
 #include "TowerBackground_v1.h"
 
 #include <TMath.h>
+#include <TLorentzVector.h>
 
 // standard includes
 #include <iomanip>
@@ -31,7 +35,7 @@ DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)
 {
 
-  _do_flow = false;
+  _do_flow = 0;
 
   _seed_jet_D = 3.0;
   _seed_jet_pt = 7.0;
@@ -40,6 +44,10 @@ DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   _Psi2 = 0;
 
   _UE.resize(3, std::vector<float>(1, 0) );
+
+  _nStrips = 0;
+
+  _nTowers = 0;
 
   // initiate sizes as -1 to tell module they should be set when it
   // sees the HCal geometry for the first time
@@ -125,7 +133,14 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float this_phi = this_jet->get_phi();
       float this_eta = this_jet->get_eta();
 
-      if (this_jet->get_pt() < 5) continue;
+      if (this_jet->get_pt() < 5) {
+
+	// mark that this jet was not selected as a seed (and did not have D determined)
+	this_jet->set_property( Jet::PROPERTY::prop_SeedD, 0 );
+	this_jet->set_property( Jet::PROPERTY::prop_SeedItr, 0 );
+      
+	continue;
+      }
 
       if (Verbosity() > 2)
 	std::cout << "DetermineTowerBackground::process_event: possible seed jet with pt / eta / phi = " << this_pt << " / " << this_eta << " / " << this_phi << ", examining constituents..." << std::endl;
@@ -196,16 +211,26 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float mean_constituent_ET = constituent_sum_ET / nconstituents;
       float seed_D = constituent_max_ET / mean_constituent_ET;
       
+      // store D value as property for offline analysis / debugging 
+      this_jet->set_property( Jet::PROPERTY::prop_SeedD, seed_D );
+
       if (Verbosity() > 3)
 	std::cout << "DetermineTowerBackground::process_event: --> jet has < ET > = " << constituent_sum_ET << " / " << nconstituents << " = " << mean_constituent_ET << ", max-ET = " << constituent_max_ET << ", and D = " << seed_D << std::endl;
       
       if ( seed_D > _seed_jet_D ) {
 	_seed_eta.push_back( this_eta );
 	_seed_phi.push_back( this_phi );
+
+	// set first iteration seed property
+	this_jet->set_property( Jet::PROPERTY::prop_SeedItr, 1.0 );
 	
 	if (Verbosity() > 1)
 	  std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
       } else {
+
+	// mark that this jet was considered but not used as a seed
+	this_jet->set_property( Jet::PROPERTY::prop_SeedItr, 0.0 );
+
 	if (Verbosity() > 3)
 	  std::cout << "DetermineTowerBackground::process_event: --> discarding potential seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << ", D = " << seed_D << " ) " << std::endl;
       }
@@ -230,10 +255,19 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       float this_phi = this_jet->get_phi();
       float this_eta = this_jet->get_eta();
 
-      if (this_jet->get_pt() < _seed_jet_pt ) continue;
+      if (this_jet->get_pt() < _seed_jet_pt ) {
+
+	// mark that this jet was considered but not used as a seed
+	this_jet->set_property( Jet::PROPERTY::prop_SeedItr, 0.0 );
+
+	continue;
+      }
 
       _seed_eta.push_back( this_eta );
       _seed_phi.push_back( this_phi );
+
+      // set second iteration seed property
+      this_jet->set_property( Jet::PROPERTY::prop_SeedItr, 2.0 );
 
       if (Verbosity() > 1)
 	std::cout << "DetermineTowerBackground::process_event: --> adding seed at eta / phi = " << this_eta << " / " << this_phi << " ( R=0.2 jet with pt = " << this_pt << " ) " << std::endl;
@@ -350,8 +384,15 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   _Psi2 = 0;
   _v2 = 0;
+  _nStrips = 0;
 
-  if ( _do_flow ) {
+  if ( _do_flow == 0 ) {
+    if (Verbosity() > 0 ) {
+      std::cout << "DetermineTowerBackground::process_event: flow not enabled, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
+    }
+  }
+
+  if ( _do_flow >= 1 ) {
     // check for the case when every tower is excluded
     int nStripsAvailableForFlow = 0;
     int nStripsUnavailableForFlow = 0;
@@ -380,7 +421,11 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	    float dR = sqrt( pow( deta, 2 ) + pow( dphi, 2 ) );
 	    if (dR < 0.4) {
 	      isExcluded = true;
-	      if (Verbosity() > 10) std::cout << " setting excluded mark from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
+	      if (Verbosity() > 10) {
+		float my_E = (layer == 0 ? _EMCAL_E[ eta ][ phi ] : ( layer == 1 ? _IHCAL_E[ eta ][ phi ] : _OHCAL_E[ eta ][ phi ] ) );
+		
+		std::cout << " setting excluded mark for tower with E / eta / phi = " << my_E << " / " << this_eta << " / " << this_phi << " from seed at eta / phi = " << _seed_eta[ iseed ] << " / " << _seed_phi[ iseed ] << std::endl;
+	      }
 	    }
 	  }
 	  
@@ -436,9 +481,52 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	Q_y += _FULLCALOFLOW_PHI_E[ iphi ] * sin( 2 * _FULLCALOFLOW_PHI_VAL[ iphi ] );
 	
       }
+
+      if ( _do_flow == 1 ) {
+      	_Psi2 = TMath::ATan2( Q_y, Q_x ) / 2.0 ;
+      }
+      else if ( _do_flow == 2 ) {
+	
+	PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
+	
+	if ( ! truthinfo ) {
+	  std::cout << "DetermineTowerBackground::process_event: FATAL , G4TruthInfo does not exist , cannot extract truth flow with do_flow = " << _do_flow << std::endl;
+	  return -1;
+	}
+	
+	PHG4TruthInfoContainer::Range range = truthinfo->GetPrimaryParticleRange();
+	
+	float Hijing_Qx = 0, Hijing_Qy = 0;
+	
+	for ( PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter ) {
+	  PHG4Particle* g4particle = iter->second;
+	  
+	  if ( truthinfo->isEmbeded( g4particle->get_track_id() ) != 0 ) continue;
+	  
+	  TLorentzVector t; t.SetPxPyPzE( g4particle->get_px(), g4particle->get_py(), g4particle->get_pz(), g4particle->get_e() );
+	  
+	  float truth_pt = t.Pt();
+	  if (truth_pt < 0.4) continue;
+	  float truth_eta = t.Eta();
+	  if (fabs(truth_eta) > 1.1) continue;
+	  float truth_phi = t.Phi();
+	  int truth_pid =  g4particle->get_pid();
+
+	  if (Verbosity() > 10 )	  
+	    std::cout << "DetermineTowerBackground::process_event: determining truth flow, using particle w/ pt / eta / phi " << truth_pt << " / " << truth_eta << " / " << truth_phi << " , embed / PID = " << truthinfo->isEmbeded( g4particle->get_track_id() ) << " / " << truth_pid << std::endl;
+	  
+	  Hijing_Qx += truth_pt * cos( 2 * truth_phi );
+	  Hijing_Qy += truth_pt * sin( 2 * truth_phi );  
       
-      _Psi2 = TMath::ATan2( Q_y, Q_x ) / 2.0 ;
+	}
+	
+	_Psi2 = atan2( Hijing_Qy, Hijing_Qx ) / 2.0;
+	
+	if (Verbosity() > 0 )
+	  std::cout << "DetermineTowerBackground::process_event: flow extracted from Hijing truth particles, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) " << std::endl;
+      }
       
+      // determine v2 from calo regardless of origin of Psi2 
       for (int iphi = 0; iphi < _HCAL_NPHI; iphi++) {
 	
 	sum_cos2dphi += _FULLCALOFLOW_PHI_E[ iphi ] * cos( 2 * (  _FULLCALOFLOW_PHI_VAL[ iphi ] - _Psi2 ) );
@@ -446,27 +534,28 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       }
       
       _v2 = sum_cos2dphi / E;
+
+      _nStrips = nStripsAvailableForFlow;
       
     } else {
       _Psi2 = 0;
       _v2 = 0;
+      _nStrips = 0;
       if (Verbosity() > 0 )
 	std::cout << "DetermineTowerBackground::process_event: no full strips available for flow modulation, setting v2 and Psi = 0" << std::endl;
     }
 
     if (Verbosity() > 0 ) {
-      
+
       std::cout << "DetermineTowerBackground::process_event: unnormalized Q vector (Qx, Qy) = ( " << Q_x << ", " << Q_y << " ) with Sum E_i = " << E << std::endl;
-      std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
+      std::cout << "DetermineTowerBackground::process_event: Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi " << ( _do_flow == 2 ? "from Hijing " : "" ) << ") , v2 = " << _v2 << " ( using " << _nStrips << " ) " << std::endl;
+
     }
   } // if do flow
-  else {
-    if (Verbosity() > 0 ) {
-      std::cout << "DetermineTowerBackground::process_event: flow not enabled, setting Psi2 = " << _Psi2 << " ( " << _Psi2 / 3.14159 << " * pi ) , v2 = " << _v2 << std::endl;
-    }
-  }
+  
 
   // now calculate energy densities...
+  _nTowers = 0; // store how many towers were used to determine bkg
 
   // starting with the EMCal first...
   for (int layer = 0; layer < 3; layer++) {
@@ -502,7 +591,8 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 	  if ( layer == 0 ) total_E += _EMCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
 	  if ( layer == 1 ) total_E += _IHCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
 	  if ( layer == 2 ) total_E += _OHCAL_E[ eta ][ phi ] / ( 1 + 2 * _v2 * cos( 2 * ( this_phi - _Psi2 ) ) );
-	  total_tower++;
+	  total_tower++; // towers in this eta range & layer
+	  _nTowers++; // towers in entire calorimeter
 	} else {
 	  if (Verbosity() > 10) std::cout << " tower at eta / phi = " << this_eta << " / " << this_phi << " with E = " << total_E << " excluded due to seed " << std::endl;
 	}
@@ -605,6 +695,9 @@ void DetermineTowerBackground::FillNode(PHCompositeNode *topNode)
 
     towerbackground->set_Psi2( _Psi2 );
 
+    towerbackground->set_nStripsUsedForFlow( _nStrips );
+
+    towerbackground->set_nTowersUsedForBkg( _nTowers );
   }
 
 

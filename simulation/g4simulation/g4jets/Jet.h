@@ -35,6 +35,14 @@ public:
 
     //! b-jet fraction
     prop_BFrac = 2,
+
+    //! discriminator D = max tower E / average E , used to identify
+    //! seeds in 1st iteration of UE determination
+    prop_SeedD = 3,
+
+    //! used to tag as seed jet in 1st or 2nd iteration of UE
+    //! determination
+    prop_SeedItr = 4,
   };
 
   Jet();
