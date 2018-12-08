@@ -39,13 +39,8 @@ libmvtx_io_la_SOURCES = \
   MvtxHit_Dict.cc
 
 libmvtx_io_la_LIBADD = \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io \
-  -lg4detectors_io \
-  -ltrackbase_historic_io 
-
-
+  -lphool \
+  -ltrack_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

@@ -866,8 +866,7 @@ double  PHG4MVTXCellReco::sA(double r, double x, double y)
 void
 PHG4MVTXCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
-  if (Verbosity())
-    cout << "PHG4MVTXCellReco: Setting MVTX timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
+  cout << "PHG4MVTXCellReco: Setting MVTX timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
   tmin_max.insert(std::make_pair(detid, std::make_pair(tmin, tmax)));
 
   return;
@@ -876,9 +875,9 @@ PHG4MVTXCellReco::set_timing_window(const int detid, const double tmin, const do
 void
 PHG4MVTXCellReco::SetDefaultParameters()
 {
-  cout << "PHG4MVTXCellReco: Setting MVTX timing window defaults to tmin = -2000 and  tmax = 2000 " << endl;
+  cout << "PHG4MVTXCellReco: Setting MVTX timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
   for(int ilayer = 0;ilayer<3;ilayer++)
-    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-2000, 2000)));
+    tmin_max.insert(std::make_pair(ilayer, std::make_pair(-5000, 5000)));
 
   return;
 }

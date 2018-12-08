@@ -24,7 +24,8 @@ libintt_la_SOURCES = \
 libintt_la_LIBADD = \
   libintt_io.la \
   -lfun4all \
-  -lg4detectors 
+  -lg4detectors \
+  -lg4intt
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -32,11 +33,9 @@ libintt_io_la_SOURCES = \
   InttHit_Dict.cc
 
 libintt_io_la_LIBADD = \
-  -lfun4all \
-  -lg4detectors_io \
-  -lg4intt \
+  -lphool \
   -ltrack_io \
-  -ltrackbase_historic_io 
+  -ltrackbase_historic_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
