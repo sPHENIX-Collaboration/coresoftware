@@ -1,8 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libtpc.la \
-  libtpc_io.la
+  libtpc_io.la \
+  libtpc.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
