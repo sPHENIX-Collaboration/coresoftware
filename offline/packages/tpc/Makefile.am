@@ -37,7 +37,6 @@ libtpc_io_la_LIBADD = \
   -lfun4all \
   -ltrack_util \
   -ltrack_io \
-  -lg4hough_io \
   -lg4detectors_io \
   -ltrackbase_historic_io
 
