@@ -37,6 +37,13 @@ noinst_HEADERS = \
   Fun4AllLinkDef.h \
   SubsysRecoLinkDef.h
 
+#ifdef (MAKEROOT6
+pcmdir = $(libdir)
+Fun4All_Dict_rdict = Fun4All_Dict_rdict.pcm
+SubsysReco_Dict_rdict = SubsysReco_Dict_rdict.pcm
+nobase_dist_pcm_DATA = $Fun4All_Dict_rdict $SubsysReco_Dict_rdict
+#endif
+
 lib_LTLIBRARIES = \
   libSubsysReco.la \
   libTDirectoryHelper.la \
@@ -86,6 +93,8 @@ nodist_libSubsysReco_la_SOURCES = SubsysReco_Dict.cc
 noinst_PROGRAMS = \
   testexternals
 
+built_SOURCES =  testexternals.cc
+
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD   = libfun4all.la
 
@@ -96,7 +105,7 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-Fun4All_Dict.cc: \
+Fun4All_Dict.cc $Fun4All_Dict_rdict: \
   Fun4AllDstInputManager.h \
   Fun4AllDstOutputManager.h \
   Fun4AllDummyInputManager.h \
@@ -115,7 +124,7 @@ Fun4All_Dict.cc: \
   Fun4AllLinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-SubsysReco_Dict.cc: \
+SubsysReco_Dict.cc $SubsysReco_Dict_rdict: \
   Fun4AllBase.h \
   SubsysReco.h \
   SubsysRecoLinkDef.h
@@ -123,3 +132,5 @@ SubsysReco_Dict.cc: \
 
 clean-local:
 	rm -f *Dict*
+	rm -f *.pcm
+	rm -f $(built_SOURCES)
