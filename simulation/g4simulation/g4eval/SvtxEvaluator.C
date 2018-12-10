@@ -8,11 +8,10 @@
 #include <phool/PHTimeServer.h>
 #include <phool/PHTimer.h>
 
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertex.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
-
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxHitMap.h>

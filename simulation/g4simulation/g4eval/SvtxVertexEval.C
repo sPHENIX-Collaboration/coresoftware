@@ -2,10 +2,10 @@
 
 #include "SvtxTrackEval.h"
 
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertex.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
