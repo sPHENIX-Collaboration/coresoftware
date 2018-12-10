@@ -1,9 +1,9 @@
-#ifndef __SUBTRACTTOWERS_H__
-#define __SUBTRACTTOWERS_H__
+#ifndef __SUBTRACTTOWERSCS_H__
+#define __SUBTRACTTOWERSCS_H__
 
 //===========================================================
-/// \file SubtractTowers.h
-/// \brief creates new UE-subtracted towers
+/// \file SubtractTowersCS.h
+/// \brief creates new UE-subtracted towers, using constituent subtraction
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
@@ -20,19 +20,19 @@
 // forward declarations
 class PHCompositeNode;
 
-/// \class SubtractTowers
+/// \class SubtractTowersCS
 ///
 /// \brief creates new UE-subtracted towers
 ///
 /// Using a previously determined background UE density, this module
 /// constructs a new set of towers by subtracting the background from
-/// existing raw towers
+/// existing raw towers. CS parameters are configurable
 ///
-class SubtractTowers : public SubsysReco
+class SubtractTowersCS : public SubsysReco
 {
  public:
-  SubtractTowers(const std::string &name = "SubtractTowers");
-  virtual ~SubtractTowers();
+  SubtractTowersCS(const std::string &name = "SubtractTowersCS");
+  virtual ~SubtractTowersCS();
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -40,11 +40,17 @@ class SubtractTowers : public SubsysReco
   int End(PHCompositeNode *topNode);
 
   void SetFlowModulation( bool use_flow_modulation ) { _use_flow_modulation = use_flow_modulation; }
+  void SetAlpha( float alpha ) { _alpha = alpha; }
+  void SetDeltaRmax( float DeltaRmax ) { _DeltaRmax = DeltaRmax; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation;
+
+  float _alpha;
+  float _DeltaRmax;
+
 };
 
-#endif  // __SUBTRACTTOWERS_H__
+#endif  // __SUBTRACTTOWERSCS_H__

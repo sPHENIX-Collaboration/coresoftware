@@ -30,7 +30,6 @@ SubtractTowers::SubtractTowers(const std::string &name)
   : SubsysReco(name)
 {
 
-  _background_iteration = 0;
   _use_flow_modulation = false;
 
 }
