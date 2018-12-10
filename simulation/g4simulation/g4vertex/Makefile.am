@@ -17,7 +17,8 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4vertex_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -ltrackbase_historic_io
 
 libg4vertex_la_LIBADD = \
   -lg4detectors \
