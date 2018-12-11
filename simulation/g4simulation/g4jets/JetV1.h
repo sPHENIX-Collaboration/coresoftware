@@ -51,6 +51,7 @@ public:
   float        get_eta() const;
   float        get_phi() const;
   float        get_mass() const;
+  float        get_mass2() const;
   
   // extended jet info
   

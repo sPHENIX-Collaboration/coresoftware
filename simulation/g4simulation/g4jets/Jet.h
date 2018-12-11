@@ -77,6 +77,7 @@ public:
   virtual float get_eta() const {return NAN;}
   virtual float get_phi() const {return NAN;}
   virtual float get_mass() const {return NAN;}
+  virtual float get_mass2() const {return NAN;}
   
   // extended jet info ---------------------------------------------------------
 
