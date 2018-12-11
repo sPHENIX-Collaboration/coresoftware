@@ -39,9 +39,9 @@ class SubtractTowersCS : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void SetFlowModulation( bool use_flow_modulation ) { _use_flow_modulation = use_flow_modulation; }
-  void SetAlpha( float alpha ) { _alpha = alpha; }
-  void SetDeltaRmax( float DeltaRmax ) { _DeltaRmax = DeltaRmax; }
+  void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
+  void SetAlpha(float alpha) { _alpha = alpha; }
+  void SetDeltaRmax(float DeltaRmax) { _DeltaRmax = DeltaRmax; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
@@ -50,7 +50,6 @@ class SubtractTowersCS : public SubsysReco
 
   float _alpha;
   float _DeltaRmax;
-
 };
 
 #endif  // __SUBTRACTTOWERSCS_H__
