@@ -25,6 +25,7 @@ public:
     FHCAL_TOWER=11, FHCAL_CLUSTER=12,
     CEMC_TOWER_RETOWER=13,                                           /* needed for HI jet reco */
     CEMC_TOWER_SUB1=14, HCALIN_TOWER_SUB1=15, HCALOUT_TOWER_SUB1=16, /* needed for HI jet reco */
+    CEMC_TOWER_SUB1CS=17, HCALIN_TOWER_SUB1CS=18, HCALOUT_TOWER_SUB1CS=19, /* needed for CS subtraction w/ HI jet reco */
     HEPMC_IMPORT = 20, /*Direct import HEPMC containers, such as sHijing HIJFRG truth jets loaded by JetHepMCLoader*/
   };
 
