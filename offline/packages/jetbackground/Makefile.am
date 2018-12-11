@@ -27,11 +27,15 @@ libjetbackground_la_LIBADD = \
   -lg4jets \
   -lg4jets_io \
   -lCGAL \
+  -lfastjet \
+  -lfastjettools \
+  -lConstituentSubtractor \
   libjetbackground_io.la
 
 pkginclude_HEADERS = \
   DetermineTowerBackground.h \
   SubtractTowers.h \
+  SubtractTowersCS.h \
   RetowerCEMC.h \
   CopyAndSubtractJets.h \
   FastJetAlgoSub.h \
@@ -50,6 +54,8 @@ libjetbackground_la_SOURCES = \
   FastJetAlgoSub_Dict.C \
   SubtractTowers.C \
   SubtractTowers_Dict.C \
+  SubtractTowersCS.C \
+  SubtractTowersCS_Dict.C \
   RetowerCEMC.C \
   RetowerCEMC_Dict.C \
   CopyAndSubtractJets.C \
