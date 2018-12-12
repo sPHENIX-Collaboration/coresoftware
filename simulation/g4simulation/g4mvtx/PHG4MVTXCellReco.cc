@@ -866,8 +866,13 @@ double  PHG4MVTXCellReco::sA(double r, double x, double y)
 void
 PHG4MVTXCellReco::set_timing_window(const int detid, const double tmin, const double tmax)
 {
-  cout << "PHG4MVTXCellReco: Setting MVTX timing window parameters from macro for detid = " << detid << " to tmin = " << tmin << " tmax = " << tmax << endl;
+  // first have to erase the default value
+ std::map<int, std::pair<double,double> >::iterator it = tmin_max.find(detid);;
+  tmin_max.erase(it);
+  // now replace it with the new value
   tmin_max.insert(std::make_pair(detid, std::make_pair(tmin, tmax)));
+
+  cout << "PHG4MVTXCellReco: Set MVTX timing window parameters from macro for layer = " << detid << " to tmin = " << tmin_max[detid].first << " tmax = " << tmin_max[detid].second << endl;
 
   return;
 }
