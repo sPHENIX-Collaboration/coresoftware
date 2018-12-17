@@ -2332,7 +2332,7 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
 
         float dphi1 = tr_point2->first.get<0>() - tr_point1->first.get<0>();
         float dphi2 = tr_point3->first.get<0>() - tr_point2->first.get<0>();
-        float dphi3;
+        float dphi3 = NAN;
         float dr;
         // calculate extrapolation from last 3 points
         //remove zig zags
