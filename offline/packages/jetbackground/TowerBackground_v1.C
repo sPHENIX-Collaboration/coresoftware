@@ -11,6 +11,10 @@ TowerBackground_v1::TowerBackground_v1()
   
   _UE.resize(3, std::vector<float>(1, 0) );
 
+  _nStrips = 0;
+
+  _nTowers = 0;
+
 }
 
 TowerBackground_v1::~TowerBackground_v1()
@@ -30,7 +34,7 @@ void TowerBackground_v1::identify(ostream& os) const
 
   }
 
-  os << " v2 = " << _v2 << ", Psi2 = " << _Psi2 << std::endl;
+  os << " v2 = " << _v2 << ", Psi2 = " << _Psi2 << ", # towers used for bkg = " << _nTowers << " , # strips used for flow = " << _nStrips << std::endl;
 
   return;
 }

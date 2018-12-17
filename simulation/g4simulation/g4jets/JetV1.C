@@ -82,8 +82,15 @@ float JetV1::get_phi() const {
 }
 
 float JetV1::get_mass() const {
+  // follow CLHEP convention and return negative mass if E^2 - p^2 < 0
+  float mass2 = get_mass2();
+  if (mass2 < 0) return -1 * sqrt( fabs( mass2 ) );
+  else return sqrt( mass2 );
+}
+
+float JetV1::get_mass2() const {
   float p2 = get_px()*get_px()+get_py()*get_py()+get_pz()*get_pz();
-  return sqrt(get_e()*get_e()-p2);
+  return get_e()*get_e()-p2;
 }
 
 bool JetV1::has_property(Jet::PROPERTY prop_id) const {
