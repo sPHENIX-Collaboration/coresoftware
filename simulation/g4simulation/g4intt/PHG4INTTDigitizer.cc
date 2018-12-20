@@ -73,8 +73,9 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   //----------------
   // Report Settings
   //----------------
-  
-  if (Verbosity() > 0) {
+
+  if (Verbosity() > 0)
+  {
     cout << "====================== PHG4INTTDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
@@ -261,12 +262,13 @@ int PHG4INTTDigitizer::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode) {
-
-  if (Verbosity() >= VERBOSITY_EVEN_MORE) {
+void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
+{
+  if (Verbosity() >= VERBOSITY_EVEN_MORE)
+  {
     //if (Verbosity() >= 0) {
 
-    SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
+    SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
     if (!hitlist) return;
 
     cout << "================= PHG4INTTDigitizer::process_event() ====================" << endl;

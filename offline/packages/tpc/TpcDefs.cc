@@ -48,7 +48,7 @@ TpcDefs::getTBin(TrkrDefs::hitkey key)
   return tmp;
 }
 
-TrkrDefs::hitkey 
+TrkrDefs::hitkey
 TpcDefs::genHitKey(const uint16_t pad, const uint16_t tbin)
 {
   TrkrDefs::hitkey key = (pad << TpcDefs::kBitShiftPad);

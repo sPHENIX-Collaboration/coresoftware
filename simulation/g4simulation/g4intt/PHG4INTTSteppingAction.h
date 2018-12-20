@@ -39,7 +39,6 @@ class PHG4INTTSteppingAction : public PHG4SteppingAction
   PHG4Shower *m_SaveShower;
   const PHParametersContainer *m_ParamsContainer;
 
-
   std::map<int, int> m_InttToTrackerLayerMap;
   std::map<int, int> m_LadderTypeMap;
   std::map<int, double> m_StripYMap;

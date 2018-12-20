@@ -179,5 +179,5 @@ void PHG4TPCSubsystem::SetDefaultParameters()
   set_default_double_param("cage_layer_9_thickness", 0.00347 / 2.);
 
   set_default_string_param("window_material", "G4_KAPTON");
-  set_default_double_param("window_thickness", 0.05); // 50 um
+  set_default_double_param("window_thickness", 0.05);  // 50 um
 }

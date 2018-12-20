@@ -6,7 +6,6 @@
 class INTTDeadMapv1 : public INTTDeadMap
 {
  public:
-
   INTTDeadMapv1()
   {
   }

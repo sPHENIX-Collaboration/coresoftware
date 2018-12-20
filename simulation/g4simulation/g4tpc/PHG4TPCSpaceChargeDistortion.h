@@ -45,43 +45,40 @@ class TH2D;
 ///
 class PHG4TPCSpaceChargeDistortion : public PHG4TPCDistortion
 {
-public:
-  PHG4TPCSpaceChargeDistortion(const std::string & distortion_map_file, int verbose = 0);
+ public:
+  PHG4TPCSpaceChargeDistortion(const std::string &distortion_map_file, int verbose = 0);
 
-  virtual
-  ~PHG4TPCSpaceChargeDistortion();
+  virtual ~PHG4TPCSpaceChargeDistortion();
 
   //! radial distortion for a given truth location of the primary ionization
   double
-  get_r_distortion(double r, double phi, double z) ;
+  get_r_distortion(double r, double phi, double z);
 
   //! r*phi distortion for a given truth location of the primary ionization
   double
-  get_rphi_distortion(double r, double phi, double z) ;
+  get_rphi_distortion(double r, double phi, double z);
 
   //! z distortion for a given truth location of the primary ionization
   double
-  get_z_distortion(double r, double phi, double z) {return 0;}
+  get_z_distortion(double r, double phi, double z) { return 0; }
 
-  TH2D *DRHIST()    {return rDistortion2;}
-  TH2D *DRPHIHIST() {return rPhiDistortion2;}
+  TH2D *DRHIST() { return rDistortion2; }
+  TH2D *DRPHIHIST() { return rPhiDistortion2; }
 
   ///  NOTE:  ALICE claims that 20 cm deflections are corrected:
   ///         precision = 200 microns   (precisionFactor = 0.001)
   ///         accuracy = 1 mm           (accuracy factor = 0.005)
   ///  These defaults are hard-coded in the constructor, but the user
   ///  can change them using the routines below...
-  void setPrecision(double p) {precisionFactor = p;}
-  void setAccuracy (double a) { accuracyFactor = a;}
+  void setPrecision(double p) { precisionFactor = p; }
+  void setAccuracy(double a) { accuracyFactor = a; }
 
-protected:
-
+ protected:
   TH2D *rDistortion2;
   TH2D *rPhiDistortion2;
 
   double precisionFactor;
   double accuracyFactor;
-
 };
 
 #endif /* PHG4TPCSPACECHARGEDISTORTION_H_ */

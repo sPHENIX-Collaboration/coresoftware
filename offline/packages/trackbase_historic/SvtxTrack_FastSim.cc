@@ -11,17 +11,20 @@
 
 ClassImp(SvtxTrack_FastSim)
 
-using namespace std;
+    using namespace std;
 
-SvtxTrack_FastSim::SvtxTrack_FastSim() :
-  _truth_track_id(UINT_MAX),_nmeas(0) {
+SvtxTrack_FastSim::SvtxTrack_FastSim()
+  : _truth_track_id(UINT_MAX)
+  , _nmeas(0)
+{
 }
 
-SvtxTrack_FastSim::~SvtxTrack_FastSim() {
+SvtxTrack_FastSim::~SvtxTrack_FastSim()
+{
 }
 
-
-void SvtxTrack_FastSim::identify(std::ostream& os) const {
+void SvtxTrack_FastSim::identify(std::ostream& os) const
+{
   os << "SvtxTrack_FastSim Object ";
   os << "truth_track_id:" << get_truth_track_id() << endl;
   os << "id: " << get_id() << " ";
@@ -36,11 +39,13 @@ void SvtxTrack_FastSim::identify(std::ostream& os) const {
 
   os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << endl;
 
-  if (!empty_clusters()) {
+  if (!empty_clusters())
+  {
     os << "clusters: ";
     for (SvtxTrack::ConstClusterIter iter = begin_clusters();
-	 iter != end_clusters();
-	 ++iter) {
+         iter != end_clusters();
+         ++iter)
+    {
       unsigned int cluster_id = *iter;
       os << cluster_id << " ";
     }
@@ -50,7 +55,7 @@ void SvtxTrack_FastSim::identify(std::ostream& os) const {
   return;
 }
 
-
-int SvtxTrack_FastSim::isValid() const {
+int SvtxTrack_FastSim::isValid() const
+{
   return 1;
 }

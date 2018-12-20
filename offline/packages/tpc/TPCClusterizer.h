@@ -1,18 +1,19 @@
 #ifndef __TPCCLUSTERIZER_H__
 #define __TPCCLUSTERIZER_H__
 
-#include <g4detectors/PHG4CellDefs.h>
-#include <fun4all/SubsysReco.h>
 #include <RVersion.h>
-#include <vector>
+#include <fun4all/SubsysReco.h>
+#include <g4detectors/PHG4CellDefs.h>
 #include <limits.h>
+#include <vector>
 
 class PHG4CylinderCellGeom;
 class TH1F;
 class TProfile2D;
 class TStopwatch;
 
-class TPCClusterizer : public SubsysReco {
+class TPCClusterizer : public SubsysReco
+{
  public:
   TPCClusterizer(const char *name = "TPCClusterizer");
   ~TPCClusterizer();
@@ -23,46 +24,58 @@ class TPCClusterizer : public SubsysReco {
   int End(PHCompositeNode *topNode) { return 0; }
 
   void setEnergyCut(float val) { fEnergyCut = val; }
-  void setFitWindowSigmas(float rp, float rz) { fDCT = rp; fDCL = rz; }
-  void setFitWindowMax(int rp, int rz) { fFitRangeMP = rp; fFitRangeMZ = rz; }
-  void setRangeLayers(unsigned int minLayer, unsigned int maxLayer) {fMinLayer=minLayer; fMaxLayer=maxLayer;}
+  void setFitWindowSigmas(float rp, float rz)
+  {
+    fDCT = rp;
+    fDCL = rz;
+  }
+  void setFitWindowMax(int rp, int rz)
+  {
+    fFitRangeMP = rp;
+    fFitRangeMZ = rz;
+  }
+  void setRangeLayers(unsigned int minLayer, unsigned int maxLayer)
+  {
+    fMinLayer = minLayer;
+    fMaxLayer = maxLayer;
+  }
   void setClusterCut(float val) { fClusterCut = val; }
   void setPedestal(float val) { fPedestal = val; }
-  void setShapingRMSLead(float val) {fShapingLead = val;}
-  void setShapingRMSTail(float val) {fShapingTail = val;}
-  void setClusterWindow(float val)  {fClusterWindow = val;}
-  void setClusterZSplit(bool val)   {fClusterZSplit = val;}
-  void setDeconvolutionMode(bool val)   {fDeconMode = val;}
+  void setShapingRMSLead(float val) { fShapingLead = val; }
+  void setShapingRMSTail(float val) { fShapingTail = val; }
+  void setClusterWindow(float val) { fClusterWindow = val; }
+  void setClusterZSplit(bool val) { fClusterZSplit = val; }
+  void setDeconvolutionMode(bool val) { fDeconMode = val; }
 
  private:
   void reset();
   void prepare_layer(float radius);
   void deconvolution();
-  int  wrap_phibin(int bin);
+  int wrap_phibin(int bin);
   bool is_local_maximum(int phi, int z);
-  void find_z_range(int zbin, int phibin, int zmax, float peak, int& zup, int& zdown);
-  void find_phi_range(int zbin, int phibin, int phimax, float peak, int& phiup, int& phidown);
+  void find_z_range(int zbin, int phibin, int zmax, float peak, int &zup, int &zdown);
+  void find_phi_range(int zbin, int phibin, int phimax, float peak, int &phiup, int &phidown);
 
-  void fit(int pbin, int zbin, int& nhits_tot);
+  void fit(int pbin, int zbin, int &nhits_tot);
   // FitSumP = weighted sum of dphi values in cluster (ee*dphi)
   // FitSumZ = weighted sum of dz values in cluster
   // fFitW is the sum of weights in the cluster ( sigma(ee) )
-  float fit_p_mean() {return fFitSumP/fFitW+fFitP0;}
-  float fit_z_mean() {return fFitSumZ/fFitW+fFitZ0;}
+  float fit_p_mean() { return fFitSumP / fFitW + fFitP0; }
+  float fit_z_mean() { return fFitSumZ / fFitW + fFitZ0; }
 
   // FitSumP2 = weighted sum of dphi*dphi values in cluster (ee*dphi^2)
   // FitSumZ2 = weighted sum of dz*dz values in cluster
-  // So fit_p_cov = sigma(dphi^2*ee)/sigma(ee) - ( sigma(dphi*ee)^2 / sigma(ee)^2 ) = weighted mean of dphi^2 - (weighted mean of dphi)^2 
-  float fit_p_cov() {return fFitSumP2/fFitW-fFitSumP/fFitW*fFitSumP/fFitW;}
-  float fit_z_cov() {return fFitSumZ2/fFitW-fFitSumZ/fFitW*fFitSumZ/fFitW;}
-  float fit_pz_cov() {return fFitSumPZ/fFitW-fFitSumP/fFitW*fFitSumZ/fFitW;}
+  // So fit_p_cov = sigma(dphi^2*ee)/sigma(ee) - ( sigma(dphi*ee)^2 / sigma(ee)^2 ) = weighted mean of dphi^2 - (weighted mean of dphi)^2
+  float fit_p_cov() { return fFitSumP2 / fFitW - fFitSumP / fFitW * fFitSumP / fFitW; }
+  float fit_z_cov() { return fFitSumZ2 / fFitW - fFitSumZ / fFitW * fFitSumZ / fFitW; }
+  float fit_pz_cov() { return fFitSumPZ / fFitW - fFitSumP / fFitW * fFitSumZ / fFitW; }
 
   std::vector<int> fNHitsPerZ;
   std::vector<float> fAmps;
   std::vector<unsigned int> fCellIDs;
   std::vector<int> fCellz;
   std::vector<int> fCellphi;
-  
+
   int fNPhiBins;
   int fNZBins;
   PHG4CylinderCellGeom *fGeoLayer;
@@ -80,7 +93,8 @@ class TPCClusterizer : public SubsysReco {
   int fFitRangeMP;
   int fFitRangeMZ;
   float fClusterCut;
-  float fPedestal;;
+  float fPedestal;
+  ;
   float fFitSizeP;
   int fFitSizeZ;
   float fShapingLead;
@@ -89,8 +103,8 @@ class TPCClusterizer : public SubsysReco {
   unsigned int fMaxLayer;
   float fEnergyCut;
   float fClusterWindow;
-  bool  fClusterZSplit;
-  bool  fDeconMode;
+  bool fClusterZSplit;
+  bool fDeconMode;
   float fDCT;
   float fDCL;
   float _inv_sqrt12;

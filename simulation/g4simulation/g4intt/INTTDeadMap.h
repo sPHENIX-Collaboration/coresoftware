@@ -26,8 +26,8 @@ class INTTDeadMap : public PHObject
   virtual bool isDeadChannel(PHG4CellDefs::keytype key) const;
   bool isDeadChannel(const int layer, const int ieta, const int iphi) const;
   bool isDeadChannelINTT(const int layer,
-                     const int ladder_phi, const int ladder_z,
-                     const int strip_z, const int strip_phi) const;
+                         const int ladder_phi, const int ladder_z,
+                         const int strip_z, const int strip_phi) const;
 
   //! return all towers
   virtual const Map &getDeadChannels(void) const;
@@ -35,11 +35,11 @@ class INTTDeadMap : public PHObject
 
   virtual unsigned int size() const { return 0; }
 
-  static PHG4CellDefs::keytype getINTTKey( int layer,
-                                           int ladder_phi,  int ladder_z,
-                                           int strip_z,  int strip_phi);
+  static PHG4CellDefs::keytype getINTTKey(int layer,
+                                          int ladder_phi, int ladder_z,
+                                          int strip_z, int strip_phi);
 
-  static int getWildCardID() {return s_wildCardID;}
+  static int getWildCardID() { return s_wildCardID; }
 
  protected:
   INTTDeadMap()

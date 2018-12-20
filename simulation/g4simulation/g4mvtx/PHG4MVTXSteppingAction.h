@@ -9,32 +9,29 @@ class PHG4HitContainer;
 
 class PHG4MVTXSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4MVTXSteppingAction( PHG4MVTXDetector* );
+  PHG4MVTXSteppingAction(PHG4MVTXDetector*);
 
   //! destroctor
   virtual ~PHG4MVTXSteppingAction()
-  {}
+  {
+  }
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode*);
 
-  private:
-
+ private:
   //! pointer to the detector
   PHG4MVTXDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
-  PHG4Hit *hit;
+  PHG4HitContainer* hits_;
+  PHG4HitContainer* absorberhits_;
+  PHG4Hit* hit;
 };
 
-
-#endif // PHG4MVTXSteppingAction_h
+#endif  // PHG4MVTXSteppingAction_h
