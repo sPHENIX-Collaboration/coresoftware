@@ -93,24 +93,22 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
   ConstructTPCCageVolume(tpc_envelope_logic);
   ConstructTPCGasVolume(tpc_envelope_logic);
 
-  new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x") * cm,
-                                     params->get_double_param("place_y") * cm,
-                                     params->get_double_param("place_z") * cm),
+  new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x") * cm, params->get_double_param("place_y") * cm, params->get_double_param("place_z") * cm),
                     tpc_envelope_logic, "tpc_envelope",
                     logicWorld, 0, false, OverlapCheck());
 }
 
 int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
 {
-  static map<int, string> tpcgasvolname = 
-    {{PHG4TPCDefs::North, "tpc_gas_north"}, 
-     {PHG4TPCDefs::South,"tpc_gas_south"}};
-  double tpc_window_thickness = params->get_double_param("window_thickness")*cm;
-  double tpc_half_length = (params->get_double_param("tpc_length")*cm-tpc_window_thickness)/2.;
-  G4VSolid *tpc_window = new G4Tubs("tpc_window",params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness/2., 0., 2 * M_PI);
+  static map<int, string> tpcgasvolname =
+      {{PHG4TPCDefs::North, "tpc_gas_north"},
+       {PHG4TPCDefs::South, "tpc_gas_south"}};
+  double tpc_window_thickness = params->get_double_param("window_thickness") * cm;
+  double tpc_half_length = (params->get_double_param("tpc_length") * cm - tpc_window_thickness) / 2.;
+  G4VSolid *tpc_window = new G4Tubs("tpc_window", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness / 2., 0., 2 * M_PI);
 
-  G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,   tpc_half_length / 2., 0., 2 * M_PI);
-  G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window, 
+  G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_half_length / 2., 0., 2 * M_PI);
+  G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window,
                                                           G4Material::GetMaterial(params->get_string_param("window_material")),
                                                           "tpc_window");
 
@@ -120,8 +118,8 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   visatt->SetColor(PHG4TPCColorDefs::tpc_kapton_color);
   tpc_window_logic->SetVisAttributes(visatt);
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
-                                                      tpc_window_logic, "tpc_window",
-							 tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
+                                                         tpc_window_logic, "tpc_window",
+                                                         tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
 
   absorbervols.insert(tpc_window_phys);
   G4LogicalVolume *tpc_gas_logic = new G4LogicalVolume(tpc_gas,
@@ -134,22 +132,21 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   visatt->SetForceSolid(true);
   visatt->SetColor(PHG4TPCColorDefs::tpc_gas_color);
   tpc_gas_logic->SetVisAttributes(visatt);
-  G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length+tpc_window_thickness)/2.),
+  G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length + tpc_window_thickness) / 2.),
                                                       tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::North],
                                                       tpc_envelope, false, PHG4TPCDefs::North, OverlapCheck());
   cout << "north copy no: " << tpc_gas_phys->GetCopyNo() << endl;
 
   activevols.insert(tpc_gas_phys);
-  tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length+tpc_window_thickness)/2.),
-                                                      tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::South],
-                                                      tpc_envelope, false, PHG4TPCDefs::South, OverlapCheck());
+  tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length + tpc_window_thickness) / 2.),
+                                   tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::South],
+                                   tpc_envelope, false, PHG4TPCDefs::South, OverlapCheck());
 
   cout << "south copy no: " << tpc_gas_phys->GetCopyNo() << endl;
   activevols.insert(tpc_gas_phys);
 
-
 #if G4VERSION_NUMBER >= 1033
-  const G4RegionStore* theRegionStore = G4RegionStore::GetInstance();
+  const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
   G4Region *tpcregion = theRegionStore->GetRegion("REGION_TPCGAS");
   tpc_gas_logic->SetRegion(tpcregion);
   tpcregion->AddRootLogicalVolume(tpc_gas_logic);
@@ -202,7 +199,7 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
     name.str("");
     int layerno = i + 1;
     name << "tpc_cage_layer_" << layerno;
-    G4VSolid *tpc_cage_layer = new G4Tubs(name.str().c_str(), tpc_cage_radius, tpc_cage_radius + thickness[i], params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
+    G4VSolid *tpc_cage_layer = new G4Tubs(name.str(), tpc_cage_radius, tpc_cage_radius + thickness[i], params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
     G4LogicalVolume *tpc_cage_layer_logic = new G4LogicalVolume(tpc_cage_layer,
                                                                 G4Material::GetMaterial(material[i]),
                                                                 name.str());
@@ -225,10 +222,10 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
     name.str("");
     int layerno = 10 + 1 + i;  // so the accompanying inner layer is layer - 10
     name << "tpc_cage_layer_" << layerno;
-    G4VSolid *tpc_cage_layer = new G4Tubs(name.str().c_str(), tpc_cage_radius, tpc_cage_radius + thickness[i], params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
+    G4VSolid *tpc_cage_layer = new G4Tubs(name.str(), tpc_cage_radius, tpc_cage_radius + thickness[i], params->get_double_param("tpc_length") * cm / 2., 0., 2 * M_PI);
     G4LogicalVolume *tpc_cage_layer_logic = new G4LogicalVolume(tpc_cage_layer,
                                                                 G4Material::GetMaterial(material[i]),
-                                                                name.str().c_str());
+                                                                name.str());
     G4VisAttributes *visatt = new G4VisAttributes();
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);

@@ -22,7 +22,7 @@ class SvtxClusterMap;
 class PHG4TruthPatRec: public SubsysReco {
 public:
 
-//	enum DetectorType {MIE, MAPS_TPC, MAPS_IT_TPC, LADDER_MAPS_TPC, LADDER_MAPS_IT_TPC, LADDER_MAPS_LADDER_IT_TPC, MAPS_LADDER_IT_TPC};
+//	enum DetectorType {MIE, MVTX_TPC, MVTX_IT_TPC, LADDER_MVTX_TPC, LADDER_MVTX_IT_TPC, LADDER_MVTX_LADDER_IT_TPC, MVTX_LADDER_IT_TPC};
 
 	//! Default constructor
 	PHG4TruthPatRec(const std::string &name = "PHG4TruthPatRec");
@@ -47,12 +47,12 @@ public:
 //		_use_ladder_intt = useLadderIntt;
 //	}
 //
-//	bool is_use_ladder_maps() const {
-//		return _use_ladder_maps;
+//	bool is_use_ladder_mvtx() const {
+//		return _use_ladder_mvtx;
 //	}
 //
-//	void set_use_ladder_maps(bool useLadderMaps) {
-//		_use_ladder_maps = useLadderMaps;
+//	void set_use_ladder_mvtx(bool useLadderMvtx) {
+//		_use_ladder_mvtx = useLadderMvtx;
 //	}
 
 //
@@ -72,7 +72,7 @@ private:
 	//!Detector Type
 //	DetectorType _detector_type;
 
-//	bool _use_ladder_maps;
+//	bool _use_ladder_mvtx;
 //	bool _use_ladder_intt;
 
 

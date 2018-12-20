@@ -5,9 +5,10 @@
  */
 
 #include "PHG4GenFitTrackProjection.h"
-#include "SvtxTrackMap.h"
-#include "SvtxTrack.h"
 #include "PHG4HoughTransform.h"
+
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
 
 #include <phgenfit/Fitter.h>
 #include <phgenfit/PlanarMeasurement.h>

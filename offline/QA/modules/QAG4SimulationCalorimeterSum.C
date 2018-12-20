@@ -24,7 +24,8 @@
 #include <g4eval/SvtxEvalStack.h>
 
 #include <g4hough/PHG4HoughTransform.h>
-#include <g4hough/SvtxTrack.h>
+
+#include <trackbase_historic/SvtxTrack.h>
 
 #include <TString.h>
 #include <TFile.h>

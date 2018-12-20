@@ -52,20 +52,20 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     // create hit list
-    PHG4HitContainer *block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer *block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
 
     block_hits->AddLayer(GetLayer());
     PHG4BlockGeomContainer *geocont = findNode::getClass<PHG4BlockGeomContainer>(topNode,
-                                                                                 geonode.str().c_str());
+                                                                                 geonode.str());
     if (!geocont)
     {
       geocont = new PHG4BlockGeomContainer();
       PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geocont, geonode.str().c_str(), "PHObject");
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geocont, geonode.str(), "PHObject");
       runNode->addNode(newNode);
     }
 

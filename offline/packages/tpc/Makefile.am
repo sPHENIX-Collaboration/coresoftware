@@ -1,9 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libtpc.la \
-  libtpc_io.la
-
+  libtpc_io.la \
+  libtpc.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -18,12 +17,16 @@ AM_LDFLAGS = \
 # sources for tpc library
 libtpc_la_SOURCES = \
   TpcDefs.cc \
-  TpcDefs_Dict.cc 
+  TpcDefs_Dict.cc \
+  TPCClusterizer.cc \
+  TPCClusterizer_Dict.cc 
 
 libtpc_la_LIBADD = \
+  libtpc_io.la \
   -lfun4all \
-  -ltrack_util \
-  -ltrack_io
+  -lg4detectors \
+  -lSpectrum \
+  -lg4tpc
 
 # sources for io library
 libtpc_io_la_SOURCES = \
@@ -31,11 +34,11 @@ libtpc_io_la_SOURCES = \
   TpcHit_Dict.cc
 
 libtpc_io_la_LIBADD = \
-  libtpc.la \
   -lfun4all \
   -ltrack_util \
-  -ltrack_io 
-
+  -ltrack_io \
+  -lg4detectors_io \
+  -ltrackbase_historic_io
 
 
 # Rule for generating table CINT dictionaries.
@@ -48,9 +51,8 @@ libtpc_io_la_LIBADD = \
 
 pkginclude_HEADERS = \
   TpcDefs.h \
-  TpcHit.h
-
-
+  TpcHit.h \
+  TPCClusterizer.h
 
 ################################################
 # linking tests

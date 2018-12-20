@@ -34,10 +34,10 @@
 #include <phgenfit/Fitter.h>
 //#include <phgenfit/Measurement.h>
 
-// g4hough includes
-#include "SvtxTrackState.h"
-//#include <g4main/PHG4Particle.h>
+// trackbase_historic includes
+#include <trackbase_historic/SvtxTrackState.h>
 
+//#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 

@@ -1,8 +1,8 @@
 #include "MomentumEvaluator.h"
 
 
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>

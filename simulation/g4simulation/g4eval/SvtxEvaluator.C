@@ -8,14 +8,14 @@
 #include <phool/PHTimeServer.h>
 #include <phool/PHTimer.h>
 
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertex.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHit.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
@@ -2565,9 +2565,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	     ++iter) {
 	  PHG4Hit* g4hit = *iter;
 	  unsigned int layer = g4hit->get_layer();
-	  if (layer < 0)
+	  if (layer >= _nlayers_maps+_nlayers_intt+_nlayers_tpc)
 	  {
-	    cout << PHWHERE << " skipping negative detector id " << layer << endl;
+	    cout << PHWHERE << " skipping out of bounds detector id " << layer << endl;
 	    continue;
 	  }
 	  xval[layer] = g4hit->get_avg_x();

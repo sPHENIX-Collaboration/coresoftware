@@ -10,27 +10,31 @@ using namespace std;
 ClassImp(PHG4Showerv1);
 
 PHG4Showerv1::PHG4Showerv1()
-    : _id(0xFFFFFFFF),
-      _parent_particle_id(0),
-      _parent_shower_id(0),
-      _pos(),
-      _covar(),
-      _edep(),
-      _eion(),
-      _light_yield(),
-      _eh_ratio(),
-      _g4particle_ids(),
-      _g4hit_ids() {
+  : _id(0xFFFFFFFF)
+  , _parent_particle_id(0)
+  , _parent_shower_id(0)
+  , _pos()
+  , _covar()
+  , _edep()
+  , _eion()
+  , _light_yield()
+  , _eh_ratio()
+  , _g4particle_ids()
+  , _g4hit_ids()
+{
   for (int i = 0; i < 3; ++i) _pos[i] = NAN;
 
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
+  for (int j = 0; j < 3; ++j)
+  {
+    for (int i = j; i < 3; ++i)
+    {
       set_covar(i, j, NAN);
     }
   }
 }
 
-void PHG4Showerv1::identify(ostream &os) const {
+void PHG4Showerv1::identify(ostream &os) const
+{
   os << "---PHG4Showerv1-------------------------------" << endl;
   os << "id: " << get_id() << endl;
   os << "parent_particle_id: " << get_parent_particle_id() << endl;
@@ -54,7 +58,8 @@ void PHG4Showerv1::identify(ostream &os) const {
 
   os << "VOLUME ID : edep eion light_yield" << endl;
   for (std::map<int, float>::const_iterator iter = _edep.begin();
-       iter != _edep.end(); ++iter) {
+       iter != _edep.end(); ++iter)
+  {
     int volid = iter->first;
     os << volid << " : " << get_edep(volid) << " " << get_eion(volid) << " "
        << get_light_yield(volid) << endl;
@@ -62,7 +67,8 @@ void PHG4Showerv1::identify(ostream &os) const {
 
   os << "G4Particle IDs" << endl;
   for (std::set<int>::const_iterator iter = _g4particle_ids.begin();
-       iter != _g4particle_ids.end(); ++iter) {
+       iter != _g4particle_ids.end(); ++iter)
+  {
     os << *iter << " ";
   }
   os << endl;
@@ -70,10 +76,12 @@ void PHG4Showerv1::identify(ostream &os) const {
   os << "G4Hit IDs" << endl;
   for (std::map<int, std::set<PHG4HitDefs::keytype> >::const_iterator iter =
            _g4hit_ids.begin();
-       iter != _g4hit_ids.end(); ++iter) {
+       iter != _g4hit_ids.end(); ++iter)
+  {
     for (std::set<PHG4HitDefs::keytype>::const_iterator jter =
              iter->second.begin();
-         jter != iter->second.end(); ++jter) {
+         jter != iter->second.end(); ++jter)
+    {
       os << *jter << " ";
     }
   }
@@ -84,15 +92,19 @@ void PHG4Showerv1::identify(ostream &os) const {
   return;
 }
 
-int PHG4Showerv1::isValid() const {
+int PHG4Showerv1::isValid() const
+{
   if (_id == 0)
     return 0;
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; ++i)
+  {
     if (isnan(_pos[i]))
       return 0;
   }
-  for (int j = 0; j < 3; ++j) {
-    for (int i = j; i < 3; ++i) {
+  for (int j = 0; j < 3; ++j)
+  {
+    for (int i = j; i < 3; ++i)
+    {
       if (isnan(get_covar(i, j)))
         return 0;
     }
@@ -100,22 +112,26 @@ int PHG4Showerv1::isValid() const {
   return 1;
 }
 
-void PHG4Showerv1::set_covar(unsigned int i, unsigned int j, float value) {
+void PHG4Showerv1::set_covar(unsigned int i, unsigned int j, float value)
+{
   _covar[covar_index(i, j)] = value;
   return;
 }
 
-float PHG4Showerv1::get_covar(unsigned int i, unsigned int j) const {
+float PHG4Showerv1::get_covar(unsigned int i, unsigned int j) const
+{
   return _covar[covar_index(i, j)];
 }
 
-unsigned int PHG4Showerv1::covar_index(unsigned int i, unsigned int j) const {
+unsigned int PHG4Showerv1::covar_index(unsigned int i, unsigned int j) const
+{
   if (i > j)
     std::swap(i, j);
   return i + 1 + (j + 1) * (j) / 2 - 1;
 }
 
-unsigned int PHG4Showerv1::get_nhits(int volume) const {
+unsigned int PHG4Showerv1::get_nhits(int volume) const
+{
   std::map<int, unsigned int>::const_iterator citer =
       _nhits.find(volume);
   if (citer == _nhits.end())
@@ -123,7 +139,8 @@ unsigned int PHG4Showerv1::get_nhits(int volume) const {
   return citer->second;
 }
 
-float PHG4Showerv1::get_edep(int volume) const {
+float PHG4Showerv1::get_edep(int volume) const
+{
   std::map<int, float>::const_iterator citer =
       _edep.find(volume);
   if (citer == _edep.end())
@@ -131,7 +148,18 @@ float PHG4Showerv1::get_edep(int volume) const {
   return citer->second;
 }
 
-float PHG4Showerv1::get_eion(int volume) const {
+double PHG4Showerv1::get_edep() const
+{
+  double sum = 0;
+  for (const auto &iter : _edep)
+  {
+    sum += iter.second;
+  }
+  return sum;
+}
+
+float PHG4Showerv1::get_eion(int volume) const
+{
   std::map<int, float>::const_iterator citer =
       _eion.find(volume);
   if (citer == _eion.end())
@@ -139,7 +167,18 @@ float PHG4Showerv1::get_eion(int volume) const {
   return citer->second;
 }
 
-float PHG4Showerv1::get_light_yield(int volume) const {
+double PHG4Showerv1::get_eion() const
+{
+  double sum = 0;
+  for (const auto &iter : _eion)
+  {
+    sum += iter.second;
+  }
+  return sum;
+}
+
+float PHG4Showerv1::get_light_yield(int volume) const
+{
   std::map<int, float>::const_iterator citer =
       _light_yield.find(volume);
   if (citer == _light_yield.end())
@@ -147,7 +186,8 @@ float PHG4Showerv1::get_light_yield(int volume) const {
   return citer->second;
 }
 
-float PHG4Showerv1::get_eh_ratio(int volume) const {
+float PHG4Showerv1::get_eh_ratio(int volume) const
+{
   std::map<int, float>::const_iterator citer =
       _eh_ratio.find(volume);
   if (citer == _eh_ratio.end())

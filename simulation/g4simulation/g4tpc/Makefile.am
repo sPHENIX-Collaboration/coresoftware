@@ -8,11 +8,15 @@ AM_CPPFLAGS = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(G4_MAIN)/include \
-    -I$(ROOTSYS)/include
+    -I$(ROOTSYS)/include \
+    -I$(OPT_SPHENIX)/include
 
 AM_LDFLAGS = \
     -L$(libdir) \
     -L$(OFFLINE_MAIN)/lib
+
+libg4tpc_la_LIBADD = \
+  -lg4detectors_io
 
 libg4tpc_la_LIBADD = \
   libg4tpc_io.la \
@@ -20,14 +24,18 @@ libg4tpc_la_LIBADD = \
   -lg4testbench \
   -lphg4hit \
   -lg4detectors \
-  -lphparameter
+  -lphparameter \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   PHG4CellTPCv1.h \
   PHG4TPCElectronDrift.h \
   PHG4TPCPadPlane.h \
   PHG4TPCPadPlaneReadout.h \
-  PHG4TPCSubsystem.h
+  PHG4TPCDigitizer.h \
+  PHG4TPCSubsystem.h \
+  PHG4TPCDistortion.h \
+  PHG4TPCSpaceChargeDistortion.h
 
 
 libg4tpc_la_SOURCES = \
@@ -41,8 +49,14 @@ libg4tpc_la_SOURCES = \
   PHG4TPCPadPlaneReadout.cc \
   PHG4TPCPadPlaneReadout_Dict.cc \
   PHG4TPCSteppingAction.cc \
+  PHG4TPCDigitizer.cc \
+  PHG4TPCDigitizer_Dict.cc \
   PHG4TPCSubsystem.cc \
-  PHG4TPCSubsystem_Dict.cc
+  PHG4TPCSubsystem_Dict.cc \
+  PHG4TPCDistortion.cc \
+  PHG4TPCDistortion_Dict.cc\
+  PHG4TPCSpaceChargeDistortion.cc \
+  PHG4TPCSpaceChargeDistortion_Dict.cc 
 
 libg4tpc_io_la_SOURCES = \
   PHG4CellTPCv1.cc \
