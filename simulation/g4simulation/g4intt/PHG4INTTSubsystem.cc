@@ -144,15 +144,15 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
   // We define default ladder types for 8 layers, but these can be changed at the macro level
 
-  int laddertype[8] = {PHG4INTTDefs::SEGMENTATION_Z, 
-		       PHG4INTTDefs::SEGMENTATION_Z, 
-		       PHG4INTTDefs::SEGMENTATION_PHI,
-		       PHG4INTTDefs::SEGMENTATION_PHI,
-		       PHG4INTTDefs::SEGMENTATION_PHI,
-		       PHG4INTTDefs::SEGMENTATION_PHI,
-		       PHG4INTTDefs::SEGMENTATION_PHI,
-		       PHG4INTTDefs::SEGMENTATION_PHI};  // default
-  int nladder[8] = {17,  17, 15, 15, 18, 18, 21, 21};  // default
+  int laddertype[8] = {PHG4INTTDefs::SEGMENTATION_Z,
+                       PHG4INTTDefs::SEGMENTATION_Z,
+                       PHG4INTTDefs::SEGMENTATION_PHI,
+                       PHG4INTTDefs::SEGMENTATION_PHI,
+                       PHG4INTTDefs::SEGMENTATION_PHI,
+                       PHG4INTTDefs::SEGMENTATION_PHI,
+                       PHG4INTTDefs::SEGMENTATION_PHI,
+                       PHG4INTTDefs::SEGMENTATION_PHI};                                    // default
+  int nladder[8] = {17, 17, 15, 15, 18, 18, 21, 21};                                       // default
   double sensor_radius[8] = {6.876, 7.462, 8.987, 9.545, 10.835, 11.361, 12.676, 13.179};  // radius of center of sensor for layer default
 
   auto detid = GetDetIds();  // get pair of iterators to begin/end of set<int> of detids
@@ -226,25 +226,25 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
     set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
 
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius",6.385);
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_length",96);
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius",6.4);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.385);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_length", 96);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.4);
 
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness",0.18);
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius",4.8);
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_length",42.);
-    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_skin_thickness",0.01);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness", 0.18);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius", 4.8);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_length", 42.);
+    set_default_double_param(SUPPORTPARAMS, "mvtx_shell_skin_thickness", 0.01);
 
-    set_default_double_param(SUPPORTPARAMS, "rail_dphi",60.); // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_dphi", 60.);  // deg
     set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
-    set_default_double_param(SUPPORTPARAMS, "rail_length", 410); // tpc length
+    set_default_double_param(SUPPORTPARAMS, "rail_length", 410);  // tpc length
     set_default_double_param(SUPPORTPARAMS, "rail_outer_radius", 0.6);
-    set_default_double_param(SUPPORTPARAMS, "rail_phi_start",30.); // deg
-    set_default_double_param(SUPPORTPARAMS, "rail_radius",17.5);
+    set_default_double_param(SUPPORTPARAMS, "rail_phi_start", 30.);  // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_radius", 17.5);
 
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius",15.7);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius",15.8);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_length",96);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius", 15.7);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius", 15.8);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_length", 96);
   }
 
   return;

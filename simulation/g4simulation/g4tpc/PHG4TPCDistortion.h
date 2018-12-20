@@ -1,4 +1,4 @@
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHG4TPCDistortion.h
@@ -23,12 +23,10 @@
  */
 class PHG4TPCDistortion
 {
-public:
-  explicit
-  PHG4TPCDistortion(int verbose = 0);
+ public:
+  explicit PHG4TPCDistortion(int verbose = 0);
 
-  virtual
-  ~PHG4TPCDistortion();
+  virtual ~PHG4TPCDistortion();
 
   //! radial distortion for a given truth location of the primary ionization
   virtual double
@@ -56,7 +54,7 @@ public:
     return verbosity;
   }
 
-protected:
+ protected:
   //! The verbosity level. 0 means not verbose at all.
   int verbosity;
 
@@ -64,7 +62,6 @@ protected:
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
 #endif
-
 };
 
 #endif /* PHG4TPCDISTORTION_H_ */

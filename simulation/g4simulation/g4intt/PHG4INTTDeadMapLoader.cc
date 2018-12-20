@@ -143,7 +143,7 @@ int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
           if (Verbosity())
           {
             cout << "add INTT dead channel ladder_phi" << ladder_phi << " ladder_z" << ladder_z
-                <<" strip_z" << strip_z<<" strip_phi"<<strip_phi;
+                 << " strip_z" << strip_z << " strip_phi" << strip_phi;
           }
         }  // if (*tokeniter == "INTT")
         else

@@ -20,10 +20,10 @@ class PHCompositeNode;
 class TH1;
 class TNtuple;
 
-class  PHG4TPCElectronDrift: public SubsysReco, public PHParameterInterface
+class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
 {
-public:
-  PHG4TPCElectronDrift(const std::string& name = "PHG4TPCElectronDrift");
+ public:
+  PHG4TPCElectronDrift(const std::string &name = "PHG4TPCElectronDrift");
   virtual ~PHG4TPCElectronDrift();
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -32,15 +32,15 @@ public:
 
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) {detector = d;}
-  std::string Detector() const {return detector;}
+  void Detector(const std::string &d) { detector = d; }
+  std::string Detector() const { return detector; }
   void set_seed(const unsigned int iseed);
-//  void Amplify(const double x, const double y, const double z);
-  void MapToPadPlane(const double x, const double y, const double z,  PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
-//void registerPadPlane(PHG4TPCPadPlaneReadout *padplane);
-void registerPadPlane(PHG4TPCPadPlane *padplane);
+  //  void Amplify(const double x, const double y, const double z);
+  void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
+  //void registerPadPlane(PHG4TPCPadPlaneReadout *padplane);
+  void registerPadPlane(PHG4TPCPadPlane *padplane);
 
-private:
+ private:
   PHG4CellContainer *g4cells;
   TH1 *dlong;
   TH1 *dtrans;
@@ -63,12 +63,12 @@ private:
   double max_active_radius;
   double min_time;
   double max_time;
-//PHG4TPCPadPlaneReadout *padplane;
-PHG4TPCPadPlane *padplane;
+  //PHG4TPCPadPlaneReadout *padplane;
+  PHG4TPCPadPlane *padplane;
 
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif
 };
 
-#endif // G4TPC_PHG4TPCELECTRONDRIFT_H
+#endif  // G4TPC_PHG4TPCELECTRONDRIFT_H

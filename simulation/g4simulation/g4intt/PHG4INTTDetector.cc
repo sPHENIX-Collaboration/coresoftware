@@ -26,10 +26,10 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-#include <cmath>
 #include <array>
 #include <boost/foreach.hpp>
 #include <boost/format.hpp>
+#include <cmath>
 
 using namespace std;
 
@@ -134,8 +134,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
     {
       cout << "Constructing INTT layer: " << endl;
       cout << "  layer " << inttlayer << " laddertype " << laddertype << " nladders_layer " << nladders_layer
-	   << " sensor_radius " << m_SensorRadius[inttlayer]  << " offsetphi " << offsetphi << " rad " << " offsetphi " << offsetphi * rad/deg << " deg " 
-	   << endl;
+           << " sensor_radius " << m_SensorRadius[inttlayer] << " offsetphi " << offsetphi << " rad "
+           << " offsetphi " << offsetphi * rad / deg << " deg "
+           << endl;
     }
     // We loop over inner, then outer, sensors, where  itype specifies the inner or outer sensor
     // The rest of this loop will construct and put in place a section of a ladder corresponding to the Z range of this sensor only
@@ -309,7 +310,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
         exit(1);
       }
       cell_length_z = strip_z * nstrips_z_sensor / ncopy;
-      offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. + fphx_offset_z : -2. * cell_length_z / 2. * double(ncopy / 2) + fphx_offset_z ;
+      offsetz = (ncopy % 2 == 0) ? -2. * cell_length_z / 2. * double(ncopy / 2) + cell_length_z / 2. + fphx_offset_z : -2. * cell_length_z / 2. * double(ncopy / 2) + fphx_offset_z;
       G4VPVParameterisation *fphxparam = new PHG4INTTFPHXParameterisation(offsetx, +offsety, offsetz, 2. * cell_length_z / 2., ncopy);
       new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(),
                             fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
@@ -621,18 +622,18 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
         for (int i = 0; i < 8; i++)
         {
-// initially this was ivol = i; if (ivol > 3) ivol = i -4;
-// but that triggered a false positive in coverity
-// this should make it happy and reduce the noise in the coverity reports
-          int ivol; 
+          // initially this was ivol = i; if (ivol > 3) ivol = i -4;
+          // but that triggered a false positive in coverity
+          // this should make it happy and reduce the noise in the coverity reports
+          int ivol;
           if (i > 3)
-	  {
+          {
             ivol = i - 4;
-	  }
-	  else
-	  {
-	    ivol = i;
-	  }
+          }
+          else
+          {
+            ivol = i;
+          }
           new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_volume[ivol], (boost::format("stave_curve_%d_%d_%d") % inttlayer % itype % i).str(), stave_volume, false, 0, OverlapCheck());
           new G4PVPlacement(0, G4ThreeVector(x_off_curve[i], y_off_curve[i], 0.0), stave_curve_ext_volume[ivol], (boost::format("stave_curve_ext_%d_%d_%s") % inttlayer % itype % i).str(), staveext_volume, false, 0, OverlapCheck());
         }
@@ -698,10 +699,10 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       new G4PVPlacement(0, G4ThreeVector(TVhdi_copper_x, TVstave_y, 0.0), hdiext_copper_volume, (boost::format("hdiextcopper_%d_%s") % inttlayer % itype).str(), ladderext_volume, false, 0, OverlapCheck());
 
       // Si-sensor
-      double TVSi_y = 0.0;  
+      double TVSi_y = 0.0;
       // sensor is not centered in y in the ladder volume for the Z sensitive ladders
       if (laddertype == PHG4INTTDefs::SEGMENTATION_Z)
-	TVSi_y = +sensor_offset_y;
+        TVSi_y = +sensor_offset_y;
       const double TVSi_x = TVhdi_copper_x - hdi_copper_x / 2. - siactive_x / 2.;
       new G4PVPlacement(0, G4ThreeVector(TVSi_x, TVSi_y, 0.0), siinactive_volume,
                         (boost::format("siinactive_%d_%d") % inttlayer % itype).str(), ladder_volume, false, 0, OverlapCheck());
@@ -712,7 +713,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       const double TVfphx_x = TVhdi_copper_x - hdi_copper_x / 2. - fphx_x / 2.;
       double TVfphx_y = sifull_y / 2. + gap_sensor_fphx + fphx_y / 2.;
       if (laddertype == PHG4INTTDefs::SEGMENTATION_Z)
-	TVfphx_y -= sensor_offset_y;
+        TVfphx_y -= sensor_offset_y;
       // laddertype PHG4INTTDefs::SEGMENTATION_Z has only one FPHX, laddertype PHG4INTTDefs::SEGMENTATION_PHI has two
       if (laddertype == PHG4INTTDefs::SEGMENTATION_PHI)
       {
@@ -743,32 +744,32 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
       for (int icopy = 0; icopy < nladders_layer; icopy++)
       {
-	// sensor center
+        // sensor center
         const double phi = offsetphi + dphi * icopy;  // if offsetphi is zero we start at zero
 
         double radius;
-	// Make each layer at a single radius - i.e. what was formerly a sub-layer is now considered a layer
-	radius = m_SensorRadius[inttlayer];
+        // Make each layer at a single radius - i.e. what was formerly a sub-layer is now considered a layer
+        radius = m_SensorRadius[inttlayer];
         radius += sensor_offset_x_ladder;
 
-	double p = 0.0;
-	if (laddertype == PHG4INTTDefs::SEGMENTATION_Z)
-	  {
-	    // The Z sensitive ladders have the sensors offset in y relative to the ladder center
-	    // We have to slightly rotate the ladder in its own frame to make the radial vector to the sensor center normal to the sensor face
-	    p = atan(sensor_offset_y / radius);
-	    // then we adjust the distance to the center of the ladder to put the sensor at the requested distance from the center of the barrel
-	    radius /= cos(p);
-	  }
+        double p = 0.0;
+        if (laddertype == PHG4INTTDefs::SEGMENTATION_Z)
+        {
+          // The Z sensitive ladders have the sensors offset in y relative to the ladder center
+          // We have to slightly rotate the ladder in its own frame to make the radial vector to the sensor center normal to the sensor face
+          p = atan(sensor_offset_y / radius);
+          // then we adjust the distance to the center of the ladder to put the sensor at the requested distance from the center of the barrel
+          radius /= cos(p);
+        }
 
-	// these describe the center of the ladder volume, placing it so that the center of the sensor is at phi = dphi * icopy, and at the correct radius
+        // these describe the center of the ladder volume, placing it so that the center of the sensor is at phi = dphi * icopy, and at the correct radius
         const double posx = radius * cos(phi - p);
         const double posy = radius * sin(phi - p);
-        const double fRotate = p + (phi-p) + offsetrot;  // rotate in its own frame to make sensor perp to radial vector (p), then additionally rotate to account for ladder phi
+        const double fRotate = p + (phi - p) + offsetrot;  // rotate in its own frame to make sensor perp to radial vector (p), then additionally rotate to account for ladder phi
         G4RotationMatrix ladderrotation;
         ladderrotation.rotateZ(fRotate);
 
-	// this placement version rotates the ladder in its own frame by fRotate, then translates the center to posx, posy, +/- m_PosZ
+        // this placement version rotates the ladder in its own frame by fRotate, then translates the center to posx, posy, +/- m_PosZ
         auto pointer_negz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -m_PosZ[inttlayer][itype])), ladder_volume,
                                               (boost::format("ladder_%d_%d_%d_negz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         auto pointer_posz = new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, +m_PosZ[inttlayer][itype])), ladder_volume,
@@ -779,8 +780,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
           m_ActiveVolumeTuple.insert(make_pair(pointer_posz, make_tuple(inttlayer, itype, icopy, 1)));
         }
 
-	// The net effect of the above manipulations for the Z sensitive ladders is that the center of the sensor is at dphi * icopy and at the requested radius
-	// That us all that the geometry object needs to know, so no changes to that are necessary
+        // The net effect of the above manipulations for the Z sensitive ladders is that the center of the sensor is at dphi * icopy and at the requested radius
+        // That us all that the geometry object needs to know, so no changes to that are necessary
 
         if (itype != 0)
         {
@@ -793,11 +794,11 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
                             (boost::format("ladderext_%d_%d_%d_posz") % inttlayer % itype % icopy).str(), trackerenvelope, false, 0, OverlapCheck());
         }
 
-	if (Verbosity() > 100)
-	  cout << "   Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype] 
-	       << " fRotate " << fRotate << " posx " << posx << " posy " << posy 
-	       << endl;
-		
+        if (Verbosity() > 100)
+          cout << "   Ladder copy " << icopy << " radius " << radius << " phi " << phi << " itype " << itype << " posz " << m_PosZ[inttlayer][itype]
+               << " fRotate " << fRotate << " posx " << posx << " posy " << posy
+               << endl;
+
       }  // end loop over ladder copy placement in phi and positive and negative Z
     }    // end loop over inner or outer sensor
   }      // end loop over layers
@@ -818,9 +819,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
   // rails
   G4Tubs *rail_tube = new G4Tubs((boost::format("si_support_rail")).str(),
-				 supportparams->get_double_param("rail_inner_radius")*cm,
-				 supportparams->get_double_param("rail_outer_radius")*cm,
-				 supportparams->get_double_param("rail_length")*cm / 2.0,
+                                 supportparams->get_double_param("rail_inner_radius") * cm,
+                                 supportparams->get_double_param("rail_outer_radius") * cm,
+                                 supportparams->get_double_param("rail_length") * cm / 2.0,
                                  -M_PI, 2.0 * M_PI);
   G4LogicalVolume *rail_volume = new G4LogicalVolume(rail_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                      "rail_volume", 0, 0, 0);
@@ -834,9 +835,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   rail_vis.SetColour(G4Colour::Cyan());
   rail_volume->SetVisAttributes(rail_vis);
 
-  double rail_dphi = supportparams->get_double_param("rail_dphi")*deg/rad;
-  double rail_phi_start = supportparams->get_double_param("rail_phi_start")*deg/rad;
-  double rail_radius = supportparams->get_double_param("rail_radius")*cm;
+  double rail_dphi = supportparams->get_double_param("rail_dphi") * deg / rad;
+  double rail_phi_start = supportparams->get_double_param("rail_phi_start") * deg / rad;
+  double rail_radius = supportparams->get_double_param("rail_radius") * cm;
   for (int i = 0; i < 6; i++)
   {
     double phi = rail_phi_start + i * rail_dphi;
@@ -852,10 +853,10 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   // Outer skin
 
   G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
-				       supportparams->get_double_param("outer_skin_inner_radius")*cm,
-				       supportparams->get_double_param("outer_skin_outer_radius")*cm,
-				       supportparams->get_double_param("outer_skin_length")*cm/2.,
-				       -M_PI, 2.0 * M_PI);
+                                       supportparams->get_double_param("outer_skin_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
   G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "outer_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -869,10 +870,10 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   // Inner skin
 
   G4Tubs *inner_skin_tube = new G4Tubs("si_inner_skin",
-				       supportparams->get_double_param("inner_skin_inner_radius")*cm,
-				       supportparams->get_double_param("inner_skin_outer_radius")*cm,
-				       supportparams->get_double_param("inner_skin_length")*cm/2.,
-				       -M_PI, 2.0 * M_PI);
+                                       supportparams->get_double_param("inner_skin_inner_radius") * cm,
+                                       supportparams->get_double_param("inner_skin_outer_radius") * cm,
+                                       supportparams->get_double_param("inner_skin_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
   G4LogicalVolume *inner_skin_volume = new G4LogicalVolume(inner_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
                                                            "inner_skin_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
@@ -887,11 +888,11 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   // Add an outer shell for the MVTX - move this to the MVTX detector module
   //=======================================================
   // A Rohacell foam sandwich made of 0.1 mm thick CFRP skin and 1.8 mm Rohacell 110 foam core, it has a density of 110 kg/m**3.
-  double skin_thickness = supportparams->get_double_param("mvtx_shell_skin_thickness")*cm;
-  double foam_core_thickness = supportparams->get_double_param("mvtx_shell_foam_core_thickness")*cm;
-  double mvtx_shell_length = supportparams->get_double_param("mvtx_shell_length")*cm;
+  double skin_thickness = supportparams->get_double_param("mvtx_shell_skin_thickness") * cm;
+  double foam_core_thickness = supportparams->get_double_param("mvtx_shell_foam_core_thickness") * cm;
+  double mvtx_shell_length = supportparams->get_double_param("mvtx_shell_length") * cm;
 
-  double mvtx_shell_inner_skin_inner_radius = supportparams->get_double_param("mvtx_shell_inner_skin_inner_radius")*cm;
+  double mvtx_shell_inner_skin_inner_radius = supportparams->get_double_param("mvtx_shell_inner_skin_inner_radius") * cm;
 
   double mvtx_shell_foam_core_inner_radius = mvtx_shell_inner_skin_inner_radius + skin_thickness;
   double mvtx_shell_outer_skin_inner_radius = mvtx_shell_foam_core_inner_radius + foam_core_thickness;
@@ -971,8 +972,8 @@ void PHG4INTTDetector::AddGeometryNode()
           m_PosZ[ilayer][1] / cm,
           m_SensorRadius[ilayer] / cm,
           0.0,
-          params_layer->get_double_param("offsetphi") * deg/rad,    // expects radians
-          params_layer->get_double_param("offsetrot") * deg/rad );   
+          params_layer->get_double_param("offsetphi") * deg / rad,  // expects radians
+          params_layer->get_double_param("offsetrot") * deg / rad);
       geo->AddLayerGeom(sphxlayer, mygeom);
       if (Verbosity() > 0)
       {

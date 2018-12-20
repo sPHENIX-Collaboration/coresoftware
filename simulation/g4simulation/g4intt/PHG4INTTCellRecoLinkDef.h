@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class PHG4INTTCellReco-!;
+#pragma link C++ class PHG4INTTCellReco - !;
 
 #endif /* __CINT__ */
