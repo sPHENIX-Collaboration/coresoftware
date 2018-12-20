@@ -60,9 +60,9 @@ int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 	      *fout << "get_etabin: " << PHG4CellDefs::EtaXsizeBinning::get_etabin(celler->second->get_cellid()) << endl;
 	      *fout << "get_xsizebin: " << PHG4CellDefs::EtaXsizeBinning::get_xsizebin(celler->second->get_cellid()) << endl;
 	    }
-	  else if (celler->second->has_binning(PHG4CellDefs::mapsbinning))
+	  else if (celler->second->has_binning(PHG4CellDefs::mvtxbinning))
 	    {
-	      *fout << "get_index: " << PHG4CellDefs::MapsBinning::get_index(celler->second->get_cellid()) << endl;
+	      *fout << "get_index: " << PHG4CellDefs::MVTXBinning::get_index(celler->second->get_cellid()) << endl;
 	    }
 	  else if (celler->second->has_binning(PHG4CellDefs::tpcbinning))
 	    {

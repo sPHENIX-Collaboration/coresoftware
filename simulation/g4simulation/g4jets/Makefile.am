@@ -30,6 +30,7 @@ libg4jets_la_LIBADD = \
   -lCGAL \
   -lfastjet \
   -lphhepmc_io \
+  -ltrackbase_historic_io \
   libg4jets_io.la
 
 pkginclude_HEADERS = \

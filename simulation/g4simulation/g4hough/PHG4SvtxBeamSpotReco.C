@@ -1,7 +1,8 @@
 #include "PHG4SvtxBeamSpotReco.h"
 #include "SvtxBeamSpot.h"
-#include "SvtxVertexMap.h"
-#include "SvtxVertex.h"
+
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>

@@ -1,9 +1,9 @@
 #include "PHG4TrackGhostRejection.h"
 
-#include "SvtxVertexMap.h"
-#include "SvtxVertex.h"
-#include "SvtxTrackMap.h"
-#include "SvtxTrack.h"
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
