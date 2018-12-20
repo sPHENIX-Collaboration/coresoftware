@@ -23,17 +23,17 @@
  */
 class TpcHit : public TrkrHit
 {
-public:
+ public:
   //! ctor
   TpcHit();
   //! dtor
-  virtual ~TpcHit() {};
+  virtual ~TpcHit(){};
 
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
   virtual int isValid() const;
-  
+
   /**
    * @brief Set the ADC information
    * @param[in] adc ADC value
@@ -46,9 +46,9 @@ public:
    */
   short getAdc() const { return m_adc; }
 
-private:
+ private:
   short m_adc;
-  ClassDef(TpcHit,1);
+  ClassDef(TpcHit, 1);
 };
 
-#endif //TPC_TPCHIT_H
+#endif  //TPC_TPCHIT_H
