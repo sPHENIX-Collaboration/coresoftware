@@ -34,7 +34,7 @@ InttDefs::getSensorId(TrkrDefs::cluskey key)
   return getSensorId(tmp);
 }
 
-TrkrDefs::hitkey 
+TrkrDefs::hitkey
 InttDefs::genHitKey(const uint32_t strip)
 {
   TrkrDefs::hitkey key = strip;
