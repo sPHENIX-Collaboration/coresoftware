@@ -1,19 +1,18 @@
 #include "PHG4HoughTransform.h"
 
-#include "SvtxTrackState.h"
 
-// g4hough includes
-#include "SvtxVertexMap.h"
-#include "SvtxVertexMap_v1.h"
-#include "SvtxVertex.h"
-#include "SvtxVertex_v1.h"
-#include "SvtxTrackMap.h"
-#include "SvtxTrackMap_v1.h"
-#include "SvtxTrack.h"
-#include "SvtxTrack_v1.h"
-#include "SvtxTrackState.h"
-#include "SvtxClusterMap.h"
-#include "SvtxCluster.h"
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -472,22 +471,22 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
           topNode, "CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer* laddergeos =
       findNode::getClass<PHG4CylinderGeomContainer>(
-          topNode, "CYLINDERGEOM_SILICON_TRACKER");
-  PHG4CylinderGeomContainer* mapsladdergeos =
+          topNode, "CYLINDERGEOM_INTT");
+  PHG4CylinderGeomContainer* mvtxladdergeos =
       findNode::getClass<PHG4CylinderGeomContainer>(
-          topNode, "CYLINDERGEOM_MAPS");
+          topNode, "CYLINDERGEOM_MVTX");
 
-  if (cellgeos || laddergeos || mapsladdergeos) {
+  if (cellgeos || laddergeos || mvtxladdergeos) {
     unsigned int ncelllayers = 0;
     if (cellgeos) ncelllayers += cellgeos->get_NLayers();
     unsigned int nladderlayers = 0;
     if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-    unsigned int nmapsladderlayers = 0;
-    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
-    _nlayers = ncelllayers + nladderlayers + nmapsladderlayers;
+    unsigned int nmvtxladderlayers = 0;
+    if (mvtxladdergeos) nmvtxladderlayers += mvtxladdergeos->get_NLayers();
+    _nlayers = ncelllayers + nladderlayers + nmvtxladderlayers;
   } else {
     cerr << PHWHERE
-         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
+         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_INTT or CYLINDERGEOM_MVTX"
             "available, bail"
          << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
@@ -528,8 +527,8 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
-  if (mapsladdergeos) {
-    PHG4CylinderGeomContainer::ConstRange layerrange = mapsladdergeos->get_begin_end();
+  if (mvtxladdergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange = mvtxladdergeos->get_begin_end();
     for(PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
 	layeriter != layerrange.second;
 	++layeriter) {
@@ -574,8 +573,8 @@ int PHG4HoughTransform::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
-  if (mapsladdergeos) {    
-    PHG4CylinderGeomContainer::ConstRange begin_end = mapsladdergeos->get_begin_end();
+  if (mvtxladdergeos) {    
+    PHG4CylinderGeomContainer::ConstRange begin_end = mvtxladdergeos->get_begin_end();
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
     for( ; miter != begin_end.second; miter++) {
       PHG4CylinderGeom *geo = miter->second;

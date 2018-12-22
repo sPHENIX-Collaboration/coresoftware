@@ -27,8 +27,9 @@
 
 #include "Cluster3D.h"
 
+#include <trackbase_historic/SvtxTrackState.h>
+
 // g4hough includes 
-#include "SvtxTrackState.h"
 #include "HelixHoughSpace_v1.h"
 #include "HelixHoughFuncs_v1.h"
 #include "HelixHoughBin_v1.h"

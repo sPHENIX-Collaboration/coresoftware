@@ -2,17 +2,6 @@
 #define SVTXTRACKEVAL_H__
 
 #include "SvtxClusterEval.h"
-/*
-#include "SvtxHitEval.h"
-#include "SvtxTruthEval.h"
-
-#include <phool/PHCompositeNode.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-*/
 
 #include <set>
 #include <map>

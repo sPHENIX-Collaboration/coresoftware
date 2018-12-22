@@ -7,8 +7,8 @@
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
