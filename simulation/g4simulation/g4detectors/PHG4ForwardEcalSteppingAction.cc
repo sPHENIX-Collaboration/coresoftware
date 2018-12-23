@@ -79,9 +79,9 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
   int idx_k = -1;
   int idx_l = -1;
 
-  if (whichactive > 0) // in sctintillator
+  if (whichactive > 0) // in scintillator
     {
-      /* Find indizes of sctintillator / tower containing this step */
+      /* Find indices of scintillator / tower containing this step */
       FindTowerIndex(touch, idx_j, idx_k);
       tower_id = touch->GetCopyNumber();
     }
@@ -318,9 +318,16 @@ int
 PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
 {
         int j_0, k_0;           //The j and k indices for the scintillator / tower
+	
+	// The volume hierarchy is different for the E864-style FEMC, 
+	// with the fibers embedded in the absorber.  Check this first, 
+	// but maintain compatability with older FEMC versions. 
 
-        G4VPhysicalVolume* tower = touch->GetVolume(1);		//Get the tower solid
-	ParseG4VolumeName(tower, j_0, k_0);
+        G4VPhysicalVolume* tower = touch->GetVolume(2);		//Get the tower solid
+	if(!ParseG4VolumeName(tower, j_0, k_0)){
+	  tower = touch->GetVolume(1);
+	  ParseG4VolumeName(tower, j_0, k_0); 
+	}
 
         j = (j_0*1);
         k = (k_0*1);
@@ -334,6 +341,10 @@ PHG4ForwardEcalSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int
 	boost::char_separator<char> sep("_");
 	boost::tokenizer<boost::char_separator<char> > tok(volume->GetName(), sep);
 	boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
+
+	bool j_found = false; 
+	bool k_found = false;
+
 	for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
 	{
 		if (*tokeniter == "j")
@@ -341,14 +352,20 @@ PHG4ForwardEcalSteppingAction::ParseG4VolumeName( G4VPhysicalVolume* volume, int
 			++tokeniter;
 			if ( tokeniter == tok.end()) break;
 			j = boost::lexical_cast<int>(*tokeniter);
+			j_found = true; 
 		}
 		else if (*tokeniter == "k")
 		{
 			++tokeniter;
-      if ( tokeniter == tok.end()) break;
+			if ( tokeniter == tok.end()) break;
 			k = boost::lexical_cast<int>(*tokeniter);
+			k_found = true; 
 		}
 	}
 
-	return 0;
+	if(j_found && k_found) 
+	  return 1;
+	else
+	  return 0; 
+
 }
