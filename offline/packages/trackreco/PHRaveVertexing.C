@@ -6,17 +6,17 @@
  */
 
 #include "PHRaveVertexing.h"
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxTrackState_v1.h>
-#include <g4hough/SvtxHit_v1.h>
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxTrack_v1.h>
-#include <g4hough/SvtxVertex_v1.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrackMap_v1.h>
-#include <g4hough/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>

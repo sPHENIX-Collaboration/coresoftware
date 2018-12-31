@@ -1,8 +1,8 @@
 #include "PHInitVertexing.h"
 
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxVertexMap_v1.h>
-#include <g4hough/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>

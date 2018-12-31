@@ -58,7 +58,7 @@ libtrack_reco_la_LIBADD = \
   -lgenfit2exp \
   -lPHGenFit \
   -lg4bbc_io \
-  -lg4hough_io \
+  -ltrackbase_historic \
   -lphparameter
   
 # Rule for generating table CINT dictionaries.

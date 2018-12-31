@@ -1,11 +1,11 @@
 /*!
- *  \file PHKalmanTrkProp.C
+ *  \file PHHoughAllInOne.C
  *  \brief Progressive pattern recgnition based on GenFit Kalman filter
  *  \detail using Alan Dion's HelixHough for seeding, GenFit Kalman filter to do track propagation
  *  \author Christof Roland & Haiwang Yu
  */
 
-#include "PHKalmanTrkProp.h"
+#include "PHHoughAllInOne.h"
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -117,7 +117,7 @@ ofstream fout_kalman_pull("kalman_pull.txt");
 ofstream fout_chi2("chi2.txt");
 #endif
 
-PHKalmanTrkProp::PHKalmanTrkProp(
+PHHoughAllInOne::PHHoughAllInOne(
 		const string& name,
 		unsigned int nlayers_maps,
 		unsigned int nlayers_intt,
@@ -183,9 +183,9 @@ PHKalmanTrkProp::PHKalmanTrkProp(
       _tracker_etam_seed(NULL),
       _vertexFinder(),
       _bbc_vertexes(NULL),
-      _g4clusters(NULL),
-      _g4tracks(NULL),
-      _g4vertexes(NULL),
+      _cluster_map(NULL),
+      _track_map(NULL),
+      _vertex_map(NULL),
       _svtxhitsmap(nullptr),
       _hit_used_map(NULL),
       _cells_svtx(nullptr),
@@ -312,7 +312,21 @@ PHKalmanTrkProp::PHKalmanTrkProp(
 	_vertex_error.assign(3, 0.0100);
 }
 
-int PHKalmanTrkProp::Init(PHCompositeNode* topNode) {
+int PHHoughAllInOne::Setup(PHCompositeNode* topNode) {
+
+	// Start new interface ----
+	int ret = Fun4AllReturnCodes::ABORTRUN;
+
+	ret = PHTrackSeeding::Setup(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+	ret = CreateNodes(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+	ret = GetNodes(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+	// End new interface ----
+
 	if(_analyzing_mode){
 	  cout << "Ana Mode, creating ntuples! " << endl;
 	  _analyzing_file = new TFile("./PatRecAnalysis.root","RECREATE");
@@ -321,10 +335,6 @@ int PHKalmanTrkProp::Init(PHCompositeNode* topNode) {
 	  cout << "Done" << endl;
 	  
 	}
-	return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHKalmanTrkProp::InitRun(PHCompositeNode* topNode) {
 
 	int code = Fun4AllReturnCodes::ABORTRUN;
 
@@ -362,35 +372,6 @@ int PHKalmanTrkProp::InitRun(PHCompositeNode* topNode) {
 		_search_wins_theta.insert(std::make_pair(layer, _search_win_theta));
 		_max_incr_chi2s.insert(std::make_pair(layer, _max_incr_chi2));
 	}
-
-	// nightly build 2017-05-04
-	//	_search_wins_phi[8]  = 50.;
-	//	_search_wins_phi[9]  = 45.;
-	//	_search_wins_phi[10] = 40.;
-//	_search_wins_phi[11] = 30.;
-//	_search_wins_phi[12] = 30.;
-//	_search_wins_phi[13] = 30.;
-//	_search_wins_phi[14] = 30.;
-//	_search_wins_phi[15] = 30.;
-//	_search_wins_phi[16] = 30.;
-//	_search_wins_phi[17] = 30.;
-//	_search_wins_phi[18] = 30.;
-//	_search_wins_phi[19] = 30.;
-//	_search_wins_phi[20] = 30.;
-//
-//	_max_incr_chi2s[8]  = _max_incr_chi2s[8] < 1000. ? 1000 : _max_incr_chi2s[8];
-//	_max_incr_chi2s[9]  = _max_incr_chi2s[9] < 500.  ? 500  : _max_incr_chi2s[9];
-//	_max_incr_chi2s[10] = _max_incr_chi2s[10]< 500.  ? 500  : _max_incr_chi2s[10];
-//	_max_incr_chi2s[11] = _max_incr_chi2s[11]< 200.  ? 200  : _max_incr_chi2s[11];
-//	_max_incr_chi2s[12] = _max_incr_chi2s[12]< 200.  ? 200  : _max_incr_chi2s[12];
-//	_max_incr_chi2s[13] = _max_incr_chi2s[13]< 100.  ? 100  : _max_incr_chi2s[13];
-//	_max_incr_chi2s[14] = _max_incr_chi2s[14]< 100.  ? 100  : _max_incr_chi2s[14];
-//	_max_incr_chi2s[15] = _max_incr_chi2s[15]< 100.  ? 100  : _max_incr_chi2s[15];
-//	_max_incr_chi2s[16] = _max_incr_chi2s[16]< 100.  ? 100  : _max_incr_chi2s[16];
-//	_max_incr_chi2s[17] = _max_incr_chi2s[17]< 100.  ? 100  : _max_incr_chi2s[17];
-//	_max_incr_chi2s[18] = _max_incr_chi2s[18]< 50.   ? 50   : _max_incr_chi2s[18];
-//	_max_incr_chi2s[19] = _max_incr_chi2s[19]< 50.   ? 50   : _max_incr_chi2s[19];
-//	_max_incr_chi2s[20] = _max_incr_chi2s[20]< 50.   ? 50   : _max_incr_chi2s[20];
 
 #ifdef _DEBUG_
 	for(int layer = 0; layer < _nlayers_all; ++layer) {
@@ -454,7 +435,7 @@ int PHKalmanTrkProp::InitRun(PHCompositeNode* topNode) {
 
 	if (Verbosity() > 0) {
 		cout
-				<< "====================== PHKalmanTrkProp::InitRun() ======================"
+				<< "====================== PHHoughAllInOne::InitRun() ======================"
 				<< endl;
 		cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
 		cout << " Number of tracking layers: " << _nlayers_seeding << endl;
@@ -495,10 +476,10 @@ int PHKalmanTrkProp::InitRun(PHCompositeNode* topNode) {
 	return code;
 }
 
-int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
+int PHHoughAllInOne::Process() {
 
   if (Verbosity() > 0){
-	  cout << "PHKalmanTrkProp::process_event -- entered" << endl;
+	  cout << "PHHoughAllInOne::process_event -- entered" << endl;
 	  cout << "nMapsLayers = " << _nlayers_maps << endl;
 	  cout << "nInttLayers = " << _nlayers_intt << endl;
 	  cout << "nTPCLayers = " << _nlayers_tpc << endl;
@@ -515,11 +496,6 @@ int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
 
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
-	//-----------------------------------
-	// Get Objects off of the Node Tree
-	//-----------------------------------
-
-	GetNodes(topNode);// Allocate Cluster Use Map allocated in here
 	
 	for(_n_iteration = 1;_n_iteration<=_n_max_iterations;_n_iteration++){
 	  _tracks.clear();
@@ -543,10 +519,10 @@ int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
 	    set_min_nlayers_seeding(min_layers);
 	    _min_combo_hits = min_layers;
 	    _max_combo_hits = nlayers_seeds;
-	    code = InitializeGeometry(topNode);
+//	    code = InitializeGeometry(topNode);
+//	    if(code != Fun4AllReturnCodes::EVENT_OK)
+//	      return code;
 	    if(Verbosity() >= 1) _t_seed_init1->restart();
-	    if(code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
 	  }
 	  
 	  if(_n_iteration==2){
@@ -577,11 +553,10 @@ int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
 	    set_min_nlayers_seeding(min_layers);
 	    _min_combo_hits = min_layers;
 	    _max_combo_hits = nlayers_seeds;
-	    code = InitializeGeometry(topNode);
+//	    code = InitializeGeometry(topNode);
+//	    if(code != Fun4AllReturnCodes::EVENT_OK)
+//	      return code;
 	    if(Verbosity() >= 1) _t_seed_init2->restart();
-
-	    if(code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
 	  }
 	  if(_n_iteration==3){
 	    int min_layers    = 4;
@@ -608,10 +583,10 @@ int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
 	    _min_combo_hits = min_layers;
 	    _max_combo_hits = nlayers_seeds;
 
-	    code = InitializeGeometry(topNode);
+//	    code = InitializeGeometry(topNode);
+//	    if(code != Fun4AllReturnCodes::EVENT_OK)
+//	      return code;
 	    if(Verbosity() >= 1) _t_seed_init3->restart();
-	    if(code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
 	  }
 
 	  if(Verbosity() >= 1)
@@ -625,30 +600,19 @@ int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
 	  
 	  code = translate_input();//Check if cluster is already used in here
 	  if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-	  
+
 	  //-----------------------------------
-	  // Guess a vertex position
+	  // Obtain initial vertex from SvtxVtxMap[0]
 	  //-----------------------------------
-	  
-	  //	code = fast_vertex_guessing();
-	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
-	  // here expect vertex to be better than +/-2.0 cm
-	  
-	  //-----------------------------------
-	  // Find an initial vertex with tracks
-	  //-----------------------------------
-	  
-	  //	code = initial_vertex_finding();
-	  //	if (code != Fun4AllReturnCodes::EVENT_OK) return code;
 	  if(_n_iteration ==1){
-	    code = vertexing(topNode);
+	    code = vertexing();
 	    if (code != Fun4AllReturnCodes::EVENT_OK) return code;
 	    // here expect vertex to be better than +/- 500 um
 	  }
+
 	  //-----------------------------------
-	  // Seeding
+	  // Seeding - Alan's Hough Tracking with selected layers
 	  //-----------------------------------
-	  //TODO simplify this function
 	  code = full_track_seeding();
 	  if (code != Fun4AllReturnCodes::EVENT_OK)
 	    return code;
@@ -661,40 +625,34 @@ int PHKalmanTrkProp::process_event(PHCompositeNode *topNode) {
 	  if(Verbosity() >= 1) _t_kalman_pat_rec->restart();
 	  
 	  //-----------------------------------
-	  // Kalman cluster association
+	  // Kalman track propagating
 	  //-----------------------------------
 	  if (!_seeding_only_mode) {
-	    code = FullTrackFitting(topNode);
+	    code = KalmanTrkProp();
 	    if (code != Fun4AllReturnCodes::EVENT_OK)
 	      return code;
 	  }
 	  if(Verbosity() >= 1) _t_kalman_pat_rec->stop();
 	  
-	  //-----------------------------------
-	  // Translate back into SVTX objects
-	  //-----------------------------------
-	  
-	  //	  add_tracks();
-	  
 	  if(Verbosity() > 1) print_timers();
-	  
-	  
 	}
+
 	//	CleanupTracksByHitPattern();
-       
-	if(!_seeding_only_mode)
-	  code = ExportOutput();
-	else
-	  code = export_output();
+
+  //-----------------------------------
+  // Alan's exportation
+  //-----------------------------------
+	if(_seeding_only_mode) code = export_output();
 	if (code != Fun4AllReturnCodes::EVENT_OK)
 	  return code;
+
 	++_event;
 	
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 
-void PHKalmanTrkProp::print_timers() {
+void PHHoughAllInOne::print_timers() {
   
   std::cout << "=============== Timers: ===============" << std::endl;
   std::cout << "CPUSCALE Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -717,7 +675,7 @@ void PHKalmanTrkProp::print_timers() {
 
 }
 
-int PHKalmanTrkProp::End(PHCompositeNode *topNode) {
+int PHHoughAllInOne::End() {
 
 	if (_do_evt_display)
 		_fitter->displayEvent();
@@ -765,261 +723,16 @@ int PHKalmanTrkProp::End(PHCompositeNode *topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHKalmanTrkProp::projectToRadius(const SvtxTrack* track, double B,
-		double radius, std::vector<double>& intersection) {
-	intersection.clear();
-	intersection.assign(3, NAN);
 
-	// start from the inner most state vector
-	const SvtxTrackState* state = track->get_state(0.0);
-	projectToRadius(state, track->get_charge(), B, radius, intersection);
-
-	// iterate once to see if there is a state vector closer to the intersection
-	if (track->size_states() == 1)
-		return;
-
-	const SvtxTrackState* closest = NULL;
-	float min_dist = FLT_MAX;
-	for (SvtxTrack::ConstStateIter iter = track->begin_states();
-			iter != track->end_states(); ++iter) {
-		const SvtxTrackState* candidate = iter->second;
-		float dist = sqrt(
-				pow(candidate->get_x() - intersection[0], 2)
-						+ pow(candidate->get_y() - intersection[1], 2)
-						+ pow(candidate->get_z() - intersection[2], 2));
-
-		if (dist < min_dist) {
-			closest = candidate;
-			min_dist = dist;
-		}
-	}
-
-	// if we just got back the previous case, bail
-	if (closest->get_pathlength() == 0.0)
-		return;
-
-	// recompute using the closer state vector
-	projectToRadius(closest, track->get_charge(), B, radius, intersection);
-
-	return;
-}
-
-void PHKalmanTrkProp::projectToRadius(const SvtxTrackState* state, int charge,
-		double B, double radius, std::vector<double>& intersection) {
-	intersection.clear();
-	intersection.assign(3, NAN);
-
-	// find 2d intersections in x,y plane
-	std::set<std::vector<double> > intersections;
-	if (B != 0.0) {
-		// magentic field present, project track as a circle leaving the state position
-
-		// compute the center of rotation and the helix parameters
-		// x(u) = r*cos(q*u+cphi) + cx
-		// y(u) = r*sin(q*u+cphi) + cy
-		// z(u) = b*u + posz;
-
-		double cr = state->get_pt() * 333.6 / B;          // radius of curvature
-		double cx = state->get_x()
-				- (state->get_py() * cr) / charge / state->get_pt(); // center of rotation, x
-		double cy = (state->get_px() * cr) / charge / state->get_pt()
-				+ state->get_y(); // center of rotation, y
-		double cphi = atan2(state->get_y() - cy, state->get_x() - cx); // phase of state position
-		double b = state->get_pz() / state->get_pt() * cr;      // pitch along z
-
-		if (!circle_circle_intersections(0.0, 0.0, radius, cx, cy, cr,
-				&intersections)) {
-			return;
-		}
-
-		if (intersections.empty())
-			return;
-
-		// downselect solutions based on track direction
-		// we want the solution where the state vector would exit the cylinder
-		// this can be determined by the direction that the track circulates in
-
-		// rotate the px,py to the postion of the solution
-		// then ask if the dot product of the displacement vector between the solution
-		// and the cylinder center with the rotated momentum vector is positive
-		std::set<std::vector<double> >::iterator remove_iter =
-				intersections.end();
-		double intersection_z = 0.0;
-		for (std::set<std::vector<double> >::iterator iter =
-				intersections.begin(); iter != intersections.end(); ++iter) {
-			double x = iter->at(0);
-			double y = iter->at(1);
-
-			// find the azimuthal rotation about the center of rotation between the state vector and the solution
-
-			// displacement between center of rotation and solution
-			double dx = x - cx;
-			double dy = y - cy;
-			double dphi = atan2(dy, dx);
-
-			// displacement between center of rotation and state position
-			double state_dx = state->get_x() - cx;
-			double state_dy = state->get_y() - cy;
-			double state_dphi = atan2(state_dy, state_dx);
-
-			// relative rotation angle
-			double rotphi = (dphi - state_dphi);
-
-			// rotated momentum at the solution
-			double rotpx = cos(rotphi) * state->get_px()
-					- sin(rotphi) * state->get_py();
-			double rotpy = sin(rotphi) * state->get_px()
-					+ cos(rotphi) * state->get_py();
-
-			// assumes cylinder is centered at 0,0
-			double dot = rotpx * x + rotpy * y;
-
-			// our solution will have a momentum vector leaving the cylinder surface
-			if (dot >= 0.0) {
-				// find the solution for z
-				double u = (dphi - cphi) / charge;
-
-				// look only along the projection (not backward)
-				if (u > 2.0 * M_PI) {
-					u = u - 2.0 * M_PI;
-				} else if (u < 0.0) {
-					u = u + 2.0 * M_PI;
-				}
-
-				intersection_z = b * u + state->get_z();
-			} else {
-				remove_iter = iter;
-			}
-		}
-
-		if (remove_iter != intersections.end()) {
-			intersections.erase(remove_iter);
-		}
-
-		if (intersections.empty())
-			return;
-
-		intersection[0] = intersections.begin()->at(0);
-		intersection[1] = intersections.begin()->at(1);
-		intersection[2] = intersection_z;
-
-		return;
-
-	} else {
-		// no magnetic field project track as a line
-
-		circle_line_intersections(0.0, 0.0, radius, state->get_x(),
-				state->get_y(), state->get_px(), state->get_py(),
-				&intersections);
-
-		if (intersections.empty())
-			return;
-
-		// downselect solutions based on track direction
-		// we want the solution where the state vector would point outward
-		// since the track doesn't bend this will be the solution where
-		// the dot product of the displacement between the solution and the cylinder center
-		// and the momentum vector is positive
-		std::set<std::vector<double> >::iterator remove_iter =
-				intersections.end();
-		double intersection_z = 0.0;
-		for (std::set<std::vector<double> >::iterator iter =
-				intersections.begin(); iter != intersections.end(); ++iter) {
-			double x = iter->at(0);
-			double y = iter->at(1);
-
-			// assumes cylinder is centered at 0,0
-			double dot = state->get_px() * x + state->get_py() * y;
-			if (dot >= 0.0) {
-
-				// x(u) = px*u + x1
-				// y(u) = py*u + y1
-				// z(u) = pz*u + z1
-
-				double u = NAN;
-				if (state->get_px() != 0) {
-					u = (intersection[0] - state->get_x()) / state->get_px();
-				} else if (state->get_py() != 0) {
-					u = (intersection[1] - state->get_y()) / state->get_py();
-				}
-
-				intersection_z = state->get_pz() * u + state->get_z();
-			} else {
-				remove_iter = iter;
-			}
-		}
-
-		if (remove_iter != intersections.end()) {
-			intersections.erase(remove_iter);
-		}
-
-		if (intersections.empty())
-			return;
-
-		intersection[0] = intersections.begin()->at(0);
-		intersection[1] = intersections.begin()->at(1);
-		intersection[2] = intersection_z;
-
-		return;
-	}
-
-	return;
-}
-
-void PHKalmanTrkProp::set_material(int layer, float value) {
+void PHHoughAllInOne::set_material(int layer, float value) {
 	_user_material[layer] = value;
 }
 
-int PHKalmanTrkProp::CreateNodes(PHCompositeNode* topNode) {
-	// create nodes...
-	PHNodeIterator iter(topNode);
-
-	PHCompositeNode* dstNode = static_cast<PHCompositeNode*>(iter.findFirst(
-			"PHCompositeNode", "DST"));
-	if (!dstNode) {
-		cerr << PHWHERE << "DST Node missing, doing nothing." << endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
-	}
-	PHNodeIterator iter_dst(dstNode);
-
-	// Create the SVTX node
-	PHCompositeNode* tb_node =
-			dynamic_cast<PHCompositeNode*>(iter_dst.findFirst("PHCompositeNode",
-					"SVTX"));
-	if (!tb_node) {
-		tb_node = new PHCompositeNode("SVTX");
-		dstNode->addNode(tb_node);
-		if (Verbosity() > 0)
-			cout << "SVTX node added" << endl;
-	}
-
-	_g4tracks = new SvtxTrackMap_v1;
-	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_g4tracks,
-			"SvtxTrackMap", "PHObject");
-	tb_node->addNode(tracks_node);
-	if (Verbosity() > 0)
-		cout << "Svtx/SvtxTrackMap node added" << endl;
-
-	_g4vertexes = new SvtxVertexMap_v1;
-	PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-			_g4vertexes, "SvtxVertexMap", "PHObject");
-	tb_node->addNode(vertexes_node);
-	if (Verbosity() > 0)
-		cout << "Svtx/SvtxVertexMap node added" << endl;
-
-	/*
-	 PHG4CylinderGeomContainer* geoms =
-	 findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SVTX");
-	 if (!geoms) {
-	 cerr << PHWHERE << " ERROR: Can't find CYLINDERGEOM_SVTX Node." << endl;
-	 return Fun4AllReturnCodes::ABORTEVENT;
-	 }
-	 */
-
+int PHHoughAllInOne::CreateNodes(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::InitializeGeometry(PHCompositeNode *topNode) {
+int PHHoughAllInOne::InitializeGeometry(PHCompositeNode *topNode) {
   
   //---------------------------------------------------------
   // Grab Run-Dependent Detector Geometry and Configure Hough
@@ -1231,13 +944,6 @@ int PHKalmanTrkProp::InitializeGeometry(PHCompositeNode *topNode) {
    * Now have to load geometry nodes to get norm vector
    */
   
-  // get node containing the digitized hits
-  _svtxhitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-  if (!_svtxhitsmap) {
-    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  
   _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
 						      "G4CELL_SVTX");
   
@@ -1268,7 +974,7 @@ int PHKalmanTrkProp::InitializeGeometry(PHCompositeNode *topNode) {
 }
 
 
-int PHKalmanTrkProp::InitializePHGenFit(PHCompositeNode* topNode) {
+int PHHoughAllInOne::InitializePHGenFit(PHCompositeNode* topNode) {
 
   TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
 
@@ -1291,7 +997,7 @@ int PHKalmanTrkProp::InitializePHGenFit(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::setup_seed_tracker_objects() {
+int PHHoughAllInOne::setup_seed_tracker_objects() {
 
 	float kappa_max = ptToKappa(_min_pt);
 
@@ -1401,7 +1107,7 @@ int PHKalmanTrkProp::setup_seed_tracker_objects() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::setup_initial_tracker_object() {
+int PHHoughAllInOne::setup_initial_tracker_object() {
 
 	// copy of the final tracker modified to:
 	// expand the DCA search regions (2.0 cm z search > 3 sigma of BBC z vertex
@@ -1481,7 +1187,7 @@ int PHKalmanTrkProp::setup_initial_tracker_object() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::setup_tracker_object() {
+int PHHoughAllInOne::setup_tracker_object() {
 
 	// input vertex must be within 500 um of final
 
@@ -1560,48 +1266,33 @@ int PHKalmanTrkProp::setup_tracker_object() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::GetNodes(PHCompositeNode* topNode) {
+int PHHoughAllInOne::GetNodes(PHCompositeNode* topNode) {
 
 	//---------------------------------
 	// Get Objects off of the Node Tree
 	//---------------------------------
 
-	// Pull the reconstructed track information off the node tree...
+	// used in fast vertexing from BBC
 	_bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
 
-	_g4clusters = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-	if (!_g4clusters) {
-		cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
-	}
+  // get node containing the digitized hits
+  _svtxhitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  if (!_svtxhitsmap) {
+    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
-	if(_hit_used_map_size!=0) delete[] _hit_used_map;
-
-	_hit_used_map_size = static_cast<int>(_g4clusters->size());
-	_hit_used_map = new int[_hit_used_map_size];
-	for (Int_t i=0;i<_hit_used_map_size;i++){
-	  _hit_used_map[i] = 0;
-	}
-
-
-	// Pull the reconstructed track information off the node tree...
-	_g4tracks = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-	if (!_g4tracks) {
-		cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
-	}
-
-	// Pull the reconstructed track information off the node tree...
-	_g4vertexes = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-	if (!_g4vertexes) {
-		cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
-		return Fun4AllReturnCodes::ABORTEVENT;
-	}
+//	if(_hit_used_map_size!=0) delete[] _hit_used_map;
+//	_hit_used_map_size = static_cast<int>(_cluster_map->size());
+//	_hit_used_map = new int[_hit_used_map_size];
+//	for (Int_t i=0;i<_hit_used_map_size;i++){
+//	  _hit_used_map[i] = 0;
+//	}
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::translate_input() {
+int PHHoughAllInOne::translate_input() {
 
   _clusters.clear();
   int count = 0;
@@ -1613,11 +1304,10 @@ int PHKalmanTrkProp::translate_input() {
      nhits[i] = 0;
      nhits_all[i] = 0;
   }
-  for (SvtxClusterMap::Iter iter = _g4clusters->begin();
-       iter != _g4clusters->end(); ++iter) {
-    if(_hit_used_map[iter->first]!=0){
-      continue;
-    }
+  for (SvtxClusterMap::Iter iter = _cluster_map->begin();
+       iter != _cluster_map->end(); ++iter) {
+    //if(_hit_used_map[iter->first]!=0){continue;}
+    if(_assoc_container->GetTracksFromCluster(iter->first).size()>0){continue;}
     count++;
     SvtxCluster* cluster = iter->second;
     nhits_all[cluster->get_layer()]++;
@@ -1691,7 +1381,7 @@ int PHKalmanTrkProp::translate_input() {
       << "-------------------------------------------------------------------"
       << endl;
     cout
-      << "PHKalmanTrkProp::process_event has the following input clusters:"
+      << "PHHoughAllInOne::process_event has the following input clusters:"
       << endl;
     
     for (unsigned int i = 0; i < _clusters.size(); ++i) {
@@ -1715,7 +1405,7 @@ int PHKalmanTrkProp::translate_input() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::fast_vertex_from_bbc() {
+int PHHoughAllInOne::fast_vertex_from_bbc() {
 
 	// fail over to bbc vertex if no tracks were found...
 	if (_bbc_vertexes) {
@@ -1737,7 +1427,7 @@ int PHKalmanTrkProp::fast_vertex_from_bbc() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::fast_vertex_guessing() {
+int PHHoughAllInOne::fast_vertex_guessing() {
 
 	// fast vertex guessing uses two tracker objects
 	// one looks for postive going eta tracks, the other for negative going tracks
@@ -1820,7 +1510,7 @@ int PHKalmanTrkProp::fast_vertex_guessing() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::initial_vertex_finding() {
+int PHHoughAllInOne::initial_vertex_finding() {
 
 	// shift to the guess vertex position
 	// run the tracking pattern recognition, stop after some number of tracks
@@ -1905,34 +1595,25 @@ int PHKalmanTrkProp::initial_vertex_finding() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-//FIXME this is now a simulator
-int PHKalmanTrkProp::vertexing(PHCompositeNode* topNode) {
-	PHG4TruthInfoContainer* g4truth = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
-	PHG4VtxPoint* first_point = g4truth->GetPrimaryVtx(
-			g4truth->GetPrimaryVertexIndex());
+
+int PHHoughAllInOne::vertexing() {
+
+	SvtxVertex * svtx_vtx = _vertex_map->get(0);
 
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
 
-	_vertex[0] = first_point->get_x();
-	_vertex[1] = first_point->get_y();
-	_vertex[2] = first_point->get_z();
+	_vertex[0] = svtx_vtx->get_x();
+	_vertex[1] = svtx_vtx->get_y();
+	_vertex[2] = svtx_vtx->get_z();
 
-#ifndef __CINT__
-	gsl_rng *RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
-	unsigned int seed = PHRandomSeed(); // fixed seed is handled in this funtcion
-//  cout << Name() << " random seed: " << seed << endl;
-	gsl_rng_set(RandomGenerator, seed);
+	_vertex_error[0] = sqrt(svtx_vtx->get_error(0,0));
+	_vertex_error[1] = sqrt(svtx_vtx->get_error(1,2));
+	_vertex_error[2] = sqrt(svtx_vtx->get_error(2,2));
 
-//	_vertex[0] += _vertex_error[0] * gsl_ran_ugaussian(RandomGenerator);
-//	_vertex[1] += _vertex_error[1] * gsl_ran_ugaussian(RandomGenerator);
-//	_vertex[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
-
-	gsl_rng_free(RandomGenerator);
-#endif
 
 	if (Verbosity() > 1) {
-		cout << __LINE__ << " PHKalmanTrkProp::vertexing: {" << _vertex[0]
+		cout << __LINE__ << " PHHoughAllInOne::vertexing: {" << _vertex[0]
 				<< ", " << _vertex[1] << ", " << _vertex[2] << "} +- {"
 				<< _vertex_error[0] << ", " << _vertex_error[1] << ", "
 				<< _vertex_error[2] << "}" << endl;
@@ -1941,7 +1622,7 @@ int PHKalmanTrkProp::vertexing(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::full_track_seeding() {
+int PHHoughAllInOne::full_track_seeding() {
 
 	float shift_dx = -_vertex[0];
 	float shift_dy = -_vertex[1];
@@ -2053,7 +1734,7 @@ int PHKalmanTrkProp::full_track_seeding() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::export_output() {
+int PHHoughAllInOne::export_output() {
 
 	if (_all_tracks.empty())
 		return Fun4AllReturnCodes::EVENT_OK;
@@ -2087,13 +1768,14 @@ int PHKalmanTrkProp::export_output() {
 		track_hits = _all_tracks.at(itrack).hits;
 
 		for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++) {
-			if ((track_hits.at(ihit).get_id()) >= _g4clusters->size()) {
+			if ((track_hits.at(ihit).get_id()) >= _cluster_map->size()) {
 				continue;
 			}
-			SvtxCluster* cluster = _g4clusters->get(
+			SvtxCluster* cluster = _cluster_map->get(
 					track_hits.at(ihit).get_id());
 			//mark hit asu used by iteration number n
-			_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
+			//_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
+			_assoc_container->SetClusterTrackAssoc(track_hits.at(ihit).get_id(), track.get_id());
 			clusterID = cluster->get_id();
 #ifdef _DEBUG_
 			cout
@@ -2175,7 +1857,7 @@ int PHKalmanTrkProp::export_output() {
 		track.set_y(vertex.get_y() + d * sin(phi));
 		track.set_z(vertex.get_z() + z0);
 
-		_g4tracks->insert(&track);
+		_track_map->insert(&track);
 		vertex.insert_track(track.get_id());
 
 		if (Verbosity() > 5) {
@@ -2186,12 +1868,12 @@ int PHKalmanTrkProp::export_output() {
 		}
 	}  // track loop
 
-	SvtxVertex *vtxptr = _g4vertexes->insert(&vertex);
+	SvtxVertex *vtxptr = _vertex_map->insert(&vertex);
 	if (Verbosity() > 5)
 		vtxptr->identify();
 
 	if (Verbosity() > 0) {
-		cout << "PHKalmanTrkProp::process_event -- leaving process_event"
+		cout << "PHHoughAllInOne::process_event -- leaving process_event"
 				<< endl;
 	}
 
@@ -2206,49 +1888,15 @@ int PHKalmanTrkProp::export_output() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::add_tracks() {
-
-	if (_tracks.empty())
-		return Fun4AllReturnCodes::EVENT_OK;
-
-	vector<SimpleHit3D> track_hits;
-
-	//Mark used clusters
-	for (unsigned int itrack = 0; itrack < _tracks.size(); itrack++) {
-	  _all_tracks.push_back(_tracks[itrack]);
-	  _all_track_errors.push_back(_track_errors[itrack]);
-	  _all_track_covars.push_back(_track_covars[itrack]);
-	  
-	  track_hits = _tracks.at(itrack).hits;
-	  
-	  for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++) {
-	    if ((track_hits.at(ihit).get_id()) >= _g4clusters->size()) {
-	      continue;
-	    }
-	    //mark hit as used by iteration number n
-	    _hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
-	  }
-
-	}  // track loop
-
-	// we are done with these now...
-	_clusters.clear();
-	_tracks.clear();
-	_track_errors.clear();
-	_track_covars.clear();
-
-	return Fun4AllReturnCodes::EVENT_OK;
-}
-
-float PHKalmanTrkProp::kappaToPt(float kappa) {
+float PHHoughAllInOne::kappaToPt(float kappa) {
 	return _pt_rescale * _magField / 333.6 / kappa;
 }
 
-float PHKalmanTrkProp::ptToKappa(float pt) {
+float PHHoughAllInOne::ptToKappa(float pt) {
 	return _pt_rescale * _magField / 333.6 / pt;
 }
 
-void PHKalmanTrkProp::convertHelixCovarianceToEuclideanCovariance(float B,
+void PHHoughAllInOne::convertHelixCovarianceToEuclideanCovariance(float B,
 		float phi, float d, float kappa, float z0, float dzdl,
 		Eigen::Matrix<float, 5, 5> const& input,
 		Eigen::Matrix<float, 6, 6>& output) {
@@ -2289,7 +1937,7 @@ void PHKalmanTrkProp::convertHelixCovarianceToEuclideanCovariance(float B,
 	output = J * input * (J.transpose());
 }
 
-void PHKalmanTrkProp::shift_coordinate_system(double dx, double dy,
+void PHHoughAllInOne::shift_coordinate_system(double dx, double dy,
 		double dz) {
 
 	for (unsigned int ht = 0; ht < _clusters.size(); ++ht) {
@@ -2313,60 +1961,7 @@ void PHKalmanTrkProp::shift_coordinate_system(double dx, double dy,
 	return;
 }
 
-bool PHKalmanTrkProp::circle_line_intersections(double x0, double y0,
-		double r0, double x1, double y1, double vx1, double vy1,
-		std::set<std::vector<double> >* points) {
-	// P0: center of rotation
-	// P1: point on line
-	// P2: second point on line
-	// P3: intersections
-
-	// dr: distance between P1 & P2
-	// delta: discriminant on number of solutions
-
-	points->clear();
-
-	double x2 = x1 + vx1;
-	double y2 = y1 + vy1;
-
-	double dr = sqrt(pow(vx1, 2) + pow(vy1, 2));
-	double det = x1 * y2 - x2 * y1;
-
-	double delta = pow(r0, 2) * pow(dr, 2) - pow(det, 2);
-	if (delta < 0)
-		return false;
-
-	double sgn_vy1 = 1.0;
-	if (vy1 < 0.0)
-		sgn_vy1 = -1.0;
-
-	double x3 = (det * vy1
-			+ sgn_vy1 * vx1 * sqrt(pow(r0, 2) * pow(dr, 2) - pow(det, 2)))
-			/ pow(dr, 2);
-	double y3 = (-1.0 * det * vx1
-			+ fabs(vy1) * sqrt(pow(r0, 2) * pow(dr, 2) - pow(det, 2)))
-			/ pow(dr, 2);
-
-	std::vector<double> p3;
-	p3.push_back(x3);
-	p3.push_back(y3);
-	points->insert(p3);
-
-	x3 = (det * vy1
-			- sgn_vy1 * vx1 * sqrt(pow(r0, 2) * pow(dr, 2) - pow(det, 2)))
-			/ pow(dr, 2);
-	y3 = (-1.0 * det * vx1
-			- fabs(vy1) * sqrt(pow(r0, 2) * pow(dr, 2) - pow(det, 2)))
-			/ pow(dr, 2);
-
-	p3[0] = x3;
-	p3[1] = y3;
-	points->insert(p3);
-
-	return true;
-}
-
-int PHKalmanTrkProp::CleanupSeedsByHitPattern() {
+int PHHoughAllInOne::CleanupSeedsByHitPattern() {
 
         std::vector<SimpleTrack3D> _tracks_cleanup;
         _tracks_cleanup.clear();
@@ -2544,7 +2139,7 @@ int PHKalmanTrkProp::CleanupSeedsByHitPattern() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::CleanupTracksByHitPattern() {
+int PHHoughAllInOne::CleanupTracksByHitPattern() {
 
         std::vector<SimpleTrack3D> _tracks_cleanup;
         _tracks_cleanup.clear();
@@ -2723,7 +2318,7 @@ int PHKalmanTrkProp::CleanupTracksByHitPattern() {
 }
 
 
-int PHKalmanTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter){
+int PHHoughAllInOne::check_track_exists(MapPHGenFitTrack::iterator iter){
 	
   
   //Loop over hitIDs on current track and check if they have been used
@@ -2733,7 +2328,8 @@ int PHKalmanTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter){
   const std::vector<unsigned int>& clusterIDs = iter->second->get_cluster_IDs();
   for(unsigned int iCluId = 0; iCluId < clusterIDs.size(); ++iCluId){
     unsigned int cluster_ID = clusterIDs[iCluId];
-    if(_hit_used_map[cluster_ID]>0)n_clu_used++;
+    //if(_hit_used_map[cluster_ID]>0) n_clu_used++;
+    if(_assoc_container->GetTracksFromCluster(cluster_ID).size()>0) n_clu_used++;
   }
   int code = 0;
   if(((float)n_clu_used/n_clu)>0.3){
@@ -2743,8 +2339,8 @@ int PHKalmanTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter){
     for(unsigned int iCluId = 0; iCluId < clusterIDs.size(); ++iCluId){
       unsigned int cluster_ID = clusterIDs[iCluId];
       cout << "#Clu_g = " << iCluId 
-	   << " layer: " << _g4clusters->get(cluster_ID)->get_layer() 
-	   << " r: " << TMath::Sqrt(_g4clusters->get(cluster_ID)->get_x()*_g4clusters->get(cluster_ID)->get_x() +_g4clusters->get(cluster_ID)->get_y()*_g4clusters->get(cluster_ID)->get_y() )
+	   << " layer: " << _cluster_map->get(cluster_ID)->get_layer()
+	   << " r: " << TMath::Sqrt(_cluster_map->get(cluster_ID)->get_x()*_cluster_map->get(cluster_ID)->get_x() +_cluster_map->get(cluster_ID)->get_y()*_cluster_map->get(cluster_ID)->get_y() )
 	   << endl;
     }
     */
@@ -2754,7 +2350,7 @@ int PHKalmanTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter){
   return code;
 }
 
-int PHKalmanTrkProp::CleanupSeeds() {
+int PHHoughAllInOne::CleanupSeeds() {
 
 	std::vector<SimpleTrack3D> _tracks_cleanup;
 	_tracks_cleanup.clear();
@@ -2971,11 +2567,11 @@ int PHKalmanTrkProp::CleanupSeeds() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
+int PHHoughAllInOne::KalmanTrkProp() {
 
 #ifdef _DEBUG_
 	std::cout << "=========================" << std::endl;
-	std::cout << "PHKalmanTrkProp::FullTrackFitting: Start: Event: "<< _event << std::endl;
+	std::cout << "PHHoughAllInOne::KalmanTrkProp: Start: Event: "<< _event << std::endl;
 	std::cout << "Total Raw Tracks: " << _tracks.size() << std::endl;
 	std::cout << "=========================" << std::endl;
 #endif
@@ -2995,7 +2591,7 @@ int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
 		std::cout
 		<< __LINE__
 		<< ": Processing itrack: " << itrack
-		<< ": Total tracks: " << _g4tracks->size()
+		<< ": Total tracks: " << _track_map->size()
 		<<endl;
 #endif
 
@@ -3003,7 +2599,7 @@ int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
 		 * Translate SimpleTrack3D To PHGenFitTracks
 		 */
 		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
-		SimpleTrack3DToPHGenFitTracks(topNode, itrack);
+		SimpleTrack3DToPHGenFitTracks(itrack);
 		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
 
 		/*!
@@ -3028,22 +2624,22 @@ int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
 
 			if(!is_splitting_track) {
 				if(_init_direction == 1) {
-					init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, true);
-					TrackPropPatRec(topNode, iter, init_layer, 0, false);
+					init_layer = _cluster_map->get(clusterIDs.front())->get_layer();
+					TrackPropPatRec(iter, init_layer, _nlayers_all, true);
+					TrackPropPatRec(iter, init_layer, 0, false);
 				} else {
-					init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, 0, true);
-					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+					init_layer = _cluster_map->get(clusterIDs.back())->get_layer();
+					TrackPropPatRec(iter, init_layer, 0, true);
+					TrackPropPatRec(iter, init_layer, _nlayers_all, false);
 				}
 				is_splitting_track = true;
 			} else {
 				if(_init_direction == 1) {
-					init_layer = _g4clusters->get(clusterIDs.front())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, _nlayers_all, false);
+					init_layer = _cluster_map->get(clusterIDs.front())->get_layer();
+					TrackPropPatRec(iter, init_layer, _nlayers_all, false);
 				} else {
-					init_layer = _g4clusters->get(clusterIDs.back())->get_layer();
-					TrackPropPatRec(topNode, iter, init_layer, 0, false);
+					init_layer = _cluster_map->get(clusterIDs.back())->get_layer();
+					TrackPropPatRec(iter, init_layer, 0, false);
 				}
 			}
 
@@ -3093,7 +2689,7 @@ int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
 		
 		int track_exists = check_track_exists(iter);
 		if (iter->second->get_cluster_IDs().size() >= _min_good_track_hits && track_exists) {
-			OutputPHGenFitTrack(topNode, iter);
+			OutputPHGenFitTrack(iter);
 #ifdef _DEBUG_
 			cout << __LINE__ << endl;
 #endif
@@ -3108,8 +2704,8 @@ int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
 	std::cout << "=========================" << std::endl;
-	std::cout << "PHKalmanTrkProp::FullTrackFitting: End: Event: "<< _event << std::endl;
-	std::cout << "Total Final Tracks: " << _g4tracks->size() << std::endl;
+	std::cout << "PHHoughAllInOne::KalmanTrkProp: End: Event: "<< _event << std::endl;
+	std::cout << "Total Final Tracks: " << _track_map->size() << std::endl;
 	std::cout << "=========================" << std::endl;
 #endif
 
@@ -3125,16 +2721,9 @@ int PHKalmanTrkProp::FullTrackFitting(PHCompositeNode* topNode) {
 }
 
 
-int PHKalmanTrkProp::ExportOutput() { return 0;}
+int PHHoughAllInOne::ExportOutput() { return 0;}
 
-int PHKalmanTrkProp::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator iter) {
-  SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode,"SvtxClusterMap");
-//#ifdef _DEBUG_
-//	std::cout << "=========================" << std::endl;
-//	std::cout << "PHKalmanTrkProp::FullTrackFitting: Event: "<< _event << std::endl;
-//	std::cout << "Total Raw Tracks: " << _trackID_PHGenFitTrack.size() << std::endl;
-//	std::cout << "=========================" << std::endl;
-//#endif
+int PHHoughAllInOne::OutputPHGenFitTrack(MapPHGenFitTrack::iterator iter) {
 
 //	for (std::map<int, std::shared_ptr<PHGenFit::Track>>::iterator iter =
 //			_trackID_PHGenFitTrack.begin();
@@ -3143,14 +2732,14 @@ int PHKalmanTrkProp::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTr
 #ifdef _DEBUG_
 		std::cout << "=========================" << std::endl;
 		//std::cout << __LINE__ << ": iPHGenFitTrack: " << iter->first << std::endl;
-		std::cout << __LINE__ << ": _g4tracks->size(): " << _g4tracks->size() << std::endl;
+		std::cout << __LINE__ << ": _track_map->size(): " << _track_map->size() << std::endl;
 		std::cout << "Contains: " << iter->second->get_cluster_IDs().size() << " clusters." <<std::endl;
 		std::cout << "=========================" << std::endl;
 #endif
 
 		SvtxTrack_v1 track;
 		//track.set_id(iter->first);
-		track.set_id(_g4tracks->size());
+		track.set_id(_track_map->size());
 
 #ifdef _DO_FULL_FITTING_
 		if(Verbosity() >= 1) _t_full_fitting->restart();
@@ -3214,7 +2803,7 @@ int PHKalmanTrkProp::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTr
 		     iter != track.end_clusters();
 		     ++iter) {
 		  unsigned int cluster_id = *iter;
-		  SvtxCluster* cluster = clustermap->get(cluster_id);
+		  SvtxCluster* cluster = _cluster_map->get(cluster_id);
 		  unsigned int layer = cluster->get_layer();
 		  if(_nlayers_maps>0&&layer<_nlayers_maps){ 
 		    n_maps++ ;
@@ -3243,13 +2832,14 @@ int PHKalmanTrkProp::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTr
 		if(_n_iteration>=0)
 		  {
 		    for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
-		      _hit_used_map[cluster_ID] = _n_iteration;
+		      //_hit_used_map[cluster_ID] = _n_iteration;
+		    	_assoc_container->SetClusterTrackAssoc(cluster_ID, track.get_id());
 		    }
 		    
-		    _g4tracks->insert(&track);
+		    _track_map->insert(&track);
 		  }
 		if (Verbosity() > 5) {
-			cout << "track " << _g4tracks->size() << " quality = " << track.get_quality()
+			cout << "track " << _track_map->size() << " quality = " << track.get_quality()
 					<< endl;
 			cout << "px = " << track.get_px() << " py = " << track.get_py()
 					<< " pz = " << track.get_pz() << endl;
@@ -3264,7 +2854,7 @@ int PHKalmanTrkProp::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTr
 }
 
 
-int PHKalmanTrkProp::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, unsigned int itrack) {
+int PHHoughAllInOne::SimpleTrack3DToPHGenFitTracks(unsigned int itrack) {
 
 	// clean up working array for each event
 	_PHGenFitTracks.clear();
@@ -3320,8 +2910,8 @@ int PHKalmanTrkProp::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, uns
 	{
 		unsigned int hitID0 = track_hits.front().get_id();
 		unsigned int hitID1 = track_hits.back().get_id();
-		SvtxCluster* cluster0 = _g4clusters->get(hitID0);
-		SvtxCluster* cluster1 = _g4clusters->get(hitID1);
+		SvtxCluster* cluster0 = _cluster_map->get(hitID0);
+		SvtxCluster* cluster1 = _cluster_map->get(hitID1);
 
 		if ((cluster0->get_x() - x_center) * (cluster1->get_y() - y_center)
 				- (cluster0->get_y() - y_center)
@@ -3374,7 +2964,7 @@ int PHKalmanTrkProp::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, uns
 	for (SimpleHit3D hit : track_hits) {
 
 		unsigned int cluster_ID = hit.get_id();
-		SvtxCluster* cluster = _g4clusters->get(cluster_ID);
+		SvtxCluster* cluster = _cluster_map->get(cluster_ID);
 
 		float r = sqrt(
 				cluster->get_x() * cluster->get_x() +
@@ -3405,7 +2995,7 @@ int PHKalmanTrkProp::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, uns
 
 		unsigned int cluster_ID = iter->second;
 
-		SvtxCluster* cluster = _g4clusters->get(cluster_ID);
+		SvtxCluster* cluster = _cluster_map->get(cluster_ID);
 		ml+=cluster->get_layer();
 		if (!cluster) {
 			LogError("No cluster Found!\n");continue;
@@ -3442,7 +3032,7 @@ int PHKalmanTrkProp::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, uns
 	if(nhits > 0 and chi2 > 0 and ndf > 0) {
 		_PHGenFitTracks.push_back(
 				MapPHGenFitTrack::value_type(
-						PHKalmanTrkProp::TrackQuality(nhits, chi2, ndf, nhits, 0, 0), track)
+						PHHoughAllInOne::TrackQuality(nhits, chi2, ndf, nhits, 0, 0), track)
 		);
 	}
 	if(Verbosity() > 1) _t_translate3->stop();
@@ -3458,8 +3048,7 @@ int PHKalmanTrkProp::SimpleTrack3DToPHGenFitTracks(PHCompositeNode* topNode, uns
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHKalmanTrkProp::TrackPropPatRec(
-		PHCompositeNode* topNode,
+int PHHoughAllInOne::TrackPropPatRec(
 		//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
 		MapPHGenFitTrack::iterator &track_iter,
 		unsigned int init_layer, unsigned int end_layer,
@@ -3490,7 +3079,7 @@ int PHKalmanTrkProp::TrackPropPatRec(
 		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
 
 		for (unsigned int i = 0; i < clusterIDs.size(); ++i) {
-			if (_g4clusters->get(clusterIDs[i])->get_layer() == init_layer) {
+			if (_cluster_map->get(clusterIDs[i])->get_layer() == init_layer) {
 				first_extrapolate_base_TP_id = i;
 				break;
 			}
@@ -3551,7 +3140,7 @@ int PHKalmanTrkProp::TrackPropPatRec(
 			<<endl;
 			if(tempIdx>=0 and tempIdx < track->get_cluster_IDs().size()) {
 				unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
-				SvtxCluster* extrapolate_base_cluster = _g4clusters->get(extrapolate_base_cluster_id);
+				SvtxCluster* extrapolate_base_cluster = _cluster_map->get(extrapolate_base_cluster_id);
 				cout
 				<<__LINE__
 				<<": Target layer: { " << layer
@@ -3685,7 +3274,7 @@ int PHKalmanTrkProp::TrackPropPatRec(
 		std::vector<PHGenFit::Measurement*> measurements;
 		for (unsigned int cluster_ID : new_cluster_IDs) {
 			//LogDebug("cluster_ID: ")<<cluster_ID<<endl;
-			SvtxCluster* cluster = _g4clusters->get(cluster_ID);
+			SvtxCluster* cluster = _cluster_map->get(cluster_ID);
 			if (!cluster) {
 				LogError("No cluster Found!\n");
 				continue;
@@ -3713,7 +3302,7 @@ int PHKalmanTrkProp::TrackPropPatRec(
 		cout<<__LINE__<<": incr_chi2s_new_tracks.size(): "<<incr_chi2s_new_tracks.size()<<endl;
 #endif
 		
-		PHKalmanTrkProp::TrackQuality tq(track_iter->first);
+		PHHoughAllInOne::TrackQuality tq(track_iter->first);
 
 		// Update first track candidate
 		if (incr_chi2s_new_tracks.size() > 0) {
@@ -3782,7 +3371,7 @@ int PHKalmanTrkProp::TrackPropPatRec(
 
 				_PHGenFitTracks.push_back(
 						MapPHGenFitTrack::value_type(
-								PHKalmanTrkProp::TrackQuality(
+								PHHoughAllInOne::TrackQuality(
 										tq.nhits + 1,
 										tq.chi2  + iter->first,
 										tq.ndf   + 2,
@@ -3844,7 +3433,7 @@ int PHKalmanTrkProp::TrackPropPatRec(
 	return 0;
 }
 
-PHGenFit::Measurement* PHKalmanTrkProp::SvtxClusterToPHGenFitMeasurement(
+PHGenFit::Measurement* PHHoughAllInOne::SvtxClusterToPHGenFitMeasurement(
 		const SvtxCluster* cluster) {
 
 	if(!cluster) return nullptr;
@@ -3928,13 +3517,13 @@ PHGenFit::Measurement* PHKalmanTrkProp::SvtxClusterToPHGenFitMeasurement(
 	return meas;
 }
 
-int PHKalmanTrkProp::BuildLayerZPhiHitMap() {
+int PHHoughAllInOne::BuildLayerZPhiHitMap() {
 
 	_layer_thetaID_phiID_cluserID.clear();
 
 	//for(SimpleHit3D cluster : _clusters){
-	for (SvtxClusterMap::Iter iter = _g4clusters->begin();
-			iter != _g4clusters->end(); ++iter) {
+	for (SvtxClusterMap::Iter iter = _cluster_map->begin();
+			iter != _cluster_map->end(); ++iter) {
 		SvtxCluster* cluster = iter->second;
 
 		unsigned int layer = cluster->get_layer();
@@ -3980,7 +3569,7 @@ int PHKalmanTrkProp::BuildLayerZPhiHitMap() {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-std::vector<unsigned int> PHKalmanTrkProp::SearchHitsNearBy(const unsigned int layer,
+std::vector<unsigned int> PHHoughAllInOne::SearchHitsNearBy(const unsigned int layer,
 		const float theta_center, const float phi_center, const float theta_window,
 		const float phi_window) {
 
@@ -4029,7 +3618,7 @@ std::vector<unsigned int> PHKalmanTrkProp::SearchHitsNearBy(const unsigned int l
 					++iter) {
 				cluster_IDs.push_back(iter->second);
 #ifdef _DEBUG_
-				SvtxCluster* cluster = _g4clusters->get(iter->second);
+				SvtxCluster* cluster = _cluster_map->get(iter->second);
 				TVector3 v(cluster->get_x()-_vertex[0],cluster->get_y()-_vertex[1],cluster->get_z()-_vertex[2]);
 				float phi_cluster = v.Phi();
 				fout_kalman_pull
@@ -4070,15 +3659,9 @@ std::vector<unsigned int> PHKalmanTrkProp::SearchHitsNearBy(const unsigned int l
 	return cluster_IDs;
 }
 
-//std::shared_ptr<SvtxTrack> PHKalmanTrkProp::MakeSvtxTrack(
-//		const int genfit_track_ID, const SvtxVertex* vertex) {
-//
-//	std::shared_ptr<SvtxTrack> svtxtrack(new SvtxTrack_v1());
-//
-//	return svtxtrack;
-//}
 
-unsigned int PHKalmanTrkProp::encode_cluster_index(const unsigned int layer,
+
+unsigned int PHHoughAllInOne::encode_cluster_index(const unsigned int layer,
 		const float theta, const float phi) {
 
 	unsigned int idx = UINT_MAX;
@@ -4111,27 +3694,7 @@ unsigned int PHKalmanTrkProp::encode_cluster_index(const unsigned int layer,
 	return encode_cluster_index(layer, itheta, irphi);
 }
 
-//unsigned int PHKalmanTrkProp::encode_cluster_index(const unsigned int layer,
-//		const unsigned int iz, const unsigned int irphi) {
-//
-//	std::bitset<7> layer_bits(layer);
-//	std::bitset<11> z_bits(iz);
-//	std::bitset<14> rphi_bits(irphi);
-//	std::bitset<32> idx_bits(0);
-//
-//	for(unsigned int i=0;i<idx_bits.size();++i){
-//		if(i < 14)
-//			idx_bits[i] = rphi_bits[i];
-//		else if(i < 25)
-//			idx_bits[i] = z_bits[i-14];
-//		else
-//			idx_bits[i] = layer_bits[i-25];
-//	}
-//
-//	return (unsigned int) idx_bits.to_ulong();
-//}
-
-unsigned int PHKalmanTrkProp::encode_cluster_index(const unsigned int layer,
+unsigned int PHHoughAllInOne::encode_cluster_index(const unsigned int layer,
 		const unsigned int iz, const unsigned int irphi) {
 
 	if(layer >= 128) {
@@ -4157,57 +3720,3 @@ unsigned int PHKalmanTrkProp::encode_cluster_index(const unsigned int layer,
 
 	return index;
 }
-
-bool PHKalmanTrkProp::circle_circle_intersections(double x0, double y0,
-		double r0, double x1, double y1, double r1,
-		std::set<std::vector<double> >* points) {
-	// P0: center of rotation on first circle
-	// P1: center of rotation of second circle
-	// P2: point between P0 & P1 on radical line
-	// P3: intersection points
-
-	// d: distance between P0 and P1
-	// a: distance between P0 and P2
-	// h: distance from P2 and P3s
-
-	points->clear();
-
-	// distance between two circle centers
-	double d = sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2));
-
-	// handle error conditions
-	if (fabs(r0 + r1) < d)
-		return false; // no solution
-	if (fabs(r0 - r1) > d)
-		return false; // no solution
-	if (d == 0 && r0 == r1)
-		return false; // infinite solutions
-
-	// compute distances to intersection points
-	double a = (pow(r0, 2) - pow(r1, 2) + pow(d, 2)) / (2 * d);
-	double h = sqrt(pow(r0, 2) - pow(a, 2));
-
-	// compute P2
-	double x2 = x0 + a * (x1 - x0) / d;
-	double y2 = y0 + a * (y1 - y0) / d;
-
-	// compute intersection, p3
-	double x3 = x2 + h * (y1 - y0) / d;
-	double y3 = y2 - h * (x1 - x0) / d;
-
-	std::vector<double> p3;
-	p3.push_back(x3);
-	p3.push_back(y3);
-	points->insert(p3);
-
-	// second intersection (if different than first)
-	x3 = x2 - h * (y1 - y0) / d;
-	y3 = y2 + h * (x1 - x0) / d;
-
-	p3[0] = x3;
-	p3[1] = y3;
-	points->insert(p3);
-
-	return points;
-}
-

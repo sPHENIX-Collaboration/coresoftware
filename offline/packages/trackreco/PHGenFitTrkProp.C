@@ -7,20 +7,20 @@
 
 #include "PHGenFitTrkProp.h"
 
-// g4hough includes
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertexMap_v1.h>
-#include <g4hough/SvtxVertex.h>
-#include <g4hough/SvtxVertex_v1.h>
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrackMap_v1.h>
-#include <g4hough/SvtxTrack.h>
-#include <g4hough/SvtxTrack_v1.h>
-#include <g4hough/SvtxTrackState.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxHit_v1.h>
-#include <g4hough/SvtxHitMap.h>
+// trackbase_historic includes
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHitMap.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>

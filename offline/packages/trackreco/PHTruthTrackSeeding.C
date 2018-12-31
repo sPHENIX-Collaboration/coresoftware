@@ -1,14 +1,14 @@
 #include "PHTruthTrackSeeding.h"
 #include "AssocInfoContainer.h"
 
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxVertexMap_v1.h>
-#include <g4hough/SvtxVertexMap.h>
-#include <g4hough/SvtxVertex_v1.h>
-#include <g4hough/SvtxTrackMap_v1.h>
-#include <g4hough/SvtxTrack_FastSim.h>
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit_v1.h>
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
