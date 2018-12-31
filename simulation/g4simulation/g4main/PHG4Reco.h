@@ -1,13 +1,11 @@
-#ifndef PHG4Reco_h
-#define PHG4Reco_h
+#ifndef G4MAIN_PHG4RECO_H
+#define G4MAIN_PHG4RECO_H
 
 #include <g4decayer/EDecayType.hh>
 
 #include <fun4all/SubsysReco.h>
 
 #include <phfield/PHFieldConfig.h>
-
-#include <phool/PHTimeServer.h>
 
 #include <list>
 
@@ -188,8 +186,6 @@ class PHG4Reco : public SubsysReco
   bool save_DST_geometry_;
   bool m_disableUserActions;
 
-  //! module timer.
-  PHTimeServer::timer _timer;
 };
 
 #endif

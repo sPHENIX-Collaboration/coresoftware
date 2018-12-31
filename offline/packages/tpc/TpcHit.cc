@@ -13,23 +13,19 @@ TpcHit::TpcHit()
 {
 }
 
-void 
-TpcHit::identify(std::ostream& os) const
+void TpcHit::identify(std::ostream& os) const
 {
-  os << "TpcHit with adc:" << getAdc() 
+  os << "TpcHit with adc:" << getAdc()
      << std::endl;
 }
 
-void 
-TpcHit::Reset()
+void TpcHit::Reset()
 {
   TrkrHit::Reset();
 }
 
-int 
-TpcHit::isValid() const
+int TpcHit::isValid() const
 {
   // valid if the adc is not equal to the default value
   return getAdc() != 0;
 }
-

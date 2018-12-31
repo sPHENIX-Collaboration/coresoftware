@@ -2,21 +2,20 @@
 #include "PHG4InitZVertexing.h"
 #include "CellularAutomaton_v1.h"
 
-
 // g4hough includes
-#include "SvtxVertexMap.h"
-#include "SvtxVertexMap_v1.h"
-#include "SvtxVertex.h"
-#include "SvtxVertex_v1.h"
-#include "SvtxTrackMap.h"
-#include "SvtxTrackMap_v1.h"
-#include "SvtxTrack.h"
-#include "SvtxTrack_v1.h"
-#include "SvtxTrackState.h"
-#include "SvtxClusterMap.h"
-#include "SvtxCluster.h"
-#include "SvtxHit_v1.h"
-#include "SvtxHitMap.h"
+#include <trackbase_historic/SvtxVertexMap.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHitMap.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -530,9 +529,9 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 	PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
 			PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
 	PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
-	PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+	PHG4CylinderGeomContainer* mvtxladdergeos = findNode::getClass<
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
 
 	_nlayers = _seeding_layer.size();
@@ -565,9 +564,9 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 		}
 	}
 
-	if (mapsladdergeos) {
+	if (mvtxladdergeos) {
 		PHG4CylinderGeomContainer::ConstRange layerrange =
-				mapsladdergeos->get_begin_end();
+				mvtxladdergeos->get_begin_end();
 		for (PHG4CylinderGeomContainer::ConstIterator layeriter =
 				layerrange.first; layeriter != layerrange.second; ++layeriter) {
 			radius_layer_map.insert(
@@ -641,9 +640,9 @@ int PHG4InitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 		}
 	}
 
-	if (mapsladdergeos) {
+	if (mvtxladdergeos) {
 		PHG4CylinderGeomContainer::ConstRange begin_end =
-			mapsladdergeos->get_begin_end();
+			mvtxladdergeos->get_begin_end();
 		PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
 		for (; miter != begin_end.second; ++miter) {
 			PHG4CylinderGeom *geo = miter->second;

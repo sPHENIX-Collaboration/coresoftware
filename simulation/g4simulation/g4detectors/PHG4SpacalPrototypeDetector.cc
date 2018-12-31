@@ -199,11 +199,11 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
 
       G4Transform3D sec_place = G4RotateZ3D(rot) * sec_trans;
 
-      stringstream name;
+      ostringstream name;
       name << GetName() << "_sec" << sec;
 
-      G4PVPlacement * calo_phys = new G4PVPlacement(sec_place, sec_logic,
-          G4String(name.str().c_str()), cylinder_logic, false, sec,
+      G4PVPlacement *calo_phys = new G4PVPlacement(sec_place, sec_logic,
+          G4String(name.str()), cylinder_logic, false, sec,
           OverlapCheck());
       calo_vol[calo_phys] = sec;
 
@@ -298,7 +298,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
           geonode << "CYLINDERGEOM_" << detector_type;
         }
       PHG4CylinderGeomContainer *geo = findNode::getClass<
-          PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
+          PHG4CylinderGeomContainer>(topNode(), geonode.str());
       if (!geo)
         {
           geo = new PHG4CylinderGeomContainer();
@@ -307,7 +307,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
               dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
                   "RUN"));
           PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
-              geonode.str().c_str(), "PHObject");
+              geonode.str(), "PHObject");
           runNode->addNode(newNode);
         }
       // here in the detector class we have internal units, convert to cm
@@ -334,8 +334,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
         {
           geonode << "CYLINDERGEOM_ABSORBER_" << detector_type << "_" << 0;
         }
-      PHG4CylinderGeomContainer *geo = findNode::getClass<
-          PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
+      PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str());
       if (!geo)
         {
           geo = new PHG4CylinderGeomContainer();
@@ -343,8 +342,7 @@ PHG4SpacalPrototypeDetector::Construct(G4LogicalVolume* logicWorld)
           PHCompositeNode *runNode =
               dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode",
                   "RUN"));
-          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,
-              geonode.str().c_str(), "PHObject");
+          PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo,geonode.str(), "PHObject");
           runNode->addNode(newNode);
         }
       // here in the detector class we have internal units, convert to cm
@@ -734,7 +732,7 @@ PHG4SpacalPrototypeDetector::Construct_Fibers_SameLengthFiberPerTower(
   const G4double fiber_length = min_fiber_length;
   vector<G4double> fiber_cut;
 
-  stringstream ss;
+  ostringstream ss;
   ss << string("_Tower") << g_tower.id;
   G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, ss.str());
 
@@ -781,14 +779,14 @@ PHG4SpacalPrototypeDetector::Construct_Fibers_SameLengthFiberPerTower(
           G4Translate3D(center_fiber.x(), center_fiber.y(), center_fiber.z())
               * G4Rotate3D(rotation_angle, rotation_axis));
 
-      stringstream name;
+      ostringstream name;
       name << GetName() + string("_Tower") << g_tower.id << "_fiber"
           << ss.str();
 
       const bool overlapcheck_fiber = OverlapCheck()
           and (_geom->get_construction_verbose() >= 3);
       G4PVPlacement * fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
-          G4String(name.str().c_str()), LV_tower, false, fiber_ID,
+          G4String(name.str()), LV_tower, false, fiber_ID,
           overlapcheck_fiber);
       fiber_vol[fiber_physi] = fiber_ID;
 
@@ -822,7 +820,7 @@ PHG4SpacalPrototypeDetector::Construct_Tower(
       g_tower.identify(cout);
     }
 
-  std::stringstream sout;
+  std::ostringstream sout;
   sout << "_" << g_tower.id;
   const G4String sTowerID(sout.str());
 
@@ -875,7 +873,7 @@ PHG4SpacalPrototypeDetector::Construct_LightGuide(
 {
   assert(_geom);
 
-  std::stringstream sout;
+  std::ostringstream sout;
   sout << "_Lightguide_" << g_tower.id << "_" << index_x << "_" << index_y;
   const G4String sTowerID(sout.str());
 

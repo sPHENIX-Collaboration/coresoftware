@@ -35,7 +35,7 @@ PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int 
   // for multiple layers
   ostringstream nam;
   nam << name << "_" << lyr;
-  Name(nam.str().c_str());
+  Name(nam.str());
 }
 
 int 

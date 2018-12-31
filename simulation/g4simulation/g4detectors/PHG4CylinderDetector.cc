@@ -70,7 +70,7 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
   // determine length of cylinder using PHENIX's rapidity coverage if flag is true
   double radius = params->get_double_param("radius") * cm;
   double thickness = params->get_double_param("thickness") * cm;
-  G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName().c_str()),
+  G4VSolid *cylinder_solid = new G4Tubs(G4String(GetName()),
                                         radius,
                                         radius + thickness,
                                         params->get_double_param("length") * cm / 2., 0, twopi);
@@ -83,13 +83,13 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
 
   G4LogicalVolume *cylinder_logic = new G4LogicalVolume(cylinder_solid,
                                                         TrackerMaterial,
-                                                        G4String(GetName().c_str()),
+                                                        G4String(GetName()),
                                                         nullptr, nullptr, g4userlimits);
   cylinder_logic->SetVisAttributes(siliconVis);
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x") * cm,
                                                       params->get_double_param("place_y") * cm,
                                                       params->get_double_param("place_z") * cm),
                                      cylinder_logic,
-                                     G4String(GetName().c_str()),
+                                     G4String(GetName()),
                                      logicWorld, 0, false, OverlapCheck());
 }

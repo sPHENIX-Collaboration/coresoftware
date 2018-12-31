@@ -12,20 +12,17 @@ MvtxHit::MvtxHit()
 {
 }
 
-void 
-MvtxHit::identify(std::ostream& os) const
+void MvtxHit::identify(std::ostream& os) const
 {
   os << "I am an MvtxHit" << std::endl;
 }
 
-void 
-MvtxHit::Reset()
+void MvtxHit::Reset()
 {
   TrkrHit::Reset();
 }
 
-int 
-MvtxHit::isValid() const
+int MvtxHit::isValid() const
 {
   return 1;
 }

@@ -1,9 +1,8 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libintt.la \
-  libintt_io.la
-
+  libintt_io.la \
+  libintt.la 
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -18,12 +17,15 @@ AM_LDFLAGS = \
 # sources for intt library
 libintt_la_SOURCES = \
   InttDefs.cc \
-  InttDefs_Dict.cc 
+  InttDefs_Dict.cc \
+  INTTClusterizer.cc \
+  INTTClusterizer_Dict.cc 
 
 libintt_la_LIBADD = \
+  libintt_io.la \
   -lfun4all \
-  -ltrack_util \
-  -ltrack_io
+  -lg4detectors \
+  -lg4intt
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -31,11 +33,9 @@ libintt_io_la_SOURCES = \
   InttHit_Dict.cc
 
 libintt_io_la_LIBADD = \
-  libintt.la \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io 
-
+  -lphool \
+  -ltrack_io \
+  -ltrackbase_historic_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -47,8 +47,8 @@ libintt_io_la_LIBADD = \
 
 pkginclude_HEADERS = \
   InttDefs.h \
-  InttHit.h
-
+  InttHit.h \
+  INTTClusterizer.h 
 
 
 ################################################

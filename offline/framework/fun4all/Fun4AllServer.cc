@@ -565,19 +565,33 @@ int Fun4AllServer::process_event()
       {
 	cout << "could not find timer for " << timer_name << endl;
       }
-      RetCodes[icnt] = (*iter).first->process_event((*iter).second);
+      int retcode = (*iter).first->process_event((*iter).second);
+// we have observed an index overflow in RetCodes. I assume it is some
+// memory corruption elsewhere which hits the icnt variable. Rather than
+// the previous [], use at() which does bounds checking and throws an 
+// exception which will allow us to catch this and print out icnt and the size
+      try
+      {
+	RetCodes.at(icnt) = retcode;
+      }
+      catch (const exception &e)
+      {
+	cout << PHWHERE << " caught exception thrown during RetCodes.at(icnt)" << endl;
+	cout << "RetCodes.size(): " << RetCodes.size() << ", icnt: " << icnt << endl;
+	cout << "error: " << e.what() << endl;
+	gSystem->Exit(1);
+      }
       if (timer_found)
       {
 	titer->second.stop();
       }
-
     }
     catch (const exception &e)
     {
       cout << PHWHERE << " caught exception thrown during process_event from "
            << (*iter).first->Name() << endl;
       cout << "error: " << e.what() << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
     catch (...)
     {
