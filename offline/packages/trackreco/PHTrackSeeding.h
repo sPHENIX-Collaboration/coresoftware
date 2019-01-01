@@ -41,9 +41,9 @@ class PHTrackSeeding : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  virtual const std::set<unsigned int>& get_seeding_layers() const = 0;
+  //virtual const std::set<unsigned int>& get_seeding_layers() const = 0;
 
-  virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
+  //virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
 
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
