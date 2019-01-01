@@ -842,10 +842,10 @@ std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *
 			"G4CELL_SVTX");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_SILICON_TRACKER");
+			topNode, "G4CELL_INTT");
 
 	PHG4CellContainer* cells_maps = findNode::getClass<PHG4CellContainer>(
-			topNode, "G4CELL_MAPS");
+			topNode, "G4CELL_MVTX");
 
 	if (!cells_svtx and !cells_intt and !cells_maps) {
 		if (Verbosity() >= 0) {
@@ -855,10 +855,10 @@ std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *
 	}
 
 	PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
 	PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
-			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+			PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
 	if (!cells_svtx && !cells_maps && !cells_intt) {
 		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
@@ -1007,7 +1007,7 @@ std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *
 					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
 
 			PHG4HitContainer* phg4hits_maps = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_MAPS");
+					PHG4HitContainer>(topNode, "G4HIT_MVTX");
 
 			if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps) {
 				if (Verbosity() >= 0) {
@@ -1103,8 +1103,8 @@ std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *
 			int chip_index = cell->get_chip_index();
 
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
-			PHG4CylinderGeom_MAPS *geom =
-					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
+			PHG4CylinderGeom_MVTX *geom =
+					(PHG4CylinderGeom_MVTX*) geom_container_maps->GetLayerGeom(
 							layer);
 			// returns the center of the sensor in world coordinates - used to get the ladder phi location
 			geom->find_sensor_center(stave_index, half_stave_index,
@@ -1115,8 +1115,8 @@ std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeomSiLadders* geom =
-			  dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container_intt->GetLayerGeom(layer));
+			PHG4CylinderGeomINTT* geom =
+			  dynamic_cast<PHG4CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);

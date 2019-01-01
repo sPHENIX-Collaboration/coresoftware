@@ -125,7 +125,7 @@ PHHoughSeeding::PHHoughSeeding(
 		unsigned int nlayers_seeding,
 		unsigned int min_nlayers_seeding
 		)
-    : SubsysReco(name),
+    : PHTrackSeeding(name),
 	  _t_seeding(nullptr),
 	  _t_seed_init1(nullptr),
 	  _t_seed_init2(nullptr),
@@ -183,9 +183,6 @@ PHHoughSeeding::PHHoughSeeding(
       _tracker_etam_seed(NULL),
       _vertexFinder(),
       _bbc_vertexes(NULL),
-      _cluster_map(NULL),
-      _track_map(NULL),
-      _vertex_map(NULL),
       _svtxhitsmap(nullptr),
       _hit_used_map(NULL),
       _cells_svtx(nullptr),

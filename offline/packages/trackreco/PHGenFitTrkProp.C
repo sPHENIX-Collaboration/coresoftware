@@ -125,7 +125,7 @@ PHGenFitTrkProp::PHGenFitTrkProp(
 		unsigned int nlayers_intt,
 		unsigned int nlayers_tpc
 		)
-    : SubsysReco(name),
+    : PHTrackPropagating(name),
 	  _t_seeds_cleanup(nullptr),
 	  _t_translate_to_PHGenFitTrack(nullptr),
 	  _t_translate1(nullptr),
@@ -896,7 +896,7 @@ int PHGenFitTrkProp::SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack) {
 	for (auto hit_iter = svtxtrack->begin_clusters();
 			hit_iter!= svtxtrack->end_clusters(); ++hit_iter) {
 
-		SvtxCluster *cluster = *hit_iter;
+		SvtxCluster *cluster = _cluster_map->get(*hit_iter);
 
 		float r = sqrt(
 				cluster->get_x() * cluster->get_x() +
