@@ -6,6 +6,7 @@
  */
 
 #include "PHGenFitTrkProp.h"
+#include "AssocInfoContainer.h"
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -31,8 +32,9 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
+//
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
@@ -121,15 +123,9 @@ PHGenFitTrkProp::PHGenFitTrkProp(
 		const string& name,
 		unsigned int nlayers_maps,
 		unsigned int nlayers_intt,
-		unsigned int nlayers_tpc,
-		unsigned int nlayers_seeding,
-		unsigned int min_nlayers_seeding
+		unsigned int nlayers_tpc
 		)
     : SubsysReco(name),
-	  _t_seeding(nullptr),
-	  _t_seed_init1(nullptr),
-	  _t_seed_init2(nullptr),
-	  _t_seed_init3(nullptr),
 	  _t_seeds_cleanup(nullptr),
 	  _t_translate_to_PHGenFitTrack(nullptr),
 	  _t_translate1(nullptr),
@@ -142,54 +138,17 @@ PHGenFitTrkProp::PHGenFitTrkProp(
 	  _t_track_propagation(nullptr),
 	  _t_full_fitting(nullptr),
 	  _t_output_io(nullptr),
-	  _seeding_layer(),
-      _nlayers_seeding(nlayers_seeding),
-      _min_nlayers_seeding(min_nlayers_seeding),
-      _radii(),
-      _material(),
-      _user_material(),
-      _magField(1.4),
-      _reject_ghosts(true),
-      _remove_hits(false),
-      _min_pt(0.2),
-      _min_z0(-14.0),
-      _max_z0(+14.0),
-      _max_r(1.0),
-      _cut_on_dca(true),
-      _dcaxy_cut(0.2),
-      _dcaz_cut(0.2),
-      _chi2_cut_fast_par0(10.0),
-      _chi2_cut_fast_par1(50.0),
-      _chi2_cut_fast_max(75.0),
-      _chi2_cut_full(5.0),
-      _ca_chi2_cut(5.0),
-      _cos_angle_cut(0.985),
-      _bin_scale(0.8),
-      _z_bin_scale(0.8),
-      _min_combo_hits(min_nlayers_seeding),
-      _max_combo_hits(nlayers_seeding*4),
-      _pt_rescale(0.9972 / 1.00117), // 1.0
-      _fit_error_scale(_nlayers_seeding,1.0/sqrt(12.0)),
-      _vote_error_scale(_nlayers_seeding,1.0),
-      _layer_ilayer_map(),
+
       _vertex(),
-      _tracker(NULL),
-      _tracker_vertex(NULL),
-      _tracker_etap_seed(NULL),
-      _tracker_etam_seed(NULL),
-      _vertexFinder(),
       _bbc_vertexes(NULL),
-      _cluster_map(NULL),
-      _track_map(NULL),
-      _vertex_map(NULL),
-      _svtxhitsmap(nullptr),
+
+			_svtxhitsmap(nullptr),
       _hit_used_map(NULL),
       _cells_svtx(nullptr),
       _cells_intt(nullptr),
       _cells_maps(nullptr),
       _geom_container_intt(nullptr),
       _geom_container_maps(nullptr),
-      _seeding_only_mode(false),
       _analyzing_mode(false),
       _analyzing_file(NULL),
       _analyzing_ntuple(NULL),
@@ -199,7 +158,6 @@ PHGenFitTrkProp::PHGenFitTrkProp(
       _max_merging_dz(0.1),
       _max_share_hits(3),
       _fitter(NULL),
-      //      _track_fitting_alg_name("DafRef"),
       _track_fitting_alg_name("KalmanFitter"),
       _primary_pid_guess(211),
       _cut_min_pT(0.2),
@@ -240,12 +198,6 @@ PHGenFitTrkProp::PHGenFitTrkProp(
       _min_good_track_hits(30)
 {
   _event = 0;
-  
-  _user_material.clear();
-	for(unsigned int i=0;i<_nlayers_maps;++i)
-		_user_material[i] = 0.003;
-	for(unsigned int i=_nlayers_maps;i<_nlayers_maps+_nlayers_intt;++i)
-		_user_material[i] = 0.008;
 
 	_max_search_win_phi_intt[0] = 0.20;
 	_max_search_win_phi_intt[1] = 0.20;
@@ -283,19 +235,6 @@ PHGenFitTrkProp::PHGenFitTrkProp(
 	_min_search_win_theta_intt[6] = 0.200;
 	_min_search_win_theta_intt[7] = 0.200;
 
-	//int seeding_layers[] = {7,15,25,35,45,55,66};
-	int ninner_layer = _nlayers_maps+_nlayers_intt;
-	int incr_layer = floor(_nlayers_tpc / 6.);
-	int seeding_layers[] = {
-			ninner_layer,
-			ninner_layer+incr_layer*1,
-			ninner_layer+incr_layer*2,
-			ninner_layer+incr_layer*3,
-			ninner_layer+incr_layer*4,
-			ninner_layer+incr_layer*5,
-			_nlayers_all-1};
-	this->set_seeding_layer(seeding_layers, 7);
-
 	_vertex_error.clear();
 	_vertex_error.assign(3, 0.0100);
 }
@@ -305,7 +244,7 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 	// Start new interface ----
 	int ret = Fun4AllReturnCodes::ABORTRUN;
 
-	ret = PHTrackSeeding::Setup(topNode);
+	ret = PHTrackPropagating::Setup(topNode);
 	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
 	ret = CreateNodes(topNode);
@@ -317,40 +256,20 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 
 	if(_analyzing_mode){
 	  cout << "Ana Mode, creating ntuples! " << endl;
-	  _analyzing_file = new TFile("./PatRecAnalysis.root","RECREATE");
+	  _analyzing_file = new TFile("./PHGenFitTrkProp.root","RECREATE");
 	  //	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas");
 	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","pt:kappa:d:phi:dzdl:z0:nhit:ml:rec:dt");
 	  cout << "Done" << endl;
 	  
 	}
-
-	int code = Fun4AllReturnCodes::ABORTRUN;
-
-	code = CreateNodes(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
-	int min_layers    = 4;
-	int nlayers_seeds = 7;
-	int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
-				(int)(_nlayers_maps+_nlayers_intt+6),
-				(int)(_nlayers_maps+_nlayers_intt+12),
-				(int)(_nlayers_maps+_nlayers_intt+18),
-				(int)(_nlayers_maps+_nlayers_intt+24),
-				(int)(_nlayers_maps+_nlayers_intt+30),
-				(int)(_nlayers_maps+_nlayers_intt+39)
-				//7,13,19,25,31,37,46
-	};
 	
-	set_seeding_layer(seeding_layers, nlayers_seeds);
-	set_min_nlayers_seeding(min_layers);
-	
-	code = InitializeGeometry(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-	  return code;
-	code = InitializePHGenFit(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
+	ret = InitializeGeometry(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK)
+	  return ret;
+
+	ret = InitializePHGenFit(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK)
+		return ret;
 
 	/*!
 	 * Initilize parameters
@@ -372,18 +291,6 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 		<<endl;
 	}
 #endif
-
-	_t_seeding = new PHTimer("_t_seeding");
-	_t_seeding->stop();
-
-	_t_seed_init1 = new PHTimer("_t_seed_init1");
-	_t_seed_init1->stop();
-
-	_t_seed_init2 = new PHTimer("_t_seed_init2");
-	_t_seed_init2->stop();
-
-	_t_seed_init3 = new PHTimer("_t_seed_init3");
-	_t_seed_init3->stop();
 
 	_t_seeds_cleanup = new PHTimer("_t_seeds_cleanup");
 	_t_seeds_cleanup->stop();
@@ -420,48 +327,8 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 
 	_t_output_io = new PHTimer("_t_output_io");
 	_t_output_io->stop();
-
-	if (Verbosity() > 0) {
-		cout
-				<< "====================== PHGenFitTrkProp::InitRun() ======================"
-				<< endl;
-		cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
-		cout << " Number of tracking layers: " << _nlayers_seeding << endl;
-		for (unsigned int i = 0; i < _nlayers_seeding; ++i) {
-			cout << "   Tracking layer #" << i << " " << "radius = "
-					<< _radii[i] << " cm, " << "material = " << _material[i]
-					<< endl;
-			cout << "   Tracking layer #" << i << " " << "vote error scale = "
-					<< _vote_error_scale[i] << ", " << "fit error scale = "
-					<< _fit_error_scale[i] << endl;
-		}
-		cout << " Required hits: " << _min_nlayers_seeding << endl;
-		cout << " Minimum pT: " << _min_pt << endl;
-		cout << " Fast fit chisq cut min(par0+par1/pt,max): min( "
-				<< _chi2_cut_fast_par0 << " + " << _chi2_cut_fast_par1
-				<< " / pt, " << _chi2_cut_fast_max << " )" << endl;
-		cout << " Maximum chisq (kalman fit): " << _chi2_cut_full << endl;
-		cout << " Cell automaton chisq: " << _ca_chi2_cut << endl;
-		cout << " Cos Angle Cut: " << _cos_angle_cut << endl;
-		cout << " Ghost rejection: " << boolalpha << _reject_ghosts
-				<< noboolalpha << endl;
-		cout << " Hit removal: " << boolalpha << _remove_hits << noboolalpha
-				<< endl;
-		cout << " Maximum DCA: " << boolalpha << _cut_on_dca << noboolalpha
-				<< endl;
-		if (_cut_on_dca) {
-			cout << "   Maximum DCA cut: " << _dcaxy_cut << endl;
-		}
-		cout << "   Maximum DCAZ cut: " << _dcaz_cut << endl;
-		cout << " Phi bin scale: " << _bin_scale << endl;
-		cout << " Z bin scale: " << _z_bin_scale << endl;
-		cout << " Momentum rescale factor: " << _pt_rescale << endl;
-		cout
-				<< "==========================================================================="
-				<< endl;
-	}
 	
-	return code;
+	return ret;
 }
 
 int PHGenFitTrkProp::Process() {
@@ -473,51 +340,34 @@ int PHGenFitTrkProp::Process() {
 	  cout << "nTPCLayers = " << _nlayers_tpc << endl;
   }
 	// start fresh
-	int code;
+	int ret;
 
+	// TODO vertex using strategy
 	_vertex.clear();
 	_vertex.assign(3, 0.0);
-	
-	/**/{
-	  
-	  /**/{
-	    int min_layers    = 4;
-	    int nlayers_seeds = 7;
-	    int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
-				    (int)(_nlayers_maps+_nlayers_intt+8),
-				    (int)(_nlayers_maps+_nlayers_intt+16),
-				    (int)(_nlayers_maps+_nlayers_intt+24),
-				    (int)(_nlayers_maps+_nlayers_intt+32),
-				    (int)(_nlayers_maps+_nlayers_intt+40),
-				    (int)(_nlayers_maps+_nlayers_intt+45)  // avoid the outer TPC layer, it is inefficient
-				    //7,13,19,25,31,37,46
-	    };
 
-	    set_seeding_layer(seeding_layers, nlayers_seeds);
-	    set_min_nlayers_seeding(min_layers);
-	    _min_combo_hits = min_layers;
-	    _max_combo_hits = nlayers_seeds;
-	    if(Verbosity() >= 1) _t_seed_init1->restart();
-	  }
+	if(_vertex_map){
+		SvtxVertex* vertex = _vertex_map->get(0);
+		TVector3 v(vertex->get_x(),vertex->get_y(),vertex->get_z());
+		_vertex[0] = vertex->get_x();
+		_vertex[1] = vertex->get_y();
+		_vertex[2] = vertex->get_z();
+		for(int i=0;i<3;++i)
+			_vertex_error[i] = sqrt(vertex->get_error(i,i));
+	}
 
-	  _min_nlayers_seeding--;
-	  
-	  _t_seed_init1->stop();
-
-	  if(Verbosity() >= 1) _t_kalman_pat_rec->restart();
-	  
+	{
 	  //-----------------------------------
 	  // Kalman track propagating
 	  //-----------------------------------
-	  if (!_seeding_only_mode) {
-	    code = KalmanTrkProp();
-	    if (code != Fun4AllReturnCodes::EVENT_OK)
-	      return code;
-	  }
+	  if(Verbosity() >= 1) _t_kalman_pat_rec->restart();
+		ret = KalmanTrkProp();
+		if (ret != Fun4AllReturnCodes::EVENT_OK)
+			return ret;
 	  if(Verbosity() >= 1) _t_kalman_pat_rec->stop();
-	  
-	  if(Verbosity() > 1) print_timers();
 	}
+
+  if(Verbosity() > 1) print_timers();
 
 	++_event;
 	
@@ -527,10 +377,6 @@ int PHGenFitTrkProp::Process() {
 void PHGenFitTrkProp::print_timers() {
   
   std::cout << "=============== Timers: ===============" << std::endl;
-  std::cout << "CPUSCALE Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
-  std::cout << "CPUSCALE Init Seed1 time:                "<<_t_seed_init1->get_accumulated_time()/1000. << " sec" <<std::endl;
-  std::cout << "CPUSCALE Init Seed2 time:                "<<_t_seed_init2->get_accumulated_time()/1000. << " sec" <<std::endl;
-  std::cout << "CPUSCALE Init Seed3 time:                "<<_t_seed_init3->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "CPUSCALE Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;
@@ -552,7 +398,6 @@ int PHGenFitTrkProp::End() {
 	if (_do_evt_display)
 		_fitter->displayEvent();
 
-	delete _t_seeding;
 	delete _t_seeds_cleanup;
 	delete _t_translate_to_PHGenFitTrack;
 	delete _t_translate1;
@@ -563,16 +408,6 @@ int PHGenFitTrkProp::End() {
 	delete _t_search_clusters;
 	delete _t_track_propagation;
 	delete _t_output_io;
-
-	delete _tracker_etap_seed;
-	_tracker_etap_seed = NULL;
-	delete _tracker_etam_seed;
-	_tracker_etam_seed = NULL;
-	delete _tracker_vertex;
-	_tracker_vertex = NULL;
-	delete _tracker;
-	_tracker = NULL;
-
 
 #ifdef _DEBUG_
 		LogDebug("Leaving End \n");
@@ -597,6 +432,48 @@ int PHGenFitTrkProp::End() {
 
 int PHGenFitTrkProp::CreateNodes(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode *topNode) {
+
+  /*!
+   * Now have to load geometry nodes to get norm vector
+   */
+
+  // get node containing the digitized hits
+  _svtxhitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  if (!_svtxhitsmap) {
+    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
+						      "G4CELL_SVTX");
+
+  _cells_intt = findNode::getClass<PHG4CellContainer>(
+						      topNode, "G4CELL_SILICON_TRACKER");
+
+  _cells_maps = findNode::getClass<PHG4CellContainer>(
+						      topNode, "G4CELL_MAPS");
+
+  if (!_cells_svtx and !_cells_intt and !_cells_maps) {
+    if (Verbosity() >= 0) {
+      LogError("No PHG4CellContainer found!");}
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  _geom_container_intt = findNode::getClass<
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+
+  _geom_container_maps = findNode::getClass<
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+
+  if (!_cells_svtx && !_cells_maps && !_cells_intt) {
+    cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHGenFitTrkProp::InitializePHGenFit(PHCompositeNode* topNode) {
@@ -664,7 +541,7 @@ int PHGenFitTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter){
   int code = 0;
   if(((float)n_clu_used/n_clu)>0.3){
     if(Verbosity()>=1)
-      cout << "Found duplicate track. n_clu: " << n_clu << " c_clu_used: " << n_clu_used << " n_iter: " << _n_iteration<< endl;
+      cout << "Found duplicate track. n_clu: " << n_clu << " c_clu_used: " << n_clu_used << endl;
     /*
     for(unsigned int iCluId = 0; iCluId < clusterIDs.size(); ++iCluId){
       unsigned int cluster_ID = clusterIDs[iCluId];
@@ -941,15 +818,15 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(MapPHGenFitTrack::iterator iter) {
 		*/	
 		//if(is_good_track||_n_iteration==4)
 		//if(is_good_track||_n_iteration>=0)
-		if(_n_iteration>=0)
-		  {
-		    for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
-		      //_hit_used_map[cluster_ID] = _n_iteration;
-		    	_assoc_container->SetClusterTrackAssoc(cluster_ID, track.get_id());
-		    }
-		    
-		    _track_map->insert(&track);
-		  }
+		//if(_n_iteration>=0)
+		{
+			for(unsigned int cluster_ID : iter->second->get_cluster_IDs()){
+				//_hit_used_map[cluster_ID] = _n_iteration;
+				_assoc_container->SetClusterTrackAssoc(cluster_ID, track.get_id());
+			}
+
+			_track_map->insert(&track);
+		}
 		if (Verbosity() > 5) {
 			cout << "track " << _track_map->size() << " quality = " << track.get_quality()
 					<< endl;
@@ -1029,7 +906,7 @@ int PHGenFitTrkProp::SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack) {
 	}
 
 	std::vector<PHGenFit::Measurement*> measurements;
-	{
+	if(_vertex_map){
 		TVector3 v(_vertex[0],_vertex[1],_vertex[2]);
 		TMatrixDSym cov(3);
 		cov.Zero();
@@ -1042,7 +919,6 @@ int PHGenFitTrkProp::SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack) {
 		meas->set_cluster_ID(id);
 		measurements.push_back(meas);
 	}
-
 
 	for (auto iter = m_r_clusterID.begin();
 			iter != m_r_clusterID.end();
@@ -1076,7 +952,7 @@ int PHGenFitTrkProp::SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack) {
 		}
 		dt = time2 - time1;
 		if(_analyzing_mode == true)
-		  _analyzing_ntuple->Fill(pT,kappa,d,phi,dzdl,z0,nhit,ml/nhit,rec,dt);
+		  _analyzing_ntuple->Fill(svtxtrack->get_pt(),kappa,d,phi,dzdl,z0,nhit,ml/nhit,rec,dt);
 		return -1;
 	}
 
@@ -1098,13 +974,12 @@ int PHGenFitTrkProp::SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack) {
 	dt = time2 - time1;
 	rec = 1;
 	if(_analyzing_mode == true)
-	  _analyzing_ntuple->Fill(pT,kappa,d,phi,dzdl,z0,nhit,rec,dt);
+	  _analyzing_ntuple->Fill(svtxtrack->get_pt(),kappa,d,phi,dzdl,z0,nhit,rec,dt);
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHGenFitTrkProp::TrackPropPatRec(
-		//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
 		MapPHGenFitTrack::iterator &track_iter,
 		unsigned int init_layer, unsigned int end_layer,
 		const bool use_fitted_state_once) {
@@ -1528,8 +1403,8 @@ PHGenFit::Measurement* PHGenFitTrkProp::SvtxClusterToPHGenFitMeasurement(
 		int chip_index = cell->get_chip_index();
 
 		double ladder_location[3] = { 0.0, 0.0, 0.0 };
-		PHG4CylinderGeom_MAPS *geom =
-				(PHG4CylinderGeom_MAPS*) _geom_container_maps->GetLayerGeom(
+		PHG4CylinderGeom_MVTX *geom =
+				(PHG4CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
 						layer);
 		// returns the center of the sensor in world coordinates - used to get the ladder phi location
 		geom->find_sensor_center(stave_index, half_stave_index,
@@ -1540,8 +1415,8 @@ PHGenFit::Measurement* PHGenFitTrkProp::SvtxClusterToPHGenFitMeasurement(
 		//n.Print();
 	} else if (cell_intt) {
 		PHG4Cell* cell = cell_intt;
-		PHG4CylinderGeomSiLadders* geom =
-		  dynamic_cast<PHG4CylinderGeomSiLadders*> (_geom_container_intt->GetLayerGeom(
+		PHG4CylinderGeomINTT* geom =
+		  dynamic_cast<PHG4CylinderGeomINTT*> (_geom_container_intt->GetLayerGeom(
 							      layer));
 		double hit_location[3] = { 0.0, 0.0, 0.0 };
 		geom->find_segment_center(cell->get_ladder_z_index(),

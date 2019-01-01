@@ -298,19 +298,6 @@ public:
 		_max_merging_dz = maxMergingDz;
 	}
 
-
-	unsigned int get_max_share_hits() const {
-		return _max_share_hits;
-	}
-
-	void set_max_share_hits(unsigned int maxShareHits) {
-		_max_share_hits = maxShareHits;
-	}
-
-	void set_n_iterations(int max_iterations) {
-		_n_max_iterations = max_iterations;
-	}
-
 	void set_vertex_error(const float a) {
 		_vertex_error.clear();
 		_vertex_error.assign(3, a);

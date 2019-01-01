@@ -24,8 +24,10 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
+
+//
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>

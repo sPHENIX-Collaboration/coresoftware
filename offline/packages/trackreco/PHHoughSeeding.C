@@ -31,8 +31,10 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
+
+//
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
@@ -230,6 +232,13 @@ PHHoughSeeding::PHHoughSeeding(
 
 	_vertex_error.clear();
 	_vertex_error.assign(3, 0.0100);
+
+	if(_analyzing_mode){
+	  cout << "Ana Mode, creating ntuples! " << endl;
+	  _analyzing_file = new TFile("./PHHoughSeedingAna.root","RECREATE");
+	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","pt:kappa:d:phi:dzdl:z0:nhit:ml:rec:dt");
+	  cout << "Done" << endl;
+	}
 }
 
 int PHHoughSeeding::Setup(PHCompositeNode* topNode) {
@@ -247,21 +256,6 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode) {
 	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 	// End new interface ----
 
-	if(_analyzing_mode){
-	  cout << "Ana Mode, creating ntuples! " << endl;
-	  _analyzing_file = new TFile("./PatRecAnalysis.root","RECREATE");
-	  //	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas");
-	  _analyzing_ntuple = new TNtuple("ana_nt","ana_nt","pt:kappa:d:phi:dzdl:z0:nhit:ml:rec:dt");
-	  cout << "Done" << endl;
-	  
-	}
-
-	int code = Fun4AllReturnCodes::ABORTRUN;
-
-	code = CreateNodes(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-		return code;
-
 	int min_layers    = 4;
 	int nlayers_seeds = 7;
 	int seeding_layers[] = {(int)(_nlayers_maps+_nlayers_intt),
@@ -277,9 +271,9 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode) {
 	set_seeding_layer(seeding_layers, nlayers_seeds);
 	set_min_nlayers_seeding(min_layers);
 	
-	code = InitializeGeometry(topNode);
-	if(code != Fun4AllReturnCodes::EVENT_OK)
-	  return code;
+	ret = InitializeGeometry(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK)
+	  return ret;
 
 	/*!
 	 * Initilize parameters
@@ -373,7 +367,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode) {
 				<< endl;
 	}
 	
-	return code;
+	return ret;
 }
 
 int PHHoughSeeding::Process() {
@@ -557,29 +551,10 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode *topNode) {
   PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
   PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
   PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   
-  //  if (cellgeos || laddergeos || mapsladdergeos) {
-  //    unsigned int ncelllayers = 0;
-  //    if (cellgeos) ncelllayers += cellgeos->get_NLayers();
-  //    unsigned int nladderlayers = 0;
-  //    if (laddergeos) nladderlayers += laddergeos->get_NLayers();
-  //    unsigned int nmapsladderlayers = 0;
-  //    if (mapsladdergeos) nmapsladderlayers += mapsladdergeos->get_NLayers();
-  //    _nlayers_seeding = ncelllayers + nladderlayers + nmapsladderlayers;
-  //  } else {
-  //    cerr << PHWHERE
-  //         << "None of  CYLINDERCELLGEOM_SVTX or CYLINDERGEOM_SILICON_TRACKER or CYLINDERGEOM_MAPS"
-  //            "available, bail"
-  //         << std::endl;
-  //    return Fun4AllReturnCodes::ABORTRUN;
-  //  }
-  
-  //  _nlayers_seeding = 7;
-  //  int seeding_layer_array[] = {0, 1, 2, 3, 4, 5, 6, 7, 8};
-  //  _seeding_layer.assign(seeding_layer_array, seeding_layer_array+9 );
   _nlayers_seeding = _seeding_layer.size();
 	
   //=================================================//
