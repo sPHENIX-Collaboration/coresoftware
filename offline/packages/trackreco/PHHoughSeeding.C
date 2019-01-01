@@ -736,10 +736,10 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode *topNode) {
 						      "G4CELL_SVTX");
   
   _cells_intt = findNode::getClass<PHG4CellContainer>(
-						      topNode, "G4CELL_SILICON_TRACKER");
+						      topNode, "G4CELL_INTT");
   
   _cells_maps = findNode::getClass<PHG4CellContainer>(
-						      topNode, "G4CELL_MAPS");
+						      topNode, "G4CELL_MVTX");
   
   if (!_cells_svtx and !_cells_intt and !_cells_maps) {
     if (Verbosity() >= 0) {
@@ -748,10 +748,10 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode *topNode) {
   }
   
   _geom_container_intt = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_SILICON_TRACKER");
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   
   _geom_container_maps = findNode::getClass<
-  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MAPS");
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   
   if (!_cells_svtx && !_cells_maps && !_cells_intt) {
     cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
