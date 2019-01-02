@@ -1490,6 +1490,10 @@ int PHHoughSeeding::full_track_seeding() {
 
 int PHHoughSeeding::export_output() {
 
+  _all_tracks = _tracks;
+  _all_track_errors = _track_errors;
+  _all_track_covars = _track_covars;
+
 	if (_all_tracks.empty())
 		return Fun4AllReturnCodes::EVENT_OK;
 
