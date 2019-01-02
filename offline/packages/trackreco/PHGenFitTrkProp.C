@@ -588,6 +588,7 @@ int PHGenFitTrkProp::KalmanTrkProp() {
 			<< ": propergating: " << i <<"/" << trackiter->first
 			<< endl;
 
+			cout << _cluster_map << endl;
 			if(_cluster_map) _cluster_map->identify();
 			else cout << __LINE__ << "_cluster_map not init!" << endl;
 #endif
@@ -1456,30 +1457,30 @@ int PHGenFitTrkProp::BuildLayerZPhiHitMap() {
 		float theta = atan2(r,z);
 
 #ifdef _DEBUG_
-		//float rphi = r*phi;
-		std::cout
-		<< __LINE__
-		<<": ID: " << cluster->get_id()
-		<<": layer: "<<cluster->get_layer()
-		<<", r: "<<r
-		<<", z: "<<z
-		<<", phi: "<<phi
-		<<", theta: "<<theta
-		<<endl;
+//		//float rphi = r*phi;
+//		std::cout
+//		<< __LINE__
+//		<<": ID: " << cluster->get_id()
+//		<<": layer: "<<cluster->get_layer()
+//		<<", r: "<<r
+//		<<", z: "<<z
+//		<<", phi: "<<phi
+//		<<", theta: "<<theta
+//		<<endl;
 #endif
 
 		unsigned int idx = encode_cluster_index(layer, theta, phi);
 
 #ifdef _DEBUG_
-			cout
-			<<__LINE__<<": "
-			<<"{ "
-			<<layer <<", "
-			<<z <<", "
-			<<phi << "} =>"
-			<<idx << ": size: "
-			<<_layer_thetaID_phiID_cluserID.count(idx)
-			<<endl;
+//			cout
+//			<<__LINE__<<": "
+//			<<"{ "
+//			<<layer <<", "
+//			<<z <<", "
+//			<<phi << "} =>"
+//			<<idx << ": size: "
+//			<<_layer_thetaID_phiID_cluserID.count(idx)
+//			<<endl;
 #endif
 
 		_layer_thetaID_phiID_cluserID.insert(std::make_pair(idx, cluster->get_id()));
