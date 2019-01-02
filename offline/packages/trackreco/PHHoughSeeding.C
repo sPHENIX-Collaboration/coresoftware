@@ -98,7 +98,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-//#define _DEBUG_
+#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -111,11 +111,6 @@
 //#define _DO_FULL_FITTING_
 
 using namespace std;
-
-#ifdef _DEBUG_
-ofstream fout_kalman_pull("kalman_pull.txt");
-ofstream fout_chi2("chi2.txt");
-#endif
 
 PHHoughSeeding::PHHoughSeeding(
 		const string& name,
@@ -511,11 +506,6 @@ int PHHoughSeeding::End() {
 
 #ifdef _DEBUG_
 		LogDebug("Leaving End \n");
-#endif
-
-#ifdef _DEBUG_
-	fout_kalman_pull.close();
-	fout_chi2.close();
 #endif
 
 	if(_analyzing_mode){
@@ -1621,6 +1611,13 @@ int PHHoughSeeding::export_output() {
 		track.set_y(vertex.get_y() + d * sin(phi));
 		track.set_z(vertex.get_z() + z0);
 
+#ifdef _DEBUG_
+			cout
+			<<__LINE__
+			<<": itrack: " << itrack
+			<<": nhits: " << track_hits.size()
+			<<endl;
+#endif
 		_track_map->insert(&track);
 		vertex.insert_track(track.get_id());
 
