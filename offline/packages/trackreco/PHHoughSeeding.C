@@ -723,7 +723,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode *topNode) {
    */
   
   _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-						      "G4CELL_SVTX");
+						      "G4CELL_TPC");
   
   _cells_intt = findNode::getClass<PHG4CellContainer>(
 						      topNode, "G4CELL_INTT");

@@ -385,9 +385,6 @@ private:
 	// InitRun Calls
 	//--------------
 
-	/// To get norm vector
-	int InitializeGeometry(PHCompositeNode *topNode);
-
 	/// track propagation
 	int InitializePHGenFit(PHCompositeNode *topNode);
 
