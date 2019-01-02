@@ -380,7 +380,7 @@ int PHGenFitTrkProp::Process() {
 
 void PHGenFitTrkProp::print_timers() {
   
-  std::cout << "=============== Timers: ===============" << std::endl;
+  std::cout << "=============== PHGenFitTrkProp::print_timers: ===============" << std::endl;
   std::cout << "\t - Seeds Cleanup:          "<<_t_seeds_cleanup->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "CPUSCALE Pattern recognition time:    "<<_t_kalman_pat_rec->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "\t - Track Translation time: "<<_t_translate_to_PHGenFitTrack->get_accumulated_time()/1000. << " sec" <<std::endl;

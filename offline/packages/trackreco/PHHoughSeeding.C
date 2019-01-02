@@ -459,7 +459,7 @@ int PHHoughSeeding::Process() {
 
 void PHHoughSeeding::print_timers() {
   
-  std::cout << "=============== Timers: ===============" << std::endl;
+  std::cout << "=============== PHHoughSeeding::print_timers: ===============" << std::endl;
   std::cout << "CPUSCALE Seeding time:                "<<_t_seeding->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "CPUSCALE Init Seed1 time:                "<<_t_seed_init1->get_accumulated_time()/1000. << " sec" <<std::endl;
   std::cout << "CPUSCALE Init Seed2 time:                "<<_t_seed_init2->get_accumulated_time()/1000. << " sec" <<std::endl;
