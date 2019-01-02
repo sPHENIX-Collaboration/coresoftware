@@ -722,11 +722,9 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
 #endif
 
 		SvtxTrack* track = phtrk_iter->second;
+		auto track_id = track->get_id();
 		track->Reset();
-
-		//SvtxTrack_v1 track;
-
-		track->set_id(_track_map->size());
+		track->set_id(track_id);
 
 #ifdef _DO_FULL_FITTING_
 		if(Verbosity() >= 1) _t_full_fitting->restart();
@@ -827,7 +825,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
 			//_track_map->insert(&track);
 		}
 		if (Verbosity() > 5) {
-			cout << "track " << _track_map->size() << " quality = " << track->get_quality()
+			cout << "track " << track->get_id() << " quality = " << track->get_quality()
 					<< endl;
 			cout << "px = " << track->get_px() << " py = " << track->get_py()
 					<< " pz = " << track->get_pz() << endl;
