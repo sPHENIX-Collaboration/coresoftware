@@ -35,8 +35,8 @@ libtrack_reco_la_SOURCES = \
   PHHoughSeeding_Dict.C \
   PHGenFitTrkProp.C \
   PHGenFitTrkProp_Dict.C \
-  PHKalmanTrkFitter.C \
-  PHKalmanTrkFitter_Dict.C \
+  PHGenFitTrkFitter.C \
+  PHGenFitTrkFitter_Dict.C \
   PHRaveVertexing.C \
   PHRaveVertexing_Dict.C
 

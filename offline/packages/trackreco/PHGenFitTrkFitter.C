@@ -1,11 +1,11 @@
 /*!
- *  \file		PHKalmanTrkFitter.C
+ *  \file		PHGenFitTrkFitter.C
  *  \brief		Refit SvtxTracks with PHGenFit.
  *  \details	Refit SvtxTracks with PHGenFit.
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#include "PHKalmanTrkFitter.h"
+#include "PHGenFitTrkFitter.h"
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
@@ -169,10 +169,10 @@ private:
 /*
  * Constructor
  */
-PHKalmanTrkFitter::PHKalmanTrkFitter(const string &name) :
+PHGenFitTrkFitter::PHGenFitTrkFitter(const string &name) :
 		SubsysReco(name),
 		_flags(NONE),
-		_output_mode(PHKalmanTrkFitter::MakeNewNode),
+		_output_mode(PHGenFitTrkFitter::MakeNewNode),
 		_over_write_svtxtrackmap(true),
 		_over_write_svtxvertexmap(true),
 		_fit_primary_tracks(false),
@@ -192,7 +192,7 @@ PHKalmanTrkFitter::PHKalmanTrkFitter(const string &name) :
 		_primary_trackmap(NULL),
 		_vertexmap_refit(NULL),
 		_do_eval(false),
-		_eval_outname("PHKalmanTrkFitter_eval.root"),
+		_eval_outname("PHGenFitTrkFitter_eval.root"),
 		_eval_tree(NULL),
 		_tca_particlemap(NULL),
 		_tca_vtxmap(NULL),
@@ -219,7 +219,7 @@ PHKalmanTrkFitter::PHKalmanTrkFitter(const string &name) :
 /*
  * Init
  */
-int PHKalmanTrkFitter::Init(PHCompositeNode *topNode) {
+int PHGenFitTrkFitter::Init(PHCompositeNode *topNode) {
 
 
 //	CreateNodes(topNode);
@@ -230,7 +230,7 @@ int PHKalmanTrkFitter::Init(PHCompositeNode *topNode) {
 /*
  * Init run
  */
-int PHKalmanTrkFitter::InitRun(PHCompositeNode *topNode) {
+int PHGenFitTrkFitter::InitRun(PHCompositeNode *topNode) {
 
 	CreateNodes(topNode);
 
@@ -277,7 +277,7 @@ int PHKalmanTrkFitter::InitRun(PHCompositeNode *topNode) {
  *  This function contains the analysis structure.
  *
  */
-int PHKalmanTrkFitter::process_event(PHCompositeNode *topNode) {
+int PHGenFitTrkFitter::process_event(PHCompositeNode *topNode) {
 	_event++;
 
 	if(Verbosity() > 1)
@@ -526,7 +526,7 @@ int PHKalmanTrkFitter::process_event(PHCompositeNode *topNode) {
 /*
  * End
  */
-int PHKalmanTrkFitter::End(PHCompositeNode *topNode) {
+int PHGenFitTrkFitter::End(PHCompositeNode *topNode) {
 
 	if (_do_eval) {
 		if(Verbosity() >= 1)
@@ -545,7 +545,7 @@ int PHKalmanTrkFitter::End(PHCompositeNode *topNode) {
 /*
  * dtor
  */
-PHKalmanTrkFitter::~PHKalmanTrkFitter() {
+PHGenFitTrkFitter::~PHGenFitTrkFitter() {
 	delete _fitter;
 	delete _vertex_finder;
 }
@@ -553,7 +553,7 @@ PHKalmanTrkFitter::~PHKalmanTrkFitter() {
 /*
  * fill_eval_tree():
  */
-void PHKalmanTrkFitter::fill_eval_tree(PHCompositeNode *topNode) {
+void PHGenFitTrkFitter::fill_eval_tree(PHCompositeNode *topNode) {
 	//! Make sure to reset all the TTree variables before trying to set them.
 	reset_eval_variables();
 
@@ -616,7 +616,7 @@ void PHKalmanTrkFitter::fill_eval_tree(PHCompositeNode *topNode) {
 /*
  * init_eval_tree
  */
-void PHKalmanTrkFitter::init_eval_tree() {
+void PHGenFitTrkFitter::init_eval_tree() {
 	if (!_tca_particlemap)
 		_tca_particlemap = new TClonesArray("PHG4Particlev2");
 	if (!_tca_vtxmap)
@@ -635,7 +635,7 @@ void PHKalmanTrkFitter::init_eval_tree() {
 		_tca_vertexmap_refit = new TClonesArray("SvtxVertex_v1");
 
 	//! create TTree
-	_eval_tree = new TTree("T", "PHKalmanTrkFitter Evaluation");
+	_eval_tree = new TTree("T", "PHGenFitTrkFitter Evaluation");
 
 	_eval_tree->Branch("PrimaryParticle", _tca_particlemap);
 	_eval_tree->Branch("TruthVtx", _tca_vtxmap);
@@ -661,7 +661,7 @@ void PHKalmanTrkFitter::init_eval_tree() {
  *  Reset all the tree variables to their default values.
  *  Needs to be called at the start of every event
  */
-void PHKalmanTrkFitter::reset_eval_variables() {
+void PHGenFitTrkFitter::reset_eval_variables() {
 	_tca_particlemap->Clear();
 	_tca_vtxmap->Clear();
 
@@ -680,7 +680,7 @@ void PHKalmanTrkFitter::reset_eval_variables() {
 	_cluster_eval_tree_gz = WILD_FLOAT;
 }
 
-int PHKalmanTrkFitter::CreateNodes(PHCompositeNode *topNode) {
+int PHGenFitTrkFitter::CreateNodes(PHCompositeNode *topNode) {
 	// create nodes...
 	PHNodeIterator iter(topNode);
 
@@ -744,7 +744,7 @@ int PHKalmanTrkFitter::CreateNodes(PHCompositeNode *topNode) {
  * GetNodes():
  *  Get all the all the required nodes off the node tree
  */
-int PHKalmanTrkFitter::GetNodes(PHCompositeNode * topNode) {
+int PHGenFitTrkFitter::GetNodes(PHCompositeNode * topNode) {
 	//DST objects
 	//Truth container
 	_truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
@@ -827,8 +827,8 @@ int PHKalmanTrkFitter::GetNodes(PHCompositeNode * topNode) {
  * \param intrack Input SvtxTrack
  * \param invertex Input Vertex, if fit track as a primary vertex
  */
-//PHGenFit::Track* PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
-std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
+//PHGenFit::Track* PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
+std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
 		const SvtxVertex* invertex) {
 
 	//std::shared_ptr<PHGenFit::Track> empty_track(NULL);
@@ -1213,8 +1213,8 @@ std::shared_ptr<PHGenFit::Track> PHKalmanTrkFitter::ReFitTrack(PHCompositeNode *
 /*
  * Make SvtxTrack from PHGenFit::Track and SvtxTrack
  */
-//SvtxTrack* PHKalmanTrkFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
-std::shared_ptr<SvtxTrack> PHKalmanTrkFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
+//SvtxTrack* PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
+std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svtx_track,
 		const std::shared_ptr<PHGenFit::Track>& phgf_track, const SvtxVertex* vertex) {
 
 
@@ -1605,7 +1605,7 @@ std::shared_ptr<SvtxTrack> PHKalmanTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 /*
  * Fill SvtxVertexMap from GFRaveVertexes and Tracks
  */
-bool PHKalmanTrkFitter::FillSvtxVertexMap(
+bool PHGenFitTrkFitter::FillSvtxVertexMap(
 		const std::vector<genfit::GFRaveVertex*>& rave_vertices,
 		const std::vector<genfit::Track*>& gf_tracks) {
 
@@ -1669,7 +1669,7 @@ bool PHKalmanTrkFitter::FillSvtxVertexMap(
 	return true;
 }
 
-//bool PHKalmanTrkFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
+//bool PHGenFitTrkFitter::pos_cov_uvn_to_rz(const TVector3 u, const TVector3 v,
 //		const TVector3 n, const TMatrixF pos_in, const TMatrixF cov_in,
 //		TMatrixF& pos_out, TMatrixF& cov_out) const {
 //
@@ -1761,7 +1761,7 @@ bool PHKalmanTrkFitter::FillSvtxVertexMap(
 //	return true;
 //}
 
-bool PHKalmanTrkFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3& v,
+bool PHGenFitTrkFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3& v,
 		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
@@ -1818,7 +1818,7 @@ bool PHKalmanTrkFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3& v,
 	return true;
 }
 
-bool PHKalmanTrkFitter::get_vertex_error_uvn(const TVector3& u,
+bool PHGenFitTrkFitter::get_vertex_error_uvn(const TVector3& u,
 		const TVector3& v, const TVector3& n, const TMatrixF& cov_in,
 		TMatrixF& cov_out) const {
 
@@ -1829,7 +1829,7 @@ bool PHKalmanTrkFitter::get_vertex_error_uvn(const TVector3& u,
 
 	TMatrixF R = get_rotation_matrix(u, v, n);
 //
-//	LogDebug("PHKalmanTrkFitter::get_vertex_error_uvn::R = ");
+//	LogDebug("PHGenFitTrkFitter::get_vertex_error_uvn::R = ");
 //	R.Print();
 //	cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
@@ -1863,7 +1863,7 @@ bool PHKalmanTrkFitter::get_vertex_error_uvn(const TVector3& u,
 }
 
 
-bool PHKalmanTrkFitter::pos_cov_XYZ_to_RZ(
+bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
 		const TVector3& n, const TMatrixF& pos_in, const TMatrixF& cov_in,
 		TMatrixF& pos_out, TMatrixF& cov_out) const {
 
@@ -1923,7 +1923,7 @@ bool PHKalmanTrkFitter::pos_cov_XYZ_to_RZ(
  * Get 3D Rotation Matrix that rotates frame (x,y,z) to (x',y',z')
  * Default rotate local to global, or rotate vector in global to local representation
  */
-TMatrixF PHKalmanTrkFitter::get_rotation_matrix(const TVector3 x,
+TMatrixF PHGenFitTrkFitter::get_rotation_matrix(const TVector3 x,
 		const TVector3 y, const TVector3 z, const TVector3 xp, const TVector3 yp,
 		const TVector3 zp) const {
 
@@ -1986,7 +1986,7 @@ TMatrixF PHKalmanTrkFitter::get_rotation_matrix(const TVector3 x,
 		R[2][1] = rotation->ZY();
 		R[2][2] = rotation->ZZ();
 //
-//		LogDebug("PHKalmanTrkFitter::get_rotation_matrix: TRotation:");
+//		LogDebug("PHGenFitTrkFitter::get_rotation_matrix: TRotation:");
 //		R.Print();
 //		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 
@@ -2041,7 +2041,7 @@ TMatrixF PHKalmanTrkFitter::get_rotation_matrix(const TVector3 x,
 //		R = ROT3 * ROT2 * ROT1;
 //
 //		R.Invert();
-//		LogDebug("PHKalmanTrkFitter::get_rotation_matrix: Home Brew:");
+//		LogDebug("PHGenFitTrkFitter::get_rotation_matrix: Home Brew:");
 //		R.Print();
 //		cout<<"R.Determinant() = "<<R.Determinant()<<"\n";
 

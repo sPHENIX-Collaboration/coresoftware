@@ -1,12 +1,12 @@
 /*!
- *  \file		PHKalmanTrkFitter.h
+ *  \file		PHGenFitTrkFitter.h
  *  \brief		Refit SvtxTracks with PHGenFit.
  *  \details	Refit SvtxTracks with PHGenFit.
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHKalmanTrkFitter_H__
-#define __PHKalmanTrkFitter_H__
+#ifndef __PHGenFitTrkFitter_H__
+#define __PHGenFitTrkFitter_H__
 
 #include <fun4all/SubsysReco.h>
 #include <GenFit/GFRaveVertex.h>
@@ -41,7 +41,7 @@ class TTree;
 class PHRaveVertexFactory;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
-class PHKalmanTrkFitter: public SubsysReco {
+class PHGenFitTrkFitter: public SubsysReco {
 public:
 
 	/*!
@@ -54,10 +54,10 @@ public:
 	enum DetectorType {MIE, MAPS_TPC, MAPS_IT_TPC, LADDER_MAPS_TPC, LADDER_MAPS_IT_TPC, LADDER_MAPS_LADDER_IT_TPC, MAPS_LADDER_IT_TPC};
 
 	//! Default constructor
-	PHKalmanTrkFitter(const std::string &name = "PHKalmanTrkFitter");
+	PHGenFitTrkFitter(const std::string &name = "PHGenFitTrkFitter");
 
 	//! dtor
-	~PHKalmanTrkFitter();
+	~PHGenFitTrkFitter();
 
 	//!Initialization, called for initialization
 	int Init(PHCompositeNode *);
@@ -78,7 +78,7 @@ public:
 	};
 
 	//Set the flag
-	//Flags should be set like set_flag(PHKalmanTrkFitter::TRUTH, true) from macro
+	//Flags should be set like set_flag(PHGenFitTrkFitter::TRUTH, true) from macro
 	void set_flag(const Flag& flag, const bool& value) {
 		if (value)
 			_flags |= flag;
@@ -334,4 +334,4 @@ private:
 
 };
 
-#endif //* __PHKalmanTrkFitter_H__ *//
+#endif //* __PHGenFitTrkFitter_H__ *//
