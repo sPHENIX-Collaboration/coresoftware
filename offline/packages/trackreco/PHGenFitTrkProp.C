@@ -254,6 +254,10 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 	// End new interface ----
 
+	ret = InitializeGeometry(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK)
+		return ret;
+
 	ret = InitializePHGenFit(topNode);
 	if(ret != Fun4AllReturnCodes::EVENT_OK)
 		return ret;
@@ -1637,4 +1641,95 @@ unsigned int PHGenFitTrkProp::encode_cluster_index(const unsigned int layer,
 	index |= (irphi);
 
 	return index;
+}
+
+int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode *topNode) {
+
+  PHG4CylinderCellGeomContainer* cellgeos = findNode::getClass<
+  PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  PHG4CylinderGeomContainer* laddergeos = findNode::getClass<
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+  PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+
+  map<float, int> radius_layer_map;
+
+  _radii_all.assign(_nlayers_all, 0.0);
+  _layer_ilayer_map_all.clear();
+  if (cellgeos) {
+    PHG4CylinderCellGeomContainer::ConstRange layerrange =
+      cellgeos->get_begin_end();
+    for (PHG4CylinderCellGeomContainer::ConstIterator layeriter =
+	   layerrange.first; layeriter != layerrange.second; ++layeriter) {
+      radius_layer_map.insert(
+			      make_pair(layeriter->second->get_radius(),
+					layeriter->second->get_layer()));
+    }
+  }
+
+  if (laddergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange =
+      laddergeos->get_begin_end();
+    for (PHG4CylinderGeomContainer::ConstIterator layeriter =
+	   layerrange.first; layeriter != layerrange.second; ++layeriter) {
+      radius_layer_map.insert(
+			      make_pair(layeriter->second->get_radius(),
+					layeriter->second->get_layer()));
+    }
+  }
+
+  if (mapsladdergeos) {
+    PHG4CylinderGeomContainer::ConstRange layerrange =
+      mapsladdergeos->get_begin_end();
+    for (PHG4CylinderGeomContainer::ConstIterator layeriter =
+	   layerrange.first; layeriter != layerrange.second; ++layeriter) {
+      radius_layer_map.insert(
+			      make_pair(layeriter->second->get_radius(),
+					layeriter->second->get_layer()));
+    }
+  }
+
+  int ilayer = 0;
+  for (map<float, int>::iterator iter = radius_layer_map.begin();
+       iter != radius_layer_map.end(); ++iter) {
+    _layer_ilayer_map_all.insert(make_pair(iter->second, _layer_ilayer_map_all.size()));
+  }
+
+  // now we extract the information from the cellgeos first
+  if (cellgeos) {
+    PHG4CylinderCellGeomContainer::ConstRange begin_end =
+      cellgeos->get_begin_end();
+    PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
+    for (; miter != begin_end.second; miter++) {
+      PHG4CylinderCellGeom *geo = miter->second;
+
+      _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
+      		geo->get_radius() + 0.5 * geo->get_thickness();
+    }
+  }
+
+  if (laddergeos) {
+    PHG4CylinderGeomContainer::ConstRange begin_end =
+      laddergeos->get_begin_end();
+    PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+    for (; miter != begin_end.second; miter++) {
+      PHG4CylinderGeom *geo = miter->second;
+
+      _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
+      		geo->get_radius() + 0.5*geo->get_thickness();
+    }
+  }
+
+  if (mapsladdergeos) {
+    PHG4CylinderGeomContainer::ConstRange begin_end =
+      mapsladdergeos->get_begin_end();
+    PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
+    for (; miter != begin_end.second; miter++) {
+      PHG4CylinderGeom *geo = miter->second;
+
+      _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
+      		geo->get_radius();
+    }
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }

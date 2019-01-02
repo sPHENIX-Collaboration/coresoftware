@@ -385,6 +385,9 @@ private:
 	// InitRun Calls
 	//--------------
 
+	/// Init projection r
+	int InitializeGeometry(PHCompositeNode *topNode);
+
 	/// track propagation
 	int InitializePHGenFit(PHCompositeNode *topNode);
 
