@@ -1372,10 +1372,15 @@ PHGenFit::Measurement* PHGenFitTrkProp::SvtxClusterToPHGenFitMeasurement(
 	TVector3 n(cluster->get_x(), cluster->get_y(), 0);
 
 	unsigned int begin_hit_id = *(cluster->begin_hits());
-	//LogDebug(begin_hit_id);
-	SvtxHit* svtxhit = _svtxhitsmap->find(begin_hit_id)->second;
-	//LogDebug(svtxhit->get_cellid());
 
+#ifdef _DEBUG_
+	LogDebug(begin_hit_id)<<endl;
+#endif
+	SvtxHit* svtxhit = _svtxhitsmap->find(begin_hit_id)->second;
+
+#ifdef _DEBUG_
+	LogDebug(svtxhit->get_cellid())<<endl;
+#endif
 	PHG4Cell* cell_svtx = nullptr;
 	PHG4Cell* cell_intt = nullptr;
 	PHG4Cell* cell_maps = nullptr;
@@ -1385,7 +1390,7 @@ PHGenFit::Measurement* PHGenFitTrkProp::SvtxClusterToPHGenFitMeasurement(
 	if(_cells_maps) cell_maps = _cells_maps->findCell(svtxhit->get_cellid());
 	if(!(cell_svtx or cell_intt or cell_maps)){
 		if(Verbosity()>=0)
-			LogError("!(cell_svtx or cell_intt or cell_maps)");
+			LogError("!(cell_svtx or cell_intt or cell_maps)")<<endl;
 		return nullptr;
 	}
 
