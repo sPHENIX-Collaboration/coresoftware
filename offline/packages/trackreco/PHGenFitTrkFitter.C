@@ -846,7 +846,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *
 	}
 
 	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-			"G4CELL_SVTX");
+			"G4CELL_TPC");
 
 	PHG4CellContainer* cells_intt = findNode::getClass<PHG4CellContainer>(
 			topNode, "G4CELL_INTT");
@@ -1008,10 +1008,10 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode *
 		// DEBUG: BEGIN
 		if (_do_eval) {
 			PHG4HitContainer* phg4hits_svtx = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SVTX");
+					PHG4HitContainer>(topNode, "G4HIT_TPC");
 
 			PHG4HitContainer* phg4hits_intt = findNode::getClass<
-					PHG4HitContainer>(topNode, "G4HIT_SILICON_TRACKER");
+					PHG4HitContainer>(topNode, "G4HIT_INTT");
 
 			PHG4HitContainer* phg4hits_maps = findNode::getClass<
 					PHG4HitContainer>(topNode, "G4HIT_MVTX");
