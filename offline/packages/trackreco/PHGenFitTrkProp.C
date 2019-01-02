@@ -968,10 +968,10 @@ int PHGenFitTrkProp::TrackPropPatRec(
 #ifdef _DEBUG_
 	cout
 	<< __LINE__
-	<< " TrackPropPatRec : track_iter" << track_iter
+	<< " TrackPropPatRec"
 	<< " : init_layer: " << init_layer
 	<< " : end_layer: " << end_layer
-	<< " : use_fitted_state_once" << use_fitted_state_once
+	<< " : use_fitted_state_once: " << use_fitted_state_once
 	<< endl;
 #endif
 
@@ -1602,11 +1602,11 @@ unsigned int PHGenFitTrkProp::encode_cluster_index(const unsigned int layer,
 	unsigned int irphi = (phi + _half_max_phi) / _layer_thetaID_phiID_cluserID_phiSize;
 
 #ifdef _DEBUG_
-	std::cout<<__LINE__<<": "
-			<<": layer: "<<layer
-			<<", irphi: "<<irphi
-			<<", itheta: "<<itheta
-			<<endl;
+//	std::cout<<__LINE__<<": "
+//			<<": layer: "<<layer
+//			<<", irphi: "<<irphi
+//			<<", itheta: "<<itheta
+//			<<endl;
 #endif
 
 	return encode_cluster_index(layer, itheta, irphi);
