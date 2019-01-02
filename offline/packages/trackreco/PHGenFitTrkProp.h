@@ -417,7 +417,7 @@ private:
 	unsigned int encode_cluster_index(const unsigned int layer, const unsigned int iz, const unsigned int irphi);
 
 	//! KalmanTrkProp Call.
-	int SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack);
+	int SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack);
 
 //	int TrackPropPatRec(PHCompositeNode* topNode,
 //			//const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,

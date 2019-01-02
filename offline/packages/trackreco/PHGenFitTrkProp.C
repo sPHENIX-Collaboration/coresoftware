@@ -570,7 +570,7 @@ int PHGenFitTrkProp::KalmanTrkProp() {
 		 * Translate SimpleTrack3D To PHGenFitTracks
 		 */
 		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->restart();
-		SimpleTrack3DToPHGenFitTracks(tracklet);
+		SvtxTrackToPHGenFitTracks(tracklet);
 		if(Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
 
 		/*!
@@ -819,7 +819,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(MapPHGenFitTrack::iterator iter) {
 	return 0;
 }
 
-int PHGenFitTrkProp::SimpleTrack3DToPHGenFitTracks(const SvtxTrack* svtxtrack) {
+int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack) {
 
 	// clean up working array for each event
 	_PHGenFitTracks.clear();
@@ -961,14 +961,18 @@ int PHGenFitTrkProp::TrackPropPatRec(
 		unsigned int init_layer, unsigned int end_layer,
 		const bool use_fitted_state_once) {
 
+#ifdef _DEBUG_
+	cout
+	<< __LINE__
+	<< " TrackPropPatRec : track_iter" << track_iter
+	<< " : init_layer: " << init_layer
+	<< " : end_layer: " << end_layer
+	<< " : use_fitted_state_once" << use_fitted_state_once
+	<< endl;
+#endif
+
 	std::shared_ptr<PHGenFit::Track> &track = track_iter->second;
 
-        //some debug info
-	/*
-	  float init_pt = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom().Pt();
-	  float init_phi = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom().Phi();
-	  float init_eta = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom().Eta();
-	*/
 	int direction = end_layer >= init_layer ? 1 : -1;
 	assert(direction==1 or direction==-1);
 
