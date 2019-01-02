@@ -254,6 +254,10 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 	if(ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 	// End new interface ----
 
+	ret = InitializePHGenFit(topNode);
+	if(ret != Fun4AllReturnCodes::EVENT_OK)
+		return ret;
+
 	if(_analyzing_mode){
 	  cout << "Ana Mode, creating ntuples! " << endl;
 	  _analyzing_file = new TFile("./PHGenFitTrkProp.root","RECREATE");
@@ -263,13 +267,9 @@ int PHGenFitTrkProp::Setup(PHCompositeNode* topNode) {
 	  
 	}
 	
-	ret = InitializeGeometry(topNode);
-	if(ret != Fun4AllReturnCodes::EVENT_OK)
-	  return ret;
-
-	ret = InitializePHGenFit(topNode);
-	if(ret != Fun4AllReturnCodes::EVENT_OK)
-		return ret;
+//	ret = InitializeGeometry(topNode);
+//	if(ret != Fun4AllReturnCodes::EVENT_OK)
+//	  return ret;
 
 	/*!
 	 * Initilize parameters
@@ -515,12 +515,31 @@ int PHGenFitTrkProp::GetNodes(PHCompositeNode* topNode) {
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-//	if(_hit_used_map_size!=0) delete[] _hit_used_map;
-//	_hit_used_map_size = static_cast<int>(_cluster_map->size());
-//	_hit_used_map = new int[_hit_used_map_size];
-//	for (Int_t i=0;i<_hit_used_map_size;i++){
-//	  _hit_used_map[i] = 0;
-//	}
+  _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
+						      "G4CELL_SVTX");
+
+  _cells_intt = findNode::getClass<PHG4CellContainer>(
+						      topNode, "G4CELL_INTT");
+
+  _cells_maps = findNode::getClass<PHG4CellContainer>(
+						      topNode, "G4CELL_MVTX");
+
+  if (!_cells_svtx and !_cells_intt and !_cells_maps) {
+    if (Verbosity() >= 0) {
+      LogError("No PHG4CellContainer found!");}
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  _geom_container_intt = findNode::getClass<
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+
+  _geom_container_maps = findNode::getClass<
+  PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+
+  if (!_cells_svtx && !_cells_maps && !_cells_intt) {
+    cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
