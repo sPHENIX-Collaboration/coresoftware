@@ -1689,7 +1689,6 @@ int PHGenFitTrkProp::InitializeGeometry(PHCompositeNode *topNode) {
     }
   }
 
-  int ilayer = 0;
   for (map<float, int>::iterator iter = radius_layer_map.begin();
        iter != radius_layer_map.end(); ++iter) {
     _layer_ilayer_map_all.insert(make_pair(iter->second, _layer_ilayer_map_all.size()));
