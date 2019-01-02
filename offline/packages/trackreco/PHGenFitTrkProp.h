@@ -13,9 +13,13 @@
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHTimeServer.h>
 #include <phool/PHTimer.h>
+
 #include <g4bbc/BbcVertexMap.h>
+
+#include <trackbase_historic/SvtxTrackMap.h>
 
 // Helix Hough includes
 #ifndef __CINT__
@@ -442,7 +446,7 @@ private:
 
 	//! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
 	//std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
-	int OutputPHGenFitTrack(MapPHGenFitTrack::iterator);
+	int OutputPHGenFitTrack(MapPHGenFitTrack::iterator, SvtxTrackMap::Iter);
 
 	//------------------
 	// Subfunction Calls
