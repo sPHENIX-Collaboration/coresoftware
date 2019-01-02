@@ -587,6 +587,9 @@ int PHGenFitTrkProp::KalmanTrkProp() {
 			<< __LINE__
 			<< ": propergating: " << i <<"/" << trackiter->first
 			<< endl;
+
+			if(_cluster_map) _cluster_map->identify();
+			else cout << __LINE__ << "_cluster_map not init!" << endl;
 #endif
 
 			std::vector<unsigned int> clusterIDs = iter->second->get_cluster_IDs();
