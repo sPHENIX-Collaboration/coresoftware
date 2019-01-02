@@ -1372,7 +1372,7 @@ int PHHoughSeeding::vertexing() {
 	_vertex[2] = svtx_vtx->get_z();
 
 	_vertex_error[0] = sqrt(svtx_vtx->get_error(0,0));
-	_vertex_error[1] = sqrt(svtx_vtx->get_error(1,2));
+	_vertex_error[1] = sqrt(svtx_vtx->get_error(1,1));
 	_vertex_error[2] = sqrt(svtx_vtx->get_error(2,2));
 
 

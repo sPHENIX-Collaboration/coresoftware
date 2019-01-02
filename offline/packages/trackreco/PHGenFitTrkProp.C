@@ -562,7 +562,7 @@ int PHGenFitTrkProp::KalmanTrkProp() {
 #ifdef _DEBUG_
 	std::cout << "=========================" << std::endl;
 	std::cout << "PHGenFitTrkProp::KalmanTrkProp: Start: Event: "<< _event << std::endl;
-	std::cout << "Total Raw Tracks: " << _tracks.size() << std::endl;
+	std::cout << "Total Raw Tracks: " <<_track_map->size() << std::endl;
 	std::cout << "=========================" << std::endl;
 #endif
 
