@@ -8,22 +8,25 @@
 #ifndef __PHRaveVertexing_H__
 #define __PHRaveVertexing_H__
 
-#include <fun4all/SubsysReco.h>
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/Track.h>
+#include <fun4all/SubsysReco.h>
 #include <string>
 #include <vector>
 
-namespace PHGenFit {
+namespace PHGenFit
+{
 class Track;
 } /* namespace PHGenFit */
 
-namespace genfit {
+namespace genfit
+{
 class GFRaveVertexFactory;
 } /* namespace genfit */
 
 class SvtxTrack;
-namespace PHGenFit {
+namespace PHGenFit
+{
 class Fitter;
 } /* namespace PHGenFit */
 
@@ -35,102 +38,109 @@ class PHCompositeNode;
 class PHG4TruthInfoContainer;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
-class PHRaveVertexing: public SubsysReco {
-public:
+class PHRaveVertexing : public SubsysReco
+{
+ public:
+  typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
 
-	typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
+  //! Default constructor
+  PHRaveVertexing(const std::string& name = "PHRaveVertexing");
 
-	//! Default constructor
-	PHRaveVertexing(const std::string &name = "PHRaveVertexing");
+  //! dtor
+  ~PHRaveVertexing();
 
-	//! dtor
-	~PHRaveVertexing();
+  //!Initialization, called for initialization
+  int Init(PHCompositeNode*);
 
-	//!Initialization, called for initialization
-	int Init(PHCompositeNode *);
+  //!Initialization Run, called for initialization of a run
+  int InitRun(PHCompositeNode*);
 
-	//!Initialization Run, called for initialization of a run
-	int InitRun(PHCompositeNode *);
+  //!Process Event, called for each event
+  int process_event(PHCompositeNode*);
 
-	//!Process Event, called for each event
-	int process_event(PHCompositeNode *);
+  //!End, write and close files
+  int End(PHCompositeNode*);
 
-	//!End, write and close files
-	int End(PHCompositeNode *);
+  const std::string& get_vertexing_method() const
+  {
+    return _vertexing_method;
+  }
 
-	const std::string& get_vertexing_method() const {
-		return _vertexing_method;
-	}
+  void set_vertexing_method(const std::string& vertexingMethod)
+  {
+    _vertexing_method = vertexingMethod;
+  }
 
-	void set_vertexing_method(const std::string& vertexingMethod) {
-		_vertexing_method = vertexingMethod;
-	}
+  int get_primary_pid_guess() const
+  {
+    return _primary_pid_guess;
+  }
 
-	int get_primary_pid_guess() const {
-		return _primary_pid_guess;
-	}
+  void set_primary_pid_guess(int primaryPidGuess)
+  {
+    _primary_pid_guess = primaryPidGuess;
+  }
 
-	void set_primary_pid_guess(int primaryPidGuess) {
-		_primary_pid_guess = primaryPidGuess;
-	}
+  bool is_over_write_svtxvertexmap() const
+  {
+    return _over_write_svtxvertexmap;
+  }
 
-	bool is_over_write_svtxvertexmap() const {
-		return _over_write_svtxvertexmap;
-	}
+  void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap)
+  {
+    _over_write_svtxvertexmap = overWriteSvtxvertexmap;
+  }
 
-	void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap) {
-		_over_write_svtxvertexmap = overWriteSvtxvertexmap;
-	}
+  double get_vertex_min_ndf() const
+  {
+    return _vertex_min_ndf;
+  }
 
-	double get_vertex_min_ndf() const {
-		return _vertex_min_ndf;
-	}
+  void set_vertex_min_ndf(double vertexMinPT)
+  {
+    _vertex_min_ndf = vertexMinPT;
+  }
 
-	void set_vertex_min_ndf(double vertexMinPT) {
-		_vertex_min_ndf = vertexMinPT;
-	}
+ private:
+  //! Event counter
+  int _event;
 
-private:
+  //! Get all the nodes
+  int GetNodes(PHCompositeNode*);
 
-	//! Event counter
-	int _event;
+  //!Create New nodes
+  int CreateNodes(PHCompositeNode*);
 
-	//! Get all the nodes
-	int GetNodes(PHCompositeNode *);
+  genfit::Track* TranslateSvtxToGenFitTrack(SvtxTrack* svtx);
 
-	//!Create New nodes
-	int CreateNodes(PHCompositeNode *);
+  //! Fill SvtxVertexMap from GFRaveVertexes and Tracks
+  bool FillSvtxVertexMap(
+      const std::vector<genfit::GFRaveVertex*>& rave_vertices,
+      const GenFitTrackMap& gf_track_map);
 
-	genfit::Track* TranslateSvtxToGenFitTrack(SvtxTrack* svtx);
+  bool _over_write_svtxvertexmap;
+  std::string _svtxvertexmaprefit_node_name;
 
-	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
-	bool FillSvtxVertexMap(
-			const std::vector<genfit::GFRaveVertex*> & rave_vertices,
-			const GenFitTrackMap & gf_track_map);
+  PHGenFit::Fitter* _fitter;
 
-	bool _over_write_svtxvertexmap;
-	std::string _svtxvertexmaprefit_node_name;
+  int _primary_pid_guess;
+  double _vertex_min_ndf;
 
-	PHGenFit::Fitter* _fitter;
+  genfit::GFRaveVertexFactory* _vertex_finder;
 
-	int _primary_pid_guess;
-	double _vertex_min_ndf;
+  //! https://rave.hepforge.org/trac/wiki/RaveMethods
+  std::string _vertexing_method;
 
-	genfit::GFRaveVertexFactory* _vertex_finder;
+  //! Input Node pointers
+  PHG4TruthInfoContainer* _truth_container;
+  SvtxTrackMap* _trackmap;
+  SvtxVertexMap* _vertexmap;
 
-	//! https://rave.hepforge.org/trac/wiki/RaveMethods
-	std::string _vertexing_method;
+  //! Output Node pointers
+  SvtxVertexMap* _vertexmap_refit;
 
-	//! Input Node pointers
-	PHG4TruthInfoContainer* _truth_container;
-	SvtxTrackMap* _trackmap;
-	SvtxVertexMap* _vertexmap;
-
-	//! Output Node pointers
-	SvtxVertexMap* _vertexmap_refit;
-
-	PHTimer *_t_translate;
-	PHTimer *_t_rave;
+  PHTimer* _t_translate;
+  PHTimer* _t_rave;
 };
 
-#endif //* __PHRaveVertexing_H__ *//
+#endif  //* __PHRaveVertexing_H__ *//

@@ -25,9 +25,7 @@ class SvtxVertexMap;
 ///
 class PHInitVertexing : public SubsysReco
 {
-
  public:
-
   PHInitVertexing(const std::string &name = "PHInitVertexing");
   virtual ~PHInitVertexing() {}
 
@@ -49,12 +47,11 @@ class PHInitVertexing : public SubsysReco
   SvtxVertexMap *_vertex_map;
 
  private:
+  /// create new node output pointers
+  int CreateNodes(PHCompositeNode *topNode);
 
-	/// create new node output pointers
-	int CreateNodes(PHCompositeNode *topNode);
-
-	/// fetch node pointers
-	int GetNodes(PHCompositeNode *topNode);
+  /// fetch node pointers
+  int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif // __H_PHInitVertexing_H__
+#endif  // __H_PHInitVertexing_H__

@@ -11,8 +11,8 @@
 #include <fun4all/SubsysReco.h>
 
 // STL includes
-#include <string>
 #include <set>
+#include <string>
 
 // forward declarations
 class PHCompositeNode;
@@ -28,9 +28,7 @@ class AssocInfoContainer;
 ///
 class PH3DVertexing : public SubsysReco
 {
-
  public:
-
   PH3DVertexing(const std::string &name = "PH3DVertexing");
   virtual ~PH3DVertexing() {}
 
@@ -39,7 +37,7 @@ class PH3DVertexing : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  virtual const std::set<unsigned int>& get_seeding_layers() const = 0;
+  virtual const std::set<unsigned int> &get_seeding_layers() const = 0;
 
   virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
 
@@ -58,12 +56,11 @@ class PH3DVertexing : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
+  /// create new node output pointers
+  int CreateNodes(PHCompositeNode *topNode);
 
-	/// create new node output pointers
-	int CreateNodes(PHCompositeNode *topNode);
-
-	/// fetch node pointers
-	int GetNodes(PHCompositeNode *topNode);
+  /// fetch node pointers
+  int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif // __H_PH3DVertexing_H__
+#endif  // __H_PH3DVertexing_H__

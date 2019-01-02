@@ -14,49 +14,46 @@
 // forward declarations
 class PHG4TruthInfoContainer;
 
-
 /// \class PHTruthVertexing
 ///
 /// \brief Vertexing using truth info
 ///
 
-
-class PHTruthVertexing : public PHInitVertexing {
-
-public:
-
-	PHTruthVertexing(const std::string &name = "PHTruthVertexing");
+class PHTruthVertexing : public PHInitVertexing
+{
+ public:
+  PHTruthVertexing(const std::string &name = "PHTruthVertexing");
   virtual ~PHTruthVertexing() {}
 
-	void set_vertex_error(const float & x_err, const float & y_err, const float & z_err) {
-		_vertex_error.resize(3);
-		_vertex_error[0] = x_err;
-		_vertex_error[1] = y_err;
-		_vertex_error[2] = z_err;
-	}
+  void set_vertex_error(const float &x_err, const float &y_err, const float &z_err)
+  {
+    _vertex_error.resize(3);
+    _vertex_error[0] = x_err;
+    _vertex_error[1] = y_err;
+    _vertex_error[2] = z_err;
+  }
 
-	const std::vector<float>& get_vertex_error() const {
-		return _vertex_error;
-	}
+  const std::vector<float> &get_vertex_error() const
+  {
+    return _vertex_error;
+  }
 
-protected:
+ protected:
+  int Setup(PHCompositeNode *topNode);
 
-	int Setup(PHCompositeNode *topNode);
+  int Process();
 
-	int Process();
+ private:
+  /// create new node output pointers
+  int CreateNodes(PHCompositeNode *topNode);
 
-private:
-	/// create new node output pointers
-	int CreateNodes(PHCompositeNode *topNode);
+  /// fetch node pointers
+  int GetNodes(PHCompositeNode *topNode);
 
-	/// fetch node pointers
-	int GetNodes(PHCompositeNode *topNode);
+  PHG4TruthInfoContainer *_g4truth_container;
 
-	PHG4TruthInfoContainer* _g4truth_container;
-
-	/// manually assigned vertex error (standard dev), cm
-	std::vector<float> _vertex_error;
-
+  /// manually assigned vertex error (standard dev), cm
+  std::vector<float> _vertex_error;
 };
 
-#endif //__H_PHTruthVertexing_H__
+#endif  //__H_PHTruthVertexing_H__

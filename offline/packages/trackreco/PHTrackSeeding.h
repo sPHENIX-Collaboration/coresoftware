@@ -13,8 +13,8 @@
 #include <fun4all/SubsysReco.h>
 
 // STL includes
-#include <string>
 #include <set>
+#include <string>
 
 // forward declarations
 class PHCompositeNode;
@@ -30,9 +30,7 @@ class AssocInfoContainer;
 ///
 class PHTrackSeeding : public SubsysReco
 {
-
  public:
-
   PHTrackSeeding(const std::string &name = "PHTrackSeeding");
   virtual ~PHTrackSeeding() {}
 
@@ -63,12 +61,11 @@ class PHTrackSeeding : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
+  /// create new node output pointers
+  int CreateNodes(PHCompositeNode *topNode);
 
-	/// create new node output pointers
-	int CreateNodes(PHCompositeNode *topNode);
-
-	/// fetch node pointers
-	int GetNodes(PHCompositeNode *topNode);
+  /// fetch node pointers
+  int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif // __H_PHTrackSeeding_H__
+#endif  // __H_PHTrackSeeding_H__
