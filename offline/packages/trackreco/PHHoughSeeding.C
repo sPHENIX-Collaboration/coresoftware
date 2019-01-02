@@ -98,7 +98,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-#define _DEBUG_
+//#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
