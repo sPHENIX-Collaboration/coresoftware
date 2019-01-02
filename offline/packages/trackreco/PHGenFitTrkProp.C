@@ -100,7 +100,7 @@
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogWarning(exp)	std::cout<<"WARNING: "<<__FILE__<<": "<<__LINE__<<": "<< exp
 
-//#define _DEBUG_
+#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -584,7 +584,7 @@ int PHGenFitTrkProp::KalmanTrkProp() {
 #ifdef _DEBUG_
 		std::cout
 		<< __LINE__
-		<< ": Processing itrack: " << itrack
+		<< ": Processing itrack: " << trackiter->first
 		<< ": Total tracks: " << _track_map->size()
 		<<endl;
 #endif
@@ -608,7 +608,7 @@ int PHGenFitTrkProp::KalmanTrkProp() {
 #ifdef _DEBUG_
 			cout
 			<< __LINE__
-			<< ": propergating: " << i <<"/" << itrack
+			<< ": propergating: " << i <<"/" << trackiter->first
 			<< endl;
 #endif
 
