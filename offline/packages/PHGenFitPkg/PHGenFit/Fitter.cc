@@ -95,11 +95,23 @@ Fitter::~Fitter()
 
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 	genfit::Track* fitTrack = track->getGenFitTrack();
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
+	try {fitTrack->checkConsistency();}
+	catch (genfit::Exception& e)
+	  {
+             if (verbosity >= 2)
+	       {
+		 std::cerr << "genfit::Track::checkConsistency() failed!" << std::endl;
+		 std::cerr << e.what();
+	       }
+	     return -1;
+	  }
+#else
 	if(!fitTrack->checkConsistency()){
 		if(verbosity >= 2) LogWARNING("genfit::Track::checkConsistency() failed!") ;
 		return -1;
 	}
-
+#endif
 	try {
 		_fitter->processTrack(fitTrack);
 	} catch (genfit::Exception& e) {
@@ -110,12 +122,24 @@ int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp) {
 		}
 		return -1;
 	}
+#if ROOT_VERSION_CODE >= ROOT_VERSION(6,00,0)
+	try {fitTrack->checkConsistency();}
+	catch (genfit::Exception& e)
+	  {
+             if (verbosity >= 2)
+	       {
+		 std::cerr << "genfit::Track::checkConsistency() failed!" << std::endl;
+		 std::cerr << e.what();
+	       }
+	     return -1;
+	  }
+#else
 
 	if(!fitTrack->checkConsistency()){
 		if(verbosity >= 2) LogWARNING("genfit::Track::checkConsistency() failed!") ;
 		return -1;
 	}
-
+#endif
 	genfit::AbsTrackRep* rep = fitTrack->getCardinalRep();
 	if (!fitTrack->getFitStatus(rep)->isFitConverged()) {
 		if(verbosity >= 2) LogWARNING("Track could not be fitted successfully! Fit is not converged!");
