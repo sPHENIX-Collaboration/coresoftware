@@ -28,7 +28,10 @@ class RawClusterContainer : public PHObject
   int isValid() const;
   void identify(std::ostream& os=std::cout) const;
   ConstIterator AddCluster(RawCluster *clus);
+
   RawCluster *getCluster(const RawClusterDefs::keytype id);
+  const RawCluster *getCluster(const RawClusterDefs::keytype id) const;
+
   //! return all clusters
   ConstRange getClusters( void ) const;
   Range getClusters( void );

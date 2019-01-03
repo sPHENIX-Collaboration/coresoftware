@@ -21,11 +21,14 @@
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4NistManager.hh>
 
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
+
+#include <Geant4/G4PhysicalConstants.hh>
 
 #include <cmath>
 #include <sstream>
@@ -95,7 +98,7 @@ PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume * volume) const
 	}
       /* only record energy in actual absorber- drop energy lost in air gaps inside ecal envelope */
       else if (volume->GetName().find("absorber") != string::npos)
-	{
+	{	  
 	  if(_absorberactive)
 	    return -1;
 	  else
@@ -115,7 +118,7 @@ PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume * volume) const
 void
 PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
-  if ( Verbosity() > 0 )
+  //if ( Verbosity() > 0 )
     {
       cout << "PHG4ForwardEcalDetector: Begin Construction" << endl;
     }
@@ -163,13 +166,20 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
   new G4PVPlacement( G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z) ),
 		     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
 
-  /* Construct single calorimeter tower */
-  G4LogicalVolume* singletower0 = ConstructTower(0);
-  G4LogicalVolume* singletower1 = ConstructTower(1);
-  G4LogicalVolume* singletower2 = ConstructTower(2);
+  /* Construct single calorimeter towers */
+  bool buildType[6] = {false, false, false, false, false, false}; 
+  typedef std::map< std::string, towerposition>::iterator it_type;
+  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
+    for(int i=0; i<6; i++)
+      if(iterator->second.type==i) buildType[i] = true; 
+  }
+
+  G4LogicalVolume* singletower[6] = {NULL, NULL, NULL, NULL, NULL, NULL}; 
+  for(int i=0; i<6; i++)
+    if(buildType[i]) singletower[i] = ConstructTower(i);
 
   /* Place calorimeter towers within envelope */
-  PlaceTower( ecal_envelope_log , singletower0, singletower1, singletower2 );
+  PlaceTower( ecal_envelope_log , singletower );
 
   return;
 }
@@ -186,8 +196,10 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
 
   // This method allows construction of Type 0,1 tower (PbGl or PbW04). 
   // Call a separate routine to generate Type 2 towers (PbSc)
+  // Call a separate routine to generate Type 3-5 towers (E864 Pb-Scifi)
 
   if(type==2) return ConstructTowerType2(); 
+  if((type==3)||(type==4)||(type==5)) return ConstructTowerType3_4_5(type); 
 
   /* create logical volume for single tower */
   G4Material* material_air = G4Material::GetMaterial( "G4_AIR" );
@@ -384,15 +396,179 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 
   if ( Verbosity() > 0 )
     {
-      cout << "PHG4EICForwardEcalDetector: Building logical volume for single tower done." << endl;
+      cout << "PHG4ForwardEcalDetector: Building logical volume for single tower done." << endl;
     }
 
   return single_tower_logic;
 }
 
+G4LogicalVolume*
+PHG4ForwardEcalDetector::ConstructTowerType3_4_5(int type)
+{
+  if ( Verbosity() > 0 )
+    {
+      cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type ..." << type << endl;
+    }
+
+  // E864 Pb-Scifi calorimeter
+  // E864 Calorimeter is 99% Pb, 1% Antimony
+
+  G4Material* material_Pb = G4Material::GetMaterial( "G4_Pb" );
+  G4Material* material_Sb = G4Material::GetMaterial( "G4_Sb" );
+	
+  ostringstream name_e864_absorber;
+  name_e864_absorber.str("");
+  name_e864_absorber << "absorber_e864_" << type << endl; 
+
+  G4double density_e864 = (0.99*11.34 + 0.01*6.697)*g/cm3;
+  G4Material* absorber_e864 = new G4Material(name_e864_absorber.str().c_str(), density_e864, 2);
+  absorber_e864->AddMaterial(material_Pb, 0.99);
+  absorber_e864->AddMaterial(material_Sb, 0.01);
+
+  double tower_dx, tower_dy, tower_dz;
+  int num_fibers_x, num_fibers_y; 
+  switch(type){
+
+  case 3:
+    tower_dx = _tower3_dx; 
+    tower_dy = _tower3_dy; 
+    tower_dz = _tower3_dz; 
+    num_fibers_x = 8; 
+    num_fibers_y = 8; 
+    break; 
+  case 4:
+    tower_dx = _tower4_dx; 
+    tower_dy = _tower4_dy; 
+    tower_dz = _tower4_dz;
+    num_fibers_x = 8; 
+    num_fibers_y = 7;  
+    break; 
+  case 5:
+    tower_dx = _tower5_dx; 
+    tower_dy = _tower5_dy; 
+    tower_dz = _tower5_dz; 
+    num_fibers_x = 7; 
+    num_fibers_y = 8;  
+    break; 
+  default: 
+    cout << "PHG4ForwardEcalDetector: Invalid tower type in ConstructTowerType3_4_5, stopping..." << endl;
+    return NULL; 
+
+  }
+
+  /* create logical volume for single tower */
+  G4Material* material_air = G4Material::GetMaterial( "G4_AIR" );
+
+  G4String solidName = "single_tower_solid"; 
+  solidName += type; 
+  G4VSolid* single_tower_solid = new G4Box( solidName,
+                                       tower_dx / 2.0,
+                                       tower_dy / 2.0,
+                                       tower_dz / 2.0 );
+
+  ostringstream name_single_tower_logic;
+  name_single_tower_logic.str("");
+  name_single_tower_logic << "single_tower_logic" << type << endl; 
+
+  G4LogicalVolume *single_tower_logic = new G4LogicalVolume( single_tower_solid,
+  							     material_air,
+  							     name_single_tower_logic.str().c_str(),
+  							     0, 0, 0);
+
+  // Now the absorber and then the fibers:
+
+  G4String absorberName = "single_absorber_solid"; 
+  absorberName += type; 
+  G4VSolid* single_absorber_solid = new G4Box( absorberName,
+                                       tower_dx / 2.0,
+                                       tower_dy / 2.0,
+                                       tower_dz / 2.0 );
+
+  G4String absorberLogicName = "single_absorber_logic"; 
+  absorberLogicName += type; 
+  G4LogicalVolume *single_absorber_logic = new G4LogicalVolume( single_absorber_solid,
+						      absorber_e864,
+						      absorberLogicName,
+						      0, 0, 0);
+
+  /* create geometry volumes for scintillator and place inside single_tower */
+  // 1.1mm fibers
+
+  G4String fiberName = "single_fiber_scintillator_solid"; 
+  fiberName += type; 
+  G4VSolid* single_scintillator_solid = new G4Tubs( fiberName,
+						    0.0,0.055*cm,(tower_dz/2.0),0.0,CLHEP::twopi); 
+
+  /* create logical volumes for scintillator and absorber plates to place inside single_tower */
+  G4Material* material_scintillator = G4Material::GetMaterial( "G4_POLYSTYRENE" );
+ 
+  G4String fiberLogicName = "hEcal_scintillator_fiber_logic"; 
+  fiberLogicName += type; 
+  G4LogicalVolume *single_scintillator_logic = new G4LogicalVolume( single_scintillator_solid,
+						    material_scintillator,
+						    fiberLogicName,
+						    0, 0, 0);
+
+  G4VisAttributes *visattscint = new G4VisAttributes();
+  visattscint->SetVisibility(true);
+  visattscint->SetForceSolid(true);
+  visattscint->SetColour(G4Colour::Cyan());
+  single_absorber_logic->SetVisAttributes(visattscint);
+  single_scintillator_logic->SetVisAttributes(visattscint);
+
+  // place array of fibers inside absorber
+  
+  G4double fiber_unit_cell = 10.0*cm/47.0; 
+  G4double xpos_i = -(tower_dx/2.0) + (fiber_unit_cell/2.0); 
+  G4double ypos_i = -(tower_dy/2.0) + (fiber_unit_cell/2.0);
+  G4double zpos_i = 0.0;
+
+  ostringstream name_scintillator;
+  name_scintillator.str("");
+  name_scintillator << _towerlogicnameprefix << "_single_fiber_scintillator" << type << endl; 
+
+  for (int i = 0; i < num_fibers_x; i++){
+    for (int j = 0; j < num_fibers_y; j++){
+
+	new G4PVPlacement( 0, G4ThreeVector(xpos_i + i*fiber_unit_cell, ypos_i + j*fiber_unit_cell, zpos_i),
+			   single_scintillator_logic,
+			   name_scintillator.str().c_str(),
+			   single_absorber_logic,
+			   0, 0, OverlapCheck());
+
+      }
+    }
+
+  // Place the absorber inside the envelope
+
+  ostringstream name_absorber;
+  name_absorber.str("");
+  name_absorber << _towerlogicnameprefix << "_single_absorber" << type << endl;
+
+  new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, 0.0),
+  		     single_absorber_logic,
+  		     name_absorber.str().c_str(),
+  		     single_tower_logic,
+  		     0, 0, OverlapCheck());
+
+  G4VisAttributes *visattchk = new G4VisAttributes();
+  visattchk->SetVisibility(true);
+  visattchk->SetForceSolid(true);
+  visattchk->SetColour(G4Colour::Cyan());
+  single_tower_logic->SetVisAttributes(visattchk);
+
+  if ( Verbosity() > 0 )
+    {
+      cout << "PHG4ForwardEcalDetector: Building logical volume for single tower done." << endl;
+    }
+
+  return single_tower_logic;
+
+}
+
+
 int
-PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletower0, 
-				    G4LogicalVolume* singletower1, G4LogicalVolume* singletower2)
+PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletowerIn[6])
 {
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
@@ -407,11 +583,17 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
 
       G4LogicalVolume* singletower = NULL;
       if(iterator->second.type==0)
-	singletower = singletower0; 
+	singletower = singletowerIn[0]; 
       else if(iterator->second.type==1)
-	singletower = singletower1; 
+	singletower = singletowerIn[1]; 
       else if(iterator->second.type==2)
-	singletower = singletower2; 
+	singletower = singletowerIn[2]; 
+      else if(iterator->second.type==3)
+	singletower = singletowerIn[3]; 
+      else if(iterator->second.type==4)
+	singletower = singletowerIn[4]; 
+      else if(iterator->second.type==5)
+	singletower = singletowerIn[5]; 
       else
 	cout << "PHG4ForwardEcalDetector::PlaceTower invalid type =  " << iterator->second.type << endl; 
 
@@ -551,6 +733,42 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
   parit = _map_global_parameter.find("Gtower2_dz");
   if (parit != _map_global_parameter.end())
     _tower2_dz = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower3_dx");
+  if (parit != _map_global_parameter.end())
+    _tower3_dx = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower3_dy");
+  if (parit != _map_global_parameter.end())
+    _tower3_dy = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower3_dz");
+  if (parit != _map_global_parameter.end())
+    _tower3_dz = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower4_dx");
+  if (parit != _map_global_parameter.end())
+    _tower4_dx = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower4_dy");
+  if (parit != _map_global_parameter.end())
+    _tower4_dy = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower4_dz");
+  if (parit != _map_global_parameter.end())
+    _tower4_dz = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower5_dx");
+  if (parit != _map_global_parameter.end())
+    _tower5_dx = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower5_dy");
+  if (parit != _map_global_parameter.end())
+    _tower5_dy = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower5_dz");
+  if (parit != _map_global_parameter.end())
+    _tower5_dz = parit->second * cm;
 
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())

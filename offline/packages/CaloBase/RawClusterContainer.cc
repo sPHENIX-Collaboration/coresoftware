@@ -37,7 +37,19 @@ RawClusterContainer::AddCluster(RawCluster *rawcluster)
 RawCluster *
 RawClusterContainer::getCluster(const unsigned int key)
 {
-  Iterator it = _clusters.find(key);
+  ConstIterator it = _clusters.find(key);
+  if (it != _clusters.end())
+    {
+      return it->second;
+    }
+  return NULL;
+}
+
+const
+RawCluster *
+RawClusterContainer::getCluster(const unsigned int key) const
+{
+  ConstIterator it = _clusters.find(key);
   if (it != _clusters.end())
     {
       return it->second;
