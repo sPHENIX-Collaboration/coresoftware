@@ -3,7 +3,6 @@
 
 This is the core-software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
 
-
 Code from the mastrer branch is pulled and build each night (nightly-build) 
 and it becomes [part of the default software environment on RCF](https://wiki.bnl.gov/sPHENIX/index.php/Setup#.28At_each_login.29_Run_sPHENIX_login_shell). 
 Weekly snapshot of the build is also available as ANA-builds. 
