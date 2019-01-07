@@ -30,7 +30,8 @@ libg4detectors_io_la_LIBADD = \
   -lboost_system \
   -lpdbcalBase \
   -lXMLIO \
-  -lphparameter
+  -lphparameter 
+
 
 libg4detectors_la_LIBADD = \
   libg4detectors_io.la \
@@ -52,11 +53,11 @@ pkginclude_HEADERS = \
   PHG4Cellv2.h \
   PHG4CellContainer.h \
   PHG4CellDefs.h \
+  PHG4EventActionClearZeroEdep.h \
   PHG4ConeSubsystem.h \
   PHG4CrystalCalorimeterSubsystem.h \
   PHG4CylinderCell.h \
   PHG4CylinderCellv1.h \
-  PHG4CylinderCell_MAPS.h \
   PHG4CylinderCellv2.h \
   PHG4CylinderCellv3.h \
   PHG4CylinderCellContainer.h \
@@ -66,9 +67,6 @@ pkginclude_HEADERS = \
   PHG4CylinderGeomv3.h \
   PHG4CylinderGeomv4.h \
   PHG4CylinderGeom_Spacalv1.h \
-  PHG4CylinderGeom_MAPS.h \
-  PHG4CylinderGeom_Siladders.h \
-  PHG4CylinderGeomSiLadders.h \
   PHG4CylinderGeom_Spacalv2.h \
   PHG4CylinderGeom_Spacalv3.h \
   PHG4CylinderGeomContainer.h \
@@ -77,8 +75,7 @@ pkginclude_HEADERS = \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4CylinderCellReco.h \
-  PHG4CylinderCellTPCReco.h \
-  PHG4CylinderSubsystem.h \
+   PHG4CylinderSubsystem.h \
   PHG4DetectorSubsystem.h \
   PHG4DetectorGroupSubsystem.h \
   PHG4ForwardCalCellReco.h \
@@ -88,8 +85,6 @@ pkginclude_HEADERS = \
   PHG4HcalDefs.h \
   PHG4HcalCellReco.h \
   PHG4InnerHcalSubsystem.h \
-  PHG4MapsCellReco.h \
-  PHG4MapsSubsystem.h \
   PHG4OuterHcalSubsystem.h \
   PHG4PrototypeHcalDefs.h \
   PHG4Prototype2HcalCellReco.h \
@@ -103,14 +98,9 @@ pkginclude_HEADERS = \
   PHG4ScintillatorSlatDefs.h \
   PHG4SectorConstructor.h \
   PHG4SectorSubsystem.h \
-  PHG4SiliconTrackerCellReco.h \
-  PHG4SiliconTrackerDefs.h \
-  PHG4SiliconTrackerSubsystem.h \
   PHG4SpacalSubsystem.h \
   PHG4SpacalPrototypeSubsystem.h \
-  PHG4StepStatusDecode.h \
-  PHG4TPCDistortion.h \
-  PHG4TPCSpaceChargeDistortion.h
+  PHG4StepStatusDecode.h 
 
 libg4detectors_io_la_SOURCES = \
   PHG4BlockCellGeom.cc \
@@ -143,14 +133,8 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderGeomv3_Dict.cc \
   PHG4CylinderGeomv4.cc \
   PHG4CylinderGeomv4_Dict.cc \
-  PHG4CylinderGeom_Siladders.cc \
-  PHG4CylinderGeom_Siladders_Dict.cc \
-  PHG4CylinderGeomSiLadders.cc \
-  PHG4CylinderGeomSiLadders_Dict.cc \
   PHG4CylinderGeom_Spacalv1.cc \
   PHG4CylinderGeom_Spacalv1_Dict.cc \
-  PHG4CylinderGeom_MAPS.cc \
-  PHG4CylinderGeom_MAPS_Dict.cc \
   PHG4CylinderGeom_Spacalv2.cc \
   PHG4CylinderGeom_Spacalv2_Dict.cc \
   PHG4CylinderGeom_Spacalv3.cc \
@@ -161,8 +145,6 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCell_Dict.cc \
   PHG4CylinderCellv1.cc \
   PHG4CylinderCellv1_Dict.cc \
-  PHG4CylinderCell_MAPS.cc \
-  PHG4CylinderCell_MAPS_Dict.cc \
   PHG4CylinderCellv2.cc \
   PHG4CylinderCellv2_Dict.cc \
   PHG4CylinderCellv3.cc \
@@ -294,21 +276,8 @@ libg4detectors_la_SOURCES = \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
   PHG4SectorSubsystem_Dict.cc \
-  PHG4SiliconTrackerCellReco.cc \
-  PHG4SiliconTrackerCellReco_Dict.cc \
-  PHG4SiliconTrackerDefs_Dict.cc \
-  PHG4SiliconTrackerDetector.cc \
-  PHG4SiliconTrackerSteppingAction.cc \
-  PHG4SiliconTrackerSubsystem.cc \
-  PHG4SiliconTrackerSubsystem_Dict.cc \
   PHG4StepStatusDecode.cc \
   PHG4TrackStatusDecode.cc \
-  PHG4MapsCellReco.cc \
-  PHG4MapsCellReco_Dict.cc \
-  PHG4MapsDetector.cc \
-  PHG4MapsSteppingAction.cc \
-  PHG4MapsSubsystem.cc \
-  PHG4MapsSubsystem_Dict.cc \
   PHG4PSTOFDetector.cc \
   PHG4PSTOFSteppingAction.cc \
   PHG4PSTOFSubsystem.cc \
@@ -325,14 +294,7 @@ libg4detectors_la_SOURCES = \
   PHG4SpacalSubsystem_Dict.cc \
   PHG4SpacalPrototypeSubsystem.cc \
   PHG4SpacalPrototypeSubsystem_Dict.cc \
-  PHG4CylinderCellTPCReco.cc \
-  PHG4CylinderCellTPCReco_Dict.cc\
-  PHG4TPCDistortion.cc \
-  PHG4TPCDistortion_Dict.cc\
-  PHG4TPCSpaceChargeDistortion.cc \
-  PHG4TPCSpaceChargeDistortion_Dict.cc \
-  PHG4SiliconTrackerParameterisation.cc\
-  PHG4mRICHDetector.cc \
+   PHG4mRICHDetector.cc \
   PHG4mRICHSteppingAction.cc \
   PHG4mRICHSubsystem.cc \
   PHG4mRICHSubsystem_Dict.cc

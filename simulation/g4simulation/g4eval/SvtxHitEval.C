@@ -1,7 +1,8 @@
 #include "SvtxHitEval.h"
 
-#include <g4hough/SvtxHitMap.h>
-#include <g4hough/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
+
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4main/PHG4HitContainer.h>
@@ -446,14 +447,13 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode) {
   _hitmap = findNode::getClass<SvtxHitMap>(topNode,"SvtxHitMap");
 
   // need things off of the DST...
-  _g4cells_svtx    = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SVTX");
-  _g4cells_tracker = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_SILICON_TRACKER");
-  _g4cells_maps = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MAPS");
+  _g4cells_svtx    = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_TPC");
+  _g4cells_tracker = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_INTT");
+  _g4cells_maps = findNode::getClass<PHG4CellContainer>(topNode,"G4CELL_MVTX");
 
-  //  _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SVTX");
   _g4hits_svtx    = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_TPC");
-  _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_SILICON_TRACKER");
-  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MAPS");
+  _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_INTT");
+  _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode,"G4HIT_MVTX");
   
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
   

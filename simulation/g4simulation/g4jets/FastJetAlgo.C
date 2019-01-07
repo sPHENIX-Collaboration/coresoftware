@@ -48,6 +48,12 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   // translate to fastjet
   std::vector<fastjet::PseudoJet> pseudojets;
   for (unsigned int ipart = 0; ipart < particles.size(); ++ipart) {    
+    
+    // fastjet performs strangely with exactly (px,py,pz,E) =
+    // (0,0,0,0) inputs, such as placeholder towers or those with
+    // zero'd out energy after CS. this catch also in FastJetAlgoSub
+    if ( particles[ipart]->get_e() == 0.) continue;
+    
     fastjet::PseudoJet pseudojet (particles[ipart]->get_px(),
 				  particles[ipart]->get_py(),
 				  particles[ipart]->get_pz(),

@@ -35,8 +35,13 @@ class RawTowerContainer : public PHObject
 
   ConstIterator AddTower(const unsigned int ieta, const unsigned int iphi, RawTower *twr);
   ConstIterator AddTower(RawTowerDefs::keytype key, RawTower *twr);
-  RawTower *getTower(RawTowerDefs::keytype key);
-  RawTower *getTower(const unsigned int ieta, const unsigned int iphi);
+
+  RawTower *getTower(RawTowerDefs::keytype key) ;
+  const RawTower *getTower(RawTowerDefs::keytype key) const;
+
+  RawTower *getTower(const unsigned int ieta, const unsigned int iphi) ;
+  const RawTower *getTower(const unsigned int ieta, const unsigned int iphi) const;
+
   //! return all towers
   ConstRange getTowers( void ) const;
   Range getTowers( void );

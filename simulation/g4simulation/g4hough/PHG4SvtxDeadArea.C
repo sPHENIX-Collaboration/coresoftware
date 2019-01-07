@@ -1,7 +1,7 @@
 #include "PHG4SvtxDeadArea.h"
 
-#include "SvtxHitMap.h"
-#include "SvtxHit.h"
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
 
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
@@ -49,9 +49,9 @@ int PHG4SvtxDeadArea::InitRun(PHCompositeNode* topNode) {
   unsigned int seed = PHRandomSeed(); // fixed seed handled in PHRandomSeed()
   gsl_rng_set(RandomGenerator,seed);
 
-  GenericFillDeadAreaMap(topNode,"MAPS");
+  GenericFillDeadAreaMap(topNode,"MVTX");
   GenericFillDeadAreaMap(topNode,"SVTX");
-  GenericFillDeadAreaMap(topNode,"SILICON_TRACKER");
+  GenericFillDeadAreaMap(topNode,"INTT");
 
   if (Verbosity() > 0) {
     cout << "====================== PHG4SvtxDeadArea::InitRun() ========================" << endl;

@@ -2,8 +2,8 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxCluster.h>
 
 
 #include <string>

@@ -51,7 +51,7 @@ public:
 	 */
 	enum OutPutMode {MakeNewNode, OverwriteOriginalNode, DebugMode};
 
-	enum DetectorType {MIE, MAPS_TPC, MAPS_IT_TPC, LADDER_MAPS_TPC, LADDER_MAPS_IT_TPC, LADDER_MAPS_LADDER_IT_TPC, MAPS_LADDER_IT_TPC};
+	enum DetectorType {MIE, MVTX_TPC, MVTX_IT_TPC, LADDER_MVTX_TPC, LADDER_MVTX_IT_TPC, LADDER_MVTX_LADDER_IT_TPC, MVTX_LADDER_IT_TPC};
 
 	//! Default constructor
 	PHG4TrackKalmanFitter(const std::string &name = "PHG4TrackKalmanFitter");

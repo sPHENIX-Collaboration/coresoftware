@@ -23,6 +23,7 @@ libqa_modules_la_LIBADD = \
   -lg4hough \
   -lcalo_io -lcalo_util \
   -lg4jets_io \
+  -ltrackbase_historic_io \
   -lg4eval
 
 pkginclude_HEADERS = \

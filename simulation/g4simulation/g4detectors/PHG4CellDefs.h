@@ -37,7 +37,7 @@ namespace PHG4CellDefs
   static unsigned int bitshift_phi __attribute__((unused)) = 16;
 #endif
 
-  enum CellBinning {undefined = 0, sizebinning = 1, etaphibinning = 2, etaslatbinning = 3, spacalbinning = 4, scintillatorslatbinning = 5, etaxsizebinning = 6, mapsbinning = 7, tpcbinning = 8};
+  enum CellBinning {undefined = 0, sizebinning = 1, etaphibinning = 2, etaslatbinning = 3, spacalbinning = 4, scintillatorslatbinning = 5, etaxsizebinning = 6, mvtxbinning = 7, tpcbinning = 8};
   bool has_binning(PHG4CellDefs::keytype key, PHG4CellDefs::CellBinning binning);
   short get_binning(const PHG4CellDefs::keytype key);
   short int get_detid(const PHG4CellDefs::keytype key);
@@ -78,7 +78,7 @@ namespace PHG4CellDefs
     unsigned short int get_xsizebin(const PHG4CellDefs::keytype key);
   };
 
-  namespace MapsBinning
+  namespace MVTXBinning
   {
     keytype genkey(const unsigned short layer, const unsigned int bit32_index);
     unsigned int get_index(const PHG4CellDefs::keytype key);

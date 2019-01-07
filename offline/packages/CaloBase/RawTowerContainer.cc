@@ -73,7 +73,19 @@ RawTowerContainer::AddTower(RawTowerDefs::keytype key, RawTower *twr)
 RawTower *
 RawTowerContainer::getTower(RawTowerDefs::keytype key)
 {
-  Iterator it = _towers.find(key);
+  ConstIterator it = _towers.find(key);
+  if (it != _towers.end())
+    {
+      return it->second;
+    }
+  return NULL;
+}
+
+const
+RawTower *
+RawTowerContainer::getTower(RawTowerDefs::keytype key) const
+{
+  ConstIterator it = _towers.find(key);
   if (it != _towers.end())
     {
       return it->second;
@@ -83,6 +95,14 @@ RawTowerContainer::getTower(RawTowerDefs::keytype key)
 
 RawTower *
 RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi)
+{
+  RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
+  return getTower(key);
+}
+
+const
+RawTower *
+RawTowerContainer::getTower(const unsigned int ieta, const unsigned int iphi) const
 {
   RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid,ieta,iphi);
   return getTower(key);
