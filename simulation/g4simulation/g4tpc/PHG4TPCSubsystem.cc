@@ -189,5 +189,5 @@ void PHG4TPCSubsystem::SetDefaultParameters()
   set_default_string_param("window_core_material", "ROHACELL_FOAM_51");
   set_default_double_param("window_thickness", 0.56);  // overall thickness
   set_default_string_param("window_surface_material", "FR4");
-  set_default_double_param("window_surface_thickness", 0.0125);  // 125  um
+  set_default_double_param("window_surface_thickness", 0.0125);  // 125  um shell thickness be default
 }
