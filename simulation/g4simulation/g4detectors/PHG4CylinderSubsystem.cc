@@ -77,17 +77,17 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       nodename << "G4HIT_" << Name();
       geonode << "CYLINDERGEOM_" << Name();
     }
-    PHG4HitContainer *cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
+    PHG4HitContainer *cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!cylinder_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+      dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     cylinder_hits->AddLayer(GetLayer());
-    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonode.str().c_str());
+    PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonode.str());
     if (!geo)
     {
       geo = new PHG4CylinderGeomContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(geo, geonode.str(), "PHObject");
       runNode->addNode(newNode);
     }
     PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv1(GetParams()->get_double_param("radius"), GetParams()->get_double_param("place_z") - detlength / 2., GetParams()->get_double_param("place_z") + detlength / 2., GetParams()->get_double_param("thickness"));

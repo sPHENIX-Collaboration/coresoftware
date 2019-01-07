@@ -23,19 +23,19 @@
  */
 class MvtxHit : public TrkrHit
 {
-public:
+ public:
   //! ctor
   MvtxHit();
   //! dtor
-  virtual ~MvtxHit() {};
+  virtual ~MvtxHit(){};
 
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
   virtual int isValid() const;
-  
-private:
-  ClassDef(MvtxHit,1);
+
+ private:
+  ClassDef(MvtxHit, 1);
 };
 
-#endif //MVTX_MVTXHIT_H
+#endif  //MVTX_MVTXHIT_H

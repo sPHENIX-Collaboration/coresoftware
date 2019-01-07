@@ -2,10 +2,11 @@
 
 #include "SvtxHitEval.h"
 
-#include <g4hough/SvtxCluster.h>
-#include <g4hough/SvtxClusterMap.h>
-#include <g4hough/SvtxHit.h>
-#include <g4hough/SvtxHitMap.h>
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>

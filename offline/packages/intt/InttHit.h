@@ -23,17 +23,17 @@
  */
 class InttHit : public TrkrHit
 {
-public:
+ public:
   //! ctor
   InttHit();
   //! dtor
-  virtual ~InttHit() {};
+  virtual ~InttHit(){};
 
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
   virtual int isValid() const;
-  
+
   /**
    * @brief Set the ADC information
    * @param[in] adc ADC value
@@ -46,9 +46,9 @@ public:
    */
   short getAdc() const { return m_adc; }
 
-private:
+ private:
   short m_adc;
-  ClassDef(InttHit,1);
+  ClassDef(InttHit, 1);
 };
 
-#endif //INTT_INTTHIT_H
+#endif  //INTT_INTTHIT_H

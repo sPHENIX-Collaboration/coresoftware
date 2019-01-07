@@ -42,6 +42,7 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const;
   PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
+
  private:
   void SetDefaultParameters();
 

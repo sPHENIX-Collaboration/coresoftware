@@ -12,8 +12,8 @@
 #include <phool/getClass.h>
 
 // PHENIX Geant4 includes
-#include <g4hough/SvtxTrackMap.h>
-#include <g4hough/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrack.h>
 
 // standard includes
 #include <iostream>

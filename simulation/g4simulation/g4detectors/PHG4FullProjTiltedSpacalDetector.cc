@@ -347,7 +347,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       G4Transform3D wall_trans = G4TranslateZ3D(val.second);
 
       G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-                                                   G4String(GetName().c_str()) + G4String("_EndWall_") + to_string(val.first), sec_logic,
+                                                   G4String(GetName()) + G4String("_EndWall_") + to_string(val.first), sec_logic,
                                                    false, val.first, OverlapCheck());
 
       calo_vol[wall_phys] = val.first;
@@ -411,7 +411,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
           G4TranslateX3D(-sign_azimuth * (get_geom_v3()->get_sidewall_thickness() * cm / 2.0 + get_geom_v3()->get_sidewall_outer_torr() * cm));
 
       G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-                                                   G4String(GetName().c_str()) + G4String("_SideWall_") + to_string(val.first), sec_logic,
+                                                   G4String(GetName()) + G4String("_SideWall_") + to_string(val.first), sec_logic,
                                                    false, val.first, OverlapCheck());
 
       calo_vol[wall_phys] = val.first;
@@ -460,7 +460,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
             G4TranslateZ3D(sign_z * (get_geom_v3()->get_length() * cm / 4));
 
         G4PVPlacement* wall_phys = new G4PVPlacement(wall_trans, wall_logic,
-                                                     G4String(GetName().c_str()) + G4String("_Divider_") + to_string(ID), sec_logic,
+                                                     G4String(GetName()) + G4String("_Divider_") + to_string(ID), sec_logic,
                                                      false, ID, OverlapCheck());
 
         calo_vol[wall_phys] = ID;
@@ -504,7 +504,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     const bool overlapcheck_block = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 2);
 
     G4PVPlacement* block_phys = new G4PVPlacement(block_trans, LV_tower,
-                                                  G4String(GetName().c_str()) + G4String("_Tower_") + to_string(g_tower.id), sec_logic, false,
+                                                  G4String(GetName()) + G4String("_Tower_") + to_string(g_tower.id), sec_logic, false,
                                                   g_tower.id, overlapcheck_block);
     block_vol[block_phys] = g_tower.id;
     assert(gdml_config);
@@ -662,7 +662,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
 
     const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
     G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place, fiber_logic,
-                                                   G4String(name.str().c_str()), LV_tower, false, fiber_ID,
+                                                   G4String(name.str()), LV_tower, false, fiber_ID,
                                                    overlapcheck_fiber);
     fiber_vol[fiber_physi] = fiber_ID;
     assert(gdml_config);
@@ -764,7 +764,7 @@ int PHG4FullProjTiltedSpacalDetector::Construct_Fibers(
 
       const bool overlapcheck_fiber = OverlapCheck() and (get_geom_v3()->get_construction_verbose() >= 3);
       G4PVPlacement* fiber_physi = new G4PVPlacement(fiber_place,
-                                                     fiber_logic, G4String(name.str().c_str()), LV_tower, false,
+                                                     fiber_logic, G4String(name.str()), LV_tower, false,
                                                      fiber_ID, overlapcheck_fiber);
       fiber_vol[fiber_physi] = fiber_ID;
       assert(gdml_config);
@@ -796,7 +796,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
   //Processed PostionSeeds 1 from 1 1
 
   G4Trap* block_solid = new G4Trap(
-      /*const G4String& pName*/ G4String(GetName().c_str()) + sTowerID,
+      /*const G4String& pName*/ G4String(GetName()) + sTowerID,
       g_tower.pDz * cm,                                         // G4double pDz,
       g_tower.pTheta * rad, g_tower.pPhi * rad,                 // G4double pTheta, G4double pPhi,
       g_tower.pDy1 * cm, g_tower.pDx1 * cm, g_tower.pDx2 * cm,  // G4double pDy1, G4double pDx1, G4double pDx2,
@@ -898,7 +898,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                (-g_tower.NSubtowerY + 1. + 2 * index_y) / (double) (g_tower.NSubtowerY);
 
   G4VSolid* block_solid = new G4Trap(
-      /*const G4String& pName*/ G4String(GetName().c_str()) + sTowerID,
+      /*const G4String& pName*/ G4String(GetName()) + sTowerID,
       0.5 * g_tower.LightguideHeight * cm,  // G4double pDz,
       0 * rad, 0 * rad,                     // G4double pTheta, G4double pPhi,
       g_tower.LightguideTaperRatio * lg_pDy1 * cm,

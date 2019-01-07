@@ -9,7 +9,7 @@
 
 #include "PHG4HoughTransform.h"
 
-#include "SvtxTrack.h"
+#include <trackbase_historic/SvtxTrack.h>
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>

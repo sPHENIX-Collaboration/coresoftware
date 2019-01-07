@@ -39,12 +39,12 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include "SvtxTrackMap.h"
-#include "SvtxTrackMap_v1.h"
-#include "SvtxTrackState.h"
-#include "SvtxTrackState_v1.h"
-#include "SvtxTrack.h"
-#include "SvtxTrack_FastSim.h"
+#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>
+#include <trackbase_historic/SvtxTrackState_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_FastSim.h>
 
 #include "PHG4TrackFastSim.h"
 

@@ -51,7 +51,7 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
     exit(-1);
   }
 
-  G4VSolid *block_solid = new G4Box(G4String(GetName().c_str()),
+  G4VSolid *block_solid = new G4Box(G4String(GetName()),
                                     m_Params->get_double_param("size_x") / 2. * cm,
                                     m_Params->get_double_param("size_y") / 2. * cm,
                                     m_Params->get_double_param("size_z") / 2. * cm);
@@ -65,7 +65,7 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
 
   G4LogicalVolume *block_logic = new G4LogicalVolume(block_solid,
                                                      TrackerMaterial,
-                                                     G4String(GetName().c_str()),
+                                                     G4String(GetName()),
                                                      nullptr, nullptr, g4userlimits);
   G4VisAttributes matVis;
   if (m_Params->get_int_param("blackhole"))
@@ -86,6 +86,6 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
   rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
   m_BlockPhysi = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
                                    block_logic,
-                                   G4String(GetName().c_str()),
+                                   G4String(GetName()),
                                    logicWorld, 0, false, OverlapCheck());
 }

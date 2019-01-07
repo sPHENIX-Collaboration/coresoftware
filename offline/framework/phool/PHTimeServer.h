@@ -13,6 +13,7 @@
 #include "PHTimer.h"
 
 #include <iostream>
+#include <memory>
 #include <map>
 #include <string>
 
@@ -54,7 +55,7 @@ class PHTimeServer
 
    private:
 #ifndef __CINT__
-    boost::shared_ptr<PHTimer> _timer;
+    std::shared_ptr<PHTimer> _timer;
 #endif
     unsigned short _uid;
   };

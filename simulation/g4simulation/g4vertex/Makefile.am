@@ -17,13 +17,15 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4vertex_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -ltrackbase_historic_io
 
 libg4vertex_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
   -lg4bbc_io \
   -lg4hough_io \
+  -ltrackbase_historic_io \
   libg4vertex_io.la
 
 pkginclude_HEADERS = \

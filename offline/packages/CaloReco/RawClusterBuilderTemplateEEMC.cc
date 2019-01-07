@@ -255,7 +255,8 @@ int RawClusterBuilderTemplateEEMC::process_event(PHCompositeNode *topNode)
   std::vector<EmcModule> *pPeaks = &Peaks;
 
   float xout, yout, zout;
-  float prob, chi2;
+  float prob;
+  float chi2 = NAN;
   int ndf;
 
   vector<EmcModule>::iterator ph;
