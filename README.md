@@ -15,7 +15,7 @@ Due to its importance, update of this repository require going through a review 
   * [Get started on day-1](https://wiki.bnl.gov/sPHENIX/index.php/SPHENIX_software_day-1_checklist)
   * [sPHENIX macros that run this core-software](https://github.com/sPHENIX-Collaboration/macros)
   * ["Pull Request" tutorial to update this repository](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures)
-* Documentation 
+* Documentation  
   * [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
   * [Doxygen: easier way to browse code](https://www.phenix.bnl.gov/WWW/sPHENIX/doxygen/html/)
   * [Build a package](https://wiki.bnl.gov/sPHENIX/index.php/Example_of_using_DST_nodes#Building%20a%20package)
