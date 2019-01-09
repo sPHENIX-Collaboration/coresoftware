@@ -1,11 +1,11 @@
 
-[![Build Status](https://web.racf.bnl.gov/jenkins-sphenix/buildStatus/icon?job=sPHENIX/sPHENIX_CoreSoftware_MasterBranch)](https://web.racf.bnl.gov/jenkins-sphenix/job/sPHENIX/job/sPHENIX_CoreSoftware_MasterBranch/)
-
 # Welcome
 
 This is the core-software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
 
-Code from the `mastrer` branch is pulled and build each night (nightly-build) 
+[![Build Status](https://web.racf.bnl.gov/jenkins-sphenix/buildStatus/icon?job=sPHENIX/sPHENIX_CoreSoftware_MasterBranch)](https://web.racf.bnl.gov/jenkins-sphenix/job/sPHENIX/job/sPHENIX_CoreSoftware_MasterBranch/)
+
+Code from the `master` branch is pulled and build each night (nightly-build) 
 and it becomes [part of the default software environment on RCF](https://wiki.bnl.gov/sPHENIX/index.php/Setup#.28At_each_login.29_Run_sPHENIX_login_shell). 
 Weekly snapshot of the build is also available as ANA-builds. 
 Due to its importance, update of this repository require going through a review via [the "Pull Request" process](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures). 
