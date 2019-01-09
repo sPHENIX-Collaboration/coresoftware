@@ -13,7 +13,7 @@ AM_CPPFLAGS = \
 
 AM_CXXFLAGS = \
  -Werror -msse2 -DRAVE -DRaveDllExport=
-   
+
 libtrack_reco_la_SOURCES = \
   AssocInfoContainer.C \
   AssocInfoContainer_Dict.C \
@@ -65,7 +65,7 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lphparameter
-  
+
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
@@ -73,7 +73,11 @@ libtrack_reco_la_LIBADD = \
 ##############################################
 # please add new classes in alphabetical order
 
-# pkginclude_HEADERS = 
+pkginclude_HEADERS = \
+  AssocInfoContainer.h \
+  PHInitVertexing.h \
+  PHTrackPropagating.h \
+  PHTrackSeeding.h
 
 ################################################
 # linking tests
