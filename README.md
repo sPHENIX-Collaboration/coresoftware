@@ -1,4 +1,6 @@
 
+[![Build Status](https://web.racf.bnl.gov/jenkins-sphenix/buildStatus/icon?job=sPHENIX/sPHENIX_CoreSoftware_MasterBranch)](https://web.racf.bnl.gov/jenkins-sphenix/job/sPHENIX/job/sPHENIX_CoreSoftware_MasterBranch/)
+
 # Welcome
 
 This is the core-software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
