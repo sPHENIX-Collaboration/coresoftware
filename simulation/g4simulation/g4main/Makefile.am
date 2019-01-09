@@ -47,17 +47,19 @@ libphg4hit_la_LIBADD = \
   -leicsmear
 
 libphg4hit_la_SOURCES = \
+    PHG4AllHit_Dict.cc \
     PHG4EventHeader.cc \
     PHG4EventHeaderv1.cc \
-    PHG4Hit_Dict.cc \
     PHG4HitReadBack.cc \
     PHG4HitDefs.cc \
     PHG4Hit.cc \
+    PHG4Hit_Dict.cc \
     PHG4Hitv1.cc \
     PHG4HitEval.cc \
     PHG4HitContainer.cc \
     PHG4InEvent.cc \
     PHG4Particle.cc \
+    PHG4Particle_Dict.cc \
     PHG4Particlev1.cc \
     PHG4Particlev2.cc \
     PHG4Shower.cc \
@@ -186,6 +188,10 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
+	echo %_Dict_rdict.pcm
+
 ##############################################
 # please add new classes in alphabetical order
 
@@ -212,11 +218,10 @@ PHG4_Dict.cc: \
   PHG4LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
-PHG4Hit_Dict.cc: \
+PHG4AllHit_Dict.cc: \
   PHG4EventHeader.h \
   PHG4EventHeaderv1.h \
   PHG4HitReadBack.h \
-  PHG4Hit.h \
   PHG4HitDefs.h \
   PHG4Hitv1.h \
   PHG4HitEval.h \
@@ -224,13 +229,12 @@ PHG4Hit_Dict.cc: \
   PHG4InEvent.h \
   PHG4Shower.h \
   PHG4Showerv1.h \
-  PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
   PHG4TruthInfoContainer.h \
   PHG4VtxPoint.h \
   PHG4VtxPointv1.h \
-  PHG4HitLinkDef.h
+  PHG4AllHitLinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
 clean-local:
