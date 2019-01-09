@@ -1,11 +1,11 @@
-#ifndef __PHG4INTDIGITIZER__
-#define __PHG4INTTDIGITIZER__
+#ifndef G4INTT_PHG4INTTDIGITIZER_H
+#define G4INTT_PHG4INTTDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
-#include <assert.h>
-#include <float.h>
+#include <cassert>
+#include <cfloat>
+#include <map>
 #include <vector>
 
 class SvtxHitMap;
@@ -57,8 +57,6 @@ class PHG4INTTDigitizer : public SubsysReco
 
   // storage
   SvtxHitMap *_hitmap;
-
-  PHTimeServer::timer _timer;  ///< Timer
 
   const unsigned int nadcbins = 8;
   std::map<int, std::vector<std::pair<double, double> > > _max_fphx_adc;

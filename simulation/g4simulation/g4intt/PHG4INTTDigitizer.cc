@@ -28,7 +28,6 @@ using namespace std;
 PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   : SubsysReco(name)
   , _hitmap(NULL)
-  , _timer(PHTimeServer::get()->insert_new(name))
   , m_nCells(0)
   , m_nDeadCells(0)
 {
@@ -97,8 +96,6 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
 
 int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
-
   _hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
   if (!_hitmap)
   {
@@ -112,7 +109,6 @@ int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
 
   PrintHits(topNode);
 
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
