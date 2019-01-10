@@ -4,8 +4,6 @@
 
 using namespace std;
 
-ClassImp(PHG4Hit)
-
 void
 PHG4Hit::Copy(PHG4Hit const &g4hit)
 {

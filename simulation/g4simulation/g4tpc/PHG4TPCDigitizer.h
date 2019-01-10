@@ -1,9 +1,8 @@
-#ifndef __PHG4TPCDIGITIZER_H__
-#define __PHG4TPCDIGITIZER_H__
+#ifndef G4TPC_PHG4TPCDIGITIZER_H
+#define G4TPC_PHG4TPCDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
 #include <g4detectors/PHG4CellDefs.h>
-#include <phool/PHTimeServer.h>
 
 #include <map>
 #include <vector>
@@ -72,8 +71,6 @@ class PHG4TPCDigitizer : public SubsysReco
 
   // storage
   SvtxHitMap *_hitmap;
-
-  PHTimeServer::timer _timer;  ///< Timer
 
 #ifndef __CINT__
   //! random generator that conform with sPHENIX standard

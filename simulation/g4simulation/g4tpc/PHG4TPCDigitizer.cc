@@ -48,7 +48,6 @@ PHG4TPCDigitizer::PHG4TPCDigitizer(const string &name)
   ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())
   ,  // will be assigned in PHG4TPCDigitizer::InitRun
   _hitmap(NULL)
-  , _timer(PHTimeServer::get()->insert_new(name))
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
@@ -136,7 +135,6 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
 
 int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
 
   _hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
   if (!_hitmap)
@@ -153,7 +151,6 @@ int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode)
 
   PrintHits(topNode);
 
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
