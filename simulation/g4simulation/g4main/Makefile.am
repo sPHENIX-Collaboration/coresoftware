@@ -46,7 +46,13 @@ libphg4hit_la_LIBADD = \
   -lfun4all \
   -leicsmear
 
+# for root6 we need pcm and dictionaries but only for
+# i/o classes. For root5 we need only dictionaries but
+# those for i/o and classes available on the cmd line
+# MAKEROOT6 is set in the configure.ac, true for root6
 if MAKEROOT6
+# this is a tweak to install files in $(libdir), automake refuses
+# to install other files in libdir, this construct gets around this
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   PHG4EventHeader_Dict_rdict.pcm \
@@ -65,10 +71,32 @@ nobase_dist_pcm_DATA = \
   PHG4VtxPointv1_Dict_rdict.pcm \
   PHG4TruthInfoContainer_Dict_rdict.pcm
 else
-  ROOT5DICTS = PHG4HitReadBack_Dict.cc PHG4HitDefs_Dict.cc
+  ROOT5HITDICTS = PHG4HitDefs_Dict.cc
+  ROOT5TBDICTS = \
+    HepMCNodeReader_Dict.cc \
+    PHG4ConsistencyCheck_Dict.cc \
+    PHG4HeadReco_Dict.cc \
+    PHG4InEventCompress_Dict.cc \
+    PHG4InEventReadBack_Dict.cc \
+    PHG4InputFilter_Dict.cc \
+    PHG4ParticleGun_Dict.cc \
+    PHG4ParticleGenerator_Dict.cc \
+    PHG4ParticleGeneratorBase_Dict.cc \
+    PHG4ParticleGeneratorVectorMeson \
+    PHG4ParticleGeneratorD0_Dict.cc \
+    PHG4Reco_Dict.cc \
+    PHG4ScoringManager_Dict.cc \
+    PHG4SimpleEventGenerator_Dict.cc \
+    PHG4PileupGenerator_Dict.cc \
+    PHG4Subsystem_Dict.cc \
+    PHG4TruthSubsystem_Dict.cc \
+    PHG4Utils_Dict.cc \
+    ReadEICFiles_Dict.cc \
+    PHG4HitReadBack_Dict.cc
 endif
 
 libphg4hit_la_SOURCES = \
+  $(ROOT5HITDICTS) \
   PHG4EventHeader.cc \
   PHG4EventHeader_Dict.cc \
   PHG4EventHeaderv1.cc \
@@ -82,7 +110,6 @@ libphg4hit_la_SOURCES = \
   PHG4HitDefs.cc \
   PHG4HitEval.cc \
   PHG4HitEval_Dict.cc \
-  PHG4HitReadBack.cc \
   PHG4InEvent.cc \
   PHG4InEvent_Dict.cc \
   PHG4Particle.cc \
@@ -100,15 +127,17 @@ libphg4hit_la_SOURCES = \
   PHG4VtxPoint.cc \
   PHG4VtxPoint_Dict.cc \
   PHG4VtxPointv1.cc \
-  PHG4VtxPointv1_Dict.cc $(ROOT5DICTS)
+  PHG4VtxPointv1_Dict.cc
 
 libg4testbench_la_SOURCES = \
+    $(ROOT5TBDICTS) \
     G4TBMagneticFieldSetup.cc \
     G4TBFieldMessenger.cc \
     PHG4MagneticField.cc \
     HepMCNodeReader.cc \
     PHG4ConsistencyCheck.cc \
     PHG4Detector.cc \
+    PHG4HitReadBack.cc \
     PHG4EtaParameterization.cc \
     PHG4EtaPhiParameterization.cc \
     PHG4HeadReco.cc \
@@ -126,7 +155,6 @@ libg4testbench_la_SOURCES = \
     PHG4PhenixEventAction.cc \
     PHG4PhenixSteppingAction.cc \
     PHG4PhenixTrackingAction.cc \
-    PHG4_Dict.cc \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
     PHG4ScoringManager.cc \
@@ -228,31 +256,6 @@ testexternals.cc:
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
 
-##############################################
-# please add new classes in alphabetical order
-
-PHG4_Dict.cc: \
-  HepMCNodeReader.h \
-  PHG4ConsistencyCheck.h \
-  PHG4HeadReco.h \
-  PHG4InEventCompress.h \
-  PHG4InEventReadBack.h \
-  PHG4InputFilter.h \
-  PHG4PileupGenerator.h \
-  PHG4SimpleEventGenerator.h \
-  PHG4ParticleGun.h \
-  PHG4ParticleGenerator.h \
-  PHG4ParticleGeneratorBase.h \
-  PHG4ParticleGeneratorVectorMeson.h \
-  PHG4ParticleGeneratorD0.h \
-  PHG4Reco.h \
-  PHG4ScoringManager.h \
-  PHG4Subsystem.h \
-  PHG4TruthSubsystem.h \
-  PHG4Utils.h \
-  ReadEICFiles.h \
-  PHG4LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm 
