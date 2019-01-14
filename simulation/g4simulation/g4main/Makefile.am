@@ -46,6 +46,28 @@ libphg4hit_la_LIBADD = \
   -lfun4all \
   -leicsmear
 
+# I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
+# pcm files in addition. If someone can figure out how to make a list
+# so this list of dictionaries is transformed into a list of pcm files
+# following a simple naming convention, please change this accordingly and
+# let me know
+ROOTHITDICTS = \
+  PHG4EventHeader_Dict.cc \
+  PHG4EventHeaderv1_Dict.cc \
+  PHG4Hit_Dict.cc \
+  PHG4Hitv1_Dict.cc \
+  PHG4HitEval_Dict.cc \
+  PHG4HitContainer_Dict.cc \
+  PHG4InEvent_Dict.cc \
+  PHG4Particle_Dict.cc \
+  PHG4Particlev1_Dict.cc \
+  PHG4Particlev2_Dict.cc \
+  PHG4Shower_Dict.cc \
+  PHG4Showerv1_Dict.cc \
+  PHG4VtxPoint_Dict.cc \
+  PHG4VtxPointv1_Dict.cc \
+  PHG4TruthInfoContainer_Dict.cc
+
 # for root6 we need pcm and dictionaries but only for
 # i/o classes. For root5 we need only dictionaries but
 # those for i/o and classes available on the cmd line
@@ -96,38 +118,24 @@ else
 endif
 
 libphg4hit_la_SOURCES = \
+  $(ROOTHITDICTS) \
   $(ROOT5HITDICTS) \
   PHG4EventHeader.cc \
-  PHG4EventHeader_Dict.cc \
   PHG4EventHeaderv1.cc \
-  PHG4EventHeaderv1_Dict.cc \
   PHG4Hit.cc \
-  PHG4Hit_Dict.cc \
   PHG4Hitv1.cc \
-  PHG4Hitv1_Dict.cc \
   PHG4HitContainer.cc \
-  PHG4HitContainer_Dict.cc \
   PHG4HitDefs.cc \
   PHG4HitEval.cc \
-  PHG4HitEval_Dict.cc \
   PHG4InEvent.cc \
-  PHG4InEvent_Dict.cc \
   PHG4Particle.cc \
-  PHG4Particle_Dict.cc \
   PHG4Particlev1.cc \
-  PHG4Particlev1_Dict.cc \
   PHG4Particlev2.cc \
-  PHG4Particlev2_Dict.cc \
   PHG4Shower.cc \
-  PHG4Shower_Dict.cc \
-  PHG4Showerv1_Dict.cc \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
-  PHG4TruthInfoContainer_Dict.cc \
   PHG4VtxPoint.cc \
-  PHG4VtxPoint_Dict.cc \
-  PHG4VtxPointv1.cc \
-  PHG4VtxPointv1_Dict.cc
+  PHG4VtxPointv1.cc
 
 libg4testbench_la_SOURCES = \
     $(ROOT5TBDICTS) \
