@@ -27,7 +27,7 @@
 #include <g4detectors/PHG4Cell.h>
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
-#include <g4intt/PHG4CylinderGeom_INTT.h>
+#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -296,6 +296,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 
 	if (_trackmap_refit)
 		_trackmap_refit->empty();
+	if(Verbosity() > 1)
+	  std::cout << PHWHERE << "RCC Starting iteration of _trackmap\n";
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
 			++iter) {
@@ -304,10 +306,16 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			continue;
 		if (!(svtx_track->get_pt() > _fit_min_pT))
 			continue;
+		if(Verbosity() > 1)
+		  std::cout << PHWHERE << "svtx track has pt above min\n";
 
 		//! stands for Refit_PHGenFit_Track
 		std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
+		if(Verbosity() > 5)
+		  std::cout << PHWHERE << "rf_phgf_track found\n";
 		std::shared_ptr<PHGenFit::Track> g4_phgf_track = FitG4Track(topNode, svtx_track);
+		if(Verbosity() > 5)
+		  std::cout << PHWHERE << "g4_phgf_track found\n";
 
 
 		if (rf_phgf_track) {
@@ -319,6 +327,8 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		}
 
 		//RCC do some studies of track extrapolation to the tpc:
+	if(Verbosity() > 1)
+	  std::cout << PHWHERE << "RCC Starting eval if this is true: " << ((_do_eval)?"true ":"false") << endl;
 		
 	       if (_do_eval) {
 		 if (Verbosity() >= 2) std::cout << PHWHERE << "Starting extrapolation Eval"<<endl;
@@ -1343,6 +1353,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
   bool use_intt=true;
   bool use_maps=true;
 	//std::shared_ptr<PHGenFit::Track> empty_track(NULL);
+  if(Verbosity() > 5)
+    std::cout << PHWHERE << "ReFitting track\n";
 
 	if (!intrack) {
 		cerr << PHWHERE << " Input SvtxTrack is NULL!" << endl;
@@ -1392,6 +1404,9 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			seed_cov[i][j] = 100.;
 		}
 	}
+			if(Verbosity() > 5)
+		  std::cout << PHWHERE << "refit seed prepared\n";
+
 
 	// Create measurements
 	std::vector<PHGenFit::Measurement*> measurements;
@@ -1507,14 +1522,14 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			continue;
 		}
 
-#ifdef _DEBUG_
-		cout
+		if(Verbosity() > 5){
+		 cout
 		<< __LINE__
 		<<": ID: " << cluster_id
 		<<": layer: " << cluster->get_layer()
 		<<endl;
-#endif
-
+		}
+		
 		TVector3 pos(cluster->get_x(), cluster->get_y(), cluster->get_z());
 
 		// DEBUG: BEGIN
@@ -1663,6 +1678,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
 		if (cell_mvtx) {
+
 			PHG4Cell* cell = cell_mvtx;
 
 			int stave_index = cell->get_stave_index();
@@ -1683,12 +1699,11 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeom_INTT* geom =
-			  dynamic_cast<PHG4CylinderGeom_INTT*> (geom_container_intt->GetLayerGeom(layer));
+			PHG4CylinderGeomINTT* geom =
+			  dynamic_cast<PHG4CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);
-
 			n.SetXYZ(hit_location[0], hit_location[1], 0);
 			n.RotateZ(geom->get_strip_phi_tilt());
 		}
@@ -1703,6 +1718,10 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		  meas = new PHGenFit::PlanarMeasurement(pos, n,
 							 cluster->get_rphi_error(), cluster->get_z_error());//hopefully this is in cm like most things have been.
 		}
+
+		if(Verbosity() > 1)
+		  std::cout << PHWHERE << "measurement successfully built.\n";
+
 //		TMatrixF cov_uvn(3,3);
 //		TMatrixF cov_xyz(3,3);
 //
@@ -2005,8 +2024,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::FitG4Track(PHCompositeNo
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeom_INTT* geom =
-			  dynamic_cast<PHG4CylinderGeom_INTT*> (geom_container_intt->GetLayerGeom(layer));
+			PHG4CylinderGeomINTT* geom =
+			  dynamic_cast<PHG4CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);

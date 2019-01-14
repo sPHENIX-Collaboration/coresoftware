@@ -26,7 +26,7 @@ class PHG4CylinderGeom_INTT : public PHG4CylinderGeom
       const double strip_x_offset_,
       const double offsetphi_,
       const double offsetrot_)
-    : layer(layer_)
+     : layer(layer_)
     , strip_x(strip_x_)
     , strip_y(strip_y_)
     , strip_z0(strip_z0_)
