@@ -27,7 +27,7 @@
 #include <g4detectors/PHG4Cell.h>
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
-#include <g4intt/PHG4CylinderGeomINTT.h>
+#include <g4intt/PHG4CylinderGeom_INTT.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -1579,9 +1579,9 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			
 			_lost_hit_eval_has_maps=false;
 			_lost_hit_eval_in_maps=false;
-			if(phg4hits_maps){
+			if(phg4hits_mvtx){
 			  _lost_hit_eval_has_maps=true;
-			  if (phg4hits_maps->findHit(cell->get_g4hits().first->first))
+			  if (phg4hits_mvtx->findHit(cell->get_g4hits().first->first))
 			    _lost_hit_eval_in_maps=true;
 			}
 			
@@ -1646,7 +1646,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 
 		//if the detector is turned off by the bools, avoid adding it to the measurement vector by short circuiting here (check variable name conventions! RCC)
-		if ( (cell_maps and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx and added_one_tpc_hit) ) continue;
+		if ( (cell_mvtx and !use_maps) or (cell_intt and !use_intt) or (cell_svtx and !use_svtx and added_one_tpc_hit) ) continue;
 		if (cell_svtx and !use_svtx and !added_one_tpc_hit){
 		  if (pos.Perp()<50.0) continue; //continue if it's a tpc hit under 50cm.
 		  added_one_tpc_hit=true; //mark that we have our tpc hit for future reference.
@@ -1683,8 +1683,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeomINTT* geom =
-			  dynamic_cast<PHG4CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
+			PHG4CylinderGeom_INTT* geom =
+			  dynamic_cast<PHG4CylinderGeom_INTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);
@@ -1993,8 +1993,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::FitG4Track(PHCompositeNo
 			int chip_index = cell->get_chip_index();
 
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
-			PHG4CylinderGeom_MAPS *geom =
-					(PHG4CylinderGeom_MAPS*) geom_container_maps->GetLayerGeom(
+			PHG4CylinderGeom_MVTX *geom =
+					(PHG4CylinderGeom_MVTX*) geom_container_maps->GetLayerGeom(
 							layer);
 			// returns the center of the sensor in world coordinates - used to get the ladder phi location
 			geom->find_sensor_center(stave_index, half_stave_index,
@@ -2005,8 +2005,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::FitG4Track(PHCompositeNo
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeomSiLadders* geom =
-			  dynamic_cast<PHG4CylinderGeomSiLadders*> (geom_container_intt->GetLayerGeom(layer));
+			PHG4CylinderGeom_INTT* geom =
+			  dynamic_cast<PHG4CylinderGeom_INTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);
