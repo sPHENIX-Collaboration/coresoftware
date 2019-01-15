@@ -4,13 +4,6 @@
 #include <cstdlib>
 #include <iostream>
 
-PHObject::PHObject()
-  : split(99)
-  , bufSize(32000)
-{
-  return;
-}
-
 PHObject*
 PHObject::clone() const
 {
