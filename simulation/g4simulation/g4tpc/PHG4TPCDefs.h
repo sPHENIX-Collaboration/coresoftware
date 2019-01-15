@@ -11,7 +11,8 @@ enum
 // passive materials id's (copy numbers)
 enum
 {
-  Window = 100
+  Window = 100,
+  WindowCore
 };
 };  // namespace PHG4TPCDefs
 
