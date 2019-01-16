@@ -5,7 +5,7 @@
 #include "Fun4AllUtils.h"
 
 #include <ffaobjects/RunHeader.h>
-#include <ffaobjects/SyncObjectv2.h>
+#include <ffaobjects/SyncObjectv1.h>
 #include <frog/FROG.h>
 
 #include <phool/getClass.h>
@@ -26,14 +26,14 @@
 using namespace std;
 
 Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &topnodename) : 
-  Fun4AllInputManager(name, "", topnodename),
+ Fun4AllInputManager(name, "PRDF", topnodename),
  segment(-999),
  isopen(0),
  events_total(0),
  events_thisfile(0),
- evt(NULL),
- save_evt(NULL),
- eventiterator(NULL)
+ evt(nullptr),
+ save_evt(nullptr),
+ eventiterator(nullptr)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
@@ -44,7 +44,7 @@ Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const strin
       PHDataNode<Event> *newNode = new PHDataNode<Event>(evt,"PRDF","Event");
       topNode->addNode(newNode);
     }
-  syncobject = new SyncObjectv2();
+  syncobject = new SyncObjectv1();
   return ;
 }
 
@@ -79,7 +79,7 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
   if (status)
     {
       delete eventiterator;
-      eventiterator = NULL;
+      eventiterator = nullptr;
       cout << PHWHERE << Name() << ": could not open file " << fname << endl;
       return -1;
     }
@@ -123,7 +123,7 @@ int Fun4AllPrdfInputManager::run(const int nevents)
   if (save_evt) // if an event was pushed back, copy saved pointer and reset save_evt pointer
     {
       evt = save_evt;
-      save_evt = NULL;
+      save_evt = nullptr;
       events_thisfile--;
       events_total--;
     }
@@ -168,7 +168,7 @@ int Fun4AllPrdfInputManager::fileclose()
       return -1;
     }
   delete eventiterator;
-  eventiterator = NULL;
+  eventiterator = nullptr;
   isopen = 0;
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
@@ -225,9 +225,9 @@ Fun4AllPrdfInputManager::ResetEvent()
 {
   PHNodeIterator iter(topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode","PRDF"));
-  PrdfNode->setData(NULL); // set pointer in Node to NULL before deleting it
+  PrdfNode->setData(nullptr); // set pointer in Node to nullptr before deleting it
   delete evt;
-  evt = NULL;
+  evt = nullptr;
   syncobject->Reset();
   return 0;
 }

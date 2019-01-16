@@ -1,5 +1,5 @@
-#ifndef FUN4ALLPRDFINPUTMANAGER_H__
-#define FUN4ALLPRDFINPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H
 
 #include "Fun4AllInputManager.h"
 
@@ -40,4 +40,4 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   SyncObject* syncobject;
 };
 
-#endif /* __FUN4ALLPRDFINPUTMANAGER_H__ */
+#endif /* FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H */
