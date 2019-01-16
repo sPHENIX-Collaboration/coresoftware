@@ -27,28 +27,49 @@ int PROTOTYPE4_FEM::GetChannelNumber(const std::string & caloname, int i_column,
 {
   if (caloname == "HCALIN")
   {
-    //    > Anthony Hodges
-    //    > PhD. Student, Georgia State University
-    //    > Nuclear and High Energy Physics
-    //    > ahodges21@student.gsu.edu
-
-    static const int hbdchanIHC[4][4] = {{4, 8, 12, 16},
-                                         {3, 7, 11, 15},
-                                         {2, 6, 10, 14},
-                                         {1, 5, 9, 13}};
-
     assert(i_row >= 0);
     assert(i_row < NCH_IHCAL_ROWS);
     assert(i_column >= 0);
     assert(i_column < NCH_IHCAL_COLUMNS);
 
-    return hbdchanIHC[i_row][i_column] + 64 - 1;
+    /*
+    static const int hbdchanIHC_col_0[4] = { 4, 3, 2, 1}; // i_row = 0, 1, 2, 3
+    static const int hbdchanIHC_col_1[4] = { 8, 7, 6, 5};
+    static const int hbdchanIHC_col_2[4] = {12,11,10, 9};
+    static const int hbdchanIHC_col_3[4] = {16,15,14,13};
+
+    if(i_column == 0) return hbdchanIHC_col_0[i_row] + 64 - 1;
+    if(i_column == 1) return hbdchanIHC_col_1[i_row] + 64 - 1;
+    if(i_column == 2) return hbdchanIHC_col_2[i_row] + 64 - 1;
+    if(i_column == 3) return hbdchanIHC_col_3[i_row] + 64 - 1;
+    */
+
+    static const int hbdchanIHC_col_0[4] = {67,66,65,64}; // i_row = 0, 1, 2, 3
+    static const int hbdchanIHC_col_1[4] = {71,70,69,68};
+    static const int hbdchanIHC_col_2[4] = {75,74,73,72};
+    static const int hbdchanIHC_col_3[4] = {79,78,77,76};
+
+    if(i_column == 0) return hbdchanIHC_col_0[i_row];
+    if(i_column == 1) return hbdchanIHC_col_1[i_row];
+    if(i_column == 2) return hbdchanIHC_col_2[i_row];
+    if(i_column == 3) return hbdchanIHC_col_3[i_row];
   }
   else if (caloname == "HCALOUT")
   {
-    // Place holder
+    assert(i_row >= 0);
+    assert(i_row < NCH_OHCAL_ROWS);
+    assert(i_column >= 0);
+    assert(i_column < NCH_OHCAL_COLUMNS);
 
-    return 112 + 8 * i_column + 2 * i_row;
+    static const int hbdchanOHC_col_0[4] = {116,118,112,114}; // i_row = 0, 1, 2, 3
+    static const int hbdchanOHC_col_1[4] = {124,126,120,122};
+    static const int hbdchanOHC_col_2[4] = {132,134,128,130};
+    static const int hbdchanOHC_col_3[4] = {140,142,136,138};
+
+    if(i_column == 0) return hbdchanOHC_col_0[i_row];
+    if(i_column == 1) return hbdchanOHC_col_1[i_row];
+    if(i_column == 2) return hbdchanOHC_col_2[i_row];
+    if(i_column == 3) return hbdchanOHC_col_3[i_row];
   }
   else if (caloname == "EMCAL")
   {
