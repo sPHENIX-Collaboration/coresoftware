@@ -8,7 +8,7 @@
 using namespace std;
 
 const string
-PHFlag::get_CharFlag(const string &flag) const
+PHFlag::get_CharFlag(const string &name) const
 {
   map<string, string>::const_iterator iter = charflag.find(flag);
   if (iter != charflag.end())
@@ -22,7 +22,7 @@ PHFlag::get_CharFlag(const string &flag) const
 }
 
 const string
-PHFlag::get_CharFlag(const string &flag, const string &defaultval)
+PHFlag::get_CharFlag(const string &name, const string &defaultval)
 {
   map<string, string>::const_iterator iter = charflag.find(flag);
   if (iter != charflag.end())
@@ -36,7 +36,7 @@ PHFlag::get_CharFlag(const string &flag, const string &defaultval)
   }
 }
 
-void PHFlag::set_CharFlag(const string &flag, const string &charstr)
+void PHFlag::set_CharFlag(const string &name, const string &charstr)
 {
   charflag[flag] = charstr;
   return;
