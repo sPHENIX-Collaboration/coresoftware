@@ -22,7 +22,7 @@ class TrkrClusterHitAssoc : public PHObject
 {
 public:
   //! typedefs for convenience
-  typedef std::multimap<TrkrDefs::cluskey, unsigned int> MMap;
+typedef std::multimap<TrkrDefs::cluskey, TrkrDefs::hitkey> MMap;
   typedef MMap::iterator Iterator;
   typedef MMap::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
