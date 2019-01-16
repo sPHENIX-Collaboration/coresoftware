@@ -54,7 +54,6 @@ pkginclude_HEADERS = \
 
 libffaobjects_la_SOURCES = \
   $(ROOTDICTS) \
-  FlagSave.cc \
   FlagSavev1.cc \
   RunHeader.cc \
   SyncObject.cc \
