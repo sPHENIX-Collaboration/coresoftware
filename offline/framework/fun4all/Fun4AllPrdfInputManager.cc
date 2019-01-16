@@ -26,12 +26,11 @@
 using namespace std;
 
 Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &topnodename) : 
- Fun4AllInputManager(name, ""),
+  Fun4AllInputManager(name, "", topnodename),
  segment(-999),
  isopen(0),
  events_total(0),
  events_thisfile(0),
- topNodeName(topnodename),
  evt(NULL),
  save_evt(NULL),
  eventiterator(NULL)

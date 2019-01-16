@@ -33,7 +33,6 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int isopen;
   int events_total;
   int events_thisfile;
-  std::string topNodeName;
   PHCompositeNode *topNode;
   Event *evt;
   Event *save_evt;
