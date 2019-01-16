@@ -75,7 +75,7 @@ libfun4all_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllServer.cc \
   Fun4AllUtils.cc \
-  PHTFileServer.cxx
+  PHTFileServer.cc
 
 libfun4all_la_LIBADD = \
   -L$(libdir) \
