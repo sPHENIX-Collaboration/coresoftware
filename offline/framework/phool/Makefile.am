@@ -2,9 +2,6 @@ AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = libphool.la
 
-BUILT_SOURCES = \
-  testexternals.cc
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -16,8 +13,28 @@ libphool_la_LDFLAGS = \
   `root-config --libs` \
   -lEvent
 
+ROOTDICTS = \
+  PHObject_Dict.cc \
+  PHTimeStamp_Dict.cc
+
+if MAKEROOT6
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  PHObject_Dict_rdict.pcm \
+  PHTimeStamp_Dict_rdict.pcm
+
+else
+ROOT5DICTS = \
+  PHMessage_Dict.cc \
+  PHRandomSeed_Dict.cc \
+  PHFlag_Dict.cc \
+  PHTimeServer_Dict.cc \
+  recoConsts_Dict.cc
+endif
+
 libphool_la_SOURCES = \
-  PHBase_dict.cc \
+  $(ROOT5DICTS) \
+  $(ROOTDICTS) \
   PHCompositeNode.cc \
   PHFlag.cc \
   PHIOManager.cc \
@@ -64,11 +81,11 @@ pkginclude_HEADERS =  \
   PHTypedNodeIterator.h \
   recoConsts.h
 
-noinst_HEADERS = \
-  PHBase_LinkDef.h
-
 noinst_PROGRAMS = \
   testexternals
+
+BUILT_SOURCES = \
+  testexternals.cc
 
 testexternals_SOURCES = testexternals.cc
 
@@ -82,17 +99,11 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-
-PHBase_dict.cc : \
-  PHFlag.h \
-  phool.h \
-  PHObject.h \
-  PHRandomSeed.h \
-  PHTimeServer.h \
-  PHTimeStamp.h \
-  recoConsts.h \
-  PHBase_LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
 	rm -f *_dict* testexternals.cc *.pcm

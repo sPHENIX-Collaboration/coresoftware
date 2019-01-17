@@ -1,5 +1,6 @@
 #ifdef __CINT__
 
+#include "phool.h"
 #pragma link C++ enum PHMessageType;
 #pragma link C++ enum PHAccessType;
 #pragma link C++ enum PHTreeType;
