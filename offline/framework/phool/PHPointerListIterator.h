@@ -10,8 +10,6 @@
 template <class T>
 class PHPointerListIterator
 {
-  protected: 
- PHPointerListIterator():m_List(0) {} 
   public:
   PHPointerListIterator(const PHPointerList<T>&);
   virtual ~PHPointerListIterator() {}
@@ -20,6 +18,7 @@ class PHPointerListIterator
   void reset();
   size_t pos() const { return m_Index; }
  private:
+  PHPointerListIterator() = delete; 
   const PHPointerList<T>& m_List;
   size_t m_Index;
 };
