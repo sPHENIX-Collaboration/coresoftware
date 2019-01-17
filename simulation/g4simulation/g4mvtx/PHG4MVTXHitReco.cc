@@ -8,10 +8,12 @@
 #include <g4detectors/PHG4Cellv1.h>
 
 // Move to new storage containers
-#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <mvtx/MvtxDefs.h>
+#include <mvtx/MvtxHit.h>
 
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -101,21 +103,20 @@ int PHG4MVTXHitReco::InitRun(PHCompositeNode *topNode)
     geo->identify();
   }
 
-  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKRHITSET");
-  if(!trkrhitsetcontainer)
+  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!hitsetcontainer)
     {
       PHNodeIterator dstiter(dstNode);
       PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode",
-                                                          detector));
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
       if (!DetNode)
 	{
 	  DetNode = new PHCompositeNode(detector);
 	  dstNode->addNode(DetNode);
 	}
 
-      trkrhitsetcontainer = new TrkrHitSetContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(trkrhitsetcontainer, "TRKR_HITSET", "PHObject");
+      hitsetcontainer = new TrkrHitSetContainer();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
       DetNode->addNode(newNode);
     }
 
@@ -539,39 +540,37 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
 	// We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the MVTX	
 	TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number);
 	// Use existing hitset or add new one if needed
-	TrkrHitSet *hitset =	trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+	TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
 	// generate the key for this hit
 	TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
 	// See if this hit already exists
 	TrkrHit *hit = nullptr;
-	hit = hitset->getHit(hitkey);
+	hit = hitsetit->second->getHit(hitkey);
 	if(!hit)
 	  {
 	    // Otherwise, create a new one
 	    hit = new TrkrHit();
-	    hit->SetHitKey(hitkey);
-	    hitset->AddHitSpecificKey(hitkey);
+	    hitsetit->second->addHitSpecificKey(hitkey, hit);
 	  }
 
 	// Either way, add the energy to it
-	hit->addEnergy(venergy[i1].first));
-     
-      // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
-      // There is only one TrkrHit per pixel, but there may be multiple g4hits
-      // How do we check if this association already exists?
-      // How do we know how much energy from PHG4Hit went into TrkrHit?
-      // What is the key for the g4hit?      
-      hittruthassoc->AddAssoc(hitsetkey, hitkey, hiter->first);
+	hit->addEnergy(venergy[i1].first);
+	
+	// now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
+	// There is only one TrkrHit per pixel, but there may be multiple g4hits
+	// How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
 
+	// How do we check if this association already exists?
+	hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
+	
+	// end of the new storage object version
+	//===========================
 
-      // end of the new storage object version
-      //===========================
-
-      // Old storage version - keep this for now, remove it after debugging new hits
-      //=======================================
-
-        // This is for the old (cell) containers
+	//==========================================================	
+	// Old storage version - keep this for now, remove it after debugging new hit storage
+	//==========================================================
+	
         // combine ladder index and pixel values to get a single unique key for this pixel
         // layers:     0 - 2
         // Stave index:   0 - 47   = 6 bits
@@ -580,6 +579,8 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
         // Chip index:  0 - 13
         // Pixel index:   0 - 1.14E+06  // yes, that is 1.14 million
         // check validity (if values are within their assigned number of bits)
+
+	int pixel_number = vpixel[i1];
         unsigned long long tmp = pixel_number;
         unsigned long long inkey = tmp << 32;
         static unsigned int stave_number_bits = 0x8;
@@ -654,12 +655,16 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
                << " cell energy " << venergy[i1].first
                << " cell edep " << cell->get_edep() << " total edep " << hiter->second->get_edep() << endl;
         }
+	//========================
 	// end of old storage object version
-	//=======================
+	//========================
 
       } // end loop over hit cells
     }  // end loop over g4hits for this layer
 
+    //======================
+    // old storage object version
+    //======================
     int numcells = 0;
     for (map<unsigned long long, PHG4Cell *>::const_iterator mapiter = celllist.begin(); mapiter != celllist.end(); ++mapiter)
     {
@@ -682,6 +687,11 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
     {
       cout << Name() << ": found " << numcells << " silicon pixels with energy deposition" << endl;
     }
+
+    //========================
+    // end of old storage object version
+    //========================
+
   } // end loop over layers
 
   if (chkenergyconservation)

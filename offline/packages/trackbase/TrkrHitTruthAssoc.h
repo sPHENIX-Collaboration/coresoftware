@@ -44,14 +44,14 @@ public:
    * @param[in] hidx TrkrHit index in TrkrHitSet
    * @param[in] ckey Key for assocuated PHG4Cell
    */
-  void addAssoc(const TrkrDefs::hitsetkey hset, const unsigned int hidx, const PHG4CellDefs::keytype ckey);
+  void addAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey);
 
   /**
    * @brief Get cell keys associated with desired hit
    * @param[in] hset TrkrHitSet key
    * @param[in] hidx TrkrHit index in TrkrHitSet
    */
-  ConstRange getCells(const TrkrDefs::hitsetkey hset, const unsigned int hidx);
+  ConstRange getCells(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx);
 
 private:
   MMap m_map;

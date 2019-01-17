@@ -28,18 +28,20 @@ libg4mvtx_la_LIBADD = \
   -lg4testbench \
   -lphg4hit \
   -lg4detectors \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -lmvtx
 
 pkginclude_HEADERS = \
-  PHG4MVTXCellReco.h \
+  PHG4MVTXHitReco.h \
   PHG4MVTXSubsystem.h \
   PHG4CylinderCell_MVTX.h \
   PHG4CylinderGeom_MVTX.h \
   PHG4MVTXDigitizer.h 
 
 libg4mvtx_la_SOURCES = \
-  PHG4MVTXCellReco.cc \
-  PHG4MVTXCellReco_Dict.cc \
+  PHG4MVTXHitReco.cc \
+  PHG4MVTXHitReco_Dict.cc \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \

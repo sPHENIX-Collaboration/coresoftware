@@ -10,6 +10,7 @@
 MvtxHit::MvtxHit()
   : TrkrHit()
 {
+  Edep = 0.0;
 }
 
 void MvtxHit::identify(std::ostream& os) const
@@ -26,3 +27,4 @@ int MvtxHit::isValid() const
 {
   return 1;
 }
+
