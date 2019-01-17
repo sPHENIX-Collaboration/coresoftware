@@ -108,10 +108,10 @@ int PHG4MVTXHitReco::InitRun(PHCompositeNode *topNode)
     {
       PHNodeIterator dstiter(dstNode);
       PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
 	{
-	  DetNode = new PHCompositeNode(detector);
+	  DetNode = new PHCompositeNode("TRKR");
 	  dstNode->addNode(DetNode);
 	}
 
@@ -125,11 +125,10 @@ int PHG4MVTXHitReco::InitRun(PHCompositeNode *topNode)
     {
       PHNodeIterator dstiter(dstNode);
       PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode",
-                                                          detector));
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
       if (!DetNode)
 	{
-	  DetNode = new PHCompositeNode(detector);
+	  DetNode = new PHCompositeNode("TRKR");
 	  dstNode->addNode(DetNode);
 	}
 
@@ -168,7 +167,7 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
   }
 
   // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKRHITSET");
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if(!trkrhitsetcontainer)
     {
       cout << "Could not locate TRKR_HITSET node, quit! " << endl;
