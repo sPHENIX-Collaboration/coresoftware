@@ -2,15 +2,10 @@ AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = libpdbcalBase.la 
 
-BUILT_SOURCES = \
-  testexternals.C
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
-
-ROOTIFY  = perl $(srcdir)/PdbRootify.pl
 
 libpdbcalBase_la_LDFLAGS = \
   `root-config --evelibs`
@@ -21,38 +16,66 @@ libpdbcalBase_la_LIBADD = \
   -lphool \
   -lXMLIO
 
+# I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
+# pcm files in addition. If someone can figure out how to make a list
+# so this list of dictionaries is transformed into a list of pcm files
+# following a simple naming convention, please change this accordingly and
+# let me know
+ROOT_DICTS = \
+  PdbBankID_Dict.cc \
+  PdbCalBank_Dict.cc \
+  PdbCalChan_Dict.cc \
+  PdbParameter_Dict.cc \
+  PdbParameterError_Dict.cc \
+  PdbParameterMap_Dict.cc \
+  PdbParameterMapContainer_Dict.cc
+
+# for root6 we need pcm and dictionaries but only for
+# i/o classes. For root5 we need only dictionaries but
+# those for i/o and classes available on the cmd line
+# MAKEROOT6 is set in the configure.ac, true for root6
+if MAKEROOT6
+# this is a tweak to install files in $(libdir), automake refuses
+# to install other files in libdir, this construct gets around this
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    PdbBankID_Dict_rdict.pcm \
+    PdbCalBank_Dict_rdict.pcm \
+    PdbCalChan_Dict_rdict.pcm \
+    PdbParameter_Dict_rdict.pcm \
+    PdbParameterError_Dict_rdict.pcm \
+    PdbParameterMap_Dict_rdict.pcm \
+    PdbParameterMapContainer_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    PdbApplication_Dict.cc \
+    PdbApplicationFactory_Dict.cc \
+    PdbBankList_Dict.cc \
+    PdbBankListIterator_Dict.cc \
+    PdbBankManager_Dict.cc \
+    PdbBankManagerFactory_Dict.cc \
+    PdbCalBankIterator_Dict.cc \
+    RunToTime_Dict.cc
+endif
+
 #please add new classes sorted according to the roman alphabet
 libpdbcalBase_la_SOURCES = \
+  $(ROOT_DICTS) \
+  $(ROOT5_DICTS) \
   PdbApplication.cc \
-  PdbApplication_dict.C \
-  PdbApplicationFactory.cc \
-  PdbApplicationFactory_dict.C \
   PdbBankID.cc \
-  PdbBankID_dict.C \
-  PdbBankListIterator_dict.C \
   PdbBankList.cc \
-  PdbBankList_dict.C \
   PdbBankManager.cc \
-  PdbBankManager_dict.C \
   PdbBankManagerFactory.cc \
-  PdbBankManagerFactory_dict.C \
   PdbCalBank.cc \
-  PdbCalBank_dict.C \
   PdbCalBankIterator.cc \
-  PdbCalBankIterator_dict.C \
   PdbCalChan.cc \
-  PdbCalChan_dict.C \
   PdbParameter.cc \
-  PdbParameter_dict.C \
   PdbParameterError.cc \
-  PdbParameterError_dict.C \
   PdbParameterMap.cc \
-  PdbParameterMap_dict.C \
   PdbParameterMapContainer.cc \
-  PdbParameterMapContainer_dict.C \
   PHGenericFactoryT.C \
-  RunToTime.cc \
-  RunToTime_dict.C
+  RunToTime.cc
 
 
 #please add new includes sorted according to the roman alphabet
@@ -76,6 +99,8 @@ pkginclude_HEADERS = \
   PHGenericFactoryT.h \
   RunToTime.h
 
+BUILT_SOURCES = testexternals.C
+
 noinst_PROGRAMS = \
   testexternals
 
@@ -90,27 +115,12 @@ testexternals.C:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-# this generates the standard LinkDef.h files
-%_LinkDef.h : 
-	 $(ROOTIFY) $@
-
-# keep the LinkDef files in the build area for debugging
-.PRECIOUS : %_LinkDef.h
-
-# this generates the standard dictionary
-%_dict.C : %.h %_LinkDef.h
-	 rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-#
-# Some Root dependencies have to be put in 'by hand'.
-# Do not remove or modify this comment. PdbNewClass depends on it.
-#
-
-PdbBankManagerFactory_dict.C : PHGenericFactoryT.h PdbBankManagerFactory.h PdbBankManagerFactory_LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-RunToTimeFactory_dict.C: PHGenericFactoryT.h RunToTimeFactory.h RunToTimeFactory_LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 
 clean-local:
-	rm -f *_LinkDef.h *_dict* *.pcm
+	rm -f *_LinkDef.h *_Dict* *.pcm $(BUILT_SOURCES)

@@ -9,7 +9,6 @@
 #include <TFile.h>
 #include <TSystem.h>
 
-#include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -66,7 +65,7 @@ PdbParameterMapContainer::GetParameters(const int layer) const
   map<int, PdbParameterMap *>::const_iterator iter = parametermap.find(layer);
   if (iter == parametermap.end())
     {
-      return NULL;
+      return nullptr;
     }
   return iter->second;
 }
@@ -77,7 +76,7 @@ PdbParameterMapContainer::GetParametersToModify(const int layer)
   map<int, PdbParameterMap *>::iterator iter = parametermap.find(layer);
   if (iter == parametermap.end())
     {
-      return NULL;
+      return nullptr;
     }
   return iter->second;
 }

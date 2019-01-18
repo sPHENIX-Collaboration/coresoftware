@@ -21,7 +21,7 @@ PdbApplication *PdbApplication::instance()
   if ( not __instance.get() )
     {
       std::cerr << __FILE__ << "  " << __LINE__ << " No instance of  PdbApplication available" << std::endl;
-      return NULL;
+      return nullptr;
     }
 
   return __instance.get();

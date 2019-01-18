@@ -1,9 +1,9 @@
-#ifndef __PHGENERICFACTORYT_H__
-#define __PHGENERICFACTORYT_H__
+#ifndef PDBCALBASE_PHGENERICFACTORYT_H
+#define PDBCALBASE_PHGENERICFACTORYT_H
 
+#include <iostream>
 #include <map>
 #include <string>
-#include <iostream>
 
 /** A Factory to build objects.
  *

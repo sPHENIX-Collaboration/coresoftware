@@ -14,9 +14,9 @@
 #ifndef PDBBANKID_HH__
 #define PDBBANKID_HH__
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 
-class PdbBankID : public TObject {
+class PdbBankID : public PHObject {
 public:
    PdbBankID(const int val = 0);
    virtual ~PdbBankID(){}

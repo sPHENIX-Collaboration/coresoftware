@@ -9,7 +9,7 @@
 
 #include <phool/PHTimeStamp.h>
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 
 #include <cstddef>
 #include <string>
@@ -17,7 +17,7 @@
 class PdbCalChan;
 class PHTimeStamp;
 
-class PdbCalBank : public  TObject 
+class PdbCalBank : public  PHObject 
 {
 public:
    PdbCalBank();
