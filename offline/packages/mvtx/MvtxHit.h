@@ -33,11 +33,8 @@ class MvtxHit : public TrkrHit
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
   virtual int isValid() const;
-  //void addEnergy(const double);
-  //double getEnergy();
 
  private:
-  //double Edep;
   ClassDef(MvtxHit, 1);
 };
 

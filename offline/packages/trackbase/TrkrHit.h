@@ -36,9 +36,13 @@ class TrkrHit : public PHObject
   virtual int isValid() const { return 0; }
   void addEnergy(const double edep) {Edep += edep;}
   double getEnergy() {return Edep;}
+  void setAdc(const unsigned int adc) {Adc = adc;}
+  unsigned int getAdc() {return Adc;}
 
  protected:
   double Edep;
+  unsigned int Adc;
+
   ClassDef(TrkrHit, 1);
 };
 

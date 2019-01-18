@@ -7,6 +7,14 @@
 #include <trackbase_historic/SvtxHitMap_v1.h>
 #include <trackbase_historic/SvtxHit_v1.h>
 
+// Move to new storage containers
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>
+#include <mvtx/MvtxDefs.h>
+#include <mvtx/MvtxHit.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -177,12 +185,12 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
   // Get Nodes
   //----------
 
+  // old containers
+  //============
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_MVTX");
   if (!cells) return;
 
-  //-------------
   // Digitization
-  //-------------
 
   vector<PHG4Cell *> cell_list;
   PHG4CellContainer::ConstRange cellrange = cells->getCells();
@@ -204,6 +212,8 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
     hit.set_adc(adc);
     hit.set_e(e);
 
+    cout << "    OLD: PHG4MVTXDigitizer: found cell in layer " << hit.get_layer() << " with signal " << cell->get_edep() << " and adc " << adc << endl;
+
     SvtxHit *ptr = _hitmap->insert(&hit);
     if (!ptr->isValid())
     {
@@ -216,7 +226,55 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
       }
     }
   }
+  // end old containers  
+  //===============
 
+  // new containers
+  //=============
+  // Get the TrkrHitSetContainer node
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!trkrhitsetcontainer)
+    {
+      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+      exit(1);
+    }
+
+  // Digitization
+
+  // We want all hitsets for the MVTX
+  TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::mvtxId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+       hitset_iter != hitset_range.second;
+       ++hitset_iter)
+    {
+      // we have an itrator to one TrkrHitSet for the mvtx from the trkrHitSetContainer
+      // get the hitset key so we can find the layer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      int layer = TrkrDefs::getLayer(hitsetkey);
+      cout << "PHG4MVTXDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  TrkrHit *hit = hit_iter->second;
+      
+	  // Convert the signal value to an ADC value and write that to the hit	  
+	  unsigned int adc =   hit->getEnergy() / _energy_scale[layer];
+	  if (adc > _max_adc[layer]) adc = _max_adc[layer];
+	  hit->setAdc(adc);
+
+	  cout << "    PHG4MVTXDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << endl;
+	}
+    }
+
+  
+  // end new containers  
+  //===============
+  
   return;
 }
 
