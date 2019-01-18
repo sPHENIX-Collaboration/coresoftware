@@ -64,10 +64,8 @@ libpdbcalBase_la_SOURCES = \
   $(ROOT5_DICTS) \
   PdbApplication.cc \
   PdbBankID.cc \
-  PdbBankList.cc \
   PdbBankManager.cc \
   PdbCalBank.cc \
-  PdbCalBankIterator.cc \
   PdbCalChan.cc \
   PdbParameter.cc \
   PdbParameterError.cc \

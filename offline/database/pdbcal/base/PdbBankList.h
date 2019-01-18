@@ -8,8 +8,8 @@
 class PdbBankList : public PHPointerList<PdbCalBank>
 {
 public:
-  PdbBankList();
-  virtual ~PdbBankList();
+  PdbBankList() {}
+  virtual ~PdbBankList() {}
 };
 
 #endif /* __PDBBANKLIST_HH__ */
