@@ -1,12 +1,14 @@
 #ifndef __CLUSTERJETINPUT_H__
 #define __CLUSTERJETINPUT_H__
 
-#include <phool/PHCompositeNode.h>
 
 #include "JetInput.h"
 #include "Jet.h"
 
 #include <vector>
+
+// forward declarations
+class PHCompositeNode;
 
 class ClusterJetInput : public JetInput {
   

@@ -1,12 +1,12 @@
 #ifndef __TRUTHJETINPUT_H__
 #define __TRUTHJETINPUT_H__
 
-#include <phool/PHCompositeNode.h>
-
 #include "JetInput.h"
 #include "Jet.h"
 
 #include <vector>
+
+class PHCompositeNode;
 
 class TruthJetInput : public JetInput {
   

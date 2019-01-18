@@ -1,10 +1,11 @@
 #ifndef __FASTJETALGO_H__
 #define __FASTJETALGO_H__
 
-#include <phool/PHCompositeNode.h>
-
 #include "Jet.h"
 #include "JetAlgo.h"
+
+// forward declarations
+class PHCompositeNode;
 
 class FastJetAlgo : public JetAlgo {
   

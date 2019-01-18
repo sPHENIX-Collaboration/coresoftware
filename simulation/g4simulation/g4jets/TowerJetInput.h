@@ -1,12 +1,13 @@
 #ifndef __TOWERJETINPUT_H__
 #define __TOWERJETINPUT_H__
 
-#include <phool/PHCompositeNode.h>
-
 #include "JetInput.h"
 #include "Jet.h"
 
 #include <vector>
+
+// forward declarations
+class PHCompositeNode;
 
 class TowerJetInput : public JetInput {
   
