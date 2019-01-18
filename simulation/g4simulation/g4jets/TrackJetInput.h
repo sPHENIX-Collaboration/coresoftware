@@ -1,12 +1,12 @@
 #ifndef __TRACKJETINPUT_H__
 #define __TRACKJETINPUT_H__
 
-#include <phool/PHCompositeNode.h>
-
 #include "JetInput.h"
 #include "Jet.h"
 
 #include <vector>
+
+class PHCompositeNode;
 
 class TrackJetInput : public JetInput {
   

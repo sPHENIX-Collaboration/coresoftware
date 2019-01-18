@@ -1,8 +1,6 @@
-// $Id: PHTFileServer.cxx,v 1.8 2011/08/11 14:25:49 phnxbld Exp $
-
 //////////////////////////////////////////////////////////////////
 /*! 
-  \file PHTFileServer.cxx
+  \file PHTFileServer.cc
   \brief TFile clean handling
   \author  Hugo Pereira
   \version $Revision: 1.8 $
@@ -10,9 +8,9 @@
 */
 //////////////////////////////////////////////////////////////////
 
+#include "PHTFileServer.h"
 #include <sstream>
 #include <stdexcept>
-#include "PHTFileServer.h"
 
 using namespace std;
 
@@ -140,7 +138,7 @@ void PHTFileServer::close( void )
     
   // close
 //  MUTOO::TRACE( "PHTFileServer::close" );
-  for( SafeTFile::TFileMap::iterator iter = SafeTFile::file_map().begin(); iter != SafeTFile::file_map().end(); iter++ )
+  for( SafeTFile::TFileMap::iterator iter = SafeTFile::file_map().begin(); iter != SafeTFile::file_map().end(); ++iter )
   {
     
     if( iter->second->IsOpen() )

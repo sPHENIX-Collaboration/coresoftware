@@ -4,8 +4,6 @@
 
 using namespace std;
 
-ClassImp(EventHeaderv1)
-
 EventHeaderv1::EventHeaderv1()
 {
   Reset();

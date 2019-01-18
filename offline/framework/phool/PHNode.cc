@@ -59,33 +59,6 @@ PHNode::~PHNode()
   }
 }
 
-PHNode::PHNode(const PHNode& phn)
-  : parent(nullptr)
-  , persistent(phn.persistent)
-  , type(phn.type)
-  , objecttype(phn.objecttype)
-  , name(phn.name)
-  , objectclass(phn.objectclass)
-  , reset_able(phn.reset_able)
-{
-  cout << "copy ctor not implemented because of pointer to parent" << endl;
-  cout << "which needs implementing for this to be reasonable" << endl;
-  exit(1);
-}
-
-PHNode&
-PHNode::operator=(const PHNode&)
-{
-  cout << "= operator not implemented because of pointer to parent" << endl;
-  cout << "which needs implementing for this to be reasonable" << endl;
-  exit(1);
-}
-
-// void
-// PHNode::setResetFlag(const int val)
-// {
-//   reset_able = (val) ? true : false;
-// }
 
 // Implementation of external functions.
 std::ostream&

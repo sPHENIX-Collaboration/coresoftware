@@ -1,10 +1,11 @@
 #ifndef __JETINPUT_H__
 #define __JETINPUT_H__
 
-#include <phool/PHCompositeNode.h>
 #include "Jet.h"
 #include <vector>
 #include <iostream>
+
+class PHCompositeNode;
 
 class JetInput {
   

@@ -2,7 +2,6 @@
 #define __QAG4SimulationCalorimeter_H__
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
 
 #include <string>
 #include <memory>

@@ -1,5 +1,3 @@
-// $Id: PHTFileServer.h,v 1.5 2007/10/27 14:27:57 hpereira Exp $
-
 //////////////////////////////////////////////////////////////////
 /*! 
   \file PHTFileServer.h
@@ -10,16 +8,14 @@
 */
 //////////////////////////////////////////////////////////////////
 
-#ifndef __PHTFileServer_H__
-#define __PHTFileServer_H__
+#ifndef FUN4ALL_PHTFILESERVER_H
+#define FUN4ALL_PHTFILESERVER_H
 
+#include <TFile.h>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-#include <TFile.h>
-//#include "MUTOO.h"
-//#include "PHException.h"
 
 /*! 
   \brief TFile clean handling. It allow independant classes to access

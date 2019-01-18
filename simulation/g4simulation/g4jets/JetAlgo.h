@@ -1,7 +1,6 @@
 #ifndef __JETALGO_H__
 #define __JETALGO_H__
 
-#include <phool/PHCompositeNode.h>
 #include "Jet.h"
 #include <cmath>
 
