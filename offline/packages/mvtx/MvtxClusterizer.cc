@@ -9,6 +9,12 @@
 #include "MvtxDefs.h"
 #include "MvtxHit.h"
 
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrHitSet.h>
@@ -102,13 +108,22 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
   }
 
   // Create the Cluster node if required
-  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TrkrClusterContainer");
+  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
   if (!trkrclusters)
   {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+      dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+      {
+	DetNode = new PHCompositeNode("TRKR");
+	dstNode->addNode(DetNode);
+      }
+    
     trkrclusters = new TrkrClusterContainer();
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
-        new PHIODataNode<PHObject>(trkrclusters, "TrkrClusterContainer", "PHObject");
-    svxNode->addNode(TrkrClusterContainerNode);
+      new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
+    DetNode->addNode(TrkrClusterContainerNode);
   }
 
   //----------------
@@ -128,18 +143,18 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 int MvtxClusterizer::process_event(PHCompositeNode *topNode)
 {
   // get node containing the digitized hits
-  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TrkrHitSetContainer");
+  m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (!m_hits)
   {
-    cout << PHWHERE << "ERROR: Can't find node TrkrHitSetContainer" << endl;
+    cout << PHWHERE << "ERROR: Can't find node TRKR_HITSET" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
   // get node for clusters
-  m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TrkrClusterContainer");
+  m_clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!m_clusterlist)
   {
-    cout << PHWHERE << " ERROR: Can't find TrkrClusterContainer." << endl;
+    cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
   m_clusterlist->Reset();
@@ -157,6 +172,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
   if (Verbosity() > 0)
     cout << "Entering MvtxClusterizer::ClusterMvtx " << endl;
 
+ PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  if (!geom_container) return;
+
   //-----------
   // Clustering
   //-----------
@@ -170,6 +188,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
   {
     TrkrHitSet *hitset = hitsetitr->second;
 
+    cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << endl;
+
     if (Verbosity() > 2)
       hitset->identify();
 
@@ -181,11 +201,12 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
          hitr != hitrangei.second;
          ++hitr)
     {
-      // get the column and row indeces from the hitkey
+      // get the column and row indices from the hitkey
       // (we don't actually care about the hit itself for the mvtx)
       unsigned int col = MvtxDefs::getCol(hitr->first);
       unsigned int row = MvtxDefs::getRow(hitr->first);
       hitvec.push_back(make_pair(col, row));
+      //cout << "MvtxClusterizer found hitkey " << hitr->first << " row " << row << " col " << col << " adc " << hitr->second->getAdc() << endl;
     }
     if (Verbosity() > 2)
       cout << "hitvec.size(): " << hitvec.size() << endl;
@@ -261,32 +282,65 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
         zsum += (mapiter->second).first + 0.5;
 
         ++nhits;
-      }  //mapitr
+      }  //mapiter
 
-      double thickness = 50.e-4 / 28e-4;
-      double phisize = phibins.size();
-      double zsize = zbins.size();
+      //double thickness = 50.e-4 / 28e-4;
+      //double phisize = phibins.size();
+      //double zsize = zbins.size();
 
       double clusx = NAN;
       double clusy = NAN;
       double clusz = NAN;
 
+      // This is the local position in units of x = column, z = row. y is always zero
       clusx = xsum / nhits;
       clusy = ysum / nhits;
       clusz = zsum / nhits;
 
-      clus->setPosition(0, clusx);
-      clus->setPosition(1, clusy);
-      clus->setPosition(2, clusz);
-      clus->setLocal();
-
       clus->setAdc(nhits);
+
+      int layer = TrkrDefs::getLayer(ckey);
+      // we need the geometry object for this layer to get the global position
+      PHG4CylinderGeom_MVTX *layergeom = dynamic_cast<PHG4CylinderGeom_MVTX *>(geom_container->GetLayerGeom(layer));
+      if (!layergeom)
+	exit(1);
+
+      int chip = MvtxDefs::getChipId(ckey);
+      int stave =  MvtxDefs::getStaveId(ckey); 
+
+      int pixnum = layergeom->get_pixel_number_from_xbin_zbin(clusx, clusz);
+      cout << "cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave 
+	   << " clusx " << clusx << " clusz " << clusz << " pixnum " << pixnum << endl;;
+
+      TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
+      TVector3 world_coords = layergeom->get_world_from_local_coords(stave, 0, 0, chip, local_coords);
+
+      cout << "world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
+
+      clus->setPosition(0, world_coords.X());
+      clus->setPosition(1, world_coords.Y());
+      clus->setPosition(2, world_coords.Z());
+      clus->setGlobal();
+      
+      double thickness = layergeom->get_pixel_thickness();
+      double pitch = layergeom->get_pixel_x();
+      double length = layergeom->get_pixel_z();
+      double phisize = phibins.size() * pitch;
+      double zsize = zbins.size() * length;
+
+      double ladder_location[3] = {0.0, 0.0, 0.0};
+      // returns the center of the sensor in world coordinates - used to get the ladder phi location
+      layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
+      double ladderphi = atan2(ladder_location[1], ladder_location[0]);
+      ladderphi += layergeom->get_stave_phi_tilt();
+
+      // tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
+      float tilt = 0.0;
 
       double invsqrt12 = 1.0 / sqrt(12.0);
 
       TMatrixF DIM(3, 3);
       DIM[0][0] = pow(0.5 * phisize, 2);
-
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
@@ -306,6 +360,37 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
       ERR[2][2] = pow(0.5 * zsize * invsqrt12, 2);
+
+    TMatrixF ROT(3, 3);
+      ROT[0][0] = cos(ladderphi);
+      ROT[0][1] = -1.0 * sin(ladderphi);
+      ROT[0][2] = 0.0;
+      ROT[1][0] = sin(ladderphi);
+      ROT[1][1] = cos(ladderphi);
+      ROT[1][2] = 0.0;
+      ROT[2][0] = 0.0;
+      ROT[2][1] = 0.0;
+      ROT[2][2] = 1.0;
+
+      TMatrixF TILT(3, 3);
+      TILT[0][0] = 1.0;
+      TILT[0][1] = 0.0;
+      TILT[0][2] = 0.0;
+      TILT[1][0] = 0.0;
+      TILT[1][1] = cos(tilt);
+      TILT[1][2] = -1.0 * sin(tilt);
+      TILT[2][0] = 0.0;
+      TILT[2][1] = sin(tilt);
+      TILT[2][2] = cos(tilt);
+
+     TMatrixF R(3, 3);
+      R = ROT * TILT;
+
+      TMatrixF R_T(3, 3);
+      R_T.Transpose(R);
+
+      TMatrixF COVAR_DIM(3, 3);
+      COVAR_DIM = R * DIM * R_T;
 
       clus->setSize(0, 0, DIM[0][0]);
       clus->setSize(0, 1, DIM[0][1]);
@@ -327,7 +412,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       clus->setError(2, 1, ERR[2][1]);
       clus->setError(2, 2, ERR[2][2]);
 
-      if (Verbosity() > 2)
+
+      cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
+
+      //if (Verbosity() > 2)
         clus->identify();
 
     }  // clusitr
