@@ -157,7 +157,9 @@ int MvtxClusterizer::process_event(PHCompositeNode *topNode)
     cout << PHWHERE << " ERROR: Can't find TRKR_CLUSTER." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
-  m_clusterlist->Reset();
+
+  // don't do this, right?
+  //m_clusterlist->Reset();
 
   // run clustering
   ClusterMvtx(topNode);
@@ -257,7 +259,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       if (Verbosity() > 2)
         cout << "Filling cluster id " << clusid << endl;
 
-      // make cluster
+      // make the cluster directly in the node tree
       TrkrDefs::cluskey ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
       TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
 
@@ -340,22 +342,22 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       double invsqrt12 = 1.0 / sqrt(12.0);
 
       TMatrixF DIM(3, 3);
-      DIM[0][0] = pow(0.5 * phisize, 2);
+      DIM[0][0] = pow(0.5 * thickness, 2);
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
-      DIM[1][1] = pow(0.5 * thickness, 2);
+      DIM[1][1] = pow(0.5 * phisize, 2);
       DIM[1][2] = 0.0;
       DIM[2][0] = 0.0;
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5 * zsize, 2);
 
       TMatrixF ERR(3, 3);
-      ERR[0][0] = pow(0.5 * phisize * invsqrt12, 2);
+      ERR[0][0] = pow(0.5 * thickness * invsqrt12, 2);
       ERR[0][1] = 0.0;
       ERR[0][2] = 0.0;
       ERR[1][0] = 0.0;
-      ERR[1][1] = pow(0.5 * thickness * invsqrt12, 2);
+      ERR[1][1] = pow(0.5 * phisize * invsqrt12, 2);
       ERR[1][2] = 0.0;
       ERR[2][0] = 0.0;
       ERR[2][1] = 0.0;
@@ -392,25 +394,28 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       TMatrixF COVAR_DIM(3, 3);
       COVAR_DIM = R * DIM * R_T;
 
-      clus->setSize(0, 0, DIM[0][0]);
-      clus->setSize(0, 1, DIM[0][1]);
-      clus->setSize(0, 2, DIM[0][2]);
-      clus->setSize(1, 0, DIM[1][0]);
-      clus->setSize(1, 1, DIM[1][1]);
-      clus->setSize(1, 2, DIM[1][2]);
-      clus->setSize(2, 0, DIM[2][0]);
-      clus->setSize(2, 1, DIM[2][1]);
-      clus->setSize(2, 2, DIM[2][2]);
+      clus->setSize(0, 0, COVAR_DIM[0][0]);
+      clus->setSize(0, 1, COVAR_DIM[0][1]);
+      clus->setSize(0, 2, COVAR_DIM[0][2]);
+      clus->setSize(1, 0, COVAR_DIM[1][0]);
+      clus->setSize(1, 1, COVAR_DIM[1][1]);
+      clus->setSize(1, 2, COVAR_DIM[1][2]);
+      clus->setSize(2, 0, COVAR_DIM[2][0]);
+      clus->setSize(2, 1, COVAR_DIM[2][1]);
+      clus->setSize(2, 2, COVAR_DIM[2][2]);
 
-      clus->setError(0, 0, ERR[0][0]);
-      clus->setError(0, 1, ERR[0][1]);
-      clus->setError(0, 2, ERR[0][2]);
-      clus->setError(1, 0, ERR[1][0]);
-      clus->setError(1, 1, ERR[1][1]);
-      clus->setError(1, 2, ERR[1][2]);
-      clus->setError(2, 0, ERR[2][0]);
-      clus->setError(2, 1, ERR[2][1]);
-      clus->setError(2, 2, ERR[2][2]);
+      TMatrixF COVAR_ERR(3, 3);
+      COVAR_ERR = R * ERR * R_T;
+
+      clus->setError(0, 0, COVAR_ERR[0][0]);
+      clus->setError(0, 1, COVAR_ERR[0][1]);
+      clus->setError(0, 2, COVAR_ERR[0][2]);
+      clus->setError(1, 0, COVAR_ERR[1][0]);
+      clus->setError(1, 1, COVAR_ERR[1][1]);
+      clus->setError(1, 2, COVAR_ERR[1][2]);
+      clus->setError(2, 0, COVAR_ERR[2][0]);
+      clus->setError(2, 1, COVAR_ERR[2][1]);
+      clus->setError(2, 2, COVAR_ERR[2][2]);
 
 
       cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
