@@ -964,7 +964,6 @@ void PHG4MVTXHitReco::set_timing_window(const int detid, const double tmin, cons
 {
   // first have to erase the default value
   std::map<int, std::pair<double, double> >::iterator it = tmin_max.find(detid);
-  ;
   tmin_max.erase(it);
   // now replace it with the new value
   tmin_max.insert(std::make_pair(detid, std::make_pair(tmin, tmax)));
