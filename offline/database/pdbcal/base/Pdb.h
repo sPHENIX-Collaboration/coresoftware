@@ -1,6 +1,6 @@
-#ifndef PDBCALBASE_PDB_H
-#define PDBCALBASE_PDB_H
+#ifndef PDBCAL_BASE_PDB_H
+#define PDBCAL_BASE_PDB_H
 
 typedef int PdbStatus;
 
-#endif /* PDBCALBASE_PDB_H */
+#endif /* PDBCAL_BASE_PDB_H */

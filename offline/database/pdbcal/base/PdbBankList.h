@@ -1,5 +1,5 @@
-#ifndef __PDBBANKLIST_HH__
-#define __PDBBANKLIST_HH__
+#ifndef PDBCAL_BASE_PDBBANKLIST_H
+#define PDBCAL_BASE_PDBBANKLIST_H
 
 #include "PdbCalBank.h"
 
@@ -12,4 +12,4 @@ public:
   virtual ~PdbBankList() {}
 };
 
-#endif /* __PDBBANKLIST_HH__ */
+#endif /* PDBCAL_BASE_PDBBANKLIST_H */

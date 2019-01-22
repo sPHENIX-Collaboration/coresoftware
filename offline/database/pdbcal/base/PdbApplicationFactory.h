@@ -1,5 +1,5 @@
-#ifndef __PdbApplicationFactory_h__
-#define __PdbApplicationFactory_h__
+#ifndef PDBCAL_BASE_PDBAPPLICATIONFACTORY_H
+#define PDBCAL_BASE_PDBAPPLICATIONFACTORY_H
 
 #include "PHGenericFactoryT.h"
 #include "PdbApplication.h"

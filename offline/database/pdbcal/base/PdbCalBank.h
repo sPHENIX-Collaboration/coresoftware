@@ -2,8 +2,8 @@
 //  Purpose: Calibration bank base class
 //  Author: Matthias Messer
 
-#ifndef PDBCALBANK_HH__
-#define PDBCALBANK_HH__
+#ifndef PDBCAL_BASE_PDBCALBANK_H
+#define PDBCAL_BASE_PDBCALBANK_H
 
 #include "PdbBankID.h"
 
@@ -51,7 +51,7 @@ public:
    
    virtual int isValid(const PHTimeStamp &) const = 0;
 
-  ClassDef(PdbCalBank,2);
+  ClassDef(PdbCalBank,1);
 };
 
-#endif /* PDBCALBANK_HH__ */
+#endif /* PDBCAL_BASE_PDBCALBANK_H */
