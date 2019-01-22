@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class PdbApplication - !;
+#pragma link C++ class PdbApplication-!;
 
 #endif /* __CINT__ */

@@ -11,12 +11,14 @@ class PHTimeStamp;
 
 class PdbApplication
 {
- protected:
+
+protected:
   PdbApplication() {}
   virtual ~PdbApplication() {}
 
- public:
+public:
   static PdbApplication *instance();
+
 
   virtual PdbStatus startUpdate() = 0;
   virtual PdbStatus startRead() = 0;
@@ -24,7 +26,7 @@ class PdbApplication
   virtual PdbStatus abort() = 0;
   virtual PdbStatus isActive() = 0;
   virtual PdbStatus commit(PdbCalBank *) = 0;
-  virtual PdbStatus commit(PdbCalBank *, int, long, long, long) = 0;
+  virtual PdbStatus commit(PdbCalBank *,int,long,long,long) = 0;
   //
   // Should return the file (database) size in bytes.
   //
@@ -32,7 +34,7 @@ class PdbApplication
   virtual int setDBName(const std::string &name) = 0;
   virtual int DisconnectDB() = 0;
 
- protected:
+protected:
   // Wrap the singleton object in an auto_ptr so it gets cleaned up.
   // Even though auto_ptr is often a horrible choice, here it should be ok
   // since __instance will never be copied. If this wouldn't be visible for
