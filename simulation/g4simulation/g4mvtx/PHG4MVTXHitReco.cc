@@ -561,6 +561,7 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
 	// How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
 
 	// How do we check if this association already exists?
+	//cout << "PHG4MVTXHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl; 
 	hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 	
 	// end of the new storage object version
@@ -692,6 +693,10 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
     //========================
 
   } // end loop over layers
+
+  // print the list of entries in the association table
+  if(Verbosity() > 0)
+    hittruthassoc->identify();
 
   if (chkenergyconservation)
   {

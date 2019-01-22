@@ -1534,7 +1534,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
 
 void MVTXClusterizer::PrintClusters(PHCompositeNode* topNode)
 {
-  //if (Verbosity() >= 1)
+  if (Verbosity() >= 1)
   {
     SvtxClusterMap* clusterlist = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
     if (!clusterlist) return;

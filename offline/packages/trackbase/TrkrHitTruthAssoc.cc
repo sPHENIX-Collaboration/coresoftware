@@ -26,6 +26,21 @@ m_map.clear();
 void 
 TrkrHitTruthAssoc::identify(std::ostream &os) const
 {
+  os << "-----TrkrHitTruthAssoc-----" << std::endl;
+  os << "Number of associations: " << m_map.size() << std::endl;
+
+  for ( auto& entry : m_map )
+  {
+    // os << "   cluster key: 0x" << std::hex << entry.first << std::dec
+    os << "   hitset key: "  << entry.first 
+       << " hit key: " << entry.second.first 
+       << " g4hit key: " << entry.second.second 
+       << std::endl;
+  }
+
+  os << "------------------------------" << std::endl;
+
+  return;
 }
 
 void 

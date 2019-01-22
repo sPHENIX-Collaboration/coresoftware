@@ -242,7 +242,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
   {
     TrkrHitSet *hitset = hitsetitr->second;
 
-    cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << endl;
+    if(Verbosity() > 1) cout << "MvtxClusterizer found hitsetkey " << hitsetitr->first << endl;
 
     if (Verbosity() > 2)
       hitset->identify();
@@ -250,10 +250,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     // fill a vector of hits to make things easier
     std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec;
 			   
-    //std::vector<pixel> hitvec;
-    //std::vector<TrkrDefs::hitkey> hitkeyvec;
-    //std::map < TrkrDefs::hitkey, std::pair<unsigned int , unsigned int> > hitmap;
-    
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
@@ -261,9 +257,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       {
       // get the column and row indices from the hitkey
       // (we don't actually care about the hit itself for the mvtx)
-      //unsigned int col = MvtxDefs::getCol(hitr->first);
-      //unsigned int row = MvtxDefs::getRow(hitr->first);
-      //hitvec.push_back(make_pair(col, row));
       hitvec.push_back(make_pair(hitr->first, hitr->second));
     }
     if (Verbosity() > 2)
@@ -325,56 +318,55 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double ysum = 0.0;
 	double zsum = 0.0;
 	unsigned nhits = 0;
+
+	double clusx = NAN;
+	double clusy = NAN;
+	double clusz = NAN;
+
+	// we need the geometry object for this layer to get the global positions
+	int layer = TrkrDefs::getLayer(ckey);
+	PHG4CylinderGeom_MVTX *layergeom = dynamic_cast<PHG4CylinderGeom_MVTX *>(geom_container->GetLayerGeom(layer));
+	if (!layergeom)
+	  exit(1);
+
+	int chip = MvtxDefs::getChipId(ckey);
+	int stave =  MvtxDefs::getStaveId(ckey); 
 	
 	for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
 	  {
 	    // size
-	    zbins.insert( MvtxDefs::getCol( (mapiter->second).first) );
-	    phibins.insert(MvtxDefs::getRow( (mapiter->second).first));
+	    int col =  MvtxDefs::getCol( (mapiter->second).first);
+	    int row = MvtxDefs::getRow( (mapiter->second).first);
+	    zbins.insert(col);
+	    phibins.insert(row);
 
+	    int pixnum = layergeom->get_pixel_number_from_xbin_zbin(row, col);
+	    //cout << "cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave 
+	    //<< " row " << row << " col " << col << " pixnum " << pixnum << endl;;
+
+	    TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
+	    TVector3 world_coords = layergeom->get_world_from_local_coords(stave, 0, 0, chip, local_coords);
+	    //cout << "world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
+	    
 	    // find the center of the pixel in local coords
-	    xsum += MvtxDefs::getRow( (mapiter->second).first);
-	    zsum += MvtxDefs::getCol( (mapiter->second).first) + 0.5;
+	    xsum += world_coords.X();
+	    ysum += world_coords.Y();
+	    zsum += world_coords.Z();
 	    
 	    ++nhits;
 	  }  //mapiter
 	
-	//double thickness = 50.e-4 / 28e-4;
-	//double phisize = phibins.size();
-	//double zsize = zbins.size();
 	
-	double clusx = NAN;
-	double clusy = NAN;
-	double clusz = NAN;
-	
-	// This is the local position in units of x = column, z = row. y is always zero
+	// This is the global position
 	clusx = xsum / nhits;
 	clusy = ysum / nhits;
 	clusz = zsum / nhits;
 	
 	clus->setAdc(nhits);
-	
-	int layer = TrkrDefs::getLayer(ckey);
-	// we need the geometry object for this layer to get the global position
-	PHG4CylinderGeom_MVTX *layergeom = dynamic_cast<PHG4CylinderGeom_MVTX *>(geom_container->GetLayerGeom(layer));
-	if (!layergeom)
-	  exit(1);
-	
-	int chip = MvtxDefs::getChipId(ckey);
-	int stave =  MvtxDefs::getStaveId(ckey); 
-	
-	int pixnum = layergeom->get_pixel_number_from_xbin_zbin(clusx, clusz);
-	cout << "cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave 
-	     << " clusx " << clusx << " clusz " << clusz << " pixnum " << pixnum << endl;;
-	
-	TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
-	TVector3 world_coords = layergeom->get_world_from_local_coords(stave, 0, 0, chip, local_coords);
-	
-	cout << "world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
-	
-	clus->setPosition(0, world_coords.X());
-	clus->setPosition(1, world_coords.Y());
-	clus->setPosition(2, world_coords.Z());
+				
+	clus->setPosition(0, clusx);
+	clus->setPosition(1, clusy);
+	clus->setPosition(2, clusz);
 	clus->setGlobal();
 	
 	double thickness = layergeom->get_pixel_thickness();
@@ -471,9 +463,9 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setError(2, 2, COVAR_ERR[2][2]);
 	
 	
-	cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
+	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
 	
-	//if (Verbosity() > 2)
+	if (Verbosity() > 2)
 	clus->identify();
 	
 	// Add the hit associations to the TrkrClusterHitAssoc node
@@ -485,6 +477,12 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       }  // clusitr
   }    // hitsetitr
   
+  if(Verbosity() > 1)
+    {
+      // check that the associations were written correctly
+      m_clusterhitassoc->identify();
+    }
+
   return;
 }
 

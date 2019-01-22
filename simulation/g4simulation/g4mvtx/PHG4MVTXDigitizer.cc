@@ -212,7 +212,7 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
     hit.set_adc(adc);
     hit.set_e(e);
 
-    cout << "    OLD: PHG4MVTXDigitizer: found cell in layer " << hit.get_layer() << " with signal " << cell->get_edep() << " and adc " << adc << endl;
+    if(Verbosity() > 0) cout << "    OLD: PHG4MVTXDigitizer: found cell in layer " << hit.get_layer() << " with signal " << cell->get_edep() << " and adc " << adc << endl;
 
     SvtxHit *ptr = _hitmap->insert(&hit);
     if (!ptr->isValid())
@@ -251,7 +251,7 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
       // get the hitset key so we can find the layer
       TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
       int layer = TrkrDefs::getLayer(hitsetkey);
-      cout << "PHG4MVTXDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+      if(Verbosity() > 1) cout << "PHG4MVTXDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -267,7 +267,7 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
 	  if (adc > _max_adc[layer]) adc = _max_adc[layer];
 	  hit->setAdc(adc);
 
-	  cout << "    PHG4MVTXDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << endl;
+	  if(Verbosity() > 0) cout << "    PHG4MVTXDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << endl;
 	}
     }
 
