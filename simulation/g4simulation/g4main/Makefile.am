@@ -104,7 +104,7 @@ else
     PHG4ParticleGun_Dict.cc \
     PHG4ParticleGenerator_Dict.cc \
     PHG4ParticleGeneratorBase_Dict.cc \
-    PHG4ParticleGeneratorVectorMeson \
+    PHG4ParticleGeneratorVectorMeson_Dict.cc \
     PHG4ParticleGeneratorD0_Dict.cc \
     PHG4Reco_Dict.cc \
     PHG4ScoringManager_Dict.cc \
