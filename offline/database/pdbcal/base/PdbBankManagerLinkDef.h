@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class PdbBankManager-!;
+#pragma link C++ class PdbBankManager - !;
 
 #endif /* __CINT__ */

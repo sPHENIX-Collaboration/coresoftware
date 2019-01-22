@@ -7,7 +7,7 @@
 
 class PdbBankList : public PHPointerList<PdbCalBank>
 {
-public:
+ public:
   PdbBankList() {}
   virtual ~PdbBankList() {}
 };

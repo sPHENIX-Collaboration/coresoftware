@@ -27,9 +27,12 @@ class PdbBankListIterator : public PHPointerListIterator<PdbCalBank>
   }
 
   ~PdbBankListIterator() {}
-  private: 
-#if defined(__CINT__) && ! defined (__CLING__)
-  PdbBankListIterator() {}
+
+ private:
+#if defined(__CINT__) && !defined(__CLING__)
+  PdbBankListIterator()
+  {
+  }
 #else
   PdbBankListIterator() = delete;
 #endif

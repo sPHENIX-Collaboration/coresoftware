@@ -15,15 +15,15 @@
 
 #include <phool/PHObject.h>
 
-class PdbCalChan : public PHObject{
-
-public:
+class PdbCalChan : public PHObject
+{
+ public:
   PdbCalChan() {}
   virtual ~PdbCalChan() {}
-  
+
   virtual void print() const = 0;
 
-  ClassDef(PdbCalChan,1);
+  ClassDef(PdbCalChan, 1);
 };
 
 #endif /* PDBCAL_BASE_PDBCALCHAN_H */

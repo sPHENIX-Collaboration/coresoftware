@@ -19,53 +19,53 @@
  *
  */
 
-template
-< 
-  class AbstractProduct
->
+template <
+    class AbstractProduct>
 class DefaultFactoryError
 {
-protected:
+ protected:
   AbstractProduct* OnUnknownType(const std::string& id) { return 0; }
 };
 
-template
-<
-  class AbstractProduct,
-  template<class> class FactoryErrorPolicy = DefaultFactoryError
->
+template <
+    class AbstractProduct,
+    template <class> class FactoryErrorPolicy = DefaultFactoryError>
 class PHGenericFactoryT : public FactoryErrorPolicy<AbstractProduct>
 {
-public:
-
+ public:
   typedef AbstractProduct* (*ProductCreator)();
   typedef std::string IdentifierType;
 
   class ProductCreatorPair
   {
-  public:
+   public:
     ProductCreatorPair()
-      : creator_(), name_() {}
+      : creator_()
+      , name_()
+    {
+    }
     ProductCreatorPair(ProductCreator creator, const char* productname)
-      : creator_(creator),name_(productname) {}
+      : creator_(creator)
+      , name_(productname)
+    {
+    }
 
     ProductCreator creator() const { return creator_; }
     std::string productname() const { return name_; }
 
-  private:
+   private:
     ProductCreator creator_;
     std::string name_;
   };
 
-public:
-
+ public:
   /// The factory is a singleton.
-  static PHGenericFactoryT<AbstractProduct,FactoryErrorPolicy>& instance()
-  { 
-    static PHGenericFactoryT<AbstractProduct,FactoryErrorPolicy> factory;
-    return factory; 
+  static PHGenericFactoryT<AbstractProduct, FactoryErrorPolicy>& instance()
+  {
+    static PHGenericFactoryT<AbstractProduct, FactoryErrorPolicy> factory;
+    return factory;
   }
-  
+
   /// Create an object identified by the string id.
   AbstractProduct* create(const char* id)
   {
@@ -74,54 +74,54 @@ public:
     // ROOT prompt, and Cint seems to have some problems with
     // std::string.
 
-    typename CreatorMap::const_iterator it = 
-      fCreators.find(IdentifierType(id));
+    typename CreatorMap::const_iterator it =
+        fCreators.find(IdentifierType(id));
 
-    if ( it != fCreators.end() )
-      {
-	// invoke the creation function
-	return (it->second.creator())();
-      }
+    if (it != fCreators.end())
+    {
+      // invoke the creation function
+      return (it->second.creator())();
+    }
 
     // Upon failure we delegate to the FactoryError class
     // that might simply returns 0 or try to e.g. load some more
     // libs and retry, or whatever seems relevant to react
     // to the error.
-    
+
     return this->OnUnknownType(IdentifierType(id));
   }
 
   /// Print the list of creators we have.
-  void print(std::ostream& os = std::cout) const 
+  void print(std::ostream& os = std::cout) const
   {
     typename CreatorMap::const_iterator it;
-    for ( it = fCreators.begin(); it != fCreators.end(); ++it ) 
+    for (it = fCreators.begin(); it != fCreators.end(); ++it)
     {
-      os << "Creator id=" << it->first 
-	 << " for product " << it->second.productname()
-	 << std::endl;
+      os << "Creator id=" << it->first
+         << " for product " << it->second.productname()
+         << std::endl;
     }
   }
 
   /// Register a creator function for id.
-  bool registerCreator(const IdentifierType& id, 
-		       ProductCreator creator,
-		       const char* productname)
+  bool registerCreator(const IdentifierType& id,
+                       ProductCreator creator,
+                       const char* productname)
   {
-    bool ok = fCreators.insert(typename CreatorMap::value_type(id,ProductCreatorPair(creator,productname))).second;
-    
+    bool ok = fCreators.insert(typename CreatorMap::value_type(id, ProductCreatorPair(creator, productname))).second;
+
     if (!ok)
     {
       std::cerr << "PHGenericFactoryT::registerCreator : registry of creator "
-		<< "id " << id << " for product " << productname 
-		<< "failed!" << std::endl;
+                << "id " << id << " for product " << productname
+                << "failed!" << std::endl;
     }
     else
     {
 #ifdef DEBUG
       std::cout << "PHGenericFactoryT::registerCreator : creator id "
-      << id << " for product " << productname 
-      << " registered." << std::endl;
+                << id << " for product " << productname
+                << " registered." << std::endl;
 #endif
     }
     return ok;
@@ -133,15 +133,13 @@ public:
     return fCreators.erase(id) == 1;
   }
 
-private:
-
+ private:
   PHGenericFactoryT() {}
   PHGenericFactoryT(const PHGenericFactoryT<AbstractProduct>&);
-  PHGenericFactoryT<AbstractProduct>& operator=
-  (const PHGenericFactoryT<AbstractProduct>&);
+  PHGenericFactoryT<AbstractProduct>& operator=(const PHGenericFactoryT<AbstractProduct>&);
   ~PHGenericFactoryT() {}
 
-  typedef std::map<IdentifierType,ProductCreatorPair> CreatorMap;
+  typedef std::map<IdentifierType, ProductCreatorPair> CreatorMap;
   CreatorMap fCreators;
 };
 
