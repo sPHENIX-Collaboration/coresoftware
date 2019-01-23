@@ -1,6 +1,6 @@
  
 /*!
- * \file PgPostBankBackupStorage_LinkDef.h
+ * \file PgPostBankBackupStorageLinkDef.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.1 $

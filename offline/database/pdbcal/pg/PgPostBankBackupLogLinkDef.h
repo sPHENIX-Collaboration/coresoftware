@@ -1,7 +1,6 @@
-// $Id: PgPostBankBackupLog_LinkDef.h,v 1.1 2014/04/14 22:56:48 jinhuang Exp $
  
 /*!
- * \file PgPostBankBackupLog_LinkDef.h
+ * \file PgPostBankBackupLogLinkDef.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.1 $

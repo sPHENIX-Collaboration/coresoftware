@@ -1,5 +1,5 @@
 /*!
- * \file PgPostBankBackupManager_LinkDef.h
+ * \file PgPostBankBackupManagerLinkDef.h
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision: 1.1 $
