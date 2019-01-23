@@ -691,8 +691,11 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
   } // end loop over layers
 
   // print the list of entries in the association table
-  if(Verbosity() > 0)
+  //if(Verbosity() > 0)
+  {
+    cout << "From PHG4MVTXHitReco: " << endl;
     hittruthassoc->identify();
+  }
 
   if (chkenergyconservation)
   {

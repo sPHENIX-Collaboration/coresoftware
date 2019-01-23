@@ -487,7 +487,10 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
       
       // Either way, add the energy to it
       hit->addEnergy(venergy[i1].first);
-      
+
+      // Add this hit to the association map
+      hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
+      cout << "PHG4INTTHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;      
     }
     //=================
 
@@ -519,6 +522,12 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
     std::cout << Name() << ": found " << numcells << " silicon strips with energy deposition" << std::endl;
   //==========================
 
+ // print the list of entries in the association table
+  //if(Verbosity() > 0)
+{
+  cout << "From PHG4INTTHitReco: " << endl;
+  hittruthassoc->identify();
+ }
   if (m_ChkEnergyConservationFlag)
   {
     CheckEnergy(topNode);
