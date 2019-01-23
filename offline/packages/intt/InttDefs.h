@@ -65,6 +65,21 @@ uint8_t getLadderPhiId(TrkrDefs::cluskey key);
    * @param[in] strip Strip id
    * @param[out] hitkey
    */
+
+/**
+   * @brief Get the column index from hitkey
+   * @param[in] hitkey
+   * @param[out] column index
+   */
+uint16_t getCol(TrkrDefs::hitkey key);
+
+/**
+   * @brief Get the row index from hitkey
+   * @param[in] hitkey
+   * @param[out] row index
+   */
+uint16_t getRow(TrkrDefs::hitkey key);
+
  TrkrDefs::hitkey genHitKey(const uint16_t col, const uint16_t row);
 
 /**

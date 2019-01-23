@@ -34,6 +34,20 @@ InttDefs::getLadderPhiId(TrkrDefs::cluskey key)
   return getLadderPhiId(tmp);
 }
 
+uint16_t
+InttDefs::getCol(TrkrDefs::hitkey key)
+{
+  TrkrDefs::hitkey tmp = (key >> InttDefs::kBitShiftCol);
+  return tmp;
+}
+
+uint16_t
+InttDefs::getRow(TrkrDefs::hitkey key)
+{
+  TrkrDefs::hitkey tmp = (key >> InttDefs::kBitShiftRow);
+  return tmp;
+}
+
 TrkrDefs::hitkey
 InttDefs::genHitKey(const uint16_t col, const uint16_t row)
 {

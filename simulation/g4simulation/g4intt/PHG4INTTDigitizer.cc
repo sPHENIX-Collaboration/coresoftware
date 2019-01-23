@@ -10,6 +10,14 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
+// Move to new storage containers
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>
+#include <intt/InttDefs.h>
+#include <intt/InttHit.h>
+
 #include <trackbase_historic/SvtxHit.h>
 #include <trackbase_historic/SvtxHitMap.h>
 #include <trackbase_historic/SvtxHitMap_v1.h>
@@ -103,8 +111,6 @@ int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // _hitmap->Reset();
-
   DigitizeLadderCells(topNode);
 
   PrintHits(topNode);
@@ -116,10 +122,11 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
+  //PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
-  if (!geom_container || !cells) return;
+  //if (!geom_container || !cells) return;
+  if (!geom_container) return;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -140,13 +147,9 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 
 void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 {
-  //----------
-  // Get Nodes
-  //----------
-
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
-  if (!cells) return;
-
+  //---------------------------
+  // Get common Nodes
+  //---------------------------
   const INTTDeadMap *deadmap = findNode::getClass<INTTDeadMap>(topNode, "DEADMAP_INTT");
   if (Verbosity() >= VERBOSITY_MORE)
   {
@@ -160,6 +163,12 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       cout << "PHG4INTTDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
     }
   }
+
+  //============
+  // old containers
+  //============
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
+  if (!cells) return;
 
   //-------------
   // Digitization
@@ -240,6 +249,103 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
     }
   }
+  //==============
+  // end old containers
+  //==============
+
+  //=============
+ // new containers
+  //=============
+  // Get the TrkrHitSetContainer node
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!trkrhitsetcontainer)
+    {
+      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+      exit(1);
+    }
+
+ //-------------
+  // Digitization
+  //-------------
+
+  // We want all hitsets for the INTT
+  TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::inttId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+       hitset_iter != hitset_range.second;
+       ++hitset_iter)
+    {
+     // we have an itrator to one TrkrHitSet for the intt from the trkrHitSetContainer
+      // get the hitset key so we can find the layer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const int layer = TrkrDefs::getLayer(hitsetkey);
+      const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
+      const int ladder_z = InttDefs::getLadderZId(hitsetkey);
+
+      //if(Verbosity() > 1) 
+	cout << "PHG4INTTDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  ++m_nCells;
+
+	  TrkrHit *hit = hit_iter->second;
+	  TrkrDefs::hitkey hitkey = hit_iter->first;
+	  int strip_col =  InttDefs::getCol(hitkey);  // strip z index
+	  int strip_row =   InttDefs::getRow(hitkey);  // strip phi index
+
+	  // Apply deadmap here if desired
+	  if (deadmap)
+	    {
+	      if (deadmap->isDeadChannelINTT(
+					     layer, 
+					     ladder_phi,
+					     ladder_z,
+					     strip_col,
+					     strip_row
+					     ))
+		{
+		  ++m_nDeadCells;
+		  if (Verbosity() >= VERBOSITY_MORE)
+		    {
+		      cout << "PHG4INTTDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+		      hit->identify();
+		    }
+		  continue;
+		}
+	    }  //    if (deadmap)
+
+	  if (_energy_scale.count(layer) > 1)
+	    assert(!"Error: _energy_scale has two or more keys.");
+
+	  const float mip_e = _energy_scale[layer];
+
+	  std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
+
+	  int adc = -1;
+	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
+	    if (hit->getEnergy() >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() < vadcrange[irange].second * (double) mip_e)
+	      adc = (int) irange;
+
+	  if(adc == -1)
+	    // how do we specify underflow or overflow?
+	    adc = 0;
+	  
+	  hit->setAdc(adc);	      
+
+	  cout << "PHG4INTTDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
+	       << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
+ 
+	} // end loop over hits in this hitset
+    } // end loop over hitsets
+  
+  //==================
+  // end new containers
+  //==================
 
   return;
 }
