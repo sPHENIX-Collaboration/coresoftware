@@ -124,6 +124,10 @@ testexternals.C:
 
 # keep the LinkDef files in the build area for debugging
 .PRECIOUS : %LinkDef.h
+# make install-data removes the generated PgPost%Bank.h files which then
+# crashes the dictionary compilation. We could probably list all of them
+# under noinclude_HEADERS but declaring them PRECIOUS is easier
+.PRECIOUS : PgPost%Bank.h
 
 # this generates the classes stored in our postgres DB
 PgPost%Bank.h PgPost%Bank.cc:
