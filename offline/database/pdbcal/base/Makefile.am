@@ -65,7 +65,6 @@ libpdbcalBase_la_SOURCES = \
   PdbApplication.cc \
   PdbBankID.cc \
   PdbBankManager.cc \
-  PdbCalBank.cc \
   PdbParameter.cc \
   PdbParameterError.cc \
   PdbParameterMap.cc \
