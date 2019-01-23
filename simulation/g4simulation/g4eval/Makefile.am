@@ -43,46 +43,50 @@ pkginclude_HEADERS = \
   SvtxTruthEval.h \
   SvtxVertexEval.h
 
+if ! MAKEROOT6
+  ROOT5DICTS = \
+  CaloEvalStack_Dict.C \
+  CaloTruthEval_Dict.C \
+  CaloRawTowerEval_Dict.C \
+  CaloRawClusterEval_Dict.C \
+  CaloEvaluator_Dict.C \
+  JetEvalStack_Dict.C \
+  JetTruthEval_Dict.C \
+  JetRecoEval_Dict.C \
+  JetEvaluator_Dict.C \
+  PHG4DSTReader_Dict.C \
+  SvtxEvalStack_Dict.C \
+  SvtxTruthEval_Dict.C \
+  SvtxHitEval_Dict.C \
+  SvtxClusterEval_Dict.C \
+  SvtxTrackEval_Dict.C \
+  SvtxVertexEval_Dict.C \
+  SvtxEvaluator_Dict.C \
+  MomentumEvaluator_Dict.C \
+  PHG4DstCompressReco_Dict.C
+endif
+
 libg4eval_la_SOURCES = \
   BaseTruthEval.C \
   CaloEvalStack.C \
-  CaloEvalStack_Dict.C \
   CaloTruthEval.C \
-  CaloTruthEval_Dict.C \
   CaloRawTowerEval.C \
-  CaloRawTowerEval_Dict.C \
   CaloRawClusterEval.C \
-  CaloRawClusterEval_Dict.C \
   CaloEvaluator.C \
-  CaloEvaluator_Dict.C \
   JetEvalStack.C \
-  JetEvalStack_Dict.C \
   JetTruthEval.C \
-  JetTruthEval_Dict.C \
   JetRecoEval.C \
-  JetRecoEval_Dict.C \
   JetEvaluator.C \
-  JetEvaluator_Dict.C \
   PHG4DSTReader.cc \
-  PHG4DSTReader_Dict.C \
   SvtxEvalStack.C \
-  SvtxEvalStack_Dict.C \
   SvtxTruthEval.C \
-  SvtxTruthEval_Dict.C \
   SvtxHitEval.C \
-  SvtxHitEval_Dict.C \
   SvtxClusterEval.C \
-  SvtxClusterEval_Dict.C \
   SvtxTrackEval.C \
-  SvtxTrackEval_Dict.C \
   SvtxVertexEval.C \
-  SvtxVertexEval_Dict.C \
   SvtxEvaluator.C \
-  SvtxEvaluator_Dict.C \
   MomentumEvaluator.C \
-  MomentumEvaluator_Dict.C \
-  PHG4DstCompressReco.C \
-  PHG4DstCompressReco_Dict.C
+  PHG4DstCompressReco.C 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.C: %.h %LinkDef.h
