@@ -1,5 +1,5 @@
-#ifndef RUNTOTIME_HH__
-#define RUNTOTIME_HH__
+#ifndef PDBCAL_BASE_RUNTOTIME_H
+#define PDBCAL_BASE_RUNTOTIME_H
 
 class PHTimeStamp;
 
@@ -22,4 +22,4 @@ public:
 };
 
 
-#endif /* RUNTOTIME_HH__ */
+#endif /* PDBCAL_BASE_RUNTOTIME_H */

@@ -13,15 +13,15 @@
 
 PdbBankID::PdbBankID(const int val)
 {
-   bankID = val;
+  bankID = val;
 }
 
 void PdbBankID::print() const
 {
-  std::cout << "BankID = " << bankID  << std::endl;
+  std::cout << "BankID = " << bankID << std::endl;
 }
 
-int operator == (const PdbBankID & a, const PdbBankID & b)
+int operator==(const PdbBankID& a, const PdbBankID& b)
 {
-   return (a.bankID == b.bankID);
+  return (a.bankID == b.bankID);
 }

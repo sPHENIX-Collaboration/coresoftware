@@ -18,12 +18,11 @@ std::auto_ptr<PdbApplication> PdbApplication::__instance;
 
 PdbApplication *PdbApplication::instance()
 {
-  if ( not __instance.get() )
-    {
-      std::cerr << __FILE__ << "  " << __LINE__ << " No instance of  PdbApplication available" << std::endl;
-      return NULL;
-    }
+  if (not __instance.get())
+  {
+    std::cerr << __FILE__ << "  " << __LINE__ << " No instance of  PdbApplication available" << std::endl;
+    return nullptr;
+  }
 
   return __instance.get();
 }
-

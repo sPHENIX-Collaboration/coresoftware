@@ -1,9 +1,8 @@
-#ifndef PDBAPPLICATION_H__
-#define PDBAPPLICATION_H__
+#ifndef PDBCAL_BASE_PDBAPPLICATION_H
+#define PDBCAL_BASE_PDBAPPLICATION_H
 
 #include "Pdb.h"
 
-#include <cstddef> // for size_t
 #include <memory>  // for auto_ptr
 #include <string>
 
@@ -45,4 +44,4 @@ protected:
   static std::auto_ptr<PdbApplication> __instance;
 };
 
-#endif /* PDBAPPLICATION_H */
+#endif /* PDBCAL_BASE_PDBAPPLICATION_H */
