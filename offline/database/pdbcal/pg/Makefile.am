@@ -80,7 +80,6 @@ libPgCal_la_SOURCES = \
   PgPostBankBackupManager.cc \
   PgPostBankBackupLog.cc \
   PgPostBankBackupStorage.cc \
-  PgPostCalBank.cc \
   PgPostCalBankIterator.cc \
   PgPostParameterBank.cc \
   PgPostParameterErrorBank.cc \
