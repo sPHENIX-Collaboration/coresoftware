@@ -182,10 +182,6 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
       exit(1);
     }
 
-
-  // Should not do this?
-  //cells->Reset();
-
   // loop over all of the layers in the g4hit container
   PHG4HitContainer::LayerIter layer;
   pair<PHG4HitContainer::LayerIter, PHG4HitContainer::LayerIter> layer_begin_end = g4hit->getLayers();

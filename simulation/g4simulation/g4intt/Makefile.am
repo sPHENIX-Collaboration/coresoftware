@@ -41,12 +41,14 @@ libg4intt_la_LIBADD = \
   -lSubsysReco \
   -lg4testbench \
   -lg4detectors \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -lintt
 
 pkginclude_HEADERS = \
   PHG4CylinderGeom_INTT.h \
   PHG4CylinderGeomINTT.h \
-  PHG4INTTCellReco.h \
+  PHG4INTTHitReco.h \
   PHG4INTTDefs.h \
   INTTDeadMap.h \
   INTTDeadMapv1.h \
@@ -68,8 +70,8 @@ libg4intt_la_SOURCES = \
   PHG4INTTDeadMapLoader_Dict.cc \
   PHG4INTTDigitizer.cc \
   PHG4INTTDigitizer_Dict.cc \
-  PHG4INTTCellReco.cc \
-  PHG4INTTCellReco_Dict.cc \
+  PHG4INTTHitReco.cc \
+  PHG4INTTHitReco_Dict.cc \
   PHG4INTTDefs_Dict.cc \
   PHG4INTTDetector.cc \
   PHG4INTTSteppingAction.cc \
