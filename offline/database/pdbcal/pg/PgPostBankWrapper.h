@@ -36,9 +36,9 @@ public:
   void setInsertTime(const PHTimeStamp & val)   { insertTime = val; }
   void setStartValTime(const PHTimeStamp & val) { startValTime = val; }
   void setEndValTime(const PHTimeStamp & val)   { endValTime = val; }
-  void setDescription(const std::string & val) { strcpy(description, val.c_str()); }  
-  void setUserName(const std::string & val) { strcpy(userName, val.c_str()); }
-  void setTableName(const std::string & val) { strcpy(tableName, val.c_str()); }
+  void setDescription(const std::string & val) { description = val; }  
+  void setUserName(const std::string & val) { userName =  val; }
+  void setTableName(const std::string & val) { tableName = val; }
 
   PdbCalBank * getBank() { return  bank; }
   virtual int isValid (const PHTimeStamp &) const { return 0; }
@@ -49,9 +49,9 @@ private:
   PHTimeStamp  insertTime;
   PHTimeStamp  startValTime;
   PHTimeStamp  endValTime;
-  char         description[240];
-  char         userName[200];
-  char         tableName[400];
+  std::string  description;
+  std::string  userName;
+  std::string  tableName;
 
   PdbCalBank * bank;
 

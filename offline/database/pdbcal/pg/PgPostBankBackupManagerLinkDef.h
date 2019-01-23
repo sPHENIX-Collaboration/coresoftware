@@ -1,5 +1,3 @@
-// $Id: PgPostBankBackupManager_LinkDef.h,v 1.1 2014/01/27 06:09:27 jinhuang Exp $                                                                                             
- 
 /*!
  * \file PgPostBankBackupManager_LinkDef.h
  * \brief 
