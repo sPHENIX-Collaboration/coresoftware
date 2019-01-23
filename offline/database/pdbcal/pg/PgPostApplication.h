@@ -1,5 +1,5 @@
-#ifndef PGPOSTAPPLICATION_H
-#define PGPOSTAPPLICATION_H
+#ifndef PDBCAL_PG_PGPOSTAPPLICATION_H
+#define PDBCAL_PG_PGPOSTAPPLICATION_H
 
 #include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/Pdb.h>
@@ -42,6 +42,6 @@ class PgPostApplication : public PdbApplication{
 
 
 
-#endif /* PGPOSTAPPLICATION_H */ 
+#endif /* PDBCAL_PG_PGPOSTAPPLICATION_H */ 
 
 

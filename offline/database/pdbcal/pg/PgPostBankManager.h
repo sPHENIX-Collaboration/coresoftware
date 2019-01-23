@@ -1,5 +1,5 @@
-#ifndef PGPOSTBANKMANAGER_HH__
-#define PGPOSTBANKMANAGER_HH__
+#ifndef PDBCAL_PG_PGPOSTBANKMANAGER_H
+#define PDBCAL_PG_PGPOSTBANKMANAGER_H
 
 #include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbBankID.h>
@@ -66,4 +66,4 @@ private:
   PHTimeStamp tMaxInsertTime;
 };
 
-#endif /* __PGPOSTBANKMANAGER_HH__ */
+#endif /* PDBCAL_PG_PGPOSTBANKMANAGER_H */

@@ -6,8 +6,8 @@
  * \date $Date: 2014/04/14 22:56:48 $
  */
 
-#ifndef PGPOSTBANKBACKUPSTORAGE_HH_
-#define PGPOSTBANKBACKUPSTORAGE_HH_
+#ifndef PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H
+#define PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H
 
 
 #include <pdbcalbase/PdbClassMap.h>
@@ -188,7 +188,7 @@ public:
     std::string tableName;
     int rid;
 
-  ClassDef(PgPostBankBackupStorage::BankHeader,2)
+  ClassDef(PgPostBankBackupStorage::BankHeader,1)
 
   };
 
@@ -285,8 +285,8 @@ private:
   //! storage of the original calibration bank (vector of PdbCalChan)
   PdbCalBank * bank;
 
-ClassDef(PgPostBankBackupStorage,2)
+ClassDef(PgPostBankBackupStorage,1)
 
 };
 
-#endif /* PGPOSTBANKBACKUPSTORAGE_HH_ */
+#endif /* PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H */

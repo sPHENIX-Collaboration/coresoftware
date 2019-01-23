@@ -1,5 +1,5 @@
-#ifndef __PGPOSTCALBANKITERATOR_H_HH
-#define __PGPOSTCALBANKITERATOR_H_HH
+#ifndef PDBCAL_PG_PGPOSTCALBANKITERATOR_H
+#define PDBCAL_PG_PGPOSTCALBANKITERATOR_H
 
 #include <pdbcalbase/PdbCalBankIterator.h>
 #include <pdbcalbase/PdbBankID.h>

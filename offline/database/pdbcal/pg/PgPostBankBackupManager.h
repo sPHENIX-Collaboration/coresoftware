@@ -8,8 +8,8 @@
  * \date $Date: 2014/05/19 17:06:23 $
  */
 
-#ifndef PGPOSTBANKBACKUPMANAGER_HH_
-#define PGPOSTBANKBACKUPMANAGER_HH_
+#ifndef PDBCAL_PG_PGPOSTBANKBACKUPMANAGER_H
+#define PDBCAL_PG_PGPOSTBANKBACKUPMANAGER_H
 
 #include <pdbcalbase/PdbCalChan.h>
 #include <phool/PHTimeStamp.h>
@@ -130,4 +130,4 @@ protected:
   std::string tag;
 };
 
-#endif /* PGPOSTBANKBACKUPMANAGER_HH_ */
+#endif /* PDBCAL_PG_PGPOSTBANKBACKUPMANAGER_H */

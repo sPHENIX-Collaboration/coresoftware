@@ -1,5 +1,5 @@
-#ifndef __PGPOSTBANKWRAPPER_HH__
-#define __PGPOSTBANKWRAPPER_HH__
+#ifndef PDBCAL_PG_PGPOSTBANKWRAPPER_H
+#define PDBCAL_PG_PGPOSTBANKWRAPPER_H
 
 #include "PgPostCalBank.h"
 
@@ -59,4 +59,4 @@ private:
 
 };
 
-#endif /* __PGPOSTBANKWRAPPER_HH__ */
+#endif /* PDBCAL_PG_PGPOSTBANKWRAPPER_H */

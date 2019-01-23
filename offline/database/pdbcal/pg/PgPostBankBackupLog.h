@@ -8,8 +8,8 @@
  * \date $Date: 2014/05/19 17:06:23 $
  */
 
-#ifndef PgPostBankBackupLog_HH_
-#define PgPostBankBackupLog_HH_
+#ifndef PDBCAL_PG_PGPOSTBANKBACKUPLOG_H
+#define PDBCAL_PG_PGPOSTBANKBACKUPLOG_H
 
 #include <pdbcalbase/PdbCalChan.h>
 #include <phool/PHTimeStamp.h>
@@ -96,4 +96,4 @@ protected:
 
 };
 
-#endif /* PgPostBankBackupLog_HH_ */
+#endif /* PDBCAL_PG_PGPOSTBANKBACKUPLOG_H */
