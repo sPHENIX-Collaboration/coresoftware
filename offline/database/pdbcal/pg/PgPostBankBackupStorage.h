@@ -9,9 +9,8 @@
 #ifndef PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H
 #define PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H
 
-
-#include <pdbcalbase/PdbClassMap.h>
 #include <pdbcalbase/PdbCalChan.h>
+#include <pdbcalbase/PdbClassMap.h>
 
 #include <phool/PHTimeStamp.h>
 
@@ -29,15 +28,14 @@ class PdbCalBank;
  */
 class PgPostBankBackupStorage : public TNamed
 {
-public:
+ public:
   //! constructor
   //! \param[in] b pointer to a bank (not wrappers!). PgPostBankBackupStorage will own this pointer
-  PgPostBankBackupStorage(PdbCalBank * b);
+  PgPostBankBackupStorage(PdbCalBank *b);
 
   PgPostBankBackupStorage();
 
-  virtual
-  ~PgPostBankBackupStorage();
+  virtual ~PgPostBankBackupStorage();
 
   virtual void
   Print(Option_t *option = "") const;
@@ -55,18 +53,20 @@ public:
 
   class BankHeader : public TObject
   {
-
-  public:
-
+   public:
     enum
     {
       INVALID_BANKID = -999999
     };
 
-    BankHeader() :
-        bankID(INVALID_BANKID), description(
-            "not assigned"), userName("not assigned"), tableName(
-            "not assigned"), rid(INVALID_BANKID)
+    BankHeader()
+      : bankID(INVALID_BANKID)
+      , description(
+            "not assigned")
+      , userName("not assigned")
+      , tableName(
+            "not assigned")
+      , rid(INVALID_BANKID)
     {
     }
 
@@ -132,37 +132,37 @@ public:
     }
 
     void
-    setInsertTime(const PHTimeStamp & val)
+    setInsertTime(const PHTimeStamp &val)
     {
       insertTime = val;
     }
 
     void
-    setStartValTime(const PHTimeStamp & val)
+    setStartValTime(const PHTimeStamp &val)
     {
       startValTime = val;
     }
 
     void
-    setEndValTime(const PHTimeStamp & val)
+    setEndValTime(const PHTimeStamp &val)
     {
       endValTime = val;
     }
 
     void
-    setDescription(const std::string & val)
+    setDescription(const std::string &val)
     {
       description = val;
     }
 
     void
-    setUserName(const std::string & val)
+    setUserName(const std::string &val)
     {
       userName = val;
     }
 
     void
-    setTableName(const std::string & val)
+    setTableName(const std::string &val)
     {
       tableName = val;
     }
@@ -176,9 +176,7 @@ public:
     std::string
     get_id_string() const;
 
-
-  private:
-
+   private:
     int bankID;
     PHTimeStamp insertTime;
     PHTimeStamp startValTime;
@@ -188,8 +186,7 @@ public:
     std::string tableName;
     int rid;
 
-  ClassDef(PgPostBankBackupStorage::BankHeader,1)
-
+    ClassDef(PgPostBankBackupStorage::BankHeader, 1)
   };
 
   void
@@ -201,7 +198,7 @@ public:
   size_t
   getLength() const;
 
-  PdbCalChan&
+  PdbCalChan &
   getEntry(size_t pos);
 
   const PdbCalBank *
@@ -229,7 +226,7 @@ public:
   }
 
   void
-  set_database_header(const BankHeader & databaseHeader)
+  set_database_header(const BankHeader &databaseHeader)
   {
     database_header = databaseHeader;
   }
@@ -240,7 +237,6 @@ public:
     return obj_classname;
   }
 
-
   std::string &
   get_obj_classname()
   {
@@ -248,7 +244,7 @@ public:
   }
 
   void
-  set_obj_classname(const std::string & name)
+  set_obj_classname(const std::string &name)
   {
     obj_classname = name;
   }
@@ -266,16 +262,16 @@ public:
   }
 
   void
-  set_obj_header(const BankHeader & objHeader)
+  set_obj_header(const BankHeader &objHeader)
   {
     obj_header = objHeader;
   }
 
   //! record bankwapper to obj_header and obj_classname
   void
-  set_obj_info(const PgPostCalBank * bankwapper);
+  set_obj_info(const PgPostCalBank *bankwapper);
 
-private:
+ private:
   //! header as written in database table
   BankHeader database_header;
   //! header as written in the bank wrapper object
@@ -283,10 +279,9 @@ private:
   //! class name of the PgPostCalBank object as in the database
   std::string obj_classname;
   //! storage of the original calibration bank (vector of PdbCalChan)
-  PdbCalBank * bank;
+  PdbCalBank *bank;
 
-ClassDef(PgPostBankBackupStorage,1)
-
+  ClassDef(PgPostBankBackupStorage, 1)
 };
 
 #endif /* PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H */

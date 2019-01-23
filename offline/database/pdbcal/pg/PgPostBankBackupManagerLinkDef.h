@@ -6,11 +6,8 @@
  * \date $Date: 2014/01/27 06:09:27 $
  */
 
-
 #ifdef __CINT__
 
-#pragma link C++ class PgPostBankBackupManager-!;
+#pragma link C++ class PgPostBankBackupManager - !;
 
 #endif /* __CINT__ */
-
-
