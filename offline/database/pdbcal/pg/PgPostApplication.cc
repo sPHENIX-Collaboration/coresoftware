@@ -11,8 +11,8 @@
 
 using namespace std;
 
-PgPostApplication *PgPostApplication::mySpecificCopy = NULL;
-TSQLConnection *PgPostApplication::con = NULL;
+PgPostApplication *PgPostApplication::mySpecificCopy = nullptr;
+TSQLConnection *PgPostApplication::con = nullptr;
 
 namespace
 {
@@ -50,7 +50,7 @@ int PgPostApplication::releaseConnection()
   if (con)
   {
     con->Close();
-    con = NULL;
+    con = nullptr;
   }
   return 0;
 }
@@ -183,6 +183,6 @@ int PgPostApplication::DisconnectDB()
   {
     con->Close();
   }
-  con = NULL;
+  con = nullptr;
   return 0;
 }

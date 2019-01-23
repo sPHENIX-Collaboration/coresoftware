@@ -17,12 +17,11 @@
 #include <iostream>
 #include <sstream>
 
-ClassImp(PgPostBankWrapper)
 
-    using namespace std;
+using namespace std;
 
 PgPostBankWrapper::PgPostBankWrapper()
-  : bank(NULL)
+  : bank(nullptr)
 {
 }
 
@@ -86,7 +85,7 @@ bool PgPostBankWrapper::commit()
   }
   else
   {
-    cout << "Bank is a NULL pointer" << endl;
+    cout << "Bank is a nullptr pointer" << endl;
     return 0;
   }
 }

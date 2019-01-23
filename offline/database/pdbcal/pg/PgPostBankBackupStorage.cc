@@ -51,8 +51,7 @@ PgPostBankBackupStorage::PgPostBankBackupStorage(PdbCalBank *b)
 PgPostBankBackupStorage::PgPostBankBackupStorage()
   : TNamed("NotAssigned", "NotAssigned")
   , obj_classname("NotAssigned")
-  , bank(
-        NULL)
+  , bank(nullptr)
 {
 }
 
@@ -71,10 +70,10 @@ PgPostBankBackupStorage::createBank()
     cout << "PgPostBankBackupStorage::createBank - ERROR - "
          << "invalid content" << endl;
 
-    return NULL;
+    return nullptr;
   }
 
-  PgPostCalBank *bw = NULL;
+  PgPostCalBank *bw = nullptr;
 
   PdbCalBank *b_clone = static_cast<PdbCalBank *>(bank->Clone());
   assert(b_clone);
@@ -113,7 +112,7 @@ PgPostBankBackupStorage::createBank()
          << "invalid obj_classname of " << obj_classname << " with bankID = "
          << obj_header.getBankID() << endl;
 
-    return NULL;
+    return nullptr;
   }
 
   bw->setInsertTime(obj_header.getInsertTime());

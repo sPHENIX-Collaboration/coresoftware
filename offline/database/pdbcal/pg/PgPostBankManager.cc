@@ -239,7 +239,7 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &className, PdbBankID bank
   PgPostApplication *ap = PgPostApplication::instance();
   if (!ap)
   {
-    cout << PHWHERE << " PgPostApplication instance is NULL, exiting" << endl;
+    cout << PHWHERE << " PgPostApplication instance is nullptr, exiting" << endl;
     exit(1);
   }
 
@@ -329,7 +329,7 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
 //   PgPostApplication *ap = PgPostApplication::instance();
 //   if (!ap)
 //     {
-//       cout << PHWHERE << " PgPostApplication instance is NULL, exiting" << endl;
+//       cout << PHWHERE << " PgPostApplication instance is nullptr, exiting" << endl;
 //       exit(1);
 //     }
 //   TSQLConnection *con = ap->getConnection();
@@ -377,7 +377,7 @@ PgPostBankManager::fetchClosestBank(const string &className, PdbBankID bankID, c
 //   PgPostApplication *ap = PgPostApplication::instance();
 //   if (!ap)
 //     {
-//       cout << PHWHERE << " PgPostApplication instance is NULL, exiting" << endl;
+//       cout << PHWHERE << " PgPostApplication instance is nullptr, exiting" << endl;
 //       exit(1);
 //     }
 

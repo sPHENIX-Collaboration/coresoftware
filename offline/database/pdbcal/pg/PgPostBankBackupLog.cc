@@ -41,14 +41,14 @@
 using namespace std;
 
 PgPostBankBackupLog::TSQLConnection_PTR PgPostBankBackupLog::con(
-    static_cast<TSQLConnection*>(NULL));
+    static_cast<TSQLConnection*>(nullptr));
 
 PgPostBankBackupLog::PgPostBankBackupLog(const std::string& TableName,
                                          const std::string& Tag)
   : verbosity(1)
   , tablename(TableName)
   , tag(Tag)
-  , pstmt(NULL)
+  , pstmt(nullptr)
 {
 }
 
