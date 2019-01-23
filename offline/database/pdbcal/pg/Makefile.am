@@ -30,34 +30,63 @@ libPgCalInstance_la_SOURCES = PgPostInstantiator.cc
 libPgCalInstance_la_LIBADD = \
   libPgCal.la
 
+# I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
+# pcm files in addition. If someone can figure out how to make a list
+# so this list of dictionaries is transformed into a list of pcm files
+# following a simple naming convention, please change this accordingly and
+# let me know
+ROOT_DICTS = \
+  PgPostBankBackupStorage_Dict.cc \
+  PgPostBankWrapper_Dict.cc \
+  PgPostCalBank_Dict.cc \
+  PgPostParameterBank_Dict.cc \
+  PgPostParameterErrorBank_Dict.cc \
+  PgPostParameterMapBank_Dict.cc \
+  PgPostParameterMapContainerBank_Dict.cc
+# for root6 we need pcm and dictionaries but only for
+# i/o classes. For root5 we need only dictionaries but
+# those for i/o and classes available on the cmd line
+# MAKEROOT6 is set in the configure.ac, true for root6
+if MAKEROOT6
+# this is a tweak to install files in $(libdir), automake refuses
+# to install other files in libdir, this construct gets around this
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  PgPostBankBackupStorage_Dict_rdict.pcm \
+  PgPostBankWrapper_Dict_rdict.pcm \
+  PgPostCalBank_Dict_rdict.pcm \
+  PgPostParameterBank_Dict_rdict.pcm \
+  PgPostParameterErrorBank_Dict_rdict.pcm \
+  PgPostParameterMapBank_Dict_rdict.pcm \
+  PgPostParameterMapContainerBank_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    PgPostApplication_Dict.cc \
+    PgPostBankBackupManager_Dict.cc \
+    PgPostBankBackupLog_Dict.cc \
+    PgPostBankManager_Dict.cc \
+    PgPostBankWrapperManager_Dict.cc \
+    RunToTimePg_Dict.cc
+endif
+
+
 libPgCal_la_SOURCES = \
+  $(ROOT_DICTS) \
+  $(ROOT5_DICTS) \
   PgPostApplication.cc  \
-  PgPostApplication_dict.C \
   PgPostBankManager.cc \
-  PgPostBankManager_dict.C \
   PgPostBankWrapper.cc \
-  PgPostBankWrapper_dict.C \
   PgPostBankWrapperManager.cc \
-  PgPostBankWrapperManager_dict.C \
   PgPostBankBackupManager.cc \
-  PgPostBankBackupManager_dict.C \
   PgPostBankBackupLog.cc \
-  PgPostBankBackupLog_dict.C \
   PgPostBankBackupStorage.cc \
-  PgPostBankBackupStorage_dict.C \
   PgPostCalBank.cc \
-  PgPostCalBank_dict.C \
   PgPostCalBankIterator.cc \
   PgPostParameterBank.cc \
-  PgPostParameterBank_dict.C \
   PgPostParameterErrorBank.cc \
-  PgPostParameterErrorBank_dict.C \
   PgPostParameterMapBank.cc \
-  PgPostParameterMapBank_dict.C \
   PgPostParameterMapContainerBank.cc \
-  PgPostParameterMapContainerBank_dict.C \
-  RunToTimePg.cc \
-  RunToTimePg_dict.C
+  RunToTimePg.cc
 
 pkginclude_HEADERS = \
   PgPostApplication.h \
@@ -84,22 +113,22 @@ testexternals.C:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 # this generates the standard LinkDef.h files
-%_LinkDef.h : 
-	 $(ROOTIFY) $@
+%LinkDef.h : 
+	$(ROOTIFY) $@
 
 # keep the LinkDef files in the build area for debugging
-.PRECIOUS : %_LinkDef.h
+.PRECIOUS : %LinkDef.h
 
 # this generates the classes stored in our postgres DB
 PgPost%Bank.h PgPost%Bank.cc:
 	$(BANKOMAT) $@
 
-# this generates the standard dictionaries
-%_dict.C : %.h %_LinkDef.h
-	 rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 clean-local:
-	rm -rf *_dict*
-	rm -rf *_LinkDef.h
-	rm -rf PgPost*Bank.*
+	rm -rf *_dict.* *_Dict.* *LinkDef.h PgPost*Bank.* *.pcm $(BUILT_SOURCES)
