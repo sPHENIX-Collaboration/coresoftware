@@ -84,7 +84,7 @@ PgPostBankBackupManager::deleteSQLStatement(TSQLStatement * stmt)
   if (!ap)
     {
       cout << "PgPostBankBackupManager::deleteSQLStatement - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
   TSQLConnection *con = ap->getConnection();
@@ -108,7 +108,7 @@ PgPostBankBackupManager::deleteSQLStatement(TSQLStatement * stmt)
     }
 
   delete stmt;
-//  stmt = NULL;
+//  stmt = nullptr;
 }
 
 void
@@ -127,7 +127,7 @@ PgPostBankBackupManager::deleteODBCPreparedStatement(
   if (!ap)
     {
       cout << "PgPostBankBackupManager::deleteODBCPreparedStatement - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
   TSQLConnection *con = ap->getConnection();
@@ -157,7 +157,7 @@ PgPostBankBackupManager::deleteODBCPreparedStatement(
 
 //  cout << "PgPostBankBackupManager::deleteODBCPreparedStatement - delete the object" << endl;
   delete stmt;
-//  stmt = NULL;
+//  stmt = nullptr;
 }
 
 PgPostBankBackupStorage *
@@ -170,7 +170,7 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
       cout
           << "PgPostBankBackupManager::SQLResultSet2BackupStorage - Error - null TSQLResultSet"
           << endl;
-      return NULL;
+      return nullptr;
     }
 
   if (rs->GetRow() == 0)
@@ -179,7 +179,7 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
       cout
           << "PgPostBankBackupManager::SQLResultSet2BackupStorage - Error - invalid TSQLResultSet with GetRow = 0"
           << endl;
-      return NULL;
+      return nullptr;
     }
 
   const int rid = rs->GetInt(8);
@@ -189,7 +189,7 @@ PgPostBankBackupManager::SQLResultSet2BackupStorage(TSQLResultSet * rs,
   int length = 0;
   string pdbcalchan_classname;
   string pgpostcalbank_classname;
-  PdbCalBank *bank_orig = NULL;
+  PdbCalBank *bank_orig = nullptr;
 
   PdbClassMap<PdbCalBank> *classMap = PdbClassMap<PdbCalBank>::instance();
   if (string(bw->ClassName()) == string("PgPostBankWrapper"))
@@ -340,7 +340,7 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
   if (!ap)
     {
       cout << "PgPostBankBackupManager::fetchBank - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
 
@@ -385,7 +385,7 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
             << endl;
 
       delete rs;
-      rs = NULL;
+      rs = nullptr;
 
       if (Verbosity() >= 2)
         cout << "PgPostBankBackupManager::fetchBank - clear SQLStatement List"
@@ -411,13 +411,13 @@ PgPostBankBackupManager::fetchBank(const std::string &bankName, int rid)
                 << endl;
 
           delete rs;
-          rs = NULL;
+          rs = nullptr;
         }
 
-      return NULL;
+      return nullptr;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 //! Use PgPostBankBackupStorage to restore the original entry in database
@@ -561,7 +561,7 @@ PgPostBankBackupManager::commitAllBankfromTFile(const std::string &input_file)
   if (!ap)
     {
       cout << "PgPostBankBackupManager::commitAllBankfromTFile - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
 
@@ -587,12 +587,12 @@ PgPostBankBackupManager::commitAllBankfromTFile(const std::string &input_file)
   bool first_read = true;
   string table_name;
   rid_list_t existing_rids;
-  TSQLPreparedStatement* pstmt = NULL;
+  TSQLPreparedStatement* pstmt = nullptr;
   boost::shared_ptr<PgPostBankBackupLog> bklog(
-      static_cast<PgPostBankBackupLog *>(NULL));
+      static_cast<PgPostBankBackupLog *>(nullptr));
 
   TIter next(f->GetListOfKeys());
-  TObject * o = NULL;
+  TObject * o = nullptr;
   while ((o = next()))
     {
 
@@ -843,7 +843,7 @@ PgPostBankBackupManager::fetchBank2TFile(const std::string &bankName,
         {
 
           cout << "PgPostBankBackupManager::fetchBank2TFile - Error -"
-              << " NULL PgPostBankBackupStorage object produced" << endl;
+              << " nullptr PgPostBankBackupStorage object produced" << endl;
         }
       else if (!bs->isValid())
         {
@@ -886,7 +886,7 @@ PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
   if (!ap)
     {
       cout << "PgPostBankBackupManager::fetchAllBank2TFile - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
 
@@ -1206,7 +1206,7 @@ PgPostBankBackupManager::dumpTable(const std::string &bankName,
   if (!ap)
     {
       cout << "PgPostBankBackupManager::dumpTable - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
 
@@ -1338,7 +1338,7 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
   if (!ap)
     {
       cout << "PgPostBankBackupManager::CleanTable - ERROR - "
-          << " PgPostApplication instance is NULL, exiting" << endl;
+          << " PgPostApplication instance is nullptr, exiting" << endl;
       exit(1);
     }
 
@@ -1370,10 +1370,8 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
           exit(1);
         }
 
-      int cnt = 0;
       while (rs->Next())
         {
-          cnt++;
 
           const int id = rs->GetInt(1);
 
@@ -1423,10 +1421,8 @@ PgPostBankBackupManager::CleanTable(const std::string &bankName,
       typedef map<int, int> covered_period_t;
       covered_period_t covered_period;
 
-      int cnt = 0;
       while (rs->Next())
         {
-          cnt++;
           cnt_total++;
 
           const int inserttime = rs->GetInt(1);
