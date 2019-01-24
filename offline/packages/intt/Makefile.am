@@ -19,13 +19,15 @@ libintt_la_SOURCES = \
   InttDefs.cc \
   InttDefs_Dict.cc \
   INTTClusterizer.cc \
-  INTTClusterizer_Dict.cc 
+  INTTClusterizer_Dict.cc \
+  InttClusterizer.cc \
+  InttClusterizer_Dict.cc 
 
 libintt_la_LIBADD = \
   libintt_io.la \
   -lfun4all \
   -lg4detectors \
-  -lg4intt
+  -lg4intt 
 
 # sources for io library
 libintt_io_la_SOURCES = \
@@ -34,8 +36,8 @@ libintt_io_la_SOURCES = \
 
 libintt_io_la_LIBADD = \
   -lphool \
-  -ltrack_io \
-  -ltrackbase_historic_io
+  -ltrack_io
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -48,7 +50,8 @@ libintt_io_la_LIBADD = \
 pkginclude_HEADERS = \
   InttDefs.h \
   InttHit.h \
-  INTTClusterizer.h 
+  INTTClusterizer.h \
+  InttClusterizer.h 
 
 
 ################################################

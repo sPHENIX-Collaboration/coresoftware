@@ -255,10 +255,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
          hitr != hitrangei.second;
          ++hitr)
       {
-      // get the column and row indices from the hitkey
-      // (we don't actually care about the hit itself for the mvtx)
-      hitvec.push_back(make_pair(hitr->first, hitr->second));
-    }
+	hitvec.push_back(make_pair(hitr->first, hitr->second));
+      }
     if (Verbosity() > 2)
       cout << "hitvec.size(): " << hitvec.size() << endl;
 
@@ -490,12 +488,12 @@ void MvtxClusterizer::PrintClusters(PHCompositeNode *topNode)
 {
   if (Verbosity() >= 1)
   {
-    TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TrkrClusterContainer");
+    TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;
 
-    cout << "================= MvtxClusterizer::process_event() ====================" << endl;
+    cout << "================= Aftyer MvtxClusterizer::process_event() ====================" << endl;
 
-    cout << " Found and recorded the following " << clusterlist->size() << " clusters: " << endl;
+    cout << " There are " << clusterlist->size() << " clusters recorded: " << endl;
 
     clusterlist->identify();
 
