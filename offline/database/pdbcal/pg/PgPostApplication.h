@@ -1,8 +1,8 @@
-#ifndef PGPOSTAPPLICATION_H
-#define PGPOSTAPPLICATION_H
+#ifndef PDBCAL_PG_PGPOSTAPPLICATION_H
+#define PDBCAL_PG_PGPOSTAPPLICATION_H
 
-#include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/Pdb.h>
+#include <pdbcalbase/PdbApplication.h>
 
 #include <phool/phool.h>
 
@@ -10,38 +10,34 @@
 
 #include <string>
 
-class PgPostApplication : public PdbApplication{ 
+class PgPostApplication : public PdbApplication
+{
+ protected:
+  PgPostApplication(const std::string &dbname);
 
- protected: 
-  PgPostApplication(const std::string &dbname); 
-
- public: 
-  virtual ~PgPostApplication(); 
+ public:
+  virtual ~PgPostApplication();
   PdbStatus startUpdate();
   PdbStatus startRead();
   PdbStatus commit();
   PdbStatus commit(PdbCalBank *);
-  PdbStatus commit(PdbCalBank *, int rid, long,long,long);
+  PdbStatus commit(PdbCalBank *, int rid, long, long, long);
 
   PdbStatus abort();
   PdbStatus isActive() { return 0; }
-  TSQLConnection * getConnection();
+  TSQLConnection *getConnection();
 
   static int Register(const std::string &dbname = "calibrations");
-  static int releaseConnection( );
+  static int releaseConnection();
   static PgPostApplication *instance();
   int setDBName(const std::string &name);
   int DisconnectDB();
 
  protected:
-  static TSQLConnection *        con;
+  static TSQLConnection *con;
   static PgPostApplication *mySpecificCopy;
   bool readOnly;
   std::string dsn;
-}; 
+};
 
-
-
-#endif /* PGPOSTAPPLICATION_H */ 
-
-
+#endif /* PDBCAL_PG_PGPOSTAPPLICATION_H */

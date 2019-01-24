@@ -2,16 +2,13 @@
 #include "PgPostBankManager.h"
 #include "RunToTimePg.h"
 
-namespace {
+namespace
+{
+int PgPostApp = PgPostApplication::Register();
 
+int PgPostBank = PgPostBankManager::Register();
 
-    int PgPostApp  = PgPostApplication::Register();
-
-    int PgPostBank = PgPostBankManager::Register();
-
-    int PgPostrtt  = RunToTimePg::Register();
-} 
+int PgPostrtt = RunToTimePg::Register();
+}  // namespace
 
 //_xd __xd;
-
-

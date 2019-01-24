@@ -1,6 +1,4 @@
 #-----------------------------------------------------------------------------
-#  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/pg/PgRootify.pl,v 1.3 2008/10/17 15:22:27 irina Exp $
-#  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/offline/database/pdbcal/pg/PgRootify.pl,v 1.3 2008/10/17 15:22:27 irina Exp $
 #
 #  The pdbcal package
 #  Copyright (C) PHENIX collaboration, 1999
@@ -41,11 +39,11 @@ if ($#ARGV == 0) {
 if ($className =~ /LinkDef/)
 {
     $linkDefName = $className;
-    $className =~ s/\_LinkDef\.h//;
+    $className =~ s/LinkDef\.h//;
 }
 else
 {
-  $linkDefName = join("", $className, "_LinkDef.h");
+  $linkDefName = join("", $className, "LinkDef.h");
 }
 
 #

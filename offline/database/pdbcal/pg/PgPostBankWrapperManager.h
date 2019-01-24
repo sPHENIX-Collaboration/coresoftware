@@ -8,7 +8,6 @@ class PgPostBankWrapper;
 class PgPostBankWrapperManager
 {
  public:
-
   static PgPostBankWrapperManager& instance();
 
   void clear();
@@ -22,13 +21,11 @@ class PgPostBankWrapperManager
   bool unregisterWrapper(PgPostBankWrapper* wrapper);
 
  private:
-
   PgPostBankWrapperManager();
 
   typedef std::vector<PgPostBankWrapper*> WVECTOR;
 
-  WVECTOR fWrappers; //!
-
+  WVECTOR fWrappers;  //!
 };
 
 #endif
