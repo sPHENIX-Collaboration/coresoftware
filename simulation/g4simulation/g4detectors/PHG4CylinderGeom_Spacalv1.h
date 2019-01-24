@@ -201,7 +201,7 @@ public:
   }
 
   void
-  set_absorber_mat(std::string absorberMat)
+  set_absorber_mat(const std::string &absorberMat)
   {
     absorber_mat = absorberMat;
   }
@@ -213,7 +213,7 @@ public:
   }
 
   void
-  set_fiber_clading_mat(std::string fiberCladingMat)
+  set_fiber_clading_mat(const std::string &fiberCladingMat)
   {
     fiber_clading_mat = fiberCladingMat;
   }
@@ -225,7 +225,7 @@ public:
   }
 
   void
-  set_fiber_core_mat(std::string fiberCoreMat)
+  set_fiber_core_mat(const std::string &fiberCoreMat)
   {
     fiber_core_mat = fiberCoreMat;
   }

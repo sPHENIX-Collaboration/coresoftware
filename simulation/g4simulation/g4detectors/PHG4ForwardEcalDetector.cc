@@ -169,7 +169,7 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
   /* Construct single calorimeter towers */
   bool buildType[6] = {false, false, false, false, false, false}; 
   typedef std::map< std::string, towerposition>::iterator it_type;
-  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
+  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
     for(int i=0; i<6; i++)
       if(iterator->second.type==i) buildType[i] = true; 
   }
@@ -573,7 +573,7 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
 
-  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
+  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
 
       if ( Verbosity() > 0 )
 	{

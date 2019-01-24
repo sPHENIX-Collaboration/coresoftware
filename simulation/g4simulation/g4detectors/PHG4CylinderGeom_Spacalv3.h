@@ -66,7 +66,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   }
 
   void
-  set_sidewall_mat(std::string absorberMat)
+  set_sidewall_mat(const std::string &absorberMat)
   {
     sidewall_mat = absorberMat;
   }
