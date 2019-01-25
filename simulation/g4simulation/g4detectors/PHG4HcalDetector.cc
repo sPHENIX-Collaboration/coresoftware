@@ -37,22 +37,25 @@ int PHG4HcalDetector::INACTIVE = -100;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4HcalDetector::PHG4HcalDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr ):
   PHG4Detector(Node, dnam),
+  TrackerMaterial(nullptr),
+  TrackerThickness(100 * cm),
+  cylinder_solid(nullptr),
+  cylinder_logic(nullptr),
+  cylinder_physi(nullptr),
+  radius(100 * cm),
+  length(100 * cm),
+  xpos(0 * cm),
+  ypos(0 * cm),
+  zpos(0 * cm),
   _sciTilt(0),
   _sciWidth(0.6*cm),
   _sciNum(100),
   _sciPhi0(0),
+  _region(nullptr),
   active(0),
   absorberactive(0),
   layer(lyr)
-{
-  //set the default radii
-  radius = 100 * cm;
-  TrackerThickness = 100 * cm;
-  length = 100 * cm;
-  xpos = 0 * cm;
-  ypos = 0 * cm;
-  zpos = 0 * cm;
-}
+{}
 
 //_______________________________________________________________
 //_______________________________________________________________
