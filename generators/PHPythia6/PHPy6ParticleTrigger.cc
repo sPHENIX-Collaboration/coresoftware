@@ -1,61 +1,68 @@
-#include "PHPy6GenTrigger.h"
 #include "PHPy6ParticleTrigger.h"
+#include "PHPy6GenTrigger.h"
+
 #include <phool/PHCompositeNode.h>
-#include <phool/phool.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <phhepmc/PHHepMCGenEvent.h>
+
 #include <HepMC/GenEvent.h>
 
-#include <cstdlib>
 #include <iostream>
+
 using namespace std;
 
 //___________________________________________________________________________
-PHPy6ParticleTrigger::PHPy6ParticleTrigger(const std::string &name):
-  PHPy6GenTrigger(name),
+PHPy6ParticleTrigger::PHPy6ParticleTrigger(const std::string &name)
+  : PHPy6GenTrigger(name)
+  ,
 
-  _theEtaHigh(-999.9),
-  _theEtaLow(-999.9),
-  _thePtHigh(999.9),
-  _thePtLow(-999.9),
-  _thePHigh(999.9),
-  _thePLow(-999.9),
-  _thePzHigh(999.9),
-  _thePzLow(-999.9),
+  _theEtaHigh(-999.9)
+  , _theEtaLow(-999.9)
+  , _thePtHigh(999.9)
+  , _thePtLow(-999.9)
+  , _thePHigh(999.9)
+  , _thePLow(-999.9)
+  , _thePzHigh(999.9)
+  , _thePzLow(-999.9)
+  ,
 
-  _doEtaHighCut(false),
-  _doEtaLowCut(false),
-  _doBothEtaCut(false),
+  _doEtaHighCut(false)
+  , _doEtaLowCut(false)
+  , _doBothEtaCut(false)
+  ,
 
-  _doAbsEtaHighCut(false),
-  _doAbsEtaLowCut(false),
-  _doBothAbsEtaCut(false),
+  _doAbsEtaHighCut(false)
+  , _doAbsEtaLowCut(false)
+  , _doBothAbsEtaCut(false)
+  ,
 
-  _doPtHighCut(false),
-  _doPtLowCut(false),
-  _doBothPtCut(false),
+  _doPtHighCut(false)
+  , _doPtLowCut(false)
+  , _doBothPtCut(false)
+  ,
 
-  _doPHighCut(false),
-  _doPLowCut(false),
-  _doBothPCut(false),
+  _doPHighCut(false)
+  , _doPLowCut(false)
+  , _doBothPCut(false)
+  ,
 
-  _doPzHighCut(false),
-  _doPzLowCut(false),
-  _doBothPzCut(false)
-{}
-
-
-bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
+  _doPzHighCut(false)
+  , _doPzLowCut(false)
+  , _doBothPzCut(false)
 {
+}
 
+bool PHPy6ParticleTrigger::Apply(const HepMC::GenEvent *evt)
+{
   // Print Out Trigger Information Once, for Posterity
   static int trig_info_printed = 0;
-  if ( trig_info_printed==0 )
-    {
-      PrintConfig();
-      trig_info_printed = 1;
-    }
+  if (trig_info_printed == 0)
+  {
+    PrintConfig();
+    trig_info_printed = 1;
+  }
 
   //  for ( HepMC::GenEvent::particle_const_iterator p
   //          = evt->particles_begin(); p != evt->particles_end(); ++p ){
@@ -78,16 +85,16 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
   //    }
 
   // Loop over all particles in the event
-  for ( HepMC::GenEvent::particle_const_iterator p
-          = evt->particles_begin(); p != evt->particles_end(); ++p ){
-
+  for (HepMC::GenEvent::particle_const_iterator p = evt->particles_begin(); p != evt->particles_end(); ++p)
+  {
     // loop over all the trigger particle criteria
-    for (int j = 0; j < int(_theParticles.size()); j++) {
-
-      double p_pT = sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2));
-      double p_pAbs = sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2) + pow((*p)->momentum().pz(),2));
-      if ( (*p)->pdg_id() == _theParticles[j] &&
-           (*p)->status() == 1 ) { //only stable particles
+    for (int j = 0; j < int(_theParticles.size()); j++)
+    {
+      double p_pT = sqrt(pow((*p)->momentum().px(), 2) + pow((*p)->momentum().py(), 2));
+      double p_pAbs = sqrt(pow((*p)->momentum().px(), 2) + pow((*p)->momentum().py(), 2) + pow((*p)->momentum().pz(), 2));
+      if ((*p)->pdg_id() == _theParticles[j] &&
+          (*p)->status() == 1)
+      {  //only stable particles
 
         if (_doBothEtaCut && ((*p)->momentum().eta() < _theEtaLow ||
                               (*p)->momentum().eta() > _theEtaHigh)) continue;
@@ -101,20 +108,21 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
 
         if (_doBothPtCut && (p_pT < _thePtLow ||
                              p_pT > _thePtHigh)) continue;
-        if (_doPtHighCut && p_pT > _thePtHigh ) continue;
+        if (_doPtHighCut && p_pT > _thePtHigh) continue;
         if (_doPtLowCut && p_pT < _thePtLow) continue;
 
         if (_doBothPCut && (p_pAbs < _thePLow ||
                             p_pAbs > _thePHigh)) continue;
-        if (_doPHighCut && p_pAbs > _thePHigh ) continue;
+        if (_doPHighCut && p_pAbs > _thePHigh) continue;
         if (_doPLowCut && p_pAbs < _thePLow) continue;
 
         if (_doBothPzCut && ((*p)->momentum().pz() < _thePzLow ||
                              (*p)->momentum().pz() > _thePzHigh)) continue;
-        if (_doPzHighCut && (*p)->momentum().pz() > _thePzHigh ) continue;
+        if (_doPzHighCut && (*p)->momentum().pz() > _thePzHigh) continue;
         if (_doPzLowCut && (*p)->momentum().pz() < _thePzLow) continue;
 
-        if (_verbosity > 5) {
+        if (_verbosity > 5)
+        {
           cout << "stable " << (*p)->pdg_id()
                << "  pt: " << p_pT
                << " pz: " << (*p)->momentum().pz()
@@ -123,78 +131,94 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
         }
 
         // loop over all partents to this particle
-         bool passedParents = false;
-        for (int k = 0; k < int(_theParents.size()); k++) {
+        bool passedParents = false;
+        for (int k = 0; k < int(_theParents.size()); k++)
+        {
           // check Mothers
-	  for ( HepMC::GenVertex::particles_in_const_iterator p_parent = (*p)->production_vertex()->particles_in_const_begin();
-		p_parent != (*p)->production_vertex()->particles_in_const_end();
-		++p_parent )
-	    {
-	      if (abs( (*p_parent)->pdg_id() ) == abs(_theParents[k]))
-		{
-		  passedParents = true;
-		  if (_verbosity > 5) cout << "found parent!" << endl;
-		  break;
-		}
-	    }//moms for loop
+          for (HepMC::GenVertex::particles_in_const_iterator p_parent = (*p)->production_vertex()->particles_in_const_begin();
+               p_parent != (*p)->production_vertex()->particles_in_const_end();
+               ++p_parent)
+          {
+            if (abs((*p_parent)->pdg_id()) == abs(_theParents[k]))
+            {
+              passedParents = true;
+              if (_verbosity > 5) cout << "found parent!" << endl;
+              break;
+            }
+          }  //moms for loop
           if (passedParents) break;
-        }//parents for loop
+        }  //parents for loop
 
         //If we made it here and it passes parents, success!
         if (_theParents.size() == 0 || passedParents) return true;
 
-      }//if _theParticles
-    }//_theParticles for loop
+      }  //if _theParticles
+    }    //_theParticles for loop
 
-  }//pythia event for loop
+  }  //pythia event for loop
 
   return false;
-
 }
 
-void PHPy6ParticleTrigger::AddParticles(const std::string &particles) {
+void PHPy6ParticleTrigger::AddParticles(const std::string &particles)
+{
   std::vector<int> addedParts = convertToInts(particles);
-  _theParticles.insert(_theParticles.end(),addedParts.begin(),addedParts.end());
+  _theParticles.insert(_theParticles.end(), addedParts.begin(), addedParts.end());
 }
 
-void PHPy6ParticleTrigger::AddParticles(int particle) {
+void PHPy6ParticleTrigger::AddParticles(int particle)
+{
   _theParticles.push_back(particle);
 }
 
-void PHPy6ParticleTrigger::AddParticles(std::vector<int> particles) {
-  _theParticles.insert(_theParticles.end(),particles.begin(),particles.end());
+void PHPy6ParticleTrigger::AddParticles(std::vector<int> particles)
+{
+  _theParticles.insert(_theParticles.end(), particles.begin(), particles.end());
 }
 
-void PHPy6ParticleTrigger::AddParents(const std::string &parents) {
+void PHPy6ParticleTrigger::AddParents(const std::string &parents)
+{
   std::vector<int> addedParents = convertToInts(parents);
-  _theParents.insert(_theParents.end(),addedParents.begin(),addedParents.end());
+  _theParents.insert(_theParents.end(), addedParents.begin(), addedParents.end());
 }
 
-void PHPy6ParticleTrigger::AddParents(int parent) {
+void PHPy6ParticleTrigger::AddParents(int parent)
+{
   _theParents.push_back(parent);
 }
 
-void PHPy6ParticleTrigger::AddParents(std::vector<int> parents) {
-  _theParents.insert(_theParents.end(),parents.begin(),parents.end());
+void PHPy6ParticleTrigger::AddParents(std::vector<int> parents)
+{
+  _theParents.insert(_theParents.end(), parents.begin(), parents.end());
 }
 
-void PHPy6ParticleTrigger::SetPtHigh(double pt) {
+void PHPy6ParticleTrigger::SetPtHigh(double pt)
+{
   _thePtHigh = pt;
-  if (_doPtLowCut) _doBothPtCut = true;
-  else _doPtHighCut = true;
+  if (_doPtLowCut)
+    _doBothPtCut = true;
+  else
+    _doPtHighCut = true;
 }
 
-void PHPy6ParticleTrigger::SetPtLow(double pt) {
+void PHPy6ParticleTrigger::SetPtLow(double pt)
+{
   _thePtLow = pt;
-  if (_doPtHighCut) _doBothPtCut = true;
-  else _doPtLowCut = true;
+  if (_doPtHighCut)
+    _doBothPtCut = true;
+  else
+    _doPtLowCut = true;
 }
 
-void PHPy6ParticleTrigger::SetPtHighLow(double ptHigh, double ptLow) {
-  if (ptHigh < ptLow) {
+void PHPy6ParticleTrigger::SetPtHighLow(double ptHigh, double ptLow)
+{
+  if (ptHigh < ptLow)
+  {
     _thePtHigh = ptLow;
     _thePtLow = ptHigh;
-  } else {
+  }
+  else
+  {
     _thePtHigh = ptHigh;
     _thePtLow = ptLow;
   }
@@ -203,31 +227,43 @@ void PHPy6ParticleTrigger::SetPtHighLow(double ptHigh, double ptLow) {
   _doPtHighCut = false;
 }
 
-void PHPy6ParticleTrigger::SetPHigh(double p) {
+void PHPy6ParticleTrigger::SetPHigh(double p)
+{
   _thePHigh = p;
-  if (_doPLowCut) {
+  if (_doPLowCut)
+  {
     _doBothPCut = true;
     _doPLowCut = false;
-  } else {
+  }
+  else
+  {
     _doPHighCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetPLow(double p) {
+void PHPy6ParticleTrigger::SetPLow(double p)
+{
   _thePLow = p;
-  if (_doPHighCut) {
+  if (_doPHighCut)
+  {
     _doBothPCut = true;
     _doPHighCut = false;
-  } else {
+  }
+  else
+  {
     _doPLowCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetPHighLow(double pHigh, double pLow) {
-  if (pHigh < pLow) {
+void PHPy6ParticleTrigger::SetPHighLow(double pHigh, double pLow)
+{
+  if (pHigh < pLow)
+  {
     _thePHigh = pLow;
-    _thePLow= pHigh;
-  } else {
+    _thePLow = pHigh;
+  }
+  else
+  {
     _thePHigh = pHigh;
     _thePLow = pLow;
   }
@@ -236,27 +272,36 @@ void PHPy6ParticleTrigger::SetPHighLow(double pHigh, double pLow) {
   _doPHighCut = false;
 }
 
-void PHPy6ParticleTrigger::SetEtaHigh(double eta) {
+void PHPy6ParticleTrigger::SetEtaHigh(double eta)
+{
   _theEtaHigh = eta;
-  if (_doEtaLowCut) {
+  if (_doEtaLowCut)
+  {
     _doBothEtaCut = true;
     _doEtaLowCut = false;
-  } else {
+  }
+  else
+  {
     _doEtaHighCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetEtaLow(double eta) {
+void PHPy6ParticleTrigger::SetEtaLow(double eta)
+{
   _theEtaLow = eta;
-  if (_doEtaHighCut) {
+  if (_doEtaHighCut)
+  {
     _doBothEtaCut = true;
     _doEtaHighCut = false;
-  } else {
+  }
+  else
+  {
     _doEtaLowCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
+void PHPy6ParticleTrigger::SetEtaHighLow(double etaHigh, double etaLow)
+{
   _theEtaHigh = etaHigh;
   _theEtaLow = etaLow;
   _doBothEtaCut = true;
@@ -264,27 +309,36 @@ void PHPy6ParticleTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
   _doEtaLowCut = false;
 }
 
-void PHPy6ParticleTrigger::SetAbsEtaHigh(double eta) {
+void PHPy6ParticleTrigger::SetAbsEtaHigh(double eta)
+{
   _theEtaHigh = eta;
-  if (_doAbsEtaLowCut) {
+  if (_doAbsEtaLowCut)
+  {
     _doBothAbsEtaCut = true;
     _doAbsEtaLowCut = false;
-  } else {
+  }
+  else
+  {
     _doAbsEtaHighCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetAbsEtaLow(double eta) {
+void PHPy6ParticleTrigger::SetAbsEtaLow(double eta)
+{
   _theEtaLow = eta;
-  if (_doAbsEtaHighCut) {
+  if (_doAbsEtaHighCut)
+  {
     _doBothAbsEtaCut = true;
     _doAbsEtaHighCut = false;
-  } else {
+  }
+  else
+  {
     _doAbsEtaLowCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetAbsEtaHighLow(double etaHigh, double etaLow) {
+void PHPy6ParticleTrigger::SetAbsEtaHighLow(double etaHigh, double etaLow)
+{
   _theEtaHigh = etaHigh;
   _theEtaLow = etaLow;
   _doBothAbsEtaCut = true;
@@ -292,31 +346,43 @@ void PHPy6ParticleTrigger::SetAbsEtaHighLow(double etaHigh, double etaLow) {
   _doAbsEtaHighCut = false;
 }
 
-void PHPy6ParticleTrigger::SetPzHigh(double pz) {
+void PHPy6ParticleTrigger::SetPzHigh(double pz)
+{
   _thePzHigh = pz;
-  if (_doPzLowCut) {
+  if (_doPzLowCut)
+  {
     _doBothPzCut = true;
     _doPzLowCut = false;
-  } else {
+  }
+  else
+  {
     _doPzHighCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetPzLow(double pz) {
+void PHPy6ParticleTrigger::SetPzLow(double pz)
+{
   _thePzLow = pz;
-  if (_doPzHighCut) {
+  if (_doPzHighCut)
+  {
     _doBothPzCut = true;
     _doPzHighCut = false;
-  } else {
+  }
+  else
+  {
     _doPzLowCut = true;
   }
 }
 
-void PHPy6ParticleTrigger::SetPzHighLow(double pzHigh, double pzLow) {
-  if (pzHigh < pzLow) {
+void PHPy6ParticleTrigger::SetPzHighLow(double pzHigh, double pzLow)
+{
+  if (pzHigh < pzLow)
+  {
     _thePzHigh = pzLow;
-    _thePzLow= pzHigh;
-  } else {
+    _thePzLow = pzHigh;
+  }
+  else
+  {
     _thePzHigh = pzHigh;
     _thePzLow = pzLow;
   }
@@ -325,7 +391,8 @@ void PHPy6ParticleTrigger::SetPzHighLow(double pzHigh, double pzLow) {
   _doPzHighCut = false;
 }
 
-void PHPy6ParticleTrigger::PrintConfig() {
+void PHPy6ParticleTrigger::PrintConfig()
+{
   cout << "---------------- PHPy6ParticleTrigger::PrintConfig --------------------" << endl;
   cout << "   Particles: ";
   for (int i = 0; i < int(_theParticles.size()); i++) cout << _theParticles[i] << "  ";
@@ -335,15 +402,15 @@ void PHPy6ParticleTrigger::PrintConfig() {
   for (int i = 0; i < int(_theParents.size()); i++) cout << _theParents[i] << "  ";
   cout << endl;
 
-  if (_doEtaHighCut||_doEtaLowCut||_doBothEtaCut)
+  if (_doEtaHighCut || _doEtaLowCut || _doBothEtaCut)
     cout << "   doEtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl;
-  if (_doAbsEtaHighCut||_doAbsEtaLowCut||_doBothAbsEtaCut)
+  if (_doAbsEtaHighCut || _doAbsEtaLowCut || _doBothAbsEtaCut)
     cout << "   doAbsEtaCut:  " << _theEtaLow << " < |eta| < " << _theEtaHigh << endl;
-  if (_doPtHighCut||_doPtLowCut||_doBothPtCut)
+  if (_doPtHighCut || _doPtLowCut || _doBothPtCut)
     cout << "   doPtCut:  " << _thePtLow << " < pT < " << _thePtHigh << endl;
-  if (_doPHighCut||_doPLowCut||_doBothPCut)
+  if (_doPHighCut || _doPLowCut || _doBothPCut)
     cout << "   doPCut:  " << _thePLow << " < p < " << _thePHigh << endl;
-  if (_doPzHighCut||_doPzLowCut||_doBothPzCut)
+  if (_doPzHighCut || _doPzLowCut || _doBothPzCut)
     cout << "   doPzCut:  " << _thePzLow << " < pz < " << _thePzHigh << endl;
   cout << "-----------------------------------------------------------------------" << endl;
 }

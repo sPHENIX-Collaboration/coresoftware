@@ -2,6 +2,7 @@
 #define PHPYTHIA6_PHPYTHIA6_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <phhepmc/PHHepMCGenHelper.h>
 
 #include <string>
@@ -20,7 +21,7 @@ class PHPythia6: public SubsysReco {
 public:
 
   PHPythia6(const std::string &name = "PHPythia6");
-  virtual ~PHPythia6();
+  virtual ~PHPythia6() {}
 
   int Init(PHCompositeNode *topNode);
 
