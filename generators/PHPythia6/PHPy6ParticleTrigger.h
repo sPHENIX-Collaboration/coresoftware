@@ -2,11 +2,12 @@
 #define PHPYTHIA6_PHPY6PARTICLETRIGGER_H
 
 #include "PHPy6GenTrigger.h"
+
 #include <HepMC/GenEvent.h>
 
 namespace HepMC
 {
-  class GenEvent;
+class GenEvent;
 };
 
 /**
@@ -17,18 +18,17 @@ namespace HepMC
  * This trigger makes use of the conversion of Pythia6 events to HepMC format done in PHPythia6.
  *
  */
-class PHPy6ParticleTrigger: public PHPy6GenTrigger
+class PHPy6ParticleTrigger : public PHPy6GenTrigger
 {
-public:
-
+ public:
   //! constructor
   PHPy6ParticleTrigger(const std::string &name = "PHPy6ParticleTriggerger");
 
   //! destructor
-  ~PHPy6ParticleTrigger( void ){}
+  ~PHPy6ParticleTrigger(void) {}
 
 #ifndef __CINT__
-  bool Apply(const HepMC::GenEvent* evt);
+  bool Apply(const HepMC::GenEvent *evt);
 #endif
 
   void AddParticles(const std::string &particles);
@@ -61,8 +61,7 @@ public:
 
   void PrintConfig();
 
-protected:
-
+ protected:
   // trigger variables
   std::vector<int> _theParents;
   std::vector<int> _theParticles;
@@ -77,7 +76,6 @@ protected:
   bool _doPtHighCut, _doPtLowCut, _doBothPtCut;
   bool _doPHighCut, _doPLowCut, _doBothPCut;
   bool _doPzHighCut, _doPzLowCut, _doBothPzCut;
-
 };
 
 #endif
