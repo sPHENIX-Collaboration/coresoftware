@@ -1,5 +1,5 @@
-#ifndef PHPy6ParticleTrigger_h
-#define PHPy6ParticleTrigger_h
+#ifndef PHPYTHIA6_PHPY6PARTICLETRIGGER_H
+#define PHPYTHIA6_PHPY6PARTICLETRIGGER_H
 
 #include "PHPy6GenTrigger.h"
 #include <HepMC/GenEvent.h>
@@ -31,11 +31,11 @@ public:
   bool Apply(const HepMC::GenEvent* evt);
 #endif
 
-  void AddParticles(std::string particles);
+  void AddParticles(const std::string &particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);
 
-  void AddParents(std::string parents);
+  void AddParents(const std::string &parents);
   void AddParents(int parent);
   void AddParents(std::vector<int> parents);
 

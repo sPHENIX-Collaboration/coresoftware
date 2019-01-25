@@ -1,12 +1,12 @@
-#ifndef __PHPY6GENTRIGGER_H__
-#define __PHPY6GENTRIGGER_H__
+#ifndef PHPYTHIA6_PHPY6GENTRIGGER_H
+#define PHPYTHIA6_PHPY6GENTRIGGER_H
+
+#include <HepMC/GenEvent.h>
 
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <vector>
-
-#include <HepMC/GenEvent.h>
 
 namespace HepMC
 {

@@ -84,7 +84,6 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
     // loop over all the trigger particle criteria
     for (int j = 0; j < int(_theParticles.size()); j++) {
 
-      bool passedParents = false;
       double p_pT = sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2));
       double p_pAbs = sqrt(pow((*p)->momentum().px(),2) + pow((*p)->momentum().py(),2) + pow((*p)->momentum().pz(),2));
       if ( (*p)->pdg_id() == _theParticles[j] &&
@@ -124,6 +123,7 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
         }
 
         // loop over all partents to this particle
+         bool passedParents = false;
         for (int k = 0; k < int(_theParents.size()); k++) {
           // check Mothers
 	  for ( HepMC::GenVertex::particles_in_const_iterator p_parent = (*p)->production_vertex()->particles_in_const_begin();
@@ -152,7 +152,7 @@ bool PHPy6ParticleTrigger::Apply( const HepMC::GenEvent* evt )
 
 }
 
-void PHPy6ParticleTrigger::AddParticles(std::string particles) {
+void PHPy6ParticleTrigger::AddParticles(const std::string &particles) {
   std::vector<int> addedParts = convertToInts(particles);
   _theParticles.insert(_theParticles.end(),addedParts.begin(),addedParts.end());
 }
@@ -165,7 +165,7 @@ void PHPy6ParticleTrigger::AddParticles(std::vector<int> particles) {
   _theParticles.insert(_theParticles.end(),particles.begin(),particles.end());
 }
 
-void PHPy6ParticleTrigger::AddParents(std::string parents) {
+void PHPy6ParticleTrigger::AddParents(const std::string &parents) {
   std::vector<int> addedParents = convertToInts(parents);
   _theParents.insert(_theParents.end(),addedParents.begin(),addedParents.end());
 }

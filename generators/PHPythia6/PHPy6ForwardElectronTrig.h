@@ -1,5 +1,5 @@
-#ifndef PHPy6ForwardElectronTrig_h
-#define PHPy6ForwardElectronTrig_h
+#ifndef PHPYTHIA6_PHPY6FORWARDELECTRONTRIG_H
+#define PHPYTHIA6_PHPY6FORWARDELECTRONTRIG_H
 
 #include "PHPy6GenTrigger.h"
 #include <HepMC/GenEvent.h>

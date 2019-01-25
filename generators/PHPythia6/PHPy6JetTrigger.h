@@ -1,5 +1,5 @@
-#ifndef __PHPY6JETTRIGGER_H__
-#define __PHPY6JETTRIGGER_H__
+#ifndef PHPYTHIA6_PHPY6JETTRIGGER_H
+#define PHPYTHIA6_PHPY6JETTRIGGER_H
 
 #include "PHPy6GenTrigger.h"
 #include <HepMC/GenEvent.h>

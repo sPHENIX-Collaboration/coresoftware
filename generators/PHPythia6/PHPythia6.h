@@ -1,5 +1,5 @@
-#ifndef __PHPYTHIA6_H__
-#define __PHPYTHIA6_H__
+#ifndef PHPYTHIA6_PHPYTHIA6_H
+#define PHPYTHIA6_PHPYTHIA6_H
 
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>
@@ -132,5 +132,5 @@ private:
 
 };
 
-#endif	/* __PHPYTHIA6_H__ */
+#endif	/* PHPYTHIA6_PHPYTHIA6_H */
 
