@@ -5,8 +5,19 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+// Move to new storage containers
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>
+#include <tpc/TpcDefs.h>
+#include <tpc/TpcHit.h>
+
+// old containers
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cellv1.h>
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -42,6 +53,8 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , g4cells(nullptr)
+  , hitsetcontainer(nullptr)
+  , hittruthassoc(nullptr)
   , dlong(nullptr)
   , dtrans(nullptr)
   , diffusion_trans(NAN)
@@ -98,6 +111,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
+  // old containers
   cellnodename = "G4CELL_TPC";  // + detector;
   g4cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!g4cells)
@@ -114,6 +128,41 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(g4cells, cellnodename.c_str(), "PHObject");
     DetNode->addNode(newNode);
   }
+
+  // new containers
+  hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!hitsetcontainer)
+    {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+	{
+	  DetNode = new PHCompositeNode("TRKR");
+	  dstNode->addNode(DetNode);
+	}
+
+      hitsetcontainer = new TrkrHitSetContainer();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+      DetNode->addNode(newNode);
+    }
+
+ hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
+  if(!hittruthassoc)
+    {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+	{
+	  DetNode = new PHCompositeNode("TRKR");
+	  dstNode->addNode(DetNode);
+	}
+
+      hittruthassoc = new TrkrHitTruthAssoc();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+      DetNode->addNode(newNode);
+    }
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
@@ -238,26 +287,9 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       }
       continue;
     }
-    /*
-    double dx = (hiter->second->get_x(1) - hiter->second->get_x(0))/n_electrons;
-    double dy = (hiter->second->get_y(1) - hiter->second->get_y(0))/n_electrons;
-    double dz = (hiter->second->get_z(1) - hiter->second->get_z(0))/n_electrons;
-    double dt = (hiter->second->get_t(1) - hiter->second->get_t(0))/n_electrons;
-    double x_start = hiter->second->get_x(0) + dx/2.;
-    double y_start = hiter->second->get_y(0) + dy/2.;
-    double z_start = hiter->second->get_z(0) + dz/2.;
-    double t_start = hiter->second->get_t(0) + dt/2.;
-    */
 
     if (Verbosity() > 100)
     {
-      //double xin =  hiter->second->get_x(0);
-      //double xout =  hiter->second->get_x(1);
-      //double yin =  hiter->second->get_y(0);
-      //double yout =  hiter->second->get_y(1);
-      //if( (sqrt(xin*xin+yin*yin) > 69.0 && sqrt(xin*xin+yin*yin) < 70.125) ||
-      //  (sqrt(xout*xout+yout*yout) > 69.0 && sqrt(xout*xout+yout*yout) < 70.125) )
-      {
         cout << endl
              << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons
              << " from " << eion * 1000000 << " keV" << endl;
@@ -265,7 +297,6 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
              << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << endl;
         cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << endl;
-      }
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
@@ -311,7 +342,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      if (Verbosity() > 1000)
+      //if (Verbosity() > 1000)
       {
         cout << "electron " << i << " g4hitid " << hiter->first << " f " << f << endl;
         cout << "radstart " << radstart << " x_start: " << x_start
@@ -333,17 +364,15 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
       // this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
-      /*
-	x_start += dx;
-	y_start += dy;
-	z_start += dz;
-	t_start += dt;
-	*/
     }
     ihit++;
-  }
 
-  if (Verbosity() > 1)
+    // figure out how to add an association for each hit pad, not each electron!
+
+  } // end loop over g4hits
+
+  // old containers
+  //if (Verbosity() > 1)
   {
     cout << endl
          << " loop over cells for these hits for layer 47 " << endl;
@@ -376,12 +405,22 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     }
   }
 
+  // new containers
+  cout << "From PHG4TPCElectronDrift: hitsetcontainer dump:" << endl;
+  hitsetcontainer->identify();
+  cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
+  hittruthassoc->identify();
+
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
+  cout << "PHG4TPCElectronDrift::MapToPadPlane " << endl;
   padplane->MapToPadPlane(g4cells, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
+  padplane->MapToPadPlane(hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 
   return;
 }

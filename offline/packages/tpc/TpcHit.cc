@@ -9,7 +9,7 @@
 
 TpcHit::TpcHit()
   : TrkrHit()
-  , m_adc(0)
+    //  , m_adc(0)
 {
 }
 

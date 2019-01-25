@@ -548,7 +548,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
   }  // end loop over hitsets
 
 
-  //if(Verbosity() > 1)
+  if(Verbosity() > 1)
     {
       // check that the associations were written correctly
       cout << "After InttClusterizer, cluster-hit associations are:" << endl;
@@ -560,7 +560,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 void InttClusterizer::PrintClusters(PHCompositeNode* topNode)
 {
-  //if (Verbosity() >= 1)
+  if (Verbosity() >= 1)
   {
     TrkrClusterContainer *clusterlist = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (!clusterlist) return;

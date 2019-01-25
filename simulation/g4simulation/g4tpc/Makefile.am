@@ -25,7 +25,9 @@ libg4tpc_la_LIBADD = \
   -lphg4hit \
   -lg4detectors \
   -lphparameter \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -ltpc
 
 pkginclude_HEADERS = \
   PHG4CellTPCv1.h \
@@ -35,7 +37,7 @@ pkginclude_HEADERS = \
   PHG4TPCDigitizer.h \
   PHG4TPCSubsystem.h \
   PHG4TPCDistortion.h \
-  PHG4TPCSpaceChargeDistortion.h
+  PHG4TPCSpaceChargeDistortion.h 
 
 
 libg4tpc_la_SOURCES = \

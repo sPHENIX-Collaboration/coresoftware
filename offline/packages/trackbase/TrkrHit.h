@@ -40,7 +40,7 @@ class TrkrHit : public PHObject
   unsigned int getAdc() {return Adc;}
 
  protected:
-  double Edep;
+  float Edep;
   unsigned int Adc;
 
   ClassDef(TrkrHit, 1);

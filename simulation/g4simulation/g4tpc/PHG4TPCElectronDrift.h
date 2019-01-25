@@ -14,6 +14,9 @@
 #include <vector>
 
 class PHG4CellContainer;
+class TrkrHitSetContainer;
+class TrkrHitTruthAssoc;
+
 class PHG4TPCPadPlane;
 class PHG4TPCPadPlaneReadout;
 class PHCompositeNode;
@@ -42,6 +45,8 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
 
  private:
   PHG4CellContainer *g4cells;
+  TrkrHitSetContainer *hitsetcontainer;
+  TrkrHitTruthAssoc *hittruthassoc;
   TH1 *dlong;
   TH1 *dtrans;
   TNtuple *nt;

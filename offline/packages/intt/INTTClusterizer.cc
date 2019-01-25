@@ -757,7 +757,7 @@ void INTTClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 void INTTClusterizer::PrintClusters(PHCompositeNode* topNode)
 {
-  //if (Verbosity() >= 1)
+  if (Verbosity() >= 1)
   {
     SvtxClusterMap* clusterlist = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
     if (!clusterlist) return;

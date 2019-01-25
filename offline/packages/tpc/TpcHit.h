@@ -38,16 +38,16 @@ class TpcHit : public TrkrHit
    * @brief Set the ADC information
    * @param[in] adc ADC value
    */
-  void setAdc(const short adc) { m_adc = adc; }
+  //void setAdc(const short adc) { m_adc = adc; }
 
   /**
    * @brief Get ADC value
    * @param[out] ADC value
    */
-  short getAdc() const { return m_adc; }
+  //short getAdc() const { return m_adc; }
 
  private:
-  short m_adc;
+  //short m_adc;
   ClassDef(TpcHit, 1);
 };
 
