@@ -18,6 +18,7 @@ ROOT5_DICTS = \
 endif
 
 libphparameter_la_SOURCES = \
+  $(ROOT5_DICTS) \
   PHParameters.cc \
   PHParametersContainer.cc \
   PHParameterContainerInterface.cc \
