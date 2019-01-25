@@ -118,7 +118,7 @@ int PHPythia6::End(PHCompositeNode *topNode) {
 }
 
 //__________________________________________________________
-int PHPythia6::ReadConfig(const string cfg_file) {
+int PHPythia6::ReadConfig(const string &cfg_file) {
 
   if ( cfg_file != "" ) _configFile = cfg_file;
   cout << "PHPythia6::read_config - Reading " << _configFile << endl;

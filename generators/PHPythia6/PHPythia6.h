@@ -30,7 +30,7 @@ public:
 
   int End(PHCompositeNode *topNode);
 
-  void set_config_file( const std::string cfg_file ) { _configFile = cfg_file; }
+  void set_config_file( const std::string &cfg_file ) { _configFile = cfg_file; }
 
   void print_config() const;
 
@@ -45,7 +45,7 @@ public:
     set_vertex_distribution_width(beamXsigma, beamYsigma, beamZsigma, 0);
   }
 
-  void save_ascii( std::string fname = "pythia_hepmc.dat" )
+  void save_ascii( const std::string &fname = "pythia_hepmc.dat" )
   {
     _save_ascii = true;
     _filename_ascii = fname;
@@ -93,7 +93,7 @@ public:
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 private:
 
-  int ReadConfig(const std::string cfg_file = "");
+  int ReadConfig(const std::string &cfg_file = "");
   int CreateNodeTree(PHCompositeNode *topNode);
 
   /** Certain Pythia switches and parameters only accept integer values
