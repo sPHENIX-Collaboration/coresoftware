@@ -20,10 +20,10 @@ using namespace std;
 //__________________________________________________________
 PHPy6JetTrigger::PHPy6JetTrigger(const std::string &name):
   PHPy6GenTrigger(name),
-  _theEtaHigh(4.0),
-  _theEtaLow(1.0),
-  _minPt(10.0),
-  _R(1.0)
+  m_theEtaHigh(4.0),
+  m_theEtaLow(1.0),
+  m_minPt(10.0),
+  m_R(1.0)
  {}
 
 PHPy6JetTrigger::~PHPy6JetTrigger() {
@@ -52,8 +52,8 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent* evt) {
     
     // acceptance... _etamin,_etamax
     if (((*p)->momentum().px() == 0.0) && ((*p)->momentum().py() == 0.0)) continue; // avoid pt=0
-    if ( (((*p)->momentum().pseudoRapidity()) < _theEtaLow) ||
-	  (((*p)->momentum().pseudoRapidity()) > _theEtaHigh)) continue;
+    if ( (((*p)->momentum().pseudoRapidity()) < m_theEtaLow) ||
+	  (((*p)->momentum().pseudoRapidity()) > m_theEtaHigh)) continue;
 
 
     fastjet::PseudoJet pseudojet ((*p)->momentum().px(),
@@ -67,7 +67,7 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent* evt) {
 
   // Call FastJet
 
-  fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,_R, fastjet::E_scheme,fastjet::Best);
+  fastjet::JetDefinition *jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm,m_R, fastjet::E_scheme,fastjet::Best);
   fastjet::ClusterSequence jetFinder(pseudojets,*jetdef);
   std::vector<fastjet::PseudoJet> fastjets = jetFinder.inclusive_jets();
   delete jetdef;
@@ -80,7 +80,7 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent* evt) {
 
       if (pt > max_pt) max_pt = pt;
 
-    if(pt > _minPt){
+    if(pt > m_minPt){
       jetFound = true; 
       break; 
     }
@@ -95,29 +95,21 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent* evt) {
   
 void PHPy6JetTrigger::SetEtaHighLow(double etaHigh, double etaLow) {
 
-  _theEtaHigh = etaHigh;
-  _theEtaLow = etaLow;
+  m_theEtaHigh = etaHigh;
+  m_theEtaLow = etaLow;
 
-  if (_theEtaHigh<_theEtaLow)
+  if (m_theEtaHigh<m_theEtaLow)
     {
-      swap(_theEtaHigh, _theEtaLow);
+      swap(m_theEtaHigh, m_theEtaLow);
     }
 
-}
-
-void PHPy6JetTrigger::SetMinJetPt(double minPt) {
-  _minPt = minPt; 
-}
-
-void PHPy6JetTrigger::SetJetR(double R) {
-  _R = R; 
 }
 
 void PHPy6JetTrigger::PrintConfig() {
   cout << "---------------- PHPy6JetTrigger::PrintConfig --------------------" << endl;
 
-  cout << "   Particles EtaCut:  " << _theEtaLow << " < eta < " << _theEtaHigh << endl; 
-  cout << "   Minimum Jet pT: " << _minPt << " GeV/c" << endl; 
-  cout << "   Anti-kT Radius: " << _R << endl; 
+  cout << "   Particles EtaCut:  " << m_theEtaLow << " < eta < " << m_theEtaHigh << endl; 
+  cout << "   Minimum Jet pT: " << m_minPt << " GeV/c" << endl; 
+  cout << "   Anti-kT Radius: " << m_R << endl; 
   cout << "-----------------------------------------------------------------------" << endl;
 }

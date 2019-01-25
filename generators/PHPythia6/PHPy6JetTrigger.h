@@ -23,17 +23,17 @@ class PHPy6JetTrigger : public PHPy6GenTrigger {
   #endif
 
   void SetEtaHighLow(double etaHigh, double etaLow);
-  void SetMinJetPt(double minPt);
-  void SetJetR(double R);
+  void SetMinJetPt(double minPt) { m_minPt = minPt;}
+  void SetJetR(double R) {m_R = R;}
 
   void PrintConfig();
 
  private:
 
-  double _theEtaHigh;
-  double _theEtaLow;
-  double _minPt; 
-  double _R; 
+  double m_theEtaHigh;
+  double m_theEtaLow;
+  double m_minPt;
+  double m_R;
 
 };
 
