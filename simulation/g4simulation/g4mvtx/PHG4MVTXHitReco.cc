@@ -545,7 +545,7 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
 	if(!hit)
 	  {
 	    // Otherwise, create a new one
-	    hit = new TrkrHit();
+	    hit = new MvtxHit();
 	    hitsetit->second->addHitSpecificKey(hitkey, hit);
 	  }
 

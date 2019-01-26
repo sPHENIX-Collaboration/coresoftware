@@ -147,7 +147,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
       DetNode->addNode(newNode);
     }
 
- hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
+  hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
   if(!hittruthassoc)
     {
       PHNodeIterator dstiter(dstNode);
@@ -158,7 +158,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
 	  DetNode = new PHCompositeNode("TRKR");
 	  dstNode->addNode(DetNode);
 	}
-
+      
       hittruthassoc = new TrkrHitTruthAssoc();
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
       DetNode->addNode(newNode);
@@ -342,7 +342,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
         continue;
       }
 
-      //if (Verbosity() > 1000)
+      if (Verbosity() > 1000)
       {
         cout << "electron " << i << " g4hitid " << hiter->first << " f " << f << endl;
         cout << "radstart " << radstart << " x_start: " << x_start
@@ -372,7 +372,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   } // end loop over g4hits
 
   // old containers
-  //if (Verbosity() > 1)
+  if (Verbosity() > 1)
   {
     cout << endl
          << " loop over cells for these hits for layer 47 " << endl;
@@ -406,10 +406,39 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   // new containers
+  
+  //hitsetcontainer->identify();
+
   cout << "From PHG4TPCElectronDrift: hitsetcontainer dump:" << endl;
-  hitsetcontainer->identify();
+  // We want all hitsets for the TPC
+  TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+       hitset_iter != hitset_range.second;
+       ++hitset_iter)
+    {
+     // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const int layer = TrkrDefs::getLayer(hitsetkey);
+      const int sector = TpcDefs::getSectorId(hitsetkey);
+      const int side = TpcDefs::getSide(hitsetkey);
+      cout << "PHG4INTTDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  TrkrDefs::hitkey hitkey = hit_iter->first;
+	  TpcHit *tpchit = (TpcHit*) hit_iter->second;
+	  cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+	       << "  energy " << tpchit->getEnergy() << endl;
+	  //tpchit->identify();
+	}
+    }
   cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
-  hittruthassoc->identify();
+  //hittruthassoc->identify();
 
 
 
@@ -418,7 +447,6 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
 void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
-  cout << "PHG4TPCElectronDrift::MapToPadPlane " << endl;
   padplane->MapToPadPlane(g4cells, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
   padplane->MapToPadPlane(hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 

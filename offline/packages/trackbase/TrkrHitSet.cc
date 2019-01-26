@@ -39,12 +39,12 @@ void TrkrHitSet::Reset()
 void TrkrHitSet::identify(std::ostream& os) const
 {
   int layer = TrkrDefs::getLayer(getHitSetKey());
-  int sector = TpcHitDefs::getSectorId(getHitSetKey());
-  os << "TrkrHitSet: " << std::endl
-     << "        id: " << getHitSetKey() << " layer " << layer << " nhits: " << m_hits.size() << std::endl;
-  
+  int trkrid =  TrkrDefs::getTrkrId(getHitSetKey());    
+  os << "TrkrHitSet: "   << "       hitsetkey " << getHitSetKey() << " TrkrId " << trkrid << " layer " << layer << " nhits: " << m_hits.size() << std::endl;
+
   for ( auto& entry : m_hits )
   {
+    std::cout << " hitkey " << entry.first << std::endl;
     (entry.second)->identify(os);
   }
 }

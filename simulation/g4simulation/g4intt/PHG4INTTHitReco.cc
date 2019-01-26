@@ -8,12 +8,12 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 // Move to new storage containers
-#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrDefs.h>
 #include <intt/InttDefs.h>
+#include <intt/InttHit.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -203,8 +203,8 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
   }
 
  // Get the TrkrHitSetContainer node
-  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!trkrhitsetcontainer)
+  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!hitsetcontainer)
     {
       cout << "Could not locate TRKR_HITSET node, quit! " << endl;
       exit(1);
@@ -465,13 +465,13 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
     //================
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
     {
-      // We add the INTT TrkrHitsets directly to the node using trkrhitsetcontainer
+      // We add the INTT TrkrHitsets directly to the node using hitsetcontainer
 
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the INTT ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index);
       // Use existing hitset or add new one if needed
-      TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+      TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
       
       // generate the key for this hit
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
@@ -481,11 +481,12 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
       if(!hit)
 	{
 	  // Otherwise, create a new one
-	  hit = new TrkrHit();
+	  hit = new InttHit();
 	  hitsetit->second->addHitSpecificKey(hitkey, hit);
 	}
       
       // Either way, add the energy to it
+      cout << "add energy " << venergy[i1].first << " to intthit " << endl;
       hit->addEnergy(venergy[i1].first);
 
       // Add this hit to the association map
@@ -526,6 +527,7 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
   //if(Verbosity() > 0)
 {
   cout << "From PHG4INTTHitReco: " << endl;
+  hitsetcontainer->identify();
   hittruthassoc->identify();
  }
   if (m_ChkEnergyConservationFlag)

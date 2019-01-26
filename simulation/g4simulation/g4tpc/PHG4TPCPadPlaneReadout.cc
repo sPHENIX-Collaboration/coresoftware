@@ -7,11 +7,9 @@
 #include <g4main/PHG4HitContainer.h>
 
 // Move to new storage containers
-#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrDefs.h>
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
 
@@ -125,7 +123,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   if (phi < -M_PI) phi += 2 * M_PI;
 
   rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
-  cout << "Enter old MapToPadPlane with rad_gem " << rad_gem << endl;
+  //cout << "Enter old MapToPadPlane with rad_gem " << rad_gem << endl;
 
   unsigned int layernum = 0;
 
@@ -144,7 +142,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       // capture the layer where this electron hits sthe gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
-      //if (Verbosity())
+      if (Verbosity())
         cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
              << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
       hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
@@ -172,7 +170,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // Distribute the charge between the pads in phi
   //====================================
 
-  //if (Verbosity() > 200)
+  if (Verbosity() > 200)
     cout << "  populate phi bins for "
          << " layernum " << layernum
          << " phi " << phi
@@ -199,7 +197,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 
   // Distribute the charge between the pads in z
   //====================================
-  //if (Verbosity() > 100 && layernum == 47)
+  if (Verbosity() > 100 && layernum == 47)
     cout << "  populate z bins for layernum " << layernum
          << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
 
@@ -263,7 +261,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       }
       cell->add_edep(neffelectrons);
       cell->add_edep(hiter->first, neffelectrons);  // associates g4hit with this edep
-      //if(Verbosity() > 100 && layernum == 50)  cell->identify();
+      if(Verbosity() > 100 && layernum == 50)  cell->identify();
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
@@ -299,7 +297,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
   if (phi < -M_PI) phi += 2 * M_PI;
 
   rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
-  cout << "Enter new MapToPadPlane wi5h rad_gem " << rad_gem << endl;
+  //cout << "Enter new MapToPadPlane with rad_gem " << rad_gem << endl;
 
   unsigned int layernum = 0;
 
@@ -318,7 +316,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // capture the layer where this electron hits sthe gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
-      //if (Verbosity())
+      if (Verbosity())
         cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
              << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
       hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
@@ -346,7 +344,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
   // Distribute the charge between the pads in phi
   //====================================
 
-  //if (Verbosity() > 200)
+  if (Verbosity() > 200)
     cout << "  populate phi bins for "
          << " layernum " << layernum
          << " phi " << phi
@@ -373,7 +371,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
 
   // Distribute the charge between the pads in z
   //====================================
-  //if (Verbosity() > 100 && layernum == 47)
+  if (Verbosity() > 100 && layernum == 47)
     cout << "  populate z bins for layernum " << layernum
          << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
 
@@ -423,7 +421,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       phi_integral += phicenter * neffelectrons;
       z_integral += zcenter * neffelectrons;
       weight += neffelectrons;
-      //if (Verbosity() > 100 && layernum == 47)
+      if (Verbosity() > 100 && layernum == 47)
         cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
              << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl;
 
@@ -436,9 +434,11 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // Get the side - 0 for negative z, 1 for positive z 
       unsigned int side = 0;
       if(zcenter > 0) side = 1;
-      // get the TPC readout sector - there are 12 sectors
-      unsigned int sector = pad_num / 12;
-
+      // get the TPC readout sector - there are 12 sectors with how many pads each?
+      unsigned int pads_per_sector =  LayerGeom->get_phibins() / 12;
+      unsigned int sector = pad_num / pads_per_sector;
+      //cout << " PHG4TPCPadPlaneReadout: Generate hitsetkey for layernum " << layernum << " pads per sector " << pads_per_sector 
+      //   << " pad_num " << pad_num << " sector " << sector << " side " << side << endl;  
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -451,20 +451,17 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       if(!hit)
 	{
 	  // Otherwise, create a new one
-	  hit = new TrkrHit();
+	  hit = new TpcHit();
 	  hitsetit->second->addHitSpecificKey(hitkey, hit);
 	}
       
       // Either way, add the energy to it
-      cout << "Adding neffelectrons to hit with hitkey " << hitkey << endl;
+      //cout << "Adding neffelectrons to hit with hitkey " << hitkey << endl;
       hit->addEnergy(neffelectrons);
 
       // Add this hit to the association map
-      // Cannot do this here, it adds an association for each electron!!
       // need to add the association conditionally on whether it already exists or not
-      //hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
-      //cout << "PHG4TPCPadPlaneReadout: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey 
-      //   << " g4hitkey " << hiter->first << " neffelectrons " << neffelectrons << endl;      
+      hittruthassoc->findOrAddAssoc(hitsetkey, hitkey, hiter->first);
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads

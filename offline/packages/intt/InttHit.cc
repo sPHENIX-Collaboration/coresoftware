@@ -10,12 +10,13 @@
 InttHit::InttHit()
   : TrkrHit()
   , m_adc(0)
+  , m_edep(0)
 {
 }
 
 void InttHit::identify(std::ostream& os) const
 {
-  os << "InttHit with adc:" << getAdc()
+  os << "InttHit with energy " << getEnergy() << " adc:" << getAdc()
      << std::endl;
 }
 

@@ -31,7 +31,8 @@ void TrkrHitSetContainer::identify(std::ostream& os) const
   os << "Number of hits: " << size() << std::endl;
   for (iter = m_hitmap.begin(); iter != m_hitmap.end(); ++iter)
   {
-    os << "hit key 0x" << std::hex << iter->first << std::dec << std::endl;
+    int layer = TrkrDefs::getLayer(iter->first);
+    os << "hitsetkey " << iter->first << " layer " <<layer << std::endl;
     (iter->second)->identify();
   }
   return;

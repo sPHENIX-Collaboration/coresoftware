@@ -34,14 +34,13 @@ class TrkrHit : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  void addEnergy(const double edep) {Edep += edep;}
-  double getEnergy() {return Edep;}
-  void setAdc(const unsigned int adc) {Adc = adc;}
-  unsigned int getAdc() {return Adc;}
+
+  virtual void addEnergy(const double edep) {}
+  virtual double getEnergy() {return 0;}
+  virtual void setAdc(const unsigned int adc) {}
+  virtual unsigned int getAdc() {return 0;}
 
  protected:
-  float Edep;
-  unsigned int Adc;
 
   ClassDef(TrkrHit, 1);
 };

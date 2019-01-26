@@ -9,13 +9,14 @@
 
 TpcHit::TpcHit()
   : TrkrHit()
-    //  , m_adc(0)
+  , m_adc(0)
+  , m_edep(0)
 {
 }
 
 void TpcHit::identify(std::ostream& os) const
 {
-  os << "TpcHit with adc:" << getAdc()
+  os << "TpcHit with Energy " << getEnergy() << " adc " << getAdc()
      << std::endl;
 }
 

@@ -42,9 +42,17 @@ public:
    * @brief Add an association between hit and cell
    * @param[in] hset TrkrHitSet key
    * @param[in] hidx TrkrHit index in TrkrHitSet
-   * @param[in] ckey Key for assocuated PHG4Cell
+   * @param[in] ckey Key for assocuated g4hit
    */
   void addAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey);
+
+  /**
+   * @brief Add an association between hit and cell if it does not already exist
+   * @param[in] hset TrkrHitSet key
+   * @param[in] hidx TrkrHit index in TrkrHitSet
+   * @param[in] ckey Key for assocuated g4hit
+   */
+  void findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey);
 
   /**
    * @brief Get cell keys associated with desired hit
