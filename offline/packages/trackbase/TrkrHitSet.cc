@@ -56,7 +56,7 @@ TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 
   if ( !ret.second )
   {
-    std::cout << "TrkrHitSet::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
+    std::cout << "TrkrHitSet::AddHitSpecificKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
   else

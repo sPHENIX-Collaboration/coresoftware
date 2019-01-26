@@ -421,7 +421,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       const int layer = TrkrDefs::getLayer(hitsetkey);
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
-      cout << "PHG4INTTDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+      cout << "PHG4TPCElectronDrift: found hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;

@@ -10,7 +10,8 @@
 MvtxHit::MvtxHit()
   : TrkrHit()
 {
-  Edep = 0.0;
+  m_adc = 0;
+  m_edep = 0.0;
 }
 
 void MvtxHit::identify(std::ostream& os) const

@@ -36,9 +36,9 @@ class TrkrHit : public PHObject
   virtual int isValid() const { return 0; }
 
   virtual void addEnergy(const double edep) {}
-  virtual double getEnergy() {return 0;}
+  virtual double getEnergy() {std::cout << "getEnergy() baseclass!" << std::endl; return 0;}
   virtual void setAdc(const unsigned int adc) {}
-  virtual unsigned int getAdc() {return 0;}
+  virtual unsigned int getAdc() {std::cout << "getAdc() baseclass!"<< std::endl; return 0;}
 
  protected:
 

@@ -73,7 +73,7 @@ TrkrHitTruthAssoc::findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const Trk
   // Does not exist, create it
   std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> assoc = std::make_pair(hitkey, g4hitkey);
   m_map.insert (std::make_pair(hitsetkey, assoc));
-  std::cout << "Added association with hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << g4hitkey << std::endl;
+  //std::cout << "Added association with hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << g4hitkey << std::endl;
 }
 
 TrkrHitTruthAssoc::ConstRange 
