@@ -9,15 +9,15 @@
 
 TpcHit::TpcHit()
   : TrkrHit()
-  , m_adc(0)
-  , m_edep(0)
+    // , m_adc(0)
+    //, m_edep(0)
 {
 }
 
 void TpcHit::identify(std::ostream& os) const
 {
-  os << "TpcHit with Energy " << getEnergy() << " adc " << getAdc()
-     << std::endl;
+  //os << "TpcHit with Energy " << getEnergy() << " adc " << getAdc()
+  // << std::endl;
 }
 
 void TpcHit::Reset()
@@ -28,5 +28,5 @@ void TpcHit::Reset()
 int TpcHit::isValid() const
 {
   // valid if the adc is not equal to the default value
-  return getAdc() != 0;
+  return 0;
 }

@@ -293,7 +293,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	{
 	  ++m_nCells;
 
-	  TrkrHit *hit = hit_iter->second;
+	  TrkrHit *hit = (InttHit*) hit_iter->second;
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  int strip_col =  InttDefs::getCol(hitkey);  // strip z index
 	  int strip_row =   InttDefs::getRow(hitkey);  // strip phi index

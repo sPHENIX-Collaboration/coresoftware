@@ -406,10 +406,9 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   }
 
   // new containers
-  
-  //hitsetcontainer->identify();
+  unsigned int print_layer = 47;  
 
-  cout << "From PHG4TPCElectronDrift: hitsetcontainer dump:" << endl;
+  cout << "From PHG4TPCElectronDrift: hitsetcontainer printout at end:" << endl;
   // We want all hitsets for the TPC
   TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
@@ -418,10 +417,11 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
     {
      // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
       TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
-      const int layer = TrkrDefs::getLayer(hitsetkey);
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      if(layer != print_layer)  continue;
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
-      cout << "PHG4TPCElectronDrift: found hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+      cout << "PHG4TPCElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -431,16 +431,14 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	  ++hit_iter)
 	{
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
-	  TpcHit *tpchit = (TpcHit*) hit_iter->second;
+	  TrkrHit *tpchit = hit_iter->second;
 	  cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
-	       << "  energy " << tpchit->getEnergy() << endl;
+	       << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
 	  //tpchit->identify();
 	}
     }
-  cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
+  //cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
   //hittruthassoc->identify();
-
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

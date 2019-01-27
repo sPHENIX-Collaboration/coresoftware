@@ -444,7 +444,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
       
       // generate the key for this hit, requires zbin and phibin
-      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) zbin_num, (unsigned int) pad_num);
+      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) zbin_num);
       // See if this hit already exists
       TrkrHit *hit = nullptr;
       hit = hitsetit->second->getHit(hitkey);
@@ -458,6 +458,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // Either way, add the energy to it
       //cout << "Adding neffelectrons to hit with hitkey " << hitkey << endl;
       hit->addEnergy(neffelectrons);
+      hit->setAdc(0);   // adc values will be added at digitization
 
       // Add this hit to the association map
       // need to add the association conditionally on whether it already exists or not
