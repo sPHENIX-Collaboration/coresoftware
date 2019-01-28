@@ -3,7 +3,7 @@
 
 #include "JetInput.h"
 #include "Jet.h"
-#include "JetV1.h"
+#include "Jetv1.h"
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
@@ -47,7 +47,7 @@ std::vector<Jet*> TrackJetInput::get_input(PHCompositeNode *topNode) {
        ++iter) {
     const SvtxTrack *track = iter->second;
 
-    Jet *jet = new JetV1();
+    Jet *jet = new Jetv1();
     jet->set_px(track->get_px());
     jet->set_py(track->get_py());
     jet->set_pz(track->get_pz());

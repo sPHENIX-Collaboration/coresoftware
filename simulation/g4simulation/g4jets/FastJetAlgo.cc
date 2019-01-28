@@ -3,7 +3,7 @@
 
 #include "JetInput.h"
 #include "Jet.h"
-#include "JetV1.h"
+#include "Jetv1.h"
 
 
 // fastjet includes
@@ -76,7 +76,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles) {
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
 
-    Jet *jet = new JetV1();
+    Jet *jet = new Jetv1();
     jet->set_px(fastjets[ijet].px());
     jet->set_py(fastjets[ijet].py());
     jet->set_pz(fastjets[ijet].pz());
