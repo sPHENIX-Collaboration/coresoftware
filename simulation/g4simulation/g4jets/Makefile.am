@@ -35,9 +35,9 @@ libg4jets_la_LIBADD = \
 
 pkginclude_HEADERS = \
   Jet.h \
-  JetV1.h \
+  Jetv1.h \
   JetMap.h \
-  JetMapV1.h \
+  JetMapv1.h \
   JetInput.h \
   JetAlgo.h \
   JetReco.h \
@@ -55,9 +55,9 @@ pkginclude_HEADERS = \
 # let me know
 ROOTDICTS = \
   Jet_Dict.cc \
-  JetV1_Dict.cc \
+  Jetv1_Dict.cc \
   JetMap_Dict.cc \
-  JetMapV1_Dict.cc
+  JetMapv1_Dict.cc
 # for root6 we need pcm and dictionaries but only for
 # i/o classes. For root5 we need only dictionaries but
 # those for i/o and classes available on the cmd line
@@ -68,9 +68,9 @@ if MAKEROOT6
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
   Jet_Dict_rdict.pcm \
-  JetV1_Dict_rdict.pcm \
+  Jetv1_Dict_rdict.pcm \
   JetMap_Dict_rdict.pcm \
-  JetMapV1_Dict_rdict.pcm
+  JetMapv1_Dict_rdict.pcm
 else
   ROOT5DICTS = \
     ClusterJetInput_Dict.cc \
@@ -85,9 +85,9 @@ endif
 libg4jets_io_la_SOURCES = \
   $(ROOTDICTS) \
   Jet.cc \
-  JetV1.cc \
+  Jetv1.cc \
   JetMap.cc \
-  JetMapV1.cc
+  JetMapv1.cc
 
 libg4jets_la_SOURCES = \
   $(ROOT5DICTS) \

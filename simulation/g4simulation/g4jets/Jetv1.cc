@@ -1,21 +1,19 @@
 /*!
- * \file JetV1.C
+ * \file Jetv1.C
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "JetV1.h"
+#include "Jetv1.h"
 
 #include <iostream>
 #include <cmath>
 
 using namespace std;
 
-ClassImp(JetV1);
-
-JetV1::JetV1()
+Jetv1::Jetv1()
   : _id(0xFFFFFFFF),
     _mom(),
     _e(NAN),
@@ -24,8 +22,8 @@ JetV1::JetV1()
   for (int i = 0; i < 3; ++i) _mom[i] = NAN;
 }
 
-void JetV1::identify(ostream& os) const {
-  os << "---Jet V1-----------------------" << endl;
+void Jetv1::identify(ostream& os) const {
+  os << "---Jet v1-----------------------" << endl;
   os << "jetid: " << get_id() << endl;
   os << " (px,py,pz,e) =  (" << get_px() << ", " << get_py() << ", ";
   os << get_pz() << ", " << get_e() << ") GeV" << endl;
@@ -38,7 +36,7 @@ void JetV1::identify(ostream& os) const {
   return;
 }
 
-void JetV1::Reset() {
+void Jetv1::Reset() {
   _id = 0xFFFFFFFF;
   for (int i = 0; i < 3; ++i) _mom[i] = NAN;
   _e = NAN;
@@ -46,7 +44,7 @@ void JetV1::Reset() {
   _property_map.clear();
 }
 
-int JetV1::isValid() const {
+int Jetv1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   for (int i = 0; i < 3; ++i) {
     if (isnan(_mom[i])) return 0;
@@ -56,60 +54,60 @@ int JetV1::isValid() const {
   return 1;
 }
 
-Jet* JetV1::Clone() const {
-  Jet *jet = new JetV1(*this);
+Jet* Jetv1::Clone() const {
+  Jet *jet = new Jetv1(*this);
   return jet;
 }
 
-float JetV1::get_p() const {
+float Jetv1::get_p() const {
   return sqrt(get_px()*get_px()+get_py()*get_py()+get_pz()*get_pz());
 }
 
-float JetV1::get_pt() const {
+float Jetv1::get_pt() const {
   return sqrt(get_px()*get_px()+get_py()*get_py());
 }
 
-float JetV1::get_et() const {
+float Jetv1::get_et() const {
   return get_pt()/get_p()*get_e();
 }
 
-float JetV1::get_eta() const {
+float Jetv1::get_eta() const {
   return asinh(get_pz()/get_pt());
 }
 
-float JetV1::get_phi() const {
+float Jetv1::get_phi() const {
   return atan2(get_py(),get_px());
 }
 
-float JetV1::get_mass() const {
+float Jetv1::get_mass() const {
   // follow CLHEP convention and return negative mass if E^2 - p^2 < 0
   float mass2 = get_mass2();
   if (mass2 < 0) return -1 * sqrt( fabs( mass2 ) );
   else return sqrt( mass2 );
 }
 
-float JetV1::get_mass2() const {
+float Jetv1::get_mass2() const {
   float p2 = get_px()*get_px()+get_py()*get_py()+get_pz()*get_pz();
   return get_e()*get_e()-p2;
 }
 
-bool JetV1::has_property(Jet::PROPERTY prop_id) const {
+bool Jetv1::has_property(Jet::PROPERTY prop_id) const {
   typ_property_map::const_iterator citer = _property_map.find(prop_id); 
   if (citer==_property_map.end()) return false;
   else return true;
 }
 
-float JetV1::get_property(Jet::PROPERTY prop_id) const {
+float Jetv1::get_property(Jet::PROPERTY prop_id) const {
   typ_property_map::const_iterator citer = _property_map.find(prop_id);
   if (citer==_property_map.end()) return NAN;
   else return citer->second;
 }
 
-void JetV1::set_property(Jet::PROPERTY prop_id, float value) {
+void Jetv1::set_property(Jet::PROPERTY prop_id, float value) {
   _property_map[prop_id] = value;
 }
 
-void JetV1::print_property(ostream& os) const {
+void Jetv1::print_property(ostream& os) const {
   for (typ_property_map::const_iterator citer = _property_map.begin();
       citer != _property_map.end(); ++citer) {
 

@@ -4,6 +4,7 @@
 #include "Jet.h"
 
 #include <phool/PHObject.h>
+
 #include <set>
 #include <map>
 #include <cmath>

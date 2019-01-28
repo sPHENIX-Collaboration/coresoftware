@@ -1,5 +1,5 @@
 /*!
- * \file JetV1.h
+ * \file Jetv1.h
  * \brief Versionize the Jet object that make by Mike McCumber
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
@@ -12,14 +12,14 @@
 #include "Jet.h"
 
 /*!
- * \brief JetV1
+ * \brief Jetv1
  */
-class JetV1 : public Jet {
+class Jetv1 : public Jet {
   
 public:
   
-  JetV1();
-  virtual ~JetV1() {}
+  Jetv1();
+  virtual ~Jetv1() {}
 
   // PHObject virtual overloads
 
@@ -104,7 +104,7 @@ private:
   /// map that contains extra properties
   typ_property_map _property_map;
 
-  ClassDef(JetV1, 1);
+  ClassDef(Jetv1, 1);
 };
 
-#endif // __JETV1_H__
+#endif // G4JET_JETV1_H

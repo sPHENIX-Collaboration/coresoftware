@@ -1,4 +1,4 @@
-#include "JetMapV1.h"
+#include "JetMapv1.h"
 
 #include "Jet.h"
 
@@ -6,16 +6,14 @@
 
 using namespace std;
 
-ClassImp(JetMapV1)
-
-JetMapV1::JetMapV1()
+JetMapv1::JetMapv1()
 : _algo(Jet::NONE),
   _par(NAN),
   _src(),
   _map() {
 }
 
-JetMapV1::JetMapV1(const JetMapV1 &jets)
+JetMapv1::JetMapv1(const JetMapv1 &jets)
   : _algo(jets.get_algo()),
     _par(jets.get_par()),
     _src(),
@@ -35,7 +33,7 @@ JetMapV1::JetMapV1(const JetMapV1 &jets)
   }   
 }
 
-JetMapV1& JetMapV1::operator=(const JetMapV1 &jets) {
+JetMapv1& JetMapv1::operator=(const JetMapv1 &jets) {
 
   Reset();
   
@@ -58,11 +56,11 @@ JetMapV1& JetMapV1::operator=(const JetMapV1 &jets) {
   return *this;
 }
 
-JetMapV1::~JetMapV1() {
-  JetMapV1::Reset();
+JetMapv1::~JetMapv1() {
+  JetMapv1::Reset();
 }
 
-void JetMapV1::Reset() {
+void JetMapv1::Reset() {
   _algo = Jet::NONE;  
   _par = NAN;
   _src.clear();
@@ -73,13 +71,13 @@ void JetMapV1::Reset() {
   }
 }
 
-JetMap* JetMapV1::Clone() const {
-  JetMap* map = new JetMapV1(*this);
+JetMap* JetMapv1::Clone() const {
+  JetMap* map = new JetMapv1(*this);
   return map;
 }
 
-void JetMapV1::identify(ostream& os) const {
-  os << "JetMapV1: size = " << _map.size() << endl;
+void JetMapv1::identify(ostream& os) const {
+  os << "JetMapv1: size = " << _map.size() << endl;
   os << "          par = " << _par << endl;
   os << "          source = ";
   for (ConstSrcIter i = begin_src(); i != end_src(); ++i) {
@@ -90,19 +88,19 @@ void JetMapV1::identify(ostream& os) const {
   return;
 }
 
-const Jet* JetMapV1::get(unsigned int id) const {
+const Jet* JetMapv1::get(unsigned int id) const {
   ConstIter iter = _map.find(id);
   if (iter == _map.end()) return NULL;  
   return iter->second;
 }
 
-Jet* JetMapV1::get(unsigned int id) {
+Jet* JetMapv1::get(unsigned int id) {
   Iter iter = _map.find(id);
   if (iter == _map.end()) return NULL;
   return iter->second;
 }
 
-Jet* JetMapV1::insert(Jet* jet) {
+Jet* JetMapv1::insert(Jet* jet) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
   _map.insert(make_pair( index , jet ));

@@ -9,14 +9,14 @@
 #include <map>
 #include <cmath>
 
-class JetMapV1 : public JetMap {
+class JetMapv1 : public JetMap {
   
 public:
 
-  JetMapV1();
-  JetMapV1(const JetMapV1 &jets);
-  JetMapV1& operator=(const JetMapV1 &jets); 
-  virtual ~JetMapV1();
+  JetMapv1();
+  JetMapv1(const JetMapv1 &jets);
+  JetMapv1& operator=(const JetMapv1 &jets); 
+  virtual ~JetMapv1();
 
   void    identify(std::ostream &os = std::cout) const;
   void    Reset();
@@ -72,7 +72,7 @@ private:
   std::set<Jet::SRC> _src; //< list of sources (clusters, towers, etc)
   typ_JetMap _map;         //< jet algorithm output storage
     
-  ClassDef(JetMapV1, 1);
+  ClassDef(JetMapv1, 1);
 };
 
 #endif
