@@ -17,7 +17,7 @@ class PHSartreParticleTrigger : public PHSartreGenTrigger {
   bool Apply(Event *event);
   #endif
 
-  void AddParticles(std::string particles);
+  void AddParticles(const std::string &particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);
 
