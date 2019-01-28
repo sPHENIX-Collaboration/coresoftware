@@ -1,7 +1,8 @@
-#ifndef __JET_H__
-#define __JET_H__
+#ifndef G4JET_JET_H
+#define G4JET_JET_H
 
 #include <phool/PHObject.h>
+
 #include <map>
 #include <cmath>
 #include <iostream>
@@ -46,7 +47,6 @@ public:
     prop_SeedItr = 4,
   };
 
-  Jet();
   virtual ~Jet() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
@@ -119,6 +119,9 @@ public:
   virtual Iter upper_bound_comp(Jet::SRC source) {return typ_comp_ids().end();}
   virtual Iter find(Jet::SRC source) {return typ_comp_ids().end();}
   virtual Iter end_comp() {return typ_comp_ids().end();}
+
+protected:
+  Jet() {}
 
   /*! @} */
   

@@ -1,5 +1,5 @@
-#ifndef __JETALGO_H__
-#define __JETALGO_H__
+#ifndef G4JET_JETALGO_H
+#define G4JET_JETALGO_H
 
 #include "Jet.h"
 #include <cmath>

@@ -1,5 +1,5 @@
-#ifndef __TRUTHJETINPUT_H__
-#define __TRUTHJETINPUT_H__
+#ifndef G4JET_TRUTHJETINPUT_H
+#define G4JET_TRUTHJETINPUT_H
 
 #include "JetInput.h"
 #include "Jet.h"

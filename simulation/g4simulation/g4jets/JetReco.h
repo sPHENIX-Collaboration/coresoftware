@@ -1,5 +1,5 @@
-#ifndef __JETRECO_H__
-#define __JETRECO_H__
+#ifndef G4JET_JETRECO_H
+#define G4JET_JETRECO_H
 
 //===========================================================
 /// \file JetReco.h
@@ -62,4 +62,4 @@ class JetReco : public SubsysReco
   std::vector<std::string> _outputs; 
 };
 
-#endif // __JETRECO_H__
+#endif // G4JET_JETRECO_H

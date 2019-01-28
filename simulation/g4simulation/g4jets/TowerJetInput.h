@@ -1,5 +1,5 @@
-#ifndef __TOWERJETINPUT_H__
-#define __TOWERJETINPUT_H__
+#ifndef G4JET_TOWERJETINPUT_H
+#define G4JET_TOWERJETINPUT_H
 
 #include "JetInput.h"
 #include "Jet.h"

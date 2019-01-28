@@ -1,5 +1,5 @@
-#ifndef __CLUSTERJETINPUT_H__
-#define __CLUSTERJETINPUT_H__
+#ifndef G4JET_CLUSTERJETINPUT_H
+#define G4JET_CLUSTERJETINPUT_H
 
 
 #include "JetInput.h"

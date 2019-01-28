@@ -6,8 +6,8 @@
  * \date $Date: $
  */
 
-#ifndef __JETV1_H__
-#define __JETV1_H__
+#ifndef G4JET_JETV1_H
+#define G4JET_JETV1_H
 
 #include "Jet.h"
 

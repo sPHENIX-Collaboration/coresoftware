@@ -1,5 +1,5 @@
-#ifndef __FASTJETALGO_H__
-#define __FASTJETALGO_H__
+#ifndef G4JET_FASTJETALGO_H
+#define G4JET_FASTJETALGO_H
 
 #include "Jet.h"
 #include "JetAlgo.h"
