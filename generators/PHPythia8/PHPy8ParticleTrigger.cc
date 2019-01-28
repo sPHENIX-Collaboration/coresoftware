@@ -38,12 +38,12 @@ PHPy8ParticleTrigger::PHPy8ParticleTrigger(const std::string &name):
 {}
 
 PHPy8ParticleTrigger::~PHPy8ParticleTrigger() {
-  if (_verbosity > 0) PrintConfig();
+  if (Verbosity() > 0) PrintConfig();
 }
 
 bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
 
-  if (_verbosity > 2) {
+  if (Verbosity() > 2) {
     cout << "PHPy8ParticleTrigger::Apply - pythia event size: "
   	 << pythia->event.size() << endl;
   }
@@ -82,7 +82,7 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
   	if (_doPzHighCut && pythia->event[i].pz() > _thePzHigh ) continue;
   	if (_doPzLowCut && pythia->event[i].pz() < _thePzLow) continue;
 
-  	if (_verbosity > 5) {
+  	if (Verbosity() > 5) {
   	  cout << "stable " << pythia->event[i].id()
   	       << "  pt: " << pythia->event[i].pT()
   	       << " pz: " << pythia->event[i].pz()
@@ -98,7 +98,7 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
   	  for (int m = 0; m < int(moms.size()) ; m++) {
   	    if (abs(pythia->event[ moms[m] ].id()) == abs(_theParents[k])) {
   	      passedParents = true;
-  	      if (_verbosity > 5) cout << "found parent!" << endl;
+  	      if (Verbosity() > 5) cout << "found parent!" << endl;
   	      break;
   	    }
   	  }//moms for loop
