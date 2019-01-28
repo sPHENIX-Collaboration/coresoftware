@@ -22,12 +22,12 @@ PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name):
  {}
 
 PHPy8JetTrigger::~PHPy8JetTrigger() {
-  if (_verbosity > 0) PrintConfig();
+  if (Verbosity() > 0) PrintConfig();
 }
 
 bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
 
-  if (_verbosity > 2) {
+  if (Verbosity() > 2) {
     cout << "PHPy8JetTrigger::Apply - pythia event size: "
   	 << pythia->event.size() << endl;
   }
@@ -74,7 +74,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
   double max_pt = -1;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
 
-      const double pt =  sqrt(pow(fastjets[ijet].px(),2) + pow(fastjets[ijet].py(),2));
+      const double pt =  sqrt(fastjets[ijet].px()*fastjets[ijet].px() + fastjets[ijet].py()*fastjets[ijet].py());
 
       if (pt > max_pt) max_pt = pt;
 
@@ -86,16 +86,16 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
 	  
 	  float leading_Z = 0.0; 
 
-	  float jet_ptot = sqrt( pow(fastjets[ijet].px(),2) + 
-				 pow(fastjets[ijet].py(),2) + 
-				 pow(fastjets[ijet].pz(),2) ); 
+	  float jet_ptot = sqrt( fastjets[ijet].px()*fastjets[ijet].px() + 
+				 fastjets[ijet].py()*fastjets[ijet].py() + 
+				 fastjets[ijet].pz()*fastjets[ijet].pz() ); 
 
 	  vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
 	  for (unsigned int j=0; j<constituents.size(); j++){
 	    
-	    float con_ptot = sqrt( pow(constituents[j].px(),2) + 
-				   pow(constituents[j].py(),2) + 
-				   pow(constituents[j].pz(),2) ); 
+	    float con_ptot = sqrt( constituents[j].px()*constituents[j].px() + 
+				   constituents[j].py()*constituents[j].py() + 
+				   constituents[j].pz()*constituents[j].pz() ); 
 
 	    float ctheta = (constituents[j].px()*fastjets[ijet].px() + 
 			    constituents[j].py()*fastjets[ijet].py() + 
@@ -120,7 +120,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
       }
   }
 
-  if (_verbosity > 2) {
+  if (Verbosity() > 2) {
     cout << "PHPy8JetTrigger::Apply - max_pt = "<<max_pt<<", and jetFound = "<<jetFound<<endl;
   }
 
