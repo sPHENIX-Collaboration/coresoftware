@@ -4,22 +4,20 @@
 
 #include <sstream>
 
-ClassImp(PHGenEventv1)
-
 using namespace std;
 
 PHGenEventv1::PHGenEventv1()
   : _id(0),
     _event_record(),
     _stale(true),
-    _event(NULL)
+    _event(nullptr)
 {}
 
 PHGenEventv1::PHGenEventv1(const unsigned int id, HepMC::GenEvent& event)
    : _id(id),
      _event_record(),
      _stale(true),
-     _event(NULL) {  
+     _event(nullptr) {  
    set_event(event);
  }
 
@@ -27,14 +25,14 @@ PHGenEventv1::PHGenEventv1(const PHGenEventv1& phevent)
    : _id(phevent.get_id()),
      _event_record(phevent.get_event_record()),
      _stale(true),
-     _event(NULL)
+     _event(nullptr)
 {}
 
 PHGenEventv1::PHGenEventv1(const PHGenEventv1* phevent)
    : _id(phevent->get_id()),
      _event_record(phevent->get_event_record()),
      _stale(true),
-     _event(NULL)
+     _event(nullptr)
 {}
 
 PHGenEventv1::~PHGenEventv1() {
@@ -56,7 +54,7 @@ void PHGenEventv1::set_event(HepMC::GenEvent& event) {
   _event_record.Clear();
   if (_event) {
      delete _event;
-     _event = NULL;
+     _event = nullptr;
   }
 
   std::stringstream streamer;
@@ -71,7 +69,7 @@ void PHGenEventv1::set_event(HepMC::GenEvent* event) {
   _event_record.Clear();
   if (_event) {
     delete _event;
-    _event = NULL;
+    _event = nullptr;
   }
 
   std::stringstream streamer;
@@ -97,7 +95,7 @@ void PHGenEventv1::Reset() {
   _stale = true;
   if (_event) {
     delete _event;
-    _event = NULL;
+    _event = nullptr;
   }
 }
 
@@ -110,10 +108,8 @@ void PHGenEventv1::print(std::ostream& out) const {
 
 void PHGenEventv1::refresh() const {
 
-  if (_event) {
     delete _event;
-    _event = NULL;
-  }
+    _event = nullptr;
 
   _event = new HepMC::GenEvent();
   

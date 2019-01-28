@@ -62,11 +62,8 @@ typedef long size_type;
 #pragma link C++ class std::pair<int,HepMC::GenParticle*>+;
 #pragma link C++ class std::map<HepMC::GenParticle*,int>+;
 #pragma link C++ class std::map<int,HepMC::GenParticle*>+;
-#pragma link C++ class std::map<int,int>+;
 #pragma link C++ class std::map< int,HepMC::GenParticle*,std::less<int> >+;
 #pragma link C++ class std::map<const GenVertex*,GenVertex*>+;
 #pragma link C++ class std::pair<string,unsigned long>+;
-#pragma link C++ class std::greater<int>+;
-#pragma link C++ class std::less<int>+;
 
 #endif

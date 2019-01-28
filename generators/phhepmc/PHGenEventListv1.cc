@@ -6,8 +6,6 @@
 
 using namespace std;
 
-ClassImp(PHGenEventListv1)
-
 PHGenEventListv1::PHGenEventListv1()
 : PHGenEventList(),
   _genevents(),
@@ -74,7 +72,7 @@ const PHGenEvent* PHGenEventListv1::fetch(unsigned int id) const {
   if (_id_genevent_map.find(id) != _id_genevent_map.end()) {
     return (const PHGenEvent*)_id_genevent_map[id];
   }
-  return NULL;
+  return nullptr;
 }
 
 PHGenEvent* PHGenEventListv1::fetch(unsigned int id) {
@@ -82,7 +80,7 @@ PHGenEvent* PHGenEventListv1::fetch(unsigned int id) {
   if (_id_genevent_map.find(id) != _id_genevent_map.end()) {
     return (PHGenEvent*)_id_genevent_map[id];
   }
-  return NULL;
+  return nullptr;
 }
 
 void PHGenEventListv1::insert(const PHGenEvent* genevent) {

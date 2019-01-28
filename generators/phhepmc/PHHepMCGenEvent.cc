@@ -1,9 +1,9 @@
 #include "PHHepMCGenEvent.h"
+
 #include <HepMC/GenEvent.h>
 
 #include <TBuffer.h>
 #include <TClass.h>
-
 #include <RVersion.h>  // root version
 
 #include <boost/foreach.hpp>
@@ -15,8 +15,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-
-//ClassImp(PHHepMCGenEvent)
 
 using namespace std;
 
@@ -63,11 +61,8 @@ void PHHepMCGenEvent::Reset()
   _embedding_id = 0;
   _isSimulated = false;
   _collisionVertex.set(0, 0, 0, 0);
-  if (_theEvt)
-  {
     delete _theEvt;
-    _theEvt = NULL;
-  }
+    _theEvt = nullptr;
 }
 
 HepMC::GenEvent* PHHepMCGenEvent::getEvent()

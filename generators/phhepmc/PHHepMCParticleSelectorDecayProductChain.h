@@ -1,13 +1,15 @@
-#ifndef PHHepMCParticleSelectorDecayProductChain_H__
-#define PHHepMCParticleSelectorDecayProductChain_H__
+#ifndef PHHEPMC_PHHEPMCPARTICLESELECTORDECAYPRODUCTCHAIN_H
+#define PHHEPMC_PHHEPMCPARTICLESELECTORDECAYPRODUCTCHAIN_H
 
 #include <fun4all/SubsysReco.h>
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-
 #include <vector>
 
+namespace HepMC
+{
+  class GenParticle;
+  class GenEvent;
+}
 /// Particle selector for HepMC based events
 /// Will write out only _theParticle and _theDaughters (if specified)
 /// Special case:  when _theParticle=0, all particles in _theDaughers list
@@ -62,5 +64,3 @@ HepMC::GenParticle*  GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event);
 };
 
 #endif
-
-

@@ -6,8 +6,6 @@
 
 using namespace std;
 
-ClassImp(PHHepMCGenEventMap)
-
     PHHepMCGenEventMap::PHHepMCGenEventMap()
   : _map()
 {
