@@ -19,7 +19,7 @@ namespace HepMC
 {
 class GenEvent;
 class Pythia8ToHepMC;
-};
+};  // namespace HepMC
 
 namespace Pythia8
 {
@@ -119,7 +119,7 @@ class PHPythia8 : public SubsysReco
   bool _triggersOR;
   bool _triggersAND;
 
-// PYTHIA
+  // PYTHIA
   Pythia8::Pythia *_pythia;
 
   std::string _configFile;
