@@ -7,80 +7,91 @@
 using namespace std;
 
 JetMapv1::JetMapv1()
-: _algo(Jet::NONE),
-  _par(NAN),
-  _src(),
-  _map() {
+  : _algo(Jet::NONE)
+  , _par(NAN)
+  , _src()
+  , _map()
+{
 }
 
-JetMapv1::JetMapv1(const JetMapv1 &jets)
-  : _algo(jets.get_algo()),
-    _par(jets.get_par()),
-    _src(),
-    _map() {
-
+JetMapv1::JetMapv1(const JetMapv1& jets)
+  : _algo(jets.get_algo())
+  , _par(jets.get_par())
+  , _src()
+  , _map()
+{
   for (ConstSrcIter iter = jets.begin_src();
        iter != jets.end_src();
-       ++iter) {
+       ++iter)
+  {
     _src.insert(*iter);
   }
 
   for (ConstIter iter = jets.begin();
        iter != jets.end();
-       ++iter) {
+       ++iter)
+  {
     Jet* jet = (iter->second)->Clone();
-    _map.insert(make_pair(jet->get_id(),jet));
-  }   
+    _map.insert(make_pair(jet->get_id(), jet));
+  }
 }
 
-JetMapv1& JetMapv1::operator=(const JetMapv1 &jets) {
-
+JetMapv1& JetMapv1::operator=(const JetMapv1& jets)
+{
   Reset();
-  
+
   _algo = jets.get_algo();
-  _par  = jets.get_par();
+  _par = jets.get_par();
 
   for (ConstSrcIter iter = jets.begin_src();
        iter != jets.end_src();
-       ++iter) {
+       ++iter)
+  {
     _src.insert(*iter);
   }
 
   for (ConstIter iter = jets.begin();
        iter != jets.end();
-       ++iter) {
+       ++iter)
+  {
     Jet* jet = (iter->second)->Clone();
-    _map.insert(make_pair(jet->get_id(),jet));
+    _map.insert(make_pair(jet->get_id(), jet));
   }
 
   return *this;
 }
 
-JetMapv1::~JetMapv1() {
+JetMapv1::~JetMapv1()
+{
   JetMapv1::Reset();
 }
 
-void JetMapv1::Reset() {
-  _algo = Jet::NONE;  
+void JetMapv1::Reset()
+{
+  _algo = Jet::NONE;
   _par = NAN;
   _src.clear();
 
-  while(_map.begin() != _map.end()) {
+  while (_map.begin() != _map.end())
+  {
     delete _map.begin()->second;
     _map.erase(_map.begin());
   }
 }
 
-JetMap* JetMapv1::Clone() const {
+JetMap* JetMapv1::Clone() const
+{
   JetMap* map = new JetMapv1(*this);
   return map;
 }
 
-void JetMapv1::identify(ostream& os) const {
+void JetMapv1::identify(ostream& os) const
+{
   os << "JetMapv1: size = " << _map.size() << endl;
   os << "          par = " << _par << endl;
   os << "          source = ";
-  for (ConstSrcIter i = begin_src(); i != end_src(); ++i) {
+  for (ConstSrcIter i = begin_src(); i != end_src(); ++i)
+  {
     os << (*i) << ",";
   }
   os << endl;
@@ -88,22 +99,25 @@ void JetMapv1::identify(ostream& os) const {
   return;
 }
 
-const Jet* JetMapv1::get(unsigned int id) const {
+const Jet* JetMapv1::get(unsigned int id) const
+{
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;  
+  if (iter == _map.end()) return NULL;
   return iter->second;
 }
 
-Jet* JetMapv1::get(unsigned int id) {
+Jet* JetMapv1::get(unsigned int id)
+{
   Iter iter = _map.find(id);
   if (iter == _map.end()) return NULL;
   return iter->second;
 }
 
-Jet* JetMapv1::insert(Jet* jet) {
+Jet* JetMapv1::insert(Jet* jet)
+{
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair( index , jet ));
+  _map.insert(make_pair(index, jet));
   _map[index]->set_id(index);
   return (_map[index]);
 }

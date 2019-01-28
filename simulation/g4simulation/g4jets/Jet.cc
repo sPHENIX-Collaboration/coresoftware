@@ -4,7 +4,8 @@
 
 using namespace std;
 
-void Jet::identify(ostream& os) const {
+void Jet::identify(ostream& os) const
+{
   os << "---Jet-----------------------" << endl;
   return;
 }
