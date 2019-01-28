@@ -17,7 +17,7 @@
 
 using namespace std;
 
-FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, float verbosity)
+FastJetAlgo::FastJetAlgo(Jet::ALGO algo, float par, int verbosity)
   : _verbosity(verbosity)
   , _algo(algo)
   , _par(par)
