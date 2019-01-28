@@ -1,5 +1,5 @@
-#ifndef __PHPY8GENTRIGGER_H__
-#define __PHPY8GENTRIGGER_H__
+#ifndef PHPYTHIA8_PHPY8GENTRIGGER_H
+#define PHPYTHIA8_PHPY8GENTRIGGER_H
 
 #include <iostream>
 #include <string>
@@ -24,17 +24,15 @@ class PHPy8GenTrigger {
     return false;
   }
 
-  virtual std::string GetName() { return _name; }
+  virtual std::string GetName() { return m_Name; }
   
   std::vector<int> convertToInts(std::string s);
+  int Verbosity() const {return m_Verbosity;}
+  void Verbosity(int v) { m_Verbosity = v; }
 
-  void Verbosity(int v) { _verbosity = v; }
-
-protected:
-  int _verbosity;  
-  
 private:
-  std::string _name;
+  int m_Verbosity;  
+  std::string m_Name;
 };
 
 #endif	
