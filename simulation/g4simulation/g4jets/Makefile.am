@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
    libg4jets.la
 
 AM_CXXFLAGS = \
- -Wall -Werror -msse2
+ -Wall -Werror
 
 AM_LDFLAGS = \
   -L$(libdir) \
