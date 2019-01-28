@@ -7,27 +7,23 @@
 #include <phhepmc/PHHepMCGenEventMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
 #include <HepMC/GenEvent.h>
+
 #include <Pythia8/Pythia.h>
 #include <Pythia8Plugins/HepMC2.h>
 
 #include <boost/format.hpp>
 
-#include <gsl/gsl_randist.h>
-
 #include <cassert>
 #include <cstdlib>
 
 using namespace std;
-
-typedef PHIODataNode<PHObject> PHObjectNode_t;
-
-//static const Float_t CM2MM = 10.; // cm to mm comversion \todo why not use HepMC functions?
 
 PHPythia8::PHPythia8(const std::string &name)
   : SubsysReco(name)
