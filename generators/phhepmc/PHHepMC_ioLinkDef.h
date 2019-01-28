@@ -56,7 +56,6 @@ typedef long size_type;
 #pragma link C++ class HepMC::StreamInfo+;
 #pragma link C++ class HepMC::TempParticleMap+;
 
-//#pragma link C++ class std::map<string,size_type>+;
 #pragma link C++ class std::map<int,HepMC::GenVertex*,std::greater<int> >+;
 #pragma link C++ class std::map<int,HepMC::GenParticle*>+;
 #pragma link C++ class std::pair<int,HepMC::GenVertex*>+;
