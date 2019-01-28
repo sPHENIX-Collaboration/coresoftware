@@ -149,13 +149,6 @@ protected:
   };
   typedef std::vector<record> records_t;
   records_t _records;
-  /*
-  typedef PHG4Particlev2 part_type;
-  typedef PHG4HitEval hit_type;
-  typedef PHG4VtxPointv1 vertex_type;
-  typedef RawTowerv1 RawTower_type;
-  typedef JetV1 PHPyJet_type;
-  */
 #endif
 
   int _event;
