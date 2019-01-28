@@ -1,5 +1,5 @@
-#ifndef __PHPY8JETTRIGGER_H__
-#define __PHPY8JETTRIGGER_H__
+#ifndef PHPYTHIA8_PHPY8JETTRIGGER_H
+#define PHPYTHIA8_PHPY8JETTRIGGER_H
 
 #include "PHPy8GenTrigger.h"
 

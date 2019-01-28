@@ -1,5 +1,5 @@
-#ifndef __PHPYTHIA8_H__
-#define __PHPYTHIA8_H__
+#ifndef PHPYTHIA8_PHPYTHIA8_H
+#define PHPYTHIA8_PHPYTHIA8_H
 
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>
@@ -138,4 +138,4 @@ class PHPythia8 : public SubsysReco
   PHGenIntegral *_integral_node;
 };
 
-#endif /* __PHPYTHIA8_H__ */
+#endif /* PHPYTHIA8_PHPYTHIA8_H */
