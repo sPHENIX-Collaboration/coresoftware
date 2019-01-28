@@ -102,14 +102,14 @@ void JetMapv1::identify(ostream& os) const
 const Jet* JetMapv1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 Jet* JetMapv1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 

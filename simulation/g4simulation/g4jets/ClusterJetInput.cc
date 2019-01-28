@@ -65,8 +65,8 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
     return std::vector<Jet *>();
   }
 
-  RawClusterContainer *clusters = NULL;
-  RawTowerGeomContainer *geom = NULL;
+  RawClusterContainer *clusters = nullptr;
+  RawTowerGeomContainer *geom = nullptr;
   if (_input == Jet::CEMC_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");

@@ -148,7 +148,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode)
 
 void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *> jets)
 {
-  JetMap *jetmap = NULL;
+  JetMap *jetmap = nullptr;
   PHTypedNodeIterator<JetMap> jetmapiter(topNode);
   PHIODataNode<JetMap> *JetMapNode = jetmapiter.find(_outputs[ipos].c_str());
   if (!JetMapNode)

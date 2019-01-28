@@ -70,7 +70,7 @@ std::vector<Jet*> FastJetAlgo::get_jets(std::vector<Jet*> particles)
   }
 
   // run fast jet
-  fastjet::JetDefinition* jetdef = NULL;
+  fastjet::JetDefinition* jetdef = nullptr;
   if (_algo == Jet::ANTIKT)
     jetdef = new fastjet::JetDefinition(fastjet::antikt_algorithm, _par, fastjet::E_scheme, fastjet::Best);
   else if (_algo == Jet::KT)

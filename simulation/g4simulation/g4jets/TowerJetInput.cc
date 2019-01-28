@@ -66,8 +66,8 @@ std::vector<Jet *> TowerJetInput::get_input(PHCompositeNode *topNode)
     return std::vector<Jet *>();
   }
 
-  RawTowerContainer *towers = NULL;
-  RawTowerGeomContainer *geom = NULL;
+  RawTowerContainer *towers = nullptr;
+  RawTowerGeomContainer *geom = nullptr;
   if (_input == Jet::CEMC_TOWER)
   {
     towers = findNode::getClass<RawTowerContainer>(topNode, "TOWER_CALIB_CEMC");
