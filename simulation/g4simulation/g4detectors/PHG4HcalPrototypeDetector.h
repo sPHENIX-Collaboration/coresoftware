@@ -5,8 +5,8 @@
 #ifndef PHG4HcalPrototypeDetector_h
 #define PHG4HcalPrototypeDetector_h
 
-#include "g4main/PHG4Detector.h"
 #include "PHG4HcalPrototypeDetectorMessenger.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4SystemOfUnits.hh>

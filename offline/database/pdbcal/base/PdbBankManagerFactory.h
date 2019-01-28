@@ -1,5 +1,5 @@
-#ifndef __PdbBankManagerFactory_h__
-#define __PdbBankManagerFactory_h__
+#ifndef PDBCAL_BASE_PDBBANKMANAGERFACTORY_H
+#define PDBCAL_BASE_PDBBANKMANAGERFACTORY_H
 
 #include "PHGenericFactoryT.h"
 #include "PdbBankManager.h"

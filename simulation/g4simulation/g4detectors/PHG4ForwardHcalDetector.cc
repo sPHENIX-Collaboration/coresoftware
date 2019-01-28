@@ -280,7 +280,7 @@ PHG4ForwardHcalDetector::PlaceTower(G4LogicalVolume* hcalenvelope, G4LogicalVolu
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
 
-  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); iterator++) {
+  for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
 
       if ( Verbosity() > 0 )
 	{
