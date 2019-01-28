@@ -4,7 +4,7 @@
 #include "JetInput.h"
 #include "JetAlgo.h"
 #include "JetMap.h"
-#include "JetMapV1.h"
+#include "JetMapv1.h"
 #include "Jet.h"
 
 // PHENIX includes
@@ -124,7 +124,7 @@ int JetReco::CreateNodes(PHCompositeNode *topNode) {
   for (unsigned i=0; i<_outputs.size(); ++i) {
     JetMap *jets = findNode::getClass<JetMap>(topNode,_outputs[i]);
     if (!jets) {
-      jets = new JetMapV1();
+      jets = new JetMapv1();
       PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets,_outputs[i].c_str(),"PHObject");
       InputNode->addNode(JetMapNode);
     }

@@ -3,7 +3,7 @@
 
 #include "JetInput.h"
 #include "Jet.h"
-#include "JetV1.h"
+#include "Jetv1.h"
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
@@ -99,7 +99,7 @@ std::vector<Jet*> ClusterJetInput::get_input(PHCompositeNode *topNode) {
 
     CLHEP::Hep3Vector E_vec_cluster = RawClusterUtility::GetEVec(*cluster, vertex);
 
-    Jet *jet = new JetV1();
+    Jet *jet = new Jetv1();
     jet->set_px(E_vec_cluster.x());
     jet->set_py(E_vec_cluster.y());
     jet->set_pz(E_vec_cluster.z());

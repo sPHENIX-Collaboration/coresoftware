@@ -3,7 +3,7 @@
 
 #include "JetInput.h"
 #include "Jet.h"
-#include "JetV1.h"
+#include "Jetv1.h"
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
@@ -178,7 +178,7 @@ std::vector<Jet*> TowerJetInput::get_input(PHCompositeNode *topNode) {
     double py = pt * sin(phi);
     double pz = pt * sinh(eta);
 
-    Jet *jet = new JetV1();
+    Jet *jet = new Jetv1();
     jet->set_px(px);
     jet->set_py(py);
     jet->set_pz(pz);

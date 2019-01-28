@@ -3,7 +3,7 @@
 
 #include "JetInput.h"
 #include "Jet.h"
-#include "JetV1.h"
+#include "Jetv1.h"
 
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
@@ -86,7 +86,7 @@ std::vector<Jet*> TruthJetInput::get_input(PHCompositeNode *topNode) {
     if (eta < _eta_min) continue;
     if (eta > _eta_max) continue;
     
-    Jet *jet = (Jet*)(new JetV1());
+    Jet *jet = new Jetv1();
     jet->set_px(part->get_px());
     jet->set_py(part->get_py());
     jet->set_pz(part->get_pz());

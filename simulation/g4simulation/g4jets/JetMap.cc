@@ -6,8 +6,6 @@
 
 using namespace std;
 
-ClassImp(JetMap)
-
 JetMap::JetMap() {}
 
 void JetMap::identify(ostream& os) const {
