@@ -17,9 +17,9 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <g4jets/JetMap.h>
-#include <g4jets/JetMapV1.h>
+#include <g4jets/JetMapv1.h>
 #include <g4jets/Jet.h>
-#include <g4jets/JetV1.h>
+#include <g4jets/Jetv1.h>
 
 // standard includes
 #include <iomanip>
@@ -95,7 +95,7 @@ int CopyAndSubtractJets::process_event(PHCompositeNode *topNode)
     float this_phi = this_jet->get_phi();
     float this_eta = this_jet->get_eta();
 
-    Jet *new_jet = new JetV1();
+    Jet *new_jet = new Jetv1();
 
     float new_total_px = 0;
     float new_total_py = 0;
@@ -236,7 +236,7 @@ int CopyAndSubtractJets::CreateNode(PHCompositeNode *topNode)
 
     if (Verbosity() > 0) std::cout << "CopyAndSubtractJets::CreateNode : creating AntiKt_Tower_HIRecoSeedsSub_r02 node " << std::endl;
     
-    JetMap *sub_jets = new JetMapV1();
+    JetMap *sub_jets = new JetMapv1();
     PHIODataNode<PHObject> *subjetNode = new PHIODataNode<PHObject>( sub_jets, "AntiKt_Tower_HIRecoSeedsSub_r02", "PHObject");
     towerNode->addNode(subjetNode);
     

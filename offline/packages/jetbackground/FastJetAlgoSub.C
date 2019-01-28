@@ -3,7 +3,7 @@
 
 #include <g4jets/JetInput.h>
 #include <g4jets/Jet.h>
-#include <g4jets/JetV1.h>
+#include <g4jets/Jetv1.h>
 
 
 // fastjet includes
@@ -95,7 +95,7 @@ std::vector<Jet*> FastJetAlgoSub::get_jets(std::vector<Jet*> particles) {
   std::vector<Jet*> jets;
   for (unsigned int ijet = 0; ijet < fastjets.size(); ++ijet) {
 
-    Jet *jet = new JetV1();
+    Jet *jet = new Jetv1();
 
     if ( _verbosity > 5 && fastjets[ijet].perp() > 15 ) {
       std::cout << " FastJetAlgoSub : jet # " << ijet << " comes out of clustering with pt / eta / phi = " << fastjets[ijet].perp() << " / " << fastjets[ijet].eta() << " / " << fastjets[ijet].phi();
