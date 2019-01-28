@@ -82,26 +82,26 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia) {
 	
 	if(_minZ>0.0){
 
-	  // Loop over constituents, caluclate the z of the leading particle
+	  // Loop over constituents, calculate the z of the leading particle
 	  
-	  float leading_Z = 0.0; 
+	  double leading_Z = 0.0; 
 
-	  float jet_ptot = sqrt( fastjets[ijet].px()*fastjets[ijet].px() + 
+	  double jet_ptot = sqrt( fastjets[ijet].px()*fastjets[ijet].px() + 
 				 fastjets[ijet].py()*fastjets[ijet].py() + 
 				 fastjets[ijet].pz()*fastjets[ijet].pz() ); 
 
 	  vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
 	  for (unsigned int j=0; j<constituents.size(); j++){
 	    
-	    float con_ptot = sqrt( constituents[j].px()*constituents[j].px() + 
+	    double con_ptot = sqrt( constituents[j].px()*constituents[j].px() + 
 				   constituents[j].py()*constituents[j].py() + 
 				   constituents[j].pz()*constituents[j].pz() ); 
 
-	    float ctheta = (constituents[j].px()*fastjets[ijet].px() + 
+	    double ctheta = (constituents[j].px()*fastjets[ijet].px() + 
 			    constituents[j].py()*fastjets[ijet].py() + 
 			    constituents[j].pz()*fastjets[ijet].pz())/(con_ptot*jet_ptot);
 
-	    float z_constit = con_ptot*ctheta/jet_ptot; 
+	    double z_constit = con_ptot*ctheta/jet_ptot; 
 
 	    if(z_constit>leading_Z) leading_Z = z_constit; 
 
