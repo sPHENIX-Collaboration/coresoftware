@@ -2,29 +2,27 @@
 #define PHSARTRE_PHSARTREPARTICLETRIGGER_H
 
 #include "PHSartreGenTrigger.h"
+
 #include <string>
 
 class Event;
 
-class PHSartreParticleTrigger : public PHSartreGenTrigger {
-
+class PHSartreParticleTrigger : public PHSartreGenTrigger
+{
  public:
-
   PHSartreParticleTrigger(const std::string &name = "PHSartreParticleTrigger");
   virtual ~PHSartreParticleTrigger();
 
-  #ifndef __CINT__
   bool Apply(Event *event);
-  #endif
 
-  void AddParticles(std::string particles);
+  void AddParticles(const std::string &particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);
 
   void SetPtHigh(double pt);
   void SetPtLow(double pt);
   void SetPtHighLow(double ptHigh, double ptLow);
-  
+
   void SetPHigh(double p);
   void SetPLow(double p);
   void SetPHighLow(double pHigh, double pLow);
@@ -44,14 +42,13 @@ class PHSartreParticleTrigger : public PHSartreGenTrigger {
   void PrintConfig();
 
  private:
-
   std::vector<int> _theParticles;
 
   double _theEtaHigh, _theEtaLow;
   double _thePtHigh, _thePtLow;
   double _thePHigh, _thePLow;
   double _thePzHigh, _thePzLow;
-  
+
   bool _doEtaHighCut, _doEtaLowCut, _doBothEtaCut;
   bool _doAbsEtaHighCut, _doAbsEtaLowCut, _doBothAbsEtaCut;
   bool _doPtHighCut, _doPtLowCut, _doBothPtCut;
@@ -59,4 +56,4 @@ class PHSartreParticleTrigger : public PHSartreGenTrigger {
   bool _doPzHighCut, _doPzLowCut, _doBothPzCut;
 };
 
-#endif	
+#endif
