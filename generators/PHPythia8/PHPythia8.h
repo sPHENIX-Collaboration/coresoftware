@@ -4,16 +4,10 @@
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#ifndef __CINT__
-#include <Pythia8/Pythia.h>
-#endif
-
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
-#endif
-
+#include <cmath>
 #include <iostream>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
@@ -113,6 +107,7 @@ class PHPythia8 : public SubsysReco
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
   //! whether to store the integrated luminosity and other event statistics to the TOP/RUN/PHGenIntegral node
   void save_integrated_luminosity(const bool b) { _save_integrated_luminosity = b; }
+
  private:
   int read_config(const char *cfg_file = 0);
   int create_node_tree(PHCompositeNode *topNode);
@@ -125,9 +120,7 @@ class PHPythia8 : public SubsysReco
   bool _triggersAND;
 
 // PYTHIA
-#ifndef __CINT__
   Pythia8::Pythia *_pythia;
-#endif
 
   std::string _configFile;
   std::vector<std::string> _commands;

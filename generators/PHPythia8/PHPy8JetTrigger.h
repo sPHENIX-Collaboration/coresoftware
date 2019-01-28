@@ -2,6 +2,7 @@
 #define __PHPY8JETTRIGGER_H__
 
 #include "PHPy8GenTrigger.h"
+
 #include <string>
 
 namespace Pythia8 {
@@ -15,9 +16,7 @@ class PHPy8JetTrigger : public PHPy8GenTrigger {
   PHPy8JetTrigger(const std::string &name = "PHPy8JetTrigger");
   virtual ~PHPy8JetTrigger();
 
-  #ifndef __CINT__
   bool Apply(Pythia8::Pythia *pythia);
-  #endif
 
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt);

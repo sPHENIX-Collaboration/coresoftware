@@ -54,7 +54,6 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
     // loop over all the trigger particle criteria
     for (int j = 0; j < int(_theParticles.size()); j++) {
 	
-      bool passedParents = false;
       if (pythia->event[i].id() == _theParticles[j] &&
   	  pythia->event[i].status() > 0) { //only stable particles
 	
@@ -92,6 +91,7 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
   	}
 	
   	// loop over all partents to this particle
+        bool passedParents = false;
   	for (int k = 0; k < int(_theParents.size()); k++) {
   	  // check Mothers
   	  std::vector<int> moms = pythia->event[i].motherList();
@@ -116,7 +116,7 @@ bool PHPy8ParticleTrigger::Apply(Pythia8::Pythia *pythia) {
   return false;
 }
 
-void PHPy8ParticleTrigger::AddParticles(std::string particles) {
+void PHPy8ParticleTrigger::AddParticles(const std::string &particles) {
   std::vector<int> addedParts = convertToInts(particles);
   _theParticles.insert(_theParticles.end(),addedParts.begin(),addedParts.end());
 }
@@ -129,7 +129,7 @@ void PHPy8ParticleTrigger::AddParticles(std::vector<int> particles) {
   _theParticles.insert(_theParticles.end(),particles.begin(),particles.end());
 }
 
-void PHPy8ParticleTrigger::AddParents(std::string parents) {
+void PHPy8ParticleTrigger::AddParents(const std::string &parents) {
   std::vector<int> addedParents = convertToInts(parents);
   _theParents.insert(_theParents.end(),addedParents.begin(),addedParents.end());
 }

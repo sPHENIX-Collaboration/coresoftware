@@ -19,12 +19,10 @@ class PHPy8GenTrigger {
  public:
   virtual ~PHPy8GenTrigger();
 
-  #ifndef __CINT__
   virtual bool Apply(Pythia8::Pythia *pythia) {
     std::cout << "PHPy8GenTrigger::Apply - in virtual function" << std::endl;
     return false;
   }
-  #endif
 
   virtual std::string GetName() { return _name; }
   

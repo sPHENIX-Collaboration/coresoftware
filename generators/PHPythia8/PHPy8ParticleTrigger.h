@@ -2,6 +2,7 @@
 #define __PHPY8PARTICLETRIGGER_H__
 
 #include "PHPy8GenTrigger.h"
+
 #include <string>
 
 namespace Pythia8 {
@@ -15,15 +16,13 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger {
   PHPy8ParticleTrigger(const std::string &name = "PHPy8ParticleTrigger");
   virtual ~PHPy8ParticleTrigger();
 
-  #ifndef __CINT__
   bool Apply(Pythia8::Pythia *pythia);
-  #endif
 
-  void AddParticles(std::string particles);
+  void AddParticles(const std::string &particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);
 
-  void AddParents(std::string parents);
+  void AddParents(const std::string &parents);
   void AddParents(int parent);
   void AddParents(std::vector<int> parents);
 
