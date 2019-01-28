@@ -27,7 +27,7 @@ public:
   virtual void    identify(std::ostream &os = std::cout) const;
   virtual void    Reset() {}
   virtual int     isValid() const {return 0;}
-  virtual JetMap* Clone() const {return NULL;}
+  virtual JetMap* Clone() const {return nullptr;}
 
   // map content info ----------------------------------------------------------
   
@@ -57,10 +57,10 @@ public:
   virtual size_t count(unsigned int idkey) const {return 0;}
   virtual void   clear()                         {return;}
   
-  virtual const Jet* get(unsigned int idkey) const {return NULL;}
-  virtual       Jet* get(unsigned int idkey)       {return NULL;} 
+  virtual const Jet* get(unsigned int idkey) const {return nullptr;}
+  virtual       Jet* get(unsigned int idkey)       {return nullptr;} 
 
-  virtual Jet*   insert(Jet* jet)          {return NULL;}
+  virtual Jet*   insert(Jet* jet)          {return nullptr;}
   virtual size_t erase(unsigned int idkey) {return 0;}
 
   virtual ConstIter begin()                  const {return typ_JetMap().end();}
