@@ -84,30 +84,26 @@ endif
 
 libg4jets_io_la_SOURCES = \
   $(ROOTDICTS) \
-  Jet.C \
-  JetV1.C \
-  JetMap.C \
-  JetMapV1.C
+  Jet.cc \
+  JetV1.cc \
+  JetMap.cc \
+  JetMapV1.cc
 
 libg4jets_la_SOURCES = \
   $(ROOT5DICTS) \
-  ClusterJetInput.C \
-  FastJetAlgo.C \
-  JetReco.C \
-  JetHepMCLoader.C \
-  TowerJetInput.C \
-  TrackJetInput.C \
-  TruthJetInput.C
+  ClusterJetInput.cc \
+  FastJetAlgo.cc \
+  JetReco.cc \
+  JetHepMCLoader.cc \
+  TowerJetInput.cc \
+  TrackJetInput.cc \
+  TruthJetInput.cc
 
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
-
-# Rule for generating table CINT dictionaries.
-#%_Dict.C: %.h %LinkDef.h
-#	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
@@ -116,13 +112,15 @@ noinst_PROGRAMS = \
   testexternals_g4jets_io \
   testexternals_g4jets
 
-testexternals_g4jets_io_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
+
+testexternals_g4jets_io_SOURCES = testexternals.cc
 testexternals_g4jets_io_LDADD = libg4jets_io.la
 
-testexternals_g4jets_SOURCES = testexternals.C
+testexternals_g4jets_SOURCES = testexternals.cc
 testexternals_g4jets_LDADD = libg4jets.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -130,4 +128,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* testexternals.C *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
