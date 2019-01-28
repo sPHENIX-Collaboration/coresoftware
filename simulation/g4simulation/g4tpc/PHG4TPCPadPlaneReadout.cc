@@ -458,7 +458,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // Either way, add the energy to it
       //cout << "Adding neffelectrons to hit with hitkey " << hitkey << endl;
       hit->addEnergy(neffelectrons);
-      hit->setAdc(0);   // adc values will be added at digitization
+      // adc values will be added at digitization
 
       // Add this hit to the association map
       // need to add the association conditionally on whether it already exists or not

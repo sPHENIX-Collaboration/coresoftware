@@ -6,7 +6,7 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <intt/InttDefs.h>
+#include <InttDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>

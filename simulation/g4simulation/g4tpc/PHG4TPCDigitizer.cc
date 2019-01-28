@@ -867,7 +867,7 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     }  // end loop over hitsets
 
   //======================================================  
-  cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end:" << endl;
+  if(Verbosity() > 2) cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end:" << endl;
   // We want all hitsets for the TPC
   TrkrHitSetContainer::ConstRange hitset_range_now = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_now.first;
@@ -880,7 +880,7 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       if (layer != print_layer)  continue;
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
-      cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+      if(Verbosity() > 2) cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -891,12 +891,13 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	{
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  TrkrHit *tpchit = hit_iter->second;
-	  cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
-	       << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+	  if(Verbosity() > 2)
+	    cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+		 << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
 
 	  if(tpchit->getAdc() == 0)
 	    {
-	      cout << "                       --   this hit not digitized - delete it" << endl;
+	      if(Verbosity() > 2) cout << "                       --   this hit not digitized - deleted it" << endl;
 	      hitset->removeHit(hitkey);
 	    }
 

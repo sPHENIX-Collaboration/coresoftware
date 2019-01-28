@@ -30,6 +30,7 @@ libtrack_io_la_SOURCES = \
   TrkrClusterContainer_Dict.cc \
   TrkrClusterHitAssoc.cc \
   TrkrClusterHitAssoc_Dict.cc \
+  TrkrHit.cc \
   TrkrHit_Dict.cc \
   TrkrHitTruthAssoc.cc \
   TrkrHitTruthAssoc_Dict.cc \

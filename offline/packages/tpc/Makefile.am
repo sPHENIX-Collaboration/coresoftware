@@ -19,7 +19,9 @@ libtpc_la_SOURCES = \
   TpcDefs.cc \
   TpcDefs_Dict.cc \
   TPCClusterizer.cc \
-  TPCClusterizer_Dict.cc 
+  TPCClusterizer_Dict.cc \
+  TpcClusterizer.cc \
+  TpcClusterizer_Dict.cc 
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
@@ -52,7 +54,8 @@ libtpc_io_la_LIBADD = \
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
-  TPCClusterizer.h
+  TPCClusterizer.h \
+  TpcClusterizer.h
 
 ################################################
 # linking tests

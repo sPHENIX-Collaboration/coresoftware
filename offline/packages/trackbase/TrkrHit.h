@@ -24,9 +24,8 @@ class TrkrHit : public PHObject
 {
  public:
   //! ctor
-  TrkrHit() 
-    {
-    }
+  TrkrHit(); 
+
   //! dtor
   virtual ~TrkrHit() {}
   // PHObject virtual overloads

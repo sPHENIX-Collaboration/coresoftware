@@ -648,7 +648,8 @@ void TPCClusterizer::reset() {}
 //===================
 int TPCClusterizer::process_event(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 1000) std::cout << "TPCClusterizer::Process_Event" << std::endl;
+  //if (Verbosity() > 1000) 
+    std::cout << "TPCClusterizer::Process_Event" << std::endl;
   if (Verbosity() > 1)
   {
     fSW->Reset();
@@ -979,6 +980,7 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
 	  clus.set_error( 2 , 2 , zz_err );
 	  */
         svxclusters->insert(&clus);
+	clus.identify();
         //}
       }
     }
