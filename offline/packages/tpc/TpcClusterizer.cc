@@ -271,6 +271,8 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  double radius = layergeom->get_radius();  // returns center of layer
 	  cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;
 	  cout << "    z bin range " << zbinlo[iclus] << " to " << zbinhi[iclus] << " phibin range " << phibinlo[iclus] << " to " << phibinhi[iclus] << endl;  
+
+	  std::vector<TrkrDefs::hitkey> hitkeyvec;
 	  for(int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
 	    {
 	      for(int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
@@ -281,6 +283,13 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 		  zsum += z * adcval[iphi][iz];
 		  phi_sum += phi_center * adcval[iphi][iz];
 		  adc_sum += adcval[iphi][iz];
+
+		  // capture the hitkeys for all non-zero adc values
+		  if(adcval[iphi][iz] != 0)
+		    {
+		      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz);
+		      hitkeyvec.push_back(hitkey);		      
+		    }
 		}
 	    }
 
@@ -409,12 +418,24 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  clus->setError(2, 0, COVAR_ERR[2][0]);
 	  clus->setError(2, 1, COVAR_ERR[2][1]);
 	  clus->setError(2, 2, COVAR_ERR[2][2]);
+
+	  // Now write the cluster - hit associations
+
+	  // Add the hit associations to the TrkrClusterHitAssoc node
+	  // we need the cluster key and all associated hit keys
+	  for(unsigned int i=0;i<hitkeyvec.size();i++)
+	    {
+	      m_clusterhitassoc->addAssoc(ckey, hitkeyvec[i]);
+	    }
 	  
 	} // end loop over clusters for this hitset
     }  // end loop over hitsets
 
   cout << "Dump clusters after TpcClusterizer" << endl;
   m_clusterlist->identify();
+
+  cout << "Dump cluster hit associations after TpcClusterizer" << endl;
+  m_clusterhitassoc->identify();
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
