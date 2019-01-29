@@ -2,8 +2,8 @@
 //  Purpose: single parameter storage class 
 //  Author: federica
 
-#ifndef PDBPARAMETER_HH__
-#define PDBPARAMETER_HH__
+#ifndef PDBCAL_BASE_PDBPARAMETER_H
+#define PDBCAL_BASE_PDBPARAMETER_H
 
 #include "PdbCalChan.h"
 
@@ -34,4 +34,4 @@ protected:
   ClassDef(PdbParameter,1);
 };
 
-#endif /* __PDBPARAMETER_DDL__ */
+#endif /* PDBCAL_BASE_PDBPARAMETER_H */

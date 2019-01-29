@@ -3,11 +3,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4Material.hh>
 
 #include <string>
 #include <map>
@@ -42,7 +38,7 @@ public:
   // ----- accessing member variables: ------------
 
   //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile( std::string filename )
+  void SetTowerMappingFile( std::string &filename )
   {
     _mapping_tower_file = filename;
   }

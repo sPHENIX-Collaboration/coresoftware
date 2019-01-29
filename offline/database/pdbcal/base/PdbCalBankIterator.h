@@ -1,5 +1,5 @@
-#ifndef __PDBCALBANKITERATOR_HH__
-#define __PDBCALBANKITERATOR_HH__
+#ifndef PDBCAL_BASE_PDBCALBANKITERATOR_H
+#define PDBCAL_BASE_PDBCALBANKITERATOR_H
 
 class PdbBankID;
 class PdbCalBank;
@@ -11,7 +11,7 @@ class PdbCalBank;
 class PdbCalBankIterator 
 {
 public:
-  virtual ~PdbCalBankIterator();
+  virtual ~PdbCalBankIterator() {}
 
   virtual bool init(const std::string &fulldbname, const PdbBankID& bankid) = 0;
   

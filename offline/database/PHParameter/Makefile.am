@@ -9,15 +9,20 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include
 
-libphparameter_la_SOURCES = \
-  PHParameters.cc \
+if ! MAKEROOT6
+ROOT5_DICTS = \
   PHParameters_Dict.cc \
-  PHParametersContainer.cc \
   PHParametersContainer_Dict.cc \
-  PHParameterContainerInterface.cc \
   PHParameterContainerInterface_Dict.cc \
-  PHParameterInterface.cc \
   PHParameterInterface_Dict.cc 
+endif
+
+libphparameter_la_SOURCES = \
+  $(ROOT5_DICTS) \
+  PHParameters.cc \
+  PHParametersContainer.cc \
+  PHParameterContainerInterface.cc \
+  PHParameterInterface.cc
 
 libphparameter_la_LDFLAGS = \
   -L$(libdir) \

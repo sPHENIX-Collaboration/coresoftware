@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef JETHEPMCLOADER_H_
-#define JETHEPMCLOADER_H_
+#ifndef G4JET_JETHEPMCLOADER_H
+#define G4JET_JETHEPMCLOADER_H
 
 #include "Jet.h"
 

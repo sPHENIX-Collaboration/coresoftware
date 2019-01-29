@@ -1,36 +1,35 @@
-#ifndef __PHPY8PARTICLETRIGGER_H__
-#define __PHPY8PARTICLETRIGGER_H__
+#ifndef PHPYTHIA8_PHPY8PARTICLETRIGGER_H
+#define PHPYTHIA8_PHPY8PARTICLETRIGGER_H
 
 #include "PHPy8GenTrigger.h"
+
 #include <string>
 
-namespace Pythia8 {
-  class Pythia;
+namespace Pythia8
+{
+class Pythia;
 };
 
-class PHPy8ParticleTrigger : public PHPy8GenTrigger {
-
+class PHPy8ParticleTrigger : public PHPy8GenTrigger
+{
  public:
-
   PHPy8ParticleTrigger(const std::string &name = "PHPy8ParticleTrigger");
   virtual ~PHPy8ParticleTrigger();
 
-  #ifndef __CINT__
   bool Apply(Pythia8::Pythia *pythia);
-  #endif
 
-  void AddParticles(std::string particles);
+  void AddParticles(const std::string &particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);
 
-  void AddParents(std::string parents);
+  void AddParents(const std::string &parents);
   void AddParents(int parent);
   void AddParents(std::vector<int> parents);
 
   void SetPtHigh(double pt);
   void SetPtLow(double pt);
   void SetPtHighLow(double ptHigh, double ptLow);
-  
+
   void SetPHigh(double p);
   void SetPLow(double p);
   void SetPHighLow(double pHigh, double pLow);
@@ -50,7 +49,6 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger {
   void PrintConfig();
 
  private:
-
   std::vector<int> _theParents;
   std::vector<int> _theParticles;
 
@@ -58,7 +56,7 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger {
   double _thePtHigh, _thePtLow;
   double _thePHigh, _thePLow;
   double _thePzHigh, _thePzLow;
-  
+
   bool _doEtaHighCut, _doEtaLowCut, _doBothEtaCut;
   bool _doAbsEtaHighCut, _doAbsEtaLowCut, _doBothAbsEtaCut;
   bool _doPtHighCut, _doPtLowCut, _doBothPtCut;
@@ -66,4 +64,4 @@ class PHPy8ParticleTrigger : public PHPy8GenTrigger {
   bool _doPzHighCut, _doPzLowCut, _doBothPzCut;
 };
 
-#endif	
+#endif

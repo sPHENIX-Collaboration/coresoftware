@@ -19,6 +19,7 @@ if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 fi
+AM_CONDITIONAL([MAKEROOT6],[test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

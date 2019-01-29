@@ -15,6 +15,7 @@
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4Cons.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>

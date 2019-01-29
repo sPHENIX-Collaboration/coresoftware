@@ -22,7 +22,7 @@
 #include <g4main/PHG4Particlev2.h>
 #include <g4main/PHG4VtxPointv1.h>
 
-#include <g4jets/JetV1.h>
+#include <g4jets/Jetv1.h>
 #include <g4jets/JetMap.h>
 
 #include <fun4all/PHTFileServer.h>
@@ -47,7 +47,7 @@ typedef PHG4Particlev2 part_type;
 typedef PHG4HitEval hit_type;
 typedef PHG4VtxPointv1 vertex_type;
 typedef RawTowerv1 RawTower_type;
-typedef JetV1 PHPyJet_type;
+typedef Jetv1 PHPyJet_type;
 
 PHG4DSTReader::PHG4DSTReader(const string &filename) :
     SubsysReco("PHG4DSTReader"), nblocks(0), _event(0), //

@@ -4,25 +4,24 @@
 
 #include <phool/phool.h>
 
-#include <RDBC/TSQLDriverManager.h>
 #include <RDBC/TSQLConnection.h>
+#include <RDBC/TSQLDriverManager.h>
+#include <RDBC/TSQLPreparedStatement.h>
 #include <RDBC/TSQLResultSet.h>
 #include <RDBC/TSQLResultSetMetaData.h>
-#include <RDBC/TSQLPreparedStatement.h>
 
 #include <RDBC/TSQLDatabaseMetaData.h>
 
+#include <unistd.h>  // for sleep
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
-#include <unistd.h> // for sleep
 
-ClassImp(PgPostBankWrapper)
 
 using namespace std;
 
-PgPostBankWrapper::PgPostBankWrapper():
-  bank(NULL)
+PgPostBankWrapper::PgPostBankWrapper()
+  : bank(nullptr)
 {
 }
 
@@ -38,8 +37,7 @@ PgPostBankWrapper::~PgPostBankWrapper()
   PgPostBankWrapperManager::instance().unregisterWrapper(this);
 }
 
-void
-PgPostBankWrapper::printHeader() const
+void PgPostBankWrapper::printHeader() const
 {
   bankID.print();
   cout << "Insert   : " << insertTime << endl;
@@ -52,41 +50,42 @@ PgPostBankWrapper::printHeader() const
 bool PgPostBankWrapper::commit()
 {
   if (bank)
+  {
+    PgPostApplication *ap = PgPostApplication::instance();
+    TSQLConnection *con = ap->getConnection();
+
+    ostringstream sqlcmd;
+    sqlcmd << "insert into " << ((*this).getTableName())
+           << " values(?,?,?,?,?,?,?);";
+    cout << "query: " << sqlcmd.str() << endl;
+    TSQLPreparedStatement *pstmt = con->PrepareStatement(sqlcmd.str().c_str());
+    pstmt->SetInt(1, ((*this).getBankID()).getInternalValue());
+    pstmt->SetLong(2, ((*this).getInsertTime()).getTics());
+    pstmt->SetLong(3, ((*this).getStartValTime()).getTics());
+    pstmt->SetLong(4, ((*this).getEndValTime()).getTics());
+    pstmt->SetString(5, ((*this).getDescription()));
+    pstmt->SetString(6, ((*this).getUserName()));
+    pstmt->SetObject(7, this);
+    int res = 0;
+    res = pstmt->ExecuteUpdate();
+    con->Commit();
+    if (res == 0)
     {
-      PgPostApplication *ap = PgPostApplication::instance();
-      TSQLConnection *con = ap->getConnection();
-      
-      ostringstream sqlcmd;
-      sqlcmd << "insert into " << ((*this).getTableName())
-	<< " values(?,?,?,?,?,?,?);";
-      cout << "query: " << sqlcmd.str() << endl;
-      TSQLPreparedStatement* pstmt = con->PrepareStatement(sqlcmd.str().c_str());
-      pstmt->SetInt(1, ((*this).getBankID()).getInternalValue());
-      pstmt->SetLong(2, ((*this).getInsertTime()).getTics());
-      pstmt->SetLong(3, ((*this).getStartValTime()).getTics());
-      pstmt->SetLong(4, ((*this).getEndValTime()).getTics());
-      pstmt->SetString(5, ((*this).getDescription()));
-      pstmt->SetString(6, ((*this).getUserName()));
-      pstmt->SetObject(7, this);
-      int res = 0;
-      res = pstmt->ExecuteUpdate();
-      con->Commit();
-      if (res == 0){
-	cout << PHWHERE << "DATABASE: commit to " << tableName << " failed" << endl;
-	cout << "Make sure you commit to the master database on phnxdb2.phenix.bnl.gov" << endl;
-	cout << "and that " << tableName << " exists in the master database" << endl;
-	exit(1);
-      }
-      cout << "Committed " << res << " row, sleeping 1 sec to make sure we have distinct insert times" << endl;
-      // entries are distinguished by insert time. If one commits a lot at once one has multiple
-      // entries for the same insert time (we can commit ~4/sec). This sleep 1 second just forces
-      // the insert time to be unique.
-      sleep(1);
-      return res;
+      cout << PHWHERE << "DATABASE: commit to " << tableName << " failed" << endl;
+      cout << "Make sure you commit to the master database on phnxdb2.phenix.bnl.gov" << endl;
+      cout << "and that " << tableName << " exists in the master database" << endl;
+      exit(1);
     }
+    cout << "Committed " << res << " row, sleeping 1 sec to make sure we have distinct insert times" << endl;
+    // entries are distinguished by insert time. If one commits a lot at once one has multiple
+    // entries for the same insert time (we can commit ~4/sec). This sleep 1 second just forces
+    // the insert time to be unique.
+    sleep(1);
+    return res;
+  }
   else
-    {
-      cout << "Bank is a NULL pointer" << endl;
-      return 0;
-    }
+  {
+    cout << "Bank is a nullptr pointer" << endl;
+    return 0;
+  }
 }
