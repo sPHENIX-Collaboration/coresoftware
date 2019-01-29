@@ -1,5 +1,5 @@
-#ifndef PHGENEVENTLIST_H__
-#define PHGENEVENTLIST_H__
+#ifndef PHHEPMC_PHGENEVENTLIST_H
+#define PHHEPMC_PHGENEVENTLIST_H
 
 #include "PHGenEvent.h"
 
@@ -20,7 +20,6 @@ public:
   virtual bool has(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return false;}
   virtual size_t find(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return size();}
   virtual const PHGenEvent* fetch(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return NULL;}
-  virtual PHGenEvent* fetch(unsigned int id) {PHOOL_VIRTUAL_WARNING; return NULL;}
 
   virtual unsigned int generate_id() const {PHOOL_VIRTUAL_WARNING; return 0;}
   virtual void insert(const PHGenEvent *event) {PHOOL_VIRTUAL_WARNING;}

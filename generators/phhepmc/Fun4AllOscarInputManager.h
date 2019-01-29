@@ -1,5 +1,5 @@
-#ifndef FUN4ALLOSCARINPUTMANAGER_H__
-#define FUN4ALLOSCARINPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H__
+#define PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H__
 #include "PHHepMCGenHelper.h"
 
 #include <fun4all/Fun4AllInputManager.h>
@@ -99,4 +99,4 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   bool isCompressed;
 };
 
-#endif /* __FUN4ALLOSCARINPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H */

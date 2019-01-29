@@ -1,5 +1,5 @@
-#ifndef FUN4ALLHEPMCPILEUPINPUTMANAGER_H__
-#define FUN4ALLHEPMCPILEUPINPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLHEPMCPILEUPINPUTMANAGER_H
+#define PHHEPMC_FUN4ALLHEPMCPILEUPINPUTMANAGER_H
 
 #include "Fun4AllHepMCInputManager.h"
 
@@ -68,10 +68,6 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   gsl_rng *RandomGenerator;
 #endif
 
-//  unsigned int seed;
-//#ifndef __CINT__
-//  gsl_rng *RandomGenerator;
-//#endif
 };
 
-#endif /* __FUN4ALLHEPMCINPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

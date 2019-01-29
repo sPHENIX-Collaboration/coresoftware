@@ -1,5 +1,5 @@
-#ifndef PHGENEVENTLISTV1_H__
-#define PHGENEVENTLISTV1_H__
+#ifndef PHHEPMC_PHGENEVENTLISTV1_H
+#define PHHEPMC_PHGENEVENTLISTV1_H
 
 #include "PHGenEventList.h"
 #include "PHGenEvent.h"
@@ -24,7 +24,6 @@ public:
   bool has(unsigned int id) const;
   size_t find(unsigned int id) const;
   const PHGenEvent* fetch(unsigned int id) const;
-  PHGenEvent* fetch(unsigned int id);
 
   void insert(const PHGenEvent* genevent);
   unsigned int generate_id() const;
@@ -50,4 +49,4 @@ private:
   ClassDef(PHGenEventListv1,1)
 };
 
-#endif // PHGENEVENTLISTV1_H__
+#endif // PHHEPMC_PHGENEVENTLISTV1_H

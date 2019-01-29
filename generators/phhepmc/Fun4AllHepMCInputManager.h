@@ -1,5 +1,5 @@
-#ifndef FUN4ALLHEPMCINPUTMANAGER_H__
-#define FUN4ALLHEPMCINPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H
+#define PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H
 
 #include "PHHepMCGenHelper.h"
 
@@ -13,10 +13,6 @@
 
 #ifndef __CINT__
 #include <boost/iostreams/filtering_streambuf.hpp>
-#endif
-
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
 #endif
 
 // forward declaration of classes in namespace
@@ -113,4 +109,4 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 #endif
 };
 
-#endif /* __FUN4ALLHEPMCINPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

@@ -1,5 +1,5 @@
-#ifndef __PHHEPMCGENEVENT__
-#define __PHHEPMCGENEVENT__
+#ifndef PHHEPMC_PHHEPMCGENEVENT_H
+#define PHHEPMC_PHHEPMCGENEVENT_H
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
@@ -94,4 +94,4 @@ class PHHepMCGenEvent : public PHObject
   ClassDef(PHHepMCGenEvent, 5)
 };
 
-#endif  // __PHHEPMCEVENT__
+#endif  // PHHEPMC_PHHEPMCEVENT_H

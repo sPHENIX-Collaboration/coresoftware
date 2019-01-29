@@ -1,5 +1,5 @@
-#ifndef PHGENEVENTV1_H
-#define PHGENEVENTV1_H
+#ifndef PHHEPMC_PHGENEVENTV1_H
+#define PHHEPMC_PHGENEVENTV1_H
 
 #include "PHGenEvent.h"
 

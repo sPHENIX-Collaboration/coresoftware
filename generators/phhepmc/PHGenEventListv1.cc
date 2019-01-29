@@ -70,15 +70,7 @@ size_t PHGenEventListv1::find(unsigned int id) const {
 const PHGenEvent* PHGenEventListv1::fetch(unsigned int id) const {
   if (_stale) refresh();  
   if (_id_genevent_map.find(id) != _id_genevent_map.end()) {
-    return (const PHGenEvent*)_id_genevent_map[id];
-  }
-  return nullptr;
-}
-
-PHGenEvent* PHGenEventListv1::fetch(unsigned int id) {
-  if (_stale) refresh();  
-  if (_id_genevent_map.find(id) != _id_genevent_map.end()) {
-    return (PHGenEvent*)_id_genevent_map[id];
+    return _id_genevent_map[id];
   }
   return nullptr;
 }

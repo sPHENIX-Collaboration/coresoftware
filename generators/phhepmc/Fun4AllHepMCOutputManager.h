@@ -1,5 +1,5 @@
-#ifndef FUN4ALLHEPMCOUTPUTMANAGER_H__
-#define FUN4ALLHEPMCOUTPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLHEPMCOUTPUTMANAGER_H
+#define PHHEPMC_FUN4ALLHEPMCOUTPUTMANAGER_H
 
 
 #include <fun4all/Fun4AllOutputManager.h>
@@ -60,4 +60,4 @@ class Fun4AllHepMCOutputManager: public Fun4AllOutputManager
   int _embedding_id;
 };
 
-#endif /* FUN4ALLHEPMCOUTPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLHEPMCOUTPUTMANAGER_H */
