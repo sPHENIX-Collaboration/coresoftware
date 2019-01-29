@@ -6,7 +6,7 @@
 
 using namespace std;
 
-    PHHepMCGenEventMap::PHHepMCGenEventMap()
+PHHepMCGenEventMap::PHHepMCGenEventMap()
   : _map()
 {
 }
@@ -57,11 +57,11 @@ void PHHepMCGenEventMap::identify(ostream& os) const
 {
   os << "PHHepMCGenEventMap: size = " << _map.size() << endl;
 
-  for (const auto & evt : _map)
+  for (const auto& evt : _map)
   {
-    cout <<"Event["<<evt.first<<"] : ";
+    cout << "Event[" << evt.first << "] : ";
     assert(evt.second);
-    evt.second -> identify();
+    evt.second->identify();
   }
 
   return;
@@ -113,8 +113,8 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_event(const int index, const PHHepMC
 {
   if (_map.find(index) != _map.end())
   {
-    cout <<"PHHepMCGenEventMap::insert_event - Fatal Error -"
-        <<"embedding ID "<<index<<" is already used in the PHHepMCGenEventMap. Print map:";
+    cout << "PHHepMCGenEventMap::insert_event - Fatal Error -"
+         << "embedding ID " << index << " is already used in the PHHepMCGenEventMap. Print map:";
     identify();
 
     exit(10);

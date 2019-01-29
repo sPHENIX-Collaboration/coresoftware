@@ -10,9 +10,9 @@
 
 #include "PHGenIntegralv1.h"
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>
-#include <cassert>
 using namespace std;
 
 PHGenIntegralv1::PHGenIntegralv1()
@@ -54,7 +54,7 @@ void PHGenIntegralv1::Reset()
   fDescription = "Source Not Provided";
 }
 
-int PHGenIntegralv1::Integrate( PHObject* incoming_object)
+int PHGenIntegralv1::Integrate(PHObject* incoming_object)
 {
   const PHGenIntegral* in_gen = dynamic_cast<const PHGenIntegral*>(incoming_object);
 
@@ -84,9 +84,9 @@ int PHGenIntegralv1::Integrate( PHObject* incoming_object)
   return fNProcessedEvent;
 }
 
-void PHGenIntegralv1::CopyContent( PHObject* incoming_object)
+void PHGenIntegralv1::CopyContent(PHObject* incoming_object)
 {
-  const PHGenIntegral * in_gen = dynamic_cast<const PHGenIntegral *>(incoming_object);
+  const PHGenIntegral* in_gen = dynamic_cast<const PHGenIntegral*>(incoming_object);
 
   if (!in_gen)
   {
@@ -102,5 +102,4 @@ void PHGenIntegralv1::CopyContent( PHObject* incoming_object)
   fIntegratedLumi = in_gen->get_Integrated_Lumi();
   fSumOfWeight = in_gen->get_Sum_Of_Weight();
   fDescription = in_gen->get_Description();
-
 }
