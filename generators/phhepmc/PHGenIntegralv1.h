@@ -20,7 +20,7 @@ class PHGenIntegralv1 : public PHGenIntegral
 {
  public:
   PHGenIntegralv1();
-  explicit PHGenIntegralv1(const std::string & description);
+  explicit PHGenIntegralv1(const std::string& description);
   virtual ~PHGenIntegralv1();
 
   virtual PHObject* clone() const;

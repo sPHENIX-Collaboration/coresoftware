@@ -75,6 +75,7 @@ class PHHepMCGenEventMap : public PHObject
   //! for c++11 range-based for loop
   const HepMCGenEventMap& get_map() const { return _map; }
   HepMCGenEventMap& get_map() { return _map; }
+
  private:
   HepMCGenEventMap _map;
 

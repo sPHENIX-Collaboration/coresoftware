@@ -11,8 +11,6 @@
 #ifndef PHHEPMC_PHHEPMCGENHELPER_H
 #define PHHEPMC_PHHEPMCGENHELPER_H
 
-
-
 class PHCompositeNode;
 class PHHepMCGenEvent;
 class PHHepMCGenEventMap;
@@ -93,7 +91,10 @@ class PHHepMCGenHelper
   }
 
 #ifndef __CINT__
-  gsl_rng * get_random_generator() {return RandomGenerator;}
+  gsl_rng *get_random_generator()
+  {
+    return RandomGenerator;
+  }
 #endif
 
   void set_geneventmap(PHHepMCGenEventMap *geneventmap)

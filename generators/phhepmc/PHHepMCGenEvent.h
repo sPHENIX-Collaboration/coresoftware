@@ -61,7 +61,7 @@ class PHHepMCGenEvent : public PHObject
   //! host an HepMC event
   bool addEvent(HepMC::GenEvent* evt);
   bool addEvent(HepMC::GenEvent& evt);
-  bool swapEvent(HepMC::GenEvent* & evt);
+  bool swapEvent(HepMC::GenEvent*& evt);
   void clearEvent();
 
   //! move the collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns

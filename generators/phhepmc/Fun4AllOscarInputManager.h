@@ -4,21 +4,20 @@
 
 #include <fun4all/Fun4AllInputManager.h>
 
-#include <string>
-#include <map>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 
 // forward declaration of classes in namespace
 namespace HepMC
 {
-    class IO_GenEvent;
-    class GenEvent;
-};
+class IO_GenEvent;
+class GenEvent;
+};  // namespace HepMC
 
 class PHCompositeNode;
 class PHHepMCGenEvent;
-
 
 class Fun4AllOscarInputManager : public Fun4AllInputManager
 {
@@ -28,19 +27,18 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam);
   int fileclose();
   int run(const int nevents = 0);
-  int isOpen() {return isopen;}
+  int isOpen() { return isopen; }
   void Print(const std::string &what = "ALL") const;
   int ResetEvent();
   int PushBackEvents(const int i);
-  int skip(const int i){ return PushBackEvents(i);}
+  int skip(const int i) { return PushBackEvents(i); }
 
   // Effectivly turn off the synchronization checking
   //
-  int SyncIt(const SyncObject* /*mastersync*/) {return Fun4AllReturnCodes::SYNC_OK;}
-  int GetSyncObject(SyncObject** /*mastersync*/) {return Fun4AllReturnCodes::SYNC_NOOBJECT;}
-  int NoSyncPushBackEvents(const int nevt) {return PushBackEvents(nevt);}
+  int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_OK; }
+  int GetSyncObject(SyncObject ** /*mastersync*/) { return Fun4AllReturnCodes::SYNC_NOOBJECT; }
+  int NoSyncPushBackEvents(const int nevt) { return PushBackEvents(nevt); }
   int ConvertFromOscar();
-
 
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(PHHepMCGenHelper::VTXFUNC x, PHHepMCGenHelper::VTXFUNC y, PHHepMCGenHelper::VTXFUNC z, PHHepMCGenHelper::VTXFUNC t)
@@ -77,6 +75,7 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
+
  protected:
   int OpenNextFile();
   int isopen;
@@ -90,8 +89,8 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   int skipEvents, skippedEvents;
 
   // some pointers for use in decompression handling
-  std::ifstream *filestream; // holds compressed filestream
-  std::istream *unzipstream; // feed into HepMc
+  std::ifstream *filestream;  // holds compressed filestream
+  std::istream *unzipstream;  // feed into HepMc
   std::ifstream theOscarFile;
 
   //! helper for insert HepMC event to DST node and add vertex smearing

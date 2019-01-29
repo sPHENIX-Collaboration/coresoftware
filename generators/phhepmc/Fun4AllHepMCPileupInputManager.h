@@ -5,10 +5,10 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <string>
-#include <map>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <string>
 
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
@@ -17,9 +17,9 @@
 // forward declaration of classes in namespace
 namespace HepMC
 {
-    class IO_GenEvent;
-    class GenEvent;
-};
+class IO_GenEvent;
+class GenEvent;
+};  // namespace HepMC
 
 class PHCompositeNode;
 
@@ -37,18 +37,18 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   int run(const int nevents = 0);
 
   /// past times are negative, future times are positive
-  void set_time_window(double past_nsec,double future_nsec) {
+  void set_time_window(double past_nsec, double future_nsec)
+  {
     _min_integration_time = past_nsec;
-    _max_integration_time = future_nsec;    
+    _max_integration_time = future_nsec;
   }
 
   /// collision rate in Hz
-  void set_collision_rate(double Hz) {_collision_rate = Hz;}
+  void set_collision_rate(double Hz) { _collision_rate = Hz; }
   /// time between bunch crossing in ns
-  void set_time_between_crossings(double nsec) {_time_between_crossings = nsec;}
-  
- private:
+  void set_time_between_crossings(double nsec) { _time_between_crossings = nsec; }
 
+ private:
   /// past times are negative, future times are positive
   double _min_integration_time;
   double _max_integration_time;
@@ -58,16 +58,15 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
   double _time_between_crossings;
 
   //derived parameters
-  double   _ave_coll_per_crossing;
-  int      _min_crossing;
-  int      _max_crossing;
-  
+  double _ave_coll_per_crossing;
+  int _min_crossing;
+  int _max_crossing;
+
   bool _first_run;
 
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif
-
 };
 
 #endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class PHHepMCGenEventMap+;
+#pragma link C++ class PHHepMCGenEventMap + ;
 
 #endif

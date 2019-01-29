@@ -20,7 +20,7 @@ namespace HepMC
 {
 class IO_GenEvent;
 class GenEvent;
-};
+};  // namespace HepMC
 
 class PHHepMCGenEvent;
 class PHCompositeNode;
@@ -80,6 +80,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
+
  protected:
   int OpenNextFile();
 
