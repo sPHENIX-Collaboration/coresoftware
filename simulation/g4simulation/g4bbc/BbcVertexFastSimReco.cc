@@ -24,8 +24,8 @@ using namespace std;
 
 BbcVertexFastSimReco::BbcVertexFastSimReco(const string &name)
   : SubsysReco(name),
-    _t_smear(NAN),
-    _z_smear(NAN)
+    m_T_Smear(NAN),
+    m_Z_Smear(NAN)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
 }
@@ -40,8 +40,8 @@ int BbcVertexFastSimReco::Init(PHCompositeNode *topNode) {
 
 int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
 
-  if (isnan(_t_smear)||isnan(_z_smear)) {
-    cout << PHWHERE << "::ERROR - smearing must be defined via set_t_smearing(float) and set_z_smeaering(float)" << endl;
+  if (isnan(m_T_Smear)||isnan(m_Z_Smear)) {
+    cout << PHWHERE << "::ERROR - smearing must be defined via setm_T_Smearing(float) and set_z_smeaering(float)" << endl;
     exit(-1);
   }
   
@@ -50,8 +50,8 @@ int BbcVertexFastSimReco::InitRun(PHCompositeNode *topNode) {
   
   if (Verbosity() > 0) {
     cout << "===================== BbcVertexFastSimReco::InitRun() =====================" << endl;
-    cout << " t smearing: " << _t_smear << " cm " << endl;
-    cout << "  z smearing: " << _z_smear << " cm " << endl;
+    cout << " t smearing: " << m_T_Smear << " cm " << endl;
+    cout << "  z smearing: " << m_Z_Smear << " cm " << endl;
     cout << " random seed: " << seed << endl;
     cout << "===========================================================================" << endl;
   }
@@ -87,20 +87,20 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode) {
   
   BbcVertex* vertex = new BbcVertexv1();
 
-  if (_t_smear >= 0.0) {
-    vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,_t_smear) );
-    vertex->set_t_err( _t_smear );
+  if (m_T_Smear >= 0.0) {
+    vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,m_T_Smear) );
+    vertex->set_t_err( m_T_Smear );
   } else {
-    vertex->set_t(point->get_t() + 2.0*gsl_rng_uniform_pos(RandomGenerator)*_t_smear );
-    vertex->set_t_err( fabs(_t_smear) / sqrt(12) );
+    vertex->set_t(point->get_t() + 2.0*gsl_rng_uniform_pos(RandomGenerator)*m_T_Smear );
+    vertex->set_t_err( fabs(m_T_Smear) / sqrt(12) );
   }
 
-  if (_z_smear >= 0.0) {
-    vertex->set_z(point->get_z() +  gsl_ran_gaussian(RandomGenerator,_z_smear) );
-    vertex->set_z_err( _z_smear );
+  if (m_Z_Smear >= 0.0) {
+    vertex->set_z(point->get_z() +  gsl_ran_gaussian(RandomGenerator,m_Z_Smear) );
+    vertex->set_z_err( m_Z_Smear );
   } else {
-    vertex->set_z(point->get_z() +  2.0*gsl_rng_uniform_pos(RandomGenerator)*_z_smear );
-    vertex->set_z_err( fabs(_z_smear) / sqrt(12) );
+    vertex->set_z(point->get_z() +  2.0*gsl_rng_uniform_pos(RandomGenerator)*m_Z_Smear );
+    vertex->set_z_err( fabs(m_Z_Smear) / sqrt(12) );
   }
   
   vertexes->insert(vertex);

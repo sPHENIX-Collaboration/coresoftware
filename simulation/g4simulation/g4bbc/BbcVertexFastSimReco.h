@@ -33,15 +33,15 @@ class BbcVertexFastSimReco : public SubsysReco {
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_t_smearing(const float t_smear) {_t_smear = t_smear;}
-  void set_z_smearing(const float z_smear) {_z_smear = z_smear;}
+  void set_t_smearing(const float t_smear) {m_T_Smear = t_smear;}
+  void set_z_smearing(const float z_smear) {m_Z_Smear = z_smear;}
 
  private:
 
   int CreateNodes(PHCompositeNode *topNode);
 
-  float _t_smear;
-  float _z_smear;
+  float m_T_Smear;
+  float m_Z_Smear;
 
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
