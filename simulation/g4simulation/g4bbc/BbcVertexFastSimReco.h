@@ -1,5 +1,5 @@
-#ifndef __BBCVERTEXFASTSIMRECO_H__
-#define __BBCVERTEXFASTSIMRECO_H__
+#ifndef G4BBC_BBCVERTEXFASTSIMRECO_H
+#define G4BBC_BBCVERTEXFASTSIMRECO_H
 
 //===========================================================
 /// \file BbcVertexFastSimReco.h
@@ -49,4 +49,4 @@ class BbcVertexFastSimReco : public SubsysReco {
 
 };
 
-#endif // __BBCVERTEXFASTSIMRECO_H__
+#endif // G4BBC_BBCVERTEXFASTSIMRECO_H

@@ -1,9 +1,10 @@
-#ifndef __BBCVERTEXv1_H__
-#define __BBCVERTEXv1_H__
+#ifndef G4BBC_BBCVERTEXV1_H
+#define G4BBC_BBCVERTEXV1_H
 
 #include "BbcVertex.h"
 
 #include <phool/PHObject.h>
+
 #include <vector>
 #include <set>
 #include <iostream>

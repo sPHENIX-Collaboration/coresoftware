@@ -1,7 +1,8 @@
-#ifndef __BBCVERTEX_H__
-#define __BBCVERTEX_H__
+#ifndef G4BBC_BBCVERTEX_H
+#define G4BBC_BBCVERTEX_H
 
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <iostream>
 

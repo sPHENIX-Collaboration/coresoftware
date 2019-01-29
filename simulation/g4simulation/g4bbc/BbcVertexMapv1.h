@@ -1,5 +1,5 @@
-#ifndef __BBCVERTEXMAPv1_H__
-#define __BBCVERTEXMAPv1_H__
+#ifndef G4BBC_BBCVERTEXMAPV1_H
+#define G4BBC_BBCVERTEXMAPV1_H
 
 #include "BbcVertexMap.h"
 #include "BbcVertex.h"
@@ -46,4 +46,4 @@ private:
   ClassDef(BbcVertexMapv1, 1);
 };
 
-#endif // __BBCVERTEXMAPv1_H__
+#endif // G4BBC_BBCVERTEXMAPV1_H
