@@ -75,6 +75,7 @@ class CaloEvaluator : public SubsysReco
   void set_do_gshower_eval(bool b) { _do_gshower_eval = b; }
   void set_do_tower_eval(bool b) { _do_tower_eval = b; }
   void set_do_cluster_eval(bool b) { _do_cluster_eval = b; }
+
  private:
   std::string _caloname;
 

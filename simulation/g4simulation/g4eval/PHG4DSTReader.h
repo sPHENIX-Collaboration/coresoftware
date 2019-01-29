@@ -12,7 +12,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-
 #ifndef __CINT__
 
 #include <boost/smart_ptr.hpp>
@@ -20,8 +19,8 @@
 #endif
 
 #include <iostream>
-#include <string>
 #include <set>
+#include <string>
 #include <vector>
 
 class PHCompositeNode;
@@ -31,29 +30,24 @@ class PHG4Particle;
 class TClonesArray;
 class TTree;
 
-
 /*!
  * \brief PHG4DSTReader save information from DST to an evaluator, which could include hit. particle, vertex, towers and jet (to be activated)
  */
 
 class PHG4DSTReader : public SubsysReco
 {
-public:
+ public:
   PHG4DSTReader(const std::string &filename);
-  virtual
-  ~PHG4DSTReader();
+  virtual ~PHG4DSTReader();
 
   //! full initialization
-  int
-  Init(PHCompositeNode *);
+  int Init(PHCompositeNode *);
 
   //! event processing method
-  int
-  process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *);
 
   //! end of run method
-  int
-  End(PHCompositeNode *);
+  int End(PHCompositeNode *);
 
   void
   AddNode(const std::string &name)
@@ -122,12 +116,11 @@ public:
     _tower_zero_sup = b;
   }
 
-protected:
-
+ protected:
   std::vector<std::string> _node_postfix;
   std::vector<std::string> _tower_postfix;
   std::vector<std::string> _jet_postfix;
-//  std::vector<std::string> _node_name;
+  //  std::vector<std::string> _node_name;
   int nblocks;
 
 #ifndef __CINT__
@@ -139,11 +132,15 @@ protected:
     unsigned int _cnt;
     std::string _name;
     arr_ptr _arr;
-    TClonesArray * _arr_ptr;
+    TClonesArray *_arr_ptr;
 
     enum enu_type
     {
-      typ_hit, typ_part, typ_vertex, typ_tower, typ_jets
+      typ_hit,
+      typ_part,
+      typ_vertex,
+      typ_tower,
+      typ_jets
     };
     enu_type _type;
   };
@@ -155,8 +152,8 @@ protected:
 
   std::string _out_file_name;
 
-//  TFile * _file;
-  TTree * _T;
+  //  TFile * _file;
+  TTree *_T;
 
   //! master switch to save particles
   bool _save_particle;
@@ -181,7 +178,7 @@ protected:
 
   //! add a particle and associated vertex if _save_vertex
   void
-  add_particle(record & rec, PHG4Particle * part);
+  add_particle(record &rec, PHG4Particle *part);
 
 #endif
 
