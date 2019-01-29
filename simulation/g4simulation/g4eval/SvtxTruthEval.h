@@ -1,5 +1,5 @@
-#ifndef SVTXTRUTHEVAL_H__
-#define SVTXTRUTHEVAL_H__
+#ifndef G4EVAL_SVTXTRUTHEVAL_H
+#define G4EVAL_SVTXTRUTHEVAL_H
 
 #include "BaseTruthEval.h"
 
@@ -74,4 +74,4 @@ private:
   std::map<PHG4Hit*,PHG4Particle*>            _cache_get_primary_particle_g4hit;
 };
 
-#endif // __SVTXTRUTHEVAL_H__
+#endif // G4EVAL_SVTXTRUTHEVAL_H

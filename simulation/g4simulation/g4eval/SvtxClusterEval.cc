@@ -389,7 +389,6 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)
   unsigned int hit_layer = truthhit->get_layer();
   // loop over all the clusters
 
-  int count = 0;
   multimap<unsigned int, innerMap>::iterator miter = _clusters_per_layer.find(hit_layer);
 
   if (miter != _clusters_per_layer.end())
@@ -410,9 +409,8 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)
 
     for (multimap<float, SvtxCluster*>::iterator liter = iter_lower_bound;
          liter != iter_upper_bound;
-         liter++)
+         ++liter)
     {
-      count++;
       /*
       for (SvtxClusterMap::Iter iter = _clustermap->begin();
       iter != _clustermap->end();
@@ -441,7 +439,6 @@ std::set<SvtxCluster*> SvtxClusterEval::all_clusters_from(PHG4Hit* truthhit)
 
   }  //  if (miter != _clusters_per_layer.end())
 
-  //  cout << "count " << count << endl;
   if (_do_cache) _cache_all_clusters_from_g4hit.insert(make_pair(truthhit, clusters));
 
   return clusters;

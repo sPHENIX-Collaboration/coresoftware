@@ -1,5 +1,5 @@
-#ifndef SVTXEVALUATOR_H__
-#define SVTXEVALUATOR_H__
+#ifndef G4EVAL_SVTXEVALUATOR_H
+#define G4EVAL_SVTXEVALUATOR_H
 
 //===============================================
 /// \file SvtxEvaluator.h
@@ -114,4 +114,4 @@ public:
   void printOutputInfo(PHCompositeNode* topNode);   ///< print out the ancestry information for detailed diagnosis
 };
 
-#endif // __SVTXEVALUATOR_H__
+#endif // G4EVAL_SVTXEVALUATOR_H

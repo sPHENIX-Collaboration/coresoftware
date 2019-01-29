@@ -1,8 +1,9 @@
-#ifndef JETTRUTHEVAL_H__
-#define JETTRUTHEVAL_H__
+#ifndef G4EVAL_JETTRUTHEVAL_H
+#define G4EVAL_JETTRUTHEVAL_H
 
 #include "SvtxEvalStack.h"
 #include "CaloEvalStack.h"
+
 #include <g4jets/Jet.h>
 
 #include <map>

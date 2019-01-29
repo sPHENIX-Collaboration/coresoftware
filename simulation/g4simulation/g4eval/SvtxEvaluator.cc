@@ -1254,7 +1254,7 @@ nglmaps+=lmaps[i];
 	      gvt      = vtx->get_t();
 	    }
 
-	    PHG4Hit* outerhit = NULL;
+	    PHG4Hit* outerhit = nullptr;
 	    if(_do_eval_light == false)
  	      outerhit = trutheval->get_outermost_truth_hit(g4particle);
 	    if (outerhit) {
@@ -2531,8 +2531,8 @@ nglmaps+=lmaps[i];
     float xval[_nlayers_maps+_nlayers_intt+_nlayers_tpc];
     float yval[_nlayers_maps+_nlayers_intt+_nlayers_tpc];
     float zval[_nlayers_maps+_nlayers_intt+_nlayers_tpc];
-int ntrk = 0;
     if (truthinfo) {
+    int ntrk = 0;
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
 	   iter != range.second; 

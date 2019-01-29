@@ -1,5 +1,5 @@
-#ifndef __PHG4DSTCOMPRESSRECO__
-#define __PHG4DSTCOMPRESSRECO__
+#ifndef G4EVAL_PHG4DSTCOMPRESSRECO_H
+#define G4EVAL_PHG4DSTCOMPRESSRECO_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -27,9 +27,9 @@ public:
   //! event processing
   int process_event(PHCompositeNode *topNode);
   
-  void AddHitContainer(const std::string name) {_compress_g4hit_names.insert(name);}
-  void AddCellContainer(const std::string name) {_compress_g4cell_names.insert(name);}
-  void AddTowerContainer(const std::string name) {_compress_tower_names.insert(name);}
+  void AddHitContainer(const std::string &name) {_compress_g4hit_names.insert(name);}
+  void AddCellContainer(const std::string &name) {_compress_g4cell_names.insert(name);}
+  void AddTowerContainer(const std::string &name) {_compress_tower_names.insert(name);}
 
 private:
 

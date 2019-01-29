@@ -1,5 +1,5 @@
-#ifndef CALORAWTOWEREVAL_H__
-#define CALORAWTOWEREVAL_H__
+#ifndef G4EVAL_CALORAWTOWEREVAL_H
+#define G4EVAL_CALORAWTOWEREVAL_H
 
 #include "CaloTruthEval.h"
 
@@ -136,4 +136,4 @@ private:
   std::map<RawTower*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
 };
 
-#endif // CALORAWTOWEREVAL_H__
+#endif // G4EVAL_CALORAWTOWEREVAL_H

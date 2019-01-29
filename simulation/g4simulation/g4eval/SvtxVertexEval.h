@@ -1,5 +1,5 @@
-#ifndef SVTXVERTEXEVAL_H__
-#define SVTXVERTEXEVAL_H__
+#ifndef G4EVAL_SVTXVERTEXEVAL_H
+#define G4EVAL_SVTXVERTEXEVAL_H
 
 #include "SvtxTrackEval.h"
 
@@ -82,4 +82,4 @@ private:
   std::map<std::pair<SvtxVertex*,PHG4VtxPoint*>, unsigned int> _cache_get_ntracks_contribution;
 };
 
-#endif // SVTXVERTEXEVAL_H__
+#endif // G4EVAL_SVTXVERTEXEVAL_H

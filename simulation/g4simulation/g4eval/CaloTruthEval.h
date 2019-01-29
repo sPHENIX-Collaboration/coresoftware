@@ -1,5 +1,5 @@
-#ifndef CALOTRUTHEVAL_H__
-#define CALOTRUTHEVAL_H__
+#ifndef G4EVAL_CALOTRUTHEVAL_H
+#define G4EVAL_CALOTRUTHEVAL_H
 
 #include "BaseTruthEval.h"
 
@@ -140,4 +140,4 @@ private:
   std::map<PHG4Particle*,std::set<PHG4Hit*> > _cache_get_shower_hits_from_primary;
 };
 
-#endif // __CALOTRUTHEVAL_H__
+#endif // G4EVAL_CALOTRUTHEVAL_H

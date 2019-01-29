@@ -1,5 +1,5 @@
-#ifndef MOMENTUM_EVALUATOR__
-#define MOMENTUM_EVALUATOR__
+#ifndef G4EVAL_MOMENTUMEVALUATOR_H
+#define G4EVAL_MOMENTUMEVALUATOR_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -11,7 +11,7 @@ class TNtuple;
 class MomentumEvaluator : public SubsysReco
 {
 	public:
-		MomentumEvaluator( std::string fname, float pt_s=0.1, float pz_s=0.2, unsigned int n_l=62, unsigned int n_i=2, unsigned int n_r=50, float i_z=10., float o_z=80. );
+		MomentumEvaluator( const std::string &fname, float pt_s=0.1, float pz_s=0.2, unsigned int n_l=62, unsigned int n_i=2, unsigned int n_r=50, float i_z=10., float o_z=80. );
 		~MomentumEvaluator();
 
 		int Init(PHCompositeNode *topNode);

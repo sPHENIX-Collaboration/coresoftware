@@ -1,5 +1,5 @@
-#ifndef CALOEVALUATOR_H__
-#define CALOEVALUATOR_H__
+#ifndef G4EVAL_CALOEVALUATOR_H
+#define G4EVAL_CALOEVALUATOR_H
 
 //===============================================
 /// \file CaloEvaluator.h
@@ -112,4 +112,4 @@ class CaloEvaluator : public SubsysReco
   void printOutputInfo(PHCompositeNode *topNode);    ///< print out the ancestry information for detailed diagnosis
 };
 
-#endif  // CALOEVALUATOR_H__
+#endif  // G4EVAL_CALOEVALUATOR_H

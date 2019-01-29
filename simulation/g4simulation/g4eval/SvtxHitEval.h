@@ -1,5 +1,5 @@
-#ifndef SVTXHITEVAL_H__
-#define SVTXHITEVAL_H__
+#ifndef G4EVAL_SVTXHITEVAL_H
+#define G4EVAL_SVTXHITEVAL_H
 
 #include "SvtxTruthEval.h"
 
@@ -94,4 +94,4 @@ private:
   std::map<std::pair<SvtxHit*,PHG4Hit*>,float>      _cache_get_energy_contribution_g4hit;
 };
 
-#endif // SVTXHITEVAL_H__
+#endif // G4EVAL_SVTXHITEVAL_H

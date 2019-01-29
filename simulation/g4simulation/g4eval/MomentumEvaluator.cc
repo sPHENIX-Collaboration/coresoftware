@@ -243,7 +243,7 @@ bool RecursiveMomentumContainer::insert( TrivialTrack& track )
 }
 
 
-MomentumEvaluator::MomentumEvaluator( std::string fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z ) : ntp_true(nullptr), ntp_reco(nullptr), pt_search_scale(pt_s), pz_search_scale(pz_s), event_counter(0), file_name(fname), n_layers(n_l), n_inner_layers(n_i), n_required_layers(n_r), inner_z_length(i_z), outer_z_length(o_z) {}
+MomentumEvaluator::MomentumEvaluator( const std::string &fname, float pt_s, float pz_s, unsigned int n_l, unsigned int n_i, unsigned int n_r, float i_z, float o_z ) : ntp_true(nullptr), ntp_reco(nullptr), pt_search_scale(pt_s), pz_search_scale(pz_s), event_counter(0), file_name(fname), n_layers(n_l), n_inner_layers(n_i), n_required_layers(n_r), inner_z_length(i_z), outer_z_length(o_z) {}
 MomentumEvaluator::~MomentumEvaluator()
 {
 	if(ntp_true != nullptr){delete ntp_true;}

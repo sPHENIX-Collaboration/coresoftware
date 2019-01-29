@@ -1,5 +1,5 @@
-#ifndef CALORAWCLUSTEREVAL_H__
-#define CALORAWCLUSTEREVAL_H__
+#ifndef G4EVAL_CALORAWCLUSTEREVAL_H
+#define G4EVAL_CALORAWCLUSTEREVAL_H
 
 #include "CaloRawTowerEval.h"
 
@@ -136,4 +136,4 @@ private:
   std::map<RawCluster*,std::set<PHG4Hit*> >            _cache_all_truth_hits;
 };
 
-#endif // __SVTXHITEVAL_H__
+#endif // G4EVAL_CALORAWCLUSTEREVAL_H

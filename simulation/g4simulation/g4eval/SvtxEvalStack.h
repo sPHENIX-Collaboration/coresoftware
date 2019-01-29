@@ -1,5 +1,5 @@
-#ifndef __SVTXEVALSTACK_H__
-#define __SVTXEVALSTACK_H__
+#ifndef G4EVAL_SVTXEVALSTACK_H
+#define G4EVAL_SVTXEVALSTACK_H
 
 #include "SvtxVertexEval.h"
 
@@ -39,4 +39,4 @@ private:
   SvtxVertexEval _vertexeval; // right now this is the top-level eval
 };
 
-#endif // __SVTXEVALSTACK_H__
+#endif // G4EVAL_SVTXEVALSTACK_H

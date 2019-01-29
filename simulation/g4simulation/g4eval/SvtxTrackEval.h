@@ -1,5 +1,5 @@
-#ifndef SVTXTRACKEVAL_H__
-#define SVTXTRACKEVAL_H__
+#ifndef G4EVAL_SVTXTRACKEVAL_H
+#define G4EVAL_SVTXTRACKEVAL_H
 
 #include "SvtxClusterEval.h"
 
@@ -93,4 +93,4 @@ private:
   std::map<std::pair<SvtxTrack*,PHG4Particle*>, unsigned int> _cache_get_nwrongclusters_contribution;
 };
 
-#endif // SVTXTRACKEVAL_H__
+#endif // G4EVAL_SVTXTRACKEVAL_H

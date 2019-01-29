@@ -5,6 +5,7 @@
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -80,7 +81,7 @@ PHG4Cell* SvtxHitEval::get_cell(SvtxHit* hit) {
   
   // hop from reco hit to g4cell
   PHG4Cell* cell = nullptr;
-  if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCell(hit->get_cellid());
+  if (_g4cells_svtx)    cell = _g4cells_svtx->findCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCell(hit->get_cellid());
   if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCell(hit->get_cellid());
 
@@ -110,7 +111,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
   
   // hop from reco hit to g4cell
   PHG4Cell *cell = nullptr;
-  if (!cell&&_g4cells_svtx)    cell = _g4cells_svtx->findCell(hit->get_cellid());
+  if (_g4cells_svtx)    cell = _g4cells_svtx->findCell(hit->get_cellid());
   if (!cell&&_g4cells_tracker) cell = _g4cells_tracker->findCell(hit->get_cellid());
   if (!cell&&_g4cells_maps) cell = _g4cells_maps->findCell(hit->get_cellid());
 
@@ -125,7 +126,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(SvtxHit* hit) {
        ++g4iter) {
     //cout << "    Looking for hit " << g4iter->first << " in layer " << cell->get_layer() << " with edep " << g4iter->second << endl;      
     PHG4Hit* g4hit = nullptr;
-    if (!g4hit&&_g4hits_svtx)    g4hit = _g4hits_svtx->findHit(g4iter->first);
+    if (_g4hits_svtx)    g4hit = _g4hits_svtx->findHit(g4iter->first);
     if (!g4hit&&_g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
     if (!g4hit&&_g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
     if(!g4hit) cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << endl;

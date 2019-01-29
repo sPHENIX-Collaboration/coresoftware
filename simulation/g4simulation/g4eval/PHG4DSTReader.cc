@@ -494,7 +494,7 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
 
               for (particle_iter = truthInfoList->GetMap().begin();
                   particle_iter != truthInfoList->GetMap().end();
-                  particle_iter++)
+                  ++particle_iter)
                 {
 
                   _particle_set.insert(particle_iter->first);
@@ -527,7 +527,7 @@ PHG4DSTReader::process_event(PHCompositeNode* topNode)
                 } //          if (_load_all_particle) else
             }
           for (PartSet_t::const_iterator i = _particle_set.begin();
-              i != _particle_set.end(); i++)
+              i != _particle_set.end(); ++i)
             {
               particle_iter = truthInfoList->GetMap().find(*i);
               if (particle_iter == truthInfoList->GetMap().end())

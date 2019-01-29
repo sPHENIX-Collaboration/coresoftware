@@ -1,5 +1,5 @@
-#ifndef SVTXCLUSTEREVAL_H__
-#define SVTXCLUSTEREVAL_H__
+#ifndef G4EVAL_SVTXCLUSTEREVAL_H
+#define G4EVAL_SVTXCLUSTEREVAL_H
 
 #include "SvtxHitEval.h"
 
@@ -106,4 +106,4 @@ private:
 
 };
 
-#endif // SVTXCLUSTEREVAL_H__
+#endif // G4EVAL_SVTXCLUSTEREVAL_H

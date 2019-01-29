@@ -1,5 +1,5 @@
-#ifndef JETRECOEVAL_H__
-#define JETRECOEVAL_H__
+#ifndef G4EVAL_JETRECOEVAL_H
+#define G4EVAL_JETRECOEVAL_H
 
 #include "JetTruthEval.h"
 
@@ -156,4 +156,4 @@ private:
   std::map<Jet*,std::set<PHG4Hit*> >      _cache_all_truth_hits;
 };
 
-#endif // __SVTXHITEVAL_H__
+#endif // G4EVAL_JETRECOEVAL_H

@@ -1,5 +1,5 @@
-#ifndef JETEVALSTACK_H__
-#define JETEVALSTACK_H__
+#ifndef G4EVAL_JETEVALSTACK_H
+#define G4EVAL_JETEVALSTACK_H
 
 #include "JetRecoEval.h"
 
@@ -42,4 +42,4 @@ private:
   JetRecoEval _recoeval; 
 };
 
-#endif // JETEVALSTACK_H__
+#endif // G4EVAL_JETEVALSTACK_H

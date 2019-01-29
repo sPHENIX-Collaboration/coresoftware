@@ -1,5 +1,5 @@
-#ifndef __JETEVALUATOR_H__
-#define __JETEVALUATOR_H__
+#ifndef G4EVAL_JETEVALUATOR_H
+#define G4EVAL_JETEVALUATOR_H
 
 //===============================================
 /// \file JetEvaluator.h
@@ -72,4 +72,4 @@ class JetEvaluator : public SubsysReco {
   void printOutputInfo(PHCompositeNode *topNode);   ///< print out the ancestry information for detailed diagnosis
 };
 
-#endif // __JETEVALUATOR_H__
+#endif // G4EVAL_JETEVALUATOR_H

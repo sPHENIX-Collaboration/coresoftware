@@ -7,8 +7,8 @@
  * \version $Revision: 1.7 $
  * \date $Date: 2015/02/27 23:42:23 $
  */
-#ifndef PHG4DSTREADER_H_
-#define PHG4DSTREADER_H_
+#ifndef G4EVAL_PHG4DSTREADER_H
+#define G4EVAL_PHG4DSTREADER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -189,4 +189,4 @@ protected:
   build_tree();
 };
 
-#endif /* PHG4DSTREADER_H_ */
+#endif /* G4EVAL_PHG4DSTREADER_H */

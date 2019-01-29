@@ -1,5 +1,5 @@
-#ifndef CALOEVALSTACK_H__
-#define CALOEVALSTACK_H__
+#ifndef G4EVAL_CALOEVALSTACK_H
+#define G4EVAL_CALOEVALSTACK_H
 
 #include "CaloRawClusterEval.h"
 #include "CaloRawTowerEval.h"
@@ -38,4 +38,4 @@ private:
   CaloRawClusterEval _clustereval; // right now this is the top-level eval, other evals nest underneath
 };
 
-#endif // __CALOEVALSTACK_H__
+#endif // G4EVAL_CALOEVALSTACK_H
