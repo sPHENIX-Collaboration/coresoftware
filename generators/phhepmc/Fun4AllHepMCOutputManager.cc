@@ -34,8 +34,8 @@ Fun4AllHepMCOutputManager::Fun4AllHepMCOutputManager(const string &myname,
   Fun4AllOutputManager( myname ),
   outfilename(filename),
   comment_written(0),
-  filestream(NULL),
-  zipstream(NULL),
+  filestream(nullptr),
+  zipstream(nullptr),
   _embedding_id(0)
 {
   TString tstr(filename);

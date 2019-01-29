@@ -28,7 +28,7 @@ int PHHepMCParticleSelectorDecayProductChain::InitRun(PHCompositeNode *topNode)
 HepMC::GenParticle*  PHHepMCParticleSelectorDecayProductChain::GetParent(HepMC::GenParticle* p, HepMC::GenEvent* event)
 {
 
-  HepMC::GenParticle* parent = NULL;
+  HepMC::GenParticle* parent = nullptr;
   if(!p->production_vertex()) return parent;
 
   for ( HepMC::GenVertex::particle_iterator mother = p->production_vertex()-> particles_begin(HepMC::ancestors);
@@ -43,7 +43,7 @@ HepMC::GenParticle*  PHHepMCParticleSelectorDecayProductChain::GetParent(HepMC::
 	      break;
 	    }
 	}
-      if(parent != NULL) break;
+      if(parent != nullptr) break;
     }
 
   return parent;

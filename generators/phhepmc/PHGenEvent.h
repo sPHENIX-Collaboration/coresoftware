@@ -11,8 +11,8 @@ class PHGenEvent : public PHObject {
  public:
   virtual ~PHGenEvent() {}
 
-  virtual const HepMC::GenEvent* get_event() const {return NULL;}
-  virtual HepMC::GenEvent* get_event() {return NULL;}
+  virtual const HepMC::GenEvent* get_event() const {return nullptr;}
+  virtual HepMC::GenEvent* get_event() {return nullptr;}
   virtual void set_event(HepMC::GenEvent& event) {}
   virtual void set_event(HepMC::GenEvent* event) {}
 

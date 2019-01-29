@@ -45,11 +45,11 @@ Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const str
   events_total(0),
   events_thisfile(0),
   topNodeName(topnodename),
-  evt(NULL),
+  evt(nullptr),
   skipEvents(0),
   skippedEvents(0),
-  filestream(NULL),
-  unzipstream(NULL),
+  filestream(nullptr),
+  unzipstream(nullptr),
   isCompressed(false)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
@@ -173,7 +173,7 @@ int Fun4AllOscarInputManager::run(const int nevents)
       goto readagain;
     }
   */
-  if (code == 1 || evt == NULL) 
+  if (code == 1 || evt == nullptr) 
     {
       if (Verbosity() > 1) cout << "Finished file!" << endl;
       fileclose();
@@ -271,7 +271,7 @@ int
 Fun4AllOscarInputManager::ResetEvent()
 {
   //delete evt;
-  //evt = NULL;
+  //evt = nullptr;
   return 0;
 }
 
@@ -322,7 +322,7 @@ Fun4AllOscarInputManager::ConvertFromOscar()
 {
 
   delete evt;
-  evt = NULL;
+  evt = nullptr;
   
   if(theOscarFile.eof()) // if the file is exhausted bail out during this next read
     {

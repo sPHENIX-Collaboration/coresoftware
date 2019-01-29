@@ -14,12 +14,12 @@ public:
   virtual ~PHGenEventList() {}
 
   virtual size_t size() const {PHOOL_VIRTUAL_WARNING; return 0;}
-  virtual const PHGenEvent* at(size_t i) const {PHOOL_VIRTUAL_WARNING; return NULL;}  
-  virtual PHGenEvent* at(size_t i) {PHOOL_VIRTUAL_WARNING; return NULL;}
+  virtual const PHGenEvent* at(size_t i) const {PHOOL_VIRTUAL_WARNING; return nullptr;}  
+  virtual PHGenEvent* at(size_t i) {PHOOL_VIRTUAL_WARNING; return nullptr;}
 
   virtual bool has(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return false;}
   virtual size_t find(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return size();}
-  virtual const PHGenEvent* fetch(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return NULL;}
+  virtual const PHGenEvent* fetch(unsigned int id) const {PHOOL_VIRTUAL_WARNING; return nullptr;}
 
   virtual unsigned int generate_id() const {PHOOL_VIRTUAL_WARNING; return 0;}
   virtual void insert(const PHGenEvent *event) {PHOOL_VIRTUAL_WARNING;}

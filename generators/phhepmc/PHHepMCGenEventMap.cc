@@ -70,14 +70,14 @@ void PHHepMCGenEventMap::identify(ostream& os) const
 const PHHepMCGenEvent* PHHepMCGenEventMap::get(int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 PHHepMCGenEvent* PHHepMCGenEventMap::get(int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
