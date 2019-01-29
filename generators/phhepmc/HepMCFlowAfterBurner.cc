@@ -139,11 +139,11 @@ void HepMCFlowAfterBurner::setAlgorithmName(const std::string &name)
   else
   {
     cout << "algorithm " << name << " not in list of possible algorithms" << endl;
-      cout << "possible algorithms are" << endl;
-      for (auto &al : algoset)
-      {
-	cout << al << endl;
-      }
+    cout << "possible algorithms are" << endl;
+    for (auto &al : algoset)
+    {
+      cout << al << endl;
+    }
   }
   return;
 }

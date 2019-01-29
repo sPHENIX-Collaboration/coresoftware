@@ -1,6 +1,5 @@
-#ifndef FUN4ALLHEPMCOUTPUTMANAGER_H__
-#define FUN4ALLHEPMCOUTPUTMANAGER_H__
-
+#ifndef PHHEPMC_FUN4ALLHEPMCOUTPUTMANAGER_H
+#define PHHEPMC_FUN4ALLHEPMCOUTPUTMANAGER_H
 
 #include <fun4all/Fun4AllOutputManager.h>
 #include <string>
@@ -8,23 +7,22 @@
 #include <fstream>
 #include <ostream>
 
-  namespace HepMC {
-    class IO_GenEvent;
-  };
-
+namespace HepMC
+{
+class IO_GenEvent;
+};
 
 class PHCompositeNode;
 
-class Fun4AllHepMCOutputManager: public Fun4AllOutputManager
+class Fun4AllHepMCOutputManager : public Fun4AllOutputManager
 {
  public:
-
-  Fun4AllHepMCOutputManager(const std::string &myname = "HEPMCOUT", 
-			    const std::string &filename = "hepmcout.txt");
+  Fun4AllHepMCOutputManager(const std::string &myname = "HEPMCOUT",
+                            const std::string &filename = "hepmcout.txt");
 
   virtual ~Fun4AllHepMCOutputManager();
 
-  int outfileopen(const std::string& /*fname*/) {return 0;}
+  int outfileopen(const std::string & /*fname*/) { return 0; }
 
   void Print(const std::string &what = "ALL") const;
 
@@ -51,8 +49,8 @@ class Fun4AllHepMCOutputManager: public Fun4AllOutputManager
   int comment_written;
 
   // some pointers for use in compression handling
-  std::ofstream *filestream; // holds compressed filestream
-  std::ostream *zipstream;   // feed into HepMC
+  std::ofstream *filestream;  // holds compressed filestream
+  std::ostream *zipstream;    // feed into HepMC
 
   //! positive ID is the embedded event of interest, e.g. jetty event from pythia
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
@@ -60,4 +58,4 @@ class Fun4AllHepMCOutputManager: public Fun4AllOutputManager
   int _embedding_id;
 };
 
-#endif /* FUN4ALLHEPMCOUTPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLHEPMCOUTPUTMANAGER_H */
