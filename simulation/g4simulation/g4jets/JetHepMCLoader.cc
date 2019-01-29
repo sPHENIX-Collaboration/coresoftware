@@ -10,8 +10,8 @@
 
 #include "JetHepMCLoader.h"
 
-#include "JetMapV1.h"
-#include "JetV1.h"
+#include "JetMapv1.h"
+#include "Jetv1.h"
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -165,7 +165,7 @@ int JetHepMCLoader::process_event(PHCompositeNode *topNode)
 
       if (part->status() == src.m_tagStatus and part->pdg_id() == src.m_tagPID)
       {
-        Jet *jet = new JetV1();
+        Jet *jet = new Jetv1();
 
         jet->set_px(part->momentum().px() * mom_factor);
         jet->set_py(part->momentum().py() * mom_factor);
@@ -269,7 +269,7 @@ int JetHepMCLoader::CreateNodes(PHCompositeNode *topNode)
     JetMap *jets = findNode::getClass<JetMap>(topNode, src.m_name);
     if (!jets)
     {
-      jets = new JetMapV1();
+      jets = new JetMapv1();
       PHIODataNode<PHObject> *JetMapNode = new PHIODataNode<PHObject>(jets, src.m_name.c_str(), "PHObject");
       InputNode->addNode(JetMapNode);
     }
