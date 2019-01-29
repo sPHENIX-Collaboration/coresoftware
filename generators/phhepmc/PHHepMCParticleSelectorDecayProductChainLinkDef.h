@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class PHHepMCParticleSelectorDecayProductChain-!;
+#pragma link C++ class PHHepMCParticleSelectorDecayProductChain - !;
 
 #endif

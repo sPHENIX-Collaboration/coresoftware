@@ -6,9 +6,7 @@
 
 using namespace std;
 
-ClassImp(PHHepMCGenEventMap)
-
-    PHHepMCGenEventMap::PHHepMCGenEventMap()
+PHHepMCGenEventMap::PHHepMCGenEventMap()
   : _map()
 {
 }
@@ -59,11 +57,11 @@ void PHHepMCGenEventMap::identify(ostream& os) const
 {
   os << "PHHepMCGenEventMap: size = " << _map.size() << endl;
 
-  for (const auto & evt : _map)
+  for (const auto& evt : _map)
   {
-    cout <<"Event["<<evt.first<<"] : ";
+    cout << "Event[" << evt.first << "] : ";
     assert(evt.second);
-    evt.second -> identify();
+    evt.second->identify();
   }
 
   return;
@@ -72,14 +70,14 @@ void PHHepMCGenEventMap::identify(ostream& os) const
 const PHHepMCGenEvent* PHHepMCGenEventMap::get(int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 PHHepMCGenEvent* PHHepMCGenEventMap::get(int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
@@ -115,8 +113,8 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_event(const int index, const PHHepMC
 {
   if (_map.find(index) != _map.end())
   {
-    cout <<"PHHepMCGenEventMap::insert_event - Fatal Error -"
-        <<"embedding ID "<<index<<" is already used in the PHHepMCGenEventMap. Print map:";
+    cout << "PHHepMCGenEventMap::insert_event - Fatal Error -"
+         << "embedding ID " << index << " is already used in the PHHepMCGenEventMap. Print map:";
     identify();
 
     exit(10);

@@ -50,10 +50,9 @@ PHHepMCGenHelper::PHHepMCGenHelper()
   , _reuse_vertex_embedding_id(numeric_limits<int>::min())
   , _geneventmap(nullptr)
 {
-
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this function
-  gsl_rng_set(RandomGenerator, seed );
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 PHHepMCGenHelper::~PHHepMCGenHelper()

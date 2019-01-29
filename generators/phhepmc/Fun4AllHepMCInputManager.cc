@@ -47,13 +47,13 @@ Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const str
   , events_thisfile(0)
   , readoscar(0)
   , topNodeName(topnodename)
-  , ascii_in(NULL)
-  , evt(NULL)
-  , save_evt(NULL)
-  , filestream(NULL)
-  , unzipstream(NULL)
+  , ascii_in(nullptr)
+  , evt(nullptr)
+  , save_evt(nullptr)
+  , filestream(nullptr)
+  , unzipstream(nullptr)
 {
-  set_embedding_id(0); // default embedding ID. Welcome to change via macro
+  set_embedding_id(0);  // default embedding ID. Welcome to change via macro
 
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
@@ -183,7 +183,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
     if (save_evt)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
     {
       evt = save_evt;
-      save_evt = NULL;
+      save_evt = nullptr;
     }
     else
     {
@@ -256,7 +256,7 @@ int Fun4AllHepMCInputManager::fileclose()
   else
   {
     delete ascii_in;
-    ascii_in = NULL;
+    ascii_in = nullptr;
   }
   isopen = 0;
   // if we have a file list, move next entry to top of the list
@@ -366,7 +366,7 @@ HepMC::GenEvent *
 Fun4AllHepMCInputManager::ConvertFromOscar()
 {
   delete evt;
-  evt = NULL;
+  evt = nullptr;
   if (theOscarFile.eof())  // if the file is exhausted bail out during this next read
   {
     return evt;

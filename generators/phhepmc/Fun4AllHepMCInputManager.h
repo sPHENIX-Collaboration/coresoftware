@@ -1,5 +1,5 @@
-#ifndef FUN4ALLHEPMCINPUTMANAGER_H__
-#define FUN4ALLHEPMCINPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H
+#define PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H
 
 #include "PHHepMCGenHelper.h"
 
@@ -15,16 +15,12 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #endif
 
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
-#endif
-
 // forward declaration of classes in namespace
 namespace HepMC
 {
 class IO_GenEvent;
 class GenEvent;
-};
+};  // namespace HepMC
 
 class PHHepMCGenEvent;
 class PHCompositeNode;
@@ -84,6 +80,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
+
  protected:
   int OpenNextFile();
 
@@ -113,4 +110,4 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
 #endif
 };
 
-#endif /* __FUN4ALLHEPMCINPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */
