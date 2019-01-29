@@ -19,8 +19,8 @@ class JetEvalStack {
 public:
 
   JetEvalStack(PHCompositeNode *topNode,
-	       std::string recojetname,
-	       std::string truthjetname);
+	       const std::string &recojetname,
+	       const std::string &truthjetname);
   virtual ~JetEvalStack() {}
 
   void next_event(PHCompositeNode *topNode);
