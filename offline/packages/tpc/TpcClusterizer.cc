@@ -10,14 +10,14 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
+//#include <g4detectors/PHG4Cell.h>
+//#include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
+//#include <g4main/PHG4Hit.h>
+//#include <g4main/PHG4HitContainer.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -84,7 +84,7 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   for(int iphi = phibin+1; iphi<phibin+4; iphi++)
     {
-      if(adcval[iphi][zbin] == 0)
+      if(adcval[iphi][zbin] <= 0)
 	break;
 
       if( adcval[iphi][zbin] <= adcval[iphi-1][zbin] )
@@ -95,7 +95,7 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   for(int iphi = phibin-1; iphi>phibin-4; iphi--)
     {
-      if(adcval[iphi][zbin] == 0)
+      if(adcval[iphi][zbin] <= 0)
 	break;
 
       if(adcval[iphi][zbin] <= adcval[iphi+1][zbin])
@@ -106,9 +106,9 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   // search along z at the peak in phi
 
-  for(int iz = zbin+1; iz<zbin+6; iz++)
+  for(int iz = zbin+1; iz<zbin+10; iz++)
     {
-      if(adcval[phibin][iz] == 0)
+      if(adcval[phibin][iz] <= 0)
 	break;
 
       if(adcval[phibin][iz] <= adcval[phibin][iz-1])
@@ -117,9 +117,9 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 	break;
     }
 
-  for(int iz =zbin-1; iz>zbin-6; iz--)
+  for(int iz =zbin-1; iz>zbin-10; iz--)
     {
-      if(adcval[phibin][iz] == 0)
+      if(adcval[phibin][iz] <= 0)
 	break;
 
       if(adcval[phibin][iz] <= adcval[phibin][iz+1])
@@ -225,7 +225,8 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  int zbin = TpcDefs::getTBin(hitr->first);
 	  if(hitr->second->getAdc() > 0)
 	    adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
-	  //cout << " add hit with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
+	  //if(layer == 47)
+	    cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
 	}
 
       vector<int> phibinlo;
@@ -248,64 +249,103 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  // cluster the hits around this local maximum
 	  get_cluster(phibin, zbin, phiup, phidown, zup, zdown, adcval);
 
+	  if(phiup == 0 && phidown == 0 && zup == 0 and zdown == 0) continue;   // ignore isolated noise hit
+
 	  // Add this cluster to a vector of clusters for later analysis
 	  phibinlo.push_back(phibin - phidown);
 	  phibinhi.push_back(phibin + phiup);
 	  zbinlo.push_back(zbin - zdown);
 	  zbinhi.push_back(zbin + zup);
-	  //cout << " cluster found with zbin " << zbin << " zup " << zup << " zdown " << zdown 
-	  //   << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
-	}  // end loop over hits in this hiset
+	  //if(layer == 47) 
+	    cout << " cluster found with zbin " << zbin << " zup " << zup << " zdown " << zdown 
+	     << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
+	}  // end loop over hits in this hitset
 
       // Now we analyze the clusters to get their parameters
       for(unsigned int iclus = 0; iclus < phibinlo.size(); iclus++)
 	{  	  
+	  // loop over the hits in this cluster
+	  double zsum = 0.0;
+	  double phi_sum = 0.0;
+	  double adc_sum = 0.0;
+	  double radius = layergeom->get_radius();  // returns center of layer
+	  cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;
+	  cout << "    z bin range " << zbinlo[iclus] << " to " << zbinhi[iclus] << " phibin range " << phibinlo[iclus] << " to " << phibinhi[iclus] << endl;  
+	  for(int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
+	    {
+	      for(int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
+		{
+		  double phi_center = layergeom->get_phicenter(iphi);
+		  double z = layergeom->get_zcenter(iz);
+	  
+		  zsum += z * adcval[iphi][iz];
+		  phi_sum += phi_center * adcval[iphi][iz];
+		  adc_sum += adcval[iphi][iz];
+		}
+	    }
+
+	  if(adc_sum < 10) continue;   // skip obvious noise "clusters"
+	  
+	  // This is the global position
+	  double clusz = zsum /  adc_sum;
+	  double clusphi = phi_sum / adc_sum;
+
+	  // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping
+	  if (clusz < 0)
+	    clusz -= zz_shaping_correction;
+	  else
+	    clusz += zz_shaping_correction;	  
+
 	  // create the cluster entry directly in the node tree
 	  TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
 	  TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
 
-	  // loop over the hits in this cluster
-	  double xsum = 0.0;
-	  double ysum = 0.0;
-	  double zsum = 0.0;
-	  int adc_sum = 0;
-	  for(int iphi = phibinlo[iclus]; iphi < phibinhi[iclus]; iphi++)
-	    {
-	      for(int iz = zbinlo[iclus]; iz < zbinhi[iclus]; iz++)
-		{
-		  // find the center of the pixel in world coords
-		  double phi_center = layergeom->get_phicenter(iphi);
-		  double radius = layergeom->get_radius();
-		  double x = radius * cos(phi_center);
-		  double y = radius * sin(phi_center);
-		  double z = layergeom->get_zcenter(iz);
-	  
-		  xsum += (double) adcval[iphi][iz] * x;
-		  ysum += (double) adcval[iphi][iz] * y;
-		  zsum += (double) adcval[iphi][iz] * z;
-		  adc_sum += adcval[iphi][iz];
-		}
-	    }
-	  
-	  // This is the global position
-	  double clusx = xsum / (double) adc_sum;
-	  double clusy = ysum / (double) adc_sum;
-	  double clusz = zsum / (double) adc_sum;
-	  
 	  // Fill in the cluster details
 	  //================
 	  clus->setAdc(adc_sum);
-	  clus->setPosition(0, clusx);
-	  clus->setPosition(1, clusy);
+	  clus->setPosition(0, radius * cos(clusphi));
+	  clus->setPosition(1, radius * sin(clusphi));
 	  clus->setPosition(2, clusz);
 	  clus->setGlobal();
 
-	  double radius = layergeom->get_radius();
-	  double phi_size = (double) (phibinlo[iclus] - phibinhi[iclus]) * layergeom->get_phistep();
-	  double z_size = (double) (phibinlo[iclus] - phibinhi[iclus]) * layergeom->get_zstep();
-	  double phi_err = layergeom->get_phistep() / sqrt(12.0);
-	  double z_err = layergeom->get_zstep() / sqrt(12.0);
-	  double phi = atan(clusy/clusx);
+	  double phi_size = (double) (phibinhi[iclus] - phibinlo[iclus] + 1) * radius * layergeom->get_phistep();
+	  double z_size = (double) (zbinhi[iclus] - zbinlo[iclus] + 1) * layergeom->get_zstep();
+
+	  //double phi_err = radius * layergeom->get_phistep() / sqrt(12.0);
+	  //double z_err = layergeom->get_zstep() / sqrt(12.0);
+	  // The above crude error neglects the effect of electron statistics on the precision of the measured hit
+
+	  double dphi2_adc = 0.0;
+	  double dphi_adc = 0.0;
+	  double dz2_adc = 0.0;
+	  double dz_adc = 0.0;
+	  for(int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
+	    {
+	      for(int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
+		{
+		  double dphi = layergeom->get_phicenter(iphi) - clusphi;
+		  dphi2_adc += dphi*dphi*adcval[iphi][iz];
+		  dphi_adc += dphi*adcval[iphi][iz];
+
+		  double dz = layergeom->get_zcenter(iz) - clusz;
+		  dz2_adc += dz*dz*adcval[iphi][iz];
+		  dz_adc += dz*adcval[iphi][iz];
+		}
+	    }
+
+	  double phi_cov = radius *( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
+	  double z_cov =  dz2_adc / adc_sum - dz_adc*dz_adc / (adc_sum*adc_sum);
+
+	  // phi_cov = weighted mean of dphi^2 - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
+	  // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
+	  //    - N is the number of electrons that drift to the readout plane
+	  // We have to convert (sum of adc units for all bins in the cluster) to number of ionization electrons N
+	  // Conversion gain is 20 mV/fC - relates total charge collected on pad to PEAK voltage out of ADC. The GEM gain is assumed to be 2000
+	  // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
+	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
+
+	  double phi_err = radius * sqrt(phi_cov) / (adc_sum * 0.14);
+	  double z_err = sqrt(z_cov) / (adc_sum * 0.14) ;
 
 	  TMatrixF DIM(3, 3);
 	  DIM[0][0] = 0.0;
@@ -323,18 +363,18 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  ERR[0][1] = 0.0;
 	  ERR[0][2] = 0.0;
 	  ERR[1][0] = 0.0;
-	  ERR[1][1] = phi_err * phi_err;  //cluster_v1 expects rad, arc, z as elementsof covariance
+	  ERR[1][1] = phi_err   * phi_err;  //cluster_v1 expects rad, arc, z as elementsof covariance
 	  ERR[1][2] = 0.0;
 	  ERR[2][0] = 0.0;
 	  ERR[2][1] = 0.0;
 	  ERR[2][2] = z_err * z_err;
 	  
 	  TMatrixF ROT(3, 3);
-	  ROT[0][0] = cos(phi);
-	  ROT[0][1] = -sin(phi);
+	  ROT[0][0] = cos(clusphi);
+	  ROT[0][1] = -sin(clusphi);
 	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(phi);
-	  ROT[1][1] = cos(phi);
+	  ROT[1][0] = sin(clusphi);
+	  ROT[1][1] = cos(clusphi);
 	  ROT[1][2] = 0.0;
 	  ROT[2][0] = 0.0;
 	  ROT[2][1] = 0.0;

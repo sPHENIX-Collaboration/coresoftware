@@ -694,10 +694,10 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	      int zbin = TpcDefs::getTBin(phi_sorted_hits[iphi][iz]->first);
 	      is_populated[zbin] = 1;  // this bin is a associated with a hit
 	      z_sorted_hits[zbin].push_back(phi_sorted_hits[iphi][iz]);
-	      //TrkrDefs::hitkey hitkey =  phi_sorted_hits[iphi][iz]->first ;
-	      //if(layer == print_layer)  cout << "Adding hit to z vector for zbin " << zbin << "  hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) 
-	      //			     << " z bin " << TpcDefs::getTBin(hitkey)   << "  energy " <<( phi_sorted_hits[iphi][iz]->second)->getEnergy() 
-	      //			     << " adc " << (phi_sorted_hits[iphi][iz]->second)->getAdc() << endl;
+	      TrkrDefs::hitkey hitkey =  phi_sorted_hits[iphi][iz]->first ;
+	      if(layer == print_layer)  cout << "Adding hit to z vector for zbin " << zbin << "  hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) 
+	      			     << " z bin " << TpcDefs::getTBin(hitkey)   << "  energy " <<( phi_sorted_hits[iphi][iz]->second)->getEnergy() 
+	      			     << " adc " << (phi_sorted_hits[iphi][iz]->second)->getAdc() << endl;
 	    }
 	      
 	  adc_input.clear();
@@ -718,7 +718,7 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		  
 		  adc_input.push_back(adc_input_voltage + noise_voltage);
 		  adc_hitid.push_back(z_sorted_hits[iz][0]->first);
-		  //if(layer == print_layer) cout << "new: iphi " << iphi  << " iz " << iz << " edep " <<  (z_sorted_hits[iz][0]->second)->getEnergy() << " adc gain " << ADCSignalConversionGain << " adc_input " << adc_input[iz] << endl;
+		  if(layer == print_layer) cout << "new: iphi " << iphi  << " iz " << iz << " edep " <<  (z_sorted_hits[iz][0]->second)->getEnergy() << " adc gain " << ADCSignalConversionGain << " adc_input " << adc_input[iz] << endl;
 		}
 	      else if (is_populated[iz] == 2)
 		{
@@ -789,7 +789,7 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 			  hit->setAdc(adc_output);
 			  
 			}  // end boundary check
-		      binpointer++;
+		      binpointer++;   // skip this bin in future
 		    }    // end izup loop
 		  
 		}  //  adc threshold if
@@ -850,7 +850,7 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
 			  hit->setAdc(adc_output);
 			} // end boundary check
-			  binpointer++;
+			  binpointer--;
 		    } // end izup loop
 		  
 		}  //  adc threshold if
@@ -867,8 +867,12 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     }  // end loop over hitsets
 
   //======================================================  
-  if(Verbosity() > 2) cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end:" << endl;
-  // We want all hitsets for the TPC
+  if(Verbosity() > 2) 
+    cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end before cleaning:" << endl;
+
+    std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
+
+  // Clean up undigitized hits - we want all hitsets for the TPC
   TrkrHitSetContainer::ConstRange hitset_range_now = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_now.first;
        hitset_iter != hitset_range_now.second;
@@ -877,10 +881,10 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
      // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
       TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
       const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-      if (layer != print_layer)  continue;
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
-      if(Verbosity() > 2) cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+      if(Verbosity() > 2) 
+	cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -897,13 +901,61 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
 	  if(tpchit->getAdc() == 0)
 	    {
-	      if(Verbosity() > 2) cout << "                       --   this hit not digitized - deleted it" << endl;
-	      hitset->removeHit(hitkey);
+	      if(Verbosity() > 2) 
+		cout << "                       --   this hit not digitized - delete it" << endl;
+	      // screws up the iterator to delete it here, store the hitkey for later deletion
+		delete_hitkey_list.push_back(std::make_pair(hitsetkey, hitkey));
 	    }
-
 	}
     }
+
+  // delete undigitized hitkeys
+  for(unsigned int i=0; i<delete_hitkey_list.size(); i++)
+    {
+      TrkrHitSet *hitset = trkrhitsetcontainer->findHitSet(delete_hitkey_list[i].first);
+      hitset->removeHit(delete_hitkey_list[i].second);
+      if(Verbosity() > 2) cout << "removed hit with hitsetkey " << delete_hitkey_list[i].first << " and hitkey " << delete_hitkey_list[i].second << endl; 
+    }
+
   //=======================================
+
+  // Final hitset dump
+  cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end after cleaning:" << endl;
+ // We want all hitsets for the TPC
+  TrkrHitSetContainer::ConstRange hitset_range_final = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_final.first;
+       hitset_iter != hitset_range_now.second;
+       ++hitset_iter)
+    {
+     // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      if (layer != print_layer)  continue;
+      const int sector = TpcDefs::getSectorId(hitsetkey);
+      const int side = TpcDefs::getSide(hitsetkey);
+      if(Verbosity() > 2) 
+	cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  TrkrDefs::hitkey hitkey = hit_iter->first;
+	  TrkrHit *tpchit = hit_iter->second;
+	  if(Verbosity() > 2)
+	    cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+		 << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+
+	  if(tpchit->getAdc() == 0)
+	    {
+		cout << "   Oops!                    --   this hit not digitized and not deleted!" << endl;
+	    }
+	}
+    }
+
 						      
   //=============
   // end new containers
