@@ -1,5 +1,5 @@
-#ifndef __BBCVERTEX_V1_H__
-#define __BBCVERTEX_V1_H__
+#ifndef __BBCVERTEXv1_H__
+#define __BBCVERTEXv1_H__
 
 #include "BbcVertex.h"
 
@@ -8,19 +8,19 @@
 #include <set>
 #include <iostream>
 
-class BbcVertex_v1 : public BbcVertex {
+class BbcVertexv1 : public BbcVertex {
 
 public:
   
-  BbcVertex_v1();
-  virtual ~BbcVertex_v1();
+  BbcVertexv1();
+  virtual ~BbcVertexv1();
 
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  void         Reset() {*this = BbcVertex_v1();}
+  void         Reset() {*this = BbcVertexv1();}
   int          isValid() const;
-  BbcVertex*   Clone() {return new BbcVertex_v1(*this);}
+  BbcVertex*   Clone() {return new BbcVertexv1(*this);}
   
   // vertex info
   
@@ -47,7 +47,7 @@ private:
   float                            _z;         //< collision position z
   float                            _z_err;     //< collision position z uncertainty
   
-  ClassDef(BbcVertex_v1, 1);
+  ClassDef(BbcVertexv1, 1);
 };
 
 #endif

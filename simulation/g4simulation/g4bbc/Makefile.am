@@ -26,23 +26,23 @@ libg4bbc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   BbcVertex.h \
-  BbcVertex_v1.h \
+  BbcVertexv1.h \
   BbcVertexMap.h \
-  BbcVertexMap_v1.h \
+  BbcVertexMapv1.h \
   BbcVertexFastSimReco.h
 
 ROOTDICTS = \
   BbcVertex_Dict.cc \
-  BbcVertex_v1_Dict.cc \
+  BbcVertexv1_Dict.cc \
   BbcVertexMap_Dict.cc \
-  BbcVertexMap_v1_Dict.cc
+  BbcVertexMapv1_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
     BbcVertex_Dict_rdict.pcm \
-    BbcVertex_v1_Dict_rdict.pcm \
+    BbcVertexv1_Dict_rdict.pcm \
     BbcVertexMap_Dict_rdict.pcm \
-    BbcVertexMap_v1_Dict_rdict.pcm
+    BbcVertexMapv1_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
     BbcVertexFastSimReco_Dict.cc
@@ -50,14 +50,12 @@ endif
 
 libg4bbc_io_la_SOURCES = \
   $(ROOTDICTS) \
-  BbcVertex.C \
-  BbcVertex_v1.C \
-  BbcVertexMap.C \
-  BbcVertexMap_v1.C
+  BbcVertexv1.cc \
+  BbcVertexMapv1.cc
 
 libg4bbc_la_SOURCES = \
   $(ROOT5_DICTS) \
-  BbcVertexFastSimReco.C
+  BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

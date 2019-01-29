@@ -1,12 +1,10 @@
-#include "BbcVertex_v1.h"
+#include "BbcVertexv1.h"
 
 #include <cmath>
 
 using namespace std;
 
-ClassImp(BbcVertex_v1);
-
-BbcVertex_v1::BbcVertex_v1()
+BbcVertexv1::BbcVertexv1()
   : _id(0xFFFFFFFF),
     _t(NAN),
     _t_err(NAN),
@@ -14,10 +12,10 @@ BbcVertex_v1::BbcVertex_v1()
     _z_err(NAN) {
 }
 
-BbcVertex_v1::~BbcVertex_v1(){}
+BbcVertexv1::~BbcVertexv1(){}
 
-void BbcVertex_v1::identify(ostream& os) const {
-  os << "---BbcVertex_v1--------------------------------" << endl;
+void BbcVertexv1::identify(ostream& os) const {
+  os << "---BbcVertexv1--------------------------------" << endl;
   os << "vertexid: " << get_id() << endl;
   os << " t = " << get_t() << " +/- " << get_t_err() << endl;
   os << " z =  " << get_z() << " +/- " << get_z_err() << endl;
@@ -26,7 +24,7 @@ void BbcVertex_v1::identify(ostream& os) const {
   return;  
 }
 
-int BbcVertex_v1::isValid() const {
+int BbcVertexv1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t)) return 0;
   if (isnan(_t_err)) return 0;

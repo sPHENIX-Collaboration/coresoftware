@@ -1,5 +1,5 @@
-#ifndef __BBCVERTEXMAP_V1_H__
-#define __BBCVERTEXMAP_V1_H__
+#ifndef __BBCVERTEXMAPv1_H__
+#define __BBCVERTEXMAPv1_H__
 
 #include "BbcVertexMap.h"
 #include "BbcVertex.h"
@@ -8,12 +8,12 @@
 #include <map>
 #include <iostream>
 
-class BbcVertexMap_v1 : public BbcVertexMap {
+class BbcVertexMapv1 : public BbcVertexMap {
   
 public:
 
-  BbcVertexMap_v1();
-  virtual ~BbcVertexMap_v1();
+  BbcVertexMapv1();
+  virtual ~BbcVertexMapv1();
 
   void identify(std::ostream &os = std::cout) const;
   void Reset() {clear();}
@@ -43,7 +43,7 @@ public:
 private:
   std::map<unsigned int, BbcVertex*> _map;
     
-  ClassDef(BbcVertexMap_v1, 1);
+  ClassDef(BbcVertexMapv1, 1);
 };
 
-#endif // __BBCVERTEXMAP_V1_H__
+#endif // __BBCVERTEXMAPv1_H__

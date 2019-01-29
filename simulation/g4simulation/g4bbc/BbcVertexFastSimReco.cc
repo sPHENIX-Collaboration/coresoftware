@@ -1,8 +1,8 @@
 
 #include "BbcVertexFastSimReco.h"
 
-#include "BbcVertexMap_v1.h"
-#include "BbcVertex_v1.h"
+#include "BbcVertexMapv1.h"
+#include "BbcVertexv1.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -85,7 +85,7 @@ int BbcVertexFastSimReco::process_event(PHCompositeNode *topNode) {
   PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
   if (!point) return Fun4AllReturnCodes::EVENT_OK;
   
-  BbcVertex* vertex = new BbcVertex_v1();
+  BbcVertex* vertex = new BbcVertexv1();
 
   if (_t_smear >= 0.0) {
     vertex->set_t(point->get_t() + gsl_ran_gaussian(RandomGenerator,_t_smear) );
@@ -133,7 +133,7 @@ int BbcVertexFastSimReco::CreateNodes(PHCompositeNode *topNode) {
   // create the BbcVertexMap
   BbcVertexMap *vertexes = findNode::getClass<BbcVertexMap>(topNode,"BbcVertexMap");
   if (!vertexes) {
-    vertexes = new BbcVertexMap_v1();
+    vertexes = new BbcVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes,"BbcVertexMap","PHObject");
     bbcNode->addNode(VertexMapNode);
   } else {
