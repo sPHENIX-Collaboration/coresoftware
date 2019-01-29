@@ -2,11 +2,6 @@
 
 #include "SvtxEvalStack.h"
 
-#include <phool/PHCompositeNode.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
 
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
@@ -25,6 +20,13 @@
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+#include <phool/PHTimeServer.h>
+#include <phool/PHTimer.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
@@ -670,38 +672,24 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    
 	    std::set<SvtxCluster*> g4clusters = clustereval->all_clusters_from(g4particle);
 	    unsigned int nglmaps = 0;
-	    unsigned int nglintt = 0;
-	    unsigned int ngltpc  = 0;
 	    
 	    int lmaps[_nlayers_maps+1];
-	    if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) lmaps[i] = 0;
-	    
-	    int lintt[_nlayers_intt+1];
-	    if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) lintt[i] = 0;
-	    
-	    int ltpc[_nlayers_tpc+1];
-	    if(_nlayers_tpc>0) for(unsigned int i = 0;i<_nlayers_tpc;i++) ltpc[i] = 0;
-	    
+	    if(_nlayers_maps>0) {
+	      for(unsigned int i = 0;i<_nlayers_maps;i++) {
+lmaps[i] = 0;
+	      }
+	    }	    
 	    for(const SvtxCluster* g4cluster : g4clusters){
 	      unsigned int layer = g4cluster->get_layer();
 	      //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
 	      if(_nlayers_maps>0&&layer<_nlayers_maps) {
 		lmaps[layer] = 1;
 	      }
-	      
-	      if(_nlayers_intt>0&&layer>=_nlayers_maps&&layer<_nlayers_maps+_nlayers_intt){
-		lintt[layer-_nlayers_maps] = 1;
-	      }
-	      
-	      if(_nlayers_tpc>0&&layer>=_nlayers_maps+_nlayers_intt && layer<_nlayers_maps+_nlayers_intt+_nlayers_tpc){
-		ltpc[layer-(_nlayers_maps+_nlayers_intt)] = 1;
-	      }
 	    }
-	    if(_nlayers_maps>0) for(unsigned int i = 0;i<_nlayers_maps;i++) nglmaps+=lmaps[i];
-	    if(_nlayers_intt>0) for(unsigned int i = 0;i<_nlayers_intt;i++) nglintt+=lintt[i];
-	    if(_nlayers_tpc>0)  for(unsigned int i = 0;i<_nlayers_tpc;i++)  ngltpc+=ltpc[i];
-	    
-	    //        float gflavor   = g4particle->get_pid();
+	    if(_nlayers_maps>0) {
+	      for(unsigned int i = 0;i<_nlayers_maps;i++) {
+nglmaps+=lmaps[i];
+	      }}
 	    float gpx       = g4particle->get_px();
 	    float gpy       = g4particle->get_py();
 	    float gpz       = g4particle->get_pz();
@@ -1427,13 +1415,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 		    return;
 		  }
 
-		// radii of layer boundaries
-		float rbin = NAN;
-		float rbout = NAN;
 		PHG4CylinderCellGeom *GeoLayer = geom_container->GetLayerCellGeom(layer);
 		// get layer boundaries here (for nominal layer value) for later use
-		rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
-		rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 	
+		// radii of layer boundaries
+		float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0; 
+		float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0; 	
  
 		gx = 0.0; 
 		gy = 0.0; 
@@ -2520,7 +2506,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode,"G4TruthInfo");
     
-    float ntrk = 0;
     float gx = NAN;
     float gy = NAN;
     float gz = NAN;
@@ -2546,7 +2531,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
     float xval[_nlayers_maps+_nlayers_intt+_nlayers_tpc];
     float yval[_nlayers_maps+_nlayers_intt+_nlayers_tpc];
     float zval[_nlayers_maps+_nlayers_intt+_nlayers_tpc];
-
+int ntrk = 0;
     if (truthinfo) {
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
@@ -2614,10 +2599,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode *topNode) {
 	    }
 	  }
 	  
-	
-	  
-	  float gseed_data[] = {(float) _ievent,
-				  ntrk,
+	  float ntrk_f = ntrk;
+	  float _ievent_f = _ievent;
+	  float gseed_data[] = {_ievent_f,
+				 ntrk_f,
 				  gx,
 				  gy,
 				  gz,
