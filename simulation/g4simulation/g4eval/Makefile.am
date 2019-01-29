@@ -45,51 +45,52 @@ pkginclude_HEADERS = \
 
 if ! MAKEROOT6
   ROOT5DICTS = \
-  CaloEvalStack_Dict.C \
-  CaloTruthEval_Dict.C \
-  CaloRawTowerEval_Dict.C \
-  CaloRawClusterEval_Dict.C \
-  CaloEvaluator_Dict.C \
-  JetEvalStack_Dict.C \
-  JetTruthEval_Dict.C \
-  JetRecoEval_Dict.C \
-  JetEvaluator_Dict.C \
-  PHG4DSTReader_Dict.C \
-  SvtxEvalStack_Dict.C \
-  SvtxTruthEval_Dict.C \
-  SvtxHitEval_Dict.C \
-  SvtxClusterEval_Dict.C \
-  SvtxTrackEval_Dict.C \
-  SvtxVertexEval_Dict.C \
-  SvtxEvaluator_Dict.C \
-  MomentumEvaluator_Dict.C \
-  PHG4DstCompressReco_Dict.C
+  CaloEvalStack_Dict.cc \
+  CaloTruthEval_Dict.cc \
+  CaloRawTowerEval_Dict.cc \
+  CaloRawClusterEval_Dict.cc \
+  CaloEvaluator_Dict.cc \
+  JetEvalStack_Dict.cc \
+  JetTruthEval_Dict.cc \
+  JetRecoEval_Dict.cc \
+  JetEvaluator_Dict.cc \
+  PHG4DSTReader_Dict.cc \
+  SvtxEvalStack_Dict.cc \
+  SvtxTruthEval_Dict.cc \
+  SvtxHitEval_Dict.cc \
+  SvtxClusterEval_Dict.cc \
+  SvtxTrackEval_Dict.cc \
+  SvtxVertexEval_Dict.cc \
+  SvtxEvaluator_Dict.cc \
+  MomentumEvaluator_Dict.cc \
+  PHG4DstCompressReco_Dict.cc
 endif
 
 libg4eval_la_SOURCES = \
-  BaseTruthEval.C \
-  CaloEvalStack.C \
-  CaloTruthEval.C \
-  CaloRawTowerEval.C \
-  CaloRawClusterEval.C \
-  CaloEvaluator.C \
-  JetEvalStack.C \
-  JetTruthEval.C \
-  JetRecoEval.C \
-  JetEvaluator.C \
+  $(ROOT5DICTS) \
+  BaseTruthEval.cc \
+  CaloEvalStack.cc \
+  CaloTruthEval.cc \
+  CaloRawTowerEval.cc \
+  CaloRawClusterEval.cc \
+  CaloEvaluator.cc \
+  JetEvalStack.cc \
+  JetTruthEval.cc \
+  JetRecoEval.cc \
+  JetEvaluator.cc \
   PHG4DSTReader.cc \
-  SvtxEvalStack.C \
-  SvtxTruthEval.C \
-  SvtxHitEval.C \
-  SvtxClusterEval.C \
-  SvtxTrackEval.C \
-  SvtxVertexEval.C \
-  SvtxEvaluator.C \
-  MomentumEvaluator.C \
-  PHG4DstCompressReco.C 
+  SvtxEvalStack.cc \
+  SvtxTruthEval.cc \
+  SvtxHitEval.cc \
+  SvtxClusterEval.cc \
+  SvtxTrackEval.cc \
+  SvtxVertexEval.cc \
+  SvtxEvaluator.cc \
+  MomentumEvaluator.cc \
+  PHG4DstCompressReco.cc 
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
@@ -98,12 +99,15 @@ libg4eval_la_SOURCES = \
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 testexternals_LDADD = \
   libg4eval.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -111,4 +115,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* testexternals.C *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
