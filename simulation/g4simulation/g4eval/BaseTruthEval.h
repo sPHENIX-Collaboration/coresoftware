@@ -1,5 +1,5 @@
-#ifndef BASETRUTHEVAL_H__
-#define BASETRUTHEVAL_H__
+#ifndef G4EVAL_BASETRUTHEVAL_H
+#define G4EVAL_BASETRUTHEVAL_H
 
 #include <set>
 
@@ -22,13 +22,13 @@ public:
 
   /// strict mode will assert when an error is detected
   /// non-strict mode will notice and report at the End()
-  void set_strict(bool strict) {_strict = strict;}
+  void set_strict(bool strict) {m_Strict = strict;}
 
   /// get a count of the errors discovered thus far
-  unsigned int get_errors() {return _errors;}
+  unsigned int get_errors() {return m_Errors;}
   
   /// adjust the messaging from the evalutaion module
-  void set_verbosity(int verbosity) {_verbosity = verbosity;}
+  void set_verbosity(int verbosity) {m_Verbosity = verbosity;}
 
   // ---reduced sim node or better---------------------------------------------
 
@@ -93,11 +93,11 @@ private:
 
   void get_node_pointers(PHCompositeNode* topNode);
   
-  PHG4TruthInfoContainer* _truthinfo;
+  PHG4TruthInfoContainer* m_TruthInfo;
 
-  bool _strict;
-  int _verbosity;
-  unsigned int _errors;
+  bool m_Strict;
+  int m_Verbosity;
+  unsigned int m_Errors;
 };
 
-#endif // __BASETRUTHEVAL_H__
+#endif // G4EVAL_BASETRUTHEVAL_H
