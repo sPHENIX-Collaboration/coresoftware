@@ -5,8 +5,6 @@
 
 using namespace std;
 
-ClassImp(SvtxBeamSpot);
-
 SvtxBeamSpot::SvtxBeamSpot()
   : _pos(),
     _err() { 

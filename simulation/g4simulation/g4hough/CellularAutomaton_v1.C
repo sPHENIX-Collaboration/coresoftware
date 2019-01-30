@@ -11,8 +11,6 @@
 #include <cmath>
 #include <iostream>
 
-ClassImp(CellularAutomaton_v1)
-
 using namespace std;
 using namespace Eigen;
 
