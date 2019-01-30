@@ -1,13 +1,12 @@
 #include "G4RootRawTowerContainer.h"
 
 #include "G4RootRawTower.h"
+
 #include <TClonesArray.h>
 
 #include <cmath>
 
 using namespace std;
-
-ClassImp(G4RootRawTowerContainer)
 
 static const int NMAX = 1000;
 

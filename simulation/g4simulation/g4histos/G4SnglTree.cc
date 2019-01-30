@@ -25,7 +25,7 @@ G4SnglTree::G4SnglTree(const std::string &name, const std::string &filename):
 	SubsysReco( name ),
 	nblocks(0),
 	_filename(filename),
-	outfile(NULL)
+	outfile(nullptr)
 {}
 
 G4SnglTree::~G4SnglTree()

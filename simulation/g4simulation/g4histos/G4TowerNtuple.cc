@@ -22,10 +22,10 @@ using namespace std;
 G4TowerNtuple::G4TowerNtuple(const std::string &name, const std::string &filename):
   SubsysReco( name ),
   nblocks(0),
-  hm(NULL),
+  hm(nullptr),
   _filename(filename),
-  ntup(NULL),
-  outfile(NULL)
+  ntup(nullptr),
+  outfile(nullptr)
 {}
 
 G4TowerNtuple::~G4TowerNtuple()

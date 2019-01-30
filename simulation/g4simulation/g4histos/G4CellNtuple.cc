@@ -24,10 +24,10 @@ using namespace std;
 G4CellNtuple::G4CellNtuple(const std::string &name, const std::string &filename):
   SubsysReco( name ),
   nblocks(0),
-  hm(NULL),
+  hm(nullptr),
   _filename(filename),
-  ntup(NULL),
-  outfile(NULL)
+  ntup(nullptr),
+  outfile(nullptr)
 {}
 
 G4CellNtuple::~G4CellNtuple()
@@ -76,7 +76,7 @@ G4CellNtuple::process_event( PHCompositeNode* topNode )
       if (cells)
         {
 	  int previouslayer = -1;
-          PHG4CylinderCellGeom *cellgeom = NULL;
+          PHG4CylinderCellGeom *cellgeom = nullptr;
           double esum = 0;
           //          double numcells = cells->size();
           //          ncells[i]->Fill(numcells);
@@ -100,7 +100,7 @@ G4CellNtuple::process_event( PHCompositeNode* topNode )
 		  cellgeom = cellgeos->GetLayerCellGeom(layer);
 		  previouslayer = layer;
 		}
-	      assert(cellgeom != NULL);
+	      assert(cellgeom != nullptr);
 	      double phi = cellgeom->get_phicenter(phibin);
 	      double eta = cellgeom->get_etacenter(etabin);
                ntup->Fill(detid,

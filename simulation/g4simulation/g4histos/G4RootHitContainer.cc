@@ -1,11 +1,10 @@
 #include "G4RootHitContainer.h"
 
 #include <g4main/PHG4HitEval.h>
+
 #include <TClonesArray.h>
 
 using namespace std;
-
-ClassImp(G4RootHitContainer)
 
 static const int NMAX = 100000;
 

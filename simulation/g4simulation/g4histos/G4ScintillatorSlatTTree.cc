@@ -1,4 +1,5 @@
 #include "G4ScintillatorSlatTTree.h"
+
 #include "G4RootScintillatorSlatContainer.h"
 #include "G4RootScintillatorSlat.h"
 
@@ -21,7 +22,7 @@ G4ScintillatorSlatTTree::G4ScintillatorSlatTTree(const std::string &name):
   SubsysReco(name),
   saveslats(1),
   evtno(0),
-  hm(NULL)
+  hm(nullptr)
 {}
 
 

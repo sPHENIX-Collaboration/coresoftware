@@ -3,11 +3,10 @@
 #include "G4RootScintillatorTower.h"
 
 #include <calobase/RawTower.h>
+
 #include <TClonesArray.h>
 
 using namespace std;
-
-ClassImp(G4RootScintillatorTowerContainer)
 
 static const int NMAX = 1000;
 

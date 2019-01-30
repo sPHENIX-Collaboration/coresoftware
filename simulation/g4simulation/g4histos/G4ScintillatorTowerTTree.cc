@@ -21,7 +21,7 @@ G4ScintillatorTowerTTree::G4ScintillatorTowerTTree(const std::string &name):
   SubsysReco(name),
   savetowers(1),
   evtno(0),
-  hm(NULL)
+  hm(nullptr)
 {}
 
 

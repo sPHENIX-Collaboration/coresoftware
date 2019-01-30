@@ -23,10 +23,10 @@ using namespace std;
 G4SnglNtuple::G4SnglNtuple(const std::string &name, const std::string &filename):
   SubsysReco( name ),
   nblocks(0),
-  hm(NULL),
+  hm(nullptr),
   _filename(filename),
-  ntup(NULL),
-  outfile(NULL)
+  ntup(nullptr),
+  outfile(nullptr)
 {}
 
 G4SnglNtuple::~G4SnglNtuple()

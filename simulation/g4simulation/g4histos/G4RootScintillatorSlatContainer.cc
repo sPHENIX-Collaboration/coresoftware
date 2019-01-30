@@ -3,11 +3,11 @@
 #include "G4RootScintillatorSlat.h"
 
 #include <g4detectors/PHG4ScintillatorSlat.h>
+
 #include <TClonesArray.h>
 
 using namespace std;
 
-ClassImp(G4RootScintillatorSlatContainer)
 
 static const int NMAX = 1000;
 

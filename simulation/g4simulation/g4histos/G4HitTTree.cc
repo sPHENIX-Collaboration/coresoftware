@@ -1,4 +1,5 @@
 #include "G4HitTTree.h"
+
 #include "G4RootHitContainer.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -20,7 +21,7 @@ G4HitTTree::G4HitTTree(const std::string &name):
   SubsysReco(name),
   savehits(1),
   evtno(0),
-  hm(NULL)
+  hm(nullptr)
 {
   BlackHoleName("BH_1"); // initialize this to what we have in our common sims
 }

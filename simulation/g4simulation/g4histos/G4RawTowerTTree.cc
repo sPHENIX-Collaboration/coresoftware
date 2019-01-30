@@ -1,4 +1,5 @@
 #include "G4RawTowerTTree.h"
+
 #include "G4RootRawTowerContainer.h"
 #include "G4RootRawTower.h"
 
@@ -22,14 +23,14 @@ G4RawTowerTTree::G4RawTowerTTree(const std::string &name):
   SubsysReco(name),
   savetowers(1),
   evtno(0),
-  hm(NULL)
+  hm(nullptr)
 {}
 
 
 int
 G4RawTowerTTree::Init(PHCompositeNode *topNode)
 {
-  if (!_detector.size())
+  if (_detector.empty())
     {
       cout << "Detector not set via Detector(<name>) method" << endl;
       cout << "(it is the name appended to the G4TOWER_<name> nodename)" << endl;
