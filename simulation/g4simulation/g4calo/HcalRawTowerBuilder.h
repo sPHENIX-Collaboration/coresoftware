@@ -49,7 +49,7 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
   }
 
   void
-  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  set_sim_tower_node_prefix(const std::string &simTowerNodePrefix)
   {
     m_SimTowerNodePrefix = simTowerNodePrefix;
   }
