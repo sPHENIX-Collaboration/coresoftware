@@ -16,12 +16,11 @@ class TH1;
 class TH2;
 class TNtuple;
 
-class G4EdepNtuple: public SubsysReco
+class G4EdepNtuple : public SubsysReco
 {
  public:
-
   //! constructor
-  G4EdepNtuple( const std::string &name = "G4EdepNtuple", const std::string &filename = "G4EdepNtuple.root" );
+  G4EdepNtuple(const std::string &name = "G4EdepNtuple", const std::string &filename = "G4EdepNtuple.root");
 
   //! destructor
   virtual ~G4EdepNtuple();
@@ -35,9 +34,9 @@ class G4EdepNtuple: public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void AddNode(const std::string &name, const int detid=0);
+  void AddNode(const std::string &name, const int detid = 0);
 
-protected:
+ protected:
   int nblocks;
   Fun4AllHistoManager *hm;
   std::string _filename;
@@ -47,4 +46,4 @@ protected:
   TFile *outfile;
 };
 
-#endif 
+#endif

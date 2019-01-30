@@ -21,12 +21,11 @@ class TH2;
 class TTree;
 class TNtuple;
 
-class G4SnglTree: public SubsysReco
+class G4SnglTree : public SubsysReco
 {
  public:
-
   //! constructor
-  G4SnglTree( const std::string &name = "G4SnglTree", const std::string &filename = "G4SnglTree.root" );
+  G4SnglTree(const std::string &name = "G4SnglTree", const std::string &filename = "G4SnglTree.root");
 
   //! destructor
   virtual ~G4SnglTree() {}
@@ -43,10 +42,9 @@ class G4SnglTree: public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void AddNode(const std::string &name, const int detid=0);
+  void AddNode(const std::string &name, const int detid = 0);
 
-
-protected:
+ protected:
   int nblocks;
   //  std::vector<TH2 *> nhit_edep;
   std::string _filename;
@@ -54,8 +52,8 @@ protected:
   std::map<std::string, int> _detid;
 
   TTree *g4tree;
-  G4EvtTree mG4EvtTree; 
+  G4EvtTree mG4EvtTree;
   TFile *outfile;
 };
 
-#endif 
+#endif

@@ -16,12 +16,11 @@ class TH1;
 class TH2;
 class TNtuple;
 
-class G4SnglNtuple: public SubsysReco
+class G4SnglNtuple : public SubsysReco
 {
  public:
-
   //! constructor
-  G4SnglNtuple( const std::string &name = "G4SnglNtuple", const std::string &filename = "G4SnglNtuple.root" );
+  G4SnglNtuple(const std::string &name = "G4SnglNtuple", const std::string &filename = "G4SnglNtuple.root");
 
   //! destructor
   virtual ~G4SnglNtuple();
@@ -35,9 +34,9 @@ class G4SnglNtuple: public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void AddNode(const std::string &name, const int detid=0);
+  void AddNode(const std::string &name, const int detid = 0);
 
-protected:
+ protected:
   int nblocks;
   Fun4AllHistoManager *hm;
   std::vector<TH1 *> nhits;
@@ -51,4 +50,4 @@ protected:
   TFile *outfile;
 };
 
-#endif 
+#endif
