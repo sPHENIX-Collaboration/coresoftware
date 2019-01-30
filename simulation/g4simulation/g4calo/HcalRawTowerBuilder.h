@@ -1,8 +1,8 @@
-#ifndef HcalRawTowerBuilder_H__
-#define HcalRawTowerBuilder_H__
+#ifndef G4CALO_HCALRAWTOWERBUILDER_H
+#define G4CALO_HCALRAWTOWERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+
 #include <phparameter/PHParameterInterface.h>
 
 #include <string>
@@ -19,9 +19,9 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) { detector = d; }
-  void EminCut(const double e) { emin = e; }
-  void checkenergy(const int i = 1) { chkenergyconservation = i; }
+  void Detector(const std::string &d) { m_Detector = d; }
+  void EminCut(const double e) { m_Emin = e; }
+  void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
 
   enum enu_tower_energy_src
   {
@@ -39,42 +39,41 @@ class HcalRawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   int get_tower_energy_src() const
   {
-    return _tower_energy_src;
+    return m_TowerEnergySrc;
   }
 
   std::string
   get_sim_tower_node_prefix() const
   {
-    return _sim_tower_node_prefix;
+    return m_SimTowerNodePrefix;
   }
 
   void
   set_sim_tower_node_prefix(std::string simTowerNodePrefix)
   {
-    _sim_tower_node_prefix = simTowerNodePrefix;
+    m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
   short get_tower_row(const short cellrow) const;
 
   void SetDefaultParameters();
 
- protected:
+ private:
   void CreateNodes(PHCompositeNode *topNode);
   void ReadParamsFromNodeTree(PHCompositeNode *topNode);
 
-  RawTowerContainer *_towers;
-  RawTowerGeomContainer *rawtowergeom;
+  RawTowerContainer *m_Towers;
+  RawTowerGeomContainer *m_RawTowerGeom;
 
-  std::string detector;
-  std::string TowerNodeName;
-  std::string TowerGeomNodeName;
-  std::string _sim_tower_node_prefix;
+  std::string m_Detector;
+  std::string m_TowerNodeName;
+  std::string m_TowerGeomNodeName;
+  std::string m_SimTowerNodePrefix;
 
-  double emin;
-  int chkenergyconservation;
-  int _tower_energy_src;
-  int ncell_to_tower;
-  PHTimeServer::timer _timer;
+  double m_Emin;
+  int m_ChkEnergyConservationFlag;
+  int m_TowerEnergySrc;
+  int m_NcellToTower;
 };
 
-#endif /* HcalRawTowerBuilder_H__ */
+#endif /* G4CALO_HCALRAWTOWERBUILDER_H */
