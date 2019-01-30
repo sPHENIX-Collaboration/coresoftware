@@ -71,7 +71,7 @@ pkginclude_HEADERS = \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxThresholds.h \
   PHG4SvtxTrackProjection.h \
-   PHG4TrackFastSim.h \
+  PHG4TrackFastSim.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
@@ -94,6 +94,7 @@ ROOTDICTS = \
   CellularAutomaton_v1_Dict.cc \
   SvtxBeamSpot_Dict.cc \
   SimpleTrack_Dict.cc
+
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
@@ -124,7 +125,6 @@ else
   PHG4GenFitTrackProjection_Dict.cc \
   PHG4SvtxTrackProjection_Dict.cc \
   PHG4SvtxBeamSpotReco_Dict.cc
-
 endif
 
 libg4hough_io_la_SOURCES = \
@@ -132,14 +132,10 @@ libg4hough_io_la_SOURCES = \
   Cluster3D.C \
   Track3D.C \
   HelixTrackState.C \
-  HelixHoughSpace.C \
   HelixHoughSpace_v1.C \
-  HelixHoughBin.C \
   HelixHoughBin_v1.C \
-  HelixHoughFuncs.C \
   HelixHoughFuncs_v1.C \
   HelixKalmanFilter.C \
-  CellularAutomaton.C \
   CellularAutomaton_v1.C \
   SquareGradient.C \
   SvtxBeamSpot.C \
