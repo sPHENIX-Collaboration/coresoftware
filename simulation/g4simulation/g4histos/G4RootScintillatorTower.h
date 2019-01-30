@@ -20,6 +20,7 @@ class G4RootScintillatorTower : public PHObject
   int get_row() const { return row; }
   int get_column() const { return column; }
   double get_energy() const { return energy; }
+
  protected:
   short row;
   short column;

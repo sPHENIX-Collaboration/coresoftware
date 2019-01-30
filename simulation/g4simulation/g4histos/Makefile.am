@@ -7,6 +7,16 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
+libg4histos_la_LDFLAGS = \
+   -L$(libdir) \
+   -L$(OFFLINE_MAIN)/lib \
+   -lcalo_util \
+   -lfun4all \
+   -lphg4hit \
+   -lg4detectors \
+   -lg4hough \
+   -lg4testbench
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
@@ -14,7 +24,6 @@ AM_CPPFLAGS = \
   -I$(G4_MAIN)/include
 
 noinst_HEADERS = \
-  G4AnalysisLinkDef.h \
   G4CellNtuple.h \
   G4EdepNtuple.h \
   G4EvtTree.h \
@@ -29,7 +38,42 @@ noinst_HEADERS = \
 pkginclude_HEADERS = \
   G4HitNtuple.h
 
+ROOTDICTS = \
+  G4RootHitContainer_Dict.cc \
+  G4RootRawTowerContainer_Dict.cc \
+  G4RootRawTower_Dict.cc \
+  G4RootScintillatorSlatContainer_Dict.cc \
+  G4RootScintillatorSlat_Dict.cc \
+  G4RootScintillatorTowerContainer_Dict.cc \
+  G4RootScintillatorTower_Dict.cc
+
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  G4RootHitContainer_Dict_rdict.pcm \
+  G4RootRawTowerContainer_Dict_rdict.pcm \
+  G4RootRawTower_Dict_rdict.pcm \
+  G4RootScintillatorSlatContainer_Dict_rdict.pcm \
+  G4RootScintillatorSlat_Dict_rdict.pcm \
+  G4RootScintillatorTowerContainer_Dict_rdict.pcm \
+  G4RootScintillatorTower_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    G4CellNtuple_Dict.cc \
+    G4EdepNtuple_Dict.cc \
+    G4HitNtuple_Dict.cc \
+    G4HitTTree_Dict.cc \
+    G4RawTowerTTree_Dict.cc \
+    G4ScintillatorSlatTTree_Dict.cc \
+    G4ScintillatorTowerTTree_Dict.cc \
+    G4SnglNtuple_Dict.cc \
+    G4SnglTree_Dict.cc \
+    G4TowerNtuple_Dict.cc
+endif
+
 libg4histos_la_SOURCES = \
+  $(ROOTDICTS) \
+  $(ROOT5_DICTS) \
   G4CellNtuple.cc \
   G4EdepNtuple.cc \
   G4HitNtuple.cc \
@@ -48,19 +92,12 @@ libg4histos_la_SOURCES = \
   G4SnglTree.cc \
   G4TowerNtuple.cc
 
-nodist_libg4histos_la_SOURCES = \
-  G4Analysis_Dict.C
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-libg4histos_la_LDFLAGS = \
-   -L$(libdir) \
-   -L$(OFFLINE_MAIN)/lib \
-   -lcalo_util \
-   -lfun4all \
-   -lphg4hit \
-   -lg4detectors \
-   -lg4hough \
-   -lg4testbench
-
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -68,38 +105,18 @@ libg4histos_la_LDFLAGS = \
 noinst_PROGRAMS = \
   testexternals
 
-testexternals_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
+
+testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = libg4histos.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-# rules to make root dictionaries
-G4Analysis_Dict.C: \
-  G4CellNtuple.h \
-  G4EdepNtuple.h \
-  G4EvtTree.h \
-  G4HitNtuple.h \
-  G4HitTTree.h \
-  G4RawTowerTTree.h \
-  G4RootHitContainer.h \
-  G4RootRawTower.h \
-  G4RootRawTowerContainer.h \
-  G4RootScintillatorSlat.h \
-  G4RootScintillatorSlatContainer.h \
-  G4ScintillatorSlatTTree.h \
-  G4RootScintillatorTower.h \
-  G4RootScintillatorTowerContainer.h \
-  G4ScintillatorTowerTTree.h \
-  G4SnglNtuple.h \
-  G4SnglTree.h \
-  G4TowerNtuple.h \
-  G4AnalysisLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
