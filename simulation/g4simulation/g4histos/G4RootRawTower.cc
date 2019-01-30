@@ -6,8 +6,6 @@
 
 using namespace std;
 
-ClassImp(G4RootRawTower)
-
 G4RootRawTower::G4RootRawTower() : 
   eta(NAN), 
   phi(NAN),

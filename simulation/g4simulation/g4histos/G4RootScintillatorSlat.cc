@@ -8,8 +8,6 @@
 
 using namespace std;
 
-ClassImp(G4RootScintillatorSlat)
-
 G4RootScintillatorSlat::G4RootScintillatorSlat() : 
   row(-1),
   column(-1),
