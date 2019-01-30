@@ -281,7 +281,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
       const int ladder_z = InttDefs::getLadderZId(hitsetkey);
 
-      //if(Verbosity() > 1) 
+      if(Verbosity() > 1) 
 	cout << "PHG4INTTDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
 
       // get all of the hits from this hitset      
@@ -337,8 +337,9 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	  
 	  hit->setAdc(adc);	      
 
-	  cout << "PHG4INTTDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
-	       << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
+	  if(Verbosity() > 2)
+	    cout << "PHG4INTTDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
+		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
  
 	} // end loop over hits in this hitset
     } // end loop over hitsets

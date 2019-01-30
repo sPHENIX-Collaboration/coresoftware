@@ -408,37 +408,45 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
   // new containers
   unsigned int print_layer = 47;  
 
-  cout << "From PHG4TPCElectronDrift: hitsetcontainer printout at end:" << endl;
-  // We want all hitsets for the TPC
-  TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
-  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
-       hitset_iter != hitset_range.second;
-       ++hitset_iter)
+  if(Verbosity() > 2)
     {
-     // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
-      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
-      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
-      if(layer != print_layer)  continue;
-      const int sector = TpcDefs::getSectorId(hitsetkey);
-      const int side = TpcDefs::getSide(hitsetkey);
-      cout << "PHG4TPCElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
-
-      // get all of the hits from this hitset      
-      TrkrHitSet *hitset = hitset_iter->second;
-      TrkrHitSet::ConstRange hit_range = hitset->getHits();
-      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
-	  hit_iter != hit_range.second;
-	  ++hit_iter)
+      cout << "From PHG4TPCElectronDrift: hitsetcontainer printout at end:" << endl;
+      // We want all hitsets for the TPC
+      TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+      for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+	   hitset_iter != hitset_range.second;
+	   ++hitset_iter)
 	{
-	  TrkrDefs::hitkey hitkey = hit_iter->first;
-	  TrkrHit *tpchit = hit_iter->second;
-	  cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
-	       << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
-	  //tpchit->identify();
+	  // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+	  TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+	  const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+	  if(layer != print_layer)  continue;
+	  const int sector = TpcDefs::getSectorId(hitsetkey);
+	  const int side = TpcDefs::getSide(hitsetkey);
+	  
+	  cout << "PHG4TPCElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+	  
+	  // get all of the hits from this hitset      
+	  TrkrHitSet *hitset = hitset_iter->second;
+	  TrkrHitSet::ConstRange hit_range = hitset->getHits();
+	  for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	      hit_iter != hit_range.second;
+	      ++hit_iter)
+	    {
+	      TrkrDefs::hitkey hitkey = hit_iter->first;
+	      TrkrHit *tpchit = hit_iter->second;
+
+	      cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+		   << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+	    }
 	}
     }
-  //cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
-  //hittruthassoc->identify();
+
+  if(Verbosity() > 2)
+    {
+      cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
+      hittruthassoc->identify();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

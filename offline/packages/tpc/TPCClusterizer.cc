@@ -599,6 +599,7 @@ void TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot)
     if (used) fFitSizeZ++;
     fFitSizeP = TMath::Max(fFitSizeP, float(nphis));
   }
+
   if (Verbosity() > 1000)
   {
     std::cout << " FIT | phi " << fit_p_mean() << " from " << fFitP0;
@@ -980,7 +981,7 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
 	  clus.set_error( 2 , 2 , zz_err );
 	  */
         svxclusters->insert(&clus);
-	clus.identify();
+	//clus.identify();
         //}
       }
     }

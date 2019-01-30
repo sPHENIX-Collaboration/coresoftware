@@ -136,7 +136,9 @@ int TpcClusterizer::InitRun(PHCompositeNode* topNode)
 
 int TpcClusterizer::process_event(PHCompositeNode* topNode)
 {
-  //if (Verbosity() > 1000) 
+  int print_layer = 47;
+
+  if (Verbosity() > 1000) 
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
 
   PHNodeIterator iter(topNode);
@@ -189,7 +191,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
        ++hitsetitr)
     {
       TrkrHitSet *hitset = hitsetitr->second;
-      //if(Verbosity() > 1) 
+      if(Verbosity() > 1) 
 	cout << "TpcClusterizer process hitsetkey " << hitsetitr->first << endl;
       if (Verbosity() > 2) hitset->identify();
       
@@ -225,8 +227,10 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  int zbin = TpcDefs::getTBin(hitr->first);
 	  if(hitr->second->getAdc() > 0)
 	    adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
-	  //if(layer == 47)
-	    cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
+
+	  if(Verbosity() > 2)
+	    if(layer == print_layer)
+	      cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
 	}
 
       vector<int> phibinlo;
@@ -256,9 +260,11 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  phibinhi.push_back(phibin + phiup);
 	  zbinlo.push_back(zbin - zdown);
 	  zbinhi.push_back(zbin + zup);
-	  //if(layer == 47) 
-	    cout << " cluster found with zbin " << zbin << " zup " << zup << " zdown " << zdown 
-	     << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
+
+	  if(Verbosity() > 2)
+	    if(layer == print_layer) 
+	      cout << " cluster found in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown 
+		   << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
 	}  // end loop over hits in this hitset
 
       // Now we analyze the clusters to get their parameters
@@ -269,8 +275,12 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  double phi_sum = 0.0;
 	  double adc_sum = 0.0;
 	  double radius = layergeom->get_radius();  // returns center of layer
-	  cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;
-	  cout << "    z bin range " << zbinlo[iclus] << " to " << zbinhi[iclus] << " phibin range " << phibinlo[iclus] << " to " << phibinhi[iclus] << endl;  
+	  if(Verbosity() > 2)
+	    if(layer == print_layer)
+	      {
+		cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;
+		cout << "    z bin range " << zbinlo[iclus] << " to " << zbinhi[iclus] << " phibin range " << phibinlo[iclus] << " to " << phibinhi[iclus] << endl;  
+	      }
 
 	  std::vector<TrkrDefs::hitkey> hitkeyvec;
 	  for(int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
@@ -296,56 +306,38 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  if(adc_sum < 10) continue;   // skip obvious noise "clusters"
 	  
 	  // This is the global position
-	  double clusz = zsum /  adc_sum;
 	  double clusphi = phi_sum / adc_sum;
-
-	  // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping
-	  if (clusz < 0)
-	    clusz -= zz_shaping_correction;
-	  else
-	    clusz += zz_shaping_correction;	  
+	  double clusz = zsum /  adc_sum;
 
 	  // create the cluster entry directly in the node tree
 	  TrkrDefs::cluskey ckey = TpcDefs::genClusKey(hitset->getHitSetKey(), iclus);
 	  TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
 
-	  // Fill in the cluster details
-	  //================
-	  clus->setAdc(adc_sum);
-	  clus->setPosition(0, radius * cos(clusphi));
-	  clus->setPosition(1, radius * sin(clusphi));
-	  clus->setPosition(2, clusz);
-	  clus->setGlobal();
-
 	  double phi_size = (double) (phibinhi[iclus] - phibinlo[iclus] + 1) * radius * layergeom->get_phistep();
 	  double z_size = (double) (zbinhi[iclus] - zbinlo[iclus] + 1) * layergeom->get_zstep();
 
-	  //double phi_err = radius * layergeom->get_phistep() / sqrt(12.0);
-	  //double z_err = layergeom->get_zstep() / sqrt(12.0);
-	  // The above crude error neglects the effect of electron statistics on the precision of the measured hit
-
+	  // Estimate the errors
 	  double dphi2_adc = 0.0;
 	  double dphi_adc = 0.0;
 	  double dz2_adc = 0.0;
 	  double dz_adc = 0.0;
-	  for(int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
+	  for(int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
 	    {
-	      for(int iz = zbinlo[iclus]; iz <= zbinhi[iclus]; iz++)
+	      for(int iphi = phibinlo[iclus]; iphi <= phibinhi[iclus]; iphi++)
 		{
 		  double dphi = layergeom->get_phicenter(iphi) - clusphi;
 		  dphi2_adc += dphi*dphi*adcval[iphi][iz];
 		  dphi_adc += dphi*adcval[iphi][iz];
-
+		  
 		  double dz = layergeom->get_zcenter(iz) - clusz;
 		  dz2_adc += dz*dz*adcval[iphi][iz];
 		  dz_adc += dz*adcval[iphi][iz];
 		}
 	    }
-
 	  double phi_cov = radius *( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
 	  double z_cov =  dz2_adc / adc_sum - dz_adc*dz_adc / (adc_sum*adc_sum);
 
-	  // phi_cov = weighted mean of dphi^2 - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
+	  // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
 	  // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
 	  //    - N is the number of electrons that drift to the readout plane
 	  // We have to convert (sum of adc units for all bins in the cluster) to number of ionization electrons N
@@ -355,6 +347,20 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 
 	  double phi_err = radius * sqrt(phi_cov) / (adc_sum * 0.14);
 	  double z_err = sqrt(z_cov) / (adc_sum * 0.14) ;
+
+	  // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping time
+	  if (clusz < 0)
+	    clusz -= zz_shaping_correction;
+	  else
+	    clusz += zz_shaping_correction;	  
+
+	  // Fill in the cluster details
+	  //================
+	  clus->setAdc(adc_sum);
+	  clus->setPosition(0, radius * cos(clusphi));
+	  clus->setPosition(1, radius * sin(clusphi));
+	  clus->setPosition(2, clusz);
+	  clus->setGlobal();
 
 	  TMatrixF DIM(3, 3);
 	  DIM[0][0] = 0.0;
@@ -419,10 +425,8 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  clus->setError(2, 1, COVAR_ERR[2][1]);
 	  clus->setError(2, 2, COVAR_ERR[2][2]);
 
-	  // Now write the cluster - hit associations
-
 	  // Add the hit associations to the TrkrClusterHitAssoc node
-	  // we need the cluster key and all associated hit keys
+	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
 	  for(unsigned int i=0;i<hitkeyvec.size();i++)
 	    {
 	      m_clusterhitassoc->addAssoc(ckey, hitkeyvec[i]);
@@ -431,11 +435,17 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	} // end loop over clusters for this hitset
     }  // end loop over hitsets
 
-  cout << "Dump clusters after TpcClusterizer" << endl;
-  m_clusterlist->identify();
+  if(Verbosity() > 2)
+    {
+      cout << "Dump clusters after TpcClusterizer" << endl;
+      m_clusterlist->identify();
+    }
 
-  cout << "Dump cluster hit associations after TpcClusterizer" << endl;
-  m_clusterhitassoc->identify();
-  
+  if(Verbosity() > 2)
+    {
+      cout << "Dump cluster hit associations after TpcClusterizer" << endl;
+      m_clusterhitassoc->identify();
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
