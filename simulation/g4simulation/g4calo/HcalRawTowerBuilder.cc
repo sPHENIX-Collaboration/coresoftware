@@ -120,7 +120,7 @@ int HcalRawTowerBuilder::InitRun(PHCompositeNode *topNode)
   }
   m_TowerGeomNodeName = "TOWERGEOM_" + m_Detector;
   m_RawTowerGeom = findNode::getClass<RawTowerGeomContainer>(topNode,
-                                                           m_TowerGeomNodeName);
+                                                             m_TowerGeomNodeName);
   if (!m_RawTowerGeom)
   {
     m_RawTowerGeom = new RawTowerGeomContainer_Cylinderv1(RawTowerDefs::convert_name_to_caloid(m_Detector));
