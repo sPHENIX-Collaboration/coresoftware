@@ -39,13 +39,17 @@ class Prototype2RawTowerBuilder : public SubsysReco, public PHParameterInterface
 
   enu_tower_energy_src get_tower_energy_src() const { return m_TowerEnergySrc; }
 
-  void set_tower_energy_src(const enu_tower_energy_src towerEnergySrc) 
-   { m_TowerEnergySrc = towerEnergySrc; }
-  
+  void set_tower_energy_src(const enu_tower_energy_src towerEnergySrc)
+  {
+    m_TowerEnergySrc = towerEnergySrc;
+  }
+
   std::string get_sim_tower_node_prefix() const { return m_SimTowerNodePrefix; }
 
-  void set_sim_tower_node_prefix(const std::string &simTowerNodePrefix) 
-     { m_SimTowerNodePrefix = simTowerNodePrefix; }
+  void set_sim_tower_node_prefix(const std::string &simTowerNodePrefix)
+  {
+    m_SimTowerNodePrefix = simTowerNodePrefix;
+  }
 
   short get_tower_row(const short cellrow) const;
 

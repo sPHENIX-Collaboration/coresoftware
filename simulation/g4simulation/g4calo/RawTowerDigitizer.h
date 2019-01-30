@@ -144,7 +144,6 @@ class RawTowerDigitizer : public SubsysReco
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
-
   //! simple digitization with photon statistics, ADC conversion and pedstal
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
@@ -179,7 +178,6 @@ class RawTowerDigitizer : public SubsysReco
 
   //! tower type to act on
   int m_TowerType;
-
 
   unsigned int m_Seed;
 #ifndef __CINT__

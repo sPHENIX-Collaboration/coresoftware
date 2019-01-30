@@ -40,17 +40,12 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
   , m_Detector("NONE")
   , m_SimTowerNodePrefix("SIM")
   , m_RawTowerNodePrefix("RAW")
-  ,   m_PhotonElecYieldVisibleGeV(NAN)
-  , 
-  m_PhotonElecADC(NAN)
-  , 
-  m_PedstalCentralADC(NAN)
-  , 
-  m_PedstalWidthADC(NAN)
-  , 
-  m_ZeroSuppressionADC(0) //default to apply no zero suppression
-  , 
-  m_TowerType(-1)
+  , m_PhotonElecYieldVisibleGeV(NAN)
+  , m_PhotonElecADC(NAN)
+  , m_PedstalCentralADC(NAN)
+  , m_PedstalWidthADC(NAN)
+  , m_ZeroSuppressionADC(0)  //default to apply no zero suppression
+  , m_TowerType(-1)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
