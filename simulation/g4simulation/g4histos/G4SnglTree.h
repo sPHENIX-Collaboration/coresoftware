@@ -1,7 +1,8 @@
-#ifndef G4SNGLTREE_H__
-#define G4SNGLTREE_H__
+#ifndef G4HISTOS_G4SNGLTREE_H
+#define G4HISTOS_G4SNGLTREE_H
 
 #include "G4EvtTree.h"
+
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/SubsysReco.h>

@@ -1,7 +1,8 @@
-#ifndef G4RAWTOWERTTREE_H
-#define G4RAWTOWERTTREE_H
+#ifndef G4HISTOS_G4RAWTOWERTTREE_H
+#define G4HISTOS_G4RAWTOWERTTREE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class Fun4AllHistoManager;

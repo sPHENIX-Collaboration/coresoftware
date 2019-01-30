@@ -1,5 +1,5 @@
-#ifndef G4RootScintillatorTowerContainer_H
-#define G4RootScintillatorTowerContainer_H
+#ifndef G4HISTOS_G4ROOTSCINTILLATORTOWERCONTAINER_H
+#define G4HISTOS_G4ROOTSCINTILLATORTOWERCONTAINER_H
 
 #include <phool/PHObject.h>
 

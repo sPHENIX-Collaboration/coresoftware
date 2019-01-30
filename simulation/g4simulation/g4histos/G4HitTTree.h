@@ -1,7 +1,8 @@
-#ifndef G4HITTTREE_H
-#define G4HITTTREE_H
+#ifndef G4HISTOS_G4HITTTREE_H
+#define G4HISTOS_G4HITTTREE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class Fun4AllHistoManager;

@@ -1,7 +1,7 @@
-#ifndef G4ROOTRAWTOWER_H_
-#define G4ROOTRAWTOWER_H_
+#ifndef G4HISTOS_G4ROOTRAWTOWER_H
+#define G4HISTOS_G4ROOTRAWTOWER_H
 
-#include "phool/PHObject.h"
+#include <phool/PHObject.h>
 
 #include <map>
 
@@ -28,4 +28,4 @@ class G4RootRawTower : public PHObject {
   ClassDef(G4RootRawTower,1)
 };
  
-#endif /* RAWTOWERV1_H_ */
+#endif /* G4HISTOS_RAWTOWERV1_H */

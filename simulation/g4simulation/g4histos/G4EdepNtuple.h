@@ -1,7 +1,8 @@
-#ifndef G4EDEPNTUPLE_H__
-#define G4EDEPNTUPLE_H__
+#ifndef G4HISTOS_G4EDEPNTUPLE_H
+#define G4HISTOS_G4EDEPNTUPLE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <map>
 #include <set>
 #include <string>

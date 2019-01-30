@@ -1,7 +1,7 @@
-#ifndef G4RootScintillatorSlat_H_
-#define G4RootScintillatorSlat_H_
+#ifndef G4HISTOS_G4ROOTSCINTILLATORSLAT_H
+#define G4HISTOS_G4ROOTSCINTILLATORSLAT_H
 
-#include "phool/PHObject.h"
+#include <phool/PHObject.h>
 
 class PHG4ScintillatorSlat;
 
@@ -33,4 +33,4 @@ class G4RootScintillatorSlat : public PHObject {
   ClassDef(G4RootScintillatorSlat,1)
 };
  
-#endif /* G4RootScintillatorSlat_H_ */
+#endif /* G4HISTOS_G4ROOTSCINTILLATORSLAT_H */

@@ -1,7 +1,8 @@
-#ifndef G4ScintillatorSlatTTree_H
-#define G4ScintillatorSlatTTree_H
+#ifndef G4HISTOS_G4SCINTILLATORSLATTTREE_H
+#define G4HISTOS_G4SCINTILLATORSLATTTREE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class Fun4AllHistoManager;

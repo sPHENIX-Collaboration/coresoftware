@@ -1,5 +1,5 @@
-#ifndef G4EVTTREE_H__
-#define G4EVTTREE_H__
+#ifndef G4HISTOS_G4EVTTREE_H
+#define G4HISTOS_G4EVTTREE_H
 
 #define MAXLAYER 50
 #define MAXHIT 500000
