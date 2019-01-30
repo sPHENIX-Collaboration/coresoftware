@@ -1,8 +1,7 @@
-
 #include "GlobalVertexReco.h"
 
-#include "GlobalVertexMap_v1.h"
-#include "GlobalVertex_v1.h"
+#include "GlobalVertexMapv1.h"
+#include "GlobalVertexv1.h"
 
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
@@ -93,7 +92,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
 	 ++svtxiter) {
       const SvtxVertex* svtx = svtxiter->second;
 
-      const BbcVertex *bbc_best = NULL;
+      const BbcVertex *bbc_best = nullptr;
       float min_sigma = FLT_MAX;
       for (BbcVertexMap::ConstIter bbciter = bbcmap->begin();
 	   bbciter != bbcmap->end();
@@ -111,7 +110,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       if (min_sigma > 3.0 || !bbc_best) continue;
 
       // we have a matching pair
-      GlobalVertex* vertex = new GlobalVertex_v1();
+      GlobalVertex* vertex = new GlobalVertexv1();
 
       for (unsigned int i=0; i<3; ++i) {
 	vertex->set_position(i,svtx->get_position(i));
@@ -151,7 +150,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       if (isnan(svtx->get_z())) continue;
 
       // we have a standalone SVTX vertex
-      GlobalVertex* vertex = new GlobalVertex_v1();
+      GlobalVertex* vertex = new GlobalVertexv1();
 
       for (unsigned int i=0; i<3; ++i) {
 	vertex->set_position(i,svtx->get_position(i));
@@ -189,7 +188,7 @@ int GlobalVertexReco::process_event(PHCompositeNode *topNode) {
       if (used_bbc_vtxids.find(bbc->get_id()) != used_bbc_vtxids.end()) continue;
       if (isnan(bbc->get_z())) continue;
 
-      GlobalVertex* vertex = new GlobalVertex_v1();
+      GlobalVertex* vertex = new GlobalVertexv1();
 
       // nominal beam location
       // could be replaced with a beam spot some day
@@ -249,7 +248,7 @@ int GlobalVertexReco::CreateNodes(PHCompositeNode *topNode) {
   // create the GlobalVertexMap
   GlobalVertexMap *vertexes = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
   if (!vertexes) {
-    vertexes = new GlobalVertexMap_v1();
+    vertexes = new GlobalVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes,"GlobalVertexMap","PHObject");
     globalNode->addNode(VertexMapNode);
   } else {

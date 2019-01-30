@@ -1,5 +1,5 @@
-#ifndef __GLOBALVERTEXRECO_H__
-#define __GLOBALVERTEXRECO_H__
+#ifndef G4VERTEX_GLOBALVERTEXRECO_H
+#define G4VERTEX_GLOBALVERTEXRECO_H
 
 //===========================================================
 /// \file GlobalVertexReco.h
@@ -10,6 +10,7 @@
 
 #include <fun4all/SubsysReco.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHTimeServer.h>
 
 class PHCompositeNode;
@@ -43,4 +44,4 @@ class GlobalVertexReco : public SubsysReco {
   float _tdefault, _terr;
 };
 
-#endif // __GLOBALVERTEXRECO_H__
+#endif // G4VERTEX_GLOBALVERTEXRECO_H

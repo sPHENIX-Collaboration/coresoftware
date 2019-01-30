@@ -1,11 +1,12 @@
-#ifndef __GLOBALVERTEXMAP_H__
-#define __GLOBALVERTEXMAP_H__
-
-#include "GlobalVertex.h"
+#ifndef G4VERTEX_GLOBALVERTEXMAP_H
+#define G4VERTEX_GLOBALVERTEXMAP_H
 
 #include <phool/PHObject.h>
+
 #include <map>
 #include <iostream>
+
+class GlobalVertex;
 
 class GlobalVertexMap : public PHObject {
   
@@ -25,9 +26,9 @@ public:
   virtual size_t count(unsigned int idkey) const            {return 0;}
   virtual void   clear()                                    {}
   
-  virtual const GlobalVertex* get(unsigned int idkey) const {return NULL;}
-  virtual       GlobalVertex* get(unsigned int idkey)       {return NULL;}
-  virtual       GlobalVertex* insert(GlobalVertex* vertex)  {return NULL;}
+  virtual const GlobalVertex* get(unsigned int idkey) const {return nullptr;}
+  virtual       GlobalVertex* get(unsigned int idkey)       {return nullptr;}
+  virtual       GlobalVertex* insert(GlobalVertex* vertex)  {return nullptr;}
   virtual       size_t        erase(unsigned int idkey)     {return 0;}
 
   virtual ConstIter begin()                   const {return std::map<unsigned int,GlobalVertex*>().end();}
@@ -46,4 +47,4 @@ private:
   ClassDef(GlobalVertexMap, 1);
 };
 
-#endif // __GLOBALVERTEXMAP_H__
+#endif // G4VERTEX_GLOBALVERTEXMAP_H

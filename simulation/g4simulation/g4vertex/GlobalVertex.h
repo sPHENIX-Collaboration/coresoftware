@@ -1,7 +1,8 @@
-#ifndef __GLOBALVERTEX_H__
-#define __GLOBALVERTEX_H__
+#ifndef G4VERTEX_GLOBALVERTEX_H
+#define G4VERTEX_GLOBALVERTEX_H
 
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <map>
 #include <iostream>
@@ -24,7 +25,7 @@ public:
   }
   virtual void          Reset() {}
   virtual int           isValid() const {return 0;}
-  virtual GlobalVertex* Clone() const {return NULL;}
+  virtual GlobalVertex* Clone() const {return nullptr;}
 
   // vertex info
   

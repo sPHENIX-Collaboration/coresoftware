@@ -1,5 +1,5 @@
-#ifndef __GLOBALVERTEXFASTSIMRECO_H__
-#define __GLOBALVERTEXFASTSIMRECO_H__
+#ifndef G4VERTEX_GLOBALVERTEXFASTSIMRECO_H
+#define G4VERTEX_GLOBALVERTEXFASTSIMRECO_H
 
 //===========================================================
 /// \file GlobalVertexFastSimReco.h
@@ -50,4 +50,4 @@ class GlobalVertexFastSimReco : public SubsysReco {
 
 };
 
-#endif // __GLOBALVERTEXFASTSIMRECO_H__
+#endif // G4VERTEX_GLOBALVERTEXFASTSIMRECO_H

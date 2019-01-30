@@ -1,26 +1,24 @@
-#include "GlobalVertexMap_v1.h"
+#include "GlobalVertexMapv1.h"
 
 #include "GlobalVertexMap.h"
 #include "GlobalVertex.h"
 
 using namespace std;
 
-ClassImp(GlobalVertexMap_v1)
-
-GlobalVertexMap_v1::GlobalVertexMap_v1()
+GlobalVertexMapv1::GlobalVertexMapv1()
 : _map() {
 }
 
-GlobalVertexMap_v1::~GlobalVertexMap_v1() {
+GlobalVertexMapv1::~GlobalVertexMapv1() {
   clear();
 }
 
-void GlobalVertexMap_v1::identify(ostream& os) const {
-  os << "GlobalVertexMap_v1: size = " << _map.size() << endl;
+void GlobalVertexMapv1::identify(ostream& os) const {
+  os << "GlobalVertexMapv1: size = " << _map.size() << endl;
   return;  
 }
 
-void GlobalVertexMap_v1::clear() {
+void GlobalVertexMapv1::clear() {
   for (Iter iter = _map.begin();
        iter != _map.end();
        ++iter) {
@@ -30,19 +28,19 @@ void GlobalVertexMap_v1::clear() {
   return;
 }
 
-const GlobalVertex* GlobalVertexMap_v1::get(unsigned int id) const {
+const GlobalVertex* GlobalVertexMapv1::get(unsigned int id) const {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;  
+  if (iter == _map.end()) return nullptr;  
   return iter->second;
 }
 
-GlobalVertex* GlobalVertexMap_v1::get(unsigned int id) {
+GlobalVertex* GlobalVertexMapv1::get(unsigned int id) {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
-GlobalVertex* GlobalVertexMap_v1::insert(GlobalVertex* clus) {
+GlobalVertex* GlobalVertexMapv1::insert(GlobalVertex* clus) {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
   _map.insert(make_pair( index , clus ));

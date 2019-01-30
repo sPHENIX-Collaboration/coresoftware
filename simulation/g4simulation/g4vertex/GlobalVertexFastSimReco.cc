@@ -1,7 +1,7 @@
 #include "GlobalVertexFastSimReco.h"
 
-#include "GlobalVertexMap_v1.h"
-#include "GlobalVertex_v1.h"
+#include "GlobalVertexMapv1.h"
+#include "GlobalVertexv1.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
@@ -90,7 +90,7 @@ int GlobalVertexFastSimReco::process_event(PHCompositeNode *topNode) {
 
   PHG4VtxPoint* point = truthinfo->GetPrimaryVtx(truthinfo->GetPrimaryVertexIndex());
 
-  GlobalVertex* vertex = new GlobalVertex_v1();
+  GlobalVertex* vertex = new GlobalVertexv1();
   
   vertex->set_x(point->get_x() +  gsl_ran_gaussian(RandomGenerator,_x_smear) );
   vertex->set_y(point->get_y() +  gsl_ran_gaussian(RandomGenerator,_y_smear) );
@@ -141,7 +141,7 @@ int GlobalVertexFastSimReco::CreateNodes(PHCompositeNode *topNode) {
   // create the GlobalVertexMap
   GlobalVertexMap *vertexes = findNode::getClass<GlobalVertexMap>(topNode,"GlobalVertexMap");
   if (!vertexes) {
-    vertexes = new GlobalVertexMap_v1();
+    vertexes = new GlobalVertexMapv1();
     PHIODataNode<PHObject> *VertexMapNode = new PHIODataNode<PHObject>(vertexes,"GlobalVertexMap","PHObject");
     globalNode->addNode(VertexMapNode);
   } else {

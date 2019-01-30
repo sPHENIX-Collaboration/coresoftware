@@ -1,26 +1,27 @@
-#ifndef __GLOBALVERTEX_V1_H__
-#define __GLOBALVERTEX_V1_H__
+#ifndef G4VERTEX_GLOBALVERTEXV1_H
+#define G4VERTEX_GLOBALVERTEXV1_H
 
 #include "GlobalVertex.h"
 
 #include <phool/PHObject.h>
+
 #include <vector>
 #include <map>
 #include <iostream>
 
-class GlobalVertex_v1 : public GlobalVertex {
+class GlobalVertexv1 : public GlobalVertex {
 
 public:
 
-  GlobalVertex_v1();
-  virtual ~GlobalVertex_v1();
+  GlobalVertexv1();
+  virtual ~GlobalVertexv1();
 
   // PHObject virtual overloads
   
   void          identify(std::ostream& os = std::cout) const;
-  void          Reset() {*this = GlobalVertex_v1();}
+  void          Reset() {*this = GlobalVertexv1();}
   int           isValid() const;
-  GlobalVertex* Clone() const {return new GlobalVertex_v1(*this);}
+  GlobalVertex* Clone() const {return new GlobalVertexv1(*this);}
 
   // vertex info
   
@@ -89,8 +90,7 @@ private:
   float                                        _err[6];  //< error covariance matrix (+/- cm^2)
   std::map<GlobalVertex::VTXTYPE,unsigned int> _vtx_ids; //< list of vtx ids
   
-  ClassDef(GlobalVertex_v1, 1);
+  ClassDef(GlobalVertexv1, 1);
 };
 
 #endif
-

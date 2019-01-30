@@ -1,12 +1,10 @@
-#include "GlobalVertex_v1.h"
+#include "GlobalVertexv1.h"
 
 #include <cmath>
 
 using namespace std;
 
-ClassImp(GlobalVertex_v1);
-
-GlobalVertex_v1::GlobalVertex_v1()
+GlobalVertexv1::GlobalVertexv1()
   : _id(0xFFFFFFFF),
     _t(NAN),
     _t_err(NAN),
@@ -25,10 +23,10 @@ GlobalVertex_v1::GlobalVertex_v1()
   } 
 }
 
-GlobalVertex_v1::~GlobalVertex_v1() {}
+GlobalVertexv1::~GlobalVertexv1() {}
 
-void GlobalVertex_v1::identify(ostream& os) const {
-  os << "---GlobalVertex_v1-----------------------" << endl;
+void GlobalVertexv1::identify(ostream& os) const {
+  os << "---GlobalVertexv1-----------------------" << endl;
   os << "vertexid: " << get_id() << endl;
 
   os << " t = " << get_t() << endl;
@@ -62,7 +60,7 @@ void GlobalVertex_v1::identify(ostream& os) const {
   return;  
 }
 
-int GlobalVertex_v1::isValid() const {
+int GlobalVertexv1::isValid() const {
   if (_id == 0xFFFFFFFF) return 0;
   if (isnan(_t)) return 0;
   if (isnan(_t_err)) return 0;
@@ -81,16 +79,16 @@ int GlobalVertex_v1::isValid() const {
   return 1;
 }
 
-void GlobalVertex_v1::set_error(unsigned int i, unsigned int j, float value) {
+void GlobalVertexv1::set_error(unsigned int i, unsigned int j, float value) {
   _err[covar_index(i,j)] = value;
   return;
 }
 
-float GlobalVertex_v1::get_error(unsigned int i, unsigned int j) const {
+float GlobalVertexv1::get_error(unsigned int i, unsigned int j) const {
   return _err[covar_index(i,j)];
 }
 
-unsigned int GlobalVertex_v1::covar_index(unsigned int i, unsigned int j) const {
+unsigned int GlobalVertexv1::covar_index(unsigned int i, unsigned int j) const {
   if (i>j) std::swap(i,j);
   return i+1+(j+1)*(j)/2-1;
 }

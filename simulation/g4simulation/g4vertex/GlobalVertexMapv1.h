@@ -1,19 +1,23 @@
-#ifndef __GLOBALVERTEXMAP_V1_H__
-#define __GLOBALVERTEXMAP_V1_H__
+#ifndef G4VERTEX_GLOBALVERTEXMAPV1_H
+#define G4VERTEX_GLOBALVERTEXMAPV1_H
 
 #include "GlobalVertexMap.h"
+
 #include "GlobalVertex.h"
 
 #include <phool/PHObject.h>
+
 #include <map>
 #include <iostream>
 
-class GlobalVertexMap_v1 : public GlobalVertexMap {
+class GlobalVertex;
+
+class GlobalVertexMapv1 : public GlobalVertexMap {
   
 public:
 
-  GlobalVertexMap_v1();
-  virtual ~GlobalVertexMap_v1();
+  GlobalVertexMapv1();
+  virtual ~GlobalVertexMapv1();
 
   void identify(std::ostream &os = std::cout) const;
   void Reset() {clear();}
@@ -43,7 +47,7 @@ public:
 private:
   std::map<unsigned int, GlobalVertex*> _map;
     
-  ClassDef(GlobalVertexMap_v1, 1);
+  ClassDef(GlobalVertexMapv1, 1);
 };
 
-#endif // __GLOBALVERTEXMAP_V1_H__
+#endif // G4VERTEX_GLOBALVERTEXMAPv1_H
