@@ -39,7 +39,6 @@ G4CellNtuple::~G4CellNtuple()
 
 int G4CellNtuple::Init(PHCompositeNode *)
 {
-  ostringstream hname, htit;
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("cellntup", "G4Cells", "detid:layer:phi:eta:edep");
@@ -57,7 +56,7 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
   ostringstream geonodename;
   set<string>::const_iterator iter;
   vector<TH1 *>::const_iterator eiter;
-  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); iter++)
+  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
@@ -107,7 +106,7 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
                    eta,
                    cell_iter->second->get_edep());
       }
-      for (eiter = eloss.begin(); eiter != eloss.end(); eiter++)
+      for (eiter = eloss.begin(); eiter != eloss.end(); ++eiter)
       {
         (*eiter)->Fill(esum);
       }

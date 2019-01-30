@@ -36,7 +36,6 @@ G4HitNtuple::~G4HitNtuple()
 
 int G4HitNtuple::Init(PHCompositeNode *)
 {
-  ostringstream hname, htit;
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("hitntup", "G4Hits", "detid:row:slat:x0:y0:z0:x1:y1:z1:edep");
@@ -53,7 +52,7 @@ int G4HitNtuple::process_event(PHCompositeNode *topNode)
   ostringstream nodename;
   set<string>::const_iterator iter;
   vector<TH1 *>::const_iterator eiter;
-  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); iter++)
+  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
@@ -80,7 +79,7 @@ int G4HitNtuple::process_event(PHCompositeNode *topNode)
                    hit_iter->second->get_z(1),
                    hit_iter->second->get_edep());
       }
-      for (eiter = eloss.begin(); eiter != eloss.end(); eiter++)
+      for (eiter = eloss.begin(); eiter != eloss.end(); ++eiter)
       {
         (*eiter)->Fill(esum);
       }

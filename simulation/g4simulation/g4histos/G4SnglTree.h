@@ -6,6 +6,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/SubsysReco.h>
+
 #include <map>
 #include <set>
 #include <string>
@@ -28,7 +29,7 @@ class G4SnglTree: public SubsysReco
   G4SnglTree( const std::string &name = "G4SnglTree", const std::string &filename = "G4SnglTree.root" );
 
   //! destructor
-  virtual ~G4SnglTree();
+  virtual ~G4SnglTree() {}
 
   //! full initialization
   int Init(PHCompositeNode *);
@@ -37,7 +38,7 @@ class G4SnglTree: public SubsysReco
   int process_event(PHCompositeNode *);
 
   //! hit processing method
-  int process_hit(PHG4HitContainer *hits, const std::string dName, int detid, int &nhits);
+  int process_hit(PHG4HitContainer *hits, const std::string &dName, int detid, int &nhits);
 
   //! end of run method
   int End(PHCompositeNode *);

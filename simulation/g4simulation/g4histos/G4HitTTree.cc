@@ -21,6 +21,8 @@ G4HitTTree::G4HitTTree(const std::string &name)
   , savehits(1)
   , evtno(0)
   , hm(nullptr)
+  , etot_hist(nullptr)
+  , eion_etot_hist(nullptr)
 {
   BlackHoleName("BH_1");  // initialize this to what we have in our common sims
 }

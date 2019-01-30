@@ -1,4 +1,5 @@
 #include "G4ScintillatorTowerTTree.h"
+
 #include "G4RootScintillatorTower.h"
 #include "G4RootScintillatorTowerContainer.h"
 
@@ -21,6 +22,7 @@ G4ScintillatorTowerTTree::G4ScintillatorTowerTTree(const std::string &name)
   , savetowers(1)
   , evtno(0)
   , hm(nullptr)
+  , etot_hist(nullptr)
 {
 }
 

@@ -37,7 +37,6 @@ G4TowerNtuple::~G4TowerNtuple()
 
 int G4TowerNtuple::Init(PHCompositeNode *)
 {
-  ostringstream hname, htit;
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("towerntup", "G4Towers", "detid:phi:eta:energy");
@@ -55,7 +54,7 @@ int G4TowerNtuple::process_event(PHCompositeNode *topNode)
   ostringstream geonodename;
   set<string>::const_iterator iter;
   vector<TH1 *>::const_iterator eiter;
-  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); iter++)
+  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
@@ -95,7 +94,7 @@ int G4TowerNtuple::process_event(PHCompositeNode *topNode)
                    eta,
                    tower_iter->second->get_energy());
       }
-      for (eiter = eloss.begin(); eiter != eloss.end(); eiter++)
+      for (eiter = eloss.begin(); eiter != eloss.end(); ++eiter)
       {
         (*eiter)->Fill(esum);
       }

@@ -35,7 +35,6 @@ G4EdepNtuple::~G4EdepNtuple()
 
 int G4EdepNtuple::Init(PHCompositeNode *)
 {
-  ostringstream hname, htit;
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("edepntup", "G4Edeps", "detid:layer:edep");
@@ -48,7 +47,7 @@ int G4EdepNtuple::process_event(PHCompositeNode *topNode)
   set<string>::const_iterator iter;
   map<int, double> layer_edep_map;
   map<int, double>::const_iterator edepiter;
-  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); iter++)
+  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
     layer_edep_map.clear();
     int detid = (_detid.find(*iter))->second;
@@ -67,7 +66,7 @@ int G4EdepNtuple::process_event(PHCompositeNode *topNode)
         layer_edep_map[hit_iter->second->get_layer()] += hit_iter->second->get_edep();
         esum += hit_iter->second->get_edep();
       }
-      for (edepiter = layer_edep_map.begin(); edepiter != layer_edep_map.end(); edepiter++)
+      for (edepiter = layer_edep_map.begin(); edepiter != layer_edep_map.end(); ++edepiter)
       {
         ntup->Fill(detid, edepiter->first, edepiter->second);
       }

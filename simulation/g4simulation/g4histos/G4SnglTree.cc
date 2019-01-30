@@ -24,17 +24,13 @@ G4SnglTree::G4SnglTree(const std::string &name, const std::string &filename)
   : SubsysReco(name)
   , nblocks(0)
   , _filename(filename)
+  , g4tree(nullptr)
   , outfile(nullptr)
-{
-}
-
-G4SnglTree::~G4SnglTree()
 {
 }
 
 int G4SnglTree::Init(PHCompositeNode *)
 {
-  ostringstream hname, htit;
   outfile = new TFile(_filename.c_str(), "RECREATE");
   g4tree = new TTree("mG4EvtTree", "g4tree");
   g4tree->SetAutoSave(1000000);
@@ -100,9 +96,8 @@ int G4SnglTree::process_event(PHCompositeNode *topNode)
 
   ostringstream nodename;
   set<string>::const_iterator iter;
-  vector<TH1 *>::const_iterator eiter;
 
-  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); iter++)
+  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
     int detid = (_detid.find(*iter))->second;
     nodename.str("");
@@ -151,7 +146,7 @@ void G4SnglTree::AddNode(const std::string &name, const int detid)
   return;
 }
 
-int G4SnglTree::process_hit(PHG4HitContainer *hits, string dName, int detid, int &nhits)
+int G4SnglTree::process_hit(PHG4HitContainer *hits, const string &dName, int detid, int &nhits)
 {
   map<int, double> layer_edep_map;
   map<int, double>::const_iterator edepiter;
@@ -179,7 +174,7 @@ int G4SnglTree::process_hit(PHG4HitContainer *hits, string dName, int detid, int
       nhits++;
       // esum += hit_iter->second->get_edep();
     }
-    for (edepiter = layer_edep_map.begin(); edepiter != layer_edep_map.end(); edepiter++)
+    for (edepiter = layer_edep_map.begin(); edepiter != layer_edep_map.end(); ++edepiter)
     {
       nLayers = edepiter->first - 1;
       if (!strcmp("G4HIT_CEMC", dName.c_str()))

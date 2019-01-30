@@ -23,6 +23,7 @@ G4RawTowerTTree::G4RawTowerTTree(const std::string &name)
   , savetowers(1)
   , evtno(0)
   , hm(nullptr)
+  , etot_hist(nullptr)
 {
 }
 

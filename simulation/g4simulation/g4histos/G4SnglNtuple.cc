@@ -26,6 +26,7 @@ G4SnglNtuple::G4SnglNtuple(const std::string &name, const std::string &filename)
   , hm(nullptr)
   , _filename(filename)
   , ntup(nullptr)
+  , ntup_e(nullptr)
   , outfile(nullptr)
 {
 }
@@ -38,7 +39,6 @@ G4SnglNtuple::~G4SnglNtuple()
 
 int G4SnglNtuple::Init(PHCompositeNode *)
 {
-  ostringstream hname, htit;
   hm = new Fun4AllHistoManager(Name());
   outfile = new TFile(_filename.c_str(), "RECREATE");
   ntup = new TNtuple("snglntup", "G4Sngls", "phi:theta:e:detid:layer:x0:y0:z0:x1:y1:z1:edep");
@@ -72,7 +72,7 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
   map<int, double> layer_edep_map;
   map<int, double>::const_iterator edepiter;
 
-  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); iter++)
+  for (iter = _node_postfix.begin(); iter != _node_postfix.end(); ++iter)
   {
     layer_edep_map.clear();
     int detid = (_detid.find(*iter))->second;
@@ -97,13 +97,13 @@ int G4SnglNtuple::process_event(PHCompositeNode *topNode)
                    hit_iter->second->get_z(1),
                    hit_iter->second->get_edep());
       }
-      for (edepiter = layer_edep_map.begin(); edepiter != layer_edep_map.end(); edepiter++)
+      for (edepiter = layer_edep_map.begin(); edepiter != layer_edep_map.end(); ++edepiter)
       {
         ntup_e->Fill(phi, theta, e, detid, edepiter->first, edepiter->second);
       }
       ntup_e->Fill(phi, theta, e, detid, -1, esum);  // fill sum over all layers for each detector
 
-      for (eiter = eloss.begin(); eiter != eloss.end(); eiter++)
+      for (eiter = eloss.begin(); eiter != eloss.end(); ++eiter)
       {
         (*eiter)->Fill(esum);
       }
