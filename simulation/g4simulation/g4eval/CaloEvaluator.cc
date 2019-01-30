@@ -15,8 +15,8 @@
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
 #include <calobase/RawTower.h>
-#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -55,7 +55,8 @@ CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const s
   , _ntp_cluster(nullptr)
   , _filename(filename)
   , _tfile(nullptr)
-{}
+{
+}
 
 int CaloEvaluator::Init(PHCompositeNode* topNode)
 {
@@ -492,25 +493,25 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       float shower_data[] = {(float) _ievent,
-                               gparticleID,
-                               gflavor,
-                               gnhits,
-                               geta,
-                               gphi,
-                               ge,
-                               gpt,
-                               gvx,
-                               gvy,
-                               gvz,
-                               gembed,
-                               gedep,
-                               clusterID,
-                               ntowers,
-                               eta,
-                               z,
-                               phi,
-                               e,
-                               efromtruth};
+                             gparticleID,
+                             gflavor,
+                             gnhits,
+                             geta,
+                             gphi,
+                             ge,
+                             gpt,
+                             gvx,
+                             gvy,
+                             gvz,
+                             gembed,
+                             gedep,
+                             clusterID,
+                             ntowers,
+                             eta,
+                             z,
+                             phi,
+                             e,
+                             efromtruth};
 
       _ntp_gshower->Fill(shower_data);
     }
@@ -548,10 +549,10 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
       if (tower->get_energy() < _reco_e_threshold) continue;
 
-      RawTowerGeom * tower_geom =  towergeom->get_tower_geometry(tower->get_id());
+      RawTowerGeom* tower_geom = towergeom->get_tower_geometry(tower->get_id());
       if (!tower_geom)
       {
-        cerr << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: "  ;
+        cerr << PHWHERE << " ERROR: Can't find tower geometry for this tower hit: ";
         tower->identify();
         exit(-1);
       }
@@ -665,13 +666,13 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     // for every cluster
 
-    for (const auto & iterator : clusters->getClustersMap()) {
+    for (const auto& iterator : clusters->getClustersMap())
+    {
+      RawCluster* cluster = iterator.second;
 
-      RawCluster *cluster = iterator.second;
-
-//    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++)
-//    {
-//      RawCluster* cluster = clusters->getCluster(icluster);
+      //    for (unsigned int icluster = 0; icluster < clusters->size(); icluster++)
+      //    {
+      //      RawCluster* cluster = clusters->getCluster(icluster);
 
       if (cluster->get_energy() < _reco_e_threshold) continue;
 
@@ -756,25 +757,25 @@ void CaloEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       float cluster_data[] = {(float) _ievent,
-                                clusterID,
-                                ntowers,
-                                eta,
-                                z,
-                                phi,
-                                e,
-                                gparticleID,
-                                gflavor,
-                                gnhits,
-                                geta,
-                                gphi,
-                                ge,
-                                gpt,
-                                gvx,
-                                gvy,
-                                gvz,
-                                gembed,
-                                gedep,
-                                efromtruth};
+                              clusterID,
+                              ntowers,
+                              eta,
+                              z,
+                              phi,
+                              e,
+                              gparticleID,
+                              gflavor,
+                              gnhits,
+                              geta,
+                              gphi,
+                              ge,
+                              gpt,
+                              gvx,
+                              gvy,
+                              gvz,
+                              gembed,
+                              gedep,
+                              efromtruth};
 
       _ntp_cluster->Fill(cluster_data);
     }
