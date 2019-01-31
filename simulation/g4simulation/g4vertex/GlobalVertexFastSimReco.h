@@ -1,5 +1,5 @@
-#ifndef __GLOBALVERTEXFASTSIMRECO_H__
-#define __GLOBALVERTEXFASTSIMRECO_H__
+#ifndef G4VERTEX_GLOBALVERTEXFASTSIMRECO_H
+#define G4VERTEX_GLOBALVERTEXFASTSIMRECO_H
 
 //===========================================================
 /// \file GlobalVertexFastSimReco.h
@@ -19,25 +19,23 @@ class PHCompositeNode;
 ///
 /// \brief simple truth vertex smearing algorithm
 ///
-class GlobalVertexFastSimReco : public SubsysReco {
-
+class GlobalVertexFastSimReco : public SubsysReco
+{
  public:
- 
   GlobalVertexFastSimReco(const std::string &name = "GlobalVertexFastSimReco");
   virtual ~GlobalVertexFastSimReco();
-		
+
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_x_smearing(const float x_smear) {_x_smear = x_smear;}
-  void set_y_smearing(const float y_smear) {_y_smear = y_smear;}
-  void set_z_smearing(const float z_smear) {_z_smear = z_smear;}
-  void set_t_smearing(const float t_smear) {_t_smear = t_smear;}
-  
- private:
+  void set_x_smearing(const float x_smear) { _x_smear = x_smear; }
+  void set_y_smearing(const float y_smear) { _y_smear = y_smear; }
+  void set_z_smearing(const float z_smear) { _z_smear = z_smear; }
+  void set_t_smearing(const float t_smear) { _t_smear = t_smear; }
 
+ private:
   int CreateNodes(PHCompositeNode *topNode);
 
   float _x_smear;
@@ -47,7 +45,6 @@ class GlobalVertexFastSimReco : public SubsysReco {
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
 #endif
-
 };
 
-#endif // __GLOBALVERTEXFASTSIMRECO_H__
+#endif  // G4VERTEX_GLOBALVERTEXFASTSIMRECO_H

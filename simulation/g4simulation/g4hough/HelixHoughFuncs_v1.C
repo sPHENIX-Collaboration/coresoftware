@@ -5,8 +5,6 @@
 #include <vector>
 #include <cmath>
 
-ClassImp(HelixHoughFuncs_v1)
-
 using namespace std;
 
 HelixHoughFuncs_v1::HelixHoughFuncs_v1()
