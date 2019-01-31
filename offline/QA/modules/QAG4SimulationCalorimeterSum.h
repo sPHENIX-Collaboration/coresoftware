@@ -3,8 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <string>
 #include <memory>
+#include <string>
 
 #ifndef __CINT__
 #include <cstdint>
@@ -28,31 +28,24 @@ class SvtxTrack;
 /// \class QAG4SimulationCalorimeterSum
 class QAG4SimulationCalorimeterSum : public SubsysReco
 {
-
-public:
-
+ public:
   enum enu_flags
   {
-//    kProcessTower = 1 << 1,
-    kProcessCluster = 1 << 2,  // histograms of best cluster matched to truth particle
-    kProcessTrackProj = 1 << 3,// histograms of tower/tower sums VS track projections
+    //    kProcessTower = 1 << 1,
+    kProcessCluster = 1 << 2,    // histograms of best cluster matched to truth particle
+    kProcessTrackProj = 1 << 3,  // histograms of tower/tower sums VS track projections
 
     kDefaultFlag = kProcessCluster | kProcessTrackProj
   };
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
 
-  virtual
-  ~QAG4SimulationCalorimeterSum();
+  virtual ~QAG4SimulationCalorimeterSum();
 
-  int
-  Init(PHCompositeNode *topNode);
-  int
-  InitRun(PHCompositeNode *topNode);
-  int
-  process_event(PHCompositeNode *topNode);
-  int
-  End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
   uint32_t
   get_flags() const
@@ -95,7 +88,7 @@ public:
   }
 
   void
-  set_calo_name_cemc(const std::string & caloNameCemc)
+  set_calo_name_cemc(const std::string &caloNameCemc)
   {
     _calo_name_cemc = caloNameCemc;
   }
@@ -107,7 +100,7 @@ public:
   }
 
   void
-  set_calo_name_hcalin(const std::string & caloNameHcalin)
+  set_calo_name_hcalin(const std::string &caloNameHcalin)
   {
     _calo_name_hcalin = caloNameHcalin;
   }
@@ -119,31 +112,25 @@ public:
   }
 
   void
-  set_calo_name_hcalout(const std::string & caloNameHcalout)
+  set_calo_name_hcalout(const std::string &caloNameHcalout)
   {
     _calo_name_hcalout = caloNameHcalout;
   }
 
+  float get_mag_field() const { return _magField; }
+  void set_mag_field(float magField) { _magField = magField; }
 
-  float get_mag_field() const          {return _magField;}
-  void  set_mag_field(float magField) {_magField = magField;}
+ private:
+  //  int
+  //  Init_Tower(PHCompositeNode *topNode);
+  //  int
+  //  process_event_Tower(PHCompositeNode *topNode);
 
-private:
+  int Init_Cluster(PHCompositeNode *topNode);
+  int process_event_Cluster(PHCompositeNode *topNode);
 
-//  int
-//  Init_Tower(PHCompositeNode *topNode);
-//  int
-//  process_event_Tower(PHCompositeNode *topNode);
-
-  int
-  Init_Cluster(PHCompositeNode *topNode);
-  int
-  process_event_Cluster(PHCompositeNode *topNode);
-
-  int
-  Init_TrackProj(PHCompositeNode *topNode);
-  int
-  process_event_TrackProj(PHCompositeNode *topNode);
+  int Init_TrackProj(PHCompositeNode *topNode);
+  int process_event_TrackProj(PHCompositeNode *topNode);
 
 #ifndef __CINT__
   //CINT is not c++11 compatible
@@ -155,12 +142,11 @@ private:
 
   uint32_t _flags;
 
-
   std::string _calo_name_cemc;
   std::string _calo_name_hcalin;
   std::string _calo_name_hcalout;
 
-  PHG4TruthInfoContainer* _truth_container;
+  PHG4TruthInfoContainer *_truth_container;
 
   //! fetch the truth particle to be analyzed. By default it is the last primary particle in truth container (therefore works in single particle embedding)
   PHG4Particle *
@@ -168,17 +154,17 @@ private:
 
   //! fetch tower around track and histogram energy distributions
   bool
-  eval_trk_proj(const std::string &detector, SvtxTrack * track,
-      PHCompositeNode *topNode);
+  eval_trk_proj(const std::string &detector, SvtxTrack *track,
+                PHCompositeNode *topNode);
 
   //! central magnetic field strength in T
   float _magField;
 
-  enum {
+  enum
+  {
     //! max number of tower row/column to process around a track projection
     Max_N_Tower = 11
   };
-
 };
 
-#endif // __CALOEVALUATOR_H__
+#endif  // __CALOEVALUATOR_H__
