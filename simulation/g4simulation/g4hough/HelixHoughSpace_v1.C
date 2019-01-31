@@ -2,8 +2,6 @@
 
 #include <limits.h>
 
-ClassImp(HelixHoughSpace_v1)
-
 using namespace std;
 
 HelixHoughSpace_v1::HelixHoughSpace_v1()

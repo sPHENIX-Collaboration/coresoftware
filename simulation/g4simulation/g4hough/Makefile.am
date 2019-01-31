@@ -12,7 +12,7 @@ lib_LTLIBRARIES = \
    libg4hough.la
 
 AM_CXXFLAGS = \
- -Werror -msse2 -DRAVE -DRaveDllExport=
+ -Werror -DRAVE -DRaveDllExport=
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -71,7 +71,7 @@ pkginclude_HEADERS = \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxThresholds.h \
   PHG4SvtxTrackProjection.h \
-   PHG4TrackFastSim.h \
+  PHG4TrackFastSim.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
@@ -83,72 +83,91 @@ pkginclude_HEADERS = \
   VertexFitter.h \
   VertexFitFuncs.h
 
+ROOTDICTS = \
+  HelixHoughSpace_Dict.cc \
+  HelixHoughSpace_v1_Dict.cc \
+  HelixHoughBin_Dict.cc \
+  HelixHoughBin_v1_Dict.cc \
+  HelixHoughFuncs_Dict.cc \
+  HelixHoughFuncs_v1_Dict.cc \
+  CellularAutomaton_Dict.cc \
+  CellularAutomaton_v1_Dict.cc \
+  SvtxBeamSpot_Dict.cc \
+  SimpleTrack_Dict.cc
+
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  HelixHoughSpace_Dict_rdict.pcm \
+  HelixHoughSpace_v1_Dict_rdict.pcm \
+  HelixHoughBin_Dict_rdict.pcm \
+  HelixHoughBin_v1_Dict_rdict.pcm \
+  HelixHoughFuncs_Dict_rdict.pcm \
+  HelixHoughFuncs_v1_Dict_rdict.pcm \
+  CellularAutomaton_Dict_rdict.pcm \
+  CellularAutomaton_v1_Dict_rdict.pcm \
+  SvtxBeamSpot_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+  PHG4SvtxDeadArea_Dict.cc \
+  PHG4SvtxThresholds_Dict.cc \
+  PHG4HoughTransform_Dict.cc \
+  PHG4HoughTransformTPC_Dict.cc \
+  PHG4KalmanPatRec_Dict.cc \
+  PHRaveVertexing_Dict.cc \
+  PHG4InitZVertexing_Dict.cc \
+  PHG4TruthPatRec_Dict.cc \
+  PHG4TrackFastSim_Dict.cc \
+  PHG4PatternReco_Dict.cc \
+  PHG4TrackGhostRejection_Dict.cc \
+  PHG4TrackKalmanFitter_Dict.cc \
+  PHG4SvtxMomentumRecal_Dict.cc \
+  PHG4GenFitTrackProjection_Dict.cc \
+  PHG4SvtxTrackProjection_Dict.cc \
+  PHG4SvtxBeamSpotReco_Dict.cc
+endif
+
 libg4hough_io_la_SOURCES = \
+  $(ROOTDICTS) \
   Cluster3D.C \
   Track3D.C \
   HelixTrackState.C \
-  HelixHoughSpace.C \
-  HelixHoughSpace_Dict.C \
   HelixHoughSpace_v1.C \
-  HelixHoughSpace_v1_Dict.C \
-  HelixHoughBin.C \
-  HelixHoughBin_Dict.C \
   HelixHoughBin_v1.C \
-  HelixHoughBin_v1_Dict.C \
-  HelixHoughFuncs.C \
-  HelixHoughFuncs_Dict.C \
   HelixHoughFuncs_v1.C \
-  HelixHoughFuncs_v1_Dict.C \
   HelixKalmanFilter.C \
-  CellularAutomaton.C \
-  CellularAutomaton_Dict.C \
   CellularAutomaton_v1.C \
-  CellularAutomaton_v1_Dict.C \
   SquareGradient.C \
   SvtxBeamSpot.C \
-  SvtxBeamSpot_Dict.C \
   NewtonMinimizerGradHessian.C \
   VertexFitter.C \
   VertexFitFuncs.C
 
 libg4hough_la_SOURCES = \
+  $(ROOT5_DICTS) \
   PHG4SvtxDeadArea.C \
-  PHG4SvtxDeadArea_Dict.C \
   PHG4SvtxThresholds.C \
-  PHG4SvtxThresholds_Dict.C \
-   PHG4HoughTransform.C \
-  PHG4HoughTransform_Dict.C \
+  PHG4HoughTransform.C \
   PHG4HoughTransformTPC.C \
-  PHG4HoughTransformTPC_Dict.C \
   PHG4KalmanPatRec.C \
-  PHG4KalmanPatRec_Dict.C \
   PHRaveVertexing.C \
-  PHRaveVertexing_Dict.C \
   PHG4InitZVertexing.C \
-  PHG4InitZVertexing_Dict.C \
   PHG4PatternReco.C \
-  PHG4PatternReco_Dict.C \
   PHG4TrackGhostRejection.C \
-  PHG4TrackGhostRejection_Dict.C \
   PHG4TrackKalmanFitter.C \
   PHG4TruthPatRec.C \
   PHG4TrackFastSim.C \
-  PHG4TrackKalmanFitter_Dict.C \
-  PHG4TruthPatRec_Dict.C \
-  PHG4TrackFastSim_Dict.C \
   PHG4SvtxMomentumRecal.C \
-  PHG4SvtxMomentumRecal_Dict.C \
   PHG4GenFitTrackProjection.C \
-  PHG4GenFitTrackProjection_Dict.C \
   PHG4SvtxTrackProjection.C \
-  PHG4SvtxTrackProjection_Dict.C \
-  PHG4SvtxBeamSpotReco.C \
-  PHG4SvtxBeamSpotReco_Dict.C \
-  SimpleTrack_Dict.C
+  PHG4SvtxBeamSpotReco.C
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -157,13 +176,15 @@ noinst_PROGRAMS = \
   testexternals_g4hough_io \
   testexternals_g4hough
 
-testexternals_g4hough_io_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
+
+testexternals_g4hough_io_SOURCES = testexternals.cc
 testexternals_g4hough_io_LDADD = libg4hough_io.la
 
-testexternals_g4hough_SOURCES = testexternals.C
+testexternals_g4hough_SOURCES = testexternals.cc
 testexternals_g4hough_LDADD = libg4hough.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -171,4 +192,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
