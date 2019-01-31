@@ -3,16 +3,19 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <TString.h>
+
 #include <string>
 #include <set>
 #include <map>
 #include <utility>      // std::pair, std::make_pair
-#include <stdint.h>
-#ifndef __CINT__
 #include <memory>
-#endif
 
-#include <TString.h>
+#ifndef __CINT__
+#include <cstdint>
+#else
+#include <stdint.h>
+#endif
 
 class PHCompositeNode;
 class Fun4AllHistoManager;

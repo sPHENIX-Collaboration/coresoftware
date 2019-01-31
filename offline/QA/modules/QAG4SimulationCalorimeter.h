@@ -5,8 +5,12 @@
 
 #include <string>
 #include <memory>
+
+#ifndef __CINT__
+#include <cstdint>
+#else
 #include <stdint.h>
-#include <TString.h>
+#endif
 
 class PHCompositeNode;
 class PHG4HitContainer;
