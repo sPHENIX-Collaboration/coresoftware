@@ -21,11 +21,23 @@ noinst_HEADERS = FROGLinkDef.h
 pkginclude_HEADERS =    \
   FROG.h
 
-libFROG_la_SOURCES = \
-  FROG.cc       \
+if ! MAKEROOT6
+ROOT5DICTS = \
   FROG_Dict.cc
+endif
+
+libFROG_la_SOURCES = \
+  $(ROOT5DICTS) \
+  FROG.cc
+
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 noinst_PROGRAMS = testexternals
+
+BUILT_SOURCES = \
+  testexternals.cc
+
 testexternals_SOURCES = testexternals.cc
 
 testexternals_LDADD = \
@@ -38,12 +50,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-# Rule for generating CINT dictionaries from class headers.
-FROG_Dict.cc:   \
-  FROG.h       \
-  FROGLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 clean-local:
-	rm -f *Dict* *.pcm
-	rm -f testexternals.cc
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
