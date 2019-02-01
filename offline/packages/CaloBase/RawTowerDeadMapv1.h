@@ -1,12 +1,11 @@
-#ifndef RawTowerDeadMapv1_H__
-#define RawTowerDeadMapv1_H__
+#ifndef CALOBASE_RAWTOWERDEADMAPV1_H
+#define CALOBASE_RAWTOWERDEADMAPV1_H
 
 #include "RawTowerDeadMap.h"
 
 class RawTowerDeadMapv1 : public RawTowerDeadMap
 {
  public:
-
   RawTowerDeadMapv1(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE)
     : _caloid(caloid)
   {
@@ -37,4 +36,4 @@ class RawTowerDeadMapv1 : public RawTowerDeadMap
   ClassDef(RawTowerDeadMapv1, 1)
 };
 
-#endif /* RawTowerDeadMapv1_H__ */
+#endif
