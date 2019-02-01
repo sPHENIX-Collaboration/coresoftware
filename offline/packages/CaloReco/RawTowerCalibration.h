@@ -7,7 +7,6 @@
 
 #include <string>
 
-
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
@@ -17,20 +16,15 @@ class RawTowerGeomContainer;
 //! default output DST node is TOWER_CALIB_DETECTOR
 class RawTowerCalibration : public SubsysReco
 {
-
-public:
-  RawTowerCalibration(const std::string& name = "RawTowerCalibration");
-  virtual
-  ~RawTowerCalibration()
+ public:
+  RawTowerCalibration(const std::string &name = "RawTowerCalibration");
+  virtual ~RawTowerCalibration()
   {
   }
 
-  int
-  InitRun(PHCompositeNode *topNode);
-  int
-  process_event(PHCompositeNode *topNode);
-  int
-  End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
   void
   Detector(const std::string &d)
   {
@@ -40,8 +34,8 @@ public:
   void
   TowerType(const int type)
   {
-    _tower_type = type; 
-  } 
+    _tower_type = type;
+  }
 
   enum enu_calib_algorithm
   {
@@ -133,14 +127,15 @@ public:
   {
     return _tower_calib_params;
   }
-protected:
+
+ protected:
   void
   CreateNodes(PHCompositeNode *topNode);
 
   enu_calib_algorithm _calib_algorithm;
 
-  RawTowerContainer* _calib_towers;
-  RawTowerContainer* _raw_towers;
+  RawTowerContainer *_calib_towers;
+  RawTowerContainer *_raw_towers;
   RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
@@ -161,11 +156,10 @@ protected:
   double _zero_suppression_GeV;
 
   //! tower type to act on
-  int _tower_type; 
+  int _tower_type;
 
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
-
 };
 
 #endif

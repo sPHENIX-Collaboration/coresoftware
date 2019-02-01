@@ -63,24 +63,18 @@ void CEMC_Towers(int verbosity = 0) {
 
  * */
 
-
 class RawTowerCombiner : public SubsysReco
 {
+ public:
+  RawTowerCombiner(const std::string &name = "RawTowerCombiner");
 
-public:
-  RawTowerCombiner(const std::string& name = "RawTowerCombiner");
-
-  virtual
-  ~RawTowerCombiner()
+  virtual ~RawTowerCombiner()
   {
   }
 
-  int
-  InitRun(PHCompositeNode *topNode);
-  int
-  process_event(PHCompositeNode *topNode);
-  int
-  End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
   void
   Detector(const std::string &d)
@@ -97,7 +91,7 @@ public:
 
   //! prefix to the tower node
   void
-  set_tower_node_prefix(const std::string & simTowerNodePrefix)
+  set_tower_node_prefix(const std::string &simTowerNodePrefix)
   {
     _tower_node_prefix = simTowerNodePrefix;
   }
@@ -130,8 +124,7 @@ public:
     _n_combine_phi = combinePhi;
   }
 
-protected:
-
+ protected:
   //! prefix to the tower node
   std::string _tower_node_prefix;
 
@@ -141,18 +134,16 @@ protected:
   unsigned int _n_combine_phi;
 
   //! get the new ieta from the old
-  inline int get_output_bin_eta(int input_bin) const {return input_bin/_n_combine_eta;}
+  inline int get_output_bin_eta(int input_bin) const { return input_bin / _n_combine_eta; }
   //! get the new iphi from the old
-  inline int get_output_bin_phi(int input_bin) const {return input_bin/_n_combine_phi;}
-
+  inline int get_output_bin_phi(int input_bin) const { return input_bin / _n_combine_phi; }
 
   void
   CreateNodes(PHCompositeNode *topNode);
 
-  RawTowerContainer* _towers;
+  RawTowerContainer *_towers;
 
   std::string detector;
-
 };
 
 #endif

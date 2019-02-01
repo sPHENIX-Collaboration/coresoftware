@@ -12,25 +12,25 @@ class RawTowerContainer;
 class RawTowerGeomContainer;
 class BEmcRecCEMC;
 
-class RawClusterBuilderTemplate : public SubsysReco {
-
+class RawClusterBuilderTemplate : public SubsysReco
+{
  public:
   RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderGraph");
   virtual ~RawClusterBuilderTemplate();
 
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
-  void Detector(const std::string &d) {detector = d;}
+  int InitRun(PHCompositeNode* topNode);
+  int process_event(PHCompositeNode* topNode);
+  int End(PHCompositeNode* topNode);
+  void Detector(const std::string& d) { detector = d; }
 
-  void set_threshold_energy(const float e) {_min_tower_e = e;}
-  void setEnergyNorm(float norm) {fEnergyNorm = norm;}
-  void checkenergy(const int i = 1) {chkenergyconservation = i;}
+  void set_threshold_energy(const float e) { _min_tower_e = e; }
+  void setEnergyNorm(float norm) { fEnergyNorm = norm; }
+  void checkenergy(const int i = 1) { chkenergyconservation = i; }
 
  private:
-  void CreateNodes(PHCompositeNode *topNode);
-  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergemom);
-  bool Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float& phi, float& eta);
+  void CreateNodes(PHCompositeNode* topNode);
+  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer* towergemom);
+  bool Cell2Abs(RawTowerGeomContainer* towergeom, float phiC, float etaC, float& phi, float& eta);
 
   RawClusterContainer* _clusters;
 
@@ -42,7 +42,6 @@ class RawClusterBuilderTemplate : public SubsysReco {
 
   std::string detector;
   std::string ClusterNodeName;
-
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */
