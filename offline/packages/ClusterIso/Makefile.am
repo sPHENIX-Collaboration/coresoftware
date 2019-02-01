@@ -1,23 +1,28 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
+pkginclude_HEADERS = \
+  ClusterIso.h
+
 libclusteriso_la_LDFLAGS = \
-  -nodefaultlibs \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
- `root-config --libs`
+  `root-config --libs`
 
 lib_LTLIBRARIES = \
-	libclusteriso.la
-  
+  libclusteriso.la
+
+if ! MAKEROOT6
+ROOT5_DICTS = \
+  ClusterIso_Dict.cc 
+endif
 
 libclusteriso_la_SOURCES = \
-	ClusterIso.cc \
-	ClusterIso_Dict.C 
+  ClusterIso.cc
 
 libclusteriso_la_LIBADD = \
   -lg4dst \
@@ -26,27 +31,32 @@ libclusteriso_la_LIBADD = \
   -ljetbackground \
   -lphool
 
-BUILT_SOURCES = \
-	testexternals.C
-
 noinst_PROGRAMS = \
-	testexternals
+  testexternals
+
+BUILT_SOURCES = \
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
+
 
 testexternals_LDADD = \
-	libclusteriso.la
+  libclusteriso.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-##############################################
-# please add new classes in alphabetical order
-# Rule for generating CINT dictionaries from class headers.
-%_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(CINTFLAGS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $^
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
-	rm -f *Dict* testexternals.C
+	rm -f *Dict*  $(BUILT_SOURCES) *.pcm
