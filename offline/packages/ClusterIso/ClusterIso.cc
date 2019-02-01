@@ -8,17 +8,11 @@
  */
 
 #include "ClusterIso.h"
-#include <iostream>
 
-#include <fun4all/SubsysReco.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
-
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
@@ -26,6 +20,14 @@
 
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
+
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/getClass.h>
+
+
+#include <iostream>
 
 /** \Brief Function to get correct tower eta
  *
