@@ -264,7 +264,7 @@ int RawClusterBuilderTemplateEEMC::process_event(PHCompositeNode *topNode)
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hlist;
 
-  ncl = 0;
+  // ncl = 0;
   for( pc=ClusterList->begin(); pc!=ClusterList->end(); ++pc){
 
     //    ecl = pc->GetTotalEnergy();
@@ -275,7 +275,7 @@ int RawClusterBuilderTemplateEEMC::process_event(PHCompositeNode *topNode)
 
     //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
 
-    for( pp=pPList->begin(); pp!=pPList->end(); pp++){
+    for( pp=pPList->begin(); pp!=pPList->end(); ++pp){
 
       // Cluster energy
       ecl = pp->GetTotalEnergy();
@@ -331,7 +331,7 @@ int RawClusterBuilderTemplateEEMC::process_event(PHCompositeNode *topNode)
       }
 
       _clusters->AddCluster(cluster);
-      ncl++;
+//      ncl++;
 
       //      printf("    ipk=%d: E=%f x=%f (%f)  y=%f (%f)  MaxTower: (%d,%d) e=%f\n",ncl-1,ecl,xcorr,xout,ycorr,yout,hmax.ich%NBINX,hmax.ich/NBINX,hmax.amp);
 

@@ -64,11 +64,29 @@ float BEmcRec::fgChi2Level2[50]={
 // ///////////////////////////////////////////////////////////////////////////
 // BEmcRec member functions
 
-BEmcRec::BEmcRec()
+BEmcRec::BEmcRec():
+  bCYL(true)
+  ,fNx(-99999)
+  ,fNy(-99999)
+  ,fModSizex(NAN)
+  ,fModSizey(NAN)
+  ,fVx(NAN)
+  ,fVy(NAN)
+  ,fVz(NAN)
+  ,fgTowerThresh(NAN)
+  ,fgMinPeakEnergy(NAN)
+  ,fSin4T(NAN)
+  ,fSinTx(NAN)
+  ,fSinTy(NAN)
+  ,fPpar1(NAN)
+  ,fPpar2(NAN)
+  ,fPpar3(NAN)
+  ,fPpar4(NAN)
+  ,fPshiftx(NAN)
+  ,fPshifty(NAN)
 {
   fModules=new vector<EmcModule>;
   fClusters=new vector<EmcCluster>;
-  bCYL = true;
   SetPeakThreshold(0.08);
   SetChi2Limit(2);
 }
@@ -463,10 +481,9 @@ void BEmcRec::Gamma(int nh, EmcModule* phit0, float* pchi, float* pchi0,
   // modules for PbGl).
 
   float e1, x1, y1, e2, x2, y2;
-  float chi, chi0, chi00, chisq0, chisave;
-  float chir, chil, chiu, chid;
+  float chi, chi0, chisq0, chisave;
   int dof;
-  float x0, y0, d2, xm2;
+  float x0, y0;
   float stepx, stepy, parx, pary;
   const float dxy=0.06;
   const float stepmin=0.01;
@@ -520,10 +537,10 @@ void BEmcRec::Gamma(int nh, EmcModule* phit0, float* pchi, float* pchi0,
   y0 = y1;
   for(;;){
 
-    chir = ClusterChisq(nh, phit, e1, x0+dxy, y0, ndf);
-    chil = ClusterChisq(nh, phit, e1, x0-dxy, y0, ndf);
-    chiu = ClusterChisq(nh, phit, e1, x0, y0+dxy, ndf);
-    chid = ClusterChisq(nh, phit, e1, x0, y0-dxy, ndf);
+    double chir = ClusterChisq(nh, phit, e1, x0+dxy, y0, ndf);
+    double chil = ClusterChisq(nh, phit, e1, x0-dxy, y0, ndf);
+    double chiu = ClusterChisq(nh, phit, e1, x0, y0+dxy, ndf);
+    double chid = ClusterChisq(nh, phit, e1, x0, y0-dxy, ndf);
     
     if( (chi0 > chir) || (chi0 > chil) ) {
       stepx = dxy;
@@ -545,7 +562,7 @@ void BEmcRec::Gamma(int nh, EmcModule* phit0, float* pchi, float* pchi0,
       if( pary > 0 ) stepy = -dxy*(chiu-chid)/2/pary;
     }
     if( (EmcCluster::ABS(stepx) < stepmin) && (EmcCluster::ABS(stepy) < stepmin) ) break;
-    chi00 = ClusterChisq(nh, phit, e1, x0+stepx, y0+stepy, ndf);
+    double chi00 = ClusterChisq(nh, phit, e1, x0+stepx, y0+stepy, ndf);
 
     if( chi00 >= chi0 ) break;
     chi0 = chi00;
@@ -573,8 +590,8 @@ void BEmcRec::Gamma(int nh, EmcModule* phit0, float* pchi, float* pchi0,
     TwoGamma(nh,phit,&chi,&e1,&x1,&y1,&e2,&x2,&y2);
     //    printf("Chi=%f E=%f %f X=%f %f Y=%f %f\n",chi,e1,e2,x1,x2,y1,y2);
     if( e2 > 0 ) {
-      d2 = ((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))/zTG/zTG;
-      xm2 = e1*e2*d2;
+      double d2 = ((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))/zTG/zTG;
+      double xm2 = e1*e2*d2;
       if( xm2 > 0 ) xm2 = sqrt(xm2);
       if( xm2 > xmcut && e1 > fgMinShowerEnergy && e2 > fgMinShowerEnergy) {
 
@@ -601,7 +618,7 @@ void BEmcRec::Gamma(int nh, EmcModule* phit0, float* pchi, float* pchi0,
 
 // ///////////////////////////////////////////////////////////////////////////
 
-EmcModule BEmcRec::ShiftX(int ish, EmcModule ehit)
+EmcModule BEmcRec::ShiftX(int ish, EmcModule &ehit)
 {
   EmcModule hh = ehit;
   int iy = hh.ich / fNx;
@@ -621,10 +638,10 @@ int BEmcRec::ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule* phit1)
 // If ishift=0, let it decide how much to shift
 {
   int ishift_def = fNx/2;
-  int ix, iy, ich, ish;
+  int ix, ish;
 
-  bool bshift = false;
   if( ishift==0 ) {
+    bool bshift = false;
     for( int i=0; i<nh; i++ ) {
       phit1[i] = phit0[i];
       ix = phit0[i].ich % fNx;
@@ -640,7 +657,7 @@ int BEmcRec::ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule* phit1)
   int ixmax = -999;
   for( int i=0; i<nh; i++ ) {
     phit1[i] = phit0[i];
-    iy = phit0[i].ich / fNx;
+    int iy = phit0[i].ich / fNx;
     ix = phit0[i].ich % fNx + ish;
 
     while(ix<0   ) ix+=fNx;
@@ -649,7 +666,7 @@ int BEmcRec::ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule* phit1)
     if( ixmin>ix ) ixmin = ix;
     if( ixmax<ix ) ixmax = ix;
 
-    ich = iy*fNx + ix;
+    int ich = iy*fNx + ix;
     phit1[i].ich = ich;
   }
 
@@ -668,7 +685,6 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
   // First and second momenta calculation
   
   float a, x, y, e, xx, yy, yx;
-  int ix, iy, idx, idy, i;
   EmcModule* p;
   
   *pe=0;
@@ -684,7 +700,7 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
   p = phit;
   float emax = 0;
   int ichmax = 0;
-  for( i=0; i<nh; i++ ) {
+  for( int i=0; i<nh; i++ ) {
     a = p->amp;
     if( a>emax ) {emax = a; ichmax = p->ich;}
     p++;
@@ -703,12 +719,12 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
   yy=0;
   yx=0;
   p = phit;
-  for( i=0; i<nh; i++ ) {
+  for( int i=0; i<nh; i++ ) {
     a = p->amp;
-    iy = p->ich / fNx;
-    ix = p->ich - iy*fNx;
-    idx = iTowerDist(ixmax,ix);
-    idy = iy - iymax;
+    int iy = p->ich / fNx;
+    int ix = p->ich - iy*fNx;
+    int idx = iTowerDist(ixmax,ix);
+    int idy = iy - iymax;
     e += a;
     x += idx*a;
     y += idy*a;
@@ -748,7 +764,7 @@ void BEmcRec::Momenta(int nh, EmcModule* phit, float* pe, float* px,
 int BEmcRec::HitNCompare(const void* h1, const void* h2)
 {
 
-  return ( ((EmcModule*)h1)->ich - ((EmcModule*)h2)->ich );
+  return ( static_cast<const EmcModule*>(h1)->ich - static_cast<const EmcModule*>(h2)->ich );
 
 }
 
@@ -756,9 +772,8 @@ int BEmcRec::HitNCompare(const void* h1, const void* h2)
 
 int BEmcRec::HitACompare(const void* h1, const void* h2)
 {
-
-  float amp1 = ((EmcModule*)h1)->amp;
-  float amp2 = ((EmcModule*)h2)->amp;
+  float amp1 = static_cast<const EmcModule*>(h1)->amp;
+  float amp2 = static_cast<const EmcModule*>(h2)->amp;
   return (amp1<amp2) ? 1: (amp1>amp2) ? -1 : 0;
 
 }
@@ -981,7 +996,7 @@ void BEmcRec::SetProfileParameters(int sec, float Energy, float x,
   // If sec < 0 this routine changes only Energy dependent parameters - 
   // the angle dependent ones are set in the previous call
 
-  static float sin2ax, sin2ay, sin2a, lgE;
+  static float sin2ax, sin2ay, lgE;
   //  float vx, vy, vz;
   //  float xVert, yVert, zVert;
   int sign;
@@ -995,7 +1010,7 @@ void BEmcRec::SetProfileParameters(int sec, float Energy, float x,
     fSinTx = (dx-4)*fModSizex;
     fSinTx = 0;
     fSinTy = 0;
-    sin2a = fSinTx*fSinTx + fSinTy*fSinTy;
+    static float sin2a = fSinTx*fSinTx + fSinTy*fSinTy;
     fSin4T = sin2a*sin2a;
     sin2ax = fSinTx*fSinTx;
     sin2ay = fSinTy*fSinTy;
@@ -1034,16 +1049,15 @@ float BEmcRec::PredictEnergy(float xc, float yc, float en)
   // en - shower energy
   // If en<0 -> no Shower Profile parameters change is needed
 
-  float dx, dy, r1, r2, r3, e;
+  float dx, dy, r1, r2, r3;
   
   if( en > 0 ) SetProfileParameters(-1,en,xc,yc);
   dx=fabs(xc-fPshiftx);
   dy=EmcCluster::ABS(yc-fPshifty);
-  e=0;
   r2=dx*dx+dy*dy;
   r1=sqrt(r2);
   r3=r2*r1;
-  e=fPpar1*exp(-r3/fPpar2)+fPpar3*exp(-r1/fPpar4);
+  double e=fPpar1*exp(-r3/fPpar2)+fPpar3*exp(-r1/fPpar4);
   
   return e;
 
@@ -1060,10 +1074,10 @@ void BEmcRec::TwoGamma(int nh, EmcModule* phit, float* pchi, float* pe1,
   float dxy, rsg2, rsq;
   float dxc, dyc, r, epsc;
   int ix, iy, ixy, in, iter, dof;
-  float step, cosi, chisq2, u;
+  float step, cosi;
   float e1c, x1c, y1c, e2c, x2c, y2c;
   float eps0 = 0.0;
-  float eps1, eps2, chisqc, ex;
+  float ex;
   float dx1, dy1, dx2, dy2, a0, d;
   float dchi, dchi0, dd, dchida, a1, a2;
   float gr = 0.0;
@@ -1100,7 +1114,7 @@ void BEmcRec::TwoGamma(int nh, EmcModule* phit, float* pchi, float* pe1,
     ixy = phit[in].ich;
     iy = ixy/fNx;
     ix = ixy - iy*fNx;
-    u = (ix-x0)*dxc/r + (iy-y0)*dyc/r;
+    double u = (ix-x0)*dxc/r + (iy-y0)*dyc/r;
     epsc -= phit[in].amp * u * EmcCluster::ABS(u);
   }
   epsc /= (e0*rsq);
@@ -1111,13 +1125,13 @@ void BEmcRec::TwoGamma(int nh, EmcModule* phit, float* pchi, float* pe1,
   //  Start of iterations
   step = 0.1;
   cosi = 0;
-  chisq2 = 1.e35;
+  double chisq2 = 1.e35;
   for( iter=0; iter<100; iter++)
     {
       c3to5(e0,x0,y0,epsc,dxc,dyc,&e1c,&x1c,&y1c,&e2c,&x2c,&y2c);
-      eps1 = (1+epsc)/2;
-      eps2 = (1-epsc)/2;
-      chisqc = 0;
+      double eps1 = (1+epsc)/2;
+      double eps2 = (1-epsc)/2;
+      double chisqc = 0;
       for( in=0; in<nh; in++ ) {
 	ex = phit[in].amp;
 	ixy = phit[in].ich;
@@ -1242,7 +1256,7 @@ float BEmcRec::GetProb(vector<EmcModule> HitList, float &chi2, int &ndf)
 	break;
       }
     } // if( ee[nn]
-    ph++;
+    ++ph;
   } // while( ph 
 
   if( nn<=0 ) return -1;
@@ -1372,17 +1386,15 @@ float BEmcRec::ClusterChisq(int nh, EmcModule* phit, float e, float x,
 				float y, int &ndf)
 {
 
-  float chi=0;
-  int ixy, ix, iy;
-  float et, a, d;
+  double chi=0;
   
   for( int in=0; in<nh; in++ ) {
-    ixy = phit[in].ich;
-    iy = ixy/fNx;
-    ix = ixy - iy*fNx;
-    et = phit[in].amp;
-    a = PredictEnergy(x-ix, y-iy, -1);
-    d = fgEpar00*fgEpar00 + e*(fgEpar1*a + fgEpar2*a*a + fgEpar3*a*a*a) + 
+    int ixy = phit[in].ich;
+    int iy = ixy/fNx;
+    int ix = ixy - iy*fNx;
+    double et = phit[in].amp;
+    double a = PredictEnergy(x-ix, y-iy, -1);
+    double d = fgEpar00*fgEpar00 + e*(fgEpar1*a + fgEpar2*a*a + fgEpar3*a*a*a) + 
       e*sqrt(e)*fgEpar4*a*(1-a)*fSin4T + e*e*fgEpar0*fgEpar0;
     a *= e;
     chi += (et-a)*(et-a)/d;

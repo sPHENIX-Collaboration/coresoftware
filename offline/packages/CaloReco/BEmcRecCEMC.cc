@@ -59,22 +59,22 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   float xShift, yShift, xZero, yZero, bx, by;
   float t, x0, y0;
   int ix0, iy0;
-  int signx, signy;
+//  int signx, signy;
 
   const float Xrad = 0.3; // !!!!! Need to put correct value
   const float Remc = 90.; // EMCal inner radius. !!!!! Should be obtained from geometry container
 
   SetProfileParameters( 0, Energy, x, y );
-  if( fSinTx >= 0 ) signx =  1;
-  else 	   signx = -1;
-  if( fSinTy >= 0 ) signy =  1;
-  else 	   signy = -1;
+  // if( fSinTx >= 0 ) signx =  1;
+  // else 	   signx = -1;
+  // if( fSinTy >= 0 ) signy =  1;
+  // else 	   signy = -1;
   t = 5.0+1.0*log(Energy); // In Rad Length units
   t *= ( Xrad/Remc/GetModSizex() ); // !!!!!
   xShift = t*fSinTx;
   yShift = t*fSinTy;
-  xZero=xShift-(0.417*EmcCluster::ABS(fSinTx)+1.500*fSinTx*fSinTx)*signx;
-  yZero=yShift-(0.417*EmcCluster::ABS(fSinTy)+1.500*fSinTy*fSinTy)*signy;
+  // xZero=xShift-(0.417*EmcCluster::ABS(fSinTx)+1.500*fSinTx*fSinTx)*signx;
+  // yZero=yShift-(0.417*EmcCluster::ABS(fSinTy)+1.500*fSinTy*fSinTy)*signy;
   xZero = xShift; // ...Somehow this works better !!!!!
   yZero = yShift; // ...Somehow this works better !!!!!
   t = 0.98 + 0.98*sqrt(Energy); // !!!!! Still from PHENIX

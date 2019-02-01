@@ -94,7 +94,7 @@ float EmcCluster::GetTowerEnergy( int ich )
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
        if( (*ph).ich == ich ) return (*ph).amp;
-	ph++;
+	++ph;
      }
      return 0;
 }
@@ -104,17 +104,16 @@ float EmcCluster::GetTowerEnergy( int ich )
 float EmcCluster::GetTowerEnergy( int ix, int iy )
 // Returns the energy of the tower ix,iy (0 if tower not found in the fHitList)
 {
-     int ich, ixl, iyl;
      vector<EmcModule>::iterator ph;
 
      if( fHitList.empty() ) return 0;
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
-       ich = (*ph).ich;
-       iyl = ich/fOwner->GetNx();
-       ixl = ich % fOwner->GetNx();
+       int ich = (*ph).ich;
+       int iyl = ich/fOwner->GetNx();
+       int ixl = ich % fOwner->GetNx();
        if( ixl == ix && iyl == iy ) return (*ph).amp;
-	ph++;
+	++ph;
      }
      return 0;
 }
@@ -128,7 +127,7 @@ float EmcCluster::GetTowerToF( int ich )
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
        if( (*ph).ich == ich ) return (*ph).tof;
-	ph++;
+	++ph;
      }
      return 0;
 }
@@ -143,7 +142,7 @@ int EmcCluster::GetTowerDeadMap( int ich )
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
        if( (*ph).ich == ich ) return (*ph).deadmap;
-       ph++;
+       ++ph;
      }
      return 0;
 }
@@ -158,7 +157,7 @@ int EmcCluster::GetTowerWarnMap( int ich )
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
        if( (*ph).ich == ich ) return (*ph).warnmap;
-       ph++;
+       ++ph;
      }
      return 0;
 }
@@ -173,7 +172,7 @@ float EmcCluster::GetTowerADC( int ich )
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
        if( (*ph).ich == ich ) return (*ph).adc;
-       ph++;
+       ++ph;
      }
      return 0.;
 }
@@ -188,7 +187,7 @@ float EmcCluster::GetTowerTAC( int ich )
      ph = fHitList.begin();
      while( ph != fHitList.end() ) {
        if( (*ph).ich == ich ) return (*ph).tac;
-       ph++;
+       ++ph;
      }
      return 0.;
 }
@@ -249,7 +248,7 @@ float EmcCluster::GetTotalEnergy()
      ph = fHitList.begin();
      while( ph != fHitList.end() ) { 
 	et += (*ph).amp;
-	ph++;
+	++ph;
      }
      return et;
 }
@@ -272,9 +271,8 @@ float EmcCluster::GetECore()
 // Returns the energy in core towers around the cluster Center of Gravity
 {
     vector<EmcModule>::iterator ph;
-    float xcg, ycg, xx, xy, yy, dx, dy;
-    float energy, es, et;
-    int ix, iy, ixy;
+    float xcg, ycg, xx, xy, yy;
+    float energy, es;
 
     GetMoments( &xcg, &ycg, &xx, &xy, &yy ); // Now it is in cell units
     //    xcg /= fOwner->GetModSizex();
@@ -286,15 +284,15 @@ float EmcCluster::GetECore()
     if( fHitList.empty() ) return 0;
     ph = fHitList.begin();
     while( ph != fHitList.end() ) { 
-      ixy = (*ph).ich;
-      iy = ixy/fOwner->GetNx();
-      ix = ixy - iy*fOwner->GetNx();
+      int ixy = (*ph).ich;
+      int iy = ixy/fOwner->GetNx();
+      int ix = ixy - iy*fOwner->GetNx();
       //      dx = xcg - ix;
-      dx = fOwner->fTowerDist(float(ix),xcg);
-      dy = ycg - iy;
-      et = fOwner->PredictEnergy(dx, dy, -1);
+      float dx = fOwner->fTowerDist(float(ix),xcg);
+      float dy = ycg - iy;
+      float et = fOwner->PredictEnergy(dx, dy, -1);
       if( et > 0.01 ) es += (*ph).amp;
-      ph++;
+      ++ph;
     }
     return es;
 
@@ -334,13 +332,10 @@ float EmcCluster::GetE9()
 {
      float xcg, ycg, xx, xy, yy;
      int ich, ix0, iy0, nhit;
-     float e;
-
-     e=0;
 
      nhit = fHitList.size();
 
-     if( nhit <= 0 ) return e;
+     if( nhit <= 0 ) return 0;
 
      GetMoments( &xcg, &ycg, &xx, &xy, &yy );
      //     xcg /= fOwner->GetModSizex();
@@ -358,7 +353,6 @@ float EmcCluster::GetE9()
 float EmcCluster::GetE9( int ich )
 // Returns the energy in 3x3 towers around the tower ich
 {
-  int ix, iy, ixy, idx, idy;
   vector<EmcModule>::iterator ph;
   
   int iy0 = ich/fOwner->GetNx();
@@ -368,13 +362,13 @@ float EmcCluster::GetE9( int ich )
   if( fHitList.empty() ) return 0;
   ph = fHitList.begin();
   while( ph != fHitList.end() ) { 
-    ixy = (*ph).ich;
-    iy = ixy/fOwner->GetNx();
-    ix = ixy - iy*fOwner->GetNx();
-    idx = fOwner->iTowerDist(ix0,ix);
-    idy = iy-iy0;
+    int ixy = (*ph).ich;
+    int iy = ixy/fOwner->GetNx();
+    int ix = ixy - iy*fOwner->GetNx();
+    int idx = fOwner->iTowerDist(ix0,ix);
+    int idy = iy-iy0;
     if( abs(idx)<=1 && abs(idy)<=1 ) es += (*ph).amp;
-    ph++;
+    ++ph;
   }
   return es;
 }
@@ -385,12 +379,11 @@ EmcModule EmcCluster::GetImpactTower()
 // Returns the EmcModule corresponding to the reconstructed impact tower
 {
      float x, y;
-     int ix, iy, ich;
      EmcModule ht;
 
      GetCorrPos( &x, &y );
-     ix = lowint(x/fOwner->GetModSizex() + 0.5);
-     iy = lowint(y/fOwner->GetModSizey() + 0.5);
+     int ix = lowint(x/fOwner->GetModSizex() + 0.5);
+     int iy = lowint(y/fOwner->GetModSizey() + 0.5);
      if( ix < 0 || ix > fOwner->GetNx()-1 || iy < 0 || iy > fOwner->GetNy()-1 ) {
 	printf("????? EmcClusterChi2: Something wrong in GetImpactTower: (x,y)=(%f,%f)  (ix,iy)=(%d,%d) \n", x, y, ix, iy);
 	//!!!!!	memset(&ht, 0, sizeof(EmcModule)); // MV 2002/03/12 bugfix
@@ -400,7 +393,7 @@ EmcModule EmcCluster::GetImpactTower()
 	return ht;
      }
      else {
-	ich = iy*fOwner->GetNx() + ix;
+	int ich = iy*fOwner->GetNx() + ix;
 	ht.ich = ich;
 	ht.amp = GetTowerEnergy( ich );
 	ht.tof = GetTowerToF( ich );
@@ -430,7 +423,7 @@ EmcModule EmcCluster::GetMaxTower()
      ph = fHitList.begin();
      while( ph != fHitList.end() ) { 
 	if( (*ph).amp > emax ) { emax = (*ph).amp; ht = *ph; }
-	ph++;
+	++ph;
      }
      return ht;
 }
@@ -443,7 +436,6 @@ void EmcCluster::GetHits(EmcModule* phit, int n)
      int nhit;
      EmcModule *hlist, *vv;
      vector<EmcModule>::iterator ph;
-     vector<EmcModule> hl;
 
      fOwner->ZeroVector(phit, n);
      nhit = fHitList.size();
@@ -482,8 +474,8 @@ void EmcCluster::GetMoments( float* px, float* py, float* pxx, float* pxy, float
      while( ph != fHitList.end() ) { 
 	p->ich = (*ph).ich;
 	p->amp = (*ph).amp;
-	ph++;
-	p++;
+	++ph;
+	++p;
      }
      fOwner->Momenta( nhit, phit, &e, &x, &y, &xx, &yy, &xy );
      /*
@@ -983,7 +975,7 @@ float EmcPeakarea::GetCLNew()
     float e1m, e2m, e3m, e4m;
     float e1p, e2p, e3p, e4p;
     float s1, s2, s3, s4;
-    float dx, dy, dt, et, etot, sc;
+    float dx, dy, etot, sc;
     float chi2, pr;
     int ix0, iy0, isx, isy, ndf;
 
@@ -1007,10 +999,10 @@ float EmcPeakarea::GetCLNew()
     e4 = GetTowerEnergy(ix0    , iy0+isy);
 
     if( dy > dx ) {
-      et = e2;
+      float et = e2;
       e2 = e4;
       e4 = et;
-      dt = dx;
+      float dt = dx;
       dx = dy;
       dy = dt;
     }
@@ -1054,7 +1046,7 @@ float EmcPeakarea::GetChi2New()
     float e1m, e2m, e3m, e4m;
     float e1p, e2p, e3p, e4p;
     float s1, s2, s3, s4;
-    float dx, dy, dt, et, etot, sc;
+    float dx, dy, etot, sc;
     float chi2;
     int ix0, iy0, isx, isy, ndf;
 
@@ -1078,10 +1070,10 @@ float EmcPeakarea::GetChi2New()
     e4 = GetTowerEnergy(ix0    , iy0+isy);
 
     if( dy > dx ) {
-      et = e2;
+      float et = e2;
       e2 = e4;
       e4 = et;
-      dt = dx;
+      float dt = dx;
       dx = dy;
       dy = dt;
     }

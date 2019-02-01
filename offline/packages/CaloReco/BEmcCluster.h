@@ -63,7 +63,6 @@ public:
   {}
 
   /// Constructor (inputs Hit List)
-#ifndef __CINT__
 
   EmcCluster(const std::vector<EmcModule>& hlist,
 	     BEmcRec *sector)
@@ -71,20 +70,17 @@ public:
   {
     fHitList = hlist;
   }
-#endif
 
   ///
   virtual ~EmcCluster()
   {}
 
   /// Reinitializes EmcCluster supplying new Hit List.
-#ifndef __CINT__
 
   void ReInitialize( const std::vector<EmcModule>& hlist )
   {
     fHitList = hlist;
   }
-#endif
   /// Returns number of EmcModules in EmcCluster
   int GetNofHits()
   {
@@ -93,13 +89,11 @@ public:
   /// Returns n EmcModules (sorted) with the maximum energy
   void GetHits(EmcModule* phit, int n);
   /// Returns EmcCluster fHitList
-#ifndef __CINT__
 
   std::vector<EmcModule> GetHitList()
   {
     return fHitList;
   };
-#endif
   /// Returns the EmcModule with the maximum energy
   EmcModule GetMaxTower();
   /// Returns the EmcModule corresponding to the reconstructed impact tower
@@ -154,10 +148,8 @@ public:
 
 protected:
 
-#ifndef __CINT__
 
   std::vector<EmcModule> fHitList;
-#endif
 
   BEmcRec *fOwner; // what sector it belongs to
 
@@ -240,12 +232,10 @@ public:
   {}
 
   /// Constructor (inputs Hit List)
-#ifndef __CINT__
 
   EmcPeakarea(const std::vector<EmcModule>& hlist, BEmcRec *sector):
     EmcCluster(hlist, sector), fNdf(0), fCL(1.)
   {}
-#endif
 
   virtual ~EmcPeakarea()
   {}

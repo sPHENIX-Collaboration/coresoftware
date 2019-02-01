@@ -69,7 +69,6 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  int ngeom=0;
   int ixmin= 999999;
   int ixmax=-999999;
   int iymin= 999999;
@@ -85,7 +84,6 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
     if( ixmax<ix ) ixmax=ix;
     if( iymin>iy ) iymin=iy;
     if( iymax<iy ) iymax=iy;
-    ngeom++;
   }
   //  printf("************* Init CEMC: N of geom towers: %d; ix=%d-%d iy=%d-%d\n",ngeom,ixmin,ixmax,iymin,iymax);
 
@@ -229,7 +227,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hlist;
 
-  ncl = 0;
+  // ncl = 0;
   for( pc=ClusterList->begin(); pc!=ClusterList->end(); ++pc){
 
     //    ecl = pc->GetTotalEnergy();
@@ -240,7 +238,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
 
     //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
 
-    for( pp=pPList->begin(); pp!=pPList->end(); pp++){
+    for( pp=pPList->begin(); pp!=pPList->end(); ++pp){
 
       // Cluster energy
       ecl = pp->GetTotalEnergy();
@@ -295,7 +293,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       }
 
       _clusters->AddCluster(cluster);
-      ncl++;
+      // ncl++;
 
       //      printf("    ipk=%d: E=%f  E9=%f  x=%f  y=%f  MaxTower: (%d,%d) e=%f\n",ipk,ecl,e9,xcg,ycg,hmax.ich%NPHI,hmax.ich/NPHI,hmax.amp);
 

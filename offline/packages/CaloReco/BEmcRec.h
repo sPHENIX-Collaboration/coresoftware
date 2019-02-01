@@ -67,11 +67,9 @@ class BEmcRec
   float GetPeakThreshold() { return fgMinPeakEnergy; }
   float GetTowerThreshold() { return fgTowerThresh; }
   
-#ifndef __CINT__
   void SetModules(std::vector<EmcModule> const *modules);
   std::vector<EmcModule> *GetModules(){ return fModules; }
   std::vector<EmcCluster> *GetClusters(){ return fClusters; }
-#endif
 
   int iTowerDist(int ix1, int ix2);
   float fTowerDist(float x1, float x2);
@@ -95,8 +93,8 @@ class BEmcRec
 		     int &ndf); // ndf added MV 28.01.00
   void Momenta(int, EmcModule*, float*, float*, float*, float*, float*,
 	       float* );
-  int ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule* phit1);
-  EmcModule ShiftX(int ish, EmcModule ehit);
+  int ShiftX(int ishift, int nh, EmcModule* phit0, EmcModule *phit1);
+  EmcModule ShiftX(int ish, EmcModule &ehit);
 
   void SetTowerThreshold(float Thresh);
   void SetProfileParameters(int, float, float, float);
@@ -144,13 +142,6 @@ class BEmcRec
   float fVx; // vertex position (cm)
   float fVy;
   float fVz;
-  //  Sector - to - Global PHENIX transformation matrix
-  //  PHMatrix emcrm;
-  //  Sector - to - Global PHENIX translation vector
-  //  PHVector emctr;
-  //  Inverse transforamtion matrix and vector
-  //  PHMatrix invemcrm;
-  //  PHVector invemctr;
 
   // Tabulated values of Chi2 corresponding to 1% and 2% CL
   // for 50 values ndf (1-50)
@@ -158,10 +149,8 @@ class BEmcRec
   static float fgChi2Level2[];
   static float fgChi2Level[]; // actual level, chosen with SetChi2Limit().
 
-#ifndef __CINT__
   std::vector<EmcModule> *fModules;
   std::vector<EmcCluster> *fClusters;
-#endif
 
   float fgTowerThresh;
   float fgMinPeakEnergy;
@@ -190,6 +179,10 @@ class BEmcRec
   float fPpar4;
   float fPshiftx;
   float fPshifty;
+private:
+  // the default copy ctor will not work
+  // we do not use a copy ctor, so just delete it
+  BEmcRec(const BEmcRec&) = delete;
 };
 
 #endif
