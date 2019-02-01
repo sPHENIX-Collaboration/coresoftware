@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class RawClusterContainer+;
+#pragma link C++ class RawClusterContainer + ;
 
 #endif /* __CINT__ */

@@ -4,8 +4,7 @@
 
 using namespace std;
 
-void
-RawTowerGeomContainer::identify(ostream& os) const
+void RawTowerGeomContainer::identify(ostream& os) const
 {
-  os << "Base class RawTowerGeomContainer."<< endl;
+  os << "Base class RawTowerGeomContainer." << endl;
 }
