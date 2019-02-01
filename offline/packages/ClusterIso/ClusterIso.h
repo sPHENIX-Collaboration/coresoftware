@@ -1,9 +1,11 @@
 // This file is really -*- C++ -*-.
-#ifndef ClusterIso_h 
-#define ClusterIso_h
+#ifndef CLUSTERISO_CLUSTERISO_H 
+#define CLUSTERISO_CLUSTERISO_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <CLHEP/Vector/ThreeVector.h>
+
 #include <cmath>
 
 class PHCompositeNode;
