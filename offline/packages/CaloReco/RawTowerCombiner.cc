@@ -5,17 +5,17 @@
 #include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTowerv1.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 
 #include <CLHEP/Vector/ThreeVector.h>
 
 #include <cassert>
 #include <iostream>
-#include <sstream>      // std::stringstream
 #include <stdexcept>
 #include <map>
 
@@ -26,7 +26,7 @@ RawTowerCombiner::RawTowerCombiner(const std::string& name) :
     /*std::string*/_tower_node_prefix("SIM"),
     /*unsigned int*/_n_combine_eta(2),
     /*unsigned int*/_n_combine_phi(2),
-    /*RawTowerContainer**/_towers(NULL),
+    /*RawTowerContainer**/_towers(nullptr),
     /*std::string*/detector("NONE")
 {
 
@@ -104,7 +104,7 @@ RawTowerCombiner::process_event(PHCompositeNode *topNode)
       const int output_eta = get_output_bin_eta(intput_eta);
       const int output_phi = get_output_bin_phi(intput_phi);
 
-      RawTower *output_tower = NULL;
+      RawTower *output_tower = nullptr;
       new_tower_map_t::iterator it_new = new_tower_map.find(
           make_pair(output_eta, output_phi));
 

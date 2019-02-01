@@ -6,7 +6,9 @@
 void BEmcRecCEMC::Tower2Global(float E, float xC, float yC,
 				 float& xA, float& yA, float& zA ) 
 {
-  xA = yA = zA = 0;
+  xA = 0;
+  yA = 0;
+  zA = 0;
 }
 
 void BEmcRecCEMC::CorrectEnergy(float Energy, float x, float y, 

@@ -11,7 +11,9 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
   const float D = 13.3; // in cm, shower depth at 1 GeV relative to tower face; obtained from GEANT
   const float X0 = 2.2; // in cm; obtained from GEANT (should be ~ rad length)
 
-  xA = yA = zA = 0;
+  xA = 0;
+  yA = 0;
+  zA = 0;
 
   int ix = xC+0.5; // tower #
   if( ix<0 || ix >= fNx ) {

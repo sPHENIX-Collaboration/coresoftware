@@ -9,6 +9,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -28,9 +29,8 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , _eclus_calib_params(string("eclus_params_") + name)
   , _ecore_calib_params(string("ecore_params_") + name)
   , _det_name(name)
+  , bins(17) //default bins to be 17 to set default recalib parameters to 1
 {
-  //default bins to be 17 to set default recalib parameters to 1
-  bins = 17;
   SetDefaultParameters(_eclus_calib_params);
   SetDefaultParameters(_ecore_calib_params);
 }

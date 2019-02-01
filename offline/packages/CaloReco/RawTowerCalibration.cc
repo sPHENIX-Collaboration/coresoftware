@@ -4,15 +4,18 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerv1.h>
+
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCell.h>
 #include <g4detectors/PHG4CylinderCellDefs.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHIODataNode.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 
 #include <iostream>
@@ -25,8 +28,8 @@ using namespace std;
 
 RawTowerCalibration::RawTowerCalibration(const std::string& name) :
     SubsysReco(name), _calib_algorithm(kNo_calibration), //
-    _calib_towers(NULL), _raw_towers(NULL), //
-    rawtowergeom(NULL), //
+    _calib_towers(nullptr), _raw_towers(nullptr), //
+    rawtowergeom(nullptr), //
     detector("NONE"), //
     _calib_tower_node_prefix("CALIB"), _raw_tower_node_prefix("RAW"), //
     //! pedstal in unit of ADC

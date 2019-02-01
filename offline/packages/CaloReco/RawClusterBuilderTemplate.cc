@@ -5,16 +5,16 @@
 
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
-
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -30,7 +30,7 @@ RawClusterBuilderTemplate::~RawClusterBuilderTemplate()
 
 RawClusterBuilderTemplate::RawClusterBuilderTemplate(const std::string& name):
   SubsysReco( name ),
-  _clusters(NULL),
+  _clusters(nullptr),
   _min_tower_e(0.020),
   chkenergyconservation(0),
   detector("NONE")

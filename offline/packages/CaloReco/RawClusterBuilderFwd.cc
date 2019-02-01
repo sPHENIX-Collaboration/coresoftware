@@ -82,7 +82,7 @@ bool operator<(const twrs_fwd& a, const twrs_fwd& b)
 
 RawClusterBuilderFwd::RawClusterBuilderFwd(const std::string& name):
   SubsysReco( name ),
-  _clusters(NULL),
+  _clusters(nullptr),
   _min_tower_e(0.0),
   chkenergyconservation(0),
   detector("NONE")

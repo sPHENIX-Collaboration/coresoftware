@@ -15,7 +15,6 @@
 #include <phool/phool.h>
 
 #include <cassert>
-#include <cfloat>
 #include <cmath>
 #include <fstream>
 #include <iostream>

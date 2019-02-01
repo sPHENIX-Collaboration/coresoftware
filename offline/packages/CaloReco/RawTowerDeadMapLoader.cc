@@ -11,9 +11,11 @@
 #include "RawTowerDeadMapLoader.h"
 
 #include <calobase/RawTowerDeadMapv1.h>
+
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -47,10 +49,6 @@ RawTowerDeadMapLoader::RawTowerDeadMapLoader(const std::string &detector)
   : SubsysReco("RawTowerDeadMapLoader_" + detector)
   , m_detector(detector)
   , m_deadmap(nullptr)
-{
-}
-
-RawTowerDeadMapLoader::~RawTowerDeadMapLoader()
 {
 }
 

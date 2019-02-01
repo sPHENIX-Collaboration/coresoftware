@@ -12,9 +12,11 @@
 #include <calobase/RawTowerContainer.h>
 
 
-#include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -30,7 +32,7 @@ RawClusterBuilderTemplateEEMC::~RawClusterBuilderTemplateEEMC()
 
 RawClusterBuilderTemplateEEMC::RawClusterBuilderTemplateEEMC(const std::string& name):
   SubsysReco( name ),
-  _clusters(NULL),
+  _clusters(nullptr),
   _min_tower_e(0.020),
   chkenergyconservation(0),
   detector("NONE")
@@ -149,10 +151,10 @@ bool RawClusterBuilderTemplateEEMC::Cell2Abs(RawTowerGeomContainer *towergeom, f
   // Next tower in x
   key = RawTowerDefs::encode_towerid(towergeom->get_calorimeter_id(), ix+1, iy);
   RawTowerGeom* geomx = towergeom->get_tower_geometry(key);
-  if( geomx == NULL ) {
+  if( geomx == nullptr ) {
     key = RawTowerDefs::encode_towerid(towergeom->get_calorimeter_id(), ix-1, iy);
     geomx = towergeom->get_tower_geometry(key); 
-    if( geomx == NULL ) {
+    if( geomx == nullptr ) {
       printf("RawClusterBuilderTemplateEEMC::Cell2Abs: error in geometry extraction: %d %d\n",ix, iy);
       return false;
     }
@@ -161,10 +163,10 @@ bool RawClusterBuilderTemplateEEMC::Cell2Abs(RawTowerGeomContainer *towergeom, f
   // Next tower in y
   key = RawTowerDefs::encode_towerid(towergeom->get_calorimeter_id(), ix, iy+1);
   RawTowerGeom* geomy = towergeom->get_tower_geometry(key);
-  if( geomy == NULL ) {
+  if( geomy == nullptr ) {
     key = RawTowerDefs::encode_towerid(towergeom->get_calorimeter_id(), ix, iy-1);
     geomy = towergeom->get_tower_geometry(key); 
-    if( geomy == NULL ) {
+    if( geomy == nullptr ) {
       printf("RawClusterBuilderTemplateEEMC::Cell2Abs: error in geometry extraction: %d %d\n",ix, iy);
       return false;
     }
