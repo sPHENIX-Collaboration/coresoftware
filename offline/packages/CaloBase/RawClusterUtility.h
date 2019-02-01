@@ -20,8 +20,7 @@
  */
 class RawClusterUtility
 {
-public:
-
+ public:
   virtual ~RawClusterUtility() {}
 
   //
@@ -44,7 +43,7 @@ public:
     const CLHEP::Hep3Vector cluster_vec(cluster.get_position() - vertex);
     const double mag = cluster_vec.mag();
 
-    return mag>0? cluster_vec.perp() / cluster_vec.mag() * cluster.get_energy() : 0;
+    return mag > 0 ? cluster_vec.perp() / cluster_vec.mag() * cluster.get_energy() : 0;
   }
   //
   //! Transverse core energy of cluster with respect to given vertex position
@@ -57,10 +56,9 @@ public:
   }
   //
   //! Get energy vector of cluster based on cluster energy
-  static inline CLHEP::Hep3Vector GetEVec(const RawCluster& cluster, const CLHEP::Hep3Vector vertex) {return (cluster.get_position() - vertex).unit() * cluster.get_energy();}
+  static inline CLHEP::Hep3Vector GetEVec(const RawCluster& cluster, const CLHEP::Hep3Vector vertex) { return (cluster.get_position() - vertex).unit() * cluster.get_energy(); }
   //! Get energy vector of cluster based on E_core
-  static inline CLHEP::Hep3Vector GetECoreVec(const RawCluster& cluster, const CLHEP::Hep3Vector vertex) {return (cluster.get_position() - vertex).unit() * cluster.get_ecore();}
-
+  static inline CLHEP::Hep3Vector GetECoreVec(const RawCluster& cluster, const CLHEP::Hep3Vector vertex) { return (cluster.get_position() - vertex).unit() * cluster.get_ecore(); }
 
  private:
   //! not intended to make an instance

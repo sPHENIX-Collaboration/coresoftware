@@ -6,7 +6,6 @@
 class RawTowerDeadMapv1 : public RawTowerDeadMap
 {
  public:
-
   RawTowerDeadMapv1(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE)
     : _caloid(caloid)
   {

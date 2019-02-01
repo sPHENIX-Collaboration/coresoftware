@@ -30,6 +30,7 @@ class RawTowerDeadMap : public PHObject
   virtual Map &getDeadTowers(void);
 
   virtual unsigned int size() const { return 0; }
+
  protected:
   RawTowerDeadMap(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE)
   {

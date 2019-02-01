@@ -7,7 +7,8 @@
 
 #include <map>
 
-class RawTowerv1 : public RawTower {
+class RawTowerv1 : public RawTower
+{
  public:
   RawTowerv1();
   RawTowerv1(const RawTower& tower);
@@ -15,7 +16,7 @@ class RawTowerv1 : public RawTower {
   RawTowerv1(const unsigned int ieta, const unsigned int iphi);
   RawTowerv1(const RawTowerDefs::CalorimeterId caloid, const unsigned int ieta,
              const unsigned int iphi);
-  virtual ~RawTowerv1(){}
+  virtual ~RawTowerv1() {}
 
   void Reset();
   int isValid() const;
@@ -31,27 +32,29 @@ class RawTowerv1 : public RawTower {
   void set_time(const float t) { time = t; }
 
   //---cell access--------------------------------------------------------------
-  
+
   bool empty_g4cells() const { return ecells.empty(); }
   size_t size_g4cells() const { return ecells.size(); }
-  RawTower::CellConstRange get_g4cells() const {
+  RawTower::CellConstRange get_g4cells() const
+  {
     return make_pair(ecells.begin(), ecells.end());
   }
   RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
-  RawTower::CellConstIterator find_g4cell(int id) const {return ecells.find(id);}
+  RawTower::CellConstIterator find_g4cell(int id) const { return ecells.find(id); }
   void add_ecell(const CellKeyType g4cellid,
                  const float ecell);
   void clear_g4cells() { ecells.clear(); }
 
   //---shower access------------------------------------------------------------
-  
+
   bool empty_g4showers() const { return eshowers.empty(); }
   size_t size_g4showers() const { return eshowers.size(); }
-  RawTower::ShowerConstRange get_g4showers() const {
+  RawTower::ShowerConstRange get_g4showers() const
+  {
     return make_pair(eshowers.begin(), eshowers.end());
   }
   RawTower::ShowerIterator find_g4shower(int id) { return eshowers.find(id); }
-  RawTower::ShowerConstIterator find_g4shower(int id) const {return eshowers.find(id);}
+  RawTower::ShowerConstIterator find_g4shower(int id) const { return eshowers.find(id); }
   void add_eshower(const int g4showerid, const float eshower);
   void clear_g4showers() { eshowers.clear(); }
 

@@ -3,7 +3,7 @@
 
 namespace RawClusterDefs
 {
-  typedef unsigned int keytype;
+typedef unsigned int keytype;
 }
 
 #endif
