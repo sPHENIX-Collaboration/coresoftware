@@ -4,14 +4,14 @@
 
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterv1.h>
-
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerContainer.h>
 
-#include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
 #include <iostream>

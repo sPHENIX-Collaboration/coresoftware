@@ -1,4 +1,5 @@
-
+#ifndef CALORECO_PHMAKEGROUPS_H
+#define CALORECO_PHMAKEGROUPS_H
 // Requirements:
 //
 // the class type Hit needs to provide:
@@ -12,7 +13,7 @@
 #include <vector>
 #include <map>
 
-#define BOOST_NO_HASH // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
+//#define BOOST_NO_HASH // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
 #include <boost/bind.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -73,3 +74,5 @@ PHMakeGroups(std::vector<Hit>& hits,
 
   return 0; 
 }
+
+#endif

@@ -2,4 +2,4 @@
 
 #pragma link C++ class RawClusterBuilderTemplateFEMC-!;
 
-#endif /* __CINT__ */
+#endif

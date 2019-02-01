@@ -1,12 +1,10 @@
-#ifndef BEMCREC_H
-#define BEMCREC_H
+#ifndef CALORECO_BEMCREC_H
+#define CALORECO_BEMCREC_H
 
 // Name: BEmcRec.h
 // Author: A. Bazilevsky, Apr 2012
 // Modified from EmcSectorRec.h and EmcScSectorRec.h
 
-//#include "PHMatrix.h"
-//#include "PHVector.h"
 #include <vector>
 #include <map>
 
@@ -194,7 +192,4 @@ class BEmcRec
   float fPshifty;
 };
 
-#endif // #ifndef BEMCREC_H
-
-// ///////////////////////////////////////////////////////////////////////////
-// EOF
+#endif

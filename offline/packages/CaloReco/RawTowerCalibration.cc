@@ -34,7 +34,7 @@ RawTowerCalibration::RawTowerCalibration(const std::string& name) :
     //! calibration constant in unit of GeV per ADC
     _calib_const_GeV_ADC(NAN), //
     _zero_suppression_GeV(0), //
-    _tower_type(-1), _timer(PHTimeServer::get()->insert_new(name)),
+    _tower_type(-1), 
     _tower_calib_params(name)
 {
 }

@@ -2,4 +2,4 @@
 
 #pragma link C++ class RawClusterBuilderTemplate-!;
 
-#endif /* __CINT__ */
+#endif

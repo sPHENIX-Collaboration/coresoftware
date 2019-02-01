@@ -1,7 +1,8 @@
-#ifndef RAWCLUSTERBUILDERFWD_H__
-#define RAWCLUSTERBUILDERFWD_H__
+#ifndef CALORECO_RAWCLUSTERBUILDERFWD_H
+#define CALORECO_RAWCLUSTERBUILDERFWD_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -38,4 +39,4 @@ class RawClusterBuilderFwd : public SubsysReco {
 
 };
 
-#endif /* RAWCLUSTERBUILDERFWD_H__ */
+#endif

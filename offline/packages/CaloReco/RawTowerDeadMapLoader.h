@@ -8,10 +8,11 @@
  * \date $Date: $
  */
 
-#ifndef SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RawTowerDeadMapLoader_H_
-#define SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RawTowerDeadMapLoader_H_
+#ifndef CALORECO_RAWTOWERDEADMAPLOADER_H
+#define CALORECO_RAWTOWERDEADMAPLOADER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class RawTowerDeadMap;
@@ -56,4 +57,4 @@ class RawTowerDeadMapLoader : public SubsysReco
   RawTowerDeadMap * m_deadmap;
 };
 
-#endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RawTowerDeadMapLoader_H_ */
+#endif

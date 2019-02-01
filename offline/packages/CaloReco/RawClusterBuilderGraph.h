@@ -1,7 +1,8 @@
-#ifndef RAWCLUSTERBUILDER_H__
-#define RAWCLUSTERBUILDER_H__
+#ifndef CALORECO_RAWCLUSTERBUILDER_H
+#define CALORECO_RAWCLUSTERBUILDER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -37,4 +38,4 @@ class RawClusterBuilderGraph : public SubsysReco {
 
 };
 
-#endif /* RAWCLUSTERBUILDER_H__ */
+#endif

@@ -1,7 +1,8 @@
-#ifndef RawClusterBuilderTemplate_H__
-#define RawClusterBuilderTemplate_H__
+#ifndef CALORECO_RAWCLUSTERBUILDERTEMPLATE_H
+#define CALORECO_RAWCLUSTERBUILDERTEMPLATE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class PHCompositeNode;

@@ -1,11 +1,12 @@
-#ifndef RawTowerCalibration_H__
-#define RawTowerCalibration_H__
+#ifndef CALORECO_RAWTOWERCALIBRATION_H
+#define CALORECO_RAWTOWERCALIBRATION_H
 
 #include <fun4all/SubsysReco.h>
+
+#include <phparameter/PHParameters.h>
+
 #include <string>
 
-#include <phool/PHTimeServer.h>
-#include <phparameter/PHParameters.h>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -85,7 +86,7 @@ public:
   }
 
   void
-  set_calib_tower_node_prefix(std::string calibTowerNodePrefix)
+  set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
   {
     _calib_tower_node_prefix = calibTowerNodePrefix;
   }
@@ -109,7 +110,7 @@ public:
   }
 
   void
-  set_raw_tower_node_prefix(std::string rawTowerNodePrefix)
+  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
@@ -162,11 +163,9 @@ protected:
   //! tower type to act on
   int _tower_type; 
 
-  PHTimeServer::timer _timer;
-
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
 
 };
 
-#endif /* RawTowerCalibration_H__ */
+#endif

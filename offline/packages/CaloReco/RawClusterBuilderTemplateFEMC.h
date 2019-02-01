@@ -1,7 +1,8 @@
-#ifndef RawClusterBuilderTemplateFEMC_H__
-#define RawClusterBuilderTemplateFEMC_H__
+#ifndef CALORECO_RAWCLUSTERBUILDERTEMPLATEFEMC_H
+#define CALORECO_RAWCLUSTERBUILDERTEMPLATEFEMC_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -48,4 +49,4 @@ class RawClusterBuilderTemplateFEMC : public SubsysReco {
   float Zcenter;
 };
 
-#endif /* RawClusterBuilderTemplateFEMC_H__ */
+#endif

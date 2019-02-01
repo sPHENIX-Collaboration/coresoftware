@@ -1,10 +1,9 @@
-#ifndef RawTowerCombiner_H__
-#define RawTowerCombiner_H__
+#ifndef CALORECO_RAWTOWERCOMBINER_H
+#define CALORECO_RAWTOWERCOMBINER_H
 
 #include <fun4all/SubsysReco.h>
-#include <string>
 
-#include <phool/PHTimeServer.h>
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -156,4 +155,4 @@ protected:
 
 };
 
-#endif /* RawTowerCombiner_H__ */
+#endif

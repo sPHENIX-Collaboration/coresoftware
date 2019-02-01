@@ -1,5 +1,5 @@
-#ifndef BEMCRECEEMC_H
-#define BEMCRECEEMC_H
+#ifndef CALORECO_BEMCRECEEMC_H
+#define CALORECO_BEMCRECEEMC_H
 
 #include "BEmcRec.h"
 
@@ -15,4 +15,4 @@ class BEmcRecEEMC : public BEmcRec
   void Tower2Global(float E, float xC, float yC, float& xA, float& yA, float& zA ); 
 };
 
-#endif // #ifndef BEMCREC_H
+#endif

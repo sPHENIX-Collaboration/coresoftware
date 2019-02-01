@@ -1,5 +1,5 @@
-#ifndef EMCCLUSTER_H
-#define EMCCLUSTER_H
+#ifndef CALORECO_EMCCLUSTER_H
+#define CALORECO_EMCCLUSTER_H
 
 // Name: EmcCluster.h
 // Author: A. Bazilevsky (RIKEN-BNL)
@@ -289,4 +289,4 @@ protected:
 // ///////////////////////////////////////////////////////////////////////////
 
 
-#endif // #ifdef EMCCLUSTER_H
+#endif

@@ -11,10 +11,11 @@
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
+
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -268,7 +269,7 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
   vector<EmcModule>::iterator ph;
   vector<EmcModule> hlist;
 
-  ncl = 0;
+  //ncl = 0;
   for( pc=ClusterList->begin(); pc!=ClusterList->end(); ++pc){
 
     //    ecl = pc->GetTotalEnergy();
@@ -336,7 +337,7 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
       }
 
       _clusters->AddCluster(cluster);
-      ncl++;
+//      ncl++;
 
       //      printf("    ipk=%d: E=%f x=%f (%f)  y=%f (%f)  MaxTower: (%d,%d) e=%f\n",ncl-1,ecl,xcorr,xout,ycorr,yout,hmax.ich%NBINX,hmax.ich/NBINX,hmax.amp);
 

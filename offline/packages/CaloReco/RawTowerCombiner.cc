@@ -13,6 +13,7 @@
 
 #include <CLHEP/Vector/ThreeVector.h>
 
+#include <cassert>
 #include <iostream>
 #include <sstream>      // std::stringstream
 #include <stdexcept>
