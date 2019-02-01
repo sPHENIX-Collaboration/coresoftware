@@ -1,5 +1,5 @@
-#ifndef __DUMPVARIABLEARRAY_H__
-#define __DUMPVARIABLEARRAY_H__
+#ifndef NODEDUMP_DUMPVARIABLEARRAY_H
+#define NODEDUMP_DUMPVARIABLEARRAY_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpVariableArray : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPVARIABLEARRAY_H__ */
+#endif
 

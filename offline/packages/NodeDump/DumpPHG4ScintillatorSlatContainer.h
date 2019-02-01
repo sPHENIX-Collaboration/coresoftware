@@ -1,5 +1,5 @@
-#ifndef DumpPHG4ScintillatorSlatContainer_H__
-#define DumpPHG4ScintillatorSlatContainer_H__
+#ifndef NODEDUMP_DUMPPHG4SCINTILLATORSLATCONTAINER_H
+#define NODEDUMP_DUMPPHG4SCINTILLATORSLATCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpPHG4ScintillatorSlatContainer : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPRAWCLUSTERCONTAINER_H__ */
+#endif
 

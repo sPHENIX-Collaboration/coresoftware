@@ -1,5 +1,5 @@
-#ifndef DUMPPHG4INEVENT_H__
-#define DUMPPHG4INEVENT_H__
+#ifndef NODEDUMP_DUMPPHG4INEVENT_H
+#define NODEDUMP_DUMPPHG4INEVENT_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpPHG4InEvent : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPPHG4INEVENT_H__ */
+#endif
 

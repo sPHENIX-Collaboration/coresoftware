@@ -1,5 +1,5 @@
-#ifndef DUMPRAWTOWERGEOM_H__
-#define DUMPRAWTOWERGEOM_H__
+#ifndef NODEDUMP_DUMPRAWTOWERGEOM_H
+#define NODEDUMP_DUMPRAWTOWERGEOM_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpRawTowerGeom : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPRAWTOWERGEOM_H__ */
+#endif
 

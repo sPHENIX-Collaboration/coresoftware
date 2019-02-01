@@ -1,5 +1,5 @@
-#ifndef DUMPPdbParameterMapContainer_H__
-#define DUMPPdbParameterMapContainer_H__
+#ifndef NODEDUMP_DUMPPDBPARAMETERMAPCONTAINER_H
+#define NODEDUMP_DUMPPDBPARAMETERMAPCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpPdbParameterMapContainer : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPPdbParameterMapContainer_H__ */
+#endif
 

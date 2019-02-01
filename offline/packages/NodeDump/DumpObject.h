@@ -1,5 +1,5 @@
-#ifndef __DUMPOBJECT_H__
-#define __DUMPOBJECT_H__
+#ifndef NODEDUMP_DUMPOBJECT_H
+#define NODEDUMP_DUMPOBJECT_H
 
 #include <string>
 #include <iosfwd>
@@ -39,5 +39,5 @@ class DumpObject
   int no_output;
 };
 
-#endif /* __DUMPOBJECT_H__ */
+#endif
 

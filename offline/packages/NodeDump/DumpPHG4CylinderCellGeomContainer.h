@@ -1,5 +1,5 @@
-#ifndef DUMPPHG4CYLINDERCELLGEOMCONTAINER_H__
-#define DUMPPHG4CYLINDERCELLGEOMCONTAINER_H__
+#ifndef NODEDUMP_DUMPPHG4CYLINDERCELLGEOMCONTAINER_H
+#define NODEDUMP_DUMPPHG4CYLINDERCELLGEOMCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpPHG4CylinderCellGeomContainer : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPPHG4CYLINDERCELLGEOMCONTAINER_H__ */
+#endif
 

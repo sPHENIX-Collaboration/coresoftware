@@ -1,5 +1,5 @@
-#ifndef PHNODEDUMP_H__
-#define PHNODEDUMP_H__
+#ifndef NODEDUMP_PHNODEDUMP_H
+#define NODEDUMP_PHNODEDUMP_H
 
 #include <phool/PHNodeOperation.h>
 
@@ -40,4 +40,4 @@ protected:
    int fp_precision;
 }; 
 
-#endif /* __PHNODEDUMP_H__ */
+#endif

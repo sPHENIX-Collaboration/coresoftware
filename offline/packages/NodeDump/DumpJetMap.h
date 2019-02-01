@@ -1,5 +1,5 @@
-#ifndef DUMPJETMAP_H__
-#define DUMPJETMAP_H__
+#ifndef NODEDUMP_DUMPJETMAP_H
+#define NODEDUMP_DUMPJETMAP_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpJetMap : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPJETMAP_H__ */
+#endif
 

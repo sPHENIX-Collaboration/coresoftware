@@ -1,5 +1,5 @@
-#ifndef DUMPPHG4HITCONTAINER_H__
-#define DUMPPHG4HITCONTAINER_H__
+#ifndef NODEDUMP_DUMPPHG4HITCONTAINER_H
+#define NODEDUMP_DUMPPHG4HITCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpPHG4HitContainer : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPPHG4HITCONTAINER_H__ */
+#endif
 

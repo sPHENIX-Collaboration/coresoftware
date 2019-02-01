@@ -1,5 +1,5 @@
-#ifndef DUMPSVTXTRACKMAP_H__
-#define DUMPSVTXTRACKMAP_H__
+#ifndef NODEDUMP_DUMPSVTXTRACKMAP_H
+#define NODEDUMP_DUMPSVTXTRACKMAP_H
 
 #include "DumpObject.h"
 
@@ -17,5 +17,5 @@ class DumpSvtxTrackMap : public DumpObject
    int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPSVTXTRACKMAP_H__ */
+#endif
 

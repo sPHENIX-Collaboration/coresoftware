@@ -1,5 +1,5 @@
-#ifndef __DUMPRUNHEADER_H__
-#define __DUMPRUNHEADER_H__
+#ifndef NODEDUMP_DUMPRUNHEADER_H
+#define NODEDUMP_DUMPRUNHEADER_H
 
 #include <DumpObject.h>
 
@@ -18,5 +18,5 @@ class DumpRunHeader : public DumpObject
    int node_written;
 };
 
-#endif /* __DUMPRUNHEADER_H__ */
+#endif
 
