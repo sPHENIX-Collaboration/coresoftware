@@ -109,8 +109,7 @@ libcalo_io_la_SOURCES = \
   RawTowerGeomContainer_Cylinderv1.cc
 
 libcalo_util_la_SOURCES = \
-  $(ROOT5_DICTS) \
-  RawClusterUtility.cc
+  $(ROOT5_DICTS)
 
 
 # Rule for generating table CINT dictionaries.
