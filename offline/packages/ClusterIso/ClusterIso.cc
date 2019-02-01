@@ -9,7 +9,6 @@
 
 #include "ClusterIso.h"
 
-
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawClusterUtility.h>
@@ -25,7 +24,6 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
-
 
 #include <iostream>
 
