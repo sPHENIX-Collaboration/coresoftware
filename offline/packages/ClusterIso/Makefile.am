@@ -25,11 +25,12 @@ libclusteriso_la_SOURCES = \
   ClusterIso.cc
 
 libclusteriso_la_LIBADD = \
-  -lg4dst \
-  -lg4eval \
-  -lcalotrigger \
-  -ljetbackground \
-  -lphool
+  -lcalo_io \
+  -lg4vertex_io \
+  -lSubsysReco
+
+#  -ljetbackground
+#  -lphool
 
 noinst_PROGRAMS = \
   testexternals
