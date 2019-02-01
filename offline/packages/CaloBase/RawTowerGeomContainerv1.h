@@ -1,5 +1,5 @@
-#ifndef RawTowerGeomContainerv1_H__
-#define RawTowerGeomContainerv1_H__
+#ifndef CALOBASE_RAWTOWERGEOMCONTAINERV1_H
+#define CALOBASE_RAWTOWERGEOMCONTAINERV1_H
 
 
 #include "RawTowerGeomContainer.h"
@@ -39,4 +39,4 @@ class RawTowerGeomContainerv1 : public RawTowerGeomContainer
   ClassDef(RawTowerGeomContainerv1,1)
 };
 
-#endif /* RawTowerGeomContainerv1_H__ */
+#endif

@@ -1,5 +1,5 @@
-#ifndef RawTowerGeomContainer_Cylinderv1_H__
-#define RawTowerGeomContainer_Cylinderv1_H__
+#ifndef CALOBASE_RAWTOWERGEOMCONTAINER_CYLINDERV1_H
+#define CALOBASE_RAWTOWERGEOMCONTAINER_CYLINDERV1_H
 
 #include "RawTowerGeomContainerv1.h"
 
@@ -91,4 +91,4 @@ protected:
 ClassDef(RawTowerGeomContainer_Cylinderv1,1)
 };
 
-#endif /* RawTowerGeomContainer_Cylinderv1_H__ */
+#endif

@@ -1,13 +1,15 @@
-#ifndef RAWCLUSTER_H__
-#define RAWCLUSTER_H__
+#ifndef CALOBASE_RAWCLUSTER_H
+#define CALOBASE_RAWCLUSTER_H
 
 #include "RawClusterDefs.h"
 #include "RawTowerDefs.h"
 
-#include <CLHEP/Vector/ThreeVector.h>
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
+
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <climits>
 #include <cmath>  // def of NAN
 #include <map>
@@ -293,4 +295,4 @@ class RawCluster : public PHObject
   ClassDef(RawCluster, 1)
 };
 
-#endif /*RAWCLUSTER_H__ */
+#endif

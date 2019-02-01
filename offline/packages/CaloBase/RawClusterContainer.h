@@ -1,10 +1,11 @@
-#ifndef RAWCLUSTERCONTAINER_H__
-#define RAWCLUSTERCONTAINER_H__
+#ifndef CALOBASE_RAWCLUSTERCONTAINER_H
+#define CALOBASE_RAWCLUSTERCONTAINER_H
 
 #include "RawClusterDefs.h"
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
+
 #include <iostream>
 #include <map>
 
@@ -47,4 +48,4 @@ class RawClusterContainer : public PHObject
   ClassDef(RawClusterContainer,1)
 };
 
-#endif /* RAWCLUSTERCONTAINER_H__ */
+#endif

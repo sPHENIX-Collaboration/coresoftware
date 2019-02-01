@@ -1,5 +1,5 @@
-#ifndef RawTowerGeomv3_h_
-#define RawTowerGeomv3_h_
+#ifndef CALOBASE_RAWTOWERGEOMV3_H
+#define CALOBASE_RAWTOWERGEOMV3_H
 
 #include "RawTowerGeom.h"
 
@@ -60,4 +60,4 @@ class RawTowerGeomv3 : public RawTowerGeom {
   ClassDef(RawTowerGeomv3,4)
 };
 
-#endif /* RawTowerGeomv3_h_ */
+#endif /* CALOBASE_RAWTOWERGEOMV3_H */

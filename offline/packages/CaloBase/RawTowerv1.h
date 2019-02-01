@@ -1,5 +1,5 @@
-#ifndef RAWTOWERV1_H_
-#define RAWTOWERV1_H_
+#ifndef CALOBASE_RAWTOWERV1_H
+#define CALOBASE_RAWTOWERV1_H
 
 #include "RawTower.h"
 
@@ -71,4 +71,4 @@ class RawTowerv1 : public RawTower {
   ClassDef(RawTowerv1, 5)
 };
 
-#endif /* RAWTOWERV1_H_ */
+#endif

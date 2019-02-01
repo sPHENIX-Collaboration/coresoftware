@@ -1,5 +1,5 @@
-#ifndef RAWCLUSTERV1_H__
-#define RAWCLUSTERV1_H__
+#ifndef CALOBASE_RAWCLUSTERV1_H
+#define CALOBASE_RAWCLUSTERV1_H
 
 #include "RawCluster.h"
 
@@ -175,4 +175,4 @@ class RawClusterv1 : public RawCluster
   ClassDef(RawClusterv1, 3)
 };
 
-#endif /*RAWCLUSTERV1_H__ */
+#endif

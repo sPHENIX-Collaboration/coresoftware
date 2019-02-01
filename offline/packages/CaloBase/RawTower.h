@@ -1,10 +1,13 @@
-#ifndef RAWTOWER_H_
-#define RAWTOWER_H_
+#ifndef CALOBASE_RAWTOWER_H
+#define CALOBASE_RAWTOWER_H
 
 #include "RawTowerDefs.h"
+
 #include <g4detectors/PHG4CellDefs.h>
+
 #include <phool/phool.h>
 #include <phool/PHObject.h>
+
 #include <iostream>
 #include <cmath>
 #include <map>
@@ -88,4 +91,4 @@ class RawTower : public PHObject {
 
 };
 
-#endif /* RAWTOWER_H_ */
+#endif

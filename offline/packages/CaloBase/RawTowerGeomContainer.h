@@ -1,9 +1,11 @@
-#ifndef RawTowerGeomContainer_H__
-#define RawTowerGeomContainer_H__
+#ifndef CALOBASE_RAWTOWERGEOMCONTAINER_H
+#define CALOBASE_RAWTOWERGEOMCONTAINER_H
 
 #include "RawTowerDefs.h"
+
 #include <phool/PHObject.h>
 #include <phool/phool.h>
+
 #include <iostream>
 #include <map>
 #include <cmath>
@@ -88,4 +90,4 @@ class RawTowerGeomContainer : public PHObject
   ClassDef(RawTowerGeomContainer,2)
 };
 
-#endif /* RawTowerGeomContainer_H__ */
+#endif

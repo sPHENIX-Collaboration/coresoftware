@@ -1,9 +1,11 @@
-#ifndef RAWTOWERCONTAINER_H__
-#define RAWTOWERCONTAINER_H__
+#ifndef CALOBASE_RAWTOWERCONTAINER_H
+#define CALOBASE_RAWTOWERCONTAINER_H
 
 #include "RawTowerDefs.h"
+
 #include <phool/PHObject.h>
 #include <phool/phool.h>
+
 #include <iostream>
 #include <map>
 
@@ -57,4 +59,4 @@ class RawTowerContainer : public PHObject
   ClassDef(RawTowerContainer,1)
 };
 
-#endif /* RAWTOWERCONTAINER_H__ */
+#endif

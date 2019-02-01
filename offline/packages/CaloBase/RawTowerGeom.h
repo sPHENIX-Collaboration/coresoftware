@@ -1,10 +1,11 @@
-#ifndef NEWGEOM_H_
-#define NEWGEOM_H_
+#ifndef CALOBASE_RAWTOWERGEO_H
+#define CALOBASE_RAWTOWERGEO_H
 
 #include "RawTowerDefs.h"
 
 #include <phool/phool.h>
 #include <phool/PHObject.h>
+
 #include <iostream>
 #include <map>
 
@@ -55,4 +56,4 @@ class RawTowerGeom : public PHObject {
 
 };
 
-#endif /* NEWGEOM_H_ */
+#endif
