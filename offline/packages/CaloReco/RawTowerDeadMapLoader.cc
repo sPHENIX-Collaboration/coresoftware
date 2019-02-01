@@ -139,7 +139,7 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
           {
             cout << "add dead channel eta" << eta << " phi" << phi;
           }
-        } // if (*tokeniter == "eta")
+        }  // if (*tokeniter == "eta")
         else
         {
           if (Verbosity())
@@ -168,10 +168,8 @@ int RawTowerDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity())
   {
-
-    cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : " ;
+    cout << "RawTowerDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
     m_deadmap->identify();
-
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

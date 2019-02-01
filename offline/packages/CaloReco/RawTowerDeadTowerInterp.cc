@@ -42,7 +42,7 @@ int RawTowerDeadTowerInterp::InitRun(PHCompositeNode *topNode)
   if (!dstNode)
   {
     cout << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
-              << "DST Node missing, doing nothing." << std::endl;
+         << "DST Node missing, doing nothing." << std::endl;
     exit(1);
   }
 
@@ -128,7 +128,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
         int iphi = binphi + neighborIndex.second;
 
         if (ieta >= eta_bins) continue;
-        if (ieta < 0)  continue;
+        if (ieta < 0) continue;
 
         if (iphi >= phi_bins) iphi -= phi_bins;
         if (iphi < 0) iphi += phi_bins;
@@ -174,7 +174,7 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
 
         if (Verbosity() >= VERBOSITY_MORE)
         {
-          cout << " -> "<< deadTower->get_energy()<< " GeV @ "<<deadTower->get_id();
+          cout << " -> " << deadTower->get_energy() << " GeV @ " << deadTower->get_id();
         }
 
       }  // if (n_neighbor>0)
@@ -214,9 +214,9 @@ int RawTowerDeadTowerInterp::process_event(PHCompositeNode *topNode)
     std::cout << Name() << "::" << m_detector << "::"
               << "process_event"
               << "recovery_energy = " << recovery_energy
-              <<" GeV from "<<recoverTower<<" towers out of total "<<deadTowerCnt<<" dead towers"
+              << " GeV from " << recoverTower << " towers out of total " << deadTowerCnt << " dead towers"
               << ", output sum energy = "
-              << m_calibTowers->getTotalEdep() <<" GeV"<< std::endl;
+              << m_calibTowers->getTotalEdep() << " GeV" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
