@@ -84,6 +84,7 @@ if MAKEROOT6
     RawTowerGeomContainer_Cylinderv1_Dict_rdict.pcm
 else
   ROOT5_IO_DICTS = \
+    RawClusterDefs_Dict.cc \
     RawTowerDefs_Dict.cc 
 
   ROOT5_DICTS = \
