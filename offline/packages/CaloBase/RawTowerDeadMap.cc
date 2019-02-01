@@ -26,21 +26,19 @@ void RawTowerDeadMap::addDeadTower(RawTowerDefs::keytype key)
 {
 }
 
-bool
-RawTowerDeadMap::isDeadTower(RawTowerDefs::keytype key)
+bool RawTowerDeadMap::isDeadTower(RawTowerDefs::keytype key)
 {
   return false;
 }
 
-bool
-RawTowerDeadMap::isDeadTower(const unsigned int ieta, const unsigned int iphi)
+bool RawTowerDeadMap::isDeadTower(const unsigned int ieta, const unsigned int iphi)
 {
   return false;
 }
 
 int RawTowerDeadMap::isValid() const
 {
-  return size()>0;
+  return size() > 0;
 }
 
 void RawTowerDeadMap::Reset()
@@ -51,4 +49,3 @@ void RawTowerDeadMap::identify(std::ostream& os) const
 {
   os << "RawTowerDeadMap" << std::endl;
 }
-
