@@ -33,12 +33,12 @@ int DumpPHG4InEvent::process_Node(PHNode *myNode)
       multimap<int, PHG4Particle *>::const_iterator particle_iter;
       std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = phg4inevent->GetVertices();
 
-      for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; vtxiter++)
+      for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; ++vtxiter)
         {
           *fout << "vtx number: " << vtxiter->first << endl;
           (*vtxiter->second).identify(*fout);
           pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = phg4inevent->GetParticles(vtxiter->first);
-          for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
+          for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
             {
               (particle_iter->second)->identify(*fout);
             }

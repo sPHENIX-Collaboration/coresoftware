@@ -39,13 +39,12 @@ using namespace std;
 
 
 
-PHNodeDump::PHNodeDump()
-{
-  runnumber = -9999;
-  evtsequence = -9999;
-  fp_precision = -1;
-  outdir = "./";
-}
+PHNodeDump::PHNodeDump():
+  runnumber(-9999),
+  evtsequence(-9999),
+  fp_precision(-1),
+  outdir("./")
+{}
 
 PHNodeDump::~PHNodeDump()
 {
@@ -131,7 +130,7 @@ void PHNodeDump::perform(PHNode* node)
 int PHNodeDump::CloseOutputFiles()
 {
   map <string, DumpObject *>::iterator iter;
-  for (iter = dumpthis.begin(); iter != dumpthis.end(); iter++)
+  for (iter = dumpthis.begin(); iter != dumpthis.end(); ++iter)
     {
       iter->second->CloseOutputFile();
     }

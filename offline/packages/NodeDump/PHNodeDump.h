@@ -36,8 +36,8 @@ protected:
    std::set<std::string> exclusive;
    int runnumber;
    int evtsequence;
-   std::string outdir;
    int fp_precision;
+   std::string outdir;
 }; 
 
 #endif
