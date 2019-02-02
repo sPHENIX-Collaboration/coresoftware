@@ -1,5 +1,5 @@
-#ifndef DUMPSVTXVERTEXMAP_H__
-#define DUMPSVTXVERTEXMAP_H__
+#ifndef NODEDUMP_DUMPSVTXVERTEXMAP_H
+#define NODEDUMP_DUMPSVTXVERTEXMAP_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpSvtxVertexMap : public DumpObject
   virtual ~DumpSvtxVertexMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPSVTXVERTEXMAP_H__ */
-
+#endif

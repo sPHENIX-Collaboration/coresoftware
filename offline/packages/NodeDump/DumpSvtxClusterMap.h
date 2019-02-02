@@ -1,5 +1,5 @@
-#ifndef DUMPSVTXCLUSTERMAP_H__
-#define DUMPSVTXCLUSTERMAP_H__
+#ifndef NODEDUMP_DUMPSVTXCLUSTERMAP_H
+#define NODEDUMP_DUMPSVTXCLUSTERMAP_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpSvtxClusterMap : public DumpObject
   virtual ~DumpSvtxClusterMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPSVTXCLUSTERMAP_H__ */
-
+#endif

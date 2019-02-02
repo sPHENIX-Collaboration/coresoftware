@@ -1,5 +1,5 @@
-#ifndef DUMPPHG4TRUTHINFOCONTAINER_H__
-#define DUMPPHG4TRUTHINFOCONTAINER_H__
+#ifndef NODEDUMP_DUMPPHG4TRUTHINFOCONTAINER_H
+#define NODEDUMP_DUMPPHG4TRUTHINFOCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpPHG4TruthInfoContainer : public DumpObject
   virtual ~DumpPHG4TruthInfoContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPPHG4TRUTHCONTAINER_H__ */
-
+#endif

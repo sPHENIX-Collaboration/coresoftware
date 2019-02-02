@@ -1,5 +1,5 @@
-#ifndef __DUMPRUNHEADER_H__
-#define __DUMPRUNHEADER_H__
+#ifndef NODEDUMP_DUMPRUNHEADER_H
+#define NODEDUMP_DUMPRUNHEADER_H
 
 #include <DumpObject.h>
 
@@ -14,9 +14,8 @@ class DumpRunHeader : public DumpObject
   virtual ~DumpRunHeader() {}
 
  protected:
-   int process_Node(PHNode *mynode);
-   int node_written;
+  int process_Node(PHNode *mynode);
+  int node_written;
 };
 
-#endif /* __DUMPRUNHEADER_H__ */
-
+#endif

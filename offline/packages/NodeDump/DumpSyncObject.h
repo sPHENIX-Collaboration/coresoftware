@@ -1,5 +1,5 @@
-#ifndef __DUMPSYNCOBJECT_H__
-#define __DUMPSYNCOBJECT_H__
+#ifndef NODEDUMP_DUMPSYNCOBJECT_H
+#define NODEDUMP_DUMPSYNCOBJECT_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpSyncObject : public DumpObject
   virtual ~DumpSyncObject() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPSYNCOBJECT_H__ */
-
+#endif

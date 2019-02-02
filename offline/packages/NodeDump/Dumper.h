@@ -1,12 +1,13 @@
-#ifndef DUMPER_H__
-#define DUMPER_H__
+#ifndef NODEDUMP_DUMPER_H
+#define NODEDUMP_DUMPER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class PHNodeDump;
 
-class Dumper: public SubsysReco
+class Dumper : public SubsysReco
 {
  public:
   Dumper(const std::string &name = "DUMPER");
@@ -20,9 +21,6 @@ class Dumper: public SubsysReco
 
  private:
   PHNodeDump *nodedump;
-
 };
 
-#endif /* __DUMPER_H__ */
-
-
+#endif
