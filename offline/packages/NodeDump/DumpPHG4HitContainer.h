@@ -14,8 +14,7 @@ class DumpPHG4HitContainer : public DumpObject
   virtual ~DumpPHG4HitContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

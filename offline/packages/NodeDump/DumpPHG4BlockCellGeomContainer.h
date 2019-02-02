@@ -14,8 +14,7 @@ class DumpPHG4BlockCellGeomContainer : public DumpObject
   virtual ~DumpPHG4BlockCellGeomContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

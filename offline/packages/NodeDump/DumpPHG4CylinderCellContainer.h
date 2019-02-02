@@ -14,8 +14,7 @@ class DumpPHG4CylinderCellContainer : public DumpObject
   virtual ~DumpPHG4CylinderCellContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

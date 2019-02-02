@@ -14,8 +14,7 @@ class DumpPHG4ScintillatorSlatContainer : public DumpObject
   virtual ~DumpPHG4ScintillatorSlatContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

@@ -14,8 +14,7 @@ class DumpRawTowerGeomContainer : public DumpObject
   virtual ~DumpRawTowerGeomContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

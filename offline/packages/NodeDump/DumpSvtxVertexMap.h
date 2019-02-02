@@ -14,8 +14,7 @@ class DumpSvtxVertexMap : public DumpObject
   virtual ~DumpSvtxVertexMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

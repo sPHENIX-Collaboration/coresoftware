@@ -14,8 +14,7 @@ class DumpJetMap : public DumpObject
   virtual ~DumpJetMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

@@ -14,8 +14,7 @@ class DumpPHG4InEvent : public DumpObject
   virtual ~DumpPHG4InEvent() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

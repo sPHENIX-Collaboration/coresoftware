@@ -14,8 +14,7 @@ class DumpSyncObject : public DumpObject
   virtual ~DumpSyncObject() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-

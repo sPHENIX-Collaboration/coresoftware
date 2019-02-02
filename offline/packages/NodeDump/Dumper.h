@@ -7,7 +7,7 @@
 
 class PHNodeDump;
 
-class Dumper: public SubsysReco
+class Dumper : public SubsysReco
 {
  public:
   Dumper(const std::string &name = "DUMPER");
@@ -21,9 +21,6 @@ class Dumper: public SubsysReco
 
  private:
   PHNodeDump *nodedump;
-
 };
 
 #endif
-
-

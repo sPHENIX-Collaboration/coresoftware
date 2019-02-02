@@ -14,9 +14,8 @@ class DumpRunHeader : public DumpObject
   virtual ~DumpRunHeader() {}
 
  protected:
-   int process_Node(PHNode *mynode);
-   int node_written;
+  int process_Node(PHNode *mynode);
+  int node_written;
 };
 
 #endif
-

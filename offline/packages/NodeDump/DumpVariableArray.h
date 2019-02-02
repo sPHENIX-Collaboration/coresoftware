@@ -14,8 +14,7 @@ class DumpVariableArray : public DumpObject
   virtual ~DumpVariableArray() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
 #endif
-
