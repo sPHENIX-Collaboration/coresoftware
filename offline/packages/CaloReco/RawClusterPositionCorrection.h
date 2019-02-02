@@ -1,9 +1,12 @@
-#ifndef __RAWCLUSTERPOSITIONCORRECTION_H__
-#define __RAWCLUSTERPOSITIONCORRECTION_H__
+#ifndef CALORECO_RAWCLUSTERPOSITIONCORRECTION_H
+#define CALORECO_RAWCLUSTERPOSITIONCORRECTION_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <phparameter/PHParameters.h>
+
 #include <phool/PHObject.h>
+
 #include <string>
 
 class RawClusterContainer;
@@ -63,4 +66,4 @@ class RawClusterPositionCorrection : public SubsysReco
   std::vector<std::vector<double> > ecore_calib_constants;
 };
 
-#endif  // __RAWCLUSTERPOSITIONCORRECTION_H__
+#endif

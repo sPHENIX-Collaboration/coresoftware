@@ -9,6 +9,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -28,9 +29,8 @@ RawClusterPositionCorrection::RawClusterPositionCorrection(const std::string &na
   , _eclus_calib_params(string("eclus_params_") + name)
   , _ecore_calib_params(string("ecore_params_") + name)
   , _det_name(name)
+  , bins(17)  //default bins to be 17 to set default recalib parameters to 1
 {
-  //default bins to be 17 to set default recalib parameters to 1
-  bins = 17;
   SetDefaultParameters(_eclus_calib_params);
   SetDefaultParameters(_ecore_calib_params);
 }
@@ -132,7 +132,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
 
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
   {
-//    RawClusterDefs::keytype key = iter->first;
+    //    RawClusterDefs::keytype key = iter->first;
     RawCluster *cluster = iter->second;
 
     float clus_energy = cluster->get_energy();
@@ -226,7 +226,7 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       eclus_recalib_val = eclus_calib_constants.at(etabin).at(phibin);
       ecore_recalib_val = ecore_calib_constants.at(etabin).at(phibin);
     }
-        RawCluster *recalibcluster = static_cast<RawCluster *>(cluster->Clone());
+    RawCluster *recalibcluster = static_cast<RawCluster *>(cluster->Clone());
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
     _recalib_clusters->AddCluster(recalibcluster);
