@@ -13,7 +13,7 @@ typedef PHIODataNode<RunHeader> MyNode_t;
 
 DumpRunHeader::DumpRunHeader(const string &NodeName): DumpObject(NodeName)
 {
-  write_run_event = 0; // do not write info for each event
+  WriteRunEvent(0);  // do not write info for each event
   node_written = 0; // write runwise nodes only once
   return ;
 }

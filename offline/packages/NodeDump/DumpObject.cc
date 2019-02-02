@@ -10,10 +10,10 @@
 using namespace std;
 
 DumpObject::DumpObject(const string &NodeName):
+  fout(nullptr),
   ThisName(NodeName),
   verbosity(0),
   write_run_event(1),
-  fout(nullptr),
   OutDir("./"),
   fp_precision(-1),
   myNodeDump(nullptr),
