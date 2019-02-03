@@ -87,8 +87,8 @@ int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
   for (; itr_geom != begin_end_geom.second; ++itr_geom) {
     RawTowerGeom *towerg = itr_geom->second;
     RawTowerDefs::keytype towerid = towerg->get_id();
-    int itype = towerg->get_tower_type();
-    if( itype==2 ) { // PbSc
+    //    int itype = towerg->get_tower_type();
+    //    if( itype==2 ) { // PbSc
       int ix = RawTowerDefs::decode_index1(towerid);
       int iy = RawTowerDefs::decode_index2(towerid);
       if( ixmin>ix ) ixmin=ix;
@@ -97,12 +97,12 @@ int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
       if( iymax<iy ) iymax=iy;
       sz += towerg->get_center_z();
       ngeom++;
-    }
+    //    }
   }
   Zcenter = 305.;
   if( ngeom>0 ) Zcenter = sz/ngeom;
 
-  //  printf("************* Init FEMC: N of geom towers: %d; ix=%d-%d iy=%d-%d Zcenter=%f\n",ngeom,ixmin,ixmax,iymin,iymax,Zcenter);
+  printf("************* Init FEMC: N of geom towers: %d; ix=%d-%d iy=%d-%d Zcenter=%f\n",ngeom,ixmin,ixmax,iymin,iymax,Zcenter);
 
   if( ixmax<ixmin || iymax<iymin ) return Fun4AllReturnCodes::ABORTEVENT;
 
@@ -117,14 +117,14 @@ int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
   for (; itr_geom != begin_end_geom.second; ++itr_geom) {
     RawTowerGeom *towerg = itr_geom->second;
     RawTowerDefs::keytype towerid = towerg->get_id();
-    int itype = towerg->get_tower_type();
-    if( itype==2 ) { // PbSc
+    //    int itype = towerg->get_tower_type();
+    //    if( itype==2 ) { // PbSc
       int ix = RawTowerDefs::decode_index1(towerid);
       int iy = RawTowerDefs::decode_index2(towerid);
       ix -= BINX0;
       iy -= BINY0;
       bemc->SetTowerGeometry(ix,iy,towerg->get_center_x(),towerg->get_center_y(),towerg->get_center_z());
-    }
+    //    }
   }
 
   //  bemc->PrintTowerGeometry("geom_femc.txt");

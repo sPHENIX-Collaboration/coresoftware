@@ -21,7 +21,7 @@ class PHFlag
  public:
   PHFlag() {}
   virtual ~PHFlag() {}
-  virtual const std::string get_CharFlag(const std::string &flag) const;
+  virtual const std::string get_CharFlag(const std::string &name) const;
   virtual const std::string get_CharFlag(const std::string &name, const std::string &defaultval);
   virtual void set_CharFlag(const std::string &name, const std::string &flag);
 

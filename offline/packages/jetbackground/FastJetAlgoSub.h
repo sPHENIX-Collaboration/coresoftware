@@ -1,8 +1,6 @@
 #ifndef __FASTJETALGOSUB_H__
 #define __FASTJETALGOSUB_H__
 
-#include <phool/PHCompositeNode.h>
-
 #include <g4jets/Jet.h>
 #include <g4jets/JetAlgo.h>
 

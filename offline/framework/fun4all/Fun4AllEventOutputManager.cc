@@ -18,9 +18,9 @@ Fun4AllEventOutputManager::Fun4AllEventOutputManager(const string &myname
 						     , const unsigned int sizeInMB
 						     , const int offset
 						     , const int increment ):
-  Fun4AllOutputManager( myname )
+  Fun4AllOutputManager( myname ),
+  outfilerule(filerule)
 {
-  outfilerule = filerule;
   outstream = new Fun4AllRolloverFileOutStream(filerule, sizeInMB, offset, increment);
   outstream->SetManager(this);
   return ;

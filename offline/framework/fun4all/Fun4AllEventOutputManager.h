@@ -1,5 +1,5 @@
-#ifndef __FUN4ALLEVENTOUTPUTMANAGER_H__
-#define __FUN4ALLEVENTOUTPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H
+#define FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H
 
 
 #include "Fun4AllOutputManager.h"
@@ -37,4 +37,4 @@ class Fun4AllEventOutputManager: public Fun4AllOutputManager
   Fun4AllEventOutStream *outstream;
 };
 
-#endif /* __FUN4ALLEVENTOUTPUTMANAGER_H__ */
+#endif /* FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H */

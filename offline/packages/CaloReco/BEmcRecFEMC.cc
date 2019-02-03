@@ -15,13 +15,13 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
 
   int ix = xC+0.5; // tower #
   if( ix<0 || ix >= fNx ) {
-    printf("Error in BEmcRecEEMC::SectorToGlobal: wrong input x: %d\n",ix);
+    printf("Error in BEmcRecFEMC::SectorToGlobal: wrong input x: %d\n",ix);
     return;
   }
 
   int iy = yC+0.5; // tower #
   if( iy<0 || iy >= fNy ) {
-    printf("Error in BEmcRecEEMC::SectorToGlobal: wrong input y: %d\n",iy);
+    printf("Error in BEmcRecFEMC::SectorToGlobal: wrong input y: %d\n",iy);
     return;
   }
 
@@ -37,7 +37,7 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
     while(!GetTowerGeometry(ix+idx,iy,geomx) && idx>-fNx/2) idx -= 1;
   }
   if( idx>=fNx/2 || idx<=-fNx/2 ) {
-    printf("Error in BEmcRecEEMC::Tower2Global: Error in geometery extraction for x= %f (y=%f)\n",xC,yC);
+    printf("Error in BEmcRecFEMC::Tower2Global: Error in geometry extraction for x= %f (ix,iy)=(%d,%d)\n",xC,ix,iy);
     return;
   }
 
@@ -53,7 +53,7 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
     while(!GetTowerGeometry(ix,iy+idy,geomy) && idy>-fNy/2) idy -= 1;
   }
   if( idy>=fNy/2 || idy<=-fNy/2 ) {
-    printf("Error in BEmcRecEEMC::Tower2Global: Error in geometery extraction for y= %f (x=%f)\n",yC,xC);
+    printf("Error in BEmcRecFEMC::Tower2Global: Error in geometry extraction for y= %f (ix,iy)=(%d,%d)\n",yC,ix,iy);
     return;
   }
 
@@ -74,7 +74,7 @@ void BEmcRecFEMC::Tower2Global(float E, float xC, float yC,
     xA = geomx.Xcenter + (xC-ix)*dx - dx*idx;
     yA = geomx.Ycenter + (yC-iy)*dy; // Here I take Ycenter from geomx!
     Zcenter = geomx.Zcenter;
-    //    printf("BEmcRecEEMC::Tower2Global: CG outside EMCal: input=(%f,%f), tower ind=(%d,%d); dd=(%d,%d); global=(%f,%f)\n",xC,yC,ix,iy,idx,idy,xA,yA);
+    //    printf("BEmcRecFEMC::Tower2Global: CG outside EMCal: input=(%f,%f), tower ind=(%d,%d); dd=(%d,%d); global=(%f,%f)\n",xC,yC,ix,iy,idx,idy,xA,yA);
   }
 
   float logE = log(0.1);

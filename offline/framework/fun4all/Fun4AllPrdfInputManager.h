@@ -1,5 +1,5 @@
-#ifndef FUN4ALLPRDFINPUTMANAGER_H__
-#define FUN4ALLPRDFINPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H
 
 #include "Fun4AllInputManager.h"
 
@@ -33,7 +33,6 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int isopen;
   int events_total;
   int events_thisfile;
-  std::string topNodeName;
   PHCompositeNode *topNode;
   Event *evt;
   Event *save_evt;
@@ -41,4 +40,4 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   SyncObject* syncobject;
 };
 
-#endif /* __FUN4ALLPRDFINPUTMANAGER_H__ */
+#endif /* FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H */

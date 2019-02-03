@@ -137,7 +137,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         {  // if an event was pushed back, copy saved pointer and
            // reset save_evt pointer
           evt = save_evt;
-          save_evt = NULL;
+          save_evt = nullptr;
         }
         else
         {

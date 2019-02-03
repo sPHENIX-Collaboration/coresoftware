@@ -1,5 +1,5 @@
-#ifndef PHOBJECT_H__
-#define PHOBJECT_H__
+#ifndef PHOOL_PHOBJECT_H
+#define PHOOL_PHOBJECT_H
 
 //  Declaration of class PHObject
 //  Purpose: Tiny layer between TObject and output objects and
@@ -13,7 +13,7 @@ class PHObject : public TObject
 {
  public:
   /// ctor
-  PHObject();
+  PHObject() {}
 
   /// dtor
   virtual ~PHObject() {}
@@ -44,15 +44,11 @@ class PHObject : public TObject
   virtual int Integrate(PHObject* obj) { return -1; }
   virtual void CopyContent(PHObject* obj);
 
-  void SplitLevel(const int i) { split = i; }
-  int SplitLevel() const { return split; }
-  void BufferSize(const int i) { bufSize = i; }
-  int BufferSize() const { return bufSize; }
+  int SplitLevel() const { return 99; }
+  int BufferSize() const { return 32000; }
  private:
-  int split;    //! not saved, it is set to change the split level for this object
-  int bufSize;  //! not saved, it is set to change the buffer size for this object
 
   ClassDef(PHObject, 0)  // no I/O
 };
 
-#endif /* PHOBJECT_H__ */
+#endif /* PHOOL_PHOBJECT_H */

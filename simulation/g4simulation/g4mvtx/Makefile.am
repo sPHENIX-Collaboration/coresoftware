@@ -7,7 +7,7 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-   -I$(G4_MAIN)/include \
+  -I$(G4_MAIN)/include \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
@@ -39,27 +39,44 @@ pkginclude_HEADERS = \
   PHG4CylinderGeom_MVTX.h \
   PHG4MVTXDigitizer.h 
 
+ROOTDICTS = \
+  PHG4CylinderCell_MVTX_Dict.cc \
+  PHG4CylinderGeom_MVTX_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    PHG4CylinderCell_MVTX_Dict_rdict.pcm \
+    PHG4CylinderGeom_MVTX_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    PHG4MVTXCellReco_Dict.cc \
+    PHG4MVTXSubsystem_Dict.cc \
+    PHG4MVTXDigitizer_Dict.cc 
+endif
+
 libg4mvtx_la_SOURCES = \
   PHG4MVTXHitReco.cc \
   PHG4MVTXHitReco_Dict.cc \
+  $(ROOT5_DICTS) \
+  PHG4MVTXCellReco.cc \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
-  PHG4MVTXSubsystem_Dict.cc \
   PHG4CylinderGeom_MVTX.cc \
-  PHG4CylinderGeom_MVTX_Dict.cc \
-  PHG4MVTXDigitizer.cc \
-  PHG4MVTXDigitizer_Dict.cc 
+  PHG4MVTXDigitizer.cc
 
 
 libg4mvtx_io_la_SOURCES = \
-  PHG4CylinderCell_MVTX.cc \
-  PHG4CylinderCell_MVTX_Dict.cc 
+  $(ROOTDICTS) \
+  PHG4CylinderCell_MVTX.cc
 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -82,4 +99,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

@@ -24,26 +24,31 @@ libPHSartre_la_LDFLAGS = \
 libPHSartre_la_LIBADD = \
   -lsartre \
   -lgemini \
-  -lgsl \
-  -lgslcblas \
-  -lphool \
   -lSubsysReco \
-  -lfun4all \
-  -lboost_iostreams \
   -lphhepmc \
   -lHepMC \
   -lUnuran \
   -lEG \
   -lMathMore
 
+if ! MAKEROOT6
+ROOT5_DICTS = \
+  PHSartre_Dict.cc \
+  PHSartreGenTrigger_Dict.cc \
+  PHSartreParticleTrigger_Dict.cc
+endif
+
 libPHSartre_la_SOURCES = \
-  PHSartre.C \
-  PHSartreGenTrigger.C \
-  PHSartreParticleTrigger.C \
-  PHSartre_Dict.C
+  $(ROOT5_DICTS) \
+  PHSartre.cc \
+  PHSartreGenTrigger.cc \
+  PHSartreParticleTrigger.cc
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
@@ -51,20 +56,15 @@ noinst_PROGRAMS = \
 testexternals_LDADD = \
   libPHSartre.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-PHSartre_Dict.C: \
-  PHSartre.h \
-  PHSartreGenTrigger.h \
-  PHSartreParticleTrigger.h \
-  PHSartreLinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
-	rm -f *Dict*
-	rm -f testexternals*
+	rm -f *Dict* $(BUILT_SOURCES)

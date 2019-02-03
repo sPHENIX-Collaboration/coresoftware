@@ -4,8 +4,6 @@
 
 #include <iostream>
 
-ClassImp(HelixHoughBin_v1)
-
 using namespace std;
 
 HelixHoughBin_v1::HelixHoughBin_v1(unsigned int bin)

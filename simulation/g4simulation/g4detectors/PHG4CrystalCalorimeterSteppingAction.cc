@@ -12,6 +12,7 @@
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>

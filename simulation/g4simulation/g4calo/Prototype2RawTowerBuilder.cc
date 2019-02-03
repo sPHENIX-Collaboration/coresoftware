@@ -4,10 +4,10 @@
 #include <calobase/RawTowerGeomv1.h>
 #include <calobase/RawTowerv1.h>
 
+#include <g4detectors/PHG4PrototypeHcalDefs.h>
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 #include <g4detectors/PHG4ScintillatorSlatDefs.h>
-#include <g4detectors/PHG4PrototypeHcalDefs.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -84,11 +84,11 @@ int Prototype2RawTowerBuilder::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(towers, m_TowerNodeName, "PHObject");
     DetNode->addNode(towerNode);
   }
-  // order first default, 
+  // order first default,
   // then parameter from g4detector on node tree
-   ReadParamsFromNodeTree(topNode);
+  ReadParamsFromNodeTree(topNode);
   // then macro setting
-   UpdateParametersWithMacro();
+  UpdateParametersWithMacro();
   PHNodeIterator runIter(runNode);
   PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", m_Detector));
   if (!RunDetNode)
@@ -263,16 +263,16 @@ void Prototype2RawTowerBuilder::ReadParamsFromNodeTree(PHCompositeNode *topNode)
   PHParameters *pars = new PHParameters("temp");
   // we need the number of scintillator plates per tower
   string geonodename = "G4GEOPARAM_" + m_Detector;
-  PdbParameterMapContainer *saveparams = findNode::getClass<PdbParameterMapContainer>(topNode,geonodename);
-  if (! saveparams)
-    {
-      cout << "could not find " << geonodename << endl;
-      Fun4AllServer *se = Fun4AllServer::instance();
-      se->Print("NODETREE");
-      return;
-    }
-  pars->FillFrom(saveparams,0);
-  set_int_param(PHG4PrototypeHcalDefs::scipertwr,pars->get_int_param(PHG4PrototypeHcalDefs::scipertwr));
+  PdbParameterMapContainer *saveparams = findNode::getClass<PdbParameterMapContainer>(topNode, geonodename);
+  if (!saveparams)
+  {
+    cout << "could not find " << geonodename << endl;
+    Fun4AllServer *se = Fun4AllServer::instance();
+    se->Print("NODETREE");
+    return;
+  }
+  pars->FillFrom(saveparams, 0);
+  set_int_param(PHG4PrototypeHcalDefs::scipertwr, pars->get_int_param(PHG4PrototypeHcalDefs::scipertwr));
   delete pars;
   return;
 }

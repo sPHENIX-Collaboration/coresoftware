@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef SIMULATION_CORESOFTWARE_GENERATORS_PHHEPMC_PHGENINTEGRALV1_H_
-#define SIMULATION_CORESOFTWARE_GENERATORS_PHHEPMC_PHGENINTEGRALV1_H_
+#ifndef PHHEPMC_PHGENINTEGRALV1_H
+#define PHHEPMC_PHGENINTEGRALV1_H
 
 #include "PHGenIntegral.h"
 
@@ -20,7 +20,7 @@ class PHGenIntegralv1 : public PHGenIntegral
 {
  public:
   PHGenIntegralv1();
-  explicit PHGenIntegralv1(const std::string & description);
+  explicit PHGenIntegralv1(const std::string& description);
   virtual ~PHGenIntegralv1();
 
   virtual PHObject* clone() const;
@@ -118,4 +118,4 @@ class PHGenIntegralv1 : public PHGenIntegral
   ClassDef(PHGenIntegralv1, 1)
 };
 
-#endif /* SIMULATION_CORESOFTWARE_GENERATORS_PHHEPMC_PHGENINTEGRALV1_H_ */
+#endif /* PHHEPMC_PHGENINTEGRALV1_H */

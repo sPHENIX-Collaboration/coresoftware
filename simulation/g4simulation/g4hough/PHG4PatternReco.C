@@ -365,10 +365,35 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 
 			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
 			_temp_tracks.clear();
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map.begin(); it!=bins_map.end(); ++it){ delete it->second; bins_map.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ delete it->second; bins_map_prev.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ delete it->second; bins_map_cur.erase(it);}
-                        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ delete it->second; bins_map_sel.erase(it);}
+			auto it_begin = bins_map.begin();
+			auto it_end = bins_map.end();
+                        while(it_begin != it_end)
+			{
+			  delete it_begin->second;
+			  bins_map.erase(it_begin++);
+			}
+                        it_begin = bins_map_prev.begin();
+			it_end = bins_map_prev.end();
+                        while(it_begin != it_end)
+			{
+			  delete it_begin->second;
+			  bins_map_prev.erase(it_begin++);
+			}
+                        it_begin = bins_map_cur.begin();
+			it_end = bins_map_cur.end();
+                        while(it_begin != it_end)
+			{
+			  delete it_begin->second;
+			  bins_map_cur.erase(it_begin++);
+			}
+                        it_begin = bins_map_sel.begin();
+			it_end = bins_map_sel.end();
+                        while(it_begin != it_end)
+			{
+			  delete it_begin->second;
+			  bins_map_sel.erase(it_begin++);
+			}
+
                         bins_map.clear();
                         bins_map_prev.clear();
                         bins_map_cur.clear();
@@ -1123,8 +1148,7 @@ void PHG4PatternReco::vote_z_init(unsigned int zoomlevel){
 
 
 void PHG4PatternReco::find_track_candidates_z_init(unsigned int zoomlevel){
-
-          for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ bins_map_sel.erase(it);}
+        bins_map_sel.erase(bins_map_sel.begin(), bins_map_sel.end());
 	bins_map_sel.clear();
 
 	unsigned int max_i=-1;
@@ -1301,7 +1325,7 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
 	kappa_phi_d_ranges.clear();
                 }//clusters
             } //bins_map_prev
-            for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ bins_map_prev.erase(it);}
+	    bins_map_prev.erase(bins_map_prev.begin(),bins_map_prev.end());
 	    bins_map_prev.clear();
 
 	    cout<<"bins_map_cur.size at zoom "<<zoomlevel << " (vote_z) : " <<bins_map_cur.size()<<endl;
@@ -1309,7 +1333,7 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
 
 
 void PHG4PatternReco::find_track_candidates_z(unsigned int zoomlevel){
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ bins_map_sel.erase(it);}
+        bins_map_sel.erase(bins_map_sel.begin(),bins_map_sel.end());
 	bins_map_sel.clear();
 
 
@@ -1340,8 +1364,7 @@ void PHG4PatternReco::find_track_candidates_z(unsigned int zoomlevel){
 		}
 
 	}
-
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ bins_map_cur.erase(it);}
+	bins_map_cur.erase(bins_map_cur.begin(), bins_map_cur.end());
 	bins_map_cur.clear();
 
         cout<<"bins_map_sel.size at zoom "<< zoomlevel<<" (find_track_candidates_z) : " <<bins_map_sel.size()<<endl;
@@ -1628,14 +1651,14 @@ void PHG4PatternReco::vote_xy(unsigned int zoomlevel){
 
         }//binsmap_sel
         cout<<"bins_map_cur.size at zoom "<<zoomlevel <<" (vote_xy) : " <<bins_map_cur.size()<<endl;
-          for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){ bins_map_sel.erase(it);}
+	bins_map_sel.erase(bins_map_sel.begin(), bins_map_sel.end());
 	bins_map_sel.clear();
 
 }
 
 void PHG4PatternReco::find_track_candidates_xy(unsigned int zoomlevel){
 
-        for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_prev.begin(); it!=bins_map_prev.end(); ++it){ bins_map_prev.erase(it);}
+        bins_map_prev.erase(bins_map_prev.begin(), bins_map_prev.end());
 	bins_map_prev.clear();
 
         for (std::map<unsigned int,HelixHoughBin*>::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it)
@@ -1671,7 +1694,7 @@ void PHG4PatternReco::find_track_candidates_xy(unsigned int zoomlevel){
         }
 
         cout<<"bins_map_prev.size at zoom "<<zoomlevel <<" (find_track_candidates_xy) " <<bins_map_prev.size()<<endl;
-          for (std::map<unsigned int,HelixHoughBin* >::iterator it=bins_map_cur.begin(); it!=bins_map_cur.end(); ++it){ bins_map_cur.erase(it);}
+        bins_map_cur.erase(bins_map_cur.begin(), bins_map_cur.end());
 	bins_map_cur.clear();
 
 }

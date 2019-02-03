@@ -43,14 +43,14 @@ public:
 
   /** Set mapping file for calorimeter towers
    */
-  void SetTowerMappingFile( std::string filename )
+  void SetTowerMappingFile( const std::string &filename )
   {
     mappingfile_ = filename;
   }
 
   /** Select projective geometry for calorimeter
    */
-  void SetProjectiveGeometry( std::string filename1 , std::string filename2 ) {
+  void SetProjectiveGeometry( const std::string &filename1 , const std::string &filename2 ) {
     mappingfile_ = filename1;
     mappingfile_4x4_construct_ = filename2;
     projective_ = true;

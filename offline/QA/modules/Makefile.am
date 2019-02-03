@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 lib_LTLIBRARIES = \
    libqa_modules.la
 
-AM_CXXFLAGS = -Wall -Werror -msse2
+AM_CXXFLAGS = -Werror 
 
 libqa_modules_la_LDFLAGS = \
   -L$(libdir) \
@@ -30,19 +30,27 @@ pkginclude_HEADERS = \
   QAG4SimulationCalorimeter.h \
   QAHistManagerDef.h
 
+if ! MAKEROOT6
+  ROOT5DICTS = \
+    QAHistManagerDef_Dict.cc \
+    QAG4SimulationCalorimeter_Dict.cc \
+    QAG4SimulationCalorimeterSum_Dict.cc \
+    QAG4SimulationJet_Dict.cc 
+endif
+
 libqa_modules_la_SOURCES = \
-  QAHistManagerDef.C \
-  QAHistManagerDef_Dict.C \
-  QAG4SimulationCalorimeter.C \
-  QAG4SimulationCalorimeter_Dict.C \
-  QAG4SimulationCalorimeterSum.C \
-  QAG4SimulationCalorimeterSum_Dict.C \
-  QAG4SimulationJet.C \
-  QAG4SimulationJet_Dict.C 
+  $(ROOT5DICTS) \
+  QAHistManagerDef.cc \
+  QAG4SimulationCalorimeter.cc \
+  QAG4SimulationCalorimeterSum.cc \
+  QAG4SimulationJet.cc
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -50,12 +58,15 @@ libqa_modules_la_SOURCES = \
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 testexternals_LDADD = \
   libqa_modules.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -63,4 +74,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* testexternals.C
+	rm -f *Dict* testexternals.cc

@@ -1,12 +1,11 @@
-#ifndef _RAW_TOWER_BUILDER_BY_HIT_INDEX__
-#define _RAW_TOWER_BUILDER_BY_HIT_INDEX__
+#ifndef G4CALO__RAWTOWERBUILDERBYHITINDEX_H
+#define G4CALO__RAWTOWERBUILDERBYHITINDEX_H
 
 #include <calobase/RawTowerDefs.h>
 
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHTimeServer.h>
-
+#include <map>
 #include <string>
 
 class PHCompositeNode;
@@ -19,12 +18,11 @@ class PHG4HitContainer;
  * (PHG4Hit) using j,k indeces of these hits
  *
  */
-class RawTowerBuilderByHitIndex : public SubsysReco {
-
-public:
-
-  RawTowerBuilderByHitIndex( const std::string& name="RawTowerBuilderByHitIndex" );
-  virtual ~RawTowerBuilderByHitIndex(){}
+class RawTowerBuilderByHitIndex : public SubsysReco
+{
+ public:
+  RawTowerBuilderByHitIndex(const std::string &name = "RawTowerBuilderByHitIndex");
+  virtual ~RawTowerBuilderByHitIndex() {}
 
   int InitRun(PHCompositeNode *topNode);
 
@@ -34,17 +32,19 @@ public:
 
   /** Name of the detector node the G4Hits should be taken from.
    */
-  void Detector( const std::string &d );
+  void Detector(const std::string &d);
 
   /** Specifiy text-file with table for tower mapping
    */
-  void GeometryTableFile( const std::string &d )
-  { mapping_tower_file_ = d; }
+  void GeometryTableFile(const std::string &d)
+  {
+    m_MappingTowerFile = d;
+  }
 
   /** Define minimum tower energy. After processing an event, towers with lower energy
    * are will be deleted.
    */
-  void EminCut(const double e) {emin_ = e;}
+  void EminCut(const double e) { m_Emin = e; }
 
   /** Get prefix for tower collection to identify simulated towers
    * before digitization.
@@ -52,22 +52,19 @@ public:
   std::string
   get_sim_tower_node_prefix() const
   {
-    return sim_tower_node_prefix_;
+    return m_SimTowerNodePrefix;
   }
 
   /** Set prefix for tower collection to identify simulated towers
    * before digitization.
    */
   void
-  set_sim_tower_node_prefix(std::string simTowerNodePrefix)
+  set_sim_tower_node_prefix(const std::string &simTowerNodePrefix)
   {
-    sim_tower_node_prefix_ = simTowerNodePrefix;
+    m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
-
-
-protected:
-
+ private:
   /** Create nodes for output.
    *
    * Name of output node for RawTowerContainer: "TOWER_" + detector;
@@ -78,33 +75,27 @@ protected:
    */
   bool ReadGeometryFromTable();
 
-  RawTowerContainer* towers_;
-  RawTowerGeomContainer* geoms_;
+  RawTowerContainer *m_Towers;
+  RawTowerGeomContainer *m_Geoms;
 
-  std::string detector_;
-  std::string node_name_hits_;
-  std::string node_name_towers_;
-  std::string node_name_tower_geometries_;
-  std::string sim_tower_node_prefix_;
+  std::string m_Detector;
+  std::string m_SimTowerNodePrefix;
 
-  std::string mapping_tower_file_;
+  std::string m_MappingTowerFile;
 
-  RawTowerDefs::CalorimeterId calo_id_;
+  RawTowerDefs::CalorimeterId m_CaloId;
 
-  double global_place_in_x_;
-  double global_place_in_y_;
-  double global_place_in_z_;
+  double m_GlobalPlaceInX;
+  double m_GlobalPlaceInY;
+  double m_GlobalPlaceInZ;
 
-  double rot_in_x_;
-  double rot_in_y_;
-  double rot_in_z_;
+  double m_RotInX;
+  double m_RotInY;
+  double m_RotInZ;
 
-  double emin_;
+  double m_Emin;
 
-  std::map< std::string, double > map_global_parameter_;
-
-  PHTimeServer::timer timer_;
-
+  std::map<std::string, double> m_GlobalParameterMap;
 };
 
 #endif

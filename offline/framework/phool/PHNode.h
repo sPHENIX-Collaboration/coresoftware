@@ -38,8 +38,6 @@ class PHNode
   void makeTransient() { persistent = false; }
  protected:
   PHNode();
-  PHNode(const PHNode &);  // implement invalid copy ctor
-  PHNode &operator=(const PHNode &);
 
   PHNode *parent;
   bool persistent;
@@ -48,6 +46,9 @@ class PHNode
   std::string name;
   std::string objectclass;
   bool reset_able;
+private:
+  PHNode(const PHNode &) = delete;
+  PHNode &operator=(const PHNode &) = delete;
 };
 
 std::ostream &operator<<(std::ostream &, const PHNode &);

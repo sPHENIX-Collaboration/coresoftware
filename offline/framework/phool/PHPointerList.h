@@ -24,8 +24,6 @@
 //
 //  Author: Matthias Messer
 
-#include "PHNode.h"
-
 #include <iostream>
 
 template <class T>

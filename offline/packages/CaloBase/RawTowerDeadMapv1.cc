@@ -33,8 +33,7 @@ void RawTowerDeadMapv1::addDeadTower(RawTowerDefs::keytype key)
   m_DeadTowers.insert(key);
 }
 
-bool
-RawTowerDeadMapv1::isDeadTower(RawTowerDefs::keytype key)
+bool RawTowerDeadMapv1::isDeadTower(RawTowerDefs::keytype key)
 {
   auto it = m_DeadTowers.find(key);
   if (it != m_DeadTowers.end())
@@ -44,8 +43,7 @@ RawTowerDeadMapv1::isDeadTower(RawTowerDefs::keytype key)
   return false;
 }
 
-bool
-RawTowerDeadMapv1::isDeadTower(const unsigned int ieta, const unsigned int iphi)
+bool RawTowerDeadMapv1::isDeadTower(const unsigned int ieta, const unsigned int iphi)
 {
   RawTowerDefs::keytype key = RawTowerDefs::encode_towerid(_caloid, ieta, iphi);
   return isDeadTower(key);
@@ -53,7 +51,7 @@ RawTowerDeadMapv1::isDeadTower(const unsigned int ieta, const unsigned int iphi)
 
 int RawTowerDeadMapv1::isValid() const
 {
-  return size()>0;
+  return size() > 0;
 }
 
 void RawTowerDeadMapv1::Reset()
@@ -65,4 +63,3 @@ void RawTowerDeadMapv1::identify(std::ostream& os) const
 {
   os << "RawTowerDeadMapv1, number of towers: " << size() << std::endl;
 }
-

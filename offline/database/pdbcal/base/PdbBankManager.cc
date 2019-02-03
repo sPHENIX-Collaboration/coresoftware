@@ -10,8 +10,7 @@
 //-----------------------------------------------------------------------------
 #include "PdbBankManager.h"
 
-PdbBankManager *PdbBankManager::__instance = NULL;
-
+PdbBankManager *PdbBankManager::__instance = nullptr;
 
 PdbBankManager::PdbBankManager()
 {
@@ -19,17 +18,15 @@ PdbBankManager::PdbBankManager()
 
 PdbBankManager::~PdbBankManager()
 {
-  __instance = NULL;
+  __instance = nullptr;
 }
 
 PdbBankManager *PdbBankManager::instance()
 {
-  if ( ! __instance )
-    {
-      std::cout << __FILE__ << "  " << __LINE__ << 
-	" No instance of PdbBankManager available" << std::endl;
-    }
-  
+  if (!__instance)
+  {
+    std::cout << __FILE__ << "  " << __LINE__ << " No instance of PdbBankManager available" << std::endl;
+  }
+
   return __instance;
 }
-

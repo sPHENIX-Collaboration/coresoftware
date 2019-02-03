@@ -1,13 +1,29 @@
 AUTOMAKE_OPTIONS = foreign
 
-BUILT_SOURCES = \
-  testexternals.cc
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
+
+if ! MAKEROOT6
+ROOT5_SUBSYSRECODICTS = \
+  Fun4AllBase_Dict.cc \
+  SubsysReco_Dict.cc
+
+ROOT5_FUN4ALLDICTS = \
+  Fun4AllDstInputManager_Dict.cc \
+  Fun4AllDstOutputManager_Dict.cc \
+  Fun4AllDummyInputManager_Dict.cc \
+  Fun4AllHistoManager_Dict.cc \
+  Fun4AllInputManager_Dict.cc \
+  Fun4AllNoSyncDstInputManager_Dict.cc \
+  Fun4AllPrdfInputManager_Dict.cc \
+  Fun4AllPrdfOutputManager_Dict.cc \
+  Fun4AllOutputManager_Dict.cc \
+  Fun4AllServer_Dict.cc \
+  Fun4AllSyncManager_Dict.cc
+endif
 
 pkginclude_HEADERS = \
   Fun4AllBase.h \
@@ -33,10 +49,6 @@ pkginclude_HEADERS = \
   SubsysReco.h \
   TDirectoryHelper.h
 
-noinst_HEADERS = \
-  Fun4AllLinkDef.h \
-  SubsysRecoLinkDef.h
-
 lib_LTLIBRARIES = \
   libSubsysReco.la \
   libTDirectoryHelper.la \
@@ -46,6 +58,7 @@ libTDirectoryHelper_la_SOURCES = \
   TDirectoryHelper.cc
 
 libfun4all_la_SOURCES = \
+  $(ROOT5_FUN4ALLDICTS) \
   Fun4AllDstInputManager.cc \
   Fun4AllDstOutputManager.cc \
   Fun4AllDummyInputManager.cc \
@@ -62,9 +75,7 @@ libfun4all_la_SOURCES = \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllServer.cc \
   Fun4AllUtils.cc \
-  PHTFileServer.cxx
-
-nodist_libfun4all_la_SOURCES = Fun4All_Dict.cc
+  PHTFileServer.cc
 
 libfun4all_la_LIBADD = \
   -L$(libdir) \
@@ -78,16 +89,28 @@ libfun4all_la_LIBADD = \
   -lphool
 
 libSubsysReco_la_SOURCES = \
+  $(ROOT5_SUBSYSRECODICTS) \
   Fun4AllBase.cc \
   SubsysReco.cc
 
-nodist_libSubsysReco_la_SOURCES = SubsysReco_Dict.cc
+if ! MAKEROOT6
+libSubsysReco_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `root-config --libs`
+endif
+
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals_fun4all \
+  testexternals_subsysreco
 
-testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libfun4all.la
+testexternals_fun4all_SOURCES = testexternals.cc
+testexternals_fun4all_LDADD   = libfun4all.la
+
+testexternals_subsysreco_SOURCES = testexternals.cc
+testexternals_subsysreco_LDADD   = libSubsysReco.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
@@ -96,30 +119,8 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-Fun4All_Dict.cc: \
-  Fun4AllDstInputManager.h \
-  Fun4AllDstOutputManager.h \
-  Fun4AllDummyInputManager.h \
-  Fun4AllEventOutStream.h \
-  Fun4AllEventOutputManager.h \
-  Fun4AllFileOutStream.h \
-  Fun4AllHistoManager.h \
-  Fun4AllInputManager.h \
-  Fun4AllSyncManager.h \
-  Fun4AllNoSyncDstInputManager.h \
-  Fun4AllOutputManager.h \
-  Fun4AllPrdfInputManager.h \
-  Fun4AllPrdfOutputManager.h \
-  Fun4AllRolloverFileOutStream.h \
-  Fun4AllServer.h \
-  Fun4AllLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-SubsysReco_Dict.cc: \
-  Fun4AllBase.h \
-  SubsysReco.h \
-  SubsysRecoLinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES)

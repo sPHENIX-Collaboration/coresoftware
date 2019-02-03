@@ -7,8 +7,8 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef PHTIMESTAMP_H__
-#define PHTIMESTAMP_H__
+#ifndef PHOOL_PHTIMESTAMP_H
+#define PHOOL_PHTIMESTAMP_H
 
 #include "PHObject.h"
 
@@ -19,10 +19,8 @@ typedef unsigned long long phtime_t;
 class PHTimeStamp : public PHObject
 {
  public:
-  enum
-  {
-    PHFarFuture = 2147483647
-  };
+
+  static const unsigned long long PHFarFuture;// set to ULLONG_MAX
 
   PHTimeStamp();
 
@@ -52,7 +50,6 @@ class PHTimeStamp : public PHObject
   int operator<(const PHTimeStamp &) const;
   int operator<=(const PHTimeStamp &) const;
 
-  PHTimeStamp &operator=(const PHTimeStamp &);
   PHTimeStamp operator+=(time_t);
   PHTimeStamp operator-=(time_t);
 
@@ -75,4 +72,4 @@ time_t operator-(const PHTimeStamp &, const PHTimeStamp &);
 std::ostream &operator<<(std::ostream &, const PHTimeStamp &);
 std::istream &operator>>(std::istream &, PHTimeStamp &);
 
-#endif /* __PHTIMESTAMP_H__ */
+#endif /* PHOOL_PHTIMESTAMP_H */

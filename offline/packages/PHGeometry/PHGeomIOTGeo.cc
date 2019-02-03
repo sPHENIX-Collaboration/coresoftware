@@ -23,7 +23,6 @@ using namespace std;
 PHGeomIOTGeo::PHGeomIOTGeo() :
     Data(0)
 {
-  SplitLevel(0); // this class is packed binary stream, no need to split
 }
 
 PHGeomIOTGeo::PHGeomIOTGeo(const PHGeomIOTGeo& geom) :

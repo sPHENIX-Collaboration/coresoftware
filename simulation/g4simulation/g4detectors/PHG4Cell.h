@@ -3,13 +3,13 @@
 
 #include "PHG4CellDefs.h"
 #include <g4main/PHG4Hit.h>
-#include <TObject.h>
+#include <phool/PHObject.h>
 
 #include <cmath>
 #include <climits>
 #include <map>
 
-class PHG4Cell: public TObject
+class PHG4Cell: public PHObject
 {
  public:
   typedef std::map<PHG4HitDefs::keytype, float> EdepMap;

@@ -1,5 +1,5 @@
-#ifndef PdbParameterMapContainer__h
-#define PdbParameterMapContainer__h
+#ifndef PDBCAL_BASE_PDBPARAMETERMAPCONTAINER_H
+#define PDBCAL_BASE_PDBPARAMETERMAPCONTAINER_H
 
 #include "PdbCalChan.h"
 

@@ -8,37 +8,37 @@
 using namespace std;
 
 const string
-PHFlag::get_CharFlag(const string &flag) const
+PHFlag::get_CharFlag(const string &name) const
 {
-  map<string, string>::const_iterator iter = charflag.find(flag);
+  map<string, string>::const_iterator iter = charflag.find(name);
   if (iter != charflag.end())
   {
     return iter->second;
   }
-  cout << "PHFlag::getString: ERROR Unknown character Flag " << flag
+  cout << "PHFlag::getString: ERROR Unknown character Flag " << name
        << ", The following are implemented: " << endl;
   Print();
   return nullptr;
 }
 
 const string
-PHFlag::get_CharFlag(const string &flag, const string &defaultval)
+PHFlag::get_CharFlag(const string &name, const string &defaultval)
 {
-  map<string, string>::const_iterator iter = charflag.find(flag);
+  map<string, string>::const_iterator iter = charflag.find(name);
   if (iter != charflag.end())
   {
     return iter->second;
   }
   else
   {
-    set_CharFlag(flag, defaultval);
-    return get_CharFlag(flag);
+    set_CharFlag(name, defaultval);
+    return get_CharFlag(name);
   }
 }
 
-void PHFlag::set_CharFlag(const string &flag, const string &charstr)
+void PHFlag::set_CharFlag(const string &name, const string &charstr)
 {
-  charflag[flag] = charstr;
+  charflag[name] = charstr;
   return;
 }
 

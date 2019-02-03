@@ -503,7 +503,7 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int i
   //   {
   //     iret = params->ReadFromDB();
   //   }
-  if (iret)
+//  if (iret)
   {
     cout << "problem reading from DB" << endl;
   }
@@ -552,7 +552,7 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG
   }
   int iret = 1;
   //  int iret = params->ReadFromFile(name, extension, layer, issuper, m_CalibFileDir);
-  if (iret)
+//  if (iret)
   {
     cout << "problem reading from " << extension << " file " << endl;
   }

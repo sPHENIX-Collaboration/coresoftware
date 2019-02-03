@@ -46,35 +46,106 @@ libphg4hit_la_LIBADD = \
   -lfun4all \
   -leicsmear
 
+# I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
+# pcm files in addition. If someone can figure out how to make a list
+# so this list of dictionaries is transformed into a list of pcm files
+# following a simple naming convention, please change this accordingly and
+# let me know
+ROOTHITDICTS = \
+  PHG4EventHeader_Dict.cc \
+  PHG4EventHeaderv1_Dict.cc \
+  PHG4Hit_Dict.cc \
+  PHG4Hitv1_Dict.cc \
+  PHG4HitEval_Dict.cc \
+  PHG4HitContainer_Dict.cc \
+  PHG4InEvent_Dict.cc \
+  PHG4Particle_Dict.cc \
+  PHG4Particlev1_Dict.cc \
+  PHG4Particlev2_Dict.cc \
+  PHG4Shower_Dict.cc \
+  PHG4Showerv1_Dict.cc \
+  PHG4VtxPoint_Dict.cc \
+  PHG4VtxPointv1_Dict.cc \
+  PHG4TruthInfoContainer_Dict.cc
+
+# for root6 we need pcm and dictionaries but only for
+# i/o classes. For root5 we need only dictionaries but
+# those for i/o and classes available on the cmd line
+# MAKEROOT6 is set in the configure.ac, true for root6
+if MAKEROOT6
+# this is a tweak to install files in $(libdir), automake refuses
+# to install other files in libdir, this construct gets around this
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  PHG4EventHeader_Dict_rdict.pcm \
+  PHG4EventHeaderv1_Dict_rdict.pcm \
+  PHG4Hit_Dict_rdict.pcm \
+  PHG4Hitv1_Dict_rdict.pcm \
+  PHG4HitEval_Dict_rdict.pcm \
+  PHG4HitContainer_Dict_rdict.pcm \
+  PHG4InEvent_Dict_rdict.pcm \
+  PHG4Particle_Dict_rdict.pcm \
+  PHG4Particlev1_Dict_rdict.pcm \
+  PHG4Particlev2_Dict_rdict.pcm \
+  PHG4Shower_Dict_rdict.pcm \
+  PHG4Showerv1_Dict_rdict.pcm \
+  PHG4VtxPoint_Dict_rdict.pcm \
+  PHG4VtxPointv1_Dict_rdict.pcm \
+  PHG4TruthInfoContainer_Dict_rdict.pcm
+else
+  ROOT5HITDICTS = PHG4HitDefs_Dict.cc
+  ROOT5TBDICTS = \
+    HepMCNodeReader_Dict.cc \
+    PHG4ConsistencyCheck_Dict.cc \
+    PHG4HeadReco_Dict.cc \
+    PHG4InEventCompress_Dict.cc \
+    PHG4InEventReadBack_Dict.cc \
+    PHG4InputFilter_Dict.cc \
+    PHG4ParticleGun_Dict.cc \
+    PHG4ParticleGenerator_Dict.cc \
+    PHG4ParticleGeneratorBase_Dict.cc \
+    PHG4ParticleGeneratorVectorMeson_Dict.cc \
+    PHG4ParticleGeneratorD0_Dict.cc \
+    PHG4Reco_Dict.cc \
+    PHG4ScoringManager_Dict.cc \
+    PHG4SimpleEventGenerator_Dict.cc \
+    PHG4PileupGenerator_Dict.cc \
+    PHG4Subsystem_Dict.cc \
+    PHG4TruthSubsystem_Dict.cc \
+    PHG4Utils_Dict.cc \
+    ReadEICFiles_Dict.cc \
+    PHG4HitReadBack_Dict.cc
+endif
+
 libphg4hit_la_SOURCES = \
-    PHG4AllHit_Dict.cc \
-    PHG4EventHeader.cc \
-    PHG4EventHeaderv1.cc \
-    PHG4HitReadBack.cc \
-    PHG4HitDefs.cc \
-    PHG4Hit.cc \
-    PHG4Hit_Dict.cc \
-    PHG4Hitv1.cc \
-    PHG4HitEval.cc \
-    PHG4HitContainer.cc \
-    PHG4InEvent.cc \
-    PHG4Particle.cc \
-    PHG4Particle_Dict.cc \
-    PHG4Particlev1.cc \
-    PHG4Particlev2.cc \
-    PHG4Shower.cc \
-    PHG4Showerv1.cc \
-    PHG4TruthInfoContainer.cc \
-    PHG4VtxPoint.cc \
-    PHG4VtxPointv1.cc
+  $(ROOTHITDICTS) \
+  $(ROOT5HITDICTS) \
+  PHG4EventHeader.cc \
+  PHG4EventHeaderv1.cc \
+  PHG4Hit.cc \
+  PHG4Hitv1.cc \
+  PHG4HitContainer.cc \
+  PHG4HitDefs.cc \
+  PHG4HitEval.cc \
+  PHG4InEvent.cc \
+  PHG4Particle.cc \
+  PHG4Particlev1.cc \
+  PHG4Particlev2.cc \
+  PHG4Shower.cc \
+  PHG4Showerv1.cc \
+  PHG4TruthInfoContainer.cc \
+  PHG4VtxPoint.cc \
+  PHG4VtxPointv1.cc
 
 libg4testbench_la_SOURCES = \
+    $(ROOT5TBDICTS) \
     G4TBMagneticFieldSetup.cc \
     G4TBFieldMessenger.cc \
     PHG4MagneticField.cc \
     HepMCNodeReader.cc \
     PHG4ConsistencyCheck.cc \
     PHG4Detector.cc \
+    PHG4HitReadBack.cc \
     PHG4EtaParameterization.cc \
     PHG4EtaPhiParameterization.cc \
     PHG4HeadReco.cc \
@@ -92,7 +163,6 @@ libg4testbench_la_SOURCES = \
     PHG4PhenixEventAction.cc \
     PHG4PhenixSteppingAction.cc \
     PHG4PhenixTrackingAction.cc \
-    PHG4_Dict.cc \
     PHG4PrimaryGeneratorAction.cc \
     PHG4Reco.cc \
     PHG4ScoringManager.cc \
@@ -190,52 +260,10 @@ testexternals.cc:
 
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
-	echo %_Dict_rdict.pcm
 
-##############################################
-# please add new classes in alphabetical order
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
-PHG4_Dict.cc: \
-  HepMCNodeReader.h \
-  PHG4ConsistencyCheck.h \
-  PHG4HeadReco.h \
-  PHG4InEventCompress.h \
-  PHG4InEventReadBack.h \
-  PHG4InputFilter.h \
-  PHG4PileupGenerator.h \
-  PHG4SimpleEventGenerator.h \
-  PHG4ParticleGun.h \
-  PHG4ParticleGenerator.h \
-  PHG4ParticleGeneratorBase.h \
-  PHG4ParticleGeneratorVectorMeson.h \
-  PHG4ParticleGeneratorD0.h \
-  PHG4Reco.h \
-  PHG4ScoringManager.h \
-  PHG4Subsystem.h \
-  PHG4TruthSubsystem.h \
-  PHG4Utils.h \
-  ReadEICFiles.h \
-  PHG4LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
-
-PHG4AllHit_Dict.cc: \
-  PHG4EventHeader.h \
-  PHG4EventHeaderv1.h \
-  PHG4HitReadBack.h \
-  PHG4HitDefs.h \
-  PHG4Hitv1.h \
-  PHG4HitEval.h \
-  PHG4HitContainer.h \
-  PHG4InEvent.h \
-  PHG4Shower.h \
-  PHG4Showerv1.h \
-  PHG4Particlev1.h \
-  PHG4Particlev2.h \
-  PHG4TruthInfoContainer.h \
-  PHG4VtxPoint.h \
-  PHG4VtxPointv1.h \
-  PHG4AllHitLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(RINCLUDES) $^
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm 

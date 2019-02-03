@@ -1,5 +1,4 @@
 //-----------------------------------------------------------------------------
-//  $Header: /afs/rhic.bnl.gov/phenix/PHENIX_CVS/online_distribution/newbasic/PHTimeStamp.C,v 1.23 2009/08/18 23:03:01 pinkenbu Exp $
 //
 //  The PHOOL's Software
 //  Copyright (C) PHENIX collaboration, 1999
@@ -10,11 +9,13 @@
 //-----------------------------------------------------------------------------
 #include "PHTimeStamp.h"
 
+#include <climits>
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 
 using namespace std;
+
+const unsigned long long PHTimeStamp::PHFarFuture = ULLONG_MAX;
 
 #ifndef HAVE_STRPTIME_PROTOTYPE
 extern "C" {
@@ -77,8 +78,8 @@ void PHTimeStamp::set(const int year, const int month, const int day,
 
 void PHTimeStamp::set(const char *timeString)
 {
-  tm newTime;
 #ifndef WIN32
+  tm newTime;
   strptime(timeString, "%A %h %d %H:%M:%S %Y", &newTime);
   setTics(mktime(&newTime));
 #endif
@@ -155,12 +156,6 @@ int PHTimeStamp::operator>=(const PHTimeStamp &t) const
 int PHTimeStamp::operator<=(const PHTimeStamp &t) const
 {
   return binaryTime <= t.getBinaryTime();
-}
-
-PHTimeStamp &PHTimeStamp::operator=(const PHTimeStamp &t)
-{
-  binaryTime = t.getBinaryTime();
-  return *this;
 }
 
 PHTimeStamp PHTimeStamp::operator+=(time_t t)
