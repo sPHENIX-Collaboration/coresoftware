@@ -15,8 +15,8 @@
 using namespace std;
 
 PHFieldConfigv1::PHFieldConfigv1(FieldConfigTypes field_config,
-                                   const std::string& filename,
-                                   double magfield_rescale)
+                                 const std::string& filename,
+                                 double magfield_rescale)
   : field_config_(field_config)
   , filename_(filename)
   , magfield_rescale_(magfield_rescale)

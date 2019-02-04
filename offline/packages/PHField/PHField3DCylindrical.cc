@@ -6,9 +6,9 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
+#include <cassert>
 #include <iostream>
 #include <set>
-#include <cassert>
 
 using namespace std;
 using namespace CLHEP;  // units
@@ -18,8 +18,8 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 {
   cout << "\n================ Begin Construct Mag Field =====================" << endl;
   cout << "\n-----------------------------------------------------------"
-         << "\n      Magnetic field Module - Verbosity:" << Verbosity()
-         << "\n-----------------------------------------------------------";
+       << "\n      Magnetic field Module - Verbosity:" << Verbosity()
+       << "\n-----------------------------------------------------------";
 
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
@@ -29,8 +29,8 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
     exit(1);
   }
   cout << "\n ---> "
-            "Reading the field grid from "
-         << filename << " ... " << endl;
+          "Reading the field grid from "
+       << filename << " ... " << endl;
   rootinput->cd();
 
   //  get root NTuple objects
@@ -56,16 +56,16 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   if (Verbosity() > 0)
   {
     cout << "\n  NENTRIES should be the same as the following values:"
-           << "\n  [ Number of values r,phi,z: "
-           << nr << " " << nphi << " " << nz << " ]! " << endl;
+         << "\n  [ Number of values r,phi,z: "
+         << nr << " " << nphi << " " << nz << " ]! " << endl;
   }
 
   if (nz != nr || nz != nphi || nr != nphi)
   {
     cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-           << "\n The file you entered is not a \"table\" of values"
-           << "\n Something very likely went oh so wrong"
-           << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+         << "\n The file you entered is not a \"table\" of values"
+         << "\n Something very likely went oh so wrong"
+         << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
   }
 
   // Keep track of the unique z, r, phi values in the grid using sets
@@ -188,12 +188,12 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
       print_map(iter);
 
       cout << " B("
-             << r_map_[ir] << ", "
-             << phi_map_[iphi] << ", "
-             << z_map_[iz] << "):  ("
-             << BFieldR_[iz][ir][iphi] << ", "
-             << BFieldPHI_[iz][ir][iphi] << ", "
-             << BFieldZ_[iz][ir][iphi] << ")" << endl;
+           << r_map_[ir] << ", "
+           << phi_map_[iphi] << ", "
+           << z_map_[iz] << "):  ("
+           << BFieldR_[iz][ir][iphi] << ", "
+           << BFieldPHI_[iz][ir][iphi] << ", "
+           << BFieldZ_[iz][ir][iphi] << ")" << endl;
     }
 
   }  // end loop over root field map file
@@ -201,8 +201,8 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   rootinput->Close();
 
   cout << "\n ---> ... read file successfully "
-         << "\n ---> Z Boundaries ~ zlow, zhigh: "
-         << minz_ / cm << "," << maxz_ / cm << " cm " << endl;
+       << "\n ---> Z Boundaries ~ zlow, zhigh: "
+       << minz_ / cm << "," << maxz_ / cm << " cm " << endl;
 
   cout << "\n================= End Construct Mag Field ======================\n"
        << endl;
@@ -258,8 +258,8 @@ void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) 
   if (Verbosity() > 2)
   {
     cout << "END PHField3DCylindrical::GetFieldValue\n"
-           << "  --->  {Bx, By, Bz} : "
-           << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << endl;
+         << "  --->  {Bx, By, Bz} : "
+         << "< " << Bfield[0] << ", " << Bfield[1] << ", " << Bfield[2] << " >" << endl;
   }
 
   return;
@@ -289,9 +289,9 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
     r = r_map_[0];
     if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too small in specific z-plane). Use min radius" << endl;
-//    return;
+    //    return;
   }
-  if ( r > r_map_[r_map_.size() - 1])
+  if (r > r_map_[r_map_.size() - 1])
   {
     if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
@@ -302,14 +302,14 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   int z_index0 = distance(z_map_.begin(), ziter) - 1;
   int z_index1 = z_index0 + 1;
 
-  assert(z_index0>=0);
-  assert(z_index1>=0);
-  assert(z_index0<(int)z_map_.size());
-  assert(z_index1<(int)z_map_.size());
+  assert(z_index0 >= 0);
+  assert(z_index1 >= 0);
+  assert(z_index0 < (int) z_map_.size());
+  assert(z_index1 < (int) z_map_.size());
 
   vector<float>::const_iterator riter = upper_bound(r_map_.begin(), r_map_.end(), r);
   int r_index0 = distance(r_map_.begin(), riter) - 1;
-  if (r_index0 >=(int) r_map_.size())
+  if (r_index0 >= (int) r_map_.size())
   {
     if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
@@ -317,25 +317,25 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   }
 
   int r_index1 = r_index0 + 1;
-  if (r_index1 >= (int)r_map_.size())
+  if (r_index1 >= (int) r_map_.size())
   {
     if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
     return;
   }
 
-  assert(r_index0>=0);
-  assert(r_index1>=0);
+  assert(r_index0 >= 0);
+  assert(r_index1 >= 0);
 
   vector<float>::const_iterator phiiter = upper_bound(phi_map_.begin(), phi_map_.end(), phi);
   int phi_index0 = distance(phi_map_.begin(), phiiter) - 1;
   int phi_index1 = phi_index0 + 1;
-  if (phi_index1 >= (int)phi_map_.size())
+  if (phi_index1 >= (int) phi_map_.size())
     phi_index1 = 0;
 
-  assert(phi_index0>=0);
-  assert(phi_index0<(int)phi_map_.size());
-  assert(phi_index1>=0);
+  assert(phi_index0 >= 0);
+  assert(phi_index0 < (int) phi_map_.size());
+  assert(phi_index1 >= 0);
 
   double Br000 = BFieldR_[z_index0][r_index0][phi_index0];
   double Br001 = BFieldR_[z_index0][r_index0][phi_index1];
@@ -413,8 +413,8 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   if (Verbosity() > 2)
   {
     cout << "End GFCyl Call: <bz,br,bphi> : {"
-           << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
-           << endl;
+         << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"
+         << endl;
   }
 
   return;

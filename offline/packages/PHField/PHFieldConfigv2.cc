@@ -18,8 +18,8 @@ PHFieldConfigv2::PHFieldConfigv2(
     double field_mag_x,
     double field_mag_y,
     double field_mag_z)
-  : field_mag_x_(field_mag_x )
-  , field_mag_y_(field_mag_y )
+  : field_mag_x_(field_mag_x)
+  , field_mag_y_(field_mag_y)
   , field_mag_z_(field_mag_z)
 {
 }
@@ -41,10 +41,10 @@ void PHFieldConfigv2::identify(std::ostream& os) const
   {
     os << " Field type of [" << get_field_config_description();
     os << "] with field vector of ";
-    os <<"["<<get_field_mag_x();
-    os <<", "<<get_field_mag_y();
-    os <<", "<<get_field_mag_z();
-    os <<"] tesla";
+    os << "[" << get_field_mag_x();
+    os << ", " << get_field_mag_y();
+    os << ", " << get_field_mag_z();
+    os << "] tesla";
   }
   else
   {
@@ -52,4 +52,3 @@ void PHFieldConfigv2::identify(std::ostream& os) const
   }
   os << endl;
 }
-
