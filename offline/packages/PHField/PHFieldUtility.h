@@ -9,7 +9,6 @@
 #include <set>
 #include <string>
 
-
 class PHCompositeNode;
 class PHField;
 class PHFieldConfig;
@@ -17,7 +16,6 @@ class PHFieldConfig;
 //! Toolsets to do geometry operations
 class PHFieldUtility
 {
-
  public:
   //! Make a default PHFieldConfig as in default macro of pro.3 release
   //! Field map = /phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root
@@ -57,14 +55,15 @@ class PHFieldUtility
 
  private:
   // static tool sets only
-#if defined(__CINT__) && ! defined(__CLING__)
-  PHFieldUtility() {}
+#if defined(__CINT__) && !defined(__CLING__)
+  PHFieldUtility()
+  {
+  }
   ~PHFieldUtility() {}
 #else
   PHFieldUtility() = delete;
   ~PHFieldUtility() = delete;
 #endif
-
 };
 
 #endif

@@ -13,7 +13,6 @@
 
 #include "PHFieldConfig.h"
 
-
 /*!
  * \brief PHFieldConfigv2 implements field configuration information for uniform field model*/
 class PHFieldConfigv2 : public PHFieldConfig
@@ -23,11 +22,13 @@ class PHFieldConfigv2 : public PHFieldConfig
   PHFieldConfigv2(
       double field_mag_x,
       double field_mag_y,
-      double field_mag_z
-      );
+      double field_mag_z);
 
   //! default constructor for ROOT file IO
-  PHFieldConfigv2(): PHFieldConfigv2(0,0,0) {}
+  PHFieldConfigv2()
+    : PHFieldConfigv2(0, 0, 0)
+  {
+  }
 
   virtual ~PHFieldConfigv2() {}
 
@@ -43,11 +44,11 @@ class PHFieldConfigv2 : public PHFieldConfig
 
   /// Clear Content
   virtual void
-    Reset() {}
+  Reset() {}
 
   /// isValid returns non zero if object contains vailid data
   virtual int
-    isValid() const {return 3;}
+  isValid() const { return 3; }
 
   FieldConfigTypes get_field_config() const
   {
@@ -91,7 +92,6 @@ class PHFieldConfigv2 : public PHFieldConfig
   }
 
  protected:
-
   double field_mag_x_;
   double field_mag_y_;
   double field_mag_z_;

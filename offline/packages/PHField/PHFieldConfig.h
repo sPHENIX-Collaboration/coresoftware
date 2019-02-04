@@ -57,7 +57,7 @@ class PHFieldConfig : public PHObject
 
   virtual void set_field_config(FieldConfigTypes fieldConfig);
 
-  virtual const std::string & get_filename() const;
+  virtual const std::string& get_filename() const;
 
   virtual void set_filename(const std::string& filename);
 

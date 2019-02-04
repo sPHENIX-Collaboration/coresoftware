@@ -22,10 +22,10 @@ class PHField
       double *Bfield) const = 0;
 
   void Verbosity(const int i) { m_Verbosity = i; }
-  int Verbosity() const {return m_Verbosity;}
+  int Verbosity() const { return m_Verbosity; }
+
  protected:
   int m_Verbosity;
-
 };
 
 #endif

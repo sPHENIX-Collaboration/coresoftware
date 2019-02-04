@@ -13,7 +13,6 @@
 
 #include "PHFieldConfig.h"
 
-
 /*!
  * \brief PHFieldConfigv1 implements field configuration information for input a field map file */
 class PHFieldConfigv1 : public PHFieldConfig
@@ -25,7 +24,10 @@ class PHFieldConfigv1 : public PHFieldConfig
       double magfield_rescale = 1.);
 
   //! default constructor for ROOT file IO
-  PHFieldConfigv1(): PHFieldConfigv1(kFieldInvalid, "INVALID FILE") {}
+  PHFieldConfigv1()
+    : PHFieldConfigv1(kFieldInvalid, "INVALID FILE")
+  {
+  }
 
   virtual ~PHFieldConfigv1() {}
 
@@ -41,7 +43,7 @@ class PHFieldConfigv1 : public PHFieldConfig
 
   /// Clear Content
   virtual void
-    Reset() {}
+  Reset() {}
 
   /// isValid returns non zero if object contains vailid data
   virtual int
