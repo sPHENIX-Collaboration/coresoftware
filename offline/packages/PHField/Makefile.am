@@ -10,7 +10,7 @@ lib_LTLIBRARIES = \
    libphfield.la
 
 AM_CXXFLAGS = \
- -Werror -msse2
+ -Werror
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -30,26 +30,42 @@ pkginclude_HEADERS = \
   PHFieldUtility.h \
   PHField.h
 
+ROOTDICTS = \
+  PHFieldConfig_Dict.cc \
+  PHFieldConfig_v1_Dict.cc \
+  PHFieldConfig_v2_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  PHFieldConfig_Dict_rdict.pcm \
+  PHFieldConfig_v1_Dict_rdict.pcm \
+  PHFieldConfig_v2_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+  PHFieldUtility_Dict.cc
+endif
+
 libphfield_io_la_SOURCES = \
-  PHFieldConfig_Dict.C \
+  $(ROOTDICTS) \
   PHFieldConfig.cc \
-  PHFieldConfig_v1_Dict.C \
   PHFieldConfig_v1.cc \
-  PHFieldConfig_v2_Dict.C \
   PHFieldConfig_v2.cc 
 
 libphfield_la_SOURCES = \
-	PHField.cc \
-	PHFieldUniform.cc \
-	PHField2D.cc \
-	PHField3DCylindrical.cc \
-	PHField3DCartesian.cc \
-  PHFieldUtility_Dict.C \
-	PHFieldUtility.cc 
+  $(ROOT5_DICTS) \
+  PHField.cc \
+  PHFieldUniform.cc \
+  PHField2D.cc \
+  PHField3DCylindrical.cc \
+  PHField3DCartesian.cc \
+  PHFieldUtility.cc 
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -74,4 +90,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
