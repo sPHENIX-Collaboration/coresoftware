@@ -1,22 +1,15 @@
-
-
-#ifndef __PHFIELD_H__
-#define __PHFIELD_H__
-
-#include <phool/PHObject.h>
+#ifndef PHFIELD_PHFIELD_H
+#define PHFIELD_PHFIELD_H
 
 // units of this class. To convert internal value to Geant4/CLHEP units for fast access
-#include <CLHEP/Units/SystemOfUnits.h>
 
-#include <vector>
-
-//! \brief transient DST object for field storage and access
-class PHField : public PHObject
+//! \brief transient object for field storage and access
+class PHField
 {
  public:
   //! constructor
   explicit PHField(const int verb = 0)
-    : verb_(verb)
+    : m_Verbosity(verb)
   {
   }
   virtual ~PHField() {}
@@ -28,9 +21,10 @@ class PHField : public PHObject
       const double Point[4],
       double *Bfield) const = 0;
 
-  void Verbosity(const int i) { verb_ = i; }
+  void Verbosity(const int i) { m_Verbosity = i; }
+  int Verbosity() const {return m_Verbosity;}
  protected:
-  unsigned verb_;
+  int m_Verbosity;
 
 };
 

@@ -27,7 +27,7 @@ class PHFieldConfigv1 : public PHFieldConfig
   //! default constructor for ROOT file IO
   PHFieldConfigv1(): PHFieldConfigv1(kFieldInvalid, "INVALID FILE") {}
 
-  virtual ~PHFieldConfigv1();
+  virtual ~PHFieldConfigv1() {}
 
   /// Virtual copy constructor.
   virtual PHObject*
@@ -39,9 +39,9 @@ class PHFieldConfigv1 : public PHFieldConfig
   virtual void
   identify(std::ostream& os = std::cout) const;
 
-  /// Clear Event
+  /// Clear Content
   virtual void
-  Reset();
+    Reset() {}
 
   /// isValid returns non zero if object contains vailid data
   virtual int

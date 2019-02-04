@@ -25,21 +25,21 @@ libphfield_la_LIBADD = \
 
 pkginclude_HEADERS = \
   PHFieldConfig.h \
-  PHFieldConfig_v1.h \
-  PHFieldConfig_v2.h \
+  PHFieldConfigv1.h \
+  PHFieldConfigv2.h \
   PHFieldUtility.h \
   PHField.h
 
 ROOTDICTS = \
   PHFieldConfig_Dict.cc \
-  PHFieldConfig_v1_Dict.cc \
-  PHFieldConfig_v2_Dict.cc
+  PHFieldConfigv1_Dict.cc \
+  PHFieldConfigv2_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   PHFieldConfig_Dict_rdict.pcm \
-  PHFieldConfig_v1_Dict_rdict.pcm \
-  PHFieldConfig_v2_Dict_rdict.pcm
+  PHFieldConfigv1_Dict_rdict.pcm \
+  PHFieldConfigv2_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
   PHFieldUtility_Dict.cc
@@ -48,12 +48,11 @@ endif
 libphfield_io_la_SOURCES = \
   $(ROOTDICTS) \
   PHFieldConfig.cc \
-  PHFieldConfig_v1.cc \
-  PHFieldConfig_v2.cc 
+  PHFieldConfigv1.cc \
+  PHFieldConfigv2.cc 
 
 libphfield_la_SOURCES = \
   $(ROOT5_DICTS) \
-  PHField.cc \
   PHFieldUniform.cc \
   PHField2D.cc \
   PHField3DCylindrical.cc \

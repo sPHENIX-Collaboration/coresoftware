@@ -1,7 +1,6 @@
 #include "PHFieldUtility.h"
 
-#include "PHFieldConfig_v1.h"
-
+#include "PHFieldConfigv1.h"
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
@@ -10,6 +9,7 @@
 // PHENIX includes
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -18,23 +18,11 @@
 #include <phool/recoConsts.h>
 
 #include <cassert>
-#include <cstdio>
-#include <fstream>
 #include <iostream>
-#include <sstream>
 #include <stdexcept>
 
-#include <sys/types.h>
-#include <unistd.h>  // for generate unique local file
 using namespace std;
 
-PHFieldUtility::PHFieldUtility()
-{
-}
-
-PHFieldUtility::~PHFieldUtility()
-{
-}
 
 PHField *
 PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbosity)
@@ -100,7 +88,7 @@ PHFieldConfig *
 PHFieldUtility::
     DefaultFieldConfig()
 {
-  return new PHFieldConfig_v1(PHFieldConfig_v1::kField2D,
+  return new PHFieldConfigv1(PHFieldConfigv1::kField2D,
                               "/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root",
                               1.4 / 1.5);
 }
@@ -124,7 +112,7 @@ PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHComposite
 
     throw runtime_error(serr.str());
 
-    return NULL;
+    return nullptr;
   }
 
   PHField *field = findNode::getClass<PHField>(parNode, GetDSTFieldMapNodeName());
@@ -137,7 +125,7 @@ PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHComposite
     field = BuildFieldMap(field_config, verbosity>0?verbosity-1:verbosity);
     assert(field);
 
-    parNode->addNode(new PHDataNode<PHObject>(field, GetDSTFieldMapNodeName(), "PHObject"));
+    parNode->addNode(new PHDataNode<PHField>(field, GetDSTFieldMapNodeName()));
   }
 
   return field;
@@ -163,7 +151,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
 
     throw runtime_error(serr.str());
 
-    return NULL;
+    return nullptr;
   }
 
   PHFieldConfig *field = findNode::getClass<PHFieldConfig>(runNode,

@@ -29,7 +29,7 @@ class PHFieldConfigv2 : public PHFieldConfig
   //! default constructor for ROOT file IO
   PHFieldConfigv2(): PHFieldConfigv2(0,0,0) {}
 
-  virtual ~PHFieldConfigv2();
+  virtual ~PHFieldConfigv2() {}
 
   /// Virtual copy constructor.
   virtual PHObject*
@@ -41,13 +41,13 @@ class PHFieldConfigv2 : public PHFieldConfig
   virtual void
   identify(std::ostream& os = std::cout) const;
 
-  /// Clear Event
+  /// Clear Content
   virtual void
-  Reset();
+    Reset() {}
 
   /// isValid returns non zero if object contains vailid data
   virtual int
-  isValid() const;
+    isValid() const {return 3;}
 
   FieldConfigTypes get_field_config() const
   {
@@ -98,3 +98,5 @@ class PHFieldConfigv2 : public PHFieldConfig
 
   ClassDef(PHFieldConfigv2, 1)
 };
+
+#endif

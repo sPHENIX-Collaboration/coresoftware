@@ -1,9 +1,10 @@
-
 #include "PHField2D.h"
 
 //root framework
 #include <TFile.h>
 #include <TNtuple.h>
+
+#include <CLHEP/Units/SystemOfUnits.h>
 
 #include <set>
 #include <iostream>
@@ -19,7 +20,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   z_index0_cache = 0;
   z_index1_cache = 0;
 
-  if (verb_ > 0)
+  if (Verbosity() > 0)
     cout << " ------------- PHField2D::PHField2D() ------------------" << endl;
 
   // open file
@@ -29,7 +30,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
       cout << " could not open " << filename << " exiting now" << endl;
       exit(1);
     }
-  if (verb_ > 0) cout << "  Field grid file: " << filename << endl;
+  if (Verbosity() > 0) cout << "  Field grid file: " << filename << endl;
   rootinput->cd();
 
   Float_t ROOT_Z,  ROOT_R;
@@ -62,8 +63,8 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   static const int NENTRIES = field_map->GetEntries();
 
   // run checks on entries
-  if (verb_ > 0) cout << "  The field grid contained " << NENTRIES << " entries" << endl;
-  if ( verb_ > 1 )
+  if (Verbosity() > 0) cout << "  The field grid contained " << NENTRIES << " entries" << endl;
+  if ( Verbosity() > 1 )
     {
       cout << "\n  NENTRIES should be the same as the following values:"
 	     << "\n  [ Number of values r,z: "
@@ -86,7 +87,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   // We copy the TNtuple into a std::map (which is always sorted)
   // using a 3-tuple of (z, r, phi) so it is sorted in z, then r, then
   // phi.
-  if ( verb_ > 1 )
+  if ( Verbosity() > 1 )
     {
       cout << "  --> Sorting Entries..." << endl;
     }
@@ -103,7 +104,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
     }
 
   // couts for assurance
-  if (verb_ > 4)
+  if (Verbosity() > 4)
     {
       map<trio, trio>::iterator it = sorted_map.begin();
       print_map(it);
@@ -118,7 +119,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
         }
     }
 
-  if (verb_ > 1)
+  if (Verbosity() > 1)
     {
       cout << "  --> Putting entries into containers... " <<  endl;
     }
@@ -181,7 +182,7 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
       // you can change this to check table values for correctness
       // print_map prints the values in the root table, and the
       // couts print the values entered into the vectors
-      if ( fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && verb_ > 3)
+      if ( fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && Verbosity() > 3)
         {
           print_map(iter);
 
@@ -197,16 +198,16 @@ PHField2D::PHField2D( const string &filename, const int verb, const float magfie
   if (rootinput)
     rootinput->Close();
 
-  if (verb_ > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
-  if (verb_ > 0) cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
+  if (Verbosity() > 0) cout << "  Mag field z boundaries (min,max): (" << minz_ / cm << ", " << maxz_ / cm << ") cm" << endl;
+  if (Verbosity() > 0) cout << "  Mag field r max boundary: " << r_map_.back()/ cm << " cm" << endl;
 
-  if (verb_ > 0)
+  if (Verbosity() > 0)
     cout << " -----------------------------------------------------------" << endl;
 }
 
 void PHField2D::GetFieldValue(const double point[4], double *Bfield ) const
 {
-  if (verb_ > 2)
+  if (Verbosity() > 2)
     cout << "\nPHField2D::GetFieldValue" << endl;
   double x = point[0];
   double y = point[1];
@@ -242,11 +243,11 @@ void PHField2D::GetFieldValue(const double point[4], double *Bfield ) const
       Bfield[0] = 0.0;
       Bfield[1] = 0.0;
       Bfield[2] = 0.0;
-      if ( verb_ > 2 )
+      if ( Verbosity() > 2 )
         cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
     }
 
-  if (verb_ > 2)
+  if (Verbosity() > 2)
     {
       cout << "END PHField2D::GetFieldValue\n"
 	     << "  --->  {Bx, By, Bz} : "
@@ -265,12 +266,12 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
   BfieldCyl[1] = 0.0;
   BfieldCyl[2] = 0.0;
 
-  if ( verb_ > 2 )
+  if ( Verbosity() > 2 )
     cout << "GetFieldCyl@ <z,r>: {" << z << "," << r << "}" << endl;
 
   if (z < z_map_[0] || z > z_map_[z_map_.size()-1])
     {
-      if ( verb_ > 2 )
+      if ( Verbosity() > 2 )
         cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
       return;
     }
@@ -288,14 +289,14 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
     vector<float>::const_iterator riter = upper_bound(r_map_.begin(), r_map_.end(), r);
     r_index0 = distance(r_map_.begin(), riter) - 1;
     if (r_index0 >= r_map_.size()) {
-      if ( verb_ > 2 )
+      if ( Verbosity() > 2 )
 	cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
       return;
     }
     
     r_index1 = r_index0 + 1;
     if (r_index1 >= r_map_.size()) {
-      if ( verb_ > 2 )
+      if ( Verbosity() > 2 )
 	cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
       return;
     }
@@ -315,7 +316,7 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
     z_index0 = distance(z_map_.begin(), ziter) - 1;
     z_index1 = z_index0 + 1;
     if (z_index1 >= z_map_.size()) {
-      if ( verb_ > 2 )
+      if ( Verbosity() > 2 )
 	cout << "!!!! Point not in defined region (z too large in specific r-plane)" << endl;
       return;
     }
@@ -360,7 +361,7 @@ void PHField2D::GetFieldCyl( const double CylPoint[4], double *BfieldCyl ) const
   // PHI Direction of B-field
   BfieldCyl[2] = 0;
 
-  if ( verb_ > 2 )
+  if ( Verbosity() > 2 )
     {
       cout << "End GFCyl Call: <bz,br,bphi> : {"
 	     << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"

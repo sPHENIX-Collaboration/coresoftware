@@ -4,6 +4,9 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
+#include <CLHEP/Units/SystemOfUnits.h>
+
+#include <iostream>
 #include <set>
 #include <cassert>
 
@@ -15,7 +18,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 {
   cout << "\n================ Begin Construct Mag Field =====================" << endl;
   cout << "\n-----------------------------------------------------------"
-         << "\n      Magnetic field Module - Verbosity:" << verb_
+         << "\n      Magnetic field Module - Verbosity:" << Verbosity()
          << "\n-----------------------------------------------------------";
 
   // open file
@@ -50,7 +53,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 
   // run checks on entries
   cout << " ---> The field grid contained " << NENTRIES << " entries" << endl;
-  if (verb_ > 0)
+  if (Verbosity() > 0)
   {
     cout << "\n  NENTRIES should be the same as the following values:"
            << "\n  [ Number of values r,phi,z: "
@@ -73,7 +76,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   // We copy the TNtuple into a std::map (which is always sorted)
   // using a 3-tuple of (z, r, phi) so it is sorted in z, then r, then
   // phi.
-  if (verb_ > 0)
+  if (Verbosity() > 0)
   {
     cout << "  --> Sorting Entries..." << endl;
   }
@@ -91,7 +94,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
   }
 
   // couts for assurance
-  if (verb_ > 4)
+  if (Verbosity() > 4)
   {
     map<trio, trio>::iterator it = sorted_map.begin();
     print_map(it);
@@ -106,7 +109,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
     }
   }
 
-  if (verb_ > 0)
+  if (Verbosity() > 0)
   {
     cout << "  --> Putting entries into containers... " << endl;
   }
@@ -180,7 +183,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
     // you can change this to check table values for correctness
     // print_map prints the values in the root table, and the
     // couts print the values entered into the vectors
-    if (fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && verb_ > 3)
+    if (fabs(z) < 10 && ir < 10 /*&& iphi==2*/ && Verbosity() > 3)
     {
       print_map(iter);
 
@@ -207,7 +210,7 @@ PHField3DCylindrical::PHField3DCylindrical(const string &filename, const int ver
 
 void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) const
 {
-  if (verb_ > 2)
+  if (Verbosity() > 2)
     cout << "\nPHField3DCylindrical::GetFieldValue" << endl;
   double x = point[0];
   double y = point[1];
@@ -248,11 +251,11 @@ void PHField3DCylindrical::GetFieldValue(const double point[4], double *Bfield) 
     Bfield[0] = 0.0;
     Bfield[1] = 0.0;
     Bfield[2] = 0.0;
-    if (verb_ > 2)
+    if (Verbosity() > 2)
       cout << "!!!!!!!!!! Field point not in defined region (outside of z bounds)" << endl;
   }
 
-  if (verb_ > 2)
+  if (Verbosity() > 2)
   {
     cout << "END PHField3DCylindrical::GetFieldValue\n"
            << "  --->  {Bx, By, Bz} : "
@@ -272,25 +275,25 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   BfieldCyl[1] = 0.0;
   BfieldCyl[2] = 0.0;
 
-  if (verb_ > 2)
+  if (Verbosity() > 2)
     cout << "GetFieldCyl@ <z,r,phi>: {" << z << "," << r << "," << phi << "}" << endl;
 
   if (z <= z_map_[0] || z >= z_map_[z_map_.size() - 1])
   {
-    if (verb_ > 2)
+    if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (|z| too large)" << endl;
     return;
   }
   if (r < r_map_[0])
   {
     r = r_map_[0];
-    if (verb_ > 2)
+    if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too small in specific z-plane). Use min radius" << endl;
 //    return;
   }
   if ( r > r_map_[r_map_.size() - 1])
   {
-    if (verb_ > 2)
+    if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
     return;
   }
@@ -308,7 +311,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   int r_index0 = distance(r_map_.begin(), riter) - 1;
   if (r_index0 >=(int) r_map_.size())
   {
-    if (verb_ > 2)
+    if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
     return;
   }
@@ -316,7 +319,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   int r_index1 = r_index0 + 1;
   if (r_index1 >= (int)r_map_.size())
   {
-    if (verb_ > 2)
+    if (Verbosity() > 2)
       cout << "!!!! Point not in defined region (radius too large in specific z-plane)" << endl;
     return;
   }
@@ -407,7 +410,7 @@ void PHField3DCylindrical::GetFieldCyl(const double CylPoint[4], double *BfieldC
   //          << "Bz111: " << Bz111 << endl
   //          << "Bz:    " << BfieldCyl[0] << endl << endl;
 
-  if (verb_ > 2)
+  if (Verbosity() > 2)
   {
     cout << "End GFCyl Call: <bz,br,bphi> : {"
            << BfieldCyl[0] / gauss << "," << BfieldCyl[1] / gauss << "," << BfieldCyl[2] / gauss << "}"

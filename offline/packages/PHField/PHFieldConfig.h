@@ -8,10 +8,11 @@
  * \date $Date: $
  */
 
-#ifndef PHFieldConfig_H_
-#define PHFieldConfig_H_
+#ifndef PHFIELD_PHFIELDCONFIG_H
+#define PHFIELD_PHFIELDCONFIG_H
 
 #include <phool/PHObject.h>
+
 #include <string>
 
 /*!
@@ -90,4 +91,4 @@ class PHFieldConfig : public PHObject
   ClassDef(PHFieldConfig, 1)
 };
 
-#endif /* PHFieldConfig_H_ */
+#endif
