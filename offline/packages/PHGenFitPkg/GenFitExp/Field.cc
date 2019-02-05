@@ -139,13 +139,13 @@ void Field::get(const double& x, const double& y, const double& z, double& Bx, d
 {
   assert(field_);
 
-  const double Point[] = {x*CLHEP::cm, y*CLHEP::cm, z*CLHEP::cm, 0};
+  const double Point[] = {x * CLHEP::cm, y * CLHEP::cm, z * CLHEP::cm, 0};
   double Bfield[] = {std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN()};
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN()};
 
   field_->GetFieldValue(Point, Bfield);
 
