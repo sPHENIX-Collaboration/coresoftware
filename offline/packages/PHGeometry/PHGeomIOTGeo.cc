@@ -62,7 +62,7 @@ PHGeomIOTGeo::SetGeometry(const TGeoVolume * g)
 TGeoVolume *
 PHGeomIOTGeo::GetGeometryCopy()
 {
-  if (not isValid()) return NULL;
+  if (not isValid()) return nullptr;
 
   TMemFile f2("mem2", Data.data(), Data.size(), "READ");
   TGeoVolume * vol = dynamic_cast<TGeoVolume *>(f2.Get("TOP"));
@@ -76,7 +76,7 @@ TGeoManager *
 PHGeomIOTGeo::
 ConstructTGeoManager()
 {
-  if (not isValid()) return NULL;
+  if (not isValid()) return nullptr;
 
   // build new TGeoManager
   TGeoManager * tgeo = new TGeoManager("PHGeometry", "");

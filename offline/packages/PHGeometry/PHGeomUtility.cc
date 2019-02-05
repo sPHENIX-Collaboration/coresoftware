@@ -1,12 +1,11 @@
 #include "PHGeomUtility.h"
+
 #include "PHGeomTGeo.h"
 #include "PHGeomIOTGeo.h"
 
-#include <TGeoManager.h>
-#include <TROOT.h>
-
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/recoConsts.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHTypedNodeIterator.h>
@@ -14,15 +13,17 @@
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
+#include <TGeoManager.h>
+
 #include <cassert>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <cstdio>
 #include <stdexcept>
 
 #include <sys/types.h>
 #include <unistd.h> // for generate unique local file
+
 using namespace std;
 
 //! DST node -> TGeoManager for downstream use
@@ -35,7 +36,7 @@ PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)
       cout << __PRETTY_FUNCTION__
           << " - Error - Can NOT construct geometry node." << endl;
       exit(1);
-      return NULL;
+      return nullptr;
     }
 
   if (not dst_geom->isValid())
@@ -72,7 +73,7 @@ PHGeomUtility::ImportGeomFile(PHCompositeNode *topNode,
   TGeoManager::SetVerboseLevel(GetVerbosity());
   dst_geom->SetGeometry(TGeoManager::Import(geometry_file.c_str()));
 
-  if (dst_geom->GetGeometry() == NULL)
+  if (dst_geom->GetGeometry() == nullptr)
     {
       cout << __PRETTY_FUNCTION__ << "failed to import " << geometry_file
           << endl;
@@ -111,13 +112,13 @@ PHGeomUtility::GetGeomTGeoNode(PHCompositeNode *topNode, bool build_new)
       "PHCompositeNode", "PAR"));
   if (!parNode)
     {
-      stringstream serr;
+      ostringstream serr;
       serr << __PRETTY_FUNCTION__ << ": PAR Node missing, request aborting.";
       cout << serr.str() << endl;
 
       throw runtime_error(serr.str());
 
-      return NULL;
+      return nullptr;
     }
 
   PHGeomTGeo *dst_geom = findNode::getClass<PHGeomTGeo>(parNode,
@@ -144,13 +145,13 @@ PHGeomUtility::GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new)
       "PHCompositeNode", "RUN"));
   if (!runNode)
     {
-      stringstream serr;
+      ostringstream serr;
       serr << __PRETTY_FUNCTION__ << ": RUN Node missing, request aborting.";
       cout << serr.str() << endl;
 
       throw runtime_error(serr.str());
 
-      return NULL;
+      return nullptr;
     }
 
   PHGeomIOTGeo *dst_geom = findNode::getClass<PHGeomIOTGeo>(runNode,
@@ -169,7 +170,7 @@ PHGeomUtility::GetGeomIOTGeoNode(PHCompositeNode *topNode, bool build_new)
 std::string
 PHGeomUtility::GenerateGeometryFileName(const std::string & filename_extension)
 {
-  stringstream file;
+  ostringstream file;
   file << "/tmp/" << "PHGeomUtility_geom_file_" << ::getpid() << "."
       << filename_extension ;
 
@@ -211,14 +212,14 @@ PHGeomUtility::UpdateIONode(PHCompositeNode *topNode)
       cout << __PRETTY_FUNCTION__
           << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to missing PHGeomTGeo node at RUN/GEOMETRY"
           << endl;
-      return NULL;
+      return nullptr;
     }
   if (not dst_geom->isValid())
     {
       cout << __PRETTY_FUNCTION__
           << " - ERROR - failed to update PHGeomIOTGeo node RUN/GEOMETRY_IO due to invalid PHGeomTGeo node at RUN/GEOMETRY"
           << endl;
-      return NULL;
+      return nullptr;
     }
 
   PHGeomIOTGeo *dst_geom_io = GetGeomIOTGeoNode(topNode, true);
@@ -241,14 +242,14 @@ PHGeomUtility::LoadFromIONode(PHCompositeNode *topNode)
       cout << __PRETTY_FUNCTION__
           << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to missing PHGeomIOTGeo node at RUN/GEOMETRY_IO"
           << endl;
-      return NULL;
+      return nullptr;
     }
   if (not dst_geom_io->isValid())
     {
       cout << __PRETTY_FUNCTION__
           << " - ERROR - failed to update PHGeomTGeo node RUN/GEOMETRY due to invalid PHGeomIOTGeo node at RUN/GEOMETRY_IO"
           << endl;
-      return NULL;
+      return nullptr;
     }
 
 

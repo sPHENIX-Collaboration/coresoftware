@@ -17,12 +17,9 @@
 
 using namespace std;
 
-//ClassImp(PHGeomTGeo);
-
 PHGeomTGeo::PHGeomTGeo() :
-    _fGeom(NULL)
+    _fGeom(nullptr)
 {
-//  SplitLevel(0);
 }
 
 PHGeomTGeo::~PHGeomTGeo()
@@ -35,7 +32,7 @@ void
 PHGeomTGeo::SetGeometry(TGeoManager * g)
 {
   ConsistencyCheck();
-  assert(_fGeom == NULL);
+  assert(_fGeom == nullptr);
 
   if (!g)
     {
@@ -52,8 +49,8 @@ PHGeomTGeo::SetGeometry(TGeoManager * g)
 TGeoManager *
 PHGeomTGeo::GetGeometry()
 {
-  if (_fGeom == NULL)
-    return NULL;
+  if (_fGeom == nullptr)
+    return nullptr;
 
   ConsistencyCheck();
 
@@ -61,7 +58,7 @@ PHGeomTGeo::GetGeometry()
     return _fGeom;
   else
     {
-      return NULL;
+      return nullptr;
     }
 }
 
@@ -92,7 +89,7 @@ PHGeomTGeo::Reset()
       _fGeom->UnlockGeometry();
       delete _fGeom;
     }
-  _fGeom = NULL;
+  _fGeom = nullptr;
 }
 
 /// isValid returns non zero if object contains vailid data
@@ -101,7 +98,7 @@ PHGeomTGeo::isValid() const
 {
   ConsistencyCheck();
 
-  if (_fGeom == NULL)
+  if (_fGeom == nullptr)
     return 0;
   if (_fGeom->IsZombie())
     return 0;
@@ -111,7 +108,7 @@ PHGeomTGeo::isValid() const
 bool
 PHGeomTGeo::ConsistencyCheck() const
 {
-  if (_fGeom == NULL)
+  if (_fGeom == nullptr)
     return true; // uninitialized
 
   if (_fGeom == gGeoManager)
