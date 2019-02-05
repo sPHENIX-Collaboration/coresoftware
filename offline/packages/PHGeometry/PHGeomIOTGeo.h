@@ -27,7 +27,6 @@ class PHGeomIOTGeo : public PHObject
 {
 public:
   PHGeomIOTGeo();
-  PHGeomIOTGeo(const PHGeomIOTGeo& geom);
   virtual
   ~PHGeomIOTGeo();
 

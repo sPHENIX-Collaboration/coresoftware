@@ -25,11 +25,6 @@ PHGeomIOTGeo::PHGeomIOTGeo() :
 {
 }
 
-PHGeomIOTGeo::PHGeomIOTGeo(const PHGeomIOTGeo& geom) :
-    Data(geom.Data)
-{
-}
-
 PHGeomIOTGeo::~PHGeomIOTGeo()
 {
   Reset();
@@ -93,7 +88,7 @@ ConstructTGeoManager()
   tgeo->SetTopVolume(vol);
 //  tgeo->CloseGeometry();
 
-  stringstream stitle;
+  ostringstream stitle;
   stitle
       << "TGeoManager built by PHGeomUtility::LoadFromIONode based on RUN/GEOMETRY_IO node with name ("
       << vol->GetName() << ") and title ("
