@@ -11,112 +11,113 @@
 
 //STL
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 
 //GenFit
 
-
-namespace genfit {
-
+namespace genfit
+{
 class AbsTrackRep;
 class StateOnPlane;
 class Track;
 
-}
+}  // namespace genfit
 
-namespace PHGenFit {
-
+namespace PHGenFit
+{
 class Measurement;
 
 class Track
 {
-public:
+ public:
+  //! Default ctor
+  Track(genfit::AbsTrackRep* rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov, const int v = 0);
 
-	//! Default ctor
-	Track(genfit::AbsTrackRep *rep, TVector3 seed_pos, TVector3 seed_mom, TMatrixDSym seed_cov, const int v = 0);
+  //! Copy constructor
+  Track(const PHGenFit::Track& t);
 
-	//! Copy constructor
-	Track(const PHGenFit::Track &t);
+  //! Default dtor
+  ~Track();
 
-	//! Default dtor
-	~Track();
+  //! Add measurement
+  int addMeasurement(PHGenFit::Measurement* measurement);
+  int addMeasurements(std::vector<PHGenFit::Measurement*>& measurements);
 
-	//! Add measurement
-	int addMeasurement(PHGenFit::Measurement* measurement);
-	int addMeasurements(std::vector<PHGenFit::Measurement*> &measurements);
+  int deleteLastMeasurement();
 
-	int deleteLastMeasurement();
+  //!
+  int updateOneMeasurementKalman(
+      const std::vector<PHGenFit::Measurement*>& measurements,
+      std::map<double, std::shared_ptr<PHGenFit::Track> >& incr_chi2s_new_tracks,
+      const int base_tp_idx = -1,
+      const int direction = 1,
+      const float blowup_factor = 1.,
+      const bool use_fitted_state = false) const;
 
-	//!
-	int updateOneMeasurementKalman(
-			const std::vector<PHGenFit::Measurement*>& measurements,
-			std::map<double, std::shared_ptr<PHGenFit::Track> >& incr_chi2s_new_tracks,
-			const int base_tp_idx = -1,
-			const int direction = 1,
-			const float blowup_factor = 1.,
-			const bool use_fitted_state = false) const;
-
-	/*!
+  /*!
 	 * track_point 0 is the first one, and -1 is the last one
 	 */
-	double extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id = 0) const;
-	//!
-	double extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
-	//!
-	double extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0, const int direction = 1) const;
-	//!
-	double extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P, const int tr_point_id = 0) const;
+  double extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id = 0) const;
+  //!
+  double extrapolateToLine(genfit::MeasuredStateOnPlane& state, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+  //!
+  double extrapolateToCylinder(genfit::MeasuredStateOnPlane& state, double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0, const int direction = 1) const;
+  //!
+  double extrapolateToPoint(genfit::MeasuredStateOnPlane& state, TVector3 P, const int tr_point_id = 0) const;
 
-	//!
-	genfit::MeasuredStateOnPlane* extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id = 0) const;
-	//!
-	genfit::MeasuredStateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
-	//!
-	genfit::MeasuredStateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0, const int direction = 1) const;
-	//!
-	genfit::MeasuredStateOnPlane* extrapolateToPoint(TVector3 P, const int tr_point_id = 0) const;
-	//!
-	genfit::Track* getGenFitTrack() {return _track;}
+  //!
+  genfit::MeasuredStateOnPlane* extrapolateToPlane(TVector3 O, TVector3 n, const int tr_point_id = 0) const;
+  //!
+  genfit::MeasuredStateOnPlane* extrapolateToLine(TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0) const;
+  //!
+  genfit::MeasuredStateOnPlane* extrapolateToCylinder(double radius, TVector3 line_point, TVector3 line_direction, const int tr_point_id = 0, const int direction = 1) const;
+  //!
+  genfit::MeasuredStateOnPlane* extrapolateToPoint(TVector3 P, const int tr_point_id = 0) const;
+  //!
+  genfit::Track* getGenFitTrack() { return _track; }
 
-	genfit::Track* getGenFitTrack() const {return _track;}
+  genfit::Track* getGenFitTrack() const { return _track; }
 
-	double get_chi2() const;
+  double get_chi2() const;
 
-	double get_ndf() const;
+  double get_ndf() const;
 
-	double get_charge() const;
+  double get_charge() const;
 
-	TVector3 get_mom() const;
+  TVector3 get_mom() const;
 
-	const std::vector<unsigned int>& get_cluster_IDs() const {
-		return _clusterIDs;
-	}
+  const std::vector<unsigned int>& get_cluster_IDs() const
+  {
+    return _clusterIDs;
+  }
 
-	void set_cluster_IDs(const std::vector<unsigned int>& clusterIDs) {
-		_clusterIDs = clusterIDs;
-	}
+  void set_cluster_IDs(const std::vector<unsigned int>& clusterIDs)
+  {
+    _clusterIDs = clusterIDs;
+  }
 
-	int get_verbosity() const {
-		return verbosity;
-	}
+  int get_verbosity() const
+  {
+    return verbosity;
+  }
 
-	void set_verbosity(int verbosity) {
-		this->verbosity = verbosity;
-	}
+  void set_verbosity(int verbosity)
+  {
+    this->verbosity = verbosity;
+  }
 
-	//SMART(genfit::Track) getGenFitTrack() {return _track;}
+  //SMART(genfit::Track) getGenFitTrack() {return _track;}
 
-private:
+ private:
+  int verbosity;
 
-	int verbosity;
+  genfit::Track* _track;
+  //std::vector<PHGenFit::Measurement*> _measurements;
+  std::vector<unsigned int> _clusterIDs;
 
-	genfit::Track* _track;
-	//std::vector<PHGenFit::Measurement*> _measurements;
-	std::vector<unsigned int> _clusterIDs;
-
-	//SMART(genfit::Track) _track;
+  //SMART(genfit::Track) _track;
 };
-} //End of PHGenFit namespace
+}  // namespace PHGenFit
 
 #endif

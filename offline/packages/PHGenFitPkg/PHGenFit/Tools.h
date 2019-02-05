@@ -8,27 +8,26 @@
 #define PHGENFIT_TOOLS_H
 
 //STL
-#include <vector>
 #include <memory>
+#include <vector>
 
-
-namespace genfit {
-
+namespace genfit
+{
 class AbsTrackRep;
 class StateOnPlane;
 class Track;
 class MeasuredStateOnPlane;
 
-}
+}  // namespace genfit
 
-namespace PHGenFit {
-
+namespace PHGenFit
+{
 double extrapolateToCylinder(
-		const genfit::MeasuredStateOnPlane* state,
-		double radius, TVector3 line_point, TVector3 line_direction,
-		const int pdg_code = 211, const int direction = 1,
-		const int verbosity = 0);
+    const genfit::MeasuredStateOnPlane* state,
+    double radius, TVector3 line_point, TVector3 line_direction,
+    const int pdg_code = 211, const int direction = 1,
+    const int verbosity = 0);
 
-} //End of PHGenFit namespace
+}  // namespace PHGenFit
 
-#endif //__PHGenFit_Tools__
+#endif  //__PHGenFit_Tools__
