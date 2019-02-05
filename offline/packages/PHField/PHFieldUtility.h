@@ -1,13 +1,13 @@
-#ifndef PHFieldUtility_HH__
-#define PHFieldUtility_HH__
+#ifndef PHFIELD_PHFIELDUTILITY_H
+#define PHFIELD_PHFIELDUTILITY_H
+
+#include "PHFieldConfig.h"
 
 #include <ctime>
 #include <iostream>
 #include <map>
 #include <set>
 #include <string>
-
-#include "PHFieldConfig.h"
 
 class PHCompositeNode;
 class PHField;
@@ -16,11 +16,6 @@ class PHFieldConfig;
 //! Toolsets to do geometry operations
 class PHFieldUtility
 {
- protected:
-  // static tool sets only
-  PHFieldUtility();
-  virtual ~PHFieldUtility();
-
  public:
   //! Make a default PHFieldConfig as in default macro of pro.3 release
   //! Field map = /phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root
@@ -58,7 +53,17 @@ class PHFieldUtility
     return std::string("FIELD_CONFIG");
   }
 
- protected:
+ private:
+  // static tool sets only
+#if defined(__CINT__) && !defined(__CLING__)
+  PHFieldUtility()
+  {
+  }
+  ~PHFieldUtility() {}
+#else
+  PHFieldUtility() = delete;
+  ~PHFieldUtility() = delete;
+#endif
 };
 
-#endif /* PHFieldUtility_HH__ */
+#endif

@@ -1,5 +1,5 @@
-#ifndef __PHField3DCartesian_H__
-#define __PHField3DCartesian_H__
+#ifndef PHFIELD_PHFIELD3DCARTESIAN_H
+#define PHFIELD_PHFIELD3DCARTESIAN_H
 
 #include "PHField.h"
 
@@ -41,4 +41,4 @@ class PHField3DCartesian : public PHField
   mutable int cache_misses;
 };
 
-#endif  // __PHFIELD3D_H
+#endif

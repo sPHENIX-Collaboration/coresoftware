@@ -8,26 +8,28 @@
  * \date $Date: $
  */
 
-#ifndef PHFieldConfig_v1_H_
-#define PHFieldConfig_v1_H_
+#ifndef PHFIELD_PHFIELDCONFIGV1_H
+#define PHFIELD_PHFIELDCONFIGV1_H
 
 #include "PHFieldConfig.h"
 
-
 /*!
- * \brief PHFieldConfig_v1 implements field configuration information for input a field map file */
-class PHFieldConfig_v1 : public PHFieldConfig
+ * \brief PHFieldConfigv1 implements field configuration information for input a field map file */
+class PHFieldConfigv1 : public PHFieldConfig
 {
  public:
-  PHFieldConfig_v1(
+  PHFieldConfigv1(
       FieldConfigTypes field_config,
       const std::string& filename,
       double magfield_rescale = 1.);
 
   //! default constructor for ROOT file IO
-  PHFieldConfig_v1(): PHFieldConfig_v1(kFieldInvalid, "INVALID FILE") {}
+  PHFieldConfigv1()
+    : PHFieldConfigv1(kFieldInvalid, "INVALID FILE")
+  {
+  }
 
-  virtual ~PHFieldConfig_v1();
+  virtual ~PHFieldConfigv1() {}
 
   /// Virtual copy constructor.
   virtual PHObject*
@@ -39,9 +41,9 @@ class PHFieldConfig_v1 : public PHFieldConfig
   virtual void
   identify(std::ostream& os = std::cout) const;
 
-  /// Clear Event
+  /// Clear Content
   virtual void
-  Reset();
+  Reset() {}
 
   /// isValid returns non zero if object contains vailid data
   virtual int
@@ -81,7 +83,7 @@ class PHFieldConfig_v1 : public PHFieldConfig
   std::string filename_;
   double magfield_rescale_;
 
-  ClassDef(PHFieldConfig_v1, 3)
+  ClassDef(PHFieldConfigv1, 3)
 };
 
-#endif /* PHFieldConfig_v1_H_ */
+#endif
