@@ -5,12 +5,10 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-//BOOST
-//#include <boost/shared_ptr.hpp>
-//#include <boost/make_shared.hpp>
 
 //PHGenFit
 #include "Fitter.h"
+
 #include "Track.h"
 
 #include <phfield/PHField.h>

@@ -4,8 +4,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHGenFit_Tools__
-#define __PHGenFit_Tools__
+#ifndef PHGENFIT_TOOLS_H
+#define PHGENFIT_TOOLS_H
 
 //STL
 #include <vector>

@@ -4,11 +4,9 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-//STL
-#include <limits>
-
-//BOOST
-//#include <boost/foreach.hpp>
+//PHGenFit
+#include "Track.h"
+#include "Measurement.h"
 
 //GenFit
 #include <GenFit/Track.h>
@@ -19,9 +17,8 @@
 #include <GenFit/Tools.h>
 #include <GenFit/AbsHMatrix.h>
 
-//PHGenFit
-#include "Track.h"
-#include "Measurement.h"
+//STL
+#include <limits>
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "	<<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl
 #define LogError(exp)		std::cout<<"ERROR: "	<<__FILE__<<": "<<__LINE__<<": "<< exp << std::endl

@@ -5,12 +5,13 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHGenFit_Fitter__
-#define __PHGenFit_Fitter__
+#ifndef PHGENFIT_FITTER_H
+#define PHGENFIT_FITTER_H
 
 //STL
 
 #include <GenFit/EventDisplay.h>
+
 #include <string>
 
 //BOOST
@@ -134,4 +135,4 @@ private:
 
 } //End of PHGenFit namespace
 
-#endif //__PHGenFit_Fitter__
+#endif

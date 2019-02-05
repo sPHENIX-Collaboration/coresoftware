@@ -4,9 +4,6 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-//PHGenFit
-//#include "Track.h"
-//#include "Measurement.h"
 
 //GenFit
 #include <GenFit/Track.h>

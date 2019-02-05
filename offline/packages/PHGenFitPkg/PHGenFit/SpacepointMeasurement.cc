@@ -4,9 +4,10 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
+#include "SpacepointMeasurement.h"
+
 #include <GenFit/SpacepointMeasurement.h>
 
-#include "SpacepointMeasurement.h"
 
 
 namespace PHGenFit {

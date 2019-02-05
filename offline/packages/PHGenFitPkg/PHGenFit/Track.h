@@ -4,18 +4,15 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHGenFit_Track__
-#define __PHGenFit_Track__
+#ifndef PHGENFIT_TRACK_H
+#define PHGENFIT_TRACK_K
+
+#include <GenFit/Track.h>
 
 //STL
+#include <map>
 #include <vector>
 #include <memory>
-
-//BOOST
-//#include<boost/make_shared.hpp>
-//
-//#define SMART(expr) boost::shared_ptr<expr>
-//#define NEW(expr) boost::make_shared<expr>
 
 //GenFit
 
@@ -122,4 +119,4 @@ private:
 };
 } //End of PHGenFit namespace
 
-#endif //__PHGenFit_Track__
+#endif

@@ -5,8 +5,8 @@
  */
 
 
-#ifndef __PHGenFit_PlanarMeasurement__
-#define __PHGenFit_PlanarMeasurement__
+#ifndef PHGENFIT_PLANARMEASUREMENT_H
+#define PHGENFIT_PLANARMEASUREMENT_H
 
 #include "Measurement.h"
 
@@ -25,11 +25,11 @@ public:
 	void init(const TVector3& pos, const TVector3& u, const TVector3& v, const double du, const double dv);
 
 	//!dtor
-	~PlanarMeasurement();
+	~PlanarMeasurement(){}
 
 protected:
 
 	};
 } //End of PHGenFit namespace
 
-#endif //__PHGenFit_PlanarMeasurement__
+#endif

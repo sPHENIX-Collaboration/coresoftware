@@ -4,12 +4,13 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHGenFit_Measurement__
-#define __PHGenFit_Measurement__
+#ifndef PHGENFIT_MEASUREMENT_H
+#define PHGENFIT_MEASUREMENT_H
 
-#include <climits>
 
 #include <GenFit/AbsMeasurement.h>
+
+#include <climits>
 
 namespace PHGenFit {
 
@@ -24,7 +25,7 @@ public:
 	;
 
 	//!dtor
-	~Measurement();
+			~Measurement(){}
 
 	//!
 	genfit::AbsMeasurement* getMeasurement() {
@@ -47,4 +48,4 @@ protected:
 };
 } //End of PHGenFit namespace
 
-#endif //__PHGenFit_Measurement__
+#endif

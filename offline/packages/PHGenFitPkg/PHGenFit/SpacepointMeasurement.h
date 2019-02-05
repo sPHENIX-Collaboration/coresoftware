@@ -5,8 +5,8 @@
  */
 
 
-#ifndef __PHGenFit_SpacepointMeasurement__
-#define __PHGenFit_SpacepointMeasurement__
+#ifndef PHGENFIT_SPACEPOINTMEASUREMENT_H
+#define PHGENFIT_SPACEPOINTMEASUREMENT_H
 
 #include "Measurement.h"
 
@@ -42,4 +42,4 @@ protected:
 	};
 } //End of PHGenFit namespace
 
-#endif //__PHGenFit_SpacepointMeasurement__
+#endif

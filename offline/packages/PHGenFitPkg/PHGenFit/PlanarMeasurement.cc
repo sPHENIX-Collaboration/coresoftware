@@ -56,11 +56,5 @@ PlanarMeasurement::PlanarMeasurement(const TVector3& pos, const TVector3& n, con
 	init(pos, u, v, du, dv);
 }
 
-PlanarMeasurement::~PlanarMeasurement()
-{
-	//delete _measurement;
-}
-
-
 
 } //End of PHGenFit namespace
