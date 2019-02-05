@@ -18,16 +18,13 @@ public:
   explicit
   PHGeomFileImport(const std::string & geometry_file);
   virtual
-  ~PHGeomFileImport();
+    ~PHGeomFileImport(){}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
 protected:
 
-  std::string _geometry_file;
+  std::string m_GeometryFile;
 
 };
 
