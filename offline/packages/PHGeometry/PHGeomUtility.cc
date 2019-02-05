@@ -25,15 +25,6 @@
 #include <unistd.h> // for generate unique local file
 using namespace std;
 
-PHGeomUtility::PHGeomUtility()
-{
-}
-
-PHGeomUtility::~PHGeomUtility()
-{
-
-}
-
 //! DST node -> TGeoManager for downstream use
 TGeoManager *
 PHGeomUtility::GetTGeoManager(PHCompositeNode *topNode)

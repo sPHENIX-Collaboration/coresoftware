@@ -1,5 +1,5 @@
-#ifndef PHGeomFileImport_HH__
-#define PHGeomFileImport_HH__
+#ifndef PHGEOMETRY_PHGEOMFILEIMPORT_H
+#define PHGEOMETRY_PHGEOMFILEIMPORT_H
 
 
 #include <fun4all/SubsysReco.h>
@@ -20,8 +20,6 @@ public:
   virtual
   ~PHGeomFileImport();
 
-public:
-
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -33,4 +31,4 @@ protected:
 
 };
 
-#endif /* PHGeomFileImport_HH__ */
+#endif

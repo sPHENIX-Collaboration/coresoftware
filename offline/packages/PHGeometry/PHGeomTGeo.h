@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef PHGEOMTGEO_H_
-#define PHGEOMTGEO_H_
+#ifndef PHGEOMETRY_PHGEOMTGEO_H
+#define PHGEOMETRY_PHGEOMTGEO_H
 
 #include <phool/PHObject.h>
 
@@ -57,7 +57,6 @@ protected:
   //! store and stream the full geometry via DST objects
   TGeoManager * _fGeom;
 
-//  ClassDef(PHGeomTGeo,1)
 };
 
-#endif /* PHGEOMTGEO_H_ */
+#endif

@@ -1,5 +1,5 @@
-#ifndef PHGeomUtility_HH__
-#define PHGeomUtility_HH__
+#ifndef PHGEOMETRY_PHGEOMUTILITY_H
+#define PHGEOMETRY_PHGEOMUTILITY_H
 
 #include <ctime>
 #include <map>
@@ -16,12 +16,6 @@ class PHGeomIOTGeo;
 class PHGeomUtility
 {
 
-protected:
-
-  // static tool sets only
-  PHGeomUtility();
-  virtual
-  ~PHGeomUtility();
 
 public:
 
@@ -88,8 +82,17 @@ public:
   {
     return std::string("GEOMETRY_IO");
   }
-protected:
+private:
+#if defined(__CINT__) && !defined(__CLING__)
+  PHGeomUtility()
+  {
+  }
+  ~PHGeomUtility() {}
+#else
+  PHGeomUtility() = delete;
+  ~PHGeomUtility() = delete;
+#endif
 
 };
 
-#endif /* PHGeomUtility_HH__ */
+#endif

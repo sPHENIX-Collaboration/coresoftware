@@ -8,10 +8,11 @@
  * \date $Date: $
  */
 
-#ifndef PHGeomIOTGeo_H_
-#define PHGeomIOTGeo_H_
+#ifndef PHGEOMETRY_PHGEOMIOTGEO_H
+#define PHGEOMETRY_PHGEOMIOTGEO_H
 
 #include <phool/PHObject.h>
+
 #include <vector>
 
 class TGeoVolume;
@@ -82,4 +83,4 @@ protected:
 ClassDef(PHGeomIOTGeo,3)
 };
 
-#endif /* PHGeomIOTGeo_H_ */
+#endif
