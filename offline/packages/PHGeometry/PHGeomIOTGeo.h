@@ -1,4 +1,4 @@
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHGeomIOTGeo.h
@@ -25,10 +25,9 @@ class TGeoManager;
  */
 class PHGeomIOTGeo : public PHObject
 {
-public:
+ public:
   PHGeomIOTGeo();
-  virtual
-  ~PHGeomIOTGeo();
+  virtual ~PHGeomIOTGeo();
 
   /// Virtual copy constructor.
   virtual PHObject*
@@ -50,36 +49,35 @@ public:
 
   //! PHGeomIOTGeo do NOT own this TGeoVolume * g. Internally, it will use g to make a copy which PHGeomIOTGeo fully owns
   void
-  SetGeometry(const TGeoVolume * g);
+  SetGeometry(const TGeoVolume* g);
 
   //! Construct TGeoManager. The result TGeoManager is not yet closed and open for further editing
-  TGeoManager *
+  TGeoManager*
   ConstructTGeoManager();
 
   //! Make a copy of TGeoVolume.
   //! The caller is responsible for deleting the returned TGeoVolume
   //! The caller is also responsible for constructing a valid TGeoManager before calling this function
-  TGeoVolume *
+  TGeoVolume*
   GetGeometryCopy();
 
-  std::vector<char> &
+  std::vector<char>&
   GetData()
   {
     return Data;
   }
 
-  const std::vector<char> &
+  const std::vector<char>&
   GetData() const
   {
     return Data;
   }
 
-protected:
-
+ protected:
   //! store the streamed geometry and its streamer via a binary stream
   std::vector<char> Data;
 
-ClassDef(PHGeomIOTGeo,3)
+  ClassDef(PHGeomIOTGeo, 3)
 };
 
 #endif

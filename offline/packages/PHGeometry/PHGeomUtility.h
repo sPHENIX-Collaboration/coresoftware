@@ -2,10 +2,10 @@
 #define PHGEOMETRY_PHGEOMUTILITY_H
 
 #include <ctime>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
-#include <iostream>
 
 class PHCompositeNode;
 class TGeoManager;
@@ -15,17 +15,14 @@ class PHGeomIOTGeo;
 //! Toolsets to do geometry operations
 class PHGeomUtility
 {
-
-
-public:
-
+ public:
   //! Main user interface: DST node -> TGeoManager for downstream use
   static TGeoManager *
   GetTGeoManager(PHCompositeNode *topNode);
 
   //! TGeo ROOT/GDML/Macro file -> DST node with automatic file type discrimination based on file names
   static int
-  ImportGeomFile(PHCompositeNode *topNode, const std::string & geometry_file);
+  ImportGeomFile(PHCompositeNode *topNode, const std::string &geometry_file);
 
   //! gGeoManager -> DST node
   static int
@@ -33,7 +30,7 @@ public:
 
   //! DST node -> TGeoManager -> export files, like gdml, .root or .C formats
   static void
-  ExportGeomtry(PHCompositeNode *topNode, const std::string & geometry_file);
+  ExportGeomtry(PHCompositeNode *topNode, const std::string &geometry_file);
 
   //! Get non-persistent PHGeomTGeo from DST nodes. If not found, make a new one
   static PHGeomTGeo *
@@ -57,11 +54,11 @@ public:
   //! Geometry files gain a size of ~10MB and it used in translation from Geant4 to DST format.
   //! This tmp file should be on a local file system (/tmp/) and write/deletable
   static std::string
-  GenerateGeometryFileName(const std::string & filename_extension = "gdml");
+  GenerateGeometryFileName(const std::string &filename_extension = "gdml");
 
   //! delete the geometry file after use
   static bool
-  RemoveGeometryFile(const std::string & file_name);
+  RemoveGeometryFile(const std::string &file_name);
 
   //! Verbosity for geometry IO like, TGeoMangers
   static void SetVerbosity(int v);
@@ -82,7 +79,8 @@ public:
   {
     return std::string("GEOMETRY_IO");
   }
-private:
+
+ private:
 #if defined(__CINT__) && !defined(__CLING__)
   PHGeomUtility()
   {
@@ -92,7 +90,6 @@ private:
   PHGeomUtility() = delete;
   ~PHGeomUtility() = delete;
 #endif
-
 };
 
 #endif
