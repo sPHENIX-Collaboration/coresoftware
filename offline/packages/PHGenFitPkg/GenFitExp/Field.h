@@ -5,16 +5,10 @@
  * @{
  */
 
-#ifndef genfit_Field_h
-#define genfit_Field_h
+#ifndef GENFITEXP_FIELD_H
+#define GENFITEXP_FIELD_H
 
-#include "GenFit/AbsBField.h"
-
-#include "boost/tuple/tuple.hpp"
-#include "boost/tuple/tuple_comparison.hpp"
-#include <map>
-
-#include <TH2D.h>
+#include <GenFit/AbsBField.h>
 
 class PHField;
 

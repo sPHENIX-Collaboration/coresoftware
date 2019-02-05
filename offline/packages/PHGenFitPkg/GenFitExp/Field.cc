@@ -5,15 +5,14 @@
 
 #include <phfield/PHField.h>
 
-#include <TFile.h>
-#include <TH2D.h>
-#include <TNtuple.h>
-#include <TROOT.h>
-#include <TStyle.h>
+// #include <TFile.h>
+// #include <TH2D.h>
+// #include <TNtuple.h>
+// #include <TROOT.h>
+// #include <TStyle.h>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-#include <cmath>
 #include <cassert>
 #include <iostream>
 #include <limits>
