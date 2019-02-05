@@ -442,7 +442,7 @@ int Track::updateOneMeasurementKalman(
           currentState->blowUpCov(blowup_factor, true, 1e6);
         }
       }
-      catch (genfit::Exception e)
+      catch (genfit::Exception &e)
       {
 #ifdef _DEBUG_
         std::cout
@@ -589,7 +589,7 @@ int Track::updateOneMeasurementKalman(
         {
           genfit::tools::invertMatrix(covSumInv);
         }
-        catch (genfit::Exception e)
+        catch (genfit::Exception &e)
         {
 #ifdef _DEBUG_
           LogDebug("cannot invert matrix.");
@@ -645,7 +645,7 @@ int Track::updateOneMeasurementKalman(
       {
         genfit::tools::invertMatrix(HCHt);
       }
-      catch (genfit::Exception e)
+      catch (genfit::Exception &e)
       {
 #ifdef _DEBUG_
         LogDebug("cannot invert matrix.");
