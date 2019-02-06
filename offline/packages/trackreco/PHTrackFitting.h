@@ -4,8 +4,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __H_PHTrackFitting_H__
-#define __H_PHTrackFitting_H__
+#ifndef TRACKRECO_PHTRACKFITTING_H
+#define TRACKRECO_PHTRACKFITTING_H
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
@@ -63,4 +63,4 @@ class PHTrackFitting : public SubsysReco
   int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif  // __H_PHTrackFitting_H__
+#endif

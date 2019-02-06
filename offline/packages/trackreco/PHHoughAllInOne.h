@@ -5,8 +5,8 @@
  *  \author Christof Roland & Haiwang Yu
  */
 
-#ifndef __H_PHHoughAllInOne_H__
-#define __H_PHHoughAllInOne_H__
+#ifndef TRACKRECO_PHHOUGHALLINONE_H
+#define TRACKRECO_PHHOUGHALLINONE_H
 
 #include "PHTrackSeeding.h"
 
@@ -25,6 +25,13 @@
 #include <HelixHough/sPHENIXSeedFinder.h>
 #endif
 
+// PHGenFit
+#include <phgenfit/Fitter.h>
+//#include <phgenfit/Measurement.h>
+
+// trackbase_historic includes
+#include <trackbase_historic/SvtxTrackState.h>
+
 // standard includes
 #include <float.h>
 #include <list>
@@ -32,12 +39,6 @@
 #include <memory>
 #include <vector>
 
-// PHGenFit
-#include <phgenfit/Fitter.h>
-//#include <phgenfit/Measurement.h>
-
-// trackbase_historic includes
-#include <trackbase_historic/SvtxTrackState.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -1025,4 +1026,4 @@ class PHHoughAllInOne : public PHTrackSeeding
 #endif  // __CINT__
 };
 
-#endif  // __H_PHHoughAllInOne_H__
+#endif

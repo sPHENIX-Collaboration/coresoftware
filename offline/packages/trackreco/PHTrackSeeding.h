@@ -4,8 +4,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __H_PHTrackSeeding_H__
-#define __H_PHTrackSeeding_H__
+#ifndef TRACKRECO_PHTRACKSEEDING_H
+#define TRACKRECO_PHTRACKSEEDING_H
 
 #include "AssocInfoContainer.h"
 
@@ -68,4 +68,4 @@ class PHTrackSeeding : public SubsysReco
   int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif  // __H_PHTrackSeeding_H__
+#endif

@@ -5,12 +5,14 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHGenFitTrkFitter_H__
-#define __PHGenFitTrkFitter_H__
+#ifndef TRACKRECO_PHGENFITTRKFITTER_H
+#define TRACKRECO_PHGENFITTRKFITTER_H
 
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/Track.h>
+
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 #include <vector>
 
@@ -372,4 +374,4 @@ class PHGenFitTrkFitter : public SubsysReco
   bool _do_evt_display;
 };
 
-#endif  //* __PHGenFitTrkFitter_H__ *//
+#endif

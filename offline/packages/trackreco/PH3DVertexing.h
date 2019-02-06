@@ -4,8 +4,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __H_PH3DVertexing_H__
-#define __H_PH3DVertexing_H__
+#ifndef TRACKRECO_PH3DVERTEXING_H
+#define TRACKRECO_PH3DVERTEXING_H
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
@@ -63,4 +63,4 @@ class PH3DVertexing : public SubsysReco
   int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif  // __H_PH3DVertexing_H__
+#endif

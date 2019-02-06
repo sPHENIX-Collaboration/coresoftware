@@ -4,8 +4,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __H_PHTruthVertexing_H__
-#define __H_PHTruthVertexing_H__
+#ifndef TRACKRECO_PHTRUTHVERTEXING_H
+#define TRACKRECO_PHTRUTHVERTEXING_H
 
 #include "PHInitVertexing.h"
 
@@ -56,4 +56,4 @@ class PHTruthVertexing : public PHInitVertexing
   std::vector<float> _vertex_error;
 };
 
-#endif  //__H_PHTruthVertexing_H__
+#endif

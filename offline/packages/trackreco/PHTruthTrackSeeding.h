@@ -4,12 +4,13 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __H_PHTruthTrackSeeding_H__
-#define __H_PHTruthTrackSeeding_H__
+#ifndef TRACKRECO_PHTRUTHTRACKSEEDING_H
+#define TRACKRECO_PHTRUTHTRACKSEEDING_H
+
+#include "PHTrackSeeding.h"
 
 #include <set>
 #include <vector>
-#include "PHTrackSeeding.h"
 
 // forward declarations
 class PHG4TruthInfoContainer;
@@ -79,4 +80,4 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   unsigned int _min_clusters_per_track;
 };
 
-#endif  //__H_PHTruthTrackSeeding_H__
+#endif
