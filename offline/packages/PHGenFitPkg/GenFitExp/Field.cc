@@ -5,15 +5,14 @@
 
 #include <phfield/PHField.h>
 
-#include <TFile.h>
-#include <TH2D.h>
-#include <TNtuple.h>
-#include <TROOT.h>
-#include <TStyle.h>
+// #include <TFile.h>
+// #include <TH2D.h>
+// #include <TNtuple.h>
+// #include <TROOT.h>
+// #include <TStyle.h>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-#include <cmath>
 #include <cassert>
 #include <iostream>
 #include <limits>
@@ -140,13 +139,13 @@ void Field::get(const double& x, const double& y, const double& z, double& Bx, d
 {
   assert(field_);
 
-  const double Point[] = {x*CLHEP::cm, y*CLHEP::cm, z*CLHEP::cm, 0};
+  const double Point[] = {x * CLHEP::cm, y * CLHEP::cm, z * CLHEP::cm, 0};
   double Bfield[] = {std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN(),
-                      std::numeric_limits<double>::signaling_NaN()};
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN(),
+                     std::numeric_limits<double>::signaling_NaN()};
 
   field_->GetFieldValue(Point, Bfield);
 
