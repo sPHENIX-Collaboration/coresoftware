@@ -2527,7 +2527,7 @@ int PHHoughAllInOne::CleanupSeeds()
     SimpleTrack3D track = _tracks[itrack];
 
     cout << __LINE__ << endl;
-    printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
+    printf("itrack: %5u => {%5d, %5d, %5d, %5d} \n",
            itrack,
            id, iz, iphi, idzdl);
   }
@@ -2799,7 +2799,7 @@ int PHHoughAllInOne::KalmanTrkProp()
       //_trackID_PHGenFitTrack.erase(iter);
     }  // loop _PHGenFitTracks
 
-    if (_PHGenFitTracks.size() == 0) continue;
+    if (_PHGenFitTracks.empty()) continue;
 
 #ifdef _DEBUG_
     i = 0;
@@ -3308,7 +3308,8 @@ int PHHoughAllInOne::TrackPropPatRec(
           << __LINE__
           << " tempIdx: " << tempIdx
           << endl;
-      if (tempIdx >= 0 and tempIdx < track->get_cluster_IDs().size())
+// tempIdx is unsigned int, check for >=0 is meaningless
+      if (tempIdx < track->get_cluster_IDs().size())
       {
         unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
         SvtxCluster* extrapolate_base_cluster = _cluster_map->get(extrapolate_base_cluster_id);
@@ -3431,7 +3432,7 @@ int PHHoughAllInOne::TrackPropPatRec(
 
 #ifdef _DEBUG_
     cout << __LINE__ << ": ";
-    printf("layer: %d: r: %f: phi: %f +- %f; theta: %f +- %f\n",
+    printf("layer: %u: r: %f: phi: %f +- %f; theta: %f +- %f\n",
            layer, pos.Perp(),
            phi_center, phi_window,
            theta_center, theta_window);

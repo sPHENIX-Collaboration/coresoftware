@@ -95,9 +95,6 @@ class PHGenFitTrkProp : public PHTrackPropagating
   int End();
 
  private:
-  /// create new node output pointers
-  int CreateNodes(PHCompositeNode* topNode);
-
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
