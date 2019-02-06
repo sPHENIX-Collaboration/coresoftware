@@ -32,10 +32,8 @@ class PH3DVertexing : public SubsysReco
   PH3DVertexing(const std::string &name = "PH3DVertexing");
   virtual ~PH3DVertexing() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   virtual const std::set<unsigned int> &get_seeding_layers() const = 0;
 
@@ -56,9 +54,6 @@ class PH3DVertexing : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
-  /// create new node output pointers
-  int CreateNodes(PHCompositeNode *topNode);
-
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
 };

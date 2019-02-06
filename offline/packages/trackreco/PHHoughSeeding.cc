@@ -7,6 +7,14 @@
 
 #include "PHHoughSeeding.h"
 
+// Helix Hough includes
+#include <HelixHough/HelixHough.h>
+#include <HelixHough/HelixRange.h>
+#include <HelixHough/HelixResolution.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/VertexFinder.h>
+
 // trackbase_historic includes
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
@@ -33,15 +41,19 @@
 
 //
 #include <g4intt/PHG4CylinderGeomINTT.h>
+
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
 
+#include <phfield/PHFieldUtility.h>
+
+#include <phgeom/PHGeomUtility.h>
+
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -50,19 +62,6 @@
 //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-
-// sGeant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
-// Helix Hough includes
-#include <HelixHough/HelixHough.h>
-#include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
 
 // GenFit
 #include <GenFit/FieldManager.h>
@@ -74,6 +73,11 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
+
+// Geant4 includes
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4MagneticField.hh>
+#include <Geant4/G4TransportationManager.hh>
 
 // gsl
 #include <gsl/gsl_randist.h>
