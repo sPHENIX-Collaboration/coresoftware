@@ -6,7 +6,6 @@
 
 using namespace std;
 
-ClassImp(SvtxHitMap_v1)
 
     SvtxHitMap_v1::SvtxHitMap_v1()
   : _map()

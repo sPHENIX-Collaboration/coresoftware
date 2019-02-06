@@ -4,8 +4,6 @@
 
 using namespace std;
 
-ClassImp(SvtxVertexMap_v1)
-
     SvtxVertexMap_v1::SvtxVertexMap_v1()
   : _map()
 {
