@@ -87,24 +87,15 @@ endif
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
-  SvtxCluster.cc \
   SvtxCluster_v1.cc \
-  SvtxClusterMap.cc \
   SvtxClusterMap_v1.cc \
-  SvtxHit.cc \
   SvtxHit_v1.cc \
-  SvtxHitMap.cc \
   SvtxHitMap_v1.cc \
-  SvtxTrackState.cc \
   SvtxTrackState_v1.cc \
-  SvtxTrack.cc \
   SvtxTrack_v1.cc \
   SvtxTrack_FastSim.cc \
-  SvtxTrackMap.cc \
   SvtxTrackMap_v1.cc \
-  SvtxVertex.cc \
   SvtxVertex_v1.cc \
-  SvtxVertexMap.cc \
   SvtxVertexMap_v1.cc
 
 libtrackbase_historic_io_la_LDFLAGS = \
