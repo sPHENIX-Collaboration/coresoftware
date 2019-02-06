@@ -32,7 +32,6 @@ class PHTrackPropagating : public SubsysReco
   PHTrackPropagating(const std::string &name = "PHTrackPropagating");
   virtual ~PHTrackPropagating() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
@@ -55,9 +54,6 @@ class PHTrackPropagating : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
-  /// create new node output pointers
-  int CreateNodes(PHCompositeNode *topNode);
-
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
 };

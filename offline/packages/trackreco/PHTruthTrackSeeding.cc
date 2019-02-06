@@ -1,5 +1,6 @@
-#include "AssocInfoContainer.h"
 #include "PHTruthTrackSeeding.h"
+
+#include "AssocInfoContainer.h"
 
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHitMap.h>
@@ -13,6 +14,10 @@
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -22,9 +27,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <memory>
 

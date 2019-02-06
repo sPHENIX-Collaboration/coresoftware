@@ -1,5 +1,6 @@
-#include "AssocInfoContainer.h"
 #include "PHTrackPropagating.h"
+
+#include "AssocInfoContainer.h"
 
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -8,6 +9,7 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -22,11 +24,6 @@ PHTrackPropagating::PHTrackPropagating(const std::string& name)
   , _track_map(nullptr)
   , _assoc_container(nullptr)
 {
-}
-
-int PHTrackPropagating::Init(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHTrackPropagating::InitRun(PHCompositeNode* topNode)
@@ -47,19 +44,9 @@ int PHTrackPropagating::End(PHCompositeNode* topNode)
 
 int PHTrackPropagating::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = CreateNodes(topNode);
+  int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHTrackPropagating::CreateNodes(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
