@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
@@ -15,14 +18,32 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+pkginclude_HEADERS = \
+  MVTXClusterizer.h \
+  MvtxClusterizer.h \
+  MvtxDefs.h \
+  MvtxHit.h
+
+ROOTDICTS = \
+  MvtxHit_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    MvtxHit_Dict_rdict.pcm
+else
+  ROOT5_IO_DICTS = \
+    MvtxDefs_Dict.cc
+
+  ROOT5_DICTS = \
+    MVTXClusterizer_Dict.cc \
+    MvtxClusterizer_Dict.cc
+endif
+
 # sources for mvtx library
 libmvtx_la_SOURCES = \
+  $(ROOT5_DICTS) \
   MVTXClusterizer.cc \
-  MVTXClusterizer_Dict.cc \
-  MvtxClusterizer.cc \
-  MvtxClusterizer_Dict.cc \
-  MvtxDefs.cc \
-  MvtxDefs_Dict.cc
+  MvtxClusterizer.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
@@ -35,8 +56,10 @@ libmvtx_la_LIBADD = \
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
-  MvtxHit.cc \
-  MvtxHit_Dict.cc
+  $(ROOTDICTS) \
+  $(ROOT5_IO_DICTS) \
+  MvtxDefs.cc \
+  MvtxHit.cc
 
 libmvtx_io_la_LIBADD = \
   -lphool \
@@ -46,15 +69,9 @@ libmvtx_io_la_LIBADD = \
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
-##############################################
-# please add new classes in alphabetical order
-
-pkginclude_HEADERS = \
-  MVTXClusterizer.h \
-  MvtxClusterizer.h \
-  MvtxDefs.h \
-  MvtxHit.h
 
 
 ################################################
@@ -82,4 +99,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
