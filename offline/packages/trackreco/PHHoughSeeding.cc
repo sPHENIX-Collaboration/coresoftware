@@ -1090,8 +1090,8 @@ int PHHoughSeeding::translate_input()
 {
   _clusters.clear();
   int count = 0;
-  int count7 = 0;
-  int count46 = 0;
+  // int count7 = 0;
+  // int count46 = 0;
   int nhits[60];
   int nhits_all[60];
   for (int i = 0; i < 60; i++)
@@ -1110,8 +1110,8 @@ int PHHoughSeeding::translate_input()
     count++;
     SvtxCluster* cluster = iter->second;
     nhits_all[cluster->get_layer()]++;
-    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
-    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
+//    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
+//    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
     //	  cout << "first: " << iter->first << endl;
     /*
       float vz = 0.0;
@@ -2243,7 +2243,7 @@ int PHHoughSeeding::CleanupSeeds()
     SimpleTrack3D track = _tracks[itrack];
 
     cout << __LINE__ << endl;
-    printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
+    printf("itrack: %5d => {%5u, %5d, %5d, %5d} \n",
            itrack,
            id, iz, iphi, idzdl);
   }
