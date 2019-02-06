@@ -35,7 +35,6 @@ class PHTrackFitting : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   virtual const std::set<unsigned int> &get_seeding_layers() const = 0;
 
@@ -56,8 +55,6 @@ class PHTrackFitting : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
-  /// create new node output pointers
-  int CreateNodes(PHCompositeNode *topNode);
 
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
