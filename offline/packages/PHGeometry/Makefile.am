@@ -19,17 +19,29 @@ pkginclude_HEADERS = \
 noinst_HEADERS = \
   PHGeomFileImport.h
 
-libphgeom_la_SOURCES = \
-  PHGeomTGeo.cc \
+ROOTDICTS = \
+  PHGeomIOTGeo_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    PHGeomIOTGeo_Dict_rdict.pcm
+else
+ ROOT5_DICTS = \
   PHGeomTGeo_Dict.cc \
-  PHGeomFileImport.cc \
   PHGeomFileImport_Dict.cc  \
-  PHGeomUtility.cc \
   PHGeomUtility_Dict.cc 
+endif
+
+
+libphgeom_la_SOURCES = \
+  $(ROOT5_DICTS) \
+  PHGeomTGeo.cc \
+  PHGeomFileImport.cc \
+  PHGeomUtility.cc
 
 libphgeom_io_la_SOURCES = \
-  PHGeomIOTGeo.cc \
-  PHGeomIOTGeo_Dict.cc
+  $(ROOTDICTS) \
+  PHGeomIOTGeo.cc
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -69,5 +81,8 @@ testexternals.cc:
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

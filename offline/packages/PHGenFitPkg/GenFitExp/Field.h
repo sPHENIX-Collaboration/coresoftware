@@ -12,21 +12,21 @@
 
 class PHField;
 
-namespace genfit {
-
+namespace genfit
+{
 /** @brief Field Wrapper
  *
  *  @author Haiwang Yu (New Mexico State University)
  * 
  */
-class Field : public AbsBField {
+class Field : public AbsBField
+{
  public:
   Field(const PHField* field);
 
   virtual ~Field() {}
 
-
-//  void plot(std::string option = "");
+  //  void plot(std::string option = "");
 
   //! return value at position
   TVector3 get(const TVector3& pos) const;
@@ -49,4 +49,4 @@ class Field : public AbsBField {
 } /* End of namespace genfit */
 /** @} */
 
-#endif // genfit_Field_h
+#endif  // genfit_Field_h
