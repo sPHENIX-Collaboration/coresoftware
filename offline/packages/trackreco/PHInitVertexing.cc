@@ -5,6 +5,7 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -19,11 +20,6 @@ PHInitVertexing::PHInitVertexing(const std::string& name)
 {
 }
 
-int PHInitVertexing::Init(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int PHInitVertexing::InitRun(PHCompositeNode* topNode)
 {
   return Setup(topNode);
@@ -34,16 +30,9 @@ int PHInitVertexing::process_event(PHCompositeNode* topNode)
   return Process();
 }
 
-int PHInitVertexing::End(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int PHInitVertexing::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = CreateNodes(topNode);
+  int ret = CreateNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);

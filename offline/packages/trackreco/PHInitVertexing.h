@@ -29,10 +29,8 @@ class PHInitVertexing : public SubsysReco
   PHInitVertexing(const std::string &name = "PHInitVertexing");
   virtual ~PHInitVertexing() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
