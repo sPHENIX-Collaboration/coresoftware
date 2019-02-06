@@ -33,12 +33,7 @@ PHTruthVertexing::PHTruthVertexing(const std::string& name)
 
 int PHTruthVertexing::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = PHInitVertexing::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = CreateNodes(topNode);
+  int ret = PHInitVertexing::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);
@@ -104,11 +99,6 @@ int PHTruthVertexing::Process()
 
   _vertex_map->insert(vertex);
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHTruthVertexing::CreateNodes(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
