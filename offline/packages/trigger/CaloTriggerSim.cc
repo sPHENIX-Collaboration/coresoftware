@@ -45,7 +45,7 @@ CaloTriggerSim::CaloTriggerSim(const std::string &name)
   , m_EMCAL_4x4_BEST2_E(0)
   , m_EMCAL_4x4_BEST2_PHI(0)
   , m_EMCAL_4x4_BEST2_ETA(0)
- // do the same for full calo
+  // do the same for full calo
   , m_FULLCALO_PHI_START(0)
   , m_FULLCALO_PHI_END(2 * M_PI)
   , m_FULLCALO_0p1x0p1_NETA(-1)
@@ -148,7 +148,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset 1x1 map
-  fill(m_EMCAL_1x1_MAP.begin(), m_EMCAL_1x1_MAP.end(), vector<double>(m_EMCAL_1x1_NPHI,0));
+  fill(m_EMCAL_1x1_MAP.begin(), m_EMCAL_1x1_MAP.end(), vector<double>(m_EMCAL_1x1_NPHI, 0));
 
   // iterate over EMCal towers, constructing 1x1's
   RawTowerContainer::ConstRange begin_end = towersEM3->getTowers();
@@ -172,7 +172,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset 2x2 map and best
-  fill(m_EMCAL_2x2_MAP.begin(), m_EMCAL_2x2_MAP.end(), vector<double>(m_EMCAL_2x2_NPHI,0));
+  fill(m_EMCAL_2x2_MAP.begin(), m_EMCAL_2x2_MAP.end(), vector<double>(m_EMCAL_2x2_NPHI, 0));
 
   m_EMCAL_2x2_BEST_E = 0;
   m_EMCAL_2x2_BEST_PHI = 0;
@@ -225,7 +225,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset 4x4 map & best
-  fill(m_EMCAL_4x4_MAP.begin(), m_EMCAL_4x4_MAP.end(), vector<double>(m_EMCAL_4x4_NPHI,0));
+  fill(m_EMCAL_4x4_MAP.begin(), m_EMCAL_4x4_MAP.end(), vector<double>(m_EMCAL_4x4_NPHI, 0));
 
   m_EMCAL_4x4_BEST_E = 0;
   m_EMCAL_4x4_BEST_PHI = 0;
@@ -387,7 +387,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset 0.1x0.1 map
-  fill(m_FULLCALO_0p1x0p1_MAP.begin(), m_FULLCALO_0p1x0p1_MAP.end(), vector<double>(m_FULLCALO_0p1x0p1_NPHI,0));
+  fill(m_FULLCALO_0p1x0p1_MAP.begin(), m_FULLCALO_0p1x0p1_MAP.end(), vector<double>(m_FULLCALO_0p1x0p1_NPHI, 0));
 
   // iterate over EMCal towers, filling in the 0.1x0.1 region they contribute to
   RawTowerContainer::ConstRange begin_end_EM = towersEM3->getTowers();
@@ -468,7 +468,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset 0.2x0.2 map and best
-  fill(m_FULLCALO_0p2x0p2_MAP.begin(), m_FULLCALO_0p2x0p2_MAP.end(), vector<double>(m_FULLCALO_0p2x0p2_NPHI,0));
+  fill(m_FULLCALO_0p2x0p2_MAP.begin(), m_FULLCALO_0p2x0p2_MAP.end(), vector<double>(m_FULLCALO_0p2x0p2_NPHI, 0));
 
   m_FULLCALO_0p2x0p2_BEST_E = 0;
   m_FULLCALO_0p2x0p2_BEST_PHI = 0;
@@ -514,7 +514,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset fullcalo 0.4x0.4 map & best
-  fill(m_FULLCALO_0p4x0p4_MAP.begin(), m_FULLCALO_0p4x0p4_MAP.end(), vector<double>(m_FULLCALO_0p4x0p4_NPHI,0));
+  fill(m_FULLCALO_0p4x0p4_MAP.begin(), m_FULLCALO_0p4x0p4_MAP.end(), vector<double>(m_FULLCALO_0p4x0p4_NPHI, 0));
 
   m_FULLCALO_0p4x0p4_BEST_E = 0;
   m_FULLCALO_0p4x0p4_BEST_PHI = 0;
@@ -564,7 +564,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset fullcalo 0.6x0.6 map & best
-  fill(m_FULLCALO_0p6x0p6_MAP.begin(), m_FULLCALO_0p6x0p6_MAP.end(), vector<double>(m_FULLCALO_0p6x0p6_NPHI,0));
+  fill(m_FULLCALO_0p6x0p6_MAP.begin(), m_FULLCALO_0p6x0p6_MAP.end(), vector<double>(m_FULLCALO_0p6x0p6_NPHI, 0));
 
   m_FULLCALO_0p6x0p6_BEST_E = 0;
   m_FULLCALO_0p6x0p6_BEST_PHI = 0;
@@ -621,7 +621,7 @@ int CaloTriggerSim::process_event(PHCompositeNode *topNode)
   }
 
   // reset fullcalo 0.8x0.8 map & best
-  fill(m_FULLCALO_0p8x0p8_MAP.begin(), m_FULLCALO_0p8x0p8_MAP.end(), vector<double>(m_FULLCALO_0p8x0p8_NPHI,0));
+  fill(m_FULLCALO_0p8x0p8_MAP.begin(), m_FULLCALO_0p8x0p8_MAP.end(), vector<double>(m_FULLCALO_0p8x0p8_NPHI, 0));
 
   m_FULLCALO_0p8x0p8_BEST_E = 0;
   m_FULLCALO_0p8x0p8_BEST_PHI = 0;
