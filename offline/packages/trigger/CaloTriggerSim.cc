@@ -1,13 +1,6 @@
-#include "CaloTriggerInfov1.h"
 #include "CaloTriggerSim.h"
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
+#include "CaloTriggerInfov1.h"
 
 // sPHENIX includes
 #include <calobase/RawTower.h>
@@ -15,6 +8,14 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHTypedNodeIterator.h>
+#include <phool/getClass.h>
 
 // standard includes
 #include <cmath>

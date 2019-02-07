@@ -37,10 +37,6 @@ CaloTriggerInfov1::CaloTriggerInfov1()
   m_FULLCALO_1p0x1p0_BEST_PHI = 0;
 }
 
-CaloTriggerInfov1::~CaloTriggerInfov1()
-{
-}
-
 void CaloTriggerInfov1::identify(ostream& os) const
 {
   os << "CaloTriggerInfo: highest EMCal 2x2 eta/phi = " << m_EMCAL_2x2_BEST_ETA << " / " << m_EMCAL_2x2_BEST_PHI << ", E = " << m_EMCAL_2x2_BEST_E << std::endl;
