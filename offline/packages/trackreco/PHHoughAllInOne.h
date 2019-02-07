@@ -39,7 +39,6 @@
 #include <memory>
 #include <vector>
 
-
 // forward declarations
 class PHCompositeNode;
 class SvtxClusterMap;

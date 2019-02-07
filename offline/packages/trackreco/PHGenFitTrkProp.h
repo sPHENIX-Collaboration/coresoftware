@@ -33,7 +33,6 @@
 #include <phool/PHTimeServer.h>
 #include <phool/PHTimer.h>
 
-
 // standard includes
 #include <float.h>
 #include <list>
@@ -645,4 +644,4 @@ class PHGenFitTrkProp : public PHTrackPropagating
 #endif  // __CINT__
 };
 
-#endif 
+#endif

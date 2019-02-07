@@ -55,7 +55,6 @@ class PHTrackFitting : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
-
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
 };

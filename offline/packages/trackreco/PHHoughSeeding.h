@@ -10,7 +10,6 @@
 
 #include "PHTrackSeeding.h"
 
-
 // Helix Hough includes
 #ifndef __CINT__
 #include <HelixHough/SimpleHit3D.h>
@@ -25,7 +24,6 @@
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackState.h>
-
 
 #include <g4bbc/BbcVertexMap.h>
 
