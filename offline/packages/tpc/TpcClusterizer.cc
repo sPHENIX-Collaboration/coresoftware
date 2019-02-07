@@ -60,12 +60,18 @@ bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vec
   bool retval = true;
   double centval = adcval[phibin][zbin];
   //cout << "enter is_local_maximum for phibin " << phibin << " zbin " << zbin << " adcval " << centval <<  endl; 
-  
+
+   
   // search contiguous adc values for a larger signal 
   for(int iz = zbin - 4; iz <= zbin+4;iz++)
     for(int iphi = phibin -2; iphi <= phibin + 2; iphi++) 
       {
 	//cout << " is_local_maximum: iphi " <<  iphi << " iz " << iz << " adcval " << adcval[iphi][iz] << endl;
+	if(iz >= NZBinsMax) continue;
+	if(iz < NZBinsMin) continue;
+
+	if(iphi >= NPhiBinsMax) continue;
+	if(iphi < NPhiBinsMin) continue;
 
 	if(adcval[iphi][iz] > centval)
 	  {
@@ -84,6 +90,8 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   for(int iphi = phibin+1; iphi<phibin+4; iphi++)
     {
+      if(iphi >= NPhiBinsMax) continue;
+
       if(adcval[iphi][zbin] <= 0)
 	break;
 
@@ -95,6 +103,8 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   for(int iphi = phibin-1; iphi>phibin-4; iphi--)
     {
+      if(iphi < NPhiBinsMin) continue;
+
       if(adcval[iphi][zbin] <= 0)
 	break;
 
@@ -108,6 +118,8 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   for(int iz = zbin+1; iz<zbin+10; iz++)
     {
+      if(iz >= NZBinsMax)  continue;
+
       if(adcval[phibin][iz] <= 0)
 	break;
 
@@ -119,6 +131,8 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
 
   for(int iz =zbin-1; iz>zbin-10; iz--)
     {
+      if(iz < NZBinsMin)  continue;
+
       if(adcval[phibin][iz] <= 0)
 	break;
 
@@ -203,6 +217,9 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
       // we will need the geometry object for this layer to get the global position	
       PHG4CylinderCellGeom* layergeom = geom_container->GetLayerCellGeom(layer);
       int NPhiBins = layergeom->get_phibins();
+      NPhiBinsMin = 0;
+      NPhiBinsMax = NPhiBins;
+
       int NZBins = layergeom->get_zbins();
       if(side == 0)
 	{
@@ -261,7 +278,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  zbinlo.push_back(zbin - zdown);
 	  zbinhi.push_back(zbin + zup);
 
-	  if(Verbosity() > 2)
+	  //if(Verbosity() > 2)
 	    if(layer == print_layer) 
 	      cout << " cluster found in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown 
 		   << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
@@ -269,13 +286,14 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 
       // Now we analyze the clusters to get their parameters
       for(unsigned int iclus = 0; iclus < phibinlo.size(); iclus++)
-	{  	  
+	{
+	  cout << "TpcClusterizer: process cluster iclus = " << iclus <<  " in layer " << layer << endl;
 	  // loop over the hits in this cluster
 	  double zsum = 0.0;
 	  double phi_sum = 0.0;
 	  double adc_sum = 0.0;
 	  double radius = layergeom->get_radius();  // returns center of layer
-	  if(Verbosity() > 2)
+	  //if(Verbosity() > 2)
 	    if(layer == print_layer)
 	      {
 		cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;

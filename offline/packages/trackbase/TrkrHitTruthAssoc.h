@@ -59,7 +59,7 @@ public:
    * @param[in] hset TrkrHitSet key
    * @param[in] hidx TrkrHit index in TrkrHitSet
    */
-  ConstRange getCells(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx);
+  void  getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map);
 
 private:
   MMap m_map;

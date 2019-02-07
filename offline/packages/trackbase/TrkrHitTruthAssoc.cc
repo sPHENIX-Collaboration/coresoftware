@@ -76,9 +76,26 @@ TrkrHitTruthAssoc::findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const Trk
   //std::cout << "Added association with hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << g4hitkey << std::endl;
 }
 
-TrkrHitTruthAssoc::ConstRange 
-TrkrHitTruthAssoc::getCells(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx)
+void  
+//TrkrHitTruthAssoc::ConstRange 
+TrkrHitTruthAssoc::getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map)
 {
-return std::make_pair(m_map.end(), m_map.end());
+  //MMap temp_map;
+
+  std::pair<MMap::iterator, MMap::iterator> hitsetrange = m_map.equal_range(hitsetkey);
+  MMap::iterator mapiter = hitsetrange.first;
+
+  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; mapiter++)
+    {
+      if(mapiter->second.first == hidx)
+	{
+	  //std::cout << "   Association with hitsetkey " << hitsetkey << " hitkey " << mapiter->second.first << " g4hitkey " << mapiter->second.second << " exists " << std::endl;
+	  // add this to the return object
+	  std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> assoc = std::make_pair(mapiter->second.first, mapiter->second.second);
+	  temp_map.insert (std::make_pair(hitsetkey, assoc));
+	}
+    }
+
+  //return std::make_pair(temp_map.begin(), temp_map.end());
 }
 
