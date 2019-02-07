@@ -9,8 +9,6 @@
 
 #include <limits.h>
 
-ClassImp(SvtxTrack_FastSim)
-
     using namespace std;
 
 SvtxTrack_FastSim::SvtxTrack_FastSim()
