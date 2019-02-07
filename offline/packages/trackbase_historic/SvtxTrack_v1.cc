@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <map>
 
-ClassImp(SvtxTrack_v1)
 
     using namespace std;
 

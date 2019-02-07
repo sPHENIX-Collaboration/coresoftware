@@ -16,8 +16,8 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4hough/SvtxHit.h>
-#include <g4hough/SvtxHitMap.h>
+#include <trackbase_historic/SvtxHit.h>
+#include <trackbase_historic/SvtxHitMap.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>

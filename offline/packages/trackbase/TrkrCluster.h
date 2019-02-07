@@ -69,7 +69,7 @@ class TrkrCluster : public PHObject
   virtual float getZError() const { return NAN; }
  protected:
   TrkrCluster() {}
-  ClassDef(TrkrCluster, 1);
+  ClassDef(TrkrCluster, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTER_H

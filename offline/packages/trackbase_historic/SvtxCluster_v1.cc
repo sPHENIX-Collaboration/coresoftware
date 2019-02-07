@@ -7,7 +7,6 @@
 
 using namespace std;
 
-ClassImp(SvtxCluster_v1);
 
 SvtxCluster_v1::SvtxCluster_v1()
   : _id(0xFFFFFFFF)

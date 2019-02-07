@@ -5,8 +5,6 @@
 
 using namespace std;
 
-ClassImp(SvtxVertex_v1);
-
 SvtxVertex_v1::SvtxVertex_v1()
   : _id(0xFFFFFFFF)
   , _t0(NAN)
