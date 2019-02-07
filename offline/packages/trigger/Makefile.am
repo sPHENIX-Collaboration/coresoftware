@@ -27,16 +27,16 @@ libcalotrigger_la_LIBADD = \
 pkginclude_HEADERS = \
   CaloTriggerSim.h \
   CaloTriggerInfo.h \
-  CaloTriggerInfo_v1.h
+  CaloTriggerInfov1.h
 
 ROOTDICTS = \
   CaloTriggerInfo_Dict.cc \
-  CaloTriggerInfo_v1_Dict.cc
+  CaloTriggerInfov1_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
     CaloTriggerInfo_Dict_rdict.pcm \
-    CaloTriggerInfo_v1_Dict_rdict.pcm
+    CaloTriggerInfov1_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
     CaloTriggerSim_Dict.cc
@@ -44,7 +44,7 @@ endif
 
 libcalotrigger_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CaloTriggerInfo_v1.cc
+  CaloTriggerInfov1.cc
 
 libcalotrigger_la_SOURCES = \
   $(ROOT5_DICTS) \

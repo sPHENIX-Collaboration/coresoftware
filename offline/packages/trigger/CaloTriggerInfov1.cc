@@ -1,8 +1,8 @@
-#include "CaloTriggerInfo_v1.h"
+#include "CaloTriggerInfov1.h"
 
 using namespace std;
 
-CaloTriggerInfo_v1::CaloTriggerInfo_v1()
+CaloTriggerInfov1::CaloTriggerInfov1()
 {
   m_EMCAL_2x2_BEST_E = 0;
   m_EMCAL_2x2_BEST_ETA = 0;
@@ -37,11 +37,11 @@ CaloTriggerInfo_v1::CaloTriggerInfo_v1()
   m_FULLCALO_1p0x1p0_BEST_PHI = 0;
 }
 
-CaloTriggerInfo_v1::~CaloTriggerInfo_v1()
+CaloTriggerInfov1::~CaloTriggerInfov1()
 {
 }
 
-void CaloTriggerInfo_v1::identify(ostream& os) const
+void CaloTriggerInfov1::identify(ostream& os) const
 {
   os << "CaloTriggerInfo: highest EMCal 2x2 eta/phi = " << m_EMCAL_2x2_BEST_ETA << " / " << m_EMCAL_2x2_BEST_PHI << ", E = " << m_EMCAL_2x2_BEST_E << std::endl;
   os << "CaloTriggerInfo: highest EMCal 4x4 eta/phi = " << m_EMCAL_4x4_BEST_ETA << " / " << m_EMCAL_4x4_BEST_PHI << ", E = " << m_EMCAL_4x4_BEST_E << std::endl;

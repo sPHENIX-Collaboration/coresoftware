@@ -1,4 +1,4 @@
-#include "CaloTriggerInfo_v1.h"
+#include "CaloTriggerInfov1.h"
 #include "CaloTriggerSim.h"
 
 // PHENIX includes
@@ -878,7 +878,7 @@ int CaloTriggerSim::CreateNode(PHCompositeNode *topNode)
   CaloTriggerInfo *triggerinfo = findNode::getClass<CaloTriggerInfo>(topNode, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate");
   if (!triggerinfo)
   {
-    triggerinfo = new CaloTriggerInfo_v1();
+    triggerinfo = new CaloTriggerInfov1();
     PHIODataNode<PHObject> *TriggerNode = new PHIODataNode<PHObject>(triggerinfo, !m_EmulateTruncationFlag ? "CaloTriggerInfo" : "CaloTriggerInfo_Truncate", "PHObject");
     trigNode->addNode(TriggerNode);
   }
