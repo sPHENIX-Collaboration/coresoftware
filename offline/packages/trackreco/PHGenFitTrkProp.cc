@@ -1084,7 +1084,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
        layer += direction)
   {
 // layer is unsigned int, check for >=0 is meaningless
-    if (!layer < (unsigned int) _nlayers_all) break;
+    if (layer >= (unsigned int) _nlayers_all) break;
 
     //		if(layer >= _nlayers_maps and layer < _nlayers_maps+_nlayers_intt) continue;
 
