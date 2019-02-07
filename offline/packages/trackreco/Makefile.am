@@ -24,9 +24,13 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   AssocInfoContainer.h \
+  PHGenFitTrkFitter.h \
+  PHGenFitTrkProp.h \
+  PHHoughSeeding.h \
   PHInitVertexing.h \
   PHTrackPropagating.h \
-  PHTrackSeeding.h
+  PHTrackSeeding.h \
+  PHTruthVertexing.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc
