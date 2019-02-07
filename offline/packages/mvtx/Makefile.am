@@ -48,7 +48,6 @@ libmvtx_la_SOURCES = \
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
   -lfun4all \
-  -ltrack_util \
   -ltrack_io \
   -ltrackbase_historic_io \
   -lg4detectors \
