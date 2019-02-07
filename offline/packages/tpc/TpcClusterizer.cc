@@ -278,7 +278,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  zbinlo.push_back(zbin - zdown);
 	  zbinhi.push_back(zbin + zup);
 
-	  //if(Verbosity() > 2)
+	  if(Verbosity() > 2)
 	    if(layer == print_layer) 
 	      cout << " cluster found in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown 
 		   << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
@@ -287,13 +287,13 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
       // Now we analyze the clusters to get their parameters
       for(unsigned int iclus = 0; iclus < phibinlo.size(); iclus++)
 	{
-	  cout << "TpcClusterizer: process cluster iclus = " << iclus <<  " in layer " << layer << endl;
+	  //cout << "TpcClusterizer: process cluster iclus = " << iclus <<  " in layer " << layer << endl;
 	  // loop over the hits in this cluster
 	  double zsum = 0.0;
 	  double phi_sum = 0.0;
 	  double adc_sum = 0.0;
 	  double radius = layergeom->get_radius();  // returns center of layer
-	  //if(Verbosity() > 2)
+	  if(Verbosity() > 2)
 	    if(layer == print_layer)
 	      {
 		cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;

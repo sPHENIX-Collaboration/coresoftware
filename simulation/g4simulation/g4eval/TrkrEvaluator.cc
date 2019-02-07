@@ -615,9 +615,6 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float phisize = cluster->getPhiSize(); 
       float zsize = cluster->getZSize();
       float size = 0;
-
-      if(layer == 47)
-	cout << "eval cluster in layer 47 " << endl;
       float trackID = NAN;
       
       float g4hitID = NAN;
@@ -648,7 +645,6 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       
       float efromtruth = NAN;
       std::set<PHG4Hit*> truth_hits;      
-      //cout << "TrkrEvaluator find hits associated with cluster key " << cluskey << " in trkrid " << trkrid  << " in layer " << layer << endl;
       TrkrClusterHitAssoc::ConstRange hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
       for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
 	{
@@ -657,13 +653,10 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);	  
 
 	  // get all of the g4hits for this hitkey
-	  if(layer == 47) cout << "   TrkrEvaluator layer " <<  layer  << " find g4hits for clusterkey "  << clushititer->first << " hitsetkey " << hitsetkey << " hitkey " << hitkey << endl;
-
 	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
 	  hittruthassoc->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
 	  for(std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> >::iterator htiter =  temp_map.begin(); htiter != temp_map.end(); ++htiter) 
 	    {
-	      //cout << "           Start inside loop over hit truth associations for this hitsetkey,hitkey, g4hitkey " << htiter->second.second << endl;
 	      // extract the g4 hit key here and add the hits to the set
 	      PHG4HitDefs::keytype g4hitkey = htiter->second.second;
 	      PHG4Hit * g4hit;
@@ -673,7 +666,6 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		g4hit = g4hits_intt->findHit(g4hitkey);
 	      else
 		g4hit = g4hits_mvtx->findHit(g4hitkey);
-	      if(layer == 47) cout << "     found g4hit in trkrid " << trkrid << " with g4hitkey " << g4hitkey << " g4hitID " << g4hit->get_hit_id() << endl;
 	      truth_hits.insert(g4hit);	      
 	    } // end loop over g4hits associated with hitsetkey and hitkey
 	} // end loop over hits associated with cluskey
@@ -712,10 +704,8 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    {
 	      PHG4Hit* this_g4hit = *iter;
 	      g4hitID = this_g4hit->get_hit_id(); // take the last one
-	      //cout << "                   TPC: process g4hitID " << this_g4hit->get_hit_id() << endl;
 	      float rbegin = sqrt(this_g4hit->get_x(0) * this_g4hit->get_x(0) + this_g4hit->get_y(0) * this_g4hit->get_y(0));
 	      float rend = sqrt(this_g4hit->get_x(1) * this_g4hit->get_x(1) + this_g4hit->get_y(1) * this_g4hit->get_y(1));
-	      //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " rbegin " << rbegin << " rend " << rend << endl;
 	      
 	      // make sure the entry point is at lower radius
 	      float xl[2];
@@ -740,7 +730,6 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  yl[1] = this_g4hit->get_y(0);
 		  zl[1] = this_g4hit->get_z(0);
 		  swap(rbegin, rend);
-		  //cout << "swapped in and out " << endl;
 		}
 	      
 	      // check that the g4hit is not completely outside the cluster layer. Just skip this g4hit if it is
@@ -795,7 +784,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  gy /= gwt;
 	  gz /= gwt;
 	  gt /= gwt;
-	  //cout << " weighted means: gx " << gx << " gy " << gy << " gz " << gz << endl;
+	  //cout << " truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
 	}  // if TPC
       else
 	{
@@ -806,18 +795,17 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    {
 	      PHG4Hit* this_g4hit = *iter;
 	      g4hitID = this_g4hit->get_hit_id(); // take the ID of the last one
-	      //cout << "                   Not TPC: process g4hitID " << this_g4hit->get_hit_id() << endl;
-	      
-	      gx += this_g4hit->get_avg_x();
-	      gy += this_g4hit->get_avg_y();
-	      gz += this_g4hit->get_avg_z();
-	      gt += this_g4hit->get_avg_t();
+	      gx += this_g4hit->get_edep() * this_g4hit->get_avg_x();
+	      gy += this_g4hit->get_edep() * this_g4hit->get_avg_y();
+	      gz += this_g4hit->get_edep() * this_g4hit->get_avg_z();
+	      gt += this_g4hit->get_edep() * this_g4hit->get_avg_t();
 	      gwt += this_g4hit->get_edep();
 	    }
 	  gx /= gwt;
 	  gy /= gwt;
 	  gz /= gwt;
 	  gt /= gwt;
+	  //cout << " truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
 	}  // not TPC
 
       TVector3 gpos(gx, gy, gz);
