@@ -5,8 +5,8 @@ AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrack_reco.la \
-  libtrack_reco_io.la 
+  libtrack_reco_io.la \
+  libtrack_reco.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
