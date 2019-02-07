@@ -4,8 +4,6 @@
 
 using namespace std;
 
-ClassImp(SvtxClusterMap_v1)
-
     SvtxClusterMap_v1::SvtxClusterMap_v1()
   : _map()
 {

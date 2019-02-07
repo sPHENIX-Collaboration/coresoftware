@@ -6,7 +6,6 @@
 
 using namespace std;
 
-ClassImp(SvtxHit_v1);
 
 SvtxHit_v1::SvtxHit_v1()
   : _id(0xFFFFFFFF)

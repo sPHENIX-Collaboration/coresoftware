@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-ClassImp(SvtxTrackState_v1)
 
     using namespace std;
 
