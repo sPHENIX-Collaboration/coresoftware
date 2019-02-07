@@ -68,7 +68,6 @@
 #include <rave/Version.h>
 #include <rave/VertexFactory.h>
 
-
 #include <TClonesArray.h>
 #include <TMatrixDSym.h>
 #include <TRandom3.h>

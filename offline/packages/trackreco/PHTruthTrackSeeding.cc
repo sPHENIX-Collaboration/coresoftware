@@ -27,7 +27,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-
 #include <memory>
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl

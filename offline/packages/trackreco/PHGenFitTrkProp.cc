@@ -1083,7 +1083,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
        layer != end_layer + direction;
        layer += direction)
   {
-// layer is unsigned int, check for >=0 is meaningless
+    // layer is unsigned int, check for >=0 is meaningless
     if (layer >= (unsigned int) _nlayers_all) break;
 
     //		if(layer >= _nlayers_maps and layer < _nlayers_maps+_nlayers_intt) continue;
@@ -1121,7 +1121,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
           << __LINE__
           << " tempIdx: " << tempIdx
           << endl;
-// tempIdx is unsigned int, checking for >=0 is meaningless
+      // tempIdx is unsigned int, checking for >=0 is meaningless
       if (tempIdx < track->get_cluster_IDs().size())
       {
         unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];

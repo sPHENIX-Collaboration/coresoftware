@@ -17,7 +17,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-
 // gsl
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>

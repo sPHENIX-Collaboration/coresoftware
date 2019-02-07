@@ -3308,7 +3308,7 @@ int PHHoughAllInOne::TrackPropPatRec(
           << __LINE__
           << " tempIdx: " << tempIdx
           << endl;
-// tempIdx is unsigned int, check for >=0 is meaningless
+      // tempIdx is unsigned int, check for >=0 is meaningless
       if (tempIdx < track->get_cluster_IDs().size())
       {
         unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
