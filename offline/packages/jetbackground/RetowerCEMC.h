@@ -9,6 +9,9 @@
 
 #include <fun4all/SubsysReco.h>
 
+// system includes
+#include <vector>
+
 // forward declarations
 class PHCompositeNode;
 
@@ -23,12 +26,10 @@ class RetowerCEMC : public SubsysReco
 {
  public:
   RetowerCEMC(const std::string &name = "RetowerCEMC");
-  virtual ~RetowerCEMC();
+  virtual ~RetowerCEMC(){}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
  private:
   int CreateNode(PHCompositeNode *topNode);

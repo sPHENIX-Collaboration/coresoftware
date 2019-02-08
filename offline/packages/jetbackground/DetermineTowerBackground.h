@@ -31,7 +31,6 @@ class DetermineTowerBackground : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   void SetBackgroundOutputName(const std::string &name) {_backgroundName = name;}
   void SetSeedType(int seed_type) {_seed_type = seed_type;}

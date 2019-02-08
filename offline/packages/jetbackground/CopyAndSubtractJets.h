@@ -25,9 +25,8 @@ class CopyAndSubtractJets : public SubsysReco
 {
  public:
   CopyAndSubtractJets(const std::string &name = "CopyAndSubtractJets");
-  virtual ~CopyAndSubtractJets();
+  virtual ~CopyAndSubtractJets(){}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);

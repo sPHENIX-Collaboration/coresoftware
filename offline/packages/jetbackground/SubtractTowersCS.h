@@ -24,12 +24,10 @@ class SubtractTowersCS : public SubsysReco
 {
  public:
   SubtractTowersCS(const std::string &name = "SubtractTowersCS");
-  virtual ~SubtractTowersCS();
+  virtual ~SubtractTowersCS(){}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
   void SetAlpha(float alpha) { _alpha = alpha; }

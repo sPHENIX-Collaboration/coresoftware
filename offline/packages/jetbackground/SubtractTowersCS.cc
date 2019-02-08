@@ -1,14 +1,7 @@
 #include "SubtractTowersCS.h"
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
+#include "TowerBackground.h"
 
-// sPHENIX includes
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
@@ -19,7 +12,13 @@
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
 
-#include "TowerBackground.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHTypedNodeIterator.h>
+#include <phool/getClass.h>
 
 #include <fastjet/contrib/ConstituentSubtractor.hh>
 
@@ -30,23 +29,10 @@
 
 SubtractTowersCS::SubtractTowersCS(const std::string &name)
   : SubsysReco(name)
+  , _use_flow_modulation(false)
+  , _alpha(1)
+  , _DeltaRmax(0.3)
 {
-  _use_flow_modulation = false;
-
-  _alpha = 1;
-  _DeltaRmax = 0.3;
-}
-
-SubtractTowersCS::~SubtractTowersCS()
-{
-}
-
-int SubtractTowersCS::Init(PHCompositeNode *topNode)
-{
-  if (Verbosity() > 0)
-    std::cout << "SubtractTowersCS::Init: initialized with DeltaRmax = " << _DeltaRmax << ", alpha = " << _alpha << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int SubtractTowersCS::InitRun(PHCompositeNode *topNode)
@@ -493,11 +479,6 @@ int SubtractTowersCS::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 0) std::cout << "SubtractTowersCS::process_event: exiting" << std::endl;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int SubtractTowersCS::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

@@ -31,31 +31,20 @@
 
 DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)
+  , _do_flow(0)
+  , _v2(0)
+  , _Psi2(0)
+  , _nStrips(0)
+  , _nTowers(0)
+  , _HCAL_NETA(-1)
+  , _HCAL_NPHI(-1)
+  , _backgroundName("TestTowerBackground")
+  , _seed_type(0)
+  , _seed_jet_D(3.0)
+  , _seed_jet_pt(7.0)
 {
-  _do_flow = 0;
-
-  _seed_jet_D = 3.0;
-  _seed_jet_pt = 7.0;
-
-  _v2 = 0;
-  _Psi2 = 0;
-
   _UE.resize(3, std::vector<float>(1, 0));
-
-  _nStrips = 0;
-
-  _nTowers = 0;
-
-  // initiate sizes as -1 to tell module they should be set when it
-  // sees the HCal geometry for the first time
-
-  _HCAL_NETA = -1;
-  _HCAL_NPHI = -1;
-
-  _backgroundName = "TestTowerBackground";
-  _seed_type = 0;
 }
-
 
 int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
 {
@@ -458,7 +447,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     float Q_y = 0;
     float E = 0;
 
-
     if (Verbosity() > 0)
       std::cout << "DetermineTowerBackground::process_event: # of strips (summed over layers) available / unavailable for flow determination: " << nStripsAvailableForFlow << " / " << nStripsUnavailableForFlow << std::endl;
 
@@ -625,11 +613,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
   if (Verbosity() > 0) std::cout << "DetermineTowerBackground::process_event: exiting" << std::endl;
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int DetermineTowerBackground::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
