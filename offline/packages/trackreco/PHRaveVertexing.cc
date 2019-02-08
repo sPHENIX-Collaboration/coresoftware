@@ -5,6 +5,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
+#include "PHRaveVertexing.h"
+
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHitMap.h>
@@ -16,10 +18,6 @@
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
-#include "PHRaveVertexing.h"
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -33,6 +31,13 @@
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
+#include <phfield/PHFieldUtility.h>
+
+#include <phgeom/PHGeomUtility.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -40,10 +45,8 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
-
 #include <GenFit/FieldManager.h>
+#include <GenFit/GFRaveConverters.h>
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
 #include <GenFit/KalmanFitterInfo.h>
@@ -57,9 +60,6 @@
 #include <rave/Track.h>
 #include <rave/Version.h>
 #include <rave/VertexFactory.h>
-
-//GenFit
-#include <GenFit/GFRaveConverters.h>
 
 #include <TClonesArray.h>
 #include <TMatrixDSym.h>
@@ -90,14 +90,15 @@ PHRaveVertexing::PHRaveVertexing(const string& name)
   : SubsysReco(name)
   , _over_write_svtxvertexmap(false)
   , _svtxvertexmaprefit_node_name("SvtxVertexMapRefit")
-  , _fitter(NULL)
+  , _fitter(nullptr)
   , _primary_pid_guess(211)
   , _vertex_min_ndf(20)
-  , _vertex_finder(NULL)
+  , _vertex_finder(nullptr)
   , _vertexing_method("avf-smoothing:1")
-  , _truth_container(NULL)
-  , _trackmap(NULL)
-  , _vertexmap(NULL)
+  , _truth_container(nullptr)
+  , _trackmap(nullptr)
+  , _vertexmap(nullptr)
+  , _vertexmap_refit(nullptr)
   , _t_translate(nullptr)
   , _t_rave(nullptr)
 {

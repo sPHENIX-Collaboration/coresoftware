@@ -7,6 +7,14 @@
 
 #include "PHHoughAllInOne.h"
 
+// Helix Hough includes
+#include <HelixHough/HelixHough.h>
+#include <HelixHough/HelixRange.h>
+#include <HelixHough/HelixResolution.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/VertexFinder.h>
+
 // trackbase_historic includes
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
@@ -37,30 +45,21 @@
 #include <g4bbc/BbcVertexMap.h>
 
 // sPHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <phfield/PHFieldUtility.h>
+
 #include <phgeom/PHGeomUtility.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+
 //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-
-// sGeant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
-// Helix Hough includes
-#include <HelixHough/HelixHough.h>
-#include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
 
 // GenFit
 #include <GenFit/FieldManager.h>
@@ -74,6 +73,11 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
+
+// Geant4 includes
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4MagneticField.hh>
+#include <Geant4/G4TransportationManager.hh>
 
 // gsl
 #include <gsl/gsl_randist.h>
@@ -176,17 +180,17 @@ PHHoughAllInOne::PHHoughAllInOne(
   , _track_errors()
   , _track_covars()
   , _vertex()
-  , _tracker(NULL)
-  , _tracker_vertex(NULL)
-  , _tracker_etap_seed(NULL)
-  , _tracker_etam_seed(NULL)
+  , _tracker(nullptr)
+  , _tracker_vertex(nullptr)
+  , _tracker_etap_seed(nullptr)
+  , _tracker_etam_seed(nullptr)
   , _vertexFinder()
-  , _bbc_vertexes(NULL)
-  , _cluster_map(NULL)
-  , _track_map(NULL)
-  , _vertex_map(NULL)
+  , _bbc_vertexes(nullptr)
+  , _cluster_map(nullptr)
+  , _track_map(nullptr)
+  , _vertex_map(nullptr)
   , _svtxhitsmap(nullptr)
-  , _hit_used_map(NULL)
+  , _hit_used_map(nullptr)
   , _cells_svtx(nullptr)
   , _cells_intt(nullptr)
   , _cells_maps(nullptr)
@@ -196,14 +200,14 @@ PHHoughAllInOne::PHHoughAllInOne(
   , _n_max_iterations(2)
   , _seeding_only_mode(false)
   , _analyzing_mode(false)
-  , _analyzing_file(NULL)
-  , _analyzing_ntuple(NULL)
+  , _analyzing_file(nullptr)
+  , _analyzing_ntuple(nullptr)
   , _max_merging_dphi(0.1)
   , _max_merging_deta(0.1)
   , _max_merging_dr(0.1)
   , _max_merging_dz(0.1)
   , _max_share_hits(3)
-  , _fitter(NULL)
+  , _fitter(nullptr)
   ,
   //      _track_fitting_alg_name("DafRef"),
   _track_fitting_alg_name("KalmanFitter")
@@ -716,13 +720,13 @@ int PHHoughAllInOne::End()
   delete _t_output_io;
 
   delete _tracker_etap_seed;
-  _tracker_etap_seed = NULL;
+  _tracker_etap_seed = nullptr;
   delete _tracker_etam_seed;
-  _tracker_etam_seed = NULL;
+  _tracker_etam_seed = nullptr;
   delete _tracker_vertex;
-  _tracker_vertex = NULL;
+  _tracker_vertex = nullptr;
   delete _tracker;
-  _tracker = NULL;
+  _tracker = nullptr;
 
 #ifdef _DEBUG_
   LogDebug("Leaving End \n");
@@ -2523,7 +2527,7 @@ int PHHoughAllInOne::CleanupSeeds()
     SimpleTrack3D track = _tracks[itrack];
 
     cout << __LINE__ << endl;
-    printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
+    printf("itrack: %5u => {%5d, %5d, %5d, %5d} \n",
            itrack,
            id, iz, iphi, idzdl);
   }
@@ -2795,7 +2799,7 @@ int PHHoughAllInOne::KalmanTrkProp()
       //_trackID_PHGenFitTrack.erase(iter);
     }  // loop _PHGenFitTracks
 
-    if (_PHGenFitTracks.size() == 0) continue;
+    if (_PHGenFitTracks.empty()) continue;
 
 #ifdef _DEBUG_
     i = 0;
@@ -2905,7 +2909,7 @@ int PHHoughAllInOne::OutputPHGenFitTrack(MapPHGenFitTrack::iterator iter)
 
   //FIXME use fitted vertex
   TVector3 vertex_position(0, 0, 0);
-  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = NULL;
+  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
   try
   {
     gf_state_vertex_ca = std::unique_ptr<genfit::MeasuredStateOnPlane>(iter->second->extrapolateToPoint(vertex_position));
@@ -3304,7 +3308,8 @@ int PHHoughAllInOne::TrackPropPatRec(
           << __LINE__
           << " tempIdx: " << tempIdx
           << endl;
-      if (tempIdx >= 0 and tempIdx < track->get_cluster_IDs().size())
+      // tempIdx is unsigned int, check for >=0 is meaningless
+      if (tempIdx < track->get_cluster_IDs().size())
       {
         unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
         SvtxCluster* extrapolate_base_cluster = _cluster_map->get(extrapolate_base_cluster_id);
@@ -3323,7 +3328,7 @@ int PHHoughAllInOne::TrackPropPatRec(
     //		bool have_tp_with_fit_info = false;
     //		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
     //		for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
-    //			std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
+    //			std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = nullptr;
     //			genfit::Track genfit_track = track->getGenFitTrack();
     //			if (genfit_track->getNumPointsWithMeasurement() > 0) {
     //
@@ -3427,7 +3432,7 @@ int PHHoughAllInOne::TrackPropPatRec(
 
 #ifdef _DEBUG_
     cout << __LINE__ << ": ";
-    printf("layer: %d: r: %f: phi: %f +- %f; theta: %f +- %f\n",
+    printf("layer: %u: r: %f: phi: %f +- %f; theta: %f +- %f\n",
            layer, pos.Perp(),
            phi_center, phi_window,
            theta_center, theta_window);

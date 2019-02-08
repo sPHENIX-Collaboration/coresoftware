@@ -5,16 +5,17 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 // gsl
 #include <gsl/gsl_randist.h>
@@ -31,12 +32,7 @@ PHTruthVertexing::PHTruthVertexing(const std::string& name)
 
 int PHTruthVertexing::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = PHInitVertexing::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = CreateNodes(topNode);
+  int ret = PHInitVertexing::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);
@@ -102,11 +98,6 @@ int PHTruthVertexing::Process()
 
   _vertex_map->insert(vertex);
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHTruthVertexing::CreateNodes(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

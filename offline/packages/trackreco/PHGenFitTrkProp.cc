@@ -5,8 +5,17 @@
  *  \author Christof Roland & Haiwang Yu
  */
 
-#include "AssocInfoContainer.h"
 #include "PHGenFitTrkProp.h"
+
+#include "AssocInfoContainer.h"
+
+// Helix Hough includes
+#include <HelixHough/HelixHough.h>
+#include <HelixHough/HelixRange.h>
+#include <HelixHough/HelixResolution.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/VertexFinder.h>
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxCluster.h>
@@ -33,15 +42,19 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 //
 #include <g4intt/PHG4CylinderGeomINTT.h>
+
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
 
+#include <phfield/PHFieldUtility.h>
+
+#include <phgeom/PHGeomUtility.h>
+
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -50,19 +63,6 @@
 //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-
-// sGeant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
-// Helix Hough includes
-#include <HelixHough/HelixHough.h>
-#include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
 
 // GenFit
 #include <GenFit/FieldManager.h>
@@ -76,6 +76,11 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
+
+// Geant4 includes
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4MagneticField.hh>
+#include <Geant4/G4TransportationManager.hh>
 
 // gsl
 #include <gsl/gsl_randist.h>
@@ -139,25 +144,24 @@ PHGenFitTrkProp::PHGenFitTrkProp(
   ,
 
   _vertex()
-  , _bbc_vertexes(NULL)
-  ,
-
-  _svtxhitsmap(nullptr)
-  , _hit_used_map(NULL)
+  , _bbc_vertexes(nullptr)
+  , _svtxhitsmap(nullptr)
+  , _hit_used_map(nullptr)
+  , _hit_used_map_size(0)
   , _cells_svtx(nullptr)
   , _cells_intt(nullptr)
   , _cells_maps(nullptr)
   , _geom_container_intt(nullptr)
   , _geom_container_maps(nullptr)
   , _analyzing_mode(false)
-  , _analyzing_file(NULL)
-  , _analyzing_ntuple(NULL)
+  , _analyzing_file(nullptr)
+  , _analyzing_ntuple(nullptr)
   , _max_merging_dphi(0.1)
   , _max_merging_deta(0.1)
   , _max_merging_dr(0.1)
   , _max_merging_dz(0.1)
   , _max_share_hits(3)
-  , _fitter(NULL)
+  , _fitter(nullptr)
   , _track_fitting_alg_name("KalmanFitter")
   , _primary_pid_guess(211)
   , _cut_min_pT(0.2)
@@ -249,12 +253,8 @@ PHGenFitTrkProp::PHGenFitTrkProp(
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)
 {
   // Start new interface ----
-  int ret = Fun4AllReturnCodes::ABORTRUN;
 
-  ret = PHTrackPropagating::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = CreateNodes(topNode);
+  int ret = PHTrackPropagating::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);
@@ -352,7 +352,6 @@ int PHGenFitTrkProp::Process()
     cout << "nTPCLayers = " << _nlayers_tpc << endl;
   }
   // start fresh
-  int ret;
 
   // TODO vertex using strategy
   _vertex.clear();
@@ -374,7 +373,7 @@ int PHGenFitTrkProp::Process()
     // Kalman track propagating
     //-----------------------------------
     if (Verbosity() >= 1) _t_kalman_pat_rec->restart();
-    ret = KalmanTrkProp();
+    int ret = KalmanTrkProp();
     if (ret != Fun4AllReturnCodes::EVENT_OK)
       return ret;
     if (Verbosity() >= 1) _t_kalman_pat_rec->stop();
@@ -440,11 +439,6 @@ int PHGenFitTrkProp::End()
     // delete _analyzing_file;
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHGenFitTrkProp::CreateNodes(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -662,7 +656,7 @@ int PHGenFitTrkProp::KalmanTrkProp()
       //_trackID_PHGenFitTrack.erase(iter);
     }  // loop _PHGenFitTracks
 
-    if (_PHGenFitTracks.size() == 0) continue;
+    if (_PHGenFitTracks.empty()) continue;
 
 #ifdef _DEBUG_
     i = 0;
@@ -781,7 +775,7 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
 
   //FIXME use fitted vertex
   TVector3 vertex_position(0, 0, 0);
-  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = NULL;
+  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
   try
   {
     gf_state_vertex_ca = std::unique_ptr<genfit::MeasuredStateOnPlane>(gftrk_iter->second->extrapolateToPoint(vertex_position));
@@ -1089,7 +1083,8 @@ int PHGenFitTrkProp::TrackPropPatRec(
        layer != end_layer + direction;
        layer += direction)
   {
-    if (!(layer >= 0 and layer < (unsigned int) _nlayers_all)) break;
+    // layer is unsigned int, check for >=0 is meaningless
+    if (layer >= (unsigned int) _nlayers_all) break;
 
     //		if(layer >= _nlayers_maps and layer < _nlayers_maps+_nlayers_intt) continue;
 
@@ -1126,7 +1121,8 @@ int PHGenFitTrkProp::TrackPropPatRec(
           << __LINE__
           << " tempIdx: " << tempIdx
           << endl;
-      if (tempIdx >= 0 and tempIdx < track->get_cluster_IDs().size())
+      // tempIdx is unsigned int, checking for >=0 is meaningless
+      if (tempIdx < track->get_cluster_IDs().size())
       {
         unsigned int extrapolate_base_cluster_id = track->get_cluster_IDs()[tempIdx];
         SvtxCluster* extrapolate_base_cluster = _cluster_map->get(extrapolate_base_cluster_id);
@@ -1145,7 +1141,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
     //		bool have_tp_with_fit_info = false;
     //		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
     //		for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
-    //			std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
+    //			std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = nullptr;
     //			genfit::Track genfit_track = track->getGenFitTrack();
     //			if (genfit_track->getNumPointsWithMeasurement() > 0) {
     //
@@ -1249,7 +1245,7 @@ int PHGenFitTrkProp::TrackPropPatRec(
 
 #ifdef _DEBUG_
     cout << __LINE__ << ": ";
-    printf("layer: %d: r: %f: phi: %f +- %f; theta: %f +- %f\n",
+    printf("layer: %u: r: %f: phi: %f +- %f; theta: %f +- %f\n",
            layer, pos.Perp(),
            phi_center, phi_window,
            theta_center, theta_window);
@@ -1409,23 +1405,23 @@ int PHGenFitTrkProp::TrackPropPatRec(
       std::cout << __LINE__ << ": IncrChi2: " << iter->first << std::endl;
     }
 #endif
-    if (_analyzing_mode)
-    {
-      int ncand = 0;
-      for (auto iter =
-               incr_chi2s_new_tracks.begin();
-           iter != incr_chi2s_new_tracks.end(); iter++)
-      {
-        if (iter->first < _max_incr_chi2s[layer] and iter->first > 0) ncand++;
-      }
-      /*
-		    float this_pt = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Pt();
-		    float this_phi = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Phi();
-		    float this_eta = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Eta();
-		  */
-      //"spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas"
-      //_analyzing_ntuple->Fill(init_pt,init_eta,init_phi,this_pt,this_eta,this_phi,layer,ncand,measurements.size());
-    }
+    // if (_analyzing_mode)
+    // {
+    //   int ncand = 0;
+    //   for (auto iter =
+    //            incr_chi2s_new_tracks.begin();
+    //        iter != incr_chi2s_new_tracks.end(); iter++)
+    //   {
+    //     if (iter->first < _max_incr_chi2s[layer] and iter->first > 0) ncand++;
+    //   }
+    //   /*
+    // 		    float this_pt = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Pt();
+    // 		    float this_phi = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Phi();
+    // 		    float this_eta = 0.0;//track->getGenFitTrack()->getCardinalRep()->getMom(state).Eta();
+    // 		  */
+    //   //"spt:seta:sphi:pt:eta:phi:layer:ncand:nmeas"
+    //   //_analyzing_ntuple->Fill(init_pt,init_eta,init_phi,this_pt,this_eta,this_phi,layer,ncand,measurements.size());
+    // }
     if (!layer_updated)
       ++consecutive_missing_layer;
   }  // layer loop

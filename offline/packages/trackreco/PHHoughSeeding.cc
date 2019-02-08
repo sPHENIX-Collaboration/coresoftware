@@ -7,6 +7,14 @@
 
 #include "PHHoughSeeding.h"
 
+// Helix Hough includes
+#include <HelixHough/HelixHough.h>
+#include <HelixHough/HelixRange.h>
+#include <HelixHough/HelixResolution.h>
+#include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/VertexFinder.h>
+
 // trackbase_historic includes
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
@@ -33,15 +41,19 @@
 
 //
 #include <g4intt/PHG4CylinderGeomINTT.h>
+
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
 
+#include <phfield/PHFieldUtility.h>
+
+#include <phgeom/PHGeomUtility.h>
+
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -50,19 +62,6 @@
 //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
-
-// sGeant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
-// Helix Hough includes
-#include <HelixHough/HelixHough.h>
-#include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
 
 // GenFit
 #include <GenFit/FieldManager.h>
@@ -74,6 +73,11 @@
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
+
+// Geant4 includes
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4MagneticField.hh>
+#include <Geant4/G4TransportationManager.hh>
 
 // gsl
 #include <gsl/gsl_randist.h>
@@ -171,22 +175,23 @@ PHHoughSeeding::PHHoughSeeding(
   , _track_errors()
   , _track_covars()
   , _vertex()
-  , _tracker(NULL)
-  , _tracker_vertex(NULL)
-  , _tracker_etap_seed(NULL)
-  , _tracker_etam_seed(NULL)
+  , _tracker(nullptr)
+  , _tracker_vertex(nullptr)
+  , _tracker_etap_seed(nullptr)
+  , _tracker_etam_seed(nullptr)
   , _vertexFinder()
-  , _bbc_vertexes(NULL)
+  , _bbc_vertexes(nullptr)
   , _svtxhitsmap(nullptr)
-  , _hit_used_map(NULL)
+  , _hit_used_map(nullptr)
+  , _hit_used_map_size(0)
   , _cells_svtx(nullptr)
   , _cells_intt(nullptr)
   , _cells_maps(nullptr)
   , _geom_container_intt(nullptr)
   , _geom_container_maps(nullptr)
   , _analyzing_mode(false)
-  , _analyzing_file(NULL)
-  , _analyzing_ntuple(NULL)
+  , _analyzing_file(nullptr)
+  , _analyzing_ntuple(nullptr)
   , _max_merging_dphi(0.1)
   , _max_merging_deta(0.1)
   , _max_merging_dr(0.1)
@@ -236,12 +241,7 @@ PHHoughSeeding::PHHoughSeeding(
 int PHHoughSeeding::Setup(PHCompositeNode* topNode)
 {
   // Start new interface ----
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = PHTrackSeeding::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = CreateNodes(topNode);
+  int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);
@@ -501,13 +501,13 @@ int PHHoughSeeding::End()
   delete _t_output_io;
 
   delete _tracker_etap_seed;
-  _tracker_etap_seed = NULL;
+  _tracker_etap_seed = nullptr;
   delete _tracker_etam_seed;
-  _tracker_etam_seed = NULL;
+  _tracker_etam_seed = nullptr;
   delete _tracker_vertex;
-  _tracker_vertex = NULL;
+  _tracker_vertex = nullptr;
   delete _tracker;
-  _tracker = NULL;
+  _tracker = nullptr;
 
 #ifdef _DEBUG_
   LogDebug("Leaving End \n");
@@ -529,11 +529,6 @@ int PHHoughSeeding::End()
 void PHHoughSeeding::set_material(int layer, float value)
 {
   _user_material[layer] = value;
-}
-
-int PHHoughSeeding::CreateNodes(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
@@ -1086,8 +1081,8 @@ int PHHoughSeeding::translate_input()
 {
   _clusters.clear();
   int count = 0;
-  int count7 = 0;
-  int count46 = 0;
+  // int count7 = 0;
+  // int count46 = 0;
   int nhits[60];
   int nhits_all[60];
   for (int i = 0; i < 60; i++)
@@ -1106,8 +1101,8 @@ int PHHoughSeeding::translate_input()
     count++;
     SvtxCluster* cluster = iter->second;
     nhits_all[cluster->get_layer()]++;
-    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
-    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
+    //    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
+    //    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
     //	  cout << "first: " << iter->first << endl;
     /*
       float vz = 0.0;
@@ -2239,7 +2234,7 @@ int PHHoughSeeding::CleanupSeeds()
     SimpleTrack3D track = _tracks[itrack];
 
     cout << __LINE__ << endl;
-    printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
+    printf("itrack: %5u => {%5d, %5d, %5d, %5d} \n",
            itrack,
            id, iz, iphi, idzdl);
   }
