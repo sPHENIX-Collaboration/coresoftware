@@ -649,7 +649,7 @@ void TPCClusterizer::reset() {}
 //===================
 int TPCClusterizer::process_event(PHCompositeNode* topNode)
 {
-  //if (Verbosity() > 1000) 
+  if (Verbosity() > 1000) 
     std::cout << "TPCClusterizer::Process_Event" << std::endl;
   if (Verbosity() > 1)
   {

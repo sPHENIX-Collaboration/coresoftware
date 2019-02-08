@@ -339,17 +339,20 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    phibins.insert(row);
 
 	    int pixnum = layergeom->get_pixel_number_from_xbin_zbin(row, col);
-	    //cout << "cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave 
-	    //<< " row " << row << " col " << col << " pixnum " << pixnum << endl;;
+	    //cout << "   new mvtx clusterizer: cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave 
+	    //	 << " row " << row << " col " << col << " pixnum " << pixnum << endl;;
 
 	    TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
 	    TVector3 world_coords = layergeom->get_world_from_local_coords(stave, 0, 0, chip, local_coords);
-	    //cout << "world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
+	    //cout << "   new: world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
 	    
 	    // find the center of the pixel in local coords
 	    xsum += world_coords.X();
 	    ysum += world_coords.Y();
 	    zsum += world_coords.Z();
+
+	    // add the association between this cluster key and this hitkey to the table
+	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 	    
 	    ++nhits;
 	  }  //mapiter
@@ -359,7 +362,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clusx = xsum / nhits;
 	clusy = ysum / nhits;
 	clusz = zsum / nhits;
-	
+	//cout << "new mvtx clusterizer: clusx " << clusx << " clusy " << clusy << " clusz " << clusz << endl;
 	clus->setAdc(nhits);
 				
 	clus->setPosition(0, clusx);
@@ -468,10 +471,12 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	
 	// Add the hit associations to the TrkrClusterHitAssoc node
 	// we need the cluster key and all associated hit keys
+	/*
 	for(unsigned int i=0;i<hitvec.size();i++)
 	  {
 	    m_clusterhitassoc->addAssoc(ckey, hitvec[i].first);
 	  }
+	*/
       }  // clusitr
   }    // hitsetitr
   

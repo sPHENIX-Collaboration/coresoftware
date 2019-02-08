@@ -245,7 +245,7 @@ void InttClusterizer::CalculateLadderThresholds(PHCompositeNode* topNode)
     // fill in a default z_clustering value if not present
     if (_make_z_clustering.find(layer) == _make_z_clustering.end())
     {
-      _make_z_clustering.insert(std::make_pair(layer, true));
+      _make_z_clustering.insert(std::make_pair(layer, false));
     }
 
     if (_make_e_weights.find(layer) == _make_e_weights.end())
@@ -299,7 +299,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     float pitch = geom->get_strip_y_spacing();
     float length = geom->get_strip_z_spacing();
     
-    // fill a vector of hits to make things easier
+    // fill a vector of hits to make things easier - gets every hit in the hitset
     std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec;
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
@@ -342,26 +342,27 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*> >  clusters;
     for (unsigned int i = 0; i < component.size(); i++)
       {
-	cluster_ids.insert(component[i]);
-	clusters.insert(make_pair(component[i], hitvec[i]));
+	cluster_ids.insert(component[i]); // one entry per unique cluster id
+	clusters.insert(make_pair(component[i], hitvec[i]));  // multiple entries per unique cluster id
       }
 
     // loop over the cluster ID's and make the clusters from the connected hits
     for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); clusiter++)
       {
 	int clusid = *clusiter;
+	//cout << " intt clustering: add cluster number " << clusid << endl; 
 	// get all hits for this cluster ID only
 	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,  
 	     multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>  clusrange = clusters.equal_range(clusid);
 	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
 	
-	if (Verbosity() > 2)
-	  cout << "Filling cluster id " << clusid << endl;
-	
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = InttDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
-	
+
+	if (Verbosity() > 2)
+	  cout << "Filling cluster with key " << ckey << endl;
+		
 	// determine the size of the cluster in phi and z, useful for track fitting the cluster
 	set<int> phibins;
 	set<int> zbins;
@@ -379,6 +380,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
 	  {
 	    // mapiter->second.first  is the hit key
+	    //cout << " adding hitkey " << mapiter->second.first << endl; 
 	    int col =  InttDefs::getCol( (mapiter->second).first);
 	    int row = InttDefs::getRow( (mapiter->second).first);
 	    zbins.insert(col);
@@ -411,6 +413,9 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	    clus_adc += hit_adc;
 	    ++nhits;
+
+	    // add this cluster-hit association to the association map of (clusterkey,hitkey)
+	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
 
 	    if (Verbosity() > 2) cout << "     nhits = " << nhits << endl;
 	    if (Verbosity() > 2)
@@ -539,10 +544,12 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	// Add the hit associations to the TrkrClusterHitAssoc node
 	// we need the cluster key and all associated hit keys
+	/*
 	for(unsigned int i=0;i<hitvec.size();i++)
 	  {
 	    m_clusterhitassoc->addAssoc(ckey, hitvec[i].first);
 	  }
+	*/
 	
       } // end loop over cluster ID's
   }  // end loop over hitsets

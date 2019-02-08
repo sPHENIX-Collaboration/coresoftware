@@ -92,7 +92,7 @@ int TrkrEvaluator::InitRun(PHCompositeNode* topNode)
 
 int TrkrEvaluator::process_event(PHCompositeNode* topNode)
 {
-  //if ((Verbosity() > 0) && (_ievent % 100 == 0))
+  if ((Verbosity() > 0) && (_ievent % 100 == 0))
   {
     cout << "TrkrEvaluator::process_event - Event = " << _ievent << endl;
   }
@@ -596,12 +596,13 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       TrkrCluster *cluster = clusiter->second;
       TrkrDefs::cluskey cluskey = clusiter->first;
       unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-      
       float hitID = cluskey;
       float layer = TrkrDefs::getLayer(cluskey);
+      //if(layer < 7) cout << "new: cluskey " << cluskey << " trkrid " << trkrid << " layer " << layer << endl;       
       float x = cluster->getPosition(0);
       float y = cluster->getPosition(1);
       float z = cluster->getPosition(2);
+
       TVector3 pos(x, y, z);
       float r = pos.Perp();
       float phi = pos.Phi();
@@ -616,6 +617,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float zsize = cluster->getZSize();
       float size = 0;
       float trackID = NAN;
+      //if(layer < 7) cout << " new eval: reco cluster layer : "<<  layer << " x " << x << " y " << y << " z " << z << " phi " << phi << endl; 
       
       float g4hitID = NAN;
       float gx = NAN;
@@ -651,7 +653,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  TrkrDefs::hitkey hitkey = clushititer->second;
 	  // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
 	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);	  
-
+	  //if(layer < 7) cout << "  hitkey " << hitkey << endl;
 	  // get all of the g4hits for this hitkey
 	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
 	  hittruthassoc->getG4Hits(hitsetkey, hitkey, temp_map); 	  // returns pairs (hitsetkey, std::pair(hitkey, g4hitkey)) for this hitkey only
@@ -666,6 +668,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		g4hit = g4hits_intt->findHit(g4hitkey);
 	      else
 		g4hit = g4hits_mvtx->findHit(g4hitkey);
+	      //if(layer < 7) cout << "   g4hitkey " << g4hit->get_hit_id() << endl;
 	      truth_hits.insert(g4hit);	      
 	    } // end loop over g4hits associated with hitsetkey and hitkey
 	} // end loop over hits associated with cluskey
@@ -784,7 +787,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  gy /= gwt;
 	  gz /= gwt;
 	  gt /= gwt;
-	  //cout << " truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
+	  //cout << " new eval: truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
 	}  // if TPC
       else
 	{
@@ -805,14 +808,16 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  gy /= gwt;
 	  gz /= gwt;
 	  gt /= gwt;
-	  //cout << " truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
+	  //cout << " new eval: truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
 	}  // not TPC
 
+      // This occasionally returns nan for gphi and throws an error message - debug it!
       TVector3 gpos(gx, gy, gz);
       gr = gpos.Perp();
       gphi = gpos.Phi();
       geta = gpos.Eta();
-  
+      //if(layer < 7) cout << "           gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " phi - gphi " << phi - gphi << endl; 
+ 
       float nparticles = 0;
   
       float cluster_data[] = {(float) _ievent,
