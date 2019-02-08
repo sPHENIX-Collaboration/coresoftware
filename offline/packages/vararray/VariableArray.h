@@ -1,7 +1,8 @@
-#ifndef VARIABLEARRAY_H_
-#define VARIABLEARRAY_H_
+#ifndef VARARRAY_VARIABLEARRAY_H
+#define VARARRAY_VARIABLEARRAY_H
 
 #include <phool/PHObject.h>
+
 #include <vector>
 
 class VariableArray : public PHObject

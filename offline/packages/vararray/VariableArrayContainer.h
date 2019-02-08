@@ -1,7 +1,8 @@
-#ifndef VARIABLEARRAYCONTAINER_H_
-#define VARIABLEARRAYCONTAINER_H_
+#ifndef VARARRAY_VARIABLEARRAYCONTAINER_H
+#define VARARRAY_VARIABLEARRAYCONTAINER_H
 
 #include <phool/PHObject.h>
+
 #include <vector>
 
 class TOjArray;
@@ -24,5 +25,5 @@ class VariableArrayContainer : public PHObject
   ClassDef(VariableArrayContainer,1)
 };
 
-#endif /* VARIABLEARRAYCONTAINER */
+#endif
 
