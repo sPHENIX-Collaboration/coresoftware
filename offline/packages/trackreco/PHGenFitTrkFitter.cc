@@ -5,6 +5,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
+#include "PHGenFitTrkFitter.h"
+
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHitMap.h>
@@ -16,10 +18,6 @@
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
-#include "PHGenFitTrkFitter.h"
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
 
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
@@ -27,6 +25,7 @@
 
 //
 #include <g4intt/PHG4CylinderGeomINTT.h>
+
 #include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <g4main/PHG4Hit.h>
@@ -41,6 +40,9 @@
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -51,6 +53,7 @@
 #include <phgeom/PHGeomUtility.h>
 
 #include <GenFit/FieldManager.h>
+#include <GenFit/GFRaveConverters.h>
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
 #include <GenFit/KalmanFitterInfo.h>
@@ -64,9 +67,6 @@
 #include <rave/Track.h>
 #include <rave/Version.h>
 #include <rave/VertexFactory.h>
-
-//GenFit
-#include <GenFit/GFRaveConverters.h>
 
 #include <TClonesArray.h>
 #include <TMatrixDSym.h>

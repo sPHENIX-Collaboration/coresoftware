@@ -1,5 +1,6 @@
-#include "AssocInfoContainer.h"
 #include "PHTruthTrackSeeding.h"
+
+#include "AssocInfoContainer.h"
 
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHitMap.h>
@@ -13,6 +14,10 @@
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 
+#include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
@@ -21,10 +26,6 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <memory>
 
@@ -51,12 +52,7 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
 
 int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = PHTrackSeeding::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = CreateNodes(topNode);
+  int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);
@@ -83,7 +79,7 @@ int PHTruthTrackSeeding::Process()
     SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
     PHG4Cell* cell = nullptr;
 
-    if (!cell and cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
+    if (cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
     if (!cell and cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
     if (!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
 
@@ -102,7 +98,7 @@ int PHTruthTrackSeeding::Process()
          hits_it != cell->get_g4hits().second; hits_it++)
     {
       PHG4Hit* phg4hit = nullptr;
-      if (!phg4hit and phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
+      if (phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
       if (!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(hits_it->first);
       if (!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
 
@@ -184,11 +180,6 @@ int PHTruthTrackSeeding::Process()
     }
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHTruthTrackSeeding::CreateNodes(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

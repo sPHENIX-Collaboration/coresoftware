@@ -1,5 +1,6 @@
+#include "PHTrackPropagating.h"
+
 #include "AssocInfoContainer.h"
-#include "PH3DVertexing.h"
 
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -8,6 +9,7 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -15,7 +17,7 @@
 
 using namespace std;
 
-PH3DVertexing::PH3DVertexing(const std::string& name)
+PHTrackPropagating::PHTrackPropagating(const std::string& name)
   : SubsysReco(name)
   , _cluster_map(nullptr)
   , _vertex_map(nullptr)
@@ -24,45 +26,31 @@ PH3DVertexing::PH3DVertexing(const std::string& name)
 {
 }
 
-int PH3DVertexing::Init(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PH3DVertexing::InitRun(PHCompositeNode* topNode)
+int PHTrackPropagating::InitRun(PHCompositeNode* topNode)
 {
   return Setup(topNode);
 }
 
-int PH3DVertexing::process_event(PHCompositeNode* topNode)
+int PHTrackPropagating::process_event(PHCompositeNode* topNode)
 {
   return Process();
 }
 
-int PH3DVertexing::End(PHCompositeNode* topNode)
+int PHTrackPropagating::End(PHCompositeNode* topNode)
 {
+  End();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PH3DVertexing::Setup(PHCompositeNode* topNode)
+int PHTrackPropagating::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = CreateNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  ret = GetNodes(topNode);
+  int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PH3DVertexing::CreateNodes(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PH3DVertexing::GetNodes(PHCompositeNode* topNode)
+int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
 {
   //---------------------------------
   // Get Objects off of the Node Tree

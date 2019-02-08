@@ -2,8 +2,6 @@
 
 using namespace std;
 
-ClassImp(AssocInfoContainer);
-
 AssocInfoContainer::AssocInfoContainer()
   : _map_cluster_id_track_id()
 {

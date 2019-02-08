@@ -1,5 +1,6 @@
-#include "AssocInfoContainer.h"
 #include "PHTrackSeeding.h"
+
+#include "AssocInfoContainer.h"
 
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -8,6 +9,7 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -46,9 +48,7 @@ int PHTrackSeeding::End(PHCompositeNode* topNode)
 
 int PHTrackSeeding::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = CreateNodes(topNode);
+  int ret = CreateNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   ret = GetNodes(topNode);

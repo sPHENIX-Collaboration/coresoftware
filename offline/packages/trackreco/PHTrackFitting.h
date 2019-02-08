@@ -4,8 +4,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __H_PHTrackFitting_H__
-#define __H_PHTrackFitting_H__
+#ifndef TRACKRECO_PHTRACKFITTING_H
+#define TRACKRECO_PHTRACKFITTING_H
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
@@ -35,7 +35,6 @@ class PHTrackFitting : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   virtual const std::set<unsigned int> &get_seeding_layers() const = 0;
 
@@ -56,11 +55,8 @@ class PHTrackFitting : public SubsysReco
   AssocInfoContainer *_assoc_container;
 
  private:
-  /// create new node output pointers
-  int CreateNodes(PHCompositeNode *topNode);
-
   /// fetch node pointers
   int GetNodes(PHCompositeNode *topNode);
 };
 
-#endif  // __H_PHTrackFitting_H__
+#endif

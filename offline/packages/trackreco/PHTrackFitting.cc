@@ -1,5 +1,6 @@
-#include "AssocInfoContainer.h"
 #include "PHTrackFitting.h"
+
+#include "AssocInfoContainer.h"
 
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -8,6 +9,7 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -39,26 +41,11 @@ int PHTrackFitting::process_event(PHCompositeNode* topNode)
   return Process();
 }
 
-int PHTrackFitting::End(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int PHTrackFitting::Setup(PHCompositeNode* topNode)
 {
-  int ret = Fun4AllReturnCodes::ABORTRUN;
-
-  ret = CreateNodes(topNode);
+  int ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHTrackFitting::CreateNodes(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -71,28 +58,28 @@ int PHTrackFitting::GetNodes(PHCompositeNode* topNode)
   _cluster_map = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
   if (!_cluster_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
+    cout << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _vertex_map = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   if (!_vertex_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
+    cout << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
+    cout << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
   _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
   if (!_assoc_container)
   {
-    cerr << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
+    cout << PHWHERE << " ERROR: Can't find AssocInfoContainer." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

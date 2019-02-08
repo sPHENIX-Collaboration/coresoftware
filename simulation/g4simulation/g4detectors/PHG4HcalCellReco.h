@@ -4,7 +4,7 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+
 #include <string>
 #include <map>
 #include <vector>
@@ -41,7 +41,6 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string cellnodename;
-  PHTimeServer::timer _timer;
 
   int chkenergyconservation;
 

@@ -1,8 +1,12 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrack_reco.la 
+  libtrack_reco_io.la \
+  libtrack_reco.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -12,40 +16,67 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_CXXFLAGS = \
- -Werror -msse2 -DRAVE -DRaveDllExport=
+ -Werror -DRAVE -DRaveDllExport=
 
-libtrack_reco_la_SOURCES = \
-  AssocInfoContainer.C \
-  AssocInfoContainer_Dict.C \
-  PHInitVertexing.C \
-  PHInitVertexing_Dict.C \
-  PHTrackSeeding.C \
-  PHTrackSeeding_Dict.C \
-  PHTrackPropagating.C \
-  PHTrackPropagating_Dict.C \
-  PHTrackFitting.C \
-  PHTrackFitting_Dict.C \
-  PH3DVertexing.C \
-  PH3DVertexing_Dict.C \
-  PHTruthVertexing.C \
-  PHTruthVertexing_Dict.C \
-  PHTruthTrackSeeding.C \
-  PHTruthTrackSeeding_Dict.C \
-  PHHoughSeeding.C \
-  PHHoughSeeding_Dict.C \
-  PHGenFitTrkProp.C \
-  PHGenFitTrkProp_Dict.C \
-  PHGenFitTrkFitter.C \
-  PHGenFitTrkFitter_Dict.C \
-  PHRaveVertexing.C \
-  PHRaveVertexing_Dict.C
-
-libtrack_reco_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
+pkginclude_HEADERS = \
+  AssocInfoContainer.h \
+  PHGenFitTrkFitter.h \
+  PHGenFitTrkProp.h \
+  PHHoughSeeding.h \
+  PHInitVertexing.h \
+  PHTrackPropagating.h \
+  PHTrackSeeding.h \
+  PHTruthVertexing.h
+
+ROOTDICTS = \
+  AssocInfoContainer_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    AssocInfoContainer_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    PHInitVertexing_Dict.cc \
+    PHTrackSeeding_Dict.cc \
+    PHTrackPropagating_Dict.cc \
+    PHTrackFitting_Dict.cc \
+    PH3DVertexing_Dict.cc \
+    PHTruthVertexing_Dict.cc \
+    PHTruthTrackSeeding_Dict.cc \
+    PHHoughSeeding_Dict.cc \
+    PHGenFitTrkProp_Dict.cc \
+    PHGenFitTrkFitter_Dict.cc \
+    PHRaveVertexing_Dict.cc
+endif
+
+libtrack_reco_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  AssocInfoContainer.cc 
+
+libtrack_reco_la_SOURCES = \
+  $(ROOT5_DICTS) \
+  PHInitVertexing.cc \
+  PHTrackSeeding.cc \
+  PHTrackPropagating.cc \
+  PHTrackFitting.cc \
+  PH3DVertexing.cc \
+  PHTruthVertexing.cc \
+  PHTruthTrackSeeding.cc \
+  PHHoughSeeding.cc \
+  PHGenFitTrkProp.cc \
+  PHGenFitTrkFitter.cc \
+  PHRaveVertexing.cc
+
+
+libtrack_reco_io_la_LIBADD = \
+  -lphool
+
 libtrack_reco_la_LIBADD = \
-  -lphool \
+  libtrack_reco_io.la \
   -lSubsysReco \
   -lg4testbench \
   -lg4detectors \
@@ -67,29 +98,31 @@ libtrack_reco_la_LIBADD = \
   -lphparameter
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-##############################################
-# please add new classes in alphabetical order
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
-pkginclude_HEADERS = \
-  AssocInfoContainer.h \
-  PHInitVertexing.h \
-  PHTrackPropagating.h \
-  PHTrackSeeding.h
 
 ################################################
 # linking tests
 
+BUILT_SOURCES = \
+  testexternals.cc
+
 noinst_PROGRAMS = \
-  testexternals_track_reco
+  testexternals_track_reco \
+  testexternals_track_reco_io
 
 
-testexternals_track_reco_SOURCES = testexternals.C
+testexternals_track_reco_SOURCES = testexternals.cc
 testexternals_track_reco_LDADD = libtrack_reco.la
 
-testexternals.C:
+testexternals_track_reco_io_SOURCES = testexternals.cc
+testexternals_track_reco_io_LDADD = libtrack_reco_io.la
+
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
