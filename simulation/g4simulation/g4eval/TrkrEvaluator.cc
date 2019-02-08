@@ -783,6 +783,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      gt += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 	      gwt += this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 	    }  // loop over this_g4hit
+
 	  gx /= gwt;
 	  gy /= gwt;
 	  gz /= gwt;
@@ -811,13 +812,14 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  //cout << " new eval: truth cluster averages: layer " << layer  << " gx " << gx << " gy " << gy << " gz " << gz << " gwt " << gwt << endl;
 	}  // not TPC
 
-      // This occasionally returns nan for gphi and throws an error message - debug it!
+      // This occasionally returns nan for gphi and throws an error message - the cluster is not useful, skip it
+      if(isnan(gx) || isnan(gy) || isnan(gz)) continue;     
+
       TVector3 gpos(gx, gy, gz);
       gr = gpos.Perp();
       gphi = gpos.Phi();
       geta = gpos.Eta();
-      //if(layer < 7) cout << "           gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " phi - gphi " << phi - gphi << endl; 
- 
+
       float nparticles = 0;
   
       float cluster_data[] = {(float) _ievent,
