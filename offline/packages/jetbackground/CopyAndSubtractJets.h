@@ -1,5 +1,5 @@
-#ifndef __COPYANDSUBTRACTJETS_H__
-#define __COPYANDSUBTRACTJETS_H__
+#ifndef JETBACKGROUND_COPYANDSUBTRACTJETS_H
+#define JETBACKGROUND_COPYANDSUBTRACTJETS_H
 
 //===========================================================
 /// \file CopyAndSubtractJets.h
@@ -7,15 +7,7 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
-
-// standard includes
-#include <vector>
-
-#include <calobase/RawTowerContainer.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -49,4 +41,4 @@ class CopyAndSubtractJets : public SubsysReco
 
 };
 
-#endif  // __COPYANDSUBTRACTJETS_H__
+#endif

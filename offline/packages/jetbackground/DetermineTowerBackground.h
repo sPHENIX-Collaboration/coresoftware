@@ -1,5 +1,5 @@
-#ifndef __DETERMINETOWERBACKGROUND_H__
-#define __DETERMINETOWERBACKGROUND_H__
+#ifndef JETBACKGROUND_DETERMINETOWERBACKGROUND_H
+#define JETBACKGROUND_DETERMINETOWERBACKGROUND_H
 
 //===========================================================
 /// \file DetermineTowerBackground.h
@@ -7,12 +7,9 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
-// standard includes
+// system includes
 #include <vector>
 
 // forward declarations
@@ -76,4 +73,4 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<float> _seed_phi;
 };
 
-#endif  // __DETERMINETOWERBACKGROUND_H__
+#endif

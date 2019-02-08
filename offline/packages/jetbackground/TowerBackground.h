@@ -1,5 +1,5 @@
-#ifndef __TOWERBACKGROUND_H__
-#define __TOWERBACKGROUND_H__
+#ifndef JETBACKGROUND_TOWERBACKGROUND_H
+#define JETBACKGROUND_TOWERBACKGROUND_H
 
 #include <phool/PHObject.h>
 
@@ -34,4 +34,4 @@ class TowerBackground : public PHObject
   ClassDef(TowerBackground, 1);
 };
 
-#endif  // __TOWERBACKGROUND_H__
+#endif

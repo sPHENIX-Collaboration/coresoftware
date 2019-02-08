@@ -1,5 +1,5 @@
-#ifndef __RETOWERCEMC_H__
-#define __RETOWERCEMC_H__
+#ifndef JETBACKGROUND_RETOWERCEMC_H
+#define JETBACKGROUND_RETOWERCEMC_H
 
 //===========================================================
 /// \file RetowerCEMC.h
@@ -7,15 +7,7 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
-
-// standard includes
-#include <vector>
-
-#include <calobase/RawTowerContainer.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -47,4 +39,4 @@ class RetowerCEMC : public SubsysReco
 
 };
 
-#endif  // __RETOWERCEMC_H__
+#endif

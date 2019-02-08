@@ -1,5 +1,5 @@
-#ifndef __SUBTRACTTOWERS_H__
-#define __SUBTRACTTOWERS_H__
+#ifndef JETBACKGROUND_SUBTRACTTOWERS_H
+#define JETBACKGROUND_SUBTRACTTOWERS_H
 
 //===========================================================
 /// \file SubtractTowers.h
@@ -7,15 +7,7 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
-
-// standard includes
-#include <vector>
-
-#include "calobase/RawTowerContainer.h"
 
 // forward declarations
 class PHCompositeNode;
@@ -47,4 +39,4 @@ class SubtractTowers : public SubsysReco
   bool _use_flow_modulation;
 };
 
-#endif  // __SUBTRACTTOWERS_H__
+#endif
