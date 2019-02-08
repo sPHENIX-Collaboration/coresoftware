@@ -9,4 +9,3 @@ class VariableArrayUtils
 };
 
 #endif
-

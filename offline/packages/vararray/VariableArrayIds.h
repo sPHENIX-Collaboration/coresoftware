@@ -3,11 +3,11 @@
 
 namespace varids
 {
-  enum types
-    {
-      G4VTXV1 = 1,
-      G4PARTICLEV1 = 2
-    };
+enum types
+{
+  G4VTXV1 = 1,
+  G4PARTICLEV1 = 2
+};
 };
 
 #endif
