@@ -1,27 +1,17 @@
-#include "TowerBackground_v1.h"
+#include "TowerBackgroundv1.h"
 
 using namespace std;
 
-TowerBackground_v1::TowerBackground_v1()
+TowerBackgroundv1::TowerBackgroundv1():
+  _v2(0),
+  _Psi2(0),
+  _nStrips(0),
+  _nTowers(0)
 {
-
-  _v2 = 0.0;
-
-  _Psi2 = 0.0;
-  
   _UE.resize(3, std::vector<float>(1, 0) );
-
-  _nStrips = 0;
-
-  _nTowers = 0;
-
 }
 
-TowerBackground_v1::~TowerBackground_v1()
-{
-}
-
-void TowerBackground_v1::identify(ostream& os) const
+void TowerBackgroundv1::identify(ostream& os) const
 {
 
   os << "TowerBackground: " << std::endl;

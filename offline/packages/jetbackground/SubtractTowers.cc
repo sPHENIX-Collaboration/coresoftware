@@ -19,7 +19,7 @@
 #include <g4jets/JetMap.h>
 #include <g4jets/Jet.h>
 
-#include "TowerBackground_v1.h"
+#include "TowerBackground.h"
 
 // standard includes
 #include <iomanip>

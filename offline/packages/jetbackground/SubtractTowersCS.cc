@@ -19,7 +19,7 @@
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
 
-#include "TowerBackground_v1.h"
+#include "TowerBackground.h"
 
 #include <fastjet/contrib/ConstituentSubtractor.hh>
 

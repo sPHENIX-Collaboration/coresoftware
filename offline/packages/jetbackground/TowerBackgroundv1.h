@@ -1,15 +1,13 @@
-#ifndef __TOWERBACKGROUND_V1_H__
-#define __TOWERBACKGROUND_V1_H__
+#ifndef __TOWERBACKGROUNDv1_H__
+#define __TOWERBACKGROUNDv1_H__
 
 #include "TowerBackground.h"
 
-#include <phool/PHObject.h>
-
-class TowerBackground_v1 : public TowerBackground
+class TowerBackgroundv1 : public TowerBackground
 {
  public:
-  TowerBackground_v1();
-  virtual ~TowerBackground_v1();
+  TowerBackgroundv1();
+  virtual ~TowerBackgroundv1(){}
 
   void identify(std::ostream &os = std::cout) const;
   void Reset() {}
@@ -35,7 +33,7 @@ class TowerBackground_v1 : public TowerBackground
   int _nStrips;
   int _nTowers;
 
-  ClassDef(TowerBackground_v1, 1);
+  ClassDef(TowerBackgroundv1, 1);
 };
 
-#endif  // __TOWERBACKGROUND_V1_H__
+#endif
