@@ -7,8 +7,6 @@
 
 using namespace std;
 
-ClassImp(PHG4Showerv1);
-
 PHG4Showerv1::PHG4Showerv1()
   : _id(0xFFFFFFFF)
   , _parent_particle_id(0)
