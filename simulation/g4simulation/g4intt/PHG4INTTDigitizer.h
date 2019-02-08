@@ -1,6 +1,8 @@
 #ifndef G4INTT_PHG4INTTDIGITIZER_H
 #define G4INTT_PHG4INTTDIGITIZER_H
 
+#include <phparameter/PHParameterInterface.h>
+
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 
@@ -16,7 +18,7 @@
 
 class SvtxHitMap;
 
-class PHG4INTTDigitizer : public SubsysReco
+class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4INTTDigitizer(const std::string &name = "PHG4INTTDigitizer");
@@ -33,6 +35,10 @@ class PHG4INTTDigitizer : public SubsysReco
 
   //! end of process
   int End(PHCompositeNode *topNode);
+
+  void SetDefaultParameters();
+
+  void Detector(const std::string &d) {detector = d;}
 
   void set_adc_scale(const int &layer, const std::vector<double> &userrange)
   {
@@ -51,6 +57,11 @@ class PHG4INTTDigitizer : public SubsysReco
     _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
   }
 
+ protected:
+  std::string detector;
+  std::string hitnodename;
+  std::string cellnodename;
+
  private:
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
 
@@ -60,9 +71,9 @@ class PHG4INTTDigitizer : public SubsysReco
   // noise electrons
   float added_noise();
 
-  float mNoiseMean;            // Mean of noise electron distribution
-  float mNoiseSigma;           // Sigma of noise electron distribution
-  const float mEnergyPerPair;  // GeV/e-h pair
+  float mNoiseMean;      // Mean of noise electron distribution
+  float mNoiseSigma;     // Sigma of noise electron distribution
+  float mEnergyPerPair;  // GeV/e-h pair
 
   // settings
   std::map<int, unsigned int> _max_adc;

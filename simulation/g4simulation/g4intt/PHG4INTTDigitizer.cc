@@ -30,6 +30,7 @@ using namespace std;
 
 PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   : SubsysReco(name)
+  , PHParameterInterface(name)
   , mNoiseMean(457.2)
   , mNoiseSigma(166.6)
   , mEnergyPerPair(3.62e-9)  // GeV/e-h
@@ -78,6 +79,36 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   }
 
   CalculateLadderCellADCScale(topNode);
+  
+  // Create the run and par nodes
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+
+  string paramnodename = "G4CELLPARAM_" + detector;
+  string geonodename = "G4CELLGEO_" + detector;
+
+  UpdateParametersWithMacro();
+  // save this to the run wise tree to store on DST
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
+  if (! RunDetNode)
+  {
+    RunDetNode = new PHCompositeNode(detector);
+    runNode->addNode(RunDetNode);
+  }
+  SaveToNodeTree(RunDetNode,paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+  {
+    ParDetNode = new PHCompositeNode(detector);
+    parNode->addNode(ParDetNode);
+  }
+  PutOnParNode(ParDetNode,geonodename);
+  mNoiseMean      = get_double_param("mNoiseMean");
+  mNoiseSigma     = get_double_param("mNoiseSigma");
+  mEnergyPerPair  = get_double_param("mEnergyPerPair");
 
   //----------------
   // Report Settings
@@ -307,6 +338,14 @@ void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
     cout << "===========================================================================" << endl;
   }
 
+  return;
+}
+
+void PHG4INTTDigitizer::SetDefaultParameters()
+{
+  set_default_double_param("mNoiseMean",457.2);
+  set_default_double_param("mNoiseSigma",166.6); 
+  set_default_double_param("mEnergyPerPair",3.62e-9); // GeV/e-h
   return;
 }
 
