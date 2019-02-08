@@ -27,37 +27,52 @@ libcalotrigger_la_LIBADD = \
 pkginclude_HEADERS = \
   CaloTriggerSim.h \
   CaloTriggerInfo.h \
-  CaloTriggerInfo_v1.h
+  CaloTriggerInfov1.h
+
+ROOTDICTS = \
+  CaloTriggerInfo_Dict.cc \
+  CaloTriggerInfov1_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    CaloTriggerInfo_Dict_rdict.pcm \
+    CaloTriggerInfov1_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    CaloTriggerSim_Dict.cc
+endif
 
 libcalotrigger_io_la_SOURCES = \
-  CaloTriggerInfo_Dict.C \
-  CaloTriggerInfo_v1.cc \
-  CaloTriggerInfo_v1_Dict.C
+  $(ROOTDICTS) \
+  CaloTriggerInfov1.cc
 
 libcalotrigger_la_SOURCES = \
-  CaloTriggerSim.cc \
-  CaloTriggerSim_Dict.C
+  $(ROOT5_DICTS) \
+  CaloTriggerSim.cc
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
-BUILT_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_calotrigger_io \
   testexternals_calotrigger
 
 
-testexternals_calotrigger_io_SOURCES = testexternals.C
+testexternals_calotrigger_io_SOURCES = testexternals.cc
 testexternals_calotrigger_io_LDADD = libcalotrigger_io.la
 
-testexternals_calotrigger_SOURCES = testexternals.C
+testexternals_calotrigger_SOURCES = testexternals.cc
 testexternals_calotrigger_LDADD = libcalotrigger.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -65,4 +80,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm
