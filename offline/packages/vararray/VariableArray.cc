@@ -1,14 +1,12 @@
-#include <VariableArray.h>
-
-ClassImp(VariableArray)
+#include "VariableArray.h"
 
 using namespace std;
 
-VariableArray::VariableArray(const unsigned int idval)
+VariableArray::VariableArray(const unsigned int idval):
+  id(idval),
+  nVal(0),
+  sval(nullptr)
 {
-  id = idval;
-  nVal = 0;
-  sval = 0;
   return;
 }
 
@@ -47,7 +45,7 @@ void
 VariableArray::Reset()
 {
   delete [] sval;
-  sval = 0;
+  sval = nullptr;
   nVal = 0;
   return;
 }

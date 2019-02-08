@@ -1,4 +1,5 @@
 #include "VariableArrayUtils.h"
+
 #include <half/half.h>
 
 short

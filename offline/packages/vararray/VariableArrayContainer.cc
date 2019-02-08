@@ -1,9 +1,8 @@
 #include "VariableArrayContainer.h"
+
 #include "VariableArray.h"
 
 #include <TObjArray.h>
-
-ClassImp(VariableArrayContainer)
 
 using namespace std;
 
