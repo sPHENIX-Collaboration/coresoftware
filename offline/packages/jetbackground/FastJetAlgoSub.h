@@ -5,24 +5,22 @@
 
 #include <g4jets/Jet.h>
 
-class FastJetAlgoSub : public JetAlgo {
-  
-public:
-
+class FastJetAlgoSub : public JetAlgo
+{
+ public:
   FastJetAlgoSub(Jet::ALGO algo, float par, float verbosity = 0);
   virtual ~FastJetAlgoSub() {}
 
-  void      identify(std::ostream& os = std::cout);
-  Jet::ALGO get_algo() {return _algo;}
-  float     get_par() {return _par;}
-  
+  void identify(std::ostream& os = std::cout);
+  Jet::ALGO get_algo() { return _algo; }
+  float get_par() { return _par; }
+
   std::vector<Jet*> get_jets(std::vector<Jet*> particles);
-  
-private:
+
+ private:
   int _verbosity;
   Jet::ALGO _algo;
   float _par;
-  
 };
 
 #endif

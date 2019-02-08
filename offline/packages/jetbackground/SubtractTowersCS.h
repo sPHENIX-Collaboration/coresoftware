@@ -24,7 +24,7 @@ class SubtractTowersCS : public SubsysReco
 {
  public:
   SubtractTowersCS(const std::string &name = "SubtractTowersCS");
-  virtual ~SubtractTowersCS(){}
+  virtual ~SubtractTowersCS() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);

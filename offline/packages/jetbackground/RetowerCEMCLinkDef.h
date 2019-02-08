@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class RetowerCEMC-!;
+#pragma link C++ class RetowerCEMC - !;
 
 #endif /* __CINT__ */

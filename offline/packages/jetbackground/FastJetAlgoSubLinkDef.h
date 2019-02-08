@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class FastJetAlgoSub-!;
+#pragma link C++ class FastJetAlgoSub - !;
 
 #endif /* __CINT__ */

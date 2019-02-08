@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class DetermineTowerBackground-!;
+#pragma link C++ class DetermineTowerBackground - !;
 
 #endif /* __CINT__ */

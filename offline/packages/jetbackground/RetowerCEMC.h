@@ -26,7 +26,7 @@ class RetowerCEMC : public SubsysReco
 {
  public:
   RetowerCEMC(const std::string &name = "RetowerCEMC");
-  virtual ~RetowerCEMC(){}
+  virtual ~RetowerCEMC() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -36,8 +36,7 @@ class RetowerCEMC : public SubsysReco
 
   int _NETA;
   int _NPHI;
-  std::vector< std::vector<float> > _EMCAL_RETOWER_E;
-
+  std::vector<std::vector<float> > _EMCAL_RETOWER_E;
 };
 
 #endif

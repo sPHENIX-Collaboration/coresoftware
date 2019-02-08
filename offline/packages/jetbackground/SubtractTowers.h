@@ -24,12 +24,12 @@ class SubtractTowers : public SubsysReco
 {
  public:
   SubtractTowers(const std::string &name = "SubtractTowers");
-  virtual ~SubtractTowers(){}
+  virtual ~SubtractTowers() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
-  void SetFlowModulation( bool use_flow_modulation ) { _use_flow_modulation = use_flow_modulation; }
+  void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);

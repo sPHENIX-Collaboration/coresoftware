@@ -27,13 +27,13 @@ class DetermineTowerBackground : public SubsysReco
 {
  public:
   DetermineTowerBackground(const std::string &name = "DetermineTowerBackground");
-  virtual ~DetermineTowerBackground(){}
+  virtual ~DetermineTowerBackground() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
-  void SetBackgroundOutputName(const std::string &name) {_backgroundName = name;}
-  void SetSeedType(int seed_type) {_seed_type = seed_type;}
+  void SetBackgroundOutputName(const std::string &name) { _backgroundName = name; }
+  void SetSeedType(int seed_type) { _seed_type = seed_type; }
   void SetFlow(int do_flow) { _do_flow = do_flow; };
 
   void SetSeedJetD(float D) { _seed_jet_D = D; };
