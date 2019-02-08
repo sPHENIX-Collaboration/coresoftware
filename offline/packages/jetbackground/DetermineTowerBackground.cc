@@ -1,14 +1,7 @@
 #include "DetermineTowerBackground.h"
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
+#include "TowerBackgroundv1.h"
 
-// sPHENIX includes
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
@@ -21,10 +14,15 @@
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include "TowerBackground_v1.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHTypedNodeIterator.h>
+#include <phool/getClass.h>
 
 #include <TLorentzVector.h>
-#include <TMath.h>
 
 // standard includes
 #include <iomanip>
@@ -33,55 +31,19 @@
 
 DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)
+  , _do_flow(0)
+  , _v2(0)
+  , _Psi2(0)
+  , _nStrips(0)
+  , _nTowers(0)
+  , _HCAL_NETA(-1)
+  , _HCAL_NPHI(-1)
+  , _backgroundName("TestTowerBackground")
+  , _seed_type(0)
+  , _seed_jet_D(3.0)
+  , _seed_jet_pt(7.0)
 {
-  _do_flow = 0;
-
-  _seed_jet_D = 3.0;
-  _seed_jet_pt = 7.0;
-
-  _v2 = 0;
-  _Psi2 = 0;
-
   _UE.resize(3, std::vector<float>(1, 0));
-
-  _nStrips = 0;
-
-  _nTowers = 0;
-
-  // initiate sizes as -1 to tell module they should be set when it
-  // sees the HCal geometry for the first time
-
-  _HCAL_NETA = -1;
-  _HCAL_NPHI = -1;
-
-  _backgroundName = "TestTowerBackground";
-  _seed_type = 0;
-}
-
-DetermineTowerBackground::~DetermineTowerBackground()
-{
-}
-
-void DetermineTowerBackground::SetBackgroundOutputName(std::string name)
-{
-  _backgroundName = name;
-
-  return;
-}
-
-void DetermineTowerBackground::SetSeedType(int seed_type)
-{
-  _seed_type = seed_type;
-
-  return;
-}
-
-int DetermineTowerBackground::Init(PHCompositeNode *topNode)
-{
-  if (Verbosity() > 0)
-    std::cout << "DetermineTowerBackground::Init: initialized" << std::endl;
-
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int DetermineTowerBackground::InitRun(PHCompositeNode *topNode)
@@ -485,8 +447,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
     float Q_y = 0;
     float E = 0;
 
-    float sum_cos2dphi = 0;
-
     if (Verbosity() > 0)
       std::cout << "DetermineTowerBackground::process_event: # of strips (summed over layers) available / unavailable for flow determination: " << nStripsAvailableForFlow << " / " << nStripsUnavailableForFlow << std::endl;
 
@@ -501,7 +461,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
 
       if (_do_flow == 1)
       {
-        _Psi2 = TMath::ATan2(Q_y, Q_x) / 2.0;
+        _Psi2 = atan2(Q_y, Q_x) / 2.0;
       }
       else if (_do_flow == 2)
       {
@@ -547,6 +507,7 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
       }
 
       // determine v2 from calo regardless of origin of Psi2
+      double sum_cos2dphi = 0;
       for (int iphi = 0; iphi < _HCAL_NPHI; iphi++)
       {
         sum_cos2dphi += _FULLCALOFLOW_PHI_E[iphi] * cos(2 * (_FULLCALOFLOW_PHI_VAL[iphi] - _Psi2));
@@ -655,11 +616,6 @@ int DetermineTowerBackground::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int DetermineTowerBackground::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int DetermineTowerBackground::CreateNode(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
@@ -684,7 +640,7 @@ int DetermineTowerBackground::CreateNode(PHCompositeNode *topNode)
   TowerBackground *towerbackground = findNode::getClass<TowerBackground>(topNode, _backgroundName);
   if (!towerbackground)
   {
-    towerbackground = new TowerBackground_v1();
+    towerbackground = new TowerBackgroundv1();
     PHIODataNode<PHObject> *bkgDataNode = new PHIODataNode<PHObject>(towerbackground, _backgroundName, "PHObject");
     bkgNode->addNode(bkgDataNode);
   }

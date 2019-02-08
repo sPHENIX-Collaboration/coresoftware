@@ -1,5 +1,5 @@
-#ifndef __DETERMINETOWERBACKGROUND_H__
-#define __DETERMINETOWERBACKGROUND_H__
+#ifndef JETBACKGROUND_DETERMINETOWERBACKGROUND_H
+#define JETBACKGROUND_DETERMINETOWERBACKGROUND_H
 
 //===========================================================
 /// \file DetermineTowerBackground.h
@@ -7,12 +7,9 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
-// standard includes
+// system includes
 #include <vector>
 
 // forward declarations
@@ -30,15 +27,13 @@ class DetermineTowerBackground : public SubsysReco
 {
  public:
   DetermineTowerBackground(const std::string &name = "DetermineTowerBackground");
-  virtual ~DetermineTowerBackground();
+  virtual ~DetermineTowerBackground() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
-  void SetBackgroundOutputName(std::string name);
-  void SetSeedType(int seed_type);
+  void SetBackgroundOutputName(const std::string &name) { _backgroundName = name; }
+  void SetSeedType(int seed_type) { _seed_type = seed_type; }
   void SetFlow(int do_flow) { _do_flow = do_flow; };
 
   void SetSeedJetD(float D) { _seed_jet_D = D; };
@@ -77,4 +72,4 @@ class DetermineTowerBackground : public SubsysReco
   std::vector<float> _seed_phi;
 };
 
-#endif  // __DETERMINETOWERBACKGROUND_H__
+#endif
