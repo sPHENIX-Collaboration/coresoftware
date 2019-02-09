@@ -92,8 +92,8 @@ ROOTDICTS = \
   HelixHoughFuncs_v1_Dict.cc \
   CellularAutomaton_Dict.cc \
   CellularAutomaton_v1_Dict.cc \
-  SvtxBeamSpot_Dict.cc \
-  SimpleTrack_Dict.cc
+  SimpleTrack_Dict.cc \
+  SvtxBeamSpot_Dict.cc
 
 if MAKEROOT6
   pcmdir = $(libdir)
@@ -106,6 +106,7 @@ if MAKEROOT6
   HelixHoughFuncs_v1_Dict_rdict.pcm \
   CellularAutomaton_Dict_rdict.pcm \
   CellularAutomaton_v1_Dict_rdict.pcm \
+  SimpleTrack_Dict_rdict.pcm \
   SvtxBeamSpot_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
