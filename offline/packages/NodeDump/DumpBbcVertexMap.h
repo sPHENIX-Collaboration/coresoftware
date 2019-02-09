@@ -1,5 +1,5 @@
-#ifndef DUMPBBCVERTEXMAP_H__
-#define DUMPBBCVERTEXMAP_H__
+#ifndef NODEDUMP_DUMPBBCVERTEXMAP_H
+#define NODEDUMP_DUMPBBCVERTEXMAP_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpBbcVertexMap : public DumpObject
   virtual ~DumpBbcVertexMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPBBCVERTEXMAP_H__ */
-
+#endif

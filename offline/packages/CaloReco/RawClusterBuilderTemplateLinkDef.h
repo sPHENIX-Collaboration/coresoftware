@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class RawClusterBuilderTemplate-!;
+#pragma link C++ class RawClusterBuilderTemplate - !;
 
-#endif /* __CINT__ */
+#endif

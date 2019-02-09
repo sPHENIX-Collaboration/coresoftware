@@ -1,5 +1,5 @@
-#ifndef _H_AssocInfoContainer_H_
-#define _H_AssocInfoContainer_H_
+#ifndef TRACKRECO_ASSOCINFOCONTAINER_H
+#define TRACKRECO_ASSOCINFOCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -38,4 +38,4 @@ class AssocInfoContainer : public PHObject
   ClassDef(AssocInfoContainer, 1)
 };
 
-#endif  //_H_AssocInfoContainer_H_
+#endif

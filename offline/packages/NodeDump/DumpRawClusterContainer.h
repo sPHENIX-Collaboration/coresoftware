@@ -1,5 +1,5 @@
-#ifndef DUMPRAWCLUSTERCONTAINER_H__
-#define DUMPRAWCLUSTERCONTAINER_H__
+#ifndef NODEDUMP_DUMPRAWCLUSTERCONTAINER_H
+#define NODEDUMP_DUMPRAWCLUSTERCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpRawClusterContainer : public DumpObject
   virtual ~DumpRawClusterContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPRAWCLUSTERCONTAINER_H__ */
-
+#endif

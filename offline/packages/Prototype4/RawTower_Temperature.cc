@@ -11,8 +11,6 @@
 
 using namespace std;
 
-ClassImp(RawTower_Temperature)
-
     RawTower_Temperature::RawTower_Temperature()
   : towerid(~0)  // initialize all bits on
 {

@@ -1,8 +1,6 @@
 #include "PHG4VtxPointv1.h"
 
 
-ClassImp(PHG4VtxPointv1)
-
 using namespace std;
 
 void

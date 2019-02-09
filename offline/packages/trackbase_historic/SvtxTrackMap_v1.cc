@@ -4,7 +4,6 @@
 
 using namespace std;
 
-ClassImp(SvtxTrackMap_v1)
 
     SvtxTrackMap_v1::SvtxTrackMap_v1()
   : _map()

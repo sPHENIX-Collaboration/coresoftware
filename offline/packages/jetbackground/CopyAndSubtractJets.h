@@ -1,5 +1,5 @@
-#ifndef __COPYANDSUBTRACTJETS_H__
-#define __COPYANDSUBTRACTJETS_H__
+#ifndef JETBACKGROUND_COPYANDSUBTRACTJETS_H
+#define JETBACKGROUND_COPYANDSUBTRACTJETS_H
 
 //===========================================================
 /// \file CopyAndSubtractJets.h
@@ -7,15 +7,7 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
-
-// standard includes
-#include <vector>
-
-#include <calobase/RawTowerContainer.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -33,20 +25,18 @@ class CopyAndSubtractJets : public SubsysReco
 {
  public:
   CopyAndSubtractJets(const std::string &name = "CopyAndSubtractJets");
-  virtual ~CopyAndSubtractJets();
+  virtual ~CopyAndSubtractJets() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void SetFlowModulation( bool use_flow_modulation ) { _use_flow_modulation = use_flow_modulation; }
+  void SetFlowModulation(bool use_flow_modulation) { _use_flow_modulation = use_flow_modulation; }
 
  private:
   int CreateNode(PHCompositeNode *topNode);
 
   bool _use_flow_modulation;
-
 };
 
-#endif  // __COPYANDSUBTRACTJETS_H__
+#endif

@@ -1,5 +1,5 @@
-#ifndef DumpRawTowerGeomContainer_H__
-#define DumpRawTowerGeomContainer_H__
+#ifndef NODEDUMP_DUMPRAWTOWERGEOMCONTAINER_H
+#define NODEDUMP_DUMPRAWTOWERGEOMCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpRawTowerGeomContainer : public DumpObject
   virtual ~DumpRawTowerGeomContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DumpRawTowerGeomContainer_H__ */
-
+#endif

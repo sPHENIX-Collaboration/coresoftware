@@ -24,17 +24,17 @@ libPrototype2_la_SOURCES = \
   RawTower_Prototype2Dict.C \
   Prototype2DSTReader.cc \
   Prototype2DSTReaderDict.C \
-  CaloUnpackPRDF.C \
+  CaloUnpackPRDF.cc \
   CaloUnpackPRDFDict.C \
-  TempInfoUnpackPRDF.C \
+  TempInfoUnpackPRDF.cc \
   TempInfoUnpackPRDFDict.C \
-  RunInfoUnpackPRDF.C \
+  RunInfoUnpackPRDF.cc \
   RunInfoUnpackPRDFDict.C \
-  CaloCalibration.C \
+  CaloCalibration.cc \
   CaloCalibrationDict.C \
-  GenericUnpackPRDF.C \
+  GenericUnpackPRDF.cc \
   GenericUnpackPRDFDict.C \
-  PROTOTYPE2_FEM.C \
+  PROTOTYPE2_FEM.cc \
   PROTOTYPE2_FEMDict.C \
   RawTower_Temperature.cc \
   RawTower_TemperatureDict.C

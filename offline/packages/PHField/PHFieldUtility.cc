@@ -1,15 +1,15 @@
 #include "PHFieldUtility.h"
 
-#include "PHFieldConfig_v1.h"
-
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
+#include "PHFieldConfigv1.h"
 #include "PHFieldUniform.h"
 
 // PHENIX includes
-#include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
@@ -18,23 +18,10 @@
 #include <phool/recoConsts.h>
 
 #include <cassert>
-#include <cstdio>
-#include <fstream>
 #include <iostream>
-#include <sstream>
 #include <stdexcept>
 
-#include <sys/types.h>
-#include <unistd.h>  // for generate unique local file
 using namespace std;
-
-PHFieldUtility::PHFieldUtility()
-{
-}
-
-PHFieldUtility::~PHFieldUtility()
-{
-}
 
 PHField *
 PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbosity)
@@ -100,9 +87,9 @@ PHFieldConfig *
 PHFieldUtility::
     DefaultFieldConfig()
 {
-  return new PHFieldConfig_v1(PHFieldConfig_v1::kField2D,
-                              "/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root",
-                              1.4 / 1.5);
+  return new PHFieldConfigv1(PHFieldConfigv1::kField2D,
+                             "/phenix/upgrades/decadal/fieldmaps/sPHENIX.2d.root",
+                             1.4 / 1.5);
 }
 
 //! Get transient PHField from DST nodes. If not found, make a new one based on default_config
@@ -124,7 +111,7 @@ PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHComposite
 
     throw runtime_error(serr.str());
 
-    return NULL;
+    return nullptr;
   }
 
   PHField *field = findNode::getClass<PHField>(parNode, GetDSTFieldMapNodeName());
@@ -134,10 +121,10 @@ PHFieldUtility::GetFieldMapNode(const PHFieldConfig *default_config, PHComposite
         GetFieldConfigNode(default_config, topNode, verbosity);
     assert(field_config);
 
-    field = BuildFieldMap(field_config, verbosity>0?verbosity-1:verbosity);
+    field = BuildFieldMap(field_config, verbosity > 0 ? verbosity - 1 : verbosity);
     assert(field);
 
-    parNode->addNode(new PHDataNode<PHObject>(field, GetDSTFieldMapNodeName(), "PHObject"));
+    parNode->addNode(new PHDataNode<PHField>(field, GetDSTFieldMapNodeName()));
   }
 
   return field;
@@ -163,43 +150,44 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
 
     throw runtime_error(serr.str());
 
-    return NULL;
+    return nullptr;
   }
 
   PHFieldConfig *field = findNode::getClass<PHFieldConfig>(runNode,
-                                               GetDSTConfigNodeName());
+                                                           GetDSTConfigNodeName());
   if (!field)
   {
     if (!default_config)
     {
       field = DefaultFieldConfig();
       if (verbosity)
-          {
-          cout <<"PHFieldUtility::GetFieldConfigNode - field map with configuration from build-in default: ";
-          field->identify();
-        }
+      {
+        cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from build-in default: ";
+        field->identify();
+      }
     }
     else
     {
       field = static_cast<PHFieldConfig *>(default_config->Clone());
       if (verbosity)
-          {
-          cout <<"PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";
-          field->identify();
-        }
+      {
+        cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";
+        field->identify();
+      }
     }
 
     assert(field);
     runNode->addNode(new PHIODataNode<PHObject>(field,
-                                              GetDSTConfigNodeName(), "PHObject"));
+                                                GetDSTConfigNodeName(), "PHObject"));
   }
   else
   {
     if (verbosity)
     {
-    cout <<"PHFieldUtility::GetFieldConfigNode - field map with configuration from DST/RUN: ";
-    field->identify();
-  }}
+      cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from DST/RUN: ";
+      field->identify();
+    }
+  }
 
   return field;
 }

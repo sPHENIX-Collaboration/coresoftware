@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 # list of shared libraries to produce
@@ -15,79 +18,15 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
-# sources for io library
-libtrackbase_historic_io_la_SOURCES = \
-  SvtxCluster.cc \
-  SvtxCluster_Dict.cc \
-  SvtxCluster_v1.cc \
-  SvtxCluster_v1_Dict.cc \
-  SvtxClusterMap.cc \
-  SvtxClusterMap_Dict.cc \
-  SvtxClusterMap_v1.cc \
-  SvtxClusterMap_v1_Dict.cc \
-  SvtxHit.cc \
-  SvtxHit_Dict.cc \
-  SvtxHit_v1.cc \
-  SvtxHit_v1_Dict.cc \
-  SvtxHitMap.cc \
-  SvtxHitMap_Dict.cc \
-  SvtxHitMap_v1.cc \
-  SvtxHitMap_v1_Dict.cc \
-  SvtxTrackState.cc \
-  SvtxTrackState_Dict.cc \
-  SvtxTrackState_v1.cc \
-  SvtxTrackState_v1_Dict.cc \
-  SvtxTrack.cc \
-  SvtxTrack_Dict.cc \
-  SvtxTrack_v1.cc \
-  SvtxTrack_FastSim.cc \
-  SvtxTrack_v1_Dict.cc \
-  SvtxTrack_FastSim_Dict.cc \
-  SvtxTrackMap.cc \
-  SvtxTrackMap_Dict.cc \
-  SvtxTrackMap_v1.cc \
-  SvtxTrackMap_v1_Dict.cc \
-  SvtxVertex.cc \
-  SvtxVertex_Dict.cc \
-  SvtxVertex_v1.cc \
-  SvtxVertex_v1_Dict.cc \
-  SvtxVertexMap.cc \
-  SvtxVertexMap_Dict.cc \
-  SvtxVertexMap_v1.cc \
-  SvtxVertexMap_v1_Dict.cc 
-
-libtrackbase_historic_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
-libtrackbase_historic_io_la_LIBADD = \
-  -lphool \
-  -lCLHEP 
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-##############################################
-# please add new classes in alphabetical order
-
 pkginclude_HEADERS = \
   SvtxHit.h \
-  SvtxHitLinkDef.h \
   SvtxHit_v1.h \
-  SvtxHit_v1LinkDef.h \
   SvtxHitMap.h \
-  SvtxHitMapLinkDef.h \
   SvtxHitMap_v1.h \
-  SvtxHitMap_v1LinkDef.h \
   SvtxCluster.h \
-  SvtxClusterLinkDef.h \
   SvtxCluster_v1.h \
-  SvtxCluster_v1LinkDef.h \
   SvtxClusterMap.h \
-  SvtxClusterMapLinkDef.h \
   SvtxClusterMap_v1.h \
-  SvtxClusterMap_v1LinkDef.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_FastSim.h \
@@ -99,6 +38,80 @@ pkginclude_HEADERS = \
   SvtxVertex_v1.h \
   SvtxVertexMap.h \
   SvtxVertexMap_v1.h 
+
+ROOTDICTS = \
+  SvtxCluster_Dict.cc \
+  SvtxCluster_v1_Dict.cc \
+  SvtxClusterMap_Dict.cc \
+  SvtxClusterMap_v1_Dict.cc \
+  SvtxHitMap_Dict.cc \
+  SvtxHit_v1_Dict.cc \
+  SvtxHit_Dict.cc \
+  SvtxHitMap_v1_Dict.cc \
+  SvtxTrack_Dict.cc \
+  SvtxTrackState_Dict.cc \
+  SvtxTrackState_v1_Dict.cc \
+  SvtxTrack_v1_Dict.cc \
+  SvtxTrack_FastSim_Dict.cc \
+  SvtxTrackMap_Dict.cc \
+  SvtxTrackMap_v1_Dict.cc \
+  SvtxVertex_Dict.cc \
+  SvtxVertex_v1_Dict.cc \
+  SvtxVertexMap_Dict.cc \
+  SvtxVertexMap_v1_Dict.cc 
+
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    SvtxCluster_Dict_rdict.pcm \
+    SvtxCluster_v1_Dict_rdict.pcm \
+    SvtxClusterMap_Dict_rdict.pcm \
+    SvtxClusterMap_v1_Dict_rdict.pcm \
+    SvtxHitMap_Dict_rdict.pcm \
+    SvtxHit_v1_Dict_rdict.pcm \
+    SvtxHit_Dict_rdict.pcm \
+    SvtxHitMap_v1_Dict_rdict.pcm \
+    SvtxTrack_Dict_rdict.pcm \
+    SvtxTrackState_Dict_rdict.pcm \
+    SvtxTrackState_v1_Dict_rdict.pcm \
+    SvtxTrack_v1_Dict_rdict.pcm \
+    SvtxTrack_FastSim_Dict_rdict.pcm \
+    SvtxTrackMap_Dict_rdict.pcm \
+    SvtxTrackMap_v1_Dict_rdict.pcm \
+    SvtxVertex_Dict_rdict.pcm \
+    SvtxVertex_v1_Dict_rdict.pcm \
+    SvtxVertexMap_Dict_rdict.pcm \
+    SvtxVertexMap_v1_Dict_rdict.pcm 
+endif
+
+# sources for io library
+libtrackbase_historic_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  SvtxCluster_v1.cc \
+  SvtxClusterMap_v1.cc \
+  SvtxHit_v1.cc \
+  SvtxHitMap_v1.cc \
+  SvtxTrackState_v1.cc \
+  SvtxTrack_v1.cc \
+  SvtxTrack_FastSim.cc \
+  SvtxTrackMap_v1.cc \
+  SvtxVertex_v1.cc \
+  SvtxVertexMap_v1.cc
+
+libtrackbase_historic_io_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
+libtrackbase_historic_io_la_LIBADD = \
+  -lphool
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 
 
 ################################################

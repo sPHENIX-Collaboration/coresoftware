@@ -7,8 +7,6 @@
 
 using namespace std;
 
-ClassImp(PHG4Hitv1)
-
 PHG4Hitv1::PHG4Hitv1():
  hitid(ULONG_LONG_MAX),
  trackid(INT_MIN),

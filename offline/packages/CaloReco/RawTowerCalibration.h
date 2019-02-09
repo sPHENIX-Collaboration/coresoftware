@@ -1,11 +1,11 @@
-#ifndef RawTowerCalibration_H__
-#define RawTowerCalibration_H__
+#ifndef CALORECO_RAWTOWERCALIBRATION_H
+#define CALORECO_RAWTOWERCALIBRATION_H
 
 #include <fun4all/SubsysReco.h>
-#include <string>
 
-#include <phool/PHTimeServer.h>
 #include <phparameter/PHParameters.h>
+
+#include <string>
 
 class PHCompositeNode;
 class RawTowerContainer;
@@ -16,20 +16,15 @@ class RawTowerGeomContainer;
 //! default output DST node is TOWER_CALIB_DETECTOR
 class RawTowerCalibration : public SubsysReco
 {
-
-public:
-  RawTowerCalibration(const std::string& name = "RawTowerCalibration");
-  virtual
-  ~RawTowerCalibration()
+ public:
+  RawTowerCalibration(const std::string &name = "RawTowerCalibration");
+  virtual ~RawTowerCalibration()
   {
   }
 
-  int
-  InitRun(PHCompositeNode *topNode);
-  int
-  process_event(PHCompositeNode *topNode);
-  int
-  End(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
   void
   Detector(const std::string &d)
   {
@@ -39,8 +34,8 @@ public:
   void
   TowerType(const int type)
   {
-    _tower_type = type; 
-  } 
+    _tower_type = type;
+  }
 
   enum enu_calib_algorithm
   {
@@ -85,7 +80,7 @@ public:
   }
 
   void
-  set_calib_tower_node_prefix(std::string calibTowerNodePrefix)
+  set_calib_tower_node_prefix(const std::string &calibTowerNodePrefix)
   {
     _calib_tower_node_prefix = calibTowerNodePrefix;
   }
@@ -109,7 +104,7 @@ public:
   }
 
   void
-  set_raw_tower_node_prefix(std::string rawTowerNodePrefix)
+  set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
     _raw_tower_node_prefix = rawTowerNodePrefix;
   }
@@ -132,14 +127,15 @@ public:
   {
     return _tower_calib_params;
   }
-protected:
+
+ protected:
   void
   CreateNodes(PHCompositeNode *topNode);
 
   enu_calib_algorithm _calib_algorithm;
 
-  RawTowerContainer* _calib_towers;
-  RawTowerContainer* _raw_towers;
+  RawTowerContainer *_calib_towers;
+  RawTowerContainer *_raw_towers;
   RawTowerGeomContainer *rawtowergeom;
 
   std::string detector;
@@ -160,13 +156,10 @@ protected:
   double _zero_suppression_GeV;
 
   //! tower type to act on
-  int _tower_type; 
-
-  PHTimeServer::timer _timer;
+  int _tower_type;
 
   //! Tower by tower calibration parameters
   PHParameters _tower_calib_params;
-
 };
 
-#endif /* RawTowerCalibration_H__ */
+#endif

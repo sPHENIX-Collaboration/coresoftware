@@ -1,8 +1,10 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 # list of shared libraries to produce
 lib_LTLIBRARIES = \
-  libtrack_util.la \
   libtrack_io.la
 
 AM_CPPFLAGS = \
@@ -16,57 +18,6 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
-# sources for util library
-libtrack_util_la_SOURCES = \
-  TrkrDefs.cc \
-  TrkrDefs_Dict.cc
-
-# sources for io library
-libtrack_io_la_SOURCES = \
-  TrkrCluster_Dict.cc \
-  TrkrClusterv1.cc \
-  TrkrClusterv1_Dict.cc \
-  TrkrClusterContainer.cc \
-  TrkrClusterContainer_Dict.cc \
-  TrkrClusterHitAssoc.cc \
-  TrkrClusterHitAssoc_Dict.cc \
-  TrkrHit.cc \
-  TrkrHit_Dict.cc \
-  TrkrHitTruthAssoc.cc \
-  TrkrHitTruthAssoc_Dict.cc \
-  TrkrHitSet.cc \
-  TrkrHitSet_Dict.cc \
-  TrkrHitSetContainer.cc \
-  TrkrHitSetContainer_Dict.cc \
-  TrkrTrack_Dict.cc \
-  TrkrTrackContainer_Dict.cc
-
-
-libtrack_util_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
-libtrack_util_la_LIBADD = \
-  -lCLHEP \
-  -lphool
-
-
-libtrack_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
-
-libtrack_io_la_LIBADD = \
-  -lCLHEP \
-  libtrack_util.la
-
-
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-##############################################
-# please add new classes in alphabetical order
-
 pkginclude_HEADERS = \
   TrkrCluster.h \
   TrkrClusterv1.h \
@@ -74,12 +25,72 @@ pkginclude_HEADERS = \
   TrkrClusterHitAssoc.h \
   TrkrDefs.h \
   TrkrHit.h \
+  TrkrHitCellAssoc.h \
   TrkrHitTruthAssoc.h \
   TrkrHitSet.h \
   TrkrHitSetContainer.h \
   TrkrTrack.h \
   TrkrTrackContainer.h
 
+ROOTDICTS = \
+  TrkrCluster_Dict.cc \
+  TrkrClusterv1_Dict.cc \
+  TrkrClusterContainer_Dict.cc \
+  TrkrClusterHitAssoc_Dict.cc \
+  TrkrHit_Dict.cc \
+  TrkrHitTruthAssoc_Dict.cc \
+  TrkrHitCellAssoc_Dict.cc \
+  TrkrHitSet_Dict.cc \
+  TrkrHitSetContainer_Dict.cc \
+  TrkrTrack_Dict.cc \
+  TrkrTrackContainer_Dict.cc
+
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    TrkrCluster_Dict_rdict.pcm \
+    TrkrClusterv1_Dict_rdict.pcm \
+    TrkrClusterContainer_Dict_rdict.pcm \
+    TrkrClusterHitAssoc_Dict_rdict.pcm \
+    TrkrHit_Dict_rdict.pcm \
+    TrkrHitCellAssoc_Dict_rdict.pcm \
+    TrkrHitSet_Dict_rdict.pcm \
+    TrkrHitSetContainer_Dict_rdict.pcm \
+    TrkrTrack_Dict_rdict.pcm \
+    TrkrTrackContainer_Dict_rdict.pcm
+else
+  ROOT5_IO_DICTS = \
+    TrkrDefs_Dict.cc
+endif
+
+# sources for io library
+libtrack_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  $(ROOT5_IO_DICTS) \
+  TrkrClusterv1.cc \
+  TrkrClusterContainer.cc \
+  TrkrClusterHitAssoc.cc \
+  TrkrDefs.cc \
+  TrkrHitCellAssoc.cc \
+  TrkrHitTruthAssoc.cc \
+  TrkrHit.cc \
+  TrkrHitSet.cc \
+  TrkrHitSetContainer.cc
+
+libtrack_io_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
+libtrack_io_la_LIBADD = \
+  -lphool
+
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -87,11 +98,10 @@ pkginclude_HEADERS = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_track_util \
   testexternals_track_io
 
-testexternals_track_util_SOURCES = testexternals.cc
-testexternals_track_util_LDADD = libtrack_util.la
+#testexternals_track_util_SOURCES = testexternals.cc
+#testexternals_track_util_LDADD = libtrack_util.la
 
 testexternals_track_io_SOURCES = testexternals.cc
 testexternals_track_io_LDADD = libtrack_io.la

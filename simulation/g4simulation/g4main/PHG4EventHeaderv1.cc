@@ -1,7 +1,5 @@
 #include "PHG4EventHeaderv1.h"
 
-ClassImp(PHG4EventHeaderv1)
-
 using namespace std;
 
 PHG4EventHeaderv1::PHG4EventHeaderv1():

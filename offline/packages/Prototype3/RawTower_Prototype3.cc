@@ -10,8 +10,6 @@
 
 using namespace std;
 
-ClassImp(RawTower_Prototype3)
-
 RawTower_Prototype3::RawTower_Prototype3() :
     towerid(~0), // initialize all bits on
     energy(0), time(NAN), HBD_channel(-1)

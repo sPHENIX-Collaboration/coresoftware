@@ -1,6 +1,5 @@
-
-#ifndef __PHFieldUniform_H__
-#define __PHFieldUniform_H__
+#ifndef PHFIELD_PHFIELDUNIFORM_H
+#define PHFIELD_PHFIELDUNIFORM_H
 
 #include "PHField.h"
 
@@ -61,4 +60,4 @@ class PHFieldUniform : public PHField
  private:
 };
 
-#endif  // __PHFieldUniform_H
+#endif

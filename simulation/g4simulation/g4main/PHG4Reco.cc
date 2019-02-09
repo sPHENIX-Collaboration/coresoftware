@@ -20,8 +20,8 @@
 #include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <phfield/PHFieldUtility.h>
-#include <phfield/PHFieldConfig_v1.h>
-#include <phfield/PHFieldConfig_v2.h>
+#include <phfield/PHFieldConfigv1.h>
+#include <phfield/PHFieldConfigv2.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -276,11 +276,11 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   if (fieldmapfile != "NONE")
   {
-    default_field_cfg.reset(new PHFieldConfig_v1(mapdim, fieldmapfile, magfield_rescale));
+    default_field_cfg.reset(new PHFieldConfigv1(mapdim, fieldmapfile, magfield_rescale));
   }
   else
   {
-    default_field_cfg.reset(new PHFieldConfig_v2(0, 0, magfield * magfield_rescale));
+    default_field_cfg.reset(new PHFieldConfigv2(0, 0, magfield * magfield_rescale));
   }
 
   if (Verbosity() > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;

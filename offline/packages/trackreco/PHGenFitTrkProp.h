@@ -5,21 +5,15 @@
  *  \author Christof Roland & Haiwang Yu
  */
 
-#ifndef __H_PHGenFitTrkProp_H__
-#define __H_PHGenFitTrkProp_H__
+#ifndef TRACKRECO_PHGENFITTRKPROP_H
+#define TRACKRECO_PHGENFITTRKPROP_H
 
 #include "PHTrackPropagating.h"
-
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
 
 #include <g4bbc/BbcVertexMap.h>
 
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
 
 // Helix Hough includes
 #ifndef __CINT__
@@ -29,19 +23,22 @@
 #include <HelixHough/sPHENIXSeedFinder.h>
 #endif
 
+// PHGenFit
+#include <phgenfit/Fitter.h>
+
+// PHENIX includes
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHTimeServer.h>
+#include <phool/PHTimer.h>
+
 // standard includes
 #include <float.h>
 #include <list>
 #include <map>
 #include <memory>
 #include <vector>
-
-// PHGenFit
-#include <phgenfit/Fitter.h>
-//#include <phgenfit/Measurement.h>
-
-// trackbase_historic includes
-#include <trackbase_historic/SvtxTrackState.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -97,9 +94,6 @@ class PHGenFitTrkProp : public PHTrackPropagating
   int End();
 
  private:
-  /// create new node output pointers
-  int CreateNodes(PHCompositeNode* topNode);
-
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
 
@@ -650,4 +644,4 @@ class PHGenFitTrkProp : public PHTrackPropagating
 #endif  // __CINT__
 };
 
-#endif  // __H_PHGenFitTrkProp_H__
+#endif

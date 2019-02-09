@@ -1,42 +1,11 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
   libcalo_reco.la 
-
-AM_CPPFLAGS = \
-  -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include 
-
-libcalo_reco_la_SOURCES = \
-  RawClusterBuilderGraph.cc \
-  RawClusterBuilderGraph_Dict.cc \
-  RawClusterBuilderTemplate.cc \
-  RawClusterBuilderTemplate_Dict.cc \
-  RawClusterBuilderTemplateFEMC.cc \
-  RawClusterBuilderTemplateFEMC_Dict.cc \
-  RawClusterBuilderTemplateEEMC.cc \
-  RawClusterBuilderTemplateEEMC_Dict.cc \
-  RawClusterBuilderFwd.cc \
-  RawClusterBuilderFwd_Dict.cc \
-  RawClusterPositionCorrection.cc \
-  RawClusterPositionCorrection_Dict.cc \
-  RawClusterDeadAreaMask.cc \
-  RawClusterDeadAreaMask_Dict.cc \
-  RawTowerCombiner.cc \
-  RawTowerCombiner_Dict.cc \
-  RawTowerCalibration.cc \
-  RawTowerCalibration_Dict.cc \
-  RawTowerDeadTowerInterp.cc \
-  RawTowerDeadTowerInterp_Dict.cc \
-  BEmcCluster.cc \
-  BEmcRec.cc \
-  BEmcRecCEMC.cc \
-  BEmcRecFEMC.cc \
-  BEmcRecEEMC.cc \
-  RawTowerDeadMapLoader.cc \
-  RawTowerDeadMapLoader_Dict.cc
 
 libcalo_reco_la_LDFLAGS = \
   -L$(libdir) \
@@ -50,13 +19,11 @@ libcalo_reco_la_LIBADD = \
   -lcalo_io \
   -lcalo_util  \
   -lphparameter
-  
-# Rule for generating table CINT dictionaries.
-%_Dict.cc: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-##############################################
-# please add new classes in alphabetical order
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include 
 
 pkginclude_HEADERS = \
   RawClusterBuilderFwd.h \
@@ -65,17 +32,59 @@ pkginclude_HEADERS = \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h
 
+
+if ! MAKEROOT6
+  ROOT5_DICTS = \
+  RawClusterBuilderGraph_Dict.cc \
+  RawClusterBuilderTemplate_Dict.cc \
+  RawClusterBuilderTemplateFEMC_Dict.cc \
+  RawClusterBuilderTemplateEEMC_Dict.cc \
+  RawClusterBuilderFwd_Dict.cc \
+  RawClusterPositionCorrection_Dict.cc \
+  RawClusterDeadAreaMask_Dict.cc \
+  RawTowerCombiner_Dict.cc \
+  RawTowerCalibration_Dict.cc \
+  RawTowerDeadTowerInterp_Dict.cc \
+  RawTowerDeadMapLoader_Dict.cc
+endif
+
+
+libcalo_reco_la_SOURCES = \
+  $(ROOT5_DICTS) \
+  BEmcCluster.cc \
+  BEmcRec.cc \
+  BEmcRecCEMC.cc \
+  BEmcRecFEMC.cc \
+  BEmcRecEEMC.cc \
+  RawClusterBuilderGraph.cc \
+  RawClusterBuilderTemplate.cc \
+  RawClusterBuilderTemplateFEMC.cc \
+  RawClusterBuilderTemplateEEMC.cc \
+  RawClusterBuilderFwd.cc \
+  RawClusterPositionCorrection.cc \
+  RawClusterDeadAreaMask.cc \
+  RawTowerCombiner.cc \
+  RawTowerCalibration.cc \
+  RawTowerDeadTowerInterp.cc \
+  RawTowerDeadMapLoader.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
   testexternals_calo_reco
 
+BUILT_SOURCES  = testexternals.cc
 
-testexternals_calo_reco_SOURCES = testexternals.C
+testexternals_calo_reco_SOURCES = testexternals.cc
 testexternals_calo_reco_LDADD = libcalo_reco.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@

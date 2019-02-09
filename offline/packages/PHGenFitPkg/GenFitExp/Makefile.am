@@ -6,11 +6,9 @@ AM_CPPFLAGS = \
   -I`root-config --incdir`
 
 libgenfit2exp_la_LDFLAGS = \
-  -nodefaultlibs \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs` \
-  -L$(GENFIT)/lib 
+  `root-config --libs`
 
 lib_LTLIBRARIES = \
   libgenfit2exp.la

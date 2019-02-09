@@ -31,7 +31,6 @@ static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
   PHParameterInterface(name),
-  _timer(PHTimeServer::get()->insert_new(name.c_str())),
   chkenergyconservation(0),
   tmin(NAN),  // ns
   tmax(NAN) // ns
@@ -108,7 +107,6 @@ PHG4HcalCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {
@@ -184,7 +182,6 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
     {
       CheckEnergy(topNode);
     }
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

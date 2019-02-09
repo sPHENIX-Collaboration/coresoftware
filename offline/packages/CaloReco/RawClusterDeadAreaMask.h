@@ -1,9 +1,8 @@
-#ifndef __RawClusterDeadAreaMask_H__
-#define __RawClusterDeadAreaMask_H__
+#ifndef CALORECO_RAWCLUSTERDEADAREAMASK_H
+#define CALORECO_RAWCLUSTERDEADAREAMASK_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHObject.h>
-#include <phparameter/PHParameters.h>
+
 #include <string>
 
 class RawClusterContainer;
@@ -45,4 +44,4 @@ class RawClusterDeadAreaMask : public SubsysReco
   RawTowerGeomContainer *m_geometry;
 };
 
-#endif  // __RawClusterDeadAreaMask_H__
+#endif

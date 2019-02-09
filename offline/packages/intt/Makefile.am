@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
@@ -14,14 +17,32 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+pkginclude_HEADERS = \
+  InttDefs.h \
+  InttHit.h \
+  INTTClusterizer.h \
+  InttClusterizer.h 
+
+ROOTDICTS = \
+  InttHit_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  InttHit_Dict_rdict.pcm
+else
+  ROOT5_IO_DICTS = \
+    InttDefs_Dict.cc
+
+  ROOT5_DICTS = \
+  InttClusterizer_Dict.cc \
+  INTTClusterizer_Dict.cc 
+endif
+
 # sources for intt library
 libintt_la_SOURCES = \
-  InttDefs.cc \
-  InttDefs_Dict.cc \
-  INTTClusterizer.cc \
-  INTTClusterizer_Dict.cc \
+  $(ROOT5_DICTS) \
   InttClusterizer.cc \
-  InttClusterizer_Dict.cc 
+  INTTClusterizer.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
@@ -31,8 +52,10 @@ libintt_la_LIBADD = \
 
 # sources for io library
 libintt_io_la_SOURCES = \
-  InttHit.cc \
-  InttHit_Dict.cc
+  $(ROOTDICTS) \
+  $(ROOT5_IO_DICTS) \
+  InttDefs.cc \
+  InttHit.cc
 
 libintt_io_la_LIBADD = \
   -lphool \
@@ -43,15 +66,8 @@ libintt_io_la_LIBADD = \
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-
-##############################################
-# please add new classes in alphabetical order
-
-pkginclude_HEADERS = \
-  InttDefs.h \
-  InttHit.h \
-  INTTClusterizer.h \
-  InttClusterizer.h 
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 
 ################################################
@@ -79,4 +95,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

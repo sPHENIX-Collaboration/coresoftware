@@ -1,5 +1,5 @@
-#ifndef DUMPSVTXHITMAP_H__
-#define DUMPSVTXHITMAP_H__
+#ifndef NODEDUMP_DUMPSVTXHITMAP_H
+#define NODEDUMP_DUMPSVTXHITMAP_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpSvtxHitMap : public DumpObject
   virtual ~DumpSvtxHitMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPSVTXHITMAP_H__ */
-
+#endif

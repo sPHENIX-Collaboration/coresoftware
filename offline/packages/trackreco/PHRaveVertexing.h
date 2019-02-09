@@ -5,12 +5,14 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHRaveVertexing_H__
-#define __PHRaveVertexing_H__
+#ifndef TRACKRECO_PHRAVEVERTEXING_H
+#define TRACKRECO_PHRAVEVERTEXING_H
 
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/Track.h>
+
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 #include <vector>
 
@@ -143,4 +145,4 @@ class PHRaveVertexing : public SubsysReco
   PHTimer* _t_rave;
 };
 
-#endif  //* __PHRaveVertexing_H__ *//
+#endif

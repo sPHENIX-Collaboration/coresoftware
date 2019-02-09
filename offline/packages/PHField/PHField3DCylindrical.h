@@ -17,8 +17,8 @@
 // in SimMap3D++.root i.e.  The z value is incremented only after
 // every phi and r point has been accounted for in that plane.
 
-#ifndef __PHField3DCylindrical_H__
-#define __PHField3DCylindrical_H__
+#ifndef PHFIELD_PHFIELD3DCYLINDRICAL_H
+#define PHFIELD_PHFIELD3DCYLINDRICAL_H
 
 #include "PHField.h"
 
@@ -57,4 +57,4 @@ class PHField3DCylindrical : public PHField
   void print_map(std::map<trio, trio>::iterator& it) const;
 };
 
-#endif  // __PHField3DCylindrical_H__
+#endif
