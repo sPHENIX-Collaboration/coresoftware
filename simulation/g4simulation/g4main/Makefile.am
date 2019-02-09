@@ -120,7 +120,6 @@ endif
 libphg4hit_la_SOURCES = \
   $(ROOTHITDICTS) \
   $(ROOT5HITDICTS) \
-  PHG4EventHeader.cc \
   PHG4EventHeaderv1.cc \
   PHG4Hit.cc \
   PHG4Hitv1.cc \
@@ -131,7 +130,6 @@ libphg4hit_la_SOURCES = \
   PHG4Particle.cc \
   PHG4Particlev1.cc \
   PHG4Particlev2.cc \
-  PHG4Shower.cc \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
   PHG4VtxPoint.cc \

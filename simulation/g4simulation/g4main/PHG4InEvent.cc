@@ -1,4 +1,5 @@
 #include "PHG4InEvent.h"
+
 #include "PHG4Particle.h"
 #include "PHG4VtxPointv1.h"
 
@@ -7,8 +8,6 @@
 #include <cstdlib>
 
 using namespace std;
-
-ClassImp(PHG4InEvent)
 
 PHG4InEvent::~PHG4InEvent()
 {

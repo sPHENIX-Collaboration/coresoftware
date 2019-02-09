@@ -10,8 +10,6 @@
 
 using namespace std;
 
-ClassImp(RawTower_Prototype4)
-
     RawTower_Prototype4::RawTower_Prototype4()
   : towerid(~0)
   ,  // initialize all bits on

@@ -1,7 +1,5 @@
 #include "PHG4Particlev1.h"
 
-ClassImp(PHG4Particlev1)
-
 using namespace std;
 
 PHG4Particlev1::PHG4Particlev1():
