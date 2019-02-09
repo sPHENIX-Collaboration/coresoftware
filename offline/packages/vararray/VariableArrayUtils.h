@@ -1,5 +1,5 @@
-#ifndef VARIABLEARRAYUTILS_H__
-#define VARIABLEARRAYUTILS_H__
+#ifndef VARARRAY_VARIABLEARRAYUTILS_H
+#define VARARRAY_VARIABLEARRAYUTILS_H
 
 class VariableArrayUtils
 {
@@ -9,4 +9,3 @@ class VariableArrayUtils
 };
 
 #endif
-

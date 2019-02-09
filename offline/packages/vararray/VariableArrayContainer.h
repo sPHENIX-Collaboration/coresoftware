@@ -1,7 +1,8 @@
-#ifndef VARIABLEARRAYCONTAINER_H_
-#define VARIABLEARRAYCONTAINER_H_
+#ifndef VARARRAY_VARIABLEARRAYCONTAINER_H
+#define VARARRAY_VARIABLEARRAYCONTAINER_H
 
 #include <phool/PHObject.h>
+
 #include <vector>
 
 class TOjArray;
@@ -13,7 +14,7 @@ class VariableArrayContainer : public PHObject
   VariableArrayContainer();
   virtual ~VariableArrayContainer();
 
-  void identify(std::ostream &os=std::cout) const;
+  void identify(std::ostream &os = std::cout) const;
   void AddVarArray(VariableArray *var);
   // Here are the very explicit set routines...
   void Reset();
@@ -21,8 +22,7 @@ class VariableArrayContainer : public PHObject
  protected:
   TObjArray *arraycontainer;
 
-  ClassDef(VariableArrayContainer,1)
+  ClassDef(VariableArrayContainer, 1)
 };
 
-#endif /* VARIABLEARRAYCONTAINER */
-
+#endif

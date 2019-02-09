@@ -1,9 +1,22 @@
 AUTOMAKE_OPTIONS = foreign
 
-BUILT_SOURCES = \
-  testexternals.cc
-
 lib_LTLIBRARIES = libvararray.la
+
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include  \
+  -I$(ROOTSYS)/include 
+
+AM_CXXFLAGS = \
+ -Werror
+
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
+libvararray_la_LIBADD = \
+  -lhalf \
+  -lphool
 
 pkginclude_HEADERS = \
   VariableArray.h \
@@ -11,28 +24,41 @@ pkginclude_HEADERS = \
   VariableArrayIds.h \
   VariableArrayUtils.h
 
-AM_CPPFLAGS = \
-  -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
-
-AM_LDFLAGS = -L$(libdir) -L$(OFFLINE_MAIN)/lib
-
-libvararray_la_LIBADD = \
-  -lhalf \
-  -lphool
-
+ROOTDICTS = \
+  VariableArray_Dict.cc \
+  VariableArrayContainer_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  VariableArray_Dict_rdict.pcm \
+  VariableArrayContainer_Dict_rdict.pcm
+endif
 
 libvararray_la_SOURCES = \
+  $(ROOTDICTS) \
   VariableArray.cc \
   VariableArrayContainer.cc \
-  VariableArrayDict.cc \
   VariableArrayUtils.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
+################################################
+# linking test to make sure we do not have unresolved symbols
+
+BUILT_SOURCES = \
+  testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
 
-testexternals_SOURCES = testexternals.cc
+testexternals_SOURCES = \
+  testexternals.cc
+
 testexternals_LDADD = \
   libvararray.la
 
@@ -42,13 +68,6 @@ testexternals.cc:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-VariableArrayDict.cc: \
-  VariableArray.h \
-  VariableArrayContainer.h \
-  VariableArrayLinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
 
 clean-local:
 	rm -f *Dict.* testexternals.cc *.pcm
