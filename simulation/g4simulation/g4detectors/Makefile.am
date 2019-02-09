@@ -180,6 +180,7 @@ else
   PHG4CellDefs_Dict.cc \
   PHG4ScintillatorSlatDefs_Dict.cc
   ROOT5_DICTS = \
+  ePHENIXRICHConstruction_Dict.cc \
   PHG4GDMLSubsystem_Dict.cc \
   PHG4BeamlineMagnetSubsystem_Dict.cc \
   PHG4BlockCellReco_Dict.cc \
@@ -189,6 +190,7 @@ else
   PHG4CrystalCalorimeterSubsystem_Dict.cc \
   PHG4CylinderSubsystem_Dict.cc \
   PHG4CylinderCellReco_Dict.cc \
+  PHG4DetectorGroupSubsystem_Dict.cc \
   PHG4DetectorSubsystem_Dict.cc \
   PHG4EnvelopeSubsystem_Dict.cc \
   PHG4FCalSubsystem_Dict.cc \
@@ -276,7 +278,6 @@ libg4detectors_la_SOURCES = \
   PHG4CylinderCellReco.cc \
   PHG4CylinderSteppingAction.cc \
   PHG4DetectorGroupSubsystem.cc \
-  PHG4DetectorGroupSubsystem_Dict.cc \
   PHG4DetectorSubsystem.cc \
   PHG4EnvelopeDetector.cc \
   PHG4EnvelopeSteppingAction.cc \
@@ -329,7 +330,6 @@ libg4detectors_la_SOURCES = \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
   ePHENIXRICHConstruction.cc \
-  ePHENIXRICHConstruction_Dict.cc \
   PHG4SectorConstructor.cc \
   PHG4SectorDetector.cc \
   PHG4SectorSteppingAction.cc \
