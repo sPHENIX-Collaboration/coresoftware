@@ -1,16 +1,24 @@
 #ifndef G4INTT_PHG4INTTDIGITIZER_H
 #define G4INTT_PHG4INTTDIGITIZER_H
 
+#include <phparameter/PHParameterInterface.h>
+
 #include <fun4all/SubsysReco.h>
+#include <phool/PHTimeServer.h>
 
 #include <cassert>
 #include <cfloat>
 #include <map>
 #include <vector>
 
+// rootcint barfs with this header so we need to hide it
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
+
 class SvtxHitMap;
 
-class PHG4INTTDigitizer : public SubsysReco
+class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4INTTDigitizer(const std::string &name = "PHG4INTTDigitizer");
@@ -27,6 +35,10 @@ class PHG4INTTDigitizer : public SubsysReco
 
   //! end of process
   int End(PHCompositeNode *topNode);
+
+  void SetDefaultParameters();
+
+  void Detector(const std::string &d) {detector = d;}
 
   void set_adc_scale(const int &layer, const std::vector<double> &userrange)
   {
@@ -45,11 +57,23 @@ class PHG4INTTDigitizer : public SubsysReco
     _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
   }
 
+ protected:
+  std::string detector;
+  std::string hitnodename;
+  std::string cellnodename;
+
  private:
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
 
   void DigitizeLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
+
+  // noise electrons
+  float added_noise();
+
+  float mNoiseMean;      // Mean of noise electron distribution
+  float mNoiseSigma;     // Sigma of noise electron distribution
+  float mEnergyPerPair;  // GeV/e-h pair
 
   // settings
   std::map<int, unsigned int> _max_adc;
@@ -63,6 +87,11 @@ class PHG4INTTDigitizer : public SubsysReco
 
   unsigned int m_nCells;
   unsigned int m_nDeadCells;
+
+#ifndef __CINT__
+  //! random generator that conform with sPHENIX standard
+  gsl_rng *RandomGenerator;
+#endif
 };
 
 #endif

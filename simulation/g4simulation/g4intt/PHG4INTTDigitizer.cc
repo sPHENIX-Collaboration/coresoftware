@@ -18,7 +18,10 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+
+#include <gsl/gsl_randist.h>
 
 #include <cmath>
 #include <iostream>
@@ -27,10 +30,18 @@ using namespace std;
 
 PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   : SubsysReco(name)
+  , PHParameterInterface(name)
+  , mNoiseMean(457.2)
+  , mNoiseSigma(166.6)
+  , mEnergyPerPair(3.62e-9)  // GeV/e-h
   , _hitmap(NULL)
   , m_nCells(0)
   , m_nDeadCells(0)
 {
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
@@ -68,6 +79,36 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   }
 
   CalculateLadderCellADCScale(topNode);
+  
+  // Create the run and par nodes
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+
+  string paramnodename = "G4CELLPARAM_" + detector;
+  string geonodename = "G4CELLGEO_" + detector;
+
+  UpdateParametersWithMacro();
+  // save this to the run wise tree to store on DST
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
+  if (! RunDetNode)
+  {
+    RunDetNode = new PHCompositeNode(detector);
+    runNode->addNode(RunDetNode);
+  }
+  SaveToNodeTree(RunDetNode,paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
+  if (! ParDetNode)
+  {
+    ParDetNode = new PHCompositeNode(detector);
+    parNode->addNode(ParDetNode);
+  }
+  PutOnParNode(ParDetNode,geonodename);
+  mNoiseMean      = get_double_param("mNoiseMean");
+  mNoiseSigma     = get_double_param("mNoiseSigma");
+  mEnergyPerPair  = get_double_param("mEnergyPerPair");
 
   //----------------
   // Report Settings
@@ -203,14 +244,26 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
     if (_energy_scale.count(layer) > 1)
       assert(!"Error: _energy_scale has two or more keys.");
 
+    // Convert Geant4 true cell energy to # of electrons and add noise electrons
+    const int n_true_electron = (int) (cell->get_edep() / mEnergyPerPair);
+    const int n_noise_electron = round(added_noise());
+    const int n_cell_electron = n_true_electron + n_noise_electron;
+
     const float mip_e = _energy_scale[layer];
 
     std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
     int adc = -1;
     for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-      if (cell->get_edep() >= vadcrange[irange].first * (double) mip_e && cell->get_edep() < vadcrange[irange].second * (double) mip_e)
+    {
+      // Convert adc ranges from fraction to the MIP energy to # of electrons.
+      // vadcrange uses FLT_MAX and the order of mEnergyPerPair is e-9, so use double.
+      const double n_adcrange_electron_first = vadcrange[irange].first * mip_e / mEnergyPerPair;
+      const double n_adcrange_electron_second = vadcrange[irange].second * mip_e / mEnergyPerPair;
+
+      if (n_cell_electron >= n_adcrange_electron_first && n_cell_electron < n_adcrange_electron_second)
         adc = (int) irange;
+    }
     //
     if (adc >= 0)
     {
@@ -286,4 +339,20 @@ void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
   }
 
   return;
+}
+
+void PHG4INTTDigitizer::SetDefaultParameters()
+{
+  set_default_double_param("mNoiseMean",457.2);
+  set_default_double_param("mNoiseSigma",166.6); 
+  set_default_double_param("mEnergyPerPair",3.62e-9); // GeV/e-h
+  return;
+}
+
+float PHG4INTTDigitizer::added_noise()
+{
+  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
+  noise = (noise < 0) ? 0 : noise;
+
+  return noise;
 }
