@@ -32,7 +32,7 @@ class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
 
   void SetDefaultParameters();
 
-  void Detector(const std::string &d) {detector = d;}
+  void Detector(const std::string &d) { detector = d; }
 
   void set_adc_scale(const int &layer, const std::vector<double> &userrange);
 

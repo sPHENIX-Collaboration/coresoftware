@@ -25,8 +25,8 @@
 
 #include <gsl/gsl_randist.h>
 
-#include <cmath>
 #include <cfloat>
+#include <cmath>
 #include <iostream>
 
 using namespace std;
@@ -83,10 +83,10 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   }
 
   CalculateLadderCellADCScale(topNode);
-  
+
   // Create the run and par nodes
-  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
-  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "PAR" ));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
 
   string paramnodename = "G4CELLPARAM_" + detector;
   string geonodename = "G4CELLGEO_" + detector;
@@ -94,25 +94,25 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   UpdateParametersWithMacro();
   // save this to the run wise tree to store on DST
   PHNodeIterator runIter(runNode);
-  PHCompositeNode *RunDetNode =  dynamic_cast<PHCompositeNode*>(runIter.findFirst("PHCompositeNode",detector));
-  if (! RunDetNode)
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
+  if (!RunDetNode)
   {
     RunDetNode = new PHCompositeNode(detector);
     runNode->addNode(RunDetNode);
   }
-  SaveToNodeTree(RunDetNode,paramnodename);
+  SaveToNodeTree(RunDetNode, paramnodename);
   // save this to the parNode for use
   PHNodeIterator parIter(parNode);
-  PHCompositeNode *ParDetNode =  dynamic_cast<PHCompositeNode*>(parIter.findFirst("PHCompositeNode",detector));
-  if (! ParDetNode)
+  PHCompositeNode *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
+  if (!ParDetNode)
   {
     ParDetNode = new PHCompositeNode(detector);
     parNode->addNode(ParDetNode);
   }
-  PutOnParNode(ParDetNode,geonodename);
-  mNoiseMean      = get_double_param("mNoiseMean");
-  mNoiseSigma     = get_double_param("mNoiseSigma");
-  mEnergyPerPair  = get_double_param("mEnergyPerPair");
+  PutOnParNode(ParDetNode, geonodename);
+  mNoiseMean = get_double_param("mNoiseMean");
+  mNoiseSigma = get_double_param("mNoiseSigma");
+  mEnergyPerPair = get_double_param("mEnergyPerPair");
 
   //----------------
   // Report Settings
@@ -356,9 +356,9 @@ void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
 
 void PHG4INTTDigitizer::SetDefaultParameters()
 {
-  set_default_double_param("mNoiseMean",457.2);
-  set_default_double_param("mNoiseSigma",166.6); 
-  set_default_double_param("mEnergyPerPair",3.62e-9); // GeV/e-h
+  set_default_double_param("mNoiseMean", 457.2);
+  set_default_double_param("mNoiseSigma", 166.6);
+  set_default_double_param("mEnergyPerPair", 3.62e-9);  // GeV/e-h
   return;
 }
 
@@ -371,25 +371,25 @@ float PHG4INTTDigitizer::added_noise()
 }
 
 void PHG4INTTDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+{
+  if (userrange.size() != nadcbins)
   {
-    if (userrange.size() != nadcbins)
-    {
-      cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << endl;
-      gSystem->Exit(1);
-    }
-    //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
-
-    std::vector<std::pair<double, double> > vadcrange;
-    for (unsigned int irange = 0; irange < userrange.size(); ++irange)
-    {
-      if (irange == userrange.size() - 1)
-      {
-        vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
-      }
-      else
-      {
-        vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange + 1]));
-      }
-    }
-    _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
+    cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << endl;
+    gSystem->Exit(1);
   }
+  //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
+
+  std::vector<std::pair<double, double> > vadcrange;
+  for (unsigned int irange = 0; irange < userrange.size(); ++irange)
+  {
+    if (irange == userrange.size() - 1)
+    {
+      vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
+    }
+    else
+    {
+      vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange + 1]));
+    }
+  }
+  _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
+}
