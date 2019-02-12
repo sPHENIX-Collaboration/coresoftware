@@ -4,10 +4,7 @@
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
-#include <cassert>
-#include <cfloat>
 #include <map>
 #include <vector>
 
@@ -24,9 +21,6 @@ class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
   PHG4INTTDigitizer(const std::string &name = "PHG4INTTDigitizer");
   virtual ~PHG4INTTDigitizer() {}
 
-  //! module initialization
-  int Init(PHCompositeNode *topNode) { return 0; }
-
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
 
@@ -40,27 +34,7 @@ class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
 
   void Detector(const std::string &d) {detector = d;}
 
-  void set_adc_scale(const int &layer, const std::vector<double> &userrange)
-  {
-    if (userrange.size() != nadcbins)
-      assert(!"Error: vector in set_fphx_adc_scale(vector) must have eight elements.");
-
-    //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
-
-    std::vector<std::pair<double, double> > vadcrange;
-    for (unsigned int irange = 0; irange < userrange.size(); ++irange)
-      if (irange == userrange.size() - 1)
-        vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
-      else
-        vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange + 1]));
-
-    _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
-  }
-
- protected:
-  std::string detector;
-  std::string hitnodename;
-  std::string cellnodename;
+  void set_adc_scale(const int &layer, const std::vector<double> &userrange);
 
  private:
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
@@ -68,6 +42,9 @@ class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
   void DigitizeLadderCells(PHCompositeNode *topNode);
   void PrintHits(PHCompositeNode *topNode);
 
+  std::string detector;
+  std::string hitnodename;
+  std::string cellnodename;
   // noise electrons
   float added_noise();
 

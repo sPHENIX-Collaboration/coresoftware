@@ -21,9 +21,12 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
 #include <gsl/gsl_randist.h>
 
 #include <cmath>
+#include <cfloat>
 #include <iostream>
 
 using namespace std;
@@ -38,6 +41,7 @@ PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   , m_nCells(0)
   , m_nDeadCells(0)
 {
+  InitializeParameters();
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -169,8 +173,10 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
   {
     int layer = layeriter->second->get_layer();
     if (_max_fphx_adc.find(layer) == _max_fphx_adc.end())
-      assert(!"Error: _max_fphx_adc is not available.");
-
+    {
+      cout << "Error: _max_fphx_adc is not available." << endl;
+      gSystem->Exit(1);
+    }
     float thickness = (layeriter->second)->get_thickness();  // cm
     float mip_e = 0.003876 * thickness;                      // GeV
     _energy_scale.insert(std::make_pair(layer, mip_e));
@@ -242,8 +248,10 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
     hit.set_cellid(cell->get_cellid());
 
     if (_energy_scale.count(layer) > 1)
-      assert(!"Error: _energy_scale has two or more keys.");
-
+    {
+      cout << "Error: _energy_scale has two or more keys." << endl;
+      gSystem->Exit(1);
+    }
     // Convert Geant4 true cell energy to # of electrons and add noise electrons
     const int n_true_electron = (int) (cell->get_edep() / mEnergyPerPair);
     const int n_noise_electron = round(added_noise());
@@ -269,14 +277,19 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
     {
       //      adc = 0;
 
-      float e = 0.0;
+      double e;
       if (adc >= 0 && adc < int(vadcrange.size()) - 1)
+      {
         e = 0.5 * (vadcrange[adc].second + vadcrange[adc].first) * mip_e;
+      }
       else if (adc == int(vadcrange.size()) - 1)  // overflow
+      {
         e = vadcrange[adc].first * mip_e;
+      }
       else  // underflow
+      {
         e = 0.5 * vadcrange[0].first * mip_e;
-
+      }
       hit.set_adc(adc);
       hit.set_e(e);
 
@@ -356,3 +369,27 @@ float PHG4INTTDigitizer::added_noise()
 
   return noise;
 }
+
+void PHG4INTTDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+  {
+    if (userrange.size() != nadcbins)
+    {
+      cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << endl;
+      gSystem->Exit(1);
+    }
+    //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
+
+    std::vector<std::pair<double, double> > vadcrange;
+    for (unsigned int irange = 0; irange < userrange.size(); ++irange)
+    {
+      if (irange == userrange.size() - 1)
+      {
+        vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
+      }
+      else
+      {
+        vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange + 1]));
+      }
+    }
+    _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
+  }
