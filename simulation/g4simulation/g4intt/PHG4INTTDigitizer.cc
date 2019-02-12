@@ -111,9 +111,9 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
     parNode->addNode(ParDetNode);
   }
   PutOnParNode(ParDetNode, geonodename);
-  mNoiseMean = get_double_param("mNoiseMean");
-  mNoiseSigma = get_double_param("mNoiseSigma");
-  mEnergyPerPair = get_double_param("mEnergyPerPair");
+  mNoiseMean = get_double_param("NoiseMean");
+  mNoiseSigma = get_double_param("NoiseSigma");
+  mEnergyPerPair = get_double_param("EnergyPerPair");
 
   //----------------
   // Report Settings
@@ -357,9 +357,9 @@ void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
 
 void PHG4INTTDigitizer::SetDefaultParameters()
 {
-  set_default_double_param("mNoiseMean", 457.2);
-  set_default_double_param("mNoiseSigma", 166.6);
-  set_default_double_param("mEnergyPerPair", 3.62e-9);  // GeV/e-h
+  set_default_double_param("NoiseMean", 457.2);
+  set_default_double_param("NoiseSigma", 166.6);
+  set_default_double_param("EnergyPerPair", 3.62e-9);  // GeV/e-h
   return;
 }
 
