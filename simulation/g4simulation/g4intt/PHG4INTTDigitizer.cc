@@ -365,8 +365,13 @@ void PHG4INTTDigitizer::SetDefaultParameters()
 
 float PHG4INTTDigitizer::added_noise()
 {
-  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
-  noise = (noise < 0) ? 0 : noise;
+//  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
+//  noise = (noise < 0) ? 0 : noise;
+
+  // Note the noise is bi-polar, i.e. can make ths signal fluctuate up and down.
+  // Much of the mNoiseSigma as extracted in https://github.com/sPHENIX-Collaboration/coresoftware/pull/580
+  // is statistical fluctuation from the limited calibration data. They does not directly apply here.
+  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseMean);
 
   return noise;
 }
