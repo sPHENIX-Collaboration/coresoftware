@@ -2,7 +2,6 @@
 
 #include "INTTDeadMap.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -14,6 +13,8 @@
 #include <trackbase_historic/SvtxHitMap.h>
 #include <trackbase_historic/SvtxHitMap_v1.h>
 #include <trackbase_historic/SvtxHit_v1.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -37,7 +38,7 @@ PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   , mNoiseMean(457.2)
   , mNoiseSigma(166.6)
   , mEnergyPerPair(3.62e-9)  // GeV/e-h
-  , _hitmap(NULL)
+  , _hitmap(nullptr)
   , m_nCells(0)
   , m_nDeadCells(0)
 {
