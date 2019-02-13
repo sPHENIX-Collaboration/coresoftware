@@ -244,6 +244,9 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
     set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length", 50.7);
 
+    // Endcap ring flag
+    set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);
+
     // Endcap ring position
     set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);  
 

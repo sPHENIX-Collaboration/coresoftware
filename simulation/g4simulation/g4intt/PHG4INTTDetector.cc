@@ -37,6 +37,7 @@ PHG4INTTDetector::PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer 
   : PHG4Detector(Node, dnam)
   , m_ParamsContainer(parameters)
   , m_IsSupportActive(0)
+  , m_IsEndcapActive(0)
   , m_LayerBeginEndIteratorPair(layer_b_e)
 {
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
@@ -48,6 +49,7 @@ PHG4INTTDetector::PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer 
   }
   const PHParameters *par = m_ParamsContainer->GetParameters(PHG4INTTDefs::SUPPORTPARAMS);
   m_IsSupportActive = par->get_int_param("supportactive");
+  m_IsEndcapActive = par->get_int_param("endcap_ring_enabled");
   fill_n(&m_PosZ[0][0], sizeof(m_PosZ) / sizeof(double), NAN);
   fill_n(m_SensorRadius, sizeof(m_SensorRadius) / sizeof(double), NAN);
   fill_n(m_StripOffsetX, sizeof(m_StripOffsetX) / sizeof(double), NAN);
@@ -940,45 +942,45 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, G4Material::GetMaterial("WaterGlycol_INTT"),
                                                                "endcap_WG_ring_volume", 0, 0, 0);
 
-  // Place endcap rings
-  G4RotationMatrix ringrotation;
-  ringrotation.rotateY( 0 * deg / rad );
-
-  double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm; 
-  for(int i = 0; i < 2; i++) // i=0 : positive z, i=1 negative z
+  if(m_IsEndcapActive)
   {
-
-    endcap_ring_z = (i==0) ?  endcap_ring_z : -1.0 * endcap_ring_z;
-
-    double width_WGring_z = supportparams->get_double_param("endcap_WGring_length") * cm;
-    double width_SSring_z = supportparams->get_double_param("endcap_SSring_length") * cm;
-    double width_Alring_z = supportparams->get_double_param("endcap_Alring_length") * cm;
-
-    for(int j = 0; j < 2; j++) // j=0 : positive side z, j=1 negative side z
+    // Place endcap rings
+    double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm; 
+    for(int i = 0; i < 2; i++) // i=0 : positive z, i=1 negative z
     {
-      width_WGring_z = (j==0) ? width_WGring_z : -1.0 * width_WGring_z; 
-      width_SSring_z = (j==0) ? width_SSring_z : -1.0 * width_SSring_z;
-      width_Alring_z = (j==0) ? width_Alring_z : -1.0 * width_Alring_z;
-    
-      double cent_WGring_z = endcap_ring_z + width_WGring_z / 2.;
-      double cent_SSring_z = endcap_ring_z + width_WGring_z + width_SSring_z / 2.;
-      double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
+
+      endcap_ring_z = (i==0) ?  endcap_ring_z : -1.0 * endcap_ring_z;
+
+      double width_WGring_z = supportparams->get_double_param("endcap_WGring_length") * cm;
+      double width_SSring_z = supportparams->get_double_param("endcap_SSring_length") * cm;
+      double width_Alring_z = supportparams->get_double_param("endcap_Alring_length") * cm;
+
+      for(int j = 0; j < 2; j++) // j=0 : positive side z, j=1 negative side z
+      {
+        width_WGring_z = (j==0) ? width_WGring_z : -1.0 * width_WGring_z; 
+        width_SSring_z = (j==0) ? width_SSring_z : -1.0 * width_SSring_z;
+        width_Alring_z = (j==0) ? width_Alring_z : -1.0 * width_Alring_z;
+
+        double cent_WGring_z = endcap_ring_z + width_WGring_z / 2.;
+        double cent_SSring_z = endcap_ring_z + width_WGring_z + width_SSring_z / 2.;
+        double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
 
 
-      new G4PVPlacement(G4Transform3D(ringrotation, G4ThreeVector(0, 0, cent_WGring_z)),
-          endcap_WG_ring_volume,
-          (boost::format("endcap_WG_ring_pv_%d_%d") %i %j).str(),
-          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_WGring_z),
+            endcap_WG_ring_volume,
+            (boost::format("endcap_WG_ring_pv_%d_%d") %i %j).str(),
+            trackerenvelope, false, 0, OverlapCheck());
 
-      new G4PVPlacement(G4Transform3D(ringrotation, G4ThreeVector(0, 0, cent_SSring_z)),
-          endcap_SS_ring_volume,
-          (boost::format("endcap_SS_ring_pv_%d_%d") %i %j).str(),
-          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_SSring_z),
+            endcap_SS_ring_volume,
+            (boost::format("endcap_SS_ring_pv_%d_%d") %i %j).str(),
+            trackerenvelope, false, 0, OverlapCheck());
 
-      new G4PVPlacement(G4Transform3D(ringrotation, G4ThreeVector(0, 0, cent_Alring_z)),
-          endcap_Al_ring_volume,
-          (boost::format("endcap_Al_ring_pv_%d_%d") %i %j).str(),
-          trackerenvelope, false, 0, OverlapCheck());
+        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_Alring_z),
+            endcap_Al_ring_volume,
+            (boost::format("endcap_Al_ring_pv_%d_%d") %i %j).str(),
+            trackerenvelope, false, 0, OverlapCheck());
+      }
     }
   }
 

@@ -62,6 +62,7 @@ class PHG4INTTDetector : public PHG4Detector
   std::string m_SuperDetector;
 
   int m_IsSupportActive;
+  int m_IsEndcapActive;
 
   double m_PosZ[8][2];
   double m_SensorRadius[8];
