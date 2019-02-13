@@ -1,11 +1,21 @@
-#include "PHG4TPCDigitizer.h"
+#include "PHG4TpcDigitizer.h"
 
 #include <g4main/PHG4Hit.h>
 
+// Move to new storage containers
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>
+#include <tpc/TpcDefs.h>
+#include <tpc/TpcHit.h>
+
+/*
 #include <trackbase_historic/SvtxHit.h>
 #include <trackbase_historic/SvtxHitMap.h>
 #include <trackbase_historic/SvtxHitMap_v1.h>
 #include <trackbase_historic/SvtxHit_v1.h>
+*/
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -17,11 +27,14 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
+/*
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 #include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4Cellv2.h>
+*/
+
 #include <phool/PHRandomSeed.h>
 
 #include <gsl/gsl_randist.h>
@@ -32,7 +45,7 @@
 
 using namespace std;
 
-PHG4TPCDigitizer::PHG4TPCDigitizer(const string &name)
+PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
   : SubsysReco(name)
   , TPCMinLayer(7)
   , ADCThreshold(2700)
@@ -44,9 +57,9 @@ PHG4TPCDigitizer::PHG4TPCDigitizer(const string &name)
   ChargeToPeakVolts(20)
   ,  // mV/fC
   ADCSignalConversionGain(numeric_limits<float>::signaling_NaN())
-  ,  // will be assigned in PHG4TPCDigitizer::InitRun
+  ,  // will be assigned in PHG4TpcDigitizer::InitRun
   ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())
-  ,  // will be assigned in PHG4TPCDigitizer::InitRun
+  ,  // will be assigned in PHG4TpcDigitizer::InitRun
   _hitmap(NULL)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -55,10 +68,10 @@ PHG4TPCDigitizer::PHG4TPCDigitizer(const string &name)
   gsl_rng_set(RandomGenerator, seed);
 
   if (Verbosity() > 0)
-    cout << "Creating PHG4TPCDigitizer with name = " << name << endl;
+    cout << "Creating PHG4TpcDigitizer with name = " << name << endl;
 }
 
-int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4TpcDigitizer::InitRun(PHCompositeNode *topNode)
 {
   ADCThreshold += Pedestal;
 
@@ -83,6 +96,7 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
   }
   PHNodeIterator iter_dst(dstNode);
 
+  /*
   // Create the SVX node if required
   PHCompositeNode *svxNode = dynamic_cast<PHCompositeNode *>(iter_dst.findFirst("PHCompositeNode", "SVTX"));
   if (!svxNode)
@@ -105,6 +119,7 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
   }
   else
     cout << PHWHERE << " found exisitng SvtxHitmap node " << endl;
+  */
 
   CalculateCylinderCellADCScale(topNode);
 
@@ -114,7 +129,7 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4TPCDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4TpcDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
          ++iter)
@@ -133,15 +148,16 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode)
+int PHG4TpcDigitizer::process_event(PHCompositeNode *topNode)
 {
-
+  /*
   _hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
   if (!_hitmap)
   {
     cout << PHWHERE << " ERROR: Can't find SvtxHitMap." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  */
 
   //cout << PHWHERE << "Beginning size of SvtxHitMap is " << _hitmap->size() << endl;
 
@@ -154,7 +170,7 @@ int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
+void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
 {
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
@@ -187,7 +203,7 @@ void PHG4TPCDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
   return;
 }
 
-void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
+void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 {
   unsigned int print_layer = 47;  // to print diagnostic output for layer 47
 
@@ -256,6 +272,11 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
     }
+
+  /*
+  //===========
+  // old containers
+  //===========
 
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_TPC");
   if (!cells) return;
@@ -593,17 +614,387 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
     }  // end loop over layers
 
+  //==================
+  // end old containers
+  //==================
+  */
+
+  //=====================
+  // new containers
+  //======================
+
+  // Get the TrkrHitSetContainer node
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!trkrhitsetcontainer)
+    {
+      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+      exit(1);
+    }
+
+  //-------------
+  // Digitization
+  //-------------
+
+  // Loop over all hitsets for the TPC
+  TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+       hitset_iter != hitset_range.second;
+       ++hitset_iter)
+    {
+      // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+      // get the hitset key so we can find the layer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+
+      if(Verbosity() > 2)
+	if(layer == print_layer) 
+	  cout << "new: PHG4TpcDigitizer:  processing hits for layer " << layer << " hitsetkey " << hitsetkey << endl;
+
+      // we need the geometry object for this layer
+      PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
+      if (!layergeom)
+	exit(1);
+
+      // for this hitset, make a vector of a vector of cells for each phibin
+      phi_sorted_hits.clear();
+      
+      // start with an empty vector of cells for each phibin      
+      int nphibins = layergeom->get_phibins();
+      for (int iphi = 0; iphi < nphibins; iphi++)
+	{
+	  phi_sorted_hits.push_back(std::vector<TrkrHitSet::ConstIterator>());
+	}      
+      
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  // Fill the vector of hits for each phibin
+	  unsigned int phibin = TpcDefs::getPad(hit_iter->first);
+	  phi_sorted_hits[phibin].push_back(hit_iter);
+	}
+	  	  
+      // For this hitset we have the hits sorted into vectors for each phi
+      // process these vectors one phi bin at a time
+      for (unsigned int iphi = 0; iphi < phi_sorted_hits.size(); iphi++)
+	{
+	  if (phi_sorted_hits[iphi].size() == 0)
+	    continue;
+	  
+	  // Populate a vector of hits ordered by Z for each phibin
+	  int nzbins = layergeom->get_zbins();
+	  is_populated.clear();
+	  is_populated.assign(nzbins, 2);  // mark all as noise only for now
+	  z_sorted_hits.clear();
+	      
+	  // add an empty vector for each z bin
+	  for (int iz = 0; iz < nzbins; iz++)
+	    z_sorted_hits.push_back(std::vector<TrkrHitSet::ConstIterator>());
+
+	  if(Verbosity() > 2)
+	    if(layer == print_layer) cout << endl;	  
+
+	  // add a hit for each z bin that has one
+	  for (unsigned int iz = 0; iz < phi_sorted_hits[iphi].size(); iz++)
+	    {
+	      int zbin = TpcDefs::getTBin(phi_sorted_hits[iphi][iz]->first);
+	      is_populated[zbin] = 1;  // this bin is a associated with a hit
+	      z_sorted_hits[zbin].push_back(phi_sorted_hits[iphi][iz]);
+
+	      if(Verbosity() > 2)
+		if(layer == print_layer)  
+		  {
+		    TrkrDefs::hitkey hitkey =  phi_sorted_hits[iphi][iz]->first ;
+		    cout << "Adding hit to z vector for zbin " << zbin << "  hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) 
+			 << " z bin " << TpcDefs::getTBin(hitkey)   << "  energy " <<( phi_sorted_hits[iphi][iz]->second)->getEnergy() 
+			 << " adc " << (phi_sorted_hits[iphi][iz]->second)->getAdc() << endl;
+		  }
+	    }
+	      
+	  adc_input.clear();
+	  adc_hitid.clear();
+	  // Now for this phibin we process all bins ordered by Z into hits with noise
+	  //======================================================
+	  // For this step we take the edep value and convert it to mV at the ADC input
+	  // See comments above for how to do this for signal and noise
+	      
+	  for (int iz = 0; iz < nzbins; iz++)
+	    {
+	      if (is_populated[iz] == 1)
+		{
+		  // This zbin has a hit, add noise
+		  float noise = added_noise();                                                                                       // in electrons
+		  float noise_voltage = (Pedestal + noise) * ADCNoiseConversionGain;                      // mV - from definition of noise charge and pedestal charge
+		  float adc_input_voltage = (z_sorted_hits[iz][0]->second)->getEnergy() * ADCSignalConversionGain;  // mV, see comments above
+		  
+		  adc_input.push_back(adc_input_voltage + noise_voltage);
+		  adc_hitid.push_back(z_sorted_hits[iz][0]->first);
+
+		  if(Verbosity() > 2)
+		    if(layer == print_layer) 
+		      cout << "new: iphi " << iphi  << " iz " << iz << " edep " <<  (z_sorted_hits[iz][0]->second)->getEnergy() 
+			   << " adc gain " << ADCSignalConversionGain << " adc_input " << adc_input[iz] << endl;
+		}
+	      else if (is_populated[iz] == 2)
+		{
+		  // This z bin does not have a filled cell, add noise
+		  float noise = added_noise();                                        // returns "electrons"
+		  float noise_voltage = (Pedestal + noise) * ADCNoiseConversionGain;  // mV - noise "electrons" x conversion gain
+		  
+		  adc_input.push_back(noise_voltage);  // mV
+		  adc_hitid.push_back(0);             // there is no hit, just add a placeholder in the vector for now, replace it later
+		}
+	      else
+		{
+		  // Cannot happen
+		  cout << "Impossible value of is_populated, iz = " << iz << " is_populated = " << is_populated[iz] << endl;
+		  exit(-1);
+		}
+	    }
+	  
+	  // Now we can digitize the entire stream of z bins for this phi bin
+	      
+	  // start with negative z, the first to arrive is bin 0
+	  //================================
+	  int binpointer = 0;
+	  for (int iz = 0; iz < nzbins / 2; iz++)  // 0-247
+	    {
+	      if (iz < binpointer) continue;
+
+	      if (adc_input[iz] > ADCThreshold * ADCNoiseConversionGain)  // convert threshold in "equivalent electrons" to mV
+		{
+		  // digitize this bin and the following 4 bins
+		  
+		  if (Verbosity() > 100)
+		    if (layer == print_layer) cout << endl
+						   << "new:   (neg z) Above threshold of " << ADCThreshold * ADCNoiseConversionGain << " for phibin " << iphi
+						   << " iz " << iz << " with adc_input " << adc_input[iz] << " digitize this and 4 following bins: " << endl;
+		  
+		  for (int izup = 0; izup < 5; izup++)
+		    {
+		      if (iz + izup < nzbins / 2 && iz + izup >= 0)   // stay within the bin limits for negative z
+			{
+			  unsigned int adc_output = (unsigned int) (adc_input[iz + izup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+			  if (adc_input[iz + izup] < 0) adc_output = 0;
+			  if (adc_output > 1023) adc_output = 1023;
+			  
+			  if (Verbosity() > 100)
+			  if (layer == print_layer) cout << "new:  iphi " << iphi << "  (neg z) iz+izup " << iz + izup << " adc_hitid " << adc_hitid[iz + izup]
+							   << "  adc_input " << adc_input[iz + izup] << " ADCThreshold " << ADCThreshold * ADCNoiseConversionGain
+							   << " adc_output " << adc_output << endl;
+			  
+			  // Get the hitkey
+			  TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz+izup);
+			  TrkrHit *hit = nullptr;
+			  hit = hitset_iter->second->getHit(hitkey);
+			  
+			  // noise bins do not have TrkrHits associated with them, have to make one
+			  if(!hit)
+			    {
+			      hit = new TpcHit();
+			      hitset_iter->second->addHitSpecificKey(hitkey, hit);
+			      hit->addEnergy(adc_input[iz+izup]);
+			      
+			      if (Verbosity() > 100)
+				if (layer == print_layer) cout << "new:  adding noise hit for iphi " << iphi << " zbin " << iz + izup
+							       << " created new hit with hitkey " << hitkey
+							       << " energy " << adc_input[iz + izup] << " adc " << adc_output << endl;
+			    }
+
+			  hit->setAdc(adc_output);
+			  
+			}  // end boundary check
+		      binpointer++;   // skip this bin in future
+		    }    // end izup loop
+		  
+		}  //  adc threshold if
+	      else
+		{
+		  // below threshold, move on
+		  binpointer++;
+		}  // end adc threshold if/else
+	      
+	    }  // end iz loop for negative z
+	  
+	  // now positive z, the first to arrive is bin 497
+	  //===============================
+	  binpointer = nzbins - 1;
+	  for (int iz = nzbins - 1; iz >= nzbins / 2; iz--)  // 495 - 248
+	    {
+	      if (iz > binpointer) continue;
+	      
+	      if (adc_input[iz] > ADCThreshold * ADCNoiseConversionGain)  // convert threshold in electrons to mV
+		{
+		  // digitize this bin and the following 4 bins
+		  
+		  if (Verbosity() > 100)
+		    if (layer == print_layer) cout << endl
+						   << "new:  (pos z) Above threshold  of " << ADCThreshold * ADCNoiseConversionGain << " for iphi " << iphi << "  iz " << iz
+						   << " with adc_input " << adc_input[iz] << " digitize this and 4 following bins: " << endl;
+		  
+		  for (int izup = 0; izup < 5; izup++)
+		    {
+		      if (iz - izup < nzbins && iz - izup >= nzbins / 2)
+			{
+			  unsigned int adc_output = (unsigned int) (adc_input[iz - izup] * 1024.0 / 2200.0);  // input voltage x 1024 channels over 2200 mV max range
+			  if (adc_input[iz - izup] < 0) adc_output = 0;
+			  if (adc_output > 1023) adc_output = 1023;
+			  
+			  if (Verbosity() > 100)
+			  if (layer == print_layer) cout << "new:  iphi " << iphi << "  (pos z) iz-izup " << iz - izup << " adc_hitid " << adc_hitid[iz - izup]
+							   << "  adc_input " << adc_input[iz - izup] << " ADCThreshold " << ADCThreshold * ADCNoiseConversionGain
+							   << " adc_output " << adc_output << endl;
+
+			  // Get the hitkey
+			  TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz-izup);
+			  TrkrHit *hit = nullptr;
+			  hit = hitset_iter->second->getHit(hitkey);
+			  
+			  // noise bins do not have TrkrHits associated with them, have to make one
+			  if(!hit)
+			    {
+			      hit = new TpcHit();
+			      hitset_iter->second->addHitSpecificKey(hitkey, hit);
+			      hit->addEnergy(adc_input[iz+izup]);
+			      
+			      if (Verbosity() > 100)
+				if (layer == print_layer) cout << "new:  adding noise hit for iphi " << iphi << " zbin " << iz + izup
+							       << " created new hit with hitkey " << hitkey
+							       << " energy " << adc_input[iz + izup] << " adc " << adc_output << endl;
+			    }
+
+			  hit->setAdc(adc_output);
+			} // end boundary check
+			  binpointer--;
+		    } // end izup loop
+		  
+		}  //  adc threshold if
+	      else
+		{
+		  // below threshold, move on
+		  binpointer--;
+		}  // end adc threshold if/else
+
+	    }  // end iz loop for positive z
+			      
+	}  // end phibins loop
+      
+    }  // end loop over hitsets
+
+  //======================================================  
+  if(Verbosity() > 2) 
+    cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end before cleaning:" << endl;
+
+    std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
+
+  // Clean up undigitized hits - we want all hitsets for the TPC
+  TrkrHitSetContainer::ConstRange hitset_range_now = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_now.first;
+       hitset_iter != hitset_range_now.second;
+       ++hitset_iter)
+    {
+     // we have an iterator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      const int sector = TpcDefs::getSectorId(hitsetkey);
+      const int side = TpcDefs::getSide(hitsetkey);
+      if(Verbosity() > 2) 
+	cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  TrkrDefs::hitkey hitkey = hit_iter->first;
+	  TrkrHit *tpchit = hit_iter->second;
+	  if(Verbosity() > 2)
+	    cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+		 << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+
+	  if(tpchit->getAdc() == 0)
+	    {
+	      if(Verbosity() > 2) 
+		cout << "                       --   this hit not digitized - delete it" << endl;
+	      // screws up the iterator to delete it here, store the hitkey for later deletion
+		delete_hitkey_list.push_back(std::make_pair(hitsetkey, hitkey));
+	    }
+	}
+    }
+
+  // delete all undigitized hits
+  for(unsigned int i=0; i<delete_hitkey_list.size(); i++)
+    {
+      TrkrHitSet *hitset = trkrhitsetcontainer->findHitSet(delete_hitkey_list[i].first);
+      hitset->removeHit(delete_hitkey_list[i].second);
+      if(Verbosity() > 2) cout << "removed hit with hitsetkey " << delete_hitkey_list[i].first << " and hitkey " << delete_hitkey_list[i].second << endl; 
+    }
+
+  // should also delete all entries for these hits from the TrkrHitTruthAssoc map here
+
+
+
+  //=======================================
+
+  // Final hitset dump
+  if(Verbosity() > 2) 
+    cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end after cleaning:" << endl;
+ // We want all hitsets for the TPC
+  TrkrHitSetContainer::ConstRange hitset_range_final = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_final.first;
+       hitset_iter != hitset_range_now.second;
+       ++hitset_iter)
+    {
+     // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+      if (layer != print_layer)  continue;
+      const int sector = TpcDefs::getSectorId(hitsetkey);
+      const int side = TpcDefs::getSide(hitsetkey);
+      if(Verbosity() > 2) 
+	cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  TrkrDefs::hitkey hitkey = hit_iter->first;
+	  TrkrHit *tpchit = hit_iter->second;
+	  if(Verbosity() > 2)
+	    cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+		 << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+
+	  if(tpchit->getAdc() == 0)
+	    {
+		cout << "   Oops!                    --   this hit not digitized and not deleted!" << endl;
+	    }
+	}
+    }
+
+						      
+  //=============
+  // end new containers
+  //=============
   return;
 }
 
-void PHG4TPCDigitizer::PrintHits(PHCompositeNode *topNode)
+void PHG4TpcDigitizer::PrintHits(PHCompositeNode *topNode)
 {
   if (Verbosity() >= 1)
   {
+    /*
     SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
     if (!hitlist) return;
 
-    cout << "================= PHG4TPCDigitizer::process_event() ====================" << endl;
+    cout << "================= PHG4TpcDigitizer::process_event() ====================" << endl;
 
     cout << " Found and recorded the following " << hitlist->size() << " hits: " << endl;
 
@@ -619,12 +1010,13 @@ void PHG4TPCDigitizer::PrintHits(PHCompositeNode *topNode)
     }
 
     cout << "===========================================================================" << endl;
+    */
   }
 
   return;
 }
 
-float PHG4TPCDigitizer::added_noise()
+float PHG4TpcDigitizer::added_noise()
 {
   float noise = gsl_ran_gaussian(RandomGenerator, TPCEnc);
 
