@@ -739,6 +739,16 @@ void PHG4Reco::DefineMaterials()
   cfrp_intt->AddElement(G4Element::GetElement("H"), 6);
   cfrp_intt->AddElement(G4Element::GetElement("O"), 1);
 
+  // water glycol mixture for the INTT endcap rings
+  G4Material *PropyleneGlycol = new G4Material("Propyleneglycol", 1.036 * g / cm3, 3);
+  PropyleneGlycol->AddElement(G4Element::GetElement("C"), 3);
+  PropyleneGlycol->AddElement(G4Element::GetElement("H"), 8);
+  PropyleneGlycol->AddElement(G4Element::GetElement("O"), 2);
+
+  G4Material *WaterGlycol_INTT = new G4Material("WaterGlycol_INTT", density = (0.997 * 0.7 + 1.036 * 0.3) * g / cm3, ncomponents = 2);
+  WaterGlycol_INTT->AddMaterial(PropyleneGlycol, fractionmass = 0.30811936);
+  WaterGlycol_INTT->AddMaterial(G4Material::GetMaterial("G4_WATER"), fractionmass = .69188064);
+
   // making Rohacell foam 110
   G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_110", density = 0.110 * g / cm3, ncomponents = 4);
   rohacell_foam_110->AddElement(G4Element::GetElement("C"), 8);
@@ -787,6 +797,19 @@ void PHG4Reco::DefineMaterials()
   SS310->AddElement(G4Element::GetElement("Si"), 0.0075);
   SS310->AddElement(G4Element::GetElement("P"), 0.00045);
 
+  // SS316 from https://www.azom.com
+  G4Material *SS316 =
+      new G4Material("SS316", density = 8.0 * g / cm3, ncomponents = 9);
+  SS316->AddElement(G4Element::GetElement("Fe"), 0.68095);
+  SS316->AddElement(G4Element::GetElement("Cr"), 0.16);
+  SS316->AddElement(G4Element::GetElement("Ni"), 0.11);
+  SS316->AddElement(G4Element::GetElement("Mn"), 0.02);
+  SS316->AddElement(G4Element::GetElement("Mo"), 0.02);
+  SS316->AddElement(G4Element::GetElement("C"), 0.0008);
+  SS316->AddElement(G4Element::GetElement("S"), 0.0003);
+  SS316->AddElement(G4Element::GetElement("Si"), 0.0075);
+  SS316->AddElement(G4Element::GetElement("P"), 0.00045);
+
   G4Material *Steel =
       new G4Material("Steel", density = 7.86 * g / cm3, ncomponents = 5);
   Steel->AddElement(G4Element::GetElement("Fe"), 0.9834);
@@ -814,11 +837,18 @@ void PHG4Reco::DefineMaterials()
   Al5083->AddElement(G4Element::GetElement("Mg"), 0.04);
   Al5083->AddElement(G4Element::GetElement("Al"), 0.956);
 
-// Al 4046 from http://www.matweb.com
+  // Al 4046 from http://www.matweb.com
   G4Material *Al4046 = new G4Material("Al4046",density = 2.66 * g / cm3, ncomponents = 3);
   Al4046->AddElement(G4Element::GetElement("Al"), 0.897);
   Al4046->AddElement(G4Element::GetElement("Si"), 0.1);
   Al4046->AddElement(G4Element::GetElement("Mg"), 0.003);
+
+  // Al 6061T6 from http://www.matweb.com
+  G4Material *Al6061T6 = new G4Material("Al6061T6",density = 2.70 * g / cm3, ncomponents = 4);
+  Al6061T6->AddElement(G4Element::GetElement("Al"), 0.975);
+  Al6061T6->AddElement(G4Element::GetElement("Si"), 0.008);
+  Al6061T6->AddElement(G4Element::GetElement("Mg"), 0.01);
+  Al6061T6->AddElement(G4Element::GetElement("Fe"), 0.007);
 
   G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
   FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
