@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
@@ -9,6 +12,13 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include \
   -I${G4_MAIN}/include
+
+pkginclude_HEADERS = \
+  HcalRawTowerBuilder.h \
+  Prototype2RawTowerBuilder.h \
+  RawTowerBuilder.h \
+  RawTowerBuilderByHitIndex.h \
+  RawTowerDigitizer.h
 
 if ! MAKEROOT6
   ROOT5_DICTS = \
@@ -47,15 +57,6 @@ libg4calo_la_LIBADD = \
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-##############################################
-# please add new classes in alphabetical order
-
-pkginclude_HEADERS = \
-  HcalRawTowerBuilder.h \
-  RawTowerBuilder.h \
-  RawTowerBuilderByHitIndex.h \
-  RawTowerDigitizer.h
 
 ################################################
 # linking tests
