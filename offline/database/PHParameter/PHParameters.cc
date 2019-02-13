@@ -65,7 +65,7 @@ PHParameters::get_int_param(const std::string &name) const
     }
   cout << PHWHERE << " integer parameter " << name
       << " does not exist (forgot to set?)" << endl;
-
+  gSystem->Exit(1);
   exit(1);
 }
 
@@ -107,6 +107,7 @@ PHParameters::get_double_param(const std::string &name) const
   cout << PHWHERE << " double parameter " << name
       << " does not exist (forgot to set?)" << endl;
 
+  gSystem->Exit(1);
   exit(1);
 }
 
@@ -368,6 +369,7 @@ PHParameters::WriteToDB()
     {
       cout << PHWHERE << " Aborting, Database not writable" << endl;
       application->abort();
+      gSystem->Exit(1);
       exit(1);
     }
 
@@ -406,6 +408,7 @@ PHParameters::ReadFromDB(const string &name, const int layer)
     {
       cout << PHWHERE << " Aborting, Database not readable" << endl;
       application->abort();
+      gSystem->Exit(1);
       exit(1);
     }
 
@@ -441,6 +444,7 @@ PHParameters::ReadFromDB()
     {
       cout << PHWHERE << " Aborting, Database not readable" << endl;
       application->abort();
+      gSystem->Exit(1);
       exit(1);
     }
 
@@ -630,6 +634,7 @@ PHParameters::ConvertStringToUint(const std::string &str) const
   catch (boost::bad_lexical_cast const&)
     {
       cout << "Cannot extract timestamp from " << str << endl;
+      gSystem->Exit(1);
       exit(1);
     }
   return tics;
