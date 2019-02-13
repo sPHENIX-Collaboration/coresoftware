@@ -70,6 +70,7 @@ if MAKEROOT6
 else
   ROOT5_DICTS = \
     PHG4INTTDeadMapLoader_Dict.cc \
+    PHG4INTTDefs_Dict.cc \
     PHG4INTTDigitizer_Dict.cc \
     PHG4INTTCellReco_Dict.cc \
     PHG4INTTSubsystem_Dict.cc
@@ -89,7 +90,6 @@ libg4intt_la_SOURCES = \
   PHG4INTTHitReco.cc \
   PHG4INTTHitReco_Dict.cc \
   PHG4INTTCellReco.cc \
-  PHG4INTTDefs_Dict.cc \
   PHG4INTTDetector.cc \
   PHG4INTTSteppingAction.cc \
   PHG4INTTSubsystem.cc \

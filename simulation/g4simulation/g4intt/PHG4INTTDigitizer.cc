@@ -2,7 +2,6 @@
 
 #include "INTTDeadMap.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -23,11 +22,19 @@
 #include <trackbase_historic/SvtxHitMap_v1.h>
 #include <trackbase_historic/SvtxHit_v1.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
+#include <TSystem.h>
+
+#include <gsl/gsl_randist.h>
+
+#include <cfloat>
 #include <cmath>
 #include <iostream>
 
@@ -35,10 +42,19 @@ using namespace std;
 
 PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   : SubsysReco(name)
-  , _hitmap(NULL)
+  , PHParameterInterface(name)
+  , mNoiseMean(457.2)
+  , mNoiseSigma(166.6)
+  , mEnergyPerPair(3.62e-9)  // GeV/e-h
+  , _hitmap(nullptr)
   , m_nCells(0)
   , m_nDeadCells(0)
 {
+  InitializeParameters();
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
@@ -76,6 +92,36 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   }
 
   CalculateLadderCellADCScale(topNode);
+
+  // Create the run and par nodes
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  PHCompositeNode *parNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "PAR"));
+
+  string paramnodename = "G4CELLPARAM_" + detector;
+  string geonodename = "G4CELLGEO_" + detector;
+
+  UpdateParametersWithMacro();
+  // save this to the run wise tree to store on DST
+  PHNodeIterator runIter(runNode);
+  PHCompositeNode *RunDetNode = dynamic_cast<PHCompositeNode *>(runIter.findFirst("PHCompositeNode", detector));
+  if (!RunDetNode)
+  {
+    RunDetNode = new PHCompositeNode(detector);
+    runNode->addNode(RunDetNode);
+  }
+  SaveToNodeTree(RunDetNode, paramnodename);
+  // save this to the parNode for use
+  PHNodeIterator parIter(parNode);
+  PHCompositeNode *ParDetNode = dynamic_cast<PHCompositeNode *>(parIter.findFirst("PHCompositeNode", detector));
+  if (!ParDetNode)
+  {
+    ParDetNode = new PHCompositeNode(detector);
+    parNode->addNode(ParDetNode);
+  }
+  PutOnParNode(ParDetNode, geonodename);
+  mNoiseMean = get_double_param("NoiseMean");
+  mNoiseSigma = get_double_param("NoiseSigma");
+  mEnergyPerPair = get_double_param("EnergyPerPair");
 
   //----------------
   // Report Settings
@@ -135,8 +181,10 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
   {
     int layer = layeriter->second->get_layer();
     if (_max_fphx_adc.find(layer) == _max_fphx_adc.end())
-      assert(!"Error: _max_fphx_adc is not available.");
-
+    {
+      cout << "Error: _max_fphx_adc is not available." << endl;
+      gSystem->Exit(1);
+    }
     float thickness = (layeriter->second)->get_thickness();  // cm
     float mip_e = 0.003876 * thickness;                      // GeV
     _energy_scale.insert(std::make_pair(layer, mip_e));
@@ -210,7 +258,14 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
     hit.set_cellid(cell->get_cellid());
 
     if (_energy_scale.count(layer) > 1)
-      assert(!"Error: _energy_scale has two or more keys.");
+    {
+      cout << "Error: _energy_scale has two or more keys." << endl;
+      gSystem->Exit(1);
+    }
+    // Convert Geant4 true cell energy to # of electrons and add noise electrons
+    const int n_true_electron = (int) (cell->get_edep() / mEnergyPerPair);
+    const int n_noise_electron = round(added_noise());
+    const int n_cell_electron = n_true_electron + n_noise_electron;
 
     const float mip_e = _energy_scale[layer];
 
@@ -218,21 +273,33 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 
     int adc = -1;
     for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-      if (cell->get_edep() >= vadcrange[irange].first * (double) mip_e && cell->get_edep() < vadcrange[irange].second * (double) mip_e)
+    {
+      // Convert adc ranges from fraction to the MIP energy to # of electrons.
+      // vadcrange uses FLT_MAX and the order of mEnergyPerPair is e-9, so use double.
+      const double n_adcrange_electron_first = vadcrange[irange].first * mip_e / mEnergyPerPair;
+      const double n_adcrange_electron_second = vadcrange[irange].second * mip_e / mEnergyPerPair;
+
+      if (n_cell_electron >= n_adcrange_electron_first && n_cell_electron < n_adcrange_electron_second)
         adc = (int) irange;
+    }
     //
     if (adc >= 0)
     {
       //      adc = 0;
 
-      float e = 0.0;
+      double e;
       if (adc >= 0 && adc < int(vadcrange.size()) - 1)
+      {
         e = 0.5 * (vadcrange[adc].second + vadcrange[adc].first) * mip_e;
+      }
       else if (adc == int(vadcrange.size()) - 1)  // overflow
+      {
         e = vadcrange[adc].first * mip_e;
+      }
       else  // underflow
+      {
         e = 0.5 * vadcrange[0].first * mip_e;
-
+      }
       hit.set_adc(adc);
       hit.set_e(e);
 
@@ -393,4 +460,49 @@ void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
   }
 
   return;
+}
+
+void PHG4INTTDigitizer::SetDefaultParameters()
+{
+  set_default_double_param("NoiseMean", 457.2);
+  set_default_double_param("NoiseSigma", 166.6);
+  set_default_double_param("EnergyPerPair", 3.62e-9);  // GeV/e-h
+  return;
+}
+
+float PHG4INTTDigitizer::added_noise()
+{
+//  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
+//  noise = (noise < 0) ? 0 : noise;
+
+  // Note the noise is bi-polar, i.e. can make ths signal fluctuate up and down.
+  // Much of the mNoiseSigma as extracted in https://github.com/sPHENIX-Collaboration/coresoftware/pull/580
+  // is statistical fluctuation from the limited calibration data. They does not directly apply here.
+  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseMean);
+
+  return noise;
+}
+
+void PHG4INTTDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+{
+  if (userrange.size() != nadcbins)
+  {
+    cout << "Error: vector in set_fphx_adc_scale(vector) must have eight elements." << endl;
+    gSystem->Exit(1);
+  }
+  //sort(userrange.begin(), userrange.end()); // TODO, causes GLIBC error
+
+  std::vector<std::pair<double, double> > vadcrange;
+  for (unsigned int irange = 0; irange < userrange.size(); ++irange)
+  {
+    if (irange == userrange.size() - 1)
+    {
+      vadcrange.push_back(std::make_pair(userrange[irange], FLT_MAX));
+    }
+    else
+    {
+      vadcrange.push_back(std::make_pair(userrange[irange], userrange[irange + 1]));
+    }
+  }
+  _max_fphx_adc.insert(std::make_pair(layer, vadcrange));
 }
