@@ -37,7 +37,8 @@ pkginclude_HEADERS = \
   PHG4MVTXSubsystem.h \
   PHG4CylinderCell_MVTX.h \
   PHG4CylinderGeom_MVTX.h \
-  PHG4MVTXDigitizer.h 
+  PHG4MVTXDigitizer.h \
+  PHG4MvtxDigitizer.h 
 
 ROOTDICTS = \
   PHG4CylinderCell_MVTX_Dict.cc \
@@ -51,7 +52,8 @@ else
   ROOT5_DICTS = \
     PHG4MVTXCellReco_Dict.cc \
     PHG4MVTXSubsystem_Dict.cc \
-    PHG4MVTXDigitizer_Dict.cc 
+    PHG4MVTXDigitizer_Dict.cc \
+    PHG4MvtxDigitizer_Dict.cc 
 endif
 
 libg4mvtx_la_SOURCES = \
@@ -63,7 +65,8 @@ libg4mvtx_la_SOURCES = \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
   PHG4CylinderGeom_MVTX.cc \
-  PHG4MVTXDigitizer.cc
+  PHG4MVTXDigitizer.cc \
+  PHG4MvtxDigitizer.cc
 
 
 libg4mvtx_io_la_SOURCES = \

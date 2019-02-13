@@ -925,6 +925,10 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       if(Verbosity() > 2) cout << "removed hit with hitsetkey " << delete_hitkey_list[i].first << " and hitkey " << delete_hitkey_list[i].second << endl; 
     }
 
+  // should also delete all entries for these hits from the TrkrHitTruthAssoc map here
+
+
+
   //=======================================
 
   // Final hitset dump
