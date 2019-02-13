@@ -1,17 +1,14 @@
-// this version uses the old storage containers, and will be retired
+// This is the new trackbase container version
 
-#include "PHG4INTTDigitizer.h"
+#include "PHG4InttDigitizer.h"
 
 #include "INTTDeadMap.h"
 
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-/*
 // Move to new storage containers
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
@@ -19,12 +16,6 @@
 #include <trackbase/TrkrDefs.h>
 #include <intt/InttDefs.h>
 #include <intt/InttHit.h>
-*/
-
-#include <trackbase_historic/SvtxHit.h>
-#include <trackbase_historic/SvtxHitMap.h>
-#include <trackbase_historic/SvtxHitMap_v1.h>
-#include <trackbase_historic/SvtxHit_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -45,13 +36,12 @@
 
 using namespace std;
 
-PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
+PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , mNoiseMean(457.2)
   , mNoiseSigma(166.6)
   , mEnergyPerPair(3.62e-9)  // GeV/e-h
-  , _hitmap(nullptr)
   , m_nCells(0)
   , m_nDeadCells(0)
 {
@@ -62,7 +52,7 @@ PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   gsl_rng_set(RandomGenerator, seed);
 }
 
-int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 {
   //-------------
   // Add Hit Node
@@ -76,24 +66,6 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   {
     cout << PHWHERE << "DST Node missing, doing nothing." << endl;
     return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  // Create the SVX node if required
-  PHCompositeNode *svxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
-  if (!svxNode)
-  {
-    svxNode = new PHCompositeNode("SVTX");
-    dstNode->addNode(svxNode);
-  }
-
-  // Create the Hit node if required
-  SvtxHitMap *svxhits = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-  if (!svxhits)
-  {
-    svxhits = new SvtxHitMap_v1();
-    PHIODataNode<PHObject> *SvtxHitMapNode =
-        new PHIODataNode<PHObject>(svxhits, "SvtxHitMap", "PHObject");
-    svxNode->addNode(SvtxHitMapNode);
   }
 
   CalculateLadderCellADCScale(topNode);
@@ -134,7 +106,7 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4INTTDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4InttDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
          ++iter)
@@ -153,15 +125,8 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
+int PHG4InttDigitizer::process_event(PHCompositeNode *topNode)
 {
-  _hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-  if (!_hitmap)
-  {
-    cout << PHWHERE << " ERROR: Can't find SvtxHitMap." << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
   DigitizeLadderCells(topNode);
 
   PrintHits(topNode);
@@ -169,7 +134,7 @@ int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
+void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
@@ -198,7 +163,7 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
   return;
 }
 
-void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
+void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 {
   //---------------------------
   // Get common Nodes
@@ -208,132 +173,112 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   {
     if (deadmap)
     {
-      cout << "PHG4INTTDigitizer::DigitizeLadderCells - Use deadmap ";
+      cout << "PHG4InttDigitizer::DigitizeLadderCells - Use deadmap ";
       deadmap->identify();
     }
     else
     {
-      cout << "PHG4INTTDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
+      cout << "PHG4InttDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
     }
   }
 
-  //============
-  // old containers
-  //============
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
-  if (!cells) return;
+  // Get the TrkrHitSetContainer node
+  TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!trkrhitsetcontainer)
+    {
+      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+      exit(1);
+    }
 
-  //-------------
+ //-------------
   // Digitization
   //-------------
 
-  PHG4CellContainer::ConstRange cellrange = cells->getCells();
-  for (PHG4CellContainer::ConstIterator celliter = cellrange.first;
-       celliter != cellrange.second;
-       ++celliter)
-  {
-    PHG4Cell *cell = celliter->second;
-
-    ++m_nCells;
-    if (deadmap)
+  // We want all hitsets for the INTT
+  TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::inttId);
+  for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+       hitset_iter != hitset_range.second;
+       ++hitset_iter)
     {
-      if (deadmap->isDeadChannelINTT(
-              cell->get_layer(),             //const int layer,
-              cell->get_ladder_phi_index(),  //const int ladder_phi,
-              cell->get_ladder_z_index(),    //const int ladder_z,
-              cell->get_zbin(),              //const int strip_z,
-              cell->get_phibin()             //const int strip_phi
-              ))
-      {
-        ++m_nDeadCells;
-        if (Verbosity() >= VERBOSITY_MORE)
-        {
-          cout << "PHG4INTTDigitizer::DigitizeLadderCells - dead cell at layer " << cell->get_layer() << ": ";
-          cell->identify();
-        }
-        continue;
-      }
-    }  //    if (deadmap)
+     // we have an itrator to one TrkrHitSet for the intt from the trkrHitSetContainer
+      // get the hitset key so we can find the layer
+      TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+      const int layer = TrkrDefs::getLayer(hitsetkey);
+      const int ladder_phi = InttDefs::getLadderPhiId(hitsetkey);
+      const int ladder_z = InttDefs::getLadderZId(hitsetkey);
 
-    SvtxHit_v1 hit;
+      if(Verbosity() > 1) 
+	cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
 
-    const int layer = cell->get_layer();
+      // get all of the hits from this hitset      
+      TrkrHitSet *hitset = hitset_iter->second;
+      TrkrHitSet::ConstRange hit_range = hitset->getHits();
+      for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	  hit_iter != hit_range.second;
+	  ++hit_iter)
+	{
+	  ++m_nCells;
 
-    hit.set_layer(layer);
-    hit.set_cellid(cell->get_cellid());
+	  TrkrHit *hit = (InttHit*) hit_iter->second;
+	  TrkrDefs::hitkey hitkey = hit_iter->first;
+	  int strip_col =  InttDefs::getCol(hitkey);  // strip z index
+	  int strip_row =   InttDefs::getRow(hitkey);  // strip phi index
 
-    if (_energy_scale.count(layer) > 1)
-    {
-      cout << "Error: _energy_scale has two or more keys." << endl;
-      gSystem->Exit(1);
-    }
-    // Convert Geant4 true cell energy to # of electrons and add noise electrons
-    const int n_true_electron = (int) (cell->get_edep() / mEnergyPerPair);
-    const int n_noise_electron = round(added_noise());
-    const int n_cell_electron = n_true_electron + n_noise_electron;
+	  // Apply deadmap here if desired
+	  if (deadmap)
+	    {
+	      if (deadmap->isDeadChannelINTT(
+					     layer, 
+					     ladder_phi,
+					     ladder_z,
+					     strip_col,
+					     strip_row
+					     ))
+		{
+		  ++m_nDeadCells;
+		  if (Verbosity() >= VERBOSITY_MORE)
+		    {
+		      cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+		      hit->identify();
+		    }
+		  continue;
+		}
+	    }  //    if (deadmap)
 
-    const float mip_e = _energy_scale[layer];
+	  if (_energy_scale.count(layer) > 1)
+	    assert(!"Error: _energy_scale has two or more keys.");
 
-    std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
+	  const float mip_e = _energy_scale[layer];
 
-    int adc = -1;
-    for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
-    {
-      // Convert adc ranges from fraction to the MIP energy to # of electrons.
-      // vadcrange uses FLT_MAX and the order of mEnergyPerPair is e-9, so use double.
-      const double n_adcrange_electron_first = vadcrange[irange].first * mip_e / mEnergyPerPair;
-      const double n_adcrange_electron_second = vadcrange[irange].second * mip_e / mEnergyPerPair;
+	  std::vector<std::pair<double, double> > vadcrange = _max_fphx_adc[layer];
 
-      if (n_cell_electron >= n_adcrange_electron_first && n_cell_electron < n_adcrange_electron_second)
-        adc = (int) irange;
-    }
-    //
-    if (adc >= 0)
-    {
-      //      adc = 0;
+	  int adc = -1;
+	  for (unsigned int irange = 0; irange < vadcrange.size(); ++irange)
+	    if (hit->getEnergy() >= vadcrange[irange].first * (double) mip_e && hit->getEnergy() < vadcrange[irange].second * (double) mip_e)
+	      adc = (int) irange;
 
-      double e;
-      if (adc >= 0 && adc < int(vadcrange.size()) - 1)
-      {
-        e = 0.5 * (vadcrange[adc].second + vadcrange[adc].first) * mip_e;
-      }
-      else if (adc == int(vadcrange.size()) - 1)  // overflow
-      {
-        e = vadcrange[adc].first * mip_e;
-      }
-      else  // underflow
-      {
-        e = 0.5 * vadcrange[0].first * mip_e;
-      }
-      hit.set_adc(adc);
-      hit.set_e(e);
+	  if(adc == -1)
+	    // how do we specify underflow or overflow?
+	    adc = 0;
+	  
+	  hit->setAdc(adc);	      
 
-      SvtxHit *ptr = _hitmap->insert(&hit);
-      if (!ptr->isValid())
-      {
-        static bool first = true;
-        if (first)
-        {
-          cout << PHWHERE << "ERROR: Incomplete SvtxHits are being created" << endl;
-          ptr->identify();
-          first = false;
-        }
-      }
-    }
-  }
-  //==============
-  // end old containers
-  //==============
-
+	  if(Verbosity() > 2)
+	    cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
+		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
+ 
+	} // end loop over hits in this hitset
+    } // end loop over hitsets
+  
   return;
 }
 
 //! end of process
-int PHG4INTTDigitizer::End(PHCompositeNode *topNode)
+int PHG4InttDigitizer::End(PHCompositeNode *topNode)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "PHG4INTTDigitizer::End - processed "
+    cout << "PHG4InttDigitizer::End - processed "
          << m_nCells << " cell with "
          << m_nDeadCells << " dead cells masked"
          << " (" << 100. * m_nDeadCells / m_nCells << "%)" << endl;
@@ -342,37 +287,16 @@ int PHG4INTTDigitizer::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4INTTDigitizer::PrintHits(PHCompositeNode *topNode)
+void PHG4InttDigitizer::PrintHits(PHCompositeNode *topNode)
 {
   if (Verbosity() >= VERBOSITY_EVEN_MORE)
   {
-    //if (Verbosity() >= 0) {
-
-    SvtxHitMap *hitlist = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-    if (!hitlist) return;
-
-    cout << "================= PHG4INTTDigitizer::process_event() ====================" << endl;
-
-    cout << " Found and recorded the following " << hitlist->size() << " hits: " << endl;
-
-    unsigned int ihit = 0;
-    for (SvtxHitMap::Iter iter = hitlist->begin();
-         iter != hitlist->end();
-         ++iter)
-    {
-      SvtxHit *hit = iter->second;
-      cout << ihit << " of " << hitlist->size() << endl;
-      hit->identify();
-      ++ihit;
-    }
-
-    cout << "===========================================================================" << endl;
   }
 
   return;
 }
 
-void PHG4INTTDigitizer::SetDefaultParameters()
+void PHG4InttDigitizer::SetDefaultParameters()
 {
   set_default_double_param("NoiseMean", 457.2);
   set_default_double_param("NoiseSigma", 166.6);
@@ -380,7 +304,7 @@ void PHG4INTTDigitizer::SetDefaultParameters()
   return;
 }
 
-float PHG4INTTDigitizer::added_noise()
+float PHG4InttDigitizer::added_noise()
 {
 //  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
 //  noise = (noise < 0) ? 0 : noise;
@@ -393,7 +317,7 @@ float PHG4INTTDigitizer::added_noise()
   return noise;
 }
 
-void PHG4INTTDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+void PHG4InttDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
 {
   if (userrange.size() != nadcbins)
   {

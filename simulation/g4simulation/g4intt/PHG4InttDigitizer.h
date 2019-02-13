@@ -1,7 +1,5 @@
-// this version uses the old storage containers, and will be retired
-
-#ifndef G4INTT_PHG4INTTDIGITIZER_H
-#define G4INTT_PHG4INTTDIGITIZER_H
+#ifndef G4INTT_PHG4InttDIGITIZER_H
+#define G4INTT_PHG4InttDIGITIZER_H
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -15,13 +13,11 @@
 #include <gsl/gsl_rng.h>
 #endif
 
-class SvtxHitMap;
-
-class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
+class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4INTTDigitizer(const std::string &name = "PHG4INTTDigitizer");
-  virtual ~PHG4INTTDigitizer() {}
+  PHG4InttDigitizer(const std::string &name = "PHG4InttDigitizer");
+  virtual ~PHG4InttDigitizer() {}
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
@@ -59,7 +55,7 @@ class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
   std::map<int, float> _energy_scale;
 
   // storage
-  SvtxHitMap *_hitmap;
+  //SvtxHitMap *_hitmap;
 
   const unsigned int nadcbins = 8;
   std::map<int, std::vector<std::pair<double, double> > > _max_fphx_adc;
