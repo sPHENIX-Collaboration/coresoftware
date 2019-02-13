@@ -78,6 +78,11 @@ public:
       _tower5_dy = dy;
       _tower5_dz = dz;
     }
+     else if(type==5){
+      _tower6_dx = dx;
+      _tower6_dy = dy;
+      _tower6_dz = dz;
+    }
   }
 
   void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
@@ -107,7 +112,7 @@ private:
 
   G4LogicalVolume* ConstructTower( int type );
   G4LogicalVolume* ConstructTowerType2();
-  G4LogicalVolume* ConstructTowerType3_4_5( int type );
+  G4LogicalVolume* ConstructTowerType3_4_5_6( int type );
   int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower[6]);
   int ParseParametersFromTable();
 
@@ -144,6 +149,10 @@ private:
   G4double _tower5_dx;
   G4double _tower5_dy;
   G4double _tower5_dz;
+
+  G4double _tower6_dx;
+  G4double _tower6_dy;
+  G4double _tower6_dz;
 
 protected:
 
