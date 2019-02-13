@@ -747,7 +747,7 @@ void PHG4Reco::DefineMaterials()
 
   G4Material *WaterGlycol_INTT = new G4Material("WaterGlycol_INTT", density = (0.997 * 0.7 + 1.036 * 0.3) * g / cm3, ncomponents = 2);
   WaterGlycol_INTT->AddMaterial(PropyleneGlycol, fractionmass = 0.30811936);
-  WaterGlycol_INTT->AddMaterial(G4Material::GetMaterial("G4_WATER"), fractionmass = .69188064);
+  WaterGlycol_INTT->AddMaterial(G4Material::GetMaterial("G4_WATER"), fractionmass = 0.69188064);
 
   // making Rohacell foam 110
   G4Material *rohacell_foam_110 = new G4Material("ROHACELL_FOAM_110", density = 0.110 * g / cm3, ncomponents = 4);
