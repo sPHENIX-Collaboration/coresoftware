@@ -232,6 +232,18 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "inner_skin_length", 50.7);
     set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
 
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length", 50.7);
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_inner_radius", 12.0694);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_outer_radius", 12.2194);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_length", 50.7);
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_inner_radius", 12.2194);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length", 50.7);
+
     // Endcap ring position
     set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);  
 
@@ -255,16 +267,12 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_length", 42.);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_skin_thickness", 0.01);
 
-    set_default_double_param(SUPPORTPARAMS, "rail_dphi", 60.);  // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_dphi", 90.);  // deg
     set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
     set_default_double_param(SUPPORTPARAMS, "rail_length", 410);  // tpc length
     set_default_double_param(SUPPORTPARAMS, "rail_outer_radius", 0.6);
-    set_default_double_param(SUPPORTPARAMS, "rail_phi_start", 30.);  // deg
-    set_default_double_param(SUPPORTPARAMS, "rail_radius", 17.5);
-
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius", 12.0444);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius", 12.0694);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_length", 50.7);
+    set_default_double_param(SUPPORTPARAMS, "rail_phi_start", 45.);  // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_radius", 16.85);
   }
 
   return;

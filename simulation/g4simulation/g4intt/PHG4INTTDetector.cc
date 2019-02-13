@@ -809,11 +809,10 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
   //
   /*
-    6 rails, which are 12mm OD and 9mm ID tubes at a radius of 175 mm.  They are spaced equidistantly in phi.
-          For the 6 rails, there should be one at the very top and bottom (ie, along the vertical), and then the rest are symmetrically placed in phi.  
-         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
-    An inner skin with a OD at 64 mm and a thickness of 0.150 mm.
-    An outer skin with a ID at 157 mm and a thickness of 1 mm (~0.5% rad len).
+    4 rails, which are 12mm OD and 9mm ID tubes at a radius of 168.5 mm.  They are spaced equidistantly in phi.
+    The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
+    An inner skin with a ID at 62.416 mm and a thickness of 0.250 mm.
+    An outer skin with a ID at 120.444 mm and a sandwich of 0.25 mm cfc, 1.5 mm foam and 0.25 mm cfc.
     
     All of the above are carbon fiber.
   */
@@ -840,7 +839,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   double rail_dphi = supportparams->get_double_param("rail_dphi") * deg / rad;
   double rail_phi_start = supportparams->get_double_param("rail_phi_start") * deg / rad;
   double rail_radius = supportparams->get_double_param("rail_radius") * cm;
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 4; i++)
   {
     double phi = rail_phi_start + i * rail_dphi;
 
@@ -853,21 +852,44 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   }
 
   // Outer skin
-
-  G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
-                                       supportparams->get_double_param("outer_skin_inner_radius") * cm,
-                                       supportparams->get_double_param("outer_skin_outer_radius") * cm,
-                                       supportparams->get_double_param("outer_skin_length") * cm / 2.,
+  G4Tubs *outer_skin_cfcin_tube = new G4Tubs("si_outer_skin_cfcin",
+                                       supportparams->get_double_param("outer_skin_cfcin_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcin_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcin_length") * cm / 2.,
                                        -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                           "outer_skin_volume", 0, 0, 0);
+  G4LogicalVolume *outer_skin_cfcin_volume = new G4LogicalVolume(outer_skin_cfcin_tube, G4Material::GetMaterial("CFRP_INTT"),
+                                                           "outer_skin_cfcin_volume", 0, 0, 0);
+
+  G4Tubs *outer_skin_foam_tube = new G4Tubs("si_outer_skin_foam",
+                                       supportparams->get_double_param("outer_skin_foam_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_foam_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_foam_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *outer_skin_foam_volume = new G4LogicalVolume(outer_skin_foam_tube, G4Material::GetMaterial("ROHACELL_FOAM_110"),
+                                                           "outer_skin_foam_volume", 0, 0, 0);
+
+  G4Tubs *outer_skin_cfcout_tube = new G4Tubs("si_outer_skin_cfcout",
+                                       supportparams->get_double_param("outer_skin_cfcout_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcout_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcout_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *outer_skin_cfcout_volume = new G4LogicalVolume(outer_skin_cfcout_tube, G4Material::GetMaterial("CFRP_INTT"),
+                                                           "outer_skin_cfcout_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
   {
-    m_PassiveVolumeTuple.insert(make_pair(outer_skin_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcin_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_foam_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcout_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
   }
-  outer_skin_volume->SetVisAttributes(rail_vis);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_volume,
-                    "si_support_outer_skin", trackerenvelope, false, 0, OverlapCheck());
+  outer_skin_cfcin_volume->SetVisAttributes(rail_vis);
+  outer_skin_foam_volume->SetVisAttributes(rail_vis);
+  outer_skin_cfcout_volume->SetVisAttributes(rail_vis);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcin_volume,
+                    "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_foam_volume,
+                    "si_support_outer_skin_foam", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcout_volume,
+                    "si_support_outer_skin_cfcout", trackerenvelope, false, 0, OverlapCheck());
 
   // Inner skin
 
