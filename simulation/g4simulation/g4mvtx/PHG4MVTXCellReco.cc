@@ -1,15 +1,12 @@
+// this is the old storage containers version, will be retired
+
 #include "PHG4MVTXCellReco.h"
 #include "PHG4CylinderCell_MVTX.h"
 #include "PHG4CylinderGeom_MVTX.h"
 
-// original storage containers
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 #include <g4detectors/PHG4Cellv1.h>
-
-// Move to new storage containers
-#include <trackbase/TrkrHit.h>
-#include <trackbase/TrkrHitSet.h>
 
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>

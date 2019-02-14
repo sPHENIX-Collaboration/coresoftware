@@ -11,7 +11,6 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHG4Cell;
 
 class PHG4MVTXHitReco : public SubsysReco, public PHParameterContainerInterface
 {
@@ -71,7 +70,6 @@ class PHG4MVTXHitReco : public SubsysReco, public PHParameterContainerInterface
   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
   static double get_eta(const double radius, const double z);
   std::map<int, int> binning;
-  std::map<int, std::pair<double, int> > cell_size;    // cell size in eta/nslats
   std::map<int, std::pair<double, double> > zmin_max;  // zmin/zmax for each layer for faster lookup
   std::map<int, double> etastep;
   std::string detector;
@@ -83,7 +81,7 @@ class PHG4MVTXHitReco : public SubsysReco, public PHParameterContainerInterface
   int nbins[2];
   int chkenergyconservation;
   std::map<int, std::pair<double, double> > tmin_max;
-  std::map<unsigned long long, PHG4Cell *> celllist;  // This map holds the hit cells
+  //std::map<unsigned long long, PHG4Cell *> celllist;  // This map holds the hit cells
 };
 
 #endif

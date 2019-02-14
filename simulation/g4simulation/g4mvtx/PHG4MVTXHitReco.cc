@@ -1,13 +1,9 @@
+// this is the new trackbase version 
+
 #include "PHG4MVTXHitReco.h"
 #include "PHG4CylinderCell_MVTX.h"
 #include "PHG4CylinderGeom_MVTX.h"
 
-// original storage containers
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CellDefs.h>
-#include <g4detectors/PHG4Cellv1.h>
-
-// Move to new storage containers
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -73,6 +69,7 @@ int PHG4MVTXHitReco::InitRun(PHCompositeNode *topNode)
     cout << "Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
+  /*
   cellnodename = "G4CELL_" + detector;
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
@@ -90,6 +87,7 @@ int PHG4MVTXHitReco::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
     DetNode->addNode(newNode);
   }
+  */
 
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
@@ -151,12 +149,15 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
     cout << "Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
+
+  /*
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
   if (!cells)
   {
     cout << "could not locate cell node " << cellnodename << endl;
     exit(1);
   }
+  */
 
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
@@ -560,133 +561,8 @@ int PHG4MVTXHitReco::process_event(PHCompositeNode *topNode)
 	//cout << "PHG4MVTXHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl; 
 	hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 	
-	// end of the new storage object version
-	//===========================
-
-	//==========================================================	
-	// Old storage version - keep this for now, remove it after debugging new hit storage
-	//==========================================================
-	
-        // combine ladder index and pixel values to get a single unique key for this pixel
-        // layers:     0 - 2
-        // Stave index:   0 - 47   = 6 bits
-        // Half stave index:  0 - 1 2 bits
-        // Module index: 0 - 6 3 bits
-        // Chip index:  0 - 13
-        // Pixel index:   0 - 1.14E+06  // yes, that is 1.14 million
-        // check validity (if values are within their assigned number of bits)
-
-	int pixel_number = vpixel[i1];
-        unsigned long long tmp = pixel_number;
-        unsigned long long inkey = tmp << 32;
-        static unsigned int stave_number_bits = 0x8;
-        static unsigned int stave_number_max = pow(2, stave_number_bits);
-        static unsigned int half_stave_number_bits = 0x2;
-        static unsigned int half_stave_number_max = pow(2, half_stave_number_bits);
-        static unsigned int module_number_bits = 0x2;
-        static unsigned int module_number_max = pow(2, module_number_bits);
-        static unsigned int chip_number_bits = 0x4;
-        static unsigned int chip_number_max = pow(2, chip_number_bits);
-
-        if (static_cast<unsigned int>(stave_number) > stave_number_max)
-        {
-          cout << "stave number " << stave_number << " exceeds valid value " << stave_number_max << endl;
-          gSystem->Exit(1);
-          exit(1);  // make coverity happy which does not know about gSystem->Exit()
-        }
-        if (static_cast<unsigned int>(half_stave_number) > half_stave_number_max)
-        {
-          cout << "half stave number " << half_stave_number << " exceeds valid value " << half_stave_number_max << endl;
-          gSystem->Exit(1);
-          exit(1);  // make coverity happy which does not know about gSystem->Exit()
-        }
-        if (static_cast<unsigned int>(module_number) > module_number_max)
-        {
-          cout << "module_number " << module_number << " exceeds valid value " << module_number_max << endl;
-          gSystem->Exit(1);
-          exit(1);  // make coverity happy which does not know about gSystem->Exit()
-        }
-        if (static_cast<unsigned int>(chip_number) > chip_number_max)
-        {
-          cout << "chip_number " << chip_number << " exceeds valid value " << chip_number_max << endl;
-          gSystem->Exit(1);
-          exit(1);  // make coverity happy which does not know about gSystem->Exit()
-        }
-        inkey += stave_number;
-        inkey += (half_stave_number << stave_number_bits);
-        inkey += (module_number << (stave_number_bits + half_stave_number_bits));
-        inkey += (chip_number << (stave_number_bits + half_stave_number_bits + module_number_bits));
-        PHG4Cell *cell = nullptr;
-        map<unsigned long long, PHG4Cell *>::iterator it;
-        it = celllist.find(inkey);
-        if (it != celllist.end())
-        {
-          cell = it->second;
-        }
-        else
-        {
-          unsigned int index = celllist.size();
-          index++;
-          PHG4CellDefs::keytype key = PHG4CellDefs::MVTXBinning::genkey(*layer, index);
-          cell = new PHG4Cellv1(key);
-          celllist[inkey] = cell;
-          cell->set_stave_index(stave_number);
-          cell->set_half_stave_index(half_stave_number);
-          cell->set_module_index(module_number);
-          cell->set_chip_index(chip_number);
-          cell->set_pixel_index(pixel_number);
-          cell->set_phibin(vxbin[i1]);
-          cell->set_zbin(vzbin[i1]);
-        }
-        cell->add_edep(hiter->first, venergy[i1].first);
-        if (venergy[i1].second > 0)
-        {
-          cell->add_eion(venergy[i1].second);
-        }
-        cell->add_edep(venergy[i1].first);
-
-        if (Verbosity() > 1)
-        {
-          cout << " looping over fired cells: cell " << i1 << " inkey 0x" << hex << inkey << dec
-               << " cell energy " << venergy[i1].first
-               << " cell edep " << cell->get_edep() << " total edep " << hiter->second->get_edep() << endl;
-        }
-	//========================
-	// end of old storage object version
-	//========================
-
       } // end loop over hit cells
     }  // end loop over g4hits for this layer
-
-    //======================
-    // old storage object version
-    //======================
-    int numcells = 0;
-    for (map<unsigned long long, PHG4Cell *>::const_iterator mapiter = celllist.begin(); mapiter != celllist.end(); ++mapiter)
-    {
-      cells->AddCell(mapiter->second);
-      numcells++;
-
-      if (Verbosity() > 0)
-      {
-        cout << "From MVTXHitReco: Adding cell for stave: " << mapiter->second->get_stave_index()
-             << " , half stave index: " << mapiter->second->get_half_stave_index()
-             << ", module index: " << mapiter->second->get_module_index()
-             << ", chip index: " << mapiter->second->get_chip_index()
-             << ", pixel index: " << mapiter->second->get_pixel_index()
-             << ", energy dep: " << mapiter->second->get_edep()
-             << endl;
-      }
-    }
-    celllist.clear();
-    if (Verbosity() > 0)
-    {
-      cout << Name() << ": found " << numcells << " silicon pixels with energy deposition" << endl;
-    }
-
-    //========================
-    // end of old storage object version
-    //========================
 
   } // end loop over layers
 
@@ -712,38 +588,6 @@ int PHG4MVTXHitReco::End(PHCompositeNode *topNode)
 
 int PHG4MVTXHitReco::CheckEnergy(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
-  double sum_energy_g4hit = 0.;
-  double sum_energy_cells = 0.;
-  PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  PHG4HitContainer::ConstIterator hiter;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
-  {
-    sum_energy_g4hit += hiter->second->get_edep();
-  }
-  PHG4CellContainer::ConstRange cell_begin_end = cells->getCells();
-  PHG4CellContainer::ConstIterator citer;
-  for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
-  {
-    sum_energy_cells += citer->second->get_edep();
-  }
-  // the fractional eloss for particles traversing eta bins leads to minute rounding errors
-  if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
-  {
-    cout << "energy mismatch between cells: " << sum_energy_cells
-         << " and hits: " << sum_energy_g4hit
-         << " diff sum(cells) - sum(hits): " << sum_energy_cells - sum_energy_g4hit
-         << endl;
-    return -1;
-  }
-  else
-  {
-    if (Verbosity() > 0)
-    {
-      cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << endl;
-    }
-  }
   return 0;
 }
 

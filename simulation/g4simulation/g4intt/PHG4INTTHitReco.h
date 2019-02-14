@@ -14,7 +14,6 @@
 #include <string>
 
 class PHCompositeNode;
-class PHG4Cell;
 
 class PHG4INTTHitReco : public SubsysReco, public PHParameterInterface
 {
@@ -45,7 +44,6 @@ class PHG4INTTHitReco : public SubsysReco, public PHParameterInterface
   std::string m_GeoNodeName;
 
   int m_ChkEnergyConservationFlag;
-  std::map<std::string, PHG4Cell *> m_CellList;  // This map holds the hit cells
 
   double m_Tmin;
   double m_Tmax;

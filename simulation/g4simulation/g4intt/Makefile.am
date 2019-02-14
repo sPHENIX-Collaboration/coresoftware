@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
   PHG4CylinderGeom_INTT.h \
   PHG4CylinderGeomINTT.h \
   PHG4INTTHitReco.h \
+  PHG4INTTCellReco.h \
   PHG4INTTDefs.h \
   INTTDeadMap.h \
   INTTDeadMapv1.h \
@@ -74,6 +75,7 @@ else
     PHG4INTTDefs_Dict.cc \
     PHG4INTTDigitizer_Dict.cc \
     PHG4InttDigitizer_Dict.cc \
+    PHG4INTTHitReco_Dict.cc \
     PHG4INTTCellReco_Dict.cc \
     PHG4INTTSubsystem_Dict.cc
 endif
@@ -91,7 +93,6 @@ libg4intt_la_SOURCES = \
   PHG4INTTDigitizer.cc \
   PHG4InttDigitizer.cc \
   PHG4INTTHitReco.cc \
-  PHG4INTTHitReco_Dict.cc \
   PHG4INTTCellReco.cc \
   PHG4INTTDetector.cc \
   PHG4INTTSteppingAction.cc \

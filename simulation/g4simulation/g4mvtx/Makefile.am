@@ -34,6 +34,7 @@ libg4mvtx_la_LIBADD = \
 
 pkginclude_HEADERS = \
   PHG4MVTXHitReco.h \
+  PHG4MVTXCellReco.h \
   PHG4MVTXSubsystem.h \
   PHG4CylinderCell_MVTX.h \
   PHG4CylinderGeom_MVTX.h \
@@ -51,6 +52,7 @@ if MAKEROOT6
 else
   ROOT5_DICTS = \
     PHG4MVTXCellReco_Dict.cc \
+    PHG4MVTXHitReco_Dict.cc \
     PHG4MVTXSubsystem_Dict.cc \
     PHG4MVTXDigitizer_Dict.cc \
     PHG4MvtxDigitizer_Dict.cc 
@@ -58,7 +60,6 @@ endif
 
 libg4mvtx_la_SOURCES = \
   PHG4MVTXHitReco.cc \
-  PHG4MVTXHitReco_Dict.cc \
   $(ROOT5_DICTS) \
   PHG4MVTXCellReco.cc \
   PHG4MVTXDetector.cc \

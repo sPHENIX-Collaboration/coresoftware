@@ -1,13 +1,10 @@
 #include "PHG4INTTHitReco.h"
 #include "PHG4CylinderGeomINTT.h"
 
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-// Move to new storage containers
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -109,27 +106,6 @@ int PHG4INTTHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  // old storage containers
-  //=================
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
-  if (!cells)
-  {
-    PHNodeIterator dstiter(dstNode);
-
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_Detector));
-
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(m_Detector);
-      dstNode->addNode(DetNode);
-    }
-
-    cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, m_CellNodeName, "PHObject");
-    DetNode->addNode(newNode);
-  }
-  //======================
-
 TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if(!hitsetcontainer)
     {
@@ -217,16 +193,6 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
       cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
       exit(1);
     }
-
-  // old storage containers
-  //================
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
-  if (!cells)
-  {
-    std::cout << "could not locate cell node " << m_CellNodeName << std::endl;
-    exit(1);
-  }
-  //=================
 
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
@@ -407,62 +373,6 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
     // End of charge sharing implementation
     //===================================
 
-
-
-    // old storage objects
-    //=================
-    // Add the strips fired by this hit to the cell list
-    //===============================
-    for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
-    {
-      // this string must be unique - it needs the layer too, or in high multiplicity events it will add g4 hits in different layers with the same key together
-      std::string key = (boost::format("%d-%d-%d-%d-%d") % sphxlayer % ladder_z_index % ladder_phi_index % vzbin[i1] % vybin[i1]).str();
-      PHG4Cell *cell = nullptr;
-      map<string, PHG4Cell *>::iterator it;
-
-      it = m_CellList.find(key);
-      // If there is an existing cell to add this hit to, find it
-      if (it != m_CellList.end())
-      {
-        cell = it->second;
-        if (Verbosity() > 2)
-        {
-          cout << " found existing cell with key " << key << endl;
-        }
-      }
-
-      // There is not an existing cell to add this hit to, start a new cell
-      if (!cell)
-      {
-        if (Verbosity() > 2)
-        {
-          cout << " did not find existing cell with key " << key << " start a new one" << endl;
-        }
-        unsigned int index = m_CellList.size();
-        index++;
-        PHG4CellDefs::keytype cellkey = PHG4CellDefs::MVTXBinning::genkey(sphxlayer, index);
-        cell = new PHG4Cellv1(cellkey);
-        m_CellList[key] = cell;
-        // This encodes the z and phi position of the sensor
-        //          m_CellList[key]->set_sensor_index((boost::format("%d_%d") %ladder_z_index %ladder_phi_index).str());
-
-        cell->set_ladder_z_index(ladder_z_index);
-        cell->set_ladder_phi_index(ladder_phi_index);
-
-        // The z and phi position of the hit strip within the sensor
-        cell->set_zbin(vzbin[i1]);
-        cell->set_phibin(vybin[i1]);
-      }
-
-      // One way or another we have a cell pointer - add this hit to the cell
-      cell->add_edep(venergy[i1].first);
-      cell->add_edep(hiter->first, venergy[i1].first);  // adds the g4hit association to the cell
-      cell->add_eion(venergy[i1].second);
-    }
-    //==============================
-
-    // new storage objects
-    //================
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
     {
       // We add the INTT TrkrHitsets directly to the node using hitsetcontainer
@@ -496,35 +406,9 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
       if(Verbosity() > 2)
 	cout << "PHG4INTTHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;      
     }
-    //=================
 
   }  // end loop over g4hits
 
-  // old storage objects
-  //==============
-  int numcells = 0;
-  for (std::map<std::string, PHG4Cell *>::const_iterator mapiter = m_CellList.begin(); mapiter != m_CellList.end(); ++mapiter)
-  {
-    cells->AddCell(mapiter->second);
-    numcells++;
-
-    if (Verbosity() > 0)
-    {
-      std::cout << "Adding cell for "
-                << " layer " << mapiter->second->get_layer()
-                << " ladder z index: " << mapiter->second->get_ladder_z_index()
-                << ", ladder phi index: " << mapiter->second->get_ladder_phi_index()
-                << ", srip z: " << mapiter->second->get_zbin()
-                << ", strip y: " << mapiter->second->get_phibin()
-                << ", energy dep: " << mapiter->second->get_edep()
-                << std::endl;
-    }
-  }
-  m_CellList.clear();
-
-  if (Verbosity() > 0)
-    std::cout << Name() << ": found " << numcells << " silicon strips with energy deposition" << std::endl;
-  //==========================
 
   // print the list of entries in the association table
   if(Verbosity() > 0)
@@ -542,41 +426,7 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
 
 int PHG4INTTHitReco::CheckEnergy(PHCompositeNode *topNode)
 {
-  PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, m_CellNodeName);
-  double sum_energy_g4hit = 0.;
-  double sum_energy_cells = 0.;
 
-  PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
-  PHG4HitContainer::ConstIterator hiter;
-  for (hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
-  {
-    sum_energy_g4hit += hiter->second->get_edep();
-  }
-
-  PHG4CellContainer::ConstRange cell_begin_end = cells->getCells();
-  PHG4CellContainer::ConstIterator citer;
-  for (citer = cell_begin_end.first; citer != cell_begin_end.second; ++citer)
-  {
-    sum_energy_cells += citer->second->get_edep();
-  }
-  // the fractional eloss for particles traversing eta bins leads to minute rounding errors
-  if (fabs(sum_energy_cells - sum_energy_g4hit) / sum_energy_g4hit > 1e-6)
-  {
-    std::cout << "energy mismatch between cells: " << sum_energy_cells
-              << " and hits: " << sum_energy_g4hit
-              << " diff sum(cells) - sum(hits): " << sum_energy_cells - sum_energy_g4hit
-              << std::endl;
-
-    return -1;
-  }
-  else
-  {
-    if (Verbosity() > 0)
-    {
-      std::cout << Name() << ": total energy for this event: " << sum_energy_g4hit << " GeV" << std::endl;
-    }
-  }
   return 0;
 }
 
