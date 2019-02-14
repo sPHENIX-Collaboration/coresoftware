@@ -448,8 +448,9 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
     tower_dy = _tower5_dy; 
     tower_dz = _tower5_dz; 
     num_fibers_x = 10; 
-    num_fibers_y = 9;  
-   case 6:
+    num_fibers_y = 9; 
+    break; 
+  case 6:
     tower_dx = _tower6_dx; 
     tower_dy = _tower6_dy; 
     tower_dz = _tower6_dz; 
