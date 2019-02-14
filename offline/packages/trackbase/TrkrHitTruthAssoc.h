@@ -54,6 +54,8 @@ public:
    */
   void findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey, const PHG4HitDefs::keytype  g4hitkey);
 
+  void removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey);
+
   /**
    * @brief Get cell keys associated with desired hit
    * @param[in] hset TrkrHitSet key

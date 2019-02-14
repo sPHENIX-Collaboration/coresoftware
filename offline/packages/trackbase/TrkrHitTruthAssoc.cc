@@ -76,6 +76,29 @@ TrkrHitTruthAssoc::findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const Trk
   //std::cout << "Added association with hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << g4hitkey << std::endl;
 }
 
+void 
+TrkrHitTruthAssoc::removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDefs::hitkey hitkey)
+{
+  // remove all entries for this TrkrHit and its PHG4Hits, but we need to know which TrkrHitSet the TrkrHit is in
+  // check if this association already exists
+  // We need all hitsets with this key
+
+  std::pair<MMap::iterator, MMap::iterator> hitsetrange = m_map.equal_range(hitsetkey);
+  MMap::iterator mapiter = hitsetrange.first;
+  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; mapiter++)
+    {
+      if(mapiter->second.first == hitkey)
+	{
+	  // exists, erase it
+	  //std::cout << "Association with hitsetkey " << hitsetkey << " hitkey " << hitkey 
+	  //	    << " g4hitkey " << mapiter->second.second << "  exists, erasing it " << std::endl;
+	  m_map.erase (mapiter);
+	  return;
+	}
+    }
+  
+}
+
 void  
 //TrkrHitTruthAssoc::ConstRange 
 TrkrHitTruthAssoc::getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned int hidx, MMap &temp_map)
