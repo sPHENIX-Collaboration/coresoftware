@@ -29,6 +29,7 @@ libg4tpc_la_LIBADD = \
 pkginclude_HEADERS = \
   PHG4CellTPCv1.h \
   PHG4TPCElectronDrift.h \
+  PHG4TpcElectronDrift.h \
   PHG4TPCPadPlane.h \
   PHG4TPCPadPlaneReadout.h \
   PHG4TPCDigitizer.h \
@@ -46,6 +47,7 @@ if MAKEROOT6
 else
   ROOT5_DICTS = \
     PHG4TPCElectronDrift_Dict.cc \
+    PHG4TpcElectronDrift_Dict.cc \
     PHG4TPCPadPlane_Dict.cc \
     PHG4TPCPadPlaneSimple_Dict.cc \
     PHG4TPCPadPlaneReadout_Dict.cc \
@@ -60,6 +62,7 @@ libg4tpc_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4TPCDetector.cc \
   PHG4TPCElectronDrift.cc \
+  PHG4TpcElectronDrift.cc \
   PHG4TPCPadPlane.cc \
   PHG4TPCPadPlaneSimple.cc \
   PHG4TPCPadPlaneReadout.cc \

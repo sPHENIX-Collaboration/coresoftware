@@ -1,7 +1,8 @@
-// this is the old containers version
+// this is the new containers version
+// it uses the same MapToPadPlane as the old containers version
 
-#ifndef G4TPC_PHG4TPCELECTRONDRIFT_H
-#define G4TPC_PHG4TPCELECTRONDRIFT_H
+#ifndef G4TPC_PHG4TpcELECTRONDRIFT_H
+#define G4TPC_PHG4TpcELECTRONDRIFT_H
 
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
@@ -15,7 +16,8 @@
 
 #include <vector>
 
-class PHG4CellContainer;
+class TrkrHitSetContainer;
+class TrkrHitTruthAssoc;
 
 class PHG4TPCPadPlane;
 class PHG4TPCPadPlaneReadout;
@@ -23,11 +25,11 @@ class PHCompositeNode;
 class TH1;
 class TNtuple;
 
-class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
+class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4TPCElectronDrift(const std::string &name = "PHG4TPCElectronDrift");
-  virtual ~PHG4TPCElectronDrift();
+  PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
+  virtual ~PHG4TpcElectronDrift();
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -44,7 +46,8 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
   void registerPadPlane(PHG4TPCPadPlane *padplane);
 
  private:
-  PHG4CellContainer *g4cells;
+  TrkrHitSetContainer *hitsetcontainer;
+  TrkrHitTruthAssoc *hittruthassoc;
   TH1 *dlong;
   TH1 *dtrans;
   TNtuple *nt;
@@ -74,4 +77,4 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
 #endif
 };
 
-#endif  // G4TPC_PHG4TPCELECTRONDRIFT_H
+#endif  // G4TPC_PHG4TpcELECTRONDRIFT_H

@@ -1,13 +1,19 @@
-// this is the old containers version
+// this is the new containers version
+// it uses the same MapToPadPlane as the old containers version
 
-#include "PHG4TPCElectronDrift.h"
+#include "PHG4TpcElectronDrift.h"
 #include "PHG4TPCPadPlaneReadout.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4Cellv1.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>
+#include <tpc/TpcDefs.h>
+#include <tpc/TpcHit.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -40,10 +46,12 @@
 
 using namespace std;
 
-PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
+PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-  , g4cells(nullptr)
+    //  , g4cells(nullptr)
+  , hitsetcontainer(nullptr)
+  , hittruthassoc(nullptr)
   , dlong(nullptr)
   , dtrans(nullptr)
   , diffusion_trans(NAN)
@@ -55,26 +63,26 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
   , min_time(NAN)
   , max_time(NAN)
 {
-  //cout << "Constructor of PHG4TPCElectronDrift" << endl;
+  //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
   return;
 }
 
-PHG4TPCElectronDrift::~PHG4TPCElectronDrift()
+PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
 {
   gsl_rng_free(RandomGenerator);
 }
 
-int PHG4TPCElectronDrift::Init(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -100,22 +108,40 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-  cellnodename = "G4CELL_TPC";  // + detector;
-  g4cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
-  if (!g4cells)
-  {
-    PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
-
-    if (!DetNode)
+  // new containers
+  hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if(!hitsetcontainer)
     {
-      DetNode = new PHCompositeNode(detector);
-      dstNode->addNode(DetNode);
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+	{
+	  DetNode = new PHCompositeNode("TRKR");
+	  dstNode->addNode(DetNode);
+	}
+
+      hitsetcontainer = new TrkrHitSetContainer();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+      DetNode->addNode(newNode);
     }
-    g4cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(g4cells, cellnodename.c_str(), "PHObject");
-    DetNode->addNode(newNode);
-  }
+
+  hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
+  if(!hittruthassoc)
+    {
+      PHNodeIterator dstiter(dstNode);
+      PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+      if (!DetNode)
+	{
+	  DetNode = new PHCompositeNode("TRKR");
+	  dstNode->addNode(DetNode);
+	}
+      
+      hittruthassoc = new TrkrHitTruthAssoc();
+      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+      DetNode->addNode(newNode);
+    }
 
   seggeonodename = "CYLINDERCELLGEOM_SVTX";  // + detector;
   PHG4CylinderCellGeomContainer *seggeo = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, seggeonodename.c_str());
@@ -163,7 +189,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      cout << "PHG4TPCElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
+      cout << "PHG4TpcElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
   }
@@ -202,7 +228,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -315,7 +341,7 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 0)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
 
-      // this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
+      // this fills the cells and updates the hits on the node tree for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
     }
     ihit++;
@@ -324,51 +350,60 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
   } // end loop over g4hits
 
-  // old containers
-  if (Verbosity() > 1)
-  {
-    cout << endl
-         << " loop over cells for these hits for layer 47 " << endl;
-    {
-      PHG4CellContainer::ConstRange cells = g4cells->getCells();
-      PHG4CellContainer::ConstIterator celliter;
-      for (celliter = cells.first; celliter != cells.second; ++celliter)
-      {
-        //celliter->second->identify();
-        if (celliter->second->get_layer() == 47)
-        {
-          int phibin = PHG4CellDefs::SizeBinning::get_phibin(celliter->second->get_cellid());  //cell->get_binphi();
-          int zbin = PHG4CellDefs::SizeBinning::get_zbin(celliter->second->get_cellid());      //cell->get_binz();
-          cout << " electron drift: cellid " << celliter->second->get_cellid()
-               << " layer " << celliter->second->get_layer()
-               << " zbin " << zbin
-               << " phibin " << phibin
-               << " edep " << celliter->second->get_edep()
-               << endl;
 
-          // list the contrubuting g4 hits for this cell - loop over all the g4hits
-          for (PHG4Cell::EdepConstIterator g4iter = celliter->second->get_g4hits().first;
-               g4iter != celliter->second->get_g4hits().second;
-               ++g4iter)
-          {
-            cout << "       g4hitID " << g4iter->first << " in layer " << celliter->second->get_layer() << " with edep " << g4iter->second << endl;
-          }
-        }
-      }
+  unsigned int print_layer = 47;  
+
+  if(Verbosity() > 2)
+    {
+      cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << endl;
+      // We want all hitsets for the TPC
+      TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+      for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
+	   hitset_iter != hitset_range.second;
+	   ++hitset_iter)
+	{
+	  // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+	  TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
+	  const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
+	  if(layer != print_layer)  continue;
+	  const int sector = TpcDefs::getSectorId(hitsetkey);
+	  const int side = TpcDefs::getSide(hitsetkey);
+	  
+	  cout << "PHG4TpcElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+	  
+	  // get all of the hits from this hitset      
+	  TrkrHitSet *hitset = hitset_iter->second;
+	  TrkrHitSet::ConstRange hit_range = hitset->getHits();
+	  for(TrkrHitSet::ConstIterator hit_iter = hit_range.first;
+	      hit_iter != hit_range.second;
+	      ++hit_iter)
+	    {
+	      TrkrDefs::hitkey hitkey = hit_iter->first;
+	      TrkrHit *tpchit = hit_iter->second;
+
+	      cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+		   << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
+	    }
+	}
     }
-  }
+
+  if(Verbosity() > 2)
+    {
+      cout << "From PHG4TpcElectronDrift: hittruthassoc dump:" << endl;
+      hittruthassoc->identify();
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
-  padplane->MapToPadPlane(g4cells, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
+  padplane->MapToPadPlane(hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 
   return;
 }
 
-int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
@@ -382,13 +417,13 @@ int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCElectronDrift::set_seed(const unsigned int iseed)
+void PHG4TpcElectronDrift::set_seed(const unsigned int iseed)
 {
   seed = iseed;
   gsl_rng_set(RandomGenerator, seed);
 }
 
-void PHG4TPCElectronDrift::SetDefaultParameters()
+void PHG4TpcElectronDrift::SetDefaultParameters()
 {
   // Data on gasses @20 C and 760 Torr from the following source:
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
@@ -418,7 +453,7 @@ void PHG4TPCElectronDrift::SetDefaultParameters()
   return;
 }
 
-void PHG4TPCElectronDrift::registerPadPlane(PHG4TPCPadPlane *inpadplane)
+void PHG4TpcElectronDrift::registerPadPlane(PHG4TPCPadPlane *inpadplane)
 {
   cout << "Registering padplane " << endl;
   padplane = inpadplane;
