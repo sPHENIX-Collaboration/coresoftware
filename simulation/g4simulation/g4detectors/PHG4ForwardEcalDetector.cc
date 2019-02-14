@@ -167,15 +167,15 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 		     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter towers */
-  bool buildType[6] = {false, false, false, false, false, false}; 
+  bool buildType[7] = {false, false, false, false, false, false, false}; 
   typedef std::map< std::string, towerposition>::iterator it_type;
   for(it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator) {
-    for(int i=0; i<6; i++)
+    for(int i=0; i<7; i++)
       if(iterator->second.type==i) buildType[i] = true; 
   }
 
-  G4LogicalVolume* singletower[6] = {NULL, NULL, NULL, NULL, NULL, NULL}; 
-  for(int i=0; i<6; i++)
+  G4LogicalVolume* singletower[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL}; 
+  for(int i=0; i<7; i++)
     if(buildType[i]) singletower[i] = ConstructTower(i);
 
   /* Place calorimeter towers within envelope */
@@ -196,10 +196,10 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
 
   // This method allows construction of Type 0,1 tower (PbGl or PbW04). 
   // Call a separate routine to generate Type 2 towers (PbSc)
-  // Call a separate routine to generate Type 3-5 towers (E864 Pb-Scifi)
+  // Call a separate routine to generate Type 3-6 towers (E864 Pb-Scifi)
 
   if(type==2) return ConstructTowerType2(); 
-  if((type==3)||(type==4)||(type==5)) return ConstructTowerType3_4_5(type); 
+  if((type==3)||(type==4)||(type==5)||(type==6)) return ConstructTowerType3_4_5_6(type); 
 
   /* create logical volume for single tower */
   G4Material* material_air = G4Material::GetMaterial( "G4_AIR" );
@@ -403,7 +403,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 }
 
 G4LogicalVolume*
-PHG4ForwardEcalDetector::ConstructTowerType3_4_5(int type)
+PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 {
   if ( Verbosity() > 0 )
     {
@@ -433,25 +433,32 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5(int type)
     tower_dx = _tower3_dx; 
     tower_dy = _tower3_dy; 
     tower_dz = _tower3_dz; 
-    num_fibers_x = 8; 
-    num_fibers_y = 8; 
+    num_fibers_x = 10; 
+    num_fibers_y = 10; 
     break; 
   case 4:
     tower_dx = _tower4_dx; 
     tower_dy = _tower4_dy; 
     tower_dz = _tower4_dz;
-    num_fibers_x = 8; 
-    num_fibers_y = 7;  
+    num_fibers_x = 9; 
+    num_fibers_y = 10;  
     break; 
   case 5:
     tower_dx = _tower5_dx; 
     tower_dy = _tower5_dy; 
     tower_dz = _tower5_dz; 
-    num_fibers_x = 7; 
-    num_fibers_y = 8;  
+    num_fibers_x = 10; 
+    num_fibers_y = 9; 
+    break; 
+  case 6:
+    tower_dx = _tower6_dx; 
+    tower_dy = _tower6_dy; 
+    tower_dz = _tower6_dz; 
+    num_fibers_x = 9; 
+    num_fibers_y = 9;  
     break; 
   default: 
-    cout << "PHG4ForwardEcalDetector: Invalid tower type in ConstructTowerType3_4_5, stopping..." << endl;
+    cout << "PHG4ForwardEcalDetector: Invalid tower type in ConstructTowerType3_4_5_6, stopping..." << endl;
     return NULL; 
 
   }
@@ -568,7 +575,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5(int type)
 
 
 int
-PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletowerIn[6])
+PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolume* singletowerIn[7])
 {
   /* Loop over all tower positions in vector and place tower */
   typedef std::map< std::string, towerposition>::iterator it_type;
@@ -594,6 +601,8 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
 	singletower = singletowerIn[4]; 
       else if(iterator->second.type==5)
 	singletower = singletowerIn[5]; 
+      else if(iterator->second.type==6)
+	singletower = singletowerIn[6]; 
       else
 	cout << "PHG4ForwardEcalDetector::PlaceTower invalid type =  " << iterator->second.type << endl; 
 
@@ -769,6 +778,18 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
   parit = _map_global_parameter.find("Gtower5_dz");
   if (parit != _map_global_parameter.end())
     _tower5_dz = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower6_dx");
+  if (parit != _map_global_parameter.end())
+    _tower6_dx = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower6_dy");
+  if (parit != _map_global_parameter.end())
+    _tower6_dy = parit->second * cm;
+
+  parit = _map_global_parameter.find("Gtower6_dz");
+  if (parit != _map_global_parameter.end())
+    _tower6_dz = parit->second * cm;
 
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())
