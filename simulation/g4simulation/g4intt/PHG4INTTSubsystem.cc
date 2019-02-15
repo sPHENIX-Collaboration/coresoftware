@@ -181,7 +181,8 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_Z, "fphx_z", 0.91);
     set_default_double_param(SEGMENTATION_Z, "fphx_offset_z", 0.005);
     set_default_double_param(SEGMENTATION_Z, "gap_sensor_fphx", 0.1);
-    set_default_double_param(SEGMENTATION_Z, "halfladder_z", 48.0);
+    set_default_double_param(SEGMENTATION_Z, "halfladder_z", 40.00);
+    set_default_double_param(SEGMENTATION_Z, "halfladder_inside_z", 23.9622); 
     set_default_double_param(SEGMENTATION_Z, "hdi_copper_x", 0.0052);
     set_default_double_param(SEGMENTATION_Z, "hdi_edge_z", 0.);
     set_default_double_param(SEGMENTATION_Z, "hdi_kapton_x", 0.038);
@@ -207,7 +208,8 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "fphx_z", 0.91);
     set_default_double_param(SEGMENTATION_PHI, "fphx_offset_z", 0.005);
     set_default_double_param(SEGMENTATION_PHI, "gap_sensor_fphx", 0.1);
-    set_default_double_param(SEGMENTATION_PHI, "halfladder_z", 48.0);
+    set_default_double_param(SEGMENTATION_PHI, "halfladder_z", 40.00);
+    set_default_double_param(SEGMENTATION_PHI, "halfladder_inside_z", 23.9622); 
     set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.0052);
     set_default_double_param(SEGMENTATION_PHI, "hdi_edge_z", 0.);
     set_default_double_param(SEGMENTATION_PHI, "hdi_kapton_x", 0.038);
@@ -226,25 +228,54 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
     set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
 
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.385);
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_length", 96);
-    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.4);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_inner_radius", 6.2416);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_length", 50.7);
+    set_default_double_param(SUPPORTPARAMS, "inner_skin_outer_radius", 6.2666);
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_inner_radius", 12.0444);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_outer_radius", 12.0694);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcin_length", 50.7);
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_inner_radius", 12.0694);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_outer_radius", 12.2194);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_foam_length", 50.7);
+
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_inner_radius", 12.2194);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_outer_radius", 12.2444);
+    set_default_double_param(SUPPORTPARAMS, "outer_skin_cfcout_length", 50.7);
+
+    // Endcap ring flag
+    set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);
+
+    // Endcap ring position
+    set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);  
+
+    // Aluminum endcap ring
+    set_default_double_param(SUPPORTPARAMS, "endcap_Alring_inner_radius", 6.267);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_Alring_outer_radius", 12.0444);
+    set_default_double_param(SUPPORTPARAMS, "endcap_Alring_length", 0.3645);
+
+    // Stainless steel endcap ring
+    set_default_double_param(SUPPORTPARAMS, "endcap_SSring_inner_radius", 6.267);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_SSring_outer_radius", 12.0444);
+    set_default_double_param(SUPPORTPARAMS, "endcap_SSring_length", 0.0047);
+
+    // Water Glycol endcap ring
+    set_default_double_param(SUPPORTPARAMS, "endcap_WGring_inner_radius", 6.267);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_WGring_outer_radius", 12.0444);
+    set_default_double_param(SUPPORTPARAMS, "endcap_WGring_length", 0.0186);
 
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness", 0.18);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius", 4.8);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_length", 42.);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_skin_thickness", 0.01);
 
-    set_default_double_param(SUPPORTPARAMS, "rail_dphi", 60.);  // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_dphi", 90.);  // deg
     set_default_double_param(SUPPORTPARAMS, "rail_inner_radius", 0.45);
     set_default_double_param(SUPPORTPARAMS, "rail_length", 410);  // tpc length
     set_default_double_param(SUPPORTPARAMS, "rail_outer_radius", 0.6);
-    set_default_double_param(SUPPORTPARAMS, "rail_phi_start", 30.);  // deg
-    set_default_double_param(SUPPORTPARAMS, "rail_radius", 17.5);
-
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_inner_radius", 15.7);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_outer_radius", 15.8);
-    set_default_double_param(SUPPORTPARAMS, "outer_skin_length", 96);
+    set_default_double_param(SUPPORTPARAMS, "rail_phi_start", 45.);  // deg
+    set_default_double_param(SUPPORTPARAMS, "rail_radius", 16.85);
   }
 
   return;

@@ -37,6 +37,7 @@ PHG4INTTDetector::PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer 
   : PHG4Detector(Node, dnam)
   , m_ParamsContainer(parameters)
   , m_IsSupportActive(0)
+  , m_IsEndcapActive(0)
   , m_LayerBeginEndIteratorPair(layer_b_e)
 {
   for (auto layeriter = m_LayerBeginEndIteratorPair.first; layeriter != m_LayerBeginEndIteratorPair.second; ++layeriter)
@@ -48,6 +49,7 @@ PHG4INTTDetector::PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer 
   }
   const PHParameters *par = m_ParamsContainer->GetParameters(PHG4INTTDefs::SUPPORTPARAMS);
   m_IsSupportActive = par->get_int_param("supportactive");
+  m_IsEndcapActive = par->get_int_param("endcap_ring_enabled");
   fill_n(&m_PosZ[0][0], sizeof(m_PosZ) / sizeof(double), NAN);
   fill_n(m_SensorRadius, sizeof(m_SensorRadius) / sizeof(double), NAN);
   fill_n(m_StripOffsetX, sizeof(m_StripOffsetX) / sizeof(double), NAN);
@@ -125,7 +127,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
     double fphx_z = params->get_double_param("fphx_z") * cm;
     double fphx_offset_z = params->get_double_param("fphx_offset_z") * cm;
     double pgs_x = params->get_double_param("pgs_x") * cm;
-    double halfladder_z = params->get_double_param("halfladder_z") * cm;
+    double halfladder_inside_z = params->get_double_param("halfladder_inside_z") * cm;
     double stave_straight_outer_y = params->get_double_param("stave_straight_outer_y") * cm;
     double stave_straight_inner_y = params->get_double_param("stave_straight_inner_y") * cm;
     double stave_straight_cooler_y = params->get_double_param("stave_straight_cooler_y") * cm;
@@ -229,8 +231,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_PassiveVolumeTuple.insert(make_pair(hdi_copper_volume, make_tuple(inttlayer, PHG4INTTDefs::HDI_COPPER)));
       }
-      // This is the part of the HDI that extends beyond the sensor
-      const double hdiext_z = (itype == 0) ? 0.000001 : halfladder_z - hdi_z_arr[inttlayer][0] - hdi_z;  // need to assign nonzero value for itype=0
+
+      // This is the part of the HDI that extends beyond the sensor inside the endcap ring
+      const double hdiext_z = (itype == 0) ? 0.000001 : halfladder_inside_z - hdi_z_arr[inttlayer][0] - hdi_z;  // need to assign nonzero value for itype=0
       G4VSolid *hdiext_kapton_box = new G4Box((boost::format("hdiext_kapton_box_%d_%s") % inttlayer % itype).str(),
                                               hdi_kapton_x / 2., hdi_y / 2., hdiext_z / 2.0);
       G4LogicalVolume *hdiext_kapton_volume = new G4LogicalVolume(hdiext_kapton_box, G4Material::GetMaterial("G4_KAPTON"),  // was "FPC"
@@ -786,6 +789,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
         if (itype != 0)
         {
           // We have added the outer sensor above, now we add the HDI extension tab to the end of the outer sensor HDI
+          //const double posz_ext = (hdi_z_arr[inttlayer][0] + hdi_z) + hdiext_z / 2.;
           const double posz_ext = (hdi_z_arr[inttlayer][0] + hdi_z) + hdiext_z / 2.;
 
           new G4PVPlacement(G4Transform3D(ladderrotation, G4ThreeVector(posx, posy, -posz_ext)), ladderext_volume,
@@ -807,11 +811,10 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
   //
   /*
-    6 rails, which are 12mm OD and 9mm ID tubes at a radius of 175 mm.  They are spaced equidistantly in phi.
-          For the 6 rails, there should be one at the very top and bottom (ie, along the vertical), and then the rest are symmetrically placed in phi.  
-         The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
-    An inner skin with a OD at 64 mm and a thickness of 0.150 mm.
-    An outer skin with a ID at 157 mm and a thickness of 1 mm (~0.5% rad len).
+    4 rails, which are 12mm OD and 9mm ID tubes at a radius of 168.5 mm.  They are spaced equidistantly in phi.
+    The rails run along the entire length of the TPC and even stick out of the TPC, but I think for the moment you don't have to put the parts that stick out in the simulation.
+    An inner skin with a ID at 62.416 mm and a thickness of 0.250 mm.
+    An outer skin with a ID at 120.444 mm and a sandwich of 0.25 mm cfc, 1.5 mm foam and 0.25 mm cfc.
     
     All of the above are carbon fiber.
   */
@@ -838,7 +841,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   double rail_dphi = supportparams->get_double_param("rail_dphi") * deg / rad;
   double rail_phi_start = supportparams->get_double_param("rail_phi_start") * deg / rad;
   double rail_radius = supportparams->get_double_param("rail_radius") * cm;
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < 4; i++)
   {
     double phi = rail_phi_start + i * rail_dphi;
 
@@ -851,21 +854,44 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   }
 
   // Outer skin
-
-  G4Tubs *outer_skin_tube = new G4Tubs("si_outer_skin",
-                                       supportparams->get_double_param("outer_skin_inner_radius") * cm,
-                                       supportparams->get_double_param("outer_skin_outer_radius") * cm,
-                                       supportparams->get_double_param("outer_skin_length") * cm / 2.,
+  G4Tubs *outer_skin_cfcin_tube = new G4Tubs("si_outer_skin_cfcin",
+                                       supportparams->get_double_param("outer_skin_cfcin_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcin_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcin_length") * cm / 2.,
                                        -M_PI, 2.0 * M_PI);
-  G4LogicalVolume *outer_skin_volume = new G4LogicalVolume(outer_skin_tube, G4Material::GetMaterial("CFRP_INTT"),
-                                                           "outer_skin_volume", 0, 0, 0);
+  G4LogicalVolume *outer_skin_cfcin_volume = new G4LogicalVolume(outer_skin_cfcin_tube, G4Material::GetMaterial("CFRP_INTT"),
+                                                           "outer_skin_cfcin_volume", 0, 0, 0);
+
+  G4Tubs *outer_skin_foam_tube = new G4Tubs("si_outer_skin_foam",
+                                       supportparams->get_double_param("outer_skin_foam_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_foam_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_foam_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *outer_skin_foam_volume = new G4LogicalVolume(outer_skin_foam_tube, G4Material::GetMaterial("ROHACELL_FOAM_110"),
+                                                           "outer_skin_foam_volume", 0, 0, 0);
+
+  G4Tubs *outer_skin_cfcout_tube = new G4Tubs("si_outer_skin_cfcout",
+                                       supportparams->get_double_param("outer_skin_cfcout_inner_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcout_outer_radius") * cm,
+                                       supportparams->get_double_param("outer_skin_cfcout_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+  G4LogicalVolume *outer_skin_cfcout_volume = new G4LogicalVolume(outer_skin_cfcout_tube, G4Material::GetMaterial("CFRP_INTT"),
+                                                           "outer_skin_cfcout_volume", 0, 0, 0);
   if (m_IsSupportActive > 0)
   {
-    m_PassiveVolumeTuple.insert(make_pair(outer_skin_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcin_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_foam_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
+    m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcout_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
   }
-  outer_skin_volume->SetVisAttributes(rail_vis);
-  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_volume,
-                    "si_support_outer_skin", trackerenvelope, false, 0, OverlapCheck());
+  outer_skin_cfcin_volume->SetVisAttributes(rail_vis);
+  outer_skin_foam_volume->SetVisAttributes(rail_vis);
+  outer_skin_cfcout_volume->SetVisAttributes(rail_vis);
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcin_volume,
+                    "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_foam_volume,
+                    "si_support_outer_skin_foam", trackerenvelope, false, 0, OverlapCheck());
+  new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcout_volume,
+                    "si_support_outer_skin_cfcout", trackerenvelope, false, 0, OverlapCheck());
 
   // Inner skin
 
@@ -883,6 +909,82 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   inner_skin_volume->SetVisAttributes(rail_vis);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
                     "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
+
+  // Endcap ring in simulations = Endcap rings + endcap staves 
+  
+  // Aluminum ring
+  G4Tubs *endcap_Al_ring = new G4Tubs("endcap_Al_ring",
+                                       supportparams->get_double_param("endcap_Alring_inner_radius") * cm,
+                                       supportparams->get_double_param("endcap_Alring_outer_radius") * cm,
+                                       supportparams->get_double_param("endcap_Alring_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_Al_ring_volume = new G4LogicalVolume(endcap_Al_ring, G4Material::GetMaterial("Al6061T6"),
+                                                               "endcap_Al_ring_volume", 0, 0, 0);
+  
+  // Stainlees steal ring
+  G4Tubs *endcap_SS_ring = new G4Tubs("endcap_SS_ring",
+                                      supportparams->get_double_param("endcap_SSring_inner_radius") * cm,
+                                      supportparams->get_double_param("endcap_SSring_outer_radius") * cm,
+                                      supportparams->get_double_param("endcap_SSring_length") * cm / 2.,
+                                      -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_SS_ring_volume = new G4LogicalVolume(endcap_SS_ring, G4Material::GetMaterial("SS316"),
+                                                               "endcap_SS_ring_volume", 0, 0, 0);
+  
+  // Water Glycol ring
+  G4Tubs *endcap_WG_ring = new G4Tubs("endcap_WG_ring",
+                                       supportparams->get_double_param("endcap_WGring_inner_radius") * cm,
+                                       supportparams->get_double_param("endcap_WGring_outer_radius") * cm,
+                                       supportparams->get_double_param("endcap_WGring_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, G4Material::GetMaterial("WaterGlycol_INTT"),
+                                                               "endcap_WG_ring_volume", 0, 0, 0);
+
+  if(m_IsEndcapActive)
+  {
+    // Place endcap rings
+    double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm; 
+    for(int i = 0; i < 2; i++) // i=0 : positive z, i=1 negative z
+    {
+
+      endcap_ring_z = (i==0) ?  endcap_ring_z : -1.0 * endcap_ring_z;
+
+      double width_WGring_z = supportparams->get_double_param("endcap_WGring_length") * cm;
+      double width_SSring_z = supportparams->get_double_param("endcap_SSring_length") * cm;
+      double width_Alring_z = supportparams->get_double_param("endcap_Alring_length") * cm;
+
+      for(int j = 0; j < 2; j++) // j=0 : positive side z, j=1 negative side z
+      {
+        width_WGring_z = (j==0) ? width_WGring_z : -1.0 * width_WGring_z; 
+        width_SSring_z = (j==0) ? width_SSring_z : -1.0 * width_SSring_z;
+        width_Alring_z = (j==0) ? width_Alring_z : -1.0 * width_Alring_z;
+
+        double cent_WGring_z = endcap_ring_z + width_WGring_z / 2.;
+        double cent_SSring_z = endcap_ring_z + width_WGring_z + width_SSring_z / 2.;
+        double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
+
+
+        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_WGring_z),
+            endcap_WG_ring_volume,
+            (boost::format("endcap_WG_ring_pv_%d_%d") %i %j).str(),
+            trackerenvelope, false, 0, OverlapCheck());
+
+        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_SSring_z),
+            endcap_SS_ring_volume,
+            (boost::format("endcap_SS_ring_pv_%d_%d") %i %j).str(),
+            trackerenvelope, false, 0, OverlapCheck());
+
+        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_Alring_z),
+            endcap_Al_ring_volume,
+            (boost::format("endcap_Al_ring_pv_%d_%d") %i %j).str(),
+            trackerenvelope, false, 0, OverlapCheck());
+      }
+    }
+  }
+
+
 
   //=======================================================
   // Add an outer shell for the MVTX - move this to the MVTX detector module
