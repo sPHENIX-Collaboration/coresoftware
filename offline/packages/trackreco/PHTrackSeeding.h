@@ -19,7 +19,8 @@
 // forward declarations
 class PHCompositeNode;
 
-class SvtxClusterMap;
+//class SvtxClusterMap;
+class TrkrClusterContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -55,7 +56,8 @@ class PHTrackSeeding : public SubsysReco
   /// Called in SubsysReco::End
   virtual int End() = 0;
 
-  SvtxClusterMap *_cluster_map;
+  //SvtxClusterMap *_cluster_map;
+  TrkrClusterContainer *_cluster_map;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;

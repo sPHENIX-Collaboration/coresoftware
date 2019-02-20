@@ -17,7 +17,8 @@
 // forward declarations
 class PHCompositeNode;
 
-class SvtxClusterMap;
+//class SvtxClusterMap;
+class TrkrClusterContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
@@ -49,7 +50,8 @@ class PHTrackFitting : public SubsysReco
   /// implemented in derived classes
   virtual int Process() = 0;
 
-  SvtxClusterMap *_cluster_map;
+  //SvtxClusterMap *_cluster_map;
+  TrkrClusterContainer *_cluster_map;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;
