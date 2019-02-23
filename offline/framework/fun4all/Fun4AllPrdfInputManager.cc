@@ -25,26 +25,27 @@
 
 using namespace std;
 
-Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &topnodename) : 
- Fun4AllInputManager(name, "PRDF", topnodename),
+Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &prdfnodename, const string &topnodename) : 
+ Fun4AllInputManager(name,prdfnodename , topnodename),
  segment(-999),
  isopen(0),
  events_total(0),
  events_thisfile(0),
  evt(nullptr),
  save_evt(nullptr),
- eventiterator(nullptr)
+ eventiterator(nullptr),
+ syncobject(new SyncObjectv1()),
+ m_PrdfNodeName(prdfnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
   topNode = se->topNode(topNodeName.c_str());
   PHNodeIterator iter(topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode","PRDF"));
+  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode",m_PrdfNodeName));
   if (!PrdfNode)
     {
-      PHDataNode<Event> *newNode = new PHDataNode<Event>(evt,"PRDF","Event");
+      PHDataNode<Event> *newNode = new PHDataNode<Event>(evt,m_PrdfNodeName,"Event");
       topNode->addNode(newNode);
     }
-  syncobject = new SyncObjectv1();
   return ;
 }
 
@@ -119,7 +120,7 @@ int Fun4AllPrdfInputManager::run(const int nevents)
     }
   //  cout << "running event " << nevents << endl;
   PHNodeIterator iter(topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode","PRDF"));
+  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   if (save_evt) // if an event was pushed back, copy saved pointer and reset save_evt pointer
     {
       evt = save_evt;
@@ -224,7 +225,7 @@ int
 Fun4AllPrdfInputManager::ResetEvent()
 {
   PHNodeIterator iter(topNode);
-  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode","PRDF"));
+  PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   PrdfNode->setData(nullptr); // set pointer in Node to nullptr before deleting it
   delete evt;
   evt = nullptr;
