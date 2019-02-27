@@ -30,6 +30,7 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
+#include <eicphysicslist/EICPhysicsList.hh>
 
 #include <TThread.h>
 
@@ -229,6 +230,10 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     myphysicslist = new QGSP_BERT_HP(Verbosity());
   }
 #endif
+  else if (physicslist == "EIC")
+  {
+    myphysicslist = new EICPhysicsList();
+  }
   else
   {
     cout << "Physics List " << physicslist << " not implemented" << endl;
