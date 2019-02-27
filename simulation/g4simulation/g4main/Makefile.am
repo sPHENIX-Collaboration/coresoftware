@@ -191,6 +191,7 @@ libg4testbench_la_LDFLAGS = \
     -lphg4gdml
 
 libg4testbench_la_LIBADD = \
+    -lEICPhysicsList \
     libphg4hit.la
 
 ##############################################
