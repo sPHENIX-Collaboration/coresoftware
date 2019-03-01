@@ -22,6 +22,7 @@ G4ScintillatorSlatTTree::G4ScintillatorSlatTTree(const std::string &name)
   , saveslats(1)
   , evtno(0)
   , hm(nullptr)
+  , etot_hist(nullptr)
 {
 }
 
