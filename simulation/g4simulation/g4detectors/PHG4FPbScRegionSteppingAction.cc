@@ -32,10 +32,10 @@ void PHG4FPbScRegionSteppingAction::UserSteppingAction( const G4Step* aStep)
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = 0;
   // make sure we are in a volume
   if ( detector_->isInScintillator(volume) )
     {
+      int layer_id = 0;
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
        cout << "track id " << aTrack->GetTrackID() << endl;

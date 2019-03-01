@@ -65,7 +65,7 @@ class PHG4RICHSubsystem: public PHG4Subsystem
 
     ePHENIXRICH::RICH_Geometry & get_RICH_geometry() {return geom;}
     
-    void set_RICH_geometry(ePHENIXRICH::RICH_Geometry g) {geom = g;}
+    void set_RICH_geometry(const ePHENIXRICH::RICH_Geometry &g) {geom = g;}
 
   private:
     

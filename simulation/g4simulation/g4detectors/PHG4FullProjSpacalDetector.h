@@ -18,6 +18,7 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/globals.hh>
 
+#include <cassert>
 #include <map>
 #include <set>
 
@@ -74,13 +75,17 @@ class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
   SpacalGeom_t *
   get_geom_v3()
   {
-    return dynamic_cast<SpacalGeom_t *> (_geom);
+    SpacalGeom_t *v3_geom =  dynamic_cast<SpacalGeom_t *> (_geom);
+    assert(v3_geom);
+    return v3_geom;
   }
 
   const SpacalGeom_t *
   get_geom_v3() const
   {
-    return dynamic_cast<const SpacalGeom_t *> (_geom);
+    SpacalGeom_t *v3_geom =  dynamic_cast<SpacalGeom_t *> (_geom);
+    assert(v3_geom);
+    return v3_geom;
   }
 
 

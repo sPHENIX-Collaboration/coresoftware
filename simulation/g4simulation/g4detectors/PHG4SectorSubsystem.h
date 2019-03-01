@@ -1,9 +1,10 @@
 #ifndef PHG4SectorSubsystem_h
 #define PHG4SectorSubsystem_h
 
-#include "g4main/PHG4Subsystem.h"
 
 #include "PHG4SectorConstructor.h"
+
+#include <g4main/PHG4Subsystem.h>
 
 class PHG4SectorDetector;
 class PHG4SectorSteppingAction;
@@ -62,7 +63,7 @@ public:
 
   //! geometry manager PHG4Sector::Sector_Geometry
   void
-  set_geometry(PHG4Sector::Sector_Geometry g)
+  set_geometry(const PHG4Sector::Sector_Geometry &g)
   {
     geom = g;
   }

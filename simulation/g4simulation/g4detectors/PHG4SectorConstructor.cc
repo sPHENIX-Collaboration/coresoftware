@@ -21,9 +21,7 @@
 #include <Geant4/G4SDManager.hh>
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
-
 #include <Geant4/G4NistManager.hh>
-
 #include <Geant4/G4Ellipsoid.hh>
 #include <Geant4/G4Sphere.hh>
 #include <Geant4/G4Orb.hh>
@@ -42,7 +40,7 @@
 using namespace PHG4Sector;
 using namespace std;
 
-PHG4SectorConstructor::PHG4SectorConstructor(std::string name) :
+PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name) :
     name_base(name), DetectorVisAtt(NULL)
 {
   // TODO Auto-generated constructor stub
