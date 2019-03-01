@@ -32,7 +32,7 @@ void VariableArray::set_val(const vector<short> &vec)
   sval = new short[nVal];
   vector<short>::const_iterator iter;
   unsigned int i = 0;
-  for (iter = vec.begin(); iter != vec.end(); iter++)
+  for (iter = vec.begin(); iter != vec.end(); ++iter)
   {
     sval[i++] = *iter;
   }

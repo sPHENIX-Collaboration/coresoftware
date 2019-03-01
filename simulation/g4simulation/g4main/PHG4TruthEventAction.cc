@@ -425,7 +425,7 @@ void PHG4TruthEventAction::ProcessShowers() {
 
 	// summary info
 	
-	if (g4hit)                                   ++nhits;
+	++nhits;
 	if (!isnan(g4hit->get_edep()))               edep += g4hit->get_edep();
 	if (!isnan(g4hit->get_eion()))               eion += g4hit->get_eion();
 	if (!isnan(g4hit->get_light_yield())) light_yield += g4hit->get_light_yield();

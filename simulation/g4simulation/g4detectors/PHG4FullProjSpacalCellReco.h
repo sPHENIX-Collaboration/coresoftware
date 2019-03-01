@@ -5,8 +5,6 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHTimeServer.h>
-
 #include <map>
 #include <string>
 #include <vector>
@@ -86,7 +84,6 @@ class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHParameterInterfa
   std::string geonodename;
   std::string seggeonodename;
 
-  PHTimeServer::timer _timer;
   double sum_energy_g4hit;
   int chkenergyconservation;
   std::map<unsigned int, PHG4Cell *> celllist;

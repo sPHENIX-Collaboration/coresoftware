@@ -31,7 +31,12 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-GammaLeptoNuclearPhysics::GammaLeptoNuclearPhysics()
+GammaLeptoNuclearPhysics::GammaLeptoNuclearPhysics():
+  qgsp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
 {}
 
 

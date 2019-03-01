@@ -36,7 +36,13 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-PionPhysics::PionPhysics()
+PionPhysics::PionPhysics():
+  ftfp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
+
 {}
 
 

@@ -1779,7 +1779,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float zsize = cluster->get_z_size();
 
           float trackID = NAN;
-          if (track) trackID = track->get_id();
+          trackID = track->get_id();
 
           float g4hitID = NAN;
           float gx = NAN;

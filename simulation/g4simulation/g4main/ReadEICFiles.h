@@ -29,7 +29,7 @@ class ReadEICFiles : public SubsysReco
   /** Set first entry from input tree to be used */
   void SetFirstEntry(int e) { entry = e; }
   /** Set name of output node */
-  void SetNodeName(std::string s) { _node_name = s; }
+  void SetNodeName(const std::string &s) { _node_name = s; }
   //! toss a new vertex according to a Uniform or Gaus distribution
   void set_vertex_distribution_function(PHHepMCGenHelper::VTXFUNC x, PHHepMCGenHelper::VTXFUNC y, PHHepMCGenHelper::VTXFUNC z, PHHepMCGenHelper::VTXFUNC t)
   {

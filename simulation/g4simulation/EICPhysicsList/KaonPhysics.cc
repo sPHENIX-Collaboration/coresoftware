@@ -37,7 +37,12 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-KaonPhysics::KaonPhysics()
+KaonPhysics::KaonPhysics():
+  ftfp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
 {}
 
 
