@@ -96,8 +96,8 @@ MultiUnionWrite(xercesc::DOMElement* solElement,
    G4int numSolids=munionSolid->GetNumberOfSolids();
    G4String tag("multiUnion");
 
-   G4VSolid* solid;
-   G4Transform3D* transform;
+//   G4VSolid* solid;
+//   G4Transform3D* transform;
 
    const G4String& name = GenerateName(munionSolid->GetName(),munionSolid);
    xercesc::DOMElement* multiUnionElement = NewElement(tag);
@@ -105,8 +105,8 @@ MultiUnionWrite(xercesc::DOMElement* solElement,
 
    for (G4int i=0; i<numSolids; ++i)
    {
-      solid = munionSolid->GetSolid(i);
-      transform = munionSolid->GetTransformation(i);
+      G4VSolid* solid = munionSolid->GetSolid(i);
+      G4Transform3D* transform = munionSolid->GetTransformation(i);
 
       HepGeom::Rotate3D rot3d;
       HepGeom::Translate3D transl ;

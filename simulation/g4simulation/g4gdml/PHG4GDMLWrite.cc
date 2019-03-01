@@ -91,7 +91,7 @@ void PHG4GDMLWrite::AddAuxInfo(PHG4GDMLAuxListType* auxInfoList,
                              xercesc::DOMElement* element)
 {
   for(std::vector<PHG4GDMLAuxStructType>::const_iterator
-      iaux = auxInfoList->begin(); iaux != auxInfoList->end(); iaux++ )
+      iaux = auxInfoList->begin(); iaux != auxInfoList->end(); ++iaux )
   {
     xercesc::DOMElement* auxiliaryElement = NewElement("auxiliary");
     element->appendChild(auxiliaryElement);

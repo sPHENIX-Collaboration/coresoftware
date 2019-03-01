@@ -239,7 +239,7 @@ void PHG4GDMLWriteMaterials::PropertyWrite(xercesc::DOMElement* matElement,
                  std::less<G4String> >::const_iterator mpos;
    std::map< G4String, G4double,
                  std::less<G4String> >::const_iterator cpos;
-   for (mpos=pmap->begin(); mpos!=pmap->end(); mpos++)
+   for (mpos=pmap->begin(); mpos!=pmap->end(); ++mpos)
    {
       propElement = NewElement("property");
       propElement->setAttributeNode(NewAttribute("name", mpos->first));
@@ -259,7 +259,7 @@ void PHG4GDMLWriteMaterials::PropertyWrite(xercesc::DOMElement* matElement,
          continue;
       }
    }
-   for (cpos=cmap->begin(); cpos!=cmap->end(); cpos++)
+   for (cpos=cmap->begin(); cpos!=cmap->end(); ++cpos)
    {
       propElement = NewElement("property");
       propElement->setAttributeNode(NewAttribute("name", cpos->first));
