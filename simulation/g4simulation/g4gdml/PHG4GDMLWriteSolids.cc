@@ -96,9 +96,6 @@ MultiUnionWrite(xercesc::DOMElement* solElement,
    G4int numSolids=munionSolid->GetNumberOfSolids();
    G4String tag("multiUnion");
 
-//   G4VSolid* solid;
-//   G4Transform3D* transform;
-
    const G4String& name = GenerateName(munionSolid->GetName(),munionSolid);
    xercesc::DOMElement* multiUnionElement = NewElement(tag);
    multiUnionElement->setAttributeNode(NewAttribute("name",name));
