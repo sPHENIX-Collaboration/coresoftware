@@ -46,8 +46,8 @@ class JetReco : public SubsysReco
     _outputs.push_back(output);
   }
 
-  void set_algo_node(std::string algonode) { _algonode = algonode; }
-  void set_input_node(std::string inputnode) { _inputnode = inputnode; }
+  void set_algo_node(const std::string &algonode) { _algonode = algonode; }
+  void set_input_node(const std::string &inputnode) { _inputnode = inputnode; }
 
  private:
   int CreateNodes(PHCompositeNode *topNode);

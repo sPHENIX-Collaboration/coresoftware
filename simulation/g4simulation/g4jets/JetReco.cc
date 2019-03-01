@@ -158,7 +158,7 @@ void JetReco::FillJetNode(PHCompositeNode *topNode, int ipos, std::vector<Jet *>
   }
   else
   {
-    jetmap = (JetMap *) JetMapNode->getData();
+    jetmap = dynamic_cast<JetMap *> (JetMapNode->getData());
   }
 
   jetmap->set_algo(_algos[ipos]->get_algo());
