@@ -45,7 +45,12 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-AntiBaryonPhysics::AntiBaryonPhysics()
+AntiBaryonPhysics::AntiBaryonPhysics():
+  ftfp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
 {}
 
 

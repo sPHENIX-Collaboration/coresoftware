@@ -34,9 +34,13 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-NeutronPhysics::NeutronPhysics()
-{
-}
+NeutronPhysics::NeutronPhysics():
+  ftfp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
+{}
 
 
 NeutronPhysics::~NeutronPhysics()

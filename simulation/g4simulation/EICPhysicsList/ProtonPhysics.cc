@@ -30,7 +30,12 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-ProtonPhysics::ProtonPhysics()
+ProtonPhysics::ProtonPhysics():
+  ftfp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
 {}
 
 

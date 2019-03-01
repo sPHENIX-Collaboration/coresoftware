@@ -35,7 +35,12 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 
-HyperonPhysics::HyperonPhysics()
+HyperonPhysics::HyperonPhysics():
+  ftfp(nullptr),
+  stringModel(nullptr),
+  stringDecay(nullptr),
+  fragModel(nullptr),
+  preCompoundModel(nullptr)
 {}
 
 
