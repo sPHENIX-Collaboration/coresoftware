@@ -11,7 +11,8 @@ using namespace std;
 static const int NMAX = 1000;
 
 G4RootScintillatorSlatContainer::G4RootScintillatorSlatContainer()
-  : etotal(NAN)
+  : idet(-9999)
+  , etotal(NAN)
   , eion(NAN)
   , leakage(NAN)
   , event(0)

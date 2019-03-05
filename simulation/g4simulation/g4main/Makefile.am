@@ -9,42 +9,56 @@ AM_CXXFLAGS = -DG4INTY_USE_XT -DG4VIS_USE_OPENGL -DG4UI_USE_TCSH -DG4UI_USE_XM -
 
 # List of shared libraries to produce
 lib_LTLIBRARIES = \
-    libphg4hit.la \
-    libg4testbench.la
+  libphg4hit.la \
+  libg4testbench.la
 
 AM_CPPFLAGS = \
-    -I$(includedir) \
-    -I$(XERCESCROOT)/include \
-    -isystem $(OFFLINE_MAIN)/include \
-    -isystem $(ROOTSYS)/include \
-    -isystem ${G4_MAIN}/include \
-    -I$(OFFLINE_MAIN)/include/eigen3 \
-    -I$(OPT_SPHENIX)/include
+  -I$(includedir) \
+  -I$(XERCESCROOT)/include \
+  -isystem $(OFFLINE_MAIN)/include \
+  -isystem $(ROOTSYS)/include \
+  -isystem ${G4_MAIN}/include \
+  -I$(OFFLINE_MAIN)/include/eigen3 \
+  -I$(OPT_SPHENIX)/include
 
 # rootcint barfs on isystem
 RINCLUDES = \
-    -I$(includedir) \
-    -I$(XERCESCROOT)/include \
-    -I$(OFFLINE_MAIN)/include \
-    -I$(ROOTSYS)/include \
-    -I${G4_MAIN}/include \
-    -I$(OFFLINE_MAIN)/include/eigen3 \
-    -I$(OPT_SPHENIX)/include
+  -I$(includedir) \
+  -I$(XERCESCROOT)/include \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include \
+  -I${G4_MAIN}/include \
+  -I$(OFFLINE_MAIN)/include/eigen3 \
+  -I$(OPT_SPHENIX)/include
 
 
 libphg4hit_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -L$(XERCESCROOT)/lib \
-  -L$(OPT_SPHENIX)/lib \
-  `geant4-config --libs`
+  -L$(OFFLINE_MAIN)/lib
 
 
 libphg4hit_la_LIBADD = \
-  -lphool \
-  -lSubsysReco \
-  -lfun4all \
-  -leicsmear
+  -lphool
+
+libg4testbench_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `geant4-config --libs`
+
+libg4testbench_la_LIBADD = \
+  libphg4hit.la \
+  -lboost_filesystem \
+  -lEICPhysicsList \
+  -leicsmear \
+  -lg4decayer \
+  -lgsl \
+  -lgslcblas \
+  -lHepMC \
+  -lphfield \
+  -lphgeom \
+  -lphg4gdml \
+  -lphhepmc \
+  -lvararray
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
 # pcm files in addition. If someone can figure out how to make a list
@@ -136,62 +150,45 @@ libphg4hit_la_SOURCES = \
   PHG4VtxPointv1.cc
 
 libg4testbench_la_SOURCES = \
-    $(ROOT5TBDICTS) \
-    G4TBMagneticFieldSetup.cc \
-    G4TBFieldMessenger.cc \
-    PHG4MagneticField.cc \
-    HepMCNodeReader.cc \
-    PHG4ConsistencyCheck.cc \
-    PHG4Detector.cc \
-    PHG4HitReadBack.cc \
-    PHG4EtaParameterization.cc \
-    PHG4EtaPhiParameterization.cc \
-    PHG4HeadReco.cc \
-    PHG4InEventCompress.cc \
-    PHG4InEventReadBack.cc \
-    PHG4InputFilter.cc \
-    PHG4PileupGenerator.cc \
-    PHG4SimpleEventGenerator.cc \
-    PHG4ParticleGun.cc \
-    PHG4ParticleGeneratorBase.cc \
-    PHG4ParticleGenerator.cc \
-    PHG4ParticleGeneratorVectorMeson.cc \
-    PHG4ParticleGeneratorD0.cc \
-    PHG4PhenixDetector.cc \
-    PHG4PhenixEventAction.cc \
-    PHG4PhenixSteppingAction.cc \
-    PHG4PhenixTrackingAction.cc \
-    PHG4PrimaryGeneratorAction.cc \
-    PHG4Reco.cc \
-    PHG4ScoringManager.cc \
-    PHG4RegionInformation.cc \
-    PHG4TrackUserInfoV1.cc \
-    PHG4TruthEventAction.cc \
-    PHG4TruthSteppingAction.cc \
-    PHG4TruthSubsystem.cc \
-    PHG4TruthTrackingAction.cc \
-    PHG4SteppingAction.cc \
-    PHG4UIsession.cc \
-    PHG4Utils.cc \
-    ReadEICFiles.cc
+  $(ROOT5TBDICTS) \
+  G4TBMagneticFieldSetup.cc \
+  G4TBFieldMessenger.cc \
+  PHG4MagneticField.cc \
+  HepMCNodeReader.cc \
+  PHG4ConsistencyCheck.cc \
+  PHG4Detector.cc \
+  PHG4HitReadBack.cc \
+  PHG4EtaParameterization.cc \
+  PHG4EtaPhiParameterization.cc \
+  PHG4HeadReco.cc \
+  PHG4InEventCompress.cc \
+  PHG4InEventReadBack.cc \
+  PHG4InputFilter.cc \
+  PHG4PileupGenerator.cc \
+  PHG4SimpleEventGenerator.cc \
+  PHG4ParticleGun.cc \
+  PHG4ParticleGeneratorBase.cc \
+  PHG4ParticleGenerator.cc \
+  PHG4ParticleGeneratorVectorMeson.cc \
+  PHG4ParticleGeneratorD0.cc \
+  PHG4PhenixDetector.cc \
+  PHG4PhenixEventAction.cc \
+  PHG4PhenixSteppingAction.cc \
+  PHG4PhenixTrackingAction.cc \
+  PHG4PrimaryGeneratorAction.cc \
+  PHG4Reco.cc \
+  PHG4ScoringManager.cc \
+  PHG4RegionInformation.cc \
+  PHG4TrackUserInfoV1.cc \
+  PHG4TruthEventAction.cc \
+  PHG4TruthSteppingAction.cc \
+  PHG4TruthSubsystem.cc \
+  PHG4TruthTrackingAction.cc \
+  PHG4SteppingAction.cc \
+  PHG4UIsession.cc \
+  PHG4Utils.cc \
+  ReadEICFiles.cc
 
-libg4testbench_la_LDFLAGS = \
-    -L$(libdir) \
-    -L$(OFFLINE_MAIN)/lib \
-    -lboost_filesystem \
-    -lphfield \
-    -lg4decayer \
-    -lgsl -lgslcblas \
-    -lvararray \
-    -lHepMC \
-    -lphhepmc \
-    -lxerces-c \
-    `geant4-config --libs` \
-    -lphgeom \
-    -lphg4gdml
-
-libg4testbench_la_LIBADD = \
-    libphg4hit.la
 
 ##############################################
 # please add new classes in alphabetical order

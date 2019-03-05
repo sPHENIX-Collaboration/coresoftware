@@ -1,4 +1,5 @@
 #include "PHG4CylinderGeomv4.h"
+
 #include <cmath>
 
 using namespace std;
@@ -18,6 +19,7 @@ PHG4CylinderGeomv4::PHG4CylinderGeomv4():
   N_staggers(-1),
   strip_z_spacing(NAN),
   strip_y_spacing(NAN),
+  thickness(NAN),
   strip_tilt(NAN)
 
 {

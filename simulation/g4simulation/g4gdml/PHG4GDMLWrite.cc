@@ -91,7 +91,7 @@ void PHG4GDMLWrite::AddAuxInfo(PHG4GDMLAuxListType* auxInfoList,
                              xercesc::DOMElement* element)
 {
   for(std::vector<PHG4GDMLAuxStructType>::const_iterator
-      iaux = auxInfoList->begin(); iaux != auxInfoList->end(); iaux++ )
+      iaux = auxInfoList->begin(); iaux != auxInfoList->end(); ++iaux )
   {
     xercesc::DOMElement* auxiliaryElement = NewElement("auxiliary");
     element->appendChild(auxiliaryElement);
@@ -280,15 +280,15 @@ G4Transform3D PHG4GDMLWrite::Write(const G4String& fname,
 
 void PHG4GDMLWrite::AddModule(const G4VPhysicalVolume* const physvol)
 {
-   G4String fname = GenerateName(physvol->GetName(),physvol);
-   G4cout << "PHG4GDML: Adding module '" << fname << "'..." << G4endl;
-
    if (physvol == 0)
    {
      G4Exception("PHG4GDMLWrite::AddModule()", "InvalidSetup", FatalException,
                  "Invalid NULL pointer is specified for modularization!");
      return;
    }
+   G4String fname = GenerateName(physvol->GetName(),physvol);
+   G4cout << "PHG4GDML: Adding module '" << fname << "'..." << G4endl;
+
    if (dynamic_cast<const G4PVDivision*>(physvol))
    {
      G4Exception("PHG4GDMLWrite::AddModule()", "InvalidSetup", FatalException,

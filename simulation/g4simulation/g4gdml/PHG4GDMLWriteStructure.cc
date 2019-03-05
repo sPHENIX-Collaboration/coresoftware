@@ -330,7 +330,7 @@ PHG4GDMLWriteStructure::GetSkinSurface(const G4LogicalVolume* const lvol)
     const G4LogicalSkinSurfaceTable* stable =
           G4LogicalSkinSurface::GetSurfaceTable();
     std::vector<G4LogicalSkinSurface*>::const_iterator pos;
-    for (pos = stable->begin(); pos != stable->end(); pos++)
+    for (pos = stable->begin(); pos != stable->end(); ++pos)
     {
       if (lvol == (*pos)->GetLogicalVolume())
       {
@@ -351,7 +351,7 @@ PHG4GDMLWriteStructure::GetBorderSurface(const G4VPhysicalVolume* const pvol)
     const G4LogicalBorderSurfaceTable* btable =
           G4LogicalBorderSurface::GetSurfaceTable();
     std::vector<G4LogicalBorderSurface*>::const_iterator pos;
-    for (pos = btable->begin(); pos != btable->end(); pos++)
+    for (pos = btable->begin(); pos != btable->end(); ++pos)
     {
       if (pvol == (*pos)->GetVolume1())  // just the first in the couple
       {                                  // is enough
@@ -367,11 +367,11 @@ void PHG4GDMLWriteStructure::SurfacesWrite()
    G4cout << "PHG4GDML: Writing surfaces..." << G4endl;
 
    std::vector<xercesc::DOMElement*>::const_iterator pos;
-   for (pos = skinElementVec.begin(); pos != skinElementVec.end(); pos++)
+   for (pos = skinElementVec.begin(); pos != skinElementVec.end(); ++pos)
    {
      structureElement->appendChild(*pos);
    }
-   for (pos = borderElementVec.begin(); pos != borderElementVec.end(); pos++)
+   for (pos = borderElementVec.begin(); pos != borderElementVec.end(); ++pos)
    {
      structureElement->appendChild(*pos);
    }

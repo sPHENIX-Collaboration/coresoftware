@@ -43,10 +43,10 @@ namespace PHG4Sector
   {
   public:
     Layer( //! name base for this layer
-        std::string _name,
+        const std::string &_name,
 
         //! material name in G4
-        std::string _material,
+        const std::string &_material,
 
         //! depth in G4 units
         double _depth,
@@ -146,14 +146,14 @@ namespace PHG4Sector
 
 #ifndef __CINT__
     void
-    set_layer_list(std::vector<Layer> layerList)
+    set_layer_list(const std::vector<Layer> &layerList)
     {
       layer_list = layerList;
     }
 #endif
 
     void
-    set_material(std::string _material)
+    set_material(const std::string &_material)
     {
       material = _material;
     }
@@ -369,7 +369,7 @@ namespace PHG4Sector
   class PHG4SectorConstructor
   {
   public:
-    PHG4SectorConstructor(std::string name);
+    PHG4SectorConstructor(const std::string &name);
     virtual
     ~PHG4SectorConstructor();
 

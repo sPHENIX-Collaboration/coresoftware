@@ -79,7 +79,6 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
-  int idx_l = -1;
 
   if (whichactive > 0) // in crystal
     {
@@ -115,6 +114,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction( const G4Step* aSt
   /* Make sure we are in a volume */
   if ( detector_->IsActive() )
     {
+      int idx_l = -1;
       /* Check if particle is 'geantino' */
       bool geantino = false;
       if (aTrack->GetParticleDefinition()->GetPDGEncoding() == 0 &&
@@ -322,19 +322,16 @@ int
 PHG4CrystalCalorimeterSteppingAction::FindTowerIndex2LevelUp(G4TouchableHandle touch, int& j, int& k)
 {
         int j_0, k_0;           //The k and k indices for the crystal within the 2x2 matrix
-        int j_1, k_1;           //The k and k indices for the 2x2 within the 4x4
-        int j_2, k_2;           //The k and k indices for the 4x4 within the mother volume
-        //int j, k;             //The final indices of the crystal
 
 	string name = touch->GetVolume(0)->GetName();
-	string name_2 = touch->GetVolume(1)->GetName();
 
 	if (name.find("rystal") != string::npos)
 	{
 		G4VPhysicalVolume* crystal = touch->GetVolume(0);		//Get the crystal solid
 		G4VPhysicalVolume* TwoByTwo = touch->GetVolume(1);		//Get the crystal solid
 		G4VPhysicalVolume* FourByFour = touch->GetVolume(2);		//Get the crystal solid
-
+                int j_1, k_1;  //The k and k indices for the 2x2 within the 4x4
+                int j_2, k_2;  //The k and k indices for the 4x4 within the mother volume
 		ParseG4VolumeName(crystal, j_0, k_0);
 		ParseG4VolumeName(TwoByTwo, j_1, k_1);
 		ParseG4VolumeName(FourByFour, j_2, k_2);

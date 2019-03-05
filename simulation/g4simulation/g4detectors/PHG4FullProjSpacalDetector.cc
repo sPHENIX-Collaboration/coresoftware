@@ -14,10 +14,11 @@
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
 
+#include <g4gdml/PHG4GDMLConfig.hh>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
-#include <g4gdml/PHG4GDMLConfig.hh>
 
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4Trap.hh>
@@ -38,6 +39,11 @@
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Vector3D.hh>
 
+#include <TSystem.h>
+
+#include <boost/math/special_functions/sign.hpp>
+#include <boost/foreach.hpp>
+
 #include <numeric>      // std::accumulate
 #include <cassert>
 #include <cmath>
@@ -45,8 +51,6 @@
 #include <algorithm>
 #include <string>     // std::string, std::to_string
 #include <sstream>
-#include <boost/math/special_functions/sign.hpp>
-#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -66,7 +70,6 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHCompositeNode *Node,
           << endl;
       exit(1);
     }
-  assert(get_geom_v3()); // conversion check
 
   //this class loads Chris Cullen 2D spacal design July 2015 by default.
   get_geom_v3() -> load_demo_sector_tower_map_2015_Chris_Cullen_2D_spacal();
@@ -82,7 +85,6 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHCompositeNode *Node,
 void
 PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
 {
-  assert(get_geom_v3());
 
   if (get_geom_v3()->get_construction_verbose() >= 1)
     {
@@ -103,8 +105,11 @@ PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
 std::pair<G4LogicalVolume *, G4Transform3D>
 PHG4FullProjSpacalDetector::Construct_AzimuthalSeg()
 {
-  assert(get_geom_v3());
-  assert(get_geom_v3()->get_azimuthal_n_sec()>4);
+      if (!(get_geom_v3()->get_azimuthal_n_sec()>4))
+      {
+	cout << "azimuthal_n_sec <= 4: " << get_geom_v3()->get_azimuthal_n_sec() << endl;
+	gSystem->Exit(1);
+      }
 
   G4Tubs* sec_solid = new G4Tubs(G4String(GetName() + string("_sec")),
       get_geom_v3()->get_radius() * cm, get_geom_v3()->get_max_radius() * cm,
@@ -293,7 +298,6 @@ PHG4FullProjSpacalDetector::Construct_Fibers_SameLengthFiberPerTower(
     const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower,
     G4LogicalVolume* LV_tower)
 {
-  assert(get_geom_v3());
 
   // construct fibers
 
@@ -458,8 +462,6 @@ PHG4FullProjSpacalDetector::Construct_Fibers(
     const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower,
     G4LogicalVolume* LV_tower)
 {
-  assert(get_geom_v3());
-
   G4Vector3D v_zshift = G4Vector3D(tan(g_tower.pTheta) * cos(g_tower.pPhi),
       tan(g_tower.pTheta) * sin(g_tower.pPhi), 1) * g_tower.pDz;
   int fiber_cnt = 0;
@@ -579,7 +581,6 @@ G4LogicalVolume*
 PHG4FullProjSpacalDetector::Construct_Tower(
     const PHG4FullProjSpacalDetector::SpacalGeom_t::geom_tower & g_tower)
 {
-  assert(get_geom_v3());
 
   std::stringstream sout;
   sout << "_" << g_tower.id;

@@ -41,7 +41,6 @@ using namespace std;
 PHG4FullProjSpacalCellReco::PHG4FullProjSpacalCellReco(const string &name) :
   SubsysReco(name),
   PHParameterInterface(name),
-  _timer(PHTimeServer::get()->insert_new(name.c_str())), 
   sum_energy_g4hit(0),
   chkenergyconservation(0),
   tmin(NAN),
@@ -320,7 +319,6 @@ PHG4FullProjSpacalCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {
@@ -489,7 +487,6 @@ PHG4FullProjSpacalCellReco::process_event(PHCompositeNode *topNode)
     {
       CheckEnergy(topNode);
     }
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

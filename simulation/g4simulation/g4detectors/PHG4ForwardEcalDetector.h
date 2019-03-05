@@ -43,7 +43,7 @@ public:
   int IsInForwardEcal(G4VPhysicalVolume*) const;
 
   //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile( std::string filename ) {
+  void SetTowerMappingFile( const std::string &filename ) {
     _mapping_tower_file = filename;
   }
 
@@ -78,7 +78,7 @@ public:
       _tower5_dy = dy;
       _tower5_dz = dz;
     }
-     else if(type==5){
+     else if(type==6){
       _tower6_dx = dx;
       _tower6_dy = dy;
       _tower6_dz = dz;

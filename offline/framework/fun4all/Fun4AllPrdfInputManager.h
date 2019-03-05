@@ -14,7 +14,7 @@ class SyncObject;
 class Fun4AllPrdfInputManager : public Fun4AllInputManager
 {
  public:
-   Fun4AllPrdfInputManager(const std::string &name = "DUMMY", const std::string &topnodename = "TOP");
+  Fun4AllPrdfInputManager(const std::string &name = "DUMMY", const std::string &prdfnodename = "PRDF", const std::string &topnodename = "TOP");
   virtual ~Fun4AllPrdfInputManager();
   int fileopen(const std::string &filenam);
   int fileclose();
@@ -38,6 +38,7 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   Event *save_evt;
   Eventiterator *eventiterator;
   SyncObject* syncobject;
+  std::string m_PrdfNodeName;
 };
 
 #endif /* FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H */

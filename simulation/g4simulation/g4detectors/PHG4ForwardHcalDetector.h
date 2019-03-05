@@ -44,7 +44,7 @@ public:
 
 
   //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile( std::string filename ) {
+  void SetTowerMappingFile( const std::string &filename ) {
     _mapping_tower_file = filename;
   }
 
