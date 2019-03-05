@@ -34,14 +34,9 @@ class PHDataNode : public PHNode
     TObject* tobj;
   };
   tobjcast data;
-  PHDataNode();
+  PHDataNode() = delete;
 };
 
-template <class T>
-PHDataNode<T>::PHDataNode()
-{
-  data.data = 0;
-}
 
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,

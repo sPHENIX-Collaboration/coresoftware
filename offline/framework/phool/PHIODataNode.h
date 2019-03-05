@@ -28,7 +28,7 @@ class PHIODataNode : public PHDataNode<T>
 
  protected:
   virtual bool write(PHIOManager *, const std::string & = "");
-  PHIODataNode() {}
+  PHIODataNode() = delete;
 };
 
 template <class T>
