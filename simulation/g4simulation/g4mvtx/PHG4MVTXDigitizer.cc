@@ -34,6 +34,7 @@ using namespace std;
 
 PHG4MVTXDigitizer::PHG4MVTXDigitizer(const string &name)
   : SubsysReco(name)
+  , _energy_scale(0.95e-06)   // 99 electrons default
   , _hitmap(NULL)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
@@ -80,9 +81,12 @@ int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
     PHIODataNode<PHObject> *SvtxHitMapNode =
         new PHIODataNode<PHObject>(svxhits, "SvtxHitMap", "PHObject");
     svxNode->addNode(SvtxHitMapNode);
+
+    cout << PHWHERE << " MVTX ADC threshold is " <<  _energy_scale << endl;
+
   }
 
-  CalculateMVTXLadderCellADCScale(topNode);
+  //CalculateMVTXLadderCellADCScale(topNode);
 
   //----------------
   // Report Settings
@@ -91,18 +95,7 @@ int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
   if (Verbosity() > 0)
   {
     cout << "====================== PHG4MVTXDigitizer::InitRun() =====================" << endl;
-    for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
-         iter != _max_adc.end();
-         ++iter)
-    {
-      cout << " Max ADC in Layer #" << iter->first << " = " << iter->second << endl;
-    }
-    for (std::map<int, float>::iterator iter = _energy_scale.begin();
-         iter != _energy_scale.end();
-         ++iter)
-    {
-      cout << " Energy per ADC in Layer #" << iter->first << " = " << 1.0e6 * iter->second << " keV" << endl;
-    }
+    cout << " Energy per ADC in MVTX " << _energy_scale << " keV" << endl;
     cout << "===========================================================================" << endl;
   }
 
@@ -143,31 +136,6 @@ void PHG4MVTXDigitizer::CalculateMVTXLadderCellADCScale(PHCompositeNode *topNode
   if (Verbosity())
     cout << "Found CYLINDERGEOM_MVTX node" << endl;
 
-  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-  for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-       layeriter != layerrange.second;
-       ++layeriter)
-  {
-    int layer = layeriter->second->get_layer();
-    float thickness = (layeriter->second)->get_pixel_thickness();
-    float pitch = (layeriter->second)->get_pixel_x();
-    float length = (layeriter->second)->get_pixel_z();
-
-    float minpath = pitch;
-    if (length < minpath) minpath = length;
-    if (thickness < minpath) minpath = thickness;
-    float mip_e = 0.003876 * minpath;
-
-    if (Verbosity())
-      cout << "mip_e = " << mip_e << endl;
-
-    if (_max_adc.find(layer) == _max_adc.end())
-    {
-      _max_adc[layer] = 255;
-      _energy_scale[layer] = mip_e / 64;
-    }
-  }
-
   return;
 }
 
@@ -192,14 +160,16 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
   {
     PHG4Cell *cell = celliter->second;
 
+    unsigned int adc = cell->get_edep() / _energy_scale;
+    if(adc == 0) continue;
+
+    float e = cell->get_edep();
+
     SvtxHit_v1 hit;
 
     hit.set_layer(cell->get_layer());
     hit.set_cellid(cell->get_cellid());
 
-    unsigned int adc = cell->get_edep() / _energy_scale[hit.get_layer()];
-    if (adc > _max_adc[hit.get_layer()]) adc = _max_adc[hit.get_layer()];
-    float e = _energy_scale[hit.get_layer()] * adc;
 
     hit.set_adc(adc);
     hit.set_e(e);

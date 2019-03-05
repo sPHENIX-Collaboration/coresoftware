@@ -2,6 +2,7 @@
 #define PHG4MVTXCELLRECO_H
 
 #include <phparameter/PHParameterContainerInterface.h>
+#include <phparameter/PHParameters.h>
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
@@ -12,6 +13,7 @@
 
 class PHCompositeNode;
 class PHG4Cell;
+class TF1;
 
 class PHG4MVTXCellReco : public SubsysReco, public PHParameterContainerInterface
 {
@@ -35,6 +37,8 @@ class PHG4MVTXCellReco : public SubsysReco, public PHParameterContainerInterface
   double get_timing_window_min(const int i) { return tmin_max[i].first; }
   double get_timing_window_max(const int i) { return tmin_max[i].second; }
   void set_timing_window(const int detid, const double tmin, const double tmax);
+
+  void set_diffusion_width(const double diffmax){ diffusion_width_max = diffmax; }
 
   void SetDefaultParameters();
 
@@ -84,6 +88,8 @@ class PHG4MVTXCellReco : public SubsysReco, public PHParameterContainerInterface
   int chkenergyconservation;
   std::map<int, std::pair<double, double> > tmin_max;
   std::map<unsigned long long, PHG4Cell *> celllist;  // This map holds the hit cells
+
+  double diffusion_width_max;
 };
 
 #endif
