@@ -13,8 +13,10 @@
 
 using namespace std;
 
-PHNode::PHNode(const string& n): PHNode(n,"")
-{}
+PHNode::PHNode(const string& n)
+  : PHNode(n, "")
+{
+}
 
 PHNode::PHNode(const string& n, const string& typ)
   : parent(nullptr)
@@ -58,7 +60,6 @@ PHNode::~PHNode()
     parent->forgetMe(this);
   }
 }
-
 
 // Implementation of external functions.
 std::ostream&
