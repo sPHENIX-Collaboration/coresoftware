@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <trackbase/TrkrDefs.h>
 
 class SimpleHit3D
 {
@@ -14,6 +15,9 @@ public:
 
   unsigned int get_id() const {return _id;}
   void         set_id(unsigned int id) {_id = id;}
+
+  TrkrDefs::cluskey get_cluskey() const {return _cluskey;}
+  void         set_cluskey(TrkrDefs::cluskey key) {_cluskey = key;}
 
   int  get_layer() const {return _layer;}
   void set_layer(int layer) {_layer = layer;}
@@ -39,7 +43,9 @@ private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
+
   unsigned int _id;
+  TrkrDefs::cluskey _cluskey;
   int _layer;
   
   float _x;

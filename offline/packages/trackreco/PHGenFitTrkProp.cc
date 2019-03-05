@@ -369,7 +369,7 @@ int PHGenFitTrkProp::Process()
     for (int i = 0; i < 3; ++i)
       _vertex_error[i] = sqrt(vertex->get_error(i, i));
   }
-
+  cout << "here11" << endl;
   {
     //-----------------------------------
     // Kalman track propagating
@@ -380,7 +380,7 @@ int PHGenFitTrkProp::Process()
       return ret;
     if (Verbosity() >= 1) _t_kalman_pat_rec->stop();
   }
-
+  cout << "here12" << endl;
   if (Verbosity() > 1) print_timers();
 
   ++_event;
@@ -1564,9 +1564,10 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
   }
     */
 
-  double radius = sqrt(cluster->getPosition(0)*cluster->getPosition(0)  + cluster->getPosition(1)*cluster->getPosition(1));
+  //double radius = sqrt(cluster->getPosition(0)*cluster->getPosition(0)  + cluster->getPosition(1)*cluster->getPosition(1));
   PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-								radius * cluster->getPhiError(), cluster->getZError());
+								cluster->getRPhiError(), cluster->getZError());
+
 
   meas->set_cluster_ID(cluster->getClusKey());
 

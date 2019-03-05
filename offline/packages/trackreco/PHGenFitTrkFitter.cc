@@ -1089,7 +1089,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 #endif
 
     TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
-    float radius = sqrt(cluster->getPosition(0)*cluster->getPosition(0)  + cluster->getPosition(1)*cluster->getPosition(1));
 
     /*
     // this code is obsolete, removed it
@@ -1179,7 +1178,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     // get the trkrid
     unsigned int trkrid = TrkrDefs::getTrkrId(cluster_id);
-int layer = TrkrDefs::getLayer(cluster_id);
+    int layer = TrkrDefs::getLayer(cluster_id);
 
     if(trkrid == TrkrDefs::mvtxId)
       {
@@ -1274,7 +1273,7 @@ int layer = TrkrDefs::getLayer(cluster_id);
     //---------------------------------------------
 
     PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
-                                                                  radius * cluster->getPhiError(), cluster->getZError());
+								  cluster->getRPhiError(), cluster->getZError());
 
     //		TMatrixF cov_uvn(3,3);
     //		TMatrixF cov_xyz(3,3);

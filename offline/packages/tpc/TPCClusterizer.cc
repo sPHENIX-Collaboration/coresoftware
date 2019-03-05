@@ -846,14 +846,14 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
         float pp_size = radius * fFitSizeP * fGeoLayer->get_phistep();
         float zz_size = fFitSizeZ * fGeoLayer->get_zstep();
 
-        if (Verbosity() > 100)
+        //if (Verbosity() > 100)
         //if(layer == 47)
         {
-          cout << endl
-               << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14
-               << " zz_raw " << zz_raw << " zz " << zz
-               << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
-          cout << "       zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << endl;
+	  // cout << endl
+	  //   << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14
+	  //   << " zz_raw " << zz_raw << " zz " << zz
+	  //   << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
+          cout << "clusterizer layer " << layer << " zz " << zz << " zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << " phi " << phi << " phi_err " << pp_err << " phi cov " << fit_p_cov() << endl;
         }
 
         if (Verbosity() > 1)

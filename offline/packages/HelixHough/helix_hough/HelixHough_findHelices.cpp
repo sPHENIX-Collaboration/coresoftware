@@ -119,6 +119,7 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits_init, unsigned int min_hi
     }
   }
 
+  cout << "findHelices: hits.size " << hits.size() << endl;
 
   index_mapping.clear();
   index_mapping.resize(hits.size(), 0);
@@ -149,6 +150,8 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits_init, unsigned int min_hi
     findHelices(min_hits, max_hits, temp_tracks, maxtracks, start_zoom);
   }
 
+  cout << "findHelices: temp_tracks.size " << temp_tracks.size() << endl;
+
   vector<SimpleHit3D> tr_hits;
   if (cull_input_hits == true) {
     for (unsigned int i = 0; i < hits.size(); i++) {
@@ -158,6 +161,7 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits_init, unsigned int min_hi
       }
     }
   }
+  cout << "findHelices: tr_hits.size " << tr_hits.size() << endl;
 
   for (unsigned int i = 0; i < hits.size(); i++) {
     hits[i].set_id(index_mapping[i]);
@@ -574,6 +578,7 @@ void HelixHough::findHelices(unsigned int min_hits, unsigned int max_hits,
     }
   } else {
     if (clusters_vec[zoomlevel]->size() == 0) {
+      cout << "     returning " << endl;
       return;
     }
     // for each cluster, eiter perform the Hough again or break into

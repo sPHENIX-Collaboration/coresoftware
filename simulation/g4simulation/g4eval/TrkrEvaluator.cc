@@ -610,7 +610,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float ex = sqrt(cluster->getError(0, 0));
       float ey = sqrt(cluster->getError(1, 1));
       float ez = sqrt(cluster->getError(2, 2));
-      float ephi = cluster->getPhiError();
+      float ephi = r * cluster->getPhiError();
       float e = 0.0;	 
       float adc = cluster->getAdc();
       float phisize = cluster->getPhiSize(); 

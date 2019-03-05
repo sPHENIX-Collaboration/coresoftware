@@ -573,6 +573,8 @@ class PHHoughSeeding : public PHTrackSeeding
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::vector<float> _radii_all;
 
+  std::map<int, unsigned int> _clusterkeys;
+
 #endif  // __CINT__
 };
 

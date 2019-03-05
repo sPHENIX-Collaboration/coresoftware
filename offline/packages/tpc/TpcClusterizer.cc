@@ -352,8 +352,11 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 		  dz_adc += dz*adcval[iphi][iz];
 		}
 	    }
-	  double phi_cov = radius *( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
+	  //double phi_cov = radius *( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
+	  double phi_cov = ( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
 	  double z_cov =  dz2_adc / adc_sum - dz_adc*dz_adc / (adc_sum*adc_sum);
+
+	  //cout << " layer " << layer << " z_cov " << z_cov << " dz2_adc " << dz2_adc << " adc_sum " <<  adc_sum << " dz_adc " << dz_adc << endl;
 
 	  // phi_cov = (weighted mean of dphi^2) - (weighted mean of dphi)^2,  which is essentially the weighted mean of dphi^2. The error is then:
 	  // e_phi = sigma_dphi/sqrt(N) = sqrt( sigma_dphi^2 / N )  -- where N is the number of samples of the distribution with standard deviation sigma_dphi
@@ -363,9 +366,9 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  // To get equivalent charge per Z bin, so that summing ADC input voltage over all Z bins returns total input charge, divide voltages by 2.4 for 80 ns SAMPA
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
-	  double phi_err = radius * sqrt(phi_cov) / (adc_sum * 0.14);
-	  double z_err = sqrt(z_cov) / (adc_sum * 0.14) ;
-
+	  double phi_err = radius * sqrt(phi_cov / (adc_sum * 0.14));
+	  double z_err = sqrt(z_cov / (adc_sum * 0.14)) ;
+	  cout << " layer " << layer <<  " clusz " << clusz << " z_err " << z_err << " z cov " << z_cov << " clusphi " << clusphi << " phi error " << phi_err << " phi cov " << phi_cov << endl; 
 	  // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping time
 	  if (clusz < 0)
 	    clusz -= zz_shaping_correction;
@@ -442,6 +445,13 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  clus->setError(2, 0, COVAR_ERR[2][0]);
 	  clus->setError(2, 1, COVAR_ERR[2][1]);
 	  clus->setError(2, 2, COVAR_ERR[2][2]);
+
+	  /*
+	  for(int i=0;i<3;i++)
+	    for(int j=0;j<3;j++)
+	      cout << "    i " << i << " j " << j << " clusphi " << clusphi << " clus error " << clus->getError(i,j) 
+		   << " clus size " << clus->getSize(i,j) << " ROT " << ROT[i][j] << " ROT_T " << ROT_T[i][j] << " COVAR_ERR " << COVAR_ERR[i][j] << endl;
+	  */
 
 	  // Add the hit associations to the TrkrClusterHitAssoc node
 	  // we need the cluster key and all associated hit keys (note: the cluster key includes the hitset key)
