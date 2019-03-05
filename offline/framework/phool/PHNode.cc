@@ -4,19 +4,14 @@
 
 #include "phool.h"
 
+#include <TSystem.h>
+
+#include <boost/stacktrace.hpp>
+
 #include <cstdlib>
 #include <iostream>
 
 using namespace std;
-
-PHNode::PHNode()
-  : parent(nullptr)
-  , persistent(true)
-  , type("PHNode")
-  , reset_able(true)
-{
-  return;
-}
 
 PHNode::PHNode(const string& n)
   : parent(nullptr)
@@ -24,30 +19,38 @@ PHNode::PHNode(const string& n)
   , type("PHNode")
   , reset_able(true)
 {
+  int badnode = 0;
   if (n.find(".") != string::npos)
   {
     cout << PHWHERE << " No nodenames containing decimal point possible: "
          << n << endl;
-    exit(1);
+    badnode = 1;
+  }
+  if (n.empty())
+  {
+    cout << PHWHERE << "Empty string as nodename given" << endl;
+    badnode = 1;
+  }
+  if (n.find(" ") != string::npos)
+  {
+    badnode = 1;
+    cout << PHWHERE << "No nodenames with spaces" << endl;
+  }
+  if (badnode)
+  {
+    cout << "Here is the stacktrace: " << endl;
+    cout << boost::stacktrace::stacktrace();
+    cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
+    gSystem->Exit(1);
   }
   name = n;
   return;
 }
 
 PHNode::PHNode(const string& n, const string& typ)
-  : parent(nullptr)
-  , persistent(true)
-  , type("PHNode")
-  , objecttype(typ)
-  , reset_able(true)
+  : PHNode(n)
 {
-  if (n.find(".") != string::npos)
-  {
-    cout << PHWHERE << " No nodenames containing decimal point possible: "
-         << n << endl;
-    exit(1);
-  }
-  name = n;
+  objecttype = typ;
   return;
 }
 
