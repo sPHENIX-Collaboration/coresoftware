@@ -42,7 +42,7 @@ class PHCompositeNode : public PHNode
   int deleteMe;
 
  private:
-  PHCompositeNode();
+  PHCompositeNode() = delete;
 };
 
 #endif /* PHCOMPOSITENODE_H__ */
