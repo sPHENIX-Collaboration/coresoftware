@@ -1,5 +1,5 @@
-#ifndef PHOOLDEFS_H__
-#define PHOOLDEFS_H__
+#ifndef PHOOL_PHOOLDEFS_H
+#define PHOOL_PHOOLDEFS_H
 
 #include <string>
 

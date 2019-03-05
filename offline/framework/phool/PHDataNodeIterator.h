@@ -1,5 +1,5 @@
-#ifndef __PHDATANODEITERATOR_H__
-#define __PHDATANODEITERATOR_H__
+#ifndef PHOOL_PHDATANODEITERATOR_H
+#define PHOOL_PHDATANODEITERATOR_H
 
 #include <cstddef>
 #include "PHIODataNode.h"
@@ -90,4 +90,4 @@ PHDataNodeIterator::AddIODataNode(T* data, const char* name)
   return addNode(n);
 }
 
-#endif /* __PHDATANODEITERATOR_H__ */
+#endif

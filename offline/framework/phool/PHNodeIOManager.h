@@ -1,5 +1,5 @@
-#ifndef PHNODEIOMANAGER_H__
-#define PHNODEIOMANAGER_H__
+#ifndef PHOOL_PHNODEIOMANAGER_H
+#define PHOOL_PHNODEIOMANAGER_H
 
 //  Declaration of class PHNodeIOManager
 //  Purpose: manages file IO for PHIODataNodes
@@ -64,4 +64,4 @@ class PHNodeIOManager : public PHIOManager
   int isFunctionalFlag;  // flag to tell if that object initialized properly
 };
 
-#endif /* __PHNODEIOMANAGER_H__ */
+#endif

@@ -1,8 +1,8 @@
 // Do yourself and others a favour, please sort variable/function name
 // according to the roman alphabet
 
-#ifndef RECOCONSTS_H__
-#define RECOCONSTS_H__
+#ifndef PHOOL_RECOCONSTS_H
+#define PHOOL_RECOCONSTS_H
 
 #include "PHFlag.h"
 
@@ -18,9 +18,9 @@ class recoConsts : public PHFlag
 
   void Print() const;
 
- protected:
+ private:
   recoConsts() {}
   static recoConsts *__instance;
 };
 
-#endif /* __RECOCONSTS_H__ */
+#endif

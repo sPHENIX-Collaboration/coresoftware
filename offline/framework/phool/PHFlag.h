@@ -1,5 +1,5 @@
-#ifndef PHFLAG_H
-#define PHFLAG_H
+#ifndef PHOOL_PHFLAG_H
+#define PHOOL_PHFLAG_H
 
 /*
   General purpose flag package:
@@ -58,4 +58,4 @@ class PHFlag
   std::map<std::string, std::string> charflag;
 };
 
-#endif /* PHFLAG_H */
+#endif

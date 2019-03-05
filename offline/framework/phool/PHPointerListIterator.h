@@ -11,7 +11,7 @@ template <class T>
 class PHPointerListIterator
 {
   public:
-  PHPointerListIterator(const PHPointerList<T>&);
+  explicit PHPointerListIterator(const PHPointerList<T>&);
   virtual ~PHPointerListIterator() {}
   T* operator()();
   void operator--();

@@ -1,5 +1,5 @@
-#ifndef __PHOOL_H__
-#define __PHOOL_H__
+#ifndef PHOOL_PHOOL_H
+#define PHOOL_PHOOL_H
 
 //  Standard PHOOL's header file.
 //  Purpose: declarations and definitions for PHOOL

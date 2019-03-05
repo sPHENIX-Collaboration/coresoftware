@@ -1,5 +1,5 @@
-#ifndef PHIOMANAGER_H__
-#define PHIOMANAGER_H__
+#ifndef PHOOL_PHIOMANAGER_H
+#define PHOOL_PHIOMANAGER_H
 
 //  Declaration of class PHIOManager
 //  Purpose: Abstract base class for file IO
@@ -31,4 +31,4 @@ class PHIOManager
   size_t eventNumber;
 };
 
-#endif /* PHIOMANAGER_H__ */
+#endif

@@ -1,5 +1,5 @@
-#ifndef PHNodeIntegrate_h
-#define PHNodeIntegrate_h
+#ifndef PHOOL_PHNODEINTEGRATE_H
+#define PHOOL_PHNODEINTEGRATE_H
 
 //  Declaration of class PHNodeIntegrate
 //  Purpose: strategy which calls Integrate() on a PHNode if it is
@@ -36,4 +36,4 @@ class PHNodeIntegrate : public PHNodeOperation
   PHCompositeNode *runsumnode;
 };
 
-#endif /* PHNodeIntegrate_h */
+#endif

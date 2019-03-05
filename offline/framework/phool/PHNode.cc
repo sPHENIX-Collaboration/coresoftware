@@ -13,10 +13,14 @@
 
 using namespace std;
 
-PHNode::PHNode(const string& n)
+PHNode::PHNode(const string& n): PHNode(n,"")
+{}
+
+PHNode::PHNode(const string& n, const string& typ)
   : parent(nullptr)
   , persistent(true)
   , type("PHNode")
+  , objecttype(typ)
   , reset_able(true)
 {
   int badnode = 0;
@@ -44,13 +48,6 @@ PHNode::PHNode(const string& n)
     gSystem->Exit(1);
   }
   name = n;
-  return;
-}
-
-PHNode::PHNode(const string& n, const string& typ)
-  : PHNode(n)
-{
-  objecttype = typ;
   return;
 }
 

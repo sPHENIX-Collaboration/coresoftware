@@ -1,5 +1,5 @@
-#ifndef PHNODE_H__
-#define PHNODE_H__
+#ifndef PHOOL_PHNODE_H
+#define PHOOL_PHNODE_H
 
 //  Declaration of class PHNode
 //  Purpose: abstract base class for all node classes
@@ -53,4 +53,4 @@ private:
 
 std::ostream &operator<<(std::ostream &, const PHNode &);
 
-#endif /* __PHNODE_H__ */
+#endif

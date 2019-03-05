@@ -1,5 +1,5 @@
-#ifndef PHRANDOMSEED_H
-#define PHRANDOMSEED_H
+#ifndef PHOOL_PHRANDOMSEED_H
+#define PHOOL_PHRANDOMSEED_H
 
 //! standard way to get a random seed:
 //! `unsigned int seed = PHRandomSeed();`

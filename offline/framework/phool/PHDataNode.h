@@ -1,5 +1,5 @@
-#ifndef PHDATANODE_H__
-#define PHDATANODE_H__
+#ifndef PHOOL_PHDATANODE_H
+#define PHOOL_PHDATANODE_H
 
 //  Declaration of class PHDataNode
 //  Purpose: a node which can hold a data object (template)
@@ -93,4 +93,4 @@ void PHDataNode<T>::print(const std::string& path)
   std::cout << ")" << std::endl;
 }
 
-#endif /* __PHDATANODE_H__ */
+#endif

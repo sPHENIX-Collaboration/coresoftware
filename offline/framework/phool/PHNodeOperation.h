@@ -1,5 +1,5 @@
-#ifndef PHNodeOperation_h
-#define PHNodeOperation_h
+#ifndef PHOOL_PHNODEOPERATION_H
+#define PHOOL_PHNODEOPERATION_H
 
 //  Declaration of class PHNodeOperation
 //  Purpose: abstract strategy base class which operates on PHNodes
@@ -33,4 +33,4 @@ class PHNodeOperation
   int verbosity;
 };
 
-#endif /* PHNodeOperation_h */
+#endif

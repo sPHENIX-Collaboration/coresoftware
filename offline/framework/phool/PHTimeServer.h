@@ -142,7 +142,7 @@ class PHTimeServer
 
    protected:
     //! creator
-    iterator(PHTimeServer::time_map &map)
+    explicit iterator(PHTimeServer::time_map &map)
       : _map(map)
       , _iter(_map.begin())
     {

@@ -1,5 +1,5 @@
-#ifndef PHIODATANODE_H__
-#define PHIODATANODE_H__
+#ifndef PHOOL_PHIODATANODE_H
+#define PHOOL_PHIODATANODE_H
 
 //  Declaration of class PHIODataNode which can hold persistent data
 //  Author: Matthias Messer

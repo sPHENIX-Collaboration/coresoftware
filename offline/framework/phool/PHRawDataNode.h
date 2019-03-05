@@ -1,5 +1,5 @@
-#ifndef PHRAWDATANODE_H__
-#define PHRAWDATANODE_H__
+#ifndef PHOOL_PHRAWDATANODE_H
+#define PHOOL_PHRAWDATANODE_H
 
 //  Declaration of class PHRawDataNode
 //  Purpose: Node digested by the PHRawOManager
@@ -36,4 +36,4 @@ class PHRawDataNode : public PHDataNode<PHDWORD>
   int hitFormat;
 };
 
-#endif /* PHRAWDATANODE_H__ */
+#endif
