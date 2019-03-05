@@ -19,8 +19,7 @@ typedef unsigned long long phtime_t;
 class PHTimeStamp : public PHObject
 {
  public:
-
-  static const unsigned long long PHFarFuture;// set to ULLONG_MAX
+  static const unsigned long long PHFarFuture;  // set to ULLONG_MAX
 
   PHTimeStamp();
 
@@ -29,6 +28,7 @@ class PHTimeStamp : public PHObject
   void setBinTics(const phtime_t t);
 
   virtual ~PHTimeStamp() {}
+
  public:
   void set(const int, const int, const int, const int, const int, const int, const int = 0);
 

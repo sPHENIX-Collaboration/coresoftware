@@ -13,6 +13,7 @@ class PHIOManager
 {
  public:
   virtual ~PHIOManager() {}
+
  public:
   std::string getFilename() const { return filename; }
   size_t getEventNumber() const { return eventNumber; }

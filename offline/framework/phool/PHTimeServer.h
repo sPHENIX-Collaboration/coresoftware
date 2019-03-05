@@ -12,8 +12,8 @@
 #include "PHTimer.h"
 
 #include <iostream>
-#include <memory>
 #include <map>
+#include <memory>
 #include <string>
 
 #ifndef __CINT__
@@ -142,7 +142,7 @@ class PHTimeServer
 
    protected:
     //! creator
-    explicit iterator(PHTimeServer::time_map &map)
+    explicit iterator(PHTimeServer::time_map& map)
       : _map(map)
       , _iter(_map.begin())
     {

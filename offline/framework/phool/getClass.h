@@ -55,6 +55,6 @@ T *getClass(PHCompositeNode *top, const std::string &name)
 
   return nullptr;
 }
-}
+}  // namespace findNode
 
 #endif

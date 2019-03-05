@@ -14,6 +14,7 @@ class PHNodeReset : public PHNodeOperation
  public:
   PHNodeReset() {}
   virtual ~PHNodeReset() {}
+
  protected:
   virtual void perform(PHNode*);
 };

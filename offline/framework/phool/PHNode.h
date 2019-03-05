@@ -36,8 +36,8 @@ class PHNode
   virtual void setResetFlag(const bool b) { reset_able = b; }
   virtual bool getResetFlag() const { return reset_able; }
   void makeTransient() { persistent = false; }
- protected:
 
+ protected:
   PHNode *parent;
   bool persistent;
   std::string type;
@@ -45,7 +45,8 @@ class PHNode
   std::string name;
   bool reset_able;
   std::string objectclass;
-private:
+
+ private:
   PHNode() = delete;
   PHNode(const PHNode &) = delete;
   PHNode &operator=(const PHNode &) = delete;

@@ -51,6 +51,7 @@ class PHFlag
   virtual const std::map<std::string, float> *FloatMap() const { return &floatflag; }
   virtual const std::map<std::string, double> *DoubleMap() const { return &doubleflag; }
   virtual const std::map<std::string, std::string> *CharMap() const { return &charflag; }
+
  protected:
   std::map<std::string, int> intflag;
   std::map<std::string, double> doubleflag;

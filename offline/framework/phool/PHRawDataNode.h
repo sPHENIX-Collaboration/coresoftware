@@ -29,6 +29,7 @@ class PHRawDataNode : public PHDataNode<PHDWORD>
   void setID(const int val) { ID = val; }
   void setWordLength(const int val) { wordLength = val; }
   void setHitFormat(const int val) { hitFormat = val; }
+
  private:
   int length;
   int ID;

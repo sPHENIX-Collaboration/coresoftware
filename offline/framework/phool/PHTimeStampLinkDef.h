@@ -1,6 +1,6 @@
 #ifdef __CINT__
 
-#pragma link C++ class PHTimeStamp+;
+#pragma link C++ class PHTimeStamp + ;
 
 #ifndef __CLING__
 #pragma link C++ function operator+ (const PHTimeStamp &, time_t);

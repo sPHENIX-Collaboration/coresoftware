@@ -1,10 +1,10 @@
 #ifndef PHOOL_PHDATANODEITERATOR_H
 #define PHOOL_PHDATANODEITERATOR_H
 
-#include <cstddef>
-#include "PHIODataNode.h"
 #include "PHIODataNode.h"
 #include "PHNodeIterator.h"
+
+#include <cstddef>
 
 /**
  * A special PHOOL node iterator that simplifies finding and adding data

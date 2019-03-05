@@ -28,6 +28,7 @@ class PHNodeOperation
 
   virtual void Verbosity(const int i) { verbosity = i; }
   virtual int Verbosity() const { return verbosity; }
+
  protected:
   virtual void perform(PHNode*) = 0;
   int verbosity;

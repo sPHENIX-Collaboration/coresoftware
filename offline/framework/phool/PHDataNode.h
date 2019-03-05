@@ -37,7 +37,6 @@ class PHDataNode : public PHNode
   PHDataNode() = delete;
 };
 
-
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,
                           const std::string& name)
