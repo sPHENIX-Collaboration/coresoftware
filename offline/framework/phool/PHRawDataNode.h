@@ -1,5 +1,5 @@
-#ifndef PHRAWDATANODE_H__
-#define PHRAWDATANODE_H__
+#ifndef PHOOL_PHRAWDATANODE_H
+#define PHOOL_PHRAWDATANODE_H
 
 //  Declaration of class PHRawDataNode
 //  Purpose: Node digested by the PHRawOManager
@@ -29,6 +29,7 @@ class PHRawDataNode : public PHDataNode<PHDWORD>
   void setID(const int val) { ID = val; }
   void setWordLength(const int val) { wordLength = val; }
   void setHitFormat(const int val) { hitFormat = val; }
+
  private:
   int length;
   int ID;
@@ -36,4 +37,4 @@ class PHRawDataNode : public PHDataNode<PHDWORD>
   int hitFormat;
 };
 
-#endif /* PHRAWDATANODE_H__ */
+#endif

@@ -1,5 +1,5 @@
-#ifndef PHNODEITERATOR_H__
-#define PHNODEITERATOR_H__
+#ifndef PHOOL_PHNODEITERATOR_H
+#define PHOOL_PHNODEITERATOR_H
 
 //  Declaration of class PHNodeIterator
 //  Purpose: iterator to navigate a node tree
@@ -13,7 +13,7 @@ class PHNodeOperation;
 class PHNodeIterator
 {
  public:
-  PHNodeIterator(PHCompositeNode*);
+  explicit PHNodeIterator(PHCompositeNode*);
   virtual ~PHNodeIterator() {}
   PHNodeIterator();
 
@@ -27,9 +27,10 @@ class PHNodeIterator
   void forEach(PHNodeOperation&);
   void for_each(PHNodeOperation&);
   PHCompositeNode* get_currentNode() const { return currentNode; }
+
  protected:
   PHCompositeNode* currentNode;
   PHPointerList<PHNode> subNodeList;
 };
 
-#endif /* __PHNODEITERATOR_H__ */
+#endif

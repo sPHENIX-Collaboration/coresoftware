@@ -1,5 +1,5 @@
-#ifndef PHRAWOMANAGER_H__
-#define PHRAWOMANAGER_H__
+#ifndef PHOOL_PHRAWOMANAGER_H
+#define PHOOL_PHRAWOMANAGER_H
 
 //-----------------------------------------------------------------------------
 //
@@ -61,4 +61,4 @@ class PHRawOManager : public PHIOManager
   int compressionLevel;
 };
 
-#endif /* PHRAWOMANAGER_H__ */
+#endif

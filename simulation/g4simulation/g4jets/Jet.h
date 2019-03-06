@@ -63,6 +63,7 @@ class Jet : public PHObject
     prop_SeedItr = 4,
   };
 
+  Jet() {}
   virtual ~Jet() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
@@ -135,11 +136,6 @@ class Jet : public PHObject
   virtual Iter upper_bound_comp(Jet::SRC source) { return typ_comp_ids().end(); }
   virtual Iter find(Jet::SRC source) { return typ_comp_ids().end(); }
   virtual Iter end_comp() { return typ_comp_ids().end(); }
-
- protected:
-  Jet() {}
-
-  /*! @} */
 
   ClassDef(Jet, 1);
 };

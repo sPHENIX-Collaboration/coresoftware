@@ -21,6 +21,7 @@ class JetMap : public PHObject
   typedef std::set<Jet::SRC>::const_iterator ConstSrcIter;
   typedef std::set<Jet::SRC>::iterator SrcIter;
 
+  JetMap();
   virtual ~JetMap() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
@@ -69,9 +70,6 @@ class JetMap : public PHObject
   virtual Iter begin() { return typ_JetMap().end(); }
   virtual Iter find(unsigned int idkey) { return typ_JetMap().end(); }
   virtual Iter end() { return typ_JetMap().end(); }
-
- protected:
-  JetMap();
 
  private:
   ClassDef(JetMap, 1);

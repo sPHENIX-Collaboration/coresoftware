@@ -278,14 +278,14 @@ void PHNodeIOManager::print() const
 string
 PHNodeIOManager::getBranchClassName(TBranch* branch)
 {
-// OK. Here all the game is to find out the name of the type
-// contained in this branch.  In ROOT pre-3.01/05 versions, all
-// branches we used were of the same type = TBranchObject, so that
-// was easy.  Since version 3.01/05 ROOT introduced new branch style
-// with some TBranchElement objects. So far so good.  The problem is
-// that I did not find a common way to grab the typename of the
-// object contained in those branches, so I hereby use some durty if
-// { } else if { } ...
+  // OK. Here all the game is to find out the name of the type
+  // contained in this branch.  In ROOT pre-3.01/05 versions, all
+  // branches we used were of the same type = TBranchObject, so that
+  // was easy.  Since version 3.01/05 ROOT introduced new branch style
+  // with some TBranchElement objects. So far so good.  The problem is
+  // that I did not find a common way to grab the typename of the
+  // object contained in those branches, so I hereby use some durty if
+  // { } else if { } ...
 
 #if ROOT_VERSION_CODE >= ROOT_VERSION(3, 01, 5)
   TBranchElement* be = dynamic_cast<TBranchElement*>(branch);
