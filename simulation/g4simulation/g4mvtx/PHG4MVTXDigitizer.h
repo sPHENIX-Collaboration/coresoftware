@@ -34,10 +34,9 @@ class PHG4MVTXDigitizer : public SubsysReco
   //! end of process
   int End(PHCompositeNode *topNode) { return 0; };
 
-  void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc)
+  void set_adc_scale(const float energy_per_adc)
   {
-    _max_adc.insert(std::make_pair(layer, max_adc));
-    _energy_scale.insert(std::make_pair(layer, energy_per_adc));
+    _energy_scale = energy_per_adc;
   }
 
  private:
@@ -53,8 +52,7 @@ class PHG4MVTXDigitizer : public SubsysReco
   std::vector<int> is_populated;
 
   // settings
-  std::map<int, unsigned int> _max_adc;
-  std::map<int, float> _energy_scale;
+  float  _energy_scale;
 
   // storage
   SvtxHitMap *_hitmap;
