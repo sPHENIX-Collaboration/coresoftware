@@ -22,7 +22,11 @@ libgg4trackfastsim_la_LIBADD = \
   -lphool \
   -lg4testbench \
   -lphg4hit \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -lcalo_io \
+  -lgenfit2 \
+  -lgenfit2exp \
+  -lPHGenFit 
 
 pkginclude_HEADERS = \
   PHG4TrackFastSim.h \

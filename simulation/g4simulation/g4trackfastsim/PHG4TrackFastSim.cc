@@ -451,10 +451,10 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
   seed_mom.SetXYZ(0, 0, 10);
   seed_cov.ResizeTo(6, 6);
 
-  for (int i = 0; i < 3; i++)
-  {
-    seed_cov[i][i] = _phi_resolution * _phi_resolution;
-  }
+  //  for (int i = 0; i < 3; i++)
+  //  {
+  //    seed_cov[i][i] = _phi_resolution * _phi_resolution;
+  //  }
 
   for (int i = 3; i < 6; i++)
   {
@@ -528,11 +528,21 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
             {
               meas = PHG4HitToMeasurementVerticalPlane(hit,
                                                        detphires, detradres);
+
+              // reset the seed resolution to the approximate position resolution of the last detector
+              seed_cov[0][0] = detradres * detradres;
+              seed_cov[1][1] = detradres * detradres;
+              seed_cov[2][2] = detradres * detradres;
             }
             else if (dettype == Cylinder)
             {
               meas = PHG4HitToMeasurementCylinder(hit,
                                                   detphires, detlonres);
+
+              // reset the seed resolution to the approximate position resolution of the last detector
+              seed_cov[0][0] = detphires * detphires;
+              seed_cov[1][1] = detphires * detphires;
+              seed_cov[2][2] = detlonres * detlonres;
             }
             else
             {
@@ -540,6 +550,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               return Fun4AllReturnCodes::ABORTEVENT;
             }
             meas_out.push_back(meas);
+
             //meas->getMeasurement()->Print(); //DEBUG
           }
         }
@@ -562,19 +573,23 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   double pathlenth_orig_from_first_meas = -999999;
   unique_ptr<genfit::MeasuredStateOnPlane> gf_state(new genfit::MeasuredStateOnPlane());
 
-  if (_detector_type == Vertical_Plane)
-  {
-    pathlenth_orig_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, vtx,
-                                                                    TVector3(0., 0., 1.), 0);
-  }
-  else if (_detector_type == Cylinder)
-    pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
-                                                                   TVector3(0., 0., 1.));
-  else
-  {
-    LogError("Detector Type NOT implemented!");
-    return NULL;
-  }
+  //  if (_detector_type == Vertical_Plane)
+  //  {
+  //    pathlenth_orig_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, vtx,
+  //                                                                    TVector3(0., 0., 1.), 0);
+  //  }
+  //  else if (_detector_type == Cylinder)
+  //    pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
+  //                                                                   TVector3(0., 0., 1.));
+  //  else
+  //  {
+  //    LogError("Detector Type NOT implemented!");
+  //    return NULL;
+  //  }
+
+  // always extrapolate to a z-line through the vertex
+  pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
+                                                                 TVector3(0., 0., 1.));
 
   if (pathlenth_orig_from_first_meas < -999990)
   {
@@ -689,8 +704,8 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane
   pos.SetX(g4hit->get_avg_x() + u_smear * u.X() + v_smear * v.X());
   pos.SetY(g4hit->get_avg_y() + u_smear * u.Y() + v_smear * v.Y());
 
-  PHGenFit::PlanarMeasurement* meas = meas = new PHGenFit::PlanarMeasurement(pos, u, v, phi_resolution,
-                                                                             r_resolution);
+  PHGenFit::PlanarMeasurement* meas = new PHGenFit::PlanarMeasurement(pos, u, v, phi_resolution,
+                                                                      r_resolution);
 
   //	std::cout<<"------------\n";
   //	pos.Print();
@@ -720,8 +735,8 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementCylinder(
   pos.SetX(g4hit->get_avg_x() + u_smear * u.X() + v_smear * v.X());
   pos.SetY(g4hit->get_avg_y() + u_smear * u.Y() + v_smear * v.Y());
 
-  PHGenFit::PlanarMeasurement* meas = meas = new PHGenFit::PlanarMeasurement(pos, u, v, phi_resolution,
-                                                                             z_resolution);
+  PHGenFit::PlanarMeasurement* meas = new PHGenFit::PlanarMeasurement(pos, u, v, phi_resolution,
+                                                                      z_resolution);
 
   //	std::cout<<"------------\n";
   //	pos.Print();
@@ -747,7 +762,7 @@ PHGenFit::Measurement* PHG4TrackFastSim::VertexMeasurement(const TVector3& vtx, 
   pos.SetY(vtx.Y());
   pos.SetZ(vtx.Z());
 
-  PHGenFit::Measurement* meas = meas = new PHGenFit::SpacepointMeasurement(pos, cov);
+  PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(pos, cov);
 
   return meas;
 }
