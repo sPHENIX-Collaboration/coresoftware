@@ -1,12 +1,12 @@
 /*!
- *  \file		FastTrackingEval.h
+ *  \file		PHG4TrackFastSimEval.h
  *  \brief		Evaluation module for PHG4TrackFastSim output
  *  \details	input: PHG4TruthInfoContainer, SvtxTrackMap with SvtxTrack_FastSim inside
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __FastTrackingEval_H__
-#define __FastTrackingEval_H__
+#ifndef __PHG4TrackFastSimEval_H__
+#define __PHG4TrackFastSimEval_H__
 
 #include <fun4all/SubsysReco.h>
 #include <string>
@@ -20,28 +20,29 @@ class TFile;
 class TTree;
 class TH2D;
 
-
 //Brief: basic ntuple and histogram creation for sim evaluation
-class FastTrackingEval: public SubsysReco
+class PHG4TrackFastSimEval : public SubsysReco
 {
- public: 
+ public:
   //Default constructor
-  FastTrackingEval(const std::string &name="FastTrackingEval",
-		   const std::string &filename = "g4eval.root",
-		   const std::string &trackmapname = "SvtxTrackMap");
+  PHG4TrackFastSimEval(const std::string& name = "PHG4TrackFastSimEval",
+                       const std::string& filename = "g4eval.root",
+                       const std::string& trackmapname = "SvtxTrackMap");
 
   //Initialization, called for initialization
-  int Init(PHCompositeNode *);
+  int Init(PHCompositeNode*);
 
   //Process Event, called for each event
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode*);
 
   //End, write and close files
-  int End(PHCompositeNode *);
+  int End(PHCompositeNode*);
 
   //Change output filename
   void set_filename(const char* file)
-  { if(file) _outfile_name = file; }
+  {
+    if (file) _outfile_name = file;
+  }
 
   //Flags of different kinds of outputs
   enum Flag
@@ -51,11 +52,13 @@ class FastTrackingEval: public SubsysReco
   };
 
   //Set the flag
-  //Flags should be set like set_flag(FastTrackingEval::TRUTH, true) from macro
+  //Flags should be set like set_flag(PHG4TrackFastSimEval::TRUTH, true) from macro
   void set_flag(const Flag& flag, const bool& value)
   {
-   if(value) _flags |= flag;
-   else _flags &= (~flag);
+    if (value)
+      _flags |= flag;
+    else
+      _flags &= (~flag);
   }
 
   //User modules
@@ -68,13 +71,13 @@ class FastTrackingEval: public SubsysReco
 
   //name of SvtxTrackMap collection
   std::string _trackmapname;
-   
+
   //Event counter
   int _event;
 
   //Get all the nodes
-  int GetNodes(PHCompositeNode *);
-  
+  int GetNodes(PHCompositeNode*);
+
   //flags
   unsigned int _flags;
 
@@ -107,7 +110,6 @@ class FastTrackingEval: public SubsysReco
   //Node pointers
   PHG4TruthInfoContainer* _truth_container;
   SvtxTrackMap* _trackmap;
-
 };
 
-#endif //* __FastTrackingEval_H__ *//
+#endif  //* __PHG4TrackFastSimEval_H__ *//
