@@ -1241,7 +1241,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
     //
     for (set<int>::iterator clusiter = cluster_ids.begin();
          clusiter != cluster_ids.end();
-         clusiter++)
+         ++clusiter)
     {
       int clusid = *clusiter;
       pair<multimap<int, PHG4Cell*>::iterator,
@@ -1266,7 +1266,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
 
       set<int> phibins;
       set<int> zbins;
-      for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
+      for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
       {
         PHG4Cell* cell = mapiter->second;
 
@@ -1301,7 +1301,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
       int module_index = -1;
       int chip_index = -1;
 
-      for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
+      for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
       {
         PHG4Cell* cell = mapiter->second;
 
