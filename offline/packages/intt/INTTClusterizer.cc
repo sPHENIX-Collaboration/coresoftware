@@ -456,7 +456,7 @@ void INTTClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     //
     for (set<int>::iterator clusiter = cluster_ids.begin();
          clusiter != cluster_ids.end();
-         clusiter++)
+         ++clusiter)
     {
       int clusid = *clusiter;
       pair<multimap<int, PHG4Cell*>::iterator,
@@ -479,7 +479,7 @@ void INTTClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
       set<int> phibins;
       set<int> zbins;
-      for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
+      for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
       {
         PHG4Cell* cell = mapiter->second;
 
@@ -505,7 +505,7 @@ void INTTClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       int ladder_z_index = -1;
       int ladder_phi_index = -1;
 
-      for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
+      for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
       {
         PHG4Cell* cell = mapiter->second;
         SvtxHit* hit = cell_hit_map[cell];

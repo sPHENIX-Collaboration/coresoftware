@@ -54,7 +54,7 @@ class EmcCluster : public TObject
 {
  public:
   /// Constructor (zero Hit List)
-  EmcCluster()
+EmcCluster(): fOwner(nullptr)
   {
   }
 
@@ -67,9 +67,8 @@ class EmcCluster : public TObject
 
   EmcCluster(const std::vector<EmcModule>& hlist,
              BEmcRec* sector)
-    : fOwner(sector)
+    : fHitList(hlist), fOwner(sector)
   {
-    fHitList = hlist;
   }
 
   ///
