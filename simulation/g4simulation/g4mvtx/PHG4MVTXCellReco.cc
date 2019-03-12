@@ -96,6 +96,8 @@ int PHG4MVTXCellReco::InitRun(PHCompositeNode *topNode)
     geo->identify();
   }
 
+  cout << " PHG4MVTXCEllReco: max diffusion width = " << diffusion_width_max << endl;
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -298,17 +300,17 @@ int PHG4MVTXCellReco::process_event(PHCompositeNode *topNode)
 
       TVector3 pathvec = local_in - local_out;
 
-      // See figure 7.3 of the thesis by  Lucasz Maczewski (arXiv:10053.3710) for diffusion simulations in a MAPS epitaxial layer
+      // See figure 7.3 of the thesis by  Lucasz Maczewski (arXiv:1005.3710) for diffusion simulations in a MAPS epitaxial layer
       // The diffusion widths below were inspired by those plots, corresponding to where the probability drops off to 1/3 of the peak value
-      // However note that we make the simplifying assumption that the probability distribution is flat within this diffusion width,
-      // while in the simulation it is not
       //double diffusion_width_max = 35.0e-04;   // maximum diffusion radius 35 microns, in cm
-      //double diffusion_width_min = 12.0e-04;   // minimum diffusion radius 12 microns, in cm
-      double diffusion_width_max = 25.0e-04;  // maximum diffusion radius 35 microns, in cm
-      double diffusion_width_min = 8.0e-04;   // minimum diffusion radius 12 microns, in cm
+      //double diffusion_width_max = 25.0e-04;  // maximum diffusion radius 25 microns, in cm
+      //double diffusion_width_max = 15.0e-04;  // maximum diffusion radius 25 microns, in cm
+      //double diffusion_width_max = 18.0e-04;  // maximum diffusion radius 25 microns, in cm
 
       double ydrift_max = pathvec.Y();
-      int nsegments = 4;
+      //int nsegments = 4;
+      int nsegments = 8;
+      double diffusion_width_min =diffusion_width_max / 3.0;
 
       // we want to make a list of all pixels possibly affected by this hit
       // we take the entry and exit locations in local coordinates, and build
@@ -369,11 +371,10 @@ int PHG4MVTXCellReco::process_event(PHCompositeNode *topNode)
       for (int i = 0; i < nsegments; i++)
       {
         // Find the tracklet segment location
-        // If there are n segments of equal length, we want 2*n intervals
-        // The 1st segment is centered at interval 1, the 2nd at interval 3, the nth at interval 2n -1
+        // If there are n segments of equal length, we want 2*n intervals // The 1st segment is centered at interval 1, the 2nd at interval 3, the nth at interval 2n -1
         double interval = 2 * (double) i + 1;
-        double frac = interval / (double) (2 * nsegments);
-        TVector3 segvec(pathvec.X() * frac, pathvec.Y() * frac, pathvec.Z() * frac);
+        double path_frac = interval / (double) (2 * nsegments);  // 1, 3. 5. 7, ,,,,, divided by 2*nsegments
+        TVector3 segvec(pathvec.X() * path_frac, pathvec.Y() * path_frac, pathvec.Z() * path_frac);
         segvec = segvec + local_out;
 
         //  Find the distance to the back of the sensor from the segment location
@@ -383,11 +384,11 @@ int PHG4MVTXCellReco::process_event(PHCompositeNode *topNode)
         // Caculate the charge diffusion over this drift distance
         // increases from diffusion width_min to diffusion_width_max
         double ydiffusion_radius = diffusion_width_min + (ydrift / ydrift_max) * (diffusion_width_max - diffusion_width_min);
-
+	
         if (Verbosity() > 5)
           cout << " segment " << i
                << " interval " << interval
-               << " frac " << frac
+               << " path_frac " << path_frac
                << " local_in.X " << local_in.X()
                << " local_in.Z " << local_in.Z()
                << " local_in.Y " << local_in.Y()
@@ -402,50 +403,85 @@ int PHG4MVTXCellReco::process_event(PHCompositeNode *topNode)
                << " ydiffusion_radius " << ydiffusion_radius
                << endl;
 
-        // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
-        for (int ix = xbin_min; ix <= xbin_max; ix++)
-        {
-          for (int iz = zbin_min; iz <= zbin_max; iz++)
-          {
-            // Find the pixel corners for this pixel number
-            int pixnum = layergeom->get_pixel_number_from_xbin_zbin(ix, iz);
+	// For better realism, use steps in radius to approximate a gaussian distribution instead of a circle with flat probability
+	int nstepdown = 10;  // leave this alone!
+	double max_sigmas = 3.0;
+	double radius_step = ydiffusion_radius * max_sigmas / (double) nstepdown;
+	double par0 = 1.0/( pow(ydiffusion_radius,2) * 2.0 * 3.14159);  // normalizes volume under 2D gaussian to 1.0
 
-            if (pixnum < 0)
-            {
-              cout << " pixnum < 0 , pixnum = " << pixnum << endl;
-              cout << " ix " << ix << " iz " << iz << endl;
-              cout << " xbin_min " << xbin_min << " zbin_min " << zbin_min
-                   << " xbin_max " << xbin_max << " zbin_max " << zbin_max
-                   << endl;
-              cout << " maxNX " << maxNX << " maxNZ " << maxNZ
-                   << endl;
-            }
+	if(Verbosity() > 5)
+	  cout  << " layer " << layergeom->get_layer() << " seg " << i << " radius_step " << radius_step 
+		<< " par0 " << par0 << " ydiffusion_radius " << ydiffusion_radius << endl;
 
-            TVector3 tmp = layergeom->get_local_coords_from_pixel(pixnum);
-            // note that (x1,z1) is the top left corner, (x2,z2) is the bottom right corner of the pixel - circle_rectangle_intersection expects this ordering
-            double x1 = tmp.X() - xpixw_half;
-            double z1 = tmp.Z() + zpixw_half;
-            double x2 = tmp.X() + xpixw_half;
-            double z2 = tmp.Z() - zpixw_half;
+	double frac_sum = 0.0;
+	double accum_prob = 0.0;
+	for(int istep = 0; istep<nstepdown;istep++)
+	  {
+	    // we work in from the outer edge of the distribution
+	    double this_radius = ydiffusion_radius * max_sigmas - (double) istep * radius_step;
 
-            // here segvec.X and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
-            // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
-            double pixarea_frac = circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius, 2));
-            // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
-            pixenergy[ix - xbin_min][iz - zbin_min] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
-            if (hiter->second->has_property(PHG4Hit::prop_eion))
-            {
-              pixeion[ix - xbin_min][iz - zbin_min] += pixarea_frac * hiter->second->get_eion() / (float) nsegments;
-            }
-            if (Verbosity() > 5)
-            {
-              cout << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
-                   << " pixel_area fraction of circle " << pixarea_frac << " accumulated pixel energy " << pixenergy[ix - xbin_min][iz - zbin_min]
-                   << endl;
-            }
-          }
-        }
+	    // This step has a uniform charge distribution within its radius
+	    // get that from the gaussian distribution value at the middle radius of the step
+	    // we want the area of this circle * probability at this radius as a fraction of the integral probability of the distribution
+	    double this_prob = par0 * exp(- 0.5 * pow(  (this_radius - radius_step/2.0) / ydiffusion_radius, 2) );  // we want prob at middle of step
+	    double this_net_prob = this_prob - accum_prob;
+	    double this_frac = 3.14159 * this_radius * this_radius * this_net_prob; 
+	    frac_sum += this_frac;   // should add up to 1 over all steps
+
+	    if(Verbosity() > 5)
+	      cout << "   istep " << istep << " radius " << this_radius
+		   << " prob " << this_prob << " frac " << this_frac << " net_prob " << this_net_prob 
+		   << " frac_sum " << frac_sum
+		   << endl;
+	    
+	    // Now find the area of overlap of the diffusion circle with each pixel and apportion the energy
+	    for (int ix = xbin_min; ix <= xbin_max; ix++)
+	      {
+		for (int iz = zbin_min; iz <= zbin_max; iz++)
+		  {
+		    // Find the pixel corners for this pixel number
+		    int pixnum = layergeom->get_pixel_number_from_xbin_zbin(ix, iz);
+		    
+		    if (pixnum < 0)
+		      {
+			cout << " pixnum < 0 , pixnum = " << pixnum << endl;
+			cout << " ix " << ix << " iz " << iz << endl;
+			cout << " xbin_min " << xbin_min << " zbin_min " << zbin_min
+			     << " xbin_max " << xbin_max << " zbin_max " << zbin_max
+			     << endl;
+			cout << " maxNX " << maxNX << " maxNZ " << maxNZ
+			     << endl;
+		      }
+		    
+		    TVector3 tmp = layergeom->get_local_coords_from_pixel(pixnum);
+		    // note that (x1,z1) is the top left corner, (x2,z2) is the bottom right corner of the pixel - circle_rectangle_intersection expects this ordering
+		    double x1 = tmp.X() - xpixw_half;
+		    double z1 = tmp.Z() + zpixw_half;
+		    double x2 = tmp.X() + xpixw_half;
+		    double z2 = tmp.Z() - zpixw_half;
+		    
+		    // here segvec.X and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
+		    // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
+		    double pixarea_frac = circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), this_radius) / (M_PI * pow(this_radius, 2));
+		    // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
+		    pixenergy[ix - xbin_min][iz - zbin_min] += this_frac * pixarea_frac * hiter->second->get_edep() / (float) nsegments;
+		    if (hiter->second->has_property(PHG4Hit::prop_eion))
+		      {
+			pixeion[ix - xbin_min][iz - zbin_min] += this_frac * pixarea_frac * hiter->second->get_eion() / (float) nsegments;
+		      }
+		    if (Verbosity() > 5)
+		      if(pixenergy[ix-xbin_min][iz-zbin_min] > 0)
+			{
+			  cout << "    pixnum " << pixnum << " xbin " << ix << " zbin " << iz
+			       << " pixel_area fraction of circle " << pixarea_frac << " accumulated pixel energy " << pixenergy[ix - xbin_min][iz - zbin_min]
+			       << endl;
+			}
+		  } // end loop over z bins
+	      }  // end loop over xbins
+	    accum_prob = this_prob;
+	  }  // end loop over diffusion steps
       }  // end loop over segments
+       
 
       // now we have the energy deposited in each pixel, summed over all tracklet segments. We make a vector of all pixels with non-zero energy deposited
       for (int ix = xbin_min; ix <= xbin_max; ix++)
@@ -871,5 +907,6 @@ void PHG4MVTXCellReco::SetDefaultParameters()
   for (int ilayer = 0; ilayer < 3; ilayer++)
     tmin_max.insert(std::make_pair(ilayer, std::make_pair(-5000, 5000)));
 
+  diffusion_width_max = 22e-04;    // 99 electrons
   return;
 }

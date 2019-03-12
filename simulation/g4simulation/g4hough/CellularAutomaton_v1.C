@@ -53,7 +53,8 @@ CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, s
 	KALtime(0.),
 	forward(false),
 	remove_hits(false),
-	remove_inner_hits(false),
+        remove_inner_hits(false),
+        require_inner_hits(false),
 	triplet_mode(true),
 	seeding_mode(false)
 {

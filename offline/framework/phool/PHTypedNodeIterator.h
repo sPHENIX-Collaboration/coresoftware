@@ -1,5 +1,5 @@
-#ifndef __PHTYPEDNODEITERATOR_H__
-#define __PHTYPEDNODEITERATOR_H__
+#ifndef PHOOL_PHTYPEDNODEITERATOR_H
+#define PHOOL_PHTYPEDNODEITERATOR_H
 
 #include "PHNodeIterator.h"
 
@@ -21,16 +21,16 @@ class PHTypedNodeIterator : public PHNodeIterator
 {
  public:
   /// Constructor
-  PHTypedNodeIterator(PHCompositeNode* n)
+  explicit PHTypedNodeIterator(PHCompositeNode* n)
     : PHNodeIterator(n)
   {
-    myIODataNode = 0;
+    myIODataNode = nullptr;
   }
 
   PHTypedNodeIterator()
     : PHNodeIterator()
   {
-    myIODataNode = 0;
+    myIODataNode = nullptr;
   }
 
   T& operator*();
@@ -126,4 +126,4 @@ bool PHTypedNodeIterator<T>::insert(T* data, const char* name)
 // Typedef to simplify notation.
 typedef PHTypedNodeIterator<TObject> PHRootNodeIterator;
 
-#endif /* __PHTYPEDNODEITERATOR_H__ */
+#endif

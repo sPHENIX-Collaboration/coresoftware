@@ -1,5 +1,5 @@
-#ifndef GETCLASS_H__
-#define GETCLASS_H__
+#ifndef PHOOL_GETCLASS_H
+#define PHOOL_GETCLASS_H
 
 #include "PHDataNode.h"
 #include "PHIODataNode.h"
@@ -21,7 +21,7 @@ T *getClass(PHCompositeNode *top, const std::string &name)
   PHNode *FoundNode = iter.findFirst(name.c_str());  // returns pointer to PHNode
   if (!FoundNode)
   {
-    return NULL;
+    return nullptr;
   }
   // first test if it is a PHDataNode
   PHDataNode<T> *DNode = dynamic_cast<PHDataNode<T> *>(FoundNode);
@@ -45,7 +45,7 @@ T *getClass(PHCompositeNode *top, const std::string &name)
     T *object = dynamic_cast<T *>(IONode->getData());
     if (!object)
     {
-      return NULL;
+      return nullptr;
     }
     else
     {
@@ -53,8 +53,8 @@ T *getClass(PHCompositeNode *top, const std::string &name)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
-}
+}  // namespace findNode
 
-#endif /* GETCLASS_H */
+#endif

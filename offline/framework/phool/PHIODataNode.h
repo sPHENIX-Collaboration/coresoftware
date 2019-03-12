@@ -1,5 +1,5 @@
-#ifndef PHIODATANODE_H__
-#define PHIODATANODE_H__
+#ifndef PHOOL_PHIODATANODE_H
+#define PHOOL_PHIODATANODE_H
 
 //  Declaration of class PHIODataNode which can hold persistent data
 //  Author: Matthias Messer
@@ -28,7 +28,7 @@ class PHIODataNode : public PHDataNode<T>
 
  protected:
   virtual bool write(PHIOManager *, const std::string & = "");
-  PHIODataNode() {}
+  PHIODataNode() = delete;
 };
 
 template <class T>

@@ -49,7 +49,8 @@ class RICH_Geometry
   /**
      * Default constructor.
      */
-  RICH_Geometry()
+RICH_Geometry():
+  RICH_Mirror_OpticalSurface(nullptr)
   {
     SetDefault();
     CreateOpticalSurfaces();

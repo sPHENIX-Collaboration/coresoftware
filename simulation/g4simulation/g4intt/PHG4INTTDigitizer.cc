@@ -48,6 +48,7 @@ using namespace std;
 PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
+  , detector("INTT")
   , mNoiseMean(457.2)
   , mNoiseSigma(166.6)
   , mEnergyPerPair(3.62e-9)  // GeV/e-h

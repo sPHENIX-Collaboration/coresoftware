@@ -445,6 +445,7 @@ void RICH_Geometry::CreateOpticalSurfaces()
 {
   // Mirror
   //
+  delete RICH_Mirror_OpticalSurface;
   RICH_Mirror_OpticalSurface = new G4OpticalSurface("RICHMirrorSurfaceOptical");
 
   const G4int NUM = 2;

@@ -50,7 +50,8 @@ AntiBaryonPhysics::AntiBaryonPhysics():
   stringModel(nullptr),
   stringDecay(nullptr),
   fragModel(nullptr),
-  preCompoundModel(nullptr)
+  preCompoundModel(nullptr),
+  theAntiNucleonXS(nullptr)
 {}
 
 

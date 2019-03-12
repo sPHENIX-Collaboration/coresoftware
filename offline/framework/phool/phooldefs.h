@@ -1,5 +1,5 @@
-#ifndef PHOOLDEFS_H__
-#define PHOOLDEFS_H__
+#ifndef PHOOL_PHOOLDEFS_H
+#define PHOOL_PHOOLDEFS_H
 
 #include <string>
 
@@ -7,6 +7,6 @@ namespace phooldefs
 {
 static const std::string branchpathdelim = ".";
 static const std::string nodetreepathdelim = "/";
-};
+};  // namespace phooldefs
 
 #endif

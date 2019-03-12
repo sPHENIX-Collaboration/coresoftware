@@ -46,8 +46,8 @@ class PHObject : public TObject
 
   int SplitLevel() const { return 99; }
   int BufferSize() const { return 32000; }
- private:
 
+ private:
   ClassDef(PHObject, 0)  // no I/O
 };
 

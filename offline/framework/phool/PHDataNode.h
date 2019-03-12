@@ -1,5 +1,5 @@
-#ifndef PHDATANODE_H__
-#define PHDATANODE_H__
+#ifndef PHOOL_PHDATANODE_H
+#define PHOOL_PHDATANODE_H
 
 //  Declaration of class PHDataNode
 //  Purpose: a node which can hold a data object (template)
@@ -34,14 +34,8 @@ class PHDataNode : public PHNode
     TObject* tobj;
   };
   tobjcast data;
-  PHDataNode();
+  PHDataNode() = delete;
 };
-
-template <class T>
-PHDataNode<T>::PHDataNode()
-{
-  data.data = 0;
-}
 
 template <class T>
 PHDataNode<T>::PHDataNode(T* d,
@@ -98,4 +92,4 @@ void PHDataNode<T>::print(const std::string& path)
   std::cout << ")" << std::endl;
 }
 
-#endif /* __PHDATANODE_H__ */
+#endif

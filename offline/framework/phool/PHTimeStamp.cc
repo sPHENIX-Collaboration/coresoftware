@@ -18,9 +18,9 @@ using namespace std;
 const unsigned long long PHTimeStamp::PHFarFuture = ULLONG_MAX;
 
 #ifndef HAVE_STRPTIME_PROTOTYPE
-extern "C" {
-char *strptime(const char *s, const char *format, struct
-               tm *tm);
+extern "C"
+{
+  char *strptime(const char *s, const char *format, struct tm *tm);
 }
 #endif
 

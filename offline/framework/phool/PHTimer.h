@@ -1,7 +1,5 @@
-// $Id: PHTimer.h,v 1.6 2013/01/07 09:27:01 bbannier Exp $
-
-#ifndef __PHTIMER_H__
-#define __PHTIMER_H__
+#ifndef PHOOL_PHTIMER_H
+#define PHOOL_PHTIMER_H
 
 /*!
 \file		PHTimer.h
@@ -39,7 +37,7 @@ class PHTimer
   }
 
   //! Construct with a name
-  PHTimer(const std::string& name = "Generic Timer")
+  explicit PHTimer(const std::string& name = "Generic Timer")
     : _name(name)
     , _state(STOP)
     , _start_time(get_clock_counts())
