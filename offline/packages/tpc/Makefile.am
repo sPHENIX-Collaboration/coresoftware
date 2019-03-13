@@ -48,8 +48,8 @@ libtpc_la_LIBADD = \
   libtpc_io.la \
   -lfun4all \
   -lg4detectors \
-  -lSpectrum \
-  -lg4tpc
+  -lSpectrum
+
 
 # sources for io library
 libtpc_io_la_SOURCES = \

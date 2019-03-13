@@ -46,6 +46,7 @@ PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
   , m_nDeadCells(0)
 {
   InitializeParameters();
+  Detector(name);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -54,6 +55,8 @@ PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
 
 int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 {
+  cout << "PHG4InttDigitizer::InitRun: detector = " << detector << endl;
+
   //-------------
   // Add Hit Node
   //-------------

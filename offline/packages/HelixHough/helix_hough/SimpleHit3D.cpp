@@ -6,14 +6,14 @@ using namespace std;
 
 
 SimpleHit3D::SimpleHit3D()
-  : _id(0),
-    _cluskey(0),
-    _layer(-1),
-    _x(0.0),
-    _y(0.0),
-    _z(0.0),
-    _err(),
-    _size()
+  :  _cluskey(0)
+  ,  _id(0)
+  ,  _layer(-1)
+  ,  _x(0.0)
+  , _y(0.0)
+  , _z(0.0)
+  , _err()
+  , _size()
 {
   for (int j = 0; j < 3; ++j) {
     for (int i = j; i < 3; ++i) {
@@ -24,10 +24,10 @@ SimpleHit3D::SimpleHit3D()
 }	
 
 void SimpleHit3D::print(std::ostream& out) const {
-  TrkrDefs::cluskey cluskey = get_cluskey();
+  //TrkrDefs::cluskey cluskey = get_cluskey();
   out << "SimpleHit3D: "
       << "id: " << get_id() 
-      << " cluskey: " << cluskey << " " 
+      << " cluskey: " << _cluskey << " " 
       << " layer: " << get_layer() << " "
       << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ") "
       << endl;

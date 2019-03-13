@@ -504,6 +504,8 @@ int PHGenFitTrkProp::GetNodes(PHCompositeNode* topNode)
   }
   */
 
+  // _cluster_map is the TrkrClusterMap container, and is found in PHTrackPropagating
+ 
   _geom_container_intt = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
@@ -556,12 +558,12 @@ int PHGenFitTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter)
 
 int PHGenFitTrkProp::KalmanTrkProp()
 {
-#ifdef _DEBUG_
+  //#ifdef _DEBUG_
   std::cout << "=========================" << std::endl;
   std::cout << "PHGenFitTrkProp::KalmanTrkProp: Start: Event: " << _event << std::endl;
   std::cout << "Total Raw Tracks: " << _track_map->size() << std::endl;
   std::cout << "=========================" << std::endl;
-#endif
+  //#endif
 
   /*!
 	 *   sort clusters
@@ -577,13 +579,13 @@ int PHGenFitTrkProp::KalmanTrkProp()
   {
     SvtxTrack* tracklet = phtrk_iter->second;
 
-#ifdef _DEBUG_
+    //#ifdef _DEBUG_
     std::cout
         << __LINE__
         << ": Processing itrack: " << phtrk_iter->first
         << ": Total tracks: " << _track_map->size()
         << endl;
-#endif
+    //#endif
 
     /*!
 		 * Translate sPHENIX track To PHGenFitTracks
@@ -946,6 +948,11 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
        hit_iter != svtxtrack->end_clusters(); ++hit_iter)
   {
     //SvtxCluster* cluster = _cluster_map->get(*hit_iter);
+
+    // Here is where we need the actual cluster key for the first time.
+    // *hit_iter is the simpleHit3D id, not the cluster key
+    cout << " get TrkrCluster " << *hit_iter << endl;
+    // How do we get the actual cluster key here?
     TrkrCluster *cluster = _cluster_map->findCluster(*hit_iter);
     float r = sqrt(
         cluster->getPosition(0) * cluster->getPosition(0) +
@@ -979,6 +986,7 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
 
     //SvtxCluster* cluster = _cluster_map->get(cluster_ID);
     //ml += cluster->get_layer();
+    cout << " get TrkrCluster " << cluster_ID << endl;
     TrkrCluster *cluster = _cluster_map->findCluster(cluster_ID);
     ml += TrkrDefs::getLayer(cluster_ID);
     if (!cluster)

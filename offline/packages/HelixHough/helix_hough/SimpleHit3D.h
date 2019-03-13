@@ -13,11 +13,11 @@ public:
   SimpleHit3D();
   virtual ~SimpleHit3D() {}
 
-  unsigned int get_id() const {return _id;}
-  void         set_id(unsigned int id) {_id = id;}
-
   TrkrDefs::cluskey get_cluskey() const {return _cluskey;}
   void         set_cluskey(TrkrDefs::cluskey key) {_cluskey = key;}
+
+  unsigned int get_id() const {return _id;}
+  void         set_id(unsigned int id) {_id = id;}
 
   int  get_layer() const {return _layer;}
   void set_layer(int layer) {_layer = layer;}
@@ -38,14 +38,14 @@ public:
 
   float get_size(unsigned int i, unsigned int j) const;
   void  set_size(unsigned int i, unsigned int j, float value);
+
    
 private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
-
-  unsigned int _id;
   TrkrDefs::cluskey _cluskey;
+  unsigned int _id;
   int _layer;
   
   float _x;
@@ -54,6 +54,7 @@ private:
   
   float _err[6]; //< error covariance matrix (x,y,z)
   float _size[6]; //< size covariance matrix (x,y,z)
+  
 };
 
 #endif // __SIMPLEHIT3D__

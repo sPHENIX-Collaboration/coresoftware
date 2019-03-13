@@ -1108,78 +1108,46 @@ int PHHoughSeeding::translate_input()
   }
 
  // loop over all clusters
+  cout << "_clusters size " << _clusters.size() << endl;  
+  int nhits3d = -1;
   unsigned int clusid = -1;
   TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
   for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
     {
+      cout << "                       _clusters size " << _clusters.size() << endl;  
       clusid += 1;
       TrkrCluster *cluster = iter->second;
       TrkrDefs::cluskey cluskey = iter->first;
+      unsigned int layer = TrkrDefs::getLayer(cluskey);
       if(Verbosity() > 10)
 	{
 	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-	  unsigned int layer = TrkrDefs::getLayer(cluskey);
 	  cout << "translate: clusid " << clusid << " clusterkey " << cluskey << " trkrid " << trkrid << " layer " << layer << endl;
 	}       
-      /*
-      //if(_hit_used_map[iter->first]!=0){continue;}
-      if (_assoc_container->GetTracksFromCluster(iter->first) > 0)
-	{
-	  if(Verbosity() > 1) cout << "    used " << endl;
-	  continue;
-	}
-      */
       count++;
-      //SvtxCluster* cluster = iter->second;
-      //TrkrCluster* cluster = iter->second;
-      //nhits_all[cluster->get_layer()]++;
-      nhits_all[TrkrDefs::getLayer(iter->first)]++;
-      //    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
-      //    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
-      //	  cout << "first: " << iter->first << endl;
-      /*
-      float vz = 0.0;
-      float x  = cluster->get_x();
-      float y  = cluster->get_y();
-      float z  = cluster->get_z();
-      float dz = z - vz;
-      float r  = sqrt(x*x+y*y);
-      float zsize = cluster->get_z_size();
-      bool goodhit = false;
-      
-      if(TMath::Abs(dz)<40&&zsize<3)
-      goodhit = true;
-      
-      if(zsize > (TMath::Abs(dz)/r * 2.448 + 0.5)&&
-      zsize < (TMath::Abs(dz)/r * 2.448 + 3.5) )
-      goodhit = true;
-      if(goodhit==false) continue;
-      //ntp_cluster.Draw("zsize:z-gvz","layer==7&&zsize>(abs(z-gvz)*0.08+0.5)&&zsize<(abs(z-gvz)*0.08)+3.5")
-      */
-      //unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
-      
-      //		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
-      //		if(ilayer >= _nlayers_seeding) continue;
-      
-      unsigned int ilayer = UINT_MAX;
-      std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(TrkrDefs::getLayer(iter->first));
+
+      nhits_all[layer]++;
+
+      unsigned int ilayer = UINT_MAX;      
+      std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
+      cout << " ilayer " << ilayer << " iter->first " << iter->first << " layer " << layer << " it->first " << it->first << " it->second " << it->second << endl;
       if (it != _layer_ilayer_map.end())
 	ilayer = it->second;
       if (ilayer >= _nlayers_seeding) continue;
-      
+      cout << " found ilayer = " << ilayer << " for this layer " << layer << endl;
+
       SimpleHit3D hit3d;
-      
+      nhits3d++;      
       // capture the cluster keys so the cluster can be found in the cluster container
       hit3d.set_cluskey( cluskey );
       
       // this is just a cluster index - should be from 0 to number of clusters for seeding to work
       hit3d.set_id(clusid);
       
-
-	if(Verbosity() > 40)
+      if(Verbosity() > 40)
 	{
-	unsigned int layer =   TrkrDefs::getLayer(cluster->getClusKey());
-	cout << "     found in seeding layer # " << ilayer << " layer " << layer <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
+	  unsigned int layer =   TrkrDefs::getLayer(cluster->getClusKey());
+	  cout << "     found in seeding layer # " << ilayer << " layer " << layer <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
 	}
       
       hit3d.set_layer(ilayer);
@@ -1187,10 +1155,6 @@ int PHHoughSeeding::translate_input()
       hit3d.set_x(cluster->getPosition(0));
       hit3d.set_y(cluster->getPosition(1));
       hit3d.set_z(cluster->getPosition(2));
-      
-      // hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
-      // hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
-      // hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
       
       // copy covariance over
       for (int i = 0; i < 3; ++i)
@@ -1202,18 +1166,17 @@ int PHHoughSeeding::translate_input()
 	      //FIXME
 	      //hit3d.set_size(i, j, cluster->get_size(i, j)); // original
 	      hit3d.set_size(i, j, cluster->getError(i, j) * sqrt(12.));  // yuhw 2017-05-08
+	      //cout << " i " << i << " j " << j << " error " << cluster->getError(i,j) << endl;
 	    }
 	}
-      /*    float x  = cluster->get_x();
-	    float y  = cluster->get_y();
-	    float z  = cluster->get_z();
-	    float r  = sqrt(x*x+y*y);
-      */
+
       nhits[ilayer]++;
-      cout << "    adding cluster " << clusid << endl;
+      //cout << "    adding cluster " << clusid << endl;
+      //hit3d.print();
       _clusters.push_back(hit3d);
+      //cout << "     ilayer " << ilayer << " nhits " << nhits[ilayer] << " _clusters size now " << _clusters.size() << endl;
     }
-  cout << "_clusters size " << _clusters.size() << endl;  
+  //cout << "_clusters size " << _clusters.size() << endl;  
 
   if (Verbosity() > 1)
     {
@@ -1223,9 +1186,10 @@ int PHHoughSeeding::translate_input()
       cout
         << "PHHoughSeeding::process_event has the following input clusters:"
         << endl;
+
+      cout << " _clusters.size = " << _clusters.size() << endl;
       
-      //for (unsigned int i = 0; i < _clusters.size(); ++i)
-      for (unsigned int i = 0; i < 100; ++i)
+      for (unsigned int i = 0; i < _clusters.size(); ++i)
 	{
 	  cout << "n init clusters = " << _clusters.size() << endl;
 	  _clusters[i].print();
@@ -1656,8 +1620,8 @@ int PHHoughSeeding::export_output()
           << ": itrack: " << itrack
           << ": nhits: " << track_hits.size()
           << ": hitID: " << clusterID
-          << ": layer: " << cluster->get_layer()
           << endl;
+      cluster->identify();
 #endif
 
       //TODO verify this change
