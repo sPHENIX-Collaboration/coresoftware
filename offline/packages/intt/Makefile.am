@@ -47,8 +47,8 @@ libintt_la_SOURCES = \
 libintt_la_LIBADD = \
   libintt_io.la \
   -lfun4all \
-  -lg4detectors \
-  -lg4intt 
+  -lg4detectors
+
 
 # sources for io library
 libintt_io_la_SOURCES = \
