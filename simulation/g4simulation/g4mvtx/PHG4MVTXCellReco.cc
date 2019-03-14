@@ -2,7 +2,8 @@
 
 #include "PHG4MVTXCellReco.h"
 #include "PHG4CylinderCell_MVTX.h"
-#include "PHG4CylinderGeom_MVTX.h"
+
+#include "mvtx/CylinderGeom_MVTX.h"
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
@@ -141,7 +142,7 @@ int PHG4MVTXCellReco::process_event(PHCompositeNode *topNode)
     PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits(*layer);
 
     // we need the geometry object for this layer
-    PHG4CylinderGeom_MVTX *layergeom = dynamic_cast<PHG4CylinderGeom_MVTX *>(geo->GetLayerGeom(*layer));
+    CylinderGeom_MVTX *layergeom = dynamic_cast<CylinderGeom_MVTX *>(geo->GetLayerGeom(*layer));
     if (!layergeom)
       exit(1);
 

@@ -22,7 +22,8 @@ pkginclude_HEADERS = \
   MVTXClusterizer.h \
   MvtxClusterizer.h \
   MvtxDefs.h \
-  MvtxHit.h
+  MvtxHit.h \
+  CylinderGeom_MVTX.h
 
 ROOTDICTS = \
   MvtxHit_Dict.cc
@@ -36,14 +37,16 @@ else
 
   ROOT5_DICTS = \
     MVTXClusterizer_Dict.cc \
-    MvtxClusterizer_Dict.cc
+    MvtxClusterizer_Dict.cc \
+  CylinderGeom_MVTX_Dict.cc
 endif
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
   MVTXClusterizer.cc \
-  MvtxClusterizer.cc
+  MvtxClusterizer.cc \
+  CylinderGeom_MVTX.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \

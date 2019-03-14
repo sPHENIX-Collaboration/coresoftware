@@ -37,25 +37,22 @@ pkginclude_HEADERS = \
   PHG4MVTXCellReco.h \
   PHG4MVTXSubsystem.h \
   PHG4CylinderCell_MVTX.h \
-  PHG4CylinderGeom_MVTX.h \
   PHG4MVTXDigitizer.h \
   PHG4MvtxDigitizer.h 
 
 ROOTDICTS = \
-  PHG4CylinderCell_MVTX_Dict.cc \
-  PHG4CylinderGeom_MVTX_Dict.cc
+  PHG4CylinderCell_MVTX_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-    PHG4CylinderCell_MVTX_Dict_rdict.pcm \
-    PHG4CylinderGeom_MVTX_Dict_rdict.pcm
+  PHG4CylinderCell_MVTX_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
     PHG4MVTXCellReco_Dict.cc \
     PHG4MVTXHitReco_Dict.cc \
     PHG4MVTXSubsystem_Dict.cc \
     PHG4MVTXDigitizer_Dict.cc \
-    PHG4MvtxDigitizer_Dict.cc 
+    PHG4MvtxDigitizer_Dict.cc
 endif
 
 libg4mvtx_la_SOURCES = \
@@ -65,7 +62,6 @@ libg4mvtx_la_SOURCES = \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
-  PHG4CylinderGeom_MVTX.cc \
   PHG4MVTXDigitizer.cc \
   PHG4MvtxDigitizer.cc
 

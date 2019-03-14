@@ -1,5 +1,5 @@
 #include "PHG4MVTXSteppingAction.h"
-#include "PHG4CylinderGeom_MVTX.h"
+//#include "mvtx/CylinderGeom_MVTX.h"
 #include "PHG4MVTXDetector.h"
 
 #include <g4main/PHG4Hit.h>

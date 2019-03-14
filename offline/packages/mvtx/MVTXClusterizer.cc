@@ -21,7 +21,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <CylinderGeom_MVTX.h>
 
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -1251,7 +1251,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
       multimap<int, PHG4Cell*>::iterator mapiter = clusrange.first;
 
       int layer = mapiter->second->get_layer();
-      PHG4CylinderGeom_MVTX* geom = (PHG4CylinderGeom_MVTX*) geom_container->GetLayerGeom(layer);
+      CylinderGeom_MVTX* geom = (CylinderGeom_MVTX*) geom_container->GetLayerGeom(layer);
 
       if (Verbosity() > 2)
         cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
