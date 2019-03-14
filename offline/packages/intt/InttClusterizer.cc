@@ -22,7 +22,7 @@
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
-#include <g4intt/PHG4CylinderGeomINTT.h>
+#include <CylinderGeomINTT.h>
 
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -294,7 +294,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     int ladder_phi_index = InttDefs::getLadderPhiId(hitsetitr->first);
 
     // we will need the geometry object for this layer to get the global position	
-    PHG4CylinderGeomINTT* geom = dynamic_cast<PHG4CylinderGeomINTT*>(geom_container->GetLayerGeom(layer));
+    CylinderGeomINTT* geom = dynamic_cast<CylinderGeomINTT*>(geom_container->GetLayerGeom(layer));
     float thickness = geom->get_thickness();
     float pitch = geom->get_strip_y_spacing();
     float length = geom->get_strip_z_spacing();
