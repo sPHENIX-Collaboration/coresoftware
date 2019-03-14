@@ -1,6 +1,6 @@
-#include "PHG4CylinderGeomINTT.h"
+#include "CylinderGeomINTT.h"
 
-#include <g4main/PHG4Detector.h>
+//#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4Transform3D.hh>
@@ -9,7 +9,7 @@
 
 using namespace std;
 
-PHG4CylinderGeomINTT::PHG4CylinderGeomINTT()
+CylinderGeomINTT::CylinderGeomINTT()
   : m_Layer(-1)
   , m_NStripsPhiCell(-1)
   , m_StripX(NAN)
@@ -26,19 +26,19 @@ PHG4CylinderGeomINTT::PHG4CylinderGeomINTT()
   return;
 }
 
-void PHG4CylinderGeomINTT::identify(std::ostream &os) const
+void CylinderGeomINTT::identify(std::ostream &os) const
 {
-  os << "PHG4CylinderGeomINTT Object" << endl;
+  os << "CylinderGeomINTT Object" << endl;
   os << "layer: " << get_layer() << endl;
   os << "Radius: " << get_radius() << endl;
 }
 
-bool PHG4CylinderGeomINTT::load_geometry()
+bool CylinderGeomINTT::load_geometry()
 {
   return true;
 }
 
-void PHG4CylinderGeomINTT::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])
+void CylinderGeomINTT::find_segment_center(const int segment_z_bin, const int segment_phi_bin, double location[])
 {
   const double signz = (segment_z_bin > 1) ? 1. : -1.;
   const int itype = segment_z_bin % 2;
@@ -52,7 +52,7 @@ void PHG4CylinderGeomINTT::find_segment_center(const int segment_z_bin, const in
   //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
 }
 
-void PHG4CylinderGeomINTT::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
+void CylinderGeomINTT::find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[])
 {
   // Ladder
   find_segment_center(segment_z_bin, segment_phi_bin, location);
@@ -83,7 +83,7 @@ void PHG4CylinderGeomINTT::find_strip_center(const int segment_z_bin, const int 
   location[2] = strip_localpos.z();
 }
 
-void PHG4CylinderGeomINTT::find_strip_index_values(const int segment_z_bin, const double yin, const double zin, int &strip_y_index, int &strip_z_index)
+void CylinderGeomINTT::find_strip_index_values(const int segment_z_bin, const double yin, const double zin, int &strip_y_index, int &strip_z_index)
 {
   // Given the location in y and z in sensor local coordinates, find the strip y and z index values
 
@@ -119,7 +119,7 @@ void PHG4CylinderGeomINTT::find_strip_index_values(const int segment_z_bin, cons
   */
 }
 
-void PHG4CylinderGeomINTT::find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
+void CylinderGeomINTT::find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[])
 {
   // find the sensor type (inner or outer) from the segment_z_bin (location of sensor on ladder)
   const int itype = segment_z_bin % 2;

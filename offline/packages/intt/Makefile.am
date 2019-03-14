@@ -21,7 +21,8 @@ pkginclude_HEADERS = \
   InttDefs.h \
   InttHit.h \
   INTTClusterizer.h \
-  InttClusterizer.h 
+  InttClusterizer.h \
+  CylinderGeomINTT.h
 
 ROOTDICTS = \
   InttHit_Dict.cc
@@ -35,14 +36,16 @@ else
 
   ROOT5_DICTS = \
   InttClusterizer_Dict.cc \
-  INTTClusterizer_Dict.cc 
+  INTTClusterizer_Dict.cc \
+  CylinderGeomINTT_Dict.cc
 endif
 
 # sources for intt library
 libintt_la_SOURCES = \
   $(ROOT5_DICTS) \
   InttClusterizer.cc \
-  INTTClusterizer.cc
+  INTTClusterizer.cc \
+  CylinderGeomINTT.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
