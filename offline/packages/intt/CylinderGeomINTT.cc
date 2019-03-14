@@ -1,6 +1,6 @@
 #include "CylinderGeomINTT.h"
 
-//#include <g4main/PHG4Detector.h>
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4Transform3D.hh>

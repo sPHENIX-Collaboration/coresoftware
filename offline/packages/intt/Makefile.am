@@ -10,7 +10,9 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include \
+  -I$(OPT_SPHENIX)/include \
+  -I$(G4_MAIN)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -49,6 +51,7 @@ libintt_la_SOURCES = \
 
 libintt_la_LIBADD = \
   libintt_io.la \
+   -lCLHEP \
   -lfun4all \
   -lg4detectors
 
