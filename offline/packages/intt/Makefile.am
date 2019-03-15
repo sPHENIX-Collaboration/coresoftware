@@ -65,7 +65,8 @@ libintt_io_la_SOURCES = \
 
 libintt_io_la_LIBADD = \
   -lphool \
-  -ltrack_io
+  -ltrack_io \
+  -ltrackbase_historic_io
 
 
 # Rule for generating table CINT dictionaries.
