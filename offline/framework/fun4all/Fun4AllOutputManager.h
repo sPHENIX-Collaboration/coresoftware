@@ -84,7 +84,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   virtual size_t EventsWritten() const { return m_NEvents; }
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
-  void OutFileName(const std::string &name) {m_OutFileName = name;}
+  void OutFileName(const std::string &name) { m_OutFileName = name; }
 
  protected:
   /*! 
@@ -106,7 +106,6 @@ class Fun4AllOutputManager : public Fun4AllBase
 
   //! vector of associated module indexes
   std::vector<unsigned> m_RecoModuleIndexVector;
-
 };
 
 #endif

@@ -53,8 +53,6 @@ void Fun4AllOutputManager::Print(const string &what) const
   {
     unsigned icnt = 0;
     for (string evtsel : m_EventSelectorsVector)
-
-//    for (vector<string>::const_iterator iter = EventSelectors.begin(); iter != EventSelectors.end(); ++iter)
     {
       cout << Name() << ": Reco Module " << evtsel << " select Events" << endl;
       cout << Name() << ": Reco Module Index: " << m_RecoModuleIndexVector[icnt] << endl;
@@ -72,11 +70,8 @@ void Fun4AllOutputManager::Print(const string &what) const
 int Fun4AllOutputManager::DoNotWriteEvent(vector<int> *retcodes) const
 {
   int iret = 0;
-  for (unsigned int index: m_RecoModuleIndexVector)
-
-//  for (vector<unsigned>::const_iterator iter = recomoduleindex.begin(); iter != recomoduleindex.end(); ++iter)
+  for (unsigned int index : m_RecoModuleIndexVector)
   {
-//    const unsigned index = *iter;
     iret += (*retcodes)[index];
   }
   return iret;
