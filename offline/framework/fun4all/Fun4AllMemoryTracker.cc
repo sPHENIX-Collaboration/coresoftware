@@ -8,9 +8,10 @@ using namespace std;
 
 Fun4AllMemoryTracker *Fun4AllMemoryTracker::mInstance = nullptr;
 
-Fun4AllMemoryTracker::Fun4AllMemoryTracker():
-  Fun4AllBase("Fun4AllMemoryTracker")
-{}
+Fun4AllMemoryTracker::Fun4AllMemoryTracker()
+  : Fun4AllBase("Fun4AllMemoryTracker")
+{
+}
 
 int Fun4AllMemoryTracker::GetRSSMemory() const
 {
@@ -41,7 +42,7 @@ void Fun4AllMemoryTracker::Snapshot(const string &trackername, const string &gro
   }
   if (Verbosity() > 0)
   {
-  cout << "Snapshot name: " << name << ", mem: " << GetRSSMemory() << endl;
+    cout << "Snapshot name: " << name << ", mem: " << GetRSSMemory() << endl;
   }
   return;
 }
@@ -61,7 +62,7 @@ void Fun4AllMemoryTracker::Start(const string &trackername, const string &group)
   }
   if (Verbosity() > 0)
   {
-  cout << "Start name: " << name << ", mem: " << RSSMemory << endl;
+    cout << "Start name: " << name << ", mem: " << RSSMemory << endl;
   }
 }
 
@@ -84,10 +85,10 @@ void Fun4AllMemoryTracker::Stop(const string &trackername, const string &group)
       mvec.push_back(diff);
       mMemoryTrackerMap.insert(make_pair(name, mvec));
     }
-  if (Verbosity() > 0)
-  {
-  cout << "Stop name: " << name << ", mem: " << RSSMemory << ", diff: " << diff << endl;
-  }
+    if (Verbosity() > 0)
+    {
+      cout << "Stop name: " << name << ", mem: " << RSSMemory << ", diff: " << diff << endl;
+    }
   }
   return;
 }
@@ -95,7 +96,7 @@ void Fun4AllMemoryTracker::Stop(const string &trackername, const string &group)
 string Fun4AllMemoryTracker::CreateFullTrackerName(const string &trackername, const string &group)
 {
   string name = trackername;
-  if (! group.empty())
+  if (!group.empty())
   {
     name = group + "_" + name;
   }
@@ -113,7 +114,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
       vector<int> memvec = iter->second;
       for (auto vit = memvec.begin(); vit != memvec.end(); ++vit)
       {
-	cout << *vit << " ";
+        cout << *vit << " ";
       }
       cout << endl;
     }
@@ -127,7 +128,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
       vector<int> memvec = iter->second;
       for (auto vit = memvec.begin(); vit != memvec.end(); ++vit)
       {
-	cout << *vit << " ";
+        cout << *vit << " ";
       }
       cout << endl;
     }
@@ -137,7 +138,7 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
       cout << "Existing Memory Trackers:" << endl;
       for (iter = mMemoryTrackerMap.begin(); iter != mMemoryTrackerMap.end(); ++iter)
       {
-	cout << iter->first << endl;
+        cout << iter->first << endl;
       }
     }
   }
