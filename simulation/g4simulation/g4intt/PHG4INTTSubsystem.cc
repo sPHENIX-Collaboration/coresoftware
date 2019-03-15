@@ -246,8 +246,9 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
     // Endcap ring flag
     set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);
+    set_default_int_param(SUPPORTPARAMS, "endcap_ring_type", 0); // 0: Al+SS+WG, 1 : CarbonPEEK
 
-    // Endcap ring position
+    // Aluminum endcap ring position
     set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);  
 
     // Aluminum endcap ring
@@ -264,6 +265,14 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SUPPORTPARAMS, "endcap_WGring_inner_radius", 6.267);  
     set_default_double_param(SUPPORTPARAMS, "endcap_WGring_outer_radius", 12.0444);
     set_default_double_param(SUPPORTPARAMS, "endcap_WGring_length", 0.0186);
+
+    // CarbonPEEK endcap ring position
+    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_z", 24.4185);  
+
+    // CarbonPEEK endcap ring position
+    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_inner_radius", 6.6675);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_outer_radius", 11.43);
+    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_length", 0.6370);
 
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_foam_core_thickness", 0.18);
     set_default_double_param(SUPPORTPARAMS, "mvtx_shell_inner_skin_inner_radius", 4.8);
