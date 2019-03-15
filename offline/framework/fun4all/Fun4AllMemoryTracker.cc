@@ -8,6 +8,10 @@ using namespace std;
 
 Fun4AllMemoryTracker *Fun4AllMemoryTracker::mInstance = nullptr;
 
+Fun4AllMemoryTracker::Fun4AllMemoryTracker():
+  Fun4AllBase("Fun4AllMemoryTracker")
+{}
+
 int Fun4AllMemoryTracker::GetRSSMemory() const
 {
   ProcInfo_t procinfo;
@@ -35,7 +39,10 @@ void Fun4AllMemoryTracker::Snapshot(const string &trackername, const string &gro
     mvec.push_back(GetRSSMemory());
     mMemoryTrackerMap.insert(make_pair(name, mvec));
   }
+  if (Verbosity() > 0)
+  {
   cout << "Snapshot name: " << name << ", mem: " << GetRSSMemory() << endl;
+  }
   return;
 }
 
@@ -52,7 +59,10 @@ void Fun4AllMemoryTracker::Start(const string &trackername, const string &group)
   {
     mStartMem.insert(make_pair(name, RSSMemory));
   }
+  if (Verbosity() > 0)
+  {
   cout << "Start name: " << name << ", mem: " << RSSMemory << endl;
+  }
 }
 
 void Fun4AllMemoryTracker::Stop(const string &trackername, const string &group)
@@ -74,7 +84,10 @@ void Fun4AllMemoryTracker::Stop(const string &trackername, const string &group)
       mvec.push_back(diff);
       mMemoryTrackerMap.insert(make_pair(name, mvec));
     }
+  if (Verbosity() > 0)
+  {
   cout << "Stop name: " << name << ", mem: " << RSSMemory << ", diff: " << diff << endl;
+  }
   }
   return;
 }
@@ -130,5 +143,3 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
   }
   return;
 }
-
-

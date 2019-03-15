@@ -12,6 +12,7 @@
 #include <vector>
 
 class Fun4AllInputManager;
+class Fun4AllMemoryTracker;
 class Fun4AllSyncManager;
 class Fun4AllOutputManager;
 class PHCompositeNode;
@@ -103,6 +104,7 @@ class Fun4AllServer : public Fun4AllBase
   void NodeIdentify(const std::string &name);
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
+  void PrintMemoryTracker(const std::string &name = "") const;
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
@@ -137,6 +139,7 @@ class Fun4AllServer : public Fun4AllBase
   std::map<const std::string, PHTimer> timer_map;
   TH1 *FrameWorkVars;
   int keep_db_connected;
+  Fun4AllMemoryTracker *ffamemtracker;
 };
 
 #endif /* __FUN4ALLSERVER_H */
