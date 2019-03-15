@@ -28,12 +28,11 @@
 #include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-//#include <g4intt/PHG4CylinderGeom_INTT.h>
-#include <g4intt/PHG4CylinderGeomINTT.h>
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <g4detectors/PHG4CylinderGeom.h>
+#include <intt/CylinderGeomINTT.h>
+#include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
@@ -5186,8 +5185,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
     int chip_index = cell->get_chip_index();
 
     double ladder_location[3] = {0.0, 0.0, 0.0};
-    PHG4CylinderGeom_MVTX* geom =
-        (PHG4CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
+    CylinderGeom_MVTX* geom =
+        (CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
             layer);
     // returns the center of the sensor in world coordinates - used to get the ladder phi location
     geom->find_sensor_center(stave_index, half_stave_index,
@@ -5200,8 +5199,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
   else if (cell_intt)
   {
     PHG4Cell* cell = cell_intt;
-    PHG4CylinderGeomINTT* geom =
-        dynamic_cast<PHG4CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(
+    CylinderGeomINTT* geom =
+        dynamic_cast<CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(
             layer));
     double hit_location[3] = {0.0, 0.0, 0.0};
     geom->find_segment_center(cell->get_ladder_z_index(),
