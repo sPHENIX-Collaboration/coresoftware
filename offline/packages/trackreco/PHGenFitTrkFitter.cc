@@ -31,9 +31,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 //
-#include <g4intt/PHG4CylinderGeomINTT.h>
-
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <intt/CylinderGeomINTT.h>
+#include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -1186,8 +1185,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 	int chip_index = MvtxDefs::getChipId(cluster_id);
 	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
-	PHG4CylinderGeom_MVTX* geom =
-          (PHG4CylinderGeom_MVTX*) geom_container_maps->GetLayerGeom(
+	CylinderGeom_MVTX* geom =
+          (CylinderGeom_MVTX*) geom_container_maps->GetLayerGeom(
 								     layer);
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	geom->find_sensor_center(stave_index, 0,
@@ -1198,8 +1197,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       }
     else if(trkrid == TrkrDefs::inttId)
       {
-	PHG4CylinderGeomINTT* geom =
-          dynamic_cast<PHG4CylinderGeomINTT*>(geom_container_intt->GetLayerGeom(layer));
+	CylinderGeomINTT* geom =
+          dynamic_cast<CylinderGeomINTT*>(geom_container_intt->GetLayerGeom(layer));
 	double hit_location[3] = {0.0, 0.0, 0.0};
 	geom->find_segment_center(InttDefs::getLadderZId(cluster_id),
 				  InttDefs::getLadderPhiId(cluster_id), hit_location);

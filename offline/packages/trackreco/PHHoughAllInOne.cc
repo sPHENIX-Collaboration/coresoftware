@@ -42,8 +42,11 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeomSiLadders.h>
-#include <g4detectors/PHG4CylinderGeom_MAPS.h>
+//#include <g4detectors/PHG4CylinderGeomSiLadders.h>
+//#include <g4detectors/PHG4CylinderGeom_MAPS.h>
+
+#include <intt/CylinderGeomINTT.h>
+#include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
@@ -3652,8 +3655,8 @@ PHGenFit::Measurement* PHHoughAllInOne::TrkrClusterToPHGenFitMeasurement(
       int chip_index = MvtxDefs::getChipId(cluster_id);
       
       double ladder_location[3] = {0.0, 0.0, 0.0};
-      PHG4CylinderGeom_MVTX* geom =
-	(PHG4CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
+      CylinderGeom_MVTX* geom =
+	(CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
 								   layer);
       // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(stave_index, 0,
@@ -3664,8 +3667,8 @@ PHGenFit::Measurement* PHHoughAllInOne::TrkrClusterToPHGenFitMeasurement(
     }
   else if(trkrid == TrkrDefs::inttId)
     {
-      PHG4CylinderGeomINTT* geom =
-	dynamic_cast<PHG4CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(layer));
+      CylinderGeomINTT* geom =
+	dynamic_cast<CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(layer));
       double hit_location[3] = {0.0, 0.0, 0.0};
       geom->find_segment_center(InttDefs::getLadderZId(cluster_id),
 				InttDefs::getLadderPhiId(cluster_id), hit_location);
@@ -3709,8 +3712,8 @@ PHGenFit::Measurement* PHHoughAllInOne::TrkrClusterToPHGenFitMeasurement(
     int chip_index = cell->get_chip_index();
 
     double ladder_location[3] = {0.0, 0.0, 0.0};
-    PHG4CylinderGeom_MAPS* geom =
-        (PHG4CylinderGeom_MAPS*) _geom_container_maps->GetLayerGeom(
+    CylinderGeom_MAPS* geom =
+        (CylinderGeom_MAPS*) _geom_container_maps->GetLayerGeom(
             layer);
     // returns the center of the sensor in world coordinates - used to get the ladder phi location
     geom->find_sensor_center(stave_index, half_stave_index,

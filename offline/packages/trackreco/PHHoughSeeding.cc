@@ -45,9 +45,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 //
-#include <g4intt/PHG4CylinderGeomINTT.h>
-
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <intt/CylinderGeomINTT.h>
+#include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
