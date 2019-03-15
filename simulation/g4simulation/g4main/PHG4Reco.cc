@@ -771,7 +771,7 @@ void PHG4Reco::DefineMaterials()
 
   // making Carbon PEEK : 30 - 70 Vf.
   // https://www.quantum-polymers.com/wp-content/uploads/2017/03/QuantaPEEK-CF30.pdf
-  G4Material *peek = new G4Material("PEEK", density = 1.32 * g / cm3, ncomponents = 4);
+  G4Material *peek = new G4Material("PEEK", density = 1.32 * g / cm3, ncomponents = 3);
   peek->AddElement(G4Element::GetElement("C"),19);
   peek->AddElement(G4Element::GetElement("H"),12);
   peek->AddElement(G4Element::GetElement("O"), 3);
