@@ -1,6 +1,6 @@
 #include "Fun4AllPrdfOutputManager.h"
-#include <phool/recoConsts.h>
 
+#include <phool/recoConsts.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHRawOManager.h>
@@ -13,11 +13,10 @@ using namespace std;
 
 //______________________________________________________
 Fun4AllPrdfOutputManager::Fun4AllPrdfOutputManager( const string &myname, const string &fname):
-  Fun4AllOutputManager( myname ),
-  prdfNode( 0 ),
-  prdfOut( 0 )
+  Fun4AllOutputManager( myname, fname ),
+  prdfNode( nullptr ),
+  prdfOut( nullptr )
 {
-  outfilename = fname;
   return ;
 }
 
@@ -54,13 +53,13 @@ int Fun4AllPrdfOutputManager::InitPrdfNode( PHCompositeNode* top_node, const str
 int Fun4AllPrdfOutputManager::outfileopen(const string &fname)
 {
   if( prdfOut ) {
-    if( Verbosity() ) cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << outfilename << "\"" << endl;
+    if( Verbosity() ) cout << "Fun4AllPrdfOutputManager::outfileopen - closing file \"" << OutFileName() << "\"" << endl;
     delete prdfOut;
-    prdfOut = 0;
+    prdfOut = nullptr;
   }
 
-  outfilename = fname;
-  if( Verbosity() ) cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << outfilename << "\"" << endl;
+  OutFileName(fname);
+  if( Verbosity() ) cout << "Fun4AllPrdfOutputManager::outfileopen - writing to file \"" << OutFileName() << "\"" << endl;
 
   return 0;
   
@@ -108,7 +107,7 @@ int Fun4AllPrdfOutputManager::InitPrdfManager( void )
   static const int buffer_length( 8*1024*1024/4 );
   
   // create output manager
-  prdfOut = new PHRawOManager( outfilename.c_str() , run_number , buffer_length);
+  prdfOut = new PHRawOManager( OutFileName() , run_number , buffer_length);
   return 0;
 
 }
