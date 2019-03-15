@@ -40,7 +40,7 @@
 
 using namespace std;
 
-Fun4AllServer *Fun4AllServer::__instance = 0;
+Fun4AllServer *Fun4AllServer::__instance = nullptr;
 
 Fun4AllServer *Fun4AllServer::instance()
 {
@@ -54,15 +54,15 @@ Fun4AllServer *Fun4AllServer::instance()
 
 Fun4AllServer::Fun4AllServer(const std::string &name)
   : Fun4AllBase(name)
+  , ffamemtracker(Fun4AllMemoryTracker::instance())
+  , beginruntimestamp(nullptr)
   , OutNodeCount(0)
   , bortime_override(0)
   , ScreamEveryEvent(0)
   , unregistersubsystem(0)
   , runnumber(0)
   , eventnumber(0)
-  , beginruntimestamp(nullptr)
   , keep_db_connected(0)
-  , ffamemtracker(Fun4AllMemoryTracker::instance())
 {
   InitAll();
   return;
