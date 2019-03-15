@@ -1,5 +1,6 @@
 #include "PHG4INTTCellReco.h"
-#include "PHG4CylinderGeomINTT.h"
+
+#include <intt/CylinderGeomINTT.h>
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cellv1.h>
@@ -179,7 +180,7 @@ int PHG4INTTCellReco::process_event(PHCompositeNode *topNode)
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     const int sphxlayer = hiter->second->get_detid();
-    PHG4CylinderGeomINTT *layergeom = dynamic_cast<PHG4CylinderGeomINTT *>(geo->GetLayerGeom(sphxlayer));
+    CylinderGeomINTT *layergeom = dynamic_cast<CylinderGeomINTT *>(geo->GetLayerGeom(sphxlayer));
 
     // checking ADC timing integration window cut
     // uses default values for now
