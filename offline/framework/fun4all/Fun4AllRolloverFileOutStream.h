@@ -1,5 +1,5 @@
-#ifndef __FUN4ALLROLLOVERFILEOUTSTREAM_H__
-#define __FUN4ALLROLLOVERFILEOUTSTREAM_H__
+#ifndef FUN4ALL_FUN4ALLROLLOVERFILEOUTSTREAM_H
+#define FUN4ALL_FUN4ALLROLLOVERFILEOUTSTREAM_H
 
 #include <Fun4AllFileOutStream.h>
 
@@ -15,11 +15,11 @@ class Fun4AllRolloverFileOutStream: public Fun4AllFileOutStream
   int WriteEventOut(Event *evt);
   void identify(std::ostream &os = std::cout) const;
 
- protected:
-  unsigned long long max_file_size;
-  int current_sequence;
-  int i_offset;
-  int i_increment;
+ private:
+  unsigned long long m_MaxFileFize;
+  int m_CurrentSequence;
+  int m_Offset;
+  int m_Increment;
   
 
 };
