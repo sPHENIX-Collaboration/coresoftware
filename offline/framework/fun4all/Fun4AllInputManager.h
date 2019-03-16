@@ -51,6 +51,7 @@ class Fun4AllInputManager : public Fun4AllBase
   const std::list<std::string> GetFileOpenedList() const { return filelist_opened; }
   std::string InputNode() {return m_InputNode;}
   void InputNode(const std::string &innode) {m_InputNode = innode;}
+  std::string TopNodeName() const {return m_TopNodeName;}
 
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
@@ -59,8 +60,8 @@ private:
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;
+  std::string m_TopNodeName;
 protected:
-  std::string topNodeName;
   std::list<std::string> filelist;
   std::list<std::string> filelist_copy;
   std::list<std::string> filelist_opened;  // all files which were opened during running

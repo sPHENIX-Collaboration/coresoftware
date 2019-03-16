@@ -15,7 +15,7 @@ using namespace std;
 Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllBase(name)
   , m_InputNode(nodename)
-  , topNodeName(topnodename)
+  , m_TopNodeName(topnodename)
   , mySyncManager(nullptr)
   , repeat(0)
   , myrunnumber(0)
@@ -140,7 +140,7 @@ void Fun4AllInputManager::Print(const string &what) const
 int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  int iret = subsystem->Init(se->topNode(topNodeName));
+  int iret = subsystem->Init(se->topNode(m_TopNodeName));
   if (iret)
   {
     cout << PHWHERE << " Error initializing subsystem "
@@ -164,14 +164,14 @@ int Fun4AllInputManager::RejectEvent()
     {
       if (!initrun)
       {
-        subsys->InitRun(se->topNode(topNodeName));
+        subsys->InitRun(se->topNode(m_TopNodeName));
         initrun = 1;
       }
       if (Verbosity() > 0)
       {
         cout << Name() << ": Fun4AllInpuManager::EventReject processing " << subsys->Name() << endl;
       }
-      if (subsys->process_event(se->topNode(topNodeName)) != Fun4AllReturnCodes::EVENT_OK)
+      if (subsys->process_event(se->topNode(m_TopNodeName)) != Fun4AllReturnCodes::EVENT_OK)
       {
         return Fun4AllReturnCodes::DISCARDEVENT;
       }

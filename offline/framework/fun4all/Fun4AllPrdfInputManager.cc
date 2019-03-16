@@ -1,4 +1,5 @@
 #include "Fun4AllPrdfInputManager.h"
+
 #include "Fun4AllServer.h"
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllReturnCodes.h"
@@ -6,6 +7,7 @@
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObjectv1.h>
+
 #include <frog/FROG.h>
 
 #include <phool/getClass.h>
@@ -38,7 +40,7 @@ Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const strin
  m_PrdfNodeName(prdfnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  topNode = se->topNode(topNodeName.c_str());
+  topNode = se->topNode(TopNodeName());
   PHNodeIterator iter(topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode",m_PrdfNodeName));
   if (!PrdfNode)

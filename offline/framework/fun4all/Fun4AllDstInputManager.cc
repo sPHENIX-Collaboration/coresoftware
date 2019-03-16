@@ -88,7 +88,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     IManager = new PHNodeIOManager(fullfilename, PHReadOnly, PHRunTree);
     if (IManager->isFunctional())
     {
-      runNode = se->getNode(RunNode.c_str(), topNodeName.c_str());
+      runNode = se->getNode(RunNode, TopNodeName());
       IManager->read(runNode);
       // get the current run number
       RunHeader *runheader = findNode::getClass<RunHeader>(runNode, "RunHeader");
@@ -131,7 +131,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     delete IManager;
   }
   // now open the dst node
-  dstNode = se->getNode(InputNode(), topNodeName);
+  dstNode = se->getNode(InputNode(), TopNodeName());
   IManager = new PHNodeIOManager(fullfilename, PHReadOnly);
   if (IManager->isFunctional())
   {
