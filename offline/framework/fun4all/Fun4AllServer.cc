@@ -1,6 +1,8 @@
 #include "Fun4AllServer.h"
+
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllInputManager.h"
+#include "Fun4AllMemoryTracker.h"
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllSyncManager.h"
@@ -38,7 +40,7 @@
 
 using namespace std;
 
-Fun4AllServer *Fun4AllServer::__instance = 0;
+Fun4AllServer *Fun4AllServer::__instance = nullptr;
 
 Fun4AllServer *Fun4AllServer::instance()
 {
@@ -52,13 +54,14 @@ Fun4AllServer *Fun4AllServer::instance()
 
 Fun4AllServer::Fun4AllServer(const std::string &name)
   : Fun4AllBase(name)
+  , ffamemtracker(Fun4AllMemoryTracker::instance())
+  , beginruntimestamp(nullptr)
   , OutNodeCount(0)
   , bortime_override(0)
   , ScreamEveryEvent(0)
   , unregistersubsystem(0)
   , runnumber(0)
   , eventnumber(0)
-  , beginruntimestamp(nullptr)
   , keep_db_connected(0)
 {
   InitAll();
@@ -118,6 +121,7 @@ Fun4AllServer::~Fun4AllServer()
   }
   recoConsts *rc = recoConsts::instance();
   delete rc;
+  delete ffamemtracker;
   __instance = nullptr;
   return;
 }
@@ -181,6 +185,8 @@ int Fun4AllServer::isHistoRegistered(const string &name) const
 int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
+
+
   // if somebody opens a TFile (or changes the gDirectory) in the ctor
   // we need to set it to a "known" directory
   gROOT->cd(default_Tdirectory.c_str());
@@ -220,7 +226,10 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
   int iret = 0;
   try
   {
+    string memory_tracker_name = subsystem->Name() + "_" + topnodename;
+    ffamemtracker->Start(memory_tracker_name,"SubsysReco");
     iret = subsystem->Init(subsystopNode);
+    ffamemtracker->Stop(memory_tracker_name,"SubsysReco");
   }
   catch (const exception &e)
   {
@@ -255,12 +264,12 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
     cout << "Registering Subsystem " << subsystem->Name() << endl;
   }
   Subsystems.push_back(newsubsyspair);
-  ostringstream timer_name;
-  timer_name << subsystem->Name() << "_" << topnodename;
-  PHTimer timer(timer_name.str());
-  if (timer_map.find(timer_name.str()) == timer_map.end())
+  string timer_name;
+  timer_name = subsystem->Name() + "_" + topnodename;
+  PHTimer timer(timer_name);
+  if (timer_map.find(timer_name) == timer_map.end())
   {
-    timer_map[timer_name.str()] = timer;
+    timer_map.insert(make_pair(timer_name,timer));
   }
   RetCodes.push_back(iret);  // vector with return codes
   return 0;
@@ -552,9 +561,9 @@ int Fun4AllServer::process_event()
 
     try
     {
-      ostringstream timer_name;
-      timer_name << (*iter).first->Name() << "_" << (*iter).second->getName();
-      std::map<const std::string, PHTimer>::iterator titer = timer_map.find(timer_name.str());
+      string timer_name;
+      timer_name = (*iter).first->Name() + "_" + (*iter).second->getName();
+      std::map<const std::string, PHTimer>::iterator titer = timer_map.find(timer_name);
       bool timer_found = false;
       if (titer != timer_map.end())
       {
@@ -565,7 +574,10 @@ int Fun4AllServer::process_event()
       {
 	cout << "could not find timer for " << timer_name << endl;
       }
+      ffamemtracker->Start(timer_name,"SubsysReco");
+      ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
       int retcode = (*iter).first->process_event((*iter).second);
+      ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
 // we have observed an index overflow in RetCodes. I assume it is some
 // memory corruption elsewhere which hits the icnt variable. Rather than
 // the previous [], use at() which does bounds checking and throws an 
@@ -585,6 +597,7 @@ int Fun4AllServer::process_event()
       {
 	titer->second.stop();
       }
+      ffamemtracker->Stop(timer_name,"SubsysReco");
     }
     catch (const exception &e)
     {
@@ -681,7 +694,11 @@ int Fun4AllServer::process_event()
           {
             cout << "Writing Event for " << (*iterOutMan)->Name() << endl;
           }
+          ffamemtracker->Snapshot("Fun4AllServerOutputManager");
+	  ffamemtracker->Start((*iterOutMan)->Name(),"OutputManager");
           (*iterOutMan)->WriteGeneric(dstNode);
+	  ffamemtracker->Stop((*iterOutMan)->Name(),"OutputManager");
+          ffamemtracker->Snapshot("Fun4AllServerOutputManager");
         }
         else
         {
@@ -768,6 +785,7 @@ int Fun4AllServer::BeginRunTimeStamp(PHTimeStamp &TimeStp)
 
 int Fun4AllServer::BeginRun(const int runno)
 {
+  ffamemtracker->Snapshot("Fun4AllServerBeginRun");
   if (!bortime_override)
   {
     if (beginruntimestamp)
@@ -830,7 +848,9 @@ int Fun4AllServer::BeginRun(const int runno)
     }
     try
     {
+      ffamemtracker->Start((*iter).first->Name(),"SubsysReco");
       iret = (*iter).first->InitRun((*iter).second);
+      ffamemtracker->Stop((*iter).first->Name(),"SubsysReco");
     }
     catch (const exception &e)
     {
@@ -876,6 +896,7 @@ int Fun4AllServer::BeginRun(const int runno)
   }
   // print out all node trees
   Print("NODETREE");
+  ffamemtracker->Snapshot("Fun4AllServerBeginRun");
   return 0;
 }
 
@@ -1686,5 +1707,11 @@ void Fun4AllServer::PrintTimer(const string &name)
       }
     }
   }
+  return;
+}
+
+void Fun4AllServer::PrintMemoryTracker(const string &name) const
+{
+  ffamemtracker->PrintMemoryTracker(name);
   return;
 }
