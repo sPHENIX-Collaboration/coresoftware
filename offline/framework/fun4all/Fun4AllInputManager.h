@@ -55,8 +55,8 @@ class Fun4AllInputManager : public Fun4AllBase
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
 
-  std::vector<SubsysReco *> Subsystems;
 private:
+  std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;
 protected:

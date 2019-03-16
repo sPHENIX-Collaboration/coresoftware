@@ -1,7 +1,9 @@
 #include "Fun4AllInputManager.h"
-#include <phool/phool.h>
+
 #include "Fun4AllServer.h"
 #include "SubsysReco.h"
+
+#include <phool/phool.h>
 
 #include <boost/filesystem.hpp>
 
@@ -14,7 +16,7 @@ Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &noden
   : Fun4AllBase(name)
   , m_InputNode(nodename)
   , topNodeName(topnodename)
-  , mySyncManager(NULL)
+  , mySyncManager(nullptr)
   , repeat(0)
   , myrunnumber(0)
   , initrun(0)
@@ -24,14 +26,14 @@ Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &noden
 
 Fun4AllInputManager::~Fun4AllInputManager()
 {
-  while (Subsystems.begin() != Subsystems.end())
+  while (m_SubsystemsVector.begin() != m_SubsystemsVector.end())
   {
     if (Verbosity())
     {
-      Subsystems.back()->Verbosity(Verbosity());
+      m_SubsystemsVector.back()->Verbosity(Verbosity());
     }
-    delete Subsystems.back();
-    Subsystems.pop_back();
+    delete m_SubsystemsVector.back();
+    m_SubsystemsVector.pop_back();
   }
 }
 
@@ -114,10 +116,9 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of input files in Fun4AllInputManager " << Name() << ":" << endl;
 
-    list<string>::const_iterator iter;
-    for (iter = filelist.begin(); iter != filelist.end(); ++iter)
+    for (string file: filelist)
     {
-      cout << *iter << endl;
+      cout << file << endl;
     }
   }
   if (what == "ALL" || what == "SUBSYSTEMS")
@@ -127,10 +128,9 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of SubsysRecos in Fun4AllInputManager " << Name() << ":" << endl;
 
-    vector<SubsysReco *>::const_iterator miter;
-    for (miter = Subsystems.begin(); miter != Subsystems.end(); ++miter)
+      for (SubsysReco *subsys: m_SubsystemsVector)
     {
-      cout << (*miter)->Name() << endl;
+      cout << subsys->Name() << endl;
     }
     cout << endl;
   }
@@ -151,28 +151,27 @@ int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
   {
     cout << "Registering Subsystem " << subsystem->Name() << endl;
   }
-  Subsystems.push_back(subsystem);
+  m_SubsystemsVector.push_back(subsystem);
   return 0;
 }
 
 int Fun4AllInputManager::RejectEvent()
 {
-  if (!Subsystems.empty())
+  if (!m_SubsystemsVector.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
-    vector<SubsysReco *>::iterator iter;
-    for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+    for (SubsysReco *subsys:  m_SubsystemsVector)
     {
       if (!initrun)
       {
-        (*iter)->InitRun(se->topNode(topNodeName));
+        subsys->InitRun(se->topNode(topNodeName));
         initrun = 1;
       }
       if (Verbosity() > 0)
       {
-        cout << Name() << ": Fun4AllInpuManager::EventReject processing " << (*iter)->Name() << endl;
+        cout << Name() << ": Fun4AllInpuManager::EventReject processing " << subsys->Name() << endl;
       }
-      if ((*iter)->process_event(se->topNode(topNodeName)) != Fun4AllReturnCodes::EVENT_OK)
+      if (subsys->process_event(se->topNode(topNodeName)) != Fun4AllReturnCodes::EVENT_OK)
       {
         return Fun4AllReturnCodes::DISCARDEVENT;
       }
