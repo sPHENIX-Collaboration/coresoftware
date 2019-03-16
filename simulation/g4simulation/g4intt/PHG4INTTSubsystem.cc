@@ -182,7 +182,7 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_Z, "fphx_offset_z", 0.005);
     set_default_double_param(SEGMENTATION_Z, "gap_sensor_fphx", 0.1);
     set_default_double_param(SEGMENTATION_Z, "halfladder_z", 40.00);
-    set_default_double_param(SEGMENTATION_Z, "halfladder_inside_z", 23.9622); 
+    set_default_double_param(SEGMENTATION_Z, "halfladder_inside_z", 23.9622);
     set_default_double_param(SEGMENTATION_Z, "hdi_copper_x", 0.0052);
     set_default_double_param(SEGMENTATION_Z, "hdi_edge_z", 0.);
     set_default_double_param(SEGMENTATION_Z, "hdi_kapton_x", 0.038);
@@ -209,7 +209,7 @@ void PHG4INTTSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "fphx_offset_z", 0.005);
     set_default_double_param(SEGMENTATION_PHI, "gap_sensor_fphx", 0.1);
     set_default_double_param(SEGMENTATION_PHI, "halfladder_z", 40.00);
-    set_default_double_param(SEGMENTATION_PHI, "halfladder_inside_z", 23.9622); 
+    set_default_double_param(SEGMENTATION_PHI, "halfladder_inside_z", 23.9622);
     set_default_double_param(SEGMENTATION_PHI, "hdi_copper_x", 0.0052);
     set_default_double_param(SEGMENTATION_PHI, "hdi_edge_z", 0.);
     set_default_double_param(SEGMENTATION_PHI, "hdi_kapton_x", 0.038);
@@ -246,31 +246,31 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
     // Endcap ring flag
     set_default_int_param(SUPPORTPARAMS, "endcap_ring_enabled", 1);
-    set_default_int_param(SUPPORTPARAMS, "endcap_ring_type", 0); // 0: Al+SS+WG, 1 : CarbonPEEK
+    set_default_int_param(SUPPORTPARAMS, "endcap_ring_type", 1);  // 0: Al+SS+WG, 1 : CarbonPEEK
 
     // Aluminum endcap ring position
-    set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_ring_z", 24.35);
 
     // Aluminum endcap ring
-    set_default_double_param(SUPPORTPARAMS, "endcap_Alring_inner_radius", 6.267);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_Alring_inner_radius", 6.267);
     set_default_double_param(SUPPORTPARAMS, "endcap_Alring_outer_radius", 12.0444);
     set_default_double_param(SUPPORTPARAMS, "endcap_Alring_length", 0.3645);
 
     // Stainless steel endcap ring
-    set_default_double_param(SUPPORTPARAMS, "endcap_SSring_inner_radius", 6.267);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_SSring_inner_radius", 6.267);
     set_default_double_param(SUPPORTPARAMS, "endcap_SSring_outer_radius", 12.0444);
     set_default_double_param(SUPPORTPARAMS, "endcap_SSring_length", 0.0047);
 
     // Water Glycol endcap ring
-    set_default_double_param(SUPPORTPARAMS, "endcap_WGring_inner_radius", 6.267);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_WGring_inner_radius", 6.267);
     set_default_double_param(SUPPORTPARAMS, "endcap_WGring_outer_radius", 12.0444);
     set_default_double_param(SUPPORTPARAMS, "endcap_WGring_length", 0.0186);
 
     // CarbonPEEK endcap ring position
-    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_z", 24.4185);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_z", 24.4185);
 
     // CarbonPEEK endcap ring position
-    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_inner_radius", 6.6675);  
+    set_default_double_param(SUPPORTPARAMS, "endcap_CPring_inner_radius", 6.6675);
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_outer_radius", 11.43);
     set_default_double_param(SUPPORTPARAMS, "endcap_CPring_length", 0.6370);
 
