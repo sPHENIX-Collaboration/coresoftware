@@ -3,7 +3,12 @@
 using namespace std;
 
 PHG4CylinderCell_MVTX::PHG4CylinderCell_MVTX()
-  : PHG4CylinderCellv2()
+  : PHG4CylinderCellv2(),
+    stave_number(-999),
+    half_stave_number(-999),
+    module_number(-999),
+    chip_number(-999),
+    pixel_number(-999)
 {
 }
 

@@ -144,7 +144,6 @@ G4LogicalVolume* PHG4mRICHDetector::Construct_a_mRICH( G4LogicalVolume* logicWor
 //________________________________________________________________________//
 PHG4mRICHDetector::BoxPar::BoxPar()
 {
-  name="";
   fill(begin(halfXYZ),end(halfXYZ),(G4double) 0*mm);
   pos=G4ThreeVector(0*mm,0*mm,0*mm);
   material=G4Material::GetMaterial("G4_AIR");

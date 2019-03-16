@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
   Fun4AllHistoBinDefs.h \
   Fun4AllHistoManager.h \
   Fun4AllInputManager.h \
+  Fun4AllMemoryTracker.h \
   Fun4AllNoSyncDstInputManager.h \
   Fun4AllOutputManager.h \
   Fun4AllPrdfInputManager.h \
@@ -67,13 +68,14 @@ libfun4all_la_SOURCES = \
   Fun4AllFileOutStream.cc \
   Fun4AllHistoManager.cc \
   Fun4AllInputManager.cc \
-  Fun4AllSyncManager.cc \
+  Fun4AllMemoryTracker.cc \
   Fun4AllNoSyncDstInputManager.cc \
   Fun4AllOutputManager.cc \
   Fun4AllPrdfInputManager.cc \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc \
   Fun4AllServer.cc \
+  Fun4AllSyncManager.cc \
   Fun4AllUtils.cc \
   PHTFileServer.cc
 

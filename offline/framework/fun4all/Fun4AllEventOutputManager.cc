@@ -1,4 +1,5 @@
 #include "Fun4AllEventOutputManager.h"
+
 #include "Fun4AllServer.h"
 #include "Fun4AllEventOutStream.h"
 #include "Fun4AllRolloverFileOutStream.h"
@@ -123,6 +124,6 @@ Fun4AllEventOutputManager::DropPacketRange(const int ipktmin, const int ipktmax)
 void
 Fun4AllEventOutputManager::SetOutfileName(const std::string &fname)
 {
-  outfilename = fname;
+  OutFileName(fname);
   return ;
 }

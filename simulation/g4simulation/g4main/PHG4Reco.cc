@@ -769,6 +769,20 @@ void PHG4Reco::DefineMaterials()
   rohacell_foam_51->AddElement(G4Element::GetElement("O"), 2);
   rohacell_foam_51->AddElement(G4Element::GetElement("N"), 1);
 
+  // making Carbon PEEK : 30 - 70 Vf.
+  // https://www.quantum-polymers.com/wp-content/uploads/2017/03/QuantaPEEK-CF30.pdf
+  G4Material *peek = new G4Material("PEEK", density = 1.32 * g / cm3, ncomponents = 3);
+  peek->AddElement(G4Element::GetElement("C"),19);
+  peek->AddElement(G4Element::GetElement("H"),12);
+  peek->AddElement(G4Element::GetElement("O"), 3);
+
+  G4Material *cf = new G4Material("CF", density = 1.62 * g / cm3, ncomponents = 1);
+  cf->AddElement(G4Element::GetElement("C"),1.);
+
+  G4Material *cf30_peek70 = new G4Material("CF30_PEEK70", density = (1.32 * 0.7 + 1.62 * 0.3) * g / cm3, ncomponents = 2);
+  cf30_peek70->AddMaterial(cf  , fractionmass = 0.34468085);
+  cf30_peek70->AddMaterial(peek, fractionmass = 0.65531915);
+
 
   // gas mixture for the MuID in fsPHENIX. CLS 02-25-14
   G4Material *IsoButane = new G4Material("Isobutane", 0.00265 * g / cm3, 2);
