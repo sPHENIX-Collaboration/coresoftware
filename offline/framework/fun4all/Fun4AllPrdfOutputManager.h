@@ -1,7 +1,8 @@
-#ifndef __FUN4ALLPRDFOUTPUTMANAGER_H__
-#define __FUN4ALLPRDFOUTPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLPRDFOUTPUTMANAGER_H
+#define FUN4ALL_FUN4ALLPRDFOUTPUTMANAGER_H
 
 #include "Fun4AllOutputManager.h"
+
 #include <string>
 
 class PHRawOManager;
@@ -41,5 +42,5 @@ class Fun4AllPrdfOutputManager: public Fun4AllOutputManager
   PHRawOManager *prdfOut;
 };
 
-#endif /* __FUN4ALLPRDFOUTPUTMANAGER_H__ */
+#endif
   

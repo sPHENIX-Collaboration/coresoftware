@@ -5,6 +5,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+
 #include <phool/getClass.h>
 
 #include <HepMC/GenEvent.h>
@@ -147,7 +148,7 @@ int Fun4AllHepMCOutputManager::Write(PHCompositeNode *topNode)
   }
   assert(evt);
 
-  nEvents++;
+  IncrementEvents(1);
   ascii_out->write_event(evt);
   return Fun4AllReturnCodes::EVENT_OK;
 }

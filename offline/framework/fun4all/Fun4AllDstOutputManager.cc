@@ -16,9 +16,8 @@
 using namespace std;
 
 Fun4AllDstOutputManager::Fun4AllDstOutputManager(const string &myname, const string &fname)
-  : Fun4AllOutputManager(myname)
+  : Fun4AllOutputManager(myname, fname)
 {
-  outfilename = fname;
   dstOut = new PHNodeIOManager(fname, PHWrite);
   if (!dstOut->isFunctional())
   {
@@ -75,7 +74,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
   if (what == "ALL" || what == "WRITENODES")
   {
 //    vector<string>::const_iterator iter;
-    cout << Name() << " writes " << outfilename << endl;
+    cout << Name() << " writes " << OutFileName() << endl;
     if (savenodes.empty())
     {
       if (stripnodes.empty())
@@ -183,7 +182,7 @@ int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 int Fun4AllDstOutputManager::WriteNode(PHCompositeNode *thisNode)
 {
   delete dstOut;
-  dstOut = new PHNodeIOManager(outfilename, PHUpdate, PHRunTree);
+  dstOut = new PHNodeIOManager(OutFileName(), PHUpdate, PHRunTree);
   Fun4AllServer *se = Fun4AllServer::instance();
   se->MakeNodesPersistent(thisNode);
   if (!striprunnodes.empty())
