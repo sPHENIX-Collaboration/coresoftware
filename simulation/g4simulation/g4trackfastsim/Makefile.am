@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libgg4trackfastsim.la 
+  libg4trackfastsim.la 
 
 
 AM_CPPFLAGS = \
@@ -17,7 +17,7 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
-libgg4trackfastsim_la_LIBADD = \
+libg4trackfastsim_la_LIBADD = \
   -lfun4all \
   -lphool \
   -lg4testbench \
@@ -41,7 +41,7 @@ else
     PHG4TrackFastSimEval_Dict.cc
 endif
 
-libgg4trackfastsim_la_SOURCES = \
+libg4trackfastsim_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4TrackFastSim.cc \
   PHG4TrackFastSimEval.cc
@@ -64,7 +64,7 @@ noinst_PROGRAMS = \
   testexternals_tracker
 
 testexternals_tracker_SOURCES = testexternals.cc
-testexternals_tracker_LDADD = libgg4trackfastsim.la
+testexternals_tracker_LDADD = libg4trackfastsim.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
