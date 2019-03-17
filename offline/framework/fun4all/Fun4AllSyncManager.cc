@@ -11,8 +11,6 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHTypedNodeIterator.h>
 
-#include <boost/foreach.hpp>
-
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -51,7 +49,7 @@ Fun4AllSyncManager::~Fun4AllSyncManager()
 int
 Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
 {
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       if ( inman->Name() == InputManager->Name() )
 	{
@@ -73,7 +71,7 @@ Fun4AllSyncManager::registerInputManager(Fun4AllInputManager *InputManager)
 Fun4AllInputManager *
 Fun4AllSyncManager::getInputManager(const string &name)
 {
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       if (name == inman->Name())
 	{
@@ -226,7 +224,7 @@ Fun4AllSyncManager::run(const int nevnts)
 			{
 			  cout << "Mixing run numbers (except runnumber=0 which means no valid runnumber) is not supported" << endl;
 			  cout << "Here are the list of input managers and runnumbers:" << endl;
-			  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+			  for (Fun4AllInputManager *inman: InManager)
 			    {
 			      cout << inman->Name() << " runno: " << inman->RunNumber() << endl;
 			    }
@@ -276,7 +274,7 @@ Fun4AllSyncManager::skip(const int nevnts)
 int
 Fun4AllSyncManager::fileopen(const string &managername, const string &filename)
 {
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       if (managername == inman->Name())
 	{
@@ -291,7 +289,7 @@ Fun4AllSyncManager::fileopen(const string &managername, const string &filename)
 int
 Fun4AllSyncManager::BranchSelect(const string &managername, const string &branch, const int iflag)
 {
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       if (managername == inman->Name())
 	{
@@ -307,7 +305,7 @@ int
 Fun4AllSyncManager::BranchSelect(const string &branch, const int iflag)
 {
   int iret = 0;
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       iret += inman->BranchSelect(branch, iflag);
     }
@@ -317,7 +315,7 @@ Fun4AllSyncManager::BranchSelect(const string &branch, const int iflag)
 int
 Fun4AllSyncManager::setBranches(const string &managername)
 {
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
    {
      if (managername == inman->Name())
         {
@@ -333,7 +331,7 @@ int
 Fun4AllSyncManager::setBranches()
 {
   int iret = 0;
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       iret += inman->setBranches();
     }
@@ -343,7 +341,7 @@ Fun4AllSyncManager::setBranches()
 int Fun4AllSyncManager::fileclose(const string &managername)
 {
   int foundIt = 0;
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       if (managername == inman->Name() || managername.empty())
         {
@@ -368,7 +366,7 @@ void Fun4AllSyncManager::Print(const string &what) const
       cout << "List of InputManagers in Fun4AllSyncManager "
 	   << Name() << ":" << endl;
 
-      BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+      for (Fun4AllInputManager *inman: InManager)
 	{
 	  cout << inman->Name() << endl;
 	}
@@ -401,7 +399,7 @@ Fun4AllSyncManager::GetInputFullFileList(std::vector<std::string> &fnames) const
 void
 Fun4AllSyncManager::PushBackInputMgrsEvents(const int i)
 {
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       inman->PushBackEvents(i);
     }
@@ -412,7 +410,7 @@ int
 Fun4AllSyncManager::ResetEvent()
 {
   int iret = 0;
-  BOOST_FOREACH(Fun4AllInputManager * inman, InManager)
+  for (Fun4AllInputManager *inman: InManager)
     {
       if (Verbosity() > 0)
         {
