@@ -5,6 +5,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
+#include "PHG4TrackFastSim.h"
+
 #include <GenFit/AbsMeasurement.h>
 #include <GenFit/EventDisplay.h>
 #include <GenFit/MeasuredStateOnPlane.h>
@@ -46,15 +48,12 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
 
-#include "PHG4TrackFastSim.h"
-
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
-
-#define _DEBUG_MODE_ 0
-
-//#define _N_DETECTOR_LAYER 5
+#define LogDebug(exp) \
+  if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
+#define LogError(exp) \
+  std::cout << "PHG4TrackFastSim (ERROR): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
+#define LogWarning(exp) \
+  std::cout << "PHG4TrackFastSim (WARNING): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
 
 using namespace std;
 
@@ -72,7 +71,6 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   , _use_vertex_in_fitting(true)
   , _vertex_xy_resolution(50E-4)
   , _vertex_z_resolution(50E-4)
-  , _N_DETECTOR_LAYER(5)
   , _primary_tracking(1)
 {
   _event = -1;
@@ -104,6 +102,8 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   _event = -1;
 
   CreateNodes(topNode);
+
+  GetNodes(topNode);
 
   TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
@@ -186,8 +186,6 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() >= 2)
     std::cout << "PHG4TrackFastSim::process_event: " << _event << ".\n";
-
-  GetNodes(topNode);
 
   //	if(_clustermap_out)
   //		_clustermap_out->empty();
@@ -401,14 +399,14 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   //Truth container
   _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
                                                                 "G4TruthInfo");
-  if (!_truth_container && _event < 2)
+  if (!_truth_container)
   {
     cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
          << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  for (int i = 0; i < _N_DETECTOR_LAYER; i++)
+  for (unsigned int i = 0; i < _phg4hits_names.size(); i++)
   {
     PHG4HitContainer* phg4hit = findNode::getClass<PHG4HitContainer>(
         topNode, _phg4hits_names[i].c_str());
@@ -421,6 +419,15 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
 
     _phg4hits.push_back(phg4hit);
   }
+
+  //checks
+  assert(_phg4hits_names.size() == _phg4hits.size());
+  assert(_phg4_detector_type.size() == _phg4hits.size());
+  assert(_phg4_detector_radres.size() == _phg4hits.size());
+  assert(_phg4_detector_phires.size() == _phg4hits.size());
+  assert(_phg4_detector_lonres.size() == _phg4hits.size());
+  assert(_phg4_detector_hitfindeff.size() == _phg4hits.size());
+  assert(_phg4_detector_noise.size() == _phg4hits.size());
 
   //	_clustermap_out = findNode::getClass<SvtxClusterMap>(topNode,
   //			_clustermap_out_name.c_str());
@@ -480,7 +487,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
     }
   }
 
-  for (int ilayer = 0; ilayer < _N_DETECTOR_LAYER; ilayer++)
+  for (unsigned int ilayer = 0; ilayer < _phg4hits.size(); ilayer++)
   {
     if (!_phg4hits[ilayer])
     {
@@ -494,9 +501,17 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
     float detlonres = _phg4_detector_lonres[ilayer];
     float dethiteff = _phg4_detector_hitfindeff[ilayer];
     float detnoise = _phg4_detector_noise[ilayer];
-#if _DEBUG_MODE_ == 1
-    std::cout << "DEBUG: ilayer: " << ilayer << "; nsublayers: " << _phg4hits[ilayer]->num_layers() << " \n";
-#endif
+    if (Verbosity())
+      std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - DEBUG: "
+                << "ilayer: "
+                << ilayer << ",  " << _phg4hits_names[ilayer]
+                << " with nsublayers: " << _phg4hits[ilayer]->num_layers()
+                << ", detradres = " << detradres
+                << ", detphires = " << detphires
+                << ", detlonres = " << detlonres
+                << ", dethiteff = " << dethiteff
+                << ", detnoise = " << detnoise
+                << " \n";
 
     for (PHG4HitContainer::LayerIter layerit =
              _phg4hits[ilayer]->getLayers().first;
@@ -513,10 +528,11 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
           continue;
         }
 
-#if _DEBUG_MODE_ == 1
-        std::cout << "DEBUG: ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
-        //hit->identify();
-#endif
+        if (Verbosity())
+        {
+          std::cout << "DEBUG: ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
+          hit->identify();
+        }
 
         if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0, 1) < detnoise)
         {

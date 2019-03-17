@@ -290,7 +290,7 @@ class PHG4TrackFastSim : public SubsysReco
   //  double _pat_rec_noise_prob;  //deprecated
 
   //!
-  int _N_DETECTOR_LAYER;
+//  int _N_DETECTOR_LAYER; //deprecated
 
   //!
   int _primary_tracking;
