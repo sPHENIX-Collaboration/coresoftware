@@ -18,6 +18,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4GDMLConfig;
 
 /**
  * \file ${file_name}
@@ -185,6 +186,8 @@ protected:
 
   std::map< std::string, G4double > _map_global_parameter;
 
+  //! registry for volumes that should not be exported, i.e. fibers
+  PHG4GDMLConfig * gdml_config;
 };
 
 #endif
