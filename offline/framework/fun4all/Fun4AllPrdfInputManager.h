@@ -28,7 +28,6 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync);
 
  protected:
-  int OpenNextFile();
   int segment;
   int isopen;
   int events_total;

@@ -155,8 +155,7 @@ int Fun4AllDstInputManager::run(const int nevents)
 {
   if (!isopen)
   {
-    if (filelist.empty())
-
+    if (FileListEmpty())
     {
       if (Verbosity() > 0)
       {
@@ -218,21 +217,9 @@ int Fun4AllDstInputManager::fileclose()
     return -1;
   }
   delete IManager;
-  IManager = 0;
+  IManager = nullptr;
   isopen = 0;
-  if (!filelist.empty())
-  {
-    if (repeat)
-    {
-      filelist.push_back(*(filelist.begin()));
-      if (repeat > 0)
-      {
-        repeat--;
-      }
-    }
-    filelist.pop_front();
-  }
-
+  UpdateFileList();
   return 0;
 }
 
@@ -607,28 +594,6 @@ void Fun4AllDstInputManager::Print(const string &what) const
   }
   Fun4AllInputManager::Print(what);
   return;
-}
-
-int Fun4AllDstInputManager::OpenNextFile()
-{
-  while (!filelist.empty())
-  {
-    list<string>::const_iterator iter = filelist.begin();
-    if (Verbosity())
-    {
-      cout << PHWHERE << " opening next file: " << *iter << endl;
-    }
-    if (fileopen(*iter))
-    {
-      cout << PHWHERE << " could not open file: " << *iter << endl;
-      filelist.pop_front();
-    }
-    else
-    {
-      return 0;
-    }
-  }
-  return -1;
 }
 
 int Fun4AllDstInputManager::PushBackEvents(const int i)

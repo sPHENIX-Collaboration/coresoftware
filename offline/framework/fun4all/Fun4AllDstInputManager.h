@@ -29,7 +29,6 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
 
  protected:
   int ReadNextEventSyncObject();
-  int OpenNextFile();
   int readrunttree;
   int isopen;
   int events_total;

@@ -44,8 +44,8 @@ int Fun4AllInputManager::AddFile(const string &filename)
     cout << "Adding " << filename << " to list of input files for "
          << Name() << endl;
   }
-  filelist.push_back(filename);
-  filelist_copy.push_back(filename);
+  m_FileList.push_back(filename);
+  m_FileListCopy.push_back(filename);
   return 0;
 }
 
@@ -116,7 +116,7 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of input files in Fun4AllInputManager " << Name() << ":" << endl;
 
-    for (string file: filelist)
+    for (string file: m_FileList)
     {
       cout << file << endl;
     }
@@ -182,12 +182,52 @@ int Fun4AllInputManager::RejectEvent()
 
 int Fun4AllInputManager::ResetFileList()
 {
-  if (filelist_copy.empty())
+  if (m_FileListCopy.empty())
   {
     cout << Name() << ": ResetFileList can only be used with filelists" << endl;
     return -1;
   }
-  filelist.clear();
-  filelist = filelist_copy;
+  m_FileList.clear();
+  m_FileList = m_FileListCopy;
   return 0;
+}
+
+void Fun4AllInputManager::UpdateFileList()
+{
+  if (!m_FileList.empty())
+  {
+    if (repeat)
+    {
+      m_FileList.push_back(*(m_FileList.begin()));
+      if (repeat > 0)
+      {
+        repeat--;
+      }
+    }
+    m_FileList.pop_front();
+  }
+  return;
+}
+
+int Fun4AllInputManager::OpenNextFile()
+{
+  while (!m_FileList.empty())
+    {
+      list<string>::const_iterator iter = m_FileList.begin();
+      if (Verbosity())
+        {
+          cout << PHWHERE << " opening next file: " << *iter << endl;
+        }
+      if (fileopen(*iter))
+        {
+          cout << PHWHERE << " could not open file: " << *iter << endl;
+          m_FileList.pop_front();
+        }
+      else
+        {
+          return 0;
+        }
+
+    }
+  return -1;
 }

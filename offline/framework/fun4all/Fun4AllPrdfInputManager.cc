@@ -98,7 +98,7 @@ int Fun4AllPrdfInputManager::run(const int nevents)
   readagain:
   if (!isopen)
     {
-      if (filelist.empty())
+      if (FileListEmpty())
 
 	{
 	  if (Verbosity() > 0)
@@ -175,19 +175,7 @@ int Fun4AllPrdfInputManager::fileclose()
   isopen = 0;
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
-  if (!filelist.empty())
-    {
-      if (repeat)
-        {
-          filelist.push_back(*(filelist.begin()));
-          if (repeat > 0)
-            {
-              repeat--;
-            }
-        }
-      filelist.pop_front();
-    }
-
+  UpdateFileList();
   return 0;
 }
 
@@ -197,30 +185,6 @@ Fun4AllPrdfInputManager::Print(const string &what) const
 {
   Fun4AllInputManager::Print(what);
   return ;
-}
-
-int
-Fun4AllPrdfInputManager::OpenNextFile()
-{
-  while (!filelist.empty())
-    {
-      list<string>::const_iterator iter = filelist.begin();
-      if (Verbosity())
-        {
-          cout << PHWHERE << " opening next file: " << *iter << endl;
-        }
-      if (fileopen(*iter))
-        {
-          cout << PHWHERE << " could not open file: " << *iter << endl;
-          filelist.pop_front();
-        }
-      else
-        {
-          return 0;
-        }
-
-    }
-  return -1;
 }
 
 int

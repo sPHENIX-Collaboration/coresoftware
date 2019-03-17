@@ -47,23 +47,26 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual void SetRunNumber(const int runno) { myrunnumber = runno; }
   virtual int RunNumber() const { return myrunnumber; }
   void AddToFileOpened(const std::string &filename) { filelist_opened.push_back(filename); }
-  const std::list<std::string> GetFileList() const { return filelist_copy; }
+  const std::list<std::string> GetFileList() const { return m_FileListCopy; }
   const std::list<std::string> GetFileOpenedList() const { return filelist_opened; }
   std::string InputNode() {return m_InputNode;}
   void InputNode(const std::string &innode) {m_InputNode = innode;}
   std::string TopNodeName() const {return m_TopNodeName;}
-
+  bool FileListEmpty() const {return m_FileList.empty();}
+  
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
+  void UpdateFileList();
+  int OpenNextFile();
 
 private:
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;
   std::string m_TopNodeName;
+  std::list<std::string> m_FileList;
+  std::list<std::string> m_FileListCopy;
 protected:
-  std::list<std::string> filelist;
-  std::list<std::string> filelist_copy;
   std::list<std::string> filelist_opened;  // all files which were opened during running
   Fun4AllSyncManager *mySyncManager;
   int repeat;
