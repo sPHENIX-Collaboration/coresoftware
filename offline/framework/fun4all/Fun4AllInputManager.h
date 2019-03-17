@@ -46,9 +46,8 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int ResetEvent() { return 0; }
   virtual void SetRunNumber(const int runno) { myrunnumber = runno; }
   virtual int RunNumber() const { return myrunnumber; }
-  void AddToFileOpened(const std::string &filename) { filelist_opened.push_back(filename); }
-  const std::list<std::string> GetFileList() const { return m_FileListCopy; }
-  const std::list<std::string> GetFileOpenedList() const { return filelist_opened; }
+  void AddToFileOpened(const std::string &filename) { m_FileListOpened.push_back(filename); }
+  std::pair<std::list<std::string>::const_iterator,  std::list<std::string>::const_iterator> FileOpenListBeginEnd() {return std::make_pair(m_FileListOpened.begin(), m_FileListOpened.end());}
   std::string InputNode() {return m_InputNode;}
   void InputNode(const std::string &innode) {m_InputNode = innode;}
   std::string TopNodeName() const {return m_TopNodeName;}
@@ -70,8 +69,8 @@ private:
   std::string m_TopNodeName;
   std::list<std::string> m_FileList;
   std::list<std::string> m_FileListCopy;
+  std::list<std::string> m_FileListOpened;  // all files which were opened during running
 protected:
-  std::list<std::string> filelist_opened;  // all files which were opened during running
   int repeat;
   int myrunnumber;
   int initrun;

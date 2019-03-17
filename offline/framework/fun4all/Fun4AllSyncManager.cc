@@ -386,16 +386,14 @@ int Fun4AllSyncManager::CheckSync(const unsigned i)
 void
 Fun4AllSyncManager::GetInputFullFileList(std::vector<std::string> &fnames) const
 {
-  list<string>::const_iterator listiter;
-  vector<Fun4AllInputManager *>::const_iterator iter;
-  for (iter = InManager.begin(); iter != InManager.end(); ++iter)
+  for (Fun4AllInputManager *InMan:  InManager)
+  {
+    std::pair<std::list<std::string>::const_iterator,  std::list<std::string>::const_iterator> beginend = InMan->FileOpenListBeginEnd();
+    for (auto iter = beginend.first; iter != beginend.second; ++iter)
     {
-      list<string> fl = (*iter)->GetFileOpenedList();
-      for (listiter = fl.begin(); listiter != fl.end(); ++listiter)
-        {
-          fnames.push_back(*listiter);
-        }
+      fnames.push_back(*iter);
     }
+  }
   return;
 }
 
