@@ -1,7 +1,8 @@
-#ifndef __FUN4ALLHISTOMANAGER_H
-#define __FUN4ALLHISTOMANAGER_H
+#ifndef FUN4ALL_FUN4ALLHISTOMANAGER_H
+#define FUN4ALL_FUN4ALLHISTOMANAGER_H
 
 #include "Fun4AllBase.h"
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -20,7 +21,7 @@ class Fun4AllHistoManager: public Fun4AllBase
   template <typename T> T* makeHisto(T* t) {
     if (not registerHisto(t)) {
       delete t;
-      t = NULL;
+      t = nullptr;
     }
     return t;
   }

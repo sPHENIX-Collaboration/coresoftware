@@ -2,11 +2,12 @@
 #include "Fun4AllInputManager.h"
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllServer.h"
-#include <phool/recoConsts.h>
+
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>
 
+#include <phool/recoConsts.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHTypedNodeIterator.h>
 
@@ -27,7 +28,7 @@ Fun4AllSyncManager::Fun4AllSyncManager(const string &name):
   currentrun(0),
   currentevent(0),
   repeat(0),
-  MasterSync(NULL)
+  MasterSync(nullptr)
 {
   return;
 }
@@ -80,7 +81,7 @@ Fun4AllSyncManager::getInputManager(const string &name)
 	}
     }
   cout << Name() << ": Could not find InputManager" << name << endl;
-  return NULL;
+  return nullptr;
 }
 
 //_________________________________________________________________

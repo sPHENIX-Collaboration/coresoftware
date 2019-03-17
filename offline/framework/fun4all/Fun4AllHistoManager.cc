@@ -1,4 +1,5 @@
 #include "Fun4AllHistoManager.h"
+
 #include "TDirectoryHelper.h"
 
 #include <phool/phool.h>
@@ -216,7 +217,7 @@ Fun4AllHistoManager::getHisto(const unsigned int ihisto) const
       cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
 	   << ihisto << ", maximum number is " << size << endl;
     }
-  return NULL;
+  return nullptr;
 }
 
 const char *
@@ -241,7 +242,7 @@ Fun4AllHistoManager::getHistoName(const unsigned int ihisto) const
       cout << "Fun4AllHistoManager::getHisto: ERROR Invalid histogram number: "
 	   << ihisto << ", maximum number is " << size << endl;
     }
-  return NULL;
+  return nullptr;
 }
 
 TNamed *
@@ -255,7 +256,7 @@ Fun4AllHistoManager::getHisto(const string &hname) const
   cout << "Fun4AllHistoManager::getHisto: ERROR Unknown Histogram " << hname
        << ", The following are implemented: " << endl;
   Print("ALL");
-  return NULL;
+  return nullptr;
 }
 
 

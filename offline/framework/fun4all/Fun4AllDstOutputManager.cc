@@ -56,11 +56,12 @@ int Fun4AllDstOutputManager::StripRunNode(const string &nodename)
 
 int Fun4AllDstOutputManager::outfileopen(const string &fname)
 {
+  delete dstOut;
   dstOut = new PHNodeIOManager(fname, PHWrite);
   if (!dstOut->isFunctional())
   {
     delete dstOut;
-    dstOut = 0;
+    dstOut = nullptr;
     cout << PHWHERE << " Could not open " << fname << endl;
     return -1;
   }
