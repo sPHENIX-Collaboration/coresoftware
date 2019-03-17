@@ -296,7 +296,6 @@ class PHG4TrackFastSim : public SubsysReco
   int _primary_tracking;
 
   //!
-  int _N_STATES;
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
 };

@@ -74,17 +74,16 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   , _vertex_z_resolution(50E-4)
   , _N_DETECTOR_LAYER(5)
   , _primary_tracking(1)
-  , _N_STATES(0)
 {
   _event = -1;
 
-//  for (int i = 0; i < _N_DETECTOR_LAYER; i++)
-//  {
-//    _phg4hits_names.push_back(Form("G4HIT_FGEM_%1d", i));
-//  }
+  //  for (int i = 0; i < _N_DETECTOR_LAYER; i++)
+  //  {
+  //    _phg4hits_names.push_back(Form("G4HIT_FGEM_%1d", i));
+  //  }
 
-//  _state_names.clear();
-//  _state_location.clear();
+  //  _state_names.clear();
+  //  _state_location.clear();
 }
 
 PHG4TrackFastSim::~PHG4TrackFastSim()
@@ -123,7 +122,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 
   // tower geometry for track states
 
-  for (int i = 0; i < _N_STATES; i++)
+  for (unsigned int i = 0; i < _state_names.size(); i++)
   {
     if ((_state_names[i] == "FHCAL") || (_state_names[i] == "FEMC") || (_state_names[i] == "EEMC"))
     {
@@ -638,7 +637,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     }
   }
   // State Projections
-  for (int i = 0; i < _N_STATES; i++)
+  for (unsigned int i = 0; i < _state_names.size(); i++)
   {
     if ((_state_names[i] == "FHCAL") || (_state_names[i] == "FEMC") || (_state_names[i] == "EEMC"))
     {
