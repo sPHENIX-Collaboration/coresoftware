@@ -1,10 +1,11 @@
-#ifndef __FUN4ALLEVENTOUTSTREAM_H__
-#define __FUN4ALLEVENTOUTSTREAM_H__
+#ifndef FUN4ALL_FUN4ALLEVENTOUTSTREAM_H
+#define FUN4ALL_FUN4ALLEVENTOUTSTREAM_H
 
 // base class for output streams writing Events in
 // one or the other form
 
 #include "Fun4AllBase.h"
+
 #include <Event/phenixTypes.h>
 
 #ifndef __CINT__
@@ -40,13 +41,17 @@ class Fun4AllEventOutStream: public Fun4AllBase
   int DropPacket(const int ipkt);
   int AddPacketRange(const int minpacket, const int maxpacket);
   int DropPacketRange(const int minpacket, const int maxpacket);
-  void SetManager(Fun4AllEventOutputManager *myman) {mymanager = myman;}
+  void SetManager(Fun4AllEventOutputManager *myman) {m_MyManager = myman;}
  
  protected:
 
   Fun4AllEventOutStream(const std::string &name= "OUTSTREAM");
   int resize_evtbuf(const unsigned int newsize);
+  Fun4AllEventOutputManager *MyManager() {return m_MyManager;}
+
+ private:
   PHDWORD *evtbuf;
+  Fun4AllEventOutputManager *m_MyManager; // pointer to my master
   unsigned int evtbuf_size;  
 // flag to stear behavior, if 1 only add packets (drop all others), if 0 no filtering, 
 // if -1 accept all, drop selected and afterwards add back selected ones
@@ -59,7 +64,6 @@ class Fun4AllEventOutStream: public Fun4AllBase
   std::map<int,boost::numeric::interval<int> > addpktrange; 
   std::map<int,boost::numeric::interval<int> > droppktrange; 
 #endif
-   Fun4AllEventOutputManager *mymanager; // pointer to my master
 };
 
-#endif /* __FUN4ALLEVENTOUTSTREAM_H__ */
+#endif

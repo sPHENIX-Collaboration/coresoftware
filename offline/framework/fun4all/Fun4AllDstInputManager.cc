@@ -27,7 +27,7 @@ using namespace std;
 
 Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , readrunttree(1)
+  , m_ReadRunTTree(1)
   , events_total(0)
   , events_thisfile(0)
   , events_skipped_during_sync(0)
@@ -82,7 +82,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     exit(1);
   }
   // first read the runnode if not disabled
-  if (readrunttree)
+  if (m_ReadRunTTree)
   {
     IManager = new PHNodeIOManager(fullfilename, PHReadOnly, PHRunTree);
     if (IManager->isFunctional())

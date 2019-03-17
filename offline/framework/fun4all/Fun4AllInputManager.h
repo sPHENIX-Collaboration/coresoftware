@@ -51,7 +51,7 @@ class Fun4AllInputManager : public Fun4AllBase
   void InputNode(const std::string &innode) {m_InputNode = innode;}
   std::string TopNodeName() const {return m_TopNodeName;}
   bool FileListEmpty() const {return m_FileList.empty();}
-  int IsOpen() const {return m_IsOpen;}
+  virtual int IsOpen() const {return m_IsOpen;}
   
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");

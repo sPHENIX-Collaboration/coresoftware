@@ -27,7 +27,7 @@ class Fun4AllPrdfOutputManager: public Fun4AllOutputManager
   //! event write method (startNode argument is ignored. prdfNode is always used)
   int Write(PHCompositeNode *startNode);
 
- protected:
+private:
 
   /*! 
     initialize prdf output manager every time 

@@ -25,7 +25,7 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
   int Write(PHCompositeNode *startNode);
   int WriteNode(PHCompositeNode *thisNode);
 
- protected:
+ private:
   std::set<std::string> savenodes;
   std::set<std::string> stripnodes;
   std::set<std::string> striprunnodes;

@@ -1,7 +1,8 @@
-#ifndef __FUN4ALLDUMMYINPUTMANAGER_H__
-#define __FUN4ALLDUMMYINPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLDUMMYINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLDUMMYINPUTMANAGER_H
 
 #include "Fun4AllInputManager.h"
+
 #include "Fun4AllReturnCodes.h"
 
 class PHCompositeNode;
@@ -23,9 +24,9 @@ class Fun4AllDummyInputManager: public Fun4AllInputManager
   void setSyncManager(Fun4AllSyncManager *master);
   int PushBackEvents(const int /*nevt*/) {return 0;}
 
- protected:
+ private:
 
   int numevents;
 };
 
-#endif /* __FUN4ALLDUMMYINPUTMANAGER_H__ */
+#endif

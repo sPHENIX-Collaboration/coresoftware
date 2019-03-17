@@ -13,14 +13,14 @@ using namespace std;
 
 Fun4AllEventOutStream::Fun4AllEventOutStream(const std::string &name): 
   Fun4AllBase(name),
-  evtbuf(NULL),
+  evtbuf(nullptr),
+  m_MyManager(nullptr),
   evtbuf_size(0),
   add_or_remove(0),
-  plist(NULL),
+  plist(nullptr),
   max_npackets(1000), // there shouldn't be more than this number of packets in a single event
   npackets(0),
-  default_addall(0),
-  mymanager(NULL)
+  default_addall(0)
 {}
 
 Fun4AllEventOutStream::~Fun4AllEventOutStream()

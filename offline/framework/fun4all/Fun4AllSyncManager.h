@@ -2,8 +2,8 @@
 // In principle all of this could be done in the Fun4AllServer 
 // but this is simpler to develop and test while Fun4All is allready in use.
 
-#ifndef FUN4ALLSYNCMANAGER_H__
-#define FUN4ALLSYNCMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLSYNCMANAGER_H
+#define FUN4ALL_FUN4ALLSYNCMANAGER_H
 
 #include "Fun4AllBase.h"
 
@@ -65,4 +65,4 @@ class Fun4AllSyncManager: public Fun4AllBase
   std::vector<int> iretInManager;
 };
 
-#endif /* FUN4ALLSYNCMANAGER_H__ */
+#endif

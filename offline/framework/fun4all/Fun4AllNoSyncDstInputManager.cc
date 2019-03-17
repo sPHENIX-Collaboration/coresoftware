@@ -18,7 +18,7 @@ Fun4AllNoSyncDstInputManager::NoRunTTree()
 {
   if (!IsOpen())
     {
-      readrunttree = 0;
+      ReadRunTTree(0);
     }
   else
     {

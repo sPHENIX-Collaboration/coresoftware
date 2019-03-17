@@ -1,5 +1,5 @@
-#ifndef FUN4ALLDSTINPUTMANAGER_H__
-#define FUN4ALLDSTINPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLDSTINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLDSTINPUTMANAGER_H
 
 #include "Fun4AllInputManager.h"
 
@@ -28,7 +28,9 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
 
  protected:
   int ReadNextEventSyncObject();
-  int readrunttree;
+  void ReadRunTTree(const int i) {m_ReadRunTTree = i;}
+ private:
+  int m_ReadRunTTree;
   int events_total;
   int events_thisfile;
   int events_skipped_during_sync;
