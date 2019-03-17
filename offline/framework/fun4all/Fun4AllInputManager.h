@@ -41,7 +41,7 @@ class Fun4AllInputManager : public Fun4AllBase
   int registerSubsystem(SubsysReco *subsystem);
   virtual int RejectEvent();
   void Repeat(const int i = -1) { repeat = i; }
-  virtual void setSyncManager(Fun4AllSyncManager *master) { mySyncManager = master; }
+  virtual void setSyncManager(Fun4AllSyncManager *master) { m_MySyncManager = master; }
   int ResetFileList();
   virtual int ResetEvent() { return 0; }
   virtual void SetRunNumber(const int runno) { myrunnumber = runno; }
@@ -60,8 +60,9 @@ class Fun4AllInputManager : public Fun4AllBase
   int OpenNextFile();
   int IsOpen() const {return m_IsOpen;}
   void IsOpen(const int i) {m_IsOpen = i;}
-
+  Fun4AllSyncManager *MySyncManager() {return m_MySyncManager;}
 private:
+  Fun4AllSyncManager *m_MySyncManager;
   int m_IsOpen;
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
@@ -71,7 +72,6 @@ private:
   std::list<std::string> m_FileListCopy;
 protected:
   std::list<std::string> filelist_opened;  // all files which were opened during running
-  Fun4AllSyncManager *mySyncManager;
   int repeat;
   int myrunnumber;
   int initrun;

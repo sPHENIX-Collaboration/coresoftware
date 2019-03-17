@@ -146,9 +146,9 @@ int Fun4AllPrdfInputManager::run(const int nevents)
   events_total++;
   events_thisfile++;
   SetRunNumber(evt->getRunNumber());
-  mySyncManager->PrdfEvents(events_thisfile);
-  mySyncManager->SegmentNumber(segment);
-  mySyncManager->CurrentEvent(evt->getEvtSequence());
+  MySyncManager()->PrdfEvents(events_thisfile);
+  MySyncManager()->SegmentNumber(segment);
+  MySyncManager()->CurrentEvent(evt->getEvtSequence());
   syncobject->EventCounter(events_thisfile);
   syncobject->SegmentNumber(segment);
   syncobject->RunNumber(evt->getRunNumber());

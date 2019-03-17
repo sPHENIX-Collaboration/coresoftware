@@ -1,4 +1,5 @@
 #include "Fun4AllDummyInputManager.h"
+
 #include "Fun4AllSyncManager.h"
 
 #include <phool/recoConsts.h>
@@ -27,7 +28,7 @@ Fun4AllDummyInputManager::setSyncManager(Fun4AllSyncManager *master)
   Fun4AllInputManager::setSyncManager(master);
   recoConsts *rc = recoConsts::instance();
   int runnumber = rc->get_IntFlag("RUNNUMBER",0);
-  mySyncManager->CurrentRun(runnumber);
+  MySyncManager()->CurrentRun(runnumber);
   return;
 }
 

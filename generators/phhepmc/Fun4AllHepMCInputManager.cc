@@ -84,7 +84,7 @@ Fun4AllHepMCInputManager::~Fun4AllHepMCInputManager()
 
 int Fun4AllHepMCInputManager::fileopen(const string &filenam)
 {
-  if (!mySyncManager)
+  if (!MySyncManager())
   {
     cout << "Call fileopen only after you registered your Input Manager " << Name() << " with the Fun4AllServer" << endl;
     exit(1);
@@ -142,11 +142,11 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
   static bool run_number_forced = rc->FlagExist("RUNNUMBER");
   if (run_number_forced)
   {
-    mySyncManager->CurrentRun(rc->get_IntFlag("RUNNUMBER"));
+    MySyncManager()->CurrentRun(rc->get_IntFlag("RUNNUMBER"));
   }
   else
   {
-    mySyncManager->CurrentRun(-1);
+    MySyncManager()->CurrentRun(-1);
   }
   events_thisfile = 0;
   IsOpen(1);
@@ -209,7 +209,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
     }
     else
     {
-      mySyncManager->CurrentEvent(evt->event_number());
+      MySyncManager()->CurrentEvent(evt->event_number());
       if (Verbosity() > 0)
       {
         cout << "Fun4AllHepMCInputManager::run::" << Name()

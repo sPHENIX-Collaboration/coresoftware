@@ -164,7 +164,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
         }
         else
         {
-          mySyncManager->CurrentEvent(evt->event_number());
+          MySyncManager()->CurrentEvent(evt->event_number());
           if (Verbosity() > 0)
           {
             cout << "hepmc evt no: " << evt->event_number() << endl;
