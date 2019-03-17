@@ -1,16 +1,19 @@
 #include "Fun4AllHepMCPileupInputManager.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/Fun4AllSyncManager.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
-
-#include <ffaobjects/RunHeader.h>
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
 
+#include <ffaobjects/RunHeader.h>
+
 #include <frog/FROG.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllSyncManager.h>
+
+
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHRandomSeed.h>
@@ -21,21 +24,20 @@
 #include <TPRegexp.h>
 #include <TString.h>
 
-#include <fstream>
-#include <iostream>
-#include <istream>
-#include <sstream>
+#include <gsl/gsl_const.h>
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
 
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
+#include <fstream>
+#include <iostream>
+#include <istream>
+#include <sstream>
 #include <cstdlib>
 #include <memory>
-
-#include <gsl/gsl_const.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
 
 using namespace std;
 
@@ -115,7 +117,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       {
         if (!isopen)
         {
-          if (!filelist.size())
+          if (FileListEmpty())
           {
             if (Verbosity() > 0)
             {

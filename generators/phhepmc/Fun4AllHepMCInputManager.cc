@@ -3,14 +3,18 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
+
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
 #include <PHHepMCGenEvent.h>
 #include <PHHepMCGenEventMap.h>
+
 #include <ffaobjects/RunHeader.h>
 
 #include <frog/FROG.h>
+
+#include <phool/PHRandomSeed.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 
@@ -20,21 +24,18 @@
 #include <TPRegexp.h>
 #include <TString.h>
 
+
+#include <gsl/gsl_const.h>
+
+#include <boost/iostreams/filter/bzip2.hpp>
+#include <boost/iostreams/filter/gzip.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <istream>
 #include <memory>
 #include <sstream>
-
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-
 #include <cstdlib>
-#include <memory>
-
-#include <phool/PHRandomSeed.h>
-
-#include <gsl/gsl_const.h>
 
 using namespace std;
 
@@ -161,7 +162,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
   {
     if (!isopen)
     {
-      if (!filelist.size())
+      if (FileListEmpty())
 
       {
         if (Verbosity() > 0)
@@ -261,18 +262,7 @@ int Fun4AllHepMCInputManager::fileclose()
   isopen = 0;
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
-  if (filelist.size() > 0)
-  {
-    if (repeat)
-    {
-      filelist.push_back(*(filelist.begin()));
-      if (repeat > 0)
-      {
-        repeat--;
-      }
-    }
-    filelist.pop_front();
-  }
+  UpdateFileList();
   return 0;
 }
 
@@ -280,28 +270,6 @@ void Fun4AllHepMCInputManager::Print(const string &what) const
 {
   Fun4AllInputManager::Print(what);
   return;
-}
-
-int Fun4AllHepMCInputManager::OpenNextFile()
-{
-  while (filelist.size() > 0)
-  {
-    list<string>::const_iterator iter = filelist.begin();
-    if (Verbosity())
-    {
-      cout << PHWHERE << " opening next file: " << *iter << endl;
-    }
-    if (fileopen((*iter).c_str()))
-    {
-      cout << PHWHERE << " could not open file: " << *iter << endl;
-      filelist.pop_front();
-    }
-    else
-    {
-      return 0;
-    }
-  }
-  return -1;
 }
 
 int Fun4AllHepMCInputManager::PushBackEvents(const int i)

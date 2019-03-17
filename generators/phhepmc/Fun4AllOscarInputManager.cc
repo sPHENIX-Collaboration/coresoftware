@@ -1,15 +1,17 @@
 #include "Fun4AllOscarInputManager.h"
-#include "PHHepMCGenEventMap.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/Fun4AllSyncManager.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
+#include "PHHepMCGenEventMap.h"
 
 #include <ffaobjects/RunHeader.h>
 
 #include <frog/FROG.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllSyncManager.h>
+
+#include <phool/getClass.h>
+#include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
 #include <phool/PHObject.h>
@@ -20,17 +22,17 @@
 #include <TPRegexp.h>
 #include <TString.h>
 
-#include <fstream>
-#include <iostream>
-#include <istream>
-#include <sstream>
-
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include <cstdlib>
 #include <memory>
+#include <fstream>
+#include <iostream>
+#include <istream>
+#include <sstream>
+
 
 using namespace std;
 
@@ -143,7 +145,7 @@ int Fun4AllOscarInputManager::run(const int nevents)
 readagain:
   if (!isopen)
   {
-    if (!filelist.size())
+    if (FileListEmpty())
     {
       if (Verbosity() > 0)
       {
@@ -216,18 +218,7 @@ int Fun4AllOscarInputManager::fileclose()
   isopen = 0;
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
-  if (filelist.size() > 0)
-  {
-    if (repeat)
-    {
-      filelist.push_back(*(filelist.begin()));
-      if (repeat > 0)
-      {
-        repeat--;
-      }
-    }
-    filelist.pop_front();
-  }
+  UpdateFileList();
   return 0;
 }
 
@@ -235,28 +226,6 @@ void Fun4AllOscarInputManager::Print(const string &what) const
 {
   Fun4AllInputManager::Print(what);
   return;
-}
-
-int Fun4AllOscarInputManager::OpenNextFile()
-{
-  while (filelist.size() > 0)
-  {
-    list<string>::const_iterator iter = filelist.begin();
-    if (Verbosity())
-    {
-      cout << PHWHERE << " opening next file: " << *iter << endl;
-    }
-    if (fileopen((*iter).c_str()))
-    {
-      cout << PHWHERE << " could not open file: " << *iter << endl;
-      filelist.pop_front();
-    }
-    else
-    {
-      return 0;
-    }
-  }
-  return -1;
 }
 
 int Fun4AllOscarInputManager::ResetEvent()

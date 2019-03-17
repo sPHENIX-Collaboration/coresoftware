@@ -1,5 +1,6 @@
-#ifndef PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H__
-#define PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H
+#define PHHEPMC_FUN4ALLOSCARINPUTMANAGER_H
+
 #include "PHHepMCGenHelper.h"
 
 #include <fun4all/Fun4AllInputManager.h>
@@ -77,7 +78,6 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
  protected:
-  int OpenNextFile();
   int isopen;
   int events_total;
   int events_thisfile;

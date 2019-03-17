@@ -82,7 +82,6 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
  protected:
-  int OpenNextFile();
 
   int isopen;
   int events_total;
