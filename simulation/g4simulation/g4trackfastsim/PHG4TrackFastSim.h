@@ -102,88 +102,27 @@ class PHG4TrackFastSim : public SubsysReco
     return _phg4hits_names;
   }
 
-  void set_phg4hits_names(const std::vector<std::string>& phg4hitsNames)
+  void add_phg4hits(
+      const std::string& phg4hitsNames,
+      const DETECTOR_TYPE phg4dettype,
+      const float radres,
+      const float phires,
+      const float lonres,
+      const float eff,
+      const float noise)
   {
-    _phg4hits_names.clear();
-    _phg4_detector_type.clear();
-    _phg4_detector_radres.clear();
-    _phg4_detector_phires.clear();
-    _phg4_detector_lonres.clear();
-    _phg4_detector_hitfindeff.clear();
-    _phg4_detector_noise.clear();
-    //==
-    _phg4hits_names = phg4hitsNames;
-    _N_DETECTOR_LAYER = _phg4hits_names.size();
-    for (int i = 0; i != _N_DETECTOR_LAYER; ++i)
-    {  //defaulting
-      _phg4_detector_type.push_back(Cylinder);
-      _phg4_detector_radres.push_back(1e-4);
-      _phg4_detector_phires.push_back(1e-4);
-      _phg4_detector_lonres.push_back(1e-4);
-      _phg4_detector_hitfindeff.push_back(1.0);
-      _phg4_detector_noise.push_back(0.0);
-    }
+    _phg4hits_names.push_back(phg4hitsNames);
+    _phg4_detector_type.push_back(phg4dettype);
+    _phg4_detector_radres.push_back(radres);
+    _phg4_detector_phires.push_back(phires);
+    _phg4_detector_lonres.push_back(lonres);
+    _phg4_detector_hitfindeff.push_back(eff);
+    _phg4_detector_noise.push_back(noise);
   }
 
-  void set_phg4hits_names(const std::string* phg4hitsNames, const int nlayer)
+  void add_state_name(const std::string& stateName)
   {
-    _phg4hits_names.clear();
-    _phg4_detector_type.clear();
-    _phg4_detector_radres.clear();
-    _phg4_detector_phires.clear();
-    _phg4_detector_lonres.clear();
-    _phg4_detector_hitfindeff.clear();
-    _phg4_detector_noise.clear();
-    for (int i = 0; i < nlayer; ++i)
-    {
-      _phg4hits_names.push_back(phg4hitsNames[i]);
-      _phg4_detector_type.push_back(Cylinder);
-      _phg4_detector_radres.push_back(1e-4);
-      _phg4_detector_phires.push_back(1e-4);
-      _phg4_detector_lonres.push_back(1e-4);
-      _phg4_detector_hitfindeff.push_back(1.0);
-      _phg4_detector_noise.push_back(0.0);
-    }
-    _N_DETECTOR_LAYER = _phg4hits_names.size();
-  }
-
-  void set_phg4hits_names(const std::string* phg4hitsNames,
-                          const DETECTOR_TYPE* phg4dettype,
-                          const float* radres,
-                          const float* phires,
-                          const float* lonres,
-                          const float* eff,
-                          const float* noise,
-                          const int nlayer)
-  {
-    _phg4hits_names.clear();
-    _phg4_detector_type.clear();
-    _phg4_detector_radres.clear();
-    _phg4_detector_phires.clear();
-    _phg4_detector_lonres.clear();
-    _phg4_detector_hitfindeff.clear();
-    _phg4_detector_noise.clear();
-    for (int i = 0; i < nlayer; ++i)
-    {
-      _phg4hits_names.push_back(phg4hitsNames[i]);
-      _phg4_detector_type.push_back(phg4dettype[i]);
-      _phg4_detector_radres.push_back(radres[i]);
-      _phg4_detector_phires.push_back(phires[i]);
-      _phg4_detector_lonres.push_back(lonres[i]);
-      _phg4_detector_hitfindeff.push_back(eff[i]);
-      _phg4_detector_noise.push_back(noise[i]);
-    }
-    _N_DETECTOR_LAYER = _phg4hits_names.size();
-  }
-
-  void set_state_names(const std::string* stateNames, const int nlayer)
-  {
-    _state_names.clear();
-    for (int i = 0; i < nlayer; ++i)
-    {
-      _state_names.push_back(stateNames[i]);
-    }
-    _N_STATES = _state_names.size();
+    _state_names.push_back(stateName);
   }
 
   const std::string& get_trackmap_out_name() const

@@ -78,13 +78,13 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
 {
   _event = -1;
 
-  for (int i = 0; i < _N_DETECTOR_LAYER; i++)
-  {
-    _phg4hits_names.push_back(Form("G4HIT_FGEM_%1d", i));
-  }
+//  for (int i = 0; i < _N_DETECTOR_LAYER; i++)
+//  {
+//    _phg4hits_names.push_back(Form("G4HIT_FGEM_%1d", i));
+//  }
 
-  _state_names.clear();
-  _state_location.clear();
+//  _state_names.clear();
+//  _state_location.clear();
 }
 
 PHG4TrackFastSim::~PHG4TrackFastSim()
