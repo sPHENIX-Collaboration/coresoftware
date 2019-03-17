@@ -139,7 +139,7 @@ Fun4AllSyncManager::run(const int nevnts)
                 {
                   for (InIter = InManager.begin(); InIter != InManager.end(); ++InIter)
                     {
-                      if ((*InIter)->isOpen())
+                      if ((*InIter)->IsOpen())
                         {
                           (*InIter)->fileclose();
                         }

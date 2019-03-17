@@ -16,11 +16,11 @@ Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &noden
   : Fun4AllBase(name)
   , m_MySyncManager(nullptr)
   , m_IsOpen(0)
+  , m_Repeat(0)
+  , m_MyRunNumber(0)
+  , m_InitRun(0)
   , m_InputNode(nodename)
   , m_TopNodeName(topnodename)
-  , repeat(0)
-  , myrunnumber(0)
-  , initrun(0)
 {
   return;
 }
@@ -163,10 +163,10 @@ int Fun4AllInputManager::RejectEvent()
     Fun4AllServer *se = Fun4AllServer::instance();
     for (SubsysReco *subsys:  m_SubsystemsVector)
     {
-      if (!initrun)
+      if (!m_InitRun)
       {
         subsys->InitRun(se->topNode(m_TopNodeName));
-        initrun = 1;
+        m_InitRun = 1;
       }
       if (Verbosity() > 0)
       {
@@ -197,12 +197,12 @@ void Fun4AllInputManager::UpdateFileList()
 {
   if (!m_FileList.empty())
   {
-    if (repeat)
+    if (m_Repeat)
     {
       m_FileList.push_back(*(m_FileList.begin()));
-      if (repeat > 0)
+      if (m_Repeat > 0)
       {
-        repeat--;
+        m_Repeat--;
       }
     }
     m_FileList.pop_front();
