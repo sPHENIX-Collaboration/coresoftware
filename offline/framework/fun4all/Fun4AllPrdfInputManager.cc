@@ -30,7 +30,6 @@ using namespace std;
 Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &prdfnodename, const string &topnodename) : 
  Fun4AllInputManager(name,prdfnodename , topnodename),
  segment(-999),
- isopen(0),
  events_total(0),
  events_thisfile(0),
  evt(nullptr),
@@ -53,7 +52,7 @@ Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const strin
 
 Fun4AllPrdfInputManager::~Fun4AllPrdfInputManager()
 {
-  if (isopen)
+  if (IsOpen())
     {
       fileclose();
     }
@@ -62,7 +61,7 @@ Fun4AllPrdfInputManager::~Fun4AllPrdfInputManager()
 
 int Fun4AllPrdfInputManager::fileopen(const string &filenam)
 {
-  if (isopen)
+  if (IsOpen())
     {
       cout << "Closing currently open file "
            << FileName()
@@ -88,7 +87,7 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
     }
   pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
   segment = runseg.second;
-  isopen = 1;
+  IsOpen(1);
   AddToFileOpened(fname); // add file to the list of files which were opened
   return 0;
 }
@@ -96,7 +95,7 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
 int Fun4AllPrdfInputManager::run(const int nevents)
 {
   readagain:
-  if (!isopen)
+  if (!IsOpen())
     {
       if (FileListEmpty())
 
@@ -165,14 +164,14 @@ int Fun4AllPrdfInputManager::run(const int nevents)
 
 int Fun4AllPrdfInputManager::fileclose()
 {
-  if (!isopen)
+  if (!IsOpen())
     {
       cout << Name() << ": fileclose: No Input file open" << endl;
       return -1;
     }
   delete eventiterator;
   eventiterator = nullptr;
-  isopen = 0;
+  IsOpen(0);
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
   UpdateFileList();

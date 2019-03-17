@@ -18,7 +18,6 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam);
   int fileclose();
   int run(const int nevents = 0);
-  int isOpen() { return isopen; }
   int GetSyncObject(SyncObject **mastersync);
   int SyncIt(const SyncObject *mastersync);
   int BranchSelect(const std::string &branch, const int iflag);
@@ -30,7 +29,6 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
  protected:
   int ReadNextEventSyncObject();
   int readrunttree;
-  int isopen;
   int events_total;
   int events_thisfile;
   int events_skipped_during_sync;

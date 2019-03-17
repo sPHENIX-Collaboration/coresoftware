@@ -58,8 +58,11 @@ class Fun4AllInputManager : public Fun4AllBase
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   void UpdateFileList();
   int OpenNextFile();
+  int IsOpen() const {return m_IsOpen;}
+  void IsOpen(const int i) {m_IsOpen = i;}
 
 private:
+  int m_IsOpen;
   std::vector<SubsysReco *> m_SubsystemsVector;
   std::string m_InputNode;
   std::string m_FileName;

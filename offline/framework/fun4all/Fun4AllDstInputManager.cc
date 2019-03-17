@@ -28,7 +28,6 @@ using namespace std;
 Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
   , readrunttree(1)
-  , isopen(0)
   , events_total(0)
   , events_thisfile(0)
   , events_skipped_during_sync(0)
@@ -53,7 +52,7 @@ Fun4AllDstInputManager::~Fun4AllDstInputManager()
 int Fun4AllDstInputManager::fileopen(const string &filenam)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  if (isopen)
+  if (IsOpen())
   {
     cout << "Closing currently open file "
          << FileName()
@@ -135,7 +134,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
   IManager = new PHNodeIOManager(fullfilename, PHReadOnly);
   if (IManager->isFunctional())
   {
-    isopen = 1;
+    IsOpen(1);
     events_thisfile = 0;
     setBranches();              // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
@@ -153,7 +152,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
 
 int Fun4AllDstInputManager::run(const int nevents)
 {
-  if (!isopen)
+  if (!IsOpen())
   {
     if (FileListEmpty())
     {
@@ -211,14 +210,14 @@ readagain:
 
 int Fun4AllDstInputManager::fileclose()
 {
-  if (!isopen)
+  if (!IsOpen())
   {
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
   }
   delete IManager;
   IManager = nullptr;
-  isopen = 0;
+  IsOpen(0);
   UpdateFileList();
   return 0;
 }

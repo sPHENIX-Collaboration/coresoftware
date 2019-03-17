@@ -19,7 +19,6 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam);
   int fileclose();
   int run(const int nevents = 0);
-  int isOpen() {return isopen;}
 
   void Print(const std::string &what = "ALL") const;
   int ResetEvent();
@@ -29,7 +28,6 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
 
  protected:
   int segment;
-  int isopen;
   int events_total;
   int events_thisfile;
   PHCompositeNode *topNode;

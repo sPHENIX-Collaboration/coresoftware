@@ -14,6 +14,7 @@ using namespace std;
 
 Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllBase(name)
+  , m_IsOpen(0)
   , m_InputNode(nodename)
   , m_TopNodeName(topnodename)
   , mySyncManager(nullptr)

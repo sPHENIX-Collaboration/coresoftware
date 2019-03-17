@@ -16,7 +16,7 @@ Fun4AllNoSyncDstInputManager::Fun4AllNoSyncDstInputManager(const string &name,
 int
 Fun4AllNoSyncDstInputManager::NoRunTTree()
 {
-  if (!isopen)
+  if (!IsOpen())
     {
       readrunttree = 0;
     }

@@ -43,7 +43,6 @@ static const double toMM = 1.e-12;
 
 Fun4AllHepMCInputManager::Fun4AllHepMCInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , isopen(0)
   , events_total(0)
   , events_thisfile(0)
   , readoscar(0)
@@ -90,7 +89,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     cout << "Call fileopen only after you registered your Input Manager " << Name() << " with the Fun4AllServer" << endl;
     exit(1);
   }
-  if (isopen)
+  if (IsOpen())
   {
     cout << "Closing currently open file "
          << filename
@@ -150,7 +149,7 @@ int Fun4AllHepMCInputManager::fileopen(const string &filenam)
     mySyncManager->CurrentRun(-1);
   }
   events_thisfile = 0;
-  isopen = 1;
+  IsOpen(1);
   AddToFileOpened(fname);  // add file to the list of files which were opened
   return 0;
 }
@@ -160,7 +159,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
   // attempt to retrieve a valid event from inputs
   while (true)
   {
-    if (!isopen)
+    if (!IsOpen())
     {
       if (FileListEmpty())
 
@@ -245,7 +244,7 @@ int Fun4AllHepMCInputManager::run(const int nevents)
 
 int Fun4AllHepMCInputManager::fileclose()
 {
-  if (!isopen)
+  if (!IsOpen())
   {
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
@@ -259,7 +258,7 @@ int Fun4AllHepMCInputManager::fileclose()
     delete ascii_in;
     ascii_in = nullptr;
   }
-  isopen = 0;
+  IsOpen(0);
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
   UpdateFileList();
@@ -295,7 +294,7 @@ int Fun4AllHepMCInputManager::PushBackEvents(const int i)
          << endl;
     return -1;
   }
-  if (!isopen)
+  if (!IsOpen())
   {
     cout << PHWHERE << Name()
          << " no file opened yet" << endl;

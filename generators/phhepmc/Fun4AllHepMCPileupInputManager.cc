@@ -115,7 +115,7 @@ int Fun4AllHepMCPileupInputManager::run(const int nevents)
       // loop until retrieve a valid event
       while (true)
       {
-        if (!isopen)
+        if (!IsOpen())
         {
           if (FileListEmpty())
           {

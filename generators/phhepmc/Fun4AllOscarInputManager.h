@@ -28,7 +28,6 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam);
   int fileclose();
   int run(const int nevents = 0);
-  int isOpen() { return isopen; }
   void Print(const std::string &what = "ALL") const;
   int ResetEvent();
   int PushBackEvents(const int i);
@@ -78,7 +77,6 @@ class Fun4AllOscarInputManager : public Fun4AllInputManager
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
  protected:
-  int isopen;
   int events_total;
   int events_thisfile;
   std::string filename;

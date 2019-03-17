@@ -42,7 +42,6 @@ typedef PHIODataNode<PHObject> PHObjectNode_t;
 
 Fun4AllOscarInputManager::Fun4AllOscarInputManager(const string &name, const string &topnodename)
   : Fun4AllInputManager(name, "")
-  , isopen(0)
   , events_total(0)
   , events_thisfile(0)
   , topNodeName(topnodename)
@@ -83,7 +82,7 @@ int Fun4AllOscarInputManager::fileopen(const string &filenam)
     cout << "Call fileopen only after you registered your Input Manager " << Name() << " with the Fun4AllServer" << endl;
     exit(1);
   }
-  if (isopen)
+  if (IsOpen())
   {
     cout << "Closing currently open file "
          << filename
@@ -135,7 +134,7 @@ int Fun4AllOscarInputManager::fileopen(const string &filenam)
     mySyncManager->CurrentRun(-1);
   }
   events_thisfile = 0;
-  isopen = 1;
+  IsOpen(1);
   AddToFileOpened(fname);  // add file to the list of files which were opened
   return 0;
 }
@@ -143,7 +142,7 @@ int Fun4AllOscarInputManager::fileopen(const string &filenam)
 int Fun4AllOscarInputManager::run(const int nevents)
 {
 readagain:
-  if (!isopen)
+  if (!IsOpen())
   {
     if (FileListEmpty())
     {
@@ -202,7 +201,7 @@ readagain:
 
 int Fun4AllOscarInputManager::fileclose()
 {
-  if (!isopen)
+  if (!IsOpen())
   {
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
@@ -215,7 +214,7 @@ int Fun4AllOscarInputManager::fileclose()
   {
     theOscarFile.close();
   }
-  isopen = 0;
+  IsOpen(0);
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
   UpdateFileList();
