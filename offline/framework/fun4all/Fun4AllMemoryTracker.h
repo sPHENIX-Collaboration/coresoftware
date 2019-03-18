@@ -7,9 +7,9 @@
 #include <string>
 #include <vector>
 
-class Fun4AllMemoryTracker: public Fun4AllBase
+class Fun4AllMemoryTracker : public Fun4AllBase
 {
-public:
+ public:
   static Fun4AllMemoryTracker *instance()
   {
     if (mInstance) return mInstance;
@@ -24,7 +24,7 @@ public:
   int GetRSSMemory() const;
   void PrintMemoryTracker(const std::string &name = "") const;
 
-private:
+ private:
   Fun4AllMemoryTracker();
   std::string CreateFullTrackerName(const std::string &trackername, const std::string &group = "");
   static Fun4AllMemoryTracker *mInstance;

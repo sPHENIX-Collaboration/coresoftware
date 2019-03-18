@@ -28,7 +28,8 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
 
  protected:
   int ReadNextEventSyncObject();
-  void ReadRunTTree(const int i) {m_ReadRunTTree = i;}
+  void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
+
  private:
   int m_ReadRunTTree;
   int events_total;

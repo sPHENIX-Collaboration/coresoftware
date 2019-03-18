@@ -23,8 +23,8 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual int fileclose() { return -1; }
   virtual int run(const int /*nevents=0*/) { return -1; }
   virtual int ReadInRunNode(PHCompositeNode * /*RunNode*/) { return -1; }
-  std::string FileName() const {return m_FileName;}
-  void FileName(const std::string &fn) {m_FileName = fn;}
+  std::string FileName() const { return m_FileName; }
+  void FileName(const std::string &fn) { m_FileName = fn; }
   virtual int GetSyncObject(SyncObject ** /*mastersync*/) { return 0; }
   virtual int SyncIt(const SyncObject * /*mastersync*/) { return Fun4AllReturnCodes::SYNC_FAIL; }
   virtual int BranchSelect(const std::string & /*branch*/, const int /*iflag*/) { return -1; }
@@ -46,21 +46,21 @@ class Fun4AllInputManager : public Fun4AllBase
   virtual void SetRunNumber(const int runno) { m_MyRunNumber = runno; }
   virtual int RunNumber() const { return m_MyRunNumber; }
   void AddToFileOpened(const std::string &filename) { m_FileListOpened.push_back(filename); }
-  std::pair<std::list<std::string>::const_iterator,  std::list<std::string>::const_iterator> FileOpenListBeginEnd() {return std::make_pair(m_FileListOpened.begin(), m_FileListOpened.end());}
-  std::string InputNode() {return m_InputNode;}
-  void InputNode(const std::string &innode) {m_InputNode = innode;}
-  std::string TopNodeName() const {return m_TopNodeName;}
-  bool FileListEmpty() const {return m_FileList.empty();}
-  virtual int IsOpen() const {return m_IsOpen;}
-  
+  std::pair<std::list<std::string>::const_iterator, std::list<std::string>::const_iterator> FileOpenListBeginEnd() { return std::make_pair(m_FileListOpened.begin(), m_FileListOpened.end()); }
+  std::string InputNode() { return m_InputNode; }
+  void InputNode(const std::string &innode) { m_InputNode = innode; }
+  std::string TopNodeName() const { return m_TopNodeName; }
+  bool FileListEmpty() const { return m_FileList.empty(); }
+  virtual int IsOpen() const { return m_IsOpen; }
+
  protected:
   Fun4AllInputManager(const std::string &name = "DUMMY", const std::string &nodename = "DST", const std::string &topnodename = "TOP");
   void UpdateFileList();
   int OpenNextFile();
-  void IsOpen(const int i) {m_IsOpen = i;}
-  Fun4AllSyncManager *MySyncManager() {return m_MySyncManager;}
+  void IsOpen(const int i) { m_IsOpen = i; }
+  Fun4AllSyncManager *MySyncManager() { return m_MySyncManager; }
 
-private:
+ private:
   Fun4AllSyncManager *m_MySyncManager;
   int m_IsOpen;
   int m_Repeat;

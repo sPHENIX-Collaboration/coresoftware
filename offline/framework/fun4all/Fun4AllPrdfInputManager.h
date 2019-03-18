@@ -3,8 +3,8 @@
 
 #include "Fun4AllInputManager.h"
 
-#include <string>
 #include <map>
+#include <string>
 
 class Event;
 class Eventiterator;
@@ -34,7 +34,7 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   Event *evt;
   Event *save_evt;
   Eventiterator *eventiterator;
-  SyncObject* syncobject;
+  SyncObject *syncobject;
   std::string m_PrdfNodeName;
 };
 
