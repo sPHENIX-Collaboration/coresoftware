@@ -92,8 +92,7 @@ libfun4all_la_LIBADD = \
 
 libSubsysReco_la_SOURCES = \
   $(ROOT5_SUBSYSRECODICTS) \
-  Fun4AllBase.cc \
-  SubsysReco.cc
+  Fun4AllBase.cc
 
 if ! MAKEROOT6
 libSubsysReco_la_LDFLAGS = \

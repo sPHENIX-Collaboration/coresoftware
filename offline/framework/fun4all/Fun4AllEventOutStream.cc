@@ -1,11 +1,11 @@
 #include "Fun4AllEventOutStream.h"
 
+#include <phool/phool.h>
+
 #include <Event/oEvent.h>
 #include <Event/A_Event.h>
 #include <Event/Event.h>
 #include <Event/packet.h>
-
-#include <phool/phool.h>
 
 #include <queue>
 

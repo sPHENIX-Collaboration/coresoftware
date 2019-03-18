@@ -1,5 +1,5 @@
-#ifndef FUN4ALLDSTOUTPUTMANAGER_H__
-#define FUN4ALLDSTOUTPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLDSTOUTPUTMANAGER_H
+#define FUN4ALL_FUN4ALLDSTOUTPUTMANAGER_H
 
 #include "Fun4AllOutputManager.h"
 
@@ -32,4 +32,4 @@ class Fun4AllDstOutputManager : public Fun4AllOutputManager
   PHNodeIOManager *dstOut;
 };
 
-#endif /* FUN4ALLDSTOUTPUTMANAGER_H__ */
+#endif

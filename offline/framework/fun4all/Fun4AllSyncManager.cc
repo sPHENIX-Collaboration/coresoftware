@@ -1,8 +1,8 @@
 #include "Fun4AllSyncManager.h"
+
 #include "Fun4AllInputManager.h"
 #include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllServer.h"
-
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>

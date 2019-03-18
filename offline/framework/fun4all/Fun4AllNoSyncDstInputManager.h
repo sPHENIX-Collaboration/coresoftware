@@ -1,7 +1,8 @@
-#ifndef __FUN4ALLNOSYNCDSTINPUTMANAGER_H__
-#define __FUN4ALLNOSYNCDSTINPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLNOSYNCDSTINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLNOSYNCDSTINPUTMANAGER_H
 
 #include "Fun4AllDstInputManager.h"
+
 #include "Fun4AllReturnCodes.h"
 
 class PHCompositeNode;

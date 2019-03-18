@@ -1,12 +1,12 @@
-#ifndef __TDirectoryHelper_h__
-#define __TDirectoryHelper_h__
+#ifndef FUN4ALL_TDIRECTORYHELPER_H
+#define FUN4ALL_TDIRECTORYHELPER_H
+
+#include <string>
+#include <vector>
 
 class TH1;
 class TDirectory;
 class TFile;
-
-#include <string>
-#include <vector>
 
 class TDirectoryHelper 
 {

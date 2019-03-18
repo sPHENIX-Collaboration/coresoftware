@@ -7,15 +7,14 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TNamed.h>
+#include <TTree.h>
 
 #include <RVersion.h>
 #if ROOT_VERSION_CODE >= ROOT_VERSION(5,20,0)
 #define HAS_THNSPARSE 1
 #include <THnSparse.h>
 #endif
-
-#include <TNamed.h>
-#include <TTree.h>
 
 #include <iomanip>
 #include <iostream>

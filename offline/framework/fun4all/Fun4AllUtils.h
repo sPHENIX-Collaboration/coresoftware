@@ -1,5 +1,5 @@
-#ifndef FUN4ALLUTILS_H
-#define FUN4ALLUTILS_H
+#ifndef FUN4ALL_FUN4ALLUTILS_H
+#define FUN4ALL_FUN4ALLUTILS_H
 
 #include <map>
 #include <string>

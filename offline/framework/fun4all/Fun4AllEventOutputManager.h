@@ -3,6 +3,7 @@
 
 
 #include "Fun4AllOutputManager.h"
+
 #include <string>
 
 class Fun4AllEventOutStream;

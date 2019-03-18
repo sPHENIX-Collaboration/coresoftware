@@ -1,7 +1,8 @@
-#ifndef __SUBSYSRECO_H__
-#define __SUBSYSRECO_H__
+#ifndef FUN4ALL_SUBSYSRECO_H
+#define FUN4ALL_SUBSYSRECO_H
 
 #include "Fun4AllBase.h"
+
 #include <string>
 
 class PHCompositeNode;
@@ -67,5 +68,5 @@ class SubsysReco: public Fun4AllBase
   SubsysReco(const std::string &name = "NONAME") : Fun4AllBase(name) {}
 };
 
-#endif /* __SUBSYSRECO_H__ */
+#endif
 
