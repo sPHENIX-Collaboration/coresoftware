@@ -538,7 +538,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
           continue;
         }
 
-
         if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0, 1) < detnoise)
         {
           if (gRandom->Uniform(0, 1) <= dethiteff)
@@ -548,7 +547,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
             {
               if (Verbosity())
               {
-                std::cout << "adding vertical plane hit ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
+                std::cout << "PHG4TrackFastSim::PseudoPatternRecognition -adding vertical plane hit ilayer: "
+                          << ilayer << "; detphires: " << detphires << "; detradres: " << detradres << " \n";
                 hit->identify();
               }
               meas = PHG4HitToMeasurementVerticalPlane(hit,
@@ -563,7 +563,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
             {
               if (Verbosity())
               {
-                std::cout << "adding cylinder hit ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
+                std::cout << "PHG4TrackFastSim::PseudoPatternRecognition -adding cylinder hit ilayer: "
+                          << ilayer << "; detphires: " << detphires << "; detlonres : " << detlonres << " \n";
                 hit->identify();
               }
               meas = PHG4HitToMeasurementCylinder(hit,
@@ -587,6 +588,23 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
       }
     } /*Loop layers within one detector layer*/
   }   /*Loop detector layers*/
+
+  if (Verbosity())
+  {
+    std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - meas_out.size = " << meas_out.size() << " for "
+              << "particle: "
+              << endl;
+    particle->identify();
+
+    std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - seed_pos = "
+              << seed_pos.x() << ", " << seed_pos.y() << ". " << seed_pos.z() << endl;
+    std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - seed_pos = "
+              << seed_mom.x() << ", " << seed_mom.y() << ". " << seed_mom.z() << endl;
+    std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - seed_cov = "
+              << sqrt(seed_cov[0][0]) << ", " << sqrt(seed_cov[1][1]) << ". " << sqrt(seed_cov[2][2])
+              << ","
+              << sqrt(seed_cov[3][3]) << ", " << sqrt(seed_cov[4][4]) << ". " << sqrt(seed_cov[5][5]) << endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -617,8 +635,8 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   //  }
 
   // always extrapolate to a z-line through the vertex
-  double pathlenth_orig_from_first_meas =  phgf_track->extrapolateToLine(*gf_state, vtx,
-                                                                 TVector3(0., 0., 1.));
+  double pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
+                                                                        TVector3(0., 0., 1.));
 
   if (pathlenth_orig_from_first_meas < -999990)
   {
