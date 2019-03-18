@@ -8,6 +8,7 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(G4_MAIN)/include \
   -I$(OFFLINE_MAIN)/include  \
+  -I$(OFFLINE_MAIN)/include/eigen3  \
   -I$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
