@@ -18,6 +18,11 @@
 #include <TMatrixDSym.h>
 #include <TVector3.h>
 
+// rootcint barfs with this header so we need to hide it
+#ifndef __CINT__
+#include <gsl/gsl_rng.h>
+#endif
+
 class PHG4Particle;
 namespace PHGenFit
 {
@@ -298,6 +303,12 @@ class PHG4TrackFastSim : public SubsysReco
   //!
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
+
+
+#ifndef __CINT__
+  //! random generator that conform with sPHENIX standard
+  gsl_rng *m_RandomGenerator;
+#endif
 };
 
 #endif /*__PHG4TrackFastSim_H__*/

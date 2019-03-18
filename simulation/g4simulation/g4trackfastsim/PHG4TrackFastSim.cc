@@ -17,16 +17,10 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
-#include <cmath>
-#include <map>
-#include <utility>
 
-#include <TMath.h>
-#include <TMatrixF.h>
-#include <TRandom.h>
-#include <TString.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -48,6 +42,17 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
 
+#include <TMath.h>
+#include <TMatrixF.h>
+#include <TString.h>
+
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+
+#include <cmath>
+#include <map>
+#include <utility>
+
 #define LogDebug(exp) \
   if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
 #define LogError(exp) \
@@ -65,7 +70,7 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   , /*_clustermap_out_name("SvtxClusterMap"),*/ _trackmap_out_name("SvtxTrackMap")
   , /*_clustermap_out(NULL),*/ _trackmap_out(NULL)
   , _fitter(NULL)
-  , _fit_alg_name("DafRef")// was ("KalmanFitterRefTrack")
+  , _fit_alg_name("DafRef")  // was ("KalmanFitterRefTrack")
   , _primary_assumption_pid(211)
   , _do_evt_display(false)
   , _use_vertex_in_fitting(true)
@@ -75,18 +80,16 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
 {
   _event = -1;
 
-  //  for (int i = 0; i < _N_DETECTOR_LAYER; i++)
-  //  {
-  //    _phg4hits_names.push_back(Form("G4HIT_FGEM_%1d", i));
-  //  }
-
-  //  _state_names.clear();
-  //  _state_location.clear();
+  unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
+  cout << Name() << " random seed: " << seed << endl;
+  m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(m_RandomGenerator, seed);
 }
 
 PHG4TrackFastSim::~PHG4TrackFastSim()
 {
   delete _fitter;
+  gsl_rng_free(m_RandomGenerator);
 }
 
 /*
@@ -209,9 +212,9 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
   PHG4VtxPoint* vtxPoint = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
   // Smear the vertex ONCE for all particles in the event
-  vtxPoint->set_x(vtxPoint->get_x() + gRandom->Gaus(0, _vertex_xy_resolution));
-  vtxPoint->set_y(vtxPoint->get_y() + gRandom->Gaus(0, _vertex_xy_resolution));
-  vtxPoint->set_z(vtxPoint->get_z() + gRandom->Gaus(0, _vertex_z_resolution));
+  vtxPoint->set_x(vtxPoint->get_x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
+  vtxPoint->set_y(vtxPoint->get_y() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
+  vtxPoint->set_z(vtxPoint->get_z() + gsl_ran_gaussian(m_RandomGenerator, _vertex_z_resolution));
 
   PHG4TruthInfoContainer::ConstRange itr_range;
   if (_primary_tracking)
@@ -490,10 +493,10 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
       const double momMagSmear = 0.1;                   // relative
 
       seed_mom.SetMag(
-          gRandom->Gaus(True_mom.Mag(),
-                        momMagSmear * True_mom.Mag()));
-      seed_mom.SetTheta(gRandom->Gaus(True_mom.Theta(), momSmear));
-      seed_mom.SetPhi(gRandom->Gaus(True_mom.Phi(), momSmear));
+          True_mom.Mag() + gsl_ran_gaussian(m_RandomGenerator,
+                                            momMagSmear * True_mom.Mag()));
+      seed_mom.SetTheta(True_mom.Theta() + gsl_ran_gaussian(m_RandomGenerator, momSmear));
+      seed_mom.SetPhi(True_mom.Phi() + gsl_ran_gaussian(m_RandomGenerator, momSmear));
     }
   }
 
@@ -542,9 +545,9 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
           continue;
         }
 
-        if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0, 1) < detnoise)
+        if (hit->get_trkid() == particle->get_track_id() || gsl_ran_binomial(m_RandomGenerator, detnoise, 1) > 0)
         {
-          if (gRandom->Uniform(0, 1) <= dethiteff)
+          if (gsl_ran_binomial(m_RandomGenerator, dethiteff, 1) > 0)
           {
             PHGenFit::Measurement* meas = NULL;
             if (dettype == Vertical_Plane)
@@ -557,7 +560,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               }
               meas = PHG4HitToMeasurementVerticalPlane(hit,
                                                        detphires, detradres);
-
             }
             else if (dettype == Cylinder)
             {
@@ -569,7 +571,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               }
               meas = PHG4HitToMeasurementCylinder(hit,
                                                   detphires, detlonres);
-
             }
             else
             {
@@ -742,8 +743,8 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementVerticalPlane
   TVector3 u = v.Cross(TVector3(0, 0, 1));
   u = 1 / u.Mag() * u;
 
-  double u_smear = gRandom->Gaus(0, phi_resolution);
-  double v_smear = gRandom->Gaus(0, r_resolution);
+  double u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
+  double v_smear = gsl_ran_gaussian(m_RandomGenerator, r_resolution);
   pos.SetX(g4hit->get_avg_x() + u_smear * u.X() + v_smear * v.X());
   pos.SetY(g4hit->get_avg_y() + u_smear * u.Y() + v_smear * v.Y());
 
@@ -773,8 +774,8 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementCylinder(
   TVector3 u = v.Cross(TVector3(pos.X(), pos.Y(), 0));
   u = 1 / u.Mag() * u;
 
-  double u_smear = gRandom->Gaus(0, phi_resolution);
-  double v_smear = gRandom->Gaus(0, z_resolution);
+  double u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
+  double v_smear = gsl_ran_gaussian(m_RandomGenerator, z_resolution);
   pos.SetX(g4hit->get_avg_x() + u_smear * u.X() + v_smear * v.X());
   pos.SetY(g4hit->get_avg_y() + u_smear * u.Y() + v_smear * v.Y());
 
