@@ -101,9 +101,12 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 {
   _event = -1;
 
-  CreateNodes(topNode);
+  int ret =
+      CreateNodes(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
-  GetNodes(topNode);
+  ret = GetNodes(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
   TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
   PHField* field = PHFieldUtility::GetFieldMapNode(nullptr, topNode);
@@ -410,12 +413,15 @@ int PHG4TrackFastSim::GetNodes(PHCompositeNode* topNode)
   {
     PHG4HitContainer* phg4hit = findNode::getClass<PHG4HitContainer>(
         topNode, _phg4hits_names[i].c_str());
-    if (!phg4hit && _event < 2)
+    if (!phg4hit)
     {
       cout << PHWHERE << _phg4hits_names[i].c_str()
            << " node not found on node tree" << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
+
+    if (Verbosity() > 0)
+      cout << "PHG4TrackFastSim::GetNodes - node added: " << _phg4hits_names[i].c_str() << endl;
 
     _phg4hits.push_back(phg4hit);
   }
@@ -487,6 +493,10 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
     }
   }
 
+  if (Verbosity())
+    std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - DEBUG: "
+              << "searching for hits from  " << _phg4hits.size() << " PHG4Hit nodes" << endl;
+
   for (unsigned int ilayer = 0; ilayer < _phg4hits.size(); ilayer++)
   {
     if (!_phg4hits[ilayer])
@@ -528,11 +538,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
           continue;
         }
 
-        if (Verbosity())
-        {
-          std::cout << "DEBUG: ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
-          hit->identify();
-        }
 
         if (hit->get_trkid() == particle->get_track_id() || gRandom->Uniform(0, 1) < detnoise)
         {
@@ -541,6 +546,11 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
             PHGenFit::Measurement* meas = NULL;
             if (dettype == Vertical_Plane)
             {
+              if (Verbosity())
+              {
+                std::cout << "adding vertical plane hit ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
+                hit->identify();
+              }
               meas = PHG4HitToMeasurementVerticalPlane(hit,
                                                        detphires, detradres);
 
@@ -551,6 +561,11 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
             }
             else if (dettype == Cylinder)
             {
+              if (Verbosity())
+              {
+                std::cout << "adding cylinder hit ilayer: " << ilayer << "; sublayer: " << *layerit << "; itr->first : " << itr->first << " \n";
+                hit->identify();
+              }
               meas = PHG4HitToMeasurementCylinder(hit,
                                                   detphires, detlonres);
 
@@ -585,7 +600,6 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   double ndf = phgf_track->get_ndf();
 
   double pathlenth_from_first_meas = -999999;
-  double pathlenth_orig_from_first_meas = -999999;
   unique_ptr<genfit::MeasuredStateOnPlane> gf_state(new genfit::MeasuredStateOnPlane());
 
   //  if (_detector_type == Vertical_Plane)
@@ -603,7 +617,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   //  }
 
   // always extrapolate to a z-line through the vertex
-  pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
+  double pathlenth_orig_from_first_meas =  phgf_track->extrapolateToLine(*gf_state, vtx,
                                                                  TVector3(0., 0., 1.));
 
   if (pathlenth_orig_from_first_meas < -999990)
