@@ -459,15 +459,19 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
                                                std::vector<PHGenFit::Measurement*>& meas_out, TVector3& seed_pos,
                                                TVector3& seed_mom, TMatrixDSym& seed_cov, const bool do_smearing)
 {
-  seed_pos.SetXYZ(0, 0, 0);
-  seed_mom.SetXYZ(0, 0, 10);
   seed_cov.ResizeTo(6, 6);
 
+  seed_pos.SetXYZ(0, 0, 0);
+  // reset the seed resolution to the approximate position resolution of the last detector
+  seed_cov[0][0] = .1 * .1;
+  seed_cov[1][1] = .1 * .1;
+  seed_cov[2][2] = 30 * 30;
   //  for (int i = 0; i < 3; i++)
   //  {
   //    seed_cov[i][i] = _phi_resolution * _phi_resolution;
   //  }
 
+  seed_mom.SetXYZ(0, 0, 10);
   for (int i = 3; i < 6; i++)
   {
     seed_cov[i][i] = 10;
@@ -485,11 +489,11 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
       const double momSmear = 3. / 180. * TMath::Pi();  // rad
       const double momMagSmear = 0.1;                   // relative
 
-      seed_mom.SetPhi(gRandom->Gaus(True_mom.Phi(), momSmear));
-      seed_mom.SetTheta(gRandom->Gaus(True_mom.Theta(), momSmear));
       seed_mom.SetMag(
           gRandom->Gaus(True_mom.Mag(),
                         momMagSmear * True_mom.Mag()));
+      seed_mom.SetTheta(gRandom->Gaus(True_mom.Theta(), momSmear));
+      seed_mom.SetPhi(gRandom->Gaus(True_mom.Phi(), momSmear));
     }
   }
 
@@ -554,10 +558,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               meas = PHG4HitToMeasurementVerticalPlane(hit,
                                                        detphires, detradres);
 
-              // reset the seed resolution to the approximate position resolution of the last detector
-              seed_cov[0][0] = detradres * detradres;
-              seed_cov[1][1] = detradres * detradres;
-              seed_cov[2][2] = detradres * detradres;
             }
             else if (dettype == Cylinder)
             {
@@ -570,10 +570,6 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               meas = PHG4HitToMeasurementCylinder(hit,
                                                   detphires, detlonres);
 
-              // reset the seed resolution to the approximate position resolution of the last detector
-              seed_cov[0][0] = detphires * detphires;
-              seed_cov[1][1] = detphires * detphires;
-              seed_cov[2][2] = detlonres * detlonres;
             }
             else
             {
