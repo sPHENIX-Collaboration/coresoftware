@@ -117,7 +117,7 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of input files in Fun4AllInputManager " << Name() << ":" << endl;
 
-    for (string file: m_FileList)
+    for (string file : m_FileList)
     {
       cout << file << endl;
     }
@@ -129,7 +129,7 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of SubsysRecos in Fun4AllInputManager " << Name() << ":" << endl;
 
-      for (SubsysReco *subsys: m_SubsystemsVector)
+    for (SubsysReco *subsys : m_SubsystemsVector)
     {
       cout << subsys->Name() << endl;
     }
@@ -161,7 +161,7 @@ int Fun4AllInputManager::RejectEvent()
   if (!m_SubsystemsVector.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
-    for (SubsysReco *subsys:  m_SubsystemsVector)
+    for (SubsysReco *subsys : m_SubsystemsVector)
     {
       if (!m_InitRun)
       {
@@ -213,22 +213,21 @@ void Fun4AllInputManager::UpdateFileList()
 int Fun4AllInputManager::OpenNextFile()
 {
   while (!m_FileList.empty())
+  {
+    list<string>::const_iterator iter = m_FileList.begin();
+    if (Verbosity())
     {
-      list<string>::const_iterator iter = m_FileList.begin();
-      if (Verbosity())
-        {
-          cout << PHWHERE << " opening next file: " << *iter << endl;
-        }
-      if (fileopen(*iter))
-        {
-          cout << PHWHERE << " could not open file: " << *iter << endl;
-          m_FileList.pop_front();
-        }
-      else
-        {
-          return 0;
-        }
-
+      cout << PHWHERE << " opening next file: " << *iter << endl;
     }
+    if (fileopen(*iter))
+    {
+      cout << PHWHERE << " could not open file: " << *iter << endl;
+      m_FileList.pop_front();
+    }
+    else
+    {
+      return 0;
+    }
+  }
   return -1;
 }

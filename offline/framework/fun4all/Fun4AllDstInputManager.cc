@@ -59,7 +59,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
          << " and opening " << filenam << endl;
     fileclose();
   }
-  FileName(filenam); 
+  FileName(filenam);
   FROG frog;
   fullfilename = frog.location(FileName());
   if (Verbosity() > 0)
@@ -136,7 +136,7 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
   {
     IsOpen(1);
     events_thisfile = 0;
-    setBranches();              // set branch selections
+    setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
   }

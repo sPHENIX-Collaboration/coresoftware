@@ -74,7 +74,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
 {
   if (what == "ALL" || what == "WRITENODES")
   {
-//    vector<string>::const_iterator iter;
+    //    vector<string>::const_iterator iter;
     cout << Name() << " writes " << OutFileName() << endl;
     if (savenodes.empty())
     {
@@ -115,7 +115,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
 int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 {
   PHNodeIterator nodeiter(startNode);
-//  vector<string>::iterator iter;
+  //  vector<string>::iterator iter;
   PHNode *ChosenNode = 0;
   if (savenodes.empty())
   {

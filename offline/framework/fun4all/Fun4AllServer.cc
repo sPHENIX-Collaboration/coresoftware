@@ -186,7 +186,6 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
 {
   Fun4AllServer *se = Fun4AllServer::instance();
 
-
   // if somebody opens a TFile (or changes the gDirectory) in the ctor
   // we need to set it to a "known" directory
   gROOT->cd(default_Tdirectory.c_str());
@@ -227,9 +226,9 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
   try
   {
     string memory_tracker_name = subsystem->Name() + "_" + topnodename;
-    ffamemtracker->Start(memory_tracker_name,"SubsysReco");
+    ffamemtracker->Start(memory_tracker_name, "SubsysReco");
     iret = subsystem->Init(subsystopNode);
-    ffamemtracker->Stop(memory_tracker_name,"SubsysReco");
+    ffamemtracker->Stop(memory_tracker_name, "SubsysReco");
   }
   catch (const exception &e)
   {
@@ -269,7 +268,7 @@ int Fun4AllServer::registerSubsystem(SubsysReco *subsystem, const string &topnod
   PHTimer timer(timer_name);
   if (timer_map.find(timer_name) == timer_map.end())
   {
-    timer_map.insert(make_pair(timer_name,timer));
+    timer_map.insert(make_pair(timer_name, timer));
   }
   RetCodes.push_back(iret);  // vector with return codes
   return 0;
@@ -568,36 +567,36 @@ int Fun4AllServer::process_event()
       if (titer != timer_map.end())
       {
         timer_found = true;
-	titer->second.restart();
+        titer->second.restart();
       }
       else
       {
-	cout << "could not find timer for " << timer_name << endl;
+        cout << "could not find timer for " << timer_name << endl;
       }
-      ffamemtracker->Start(timer_name,"SubsysReco");
+      ffamemtracker->Start(timer_name, "SubsysReco");
       ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
       int retcode = (*iter).first->process_event((*iter).second);
       ffamemtracker->Snapshot("Fun4AllServerProcessEvent");
-// we have observed an index overflow in RetCodes. I assume it is some
-// memory corruption elsewhere which hits the icnt variable. Rather than
-// the previous [], use at() which does bounds checking and throws an 
-// exception which will allow us to catch this and print out icnt and the size
+      // we have observed an index overflow in RetCodes. I assume it is some
+      // memory corruption elsewhere which hits the icnt variable. Rather than
+      // the previous [], use at() which does bounds checking and throws an
+      // exception which will allow us to catch this and print out icnt and the size
       try
       {
-	RetCodes.at(icnt) = retcode;
+        RetCodes.at(icnt) = retcode;
       }
       catch (const exception &e)
       {
-	cout << PHWHERE << " caught exception thrown during RetCodes.at(icnt)" << endl;
-	cout << "RetCodes.size(): " << RetCodes.size() << ", icnt: " << icnt << endl;
-	cout << "error: " << e.what() << endl;
-	gSystem->Exit(1);
+        cout << PHWHERE << " caught exception thrown during RetCodes.at(icnt)" << endl;
+        cout << "RetCodes.size(): " << RetCodes.size() << ", icnt: " << icnt << endl;
+        cout << "error: " << e.what() << endl;
+        gSystem->Exit(1);
       }
       if (timer_found)
       {
-	titer->second.stop();
+        titer->second.stop();
       }
-      ffamemtracker->Stop(timer_name,"SubsysReco");
+      ffamemtracker->Stop(timer_name, "SubsysReco");
     }
     catch (const exception &e)
     {
@@ -695,9 +694,9 @@ int Fun4AllServer::process_event()
             cout << "Writing Event for " << (*iterOutMan)->Name() << endl;
           }
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
-	  ffamemtracker->Start((*iterOutMan)->Name(),"OutputManager");
+          ffamemtracker->Start((*iterOutMan)->Name(), "OutputManager");
           (*iterOutMan)->WriteGeneric(dstNode);
-	  ffamemtracker->Stop((*iterOutMan)->Name(),"OutputManager");
+          ffamemtracker->Stop((*iterOutMan)->Name(), "OutputManager");
           ffamemtracker->Snapshot("Fun4AllServerOutputManager");
         }
         else
@@ -735,7 +734,7 @@ int Fun4AllServer::ResetNodeTree()
   vector<string> ResetNodeList;
   ResetNodeList.push_back("DST");
   PHNodeReset reset;
-  reset.Verbosity(Verbosity()>0 ? Verbosity()-1: 0); // one lower verbosity level than Fun4AllServer
+  reset.Verbosity(Verbosity() > 0 ? Verbosity() - 1 : 0);  // one lower verbosity level than Fun4AllServer
   map<string, PHCompositeNode *>::const_iterator iter;
   for (iter = topnodemap.begin(); iter != topnodemap.end(); ++iter)
   {
@@ -848,9 +847,9 @@ int Fun4AllServer::BeginRun(const int runno)
     }
     try
     {
-      ffamemtracker->Start((*iter).first->Name(),"SubsysReco");
+      ffamemtracker->Start((*iter).first->Name(), "SubsysReco");
       iret = (*iter).first->InitRun((*iter).second);
-      ffamemtracker->Stop((*iter).first->Name(),"SubsysReco");
+      ffamemtracker->Stop((*iter).first->Name(), "SubsysReco");
     }
     catch (const exception &e)
     {
@@ -1461,7 +1460,7 @@ int Fun4AllServer::run(const int nevnts, const bool require_nevents)
       Verbosity(--iverb);
     }
 
-    ++icnt;// completed one event processing
+    ++icnt;  // completed one event processing
     if (require_nevents)
     {
       if (std::find(RetCodes.begin(),
@@ -1703,7 +1702,7 @@ void Fun4AllServer::PrintTimer(const string &name)
       cout << "Existing timers:" << endl;
       for (iter = timer_map.begin(); iter != timer_map.end(); ++iter)
       {
-	cout << iter->first << endl;
+        cout << iter->first << endl;
       }
     }
   }

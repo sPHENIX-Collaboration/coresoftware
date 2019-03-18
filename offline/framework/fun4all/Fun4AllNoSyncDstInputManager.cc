@@ -6,26 +6,24 @@
 using namespace std;
 
 Fun4AllNoSyncDstInputManager::Fun4AllNoSyncDstInputManager(const string &name,
-							   const string &nodename,
-							   const string &topnodename) :
-  Fun4AllDstInputManager(name, nodename, topnodename)
+                                                           const string &nodename,
+                                                           const string &topnodename)
+  : Fun4AllDstInputManager(name, nodename, topnodename)
 {
-  return ;
+  return;
 }
 
-int
-Fun4AllNoSyncDstInputManager::NoRunTTree()
+int Fun4AllNoSyncDstInputManager::NoRunTTree()
 {
   if (!IsOpen())
-    {
-      ReadRunTTree(0);
-    }
+  {
+    ReadRunTTree(0);
+  }
   else
-    {
-      cout << Name() 
-           << "NoRunTTree() has to be done before opening a file" << endl;
-      exit(1);
-    }
+  {
+    cout << Name()
+         << "NoRunTTree() has to be done before opening a file" << endl;
+    exit(1);
+  }
   return 0;
 }
-
