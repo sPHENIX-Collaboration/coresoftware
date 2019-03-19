@@ -229,7 +229,8 @@ pkginclude_HEADERS = \
   PHG4Units.h \
   PHG4Utils.h \
   PHG4VtxPoint.h \
-  PHG4VtxPointv1.h
+  PHG4VtxPointv1.h \
+  ReadEICFiles.h
 
 ################################################
 # linking tests
