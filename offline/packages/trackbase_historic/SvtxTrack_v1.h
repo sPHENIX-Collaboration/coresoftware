@@ -146,9 +146,9 @@ class SvtxTrack_v1 : public SvtxTrack
   ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const { return _cluster_keys.find(clusterid); }
   ConstClusterKeyIter begin_cluster_keys() const { return _cluster_keys.begin(); }
   ConstClusterKeyIter end_cluster_keys() const { return _cluster_keys.end(); }
-  ClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) { return _cluster_keyss.find(clusterid); }
-  ConstClusterKeyIter begin_cluster_keys() const { return _cluster_keys.begin(); }
-  ConstClusterKeyIter end_cluster_keys() const { return _cluster_keys.end(); }
+  ClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) { return _cluster_keys.find(clusterid); }
+  ClusterKeyIter begin_cluster_keys() { return _cluster_keys.begin(); }
+  ClusterKeyIter end_cluster_keys()  { return _cluster_keys.end(); }
 
   //
   // calo projection methods ---------------------------------------------------
@@ -196,6 +196,7 @@ class SvtxTrack_v1 : public SvtxTrack
 
   // cluster contents
   ClusterSet _cluster_ids;
+  ClusterKeySet _cluster_keys;
 
   // calorimeter matches
   std::map<CAL_LAYER, float> _cal_dphi;
