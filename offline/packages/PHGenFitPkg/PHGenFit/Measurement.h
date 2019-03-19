@@ -32,13 +32,13 @@ class Measurement
   }
 
   // old tracking
-  unsigned in get_cluster_ID() const
+  unsigned int get_cluster_ID() const
   {
     return _clusterID;
   }
   void set_cluster_ID(unsigned int clusterId)
   {
-    _clusterkID = clusterId;
+    _clusterkey = clusterId;
   }
 
   // new tracking

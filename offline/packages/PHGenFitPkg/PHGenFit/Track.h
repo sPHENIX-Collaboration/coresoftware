@@ -106,7 +106,7 @@ class Track
   }
   void set_cluster_keys(const std::vector<TrkrDefs::cluskey>& clusterkeys)
   {
-    _clusterkeys = clusterkeyss;
+    _clusterkeys = clusterkeys;
   }
 
 
