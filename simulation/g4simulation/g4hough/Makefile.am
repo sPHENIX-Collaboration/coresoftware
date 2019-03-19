@@ -45,6 +45,8 @@ libg4hough_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lmvtx \
+  -lintt \
   -ltrackbase_historic_io \
   libg4hough_io.la
 

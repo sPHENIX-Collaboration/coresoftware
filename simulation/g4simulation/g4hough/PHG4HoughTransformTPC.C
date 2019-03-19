@@ -22,6 +22,9 @@
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
+#include <mvtx/CylinderGeom_MVTX.h>
+#include <intt/CylinderGeomINTT.h>
+
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
