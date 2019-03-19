@@ -27,7 +27,6 @@ noinst_HEADERS = \
   G4CellNtuple.h \
   G4EdepNtuple.h \
   G4EvtTree.h \
-  G4HitTTree.h \
   G4RawTowerTTree.h \
   G4RootHitContainer.h \
   G4RootRawTower.h \
@@ -36,7 +35,8 @@ noinst_HEADERS = \
   G4SnglTree.h
 
 pkginclude_HEADERS = \
-  G4HitNtuple.h
+  G4HitNtuple.h \
+  G4HitTTree.h
 
 ROOTDICTS = \
   G4RootHitContainer_Dict.cc \
