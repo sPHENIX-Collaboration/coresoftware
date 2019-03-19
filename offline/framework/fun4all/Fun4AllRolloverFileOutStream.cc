@@ -73,7 +73,7 @@ int Fun4AllRolloverFileOutStream::WriteEventOut(Event *evt)
     {
       cout << "Fun4AllRolloverFileOutStream: opening new file " << outfilename << endl;
     }
-    mymanager->SetOutfileName(outfilename);
+    MyManager()->SetOutfileName(outfilename);
     // compression level 6 is best compromize between speed and compression
     // max is 9 which is much slower but only squeezes out a few more bytes
     SetoBuffer(new ogzBuffer(OutFileDescriptor(), xb(), LENGTH, 6, irun, iSeq()));

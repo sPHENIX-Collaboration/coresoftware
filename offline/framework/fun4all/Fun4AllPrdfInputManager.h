@@ -3,8 +3,8 @@
 
 #include "Fun4AllInputManager.h"
 
-#include <string>
 #include <map>
+#include <string>
 
 class Event;
 class Eventiterator;
@@ -19,7 +19,6 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam);
   int fileclose();
   int run(const int nevents = 0);
-  int isOpen() {return isopen;}
 
   void Print(const std::string &what = "ALL") const;
   int ResetEvent();
@@ -28,16 +27,14 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int SyncIt(const SyncObject *mastersync);
 
  protected:
-  int OpenNextFile();
   int segment;
-  int isopen;
   int events_total;
   int events_thisfile;
   PHCompositeNode *topNode;
   Event *evt;
   Event *save_evt;
   Eventiterator *eventiterator;
-  SyncObject* syncobject;
+  SyncObject *syncobject;
   std::string m_PrdfNodeName;
 };
 

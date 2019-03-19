@@ -56,11 +56,12 @@ int Fun4AllDstOutputManager::StripRunNode(const string &nodename)
 
 int Fun4AllDstOutputManager::outfileopen(const string &fname)
 {
+  delete dstOut;
   dstOut = new PHNodeIOManager(fname, PHWrite);
   if (!dstOut->isFunctional())
   {
     delete dstOut;
-    dstOut = 0;
+    dstOut = nullptr;
     cout << PHWHERE << " Could not open " << fname << endl;
     return -1;
   }
@@ -73,7 +74,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
 {
   if (what == "ALL" || what == "WRITENODES")
   {
-//    vector<string>::const_iterator iter;
+    //    vector<string>::const_iterator iter;
     cout << Name() << " writes " << OutFileName() << endl;
     if (savenodes.empty())
     {
@@ -114,7 +115,7 @@ void Fun4AllDstOutputManager::Print(const string &what) const
 int Fun4AllDstOutputManager::Write(PHCompositeNode *startNode)
 {
   PHNodeIterator nodeiter(startNode);
-//  vector<string>::iterator iter;
+  //  vector<string>::iterator iter;
   PHNode *ChosenNode = 0;
   if (savenodes.empty())
   {

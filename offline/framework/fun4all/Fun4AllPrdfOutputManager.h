@@ -8,39 +8,36 @@
 class PHRawOManager;
 class PHCompositeNode;
 
-class Fun4AllPrdfOutputManager: public Fun4AllOutputManager
+class Fun4AllPrdfOutputManager : public Fun4AllOutputManager
 {
  public:
-
   //! constructor
-  Fun4AllPrdfOutputManager(const std::string &myname = "PRDFOUT" , const std::string &filename = "data_out.prdf");
+  Fun4AllPrdfOutputManager(const std::string &myname = "PRDFOUT", const std::string &filename = "data_out.prdf");
 
   //! destructor
-  virtual ~Fun4AllPrdfOutputManager( void );
-  
+  virtual ~Fun4AllPrdfOutputManager(void);
+
   //! PRDF node initialization [class specific method]
-  int InitPrdfNode( PHCompositeNode* top_node, const std::string &nodeName="SIMPRDF" );
-  
+  int InitPrdfNode(PHCompositeNode *top_node, const std::string &nodeName = "SIMPRDF");
+
   //! reinitialize raw output manager to write to new filename. Close old one if any
   int outfileopen(const std::string &fname);
-  
+
   //! event write method (startNode argument is ignored. prdfNode is always used)
   int Write(PHCompositeNode *startNode);
 
- protected:
-
+ private:
   /*! 
     initialize prdf output manager every time 
     the output file name is changed including first event
   */
-  int InitPrdfManager( void );
+  int InitPrdfManager(void);
 
   //! prdf node
   PHCompositeNode *prdfNode;
-  
+
   //! output manager
   PHRawOManager *prdfOut;
 };
 
 #endif
-  

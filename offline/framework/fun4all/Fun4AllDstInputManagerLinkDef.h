@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class Fun4AllDstInputManager-!;
+#pragma link C++ class Fun4AllDstInputManager - !;
 
 #endif /* __CINT__ */

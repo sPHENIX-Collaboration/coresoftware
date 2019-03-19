@@ -83,7 +83,7 @@ class Fun4AllOutputManager : public Fun4AllBase
   //! get number of Events
   virtual size_t EventsWritten() const { return m_NEvents; }
   //! increment number of events
-  virtual void IncrementEvents(const unsigned int i) {m_NEvents += i;}
+  virtual void IncrementEvents(const unsigned int i) { m_NEvents += i; }
   //! get output file name
   virtual std::string OutFileName() const { return m_OutFileName; }
   void OutFileName(const std::string &name) { m_OutFileName = name; }
