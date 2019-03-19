@@ -511,7 +511,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   PHGenFit::Measurement* TrkrClusterToPHGenFitMeasurement(const TrkrCluster* cluster);
 
   //! TrackPropPatRec Call.
-  std::vector<unsigned int> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
+  std::vector<TrkrDefs::cluskey> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
 
   //! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
   //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
@@ -624,7 +624,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::map<int, float> _search_wins_phi;
   std::map<int, float> _search_wins_theta;
 
-  std::multimap<unsigned int, unsigned int> _layer_thetaID_phiID_cluserID;
+  std::multimap<unsigned int, TrkrDefs::cluskey> _layer_thetaID_phiID_cluserID;
 
   float _half_max_theta;
   float _half_max_phi;

@@ -3,6 +3,8 @@
 
 #include "SvtxTrackState.h"
 
+#include <trackbase/TrkrDefs.h>
+
 #include <phool/PHObject.h>
 
 #include <limits.h>
@@ -18,7 +20,8 @@ class SvtxTrack : public PHObject
   typedef StateMap::const_iterator ConstStateIter;
   typedef StateMap::iterator StateIter;
 
-  typedef std::set<unsigned int> ClusterSet;
+  //typedef std::set<unsigned int> ClusterSet;
+  typedef std::set<TrkrDefs::cluskey> ClusterSet;
   typedef ClusterSet::const_iterator ConstClusterIter;
   typedef ClusterSet::iterator ClusterIter;
 
@@ -146,13 +149,17 @@ class SvtxTrack : public PHObject
   virtual void clear_clusters() {}
   virtual bool empty_clusters() const { return false; }
   virtual size_t size_clusters() const { return 0; }
-  virtual void insert_cluster(unsigned int clusterid) {}
-  virtual size_t erase_cluster(unsigned int clusterid) { return 0; }
+  //virtual void insert_cluster(unsigned int clusterid) {}
+  //virtual size_t erase_cluster(unsigned int clusterid) { return 0; }
+  virtual void insert_cluster(TrkrDefs::cluskey clusterid) {}
+  virtual size_t erase_cluster(TrkrDefs::cluskey clusterid) { return 0; }
   virtual ConstClusterIter begin_clusters() const { return ClusterSet().end(); }
-  virtual ConstClusterIter find_cluster(unsigned int clusterid) const { return ClusterSet().end(); }
+  //virtual ConstClusterIter find_cluster(unsigned int clusterid) const { return ClusterSet().end(); }
+  virtual ConstClusterIter find_cluster(TrkrDefs::cluskey clusterid) const { return ClusterSet().end(); }
   virtual ConstClusterIter end_clusters() const { return ClusterSet().end(); }
   virtual ClusterIter begin_clusters() { return ClusterSet().end(); }
-  virtual ClusterIter find_cluster(unsigned int clusterid) { return ClusterSet().end(); }
+  //virtual ClusterIter find_cluster(unsigned int clusterid) { return ClusterSet().end(); }
+  virtual ClusterIter find_cluster(TrkrDefs::cluskey clusterid) { return ClusterSet().end(); }
   virtual ClusterIter end_clusters() { return ClusterSet().end(); }
 
   //

@@ -368,7 +368,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 
 	  double phi_err = radius * sqrt(phi_cov / (adc_sum * 0.14));
 	  double z_err = sqrt(z_cov / (adc_sum * 0.14)) ;
-	  cout << " layer " << layer <<  " clusz " << clusz << " z_err " << z_err << " z cov " << z_cov << " clusphi " << clusphi << " phi error " << phi_err << " phi cov " << phi_cov << endl; 
+
 	  // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping time
 	  if (clusz < 0)
 	    clusz -= zz_shaping_correction;

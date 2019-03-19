@@ -9,6 +9,8 @@
 
 #include <GenFit/Track.h>
 
+#include <trackbase/TrkrDefs.h>
+
 //STL
 #include <map>
 #include <memory>
@@ -87,12 +89,12 @@ class Track
 
   TVector3 get_mom() const;
 
-  const std::vector<unsigned int>& get_cluster_IDs() const
+  const std::vector<TrkrDefs::cluskey>& get_cluster_IDs() const
   {
     return _clusterIDs;
   }
 
-  void set_cluster_IDs(const std::vector<unsigned int>& clusterIDs)
+  void set_cluster_IDs(const std::vector<TrkrDefs::cluskey>& clusterIDs)
   {
     _clusterIDs = clusterIDs;
   }
@@ -120,7 +122,7 @@ class Track
 
   genfit::Track* _track;
   //std::vector<PHGenFit::Measurement*> _measurements;
-  std::vector<unsigned int> _clusterIDs;
+  std::vector<TrkrDefs::cluskey> _clusterIDs;
 
   //SMART(genfit::Track) _track;
 };

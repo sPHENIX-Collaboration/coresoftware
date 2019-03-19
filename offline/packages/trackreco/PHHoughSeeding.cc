@@ -1113,27 +1113,20 @@ int PHHoughSeeding::translate_input()
   TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
   for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
     {
-      cout << "                       _clusters size " << _clusters.size() << endl;  
       clusid += 1;
       TrkrCluster *cluster = iter->second;
       TrkrDefs::cluskey cluskey = iter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
-      if(Verbosity() > 10)
-	{
-	  unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
-	  cout << "translate: clusid " << clusid << " clusterkey " << cluskey << " trkrid " << trkrid << " layer " << layer << endl;
-	}       
+
       count++;
 
       nhits_all[layer]++;
 
       unsigned int ilayer = UINT_MAX;      
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
-      cout << " ilayer " << ilayer << " iter->first " << iter->first << " layer " << layer << " it->first " << it->first << " it->second " << it->second << endl;
       if (it != _layer_ilayer_map.end())
 	ilayer = it->second;
       if (ilayer >= _nlayers_seeding) continue;
-      cout << " found ilayer = " << ilayer << " for this layer " << layer << endl;
 
       SimpleHit3D hit3d;
       nhits3d++;      
@@ -1170,7 +1163,7 @@ int PHHoughSeeding::translate_input()
 	}
 
       nhits[ilayer]++;
-      //cout << "    adding cluster " << clusid << endl;
+      cout << "    adding cluster " << clusid << " with key " << cluskey << endl;
       //hit3d.print();
       _clusters.push_back(hit3d);
       //cout << "     ilayer " << ilayer << " nhits " << nhits[ilayer] << " _clusters size now " << _clusters.size() << endl;
@@ -1529,13 +1522,12 @@ int PHHoughSeeding::full_track_seeding()
   {
     cout << __LINE__ << ": Event: " << _event << ": # tracks after cleanup: " << _tracks.size() << endl;
   }
-  cout << "here0" << endl;
+
   for (unsigned int tt = 0; tt < refit_tracks.size(); ++tt)
   {
     refit_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
     refit_covars.push_back(_tracker->getKalmanStates()[tt].C);
   }
-  cout << "here1" << endl;
 
   _tracks = refit_tracks;
   _track_errors = refit_errors;
@@ -1544,7 +1536,6 @@ int PHHoughSeeding::full_track_seeding()
   // shift back to global coordinates
   shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
   if (Verbosity() >= 1) _t_seeds_cleanup->stop();
-  cout << "here2" << endl;
 #endif
 
   // okay now we are done with the tracker
@@ -1553,21 +1544,17 @@ int PHHoughSeeding::full_track_seeding()
   //FIXME yuhw
   _clusters.clear();
 
-  cout << "here3" << endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHHoughSeeding::export_output()
 {
-  cout << "here7" << endl;
   _all_tracks = _tracks;
   _all_track_errors = _track_errors;
   _all_track_covars = _track_covars;
 
   if (_all_tracks.empty())
     return Fun4AllReturnCodes::EVENT_OK;
-
-  cout << "here8" << endl;
 
   SvtxVertex_v1 vertex;
   vertex.set_t0(0.0);
@@ -1589,8 +1576,12 @@ int PHHoughSeeding::export_output()
   // need to translate this into the PHG4Track object...
 
   vector<SimpleHit3D> track_hits;
-  unsigned int clusterID;
+  //unsigned int clusterID;
+  TrkrDefs::cluskey clusterID;
 
+  // _all_tracks is a SimpleTrack3D object filled in helixhough, track_hits is a SimpleHit3D object set eqaul to the simple hits associated with the track in helixhough
+  // The SimpleHit3D knows the cluskey for its clusters
+  // Here we make SvtxTrack objects
   for (unsigned int itrack = 0; itrack < _all_tracks.size(); itrack++)
   {
     SvtxTrack_v1 track;
@@ -1600,20 +1591,20 @@ int PHHoughSeeding::export_output()
 
     for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++)
     {
-      if ((track_hits.at(ihit).get_id()) >= _cluster_map->size())
+      if (track_hits.at(ihit).get_id() >= _cluster_map->size())
       {
         continue;
       }
       // Note: id format here needs to be cluster key
-      //clusterID = track_hits.at(ihit).get_cluskey();
-      clusterID = track_hits.at(ihit).get_id();
+      clusterID = track_hits.at(ihit).get_cluskey();
+      //clusterID = track_hits.at(ihit).get_id();
 						     
       //mark hit asu used by iteration number n
       //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
       _assoc_container->SetClusterTrackAssoc(clusterID, track.get_id());
       
 #ifdef _DEBUG_
-      TrkrCluster* cluster = _cluster_map->findCluster(track_hits.at(ihit).get_cluskey());
+      TrkrCluster* cluster = _cluster_map->findCluster(clusterID);
       cout
           << __LINE__
           << ": itrack: " << itrack
@@ -1624,7 +1615,6 @@ int PHHoughSeeding::export_output()
 #endif
 
       //TODO verify this change
-      //int clusterLayer = cluster->get_layer();
       //if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
       track.insert_cluster(clusterID);
       //}
@@ -1698,13 +1688,13 @@ int PHHoughSeeding::export_output()
     track.set_y(vertex.get_y() + d * sin(phi));
     track.set_z(vertex.get_z() + z0);
 
-#ifdef _DEBUG_
+    //#ifdef _DEBUG_
     cout
         << __LINE__
         << ": itrack: " << itrack
         << ": nhits: " << track_hits.size()
         << endl;
-#endif
+    //#endif
     _track_map->insert(&track);
     vertex.insert_track(track.get_id());
 

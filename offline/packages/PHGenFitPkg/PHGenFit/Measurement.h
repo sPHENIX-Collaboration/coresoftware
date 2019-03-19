@@ -8,6 +8,7 @@
 #define PHGENFIT_MEASUREMENT_H
 
 #include <GenFit/AbsMeasurement.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <climits>
 
@@ -30,19 +31,19 @@ class Measurement
     return _measurement;
   }
 
-  unsigned int get_cluster_ID() const
+  TrkrDefs::cluskey get_cluster_ID() const
   {
     return _clusterID;
   }
 
-  void set_cluster_ID(unsigned int clusterId)
+  void set_cluster_ID(TrkrDefs::cluskey clusterId)
   {
     _clusterID = clusterId;
   }
 
  protected:
   genfit::AbsMeasurement* _measurement;
-  unsigned int _clusterID;
+  TrkrDefs::cluskey _clusterID;
 };
 }  // namespace PHGenFit
 

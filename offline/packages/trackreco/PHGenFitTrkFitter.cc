@@ -298,6 +298,8 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   //	if (_event % 1000 == 0)
   //		cout << PHWHERE << "Events processed: " << _event << endl;
 
+  cout << "Start PHGenFitTrkfitter::process_event" << endl;
+
   GetNodes(topNode);
 
   //! stands for Refit_GenFit_Tracks
@@ -312,28 +314,34 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   if (_trackmap_refit)
     _trackmap_refit->empty();
 
+  // _trackmap is SvtxTrackMap from the node tree
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
        ++iter)
   {
+    //cout << "   process SVTXTrack " << iter->first << endl;
     SvtxTrack* svtx_track = iter->second;
+    //svtx_track->identify();
     if (!svtx_track)
       continue;
+    //cout << "  svtx_track->get_pt() " << svtx_track->get_pt() << " _fit_min_pT " << _fit_min_pT  << endl;
     if (!(svtx_track->get_pt() > _fit_min_pT))
       continue;
+    //cout << "  refit the track" << endl;
 
     //! stands for Refit_PHGenFit_Track
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
 
     if (rf_phgf_track)
-    {
-      svtxtrack_genfittrack_map[svtx_track->get_id()] =
+      {
+	svtxtrack_genfittrack_map[svtx_track->get_id()] =
           rf_phgf_tracks.size();
-      rf_phgf_tracks.push_back(rf_phgf_track);
-      if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
-        rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-    }
+	rf_phgf_tracks.push_back(rf_phgf_track);
+	if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
+	  rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+      }
+     
   }
-
+  
   /*
 	 * add tracks to event display
 	 * needs to make copied for smart ptrs will be destroied even
@@ -904,7 +912,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
                                                                const SvtxVertex* invertex)
 {
   //std::shared_ptr<PHGenFit::Track> empty_track(NULL);
-
   if (!intrack)
   {
     cerr << PHWHERE << " Input SvtxTrack is NULL!" << endl;
@@ -919,7 +926,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
     return NULL;
   }
-*/
+
   PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
                                                                         "G4CELL_TPC");
 
@@ -938,15 +945,23 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     return nullptr;
   }
 
-  PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
-
-  PHG4CylinderGeomContainer* geom_container_maps = findNode::getClass<
-      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-
   if (!cells_svtx && !cells_maps && !cells_intt)
   {
     cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
+    return NULL;
+  }
+
+*/
+
+  PHG4CylinderGeomContainer* geom_container_intt = findNode::getClass<
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+
+  PHG4CylinderGeomContainer* geom_container_mvtx = findNode::getClass<
+      PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+
+  if(!geom_container_intt || !geom_container_mvtx)
+  {
+    cout << PHWHERE << "ERROR: Can't find intt and/or mvtx geometry nodes !" << endl;
     return NULL;
   }
 
@@ -1015,7 +1030,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     measurements.push_back(meas);
   }
 #else
-
   //! 1000 is a arbitrary number for now
   const double vertex_chi2_over_dnf_cut = 1000;
   const double vertex_cov_element_cut = 10000;  //arbitrary cut cm*cm
@@ -1043,34 +1057,35 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       PHGenFit::Measurement* meas = new PHGenFit::SpacepointMeasurement(
           pos, cov);
       measurements.push_back(meas);
-      //			if(Verbosity() >= 2)
-      //			{
-      //				meas->getMeasurement()->Print();
-      //			}
+      if(Verbosity() >= 2)
+	{
+	  meas->getMeasurement()->Print();
+	}
     }
   }
 #endif
 
   // sort clusters with radius before fitting
-
-  std::map<float, unsigned int> m_r_cluster_id;
+  //intrack->identify();
+  //cout << "    loop over intrack clusters " << endl;
+  std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
   for (auto iter = intrack->begin_clusters();
        iter != intrack->end_clusters(); ++iter)
   {
-    unsigned int cluster_id = *iter;
-    //SvtxCluster* cluster = _clustermap->get(cluster_id);
+    TrkrDefs::cluskey cluster_id = *iter;
     TrkrCluster* cluster = _clustermap->findCluster(cluster_id);
     float x = cluster->getPosition(0);
     float y = cluster->getPosition(1);
     float r = sqrt(x * x + y * y);
-    m_r_cluster_id.insert(std::pair<float, unsigned int>(r, cluster_id));
+    m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_id));
+    //cout << "    cluster " << cluster_id << " radius " << r << endl;
   }
 
   for (auto iter = m_r_cluster_id.begin();
        iter != m_r_cluster_id.end();
        ++iter)
   {
-    unsigned int cluster_id = iter->second;
+    TrkrDefs::cluskey cluster_id = iter->second;
     //SvtxCluster* cluster = _clustermap->get(cluster_id);
     TrkrCluster* cluster = _clustermap->findCluster(cluster_id);
     if (!cluster)
@@ -1080,10 +1095,11 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     }
 
 #ifdef _DEBUG_
+    int output_layer = TrkrDefs::getLayer(cluster_id);
     cout
         << __LINE__
         << ": ID: " << cluster_id
-        << ": layer: " << cluster->get_layer()
+        << ": layer: " << output_layer
         << endl;
 #endif
 
@@ -1186,7 +1202,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	CylinderGeom_MVTX* geom =
-          (CylinderGeom_MVTX*) geom_container_maps->GetLayerGeom(
+          (CylinderGeom_MVTX*) geom_container_mvtx->GetLayerGeom(
 								     layer);
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	geom->find_sensor_center(stave_index, 0,
@@ -1630,7 +1646,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   //			LogError("No cluster Found!");
   //			continue;
   //		}
-  //		//cluster->identify(); //DEBUG
+  //		//cluster->identify; //DEBUG
   //
   //		//unsigned int l = cluster->get_layer();
   //

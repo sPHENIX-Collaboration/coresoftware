@@ -125,12 +125,13 @@ void SvtxTrack_v1::identify(std::ostream& os) const
 
   if (!empty_clusters())
   {
-    os << "clusters: ";
+
+    os << "list of cluster keys ";
     for (SvtxTrack::ConstClusterIter iter = begin_clusters();
          iter != end_clusters();
          ++iter)
     {
-      unsigned int cluster_id = *iter;
+      TrkrDefs::cluskey cluster_id = *iter;
       os << cluster_id << " ";
     }
   }

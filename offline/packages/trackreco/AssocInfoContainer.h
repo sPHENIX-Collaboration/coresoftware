@@ -2,13 +2,14 @@
 #define TRACKRECO_ASSOCINFOCONTAINER_H
 
 #include <phool/PHObject.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <map>
 
 class AssocInfoContainer : public PHObject
 {
  public:
-  typedef std::multimap<unsigned int, unsigned int> ClusterTrackMap;
+  typedef std::multimap<TrkrDefs::cluskey, unsigned int> ClusterTrackMap;
 
   AssocInfoContainer();
   virtual ~AssocInfoContainer();
@@ -16,12 +17,12 @@ class AssocInfoContainer : public PHObject
   void Reset();
   void identify(std::ostream& os = std::cout) const;
 
-  void SetClusterTrackAssoc(const unsigned int& cluster_id, const unsigned int& track_id)
+  void SetClusterTrackAssoc(const TrkrDefs::cluskey& cluster_id, const unsigned int& track_id)
   {
     _map_cluster_id_track_id.insert(ClusterTrackMap::value_type(cluster_id, track_id));
   }
 
-  std::vector<unsigned int> GetTracksFromCluster(const unsigned int& cluster_id) const
+  std::vector<unsigned int> GetTracksFromCluster(const TrkrDefs::cluskey& cluster_id) const
   {
     std::vector<unsigned int> ret;
     for (auto iter = _map_cluster_id_track_id.lower_bound(cluster_id);

@@ -6,6 +6,8 @@
 
 #include <phool/PHObject.h>
 
+#include <trackbase/TrkrDefs.h>
+
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -127,13 +129,13 @@ class SvtxTrack_v1 : public SvtxTrack
   void clear_clusters() { _cluster_ids.clear(); }
   bool empty_clusters() const { return _cluster_ids.empty(); }
   size_t size_clusters() const { return _cluster_ids.size(); }
-  void insert_cluster(unsigned int clusterid) { _cluster_ids.insert(clusterid); }
-  size_t erase_cluster(unsigned int clusterid) { return _cluster_ids.erase(clusterid); }
+  void insert_cluster(TrkrDefs::cluskey clusterid) { _cluster_ids.insert(clusterid); }
+  size_t erase_cluster(TrkrDefs::cluskey clusterid) { return _cluster_ids.erase(clusterid); }
   ConstClusterIter begin_clusters() const { return _cluster_ids.begin(); }
-  ConstClusterIter find_cluster(unsigned int clusterid) const { return _cluster_ids.find(clusterid); }
+  ConstClusterIter find_cluster(TrkrDefs::cluskey clusterid) const { return _cluster_ids.find(clusterid); }
   ConstClusterIter end_clusters() const { return _cluster_ids.end(); }
   ClusterIter begin_clusters() { return _cluster_ids.begin(); }
-  ClusterIter find_cluster(unsigned int clusterid) { return _cluster_ids.find(clusterid); }
+  ClusterIter find_cluster(TrkrDefs::cluskey clusterid) { return _cluster_ids.find(clusterid); }
   ClusterIter end_clusters() { return _cluster_ids.end(); }
 
   //
