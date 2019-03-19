@@ -42,16 +42,12 @@
 
 // forward declarations
 class PHCompositeNode;
-//class SvtxClusterMap;
-//class SvtxCluster;
 class TrkrClusterContainer;
 class TrkrCluster;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class SvtxVertex;
-//class SvtxHitMap;
-//class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;

@@ -43,13 +43,10 @@
 
 // forward declarations
 class PHCompositeNode;
-//class SvtxClusterMap;
-//class SvtxCluster;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class SvtxVertex;
-//class SvtxHitMap;
 class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
@@ -532,7 +529,6 @@ class PHHoughSeeding : public PHTrackSeeding
 
   // node pointers
   BbcVertexMap *_bbc_vertexes;
-  //SvtxClusterMap* _cluster_map;
   //SvtxTrackMap* _track_map;
   //SvtxVertexMap* _vertex_map;
 
@@ -541,10 +537,6 @@ class PHHoughSeeding : public PHTrackSeeding
 
   int *_hit_used_map;
   int _hit_used_map_size;
-
-  //PHG4CellContainer *_cells_svtx;
-  //PHG4CellContainer *_cells_intt;
-  //PHG4CellContainer *_cells_maps;
 
   PHG4CylinderGeomContainer *_geom_container_intt;
   PHG4CylinderGeomContainer *_geom_container_maps;

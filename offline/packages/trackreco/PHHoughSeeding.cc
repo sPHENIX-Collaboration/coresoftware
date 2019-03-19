@@ -17,11 +17,6 @@
 
 
 // trackbase_historic includes
-//#include <trackbase_historic/SvtxCluster.h>
-//#include <trackbase_historic/SvtxClusterMap.h>
-//#include <trackbase_historic/SvtxHitMap.h>
-//#include <trackbase_historic/SvtxHit_v1.h>
-
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -1616,7 +1611,7 @@ int PHHoughSeeding::export_output()
 
       //TODO verify this change
       //if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
-      track.insert_cluster(clusterID);
+      track.insert_cluster_key(clusterID);
       //}
     }
 

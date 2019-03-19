@@ -31,19 +31,31 @@ class Measurement
     return _measurement;
   }
 
-  TrkrDefs::cluskey get_cluster_ID() const
+  // old tracking
+  unsigned in get_cluster_ID() const
   {
     return _clusterID;
   }
-
-  void set_cluster_ID(TrkrDefs::cluskey clusterId)
+  void set_cluster_ID(unsigned int clusterId)
   {
-    _clusterID = clusterId;
+    _clusterkID = clusterId;
+  }
+
+  // new tracking
+  TrkrDefs::cluskey get_cluster_key() const
+  {
+    return _clusterkey;
+  }
+  void set_cluster_key(TrkrDefs::cluskey clusterkey)
+  {
+    _clusterkey = clusterkey;
   }
 
  protected:
   genfit::AbsMeasurement* _measurement;
-  TrkrDefs::cluskey _clusterID;
+  unsigned int _clusterID;
+  TrkrDefs::cluskey _clusterkey;
+
 };
 }  // namespace PHGenFit
 
