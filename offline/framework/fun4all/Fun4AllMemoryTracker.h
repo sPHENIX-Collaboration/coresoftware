@@ -23,6 +23,7 @@ class Fun4AllMemoryTracker : public Fun4AllBase
 
   int GetRSSMemory() const;
   void PrintMemoryTracker(const std::string &name = "") const;
+  std::vector<int> GetMemoryVector(const std::string &name) const;
 
  private:
   Fun4AllMemoryTracker();
