@@ -1093,20 +1093,19 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
 		if (cell_mvtx) {
-			/*
 			PHG4Cell* cell = cell_mvtx;
 
 			int stave_index = cell->get_stave_index();
 			int half_stave_index = cell->get_half_stave_index();
 			int module_index = cell->get_module_index();
 			int chip_index = cell->get_chip_index();
-			*/
+
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
 			CylinderGeom_MVTX *geom =
-					(CylinderGeom_MVTX*) geom_container_mvtx->GetLayerGeom(layer);
+			  dynamic_cast<CylinderGeom_MVTX*>(geom_container_mvtx->GetLayerGeom(layer));
 			// returns the center of the sensor in world coordinates - used to get the ladder phi location
-			//geom->find_sensor_center(stave_index, half_stave_index,
-			//		module_index, chip_index, ladder_location);
+			geom->find_sensor_center(stave_index, half_stave_index,
+						 module_index, chip_index, ladder_location);
 			//n.Print();
 			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
 			n.RotateZ(geom->get_stave_phi_tilt());
