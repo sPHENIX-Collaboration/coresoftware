@@ -1093,8 +1093,9 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		unsigned int layer = cluster->get_layer();
 		//std::cout << "cluster layer: " << layer << std::endl;
 		if (cell_mvtx) {
-			PHG4Cell* cell = cell_mvtx;
 			/*
+			PHG4Cell* cell = cell_mvtx;
+
 			int stave_index = cell->get_stave_index();
 			int half_stave_index = cell->get_half_stave_index();
 			int module_index = cell->get_module_index();
