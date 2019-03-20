@@ -144,3 +144,14 @@ void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
   }
   return;
 }
+
+vector<int> Fun4AllMemoryTracker::GetMemoryVector(const std::string &name) const
+{
+  vector<int> memvec;
+  auto iter =  mMemoryTrackerMap.find(name);
+  if (iter != mMemoryTrackerMap.end())
+  {
+    memvec = iter->second;
+  }
+  return memvec;
+}
