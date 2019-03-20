@@ -75,7 +75,6 @@ pkginclude_HEADERS = \
   PHG4SvtxMomentumRecal.h \
   PHG4SvtxThresholds.h \
   PHG4SvtxTrackProjection.h \
-  PHG4TrackFastSim.h \
   PHG4TrackGhostRejection.h \
   PHG4TrackKalmanFitter.h \
   PHG4TruthPatRec.h \
@@ -122,7 +121,6 @@ else
   PHRaveVertexing_Dict.cc \
   PHG4InitZVertexing_Dict.cc \
   PHG4TruthPatRec_Dict.cc \
-  PHG4TrackFastSim_Dict.cc \
   PHG4PatternReco_Dict.cc \
   PHG4TrackGhostRejection_Dict.cc \
   PHG4TrackKalmanFitter_Dict.cc \
@@ -161,7 +159,6 @@ libg4hough_la_SOURCES = \
   PHG4TrackGhostRejection.C \
   PHG4TrackKalmanFitter.C \
   PHG4TruthPatRec.C \
-  PHG4TrackFastSim.C \
   PHG4SvtxMomentumRecal.C \
   PHG4GenFitTrackProjection.C \
   PHG4SvtxTrackProjection.C \

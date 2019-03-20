@@ -262,6 +262,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       if ( ! hepmc_particles.at(p)->production_vertex() )
         {
           cout << "ReadEICFiles::process_event - Missing production vertex for one or more non-beam particles!" << endl;
+          delete evt;
           return Fun4AllReturnCodes::ABORTRUN;
         }
     }

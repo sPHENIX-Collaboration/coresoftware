@@ -27,8 +27,7 @@ using namespace std;
 
 Fun4AllDstInputManager::Fun4AllDstInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllInputManager(name, nodename, topnodename)
-  , readrunttree(1)
-  , isopen(0)
+  , m_ReadRunTTree(1)
   , events_total(0)
   , events_thisfile(0)
   , events_skipped_during_sync(0)
@@ -53,14 +52,14 @@ Fun4AllDstInputManager::~Fun4AllDstInputManager()
 int Fun4AllDstInputManager::fileopen(const string &filenam)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  if (isopen)
+  if (IsOpen())
   {
     cout << "Closing currently open file "
          << FileName()
          << " and opening " << filenam << endl;
     fileclose();
   }
-  FileName(filenam); 
+  FileName(filenam);
   FROG frog;
   fullfilename = frog.location(FileName());
   if (Verbosity() > 0)
@@ -83,12 +82,12 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     exit(1);
   }
   // first read the runnode if not disabled
-  if (readrunttree)
+  if (m_ReadRunTTree)
   {
     IManager = new PHNodeIOManager(fullfilename, PHReadOnly, PHRunTree);
     if (IManager->isFunctional())
     {
-      runNode = se->getNode(RunNode.c_str(), topNodeName.c_str());
+      runNode = se->getNode(RunNode, TopNodeName());
       IManager->read(runNode);
       // get the current run number
       RunHeader *runheader = findNode::getClass<RunHeader>(runNode, "RunHeader");
@@ -131,13 +130,13 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
     delete IManager;
   }
   // now open the dst node
-  dstNode = se->getNode(InputNode(), topNodeName);
+  dstNode = se->getNode(InputNode(), TopNodeName());
   IManager = new PHNodeIOManager(fullfilename, PHReadOnly);
   if (IManager->isFunctional())
   {
-    isopen = 1;
+    IsOpen(1);
     events_thisfile = 0;
-    setBranches();              // set branch selections
+    setBranches();                // set branch selections
     AddToFileOpened(FileName());  // add file to the list of files which were opened
     return 0;
   }
@@ -153,10 +152,9 @@ int Fun4AllDstInputManager::fileopen(const string &filenam)
 
 int Fun4AllDstInputManager::run(const int nevents)
 {
-  if (!isopen)
+  if (!IsOpen())
   {
-    if (filelist.empty())
-
+    if (FileListEmpty())
     {
       if (Verbosity() > 0)
       {
@@ -212,27 +210,15 @@ readagain:
 
 int Fun4AllDstInputManager::fileclose()
 {
-  if (!isopen)
+  if (!IsOpen())
   {
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
   }
   delete IManager;
-  IManager = 0;
-  isopen = 0;
-  if (!filelist.empty())
-  {
-    if (repeat)
-    {
-      filelist.push_back(*(filelist.begin()));
-      if (repeat > 0)
-      {
-        repeat--;
-      }
-    }
-    filelist.pop_front();
-  }
-
+  IManager = nullptr;
+  IsOpen(0);
+  UpdateFileList();
   return 0;
 }
 
@@ -607,28 +593,6 @@ void Fun4AllDstInputManager::Print(const string &what) const
   }
   Fun4AllInputManager::Print(what);
   return;
-}
-
-int Fun4AllDstInputManager::OpenNextFile()
-{
-  while (!filelist.empty())
-  {
-    list<string>::const_iterator iter = filelist.begin();
-    if (Verbosity())
-    {
-      cout << PHWHERE << " opening next file: " << *iter << endl;
-    }
-    if (fileopen(*iter))
-    {
-      cout << PHWHERE << " could not open file: " << *iter << endl;
-      filelist.pop_front();
-    }
-    else
-    {
-      return 0;
-    }
-  }
-  return -1;
 }
 
 int Fun4AllDstInputManager::PushBackEvents(const int i)

@@ -13,11 +13,7 @@ class PHG4Hit;
 class PHG4SteppingAction
 {
  public:
-  PHG4SteppingAction(const int i = 0)
-    : m_Verbosity(i)
-    , m_Name("NONAME")
-  {
-  }
+  PHG4SteppingAction(const int i = 0);
 
   virtual ~PHG4SteppingAction()
   {

@@ -1,7 +1,9 @@
 #include "Fun4AllInputManager.h"
-#include <phool/phool.h>
+
 #include "Fun4AllServer.h"
 #include "SubsysReco.h"
+
+#include <phool/phool.h>
 
 #include <boost/filesystem.hpp>
 
@@ -12,26 +14,27 @@ using namespace std;
 
 Fun4AllInputManager::Fun4AllInputManager(const string &name, const string &nodename, const string &topnodename)
   : Fun4AllBase(name)
+  , m_MySyncManager(nullptr)
+  , m_IsOpen(0)
+  , m_Repeat(0)
+  , m_MyRunNumber(0)
+  , m_InitRun(0)
   , m_InputNode(nodename)
-  , topNodeName(topnodename)
-  , mySyncManager(NULL)
-  , repeat(0)
-  , myrunnumber(0)
-  , initrun(0)
+  , m_TopNodeName(topnodename)
 {
   return;
 }
 
 Fun4AllInputManager::~Fun4AllInputManager()
 {
-  while (Subsystems.begin() != Subsystems.end())
+  while (m_SubsystemsVector.begin() != m_SubsystemsVector.end())
   {
     if (Verbosity())
     {
-      Subsystems.back()->Verbosity(Verbosity());
+      m_SubsystemsVector.back()->Verbosity(Verbosity());
     }
-    delete Subsystems.back();
-    Subsystems.pop_back();
+    delete m_SubsystemsVector.back();
+    m_SubsystemsVector.pop_back();
   }
 }
 
@@ -42,8 +45,8 @@ int Fun4AllInputManager::AddFile(const string &filename)
     cout << "Adding " << filename << " to list of input files for "
          << Name() << endl;
   }
-  filelist.push_back(filename);
-  filelist_copy.push_back(filename);
+  m_FileList.push_back(filename);
+  m_FileListCopy.push_back(filename);
   return 0;
 }
 
@@ -114,10 +117,9 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of input files in Fun4AllInputManager " << Name() << ":" << endl;
 
-    list<string>::const_iterator iter;
-    for (iter = filelist.begin(); iter != filelist.end(); ++iter)
+    for (string file : m_FileList)
     {
-      cout << *iter << endl;
+      cout << file << endl;
     }
   }
   if (what == "ALL" || what == "SUBSYSTEMS")
@@ -127,10 +129,9 @@ void Fun4AllInputManager::Print(const string &what) const
          << endl;
     cout << "List of SubsysRecos in Fun4AllInputManager " << Name() << ":" << endl;
 
-    vector<SubsysReco *>::const_iterator miter;
-    for (miter = Subsystems.begin(); miter != Subsystems.end(); ++miter)
+    for (SubsysReco *subsys : m_SubsystemsVector)
     {
-      cout << (*miter)->Name() << endl;
+      cout << subsys->Name() << endl;
     }
     cout << endl;
   }
@@ -140,7 +141,7 @@ void Fun4AllInputManager::Print(const string &what) const
 int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  int iret = subsystem->Init(se->topNode(topNodeName));
+  int iret = subsystem->Init(se->topNode(m_TopNodeName));
   if (iret)
   {
     cout << PHWHERE << " Error initializing subsystem "
@@ -151,28 +152,27 @@ int Fun4AllInputManager::registerSubsystem(SubsysReco *subsystem)
   {
     cout << "Registering Subsystem " << subsystem->Name() << endl;
   }
-  Subsystems.push_back(subsystem);
+  m_SubsystemsVector.push_back(subsystem);
   return 0;
 }
 
 int Fun4AllInputManager::RejectEvent()
 {
-  if (!Subsystems.empty())
+  if (!m_SubsystemsVector.empty())
   {
     Fun4AllServer *se = Fun4AllServer::instance();
-    vector<SubsysReco *>::iterator iter;
-    for (iter = Subsystems.begin(); iter != Subsystems.end(); ++iter)
+    for (SubsysReco *subsys : m_SubsystemsVector)
     {
-      if (!initrun)
+      if (!m_InitRun)
       {
-        (*iter)->InitRun(se->topNode(topNodeName));
-        initrun = 1;
+        subsys->InitRun(se->topNode(m_TopNodeName));
+        m_InitRun = 1;
       }
       if (Verbosity() > 0)
       {
-        cout << Name() << ": Fun4AllInpuManager::EventReject processing " << (*iter)->Name() << endl;
+        cout << Name() << ": Fun4AllInpuManager::EventReject processing " << subsys->Name() << endl;
       }
-      if ((*iter)->process_event(se->topNode(topNodeName)) != Fun4AllReturnCodes::EVENT_OK)
+      if (subsys->process_event(se->topNode(m_TopNodeName)) != Fun4AllReturnCodes::EVENT_OK)
       {
         return Fun4AllReturnCodes::DISCARDEVENT;
       }
@@ -183,12 +183,51 @@ int Fun4AllInputManager::RejectEvent()
 
 int Fun4AllInputManager::ResetFileList()
 {
-  if (filelist_copy.empty())
+  if (m_FileListCopy.empty())
   {
     cout << Name() << ": ResetFileList can only be used with filelists" << endl;
     return -1;
   }
-  filelist.clear();
-  filelist = filelist_copy;
+  m_FileList.clear();
+  m_FileList = m_FileListCopy;
   return 0;
+}
+
+void Fun4AllInputManager::UpdateFileList()
+{
+  if (!m_FileList.empty())
+  {
+    if (m_Repeat)
+    {
+      m_FileList.push_back(*(m_FileList.begin()));
+      if (m_Repeat > 0)
+      {
+        m_Repeat--;
+      }
+    }
+    m_FileList.pop_front();
+  }
+  return;
+}
+
+int Fun4AllInputManager::OpenNextFile()
+{
+  while (!m_FileList.empty())
+  {
+    list<string>::const_iterator iter = m_FileList.begin();
+    if (Verbosity())
+    {
+      cout << PHWHERE << " opening next file: " << *iter << endl;
+    }
+    if (fileopen(*iter))
+    {
+      cout << PHWHERE << " could not open file: " << *iter << endl;
+      m_FileList.pop_front();
+    }
+    else
+    {
+      return 0;
+    }
+  }
+  return -1;
 }

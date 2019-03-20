@@ -2,6 +2,9 @@
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
 
+#include <g4gdml/PHG4GDMLConfig.hh>
+#include <g4gdml/PHG4GDMLUtility.hh>
+
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
@@ -36,6 +39,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cassert>
 
 
 using namespace std;
@@ -53,6 +57,18 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _tower2_dx(30*mm),
   _tower2_dy(30*mm),
   _tower2_dz(170.0*mm),
+  _tower3_dx(NAN),
+  _tower3_dy(NAN),
+  _tower3_dz(NAN),
+  _tower4_dx(NAN),
+  _tower4_dy(NAN),
+  _tower4_dz(NAN),
+  _tower5_dx(NAN),
+  _tower5_dy(NAN),
+  _tower5_dz(NAN),
+  _tower6_dx(NAN),
+  _tower6_dy(NAN),
+  _tower6_dz(NAN),
   _place_in_x(0.0*mm),
   _place_in_y(0.0*mm),
   _place_in_z(3150.0*mm),
@@ -75,6 +91,8 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const s
   _mapping_tower_file("")
 {
 
+  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
+  assert(gdml_config);
 }
 
 
@@ -606,11 +624,17 @@ PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4LogicalVolu
       else
 	cout << "PHG4ForwardEcalDetector::PlaceTower invalid type =  " << iterator->second.type << endl; 
 
+      G4PVPlacement * tower_placement =
       new G4PVPlacement( 0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
 			 singletower,
 			 iterator->first.c_str(),
 			 ecalenvelope,
 			 0, 0, OverlapCheck());
+
+
+
+      assert(gdml_config);
+      gdml_config->exclude_physical_vol(tower_placement);
 
   }
 

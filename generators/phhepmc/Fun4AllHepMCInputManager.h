@@ -33,7 +33,6 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   virtual int fileopen(const std::string &filenam);
   virtual int fileclose();
   virtual int run(const int nevents = 0);
-  int isOpen() { return isopen; }
   void ReadOscar(const int i = 1) { readoscar = i; }
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int i);
@@ -82,9 +81,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
 
  protected:
-  int OpenNextFile();
 
-  int isopen;
   int events_total;
   int events_thisfile;
   int readoscar;

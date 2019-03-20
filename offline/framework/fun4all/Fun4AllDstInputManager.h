@@ -1,5 +1,5 @@
-#ifndef FUN4ALLDSTINPUTMANAGER_H__
-#define FUN4ALLDSTINPUTMANAGER_H__
+#ifndef FUN4ALL_FUN4ALLDSTINPUTMANAGER_H
+#define FUN4ALL_FUN4ALLDSTINPUTMANAGER_H
 
 #include "Fun4AllInputManager.h"
 
@@ -18,7 +18,6 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
   int fileopen(const std::string &filenam);
   int fileclose();
   int run(const int nevents = 0);
-  int isOpen() { return isopen; }
   int GetSyncObject(SyncObject **mastersync);
   int SyncIt(const SyncObject *mastersync);
   int BranchSelect(const std::string &branch, const int iflag);
@@ -29,9 +28,10 @@ class Fun4AllDstInputManager : public Fun4AllInputManager
 
  protected:
   int ReadNextEventSyncObject();
-  int OpenNextFile();
-  int readrunttree;
-  int isopen;
+  void ReadRunTTree(const int i) { m_ReadRunTTree = i; }
+
+ private:
+  int m_ReadRunTTree;
   int events_total;
   int events_thisfile;
   int events_skipped_during_sync;

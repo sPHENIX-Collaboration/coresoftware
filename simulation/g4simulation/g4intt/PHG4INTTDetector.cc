@@ -942,44 +942,69 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
   G4LogicalVolume *endcap_WG_ring_volume = new G4LogicalVolume(endcap_WG_ring, G4Material::GetMaterial("WaterGlycol_INTT"),
                                                                "endcap_WG_ring_volume", 0, 0, 0);
+  // Carbon PEEK ring
+  G4Tubs *endcap_CP_ring = new G4Tubs("endcap_CP_ring",
+                                       supportparams->get_double_param("endcap_CPring_inner_radius") * cm,
+                                       supportparams->get_double_param("endcap_CPring_outer_radius") * cm,
+                                       supportparams->get_double_param("endcap_CPring_length") * cm / 2.,
+                                       -M_PI, 2.0 * M_PI);
+
+  G4LogicalVolume *endcap_CP_ring_volume = new G4LogicalVolume(endcap_CP_ring, G4Material::GetMaterial("CF30_PEEK70"),
+                                                               "endcap_CP_ring_volume", 0, 0, 0);
 
   if(m_IsEndcapActive)
   {
-    // Place endcap rings
-    double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm; 
-    for(int i = 0; i < 2; i++) // i=0 : positive z, i=1 negative z
+    if(supportparams->get_int_param("endcap_ring_type")==0) // Place Al endcap rings
     {
-
-      endcap_ring_z = (i==0) ?  endcap_ring_z : -1.0 * endcap_ring_z;
-
-      double width_WGring_z = supportparams->get_double_param("endcap_WGring_length") * cm;
-      double width_SSring_z = supportparams->get_double_param("endcap_SSring_length") * cm;
-      double width_Alring_z = supportparams->get_double_param("endcap_Alring_length") * cm;
-
-      for(int j = 0; j < 2; j++) // j=0 : positive side z, j=1 negative side z
+      double endcap_ring_z = supportparams->get_double_param("endcap_ring_z") * cm; 
+      for(int i = 0; i < 2; i++) // i=0 : positive z, i=1 negative z
       {
-        width_WGring_z = (j==0) ? width_WGring_z : -1.0 * width_WGring_z; 
-        width_SSring_z = (j==0) ? width_SSring_z : -1.0 * width_SSring_z;
-        width_Alring_z = (j==0) ? width_Alring_z : -1.0 * width_Alring_z;
 
-        double cent_WGring_z = endcap_ring_z + width_WGring_z / 2.;
-        double cent_SSring_z = endcap_ring_z + width_WGring_z + width_SSring_z / 2.;
-        double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
+        endcap_ring_z = (i==0) ?  endcap_ring_z : -1.0 * endcap_ring_z;
+
+        double width_WGring_z = supportparams->get_double_param("endcap_WGring_length") * cm;
+        double width_SSring_z = supportparams->get_double_param("endcap_SSring_length") * cm;
+        double width_Alring_z = supportparams->get_double_param("endcap_Alring_length") * cm;
+
+        for(int j = 0; j < 2; j++) // j=0 : positive side z, j=1 negative side z
+        {
+          width_WGring_z = (j==0) ? width_WGring_z : -1.0 * width_WGring_z; 
+          width_SSring_z = (j==0) ? width_SSring_z : -1.0 * width_SSring_z;
+          width_Alring_z = (j==0) ? width_Alring_z : -1.0 * width_Alring_z;
+
+          double cent_WGring_z = endcap_ring_z + width_WGring_z / 2.;
+          double cent_SSring_z = endcap_ring_z + width_WGring_z + width_SSring_z / 2.;
+          double cent_Alring_z = endcap_ring_z + width_WGring_z + width_SSring_z + width_Alring_z / 2.;
 
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_WGring_z),
-            endcap_WG_ring_volume,
-            (boost::format("endcap_WG_ring_pv_%d_%d") %i %j).str(),
-            trackerenvelope, false, 0, OverlapCheck());
+          new G4PVPlacement(0, G4ThreeVector(0, 0, cent_WGring_z),
+              endcap_WG_ring_volume,
+              (boost::format("endcap_WG_ring_pv_%d_%d") %i %j).str(),
+              trackerenvelope, false, 0, OverlapCheck());
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_SSring_z),
-            endcap_SS_ring_volume,
-            (boost::format("endcap_SS_ring_pv_%d_%d") %i %j).str(),
-            trackerenvelope, false, 0, OverlapCheck());
+          new G4PVPlacement(0, G4ThreeVector(0, 0, cent_SSring_z),
+              endcap_SS_ring_volume,
+              (boost::format("endcap_SS_ring_pv_%d_%d") %i %j).str(),
+              trackerenvelope, false, 0, OverlapCheck());
 
-        new G4PVPlacement(0, G4ThreeVector(0, 0, cent_Alring_z),
-            endcap_Al_ring_volume,
-            (boost::format("endcap_Al_ring_pv_%d_%d") %i %j).str(),
+          new G4PVPlacement(0, G4ThreeVector(0, 0, cent_Alring_z),
+              endcap_Al_ring_volume,
+              (boost::format("endcap_Al_ring_pv_%d_%d") %i %j).str(),
+              trackerenvelope, false, 0, OverlapCheck());
+        }
+      }
+    }
+    else if(supportparams->get_int_param("endcap_ring_type")==1) // Place CP endcap rings
+    {
+      double endcap_ring_z = supportparams->get_double_param("endcap_CPring_z") * cm; 
+      for(int i = 0; i < 2; i++) // i=0 : positive z, i=1 negative z
+      {
+
+        endcap_ring_z = (i==0) ?  endcap_ring_z : -1.0 * endcap_ring_z;
+
+        new G4PVPlacement(0, G4ThreeVector(0, 0, endcap_ring_z),
+            endcap_CP_ring_volume,
+            (boost::format("endcap_CP_ring_pv_%d") %i).str(),
             trackerenvelope, false, 0, OverlapCheck());
       }
     }
