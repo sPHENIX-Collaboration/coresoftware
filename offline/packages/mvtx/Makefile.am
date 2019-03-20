@@ -45,8 +45,7 @@ libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   $(ROOT5_IO_DICTS) \
   MvtxDefs.cc \
-  MvtxHit.cc \
-  CylinderGeom_MVTX.cc
+  MvtxHit.cc
 
 libmvtx_io_la_LIBADD = \
   -lphool \
@@ -56,8 +55,8 @@ libmvtx_io_la_LIBADD = \
 libmvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
   MVTXClusterizer.cc \
-  MvtxClusterizer.cc
-
+  MvtxClusterizer.cc \
+  CylinderGeom_MVTX.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
