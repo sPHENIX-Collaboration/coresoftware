@@ -5188,8 +5188,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
     CylinderGeom_MVTX* geom =
         (CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(layer);
     // returns the center of the sensor in world coordinates - used to get the ladder phi location
-    geom->find_sensor_center(stave_index, half_stave_index,
-                             module_index, chip_index, ladder_location);
+    //geom->find_sensor_center(stave_index, half_stave_index,
+    //                       module_index, chip_index, ladder_location);
     //n.Print();
     n.SetXYZ(ladder_location[0], ladder_location[1], 0);
     n.RotateZ(geom->get_stave_phi_tilt());
