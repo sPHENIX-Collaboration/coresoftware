@@ -1,4 +1,6 @@
 #include "InttClusterizer.h"
+#include "CylinderGeomINTT.h"
+#include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
@@ -6,7 +8,6 @@
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <InttDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
@@ -21,8 +22,6 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <CylinderGeomINTT.h>
 
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>

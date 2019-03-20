@@ -1,4 +1,5 @@
 #include "MVTXClusterizer.h"
+#include "CylinderGeom_MVTX.h"
 
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
@@ -20,8 +21,6 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <CylinderGeom_MVTX.h>
 
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>

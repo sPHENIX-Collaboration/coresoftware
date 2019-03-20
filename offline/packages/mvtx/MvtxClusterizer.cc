@@ -5,15 +5,14 @@
  * @brief Implementation of MvtxClusterizer
  */
 #include "MvtxClusterizer.h"
-
 #include "MvtxDefs.h"
 #include "MvtxHit.h"
+#include "CylinderGeom_MVTX.h"
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <CylinderGeom_MVTX.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
