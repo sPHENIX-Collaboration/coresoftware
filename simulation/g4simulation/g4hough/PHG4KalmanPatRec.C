@@ -5179,10 +5179,12 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
   {
     PHG4Cell* cell = cell_maps;
 
+    /*
     int stave_index = cell->get_stave_index();
     int half_stave_index = cell->get_half_stave_index();
     int module_index = cell->get_module_index();
     int chip_index = cell->get_chip_index();
+    */
 
     double ladder_location[3] = {0.0, 0.0, 0.0};
     CylinderGeom_MVTX* geom =
