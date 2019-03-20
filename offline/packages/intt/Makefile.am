@@ -55,7 +55,6 @@ libintt_la_LIBADD = \
   -lfun4all \
   -lg4detectors
 
-
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
