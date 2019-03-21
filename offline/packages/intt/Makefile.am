@@ -27,27 +27,27 @@ pkginclude_HEADERS = \
   CylinderGeomINTT.h
 
 ROOTDICTS = \
-  InttHit_Dict.cc
+  InttHit_Dict.cc \
+  CylinderGeomINTT_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-  InttHit_Dict_rdict.pcm
+  InttHit_Dict_rdict.pcm \
+  CylinderGeomINTT_Dict_rdict.pcm
 else
   ROOT5_IO_DICTS = \
     InttDefs_Dict.cc
 
   ROOT5_DICTS = \
   InttClusterizer_Dict.cc \
-  INTTClusterizer_Dict.cc \
-  CylinderGeomINTT_Dict.cc
+  INTTClusterizer_Dict.cc
 endif
 
 # sources for intt library
 libintt_la_SOURCES = \
   $(ROOT5_DICTS) \
   InttClusterizer.cc \
-  INTTClusterizer.cc \
-  CylinderGeomINTT.cc
+  INTTClusterizer.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \
@@ -59,11 +59,13 @@ libintt_la_LIBADD = \
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
   $(ROOT5_IO_DICTS) \
+  CylinderGeomINTT.cc \
   InttDefs.cc \
   InttHit.cc
 
 libintt_io_la_LIBADD = \
   -lphool \
+  -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io
 

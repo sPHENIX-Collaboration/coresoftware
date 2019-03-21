@@ -27,27 +27,27 @@ pkginclude_HEADERS = \
   CylinderGeom_MVTX.h
 
 ROOTDICTS = \
-  MvtxHit_Dict.cc
+  MvtxHit_Dict.cc \
+  CylinderGeom_MVTX_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-    MvtxHit_Dict_rdict.pcm
+    MvtxHit_Dict_rdict.pcm \
+    CylinderGeom_MVTX_Dict_rdict.pcm
 else
   ROOT5_IO_DICTS = \
     MvtxDefs_Dict.cc
 
   ROOT5_DICTS = \
     MVTXClusterizer_Dict.cc \
-    MvtxClusterizer_Dict.cc \
-    CylinderGeom_MVTX_Dict.cc
+    MvtxClusterizer_Dict.cc
 endif
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
   MVTXClusterizer.cc \
-  MvtxClusterizer.cc \
-  CylinderGeom_MVTX.cc
+  MvtxClusterizer.cc
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
@@ -59,11 +59,13 @@ libmvtx_la_LIBADD = \
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   $(ROOT5_IO_DICTS) \
+  CylinderGeom_MVTX.cc \
   MvtxDefs.cc \
   MvtxHit.cc
 
 libmvtx_io_la_LIBADD = \
   -lphool \
+  -lg4detectors_io \
   -ltrack_io \
   -ltrackbase_historic_io
 
