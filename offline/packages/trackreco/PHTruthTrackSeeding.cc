@@ -138,82 +138,8 @@ int PHTruthTrackSeeding::Process()
     }  // loop over clusters
 
 
-  //-----------------------------------------------
-  // old
-  // Build TrackID -> Clusters map
-  // typedef std::map<int, std::set<SvtxCluster*> > TrkClustersMap;
-  // TrkClustersMap m_trackID_clusters;
-
-  // for (SvtxClusterMap::ConstIter cluster_itr = _cluster_map->begin();
-  //      cluster_itr != _cluster_map->end(); ++cluster_itr)
-  // {
-  //   SvtxCluster* cluster = cluster_itr->second;
-
-  //   if (_seeding_layers.size() > 0 and
-  //       (_seeding_layers.find(cluster->get_layer()) == _seeding_layers.end()))
-  //     continue;
-
-  //   SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-  //   PHG4Cell* cell = nullptr;
-
-  //   if (cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
-  //   if (!cell and cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
-  //   if (!cell and cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
-
-  //   if (!cell)
-  //   {
-  //     if (Verbosity() >= 1)
-  //     {
-  //       LogError("!cell");
-  //     }
-  //     continue;
-  //   }
-
-  //   //cell->identify();
-
-  //   for (PHG4Cell::EdepConstIterator hits_it = cell->get_g4hits().first;
-  //        hits_it != cell->get_g4hits().second; hits_it++)
-  //   {
-  //     PHG4Hit* phg4hit = nullptr;
-  //     if (phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(hits_it->first);
-  //     if (!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(hits_it->first);
-  //     if (!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(hits_it->first);
-
-  //     if (!phg4hit)
-  //     {
-  //       if (Verbosity() >= 1)
-  //       {
-  //         LogError("!phg4hit");
-  //       }
-  //       continue;
-  //     }
-
-  //     //phg4hit->identify();
-
-  //     int particle_id = phg4hit->get_trkid();
-
-  //     TrkClustersMap::iterator it = m_trackID_clusters.find(particle_id);
-
-  //     if (it != m_trackID_clusters.end())
-  //     {
-  //       it->second.insert(cluster);
-  //     }
-  //     else
-  //     {
-  //       std::set<SvtxCluster*> clusters;
-  //       clusters.insert(cluster);
-  //       m_trackID_clusters.insert(std::pair<int, std::set<SvtxCluster*> >(particle_id, clusters));
-  //     }
-  //   }
-  // }
-
-  // //--------------------------
-  // // end old
-  // //==================================
-  // 
 
   //==================================
-  // for this part, just replace Svtx types with Trkr types?
 
   // Build track
   for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
@@ -309,36 +235,6 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
     }
     return Fun4AllReturnCodes::ABORTRUN;
   }
-
-  /*
-  hitsmap = nullptr;
-  // get node containing the digitized hits
-  hitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-  if (!hitsmap)
-  {
-    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  */
-  /*
-  cells_svtx = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_SVTX");
-
-  cells_intt = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_SILICON_TRACKER");
-
-  cells_maps = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_MAPS");
-
-  if (!cells_svtx and !cells_intt and !cells_maps)
-  {
-    if (Verbosity() >= 0)
-    {
-      cerr << PHWHERE << " ERROR: No PHG4CellContainer found!" << endl;
-    }
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  */
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

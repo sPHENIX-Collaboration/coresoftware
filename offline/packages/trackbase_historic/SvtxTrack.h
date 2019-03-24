@@ -149,11 +149,12 @@ class SvtxTrack : public PHObject
   //
   // associated cluster ids methods --------------------------------------------
   //
+
+  // needed by old tracking
   virtual void clear_clusters() {}
   virtual bool empty_clusters() const { return false; }
   virtual size_t size_clusters() const { return 0; }
 
-  // needed by old tracking
   virtual void insert_cluster(unsigned int clusterid) {}
   virtual size_t erase_cluster(unsigned int clusterid) { return 0; }
   virtual ConstClusterIter begin_clusters() const { return ClusterSet().end(); }
@@ -164,6 +165,10 @@ class SvtxTrack : public PHObject
   virtual ClusterIter end_clusters() { return ClusterSet().end(); }
 
   // needed by new tracking
+  virtual void clear_cluster_keys() {}
+  virtual bool empty_cluster_keys() const { return false; }
+  virtual size_t size_cluster_keys() const { return 0; }
+
   virtual void insert_cluster_key(TrkrDefs::cluskey clusterid) {}
   virtual size_t erase_cluster_key(TrkrDefs::cluskey clusterid) { return 0; }
   virtual ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const { return ClusterKeySet().end(); }
@@ -190,6 +195,9 @@ class SvtxTrack : public PHObject
 
   virtual unsigned int get_cal_cluster_id(CAL_LAYER layer) const { return 0; }
   virtual void set_cal_cluster_id(CAL_LAYER layer, unsigned int id) {}
+
+  virtual TrkrDefs::cluskey get_cal_cluster_key(CAL_LAYER layer) const { return 0; }
+  virtual void set_cal_cluster_key(CAL_LAYER layer, TrkrDefs::cluskey key) {}
 
   virtual float get_cal_cluster_e(CAL_LAYER layer) const { return 0.; }
   virtual void set_cal_cluster_e(CAL_LAYER layer, float e) {}

@@ -4075,6 +4075,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode)
 #endif
 
       std::vector<unsigned int> clusterIDs = iter->second->get_cluster_IDs();
+      //cout << " clusterIDs size " << clusterIDs.size() << " front " << clusterIDs.front() << " back " << clusterIDs.back() << endl;
 
       unsigned int init_layer = UINT_MAX;
 

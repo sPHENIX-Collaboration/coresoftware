@@ -436,8 +436,6 @@ int PHHoughSeeding::Process()
     if (code != Fun4AllReturnCodes::EVENT_OK)
       return code;
 
-    cout << "here4" << endl;
-
     if (Verbosity() >= 1) _t_seeding->stop();
 
     _t_seed_init1->stop();
@@ -445,8 +443,6 @@ int PHHoughSeeding::Process()
     if (Verbosity() > 1) print_timers();
 
   } /*end of iteration*/
-
-    cout << "here5" << endl;
 
   //	CleanupTracksByHitPattern();
 
@@ -459,8 +455,6 @@ int PHHoughSeeding::Process()
     return code;
 
   ++_event;
-
-  cout << "here6" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -576,7 +570,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
       radius_layer_map.insert(
           make_pair(layeriter->second->get_radius(),
                     layeriter->second->get_layer()));
-      cout << " making layer map for TPC " << endl;
+      //cout << " making layer map for TPC " << endl;
     }
   }
 
@@ -591,7 +585,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
       radius_layer_map.insert(
           make_pair(layeriter->second->get_radius(),
                     layeriter->second->get_layer()));
-      cout << " making layer map for  intt " << endl;
+      //cout << " making layer map for  intt " << endl;
     }
   }
 
@@ -606,15 +600,15 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
       radius_layer_map.insert(
           make_pair(layeriter->second->get_radius(),
                     layeriter->second->get_layer()));
-      cout << " making layer map for mvtx " << endl;
+      //cout << " making layer map for mvtx " << endl;
     }
   }
 
   if (Verbosity() > 1) {
     for (map<float, int>::const_iterator iter = radius_layer_map.begin();
 	 iter != radius_layer_map.end(); iter++) {
-      cout << "radius_layer_map: first: " << iter->first << "; second: "
-	   << iter->second << endl;
+      //cout << "radius_layer_map: first: " << iter->first << "; second: "
+      //   << iter->second << endl;
     }
   }
   
@@ -1102,7 +1096,7 @@ int PHHoughSeeding::translate_input()
   }
 
  // loop over all clusters
-  cout << "_clusters size " << _clusters.size() << endl;  
+  //cout << "_clusters size " << _clusters.size() << endl;  
   int nhits3d = -1;
   unsigned int clusid = -1;
   TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
@@ -1158,7 +1152,7 @@ int PHHoughSeeding::translate_input()
 	}
 
       nhits[ilayer]++;
-      cout << "    adding cluster " << clusid << " with key " << cluskey << endl;
+      //cout << "    adding cluster " << clusid << " with key " << cluskey << endl;
       //hit3d.print();
       _clusters.push_back(hit3d);
       //cout << "     ilayer " << ilayer << " nhits " << nhits[ilayer] << " _clusters size now " << _clusters.size() << endl;
@@ -1571,8 +1565,7 @@ int PHHoughSeeding::export_output()
   // need to translate this into the PHG4Track object...
 
   vector<SimpleHit3D> track_hits;
-  //unsigned int clusterID;
-  TrkrDefs::cluskey clusterID;
+  TrkrDefs::cluskey clusterkey;
 
   // _all_tracks is a SimpleTrack3D object filled in helixhough, track_hits is a SimpleHit3D object set eqaul to the simple hits associated with the track in helixhough
   // The SimpleHit3D knows the cluskey for its clusters
@@ -1584,34 +1577,35 @@ int PHHoughSeeding::export_output()
     track_hits.clear();
     track_hits = _all_tracks.at(itrack).hits;
 
+    //cout << " insert cluster in svtxtrack " << endl;
     for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++)
     {
+      //cout << " cluster id " << track_hits.at(ihit).get_id() << " _cluster_map->size " << _cluster_map->size() << " cluskey " <<  track_hits.at(ihit).get_cluskey() << endl;
       if (track_hits.at(ihit).get_id() >= _cluster_map->size())
       {
         continue;
       }
-      // Note: id format here needs to be cluster key
-      clusterID = track_hits.at(ihit).get_cluskey();
-      //clusterID = track_hits.at(ihit).get_id();
+      // Note: clusters can be accessd only by clusterkey
+      clusterkey = track_hits.at(ihit).get_cluskey();
 						     
       //mark hit asu used by iteration number n
       //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
-      _assoc_container->SetClusterTrackAssoc(clusterID, track.get_id());
+      _assoc_container->SetClusterTrackAssoc(clusterkey, track.get_id());
       
 #ifdef _DEBUG_
-      TrkrCluster* cluster = _cluster_map->findCluster(clusterID);
+      TrkrCluster* cluster = _cluster_map->findCluster(clusterkey);
       cout
           << __LINE__
           << ": itrack: " << itrack
           << ": nhits: " << track_hits.size()
-          << ": hitID: " << clusterID
+          << ": cluster key: " << clusterkey
           << endl;
       cluster->identify();
 #endif
 
       //TODO verify this change
       //if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
-      track.insert_cluster_key(clusterID);
+      track.insert_cluster_key(clusterkey);
       //}
     }
 
@@ -1690,6 +1684,7 @@ int PHHoughSeeding::export_output()
         << ": nhits: " << track_hits.size()
         << endl;
     //#endif
+    //cout << " insert track in trackmap " << endl;
     _track_map->insert(&track);
     vertex.insert_track(track.get_id());
 
@@ -1699,8 +1694,18 @@ int PHHoughSeeding::export_output()
            << endl;
       cout << "px = " << track.get_px() << " py = " << track.get_py()
            << " pz = " << track.get_pz() << endl;
+      cout << " cluster keys size " << track.size_cluster_keys() << endl;
     }
   }  // track loop
+
+#ifdef _DEBUG_
+  _track_map->identify();
+  for(unsigned int i=0;i<_track_map->size();i++)
+    {
+      SvtxTrack *tr = _track_map->get(i);
+      tr->identify();
+    }
+#endif
 
   SvtxVertex* vtxptr = _vertex_map->insert(&vertex);
   if (Verbosity() > 5)

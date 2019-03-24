@@ -853,7 +853,7 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
 	  //   << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14
 	  //   << " zz_raw " << zz_raw << " zz " << zz
 	  //   << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
-          cout << "clusterizer layer " << layer << " zz " << zz << " zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << " phi " << phi << " phi_err " << pp_err << " phi cov " << fit_p_cov() << endl;
+          //cout << "clusterizer layer " << layer << " zz " << zz << " zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << " phi " << phi << " phi_err " << pp_err << " phi cov " << fit_p_cov() << endl;
         }
 
         if (Verbosity() > 1)

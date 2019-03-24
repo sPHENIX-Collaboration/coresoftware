@@ -25,11 +25,13 @@ SvtxTrack_v1::SvtxTrack_v1()
   , _dca3d_z_error(NAN)
   , _states()
   , _cluster_ids()
+  , _cluster_keys()
   , _cal_dphi()
   , _cal_deta()
   , _cal_energy_3x3()
   , _cal_energy_5x5()
   , _cal_cluster_id()
+  , _cal_cluster_key()
   , _cal_cluster_e()
 {
   // always include the pca point
@@ -67,13 +69,22 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
     _states.insert(make_pair(state->get_pathlength(), state->Clone()));
   }
 
-  // copy over cluster set
+  // copy over cluster ID set
   _cluster_ids.clear();
   for (ConstClusterIter iter = track.begin_clusters();
        iter != track.end_clusters();
        ++iter)
   {
     _cluster_ids.insert(*iter);
+  }
+
+  // copy over cluster key set
+  _cluster_keys.clear();
+  for (ConstClusterKeyIter iter = track.begin_cluster_keys();
+       iter != track.end_cluster_keys();
+       ++iter)
+  {
+    _cluster_keys.insert(*iter);
   }
 
   // copy over calorimeter projections
@@ -88,6 +99,7 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
   _cal_energy_3x3.clear();
   _cal_energy_5x5.clear();
   _cal_cluster_id.clear();
+  _cal_cluster_key.clear();
   _cal_cluster_e.clear();
 
   for (unsigned int i = 0; i < types.size(); ++i)
@@ -97,6 +109,7 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
     if (!isnan(track.get_cal_energy_3x3(types[i]))) set_cal_energy_3x3(types[i], track.get_cal_energy_3x3(types[i]));
     if (!isnan(track.get_cal_energy_5x5(types[i]))) set_cal_energy_5x5(types[i], track.get_cal_energy_5x5(types[i]));
     if (track.get_cal_cluster_id(types[i]) != UINT_MAX) set_cal_cluster_id(types[i], track.get_cal_cluster_id(types[i]));
+    if (track.get_cal_cluster_key(types[i]) != UINT_MAX) set_cal_cluster_key(types[i], track.get_cal_cluster_key(types[i]));
     if (!isnan(track.get_cal_cluster_e(types[i]))) set_cal_cluster_e(types[i], track.get_cal_cluster_e(types[i]));
   }
 
@@ -123,18 +136,29 @@ void SvtxTrack_v1::identify(std::ostream& os) const
 
   os << "(x,y,z) = (" << get_x() << "," << get_y() << "," << get_z() << ")" << endl;
 
-  if (!empty_clusters())
+  if ( _cluster_ids.size() > 0 || _cluster_keys.size() > 0 )
   {
-
-    os << "list of cluster keys ";
+    os << "list of cluster IDs ";
     for (SvtxTrack::ConstClusterIter iter = begin_clusters();
          iter != end_clusters();
          ++iter)
     {
-      TrkrDefs::cluskey cluster_id = *iter;
+      unsigned int cluster_id = *iter;
       os << cluster_id << " ";
     }
+
+    os << "list of cluster keys ";
+    for (SvtxTrack::ConstClusterKeyIter iter = begin_cluster_keys();
+         iter != end_cluster_keys();
+         ++iter)
+    {
+      TrkrDefs::cluskey cluster_key = *iter;
+      os << cluster_key << " ";
+    }
   }
+  else
+    os << " track has no clusters " << endl;
+  
   os << endl;
 
   return;
@@ -219,6 +243,13 @@ unsigned int SvtxTrack_v1::get_cal_cluster_id(SvtxTrack::CAL_LAYER layer) const
 {
   std::map<SvtxTrack::CAL_LAYER, int>::const_iterator citer = _cal_cluster_id.find(layer);
   if (citer == _cal_cluster_id.end()) return -9999;
+  return citer->second;
+}
+
+TrkrDefs::cluskey SvtxTrack_v1::get_cal_cluster_key(SvtxTrack::CAL_LAYER layer) const
+{
+  std::map<SvtxTrack::CAL_LAYER, TrkrDefs::cluskey>::const_iterator citer = _cal_cluster_key.find(layer);
+  if (citer == _cal_cluster_key.end()) return -9999;
   return citer->second;
 }
 

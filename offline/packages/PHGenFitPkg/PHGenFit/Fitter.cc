@@ -92,6 +92,7 @@ Fitter::~Fitter()
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
 {
   genfit::Track* fitTrack = track->getGenFitTrack();
+
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 00, 0)
   try
   {

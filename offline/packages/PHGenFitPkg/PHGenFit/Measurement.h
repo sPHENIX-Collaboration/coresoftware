@@ -38,7 +38,7 @@ class Measurement
   }
   void set_cluster_ID(unsigned int clusterId)
   {
-    _clusterkey = clusterId;
+    _clusterID = clusterId;
   }
 
   // new tracking

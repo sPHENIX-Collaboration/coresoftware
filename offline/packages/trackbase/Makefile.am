@@ -53,6 +53,7 @@ if MAKEROOT6
     TrkrClusterContainer_Dict_rdict.pcm \
     TrkrClusterHitAssoc_Dict_rdict.pcm \
     TrkrHit_Dict_rdict.pcm \
+    TrkrHitTruthAssoc_Dict_rdict.pcm \
     TrkrHitCellAssoc_Dict_rdict.pcm \
     TrkrHitSet_Dict_rdict.pcm \
     TrkrHitSetContainer_Dict_rdict.pcm \
