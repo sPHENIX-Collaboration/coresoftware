@@ -43,10 +43,14 @@ class TrkrEvaluator : public SubsysReco
   unsigned int _errors;
 
   bool _do_cluster_eval;
+  bool _do_track_eval;
 
-  unsigned int _nlayers_maps = 3;
-  unsigned int _nlayers_intt = 8;
-  unsigned int _nlayers_tpc = 60;
+  bool _scan_for_embeded;
+  bool _do_track_match;
+
+  unsigned int _nlayers_maps;
+  unsigned int _nlayers_intt;
+  unsigned int _nlayers_tpc;
 
   TNtuple *_ntp_vertex;
   TNtuple *_ntp_gpoint;
