@@ -903,10 +903,10 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
           }
           else
           {
-          rohatrap[0] = G4TwoVector(0. * cm, 0. * cm);
-          rohatrap[1] = G4TwoVector(Rcmin * cos(dphi_c) - shift, +Rcmin * sin(dphi_c));
-          rohatrap[2] = G4TwoVector(Rcmax * (1. - cos(dphi_c)) - shift, +stave_slant_cooler_y * cos(dphi_c) + Rcmin * sin(dphi_c));
-          rohatrap[3] = G4TwoVector(0. * cm, +stave_slant_cooler_y * cos(dphi_c) + Rcmin * sin(dphi_c));
+          rohatrap[0] = G4TwoVector(0. * cm, +stave_slant_cooler_y * cos(dphi_c) + Rcmin * sin(dphi_c));
+          rohatrap[1] = G4TwoVector(Rcmax * (1. - cos(dphi_c)) - shift, +stave_slant_cooler_y * cos(dphi_c) + Rcmin * sin(dphi_c));
+          rohatrap[2] = G4TwoVector(Rcmin * cos(dphi_c) - shift, +Rcmin * sin(dphi_c));
+          rohatrap[3] = G4TwoVector(0. * cm, 0. * cm);
           }
           rohatrap[4] = rohatrap[0];
           rohatrap[5] = rohatrap[1];
