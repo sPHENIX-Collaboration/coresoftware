@@ -28,8 +28,7 @@ pkginclude_HEADERS = \
   PHGenIntegralv1.h \
   PHHepMCGenEvent.h \
   PHHepMCGenEventMap.h \
-  PHHepMCGenHelper.h \
-  HepMCFlowAfterBurner.h
+  PHHepMCGenHelper.h
 
 libphhepmc_la_LDFLAGS = \
   ${AM_LDFLAGS} \
