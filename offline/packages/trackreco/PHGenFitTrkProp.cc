@@ -656,7 +656,14 @@ int PHGenFitTrkProp::KalmanTrkProp()
       //_trackID_PHGenFitTrack.erase(iter);
     }  // loop _PHGenFitTracks
 
-    if (_PHGenFitTracks.empty()) continue;
+    if (_PHGenFitTracks.empty())
+    {
+      if (Verbosity() >=1) {
+        cout << "Warning: Conversion of SvtxTrack tracklet " <<  phtrk_iter->first << " to PHGenFitTrack failed, moving to next tracklet " << endl;
+      }
+      ++phtrk_iter;
+      continue;
+    }
 
 #ifdef _DEBUG_
     i = 0;
