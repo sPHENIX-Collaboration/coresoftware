@@ -44,6 +44,8 @@ class TrkrEvaluator : public SubsysReco
 
   bool _do_cluster_eval;
   bool _do_track_eval;
+  bool _do_gtrack_eval;
+  bool _do_vertex_eval;
 
   bool _scan_for_embeded;
   bool _do_track_match;

@@ -474,34 +474,6 @@ int PHGenFitTrkProp::GetNodes(PHCompositeNode* topNode)
   // used in fast vertexing from BBC
   _bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
 
-  /*
-  // get node containing the digitized hits
-  _svtxhitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
-  if (!_svtxhitsmap)
-  {
-    cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-
-  _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
-                                                      "G4CELL_TPC");
-
-  _cells_intt = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_INTT");
-
-  _cells_maps = findNode::getClass<PHG4CellContainer>(
-      topNode, "G4CELL_MVTX");
-
-  if (!_cells_svtx and !_cells_intt and !_cells_maps)
-  {
-    if (Verbosity() >= 0)
-    {
-      LogError("No PHG4CellContainer found!");
-    }
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  */
-
   // _cluster_map is the TrkrClusterMap container, and is found in PHTrackPropagating
  
   _geom_container_intt = findNode::getClass<
@@ -509,14 +481,6 @@ int PHGenFitTrkProp::GetNodes(PHCompositeNode* topNode)
 
   _geom_container_maps = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
-
-  /*
-  if (!_cells_svtx && !_cells_maps && !_cells_intt)
-  {
-    cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
-    return Fun4AllReturnCodes::ABORTRUN;
-  }
-  */
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
