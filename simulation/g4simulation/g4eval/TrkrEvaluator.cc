@@ -50,31 +50,51 @@ TrkrEvaluator::TrkrEvaluator(const string& name, const string& filename,
                              unsigned int nlayers_intt,
                              unsigned int nlayers_tpc)
   : SubsysReco("TrkrEvaluator")
+  , _ievent(0)
+  , _do_vertex_eval(true)
+  , _do_cluster_eval(true)
+  , _do_gtrack_eval(true)
+  , _do_track_eval(true)
+  , _do_track_match(true)
+  , _scan_for_embedded(false)
+  , _nlayers_maps(nlayers_maps)
+  , _nlayers_intt(nlayers_intt)
+  , _nlayers_tpc(nlayers_tpc)
+  , _ntp_vertex(nullptr)
+  , _ntp_cluster(nullptr)
+  , _ntp_gtrack(nullptr)
+  , _ntp_track(nullptr)
+  , _filename(filename)
+  , _tfile(nullptr)
+  , _timer(nullptr)
  {
-_filename = filename;
 
+   //_filename = filename;
+
+/*
  _nlayers_maps = nlayers_maps;
  _nlayers_intt = nlayers_intt;
  _nlayers_tpc = nlayers_tpc;
+*/
 
 }
 
 int TrkrEvaluator::Init(PHCompositeNode* topNode)
 {
-_ievent = 0;
+  cout << PHWHERE << " _scan_for_embedded set to " << _scan_for_embedded << "  will write output to " << _filename.c_str() << endl;
 
-cout << "will write output to " << _filename.c_str() << endl;
+  _ievent = 0;
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-_do_cluster_eval = true;
-_do_track_eval = true;
-_do_gtrack_eval = true;
-_do_vertex_eval = true;
-
- _scan_for_embeded = false;
-_do_track_match = true;
-
+  /*
+  _do_cluster_eval = true;
+  _do_track_eval = true;
+  _do_gtrack_eval = true;
+  _do_vertex_eval = true;
+  _do_track_match = true;
+  */
+  
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
                                                  "event:vx:vy:vz:ntracks:"
                                                  "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"
@@ -163,13 +183,18 @@ int TrkrEvaluator::End(PHCompositeNode* topNode)
   delete _tfile;
 
   if (Verbosity() > 0)
-  {
-    cout << "========================= TrkrEvaluator::End() ============================" << endl;
-    cout << " " << _ievent << " events of output written to: " << _filename << endl;
-    cout << "===========================================================================" << endl;
-  }
-
+    {
+      cout << "========================= TrkrEvaluator::End() ============================" << endl;
+      cout << " " << _ievent << " events of output written to: " << _filename << endl;
+      cout << "===========================================================================" << endl;
+    }
+  
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void TrkrEvaluator::scan_for_embedded(bool b) 
+{
+  _scan_for_embedded = b; 
 }
 
 void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
@@ -383,7 +408,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           ++embedvtxid_particle_count[gembed];
           PHG4Particle* g4particle = iter->second;
 	  
-          if (_scan_for_embeded && gembed <= 0) continue;	  
+          if (_scan_for_embedded && gembed <= 0) continue;	  
 	  
           unsigned int nglmaps = 0;
 	  
@@ -442,7 +467,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         const int point_id = iter->first;
         int gembed = truthinfo->isEmbededVtx(point_id);
-        if (_scan_for_embeded && gembed <= 0) continue;
+        if (_scan_for_embedded && gembed <= 0) continue;
 
         auto search = embedvtxid_found.find(gembed);
         if (search != embedvtxid_found.end())
@@ -535,7 +560,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       }
 
       //  ??????
-      if (!_scan_for_embeded)
+      if (!_scan_for_embedded)
       {
         for (std::map<int, bool>::iterator iter = embedvtxid_found.begin();
              iter != embedvtxid_found.end();
@@ -957,7 +982,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         PHG4Particle* g4particle = iter->second;
 
-	if (_scan_for_embeded)
+	if (_scan_for_embedded)
 	  {
 	    if (truthinfo->isEmbeded(g4particle->get_track_id()) <= 0) continue;
 	  }
@@ -1550,7 +1575,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           if (g4particle)
           {
 
-            if (_scan_for_embeded)
+            if (_scan_for_embedded)
             {
               if (truthinfo->isEmbeded(g4particle->get_track_id()) <= 0) continue;
             }
