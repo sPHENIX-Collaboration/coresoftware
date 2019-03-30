@@ -352,7 +352,6 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 		  dz_adc += dz*adcval[iphi][iz];
 		}
 	    }
-	  //double phi_cov = radius *( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
 	  double phi_cov = ( dphi2_adc / adc_sum - dphi_adc * dphi_adc / (adc_sum*adc_sum) );
 	  double z_cov =  dz2_adc / adc_sum - dz_adc*dz_adc / (adc_sum*adc_sum);
 
@@ -367,7 +366,12 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  // Equivalent charge per Z bin is then  (ADU x 2200 mV / 1024) / 2.4 x (1/20) fC/mV x (1/1.6e-04) electrons/fC x (1/2000) = ADU x 0.14
 
 	  double phi_err = radius * sqrt(phi_cov / (adc_sum * 0.14));
+	  if(phi_err == 0.0)   // a single phi bin will cause this
+	    phi_err = radius *  layergeom->get_phistep() / sqrt(12.0);
+
 	  double z_err = sqrt(z_cov / (adc_sum * 0.14)) ;
+	  if(z_err == 0.0)
+	    z_err = layergeom->get_zstep() / sqrt(12.0);
 
 	  // This corrects the bias introduced by the asymmetric SAMPA chip shaping - assumes 80 ns shaping time
 	  if (clusz < 0)

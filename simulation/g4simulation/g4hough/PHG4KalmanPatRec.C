@@ -602,7 +602,7 @@ int PHG4KalmanPatRec::process_event(PHCompositeNode* topNode)
       int min_layers = 4;
       int nlayers_seeds = 7;
       int seeding_layers[] = {
-          (int) (_nlayers_maps + _nlayers_intt),
+	  (int) (_nlayers_maps + _nlayers_intt),
           (int) (_nlayers_maps + _nlayers_intt + 8),
           (int) (_nlayers_maps + _nlayers_intt + 16),
           (int) (_nlayers_maps + _nlayers_intt + 24),

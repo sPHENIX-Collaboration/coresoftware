@@ -318,15 +318,15 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
        ++iter)
   {
-    //cout << "   process SVTXTrack " << iter->first << endl;
+    cout << "   process SVTXTrack " << iter->first << endl;
     SvtxTrack* svtx_track = iter->second;
-    //svtx_track->identify();
+    svtx_track->identify();
     if (!svtx_track)
       continue;
     //cout << "  svtx_track->get_pt() " << svtx_track->get_pt() << " _fit_min_pT " << _fit_min_pT  << endl;
     if (!(svtx_track->get_pt() > _fit_min_pT))
       continue;
-    //cout << "  refit the track" << endl;
+    cout << "  refit the track" << endl;
 
     //! stands for Refit_PHGenFit_Track
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
@@ -1068,81 +1068,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
 
-    /*
-    // this code is obsolete, removed it
-    // DEBUG: BEGIN
-    if (_do_eval)
-    {
-      PHG4HitContainer* phg4hits_svtx = findNode::getClass<
-          PHG4HitContainer>(topNode, "G4HIT_TPC");
-
-      PHG4HitContainer* phg4hits_intt = findNode::getClass<
-          PHG4HitContainer>(topNode, "G4HIT_INTT");
-
-      PHG4HitContainer* phg4hits_maps = findNode::getClass<
-          PHG4HitContainer>(topNode, "G4HIT_MVTX");
-
-      if (!phg4hits_svtx and !phg4hits_intt and !phg4hits_maps)
-      {
-        if (Verbosity() >= 0)
-        {
-          LogError("No PHG4HitContainer found!");
-        }
-        continue;
-      }
-
-      SvtxHit* svtxhit = hitsmap->find(*cluster->begin_hits())->second;
-
-      PHG4Cell* cell = nullptr;
-      if (cells_svtx) cell = cells_svtx->findCell(svtxhit->get_cellid());
-      if (!cell && cells_intt) cell = cells_intt->findCell(svtxhit->get_cellid());
-      if (!cell && cells_maps) cell = cells_maps->findCell(svtxhit->get_cellid());
-      if (!cell)
-      {
-        if (Verbosity() >= 0)
-          LogError("!cell");
-        continue;
-      }
-
-      PHG4Hit* phg4hit = nullptr;
-      if (phg4hits_svtx) phg4hit = phg4hits_svtx->findHit(cell->get_g4hits().first->first);
-      if (!phg4hit and phg4hits_intt) phg4hit = phg4hits_intt->findHit(cell->get_g4hits().first->first);
-      if (!phg4hit and phg4hits_maps) phg4hit = phg4hits_maps->findHit(cell->get_g4hits().first->first);
-
-      if (!phg4hit)
-      {
-        if (Verbosity() >= 0)
-          LogError("!phg4hit");
-        continue;
-      }
-
-      TVector3 phg4hit_position(phg4hit->get_avg_x(),
-                                phg4hit->get_avg_y(), phg4hit->get_avg_z());
-      TVector3 cluster_position(cluster->get_x(), cluster->get_y(),
-                                cluster->get_z());
-
-      _cluster_eval_tree_x = cluster_position.X();
-      _cluster_eval_tree_y = cluster_position.Y();
-      _cluster_eval_tree_z = cluster_position.Z();
-      _cluster_eval_tree_gx = phg4hit_position.X();
-      _cluster_eval_tree_gy = phg4hit_position.Y();
-      _cluster_eval_tree_gz = phg4hit_position.Z();
-
-      _cluster_eval_tree->Fill();
-    }
-
-    //		if (phg4hit_position.Perp() > 30.) {
-    //			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),phg4hit_position.Z()); //DEBUG
-    //			//pos.SetPerp(phg4hit_position.Perp());
-    //			//pos.SetPhi(TMath::ATan2(phg4hit_position.Y(),phg4hit_position.X()));
-    //		}
-    //
-    //		if(phg4hit->get_trkid()!=1) {
-    //			continue;
-    //		}
-    // DEBUG: END
-    */
-
     seed_mom.SetPhi(pos.Phi());
     seed_mom.SetTheta(pos.Theta());
 
@@ -1191,7 +1116,16 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 								  cluster->getRPhiError(), cluster->getZError());
 
-    measurements.push_back(meas);
+    if(Verbosity() > 20)
+      {
+	cout << "Add meas layer " << layer << " cluskey " << cluster_key 
+	     << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
+	     << "  n.X " <<  n.X() << " n,Y " << n.Y() << " n.Z " << n.Z() 
+	     << " RPhiErr " << cluster->getRPhiError() 
+	     << " ZErr " << cluster->getZError() 
+	     << endl;
+      }
+      measurements.push_back(meas);
   }
 
   /*!

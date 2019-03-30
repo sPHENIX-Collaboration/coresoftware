@@ -246,14 +246,21 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   int min_layers = 4;
   int nlayers_seeds = 7;
   int seeding_layers[] = {
-      (int) (_nlayers_maps + _nlayers_intt),
-      (int) (_nlayers_maps + _nlayers_intt + 6),
-      (int) (_nlayers_maps + _nlayers_intt + 12),
-      (int) (_nlayers_maps + _nlayers_intt + 18),
-      (int) (_nlayers_maps + _nlayers_intt + 24),
-      (int) (_nlayers_maps + _nlayers_intt + 30),
-      (int) (_nlayers_maps + _nlayers_intt + 39)
+    //      (int) (_nlayers_maps + _nlayers_intt),
+    //  (int) (_nlayers_maps + _nlayers_intt + 6),
+    //  (int) (_nlayers_maps + _nlayers_intt + 12),
+    //  (int) (_nlayers_maps + _nlayers_intt + 18),
+    //  (int) (_nlayers_maps + _nlayers_intt + 24),
+    //  (int) (_nlayers_maps + _nlayers_intt + 30),
+    //  (int) (_nlayers_maps + _nlayers_intt + 39)
       //7,13,19,25,31,37,46
+    (int) (_nlayers_maps + _nlayers_intt + 1),
+    (int) (_nlayers_maps + _nlayers_intt + 7),
+    (int) (_nlayers_maps + _nlayers_intt + 15),
+    (int) (_nlayers_maps + _nlayers_intt + 23),
+    (int) (_nlayers_maps + _nlayers_intt + 31),
+    (int) (_nlayers_maps + _nlayers_intt + 39),
+    (int) (_nlayers_maps + _nlayers_intt + 46)
   };
 
   set_seeding_layer(seeding_layers, nlayers_seeds);
@@ -392,7 +399,8 @@ int PHHoughSeeding::Process()
       int min_layers = 4;
       int nlayers_seeds = 7;
       int seeding_layers[] = {
-          (int) (_nlayers_maps + _nlayers_intt),
+	//(int) (_nlayers_maps + _nlayers_intt),
+	(int) (_nlayers_maps + _nlayers_intt + 1),
           (int) (_nlayers_maps + _nlayers_intt + 8),
           (int) (_nlayers_maps + _nlayers_intt + 16),
           (int) (_nlayers_maps + _nlayers_intt + 24),
@@ -1677,13 +1685,13 @@ int PHHoughSeeding::export_output()
     track.set_y(vertex.get_y() + d * sin(phi));
     track.set_z(vertex.get_z() + z0);
 
-    //#ifdef _DEBUG_
+#ifdef _DEBUG_
     cout
         << __LINE__
         << ": itrack: " << itrack
         << ": nhits: " << track_hits.size()
         << endl;
-    //#endif
+#endif
     //cout << " insert track in trackmap " << endl;
     _track_map->insert(&track);
     vertex.insert_track(track.get_id());

@@ -68,15 +68,6 @@ TrkrEvaluator::TrkrEvaluator(const string& name, const string& filename,
   , _tfile(nullptr)
   , _timer(nullptr)
  {
-
-   //_filename = filename;
-
-/*
- _nlayers_maps = nlayers_maps;
- _nlayers_intt = nlayers_intt;
- _nlayers_tpc = nlayers_tpc;
-*/
-
 }
 
 int TrkrEvaluator::Init(PHCompositeNode* topNode)
@@ -87,14 +78,6 @@ int TrkrEvaluator::Init(PHCompositeNode* topNode)
 
   _tfile = new TFile(_filename.c_str(), "RECREATE");
 
-  /*
-  _do_cluster_eval = true;
-  _do_track_eval = true;
-  _do_gtrack_eval = true;
-  _do_vertex_eval = true;
-  _do_track_match = true;
-  */
-  
   if (_do_vertex_eval) _ntp_vertex = new TNtuple("ntp_vertex", "vertex => max truth",
                                                  "event:vx:vy:vz:ntracks:"
                                                  "gvx:gvy:gvz:gvt:gembed:gntracks:gntracksmaps:"

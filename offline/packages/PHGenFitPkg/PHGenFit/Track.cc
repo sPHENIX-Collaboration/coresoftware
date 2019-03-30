@@ -518,7 +518,9 @@ int Track::updateOneMeasurementKalman(
     {
       if (verbosity > 1)
       {
-        LogWarning("Can not extrapolate to measuremnt: ") << measurement->get_cluster_ID() << std::endl;
+        LogWarning("Can not extrapolate to measuremnt with cluster_ID and cluster key: ") << measurement->get_cluster_ID() 
+									  << "    " << measurement->get_cluster_key() 
+									  << std::endl;
       }
       continue;
     }
