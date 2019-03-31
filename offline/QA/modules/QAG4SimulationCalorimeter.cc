@@ -222,12 +222,12 @@ int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
 
   hm->registerHisto(
       new TH2F(TString(get_histo_prefix()) + "_G4Hit_RZ",  //
-               TString(_calo_name) + " RZ projection;Z (cm);R (cm)", 1200, -300, 300,
+               TString(_calo_name) + " RZ projection;G4 Hit Z (cm);G4 Hit R (cm)", 1200, -300, 300,
                600, -000, 300));
 
   hm->registerHisto(
       new TH2F(TString(get_histo_prefix()) + "_G4Hit_XY",  //
-               TString(_calo_name) + " XY projection;X (cm);Y (cm)", 1200, -300, 300,
+               TString(_calo_name) + " XY projection;G4 Hit X (cm);G4 Hit Y (cm)", 1200, -300, 300,
                1200, -300, 300));
 
   hm->registerHisto(
@@ -252,7 +252,7 @@ int QAG4SimulationCalorimeter::Init_G4Hit(PHCompositeNode *topNode)
 
   hm->registerHisto(
       new TH1F(TString(get_histo_prefix()) + "_G4Hit_FractionTruthEnergy",  //
-               TString(_calo_name) + " fraction truth energy ;G4 energy (active + absorber) / total truth energy",
+               TString(_calo_name) + " fraction truth energy ;G4 edep / particle energy",
                1000, 0, 1));
 
   hm->registerHisto(
