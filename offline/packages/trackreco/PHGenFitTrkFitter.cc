@@ -318,15 +318,16 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
        ++iter)
   {
-    cout << "   process SVTXTrack " << iter->first << endl;
     SvtxTrack* svtx_track = iter->second;
-    svtx_track->identify();
+    if(Verbosity() > 50)
+      {
+	cout << "   process SVTXTrack " << iter->first << endl;
+	svtx_track->identify();
+      }
     if (!svtx_track)
       continue;
-    //cout << "  svtx_track->get_pt() " << svtx_track->get_pt() << " _fit_min_pT " << _fit_min_pT  << endl;
     if (!(svtx_track->get_pt() > _fit_min_pT))
       continue;
-    cout << "  refit the track" << endl;
 
     //! stands for Refit_PHGenFit_Track
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
@@ -1042,7 +1043,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     float y = cluster->getPosition(1);
     float r = sqrt(x * x + y * y);
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
-    //cout << "    cluster " << cluster_key << " radius " << r << endl;
+    //int layer_out = TrkrDefs::getLayer(cluster_key);
+    //cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
   }
 
   for (auto iter = m_r_cluster_id.begin();
@@ -1116,7 +1118,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 								  cluster->getRPhiError(), cluster->getZError());
 
-    if(Verbosity() > 20)
+    if(Verbosity() > 50)
       {
 	cout << "Add meas layer " << layer << " cluskey " << cluster_key 
 	     << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
@@ -1152,11 +1154,25 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   if (_fitter->processTrack(track.get(), false) != 0)
   {
     if (Verbosity() >= 1)
-      LogWarning("Track fitting failed");
+      {
+	LogWarning("Track fitting failed");
+	cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf() 
+	     << " mom.X " << track->get_mom().X() 
+	     << " mom.Y " << track->get_mom().Y() 
+	     << " mom.Z " << track->get_mom().Z() 
+	     << endl;
+      }
     //delete track;
     return NULL;
   }
 
+  if(Verbosity() > 50)
+    cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf() 
+	 << " mom.X " << track->get_mom().X() 
+	 << " mom.Y " << track->get_mom().Y() 
+	 << " mom.Z " << track->get_mom().Z() 
+	 << endl;
+  
   return track;
 }
 

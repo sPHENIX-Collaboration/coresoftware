@@ -43,7 +43,7 @@ Fitter::Fitter(
     const std::string& fitter_choice,
     const std::string& track_rep_choice,
     const bool doEventDisplay)
-  : verbosity(0)
+  : verbosity(1000)
   , _doEventDisplay(doEventDisplay)
 {
   _tgeo_manager = new TGeoManager("Default", "Geane geometry");
