@@ -16,8 +16,15 @@ class Fun4AllHistoManager : public Fun4AllBase
   virtual ~Fun4AllHistoManager();
 
   void Print(const std::string &what = "ALL") const;
+
+  //! Register histogram or TTree object
+  //! For histograms, enforce error calculation and propagation
   bool registerHisto(const std::string &hname, TNamed *h1d, const int replace = 0);
+
+  //! Register histogram or TTree object
+  //! For histograms, enforce error calculation and propagation
   bool registerHisto(TNamed *h1d, const int replace = 0);
+
   template <typename T>
   T *makeHisto(T *t)
   {
