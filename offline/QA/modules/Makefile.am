@@ -28,6 +28,8 @@ libqa_modules_la_LIBADD = \
 
 pkginclude_HEADERS = \
   QAG4SimulationCalorimeter.h \
+  QAG4SimulationCalorimeterSum.h \
+  QAG4SimulationJet.h \
   QAHistManagerDef.h
 
 if ! MAKEROOT6
