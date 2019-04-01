@@ -396,6 +396,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
       {
         if (_vertexmap->size() > 0)
           vertex = _vertexmap->get(0);
+	//cout << PHWHERE << "        will use vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
       }
       else
       {
@@ -428,6 +429,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
       //			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
       //					vertex);
+      //cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
       std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
                                                           vertex);
 #ifdef _DEBUG_
@@ -538,6 +540,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
           //					SvtxVertex* vertex = NULL;
           //					if (_vertexmap_refit->size() > 0)
           //						vertex = _vertexmap_refit->get(0);
+	  //cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
           std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
                                                               rf_phgf_track, vertex);
           //delete rf_phgf_track;
@@ -927,7 +930,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
   if(!geom_container_intt || !geom_container_mvtx)
   {
-    cout << PHWHERE << "ERROR: Can't find intt and/or mvtx geometry nodes !" << endl;
+    //cout << PHWHERE << "ERROR: Can't find intt and/or mvtx geometry nodes !" << endl;
     return NULL;
   }
 
@@ -1238,7 +1241,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   double du2 = gf_state_beam_line_ca->getCov()[3][3];
   double dv2 = gf_state_beam_line_ca->getCov()[4][4];
-
+  //cout << PHWHERE << "        u " << u << " v " << v << " du2 " << du2 << " dv2 " << dv2 << " dvr2 " << dvr2 << endl;
   //delete gf_state_beam_line_ca;
 
   //const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
