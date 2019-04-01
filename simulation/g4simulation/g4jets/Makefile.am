@@ -45,7 +45,9 @@ pkginclude_HEADERS = \
   TrackJetInput.h \
   TowerJetInput.h \
   ClusterJetInput.h \
-  FastJetAlgo.h
+  FastJetAlgo.h \
+  JetHepMCLoader.h
+  
 
 #pkginclude_HEADERS = $(include_HEADERS)
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need

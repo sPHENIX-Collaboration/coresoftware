@@ -174,8 +174,13 @@ bool Fun4AllHistoManager::registerHisto(const string &hname, TNamed *h1d, const 
   h1d->SetName(histoname.c_str());
   Histo[hname] = h1d;
 
+  // reset directory for TTree
   if (h1d->InheritsFrom("TTree"))
     static_cast<TTree *>(h1d)->SetDirectory(0);
+
+  // For histograms, enforce error calculation and propagation
+  if (h1d->InheritsFrom("TH1"))
+    static_cast<TH1 *>(h1d)->Sumw2();
 
   return true;
 }
