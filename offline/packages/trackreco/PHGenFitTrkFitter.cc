@@ -429,7 +429,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
       //			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
       //					vertex);
-      //cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+      cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
       std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
                                                           vertex);
 #ifdef _DEBUG_
@@ -540,7 +540,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
           //					SvtxVertex* vertex = NULL;
           //					if (_vertexmap_refit->size() > 0)
           //						vertex = _vertexmap_refit->get(0);
-	  //cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+	  cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
           std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
                                                               rf_phgf_track, vertex);
           //delete rf_phgf_track;
@@ -1035,7 +1035,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 #endif
 
   // sort clusters with radius before fitting
-  //intrack->identify();
+  if(Verbosity() > 20)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
   for (auto iter = intrack->begin_cluster_keys();
        iter != intrack->end_cluster_keys(); ++iter)
@@ -1046,8 +1046,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     float y = cluster->getPosition(1);
     float r = sqrt(x * x + y * y);
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
-    //int layer_out = TrkrDefs::getLayer(cluster_key);
-    //cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+    int layer_out = TrkrDefs::getLayer(cluster_key);
+    if(Verbosity() > 20) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
   }
 
   for (auto iter = m_r_cluster_id.begin();
@@ -1095,12 +1095,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	CylinderGeom_MVTX* geom =
-          (CylinderGeom_MVTX*) geom_container_mvtx->GetLayerGeom(
-								     layer);
+          dynamic_cast<CylinderGeom_MVTX*>(geom_container_mvtx->GetLayerGeom(layer));
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	geom->find_sensor_center(stave_index, 0,
 				 0, chip_index, ladder_location);
-	//n.Print();
+
+	//cout << " MVTX stave phi tilt = " <<  geom->get_stave_phi_tilt()  
+	//   << " seg.X " << ladder_location[0] << " seg.Y " << ladder_location[1] << " seg.Z " << ladder_location[2] << endl;
 	n.SetXYZ(ladder_location[0], ladder_location[1], 0);
 	n.RotateZ(geom->get_stave_phi_tilt());
       }
@@ -1108,10 +1109,12 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       {
 	CylinderGeomINTT* geom =
           dynamic_cast<CylinderGeomINTT*>(geom_container_intt->GetLayerGeom(layer));
-	double hit_location[3] = {0.0, 0.0, 0.0};
+	double hit_location[3] = {0.0, 0.0, 0.0};	
 	geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
 				  InttDefs::getLadderPhiId(cluster_key), hit_location);
-	
+
+	//cout << " INTT strip phi tilt = " <<  geom->get_strip_phi_tilt()  
+	//   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
 	n.SetXYZ(hit_location[0], hit_location[1], 0);
 	n.RotateZ(geom->get_strip_phi_tilt());
       }
@@ -1124,8 +1127,9 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     if(Verbosity() > 50)
       {
 	cout << "Add meas layer " << layer << " cluskey " << cluster_key 
+	     << endl
 	     << " pos.X " << pos.X() << " pos.Y " << pos.Y() << " pos.Z " << pos.Z()
-	     << "  n.X " <<  n.X() << " n,Y " << n.Y() << " n.Z " << n.Z() 
+	     << "  n.X " <<  n.X() << " n.Y " << n.Y() 
 	     << " RPhiErr " << cluster->getRPhiError() 
 	     << " ZErr " << cluster->getZError() 
 	     << endl;
@@ -1200,7 +1204,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     vertex_position.SetXYZ(first_point->get_x(), first_point->get_y(), first_point->get_z());
     if (Verbosity() > 1)
     {
-      cout << "Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " << endl;
+      cout << PHWHERE << "Using: truth vertex: {" << vertex_position.X() << ", " << vertex_position.Y() << ", " << vertex_position.Z() << "} " << endl;
     }
   }
   else if (vertex)

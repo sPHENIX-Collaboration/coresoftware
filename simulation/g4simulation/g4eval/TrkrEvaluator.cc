@@ -46,6 +46,7 @@
 using namespace std;
 
 TrkrEvaluator::TrkrEvaluator(const string& name, const string& filename,
+			     const string& trackmapname,
                              unsigned int nlayers_maps,
                              unsigned int nlayers_intt,
                              unsigned int nlayers_tpc)
@@ -65,6 +66,7 @@ TrkrEvaluator::TrkrEvaluator(const string& name, const string& filename,
   , _ntp_gtrack(nullptr)
   , _ntp_track(nullptr)
   , _filename(filename)
+  , _trackmapname(trackmapname)
   , _tfile(nullptr)
   , _timer(nullptr)
  {
@@ -213,7 +215,8 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       cout << PHWHERE << "Failed to find TRKR_CLUSTERHITASSOC node, quit!" << endl;
       exit(1);
     }
-  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+
+  SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
   SvtxVertexMap* vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
   PHG4HitContainer *g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   PHG4HitContainer *g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");

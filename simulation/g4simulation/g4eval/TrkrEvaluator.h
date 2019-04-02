@@ -15,8 +15,9 @@ class TNtuple;
 class TrkrEvaluator : public SubsysReco
 {
  public:
-  TrkrEvaluator(const std::string &name = "SVTXEVALUATOR",
+  TrkrEvaluator(const std::string &name = "TRKREVALUATOR",
                 const std::string &filename = "g4eval.root",
+                const std::string &trackmapname = "SvtxTrackMap",
                 unsigned int nlayers_maps = 3,
                 unsigned int nlayers_intt = 4,
                 unsigned int nlayers_tpc = 48);
@@ -54,6 +55,7 @@ class TrkrEvaluator : public SubsysReco
 
   // evaluator output file
   std::string _filename;
+  std::string _trackmapname;
 
   TFile *_tfile;
 
