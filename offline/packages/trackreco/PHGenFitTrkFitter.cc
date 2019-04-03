@@ -429,7 +429,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
       //			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
       //					vertex);
-      cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+      cout << endl << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
       std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
                                                           vertex);
 #ifdef _DEBUG_
@@ -540,7 +540,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
           //					SvtxVertex* vertex = NULL;
           //					if (_vertexmap_refit->size() > 0)
           //						vertex = _vertexmap_refit->get(0);
-	  cout << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+	  cout << endl << PHWHERE << " refit with primary vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
           std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
                                                               rf_phgf_track, vertex);
           //delete rf_phgf_track;
@@ -928,12 +928,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
   PHG4CylinderGeomContainer* geom_container_mvtx = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
-  if(!geom_container_intt || !geom_container_mvtx)
-  {
-    //cout << PHWHERE << "ERROR: Can't find intt and/or mvtx geometry nodes !" << endl;
-    return NULL;
-  }
-
   // prepare seed
   TVector3 seed_mom(100, 0, 0);
   TVector3 seed_pos(0, 0, 0);
@@ -953,18 +947,20 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 	 * if fit track as a primary track
 	 */
 
-  //	if(invertex and Verbosity() >= 2)
-  //	{
-  //		LogDebug(invertex->size_tracks());
-  //		LogDebug(invertex->get_chisq());
-  //		LogDebug(invertex->get_ndof());
-  //		for (unsigned int i = 0; i < 3; i++)
-  //			for (unsigned int j = 0; j < 3; j++)
-  //			{
-  //				LogDebug(invertex->get_error(i,j));
-  //			}
-  //
-  //	}
+  /*
+  if(invertex and Verbosity() >= 2)
+    {
+      LogDebug(invertex->size_tracks());
+      LogDebug(invertex->get_chisq());
+      LogDebug(invertex->get_ndof());
+      for (unsigned int i = 0; i < 3; i++)
+	for (unsigned int j = 0; j < 3; j++)
+	  {
+	    LogDebug(invertex->get_error(i,j));
+	  }
+    }
+  */
+
   /*!
 	 *
 	 */
@@ -1393,7 +1389,16 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       }
     }
 
+    // vn is momentum vector, pos_in is position vector (of what?)
     pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
+
+    if(Verbosity() > 50)
+      {
+	cout << " vn.X " << vn.X() << " vn.Y " << vn.Y() << " vn.Z " << vn.Z() << endl;
+	cout << " pos_in.X " << pos_in[0][0] << " pos_in.Y " << pos_in[1][0] << " pos_in.Z " << pos_in[2][0] << endl;
+	cout << " pos_out.X " << pos_out[0][0] << " pos_out.Y " << pos_out[1][0] << " pos_out.Z " << pos_out[2][0] << endl;
+      }
+
 
     dca3d_xy = pos_out[0][0];
     dca3d_z = pos_out[2][0];
@@ -1893,8 +1898,9 @@ bool PHGenFitTrkFitter::pos_cov_XYZ_to_RZ(
     return false;
   }
 
+  // produces a vector perpendicular to both the momentum vector and beam line - i.e. in the direction of the dca_xy
+  // only the angle of r will be used, not the magnitude
   TVector3 r = n.Cross(TVector3(0., 0., 1.));
-
   if (r.Mag() < 0.00001)
   {
     if (Verbosity() > 0) LogWarning("n is parallel to z");

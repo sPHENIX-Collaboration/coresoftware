@@ -1468,75 +1468,9 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
       n.RotateZ(geom->get_strip_phi_tilt());
     }
   
-  /*
-  unsigned int begin_hit_id = *(cluster->begin_hits());
-
-#ifdef _DEBUG_
-  LogDebug(begin_hit_id) << endl;
-#endif
-  SvtxHit* svtxhit = _svtxhitsmap->find(begin_hit_id)->second;
-
-#ifdef _DEBUG_
-  LogDebug(svtxhit->get_cellid()) << endl;
-#endif
-  PHG4Cell* cell_svtx = nullptr;
-  PHG4Cell* cell_intt = nullptr;
-  PHG4Cell* cell_maps = nullptr;
-
-  if (_cells_svtx) cell_svtx = _cells_svtx->findCell(svtxhit->get_cellid());
-  if (_cells_intt) cell_intt = _cells_intt->findCell(svtxhit->get_cellid());
-  if (_cells_maps) cell_maps = _cells_maps->findCell(svtxhit->get_cellid());
-  if (!(cell_svtx or cell_intt or cell_maps))
-  {
-    if (Verbosity() >= 0)
-      LogError("!(cell_svtx or cell_intt or cell_maps)") << endl;
-    return nullptr;
-  }
-
-  //17.4, 17.4, 17.4, 14.0, 14.0, 12.0, 11.5
-  //float phi_tilt[7] = {0.304, 0.304, 0.304, 0.244, 0.244, 0.209, 0.201};
-
-  unsigned int layer = cluster->get_layer();
-  //std::cout << "cluster layer: " << layer << std::endl;
-  if (cell_maps)
-  {
-    PHG4Cell* cell = cell_maps;
-
-    int stave_index = cell->get_stave_index();
-    int half_stave_index = cell->get_half_stave_index();
-    int module_index = cell->get_module_index();
-    int chip_index = cell->get_chip_index();
-
-    double ladder_location[3] = {0.0, 0.0, 0.0};
-    CylinderGeom_MVTX* geom =
-        dynamic_cast<CylinderGeom_MVTX*>(_geom_container_maps->GetLayerGeom(layer));
-    // returns the center of the sensor in world coordinates - used to get the ladder phi location
-    geom->find_sensor_center(stave_index, half_stave_index,
-                             module_index, chip_index, ladder_location);
-    //n.Print();
-    n.SetXYZ(ladder_location[0], ladder_location[1], 0);
-    n.RotateZ(geom->get_stave_phi_tilt());
-    //n.Print();
-  }
-  else if (cell_intt)
-  {
-    PHG4Cell* cell = cell_intt;
-    CylinderGeomINTT* geom =
-        dynamic_cast<CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(
-            layer));
-    double hit_location[3] = {0.0, 0.0, 0.0};
-    geom->find_segment_center(cell->get_ladder_z_index(),
-                              cell->get_ladder_phi_index(), hit_location);
-
-    n.SetXYZ(hit_location[0], hit_location[1], 0);
-    n.RotateZ(geom->get_strip_phi_tilt());
-  }
-    */
-
   //double radius = sqrt(cluster->getPosition(0)*cluster->getPosition(0)  + cluster->getPosition(1)*cluster->getPosition(1));
   PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 								cluster->getRPhiError(), cluster->getZError());
-
 
   meas->set_cluster_key(cluster->getClusKey());
 
@@ -1548,9 +1482,8 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
       << ": layer: " << layer_out
       << ": pos: {" << pos.X() << ", " << pos.Y() << ", " << pos.Z() << "}"
       << ": n: {" << n.X() << ", " << n.Y() << ", " << n.Z() << "}"
-      //<<": rphi_error: " << cluster->get_rphi_error()
-      << ": phi_error: " << cluster->getPhiError()
-      << ": theta error: " << cluster->getZError() / pos.Perp()
+      << ": r*phi_error: " << cluster->getRPhiError()
+      << ": z error: " << cluster->getZError()
       << endl;
 #endif
 

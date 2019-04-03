@@ -211,7 +211,7 @@ float TrkrClusterv1::getRPhiError() const
 	}
     }
 
-  return sqrt(rphierr);
+  return rphierr;
 }
 
 float TrkrClusterv1::getZError() const

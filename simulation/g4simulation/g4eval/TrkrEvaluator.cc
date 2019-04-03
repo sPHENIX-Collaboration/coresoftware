@@ -139,7 +139,7 @@ int TrkrEvaluator::InitRun(PHCompositeNode* topNode)
 
 int TrkrEvaluator::process_event(PHCompositeNode* topNode)
 {
-  if ((Verbosity() > 0) && (_ievent % 100 == 0))
+  if ((Verbosity() > 0) && (_ievent % 1 == 0))
   {
     cout << "TrkrEvaluator::process_event - Event = " << _ievent << endl;
   }
@@ -365,6 +365,9 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      }	  
 	}
     }
+
+  if(Verbosity() > 10)
+    cout << " nclus_maps " << nclus_maps << " nclus_intt " << nclus_intt << " nclus_tpc " << nclus_tpc << endl;
 
   //-----------------------------
  // fill the Vertex NTuple
@@ -968,6 +971,9 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       {
         PHG4Particle* g4particle = iter->second;
 
+	if(Verbosity() > 10)
+	  cout << " g4trackID " << g4particle->get_track_id() << endl;
+
 	if (_scan_for_embedded)
 	  {
 	    if (truthinfo->isEmbeded(g4particle->get_track_id()) <= 0) continue;
@@ -1006,67 +1012,73 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 
 	// get the number of g4hits from this particle
-	for (PHG4HitContainer::ConstIterator g4hititer = g4hits_mvtx->getHits().first;
-	     g4hititer != g4hits_mvtx->getHits().second;
-	     ++g4hititer)
+	if(g4hits_mvtx)
 	  {
-	    unsigned int layer = g4hititer->second->get_layer();
-	    if (_nlayers_maps > 0 && layer < _nlayers_maps)
+	    for (PHG4HitContainer::ConstIterator g4hititer = g4hits_mvtx->getHits().first;
+		 g4hititer != g4hits_mvtx->getHits().second;
+		 ++g4hititer)
 	      {
-		lmaps[layer] = 1;
-		ngmaps++;
-	      }	    
+		unsigned int layer = g4hititer->second->get_layer();
+		if (_nlayers_maps > 0 && layer < _nlayers_maps)
+		  {
+		    lmaps[layer] = 1;
+		    ngmaps++;
+		  }	    
+	      }
 	  }
 
-	for(PHG4HitContainer::ConstIterator g4hititer = g4hits_intt->getHits().first; g4hititer != g4hits_intt->getHits().second; ++g4hititer)
+	if(g4hits_intt)
 	  {
-	    unsigned int layer = g4hititer->second->get_layer();
-	    
-	    if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+	    for(PHG4HitContainer::ConstIterator g4hititer = g4hits_intt->getHits().first; g4hititer != g4hits_intt->getHits().second; ++g4hititer)
 	      {
-		lintt[layer - _nlayers_maps] = 1;
-		ngintt++;
+		unsigned int layer = g4hititer->second->get_layer();
+		
+		if (_nlayers_intt > 0 && layer >= _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    lintt[layer - _nlayers_maps] = 1;
+		    ngintt++;
+		  }
+		
+		if (_nlayers_intt > 0 && layer == _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt1++;
+		  }
+		
+		if (_nlayers_intt > 1 && layer == _nlayers_maps + 1 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt2++;
+		  }
+		
+		if (_nlayers_intt > 2 && layer == _nlayers_maps + 2 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt3++;
+		  }
+		
+		if (_nlayers_intt > 3 && layer == _nlayers_maps + 3 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt4++;
+		  }
+		
+		if (_nlayers_intt > 4 && layer == _nlayers_maps + 4 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt5++;
+		  }
+		
+		if (_nlayers_intt > 5 && layer == _nlayers_maps + 5 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt6++;
+		  }
+		
+		if (_nlayers_intt > 6 && layer == _nlayers_maps + 6 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt7++;
+		  }
+		
+		if (_nlayers_intt > 7 && layer == _nlayers_maps + 7 && layer < _nlayers_maps + _nlayers_intt)
+		  {
+		    ngintt8++;
+		  }	    
 	      }
-	    
-	    if (_nlayers_intt > 0 && layer == _nlayers_maps && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt1++;
-	      }
-	    
-	    if (_nlayers_intt > 1 && layer == _nlayers_maps + 1 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt2++;
-	      }
-	    
-	    if (_nlayers_intt > 2 && layer == _nlayers_maps + 2 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt3++;
-	      }
-	    
-	    if (_nlayers_intt > 3 && layer == _nlayers_maps + 3 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt4++;
-	      }
-	    
-	    if (_nlayers_intt > 4 && layer == _nlayers_maps + 4 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt5++;
-	      }
-	    
-	    if (_nlayers_intt > 5 && layer == _nlayers_maps + 5 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt6++;
-	      }
-	    
-	    if (_nlayers_intt > 6 && layer == _nlayers_maps + 6 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt7++;
-	      }
-	    
-	    if (_nlayers_intt > 7 && layer == _nlayers_maps + 7 && layer < _nlayers_maps + _nlayers_intt)
-	      {
-		ngintt8++;
-	      }	    
 	  }
 
 	for (PHG4HitContainer::ConstIterator g4hititer = g4hits_tpc->getHits().first;
@@ -1403,15 +1415,20 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
 	return;
       }
-        
+
+    if(Verbosity() > 0) 
+      cout << " trackmap size " << trackmap->size() << endl;
+
     if (trackmap)
     {
       for (SvtxTrackMap::Iter iter = trackmap->begin();
            iter != trackmap->end();
            ++iter)
       {
-
         SvtxTrack* track = iter->second;
+
+	if(Verbosity() > 10)
+	  cout << " trackID " << track->get_id() << endl;
 
         float trackID = track->get_id();
         float charge = track->get_charge();
