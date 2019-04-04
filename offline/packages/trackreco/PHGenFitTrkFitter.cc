@@ -429,7 +429,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
       //			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
       //					vertex);
-      cout << endl << PHWHERE << " vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+
       std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
                                                           vertex);
 #ifdef _DEBUG_
@@ -540,7 +540,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
           //					SvtxVertex* vertex = NULL;
           //					if (_vertexmap_refit->size() > 0)
           //						vertex = _vertexmap_refit->get(0);
-	  cout << endl << PHWHERE << " refit with primary vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+
           std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
                                                               rf_phgf_track, vertex);
           //delete rf_phgf_track;
