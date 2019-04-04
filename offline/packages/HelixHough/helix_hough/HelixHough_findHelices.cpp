@@ -573,7 +573,6 @@ void HelixHough::findHelices(unsigned int min_hits, unsigned int max_hits,
     }
   } else {
     if (clusters_vec[zoomlevel]->size() == 0) {
-      cout << "     returning " << endl;
       return;
     }
     // for each cluster, eiter perform the Hough again or break into
