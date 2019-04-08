@@ -12,8 +12,10 @@ using namespace std;
 PHG4IonGun::PHG4IonGun()
   : A(0)
   , Z(0)
+  , ioncharge(0)
   , excitEnergy(0)
 {
+  fill(begin(mom),end(mom),NAN);
 }
 
 void PHG4IonGun::SetCharge(const int c)
