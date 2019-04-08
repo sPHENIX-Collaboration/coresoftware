@@ -664,17 +664,18 @@ int PHG4Reco::setupInputEventNodeReader(PHCompositeNode *topNode)
     PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(ineve, "PHG4INEVENT", "PHObject");
     dstNode->addNode(newNode);
   }
-  generatorAction_ = new PHG4PrimaryGeneratorAction();
+// check if we have already registered a generator before creating the default which uses PHG4InEvent Node
+  if (! generatorAction_)
+  {
+    generatorAction_ = new PHG4PrimaryGeneratorAction();
+  }
   runManager_->SetUserAction(generatorAction_);
   return 0;
 }
 
-void PHG4Reco::setGeneratorAction(G4VUserPrimaryGeneratorAction *action)
+void PHG4Reco::setGeneratorAction(PHG4PrimaryGeneratorAction *action)
 {
-  if (runManager_)
-  {
-    runManager_->SetUserAction(action);
-  }
+  generatorAction_ = action;
   return;
 }
 
