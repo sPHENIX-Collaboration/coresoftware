@@ -68,6 +68,10 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
+
+  // this is used as a buffer for charge collection from a single g4hit
+  temp_hitsetcontainer = new TrkrHitSetContainer();
+
   return;
 }
 
@@ -252,7 +256,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
     // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
     // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
-    temp_hitsetcontainer = new TrkrHitSetContainer();
 
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator, eion * electrons_per_gev);
@@ -349,7 +352,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
-    }
+    }  // end loop over electrons for this g4hit
     ihit++;
 
     // transfer the hits from temp_hitsetcontainer to hitsetcontainer on the node tree
@@ -377,10 +380,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	  {
 	    TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
 	    TrkrHit *temp_tpchit = temp_hit_iter->second;
+
 	    if(Verbosity() > 100)
 	      cout << "      temp_hitkey " << temp_hitkey << " pad " << TpcDefs::getPad(temp_hitkey) << " z bin " << TpcDefs::getTBin(temp_hitkey) 
 		   << "  energy " << temp_tpchit->getEnergy() << endl;
-
+	    
 	    // find or add this hit to the node tree	    
 	    TrkrHit *node_hit = nullptr;
 	    node_hit = node_hitsetit->second->getHit(temp_hitkey);
@@ -388,22 +392,23 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	      {
 		// Otherwise, create a new one
 		node_hit = new TpcHit();
-		node_hitsetit->second->addHitSpecificKey(temp_hitkey, temp_tpchit);
+		node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
 	      }
 	    
 	    // Either way, add the energy to it
 	    node_hit->addEnergy(temp_tpchit->getEnergy());
-
+	    
 	    // Add the hit-g4hit association	    
 	    hittruthassoc->findOrAddAssoc(node_hitsetkey, temp_hitkey, hiter->first);
+	    
+	  }  // end loop over temp hits
+      } // end loop over temp hitsets
 
-	  }
-      }
-
-      delete temp_hitsetcontainer;
-
+    // erase all entries in the temp hitsetcontainer
+    temp_hitsetcontainer->Reset();
+    
   } // end loop over g4hits
-
+  
 
   unsigned int print_layer = 47;  
 
