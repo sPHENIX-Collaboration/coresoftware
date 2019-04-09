@@ -62,6 +62,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , max_active_radius(NAN)
   , min_time(NAN)
   , max_time(NAN)
+  , temp_hitsetcontainer(nullptr)
 {
   //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
@@ -248,6 +249,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     {
       continue;
     }
+
+    // for very high occupancy events, accessing the TrkrHitsets on the node tree for every drifted electron seems to be very slow
+    // Instead, use a temporary map to accumulate the charge from all drifted electrons, then copy to the node tree later
+    temp_hitsetcontainer = new TrkrHitSetContainer();
+
     double eion = hiter->second->get_eion();
     unsigned int n_electrons = gsl_ran_poisson(RandomGenerator, eion * electrons_per_gev);
     if (Verbosity() > 100)
@@ -257,18 +263,18 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
            << endl;
 
     if (n_electrons <= 0)
-    {
-      if (n_electrons < 0)
       {
-        cout << "really bad number of electrons: " << n_electrons
-             << ", eion: " << eion
-             << endl;
+	if (n_electrons < 0)
+	  {
+	    cout << "really bad number of electrons: " << n_electrons
+		 << ", eion: " << eion
+		 << endl;
+	  }
+	continue;
       }
-      continue;
-    }
-
+    
     if (Verbosity() > 100)
-    {
+      {
         cout << endl
              << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons
              << " from " << eion * 1000000 << " keV" << endl;
@@ -341,12 +347,60 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       if (Verbosity() > 0)
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
 
-      // this fills the cells and updates the hits on the node tree for this drifted electron hitting the GEM stack
+      // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
     }
     ihit++;
 
-    // figure out how to add an association for each hit pad, not each electron!
+    // transfer the hits from temp_hitsetcontainer to hitsetcontainer on the node tree
+    TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
+    for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
+	 temp_hitset_iter != temp_hitset_range.second;
+	 ++temp_hitset_iter)
+      {
+	// we have an itrator to one TrkrHitSet for the TPC from the temp_hitsetcontainer
+	TrkrDefs::hitsetkey node_hitsetkey = temp_hitset_iter->first;
+	const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
+	const int sector = TpcDefs::getSectorId(node_hitsetkey);
+	const int side = TpcDefs::getSide(node_hitsetkey);	
+	if(Verbosity()>100)   
+	  cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+
+	// find or add this hitset on the node tree
+	TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
+	
+	// get all of the hits from the temporary hitset      
+	TrkrHitSet::ConstRange temp_hit_range = temp_hitset_iter->second->getHits();
+	for(TrkrHitSet::ConstIterator temp_hit_iter = temp_hit_range.first;
+	    temp_hit_iter != temp_hit_range.second;
+	    ++temp_hit_iter)
+	  {
+	    TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
+	    TrkrHit *temp_tpchit = temp_hit_iter->second;
+	    if(Verbosity() > 100)
+	      cout << "      temp_hitkey " << temp_hitkey << " pad " << TpcDefs::getPad(temp_hitkey) << " z bin " << TpcDefs::getTBin(temp_hitkey) 
+		   << "  energy " << temp_tpchit->getEnergy() << endl;
+
+	    // find or add this hit to the node tree	    
+	    TrkrHit *node_hit = nullptr;
+	    node_hit = node_hitsetit->second->getHit(temp_hitkey);
+	    if(!node_hit)
+	      {
+		// Otherwise, create a new one
+		node_hit = new TpcHit();
+		node_hitsetit->second->addHitSpecificKey(temp_hitkey, temp_tpchit);
+	      }
+	    
+	    // Either way, add the energy to it
+	    node_hit->addEnergy(temp_tpchit->getEnergy());
+
+	    // Add the hit-g4hit association	    
+	    hittruthassoc->findOrAddAssoc(node_hitsetkey, temp_hitkey, hiter->first);
+
+	  }
+      }
+
+      delete temp_hitsetcontainer;
 
   } // end loop over g4hits
 
@@ -398,7 +452,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
 void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
-  padplane->MapToPadPlane(hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
+  padplane->MapToPadPlane(temp_hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 
   return;
 }

@@ -69,6 +69,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius;
   double min_time;
   double max_time;
+  TrkrHitSetContainer *temp_hitsetcontainer;
   //PHG4TPCPadPlaneReadout *padplane;
   PHG4TPCPadPlane *padplane;
 

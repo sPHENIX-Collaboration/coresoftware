@@ -316,7 +316,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // capture the layer where this electron hits sthe gem stack
       LayerGeom = layeriter->second;
       layernum = LayerGeom->get_layer();
-      if (Verbosity())
+      if (Verbosity() > 20)
         cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
              << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
       hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
@@ -437,8 +437,6 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // get the TPC readout sector - there are 12 sectors with how many pads each?
       unsigned int pads_per_sector =  LayerGeom->get_phibins() / 12;
       unsigned int sector = pad_num / pads_per_sector;
-      //cout << " PHG4TPCPadPlaneReadout: Generate hitsetkey for layernum " << layernum << " pads per sector " << pads_per_sector 
-      //   << " pad_num " << pad_num << " sector " << sector << " side " << side << endl;  
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
@@ -456,13 +454,8 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
 	}
       
       // Either way, add the energy to it
-      //cout << "Adding neffelectrons to hit with hitkey " << hitkey << endl;
       hit->addEnergy(neffelectrons);
       // adc values will be added at digitization
-
-      // Add this hit to the association map
-      // need to add the association conditionally on whether it already exists or not
-      hittruthassoc->findOrAddAssoc(hitsetkey, hitkey, hiter->first);
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
