@@ -115,11 +115,12 @@ else
     PHG4InEventCompress_Dict.cc \
     PHG4InEventReadBack_Dict.cc \
     PHG4InputFilter_Dict.cc \
-    PHG4ParticleGun_Dict.cc \
+    PHG4IonGun_Dict.cc \
     PHG4ParticleGenerator_Dict.cc \
     PHG4ParticleGeneratorBase_Dict.cc \
     PHG4ParticleGeneratorVectorMeson_Dict.cc \
     PHG4ParticleGeneratorD0_Dict.cc \
+    PHG4ParticleGun_Dict.cc \
     PHG4Reco_Dict.cc \
     PHG4ScoringManager_Dict.cc \
     PHG4SimpleEventGenerator_Dict.cc \
@@ -164,27 +165,28 @@ libg4testbench_la_SOURCES = \
   PHG4InEventCompress.cc \
   PHG4InEventReadBack.cc \
   PHG4InputFilter.cc \
-  PHG4PileupGenerator.cc \
-  PHG4SimpleEventGenerator.cc \
-  PHG4ParticleGun.cc \
+  PHG4IonGun.cc \
   PHG4ParticleGeneratorBase.cc \
   PHG4ParticleGenerator.cc \
   PHG4ParticleGeneratorVectorMeson.cc \
   PHG4ParticleGeneratorD0.cc \
+  PHG4ParticleGun.cc \
   PHG4PhenixDetector.cc \
   PHG4PhenixEventAction.cc \
   PHG4PhenixSteppingAction.cc \
   PHG4PhenixTrackingAction.cc \
+  PHG4PileupGenerator.cc \
   PHG4PrimaryGeneratorAction.cc \
   PHG4Reco.cc \
-  PHG4ScoringManager.cc \
   PHG4RegionInformation.cc \
+  PHG4ScoringManager.cc \
+  PHG4SimpleEventGenerator.cc \
+  PHG4SteppingAction.cc \
   PHG4TrackUserInfoV1.cc \
   PHG4TruthEventAction.cc \
   PHG4TruthSteppingAction.cc \
   PHG4TruthSubsystem.cc \
   PHG4TruthTrackingAction.cc \
-  PHG4SteppingAction.cc \
   PHG4UIsession.cc \
   PHG4Utils.cc \
   ReadEICFiles.cc
@@ -206,6 +208,7 @@ pkginclude_HEADERS = \
   PHG4HitEval.h \
   PHG4HitContainer.h \
   PHG4InEvent.h \
+  PHG4IonGun.h \
   PHG4Particle.h \
   PHG4Particlev1.h \
   PHG4Particlev2.h \
@@ -215,6 +218,7 @@ pkginclude_HEADERS = \
   PHG4ParticleGun.h \
   PHG4PhenixDetector.h \
   PHG4PileupGenerator.h \
+  PHG4PrimaryGeneratorAction.h \
   PHG4Reco.h \
   PHG4RegionInformation.h \
   PHG4SimpleEventGenerator.h \
