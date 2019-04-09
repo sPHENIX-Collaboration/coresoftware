@@ -3,6 +3,8 @@
 
 #include "PHG4PrimaryGeneratorAction.h"
 
+#include <string>
+
 class PHG4IonGun : public PHG4PrimaryGeneratorAction
 {
  public:
@@ -15,6 +17,7 @@ class PHG4IonGun : public PHG4PrimaryGeneratorAction
   void SetCharge(const int c);
   void ExcitEnergy(const double e) { excitEnergy = e; }
   void SetMom(const double px, const double py, const double pz);
+  void Print(const std::string &what = "ALL") const;
 
  protected:
   int A;

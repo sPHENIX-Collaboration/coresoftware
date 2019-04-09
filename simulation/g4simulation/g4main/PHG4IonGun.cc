@@ -41,3 +41,11 @@ void PHG4IonGun::GeneratePrimaries(G4Event* anEvent)
   anEvent->AddPrimaryVertex(vertex);
   return;
 }
+
+void PHG4IonGun::Print(const string &what) const
+{
+  cout << "PHG4IonGun, using ions of" << endl;
+  cout << "A: " << A << ", Z: " << Z << ", charge: " << ioncharge 
+       << ", excitation Energy: " << excitEnergy << endl;
+  cout << "px: " << mom[0]/GeV << " GeV, py: " << mom[1]/GeV << " GeV, pz: " << mom[2]/GeV << " GeV" << endl;
+}
