@@ -46,8 +46,15 @@
 using namespace std;
 
 TpcClusterizer::TpcClusterizer(const char* name)
-  : zz_shaping_correction(0.0754)
+  : m_hits(nullptr)
+  , m_clusterlist(nullptr)
+  , m_clusterhitassoc(nullptr)
+  , zz_shaping_correction(0.0754)
   , pedestal(74.4)
+  , NPhiBinsMax(0)
+  , NPhiBinsMin(0)
+  , NZBinsMax(0)
+  , NZBinsMin(0)
 {
 }
 //===================

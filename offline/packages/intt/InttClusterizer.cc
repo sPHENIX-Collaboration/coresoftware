@@ -43,7 +43,8 @@ using namespace std;
 
 static const float twopi = 2.0 * M_PI;
 
-bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, TrkrHit*> lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> rhs, const int layer)
+//bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, TrkrHit*> lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> rhs, const int layer)
+bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer)
 {
   if (get_z_clustering(layer))
     {
@@ -71,6 +72,9 @@ InttClusterizer::InttClusterizer(const string& name,
                                  unsigned int min_layer,
                                  unsigned int max_layer)
   : SubsysReco(name)
+  , m_hits(nullptr)
+  , m_clusterlist(nullptr)
+  , m_clusterhitassoc(nullptr)
   , _fraction_of_mip(0.5)
   , _thresholds_by_layer()
   , _make_z_clustering()
@@ -346,7 +350,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
       }
 
     // loop over the cluster ID's and make the clusters from the connected hits
-    for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); clusiter++)
+    for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
       {
 	int clusid = *clusiter;
 	//cout << " intt clustering: add cluster number " << clusid << endl; 
@@ -376,7 +380,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	double clus_adc = 0.0;
 	unsigned nhits = 0;
 	
-	for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
+	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // mapiter->second.first  is the hit key
 	    //cout << " adding hitkey " << mapiter->second.first << endl; 

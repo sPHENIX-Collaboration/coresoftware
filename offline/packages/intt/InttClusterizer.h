@@ -65,7 +65,7 @@ class InttClusterizer : public SubsysReco
   }
 
  private:
-  bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> rhs, const int layer);
+  bool ladder_are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer);
 
   void CalculateLadderThresholds(PHCompositeNode *topNode);
   void ClusterLadderCells(PHCompositeNode *topNode);

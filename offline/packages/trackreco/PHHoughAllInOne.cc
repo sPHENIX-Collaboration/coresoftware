@@ -3168,12 +3168,12 @@ int PHHoughAllInOne::SimpleTrack3DToPHGenFitTracks(unsigned int itrack)
     unsigned int cluster_ID = iter->second;
 
     TrkrCluster* cluster = _cluster_map->findCluster(cluster_ID);
-    ml += cluster->get_layer();
     if (!cluster)
     {
       LogError("No cluster Found!\n");
       continue;
     }
+    ml += cluster->get_layer();
 
     PHGenFit::Measurement* meas = TrkrClusterToPHGenFitMeasurement(cluster);
 

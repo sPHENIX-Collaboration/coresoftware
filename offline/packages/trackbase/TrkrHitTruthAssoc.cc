@@ -60,7 +60,7 @@ TrkrHitTruthAssoc::findOrAddAssoc(const TrkrDefs::hitsetkey hitsetkey, const Trk
 
   std::pair<MMap::iterator, MMap::iterator> hitsetrange = m_map.equal_range(hitsetkey);
   MMap::iterator mapiter = hitsetrange.first;
-  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; mapiter++)
+  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; ++mapiter)
     {
       if(mapiter->second.first == hitkey && mapiter->second.second == g4hitkey)
 	{
@@ -85,7 +85,7 @@ TrkrHitTruthAssoc::removeAssoc(const TrkrDefs::hitsetkey hitsetkey, const TrkrDe
 
   std::pair<MMap::iterator, MMap::iterator> hitsetrange = m_map.equal_range(hitsetkey);
   MMap::iterator mapiter = hitsetrange.first;
-  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; mapiter++)
+  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; ++mapiter)
     {
       if(mapiter->second.first == hitkey)
 	{
@@ -108,7 +108,7 @@ TrkrHitTruthAssoc::getG4Hits(const TrkrDefs::hitsetkey hitsetkey, const unsigned
   std::pair<MMap::iterator, MMap::iterator> hitsetrange = m_map.equal_range(hitsetkey);
   MMap::iterator mapiter = hitsetrange.first;
 
-  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; mapiter++)
+  for (mapiter = hitsetrange.first; mapiter != hitsetrange.second; ++mapiter)
     {
       if(mapiter->second.first == hidx)
 	{

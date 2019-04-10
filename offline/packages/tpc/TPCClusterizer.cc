@@ -825,7 +825,6 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
         float pp = radius * phi;
         float zz = fit_z_mean();
         // Correction for bias in electron z position due to asymmeteric SAMPA shaping
-        float zz_raw = zz;
         if (zz < 0)
           zz -= zz_shaping_correction;
         else
@@ -851,7 +850,7 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
         {
 	  // cout << endl
 	  //   << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14
-	  //   << " zz_raw " << zz_raw << " zz " << zz
+	  //   << " zz " << zz
 	  //   << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
           //cout << "clusterizer layer " << layer << " zz " << zz << " zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << " phi " << phi << " phi_err " << pp_err << " phi cov " << fit_p_cov() << endl;
         }

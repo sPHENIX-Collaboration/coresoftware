@@ -614,7 +614,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
 
   if (Verbosity() > 1) {
     for (map<float, int>::const_iterator iter = radius_layer_map.begin();
-	 iter != radius_layer_map.end(); iter++) {
+	 iter != radius_layer_map.end(); ++iter) {
       //cout << "radius_layer_map: first: " << iter->first << "; second: "
       //   << iter->second << endl;
     }

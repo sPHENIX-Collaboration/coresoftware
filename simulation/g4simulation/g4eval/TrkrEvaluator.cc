@@ -186,6 +186,12 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0) cout << "TrkrEvaluator::fillOutputNtuples() entered" << endl;
 
+  if (Verbosity() >= 0)
+    {
+      _timer->restart();
+      cout << "Entering fillOutputNtuples:  " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+    }
+
   //=========
   // get nodes
   //=========
@@ -369,6 +375,12 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if(Verbosity() > 10)
     cout << " nclus_maps " << nclus_maps << " nclus_intt " << nclus_intt << " nclus_tpc " << nclus_tpc << endl;
 
+  if (Verbosity() >= 0)
+    {
+      _timer->stop();
+      cout << "timer after gathering initial statistics:  " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+    }
+
   //-----------------------------
  // fill the Vertex NTuple
   //-----------------------------
@@ -378,7 +390,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     if (Verbosity() > 0)
     {
       cout << "Filling ntp_vertex " << endl;
-      cout << "start vertex time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+      cout << "starting vertex after time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
       _timer->restart();
     }
 
@@ -1388,7 +1400,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         _ntp_gtrack->Fill(gtrack_data);
       }
     }
-    if (Verbosity() >= 1)
+    if (Verbosity() >= 0)
     {
       _timer->stop();
       cout << "gtrack time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
@@ -1807,16 +1819,7 @@ void TrkrEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->stop();
       cout << "track time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
     }
-  }
-
-
-  
-  if (Verbosity() >= 1)
-    {
-      _timer->stop();
-      cout << "g4hit time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
-    }
-  
+  }  
   
   return;
 }

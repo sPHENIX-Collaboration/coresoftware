@@ -76,7 +76,7 @@ bool MvtxClusterizer::are_adjacent(const pixel lhs,
 }
 */
 
-bool MvtxClusterizer::are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> rhs)
+bool MvtxClusterizer::are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs)
 {
   if (GetZClustering())
   {
@@ -107,6 +107,7 @@ MvtxClusterizer::MvtxClusterizer(const string &name)
   : SubsysReco(name)
   , m_hits(nullptr)
   , m_clusterlist(nullptr)
+  , m_clusterhitassoc(nullptr)
   , m_makeZClustering(true)
 {
 }
@@ -292,7 +293,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
       }
     
     // loop over the componenets and make clusters
-    for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); clusiter++)
+    for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
       {
 	int clusid = *clusiter;
 	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,  
@@ -329,7 +330,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	int chip = MvtxDefs::getChipId(ckey);
 	int stave =  MvtxDefs::getStaveId(ckey); 
 	
-	for (mapiter = clusrange.first; mapiter != clusrange.second; mapiter++)
+	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // size
 	    int col =  MvtxDefs::getCol( (mapiter->second).first);
