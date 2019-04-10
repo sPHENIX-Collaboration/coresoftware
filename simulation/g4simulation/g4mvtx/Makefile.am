@@ -58,13 +58,13 @@ libg4mvtx_la_SOURCES = \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
-  PHG4CylinderGeom_MVTX.cc \
   PHG4MVTXDigitizer.cc
 
 
 libg4mvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
-  PHG4CylinderCell_MVTX.cc
+  PHG4CylinderCell_MVTX.cc \
+  PHG4CylinderGeom_MVTX.cc
 
 
 # Rule for generating table CINT dictionaries.
@@ -80,10 +80,18 @@ libg4mvtx_io_la_SOURCES = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_tracker
+  testexternals_io \
+  testexternals
 
-testexternals_tracker_SOURCES = testexternals.cc
-testexternals_tracker_LDADD = libg4mvtx.la
+testexternals_io_SOURCES = \
+  testexternals.cc
+testexternals_io_LDADD = \
+  libg4mvtx_io.la
+
+testexternals_SOURCES = \
+  testexternals.cc
+testexternals_LDADD = \
+  libg4mvtx.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
