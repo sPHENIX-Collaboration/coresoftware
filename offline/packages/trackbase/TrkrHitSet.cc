@@ -18,6 +18,12 @@ TrkrHitSet::TrkrHitSet()
 {
 }
 
+TrkrHitSet::~TrkrHitSet()
+{
+  // frees the memory associated with the pointers gto the TrkrHit objects
+  Reset();
+}
+
 void TrkrHitSet::print() const
 {
   identify(std::cout);

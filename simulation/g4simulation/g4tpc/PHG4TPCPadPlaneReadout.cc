@@ -448,14 +448,13 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       hit = hitsetit->second->getHit(hitkey);
       if(!hit)
 	{
-	  // Otherwise, create a new one
+	  // create a new one
 	  hit = new TpcHit();
 	  hitsetit->second->addHitSpecificKey(hitkey, hit);
 	}
-      
-      // Either way, add the energy to it
+
+      // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
-      // adc values will be added at digitization
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
