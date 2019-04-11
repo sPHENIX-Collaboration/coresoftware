@@ -1,11 +1,14 @@
 #include "PHG4CylinderGeom_MVTX.h"
+
+
+#include <Math/GenVector/Translation3D.h>
+#include <Math/Rotation3D.h>
+#include <Math/Translation3D.h>
+#include <Math/Vector3D.h>
+#include <TRotation.h>
+#include <TVector3.h>
+
 #include <cmath>
-#include "Math/GenVector/Translation3D.h"
-#include "Math/Rotation3D.h"
-#include "Math/Translation3D.h"
-#include "Math/Vector3D.h"
-#include "TRotation.h"
-#include "TVector3.h"
 
 using namespace ROOT::Math;
 using namespace std;
