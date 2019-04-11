@@ -36,12 +36,13 @@ pkginclude_HEADERS = \
   PHG4MVTXHitReco.h \
   PHG4MVTXCellReco.h \
   PHG4MVTXSubsystem.h \
-  PHG4CylinderCell_MVTX.h \
+  PHG4CylinderCell_MVTX.h
   PHG4MVTXDigitizer.h \
   PHG4MvtxDigitizer.h 
 
 ROOTDICTS = \
   PHG4CylinderCell_MVTX_Dict.cc
+
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
@@ -67,8 +68,7 @@ libg4mvtx_la_SOURCES = \
 
 libg4mvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
-  PHG4CylinderCell_MVTX.cc \
-  PHG4CylinderGeom_MVTX.cc
+  PHG4CylinderCell_MVTX.cc
 
 
 # Rule for generating table CINT dictionaries.
