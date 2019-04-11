@@ -36,7 +36,7 @@ pkginclude_HEADERS = \
   PHG4MVTXHitReco.h \
   PHG4MVTXCellReco.h \
   PHG4MVTXSubsystem.h \
-  PHG4CylinderCell_MVTX.h
+  PHG4CylinderCell_MVTX.h \
   PHG4MVTXDigitizer.h \
   PHG4MvtxDigitizer.h 
 
