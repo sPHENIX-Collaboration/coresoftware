@@ -17,9 +17,13 @@ libg4eval_la_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 libg4eval_la_LIBADD = \
+  -lcalo_io \
   -lfun4all \
+  -lg4detectors_io \
+  -lg4jets_io \
+  -lg4vertex_io \
   -ltrackbase_historic_io \
-  -lg4dst 
+  -lphg4hit
 
 pkginclude_HEADERS = \
   BaseTruthEval.h \
