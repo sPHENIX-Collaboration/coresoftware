@@ -37,7 +37,7 @@ class SvtxVertexMap;
 class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class SvtxClusterMap;
+class TrkrClusterContainer;
 class SvtxEvalStack;
 class TFile;
 class TTree;
@@ -338,7 +338,7 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container;
-  SvtxClusterMap* _clustermap;
+  TrkrClusterContainer* _clustermap;
   SvtxTrackMap* _trackmap;
   SvtxVertexMap* _vertexmap;
 

@@ -1,9 +1,11 @@
 #include "PHTruthVertexing.h"
 
-#include <trackbase_historic/SvtxClusterMap.h>
+//#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
+
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>

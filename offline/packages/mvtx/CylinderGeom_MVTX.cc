@@ -1,5 +1,4 @@
-#include "PHG4CylinderGeom_MVTX.h"
-
+#include "CylinderGeom_MVTX.h"
 
 #include <Math/GenVector/Translation3D.h>
 #include <Math/Rotation3D.h>
@@ -13,7 +12,7 @@
 using namespace ROOT::Math;
 using namespace std;
 
-PHG4CylinderGeom_MVTX::PHG4CylinderGeom_MVTX(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_z, double in_pixel_thickness)
+CylinderGeom_MVTX::CylinderGeom_MVTX(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_z, double in_pixel_thickness)
   : layer(in_layer)
   , stave_type(in_stave_type)
   , N_staves(in_N_staves)
@@ -199,13 +198,13 @@ PHG4CylinderGeom_MVTX::PHG4CylinderGeom_MVTX(int in_layer, int in_stave_type, in
 }
 
 TVector3
-PHG4CylinderGeom_MVTX::get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location)
+CylinderGeom_MVTX::get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location)
 {
   double stave_phi = stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
 
   /*
-    cout << endl << "PHG4CylinderGeom_MVTX::get_local_from_world_coords: " << " Stave type " << stave_type 
+    cout << endl << "CylinderGeom_MVTX::get_local_from_world_coords: " << " Stave type " << stave_type 
 	 << " chip " << chip 
 	 << " world coords " << world_location.X() << " " << world_location.Y() << " " << world_location.Z() << endl;
   */
@@ -331,13 +330,13 @@ PHG4CylinderGeom_MVTX::get_local_from_world_coords(int stave, int half_stave, in
 }
 
 TVector3
-PHG4CylinderGeom_MVTX::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
+CylinderGeom_MVTX::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
 {
   double stave_phi = stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
 
   /*  
-    cout << endl << "PHG4CylinderGeom_MVTX::get_world_from_local_coords: " << " stave type " << stave_type
+    cout << endl << "CylinderGeom_MVTX::get_world_from_local_coords: " << " stave type " << stave_type
 	 << " chip " << chip
 	 << " local coords " << sensor_local.X() << " " << sensor_local.Y() << " " << sensor_local.Z() << endl;
   */
@@ -477,7 +476,7 @@ PHG4CylinderGeom_MVTX::get_world_from_local_coords(int stave, int half_stave, in
   }
 }
 
-int PHG4CylinderGeom_MVTX::get_pixel_number_from_xbin_zbin(int xbin, int ybin)
+int CylinderGeom_MVTX::get_pixel_number_from_xbin_zbin(int xbin, int ybin)
 {
   //NZ = (int)  ( Zsensor / (pixel_z) );
   //  NX = (int)  ( Xsensor / (pixel_x) );
@@ -487,7 +486,7 @@ int PHG4CylinderGeom_MVTX::get_pixel_number_from_xbin_zbin(int xbin, int ybin)
   return NXZ;
 }
 
-int PHG4CylinderGeom_MVTX::get_pixel_X_from_pixel_number(int NXZ)
+int CylinderGeom_MVTX::get_pixel_X_from_pixel_number(int NXZ)
 {
   //  NZ = (int)  ( Zsensor / (pixel_z) );
   //  NX = (int)  ( Xsensor / (pixel_x) );
@@ -497,7 +496,7 @@ int PHG4CylinderGeom_MVTX::get_pixel_X_from_pixel_number(int NXZ)
   return Ngridx;
 }
 
-int PHG4CylinderGeom_MVTX::get_pixel_Z_from_pixel_number(int NXZ)
+int CylinderGeom_MVTX::get_pixel_Z_from_pixel_number(int NXZ)
 {
   //  NZ = (int)  ( Zsensor / (pixel_z) );
   //  NX = (int)  ( Xsensor / (pixel_x) );
@@ -507,7 +506,7 @@ int PHG4CylinderGeom_MVTX::get_pixel_Z_from_pixel_number(int NXZ)
   return Ngridz;
 }
 
-int PHG4CylinderGeom_MVTX::get_pixel_from_local_coords(TVector3 sensor_local)
+int CylinderGeom_MVTX::get_pixel_from_local_coords(TVector3 sensor_local)
 {
   //  NZ = (int)  ( Zsensor / (pixel_z) );
   //  NX = (int)  ( Xsensor / (pixel_x) );
@@ -542,7 +541,7 @@ int PHG4CylinderGeom_MVTX::get_pixel_from_local_coords(TVector3 sensor_local)
   return NXZ;
 }
 
-TVector3 PHG4CylinderGeom_MVTX::get_local_coords_from_pixel(int NXZ)
+TVector3 CylinderGeom_MVTX::get_local_coords_from_pixel(int NXZ)
 {
   //  NZ = (int)  ( Zsensor / (pixel_z) );
   //  NX = (int)  ( Xsensor / (pixel_x) );
@@ -576,9 +575,9 @@ TVector3 PHG4CylinderGeom_MVTX::get_local_coords_from_pixel(int NXZ)
   return sensor_local_coords;
 }
 
-void PHG4CylinderGeom_MVTX::identify(std::ostream& os) const
+void CylinderGeom_MVTX::identify(std::ostream& os) const
 {
-  os << "PHG4CylinderGeom_MVTX: layer: " << layer
+  os << "CylinderGeom_MVTX: layer: " << layer
      << ", layer_radius: " << layer_radius
      << " , stave_type " << stave_type
      << ", N_staves in layer: " << N_staves
@@ -590,7 +589,7 @@ void PHG4CylinderGeom_MVTX::identify(std::ostream& os) const
   return;
 }
 
-int PHG4CylinderGeom_MVTX::get_ladder_z_index(int module, int chip)
+int CylinderGeom_MVTX::get_ladder_z_index(int module, int chip)
 {
   // return the z index of the sensor on the stave
   // this depends on the stave type
@@ -615,7 +614,7 @@ int PHG4CylinderGeom_MVTX::get_ladder_z_index(int module, int chip)
   return ladder_z_index;
 }
 
-int PHG4CylinderGeom_MVTX::get_ladder_phi_index(int stave, int half_stave, int chip)
+int CylinderGeom_MVTX::get_ladder_phi_index(int stave, int half_stave, int chip)
 {
   // return the phi index of the sensor on the stave
   // this depends on the stave type
@@ -640,7 +639,7 @@ int PHG4CylinderGeom_MVTX::get_ladder_phi_index(int stave, int half_stave, int c
   return ladder_phi_index;
 }
 
-void PHG4CylinderGeom_MVTX::find_sensor_center(int stave, int half_stave, int module, int chip, double location[])
+void CylinderGeom_MVTX::find_sensor_center(int stave, int half_stave, int module, int chip, double location[])
 {
   TVector3 sensor_local(0.0, 0.0, 0.0);
 

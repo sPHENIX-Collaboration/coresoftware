@@ -1,4 +1,5 @@
 #include "INTTClusterizer.h"
+#include "CylinderGeomINTT.h"
 
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
@@ -20,8 +21,6 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <g4intt/PHG4CylinderGeomINTT.h>
 
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -467,7 +466,7 @@ void INTTClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
       int layer = mapiter->second->get_layer();
       //PHG4CylinderGeom* geom = geom_container->GetLayerGeom(layer);
-      PHG4CylinderGeomINTT* geom = dynamic_cast<PHG4CylinderGeomINTT*>(geom_container->GetLayerGeom(layer));
+      CylinderGeomINTT* geom = dynamic_cast<CylinderGeomINTT*>(geom_container->GetLayerGeom(layer));
 
       SvtxCluster_v1 clus;
       clus.set_layer(layer);

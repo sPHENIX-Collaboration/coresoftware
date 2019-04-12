@@ -6,6 +6,8 @@
 
 #include <phool/PHObject.h>
 
+#include <trackbase/TrkrDefs.h>
+
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -124,17 +126,34 @@ class SvtxTrack_v1 : public SvtxTrack
   //
   // associated cluster ids methods --------------------------------------------
   //
+
+  // needed by old tracking
   void clear_clusters() { _cluster_ids.clear(); }
   bool empty_clusters() const { return _cluster_ids.empty(); }
   size_t size_clusters() const { return _cluster_ids.size(); }
+
   void insert_cluster(unsigned int clusterid) { _cluster_ids.insert(clusterid); }
   size_t erase_cluster(unsigned int clusterid) { return _cluster_ids.erase(clusterid); }
   ConstClusterIter begin_clusters() const { return _cluster_ids.begin(); }
   ConstClusterIter find_cluster(unsigned int clusterid) const { return _cluster_ids.find(clusterid); }
   ConstClusterIter end_clusters() const { return _cluster_ids.end(); }
-  ClusterIter begin_clusters() { return _cluster_ids.begin(); }
   ClusterIter find_cluster(unsigned int clusterid) { return _cluster_ids.find(clusterid); }
+  ClusterIter begin_clusters() { return _cluster_ids.begin(); }
   ClusterIter end_clusters() { return _cluster_ids.end(); }
+
+  // needed by new tracking
+  void clear_cluster_keys() { _cluster_keys.clear(); }
+  bool empty_cluster_keys() const { return _cluster_keys.empty(); }
+  size_t size_cluster_keys() const { return _cluster_keys.size(); }
+
+  void insert_cluster_key(TrkrDefs::cluskey clusterid) { _cluster_keys.insert(clusterid); }
+  size_t erase_cluster_key(TrkrDefs::cluskey clusterid) { return _cluster_keys.erase(clusterid); }
+  ConstClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) const { return _cluster_keys.find(clusterid); }
+  ConstClusterKeyIter begin_cluster_keys() const { return _cluster_keys.begin(); }
+  ConstClusterKeyIter end_cluster_keys() const { return _cluster_keys.end(); }
+  ClusterKeyIter find_cluster_key(TrkrDefs::cluskey clusterid) { return _cluster_keys.find(clusterid); }
+  ClusterKeyIter begin_cluster_keys() { return _cluster_keys.begin(); }
+  ClusterKeyIter end_cluster_keys()  { return _cluster_keys.end(); }
 
   //
   // calo projection methods ---------------------------------------------------
@@ -153,6 +172,9 @@ class SvtxTrack_v1 : public SvtxTrack
 
   unsigned int get_cal_cluster_id(CAL_LAYER layer) const;
   void set_cal_cluster_id(CAL_LAYER layer, unsigned int id) { _cal_cluster_id[layer] = id; }
+
+  TrkrDefs::cluskey get_cal_cluster_key(CAL_LAYER layer) const;
+  void set_cal_cluster_key(CAL_LAYER layer, TrkrDefs::cluskey id) { _cal_cluster_key[layer] = id; }
 
   float get_cal_cluster_e(CAL_LAYER layer) const;
   void set_cal_cluster_e(CAL_LAYER layer, float e) { _cal_cluster_e[layer] = e; }
@@ -182,6 +204,7 @@ class SvtxTrack_v1 : public SvtxTrack
 
   // cluster contents
   ClusterSet _cluster_ids;
+  ClusterKeySet _cluster_keys;
 
   // calorimeter matches
   std::map<CAL_LAYER, float> _cal_dphi;
@@ -189,6 +212,7 @@ class SvtxTrack_v1 : public SvtxTrack
   std::map<CAL_LAYER, float> _cal_energy_3x3;
   std::map<CAL_LAYER, float> _cal_energy_5x5;
   std::map<CAL_LAYER, int> _cal_cluster_id;
+  std::map<CAL_LAYER, TrkrDefs::cluskey> _cal_cluster_key;
   std::map<CAL_LAYER, float> _cal_cluster_e;
 
   ClassDef(SvtxTrack_v1, 1)

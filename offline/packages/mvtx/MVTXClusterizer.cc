@@ -1,4 +1,5 @@
 #include "MVTXClusterizer.h"
+#include "CylinderGeom_MVTX.h"
 
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
@@ -20,8 +21,6 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -1251,7 +1250,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
       multimap<int, PHG4Cell*>::iterator mapiter = clusrange.first;
 
       int layer = mapiter->second->get_layer();
-      PHG4CylinderGeom_MVTX* geom = (PHG4CylinderGeom_MVTX*) geom_container->GetLayerGeom(layer);
+      CylinderGeom_MVTX* geom = (CylinderGeom_MVTX*) geom_container->GetLayerGeom(layer);
 
       if (Verbosity() > 2)
         cout << "Filling cluster id " << clusid << " in  layer " << layer << endl;
@@ -1318,6 +1317,9 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
         // find the center of the pixel in world coords
         TVector3 local_coords = geom->get_local_coords_from_pixel(cell->get_pixel_index());
         TVector3 world_coords = geom->get_world_from_local_coords(cell->get_stave_index(), cell->get_half_stave_index(), cell->get_module_index(), cell->get_chip_index(), local_coords);
+
+	//cout << "     old mvtx clusterizer: stave " << cell->get_stave_index() << " half stave  " << cell->get_half_stave_index() << " module " << cell->get_module_index() << " chip " << cell->get_chip_index() << endl;
+  
         double hit_location[3] = {world_coords.X(), world_coords.Y(), world_coords.Z()};
 
         // These will be used later to get the sensor position so that the sensor phi can be calculated
@@ -1375,7 +1377,7 @@ void MVTXClusterizer::ClusterMVTXLadderCells(PHCompositeNode* topNode)
       clus.set_position(0, clusx);
       clus.set_position(1, clusy);
       clus.set_position(2, clusz);
-
+      //cout << "old mvtx clusterizer: clusx " << clusx << " clusy " << clusy << " clusz " << clusz << endl;
       clus.set_e(clus_energy);
       clus.set_adc(clus_adc);
 

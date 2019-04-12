@@ -7,11 +7,12 @@ lib_LTLIBRARIES = \
   libmvtx_io.la \
   libmvtx.la 
 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include
+  -I$(ROOTSYS)/include \
+  -I$(OPT_SPHENIX)/include \
+  -I$(G4_MAIN)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -19,17 +20,20 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
+  MvtxDefs.h \
+  MvtxHit.h \
   MVTXClusterizer.h \
   MvtxClusterizer.h \
-  MvtxDefs.h \
-  MvtxHit.h
+  CylinderGeom_MVTX.h
 
 ROOTDICTS = \
-  MvtxHit_Dict.cc
+  MvtxHit_Dict.cc \
+  CylinderGeom_MVTX_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-    MvtxHit_Dict_rdict.pcm
+    MvtxHit_Dict_rdict.pcm \
+    CylinderGeom_MVTX_Dict_rdict.pcm
 else
   ROOT5_IO_DICTS = \
     MvtxDefs_Dict.cc
@@ -47,22 +51,23 @@ libmvtx_la_SOURCES = \
 
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
+  -lCLHEP \
   -lfun4all \
-  -ltrack_io \
-  -ltrackbase_historic_io \
-  -lg4detectors \
-  -lg4mvtx 
+  -lg4detectors
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   $(ROOT5_IO_DICTS) \
+  CylinderGeom_MVTX.cc \
   MvtxDefs.cc \
   MvtxHit.cc
 
 libmvtx_io_la_LIBADD = \
   -lphool \
-  -ltrack_io
+  -lg4detectors_io \
+  -ltrack_io \
+  -ltrackbase_historic_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

@@ -26,6 +26,7 @@ pkginclude_HEADERS = \
   TrkrDefs.h \
   TrkrHit.h \
   TrkrHitCellAssoc.h \
+  TrkrHitTruthAssoc.h \
   TrkrHitSet.h \
   TrkrHitSetContainer.h \
   TrkrTrack.h \
@@ -37,6 +38,7 @@ ROOTDICTS = \
   TrkrClusterContainer_Dict.cc \
   TrkrClusterHitAssoc_Dict.cc \
   TrkrHit_Dict.cc \
+  TrkrHitTruthAssoc_Dict.cc \
   TrkrHitCellAssoc_Dict.cc \
   TrkrHitSet_Dict.cc \
   TrkrHitSetContainer_Dict.cc \
@@ -51,6 +53,7 @@ if MAKEROOT6
     TrkrClusterContainer_Dict_rdict.pcm \
     TrkrClusterHitAssoc_Dict_rdict.pcm \
     TrkrHit_Dict_rdict.pcm \
+    TrkrHitTruthAssoc_Dict_rdict.pcm \
     TrkrHitCellAssoc_Dict_rdict.pcm \
     TrkrHitSet_Dict_rdict.pcm \
     TrkrHitSetContainer_Dict_rdict.pcm \
@@ -70,9 +73,10 @@ libtrack_io_la_SOURCES = \
   TrkrClusterHitAssoc.cc \
   TrkrDefs.cc \
   TrkrHitCellAssoc.cc \
+  TrkrHitTruthAssoc.cc \
+  TrkrHit.cc \
   TrkrHitSet.cc \
   TrkrHitSetContainer.cc
-
 
 libtrack_io_la_LDFLAGS = \
   -L$(libdir) \
@@ -88,7 +92,6 @@ libtrack_io_la_LIBADD = \
 
 #just to get the dependency
 %_Dict_rdict.pcm: %_Dict.cc ;
-
 
 ################################################
 # linking tests

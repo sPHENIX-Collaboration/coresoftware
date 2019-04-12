@@ -599,6 +599,7 @@ void TPCClusterizer::fit(int pbin, int zbin, int& nhits_tot)
     if (used) fFitSizeZ++;
     fFitSizeP = TMath::Max(fFitSizeP, float(nphis));
   }
+
   if (Verbosity() > 1000)
   {
     std::cout << " FIT | phi " << fit_p_mean() << " from " << fFitP0;
@@ -648,7 +649,8 @@ void TPCClusterizer::reset() {}
 //===================
 int TPCClusterizer::process_event(PHCompositeNode* topNode)
 {
-  if (Verbosity() > 1000) std::cout << "TPCClusterizer::Process_Event" << std::endl;
+  if (Verbosity() > 1000) 
+    std::cout << "TPCClusterizer::Process_Event" << std::endl;
   if (Verbosity() > 1)
   {
     fSW->Reset();
@@ -823,7 +825,6 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
         float pp = radius * phi;
         float zz = fit_z_mean();
         // Correction for bias in electron z position due to asymmeteric SAMPA shaping
-        float zz_raw = zz;
         if (zz < 0)
           zz -= zz_shaping_correction;
         else
@@ -844,14 +845,14 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
         float pp_size = radius * fFitSizeP * fGeoLayer->get_phistep();
         float zz_size = fFitSizeZ * fGeoLayer->get_zstep();
 
-        if (Verbosity() > 100)
+        //if (Verbosity() > 100)
         //if(layer == 47)
         {
-          cout << endl
-               << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14
-               << " zz_raw " << zz_raw << " zz " << zz
-               << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
-          cout << "       zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << endl;
+	  // cout << endl
+	  //   << " clusterizer: layer " << layer << " fFitW " << fFitW << " number of primary electrons (adc) = " << fFitW * 0.14
+	  //   << " zz " << zz
+	  //   << " zz_size " << zz_size << " fFitsizeZ " << fFitSizeZ << " phi " << phi << endl;
+          //cout << "clusterizer layer " << layer << " zz " << zz << " zz_err " << zz_err << " fit_z_cov " << fit_z_cov() << " phi " << phi << " phi_err " << pp_err << " phi cov " << fit_p_cov() << endl;
         }
 
         if (Verbosity() > 1)
@@ -979,6 +980,7 @@ int TPCClusterizer::process_event(PHCompositeNode* topNode)
 	  clus.set_error( 2 , 2 , zz_err );
 	  */
         svxclusters->insert(&clus);
+	//clus.identify();
         //}
       }
     }

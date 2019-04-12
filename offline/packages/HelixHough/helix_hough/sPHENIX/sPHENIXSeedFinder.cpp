@@ -505,6 +505,7 @@ void sPHENIXSeedFinder::finalize(vector<SimpleTrack3D>& input,
 
 void sPHENIXSeedFinder::findTracks(vector<SimpleHit3D>& hits,
 		vector<SimpleTrack3D>& tracks, const HelixRange& range) {
+
 	findtracksiter += 1;
 	findTracksBySegments(hits, tracks, range);
 }
@@ -1278,7 +1279,6 @@ void sPHENIXSeedFinder::findTracksBySegments(vector<SimpleHit3D>& hits,
 	vector<TrackSegment> complete_segments;
 
 	unsigned int allowed_missing = n_layers - req_layers;
-
 	for (unsigned int l = 0; l < n_layers; ++l) {
 		layer_sorted[l].clear();
 	}
@@ -1292,9 +1292,9 @@ void sPHENIXSeedFinder::findTracksBySegments(vector<SimpleHit3D>& hits,
 		}
 	}
 	for (unsigned int l = 0; l < n_layers; ++l) {
-		if (layer_sorted[l].size() == 0) {
-			return;
-		}
+	  if (layer_sorted[l].size() == 0) {
+	    return;
+	  }
 	}
 
 	timeval t1, t2;
@@ -1803,6 +1803,16 @@ void sPHENIXSeedFinder::findTracksBySegments(vector<SimpleHit3D>& hits,
 				continue;
 			}
 		}
+
+		/*
+		cout << "   add track with hits size " << temp_track.hits.size() 
+		     << " z0 " << temp_track.z0
+		     << endl;
+		for (unsigned int i = 0; i < temp_track.hits.size(); ++i) 
+		  {
+		    cout << " temp_track.hits.get_id() " << temp_track.hits[i].get_id() << endl;
+		  }
+		*/
 
 		tracks.push_back(temp_track);
 		track_states.push_back(state);

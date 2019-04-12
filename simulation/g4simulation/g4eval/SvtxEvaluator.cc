@@ -1460,6 +1460,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float size = cluster->size_hits();
         float phisize = cluster->get_phi_size();
         float zsize = cluster->get_z_size();
+	//if(layer < 7)  cout << " old eval: reco cluster layer " << layer << " x " << x << " y " << y << " z " << z << " phi " << phi << endl; 
 
         float trackID = NAN;
         if (track) trackID = track->get_id();
@@ -1618,6 +1619,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gx = g4hit->get_avg_x();
             gy = g4hit->get_avg_y();
             gz = g4hit->get_avg_z();
+            //cout << " old eval: truth cluster averages:  layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << endl;
           }  // not TPC
 
           g4hitID = g4hit->get_hit_id();
@@ -1625,6 +1627,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           gr = gpos.Perp();
           gphi = gpos.Phi();
           geta = gpos.Eta();
+	  //if(layer < 7) cout << "           gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " phi - gphi " << phi - gphi << endl; 
 
           if (g4particle)
           {

@@ -7,55 +7,71 @@
 #include "InttDefs.h"
 
 uint8_t
-InttDefs::getLadderId(TrkrDefs::hitsetkey key)
+InttDefs::getLadderZId(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftLadderId);
+  TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftLadderZId);
   return tmp;
 }
 
 uint8_t
-InttDefs::getLadderId(TrkrDefs::cluskey key)
+InttDefs::getLadderZId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
-  return getLadderId(tmp);
+  return getLadderZId(tmp);
 }
 
 uint8_t
-InttDefs::getSensorId(TrkrDefs::hitsetkey key)
+InttDefs::getLadderPhiId(TrkrDefs::hitsetkey key)
 {
-  TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftSensorId);
+  TrkrDefs::hitsetkey tmp = (key >> InttDefs::kBitShiftLadderPhiId);
   return tmp;
 }
 
 uint8_t
-InttDefs::getSensorId(TrkrDefs::cluskey key)
+InttDefs::getLadderPhiId(TrkrDefs::cluskey key)
 {
   TrkrDefs::hitsetkey tmp = (key >> TrkrDefs::kBitShiftClusId);
-  return getSensorId(tmp);
+  return getLadderPhiId(tmp);
+}
+
+uint16_t
+InttDefs::getCol(TrkrDefs::hitkey key)
+{
+  TrkrDefs::hitkey tmp = (key >> InttDefs::kBitShiftCol);
+  return tmp;
+}
+
+uint16_t
+InttDefs::getRow(TrkrDefs::hitkey key)
+{
+  TrkrDefs::hitkey tmp = (key >> InttDefs::kBitShiftRow);
+  return tmp;
 }
 
 TrkrDefs::hitkey
-InttDefs::genHitKey(const uint32_t strip)
+InttDefs::genHitKey(const uint16_t col, const uint16_t row)
 {
-  TrkrDefs::hitkey key = strip;
+  TrkrDefs::hitkey key = (col << InttDefs::kBitShiftCol);
+  TrkrDefs::hitkey tmp = (row << InttDefs::kBitShiftRow);
+  key |= tmp;
   return key;
 }
 
 TrkrDefs::hitsetkey
-InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder, const uint8_t sensor)
+InttDefs::genHitSetKey(const uint8_t lyr, const uint8_t ladder_z_index, uint8_t ladder_phi_index)
 {
-  TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
-  TrkrDefs::hitsetkey tmp = ladder;
-  key |= (tmp << InttDefs::kBitShiftLadderId);
-  tmp = sensor;
-  key |= (tmp << InttDefs::kBitShiftSensorId);
+  TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::inttId, lyr);
+  TrkrDefs::hitsetkey tmp = ladder_z_index;
+  key |= (tmp << InttDefs::kBitShiftLadderZId);
+  tmp = ladder_phi_index;
+  key |= (tmp << InttDefs::kBitShiftLadderPhiId);
   return key;
 }
 
 TrkrDefs::cluskey
-InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder, const uint8_t sensor, const uint32_t clusid)
+InttDefs::genClusKey(const uint8_t lyr, const uint8_t ladder_z_index, const uint8_t ladder_phi_index, const uint32_t clusid)
 {
-  TrkrDefs::cluskey tmp = genHitSetKey(lyr, ladder, sensor);
+  TrkrDefs::cluskey tmp = genHitSetKey(lyr, ladder_z_index, ladder_phi_index);
   TrkrDefs::cluskey key = (tmp << TrkrDefs::kBitShiftClusId);
   key |= clusid;
   return key;

@@ -34,7 +34,7 @@ TrkrClusterv1::TrkrClusterv1()
 void TrkrClusterv1::identify(std::ostream& os) const
 {
   os << "---TrkrClusterv1--------------------" << std::endl;
-  os << "clusid: 0x" << std::hex << getClusKey() << std::dec << std::endl;
+  os << "clusid: " << getClusKey() << std::dec << std::endl;
 
   os << " (x,y,z) =  (" << getPosition(0);
   os << ", " << getPosition(1) << ", ";
@@ -198,7 +198,20 @@ float TrkrClusterv1::getRPhiError() const
   TMatrixF trans(3, 3);
   trans = rot * covar * rotT;
 
-  return sqrt(trans[1][1]);
+  float rphierr = sqrt(trans[1][1]);
+  if(rphierr == 0)
+    {
+      std::cout << "rphierr = 0 " << " x " << m_pos[0] << " y " << m_pos[1] 	<< std::endl;
+      for (unsigned int i = 0; i < 3; ++i)
+	{
+	  for (unsigned int j = 0; j < 3; ++j)
+	    {
+	      std::cout << " i " << i << " j " << j << " cov " << getError(i, j) << " trans " << trans[i][j] << std::endl;
+	    }
+	}
+    }
+
+  return rphierr;
 }
 
 float TrkrClusterv1::getZError() const

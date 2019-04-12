@@ -1,3 +1,5 @@
+// this version uses the old storage containers, and will be retired
+
 #include "PHG4INTTDigitizer.h"
 
 #include "INTTDeadMap.h"
@@ -8,6 +10,16 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
+/*
+// Move to new storage containers
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <trackbase/TrkrDefs.h>
+#include <intt/InttDefs.h>
+#include <intt/InttHit.h>
+*/
 
 #include <trackbase_historic/SvtxHit.h>
 #include <trackbase_historic/SvtxHitMap.h>
@@ -29,6 +41,7 @@
 #include <cfloat>
 #include <cmath>
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -150,8 +163,6 @@ int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // _hitmap->Reset();
-
   DigitizeLadderCells(topNode);
 
   PrintHits(topNode);
@@ -163,10 +174,11 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
+  //PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
   PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
 
-  if (!geom_container || !cells) return;
+  //if (!geom_container || !cells) return;
+  if (!geom_container) return;
 
   PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
   for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
@@ -189,13 +201,9 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 
 void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 {
-  //----------
-  // Get Nodes
-  //----------
-
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
-  if (!cells) return;
-
+  //---------------------------
+  // Get common Nodes
+  //---------------------------
   const INTTDeadMap *deadmap = findNode::getClass<INTTDeadMap>(topNode, "DEADMAP_INTT");
   if (Verbosity() >= VERBOSITY_MORE)
   {
@@ -209,6 +217,12 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       cout << "PHG4INTTDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
     }
   }
+
+  //============
+  // old containers
+  //============
+  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_INTT");
+  if (!cells) return;
 
   //-------------
   // Digitization
@@ -308,6 +322,9 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       }
     }
   }
+  //==============
+  // end old containers
+  //==============
 
   return;
 }

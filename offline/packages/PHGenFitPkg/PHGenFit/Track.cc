@@ -60,6 +60,7 @@ Track::Track(const PHGenFit::Track& t)
   _track = new genfit::Track(*(t.getGenFitTrack()));
   verbosity = t.verbosity;
   _clusterIDs = t.get_cluster_IDs();
+  _clusterkeys = t.get_cluster_keys();
 }
 
 int Track::addMeasurement(PHGenFit::Measurement* measurement)
@@ -69,6 +70,7 @@ int Track::addMeasurement(PHGenFit::Measurement* measurement)
   _track->insertPoint(new genfit::TrackPoint(msmts, _track));
 
   _clusterIDs.push_back(measurement->get_cluster_ID());
+  _clusterkeys.push_back(measurement->get_cluster_key());
 
   delete measurement;
 
@@ -86,6 +88,7 @@ int Track::addMeasurements(std::vector<PHGenFit::Measurement*>& measurements)
 
     //_measurements.push_back(measurement);
     _clusterIDs.push_back(measurement->get_cluster_ID());
+    _clusterkeys.push_back(measurement->get_cluster_key());
 
     delete measurement;
   }
@@ -100,6 +103,7 @@ int Track::deleteLastMeasurement()
   _track->deletePoint(-1);
 
   _clusterIDs.pop_back();
+  _clusterkeys.pop_back();
 
   return 0;
 }
@@ -116,6 +120,7 @@ Track::~Track()
   //	_measurements.clear();
 
   _clusterIDs.clear();
+  _clusterkeys.clear();
 }
 
 double Track::extrapolateToPlane(genfit::MeasuredStateOnPlane& state, TVector3 O, TVector3 n, const int tr_point_id) const
@@ -473,6 +478,7 @@ int Track::updateOneMeasurementKalman(
 
 #ifdef _DEBUG_
     std::cout << __LINE__ << ": clusterIDs size: " << new_track->get_cluster_IDs().size() << std::endl;
+    std::cout << __LINE__ << ": clusterkeyss size: " << new_track->get_cluster_keys().size() << std::endl;
 #endif
 
     //! Get the pointer of the TrackPoint just created
@@ -512,7 +518,9 @@ int Track::updateOneMeasurementKalman(
     {
       if (verbosity > 1)
       {
-        LogWarning("Can not extrapolate to measuremnt: ") << measurement->get_cluster_ID() << std::endl;
+        LogWarning("Can not extrapolate to measuremnt with cluster_ID and cluster key: ") << measurement->get_cluster_ID() 
+									  << "    " << measurement->get_cluster_key() 
+									  << std::endl;
       }
       continue;
     }

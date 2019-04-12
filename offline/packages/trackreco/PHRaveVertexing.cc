@@ -7,10 +7,11 @@
 
 #include "PHRaveVertexing.h"
 
-#include <trackbase_historic/SvtxCluster.h>
-#include <trackbase_historic/SvtxClusterMap.h>
-#include <trackbase_historic/SvtxHitMap.h>
-#include <trackbase_historic/SvtxHit_v1.h>
+//#include <trackbase_historic/SvtxCluster.h>
+//#include <trackbase_historic/SvtxClusterMap.h>
+//#include <trackbase_historic/SvtxHitMap.h>
+// #include <trackbase_historic/SvtxHit_v1.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -18,6 +19,8 @@
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
+
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -309,7 +312,7 @@ int PHRaveVertexing::GetNodes(PHCompositeNode* topNode)
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
   if (!_trackmap && _event < 2)
   {
-    cout << PHWHERE << " SvtxClusterMap node not found on node tree"
+    cout << PHWHERE << " SvtxTrackMap node not found on node tree"
          << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }

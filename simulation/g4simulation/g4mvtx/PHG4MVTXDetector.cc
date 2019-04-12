@@ -1,5 +1,5 @@
 #include "PHG4MVTXDetector.h"
-#include "PHG4CylinderGeom_MVTX.h"
+#include "mvtx/CylinderGeom_MVTX.h"
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -408,7 +408,7 @@ void PHG4MVTXDetector::AddGeometryNode()
     }
     // here in the detector class we have internal units, convert to cm
     // before putting into the geom object
-    PHG4CylinderGeom* mygeom = new PHG4CylinderGeom_MVTX(layer, stave_type, N_staves, layer_nominal_radius / cm, phistep / rad, phitilt / rad, pixel_x, pixel_z, pixel_thickness);
+    CylinderGeom_MVTX* mygeom = new CylinderGeom_MVTX(layer, stave_type, N_staves, layer_nominal_radius / cm, phistep / rad, phitilt / rad, pixel_x, pixel_z, pixel_thickness);
     geo->AddLayerGeom(layer, mygeom);
     if (Verbosity())
       geo->identify();
