@@ -42,8 +42,8 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = inEvent->GetParticles(vtxiter->first);
       for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
         {
-	            cout << "PHG4PrimaryGeneratorAction: dealing with" << endl;
-	             (particle_iter->second)->identify();
+	            // cout << "PHG4PrimaryGeneratorAction: dealing with" << endl;
+	            //  (particle_iter->second)->identify();
 
 	  // this is really ugly, and maybe it can be streamlined. Initially it was clear cut, if we only give a particle by its name,
 	  // we find it here in the G4 particle table, find the

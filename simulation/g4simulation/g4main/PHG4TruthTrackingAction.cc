@@ -45,16 +45,11 @@ void PHG4TruthTrackingAction::PreUserTrackingAction( const G4Track* track) {
   double m = def->GetPDGMass();
   double ke = track->GetVertexKineticEnergy();
   double ptot = sqrt(ke * ke + 2.0 * m * ke);
-  if (def->IsGeneralIon())
-  {
-    cout << "ion " << def->GetParticleName() << " a number: " << def->GetAtomicNumber() << ", mass: " << def->GetAtomicMass() << endl;
-  }
-
   G4ThreeVector pdir = track->GetVertexMomentumDirection();
   pdir *= ptot;
   PHG4Particle *ti = nullptr;
   // create a new particle -----------------------------------------------------
-  if (def->IsGeneralIon())
+  if (def->IsGeneralIon()) // for ions save a and z in v3 of phg4particle
   {
     ti = new PHG4Particlev3();
     ti->set_A( def->GetAtomicMass());
