@@ -4,34 +4,37 @@
 
 using namespace std;
 
-PHG4Particlev3::PHG4Particlev3():
-  PHG4Particlev2(),
-  A(0),
-  Z(0),
-  ioncharge(NAN),
-excitEnergy(NAN)
-{}
+PHG4Particlev3::PHG4Particlev3()
+  : PHG4Particlev2()
+  , A(0)
+  , Z(0)
+  , ioncharge(NAN)
+  , excitEnergy(NAN)
+{
+}
 
-PHG4Particlev3::PHG4Particlev3(const PHG4Particle *in):
-  PHG4Particlev2(in),
-  A(in->get_A()),
-  Z(in->get_Z()),
-  ioncharge(in->get_IonCharge()),
-  excitEnergy(in->get_ExcitEnergy())
-{}
+PHG4Particlev3::PHG4Particlev3(const PHG4Particle* in)
+  : PHG4Particlev2(in)
+  , A(in->get_A())
+  , Z(in->get_Z())
+  , ioncharge(in->get_IonCharge())
+  , excitEnergy(in->get_ExcitEnergy())
+{
+}
 
 void PHG4Particlev3::set_NumCharge(const int c)
 {
   ioncharge = c * eplus;
 }
 
-
-void
-PHG4Particlev3::identify(std::ostream& os) const
+void PHG4Particlev3::identify(std::ostream& os) const
 {
-  if(fname.size() > 0) {
+  if (fname.size() > 0)
+  {
     os << "PHG4Particlev3 name: " << fname << ", ";
-  } else {
+  }
+  else
+  {
     os << "PHG4Particlev3 name: missing, ";
   }
 
@@ -40,8 +43,8 @@ PHG4Particlev3::identify(std::ostream& os) const
      << ", parent id: " << parentid
      << ", primary id: " << primaryid
      << ", pid: " << fpid
-     << ", px: " << fpx 
-     << ", py: " << fpy 
+     << ", px: " << fpx
+     << ", py: " << fpy
      << ", pz: " << fpz
      << ", e: " << fe
      << ", A: " << A
@@ -51,4 +54,3 @@ PHG4Particlev3::identify(std::ostream& os) const
      << endl;
   return;
 }
-

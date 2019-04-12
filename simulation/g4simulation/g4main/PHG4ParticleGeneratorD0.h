@@ -5,11 +5,11 @@
 
 class TF1;
 
-class PHG4ParticleGeneratorD0: public PHG4ParticleGeneratorBase
+class PHG4ParticleGeneratorD0 : public PHG4ParticleGeneratorBase
 {
  public:
-  PHG4ParticleGeneratorD0(const std::string &name="D0GEN");
-  virtual ~PHG4ParticleGeneratorD0(){}
+  PHG4ParticleGeneratorD0(const std::string &name = "D0GEN");
+  virtual ~PHG4ParticleGeneratorD0() {}
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -39,7 +39,6 @@ class PHG4ParticleGeneratorD0: public PHG4ParticleGeneratorBase
   TF1 *fsin;
   TF1 *frap;
   TF1 *fpt;
-
 };
 
 #endif

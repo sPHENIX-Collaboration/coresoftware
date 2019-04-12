@@ -3,11 +3,10 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
-
-class PHG4ParticleGenerator: public PHG4ParticleGeneratorBase
+class PHG4ParticleGenerator : public PHG4ParticleGeneratorBase
 {
  public:
-  PHG4ParticleGenerator(const std::string &name="PGENERATOR");
+  PHG4ParticleGenerator(const std::string &name = "PGENERATOR");
   virtual ~PHG4ParticleGenerator() {}
 
   int process_event(PHCompositeNode *topNode);
