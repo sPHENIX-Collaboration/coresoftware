@@ -41,14 +41,16 @@
 
 // forward declarations
 class PHCompositeNode;
-class SvtxClusterMap;
-class SvtxCluster;
+//class SvtxClusterMap;
+//class SvtxCluster;
+class TrkrClusterContainer;
+class TrkrCluster;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class SvtxVertex;
-class SvtxHitMap;
-class PHG4CellContainer;
+//class SvtxHitMap;
+//class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;
@@ -814,7 +816,8 @@ class PHHoughAllInOne : public PHTrackSeeding
       const bool use_fitted_state_once = false);
 
   //!
-  PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
+  //PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
+  PHGenFit::Measurement* TrkrClusterToPHGenFitMeasurement(const TrkrCluster* cluster);
 
   //! TrackPropPatRec Call.
   std::vector<unsigned int> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
@@ -930,14 +933,14 @@ class PHHoughAllInOne : public PHTrackSeeding
   //SvtxVertexMap* _vertex_map;
 
   //nodes to get norm vector
-  SvtxHitMap* _svtxhitsmap;
+  //SvtxHitMap* _svtxhitsmap;
 
   int* _hit_used_map;
   int _hit_used_map_size;
 
-  PHG4CellContainer* _cells_svtx;
-  PHG4CellContainer* _cells_intt;
-  PHG4CellContainer* _cells_maps;
+  //PHG4CellContainer* _cells_svtx;
+  //PHG4CellContainer* _cells_intt;
+  //PHG4CellContainer* _cells_maps;
 
   PHG4CylinderGeomContainer* _geom_container_intt;
   PHG4CylinderGeomContainer* _geom_container_maps;

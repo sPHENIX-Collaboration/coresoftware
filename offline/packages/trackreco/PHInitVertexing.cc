@@ -1,8 +1,10 @@
 #include "PHInitVertexing.h"
 
-#include <trackbase_historic/SvtxClusterMap.h>
+//#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
+
+#include <trackbase/TrkrClusterContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -83,10 +85,10 @@ int PHInitVertexing::GetNodes(PHCompositeNode* topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  _cluster_map = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
+    cerr << PHWHERE << " ERROR: Can't find node TrkrClusterContainer" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

@@ -26,3 +26,4 @@ int MvtxHit::isValid() const
 {
   return 1;
 }
+

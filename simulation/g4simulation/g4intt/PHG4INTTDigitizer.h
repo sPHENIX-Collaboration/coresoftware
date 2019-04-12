@@ -1,3 +1,5 @@
+// this version uses the old storage containers, and will be retired
+
 #ifndef G4INTT_PHG4INTTDIGITIZER_H
 #define G4INTT_PHG4INTTDIGITIZER_H
 

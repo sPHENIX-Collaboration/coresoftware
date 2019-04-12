@@ -43,7 +43,7 @@ Fitter::Fitter(
     const std::string& fitter_choice,
     const std::string& track_rep_choice,
     const bool doEventDisplay)
-  : verbosity(0)
+  : verbosity(1000)
   , _doEventDisplay(doEventDisplay)
 {
   _tgeo_manager = new TGeoManager("Default", "Geane geometry");
@@ -92,6 +92,7 @@ Fitter::~Fitter()
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
 {
   genfit::Track* fitTrack = track->getGenFitTrack();
+
 #if ROOT_VERSION_CODE >= ROOT_VERSION(6, 00, 0)
   try
   {

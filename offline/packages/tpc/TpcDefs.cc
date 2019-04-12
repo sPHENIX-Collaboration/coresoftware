@@ -60,7 +60,7 @@ TpcDefs::genHitKey(const uint16_t pad, const uint16_t tbin)
 TrkrDefs::hitsetkey
 TpcDefs::genHitSetKey(const uint8_t lyr, const uint8_t sector, const uint8_t side)
 {
-  TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::mvtxId, lyr);
+  TrkrDefs::hitsetkey key = TrkrDefs::genHitSetKey(TrkrDefs::TrkrId::tpcId, lyr);
   TrkrDefs::hitsetkey tmp = sector;
   key |= (tmp << TpcDefs::kBitShiftSectorId);
   tmp = side;

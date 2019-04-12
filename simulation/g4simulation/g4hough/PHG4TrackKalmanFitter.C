@@ -23,11 +23,11 @@
 #include <fun4all/PHTFileServer.h>
 
 #include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4Cell.h>
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
 
-#include <g4intt/PHG4CylinderGeomINTT.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <mvtx/CylinderGeom_MVTX.h>
+#include <intt/CylinderGeomINTT.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -1101,20 +1101,19 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			int chip_index = cell->get_chip_index();
 
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
-			PHG4CylinderGeom_MVTX *geom =
-					(PHG4CylinderGeom_MVTX*) geom_container_mvtx->GetLayerGeom(
-							layer);
+			CylinderGeom_MVTX *geom =
+			  dynamic_cast<CylinderGeom_MVTX*>(geom_container_mvtx->GetLayerGeom(layer));
 			// returns the center of the sensor in world coordinates - used to get the ladder phi location
 			geom->find_sensor_center(stave_index, half_stave_index,
-					module_index, chip_index, ladder_location);
+						 module_index, chip_index, ladder_location);
 			//n.Print();
 			n.SetXYZ(ladder_location[0], ladder_location[1], 0);
 			n.RotateZ(geom->get_stave_phi_tilt());
 			//n.Print();
 		} else if (cell_intt) {
 			PHG4Cell* cell = cell_intt;
-			PHG4CylinderGeomINTT* geom =
-			  dynamic_cast<PHG4CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
+			CylinderGeomINTT* geom =
+			  dynamic_cast<CylinderGeomINTT*> (geom_container_intt->GetLayerGeom(layer));
 			double hit_location[3] = { 0.0, 0.0, 0.0 };
 			geom->find_segment_center(cell->get_ladder_z_index(),
 					cell->get_ladder_phi_index(), hit_location);

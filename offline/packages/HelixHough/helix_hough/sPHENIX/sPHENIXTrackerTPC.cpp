@@ -526,6 +526,7 @@ float sPHENIXTrackerTPC::dzdlError(SimpleHit3D& hit, float min_k, float max_k,
 void sPHENIXTrackerTPC::findTracks(vector<SimpleHit3D>& hits,
                                    vector<SimpleTrack3D>& tracks,
                                    const HelixRange& range) {
+  cout << "findTracks " << endl;
   findtracksiter += 1;
   if( n_layers < 10 ) {
     findTracksBySegments(hits, tracks, range);

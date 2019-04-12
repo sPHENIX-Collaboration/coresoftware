@@ -119,7 +119,6 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits_init, unsigned int min_hi
     }
   }
 
-
   index_mapping.clear();
   index_mapping.resize(hits.size(), 0);
   hit_used->clear();

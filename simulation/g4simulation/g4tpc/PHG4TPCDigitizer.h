@@ -3,6 +3,8 @@
 
 #include <fun4all/SubsysReco.h>
 #include <g4detectors/PHG4CellDefs.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHitSet.h>
 
 #include <map>
 #include <vector>
@@ -61,8 +63,10 @@ class PHG4TPCDigitizer : public SubsysReco
   std::vector<std::vector<const PHG4Cell *> > layer_sorted_cells;
   std::vector<std::vector<const PHG4Cell *> > phi_sorted_cells;
   std::vector<std::vector<const PHG4Cell *> > z_sorted_cells;
+
   std::vector<float> adc_input;
   std::vector<PHG4CellDefs::keytype> adc_cellid;
+  std::vector<TrkrDefs::hitkey> adc_hitid;
   std::vector<int> is_populated;
 
   // settings

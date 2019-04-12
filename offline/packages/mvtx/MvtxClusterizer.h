@@ -9,9 +9,12 @@
 
 #include <fun4all/SubsysReco.h>
 #include <utility>
+#include <trackbase/TrkrDefs.h>
 
+class TrkrHit;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
+class TrkrClusterHitAssoc;
 
 /**
  * @brief Clusterizer for the MVTX
@@ -47,7 +50,8 @@ class MvtxClusterizer : public SubsysReco
   }
 
  private:
-  bool are_adjacent(const pixel lhs, const pixel rhs);
+  //bool are_adjacent(const pixel lhs, const pixel rhs);
+  bool are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs);
 
   void ClusterMvtx(PHCompositeNode *topNode);
 
@@ -55,7 +59,8 @@ class MvtxClusterizer : public SubsysReco
 
   // node tree storage pointers
   TrkrHitSetContainer *m_hits;
-  TrkrClusterContainer *m_clusterlist;
+  TrkrClusterContainer *m_clusterlist; 
+  TrkrClusterHitAssoc *m_clusterhitassoc;
 
   // settings
   bool m_makeZClustering;  // z_clustering_option

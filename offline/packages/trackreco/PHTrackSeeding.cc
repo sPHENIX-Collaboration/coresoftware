@@ -2,11 +2,14 @@
 
 #include "AssocInfoContainer.h"
 
-#include <trackbase_historic/SvtxClusterMap.h>
+//#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
+
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -106,10 +109,10 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
   // Get Objects off of the Node Tree
   //---------------------------------
 
-  _cluster_map = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if (!_cluster_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
+    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

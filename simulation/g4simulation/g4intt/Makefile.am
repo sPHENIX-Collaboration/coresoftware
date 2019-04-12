@@ -41,35 +41,35 @@ libg4intt_la_LIBADD = \
   -lSubsysReco \
   -lg4testbench \
   -lg4detectors \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -lintt
 
 pkginclude_HEADERS = \
-  PHG4CylinderGeom_INTT.h \
-  PHG4CylinderGeomINTT.h \
+  PHG4INTTHitReco.h \
   PHG4INTTCellReco.h \
   PHG4INTTDefs.h \
   INTTDeadMap.h \
   INTTDeadMapv1.h \
   PHG4INTTSubsystem.h \
-  PHG4INTTDigitizer.h 
+  PHG4INTTDigitizer.h \
+  PHG4InttDigitizer.h 
 
 ROOTDICTS = \
   INTTDeadMap_Dict.cc \
-  INTTDeadMapv1_Dict.cc \
-  PHG4CylinderGeom_INTT_Dict.cc \
-  PHG4CylinderGeomINTT_Dict.cc 
+  INTTDeadMapv1_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   INTTDeadMap_Dict_rdict.pcm \
-  INTTDeadMapv1_Dict_rdict.pcm \
-  PHG4CylinderGeom_INTT_Dict_rdict.pcm \
-  PHG4CylinderGeomINTT_Dict_rdict.pcm 
+  INTTDeadMapv1_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
     PHG4INTTDeadMapLoader_Dict.cc \
     PHG4INTTDefs_Dict.cc \
     PHG4INTTDigitizer_Dict.cc \
+    PHG4InttDigitizer_Dict.cc \
+    PHG4INTTHitReco_Dict.cc \
     PHG4INTTCellReco_Dict.cc \
     PHG4INTTSubsystem_Dict.cc
 endif
@@ -77,14 +77,14 @@ endif
 libg4intt_io_la_SOURCES = \
   $(ROOTDICTS) \
   INTTDeadMap.cc \
-  INTTDeadMapv1.cc \
-  PHG4CylinderGeom_INTT.cc \
-  PHG4CylinderGeomINTT.cc
+  INTTDeadMapv1.cc
 
 libg4intt_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4INTTDeadMapLoader.cc \
   PHG4INTTDigitizer.cc \
+  PHG4InttDigitizer.cc \
+  PHG4INTTHitReco.cc \
   PHG4INTTCellReco.cc \
   PHG4INTTDetector.cc \
   PHG4INTTSteppingAction.cc \

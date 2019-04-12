@@ -6,6 +6,8 @@
 #include <phparameter/PHParameterInterface.h>
 
 class PHG4CellContainer;
+class TrkrHitSetContainer;
+class TrkrHitTruthAssoc;
 
 class PHCompositeNode;
 class PHG4CylinderCellGeomContainer;
@@ -33,6 +35,7 @@ class PHG4TPCPadPlane : public SubsysReco, public PHParameterInterface
   virtual int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo) { return 0; }
   virtual void UpdateInternalParameters() { return; }
   virtual void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) {}
+  virtual void MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc * hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit) {}
   void Detector(const std::string &name) { detector = name; }
 
  protected:

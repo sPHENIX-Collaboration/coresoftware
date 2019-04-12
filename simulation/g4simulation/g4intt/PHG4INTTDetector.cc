@@ -1,6 +1,7 @@
 #include "PHG4INTTDetector.h"
-#include "PHG4CylinderGeomINTT.h"
 #include "PHG4INTTParameterisation.h"
+
+#include <intt/CylinderGeomINTT.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -1658,7 +1659,7 @@ void PHG4INTTDetector::AddGeometryNode()
       const int laddertype = params_layer->get_int_param("laddertype");
       // parameters are stored in cm per our convention
       const PHParameters *params = m_ParamsContainer->GetParameters(laddertype);
-      PHG4CylinderGeom *mygeom = new PHG4CylinderGeomINTT(
+      CylinderGeomINTT *mygeom = new CylinderGeomINTT(
           sphxlayer,
           params->get_double_param("strip_x"),
           params->get_double_param("strip_y"),

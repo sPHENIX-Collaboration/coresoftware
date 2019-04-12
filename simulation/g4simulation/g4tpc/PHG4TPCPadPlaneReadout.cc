@@ -6,6 +6,13 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4main/PHG4HitContainer.h>
 
+// Move to new storage containers
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+#include <tpc/TpcDefs.h>
+#include <tpc/TpcHit.h>
+
 #include <TNtuple.h>
 #include <TSystem.h>
 #include "TF1.h"
@@ -106,6 +113,7 @@ int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
 
 void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
+
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
   // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
@@ -115,6 +123,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   if (phi < -M_PI) phi += 2 * M_PI;
 
   rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
+  //cout << "Enter old MapToPadPlane with rad_gem " << rad_gem << endl;
 
   unsigned int layernum = 0;
 
@@ -252,7 +261,201 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       }
       cell->add_edep(neffelectrons);
       cell->add_edep(hiter->first, neffelectrons);  // associates g4hit with this edep
-      //if(Verbosity() > 100 && layernum == 50)  cell->identify();
+      if(Verbosity() > 100 && layernum == 50)  cell->identify();
+    }  // end of loop over adc Z bins
+  }    // end of loop over zigzag pads
+
+  // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
+  if (Verbosity() > 0)
+    ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+
+  if (Verbosity() > 100)
+    if (layernum == 47)
+    {
+      cout << " hit " << hit << " quick centroid for this electron " << endl;
+      cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << endl;
+      cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << endl;
+      // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 47.
+      // The centroid of that should match the cluster centroid found by PHG4TPCClusterizer for layer 47, if everything is working
+      //   - matches to < .01 cm for a few cases that I checked
+      nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
+    }
+
+  hit++;
+
+  return;
+}
+
+void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+{
+  // One electron per call of this method
+  // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
+  // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
+
+  double phi = atan2(y_gem, x_gem);
+  if (phi > +M_PI) phi -= 2 * M_PI;
+  if (phi < -M_PI) phi += 2 * M_PI;
+
+  rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
+  //cout << "Enter new MapToPadPlane with rad_gem " << rad_gem << endl;
+
+  unsigned int layernum = 0;
+
+  // Find which readout layer this electron ends up in
+
+  PHG4CylinderCellGeomContainer::ConstRange layerrange = GeomContainer->get_begin_end();
+  for (PHG4CylinderCellGeomContainer::ConstIterator layeriter = layerrange.first;
+       layeriter != layerrange.second;
+       ++layeriter)
+  {
+    double rad_low = layeriter->second->get_radius() - layeriter->second->get_thickness() / 2.0;
+    double rad_high = layeriter->second->get_radius() + layeriter->second->get_thickness() / 2.0;
+
+    if (rad_gem > rad_low && rad_gem < rad_high)
+    {
+      // capture the layer where this electron hits sthe gem stack
+      LayerGeom = layeriter->second;
+      layernum = LayerGeom->get_layer();
+      if (Verbosity() > 20)
+        cout << " g4hit id " << hiter->first << " rad_gem " << rad_gem << " rad_low " << rad_low << " rad_high " << rad_high
+             << " layer  " << hiter->second->get_layer() << " want to change to " << layernum << endl;
+      hiter->second->set_layer(layernum);  // have to set here, since the stepping action knows nothing about layers
+    }
+  }
+
+  if (layernum == 0)
+  {
+    return;
+  }
+
+  // Create the distribution function of charge on the pad plane around the electron position
+
+  // The resolution due to pad readout includes the charge spread during GEM multiplication.
+  // this now defaults to 400 microns during construction from Tom (see 8/11 email).
+  // Use the setSigmaT(const double) method to update...
+  // We use a double gaussian to represent the smearing due to the SAMPA chip shaping time - default values of fShapingLead and fShapingTail are for 80 ns SAMPA
+
+  // amplify the single electron in the gem stack
+  //===============================
+
+  // should be obtained from a distribution of avalanche gains, make constant for now
+  float nelec = 2000.0;
+
+  // Distribute the charge between the pads in phi
+  //====================================
+
+  if (Verbosity() > 200)
+    cout << "  populate phi bins for "
+         << " layernum " << layernum
+         << " phi " << phi
+         << " sigmaT " << sigmaT
+         << " zigzag_pads " << zigzag_pads
+         << endl;
+
+  pad_phibin.clear();
+  pad_phibin_share.clear();
+  if (zigzag_pads)
+    populate_zigzag_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
+  else
+    populate_rectangular_phibins(layernum, phi, sigmaT, pad_phibin, pad_phibin_share);
+
+  // Normalize the shares so they add up to 1
+  double norm1 = 0.0;
+  for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
+  {
+    double pad_share = pad_phibin_share[ipad];
+    norm1 += pad_share;
+  }
+  for (unsigned int iphi = 0; iphi < pad_phibin.size(); ++iphi)
+    pad_phibin_share[iphi] /= norm1;
+
+  // Distribute the charge between the pads in z
+  //====================================
+  if (Verbosity() > 100 && layernum == 47)
+    cout << "  populate z bins for layernum " << layernum
+         << " with z_gem " << z_gem << " sigmaL[0] " << sigmaL[0] << " sigmaL[1] " << sigmaL[1] << endl;
+
+  adc_zbin.clear();
+  adc_zbin_share.clear();
+  populate_zbins(z_gem, sigmaL, adc_zbin, adc_zbin_share);
+
+  // Normalize the shares so that they add up to 1
+  double znorm = 0.0;
+  for (unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
+  {
+    double bin_share = adc_zbin_share[iz];
+    znorm += bin_share;
+  }
+  for (unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
+    adc_zbin_share[iz] /= znorm;
+
+  // Fill HitSetContainer
+  //===============
+  // These are used to do a quick clustering for checking
+  double phi_integral = 0.0;
+  double z_integral = 0.0;
+  double weight = 0.0;
+
+  for (unsigned int ipad = 0; ipad < pad_phibin.size(); ++ipad)
+  {
+    int pad_num = pad_phibin[ipad];
+    double pad_share = pad_phibin_share[ipad];
+
+    for (unsigned int iz = 0; iz < adc_zbin.size(); ++iz)
+    {
+      int zbin_num = adc_zbin[iz];
+      double adc_bin_share = adc_zbin_share[iz];
+
+      // Divide electrons from avalanche between bins
+      float neffelectrons = nelec * (pad_share) * (adc_bin_share);
+      if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be below the noise suppression threshold
+
+      if (zbin_num >= LayerGeom->get_zbins()) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << LayerGeom->get_zbins() << endl;
+      if (pad_num >= LayerGeom->get_phibins()) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << LayerGeom->get_phibins() << endl;
+
+      // collect information to do simple clustering. Checks operation of PHG4CylinderCellTPCReco, and
+      // is also useful for comparison with PHG4TPCClusterizer result when running single track events.
+      // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
+      double zcenter = LayerGeom->get_zcenter(zbin_num);
+      double phicenter = LayerGeom->get_phicenter(pad_num);
+      phi_integral += phicenter * neffelectrons;
+      z_integral += zcenter * neffelectrons;
+      weight += neffelectrons;
+      if (Verbosity() > 100 && layernum == 47)
+        cout << "   zbin_num " << zbin_num << " zcenter " << zcenter << " pad_num " << pad_num << " phicenter " << phicenter
+             << " neffelectrons " << neffelectrons << " neffelectrons_threshold " << neffelectrons_threshold << endl;
+
+      // new containers
+      //============
+     // We add the TPC TrkrHitsets directly to the node using hitsetcontainer
+      // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a TPC readout module
+      // The hitset key includes the layer, sector, side
+
+      // Get the side - 0 for negative z, 1 for positive z 
+      unsigned int side = 0;
+      if(zcenter > 0) side = 1;
+      // get the TPC readout sector - there are 12 sectors with how many pads each?
+      unsigned int pads_per_sector =  LayerGeom->get_phibins() / 12;
+      unsigned int sector = pad_num / pads_per_sector;
+      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
+      // Use existing hitset or add new one if needed
+      TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
+      
+      // generate the key for this hit, requires zbin and phibin
+      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) zbin_num);
+      // See if this hit already exists
+      TrkrHit *hit = nullptr;
+      hit = hitsetit->second->getHit(hitkey);
+      if(!hit)
+	{
+	  // create a new one
+	  hit = new TpcHit();
+	  hitsetit->second->addHitSpecificKey(hitkey, hit);
+	}
+
+      // Either way, add the energy to it  -- adc values will be added at digitization
+      hit->addEnergy(neffelectrons);
+
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 

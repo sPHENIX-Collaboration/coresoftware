@@ -148,9 +148,7 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
   PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, "G4CELL_MVTX");
   if (!cells) return;
 
-  //-------------
   // Digitization
-  //-------------
 
   vector<PHG4Cell *> cell_list;
   PHG4CellContainer::ConstRange cellrange = cells->getCells();
@@ -174,6 +172,8 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
     hit.set_adc(adc);
     hit.set_e(e);
 
+    if(Verbosity() > 0) cout << "    OLD: PHG4MVTXDigitizer: found cell in layer " << hit.get_layer() << " with signal " << cell->get_edep() << " and adc " << adc << endl;
+
     SvtxHit *ptr = _hitmap->insert(&hit);
     if (!ptr->isValid())
     {
@@ -186,7 +186,7 @@ void PHG4MVTXDigitizer::DigitizeMVTXLadderCells(PHCompositeNode *topNode)
       }
     }
   }
-
+  
   return;
 }
 

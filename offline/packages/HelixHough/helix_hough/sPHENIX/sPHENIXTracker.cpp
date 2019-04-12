@@ -1244,6 +1244,7 @@ void sPHENIXTracker::findTracksBySegments(vector<SimpleHit3D>& hits,
                                           vector<SimpleTrack3D>& tracks,
                                           const HelixRange& range) {
 
+  cout << "fidTracksBySegments " << endl;
   vector<TrackSegment>* cur_seg = &segments1;
   vector<TrackSegment>* next_seg = &segments2;
   unsigned int curseg_size = 0;

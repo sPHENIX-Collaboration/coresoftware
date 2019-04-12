@@ -22,17 +22,21 @@ libg4tpc_la_LIBADD = \
   -lphg4hit \
   -lg4detectors \
   -lphparameter \
-  -ltrackbase_historic_io
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -ltpc
 
 pkginclude_HEADERS = \
   PHG4CellTPCv1.h \
   PHG4TPCElectronDrift.h \
+  PHG4TpcElectronDrift.h \
   PHG4TPCPadPlane.h \
   PHG4TPCPadPlaneReadout.h \
   PHG4TPCDigitizer.h \
+  PHG4TpcDigitizer.h \
   PHG4TPCSubsystem.h \
   PHG4TPCDistortion.h \
-  PHG4TPCSpaceChargeDistortion.h
+  PHG4TPCSpaceChargeDistortion.h 
 
 ROOTDICTS = \
   PHG4CellTPCv1_Dict.cc
@@ -43,10 +47,12 @@ if MAKEROOT6
 else
   ROOT5_DICTS = \
     PHG4TPCElectronDrift_Dict.cc \
+    PHG4TpcElectronDrift_Dict.cc \
     PHG4TPCPadPlane_Dict.cc \
     PHG4TPCPadPlaneSimple_Dict.cc \
     PHG4TPCPadPlaneReadout_Dict.cc \
     PHG4TPCDigitizer_Dict.cc \
+    PHG4TpcDigitizer_Dict.cc \
     PHG4TPCSubsystem_Dict.cc \
     PHG4TPCDistortion_Dict.cc\
     PHG4TPCSpaceChargeDistortion_Dict.cc 
@@ -56,11 +62,13 @@ libg4tpc_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4TPCDetector.cc \
   PHG4TPCElectronDrift.cc \
+  PHG4TpcElectronDrift.cc \
   PHG4TPCPadPlane.cc \
   PHG4TPCPadPlaneSimple.cc \
   PHG4TPCPadPlaneReadout.cc \
   PHG4TPCSteppingAction.cc \
   PHG4TPCDigitizer.cc \
+  PHG4TpcDigitizer.cc \
   PHG4TPCSubsystem.cc \
   PHG4TPCDistortion.cc \
   PHG4TPCSpaceChargeDistortion.cc

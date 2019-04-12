@@ -20,7 +20,8 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
-  TPCClusterizer.h
+  TPCClusterizer.h \
+  TpcClusterizer.h
 
 ROOTDICTS = \
   TpcHit_Dict.cc
@@ -33,20 +34,22 @@ else
     TpcDefs_Dict.cc
 
   ROOT5_DICTS = \
-    TPCClusterizer_Dict.cc 
+    TPCClusterizer_Dict.cc \
+    TpcClusterizer_Dict.cc 
 endif
 
 # sources for tpc library
 libtpc_la_SOURCES = \
   $(ROOT5_DICTS) \
+  TpcClusterizer.cc \
   TPCClusterizer.cc
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
   -lfun4all \
   -lg4detectors \
-  -lSpectrum \
-  -lg4tpc
+  -lSpectrum
+
 
 # sources for io library
 libtpc_io_la_SOURCES = \

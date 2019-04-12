@@ -1,12 +1,14 @@
+// this is the old containers version
+
 #include "PHG4TPCElectronDrift.h"
 #include "PHG4TPCPadPlaneReadout.h"
-//#include "PHG4TPCPadPlane.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cellv1.h>
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -238,26 +240,9 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
       }
       continue;
     }
-    /*
-    double dx = (hiter->second->get_x(1) - hiter->second->get_x(0))/n_electrons;
-    double dy = (hiter->second->get_y(1) - hiter->second->get_y(0))/n_electrons;
-    double dz = (hiter->second->get_z(1) - hiter->second->get_z(0))/n_electrons;
-    double dt = (hiter->second->get_t(1) - hiter->second->get_t(0))/n_electrons;
-    double x_start = hiter->second->get_x(0) + dx/2.;
-    double y_start = hiter->second->get_y(0) + dy/2.;
-    double z_start = hiter->second->get_z(0) + dz/2.;
-    double t_start = hiter->second->get_t(0) + dt/2.;
-    */
 
     if (Verbosity() > 100)
     {
-      //double xin =  hiter->second->get_x(0);
-      //double xout =  hiter->second->get_x(1);
-      //double yin =  hiter->second->get_y(0);
-      //double yout =  hiter->second->get_y(1);
-      //if( (sqrt(xin*xin+yin*yin) > 69.0 && sqrt(xin*xin+yin*yin) < 70.125) ||
-      //  (sqrt(xout*xout+yout*yout) > 69.0 && sqrt(xout*xout+yout*yout) < 70.125) )
-      {
         cout << endl
              << "electron drift: g4hit " << hiter->first << " created electrons: " << n_electrons
              << " from " << eion * 1000000 << " keV" << endl;
@@ -265,7 +250,6 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
              << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2)) << endl;
         cout << " exit x,y,z = " << hiter->second->get_x(1) << "  " << hiter->second->get_y(1) << "  " << hiter->second->get_z(1)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2)) << endl;
-      }
     }
 
     for (unsigned int i = 0; i < n_electrons; i++)
@@ -333,16 +317,14 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
       // this fills the cells and updates them on the node tree for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
-      /*
-	x_start += dx;
-	y_start += dy;
-	z_start += dz;
-	t_start += dt;
-	*/
     }
     ihit++;
-  }
 
+    // figure out how to add an association for each hit pad, not each electron!
+
+  } // end loop over g4hits
+
+  // old containers
   if (Verbosity() > 1)
   {
     cout << endl

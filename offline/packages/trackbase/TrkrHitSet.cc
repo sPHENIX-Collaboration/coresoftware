@@ -18,6 +18,12 @@ TrkrHitSet::TrkrHitSet()
 {
 }
 
+TrkrHitSet::~TrkrHitSet()
+{
+  // frees the memory associated with the pointers gto the TrkrHit objects
+  Reset();
+}
+
 void TrkrHitSet::print() const
 {
   identify(std::cout);
@@ -38,12 +44,13 @@ void TrkrHitSet::Reset()
 
 void TrkrHitSet::identify(std::ostream& os) const
 {
-  os << "TrkrHitSet: " << std::endl
-     << "        id: 0x" << std::hex << getHitSetKey() << std::dec << std::endl
-     << "     nhits: " << m_hits.size() << std::endl;
-  
+  int layer = TrkrDefs::getLayer(getHitSetKey());
+  int trkrid =  TrkrDefs::getTrkrId(getHitSetKey());    
+  os << "TrkrHitSet: "   << "       hitsetkey " << getHitSetKey() << " TrkrId " << trkrid << " layer " << layer << " nhits: " << m_hits.size() << std::endl;
+
   for ( auto& entry : m_hits )
   {
+    std::cout << " hitkey " << entry.first << std::endl;
     (entry.second)->identify(os);
   }
 }
@@ -55,7 +62,7 @@ TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 
   if ( !ret.second )
   {
-    std::cout << "TrkrHitSet::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
+    std::cout << "TrkrHitSet::AddHitSpecificKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
   else

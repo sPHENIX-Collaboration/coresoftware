@@ -15,8 +15,11 @@
 // forward declarations
 class PHG4TruthInfoContainer;
 class PHG4HitContainer;
-class SvtxHitMap;
-class PHG4CellContainer;
+class TrkrClusterHitAssoc;
+class TrkrHitTruthAssoc;
+
+//class SvtxHitMap;
+//class PHG4CellContainer;
 
 /// \class PHTruthTrackSeeding
 ///
@@ -61,15 +64,17 @@ class PHTruthTrackSeeding : public PHTrackSeeding
 
   PHG4TruthInfoContainer* _g4truth_container;
 
-  PHG4HitContainer* phg4hits_svtx;
+  PHG4HitContainer* phg4hits_tpc;
   PHG4HitContainer* phg4hits_intt;
-  PHG4HitContainer* phg4hits_maps;
+  PHG4HitContainer* phg4hits_mvtx;
 
-  SvtxHitMap* hitsmap;
+  TrkrHitTruthAssoc *hittruthassoc;
+  TrkrClusterHitAssoc *clusterhitassoc;
 
-  PHG4CellContainer* cells_svtx;
-  PHG4CellContainer* cells_intt;
-  PHG4CellContainer* cells_maps;
+  //SvtxHitMap* hitsmap;
+  //PHG4CellContainer* cells_svtx;
+  //PHG4CellContainer* cells_intt;
+  //PHG4CellContainer* cells_maps;
 
   /// seeding layers
   std::set<unsigned int> _seeding_layers;

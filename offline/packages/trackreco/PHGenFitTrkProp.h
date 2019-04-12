@@ -42,14 +42,12 @@
 
 // forward declarations
 class PHCompositeNode;
-class SvtxClusterMap;
-class SvtxCluster;
+class TrkrClusterContainer;
+class TrkrCluster;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class SvtxVertex;
-class SvtxHitMap;
-class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
 
 class PHG4HitContainer;
@@ -505,10 +503,11 @@ class PHGenFitTrkProp : public PHTrackPropagating
       const bool use_fitted_state_once = false);
 
   //!
-  PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
+  //PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
+  PHGenFit::Measurement* TrkrClusterToPHGenFitMeasurement(const TrkrCluster* cluster);
 
   //! TrackPropPatRec Call.
-  std::vector<unsigned int> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
+  std::vector<TrkrDefs::cluskey> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
 
   //! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
   //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
@@ -556,14 +555,14 @@ class PHGenFitTrkProp : public PHTrackPropagating
   BbcVertexMap* _bbc_vertexes;
 
   //nodes to get norm vector
-  SvtxHitMap* _svtxhitsmap;
+  //SvtxHitMap* _svtxhitsmap;
 
   int* _hit_used_map;
   int _hit_used_map_size;
 
-  PHG4CellContainer* _cells_svtx;
-  PHG4CellContainer* _cells_intt;
-  PHG4CellContainer* _cells_maps;
+  // PHG4CellContainer* _cells_svtx;
+  // PHG4CellContainer* _cells_intt;
+  //PHG4CellContainer* _cells_maps;
 
   PHG4CylinderGeomContainer* _geom_container_intt;
   PHG4CylinderGeomContainer* _geom_container_maps;
@@ -621,7 +620,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::map<int, float> _search_wins_phi;
   std::map<int, float> _search_wins_theta;
 
-  std::multimap<unsigned int, unsigned int> _layer_thetaID_phiID_cluserID;
+  std::multimap<unsigned int, TrkrDefs::cluskey> _layer_thetaID_phiID_cluserID;
 
   float _half_max_theta;
   float _half_max_phi;

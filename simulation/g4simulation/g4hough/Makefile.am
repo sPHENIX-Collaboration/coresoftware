@@ -21,7 +21,9 @@ AM_LDFLAGS = \
 
 libg4hough_io_la_LIBADD = \
   -lphool \
-  -lg4detectors_io 
+  -lg4detectors_io \
+  -lintt \
+  -lmvtx
 
 libg4hough_la_LDFLAGS = \
   `geant4-config --libs`\
@@ -43,6 +45,8 @@ libg4hough_la_LIBADD = \
   -lg4tpc \
   -lg4intt \
   -lg4mvtx \
+  -lmvtx \
+  -lintt \
   -ltrackbase_historic_io \
   libg4hough_io.la
 

@@ -15,11 +15,8 @@
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
 
+
 // trackbase_historic includes
-#include <trackbase_historic/SvtxCluster.h>
-#include <trackbase_historic/SvtxClusterMap.h>
-#include <trackbase_historic/SvtxHitMap.h>
-#include <trackbase_historic/SvtxHit_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -29,6 +26,9 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
+
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterv1.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4Cell.h>
@@ -40,9 +40,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 //
-#include <g4intt/PHG4CylinderGeomINTT.h>
-
-#include <g4mvtx/PHG4CylinderGeom_MVTX.h>
+#include <intt/CylinderGeomINTT.h>
+#include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
@@ -181,12 +180,8 @@ PHHoughSeeding::PHHoughSeeding(
   , _tracker_etam_seed(nullptr)
   , _vertexFinder()
   , _bbc_vertexes(nullptr)
-  , _svtxhitsmap(nullptr)
   , _hit_used_map(nullptr)
   , _hit_used_map_size(0)
-  , _cells_svtx(nullptr)
-  , _cells_intt(nullptr)
-  , _cells_maps(nullptr)
   , _geom_container_intt(nullptr)
   , _geom_container_maps(nullptr)
   , _analyzing_mode(false)
@@ -251,14 +246,21 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   int min_layers = 4;
   int nlayers_seeds = 7;
   int seeding_layers[] = {
-      (int) (_nlayers_maps + _nlayers_intt),
-      (int) (_nlayers_maps + _nlayers_intt + 6),
-      (int) (_nlayers_maps + _nlayers_intt + 12),
-      (int) (_nlayers_maps + _nlayers_intt + 18),
-      (int) (_nlayers_maps + _nlayers_intt + 24),
-      (int) (_nlayers_maps + _nlayers_intt + 30),
-      (int) (_nlayers_maps + _nlayers_intt + 39)
+    //      (int) (_nlayers_maps + _nlayers_intt),
+    //  (int) (_nlayers_maps + _nlayers_intt + 6),
+    //  (int) (_nlayers_maps + _nlayers_intt + 12),
+    //  (int) (_nlayers_maps + _nlayers_intt + 18),
+    //  (int) (_nlayers_maps + _nlayers_intt + 24),
+    //  (int) (_nlayers_maps + _nlayers_intt + 30),
+    //  (int) (_nlayers_maps + _nlayers_intt + 39)
       //7,13,19,25,31,37,46
+    (int) (_nlayers_maps + _nlayers_intt + 1),
+    (int) (_nlayers_maps + _nlayers_intt + 7),
+    (int) (_nlayers_maps + _nlayers_intt + 15),
+    (int) (_nlayers_maps + _nlayers_intt + 23),
+    (int) (_nlayers_maps + _nlayers_intt + 31),
+    (int) (_nlayers_maps + _nlayers_intt + 39),
+    (int) (_nlayers_maps + _nlayers_intt + 46)
   };
 
   set_seeding_layer(seeding_layers, nlayers_seeds);
@@ -397,7 +399,8 @@ int PHHoughSeeding::Process()
       int min_layers = 4;
       int nlayers_seeds = 7;
       int seeding_layers[] = {
-          (int) (_nlayers_maps + _nlayers_intt),
+	//(int) (_nlayers_maps + _nlayers_intt),
+	(int) (_nlayers_maps + _nlayers_intt + 1),
           (int) (_nlayers_maps + _nlayers_intt + 8),
           (int) (_nlayers_maps + _nlayers_intt + 16),
           (int) (_nlayers_maps + _nlayers_intt + 24),
@@ -575,6 +578,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
       radius_layer_map.insert(
           make_pair(layeriter->second->get_radius(),
                     layeriter->second->get_layer()));
+      //cout << " making layer map for TPC " << endl;
     }
   }
 
@@ -589,6 +593,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
       radius_layer_map.insert(
           make_pair(layeriter->second->get_radius(),
                     layeriter->second->get_layer()));
+      //cout << " making layer map for  intt " << endl;
     }
   }
 
@@ -603,17 +608,18 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
       radius_layer_map.insert(
           make_pair(layeriter->second->get_radius(),
                     layeriter->second->get_layer()));
+      //cout << " making layer map for mvtx " << endl;
     }
   }
 
-  //	if (Verbosity() >= 2) {
-  //		for (map<float, int>::const_iterator iter = radius_layer_map.begin();
-  //				iter != radius_layer_map.end(); iter++) {
-  //			cout << "radius_layer_map: first: " << iter->first << "; second: "
-  //					<< iter->second << endl;
-  //		}
-  //	}
-
+  if (Verbosity() > 1) {
+    for (map<float, int>::const_iterator iter = radius_layer_map.begin();
+	 iter != radius_layer_map.end(); ++iter) {
+      //cout << "radius_layer_map: first: " << iter->first << "; second: "
+      //   << iter->second << endl;
+    }
+  }
+  
   // now that the layer ids are sorted by radius, I can create a storage
   // index, ilayer, that is 0..N-1 and sorted by radius
 
@@ -741,6 +747,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
    * Now have to load geometry nodes to get norm vector
    */
 
+  /*
   _cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
                                                       "G4CELL_TPC");
 
@@ -758,6 +765,7 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
     }
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  */
 
   _geom_container_intt = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
@@ -765,11 +773,13 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
   _geom_container_maps = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
+  /*
   if (!_cells_svtx && !_cells_maps && !_cells_intt)
   {
     cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  */
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1028,7 +1038,7 @@ int PHHoughSeeding::setup_tracker_object()
   _tracker->setPrintTimings(false);
   if (Verbosity() >= 2)
     _tracker->setPrintTimings(true);
-  //_tracker->setVerbosity(Verbosity());
+  _tracker->setVerbosity(Verbosity());
   _tracker->setCutOnDca(_cut_on_dca);
   _tracker->setDcaCut(_dcaxy_cut);
   _tracker->setSmoothBack(true);
@@ -1044,7 +1054,7 @@ int PHHoughSeeding::setup_tracker_object()
     float scale1 = _fit_error_scale[ilayer];
     float scale2 = _vote_error_scale[ilayer];
     float scale = scale1 / scale2;
-    _tracker->setHitErrorScale(ilayer, scale);
+   _tracker->setHitErrorScale(ilayer, scale);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -1059,6 +1069,7 @@ int PHHoughSeeding::GetNodes(PHCompositeNode* topNode)
   // used in fast vertexing from BBC
   _bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
 
+  /*
   // get node containing the digitized hits
   _svtxhitsmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
   if (!_svtxhitsmap)
@@ -1066,6 +1077,7 @@ int PHHoughSeeding::GetNodes(PHCompositeNode* topNode)
     cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
+  */
 
   //	if(_hit_used_map_size!=0) delete[] _hit_used_map;
   //	_hit_used_map_size = static_cast<int>(_cluster_map->size());
@@ -1090,115 +1102,104 @@ int PHHoughSeeding::translate_input()
     nhits[i] = 0;
     nhits_all[i] = 0;
   }
-  for (SvtxClusterMap::Iter iter = _cluster_map->begin();
-       iter != _cluster_map->end(); ++iter)
-  {
-    //if(_hit_used_map[iter->first]!=0){continue;}
-    if (_assoc_container->GetTracksFromCluster(iter->first).size() > 0)
+
+ // loop over all clusters
+  //cout << "_clusters size " << _clusters.size() << endl;  
+  int nhits3d = -1;
+  unsigned int clusid = -1;
+  TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
+  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
     {
-      continue;
+      clusid += 1;
+      TrkrCluster *cluster = iter->second;
+      TrkrDefs::cluskey cluskey = iter->first;
+      unsigned int layer = TrkrDefs::getLayer(cluskey);
+
+      count++;
+
+      nhits_all[layer]++;
+
+      unsigned int ilayer = UINT_MAX;      
+      std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
+      if (it != _layer_ilayer_map.end())
+	ilayer = it->second;
+      if (ilayer >= _nlayers_seeding) continue;
+
+      SimpleHit3D hit3d;
+      nhits3d++;      
+      // capture the cluster keys so the cluster can be found in the cluster container
+      hit3d.set_cluskey( cluskey );
+      
+      // this is just a cluster index - should be from 0 to number of clusters for seeding to work
+      hit3d.set_id(clusid);
+      
+      if(Verbosity() > 40)
+	{
+	  unsigned int layer =   TrkrDefs::getLayer(cluster->getClusKey());
+	  cout << "     found in seeding layer # " << ilayer << " layer " << layer <<  " cluskey " << cluster->getClusKey() << " clusid " << clusid << endl;
+	}
+      
+      hit3d.set_layer(ilayer);
+      
+      hit3d.set_x(cluster->getPosition(0));
+      hit3d.set_y(cluster->getPosition(1));
+      hit3d.set_z(cluster->getPosition(2));
+      
+      // copy covariance over
+      for (int i = 0; i < 3; ++i)
+	{
+	  for (int j = i; j < 3; ++j)
+	    {
+	      hit3d.set_error(i, j, cluster->getError(i, j));
+	      
+	      //FIXME
+	      //hit3d.set_size(i, j, cluster->get_size(i, j)); // original
+	      hit3d.set_size(i, j, cluster->getError(i, j) * sqrt(12.));  // yuhw 2017-05-08
+	      //cout << " i " << i << " j " << j << " error " << cluster->getError(i,j) << endl;
+	    }
+	}
+
+      nhits[ilayer]++;
+      //cout << "    adding cluster " << clusid << " with key " << cluskey << endl;
+      //hit3d.print();
+      _clusters.push_back(hit3d);
+      //cout << "     ilayer " << ilayer << " nhits " << nhits[ilayer] << " _clusters size now " << _clusters.size() << endl;
     }
-    count++;
-    SvtxCluster* cluster = iter->second;
-    nhits_all[cluster->get_layer()]++;
-    //    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt)) count7++;
-    //    if (cluster->get_layer() == (unsigned int) (_nlayers_maps + _nlayers_intt + 40)) count46++;
-    //	  cout << "first: " << iter->first << endl;
-    /*
-      float vz = 0.0;
-      float x  = cluster->get_x();
-      float y  = cluster->get_y();
-      float z  = cluster->get_z();
-      float dz = z - vz;
-      float r  = sqrt(x*x+y*y);
-      float zsize = cluster->get_z_size();
-      bool goodhit = false;
-      
-      if(TMath::Abs(dz)<40&&zsize<3)
-      goodhit = true;
-      
-      if(zsize > (TMath::Abs(dz)/r * 2.448 + 0.5)&&
-      zsize < (TMath::Abs(dz)/r * 2.448 + 3.5) )
-      goodhit = true;
-      if(goodhit==false) continue;
-      //ntp_cluster.Draw("zsize:z-gvz","layer==7&&zsize>(abs(z-gvz)*0.08+0.5)&&zsize<(abs(z-gvz)*0.08)+3.5")
-      */
-    //unsigned int ilayer = _layer_ilayer_map[cluster->get_layer()];
+  //cout << "_clusters size " << _clusters.size() << endl;  
 
-    //		unsigned int ilayer = _layer_ilayer_map_all[cluster->get_layer()];
-    //		if(ilayer >= _nlayers_seeding) continue;
-
-    unsigned int ilayer = UINT_MAX;
-    std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(cluster->get_layer());
-    if (it != _layer_ilayer_map.end())
-      ilayer = it->second;
-    if (ilayer >= _nlayers_seeding) continue;
-
-    SimpleHit3D hit3d;
-
-    hit3d.set_id(cluster->get_id());
-    hit3d.set_layer(ilayer);
-
-    hit3d.set_x(cluster->get_x());
-    hit3d.set_y(cluster->get_y());
-    hit3d.set_z(cluster->get_z());
-
-    // hit3d.set_ex(2.0*sqrt(cluster->get_size(0,0)));
-    // hit3d.set_ey(2.0*sqrt(cluster->get_size(1,1)));
-    // hit3d.set_ez(2.0*sqrt(cluster->get_size(2,2)));
-
-    // copy covariance over
-    for (int i = 0; i < 3; ++i)
+  if (Verbosity() > 1)
     {
-      for (int j = i; j < 3; ++j)
-      {
-        hit3d.set_error(i, j, cluster->get_error(i, j));
-
-        //FIXME
-        //hit3d.set_size(i, j, cluster->get_size(i, j)); // original
-        hit3d.set_size(i, j, cluster->get_error(i, j) * sqrt(12.));  // yuhw 2017-05-08
-      }
-    }
-    /*    float x  = cluster->get_x();
-    float y  = cluster->get_y();
-    float z  = cluster->get_z();
-    float r  = sqrt(x*x+y*y);
-    */
-    nhits[ilayer]++;
-    _clusters.push_back(hit3d);
-  }
-
-  if (Verbosity() > 20)
-  {
-    cout
+      cout
         << "-------------------------------------------------------------------"
         << endl;
-    cout
+      cout
         << "PHHoughSeeding::process_event has the following input clusters:"
         << endl;
 
-    for (unsigned int i = 0; i < _clusters.size(); ++i)
-    {
-      cout << "n init clusters = " << _clusters.size() << endl;
-      _clusters[i].print();
-    }
-
-    cout
+      cout << " _clusters.size = " << _clusters.size() << endl;
+      
+      for (unsigned int i = 0; i < _clusters.size(); ++i)
+	{
+	  cout << "n init clusters = " << _clusters.size() << endl;
+	  _clusters[i].print();
+	}
+      
+      cout
         << "-------------------------------------------------------------------"
         << endl;
-  }
-
-  if (Verbosity() >= 1)
-  {
-    cout << "CPUSCALE hits: " << count << endl;
-  }
-  if (Verbosity() >= 10)
-  {
-    for (int i = 0; i < 60; i++)
-    {
-      cout << "layer: " << i << " << hits: " << nhits[i] << " | " << nhits_all[i] << endl;
     }
-  }
+  
+  if (Verbosity() >= 10)
+    {
+      cout << "CPUSCALE hits: " << count << endl;
+    }
+  if (Verbosity() >= 10)
+    {
+      for (int i = 0; i < 60; i++)
+	{
+	  cout << "layer: " << i << " << hits: " << nhits[i] << " | " << nhits_all[i] << endl;
+	}
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1572,8 +1573,11 @@ int PHHoughSeeding::export_output()
   // need to translate this into the PHG4Track object...
 
   vector<SimpleHit3D> track_hits;
-  int clusterID;
+  TrkrDefs::cluskey clusterkey;
 
+  // _all_tracks is a SimpleTrack3D object filled in helixhough, track_hits is a SimpleHit3D object set eqaul to the simple hits associated with the track in helixhough
+  // The SimpleHit3D knows the cluskey for its clusters
+  // Here we make SvtxTrack objects
   for (unsigned int itrack = 0; itrack < _all_tracks.size(); itrack++)
   {
     SvtxTrack_v1 track;
@@ -1581,32 +1585,35 @@ int PHHoughSeeding::export_output()
     track_hits.clear();
     track_hits = _all_tracks.at(itrack).hits;
 
+    //cout << " insert cluster in svtxtrack " << endl;
     for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++)
     {
-      if ((track_hits.at(ihit).get_id()) >= _cluster_map->size())
+      //cout << " cluster id " << track_hits.at(ihit).get_id() << " _cluster_map->size " << _cluster_map->size() << " cluskey " <<  track_hits.at(ihit).get_cluskey() << endl;
+      if (track_hits.at(ihit).get_id() >= _cluster_map->size())
       {
         continue;
       }
-      SvtxCluster* cluster = _cluster_map->get(
-          track_hits.at(ihit).get_id());
+      // Note: clusters can be accessd only by clusterkey
+      clusterkey = track_hits.at(ihit).get_cluskey();
+						     
       //mark hit asu used by iteration number n
       //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
-      _assoc_container->SetClusterTrackAssoc(track_hits.at(ihit).get_id(), track.get_id());
-      clusterID = cluster->get_id();
+      _assoc_container->SetClusterTrackAssoc(clusterkey, track.get_id());
+      
 #ifdef _DEBUG_
+      TrkrCluster* cluster = _cluster_map->findCluster(clusterkey);
       cout
           << __LINE__
           << ": itrack: " << itrack
           << ": nhits: " << track_hits.size()
-          << ": hitID: " << clusterID
-          << ": layer: " << cluster->get_layer()
+          << ": cluster key: " << clusterkey
           << endl;
+      cluster->identify();
 #endif
 
       //TODO verify this change
-      //int clusterLayer = cluster->get_layer();
       //if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
-      track.insert_cluster(clusterID);
+      track.insert_cluster_key(clusterkey);
       //}
     }
 
@@ -1685,6 +1692,7 @@ int PHHoughSeeding::export_output()
         << ": nhits: " << track_hits.size()
         << endl;
 #endif
+    //cout << " insert track in trackmap " << endl;
     _track_map->insert(&track);
     vertex.insert_track(track.get_id());
 
@@ -1694,8 +1702,18 @@ int PHHoughSeeding::export_output()
            << endl;
       cout << "px = " << track.get_px() << " py = " << track.get_py()
            << " pz = " << track.get_pz() << endl;
+      cout << " cluster keys size " << track.size_cluster_keys() << endl;
     }
   }  // track loop
+
+#ifdef _DEBUG_
+  _track_map->identify();
+  for(unsigned int i=0;i<_track_map->size();i++)
+    {
+      SvtxTrack *tr = _track_map->get(i);
+      tr->identify();
+    }
+#endif
 
   SvtxVertex* vtxptr = _vertex_map->insert(&vertex);
   if (Verbosity() > 5)
