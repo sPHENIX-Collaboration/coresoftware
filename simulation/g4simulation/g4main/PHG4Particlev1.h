@@ -1,5 +1,5 @@
-#ifndef PHG4PARTICLEV1_H__
-#define PHG4PARTICLEV1_H__
+#ifndef G4MAIN_PHG4PARTICLEV1_H
+#define G4MAIN_PHG4PARTICLEV1_H
 
 #include "PHG4Particle.h"
 
