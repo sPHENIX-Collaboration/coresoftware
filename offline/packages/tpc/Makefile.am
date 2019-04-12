@@ -30,9 +30,6 @@ if MAKEROOT6
   nobase_dist_pcm_DATA = \
     TpcHit_Dict_rdict.pcm
 else
-  ROOT5_IO_DICTS = \
-    TpcDefs_Dict.cc
-
   ROOT5_DICTS = \
     TPCClusterizer_Dict.cc \
     TpcClusterizer_Dict.cc 
@@ -54,7 +51,6 @@ libtpc_la_LIBADD = \
 # sources for io library
 libtpc_io_la_SOURCES = \
   $(ROOTDICTS) \
-  $(ROOT5_IO_DICTS) \
   TpcDefs.cc \
   TpcHit.cc
 
@@ -96,4 +92,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* *.pcm $(BUILT_SOURCES)

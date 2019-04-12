@@ -35,9 +35,6 @@ if MAKEROOT6
     MvtxHit_Dict_rdict.pcm \
     CylinderGeom_MVTX_Dict_rdict.pcm
 else
-  ROOT5_IO_DICTS = \
-    MvtxDefs_Dict.cc
-
   ROOT5_DICTS = \
     MVTXClusterizer_Dict.cc \
     MvtxClusterizer_Dict.cc
@@ -58,7 +55,6 @@ libmvtx_la_LIBADD = \
 # sources for io library
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
-  $(ROOT5_IO_DICTS) \
   CylinderGeom_MVTX.cc \
   MvtxDefs.cc \
   MvtxHit.cc
