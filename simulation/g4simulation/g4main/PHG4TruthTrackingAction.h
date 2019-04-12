@@ -1,5 +1,5 @@
-#ifndef PHG4TruthTrackingAction_h
-#define PHG4TruthTrackingAction_h
+#ifndef G4MAIN_PHG4TRUTHTRACKINGACTION_H
+#define G4MAIN_PHG4TRUTHTRACKINGACTION_H
 
 #include "PHG4TrackingAction.h"
 
@@ -32,13 +32,13 @@ public:
 
 private:
 
-  std::map<G4ThreeVector,int> VertexMap;
+  std::map<G4ThreeVector,int> m_VertexMap;
 
   //! pointer to the "owning" event action
-  PHG4TruthEventAction* eventAction_;
+  PHG4TruthEventAction* m_EventAction;
 
   //! pointer to truth information container
-  PHG4TruthInfoContainer* truthInfoList_;
+  PHG4TruthInfoContainer* m_TruthInfoList;
 };
 
 

@@ -8,8 +8,8 @@ PHG4Particlev3::PHG4Particlev3():
   PHG4Particlev2(),
   A(0),
   Z(0),
-  ioncharge(0),
-excitEnergy(0)
+  ioncharge(NAN),
+excitEnergy(NAN)
 {}
 
 PHG4Particlev3::PHG4Particlev3(const PHG4Particle *in):
@@ -43,7 +43,12 @@ PHG4Particlev3::identify(std::ostream& os) const
      << ", px: " << fpx 
      << ", py: " << fpy 
      << ", pz: " << fpz
-     << ", e: " << fe << endl;
+     << ", e: " << fe
+     << ", A: " << A
+     << ", Z: " << Z
+     << ", Eex: " << excitEnergy
+     << ", ioncharge: " << ioncharge
+     << endl;
   return;
 }
 
