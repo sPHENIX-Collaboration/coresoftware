@@ -21,7 +21,6 @@ using namespace std;
 PHG4IonGun::PHG4IonGun(const string &name)
   : PHG4ParticleGeneratorBase(name)
   , ion(new PHG4Particlev3())
-  , m_InEvent(nullptr)
   , A(0)
   , Z(0)
   , ioncharge(0)
@@ -34,27 +33,12 @@ void PHG4IonGun::SetCharge(const int c)
 {
   ioncharge = c * eplus;
 }
+
 void PHG4IonGun::SetMom(const double px, const double py, const double pz)
 {
   mom[0] = px;
   mom[1] = py;
   mom[2] = pz;
-}
-
-int PHG4IonGun::InitRun(PHCompositeNode *topNode)
-{
-m_InEvent = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-if (! m_InEvent)
-{
-    PHNodeIterator iter( topNode );
-    PHCompositeNode *dstNode;
-    dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-      
-    m_InEvent = new PHG4InEvent();
-    PHDataNode<PHObject> *newNode = new PHDataNode<PHObject>(m_InEvent, "PHG4INEVENT", "PHObject");
-    dstNode->addNode(newNode);
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4IonGun::process_event(PHCompositeNode *topNode)
@@ -87,21 +71,6 @@ void PHG4IonGun::UpdateParticle()
   ion->set_pid(iondef->GetPDGEncoding());
   return;
 }
-
-/*
-void PHG4IonGun::GeneratePrimaries(G4Event* anEvent)
-{
-  G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon(Z, A, excitEnergy);
-  G4ThreeVector position(0 * cm, 0 * cm, 0 * cm);
-  G4PrimaryVertex* vertex = new G4PrimaryVertex(position, 0 * s);
-  G4PrimaryParticle* g4part = new G4PrimaryParticle(ion);
-  g4part->SetCharge(ioncharge);
-  g4part->SetMomentum(mom[0], mom[1], mom[2]);
-  vertex->SetPrimary(g4part);
-  anEvent->AddPrimaryVertex(vertex);
-  return;
-}
-*/
 
 void PHG4IonGun::Print(const string &what) const
 {

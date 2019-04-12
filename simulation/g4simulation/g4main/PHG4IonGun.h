@@ -14,9 +14,7 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
  public:
   PHG4IonGun(const std::string &name = "PHG4IONGUN");
   virtual ~PHG4IonGun() {}
-  int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-//  virtual void GeneratePrimaries(G4Event* anEvent);
   void SetA(const int a) { A = a; }
   void SetZ(const int z) { Z = z; }
   void SetCharge(const int c);
@@ -27,7 +25,6 @@ class PHG4IonGun : public PHG4ParticleGeneratorBase
  private:
   void UpdateParticle();
   PHG4Particle *ion;
-  PHG4InEvent *m_InEvent;
   int A;
   int Z;
   double mom[3];
