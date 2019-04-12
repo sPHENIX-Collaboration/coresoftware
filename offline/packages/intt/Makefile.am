@@ -35,9 +35,6 @@ if MAKEROOT6
   InttHit_Dict_rdict.pcm \
   CylinderGeomINTT_Dict_rdict.pcm
 else
-  ROOT5_IO_DICTS = \
-    InttDefs_Dict.cc
-
   ROOT5_DICTS = \
   InttClusterizer_Dict.cc \
   INTTClusterizer_Dict.cc
@@ -51,14 +48,13 @@ libintt_la_SOURCES = \
 
 libintt_la_LIBADD = \
   libintt_io.la \
-   -lCLHEP \
+  -lCLHEP \
   -lfun4all \
   -lg4detectors
 
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  $(ROOT5_IO_DICTS) \
   CylinderGeomINTT.cc \
   InttDefs.cc \
   InttHit.cc
