@@ -76,6 +76,7 @@ ROOTHITDICTS = \
   PHG4Particle_Dict.cc \
   PHG4Particlev1_Dict.cc \
   PHG4Particlev2_Dict.cc \
+  PHG4Particlev3_Dict.cc \
   PHG4Shower_Dict.cc \
   PHG4Showerv1_Dict.cc \
   PHG4VtxPoint_Dict.cc \
@@ -101,6 +102,7 @@ nobase_dist_pcm_DATA = \
   PHG4Particle_Dict_rdict.pcm \
   PHG4Particlev1_Dict_rdict.pcm \
   PHG4Particlev2_Dict_rdict.pcm \
+  PHG4Particlev3_Dict_rdict.pcm \
   PHG4Shower_Dict_rdict.pcm \
   PHG4Showerv1_Dict_rdict.pcm \
   PHG4VtxPoint_Dict_rdict.pcm \
@@ -145,6 +147,7 @@ libphg4hit_la_SOURCES = \
   PHG4Particle.cc \
   PHG4Particlev1.cc \
   PHG4Particlev2.cc \
+  PHG4Particlev3.cc \
   PHG4Showerv1.cc \
   PHG4TruthInfoContainer.cc \
   PHG4VtxPoint.cc \

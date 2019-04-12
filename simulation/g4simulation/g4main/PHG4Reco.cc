@@ -673,11 +673,11 @@ int PHG4Reco::setupInputEventNodeReader(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4Reco::setGeneratorAction(PHG4PrimaryGeneratorAction *action)
-{
-  generatorAction_ = action;
-  return;
-}
+// void PHG4Reco::setGeneratorAction(PHG4PrimaryGeneratorAction *action)
+// {
+//   generatorAction_ = action;
+//   return;
+// }
 
 void PHG4Reco::set_rapidity_coverage(const double eta)
 {

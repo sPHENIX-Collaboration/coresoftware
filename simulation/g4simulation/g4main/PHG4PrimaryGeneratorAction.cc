@@ -7,6 +7,7 @@
 #include <phool/phool.h>
 
 #include <Geant4/G4Event.hh>
+#include <Geant4/G4IonTable.hh>
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4PrimaryParticle.hh>
 #include <Geant4/G4PrimaryVertex.hh>
@@ -40,8 +41,8 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
       pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = inEvent->GetParticles(vtxiter->first);
       for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
         {
-	  //          cout << "PHG4PrimaryGeneratorAction: dealing with" << endl;
-	  //           (particle_iter->second)->identify();
+	            cout << "PHG4PrimaryGeneratorAction: dealing with" << endl;
+	             (particle_iter->second)->identify();
 
 	  // this is really ugly, and maybe it can be streamlined. Initially it was clear cut, if we only give a particle by its name,
 	  // we find it here in the G4 particle table, find the
@@ -105,10 +106,22 @@ PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           else
             {
               // expected momentum unit is GeV
-              g4part = new G4PrimaryParticle((*particle_iter->second).get_pid(),
-                                             (*particle_iter->second).get_px()*GeV,
-                                             (*particle_iter->second).get_py()*GeV,
-                                             (*particle_iter->second).get_pz()*GeV);
+	      if ((*particle_iter->second).isIon())
+		  {
+              G4ParticleDefinition* ion = G4IonTable::GetIonTable()->GetIon((*particle_iter->second).get_Z(),  (*particle_iter->second).get_A(), (*particle_iter->second).get_ExcitEnergy());
+              g4part = new G4PrimaryParticle(ion);
+	      g4part->SetCharge((*particle_iter->second).get_IonCharge());
+              g4part->SetMomentum((*particle_iter->second).get_px()*GeV,
+                                  (*particle_iter->second).get_py()*GeV,
+				  (*particle_iter->second).get_pz()*GeV);
+		  }
+		  else
+		  {
+               g4part = new G4PrimaryParticle((*particle_iter->second).get_pid(),
+                                              (*particle_iter->second).get_px()*GeV,
+                                              (*particle_iter->second).get_py()*GeV,
+                                              (*particle_iter->second).get_pz()*GeV);
+		  }
             }
           //if (inEvent->isEmbeded(particle_iter->second))
 	  // Do this for all primaries, not just the embedded particle, so that 

@@ -119,7 +119,7 @@ class PHG4Reco : public SubsysReco
   // this is a hack to get ions working for CAD and NSRL
   // our particle generators have pdg build in which doesn't work
   // with ions, so the default generator action has to be replaced
-  void setGeneratorAction(PHG4PrimaryGeneratorAction *action);
+//  void setGeneratorAction(PHG4PrimaryGeneratorAction *action);
 
   PHG4Subsystem *getSubsystem(const std::string &name);
 
