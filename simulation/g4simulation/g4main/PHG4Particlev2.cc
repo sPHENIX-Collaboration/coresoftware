@@ -8,8 +8,7 @@ PHG4Particlev2::PHG4Particlev2():
   vtxid(0),
   parentid(0),
   primaryid(0xFFFFFFFF),
-  fe(0.0)//,
-//  barcode(-1)
+  fe(0.0)
 {}
 
 PHG4Particlev2::PHG4Particlev2(const string &name, const int pid, const double px, const double py, const double pz):
@@ -18,8 +17,7 @@ PHG4Particlev2::PHG4Particlev2(const string &name, const int pid, const double p
   vtxid(0),
   parentid(0),
   primaryid(0xFFFFFFFF),
-  fe(0.0)//,
-//  barcode(-1)
+  fe(0.0)
 {}
   
 PHG4Particlev2::PHG4Particlev2(const PHG4Particle *in):
@@ -28,8 +26,7 @@ PHG4Particlev2::PHG4Particlev2(const PHG4Particle *in):
   vtxid(0),
   parentid(0),
   primaryid(0xFFFFFFFF),
-  fe(0.0)//,
-  //barcode(-1)
+  fe(0.0)
 {}
 
 void
