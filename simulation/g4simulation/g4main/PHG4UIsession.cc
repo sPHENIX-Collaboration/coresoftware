@@ -1,11 +1,10 @@
-
 #include "PHG4UIsession.h"
  
 PHG4UIsession::PHG4UIsession()
   : verbosity(0) {
 }
 
-G4UIsession * PHG4UIsession::SessionStart() { return NULL; }
+G4UIsession * PHG4UIsession::SessionStart() { return nullptr; }
  
 void PHG4UIsession::PauseSessionStart(const G4String&) {;}
 

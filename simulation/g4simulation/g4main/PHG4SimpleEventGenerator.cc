@@ -52,7 +52,7 @@ PHG4SimpleEventGenerator::PHG4SimpleEventGenerator(const string &name):
   _p_min(NAN),
   _p_max(NAN),
   _p_gaus_width(NAN),
-  _ineve(NULL) 
+  _ineve(nullptr) 
 {
   return;
 }

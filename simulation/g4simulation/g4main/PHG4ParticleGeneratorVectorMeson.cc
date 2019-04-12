@@ -1,11 +1,10 @@
 #include "PHG4ParticleGeneratorVectorMeson.h"
-#include "PHG4Particlev1.h"
 
+#include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
 
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHRandomSeed.h>
@@ -60,11 +59,11 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , _histrand_init(0)
   , decay1("e+")
   , decay2("e-")
-  , fsin(NULL)
-  , frap(NULL)
-  , fpt(NULL)
-  , trand(NULL)
-  , ineve(NULL)
+  , fsin(nullptr)
+  , frap(nullptr)
+  , fpt(nullptr)
+  , trand(nullptr)
+  , ineve(nullptr)
 {
   // From PDG:
   // Upsilon 1S has mass 9.4603, width 54.02 keV

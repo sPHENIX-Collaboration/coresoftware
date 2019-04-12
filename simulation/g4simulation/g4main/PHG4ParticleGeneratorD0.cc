@@ -1,11 +1,10 @@
 #include "PHG4ParticleGeneratorD0.h"
-#include "PHG4Particlev1.h"
 
+#include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
 
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
-
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHRandomSeed.h>
@@ -37,9 +36,9 @@ PHG4ParticleGeneratorD0::PHG4ParticleGeneratorD0(const string &name)
   , mass(1.86486)
   , m1(0.493677)
   , m2(0.13957018)
-  , fsin(NULL)
-  , frap(NULL)
-  , fpt(NULL)
+  , fsin(nullptr)
+  , frap(nullptr)
+  , fpt(nullptr)
 {
   return;
 }

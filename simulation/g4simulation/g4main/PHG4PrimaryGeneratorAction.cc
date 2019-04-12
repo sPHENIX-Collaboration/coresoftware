@@ -68,7 +68,7 @@ void PHG4PrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
           continue;
         }
       }
-      G4PrimaryParticle* g4part = NULL;
+      G4PrimaryParticle* g4part = nullptr;
       if (!(*particle_iter->second).get_pid())  // deal with geantinos which have pid=0
       {
         G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();
