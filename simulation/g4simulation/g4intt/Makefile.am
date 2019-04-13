@@ -23,26 +23,12 @@ AM_LDFLAGS = \
     -L$(OFFLINE_MAIN)/lib
 
 libg4intt_io_la_LIBADD = \
-  -L$(ROOTSYS)/lib \
-  -lCLHEP \
   -lphool \
-  -lboost_filesystem \
-  -lboost_system \
-  -lpdbcalBase \
-  -lXMLIO \
-  -lphparameter \
   -lg4detectors_io 
 
 libg4intt_la_LIBADD = \
   libg4intt_io.la \
-  -lphg4gdml \
-  -lphool  \
-  -lCGAL \
-  -lSubsysReco \
-  -lg4testbench \
   -lg4detectors \
-  -ltrackbase_historic_io \
-  -ltrack_io \
   -lintt
 
 pkginclude_HEADERS = \
