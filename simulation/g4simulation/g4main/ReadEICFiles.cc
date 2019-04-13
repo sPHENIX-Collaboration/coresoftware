@@ -20,8 +20,6 @@
 
 using namespace std;
 
-typedef PHIODataNode<PHObject> PHObjectNode_t;
-
 ///////////////////////////////////////////////////////////////////
 
 ReadEICFiles::ReadEICFiles(const string &name):
@@ -124,8 +122,8 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   vector< unsigned > origin_index;
 
   /* save pointers to beam particles */
-  HepMC::GenParticle *hepmc_beam1 = NULL;
-  HepMC::GenParticle *hepmc_beam2 = NULL;
+  HepMC::GenParticle *hepmc_beam1 = nullptr;
+  HepMC::GenParticle *hepmc_beam2 = nullptr;
 
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
@@ -197,7 +195,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
       unsigned parent_index = track_pp->GetParentIndex();
 
-      HepMC::GenParticle *pmother = NULL;
+      HepMC::GenParticle *pmother = nullptr;
       for ( unsigned m = 0; m < hepmc_particles.size(); m++ )
         {
           if ( origin_index.at( m ) == parent_index )

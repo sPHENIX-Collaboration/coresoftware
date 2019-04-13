@@ -1,4 +1,5 @@
 #include "PHG4HitContainer.h"
+
 #include "PHG4Hit.h"
 #include "PHG4Hitv1.h"
 
@@ -172,7 +173,7 @@ PHG4Hit* PHG4HitContainer::findHit(PHG4HitDefs::keytype key)
       return it->second;
     }
     
-  return NULL;
+  return nullptr;
 }
 
 void

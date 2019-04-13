@@ -1,5 +1,5 @@
-#ifndef PHG4TruthTrackingAction_h
-#define PHG4TruthTrackingAction_h
+#ifndef G4MAIN_PHG4TRUTHTRACKINGACTION_H
+#define G4MAIN_PHG4TRUTHTRACKINGACTION_H
 
 #include "PHG4TrackingAction.h"
 
@@ -12,10 +12,9 @@ class PHG4TruthEventAction;
 
 class PHG4TruthTrackingAction : public PHG4TrackingAction
 {
-public:
-
+ public:
   //! constructor
-  PHG4TruthTrackingAction( PHG4TruthEventAction* );
+  PHG4TruthTrackingAction(PHG4TruthEventAction*);
 
   //! destructor
   virtual ~PHG4TruthTrackingAction() {}
@@ -26,20 +25,18 @@ public:
   virtual void PostUserTrackingAction(const G4Track*);
 
   //! Set pointers to the i/o nodes
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode*);
 
-  int ResetEvent(PHCompositeNode *);
+  int ResetEvent(PHCompositeNode*);
 
-private:
-
-  std::map<G4ThreeVector,int> VertexMap;
+ private:
+  std::map<G4ThreeVector, int> m_VertexMap;
 
   //! pointer to the "owning" event action
-  PHG4TruthEventAction* eventAction_;
+  PHG4TruthEventAction* m_EventAction;
 
   //! pointer to truth information container
-  PHG4TruthInfoContainer* truthInfoList_;
+  PHG4TruthInfoContainer* m_TruthInfoList;
 };
-
 
 #endif

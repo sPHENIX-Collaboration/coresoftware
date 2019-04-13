@@ -5,10 +5,10 @@
 
 class PHG4Particle;
 
-class PHG4ParticleGun: public PHG4ParticleGeneratorBase
+class PHG4ParticleGun : public PHG4ParticleGeneratorBase
 {
  public:
-  PHG4ParticleGun(const std::string &name="PGUN");
+  PHG4ParticleGun(const std::string &name = "PGUN");
   virtual ~PHG4ParticleGun();
   int process_event(PHCompositeNode *topNode);
 

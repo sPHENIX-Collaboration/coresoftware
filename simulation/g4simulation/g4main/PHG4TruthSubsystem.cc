@@ -1,4 +1,5 @@
 #include "PHG4TruthSubsystem.h"
+
 #include "PHG4TruthEventAction.h"
 #include "PHG4TruthSteppingAction.h"
 #include "PHG4TruthTrackingAction.h"
@@ -26,9 +27,9 @@ using namespace std;
 //_______________________________________________________________________
 PHG4TruthSubsystem::PHG4TruthSubsystem( const string &name ):
   PHG4Subsystem( name ),
-  eventAction_( NULL ),
-  steppingAction_( NULL ),
-  trackingAction_( NULL ),
+  eventAction_( nullptr ),
+  steppingAction_( nullptr ),
+  trackingAction_( nullptr ),
   saveOnlyEmbeded_(false)
 {}
 

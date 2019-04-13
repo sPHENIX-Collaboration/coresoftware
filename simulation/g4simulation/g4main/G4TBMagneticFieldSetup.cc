@@ -248,22 +248,22 @@ void G4TBMagneticFieldSetup::SetStepper()
       message << "Stepper in use: G4CashKarpRKF45";     
       break;
     case 6:  
-      fStepper = NULL; // new G4RKG3_Stepper( fEquation, nvar );       
+      fStepper = nullptr; // new G4RKG3_Stepper( fEquation, nvar );       
       message << "G4RKG3_Stepper is not currently working for Magnetic Field";
       break;
     case 7:  
-      fStepper = NULL; // new G4HelixExplicitEuler( fEquation ); 
+      fStepper = nullptr; // new G4HelixExplicitEuler( fEquation ); 
       message << "G4HelixExplicitEuler is not valid for Magnetic Field";     
       break;
     case 8:  
-      fStepper = NULL; // new G4HelixImplicitEuler( fEquation ); 
+      fStepper = nullptr; // new G4HelixImplicitEuler( fEquation ); 
       message << "G4HelixImplicitEuler is not valid for Magnetic Field";     
       break;
     case 9:  
-      fStepper = NULL; // new G4HelixSimpleRunge( fEquation );   
+      fStepper = nullptr; // new G4HelixSimpleRunge( fEquation );   
       message << "G4HelixSimpleRunge is not valid for Magnetic Field";     
       break;
-    default: fStepper = NULL;
+    default: fStepper = nullptr;
   }
     
   if (verbosity > 0) {

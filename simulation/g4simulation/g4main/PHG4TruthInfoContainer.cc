@@ -116,15 +116,15 @@ PHG4Particle* PHG4TruthInfoContainer::GetParticle(const int trackid) {
   int key = trackid;
   Iterator it = particlemap.find(key);
   if ( it != particlemap.end() ) return it->second;
-  return NULL;
+  return nullptr;
 }
 
 PHG4Particle* PHG4TruthInfoContainer::GetPrimaryParticle(const int trackid) {
   
-  if (trackid <= 0) return NULL;
+  if (trackid <= 0) return nullptr;
   Iterator it = particlemap.find(trackid);
   if ( it != particlemap.end() ) return it->second;
-  return NULL;
+  return nullptr;
 }
 
 PHG4VtxPoint* PHG4TruthInfoContainer::GetVtx(const int vtxid) {
@@ -132,15 +132,15 @@ PHG4VtxPoint* PHG4TruthInfoContainer::GetVtx(const int vtxid) {
   int key = vtxid;
   VtxIterator it = vtxmap.find(key);
   if ( it != vtxmap.end() ) return it->second;
-  return NULL;
+  return nullptr;
 }
 
 PHG4VtxPoint* PHG4TruthInfoContainer::GetPrimaryVtx(const int vtxid) {
 
-  if (vtxid <= 0) return NULL;
+  if (vtxid <= 0) return nullptr;
   VtxIterator it = vtxmap.find(vtxid);
   if ( it != vtxmap.end() ) return it->second;
-  return NULL;
+  return nullptr;
 }
 
 PHG4Shower* PHG4TruthInfoContainer::GetShower(const int showerid) {
@@ -148,15 +148,15 @@ PHG4Shower* PHG4TruthInfoContainer::GetShower(const int showerid) {
   int key = showerid;
   ShowerIterator it = showermap.find(key);
   if ( it != showermap.end() ) return it->second;
-  return NULL;
+  return nullptr;
 }
 
 PHG4Shower* PHG4TruthInfoContainer::GetPrimaryShower(const int showerid) {
   
-  if (showerid <= 0) return NULL;
+  if (showerid <= 0) return nullptr;
   ShowerIterator it = showermap.find(showerid);
   if ( it != showermap.end() ) return it->second;
-  return NULL;
+  return nullptr;
 }
 
 PHG4TruthInfoContainer::ConstVtxIterator

@@ -82,7 +82,7 @@ PHG4ParticleGeneratorBase::get_mass(const int pdgcode) const
   G4ParticleDefinition *particledef = particleTable->FindParticle(get_pdgname(pdgcode));
   if (particledef)
   {
-    return particledef->GetPDGMass()/GeV;
+    return particledef->GetPDGMass() / GeV;
   }
   return 0;
 }
@@ -220,7 +220,7 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
     if (iter != genevtmap->rend())
     {
-      const PHHepMCGenEvent * hepmc_evt = iter->second;
+      const PHHepMCGenEvent *hepmc_evt = iter->second;
 
       assert(hepmc_evt);
 
@@ -228,10 +228,11 @@ int PHG4ParticleGeneratorBase::ReuseExistingVertex(PHCompositeNode *topNode)
 
       set_vtx(vtx.x(), vtx.y(), vtx.z());
 
-      if (Verbosity() > 0) {
-        cout <<"PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
-            << vtx.x()<<", "<< vtx.y()<<", "<< vtx.z()<<" cm. Source event:"
-            <<endl;
+      if (Verbosity() > 0)
+      {
+        cout << "PHG4ParticleGeneratorBase::ReuseExistingVertex - reuse PHHepMCGenEventMap vertex "
+             << vtx.x() << ", " << vtx.y() << ", " << vtx.z() << " cm. Source event:"
+             << endl;
         hepmc_evt->identify();
       }
 
