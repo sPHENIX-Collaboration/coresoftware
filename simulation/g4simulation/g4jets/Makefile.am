@@ -15,23 +15,23 @@ AM_CXXFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs`
+  -L$(OFFLINE_MAIN)/lib
 
 libg4jets_io_la_LIBADD = \
   -lphool
 
 libg4jets_la_LIBADD = \
+  libg4jets_io.la \
   -lfun4all \
   -lphg4hit \
   -lg4hough_io \
-  -lcalo_io -lcalo_util \
+  -lcalo_io \
+  -lcalo_util \
   -lg4vertex_io \
   -lCGAL \
   -lfastjet \
   -lphhepmc_io \
-  -ltrackbase_historic_io \
-  libg4jets_io.la
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   Jet.h \
