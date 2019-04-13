@@ -3,7 +3,6 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -15,23 +14,24 @@ AM_CXXFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs`
+  -L$(OFFLINE_MAIN)/lib
+
+#  `geant4-config --libs`
 
 libjetbackground_io_la_LIBADD = \
   -lphool
 
 libjetbackground_la_LIBADD = \
+  libjetbackground_io.la \
   -lfun4all \
   -lcalo_io \
   -lcalo_util \
-  -lg4jets \
+  -lConstituentSubtractor \
   -lg4jets_io \
   -lCGAL \
   -lfastjet \
   -lfastjettools \
-  -lConstituentSubtractor \
-  libjetbackground_io.la
+  -lphg4hit
 
 pkginclude_HEADERS = \
   DetermineTowerBackground.h \
