@@ -48,7 +48,6 @@ libintt_la_SOURCES = \
 
 libintt_la_LIBADD = \
   libintt_io.la \
-  -lCLHEP \
   -lfun4all \
   -lg4detectors
 
@@ -60,8 +59,9 @@ libintt_io_la_SOURCES = \
   InttHit.cc
 
 libintt_io_la_LIBADD = \
-  -lphool \
+  -lCLHEP \
   -lg4detectors_io \
+  -lphool \
   -ltrack_io \
   -ltrackbase_historic_io
 
