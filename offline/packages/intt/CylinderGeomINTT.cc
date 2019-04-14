@@ -1,9 +1,7 @@
 #include "CylinderGeomINTT.h"
 
-#include <g4main/PHG4Detector.h>
-
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4Transform3D.hh>
+#include <CLHEP/Vector/ThreeVector.h>
+#include <CLHEP/Vector/Rotation.h>
 
 #include <cmath>
 
