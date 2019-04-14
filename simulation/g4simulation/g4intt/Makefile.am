@@ -6,12 +6,10 @@ lib_LTLIBRARIES = \
     libg4intt.la
 
 AM_CPPFLAGS = \
-    -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(ROOTSYS)/include \
-    -I$(G4_MAIN)/include \
-    -I$(OPT_SPHENIX)/include
+    -I$(G4_MAIN)/include
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -29,7 +27,7 @@ libg4intt_io_la_LIBADD = \
 libg4intt_la_LIBADD = \
   libg4intt_io.la \
   -lg4detectors \
-  -lintt
+  -lintt_io
 
 pkginclude_HEADERS = \
   PHG4INTTHitReco.h \
