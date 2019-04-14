@@ -10,9 +10,7 @@ lib_LTLIBRARIES = \
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include \
-  -I$(G4_MAIN)/include
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -50,7 +48,7 @@ libmvtx_la_LIBADD = \
   libmvtx_io.la \
   -lCLHEP \
   -lfun4all \
-  -lg4detectors
+  -lphg4hit
 
 # sources for io library
 libmvtx_io_la_SOURCES = \

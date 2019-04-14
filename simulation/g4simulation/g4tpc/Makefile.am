@@ -8,8 +8,7 @@ AM_CPPFLAGS = \
     -I$(includedir) \
     -I$(OFFLINE_MAIN)/include \
     -I$(G4_MAIN)/include \
-    -I$(ROOTSYS)/include \
-    -I$(OPT_SPHENIX)/include
+    -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
     -L$(libdir) \
@@ -18,13 +17,14 @@ AM_LDFLAGS = \
 libg4tpc_la_LIBADD = \
   libg4tpc_io.la \
   -lphool \
-  -lg4testbench \
-  -lphg4hit \
   -lg4detectors \
+  -lphg4hit \
   -lphparameter \
-  -ltrackbase_historic_io \
-  -ltrack_io \
-  -ltpc
+  -ltpc_io
+
+libg4tpc_io_la_LIBADD = \
+  -lphool \
+  -lg4detectors_io
 
 pkginclude_HEADERS = \
   PHG4CellTPCv1.h \
@@ -88,9 +88,14 @@ libg4tpc_io_la_SOURCES = \
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals \
+  testexternals_io
+
 
 BUILT_SOURCES = testexternals.cc
+
+testexternals_io_SOURCES = testexternals.cc
+testexternals_io_LDADD = libg4tpc_io.la
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = libg4tpc.la
