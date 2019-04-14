@@ -22,33 +22,27 @@ AM_LDFLAGS = \
 libg4hough_io_la_LIBADD = \
   -lphool \
   -lg4detectors_io \
-  -lintt \
-  -lmvtx
+  -lintt_io \
+  -lmvtx_io
 
 libg4hough_la_LDFLAGS = \
   `geant4-config --libs`\
   `root-config --libs`
 
 libg4hough_la_LIBADD = \
+  libg4hough_io.la \
+  -lcalo_io \
   -lg4detectors \
-  -lfun4all \
-  -lHelixHough \
   -lFitNewton \
-  -lSeamstress \
+  -lfun4all \
   -lg4bbc_io \
-  -lcalo_io -lcalo_util \
-  -lgenfit2 \
+  -lHelixHough \
+  -lintt_io \
+  -lmvtx_io \
   -lphfield \
-  -lgenfit2exp \
   -lPHGenFit \
-  -lSpectrum \
-  -lg4tpc \
-  -lg4intt \
-  -lg4mvtx \
-  -lmvtx \
-  -lintt \
-  -ltrackbase_historic_io \
-  libg4hough_io.la
+  -lSeamstress \
+  -ltrackbase_historic_io
 
 pkginclude_HEADERS = \
   CellularAutomaton.h \

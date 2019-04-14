@@ -23,14 +23,8 @@ AM_LDFLAGS = \
     -L$(OFFLINE_MAIN)/lib
 
 libg4detectors_io_la_LIBADD = \
-  -L$(ROOTSYS)/lib \
-  -lCLHEP \
   -lphool \
-  -lboost_filesystem \
-  -lboost_system \
-  -lpdbcalBase \
-  -lXMLIO \
-  -lphparameter 
+  -lphparameter
 
 
 libg4detectors_la_LIBADD = \
