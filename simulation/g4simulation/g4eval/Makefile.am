@@ -4,7 +4,6 @@ AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OFFLINE_MAIN)/include \
-  -I$(G4_MAIN)/include \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -18,6 +17,7 @@ libg4eval_la_LDFLAGS = \
 
 libg4eval_la_LIBADD = \
   -lcalo_io \
+  -lCLHEP \
   -lfun4all \
   -lg4detectors_io \
   -lg4jets_io \
