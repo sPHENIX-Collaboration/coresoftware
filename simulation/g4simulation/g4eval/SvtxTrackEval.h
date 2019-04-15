@@ -11,8 +11,8 @@ class PHCompositeNode;
 class PHG4Hit;
 class PHG4Particle;
 
-class SvtxCluster;
-class SvtxClusterMap;
+class TrkrCluster;
+class TrkrClusterContainer;
 class SvtxTrack;
 class SvtxTrackMap;
 
@@ -55,8 +55,8 @@ class SvtxTrackEval
   std::set<SvtxTrack*> all_tracks_from(PHG4Particle* truthparticle);
   SvtxTrack* best_track_from(PHG4Particle* truthparticle);
   std::set<SvtxTrack*> all_tracks_from(PHG4Hit* truthhit);
-  std::set<SvtxTrack*> all_tracks_from(SvtxCluster* cluster);
-  SvtxTrack* best_track_from(SvtxCluster* cluster);
+  std::set<SvtxTrack*> all_tracks_from(TrkrDefs::cluskey cluster_key);
+  SvtxTrack* best_track_from(TrkrDefs::cluskey cluster_key);
   void create_cache_track_from_cluster();
 
   // overlap calculations
@@ -73,7 +73,7 @@ class SvtxTrackEval
 
   SvtxClusterEval _clustereval;
   SvtxTrackMap* _trackmap;
-  SvtxClusterMap* _clustermap;
+  TrkrClusterContainer* _clustermap;
 
   bool _strict;
   int _verbosity;
@@ -87,8 +87,8 @@ class SvtxTrackEval
   std::map<PHG4Particle*, std::set<SvtxTrack*> > _cache_all_tracks_from_particle;
   std::map<PHG4Particle*, SvtxTrack*> _cache_best_track_from_particle;
   std::map<PHG4Hit*, std::set<SvtxTrack*> > _cache_all_tracks_from_g4hit;
-  std::map<SvtxCluster*, std::set<SvtxTrack*> > _cache_all_tracks_from_cluster;
-  std::map<SvtxCluster*, SvtxTrack*> _cache_best_track_from_cluster;
+  std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> > _cache_all_tracks_from_cluster;
+  std::map<TrkrDefs::cluskey, SvtxTrack*> _cache_best_track_from_cluster;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nclusters_contribution_by_layer;
   std::map<std::pair<SvtxTrack*, PHG4Particle*>, unsigned int> _cache_get_nwrongclusters_contribution;

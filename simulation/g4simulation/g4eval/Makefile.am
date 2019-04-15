@@ -24,6 +24,7 @@ libg4eval_la_LIBADD = \
   -lg4vertex_io \
   -ltrackbase_historic_io \
   -ltrack_io \
+  -ltpc_io \
   -lphg4hit
 
 pkginclude_HEADERS = \
