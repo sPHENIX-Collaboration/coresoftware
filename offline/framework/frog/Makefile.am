@@ -8,22 +8,20 @@ AM_CPPFLAGS = \
 
 lib_LTLIBRARIES = libFROG.la
 
-libFROG_la_LDFLAGS = \
-  `root-config --libs`
-
 libFROG_la_LIBADD = \
-  -L$(libdir) \
   -L$(OPT_SPHENIX)/lib \
   -lodbc++
 
 noinst_HEADERS = FROGLinkDef.h
 
-pkginclude_HEADERS =    \
+pkginclude_HEADERS = \
   FROG.h
 
 if ! MAKEROOT6
 ROOT5DICTS = \
   FROG_Dict.cc
+libFROG_la_LDFLAGS = \
+  `root-config --libs`
 endif
 
 libFROG_la_SOURCES = \
