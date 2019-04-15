@@ -14,7 +14,6 @@
 class PHRawDataNode : public PHDataNode<PHDWORD>
 {
  public:
-  PHRawDataNode();
   PHRawDataNode(PHDWORD *, const std::string &, const int, const int, const int, const int);
   virtual ~PHRawDataNode();
 
@@ -31,6 +30,7 @@ class PHRawDataNode : public PHDataNode<PHDWORD>
   void setHitFormat(const int val) { hitFormat = val; }
 
  private:
+  PHRawDataNode() = delete;
   int length;
   int ID;
   int wordLength;

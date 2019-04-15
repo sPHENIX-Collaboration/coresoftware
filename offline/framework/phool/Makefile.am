@@ -1,16 +1,26 @@
 AUTOMAKE_OPTIONS = foreign
 
-lib_LTLIBRARIES = libphool.la
+lib_LTLIBRARIES = \
+  libphool.la \
+  libphool_raw.la
+
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
 libphool_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs` \
+  `root-config --libs`
+
+libphool_raw_la_LIBADD = \
+  libphool.la \
   -lEvent
 
 ROOTDICTS = \
@@ -47,11 +57,14 @@ libphool_la_SOURCES = \
   PHObject.cc \
   PHOperation.cc \
   PHRandomSeed.cc \
-  PHRawOManager.cc \
   PHTimer.cc \
   PHTimeServer.cc \
   PHTimeStamp.cc \
   recoConsts.cc
+
+libphool_raw_la_SOURCES = \
+  PHRawDataNode.cc \
+  PHRawOManager.cc
 
 pkginclude_HEADERS =  \
   getClass.h \
@@ -81,16 +94,21 @@ pkginclude_HEADERS =  \
   PHTypedNodeIterator.h \
   recoConsts.h
 
-noinst_PROGRAMS = \
-  testexternals
-
 BUILT_SOURCES = \
   testexternals.cc
 
-testexternals_SOURCES = testexternals.cc
+noinst_PROGRAMS = \
+  testexternals \
+  testexternals_raw
 
+
+testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = \
   libphool.la
+
+testexternals_raw_SOURCES = testexternals.cc
+testexternals_raw_LDADD = \
+  libphool_raw.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
