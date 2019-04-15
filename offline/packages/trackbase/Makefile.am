@@ -9,13 +9,11 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(OFFLINE_MAIN)/include \
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
@@ -77,10 +75,6 @@ libtrack_io_la_SOURCES = \
   TrkrHit.cc \
   TrkrHitSet.cc \
   TrkrHitSetContainer.cc
-
-libtrack_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
 
 libtrack_io_la_LIBADD = \
   -lphool

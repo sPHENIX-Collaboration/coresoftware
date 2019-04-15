@@ -7,16 +7,15 @@ lib_LTLIBRARIES = \
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(G4_MAIN)/include \
   -I$(OFFLINE_MAIN)/include  \
   -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(G4_MAIN)/include
 
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(ROOTSYS)/lib
 
 libg4mvtx_io_la_LIBADD = \
   -lg4detectors_io 
@@ -24,13 +23,10 @@ libg4mvtx_io_la_LIBADD = \
 libg4mvtx_la_LIBADD = \
   libg4mvtx_io.la \
   -lfun4all \
-  -lphool \
-  -lg4testbench \
   -lphg4hit \
   -lg4detectors \
-  -ltrackbase_historic_io \
   -ltrack_io \
-  -lmvtx
+  -lmvtx_io
 
 pkginclude_HEADERS = \
   PHG4MVTXHitReco.h \
@@ -57,8 +53,8 @@ else
 endif
 
 libg4mvtx_la_SOURCES = \
-  PHG4MVTXHitReco.cc \
   $(ROOT5_DICTS) \
+  PHG4MVTXHitReco.cc \
   PHG4MVTXCellReco.cc \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
