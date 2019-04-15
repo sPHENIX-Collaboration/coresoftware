@@ -3,21 +3,17 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include \
-  -I`root-config --incdir`
+  -I$(ROOTSYS)/include
 
 lib_LTLIBRARIES = \
    libphgeom_io.la \
    libphgeom.la
 
 pkginclude_HEADERS = \
-  PHGeomTGeo.h \
+  PHGeomFileImport.h \
   PHGeomIOTGeo.h \
+  PHGeomTGeo.h \
   PHGeomUtility.h
-
-noinst_HEADERS = \
-  PHGeomFileImport.h
 
 ROOTDICTS = \
   PHGeomIOTGeo_Dict.cc
@@ -49,8 +45,8 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib
 
 libphgeom_la_LIBADD = \
-  -lSubsysReco \
-  libphgeom_io.la
+  libphgeom_io.la \
+  -lSubsysReco
 
 libphgeom_io_la_LIBADD = \
   -lphool \
