@@ -93,7 +93,8 @@ libfun4all_la_LIBADD = \
   -lEvent \
   -lFROG \
   -lffaobjects \
-  -lphool
+  -lphool \
+  -lphool_raw
 
 libSubsysReco_la_SOURCES = \
   $(ROOT5_SUBSYSRECODICTS) \
