@@ -2,13 +2,17 @@
 
 #include "SvtxEvalStack.h"
 
-#include <trackbase_historic/SvtxCluster.h>
-#include <trackbase_historic/SvtxClusterMap.h>
-#include <trackbase_historic/SvtxHit.h>
-#include <trackbase_historic/SvtxHitMap.h>
-#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrDefs.h>
+#include <tpc/TpcDefs.h>
+#include <intt/InttDefs.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>
@@ -283,18 +287,19 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     }
 
     cout << "---SVTXCLUSTERS-------------" << endl;
-    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (clustermap)
     {
       unsigned int icluster = 0;
-      for (SvtxClusterMap::Iter iter = clustermap->begin();
-           iter != clustermap->end();
+      TrkrClusterContainer::ConstRange all_clusters = clustermap->getClusters();
+      for (TrkrClusterContainer::ConstIterator iter = all_clusters.first;
+           iter != all_clusters.second;
            ++iter)
       {
-        SvtxCluster* cluster = iter->second;
-        cout << icluster << " of " << clustermap->size();
+	TrkrDefs::cluskey cluster_key = iter->first;
+        cout << icluster << " with key " << cluster_key << " of " << clustermap->size();
         cout << ": SvtxCluster: " << endl;
-        cluster->identify();
+        iter->second->identify();
         ++icluster;
       }
     }
@@ -313,6 +318,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
         cout << " : SvtxTrack:" << endl;
         track->identify();
         cout << endl;
+	++itrack;
       }
     }
 
@@ -395,29 +401,41 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
       ++ng4hits[g4hit->get_layer()];
     }
 
-    SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+    TrkrHitSetContainer *hitsetmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     unsigned int nhits[100] = {0};
-    if (hitmap)
+    if (hitsetmap)
     {
-      for (SvtxHitMap::Iter iter = hitmap->begin();
-           iter != hitmap->end();
-           ++iter)
+      TrkrHitSetContainer::ConstRange all_hitsets = hitsetmap->getHitSets();
+      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+           hitsetiter != all_hitsets.second;
+           ++hitsetiter)
       {
-        SvtxHit* hit = iter->second;
-        ++nhits[hit->get_layer()];
+	// we have a single hitset, get the layer
+	unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+	
+	// count all hits in this hitset
+	TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+	for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	     hitr != hitrangei.second;
+	     ++hitr)
+	  {
+	    ++nhits[layer];
+	  }
       }
     }
 
-    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     unsigned int nclusters[100] = {0};
     if (clustermap)
     {
-      for (SvtxClusterMap::Iter iter = clustermap->begin();
-           iter != clustermap->end();
+      TrkrClusterContainer::ConstRange all_clusters = clustermap->getClusters();
+      for (TrkrClusterContainer::ConstIterator iter = all_clusters.first;
+           iter != all_clusters.second;
            ++iter)
       {
-        SvtxCluster* cluster = iter->second;
-        ++nclusters[cluster->get_layer()];
+	TrkrDefs::cluskey cluster_key = iter->first;
+	unsigned int layer = TrkrDefs::getLayer(cluster_key);
+        ++nclusters[layer];
       }
     }
     for (unsigned int ilayer = 0; ilayer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++ilayer)
@@ -450,16 +468,17 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
         cout << " PHG4Hit: ";
         g4hit->identify();
 
-        std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);
+        std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(g4hit);
 
-        for (std::set<SvtxCluster*>::iterator jter = clusters.begin();
+        for (std::set<TrkrDefs::cluskey>::iterator jter = clusters.begin();
              jter != clusters.end();
              ++jter)
         {
-          SvtxCluster* cluster = *jter;
+	  TrkrDefs::cluskey cluster_key = *jter;
           cout << "===Created-SvtxCluster================" << endl;
           cout << "SvtxCluster: ";
-          cluster->identify();
+          TrkrCluster *cluster = clustermap->findCluster(cluster_key);
+	  cluster->identify();
         }
       }
 
@@ -527,33 +546,34 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
           cout << z;
           cout << ")";
 
-          std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);
-          for (std::set<SvtxCluster*>::iterator kter = clusters.begin();
+          std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(g4hit);
+          for (std::set<TrkrDefs::cluskey>::iterator kter = clusters.begin();
                kter != clusters.end();
                ++kter)
-          {
-            SvtxCluster* cluster = *kter;
-
-            float x = cluster->get_x();
-            float y = cluster->get_y();
-            float z = cluster->get_z();
-
-            cout << " => #" << cluster->get_id();
-            cout << " xreco = (";
-            cout.width(5);
-            cout << x;
-            cout << ",";
-            cout.width(5);
-            cout << y;
-            cout << ",";
-            cout.width(5);
-            cout << z;
-            cout << ")";
-          }
-
+	    {
+	      TrkrDefs::cluskey cluster_key = *kter;
+	      
+	      TrkrCluster *cluster = clustermap->findCluster(cluster_key);
+	      float x = cluster->getX();
+	      float y = cluster->getY();
+	      float z = cluster->getZ();
+	      
+	      cout << " => #" << cluster_key;
+	      cout << " xreco = (";
+	      cout.width(5);
+	      cout << x;
+	      cout << ",";
+	      cout.width(5);
+	      cout << y;
+	      cout << ",";
+	      cout.width(5);
+	      cout << z;
+	      cout << ")";
+	    }
+	  
           cout << endl;
         }
-
+	
         if (trackmap && clustermap)
         {
           std::set<SvtxTrack*> tracks = trackeval->all_tracks_from(particle);
@@ -584,18 +604,18 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
 
             cout << " ---Associated-SvtxClusters-to-PHG4Hits-------------------------" << endl;
 
-            for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
-                 iter != track->end_clusters();
+            for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+                 iter != track->end_cluster_keys();
                  ++iter)
             {
-              unsigned int cluster_id = *iter;
-              SvtxCluster* cluster = clustermap->get(cluster_id);
+	      TrkrDefs::cluskey cluster_key = *iter;
+              TrkrCluster *cluster = clustermap->findCluster(cluster_key);
 
-              float x = cluster->get_x();
-              float y = cluster->get_y();
-              float z = cluster->get_z();
+              float x = cluster->getX();
+              float y = cluster->getY();
+              float z = cluster->getZ();
 
-              cout << " #" << cluster->get_id() << " xreco = (";
+              cout << " #" << cluster_key << " xreco = (";
               cout.width(5);
               cout << x;
               cout << ",";
@@ -606,7 +626,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
               cout << z;
               cout << ") =>";
 
-              PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster);
+              PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
               if ((g4hit) && (g4hit->get_trkid() == particle->get_track_id()))
               {
                 x = 0.5 * (g4hit->get_x(0) + g4hit->get_x(1));
@@ -663,30 +683,42 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   float nclus_intt = 0;
   float nclus_maps = 0;
 
-  SvtxHitMap* hitmap_in = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+  TrkrHitSetContainer* hitmap_in = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
   if (hitmap_in)
-  {
-    for (SvtxHitMap::Iter iter = hitmap_in->begin();
-         iter != hitmap_in->end();
-         ++iter)
     {
-      nhit_tpc_all++;
-      SvtxHit* hit = iter->second;
-      float layer = hit->get_layer();
-      if (layer == (float) _nlayers_maps + _nlayers_intt) nhit_tpc_in++;
-      if (layer == (float) _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1) nhit_tpc_out++;
-      if (layer == (float) _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
+      TrkrHitSetContainer::ConstRange all_hitsets = hitmap_in->getHitSets();
+      for (TrkrHitSetContainer::ConstIterator hitsetiter = all_hitsets.first;
+	   hitsetiter != all_hitsets.second;
+	   ++hitsetiter)
+	{
+	  // we have a single hitset, get the layer
+	  unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
+	  if(layer > _nlayers_maps + _nlayers_intt)
+	    {	
+	      // count all hits in this hitset
+	      TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
+	      for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+		   hitr != hitrangei.second;
+		   ++hitr)
+		{
+		  nhit_tpc_all++;
+		  if ((float) layer == _nlayers_maps + _nlayers_intt) nhit_tpc_in++;
+		  if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc - 1) nhit_tpc_out++;
+		  if ((float) layer == _nlayers_maps + _nlayers_intt + _nlayers_tpc / 2 - 1) nhit_tpc_mid++;
+		}
+	    }
+	}
     }
-  }
-
-  SvtxClusterMap* clustermap_in = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+  
+  TrkrClusterContainer* clustermap_in = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   nclus_all = clustermap_in->size();
-  for (SvtxClusterMap::Iter iter_cin = clustermap_in->begin();
-       iter_cin != clustermap_in->end();
+  TrkrClusterContainer::ConstRange all_clusters = clustermap_in->getClusters();
+  for (TrkrClusterContainer::ConstIterator iter_cin = all_clusters.first;
+       iter_cin != all_clusters.second;
        ++iter_cin)
   {
-    SvtxCluster* cluster = iter_cin->second;
-    float layer = cluster->get_layer();
+    TrkrDefs::cluskey cluster_key = iter_cin->first;
+    unsigned int layer = TrkrDefs::getLayer(cluster_key);
     if (_nlayers_maps > 0)
       if (layer < _nlayers_maps) nclus_maps++;
     if (_nlayers_intt > 0)
@@ -728,7 +760,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           if (_scan_for_embedded && gembed <= 0) continue;
 
-          std::set<SvtxCluster*> g4clusters = clustereval->all_clusters_from(g4particle);
+          std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
           unsigned int nglmaps = 0;
 
           int lmaps[_nlayers_maps + 1];
@@ -739,9 +771,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               lmaps[i] = 0;
             }
           }
-          for (const SvtxCluster* g4cluster : g4clusters)
+          for (const TrkrDefs::cluskey g4cluster : g4clusters)
           {
-            unsigned int layer = g4cluster->get_layer();
+            unsigned int layer = TrkrDefs::getLayer(g4cluster);
             //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
             if (_nlayers_maps > 0 && layer < _nlayers_maps)
             {
@@ -1117,13 +1149,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         gprimary = trutheval->is_primary(g4particle);
       }  //       if (g4particle)
 
-      std::set<SvtxCluster*> clusters = clustereval->all_clusters_from(g4hit);
+      std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(g4hit);
       float nclusters = clusters.size();
 
       // best cluster reco'd
-      //      SvtxCluster* cluster = nullptr;//clustereval->best_cluster_from(g4hit);
-      SvtxCluster* cluster = clustereval->best_cluster_from(g4hit);
-
+      TrkrDefs::cluskey cluster_key = clustereval->best_cluster_from(g4hit);
+      
       float clusID = NAN;
       float x = NAN;
       float y = NAN;
@@ -1142,28 +1173,39 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       float dztru = NAN;
       float drtru = NAN;
 
+      TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+      TrkrCluster *cluster = clustermap->findCluster(cluster_key);
+
       if (cluster)
       {
-        clusID = cluster->get_id();
-        x = cluster->get_x();
-        y = cluster->get_y();
-        z = cluster->get_z();
+        clusID = cluster_key;
+        x = cluster->getX();
+        y = cluster->getY();
+        z = cluster->getZ();
         TVector3 vec2(x, y, z);
         eta = vec2.Eta();
         phi = vec2.Phi();
-        e = cluster->get_e();
-        adc = cluster->get_adc();
-        layer = cluster->get_layer();
-        size = cluster->size_hits();
-        phisize = cluster->get_phi_size();
-        zsize = cluster->get_z_size();
+        e = cluster->getAdc();
+        adc = cluster->getAdc();
+        layer = (float) TrkrDefs::getLayer(cluster_key);
+        size = 0.0;
+	// count all hits for this cluster
+
+	TrkrClusterHitAssoc *cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+	TrkrClusterHitAssoc::ConstRange hitrange = cluster_hit_map->getHits(cluster_key);  
+	for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	  {
+	    ++size; 
+	  }
+        phisize = cluster->getPhiSize();
+        zsize = cluster->getZSize();
         dphitru = vec2.DeltaPhi(vg4);
         detatru = eta - geta;
         dztru = z - gz;
         drtru = vec2.DeltaR(vg4);
         if (g4particle)
         {
-          efromtruth = clustereval->get_energy_contribution(cluster, g4particle);
+          efromtruth = clustereval->get_energy_contribution(cluster_key, g4particle);
         }
       }
 
@@ -1239,7 +1281,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->restart();
     }
     // need things off of the DST...
-    SvtxHitMap* hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
+    TrkrHitSetContainer *hitmap = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
     PHG4CylinderCellGeomContainer* geom_container =
         findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
     if (!geom_container)
@@ -1250,160 +1292,170 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     if (hitmap)
     {
-      for (SvtxHitMap::Iter iter = hitmap->begin();
-           iter != hitmap->end();
+      TrkrHitSetContainer::ConstRange all_hitsets = hitmap->getHitSets();
+      for (TrkrHitSetContainer::ConstIterator iter = all_hitsets.first;
+           iter != all_hitsets.second;
            ++iter)
       {
-        SvtxHit* hit = iter->second;
-        PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit);
-        PHG4Cell* g4cell = hiteval->get_cell(hit);
-        PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+	TrkrDefs::hitsetkey hitset_key = iter->first;
+	TrkrHitSet *hitset = iter->second;
 
-        float event = _ievent;
-        float hitID = hit->get_id();
-        float e = hit->get_e();
-        float adc = hit->get_adc();
-        float layer = hit->get_layer();
-        float cellID = hit->get_cellid();
-        float ecell = g4cell->get_edep();
+	// get all hits for this hitset
+	TrkrHitSet::ConstRange hitrangei = hitset->getHits();
+	for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
+	     hitr != hitrangei.second;
+	     ++hitr)
+	  {
+	    TrkrDefs::hitkey hit_key = hitr->first;	    
+	    TrkrHit *hit = hitr->second;
+	    PHG4Hit* g4hit = hiteval->max_truth_hit_by_energy(hit_key);
+	    PHG4Particle* g4particle = trutheval->get_particle(g4hit);
+	    
+	    float event = _ievent;
+	    float hitID = hit_key;
+	    float e = hit->getEnergy();
+	    float adc = hit->getAdc();
+	    float layer = TrkrDefs::getLayer(hitset_key);
+	    float cellID = 0;
+	    float ecell = hit->getAdc();
+	    
+	    int phibin = NAN;
+	    int zbin = NAN;
+	    float phi = NAN;
+	    float z = NAN;
+	    
+	    if (layer >= _nlayers_maps + _nlayers_intt)
+	      {
+		PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+		phibin = TpcDefs::getPad(hit_key);
+		zbin = TpcDefs::getTBin(hit_key);
+		phi = GeoLayer->get_phicenter(phibin);
+		z = GeoLayer->get_zcenter(zbin);
+	      }
 
-        int phibin = NAN;
-        int zbin = NAN;
-        float phi = NAN;
-        float z = NAN;
+	    float g4hitID = NAN;
+	    float gedep = NAN;
+	    float gx = NAN;
+	    float gy = NAN;
+	    float gz = NAN;
+	    float gt = NAN;
+	    float gtrackID = NAN;
+	    float gflavor = NAN;
+	    float gpx = NAN;
+	    float gpy = NAN;
+	    float gpz = NAN;
+	    float gvx = NAN;
+	    float gvy = NAN;
+	    float gvz = NAN;
+	    float gvt = NAN;
+	    float gfpx = NAN;
+	    float gfpy = NAN;
+	    float gfpz = NAN;
+	    float gfx = NAN;
+	    float gfy = NAN;
+	    float gfz = NAN;
+	    float gembed = NAN;
+	    float gprimary = NAN;
+	    
+	    float efromtruth = NAN;
+	    
+	    if (g4hit)
+	      {
+		g4hitID = g4hit->get_hit_id();
+		gedep = g4hit->get_edep();
+		gx = g4hit->get_avg_x();
+		gy = g4hit->get_avg_y();
+		gz = g4hit->get_avg_z();
+		gt = g4hit->get_avg_t();
+		
+		if (g4particle)
+		  {
+		    if (_scan_for_embedded)
+		      {
+			if (trutheval->get_embed(g4particle) <= 0) continue;
+		      }
+		    
+		    gtrackID = g4particle->get_track_id();
+		    gflavor = g4particle->get_pid();
+		    gpx = g4particle->get_px();
+		    gpy = g4particle->get_py();
+		    gpz = g4particle->get_pz();
+		    
+		    PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+		    
+		    if (vtx)
+		      {
+			gvx = vtx->get_x();
+			gvy = vtx->get_y();
+			gvz = vtx->get_z();
+			gvt = vtx->get_t();
+		      }
 
-        if (layer >= _nlayers_maps + _nlayers_intt)
-        {
-          PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
-          //"cellID:ecell:phibin:zbin:phi:z"
-          phibin = PHG4CellDefs::SizeBinning::get_phibin(g4cell->get_cellid());  //cell->get_binphi();
-          zbin = PHG4CellDefs::SizeBinning::get_zbin(g4cell->get_cellid());      //cell->get_binz();
-          phi = GeoLayer->get_phicenter(phibin);
-          z = GeoLayer->get_zcenter(zbin);
-        }
-
-        float g4hitID = NAN;
-        float gedep = NAN;
-        float gx = NAN;
-        float gy = NAN;
-        float gz = NAN;
-        float gt = NAN;
-        float gtrackID = NAN;
-        float gflavor = NAN;
-        float gpx = NAN;
-        float gpy = NAN;
-        float gpz = NAN;
-        float gvx = NAN;
-        float gvy = NAN;
-        float gvz = NAN;
-        float gvt = NAN;
-        float gfpx = NAN;
-        float gfpy = NAN;
-        float gfpz = NAN;
-        float gfx = NAN;
-        float gfy = NAN;
-        float gfz = NAN;
-        float gembed = NAN;
-        float gprimary = NAN;
-
-        float efromtruth = NAN;
-
-        if (g4hit)
-        {
-          g4hitID = g4hit->get_hit_id();
-          gedep = g4hit->get_edep();
-          gx = g4hit->get_avg_x();
-          gy = g4hit->get_avg_y();
-          gz = g4hit->get_avg_z();
-          gt = g4hit->get_avg_t();
-
-          if (g4particle)
-          {
-            if (_scan_for_embedded)
-            {
-              if (trutheval->get_embed(g4particle) <= 0) continue;
-            }
-
-            gtrackID = g4particle->get_track_id();
-            gflavor = g4particle->get_pid();
-            gpx = g4particle->get_px();
-            gpy = g4particle->get_py();
-            gpz = g4particle->get_pz();
-
-            PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-
-            if (vtx)
-            {
-              gvx = vtx->get_x();
-              gvy = vtx->get_y();
-              gvz = vtx->get_z();
-              gvt = vtx->get_t();
-            }
-
-            PHG4Hit* outerhit = nullptr;
-            if (_do_eval_light == false)
-              outerhit = trutheval->get_outermost_truth_hit(g4particle);
-            if (outerhit)
-            {
-              gfpx = outerhit->get_px(1);
-              gfpy = outerhit->get_py(1);
-              gfpz = outerhit->get_pz(1);
-              gfx = outerhit->get_x(1);
-              gfy = outerhit->get_y(1);
-              gfz = outerhit->get_z(1);
-            }
-            gembed = trutheval->get_embed(g4particle);
-            gprimary = trutheval->is_primary(g4particle);
-          }  //   if (g4particle){
-        }
-
-        if (g4particle)
-        {
-          efromtruth = hiteval->get_energy_contribution(hit, g4particle);
-        }
-
-        float hit_data[] = {
-            event,
-            hitID,
-            e,
-            adc,
-            layer,
-            cellID,
-            ecell,
-            (float) phibin,
-            (float) zbin,
-            phi,
-            z,
-            g4hitID,
-            gedep,
-            gx,
-            gy,
-            gz,
-            gt,
-            gtrackID,
-            gflavor,
-            gpx,
-            gpy,
-            gpz,
-            gvx,
-            gvy,
-            gvz,
-            gvt,
-            gfpx,
-            gfpy,
-            gfpz,
-            gfx,
-            gfy,
-            gfz,
-            gembed,
-            gprimary,
-            efromtruth,
-            nhit_tpc_all,
-            nhit_tpc_in,
-            nhit_tpc_mid,
-            nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
-
-        _ntp_hit->Fill(hit_data);
+		    PHG4Hit* outerhit = nullptr;
+		    if (_do_eval_light == false)
+		      outerhit = trutheval->get_outermost_truth_hit(g4particle);
+		    if (outerhit)
+		      {
+			gfpx = outerhit->get_px(1);
+			gfpy = outerhit->get_py(1);
+			gfpz = outerhit->get_pz(1);
+			gfx = outerhit->get_x(1);
+			gfy = outerhit->get_y(1);
+			gfz = outerhit->get_z(1);
+		      }
+		    gembed = trutheval->get_embed(g4particle);
+		    gprimary = trutheval->is_primary(g4particle);
+		  }  //   if (g4particle){
+	      }
+	    
+	    if (g4particle)
+	      {
+		efromtruth = hiteval->get_energy_contribution(hit_key, g4particle);
+	      }
+	    
+	    float hit_data[] = {
+	      event,
+	      hitID,
+	      e,
+	      adc,
+	      layer,
+	      cellID,
+	      ecell,
+	      (float) phibin,
+	      (float) zbin,
+	      phi,
+	      z,
+	      g4hitID,
+	      gedep,
+	      gx,
+	      gy,
+	      gz,
+	      gt,
+	      gtrackID,
+	      gflavor,
+	      gpx,
+	      gpy,
+	      gpz,
+	      gvx,
+	      gvy,
+	      gvz,
+	      gvt,
+	      gfpx,
+	      gfpy,
+	      gfpz,
+	      gfx,
+	      gfy,
+	      gfz,
+	      gembed,
+	      gprimary,
+	      efromtruth,
+	      nhit_tpc_all,
+	      nhit_tpc_in,
+	      nhit_tpc_mid,
+	      nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+	    
+	    _ntp_hit->Fill(hit_data);
+	  }
       }
     }
     if (Verbosity() >= 1)
@@ -1427,40 +1479,47 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   {
     if (Verbosity() > 0) cout << "Filling ntp_cluster (all of them) " << endl;
     // need things off of the DST...
-    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
-    if (clustermap)
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+    if (clustermap && clusterhitmap)
     {
-      for (SvtxClusterMap::Iter iter = clustermap->begin();
-           iter != clustermap->end();
+      TrkrClusterContainer::ConstRange all_clusters = clustermap->getClusters();
+      for (TrkrClusterContainer::ConstIterator iter = all_clusters.first;
+           iter != all_clusters.second;
            ++iter)
       {
-        SvtxCluster* cluster = iter->second;
-        SvtxTrack* track = trackeval->best_track_from(cluster);
-        PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster);
+	TrkrDefs::cluskey cluster_key = iter->first;
+	TrkrCluster *cluster = clustermap->findCluster(cluster_key);
+        SvtxTrack* track = trackeval->best_track_from(cluster_key);
+        PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
         PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
-        float hitID = cluster->get_id();
-        float x = cluster->get_x();
-        float y = cluster->get_y();
-        float z = cluster->get_z();
+        float hitID = (float) cluster_key;
+        float x = cluster->getX();
+        float y = cluster->getY();
+	float z = cluster->getZ();
         TVector3 pos(x, y, z);
         float r = pos.Perp();
         float phi = pos.Phi();
         float eta = pos.Eta();
 
-        float ex = sqrt(cluster->get_error(0, 0));
-        float ey = sqrt(cluster->get_error(1, 1));
-        float ez = cluster->get_z_error();
+        float ex = sqrt(cluster->getError(0, 0));
+        float ey = sqrt(cluster->getError(1, 1));
+        float ez = cluster->getZError();
+        float ephi = cluster->getRPhiError();
 
-        float ephi = cluster->get_rphi_error();
-
-        float e = cluster->get_e();
-        float adc = cluster->get_adc();
-        float layer = cluster->get_layer();
-        float size = cluster->size_hits();
-        float phisize = cluster->get_phi_size();
-        float zsize = cluster->get_z_size();
-	//if(layer < 7)  cout << " old eval: reco cluster layer " << layer << " x " << x << " y " << y << " z " << z << " phi " << phi << endl; 
+        float e = cluster->getAdc();
+        float adc = cluster->getAdc();
+        float layer = (float) TrkrDefs::getLayer(cluster_key);
+        float size = 0;
+	// count all hits for this cluster
+	TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
+	for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	  {
+	    ++size; 
+	  }
+        float phisize = cluster->getPhiSize();
+        float zsize = cluster->getZSize();
 
         float trackID = NAN;
         if (track) trackID = track->get_id();
@@ -1522,7 +1581,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             float gwt = 0.0;
 
             //cout << "Eval: cluster in layer " << layer << " rbin " << rbin << " rbout " << rbout << endl;
-            std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster);
+            std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster_key);
             for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
                  iter != truth_hits.end();
                  ++iter)
@@ -1667,10 +1726,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
         if (g4particle)
         {
-          efromtruth = clustereval->get_energy_contribution(cluster, g4particle);
+          efromtruth = clustereval->get_energy_contribution(cluster_key, g4particle);
         }
 
-        float nparticles = clustereval->all_truth_particles(cluster).size();
+        float nparticles = clustereval->all_truth_particles(cluster_key).size();
         float cluster_data[] = {(float) _ievent,
                                 hitID,
                                 x,
@@ -1736,7 +1795,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+    TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+    TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHIT");
     if (trackmap)
     {
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -1754,32 +1814,39 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
              iter != track->end_clusters();
              ++iter)
         {
-          unsigned int cluster_id = *iter;
-          SvtxCluster* cluster = clustermap->get(cluster_id);
+	  TrkrDefs::cluskey cluster_key = *iter;
+          TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 
-          PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster);
+          PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
           PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
-          float hitID = cluster->get_id();
-          float x = cluster->get_x();
-          float y = cluster->get_y();
-          float z = cluster->get_z();
+          float hitID = cluster_key;
+          float x = cluster->getX();
+          float y = cluster->getY();
+          float z = cluster->getZ();
           TVector3 pos(x, y, z);
           float r = pos.Perp();
           float phi = pos.Phi();
           float eta = pos.Eta();
-          float ex = sqrt(cluster->get_error(0, 0));
-          float ey = sqrt(cluster->get_error(1, 1));
-          float ez = cluster->get_z_error();
+          float ex = sqrt(cluster->getError(0, 0));
+          float ey = sqrt(cluster->getError(1, 1));
+          float ez = cluster->getZError();
 
-          float ephi = cluster->get_rphi_error();
+          float ephi = cluster->getRPhiError();
 
-          float e = cluster->get_e();
-          float adc = cluster->get_adc();
-          float layer = cluster->get_layer();
-          float size = cluster->size_hits();
-          float phisize = cluster->get_phi_size();
-          float zsize = cluster->get_z_size();
+          float e = cluster->getAdc();
+          float adc = cluster->getAdc();
+          float layer = (float) TrkrDefs::getLayer(cluster_key);
+ 
+	  // count all hits for this cluster
+	  float size = 0;
+	  TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
+	  for(TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
+	    {
+	      ++size; 
+	    }	  
+          float phisize = cluster->getPhiSize();
+          float zsize = cluster->getZSize();
 
           float trackID = NAN;
           trackID = track->get_id();
@@ -1851,10 +1918,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           if (g4particle)
           {
-            efromtruth = clustereval->get_energy_contribution(cluster, g4particle);
+            efromtruth = clustereval->get_energy_contribution(cluster_key, g4particle);
           }
 
-          float nparticles = clustereval->all_truth_particles(cluster).size();
+          float nparticles = clustereval->all_truth_particles(cluster_key).size();
 
           float cluster_data[] = {(float) _ievent,
                                   hitID,
@@ -1930,7 +1997,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
+    //TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (truthinfo)
     {
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
@@ -1950,7 +2017,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gflavor = g4particle->get_pid();
 
         //std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(g4particle);
-        std::set<SvtxCluster*> g4clusters = clustereval->all_clusters_from(g4particle);
+        std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
 
         float ng4hits = g4clusters.size();
         unsigned int ngmaps = 0;
@@ -1980,9 +2047,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if (_nlayers_tpc > 0)
           for (unsigned int i = 0; i < _nlayers_tpc; i++) ltpc[i] = 0;
 
-        for (const SvtxCluster* g4cluster : g4clusters)
+        for (const TrkrDefs::cluskey g4cluster : g4clusters)
         {
-          unsigned int layer = g4cluster->get_layer();
+          unsigned int layer = TrkrDefs::getLayer(g4cluster);
           //cout<<__LINE__<<": " << _ievent <<": " <<gtrackID << ": " << layer <<": " <<g4cluster->get_id() <<endl;
           if (_nlayers_maps > 0 && layer < _nlayers_maps)
           {
@@ -2160,9 +2227,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                  iter != track->end_clusters();
                  ++iter)
             {
-              unsigned int cluster_id = *iter;
-              SvtxCluster* cluster = clustermap->get(cluster_id);
-              unsigned int layer = cluster->get_layer();
+	      TrkrDefs::cluskey cluster_key = *iter;
+              //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+              unsigned int layer = TrkrDefs::getLayer(cluster_key);
               if (_nlayers_maps > 0 && layer < _nlayers_maps)
               {
                 maps[layer] = 1;
@@ -2339,7 +2406,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
-    SvtxClusterMap* clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
     if (trackmap)
     {
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -2347,7 +2413,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
            ++iter)
       {
         SvtxTrack* track = iter->second;
-
         float trackID = track->get_id();
         float charge = track->get_charge();
         float quality = track->get_quality();
@@ -2378,13 +2443,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float nlintt = 0;
         float nltpc = 0;
 
-        for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
-             iter != track->end_clusters();
+        for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+             iter != track->end_cluster_keys();
              ++iter)
         {
-          unsigned int cluster_id = *iter;
-          SvtxCluster* cluster = clustermap->get(cluster_id);
-          unsigned int layer = cluster->get_layer();
+	  TrkrDefs::cluskey cluster_key = *iter;
+          //TrkrCluster* cluster = clustermap->findCluster(cluster_key);
+          unsigned int layer = TrkrDefs::getLayer(cluster_key);
 
           if (_nlayers_maps > 0 && layer < _nlayers_maps)
           {
@@ -2484,7 +2549,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         if (_do_track_match)
         {
           PHG4Particle* g4particle = trackeval->max_truth_particle_by_nclusters(track);
-
           if (g4particle)
           {
             if (_scan_for_embedded)
@@ -2495,7 +2559,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gtrackID = g4particle->get_track_id();
             gflavor = g4particle->get_pid();
 
-            std::set<SvtxCluster*> g4clusters = clustereval->all_clusters_from(g4particle);
+            std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
             ng4hits = g4clusters.size();
             gpx = g4particle->get_px();
             gpy = g4particle->get_py();
@@ -2513,9 +2577,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             if (_nlayers_tpc > 0)
               for (unsigned int i = 0; i < _nlayers_tpc; i++) ltpc[i] = 0;
 
-            for (const SvtxCluster* g4cluster : g4clusters)
+            for (const TrkrDefs::cluskey g4cluster : g4clusters)
             {
-              unsigned int layer = g4cluster->get_layer();
+              unsigned int layer = TrkrDefs::getLayer(g4cluster);
               if (_nlayers_maps > 0 && layer < _nlayers_maps)
               {
                 lmaps[layer] = 1;

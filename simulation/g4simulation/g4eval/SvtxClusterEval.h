@@ -6,19 +6,22 @@
 #include <map>
 #include <set>
 
+#include <trackbase/TrkrDefs.h>
+
 class PHCompositeNode;
 
 class PHG4Hit;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 
-class SvtxCluster;
-class SvtxClusterMap;
-class SvtxHitMap;
+class TrkrCluster;
+class TrkrClusterContainer;
+class TrkrClusterHitAssoc;
+class TrkrHitTruthAssoc;
 class SvtxTruthEval;
 
 using namespace std;
-typedef multimap<float, SvtxCluster*> innerMap;
+typedef multimap<float, TrkrDefs::cluskey> innerMap;
 
 class SvtxClusterEval
 {
@@ -48,21 +51,21 @@ class SvtxClusterEval
   SvtxTruthEval* get_truth_eval() { return _hiteval.get_truth_eval(); }
 
   // backtrace through to PHG4Hits
-  std::set<PHG4Hit*> all_truth_hits(SvtxCluster* cluster);
-  PHG4Hit* max_truth_hit_by_energy(SvtxCluster* cluster);
+  std::set<PHG4Hit*> all_truth_hits(TrkrDefs::cluskey cluster);
+  PHG4Hit* max_truth_hit_by_energy(TrkrDefs::cluskey);
 
   // backtrace through to PHG4Particles
-  std::set<PHG4Particle*> all_truth_particles(SvtxCluster* cluster);
-  PHG4Particle* max_truth_particle_by_energy(SvtxCluster* cluster);
+  std::set<PHG4Particle*> all_truth_particles(TrkrDefs::cluskey);
+  PHG4Particle* max_truth_particle_by_energy(TrkrDefs::cluskey);
 
   // forwardtrace through to SvtxClusters
-  std::set<SvtxCluster*> all_clusters_from(PHG4Particle* truthparticle);
-  std::set<SvtxCluster*> all_clusters_from(PHG4Hit* truthhit);
-  SvtxCluster* best_cluster_from(PHG4Hit* truthhit);
+  std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Particle* truthparticle);
+  std::set<TrkrDefs::cluskey> all_clusters_from(PHG4Hit* truthhit);
+  TrkrDefs::cluskey best_cluster_from(PHG4Hit* truthhit);
 
   // overlap calculations
-  float get_energy_contribution(SvtxCluster* svtxcluster, PHG4Particle* truthparticle);
-  float get_energy_contribution(SvtxCluster* svtxcluster, PHG4Hit* truthhit);
+  float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Particle* truthparticle);
+  float get_energy_contribution(TrkrDefs::cluskey cluster_key, PHG4Hit* truthhit);
 
   unsigned int get_errors() { return _errors + _hiteval.get_errors(); }
 
@@ -78,24 +81,29 @@ class SvtxClusterEval
   float fast_approx_atan2(float y2x);
 
   SvtxHitEval _hiteval;
-  SvtxClusterMap* _clustermap;
-  SvtxHitMap* _hitmap;
+  TrkrClusterContainer* _clustermap;
+  TrkrClusterHitAssoc* _cluster_hit_map;
+  TrkrHitTruthAssoc* _hit_truth_map;
   PHG4TruthInfoContainer* _truthinfo;
+  PHG4HitContainer * _g4hits_tpc;
+  PHG4HitContainer * _g4hits_intt;
+  PHG4HitContainer * _g4hits_mvtx;
+
 
   bool _strict;
   int _verbosity;
   unsigned int _errors;
 
   bool _do_cache;
-  std::map<SvtxCluster*, std::set<PHG4Hit*> > _cache_all_truth_hits;
-  std::map<SvtxCluster*, PHG4Hit*> _cache_max_truth_hit_by_energy;
-  std::map<SvtxCluster*, std::set<PHG4Particle*> > _cache_all_truth_particles;
-  std::map<SvtxCluster*, PHG4Particle*> _cache_max_truth_particle_by_energy;
-  std::map<PHG4Particle*, std::set<SvtxCluster*> > _cache_all_clusters_from_particle;
-  std::map<PHG4Hit*, std::set<SvtxCluster*> > _cache_all_clusters_from_g4hit;
-  std::map<PHG4Hit*, SvtxCluster*> _cache_best_cluster_from_g4hit;
-  std::map<std::pair<SvtxCluster*, PHG4Particle*>, float> _cache_get_energy_contribution_g4particle;
-  std::map<std::pair<SvtxCluster*, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
+  std::map<TrkrDefs::cluskey, std::set<PHG4Hit*> > _cache_all_truth_hits;
+  std::map<TrkrDefs::cluskey, PHG4Hit*> _cache_max_truth_hit_by_energy;
+  std::map<TrkrDefs::cluskey, std::set<PHG4Particle*> > _cache_all_truth_particles;
+  std::map<TrkrDefs::cluskey, PHG4Particle*> _cache_max_truth_particle_by_energy;
+  std::map<PHG4Particle*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_particle;
+  std::map<PHG4Hit*, std::set<TrkrDefs::cluskey> > _cache_all_clusters_from_g4hit;
+  std::map<PHG4Hit*, TrkrDefs::cluskey> _cache_best_cluster_from_g4hit;
+  std::map<std::pair<TrkrDefs::cluskey, PHG4Particle*>, float> _cache_get_energy_contribution_g4particle;
+  std::map<std::pair<TrkrDefs::cluskey, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
 
 #ifndef __CINT__
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad
