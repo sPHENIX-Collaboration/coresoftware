@@ -47,8 +47,8 @@ libintt_la_SOURCES = \
 libintt_la_LIBADD = \
   libintt_io.la \
   -lCLHEP \
-  -lfun4all \
-  -lphg4hit
+  -lphg4hit \
+  -lSubsysReco
 
 # sources for io library
 libintt_io_la_SOURCES = \

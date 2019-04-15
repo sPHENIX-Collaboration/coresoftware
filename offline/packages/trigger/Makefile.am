@@ -21,8 +21,8 @@ libcalotrigger_io_la_LIBADD = \
 
 libcalotrigger_la_LIBADD = \
   libcalotrigger_io.la \
-  -lfun4all \
-  -lcalo_io
+  -lcalo_io \
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   CaloTriggerSim.h \

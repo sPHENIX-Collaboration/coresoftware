@@ -47,8 +47,8 @@ libmvtx_la_SOURCES = \
 libmvtx_la_LIBADD = \
   libmvtx_io.la \
   -lCLHEP \
-  -lfun4all \
-  -lphg4hit
+  -lphg4hit \
+  -lSubsysReco
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
