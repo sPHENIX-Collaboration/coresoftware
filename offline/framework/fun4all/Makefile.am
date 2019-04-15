@@ -6,6 +6,10 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include \
   -I$(OPT_SPHENIX)/include
 
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
+
 if ! MAKEROOT6
 ROOT5_SUBSYSRECODICTS = \
   Fun4AllBase_Dict.cc \
@@ -58,6 +62,9 @@ lib_LTLIBRARIES = \
 libTDirectoryHelper_la_SOURCES = \
   TDirectoryHelper.cc
 
+libTDirectoryHelper_la_LDFLAGS = \
+    `root-config --libs`
+
 libfun4all_la_SOURCES = \
   $(ROOT5_FUN4ALLDICTS) \
   Fun4AllDstInputManager.cc \
@@ -80,8 +87,6 @@ libfun4all_la_SOURCES = \
   PHTFileServer.cc
 
 libfun4all_la_LIBADD = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
   libSubsysReco.la \
   libTDirectoryHelper.la \
   -lboost_filesystem \
@@ -105,13 +110,17 @@ BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals_fun4all \
-  testexternals_subsysreco
+  testexternals_subsysreco \
+  testexternals_tdirectoryhelper
 
 testexternals_fun4all_SOURCES = testexternals.cc
 testexternals_fun4all_LDADD   = libfun4all.la
 
 testexternals_subsysreco_SOURCES = testexternals.cc
 testexternals_subsysreco_LDADD   = libSubsysReco.la
+
+testexternals_tdirectoryhelper_SOURCES = testexternals.cc
+testexternals_tdirectoryhelper_LDADD = libTDirectoryHelper.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
