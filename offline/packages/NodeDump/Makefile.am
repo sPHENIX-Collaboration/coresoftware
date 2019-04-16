@@ -60,10 +60,10 @@ libphnodedump_la_LIBADD = \
   -lffaobjects \
   -lg4detectors_io \
   -lg4hough_io \
-  -ltrackbase_historic_io \
   -lg4jets_io \
-  -lg4testbench \
   -lphg4hit \
+  -lSubsysReco \
+  -ltrackbase_historic_io \
   -lvararray
 
 

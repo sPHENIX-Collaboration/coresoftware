@@ -16,14 +16,11 @@ AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
-#  `geant4-config --libs`
-
 libjetbackground_io_la_LIBADD = \
   -lphool
 
 libjetbackground_la_LIBADD = \
   libjetbackground_io.la \
-  -lfun4all \
   -lcalo_io \
   -lcalo_util \
   -lConstituentSubtractor \
@@ -31,7 +28,8 @@ libjetbackground_la_LIBADD = \
   -lCGAL \
   -lfastjet \
   -lfastjettools \
-  -lphg4hit
+  -lphg4hit \
+  -lSubsysReco
 
 pkginclude_HEADERS = \
   DetermineTowerBackground.h \
