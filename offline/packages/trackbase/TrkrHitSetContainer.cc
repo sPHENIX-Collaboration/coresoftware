@@ -15,11 +15,16 @@ TrkrHitSetContainer::TrkrHitSetContainer()
 {
 }
 
+TrkrHitSetContainer::~TrkrHitSetContainer()
+{
+  Reset();
+}
+
 void TrkrHitSetContainer::Reset()
 {
   while (m_hitmap.begin() != m_hitmap.end())
   {
-    delete m_hitmap.begin()->second;
+    m_hitmap.begin()->second->Reset();    // frees up memory for TrkrHit objects
     m_hitmap.erase(m_hitmap.begin());
   }
   return;
