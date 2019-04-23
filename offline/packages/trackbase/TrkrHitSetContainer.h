@@ -24,7 +24,7 @@ class TrkrHitSetContainer : public PHObject
   TrkrHitSetContainer();
 
   //! dtor
-  ~TrkrHitSetContainer();
+  virtual ~TrkrHitSetContainer();
   //! PHObject functions
   void Reset();
   void identify(std::ostream &os = std::cout) const;
