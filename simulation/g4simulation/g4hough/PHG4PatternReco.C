@@ -981,7 +981,7 @@ int PHG4PatternReco::export_output(){
         }  // track loop
 
 //	do not repeat saving vertices this time, add only fake vertex
- 	SvtxVertex *vtxptr = _vertexmap->insert(&fake_vertex);
+ 	SvtxVertex *vtxptr = _vertexmap->insert_clone(&fake_vertex);
 	if (Verbosity() > 5) vtxptr->identify();
 
 /*	
