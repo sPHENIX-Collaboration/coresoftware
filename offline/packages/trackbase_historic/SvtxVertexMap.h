@@ -33,7 +33,7 @@ class SvtxVertexMap : public PHObject
   virtual SvtxVertex* get(unsigned int idkey) { return NULL; }
 
   //! Add vertex to container. Note the container take to ownership
-  virtual SvtxVertex* insert(const SvtxVertex* cluster) { return NULL; }
+  virtual SvtxVertex* insert(SvtxVertex* cluster) { return NULL; }
   //! legacy interface. Add vertex to container. Note the container does not take ownership
   virtual SvtxVertex* insert_clone(const SvtxVertex* vertex) { return NULL; }
 

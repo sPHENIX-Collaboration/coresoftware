@@ -30,7 +30,7 @@ class SvtxVertexMap_v1 : public SvtxVertexMap
   SvtxVertex* get(unsigned int idkey);
 
   //! Add vertex to container. Note the container takes ownership
-  SvtxVertex* insert(const SvtxVertex* vertex);
+  SvtxVertex* insert(SvtxVertex* vertex);
   //! legacy interface. Add vertex to container. Note the container does not take ownership
   SvtxVertex* insert_clone(const SvtxVertex* vertex);
   size_t erase(unsigned int idkey)

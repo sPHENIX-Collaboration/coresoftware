@@ -71,7 +71,7 @@ SvtxVertex* SvtxVertexMap_v1::get(unsigned int id)
   return iter->second;
 }
 
-SvtxVertex* SvtxVertexMap_v1::insert(const SvtxVertex* vertex)
+SvtxVertex* SvtxVertexMap_v1::insert(SvtxVertex* vertex)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
