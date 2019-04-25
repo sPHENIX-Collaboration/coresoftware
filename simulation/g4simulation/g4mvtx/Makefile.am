@@ -1,7 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libg4mvtx_io.la \
   libg4mvtx.la 
 
 
@@ -17,11 +16,7 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib \
   -L$(ROOTSYS)/lib
 
-libg4mvtx_io_la_LIBADD = \
-  -lg4detectors_io 
-
 libg4mvtx_la_LIBADD = \
-  libg4mvtx_io.la \
   -lfun4all \
   -lphg4hit \
   -lg4detectors \
@@ -30,42 +25,24 @@ libg4mvtx_la_LIBADD = \
 
 pkginclude_HEADERS = \
   PHG4MVTXHitReco.h \
-  PHG4MVTXCellReco.h \
   PHG4MVTXSubsystem.h \
-  PHG4CylinderCell_MVTX.h \
-  PHG4MVTXDigitizer.h \
   PHG4MvtxDigitizer.h 
 
-ROOTDICTS = \
-  PHG4CylinderCell_MVTX_Dict.cc
-
 if MAKEROOT6
-  pcmdir = $(libdir)
-  nobase_dist_pcm_DATA = \
-  PHG4CylinderCell_MVTX_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
-    PHG4MVTXCellReco_Dict.cc \
     PHG4MVTXHitReco_Dict.cc \
     PHG4MVTXSubsystem_Dict.cc \
-    PHG4MVTXDigitizer_Dict.cc \
     PHG4MvtxDigitizer_Dict.cc
 endif
 
 libg4mvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4MVTXHitReco.cc \
-  PHG4MVTXCellReco.cc \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
-  PHG4MVTXDigitizer.cc \
   PHG4MvtxDigitizer.cc
-
-libg4mvtx_io_la_SOURCES = \
-  $(ROOTDICTS) \
-  PHG4CylinderCell_MVTX.cc
-
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
@@ -80,13 +57,10 @@ libg4mvtx_io_la_SOURCES = \
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals_io \
   testexternals
 
 testexternals_io_SOURCES = \
   testexternals.cc
-testexternals_io_LDADD = \
-  libg4mvtx_io.la
 
 testexternals_SOURCES = \
   testexternals.cc
