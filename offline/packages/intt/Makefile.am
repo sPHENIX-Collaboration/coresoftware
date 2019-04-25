@@ -20,7 +20,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   InttDefs.h \
   InttHit.h \
-  INTTClusterizer.h \
   InttClusterizer.h \
   CylinderGeomINTT.h
 
@@ -34,15 +33,14 @@ if MAKEROOT6
   CylinderGeomINTT_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
-  InttClusterizer_Dict.cc \
-  INTTClusterizer_Dict.cc
+  InttClusterizer_Dict.cc
+
 endif
 
 # sources for intt library
 libintt_la_SOURCES = \
   $(ROOT5_DICTS) \
-  InttClusterizer.cc \
-  INTTClusterizer.cc
+  InttClusterizer.cc
 
 libintt_la_LIBADD = \
   libintt_io.la \

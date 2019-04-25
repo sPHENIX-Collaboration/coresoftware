@@ -20,7 +20,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   MvtxDefs.h \
   MvtxHit.h \
-  MVTXClusterizer.h \
   MvtxClusterizer.h \
   CylinderGeom_MVTX.h
 
@@ -34,14 +33,12 @@ if MAKEROOT6
     CylinderGeom_MVTX_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
-    MVTXClusterizer_Dict.cc \
     MvtxClusterizer_Dict.cc
 endif
 
 # sources for mvtx library
 libmvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
-  MVTXClusterizer.cc \
   MvtxClusterizer.cc
 
 libmvtx_la_LIBADD = \

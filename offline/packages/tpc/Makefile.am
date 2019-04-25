@@ -20,7 +20,6 @@ AM_LDFLAGS = \
 pkginclude_HEADERS = \
   TpcDefs.h \
   TpcHit.h \
-  TPCClusterizer.h \
   TpcClusterizer.h
 
 ROOTDICTS = \
@@ -31,15 +30,14 @@ if MAKEROOT6
     TpcHit_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
-    TPCClusterizer_Dict.cc \
     TpcClusterizer_Dict.cc 
 endif
 
 # sources for tpc library
 libtpc_la_SOURCES = \
   $(ROOT5_DICTS) \
-  TpcClusterizer.cc \
-  TPCClusterizer.cc
+  TpcClusterizer.cc
+
 
 libtpc_la_LIBADD = \
   libtpc_io.la \
