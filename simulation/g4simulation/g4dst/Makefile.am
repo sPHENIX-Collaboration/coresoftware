@@ -17,7 +17,6 @@ libg4dst_la_LDFLAGS = \
   -lg4hough_io \
   -lg4intt_io \
   -lg4jets_io \
-  -lg4mvtx_io \
   -lg4vertex_io \
   -ljetbackground_io \
   -lphfield_io \
