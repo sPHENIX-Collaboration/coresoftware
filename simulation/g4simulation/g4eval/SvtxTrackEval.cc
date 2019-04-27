@@ -273,15 +273,16 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
     {
       TrkrDefs::cluskey cluster_key = *iter;
 
-      if (_strict)
-      {
-        assert(cluster_key);
-      }
-      else if (!cluster_key)
-      {
-        ++_errors;
-        continue;
-      }
+      // remove this check as cluster key = 0 is MVTX layer 0 cluster #0.
+//      if (_strict)
+//      {
+//        assert(cluster_key);
+//      }
+//      else if (!cluster_key)
+//      {
+//        ++_errors;
+//        continue;
+//      }
 
       // loop over all particles
       std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
