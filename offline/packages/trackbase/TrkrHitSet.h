@@ -67,10 +67,7 @@ class TrkrHitSet : public TObject
    * @brief Remove a hit using its key
    * @param[in] key to be removed
    */
-  void removeHit(TrkrDefs::hitkey key)
-  {
-    m_hits.erase(key);
-  }
+  void removeHit(TrkrDefs::hitkey key);
 
   /**
    * @brief Get a specific hit based on its index.

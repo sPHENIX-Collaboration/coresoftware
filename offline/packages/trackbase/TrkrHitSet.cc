@@ -55,6 +55,27 @@ void TrkrHitSet::identify(std::ostream& os) const
   }
 }
 
+
+void TrkrHitSet::removeHit(TrkrDefs::hitkey key)
+{
+
+  TrkrHitSet::ConstIterator it = m_hits.find(key);
+
+  if (it != m_hits.end())
+  {
+    delete it->second;
+    m_hits.erase(key);
+  }
+  else
+  {
+    identify();
+    std::cout << "TrkrHitSet::removeHit: deleting a nonexist key: " << key << " exiting now" << std::endl;
+    exit(1);
+  }
+}
+
+
+
 TrkrHitSet::ConstIterator
 TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 {
