@@ -35,7 +35,7 @@ class TrkrHitSet : public TObject
   //! ctor
   TrkrHitSet();
   //! dtor
-  ~TrkrHitSet();
+  virtual ~TrkrHitSet();
   //! TObject functions
   void identify(std::ostream& os = std::cout) const;
   void Reset();
