@@ -8,8 +8,9 @@
 //===============================================
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+
 #include <phool/PHTimer.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -35,7 +36,7 @@ class SvtxEvaluator : public SubsysReco
                 unsigned int nlayers_maps = 3,
                 unsigned int nlayers_intt = 8,
                 unsigned int nlayers_tpc = 60);
-  virtual ~SvtxEvaluator() {}
+  virtual ~SvtxEvaluator();
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
