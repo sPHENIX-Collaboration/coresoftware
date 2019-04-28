@@ -1650,7 +1650,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
     {
       if (_vertexmap)
       {
-        _vertexmap->insert(svtx_vtx.get());
+        _vertexmap->insert_clone(svtx_vtx.get());
       }
       else
       {
@@ -1661,7 +1661,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
     {
       if (_vertexmap_refit)
       {
-        _vertexmap_refit->insert(svtx_vtx.get());
+        _vertexmap_refit->insert_clone(svtx_vtx.get());
       }
       else
       {
