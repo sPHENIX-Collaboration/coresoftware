@@ -39,6 +39,7 @@ using namespace std;
 PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
+  , detector("INTT")
   , mNoiseMean(457.2)
   , mNoiseSigma(166.6)
   , mEnergyPerPair(3.62e-9)  // GeV/e-h
@@ -46,11 +47,15 @@ PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
   , m_nDeadCells(0)
 {
   InitializeParameters();
-  Detector(name);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   gsl_rng_set(RandomGenerator, seed);
+}
+
+PHG4InttDigitizer::~PHG4InttDigitizer()
+{
+  gsl_rng_free(RandomGenerator);
 }
 
 int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
@@ -131,8 +136,6 @@ int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 int PHG4InttDigitizer::process_event(PHCompositeNode *topNode)
 {
   DigitizeLadderCells(topNode);
-
-  PrintHits(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -288,15 +291,6 @@ int PHG4InttDigitizer::End(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-void PHG4InttDigitizer::PrintHits(PHCompositeNode *topNode)
-{
-  if (Verbosity() >= VERBOSITY_EVEN_MORE)
-  {
-  }
-
-  return;
 }
 
 void PHG4InttDigitizer::SetDefaultParameters()
