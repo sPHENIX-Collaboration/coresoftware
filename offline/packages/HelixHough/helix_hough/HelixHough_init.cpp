@@ -219,7 +219,9 @@ void HelixHough::initHelixHough(unsigned int n_phi, unsigned int n_d, unsigned i
 HelixHough::~HelixHough()
 {
   for(unsigned int i=0;i<hits_vec.size();i++){delete hits_vec[i];}
+  for(unsigned int i=0;i<pairs_vec.size();i++){delete pairs_vec[i];}
   for(unsigned int i=0;i<bins_vec.size();i++){delete bins_vec[i];}
+  for(unsigned int i=0;i<seeds_vec.size();i++){delete seeds_vec[i];}
   for(unsigned int i=0;i<clusters_vec.size();i++){delete clusters_vec[i];}
   delete hit_used;
 }
