@@ -549,10 +549,10 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   if (_strict)
   {
-    assert(cluster_key);
+//    assert(cluster_key);
     assert(g4hit);
   }
-  else if (!cluster_key || !g4hit)
+  else if ( !g4hit)
   {
     ++_errors;
     return NAN;
