@@ -1,10 +1,12 @@
 #include "PHG4MVTXSubsystem.h"
+#include "PHG4MVTXDefs.h"
 #include "PHG4MVTXDetector.h"
 #include "PHG4MVTXSteppingAction.h"
 
 #include <g4detectors/PHG4EventActionClearZeroEdep.h>
 
 #include <phparameter/PHParameters.h>
+#include <phparameter/PHParametersContainer.h>
 
 #include <Geant4/G4GDMLParser.hh>
 
@@ -18,42 +20,23 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int lyr, int in_stave_type)
-  : PHG4DetectorSubsystem(name, lyr)
-  , detector_(0)
+PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int _n_layers)
+  : PHG4DetectorGroupSubsystem(name)
+  , detector_(NULL)
   , steppingAction_(NULL)
   , eventAction_(NULL)
-  ,
-  //  place_in_x(0),
-  //  place_in_y(0),
-  //  place_in_z(0),
-  //  rot_in_x(0),
-  //  rot_in_y(0),
-  //  rot_in_z(0),
-  layer(lyr)
-  , stave_type(in_stave_type)
-  ,
-  //  pixel_x(NAN),
-  //  pixel_z(NAN),
-  //  pixel_thickness(NAN),
-  //  material("G4_AIR"),  // default - almost nothing
-  //  active(0),
-  //  absorberactive(0),
-  //  blackhole(0),
-  detector_type(name)
-  , superdetector(name)
+  , n_layers(_n_layers)
+  , detector_type(name)
 {
-  // put the layer into the name so we get unique names
-  // for multiple layers
-  ostringstream nam;
-  nam << name << "_" << lyr;
-  Name(nam.str());
-  //  for (int i = 0; i < 3; i++)
-  //    {
-  //      dimension[i] = 100.0 * cm;
-  //    }
+  for (unsigned int iLyr = 0; iLyr < n_layers; ++iLyr)
+    AddDetId(iLyr);
 
   InitializeParameters();
+
+  // put the layers into name so we get unique names
+  // for multiple layers
+  Name(name);
+  SuperDetector(name);
 }
 
 //_______________________________________________________________________
@@ -69,75 +52,98 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // These values are set from the calling macro using the setters defined in the .h file
   if (Verbosity())
   {
-    cout << "    create MVTX detector for layer " << layer << endl;
+    cout << "    create MVTX detector with " << n_layers << " layers."  << endl;
   }
-  detector_ = new PHG4MVTXDetector(topNode, GetParams(), Name());
+  detector_ = new PHG4MVTXDetector(topNode, GetParamsContainer(), Name()/*, n_layers*/);
   detector_->Verbosity(Verbosity());
-  //  detector_->set_nominal_layer_radius(layer_nominal_radius);
-  //  detector_->set_pixel_x(pixel_x);
-  //  detector_->set_pixel_z(pixel_z);
-  //  detector_->set_pixel_thickness(pixel_thickness);
-  //  cout << " setting pixel_x " << pixel_x << " pixel_z " << pixel_z << " pixel_thickness " << pixel_thickness << endl;
-  //  detector_->SetActive(active);
-  //  detector_->SetAbsorberActive(absorberactive);
-  //  detector_->BlackHole(blackhole);
-  detector_->SuperDetector(superdetector);
+  detector_->SuperDetector(SuperDetector());
   detector_->Detector(detector_type);
   detector_->OverlapCheck(CheckOverlap());
   if (Verbosity())
   {
-    cout << "    ------ created detector for " << layer << " name " << Name()
-         << endl;
-
-    GetParams()->Print();
+    cout << "    ------ created detector " << Name() << endl;
+    GetParamsContainer()->Print();
   }
-
-  if (GetParams()->get_int_param("active"))
+  //loop all layer to find atleast one active layer
+  int active = 0;
+  // for now not absorber are implemnented yet
+  int absorberactive = 0;
+  int blackhole = 0;
+  for (set<int>::const_iterator parContainerIter = GetDetIds().first; parContainerIter != GetDetIds().second; ++parContainerIter)
   {
-    ostringstream nodename;
-    if (superdetector != "NONE")
+    if (active || GetParamsContainer()->GetParameters(*parContainerIter)->get_int_param("active"))
     {
-      nodename << "G4HIT_" << superdetector;
+      active = 1;
+    }
+    if (absorberactive || GetParamsContainer()->GetParameters(*parContainerIter)->get_int_param("absorberactive"))
+    {
+      absorberactive = 1;
+    }
+    if (blackhole || GetParamsContainer()->GetParameters(*parContainerIter)->get_int_param("blackhole"))
+    {
+      blackhole = 1;
+    }
+  }
+  if (active)
+  {
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode* detNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!detNode)
+    {
+      detNode = new PHCompositeNode(SuperDetector());
+      dstNode->addNode(detNode);
+    }
+    ostringstream nodename;
+    if (SuperDetector() != "NONE")
+    {
+      nodename << "G4HIT_" << SuperDetector();
     }
     else
     {
-      nodename << "G4HIT_" << detector_type << "_" << layer;
+      nodename << "G4HIT_" << detector_type;
     }
     // create hit list
     PHG4HitContainer* block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!block_hits)
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+      detNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
     }
     if (Verbosity())
       cout << PHWHERE << "creating hits node " << nodename.str() << endl;
 
     PHG4EventActionClearZeroEdep* eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
-    if (GetParams()->get_int_param("absorberactive"))
+    if (absorberactive)
     {
       nodename.str("");
-      if (superdetector != "NONE")
+      if (SuperDetector() != "NONE")
       {
-        nodename << "G4HIT_ABSORBER_" << superdetector;
+        nodename << "G4HIT_ABSORBER_" << SuperDetector();
       }
       else
       {
-        nodename << "G4HIT_ABSORBER_" << detector_type << "_" << layer;
+        nodename << "G4HIT_ABSORBER_" << detector_type;
       }
       block_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
       if (!block_hits)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+        detNode->addNode(new PHIODataNode<PHObject>(block_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
       }
+      if (Verbosity())
+        cout << PHWHERE << "creating hits node " << nodename.str() << endl;
+
       eventaction->AddNode(nodename.str());
     }
+
     eventAction_ = dynamic_cast<PHG4EventAction*>(eventaction);
     // create stepping action
     steppingAction_ = new PHG4MVTXSteppingAction(detector_);
   }
-  if (GetParams()->get_int_param("blackhole") && !(GetParams()->get_int_param("active")))
+  else
   {
-    steppingAction_ = new PHG4MVTXSteppingAction(detector_);
+    if (blackhole)
+    {
+      steppingAction_ = new PHG4MVTXSteppingAction(detector_);
+    }
   }
   return 0;
 }
@@ -168,27 +174,36 @@ PHG4SteppingAction* PHG4MVTXSubsystem::GetSteppingAction(void) const
 
 void PHG4MVTXSubsystem::SetDefaultParameters()
 {
-  //  set_default_double_param("place_in_x",0);
-  //  set_default_double_param("place_in_y",0);
-  //  set_default_double_param("place_in_z",0);
-  //  set_default_double_param("rot_in_x",0);
-  //  set_default_double_param("rot_in_y",0);
-  //  set_default_double_param("rot_in_z",0);
-  set_default_int_param("layer", layer);
-  set_default_int_param("stave_type", stave_type);
-  set_default_int_param("N_staves", -1);
+  //TODO: Move to defMVTX at some point
+  const int kNLr = 3;
+  enum { kRmn,
+         kRmd,
+         kRmx,
+         kNModPerStave,
+         kPhi0,
+         kNStave,
+         kNPar };
+  // Radii are from last TDR (ALICE-TDR-017.pdf Tab. 1.1, rMid is mean value)
+  const double mvtxdat[kNLr][kNPar] = {
+    { 22.4, 23.4, 26.7, 9., 0., 12. }, // for each layer: rMin,rMid,rMax,NChip/Stave, phi0, nStaves
+    { 30.1, 31.5, 34.6, 9., 0., 16. },
+    { 37.8, 39.3, 42.1, 9., 0., 20. }
+  };
 
-  set_default_double_param("layer_nominal_radius", NAN);
+  for (set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
+  {
+    const int& ilyr = *lyr_it;
+    set_default_int_param(ilyr, "active", 1); //non-automatic initialization in PHG4DetectorGroupSubsystem
+    set_default_int_param(ilyr, "layer", ilyr);
+    set_default_int_param(ilyr, "N_staves", mvtxdat[ilyr][kNStave]);
 
-  set_default_double_param("pixel_x", NAN);
-  set_default_double_param("pixel_z", NAN);
-  set_default_double_param("pixel_thickness", NAN);
-  set_default_double_param("phitilt", NAN);
+    set_default_double_param(ilyr, "layer_nominal_radius", mvtxdat[ilyr][kRmd]);
+    set_default_double_param(ilyr, "phitilt", NAN);
 
-  set_default_string_param("material", "G4_AIR");  // default - almost nothing
-                                                   //  set_default_int_param("active", 1);
-                                                   //  set_default_int_param("absorberactive", 0);
-                                                   //  set_default_int_param("blackhole", 0);
-
-  set_default_string_param("stave_geometry_file", "ITS.gdml");  // default - almost nothing
+    set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
+  }
+  set_default_string_param(PHG4MVTXDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
+  set_default_double_param(PHG4MVTXDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
+  set_default_double_param(PHG4MVTXDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
+  set_default_double_param(PHG4MVTXDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
 }
