@@ -23,6 +23,7 @@ libg4mvtx_la_LIBADD = \
   -lmvtx_io
 
 pkginclude_HEADERS = \
+  PHG4MVTXDefs.h \
   PHG4MVTXHitReco.h \
   PHG4MVTXSubsystem.h \
   PHG4MvtxDigitizer.h 
