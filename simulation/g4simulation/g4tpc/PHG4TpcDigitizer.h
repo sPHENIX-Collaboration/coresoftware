@@ -1,8 +1,8 @@
-#ifndef G4TPC_PHG4TpcDIGITIZER_H
-#define G4TPC_PHG4TpcDIGITIZER_H
+#ifndef G4TPC_PHG4TPCDIGITIZER_H
+#define G4TPC_PHG4TPCDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <g4detectors/PHG4CellDefs.h>
+
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 
@@ -22,7 +22,7 @@ class PHG4TpcDigitizer : public SubsysReco
 {
  public:
   PHG4TpcDigitizer(const std::string &name = "PHG4TpcDigitizer");
-  virtual ~PHG4TpcDigitizer() {}
+  virtual ~PHG4TpcDigitizer();
 
   //! module initialization
   int Init(PHCompositeNode *topNode) { return 0; }
@@ -61,17 +61,10 @@ class PHG4TpcDigitizer : public SubsysReco
   float ADCSignalConversionGain;
   float ADCNoiseConversionGain;
 
-  /*
-  std::vector<std::vector<const PHG4Cell *> > layer_sorted_cells;
-  std::vector<std::vector<const PHG4Cell *> > phi_sorted_cells;
-  std::vector<std::vector<const PHG4Cell *> > z_sorted_cells;
-  */
-  std::vector<std::vector<TrkrHitSet::ConstIterator > > layer_sorted_hits;
   std::vector<std::vector<TrkrHitSet::ConstIterator> > phi_sorted_hits;
   std::vector<std::vector<TrkrHitSet::ConstIterator> > z_sorted_hits;
 
   std::vector<float> adc_input;
-  //std::vector<PHG4CellDefs::keytype> adc_cellid;
   std::vector<TrkrDefs::hitkey> adc_hitid;
   std::vector<int> is_populated;
 

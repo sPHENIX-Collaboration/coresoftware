@@ -9,19 +9,22 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrDefs.h>
+
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
-
 #include <phool/PHRandomSeed.h>
 
 #include <gsl/gsl_randist.h>
@@ -47,7 +50,7 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
   ,  // will be assigned in PHG4TpcDigitizer::InitRun
   ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())
   ,  // will be assigned in PHG4TpcDigitizer::InitRun
-  _hitmap(NULL)
+  _hitmap(nullptr)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
@@ -56,6 +59,11 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
 
   if (Verbosity() > 0)
     cout << "Creating PHG4TpcDigitizer with name = " << name << endl;
+}
+
+PHG4TpcDigitizer::~PHG4TpcDigitizer()
+{
+  gsl_rng_free(RandomGenerator);
 }
 
 int PHG4TpcDigitizer::InitRun(PHCompositeNode *topNode)
