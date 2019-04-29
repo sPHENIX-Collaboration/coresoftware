@@ -90,15 +90,15 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
       return std::set<PHG4Hit*>();
     }
   
-  if (_strict)
-    {
-      assert(cluster_key);
-    }
-  else if (!cluster_key)
-    {
-      ++_errors;
-      return std::set<PHG4Hit*>();
-    }
+//  if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//  else if (!cluster_key)
+//    {
+//      ++_errors;
+//      return std::set<PHG4Hit*>();
+//    }
   
   if (_do_cache)
     {
@@ -154,15 +154,15 @@ PHG4Hit* SvtxClusterEval::max_truth_hit_by_energy(TrkrDefs::cluskey cluster_key)
       return nullptr;
     }
   
-  if (_strict)
-    {
-      assert(cluster_key);
-    }
-  else if (!cluster_key)
-    {
-      ++_errors;
-      return nullptr;
-    }
+//  if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//  else if (!cluster_key)
+//    {
+//      ++_errors;
+//      return nullptr;
+//    }
   
   if (_do_cache)
     {
@@ -202,15 +202,15 @@ std::set<PHG4Particle*> SvtxClusterEval::all_truth_particles(TrkrDefs::cluskey c
       return std::set<PHG4Particle*>();
     }
   
-  if (_strict)
-    {
-      assert(cluster_key);
-    }
-  else if (!cluster_key)
-    {
-      ++_errors;
-      return std::set<PHG4Particle*>();
-    }
+//  if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//  else if (!cluster_key)
+//    {
+//      ++_errors;
+//      return std::set<PHG4Particle*>();
+//    }
   
   if (_do_cache)
     {
@@ -259,15 +259,15 @@ PHG4Particle* SvtxClusterEval::max_truth_particle_by_energy(TrkrDefs::cluskey cl
       return nullptr;
     }
   
-  if (_strict)
-    {
-      assert(cluster_key);
-    }
-  else if (!cluster_key)
-    {
-      ++_errors;
-      return nullptr;
-    }
+//  if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//  else if (!cluster_key)
+//    {
+//      ++_errors;
+//      return nullptr;
+//    }
   
   if (_do_cache)
     {
@@ -502,10 +502,10 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   if (_strict)
   {
-    assert(cluster_key);
+//    assert(cluster_key);
     assert(particle);
   }
-  else if (!cluster_key || !particle)
+  else if ( !particle)
   {
     ++_errors;
     return NAN;
@@ -549,10 +549,10 @@ float SvtxClusterEval::get_energy_contribution(TrkrDefs::cluskey cluster_key, PH
 
   if (_strict)
   {
-    assert(cluster_key);
+//    assert(cluster_key);
     assert(g4hit);
   }
-  else if (!cluster_key || !g4hit)
+  else if ( !g4hit)
   {
     ++_errors;
     return NAN;

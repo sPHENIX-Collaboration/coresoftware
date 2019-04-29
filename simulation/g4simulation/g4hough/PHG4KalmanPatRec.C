@@ -3124,7 +3124,7 @@ int PHG4KalmanPatRec::export_output()
     }
   }  // track loop
 
-  SvtxVertex* vtxptr = _g4vertexes->insert(&vertex);
+  SvtxVertex* vtxptr = _g4vertexes->insert_clone(&vertex);
   if (Verbosity() > 5)
     vtxptr->identify();
 
