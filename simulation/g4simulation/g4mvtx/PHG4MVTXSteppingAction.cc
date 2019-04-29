@@ -73,8 +73,16 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // returns
   //  1 if in ladder belonging to this layer
   //  0 if not
+  int layer_id = NAN;
+  int stave_id = NAN;
+  //cout << endl << "  In UserSteppingAction for layer " << layer_id << endl;
   G4VPhysicalVolume* vstave = touch->GetVolume(3);
-  whichactive = detector_->IsInMVTX(vstave);
+  whichactive = detector_->IsInMVTX(vstave, layer_id, stave_id);
+  if (layer_id < 0 || stave_id < 0)
+  {
+    cout << PHWHERE << "invalid MVTX's layer (" << layer_id << ") or stave (" << stave_id << ") index " << endl;
+    exit(1);
+  }
 
   if (!whichactive)
   {
@@ -106,13 +114,14 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // The pixel number will be derived later from the entry and exit points in the sensor local coordinates
   //=======================================================================
 
-  int stave_number = -1;
+  //int stave_number = -1; // stave_number from stave map values
   int half_stave_number = -1;
   int module_number = -1;
   int chip_number = -1;
 
-  if (Verbosity() > 0) cout << endl
-                            << "  UserSteppingAction: layer " << detector_->get_Layer();
+  if (Verbosity() > 0)
+    cout << endl
+    << "  UserSteppingAction: layer " << layer_id;
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
 
@@ -143,8 +152,8 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   ++tokeniter;
   ++tokeniter;
   ++tokeniter;
-  stave_number = boost::lexical_cast<int>(*tokeniter) - 1;  // starts counting imprints at 1, we count staves from 0!
-  if (Verbosity() > 0) cout << " stave " << stave_number;
+  //stave_number = boost::lexical_cast<int>(*tokeniter) - 1;  // starts counting imprints at 1, we count staves from 0!
+  if (Verbosity() > 0) cout << " stave " << stave_id;
   ++tokeniter;
   ++tokeniter;
   ++tokeniter;
@@ -162,18 +171,15 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   if (Verbosity() > 0) cout << " edep = " << edep << endl;
 
   // if this cylinder stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (detector_->IsBlackHole(layer_id))
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
     killtrack->SetTrackStatus(fStopAndKill);
   }
 
-  int layer_id = detector_->get_Layer();
-  //cout << endl << "  In UserSteppingAction for layer " << layer_id << endl;
-
   // test if we are active
-  if (detector_->IsActive())
+  if (detector_->IsActive(layer_id))
   {
     bool geantino = false;
     // the check for the pdg code speeds things up, I do not want to make
@@ -200,15 +206,15 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     switch (prePoint->GetStepStatus())
     {
-    case fGeomBoundary:
-    case fUndefined:
+      case fGeomBoundary:
+      case fUndefined:
 
       hit = new PHG4Hitv1();
 
       hit->set_layer((unsigned int) layer_id);
 
       // set the index values needed to locate the sensor strip
-      hit->set_property(PHG4Hit::prop_stave_index, stave_number);
+      hit->set_property(PHG4Hit::prop_stave_index, stave_id);
       hit->set_property(PHG4Hit::prop_half_stave_index, half_stave_number);
       hit->set_property(PHG4Hit::prop_module_index, module_number);
       hit->set_property(PHG4Hit::prop_chip_index, chip_number);
@@ -223,7 +229,7 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         cout << "entering volume name = " << vol1->GetName() << endl;
       }
 
-      /*	  
+      /*
 	  localPosition = theTouchable->GetHistory()->GetTopTransform().TransformPoint(worldPosition);
 	  */
 
@@ -280,9 +286,9 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // ceases to exist
 
     /*
-      // Note that the after you reach the boundary the touchable for the postPoint points to the next volume, not the sensor! 
+      // Note that the after you reach the boundary the touchable for the postPoint points to the next volume, not the sensor!
       // This was given to me as the way to get back to the sensor volume, but it does not work
-      theTouchable = postPoint->GetTouchableHandle(); 
+      theTouchable = postPoint->GetTouchableHandle();
       localPosition = history->GetTransform(history->GetDepth() - 1).TransformPoint(worldPosition);
       cout << "Exit local coords: x " <<  localPosition.x() / cm << " y " <<  localPosition.y() / cm << " z " <<  localPosition.z() / cm << endl;
       */
@@ -290,7 +296,7 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     /*
       // Use the prePoint from the final step  for now, until I understand how to get the exit point in the sensor volume coordinates
       //======================================================================================
-      theTouchable = prePoint->GetTouchableHandle(); 
+      theTouchable = prePoint->GetTouchableHandle();
       vol2 = theTouchable->GetVolume();
       if(Verbosity() > 0)
 	cout << "exiting volume name = " << vol2->GetName() << endl;
@@ -347,7 +353,8 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       G4StepPoint* prePoint = aStep->GetPreStepPoint();
       G4StepPoint* postPoint = aStep->GetPostStepPoint();
       cout << "----- PHg4MVTXSteppingAction::UserSteppingAction - active volume = " << sensor_volume->GetName() << endl;
-      cout << "       stave number = " << stave_number << " half_stave_number = " << half_stave_number << endl;
+      cout << "       layer = " << layer_id << endl;
+      cout << "       stave number = " << stave_id << " half_stave_number = " << half_stave_number << endl;
       cout << "       module number  = " << module_number << endl;
       cout << "       chip number = " << chip_number << endl;
       cout << "       prepoint x position " << prePoint->GetPosition().x() / cm << endl;

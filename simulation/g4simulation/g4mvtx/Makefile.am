@@ -3,7 +3,6 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libg4mvtx.la 
 
-
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -32,6 +31,7 @@ if MAKEROOT6
 else
   ROOT5_DICTS = \
     PHG4MVTXHitReco_Dict.cc \
+    PHG4MVTXDefs_Dict.cc \
     PHG4MVTXSubsystem_Dict.cc \
     PHG4MvtxDigitizer_Dict.cc
 endif

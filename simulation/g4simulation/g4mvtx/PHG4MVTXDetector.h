@@ -8,6 +8,7 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/globals.hh>
 
+#include <array>
 #include <map>
 #include <set>
 #include <string>
@@ -18,12 +19,13 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
 class PHParameters;
+class PHParametersContainer;
 
 class PHG4MVTXDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4MVTXDetector(PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam = "BLOCK");
+  PHG4MVTXDetector(PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
 
   //! destructor
   virtual ~PHG4MVTXDetector();
@@ -33,86 +35,55 @@ class PHG4MVTXDetector : public PHG4Detector
 
   //!@name volume accessors
   //@{
-  int IsInMVTX(G4VPhysicalVolume*) const;
+  int IsInMVTX(G4VPhysicalVolume*, int& layer, int& stave) const;
   int IsSensor(G4VPhysicalVolume*) const;
   //@}
 
-  void set_stave_type(const int st) { stave_type = st; }
-  void set_nominal_layer_radius(const G4double radius) { layer_nominal_radius = radius * mm; }
-  void set_pixel_x(const double pixel_x_in) { pixel_x = pixel_x_in; }
-  void set_pixel_z(const double pixel_z_in) { pixel_z = pixel_z_in; }
-  void set_pixel_thickness(const double pixel_thickness_in) { pixel_thickness = pixel_thickness_in; }
-  void SetPlaceZ(const G4double place_z) { place_in_z = place_z * cm; }
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x * cm;
-    place_in_y = place_y * cm;
-    place_in_z = place_z * cm;
-  }
-  void SetXRot(const G4double angle) { x_rot = angle * rad; }
-  void SetYRot(const G4double angle) { y_rot = angle * rad; }
-  void SetZRot(const G4double angle) { z_rot = angle * rad; }
-  void SetActive(const int i = 1) { active = i; }
-  void SetAbsorberActive(const int i = 1) { absorberactive = i; }
-  int IsActive() const { return active; }
+  int IsActive(int lyr) const { return m_IsLayerActive[lyr]; }
+  int IsAbsorberActive(int lyr) const { return m_IsLayerAbsorberActive[lyr]; }
+  int IsBlackHole(int lyr) const { return m_IsBlackHole[lyr]; }
   void SuperDetector(const std::string& name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
   void Detector(const std::string& name) { detector_type = name; }
   const std::string Detector() const { return detector_type; }
-  int get_Layer() const { return layer; }
 
-  void BlackHole(const int i = 1) { blackhole = i; }
-  int IsBlackHole() const { return blackhole; }
+  int get_layer(int stv_index) const;
+  int get_stave(int stv_index) const;
 
  private:
   void AddGeometryNode();
   int ConstructMVTX(G4LogicalVolume* sandwich);
+  int ConstructMVTX_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
   void SetDisplayProperty(G4AssemblyVolume* av);
   void SetDisplayProperty(G4LogicalVolume* lv);
   void FillPVArray(G4AssemblyVolume* av);
   void FindSensor(G4LogicalVolume* lv);
 
-  // map of sensor physical volume pointers
-  std::map<G4VPhysicalVolume*, int> sensor_vol;
-  int sensor_count;
-  std::map<G4VPhysicalVolume*, int> stave_vol;
-  int stave_count;
+  const PHParametersContainer* m_ParamsContainer;
+  static constexpr int n_Layers = 3;
 
-  // the cylinder envelope
-  //  G4double envelope_inner_radius;
-  //  G4double envelope_outer_radius;
-  //  G4double envelope_z;
-  //
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double x_rot;
-  G4double y_rot;
-  G4double z_rot;
-  int active;
-  int absorberactive;
-  int layer;
-  int blackhole;
+  // map of sensor physical volume pointers
+  std::set<G4VPhysicalVolume*> m_SensorPV;
+  std::map<G4VPhysicalVolume*, std::tuple<int, int>> m_StavePV;
 
   // setup parameters
-  int stave_type;
-  G4double layer_nominal_radius;
-  int N_staves;
-  G4double phistep;
-  G4double phitilt;
+  std::array<int, n_Layers> m_IsLayerActive;
+  std::array<int, n_Layers> m_IsLayerAbsorberActive;
+  std::array<int, n_Layers> m_IsBlackHole;
+  std::array<int, n_Layers> m_N_staves;
+  std::array<G4double, n_Layers> m_nominal_radius;
+  std::array<G4double, n_Layers> m_nominal_phitilt;
+  // sensor parameters
   double pixel_x;
   double pixel_z;
   double pixel_thickness;
 
   // calculated quantities
+  G4double get_phistep(int lay) const { return 2.0 * M_PI / (double) m_N_staves[lay]; }
 
-  std::string layer_string;
-  ;
   std::string detector_type;
   std::string superdetector;
   std::string stave_geometry_file;
-
-  //  int verbosity;
 };
 
 #endif

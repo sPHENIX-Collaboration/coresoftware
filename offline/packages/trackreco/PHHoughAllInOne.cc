@@ -1969,7 +1969,7 @@ int PHHoughAllInOne::export_output()
     }
   }  // track loop
 
-  SvtxVertex* vtxptr = _vertex_map->insert(&vertex);
+  SvtxVertex* vtxptr = _vertex_map->insert_clone(&vertex);
   if (Verbosity() > 5)
     vtxptr->identify();
 

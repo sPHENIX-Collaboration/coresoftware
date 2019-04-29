@@ -105,15 +105,15 @@ std::set<PHG4Hit*> SvtxTrackEval::all_truth_hits(SvtxTrack* track)
   {
     TrkrDefs::cluskey cluster_key = *iter;
 
-    if (_strict)
-    {
-      assert(cluster_key);
-    }
-    else if (!cluster_key)
-    {
-      ++_errors;
-      continue;
-    }
+//    if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//    else if (!cluster_key)
+//    {
+//      ++_errors;
+//      continue;
+//    }
 
     std::set<PHG4Hit*> new_hits = _clustereval.all_truth_hits(cluster_key);
 
@@ -163,15 +163,15 @@ std::set<PHG4Particle*> SvtxTrackEval::all_truth_particles(SvtxTrack* track)
   {
     TrkrDefs::cluskey cluster_key = *iter;
 
-    if (_strict)
-    {
-      assert(cluster_key);
-    }
-    else if (!cluster_key)
-    {
-      ++_errors;
-      continue;
-    }
+//    if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//    else if (!cluster_key)
+//    {
+//      ++_errors;
+//      continue;
+//    }
 
     std::set<PHG4Particle*> new_particles = _clustereval.all_truth_particles(cluster_key);
 
@@ -273,15 +273,16 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Particle* truthparticle)
     {
       TrkrDefs::cluskey cluster_key = *iter;
 
-      if (_strict)
-      {
-        assert(cluster_key);
-      }
-      else if (!cluster_key)
-      {
-        ++_errors;
-        continue;
-      }
+      // remove this check as cluster key = 0 is MVTX layer 0 cluster #0.
+//      if (_strict)
+//      {
+//        assert(cluster_key);
+//      }
+//      else if (!cluster_key)
+//      {
+//        ++_errors;
+//        continue;
+//      }
 
       // loop over all particles
       std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
@@ -347,15 +348,15 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(PHG4Hit* truthhit)
     {
       TrkrDefs::cluskey cluster_key = *iter;
 
-      if (_strict)
-      {
-        assert(cluster_key);
-      }
-      else if (!cluster_key)
-      {
-        ++_errors;
-        continue;
-      }
+//      if (_strict)
+//      {
+//        assert(cluster_key);
+//      }
+//      else if (!cluster_key)
+//      {
+//        ++_errors;
+//        continue;
+//      }
 
       // loop over all hits
       std::set<PHG4Hit*> hits = _clustereval.all_truth_hits(cluster_key);
@@ -449,15 +450,15 @@ void SvtxTrackEval::create_cache_track_from_cluster()
     {
       TrkrDefs::cluskey candidate_key = *iter;
 
-      if (_strict)
-      {
-        assert(candidate_key);
-      }
-      else if (!candidate_key)
-      {
-        ++_errors;
-        continue;
-      }
+//      if (_strict)
+//      {
+//        assert(candidate_key);
+//      }
+//      else if (!candidate_key)
+//      {
+//        ++_errors;
+//        continue;
+//      }
 
       //check if cluster has an entry in cache
       std::map<TrkrDefs::cluskey, std::set<SvtxTrack*> >::iterator cliter =
@@ -487,15 +488,15 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(TrkrDefs::cluskey cluster_ke
     return std::set<SvtxTrack*>();
   }
 
-  if (_strict)
-  {
-    assert(cluster_key);
-  }
-  else if (!cluster_key)
-  {
-    ++_errors;
-    return std::set<SvtxTrack*>();
-  }
+//  if (_strict)
+//  {
+//    assert(cluster_key);
+//  }
+//  else if (!cluster_key)
+//  {
+//    ++_errors;
+//    return std::set<SvtxTrack*>();
+//  }
 
   std::set<SvtxTrack*> tracks;
 
@@ -528,15 +529,15 @@ std::set<SvtxTrack*> SvtxTrackEval::all_tracks_from(TrkrDefs::cluskey cluster_ke
     {
       TrkrDefs::cluskey candidate = *iter;
 
-      if (_strict)
-      {
-        assert(candidate);
-      }
-      else if (!candidate)
-      {
-        ++_errors;
-        continue;
-      }
+//      if (_strict)
+//      {
+//        assert(candidate);
+//      }
+//      else if (!candidate)
+//      {
+//        ++_errors;
+//        continue;
+//      }
 
       if (cluster_key == candidate)
       {
@@ -558,15 +559,15 @@ SvtxTrack* SvtxTrackEval::best_track_from(TrkrDefs::cluskey cluster_key)
     return nullptr;
   }
 
-  if (_strict)
-  {
-    assert(cluster_key);
-  }
-  else if (!cluster_key)
-  {
-    ++_errors;
-    return nullptr;
-  }
+//  if (_strict)
+//  {
+//    assert(cluster_key);
+//  }
+//  else if (!cluster_key)
+//  {
+//    ++_errors;
+//    return nullptr;
+//  }
 
   if (_do_cache)
   {
@@ -703,15 +704,15 @@ void SvtxTrackEval::calc_cluster_contribution(SvtxTrack* track, PHG4Particle* pa
   {
     TrkrDefs::cluskey cluster_key = *iter;
 
-    if (_strict)
-    {
-      assert(cluster_key);
-    }
-    else if (!cluster_key)
-    {
-      ++_errors;
-      continue;
-    }
+//    if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//    else if (!cluster_key)
+//    {
+//      ++_errors;
+//      continue;
+//    }
     int matched = 0;
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
@@ -774,15 +775,15 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
     TrkrDefs::cluskey cluster_key = *iter;
     unsigned int cluster_layer = TrkrDefs::getLayer(cluster_key);
 
-    if (_strict)
-    {
-      assert(cluster_key);
-    }
-    else if (!cluster_key)
-    {
-      ++_errors;
-      continue;
-    }
+//    if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//    else if (!cluster_key)
+//    {
+//      ++_errors;
+//      continue;
+//    }
 
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
@@ -840,15 +841,15 @@ unsigned int SvtxTrackEval::get_layer_range_contribution(SvtxTrack* track, PHG4P
     if (cluster_layer >= end_layer) continue;
     if (cluster_layer < start_layer) continue;
 
-    if (_strict)
-    {
-      assert(cluster_key);
-    }
-    else if (!cluster_key)
-    {
-      ++_errors;
-      continue;
-    }
+//    if (_strict)
+//    {
+//      assert(cluster_key);
+//    }
+//    else if (!cluster_key)
+//    {
+//      ++_errors;
+//      continue;
+//    }
 
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);

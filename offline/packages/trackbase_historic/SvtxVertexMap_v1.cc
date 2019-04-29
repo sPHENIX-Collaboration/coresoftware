@@ -71,11 +71,16 @@ SvtxVertex* SvtxVertexMap_v1::get(unsigned int id)
   return iter->second;
 }
 
-SvtxVertex* SvtxVertexMap_v1::insert(const SvtxVertex* vertex)
+SvtxVertex* SvtxVertexMap_v1::insert(SvtxVertex* vertex)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, vertex->Clone()));
+  _map.insert(make_pair(index, vertex));
   _map[index]->set_id(index);
   return _map[index];
+}
+
+SvtxVertex* SvtxVertexMap_v1::insert_clone(const SvtxVertex* vertex)
+{
+  return insert(vertex->Clone());
 }

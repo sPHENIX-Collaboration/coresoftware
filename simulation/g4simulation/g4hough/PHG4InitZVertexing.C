@@ -938,7 +938,7 @@ int PHG4InitZVertexing::export_output(){
 
 //	cout<<"track loop"<<endl;
 	for (unsigned int vid = 0; vid < _vertex_list.size(); ++vid ){
-        SvtxVertex *vtxptr = _vertexmap->insert(&svtx_vertex_list[vid]);
+        SvtxVertex *vtxptr = _vertexmap->insert_clone(&svtx_vertex_list[vid]);
         if (Verbosity() > 5) vtxptr->identify();
 	}
 
