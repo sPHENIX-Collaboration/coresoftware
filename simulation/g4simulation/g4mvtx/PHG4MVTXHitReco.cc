@@ -1,7 +1,6 @@
 // this is the new trackbase version 
 
 #include "PHG4MVTXHitReco.h"
-#include "PHG4CylinderCell_MVTX.h"
 #include "mvtx/CylinderGeom_MVTX.h"
 
 #include <trackbase/TrkrHitSet.h>
