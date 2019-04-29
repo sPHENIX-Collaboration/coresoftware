@@ -23,16 +23,6 @@ INTTDeadMap::getDeadChannels(void)
   return tmp_map;
 }
 
-void INTTDeadMap::addDeadChannel(const int layer, const int ieta, const int iphi)
-{
-  const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
-  addDeadChannel(key);
-}
-
-void INTTDeadMap::addDeadChannel(PHG4CellDefs::keytype key)
-{
-}
-
 void INTTDeadMap::addDeadChannelINTT(const int layer,
                                      const int ladder_phi, const int ladder_z,
                                      const int strip_z, const int strip_phi)
@@ -40,17 +30,6 @@ void INTTDeadMap::addDeadChannelINTT(const int layer,
   addDeadChannel(getINTTKey(layer,
                             ladder_phi, ladder_z,
                             strip_z, strip_phi));
-}
-
-bool INTTDeadMap::isDeadChannel(PHG4CellDefs::keytype key) const
-{
-  return false;
-}
-
-bool INTTDeadMap::isDeadChannel(const int layer, const int ieta, const int iphi) const
-{
-  const PHG4CellDefs::keytype key = PHG4CellDefs::EtaPhiBinning::genkey(layer, ieta, iphi);
-  return isDeadChannel(key);
 }
 
 bool INTTDeadMap::isDeadChannelINTT(const int layer,
@@ -86,13 +65,9 @@ int INTTDeadMap::isValid() const
   return size() > 0;
 }
 
-void INTTDeadMap::Reset()
-{
-}
-
 void INTTDeadMap::identify(std::ostream& os) const
 {
-  os << "INTTDeadMap" << std::endl;
+  os << "INTTDeadMap base class" << std::endl;
 }
 
 PHG4CellDefs::keytype INTTDeadMap::getINTTKey(int layer,

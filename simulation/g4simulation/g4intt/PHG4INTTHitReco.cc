@@ -387,8 +387,7 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
       // generate the key for this hit
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
       // See if this hit already exists
-      TrkrHit *hit = nullptr;
-      hit = hitsetit->second->getHit(hitkey);
+      TrkrHit *hit = hitsetit->second->getHit(hitkey);
       if(!hit)
 	{
 	  // Otherwise, create a new one

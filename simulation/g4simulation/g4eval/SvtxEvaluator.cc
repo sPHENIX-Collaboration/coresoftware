@@ -82,6 +82,11 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
 {
 }
 
+SvtxEvaluator::~SvtxEvaluator()
+{
+  delete _timer;
+}
+
 int SvtxEvaluator::Init(PHCompositeNode* topNode)
 {
   _ievent = 0;

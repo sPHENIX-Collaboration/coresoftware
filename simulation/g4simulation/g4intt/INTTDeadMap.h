@@ -1,5 +1,5 @@
-#ifndef INTTDeadMap_H__
-#define INTTDeadMap_H__
+#ifndef G4INTT_INTTDEADMAP_H
+#define G4INTT_INTTDEADMAP_H
 
 #include <g4detectors/PHG4CellDefs.h>
 
@@ -12,19 +12,17 @@ class INTTDeadMap : public PHObject
   typedef std::set<PHG4CellDefs::keytype> Map;
 
   virtual ~INTTDeadMap() {}
-  virtual void Reset();
+  virtual void Reset() {}
   virtual int isValid() const;
 
   virtual void identify(std::ostream &os = std::cout) const;
 
-  void addDeadChannel(const int layer, const int ieta, const int iphi);
   void addDeadChannelINTT(const int layer,
                           const int ladder_phi, const int ladder_z,
                           const int strip_z, const int strip_phi);
-  virtual void addDeadChannel(PHG4CellDefs::keytype key);
+  virtual void addDeadChannel(PHG4CellDefs::keytype key) {return;}
 
-  virtual bool isDeadChannel(PHG4CellDefs::keytype key) const;
-  bool isDeadChannel(const int layer, const int ieta, const int iphi) const;
+  virtual bool isDeadChannel(PHG4CellDefs::keytype key) const {return false;}
   bool isDeadChannelINTT(const int layer,
                          const int ladder_phi, const int ladder_z,
                          const int strip_z, const int strip_phi) const;
@@ -52,4 +50,4 @@ class INTTDeadMap : public PHObject
   ClassDef(INTTDeadMap, 1)
 };
 
-#endif /* INTTDeadMap_H__ */
+#endif /* G4INTT_INTTDEADMAP_H */
