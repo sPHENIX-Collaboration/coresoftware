@@ -1,9 +1,8 @@
-#ifndef __PHG4MVTXDIGITIZER_H__
-#define __PHG4MVTXDIGITIZER_H__
+#ifndef G4MVTX_PHG4MVTXDIGITIZER_H
+#define G4MVTX_PHG4MVTXDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
 #include <g4detectors/PHG4CellDefs.h>
-#include <phool/PHTimeServer.h>
 
 #include <map>
 #include <vector>
@@ -20,7 +19,7 @@ class PHG4MVTXDigitizer : public SubsysReco
 {
  public:
   PHG4MVTXDigitizer(const std::string &name = "PHG4MVTXDigitizer");
-  virtual ~PHG4MVTXDigitizer() {}
+  virtual ~PHG4MVTXDigitizer();
 
   //! module initialization
   int Init(PHCompositeNode *topNode) { return 0; }
@@ -56,8 +55,6 @@ class PHG4MVTXDigitizer : public SubsysReco
 
   // storage
   SvtxHitMap *_hitmap;
-
-  PHTimeServer::timer _timer;  ///< Timer
 
 #ifndef __CINT__
   //! random generator that conform with sPHENIX standard

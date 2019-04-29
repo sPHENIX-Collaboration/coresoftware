@@ -1,5 +1,5 @@
-#ifndef G4INTT_PHG4InttDIGITIZER_H
-#define G4INTT_PHG4InttDIGITIZER_H
+#ifndef G4INTT_PHG4INTTDIGITIZER_H
+#define G4INTT_PHG4INTTDIGITIZER_H
 
 #include <phparameter/PHParameterInterface.h>
 
@@ -17,7 +17,7 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 {
  public:
   PHG4InttDigitizer(const std::string &name = "PHG4InttDigitizer");
-  virtual ~PHG4InttDigitizer() {}
+  virtual ~PHG4InttDigitizer();
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
@@ -38,11 +38,8 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   void CalculateLadderCellADCScale(PHCompositeNode *topNode);
 
   void DigitizeLadderCells(PHCompositeNode *topNode);
-  void PrintHits(PHCompositeNode *topNode);
 
   std::string detector;
-  std::string hitnodename;
-  std::string cellnodename;
   // noise electrons
   float added_noise();
 

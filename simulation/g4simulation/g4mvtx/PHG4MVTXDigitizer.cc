@@ -8,20 +8,21 @@
 #include <trackbase_historic/SvtxHit_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
-
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 #include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4Cellv2.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
 
 #include <gsl/gsl_randist.h>
@@ -35,8 +36,7 @@ using namespace std;
 PHG4MVTXDigitizer::PHG4MVTXDigitizer(const string &name)
   : SubsysReco(name)
   , _energy_scale(0.95e-06)   // 99 electrons default
-  , _hitmap(NULL)
-  , _timer(PHTimeServer::get()->insert_new(name))
+  , _hitmap(nullptr)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;
@@ -45,6 +45,11 @@ PHG4MVTXDigitizer::PHG4MVTXDigitizer(const string &name)
 
   if (Verbosity() > 0)
     cout << "Creating PHG4MVTXDigitizer with name = " << name << endl;
+}
+
+PHG4MVTXDigitizer::~PHG4MVTXDigitizer()
+{
+  gsl_rng_free(RandomGenerator);
 }
 
 int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
@@ -104,7 +109,6 @@ int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
 
 int PHG4MVTXDigitizer::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
 
   _hitmap = findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
   if (!_hitmap)
@@ -121,7 +125,6 @@ int PHG4MVTXDigitizer::process_event(PHCompositeNode *topNode)
 
   PrintHits(topNode);
 
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
