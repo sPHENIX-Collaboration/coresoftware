@@ -11,6 +11,7 @@
 #define PHG4CylinderGeom_Spacalv2_H__
 
 #include "PHG4CylinderGeom_Spacalv1.h"
+
 #include <string>
 #include <cmath>
 
