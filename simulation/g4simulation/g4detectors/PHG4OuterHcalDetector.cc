@@ -518,6 +518,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     // method. I'll take care of this in the decoding of the volume name
     // AAAAAAARHGS
     scinti_mother_assembly->MakeImprint(hcalenvelope, g4vec, Rot, i, OverlapCheck());
+    delete Rot;
     Rot = new G4RotationMatrix();
     Rot->rotateZ(-phi * rad);
     name.str("");
