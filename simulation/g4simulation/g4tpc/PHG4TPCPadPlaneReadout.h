@@ -1,8 +1,9 @@
-#ifndef PHG4TPCPadPlaneReadout_h
-#define PHG4TPCPadPlaneReadout_h
+#ifndef G4TPC_PHG4TPCPADPLANEREADOUT_H
+#define G4TPC_PHG4TPCPADPLANEREADOUT_H
+
+#include "PHG4TPCPadPlane.h"
 
 #include <g4main/PHG4HitContainer.h>
-#include "PHG4TPCPadPlane.h"
 
 #include <vector>
 
@@ -18,7 +19,7 @@ class PHG4TPCPadPlaneReadout : public PHG4TPCPadPlane
 {
  public:
   PHG4TPCPadPlaneReadout(const std::string &name = "ReadoutPadPlane");
-  virtual ~PHG4TPCPadPlaneReadout() {}
+  virtual ~PHG4TPCPadPlaneReadout();
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
@@ -38,12 +39,6 @@ class PHG4TPCPadPlaneReadout : public PHG4TPCPadPlane
 
   TF1 *fcharge;
   TF1 *fpad[10];
-
-  //double max_active_radius;
-  //double min_active_radius;
-  //double rbinwidth;
-  //double phibinwidth;
-  //double tbinwidth;
 
   PHG4CylinderCellGeomContainer *GeomContainer;
   PHG4CylinderCellGeom *LayerGeom;

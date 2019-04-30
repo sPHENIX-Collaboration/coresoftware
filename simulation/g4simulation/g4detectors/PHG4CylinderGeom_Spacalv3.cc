@@ -31,6 +31,11 @@ PHG4CylinderGeom_Spacalv3::PHG4CylinderGeom_Spacalv3()
   SetDefault();
 }
 
+PHG4CylinderGeom_Spacalv3::~PHG4CylinderGeom_Spacalv3()
+{
+  sector_tower_map.erase(sector_tower_map.begin(), sector_tower_map.end());
+}
+
 void
 PHG4CylinderGeom_Spacalv3::identify(std::ostream& os) const
 {

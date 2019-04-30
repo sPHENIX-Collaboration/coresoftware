@@ -1,21 +1,23 @@
 #include "PHG4TPCPadPlaneReadout.h"
-#include <g4detectors/PHG4Cellv1.h>
 
+#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+
 #include <g4main/PHG4HitContainer.h>
 
 // Move to new storage containers
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
+
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
 
 #include <TNtuple.h>
 #include <TSystem.h>
-#include "TF1.h"
+#include <TF1.h>
 
 #include <cmath>
 #include <iostream>
@@ -28,7 +30,7 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
   , GeomContainer(nullptr)
   , LayerGeom(nullptr)
   , rad_gem(NAN)
-  , output_radius(NAN)
+  , output_radius(0)
   , neffelectrons_threshold(NAN)
   , MinLayer()
   , MaxLayer()
@@ -48,10 +50,9 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
   , NTpcLayers()
   , tpc_region(INT_MAX)
   , zigzag_pads(INT_MAX)
+  , hit(0)
 {
   InitializeParameters();
-
-  hit = 0;
 
   fcharge = new TF1("fcharge", "gaus(0)");
 
@@ -61,9 +62,18 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
     sprintf(name, "fpad%i", ipad);
     fpad[ipad] = new TF1(name, "[0]-abs(x-[1])");
   }
-  output_radius = 0;  // turns off diagnostic output
 
   return;
+}
+
+PHG4TPCPadPlaneReadout::~PHG4TPCPadPlaneReadout()
+{
+  delete fcharge;
+// fancy C++11 way to loop over an array
+  for (auto &tf: fpad)
+  {
+    delete tf;
+  }
 }
 
 int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)

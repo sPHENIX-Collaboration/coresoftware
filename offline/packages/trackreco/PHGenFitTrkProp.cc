@@ -17,16 +17,8 @@
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
 
-// trackbase_historic includes
-//#include <trackbase_historic/SvtxCluster.h>
-//#include <trackbase_historic/SvtxClusterMap.h>
-//#include <trackbase_historic/SvtxHitMap.h>
-//#include <trackbase_historic/SvtxHit_v1.h>
-
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
-#include <mvtx/MvtxDefs.h>
-#include <intt/InttDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -47,8 +39,12 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 //
+
 #include <intt/CylinderGeomINTT.h>
+#include <intt/InttDefs.h>
+
 #include <mvtx/CylinderGeom_MVTX.h>
+#include <mvtx/MvtxDefs.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
@@ -77,10 +73,15 @@
 #include <GenFit/RKTrackRep.h>
 #include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
+
 #include <phgenfit/Fitter.h>
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
+
+//ROOT includes for debugging
+#include <TFile.h>
+#include <TNtuple.h>
 
 // Geant4 includes
 #include <Geant4/G4FieldManager.hh>
@@ -101,9 +102,6 @@
 #include <memory>
 #include <tuple>
 
-//ROOT includes for debugging
-#include <TFile.h>
-#include <TNtuple.h>
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
@@ -249,6 +247,11 @@ PHGenFitTrkProp::PHGenFitTrkProp(
 
   _vertex_error.clear();
   _vertex_error.assign(3, 0.0100);
+}
+
+PHGenFitTrkProp::~PHGenFitTrkProp()
+{
+  delete _fitter;
 }
 
 int PHGenFitTrkProp::Setup(PHCompositeNode* topNode)

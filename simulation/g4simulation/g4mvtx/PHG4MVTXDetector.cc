@@ -1,6 +1,7 @@
 #include "PHG4MVTXDetector.h"
 #include "PHG4MVTXDefs.h"
-#include "mvtx/CylinderGeom_MVTX.h"
+
+#include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -26,7 +27,6 @@
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
-
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4VisAttributes.hh>
 
@@ -35,8 +35,6 @@
 #include <sstream>
 
 using namespace std;
-
-//static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
 
 PHG4MVTXDetector::PHG4MVTXDetector(PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(Node, dnam)
@@ -317,60 +315,60 @@ void PHG4MVTXDetector::SetDisplayProperty(G4LogicalVolume* lv)
     cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
          << material_name << endl;
 
-  G4VisAttributes* matVis = new G4VisAttributes();
+  G4VisAttributes matVis;
   if (material_name.find("SI") != std::string::npos)
   {
-    PHG4Utils::SetColour(matVis, "G4_Si");
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    PHG4Utils::SetColour(&matVis, "G4_Si");
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
     if (Verbosity() >= 5)
       cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Si" << endl;
   }
   else if (material_name.find("KAPTON") != std::string::npos)
   {
-    PHG4Utils::SetColour(matVis, "G4_KAPTON");
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    PHG4Utils::SetColour(&matVis, "G4_KAPTON");
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
     if (Verbosity() >= 5)
       cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_KAPTON" << endl;
   }
   else if (material_name.find("ALUMINUM") != std::string::npos)
   {
-    PHG4Utils::SetColour(matVis, "G4_Al");
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    PHG4Utils::SetColour(&matVis, "G4_Al");
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
     if (Verbosity() >= 5)
       cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Al" << endl;
   }
   else if (material_name.find("Carbon") != std::string::npos)
   {
-    matVis->SetColour(0.5, 0.5, 0.5, .25);
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    matVis.SetColour(0.5, 0.5, 0.5, .25);
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
     if (Verbosity() >= 5)
       cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
   }
   else if (material_name.find("M60J3K") != std::string::npos)
   {
-    matVis->SetColour(0.25, 0.25, 0.25, .25);
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    matVis.SetColour(0.25, 0.25, 0.25, .25);
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
     if (Verbosity() >= 5)
       cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
   }
   else if (material_name.find("WATER") != std::string::npos)
   {
-    matVis->SetColour(0.0, 0.5, 0.0, .25);
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    matVis.SetColour(0.0, 0.5, 0.0, .25);
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
     if (Verbosity() >= 5)
       cout << "SetDisplayProperty - LV " << lv->GetName() << " display with WATER" << endl;
   }
   else
   {
-    matVis->SetColour(.2, .2, .7, .25);
-    matVis->SetVisibility(true);
-    matVis->SetForceSolid(true);
+    matVis.SetColour(.2, .2, .7, .25);
+    matVis.SetVisibility(true);
+    matVis.SetForceSolid(true);
   }
   lv->SetVisAttributes(matVis);
 
