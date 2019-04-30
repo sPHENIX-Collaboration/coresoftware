@@ -80,9 +80,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
       unsigned int nlayers_intt = 8,
       unsigned int nlayers_tpc = 60);
 
-  virtual ~PHGenFitTrkProp()
-  {
-  }
+  virtual ~PHGenFitTrkProp();
 
  protected:
   int Setup(PHCompositeNode* topNode);
