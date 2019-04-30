@@ -10,19 +10,18 @@
 #ifndef PHG4CylinderGeom_Spacalv3_H__
 #define PHG4CylinderGeom_Spacalv3_H__
 
+#include "PHG4CylinderGeom_Spacalv2.h"
+
 #include <map>
 #include <string>
 #include <utility>  // std::pair, std::make_pair
-#include "PHG4CylinderGeom_Spacalv2.h"
 
 class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
 {
  public:
   PHG4CylinderGeom_Spacalv3();
 
-  virtual ~PHG4CylinderGeom_Spacalv3()
-  {
-  }
+  virtual ~PHG4CylinderGeom_Spacalv3();
 
   virtual void
   identify(std::ostream& os = std::cout) const;
