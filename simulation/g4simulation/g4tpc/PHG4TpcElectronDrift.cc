@@ -63,6 +63,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , min_time(NAN)
   , max_time(NAN)
   , temp_hitsetcontainer(nullptr)
+  , padplane(nullptr)
 {
   //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
@@ -78,6 +79,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
 PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
 {
   gsl_rng_free(RandomGenerator);
+  delete padplane;
 }
 
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
@@ -386,8 +388,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 		   << "  energy " << temp_tpchit->getEnergy() << endl;
 	    
 	    // find or add this hit to the node tree	    
-	    TrkrHit *node_hit = nullptr;
-	    node_hit = node_hitsetit->second->getHit(temp_hitkey);
+	    TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
 	    if(!node_hit)
 	      {
 		// Otherwise, create a new one
