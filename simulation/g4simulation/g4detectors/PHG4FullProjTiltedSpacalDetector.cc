@@ -294,12 +294,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid_place, cylinder_mat,
                                                    G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
-  G4VisAttributes* VisAtt = new G4VisAttributes();
-  VisAtt->SetColor(.5, .9, .5, .5);
-  VisAtt->SetVisibility(
+  G4VisAttributes VisAtt;
+  VisAtt.SetColor(.5, .9, .5, .5);
+  VisAtt.SetVisibility(
       get_geom_v3()->is_azimuthal_seg_visible() or get_geom_v3()->is_virualize_fiber());
-  VisAtt->SetForceSolid(false);
-  VisAtt->SetForceWireframe(true);
+  VisAtt.SetForceSolid(false);
+  VisAtt.SetForceWireframe(true);
   sec_logic->SetVisAttributes(VisAtt);
 
   // construct walls
@@ -307,10 +307,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   G4Material* wall_mat = G4Material::GetMaterial(get_geom_v3()->get_sidewall_mat());
   assert(wall_mat);
 
-  G4VisAttributes* wall_VisAtt = new G4VisAttributes();
-  wall_VisAtt->SetColor(.5, .9, .5, .1);
-  wall_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
-  wall_VisAtt->SetForceSolid(true);
+  G4VisAttributes wall_VisAtt;
+  wall_VisAtt.SetColor(.5, .9, .5, .1);
+  wall_VisAtt.SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
+  wall_VisAtt.SetForceSolid(true);
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
@@ -445,10 +445,10 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     G4Material* divider_mat = G4Material::GetMaterial(get_geom_v3()->get_divider_mat());
     assert(divider_mat);
 
-    G4VisAttributes* divider_VisAtt = new G4VisAttributes();
-    divider_VisAtt->SetColor(.8, 1, .8, .3);
-    divider_VisAtt->SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
-    divider_VisAtt->SetForceSolid(true);
+    G4VisAttributes divider_VisAtt;
+    divider_VisAtt.SetColor(.8, 1, .8, .3);
+    divider_VisAtt.SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
+    divider_VisAtt.SetForceSolid(true);
 
     int ID = 300;
     for (const auto& geom : divider_azimuth_geoms)
@@ -823,12 +823,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
                                                      nullptr);
 
-  G4VisAttributes* VisAtt = new G4VisAttributes();
+  G4VisAttributes VisAtt;
   //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-  VisAtt->SetColor(.3, .3, .3, .3);
-  VisAtt->SetVisibility(
+  VisAtt.SetColor(.3, .3, .3, .3);
+  VisAtt.SetVisibility(
       get_geom_v3()->is_azimuthal_seg_visible() or get_geom_v3()->is_virualize_fiber());
-  VisAtt->SetForceSolid(not get_geom_v3()->is_virualize_fiber());
+  VisAtt.SetForceSolid(not get_geom_v3()->is_virualize_fiber());
   block_logic->SetVisAttributes(VisAtt);
 
   // construct fibers
@@ -939,12 +939,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
                                                      nullptr);
 
-  G4VisAttributes* VisAtt = new G4VisAttributes();
-  PHG4Utils::SetColour(VisAtt, g_tower.LightguideMaterial);
+  G4VisAttributes VisAtt;
+  PHG4Utils::SetColour(&VisAtt, g_tower.LightguideMaterial);
   //  VisAtt->SetColor(.3, .3, .3, .3);
-  VisAtt->SetVisibility(
+  VisAtt.SetVisibility(
       _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
-  VisAtt->SetForceSolid(not _geom->is_virualize_fiber());
+  VisAtt.SetForceSolid(not _geom->is_virualize_fiber());
   block_logic->SetVisAttributes(VisAtt);
 
   return block_logic;
