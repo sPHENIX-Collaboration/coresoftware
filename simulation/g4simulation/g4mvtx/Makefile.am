@@ -60,9 +60,6 @@ BUILT_SOURCES = testexternals.cc
 noinst_PROGRAMS = \
   testexternals
 
-testexternals_io_SOURCES = \
-  testexternals.cc
-
 testexternals_SOURCES = \
   testexternals.cc
 testexternals_LDADD = \
