@@ -1,11 +1,11 @@
 #include "PHG4DisplayAction.h"
 
-#include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4VPhysicalVolume.hh>
 
 using namespace std;
 
-int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume *physvol)
+int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume* physvol)
 {
   int iret = 0;
   if (int chk = CheckVolume(physvol))
@@ -21,11 +21,11 @@ int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume *physvol)
   int nDaughters = logvol->GetNoDaughters();
   if (nDaughters > 0)
   {
-    for (int i = 0; i<nDaughters; ++i)
+    for (int i = 0; i < nDaughters; ++i)
     {
       G4VPhysicalVolume* daughtervol = logvol->GetDaughter(i);
       //G4LogicalVolume* logicdaughter = daughtervol->GetLogicalVolume();
-    
+
       if (FindVolumes(daughtervol))
       {
         iret = -1;
