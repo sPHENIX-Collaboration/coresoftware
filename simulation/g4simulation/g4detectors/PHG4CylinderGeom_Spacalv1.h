@@ -7,10 +7,11 @@
  * \version $$Revision: 1.2 $$
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
-#ifndef PHG4CylinderGeom_Spacalv1_H__
-#define PHG4CylinderGeom_Spacalv1_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMSPACALV1_H
+#define G4DETECTORS_PHG4CYLINDERGEOMSPACALV1_H
 
 #include "PHG4CylinderGeomv2.h"
+
 #include <string>
 #include <cmath>
 #include <map>
