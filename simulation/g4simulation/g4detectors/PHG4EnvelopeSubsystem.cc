@@ -31,7 +31,7 @@ int PHG4EnvelopeSubsystem::Init( PHCompositeNode* topNode )
 	// create detector
 	detector_ = new PHG4EnvelopeDetector(topNode, Name());
 	detector_->SetActive(active);
-	detector_->OverlapCheck(overlapcheck);
+	detector_->OverlapCheck(CheckOverlap());
 	
 	if (active)
 	{

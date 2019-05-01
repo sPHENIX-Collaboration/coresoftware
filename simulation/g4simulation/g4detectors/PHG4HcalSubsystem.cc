@@ -76,7 +76,7 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorberactive);
   detector_->SuperDetector(superdetector);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
   if (active)
     {
       ostringstream nodename;
