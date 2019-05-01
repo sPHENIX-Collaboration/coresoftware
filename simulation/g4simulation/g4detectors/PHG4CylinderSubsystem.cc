@@ -22,8 +22,8 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
-  , detector_(nullptr)
-  , steppingAction_(nullptr)
+  , m_Detector(nullptr)
+  , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
 {
   InitializeParameters();
@@ -43,10 +43,10 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     GetParams()->set_double_param("length", PHG4Utils::GetLengthForRapidityCoverage(GetParams()->get_double_param("radius") + GetParams()->get_double_param("thickness")) * 2);
   }
   // create detector
-  detector_ = new PHG4CylinderDetector(this, topNode, GetParams(), Name(), GetLayer());
+  m_Detector = new PHG4CylinderDetector(this, topNode, GetParams(), Name(), GetLayer());
   G4double detlength = GetParams()->get_double_param("length");
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator iter(topNode);
@@ -99,14 +99,14 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
     PHG4CylinderGeom *mygeom = new PHG4CylinderGeomv1(GetParams()->get_double_param("radius"), GetParams()->get_double_param("place_z") - detlength / 2., GetParams()->get_double_param("place_z") + detlength / 2., GetParams()->get_double_param("thickness"));
     geo->AddLayerGeom(GetLayer(), mygeom);
-    steppingAction_ = new PHG4CylinderSteppingAction(detector_, GetParams());
+    m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
   }
   if (GetParams()->get_int_param("blackhole"))
   {
-    steppingAction_ = new PHG4CylinderSteppingAction(detector_, GetParams());
+    m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
   }
-// create display settings
-  m_DisplayAction = new PHG4CylinderDisplayAction(Name(),GetParams());
+  // create display settings
+  m_DisplayAction = new PHG4CylinderDisplayAction(Name(), GetParams());
   return 0;
 }
 
@@ -115,9 +115,9 @@ int PHG4CylinderSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
@@ -144,7 +144,7 @@ void PHG4CylinderSubsystem::SetDefaultParameters()
 PHG4Detector *
 PHG4CylinderSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
 
 void PHG4CylinderSubsystem::Print(const string &what) const
@@ -162,9 +162,9 @@ void PHG4CylinderSubsystem::Print(const string &what) const
     return;
   }
   GetParams()->Print();
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->Print(what);
+    m_SteppingAction->Print(what);
   }
   return;
 }

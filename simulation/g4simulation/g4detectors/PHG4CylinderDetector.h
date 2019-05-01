@@ -1,5 +1,7 @@
-#ifndef PHG4CylinderDetector_h
-#define PHG4CylinderDetector_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERDETECTOR_H
+#define G4DETECTORS_PHG4CYLINDERDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -17,7 +19,7 @@ class PHG4CylinderDetector : public PHG4Detector
   PHG4CylinderDetector(PHG4CylinderSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderDetector(void)
+  virtual ~PHG4CylinderDetector()
   {
   }
 
@@ -25,17 +27,18 @@ class PHG4CylinderDetector : public PHG4Detector
   void Construct(G4LogicalVolume *world);
 
   bool IsInCylinder(const G4VPhysicalVolume *) const;
-  void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
-  int get_Layer() const { return layer; }
- private:
-  PHParameters *params;
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
+  int get_Layer() const { return m_Layer; }
 
-  G4VPhysicalVolume *cylinder_physi;
+ private:
+  PHParameters *m_Params;
+
+  G4VPhysicalVolume *m_CylinderPhysicalVolume;
   PHG4CylinderSubsystem *m_MySubSys;
 
-  int layer;
-  std::string superdetector;
+  int m_Layer;
+  std::string m_SuperDetector;
 };
 
 #endif
