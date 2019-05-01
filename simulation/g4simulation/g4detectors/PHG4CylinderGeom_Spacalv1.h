@@ -12,39 +12,34 @@
 
 #include "PHG4CylinderGeomv2.h"
 
-#include <string>
-#include <cmath>
 #include <map>
+#include <string>
 
 class PHParameters;
 
 class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
 {
-public:
-
+ public:
   /** @name Ctor DTor and IDs
    */
   ///@{
   PHG4CylinderGeom_Spacalv1();
 
-  virtual
-  ~PHG4CylinderGeom_Spacalv1()
+  virtual ~PHG4CylinderGeom_Spacalv1()
   {
   }
 
-  virtual
-  void
-  identify(std::ostream& os = std::cout) const;
+  virtual void
+  identify(std::ostream &os = std::cout) const;
 
   virtual void
   Print(Option_t *option = "") const;
 
-  virtual
-  void
+  virtual void
   SetDefault();
 
   //! load parameters from PHParameters, which interface to Database/XML/ROOT files
-  virtual void ImportParameters(const PHParameters & param);
+  virtual void ImportParameters(const PHParameters &param);
 
   ///@}
 
@@ -110,20 +105,17 @@ public:
   /** @name Azimuthal segments
    */
   ///@{
-  virtual
-  int
+  virtual int
   get_azimuthal_n_sec() const;
 
-  virtual
-  double
+  virtual double
   get_azimuthal_distance() const;
 
-  virtual
-  double
+  virtual double
   get_z_distance() const;
 
   //! sector map sector_ID -> azimuthal rotation.
-  typedef std::map<int,double> sector_map_t;
+  typedef std::map<int, double> sector_map_t;
 
   //! sector map sector_ID -> azimuthal rotation.
   const sector_map_t &
@@ -236,19 +228,6 @@ public:
   /** @name General options
    */
   ///@{
-  //! obsolete as there is no need to limit steps in insentive volumne
-//  double
-//  get_calo_step_size() const
-//  {
-//    return get_fiber_distance() / 10.;
-//  }
-//
-  //! obsolete as there is no need to limit steps in insentive volumne
-//  double
-//  get_fiber_clading_step_size() const
-//  {
-//    return get_fiber_clading_thickness() / 10.;
-//  }
 
   double
   get_fiber_core_step_size() const
@@ -264,11 +243,9 @@ public:
     //! alias of above, more explicit
     k1DProjectiveSpacal = kNonProjective,
 
-
     //! Block constructed with taper in polar direction, non-taper in azimuthal direction.
     //! The final layout is approximately projective in both azimuthal and polar directions.
     kProjective_PolarTaper = 1,
-
 
     //! Fully projective spacal with 2D tapered modules
     kFullProjective_2DTaper = 2,
@@ -276,13 +253,11 @@ public:
     //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
     kFullProjective_2DTaper_SameLengthFiberPerTower = 3,
 
-
     //! Fully projective spacal with 2D tapered modules and allow azimuthal tilts
     kFullProjective_2DTaper_Tilted = 4,
 
     //! Fully projective spacal with 2D tapered modules and allow azimuthal tilts. To speed up construction, same-length fiber is used cross one tower
     kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower = 5,
-
 
     //! alias of above, the default 2D-projective SPACAL
     k2DProjectiveSpacal = kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower,
@@ -309,8 +284,7 @@ public:
     return virualize_fiber;
   }
 
-  virtual
-  bool is_azimuthal_seg_visible() const
+  virtual bool is_azimuthal_seg_visible() const
   {
     return false;
   }
@@ -321,8 +295,7 @@ public:
     virualize_fiber = virualizeFiber;
   }
 
-  int
-  get_construction_verbose() const
+  int get_construction_verbose() const
   {
     return construction_verbose;
   }
@@ -335,7 +308,7 @@ public:
 
   ///@}
 
-protected:
+ protected:
   std::string absorber_mat;
   std::string fiber_core_mat;
   std::string fiber_clading_mat;
@@ -352,9 +325,7 @@ protected:
   //! sector map sector_ID -> azimuthal rotation.
   sector_map_t sector_map;
 
-
-ClassDef(PHG4CylinderGeom_Spacalv1,2)
-
+  ClassDef(PHG4CylinderGeom_Spacalv1, 2)
 };
 
 #endif
