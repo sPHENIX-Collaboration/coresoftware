@@ -1,4 +1,6 @@
 #include "PHG4CylinderDetector.h"
+#include "PHG4CylinderSubsystem.h"
+#include "PHG4CylinderDisplayAction.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -24,10 +26,11 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4CylinderDetector::PHG4CylinderDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+PHG4CylinderDetector::PHG4CylinderDetector(PHG4CylinderSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(Node, dnam)
   , params(parameters)
   , cylinder_physi(nullptr)
+  , m_MySubSys(subsys)
   , layer(lyr)
 {
 }
@@ -92,4 +95,6 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                      cylinder_logic,
                                      G4String(GetName()),
                                      logicWorld, 0, false, OverlapCheck());
+  PHG4CylinderDisplayAction *action = dynamic_cast<PHG4CylinderDisplayAction *> (m_MySubSys->GetDisplayAction());
+  action->SetMyVolume(cylinder_physi);
 }
