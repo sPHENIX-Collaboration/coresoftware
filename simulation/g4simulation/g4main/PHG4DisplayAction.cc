@@ -5,11 +5,17 @@
 
 using namespace std;
 
-void PHG4DisplayAction::FindVolumes(G4VPhysicalVolume *physvol)
+int PHG4DisplayAction::FindVolumes(G4VPhysicalVolume *physvol)
 {
-  if (CheckVolume(physvol))
+  int iret = 0;
+  if (int chk = CheckVolume(physvol))
   {
     ApplyVisAttributes(physvol);
+    if (chk == CheckReturnCodes::ABORT)
+    {
+      iret = -1;
+      return iret;
+    }
   }
   G4LogicalVolume* logvol = physvol->GetLogicalVolume();
   int nDaughters = logvol->GetNoDaughters();
@@ -20,7 +26,12 @@ void PHG4DisplayAction::FindVolumes(G4VPhysicalVolume *physvol)
       G4VPhysicalVolume* daughtervol = logvol->GetDaughter(i);
       //G4LogicalVolume* logicdaughter = daughtervol->GetLogicalVolume();
     
-      FindVolumes(daughtervol);
+      if (FindVolumes(daughtervol))
+      {
+        iret = -1;
+        return iret;
+      }
     }
   }
+  return iret;
 }

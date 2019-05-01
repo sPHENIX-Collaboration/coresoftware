@@ -32,7 +32,7 @@ public:
 
   virtual std::string GetName() const { return m_Detector;}
 
-
+  enum CheckReturnCodes {ABORT = -1, FAILED = 0, ACCEPT = 1};
 
 protected:
 
@@ -40,13 +40,13 @@ protected:
 /*
  * @param[in] starting volume
  */
-  void FindVolumes(G4VPhysicalVolume *physvol);
+  int FindVolumes(G4VPhysicalVolume *physvol);
 
 //! find CheckVolume method
 /*
  * @param[in] physical volume to be checked
  */
-  virtual bool CheckVolume(G4VPhysicalVolume *physvol) {return false;}
+  virtual int CheckVolume(G4VPhysicalVolume *physvol) {return 0;}
 
   //! ApplyVisAttributes method
 /**

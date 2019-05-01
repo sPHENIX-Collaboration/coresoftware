@@ -18,7 +18,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
 #include <sstream>
@@ -56,20 +55,6 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
     exit(-1);
   }
 
-  G4VisAttributes *siliconVis = new G4VisAttributes();
-  if (params->get_int_param("blackhole"))
-  {
-    PHG4Utils::SetColour(siliconVis, "BlackHole");
-    siliconVis->SetVisibility(false);
-    siliconVis->SetForceSolid(false);
-  }
-  else
-  {
-    PHG4Utils::SetColour(siliconVis, params->get_string_param("material"));
-    siliconVis->SetVisibility(true);
-    siliconVis->SetForceSolid(true);
-  }
-
   // determine length of cylinder using PHENIX's rapidity coverage if flag is true
   double radius = params->get_double_param("radius") * cm;
   double thickness = params->get_double_param("thickness") * cm;
@@ -88,7 +73,6 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                                         TrackerMaterial,
                                                         G4String(GetName()),
                                                         nullptr, nullptr, g4userlimits);
-  cylinder_logic->SetVisAttributes(siliconVis);
   cylinder_physi = new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x") * cm,
                                                       params->get_double_param("place_y") * cm,
                                                       params->get_double_param("place_z") * cm),
