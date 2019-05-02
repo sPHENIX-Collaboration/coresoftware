@@ -157,9 +157,9 @@ libg4testbench_la_SOURCES = \
   $(ROOT5TBDICTS) \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
-  PHG4MagneticField.cc \
   HepMCNodeReader.cc \
   PHG4ConsistencyCheck.cc \
+  PHG4DisplayAction.cc \
   PHG4Detector.cc \
   PHG4HitReadBack.cc \
   PHG4EtaParameterization.cc \
@@ -169,6 +169,7 @@ libg4testbench_la_SOURCES = \
   PHG4InEventReadBack.cc \
   PHG4InputFilter.cc \
   PHG4IonGun.cc \
+  PHG4MagneticField.cc \
   PHG4ParticleGeneratorBase.cc \
   PHG4ParticleGenerator.cc \
   PHG4ParticleGeneratorVectorMeson.cc \
@@ -203,6 +204,7 @@ pkginclude_HEADERS = \
   PHBBox.h \
   PHG4ColorDefs.h \
   PHG4Detector.h \
+  PHG4DisplayAction.h \
   PHG4EventAction.h \
   PHG4EventHeader.h \
   PHG4HitDefs.h \

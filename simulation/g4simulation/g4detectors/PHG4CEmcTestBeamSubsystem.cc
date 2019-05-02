@@ -61,7 +61,7 @@ PHG4CEmcTestBeamSubsystem::Init( PHCompositeNode* topNode )
   detector_->SetAbsorberActive(absorberactive);
   detector_->BlackHole(blackhole);
   detector_->SuperDetector(superdetector);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
   if (active)
     {
       ostringstream nodename;

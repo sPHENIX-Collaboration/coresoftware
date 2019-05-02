@@ -1,12 +1,12 @@
-#ifndef PHG4CylinderSubsystem_h
-#define PHG4CylinderSubsystem_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H
+#define G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4String.hh>
-#include <Geant4/G4Types.hh>
-
 class PHG4CylinderDetector;
+class PHG4DisplayAction;
 class PHG4SteppingAction;
 
 class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
@@ -16,13 +16,11 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderSubsystem(void)
-  {
-  }
+  virtual ~PHG4CylinderSubsystem(void);
 
   //! init runwise stuff
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
+  creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
@@ -40,17 +38,24 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const { return steppingAction_; }
+  PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
+
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+
  private:
   void SetDefaultParameters();
 
   //! detector geometry
-  /*! defives from PHG4Detector */
-  PHG4CylinderDetector* detector_;
+  /*! derives from PHG4Detector */
+  PHG4CylinderDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction* m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
 };
 
-#endif
+#endif  // G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H

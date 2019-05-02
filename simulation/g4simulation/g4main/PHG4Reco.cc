@@ -2,6 +2,7 @@
 
 #include "G4TBMagneticFieldSetup.hh"
 #include "PHG4InEvent.h"
+#include "PHG4DisplayAction.h"
 #include "PHG4PhenixDetector.h"
 #include "PHG4PhenixEventAction.h"
 #include "PHG4PhenixSteppingAction.h"
@@ -1400,5 +1401,26 @@ PHG4Reco::G4Verbosity(const int i)
   if (runManager_) 
   {
     runManager_->SetVerboseLevel(i);
+  }
+}
+
+void PHG4Reco::ApplyDisplayAction()
+{
+  if (! detector_)
+  {
+    return;
+  }
+  G4VPhysicalVolume* physworld = detector_->GetPhysicalVolume();
+  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_) //for (PHG4Subsystem g4sub: subsystems_)
+  {
+    PHG4DisplayAction *action = g4sub->GetDisplayAction();
+    if (action)
+    {
+      if (Verbosity() > 1)
+      {
+        cout << "Adding steppingaction for " << g4sub->Name() << endl;
+      }
+      action->ApplyDisplayAction(physworld);
+    }
   }
 }

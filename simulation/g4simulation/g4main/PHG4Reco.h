@@ -11,6 +11,8 @@
 
 // Forward declerations
 class PHCompositeNode;
+class G4LogicalVolume;
+class G4VPhysicalVolume;
 class G4RunManager;
 class PHG4PrimaryGeneratorAction;
 class PHG4PhenixDetector;
@@ -129,6 +131,7 @@ class PHG4Reco : public SubsysReco
 
   //! disable event/track/stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
   void setDisableUserActions(bool b = true) {m_disableUserActions = b;}
+  void ApplyDisplayAction();
 
  protected:
   int InitUImanager();
