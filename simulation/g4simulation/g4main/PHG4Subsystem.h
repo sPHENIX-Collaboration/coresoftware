@@ -1,5 +1,7 @@
-#ifndef PHG4Subsystem_h
-#define PHG4Subsystem_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4MAIN_PHG4SUBSYSTEM_H
+#define G4MAIN_PHG4SUBSYSTEM_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -7,6 +9,7 @@
 #include <string>
 
 class PHG4Detector;
+class PHG4DisplayAction;
 class PHG4EventAction;
 class PHG4SteppingAction;
 class PHG4TrackingAction;
@@ -30,27 +33,31 @@ overlapcheck(false)
 
   //! return pointer to created detector object
   virtual PHG4Detector* GetDetector( void ) const
-  { return 0; }
+  { return nullptr; }
 
   //! return pointer to this subsystem event action
   virtual PHG4EventAction* GetEventAction( void ) const
-  { return 0; }
+  { return nullptr; }
 
   //! return pointer to this subsystem stepping action
   virtual PHG4SteppingAction* GetSteppingAction( void ) const
-  { return 0; }
+  { return nullptr; }
 
   //! return pointer to this subsystem stepping action
   virtual PHG4TrackingAction* GetTrackingAction( void ) const
-  { return 0; }
+  { return nullptr; }
+
+  //! return pointer to this subsystem display setting
+  virtual PHG4DisplayAction *GetDisplayAction() const
+  {return nullptr;}
 
   void OverlapCheck(const bool chk = true) {overlapcheck = chk;}
 
   bool CheckOverlap() const {return overlapcheck;}
 
- protected:
+ private:
   bool overlapcheck;
 
 };
 
-#endif
+#endif // G4MAIN_PHG4SUBSYSTEM_H

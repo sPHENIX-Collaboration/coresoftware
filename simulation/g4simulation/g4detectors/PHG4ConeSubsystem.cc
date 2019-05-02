@@ -61,7 +61,7 @@ int PHG4ConeSubsystem::Init( PHCompositeNode* topNode )
   detector_->SetMaterial(material);
   detector_->SetActive(active);
   detector_->SuperDetector(superdetector);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
   if (active)
     {
   ostringstream nodename;

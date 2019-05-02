@@ -42,7 +42,7 @@ int PHG4RICHSubsystem::Init( PHCompositeNode* topNode )
   // create detector
   detector_ = new PHG4RICHDetector(topNode, geom);
   detector_->Verbosity(Verbosity());
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
   
   // create stepping action
   

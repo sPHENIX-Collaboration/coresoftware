@@ -5,6 +5,7 @@
 #include "PHG4EventActionClearZeroEdep.h"
 
 #include <g4main/PHG4HitContainer.h>
+
 #include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
@@ -19,8 +20,8 @@ using namespace std;
 PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
   detector_( 0 ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
+  steppingAction_( nullptr ),
+  eventAction_(nullptr),
   active(1),
   absorber_active(0),
   blackhole(0),
@@ -47,7 +48,7 @@ int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorber_active);
   detector_->BlackHole(blackhole);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
   detector_->Verbosity(Verbosity());
   detector_->SetTowerMappingFile( mappingfile_ );
 

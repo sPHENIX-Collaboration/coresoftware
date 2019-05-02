@@ -32,7 +32,7 @@ PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
   detector_ = new PHG4SectorDetector(topNode, Name());
   detector_->geom = geom;
   detector_->SuperDetector(superdetector);
-  detector_->OverlapCheck(overlapcheck);
+  detector_->OverlapCheck(CheckOverlap());
 
   if (geom.GetNumActiveLayers())
     {
