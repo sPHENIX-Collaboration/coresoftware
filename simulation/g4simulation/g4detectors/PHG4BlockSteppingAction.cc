@@ -98,17 +98,17 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       if (prepointstatus == fPostStepDoItProc && m_SavePostStepStatus == fGeomBoundary)
       {
-	cout << GetName() << ": New Hit for  " << endl;
-	cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
-	     << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
-	     << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
-	     << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
-	cout << "last track: " << m_SaveTrackId
-	     << ", current trackid: " << aTrack->GetTrackID() << endl;
-	cout << "phys pre vol: " << volume->GetName()
-	     << " post vol : " << touchpost->GetVolume()->GetName() << endl;
-	cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
-	     << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
+        cout << GetName() << ": New Hit for  " << endl;
+        cout << "prestep status: " << PHG4StepStatusDecode::GetStepStatus(prePoint->GetStepStatus())
+             << ", poststep status: " << PHG4StepStatusDecode::GetStepStatus(postPoint->GetStepStatus())
+             << ", last pre step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePreStepStatus)
+             << ", last post step status: " << PHG4StepStatusDecode::GetStepStatus(m_SavePostStepStatus) << endl;
+        cout << "last track: " << m_SaveTrackId
+             << ", current trackid: " << aTrack->GetTrackID() << endl;
+        cout << "phys pre vol: " << volume->GetName()
+             << " post vol : " << touchpost->GetVolume()->GetName() << endl;
+        cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
+             << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
       }
       if (!m_Hit)
       {
@@ -173,7 +173,7 @@ bool PHG4BlockSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     m_SavePostStepStatus = postPoint->GetStepStatus();
     m_SaveVolPre = volume;
     m_SaveVolPost = touchpost->GetVolume();
- 
+
     // here we just update the exit values, it will be overwritten
     // for every step until we leave the volume or the particle
     // ceases to exist

@@ -45,11 +45,11 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4BlockDetector *m_Detector;
+  PHG4BlockDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction *m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
