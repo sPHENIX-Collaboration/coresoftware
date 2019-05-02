@@ -255,6 +255,7 @@ libg4detectors_la_SOURCES = \
   PHG4BeamlineMagnetSubsystem.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockDetector.cc \
+  PHG4BlockDisplayAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
   PHG4CEmcTestBeamDetector.cc \

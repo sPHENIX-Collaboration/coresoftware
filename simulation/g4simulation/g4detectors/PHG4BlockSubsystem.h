@@ -1,10 +1,13 @@
-#ifndef PHG4BlockSubsystem_h
-#define PHG4BlockSubsystem_h
+// Tell emacs that this is a C++ source
+// This file is really -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4BLOCKSUBSYSTEM_H
+#define G4DETECTORS_PHG4BLOCKSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
 class PHG4BlockDetector;
 class PHG4BlockSteppingAction;
+class PHG4DisplayAction;
 
 class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 {
@@ -13,9 +16,7 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   PHG4BlockSubsystem(const std::string& name = "BLOCK", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4BlockSubsystem(void)
-  {
-  }
+  virtual ~PHG4BlockSubsystem();
 
   //! InitRunSubsystem
   /*!
@@ -33,18 +34,26 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   int process_event(PHCompositeNode*);
 
   //! accessors (reimplemented)
-  PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const { return _steppingAction; }
+  PHG4Detector* GetDetector() const;
+
+  PHG4SteppingAction* GetSteppingAction() const { return m_SteppingAction; }
+
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+
  private:
   void SetDefaultParameters();
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4BlockDetector* _detector;
+  PHG4BlockDetector *m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* _steppingAction;
+  PHG4SteppingAction *m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
 };
 
 #endif

@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4MAIN_PHG4CYLINDERDISPLAYACTION_H
-#define G4MAIN_PHG4CYLINDERDISPLAYACTION_H
+#ifndef G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H
+#define G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H
 
 #include <g4main/PHG4DisplayAction.h>
 
@@ -29,4 +29,4 @@ class PHG4CylinderDisplayAction : public PHG4DisplayAction
   G4VisAttributes *m_VisAtt;
 };
 
-#endif  // G4MAIN_PHG4CYLINDERDISPLAYACTION_H
+#endif  // G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H
