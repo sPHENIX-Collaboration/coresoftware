@@ -1,11 +1,12 @@
-// This is the new trackbase container version
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
 
-#ifndef __PHG4MvtxDIGITIZER_H__
-#define __PHG4MvtxDIGITIZER_H__
+#ifndef G4MVTX_PHG4MVTXDIGITIZER_H
+#define G4MVTX_PHG4MVTXDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <g4detectors/PHG4CellDefs.h>
-#include <phool/PHTimeServer.h>
 
 #include <map>
 #include <vector>
@@ -15,14 +16,11 @@
 #include <gsl/gsl_rng.h>
 #endif
 
-//class SvtxHitMap;
-//class PHG4Cell;
-
-class PHG4MvtxDigitizer : public SubsysReco
+class PHG4MVTXDigitizer : public SubsysReco
 {
  public:
-  PHG4MvtxDigitizer(const std::string &name = "PHG4MvtxDigitizer");
-  virtual ~PHG4MvtxDigitizer() {}
+  PHG4MVTXDigitizer(const std::string &name = "PHG4MVTXDigitizer");
+  virtual ~PHG4MVTXDigitizer();
 
   //! module initialization
   int Init(PHCompositeNode *topNode) { return 0; }
@@ -45,7 +43,6 @@ class PHG4MvtxDigitizer : public SubsysReco
  private:
   void CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode);
   void DigitizeMvtxLadderCells(PHCompositeNode *topNode);
-  void PrintHits(PHCompositeNode *topNode);
 
   std::vector<float> adc_input;
   std::vector<int> is_populated;
@@ -53,8 +50,6 @@ class PHG4MvtxDigitizer : public SubsysReco
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
-
-  PHTimeServer::timer _timer;  ///< Timer
 
 #ifndef __CINT__
   //! random generator that conform with sPHENIX standard
