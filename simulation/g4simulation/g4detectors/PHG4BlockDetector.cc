@@ -1,5 +1,8 @@
 #include "PHG4BlockDetector.h"
 
+#include "PHG4BlockDisplayAction.h"
+#include "PHG4BlockSubsystem.h"
+
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Utils.h>
@@ -15,17 +18,17 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <sstream>
 
 using namespace std;
 
 //_______________________________________________________________
-PHG4BlockDetector::PHG4BlockDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+PHG4BlockDetector::PHG4BlockDetector(PHG4BlockSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
   : PHG4Detector(Node, dnam)
   , m_Params(parameters)
   , m_BlockPhysi(nullptr)
+  , m_MySubSys(subsys)
   , m_Layer(lyr)
 {
 }
@@ -67,20 +70,6 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
                                                      TrackerMaterial,
                                                      G4String(GetName()),
                                                      nullptr, nullptr, g4userlimits);
-  G4VisAttributes matVis;
-  if (m_Params->get_int_param("blackhole"))
-  {
-    PHG4Utils::SetColour(&matVis, "BlackHole");
-    matVis.SetVisibility(false);
-    matVis.SetForceSolid(false);
-  }
-  else
-  {
-    PHG4Utils::SetColour(&matVis, m_Params->get_string_param("material"));
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-  }
-  block_logic->SetVisAttributes(matVis);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
   rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
@@ -88,4 +77,6 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
                                    block_logic,
                                    G4String(GetName()),
                                    logicWorld, 0, false, OverlapCheck());
+  PHG4BlockDisplayAction *action = dynamic_cast<PHG4BlockDisplayAction *>(m_MySubSys->GetDisplayAction());
+  action->SetMyVolume(m_BlockPhysi);
 }
