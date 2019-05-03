@@ -1,6 +1,7 @@
 #include "PHG4InnerHcalSubsystem.h"
 #include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDetector.h"
+#include "PHG4InnerHcalDisplayAction.h"
 #include "PHG4InnerHcalSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -30,13 +31,22 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem(const std::string &name, const in
 }
 
 //_______________________________________________________________________
+PHG4InnerHcalSubsystem::~PHG4InnerHcalSubsystem()
+{
+  delete m_DisplayAction;
+}
+
+//_______________________________________________________________________
 int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4InnerHcalDisplayAction(Name());
+
   // create detector
-  m_Detector = new PHG4InnerHcalDetector(topNode, GetParams(), Name());
+  m_Detector = new PHG4InnerHcalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   set<string> nodes;
