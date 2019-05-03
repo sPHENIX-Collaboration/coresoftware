@@ -9,6 +9,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4CylinderDisplayAction;
 class PHG4CylinderSubsystem;
 class PHParameters;
 
@@ -35,7 +36,7 @@ class PHG4CylinderDetector : public PHG4Detector
   PHParameters *m_Params;
 
   G4VPhysicalVolume *m_CylinderPhysicalVolume;
-  PHG4CylinderSubsystem *m_MySubSys;
+  PHG4CylinderDisplayAction *m_DisplayAction;
 
   int m_Layer;
   std::string m_SuperDetector;

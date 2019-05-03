@@ -29,7 +29,7 @@ PHG4CylinderDetector::PHG4CylinderDetector(PHG4CylinderSubsystem *subsys, PHComp
   : PHG4Detector(Node, dnam)
   , m_Params(parameters)
   , m_CylinderPhysicalVolume(nullptr)
-  , m_MySubSys(subsys)
+  , m_DisplayAction(dynamic_cast<PHG4CylinderDisplayAction *>(subsys->GetDisplayAction()))
   , m_Layer(lyr)
 {
 }
@@ -77,6 +77,5 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                                cylinder_logic,
                                                G4String(GetName()),
                                                logicWorld, 0, false, OverlapCheck());
-  PHG4CylinderDisplayAction *action = dynamic_cast<PHG4CylinderDisplayAction *>(m_MySubSys->GetDisplayAction());
-  action->SetMyVolume(m_CylinderPhysicalVolume);
+   m_DisplayAction->SetMyVolume(cylinder_logic);
 }
