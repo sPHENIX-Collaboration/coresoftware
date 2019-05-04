@@ -25,7 +25,8 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+  :  PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_Params(parameters)
   , m_HitContainer(nullptr)
   , m_Hit(nullptr)
@@ -47,7 +48,6 @@ PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* det
   // G4 seems to have issues in the um range
   m_Zmin -= copysign(m_Zmin, 1. / 1e6 * cm);
   m_Zmax += copysign(m_Zmax, 1. / 1e6 * cm);
-  SetName(m_Detector->GetName());
 }
 
 PHG4CylinderSteppingAction::~PHG4CylinderSteppingAction()
