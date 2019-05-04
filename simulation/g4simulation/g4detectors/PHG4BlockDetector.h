@@ -7,6 +7,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4BlockDisplayAction;
 class PHG4BlockSubsystem;
 class PHParameters;
 
@@ -37,7 +38,7 @@ class PHG4BlockDetector : public PHG4Detector
   PHParameters *m_Params;
 
   G4VPhysicalVolume *m_BlockPhysi;
-  PHG4BlockSubsystem *m_MySubSys;
+  PHG4BlockDisplayAction *m_DisplayAction;
 
   int m_Layer;
   std::string m_SuperDetector;

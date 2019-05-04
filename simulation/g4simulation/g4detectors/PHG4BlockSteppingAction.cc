@@ -20,8 +20,9 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4BlockSteppingAction::PHG4BlockSteppingAction(PHG4BlockDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+PHG4BlockSteppingAction::PHG4BlockSteppingAction(PHG4BlockDetector* detector, const PHParameters* parameters):  
+    PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_Params(parameters)
   , m_HitContainer(nullptr)
   , m_Hit(nullptr)
@@ -34,8 +35,7 @@ PHG4BlockSteppingAction::PHG4BlockSteppingAction(PHG4BlockDetector* detector, co
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_BlackHoleFlag(m_Params->get_int_param("blackhole"))
   , m_UseG4StepsFlag(m_Params->get_int_param("use_g4steps"))
-{
-}
+{}
 
 PHG4BlockSteppingAction::~PHG4BlockSteppingAction()
 {

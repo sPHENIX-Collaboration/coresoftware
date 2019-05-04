@@ -28,7 +28,7 @@ PHG4BlockDetector::PHG4BlockDetector(PHG4BlockSubsystem *subsys, PHCompositeNode
   : PHG4Detector(Node, dnam)
   , m_Params(parameters)
   , m_BlockPhysi(nullptr)
-  , m_MySubSys(subsys)
+  , m_DisplayAction(dynamic_cast<PHG4BlockDisplayAction *>(subsys->GetDisplayAction()))
   , m_Layer(lyr)
 {
 }
@@ -77,6 +77,5 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
                                    block_logic,
                                    G4String(GetName()),
                                    logicWorld, 0, false, OverlapCheck());
-  PHG4BlockDisplayAction *action = dynamic_cast<PHG4BlockDisplayAction *>(m_MySubSys->GetDisplayAction());
-  action->SetMyVolume(m_BlockPhysi);
+  m_DisplayAction->SetMyVolume(block_logic);
 }
