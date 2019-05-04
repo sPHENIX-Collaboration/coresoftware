@@ -103,12 +103,9 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     geo->AddLayerGeom(GetLayer(), mygeom);
     m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
   }
-  else
+  else if (GetParams()->get_int_param("blackhole"))
   {
-    if (GetParams()->get_int_param("blackhole"))
-    {
-      m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
-    }
+    m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
   }
   return 0;
 }
