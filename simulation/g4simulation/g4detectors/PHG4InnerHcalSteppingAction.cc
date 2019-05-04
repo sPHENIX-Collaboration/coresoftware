@@ -24,7 +24,8 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+  : PHG4SteppingAction(m_Detector->GetName())
+  , m_Detector(detector)
   , m_Hits(nullptr)
   , m_AbsorberHits(nullptr)
   , m_Hit(nullptr)
@@ -44,7 +45,6 @@ PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* 
                      m_Params->get_double_param("light_balance_inner_corr"),
                      m_Params->get_double_param("light_balance_outer_radius") * cm,
                      m_Params->get_double_param("light_balance_outer_corr"));
-  SetName(m_Detector->GetName());
 }
 
 PHG4InnerHcalSteppingAction::~PHG4InnerHcalSteppingAction()
