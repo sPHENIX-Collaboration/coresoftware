@@ -340,6 +340,7 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
   G4RotationMatrix *rotm = new G4RotationMatrix();
   rotm->rotateX(-90 * deg);
   G4VSolid *steel_firstcut_solid = new G4SubtractionSolid("SteelPlateFirstCut", steel_plate_uncut, m_SteelCutoutForMagnetG4Solid, rotm, G4ThreeVector(0, 0, 0));
+  delete rotm;
   //   DisplayVolume(steel_plate_uncut, hcalenvelope);
   //    DisplayVolume(m_SteelCutoutForMagnetG4Solid, hcalenvelope);
   //    DisplayVolume(m_SteelCutoutForMagnetG4Solid, hcalenvelope,rotm);
@@ -348,7 +349,7 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
   rotm->rotateX(90 * deg);
   G4VSolid *steel_cut_solid = new G4SubtractionSolid("SteelPlateCut", steel_firstcut_solid, m_SteelCutoutForMagnetG4Solid, rotm, G4ThreeVector(0, 0, 0));
   //           DisplayVolume(steel_cut_solid, hcalenvelope);
-
+  delete rotm;
   return steel_cut_solid;
 }
 
@@ -684,12 +685,14 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     name.str("");
     name << "scintillator_" << i << "_left";
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_ScintiInnerRadius + m_ScintiOuterRadius) / 2., 0, 0));
+    delete rotm;
     m_ScintiTilesVec[i + m_NumScintiTiles] = scinti_tile;
     rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
     name.str("");
     name << "scintillator_" << i << "_right";
     scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_ScintiInnerRadius + m_ScintiOuterRadius) / 2., 0, 0));
+    delete rotm;
     m_ScintiTilesVec[m_NumScintiTiles - i - 1] = scinti_tile;
   }
 #ifdef SCINTITEST
