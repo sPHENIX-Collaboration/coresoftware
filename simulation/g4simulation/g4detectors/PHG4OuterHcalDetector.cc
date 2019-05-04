@@ -24,11 +24,9 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Circular_kernel_intersections.h>
@@ -411,16 +409,12 @@ void PHG4OuterHcalDetector::Construct(G4LogicalVolume *logicWorld)
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("OuterHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("OuterHcal_envelope"), 0, 0, 0);
-  G4VisAttributes *hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(false);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::White());
-  hcal_envelope_log->SetVisAttributes(hcalVisAtt);
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, OverlapCheck());
+  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, OverlapCheck());
+  m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructOuterHcal(hcal_envelope_log);
   vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
   for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
@@ -505,11 +499,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
   G4VSolid *steel_plate = ConstructSteelPlate(hcalenvelope);
   //   DisplayVolume(steel_plate_4 ,hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_Params->get_string_param("material")), "HcalOuterSteelPlate", 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Grey());
-  steel_logical->SetVisAttributes(visattchk);
+  m_DisplayAction->AddSteelVolume(steel_logical);
   double phi = 0;
   double deltaphi = 2 * M_PI / m_NumScintiPlates;
   ostringstream name;
@@ -580,50 +570,6 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
   hcalenvelope->SetFieldManager(m_FieldSetup->get_Field_Manager_Gap(), false);
 
   steel_logical->SetFieldManager(m_FieldSetup->get_Field_Manager_Iron(), true);
-  return 0;
-}
-
-int PHG4OuterHcalDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  static int i = 0;
-  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), volume->GetName(), 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch (i)
-  {
-  case 0:
-    visattchk->SetColour(G4Colour::Red());
-    i++;
-    break;
-  case 1:
-    visattchk->SetColour(G4Colour::Magenta());
-    i++;
-    break;
-  case 2:
-    visattchk->SetColour(G4Colour::Yellow());
-    i++;
-    break;
-  case 3:
-    visattchk->SetColour(G4Colour::Blue());
-    i++;
-    break;
-  case 4:
-    visattchk->SetColour(G4Colour::Cyan());
-    i++;
-    break;
-  default:
-    visattchk->SetColour(G4Colour::Green());
-    i = 0;
-    break;
-  }
-
-  checksolid->SetVisAttributes(visattchk);
-  G4PVPlacement *placement = new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, checksolid->GetName(), logvol, 0, false);
-  if (OverlapCheck())
-  {
-    placement->CheckOverlaps(1000, 0., true, 1);
-  }
   return 0;
 }
 
@@ -824,11 +770,7 @@ PHG4OuterHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
       g4userlimits = new G4UserLimits(steplimits);
     }
     G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
-    G4VisAttributes *visattchk = new G4VisAttributes();
-    visattchk->SetVisibility(true);
-    visattchk->SetForceSolid(true);
-    visattchk->SetColour(G4Colour::Green());
-    scinti_tile_logic->SetVisAttributes(visattchk);
+    m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
 
     //field after burner
