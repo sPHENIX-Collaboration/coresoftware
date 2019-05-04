@@ -13,8 +13,7 @@ class PHG4Hit;
 class PHG4SteppingAction
 {
  public:
-  PHG4SteppingAction(const int i = 0);
-
+  PHG4SteppingAction(const std::string &name, const int i = 0);
   virtual ~PHG4SteppingAction()
   {
   }
