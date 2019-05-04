@@ -188,7 +188,6 @@ libg4testbench_la_SOURCES = \
   PHG4SteppingAction.cc \
   PHG4TrackUserInfoV1.cc \
   PHG4TruthEventAction.cc \
-  PHG4TruthSteppingAction.cc \
   PHG4TruthSubsystem.cc \
   PHG4TruthTrackingAction.cc \
   PHG4UIsession.cc \

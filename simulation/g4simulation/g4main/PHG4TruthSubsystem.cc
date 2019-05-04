@@ -1,7 +1,6 @@
 #include "PHG4TruthSubsystem.h"
 
 #include "PHG4TruthEventAction.h"
-#include "PHG4TruthSteppingAction.h"
 #include "PHG4TruthTrackingAction.h"
 
 
@@ -27,10 +26,9 @@ using namespace std;
 //_______________________________________________________________________
 PHG4TruthSubsystem::PHG4TruthSubsystem( const string &name ):
   PHG4Subsystem( name ),
-  eventAction_( nullptr ),
-  steppingAction_( nullptr ),
-  trackingAction_( nullptr ),
-  saveOnlyEmbeded_(false)
+  m_EventAction( nullptr ),
+  m_TrackingAction( nullptr ),
+  m_SaveOnlyEmbededFlag(false)
 {}
 
 //_______________________________________________________________________
@@ -49,13 +47,10 @@ int PHG4TruthSubsystem::InitRun( PHCompositeNode* topNode )
     }
 
   // event action
-  eventAction_ = new PHG4TruthEventAction();
-
-  // create stepping action
-  //steppingAction_ = new PHG4TruthSteppingAction( eventAction_ );
+  m_EventAction = new PHG4TruthEventAction();
 
   // create tracking action
-  trackingAction_ = new PHG4TruthTrackingAction( eventAction_ );
+  m_TrackingAction = new PHG4TruthTrackingAction( m_EventAction );
 
   return 0;
 }
@@ -64,11 +59,11 @@ int PHG4TruthSubsystem::InitRun( PHCompositeNode* topNode )
 int
 PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
 {
-  // pass top node to stepping action so that it gets
+  // pass top node to event action so that it gets
   // relevant nodes needed internally
-  if ( eventAction_ )
+  if ( m_EventAction )
     {
-      eventAction_->SetInterfacePointers( topNode );
+      m_EventAction->SetInterfacePointers( topNode );
     }
   else
     {
@@ -76,9 +71,9 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
       exit(1);
     }
 
-  if ( trackingAction_ )
+  if ( m_TrackingAction )
     {
-      trackingAction_->SetInterfacePointers( topNode );
+      m_TrackingAction->SetInterfacePointers( topNode );
     }
   else
     {
@@ -91,7 +86,7 @@ PHG4TruthSubsystem::process_event( PHCompositeNode* topNode )
 
 int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
 {
-  if (saveOnlyEmbeded_)
+  if (m_SaveOnlyEmbededFlag)
     {
       if (Verbosity()>1)
         {
@@ -146,22 +141,20 @@ int PHG4TruthSubsystem::process_after_geant(PHCompositeNode * topNode)
 int
 PHG4TruthSubsystem::ResetEvent(PHCompositeNode *topNode)
 {
-  trackingAction_->ResetEvent(topNode);
-  eventAction_->ResetEvent(topNode);
+  m_TrackingAction->ResetEvent(topNode);
+  m_EventAction->ResetEvent(topNode);
   return 0;
 }
 
 //_______________________________________________________________________
 PHG4EventAction* PHG4TruthSubsystem::GetEventAction( void ) const
-{ return eventAction_; }
+{ return m_EventAction; }
 
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4TruthSubsystem::GetSteppingAction( void ) const
-{ return steppingAction_; }
 
 PHG4TrackingAction* 
 PHG4TruthSubsystem::GetTrackingAction( void ) const
 { 
-  return trackingAction_; 
+  return m_TrackingAction; 
 }
