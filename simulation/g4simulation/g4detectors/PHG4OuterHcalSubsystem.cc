@@ -24,7 +24,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
-  detector_( nullptr ),
+  m_Detector( nullptr ),
   m_SteppingAction( nullptr ),
   m_DisplayAction(nullptr)
 {
@@ -48,9 +48,9 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   m_DisplayAction = new PHG4OuterHcalDisplayAction(Name());
 
   // create detector
-  detector_ = new PHG4OuterHcalDetector(this, topNode, GetParams(), Name());
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4OuterHcalDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
     {
@@ -94,14 +94,14 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	    }
 	}
       // create stepping action
-      m_SteppingAction = new PHG4OuterHcalSteppingAction(detector_, GetParams());
+      m_SteppingAction = new PHG4OuterHcalSteppingAction(m_Detector, GetParams());
       m_SteppingAction->Init();
     }
   else
     {
       if (GetParams()->get_int_param("blackhole"))
 	{
-	  m_SteppingAction = new PHG4OuterHcalSteppingAction(detector_, GetParams());
+	  m_SteppingAction = new PHG4OuterHcalSteppingAction(m_Detector, GetParams());
 	  m_SteppingAction->Init();
 	}
     }
@@ -127,9 +127,9 @@ PHG4OuterHcalSubsystem::Print(const string &what) const
 {
   cout << "Outer Hcal Parameters: " << endl;
   GetParams()->Print();
-  if (detector_)
+  if (m_Detector)
     {
-      detector_->Print(what);
+      m_Detector->Print(what);
     }
   return;
 }
@@ -138,7 +138,7 @@ PHG4OuterHcalSubsystem::Print(const string &what) const
 //_______________________________________________________________________
 PHG4Detector* PHG4OuterHcalSubsystem::GetDetector( void ) const
 {
-    return detector_;
+    return m_Detector;
 }
 
 void

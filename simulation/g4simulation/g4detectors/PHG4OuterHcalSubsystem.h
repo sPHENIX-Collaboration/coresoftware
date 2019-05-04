@@ -24,8 +24,7 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
   virtual ~PHG4OuterHcalSubsystem();
 
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-  reates the stepping action and place it on the node tree, under "ACTIONS" node
+  creates the Detector object. Creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode *);
@@ -53,7 +52,7 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4OuterHcalDetector* detector_;
+  PHG4OuterHcalDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
