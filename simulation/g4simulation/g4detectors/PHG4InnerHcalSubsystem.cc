@@ -26,6 +26,7 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem(const std::string &name, const in
   : PHG4DetectorSubsystem(name, lyr)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
+  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
 }
