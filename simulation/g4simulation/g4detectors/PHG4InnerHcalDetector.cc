@@ -532,6 +532,7 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
     // method. I'll take care of this in the decoding of the volume name
     // AAAAAAARHGS
     m_ScintiMotherAssembly->MakeImprint(hcalenvelope, g4vec, Rot, i, OverlapCheck());
+    delete Rot;
     Rot = new G4RotationMatrix();
     Rot->rotateZ(-phi * rad);
     name.str("");
@@ -609,13 +610,16 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     name.str("");
     name << "scintillator_" << i << "_left";
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, 0));
+    delete rotm;
     m_ScintiTilesVec[i + m_NumScintiTiles] = scinti_tile;
     rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
+
     name.str("");
     name << "scintillator_" << i << "_right";
     scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, 0));
     m_ScintiTilesVec[m_NumScintiTiles - i - 1] = scinti_tile;
+    delete rotm;
   }
 
   // for (unsigned int i=0; i<m_ScintiTilesVec.size(); i++)
