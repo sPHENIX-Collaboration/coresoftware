@@ -55,6 +55,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   int CheckTiltAngle() const;
   void ConstructHcalSingleScintillators(G4LogicalVolume *hcalenvelope);
   G4VSolid *ConstructScintillatorBox(G4LogicalVolume *hcalenvelope);
+  std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
  protected:
   int ConstructOuterHcal(G4LogicalVolume *hcalenvelope);
@@ -86,8 +87,8 @@ class PHG4OuterHcalDetector : public PHG4Detector
   double m_VolumeSteel;
   double m_VolumeScintillator;
 
-  int m_NScintiPlates;
-  int m_NScintiTiles;
+  int m_NumScintiPlates;
+  int m_NumScintiTiles;
 
   int m_ActiveFlag;
   int m_AbsorberActiveFlag;
@@ -97,6 +98,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   std::string m_ScintiLogicNamePrefix;
   std::vector<G4VSolid *> m_ScintiTilesVec;
   std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
+  std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
 };
 
 #endif

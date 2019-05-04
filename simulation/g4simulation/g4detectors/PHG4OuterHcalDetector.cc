@@ -36,6 +36,9 @@
 #include <CGAL/Object.h>
 #include <CGAL/point_generators_2.h>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
+
 #include <cmath>
 #include <sstream>
 
@@ -78,14 +81,14 @@ PHG4OuterHcalDetector::PHG4OuterHcalDetector(PHG4OuterHcalSubsystem *subsys, PHC
   , m_VolumeEnvelope(NAN)
   , m_VolumeSteel(NAN)
   , m_VolumeScintillator(NAN)
-  , m_NScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
-  , m_NScintiTiles(m_Params->get_int_param("n_scinti_tiles"))
+  , m_NumScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
+  , m_NumScintiTiles(m_Params->get_int_param("n_scinti_tiles"))
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_Layer(0)
   , m_ScintiLogicNamePrefix("HcalOuterScinti")
 {
-  m_ScintiTilesVec.assign(2 * m_NScintiTiles, static_cast<G4VSolid *>(nullptr));
+  m_ScintiTilesVec.assign(2 * m_NumScintiTiles, static_cast<G4VSolid *>(nullptr));
 }
 
 PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
@@ -98,19 +101,6 @@ PHG4OuterHcalDetector::~PHG4OuterHcalDetector()
 //_______________________________________________________________
 int PHG4OuterHcalDetector::IsInOuterHcal(G4VPhysicalVolume *volume) const
 {
-  // G4AssemblyVolumes naming convention:
-  //     av_WWW_impr_XXX_YYY_ZZZ
-
-  // where:
-
-  //     WWW - assembly volume instance number
-  //     XXX - assembly volume imprint number
-  //     YYY - the name of the placed logical volume
-  //     ZZZ - the logical volume index inside the assembly volume
-  // e.g. av_1_impr_82_HcalOuterScinti_11_pv_11
-  // 82 the number of the scintillator mother volume
-  // HcalOuterScinti_11: name of scintillator slat
-  // 11: number of scintillator slat logical volume
   if (m_AbsorberActiveFlag)
   {
     if (m_SteelAbsorberVec.find(volume) != m_SteelAbsorberVec.end())
@@ -120,7 +110,7 @@ int PHG4OuterHcalDetector::IsInOuterHcal(G4VPhysicalVolume *volume) const
   }
   if (m_ActiveFlag)
   {
-    if (volume->GetName().find(m_ScintiLogicNamePrefix) != string::npos)
+    if (m_ScintiTilePhysVolMap.find(volume) != m_ScintiTilePhysVolMap.end())
     {
       return 1;
     }
@@ -201,7 +191,7 @@ PHG4OuterHcalDetector::ConstructScintillatorBox(G4LogicalVolume *hcalenvelope)
   m_ScintiTileX = m_ScintiTileXUpper + m_ScintiTileXLower - (m_OuterRadius - m_ScintiOuterRadius) / cos(m_TiltAngle / rad) - (m_ScintiInnerRadius - m_InnerRadius) / cos(m_TiltAngle / rad);
   m_ScintiTileX -= subtract_from_scinti_x;
   G4VSolid *scintibox = new G4Box("ScintiTile", m_ScintiTileX / 2., m_ScintiTileThickness / 2., m_ScintiTileZ / 2.);
-  m_VolumeScintillator = scintibox->GetCubicVolume() * m_NScintiPlates;
+  m_VolumeScintillator = scintibox->GetCubicVolume() * m_NumScintiPlates;
   return scintibox;
 }
 
@@ -266,7 +256,7 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
   // now we have the lower left and rigth corner, now find the upper edge
   // find the center of the upper scintilator
 
-  double phi_midpoint = 2 * M_PI / m_NScintiPlates;
+  double phi_midpoint = 2 * M_PI / m_NumScintiPlates;
   double xmidpoint = cos(phi_midpoint) * mid_radius;
   double ymidpoint = sin(phi_midpoint) * mid_radius;
   // angle of perp line at center of scintillator
@@ -343,7 +333,7 @@ PHG4OuterHcalDetector::ConstructSteelPlate(G4LogicalVolume *hcalenvelope)
                                                     zero, 1.0,
                                                     zero, 1.0);
 
-  m_VolumeSteel = steel_plate_uncut->GetCubicVolume() * m_NScintiPlates;
+  m_VolumeSteel = steel_plate_uncut->GetCubicVolume() * m_NumScintiPlates;
   // now cut out space for magnet at the ends
   if (!m_SteelCutoutForMagnetG4Solid)
   {
@@ -432,7 +422,64 @@ void PHG4OuterHcalDetector::Construct(G4LogicalVolume *logicWorld)
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
   new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "OuterHcal", logicWorld, 0, false, OverlapCheck());
   ConstructOuterHcal(hcal_envelope_log);
+  vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
+  for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
+  {
+    // G4AssemblyVolumes naming convention:
+    //     av_WWW_impr_XXX_YYY_ZZZ
+    // where:
 
+    //     WWW - assembly volume instance number
+    //     XXX - assembly volume imprint number
+    //     YYY - the name of the placed logical volume
+    //     ZZZ - the logical volume index inside the assembly volume
+    // e.g. av_1_impr_82_HcalInnerScinti_11_pv_11
+    // 82 the number of the scintillator mother volume
+    // HcalInnerScinti_11: name of scintillator slat
+    // 11: number of scintillator slat logical volume
+    // use boost tokenizer to separate the _, then take value
+    // after "impr" for mother volume and after "pv" for scintillator slat
+    // use boost lexical cast for string -> int conversion
+    // the CopyNo is the mother volume + scinti id
+    // so we can use the CopyNo rather than decoding the string further
+    // looking for "pv"
+    boost::char_separator<char> sep("_");
+    boost::tokenizer<boost::char_separator<char>> tok((*it)->GetName(), sep);
+    boost::tokenizer<boost::char_separator<char>>::const_iterator tokeniter;
+    for (tokeniter = tok.begin(); tokeniter != tok.end(); ++tokeniter)
+    {
+      if (*tokeniter == "impr")
+      {
+        ++tokeniter;
+        if (tokeniter != tok.end())
+        {
+          int layer_id = boost::lexical_cast<int>(*tokeniter);
+          // check detector description, for assemblyvolumes it is not possible
+          // to give the first volume id=0, so they go from id=1 to id=n.
+          // I am not going to start with fortran again - our indices start
+          // at zero, id=0 to id=n-1. So subtract one here
+          int tower_id = (*it)->GetCopyNo() - layer_id;
+          layer_id--;
+          pair<int, int> layer_twr = make_pair(layer_id, tower_id);
+          m_ScintiTilePhysVolMap.insert(pair<G4VPhysicalVolume *, pair<int, int>>(*it, layer_twr));
+          if (layer_id < 0 || layer_id >= m_NumScintiPlates)
+          {
+            cout << "invalid scintillator row " << layer_id
+                 << ", valid range 0 < row < " << m_NumScintiPlates << endl;
+            gSystem->Exit(1);
+          }
+        }
+        else
+        {
+          cout << PHWHERE << " Error parsing " << (*it)->GetName()
+               << " for mother volume number " << endl;
+          gSystem->Exit(1);
+        }
+        break;
+      }
+    }
+    ++it;
+  }
   return;
 }
 
@@ -447,7 +494,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
   // call field setup here where we have the calculated tilt angle if number
   // of crossings is given
   m_FieldSetup = new PHG4OuterHcalFieldSetup(
-      m_NScintiPlates, /*G4int steelPlates*/
+      m_NumScintiPlates, /*G4int steelPlates*/
       m_ScintiGap,      /*G4double scintiGap*/
       m_TiltAngle);     /*G4double tiltAngle*/
 
@@ -464,7 +511,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
   visattchk->SetColour(G4Colour::Grey());
   steel_logical->SetVisAttributes(visattchk);
   double phi = 0;
-  double deltaphi = 2 * M_PI / m_NScintiPlates;
+  double deltaphi = 2 * M_PI / m_NumScintiPlates;
   ostringstream name;
   double middlerad = m_OuterRadius - (m_OuterRadius - m_InnerRadius) / 2.;
   // okay this is crude. Since the inner and outer radius of the scintillator is different from the inner/outer
@@ -504,7 +551,7 @@ int PHG4OuterHcalDetector::ConstructOuterHcal(G4LogicalVolume *hcalenvelope)
     phi = -atan(yo / xo);
   }
   // else (for m_TiltAngle = 0) phi stays zero
-  for (int i = 0; i < m_NScintiPlates; i++)
+  for (int i = 0; i < m_NumScintiPlates; i++)
   {
     G4RotationMatrix *Rot = new G4RotationMatrix();
     double ypos = sin(phi) * middlerad;
@@ -584,7 +631,7 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
 {
   G4VSolid *bigtile = ConstructScintillatorBox(hcalenvelope);
   // eta->theta
-  G4double delta_eta = m_Params->get_double_param("scinti_eta_coverage") / m_NScintiTiles;
+  G4double delta_eta = m_Params->get_double_param("scinti_eta_coverage") / m_NumScintiTiles;
   G4double eta = 0;
   G4double theta;
   G4double x[4];
@@ -617,7 +664,7 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
   xsteelcut[2] = m_InnerRadius - steel_offset;
   xsteelcut[3] = xsteelcut[2];
   double scinti_gap_neighbor = m_Params->get_double_param("scinti_gap_neighbor") * cm;
-  for (int i = 0; i < m_NScintiTiles; i++)
+  for (int i = 0; i < m_NumScintiTiles; i++)
   {
     if (i >= m_Params->get_int_param("magnet_cutout_first_scinti"))
     {
@@ -691,13 +738,13 @@ void PHG4OuterHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     name.str("");
     name << "scintillator_" << i << "_left";
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_ScintiInnerRadius + m_ScintiOuterRadius) / 2., 0, 0));
-    m_ScintiTilesVec[i + m_NScintiTiles] = scinti_tile;
+    m_ScintiTilesVec[i + m_NumScintiTiles] = scinti_tile;
     rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
     name.str("");
     name << "scintillator_" << i << "_right";
     scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_ScintiInnerRadius + m_ScintiOuterRadius) / 2., 0, 0));
-    m_ScintiTilesVec[m_NScintiTiles - i - 1] = scinti_tile;
+    m_ScintiTilesVec[m_NumScintiTiles - i - 1] = scinti_tile;
   }
 #ifdef SCINTITEST
   for (unsigned int i = 0; i < m_ScintiTilesVec.size(); i++)
@@ -861,7 +908,7 @@ void PHG4OuterHcalDetector::SetTiltViaNcross()
     cout << "using number of crossings to determine tilt angle" << endl;
   }
   double mid_radius = m_InnerRadius + (m_OuterRadius - m_InnerRadius) / 2.;
-  double deltaphi = (2 * M_PI / m_NScintiPlates) * ncross;
+  double deltaphi = (2 * M_PI / m_NumScintiPlates) * ncross;
   PHG4OuterHcalDetector::Point_2 pnull(0, 0);
   PHG4OuterHcalDetector::Point_2 plow(m_InnerRadius, 0);
   PHG4OuterHcalDetector::Point_2 phightmp(1, tan(deltaphi));
@@ -966,4 +1013,19 @@ void PHG4OuterHcalDetector::Print(const string &what) const
     cout << "Volume Air: " << (m_VolumeEnvelope - m_VolumeSteel - m_VolumeScintillator) / cm / cm / cm << " cm^3" << endl;
   }
   return;
+}
+
+std::pair<int, int> PHG4OuterHcalDetector::GetLayerTowerId(G4VPhysicalVolume *volume) const
+{
+  auto it = m_ScintiTilePhysVolMap.find(volume);
+  if (it != m_ScintiTilePhysVolMap.end())
+  {
+    return it->second;
+  }
+  cout << "could not locate volume " << volume->GetName()
+       << " in Inner Hcal scintillator map" << endl;
+  gSystem->Exit(1);
+  // that's dumb but code checkers do not know that gSystem->Exit()
+  // terminates, so using the standard exit() makes them happy
+  exit(1);
 }
