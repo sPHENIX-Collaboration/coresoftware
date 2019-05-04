@@ -1,5 +1,7 @@
-#ifndef PHG4OuterHcalDetector_h
-#define PHG4OuterHcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4OUTERHCALDETECTOR_H
+#define G4DETECTORS_PHG4OUTERHCALDETECTOR_H
 
 #include "PHG4OuterHcalFieldSetup.h"
 
@@ -44,9 +46,9 @@ class PHG4OuterHcalDetector : public PHG4Detector
   int IsInOuterHcal(G4VPhysicalVolume *) const;
   //@}
 
-  void SuperDetector(const std::string &name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
-  int get_Layer() const { return layer; }
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
+  int get_Layer() const { return m_Layer; }
   void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
   int ConsistencyCheck() const;
   void SetTiltViaNcross();
@@ -61,41 +63,40 @@ class PHG4OuterHcalDetector : public PHG4Detector
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
   PHG4OuterHcalDisplayAction *m_DisplayAction;
-  PHG4OuterHcalFieldSetup *field_setup;
-  PHParameters *params;
-  G4AssemblyVolume *scinti_mother_assembly;
-  G4VSolid *steel_cutout_for_magnet;
-  double inner_radius;
-  double outer_radius;
-  double size_z;
-  double scinti_tile_x;
-  double scinti_tile_x_lower;
-  double scinti_tile_x_upper;
-  double scinti_tile_z;
-  double scinti_tile_thickness;
-  double scinti_gap;
-  double scinti_inner_radius;
-  double scinti_outer_radius;
-  double tilt_angle;
-  double envelope_inner_radius;
-  double envelope_outer_radius;
-  double envelope_z;
-  double volume_envelope;
-  double volume_steel;
-  double volume_scintillator;
+  PHG4OuterHcalFieldSetup *m_FieldSetup;
+  PHParameters *m_Params;
+  G4AssemblyVolume *m_ScintiMotherAssembly;
+  G4VSolid *m_SteelCutoutForMagnetG4Solid;
+  double m_InnerRadius;
+  double m_OuterRadius;
+  double m_SizeZ;
+  double m_ScintiTileX;
+  double m_ScintiTileXLower;
+  double m_ScintiTileXUpper;
+  double m_ScintiTileZ;
+  double m_ScintiTileThickness;
+  double m_ScintiGap;
+  double m_ScintiInnerRadius;
+  double m_ScintiOuterRadius;
+  double m_TiltAngle;
+  double m_EnvelopeInnerRadius;
+  double m_EnvelopeOuterRadius;
+  double m_EnvelopeZ;
+  double m_VolumeEnvelope;
+  double m_VolumeSteel;
+  double m_VolumeScintillator;
 
-  int n_scinti_plates;
-  int n_scinti_tiles;
+  int m_NScintiPlates;
+  int m_NScintiTiles;
 
-  int active;
-  int absorberactive;
+  int m_ActiveFlag;
+  int m_AbsorberActiveFlag;
 
-  int layer;
-  std::string detector_type;
-  std::string superdetector;
-  std::string scintilogicnameprefix;
-  std::vector<G4VSolid *> scinti_tiles_vec;
-  std::set<G4VPhysicalVolume *> steel_absorber_vec;
+  int m_Layer;
+  std::string m_SuperDetector;
+  std::string m_ScintiLogicNamePrefix;
+  std::vector<G4VSolid *> m_ScintiTilesVec;
+  std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
 };
 
 #endif
