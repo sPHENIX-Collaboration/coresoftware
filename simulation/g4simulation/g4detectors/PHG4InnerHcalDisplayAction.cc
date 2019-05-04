@@ -41,9 +41,14 @@ void PHG4InnerHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     it->SetVisAttributes(m_VisAtt);
     m_VisAttVec.push_back(m_VisAtt);
   }
+  if (m_SteelVol->GetVisAttributes())
+  {
+    return;
+  }
   G4VisAttributes *m_VisAtt = new G4VisAttributes();
   m_VisAtt->SetVisibility(true);
   m_VisAtt->SetForceSolid(true);
   m_VisAtt->SetColor(G4Colour::Grey());
   m_SteelVol->SetVisAttributes(m_VisAtt);
+  m_VisAttVec.push_back(m_VisAtt);
 }
