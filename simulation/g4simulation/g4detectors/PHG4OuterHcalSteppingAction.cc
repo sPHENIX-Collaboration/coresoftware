@@ -56,7 +56,8 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+  : PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_Hits(nullptr)
   , m_AbsorberHits(nullptr)
   , m_Hit(nullptr)

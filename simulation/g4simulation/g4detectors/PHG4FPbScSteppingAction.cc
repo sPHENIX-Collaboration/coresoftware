@@ -1,5 +1,6 @@
 #include "PHG4FPbScSteppingAction.h"
 #include "PHG4FPbScDetector.h"
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
@@ -14,7 +15,7 @@ using namespace std;
 
 
 PHG4FPbScSteppingAction::PHG4FPbScSteppingAction( PHG4FPbScDetector* detector) :
-    detector_( detector ), hits_(NULL), hit(NULL)
+    PHG4SteppingAction(detector->GetName()), detector_( detector ), hits_(NULL), hit(NULL)
 {
 }
 

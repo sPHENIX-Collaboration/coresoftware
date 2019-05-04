@@ -36,6 +36,7 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction( PHG4CrystalCalorimeterDetector* detector ):
+  PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),

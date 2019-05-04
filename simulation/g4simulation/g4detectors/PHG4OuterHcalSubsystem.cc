@@ -45,7 +45,7 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create display settings before detector
-  m_DisplayAction = new PHG4OuterHcalDisplayAction(Name(), GetParams());
+  m_DisplayAction = new PHG4OuterHcalDisplayAction(Name());
 
   // create detector
   detector_ = new PHG4OuterHcalDetector(this, topNode, GetParams(), Name());

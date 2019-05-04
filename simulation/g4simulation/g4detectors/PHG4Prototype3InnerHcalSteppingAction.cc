@@ -31,7 +31,8 @@ static const int nslat = 10;
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype3InnerHcalSteppingAction::PHG4Prototype3InnerHcalSteppingAction(PHG4Prototype3InnerHcalDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+  :   PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_HitContainer(nullptr)
   , m_AbsorberHitContainer(nullptr)
   , m_Hit(nullptr)

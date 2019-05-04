@@ -17,6 +17,7 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4SectorSteppingAction::PHG4SectorSteppingAction(PHG4SectorDetector* detector) :
+  PHG4SteppingAction(detector->GetName()),
   detector_(detector),
   hits_(NULL),
   hit(NULL),

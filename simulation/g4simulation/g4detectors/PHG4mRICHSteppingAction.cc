@@ -4,8 +4,9 @@
  *===============================================================*/
 #include "PHG4mRICHSteppingAction.h"
 #include "PHG4mRICHDetector.h"
-#include <phparameter/PHParameters.h>
 #include "PHG4StepStatusDecode.h"
+
+#include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
@@ -44,6 +45,7 @@ using namespace CLHEP;
 
 //____________________________________________________________________________..
 PHG4mRICHSteppingAction::PHG4mRICHSteppingAction( PHG4mRICHDetector* detector,PHParameters* params):
+  PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
   // active(params->get_int_param("active")),
   IsBlackHole(params->get_int_param("blackhole")),
