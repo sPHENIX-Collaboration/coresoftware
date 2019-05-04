@@ -19,6 +19,8 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4OuterHcalDisplayAction;
+class PHG4OuterHcalSubsystem;
 class PHParameters;
 
 class PHG4OuterHcalDetector : public PHG4Detector
@@ -27,7 +29,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   typedef CGAL::Exact_circular_kernel_2 Circular_k;
   typedef CGAL::Point_2<Circular_k> Point_2;
   //! constructor
-  PHG4OuterHcalDetector(PHCompositeNode *Node, PHParameters *params, const std::string &dnam = "HCALOUT");
+  PHG4OuterHcalDetector(PHG4OuterHcalSubsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam = "HCALOUT");
 
   //! destructor
   virtual ~PHG4OuterHcalDetector();
@@ -58,6 +60,7 @@ class PHG4OuterHcalDetector : public PHG4Detector
   G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalenvelope);
   int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
+  PHG4OuterHcalDisplayAction *m_DisplayAction;
   PHG4OuterHcalFieldSetup *field_setup;
   PHParameters *params;
   G4AssemblyVolume *scinti_mother_assembly;

@@ -1,11 +1,14 @@
-#ifndef PHG4OuterHcalSubsystem_h
-#define PHG4OuterHcalSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4OUTERHCALSUBSYSTEM_H
+#define G4DETECTORS_PHG4OUTERHCALSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
 #include <map>
 #include <string>
 
+class PHG4DisplayAction;
 class PHG4OuterHcalDetector;
 class PHG4OuterHcalSteppingAction;
 
@@ -18,8 +21,7 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
   PHG4OuterHcalSubsystem( const std::string &name = "HCALOUT", const int layer = 0 );
 
   //! destructor
-  virtual ~PHG4OuterHcalSubsystem( void )
-  {}
+  virtual ~PHG4OuterHcalSubsystem();
 
   /*!
   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
@@ -40,7 +42,8 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const;
+  PHG4SteppingAction* GetSteppingAction( ) const { return m_SteppingAction; }
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
   void SetLightCorrection(const double inner_radius, const double inner_corr,const double outer_radius, const double outer_corr);
 
@@ -54,7 +57,11 @@ class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SteppingAction* steppingAction_;
+  PHG4SteppingAction *m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
 
 };
 
