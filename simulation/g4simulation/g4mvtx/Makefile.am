@@ -26,7 +26,7 @@ pkginclude_HEADERS = \
   PHG4MVTXDefs.h \
   PHG4MVTXHitReco.h \
   PHG4MVTXSubsystem.h \
-  PHG4MvtxDigitizer.h 
+  PHG4MVTXDigitizer.h 
 
 if MAKEROOT6
 else
@@ -34,7 +34,7 @@ else
     PHG4MVTXHitReco_Dict.cc \
     PHG4MVTXDefs_Dict.cc \
     PHG4MVTXSubsystem_Dict.cc \
-    PHG4MvtxDigitizer_Dict.cc
+    PHG4MVTXDigitizer_Dict.cc
 endif
 
 libg4mvtx_la_SOURCES = \
@@ -43,7 +43,7 @@ libg4mvtx_la_SOURCES = \
   PHG4MVTXDetector.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
-  PHG4MvtxDigitizer.cc
+  PHG4MVTXDigitizer.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
