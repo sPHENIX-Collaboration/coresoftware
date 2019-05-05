@@ -21,7 +21,8 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4Prototype2OuterHcalSteppingAction::PHG4Prototype2OuterHcalSteppingAction(PHG4Prototype2OuterHcalDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+  :   PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_Hits(nullptr)
   , m_AbsorberHits(nullptr)
   , m_Hit(nullptr)

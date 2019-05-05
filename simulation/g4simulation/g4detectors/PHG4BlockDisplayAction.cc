@@ -27,25 +27,8 @@ PHG4BlockDisplayAction::~PHG4BlockDisplayAction()
 
 void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
-  // in our case loop over all volumes and see where ours is
-  FindVolumes(physvol);
-}
-
-int PHG4BlockDisplayAction::CheckVolume(G4VPhysicalVolume *physvol)
-{
-  if (physvol == m_MyVolume)
-  {
-    //there is only one volume, if found abort search
-    return CheckReturnCodes::ABORT;
-  }
-  return CheckReturnCodes::FAILED;
-}
-
-void PHG4BlockDisplayAction::ApplyVisAttributes(G4VPhysicalVolume *physvol)
-{
-  G4LogicalVolume *myvol = physvol->GetLogicalVolume();
   // check if vis attributes exist, if so someone else has set them and we do nothing
-  if (myvol->GetVisAttributes())
+  if (m_MyVolume->GetVisAttributes())
   {
     return;
   }
@@ -62,6 +45,6 @@ void PHG4BlockDisplayAction::ApplyVisAttributes(G4VPhysicalVolume *physvol)
     m_VisAtt->SetVisibility(true);
     m_VisAtt->SetForceSolid(true);
   }
-  myvol->SetVisAttributes(m_VisAtt);
+  m_MyVolume->SetVisAttributes(m_VisAtt);
   return;
 }

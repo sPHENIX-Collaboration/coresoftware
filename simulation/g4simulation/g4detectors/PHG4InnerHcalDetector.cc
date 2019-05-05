@@ -1,4 +1,7 @@
 #include "PHG4InnerHcalDetector.h"
+
+#include "PHG4InnerHcalDisplayAction.h"
+#include "PHG4InnerHcalSubsystem.h"
 #include "PHG4HcalDefs.h"
 
 #include <phparameter/PHParameters.h>
@@ -26,7 +29,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Circular_kernel_intersections.h>
@@ -52,8 +54,9 @@ using namespace std;
 // scintilator length takes care of this
 static double subtract_from_scinti_x = 0.1 * mm;
 
-PHG4InnerHcalDetector::PHG4InnerHcalDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
+PHG4InnerHcalDetector::PHG4InnerHcalDetector(PHG4InnerHcalSubsystem *subsys,PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4InnerHcalDisplayAction *>(subsys->GetDisplayAction()))
   , m_Params(parameters)
   , m_ScintiMotherAssembly(nullptr)
   , m_InnerRadius(m_Params->get_double_param("inner_radius") * cm)
@@ -400,16 +403,12 @@ void PHG4InnerHcalDetector::Construct(G4LogicalVolume *logicWorld)
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
-  G4VisAttributes *hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(false);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::White());
-  hcal_envelope_log->SetVisAttributes(hcalVisAtt);
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);
   hcal_rotm.rotateZ(m_Params->get_double_param("rot_z") * deg);
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, OverlapCheck());
+  G4VPhysicalVolume *mothervol = new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm)), hcal_envelope_log, "InnerHcalEnvelope", logicWorld, 0, false, OverlapCheck());
+  m_DisplayAction->SetMyTopVolume(mothervol);
   ConstructInnerHcal(hcal_envelope_log);
   vector<G4VPhysicalVolume *>::iterator it = m_ScintiMotherAssembly->GetVolumesIterator();
   for (unsigned int i = 0; i < m_ScintiMotherAssembly->TotalImprintedVolumes(); i++)
@@ -479,11 +478,7 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
   CheckTiltAngle();    // die if the tilt angle is out of range
   G4VSolid *steel_plate = ConstructSteelPlate(hcalenvelope);
   G4LogicalVolume *steel_logical = new G4LogicalVolume(steel_plate, G4Material::GetMaterial(m_Params->get_string_param("material")), "HcalInnerSteelPlate", 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Grey());
-  steel_logical->SetVisAttributes(visattchk);
+  m_DisplayAction->AddSteelVolume(steel_logical);
   m_ScintiMotherAssembly = ConstructHcalScintillatorAssembly(hcalenvelope);
   double phi = 0;
   double deltaphi = 2 * M_PI / m_NumScintiPlates;
@@ -537,6 +532,7 @@ int PHG4InnerHcalDetector::ConstructInnerHcal(G4LogicalVolume *hcalenvelope)
     // method. I'll take care of this in the decoding of the volume name
     // AAAAAAARHGS
     m_ScintiMotherAssembly->MakeImprint(hcalenvelope, g4vec, Rot, i, OverlapCheck());
+    delete Rot;
     Rot = new G4RotationMatrix();
     Rot->rotateZ(-phi * rad);
     name.str("");
@@ -614,13 +610,16 @@ void PHG4InnerHcalDetector::ConstructHcalSingleScintillators(G4LogicalVolume *hc
     name.str("");
     name << "scintillator_" << i << "_left";
     G4VSolid *scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, 0));
+    delete rotm;
     m_ScintiTilesVec[i + m_NumScintiTiles] = scinti_tile;
     rotm = new G4RotationMatrix();
     rotm->rotateX(90 * deg);
+
     name.str("");
     name << "scintillator_" << i << "_right";
     scinti_tile = new G4IntersectionSolid(name.str(), bigtile, scinti, rotm, G4ThreeVector(-(m_InnerRadius + m_OuterRadius) / 2., 0, 0));
     m_ScintiTilesVec[m_NumScintiTiles - i - 1] = scinti_tile;
+    delete rotm;
   }
 
   // for (unsigned int i=0; i<m_ScintiTilesVec.size(); i++)
@@ -683,11 +682,7 @@ PHG4InnerHcalDetector::ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalen
       g4userlimits = new G4UserLimits(steplimits);
     }
     G4LogicalVolume *scinti_tile_logic = new G4LogicalVolume(m_ScintiTilesVec[i], G4Material::GetMaterial("G4_POLYSTYRENE"), name.str().c_str(), nullptr, nullptr, g4userlimits);
-    G4VisAttributes *visattchk = new G4VisAttributes();
-    visattchk->SetVisibility(true);
-    visattchk->SetForceSolid(true);
-    visattchk->SetColour(G4Colour::Green());
-    scinti_tile_logic->SetVisAttributes(visattchk);
+    m_DisplayAction->AddScintiVolume(scinti_tile_logic);
     assmeblyvol->AddPlacedVolume(scinti_tile_logic, g4vec, nullptr);
   }
   return assmeblyvol;

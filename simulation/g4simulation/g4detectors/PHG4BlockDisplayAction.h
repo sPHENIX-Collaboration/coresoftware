@@ -6,6 +6,7 @@
 #include <g4main/PHG4DisplayAction.h>
 
 class G4VisAttributes;
+class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHParameters;
 
@@ -17,15 +18,11 @@ class PHG4BlockDisplayAction : public PHG4DisplayAction
   virtual ~PHG4BlockDisplayAction();
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
-  void SetMyVolume(G4VPhysicalVolume *vol) { m_MyVolume = vol; }
-
- protected:
-  int CheckVolume(G4VPhysicalVolume *physvol);
-  void ApplyVisAttributes(G4VPhysicalVolume *vol);
+  void SetMyVolume(G4LogicalVolume *vol) { m_MyVolume = vol; }
 
  private:
   PHParameters *m_Params;
-  G4VPhysicalVolume *m_MyVolume;
+  G4LogicalVolume *m_MyVolume;
   G4VisAttributes *m_VisAtt;
 };
 

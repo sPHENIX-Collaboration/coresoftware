@@ -33,7 +33,8 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4MVTXSteppingAction::PHG4MVTXSteppingAction(PHG4MVTXDetector* detector)
-  : detector_(detector)
+  : PHG4SteppingAction(detector->GetName())
+  , detector_(detector)
   , hits_(NULL)
   , absorberhits_(NULL)
   , hit(NULL)

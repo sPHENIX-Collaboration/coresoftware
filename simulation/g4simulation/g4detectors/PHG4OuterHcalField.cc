@@ -112,21 +112,6 @@ PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
       Bfield[0] = B_New.x();
       Bfield[1] = B_New.y();
       Bfield[2] = B_New.z();
-
-      static bool once = true;
-      if (once)
-        {
-          once = false;
-          cout << "PHG4OuterHcalField::GetFieldValue"
-              << " - After-burner activated to produce 3D magnetic field in the outer HCal. First call to the after-burner: "
-              << (is_in_iron ? "inside iron, " : "inside gap, ") << "and R = "
-              << R / cm << " cm, field change from "
-              //
-              << "(" << B0.x() / tesla << "," << B0.y() / tesla << ","
-              << B0.z() / tesla << ") T" << " to " << "(" << B_New.x() / tesla
-              << "," << B_New.y() / tesla << "," << B_New.z() / tesla << ") T"
-              << endl;
-        }
     }
   else
     {

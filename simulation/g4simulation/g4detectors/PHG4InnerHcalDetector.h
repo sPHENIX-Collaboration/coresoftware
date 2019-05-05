@@ -19,6 +19,8 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4InnerHcalDisplayAction;
+class PHG4InnerHcalSubsystem;
 class PHParameters;
 
 class PHG4InnerHcalDetector : public PHG4Detector
@@ -28,7 +30,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
   typedef CGAL::Point_2<Circular_k> Point_2;
 
   //! constructor
-  PHG4InnerHcalDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  PHG4InnerHcalDetector(PHG4InnerHcalSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4InnerHcalDetector();
@@ -60,6 +62,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
  protected:
   int ConstructInnerHcal(G4LogicalVolume *sandwich);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
+  PHG4InnerHcalDisplayAction *m_DisplayAction;
   PHParameters *m_Params;
   G4AssemblyVolume *m_ScintiMotherAssembly;
   double m_InnerRadius;

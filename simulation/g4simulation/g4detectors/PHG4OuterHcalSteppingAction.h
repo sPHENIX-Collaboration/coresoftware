@@ -66,4 +66,4 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   double m_LightBalanceOuterRadius;
 };
 
-#endif  // PHG4OuterHcalSteppingAction_h
+#endif  // G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H

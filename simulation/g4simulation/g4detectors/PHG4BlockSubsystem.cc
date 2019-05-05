@@ -41,6 +41,8 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
+  // create display settings before detector (detector adds its volumes to it)
+  m_DisplayAction = new PHG4BlockDisplayAction(Name(), GetParams());
   // create detector
   m_Detector = new PHG4BlockDetector(this, topNode, GetParams(), Name(), GetLayer());
   m_Detector->SuperDetector(SuperDetector());
@@ -94,8 +96,6 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     m_SteppingAction = new PHG4BlockSteppingAction(m_Detector, GetParams());
   }
-  // create display settings
-  m_DisplayAction = new PHG4BlockDisplayAction(Name(), GetParams());
 
   return 0;
 }
@@ -109,7 +109,6 @@ int PHG4BlockSubsystem::process_event(PHCompositeNode *topNode)
   {
     m_SteppingAction->SetInterfacePointers(topNode);
   }
-  m_DisplayAction = new PHG4BlockDisplayAction(Name(), GetParams());
   return 0;
 }
 

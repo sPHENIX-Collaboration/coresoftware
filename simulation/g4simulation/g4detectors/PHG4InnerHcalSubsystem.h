@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 
+class PHG4DisplayAction;
 class PHG4InnerHcalDetector;
 class PHG4InnerHcalSteppingAction;
 
@@ -19,9 +20,7 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   PHG4InnerHcalSubsystem(const std::string& name = "HCALIN", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4InnerHcalSubsystem(void)
-  {
-  }
+  virtual ~PHG4InnerHcalSubsystem();
 
   /*!
   creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
@@ -43,6 +42,8 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   //! accessors (reimplemented)
   PHG4Detector* GetDetector(void) const;
   PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+
   void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
 
  private:
@@ -55,6 +56,11 @@ class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */
   PHG4SteppingAction* m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
+
 };
 
 #endif  // G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H

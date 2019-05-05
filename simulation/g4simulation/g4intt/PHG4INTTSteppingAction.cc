@@ -1,9 +1,11 @@
 #include "PHG4INTTSteppingAction.h"
+#include "PHG4INTTDefs.h"
+#include "PHG4INTTDetector.h"
+
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include "PHG4INTTDefs.h"
-#include "PHG4INTTDetector.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -33,7 +35,8 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHG4INTTSteppingAction::PHG4INTTSteppingAction(PHG4INTTDetector* detector, const PHParametersContainer* parameters, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator>& layer_begin_end)
-  : m_Detector(detector)
+  : PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_Hits(nullptr)
   , m_AbsorberHits(nullptr)
   , m_Hit(nullptr)
