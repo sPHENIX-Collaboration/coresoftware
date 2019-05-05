@@ -1,17 +1,20 @@
+##############################################
+# please add new classes/includes/everything else in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-    libg4tpc.la
+  libg4tpc.la
 
 AM_CPPFLAGS = \
-    -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
-    -I$(G4_MAIN)/include \
-    -I$(ROOTSYS)/include
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(G4_MAIN)/include \
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
-    -L$(libdir) \
-    -L$(OFFLINE_MAIN)/lib
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libg4tpc_la_LIBADD = \
   -lphool \
@@ -68,8 +71,6 @@ noinst_PROGRAMS = \
 
 BUILT_SOURCES = testexternals.cc
 
-testexternals_io_SOURCES = testexternals.cc
-
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = libg4tpc.la
 
@@ -79,9 +80,6 @@ testexternals.cc:
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
-
-##############################################
-# please add new classes in alphabetical order
 
 clean-local:
 	rm -f *Dict* $(BUILT_SOURCES) *.pcm
