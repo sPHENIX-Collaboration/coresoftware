@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = foreign
+
 lib_LTLIBRARIES = \
   libSeamstress.la
 
@@ -12,7 +14,23 @@ libSeamstress_la_SOURCES = \
 libSeamstress_la_LIBADD = \
   -lpthread
 
-libSeamstress_la_LDFLAGS = -version-info 1:0:0
+################################################
+# linking tests
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = seamstress.pc
+noinst_PROGRAMS = \
+  testexternals
+
+BUILT_SOURCES = testexternals.cc
+
+testexternals_SOURCES = testexternals.cc
+testexternals_LDADD = libSeamstress.la
+
+testexternals.cc:
+	echo "//*** this is a generated file. Do not commit, do not edit" > $@
+	echo "int main()" >> $@
+	echo "{" >> $@
+	echo "  return 0;" >> $@
+	echo "}" >> $@
+
+clean-local:
+	rm -f $(BUILT_SOURCES)
