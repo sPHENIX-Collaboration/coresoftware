@@ -1,32 +1,54 @@
-AM_CXXFLAGS = -I$(OFFLINE_MAIN)/include/eigen3 -I$(top_srcdir)/Seamstress
+AUTOMAKE_OPTIONS = foreign
+
+AM_CPPFLAGS = \
+  -I$(top_srcdir)/Seamstress \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include/eigen3
+
+AM_CXXFLAGS = \
+  -DNDEBUG
 
 lib_LTLIBRARIES = \
-libFitNewton.la
+  libFitNewton.la
 
 pkginclude_HEADERS = \
-NewtonMinimizerGradHessian.h \
-FunctionGradHessian.h \
-GaussianGradHessian.h \
-GaussianIntegralGradHessian.h \
-ChiSquareGradHessian.h \
-GaussianRegGradHessian.h \
-SquareGradient.h
+  NewtonMinimizerGradHessian.h \
+  FunctionGradHessian.h \
+  GaussianGradHessian.h \
+  GaussianIntegralGradHessian.h \
+  ChiSquareGradHessian.h \
+  GaussianRegGradHessian.h \
+  SquareGradient.h
 
 libFitNewton_la_SOURCES = \
-NewtonMinimizerGradHessian.cpp \
-GaussianGradHessian.cpp \
-GaussianIntegralGradHessian.cpp \
-ChiSquareGradHessian.cpp \
-GaussianRegGradHessian.cpp \
-SquareGradient.cpp
+  NewtonMinimizerGradHessian.cpp \
+  GaussianGradHessian.cpp \
+  GaussianIntegralGradHessian.cpp \
+  ChiSquareGradHessian.cpp \
+  GaussianRegGradHessian.cpp \
+  SquareGradient.cpp
 
 
 libFitNewton_la_LIBADD = \
-$(Seamstress_LIBS) $(Eigen3_LIBS)
+  $(top_builddir)/Seamstress/libSeamstress.la
 
-libFitNewton_la_LDFLAGS = -version-info 1:0:0
+################################################
+# linking tests
 
-libFitNewton_la_CPPFLAGS = $(Seamstress_CFLAGS) $(Eigen3_CFLAGS) -DNDEBUG
+noinst_PROGRAMS = \
+  testexternals 
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = fitnewton.pc
+BUILT_SOURCES = testexternals.cc
+
+testexternals_SOURCES = testexternals.cc
+testexternals_LDADD = libFitNewton.la
+
+testexternals.cc:
+	echo "//*** this is a generated file. Do not commit, do not edit" > $@
+	echo "int main()" >> $@
+	echo "{" >> $@
+	echo "  return 0;" >> $@
+	echo "}" >> $@
+
+clean-local:
+	rm -f $(BUILT_SOURCES)
