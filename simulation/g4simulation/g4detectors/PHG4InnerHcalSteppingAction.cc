@@ -24,7 +24,7 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4InnerHcalSteppingAction::PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector* detector, const PHParameters* parameters)
-  : PHG4SteppingAction(m_Detector->GetName())
+  : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_Hits(nullptr)
   , m_AbsorberHits(nullptr)
