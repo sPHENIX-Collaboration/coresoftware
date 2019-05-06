@@ -41,6 +41,7 @@ libg4mvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4MVTXHitReco.cc \
   PHG4MVTXDetector.cc \
+  PHG4MVTXDisplayAction.cc \
   PHG4MVTXSteppingAction.cc \
   PHG4MVTXSubsystem.cc \
   PHG4MVTXDigitizer.cc
