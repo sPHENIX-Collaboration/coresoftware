@@ -1,5 +1,7 @@
-#ifndef PHG4MVTXDetector_h
-#define PHG4MVTXDetector_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4MVTX_PHG4MVTXDETECTOR_H
+#define G4MVTX_PHG4MVTXDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -18,6 +20,8 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4MVTXDisplayAction;
+class PHG4MVTXSubsystem;
 class PHParameters;
 class PHParametersContainer;
 
@@ -25,10 +29,10 @@ class PHG4MVTXDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4MVTXDetector(PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
+  PHG4MVTXDetector(PHG4MVTXSubsystem *subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
 
   //! destructor
-  virtual ~PHG4MVTXDetector();
+  virtual ~PHG4MVTXDetector(){}
 
   //! construct
   virtual void Construct(G4LogicalVolume* world);
@@ -58,7 +62,7 @@ class PHG4MVTXDetector : public PHG4Detector
   void SetDisplayProperty(G4LogicalVolume* lv);
   void FillPVArray(G4AssemblyVolume* av);
   void FindSensor(G4LogicalVolume* lv);
-
+  PHG4MVTXDisplayAction *m_DisplayAction;
   const PHParametersContainer* m_ParamsContainer;
   static constexpr int n_Layers = 3;
 

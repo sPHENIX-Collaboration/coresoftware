@@ -1,5 +1,8 @@
 #include "PHG4MVTXDetector.h"
+
 #include "PHG4MVTXDefs.h"
+#include "PHG4MVTXDisplayAction.h"
+#include "PHG4MVTXSubsystem.h"
 
 #include <mvtx/CylinderGeom_MVTX.h>
 
@@ -28,7 +31,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Colour.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
 #include <memory>
@@ -36,8 +38,9 @@
 
 using namespace std;
 
-PHG4MVTXDetector::PHG4MVTXDetector(PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
+PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem *subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4MVTXDisplayAction *>(subsys->GetDisplayAction()))
   , m_ParamsContainer(_paramsContainer)
   , stave_geometry_file(_paramsContainer->GetParameters(PHG4MVTXDefs::GLOBAL)->get_string_param("stave_geometry_file"))
 {
@@ -64,10 +67,6 @@ PHG4MVTXDetector::PHG4MVTXDetector(PHCompositeNode* Node, const PHParametersCont
   pixel_thickness = alpide_params->get_double_param("pixel_thickness");
   if (Verbosity() > 0)
     cout << "PHG4MVTXDetector constructor: making MVTX detector. " << endl;
-}
-
-PHG4MVTXDetector::~PHG4MVTXDetector()
-{
 }
 
 //_______________________________________________________________
@@ -314,64 +313,23 @@ void PHG4MVTXDetector::SetDisplayProperty(G4LogicalVolume* lv)
   if (Verbosity() >= 5)
     cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
          << material_name << endl;
-
-  G4VisAttributes matVis;
-  if (material_name.find("SI") != std::string::npos)
+  vector<string> matname = {"SI","KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"} ;
+  bool found = false;
+  for (string nam : matname)
   {
-    PHG4Utils::SetColour(&matVis, "G4_Si");
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
+    if (material_name.find(nam)!= std::string::npos)
+    {
+    m_DisplayAction->AddVolume(lv,nam);
     if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Si" << endl;
+      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with " << nam << endl;
+    found = true;
+    break;
+    }
   }
-  else if (material_name.find("KAPTON") != std::string::npos)
+  if (! found)
   {
-    PHG4Utils::SetColour(&matVis, "G4_KAPTON");
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-    if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_KAPTON" << endl;
+    m_DisplayAction->AddVolume(lv,"ANYTHING_ELSE");
   }
-  else if (material_name.find("ALUMINUM") != std::string::npos)
-  {
-    PHG4Utils::SetColour(&matVis, "G4_Al");
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-    if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with G4_Al" << endl;
-  }
-  else if (material_name.find("Carbon") != std::string::npos)
-  {
-    matVis.SetColour(0.5, 0.5, 0.5, .25);
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-    if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
-  }
-  else if (material_name.find("M60J3K") != std::string::npos)
-  {
-    matVis.SetColour(0.25, 0.25, 0.25, .25);
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-    if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with Gray" << endl;
-  }
-  else if (material_name.find("WATER") != std::string::npos)
-  {
-    matVis.SetColour(0.0, 0.5, 0.0, .25);
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-    if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with WATER" << endl;
-  }
-  else
-  {
-    matVis.SetColour(.2, .2, .7, .25);
-    matVis.SetVisibility(true);
-    matVis.SetForceSolid(true);
-  }
-  lv->SetVisAttributes(matVis);
-
   int nDaughters = lv->GetNoDaughters();
   for (int i = 0; i < nDaughters; ++i)
   {
