@@ -24,7 +24,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int _n_layers)
   : PHG4DetectorGroupSubsystem(name)
-  , detector_(nullptr)
+  , m_Detector(nullptr)
   , steppingAction_(nullptr)
   , m_DisplayAction(nullptr)
   , eventAction_(nullptr)
@@ -65,11 +65,11 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   {
     cout << "    create MVTX detector with " << n_layers << " layers."  << endl;
   }
-  detector_ = new PHG4MVTXDetector(this, topNode, GetParamsContainer(), Name()/*, n_layers*/);
-  detector_->Verbosity(Verbosity());
-  detector_->SuperDetector(SuperDetector());
-  detector_->Detector(detector_type);
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4MVTXDetector(this, topNode, GetParamsContainer(), Name());
+  m_Detector->Verbosity(Verbosity());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->Detector(detector_type);
+  m_Detector->OverlapCheck(CheckOverlap());
   if (Verbosity())
   {
     cout << "    ------ created detector " << Name() << endl;
@@ -147,13 +147,13 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
     eventAction_ = dynamic_cast<PHG4EventAction*>(eventaction);
     // create stepping action
-    steppingAction_ = new PHG4MVTXSteppingAction(detector_);
+    steppingAction_ = new PHG4MVTXSteppingAction(m_Detector);
   }
   else
   {
     if (blackhole)
     {
-      steppingAction_ = new PHG4MVTXSteppingAction(detector_);
+      steppingAction_ = new PHG4MVTXSteppingAction(m_Detector);
     }
   }
   return 0;
@@ -174,7 +174,7 @@ int PHG4MVTXSubsystem::process_event(PHCompositeNode* topNode)
 //_______________________________________________________________________
 PHG4Detector* PHG4MVTXSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
 
 //_______________________________________________________________________

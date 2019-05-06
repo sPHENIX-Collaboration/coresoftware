@@ -5,8 +5,6 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
-#include <Geant4/G4Types.hh>
-
 class PHG4MVTXDetector;
 class PHG4MVTXSteppingAction;
 class PHG4DisplayAction;
@@ -50,7 +48,7 @@ class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4MVTXDetector* detector_;
+  PHG4MVTXDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
@@ -63,7 +61,6 @@ class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
   PHG4EventAction* eventAction_;
 
   // These are passed on to the detector class
-  G4double layer_nominal_radius;
   unsigned int n_layers;
 
   std::string detector_type;
