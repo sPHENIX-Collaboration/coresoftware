@@ -13,7 +13,6 @@ using namespace std;
 
 PHG4MVTXDisplayAction::PHG4MVTXDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
-  , m_MyVolume(nullptr)
 {
 }
 
@@ -70,19 +69,5 @@ void PHG4MVTXDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     visatt->SetForceSolid(true);
     logvol->SetVisAttributes(visatt);
   }
-  if (! m_MyVolume)
-  {
-    return;
-  }
-  if (m_MyVolume->GetVisAttributes())
-  {
-    return;
-  }
-  G4VisAttributes *visatt = new G4VisAttributes();
-  visatt = new G4VisAttributes();
-  visatt->SetVisibility(true);
-  visatt->SetForceSolid(true);
-  m_MyVolume->SetVisAttributes(visatt);
-  m_VisAttVec.push_back(visatt);
   return;
 }
