@@ -32,7 +32,7 @@ class PHG4MVTXDetector : public PHG4Detector
   PHG4MVTXDetector(PHG4MVTXSubsystem *subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
 
   //! destructor
-  virtual ~PHG4MVTXDetector();
+  virtual ~PHG4MVTXDetector(){}
 
   //! construct
   virtual void Construct(G4LogicalVolume* world);

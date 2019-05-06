@@ -31,7 +31,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Colour.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
 #include <memory>
@@ -68,10 +67,6 @@ PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem *subsys, PHCompositeNode* N
   pixel_thickness = alpide_params->get_double_param("pixel_thickness");
   if (Verbosity() > 0)
     cout << "PHG4MVTXDetector constructor: making MVTX detector. " << endl;
-}
-
-PHG4MVTXDetector::~PHG4MVTXDetector()
-{
 }
 
 //_______________________________________________________________
