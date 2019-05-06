@@ -3,7 +3,12 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libSeamstress.la
 
-pkginclude_HEADERS = \
+# that is a bad kludge, but AC_INIT's package name is lower case
+# which then gives the wrong install dir (helixhough instead of HelixHough)
+# if anyone has a better idea, let me know
+packageincludedir = $(includedir)/@PACKAGE_NAME@
+
+packageinclude_HEADERS = \
   Seamstress.h \
   Needle.h \
   Pincushion.h
