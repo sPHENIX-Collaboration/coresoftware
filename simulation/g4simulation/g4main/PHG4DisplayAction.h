@@ -35,6 +35,8 @@ class PHG4DisplayAction
 
   virtual std::string GetName() const { return m_Detector; }
 
+  virtual void Print(const std::string &what="ALL") {}
+
   enum CheckReturnCodes
   {
     ABORT = -1,
