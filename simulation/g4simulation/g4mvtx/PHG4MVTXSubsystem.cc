@@ -5,8 +5,6 @@
 #include "PHG4MVTXDisplayAction.h"
 #include "PHG4MVTXSteppingAction.h"
 
-#include <g4detectors/PHG4EventActionClearZeroEdep.h>
-
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
@@ -27,7 +25,6 @@ PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int _n_layer
   , m_Detector(nullptr)
   , steppingAction_(nullptr)
   , m_DisplayAction(nullptr)
-  , eventAction_(nullptr)
   , n_layers(_n_layers)
   , detector_type(name)
 {
@@ -63,7 +60,7 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // These values are set from the calling macro using the setters defined in the .h file
   if (Verbosity())
   {
-    cout << "    create MVTX detector with " << n_layers << " layers."  << endl;
+    cout << "    create MVTX detector with " << n_layers << " layers." << endl;
   }
   m_Detector = new PHG4MVTXDetector(this, topNode, GetParamsContainer(), Name());
   m_Detector->Verbosity(Verbosity());
@@ -122,7 +119,6 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     if (Verbosity())
       cout << PHWHERE << "creating hits node " << nodename.str() << endl;
 
-    PHG4EventActionClearZeroEdep* eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     if (absorberactive)
     {
       nodename.str("");
@@ -141,11 +137,8 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
       if (Verbosity())
         cout << PHWHERE << "creating hits node " << nodename.str() << endl;
-
-      eventaction->AddNode(nodename.str());
     }
 
-    eventAction_ = dynamic_cast<PHG4EventAction*>(eventaction);
     // create stepping action
     steppingAction_ = new PHG4MVTXSteppingAction(m_Detector);
   }
@@ -187,24 +180,26 @@ void PHG4MVTXSubsystem::SetDefaultParameters()
 {
   //TODO: Move to defMVTX at some point
   const int kNLr = 3;
-  enum { kRmn,
-         kRmd,
-         kRmx,
-         kNModPerStave,
-         kPhi0,
-         kNStave,
-         kNPar };
+  enum
+  {
+    kRmn,
+    kRmd,
+    kRmx,
+    kNModPerStave,
+    kPhi0,
+    kNStave,
+    kNPar
+  };
   // Radii are from last TDR (ALICE-TDR-017.pdf Tab. 1.1, rMid is mean value)
   const double mvtxdat[kNLr][kNPar] = {
-    { 22.4, 23.4, 26.7, 9., 0., 12. }, // for each layer: rMin,rMid,rMax,NChip/Stave, phi0, nStaves
-    { 30.1, 31.5, 34.6, 9., 0., 16. },
-    { 37.8, 39.3, 42.1, 9., 0., 20. }
-  };
+      {22.4, 23.4, 26.7, 9., 0., 12.},  // for each layer: rMin,rMid,rMax,NChip/Stave, phi0, nStaves
+      {30.1, 31.5, 34.6, 9., 0., 16.},
+      {37.8, 39.3, 42.1, 9., 0., 20.}};
 
   for (set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
   {
     const int& ilyr = *lyr_it;
-    set_default_int_param(ilyr, "active", 1); //non-automatic initialization in PHG4DetectorGroupSubsystem
+    set_default_int_param(ilyr, "active", 1);  //non-automatic initialization in PHG4DetectorGroupSubsystem
     set_default_int_param(ilyr, "layer", ilyr);
     set_default_int_param(ilyr, "N_staves", mvtxdat[ilyr][kNStave]);
 

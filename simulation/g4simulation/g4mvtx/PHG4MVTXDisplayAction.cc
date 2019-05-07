@@ -36,7 +36,7 @@ void PHG4MVTXDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
       continue;
     }
     G4VisAttributes *visatt = new G4VisAttributes();
-    m_VisAttVec.push_back(visatt); // for later deletion
+    m_VisAttVec.push_back(visatt);  // for later deletion
     if (it.second == "Carbon")
     {
       visatt->SetColour(0.5, 0.5, 0.5, .25);
@@ -51,15 +51,15 @@ void PHG4MVTXDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     }
     else if (it.second == "SI")
     {
-      PHG4Utils::SetColour(visatt,"G4_Si");
+      PHG4Utils::SetColour(visatt, "G4_Si");
     }
     else if (it.second == "KAPTON")
     {
-      PHG4Utils::SetColour(visatt,"G4_KAPTON");
+      PHG4Utils::SetColour(visatt, "G4_KAPTON");
     }
     else if (it.second == "ALUMINUM")
     {
-      PHG4Utils::SetColour(visatt,"G4_Al");
+      PHG4Utils::SetColour(visatt, "G4_Al");
     }
     else
     {

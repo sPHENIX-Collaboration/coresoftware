@@ -16,12 +16,12 @@ class G4VPhysicalVolume;
 class PHG4MVTXDisplayAction : public PHG4DisplayAction
 {
  public:
-PHG4MVTXDisplayAction(const std::string &name);
+  PHG4MVTXDisplayAction(const std::string &name);
 
   virtual ~PHG4MVTXDisplayAction();
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
-void AddVolume(G4LogicalVolume *logvol, const std::string &mat) {m_LogicalVolumeMap[logvol] = mat;}
+  void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
 
  private:
   std::map<G4LogicalVolume *, std::string> m_LogicalVolumeMap;

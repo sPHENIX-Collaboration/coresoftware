@@ -19,6 +19,7 @@
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
+#include <Geant4/G4Colour.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4GDMLParser.hh>
 #include <Geant4/G4IntersectionSolid.hh>
@@ -27,10 +28,10 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4ReflectionFactory.hh>
 #include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Colour.hh>
 
 #include <cmath>
 #include <memory>
@@ -38,11 +39,11 @@
 
 using namespace std;
 
-PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem *subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
+PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
   : PHG4Detector(Node, dnam)
-  , m_DisplayAction(dynamic_cast<PHG4MVTXDisplayAction *>(subsys->GetDisplayAction()))
+  , m_DisplayAction(dynamic_cast<PHG4MVTXDisplayAction*>(subsys->GetDisplayAction()))
   , m_ParamsContainer(_paramsContainer)
-  , stave_geometry_file(_paramsContainer->GetParameters(PHG4MVTXDefs::GLOBAL)->get_string_param("stave_geometry_file"))
+  , m_StaveGeometryFile(_paramsContainer->GetParameters(PHG4MVTXDefs::GLOBAL)->get_string_param("stave_geometry_file"))
 {
   //  Verbosity(2);
 
@@ -54,17 +55,17 @@ PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem *subsys, PHCompositeNode* N
   for (int ilayer = 0; ilayer < n_Layers; ++ilayer)
   {
     const PHParameters* params = m_ParamsContainer->GetParameters(ilayer);
-    m_IsLayerActive[ilayer]         = params->get_int_param("active");
+    m_IsLayerActive[ilayer] = params->get_int_param("active");
     m_IsLayerAbsorberActive[ilayer] = params->get_int_param("absorberactive");
-    m_IsBlackHole[ilayer]           = params->get_int_param("blackhole");
-    m_N_staves[ilayer]              = params->get_int_param("N_staves");
-    m_nominal_radius[ilayer]        = params->get_double_param("layer_nominal_radius");
-    m_nominal_phitilt[ilayer]       = params->get_double_param("phitilt");
+    m_IsBlackHole[ilayer] = params->get_int_param("blackhole");
+    m_N_staves[ilayer] = params->get_int_param("N_staves");
+    m_nominal_radius[ilayer] = params->get_double_param("layer_nominal_radius");
+    m_nominal_phitilt[ilayer] = params->get_double_param("phitilt");
   }
   const PHParameters* alpide_params = m_ParamsContainer->GetParameters(PHG4MVTXDefs::ALPIDE_SEGMENTATION);
-  pixel_x = alpide_params->get_double_param("pixel_x");
-  pixel_z = alpide_params->get_double_param("pixel_z");
-  pixel_thickness = alpide_params->get_double_param("pixel_thickness");
+  m_PixelX = alpide_params->get_double_param("pixel_x");
+  m_PixelZ = alpide_params->get_double_param("pixel_z");
+  m_PixelThickness = alpide_params->get_double_param("pixel_thickness");
   if (Verbosity() > 0)
     cout << "PHG4MVTXDetector constructor: making MVTX detector. " << endl;
 }
@@ -95,7 +96,7 @@ int PHG4MVTXDetector::IsInMVTX(G4VPhysicalVolume* volume, int& layer, int& stave
   // Since the Assembly volume read from GDML does not give unique pointers
   // to sensors, we need to check the stave, which is unique
   auto iter = m_StavePV.find(volume);
-  if ( iter != m_StavePV.end())
+  if (iter != m_StavePV.end())
   {
     tie(layer, stave) = iter->second;
     if (Verbosity() > 0)
@@ -118,7 +119,7 @@ int PHG4MVTXDetector::get_layer(int index) const
   // Get MVTX layer from stave index in the MVTX
   // MVTX stave index start from 0, i.e index = 0 for stave 0 in layer 0
   int lay = 0;
-  while ( !(index < m_N_staves[lay]) )
+  while (!(index < m_N_staves[lay]))
   {
     index -= m_N_staves[lay];
     lay++;
@@ -130,7 +131,7 @@ int PHG4MVTXDetector::get_stave(int index) const
 {
   // Get stave index in the layer from stave index in the MVTX
   int lay = 0;
-  while ( !(index < m_N_staves[lay]) )
+  while (!(index < m_N_staves[lay]))
   {
     index -= m_N_staves[lay];
     lay++;
@@ -169,7 +170,7 @@ int PHG4MVTXDetector::ConstructMVTX(G4LogicalVolume* trackerenvelope)
   // import the staves from the gemetry file
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
-  gdmlParser.Read(stave_geometry_file, false);
+  gdmlParser.Read(m_StaveGeometryFile, false);
 
   // figure out which assembly we want
   char assemblyname[500];
@@ -230,7 +231,7 @@ int PHG4MVTXDetector::ConstructMVTX_Layer(int layer, G4AssemblyVolume* av_ITSUSt
     }
   }
 
-  G4double phistep = get_phistep(layer); // this produces even stave spacing
+  G4double phistep = get_phistep(layer);  // this produces even stave spacing
   double z_location = 0.0;
 
   if (Verbosity() > 0)
@@ -313,22 +314,22 @@ void PHG4MVTXDetector::SetDisplayProperty(G4LogicalVolume* lv)
   if (Verbosity() >= 5)
     cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
          << material_name << endl;
-  vector<string> matname = {"SI","KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"} ;
+  vector<string> matname = {"SI", "KAPTON", "ALUMINUM", "Carbon", "M60J3K", "WATER"};
   bool found = false;
   for (string nam : matname)
   {
-    if (material_name.find(nam)!= std::string::npos)
+    if (material_name.find(nam) != std::string::npos)
     {
-    m_DisplayAction->AddVolume(lv,nam);
-    if (Verbosity() >= 5)
-      cout << "SetDisplayProperty - LV " << lv->GetName() << " display with " << nam << endl;
-    found = true;
-    break;
+      m_DisplayAction->AddVolume(lv, nam);
+      if (Verbosity() >= 5)
+        cout << "SetDisplayProperty - LV " << lv->GetName() << " display with " << nam << endl;
+      found = true;
+      break;
     }
   }
-  if (! found)
+  if (!found)
   {
-    m_DisplayAction->AddVolume(lv,"ANYTHING_ELSE");
+    m_DisplayAction->AddVolume(lv, "ANYTHING_ELSE");
   }
   int nDaughters = lv->GetNoDaughters();
   for (int i = 0; i < nDaughters; ++i)
@@ -345,13 +346,13 @@ void PHG4MVTXDetector::SetDisplayProperty(G4LogicalVolume* lv)
 void PHG4MVTXDetector::AddGeometryNode()
 {
   int active = 0;
-  for ( auto& isAct: m_IsLayerActive)
+  for (auto& isAct : m_IsLayerActive)
     active |= isAct;
 
   if (active)
   {
     ostringstream geonode;
-    geonode << "CYLINDERGEOM_" << ((superdetector != "NONE") ? superdetector : detector_type);
+    geonode << "CYLINDERGEOM_" << ((m_SuperDetector != "NONE") ? m_SuperDetector : m_Detector);
     PHG4CylinderGeomContainer* geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
     if (!geo)
     {
@@ -371,17 +372,17 @@ void PHG4MVTXDetector::AddGeometryNode()
                                                         m_nominal_radius[ilayer] / cm,
                                                         get_phistep(ilayer) / rad,
                                                         m_nominal_phitilt[ilayer] / rad,
-                                                        pixel_x,
-                                                        pixel_z,
-                                                        pixel_thickness);
+                                                        m_PixelX,
+                                                        m_PixelZ,
+                                                        m_PixelThickness);
       geo->AddLayerGeom(ilayer, mygeom);
-    } // loop per layers
+    }  // loop per layers
     if (Verbosity())
     {
       geo->identify();
     }
-  } //is active
-} // AddGeometryNode
+  }  //is active
+}  // AddGeometryNode
 
 void PHG4MVTXDetector::FillPVArray(G4AssemblyVolume* av)
 {
@@ -415,7 +416,7 @@ void PHG4MVTXDetector::FillPVArray(G4AssemblyVolume* av)
 
       FindSensor(worldLogical);
     }
-    else // in case of stave structure
+    else  // in case of stave structure
     {
       if (Verbosity() > 0)
       {
@@ -440,7 +441,7 @@ void PHG4MVTXDetector::FindSensor(G4LogicalVolume* lv)
       m_SensorPV.insert(pv);
 
       if (Verbosity() > 0)
-        cout << "                      Adding Sensor Vol <" << pv->GetName() << " (" << m_SensorPV.size() << ")>"<< endl;
+        cout << "                      Adding Sensor Vol <" << pv->GetName() << " (" << m_SensorPV.size() << ")>" << endl;
     }
 
     G4LogicalVolume* worldLogical = pv->GetLogicalVolume();
