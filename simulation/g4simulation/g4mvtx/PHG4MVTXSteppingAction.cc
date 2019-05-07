@@ -14,7 +14,6 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
