@@ -28,6 +28,7 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4ReflectionFactory.hh>
 #include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
@@ -42,7 +43,7 @@ PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem* subsys, PHCompositeNode* N
   : PHG4Detector(Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4MVTXDisplayAction*>(subsys->GetDisplayAction()))
   , m_ParamsContainer(_paramsContainer)
-  , stave_geometry_file(_paramsContainer->GetParameters(PHG4MVTXDefs::GLOBAL)->get_string_param("stave_geometry_file"))
+  , m_StaveGeometryFile(_paramsContainer->GetParameters(PHG4MVTXDefs::GLOBAL)->get_string_param("stave_geometry_file"))
 {
   //  Verbosity(2);
 
@@ -62,9 +63,9 @@ PHG4MVTXDetector::PHG4MVTXDetector(PHG4MVTXSubsystem* subsys, PHCompositeNode* N
     m_nominal_phitilt[ilayer] = params->get_double_param("phitilt");
   }
   const PHParameters* alpide_params = m_ParamsContainer->GetParameters(PHG4MVTXDefs::ALPIDE_SEGMENTATION);
-  pixel_x = alpide_params->get_double_param("pixel_x");
-  pixel_z = alpide_params->get_double_param("pixel_z");
-  pixel_thickness = alpide_params->get_double_param("pixel_thickness");
+  m_PixelX = alpide_params->get_double_param("pixel_x");
+  m_PixelZ = alpide_params->get_double_param("pixel_z");
+  m_PixelThickness = alpide_params->get_double_param("pixel_thickness");
   if (Verbosity() > 0)
     cout << "PHG4MVTXDetector constructor: making MVTX detector. " << endl;
 }
@@ -169,7 +170,7 @@ int PHG4MVTXDetector::ConstructMVTX(G4LogicalVolume* trackerenvelope)
   // import the staves from the gemetry file
   std::unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
-  gdmlParser.Read(stave_geometry_file, false);
+  gdmlParser.Read(m_StaveGeometryFile, false);
 
   // figure out which assembly we want
   char assemblyname[500];
@@ -351,7 +352,7 @@ void PHG4MVTXDetector::AddGeometryNode()
   if (active)
   {
     ostringstream geonode;
-    geonode << "CYLINDERGEOM_" << ((superdetector != "NONE") ? superdetector : detector_type);
+    geonode << "CYLINDERGEOM_" << ((m_SuperDetector != "NONE") ? m_SuperDetector : m_Detector);
     PHG4CylinderGeomContainer* geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode(), geonode.str().c_str());
     if (!geo)
     {
@@ -371,9 +372,9 @@ void PHG4MVTXDetector::AddGeometryNode()
                                                         m_nominal_radius[ilayer] / cm,
                                                         get_phistep(ilayer) / rad,
                                                         m_nominal_phitilt[ilayer] / rad,
-                                                        pixel_x,
-                                                        pixel_z,
-                                                        pixel_thickness);
+                                                        m_PixelX,
+                                                        m_PixelZ,
+                                                        m_PixelThickness);
       geo->AddLayerGeom(ilayer, mygeom);
     }  // loop per layers
     if (Verbosity())
