@@ -8,6 +8,7 @@
 class PHG4MVTXDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4MVTXSteppingAction : public PHG4SteppingAction
 {
@@ -16,9 +17,7 @@ class PHG4MVTXSteppingAction : public PHG4SteppingAction
   PHG4MVTXSteppingAction(PHG4MVTXDetector*);
 
   //! destroctor
-  virtual ~PHG4MVTXSteppingAction()
-  {
-  }
+  virtual ~PHG4MVTXSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -28,12 +27,13 @@ class PHG4MVTXSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4MVTXDetector* detector_;
+  PHG4MVTXDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4HitContainer* absorberhits_;
-  PHG4Hit* hit;
+  PHG4HitContainer *m_HitContainer;
+  PHG4HitContainer *m_AbsorberhitContainer;
+  PHG4Hit *m_Hit;
+  PHG4Shower *m_SaveShower;
 };
 
 #endif  // G4MVTX_PHG4VMVTXSTEPPINGACTION_H

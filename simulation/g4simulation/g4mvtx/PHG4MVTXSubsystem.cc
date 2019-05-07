@@ -5,8 +5,6 @@
 #include "PHG4MVTXDisplayAction.h"
 #include "PHG4MVTXSteppingAction.h"
 
-#include <g4detectors/PHG4EventActionClearZeroEdep.h>
-
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
@@ -27,7 +25,6 @@ PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int _n_layer
   , m_Detector(nullptr)
   , steppingAction_(nullptr)
   , m_DisplayAction(nullptr)
-  , eventAction_(nullptr)
   , n_layers(_n_layers)
   , detector_type(name)
 {
@@ -122,7 +119,6 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     if (Verbosity())
       cout << PHWHERE << "creating hits node " << nodename.str() << endl;
 
-    PHG4EventActionClearZeroEdep* eventaction = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     if (absorberactive)
     {
       nodename.str("");
@@ -142,10 +138,8 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       if (Verbosity())
         cout << PHWHERE << "creating hits node " << nodename.str() << endl;
 
-      eventaction->AddNode(nodename.str());
     }
 
-    eventAction_ = dynamic_cast<PHG4EventAction*>(eventaction);
     // create stepping action
     steppingAction_ = new PHG4MVTXSteppingAction(m_Detector);
   }

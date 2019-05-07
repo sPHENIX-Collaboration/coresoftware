@@ -1,5 +1,5 @@
 #include "PHG4MVTXSteppingAction.h"
-//#include "mvtx/CylinderGeom_MVTX.h"
+
 #include "PHG4MVTXDetector.h"
 
 #include <g4main/PHG4Hit.h>
@@ -34,14 +34,22 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4MVTXSteppingAction::PHG4MVTXSteppingAction(PHG4MVTXDetector* detector)
   : PHG4SteppingAction(detector->GetName())
-  , detector_(detector)
-  , hits_(NULL)
-  , absorberhits_(NULL)
-  , hit(NULL)
+  , m_Detector(detector)
+  , m_HitContainer(nullptr)
+  , m_AbsorberhitContainer(nullptr)
+  , m_Hit(nullptr)
+  , m_SaveShower(nullptr)
 {
-  //  cout << "PHG4MVTXSteppingAction created" << endl;
+}
 
-  //Verbosity(3);
+//____________________________________________________________________________..
+PHG4MVTXSteppingAction::~PHG4MVTXSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a nullptr pointer which are
+  // legal to delete (it results in a no operation)
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
@@ -51,17 +59,17 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // get volume of the current step
   G4VPhysicalVolume* sensor_volume = touch->GetVolume();
 
-  // PHG4MVTXDetector_->IsInMVTX(volume)
+  // PHG4MVTXDetector->IsInMVTX(volume)
   // returns
   //  0 if outside of MVTX
   //  1 if inside sensor
 
   // This checks if the volume is a sensor (doesn't tell us unique layer)
-  // PHG4MVTXTelescopeDetector_->IsSensor(volume)
+  // PHG4MVTXDetector->IsSensor(volume)
   // returns
   //  1 if volume is a sensor
   //  0 if not
-  int whichactive = detector_->IsSensor(sensor_volume);
+  int whichactive = m_Detector->IsSensor(sensor_volume);
 
   if (!whichactive)
   {
@@ -78,7 +86,7 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   int stave_id = NAN;
   //cout << endl << "  In UserSteppingAction for layer " << layer_id << endl;
   G4VPhysicalVolume* vstave = touch->GetVolume(3);
-  whichactive = detector_->IsInMVTX(vstave, layer_id, stave_id);
+  whichactive = m_Detector->IsInMVTX(vstave, layer_id, stave_id);
   if (layer_id < 0 || stave_id < 0)
   {
     cout << PHWHERE << "invalid MVTX's layer (" << layer_id << ") or stave (" << stave_id << ") index " << endl;
@@ -172,7 +180,7 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   if (Verbosity() > 0) cout << " edep = " << edep << endl;
 
   // if this cylinder stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole(layer_id))
+  if (m_Detector->IsBlackHole(layer_id))
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);
@@ -180,7 +188,7 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   }
 
   // test if we are active
-  if (detector_->IsActive(layer_id))
+  if (m_Detector->IsActive(layer_id))
   {
     bool geantino = false;
     // the check for the pdg code speeds things up, I do not want to make
@@ -207,18 +215,19 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     switch (prePoint->GetStepStatus())
     {
-      case fGeomBoundary:
-      case fUndefined:
-
-      hit = new PHG4Hitv1();
-
-      hit->set_layer((unsigned int) layer_id);
+    case fGeomBoundary:
+    case fUndefined:
+      if (! m_Hit)
+      {
+	m_Hit = new PHG4Hitv1();
+      }
+      m_Hit->set_layer((unsigned int) layer_id);
 
       // set the index values needed to locate the sensor strip
-      hit->set_property(PHG4Hit::prop_stave_index, stave_id);
-      hit->set_property(PHG4Hit::prop_half_stave_index, half_stave_number);
-      hit->set_property(PHG4Hit::prop_module_index, module_number);
-      hit->set_property(PHG4Hit::prop_chip_index, chip_number);
+      m_Hit->set_property(PHG4Hit::prop_stave_index, stave_id);
+      m_Hit->set_property(PHG4Hit::prop_half_stave_index, half_stave_number);
+      m_Hit->set_property(PHG4Hit::prop_module_index, module_number);
+      m_Hit->set_property(PHG4Hit::prop_chip_index, chip_number);
 
       worldPosition = prePoint->GetPosition();
 
@@ -235,48 +244,36 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 	  */
 
       // Store the local coordinates for the entry point
-      StoreLocalCoordinate(hit, aStep, true, false);
+      StoreLocalCoordinate(m_Hit, aStep, true, false);
 
       // Store the entrance values in cm in world coordinates
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
-      hit->set_px(0, prePoint->GetMomentum().x() / GeV);
-      hit->set_py(0, prePoint->GetMomentum().y() / GeV);
-      hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
+      m_Hit->set_px(0, prePoint->GetMomentum().x() / GeV);
+      m_Hit->set_py(0, prePoint->GetMomentum().y() / GeV);
+      m_Hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
 
       // time in ns
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
-      {
-        hit->set_trkid(aTrack->GetTrackID());
+        m_Hit->set_trkid(aTrack->GetTrackID());
         if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
         {
           if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
           {
-            hit->set_trkid(pp->GetUserTrackId());
-            hit->set_shower_id(pp->GetShower()->get_id());
+            m_Hit->set_trkid(pp->GetUserTrackId());
+            m_Hit->set_shower_id(pp->GetShower()->get_id());
+            m_SaveShower = pp->GetShower();
           }
         }
-      }
       //set the initial energy deposit
-      hit->set_edep(0);
+      m_Hit->set_edep(0);
 
       // Now add the hit
-      //	  hit->print();
-      hits_->AddHit(layer_id, hit);
-
-      {
-        if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
-        {
-          if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-          {
-            pp->GetShower()->add_g4hit_id(hits_->GetID(), hit->get_hit_id());
-          }
-        }
-      }
-
+      //	  m_Hit->print();
+      //m_HitContainer->AddHit(layer_id, m_Hit);
       break;
     default:
       break;
@@ -306,37 +303,37 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 	cout << "Exit world coords prePoint: x " <<  worldPosition.x() / cm << " y " <<  worldPosition.y() / cm << " z " <<  worldPosition.z() / cm << endl;
 
       // This is for consistency with the local coord position, the world coordinate exit position is correct
-      hit->set_x( 1, prePoint->GetPosition().x() / cm );
-      hit->set_y( 1, prePoint->GetPosition().y() / cm );
-      hit->set_z( 1, prePoint->GetPosition().z() / cm );
+      m_Hit->set_x( 1, prePoint->GetPosition().x() / cm );
+      m_Hit->set_y( 1, prePoint->GetPosition().y() / cm );
+      m_Hit->set_z( 1, prePoint->GetPosition().z() / cm );
 
       const G4NavigationHistory *history = theTouchable->GetHistory();
       //cout << "exiting: depth = " << history->GetDepth() <<  " volume name = " << history->GetVolume(history->GetDepth())->GetName() << endl;
       localPosition = history->GetTransform(history->GetDepth()).TransformPoint(worldPosition);
 
-      hit->set_local_x(1, localPosition.x() / cm);
-      hit->set_local_y(1, localPosition.y() / cm);
-      hit->set_local_z(1, localPosition.z() / cm);
+      m_Hit->set_local_x(1, localPosition.x() / cm);
+      m_Hit->set_local_y(1, localPosition.y() / cm);
+      m_Hit->set_local_z(1, localPosition.z() / cm);
       */
 
     // Store the local coordinates for the exit point
-    StoreLocalCoordinate(hit, aStep, false, true);
+    StoreLocalCoordinate(m_Hit, aStep, false, true);
 
     // Store world coordinates for the exit point
-    hit->set_x(1, postPoint->GetPosition().x() / cm);
-    hit->set_y(1, postPoint->GetPosition().y() / cm);
-    hit->set_z(1, postPoint->GetPosition().z() / cm);
+    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_px(1, postPoint->GetMomentum().x() / GeV);
-    hit->set_py(1, postPoint->GetMomentum().y() / GeV);
-    hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
+    m_Hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+    m_Hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+    m_Hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
     //sum up the energy to get total deposited
-    hit->set_edep(hit->get_edep() + edep);
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
     if (geantino)
     {
-      hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
     }
     if (edep > 0)
     {
@@ -370,9 +367,43 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     if (Verbosity() > 0)
     {
       cout << "  stepping action found hit:" << endl;
-      hit->print();
+      m_Hit->print();
       cout << endl
            << endl;
+    }
+
+    // if any of these conditions is true this is the last step in
+    // this volume and we need to save the hit
+    // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+    // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+    // (happens when your detector goes outside world volume)
+    // postPoint->GetStepStatus() == fAtRestDoItProc: track stops (typically
+    // aTrack->GetTrackStatus() == fStopAndKill is also set)
+    // aTrack->GetTrackStatus() == fStopAndKill: track ends
+    if (postPoint->GetStepStatus() == fGeomBoundary ||
+        postPoint->GetStepStatus() == fWorldBoundary ||
+        postPoint->GetStepStatus() == fAtRestDoItProc ||
+        aTrack->GetTrackStatus() == fStopAndKill)
+    {
+      // save only hits with energy deposit (or -1 for geantino)
+      if (m_Hit->get_edep())
+      {
+        m_HitContainer->AddHit(layer_id, m_Hit);
+        if (m_SaveShower)
+        {
+          m_SaveShower->add_g4hit_id(m_HitContainer->GetID(), m_Hit->get_hit_id());
+        }
+        // ownership has been transferred to container, set to null
+        // so we will create a new hit for the next track
+        m_Hit = nullptr;
+      }
+      else
+      {
+        // if this hit has no energy deposit, just reset it for reuse
+        // this means we have to delete it in the dtor. If this was
+        // the last hit we processed the memory is still allocated
+        m_Hit->Reset();
+      }
     }
 
     // return true to indicate the hit was used
@@ -391,27 +422,27 @@ void PHG4MVTXSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   string hitnodename;
   string absorbernodename;
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  m_AbsorberhitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
-  if (!hits_)
+  if (!m_HitContainer)
   {
     std::cout << "PHG4MVTXSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
-  if (!absorberhits_)
+  if (!m_AbsorberhitContainer)
   {
     if (Verbosity() > 0)
     {

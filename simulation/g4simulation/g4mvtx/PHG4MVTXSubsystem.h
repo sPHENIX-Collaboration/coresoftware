@@ -8,7 +8,6 @@
 class PHG4MVTXDetector;
 class PHG4MVTXSteppingAction;
 class PHG4DisplayAction;
-class PHG4EventAction;
 
 class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
 {
@@ -41,7 +40,6 @@ class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
-  PHG4EventAction* GetEventAction() const { return eventAction_; }
 
  private:
   void SetDefaultParameters();
@@ -57,8 +55,6 @@ class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
-
-  PHG4EventAction* eventAction_;
 
   // These are passed on to the detector class
   unsigned int n_layers;
