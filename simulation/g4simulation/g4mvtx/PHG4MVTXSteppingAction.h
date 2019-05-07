@@ -14,16 +14,16 @@ class PHG4MVTXSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4MVTXSteppingAction(PHG4MVTXDetector*);
+  PHG4MVTXSteppingAction(PHG4MVTXDetector *);
 
   //! destroctor
   virtual ~PHG4MVTXSteppingAction();
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  virtual bool UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers(PHCompositeNode*);
+  virtual void SetInterfacePointers(PHCompositeNode *);
 
  private:
   //! pointer to the detector

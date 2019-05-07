@@ -40,7 +40,6 @@ class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
-
  private:
   void SetDefaultParameters();
 

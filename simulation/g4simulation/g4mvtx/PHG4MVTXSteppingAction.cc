@@ -130,7 +130,7 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
   if (Verbosity() > 0)
     cout << endl
-    << "  UserSteppingAction: layer " << layer_id;
+         << "  UserSteppingAction: layer " << layer_id;
   boost::char_separator<char> sep("_");
   boost::tokenizer<boost::char_separator<char> >::const_iterator tokeniter;
 
@@ -217,9 +217,9 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
     case fGeomBoundary:
     case fUndefined:
-      if (! m_Hit)
+      if (!m_Hit)
       {
-	m_Hit = new PHG4Hitv1();
+        m_Hit = new PHG4Hitv1();
       }
       m_Hit->set_layer((unsigned int) layer_id);
 
@@ -258,16 +258,16 @@ bool PHG4MVTXSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // time in ns
       m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
       //set the track ID
-        m_Hit->set_trkid(aTrack->GetTrackID());
-        if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+      m_Hit->set_trkid(aTrack->GetTrackID());
+      if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
+      {
+        if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
-          {
-            m_Hit->set_trkid(pp->GetUserTrackId());
-            m_Hit->set_shower_id(pp->GetShower()->get_id());
-            m_SaveShower = pp->GetShower();
-          }
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
+          m_SaveShower = pp->GetShower();
         }
+      }
       //set the initial energy deposit
       m_Hit->set_edep(0);
 
