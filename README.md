@@ -16,6 +16,7 @@ Due to its importance, update of this repository require going through a review 
 * Tutorials
   * [Get started on day-1](https://wiki.bnl.gov/sPHENIX/index.php/SPHENIX_software_day-1_checklist)
   * [sPHENIX macros that run this core-software](https://github.com/sPHENIX-Collaboration/macros)
+  * [Tutorial for sample code on simulation](https://github.com/sPHENIX-Collaboration/tutorials)
   * ["Pull Request" tutorial to update this repository](https://wiki.bnl.gov/sPHENIX/index.php/GitHub_Coresoftware_Update_Procedures)
 * Documentation  
   * [Software wiki](https://wiki.bnl.gov/sPHENIX/index.php/Software)
