@@ -1,5 +1,8 @@
 #include "PHG4INTTDetector.h"
+
+#include "PHG4INTTDisplayAction.h"
 #include "PHG4INTTParameterisation.h"
+#include "PHG4INTTSubsystem.h"
 
 #include <intt/CylinderGeomINTT.h>
 
@@ -36,8 +39,9 @@
 
 using namespace std;
 
-PHG4INTTDetector::PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> &layer_b_e)
+PHG4INTTDetector::PHG4INTTDetector(PHG4INTTSubsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> &layer_b_e)
   : PHG4Detector(Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4INTTDisplayAction*>(subsys->GetDisplayAction()))
   , m_ParamsContainer(parameters)
   , m_IsSupportActive(0)
   , m_IsEndcapActive(0)
@@ -181,12 +185,12 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_ActiveLogVols.insert(siactive_volume);
       }
-      G4VisAttributes siactive_vis;
-      siactive_vis.SetVisibility(true);
-      siactive_vis.SetForceSolid(true);
-      siactive_vis.SetColour(G4Colour::White());
-      siactive_volume->SetVisAttributes(siactive_vis);
-
+      // G4VisAttributes siactive_vis;
+      // siactive_vis.SetVisibility(true);
+      // siactive_vis.SetForceSolid(true);
+      // siactive_vis.SetColour(G4Colour::White());
+      // siactive_volume->SetVisAttributes(siactive_vis);
+      m_DisplayAction->AddVolume(siactive_volume,"SiActive");
       // We do not subdivide the sensor in G4. We will assign hits to strips in the stepping action, using the geometry object
 
       // Si-sensor full (active+inactive) area

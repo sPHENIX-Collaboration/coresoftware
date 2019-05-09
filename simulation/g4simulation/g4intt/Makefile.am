@@ -30,12 +30,12 @@ libg4intt_la_LIBADD = \
   -lintt_io
 
 pkginclude_HEADERS = \
-  PHG4INTTHitReco.h \
-  PHG4INTTDefs.h \
   INTTDeadMap.h \
   INTTDeadMapv1.h \
-  PHG4INTTSubsystem.h \
-  PHG4InttDigitizer.h 
+  PHG4InttDigitizer.h  \
+  PHG4INTTDefs.h \
+  PHG4INTTHitReco.h \
+  PHG4INTTSubsystem.h
 
 ROOTDICTS = \
   INTTDeadMap_Dict.cc \
@@ -62,12 +62,13 @@ libg4intt_io_la_SOURCES = \
 libg4intt_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4INTTDeadMapLoader.cc \
+  PHG4INTTDetector.cc \
+  PHG4INTTDisplayAction.cc \
   PHG4InttDigitizer.cc \
   PHG4INTTHitReco.cc \
-  PHG4INTTDetector.cc \
+  PHG4INTTParameterisation.cc \
   PHG4INTTSteppingAction.cc \
-  PHG4INTTSubsystem.cc \
-  PHG4INTTParameterisation.cc
+  PHG4INTTSubsystem.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

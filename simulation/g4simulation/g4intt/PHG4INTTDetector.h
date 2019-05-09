@@ -14,13 +14,15 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4INTTDisplayAction;
+class PHG4INTTSubsystem;
 class PHParametersContainer;
 
 class PHG4INTTDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4INTTDetector(PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
+  PHG4INTTDetector(PHG4INTTSubsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
   virtual ~PHG4INTTDetector() {}
@@ -56,6 +58,7 @@ class PHG4INTTDetector : public PHG4Detector
   void AddGeometryNode();
   int ConstructINTT(G4LogicalVolume *sandwich);
 
+  PHG4INTTDisplayAction* m_DisplayAction;
   PHParametersContainer *m_ParamsContainer;
 
   std::string m_DetectorType;

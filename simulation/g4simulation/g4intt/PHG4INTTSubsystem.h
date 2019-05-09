@@ -9,6 +9,7 @@
 
 class PHG4INTTDetector;
 class PHG4INTTSteppingAction;
+class PHG4DisplayAction;
 
 class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
 {
@@ -19,14 +20,13 @@ class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
   PHG4INTTSubsystem(const std::string &name = "INTT", const vpair &layerconfig = vpair(0));
 
   //! destructor
-  virtual ~PHG4INTTSubsystem(void)
-  {
-  }
+  virtual ~PHG4INTTSubsystem();
 
   //! init
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-  reates the stepping action and place it on the node tree, under "ACTIONS" node
+  called during InitRun (the original InitRun does common setup and calls this one)
+  creates the detector object 
+  ceates the stepping action 
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode *);
@@ -40,7 +40,11 @@ class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const;
+
   PHG4SteppingAction *GetSteppingAction(void) const { return m_SteppingAction; }
+
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+
   void Print(const std::string &what = "ALL") const;
 
  private:
@@ -53,6 +57,10 @@ class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction *m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
 
   vpair m_LayerConfigVector;
   std::string m_DetectorType;
