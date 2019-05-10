@@ -295,7 +295,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       G4VPVParameterisation *fphxparam = new PHG4INTTFPHXParameterisation(offsetx, +offsety, offsetz, 2. * cell_length_z / 2., ncopy);
       new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(),
                             fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
-
+//      delete fphxparam;
       // PGS   - this is the carbon sheet that the HDI sits on. It forms the wall of the cooling tube that cools the HDI
 
       const double pgs_y = hdi_y;
@@ -911,6 +911,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
       staveext_volume = new G4LogicalVolume(staveext_box, G4Material::GetMaterial("G4_AIR"),
                                            (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
+// the rotation matrices are just used by G4VSolid, ownership is not taken over
+      delete stv_rot_pos;
+      delete stv_rot_neg;
 
       m_DisplayAction->AddVolume(stave_volume,"StaveBox");
       m_DisplayAction->AddVolume(staveext_volume,"StaveBox");
@@ -1169,7 +1172,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       G4VSolid *ladderext_box = new G4SubtractionSolid((boost::format("ladderext_box_%d_%d") % inttlayer % itype).str(), ladderext_box1, ladderext_subtbox, lad_box_rotneg, ladTransneg);
 
       G4LogicalVolume *ladderext_volume = new G4LogicalVolume(ladderext_box, G4Material::GetMaterial("G4_AIR"), (boost::format("ladderext_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
-
+// the rotation matrices are just used by G4VSolid, ownership is not taken over
+      delete lad_box_rotpos;
+      delete lad_box_rotneg;
       m_DisplayAction->AddVolume(ladder_volume,"Ladder");
       m_DisplayAction->AddVolume(ladderext_volume,"Ladder");
 
