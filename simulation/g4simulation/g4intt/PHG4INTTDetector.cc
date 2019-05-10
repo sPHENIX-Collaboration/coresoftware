@@ -30,7 +30,6 @@
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4GenericTrap.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <array>
 #include <boost/foreach.hpp>
@@ -185,11 +184,6 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_ActiveLogVols.insert(siactive_volume);
       }
-      // G4VisAttributes siactive_vis;
-      // siactive_vis.SetVisibility(true);
-      // siactive_vis.SetForceSolid(true);
-      // siactive_vis.SetColour(G4Colour::White());
-      // siactive_volume->SetVisAttributes(siactive_vis);
       m_DisplayAction->AddVolume(siactive_volume,"SiActive");
       // We do not subdivide the sensor in G4. We will assign hits to strips in the stepping action, using the geometry object
 
@@ -209,12 +203,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_PassiveVolumeTuple.insert(make_pair(siinactive_volume, make_tuple(inttlayer, PHG4INTTDefs::SI_INACTIVE)));
       }
-      G4VisAttributes siinactive_vis;
-      siinactive_vis.SetVisibility(true);
-      siinactive_vis.SetForceSolid(true);
-      siinactive_vis.SetColour(G4Colour::Red());
-      siinactive_volume->SetVisAttributes(siinactive_vis);
-
+      m_DisplayAction->AddVolume(siinactive_volume,"SiInActive");
       // Make the HDI Kapton and copper volumes
 
       // This makes HDI volumes that matche this sensor in Z length
@@ -254,18 +243,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_PassiveVolumeTuple.insert(make_pair(hdiext_copper_volume, make_tuple(inttlayer, PHG4INTTDefs::HDIEXT_COPPER)));
       }
-      G4VisAttributes hdi_kapton_vis;
-      hdi_kapton_vis.SetVisibility(true);
-      hdi_kapton_vis.SetForceSolid(true);
-      hdi_kapton_vis.SetColour(G4Colour::Yellow());
-      hdi_kapton_volume->SetVisAttributes(hdi_kapton_vis);
-      hdiext_kapton_volume->SetVisAttributes(hdi_kapton_vis);
-      G4VisAttributes hdi_copper_vis;
-      hdi_copper_vis.SetVisibility(true);
-      hdi_copper_vis.SetForceSolid(true);
-      hdi_copper_vis.SetColour(G4Colour::White());
-      hdi_copper_volume->SetVisAttributes(hdi_copper_vis);
-      hdiext_copper_volume->SetVisAttributes(hdi_copper_vis);
+      m_DisplayAction->AddVolume(hdiext_kapton_volume,"HdiKapton");
+      m_DisplayAction->AddVolume(hdiext_copper_volume,"HdiCopper");
 
       // FPHX
       G4VSolid *fphx_box = new G4Box((boost::format("fphx_box_%d_%d") % inttlayer % itype).str(), fphx_x / 2., fphx_y / 2., fphx_z / 2.);
@@ -275,12 +254,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_PassiveVolumeTuple.insert(make_pair(fphx_volume, make_tuple(inttlayer, PHG4INTTDefs::FPHX)));
       }
-
-      G4VisAttributes fphx_vis;
-      fphx_vis.SetVisibility(true);
-      fphx_vis.SetForceSolid(true);
-      fphx_vis.SetColour(G4Colour::Blue());
-      fphx_volume->SetVisAttributes(fphx_vis);
+      m_DisplayAction->AddVolume(fphx_volume,"FPHX");
 
       const double gap_sensor_fphx = params->get_double_param("gap_sensor_fphx") * cm;
 
@@ -341,13 +315,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       {
         m_PassiveVolumeTuple.insert(make_pair(pgsext_volume, make_tuple(inttlayer, PHG4INTTDefs::PGSEXT)));
       }
-      G4VisAttributes pgs_vis;
-      pgs_vis.SetVisibility(true);
-      pgs_vis.SetForceSolid(true);
-      pgs_vis.SetColour(G4Colour::Red());
-      pgs_volume->SetVisAttributes(pgs_vis);
-      pgsext_volume->SetVisAttributes(pgs_vis);
-
+      m_DisplayAction->AddVolume(pgs_volume,"PGS");
+      m_DisplayAction->AddVolume(pgsext_volume,"PGS");
       double stave_x = 0.;  // we do not include the PGS in the stave volume
       double stave_y = 0.;
       G4LogicalVolume *stave_volume = NULL;
@@ -401,12 +370,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
         {
           m_PassiveVolumeTuple.insert(make_pair(stave_curve_ext_volume[i], make_tuple(inttlayer, PHG4INTTDefs::STAVEEXT_CURVE)));
         }
-        G4VisAttributes stave_curve_vis;
-        stave_curve_vis.SetVisibility(true);
-        stave_curve_vis.SetForceSolid(true);
-        stave_curve_vis.SetColour(G4Colour::Grey());
-        stave_curve_volume[i]->SetVisAttributes(stave_curve_vis);
-        stave_curve_ext_volume[i]->SetVisAttributes(stave_curve_vis);
+        m_DisplayAction->AddVolume(stave_curve_volume[i],"StaveCurve");
+        m_DisplayAction->AddVolume(stave_curve_ext_volume[i],"StaveCurve");
       }
 
       // we will need the length in y of the curved section as it is installed in the stave box
@@ -468,22 +433,18 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
         m_PassiveVolumeTuple.insert(make_pair(stave_straight_cooler_ext_volume, make_tuple(inttlayer, PHG4INTTDefs::STAVEEXT_STRAIGHT_COOLER)));
       }
 
-      G4VisAttributes stave_vis;
-      stave_vis.SetVisibility(true);
-      stave_vis.SetForceSolid(true);
-      stave_vis.SetColour(G4Colour::Grey());
-      stave_straight_cooler_volume->SetVisAttributes(stave_vis);
-      stave_straight_cooler_ext_volume->SetVisAttributes(stave_vis);
+      m_DisplayAction->AddVolume(stave_straight_cooler_volume, "StaveCooler");
+      m_DisplayAction->AddVolume(stave_straight_cooler_ext_volume, "StaveCooler");
       if (laddertype == PHG4INTTDefs::SEGMENTATION_PHI)
       {
-        stave_straight_inner_volume->SetVisAttributes(stave_vis);
+	m_DisplayAction->AddVolume(stave_straight_inner_volume,"StaveStraightInner");
       }
       if (laddertype == PHG4INTTDefs::SEGMENTATION_PHI)
       {
-        stave_straight_inner_ext_volume->SetVisAttributes(stave_vis);
+	m_DisplayAction->AddVolume(stave_straight_inner_ext_volume,"StaveStraightInner");
       }
-      stave_straight_outer_volume->SetVisAttributes(stave_vis);
-      stave_straight_outer_ext_volume->SetVisAttributes(stave_vis);
+	m_DisplayAction->AddVolume(stave_straight_outer_volume,"StaveStraightOuter");
+	m_DisplayAction->AddVolume(stave_straight_outer_ext_volume,"StaveStraightOuter");
 
       // Now we combine the elements of a stave defined above into a stave
       // Create a stave volume to install the stave sections into. The volume has to be big enouigh to contain the cooling tube
@@ -523,12 +484,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       staveext_volume = new G4LogicalVolume(staveext_box, G4Material::GetMaterial("G4_AIR"),
                                            (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes stave_box_vis;
-      stave_box_vis.SetVisibility(false);
-      stave_box_vis.SetForceSolid(false);
-      stave_volume->SetVisAttributes(stave_box_vis);
-      staveext_volume->SetVisAttributes(stave_box_vis);
-
+      m_DisplayAction->AddVolume(stave_volume,"StaveBox");
+      m_DisplayAction->AddVolume(staveext_volume,"StaveBox");
       // Assemble the elements into the stave volume and the stave extension volume
       // They are place relative to the center of the stave box. Thus the offset of the center of the segment is relative to the center of the satev box.
       // But we want the segment to be located relative to the lowest x limit of the stave box.
@@ -729,12 +686,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
         {
           m_PassiveVolumeTuple.insert(make_pair(stave_curve_ext_volume[i], make_tuple(inttlayer, PHG4INTTDefs::STAVEEXT_CURVE)));
         }
-        G4VisAttributes stave_curve_vis;
-        stave_curve_vis.SetVisibility(true);
-        stave_curve_vis.SetForceSolid(true);
-        stave_curve_vis.SetColour(G4Colour::Grey());
-        stave_curve_volume[i]->SetVisAttributes(stave_curve_vis);
-        stave_curve_ext_volume[i]->SetVisAttributes(stave_curve_vis);
+        m_DisplayAction->AddVolume(stave_curve_volume[i],"StaveCurve");
+        m_DisplayAction->AddVolume(stave_curve_ext_volume[i],"StaveCurve");
       }
 
       // we will need the length in y of the curved section as it is installed in the stave box
@@ -801,16 +754,12 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
         m_PassiveVolumeTuple.insert(make_pair(stave_slant_cooler_ext_volume, make_tuple(inttlayer, PHG4INTTDefs::STAVEEXT_STRAIGHT_COOLER)));
       }
 
-      G4VisAttributes stave_vis;
-      stave_vis.SetVisibility(true);
-      stave_vis.SetForceSolid(true);
-      stave_vis.SetColour(G4Colour::Grey());
-      stave_straight_cooler_volume->SetVisAttributes(stave_vis);
-      stave_straight_cooler_ext_volume->SetVisAttributes(stave_vis);
-      stave_straight_outer_volume->SetVisAttributes(stave_vis);
-      stave_straight_outer_ext_volume->SetVisAttributes(stave_vis);
-      stave_slant_cooler_volume->SetVisAttributes(stave_vis);
-      stave_slant_cooler_ext_volume->SetVisAttributes(stave_vis);
+      m_DisplayAction->AddVolume(stave_straight_cooler_volume,"StaveCooler");
+      m_DisplayAction->AddVolume(stave_straight_cooler_ext_volume,"StaveCooler");
+      m_DisplayAction->AddVolume(stave_straight_outer_volume,"StaveStraightOuter");
+      m_DisplayAction->AddVolume(stave_straight_outer_ext_volume,"StaveStraightOuter");
+      m_DisplayAction->AddVolume(stave_slant_cooler_volume,"StaveCooler");
+      m_DisplayAction->AddVolume(stave_slant_cooler_ext_volume,"StaveCooler");
 
       // cooling pipe + water inside + glue outside
       G4VSolid *stave_glue_box = new G4Box((boost::format("stave_glue_box_%d_%d") % inttlayer % itype).str(), 3./2, 3./2., stave_z / 2.);
@@ -820,12 +769,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       G4LogicalVolume *staveext_glue_volume = new G4LogicalVolume(staveext_glue_box, G4Material::GetMaterial("Epoxy"),
                                                           (boost::format("staveext_glue_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes stave_glue_box_vis;
-      stave_glue_box_vis.SetVisibility(true);
-      stave_glue_box_vis.SetForceSolid(true);
-      stave_glue_box_vis.SetColour(G4Colour::Cyan());
-      stave_glue_volume->SetVisAttributes(stave_glue_box_vis);
-      staveext_glue_volume->SetVisAttributes(stave_glue_box_vis);
+      m_DisplayAction->AddVolume(stave_glue_volume,"StaveGlueBox");
+      m_DisplayAction->AddVolume(staveext_glue_volume,"StaveGlueBox");
 
       G4VSolid *stave_pipe_cons = new G4Tubs((boost::format("stave_pipe_cons_%d_%d") % inttlayer % itype).str(),
                                               Rpmin, Rpmax, stave_z / 2., -M_PI, 2.0 * M_PI);
@@ -837,12 +782,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       G4LogicalVolume *staveext_pipe_volume = new G4LogicalVolume(staveext_pipe_cons, G4Material::GetMaterial("CFRP_INTT"),
                                                         (boost::format("staveext_pipe_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes stave_pipe_vis;
-      stave_pipe_vis.SetVisibility(true);
-      stave_pipe_vis.SetForceSolid(true);
-      stave_pipe_vis.SetColour(G4Colour::White());
-      stave_pipe_volume->SetVisAttributes(stave_pipe_vis);
-      staveext_pipe_volume->SetVisAttributes(stave_pipe_vis);
+      m_DisplayAction->AddVolume(stave_pipe_volume,"StavePipe");
+      m_DisplayAction->AddVolume(staveext_pipe_volume,"StavePipe");
 
       G4VSolid *stave_water_cons = new G4Tubs((boost::format("stave_water_cons_%d_%d") % inttlayer % itype ).str(),
                                               0., Rpmin, stave_z / 2., -M_PI, 2.0 * M_PI);
@@ -854,12 +795,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       G4LogicalVolume *staveext_water_volume = new G4LogicalVolume(staveext_water_cons, G4Material::GetMaterial("G4_WATER"),
                                                         (boost::format("staveext_water_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes stave_water_vis;
-      stave_water_vis.SetVisibility(true);
-      stave_water_vis.SetForceSolid(true);
-      stave_water_vis.SetColour(G4Colour::Blue());
-      stave_water_volume->SetVisAttributes(stave_water_vis);
-      staveext_water_volume->SetVisAttributes(stave_water_vis);
+      m_DisplayAction->AddVolume(stave_water_volume,"StaveWater");
+      m_DisplayAction->AddVolume(staveext_water_volume,"StaveWater");
 
       //rohacell foam
       //straight boxes
@@ -927,19 +864,14 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
                                                          (boost::format("rohacellext_trap_volume_%d_%d_%d") % inttlayer % itype % i).str(), 0, 0, 0);
       }
 
-      G4VisAttributes stave_rohacell_vis;
-      stave_rohacell_vis.SetVisibility(true);
-      stave_rohacell_vis.SetForceSolid(true);
-      stave_rohacell_vis.SetColour(G4Colour::White());
-
-      rohacell_straight_volume->SetVisAttributes(stave_rohacell_vis);
-      rohacellext_straight_volume->SetVisAttributes(stave_rohacell_vis);
+      m_DisplayAction->AddVolume(rohacell_straight_volume,"RohaCell");
+      m_DisplayAction->AddVolume(rohacellext_straight_volume,"RohaCell");
       for(int i=0; i<2; i++)
       {
-      rohacell_curve_volume[i]->SetVisAttributes(stave_rohacell_vis);
-      rohacellext_curve_volume[i]->SetVisAttributes(stave_rohacell_vis);
-      rohacell_trap_volume[i]->SetVisAttributes(stave_rohacell_vis);
-      rohacellext_trap_volume[i]->SetVisAttributes(stave_rohacell_vis);
+      m_DisplayAction->AddVolume(rohacell_curve_volume[i],"RohaCell");
+      m_DisplayAction->AddVolume(rohacellext_curve_volume[i],"RohaCell");
+      m_DisplayAction->AddVolume(rohacell_trap_volume[i],"RohaCell");
+      m_DisplayAction->AddVolume(rohacellext_trap_volume[i],"RohaCell");
       }
 
       // Now we combine the elements of a stave defined above into a stave
@@ -980,11 +912,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       staveext_volume = new G4LogicalVolume(staveext_box, G4Material::GetMaterial("G4_AIR"),
                                            (boost::format("staveext_volume_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes stave_box_vis;
-      stave_box_vis.SetVisibility(false);
-      stave_box_vis.SetForceSolid(false);
-      stave_volume->SetVisAttributes(stave_box_vis);
-      staveext_volume->SetVisAttributes(stave_box_vis);
+      m_DisplayAction->AddVolume(stave_volume,"StaveBox");
+      m_DisplayAction->AddVolume(staveext_volume,"StaveBox");
 
       // Assemble the elements into the stave volume and the stave extension volume
       // They are place relative to the center of the stave box. Thus the offset of the center of the segment is relative to the center of the satev box.
@@ -1241,12 +1170,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 
       G4LogicalVolume *ladderext_volume = new G4LogicalVolume(ladderext_box, G4Material::GetMaterial("G4_AIR"), (boost::format("ladderext_%d_%d") % inttlayer % itype).str(), 0, 0, 0);
 
-      G4VisAttributes ladder_vis;
-      ladder_vis.SetVisibility(false);
-      ladder_vis.SetForceSolid(false);
-      ladder_vis.SetColour(G4Colour::Cyan());
-      ladder_volume->SetVisAttributes(ladder_vis);
-      ladderext_volume->SetVisAttributes(ladder_vis);
+      m_DisplayAction->AddVolume(ladder_volume,"Ladder");
+      m_DisplayAction->AddVolume(ladderext_volume,"Ladder");
 
       // Now add the components of the ladder to the ladder volume
       // The sensor is closest to the beam pipe, the stave cooler is furthest away
@@ -1410,11 +1335,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   {
     m_PassiveVolumeTuple.insert(make_pair(rail_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::SUPPORT_RAIL)));
   }
-  G4VisAttributes rail_vis;
-  rail_vis.SetVisibility(true);
-  rail_vis.SetForceSolid(true);
-  rail_vis.SetColour(G4Colour::Cyan());
-  rail_volume->SetVisAttributes(rail_vis);
+  m_DisplayAction->AddVolume(rail_volume,"Rail");
 
   double rail_dphi = supportparams->get_double_param("rail_dphi") * deg / rad;
   double rail_phi_start = supportparams->get_double_param("rail_phi_start") * deg / rad;
@@ -1461,9 +1382,9 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
     m_PassiveVolumeTuple.insert(make_pair(outer_skin_foam_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
     m_PassiveVolumeTuple.insert(make_pair(outer_skin_cfcout_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_OUTER_SKIN)));
   }
-  outer_skin_cfcin_volume->SetVisAttributes(rail_vis);
-  outer_skin_foam_volume->SetVisAttributes(rail_vis);
-  outer_skin_cfcout_volume->SetVisAttributes(rail_vis);
+  m_DisplayAction->AddVolume(outer_skin_cfcin_volume,"Rail");
+  m_DisplayAction->AddVolume(outer_skin_foam_volume,"Rail");
+  m_DisplayAction->AddVolume(outer_skin_cfcout_volume,"Rail");
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_cfcin_volume,
                     "si_support_outer_skin_cfcin", trackerenvelope, false, 0, OverlapCheck());
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), outer_skin_foam_volume,
@@ -1484,7 +1405,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
   {
     m_PassiveVolumeTuple.insert(make_pair(inner_skin_volume, make_tuple(PHG4INTTDefs::SUPPORT_DETID, PHG4INTTDefs::INTT_INNER_SKIN)));
   }
-  inner_skin_volume->SetVisAttributes(rail_vis);
+  m_DisplayAction->AddVolume(inner_skin_volume,"Rail");
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), inner_skin_volume,
                     "si_support_inner_skin", trackerenvelope, false, 0, OverlapCheck());
 
@@ -1608,7 +1529,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
                                                                       "mvtx_shell_inner_skin_volume", 0, 0, 0);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_inner_skin_volume,
                     "mvtx_shell_inner_skin", trackerenvelope, false, 0, OverlapCheck());
-  mvtx_shell_inner_skin_volume->SetVisAttributes(rail_vis);
+  m_DisplayAction->AddVolume(mvtx_shell_inner_skin_volume,"Rail");
 
   G4Tubs *mvtx_shell_foam_core_tube = new G4Tubs("mvtx_shell_foam_core",
                                                  mvtx_shell_foam_core_inner_radius, mvtx_shell_foam_core_inner_radius + foam_core_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
@@ -1616,7 +1537,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
                                                                      "mvtx_shell_foam_core_volume", 0, 0, 0);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_foam_core_volume,
                     "mvtx_shell_foam_core", trackerenvelope, false, 0, OverlapCheck());
-  mvtx_shell_foam_core_volume->SetVisAttributes(rail_vis);
+  m_DisplayAction->AddVolume(mvtx_shell_foam_core_volume,"Rail");
 
   G4Tubs *mvtx_shell_outer_skin_tube = new G4Tubs("mvtx_shell_outer_skin",
                                                   mvtx_shell_outer_skin_inner_radius, mvtx_shell_outer_skin_inner_radius + skin_thickness, mvtx_shell_length / 2.0, -M_PI, 2.0 * M_PI);
@@ -1624,7 +1545,7 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
                                                                       "mvtx_shell_outer_skin_volume", 0, 0, 0);
   new G4PVPlacement(0, G4ThreeVector(0, 0.0), mvtx_shell_outer_skin_volume,
                     "mvtx_shell_outer_skin", trackerenvelope, false, 0, OverlapCheck());
-  mvtx_shell_outer_skin_volume->SetVisAttributes(rail_vis);
+  m_DisplayAction->AddVolume(mvtx_shell_outer_skin_volume,"Rail");
   return 0;
 }
 

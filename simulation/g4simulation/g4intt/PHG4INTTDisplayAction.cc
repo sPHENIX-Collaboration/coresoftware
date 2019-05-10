@@ -2,6 +2,8 @@
 
 #include <g4main/PHG4Utils.h>
 
+#include <TSystem.h>
+
 #include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VPhysicalVolume.hh>
@@ -36,37 +38,85 @@ void PHG4INTTDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
       continue;
     }
     G4VisAttributes *visatt = new G4VisAttributes();
+    visatt->SetVisibility(true);
+    visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Carbon")
+    if (it.second == "FPHX")
     {
-      visatt->SetColour(0.5, 0.5, 0.5, .25);
+      visatt->SetColour(G4Colour::Blue());
     }
-    else if (it.second == "M60J3K")
+    else if (it.second == "HdiCopper")
     {
-      visatt->SetColour(0.25, 0.25, 0.25, .25);
+      visatt->SetColour(G4Colour::White());
     }
-    else if (it.second == "WATER")
+    else if (it.second == "HdiKapton")
     {
-      visatt->SetColour(0.0, 0.5, 0.0, .25);
+      visatt->SetColour(G4Colour::Yellow());
     }
-    else if (it.second == "SI")
+    else if (it.second == "Ladder")
     {
-      PHG4Utils::SetColour(visatt, "G4_Si");
+      visatt->SetVisibility(false);
+      visatt->SetForceSolid(false);
     }
-    else if (it.second == "KAPTON")
+    else if (it.second == "PGS")
     {
-      PHG4Utils::SetColour(visatt, "G4_KAPTON");
+      visatt->SetColour(G4Colour::Red());
     }
-    else if (it.second == "ALUMINUM")
+    else if (it.second == "Rail")
     {
-      PHG4Utils::SetColour(visatt, "G4_Al");
+      visatt->SetColour(G4Colour::Cyan());
+    }
+    else if (it.second == "RohaCell")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "SiActive")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "SiInActive")
+    {
+      visatt->SetColour(G4Colour::Red());
+    }
+    else if (it.second == "StaveBox")
+    {
+      visatt->SetVisibility(false);
+      visatt->SetForceSolid(false);
+    }
+    else if (it.second == "StaveCooler")
+    {
+      visatt->SetColour(G4Colour::Grey());
+    }
+    else if (it.second == "StaveCurve")
+    {
+      visatt->SetColour(G4Colour::Grey());
+    }
+    else if (it.second == "StaveGlueBox")
+    {
+      visatt->SetColour(G4Colour::Cyan());
+    }
+    else if (it.second == "StavePipe")
+    {
+      visatt->SetColour(G4Colour::White());
+    }
+    else if (it.second == "StaveStraightInner")
+    {
+      visatt->SetColour(G4Colour::Grey());
+    }
+    else if (it.second == "StaveStraightOuter")
+    {
+      visatt->SetColour(G4Colour::Grey());
+    }
+    else if (it.second == "StaveWater")
+    {
+      visatt->SetColour(G4Colour::Blue());
     }
     else
     {
-      visatt->SetColour(.2, .2, .7, .25);
+      cout << "did not assing color to " << it.first->GetName()
+	   << " under " << it.second << endl;
+      gSystem->Exit(1);
     }
-    visatt->SetVisibility(true);
-    visatt->SetForceSolid(true);
     logvol->SetVisAttributes(visatt);
   }
   return;
