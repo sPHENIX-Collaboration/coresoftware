@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 // -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4INTTDISPLAYACTION_H
-#define G4DETECTORS_PHG4INTTDISPLAYACTION_H
+#ifndef G4INTT_PHG4INTTDISPLAYACTION_H
+#define G4INTT_PHG4INTTDISPLAYACTION_H
 
 #include <g4main/PHG4DisplayAction.h>
 
@@ -28,4 +28,4 @@ class PHG4INTTDisplayAction : public PHG4DisplayAction
   std::vector<G4VisAttributes *> m_VisAttVec;
 };
 
-#endif  // G4DETECTORS_PHG4INTTDISPLAYACTION_H
+#endif  // G4INTT_PHG4INTTDISPLAYACTION_H
