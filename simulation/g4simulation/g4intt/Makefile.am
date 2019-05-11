@@ -32,7 +32,7 @@ libg4intt_la_LIBADD = \
 pkginclude_HEADERS = \
   INTTDeadMap.h \
   INTTDeadMapv1.h \
-  PHG4InttDigitizer.h  \
+  PHG4INTTDigitizer.h  \
   PHG4INTTDefs.h \
   PHG4INTTHitReco.h \
   PHG4INTTSubsystem.h
@@ -49,7 +49,7 @@ else
   ROOT5_DICTS = \
     PHG4INTTDeadMapLoader_Dict.cc \
     PHG4INTTDefs_Dict.cc \
-    PHG4InttDigitizer_Dict.cc \
+    PHG4INTTDigitizer_Dict.cc \
     PHG4INTTHitReco_Dict.cc \
     PHG4INTTSubsystem_Dict.cc
 endif
@@ -64,7 +64,7 @@ libg4intt_la_SOURCES = \
   PHG4INTTDeadMapLoader.cc \
   PHG4INTTDetector.cc \
   PHG4INTTDisplayAction.cc \
-  PHG4InttDigitizer.cc \
+  PHG4INTTDigitizer.cc \
   PHG4INTTHitReco.cc \
   PHG4INTTFPHXParameterisation.cc \
   PHG4INTTSteppingAction.cc \
