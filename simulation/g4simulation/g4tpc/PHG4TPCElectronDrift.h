@@ -40,14 +40,14 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
   void Detector(const std::string &d) { detector = d; }
   std::string Detector() const { return detector; }
   void set_seed(const unsigned int iseed);
-  //  void Amplify(const double x, const double y, const double z);
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
-  //void registerPadPlane(PHG4TPCPadPlaneReadout *padplane);
   void registerPadPlane(PHG4TPCPadPlane *padplane);
 
  private:
   TrkrHitSetContainer *hitsetcontainer;
+  TrkrHitSetContainer *temp_hitsetcontainer;
   TrkrHitTruthAssoc *hittruthassoc;
+  PHG4TPCPadPlane *padplane;
   TH1 *dlong;
   TH1 *dtrans;
   TNtuple *nt;
@@ -55,7 +55,6 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
   TNtuple *ntpad;
   std::string detector;
   std::string hitnodename;
-  std::string cellnodename;
   std::string seggeonodename;
   unsigned int seed;
   double diffusion_trans;
@@ -69,8 +68,6 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
   double max_active_radius;
   double min_time;
   double max_time;
-  TrkrHitSetContainer *temp_hitsetcontainer;
-  PHG4TPCPadPlane *padplane;
 
 #ifndef __CINT__
   gsl_rng *RandomGenerator;
