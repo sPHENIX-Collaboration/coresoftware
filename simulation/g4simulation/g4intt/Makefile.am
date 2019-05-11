@@ -66,7 +66,7 @@ libg4intt_la_SOURCES = \
   PHG4INTTDisplayAction.cc \
   PHG4InttDigitizer.cc \
   PHG4INTTHitReco.cc \
-  PHG4INTTParameterisation.cc \
+  PHG4INTTFPHXParameterisation.cc \
   PHG4INTTSteppingAction.cc \
   PHG4INTTSubsystem.cc
 

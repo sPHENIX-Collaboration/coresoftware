@@ -1,7 +1,7 @@
 #include "PHG4INTTDetector.h"
 
 #include "PHG4INTTDisplayAction.h"
-#include "PHG4INTTParameterisation.h"
+#include "PHG4INTTFPHXParameterisation.h"
 #include "PHG4INTTSubsystem.h"
 
 #include <intt/CylinderGeomINTT.h>
