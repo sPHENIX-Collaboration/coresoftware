@@ -295,7 +295,6 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       G4VPVParameterisation *fphxparam = new PHG4INTTFPHXParameterisation(offsetx, +offsety, offsetz, 2. * cell_length_z / 2., ncopy);
       new G4PVParameterised((boost::format("fphxcontainer_%d_%d") % inttlayer % itype).str(),
                             fphx_volume, fphxcontainer_volume, kZAxis, ncopy, fphxparam, OverlapCheck());
-//      delete fphxparam;
       // PGS   - this is the carbon sheet that the HDI sits on. It forms the wall of the cooling tube that cools the HDI
 
       const double pgs_y = hdi_y;
