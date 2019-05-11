@@ -56,21 +56,18 @@ PHG4INTTDeadMapLoader::~PHG4INTTDeadMapLoader()
 
 int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter(topNode);
-  PHCompositeNode *runNode = static_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "RUN"));
+  PHNodeIterator topiter(topNode);
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(topiter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
   {
     std::cerr << Name() << "::" << m_detector << "::" << __PRETTY_FUNCTION__
               << "Run Node missing, doing nothing." << std::endl;
-    throw std::runtime_error(
-        "Failed to find Run node in RawTowerCalibration::CreateNodes");
+    throw std::runtime_error("Failed to find Run node in RawTowerCalibration::CreateNodes");
   }
 
   // Create the tower nodes on the tree
   PHNodeIterator dstiter(runNode);
-  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst(
-      "PHCompositeNode", m_detector));
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", m_detector));
   if (!DetNode)
   {
     DetNode = new PHCompositeNode(m_detector);
@@ -83,8 +80,7 @@ int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
   if (!m_deadmap)
   {
     m_deadmap = new INTTDeadMapv1();
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(
-        m_deadmap, deadMapName, "PHObject");
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_deadmap, deadMapName, "PHObject");
     DetNode->addNode(towerNode);
   }
 
