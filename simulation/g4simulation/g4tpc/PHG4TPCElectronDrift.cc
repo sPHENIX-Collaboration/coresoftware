@@ -49,9 +49,10 @@ using namespace std;
 PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
-    //  , g4cells(nullptr)
   , hitsetcontainer(nullptr)
+  , temp_hitsetcontainer(new TrkrHitSetContainer())// this is used as a buffer for charge collection from a single g4hit
   , hittruthassoc(nullptr)
+  , padplane(nullptr)
   , dlong(nullptr)
   , dtrans(nullptr)
   , diffusion_trans(NAN)
@@ -62,16 +63,11 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
   , max_active_radius(NAN)
   , min_time(NAN)
   , max_time(NAN)
-  , temp_hitsetcontainer(nullptr)
-  , padplane(nullptr)
 {
   //cout << "Constructor of PHG4TPCElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
-
-  // this is used as a buffer for charge collection from a single g4hit
-  temp_hitsetcontainer = new TrkrHitSetContainer();
 
   return;
 }
@@ -80,6 +76,7 @@ PHG4TPCElectronDrift::~PHG4TPCElectronDrift()
 {
   gsl_rng_free(RandomGenerator);
   delete padplane;
+  delete temp_hitsetcontainer;
 }
 
 int PHG4TPCElectronDrift::Init(PHCompositeNode *topNode)

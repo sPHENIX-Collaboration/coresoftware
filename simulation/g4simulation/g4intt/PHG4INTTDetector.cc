@@ -437,9 +437,6 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
       if (laddertype == PHG4INTTDefs::SEGMENTATION_PHI)
       {
 	m_DisplayAction->AddVolume(stave_straight_inner_volume,"StaveStraightInner");
-      }
-      if (laddertype == PHG4INTTDefs::SEGMENTATION_PHI)
-      {
 	m_DisplayAction->AddVolume(stave_straight_inner_ext_volume,"StaveStraightInner");
       }
 	m_DisplayAction->AddVolume(stave_straight_outer_volume,"StaveStraightOuter");
@@ -1556,8 +1553,8 @@ int PHG4INTTDetector::ConstructINTT(G4LogicalVolume *trackerenvelope)
 void PHG4INTTDetector::AddGeometryNode()
 {
   int active = 0;
-  map<int, int>::const_iterator iter;
-  for (iter = m_IsActiveMap.begin(); iter != m_IsActiveMap.end(); ++iter)
+//  map<int, int>::const_iterator iter;
+  for (auto iter = m_IsActiveMap.begin(); iter != m_IsActiveMap.end(); ++iter)
   {
     if (iter->second > 0)
     {
