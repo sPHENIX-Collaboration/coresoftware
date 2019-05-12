@@ -1,7 +1,7 @@
 #include "PHG4TPCPadPlaneReadout.h"
 
-#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CellContainer.h>
+#include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
@@ -15,9 +15,9 @@
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
 
+#include <TF1.h>
 #include <TNtuple.h>
 #include <TSystem.h>
-#include <TF1.h>
 
 #include <cmath>
 #include <iostream>
@@ -69,10 +69,9 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
 PHG4TPCPadPlaneReadout::~PHG4TPCPadPlaneReadout()
 {
   delete fcharge;
-// fancy C++11 way to loop over an array
-  for (auto &tf: fpad)
+  for (int ipad = 0; ipad < 10; ipad++)
   {
-    delete tf;
+    delete fpad[ipad];
   }
 }
 
@@ -123,7 +122,6 @@ int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
 
 void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
-
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
   // The z_gem value already reflects the drift time of the primary electron from the production point, and is randomized within the longitudinal diffusion witdth
@@ -271,7 +269,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       }
       cell->add_edep(neffelectrons);
       cell->add_edep(hiter->first, neffelectrons);  // associates g4hit with this edep
-      if(Verbosity() > 100 && layernum == 50)  cell->identify();
+      if (Verbosity() > 100 && layernum == 50) cell->identify();
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
@@ -437,31 +435,31 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
 
       // new containers
       //============
-     // We add the TPC TrkrHitsets directly to the node using hitsetcontainer
+      // We add the TPC TrkrHitsets directly to the node using hitsetcontainer
       // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a TPC readout module
       // The hitset key includes the layer, sector, side
 
-      // Get the side - 0 for negative z, 1 for positive z 
+      // Get the side - 0 for negative z, 1 for positive z
       unsigned int side = 0;
-      if(zcenter > 0) side = 1;
+      if (zcenter > 0) side = 1;
       // get the TPC readout sector - there are 12 sectors with how many pads each?
-      unsigned int pads_per_sector =  LayerGeom->get_phibins() / 12;
+      unsigned int pads_per_sector = LayerGeom->get_phibins() / 12;
       unsigned int sector = pad_num / pads_per_sector;
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
-      
+
       // generate the key for this hit, requires zbin and phibin
       TrkrDefs::hitkey hitkey = TpcDefs::genHitKey((unsigned int) pad_num, (unsigned int) zbin_num);
       // See if this hit already exists
       TrkrHit *hit = nullptr;
       hit = hitsetit->second->getHit(hitkey);
-      if(!hit)
-	{
-	  // create a new one
-	  hit = new TpcHit();
-	  hitsetit->second->addHitSpecificKey(hitkey, hit);
-	}
+      if (!hit)
+      {
+        // create a new one
+        hit = new TpcHit();
+        hitsetit->second->addHitSpecificKey(hitkey, hit);
+      }
 
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);

@@ -47,14 +47,15 @@ endif
 libg4tpc_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHG4TPCDetector.cc \
+  PHG4TPCDigitizer.cc \
+  PHG4TPCDisplayAction.cc \
+  PHG4TPCDistortion.cc \
   PHG4TPCElectronDrift.cc \
   PHG4TPCPadPlane.cc \
   PHG4TPCPadPlaneReadout.cc \
+  PHG4TPCSpaceChargeDistortion.cc \
   PHG4TPCSteppingAction.cc \
-  PHG4TPCDigitizer.cc \
-  PHG4TPCSubsystem.cc \
-  PHG4TPCDistortion.cc \
-  PHG4TPCSpaceChargeDistortion.cc
+  PHG4TPCSubsystem.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
