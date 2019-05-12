@@ -25,9 +25,9 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4TPCDetector::PHG4TPCDetector(PHG4TPCSubsystem* subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
+PHG4TPCDetector::PHG4TPCDetector(PHG4TPCSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(Node, dnam)
-  , m_DisplayAction(dynamic_cast<PHG4TPCDisplayAction*>(subsys->GetDisplayAction()))
+  , m_DisplayAction(dynamic_cast<PHG4TPCDisplayAction *>(subsys->GetDisplayAction()))
   , params(parameters)
   , g4userlimits(nullptr)
   , active(params->get_int_param("active"))
@@ -84,7 +84,7 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
   G4LogicalVolume *tpc_envelope_logic = new G4LogicalVolume(tpc_envelope,
                                                             G4Material::GetMaterial("G4_AIR"),
                                                             "tpc_envelope");
-  m_DisplayAction->AddVolume(tpc_envelope_logic,"TpcEnvelope");
+  m_DisplayAction->AddVolume(tpc_envelope_logic, "TpcEnvelope");
 
   ConstructTPCCageVolume(tpc_envelope_logic);
   ConstructTPCGasVolume(tpc_envelope_logic);
@@ -110,7 +110,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                           G4Material::GetMaterial(params->get_string_param("window_surface_material")),
                                                           "tpc_window");
 
-  m_DisplayAction->AddVolume(tpc_window_logic,"TpcWindow");
+  m_DisplayAction->AddVolume(tpc_window_logic, "TpcWindow");
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                          tpc_window_logic, "tpc_window",
                                                          tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
@@ -128,7 +128,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                                G4Material::GetMaterial(params->get_string_param("window_core_material")),
                                                                "tpc_window_core");
 
-  m_DisplayAction->AddVolume(tpc_window_core_logic,"TpcHoneyComb");
+  m_DisplayAction->AddVolume(tpc_window_core_logic, "TpcHoneyComb");
   G4VPhysicalVolume *tpc_window_core_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                               tpc_window_core_logic, "tpc_window_core",
                                                               tpc_window_logic, false, PHG4TPCDefs::WindowCore, OverlapCheck());
@@ -142,7 +142,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                        "tpc_gas");
 
   tpc_gas_logic->SetUserLimits(g4userlimits);
-  m_DisplayAction->AddVolume(tpc_gas_logic,"TpcGas");
+  m_DisplayAction->AddVolume(tpc_gas_logic, "TpcGas");
   G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length + tpc_window_thickness) / 2.),
                                                       tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::North],
                                                       tpc_envelope, false, PHG4TPCDefs::North, OverlapCheck());
@@ -233,4 +233,3 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
 
   return 0;
 }
-

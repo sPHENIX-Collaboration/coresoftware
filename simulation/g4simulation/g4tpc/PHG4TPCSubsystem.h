@@ -43,7 +43,7 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
 
   PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
 
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
  private:
   void SetDefaultParameters();
@@ -58,8 +58,7 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
-  PHG4DisplayAction* m_DisplayAction;
-
+  PHG4DisplayAction *m_DisplayAction;
 };
 
 #endif

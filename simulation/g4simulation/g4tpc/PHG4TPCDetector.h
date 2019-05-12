@@ -23,7 +23,7 @@ class PHG4TPCDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4TPCDetector(PHG4TPCSubsystem* subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  PHG4TPCDetector(PHG4TPCSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4TPCDetector(void)
@@ -40,7 +40,7 @@ class PHG4TPCDetector : public PHG4Detector
  private:
   int ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope);
-  PHG4TPCDisplayAction* m_DisplayAction;
+  PHG4TPCDisplayAction *m_DisplayAction;
   PHParameters *params;
   G4UserLimits *g4userlimits;
   int active;
