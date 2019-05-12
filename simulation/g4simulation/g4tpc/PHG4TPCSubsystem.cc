@@ -1,5 +1,6 @@
 #include "PHG4TPCSubsystem.h"
 #include "PHG4TPCDetector.h"
+#include "PHG4TPCDisplayAction.h"
 #include "PHG4TPCSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -24,8 +25,15 @@ PHG4TPCSubsystem::PHG4TPCSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
   , detector_(nullptr)
   , steppingAction_(nullptr)
+  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
+}
+
+//_______________________________________________________________________
+PHG4TPCSubsystem::~PHG4TPCSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -34,8 +42,10 @@ int PHG4TPCSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
+  // create display settings before detector (detector adds its volumes to it)
+  m_DisplayAction = new PHG4TPCDisplayAction(Name());
   // create detector
-  detector_ = new PHG4TPCDetector(topNode, GetParams(), Name());
+  detector_ = new PHG4TPCDetector(this, topNode, GetParams(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
   set<string> nodes;

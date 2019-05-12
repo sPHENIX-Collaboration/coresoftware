@@ -1,5 +1,7 @@
-#ifndef PHG4TPCDetector_h
-#define PHG4TPCDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4TPC_PHG4TPCDETECTOR_H
+#define G4TPC_PHG4TPCDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -13,13 +15,15 @@ class G4LogicalVolume;
 class G4UserLimits;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4TPCDisplayAction;
+class PHG4TPCSubsystem;
 class PHParameters;
 
 class PHG4TPCDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4TPCDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  PHG4TPCDetector(PHG4TPCSubsystem* subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4TPCDetector(void)
@@ -34,9 +38,9 @@ class PHG4TPCDetector : public PHG4Detector
   const std::string SuperDetector() const { return superdetector; }
 
  private:
-  int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm);
   int ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope);
   int ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope);
+  PHG4TPCDisplayAction* m_DisplayAction;
   PHParameters *params;
   G4UserLimits *g4userlimits;
   int active;

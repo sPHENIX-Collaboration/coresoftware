@@ -1,16 +1,14 @@
 #include "PHG4TPCDetector.h"
 #include "PHG4TPCDefs.h"
+#include "PHG4TPCDisplayAction.h"
+#include "PHG4TPCSubsystem.h"
 
 #include <phparameter/PHParameters.h>
-
-#include <g4main/PHG4ColorDefs.h>
-#include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
@@ -20,7 +18,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
 #include <sstream>
@@ -28,8 +25,9 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4TPCDetector::PHG4TPCDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
+PHG4TPCDetector::PHG4TPCDetector(PHG4TPCSubsystem* subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4TPCDisplayAction*>(subsys->GetDisplayAction()))
   , params(parameters)
   , g4userlimits(nullptr)
   , active(params->get_int_param("active"))
@@ -86,9 +84,7 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
   G4LogicalVolume *tpc_envelope_logic = new G4LogicalVolume(tpc_envelope,
                                                             G4Material::GetMaterial("G4_AIR"),
                                                             "tpc_envelope");
-  G4VisAttributes *visatt = new G4VisAttributes();
-  visatt->SetVisibility(false);
-  tpc_envelope_logic->SetVisAttributes(visatt);
+  m_DisplayAction->AddVolume(tpc_envelope_logic,"TpcEnvelope");
 
   ConstructTPCCageVolume(tpc_envelope_logic);
   ConstructTPCGasVolume(tpc_envelope_logic);
@@ -114,11 +110,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                           G4Material::GetMaterial(params->get_string_param("window_surface_material")),
                                                           "tpc_window");
 
-  G4VisAttributes *visatt = new G4VisAttributes();
-  visatt->SetVisibility(true);
-  visatt->SetForceSolid(true);
-  visatt->SetColor(PHG4TPCColorDefs::tpc_pcb_color);
-  tpc_window_logic->SetVisAttributes(visatt);
+  m_DisplayAction->AddVolume(tpc_window_logic,"TpcWindow");
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                          tpc_window_logic, "tpc_window",
                                                          tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
@@ -136,11 +128,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                                G4Material::GetMaterial(params->get_string_param("window_core_material")),
                                                                "tpc_window_core");
 
-  visatt = new G4VisAttributes();
-  visatt->SetVisibility(true);
-  visatt->SetForceSolid(true);
-  visatt->SetColor(PHG4TPCColorDefs::tpc_honeycomb_color);
-  tpc_window_core_logic->SetVisAttributes(visatt);
+  m_DisplayAction->AddVolume(tpc_window_core_logic,"TpcHoneyComb");
   G4VPhysicalVolume *tpc_window_core_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                               tpc_window_core_logic, "tpc_window_core",
                                                               tpc_window_logic, false, PHG4TPCDefs::WindowCore, OverlapCheck());
@@ -154,11 +142,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
                                                        "tpc_gas");
 
   tpc_gas_logic->SetUserLimits(g4userlimits);
-  visatt = new G4VisAttributes();
-  visatt->SetVisibility(true);
-  visatt->SetForceSolid(true);
-  visatt->SetColor(PHG4TPCColorDefs::tpc_gas_color);
-  tpc_gas_logic->SetVisAttributes(visatt);
+  m_DisplayAction->AddVolume(tpc_gas_logic,"TpcGas");
   G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length + tpc_window_thickness) / 2.),
                                                       tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::North],
                                                       tpc_envelope, false, PHG4TPCDefs::North, OverlapCheck());
@@ -210,15 +194,6 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
                                            params->get_string_param("cage_layer_8_material"),
                                            params->get_string_param("cage_layer_9_material")};
 
-  static const G4Colour color[nlayers] = {PHG4TPCColorDefs::tpc_cu_color,
-                                          PHG4TPCColorDefs::tpc_pcb_color,
-                                          PHG4TPCColorDefs::tpc_honeycomb_color,
-                                          PHG4TPCColorDefs::tpc_cu_color,
-                                          PHG4TPCColorDefs::tpc_pcb_color,
-                                          PHG4TPCColorDefs::tpc_kapton_color,
-                                          PHG4TPCColorDefs::tpc_cu_color,
-                                          PHG4TPCColorDefs::tpc_kapton_color,
-                                          PHG4TPCColorDefs::tpc_cu_color};
   double tpc_cage_radius = inner_cage_radius;
   ostringstream name;
   for (int i = 0; i < nlayers; i++)
@@ -230,11 +205,7 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
     G4LogicalVolume *tpc_cage_layer_logic = new G4LogicalVolume(tpc_cage_layer,
                                                                 G4Material::GetMaterial(material[i]),
                                                                 name.str());
-    G4VisAttributes *visatt = new G4VisAttributes();
-    visatt->SetVisibility(true);
-    visatt->SetForceSolid(true);
-    visatt->SetColor(color[i]);
-    tpc_cage_layer_logic->SetVisAttributes(visatt);
+    m_DisplayAction->AddTpcInnerLayer(tpc_cage_layer_logic);
     G4VPhysicalVolume *tpc_cage_layer_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                                tpc_cage_layer_logic, name.str(),
                                                                tpc_envelope, false, layerno, OverlapCheck());
@@ -253,11 +224,7 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
     G4LogicalVolume *tpc_cage_layer_logic = new G4LogicalVolume(tpc_cage_layer,
                                                                 G4Material::GetMaterial(material[i]),
                                                                 name.str());
-    G4VisAttributes *visatt = new G4VisAttributes();
-    visatt->SetVisibility(true);
-    visatt->SetForceSolid(true);
-    visatt->SetColor(color[i]);
-    tpc_cage_layer_logic->SetVisAttributes(visatt);
+    m_DisplayAction->AddTpcOuterLayer(tpc_cage_layer_logic);
     G4VPhysicalVolume *tpc_cage_layer_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                                tpc_cage_layer_logic, name.str(),
                                                                tpc_envelope, false, layerno, OverlapCheck());
@@ -267,42 +234,3 @@ int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
   return 0;
 }
 
-int PHG4TPCDetector::DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm)
-{
-  static int i = 0;
-  G4LogicalVolume *checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch (i)
-  {
-  case 0:
-    visattchk->SetColour(G4Colour::Red());
-    i++;
-    break;
-  case 1:
-    visattchk->SetColour(G4Colour::Magenta());
-    i++;
-    break;
-  case 2:
-    visattchk->SetColour(G4Colour::Yellow());
-    i++;
-    break;
-  case 3:
-    visattchk->SetColour(G4Colour::Blue());
-    i++;
-    break;
-  case 4:
-    visattchk->SetColour(G4Colour::Cyan());
-    i++;
-    break;
-  default:
-    visattchk->SetColour(G4Colour::Green());
-    i = 0;
-    break;
-  }
-
-  checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
-  return 0;
-}

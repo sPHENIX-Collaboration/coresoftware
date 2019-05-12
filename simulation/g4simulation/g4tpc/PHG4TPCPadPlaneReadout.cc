@@ -69,10 +69,9 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
 PHG4TPCPadPlaneReadout::~PHG4TPCPadPlaneReadout()
 {
   delete fcharge;
-// fancy C++11 way to loop over an array
-  for (auto &tf: fpad)
+  for (int ipad = 0; ipad < 10; ipad++)
   {
-    delete tf;
+    delete fpad[ipad];
   }
 }
 
