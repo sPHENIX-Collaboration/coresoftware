@@ -4,6 +4,11 @@
 This is the core-software respository for [sPHENIX collaboration](https://www.sphenix.bnl.gov/). 
 
 [![Build Status](https://web.racf.bnl.gov/jenkins-sphenix/buildStatus/icon?job=sPHENIX/sPHENIX_CoreSoftware_MasterBranch)](https://web.racf.bnl.gov/jenkins-sphenix/job/sPHENIX/job/sPHENIX_CoreSoftware_MasterBranch/)
+[![Open Issues](https://img.shields.io/github/issues/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/issues)
+[![Open Pull Request](https://img.shields.io/github/issues-pr/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/pulls)
+[![Monthly Commits](https://img.shields.io/github/commit-activity/m/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/commits/master)
+[![Last Commit](https://img.shields.io/github/last-commit/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/commits/master)
+[![Download size](https://img.shields.io/github/languages/code-size/sPHENIX-Collaboration/coresoftware.svg)](https://github.com/sPHENIX-Collaboration/coresoftware/archive/master.zip)
 
 Code from the `master` branch is pulled and build each night (nightly-build) 
 and it becomes [part of the default software environment on RCF](https://wiki.bnl.gov/sPHENIX/index.php/Setup#.28At_each_login.29_Run_sPHENIX_login_shell). 
