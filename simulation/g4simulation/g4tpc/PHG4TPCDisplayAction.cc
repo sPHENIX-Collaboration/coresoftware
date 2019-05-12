@@ -31,16 +31,15 @@ PHG4TPCDisplayAction::~PHG4TPCDisplayAction()
 
 void PHG4TPCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
-
- static const G4Colour color[] = {PHG4TPCColorDefs::tpc_cu_color,
-                                          PHG4TPCColorDefs::tpc_pcb_color,
-                                          PHG4TPCColorDefs::tpc_honeycomb_color,
-                                          PHG4TPCColorDefs::tpc_cu_color,
-                                          PHG4TPCColorDefs::tpc_pcb_color,
-                                          PHG4TPCColorDefs::tpc_kapton_color,
-                                          PHG4TPCColorDefs::tpc_cu_color,
-                                          PHG4TPCColorDefs::tpc_kapton_color,
-                                          PHG4TPCColorDefs::tpc_cu_color};
+  static const G4Colour color[] = {PHG4TPCColorDefs::tpc_cu_color,
+                                   PHG4TPCColorDefs::tpc_pcb_color,
+                                   PHG4TPCColorDefs::tpc_honeycomb_color,
+                                   PHG4TPCColorDefs::tpc_cu_color,
+                                   PHG4TPCColorDefs::tpc_pcb_color,
+                                   PHG4TPCColorDefs::tpc_kapton_color,
+                                   PHG4TPCColorDefs::tpc_cu_color,
+                                   PHG4TPCColorDefs::tpc_kapton_color,
+                                   PHG4TPCColorDefs::tpc_cu_color};
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)
   {
@@ -76,12 +75,12 @@ void PHG4TPCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     else
     {
       cout << "did not assing color to " << it.first->GetName()
-	   << " under " << it.second << endl;
+           << " under " << it.second << endl;
       gSystem->Exit(1);
     }
     logvol->SetVisAttributes(visatt);
   }
-  for (unsigned int i=0; i<m_TpcInnerLayersVec.size(); i++)
+  for (unsigned int i = 0; i < m_TpcInnerLayersVec.size(); i++)
   {
     G4VisAttributes *visatt = new G4VisAttributes();
     visatt->SetVisibility(true);
@@ -90,7 +89,7 @@ void PHG4TPCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     visatt->SetColor(color[i]);
     m_TpcInnerLayersVec[i]->SetVisAttributes(visatt);
   }
-  for (unsigned int i=0; i<m_TpcOuterLayersVec.size(); i++)
+  for (unsigned int i = 0; i < m_TpcOuterLayersVec.size(); i++)
   {
     G4VisAttributes *visatt = new G4VisAttributes();
     visatt->SetVisibility(true);

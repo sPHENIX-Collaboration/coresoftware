@@ -22,8 +22,8 @@ class PHG4TPCDisplayAction : public PHG4DisplayAction
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
-  void AddTpcInnerLayer(G4LogicalVolume *logvol) {m_TpcInnerLayersVec.push_back(logvol);}
-  void AddTpcOuterLayer(G4LogicalVolume *logvol) {m_TpcOuterLayersVec.push_back(logvol);}
+  void AddTpcInnerLayer(G4LogicalVolume *logvol) { m_TpcInnerLayersVec.push_back(logvol); }
+  void AddTpcOuterLayer(G4LogicalVolume *logvol) { m_TpcOuterLayersVec.push_back(logvol); }
 
  private:
   std::map<G4LogicalVolume *, std::string> m_LogicalVolumeMap;
