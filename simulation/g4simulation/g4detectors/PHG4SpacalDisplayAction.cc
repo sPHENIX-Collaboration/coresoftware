@@ -2,6 +2,8 @@
 
 #include "PHG4CylinderGeom_Spacalv3.h"
 
+#include <g4main/PHG4Utils.h>
+
 #include <TSystem.h>
 
 #include <Geant4/G4Color.hh>
@@ -54,6 +56,13 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       visatt->SetColor(.8, 1, .8, .3);
       visatt->SetVisibility( m_GeomV3->is_azimuthal_seg_visible());
+    }
+    else if (it.second == "LightGuide")
+    {
+      PHG4Utils::SetColour(visatt, m_MaterialMap["LightGuide"]);
+      visatt->SetColor(.8, 1, .8, .3);
+      visatt->SetVisibility( m_GeomV3->is_azimuthal_seg_visible() or m_GeomV3->is_virualize_fiber());
+      visatt->SetForceSolid(not m_GeomV3->is_virualize_fiber());
     }
     else if (it.second == "Sector")
     {

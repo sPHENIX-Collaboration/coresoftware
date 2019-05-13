@@ -24,7 +24,6 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4DisplacedSolid.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
@@ -41,7 +40,6 @@
 #include <Geant4/G4UnionSolid.hh>
 #include <Geant4/G4UserLimits.hh>
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <TSystem.h>
 
@@ -854,7 +852,6 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
     const int index_x, const int index_y)
 {
   assert(_geom);
-
   std::stringstream sout;
   sout << "_Lightguide_" << g_tower.id << "_" << index_x << "_" << index_y;
   const G4String sTowerID(sout.str());
@@ -920,13 +917,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
                                                      nullptr);
 
-  G4VisAttributes VisAtt;
-  PHG4Utils::SetColour(&VisAtt, g_tower.LightguideMaterial);
-  //  VisAtt->SetColor(.3, .3, .3, .3);
-  VisAtt.SetVisibility(
-      _geom->is_azimuthal_seg_visible() or _geom->is_virualize_fiber());
-  VisAtt.SetForceSolid(not _geom->is_virualize_fiber());
-  block_logic->SetVisAttributes(VisAtt);
+  m_DisplayAction->AddMaterial("LightGuide",g_tower.LightguideMaterial);
+  m_DisplayAction->AddVolume(block_logic,"LightGuide");
 
   return block_logic;
 }
