@@ -7,6 +7,8 @@
  */
 #include "PHG4SpacalSubsystem.h"
 
+#include "PHG4SpacalDisplayAction.h"
+
 #include "PHG4CylinderGeom.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4FullProjSpacalDetector.h"
@@ -34,8 +36,15 @@ PHG4SpacalSubsystem::PHG4SpacalSubsystem(const std::string& na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
   , detector_(nullptr)
   , steppingAction_(nullptr)
+  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
+}
+
+//_______________________________________________________________________
+PHG4SpacalSubsystem::~PHG4SpacalSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -52,7 +61,8 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   //       _geom.set_zmin(-half_length);
   //       _geom.set_zmax(+half_length);
   //    }
-
+  // create display settings before detector (detector adds its volumes to it)
+  m_DisplayAction = new PHG4SpacalDisplayAction(Name());
   switch (GetParams()->get_int_param("config"))
   {
   case PHG4CylinderGeom_Spacalv1::kNonProjective:
@@ -75,7 +85,7 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
     if (Verbosity() > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjTiltedSpacalDetector" << endl;
-    detector_ = new PHG4FullProjTiltedSpacalDetector(topNode, Name(), GetParams(), GetLayer());
+    detector_ = new PHG4FullProjTiltedSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   default:
@@ -148,11 +158,6 @@ PHG4Detector* PHG4SpacalSubsystem::GetDetector(void) const
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4SpacalSubsystem::GetSteppingAction(void) const
-{
-  return steppingAction_;
-}
-
 void PHG4SpacalSubsystem::Print(const std::string& what) const
 {
   detector_->Print(what);

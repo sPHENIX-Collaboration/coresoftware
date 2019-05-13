@@ -8,6 +8,9 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 #include "PHG4FullProjTiltedSpacalDetector.h"
+
+#include "PHG4SpacalDisplayAction.h"
+#include "PHG4SpacalSubsystem.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv1.h"
 
@@ -58,9 +61,10 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHCompositeNode* Node,
+PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHG4SpacalSubsystem *subsys, PHCompositeNode* Node,
                                                                    const std::string& dnam, PHParameters* parameters, const int lyr)
   : PHG4SpacalDetector(Node, dnam, parameters, lyr, false)
+  , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
 {
   assert(_geom == nullptr);
 
@@ -76,7 +80,7 @@ PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHCompositeNo
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
-
+  m_DisplayAction->SetGeom(get_geom_v3());
   //  cout <<"PHG4FullProjTiltedSpacalDetector::Constructor -  get_geom_v3()->Print();"<<endl;
   //  get_geom_v3()->Print();
 }
@@ -294,23 +298,12 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid_place, cylinder_mat,
                                                    G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
-  G4VisAttributes VisAtt;
-  VisAtt.SetColor(.5, .9, .5, .5);
-  VisAtt.SetVisibility(
-      get_geom_v3()->is_azimuthal_seg_visible() or get_geom_v3()->is_virualize_fiber());
-  VisAtt.SetForceSolid(false);
-  VisAtt.SetForceWireframe(true);
-  sec_logic->SetVisAttributes(VisAtt);
+  m_DisplayAction->AddVolume(sec_logic,"Sector");
 
   // construct walls
 
   G4Material* wall_mat = G4Material::GetMaterial(get_geom_v3()->get_sidewall_mat());
   assert(wall_mat);
-
-  G4VisAttributes wall_VisAtt;
-  wall_VisAtt.SetColor(.5, .9, .5, .1);
-  wall_VisAtt.SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
-  wall_VisAtt.SetForceSolid(true);
 
   if (get_geom_v3()->get_sidewall_thickness() > 0)
   {
@@ -341,7 +334,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid_place, wall_mat,
                                                       G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
                                                       nullptr);
-    wall_logic->SetVisAttributes(wall_VisAtt);
+    m_DisplayAction->AddVolume(wall_logic,"Wall");
 
     typedef map<int, double> z_locations_t;
     z_locations_t z_locations;
@@ -414,7 +407,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
                                                         G4String(G4String(GetName() + G4String("_SideWall_") + to_string(val.first))), 0, 0,
                                                         nullptr);
-      wall_logic->SetVisAttributes(wall_VisAtt);
+      m_DisplayAction->AddVolume(wall_logic,"Wall");
 
       const G4Transform3D wall_trans =
           G4TranslateZ3D(sign_z * (get_geom_v3()->get_length() * cm / 4)) *
@@ -445,11 +438,6 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     G4Material* divider_mat = G4Material::GetMaterial(get_geom_v3()->get_divider_mat());
     assert(divider_mat);
 
-    G4VisAttributes divider_VisAtt;
-    divider_VisAtt.SetColor(.8, 1, .8, .3);
-    divider_VisAtt.SetVisibility(get_geom_v3()->is_azimuthal_seg_visible());
-    divider_VisAtt.SetForceSolid(true);
-
     int ID = 300;
     for (const auto& geom : divider_azimuth_geoms)
     {
@@ -461,7 +449,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       G4LogicalVolume* wall_logic = new G4LogicalVolume(divider_solid, divider_mat,
                                                         G4String(G4String(GetName() + G4String("_Divider_") + to_string(ID))), 0, 0,
                                                         nullptr);
-      wall_logic->SetVisAttributes(divider_VisAtt);
+      m_DisplayAction->AddVolume(wall_logic,"Divider");
 
       for (int sign_z = -1; sign_z <= 1; sign_z += 2)
       {
@@ -815,21 +803,14 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
       g_tower.pAlp2 * rad                                       // G4double pAlp2 //
       );
 
-  G4Material* cylinder_mat = G4Material::GetMaterial(
-      get_geom_v3()->get_absorber_mat());
+  G4Material* cylinder_mat = G4Material::GetMaterial(get_geom_v3()->get_absorber_mat());
   assert(cylinder_mat);
 
   G4LogicalVolume* block_logic = new G4LogicalVolume(block_solid, cylinder_mat,
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
                                                      nullptr);
 
-  G4VisAttributes VisAtt;
-  //  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-  VisAtt.SetColor(.3, .3, .3, .3);
-  VisAtt.SetVisibility(
-      get_geom_v3()->is_azimuthal_seg_visible() or get_geom_v3()->is_virualize_fiber());
-  VisAtt.SetForceSolid(not get_geom_v3()->is_virualize_fiber());
-  block_logic->SetVisAttributes(VisAtt);
+      m_DisplayAction->AddVolume(block_logic,"Block");
 
   // construct fibers
 

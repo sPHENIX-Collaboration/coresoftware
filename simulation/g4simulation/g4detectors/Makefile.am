@@ -338,6 +338,7 @@ libg4detectors_la_SOURCES = \
   PHG4PSTOFSteppingAction.cc \
   PHG4PSTOFSubsystem.cc \
   PHG4SpacalDetector.cc \
+  PHG4SpacalDisplayAction.cc \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \

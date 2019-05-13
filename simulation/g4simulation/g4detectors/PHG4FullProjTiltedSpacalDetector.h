@@ -1,4 +1,5 @@
-// $$Id: PHG4FullProjTiltedSpacalDetector.h,v 1.2 2015/02/10 15:39:26 pinkenbu Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,8 +9,8 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 
-#ifndef PHG4FullProjTiltedSpacalDetector_h
-#define PHG4FullProjTiltedSpacalDetector_h
+#ifndef G4DETECTORS_PHG4FULLPROJTILTEDSPACALDETECTOR_H
+#define G4DETECTORS_PHG4FULLPROJTILTEDSPACALDETECTOR_H
 
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
@@ -27,6 +28,8 @@ class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
+class PHG4SpacalDisplayAction;
+class PHG4SpacalSubsystem;
 class PHParameters;
 
 //! Fully projective SPACAL built from 2D tapered modules and allow azimuthal tilts
@@ -35,7 +38,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
  public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4FullProjTiltedSpacalDetector(PHCompositeNode* Node, const std::string& dnam,
+  PHG4FullProjTiltedSpacalDetector(PHG4SpacalSubsystem *subsys, PHCompositeNode* Node, const std::string& dnam,
                                    PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
@@ -72,7 +75,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
 
  private:
 //  SpacalGeom_t* _geom;
-
+  PHG4SpacalDisplayAction *m_DisplayAction;
   //! get the v3 cast of the geometry object
   SpacalGeom_t *
   get_geom_v3()
