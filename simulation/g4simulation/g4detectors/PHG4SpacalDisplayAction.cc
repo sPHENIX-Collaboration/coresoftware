@@ -46,7 +46,13 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     visatt->SetForceWireframe(false);
 
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Block")
+    if (it.second == "AzimuthSegment")
+    {
+      visatt->SetColor(.1, .1, .1, .5);
+      visatt->SetVisibility(m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(false);
+    }
+    else if (it.second == "Block")
     {
       visatt->SetColor(.3, .3, .3, .3);
       visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());

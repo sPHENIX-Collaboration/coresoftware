@@ -24,7 +24,6 @@
 #include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -37,9 +36,9 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4UnionSolid.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <boost/foreach.hpp>
+
 #include <cassert>
 #include <cmath>
 #include <sstream>
@@ -284,11 +283,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   G4LogicalVolume *sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
                                                    G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
-  G4VisAttributes *VisAtt = new G4VisAttributes();
-  VisAtt->SetColor(.1, .1, .1, .5);
-  VisAtt->SetVisibility(_geom->is_virualize_fiber());
-  VisAtt->SetForceSolid(false);
-  sec_logic->SetVisAttributes(VisAtt);
+  GetDisplayAction()->AddVolume(sec_logic,"AzimuthSegment");
 
   const double fiber_length = _geom->get_thickness() * cm - 2 * _geom->get_fiber_outer_r() * cm;
   G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, string(""));
