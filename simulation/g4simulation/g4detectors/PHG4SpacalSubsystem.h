@@ -48,9 +48,9 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   virtual PHG4Detector *GetDetector() const;
-  virtual PHG4SteppingAction *GetSteppingAction() const {return steppingAction_;}
+  virtual PHG4SteppingAction *GetSteppingAction() const { return steppingAction_; }
 
-   PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
   void
   Print(const std::string &what = "ALL") const;
@@ -70,7 +70,6 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction;
-
 };
 
 #endif

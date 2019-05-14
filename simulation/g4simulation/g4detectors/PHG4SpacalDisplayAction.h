@@ -24,8 +24,8 @@ class PHG4SpacalDisplayAction : public PHG4DisplayAction
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
-  void SetGeom(const PHG4CylinderGeom_Spacalv1 *geo) {m_Geom = geo;}
-  void AddMaterial(const std::string &name, const std::string &mat) {m_MaterialMap[name] = mat;}
+  void SetGeom(const PHG4CylinderGeom_Spacalv1 *geo) { m_Geom = geo; }
+  void AddMaterial(const std::string &name, const std::string &mat) { m_MaterialMap[name] = mat; }
 
  private:
   const PHG4CylinderGeom_Spacalv1 *m_Geom;

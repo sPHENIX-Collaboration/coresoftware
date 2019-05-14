@@ -31,27 +31,22 @@ class PHParameters;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
-
-public:
+ public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
-  PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,PHCompositeNode* Node, const std::string& dnam,
-      PHParameters *parameters,  const int layer = 0, bool init_geom = true);
+  PHG4SpacalDetector(PHG4SpacalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
+                     PHParameters* parameters, const int layer = 0, bool init_geom = true);
 
-  virtual
-  ~PHG4SpacalDetector(void);
+  virtual ~PHG4SpacalDetector(void);
 
-  virtual
-  void
+  virtual void
   Construct(G4LogicalVolume* world);
 
-  virtual
-  std::pair<G4LogicalVolume *,G4Transform3D>
+  virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();
 
-  virtual
-  G4LogicalVolume *
-  Construct_Fiber(const G4double length, const std::string & id);
+  virtual G4LogicalVolume*
+  Construct_Fiber(const G4double length, const std::string& id);
 
   void
   SetActive(const int i = 1)
@@ -71,8 +66,7 @@ public:
     detector_type = typ;
   }
 
-  int
-  IsInCylinderActive(const G4VPhysicalVolume*);
+  int IsInCylinderActive(const G4VPhysicalVolume*);
 
   void
   SuperDetector(const std::string& name)
@@ -86,8 +80,7 @@ public:
     return superdetector;
   }
 
-  int
-  get_Layer() const
+  int get_Layer() const
   {
     return layer;
   }
@@ -104,29 +97,28 @@ public:
   virtual void
   Print(const std::string& what = "ALL") const;
 
-  const SpacalGeom_t *
+  const SpacalGeom_t*
   get_geom() const
   {
     return _geom;
   }
 
-  virtual
-  PHG4CylinderGeom * clone_geom() const
+  virtual PHG4CylinderGeom* clone_geom() const
   {
     return new SpacalGeom_t(*_geom);
   }
 
-//  SpacalGeom_t &
-//  get_geom()
-//  {
-//    return _geom;
-//  }
+  //  SpacalGeom_t &
+  //  get_geom()
+  //  {
+  //    return _geom;
+  //  }
 
-//  void
-//  set_geom(const SpacalGeom_t & geom)
-//  {
-//    _geom = geom;
-//  }
+  //  void
+  //  set_geom(const SpacalGeom_t & geom)
+  //  {
+  //    _geom = geom;
+  //  }
 
   enum
   {
@@ -137,12 +129,12 @@ public:
     INACTIVE = -100
   };
 
-  PHG4SpacalDisplayAction *GetDisplayAction() {return m_DisplayAction;}
+  PHG4SpacalDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
-private:
-  PHG4SpacalDisplayAction *m_DisplayAction;
+ private:
+  PHG4SpacalDisplayAction* m_DisplayAction;
 
-protected:
+ protected:
   G4Region* _region;
   G4Tubs* cylinder_solid;
   G4LogicalVolume* cylinder_logic;
@@ -164,16 +156,15 @@ protected:
   std::string detector_type;
   std::string superdetector;
 
-//  G4UserLimits * step_limits;
-//  G4UserLimits * clading_step_limits;
-  G4UserLimits * fiber_core_step_limits;
+  //  G4UserLimits * step_limits;
+  //  G4UserLimits * clading_step_limits;
+  G4UserLimits* fiber_core_step_limits;
 
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig * gdml_config;
-//private:
+  PHG4GDMLConfig* gdml_config;
+  //private:
 
-  SpacalGeom_t * _geom;
-
+  SpacalGeom_t* _geom;
 };
 
 #endif

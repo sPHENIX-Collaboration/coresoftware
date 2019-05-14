@@ -92,20 +92,20 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
-// the geometry object is set during detector construction, we need it for the
-// display to extract the visibility setting for logical volumes
-  PHG4SpacalDisplayAction *DispAct = dynamic_cast<PHG4SpacalDisplayAction *> (m_DisplayAction);
+  // the geometry object is set during detector construction, we need it for the
+  // display to extract the visibility setting for logical volumes
+  PHG4SpacalDisplayAction* DispAct = dynamic_cast<PHG4SpacalDisplayAction*>(m_DisplayAction);
   DispAct->SetGeom(detector_->get_geom());
   if (GetParams()->get_int_param("active"))
   {
     ostringstream nodename;
-    if (SuperDetector()  != "NONE")
+    if (SuperDetector() != "NONE")
     {
-      nodename << "G4HIT_" << SuperDetector() ;
+      nodename << "G4HIT_" << SuperDetector();
     }
     else
     {
-      nodename << "G4HIT_" <<  Name() << "_" << GetLayer();
+      nodename << "G4HIT_" << Name() << "_" << GetLayer();
     }
     PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!cylinder_hits)
@@ -178,8 +178,8 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_int_param("virualize_fiber", 0.);
   set_default_int_param("config", static_cast<int>(PHG4CylinderGeom_Spacalv1::kNonProjective));
 
-  set_default_double_param("divider_width", 0); // radial size of the divider between blocks. <=0 means no dividers
-  set_default_string_param("divider_mat", "G4_AIR"); // materials of the divider. G4_AIR is equivalent to not installing one in the term of material distribution
+  set_default_double_param("divider_width", 0);       // radial size of the divider between blocks. <=0 means no dividers
+  set_default_string_param("divider_mat", "G4_AIR");  // materials of the divider. G4_AIR is equivalent to not installing one in the term of material distribution
 
   return;
 }

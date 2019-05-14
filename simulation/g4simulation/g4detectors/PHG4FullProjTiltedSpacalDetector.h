@@ -29,7 +29,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
  public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4FullProjTiltedSpacalDetector(PHG4SpacalSubsystem *subsys, PHCompositeNode* Node, const std::string& dnam,
+  PHG4FullProjTiltedSpacalDetector(PHG4SpacalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
                                    PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
@@ -45,7 +45,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   Construct_Tower(const SpacalGeom_t::geom_tower& tower);
   //! a block for the light guide along z axis that fit to the tower
   virtual G4LogicalVolume*
-  Construct_LightGuide(const SpacalGeom_t::geom_tower & tower, const int index_x, const int index_y);
+  Construct_LightGuide(const SpacalGeom_t::geom_tower& tower, const int index_x, const int index_y);
 
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
   virtual int
@@ -63,26 +63,24 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
     return new SpacalGeom_t(*get_geom_v3());
   }
 
-
  private:
-//  SpacalGeom_t* _geom;
+  //  SpacalGeom_t* _geom;
   //! get the v3 cast of the geometry object
-  SpacalGeom_t *
+  SpacalGeom_t*
   get_geom_v3()
   {
-    SpacalGeom_t *v3_geom =  dynamic_cast<SpacalGeom_t *> (_geom);
+    SpacalGeom_t* v3_geom = dynamic_cast<SpacalGeom_t*>(_geom);
     assert(v3_geom);
     return v3_geom;
   }
 
-  const SpacalGeom_t *
+  const SpacalGeom_t*
   get_geom_v3() const
   {
-    SpacalGeom_t *v3_geom =  dynamic_cast<SpacalGeom_t *> (_geom);
+    SpacalGeom_t* v3_geom = dynamic_cast<SpacalGeom_t*>(_geom);
     assert(v3_geom);
     return v3_geom;
   }
-
 };
 
 #endif

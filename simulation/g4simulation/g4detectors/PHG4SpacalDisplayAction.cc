@@ -55,18 +55,18 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     else if (it.second == "Block")
     {
       visatt->SetColor(.3, .3, .3, .3);
-      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
       visatt->SetForceSolid(not m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Divider")
     {
       visatt->SetColor(.8, 1, .8, .3);
-      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible());
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible());
     }
     else if (it.second == "Fiber")
     {
       PHG4Utils::SetColour(visatt, "G4_POLYSTYRENE");
-      visatt->SetVisibility( m_Geom->is_virualize_fiber());
+      visatt->SetVisibility(m_Geom->is_virualize_fiber());
       visatt->SetForceSolid(m_Geom->is_virualize_fiber());
     }
     else if (it.second == "FiberCore")
@@ -79,13 +79,13 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       PHG4Utils::SetColour(visatt, m_MaterialMap["LightGuide"]);
       visatt->SetColor(.8, 1, .8, .3);
-      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
       visatt->SetForceSolid(not m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Sector")
     {
       visatt->SetColor(.5, .9, .5, .5);
-      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
       visatt->SetForceSolid(false);
       visatt->SetForceWireframe(true);
     }
@@ -102,7 +102,7 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     else if (it.second == "WallProj")
     {
       visatt->SetColor(.5, .9, .5, .2);
-      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible()and (not m_Geom->is_virualize_fiber()));
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible() and (not m_Geom->is_virualize_fiber()));
     }
     else
     {

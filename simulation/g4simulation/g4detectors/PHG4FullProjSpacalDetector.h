@@ -39,8 +39,8 @@ class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
  public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4FullProjSpacalDetector(PHG4SpacalSubsystem *subsys,
-PHCompositeNode* Node, const std::string& dnam,
+  PHG4FullProjSpacalDetector(PHG4SpacalSubsystem* subsys,
+                             PHCompositeNode* Node, const std::string& dnam,
                              PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
@@ -72,26 +72,24 @@ PHCompositeNode* Node, const std::string& dnam,
   }
 
  private:
-//  SpacalGeom_t* _geom;
+  //  SpacalGeom_t* _geom;
 
   //! get the v3 cast of the geometry object
-  SpacalGeom_t *
+  SpacalGeom_t*
   get_geom_v3()
   {
-    SpacalGeom_t *v3_geom =  dynamic_cast<SpacalGeom_t *> (_geom);
+    SpacalGeom_t* v3_geom = dynamic_cast<SpacalGeom_t*>(_geom);
     assert(v3_geom);
     return v3_geom;
   }
 
-  const SpacalGeom_t *
+  const SpacalGeom_t*
   get_geom_v3() const
   {
-    SpacalGeom_t *v3_geom =  dynamic_cast<SpacalGeom_t *> (_geom);
+    SpacalGeom_t* v3_geom = dynamic_cast<SpacalGeom_t*>(_geom);
     assert(v3_geom);
     return v3_geom;
   }
-
-
 };
 
 #endif

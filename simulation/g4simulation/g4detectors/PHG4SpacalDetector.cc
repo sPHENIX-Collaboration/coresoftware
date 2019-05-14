@@ -48,9 +48,9 @@ using namespace std;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
                                        PHCompositeNode *Node,
-                                       const std::string &dnam, 
-                                       PHParameters *parameters, 
-                                       const int lyr, 
+                                       const std::string &dnam,
+                                       PHParameters *parameters,
+                                       const int lyr,
                                        bool init_geom)
   : PHG4Detector(Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
@@ -86,9 +86,8 @@ PHG4SpacalDetector::~PHG4SpacalDetector(void)
 {
   // deleting NULL pointers is allowed (results in NOOP)
   // so checking for not null before deleting is not needed
-  //    delete step_limits;
-  //    delete clading_step_limits;
   delete fiber_core_step_limits;
+  delete _geom;
 }
 
 //_______________________________________________________________
@@ -157,7 +156,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
                                        G4String(GetName()), 0, 0, 0);
-  GetDisplayAction()->AddVolume(cylinder_logic,"SpacalCylinder");
+  GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
 
   cylinder_physi = new G4PVPlacement(0,
                                      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
@@ -282,7 +281,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   G4LogicalVolume *sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
                                                    G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
-  GetDisplayAction()->AddVolume(sec_logic,"AzimuthSegment");
+  GetDisplayAction()->AddVolume(sec_logic, "AzimuthSegment");
 
   const double fiber_length = _geom->get_thickness() * cm - 2 * _geom->get_fiber_outer_r() * cm;
   G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, string(""));
@@ -353,7 +352,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
                                                      nullptr);
 
   {
-    GetDisplayAction()->AddVolume(fiber_logic,"Fiber");
+    GetDisplayAction()->AddVolume(fiber_logic, "Fiber");
   }
 
   G4Tubs *core_solid = new G4Tubs(
@@ -368,7 +367,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
                                                     fiber_core_step_limits);
 
   {
-    GetDisplayAction()->AddVolume(core_logic,"FiberCore");
+    GetDisplayAction()->AddVolume(core_logic, "FiberCore");
   }
 
   const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);
