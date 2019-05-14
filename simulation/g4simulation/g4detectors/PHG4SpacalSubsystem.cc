@@ -127,12 +127,12 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       {
         nodename << "G4HIT_ABSORBER_" << Name() << "_" << GetLayer();
       }
-      PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
-      if (!cylinder_hits)
+      PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+      if (!absorber_hits)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+        dstNode->addNode(new PHIODataNode<PHObject>(absorber_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
       }
-      cylinder_hits->AddLayer(GetLayer());
+      absorber_hits->AddLayer(GetLayer());
     }
     steppingAction_ = new PHG4SpacalSteppingAction(detector_);
   }
