@@ -1,12 +1,12 @@
 // Tell emacs that this is a C++ source
 // This file is really -*- C++ -*-.
-#ifndef G4MAIN_PHG4CYLINDERDISPLAYACTION_H
-#define G4MAIN_PHG4CYLINDERDISPLAYACTION_H
+#ifndef G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H
+#define G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H
 
 #include <g4main/PHG4DisplayAction.h>
 
 class G4VisAttributes;
-class G4VPhysicalVolume;
+class G4LogicalVolume;
 class PHParameters;
 
 class PHG4CylinderDisplayAction : public PHG4DisplayAction
@@ -17,16 +17,13 @@ class PHG4CylinderDisplayAction : public PHG4DisplayAction
   virtual ~PHG4CylinderDisplayAction();
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
-  void SetMyVolume(G4VPhysicalVolume *vol) { m_MyVolume = vol; }
+  void SetMyVolume(G4LogicalVolume *vol) { m_MyVolume = vol; }
 
- protected:
-  int CheckVolume(G4VPhysicalVolume *physvol);
-  void ApplyVisAttributes(G4VPhysicalVolume *vol);
 
  private:
   PHParameters *m_Params;
-  G4VPhysicalVolume *m_MyVolume;
+  G4LogicalVolume *m_MyVolume;
   G4VisAttributes *m_VisAtt;
 };
 
-#endif  // G4MAIN_PHG4CYLINDERDISPLAYACTION_H
+#endif  // G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H

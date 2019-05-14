@@ -8,7 +8,8 @@
 #define TRACKBASE_TRKRHITTRUTHASSOC_H
 
 #include "TrkrDefs.h"
-#include "g4main/PHG4HitDefs.h"
+
+#include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4Hit.h>
 
 #include <phool/PHObject.h>

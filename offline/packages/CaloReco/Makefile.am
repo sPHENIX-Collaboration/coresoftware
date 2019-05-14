@@ -29,6 +29,7 @@ pkginclude_HEADERS = \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTemplate.h \
+  RawClusterBuilderTemplateFEMC.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h
 

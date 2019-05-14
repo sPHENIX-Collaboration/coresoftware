@@ -25,7 +25,8 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4CylinderSteppingAction::PHG4CylinderSteppingAction(PHG4CylinderDetector* detector, const PHParameters* parameters)
-  : m_Detector(detector)
+  :  PHG4SteppingAction(detector->GetName())
+  , m_Detector(detector)
   , m_Params(parameters)
   , m_HitContainer(nullptr)
   , m_Hit(nullptr)

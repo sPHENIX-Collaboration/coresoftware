@@ -1,12 +1,9 @@
-#ifndef PHG4MVTXDetector_h
-#define PHG4MVTXDetector_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4MVTX_PHG4MVTXDETECTOR_H
+#define G4MVTX_PHG4MVTXDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
-
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
 
 #include <array>
 #include <map>
@@ -18,6 +15,8 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4MVTXDisplayAction;
+class PHG4MVTXSubsystem;
 class PHParameters;
 class PHParametersContainer;
 
@@ -25,10 +24,10 @@ class PHG4MVTXDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4MVTXDetector(PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
+  PHG4MVTXDetector(PHG4MVTXSubsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
 
   //! destructor
-  virtual ~PHG4MVTXDetector();
+  virtual ~PHG4MVTXDetector() {}
 
   //! construct
   virtual void Construct(G4LogicalVolume* world);
@@ -42,10 +41,10 @@ class PHG4MVTXDetector : public PHG4Detector
   int IsActive(int lyr) const { return m_IsLayerActive[lyr]; }
   int IsAbsorberActive(int lyr) const { return m_IsLayerAbsorberActive[lyr]; }
   int IsBlackHole(int lyr) const { return m_IsBlackHole[lyr]; }
-  void SuperDetector(const std::string& name) { superdetector = name; }
-  const std::string SuperDetector() const { return superdetector; }
-  void Detector(const std::string& name) { detector_type = name; }
-  const std::string Detector() const { return detector_type; }
+  void SuperDetector(const std::string& name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
+  void Detector(const std::string& name) { m_Detector = name; }
+  const std::string Detector() const { return m_Detector; }
 
   int get_layer(int stv_index) const;
   int get_stave(int stv_index) const;
@@ -58,9 +57,12 @@ class PHG4MVTXDetector : public PHG4Detector
   void SetDisplayProperty(G4LogicalVolume* lv);
   void FillPVArray(G4AssemblyVolume* av);
   void FindSensor(G4LogicalVolume* lv);
+  // calculated quantities
+  double get_phistep(int lay) const { return 2.0 * M_PI /  m_N_staves[lay]; }
 
-  const PHParametersContainer* m_ParamsContainer;
   static constexpr int n_Layers = 3;
+  PHG4MVTXDisplayAction* m_DisplayAction;
+  const PHParametersContainer* m_ParamsContainer;
 
   // map of sensor physical volume pointers
   std::set<G4VPhysicalVolume*> m_SensorPV;
@@ -71,19 +73,17 @@ class PHG4MVTXDetector : public PHG4Detector
   std::array<int, n_Layers> m_IsLayerAbsorberActive;
   std::array<int, n_Layers> m_IsBlackHole;
   std::array<int, n_Layers> m_N_staves;
-  std::array<G4double, n_Layers> m_nominal_radius;
-  std::array<G4double, n_Layers> m_nominal_phitilt;
+  std::array<double, n_Layers> m_nominal_radius;
+  std::array<double, n_Layers> m_nominal_phitilt;
   // sensor parameters
-  double pixel_x;
-  double pixel_z;
-  double pixel_thickness;
+  double m_PixelX;
+  double m_PixelZ;
+  double m_PixelThickness;
 
-  // calculated quantities
-  G4double get_phistep(int lay) const { return 2.0 * M_PI / (double) m_N_staves[lay]; }
 
-  std::string detector_type;
-  std::string superdetector;
-  std::string stave_geometry_file;
+  std::string m_Detector;
+  std::string m_SuperDetector;
+  std::string m_StaveGeometryFile;
 };
 
 #endif

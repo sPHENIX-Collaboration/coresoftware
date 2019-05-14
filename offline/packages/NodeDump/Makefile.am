@@ -47,6 +47,8 @@ libphnodedump_la_SOURCES = \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
   DumpTowerBackground.cc \
+  DumpTrkrClusterContainer.cc \
+  DumpTrkrHitSetContainer.cc \
   DumpVariableArray.cc \
   DumpObject.cc \
   PHNodeDump.cc
@@ -64,6 +66,7 @@ libphnodedump_la_LIBADD = \
   -lphg4hit \
   -lSubsysReco \
   -ltrackbase_historic_io \
+  -ltrack_io \
   -lvararray
 
 

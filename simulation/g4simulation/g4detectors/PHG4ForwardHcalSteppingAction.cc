@@ -35,6 +35,7 @@ using namespace std;
 
 //____________________________________________________________________________..
 PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction( PHG4ForwardHcalDetector* detector ):
+  PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),

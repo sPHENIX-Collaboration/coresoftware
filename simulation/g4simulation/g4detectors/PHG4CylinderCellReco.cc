@@ -51,18 +51,18 @@ PHG4CylinderCellReco::ResetEvent(PHCompositeNode *topNode)
 
 int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 {
-  PHNodeIterator iter(topNode);
+  PHNodeIterator nodeiter(topNode);
 
   // Looking for the DST node
   PHCompositeNode *dstNode;
-  dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  dstNode = dynamic_cast<PHCompositeNode*>(nodeiter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
     {
       std::cout << PHWHERE << "DST Node missing, doing nothing." << std::endl;
       exit(1);
     }
   PHCompositeNode *runNode;
-  runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN"));
+  runNode = dynamic_cast<PHCompositeNode*>(nodeiter.findFirst("PHCompositeNode", "RUN"));
   if (!runNode)
     {
       cout << Name() << "DST Node missing, doing nothing." << endl;
@@ -120,7 +120,6 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
   if (!seggeo)
     {
       seggeo = new PHG4CylinderCellGeomContainer();
-      PHCompositeNode *runNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "RUN" ));
       PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(seggeo, seggeonodename.c_str() , "PHObject");
       runNode->addNode(newNode);
     }

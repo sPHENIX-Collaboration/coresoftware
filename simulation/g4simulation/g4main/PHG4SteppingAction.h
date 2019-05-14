@@ -13,8 +13,7 @@ class PHG4Hit;
 class PHG4SteppingAction
 {
  public:
-  PHG4SteppingAction(const int i = 0);
-
+  PHG4SteppingAction(const std::string& name, const int i = 0);
   virtual ~PHG4SteppingAction()
   {
   }
@@ -42,7 +41,7 @@ class PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*) { return; }
   virtual void Print(const std::string& what) const { return; }
   std::string GetName() const { return m_Name; }
-  void SetName(const std::string &name) { m_Name = name; }
+  void SetName(const std::string& name) { m_Name = name; }
   virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
   virtual double GetLightCorrection(const double r) const;
   virtual double GetLightCorrection(const double xpos, const double ypos) const;

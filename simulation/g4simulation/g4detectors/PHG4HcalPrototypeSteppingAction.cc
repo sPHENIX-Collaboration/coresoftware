@@ -20,6 +20,7 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4HcalPrototypeSteppingAction::PHG4HcalPrototypeSteppingAction( PHG4HcalPrototypeDetector* detector ):
+  PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
   hits_(NULL),
   absorberhits_(NULL),

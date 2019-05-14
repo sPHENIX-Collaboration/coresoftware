@@ -255,6 +255,7 @@ libg4detectors_la_SOURCES = \
   PHG4BeamlineMagnetSubsystem.cc \
   PHG4BlockCellReco.cc \
   PHG4BlockDetector.cc \
+  PHG4BlockDisplayAction.cc \
   PHG4BlockSteppingAction.cc \
   PHG4BlockSubsystem.cc \
   PHG4CEmcTestBeamDetector.cc \
@@ -303,9 +304,11 @@ libg4detectors_la_SOURCES = \
   PHG4HcalPrototypeSteppingAction.cc \
   PHG4HcalPrototypeSubsystem.cc \
   PHG4InnerHcalDetector.cc \
+  PHG4InnerHcalDisplayAction.cc \
   PHG4InnerHcalSteppingAction.cc \
   PHG4InnerHcalSubsystem.cc \
   PHG4OuterHcalDetector.cc \
+  PHG4OuterHcalDisplayAction.cc \
   PHG4OuterHcalField.cc \
   PHG4OuterHcalFieldSetup.cc \
   PHG4OuterHcalSteppingAction.cc \

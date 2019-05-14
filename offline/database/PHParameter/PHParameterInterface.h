@@ -1,5 +1,7 @@
-#ifndef PHParameterInterface__H
-#define PHParameterInterface__H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHPARAMETER_PHPARAMETERINTERFACE_H
+#define PHPARAMETER_PHPARAMETERINTERFACE_H
 
 #include <map>
 #include <string>
@@ -34,15 +36,15 @@ class PHParameterInterface
   void InitializeParameters();
 
  private:
-  PHParameters *params;
-  std::map<const std::string, double> dparams;
-  std::map<const std::string, int> iparams;
-  std::map<const std::string, std::string> cparams;
+  PHParameters *m_Params;
+  std::map<const std::string, double> m_DoubleParMap;
+  std::map<const std::string, int> m_IntParMap;
+  std::map<const std::string, std::string> m_StringParMap;
 
-  std::map<const std::string, double> default_double;
-  std::map<const std::string, int> default_int;
-  std::map<const std::string, std::string> default_string;
+  std::map<const std::string, double> m_DefaultDoubleParMap;
+  std::map<const std::string, int> m_DefaultIntParMap;
+  std::map<const std::string, std::string> m_DefaultStringParMap;
 
 };
 
-#endif
+#endif //PHPARAMETER_PHPARAMETERINTERFACE_H

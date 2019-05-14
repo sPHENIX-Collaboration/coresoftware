@@ -1,6 +1,7 @@
 #include "PHG4INTTSubsystem.h"
 #include "PHG4INTTDefs.h"
 #include "PHG4INTTDetector.h"
+#include "PHG4INTTDisplayAction.h"
 #include "PHG4INTTSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
@@ -22,6 +23,7 @@ PHG4INTTSubsystem::PHG4INTTSubsystem(const std::string &detectorname, const vpai
   : PHG4DetectorGroupSubsystem(detectorname)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
+  , m_DisplayAction(nullptr)
   , m_LayerConfigVector(layerconfig)
   , m_DetectorType(detectorname)
 {
@@ -37,6 +39,11 @@ PHG4INTTSubsystem::PHG4INTTSubsystem(const std::string &detectorname, const vpai
   SuperDetector(detectorname);
 }
 
+PHG4INTTSubsystem::~PHG4INTTSubsystem()
+{
+  delete m_DisplayAction;
+}
+
 //_______________________________________________________________________
 int PHG4INTTSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
@@ -48,9 +55,11 @@ int PHG4INTTSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
+  // create display settings before detector (detector adds its volumes to it)
+  m_DisplayAction = new PHG4INTTDisplayAction(Name());
   // create detector
   pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> layer_begin_end = make_pair(m_LayerConfigVector.begin(), m_LayerConfigVector.end());
-  m_Detector = new PHG4INTTDetector(topNode, GetParamsContainer(), Name(), layer_begin_end);
+  m_Detector = new PHG4INTTDetector(this, topNode, GetParamsContainer(), Name(), layer_begin_end);
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(m_DetectorType);
   m_Detector->OverlapCheck(CheckOverlap());

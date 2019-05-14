@@ -1,24 +1,23 @@
-#ifndef PHG4TruthSubsystem_h
-#define PHG4TruthSubsystem_h
+#ifndef G4MAIN_PHG4TRUTHSUBSYSTEM_H
+#define G4MAIN_PHG4TRUTHSUBSYSTEM_H
 
 #include "PHG4Subsystem.h"
+
 #include <string>
 
-class PHG4TruthSteppingAction;
 class PHG4TruthTrackingAction;
 class PHG4TruthEventAction;
 
-class PHG4TruthSubsystem: public PHG4Subsystem
+class PHG4TruthSubsystem : public PHG4Subsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4TruthSubsystem( const std::string &name = "TRUTH" );
+  PHG4TruthSubsystem(const std::string &name = "TRUTH");
 
   //! destructor
-  virtual ~PHG4TruthSubsystem( void )
-  {}
+  virtual ~PHG4TruthSubsystem(void)
+  {
+  }
 
   //! init
   int InitRun(PHCompositeNode *);
@@ -33,21 +32,19 @@ class PHG4TruthSubsystem: public PHG4Subsystem
   int ResetEvent(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  virtual PHG4EventAction* GetEventAction( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
-  virtual PHG4TrackingAction* GetTrackingAction( void ) const;
+  virtual PHG4EventAction *GetEventAction(void) const;
+  virtual PHG4TrackingAction *GetTrackingAction(void) const;
 
   //! only save the G4 truth information that is associated with the embedded particle
-  void SetSaveOnlyEmbeded(bool b = true){saveOnlyEmbeded_ = b;};
+  void SetSaveOnlyEmbeded(bool b = true) { m_SaveOnlyEmbededFlag = b; };
 
-  private:
+ private:
+  PHG4TruthEventAction *m_EventAction;
 
-  PHG4TruthEventAction* eventAction_;
-  PHG4TruthSteppingAction* steppingAction_;
-  PHG4TruthTrackingAction* trackingAction_;
+  PHG4TruthTrackingAction *m_TrackingAction;
 
   //! only save the G4 truth information that is associated with the embedded particle
-  bool saveOnlyEmbeded_;
+  bool m_SaveOnlyEmbededFlag;
 };
 
 #endif

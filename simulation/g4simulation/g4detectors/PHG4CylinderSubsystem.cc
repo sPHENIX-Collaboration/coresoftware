@@ -42,6 +42,8 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   {
     GetParams()->set_double_param("length", PHG4Utils::GetLengthForRapidityCoverage(GetParams()->get_double_param("radius") + GetParams()->get_double_param("thickness")) * 2);
   }
+  // create display settings before detector
+  m_DisplayAction = new PHG4CylinderDisplayAction(Name(), GetParams());
   // create detector
   m_Detector = new PHG4CylinderDetector(this, topNode, GetParams(), Name(), GetLayer());
   G4double detlength = GetParams()->get_double_param("length");
@@ -101,12 +103,10 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     geo->AddLayerGeom(GetLayer(), mygeom);
     m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
   }
-  if (GetParams()->get_int_param("blackhole"))
+  else if (GetParams()->get_int_param("blackhole"))
   {
     m_SteppingAction = new PHG4CylinderSteppingAction(m_Detector, GetParams());
   }
-  // create display settings
-  m_DisplayAction = new PHG4CylinderDisplayAction(Name(), GetParams());
   return 0;
 }
 

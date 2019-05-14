@@ -1,14 +1,14 @@
-#ifndef PHG4TPCSubsystem_h
-#define PHG4TPCSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4TPC_PHG4TPCSUBSYSTEM_H
+#define G4TPC_PHG4TPCSUBSYSTEM_H
 
 #include <g4detectors/PHG4DetectorSubsystem.h>
 
-#include <map>
-#include <set>
 #include <string>
 
+class PHG4DisplayAction;
 class PHG4TPCDetector;
-class PHG4Parameters;
 class PHG4TPCSteppingAction;
 
 class PHG4TPCSubsystem : public PHG4DetectorSubsystem
@@ -18,13 +18,12 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
   PHG4TPCSubsystem(const std::string &name = "TPC", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4TPCSubsystem(void)
-  {
-  }
+  virtual ~PHG4TPCSubsystem();
 
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-  reates the stepping action and place it on the node tree, under "ACTIONS" node
+  called during InitRun (the original InitRun does common setup and calls this one)
+  creates the detector object 
+  ceates the stepping action 
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode *);
@@ -41,7 +40,10 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
 
   //! accessors (reimplemented)
   PHG4Detector *GetDetector(void) const;
+
   PHG4SteppingAction *GetSteppingAction(void) const { return steppingAction_; }
+
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
  private:
   void SetDefaultParameters();
@@ -54,9 +56,9 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
   /*! derives from PHG4SteppingAction */
   PHG4SteppingAction *steppingAction_;
 
-  //! detector event action executes before/after every event
-  /*! derives from PHG4EventAction */
-  PHG4EventAction *eventAction_;
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
 };
 
 #endif
