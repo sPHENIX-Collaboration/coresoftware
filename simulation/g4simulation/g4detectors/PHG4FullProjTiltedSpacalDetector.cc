@@ -15,7 +15,6 @@
 #include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <g4main/PHG4PhenixDetector.h>
-#include <g4main/PHG4Utils.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 
