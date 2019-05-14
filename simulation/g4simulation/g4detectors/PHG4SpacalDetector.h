@@ -16,7 +16,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4Region.hh>
 #include <Geant4/G4Transform3D.hh>
 
 #include <map>
@@ -24,6 +23,7 @@
 class G4Tubs;
 class G4LogicalVolume;
 class G4UserLimits;
+class G4VPhysicalVolume;
 class PHG4GDMLConfig;
 class PHG4SpacalDisplayAction;
 class PHG4SpacalSubsystem;
@@ -85,15 +85,6 @@ class PHG4SpacalDetector : public PHG4Detector
     return layer;
   }
 
-  G4UserSteppingAction*
-  GetSteppingAction()
-  {
-    if (_region)
-      return _region->GetRegionalSteppingAction();
-    else
-      return 0;
-  }
-
   virtual void
   Print(const std::string& what = "ALL") const;
 
@@ -107,18 +98,6 @@ class PHG4SpacalDetector : public PHG4Detector
   {
     return new SpacalGeom_t(*_geom);
   }
-
-  //  SpacalGeom_t &
-  //  get_geom()
-  //  {
-  //    return _geom;
-  //  }
-
-  //  void
-  //  set_geom(const SpacalGeom_t & geom)
-  //  {
-  //    _geom = geom;
-  //  }
 
   enum
   {
@@ -135,7 +114,6 @@ class PHG4SpacalDetector : public PHG4Detector
   PHG4SpacalDisplayAction* m_DisplayAction;
 
  protected:
-  G4Region* _region;
   G4Tubs* cylinder_solid;
   G4LogicalVolume* cylinder_logic;
   G4VPhysicalVolume* cylinder_physi;

@@ -54,10 +54,9 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
                                        bool init_geom)
   : PHG4Detector(Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
-  , _region(NULL)
-  , cylinder_solid(NULL)
-  , cylinder_logic(NULL)
-  , cylinder_physi(NULL)
+  , cylinder_solid(nullptr)
+  , cylinder_logic(nullptr)
+  , cylinder_physi(nullptr)
   , active(0)
   , absorberactive(0)
   , layer(lyr)
@@ -67,7 +66,7 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
   if (init_geom)
   {
     _geom = new SpacalGeom_t();
-    if (_geom == NULL)
+    if (_geom == nullptr)
     {
       cout << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!" << endl;
       exit(1);
@@ -84,7 +83,7 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
 
 PHG4SpacalDetector::~PHG4SpacalDetector(void)
 {
-  // deleting NULL pointers is allowed (results in NOOP)
+  // deleting nullptr pointers is allowed (results in NOOP)
   // so checking for not null before deleting is not needed
   delete fiber_core_step_limits;
   delete _geom;
