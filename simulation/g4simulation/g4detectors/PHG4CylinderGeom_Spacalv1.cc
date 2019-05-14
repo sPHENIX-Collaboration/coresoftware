@@ -49,12 +49,6 @@ PHG4CylinderGeom_Spacalv1::Print(Option_t *) const
   case kNonProjective:
     cout << "fiber always placed radially" << endl;
     break;
-  case kProjective_PolarTaper:
-    cout
-        << "Block constructed with taper in polar direction, non-taper in azimuthal direction. "
-        << "The final layout is approximately projective in both azimuthal and polar directions."
-        << endl;
-    break;
   case kFullProjective_2DTaper:
     cout << "Fully projective spacal with 2D tapered modules" << endl;
     break;
