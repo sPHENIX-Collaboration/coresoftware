@@ -159,11 +159,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
                                        G4String(GetName()), 0, 0, 0);
-  G4VisAttributes *VisAtt = new G4VisAttributes();
-  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-  VisAtt->SetVisibility(true);
-  VisAtt->SetForceSolid((not _geom->is_virualize_fiber()) and (not _geom->is_azimuthal_seg_visible()));
-  cylinder_logic->SetVisAttributes(VisAtt);
+  GetDisplayAction()->AddVolume(cylinder_logic,"SpacalCylinder");
 
   cylinder_physi = new G4PVPlacement(0,
                                      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
@@ -363,11 +359,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
                                                      nullptr);
 
   {
-    G4VisAttributes *VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "G4_POLYSTYRENE");
-    VisAtt->SetVisibility(_geom->is_virualize_fiber());
-    VisAtt->SetForceSolid(_geom->is_virualize_fiber());
-    fiber_logic->SetVisAttributes(VisAtt);
+    GetDisplayAction()->AddVolume(fiber_logic,"Fiber");
   }
 
   G4Tubs *core_solid = new G4Tubs(
@@ -382,11 +374,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
                                                     fiber_core_step_limits);
 
   {
-    G4VisAttributes *VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "G4_POLYSTYRENE");
-    VisAtt->SetVisibility(false);
-    VisAtt->SetForceSolid(false);
-    core_logic->SetVisAttributes(VisAtt);
+    GetDisplayAction()->AddVolume(core_logic,"FiberCore");
   }
 
   const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);

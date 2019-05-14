@@ -77,7 +77,6 @@ PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHG4SpacalSub
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
-  GetDisplayAction()->SetGeom(get_geom_v3());
   //  cout <<"PHG4FullProjTiltedSpacalDetector::Constructor -  get_geom_v3()->Print();"<<endl;
   //  get_geom_v3()->Print();
 }

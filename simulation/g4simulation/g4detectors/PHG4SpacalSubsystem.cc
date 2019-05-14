@@ -70,12 +70,6 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     detector_ = new PHG4SpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
-  case PHG4CylinderGeom_Spacalv1::kProjective_PolarTaper:
-    cout << "PHG4SpacalSubsystem::InitRun - PHG4ProjSpacalDetector is obsolete" << endl;
-    exit(10);
-//    detector_ = new PHG4ProjSpacalDetector(topNode, Name(), GetParams(), GetLayer());
-    break;
-
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
     if (Verbosity() > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
@@ -98,7 +92,10 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
-
+// the geometry object is set during detector construction, we need it for the
+// display to extract the visibility setting for logical volumes
+  PHG4SpacalDisplayAction *DispAct = dynamic_cast<PHG4SpacalDisplayAction *> (m_DisplayAction);
+  DispAct->SetGeom(detector_->get_geom());
   if (GetParams()->get_int_param("active"))
   {
     ostringstream nodename;

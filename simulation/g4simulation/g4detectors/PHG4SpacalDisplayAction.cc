@@ -17,7 +17,7 @@ using namespace std;
 
 PHG4SpacalDisplayAction::PHG4SpacalDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
-  , m_GeomV3(nullptr)
+  , m_Geom(nullptr)
 {
 }
 
@@ -49,32 +49,49 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     if (it.second == "Block")
     {
       visatt->SetColor(.3, .3, .3, .3);
-      visatt->SetVisibility( m_GeomV3->is_azimuthal_seg_visible() or m_GeomV3->is_virualize_fiber());
-      visatt->SetForceSolid(not m_GeomV3->is_virualize_fiber());
+      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(not m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Divider")
     {
       visatt->SetColor(.8, 1, .8, .3);
-      visatt->SetVisibility( m_GeomV3->is_azimuthal_seg_visible());
+      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible());
+    }
+    else if (it.second == "Fiber")
+    {
+      PHG4Utils::SetColour(visatt, "G4_POLYSTYRENE");
+      visatt->SetVisibility( m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(m_Geom->is_virualize_fiber());
+    }
+    else if (it.second == "FiberCore")
+    {
+      PHG4Utils::SetColour(visatt, "G4_POLYSTYRENE");
+      visatt->SetVisibility(false);
+      visatt->SetForceSolid(false);
     }
     else if (it.second == "LightGuide")
     {
       PHG4Utils::SetColour(visatt, m_MaterialMap["LightGuide"]);
       visatt->SetColor(.8, 1, .8, .3);
-      visatt->SetVisibility( m_GeomV3->is_azimuthal_seg_visible() or m_GeomV3->is_virualize_fiber());
-      visatt->SetForceSolid(not m_GeomV3->is_virualize_fiber());
+      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
+      visatt->SetForceSolid(not m_Geom->is_virualize_fiber());
     }
     else if (it.second == "Sector")
     {
       visatt->SetColor(.5, .9, .5, .5);
-      visatt->SetVisibility( m_GeomV3->is_azimuthal_seg_visible() or m_GeomV3->is_virualize_fiber());
+      visatt->SetVisibility( m_Geom->is_azimuthal_seg_visible() or m_Geom->is_virualize_fiber());
       visatt->SetForceSolid(false);
       visatt->SetForceWireframe(true);
+    }
+    else if (it.second == "SpacalCylinder")
+    {
+      PHG4Utils::SetColour(visatt, "W_Epoxy");
+      visatt->SetForceSolid((not m_Geom->is_virualize_fiber()) and (not m_Geom->is_azimuthal_seg_visible()));
     }
     else if (it.second == "Wall")
     {
       visatt->SetColor(.5, .9, .5, .1);
-      visatt->SetVisibility(m_GeomV3->is_azimuthal_seg_visible());
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible());
     }
     else
     {
