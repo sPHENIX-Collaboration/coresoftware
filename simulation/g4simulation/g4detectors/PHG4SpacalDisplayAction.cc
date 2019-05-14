@@ -99,6 +99,11 @@ void PHG4SpacalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
       visatt->SetColor(.5, .9, .5, .1);
       visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible());
     }
+    else if (it.second == "WallProj")
+    {
+      visatt->SetColor(.5, .9, .5, .2);
+      visatt->SetVisibility(m_Geom->is_azimuthal_seg_visible()and (not m_Geom->is_virualize_fiber()));
+    }
     else
     {
       cout << "did not assing color to " << it.first->GetName()

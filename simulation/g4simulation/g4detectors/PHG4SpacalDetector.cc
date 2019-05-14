@@ -14,7 +14,6 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4PhenixDetector.h>
-#include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
