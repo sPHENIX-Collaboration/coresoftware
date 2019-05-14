@@ -52,11 +52,7 @@ void PHG4TPCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "FPHX")
-    {
-      visatt->SetColour(G4Colour::Blue());
-    }
-    else if (it.second == "TpcEnvelope")
+    if (it.second == "TpcEnvelope")
     {
       visatt->SetVisibility(false);
     }

@@ -27,6 +27,7 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
 
   virtual ~PHG4CylinderGeom_Spacalv1()
   {
+    sector_map.clear();
   }
 
   virtual void
@@ -242,10 +243,6 @@ class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
     kNonProjective = 0,
     //! alias of above, more explicit
     k1DProjectiveSpacal = kNonProjective,
-
-    //! Block constructed with taper in polar direction, non-taper in azimuthal direction.
-    //! The final layout is approximately projective in both azimuthal and polar directions.
-    kProjective_PolarTaper = 1,
 
     //! Fully projective spacal with 2D tapered modules
     kFullProjective_2DTaper = 2,
