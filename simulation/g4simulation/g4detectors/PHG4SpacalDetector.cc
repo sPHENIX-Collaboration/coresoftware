@@ -6,7 +6,10 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 #include "PHG4SpacalDetector.h"
+
 #include "PHG4CylinderGeomContainer.h"
+#include "PHG4SpacalDisplayAction.h"
+#include "PHG4SpacalSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -45,9 +48,14 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
-                                       const std::string &dnam, PHParameters *parameters, const int lyr, bool init_geom)
+PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
+                                       PHCompositeNode *Node,
+                                       const std::string &dnam, 
+                                       PHParameters *parameters, 
+                                       const int lyr, 
+                                       bool init_geom)
   : PHG4Detector(Node, dnam)
+  , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
   , _region(NULL)
   , cylinder_solid(NULL)
   , cylinder_logic(NULL)

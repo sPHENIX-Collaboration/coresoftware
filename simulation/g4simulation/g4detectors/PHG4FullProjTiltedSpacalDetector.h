@@ -15,20 +15,11 @@
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
 
-#include <Geant4/G4Region.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
+#include <Geant4/G4Transform3D.hh>
 
 #include <cassert>
-#include <map>
-#include <set>
 
-class G4Material;
-class G4Tubs;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4UserLimits;
-class PHG4SpacalDisplayAction;
 class PHG4SpacalSubsystem;
 class PHParameters;
 
@@ -75,7 +66,6 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
 
  private:
 //  SpacalGeom_t* _geom;
-  PHG4SpacalDisplayAction *m_DisplayAction;
   //! get the v3 cast of the geometry object
   SpacalGeom_t *
   get_geom_v3()

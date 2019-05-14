@@ -1,4 +1,5 @@
-// $$Id: PHG4SpacalDetector.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,28 +9,24 @@
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
 
-#ifndef PHG4SpacalDetector_h
-#define PHG4SpacalDetector_h
+#ifndef G4DETECTORS_PHG4SPACALDETECTOR_H
+#define G4DETECTORS_PHG4SPACALDETECTOR_H
 
 #include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
-#include <Geant4/G4Types.hh>
 #include <Geant4/G4Transform3D.hh>
 
 #include <map>
-#include <set>
-#include <utility>
 
-class G4Material;
 class G4Tubs;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
 class G4UserLimits;
 class PHG4GDMLConfig;
+class PHG4SpacalDisplayAction;
+class PHG4SpacalSubsystem;
 class PHParameters;
 
 class PHG4SpacalDetector : public PHG4Detector
@@ -38,7 +35,7 @@ class PHG4SpacalDetector : public PHG4Detector
 public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
-  PHG4SpacalDetector(PHCompositeNode* Node, const std::string& dnam,
+  PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,PHCompositeNode* Node, const std::string& dnam,
       PHParameters *parameters,  const int layer = 0, bool init_geom = true);
 
   virtual
@@ -140,8 +137,12 @@ public:
     INACTIVE = -100
   };
 
-protected:
+  PHG4SpacalDisplayAction *GetDisplayAction() {return m_DisplayAction;}
 
+private:
+  PHG4SpacalDisplayAction *m_DisplayAction;
+
+protected:
   G4Region* _region;
   G4Tubs* cylinder_solid;
   G4LogicalVolume* cylinder_logic;

@@ -1,4 +1,5 @@
-// $$Id: PHG4FullProjSpacalDetector.h,v 1.2 2015/02/10 15:39:26 pinkenbu Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,8 +9,8 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 
-#ifndef PHG4FullProjSpacalDetector_h
-#define PHG4FullProjSpacalDetector_h
+#ifndef G4DETECTORS_PHG4FULLPROJSPACALDETECTOR_H
+#define G4DETECTORS_PHG4FULLPROJSPACALDETECTOR_H
 
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
@@ -27,6 +28,7 @@ class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4UserLimits;
+class PHG4SpacalSubsystem;
 class PHParameters;
 
 //! Fully projective SPACAL built from 2D tapered modules.
@@ -37,7 +39,8 @@ class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
  public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4FullProjSpacalDetector(PHCompositeNode* Node, const std::string& dnam,
+  PHG4FullProjSpacalDetector(PHG4SpacalSubsystem *subsys,
+PHCompositeNode* Node, const std::string& dnam,
                              PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class

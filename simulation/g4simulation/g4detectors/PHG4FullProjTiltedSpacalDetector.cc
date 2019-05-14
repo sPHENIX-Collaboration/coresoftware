@@ -61,8 +61,7 @@ using namespace std;
 //note this inactive thickness is ~1.5% of a radiation length
 PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHG4SpacalSubsystem *subsys, PHCompositeNode* Node,
                                                                    const std::string& dnam, PHParameters* parameters, const int lyr)
-  : PHG4SpacalDetector(Node, dnam, parameters, lyr, false)
-  , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
+  : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
 {
   assert(_geom == nullptr);
 
@@ -78,7 +77,7 @@ PHG4FullProjTiltedSpacalDetector::PHG4FullProjTiltedSpacalDetector(PHG4SpacalSub
 
   assert(parameters);
   get_geom_v3()->ImportParameters(*parameters);
-  m_DisplayAction->SetGeom(get_geom_v3());
+  GetDisplayAction()->SetGeom(get_geom_v3());
   //  cout <<"PHG4FullProjTiltedSpacalDetector::Constructor -  get_geom_v3()->Print();"<<endl;
   //  get_geom_v3()->Print();
 }
@@ -296,7 +295,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
   G4LogicalVolume* sec_logic = new G4LogicalVolume(sec_solid_place, cylinder_mat,
                                                    G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
-  m_DisplayAction->AddVolume(sec_logic,"Sector");
+  GetDisplayAction()->AddVolume(sec_logic,"Sector");
 
   // construct walls
 
@@ -332,7 +331,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
     G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid_place, wall_mat,
                                                       G4String(G4String(GetName() + string("_EndWall"))), 0, 0,
                                                       nullptr);
-    m_DisplayAction->AddVolume(wall_logic,"Wall");
+    GetDisplayAction()->AddVolume(wall_logic,"Wall");
 
     typedef map<int, double> z_locations_t;
     z_locations_t z_locations;
@@ -405,7 +404,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       G4LogicalVolume* wall_logic = new G4LogicalVolume(wall_solid, wall_mat,
                                                         G4String(G4String(GetName() + G4String("_SideWall_") + to_string(val.first))), 0, 0,
                                                         nullptr);
-      m_DisplayAction->AddVolume(wall_logic,"Wall");
+      GetDisplayAction()->AddVolume(wall_logic,"Wall");
 
       const G4Transform3D wall_trans =
           G4TranslateZ3D(sign_z * (get_geom_v3()->get_length() * cm / 4)) *
@@ -447,7 +446,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_AzimuthalSeg()
       G4LogicalVolume* wall_logic = new G4LogicalVolume(divider_solid, divider_mat,
                                                         G4String(G4String(GetName() + G4String("_Divider_") + to_string(ID))), 0, 0,
                                                         nullptr);
-      m_DisplayAction->AddVolume(wall_logic,"Divider");
+      GetDisplayAction()->AddVolume(wall_logic,"Divider");
 
       for (int sign_z = -1; sign_z <= 1; sign_z += 2)
       {
@@ -808,7 +807,7 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
                                                      nullptr);
 
-      m_DisplayAction->AddVolume(block_logic,"Block");
+      GetDisplayAction()->AddVolume(block_logic,"Block");
 
   // construct fibers
 
@@ -917,8 +916,8 @@ PHG4FullProjTiltedSpacalDetector::Construct_LightGuide(
                                                      G4String(G4String(GetName()) + string("_Tower") + sTowerID), 0, 0,
                                                      nullptr);
 
-  m_DisplayAction->AddMaterial("LightGuide",g_tower.LightguideMaterial);
-  m_DisplayAction->AddVolume(block_logic,"LightGuide");
+  GetDisplayAction()->AddMaterial("LightGuide",g_tower.LightguideMaterial);
+  GetDisplayAction()->AddVolume(block_logic,"LightGuide");
 
   return block_logic;
 }

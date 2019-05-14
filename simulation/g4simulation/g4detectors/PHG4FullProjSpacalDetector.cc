@@ -1,4 +1,3 @@
-// $$Id: PHG4FullProjSpacalDetector.cc,v 1.3 2015/02/10 15:39:26 pinkenbu Exp $$
 
 /*!
  * \file ${file_name}
@@ -10,6 +9,7 @@
 #include "PHG4FullProjSpacalDetector.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv1.h"
+#include "PHG4SpacalSubsystem.h"
 
 #include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4Utils.h>
@@ -56,9 +56,9 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHCompositeNode *Node,
+PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4SpacalSubsystem *subsys,PHCompositeNode *Node,
     const std::string& dnam, PHParameters* parameters, const int lyr)
-: PHG4SpacalDetector(Node, dnam, parameters, lyr, false)
+  : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
 {
   assert(_geom == nullptr);
 
