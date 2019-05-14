@@ -55,8 +55,6 @@ class PHG4Prototype2InnerHcalDetector : public PHG4Detector
 
  protected:
   int ConstructInnerHcal(G4LogicalVolume* sandwich);
-  int DisplayVolume(G4VSolid* volume, G4LogicalVolume* logvol, G4RotationMatrix* rotm = NULL);
-  int DisplayVolume(G4LogicalVolume* volume, G4LogicalVolume* logvol, G4RotationMatrix* rotm = NULL);
   std::set<G4LogicalVolume*> m_ActiveVolumeSet;
   std::string superdetector;
   std::map<std::string, int> m_SteelPlateIdMap;

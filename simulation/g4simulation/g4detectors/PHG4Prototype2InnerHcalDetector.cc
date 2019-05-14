@@ -491,53 +491,6 @@ PHG4Prototype2InnerHcalDetector::GetScintiAngle()
   return angle;
 }
 
-int PHG4Prototype2InnerHcalDetector::DisplayVolume(G4VSolid* volume, G4LogicalVolume* logvol, G4RotationMatrix* rotm)
-{
-  G4LogicalVolume* checksolid = new G4LogicalVolume(volume, G4Material::GetMaterial("G4_POLYSTYRENE"), "DISPLAYLOGICAL", 0, 0, 0);
-  DisplayVolume(checksolid, logvol, rotm);
-  return 0;
-}
-
-int PHG4Prototype2InnerHcalDetector::DisplayVolume(G4LogicalVolume* checksolid, G4LogicalVolume* logvol, G4RotationMatrix* rotm)
-{
-  static int i = 0;
-  G4VisAttributes* visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(false);
-  switch (i)
-  {
-  case 0:
-    visattchk->SetColour(G4Colour::Red());
-    i++;
-    break;
-  case 1:
-    visattchk->SetColour(G4Colour::Magenta());
-    i++;
-    break;
-  case 2:
-    visattchk->SetColour(G4Colour::Yellow());
-    i++;
-    break;
-  case 3:
-    visattchk->SetColour(G4Colour::Blue());
-    i++;
-    break;
-  case 4:
-    visattchk->SetColour(G4Colour::Cyan());
-    i++;
-    break;
-  default:
-    visattchk->SetColour(G4Colour::Green());
-    i = 0;
-    break;
-  }
-
-  checksolid->SetVisAttributes(visattchk);
-  new G4PVPlacement(rotm, G4ThreeVector(0, 0, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
-  //  new G4PVPlacement(rotm, G4ThreeVector(0, -460.3, 0), checksolid, "DISPLAYVOL", logvol, 0, false, OverlapCheck());
-  return 0;
-}
-
 void PHG4Prototype2InnerHcalDetector::Print(const string& what) const
 {
   cout << "Inner Hcal Detector:" << endl;
