@@ -24,7 +24,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Trd.hh>
-#include <Geant4/G4NistManager.hh>
 
 #include <Geant4/G4PhysicalConstants.hh>
 
@@ -216,20 +215,19 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
   G4double _tower_dy = 0.0;
   G4double _tower_dz = 0.0;
 
-  G4NistManager* manager = G4NistManager::Instance();
   G4Material* material_scintillator;
 
   if(type==0){
     _tower_dx = _tower0_dx; 
     _tower_dy = _tower0_dy; 
     _tower_dz = _tower0_dz;
-    material_scintillator = manager->FindOrBuildMaterial("G4_LEAD_OXIDE"); 
+    material_scintillator = G4Material::GetMaterial("G4_LEAD_OXIDE"); 
   }
   else if(type==1){
     _tower_dx = _tower1_dx; 
     _tower_dy = _tower1_dy; 
     _tower_dz = _tower1_dz; 
-    material_scintillator = manager->FindOrBuildMaterial("G4_PbWO4"); 
+    material_scintillator = G4Material::GetMaterial("G4_PbWO4"); 
   }
   else{
     cout << "PHG4ForwardEcalDetector::ConstructTower invalid type = " << type << endl;
