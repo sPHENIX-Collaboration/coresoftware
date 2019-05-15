@@ -2,7 +2,6 @@
 #include "PHG4ForwardEcalDetector.h"
 #include "PHG4EICForwardEcalDetector.h"
 #include "PHG4ForwardEcalSteppingAction.h"
-#include "PHG4EventActionClearZeroEdep.h"
 
 #include <g4main/PHG4HitContainer.h>
 
@@ -21,7 +20,6 @@ PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem( const std::string &name, con
   PHG4Subsystem( name ),
   detector_( 0 ),
   steppingAction_( nullptr ),
-  eventAction_(nullptr),
   active(1),
   absorber_active(0),
   blackhole(0),
@@ -84,20 +82,6 @@ int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
       // create stepping action
       steppingAction_ = new PHG4ForwardEcalSteppingAction(detector_);
 
-      // event actions
-      BOOST_FOREACH(string node, nodes)
-        {
-          if (!eventAction_)
-            {
-              eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
-            }
-          else
-            {
-              PHG4EventActionClearZeroEdep *evtact =
-                  dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
-              evtact->AddNode(node);
-            }
-        }
     }
 
   return 0;

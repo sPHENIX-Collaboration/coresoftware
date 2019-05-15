@@ -1,5 +1,7 @@
-#ifndef PHG4ForwardEcalSubsystem_h
-#define PHG4ForwardEcalSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FORWARDECALSUBSYSTEM_H
+#define G4DETECTORS_PHG4FORWARDECALSUBSYSTEM_H
 
 #include <g4main/PHG4Subsystem.h>
 
@@ -8,7 +10,6 @@
 
 class PHG4ForwardEcalDetector;
 class PHG4ForwardEcalSteppingAction;
-class PHG4EventAction;
 
 class PHG4ForwardEcalSubsystem: public PHG4Subsystem
 {
@@ -39,7 +40,6 @@ public:
    */
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const;
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   /** Set mapping file for calorimeter towers
    */
@@ -64,7 +64,6 @@ private:
   /** Stepping action
    */
   PHG4ForwardEcalSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
 
   int active;
   int absorber_active; 
