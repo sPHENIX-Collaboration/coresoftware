@@ -3,21 +3,13 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4Material.hh>
 
 #include <string>
 #include <map>
-#include <vector>
-#include <set>
 
-class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
 class PHG4ForwardEcalDisplayAction;
 class PHG4ForwardEcalSubsystem;
 class PHG4GDMLConfig;

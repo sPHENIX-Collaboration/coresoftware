@@ -11,6 +11,7 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
 
 #include <boost/foreach.hpp>
