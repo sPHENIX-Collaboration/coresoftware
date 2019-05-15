@@ -1,5 +1,7 @@
-#ifndef PHG4EICForwardEcalDetector_h
-#define PHG4EICForwardEcalDetector_h
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4EICFORWARDECALDETECTOR_H
+#define G4DETECTORS_PHG4EICFORWARDECALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 #include <PHG4ForwardEcalDetector.h>
@@ -19,6 +21,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4ForwardEcalSubsystem;
 
 /**
  * \file ${file_name}
@@ -32,7 +35,7 @@ class PHG4EICForwardEcalDetector: public PHG4ForwardEcalDetector
 public:
 
   //! constructor
-  PHG4EICForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4EICForwardEcalDetector( PHG4ForwardEcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
   virtual ~PHG4EICForwardEcalDetector();

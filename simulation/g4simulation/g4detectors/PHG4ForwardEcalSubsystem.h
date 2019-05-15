@@ -8,6 +8,7 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+class PHG4DisplayAction;
 class PHG4ForwardEcalDetector;
 class PHG4ForwardEcalSteppingAction;
 
@@ -22,8 +23,8 @@ public:
 
   /** Destructor
    */
-  virtual ~PHG4ForwardEcalSubsystem( void )
-  {}
+  virtual ~PHG4ForwardEcalSubsystem();
+
 
   /**
      Creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
@@ -41,7 +42,9 @@ public:
   PHG4Detector* GetDetector( void ) const;
   PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  /** Set mapping file for calorimeter towers
+   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+
+ /** Set mapping file for calorimeter towers
    */
   void SetTowerMappingFile( const std::string &filename )
   {
@@ -64,6 +67,10 @@ private:
   /** Stepping action
    */
   PHG4ForwardEcalSteppingAction* steppingAction_;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
 
   int active;
   int absorber_active; 

@@ -7,6 +7,8 @@
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <TSystem.h>
+
 #include <iostream>
 
 using namespace std;
@@ -36,37 +38,36 @@ void PHG4ForwardEcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol
       continue;
     }
     G4VisAttributes *visatt = new G4VisAttributes();
+    visatt->SetVisibility(true);
+    visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Carbon")
+    if (it.second == "Absorber")
     {
-      visatt->SetColour(0.5, 0.5, 0.5, .25);
+      visatt->SetColour(G4Colour::Cyan());
     }
-    else if (it.second == "M60J3K")
+    else if (it.second == "Envelope")
     {
-      visatt->SetColour(0.25, 0.25, 0.25, .25);
+      visatt->SetColour(G4Colour::Magenta());
+      visatt->SetVisibility(false);
+      visatt->SetForceSolid(false);
     }
-    else if (it.second == "WATER")
+    else if (it.second == "Fiber")
     {
-      visatt->SetColour(0.0, 0.5, 0.0, .25);
+      visatt->SetColour(G4Colour::Cyan());
     }
-    else if (it.second == "SI")
+    else if (it.second == "Scintillator")
     {
-      PHG4Utils::SetColour(visatt, "G4_Si");
+      visatt->SetColour(G4Colour::Cyan());
     }
-    else if (it.second == "KAPTON")
+    else if (it.second == "ScintillatorSingleTower")
     {
-      PHG4Utils::SetColour(visatt, "G4_KAPTON");
-    }
-    else if (it.second == "ALUMINUM")
-    {
-      PHG4Utils::SetColour(visatt, "G4_Al");
+      visatt->SetColour(G4Colour::Cyan());
     }
     else
     {
-      visatt->SetColour(.2, .2, .7, .25);
+      cout << "unknown logical volume " << it.second << endl;
+      gSystem->Exit(1);
     }
-    visatt->SetVisibility(true);
-    visatt->SetForceSolid(true);
     logvol->SetVisAttributes(visatt);
   }
   return;

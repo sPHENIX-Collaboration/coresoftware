@@ -18,6 +18,8 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4ForwardEcalDisplayAction;
+class PHG4ForwardEcalSubsystem;
 class PHG4GDMLConfig;
 
 /**
@@ -32,7 +34,7 @@ class PHG4ForwardEcalDetector: public PHG4Detector
 public:
 
   //! constructor
-  PHG4ForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4ForwardEcalDetector( PHG4ForwardEcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
   virtual ~PHG4ForwardEcalDetector();
@@ -108,6 +110,7 @@ public:
 
   void BlackHole(const int i=1) {_blackhole = i;}
   int IsBlackHole() const {return _blackhole;}
+  PHG4ForwardEcalDisplayAction *GetDisplayAction() {return m_DisplayAction;}
 
 private:
 
@@ -123,6 +126,8 @@ private:
     G4double z;
     G4double type; 
   } ;
+
+  PHG4ForwardEcalDisplayAction *m_DisplayAction;
 
   std::map< std::string, towerposition > _map_tower;
 

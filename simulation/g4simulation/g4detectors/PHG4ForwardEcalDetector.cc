@@ -1,4 +1,8 @@
 #include "PHG4ForwardEcalDetector.h"
+
+#include "PHG4ForwardEcalDisplayAction.h"
+#include "PHG4ForwardEcalSubsystem.h"
+
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
 
@@ -28,9 +32,6 @@
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4NistManager.hh>
 
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
-
 #include <Geant4/G4PhysicalConstants.hh>
 
 #include <cmath>
@@ -46,8 +47,9 @@ using namespace std;
 
 
 //_______________________________________________________________________
-PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam ):
+PHG4ForwardEcalDetector::PHG4ForwardEcalDetector( PHG4ForwardEcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam ):
   PHG4Detector(Node, dnam),
+  m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction *>(subsys->GetDisplayAction())),
   _tower0_dx(30*mm),
   _tower0_dy(30*mm),
   _tower0_dz(170.0*mm),
@@ -164,11 +166,7 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4LogicalVolume* ecal_envelope_log =  new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
   /* Define visualization attributes for envelope cone */
-  G4VisAttributes* ecalVisAtt = new G4VisAttributes();
-  ecalVisAtt->SetVisibility(false);
-  ecalVisAtt->SetForceSolid(false);
-  ecalVisAtt->SetColour(G4Colour::Magenta());
-  ecal_envelope_log->SetVisAttributes(ecalVisAtt);
+  GetDisplayAction()->AddVolume(ecal_envelope_log,"Envelope");
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
@@ -177,12 +175,10 @@ PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
   ecal_rotm.rotateZ(_rot_in_z);
 
   /* Place envelope cone in simulation */
-  ostringstream name_envelope;
-  name_envelope.str("");
-  name_envelope << _towerlogicnameprefix << "_envelope" << endl;
+  string name_envelope = _towerlogicnameprefix + "_envelope";
 
   new G4PVPlacement( G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z) ),
-		     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
+		     ecal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter towers */
   bool buildType[7] = {false, false, false, false, false, false, false}; 
@@ -247,8 +243,7 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
   }
 
   ostringstream single_tower_solid_name;
-  single_tower_solid_name.str("");
-  single_tower_solid_name << _towerlogicnameprefix << "_single_scintillator_type" << type << endl;
+  single_tower_solid_name << _towerlogicnameprefix << "_single_scintillator_type" << type;
 
   G4VSolid* single_tower_solid = new G4Box( G4String(single_tower_solid_name.str().c_str()),
                                        _tower_dx / 2.0,
@@ -256,8 +251,7 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
                                        _tower_dz / 2.0 );
 
   ostringstream single_tower_logic_name;
-  single_tower_logic_name.str("");
-  single_tower_logic_name << "single_tower_logic_type" << type << endl;
+  single_tower_logic_name << "single_tower_logic_type" << type;
 
   G4LogicalVolume *single_tower_logic = new G4LogicalVolume( single_tower_solid,
 							     material_air,
@@ -265,8 +259,7 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
 							     0, 0, 0);
 
   ostringstream single_scintillator_name;
-  single_scintillator_name.str("");
-  single_scintillator_name << "single_scintillator_type" << type << endl;
+  single_scintillator_name << "single_scintillator_type" << type;
 
   G4VSolid* solid_scintillator = new G4Box( G4String(single_scintillator_name.str().c_str()),
 				   _tower_dx / 2.0,
@@ -274,37 +267,26 @@ PHG4ForwardEcalDetector::ConstructTower( int type )
 				   _tower_dz / 2.0 );
 
   ostringstream hEcal_scintillator_plate_logic_name;
-  hEcal_scintillator_plate_logic_name.str("");
-  hEcal_scintillator_plate_logic_name << "hEcal_scintillator_plate_logic_type" << type << endl;
+  hEcal_scintillator_plate_logic_name << "hEcal_scintillator_plate_logic_type" << type;
 
   G4LogicalVolume *logic_scint = new G4LogicalVolume( solid_scintillator,
 						      material_scintillator,
-						      hEcal_scintillator_plate_logic_name.str().c_str(),
+						      hEcal_scintillator_plate_logic_name.str(),
 						      0, 0, 0);
 
-  G4VisAttributes *visattscint = new G4VisAttributes();
-  visattscint->SetVisibility(true);
-  visattscint->SetForceSolid(true);
-  visattscint->SetColour(G4Colour::Cyan());
-  logic_scint->SetVisAttributes(visattscint);
+  GetDisplayAction()->AddVolume(logic_scint,"Scintillator");
 
   /* place physical volumes for scintillator */
 
-  ostringstream name_scintillator;
-  name_scintillator.str("");
-  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator" << endl;
+  string name_scintillator = _towerlogicnameprefix + "_single_plate_scintillator";
 
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, 0.0),
 		     logic_scint,
-		     name_scintillator.str().c_str(),
+		     name_scintillator,
 		     single_tower_logic,
 		     0, 0, OverlapCheck());
 
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Cyan());
-  single_tower_logic->SetVisAttributes(visattchk);
+  GetDisplayAction()->AddVolume(single_tower_logic,"ScintillatorSingleTower");
 
   if ( Verbosity() > 0 )
     {
@@ -366,31 +348,22 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 						    "hEcal_scintillator_plate_logic2",
 						    0, 0, 0);
 
-  G4VisAttributes *visattscint = new G4VisAttributes();
-  visattscint->SetVisibility(true);
-  visattscint->SetForceSolid(true);
-  visattscint->SetColour(G4Colour::Cyan());
-  logic_absorber->SetVisAttributes(visattscint);
-  logic_scint->SetVisAttributes(visattscint);
+  GetDisplayAction()->AddVolume(logic_absorber,"Absorber");
+  GetDisplayAction()->AddVolume(logic_scint,"Scintillator");
 
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;
   G4double ypos_i = 0;
   G4double zpos_i = ( -1 * _tower2_dz / 2.0 ) + thickness_absorber / 2.0;
 
-  ostringstream name_absorber;
-  name_absorber.str("");
-  name_absorber << _towerlogicnameprefix << "_single_plate_absorber2" << endl;
-
-  ostringstream name_scintillator;
-  name_scintillator.str("");
-  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator2" << endl;
+  string name_absorber = _towerlogicnameprefix + "_single_plate_absorber2";
+  string name_scintillator = _towerlogicnameprefix + "_single_plate_scintillator2";
 
   for (int i = 1; i <= nlayers; i++)
     {
       new G4PVPlacement( 0, G4ThreeVector(xpos_i , ypos_i, zpos_i),
 			 logic_absorber,
-			 name_absorber.str().c_str(),
+			 name_absorber,
 			 single_tower_logic,
 			 0, 0, OverlapCheck());
 
@@ -398,7 +371,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 
       new G4PVPlacement( 0, G4ThreeVector(xpos_i , ypos_i, zpos_i),
 			 logic_scint,
-			 name_scintillator.str().c_str(),
+			 name_scintillator,
 			 single_tower_logic,
 			 0, 0, OverlapCheck());
 
@@ -406,11 +379,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
     }
 
 
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Cyan());
-  single_tower_logic->SetVisAttributes(visattchk);
+  GetDisplayAction()->AddVolume(single_tower_logic,"ScintillatorSingleTower");
 
   if ( Verbosity() > 0 )
     {
@@ -435,11 +404,10 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   G4Material* material_Sb = G4Material::GetMaterial( "G4_Sb" );
 	
   ostringstream name_e864_absorber;
-  name_e864_absorber.str("");
-  name_e864_absorber << "absorber_e864_" << type << endl; 
+  name_e864_absorber << "absorber_e864_" << type;
 
   G4double density_e864 = (0.99*11.34 + 0.01*6.697)*g/cm3;
-  G4Material* absorber_e864 = new G4Material(name_e864_absorber.str().c_str(), density_e864, 2);
+  G4Material* absorber_e864 = new G4Material(name_e864_absorber.str(), density_e864, 2);
   absorber_e864->AddMaterial(material_Pb, 0.99);
   absorber_e864->AddMaterial(material_Sb, 0.01);
 
@@ -492,12 +460,11 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
                                        tower_dz / 2.0 );
 
   ostringstream name_single_tower_logic;
-  name_single_tower_logic.str("");
-  name_single_tower_logic << "single_tower_logic" << type << endl; 
+  name_single_tower_logic << "single_tower_logic" << type; 
 
   G4LogicalVolume *single_tower_logic = new G4LogicalVolume( single_tower_solid,
   							     material_air,
-  							     name_single_tower_logic.str().c_str(),
+  							     name_single_tower_logic.str(),
   							     0, 0, 0);
 
   // Now the absorber and then the fibers:
@@ -534,12 +501,8 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 						    fiberLogicName,
 						    0, 0, 0);
 
-  G4VisAttributes *visattscint = new G4VisAttributes();
-  visattscint->SetVisibility(true);
-  visattscint->SetForceSolid(true);
-  visattscint->SetColour(G4Colour::Cyan());
-  single_absorber_logic->SetVisAttributes(visattscint);
-  single_scintillator_logic->SetVisAttributes(visattscint);
+  GetDisplayAction()->AddVolume(single_absorber_logic,"Absorber");
+  GetDisplayAction()->AddVolume(single_scintillator_logic,"Fiber");
 
   // place array of fibers inside absorber
   
@@ -549,15 +512,14 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   G4double zpos_i = 0.0;
 
   ostringstream name_scintillator;
-  name_scintillator.str("");
-  name_scintillator << _towerlogicnameprefix << "_single_fiber_scintillator" << type << endl; 
+  name_scintillator << _towerlogicnameprefix << "_single_fiber_scintillator" << type; 
 
   for (int i = 0; i < num_fibers_x; i++){
     for (int j = 0; j < num_fibers_y; j++){
 
 	new G4PVPlacement( 0, G4ThreeVector(xpos_i + i*fiber_unit_cell, ypos_i + j*fiber_unit_cell, zpos_i),
 			   single_scintillator_logic,
-			   name_scintillator.str().c_str(),
+			   name_scintillator.str(),
 			   single_absorber_logic,
 			   0, 0, OverlapCheck());
 
@@ -567,20 +529,14 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   // Place the absorber inside the envelope
 
   ostringstream name_absorber;
-  name_absorber.str("");
-  name_absorber << _towerlogicnameprefix << "_single_absorber" << type << endl;
+  name_absorber << _towerlogicnameprefix << "_single_absorber" << type;
 
   new G4PVPlacement( 0, G4ThreeVector(0.0, 0.0, 0.0),
   		     single_absorber_logic,
   		     name_absorber.str().c_str(),
   		     single_tower_logic,
   		     0, 0, OverlapCheck());
-
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Cyan());
-  single_tower_logic->SetVisAttributes(visattchk);
+  GetDisplayAction()->AddVolume(single_tower_logic,"ScintillatorSingleTower");
 
   if ( Verbosity() > 0 )
     {
@@ -693,7 +649,6 @@ PHG4ForwardEcalDetector::ParseParametersFromTable()
 	  /* Construct unique name for tower */
 	  /* Mapping file uses cm, this class uses mm for length */
 	  ostringstream towername;
-	  towername.str("");
 	  towername << _towerlogicnameprefix << "_t_" << type << "_j_" << idx_j << "_k_" << idx_k;
 
 	  /* Add Geant4 units */

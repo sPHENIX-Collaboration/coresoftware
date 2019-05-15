@@ -1,4 +1,5 @@
 #include "PHG4EICForwardEcalDetector.h"
+#include "PHG4ForwardEcalDisplayAction.h"
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
 
@@ -23,9 +24,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Trd.hh>
 
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
-
 #include <cmath>
 #include <sstream>
 
@@ -38,8 +36,8 @@ using namespace std;
 
 
 //_______________________________________________________________________
-PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam ):
-  PHG4ForwardEcalDetector(Node, dnam),
+PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector( PHG4ForwardEcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam ):
+  PHG4ForwardEcalDetector(subsys,Node, dnam),
   _tower_dx(30*mm),
   _tower_dy(30*mm),
   _tower_dz(170.0*mm),
@@ -86,11 +84,7 @@ PHG4EICForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
   G4LogicalVolume* ecal_envelope_log =  new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
   /* Define visualization attributes for envelope cone */
-  G4VisAttributes* ecalVisAtt = new G4VisAttributes();
-  ecalVisAtt->SetVisibility(false);
-  ecalVisAtt->SetForceSolid(false);
-  ecalVisAtt->SetColour(G4Colour::Magenta());
-  ecal_envelope_log->SetVisAttributes(ecalVisAtt);
+  GetDisplayAction()->AddVolume(ecal_envelope_log,"Envelope");
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
@@ -173,12 +167,8 @@ PHG4EICForwardEcalDetector::ConstructTower()
 						    "hEcal_scintillator_plate_logic",
 						    0, 0, 0);
 
-  G4VisAttributes *visattscint = new G4VisAttributes();
-  visattscint->SetVisibility(true);
-  visattscint->SetForceSolid(true);
-  visattscint->SetColour(G4Colour::Cyan());
-  logic_absorber->SetVisAttributes(visattscint);
-  logic_scint->SetVisAttributes(visattscint);
+  GetDisplayAction()->AddVolume(logic_absorber,"Absorber");
+  GetDisplayAction()->AddVolume(logic_scint,"Scintillator");
 
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;
@@ -213,11 +203,7 @@ PHG4EICForwardEcalDetector::ConstructTower()
     }
 
 
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Cyan());
-  single_tower_logic->SetVisAttributes(visattchk);
+  GetDisplayAction()->AddVolume(single_tower_logic,"ScintillatorSingleTower");
 
   if ( Verbosity() > 0 )
     {

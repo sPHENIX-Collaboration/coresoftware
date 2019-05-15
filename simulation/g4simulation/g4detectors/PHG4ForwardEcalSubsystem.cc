@@ -1,5 +1,6 @@
 #include "PHG4ForwardEcalSubsystem.h"
 #include "PHG4ForwardEcalDetector.h"
+#include "PHG4ForwardEcalDisplayAction.h"
 #include "PHG4EICForwardEcalDetector.h"
 #include "PHG4ForwardEcalSteppingAction.h"
 
@@ -20,6 +21,7 @@ PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem( const std::string &name, con
   PHG4Subsystem( name ),
   detector_( 0 ),
   steppingAction_( nullptr ),
+  m_DisplayAction(nullptr),
   active(1),
   absorber_active(0),
   blackhole(0),
@@ -30,6 +32,11 @@ PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem( const std::string &name, con
 
 }
 
+//_______________________________________________________________________
+PHG4ForwardEcalSubsystem::~PHG4ForwardEcalSubsystem()
+{
+  delete m_DisplayAction;
+}
 
 //_______________________________________________________________________
 int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
@@ -37,11 +44,13 @@ int PHG4ForwardEcalSubsystem::Init( PHCompositeNode* topNode )
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4ForwardEcalDisplayAction(Name());
   // create detector
   if(EICDetector)
-    detector_ = new PHG4EICForwardEcalDetector(topNode, Name());
+    detector_ = new PHG4EICForwardEcalDetector(this, topNode, Name());
   else
-    detector_ = new PHG4ForwardEcalDetector(topNode, Name());
+    detector_ = new PHG4ForwardEcalDetector(this, topNode, Name());
 
   detector_->SetActive(active);
   detector_->SetAbsorberActive(absorber_active);
