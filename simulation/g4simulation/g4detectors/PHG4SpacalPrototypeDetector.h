@@ -9,7 +9,6 @@
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
-//#include <Geant4/G4Region.hh>
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4Transform3D.hh>
 
