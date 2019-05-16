@@ -131,6 +131,8 @@ PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume * volume) const
 void
 PHG4ForwardEcalDetector::Construct( G4LogicalVolume* logicWorld )
 {
+
+
   //if ( Verbosity() > 0 )
     {
       cout << "PHG4ForwardEcalDetector: Begin Construction" << endl;
@@ -389,19 +391,6 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
       cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type ..." << type << endl;
     }
 
-  // E864 Pb-Scifi calorimeter
-  // E864 Calorimeter is 99% Pb, 1% Antimony
-
-  G4Material* material_Pb = G4Material::GetMaterial( "G4_Pb" );
-  G4Material* material_Sb = G4Material::GetMaterial( "G4_Sb" );
-	
-  ostringstream name_e864_absorber;
-  name_e864_absorber << "absorber_e864_" << type;
-
-  G4double density_e864 = (0.99*11.34 + 0.01*6.697)*g/cm3;
-  G4Material* absorber_e864 = new G4Material(name_e864_absorber.str(), density_e864, 2);
-  absorber_e864->AddMaterial(material_Pb, 0.99);
-  absorber_e864->AddMaterial(material_Sb, 0.01);
 
   double tower_dx, tower_dy, tower_dz;
   int num_fibers_x, num_fibers_y; 
@@ -470,8 +459,11 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 
   G4String absorberLogicName = "single_absorber_logic"; 
   absorberLogicName += type; 
+  // E864 Pb-Scifi calorimeter
+  // E864 Calorimeter is 99% Pb, 1% Antimony
   G4LogicalVolume *single_absorber_logic = new G4LogicalVolume( single_absorber_solid,
-						      absorber_e864,
+								G4Material::GetMaterial( "E864_Absorber"),
+
 						      absorberLogicName,
 						      0, 0, 0);
 
