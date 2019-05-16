@@ -331,6 +331,7 @@ libg4detectors_la_SOURCES = \
   ePHENIXRICHConstruction.cc \
   PHG4SectorConstructor.cc \
   PHG4SectorDetector.cc \
+  PHG4SectorDisplayAction.cc \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
   PHG4StepStatusDecode.cc \
