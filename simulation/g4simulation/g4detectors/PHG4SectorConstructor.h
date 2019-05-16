@@ -1,4 +1,5 @@
-// $Id: PHG4SectorConstructor.h,v 1.3 2014/05/01 19:03:26 phnxbld Exp $
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file PHG4SectorConstructor.h
@@ -8,8 +9,8 @@
  * \date $Date: 2014/05/01 19:03:26 $
  */
 
-#ifndef PHG4SectorConstructor_H_
-#define PHG4SectorConstructor_H_
+#ifndef G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
+#define G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 
 
 #ifndef __CINT__
@@ -19,16 +20,18 @@
 #include <Geant4/G4VUserDetectorConstruction.hh>
 #include <Geant4/G4String.hh>
 
+#endif // #ifndef __CINT__
+
 class G4VPhysicalVolume;
 class G4LogicalVolume;
 class G4PVPlacement;
 class G4VSolid;
-class G4VisAttributes;
+class PHG4SectorDisplayAction;
+class PHG4SectorSubsystem;
 
 #include <map>
 #include <utility>
 
-#endif // #ifndef __CINT__
 #include <cmath>
 #include <cassert>
 #include <string>
@@ -369,7 +372,7 @@ namespace PHG4Sector
   class PHG4SectorConstructor
   {
   public:
-    PHG4SectorConstructor(const std::string &name);
+    PHG4SectorConstructor(const std::string &name, PHG4SectorSubsystem *subsys);
     virtual
     ~PHG4SectorConstructor();
 
@@ -401,7 +404,9 @@ namespace PHG4Sector
 
     Sector_Geometry geom;
 
-    G4VisAttributes * DetectorVisAtt;
+  private:
+
+    PHG4SectorDisplayAction *m_DisplayAction;
 
   protected:
 

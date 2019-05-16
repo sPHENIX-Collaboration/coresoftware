@@ -7,6 +7,8 @@
  */
 
 #include "PHG4SectorConstructor.h"
+#include "PHG4SectorDisplayAction.h"
+#include "PHG4SectorSubsystem.h"
 
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4MaterialTable.hh>
@@ -19,8 +21,6 @@
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4SDManager.hh>
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4Ellipsoid.hh>
 #include <Geant4/G4Sphere.hh>
@@ -40,11 +40,9 @@
 using namespace PHG4Sector;
 using namespace std;
 
-PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name) :
-    name_base(name), DetectorVisAtt(NULL)
+PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4SectorSubsystem *subsys) :
+  overlapcheck_sector(false), name_base(name), m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction*>(subsys->GetDisplayAction()))
 {
-  // TODO Auto-generated constructor stub
-  overlapcheck_sector = false;
 }
 
 PHG4SectorConstructor::~PHG4SectorConstructor()
@@ -233,17 +231,7 @@ PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume* WorldLog)
           __FILE__, FatalException, s.str().c_str());
     }
 
-  //optinoal VIS settings
-  if (!DetectorVisAtt)
-    {
-      DetectorVisAtt = new G4VisAttributes(G4Colour::White());
-//      DetectorVisAtt->SetForceWireframe(false);
-      DetectorVisAtt->SetForceWireframe(true);
-      DetectorVisAtt->SetForceLineSegmentsPerCircle(50);
-//      DetectorVisAtt->SetForceSolid(true);
-      DetectorLog_Det->SetVisAttributes(DetectorVisAtt);
-    }
-
+  m_DisplayAction->AddVolume(DetectorLog_Det,"DetectorBox");
   G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
       << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
       << G4endl;

@@ -19,9 +19,9 @@ using namespace std;
 PHG4SectorSteppingAction::PHG4SectorSteppingAction(PHG4SectorDetector* detector) :
   PHG4SteppingAction(detector->GetName()),
   detector_(detector),
-  hits_(NULL),
-  hit(NULL),
-  saveshower(NULL),
+  hits_(nullptr),
+  hit(nullptr),
+  saveshower(nullptr),
   layer_id(-1)
 {}
 
@@ -29,7 +29,7 @@ PHG4SectorSteppingAction::~PHG4SectorSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -138,7 +138,10 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
       // (not sure if this will ever be the case)
       // aTrack->GetTrackStatus() == fStopAndKill: track ends
-      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+      if (postPoint->GetStepStatus() == fGeomBoundary ||
+          postPoint->GetStepStatus() == fWorldBoundary ||
+          postPoint->GetStepStatus() == fAtRestDoItProc ||
+          aTrack->GetTrackStatus() == fStopAndKill)
 	{
           // save only hits with energy deposit (or -1 for geantino)
 	  if (hit->get_edep())
@@ -150,7 +153,7 @@ PHG4SectorSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {

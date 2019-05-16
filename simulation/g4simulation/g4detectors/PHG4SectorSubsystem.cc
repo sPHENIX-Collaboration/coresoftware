@@ -1,9 +1,10 @@
 #include "PHG4SectorSubsystem.h"
 #include "PHG4SectorDetector.h"
-#include "PHG4EventActionClearZeroEdep.h"
+#include "PHG4SectorDisplayAction.h"
 #include "PHG4SectorSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
+
 #include <phool/getClass.h>
 
 #include <Geant4/globals.hh>
@@ -14,10 +15,16 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4SectorSubsystem::PHG4SectorSubsystem(const std::string &name) :
-    PHG4Subsystem(name), detector_(0), steppingAction_(NULL), eventAction_(
-        NULL), superdetector("NONE")
+  PHG4Subsystem(name), m_Detector(nullptr), m_SteppingAction(nullptr), m_DisplayAction(nullptr),
+  superdetector("NONE")
 {
 
+}
+
+//_______________________________________________________________________
+PHG4SectorSubsystem::~PHG4SectorSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -28,11 +35,13 @@ PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst(
       "PHCompositeNode", "DST"));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4SectorDisplayAction(Name());
   // create detector
-  detector_ = new PHG4SectorDetector(topNode, Name());
-  detector_->geom = geom;
-  detector_->SuperDetector(superdetector);
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4SectorDetector(this, topNode, Name());
+  m_Detector->geom = geom;
+  m_Detector->SuperDetector(superdetector);
+  m_Detector->OverlapCheck(CheckOverlap());
 
   if (geom.GetNumActiveLayers())
     {
@@ -51,14 +60,12 @@ PHG4SectorSubsystem::Init(PHCompositeNode* topNode)
       if (!block_hits)
         {
 
-          dstNode->addNode(new PHIODataNode<PHObject>(block_hits =
-						      new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject"));
+          dstNode->addNode(new PHIODataNode<PHObject>(new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
 
         }
       // create stepping action
-      steppingAction_ = new PHG4SectorSteppingAction(detector_);
+      m_SteppingAction = new PHG4SectorSteppingAction(m_Detector);
 
-      eventAction_ = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
     }
   return 0;
 
@@ -70,9 +77,9 @@ PHG4SectorSubsystem::process_event(PHCompositeNode* topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
     {
-      steppingAction_->SetInterfacePointers(topNode);
+      m_SteppingAction->SetInterfacePointers(topNode);
     }
   return 0;
 }
@@ -81,14 +88,6 @@ PHG4SectorSubsystem::process_event(PHCompositeNode* topNode)
 PHG4Detector*
 PHG4SectorSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
-
-//_______________________________________________________________________
-PHG4SteppingAction*
-PHG4SectorSubsystem::GetSteppingAction(void) const
-{
-  return steppingAction_;
-}
-
 

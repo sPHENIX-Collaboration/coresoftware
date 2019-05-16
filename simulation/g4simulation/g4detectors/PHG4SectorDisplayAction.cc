@@ -46,23 +46,11 @@ void PHG4SectorDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       PHG4Utils::SetColour(visatt, it.first->GetMaterial()->GetName());
     }
-    else if (it.second == "Envelope")
+    else if (it.second == "DetectorBox")
     {
-      visatt->SetColour(G4Colour::Magenta());
-      visatt->SetVisibility(false);
-      visatt->SetForceSolid(false);
-    }
-    else if (it.second == "Fiber")
-    {
-      visatt->SetColour(G4Colour::Cyan());
-    }
-    else if (it.second == "Scintillator")
-    {
-      visatt->SetColour(G4Colour::Cyan());
-    }
-    else if (it.second == "ScintillatorSingleTower")
-    {
-      visatt->SetColour(G4Colour::Cyan());
+      visatt->SetColour(G4Colour::White());
+      visatt->SetForceWireframe(true);
+      visatt->SetForceLineSegmentsPerCircle(50);
     }
     else
     {
