@@ -13,9 +13,6 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 
-#include <Geant4/G4Colour.hh>
-#include <Geant4/G4VisAttributes.hh>
-
 #include <cassert>
 #include <sstream>
 
@@ -44,12 +41,6 @@ bool PHG4SectorDetector::IsInSectorActive(G4VPhysicalVolume *volume)
     }
   }
 
-  return false;
-}
-
-//_______________________________________________________________
-bool PHG4SectorDetector::IsInSectorInactive(G4VPhysicalVolume *volume)
-{
   return false;
 }
 

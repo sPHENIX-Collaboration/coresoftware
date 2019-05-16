@@ -28,7 +28,6 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
   //!@name volume accessors
   //@{
   bool IsInSectorActive(G4VPhysicalVolume *);
-  bool IsInSectorInactive(G4VPhysicalVolume *);
   //@}
 
   void SuperDetector(const std::string &name) { superdetector = name; }

@@ -11,26 +11,12 @@
 #include "PHG4SectorSubsystem.h"
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Cons.hh>
-#include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4Element.hh>
-#include <Geant4/G4ElementTable.hh>
-#include <Geant4/G4Ellipsoid.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialTable.hh>
-#include <Geant4/G4NistManager.hh>
-#include <Geant4/G4Orb.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4ProductionCuts.hh>
-#include <Geant4/G4SDManager.hh>
 #include <Geant4/G4Sphere.hh>
-#include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4UnionSolid.hh>
 
 #include <cassert>
 #include <cmath>
@@ -45,11 +31,6 @@ PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Sector
   , name_base(name)
   , m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction *>(subsys->GetDisplayAction()))
 {
-}
-
-PHG4SectorConstructor::~PHG4SectorConstructor()
-{
-  // TODO Auto-generated destructor stub
 }
 
 void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
@@ -482,22 +463,6 @@ void Sector_Geometry::AddLayers_AeroGel_ePHENIX(const double radiator_length,
 {
   if (radiator == "Default")
   {
-    // LHCb aerogel
-    G4NistManager *nist = G4NistManager::Instance();
-
-    double density = 2.200 * g / cm3;
-    G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
-                                                   density, 2);
-    SiO2AerogelQuartz->AddElement(nist->FindOrBuildElement("Si"), 1);
-    SiO2AerogelQuartz->AddElement(nist->FindOrBuildElement("O"), 2);
-
-    density = 0.200 * g / cm3;
-    G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", density, 1);
-    AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
-                            100.0 * perCent);
-    //      AerogTypeA->AddMaterial(G4Material::GetMaterial("G4_WATER"),
-    //          3.0 * perCent);
-
     radiator = "ePHENIX_AeroGel";
   }
 

@@ -15,7 +15,6 @@
 #ifndef __CINT__
 
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4VUserDetectorConstruction.hh>
 
@@ -366,7 +365,7 @@ class PHG4SectorConstructor
 {
  public:
   PHG4SectorConstructor(const std::string &name, PHG4SectorSubsystem *subsys);
-  virtual ~PHG4SectorConstructor();
+  virtual ~PHG4SectorConstructor(){}
 
   void
   Construct_Sectors(G4LogicalVolume *WorldLog);

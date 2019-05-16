@@ -979,6 +979,18 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   G4Material *sPHENIX_tpc_gas = new G4Material("sPHENIX_TPC_Gas", den_sphenix_tpc_gas, ncomponents = 2, kStateGas);
   sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
   sPHENIX_tpc_gas->AddMaterial(G4Material::GetMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
+
+    // LHCb aerogel
+//    double density = 2.200 * g / cm3;
+    G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
+                                                   2.200 * g / cm3, 2);
+        SiO2AerogelQuartz->AddElement(G4Element::GetElement("Si"), 1);
+    SiO2AerogelQuartz->AddElement(G4Element::GetElement("O"), 2);
+
+    G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
+    AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
+                            100.0 * perCent);
+
   //
   // CF4
   //
