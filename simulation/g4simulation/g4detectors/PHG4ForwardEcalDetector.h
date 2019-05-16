@@ -1,9 +1,9 @@
-#ifndef PHG4ForwardEcalDetector_h
-#define PHG4ForwardEcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FORWARDECALDETECTOR_H
+#define G4DETECTORS_PHG4FORWARDECALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
-
-#include <Geant4/G4Types.hh>
 
 #include <map>
 #include <string>

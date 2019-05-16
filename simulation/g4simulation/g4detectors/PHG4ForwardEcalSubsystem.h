@@ -37,7 +37,7 @@ class PHG4ForwardEcalSubsystem : public PHG4Subsystem
   /** Accessors (reimplemented)
    */
   PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const;
+  PHG4SteppingAction* GetSteppingAction(void) const {return steppingAction_;}
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
@@ -62,7 +62,7 @@ class PHG4ForwardEcalSubsystem : public PHG4Subsystem
 
   /** Stepping action
    */
-  PHG4ForwardEcalSteppingAction* steppingAction_;
+  PHG4SteppingAction *steppingAction_;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */

@@ -110,9 +110,3 @@ PHG4Detector* PHG4ForwardEcalSubsystem::GetDetector(void) const
 {
   return detector_;
 }
-
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4ForwardEcalSubsystem::GetSteppingAction(void) const
-{
-  return steppingAction_;
-}
