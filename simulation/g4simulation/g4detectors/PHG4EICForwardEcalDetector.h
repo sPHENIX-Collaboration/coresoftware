@@ -3,19 +3,19 @@
 #ifndef G4DETECTORS_PHG4EICFORWARDECALDETECTOR_H
 #define G4DETECTORS_PHG4EICFORWARDECALDETECTOR_H
 
-#include <g4main/PHG4Detector.h>
 #include <PHG4ForwardEcalDetector.h>
+#include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4RotationMatrix.hh>
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>
+#include <Geant4/globals.hh>
 
-#include <string>
 #include <map>
-#include <vector>
 #include <set>
+#include <string>
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -29,42 +29,41 @@ class PHG4ForwardEcalSubsystem;
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
-class PHG4EICForwardEcalDetector: public PHG4ForwardEcalDetector
+class PHG4EICForwardEcalDetector : public PHG4ForwardEcalDetector
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4EICForwardEcalDetector( PHG4ForwardEcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4EICForwardEcalDetector(PHG4ForwardEcalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam = "BLOCK");
 
   //! destructor
   virtual ~PHG4EICForwardEcalDetector();
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void Construct(G4LogicalVolume* world);
 
-  virtual void SetTowerDimensions(G4double dx, G4double dy, G4double dz) {
-  _tower_dx = dx;
-  _tower_dy = dy;
-  _tower_dz = dz;
+  virtual void SetTowerDimensions(G4double dx, G4double dy, G4double dz)
+  {
+    _tower_dx = dx;
+    _tower_dy = dy;
+    _tower_dz = dz;
   }
 
-  void SetMaterialScintillator( G4String material ) { _materialScintillator = material; }
-  void SetMaterialAbsorber( G4String material ) { _materialAbsorber = material; }
+  void SetMaterialScintillator(G4String material) { _materialScintillator = material; }
+  void SetMaterialAbsorber(G4String material) { _materialAbsorber = material; }
 
-private:
-
+ private:
   G4LogicalVolume* ConstructTower();
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
+  int PlaceTower(G4LogicalVolume* envelope, G4LogicalVolume* tower);
   int ParseParametersFromTable();
 
-  struct towerposition {
+  struct towerposition
+  {
     G4double x;
     G4double y;
     G4double z;
-  } ;
+  };
 
-  std::map< std::string, towerposition > _map_tower;
+  std::map<std::string, towerposition> _map_tower;
 
   /* ECAL tower geometry */
   G4double _tower_dx;
@@ -73,7 +72,6 @@ private:
 
   G4String _materialScintillator;
   G4String _materialAbsorber;
-
 };
 
 #endif
