@@ -3,7 +3,6 @@
 #ifndef G4DETECTORS_PHG4SECTORSUBSYSTEM_H
 #define G4DETECTORS_PHG4SECTORSUBSYSTEM_H
 
-
 #include "PHG4SectorConstructor.h"
 
 #include <g4main/PHG4Subsystem.h>
@@ -14,11 +13,9 @@ class PHG4SectorSteppingAction;
 
 class PHG4SectorSubsystem : public PHG4Subsystem
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4SectorSubsystem(const std::string &name = "Sector");
+  PHG4SectorSubsystem(const std::string& name = "Sector");
 
   //! destructor
   virtual ~PHG4SectorSubsystem();
@@ -29,32 +26,30 @@ public:
    reates the stepping action and place it on the node tree, under "ACTIONS" node
    creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
-  int
-  Init(PHCompositeNode *);
+  int Init(PHCompositeNode*);
 
   //! event processing
   /*!
    get all relevant nodes from top nodes (namely hit list)
    and pass that to the stepping action
    */
-  int
-  process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode*);
 
   //! accessors (reimplemented)
   virtual PHG4Detector*
   GetDetector(void) const;
-  virtual PHG4SteppingAction* GetSteppingAction(void) const {return m_SteppingAction;}
+  virtual PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
   void
-  SuperDetector(const std::string &name)
+  SuperDetector(const std::string& name)
   {
     superdetector = name;
   }
 
   //! geometry manager PHG4Sector::Sector_Geometry
-  PHG4Sector::Sector_Geometry &
+  PHG4Sector::Sector_Geometry&
   get_geometry()
   {
     return geom;
@@ -62,13 +57,12 @@ public:
 
   //! geometry manager PHG4Sector::Sector_Geometry
   void
-  set_geometry(const PHG4Sector::Sector_Geometry &g)
+  set_geometry(const PHG4Sector::Sector_Geometry& g)
   {
     geom = g;
   }
 
-private:
-
+ private:
   //! detector geometry
   /*! defives from PHG4Detector */
   PHG4SectorDetector* m_Detector;
