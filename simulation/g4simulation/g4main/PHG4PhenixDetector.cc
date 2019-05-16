@@ -1,6 +1,8 @@
 #include "PHG4PhenixDetector.h"
+#include "PHG4PhenixDisplayAction.h"
 #include "PHG4Detector.h"
 #include "PHG4RegionInformation.h"
+#include "PHG4Reco.h"
 
 #include <phool/recoConsts.h>
 
@@ -16,7 +18,6 @@
 #include <Geant4/G4SolidStore.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <boost/foreach.hpp>
 
@@ -26,7 +27,8 @@
 using namespace std;
 
 //____________________________________________________________________________
-PHG4PhenixDetector::PHG4PhenixDetector( void ):
+PHG4PhenixDetector::PHG4PhenixDetector(PHG4Reco *subsys ):
+  m_DisplayAction(dynamic_cast<PHG4PhenixDisplayAction *>(subsys->GetDisplayAction())),
   m_Verbosity(0),
   defaultMaterial( nullptr ),
   logicWorld( nullptr ),
@@ -82,7 +84,7 @@ G4VPhysicalVolume* PHG4PhenixDetector::Construct()
     }
   rc->set_CharFlag("WorldShape",solidWorld->GetEntityType()); // needed for checks if a particle is inside or outside of our world
   logicWorld = new G4LogicalVolume(solidWorld, G4Material::GetMaterial(worldmaterial),"World");
-  logicWorld->SetVisAttributes(G4VisAttributes::Invisible);
+  m_DisplayAction->AddVolume(logicWorld,"World");
   physiWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0 );
 
   G4Region* defaultRegion = (*(G4RegionStore::GetInstance()))[0];

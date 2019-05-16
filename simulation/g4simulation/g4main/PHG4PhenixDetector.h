@@ -5,12 +5,15 @@
 
 #include <Geant4/G4VUserDetectorConstruction.hh>
 #include <Geant4/globals.hh>
+
 #include <list>
 
-class PHG4Detector;
-class G4Material;
 class G4LogicalVolume;
+class G4Material;
 class G4VPhysicalVolume;
+class PHG4Detector;
+class PHG4PhenixDisplayAction;
+class PHG4Reco;
 
 //! this is the main detector construction class, passed to geant to construct the entire phenix detector
 class PHG4PhenixDetector: public G4VUserDetectorConstruction
@@ -19,7 +22,7 @@ class PHG4PhenixDetector: public G4VUserDetectorConstruction
   public:
 
   //! constructor
-  PHG4PhenixDetector();
+  PHG4PhenixDetector(PHG4Reco *subsys);
 
   //! destructor
   virtual ~PHG4PhenixDetector();
@@ -48,6 +51,9 @@ class PHG4PhenixDetector: public G4VUserDetectorConstruction
   G4VPhysicalVolume* GetPhysicalVolume(void) {return physiWorld;}
 
   private:
+
+  PHG4PhenixDisplayAction *m_DisplayAction;
+
   int m_Verbosity;
   
   //! list of detectors to be constructed

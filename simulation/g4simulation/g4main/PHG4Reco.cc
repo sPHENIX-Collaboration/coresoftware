@@ -4,6 +4,7 @@
 #include "PHG4InEvent.h"
 #include "PHG4DisplayAction.h"
 #include "PHG4PhenixDetector.h"
+#include "PHG4PhenixDisplayAction.h"
 #include "PHG4PhenixEventAction.h"
 #include "PHG4PhenixSteppingAction.h"
 #include "PHG4PhenixTrackingAction.h"
@@ -38,7 +39,6 @@
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4RunManager.hh>
-
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpenGLImmediateX.hh>
@@ -124,6 +124,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , eventAction_(nullptr)
   , steppingAction_(nullptr)
   , trackingAction_(nullptr)
+  , m_DisplayAction(nullptr)
   , generatorAction_(nullptr)
   , visManager(nullptr)
   , _eta_coverage(1.0)
@@ -164,6 +165,7 @@ PHG4Reco::~PHG4Reco(void)
     delete subsystems_.back();
     subsystems_.pop_back();
   }
+  delete m_DisplayAction;
 }
 
 //_________________________________________________________________
@@ -337,8 +339,10 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // create phenix detector, add subsystems, and register to GEANT
+  // create display settings before detector
+  m_DisplayAction = new PHG4PhenixDisplayAction(Name());
   if (Verbosity() > 1) cout << "PHG4Reco::Init - create detector" << endl;
-  detector_ = new PHG4PhenixDetector();
+  detector_ = new PHG4PhenixDetector(this);
   detector_->Verbosity(Verbosity());
   detector_->SetWorldSizeX(WorldSize[0] * cm);
   detector_->SetWorldSizeY(WorldSize[1] * cm);
@@ -870,6 +874,14 @@ void PHG4Reco::DefineMaterials()
   Al6061T6->AddElement(G4Element::GetElement("Si"), 0.008);
   Al6061T6->AddElement(G4Element::GetElement("Mg"), 0.01);
   Al6061T6->AddElement(G4Element::GetElement("Fe"), 0.007);
+
+  // E864 Pb-Scifi calorimeter
+  // E864 Calorimeter is 99% Pb, 1% Antimony
+  //Nuclear Instruments and Methods in Physics Research A 406 (1998) 227–258
+  G4double density_e864 = (0.99*11.34 + 0.01*6.697)*g/cm3;
+  G4Material* absorber_e864 = new G4Material("E864_Absorber", density_e864, 2);
+  absorber_e864->AddMaterial(G4Material::GetMaterial( "G4_Pb" ), 0.99);
+  absorber_e864->AddMaterial(G4Material::GetMaterial( "G4_Sb" ), 0.01);
 
   G4Material *FPC = new G4Material("FPC", 1.542 * g / cm3, 2);
   FPC->AddMaterial(G4Material::GetMaterial("G4_Cu"), 0.0162);
@@ -1411,6 +1423,7 @@ void PHG4Reco::ApplyDisplayAction()
     return;
   }
   G4VPhysicalVolume* physworld = detector_->GetPhysicalVolume();
+  m_DisplayAction->ApplyDisplayAction(physworld);
   BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_) //for (PHG4Subsystem g4sub: subsystems_)
   {
     PHG4DisplayAction *action = g4sub->GetDisplayAction();

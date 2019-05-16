@@ -176,6 +176,7 @@ libg4testbench_la_SOURCES = \
   PHG4ParticleGeneratorD0.cc \
   PHG4ParticleGun.cc \
   PHG4PhenixDetector.cc \
+  PHG4PhenixDisplayAction.cc \
   PHG4PhenixEventAction.cc \
   PHG4PhenixSteppingAction.cc \
   PHG4PhenixTrackingAction.cc \
