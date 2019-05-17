@@ -9,14 +9,12 @@ class PHG4DisplayAction;
 class PHG4ForwardHcalDetector;
 class PHG4SteppingAction;
 
-class PHG4ForwardHcalSubsystem: public PHG4Subsystem
+class PHG4ForwardHcalSubsystem : public PHG4Subsystem
 {
-
-public:
-
+ public:
   /** Constructor
    */
-  PHG4ForwardHcalSubsystem( const std::string &name = "FORWARD_HCAL_DEFAULT", const int layer = 0 );
+  PHG4ForwardHcalSubsystem(const std::string &name = "FORWARD_HCAL_DEFAULT", const int layer = 0);
 
   /** Destructor
    */
@@ -35,26 +33,25 @@ public:
 
   /** Accessors (reimplemented)
    */
-  PHG4Detector* GetDetector() const;
-  PHG4SteppingAction* GetSteppingAction() const {return m_SteppingAction;}
-  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  PHG4Detector *GetDetector() const;
+  PHG4SteppingAction *GetSteppingAction() const { return m_SteppingAction; }
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
   /** Set mapping file for calorimeter towers
    */
-  void SetTowerMappingFile( const std::string &filename )
+  void SetTowerMappingFile(const std::string &filename)
   {
     mappingfile_ = filename;
   }
 
-  void SetActive(const int i = 1){active = i;}
-  void SetAbsorberActive(const int i = 1){absorber_active = i;}
-  void BlackHole(const int i=1){blackhole = i;}
+  void SetActive(const int i = 1) { active = i; }
+  void SetAbsorberActive(const int i = 1) { absorber_active = i; }
+  void BlackHole(const int i = 1) { blackhole = i; }
 
-private:
-
+ private:
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ForwardHcalDetector* m_Detector;
+  PHG4ForwardHcalDetector *m_Detector;
 
   /** Stepping action
    */
@@ -64,12 +61,11 @@ private:
   PHG4DisplayAction *m_DisplayAction;
 
   int active;
-  int absorber_active; 
-  int blackhole; 
+  int absorber_active;
+  int blackhole;
 
   std::string detector_type;
   std::string mappingfile_;
-
 };
 
 #endif

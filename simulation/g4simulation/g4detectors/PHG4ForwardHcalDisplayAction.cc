@@ -45,7 +45,6 @@ void PHG4ForwardHcalDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol
     if (it.second == "Absorber")
     {
       visatt->SetColour(G4Colour::Gray());
-
     }
     else if (it.second == "FHcalEnvelope")
     {
