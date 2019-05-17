@@ -72,7 +72,7 @@ class PHG4RICHSubsystem : public PHG4Subsystem
  private:
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4RICHDetector *detector_;
+  PHG4RICHDetector *m_Detector;
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction;

@@ -9,14 +9,11 @@
  */
 
 #include "ePHENIXRICHConstruction.h"
+#include "PHG4RICHDisplayAction.h"
+#include "PHG4RICHSubsystem.h"
 
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4Ellipsoid.hh>
 #include <Geant4/G4IntersectionSolid.hh>
-#include <Geant4/G4LogicalBorderSurface.hh>
 #include <Geant4/G4LogicalSkinSurface.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -25,9 +22,7 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Sphere.hh>
 #include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cassert>
 #include <cmath>
@@ -37,14 +32,17 @@
 using namespace std;
 using namespace ePHENIXRICH;
 
-ePHENIXRICHConstruction::ePHENIXRICHConstruction()
-  : overlapcheck_rich(false)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys)
+  : m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction*>(subsys->GetDisplayAction())),
+overlapcheck_rich(false)
 
 {
 }
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(const RICH_Geometry &g)
-  : geom(g)
-  , overlapcheck_rich(false)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys, const RICH_Geometry &g)
+  :  
+  geom(g),
+m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction*>(subsys->GetDisplayAction())),
+  overlapcheck_rich(false)
 {
 }
 
@@ -235,30 +233,14 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
   // photon detector - HBD
   G4LogicalVolume *RICHHBDLog = Construct_HBD(RICHSecLog);
 
-  //G4VisAttributes
-  G4VisAttributes *RICHSecTubeVisAtt = new G4VisAttributes(G4Colour::White());
-  RICHSecTubeVisAtt->SetForceWireframe(true);
-  RICHSecTubeVisAtt->SetForceLineSegmentsPerCircle(50);
-  //      RICHSecTubeVisAtt->SetForceSolid(true);
-  RICHSecLog->SetVisAttributes(RICHSecTubeVisAtt);
+  GetDisplayAction()->AddVolume(RICHSecLog,"Sector");
 
-  G4VisAttributes *RICHMirrorVisAtt = new G4VisAttributes(G4Colour::Green());
-  RICHMirrorVisAtt->SetForceWireframe(true);
-  RICHMirrorVisAtt->SetForceSolid(true);
-  RICHMirrorVisAtt->SetForceLineSegmentsPerCircle(50);
-  RICHMirrorLog->SetVisAttributes(RICHMirrorVisAtt);
+  GetDisplayAction()->AddVolume(RICHMirrorLog,"Mirror");
 
-  G4VisAttributes *RICHWindowVisAtt = new G4VisAttributes(G4Colour::Yellow());
-  RICHWindowVisAtt->SetForceWireframe(true);
-  RICHWindowVisAtt->SetForceSolid(true);
-  RICHWindowVisAtt->SetForceLineSegmentsPerCircle(50);
-  RICHBackWindowLog->SetVisAttributes(RICHWindowVisAtt);
-  RICHFrontWindowLog->SetVisAttributes(RICHWindowVisAtt);
+  GetDisplayAction()->AddVolume(RICHBackWindowLog,"Window");
+  GetDisplayAction()->AddVolume(RICHFrontWindowLog,"Window");
 
-  G4VisAttributes *RICHHBDVisAtt = new G4VisAttributes(G4Colour::Red());
-  RICHHBDVisAtt->SetForceWireframe(true);
-  RICHHBDVisAtt->SetForceSolid(true);
-  RICHHBDLog->SetVisAttributes(RICHHBDVisAtt);
+  GetDisplayAction()->AddVolume(RICHHBDLog,"HBD");
 
   G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
          << " logical volume constructed" << G4endl;

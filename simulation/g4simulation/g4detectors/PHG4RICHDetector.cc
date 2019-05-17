@@ -9,6 +9,7 @@
  */
 
 #include "PHG4RICHDetector.h"
+#include "PHG4RICHDisplayAction.h"
 #include "PHG4RICHSteppingAction.h"
 
 #include <Geant4/G4Box.hh>
@@ -20,26 +21,27 @@
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Types.hh>
 
-#include <map>
-#include <sstream>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
+
+#include <map>
+#include <sstream>
 
 using namespace std;
 using namespace ePHENIXRICH;
 
-PHG4RICHDetector::PHG4RICHDetector(PHCompositeNode *Node, const RICH_Geometry & g) :
+PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node, const RICH_Geometry & g) :
   PHG4Detector(Node),
-  ePHENIXRICHConstruction(g),
-  stepping_action(NULL),
-  _region(NULL)
+  ePHENIXRICHConstruction(subsys,g),
+  stepping_action(nullptr),
+  _region(nullptr)
 {}
 
-PHG4RICHDetector::PHG4RICHDetector(PHCompositeNode *Node) :
+PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node) :
   PHG4Detector(Node),
-  ePHENIXRICHConstruction(),
-  stepping_action(NULL),
-  _region(NULL)
+  ePHENIXRICHConstruction(subsys),
+  stepping_action(nullptr),
+  _region(nullptr)
 {}
 
 void

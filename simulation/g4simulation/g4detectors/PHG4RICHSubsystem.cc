@@ -14,6 +14,7 @@
 #include "PHG4RICHSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
+
 #include <phool/getClass.h>
 
 using namespace ePHENIXRICH;
@@ -22,7 +23,8 @@ using namespace std;
 //_______________________________________________________________________
 PHG4RICHSubsystem::PHG4RICHSubsystem(const string& name)
   : PHG4Subsystem(name)
-  , detector_(nullptr)
+  , m_Detector(nullptr)
+  , m_DisplayAction(nullptr)
 {
 }
 
@@ -41,13 +43,15 @@ int PHG4RICHSubsystem::Init(PHCompositeNode* topNode)
   {
     PHNodeIterator iter(topNode);
     PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
-    dstNode->addNode(new PHIODataNode<PHObject>(rich_hits = new PHG4HitContainer("G4HIT_RICH"), "G4HIT_RICH", "PHObject"));
+    dstNode->addNode(new PHIODataNode<PHObject>(new PHG4HitContainer("G4HIT_RICH"), "G4HIT_RICH", "PHObject"));
   }
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4RICHDisplayAction(Name());
   // create detector
-  detector_ = new PHG4RICHDetector(topNode, geom);
-  detector_->Verbosity(Verbosity());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4RICHDetector(this, topNode, geom);
+  m_Detector->Verbosity(Verbosity());
+  m_Detector->OverlapCheck(CheckOverlap());
 
   // create stepping action
 
@@ -57,7 +61,7 @@ int PHG4RICHSubsystem::Init(PHCompositeNode* topNode)
 //_______________________________________________________________________
 int PHG4RICHSubsystem::process_event(PHCompositeNode* topNode)
 {
-  if (PHG4RICHSteppingAction* p = dynamic_cast<PHG4RICHSteppingAction*>(detector_->GetSteppingAction()))
+  if (PHG4RICHSteppingAction* p = dynamic_cast<PHG4RICHSteppingAction*>(m_Detector->GetSteppingAction()))
     p->SetInterfacePointers(topNode);
 
   return 0;
@@ -66,5 +70,5 @@ int PHG4RICHSubsystem::process_event(PHCompositeNode* topNode)
 //_______________________________________________________________________
 PHG4Detector* PHG4RICHSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
 }
