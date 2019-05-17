@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4MAIN_PHG4RECO_H
 #define G4MAIN_PHG4RECO_H
 
@@ -10,20 +12,23 @@
 #include <list>
 
 // Forward declerations
-class PHCompositeNode;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
 class G4RunManager;
-class PHG4PrimaryGeneratorAction;
+class G4TBMagneticFieldSetup;
+class G4VModularPhysicsList;
+class G4VPhysicalVolume;
+class G4VUserPrimaryGeneratorAction;
+
+class PHCompositeNode;
+
+class PHG4DisplayAction;
+class PHG4EventGenerator;
 class PHG4PhenixDetector;
 class PHG4PhenixEventAction;
 class PHG4PhenixSteppingAction;
 class PHG4PhenixTrackingAction;
+class PHG4PrimaryGeneratorAction;
 class PHG4Subsystem;
-class PHG4EventGenerator;
-class G4VModularPhysicsList;
-class G4TBMagneticFieldSetup;
-class G4VUserPrimaryGeneratorAction;
 class PHG4UIsession;
 
 // for the G4 cmd interface and the graphics
@@ -121,19 +126,19 @@ class PHG4Reco : public SubsysReco
   // this is a hack to get ions working for CAD and NSRL
   // our particle generators have pdg build in which doesn't work
   // with ions, so the default generator action has to be replaced
-//  void setGeneratorAction(PHG4PrimaryGeneratorAction *action);
+  //  void setGeneratorAction(PHG4PrimaryGeneratorAction *action);
 
   PHG4Subsystem *getSubsystem(const std::string &name);
-
+  PHG4DisplayAction *GetDisplayAction() { return m_DisplayAction; }
   void Dump_GDML(const std::string &filename);
 
   void G4Verbosity(const int i);
 
   //! disable event/track/stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
-  void setDisableUserActions(bool b = true) {m_disableUserActions = b;}
+  void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
   void ApplyDisplayAction();
 
- protected:
+ private:
   int InitUImanager();
   void DefineMaterials();
   void DefineRegions();
@@ -161,6 +166,10 @@ class PHG4Reco : public SubsysReco
 
   //! pointer to main tracking action
   PHG4PhenixTrackingAction *trackingAction_;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
 
   //! event generator (read from PHG4INEVENT node)
   PHG4PrimaryGeneratorAction *generatorAction_;
