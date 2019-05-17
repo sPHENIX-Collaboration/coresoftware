@@ -1145,10 +1145,8 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
 
   G4MaterialPropertiesTable *MPT_CsI = new G4MaterialPropertiesTable();
 
-  MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI)
-      ->SetSpline(true);
-  MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI)
-      ->SetSpline(true);
+  MPT_CsI->AddProperty("RINDEX", PhotonEnergy_CsI, RefractiveIndex_CsI, nEntries_CsI)->SetSpline(true);
+  MPT_CsI->AddProperty("ABSLENGTH", PhotonEnergy_CsI, Absorption_CsI, nEntries_CsI)->SetSpline(true);
 
   CsI->SetMaterialPropertiesTable(MPT_CsI);
 
