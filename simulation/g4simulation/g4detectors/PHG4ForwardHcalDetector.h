@@ -1,5 +1,7 @@
-#ifndef PHG4ForwardHcalDetector_h
-#define PHG4ForwardHcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FORWARDHCALDETECTOR_H
+#define G4DETECTORS_PHG4FORWARDHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -18,6 +20,8 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4ForwardHcalDisplayAction;
+class PHG4ForwardHcalSubsystem;
 
 /**
  * \file ${file_name}
@@ -31,10 +35,10 @@ class PHG4ForwardHcalDetector: public PHG4Detector
 public:
 
   //! constructor
-  PHG4ForwardHcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4ForwardHcalDetector( PHG4ForwardHcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
-  virtual ~PHG4ForwardHcalDetector();
+  virtual ~PHG4ForwardHcalDetector(){}
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
@@ -92,6 +96,8 @@ private:
     G4double y;
     G4double z;
   } ;
+
+  PHG4ForwardHcalDisplayAction *m_DisplayAction;
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;

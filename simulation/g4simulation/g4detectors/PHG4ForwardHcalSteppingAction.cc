@@ -249,7 +249,10 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
       // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
       // (not sure if this will ever be the case)
       // aTrack->GetTrackStatus() == fStopAndKill: track ends
-      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+      if (postPoint->GetStepStatus() == fGeomBoundary ||
+	  postPoint->GetStepStatus() == fWorldBoundary||
+	  postPoint->GetStepStatus() == fAtRestDoItProc ||
+	  aTrack->GetTrackStatus() == fStopAndKill)
 	{
           // save only hits with energy deposit (or -1 for geantino)
 	  if (hit->get_edep())

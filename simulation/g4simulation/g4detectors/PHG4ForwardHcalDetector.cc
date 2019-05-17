@@ -1,4 +1,7 @@
 #include "PHG4ForwardHcalDetector.h"
+#include "PHG4ForwardHcalDisplayAction.h"
+#include "PHG4ForwardHcalSubsystem.h"
+
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeomv3.h"
 
@@ -23,9 +26,6 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Trd.hh>
 
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
-
 #include <cmath>
 #include <sstream>
 
@@ -38,8 +38,9 @@ using namespace std;
 
 
 //_______________________________________________________________________
-PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHCompositeNode *Node, const std::string &dnam ):
+PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHG4ForwardHcalSubsystem* subsys, PHCompositeNode *Node, const std::string &dnam ):
   PHG4Detector(Node, dnam),
+  m_DisplayAction(dynamic_cast<PHG4ForwardHcalDisplayAction*>(subsys->GetDisplayAction())),
   _place_in_x(0.0*mm),
   _place_in_y(0.0*mm),
   _place_in_z(4000.0*mm),
@@ -68,11 +69,6 @@ PHG4ForwardHcalDetector::PHG4ForwardHcalDetector( PHCompositeNode *Node, const s
 {
 
 }
-
-
-//_______________________________________________________________________
-PHG4ForwardHcalDetector::~PHG4ForwardHcalDetector()
-{}
 
 
 //_______________________________________________________________________
@@ -137,12 +133,7 @@ PHG4ForwardHcalDetector::Construct( G4LogicalVolume* logicWorld )
 
   G4LogicalVolume* hcal_envelope_log =  new G4LogicalVolume(hcal_envelope_solid, Air, G4String("hHcal_envelope"), 0, 0, 0);
 
-  /* Define visualization attributes for envelope cone */
-  G4VisAttributes* hcalVisAtt = new G4VisAttributes();
-  hcalVisAtt->SetVisibility(false);
-  hcalVisAtt->SetForceSolid(false);
-  hcalVisAtt->SetColour(G4Colour::Magenta());
-  hcal_envelope_log->SetVisAttributes(hcalVisAtt);
+  m_DisplayAction->AddVolume(hcal_envelope_log,"FHcalEnvelope");
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix hcal_rotm;
@@ -220,12 +211,8 @@ PHG4ForwardHcalDetector::ConstructTower()
 						    "hHcal_scintillator_plate_logic",
 						    0, 0, 0);
 
-  G4VisAttributes *visattscint = new G4VisAttributes();
-  visattscint->SetVisibility(true);
-  visattscint->SetForceSolid(true);
-  visattscint->SetColour(G4Colour::Gray());
-  logic_scint->SetVisAttributes(visattscint);
-  logic_absorber->SetVisAttributes(visattscint);
+  m_DisplayAction->AddVolume(logic_absorber,"Absorber");
+  m_DisplayAction->AddVolume(logic_scint,"Scintillator");
 
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;
@@ -260,11 +247,7 @@ PHG4ForwardHcalDetector::ConstructTower()
     }
 
 
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Cyan());
-  single_tower_logic->SetVisAttributes(visattchk);
+  m_DisplayAction->AddVolume(single_tower_logic,"SingleScintillator");
 
   if ( Verbosity() > 0 )
     {

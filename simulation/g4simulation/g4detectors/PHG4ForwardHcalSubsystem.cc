@@ -1,15 +1,15 @@
 #include "PHG4ForwardHcalSubsystem.h"
 #include "PHG4ForwardHcalDetector.h"
+#include "PHG4ForwardHcalDisplayAction.h"
 #include "PHG4ForwardHcalSteppingAction.h"
-#include "PHG4EventActionClearZeroEdep.h"
 
 #include <g4main/PHG4HitContainer.h>
+
 #include <phool/getClass.h>
 
-#include <Geant4/globals.hh>
+#include <boost/foreach.hpp>
 
 #include <sstream>
-#include <boost/foreach.hpp>
 
 using namespace std;
 
@@ -17,9 +17,9 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ForwardHcalSubsystem::PHG4ForwardHcalSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
-  detector_( 0 ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
+  m_Detector(nullptr  ),
+  m_SteppingAction( nullptr ),
+  m_DisplayAction(nullptr),
   active(1),
   absorber_active(0),
   blackhole(0),
@@ -29,6 +29,11 @@ PHG4ForwardHcalSubsystem::PHG4ForwardHcalSubsystem( const std::string &name, con
 
 }
 
+//_______________________________________________________________________
+PHG4ForwardHcalSubsystem::~PHG4ForwardHcalSubsystem()
+{
+  delete m_DisplayAction;
+}
 
 //_______________________________________________________________________
 int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
@@ -36,14 +41,16 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4ForwardHcalDisplayAction(Name());
   // create detector
-  detector_ = new PHG4ForwardHcalDetector(topNode, Name());
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(absorber_active);
-  detector_->BlackHole(blackhole);
-  detector_->OverlapCheck(CheckOverlap());
-  detector_->Verbosity(Verbosity());
-  detector_->SetTowerMappingFile( mappingfile_ );
+  m_Detector = new PHG4ForwardHcalDetector(this, topNode, Name());
+  m_Detector->SetActive(active);
+  m_Detector->SetAbsorberActive(absorber_active);
+  m_Detector->BlackHole(blackhole);
+  m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->Verbosity(Verbosity());
+  m_Detector->SetTowerMappingFile( mappingfile_ );
 
   if (active)
     {
@@ -75,22 +82,7 @@ int PHG4ForwardHcalSubsystem::Init( PHCompositeNode* topNode )
         }
 
       // create stepping action
-      steppingAction_ = new PHG4ForwardHcalSteppingAction(detector_);
-
-      // event actions
-      BOOST_FOREACH    (string node, nodes)
-      {
-        if (! eventAction_)
-          {
-            eventAction_ = new PHG4EventActionClearZeroEdep(topNode, node);
-          }
-        else
-          {
-            PHG4EventActionClearZeroEdep *evtact = dynamic_cast<PHG4EventActionClearZeroEdep *>(eventAction_);
-            evtact->AddNode(node);
-          }
-      }
-
+      m_SteppingAction = new PHG4ForwardHcalSteppingAction(m_Detector);
     }
 
   return 0;
@@ -103,23 +95,16 @@ PHG4ForwardHcalSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
     {
-      steppingAction_->SetInterfacePointers( topNode );
+      m_SteppingAction->SetInterfacePointers( topNode );
     }
   return 0;
 }
 
 
 //_______________________________________________________________________
-PHG4Detector* PHG4ForwardHcalSubsystem::GetDetector( void ) const
+PHG4Detector* PHG4ForwardHcalSubsystem::GetDetector() const
 {
-  return detector_;
-}
-
-
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4ForwardHcalSubsystem::GetSteppingAction( void ) const
-{
-  return steppingAction_;
+  return m_Detector;
 }

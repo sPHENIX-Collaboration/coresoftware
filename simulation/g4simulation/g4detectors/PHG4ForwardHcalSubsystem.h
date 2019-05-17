@@ -1,14 +1,13 @@
-#ifndef PHG4ForwardHcalSubsystem_h
-#define PHG4ForwardHcalSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FORWARDHCALSUBSYSTEM_H
+#define G4DETECTORS_PHG4FORWARDHCALSUBSYSTEM_H
 
 #include <g4main/PHG4Subsystem.h>
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
-
+class PHG4DisplayAction;
 class PHG4ForwardHcalDetector;
-class PHG4ForwardHcalSteppingAction;
-class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4ForwardHcalSubsystem: public PHG4Subsystem
 {
@@ -21,8 +20,7 @@ public:
 
   /** Destructor
    */
-  virtual ~PHG4ForwardHcalSubsystem( void )
-  {}
+  virtual ~PHG4ForwardHcalSubsystem();
 
   /**
      Creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
@@ -37,9 +35,9 @@ public:
 
   /** Accessors (reimplemented)
    */
-  PHG4Detector* GetDetector( void ) const;
-  PHG4SteppingAction* GetSteppingAction( void ) const;
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
+  PHG4Detector* GetDetector() const;
+  PHG4SteppingAction* GetSteppingAction() const {return m_SteppingAction;}
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
   /** Set mapping file for calorimeter towers
    */
@@ -56,12 +54,14 @@ private:
 
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ForwardHcalDetector* detector_;
+  PHG4ForwardHcalDetector* m_Detector;
 
   /** Stepping action
    */
-  PHG4ForwardHcalSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
+  PHG4SteppingAction *m_SteppingAction;
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
 
   int active;
   int absorber_active; 
