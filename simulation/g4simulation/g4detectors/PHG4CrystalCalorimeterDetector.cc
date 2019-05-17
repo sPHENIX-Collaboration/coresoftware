@@ -1,4 +1,6 @@
 #include "PHG4CrystalCalorimeterDetector.h"
+#include "PHG4CrystalCalorimeterDisplayAction.h"
+#include "PHG4CrystalCalorimeterSubsystem.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -11,18 +13,11 @@
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Trap.hh>
-#include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Trd.hh>
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
 
 #include <cmath>
 #include <sstream>
-
 #include <iostream>
 #include <cstdlib>
 
@@ -30,7 +25,7 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam ):
+PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem* subsys, PHCompositeNode *Node, const std::string &dnam ):
   PHG4Detector(Node, dnam),
   _place_in_x(0.0*mm),
   _place_in_y(0.0*mm),
@@ -55,15 +50,11 @@ PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector( PHCompositeNode 
   _blackhole(0),
   _superdetector("NONE"),
   _mapping_tower_file(""),
+  m_DisplayAction(dynamic_cast<PHG4CrystalCalorimeterDisplayAction*>(subsys->GetDisplayAction())),
   _towerlogicnameprefix("CrystalCalorimeterTower")
 {
 
 }
-
-
-//_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::~PHG4CrystalCalorimeterDetector()
-{}
 
 
 //_______________________________________________________________________
@@ -123,13 +114,7 @@ PHG4CrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   G4LogicalVolume* eemc_envelope_log =  new G4LogicalVolume(eemc_envelope_solid, Air, G4String("eemc_envelope"), 0, 0, 0);
 
-  /* Define visualization attributes for envelope cone */
-  G4VisAttributes* eemcVisAtt = new G4VisAttributes();
-  eemcVisAtt->SetVisibility(false);
-  eemcVisAtt->SetForceSolid(false);
-  eemcVisAtt->SetColour(G4Colour::Magenta());
-  eemc_envelope_log->SetVisAttributes(eemcVisAtt);
-
+  GetDisplayAction()->AddVolume(eemc_envelope_log,"Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix eemc_rotm;
   eemc_rotm.rotateX(_rot_in_x);
@@ -219,12 +204,8 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 							"single_crystal_logic",
 							0, 0, 0);
 
-  G4VisAttributes *visattchk = new G4VisAttributes();
-  visattchk->SetVisibility(true);
-  visattchk->SetForceSolid(true);
-  visattchk->SetColour(G4Colour::Cyan());
-  logic_crystal->SetVisAttributes(visattchk);
-
+  GetDisplayAction()->AddVolume(logic_crystal,"Crystal");
+  
   /* create logical volumes for structural frame */
   //Carbon Fiber
   G4double a = 12.01*g/mole;
@@ -240,11 +221,7 @@ PHG4CrystalCalorimeterDetector::ConstructTower()
 						      "single_absorber_logic",
 						      0, 0, 0 );
 
-  G4VisAttributes *visattchk2 = new G4VisAttributes();
-  visattchk2->SetVisibility(true);
-  visattchk2->SetForceSolid(true);
-  visattchk2->SetColour(G4Colour::Black());
-  logic_shell->SetVisAttributes(visattchk2);
+  GetDisplayAction()->AddVolume(logic_shell,"CarbonShell");
 
 
   /* Place structural frame in logical tower volume */

@@ -42,21 +42,25 @@ void PHG4CrystalCalorimeterDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "Absorber")
+    if (it.second == "CarbonShell")
     {
-      visatt->SetColour(G4Colour::Gray());
+      visatt->SetColour(G4Colour::Black());
     }
-    else if (it.second == "FHcalEnvelope")
+    else if (it.second == "Crystal")
+    {
+      visatt->SetColour(G4Colour::Cyan());
+    }
+    else if (it.second == "Envelope")
     {
       visatt->SetVisibility(false);
     }
-    else if (it.second == "Scintillator")
+    else if (it.second == "Invisible")
+    {
+      visatt->SetVisibility(false);
+    }
+    else if (it.second == "TwoByTwo")
     {
       visatt->SetColour(G4Colour::Gray());
-    }
-    else if (it.second == "SingleScintillator")
-    {
-      visatt->SetColour(G4Colour::Cyan());
     }
     else
     {

@@ -70,7 +70,7 @@ private:
 
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4CrystalCalorimeterDetector* detector_;
+  PHG4CrystalCalorimeterDetector* m_Detector;
 
   /** Stepping action
    */

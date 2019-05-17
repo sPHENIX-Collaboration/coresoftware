@@ -1,5 +1,7 @@
-#ifndef PHG4CrystalCalorimeterDetector_h
-#define PHG4CrystalCalorimeterDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CRYSTALCALORIMETERDETECTOR_H
+#define G4DETECTORS_PHG4CRYSTALCALORIMETERDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -11,6 +13,8 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4CrystalCalorimeterDisplayAction;
+class PHG4CrystalCalorimeterSubsystem;
 
 /**
  * \file ${file_name}
@@ -24,10 +28,10 @@ class PHG4CrystalCalorimeterDetector: public PHG4Detector
 public:
 
   //! constructor
-  PHG4CrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4CrystalCalorimeterDetector( PHG4CrystalCalorimeterSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
-  virtual ~PHG4CrystalCalorimeterDetector();
+  virtual ~PHG4CrystalCalorimeterDetector(){}
 
   //! construct
   virtual void Construct( G4LogicalVolume* world );
@@ -91,8 +95,9 @@ public:
   }
 
 
-protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
 
+protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
+  PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() {return m_DisplayAction;}
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
@@ -138,6 +143,8 @@ private: // private stuff
     G4double y;
     G4double z;
   } ;
+
+  PHG4CrystalCalorimeterDisplayAction *m_DisplayAction;
 
   std::string _towerlogicnameprefix;
 

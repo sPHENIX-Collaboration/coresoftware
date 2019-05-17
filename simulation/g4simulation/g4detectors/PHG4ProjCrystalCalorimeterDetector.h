@@ -1,5 +1,7 @@
-#ifndef PHG4ProjCrystalCalorimeterDetector_h
-#define PHG4ProjCrystalCalorimeterDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4PROJCRYSTALCALORIMETERDETECTOR_H
+#define G4DETECTORS_PHG4PROJCRYSTALCALORIMETERDETECTOR_H
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
@@ -15,7 +17,7 @@ class PHG4ProjCrystalCalorimeterDetector: public PHG4CrystalCalorimeterDetector
 public:
 
   //! constructor
-  PHG4ProjCrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4ProjCrystalCalorimeterDetector( PHG4CrystalCalorimeterSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam="BLOCK" );
 
   //! destructor
   virtual ~PHG4ProjCrystalCalorimeterDetector();

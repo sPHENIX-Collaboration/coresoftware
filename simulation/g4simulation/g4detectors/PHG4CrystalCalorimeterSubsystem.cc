@@ -5,9 +5,8 @@
 #include "PHG4CrystalCalorimeterSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
-#include <phool/getClass.h>
 
-#include <Geant4/globals.hh>
+#include <phool/getClass.h>
 
 #include <sstream>
 
@@ -17,7 +16,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
-  detector_( 0 ),
+  m_Detector( nullptr ),
   m_SteppingAction( nullptr ),
   m_DisplayAction(nullptr),
   active(1),
@@ -47,20 +46,20 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
   if ( projective_ )
     {
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4ProjCrystalCalorimeterDetector" << endl;
-      detector_ = new PHG4ProjCrystalCalorimeterDetector(topNode, Name());
-      detector_->SetTowerMappingFile(mappingfile_);
-      detector_->SetSupermoduleGeometry(mappingfile_4x4_construct_);
+      m_Detector = new PHG4ProjCrystalCalorimeterDetector(this, topNode, Name());
+      m_Detector->SetTowerMappingFile(mappingfile_);
+      m_Detector->SetSupermoduleGeometry(mappingfile_4x4_construct_);
     }
   else
     {
       cout << "PHG4CrystalCalorimeterSubsystem::InitRun - use PHG4CrystalCalorimeterDetector" << endl;
-      detector_ = new PHG4CrystalCalorimeterDetector(topNode, Name());
-      detector_->SetTowerMappingFile(mappingfile_);
+      m_Detector = new PHG4CrystalCalorimeterDetector(this, topNode, Name());
+      m_Detector->SetTowerMappingFile(mappingfile_);
     }
 
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(active);
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector->SetActive(active);
+  m_Detector->SetAbsorberActive(active);
+  m_Detector->OverlapCheck(CheckOverlap());
 
   if (active)
     {
@@ -88,7 +87,7 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
         }
 
       // create stepping action
-      m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(detector_);
+      m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(m_Detector);
     }
   return 0;
 }
@@ -111,5 +110,5 @@ PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
 //_______________________________________________________________________
 PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector( void ) const
 {
-  return detector_;
+  return m_Detector;
 }

@@ -1,5 +1,8 @@
 #include "PHG4ProjCrystalCalorimeterDetector.h"
 
+#include "PHG4CrystalCalorimeterDetector.h"
+#include "PHG4CrystalCalorimeterDisplayAction.h"
+
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
@@ -8,18 +11,14 @@
 
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4Trap.hh>
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
 
 #include <cmath>
 #include <sstream>
@@ -31,8 +30,8 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam ):
-  PHG4CrystalCalorimeterDetector(Node, dnam),
+PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem* subsys, PHCompositeNode *Node, const std::string &dnam ):
+  PHG4CrystalCalorimeterDetector(subsys, Node, dnam),
   //  _dx_front(50.19*mm),		//****************************************************************//
   //  _dy_front(50.19*mm),		//****************************************************************//
   //  _dx_back(59.3154545455*mm),		// PANDA eEMCAL Numbers: Crystals are 2.4cm * 2.4cm on front face //
@@ -106,13 +105,7 @@ PHG4ProjCrystalCalorimeterDetector::Construct( G4LogicalVolume* logicWorld )
 
   G4LogicalVolume* ecal_envelope_log =  new G4LogicalVolume(ecal_envelope_cone, Air, G4String("eEcal_envelope"), 0, 0, 0);
 
-  /* Define visualization attributes for envelope cone */
-  G4VisAttributes* ecalVisAtt = new G4VisAttributes();
-	  ecalVisAtt->SetVisibility(false);
-	  ecalVisAtt->SetForceSolid(false);
-	  ecalVisAtt->SetColour(G4Colour::Magenta());
-  ecal_envelope_log->SetVisAttributes(ecalVisAtt);
-
+  GetDisplayAction()->AddVolume(ecal_envelope_log,"Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
   ecal_rotm.rotateX(_rot_in_x);
@@ -209,11 +202,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
 		"eEcal_crystal",
 		0, 0, 0);
 	
-	G4VisAttributes *visattchk_2 = new G4VisAttributes();
-	visattchk_2->SetVisibility(true);
-	visattchk_2->SetForceSolid(true);
-	visattchk_2->SetColour(G4Colour::Cyan());
-	crystal_logic_small->SetVisAttributes(visattchk_2);
+	GetDisplayAction()->AddVolume(crystal_logic_small,"Crystal");
 	
 	//****************************************************
 	//Build the solid/logical volume for the 2 x 2 crystal
@@ -237,11 +226,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
                 "2_by_2_unit",
                 0, 0, 0);
 	
-	G4VisAttributes *visattchk_4 = new G4VisAttributes();
-	visattchk_4->SetVisibility(false);
-	visattchk_4->SetForceSolid(true);
-	visattchk_4->SetColour(G4Colour::Grey());
-	Two_by_Two_logic->SetVisAttributes(visattchk_4);
+	GetDisplayAction()->AddVolume(Two_by_Two_logic,"TwoByTwo");
 	
 	
 	//*************************************************************
@@ -522,11 +507,7 @@ PHG4ProjCrystalCalorimeterDetector::Fill4x4Unit(G4LogicalVolume *crystal_logic)
                 "Carbon_Fiber_logic",
                 0, 0, 0);
 	
-	G4VisAttributes *visattchk_5 = new G4VisAttributes();
-	visattchk_5->SetVisibility(true);
-	visattchk_5->SetForceSolid(true);
-	visattchk_5->SetColour(G4Colour::Black());
-	Carbon_Shell_logic->SetVisAttributes(visattchk_5);
+	GetDisplayAction()->AddVolume(Carbon_Shell_logic,"CarbonShell");
 
 
 
@@ -617,11 +598,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 								"eEcal_crystal",
 								0, 0, 0);
 	
-	G4VisAttributes *visattchk_2 = new G4VisAttributes();
-	visattchk_2->SetVisibility(true);
-	visattchk_2->SetForceSolid(true);
-	visattchk_2->SetColour(G4Colour::Cyan());
-	crystal_logic_small->SetVisAttributes(visattchk_2);
+	GetDisplayAction()->AddVolume(crystal_logic_small,"Crystal");
 	
 	//****************************************************
 	//Build the solid/logical volume for the 2 x 2 crystal
@@ -645,11 +622,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
                 "2_by_2_unit",
                 0, 0, 0);
 	
-	G4VisAttributes *visattchk_4 = new G4VisAttributes();
-	visattchk_4->SetVisibility(false);
-	visattchk_4->SetForceSolid(true);
-	visattchk_4->SetColour(G4Colour::Grey());
-	Two_by_Two_logic->SetVisAttributes(visattchk_4);
+	GetDisplayAction()->AddVolume(Two_by_Two_logic,"TwoByTwo");
 	
 	
 	//*************************************************************
@@ -881,11 +854,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 			"Carbon_Fiber_logic",
 			0, 0, 0);
 		
-		G4VisAttributes *visattchk_5 = new G4VisAttributes();
-		visattchk_5->SetVisibility(true);
-		visattchk_5->SetForceSolid(true);
-		visattchk_5->SetColour(G4Colour::Black());
-		Carbon_Shell_logic->SetVisAttributes(visattchk_5);
+		GetDisplayAction()->AddVolume(Carbon_Shell_logic,"CarbonShell");
 
 		//*************************************
 		//Place the carbon fiber shell at (0,0)
@@ -982,11 +951,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 			"Carbon_Fiber_logic",
 			0, 0, 0);
 		
-		G4VisAttributes *visattchk_5 = new G4VisAttributes();
-		visattchk_5->SetVisibility(true);
-		visattchk_5->SetForceSolid(true);
-		visattchk_5->SetColour(G4Colour::Black());
-		Carbon_Shell_logic->SetVisAttributes(visattchk_5);
+		GetDisplayAction()->AddVolume(Carbon_Shell_logic,"CarbonShell");
 
 		//*************************************
 		//Place the carbon fiber shell at (0,0)
@@ -1142,11 +1107,7 @@ PHG4ProjCrystalCalorimeterDetector::FillSpecialUnit(G4LogicalVolume *crystal_log
 			"Carbon_Fiber_logic",
 			0, 0, 0);
 		
-		G4VisAttributes *visattchk_5 = new G4VisAttributes();
-		visattchk_5->SetVisibility(true);
-		visattchk_5->SetForceSolid(true);
-		visattchk_5->SetColour(G4Colour::Black());
-		Carbon_Shell_logic->SetVisAttributes(visattchk_5);
+		GetDisplayAction()->AddVolume(Carbon_Shell_logic,"CarbonShell");
 
 		//*************************************
 		//Place the carbon fiber shell at (0,0)
@@ -1301,14 +1262,10 @@ PHG4ProjCrystalCalorimeterDetector::ConstructProjectiveCrystals(G4LogicalVolume*
 		"32_unit",
 		0, 0, 0);
 
-	G4VisAttributes *visattchk = new G4VisAttributes();
-	visattchk->SetVisibility(false);
-	visattchk->SetForceSolid(true);
-	visattchk->SetColour(G4Colour::Yellow());
-	crystal_logic->SetVisAttributes(visattchk);
-	twelve_logic->SetVisAttributes(visattchk);
-	twentytwo_logic->SetVisAttributes(visattchk);
-	thirtytwo_logic->SetVisAttributes(visattchk);
+	GetDisplayAction()->AddVolume(crystal_logic,"Invisible");
+	GetDisplayAction()->AddVolume(twelve_logic,"Invisible");
+	GetDisplayAction()->AddVolume(twentytwo_logic,"Invisible");
+	GetDisplayAction()->AddVolume(thirtytwo_logic,"Invisible");
 
 	Fill4x4Unit(crystal_logic);
 	FillSpecialUnit(twelve_logic, 12);
