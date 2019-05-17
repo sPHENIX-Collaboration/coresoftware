@@ -12,6 +12,8 @@
 
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4SystemOfUnits.hh>
+
 
 #include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
@@ -37,11 +39,11 @@ using namespace std;
 PHG4ForwardHcalSteppingAction::PHG4ForwardHcalSteppingAction( PHG4ForwardHcalDetector* detector ):
   PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hitcontainer(NULL),
-  hit(NULL),
-  saveshower(NULL),
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hitcontainer(nullptr),
+  hit(nullptr),
+  saveshower(nullptr),
   absorbertruth(0),
   light_scint_model(1)
 {}
@@ -50,7 +52,7 @@ PHG4ForwardHcalSteppingAction::~PHG4ForwardHcalSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -264,7 +266,7 @@ bool PHG4ForwardHcalSteppingAction::UserSteppingAction( const G4Step* aStep, boo
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {
