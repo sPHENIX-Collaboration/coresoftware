@@ -21,7 +21,7 @@
 class PHG4DisplayAction;
 class PHG4RICHDetector;
 
-  /**
+/**
    * \brief Fun4All module to simulate the RICH detector.
    *
    * The detector is constructed and registered via PHG4RICHDetector,
@@ -37,50 +37,47 @@ class PHG4RICHDetector;
    * \see PHG4RICHSubsystem
    *
    */
-class PHG4RICHSubsystem: public PHG4Subsystem
+class PHG4RICHSubsystem : public PHG4Subsystem
 {
-  
-  public:
-    
-    //! constructor
-  PHG4RICHSubsystem( const std::string &name = "RICH" );
-    
-    //! destructor
-  virtual ~PHG4RICHSubsystem( );
-    
-    //! init
-    /*!
+ public:
+  //! constructor
+  PHG4RICHSubsystem(const std::string &name = "RICH");
+
+  //! destructor
+  virtual ~PHG4RICHSubsystem();
+
+  //! init
+  /*!
     creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
     reates the stepping action and place it on the node tree, under "ACTIONS" node
     creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
     */
-    int Init(PHCompositeNode *);
-    
-    //! event processing
-    /*!
+  int Init(PHCompositeNode *);
+
+  //! event processing
+  /*!
     get all relevant nodes from top nodes (namely hit list)
     and pass that to the stepping action
     */
-    int process_event(PHCompositeNode *);
-    
-    //! accessors (reimplemented)
-    virtual PHG4Detector* GetDetector( void ) const;
-   PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
+  int process_event(PHCompositeNode *);
 
-    ePHENIXRICH::RICH_Geometry & get_RICH_geometry() {return geom;}
-    
-    void set_RICH_geometry(const ePHENIXRICH::RICH_Geometry &g) {geom = g;}
+  //! accessors (reimplemented)
+  virtual PHG4Detector *GetDetector(void) const;
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
-  private:
-    
-    //! detector geometry
-    /*! defives from PHG4Detector */
-    PHG4RICHDetector* detector_;
+  ePHENIXRICH::RICH_Geometry &get_RICH_geometry() { return geom; }
+
+  void set_RICH_geometry(const ePHENIXRICH::RICH_Geometry &g) { geom = g; }
+
+ private:
+  //! detector geometry
+  /*! defives from PHG4Detector */
+  PHG4RICHDetector *detector_;
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction;
-    
-    ePHENIXRICH::RICH_Geometry geom;
+
+  ePHENIXRICH::RICH_Geometry geom;
 };
 
 #endif
