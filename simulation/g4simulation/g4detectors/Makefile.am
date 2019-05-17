@@ -288,6 +288,7 @@ libg4detectors_la_SOURCES = \
   PHG4ForwardEcalSteppingAction.cc \
   PHG4ForwardEcalSubsystem.cc \
   PHG4ForwardHcalDetector.cc \
+  PHG4ForwardHcalDisplayAction.cc \
   PHG4ForwardHcalSteppingAction.cc \
   PHG4ForwardHcalSubsystem.cc \
   PHG4ForwardCalCellReco.cc \
