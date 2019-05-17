@@ -1,5 +1,6 @@
 #include "PHG4CrystalCalorimeterSubsystem.h"
 #include "PHG4CrystalCalorimeterDetector.h"
+#include "PHG4CrystalCalorimeterDisplayAction.h"
 #include "PHG4ProjCrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterSteppingAction.h"
 
@@ -17,9 +18,8 @@ using namespace std;
 PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
   detector_( 0 ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
-  material("G4_PbWO4"),  // default - lead tungstate crystal
+  m_SteppingAction( nullptr ),
+  m_DisplayAction(nullptr),
   active(1),
   detector_type(name),
   mappingfile_(""),
@@ -29,6 +29,11 @@ PHG4CrystalCalorimeterSubsystem::PHG4CrystalCalorimeterSubsystem( const std::str
 
 }
 
+//_______________________________________________________________________
+PHG4CrystalCalorimeterSubsystem::~PHG4CrystalCalorimeterSubsystem()
+{
+  delete m_DisplayAction;
+}
 
 //_______________________________________________________________________
 int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
@@ -36,6 +41,8 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4CrystalCalorimeterDisplayAction(Name());
   // create detector
   if ( projective_ )
     {
@@ -81,7 +88,7 @@ int PHG4CrystalCalorimeterSubsystem::Init( PHCompositeNode* topNode )
         }
 
       // create stepping action
-      steppingAction_ = new PHG4CrystalCalorimeterSteppingAction(detector_);
+      m_SteppingAction = new PHG4CrystalCalorimeterSteppingAction(detector_);
     }
   return 0;
 }
@@ -93,9 +100,9 @@ PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
     {
-      steppingAction_->SetInterfacePointers( topNode );
+      m_SteppingAction->SetInterfacePointers( topNode );
     }
   return 0;
 }
@@ -105,11 +112,4 @@ PHG4CrystalCalorimeterSubsystem::process_event( PHCompositeNode * topNode )
 PHG4Detector* PHG4CrystalCalorimeterSubsystem::GetDetector( void ) const
 {
   return detector_;
-}
-
-
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4CrystalCalorimeterSubsystem::GetSteppingAction( void ) const
-{
-  return steppingAction_;
 }
