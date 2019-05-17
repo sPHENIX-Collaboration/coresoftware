@@ -1,4 +1,5 @@
-// $$Id: PHG4RICHSubsystem.h,v 1.2 2013/12/22 19:33:38 nfeege Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,14 +9,17 @@
  * \date $$Date: 2013/12/22 19:33:38 $$
  */
 
-#ifndef PHG4RICHSubsystem_h
-#define PHG4RICHSubsystem_h
+#ifndef G4DETECTORS_PHG4RICHSUBSYSTEM_H
+#define G4DETECTORS_PHG4RICHSUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
 #include "ePHENIXRICHConstruction.h"
 
+#include <g4main/PHG4Subsystem.h>
+
+#include <string>
+
+class PHG4DisplayAction;
 class PHG4RICHDetector;
-class PHG4RICHSteppingAction;
 
   /**
    * \brief Fun4All module to simulate the RICH detector.
@@ -39,11 +43,10 @@ class PHG4RICHSubsystem: public PHG4Subsystem
   public:
     
     //! constructor
-    PHG4RICHSubsystem( const char* name = "RICH" );
+  PHG4RICHSubsystem( const std::string &name = "RICH" );
     
     //! destructor
-    virtual ~PHG4RICHSubsystem( void )
-    {}
+  virtual ~PHG4RICHSubsystem( );
     
     //! init
     /*!
@@ -62,6 +65,7 @@ class PHG4RICHSubsystem: public PHG4Subsystem
     
     //! accessors (reimplemented)
     virtual PHG4Detector* GetDetector( void ) const;
+   PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
     ePHENIXRICH::RICH_Geometry & get_RICH_geometry() {return geom;}
     
@@ -72,6 +76,9 @@ class PHG4RICHSubsystem: public PHG4Subsystem
     //! detector geometry
     /*! defives from PHG4Detector */
     PHG4RICHDetector* detector_;
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
     
     ePHENIXRICH::RICH_Geometry geom;
 };

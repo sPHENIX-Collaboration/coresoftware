@@ -10,18 +10,26 @@
 
 #include "PHG4RICHSubsystem.h"
 #include "PHG4RICHDetector.h"
+#include "PHG4RICHDisplayAction.h"
 #include "PHG4RICHSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <phool/getClass.h>
 
 using namespace ePHENIXRICH;
+using namespace std;
 
 //_______________________________________________________________________
-PHG4RICHSubsystem::PHG4RICHSubsystem( const char* name ):
+PHG4RICHSubsystem::PHG4RICHSubsystem( const string &name ):
 PHG4Subsystem( name ),
-detector_( NULL )
+detector_( nullptr )
 {
+}
+
+//_______________________________________________________________________
+PHG4RICHSubsystem::~PHG4RICHSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
