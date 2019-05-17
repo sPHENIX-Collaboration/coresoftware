@@ -51,8 +51,8 @@ class RICH_Geometry
   /**
      * Default constructor.
      */
-RICH_Geometry():
-  RICH_Mirror_OpticalSurface(nullptr)
+  RICH_Geometry()
+    : RICH_Mirror_OpticalSurface(nullptr)
   {
     SetDefault();
     CreateOpticalSurfaces();
@@ -376,8 +376,8 @@ class ePHENIXRICHConstruction
 {
  public:
   virtual ~ePHENIXRICHConstruction() {}
-  ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys);
-  ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys, const RICH_Geometry& g);
+  ePHENIXRICHConstruction(PHG4RICHSubsystem* subsys);
+  ePHENIXRICHConstruction(PHG4RICHSubsystem* subsys, const RICH_Geometry& g);
 
   virtual void
   OverlapCheck(bool check)
@@ -401,7 +401,7 @@ class ePHENIXRICHConstruction
      * Checks if volume is sector volume
      */
   int is_in_sector(G4VPhysicalVolume*) const;
- PHG4RICHDisplayAction *GetDisplayAction() { return m_DisplayAction; }
+  PHG4RICHDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
  protected:
   G4LogicalVolume*
@@ -416,7 +416,7 @@ class ePHENIXRICHConstruction
   typedef std::pair<G4String, G4int> phy_vol_idx_t;
   typedef std::map<phy_vol_idx_t, G4PVPlacement*> map_phy_vol_t;
 
-  PHG4RICHDisplayAction *m_DisplayAction;
+  PHG4RICHDisplayAction* m_DisplayAction;
   map_phy_vol_t map_phy_vol;
 
   bool overlapcheck_rich;

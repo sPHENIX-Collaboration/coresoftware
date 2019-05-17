@@ -42,25 +42,25 @@ void PHG4RICHDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "CarbonShell")
+    if (it.second == "HBD")
     {
-      visatt->SetColour(G4Colour::Black());
+      visatt->SetColour(G4Colour::Red());
     }
-    else if (it.second == "Crystal")
+    else if (it.second == "Mirror")
     {
-      visatt->SetColour(G4Colour::Cyan());
+      visatt->SetColour(G4Colour::Green());
+      visatt->SetForceLineSegmentsPerCircle(50);
     }
-    else if (it.second == "Envelope")
+    else if (it.second == "Sector")
     {
-      visatt->SetVisibility(false);
+      visatt->SetColour(G4Colour::White());
+      visatt->SetForceWireframe(true);
+      visatt->SetForceLineSegmentsPerCircle(50);
     }
-    else if (it.second == "Invisible")
+    else if (it.second == "Window")
     {
-      visatt->SetVisibility(false);
-    }
-    else if (it.second == "TwoByTwo")
-    {
-      visatt->SetColour(G4Colour::Gray());
+      visatt->SetColour(G4Colour::Yellow());
+      visatt->SetForceLineSegmentsPerCircle(50);
     }
     else
     {

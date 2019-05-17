@@ -20,7 +20,6 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/globals.hh>
 
-
 #include <map>
 
 class G4Material;
@@ -30,7 +29,7 @@ class G4VPhysicalVolume;
 class PHG4RICHDisplayAction;
 class PHG4RICHSubsystem;
 
-  /**
+/**
    * \brief This class creates the ePHENIX RICH volumes for Geant4 within Fun4All via
    * ePHENIXRICH::ePHENIXRICHConstruction based on the geometry information in 
    * ePHENIXRICH::RICH_Geometry.
@@ -43,15 +42,13 @@ class PHG4RICHSubsystem;
    *
    */
 class PHG4RICHDetector : public PHG4Detector,
-    public ePHENIXRICH::ePHENIXRICHConstruction
+                         public ePHENIXRICH::ePHENIXRICHConstruction
 {
-public:
+ public:
+  PHG4RICHDetector(PHG4RICHSubsystem* subsys, PHCompositeNode* Node, const ePHENIXRICH::RICH_Geometry& g);
+  PHG4RICHDetector(PHG4RICHSubsystem* subsys, PHCompositeNode* Node);
 
-  PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node, const ePHENIXRICH::RICH_Geometry & g);
-  PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node);
-
-  virtual
-  ~PHG4RICHDetector(void)
+  virtual ~PHG4RICHDetector(void)
   {
   }
 
@@ -73,12 +70,10 @@ public:
     ePHENIXRICHConstruction::OverlapCheck(chk);
   }
 
-private:
-
+ private:
   G4UserSteppingAction* stepping_action;
 
   G4Region* _region;
-
 };
 
 #endif
