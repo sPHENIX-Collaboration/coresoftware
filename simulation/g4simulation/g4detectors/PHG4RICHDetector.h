@@ -1,4 +1,5 @@
-// $$Id: PHG4RICHDetector.h,v 1.2 2013/12/22 19:33:38 nfeege Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,8 +9,8 @@
  * \date $$Date: 2013/12/22 19:33:38 $$
  */
 
-#ifndef PHG4RICHDetector_h
-#define PHG4RICHDetector_h
+#ifndef G4DETECTORS_PHG4RICHDETECTOR_H
+#define G4DETECTORS_PHG4RICHDETECTOR_H
 
 #include "ePHENIXRICHConstruction.h"
 
@@ -19,15 +20,16 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/globals.hh>
 
-
 #include <map>
 
 class G4Material;
 class G4Box;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4RICHDisplayAction;
+class PHG4RICHSubsystem;
 
-  /**
+/**
    * \brief This class creates the ePHENIX RICH volumes for Geant4 within Fun4All via
    * ePHENIXRICH::ePHENIXRICHConstruction based on the geometry information in 
    * ePHENIXRICH::RICH_Geometry.
@@ -40,15 +42,13 @@ class G4VPhysicalVolume;
    *
    */
 class PHG4RICHDetector : public PHG4Detector,
-    public ePHENIXRICH::ePHENIXRICHConstruction
+                         public ePHENIXRICH::ePHENIXRICHConstruction
 {
-public:
+ public:
+  PHG4RICHDetector(PHG4RICHSubsystem* subsys, PHCompositeNode* Node, const ePHENIXRICH::RICH_Geometry& g);
+  PHG4RICHDetector(PHG4RICHSubsystem* subsys, PHCompositeNode* Node);
 
-  PHG4RICHDetector(PHCompositeNode *Node, const ePHENIXRICH::RICH_Geometry & g);
-  PHG4RICHDetector(PHCompositeNode *Node);
-
-  virtual
-  ~PHG4RICHDetector(void)
+  virtual ~PHG4RICHDetector(void)
   {
   }
 
@@ -70,8 +70,7 @@ public:
     ePHENIXRICHConstruction::OverlapCheck(chk);
   }
 
-private:
-
+ private:
   G4UserSteppingAction* stepping_action;
 
   G4Region* _region;

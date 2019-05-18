@@ -266,6 +266,7 @@ libg4detectors_la_SOURCES = \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
   PHG4CrystalCalorimeterDetector.cc \
+  PHG4CrystalCalorimeterDisplayAction.cc \
   PHG4CrystalCalorimeterSteppingAction.cc \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CylinderDetector.cc \
@@ -327,6 +328,7 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype3InnerHcalSteppingAction.cc \
   PHG4Prototype3InnerHcalSubsystem.cc \
   PHG4RICHDetector.cc \
+  PHG4RICHDisplayAction.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
   ePHENIXRICHConstruction.cc \

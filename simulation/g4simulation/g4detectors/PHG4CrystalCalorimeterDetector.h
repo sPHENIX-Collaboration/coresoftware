@@ -1,16 +1,20 @@
-#ifndef PHG4CrystalCalorimeterDetector_h
-#define PHG4CrystalCalorimeterDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CRYSTALCALORIMETERDETECTOR_H
+#define G4DETECTORS_PHG4CRYSTALCALORIMETERDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Types.hh>
 
-#include <string>
 #include <map>
+#include <string>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHG4CrystalCalorimeterDisplayAction;
+class PHG4CrystalCalorimeterSubsystem;
 
 /**
  * \file ${file_name}
@@ -18,39 +22,37 @@ class G4VSolid;
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
-class PHG4CrystalCalorimeterDetector: public PHG4Detector
+class PHG4CrystalCalorimeterDetector : public PHG4Detector
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4CrystalCalorimeterDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4CrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam = "BLOCK");
 
   //! destructor
-  virtual ~PHG4CrystalCalorimeterDetector();
+  virtual ~PHG4CrystalCalorimeterDetector() {}
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void Construct(G4LogicalVolume *world);
 
   //! check if volume is in this calorimeter
-  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;
+  virtual int IsInCrystalCalorimeter(G4VPhysicalVolume *) const;
 
   // ----- accessing member variables: ------------
 
   //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile( std::string &filename )
+  void SetTowerMappingFile(std::string &filename)
   {
     _mapping_tower_file = filename;
   }
 
-  void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z)
+  void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
   {
     _place_in_x = place_in_x;
     _place_in_y = place_in_y;
     _place_in_z = place_in_z;
   }
 
-  void SetRotation( G4double rot_in_x, G4double rot_in_y, G4double rot_in_z )
+  void SetRotation(G4double rot_in_x, G4double rot_in_y, G4double rot_in_z)
   {
     _rot_in_x = rot_in_x;
     _rot_in_y = rot_in_y;
@@ -64,35 +66,34 @@ public:
     _crystal_dz = dz;
   }
 
-  void SetMaterialCrystal( G4String material )
+  void SetMaterialCrystal(G4String material)
   {
     _materialCrystal = material;
   }
 
-  void SetActive(const int i = 1) {_active = i;}
-  void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
+  void SetActive(const int i = 1) { _active = i; }
+  void SetAbsorberActive(const int i = 1) { _absorberactive = i; }
 
-  int IsActive() const {return _active;}
+  int IsActive() const { return _active; }
 
-  void SuperDetector(const std::string &name) {_superdetector = name;}
-  const std::string SuperDetector() const {return _superdetector;}
+  void SuperDetector(const std::string &name) { _superdetector = name; }
+  const std::string SuperDetector() const { return _superdetector; }
 
-  int get_Layer() const {return _layer;}
+  int get_Layer() const { return _layer; }
 
-  void BlackHole(const int i=1) {_blackhole = i;}
-  int IsBlackHole() const {return _blackhole;}
+  void BlackHole(const int i = 1) { _blackhole = i; }
+  int IsBlackHole() const { return _blackhole; }
 
   // ----- additional accessors used by derived classes: ------------
 
   //! Select mapping file for supermodule
-  virtual void SetSupermoduleGeometry(const std::string & filename2 )
+  virtual void SetSupermoduleGeometry(const std::string &filename2)
   {
     return;
   }
 
-
-protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
-
+ protected:  // for variable also used in PHG4ProjCrystalCalorimeterDetector
+  PHG4CrystalCalorimeterDisplayAction *GetDisplayAction() { return m_DisplayAction; }
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
@@ -127,22 +128,24 @@ protected: // for variable also used in PHG4ProjCrystalCalorimeterDetector
   std::string _superdetector;
   std::string _mapping_tower_file;
 
-private: // private stuff
-
-  G4LogicalVolume* ConstructTower();
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
+ private:  // private stuff
+  G4LogicalVolume *ConstructTower();
+  int PlaceTower(G4LogicalVolume *envelope, G4LogicalVolume *tower);
   int ParseParametersFromTable();
 
-  struct towerposition {
+  struct towerposition
+  {
     G4double x;
     G4double y;
     G4double z;
-  } ;
+  };
+
+  PHG4CrystalCalorimeterDisplayAction *m_DisplayAction;
 
   std::string _towerlogicnameprefix;
 
-  std::map< std::string, G4double > _map_global_parameter;
-  std::map< std::string, towerposition > _map_tower;
+  std::map<std::string, G4double> _map_global_parameter;
+  std::map<std::string, towerposition> _map_tower;
 };
 
 #endif
