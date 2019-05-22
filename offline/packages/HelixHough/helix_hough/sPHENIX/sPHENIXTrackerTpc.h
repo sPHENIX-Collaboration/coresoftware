@@ -1,5 +1,5 @@
-#ifndef __SPHENIXTRACKERTPC__
-#define __SPHENIXTRACKERTPC__
+#ifndef HELIXHOUGH_SPHENIXTRACKERTPC_H
+#define HELIXHOUGH_SPHENIXTRACKERTPC_H
 
 #include "HelixHough.h"
 #include <vector>
@@ -184,20 +184,20 @@ class TrackSegment {
   unsigned int n_hits;
 };
 
-class sPHENIXTrackerTPC : public HelixHough {
+class sPHENIXTrackerTpc : public HelixHough {
  public:
-  sPHENIXTrackerTPC(unsigned int n_phi, unsigned int n_d, unsigned int n_k,
+  sPHENIXTrackerTpc(unsigned int n_phi, unsigned int n_d, unsigned int n_k,
                  unsigned int n_dzdl, unsigned int n_z0,
                  HelixResolution& min_resolution,
                  HelixResolution& max_resolution, HelixRange& range,
                  std::vector<float>& material, std::vector<float>& radius,
                  float Bfield);
-  sPHENIXTrackerTPC(std::vector<std::vector<unsigned int> >& zoom_profile,
+  sPHENIXTrackerTpc(std::vector<std::vector<unsigned int> >& zoom_profile,
                  unsigned int minzoom, HelixRange& range,
                  std::vector<float>& material, std::vector<float>& radius,
                  float Bfield, bool parallel = false,
                  unsigned int num_threads = 1);
-  virtual ~sPHENIXTrackerTPC();
+  virtual ~sPHENIXTrackerTpc();
 
   void finalize(std::vector<SimpleTrack3D>& input,
                 std::vector<SimpleTrack3D>& output);
@@ -515,8 +515,8 @@ class sPHENIXTrackerTPC : public HelixHough {
   unsigned int nthreads;
   std::vector<SeamStress::Seamstress*> *vssp;
   std::vector<SeamStress::Seamstress> vss;
-  SeamStress::Pincushion<sPHENIXTrackerTPC> *pins;
-  std::vector<sPHENIXTrackerTPC*> thread_trackers;
+  SeamStress::Pincushion<sPHENIXTrackerTpc> *pins;
+  std::vector<sPHENIXTrackerTpc*> thread_trackers;
   std::vector<std::vector<SimpleTrack3D> > thread_tracks;
   std::vector<HelixRange> thread_ranges;
   std::vector<std::vector<SimpleHit3D> > thread_hits;

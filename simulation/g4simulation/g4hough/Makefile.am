@@ -60,7 +60,7 @@ pkginclude_HEADERS = \
   NewtonMinimizerGradHessian.h \
   PHG4GenFitTrackProjection.h \
   PHG4HoughTransform.h \
-  PHG4HoughTransformTPC.h \
+  PHG4HoughTransformTpc.h \
   PHG4InitZVertexing.h \
   PHG4KalmanPatRec.h \
   PHG4PatternReco.h \
@@ -110,7 +110,7 @@ else
   PHG4SvtxDeadArea_Dict.cc \
   PHG4SvtxThresholds_Dict.cc \
   PHG4HoughTransform_Dict.cc \
-  PHG4HoughTransformTPC_Dict.cc \
+  PHG4HoughTransformTpc_Dict.cc \
   PHG4KalmanPatRec_Dict.cc \
   PHRaveVertexing_Dict.cc \
   PHG4InitZVertexing_Dict.cc \
@@ -145,7 +145,7 @@ libg4hough_la_SOURCES = \
   PHG4SvtxDeadArea.cc \
   PHG4SvtxThresholds.cc \
   PHG4HoughTransform.cc \
-  PHG4HoughTransformTPC.cc \
+  PHG4HoughTransformTpc.cc \
   PHG4KalmanPatRec.cc \
   PHRaveVertexing.cc \
   PHG4InitZVertexing.cc \

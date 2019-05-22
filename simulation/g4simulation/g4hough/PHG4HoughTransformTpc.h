@@ -1,8 +1,8 @@
-#ifndef PHG4HOUGHTRANSFORMTPC_H__
-#define PHG4HOUGHTRANSFORMTPC_H__
+#ifndef G4HOUGH_PHG4HOUGHTRANSFORMTPC_H
+#define G4HOUGH_PHG4HOUGHTRANSFORMTPC_H
 
 //===========================================================
-/// \file PHG4HoughTransformTPC.h
+/// \file PHG4HoughTransformTpc.h
 /// \brief A fun4all implementation of Alan's Hough Transform
 /// \author Matt Wysocki (copied from SvxHoughTransform)
 /// go to https://www.phenix.bnl.gov/WWW/offline/wikioffline/index.php/SvxHoughTransform
@@ -35,7 +35,7 @@
 // forward declarations
 class BbcVertexMap;
 class PHCompositeNode;
-class sPHENIXTrackerTPC;
+class sPHENIXTrackerTpc;
 class SvtxClusterMap;
 class SvtxTrack;
 class SvtxTrackMap;
@@ -44,7 +44,7 @@ class SvtxVertexMap;
 class SimpleRecoEvent;
 class TTree;
 
-/// \class PHG4HoughTransformTPC
+/// \class PHG4HoughTransformTpc
 ///
 /// \brief A fun4all implementation of Alan's Hough Transform
 ///
@@ -52,14 +52,14 @@ class TTree;
 /// on the SvxClusterList of the event. It will produce both
 /// SvxTrack and SvxSegments for the time being.
 ///
-class PHG4HoughTransformTPC : public SubsysReco {
+class PHG4HoughTransformTpc : public SubsysReco {
 
 public:
  
-  PHG4HoughTransformTPC(unsigned int seed_layers = 4,
+  PHG4HoughTransformTpc(unsigned int seed_layers = 4,
 		     unsigned int req_seed = 4,
-		     const std::string &name = "PHG4HoughTransformTPC");
-  virtual ~PHG4HoughTransformTPC() {}
+		     const std::string &name = "PHG4HoughTransformTpc");
+  virtual ~PHG4HoughTransformTpc() {}
 		
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -157,7 +157,7 @@ public:
     if (scale > 0.0) {
       _vote_error_scale.at(layer) = scale;
     } else{
-      std::cout << "PHG4HoughTransformTPC::setVoteErrorScale : scale must be "
+      std::cout << "PHG4HoughTransformTpc::setVoteErrorScale : scale must be "
                    "greater than zero ... doing nothing"
 		<< std::endl;
     }
@@ -167,7 +167,7 @@ public:
     if(scale > 0.0) {
       _fit_error_scale.at(layer) = scale;
     } else{
-      std::cout << "PHG4HoughTransformTPC::setFitErrorScale : scale must be "
+      std::cout << "PHG4HoughTransformTpc::setFitErrorScale : scale must be "
                    "greater than zero ... doing nothing"
                 << std::endl;
     }
@@ -330,9 +330,9 @@ public:
   std::vector<float> _vertex;         ///< working array for collision vertex                                           
 
   // track finding routines                                                                                             
-  sPHENIXTrackerTPC *_tracker;    // finds full tracks  
-  sPHENIXTrackerTPC* _tracker_etap_seed; ///< finds a subset of tracks for the vertex guess
-  sPHENIXTrackerTPC* _tracker_etam_seed; ///< finds a subset of tracks for the vertex guess
+  sPHENIXTrackerTpc *_tracker;    // finds full tracks  
+  sPHENIXTrackerTpc* _tracker_etap_seed; ///< finds a subset of tracks for the vertex guess
+  sPHENIXTrackerTpc* _tracker_etam_seed; ///< finds a subset of tracks for the vertex guess
   VertexFinder _vertexFinder; ///< vertex finding object
 
   BbcVertexMap* _bbc_vertexes; 
@@ -350,4 +350,4 @@ public:
 #endif // __CINT__
 };
 
-#endif // __SVXHOUGHTRANSFORMTPC_H__
+#endif // G4HOUGH_PHG4HOUGHTRANSFORMTPC_H

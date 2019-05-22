@@ -1,4 +1,4 @@
-#include "PHG4HoughTransformTPC.h"
+#include "PHG4HoughTransformTpc.h"
 
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -38,7 +38,7 @@
 #include <HelixHough/HelixRange.h>
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/sPHENIXTrackerTPC.h>
+#include <HelixHough/sPHENIXTrackerTpc.h>
 #include <HelixHough/VertexFinder.h>
 
 // ROOT includes
@@ -57,7 +57,7 @@ using namespace std;
 using namespace Eigen;
 
 
-PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned int req_seed, const string &name) :
+PHG4HoughTransformTpc::PHG4HoughTransformTpc(unsigned int seed_layers, unsigned int req_seed, const string &name) :
   SubsysReco(name),
   _nlayers(0),
   _seed_layers(seed_layers), 
@@ -109,15 +109,15 @@ PHG4HoughTransformTPC::PHG4HoughTransformTPC(unsigned int seed_layers, unsigned 
   _g4clusters(NULL),
   _g4tracks(NULL),
   _g4vertexes(NULL),
-  _timer(PHTimeServer::get()->insert_new("PHG4HoughTransformTPC")),
-  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransformTPC::track finding")),
+  _timer(PHTimeServer::get()->insert_new("PHG4HoughTransformTpc")),
+  _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransformTpc::track finding")),
   _write_reco_tree(false),
   _reco_tree(NULL),
   _recoevent(NULL)
 {  
 }
 
-int PHG4HoughTransformTPC::Init(PHCompositeNode *topNode)
+int PHG4HoughTransformTpc::Init(PHCompositeNode *topNode)
 {
   if(_write_reco_tree == true)
   {
@@ -131,12 +131,12 @@ int PHG4HoughTransformTPC::Init(PHCompositeNode *topNode)
 }
 
 
-int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
+int PHG4HoughTransformTpc::InitRun(PHCompositeNode *topNode)
 {
   int code = CreateNodes(topNode);
 
   if (Verbosity() > 0) {
-    cout << "====================== PHG4HoughTransformTPC::InitRun() ======================" << endl;
+    cout << "====================== PHG4HoughTransformTpc::InitRun() ======================" << endl;
     cout << " Magnetic field set to: " << _magField << " Tesla" << endl;
     cout << " Number of tracking layers: " << _nlayers << endl;
     for (int i=0; i<_nlayers; ++i) {
@@ -177,13 +177,13 @@ int PHG4HoughTransformTPC::InitRun(PHCompositeNode *topNode)
   return code;
 }
 
-int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
+int PHG4HoughTransformTpc::process_event(PHCompositeNode *topNode)
 {
-  if(Verbosity()>1000) std::cout << "PHG4HoughTransformTPC::Process_Event" << std::endl;
+  if(Verbosity()>1000) std::cout << "PHG4HoughTransformTpc::Process_Event" << std::endl;
   _timer.get()->restart();
   if(_write_reco_tree==true){ _recoevent->tracks.clear();}
 
-  if(Verbosity() > 0) cout << "PHG4HoughTransformTPC::process_event -- entered" << endl;
+  if(Verbosity() > 0) cout << "PHG4HoughTransformTpc::process_event -- entered" << endl;
 
   _clusters_init.clear();
   _clusters.clear();
@@ -236,11 +236,11 @@ int PHG4HoughTransformTPC::process_event(PHCompositeNode *topNode)
   }
 
   _timer.get()->stop();
-  if(Verbosity()>1000) std::cout << "PHG4HoughTransformTPC::Process_Event DONE" << std::endl;
+  if(Verbosity()>1000) std::cout << "PHG4HoughTransformTpc::Process_Event DONE" << std::endl;
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::End(PHCompositeNode *topNode) {
+int PHG4HoughTransformTpc::End(PHCompositeNode *topNode) {
   
   delete _tracker_etap_seed; _tracker_etap_seed = NULL;
   delete _tracker_etam_seed; _tracker_etam_seed = NULL;
@@ -258,7 +258,7 @@ int PHG4HoughTransformTPC::End(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack* track,
+void PHG4HoughTransformTpc::projectToRadius(const SvtxTrack* track,
                                             double B,
                                             double radius,
                                             std::vector<double>& intersection) {
@@ -298,7 +298,7 @@ void PHG4HoughTransformTPC::projectToRadius(const SvtxTrack* track,
   return;
 }
 
-void PHG4HoughTransformTPC::projectToRadius(const SvtxTrackState* state,
+void PHG4HoughTransformTpc::projectToRadius(const SvtxTrackState* state,
                                             int charge,
                                             double B,
                                             double radius,
@@ -454,12 +454,12 @@ void PHG4HoughTransformTPC::projectToRadius(const SvtxTrackState* state,
   return;
 }
 
-void PHG4HoughTransformTPC::set_material(int layer, float value)
+void PHG4HoughTransformTpc::set_material(int layer, float value)
 {
   _user_material[layer] = value;
 }
 
-int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
+int PHG4HoughTransformTpc::CreateNodes(PHCompositeNode *topNode)
 {
   // create nodes...
   PHNodeIterator iter(topNode);
@@ -494,7 +494,7 @@ int PHG4HoughTransformTPC::CreateNodes(PHCompositeNode *topNode)
   return InitializeGeometry(topNode);
 }
 
-int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
+int PHG4HoughTransformTpc::InitializeGeometry(PHCompositeNode *topNode) {
 
   //---------------------------------------------------------
   // Grab Run-Dependent Detector Geometry and Configure Hough
@@ -682,7 +682,7 @@ int PHG4HoughTransformTPC::InitializeGeometry(PHCompositeNode *topNode) {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::setup_seed_tracker_objects() {
+int PHG4HoughTransformTpc::setup_seed_tracker_objects() {
 
   float kappa_max = ptToKappa(_min_pt);
 
@@ -722,7 +722,7 @@ int PHG4HoughTransformTPC::setup_seed_tracker_objects() {
                         0.0, 0.9,          // dzdl range
                         _min_z0, _max_z0); // dca_z range
 
-  _tracker_etap_seed = new sPHENIXTrackerTPC(zoomprofile, 1, pos_range, _material, _radii, _magField);
+  _tracker_etap_seed = new sPHENIXTrackerTpc(zoomprofile, 1, pos_range, _material, _radii, _magField);
   _tracker_etap_seed->setEndLayer(3); // layers numbered from 0 towards outside
   _tracker_etap_seed->requireLayers(4);
   _tracker_etap_seed->setClusterStartBin(1);
@@ -757,7 +757,7 @@ int PHG4HoughTransformTPC::setup_seed_tracker_objects() {
                         -0.9, 0.0,         // dzdl range
                         _min_z0, _max_z0); // dca_z range
 
-  _tracker_etam_seed = new sPHENIXTrackerTPC(zoomprofile, 1, neg_range, _material, _radii, _magField);
+  _tracker_etam_seed = new sPHENIXTrackerTpc(zoomprofile, 1, neg_range, _material, _radii, _magField);
   _tracker_etam_seed->setEndLayer(3);
   _tracker_etam_seed->requireLayers(4);
   _tracker_etam_seed->setClusterStartBin(1);
@@ -790,7 +790,7 @@ int PHG4HoughTransformTPC::setup_seed_tracker_objects() {
 }
 
 
-int PHG4HoughTransformTPC::setup_tracker_object() {
+int PHG4HoughTransformTpc::setup_tracker_object() {
 
   float kappa_max = ptToKappa(_min_pt);
 
@@ -833,7 +833,7 @@ int PHG4HoughTransformTPC::setup_tracker_object() {
     zoomprofile[4][3] = 2;
     zoomprofile[4][4] = 3;
 
-  _tracker = new sPHENIXTrackerTPC(zoomprofile, 3, top_range, _material, _radii, _magField);
+  _tracker = new sPHENIXTrackerTpc(zoomprofile, 3, top_range, _material, _radii, _magField);
   _tracker->setIterateClustering(true); 
   _tracker->setNLayers(_seed_layers);
   _tracker->requireLayers(_req_seed);
@@ -868,7 +868,7 @@ int PHG4HoughTransformTPC::setup_tracker_object() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::GetNodes(PHCompositeNode *topNode)
+int PHG4HoughTransformTpc::GetNodes(PHCompositeNode *topNode)
 {
   //---------------------------------
   // Get Objects off of the Node Tree
@@ -903,7 +903,7 @@ int PHG4HoughTransformTPC::GetNodes(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::translate_input(){
+int PHG4HoughTransformTpc::translate_input(){
 
   for (SvtxClusterMap::Iter iter = _g4clusters->begin();
        iter != _g4clusters->end();
@@ -968,7 +968,7 @@ int PHG4HoughTransformTPC::translate_input(){
 
   if (Verbosity() > 20) {
     cout << "-------------------------------------------------------------------" << endl;
-    cout << "PHG4HoughTransformTPC::process_event has the following input clusters:" << endl;
+    cout << "PHG4HoughTransformTpc::process_event has the following input clusters:" << endl;
 
     if (!_clusters_init.empty()) {
       for (unsigned int i = 0; i < _clusters_init.size(); ++i) {
@@ -988,7 +988,7 @@ int PHG4HoughTransformTPC::translate_input(){
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::initial_zvertex_finding() {
+int PHG4HoughTransformTpc::initial_zvertex_finding() {
 
   // fast vertex guessing uses two tracker objects
   // one looks for postive going eta tracks, the other for negative going tracks
@@ -1091,7 +1091,7 @@ int PHG4HoughTransformTPC::initial_zvertex_finding() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
+int PHG4HoughTransformTpc::full_tracking_and_vertexing() {
 
   float shift_dx = -_vertex[0];
   float shift_dy = -_vertex[1];
@@ -1151,7 +1151,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
   // reset it here
   if (Verbosity() > 0){ 
     cout << " final track count, 2nd pass: " << _tracks.size() << endl;
-    cout<< "PHG4HoughTransformTPC::process_event -- calculating final vertex" << endl;
+    cout<< "PHG4HoughTransformTpc::process_event -- calculating final vertex" << endl;
   }
 
   if (!_tracks.empty()) {
@@ -1204,7 +1204,7 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
 
   if(Verbosity() > 0)
   {
-    cout << "PHG4HoughTransformTPC::process_event -- final vertex: " 
+    cout << "PHG4HoughTransformTpc::process_event -- final vertex: " 
 	 << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   }
 
@@ -1242,11 +1242,11 @@ int PHG4HoughTransformTPC::full_tracking_and_vertexing() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4HoughTransformTPC::export_output() {
+int PHG4HoughTransformTpc::export_output() {
 
   if(Verbosity() > 0)
   {
-    cout << "PHG4HoughTransformTPC::process_event -- producing PHG4Track objects..." << endl;
+    cout << "PHG4HoughTransformTpc::process_event -- producing PHG4Track objects..." << endl;
   }
   SvtxVertex_v1 vertex;
   vertex.set_t0(0.0);
@@ -1391,15 +1391,15 @@ int PHG4HoughTransformTPC::export_output() {
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-float PHG4HoughTransformTPC::kappaToPt(float kappa) {
+float PHG4HoughTransformTpc::kappaToPt(float kappa) {
   return _pt_rescale * _magField / 333.6 / kappa;
 }
 
-float PHG4HoughTransformTPC::ptToKappa(float pt) {
+float PHG4HoughTransformTpc::ptToKappa(float pt) {
   return _pt_rescale * _magField / 333.6 / pt;
 }
 
-void PHG4HoughTransformTPC::convertHelixCovarianceToEuclideanCovariance( 
+void PHG4HoughTransformTpc::convertHelixCovarianceToEuclideanCovariance( 
      float B, float phi, float d, float kappa, float z0, float dzdl, 
      Eigen::Matrix<float,5,5> const& input, 
      Eigen::Matrix<float,6,6>& output ){
@@ -1440,7 +1440,7 @@ void PHG4HoughTransformTPC::convertHelixCovarianceToEuclideanCovariance(
   output = J*input*(J.transpose());
 }
 
-void PHG4HoughTransformTPC::shift_coordinate_system(double dx,
+void PHG4HoughTransformTpc::shift_coordinate_system(double dx,
                                                  double dy,
                                                  double dz) {
 
@@ -1465,7 +1465,7 @@ void PHG4HoughTransformTPC::shift_coordinate_system(double dx,
   return;
 }
 
-bool PHG4HoughTransformTPC::circle_line_intersections(double x0, double y0, double r0,
+bool PHG4HoughTransformTpc::circle_line_intersections(double x0, double y0, double r0,
 						      double x1, double y1, double vx1, double vy1,
 						      std::set<std::vector<double> >* points) {
   // P0: center of rotation
@@ -1508,7 +1508,7 @@ bool PHG4HoughTransformTPC::circle_line_intersections(double x0, double y0, doub
   return true;
 }
   
-bool PHG4HoughTransformTPC::circle_circle_intersections(double x0, double y0, double r0,
+bool PHG4HoughTransformTpc::circle_circle_intersections(double x0, double y0, double r0,
 							double x1, double y1, double r1,
 							std::set<std::vector<double> >* points) {
   // P0: center of rotation on first circle
@@ -1558,7 +1558,7 @@ bool PHG4HoughTransformTPC::circle_circle_intersections(double x0, double y0, do
   return points;  
 }
 
-int PHG4HoughTransformTPC::fast_vertex_from_bbc() {
+int PHG4HoughTransformTpc::fast_vertex_from_bbc() {
   
   // fail over to bbc vertex if no tracks were found...
   if (_bbc_vertexes) {
