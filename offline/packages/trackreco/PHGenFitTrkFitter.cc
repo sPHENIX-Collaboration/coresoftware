@@ -31,7 +31,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 //
-#include <intt/CylinderGeomINTT.h>
+#include <intt/CylinderGeomIntt.h>
 #include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4main/PHG4Hit.h>
@@ -1103,13 +1103,13 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
       }
     else if(trkrid == TrkrDefs::inttId)
       {
-	CylinderGeomINTT* geom =
-          dynamic_cast<CylinderGeomINTT*>(geom_container_intt->GetLayerGeom(layer));
+	CylinderGeomIntt* geom =
+          dynamic_cast<CylinderGeomIntt*>(geom_container_intt->GetLayerGeom(layer));
 	double hit_location[3] = {0.0, 0.0, 0.0};	
 	geom->find_segment_center(InttDefs::getLadderZId(cluster_key),
 				  InttDefs::getLadderPhiId(cluster_key), hit_location);
 
-	//cout << " INTT strip phi tilt = " <<  geom->get_strip_phi_tilt()  
+	//cout << " Intt strip phi tilt = " <<  geom->get_strip_phi_tilt()  
 	//   << " seg.X " << hit_location[0] << " seg.Y " << hit_location[1] << " seg.Z " << hit_location[2] << endl;
 	n.SetXYZ(hit_location[0], hit_location[1], 0);
 	n.RotateZ(geom->get_strip_phi_tilt());

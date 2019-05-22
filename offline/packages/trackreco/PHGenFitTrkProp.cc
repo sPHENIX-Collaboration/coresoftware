@@ -40,7 +40,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 //
 
-#include <intt/CylinderGeomINTT.h>
+#include <intt/CylinderGeomIntt.h>
 #include <intt/InttDefs.h>
 
 #include <mvtx/CylinderGeom_MVTX.h>
@@ -1461,8 +1461,8 @@ PHGenFit::Measurement* PHGenFitTrkProp::TrkrClusterToPHGenFitMeasurement(
     }
   else if(trkrid == TrkrDefs::inttId)
     {
-      CylinderGeomINTT* geom =
-	dynamic_cast<CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(layer));
+      CylinderGeomIntt* geom =
+	dynamic_cast<CylinderGeomIntt*>(_geom_container_intt->GetLayerGeom(layer));
       double hit_location[3] = {0.0, 0.0, 0.0};
       geom->find_segment_center(InttDefs::getLadderZId(cluster_id),
 				InttDefs::getLadderPhiId(cluster_id), hit_location);
