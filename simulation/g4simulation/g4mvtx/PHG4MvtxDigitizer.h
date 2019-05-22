@@ -16,11 +16,11 @@
 #include <gsl/gsl_rng.h>
 #endif
 
-class PHG4MVTXDigitizer : public SubsysReco
+class PHG4MvtxDigitizer : public SubsysReco
 {
  public:
-  PHG4MVTXDigitizer(const std::string &name = "PHG4MVTXDigitizer");
-  virtual ~PHG4MVTXDigitizer();
+  PHG4MvtxDigitizer(const std::string &name = "PHG4MvtxDigitizer");
+  virtual ~PHG4MvtxDigitizer();
 
   //! module initialization
   int Init(PHCompositeNode *topNode) { return 0; }

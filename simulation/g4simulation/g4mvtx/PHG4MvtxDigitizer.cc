@@ -1,6 +1,6 @@
 // This is the new trackbase container version
 
-#include "PHG4MVTXDigitizer.h"
+#include "PHG4MvtxDigitizer.h"
 
 #include <g4main/PHG4Hit.h>
 
@@ -34,7 +34,7 @@
 
 using namespace std;
 
-PHG4MVTXDigitizer::PHG4MVTXDigitizer(const string &name)
+PHG4MvtxDigitizer::PHG4MvtxDigitizer(const string &name)
   : SubsysReco(name)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -43,15 +43,15 @@ PHG4MVTXDigitizer::PHG4MVTXDigitizer(const string &name)
   gsl_rng_set(RandomGenerator, seed);
 
   if (Verbosity() > 0)
-    cout << "Creating PHG4MVTXDigitizer with name = " << name << endl;
+    cout << "Creating PHG4MvtxDigitizer with name = " << name << endl;
 }
 
-PHG4MVTXDigitizer::~PHG4MVTXDigitizer()
+PHG4MvtxDigitizer::~PHG4MvtxDigitizer()
 {
   gsl_rng_free(RandomGenerator);
 }
 
-int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4MvtxDigitizer::InitRun(PHCompositeNode *topNode)
 {
   //-------------
   // Add Hit Node
@@ -74,7 +74,7 @@ int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4MVTXDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4MvtxDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
          ++iter)
@@ -93,7 +93,7 @@ int PHG4MVTXDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4MVTXDigitizer::process_event(PHCompositeNode *topNode)
+int PHG4MvtxDigitizer::process_event(PHCompositeNode *topNode)
 {
   // This code now only does the Mvtx
   DigitizeMvtxLadderCells(topNode);
@@ -101,7 +101,7 @@ int PHG4MVTXDigitizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4MVTXDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode)
+void PHG4MvtxDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode)
 {
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
@@ -140,7 +140,7 @@ void PHG4MVTXDigitizer::CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode
   return;
 }
 
-void PHG4MVTXDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
+void PHG4MvtxDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
 {
   //----------
   // Get Nodes
@@ -158,7 +158,7 @@ void PHG4MVTXDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
 
   // Digitization
 
-  // We want all hitsets for the MVTX
+  // We want all hitsets for the Mvtx
   TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::mvtxId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
        hitset_iter != hitset_range.second;
@@ -168,7 +168,7 @@ void PHG4MVTXDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
     // get the hitset key so we can find the layer
     TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
     int layer = TrkrDefs::getLayer(hitsetkey);
-    if (Verbosity() > 1) cout << "PHG4MVTXDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+    if (Verbosity() > 1) cout << "PHG4MvtxDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
 
     // get all of the hits from this hitset
     TrkrHitSet *hitset = hitset_iter->second;
@@ -184,7 +184,7 @@ void PHG4MVTXDigitizer::DigitizeMvtxLadderCells(PHCompositeNode *topNode)
       if (adc > _max_adc[layer]) adc = _max_adc[layer];
       hit->setAdc(adc);
 
-      if (Verbosity() > 0) cout << "    PHG4MVTXDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << endl;
+      if (Verbosity() > 0) cout << "    PHG4MvtxDigitizer: found hit with key: " << hit_iter->first << " and signal " << hit->getEnergy() << " and adc " << adc << endl;
     }
   }
 

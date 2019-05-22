@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 // -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4MVTXDISPLAYACTION_H
-#define G4DETECTORS_PHG4MVTXDISPLAYACTION_H
+#ifndef G4MVTX_PHG4MVTXDISPLAYACTION_H
+#define G4MVTX_PHG4MVTXDISPLAYACTION_H
 
 #include <g4main/PHG4DisplayAction.h>
 
@@ -13,12 +13,12 @@ class G4VisAttributes;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 
-class PHG4MVTXDisplayAction : public PHG4DisplayAction
+class PHG4MvtxDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4MVTXDisplayAction(const std::string &name);
+  PHG4MvtxDisplayAction(const std::string &name);
 
-  virtual ~PHG4MVTXDisplayAction();
+  virtual ~PHG4MvtxDisplayAction();
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }
@@ -28,4 +28,4 @@ class PHG4MVTXDisplayAction : public PHG4DisplayAction
   std::vector<G4VisAttributes *> m_VisAttVec;
 };
 
-#endif  // G4DETECTORS_PHG4MVTXDISPLAYACTION_H
+#endif  // G4MVTX_PHG4MVTXDISPLAYACTION_H

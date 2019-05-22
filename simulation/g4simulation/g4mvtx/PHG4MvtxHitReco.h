@@ -1,5 +1,5 @@
-#ifndef PHG4MVTXHITRECO_H
-#define PHG4MVTXHITRECO_H
+#ifndef G4MVTX_PHG4MVTXHITRECO_H
+#define G4MVTX_PHG4MVTXHITRECO_H
 
 #include <phparameter/PHParameterContainerInterface.h>
 
@@ -12,12 +12,12 @@
 
 class PHCompositeNode;
 
-class PHG4MVTXHitReco : public SubsysReco, public PHParameterContainerInterface
+class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
 {
  public:
-  explicit PHG4MVTXHitReco(const std::string &name = "MVTXRECO");
+  explicit PHG4MvtxHitReco(const std::string &name = "PHG4MvtxRECO");
 
-  virtual ~PHG4MVTXHitReco() {}
+  virtual ~PHG4MvtxHitReco() {}
 
   //! module initialization
   int InitRun(PHCompositeNode *topNode);

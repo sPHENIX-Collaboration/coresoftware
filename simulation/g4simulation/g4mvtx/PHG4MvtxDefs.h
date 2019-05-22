@@ -3,7 +3,7 @@
 #ifndef G4MVTX_PHG4MVTXDEFS_H
 #define G4MVTX_PHG4MVTXDEFS_H
 
-namespace PHG4MVTXDefs
+namespace PHG4MvtxDefs
 {
 static const int GLOBAL = -1;
 static const int ALPIDE_SEGMENTATION = -2;
@@ -12,6 +12,6 @@ static const int ALPIDE_SEGMENTATION = -2;
 
 // detid of support structures
 
-};  // namespace PHG4MVTXDefs
+};  // namespace PHG4MvtxDefs
 
 #endif

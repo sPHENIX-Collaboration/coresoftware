@@ -1,4 +1,4 @@
-#include "PHG4MVTXDisplayAction.h"
+#include "PHG4MvtxDisplayAction.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -11,12 +11,12 @@
 
 using namespace std;
 
-PHG4MVTXDisplayAction::PHG4MVTXDisplayAction(const std::string &name)
+PHG4MvtxDisplayAction::PHG4MvtxDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
 }
 
-PHG4MVTXDisplayAction::~PHG4MVTXDisplayAction()
+PHG4MvtxDisplayAction::~PHG4MvtxDisplayAction()
 {
   for (auto &it : m_VisAttVec)
   {
@@ -25,7 +25,7 @@ PHG4MVTXDisplayAction::~PHG4MVTXDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4MVTXDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4MvtxDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

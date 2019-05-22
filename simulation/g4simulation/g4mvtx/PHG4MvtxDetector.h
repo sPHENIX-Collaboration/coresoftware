@@ -15,26 +15,26 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4MVTXDisplayAction;
-class PHG4MVTXSubsystem;
+class PHG4MvtxDisplayAction;
+class PHG4MvtxSubsystem;
 class PHParameters;
 class PHParametersContainer;
 
-class PHG4MVTXDetector : public PHG4Detector
+class PHG4MvtxDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4MVTXDetector(PHG4MVTXSubsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
+  PHG4MvtxDetector(PHG4MvtxSubsystem* subsys, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam = "MVTX");
 
   //! destructor
-  virtual ~PHG4MVTXDetector() {}
+  virtual ~PHG4MvtxDetector() {}
 
   //! construct
   virtual void Construct(G4LogicalVolume* world);
 
   //!@name volume accessors
   //@{
-  int IsInMVTX(G4VPhysicalVolume*, int& layer, int& stave) const;
+  int IsInMvtx(G4VPhysicalVolume*, int& layer, int& stave) const;
   int IsSensor(G4VPhysicalVolume*) const;
   //@}
 
@@ -51,8 +51,8 @@ class PHG4MVTXDetector : public PHG4Detector
 
  private:
   void AddGeometryNode();
-  int ConstructMVTX(G4LogicalVolume* sandwich);
-  int ConstructMVTX_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
+  int ConstructMvtx(G4LogicalVolume* sandwich);
+  int ConstructMvtx_Layer(int layer, G4AssemblyVolume* stave, G4LogicalVolume*& trackerenvelope);
   void SetDisplayProperty(G4AssemblyVolume* av);
   void SetDisplayProperty(G4LogicalVolume* lv);
   void FillPVArray(G4AssemblyVolume* av);
@@ -61,7 +61,7 @@ class PHG4MVTXDetector : public PHG4Detector
   double get_phistep(int lay) const { return 2.0 * M_PI /  m_N_staves[lay]; }
 
   static constexpr int n_Layers = 3;
-  PHG4MVTXDisplayAction* m_DisplayAction;
+  PHG4MvtxDisplayAction* m_DisplayAction;
   const PHParametersContainer* m_ParamsContainer;
 
   // map of sensor physical volume pointers

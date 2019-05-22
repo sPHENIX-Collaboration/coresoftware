@@ -1,9 +1,9 @@
-#include "PHG4MVTXSubsystem.h"
+#include "PHG4MvtxSubsystem.h"
 
-#include "PHG4MVTXDefs.h"
-#include "PHG4MVTXDetector.h"
-#include "PHG4MVTXDisplayAction.h"
-#include "PHG4MVTXSteppingAction.h"
+#include "PHG4MvtxDefs.h"
+#include "PHG4MvtxDetector.h"
+#include "PHG4MvtxDisplayAction.h"
+#include "PHG4MvtxSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -20,7 +20,7 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int _n_layers)
+PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layers)
   : PHG4DetectorGroupSubsystem(name)
   , m_Detector(nullptr)
   , steppingAction_(nullptr)
@@ -40,29 +40,29 @@ PHG4MVTXSubsystem::PHG4MVTXSubsystem(const std::string& name, const int _n_layer
 }
 
 //_______________________________________________________________________
-PHG4MVTXSubsystem::~PHG4MVTXSubsystem()
+PHG4MvtxSubsystem::~PHG4MvtxSubsystem()
 {
   delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
-int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
+int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0)
-    cout << "PHG4MVTXSubsystem::Init started" << endl;
+    cout << "PHG4MvtxSubsystem::Init started" << endl;
 
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create display settings before detector (detector adds its volumes to it)
-  m_DisplayAction = new PHG4MVTXDisplayAction(Name());
+  m_DisplayAction = new PHG4MvtxDisplayAction(Name());
   // create detector
   // These values are set from the calling macro using the setters defined in the .h file
   if (Verbosity())
   {
-    cout << "    create MVTX detector with " << n_layers << " layers." << endl;
+    cout << "    create Mvtx detector with " << n_layers << " layers." << endl;
   }
-  m_Detector = new PHG4MVTXDetector(this, topNode, GetParamsContainer(), Name());
+  m_Detector = new PHG4MvtxDetector(this, topNode, GetParamsContainer(), Name());
   m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(detector_type);
@@ -140,20 +140,20 @@ int PHG4MVTXSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     }
 
     // create stepping action
-    steppingAction_ = new PHG4MVTXSteppingAction(m_Detector);
+    steppingAction_ = new PHG4MvtxSteppingAction(m_Detector);
   }
   else
   {
     if (blackhole)
     {
-      steppingAction_ = new PHG4MVTXSteppingAction(m_Detector);
+      steppingAction_ = new PHG4MvtxSteppingAction(m_Detector);
     }
   }
   return 0;
 }
 
 //_______________________________________________________________________
-int PHG4MVTXSubsystem::process_event(PHCompositeNode* topNode)
+int PHG4MvtxSubsystem::process_event(PHCompositeNode* topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -165,20 +165,20 @@ int PHG4MVTXSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* PHG4MVTXSubsystem::GetDetector(void) const
+PHG4Detector* PHG4MvtxSubsystem::GetDetector(void) const
 {
   return m_Detector;
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4MVTXSubsystem::GetSteppingAction(void) const
+PHG4SteppingAction* PHG4MvtxSubsystem::GetSteppingAction(void) const
 {
   return steppingAction_;
 }
 
-void PHG4MVTXSubsystem::SetDefaultParameters()
+void PHG4MvtxSubsystem::SetDefaultParameters()
 {
-  //TODO: Move to defMVTX at some point
+  //TODO: Move to defMvtx at some point
   const int kNLr = 3;
   enum
   {
@@ -208,8 +208,8 @@ void PHG4MVTXSubsystem::SetDefaultParameters()
 
     set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
   }
-  set_default_string_param(PHG4MVTXDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
-  set_default_double_param(PHG4MVTXDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
-  set_default_double_param(PHG4MVTXDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
-  set_default_double_param(PHG4MVTXDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
+  set_default_string_param(PHG4MvtxDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
+  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
+  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
+  set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
 }

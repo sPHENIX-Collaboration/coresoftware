@@ -5,19 +5,19 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
-class PHG4MVTXDetector;
+class PHG4MvtxDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
 
-class PHG4MVTXSteppingAction : public PHG4SteppingAction
+class PHG4MvtxSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4MVTXSteppingAction(PHG4MVTXDetector *);
+  PHG4MvtxSteppingAction(PHG4MvtxDetector *);
 
   //! destroctor
-  virtual ~PHG4MVTXSteppingAction();
+  virtual ~PHG4MvtxSteppingAction();
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step *, bool);
@@ -27,7 +27,7 @@ class PHG4MVTXSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4MVTXDetector *m_Detector;
+  PHG4MvtxDetector *m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer *m_HitContainer;

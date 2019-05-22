@@ -5,18 +5,18 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
-class PHG4MVTXDetector;
-class PHG4MVTXSteppingAction;
+class PHG4MvtxDetector;
+class PHG4MvtxSteppingAction;
 class PHG4DisplayAction;
 
-class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
+class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
 {
  public:
   //! constructor
-  PHG4MVTXSubsystem(const std::string& name = "MVTX", const int _n_layers = 3);
+  PHG4MvtxSubsystem(const std::string& name = "PHG4MvtxSubsystem", const int _n_layers = 3);
 
   //! destructor
-  virtual ~PHG4MVTXSubsystem();
+  virtual ~PHG4MvtxSubsystem();
 
   //! InitRunSubsystem
   /*!
@@ -45,11 +45,11 @@ class PHG4MVTXSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4MVTXDetector* m_Detector;
+  PHG4MvtxDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4MVTXSteppingAction* steppingAction_;
+  PHG4MvtxSteppingAction* steppingAction_;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
