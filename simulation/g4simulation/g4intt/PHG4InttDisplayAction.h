@@ -13,12 +13,12 @@ class G4VisAttributes;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 
-class PHG4INTTDisplayAction : public PHG4DisplayAction
+class PHG4InttDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4INTTDisplayAction(const std::string &name);
+  PHG4InttDisplayAction(const std::string &name);
 
-  virtual ~PHG4INTTDisplayAction();
+  virtual ~PHG4InttDisplayAction();
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
   void AddVolume(G4LogicalVolume *logvol, const std::string &mat) { m_LogicalVolumeMap[logvol] = mat; }

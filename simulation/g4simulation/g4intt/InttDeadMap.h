@@ -6,24 +6,24 @@
 #include <phool/PHObject.h>
 #include <set>
 
-class INTTDeadMap : public PHObject
+class InttDeadMap : public PHObject
 {
  public:
   typedef std::set<PHG4CellDefs::keytype> Map;
 
-  virtual ~INTTDeadMap() {}
+  virtual ~InttDeadMap() {}
   virtual void Reset() {}
   virtual int isValid() const;
 
   virtual void identify(std::ostream &os = std::cout) const;
 
-  void addDeadChannelINTT(const int layer,
+  void addDeadChannelIntt(const int layer,
                           const int ladder_phi, const int ladder_z,
                           const int strip_z, const int strip_phi);
   virtual void addDeadChannel(PHG4CellDefs::keytype key) {return;}
 
   virtual bool isDeadChannel(PHG4CellDefs::keytype key) const {return false;}
-  bool isDeadChannelINTT(const int layer,
+  bool isDeadChannelIntt(const int layer,
                          const int ladder_phi, const int ladder_z,
                          const int strip_z, const int strip_phi) const;
 
@@ -33,21 +33,21 @@ class INTTDeadMap : public PHObject
 
   virtual unsigned int size() const { return 0; }
 
-  static PHG4CellDefs::keytype getINTTKey(int layer,
+  static PHG4CellDefs::keytype getInttKey(int layer,
                                           int ladder_phi, int ladder_z,
                                           int strip_z, int strip_phi);
 
   static int getWildCardID() { return s_wildCardID; }
 
  protected:
-  INTTDeadMap()
+  InttDeadMap()
   {
   }
 
  private:
   static int s_wildCardID;
 
-  ClassDef(INTTDeadMap, 1)
+  ClassDef(InttDeadMap, 1)
 };
 
 #endif /* G4INTT_INTTDEADMAP_H */

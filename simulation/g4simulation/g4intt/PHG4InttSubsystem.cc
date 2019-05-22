@@ -1,8 +1,8 @@
-#include "PHG4INTTSubsystem.h"
-#include "PHG4INTTDefs.h"
-#include "PHG4INTTDetector.h"
-#include "PHG4INTTDisplayAction.h"
-#include "PHG4INTTSteppingAction.h"
+#include "PHG4InttSubsystem.h"
+#include "PHG4InttDefs.h"
+#include "PHG4InttDetector.h"
+#include "PHG4InttDisplayAction.h"
+#include "PHG4InttSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -19,7 +19,7 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4INTTSubsystem::PHG4INTTSubsystem(const std::string &detectorname, const vpair &layerconfig)
+PHG4InttSubsystem::PHG4InttSubsystem(const std::string &detectorname, const vpair &layerconfig)
   : PHG4DetectorGroupSubsystem(detectorname)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
@@ -39,34 +39,34 @@ PHG4INTTSubsystem::PHG4INTTSubsystem(const std::string &detectorname, const vpai
   SuperDetector(detectorname);
 }
 
-PHG4INTTSubsystem::~PHG4INTTSubsystem()
+PHG4InttSubsystem::~PHG4InttSubsystem()
 {
   delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
-int PHG4INTTSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
+int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    std::cout << "PHG4INTTSubsystem::Init started" << std::endl;
+    std::cout << "PHG4InttSubsystem::Init started" << std::endl;
   }
 
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create display settings before detector (detector adds its volumes to it)
-  m_DisplayAction = new PHG4INTTDisplayAction(Name());
+  m_DisplayAction = new PHG4InttDisplayAction(Name());
   // create detector
   pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> layer_begin_end = make_pair(m_LayerConfigVector.begin(), m_LayerConfigVector.end());
-  m_Detector = new PHG4INTTDetector(this, topNode, GetParamsContainer(), Name(), layer_begin_end);
+  m_Detector = new PHG4InttDetector(this, topNode, GetParamsContainer(), Name(), layer_begin_end);
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(m_DetectorType);
   m_Detector->OverlapCheck(CheckOverlap());
 
   int active = 0;
   // initialize with support active flag (if support is active we need the absorber hit node)
-  int absorberactive = GetParamsContainer()->GetParameters(PHG4INTTDefs::SUPPORTPARAMS)->get_int_param("supportactive");
+  int absorberactive = GetParamsContainer()->GetParameters(PHG4InttDefs::SUPPORTPARAMS)->get_int_param("supportactive");
   int blackhole = 0;
   for (set<int>::const_iterator parcontaineriter = GetDetIds().first; parcontaineriter != GetDetIds().second; ++parcontaineriter)
   {
@@ -111,13 +111,13 @@ int PHG4INTTSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     // create stepping action
-    m_SteppingAction = new PHG4INTTSteppingAction(m_Detector, GetParamsContainer(), layer_begin_end);
+    m_SteppingAction = new PHG4InttSteppingAction(m_Detector, GetParamsContainer(), layer_begin_end);
   }
   else
   {
     if (blackhole)
     {
-      m_SteppingAction = new PHG4INTTSteppingAction(m_Detector, GetParamsContainer(), layer_begin_end);
+      m_SteppingAction = new PHG4InttSteppingAction(m_Detector, GetParamsContainer(), layer_begin_end);
     }
   }
 
@@ -125,7 +125,7 @@ int PHG4INTTSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-int PHG4INTTSubsystem::process_event(PHCompositeNode *topNode)
+int PHG4InttSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -138,12 +138,12 @@ int PHG4INTTSubsystem::process_event(PHCompositeNode *topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4INTTSubsystem::GetDetector(void) const
+PHG4Detector *PHG4InttSubsystem::GetDetector(void) const
 {
   return m_Detector;
 }
 
-void PHG4INTTSubsystem::SetDefaultParameters()
+void PHG4InttSubsystem::SetDefaultParameters()
 {
   // We have only two types of ladders, one with vertical strips (SEGMENTATION_Z) and one with horizontal strips (SEGMENTATION_PHI)
   // There are 4 sensors in each ladder
@@ -153,14 +153,14 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
   // We define default ladder types for 8 layers, but these can be changed at the macro level
 
-  int laddertype[8] = {PHG4INTTDefs::SEGMENTATION_Z,
-                       PHG4INTTDefs::SEGMENTATION_Z,
-                       PHG4INTTDefs::SEGMENTATION_PHI,
-                       PHG4INTTDefs::SEGMENTATION_PHI,
-                       PHG4INTTDefs::SEGMENTATION_PHI,
-                       PHG4INTTDefs::SEGMENTATION_PHI,
-                       PHG4INTTDefs::SEGMENTATION_PHI,
-                       PHG4INTTDefs::SEGMENTATION_PHI};                                    // default
+  int laddertype[8] = {PHG4InttDefs::SEGMENTATION_Z,
+                       PHG4InttDefs::SEGMENTATION_Z,
+                       PHG4InttDefs::SEGMENTATION_PHI,
+                       PHG4InttDefs::SEGMENTATION_PHI,
+                       PHG4InttDefs::SEGMENTATION_PHI,
+                       PHG4InttDefs::SEGMENTATION_PHI,
+                       PHG4InttDefs::SEGMENTATION_PHI,
+                       PHG4InttDefs::SEGMENTATION_PHI};                                    // default
   int nladder[8] = {17, 17, 15, 15, 18, 18, 21, 21};                                       // default
   double sensor_radius[8] = {6.876, 7.462, 8.987, 9.545, 10.835, 11.361, 12.676, 13.179};  // radius of center of sensor for layer default
 
@@ -180,7 +180,7 @@ void PHG4INTTSubsystem::SetDefaultParameters()
 
   // These are the parameters that describe the internal ladder geometry for the two ladder types
   {  // just being lazy, using namespace in this scope for less clutter
-    using namespace PHG4INTTDefs;
+    using namespace PHG4InttDefs;
     set_default_int_param(SEGMENTATION_Z, "nstrips_phi_cell", 1);
     set_default_int_param(SEGMENTATION_Z, "nstrips_phi_sensor", 1);
     set_default_int_param(SEGMENTATION_Z, "nstrips_z_sensor_0", 128 * 5);
@@ -311,7 +311,7 @@ void PHG4INTTSubsystem::SetDefaultParameters()
   return;
 }
 
-void PHG4INTTSubsystem::Print(const string &what) const
+void PHG4InttSubsystem::Print(const string &what) const
 {
   PrintDefaultParams();
   cout << endl

@@ -13,11 +13,11 @@
 #include <gsl/gsl_rng.h>
 #endif
 
-class PHG4INTTDigitizer : public SubsysReco, public PHParameterInterface
+class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4INTTDigitizer(const std::string &name = "PHG4INTTDigitizer");
-  virtual ~PHG4INTTDigitizer();
+  PHG4InttDigitizer(const std::string &name = "PHG4InttDigitizer");
+  virtual ~PHG4InttDigitizer();
 
   //! run initialization
   int InitRun(PHCompositeNode *topNode);

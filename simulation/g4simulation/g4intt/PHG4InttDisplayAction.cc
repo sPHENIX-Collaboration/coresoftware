@@ -1,4 +1,4 @@
-#include "PHG4INTTDisplayAction.h"
+#include "PHG4InttDisplayAction.h"
 
 #include <g4main/PHG4Utils.h>
 
@@ -13,12 +13,12 @@
 
 using namespace std;
 
-PHG4INTTDisplayAction::PHG4INTTDisplayAction(const std::string &name)
+PHG4InttDisplayAction::PHG4InttDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
 }
 
-PHG4INTTDisplayAction::~PHG4INTTDisplayAction()
+PHG4InttDisplayAction::~PHG4InttDisplayAction()
 {
   for (auto &it : m_VisAttVec)
   {
@@ -27,7 +27,7 @@ PHG4INTTDisplayAction::~PHG4INTTDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4INTTDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4InttDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)

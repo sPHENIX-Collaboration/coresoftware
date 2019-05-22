@@ -3,7 +3,7 @@
 #ifndef G4INTT_PHG4INTTDETECTOR_H
 #define G4INTT_PHG4INTTDETECTOR_H
 
-#include "PHG4INTTDefs.h"
+#include "PHG4InttDefs.h"
 
 #include <g4main/PHG4Detector.h>
 
@@ -14,24 +14,24 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class PHG4INTTDisplayAction;
-class PHG4INTTSubsystem;
+class PHG4InttDisplayAction;
+class PHG4InttSubsystem;
 class PHParametersContainer;
 
-class PHG4INTTDetector : public PHG4Detector
+class PHG4InttDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4INTTDetector(PHG4INTTSubsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
+  PHG4InttDetector(PHG4InttSubsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
-  virtual ~PHG4INTTDetector() {}
+  virtual ~PHG4InttDetector() {}
   //! construct
   virtual void Construct(G4LogicalVolume *world);
 
   //!@name volume accessors
   //@{
-  int IsInINTT(G4VPhysicalVolume *) const;
+  int IsInIntt(G4VPhysicalVolume *) const;
   //@}
 
   void SuperDetector(const std::string &name)
@@ -56,9 +56,9 @@ class PHG4INTTDetector : public PHG4Detector
 
  private:
   void AddGeometryNode();
-  int ConstructINTT(G4LogicalVolume *sandwich);
+  int ConstructIntt(G4LogicalVolume *sandwich);
 
-  PHG4INTTDisplayAction* m_DisplayAction;
+  PHG4InttDisplayAction* m_DisplayAction;
   PHParametersContainer *m_ParamsContainer;
 
   std::string m_DetectorType;

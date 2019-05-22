@@ -1,6 +1,6 @@
-#include "PHG4INTTHitReco.h"
+#include "PHG4InttHitReco.h"
 
-#include <intt/CylinderGeomINTT.h>
+#include <intt/CylinderGeomIntt.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -34,7 +34,7 @@
 
 using namespace std;
 
-PHG4INTTHitReco::PHG4INTTHitReco(const std::string &name)
+PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_ChkEnergyConservationFlag(0)
@@ -52,14 +52,14 @@ PHG4INTTHitReco::PHG4INTTHitReco(const std::string &name)
   m_SegmentVec = gsl_vector_alloc(3);
 }
 
-PHG4INTTHitReco::~PHG4INTTHitReco()
+PHG4InttHitReco::~PHG4InttHitReco()
 {
   gsl_vector_free(m_LocalOutVec);
   gsl_vector_free(m_PathVec);
   gsl_vector_free(m_SegmentVec);
 }
 
-int PHG4INTTHitReco::InitRun(PHCompositeNode *topNode)
+int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -170,7 +170,7 @@ TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(t
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
+int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, m_HitNodeName);
   if (!g4hit)
@@ -204,12 +204,12 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
 
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
-  if (Verbosity() > 2) cout << " PHG4INTTHitReco: Loop over hits" << endl;
+  if (Verbosity() > 2) cout << " PHG4InttHitReco: Loop over hits" << endl;
   PHG4HitContainer::ConstRange hit_begin_end = g4hit->getHits();
   for (PHG4HitContainer::ConstIterator hiter = hit_begin_end.first; hiter != hit_begin_end.second; ++hiter)
   {
     const int sphxlayer = hiter->second->get_detid();
-    CylinderGeomINTT *layergeom = dynamic_cast<CylinderGeomINTT *>(geo->GetLayerGeom(sphxlayer));
+    CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geo->GetLayerGeom(sphxlayer));
 
     // checking ADC timing integration window cut
     // uses default values for now
@@ -219,7 +219,7 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
     if (hiter->second->get_t(1) < m_Tmin)
       continue;
 
-    // I made this (small) diffusion up for now, we will get actual values for the INTT later
+    // I made this (small) diffusion up for now, we will get actual values for the Intt later
     double diffusion_width = 5.0e-04;  // diffusion radius 5 microns, in cm
 
     const int ladder_z_index = hiter->second->get_ladder_z_index();
@@ -376,9 +376,9 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
 
     for (unsigned int i1 = 0; i1 < vybin.size(); i1++)  // loop over all fired cells
     {
-      // We add the INTT TrkrHitsets directly to the node using hitsetcontainer
+      // We add the Intt TrkrHitsets directly to the node using hitsetcontainer
 
-      // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the INTT ?
+      // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a sensor for the Intt ?
       // The hitset key includes the layer, the ladder_z_index (sensors numbered 0-3) and  ladder_phi_index (azimuthal location of ladder) for this hit
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index);
       // Use existing hitset or add new one if needed
@@ -404,7 +404,7 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
       if(Verbosity() > 2)
-	cout << "PHG4INTTHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;      
+	cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;      
     }
 
   }  // end loop over g4hits
@@ -413,7 +413,7 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
   // print the list of entries in the association table
   if(Verbosity() > 0)
     {
-      cout << "From PHG4INTTHitReco: " << endl;
+      cout << "From PHG4InttHitReco: " << endl;
       hitsetcontainer->identify();
       hittruthassoc->identify();
     }
@@ -424,13 +424,13 @@ int PHG4INTTHitReco::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4INTTHitReco::CheckEnergy(PHCompositeNode *topNode)
+int PHG4InttHitReco::CheckEnergy(PHCompositeNode *topNode)
 {
 
   return 0;
 }
 
-double PHG4INTTHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const
+double PHG4InttHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const
 {
   // Find the area of overlap of a circle and rectangle
   // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
@@ -454,7 +454,7 @@ double PHG4INTTHitReco::circle_rectangle_intersection(double x1, double y1, doub
   return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
 }
 
-double PHG4INTTHitReco::sA(double r, double x, double y) const
+double PHG4InttHitReco::sA(double r, double x, double y) const
 {
   // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
   // It is called repeatedly to find the overlap area between the circle and rectangle
@@ -498,7 +498,7 @@ double PHG4INTTHitReco::sA(double r, double x, double y) const
   return a;
 }
 
-void PHG4INTTHitReco::SetDefaultParameters()
+void PHG4InttHitReco::SetDefaultParameters()
 {
   // if we ever need separate timing windows, don't patch around here!
   // use PHParameterContainerInterface which

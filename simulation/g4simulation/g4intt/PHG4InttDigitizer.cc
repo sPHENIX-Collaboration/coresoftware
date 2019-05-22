@@ -1,8 +1,8 @@
 // This is the new trackbase container version
 
-#include "PHG4INTTDigitizer.h"
+#include "PHG4InttDigitizer.h"
 
-#include "INTTDeadMap.h"
+#include "InttDeadMap.h"
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -36,7 +36,7 @@
 
 using namespace std;
 
-PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
+PHG4InttDigitizer::PHG4InttDigitizer(const string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , detector("INTT")
@@ -53,14 +53,14 @@ PHG4INTTDigitizer::PHG4INTTDigitizer(const string &name)
   gsl_rng_set(RandomGenerator, seed);
 }
 
-PHG4INTTDigitizer::~PHG4INTTDigitizer()
+PHG4InttDigitizer::~PHG4InttDigitizer()
 {
   gsl_rng_free(RandomGenerator);
 }
 
-int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4InttDigitizer::InitRun(PHCompositeNode *topNode)
 {
-  cout << "PHG4INTTDigitizer::InitRun: detector = " << detector << endl;
+  cout << "PHG4InttDigitizer::InitRun: detector = " << detector << endl;
 
   //-------------
   // Add Hit Node
@@ -114,7 +114,7 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4INTTDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4InttDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter1 = _max_adc.begin();
          iter1 != _max_adc.end();
          ++iter1)
@@ -133,14 +133,14 @@ int PHG4INTTDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4INTTDigitizer::process_event(PHCompositeNode *topNode)
+int PHG4InttDigitizer::process_event(PHCompositeNode *topNode)
 {
   DigitizeLadderCells(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
+void PHG4InttDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
 {
   // FPHX 3-bit ADC, thresholds are set in "set_fphx_adc_scale".
 
@@ -169,22 +169,22 @@ void PHG4INTTDigitizer::CalculateLadderCellADCScale(PHCompositeNode *topNode)
   return;
 }
 
-void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
+void PHG4InttDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 {
   //---------------------------
   // Get common Nodes
   //---------------------------
-  const INTTDeadMap *deadmap = findNode::getClass<INTTDeadMap>(topNode, "DEADMAP_INTT");
+  const InttDeadMap *deadmap = findNode::getClass<InttDeadMap>(topNode, "DEADMAP_INTT");
   if (Verbosity() >= VERBOSITY_MORE)
   {
     if (deadmap)
     {
-      cout << "PHG4INTTDigitizer::DigitizeLadderCells - Use deadmap ";
+      cout << "PHG4InttDigitizer::DigitizeLadderCells - Use deadmap ";
       deadmap->identify();
     }
     else
     {
-      cout << "PHG4INTTDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
+      cout << "PHG4InttDigitizer::DigitizeLadderCells - Can not find deadmap, all channels enabled " << endl;
     }
   }
 
@@ -200,7 +200,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
   // Digitization
   //-------------
 
-  // We want all hitsets for the INTT
+  // We want all hitsets for the Intt
   TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::inttId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
        hitset_iter != hitset_range.second;
@@ -214,7 +214,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
       const int ladder_z = InttDefs::getLadderZId(hitsetkey);
 
       if(Verbosity() > 1) 
-	cout << "PHG4INTTDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
+	cout << "PHG4InttDigitizer: found hitset with key: " << hitsetkey << " in layer " << layer << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -233,7 +233,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	  // Apply deadmap here if desired
 	  if (deadmap)
 	    {
-	      if (deadmap->isDeadChannelINTT(
+	      if (deadmap->isDeadChannelIntt(
 					     layer, 
 					     ladder_phi,
 					     ladder_z,
@@ -244,7 +244,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 		  ++m_nDeadCells;
 		  if (Verbosity() >= VERBOSITY_MORE)
 		    {
-		      cout << "PHG4INTTDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
+		      cout << "PHG4InttDigitizer::DigitizeLadderCells - dead strip at layer " << layer << ": ";
 		      hit->identify();
 		    }
 		  continue;
@@ -270,7 +270,7 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 	  hit->setAdc(adc);	      
 
 	  if(Verbosity() > 2)
-	    cout << "PHG4INTTDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
+	    cout << "PHG4InttDigitizer: found hit with layer "  << layer << " ladder_z " << ladder_z << " ladder_phi " << ladder_phi 
 		 << " strip_col " << strip_col << " strip_row " << strip_row << " adc " << adc << endl;
  
 	} // end loop over hits in this hitset
@@ -280,11 +280,11 @@ void PHG4INTTDigitizer::DigitizeLadderCells(PHCompositeNode *topNode)
 }
 
 //! end of process
-int PHG4INTTDigitizer::End(PHCompositeNode *topNode)
+int PHG4InttDigitizer::End(PHCompositeNode *topNode)
 {
   if (Verbosity() >= VERBOSITY_SOME)
   {
-    cout << "PHG4INTTDigitizer::End - processed "
+    cout << "PHG4InttDigitizer::End - processed "
          << m_nCells << " cell with "
          << m_nDeadCells << " dead cells masked"
          << " (" << 100. * m_nDeadCells / m_nCells << "%)" << endl;
@@ -293,7 +293,7 @@ int PHG4INTTDigitizer::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4INTTDigitizer::SetDefaultParameters()
+void PHG4InttDigitizer::SetDefaultParameters()
 {
   set_default_double_param("NoiseMean", 457.2);
   set_default_double_param("NoiseSigma", 166.6);
@@ -301,7 +301,7 @@ void PHG4INTTDigitizer::SetDefaultParameters()
   return;
 }
 
-float PHG4INTTDigitizer::added_noise()
+float PHG4InttDigitizer::added_noise()
 {
 //  float noise = gsl_ran_gaussian(RandomGenerator, mNoiseSigma) + mNoiseMean;
 //  noise = (noise < 0) ? 0 : noise;
@@ -314,7 +314,7 @@ float PHG4INTTDigitizer::added_noise()
   return noise;
 }
 
-void PHG4INTTDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
+void PHG4InttDigitizer::set_adc_scale(const int &layer, const std::vector<double> &userrange)
 {
   if (userrange.size() != nadcbins)
   {

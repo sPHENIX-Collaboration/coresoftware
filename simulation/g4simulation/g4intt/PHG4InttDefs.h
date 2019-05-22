@@ -5,7 +5,7 @@
 
 #include <set>
 
-namespace PHG4INTTDefs
+namespace PHG4InttDefs
 {
 static const int SEGMENTATION_Z = -1;
 static const int SEGMENTATION_PHI = -2;
@@ -42,6 +42,6 @@ static const int INTT_INNER_SKIN = -20;
 // detid of support structures
 static const int SUPPORT_DETID = 100;
 
-};  // namespace PHG4INTTDefs
+};  // namespace PHG4InttDefs
 
 #endif

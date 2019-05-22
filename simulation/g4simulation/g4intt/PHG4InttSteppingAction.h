@@ -9,19 +9,19 @@
 #include <set>
 #include <vector>
 
-class PHG4INTTDetector;
+class PHG4InttDetector;
 class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
 class PHG4CylinderGeomContainer;
 
-class PHG4INTTSteppingAction : public PHG4SteppingAction
+class PHG4InttSteppingAction : public PHG4SteppingAction
 {
  public:
-  PHG4INTTSteppingAction(PHG4INTTDetector *, const PHParametersContainer *parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_begin_end);
+  PHG4InttSteppingAction(PHG4InttDetector *, const PHParametersContainer *parameters, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_begin_end);
 
-  virtual ~PHG4INTTSteppingAction();
+  virtual ~PHG4InttSteppingAction();
 
   virtual bool UserSteppingAction(const G4Step *, bool);
 
@@ -29,7 +29,7 @@ class PHG4INTTSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4INTTDetector *m_Detector;
+  PHG4InttDetector *m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer *m_Hits;

@@ -1,4 +1,4 @@
-#include "INTTDeadMap.h"
+#include "InttDeadMap.h"
 
 #include <cassert>
 #include <iostream>
@@ -7,52 +7,52 @@
 using namespace std;
 
 int
-    INTTDeadMap::s_wildCardID = -1;
+    InttDeadMap::s_wildCardID = -1;
 
-const INTTDeadMap::Map&
-INTTDeadMap::getDeadChannels(void) const
+const InttDeadMap::Map&
+InttDeadMap::getDeadChannels(void) const
 {
   static Map tmp_map;
   return tmp_map;
 }
 
-INTTDeadMap::Map&
-INTTDeadMap::getDeadChannels(void)
+InttDeadMap::Map&
+InttDeadMap::getDeadChannels(void)
 {
   static Map tmp_map;
   return tmp_map;
 }
 
-void INTTDeadMap::addDeadChannelINTT(const int layer,
+void InttDeadMap::addDeadChannelIntt(const int layer,
                                      const int ladder_phi, const int ladder_z,
                                      const int strip_z, const int strip_phi)
 {
-  addDeadChannel(getINTTKey(layer,
+  addDeadChannel(getInttKey(layer,
                             ladder_phi, ladder_z,
                             strip_z, strip_phi));
 }
 
-bool INTTDeadMap::isDeadChannelINTT(const int layer,
+bool InttDeadMap::isDeadChannelIntt(const int layer,
                                     const int ladder_phi, const int ladder_z,
                                     const int strip_z, const int strip_phi) const
 {
-  if (isDeadChannel(getINTTKey(layer,
+  if (isDeadChannel(getInttKey(layer,
                                ladder_phi, ladder_z,
                                strip_z, strip_phi)))
     return true;
-  else if (isDeadChannel(getINTTKey(layer,
+  else if (isDeadChannel(getInttKey(layer,
                                     ladder_phi, ladder_z,
                                     strip_z, s_wildCardID)))
     return true;
-  else if (isDeadChannel(getINTTKey(layer,
+  else if (isDeadChannel(getInttKey(layer,
                                     ladder_phi, ladder_z,
                                     s_wildCardID, s_wildCardID)))
     return true;
-  else if (isDeadChannel(getINTTKey(layer,
+  else if (isDeadChannel(getInttKey(layer,
                                     ladder_phi, s_wildCardID,
                                     s_wildCardID, s_wildCardID)))
     return true;
-  else if (isDeadChannel(getINTTKey(layer,
+  else if (isDeadChannel(getInttKey(layer,
                                     s_wildCardID, s_wildCardID,
                                     s_wildCardID, s_wildCardID)))
     return true;
@@ -60,17 +60,17 @@ bool INTTDeadMap::isDeadChannelINTT(const int layer,
     return false;
 }
 
-int INTTDeadMap::isValid() const
+int InttDeadMap::isValid() const
 {
   return size() > 0;
 }
 
-void INTTDeadMap::identify(std::ostream& os) const
+void InttDeadMap::identify(std::ostream& os) const
 {
-  os << "INTTDeadMap base class" << std::endl;
+  os << "InttDeadMap base class" << std::endl;
 }
 
-PHG4CellDefs::keytype INTTDeadMap::getINTTKey(int layer,
+PHG4CellDefs::keytype InttDeadMap::getInttKey(int layer,
                                               int ladder_phi, int ladder_z,
                                               int strip_z, int strip_phi)
 {

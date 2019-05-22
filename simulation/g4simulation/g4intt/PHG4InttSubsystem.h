@@ -7,20 +7,20 @@
 
 #include <vector>
 
-class PHG4INTTDetector;
-class PHG4INTTSteppingAction;
+class PHG4InttDetector;
+class PHG4InttSteppingAction;
 class PHG4DisplayAction;
 
-class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
+class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 {
  public:
   typedef std::vector<std::pair<int, int>> vpair;
 
   //! constructor
-  PHG4INTTSubsystem(const std::string &name = "INTT", const vpair &layerconfig = vpair(0));
+  PHG4InttSubsystem(const std::string &name = "PHG4InttSubsystem", const vpair &layerconfig = vpair(0));
 
   //! destructor
-  virtual ~PHG4INTTSubsystem();
+  virtual ~PHG4InttSubsystem();
 
   //! init
   /*!
@@ -52,7 +52,7 @@ class PHG4INTTSubsystem : public PHG4DetectorGroupSubsystem
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4INTTDetector *m_Detector;
+  PHG4InttDetector *m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */

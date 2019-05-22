@@ -15,12 +15,12 @@
 
 class PHCompositeNode;
 
-class PHG4INTTHitReco : public SubsysReco, public PHParameterInterface
+class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4INTTHitReco(const std::string &name = "INTT");
+  PHG4InttHitReco(const std::string &name = "PHG4InttHitReco");
 
-  virtual ~PHG4INTTHitReco();
+  virtual ~PHG4InttHitReco();
   //! module initialization
   int InitRun(PHCompositeNode *topNode);
 

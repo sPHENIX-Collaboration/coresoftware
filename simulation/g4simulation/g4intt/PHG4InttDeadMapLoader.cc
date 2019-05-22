@@ -1,15 +1,15 @@
 // $Id: $
 
 /*!
- * \file PHG4INTTDeadMapLoader.cc
+ * \file PHG4InttDeadMapLoader.cc
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "PHG4INTTDeadMapLoader.h"
-#include "INTTDeadMapv1.h"
+#include "PHG4InttDeadMapLoader.h"
+#include "InttDeadMapv1.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -43,18 +43,18 @@
 
 using namespace std;
 
-PHG4INTTDeadMapLoader::PHG4INTTDeadMapLoader(const std::string &detector)
-  : SubsysReco("PHG4INTTDeadMapLoader_" + detector)
+PHG4InttDeadMapLoader::PHG4InttDeadMapLoader(const std::string &detector)
+  : SubsysReco("PHG4InttDeadMapLoader_" + detector)
   , m_detector(detector)
   , m_deadmap(nullptr)
 {
 }
 
-PHG4INTTDeadMapLoader::~PHG4INTTDeadMapLoader()
+PHG4InttDeadMapLoader::~PHG4InttDeadMapLoader()
 {
 }
 
-int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
+int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator topiter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(topiter.findFirst("PHCompositeNode", "RUN"));
@@ -76,10 +76,10 @@ int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   // Be careful as a previous calibrator may have been registered for this detector
   string deadMapName = "DEADMAP_" + m_detector;
-  INTTDeadMap *m_deadmap = findNode::getClass<INTTDeadMapv1>(DetNode, deadMapName);
+  InttDeadMap *m_deadmap = findNode::getClass<InttDeadMapv1>(DetNode, deadMapName);
   if (!m_deadmap)
   {
-    m_deadmap = new INTTDeadMapv1();
+    m_deadmap = new InttDeadMapv1();
     PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_deadmap, deadMapName, "PHObject");
     DetNode->addNode(towerNode);
   }
@@ -104,7 +104,7 @@ int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
       if (Verbosity())
       {
-        cout << "HG4INTTDeadMapLoader::InitRun - deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
+        cout << "HG4InttDeadMapLoader::InitRun - deadMapParam[" << deadChanName << "] = " << iter->second << ": ";
       }
 
       boost::char_separator<char> sep("_");
@@ -133,12 +133,12 @@ int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
           assert(tokeniter != tok.end());
           int strip_phi = boost::lexical_cast<int>(*tokeniter);
 
-          m_deadmap->addDeadChannelINTT(ilayer, ladder_phi, ladder_z, strip_z, strip_phi);
+          m_deadmap->addDeadChannelIntt(ilayer, ladder_phi, ladder_z, strip_z, strip_phi);
           ++counter;
 
           if (Verbosity())
           {
-            cout << "add INTT dead channel ladder_phi" << ladder_phi << " ladder_z" << ladder_z
+            cout << "add Intt dead channel ladder_phi" << ladder_phi << " ladder_z" << ladder_z
                  << " strip_z" << strip_z << " strip_phi" << strip_phi;
           }
         }  // if (*tokeniter == "INTT")
@@ -159,13 +159,13 @@ int PHG4INTTDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
     }  //  for (const auto iter = in_par_ranges.first; iter != in_par_ranges.second; ++iter)
 
-    cout << "PHG4INTTDeadMapLoader::" << m_detector << "::InitRun - loading " << counter << " dead channel for layer "
+    cout << "PHG4InttDeadMapLoader::" << m_detector << "::InitRun - loading " << counter << " dead channel for layer "
          << ilayer << " from " << deadMapPath << ". Total dead chan = " << m_deadmap->size() << endl;
   }
 
   if (Verbosity())
   {
-    cout << "PHG4INTTDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
+    cout << "PHG4InttDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
     m_deadmap->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;

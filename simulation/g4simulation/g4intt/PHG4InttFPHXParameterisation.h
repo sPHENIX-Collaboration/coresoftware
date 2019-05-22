@@ -10,11 +10,11 @@ class G4VPhysicalVolume;
 /*
  * FPHX location
  */
-class PHG4INTTFPHXParameterisation : public G4VPVParameterisation
+class PHG4InttFPHXParameterisation : public G4VPVParameterisation
 {
  public:
-  PHG4INTTFPHXParameterisation(const double offsetx, const double offsety, const double offsetz, const double dz, const int ncopy);
-  virtual ~PHG4INTTFPHXParameterisation() {}
+  PHG4InttFPHXParameterisation(const double offsetx, const double offsety, const double offsetz, const double dz, const int ncopy);
+  virtual ~PHG4InttFPHXParameterisation() {}
   virtual void ComputeTransformation(const G4int icopy, G4VPhysicalVolume *physVol) const;
 
  private:
