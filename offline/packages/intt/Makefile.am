@@ -21,16 +21,16 @@ pkginclude_HEADERS = \
   InttDefs.h \
   InttHit.h \
   InttClusterizer.h \
-  CylinderGeomINTT.h
+  CylinderGeomIntt.h
 
 ROOTDICTS = \
   InttHit_Dict.cc \
-  CylinderGeomINTT_Dict.cc
+  CylinderGeomIntt_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
   InttHit_Dict_rdict.pcm \
-  CylinderGeomINTT_Dict_rdict.pcm
+  CylinderGeomIntt_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
   InttClusterizer_Dict.cc
@@ -51,7 +51,7 @@ libintt_la_LIBADD = \
 # sources for io library
 libintt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeomINTT.cc \
+  CylinderGeomIntt.cc \
   InttDefs.cc \
   InttHit.cc
 

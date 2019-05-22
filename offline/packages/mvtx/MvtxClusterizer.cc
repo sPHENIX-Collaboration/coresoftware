@@ -7,7 +7,7 @@
 #include "MvtxClusterizer.h"
 #include "MvtxDefs.h"
 #include "MvtxHit.h"
-#include "CylinderGeom_MVTX.h"
+#include "CylinderGeom_Mvtx.h"
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -323,7 +323,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	// we need the geometry object for this layer to get the global positions
 	int layer = TrkrDefs::getLayer(ckey);
-	CylinderGeom_MVTX *layergeom = dynamic_cast<CylinderGeom_MVTX *>(geom_container->GetLayerGeom(layer));
+	CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
 	if (!layergeom)
 	  exit(1);
 

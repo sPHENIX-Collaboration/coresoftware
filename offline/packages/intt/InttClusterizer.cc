@@ -1,5 +1,5 @@
 #include "InttClusterizer.h"
-#include "CylinderGeomINTT.h"
+#include "CylinderGeomIntt.h"
 #include "InttDefs.h"
 
 #include <trackbase/TrkrClusterContainer.h>
@@ -297,7 +297,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
     int ladder_phi_index = InttDefs::getLadderPhiId(hitsetitr->first);
 
     // we will need the geometry object for this layer to get the global position	
-    CylinderGeomINTT* geom = dynamic_cast<CylinderGeomINTT*>(geom_container->GetLayerGeom(layer));
+    CylinderGeomIntt* geom = dynamic_cast<CylinderGeomIntt*>(geom_container->GetLayerGeom(layer));
     float thickness = geom->get_thickness();
     float pitch = geom->get_strip_y_spacing();
     float length = geom->get_strip_z_spacing();

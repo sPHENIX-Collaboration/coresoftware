@@ -35,13 +35,13 @@ packageinclude_HEADERS = \
   Kalman/CylinderKalman.h \
   sPHENIX/sPHENIXSeedFinder.h \
   sPHENIX/sPHENIXTracker.h \
-  sPHENIX/sPHENIXTrackerTPC.h
+  sPHENIX/sPHENIXTrackerTpc.h
 
 libHelixHough_la_SOURCES = \
   SimpleHit3D.cpp \
   sPHENIX/sPHENIXSeedFinder.cpp \
   sPHENIX/sPHENIXTracker.cpp \
-  sPHENIX/sPHENIXTrackerTPC.cpp \
+  sPHENIX/sPHENIXTrackerTpc.cpp \
   HelixHough_findHelices.cpp \
   HelixHough_findPairs.cpp \
   HelixHough_init.cpp \
