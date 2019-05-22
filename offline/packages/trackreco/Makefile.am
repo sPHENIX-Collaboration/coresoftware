@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
   PHInitVertexing.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
+  PHTruthTrackSeeding.h \
   PHTruthVertexing.h
 
 ROOTDICTS = \
@@ -42,7 +43,7 @@ else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \
     PHTrackSeeding_Dict.cc \
-    PHTrackPropagating_Dict.cc \
+     PHTrackPropagating_Dict.cc \
     PHTrackFitting_Dict.cc \
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \

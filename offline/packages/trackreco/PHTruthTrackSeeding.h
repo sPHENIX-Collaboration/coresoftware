@@ -58,6 +58,8 @@ class PHTruthTrackSeeding : public PHTrackSeeding
 
   int Process();
 
+  int End();
+
  private:
   /// fetch node pointers
   int GetNodes(PHCompositeNode* topNode);
