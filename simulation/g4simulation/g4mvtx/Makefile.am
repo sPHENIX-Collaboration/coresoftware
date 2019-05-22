@@ -23,28 +23,28 @@ libg4mvtx_la_LIBADD = \
   -lmvtx_io
 
 pkginclude_HEADERS = \
-  PHG4MVTXDefs.h \
-  PHG4MVTXHitReco.h \
-  PHG4MVTXSubsystem.h \
-  PHG4MVTXDigitizer.h 
+  PHG4MvtxDefs.h \
+  PHG4MvtxHitReco.h \
+  PHG4MvtxSubsystem.h \
+  PHG4MvtxDigitizer.h 
 
 if MAKEROOT6
 else
   ROOT5_DICTS = \
-    PHG4MVTXHitReco_Dict.cc \
-    PHG4MVTXDefs_Dict.cc \
-    PHG4MVTXSubsystem_Dict.cc \
-    PHG4MVTXDigitizer_Dict.cc
+    PHG4MvtxHitReco_Dict.cc \
+    PHG4MvtxDefs_Dict.cc \
+    PHG4MvtxSubsystem_Dict.cc \
+    PHG4MvtxDigitizer_Dict.cc
 endif
 
 libg4mvtx_la_SOURCES = \
   $(ROOT5_DICTS) \
-  PHG4MVTXHitReco.cc \
-  PHG4MVTXDetector.cc \
-  PHG4MVTXDisplayAction.cc \
-  PHG4MVTXSteppingAction.cc \
-  PHG4MVTXSubsystem.cc \
-  PHG4MVTXDigitizer.cc
+  PHG4MvtxHitReco.cc \
+  PHG4MvtxDetector.cc \
+  PHG4MvtxDisplayAction.cc \
+  PHG4MvtxSteppingAction.cc \
+  PHG4MvtxSubsystem.cc \
+  PHG4MvtxDigitizer.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
