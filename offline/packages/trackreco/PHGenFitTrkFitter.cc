@@ -32,7 +32,7 @@
 
 //
 #include <intt/CylinderGeomIntt.h>
-#include <mvtx/CylinderGeom_MVTX.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -1090,8 +1090,8 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 	int chip_index = MvtxDefs::getChipId(cluster_key);
 	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
-	CylinderGeom_MVTX* geom =
-          dynamic_cast<CylinderGeom_MVTX*>(geom_container_mvtx->GetLayerGeom(layer));
+	CylinderGeom_Mvtx* geom =
+          dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	geom->find_sensor_center(stave_index, 0,
 				 0, chip_index, ladder_location);

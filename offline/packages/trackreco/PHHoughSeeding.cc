@@ -41,7 +41,7 @@
 
 //
 #include <intt/CylinderGeomIntt.h>
-#include <mvtx/CylinderGeom_MVTX.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>

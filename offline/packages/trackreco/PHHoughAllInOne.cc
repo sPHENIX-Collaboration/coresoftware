@@ -46,7 +46,7 @@
 //#include <g4detectors/PHG4CylinderGeom_MAPS.h>
 
 #include <intt/CylinderGeomIntt.h>
-#include <mvtx/CylinderGeom_MVTX.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
@@ -3655,8 +3655,8 @@ PHGenFit::Measurement* PHHoughAllInOne::TrkrClusterToPHGenFitMeasurement(
       int chip_index = MvtxDefs::getChipId(cluster_id);
       
       double ladder_location[3] = {0.0, 0.0, 0.0};
-      CylinderGeom_MVTX* geom =
-	(CylinderGeom_MVTX*) _geom_container_maps->GetLayerGeom(
+      CylinderGeom_Mvtx* geom =
+	(CylinderGeom_Mvtx*) _geom_container_maps->GetLayerGeom(
 								   layer);
       // returns the center of the sensor in world coordinates - used to get the ladder phi location
       geom->find_sensor_center(stave_index, 0,
