@@ -31,7 +31,7 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>
-#include <intt/CylinderGeomINTT.h>
+#include <intt/CylinderGeomIntt.h>
 #include <mvtx/CylinderGeom_MVTX.h>
 
 #include <g4bbc/BbcVertex.h>
@@ -4491,7 +4491,7 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
     }
     if (n_intt > 8)
     {
-      cout << PHWHERE << " Can not have more than 8 INTT layers, quit!" << endl;
+      cout << PHWHERE << " Can not have more than 8 Intt layers, quit!" << endl;
       exit(1);
     }
     if (_nlayers_tpc > 0 &&
@@ -5200,8 +5200,8 @@ PHGenFit::Measurement* PHG4KalmanPatRec::SvtxClusterToPHGenFitMeasurement(
   else if (cell_intt)
   {
     PHG4Cell* cell = cell_intt;
-    CylinderGeomINTT* geom =
-        dynamic_cast<CylinderGeomINTT*>(_geom_container_intt->GetLayerGeom(
+    CylinderGeomIntt* geom =
+        dynamic_cast<CylinderGeomIntt*>(_geom_container_intt->GetLayerGeom(
             layer));
     double hit_location[3] = {0.0, 0.0, 0.0};
     geom->find_segment_center(cell->get_ladder_z_index(),

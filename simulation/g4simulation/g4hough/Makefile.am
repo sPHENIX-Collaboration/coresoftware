@@ -126,37 +126,37 @@ endif
 
 libg4hough_io_la_SOURCES = \
   $(ROOTDICTS) \
-  Cluster3D.C \
-  Track3D.C \
-  HelixTrackState.C \
-  HelixHoughSpace_v1.C \
-  HelixHoughBin_v1.C \
-  HelixHoughFuncs_v1.C \
-  HelixKalmanFilter.C \
-  CellularAutomaton_v1.C \
-  SquareGradient.C \
-  SvtxBeamSpot.C \
-  NewtonMinimizerGradHessian.C \
-  VertexFitter.C \
-  VertexFitFuncs.C
+  Cluster3D.cc \
+  Track3D.cc \
+  HelixTrackState.cc \
+  HelixHoughSpace_v1.cc \
+  HelixHoughBin_v1.cc \
+  HelixHoughFuncs_v1.cc \
+  HelixKalmanFilter.cc \
+  CellularAutomaton_v1.cc \
+  SquareGradient.cc \
+  SvtxBeamSpot.cc \
+  NewtonMinimizerGradHessian.cc \
+  VertexFitter.cc \
+  VertexFitFuncs.cc
 
 libg4hough_la_SOURCES = \
   $(ROOT5_DICTS) \
-  PHG4SvtxDeadArea.C \
-  PHG4SvtxThresholds.C \
-  PHG4HoughTransform.C \
-  PHG4HoughTransformTPC.C \
-  PHG4KalmanPatRec.C \
-  PHRaveVertexing.C \
-  PHG4InitZVertexing.C \
-  PHG4PatternReco.C \
-  PHG4TrackGhostRejection.C \
-  PHG4TrackKalmanFitter.C \
-  PHG4TruthPatRec.C \
-  PHG4SvtxMomentumRecal.C \
-  PHG4GenFitTrackProjection.C \
-  PHG4SvtxTrackProjection.C \
-  PHG4SvtxBeamSpotReco.C
+  PHG4SvtxDeadArea.cc \
+  PHG4SvtxThresholds.cc \
+  PHG4HoughTransform.cc \
+  PHG4HoughTransformTPC.cc \
+  PHG4KalmanPatRec.cc \
+  PHRaveVertexing.cc \
+  PHG4InitZVertexing.cc \
+  PHG4PatternReco.cc \
+  PHG4TrackGhostRejection.cc \
+  PHG4TrackKalmanFitter.cc \
+  PHG4TruthPatRec.cc \
+  PHG4SvtxMomentumRecal.cc \
+  PHG4GenFitTrackProjection.cc \
+  PHG4SvtxTrackProjection.cc \
+  PHG4SvtxBeamSpotReco.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
