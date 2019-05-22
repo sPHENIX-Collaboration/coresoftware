@@ -23,7 +23,7 @@
 #include <g4bbc/BbcVertex.h>
 
 #include <mvtx/CylinderGeom_MVTX.h>
-#include <intt/CylinderGeomINTT.h>
+#include <intt/CylinderGeomIntt.h>
 
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
