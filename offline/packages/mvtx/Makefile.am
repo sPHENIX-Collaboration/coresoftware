@@ -21,16 +21,16 @@ pkginclude_HEADERS = \
   MvtxDefs.h \
   MvtxHit.h \
   MvtxClusterizer.h \
-  CylinderGeom_MVTX.h
+  CylinderGeom_Mvtx.h
 
 ROOTDICTS = \
   MvtxHit_Dict.cc \
-  CylinderGeom_MVTX_Dict.cc
+  CylinderGeom_Mvtx_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
     MvtxHit_Dict_rdict.pcm \
-    CylinderGeom_MVTX_Dict_rdict.pcm
+    CylinderGeom_Mvtx_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
     MvtxClusterizer_Dict.cc
@@ -50,7 +50,7 @@ libmvtx_la_LIBADD = \
 # sources for io library
 libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
-  CylinderGeom_MVTX.cc \
+  CylinderGeom_Mvtx.cc \
   MvtxDefs.cc \
   MvtxHit.cc
 
