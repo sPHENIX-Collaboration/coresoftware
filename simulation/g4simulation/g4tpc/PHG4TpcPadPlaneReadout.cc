@@ -1,4 +1,4 @@
-#include "PHG4TPCPadPlaneReadout.h"
+#include "PHG4TpcPadPlaneReadout.h"
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cellv1.h>
@@ -24,8 +24,8 @@
 
 using namespace std;
 
-PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
-  : PHG4TPCPadPlane(name)
+PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
+  : PHG4TpcPadPlane(name)
   , fcharge(nullptr)
   , GeomContainer(nullptr)
   , LayerGeom(nullptr)
@@ -66,7 +66,7 @@ PHG4TPCPadPlaneReadout::PHG4TPCPadPlaneReadout(const string &name)
   return;
 }
 
-PHG4TPCPadPlaneReadout::~PHG4TPCPadPlaneReadout()
+PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 {
   delete fcharge;
   for (int ipad = 0; ipad < 10; ipad++)
@@ -75,9 +75,9 @@ PHG4TPCPadPlaneReadout::~PHG4TPCPadPlaneReadout()
   }
 }
 
-int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
+int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
 {
-  if (Verbosity()) cout << "PHG4TPCPadPlaneReadout: CreateReadoutGeometry: " << endl;
+  if (Verbosity()) cout << "PHG4TpcPadPlaneReadout: CreateReadoutGeometry: " << endl;
 
   for (int iregion = 0; iregion < 3; ++iregion)
   {
@@ -106,7 +106,7 @@ int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
       // on our farm. If you need to increase this - TALK TO ME first
       if (NPhiBins[iregion] * NZBins > 5100000)
       {
-        cout << "increase TPC cellsize, number of cells "
+        cout << "increase Tpc cellsize, number of cells "
              << NPhiBins[iregion] * NZBins << " for layer " << layer
              << " exceed 5.1M limit" << endl;
         gSystem->Exit(1);
@@ -120,7 +120,7 @@ int PHG4TPCPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4
   return 0;
 }
 
-void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -247,8 +247,8 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       if (zbin_num >= LayerGeom->get_zbins()) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << LayerGeom->get_zbins() << endl;
       if (pad_num >= LayerGeom->get_phibins()) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << LayerGeom->get_phibins() << endl;
 
-      // collect information to do simple clustering. Checks operation of PHG4CylinderCellTPCReco, and
-      // is also useful for comparison with PHG4TPCClusterizer result when running single track events.
+      // collect information to do simple clustering. Checks operation of PHG4CylinderCellTpcReco, and
+      // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
       // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
       double zcenter = LayerGeom->get_zcenter(zbin_num);
       double phicenter = LayerGeom->get_phicenter(pad_num);
@@ -284,7 +284,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << endl;
       cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << endl;
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 47.
-      // The centroid of that should match the cluster centroid found by PHG4TPCClusterizer for layer 47, if everything is working
+      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer 47, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
@@ -294,7 +294,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   return;
 }
 
-void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   // One electron per call of this method
   // The x_gem and y_gem values have already been randomized within the transverse drift diffusion width
@@ -421,8 +421,8 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       if (zbin_num >= LayerGeom->get_zbins()) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << LayerGeom->get_zbins() << endl;
       if (pad_num >= LayerGeom->get_phibins()) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << LayerGeom->get_phibins() << endl;
 
-      // collect information to do simple clustering. Checks operation of PHG4CylinderCellTPCReco, and
-      // is also useful for comparison with PHG4TPCClusterizer result when running single track events.
+      // collect information to do simple clustering. Checks operation of PHG4CylinderCellTpcReco, and
+      // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
       // The only information written to the cell other than neffelectrons is zbin and pad number, so get those from geometry
       double zcenter = LayerGeom->get_zcenter(zbin_num);
       double phicenter = LayerGeom->get_phicenter(pad_num);
@@ -435,14 +435,14 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
 
       // new containers
       //============
-      // We add the TPC TrkrHitsets directly to the node using hitsetcontainer
-      // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a TPC readout module
+      // We add the Tpc TrkrHitsets directly to the node using hitsetcontainer
+      // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a Tpc readout module
       // The hitset key includes the layer, sector, side
 
       // Get the side - 0 for negative z, 1 for positive z
       unsigned int side = 0;
       if (zcenter > 0) side = 1;
-      // get the TPC readout sector - there are 12 sectors with how many pads each?
+      // get the Tpc readout sector - there are 12 sectors with how many pads each?
       unsigned int pads_per_sector = LayerGeom->get_phibins() / 12;
       unsigned int sector = pad_num / pads_per_sector;
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
@@ -478,7 +478,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       cout << "      phi centroid = " << phi_integral / weight << " phi in " << phi << " phi diff " << phi_integral / weight - phi << endl;
       cout << "      z centroid = " << z_integral / weight << " z in " << z_gem << " z diff " << z_integral / weight - z_gem << endl;
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer 47.
-      // The centroid of that should match the cluster centroid found by PHG4TPCClusterizer for layer 47, if everything is working
+      // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer 47, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
@@ -488,7 +488,7 @@ void PHG4TPCPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
   return;
 }
 
-void PHG4TPCPadPlaneReadout::populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
+void PHG4TpcPadPlaneReadout::populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
 {
   double cloud_sig_rp_inv = 1. / cloud_sig_rp;
 
@@ -513,7 +513,7 @@ void PHG4TPCPadPlaneReadout::populate_rectangular_phibins(const unsigned int lay
       cur_phi_bin -= nphibins;
     if ((cur_phi_bin < 0) || (cur_phi_bin >= nphibins))
     {
-      std::cout << "PHG4CylinderCellTPCReco => error in phi continuity. Skipping" << std::endl;
+      std::cout << "PHG4CylinderCellTpcReco => error in phi continuity. Skipping" << std::endl;
       continue;
     }
     // Get the integral of the charge probability distribution in phi inside the current phi step
@@ -528,7 +528,7 @@ void PHG4TPCPadPlaneReadout::populate_rectangular_phibins(const unsigned int lay
   return;
 }
 
-void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
+void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
 {
   double nsigmas = 5.0;
 
@@ -621,7 +621,7 @@ void PHG4TPCPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   return;
 }
 
-void PHG4TPCPadPlaneReadout::populate_zbins(const double z, const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
+void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
 {
   int zbin = LayerGeom->get_zbin(z);
   if (zbin < 0 || zbin > LayerGeom->get_zbins())
@@ -734,7 +734,7 @@ void PHG4TPCPadPlaneReadout::populate_zbins(const double z, const double cloud_s
   return;
 }
 
-void PHG4TPCPadPlaneReadout::SetDefaultParameters()
+void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 {
   set_default_int_param("ntpc_layers_inner", 16);
   set_default_int_param("ntpc_layers_mid", 16);
@@ -768,7 +768,7 @@ void PHG4TPCPadPlaneReadout::SetDefaultParameters()
   return;
 }
 
-void PHG4TPCPadPlaneReadout::UpdateInternalParameters()
+void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
 {
   NTpcLayers[0] = get_int_param("ntpc_layers_inner");
   NTpcLayers[1] = get_int_param("ntpc_layers_mid");

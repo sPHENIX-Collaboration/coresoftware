@@ -15,32 +15,32 @@ class G4LogicalVolume;
 class G4UserLimits;
 class G4VPhysicalVolume;
 class G4VSolid;
-class PHG4TPCDisplayAction;
-class PHG4TPCSubsystem;
+class PHG4TpcDisplayAction;
+class PHG4TpcSubsystem;
 class PHParameters;
 
-class PHG4TPCDetector : public PHG4Detector
+class PHG4TpcDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4TPCDetector(PHG4TPCSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  PHG4TpcDetector(PHG4TpcSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4TPCDetector(void)
+  virtual ~PHG4TpcDetector(void)
   {
   }
 
   //! construct
   void Construct(G4LogicalVolume *world);
 
-  int IsInTPC(G4VPhysicalVolume *) const;
+  int IsInTpc(G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
 
  private:
-  int ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope);
-  int ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope);
-  PHG4TPCDisplayAction *m_DisplayAction;
+  int ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope);
+  int ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope);
+  PHG4TpcDisplayAction *m_DisplayAction;
   PHParameters *params;
   G4UserLimits *g4userlimits;
   int active;

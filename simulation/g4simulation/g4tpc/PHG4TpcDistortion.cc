@@ -1,18 +1,18 @@
 // $Id: $
 
 /*!
- * \file PHG4TPCDistortion.cc
+ * \file PHG4TpcDistortion.cc
  * \brief 
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "PHG4TPCDistortion.h"
+#include "PHG4TpcDistortion.h"
 
 #include <phool/PHRandomSeed.h>
 
-PHG4TPCDistortion::PHG4TPCDistortion(int verbose)
+PHG4TpcDistortion::PHG4TpcDistortion(int verbose)
   : verbosity(verbose)
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
@@ -20,7 +20,7 @@ PHG4TPCDistortion::PHG4TPCDistortion(int verbose)
   gsl_rng_set(RandomGenerator, seed);
 }
 
-PHG4TPCDistortion::~PHG4TPCDistortion()
+PHG4TpcDistortion::~PHG4TpcDistortion()
 {
   gsl_rng_free(RandomGenerator);
 }

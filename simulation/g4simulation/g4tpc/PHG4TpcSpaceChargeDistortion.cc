@@ -1,14 +1,14 @@
 // $Id: $
 
 /*!
- * \file PHG4TPCSpaceChargeDistortion.cc
+ * \file PHG4TpcSpaceChargeDistortion.cc
  * \brief From TKH's SpaceChargeDistortion
  * \author Jin Huang <jhuang@bnl.gov>
  * \version $Revision:   $
  * \date $Date: $
  */
 
-#include "PHG4TPCSpaceChargeDistortion.h"
+#include "PHG4TpcSpaceChargeDistortion.h"
 
 #include <TFile.h>
 #include <TH2D.h>
@@ -21,16 +21,16 @@
 
 using namespace std;
 
-PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
+PHG4TpcSpaceChargeDistortion::PHG4TpcSpaceChargeDistortion(
     const std::string &distortion_map_file, int verbose)
-  : PHG4TPCDistortion(verbose)
+  : PHG4TpcDistortion(verbose)
 {
   TFile file(distortion_map_file.c_str());
 
   if (not file.IsOpen())
   {
     cout
-        << "PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion - Fatal Error - "
+        << "PHG4TpcSpaceChargeDistortion::PHG4TpcSpaceChargeDistortion - Fatal Error - "
         << "Failed to open distortion file " << distortion_map_file << endl;
 
     exit(13);
@@ -40,7 +40,7 @@ PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
   if (not rDistortion)
   {
     cout
-        << "PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion - Fatal Error - "
+        << "PHG4TpcSpaceChargeDistortion::PHG4TpcSpaceChargeDistortion - Fatal Error - "
         << "Failed to find TH3F mapDeltaR in distortion file "
         << distortion_map_file << endl;
 
@@ -55,7 +55,7 @@ PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
   if (not rPhiDistortion)
   {
     cout
-        << "PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion - Fatal Error - "
+        << "PHG4TpcSpaceChargeDistortion::PHG4TpcSpaceChargeDistortion - Fatal Error - "
         << "Failed to find TH3F mapRDeltaPHI in distortion file "
         << distortion_map_file << endl;
 
@@ -72,7 +72,7 @@ PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
 
   if (verbosity > 1)
   {
-    cout << "PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion - "
+    cout << "PHG4TpcSpaceChargeDistortion::PHG4TpcSpaceChargeDistortion - "
          << endl;
 
     double lowX = rDistortion->GetXaxis()->GetBinCenter(1);
@@ -104,7 +104,7 @@ PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
 
   if (verbosity > 1)
   {
-    cout << "PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion - "
+    cout << "PHG4TpcSpaceChargeDistortion::PHG4TpcSpaceChargeDistortion - "
          << endl;
 
     double lowX = rPhiDistortion->GetXaxis()->GetBinCenter(1);
@@ -135,7 +135,7 @@ PHG4TPCSpaceChargeDistortion::PHG4TPCSpaceChargeDistortion(
   }
 }
 
-PHG4TPCSpaceChargeDistortion::~PHG4TPCSpaceChargeDistortion()
+PHG4TpcSpaceChargeDistortion::~PHG4TpcSpaceChargeDistortion()
 {
   if (rDistortion2)
     delete rDistortion2;
@@ -144,7 +144,7 @@ PHG4TPCSpaceChargeDistortion::~PHG4TPCSpaceChargeDistortion()
 }
 
 double
-PHG4TPCSpaceChargeDistortion::get_r_distortion(double r, double phi, double z)
+PHG4TpcSpaceChargeDistortion::get_r_distortion(double r, double phi, double z)
 {
   //  Calculations ONLY for minus z;
   if (z > 0)
@@ -155,7 +155,7 @@ PHG4TPCSpaceChargeDistortion::get_r_distortion(double r, double phi, double z)
   double dist2 = accuracyFactor * dist + gsl_ran_gaussian(RandomGenerator, precisionFactor * dist);
   if (verbosity > 0)
   {
-    cout << "PHG4TPCSpaceChargeDistortion::get_r_distortion - input"
+    cout << "PHG4TpcSpaceChargeDistortion::get_r_distortion - input"
          << " r = " << r
          << " phi = " << phi
          << " z = " << z << endl;
@@ -168,7 +168,7 @@ PHG4TPCSpaceChargeDistortion::get_r_distortion(double r, double phi, double z)
 }
 
 double
-PHG4TPCSpaceChargeDistortion::get_rphi_distortion(double r, double phi,
+PHG4TpcSpaceChargeDistortion::get_rphi_distortion(double r, double phi,
                                                   double z)
 {
   //  Need to have this histogram in the file...
@@ -181,7 +181,7 @@ PHG4TPCSpaceChargeDistortion::get_rphi_distortion(double r, double phi,
   double dist2 = accuracyFactor * dist + gsl_ran_gaussian(RandomGenerator, precisionFactor * dist);
   if (verbosity > 0)
   {
-    cout << "PHG4TPCSpaceChargeDistortion::get_rphi_distortion - input"
+    cout << "PHG4TpcSpaceChargeDistortion::get_rphi_distortion - input"
          << " r = " << r
          << " phi = " << phi
          << " z = " << z << endl;

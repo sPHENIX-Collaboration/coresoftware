@@ -1,4 +1,4 @@
-#include "PHG4TPCPadPlane.h"
+#include "PHG4TpcPadPlane.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -11,14 +11,14 @@
 
 using namespace std;
 
-PHG4TPCPadPlane::PHG4TPCPadPlane(const std::string &name)
+PHG4TpcPadPlane::PHG4TpcPadPlane(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , detector("TPC")
 {
 }
 
-int PHG4TPCPadPlane::InitRun(PHCompositeNode *topNode)
+int PHG4TpcPadPlane::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));

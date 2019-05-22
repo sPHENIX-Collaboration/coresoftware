@@ -1,4 +1,4 @@
-#include "PHG4TPCDisplayAction.h"
+#include "PHG4TpcDisplayAction.h"
 
 #include <g4main/PHG4ColorDefs.h>
 
@@ -15,12 +15,12 @@
 
 using namespace std;
 
-PHG4TPCDisplayAction::PHG4TPCDisplayAction(const std::string &name)
+PHG4TpcDisplayAction::PHG4TpcDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
 {
 }
 
-PHG4TPCDisplayAction::~PHG4TPCDisplayAction()
+PHG4TpcDisplayAction::~PHG4TpcDisplayAction()
 {
   for (auto &it : m_VisAttVec)
   {
@@ -29,17 +29,17 @@ PHG4TPCDisplayAction::~PHG4TPCDisplayAction()
   m_VisAttVec.clear();
 }
 
-void PHG4TPCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
+void PHG4TpcDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
 {
-  static const G4Colour color[] = {PHG4TPCColorDefs::tpc_cu_color,
-                                   PHG4TPCColorDefs::tpc_pcb_color,
-                                   PHG4TPCColorDefs::tpc_honeycomb_color,
-                                   PHG4TPCColorDefs::tpc_cu_color,
-                                   PHG4TPCColorDefs::tpc_pcb_color,
-                                   PHG4TPCColorDefs::tpc_kapton_color,
-                                   PHG4TPCColorDefs::tpc_cu_color,
-                                   PHG4TPCColorDefs::tpc_kapton_color,
-                                   PHG4TPCColorDefs::tpc_cu_color};
+  static const G4Colour color[] = {PHG4TpcColorDefs::tpc_cu_color,
+                                   PHG4TpcColorDefs::tpc_pcb_color,
+                                   PHG4TpcColorDefs::tpc_honeycomb_color,
+                                   PHG4TpcColorDefs::tpc_cu_color,
+                                   PHG4TpcColorDefs::tpc_pcb_color,
+                                   PHG4TpcColorDefs::tpc_kapton_color,
+                                   PHG4TpcColorDefs::tpc_cu_color,
+                                   PHG4TpcColorDefs::tpc_kapton_color,
+                                   PHG4TpcColorDefs::tpc_cu_color};
   // check if vis attributes exist, if so someone else has set them and we do nothing
   for (auto it : m_LogicalVolumeMap)
   {
@@ -58,15 +58,15 @@ void PHG4TPCDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     }
     else if (it.second == "TpcGas")
     {
-      visatt->SetColor(PHG4TPCColorDefs::tpc_gas_color);
+      visatt->SetColor(PHG4TpcColorDefs::tpc_gas_color);
     }
     else if (it.second == "TpcHoneyComb")
     {
-      visatt->SetColor(PHG4TPCColorDefs::tpc_honeycomb_color);
+      visatt->SetColor(PHG4TpcColorDefs::tpc_honeycomb_color);
     }
     else if (it.second == "TpcWindow")
     {
-      visatt->SetColor(PHG4TPCColorDefs::tpc_pcb_color);
+      visatt->SetColor(PHG4TpcColorDefs::tpc_pcb_color);
     }
     else
     {

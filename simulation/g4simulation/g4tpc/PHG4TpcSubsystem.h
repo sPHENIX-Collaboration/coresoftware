@@ -8,17 +8,17 @@
 #include <string>
 
 class PHG4DisplayAction;
-class PHG4TPCDetector;
-class PHG4TPCSteppingAction;
+class PHG4TpcDetector;
+class PHG4TpcSteppingAction;
 
-class PHG4TPCSubsystem : public PHG4DetectorSubsystem
+class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 {
  public:
   //! constructor
-  PHG4TPCSubsystem(const std::string &name = "TPC", const int layer = 0);
+  PHG4TpcSubsystem(const std::string &name = "TPC", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4TPCSubsystem();
+  virtual ~PHG4TpcSubsystem();
 
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
@@ -50,7 +50,7 @@ class PHG4TPCSubsystem : public PHG4DetectorSubsystem
 
   //! detector geometry
   /*! derives from PHG4Detector */
-  PHG4TPCDetector *detector_;
+  PHG4TpcDetector *detector_;
 
   //! detector "stepping" action, executes after every G4 step
   /*! derives from PHG4SteppingAction */

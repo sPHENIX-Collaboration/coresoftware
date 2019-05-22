@@ -1,7 +1,7 @@
-#ifndef PHG4TPCDefs_h
-#define PHG4TPCDefs_h
+#ifndef G4TPC_PHG4TPCDEFS_H
+#define G4TPC_PHG4TPCDEFS_H
 
-namespace PHG4TPCDefs
+namespace PHG4TpcDefs
 {
 enum
 {
@@ -14,6 +14,6 @@ enum
   Window = 100,
   WindowCore
 };
-};  // namespace PHG4TPCDefs
+};  // namespace PHG4TpcDefs
 
 #endif

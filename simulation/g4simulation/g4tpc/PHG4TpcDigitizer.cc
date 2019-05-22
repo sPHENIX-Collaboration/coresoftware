@@ -1,4 +1,4 @@
-#include "PHG4TPCDigitizer.h"
+#include "PHG4TpcDigitizer.h"
 
 #include <g4main/PHG4Hit.h>
 
@@ -33,21 +33,21 @@
 
 using namespace std;
 
-PHG4TPCDigitizer::PHG4TPCDigitizer(const string &name)
+PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
   : SubsysReco(name)
-  , TPCMinLayer(7)
+  , TpcMinLayer(7)
   , ADCThreshold(2700)
   ,  // electrons
-  TPCEnc(670)
+  TpcEnc(670)
   ,  // electrons
   Pedestal(50000)
   ,  // electrons
   ChargeToPeakVolts(20)
   ,  // mV/fC
   ADCSignalConversionGain(numeric_limits<float>::signaling_NaN())
-  ,  // will be assigned in PHG4TPCDigitizer::InitRun
+  ,  // will be assigned in PHG4TpcDigitizer::InitRun
   ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())
-  ,  // will be assigned in PHG4TPCDigitizer::InitRun
+  ,  // will be assigned in PHG4TpcDigitizer::InitRun
   _hitmap(nullptr)
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
@@ -56,15 +56,15 @@ PHG4TPCDigitizer::PHG4TPCDigitizer(const string &name)
   gsl_rng_set(RandomGenerator, seed);
 
   if (Verbosity() > 0)
-    cout << "Creating PHG4TPCDigitizer with name = " << name << endl;
+    cout << "Creating PHG4TpcDigitizer with name = " << name << endl;
 }
 
-PHG4TPCDigitizer::~PHG4TPCDigitizer()
+PHG4TpcDigitizer::~PHG4TpcDigitizer()
 {
   gsl_rng_free(RandomGenerator);
 }
 
-int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
+int PHG4TpcDigitizer::InitRun(PHCompositeNode *topNode)
 {
   ADCThreshold += Pedestal;
 
@@ -97,7 +97,7 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
 
   if (Verbosity() > 0)
   {
-    cout << "====================== PHG4TPCDigitizer::InitRun() =====================" << endl;
+    cout << "====================== PHG4TpcDigitizer::InitRun() =====================" << endl;
     for (std::map<int, unsigned int>::iterator iter = _max_adc.begin();
          iter != _max_adc.end();
          ++iter)
@@ -116,7 +116,7 @@ int PHG4TPCDigitizer::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode)
+int PHG4TpcDigitizer::process_event(PHCompositeNode *topNode)
 {
 
   DigitizeCylinderCells(topNode);
@@ -124,7 +124,7 @@ int PHG4TPCDigitizer::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
+void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
 {
   // defaults to 8-bit ADC, short-axis MIP placed at 1/4 dynamic range
 
@@ -157,11 +157,11 @@ void PHG4TPCDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
   return;
 }
 
-void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
+void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 {
   unsigned int print_layer = 47;  // to print diagnostic output for layer 47
 
-  // Digitizes the TPC cells that were created in PHG4CylinderCellTPCReco
+  // Digitizes the Tpc cells that were created in PHG4CylinderCellTpcReco
   // These contain as edep the number of electrons out of the GEM stack, distributed between Z bins by shaper response and ADC clock window
   // - i.e. all of the phi and Z bins in a cluster have edep values that add up to the primary charge in the layer times 2000
 
@@ -177,7 +177,7 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   // Thus a MIP produces a charge value out of the GEM stack of 64000/6.242x10^18 = 10.2 fC
 
   // SAMPA:
-  // See https://indico.cern.ch/event/489996/timetable/#all.detailed "SAMPA Chip: the New ASIC for the ALICE TPC and MCH Upgrades", M Bregant
+  // See https://indico.cern.ch/event/489996/timetable/#all.detailed "SAMPA Chip: the New ASIC for the ALICE Tpc and MCH Upgrades", M Bregant
   // The SAMPA has a maximum output voltage of 2200 mV (but the pedestal is about 200 mV)
   // The SAMPA shaper is set to 80 ns peaking time
   // The ADC Digitizes the SAMPA shaper output into 1024 channels
@@ -248,20 +248,20 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   // Digitization
   //-------------
 
-  // Loop over all hitsets for the TPC
+  // Loop over all hitsets for the Tpc
   TrkrHitSetContainer::ConstRange hitset_range = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
        hitset_iter != hitset_range.second;
        ++hitset_iter)
     {
-      // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+      // we have an itrator to one TrkrHitSet for the Tpc from the trkrHitSetContainer
       // get the hitset key so we can find the layer
       TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
       const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
 
       if(Verbosity() > 2)
 	if(layer == print_layer) 
-	  cout << "new: PHG4TPCDigitizer:  processing hits for layer " << layer << " hitsetkey " << hitsetkey << endl;
+	  cout << "new: PHG4TpcDigitizer:  processing hits for layer " << layer << " hitsetkey " << hitsetkey << endl;
 
       // we need the geometry object for this layer
       PHG4CylinderCellGeom *layergeom = geom_container->GetLayerCellGeom(layer);
@@ -499,23 +499,23 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
   //======================================================  
   if(Verbosity() > 2) 
-    cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end before cleaning:" << endl;
+    cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end before cleaning:" << endl;
 
     std::vector<std::pair<TrkrDefs::hitsetkey, TrkrDefs::hitkey>> delete_hitkey_list;
 
-  // Clean up undigitized hits - we want all hitsets for the TPC
+  // Clean up undigitized hits - we want all hitsets for the Tpc
   TrkrHitSetContainer::ConstRange hitset_range_now = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_now.first;
        hitset_iter != hitset_range_now.second;
        ++hitset_iter)
     {
-     // we have an iterator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+     // we have an iterator to one TrkrHitSet for the Tpc from the trkrHitSetContainer
       TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
       const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
       if(Verbosity() > 2) 
-	cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+	cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -558,21 +558,21 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 
   // Final hitset dump
   if(Verbosity() > 2) 
-    cout << "From PHG4TPCDigitizer: hitsetcontainer dump at end after cleaning:" << endl;
- // We want all hitsets for the TPC
+    cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end after cleaning:" << endl;
+ // We want all hitsets for the Tpc
   TrkrHitSetContainer::ConstRange hitset_range_final = trkrhitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range_final.first;
        hitset_iter != hitset_range_now.second;
        ++hitset_iter)
     {
-     // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+     // we have an itrator to one TrkrHitSet for the Tpc from the trkrHitSetContainer
       TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
       const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
       if (layer != print_layer)  continue;
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
       if(Verbosity() > 2) 
-	cout << "PHG4TPCDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+	cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
       TrkrHitSet *hitset = hitset_iter->second;
@@ -599,9 +599,9 @@ void PHG4TPCDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
   return;
 }
 
-float PHG4TPCDigitizer::added_noise()
+float PHG4TpcDigitizer::added_noise()
 {
-  float noise = gsl_ran_gaussian(RandomGenerator, TPCEnc);
+  float noise = gsl_ran_gaussian(RandomGenerator, TpcEnc);
 
   return noise;
 }

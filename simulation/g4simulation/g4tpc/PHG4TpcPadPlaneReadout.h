@@ -1,7 +1,7 @@
 #ifndef G4TPC_PHG4TPCPADPLANEREADOUT_H
 #define G4TPC_PHG4TPCPADPLANEREADOUT_H
 
-#include "PHG4TPCPadPlane.h"
+#include "PHG4TpcPadPlane.h"
 
 #include <g4main/PHG4HitContainer.h>
 
@@ -15,11 +15,11 @@ class PHG4CylinderCellGeom;
 class TrkrHitSetContainer;
 class TrkrHitTruthContainer;
 
-class PHG4TPCPadPlaneReadout : public PHG4TPCPadPlane
+class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 {
  public:
-  PHG4TPCPadPlaneReadout(const std::string &name = "ReadoutPadPlane");
-  virtual ~PHG4TPCPadPlaneReadout();
+  PHG4TpcPadPlaneReadout(const std::string &name = "PHG4TpcPadPlaneReadout");
+  virtual ~PHG4TpcPadPlaneReadout();
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 

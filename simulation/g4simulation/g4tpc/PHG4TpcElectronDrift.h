@@ -19,17 +19,17 @@
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
-class PHG4TPCPadPlane;
-class PHG4TPCPadPlaneReadout;
+class PHG4TpcPadPlane;
+class PHG4TpcPadPlaneReadout;
 class PHCompositeNode;
 class TH1;
 class TNtuple;
 
-class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
+class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4TPCElectronDrift(const std::string &name = "PHG4TPCElectronDrift");
-  virtual ~PHG4TPCElectronDrift();
+  PHG4TpcElectronDrift(const std::string &name = "PHG4TpcElectronDrift");
+  virtual ~PHG4TpcElectronDrift();
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
@@ -41,13 +41,13 @@ class PHG4TPCElectronDrift : public SubsysReco, public PHParameterInterface
   std::string Detector() const { return detector; }
   void set_seed(const unsigned int iseed);
   void MapToPadPlane(const double x, const double y, const double z, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
-  void registerPadPlane(PHG4TPCPadPlane *padplane);
+  void registerPadPlane(PHG4TpcPadPlane *padplane);
 
  private:
   TrkrHitSetContainer *hitsetcontainer;
   TrkrHitSetContainer *temp_hitsetcontainer;
   TrkrHitTruthAssoc *hittruthassoc;
-  PHG4TPCPadPlane *padplane;
+  PHG4TpcPadPlane *padplane;
   TH1 *dlong;
   TH1 *dtrans;
   TNtuple *nt;

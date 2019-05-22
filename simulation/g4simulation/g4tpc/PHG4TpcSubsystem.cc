@@ -1,7 +1,7 @@
-#include "PHG4TPCSubsystem.h"
-#include "PHG4TPCDetector.h"
-#include "PHG4TPCDisplayAction.h"
-#include "PHG4TPCSteppingAction.h"
+#include "PHG4TpcSubsystem.h"
+#include "PHG4TpcDetector.h"
+#include "PHG4TpcDisplayAction.h"
+#include "PHG4TpcSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -21,7 +21,7 @@
 using namespace std;
 
 //_______________________________________________________________________
-PHG4TPCSubsystem::PHG4TPCSubsystem(const std::string &name, const int lyr)
+PHG4TpcSubsystem::PHG4TpcSubsystem(const std::string &name, const int lyr)
   : PHG4DetectorSubsystem(name, lyr)
   , detector_(nullptr)
   , steppingAction_(nullptr)
@@ -31,21 +31,21 @@ PHG4TPCSubsystem::PHG4TPCSubsystem(const std::string &name, const int lyr)
 }
 
 //_______________________________________________________________________
-PHG4TPCSubsystem::~PHG4TPCSubsystem()
+PHG4TpcSubsystem::~PHG4TpcSubsystem()
 {
   delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
-int PHG4TPCSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
+int PHG4TpcSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create display settings before detector (detector adds its volumes to it)
-  m_DisplayAction = new PHG4TPCDisplayAction(Name());
+  m_DisplayAction = new PHG4TpcDisplayAction(Name());
   // create detector
-  detector_ = new PHG4TPCDetector(this, topNode, GetParams(), Name());
+  detector_ = new PHG4TpcDetector(this, topNode, GetParams(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
   set<string> nodes;
@@ -93,21 +93,21 @@ int PHG4TPCSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     }
 
     // create stepping action
-    steppingAction_ = new PHG4TPCSteppingAction(detector_, GetParams());
+    steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
   }
   else
   {
     // if this is a black hole it does not have to be active
     if (GetParams()->get_int_param("blackhole"))
     {
-      steppingAction_ = new PHG4TPCSteppingAction(detector_, GetParams());
+      steppingAction_ = new PHG4TpcSteppingAction(detector_, GetParams());
     }
   }
   return 0;
 }
 
 //_______________________________________________________________________
-int PHG4TPCSubsystem::process_event(PHCompositeNode *topNode)
+int PHG4TpcSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -118,7 +118,7 @@ int PHG4TPCSubsystem::process_event(PHCompositeNode *topNode)
   return 0;
 }
 
-void PHG4TPCSubsystem::Print(const string &what) const
+void PHG4TpcSubsystem::Print(const string &what) const
 {
   cout << Name() << " Parameters: " << endl;
   GetParams()->Print();
@@ -135,12 +135,12 @@ void PHG4TPCSubsystem::Print(const string &what) const
 }
 
 //_______________________________________________________________________
-PHG4Detector *PHG4TPCSubsystem::GetDetector(void) const
+PHG4Detector *PHG4TpcSubsystem::GetDetector(void) const
 {
   return detector_;
 }
 
-void PHG4TPCSubsystem::SetDefaultParameters()
+void PHG4TpcSubsystem::SetDefaultParameters()
 {
   set_default_double_param("gas_inner_radius", 21.);
   set_default_double_param("gas_outer_radius", 77.);

@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef PHG4TPCDISTORTION_H_
-#define PHG4TPCDISTORTION_H_
+#ifndef G4TPC_PHG4TPCDISTORTION_H
+#define G4TPC_PHG4TPCDISTORTION_H
 
 // rootcint barfs with this header so we need to hide it
 #ifndef __CINT__
@@ -17,16 +17,16 @@
 #endif
 
 /*!
- * \brief PHG4TPCDistortion is a virtual interface to apply distortion to a primary ionization in TPC
+ * \brief PHG4TpcDistortion is a virtual interface to apply distortion to a primary ionization in Tpc
  *
  * IO follow PHENIX units (cm)
  */
-class PHG4TPCDistortion
+class PHG4TpcDistortion
 {
  public:
-  explicit PHG4TPCDistortion(int verbose = 0);
+  explicit PHG4TpcDistortion(int verbose = 0);
 
-  virtual ~PHG4TPCDistortion();
+  virtual ~PHG4TpcDistortion();
 
   //! radial distortion for a given truth location of the primary ionization
   virtual double
@@ -64,4 +64,4 @@ class PHG4TPCDistortion
 #endif
 };
 
-#endif /* PHG4TPCDISTORTION_H_ */
+#endif /* G4TPC_PHG4TPCDISTORTION_H */

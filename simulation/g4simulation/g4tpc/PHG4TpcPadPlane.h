@@ -1,5 +1,5 @@
-#ifndef PHG4TPCPadPlane_h
-#define PHG4TPCPadPlane_h
+#ifndef G4TPC_PHG4TPCPADPLANE_H
+#define G4TPC_PHG4TPCPADPLANE_H
 
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>
@@ -13,12 +13,12 @@ class PHCompositeNode;
 class PHG4CylinderCellGeomContainer;
 class TNtuple;
 
-class PHG4TPCPadPlane : public SubsysReco, public PHParameterInterface
+class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
 {
  public:
-  PHG4TPCPadPlane(const std::string &name = "PHG4TPCPadPlane");
+  PHG4TpcPadPlane(const std::string &name = "PHG4TpcPadPlane");
 
-  virtual ~PHG4TPCPadPlane() {}
+  virtual ~PHG4TpcPadPlane() {}
 
 #ifndef __CINT__
   int process_event(PHCompositeNode *) final

@@ -1,7 +1,7 @@
-#include "PHG4TPCDetector.h"
-#include "PHG4TPCDefs.h"
-#include "PHG4TPCDisplayAction.h"
-#include "PHG4TPCSubsystem.h"
+#include "PHG4TpcDetector.h"
+#include "PHG4TpcDefs.h"
+#include "PHG4TpcDisplayAction.h"
+#include "PHG4TpcSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -25,9 +25,9 @@
 using namespace std;
 
 //_______________________________________________________________
-PHG4TPCDetector::PHG4TPCDetector(PHG4TPCSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
+PHG4TpcDetector::PHG4TpcDetector(PHG4TpcSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
   : PHG4Detector(Node, dnam)
-  , m_DisplayAction(dynamic_cast<PHG4TPCDisplayAction *>(subsys->GetDisplayAction()))
+  , m_DisplayAction(dynamic_cast<PHG4TpcDisplayAction *>(subsys->GetDisplayAction()))
   , params(parameters)
   , g4userlimits(nullptr)
   , active(params->get_int_param("active"))
@@ -39,7 +39,7 @@ PHG4TPCDetector::PHG4TPCDetector(PHG4TPCSubsystem *subsys, PHCompositeNode *Node
 }
 
 //_______________________________________________________________
-int PHG4TPCDetector::IsInTPC(G4VPhysicalVolume *volume) const
+int PHG4TpcDetector::IsInTpc(G4VPhysicalVolume *volume) const
 {
   if (active)
   {
@@ -59,9 +59,9 @@ int PHG4TPCDetector::IsInTPC(G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4TpcDetector::Construct(G4LogicalVolume *logicWorld)
 {
-  // create TPC envelope
+  // create Tpc envelope
   // tpc consists of (from inside to gas volume, outside is reversed up to now)
   // 1st layer cu
   // 2nd layer FR4
@@ -86,19 +86,19 @@ void PHG4TPCDetector::Construct(G4LogicalVolume *logicWorld)
                                                             "tpc_envelope");
   m_DisplayAction->AddVolume(tpc_envelope_logic, "TpcEnvelope");
 
-  ConstructTPCCageVolume(tpc_envelope_logic);
-  ConstructTPCGasVolume(tpc_envelope_logic);
+  ConstructTpcCageVolume(tpc_envelope_logic);
+  ConstructTpcGasVolume(tpc_envelope_logic);
 
   new G4PVPlacement(0, G4ThreeVector(params->get_double_param("place_x") * cm, params->get_double_param("place_y") * cm, params->get_double_param("place_z") * cm),
                     tpc_envelope_logic, "tpc_envelope",
                     logicWorld, 0, false, OverlapCheck());
 }
 
-int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
+int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
 {
   static map<int, string> tpcgasvolname =
-      {{PHG4TPCDefs::North, "tpc_gas_north"},
-       {PHG4TPCDefs::South, "tpc_gas_south"}};
+      {{PHG4TpcDefs::North, "tpc_gas_north"},
+       {PHG4TpcDefs::South, "tpc_gas_south"}};
 
   // Window / central membrane
   double tpc_window_thickness = params->get_double_param("window_thickness") * cm;
@@ -113,7 +113,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   m_DisplayAction->AddVolume(tpc_window_logic, "TpcWindow");
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                          tpc_window_logic, "tpc_window",
-                                                         tpc_envelope, false, PHG4TPCDefs::Window, OverlapCheck());
+                                                         tpc_envelope, false, PHG4TpcDefs::Window, OverlapCheck());
 
   absorbervols.insert(tpc_window_phys);
 
@@ -131,7 +131,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   m_DisplayAction->AddVolume(tpc_window_core_logic, "TpcHoneyComb");
   G4VPhysicalVolume *tpc_window_core_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                               tpc_window_core_logic, "tpc_window_core",
-                                                              tpc_window_logic, false, PHG4TPCDefs::WindowCore, OverlapCheck());
+                                                              tpc_window_logic, false, PHG4TpcDefs::WindowCore, OverlapCheck());
 
   absorbervols.insert(tpc_window_core_phys);
 
@@ -144,14 +144,14 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   tpc_gas_logic->SetUserLimits(g4userlimits);
   m_DisplayAction->AddVolume(tpc_gas_logic, "TpcGas");
   G4VPhysicalVolume *tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, (tpc_half_length + tpc_window_thickness) / 2.),
-                                                      tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::North],
-                                                      tpc_envelope, false, PHG4TPCDefs::North, OverlapCheck());
+                                                      tpc_gas_logic, tpcgasvolname[PHG4TpcDefs::North],
+                                                      tpc_envelope, false, PHG4TpcDefs::North, OverlapCheck());
   cout << "north copy no: " << tpc_gas_phys->GetCopyNo() << endl;
 
   activevols.insert(tpc_gas_phys);
   tpc_gas_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, -(tpc_half_length + tpc_window_thickness) / 2.),
-                                   tpc_gas_logic, tpcgasvolname[PHG4TPCDefs::South],
-                                   tpc_envelope, false, PHG4TPCDefs::South, OverlapCheck());
+                                   tpc_gas_logic, tpcgasvolname[PHG4TpcDefs::South],
+                                   tpc_envelope, false, PHG4TpcDefs::South, OverlapCheck());
 
   cout << "south copy no: " << tpc_gas_phys->GetCopyNo() << endl;
   activevols.insert(tpc_gas_phys);
@@ -165,7 +165,7 @@ int PHG4TPCDetector::ConstructTPCGasVolume(G4LogicalVolume *tpc_envelope)
   return 0;
 }
 
-int PHG4TPCDetector::ConstructTPCCageVolume(G4LogicalVolume *tpc_envelope)
+int PHG4TpcDetector::ConstructTpcCageVolume(G4LogicalVolume *tpc_envelope)
 {
   // 8th layer cu
   // 9th layer FR4

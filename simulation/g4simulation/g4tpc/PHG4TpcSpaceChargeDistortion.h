@@ -8,24 +8,24 @@
  * \date $Date: $
  */
 
-#ifndef PHG4TPCSPACECHARGEDISTORTION_H_
-#define PHG4TPCSPACECHARGEDISTORTION_H_
+#ifndef G4TPC_PHG4TPCSPACECHARGEDISTORTION_H
+#define G4TPC_PHG4TPCSPACECHARGEDISTORTION_H
 
 class TH2D;
 
-#include "PHG4TPCDistortion.h"
+#include "PHG4TpcDistortion.h"
 
 #include <string>
 
 /*!
- * \brief PHG4TPCSpaceChargeDistortion
+ * \brief PHG4TpcSpaceChargeDistortion
  */
 ///
 ///  Hello Space Charge DIstortion Fans:
 ///
 ///    This program is a quick & dirty bootstrap to allow reasonably accurate
 ///  space charge calculations to be made with minimal disturbance to our existing
-///  TPC code base in sPHENIX.  Here is the concept of how it works:
+///  Tpc code base in sPHENIX.  Here is the concept of how it works:
 ///
 ///  To reasonable accuracy, we can model space charge distortions as having two
 ///  components, boith stemming dfrom the same original source:
@@ -43,12 +43,12 @@ class TH2D;
 ///                                                                TKH
 ///                                                                5-19-2016
 ///
-class PHG4TPCSpaceChargeDistortion : public PHG4TPCDistortion
+class PHG4TpcSpaceChargeDistortion : public PHG4TpcDistortion
 {
  public:
-  PHG4TPCSpaceChargeDistortion(const std::string &distortion_map_file, int verbose = 0);
+  PHG4TpcSpaceChargeDistortion(const std::string &distortion_map_file, int verbose = 0);
 
-  virtual ~PHG4TPCSpaceChargeDistortion();
+  virtual ~PHG4TpcSpaceChargeDistortion();
 
   //! radial distortion for a given truth location of the primary ionization
   double
@@ -81,4 +81,4 @@ class PHG4TPCSpaceChargeDistortion : public PHG4TPCDistortion
   double accuracyFactor;
 };
 
-#endif /* PHG4TPCSPACECHARGEDISTORTION_H_ */
+#endif /* G4TPC_PHG4TPCSPACECHARGEDISTORTION_H */

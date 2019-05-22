@@ -20,11 +20,11 @@ class SvtxHitMap;
 class PHG4Cell;
 class TrkrHit;
 
-class PHG4TPCDigitizer : public SubsysReco
+class PHG4TpcDigitizer : public SubsysReco
 {
  public:
-  PHG4TPCDigitizer(const std::string &name = "PHG4TPCDigitizer");
-  virtual ~PHG4TPCDigitizer();
+  PHG4TpcDigitizer(const std::string &name = "PHG4TpcDigitizer");
+  virtual ~PHG4TpcDigitizer();
 
   //! module initialization
   int Init(PHCompositeNode *topNode) { return 0; }
@@ -44,18 +44,18 @@ class PHG4TPCDigitizer : public SubsysReco
     _energy_scale.insert(std::make_pair(layer, energy_per_adc));
   }
 
-  void SetTPCMinLayer(const int minlayer) { TPCMinLayer = minlayer; };
+  void SetTpcMinLayer(const int minlayer) { TpcMinLayer = minlayer; };
   void SetADCThreshold(const float thresh) { ADCThreshold = thresh; };
-  void SetENC(const float enc) { TPCEnc = enc; };
+  void SetENC(const float enc) { TpcEnc = enc; };
 
  private:
   void CalculateCylinderCellADCScale(PHCompositeNode *topNode);
   void DigitizeCylinderCells(PHCompositeNode *topNode);
   float added_noise();
 
-  unsigned int TPCMinLayer;
+  unsigned int TpcMinLayer;
   float ADCThreshold;
-  float TPCEnc;
+  float TpcEnc;
   float Pedestal;
   float ChargeToPeakVolts;
 

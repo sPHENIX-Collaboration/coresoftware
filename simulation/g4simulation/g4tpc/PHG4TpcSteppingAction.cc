@@ -1,5 +1,5 @@
-#include "PHG4TPCSteppingAction.h"
-#include "PHG4TPCDetector.h"
+#include "PHG4TpcSteppingAction.h"
+#include "PHG4TpcDetector.h"
 
 #include <g4detectors/PHG4StepStatusDecode.h>
 
@@ -39,7 +39,7 @@
 
 using namespace std;
 //____________________________________________________________________________..
-PHG4TPCSteppingAction::PHG4TPCSteppingAction(PHG4TPCDetector* detector, const PHParameters* parameters)
+PHG4TpcSteppingAction::PHG4TpcSteppingAction(PHG4TpcDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
   , hits_(nullptr)
@@ -64,7 +64,7 @@ PHG4TPCSteppingAction::PHG4TPCSteppingAction(PHG4TPCDetector* detector, const PH
   SetName(detector_->GetName());
 }
 
-PHG4TPCSteppingAction::~PHG4TPCSteppingAction()
+PHG4TpcSteppingAction::~PHG4TpcSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
@@ -73,20 +73,20 @@ PHG4TPCSteppingAction::~PHG4TPCSteppingAction()
   delete hit;
 }
 //____________________________________________________________________________..
-bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
+bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 {
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4TouchableHandle touchpost = aStep->GetPostStepPoint()->GetTouchableHandle();
   // get volume of the current step
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInTPC(volume)
+  // detector_->IsInTpc(volume)
   // returns
-  //  0 is outside of TPC
+  //  0 is outside of Tpc
   //  1 is inside tpc gas
   // <0 is in tpc support structure (cage, endcaps,...)
 
-  int whichactive = detector_->IsInTPC(volume);
+  int whichactive = detector_->IsInTpc(volume);
   if (!whichactive)
   {
     return false;
@@ -161,7 +161,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     savetrackid = aTrack->GetTrackID();
     //set the initial energy deposit
     hit->set_edep(0);
-    if (whichactive > 0)  // return of IsInTPCDetector, > 0 hit in tpc gas volume, < 0 hit in support structures
+    if (whichactive > 0)  // return of IsInTpcDetector, > 0 hit in tpc gas volume, < 0 hit in support structures
     {
       hit->set_eion(0);
       // Now save the container we want to add this hit to
@@ -275,7 +275,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         if (Verbosity() > 10)
           if ((rin > 69.0 && rin < 70.125) || (rout > 69.0 && rout < 70.125))
           {
-            cout << "Added TPC g4hit with rin, rout = " << rin << "  " << rout
+            cout << "Added Tpc g4hit with rin, rout = " << rin << "  " << rout
                  << " g4hitid " << hit->get_hit_id() << endl;
             cout << " xin " << hit->get_x(0)
                  << " yin " << hit->get_y(0)
@@ -316,7 +316,7 @@ bool PHG4TPCSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 }
 
 //____________________________________________________________________________..
-void PHG4TPCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
+void PHG4TpcSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   string hitnodename;
   string absorbernodename;
@@ -338,7 +338,7 @@ void PHG4TPCSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
   // if we do not find the node it's messed up.
   if (!hits_)
   {
-    std::cout << "PHG4TPCSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    std::cout << "PHG4TpcSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
   }
   if (!absorberhits_)
   {

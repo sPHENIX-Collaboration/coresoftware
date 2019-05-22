@@ -1,5 +1,5 @@
-#include "PHG4TPCPadPlaneSimple.h"
-#include "PHG4CellTPCv1.h"
+#include "PHG4TpcPadPlaneSimple.h"
+#include "PHG4CellTpcv1.h"
 
 #include <g4detectors/PHG4CellContainer.h>
 
@@ -8,8 +8,8 @@
 
 using namespace std;
 
-PHG4TPCPadPlaneSimple::PHG4TPCPadPlaneSimple(const string &name)
-  : PHG4TPCPadPlane(name)
+PHG4TpcPadPlaneSimple::PHG4TpcPadPlaneSimple(const string &name)
+  : PHG4TpcPadPlane(name)
   , max_active_radius(NAN)
   , min_active_radius(NAN)
   , rbinwidth(NAN)
@@ -20,7 +20,7 @@ PHG4TPCPadPlaneSimple::PHG4TPCPadPlaneSimple(const string &name)
   return;
 }
 
-void PHG4TPCPadPlaneSimple::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter)
+void PHG4TpcPadPlaneSimple::MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter)
 {
   double phi = atan2(y_gem, x_gem);
   double rad_gem = sqrt(x_gem * x_gem + y_gem * y_gem);
@@ -34,18 +34,18 @@ void PHG4TPCPadPlaneSimple::MapToPadPlane(PHG4CellContainer *g4cells, const doub
   //      << ", radbin: " << radbin
   //      << ", t_gem: " << t_gem
   //      << endl;
-  PHG4CellDefs::keytype key = PHG4CellDefs::TPCBinning::genkey(0, radbin, phibin);
+  PHG4CellDefs::keytype key = PHG4CellDefs::TpcBinning::genkey(0, radbin, phibin);
   PHG4Cell *cell = g4cells->findCell(key);
   if (!cell)
   {
-    cell = new PHG4CellTPCv1(key);
+    cell = new PHG4CellTpcv1(key);
     g4cells->AddCell(cell);
   }
   cell->add_edep(key, tbin, 1.);
   return;
 }
 
-void PHG4TPCPadPlaneSimple::SetDefaultParameters()
+void PHG4TpcPadPlaneSimple::SetDefaultParameters()
 {
   set_default_int_param("nbins_phi", 360);
   set_default_int_param("nbins_r", 40);
@@ -56,7 +56,7 @@ void PHG4TPCPadPlaneSimple::SetDefaultParameters()
   return;
 }
 
-void PHG4TPCPadPlaneSimple::UpdateInternalParameters()
+void PHG4TpcPadPlaneSimple::UpdateInternalParameters()
 {
   max_active_radius = get_double_param("max_active_radius");
   min_active_radius = get_double_param("min_active_radius");

@@ -1,8 +1,8 @@
 // this is the new containers version
 // it uses the same MapToPadPlane as the old containers version
 
-#include "PHG4TPCElectronDrift.h"
-#include "PHG4TPCPadPlaneReadout.h"
+#include "PHG4TpcElectronDrift.h"
+#include "PHG4TpcPadPlaneReadout.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -46,7 +46,7 @@
 
 using namespace std;
 
-PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
+PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , hitsetcontainer(nullptr)
@@ -64,7 +64,7 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
   , min_time(NAN)
   , max_time(NAN)
 {
-  //cout << "Constructor of PHG4TPCElectronDrift" << endl;
+  //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   set_seed(PHRandomSeed());  // fixed seed is handled in this funtcion
@@ -72,21 +72,21 @@ PHG4TPCElectronDrift::PHG4TPCElectronDrift(const std::string &name)
   return;
 }
 
-PHG4TPCElectronDrift::~PHG4TPCElectronDrift()
+PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
 {
   gsl_rng_free(RandomGenerator);
   delete padplane;
   delete temp_hitsetcontainer;
 }
 
-int PHG4TPCElectronDrift::Init(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
 {
   padplane->Init(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -177,7 +177,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   }
   PutOnParNode(ParDetNode, geonodename);
 
-  // find TPC Geo
+  // find Tpc Geo
   PHNodeIterator tpcpariter(ParDetNode);
   PHParametersContainer *tpcparams = findNode::getClass<PHParametersContainer>(ParDetNode, tpcgeonodename);
   if (!tpcparams)
@@ -193,7 +193,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
     }
     else
     {
-      cout << "PHG4TPCElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
+      cout << "PHG4TpcElectronDrift::InitRun - failed to find " << runparamname << " in order to initialize " << tpcgeonodename << ". Aborting run ..." << endl;
       return Fun4AllReturnCodes::ABORTRUN;
     }
   }
@@ -232,7 +232,7 @@ int PHG4TPCElectronDrift::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -360,13 +360,13 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 	 temp_hitset_iter != temp_hitset_range.second;
 	 ++temp_hitset_iter)
       {
-	// we have an itrator to one TrkrHitSet for the TPC from the temp_hitsetcontainer
+	// we have an itrator to one TrkrHitSet for the Tpc from the temp_hitsetcontainer
 	TrkrDefs::hitsetkey node_hitsetkey = temp_hitset_iter->first;
 	const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
 	const int sector = TpcDefs::getSectorId(node_hitsetkey);
 	const int side = TpcDefs::getSide(node_hitsetkey);	
 	if(Verbosity()>100)   
-	  cout << "PHG4TPCElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+	  cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
 	// find or add this hitset on the node tree
 	TrkrHitSetContainer::Iterator node_hitsetit = hitsetcontainer->findOrAddHitSet(node_hitsetkey);
@@ -412,21 +412,21 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
   if(Verbosity() > 2)
     {
-      cout << "From PHG4TPCElectronDrift: hitsetcontainer printout at end:" << endl;
-      // We want all hitsets for the TPC
+      cout << "From PHG4TpcElectronDrift: hitsetcontainer printout at end:" << endl;
+      // We want all hitsets for the Tpc
       TrkrHitSetContainer::ConstRange hitset_range = hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
       for (TrkrHitSetContainer::ConstIterator hitset_iter = hitset_range.first;
 	   hitset_iter != hitset_range.second;
 	   ++hitset_iter)
 	{
-	  // we have an itrator to one TrkrHitSet for the TPC from the trkrHitSetContainer
+	  // we have an itrator to one TrkrHitSet for the Tpc from the trkrHitSetContainer
 	  TrkrDefs::hitsetkey hitsetkey = hitset_iter->first;
 	  const unsigned int layer = TrkrDefs::getLayer(hitsetkey);
 	  if(layer != print_layer)  continue;
 	  const int sector = TpcDefs::getSectorId(hitsetkey);
 	  const int side = TpcDefs::getSide(hitsetkey);
 	  
-	  cout << "PHG4TPCElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
+	  cout << "PHG4TpcElectronDrift: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 	  
 	  // get all of the hits from this hitset      
 	  TrkrHitSet *hitset = hitset_iter->second;
@@ -446,21 +446,21 @@ int PHG4TPCElectronDrift::process_event(PHCompositeNode *topNode)
 
   if(Verbosity() > 2)
     {
-      cout << "From PHG4TPCElectronDrift: hittruthassoc dump:" << endl;
+      cout << "From PHG4TpcElectronDrift: hittruthassoc dump:" << endl;
       hittruthassoc->identify();
     }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
+void PHG4TpcElectronDrift::MapToPadPlane(const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
 {
   padplane->MapToPadPlane(temp_hitsetcontainer, hittruthassoc, x_gem, y_gem, t_gem, hiter, ntpad, nthit);
 
   return;
 }
 
-int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
+int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
@@ -474,13 +474,13 @@ int PHG4TPCElectronDrift::End(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHG4TPCElectronDrift::set_seed(const unsigned int iseed)
+void PHG4TpcElectronDrift::set_seed(const unsigned int iseed)
 {
   seed = iseed;
   gsl_rng_set(RandomGenerator, seed);
 }
 
-void PHG4TPCElectronDrift::SetDefaultParameters()
+void PHG4TpcElectronDrift::SetDefaultParameters()
 {
   // Data on gasses @20 C and 760 Torr from the following source:
   // http://www.slac.stanford.edu/pubs/icfa/summer98/paper3/paper3.pdf
@@ -492,12 +492,12 @@ void PHG4TPCElectronDrift::SetDefaultParameters()
   // double CF4_NPrimary = 51;   // Number/cm
   double Ne_NTotal = 43;    // Number/cm
   double CF4_NTotal = 100;  // Number/cm
-  double TPC_NTot = 0.9 * Ne_NTotal + 0.1 * CF4_NTotal;
-  double TPC_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
-  double TPC_ElectronsPerKeV = TPC_NTot / TPC_dEdx;
+  double Tpc_NTot = 0.9 * Ne_NTotal + 0.1 * CF4_NTotal;
+  double Tpc_dEdx = 0.90 * Ne_dEdx + 0.10 * CF4_dEdx;
+  double Tpc_ElectronsPerKeV = Tpc_NTot / Tpc_dEdx;
   set_default_double_param("diffusion_long", 0.015);   // cm/SQRT(cm)
   set_default_double_param("diffusion_trans", 0.006);  // cm/SQRT(cm)
-  set_default_double_param("electrons_per_gev", TPC_ElectronsPerKeV * 1000000.);
+  set_default_double_param("electrons_per_gev", Tpc_ElectronsPerKeV * 1000000.);
   set_default_double_param("min_active_radius", 30.);        // cm
   set_default_double_param("max_active_radius", 78.);        // cm
   set_default_double_param("drift_velocity", 8.0 / 1000.0);  // cm/ns
@@ -510,7 +510,7 @@ void PHG4TPCElectronDrift::SetDefaultParameters()
   return;
 }
 
-void PHG4TPCElectronDrift::registerPadPlane(PHG4TPCPadPlane *inpadplane)
+void PHG4TpcElectronDrift::registerPadPlane(PHG4TpcPadPlane *inpadplane)
 {
   cout << "Registering padplane " << endl;
   padplane = inpadplane;
