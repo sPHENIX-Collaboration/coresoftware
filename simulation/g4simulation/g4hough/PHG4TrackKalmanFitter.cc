@@ -26,7 +26,7 @@
 #include <g4detectors/PHG4Cell.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <mvtx/CylinderGeom_MVTX.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 #include <intt/CylinderGeomIntt.h>
 
 #include <g4main/PHG4Hit.h>
@@ -1101,8 +1101,8 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 			int chip_index = cell->get_chip_index();
 
 			double ladder_location[3] = { 0.0, 0.0, 0.0 };
-			CylinderGeom_MVTX *geom =
-			  dynamic_cast<CylinderGeom_MVTX*>(geom_container_mvtx->GetLayerGeom(layer));
+			CylinderGeom_Mvtx *geom =
+			  dynamic_cast<CylinderGeom_Mvtx*>(geom_container_mvtx->GetLayerGeom(layer));
 			// returns the center of the sensor in world coordinates - used to get the ladder phi location
 			geom->find_sensor_center(stave_index, half_stave_index,
 						 module_index, chip_index, ladder_location);

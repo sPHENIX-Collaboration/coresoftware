@@ -14,7 +14,7 @@
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
 
-#include <mvtx/CylinderGeom_MVTX.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 #include <intt/CylinderGeomIntt.h>
 
 // sPHENIX Geant4 includes
