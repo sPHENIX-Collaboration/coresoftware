@@ -7,8 +7,9 @@
 #include "PHNode.h"
 #include "PHPointerList.h"
 
+#include <string>
+
 class PHIOManager;
-class PHNodeIterator;
 
 class PHCompositeNode : public PHNode
 {

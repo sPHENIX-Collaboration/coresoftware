@@ -1,7 +1,6 @@
 #include "PHG4HitDefs.h"
 
-#include <tr1/functional_hash.h>
-#include <cstdlib>
+#include <tr1/functional>
 
 namespace PHG4HitDefs
 {

@@ -1,11 +1,11 @@
-#ifndef __PHG4SHOWER_V1_H__
-#define __PHG4SHOWER_V1_H__
+#ifndef G4MAIN_PHG4SHOWERV1_H
+#define G4MAIN_PHG4SHOWERV1_H
 
 #include "PHG4Shower.h"
 
 #include "PHG4HitDefs.h"
 
-#include <phool/PHObject.h>
+#include <cstddef>
 #include <map>
 #include <set>
 #include <iostream>
@@ -97,7 +97,7 @@ public:
   PHG4Shower::HitIdConstIter find_g4hit_id(int volume) const {return _g4hit_ids.find(volume);}
   PHG4Shower::HitIdIter      end_g4hit_id() {return _g4hit_ids.end();}
   PHG4Shower::HitIdConstIter end_g4hit_id() const {return _g4hit_ids.end();}
-  size_t                     remove_g4hit_id(int volume,int id) {return _g4hit_ids[volume].erase(id);}
+  size_t                     remove_g4hit_id(int volume, PHG4HitDefs::keytype id) {return _g4hit_ids[volume].erase(id);}
   size_t                     remove_g4hit_volume(int volume) {return _g4hit_ids.erase(volume);}
   void                       clear_g4hit_id() {return _g4hit_ids.clear();}
   

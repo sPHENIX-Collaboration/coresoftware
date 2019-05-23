@@ -5,9 +5,13 @@
 //  Purpose: iterator to navigate a node tree
 //  Author: Matthias Messer
 
-#include "PHCompositeNode.h"
+//#include "PHCompositeNode.h"
 #include "PHPointerList.h"
 
+#include <string> 
+
+class PHCompositeNode;
+class PHNode;
 class PHNodeOperation;
 
 class PHNodeIterator

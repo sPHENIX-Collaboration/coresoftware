@@ -6,6 +6,7 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <sstream>
 

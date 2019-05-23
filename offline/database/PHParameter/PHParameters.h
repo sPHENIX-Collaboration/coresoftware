@@ -5,8 +5,10 @@
 
 #include <phool/PHObject.h>
 
+#include <cstddef>
 #include <map>
 #include <string>
+#include <utility>
 
 class PdbParameterMap;
 class PdbParameterMapContainer;
@@ -31,7 +33,7 @@ class PHParameters: public PHObject
 
   virtual ~PHParameters();
 
-  void Print() const;
+  void Print(Option_t *option="") const;
 
   //! hash of binary information for checking purpose
   size_t get_hash() const;

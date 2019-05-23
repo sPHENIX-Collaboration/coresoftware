@@ -3,10 +3,12 @@
 #include "PHCompositeNode.h"
 #include "PHDataNode.h"
 #include "PHIODataNode.h"
+#include "PHNode.h"
 #include "PHObject.h"
 #include "getClass.h"
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 

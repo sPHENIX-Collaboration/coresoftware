@@ -35,39 +35,28 @@
 #include "G4TBFieldMessenger.hh"
 #include "PHG4MagneticField.h"
 
-#include <fun4all/Fun4AllServer.h>
-#include <phool/getClass.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-
-#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4UniformMagField.hh>
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4EquationOfMotion.hh>
-#include <Geant4/G4EqMagElectricField.hh>
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagIntegratorStepper.hh>
 #include <Geant4/G4MagIntegratorDriver.hh>
 #include <Geant4/G4ChordFinder.hh>
-
 #include <Geant4/G4ExplicitEuler.hh>
 #include <Geant4/G4ImplicitEuler.hh>
 #include <Geant4/G4SimpleRunge.hh>
 #include <Geant4/G4SimpleHeum.hh>
 #include <Geant4/G4ClassicalRK4.hh>
-#include <Geant4/G4HelixExplicitEuler.hh>
-#include <Geant4/G4HelixImplicitEuler.hh>
-#include <Geant4/G4HelixSimpleRunge.hh>
 #include <Geant4/G4CashKarpRKF45.hh>
-#include <Geant4/G4RKG3_Stepper.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 
-
-#include <sstream>
 #include <cassert>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 using namespace std;
 

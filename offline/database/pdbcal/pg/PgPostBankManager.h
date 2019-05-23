@@ -4,9 +4,16 @@
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbBankManager.h>
 
+#include <phool/PHTimeStamp.h>
+
 #include <map>
 #include <set>
 #include <string>
+#include <ctime> 
+
+class PdbApplication;
+class PdbCalBank;
+class PdbCalBankIterator;
 
 class PgPostBankManager : public PdbBankManager
 {

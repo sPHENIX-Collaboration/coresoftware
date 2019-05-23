@@ -1,6 +1,7 @@
 #include "Dumper.h"
 #include "PHNodeDump.h"
 
+#include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHPointerListIterator.h>
 

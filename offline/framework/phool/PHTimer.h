@@ -10,7 +10,9 @@
 */
 
 #include <unistd.h>
+#include <exception>
 #include <iostream>
+#include <string>
 #include <sstream>
 
 #define rdtsc(low, high)       \

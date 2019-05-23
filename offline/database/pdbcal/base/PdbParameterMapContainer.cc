@@ -10,10 +10,11 @@
 #include <TSystem.h>
 
 #include <algorithm>
-#include <cmath>
-#include <cstdlib>
+#include <cctype>
+#include <ctime>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 
 using namespace std;
 

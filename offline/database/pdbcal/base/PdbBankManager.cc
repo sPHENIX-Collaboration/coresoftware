@@ -10,11 +10,9 @@
 //-----------------------------------------------------------------------------
 #include "PdbBankManager.h"
 
-PdbBankManager *PdbBankManager::__instance = nullptr;
+#include <iostream>
 
-PdbBankManager::PdbBankManager()
-{
-}
+PdbBankManager *PdbBankManager::__instance = nullptr;
 
 PdbBankManager::~PdbBankManager()
 {

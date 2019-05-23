@@ -15,10 +15,8 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 
-#ifndef __CINT__
-#include <boost/smart_ptr.hpp>
-#endif
 /*!
 \class	 PHTimeServer
 \brief	 PHTimer server for accessing external information

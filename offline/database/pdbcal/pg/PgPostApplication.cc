@@ -3,10 +3,18 @@
 #include "PgPostBankWrapperManager.h"
 
 #include <pdbcalbase/PdbApplicationFactory.h>
+#include <pdbcalbase/PHGenericFactoryT.h>
+#include <pdbcalbase/Pdb.h>
+#include <pdbcalbase/PdbApplication.h>
+#include <pdbcalbase/PdbCalBank.h>
 
-#include <RDBC/TSQL.h>
+#include <phool/phool.h>
+
 #include <RDBC/TSQLDriverManager.h>
+#include <RDBC/TSQLConnection.h>
 
+#include <iostream>
+#include <memory>
 #include <sstream>
 
 using namespace std;

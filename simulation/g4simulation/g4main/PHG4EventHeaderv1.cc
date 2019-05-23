@@ -1,5 +1,7 @@
 #include "PHG4EventHeaderv1.h"
 
+#include <cmath>
+
 using namespace std;
 
 PHG4EventHeaderv1::PHG4EventHeaderv1():

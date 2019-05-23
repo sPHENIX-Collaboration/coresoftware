@@ -1,5 +1,6 @@
 #include "PHG4VtxPoint.h"
 
+#include <ostream>
 
 using namespace std;
 

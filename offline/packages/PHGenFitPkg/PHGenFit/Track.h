@@ -5,7 +5,7 @@
  */
 
 #ifndef PHGENFIT_TRACK_H
-#define PHGENFIT_TRACK_K
+#define PHGENFIT_TRACK_H
 
 #include <GenFit/Track.h>
 

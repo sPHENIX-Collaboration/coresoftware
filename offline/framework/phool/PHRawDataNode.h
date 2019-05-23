@@ -11,6 +11,8 @@
 
 #include <string>
 
+class PHIOManager;
+
 class PHRawDataNode : public PHDataNode<PHDWORD>
 {
  public:

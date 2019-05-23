@@ -6,6 +6,9 @@
 
 #include <TSystem.h>
 
+#include <iostream>
+#include <utility>
+
 using namespace std;
 
 PHParameterInterface::PHParameterInterface(const std::string &name):
