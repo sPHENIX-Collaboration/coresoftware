@@ -16,7 +16,6 @@
 
 class PdbCalBank;
 class PdbApplication;
-class PdbBankList;
 class PdbCalBankIterator;
 
 class PdbBankManager 
@@ -24,7 +23,7 @@ class PdbBankManager
 
 protected:
 
-  PdbBankManager();
+  PdbBankManager(){}
   virtual ~PdbBankManager();
 
 public:
