@@ -7,7 +7,10 @@
 
 #include <TSystem.h>
 
+#include <cmath>
+#include <iostream>
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
