@@ -13,6 +13,7 @@
 #include "PHObject.h"
 
 #include <ctime>
+#include <iosfwd> 
 
 typedef unsigned long long phtime_t;
 

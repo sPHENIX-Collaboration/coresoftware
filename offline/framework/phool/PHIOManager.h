@@ -5,6 +5,7 @@
 //  Purpose: Abstract base class for file IO
 //  Author: Matthias Messer
 
+#include <cstddef>
 #include <string>
 
 class PHCompositeNode;
