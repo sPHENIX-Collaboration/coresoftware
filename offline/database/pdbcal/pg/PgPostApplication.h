@@ -6,9 +6,10 @@
 
 #include <phool/phool.h>
 
-#include <RDBC/TSQLConnection.h>
-
 #include <string>
+
+class PdbCalBank;
+class TSQLConnection;
 
 class PgPostApplication : public PdbApplication
 {

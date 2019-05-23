@@ -10,27 +10,22 @@
 #include "PgPostApplication.h"
 #include "PgPostBankBackupLog.h"
 #include "PgPostBankBackupStorage.h"
-#include "PgPostBankManager.h"
 #include "PgPostBankWrapper.h"
 #include "PgPostCalBank.h"
-#include "PgPostCalBankIterator.h"
-#include "RunToTimePg.h"
 
-#include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankList.h>
-#include <pdbcalbase/PdbBankManagerFactory.h>
+#include <pdbcalbase/PdbCalChan.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
 
-#include <phool/PHPointerList.h>
 #include <phool/PHTimeServer.h>
+#include <phool/PHTimeStamp.h>
+#include <phool/PHTimer.h>
 
+#include <RDBC/TSQL.h>
 #include <RDBC/TSQLConnection.h>
-#include <RDBC/TSQLDatabaseMetaData.h>
-#include <RDBC/TSQLDriverManager.h>
 #include <RDBC/TSQLPreparedStatement.h>
 #include <RDBC/TSQLResultSet.h>
-#include <RDBC/TSQLResultSetMetaData.h>
+#include <RDBC/TSQLStatement.h>
 
 #include <TBufferFile.h>
 #include <TFile.h>
@@ -39,13 +34,15 @@
 #include <TString.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
-#include <ctime>
+#include <exception>
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -575,7 +572,7 @@ int PgPostBankBackupManager::commitAllBankfromTFile(const std::string &input_fil
   string table_name;
   rid_list_t existing_rids;
   TSQLPreparedStatement *pstmt = nullptr;
-  boost::shared_ptr<PgPostBankBackupLog> bklog(
+  shared_ptr<PgPostBankBackupLog> bklog(
       static_cast<PgPostBankBackupLog *>(nullptr));
 
   TIter next(f->GetListOfKeys());
@@ -654,7 +651,7 @@ int PgPostBankBackupManager::commitAllBankfromTFile(const std::string &input_fil
               << sqlcmd.str() << endl;
         pstmt = con->PrepareStatement(sqlcmd.str().c_str());
 
-        bklog = boost::make_shared<PgPostBankBackupLog>(table_name, tag);
+        bklog = make_shared<PgPostBankBackupLog>(table_name, tag);
         bklog->Init();
       }  // if (first_read)
 
