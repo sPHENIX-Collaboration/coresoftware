@@ -1,10 +1,12 @@
-#ifndef PHG4TRUTHINFOCONTAINER_H__
-#define PHG4TRUTHINFOCONTAINER_H__
+#ifndef G4MAIN_PHG4TRUTHINFOCONTAINER_H
+#define G4MAIN_PHG4TRUTHINFOCONTAINER_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>
+#include <iterator>  // for distance
 #include <map>
-#include <set>
+#include <utility>
 
 class PHG4Shower;
 class PHG4Particle;

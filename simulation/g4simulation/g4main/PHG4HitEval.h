@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef PHG4HITEVAL_H_
-#define PHG4HITEVAL_H_
+#ifndef G4MAIN_PHG4HITEVAL_H
+#define G4MAIN_PHG4HITEVAL_H
 
 #include "PHG4Hitv1.h"
 
@@ -24,7 +24,7 @@ public:
   PHG4HitEval(const PHG4Hit& g4hit);
 
   virtual
-  ~PHG4HitEval();
+    ~PHG4HitEval(){}
 
   virtual void Copy(PHG4Hit const &g4hit);
 

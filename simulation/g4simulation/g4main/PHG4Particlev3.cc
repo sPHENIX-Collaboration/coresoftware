@@ -1,6 +1,11 @@
 #include "PHG4Particlev3.h"
+#include "PHG4Particle.h"
 
 #include <Geant4/G4SystemOfUnits.hh>
+
+#include <cmath>
+#include <ostream>
+#include <string>
 
 using namespace std;
 

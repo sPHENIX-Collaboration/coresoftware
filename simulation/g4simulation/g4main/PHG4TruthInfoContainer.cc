@@ -2,17 +2,12 @@
 
 #include "PHG4Particle.h"
 #include "PHG4Shower.h"
-#include "PHG4VtxPointv1.h"
+#include "PHG4VtxPoint.h"
 
-#include <phool/phool.h>
-
-#include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
 
-#include <algorithm>
-#include <stdexcept>
 #include <limits>
-#include <cstdlib>
+#include <string> 
 
 using namespace std;
 

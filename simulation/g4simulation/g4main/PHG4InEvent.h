@@ -1,10 +1,11 @@
-#ifndef PHG4InEvent_H__
-#define PHG4InEvent_H__
+#ifndef G4MAIN_PHG4InEvent_H
+#define G4MAIN_PHG4InEvent_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>
 #include <map>
-#include <set>
+#include <utility>
 
 class PHG4Particle;
 class PHG4VtxPoint;

@@ -1,10 +1,11 @@
-#ifndef PHG4VTXPOINT_H__
-#define PHG4VTXPOINT_H__
+#ifndef G4MAIN_PHG4VTXPOINT_H
+#define G4MAIN_PHG4VTXPOINT_H
 
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <climits>
-
+#include <iostream>
 
 class PHG4VtxPoint: public PHObject
 {

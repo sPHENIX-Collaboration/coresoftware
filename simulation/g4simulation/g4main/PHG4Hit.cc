@@ -1,6 +1,7 @@
 #include "PHG4Hit.h"
 
 #include <cstdlib>
+#include <type_traits>
 
 using namespace std;
 
