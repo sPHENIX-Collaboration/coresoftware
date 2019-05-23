@@ -11,6 +11,7 @@
 #include <pdbcalbase/PdbParameterMap.h>
 
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <Geant4/globals.hh>
 

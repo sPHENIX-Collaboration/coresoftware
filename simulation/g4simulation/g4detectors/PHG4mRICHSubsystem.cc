@@ -13,11 +13,13 @@
 #include <g4main/PHG4Utils.h>
 
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <Geant4/globals.hh>
-#include <sstream>
+
 #include <boost/foreach.hpp>
-//#include <string>
+
+#include <sstream>
 
 using namespace std;
 
