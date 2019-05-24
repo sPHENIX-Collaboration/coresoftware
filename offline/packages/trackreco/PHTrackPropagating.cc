@@ -23,6 +23,7 @@ PHTrackPropagating::PHTrackPropagating(const std::string& name)
   , _vertex_map(nullptr)
   , _track_map(nullptr)
   , _assoc_container(nullptr)
+  , _track_map_name("SvtxTrackMap")
 {
 }
 

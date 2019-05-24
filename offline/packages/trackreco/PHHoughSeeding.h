@@ -64,7 +64,8 @@ class PHHoughSeeding : public PHTrackSeeding
       unsigned int nlayers_intt = 8,
       unsigned int nlayers_tpc = 60,
       unsigned int seeding_nlayer = 7,
-      unsigned int min_seeding_nlayer = 4);
+      unsigned int min_seeding_nlayer = 4
+);
 
   virtual ~PHHoughSeeding()
   {
