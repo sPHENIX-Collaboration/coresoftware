@@ -103,12 +103,17 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   // Window / central membrane
   double tpc_window_thickness = params->get_double_param("window_thickness") * cm;
   double tpc_half_length = (params->get_double_param("tpc_length") * cm - tpc_window_thickness) / 2.;
-  G4VSolid *tpc_window = new G4Tubs("tpc_window", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness / 2., 0., 2 * M_PI);
 
-  G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_half_length / 2., 0., 2 * M_PI);
+  G4VSolid *tpc_window = new G4Tubs("tpc_window", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_window_thickness / 2., 0., 2 * M_PI);
   G4LogicalVolume *tpc_window_logic = new G4LogicalVolume(tpc_window,
-                                                          G4Material::GetMaterial(params->get_string_param("window_surface_material")),
+                                                          G4Material::GetMaterial(params->get_string_param("window_surface1_material")),
                                                           "tpc_window");
+
+//  G4VisAttributes *visatt = new G4VisAttributes();
+//  visatt->SetVisibility(true);
+//  visatt->SetForceSolid(true);
+//  visatt->SetColor(PHG4TPCColorDefs::tpc_cu_color);
+//  tpc_window_logic->SetVisAttributes(visatt);
 
   m_DisplayAction->AddVolume(tpc_window_logic, "TpcWindow");
   G4VPhysicalVolume *tpc_window_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
@@ -118,8 +123,30 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   absorbervols.insert(tpc_window_phys);
 
   // Window / central membrane core
-  double tpc_window_surface_thickness = params->get_double_param("window_surface_thickness") * cm;
-  double tpc_window_core_thickness = tpc_window_thickness - 2 * tpc_window_surface_thickness;
+  double tpc_window_surface1_thickness = params->get_double_param("window_surface1_thickness") * cm;
+  double tpc_window_surface2_thickness = params->get_double_param("window_surface2_thickness") * cm;
+  double tpc_window_surface2_core_thickness = tpc_window_thickness - 2 * tpc_window_surface1_thickness;
+  double tpc_window_core_thickness = tpc_window_surface2_core_thickness - 2 * (tpc_window_surface2_thickness);
+
+  G4VSolid *tpc_window_surface2_core =
+      new G4Tubs("tpc_window_surface2_core", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,
+                 tpc_window_surface2_core_thickness / 2., 0., 2 * M_PI);
+  G4LogicalVolume *tpc_window_surface2_core_logic = new G4LogicalVolume(tpc_window_surface2_core,
+                                                               G4Material::GetMaterial(params->get_string_param("window_surface2_material")),
+                                                               "tpc_window_surface2_core");
+
+  m_DisplayAction->AddVolume(tpc_window_surface2_core_logic, "TpcWindow");
+//  visatt = new G4VisAttributes();
+//  visatt->SetVisibility(true);
+//  visatt->SetForceSolid(true);
+//  visatt->SetColor(PHG4TPCColorDefs::tpc_pcb_color);
+//  tpc_window_surface2_core_logic->SetVisAttributes(visatt);
+  G4VPhysicalVolume *tpc_window_surface2_core_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
+                                                              tpc_window_surface2_core_logic, "tpc_window_surface2_core",
+                                                              tpc_window_logic, false, PHG4TpcDefs::WindowCore, OverlapCheck());
+
+  absorbervols.insert(tpc_window_surface2_core_phys);
+
 
   G4VSolid *tpc_window_core =
       new G4Tubs("tpc_window", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm,
@@ -131,11 +158,13 @@ int PHG4TpcDetector::ConstructTpcGasVolume(G4LogicalVolume *tpc_envelope)
   m_DisplayAction->AddVolume(tpc_window_core_logic, "TpcHoneyComb");
   G4VPhysicalVolume *tpc_window_core_phys = new G4PVPlacement(0, G4ThreeVector(0, 0, 0),
                                                               tpc_window_core_logic, "tpc_window_core",
-                                                              tpc_window_logic, false, PHG4TpcDefs::WindowCore, OverlapCheck());
+                                                              tpc_window_surface2_core_logic, false, PHG4TpcDefs::WindowCore, OverlapCheck());
 
   absorbervols.insert(tpc_window_core_phys);
 
+
   // Gas
+  G4VSolid *tpc_gas = new G4Tubs("tpc_gas", params->get_double_param("gas_inner_radius") * cm, params->get_double_param("gas_outer_radius") * cm, tpc_half_length / 2., 0., 2 * M_PI);
 
   G4LogicalVolume *tpc_gas_logic = new G4LogicalVolume(tpc_gas,
                                                        G4Material::GetMaterial(params->get_string_param("tpc_gas")),

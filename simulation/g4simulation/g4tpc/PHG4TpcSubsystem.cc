@@ -189,16 +189,21 @@ void PHG4TpcSubsystem::SetDefaultParameters()
   set_default_string_param("cage_layer_9_material", "G4_Cu");
   set_default_double_param("cage_layer_9_thickness", 0.00347 / 2.);
 
+  // Thomas K Hemmick <Thomas.Hemmick@stonybrook.edu>
   //  The total thickness along Zed would be 5.6 millimeters (+/- 2.8 mm around Zed=0).
-  //  The outer surfaces would have 0.005 inches (125 um) FR4 coated with a negligible thickness of Al.
+  //  The outer surfaces would have 0.005 inches (125 um) FR4 coated with a negligible thickness of Al. (revised to Au as below)
   //  The interior would be some stiffener of either honeycomb or rohacell.  The range of radiation lengths for this material are:
   //  Large cell honeycomb:  1450 cm  (0.028 g/cm^3 density)
   //  rohacell:  760 cm (0.052 g/cm^3 density)
   //  Close cell honeycomb:  635 cm (0.064 g/cm^3 density)
   //  I think a calculation just for the rohacell would be more than sufficient.
-
   set_default_string_param("window_core_material", "ROHACELL_FOAM_51");
   set_default_double_param("window_thickness", 0.56);  // overall thickness
-  set_default_string_param("window_surface_material", "FR4");
-  set_default_double_param("window_surface_thickness", 0.0125);  // 125  um shell thickness be default
+  //I just checked with PC manufacturers and we can get 8.9 micron thick copper in reasonably large sheets.
+  // At normal incidence, 8.9 microns is 0.06% of a radiation length.
+  set_default_string_param("window_surface1_material", "G4_Cu");
+  set_default_double_param("window_surface1_thickness", 8.9e-4);  // 8.9  um outter shell thickness be default
+  // The FR4 should be either 5 or 10 mils thick.  10 mils is 254 microns and 5 mils is 0.127 microns.  I think either of these is mechanically fine...
+  set_default_string_param("window_surface2_material", "FR4");
+  set_default_double_param("window_surface2_thickness", 0.0127);  // 127  um 2nd shell thickness be default
 }
