@@ -3,7 +3,10 @@
 
 #include "PHRawDataNode.h"
 
+#include "PHIOManager.h"
 #include "PHRawOManager.h"
+
+#include <Event/phenixTypes.h>
 
 using namespace std;
 

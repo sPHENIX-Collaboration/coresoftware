@@ -14,7 +14,7 @@
 #include <iostream>
 #include <memory>
 
-std::auto_ptr<PdbApplication> PdbApplication::__instance;
+std::unique_ptr<PdbApplication> PdbApplication::__instance;
 
 PdbApplication *PdbApplication::instance()
 {

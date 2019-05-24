@@ -3,8 +3,10 @@
 
 #include "PdbCalChan.h"
 
+#include <cstddef>
 #include <map>
 #include <string>
+#include <utility>
 
 class PdbParameterMap: public PdbCalChan
 {

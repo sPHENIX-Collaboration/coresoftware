@@ -3,7 +3,9 @@
 #include "PHG4FCalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 //_______________________________________________________________________
 PHG4FCalSubsystem::PHG4FCalSubsystem( const char* name ):

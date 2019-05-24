@@ -3,6 +3,9 @@
 
 #include "PHG4Particle.h"
 
+#include <iostream>
+#include <string>
+
 class PHG4Particlev1 : public PHG4Particle
 {
  public:

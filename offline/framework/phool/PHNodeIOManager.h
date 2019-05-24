@@ -9,13 +9,15 @@
 
 #include "phool.h"
 
+#include <cstddef>
 #include <map>
 #include <string>
 
-class TObject;
-class TFile;
-class TTree;
+class PHCompositeNode;
 class TBranch;
+class TFile;
+class TObject;
+class TTree;
 
 class PHNodeIOManager : public PHIOManager
 {

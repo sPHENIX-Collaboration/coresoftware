@@ -1,10 +1,15 @@
-#ifndef PHG4Hit_H__
-#define PHG4Hit_H__
+#ifndef G4MAIN_PHG4Hit_H
+#define G4MAIN_PHG4Hit_H
 
 #include "PHG4HitDefs.h"
+
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <climits>
+#include <iostream> 
+#include <string>
+#include <utility>
 
 class PHG4Hit: public PHObject
 {

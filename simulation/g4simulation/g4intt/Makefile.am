@@ -30,45 +30,45 @@ libg4intt_la_LIBADD = \
   -lintt_io
 
 pkginclude_HEADERS = \
-  INTTDeadMap.h \
-  INTTDeadMapv1.h \
-  PHG4INTTDigitizer.h  \
-  PHG4INTTDefs.h \
-  PHG4INTTHitReco.h \
-  PHG4INTTSubsystem.h
+  InttDeadMap.h \
+  InttDeadMapv1.h \
+  PHG4InttDigitizer.h  \
+  PHG4InttDefs.h \
+  PHG4InttHitReco.h \
+  PHG4InttSubsystem.h
 
 ROOTDICTS = \
-  INTTDeadMap_Dict.cc \
-  INTTDeadMapv1_Dict.cc
+  InttDeadMap_Dict.cc \
+  InttDeadMapv1_Dict.cc
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-  INTTDeadMap_Dict_rdict.pcm \
-  INTTDeadMapv1_Dict_rdict.pcm
+  InttDeadMap_Dict_rdict.pcm \
+  InttDeadMapv1_Dict_rdict.pcm
 else
   ROOT5_DICTS = \
-    PHG4INTTDeadMapLoader_Dict.cc \
-    PHG4INTTDefs_Dict.cc \
-    PHG4INTTDigitizer_Dict.cc \
-    PHG4INTTHitReco_Dict.cc \
-    PHG4INTTSubsystem_Dict.cc
+    PHG4InttDeadMapLoader_Dict.cc \
+    PHG4InttDefs_Dict.cc \
+    PHG4InttDigitizer_Dict.cc \
+    PHG4InttHitReco_Dict.cc \
+    PHG4InttSubsystem_Dict.cc
 endif
 
 libg4intt_io_la_SOURCES = \
   $(ROOTDICTS) \
-  INTTDeadMap.cc \
-  INTTDeadMapv1.cc
+  InttDeadMap.cc \
+  InttDeadMapv1.cc
 
 libg4intt_la_SOURCES = \
   $(ROOT5_DICTS) \
-  PHG4INTTDeadMapLoader.cc \
-  PHG4INTTDetector.cc \
-  PHG4INTTDisplayAction.cc \
-  PHG4INTTDigitizer.cc \
-  PHG4INTTHitReco.cc \
-  PHG4INTTFPHXParameterisation.cc \
-  PHG4INTTSteppingAction.cc \
-  PHG4INTTSubsystem.cc
+  PHG4InttDeadMapLoader.cc \
+  PHG4InttDetector.cc \
+  PHG4InttDisplayAction.cc \
+  PHG4InttDigitizer.cc \
+  PHG4InttHitReco.cc \
+  PHG4InttFPHXParameterisation.cc \
+  PHG4InttSteppingAction.cc \
+  PHG4InttSubsystem.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

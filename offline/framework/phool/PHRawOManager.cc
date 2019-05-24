@@ -13,13 +13,13 @@
 #include "phool.h"
 
 #include <Event/EventTypes.h>
+#include <Event/oBuffer.h>
 #include <Event/ogzBuffer.h>
-#include <Event/packetConstants.h>
+#include <Event/phenixTypes.h>
 
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <iostream>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -65,8 +65,8 @@ void PHRawOManager::closeFile()
   {
     delete memBuffer;
   }
-  fileBuffer = 0;
-  memBuffer = 0;
+  fileBuffer = nullptr;
+  memBuffer = nullptr;
   if (filedesc >= 0)
   {
     close(filedesc);

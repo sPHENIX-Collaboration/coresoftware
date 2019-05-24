@@ -24,38 +24,38 @@ libg4tpc_la_LIBADD = \
   -ltpc_io
 
 pkginclude_HEADERS = \
-  PHG4TPCElectronDrift.h \
-  PHG4TPCPadPlane.h \
-  PHG4TPCPadPlaneReadout.h \
-  PHG4TPCDigitizer.h \
-  PHG4TPCSubsystem.h \
-  PHG4TPCDistortion.h \
-  PHG4TPCSpaceChargeDistortion.h 
+  PHG4TpcElectronDrift.h \
+  PHG4TpcPadPlane.h \
+  PHG4TpcPadPlaneReadout.h \
+  PHG4TpcDigitizer.h \
+  PHG4TpcSubsystem.h \
+  PHG4TpcDistortion.h \
+  PHG4TpcSpaceChargeDistortion.h 
 
 if MAKEROOT6
 else
   ROOT5_DICTS = \
-    PHG4TPCElectronDrift_Dict.cc \
-    PHG4TPCPadPlane_Dict.cc \
-    PHG4TPCPadPlaneReadout_Dict.cc \
-    PHG4TPCDigitizer_Dict.cc \
-    PHG4TPCSubsystem_Dict.cc \
-    PHG4TPCDistortion_Dict.cc\
-    PHG4TPCSpaceChargeDistortion_Dict.cc 
+    PHG4TpcElectronDrift_Dict.cc \
+    PHG4TpcPadPlane_Dict.cc \
+    PHG4TpcPadPlaneReadout_Dict.cc \
+    PHG4TpcDigitizer_Dict.cc \
+    PHG4TpcSubsystem_Dict.cc \
+    PHG4TpcDistortion_Dict.cc\
+    PHG4TpcSpaceChargeDistortion_Dict.cc 
 endif
 
 libg4tpc_la_SOURCES = \
   $(ROOT5_DICTS) \
-  PHG4TPCDetector.cc \
-  PHG4TPCDigitizer.cc \
-  PHG4TPCDisplayAction.cc \
-  PHG4TPCDistortion.cc \
-  PHG4TPCElectronDrift.cc \
-  PHG4TPCPadPlane.cc \
-  PHG4TPCPadPlaneReadout.cc \
-  PHG4TPCSpaceChargeDistortion.cc \
-  PHG4TPCSteppingAction.cc \
-  PHG4TPCSubsystem.cc
+  PHG4TpcDetector.cc \
+  PHG4TpcDigitizer.cc \
+  PHG4TpcDisplayAction.cc \
+  PHG4TpcDistortion.cc \
+  PHG4TpcElectronDrift.cc \
+  PHG4TpcPadPlane.cc \
+  PHG4TpcPadPlaneReadout.cc \
+  PHG4TpcSpaceChargeDistortion.cc \
+  PHG4TpcSteppingAction.cc \
+  PHG4TpcSubsystem.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

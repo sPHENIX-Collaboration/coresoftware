@@ -4,6 +4,8 @@
 #include "PdbCalChan.h"
 
 #include <map>
+#include <string>
+#include <utility>
 
 class PdbParameterMap;
 

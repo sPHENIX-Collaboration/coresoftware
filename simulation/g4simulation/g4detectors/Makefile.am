@@ -266,6 +266,7 @@ libg4detectors_la_SOURCES = \
   PHG4ConeSteppingAction.cc \
   PHG4ConeSubsystem.cc \
   PHG4CrystalCalorimeterDetector.cc \
+  PHG4CrystalCalorimeterDisplayAction.cc \
   PHG4CrystalCalorimeterSteppingAction.cc \
   PHG4CrystalCalorimeterSubsystem.cc \
   PHG4CylinderDetector.cc \
@@ -283,10 +284,12 @@ libg4detectors_la_SOURCES = \
   PHG4FCalSteppingAction.cc \
   PHG4FCalSubsystem.cc \
   PHG4ForwardEcalDetector.cc \
+  PHG4ForwardEcalDisplayAction.cc \
   PHG4EICForwardEcalDetector.cc \
   PHG4ForwardEcalSteppingAction.cc \
   PHG4ForwardEcalSubsystem.cc \
   PHG4ForwardHcalDetector.cc \
+  PHG4ForwardHcalDisplayAction.cc \
   PHG4ForwardHcalSteppingAction.cc \
   PHG4ForwardHcalSubsystem.cc \
   PHG4ForwardCalCellReco.cc \
@@ -325,11 +328,13 @@ libg4detectors_la_SOURCES = \
   PHG4Prototype3InnerHcalSteppingAction.cc \
   PHG4Prototype3InnerHcalSubsystem.cc \
   PHG4RICHDetector.cc \
+  PHG4RICHDisplayAction.cc \
   PHG4RICHSteppingAction.cc \
   PHG4RICHSubsystem.cc \
   ePHENIXRICHConstruction.cc \
   PHG4SectorConstructor.cc \
   PHG4SectorDetector.cc \
+  PHG4SectorDisplayAction.cc \
   PHG4SectorSteppingAction.cc \
   PHG4SectorSubsystem.cc \
   PHG4StepStatusDecode.cc \
@@ -338,6 +343,7 @@ libg4detectors_la_SOURCES = \
   PHG4PSTOFSteppingAction.cc \
   PHG4PSTOFSubsystem.cc \
   PHG4SpacalDetector.cc \
+  PHG4SpacalDisplayAction.cc \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \

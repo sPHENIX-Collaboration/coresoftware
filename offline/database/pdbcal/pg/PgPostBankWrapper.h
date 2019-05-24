@@ -3,10 +3,15 @@
 
 #include "PgPostCalBank.h"
 
+#include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbCalBank.h>
+
 #include <phool/PHTimeStamp.h>
 
-#include <iostream>
+#include <cstddef>
 #include <string>
+
+class PdbCalChan;
 
 class PgPostBankWrapper : public PgPostCalBank
 {

@@ -4,6 +4,8 @@
 #include <phool/PHObject.h>
 
 #include <cmath>
+#include <iostream>
+#include <string>
 
 class PHG4Particle : public PHObject
 {

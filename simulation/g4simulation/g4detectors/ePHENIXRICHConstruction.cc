@@ -9,14 +9,11 @@
  */
 
 #include "ePHENIXRICHConstruction.h"
+#include "PHG4RICHDisplayAction.h"
+#include "PHG4RICHSubsystem.h"
 
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4DisplacedSolid.hh>
-#include <Geant4/G4Ellipsoid.hh>
 #include <Geant4/G4IntersectionSolid.hh>
-#include <Geant4/G4LogicalBorderSurface.hh>
 #include <Geant4/G4LogicalSkinSurface.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -25,9 +22,7 @@
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Sphere.hh>
 #include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <cassert>
 #include <cmath>
@@ -37,13 +32,15 @@
 using namespace std;
 using namespace ePHENIXRICH;
 
-ePHENIXRICHConstruction::ePHENIXRICHConstruction()
-  : overlapcheck_rich(false)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys)
+  : m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction *>(subsys->GetDisplayAction()))
+  , overlapcheck_rich(false)
 
 {
 }
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(const RICH_Geometry &g)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys, const RICH_Geometry &g)
   : geom(g)
+  , m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction *>(subsys->GetDisplayAction()))
   , overlapcheck_rich(false)
 {
 }
@@ -113,7 +110,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                           geom.get_cone_size_z() * std::tan(2 * std::atan(std::exp(-geom.get_min_eta()))),  //            G4double pRmin2, G4double pRmax2,
                                           (geom.get_cone_size_z() - (geom.get_z_shift() / 2)) / 2,                          //            G4double pDz,
                                           0, 2 * pi                                                                         //            G4double pSPhi, G4double pDPhi
-                                          );
+  );
   G4VSolid *RICHConeBoundary_place = new G4DisplacedSolid("RICHConeBoundary_place",
                                                           RICHConeBoundary,
                                                           0,
@@ -128,7 +125,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                          geom.get_cone_size_z(),                  //            G4double pDz,
                                          pi / 2 - pi / geom.get_N_RICH_Sector(),  //            G4double pSPhi,
                                          2 * pi / geom.get_N_RICH_Sector()        //            G4double pDPhi
-                                         );
+  );
 
   G4VSolid *RICHSphereBoundary = new G4SubtractionSolid("RICHSphereBoundary",
                                                         RICHOutSphereBoundary_place, RICHInnerSphereBoundary_place);
@@ -169,7 +166,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                                     geom.get_R_mirror_ref() + geom.get_dR_mirror(),  //            G4double pRmin, G4double pRmax,
                                                     0, 2 * pi,                                       //            G4double pSPhi, G4double pDPhi,
                                                     0, pi                                            //            G4double pSTheta, G4double pDTheta
-                                                    );
+  );
   G4VSolid *RICHMirrorSphereBoundary_place = new G4DisplacedSolid("RICHMirrorSphereBoundary_place", RICHMirrorSphereBoundary, 0,
                                                                   G4ThreeVector(0, geom.get_R_shift(), geom.get_z_shift()));
   G4VSolid *RICHMirror = new G4IntersectionSolid("RICHMirror",
@@ -196,7 +193,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                                         geom.get_R_mirror_ref() + geom.get_dR_mirror() + geom.get_dR_mirror_spt() + geom.get_dR_backwindow(),  //            G4double pRmin, G4double pRmax,
                                                         0, 2 * pi,                                                                                             //            G4double pSPhi, G4double pDPhi,
                                                         0, pi                                                                                                  //            G4double pSTheta, G4double pDTheta
-                                                        );
+  );
   G4VSolid *RICHBackWindowSphereBoundary_place = new G4DisplacedSolid("RICHBackWindowSphereBoundary_place", RICHBackWindowSphereBoundary,
                                                                       0, G4ThreeVector(0, geom.get_R_shift(), geom.get_z_shift()));
   G4VSolid *RICHBackWindow = new G4IntersectionSolid("RICHBackWindow",
@@ -216,7 +213,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                                          geom.get_R_frontwindow() + geom.get_dR_frontwindow(),  //            G4double pRmin, G4double pRmax,
                                                          0, 2 * pi,                                             //            G4double pSPhi, G4double pDPhi,
                                                          0, pi                                                  //            G4double pSTheta, G4double pDTheta
-                                                         );
+  );
   G4VSolid *RICHFrontWindowSphereBoundary_place = new G4DisplacedSolid("RICHFrontWindowSphereBoundary_place",
                                                                        RICHFrontWindowSphereBoundary,
                                                                        0,
@@ -235,30 +232,14 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
   // photon detector - HBD
   G4LogicalVolume *RICHHBDLog = Construct_HBD(RICHSecLog);
 
-  //G4VisAttributes
-  G4VisAttributes *RICHSecTubeVisAtt = new G4VisAttributes(G4Colour::White());
-  RICHSecTubeVisAtt->SetForceWireframe(true);
-  RICHSecTubeVisAtt->SetForceLineSegmentsPerCircle(50);
-  //      RICHSecTubeVisAtt->SetForceSolid(true);
-  RICHSecLog->SetVisAttributes(RICHSecTubeVisAtt);
+  GetDisplayAction()->AddVolume(RICHSecLog, "Sector");
 
-  G4VisAttributes *RICHMirrorVisAtt = new G4VisAttributes(G4Colour::Green());
-  RICHMirrorVisAtt->SetForceWireframe(true);
-  RICHMirrorVisAtt->SetForceSolid(true);
-  RICHMirrorVisAtt->SetForceLineSegmentsPerCircle(50);
-  RICHMirrorLog->SetVisAttributes(RICHMirrorVisAtt);
+  GetDisplayAction()->AddVolume(RICHMirrorLog, "Mirror");
 
-  G4VisAttributes *RICHWindowVisAtt = new G4VisAttributes(G4Colour::Yellow());
-  RICHWindowVisAtt->SetForceWireframe(true);
-  RICHWindowVisAtt->SetForceSolid(true);
-  RICHWindowVisAtt->SetForceLineSegmentsPerCircle(50);
-  RICHBackWindowLog->SetVisAttributes(RICHWindowVisAtt);
-  RICHFrontWindowLog->SetVisAttributes(RICHWindowVisAtt);
+  GetDisplayAction()->AddVolume(RICHBackWindowLog, "Window");
+  GetDisplayAction()->AddVolume(RICHFrontWindowLog, "Window");
 
-  G4VisAttributes *RICHHBDVisAtt = new G4VisAttributes(G4Colour::Red());
-  RICHHBDVisAtt->SetForceWireframe(true);
-  RICHHBDVisAtt->SetForceSolid(true);
-  RICHHBDLog->SetVisAttributes(RICHHBDVisAtt);
+  GetDisplayAction()->AddVolume(RICHHBDLog, "HBD");
 
   G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
          << " logical volume constructed" << G4endl;
@@ -283,7 +264,7 @@ ePHENIXRICHConstruction::Construct_HBD(G4LogicalVolume *RICHSecLog)
                                     0, geom.get_RZ_Seg1_HBD() + geom.get_RZ_Seg2_HBD(),                 //            G4double pRmin2, G4double pRmax2,
                                     HBD_thickness / 2,                                                  //            G4double pDz,
                                     -geom.get_half_angle_HBD() + pi / 2, 2 * geom.get_half_angle_HBD()  //            G4double pSPhi, G4double pDPhi
-                                    );
+  );
 
   G4LogicalVolume *RICHHBDLog = new G4LogicalVolume(RICHHBDBox,
                                                     G4Material::GetMaterial(geom.get_RICH_gas_mat()), "RICHHBDLog");
@@ -404,7 +385,7 @@ ePHENIXRICHConstruction::Construct_HBD_Layers(G4LogicalVolume *RICHHBDLog,
                              0, geom.get_RZ_Seg1_HBD() + geom.get_RZ_Seg2_HBD(),                 //            G4double pRmin2, G4double pRmax2,
                              thickness / 2,                                                      //            G4double pDz,
                              -geom.get_half_angle_HBD() + pi / 2, 2 * geom.get_half_angle_HBD()  //            G4double pSPhi, G4double pDPhi
-                             );
+  );
 
   G4LogicalVolume *Log = new G4LogicalVolume(box,
                                              G4Material::GetMaterial(material),  //

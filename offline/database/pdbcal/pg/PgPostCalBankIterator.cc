@@ -3,15 +3,23 @@
 #include "PgPostBankManager.h"
 #include "PgPostBankWrapper.h"
 
+#include <pdbcalbase/PdbApplication.h>
 #include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbCalBank.h>
+
+#include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
 #include <RDBC/TSQLResultSet.h>
 #include <RDBC/TSQLStatement.h>
 
+#include <TString.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <utility>
+
 
 using namespace std;
 

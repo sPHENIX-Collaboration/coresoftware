@@ -10,14 +10,13 @@
 #define PDBCAL_PG_PGPOSTBANKBACKUPSTORAGE_H
 
 #include <pdbcalbase/PdbCalChan.h>
-#include <pdbcalbase/PdbClassMap.h>
 
 #include <phool/PHTimeStamp.h>
 
-#include <TClonesArray.h>
 #include <TNamed.h>
 
 #include <cassert>
+#include <cstddef>
 #include <string>
 
 class PgPostCalBank;

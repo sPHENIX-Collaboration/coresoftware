@@ -15,7 +15,9 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
 
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>

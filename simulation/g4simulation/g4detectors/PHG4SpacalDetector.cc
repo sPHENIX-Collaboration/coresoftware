@@ -6,12 +6,14 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 #include "PHG4SpacalDetector.h"
+
 #include "PHG4CylinderGeomContainer.h"
+#include "PHG4SpacalDisplayAction.h"
+#include "PHG4SpacalSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4PhenixDetector.h>
-#include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -21,7 +23,6 @@
 #include <g4gdml/PHG4GDMLUtility.hh>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -34,9 +35,9 @@
 #include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4UnionSolid.hh>
 #include <Geant4/G4UserLimits.hh>
-#include <Geant4/G4VisAttributes.hh>
 
 #include <boost/foreach.hpp>
+
 #include <cassert>
 #include <cmath>
 #include <sstream>
@@ -45,13 +46,17 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
-                                       const std::string &dnam, PHParameters *parameters, const int lyr, bool init_geom)
+PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
+                                       PHCompositeNode *Node,
+                                       const std::string &dnam,
+                                       PHParameters *parameters,
+                                       const int lyr,
+                                       bool init_geom)
   : PHG4Detector(Node, dnam)
-  , _region(NULL)
-  , cylinder_solid(NULL)
-  , cylinder_logic(NULL)
-  , cylinder_physi(NULL)
+  , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
+  , cylinder_solid(nullptr)
+  , cylinder_logic(nullptr)
+  , cylinder_physi(nullptr)
   , active(0)
   , absorberactive(0)
   , layer(lyr)
@@ -61,7 +66,7 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
   if (init_geom)
   {
     _geom = new SpacalGeom_t();
-    if (_geom == NULL)
+    if (_geom == nullptr)
     {
       cout << "PHG4SpacalDetector::Constructor - Fatal Error - invalid geometry object!" << endl;
       exit(1);
@@ -78,11 +83,10 @@ PHG4SpacalDetector::PHG4SpacalDetector(PHCompositeNode *Node,
 
 PHG4SpacalDetector::~PHG4SpacalDetector(void)
 {
-  // deleting NULL pointers is allowed (results in NOOP)
+  // deleting nullptr pointers is allowed (results in NOOP)
   // so checking for not null before deleting is not needed
-  //    delete step_limits;
-  //    delete clading_step_limits;
   delete fiber_core_step_limits;
+  delete _geom;
 }
 
 //_______________________________________________________________
@@ -151,11 +155,7 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
                                        G4String(GetName()), 0, 0, 0);
-  G4VisAttributes *VisAtt = new G4VisAttributes();
-  PHG4Utils::SetColour(VisAtt, "W_Epoxy");
-  VisAtt->SetVisibility(true);
-  VisAtt->SetForceSolid((not _geom->is_virualize_fiber()) and (not _geom->is_azimuthal_seg_visible()));
-  cylinder_logic->SetVisAttributes(VisAtt);
+  GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
 
   cylinder_physi = new G4PVPlacement(0,
                                      G4ThreeVector(_geom->get_xpos() * cm, _geom->get_ypos() * cm,
@@ -280,11 +280,7 @@ PHG4SpacalDetector::Construct_AzimuthalSeg()
   G4LogicalVolume *sec_logic = new G4LogicalVolume(sec_solid, cylinder_mat,
                                                    G4String(G4String(GetName() + string("_sec"))), 0, 0, nullptr);
 
-  G4VisAttributes *VisAtt = new G4VisAttributes();
-  VisAtt->SetColor(.1, .1, .1, .5);
-  VisAtt->SetVisibility(_geom->is_virualize_fiber());
-  VisAtt->SetForceSolid(false);
-  sec_logic->SetVisAttributes(VisAtt);
+  GetDisplayAction()->AddVolume(sec_logic, "AzimuthSegment");
 
   const double fiber_length = _geom->get_thickness() * cm - 2 * _geom->get_fiber_outer_r() * cm;
   G4LogicalVolume *fiber_logic = Construct_Fiber(fiber_length, string(""));
@@ -355,11 +351,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
                                                      nullptr);
 
   {
-    G4VisAttributes *VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "G4_POLYSTYRENE");
-    VisAtt->SetVisibility(_geom->is_virualize_fiber());
-    VisAtt->SetForceSolid(_geom->is_virualize_fiber());
-    fiber_logic->SetVisAttributes(VisAtt);
+    GetDisplayAction()->AddVolume(fiber_logic, "Fiber");
   }
 
   G4Tubs *core_solid = new G4Tubs(
@@ -374,11 +366,7 @@ PHG4SpacalDetector::Construct_Fiber(const G4double length, const string &id)
                                                     fiber_core_step_limits);
 
   {
-    G4VisAttributes *VisAtt = new G4VisAttributes();
-    PHG4Utils::SetColour(VisAtt, "G4_POLYSTYRENE");
-    VisAtt->SetVisibility(false);
-    VisAtt->SetForceSolid(false);
-    core_logic->SetVisAttributes(VisAtt);
+    GetDisplayAction()->AddVolume(core_logic, "FiberCore");
   }
 
   const bool overlapcheck_fiber = OverlapCheck() and (Verbosity() >= 3);

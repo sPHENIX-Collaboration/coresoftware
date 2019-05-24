@@ -1,30 +1,32 @@
 #include "PgPostBankManager.h"
 #include "PgPostApplication.h"
 #include "PgPostBankWrapper.h"
-#include "PgPostCalBank.h"
 #include "PgPostCalBankIterator.h"
-#include "RunToTimePg.h"
 
 #include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankList.h>
 #include <pdbcalbase/PdbBankManagerFactory.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
+#include <pdbcalbase/PHGenericFactoryT.h>
+#include <pdbcalbase/RunToTime.h>
+#include <pdbcalbase/PdbBankManager.h>
 
-#include <phool/PHPointerList.h>
+#include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
-#include <RDBC/TSQLDatabaseMetaData.h>
-#include <RDBC/TSQLDriverManager.h>
-#include <RDBC/TSQLPreparedStatement.h>
 #include <RDBC/TSQLResultSet.h>
-#include <RDBC/TSQLResultSetMetaData.h>
+#include <RDBC/TSQLStatement.h>
+
+#include <TString.h>
 
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <memory>
 #include <sstream>
+
+class PdbApplication;
+class PdbCalBankIterator;
 
 using namespace std;
 

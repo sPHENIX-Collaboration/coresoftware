@@ -33,22 +33,18 @@
 //  It is simply a 'setup' class that creates the field and necessary other parts
 //
 
+#ifndef G4MAIN_G4TBELECTRICFIELDSETUP_H
+#define G4MAIN_G4TBELECTRICFIELDSETUP_H
 
-#ifndef G4TBElectricFieldSetup_H
-#define G4TBElectricFieldSetup_H
-
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4UniformMagField.hh>
-
-#include <string>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4Types.hh>
 
 class G4FieldManager;
 class G4ChordFinder;
-class G4EquationOfMotion;
-class G4Mag_EqRhs;
 class G4Mag_UsualEqRhs;
 class G4MagIntegratorStepper;
 class G4MagInt_Driver; 
+class G4MagneticField;
 class G4TBFieldMessenger;
 class PHField;
 

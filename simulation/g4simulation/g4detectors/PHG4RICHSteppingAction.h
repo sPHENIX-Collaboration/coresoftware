@@ -20,7 +20,7 @@ class PHG4RICHDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 
-  /**
+/**
    * \brief This class defines the user stepping action for the ePHENIX RICH volumes
    * within Fun4All.
    *
@@ -38,15 +38,15 @@ class PHG4HitContainer;
    */
 class PHG4RICHSteppingAction : public G4UserSteppingAction
 {
-public:
-  PHG4RICHSteppingAction( PHG4RICHDetector* );
-  virtual ~PHG4RICHSteppingAction(){}
+ public:
+  PHG4RICHSteppingAction(PHG4RICHDetector*);
+  virtual ~PHG4RICHSteppingAction() {}
 
   virtual void UserSteppingAction(const G4Step*);
 
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode*);
 
-private:
+ private:
   bool MakeHit(const G4Step* aStep);
 
   PHG4RICHDetector* detector_;
@@ -56,7 +56,4 @@ private:
   G4OpBoundaryProcessStatus fExpectedNextStatus;
 };
 
-
-
 #endif
-

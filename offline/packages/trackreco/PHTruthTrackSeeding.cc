@@ -59,6 +59,8 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
 
 int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 {
+  cout << "Enter PHTruthTrackSeeding:: Setup" << endl;
+
   int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -70,17 +72,6 @@ int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
 
 int PHTruthTrackSeeding::Process()
 {
-  //==================================
-  // The following has to be completely replaced
-  //   need to get all clusters
-  //   get all hits for each clusrer
-  //   get all g4hits for each hit
-  //   make a set named clusters to capture all unique cluster ID's
-  //   redefine TrkClustersMap as  typedef std::map<int, std::set<TrkrCluster*> > TrkClustersMap  (maybe best to use clutsrkey?)
-  //   make a map named m_trackid of the form:  std::pair<int, std::set<TrkrCluster*> >(g4hit particle_id, clusters))
-
-  //----------------------------
-  // new
 
   typedef std::map<int, std::set<TrkrCluster*> > TrkClustersMap;
   TrkClustersMap m_trackID_clusters;
@@ -100,7 +91,6 @@ int PHTruthTrackSeeding::Process()
 	  TrkrDefs::hitkey hitkey = clushititer->second;
 	  // TrkrHitTruthAssoc uses a map with (hitsetkey, std::pair(hitkey, g4hitkey)) - get the hitsetkey from the cluskey
 	  TrkrDefs::hitsetkey hitsetkey = TrkrDefs::getHitSetKeyFromClusKey(cluskey);	  
-	  //if(layer < 7) cout << "  hitkey " << hitkey << endl;
 
 	  // get all of the g4hits for this hitkey
 	  std::multimap< TrkrDefs::hitsetkey, std::pair<TrkrDefs::hitkey, PHG4HitDefs::keytype> > temp_map;    
@@ -136,60 +126,64 @@ int PHTruthTrackSeeding::Process()
     }  // loop over clusters
 
 
-
   //==================================
 
   // Build track
-  for (TrkClustersMap::const_iterator trk_clusers_itr = m_trackID_clusters.begin();
-       trk_clusers_itr != m_trackID_clusters.end(); ++trk_clusers_itr)
-  {
-    if (trk_clusers_itr->second.size() > _min_clusters_per_track)
+  for (TrkClustersMap::const_iterator trk_clusters_itr = m_trackID_clusters.begin();
+       trk_clusters_itr != m_trackID_clusters.end(); ++trk_clusters_itr)
     {
-      std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
+      if (trk_clusters_itr->second.size() > _min_clusters_per_track)
+	{
+	  std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
 
-      //TODO implement the track ID
-      svtx_track->set_id(_track_map->size());
-      svtx_track->set_truth_track_id(trk_clusers_itr->first);
-      //to make through minimum pT cut
-      svtx_track->set_px(10.);
-      svtx_track->set_py(0.);
-      svtx_track->set_pz(0.);
-      for (TrkrCluster* cluster : trk_clusers_itr->second)
-      {
-        svtx_track->insert_cluster(cluster->getClusKey());
-        _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), svtx_track->get_id());
-      }
-      _track_map->insert(svtx_track.get());
+	  svtx_track->set_id(_track_map->size());
+	  svtx_track->set_truth_track_id(trk_clusters_itr->first);
+
+	  // dummy values, set px to make it through the minimum pT cut
+	  svtx_track->set_px(10.);
+	  svtx_track->set_py(0.);
+	  svtx_track->set_pz(0.);
+	  for (TrkrCluster* cluster : trk_clusters_itr->second)
+	    {
+	      svtx_track->insert_cluster_key(cluster->getClusKey());
+	      _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), svtx_track->get_id());
+	    }
+	  _track_map->insert(svtx_track.get());
+	}
     }
-  }
-
+  
   if (Verbosity() >= 2)
-  {
-    for (SvtxTrackMap::Iter iter = _track_map->begin();
-         iter != _track_map->end(); ++iter)
     {
-      SvtxTrack* svtx_track = iter->second;
-      svtx_track->identify();
-      continue;
-      //Print associated clusters;
-      for (SvtxTrack::ConstClusterIter iter =
-               svtx_track->begin_clusters();
-           iter != svtx_track->end_clusters(); ++iter)
-      {
-        unsigned int cluster_id = *iter;
-	TrkrCluster* cluster = _cluster_map->findCluster(cluster_id);
-        float radius = sqrt(
-            cluster->getPosition(0) * cluster->getPosition(0) + cluster->getPosition(1) * cluster->getPosition(1));
-        cout << "Track ID: " << svtx_track->get_id() << ", Track pT: "
-             << svtx_track->get_pt() << ", Particle ID: "
-             << svtx_track->get_truth_track_id() << ", cluster ID: "
-             << cluster->getClusKey() << ", cluster radius: " << radius
-             << endl;
-      }
-    }
-  }
-  //==================================
+      cout << "Loop over SvtxTrackMap entries " << endl;
+      for (SvtxTrackMap::Iter iter = _track_map->begin();
+	   iter != _track_map->end(); ++iter)
+	{
+	  SvtxTrack* svtx_track = iter->second;
 
+	  //svtx_track->identify();
+	  //continue;
+
+	  cout << "Track ID: " << svtx_track->get_id() << ", Dummy Track pT: "
+	       << svtx_track->get_pt() << ", Truth Track/Particle ID: "
+	       << svtx_track->get_truth_track_id() << endl;
+	    
+	  //Print associated clusters;
+	  for (SvtxTrack::ConstClusterKeyIter iter =
+		 svtx_track->begin_cluster_keys();
+	       iter != svtx_track->end_cluster_keys(); ++iter)
+	    {
+	      TrkrDefs::cluskey cluster_key = *iter;
+	      TrkrCluster* cluster = _cluster_map->findCluster(cluster_key);
+	      float radius = sqrt(
+				  cluster->getX() * cluster->getX() + cluster->getY() * cluster->getY());
+	      cout << "       cluster ID: "
+		   << cluster->getClusKey() << ", cluster radius: " << radius
+		   << endl;
+	    }
+	}
+    }
+  //==================================
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -217,13 +211,13 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
     }
 
   phg4hits_tpc = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_SVTX");
+      topNode, "G4HIT_TPC");
 
   phg4hits_intt = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_SILICON_TRACKER");
+      topNode, "G4HIT_INTT");
 
   phg4hits_mvtx = findNode::getClass<PHG4HitContainer>(
-      topNode, "G4HIT_MAPS");
+      topNode, "G4HIT_MVTX");
 
   if (!phg4hits_tpc and phg4hits_intt and !phg4hits_mvtx)
   {
@@ -235,4 +229,9 @@ int PHTruthTrackSeeding::GetNodes(PHCompositeNode* topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHTruthTrackSeeding::End()
+{
+  return 0;
 }

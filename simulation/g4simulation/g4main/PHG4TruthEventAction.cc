@@ -13,6 +13,7 @@
 #include <phool/getClass.h>
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHNode.h>
+#include <phool/PHCompositeNode.h>
 
 #include <Geant4/G4Event.hh>
 #include <Geant4/G4TrajectoryContainer.hh>

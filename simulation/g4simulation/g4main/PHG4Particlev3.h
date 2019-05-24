@@ -1,7 +1,11 @@
-#ifndef PHG4PARTICLEV3_H__
-#define PHG4PARTICLEV3_H__
+#ifndef G4MAIN_PHG4PARTICLEV3_H
+#define G4MAIN_PHG4PARTICLEV3_H
 
 #include "PHG4Particlev2.h"
+
+#include <iostream>
+
+class PHG4Particle;
 
 class PHG4Particlev3 : public PHG4Particlev2
 {

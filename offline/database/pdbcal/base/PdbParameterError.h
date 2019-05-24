@@ -7,6 +7,8 @@
 
 #include "PdbParameter.h"
 
+#include <string> 
+
 class PdbParameterError : public PdbParameter 
 {
  public:

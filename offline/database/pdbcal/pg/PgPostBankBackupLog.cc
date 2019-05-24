@@ -1,42 +1,18 @@
 #include "PgPostBankBackupLog.h"
-#include "PgPostApplication.h"
-#include "PgPostBankManager.h"
-#include "PgPostBankWrapper.h"
-#include "PgPostCalBank.h"
-#include "PgPostCalBankIterator.h"
-#include "RunToTimePg.h"
-
-#include <pdbcalbase/PdbBankID.h>
-#include <pdbcalbase/PdbBankList.h>
-#include <pdbcalbase/PdbBankManagerFactory.h>
-#include <pdbcalbase/PdbCalBank.h>
-#include <pdbcalbase/PdbClassMap.h>
-
-#include <phool/PHPointerList.h>
-#include <phool/PHTimeServer.h>
 
 #include <RDBC/TSQL.h>
 #include <RDBC/TSQLConnection.h>
-#include <RDBC/TSQLDatabaseMetaData.h>
 #include <RDBC/TSQLDriverManager.h>
 #include <RDBC/TSQLPreparedStatement.h>
-#include <RDBC/TSQLResultSet.h>
-#include <RDBC/TSQLResultSetMetaData.h>
 
-#include <TBufferFile.h>
-#include <TFile.h>
-#include <TList.h>
 #include <TString.h>
 
-#include <algorithm>
+#include <cassert>
 #include <cstdlib>
-#include <ctime>
+#include <exception>
 #include <fstream>
 #include <iostream>
-#include <map>
-#include <memory>
 #include <sstream>
-#include <vector>
 
 using namespace std;
 
