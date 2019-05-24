@@ -35,6 +35,11 @@ class PHTrackSeeding : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+
+  //virtual const std::set<unsigned int>& get_seeding_layers() const = 0;
+
+  //virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
 
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
