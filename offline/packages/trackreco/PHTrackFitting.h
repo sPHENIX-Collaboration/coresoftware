@@ -41,6 +41,8 @@ class PHTrackFitting : public SubsysReco
 
   virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
 
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
+
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
   /// overrided in derived classes
@@ -55,6 +57,8 @@ class PHTrackFitting : public SubsysReco
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;
+
+  std::string _track_map_name;
 
  private:
   /// fetch node pointers
