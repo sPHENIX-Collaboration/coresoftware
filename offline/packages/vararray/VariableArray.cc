@@ -1,5 +1,7 @@
 #include "VariableArray.h"
 
+#include <ostream>
+
 using namespace std;
 
 VariableArray::VariableArray(const unsigned int idval)
