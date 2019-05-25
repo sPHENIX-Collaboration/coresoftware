@@ -4,10 +4,10 @@
 #include "RawTowerDefs.h"
 
 #include <phool/PHObject.h>
-#include <phool/phool.h>
 
 #include <iostream>
 #include <map>
+#include <utility>
 
 class RawTower;
 

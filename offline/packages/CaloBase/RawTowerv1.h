@@ -5,7 +5,10 @@
 
 #include "RawTowerDefs.h"
 
+#include <cstddef>
+#include <iostream>
 #include <map>
+#include <utility>
 
 class RawTowerv1 : public RawTower
 {
@@ -39,8 +42,8 @@ class RawTowerv1 : public RawTower
   {
     return make_pair(ecells.begin(), ecells.end());
   }
-  RawTower::CellIterator find_g4cell(int id) { return ecells.find(id); }
-  RawTower::CellConstIterator find_g4cell(int id) const { return ecells.find(id); }
+  RawTower::CellIterator find_g4cell(CellKeyType id) { return ecells.find(id); }
+  RawTower::CellConstIterator find_g4cell(CellKeyType id) const { return ecells.find(id); }
   void add_ecell(const CellKeyType g4cellid,
                  const float ecell);
   void clear_g4cells() { ecells.clear(); }

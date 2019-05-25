@@ -3,6 +3,10 @@
 
 #include "RawTowerGeomContainer.h"
 
+#include "RawTowerDefs.h"
+
+#include <iostream>
+
 /*! \class RawTowerGeomContainerv1
     \brief Generic tower geometry class, store each tower's geometry individually
 */

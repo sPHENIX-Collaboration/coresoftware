@@ -7,8 +7,11 @@
 #include <phool/phool.h>
 
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <map>
+#include <type_traits>
+#include <utility>
 
 class RawTowerGeom;
 

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
+#include <memory>
 #include <iostream>
 
 using namespace std;

@@ -3,6 +3,12 @@
 
 #include "RawTowerGeomContainerv1.h"
 
+#include "RawTowerDefs.h"
+
+#include <iostream>
+#include <utility>
+#include <vector>
+
 /*! \class RawTowerGeomContainer_Cylinderv1
  \brief With additional description to conveniently use in central calorimeter with eta-phi bins
  */

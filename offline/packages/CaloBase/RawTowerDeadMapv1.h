@@ -2,6 +2,9 @@
 #define CALOBASE_RAWTOWERDEADMAPV1_H
 
 #include "RawTowerDeadMap.h"
+#include "RawTowerDefs.h"
+
+#include <iostream>
 
 class RawTowerDeadMapv1 : public RawTowerDeadMap
 {
