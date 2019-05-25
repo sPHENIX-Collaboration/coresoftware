@@ -1,5 +1,5 @@
-#ifndef __QAG4SimulationCalorimeterSum_H__
-#define __QAG4SimulationCalorimeterSum_H__
+#ifndef QA_QAG4SIMULATIONCALORIMETERSUM_H
+#define QA_QAG4SIMULATIONCALORIMETERSUM_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -13,14 +13,8 @@
 #endif
 
 class PHCompositeNode;
-class PHG4HitContainer;
 class PHG4TruthInfoContainer;
-class Fun4AllHistoManager;
-class TH1F;
-class TTree;
 class PHG4Particle;
-class RawTowerGeom;
-class RawTowerContainer;
 class CaloEvalStack;
 class SvtxEvalStack;
 class SvtxTrack;
