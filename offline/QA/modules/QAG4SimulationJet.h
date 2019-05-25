@@ -1,5 +1,5 @@
-#ifndef __QAG4SimulationJet_H__
-#define __QAG4SimulationJet_H__
+#ifndef QA_QAG4SIMULATIONJET_H
+#define QA_QAG4SIMULATIONJET_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,12 +17,10 @@
 #include <stdint.h>
 #endif
 
-class PHCompositeNode;
-class Fun4AllHistoManager;
-class TH1F;
 class JetEvalStack;
 class JetTruthEval;
 class Jet;
+class PHCompositeNode;
 
 /// \class QAG4SimulationJet
 class QAG4SimulationJet : public SubsysReco
@@ -186,4 +184,4 @@ class QAG4SimulationJet : public SubsysReco
   double _jet_match_dE_Ratio;
 };
 
-#endif  // __CALOEVALUATOR_H__
+#endif  // QA_QAG4SIMULATIONJET_H

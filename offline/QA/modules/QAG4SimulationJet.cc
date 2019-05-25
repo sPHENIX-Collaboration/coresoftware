@@ -1,39 +1,31 @@
 #include "QAG4SimulationJet.h"
 #include "QAHistManagerDef.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
-#include <phool/PHCompositeNode.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Shower.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-
+#include <g4jets/Jet.h>
 #include <g4eval/JetEvalStack.h>
+#include <g4jets/JetMap.h>
+#include <g4eval/JetRecoEval.h>
 #include <g4eval/JetTruthEval.h>
 
-#include <g4jets/JetMap.h>
+#include <g4main/PHG4HitDefs.h>
+#include <g4main/PHG4Shower.h>
 
-#include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TLorentzVector.h>
-#include <TString.h>
-#include <TVector3.h>
+#include <fun4all/Fun4AllBase.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
-#include <algorithm>
+#include <phool/getClass.h>
+
+#include <TAxis.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TNamed.h>
+
 #include <cassert>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <set>
-#include <stdexcept>
-#include <vector>
 
 using namespace std;
 

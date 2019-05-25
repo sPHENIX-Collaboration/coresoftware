@@ -161,4 +161,4 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
   };
 };
 
-#endif  // __CALOEVALUATOR_H__
+#endif  // QA_QAG4SIMULATIONCALORIMETERSUM_H
