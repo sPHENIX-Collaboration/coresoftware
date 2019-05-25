@@ -1,5 +1,5 @@
-#ifndef __QAG4SimulationCalorimeter_H__
-#define __QAG4SimulationCalorimeter_H__
+#ifndef QA_QAG4SIMULATIONCALORIMETER_H
+#define QA_QAG4SIMULATIONCALORIMETER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -12,15 +12,10 @@
 #include <stdint.h>
 #endif
 
+class CaloEvalStack;
 class PHCompositeNode;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
-class Fun4AllHistoManager;
-class TH1F;
-class PHG4Particle;
-class RawTowerGeom;
-class RawTowerContainer;
-class CaloEvalStack;
 
 /// \class QAG4SimulationCalorimeter
 class QAG4SimulationCalorimeter : public SubsysReco
@@ -101,4 +96,4 @@ class QAG4SimulationCalorimeter : public SubsysReco
   PHG4TruthInfoContainer *_truth_container;
 };
 
-#endif  // __CALOEVALUATOR_H__
+#endif  // QA_QAG4SIMULATIONCALORIMETER_H

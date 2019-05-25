@@ -15,33 +15,29 @@
 
 #include <g4eval/CaloEvalStack.h>
 #include <g4eval/CaloRawClusterEval.h>
-#include <g4eval/CaloRawTowerEval.h>
-#include <g4eval/CaloTruthEval.h>
 #include <g4eval/SvtxEvalStack.h>
 
+#include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/PHTFileServer.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/phool.h>
 
-#include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TLorentzVector.h>
+#include <TAxis.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TNamed.h>
 #include <TString.h>
 #include <TVector3.h>
 
-#include <algorithm>
 #include <cassert>
-#include <cmath>
-#include <exception>
+#include <cstdlib>
 #include <iostream>
-#include <set>
-#include <stdexcept>
-#include <vector>
+#include <map>
+#include <utility>
 
 using namespace std;
 

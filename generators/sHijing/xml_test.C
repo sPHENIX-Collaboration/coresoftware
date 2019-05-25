@@ -13,7 +13,6 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-//#include <boost/property_tree/info_parser.hpp>
 #include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
@@ -30,6 +29,8 @@ atl_ran(int *)
 {
   return 0.0;
 }
+// This prevents cppcheck to flag the next line as error
+// cppcheck-suppress *
 FCALLSCFUN1 (FLOAT, atl_ran, ATL_RAN, atl_ran, PINT)
 
 using namespace boost::property_tree;

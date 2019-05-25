@@ -1,18 +1,12 @@
 #include "QAG4SimulationCalorimeterSum.h"
 #include "QAHistManagerDef.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
-#include <phool/PHCompositeNode.h>
+#include <g4eval/CaloEvalStack.h>
+#include <g4eval/CaloRawClusterEval.h>
+#include <g4eval/SvtxEvalStack.h>
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -20,27 +14,25 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <g4eval/CaloEvalStack.h>
-#include <g4eval/SvtxEvalStack.h>
-
 #include <g4hough/PHG4HoughTransform.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 
-#include <TFile.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TLorentzVector.h>
-#include <TString.h>
-#include <TVector3.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>
 
-#include <algorithm>
+#include <phool/getClass.h>
+
+#include <TAxis.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TNamed.h>
+#include <TString.h>
+
 #include <cassert>
 #include <cmath>
-#include <exception>
 #include <iostream>
-#include <set>
-#include <stdexcept>
 #include <vector>
 
 using namespace std;

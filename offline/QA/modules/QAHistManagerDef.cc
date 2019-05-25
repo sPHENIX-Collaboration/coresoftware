@@ -14,9 +14,9 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <TAxis.h>
-#include <TMath.h>
 
 #include <cassert>
+#include <cmath>
 #include <vector>
 
 using namespace std;
@@ -66,7 +66,7 @@ void useLogBins(TAxis *axis)
 
   for (int i = 0; i <= bins; i++)
   {
-    new_bins[i] = TMath::Power(10, from + i * width);
+    new_bins[i] = pow(10, from + i * width);
   }
   axis->Set(bins, new_bins.data());
 }
