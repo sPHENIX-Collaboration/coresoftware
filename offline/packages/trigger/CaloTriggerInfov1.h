@@ -3,7 +3,7 @@
 
 #include "CaloTriggerInfo.h"
 
-#include <phool/PHObject.h>
+#include <iostream>
 
 class CaloTriggerInfov1 : public CaloTriggerInfo
 {

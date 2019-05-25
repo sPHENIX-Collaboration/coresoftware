@@ -11,6 +11,7 @@
 #include <fun4all/SubsysReco.h>
 
 // standard includes
+#include <string>
 #include <vector>
 
 // forward declarations
