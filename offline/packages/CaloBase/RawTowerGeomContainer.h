@@ -10,8 +10,11 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
-#include <type_traits>
 #include <utility>
+
+#if defined(__CLING__)
+#include <type_traits>
+#endif
 
 class RawTowerGeom;
 
