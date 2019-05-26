@@ -3,6 +3,8 @@
 
 #include "JetRecoEval.h"
 
+#include <string>
+
 class CaloEvalStack;
 class JetTruthEval;
 class SvtxEvalStack;

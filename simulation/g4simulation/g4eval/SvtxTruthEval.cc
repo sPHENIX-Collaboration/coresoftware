@@ -4,17 +4,16 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <phool/PHCompositeNode.h>
+
 #include <phool/getClass.h>
 
-#include <float.h>
 #include <cassert>
-#include <cstdlib>
+#include <cfloat>
 #include <iostream>
 #include <map>
 #include <set>
+#include <utility>
 
 using namespace std;
 

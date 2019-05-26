@@ -91,7 +91,6 @@ class CaloEvaluator : public SubsysReco
   // evaluator output ntuples
 
   bool _strict;
-  unsigned int _errors;
 
   bool _do_gpoint_eval;
   bool _do_gshower_eval;

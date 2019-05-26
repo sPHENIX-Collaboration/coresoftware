@@ -7,6 +7,7 @@
 
 #include <map>
 #include <set>
+#include <utility>
 
 class PHCompositeNode;
 
@@ -15,7 +16,6 @@ class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 
-class TrkrHit;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrHitTruthAssoc;

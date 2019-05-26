@@ -25,7 +25,6 @@ class MomentumEvaluator : public SubsysReco
   float pz_search_scale;
   unsigned int event_counter;
   std::string file_name;
-  unsigned int n_layers;
   unsigned int n_inner_layers;
   unsigned int n_required_layers;
   float inner_z_length;

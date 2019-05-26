@@ -1,22 +1,21 @@
 #include "SvtxVertexEval.h"
 
 #include "SvtxTrackEval.h"
+#include "SvtxTruthEval.h"
 
-#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
-#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <float.h>
 #include <cassert>
+#include <iostream>
 #include <set>
+
+class SvtxTrack;
 
 using namespace std;
 

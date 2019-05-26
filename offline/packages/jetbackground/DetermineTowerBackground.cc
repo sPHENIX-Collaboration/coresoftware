@@ -1,12 +1,12 @@
 #include "DetermineTowerBackground.h"
 
+#include "TowerBackground.h"
 #include "TowerBackgroundv1.h"
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
@@ -15,19 +15,27 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TLorentzVector.h>
 
 // standard includes
+#include <cmath>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <map>
+#include <memory>
 #include <vector>
+#include <utility>
 
 DetermineTowerBackground::DetermineTowerBackground(const std::string &name)
   : SubsysReco(name)

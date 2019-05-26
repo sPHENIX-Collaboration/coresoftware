@@ -1,5 +1,8 @@
 #include "TowerBackgroundv1.h"
 
+#include <memory>
+#include <ostream>
+
 using namespace std;
 
 TowerBackgroundv1::TowerBackgroundv1()

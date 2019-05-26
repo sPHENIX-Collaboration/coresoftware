@@ -3,6 +3,10 @@
 
 #include "TowerBackground.h"
 
+#include <iostream>
+#include <memory>
+#include <vector>
+
 class TowerBackgroundv1 : public TowerBackground
 {
  public:

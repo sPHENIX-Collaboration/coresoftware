@@ -1,20 +1,18 @@
 #include "SvtxTrackEval.h"
 
+#include "SvtxTruthEval.h"
 #include "SvtxClusterEval.h"
 
-#include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrClusterContainer.h>
-
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
-#include <float.h>
 #include <cassert>
+#include <cfloat>
+#include <iostream>
 #include <set>
 
 using namespace std;
@@ -22,7 +20,6 @@ using namespace std;
 SvtxTrackEval::SvtxTrackEval(PHCompositeNode* topNode)
   : _clustereval(topNode)
   , _trackmap(nullptr)
-  , _clustermap(nullptr)
   , _strict(false)
   , _verbosity(1)
   , _errors(0)

@@ -7,12 +7,11 @@
 /// \author Michael P. McCumber
 //===============================================
 
-#include "JetEvalStack.h"
-
 #include <fun4all/SubsysReco.h>
 
 #include <string>
 
+class JetEvalStack;
 class PHCompositeNode;
 class TFile;
 class TNtuple;
@@ -52,7 +51,6 @@ class JetEvaluator : public SubsysReco
   // evaluator output ntuples
 
   bool _strict;
-  unsigned int _errors;
 
   bool _do_recojet_eval;
   bool _do_truthjet_eval;

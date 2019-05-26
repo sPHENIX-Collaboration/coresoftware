@@ -1,35 +1,35 @@
-
 #include "JetRecoEval.h"
 
 #include "JetTruthEval.h"
-
 #include "CaloEvalStack.h"
+#include "CaloRawClusterEval.h"
+#include "SvtxTrackEval.h"
 #include "SvtxEvalStack.h"
-
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
+
+#include <g4main/PHG4Particle.h>
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <string>
-//#include <cstdlib>
-#include <float.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <cassert>
+#include <cstdlib>
+#include <cfloat>
+#include <cmath>
+#include <iostream>
 #include <map>
 #include <set>
-//#include <algorithm>
-#include <cassert>
+#include <string>
 
 using namespace std;
 

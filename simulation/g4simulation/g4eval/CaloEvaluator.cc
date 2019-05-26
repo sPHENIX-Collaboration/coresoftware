@@ -1,7 +1,10 @@
 
 #include "CaloEvaluator.h"
 
+#include "CaloRawClusterEval.h"
 #include "CaloEvalStack.h"
+#include "CaloRawTowerEval.h"
+#include "CaloTruthEval.h"
 
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Shower.h>
@@ -21,15 +24,20 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
+
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
 
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <set>
+#include <utility>
 
 using namespace std;
 
@@ -44,7 +52,6 @@ CaloEvaluator::CaloEvaluator(const string& name, const string& caloname, const s
   ,  // 0 GeV before reco is traced
   _caloevalstack(nullptr)
   , _strict(false)
-  , _errors(0)
   , _do_gpoint_eval(true)
   , _do_gshower_eval(true)
   , _do_tower_eval(true)

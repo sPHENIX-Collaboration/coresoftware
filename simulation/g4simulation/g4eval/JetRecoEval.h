@@ -3,11 +3,13 @@
 
 #include "JetTruthEval.h"
 
+#include <g4jets/Jet.h>
+
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 
-class Jet;
 class JetMap;
 
 class PHCompositeNode;

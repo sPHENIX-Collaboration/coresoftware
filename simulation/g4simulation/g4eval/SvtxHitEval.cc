@@ -1,24 +1,23 @@
 #include "SvtxHitEval.h"
 
-#include <trackbase/TrkrHit.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4HitDefs.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
-#include <float.h>
 #include <cassert>
+#include <cfloat>
+#include <cmath>
 #include <map>
 #include <set>
 

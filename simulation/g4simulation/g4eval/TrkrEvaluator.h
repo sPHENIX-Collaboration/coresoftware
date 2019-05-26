@@ -3,12 +3,11 @@
 
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
+
 #include <string>
 
 class PHCompositeNode;
-
+class PHTimer;
 class TFile;
 class TNtuple;
 

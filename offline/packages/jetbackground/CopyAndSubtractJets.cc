@@ -6,8 +6,6 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
-#include <calobase/RawTowerv1.h>
 
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
@@ -15,17 +13,22 @@
 #include <g4jets/Jetv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 // standard includes
-#include <iomanip>
+#include <cmath>
 #include <iostream>
+#include <map>
 #include <vector>
+#include <utility>
 
 CopyAndSubtractJets::CopyAndSubtractJets(const std::string &name)
   : SubsysReco(name)

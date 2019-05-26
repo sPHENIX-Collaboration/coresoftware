@@ -5,6 +5,7 @@
 
 #include <map>
 #include <set>
+#include <utility>
 
 class PHCompositeNode;
 
@@ -12,7 +13,10 @@ class PHG4Particle;
 class PHG4TruthInfoContainer;
 class PHG4VtxPoint;
 
+class SvtxClusterEval;
+class SvtxHitEval;
 class SvtxTrackMap;
+class SvtxTruthEval;
 class SvtxVertex;
 class SvtxVertexMap;
 

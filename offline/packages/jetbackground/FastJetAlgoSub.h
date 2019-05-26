@@ -5,6 +5,9 @@
 
 #include <g4jets/Jet.h>
 
+#include <iostream>
+#include <vector>
+
 class FastJetAlgoSub : public JetAlgo
 {
  public:
