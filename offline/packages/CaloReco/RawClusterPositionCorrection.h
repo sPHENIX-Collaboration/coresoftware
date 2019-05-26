@@ -5,15 +5,11 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <phool/PHObject.h>
-
 #include <string>
+#include <vector>
 
+class PHCompositeNode;
 class RawClusterContainer;
-class RawCluster;
-class RawTowerContainer;
-class RawTower;
-class RawClusterv1;
 
 class RawClusterPositionCorrection : public SubsysReco
 {

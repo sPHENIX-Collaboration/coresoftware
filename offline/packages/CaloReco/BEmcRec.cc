@@ -11,6 +11,11 @@
 
 #include <TMath.h>
 
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <utility>
+
 using namespace std;
 
 // Define and initialize static members

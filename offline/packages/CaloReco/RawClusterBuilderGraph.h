@@ -6,10 +6,7 @@
 #include <string>
 
 class PHCompositeNode;
-class RawCluster;
 class RawClusterContainer;
-class RawTowerContainer;
-class RawTowerGeomContainer;
 
 class RawClusterBuilderGraph : public SubsysReco
 {

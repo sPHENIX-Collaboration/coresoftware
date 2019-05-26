@@ -2,24 +2,30 @@
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
-#include <calobase/RawClusterv1.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
+#include <phparameter/PHParameters.h>
 
-#include <phool/PHCompositeNode.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/phool.h>
 
 #include <cassert>
-#include <cfloat>
-#include <cmath>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 using namespace std;

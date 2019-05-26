@@ -4,20 +4,32 @@
 #include "BEmcRecCEMC.h"
 
 #include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
 #include <calobase/RawClusterv1.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/phool.h>
 
+#include <cmath>
 #include <iostream>
+#include <cstdio>
+#include <exception>
 #include <map>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 using namespace std;

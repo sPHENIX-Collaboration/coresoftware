@@ -5,6 +5,7 @@
 
 #include <string>
 
+class PHCompositeNode;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;

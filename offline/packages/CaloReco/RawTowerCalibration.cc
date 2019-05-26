@@ -3,26 +3,31 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTower.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerDefs.h>
 
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCellDefs.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
+#include <phool/PHObject.h>
 
 #include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 using namespace std;
 
