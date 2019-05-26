@@ -5,6 +5,8 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <map>
+#include <utility>
 
 using namespace std;
 
