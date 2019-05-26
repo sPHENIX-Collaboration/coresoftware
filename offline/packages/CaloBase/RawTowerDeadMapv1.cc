@@ -1,6 +1,8 @@
 #include "RawTowerDeadMapv1.h"
 
+#include <cstdlib>
 #include <iostream>
+#include <map>
 
 using namespace std;
 

@@ -8,10 +8,11 @@
 #include <TObject.h>
 
 #include <cmath>
+#include <cstdlib>
+#include <vector>
 
 // Forward declarations
 class BEmcRec;
-class EmcCluster;
 class EmcPeakarea;
 
 /** One tower information for internal clustering use.

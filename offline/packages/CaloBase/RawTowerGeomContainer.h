@@ -7,8 +7,14 @@
 #include <phool/phool.h>
 
 #include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <map>
+#include <utility>
+
+#if defined(__CLING__)
+#include <type_traits>
+#endif
 
 class RawTowerGeom;
 

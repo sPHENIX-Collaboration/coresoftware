@@ -1,5 +1,7 @@
 #include "CaloTriggerInfov1.h"
 
+#include <ostream>
+
 using namespace std;
 
 CaloTriggerInfov1::CaloTriggerInfov1()

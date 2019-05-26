@@ -22,10 +22,13 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <iostream>
+#include <map>
+#include <utility>
 
 /** \Brief Function to get correct tower eta
  *

@@ -15,7 +15,7 @@
 
 #include <string>
 
-class RawTowerDeadMap;
+class PHCompositeNode;
 
 /*!
  * \brief RawTowerDeadMapLoader loads dead map at inti run
@@ -53,7 +53,6 @@ class RawTowerDeadMapLoader : public SubsysReco
   std::string m_detector;
   std::string m_deadMapPath;
 
-  RawTowerDeadMap* m_deadmap;
 };
 
 #endif

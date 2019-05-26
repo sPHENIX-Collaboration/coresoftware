@@ -2,6 +2,7 @@
 #include "BEmcCluster.h"
 
 #include <cmath>
+#include <cstdio>
 
 void BEmcRecCEMC::Tower2Global(float E, float xC, float yC,
                                float& xA, float& yA, float& zA)

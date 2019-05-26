@@ -5,6 +5,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>
 #include <set>
 
 class RawTowerDeadMap : public PHObject

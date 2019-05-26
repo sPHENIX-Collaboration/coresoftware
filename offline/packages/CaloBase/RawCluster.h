@@ -11,9 +11,13 @@
 
 #include <climits>
 #include <cmath>  // def of NAN
+#include <cstddef>
+#include <iostream>
 #include <map>
-
-class RawTower;
+#include <utility>
+#if defined(__CLING__)
+#include <type_traits>
+#endif
 
 class RawCluster : public PHObject
 {

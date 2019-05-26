@@ -4,20 +4,27 @@
 #include <calobase/RawTowerDeadMap.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+#include <calobase/RawTower.h>
 #include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerDefs.h>
 
+#include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 
 #include <cassert>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
-#include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>
+#include <vector>
 
 using namespace std;
 

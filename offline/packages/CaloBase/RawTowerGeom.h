@@ -7,7 +7,6 @@
 #include <phool/phool.h>
 
 #include <iostream>
-#include <map>
 
 class RawTowerGeom : public PHObject
 {

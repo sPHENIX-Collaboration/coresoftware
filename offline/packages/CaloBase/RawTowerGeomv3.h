@@ -3,6 +3,10 @@
 
 #include "RawTowerGeom.h"
 
+#include "RawTowerDefs.h"
+
+#include <iostream>
+
 class RawTowerGeomv3 : public RawTowerGeom
 {
  public:

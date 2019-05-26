@@ -3,9 +3,9 @@
 
 #include <phool/PHObject.h>
 
-#include <vector>
+#include <iostream>
 
-class TOjArray;
+class TObjArray;
 class VariableArray;
 
 class VariableArrayContainer : public PHObject

@@ -2,10 +2,14 @@
 #define CALOBASE_RAWCLUSTERV1_H
 
 #include "RawCluster.h"
+#include "RawClusterDefs.h"
 
-#include <cmath>
+#include <CLHEP/Vector/ThreeVector.h>
+
+#include <cstddef>
+#include <iostream>
 #include <map>
-#include <vector>
+#include <utility>
 
 #ifdef __CINT__
 #include <stdint.h>

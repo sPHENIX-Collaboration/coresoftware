@@ -7,7 +7,6 @@
 
 class PHCompositeNode;
 class RawTowerContainer;
-class RawTowerGeomContainer;
 
 //! \brief RawTowerCombiner module that joints multiple RawTower together to form a single readout in a separate node
 //! Use this class to simulate ganged readout or trigger channels that combined multiple towers
