@@ -15,8 +15,12 @@
 #include <TFile.h>
 #include <TNtuple.h>
 
+#include <cstdlib>
 #include <iostream>
+#include <map>
+#include <memory>
 #include <vector>
+#include <utility>
 
 using namespace std;
 
@@ -359,7 +363,6 @@ MomentumEvaluator::MomentumEvaluator(const std::string& fname, float pt_s, float
   , pz_search_scale(pz_s)
   , event_counter(0)
   , file_name(fname)
-  , n_layers(n_l)
   , n_inner_layers(n_i)
   , n_required_layers(n_r)
   , inner_z_length(i_z)

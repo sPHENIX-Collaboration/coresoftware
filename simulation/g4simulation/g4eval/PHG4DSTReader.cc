@@ -13,32 +13,39 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerv1.h>
 
-#include <g4main/PHG4InEvent.h>
-//#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitEval.h>
+#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4VtxPointv1.h>
 
 #include <g4jets/JetMap.h>
+#include <g4jets/Jet.h>
 #include <g4jets/Jetv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
+#include <fun4all/SubsysReco.h>
 
 #include <phool/getClass.h>
 
+#include <TClass.h>
 #include <TClonesArray.h>
+#include <TObject.h>
+#include <TString.h>
 #include <TTree.h>
 
-#include <boost/foreach.hpp>
 #include <cassert>
+#include <iostream>
 #include <map>
 #include <set>
-
 #include <sstream>
+#include <utility>
 
 using namespace std;
 

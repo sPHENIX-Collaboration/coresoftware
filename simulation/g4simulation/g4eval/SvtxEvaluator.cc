@@ -2,17 +2,26 @@
 
 #include "SvtxEvalStack.h"
 
+#include "SvtxClusterEval.h"
+#include "SvtxHitEval.h"
+#include "SvtxTrackEval.h"
+#include "SvtxTruthEval.h"
+#include "SvtxVertexEval.h"
+
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
+
 #include <tpc/TpcDefs.h>
-#include <intt/InttDefs.h>
+
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
 
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4Hit.h>
@@ -20,27 +29,27 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-#include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHTimeServer.h>
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TFile.h>
-#include <TLorentzVector.h>
 #include <TNtuple.h>
 #include <TVector3.h>
 
-#include <algorithm>
-#include <cassert>
 #include <cmath>
 #include <iostream>
+#include <iterator>
+#include <map>
 #include <set>
+#include <utility>
+
 
 using namespace std;
 

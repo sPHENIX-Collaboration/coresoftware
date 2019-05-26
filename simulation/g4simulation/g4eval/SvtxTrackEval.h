@@ -3,18 +3,22 @@
 
 #include "SvtxClusterEval.h"
 
+#include <trackbase/TrkrDefs.h>
+
 #include <map>
 #include <set>
+#include <utility>
 
 class PHCompositeNode;
 
 class PHG4Hit;
 class PHG4Particle;
 
-class TrkrCluster;
 class TrkrClusterContainer;
+class SvtxHitEval;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxTruthEval;
 
 class SvtxTrackEval
 {
@@ -73,7 +77,6 @@ class SvtxTrackEval
 
   SvtxClusterEval _clustereval;
   SvtxTrackMap* _trackmap;
-  TrkrClusterContainer* _clustermap;
 
   bool _strict;
   int _verbosity;

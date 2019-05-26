@@ -2,12 +2,12 @@
 #define G4EVAL_CALORAWCLUSTEREVAL_H
 
 #include "CaloRawTowerEval.h"
+#include "CaloTruthEval.h"
 
 #include <map>
 #include <set>
 #include <string>
-
-class CaloTruthEval;
+#include <utility>
 
 class PHCompositeNode;
 class PHG4Hit;

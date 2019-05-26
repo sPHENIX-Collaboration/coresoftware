@@ -1,16 +1,18 @@
 #include "BaseTruthEval.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
+#include <utility>
 
 using namespace std;
 

@@ -6,20 +6,21 @@
 #include <calobase/RawTowerContainer.h>
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
-#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <phool/PHCompositeNode.h>
+
 #include <phool/getClass.h>
 
-#include <float.h>
+#include <cfloat>
 #include <cassert>
-#include <cstdlib>
+#include <cmath>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
+
+class PHG4Hit;
 
 using namespace std;
 

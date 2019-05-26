@@ -3,18 +3,20 @@
 
 #include "SvtxHitEval.h"
 
+#include <trackbase/TrkrDefs.h>
+
 #include <map>
 #include <set>
+#include <utility>
 
-#include <trackbase/TrkrDefs.h>
 
 class PHCompositeNode;
 
 class PHG4Hit;
+class PHG4HitContainer;
 class PHG4Particle;
 class PHG4TruthInfoContainer;
 
-class TrkrCluster;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
 class TrkrHitTruthAssoc;

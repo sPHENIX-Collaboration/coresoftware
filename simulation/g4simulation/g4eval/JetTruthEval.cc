@@ -1,5 +1,8 @@
 #include "JetTruthEval.h"
 
+#include "CaloTruthEval.h"
+#include "SvtxTruthEval.h"
+
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
 #include <g4main/PHG4Hit.h>
@@ -9,9 +12,13 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <cassert>
+#include <cstdlib>
+#include <iostream>
 #include <map>
+#include <utility>
 
 using namespace std;
 

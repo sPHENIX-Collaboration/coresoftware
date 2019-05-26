@@ -8,14 +8,18 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
+
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TFile.h>
 #include <TNtuple.h>
 
+#include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <map>
+#include <utility>
 
 using namespace std;
 
@@ -29,7 +33,6 @@ JetEvaluator::JetEvaluator(const string &name,
   , _ievent(0)
   , _jetevalstack(nullptr)
   , _strict(false)
-  , _errors(0)
   , _do_recojet_eval(true)
   , _do_truthjet_eval(true)
   , _ntp_recojet(nullptr)

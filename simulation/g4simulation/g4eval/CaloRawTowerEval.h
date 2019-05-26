@@ -6,10 +6,12 @@
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 
 class PHCompositeNode;
 
 class PHG4CellContainer;
+class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
 class PHG4Shower;

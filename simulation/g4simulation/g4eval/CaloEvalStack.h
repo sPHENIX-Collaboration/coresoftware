@@ -2,11 +2,11 @@
 #define G4EVAL_CALOEVALSTACK_H
 
 #include "CaloRawClusterEval.h"
-#include "CaloRawTowerEval.h"
 #include "CaloTruthEval.h"
 
 #include <string>
 
+class CaloRawTowerEval;
 class PHCompositeNode;
 
 // This user class provides pointers to the

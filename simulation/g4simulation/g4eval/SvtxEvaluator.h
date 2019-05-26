@@ -9,12 +9,10 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHTimer.h>
-
 #include <string>
 
 class PHCompositeNode;
-
+class PHTimer;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
