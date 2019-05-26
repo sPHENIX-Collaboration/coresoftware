@@ -7,9 +7,9 @@
 #include <CLHEP/Vector/ThreeVector.h>
 
 #include <cmath>
+#include <string>
 
 class PHCompositeNode;
-class Hep3Vector;
 class RawTowerGeom;
 
 /** \Brief Tool to find isolation energy of each EMCal cluster.
