@@ -1,24 +1,28 @@
 #include "RetowerCEMC.h"
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
-
-// sPHENIX includes
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerv1.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
 // standard includes
-#include <iomanip>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <utility>
 #include <vector>
 
 RetowerCEMC::RetowerCEMC(const std::string &name)

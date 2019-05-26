@@ -9,6 +9,8 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <string>
+
 // forward declarations
 class PHCompositeNode;
 

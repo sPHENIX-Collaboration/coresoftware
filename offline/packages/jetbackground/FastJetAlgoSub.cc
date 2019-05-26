@@ -2,17 +2,19 @@
 #include "FastJetAlgoSub.h"
 
 #include <g4jets/Jet.h>
-#include <g4jets/JetInput.h>
 #include <g4jets/Jetv1.h>
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
-#include <fastjet/SISConePlugin.hh>
 
 // standard includes
+#include <cstddef>
 #include <iostream>
+#include <map>
+#include <memory>
+#include <utility>
 #include <vector>
 
 using namespace std;

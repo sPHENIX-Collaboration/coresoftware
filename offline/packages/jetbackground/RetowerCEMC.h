@@ -10,6 +10,7 @@
 #include <fun4all/SubsysReco.h>
 
 // system includes
+#include <string>
 #include <vector>
 
 // forward declarations
