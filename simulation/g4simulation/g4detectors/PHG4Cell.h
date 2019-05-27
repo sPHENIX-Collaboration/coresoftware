@@ -43,6 +43,7 @@ class PHG4Cell: public PHObject
 
   // this adds hits to the g4 hit list map
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
+  virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float light_yield) {return;}
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep) {return;}
   // this adds showers to the shower map
   virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
