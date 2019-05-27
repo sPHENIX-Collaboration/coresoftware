@@ -5,7 +5,10 @@
 #include <g4detectors/PHG4BlockGeom.h>
 #include <g4detectors/PHG4BlockGeomContainer.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ DumpPHG4BlockGeomContainer::DumpPHG4BlockGeomContainer(const string &NodeName)
 
 int DumpPHG4BlockGeomContainer::process_Node(PHNode *myNode)
 {
-  PHG4BlockGeomContainer *phg4geomcontainer = NULL;
+  PHG4BlockGeomContainer *phg4geomcontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

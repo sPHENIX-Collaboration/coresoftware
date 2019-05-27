@@ -5,7 +5,10 @@
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ DumpSvtxVertexMap::DumpSvtxVertexMap(const string &NodeName)
 
 int DumpSvtxVertexMap::process_Node(PHNode *myNode)
 {
-  SvtxVertexMap *svtxvertexmap = NULL;
+  SvtxVertexMap *svtxvertexmap = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

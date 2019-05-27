@@ -1,10 +1,14 @@
-#ifndef PHG4CYLINDERCELL_H
-#define PHG4CYLINDERCELL_H
+#ifndef G4DETECTORS_PHG4CYLINDERCELL_H
+#define G4DETECTORS_PHG4CYLINDERCELL_H
+
+#include "PHG4Cell.h"
 
 #include "PHG4CylinderCellDefs.h"
-#include "PHG4Cell.h"
+
 #include <g4main/PHG4HitDefs.h>
+
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <map>
 

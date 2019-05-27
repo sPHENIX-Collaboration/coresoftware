@@ -1,9 +1,12 @@
 #include "DumpVariableArray.h"
 
-#include <phool/PHIODataNode.h>
 #include <vararray/VariableArray.h>
 
+#include <phool/PHIODataNode.h>
+
+#include <ostream>
 #include <string>
+
 
 using namespace std;
 
@@ -17,7 +20,7 @@ DumpVariableArray::DumpVariableArray(const string &NodeName)
 
 int DumpVariableArray::process_Node(PHNode *myNode)
 {
-  VariableArray *variablearray = NULL;
+  VariableArray *variablearray = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

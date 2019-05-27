@@ -6,6 +6,11 @@
 
 #include <string>
 
+#include <cstddef>
+#include <map>
+#include <ostream>
+#include <utility>
+
 using namespace std;
 
 typedef PHIODataNode<RawTowerGeom> MyNode_t;
@@ -18,7 +23,7 @@ DumpRawTowerGeom::DumpRawTowerGeom(const string &NodeName)
 
 int DumpRawTowerGeom::process_Node(PHNode *myNode)
 {
-  RawTowerGeom *rawtowergeom = NULL;
+  RawTowerGeom *rawtowergeom = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

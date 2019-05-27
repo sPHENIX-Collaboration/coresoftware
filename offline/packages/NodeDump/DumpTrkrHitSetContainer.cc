@@ -6,7 +6,10 @@
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 

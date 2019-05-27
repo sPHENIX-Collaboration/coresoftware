@@ -5,8 +5,10 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <climits>
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -20,7 +22,7 @@ DumpBbcVertexMap::DumpBbcVertexMap(const string &NodeName)
 
 int DumpBbcVertexMap::process_Node(PHNode *myNode)
 {
-  BbcVertexMap *bbcvertexmap = NULL;
+  BbcVertexMap *bbcvertexmap = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

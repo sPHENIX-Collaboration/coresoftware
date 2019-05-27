@@ -4,7 +4,10 @@
 
 #include <pdbcalbase/PdbParameterMap.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -18,7 +21,7 @@ DumpPdbParameterMap::DumpPdbParameterMap(const string &NodeName)
 
 int DumpPdbParameterMap::process_Node(PHNode *myNode)
 {
-  PdbParameterMap *pdbparams = NULL;
+  PdbParameterMap *pdbparams = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

@@ -6,7 +6,10 @@
 #include <phool/PHIODataNode.h>
 
 #include <climits>
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -20,7 +23,7 @@ DumpJetMap::DumpJetMap(const string &NodeName)
 
 int DumpJetMap::process_Node(PHNode *myNode)
 {
-  JetMap *jetmap = NULL;
+  JetMap *jetmap = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

@@ -6,7 +6,10 @@
 #include <g4detectors/PHG4BlockCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellDefs.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -20,7 +23,7 @@ DumpPHG4BlockCellGeomContainer::DumpPHG4BlockCellGeomContainer(const string &Nod
 
 int DumpPHG4BlockCellGeomContainer::process_Node(PHNode *myNode)
 {
-  PHG4BlockCellGeomContainer *phg4geomcontainer = NULL;
+  PHG4BlockCellGeomContainer *phg4geomcontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

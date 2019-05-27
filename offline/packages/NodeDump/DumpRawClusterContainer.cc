@@ -5,7 +5,10 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ DumpRawClusterContainer::DumpRawClusterContainer(const string &NodeName)
 
 int DumpRawClusterContainer::process_Node(PHNode *myNode)
 {
-  RawClusterContainer *rawclustercontainer = NULL;
+  RawClusterContainer *rawclustercontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {
