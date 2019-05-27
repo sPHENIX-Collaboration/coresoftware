@@ -5,7 +5,10 @@
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ DumpSvtxClusterMap::DumpSvtxClusterMap(const string &NodeName)
 
 int DumpSvtxClusterMap::process_Node(PHNode *myNode)
 {
-  SvtxClusterMap *svtxclustermap = NULL;
+  SvtxClusterMap *svtxclustermap = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

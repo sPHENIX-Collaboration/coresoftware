@@ -6,8 +6,12 @@
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4CellDefs.h>
 
-#include <stdint.h>
+
+#include <limits.h>
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -21,7 +25,7 @@ DumpPHG4CellContainer::DumpPHG4CellContainer(const string &NodeName)
 
 int DumpPHG4CellContainer::process_Node(PHNode *myNode)
 {
-  PHG4CellContainer *phg4cellcontainer = NULL;
+  PHG4CellContainer *phg4cellcontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

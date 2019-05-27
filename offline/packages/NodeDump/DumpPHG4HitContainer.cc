@@ -5,8 +5,11 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <stdint.h>
+#include <limits.h>
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -20,7 +23,7 @@ DumpPHG4HitContainer::DumpPHG4HitContainer(const string &NodeName)
 
 int DumpPHG4HitContainer::process_Node(PHNode *myNode)
 {
-  PHG4HitContainer *phg4hitcontainer = NULL;
+  PHG4HitContainer *phg4hitcontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

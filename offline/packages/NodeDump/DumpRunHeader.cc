@@ -1,9 +1,12 @@
 #include "DumpRunHeader.h"
 
+#include "DumpObject.h"
+
 #include <ffaobjects/RunHeader.h>
 
 #include <phool/PHIODataNode.h>
 
+#include <ostream>
 #include <string>
 
 using namespace std;

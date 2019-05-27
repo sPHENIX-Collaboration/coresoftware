@@ -5,7 +5,10 @@
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ DumpRawTowerGeomContainer::DumpRawTowerGeomContainer(const string &NodeName)
 
 int DumpRawTowerGeomContainer::process_Node(PHNode *myNode)
 {
-  RawTowerGeomContainer *rawtowergeom = NULL;
+  RawTowerGeomContainer *rawtowergeom = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

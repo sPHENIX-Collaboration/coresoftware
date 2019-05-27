@@ -5,6 +5,11 @@
 
 #include <string>
 
+#include <cstddef>
+#include <map>
+#include <ostream>
+#include <utility>
+
 using namespace std;
 
 typedef PHIODataNode<VariableArrayInt> MyNode_t;
@@ -17,7 +22,7 @@ DumpVariableArrayInt::DumpVariableArrayInt(const string &NodeName)
 
 int DumpVariableArrayInt::process_Node(PHNode *myNode)
 {
-  VariableArrayInt *variablearray = NULL;
+  VariableArrayInt *variablearray = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

@@ -5,7 +5,10 @@
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ DumpPHG4ScintillatorSlatContainer::DumpPHG4ScintillatorSlatContainer(const strin
 
 int DumpPHG4ScintillatorSlatContainer::process_Node(PHNode *myNode)
 {
-  PHG4ScintillatorSlatContainer *scinticontainer = NULL;
+  PHG4ScintillatorSlatContainer *scinticontainer = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

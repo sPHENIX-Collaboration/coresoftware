@@ -31,11 +31,18 @@
 #include "DumpTrkrHitSetContainer.h"
 #include "DumpVariableArray.h"
 
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <ffaobjects/RunHeader.h>
 
+#include <TObject.h>
+
+#include <iostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 

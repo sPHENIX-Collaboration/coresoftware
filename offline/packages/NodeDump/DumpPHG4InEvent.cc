@@ -2,13 +2,14 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <g4main/PHG4Hit.h>
 #include <g4main/PHG4InEvent.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -22,7 +23,7 @@ DumpPHG4InEvent::DumpPHG4InEvent(const string &NodeName)
 
 int DumpPHG4InEvent::process_Node(PHNode *myNode)
 {
-  PHG4InEvent *phg4inevent = NULL;
+  PHG4InEvent *phg4inevent = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

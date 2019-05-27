@@ -1,7 +1,6 @@
 #include "DumpObject.h"
-#include "PHNodeDump.h"
 
-#include <phool/PHNode.h>
+#include "PHNodeDump.h"
 
 #include <fstream>
 #include <iostream>
@@ -12,7 +11,6 @@ using namespace std;
 DumpObject::DumpObject(const string &NodeName)
   : fout(nullptr)
   , ThisName(NodeName)
-  , verbosity(0)
   , write_run_event(1)
   , OutDir("./")
   , fp_precision(-1)

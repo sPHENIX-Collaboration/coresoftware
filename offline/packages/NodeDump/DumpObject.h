@@ -34,7 +34,6 @@ class DumpObject
 
  private:
   std::string ThisName;
-  int verbosity;
   int write_run_event;  // flag for not writing info for each event
   std::string OutDir;
   int fp_precision;
