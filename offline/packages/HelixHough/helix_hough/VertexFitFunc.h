@@ -1,13 +1,13 @@
-#ifndef __VERTEXFITFUNC__
-#define __VERTEXFITFUNC__
+#ifndef HELIXHOUGH_VERTEXFITFUNC_H
+#define HELIXHOUGH_VERTEXFITFUNC_H
 
 #include "FunctionGradHessian.h"
-#include "SimpleTrack3D.h"
 
-#include <Eigen/LU>
 #include <Eigen/Core>
-#include <Eigen/Dense>
 
+#include <vector>
+
+class SimpleTrack3D;
 
 class HelixDCAFunc : public FitNewton::FunctionGradHessian
 {

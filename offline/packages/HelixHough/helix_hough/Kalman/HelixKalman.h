@@ -1,9 +1,7 @@
-#ifndef __HELIXKALMAN__
-#define __HELIXKALMAN__
+#ifndef KALMAN_HELIXKALMAN_H
+#define KALMAN_HELIXKALMAN_H
 
-#include <Eigen/LU>
 #include <Eigen/Core>
-#include <Eigen/Dense>
 
 class HelixKalmanState;
 class SimpleHit3D;

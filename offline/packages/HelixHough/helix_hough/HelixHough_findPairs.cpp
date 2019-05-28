@@ -1,8 +1,15 @@
 #include "HelixHough.h"
+#include "HelixRange.h"
+
+#include <cstddef>
+#include <map>
+#include <memory>
+#include <set>
 #include <sys/time.h>
-#include <algorithm>
-#include <cmath>
-#include <iostream>
+#include <utility>
+#include <vector>
+
+class SimpleTrack3D;
 
 using namespace std;
 

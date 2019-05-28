@@ -1,7 +1,10 @@
-#ifndef __CYLINDERKALMAN__
-#define __CYLINDERKALMAN__
+#ifndef KALMAN_CYLINDERKALMAN_H
+#define KALMAN_CYLINDERKALMAN_H
 
 #include "HelixKalman.h"
+
+#include <Eigen/Core>
+
 #include <vector>
 
 class HelixKalmanState;

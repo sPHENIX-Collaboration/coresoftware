@@ -1,6 +1,14 @@
 #include "HelixHough.h"
-#include <cmath>
+#include "HelixKalmanState.h"
+#include "HelixRange.h"
+#include "HelixResolution.h"
+#include "SimpleHit3D.h"
+#include "SimpleTrack3D.h"
+
 #include <iostream>
+#include <memory>
+#include <utility>
+#include <vector>
 
 using namespace std;
 

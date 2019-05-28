@@ -5,6 +5,7 @@
 
 #include <string>
 
+class PHCompositeNode;
 class PHNodeDump;
 
 class Dumper : public SubsysReco

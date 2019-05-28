@@ -1,7 +1,12 @@
 #include "HelixKalman.h"
-#include <iostream>
 #include "HelixKalmanState.h"
 #include "SimpleHit3D.h"
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/LU>
+
+#include <cmath>
 
 using namespace std;
 using namespace Eigen;

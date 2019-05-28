@@ -1,8 +1,8 @@
-#ifndef __SIMPLEHIT3D__
-#define __SIMPLEHIT3D__
+#ifndef HELIXHOUGH_SIMPLEHIT3D_H
+#define HELIXHOUGH_SIMPLEHIT3D_H
 
 #include <iostream>
-#include <cmath>
+
 #include <trackbase/TrkrDefs.h>
 
 class SimpleHit3D

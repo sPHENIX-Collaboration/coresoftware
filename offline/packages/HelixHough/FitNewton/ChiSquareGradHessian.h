@@ -1,8 +1,16 @@
-#ifndef __CHISQUAREGRADHESSIAN__
-#define __CHISQUAREGRADHESSIAN__
+#ifndef FITNEWTON_CHISQUAREGRADHESSIAN_H
+#define FITNEWTON_CHISQUAREGRADHESSIAN_H
 
 #include "FunctionGradHessian.h"
-#include "Pincushion.h"
+#include "Seamstress.h"
+
+#include <Eigen/Core>
+
+#include <cstddef>
+#include <pthread.h>
+#include <vector>
+
+namespace SeamStress { template <class TClass> class Pincushion; }
 
 namespace FitNewton
 {

@@ -1,6 +1,13 @@
 #include "CylinderKalman.h"
+
 #include "HelixKalmanState.h"
 #include "SimpleHit3D.h"
+
+#include <Eigen/Core>
+#include <Eigen/LU>
+
+#include <algorithm>
+#include <cmath>
 
 using namespace std;
 using namespace Eigen;
