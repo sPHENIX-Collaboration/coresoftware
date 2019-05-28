@@ -1,52 +1,42 @@
 #include "TpcClusterizer.h"
 
+#include "TpcDefs.h"
+
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrDefs.h>                         // for hitkey, getLayer
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
-#include<TpcDefs.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-//#include <g4detectors/PHG4Cell.h>
-//#include <g4detectors/PHG4CellContainer.h>
+
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-//#include <g4main/PHG4Hit.h>
-//#include <g4main/PHG4HitContainer.h>
+
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/getClass.h>
-
-#include <TMath.h>
-
-#include <TCanvas.h>
-#include <TF1.h>
-#include <TFitResult.h>
-#include <TFitResultPtr.h>
-#include <TH1D.h>
-#include <TH1F.h>
-#include <TProfile2D.h>
-#include <TSpectrum2.h>
-#include <TStopwatch.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <TMatrixF.h>
+#include <TMatrixFfwd.h>                                // for TMatrixF
+#include <TMatrixT.h>                                   // for TMatrixT, ope...
+#include <TMatrixTUtils.h>                              // for TMatrixTRow
 
-#include <cassert>
-#include <cstdlib>
+#include <cmath>                                       // for sqrt, cos, sin
 #include <iostream>
+#include <map>                                          // for _Rb_tree_cons...
+#include <string>
+#include <utility>                                      // for pair
 #include <vector>
 
 using namespace std;
 
-TpcClusterizer::TpcClusterizer(const char* name)
-  : m_hits(nullptr)
+TpcClusterizer::TpcClusterizer(const string &name)
+  : SubsysReco(name)
+  , m_hits(nullptr)
   , m_clusterlist(nullptr)
   , m_clusterhitassoc(nullptr)
   , zz_shaping_correction(0.0754)
@@ -57,11 +47,8 @@ TpcClusterizer::TpcClusterizer(const char* name)
   , NZBinsMin(0)
 {
 }
-//===================
-TpcClusterizer::~TpcClusterizer()
-{
-}
 
+//===================
 bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vector<double>> &adcval)
 {
   bool retval = true;
