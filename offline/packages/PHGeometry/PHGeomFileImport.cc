@@ -2,9 +2,9 @@
 #include "PHGeomUtility.h"
 
 // PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
 
-#include <phool/PHCompositeNode.h>
+class PHCompositeNode;
 
 using namespace std;
 

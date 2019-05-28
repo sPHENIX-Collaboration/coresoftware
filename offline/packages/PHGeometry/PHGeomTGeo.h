@@ -13,6 +13,8 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>
+
 class TGeoManager;
 
 /*!

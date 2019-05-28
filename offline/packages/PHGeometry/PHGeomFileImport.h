@@ -3,11 +3,9 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <ctime>
-#include <iostream>
-#include <map>
-#include <set>
 #include <string>
+
+class PHCompositeNode;
 
 //! Fun4All module to import TGeo ROOT Geometry at run time
 class PHGeomFileImport : public SubsysReco

@@ -13,6 +13,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>
 #include <vector>
 
 class TGeoVolume;
