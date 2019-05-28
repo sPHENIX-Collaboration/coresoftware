@@ -9,11 +9,7 @@
 
 #include <trackbase/TrkrHit.h>
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
-#include <cstdint>
-#endif
+#include <iostream>
 
 /**
  * @brief Intt hit object

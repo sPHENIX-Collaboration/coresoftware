@@ -4,46 +4,44 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/PHTimeServer.h>
+#include <phool/PHTimer.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>
 
-#include <boost/format.hpp>
-#include <boost/tuple/tuple.hpp>
+#include <TMatrixFfwd.h>                            // for TMatrixF
+#include <TMatrixT.h>                               // for TMatrixT, operator*
+#include <TMatrixTUtils.h>                          // for TMatrixTRow
 
-#include <TMatrixF.h>
-#include <TVector3.h>
-
-#define BOOST_NO_HASH  // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
-#include <boost/bind.hpp>
+//#define BOOST_NO_HASH  // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
-using namespace boost;
+
 
 #include <cmath>
 #include <iostream>
-#include <stdexcept>
+#include <memory>
+#include <set>
 
+using namespace boost;
 using namespace std;
 
-static const float twopi = 2.0 * M_PI;
-
-//bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, TrkrHit*> lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> rhs, const int layer)
 bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer)
 {
   if (get_z_clustering(layer))
@@ -79,8 +77,6 @@ InttClusterizer::InttClusterizer(const string& name,
   , _thresholds_by_layer()
   , _make_z_clustering()
   , _make_e_weights()
-  , _min_layer(min_layer)
-  , _max_layer(max_layer)
   , _timer(PHTimeServer::get()->insert_new(name))
 {
 }

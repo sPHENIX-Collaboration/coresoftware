@@ -5,7 +5,10 @@
  * @brief Implementation of Intt hit object
  */
 #include "InttHit.h"
-#include "InttDefs.h"
+
+#include <trackbase/TrkrHit.h>  // for TrkrHit
+
+#include <iosfwd>
 
 InttHit::InttHit()
   : TrkrHit()
