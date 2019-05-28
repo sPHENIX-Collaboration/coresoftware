@@ -5,7 +5,6 @@
 #include "PHField.h"
 
 #include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
 
 #include <map>
 #include <string>

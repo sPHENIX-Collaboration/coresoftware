@@ -1,13 +1,6 @@
 #include "PHFieldUniform.h"
 
-//root framework
-#include <TFile.h>
-#include <TNtuple.h>
-
 #include <CLHEP/Units/SystemOfUnits.h>
-
-#include <iostream>
-#include <set>
 
 using namespace std;
 using namespace CLHEP;  // units

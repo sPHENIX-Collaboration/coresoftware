@@ -12,6 +12,8 @@
 
 #include <iostream>
 
+class PHObject;
+
 using namespace std;
 
 PHFieldConfigv1::PHFieldConfigv1(FieldConfigTypes field_config,

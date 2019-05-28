@@ -6,9 +6,17 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
+#include <boost/tuple/tuple_comparison.hpp>
+
+#include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <iterator>
+#include <memory>
 #include <set>
+#include <utility>
 
 using namespace std;
 using namespace CLHEP;  // units

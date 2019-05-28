@@ -10,22 +10,12 @@
 
 #include "PHFieldConfig.h"
 
-#include <cassert>
 #include <iostream>
 #include <limits>
-#include <sstream>
 
 using namespace std;
 
 const std::string PHFieldConfig::kInvalid_FileName("INVALID FILE");
-
-PHFieldConfig::PHFieldConfig()
-{
-}
-
-PHFieldConfig::~PHFieldConfig()
-{
-}
 
 string PHFieldConfig::get_field_config_description() const
 {

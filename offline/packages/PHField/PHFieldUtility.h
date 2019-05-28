@@ -1,12 +1,6 @@
 #ifndef PHFIELD_PHFIELDUTILITY_H
 #define PHFIELD_PHFIELDUTILITY_H
 
-#include "PHFieldConfig.h"
-
-#include <ctime>
-#include <iostream>
-#include <map>
-#include <set>
 #include <string>
 
 class PHCompositeNode;

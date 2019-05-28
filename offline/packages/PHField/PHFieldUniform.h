@@ -3,10 +3,6 @@
 
 #include "PHField.h"
 
-#include <map>
-#include <string>
-#include <vector>
-
 class PHFieldUniform : public PHField
 {
  public:

@@ -11,6 +11,9 @@
 #include "PHFieldConfigv2.h"
 
 #include <iostream>
+#include <string>
+
+class PHObject;
 
 using namespace std;
 

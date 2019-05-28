@@ -1,21 +1,22 @@
 #include "PHFieldUtility.h"
 
+#include "PHField.h"
+#include "PHFieldConfig.h"
+#include "PHFieldConfigv1.h"
+#include "PHFieldUniform.h"
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
-#include "PHFieldConfigv1.h"
-#include "PHFieldUniform.h"
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
+
+#include <fun4all/Fun4AllServer.h>
 
 #include <cassert>
 #include <iostream>
