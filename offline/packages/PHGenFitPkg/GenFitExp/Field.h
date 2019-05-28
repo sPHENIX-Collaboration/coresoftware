@@ -10,6 +10,8 @@
 
 #include <GenFit/AbsBField.h>
 
+#include <TVector3.h>
+
 class PHField;
 
 namespace genfit
