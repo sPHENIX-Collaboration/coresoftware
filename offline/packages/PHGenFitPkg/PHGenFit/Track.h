@@ -7,9 +7,10 @@
 #ifndef PHGENFIT_TRACK_H
 #define PHGENFIT_TRACK_H
 
-#include <GenFit/Track.h>
-
 #include <trackbase/TrkrDefs.h>
+
+#include <TMatrixDSymfwd.h>
+#include <TVector3.h>
 
 //STL
 #include <map>
@@ -21,9 +22,8 @@
 namespace genfit
 {
 class AbsTrackRep;
-class StateOnPlane;
+class MeasuredStateOnPlane;
 class Track;
-
 }  // namespace genfit
 
 namespace PHGenFit

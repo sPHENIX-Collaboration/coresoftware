@@ -13,6 +13,7 @@
 #include "TGeoManager.h"
 
 #include <cassert>
+#include <cstdlib>
 #include <iostream>
 
 using namespace std;

@@ -1,10 +1,6 @@
 #ifndef PHGEOMETRY_PHGEOMUTILITY_H
 #define PHGEOMETRY_PHGEOMUTILITY_H
 
-#include <ctime>
-#include <iostream>
-#include <map>
-#include <set>
 #include <string>
 
 class PHCompositeNode;

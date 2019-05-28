@@ -3,11 +3,9 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 
-#include <phool/phool.h>
-
 #include <TVector3.h>
 
-#include <cmath>
+#include <iostream>
 
 class CylinderGeom_Mvtx : public PHG4CylinderGeom
 {

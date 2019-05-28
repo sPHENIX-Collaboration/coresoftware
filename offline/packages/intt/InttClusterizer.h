@@ -1,12 +1,17 @@
-#ifndef __InttClusterizer_H__
-#define __InttClusterizer_H__
+#ifndef INTT_INTTCLUSTERIZER_H
+#define INTT_INTTCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <limits.h>
-#include <phool/PHTimeServer.h>
-#include <map>
+
 #include <trackbase/TrkrDefs.h>
 
+#include <phool/PHTimeServer.h>
+#include <limits>
+#include <map>
+#include <string>
+#include <utility>
+
+class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
@@ -83,9 +88,6 @@ class InttClusterizer : public SubsysReco
   std::map<int, float> _thresholds_by_layer;  // layer->threshold
   std::map<int, bool> _make_z_clustering;     // layer->z_clustering_option
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
-
-  unsigned int _min_layer;
-  unsigned int _max_layer;
 
   PHTimeServer::timer _timer;
 };

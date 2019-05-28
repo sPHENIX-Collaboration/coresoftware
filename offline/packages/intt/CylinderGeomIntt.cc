@@ -3,6 +3,7 @@
 #include <CLHEP/Vector/ThreeVector.h>
 #include <CLHEP/Vector/Rotation.h>
 
+#include <algorithm>
 #include <cmath>
 
 using namespace std;

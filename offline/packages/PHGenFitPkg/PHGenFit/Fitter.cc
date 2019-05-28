@@ -10,8 +10,6 @@
 
 #include "Track.h"
 
-#include <phfield/PHField.h>
-
 //ROOT
 #include <TGeoManager.h>
 
@@ -20,16 +18,21 @@
 #include <GenFit/DAF.h>
 #include <GenFit/EventDisplay.h>
 #include <GenFit/FieldManager.h>
+#include <GenFit/FitStatus.h>
 #include <GenFit/KalmanFitter.h>
 #include <GenFit/KalmanFitterRefTrack.h>
 #include <GenFit/MaterialEffects.h>
-#include <GenFit/RKTrackRep.h>
 #include <GenFit/TGeoMaterialInterface.h>
+#include <GenFit/Track.h>
 
 //GenFitExp
 #include <genfitexp/Field.h>
 
 #include <cassert>
+#include <cstddef>
+#include <iostream>
+
+namespace genfit { class AbsTrackRep; }
 
 #define LogDEBUG(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogERROR(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl

@@ -9,7 +9,16 @@
 
 #include "Measurement.h"
 
+#include <GenFit/SharedPlanePtr.h>
+#include <GenFit/StateOnPlane.h>
+
+#include <vector>
+
 class TVector3;
+
+namespace genfit { class AbsHMatrix; }
+namespace genfit { class MeasurementOnPlane; }
+namespace genfit { class TrackPoint; }
 
 namespace PHGenFit
 {

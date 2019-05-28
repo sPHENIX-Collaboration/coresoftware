@@ -5,7 +5,10 @@
  * @brief Implementation of Tpc hit object
  */
 #include "TpcHit.h"
-#include "TpcDefs.h"
+
+#include <trackbase/TrkrHit.h>  // for TrkrHit
+
+#include <iosfwd>               // for ostream
 
 TpcHit::TpcHit()
   : TrkrHit()

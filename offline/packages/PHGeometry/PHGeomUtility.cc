@@ -3,25 +3,25 @@
 #include "PHGeomIOTGeo.h"
 #include "PHGeomTGeo.h"
 
-// PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 
 #include <TGeoManager.h>
 
 #include <cassert>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-
-#include <sys/types.h>
 #include <unistd.h>  // for generate unique local file
 
 using namespace std;

@@ -6,6 +6,8 @@
  */
 #include "TpcDefs.h"
 
+#include <trackbase/TrkrDefs.h>  // for hitsetkey, cluskey, hitkey, kBitShif...
+
 uint8_t
 TpcDefs::getSectorId(TrkrDefs::hitsetkey key)
 {

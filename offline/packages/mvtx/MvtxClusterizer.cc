@@ -6,7 +6,6 @@
  */
 #include "MvtxClusterizer.h"
 #include "MvtxDefs.h"
-#include "MvtxHit.h"
 #include "CylinderGeom_Mvtx.h"
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -16,35 +15,42 @@
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterv1.h>
+#include <trackbase/TrkrDefs.h>                     // for hitkey, getLayer
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                         // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                            // for PHWHERE
 
-#include <boost/format.hpp>
-#include <boost/tuple/tuple.hpp>
-
-#include <TMatrixF.h>
+#include <TMatrixFfwd.h>                            // for TMatrixF
+#include <TMatrixT.h>                               // for TMatrixT, operator*
+#include <TMatrixTUtils.h>                          // for TMatrixTRow
 #include <TVector3.h>
 
-#define BOOST_NO_HASH  // Our version of boost.graph is incompatible with GCC-4.3 w/o this flag
-#include <boost/bind.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
-using namespace boost;
 
 #include <cmath>
+#include <cstdlib>                                 // for exit
 #include <iostream>
-#include <stdexcept>
+#include <map>                                      // for multimap<>::iterator
+#include <set>                                      // for set, set<>::iterator
+#include <string>
+#include <vector>                                   // for vector
 
+class PHCompositeNode;
+
+using namespace boost;
 using namespace std;
-
-static const float twopi = 2.0 * M_PI;
 
 /*
 bool MvtxClusterizer::are_adjacent(const pixel lhs,

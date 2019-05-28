@@ -6,6 +6,8 @@
  */
 #include "InttDefs.h"
 
+#include <trackbase/TrkrDefs.h>
+
 uint8_t
 InttDefs::getLadderZId(TrkrDefs::hitsetkey key)
 {

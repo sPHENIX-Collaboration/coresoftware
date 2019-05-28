@@ -8,17 +8,37 @@
 #include "Track.h"
 #include "Measurement.h"
 
+#include <trackbase/TrkrDefs.h>
+
 //GenFit
+#include <GenFit/AbsFitterInfo.h>
 #include <GenFit/AbsHMatrix.h>
+#include <GenFit/AbsMeasurement.h>
+#include <GenFit/AbsTrackRep.h>
+#include <GenFit/DetPlane.h>
+#include <GenFit/Exception.h>
+#include <GenFit/FitStatus.h>
 #include <GenFit/KalmanFittedStateOnPlane.h>
-#include <GenFit/KalmanFitter.h>
 #include <GenFit/KalmanFitterInfo.h>
+#include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/MeasurementOnPlane.h>
+#include <GenFit/SharedPlanePtr.h>
 #include <GenFit/Tools.h>
 #include <GenFit/Track.h>
+#include <GenFit/TrackPoint.h>
+
+#include <TMatrixDfwd.h>                      // for TMatrixD
+#include <TMatrixT.h>                         // for TMatrixT
+#include <TMatrixTSym.h>                      // for TMatrixTSym
+#include <TVectorDfwd.h>                      // for TVectorD
+#include <TVectorT.h>                         // for TVectorT, operator-
 
 //STL
+#include <cassert>
+#include <cstddef>
 #include <limits>
+#include <iostream>
+#include <utility>
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl

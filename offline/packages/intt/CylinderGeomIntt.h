@@ -3,8 +3,8 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>
 
-#include <phool/phool.h>
 #include <cmath>
+#include <iostream>
 
 class CylinderGeomIntt : public PHG4CylinderGeom
 {

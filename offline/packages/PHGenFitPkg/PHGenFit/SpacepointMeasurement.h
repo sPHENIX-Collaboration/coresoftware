@@ -9,6 +9,8 @@
 
 #include "Measurement.h"
 
+#include <TMatrixDSymfwd.h>
+
 class TVector3;
 
 namespace PHGenFit
