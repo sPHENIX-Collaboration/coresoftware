@@ -8,6 +8,11 @@
 
 #include <GenFit/SpacepointMeasurement.h>
 
+#include <TMatrixTSym.h>
+#include <TVector3.h>
+#include <TVectorDfwd.h>
+#include <TVectorT.h>
+
 namespace PHGenFit
 {
 void SpacepointMeasurement::init(const TVector3& pos, const TMatrixDSym& cov)

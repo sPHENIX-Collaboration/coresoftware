@@ -5,18 +5,17 @@
  */
 
 //GenFit
-#include <GenFit/AbsHMatrix.h>
-#include <GenFit/KalmanFittedStateOnPlane.h>
-#include <GenFit/KalmanFitter.h>
-#include <GenFit/KalmanFitterInfo.h>
-#include <GenFit/MeasurementOnPlane.h>
 #include <GenFit/RKTrackRep.h>
-#include <GenFit/Tools.h>
-#include <GenFit/Track.h>
+#include <GenFit/AbsTrackRep.h>           // for AbsTrackRep
+#include <GenFit/Exception.h>             // for Exception
+#include <GenFit/MeasuredStateOnPlane.h>  // for MeasuredStateOnPlane
 
-//BOOST
+
+#include <TVector3.h>                     // for TVector3
 
 //STL
+#include <cassert>                       // for assert
+#include <iostream>                       // for operator<<, basic_ostream
 #include <limits>
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl

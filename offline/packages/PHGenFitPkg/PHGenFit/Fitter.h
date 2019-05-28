@@ -11,6 +11,7 @@
 //STL
 
 #include <GenFit/EventDisplay.h>
+#include "GenFit/Exception.h"
 
 #include <string>
 
@@ -25,18 +26,13 @@ class PHField;
 
 namespace genfit
 {
-class FieldManager;
-class MaterialEffects;
-class EventDisplay;
 class AbsKalmanFitter;
 class AbsBField;
-class Field;
 }  // namespace genfit
 
 namespace PHGenFit
 {
 class Track;
-class Measurement;
 
 class Fitter
 {

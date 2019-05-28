@@ -4,9 +4,12 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#include <GenFit/PlanarMeasurement.h>
-
 #include "PlanarMeasurement.h"
+
+#include <GenFit/PlanarMeasurement.h>
+#include <GenFit/DetPlane.h>
+
+#include <TVector3.h>
 
 namespace PHGenFit
 {
