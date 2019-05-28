@@ -8,9 +8,10 @@
 
 #include "TrkrHit.h"
 
-#include <phool/phool.h>
-
+#include <cstdlib>     // for exit
 #include <iostream>
+#include <type_traits>  // for __decay_and_strip<>::__type
+
 
 TrkrHitSet::TrkrHitSet()
   : m_hitSetKey(TrkrDefs::HITSETKEYMAX)

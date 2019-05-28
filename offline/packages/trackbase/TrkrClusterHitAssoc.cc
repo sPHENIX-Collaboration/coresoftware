@@ -7,7 +7,7 @@
 
 #include "TrkrClusterHitAssoc.h"
 
-#include <cstdlib>
+#include <ostream>  // for operator<<, endl, basic_ostream, ostream, basic_o...
 
 TrkrClusterHitAssoc::TrkrClusterHitAssoc() 
   : m_map()

@@ -11,8 +11,15 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
+
+#if defined(__CINT__) && !defined(__CLING__)
+#include <limits.h>
+#else
+#include <climits>
+#endif
+
 
 /**
  * @brief Base class for cluster object

@@ -11,7 +11,9 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
+#include <utility>           // for pair
 
 /**
  * @brief Class for associating clusters to the hits that went into them

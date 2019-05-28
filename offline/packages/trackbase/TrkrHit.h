@@ -7,8 +7,6 @@
 #ifndef TRACKBASE_TRKRHIT_H
 #define TRACKBASE_TRKRHIT_H
 
-#include "TrkrDefs.h"
-
 #include <phool/PHObject.h>
 
 #include <iostream>

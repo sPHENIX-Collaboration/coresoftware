@@ -6,10 +6,12 @@
  */
 #include "TrkrClusterv1.h"
 
-#include <TMatrixF.h>
+#include <TMatrixFfwd.h>    // for TMatrixF
+#include <TMatrixT.h>       // for TMatrixT, operator*
+#include <TMatrixTUtils.h>  // for TMatrixTRow
 
-#include <algorithm>
 #include <cmath>
+#include <utility>          // for swap
 
 TrkrClusterv1::TrkrClusterv1()
   : m_cluskey(TrkrDefs::CLUSKEYMAX)

@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <map>
+#include <utility>           // for pair
 
 class TrkrHit;
 

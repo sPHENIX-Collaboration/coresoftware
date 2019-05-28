@@ -5,13 +5,10 @@
  * @brief Implementation of TrkrClusterContainer
  */
 #include "TrkrClusterContainer.h"
+#include "TrkrCluster.h"
 #include "TrkrClusterv1.h"
 
 #include <cstdlib>
-
-TrkrClusterContainer::TrkrClusterContainer()
-{
-}
 
 void TrkrClusterContainer::Reset()
 {
