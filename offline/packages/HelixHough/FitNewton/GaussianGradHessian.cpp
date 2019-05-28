@@ -1,5 +1,7 @@
 #include "GaussianGradHessian.h"
 
+#include <cmath>
+#include <vector>
 
 using namespace std;
 using namespace Eigen;

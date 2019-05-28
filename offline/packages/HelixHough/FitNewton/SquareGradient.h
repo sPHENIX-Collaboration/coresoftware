@@ -1,7 +1,9 @@
-#ifndef __SQUAREGRADIENT__
-#define __SQUAREGRADIENT__
+#ifndef FITNEWTON_SQUAREGRADIENT_H
+#define FITNEWTON_SQUAREGRADIENT_H
 
 #include "FunctionGradHessian.h"
+
+#include <Eigen/Core>
 
 namespace FitNewton
 {
