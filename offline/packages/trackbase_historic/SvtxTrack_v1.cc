@@ -2,13 +2,14 @@
 #include "SvtxTrackState.h"
 #include "SvtxTrackState_v1.h"
 
-#include <limits.h>
-#include <math.h>
-#include <algorithm>
+#include <trackbase/TrkrDefs.h>  // for cluskey
+
+#include <climits>
 #include <map>
+#include <vector>                // for vector
 
 
-    using namespace std;
+using namespace std;
 
 SvtxTrack_v1::SvtxTrack_v1()
   : _track_id(UINT_MAX)

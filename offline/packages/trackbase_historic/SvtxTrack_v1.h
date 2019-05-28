@@ -1,17 +1,16 @@
-#ifndef __SVTXTRACK_V1_H__
-#define __SVTXTRACK_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXTRACKV1_H
+#define TRACKBASEHISTORIC_SVTXTRACKV1_H
 
 #include "SvtxTrack.h"
 #include "SvtxTrackState.h"
 
-#include <phool/PHObject.h>
-
 #include <trackbase/TrkrDefs.h>
 
 #include <cmath>
+#include <cstddef>              // for size_t
 #include <iostream>
 #include <map>
-#include <set>
+#include <utility>               // for pair
 
 class SvtxTrack_v1 : public SvtxTrack
 {

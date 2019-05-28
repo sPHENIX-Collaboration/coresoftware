@@ -7,9 +7,13 @@
 
 #include "SvtxTrack_FastSim.h"
 
-#include <limits.h>
+#include "SvtxTrack.h"  // for SvtxTrack::ConstClusterIter, SvtxTrack
 
-    using namespace std;
+#include <climits>
+#include <map>          // for _Rb_tree_const_iterator
+#include <ostream>      // for operator<<, basic_ostream, basic_ostream<>::_...
+
+using namespace std;
 
 SvtxTrack_FastSim::SvtxTrack_FastSim()
   : _truth_track_id(UINT_MAX)

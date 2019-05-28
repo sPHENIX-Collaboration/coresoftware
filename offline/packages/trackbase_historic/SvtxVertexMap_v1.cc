@@ -2,9 +2,12 @@
 
 #include "SvtxVertex.h"
 
+#include <iterator>      // for reverse_iterator
+#include <utility>       // for pair, make_pair
+
 using namespace std;
 
-    SvtxVertexMap_v1::SvtxVertexMap_v1()
+SvtxVertexMap_v1::SvtxVertexMap_v1()
   : _map()
 {
 }

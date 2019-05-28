@@ -1,12 +1,11 @@
-#ifndef __SVTXHITMAP_V1_H__
-#define __SVTXHITMAP_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXHITMAPV1_H
+#define TRACKBASEHISTORIC_SVTXHITMAPV1_H
 
 #include "SvtxHit.h"
 #include "SvtxHitMap.h"
 
-#include <phool/PHObject.h>
+#include <cstddef>
 #include <iostream>
-#include <map>
 
 class SvtxHitMap_v1 : public SvtxHitMap
 {

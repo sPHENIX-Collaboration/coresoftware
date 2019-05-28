@@ -1,14 +1,11 @@
-#ifndef __SVTXTRACKSTATE_V1_H__
-#define __SVTXTRACKSTATE_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXTRACKSTATEV1_H
+#define TRACKBASEHISTORIC_SVTXTRACKSTATEV1_H
 
 #include "SvtxTrackState.h"
 
-#include <phool/PHObject.h>
-
 #include <cmath>
 #include <iostream>
-#include <map>
-#include <set>
+#include <string>            // for string, basic_string
 
 class SvtxTrackState_v1 : public SvtxTrackState
 {

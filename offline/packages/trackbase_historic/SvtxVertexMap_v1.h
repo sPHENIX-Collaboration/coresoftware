@@ -1,10 +1,10 @@
-#ifndef __SVTXVERTEXMAP_V1_H__
-#define __SVTXVERTEXMAP_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXVERTEXMAPV1_H
+#define TRACKBASEHISTORIC_SVTXVERTEXMAPV1_H
 
 #include "SvtxVertex.h"
 #include "SvtxVertexMap.h"
 
-#include <phool/PHObject.h>
+#include <cstddef>         // for size_t
 #include <iostream>
 #include <map>
 

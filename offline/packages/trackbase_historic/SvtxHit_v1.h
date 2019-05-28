@@ -1,9 +1,10 @@
-#ifndef __SVTXHIT_V1_H__
-#define __SVTXHIT_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXHITV1_H
+#define TRACKBASEHISTORIC_SVTXHITV1_H
 
 #include "SvtxHit.h"
 
-#include <phool/PHObject.h>
+#include <g4detectors/PHG4CellDefs.h>
+
 #include <iostream>
 
 class SvtxHit_v1 : public SvtxHit

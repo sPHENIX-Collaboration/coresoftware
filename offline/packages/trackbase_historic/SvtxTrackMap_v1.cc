@@ -2,10 +2,15 @@
 
 #include "SvtxTrack.h"
 
+#include <iterator>     // for reverse_iterator
+#include <map>          // for _Rb_tree_const_iterator, _Rb_tree_iterator
+#include <ostream>      // for operator<<, endl, ostream, basic_ostream, bas...
+#include <utility>      // for pair, make_pair
+
 using namespace std;
 
 
-    SvtxTrackMap_v1::SvtxTrackMap_v1()
+SvtxTrackMap_v1::SvtxTrackMap_v1()
   : _map()
 {
 }
