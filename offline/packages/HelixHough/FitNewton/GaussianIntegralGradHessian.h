@@ -1,7 +1,9 @@
-#ifndef __GAUSSIANINTEGRALGRADHESSIAN__
-#define __GAUSSIANINTEGRALGRADHESSIAN__
+#ifndef FITNEWTON_GAUSSIANINTEGRALGRADHESSIAN_H
+#define FITNEWTON_GAUSSIANINTEGRALGRADHESSIAN_H
 
 #include "FunctionGradHessian.h"
+
+#include <Eigen/Core>
 
 namespace FitNewton
 {

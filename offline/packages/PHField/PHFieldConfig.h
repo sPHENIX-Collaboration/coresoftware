@@ -13,6 +13,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>
 #include <string>
 
 /*!
@@ -20,7 +21,7 @@
 class PHFieldConfig : public PHObject
 {
  public:
-  virtual ~PHFieldConfig();
+  virtual ~PHFieldConfig(){}
 
   /** identify Function from PHObject
    @param os Output Stream
@@ -84,7 +85,7 @@ class PHFieldConfig : public PHObject
 
  protected:
   //! pure virtual interface class. not for direct use
-  PHFieldConfig();
+  PHFieldConfig(){}
 
   static const std::string kInvalid_FileName;
 

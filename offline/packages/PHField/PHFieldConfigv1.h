@@ -13,6 +13,9 @@
 
 #include "PHFieldConfig.h"
 
+#include <iostream>
+#include <string>
+
 /*!
  * \brief PHFieldConfigv1 implements field configuration information for input a field map file */
 class PHFieldConfigv1 : public PHFieldConfig

@@ -1,8 +1,10 @@
 #include "HelixHough.h"
-#include <sys/time.h>
-#include <algorithm>
-#include <cmath>
-#include <iostream>
+
+#include "HelixRange.h"
+#include "SimpleHit3D.h"
+
+#include <memory>
+#include <vector>
 
 using namespace std;
 

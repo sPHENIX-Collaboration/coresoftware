@@ -1,7 +1,9 @@
-#include "vector_math_inline.h"
 #include "HelixHough.h"
-#include <math.h>
-#include <iostream>
+
+#include "vector_math_inline.h"
+
+#include <emmintrin.h>
+#include <xmmintrin.h>
 
 using namespace std;
 

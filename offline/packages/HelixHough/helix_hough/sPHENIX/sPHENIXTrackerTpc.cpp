@@ -1,13 +1,23 @@
 #include "sPHENIXTrackerTpc.h"
-#include <float.h>
-#include <sys/time.h>
-#include <algorithm>
-#include <cmath>
-#include <iostream>
+#include "CylinderKalman.h"
+#include "Pincushion.h"
+#include "SimpleTrack3D.h"
+#include "vector_math_inline.h"
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/LU>
-#include "vector_math_inline.h"
+
+#include <algorithm>
+#include <cfloat>
+#include <cmath>
+#include <cstddef>
+#include <iostream>
+#include <sys/time.h>
+#include <utility>
+#include <xmmintrin.h>
+
+class HelixResolution;
 
 using namespace std;
 using namespace Eigen;

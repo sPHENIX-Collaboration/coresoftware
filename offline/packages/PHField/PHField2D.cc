@@ -3,11 +3,20 @@
 //root framework
 #include <TFile.h>
 #include <TNtuple.h>
+#include <TDirectory.h>
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
+#include <boost/tuple/tuple_comparison.hpp>
+
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <iterator>
+#include <memory>
 #include <set>
+#include <utility>
 
 using namespace std;
 using namespace CLHEP;  // units

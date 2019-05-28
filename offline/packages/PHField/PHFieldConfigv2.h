@@ -13,6 +13,8 @@
 
 #include "PHFieldConfig.h"
 
+#include <iostream>
+
 /*!
  * \brief PHFieldConfigv2 implements field configuration information for uniform field model*/
 class PHFieldConfigv2 : public PHFieldConfig

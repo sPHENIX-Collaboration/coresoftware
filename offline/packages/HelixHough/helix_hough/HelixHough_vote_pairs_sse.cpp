@@ -1,9 +1,12 @@
 #include "HelixHough.h"
-#include <sys/time.h>
+
+#include "fastvec.h"
+#include "SimpleHit3D.h"
+
 #include <algorithm>
 #include <cmath>
-#include <iostream>
-#include "vector_math_inline.h"
+#include <memory>
+#include <vector>
 
 using namespace std;
 

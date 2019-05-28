@@ -1,7 +1,10 @@
 #include "VertexFitFunc.h"
-#include "NewtonMinimizerGradHessian.h"
 
-#include <math.h>
+#include "NewtonMinimizerGradHessian.h"
+#include "SimpleTrack3D.h"
+
+#include <cmath>
+#include <memory>
 
 using namespace std;
 using namespace FitNewton;

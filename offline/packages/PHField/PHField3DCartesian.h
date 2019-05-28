@@ -3,8 +3,7 @@
 
 #include "PHField.h"
 
-#include <map>
-#include <set>
+#include <string>
 
 //! untested code - I don't know if this is being used, drop me a line (with the field) and I test this - Chris P.
 class PHField3DCartesian : public PHField

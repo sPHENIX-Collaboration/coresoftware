@@ -9,7 +9,13 @@
 #include <boost/tuple/tuple_comparison.hpp>
 
 #include <cassert>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
+#include <iterator>
+#include <map>
+#include <set>
+#include <utility>
 
 using namespace std;
 using namespace CLHEP;  // units
