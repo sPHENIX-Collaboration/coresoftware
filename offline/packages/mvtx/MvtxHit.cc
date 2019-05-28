@@ -5,7 +5,10 @@
  * @brief Implementation of Mvtx hit object
  */
 #include "MvtxHit.h"
-#include "MvtxDefs.h"
+
+#include <trackbase/TrkrHit.h>
+
+#include <ostream>              // for operator<<, endl, ostream, basic_ostream
 
 MvtxHit::MvtxHit()
   : TrkrHit()

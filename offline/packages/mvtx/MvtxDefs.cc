@@ -1,5 +1,7 @@
 #include "MvtxDefs.h"
 
+#include <trackbase/TrkrDefs.h>
+
 uint8_t
 MvtxDefs::getStaveId(TrkrDefs::hitsetkey key)
 {
