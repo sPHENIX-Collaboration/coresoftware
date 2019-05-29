@@ -11,14 +11,14 @@
 #include "PHTrackSeeding.h"
 
 // Helix Hough includes
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
 #include <HelixHough/sPHENIXSeedFinder.h>
+#include <Eigen/Core>                  // for Matrix
 #endif
 
-#include <Eigen/Core>                  // for Matrix
 
 // standard includes
 #include <cfloat>

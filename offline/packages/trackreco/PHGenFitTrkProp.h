@@ -14,7 +14,9 @@
 
 #include <trackbase/TrkrDefs.h>               // for cluskey
 
+#if !defined(__CINT__) || defined(__CLING__)
 #include <Eigen/Core>                         // for Matrix
+#endif
 
 // standard includes
 #include <list>
