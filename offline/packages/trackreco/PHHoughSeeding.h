@@ -11,56 +11,36 @@
 #include "PHTrackSeeding.h"
 
 // Helix Hough includes
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
 #include <HelixHough/sPHENIXSeedFinder.h>
+#include <Eigen/Core>                  // for Matrix
 #endif
 
-// PHGenFit
-#include <phgenfit/Fitter.h>
-//#include <phgenfit/Measurement.h>
-
-// trackbase_historic includes
-#include <trackbase_historic/SvtxTrackState.h>
-
-#include <g4bbc/BbcVertexMap.h>
-
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
 
 // standard includes
-#include <float.h>
-#include <list>
+#include <cfloat>
+#include <iostream>                    // for operator<<, endl, basic_ostream
 #include <map>
-#include <memory>
+#include <string>                      // for string
 #include <vector>
 
 // forward declarations
+class BbcVertexMap;
 class PHCompositeNode;
+class PHG4CellContainer;
+class PHG4CylinderGeomContainer;
+class PHG4HitContainer;
+class PHTimer;
+class sPHENIXSeedFinder;
 class SvtxTrackMap;
 class SvtxTrack;
 class SvtxVertexMap;
 class SvtxVertex;
-class PHG4CellContainer;
-class PHG4CylinderGeomContainer;
-
-class PHG4HitContainer;
-
 class TNtuple;
 class TFile;
-
-namespace PHGenFit
-{
-class Fitter;
-class Track;
-class Measurement;
-} /* namespace PHGenFit */
 
 namespace genfit
 {

@@ -7,13 +7,15 @@
 #ifndef TRACKBASE_TRKRCLUSTERCONTAINER_H
 #define TRACKBASE_TRKRCLUSTERCONTAINER_H
 
-#include "TrkrCluster.h"
 #include "TrkrDefs.h"
 
 #include <phool/PHObject.h>
 
 #include <map>
-#include <set>
+#include <iostream>          // for cout, ostream
+#include <utility>           // for pair
+
+class TrkrCluster;
 
 /**
  * @brief Cluster container object
@@ -29,7 +31,7 @@ class TrkrClusterContainer : public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  TrkrClusterContainer();
+  TrkrClusterContainer(){}
 
   virtual ~TrkrClusterContainer() {}
   void Reset();

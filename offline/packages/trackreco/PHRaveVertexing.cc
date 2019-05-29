@@ -7,76 +7,59 @@
 
 #include "PHRaveVertexing.h"
 
-//#include <trackbase_historic/SvtxCluster.h>
-//#include <trackbase_historic/SvtxClusterMap.h>
-//#include <trackbase_historic/SvtxHitMap.h>
-// #include <trackbase_historic/SvtxHit_v1.h>
-
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>    // for SvtxTrackState
+#include <trackbase_historic/SvtxVertexMap.h>     // for SvtxVertexMap
 #include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex.h>        // for SvtxVertex
 #include <trackbase_historic/SvtxVertex_v1.h>
 
-#include <trackbase/TrkrClusterContainer.h>
-
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPointv1.h>
 
 #include <phgenfit/Fitter.h>
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
-#include <phgenfit/Track.h>
 
 #include <phfield/PHFieldUtility.h>
 
 #include <phgeom/PHGeomUtility.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
+#include <fun4all/SubsysReco.h>                   // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                         // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                       // for PHObject
 #include <phool/PHTimer.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <GenFit/FieldManager.h>
-#include <GenFit/GFRaveConverters.h>
+#include <GenFit/FitStatus.h>                     // for FitStatus
+#include <GenFit/GFRaveTrackParameters.h>         // for GFRaveTrackParameters
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/KalmanFittedStateOnPlane.h>      // for KalmanFittedStateOn...
 #include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
+#include <GenFit/TrackPoint.h>                    // for TrackPoint
 
-//Rave
-#include <rave/ConstantMagneticField.h>
-#include <rave/Track.h>
-#include <rave/Version.h>
-#include <rave/VertexFactory.h>
-
-#include <TClonesArray.h>
-#include <TMatrixDSym.h>
-#include <TRandom3.h>
-#include <TRotation.h>
-#include <TTree.h>
+#include <TMatrixDSymfwd.h>                       // for TMatrixDSym
+#include <TMatrixTSym.h>                          // for TMatrixTSym
+#include <TMatrixTUtils.h>                        // for TMatrixTRow
 #include <TVector3.h>
 
-#include <algorithm>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
 #include <vector>
+
+class PHField;
+class TGeoManager;
+namespace genfit { class AbsTrackRep; }
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl

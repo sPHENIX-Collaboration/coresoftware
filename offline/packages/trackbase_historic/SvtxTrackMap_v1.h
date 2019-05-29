@@ -1,11 +1,11 @@
-#ifndef __SVTXTRACKMAP_V1_H__
-#define __SVTXTRACKMAP_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXTRACKMAPV1_H
+#define TRACKBASEHISTORIC_SVTXTRACKMAPV1_H
 
 #include "SvtxTrack.h"
 #include "SvtxTrackMap.h"
 
-#include <phool/PHObject.h>
-#include <map>
+#include <cstddef>        // for size_t
+#include <iostream>        // for cout, ostream
 
 class SvtxTrackMap_v1 : public SvtxTrackMap
 {

@@ -7,11 +7,9 @@
 #ifndef TRACKBASE_TRKRDEFUTIL_H
 #define TRACKBASE_TRKRDEFUTIL_H
 
-#ifdef __CINT__
-#include <limits.h>
+#if defined(__CINT__) && !defined(__CLING__)
 #include <stdint.h>
 #else
-#include <climits>
 #include <cstdint>
 #endif
 #include <iostream>

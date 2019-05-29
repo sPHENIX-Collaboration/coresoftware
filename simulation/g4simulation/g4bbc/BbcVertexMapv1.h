@@ -1,10 +1,11 @@
 #ifndef G4BBC_BBCVERTEXMAPV1_H
 #define G4BBC_BBCVERTEXMAPV1_H
 
-#include "BbcVertex.h"
 #include "BbcVertexMap.h"
 
-#include <phool/PHObject.h>
+#include "BbcVertex.h"
+
+#include <cstddef>        // for size_t
 #include <iostream>
 #include <map>
 

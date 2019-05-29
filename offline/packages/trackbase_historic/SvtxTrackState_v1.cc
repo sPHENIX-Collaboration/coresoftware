@@ -1,9 +1,10 @@
 #include "SvtxTrackState_v1.h"
 
 #include <iostream>
+#include <utility>   // for swap
 
 
-    using namespace std;
+using namespace std;
 
 SvtxTrackState_v1::SvtxTrackState_v1(float pathlength)
   : _pathlength(pathlength)

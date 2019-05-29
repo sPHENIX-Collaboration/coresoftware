@@ -1,12 +1,11 @@
-#ifndef __SVTXCLUSTERMAP_V1_H__
-#define __SVTXCLUSTERMAP_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXCLUSTERMAPV1_H
+#define TRACKBASEHISTORIC_SVTXCLUSTERMAPV1_H
 
 #include "SvtxCluster.h"
 #include "SvtxClusterMap.h"
 
-#include <phool/PHObject.h>
+#include <cstddef>
 #include <iostream>
-#include <map>
 
 class SvtxClusterMap_v1 : public SvtxClusterMap
 {

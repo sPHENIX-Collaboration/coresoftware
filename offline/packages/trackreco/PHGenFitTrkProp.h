@@ -10,50 +10,33 @@
 
 #include "PHTrackPropagating.h"
 
-#include <g4bbc/BbcVertexMap.h>
-
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackState.h>
 
-// Helix Hough includes
-#ifndef __CINT__
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
-#include <HelixHough/sPHENIXSeedFinder.h>
+#include <trackbase/TrkrDefs.h>               // for cluskey
+
+#if !defined(__CINT__) || defined(__CLING__)
+#include <Eigen/Core>                         // for Matrix
 #endif
 
-// PHGenFit
-#include <phgenfit/Fitter.h>
-
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>
-
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
-
 // standard includes
-#include <float.h>
 #include <list>
 #include <map>
 #include <memory>
+#include <ostream>                            // for basic_ostream::operator<<
+#include <string>                             // for string
+#include <utility>                            // for pair
 #include <vector>
 
 // forward declarations
+class BbcVertexMap;
 class PHCompositeNode;
-class TrkrClusterContainer;
-class TrkrCluster;
-class SvtxTrackMap;
-class SvtxTrack;
-class SvtxVertexMap;
-class SvtxVertex;
 class PHG4CylinderGeomContainer;
+class PHTimer;
+class SvtxTrack;
+class TrkrCluster;
 
-class PHG4HitContainer;
-
-class TNtuple;
 class TFile;
+class TNtuple;
 
 namespace PHGenFit
 {
@@ -61,11 +44,6 @@ class Fitter;
 class Track;
 class Measurement;
 } /* namespace PHGenFit */
-
-namespace genfit
-{
-class GFRaveVertexFactory;
-} /* namespace genfit */
 
 ///
 /// \class PHGenFitTrkProp

@@ -13,7 +13,9 @@
 
 #include <g4detectors/PHG4CellDefs.h>
 
+#include <iostream>                    // for cout, ostream
 #include <map>
+#include <utility>                     // for pair
 
 /**
  * @brief Association object for PHG4Cells contributiong to TrkrHits

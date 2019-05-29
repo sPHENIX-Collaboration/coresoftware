@@ -5,10 +5,12 @@
  *      Author: yuhw
  */
 
-#ifndef __SVTXTRACK_FAST_SIM_H__
-#define __SVTXTRACK_FAST_SIM_H__
+#ifndef TRACKBASEHISTORIC_SVTXTRACKFASTSIM_H
+#define TRACKBASEHISTORIC_SVTXTRACKFASTSIM_H
 
 #include "SvtxTrack_v1.h"
+
+#include <iostream>        // for cout, ostream
 
 class SvtxTrack_FastSim : public SvtxTrack_v1
 {

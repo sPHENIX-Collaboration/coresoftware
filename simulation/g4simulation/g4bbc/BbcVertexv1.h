@@ -3,11 +3,7 @@
 
 #include "BbcVertex.h"
 
-#include <phool/PHObject.h>
-
 #include <iostream>
-#include <set>
-#include <vector>
 
 class BbcVertexv1 : public BbcVertex
 {

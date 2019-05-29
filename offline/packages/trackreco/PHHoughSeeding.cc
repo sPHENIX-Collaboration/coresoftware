@@ -7,94 +7,60 @@
 
 #include "PHHoughSeeding.h"
 
+#include "AssocInfoContainer.h"                         // for AssocInfoCont...
+
 // Helix Hough includes
-#include <HelixHough/HelixHough.h>
+#include <HelixHough/HelixKalmanState.h>                // for HelixKalmanState
 #include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/sPHENIXSeedFinder.h>               // for sPHENIXSeedFi...
 #include <HelixHough/VertexFinder.h>
 
 
 // trackbase_historic includes
-#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 
+#include <trackbase/TrkrCluster.h>                      // for TrkrCluster
+#include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
 
 // sPHENIX Geant4 includes
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
-//
-#include <intt/CylinderGeomIntt.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
-
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
-
-#include <phfield/PHFieldUtility.h>
-
-#include <phgeom/PHGeomUtility.h>
 
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHRandomSeed.h>
+#include <phool/PHTimer.h>                              // for PHTimer
 #include <phool/getClass.h>
-//FIXME remove includes below after having real vertxing
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
-// GenFit
-#include <GenFit/FieldManager.h>
-#include <GenFit/MeasuredStateOnPlane.h>
-#include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
-#include <GenFit/Track.h>
-#include <phgenfit/Fitter.h>
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
-#include <phgenfit/Track.h>
-
-// Geant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
-// gsl
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
-
-// standard includes
-#include <float.h>
-#include <algorithm>
-#include <bitset>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <tuple>
+#include <Eigen/Core>                  // for Matrix
+#include <Eigen/Dense>
 
 //ROOT includes for debugging
 #include <TFile.h>
 #include <TNtuple.h>
+
+// standard includes
+#include <algorithm>
+#include <climits>                                     // for UINT_MAX
+#include <cmath>
+#include <iostream>
+#include <memory>
+#include <set>                                          // for set
+#include <tuple>
+#include <utility>                                      // for pair, make_pair
+
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp

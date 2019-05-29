@@ -1,12 +1,11 @@
-#ifndef __SVTXCLUSTER_V1_H__
-#define __SVTXCLUSTER_V1_H__
+#ifndef TRACKBASEHISTORIC_SVTXCLUSTERV1_H
+#define TRACKBASEHISTORIC_SVTXCLUSTERV1_H
 
 #include "SvtxCluster.h"
 
-#include <phool/PHObject.h>
+#include <cstddef>       // for size_t
 #include <iostream>
 #include <set>
-#include <vector>
 
 class SvtxCluster_v1 : public SvtxCluster
 {

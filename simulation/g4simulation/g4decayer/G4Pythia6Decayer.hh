@@ -40,7 +40,6 @@
 
 #include <Geant4/globals.hh>
 
-class Pythia6Particle;
 class G4Track;
 class G4DecayProducts;
 

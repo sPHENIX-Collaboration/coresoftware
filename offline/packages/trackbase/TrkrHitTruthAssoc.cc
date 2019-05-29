@@ -8,6 +8,10 @@
 #include "TrkrHitTruthAssoc.h"
 #include "TrkrDefs.h"
 
+#include <g4main/PHG4HitDefs.h>
+
+#include <ostream>               // for operator<<, endl, basic_ostream, bas...
+
 TrkrHitTruthAssoc::TrkrHitTruthAssoc()
   : m_map()
 {

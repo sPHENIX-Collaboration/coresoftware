@@ -7,16 +7,9 @@
 
 #include "PHGenFitTrkFitter.h"
 
-//#include <trackbase_historic/SvtxCluster.h>
-//#include <trackbase_historic/SvtxClusterMap.h>
-//#include <trackbase_historic/SvtxHitMap.h>
-//#include <trackbase_historic/SvtxHit_v1.h>
-
+#include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrDefs.h>
-#include <mvtx/MvtxDefs.h>
-#include <intt/InttDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -25,67 +18,89 @@
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
+#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
+#include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
+#include <mvtx/MvtxDefs.h>
+
+#include <intt/InttDefs.h>
+
+#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 //
 #include <intt/CylinderGeomIntt.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
 
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Particlev2.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
 #include <g4main/PHG4VtxPointv1.h>
 
 #include <phgenfit/Fitter.h>
+#include <phgenfit/Measurement.h>                   // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                         // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <phfield/PHFieldUtility.h>
 #include <phgeom/PHGeomUtility.h>
 
-#include <GenFit/FieldManager.h>
+#include <GenFit/AbsMeasurement.h>                  // for AbsMeasurement
+#include <GenFit/EventDisplay.h>                    // for EventDisplay
+#include <GenFit/Exception.h>                       // for Exception
 #include <GenFit/GFRaveConverters.h>
+#include <GenFit/GFRaveTrackParameters.h>           // for GFRaveTrackParame...
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
 #include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
+#include <GenFit/TrackPoint.h>                      // for TrackPoint
 
 //Rave
 #include <rave/ConstantMagneticField.h>
-#include <rave/Track.h>
-#include <rave/Version.h>
+#include <rave/VacuumPropagator.h>                  // for VacuumPropagator
 #include <rave/VertexFactory.h>
 
 #include <TClonesArray.h>
-#include <TMatrixDSym.h>
-#include <TRandom3.h>
 #include <TRotation.h>
 #include <TTree.h>
 #include <TVector3.h>
+#include <TMath.h>                                  // for ATan2
+#include <TMatrixDSymfwd.h>                         // for TMatrixDSym
+#include <TMatrixT.h>                               // for TMatrixT, operator*
+#include <TMatrixTSym.h>                            // for TMatrixTSym
+#include <TMatrixTUtils.h>                          // for TMatrixTRow
+#include <TVectorDfwd.h>                            // for TVectorD
+#include <TVectorT.h>                               // for TVectorT
 
+#include <cmath>                                   // for sqrt, NAN
 #include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
 #include <vector>
+
+class PHField;
+class TGeoManager;
+namespace genfit { class AbsTrackRep; }
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl

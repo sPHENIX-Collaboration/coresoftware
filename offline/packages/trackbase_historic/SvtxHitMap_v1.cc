@@ -2,7 +2,9 @@
 
 #include "SvtxHit.h"
 
+#include <iterator>   // for reverse_iterator
 #include <map>
+#include <utility>    // for pair, make_pair
 
 using namespace std;
 

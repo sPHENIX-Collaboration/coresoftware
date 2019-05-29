@@ -2,45 +2,37 @@
 
 #include "AssocInfoContainer.h"
 
-//#include <trackbase_historic/SvtxClusterMap.h>
-//#include <trackbase_historic/SvtxHitMap.h>
-//#include <trackbase_historic/SvtxHit_v1.h>
-
-#include <trackbase_historic/SvtxTrackMap_v1.h>
+#include <trackbase_historic/SvtxTrack.h>          // for SvtxTrack, SvtxTra...
+#include <trackbase_historic/SvtxTrackMap.h>       // for SvtxTrackMap, Svtx...
 #include <trackbase_historic/SvtxTrack_FastSim.h>
-#include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
 
-#include <trackbase/TrkrClusterv1.h>
 #include <trackbase/TrkrCluster.h>
-#include <trackbase/TrkrHit.h>
 #include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-
+#include <g4main/PHG4Hit.h>                        // for PHG4Hit
+#include <g4main/PHG4HitDefs.h>                    // for keytype
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+#include <cstdlib>                                // for exit
+#include <iostream>                                // for operator<<, endl
+#include <map>                                     // for multimap, map<>::c...
 #include <memory>
+#include <utility>                                 // for pair
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
+
+class PHCompositeNode;
 
 using namespace std;
 

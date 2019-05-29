@@ -1,22 +1,30 @@
 
 #include "BbcVertexFastSimReco.h"
 
+#include "BbcVertexMap.h"                   // for BbcVertexMap
 #include "BbcVertexMapv1.h"
+#include "BbcVertex.h"                      // for BbcVertex
 #include "BbcVertexv1.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>             // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                   // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                 // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                    // for PHWHERE
 
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                    // for gsl_rng_uniform_pos, gsl_...
 
+#include <cstdlib>                         // for exit
 #include <cmath>
 #include <iostream>
 

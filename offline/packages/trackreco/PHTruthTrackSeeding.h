@@ -10,9 +10,10 @@
 #include "PHTrackSeeding.h"
 
 #include <set>
-#include <vector>
+#include <string>            // for string
 
 // forward declarations
+class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4HitContainer;
 class TrkrClusterHitAssoc;

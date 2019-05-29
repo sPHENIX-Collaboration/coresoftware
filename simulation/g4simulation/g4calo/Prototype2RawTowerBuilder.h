@@ -10,7 +10,6 @@
 #include <string>
 
 class PHCompositeNode;
-class RawTowerGeomContainer;
 
 class Prototype2RawTowerBuilder : public SubsysReco, public PHParameterInterface
 {

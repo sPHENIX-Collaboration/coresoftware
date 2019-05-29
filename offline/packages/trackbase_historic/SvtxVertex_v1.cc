@@ -1,7 +1,7 @@
 #include "SvtxVertex_v1.h"
 
-#include <algorithm>
 #include <cmath>
+#include <utility>  // for swap
 
 using namespace std;
 

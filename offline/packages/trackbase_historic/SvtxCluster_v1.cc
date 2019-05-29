@@ -1,9 +1,11 @@
 #include "SvtxCluster_v1.h"
 
-#include <TMatrixF.h>
+#include <TMatrixFfwd.h>    // for TMatrixF
+#include <TMatrixT.h>       // for TMatrixT, operator*
+#include <TMatrixTUtils.h>  // for TMatrixTRow
 
-#include <algorithm>
 #include <cmath>
+#include <utility>          // for swap
 
 using namespace std;
 
