@@ -3,6 +3,9 @@
 #include "BbcVertex.h"
 #include "BbcVertexMap.h"
 
+#include <iterator>        // for reverse_iterator
+#include <utility>         // for pair, make_pair
+
 using namespace std;
 
 BbcVertexMapv1::BbcVertexMapv1()

@@ -14,6 +14,8 @@
 #include <gsl/gsl_rng.h>
 #endif
 
+#include <string>                // for string
+
 class PHCompositeNode;
 
 /// \class BbcVertexFastSimReco
