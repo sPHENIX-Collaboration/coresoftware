@@ -35,11 +35,9 @@
 
 #include "EDecayType.hh"
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
 
-
-class G4Decay;
 
 /// The builder for external decayer.
 ///
