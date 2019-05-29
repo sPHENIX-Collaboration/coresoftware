@@ -1,32 +1,35 @@
 #include "RawTowerDigitizer.h"
 
+#include <calobase/RawTower.h>               // for RawTower
+#include <calobase/RawTowerv1.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerDeadMap.h>
+#include <calobase/RawTowerDefs.h>           // for keytype
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerv1.h>
 
-#include <g4detectors/PHG4CylinderCell.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
-#include <g4detectors/PHG4CylinderCellDefs.h>
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-
+#include <fun4all/Fun4AllBase.h>             // for Fun4AllBase::VERBOSITY_MORE
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>              // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                    // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
 #include <cmath>
+#include <cstdlib>                          // for exit
+#include <exception>                         // for exception
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <utility>                           // for pair
 
 using namespace std;
 

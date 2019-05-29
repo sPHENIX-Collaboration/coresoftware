@@ -3,28 +3,38 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerv1.h>
 
-#include <calobase/RawTowerGeomContainerv1.h>
+#include <calobase/RawTower.h>                 // for RawTower
+#include <calobase/RawTowerDefs.h>             // for convert_name_to_caloid
+#include <calobase/RawTowerGeom.h>             // for RawTowerGeom
 #include <calobase/RawTowerGeomv3.h>
+#include <calobase/RawTowerGeomContainer.h>    // for RawTowerGeomContainer
+#include <calobase/RawTowerGeomContainerv1.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
+#include <phool/phool.h>                       // for PHWHERE
 
 #include <TRotation.h>
 #include <TVector3.h>
 
-#include <cmath>
+#include <cstdlib>                            // for exit
+#include <exception>                           // for exception
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <sstream>
 #include <stdexcept>
+#include <utility>                             // for pair, make_pair
 
 using namespace std;
 

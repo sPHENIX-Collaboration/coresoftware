@@ -11,7 +11,6 @@
 class PHCompositeNode;
 class RawTowerContainer;
 class RawTowerGeomContainer;
-class PHG4HitContainer;
 
 /**
  * \brief SubsysReco module creating calorimeter tower objects (RawTowerv1) from hits

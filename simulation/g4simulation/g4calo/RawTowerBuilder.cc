@@ -1,9 +1,13 @@
 #include "RawTowerBuilder.h"
 
-#include <calobase/RawTowerContainer.h>
-#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
-#include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTower.h>                          // for RawTower
 #include <calobase/RawTowerv1.h>
+#include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>                      // for encode_towerid
+#include <calobase/RawTowerGeomContainer.h>             // for RawTowerGeomC...
+#include <calobase/RawTowerGeomContainer_Cylinderv1.h>
+#include <calobase/RawTowerGeom.h>                      // for RawTowerGeom
+#include <calobase/RawTowerGeomv1.h>
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
@@ -15,17 +19,25 @@
 #include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <boost/io/ios_state.hpp>
 
+#include <cmath>                                       // for fabs, tan, atan2
+#include <cstdlib>                                     // for exit
+#include <exception>                                    // for exception
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <utility>                                      // for pair, make_pair
 
 using namespace std;
 

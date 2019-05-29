@@ -1,34 +1,40 @@
 #include "Prototype2RawTowerBuilder.h"
+
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>                      // for convert_name_...
+#include <calobase/RawTowerGeomContainer.h>             // for RawTowerGeomC...
 #include <calobase/RawTowerGeomContainer_Cylinderv1.h>
 #include <calobase/RawTowerGeomv1.h>
+#include <calobase/RawTower.h>                          // for RawTower
 #include <calobase/RawTowerv1.h>
 
 #include <g4detectors/PHG4PrototypeHcalDefs.h>
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
-#include <g4detectors/PHG4ScintillatorSlatDefs.h>
 
 #include <phparameter/PHParameters.h>
-
-#include <g4main/PHG4Utils.h>
+#include <phparameter/PHParameterInterface.h>           // for PHParameterIn...
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
-#include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <TSystem.h>
 
+#include <cmath>                                       // for fabs, NAN
 #include <iostream>
 #include <map>
-#include <stdexcept>
+#include <utility>                                      // for pair
 
 using namespace std;
 
