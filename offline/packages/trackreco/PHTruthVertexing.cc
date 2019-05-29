@@ -1,20 +1,14 @@
 #include "PHTruthVertexing.h"
 
-//#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
 #include <trackbase_historic/SvtxVertex_v1.h>
-
-#include <trackbase/TrkrClusterContainer.h>
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -22,6 +16,10 @@
 // gsl
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
+
+#include <iostream>                            // for operator<<, basic_ostream
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -57,7 +55,6 @@ int PHTruthVertexing::Process()
   pos[1] = first_point->get_y();
   pos[2] = first_point->get_z();
 
-#ifndef __CINT__
   gsl_rng* RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
                                        //  cout << Name() << " random seed: " << seed << endl;
@@ -68,7 +65,6 @@ int PHTruthVertexing::Process()
   pos[2] += _vertex_error[2] * gsl_ran_ugaussian(RandomGenerator);
 
   gsl_rng_free(RandomGenerator);
-#endif
 
   if (Verbosity() > 1)
   {

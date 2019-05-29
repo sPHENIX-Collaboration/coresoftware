@@ -9,31 +9,15 @@
 
 #include "AssocInfoContainer.h"
 
-// Helix Hough includes
-#include <HelixHough/HelixHough.h>
-#include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
-
+#include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
 
 // sPHENIX Geant4 includes
-#include <g4detectors/PHG4Cell.h>
-#include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -46,7 +30,6 @@
 #include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
 
-#include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
 
 #include <phfield/PHFieldUtility.h>
@@ -56,52 +39,43 @@
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-//FIXME remove includes below after having real vertxing
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
+#include <phool/PHTimer.h>                              // for PHTimer
+#include <phool/phool.h>                                // for PHWHERE
 
 // GenFit
-#include <GenFit/FieldManager.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/EventDisplay.h>                        // for EventDisplay
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
 
 #include <phgenfit/Fitter.h>
+#include <phgenfit/Measurement.h>                       // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
 //ROOT includes for debugging
 #include <TFile.h>
+#include <TMatrixDSymfwd.h>                             // for TMatrixDSym
+#include <TMatrixTSym.h>                                // for TMatrixTSym
+#include <TMatrixTUtils.h>                              // for TMatrixTRow
 #include <TNtuple.h>
-
-// Geant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
-// gsl
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
+#include <TVector3.h>                                   // for TVector3
+#include <TVectorDfwd.h>                                // for TVectorD
+#include <TVectorT.h>                                   // for TVectorT
 
 // standard includes
-#include <float.h>
-#include <algorithm>
-#include <bitset>
+#include <cassert>                                     // for assert
+#include <climits>                                     // for UINT_MAX
 #include <cmath>
-#include <fstream>
+#include <cstdlib>                                     // for exit
 #include <iostream>
 #include <memory>
-#include <tuple>
 
+class PHField;
+class TGeoManager;
+namespace genfit { class AbsTrackRep; }
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp

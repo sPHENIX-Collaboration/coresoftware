@@ -8,34 +8,28 @@
 #ifndef TRACKRECO_PHRAVEVERTEXING_H
 #define TRACKRECO_PHRAVEVERTEXING_H
 
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/Track.h>
-
 #include <fun4all/SubsysReco.h>
 
+#include <map>                   // for map, map<>::value_compare
 #include <string>
 #include <vector>
 
-namespace PHGenFit
-{
-class Track;
-} /* namespace PHGenFit */
-
 namespace genfit
 {
+class GFRaveVertex;
 class GFRaveVertexFactory;
+class Track;
 } /* namespace genfit */
 
-class SvtxTrack;
 namespace PHGenFit
 {
 class Fitter;
 } /* namespace PHGenFit */
 
 class PHTimer;
+class SvtxTrack;
 class SvtxTrackMap;
 class SvtxVertexMap;
-class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 

@@ -7,13 +7,10 @@
 #ifndef TRACKRECO_PHTRACKSEEDING_H
 #define TRACKRECO_PHTRACKSEEDING_H
 
-#include "AssocInfoContainer.h"
-
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 
 // STL includes
-#include <set>
 #include <string>
 
 // forward declarations
@@ -35,14 +32,9 @@ class PHTrackSeeding : public SubsysReco
   PHTrackSeeding(const std::string &name = "PHTrackSeeding");
   virtual ~PHTrackSeeding() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-
-  //virtual const std::set<unsigned int>& get_seeding_layers() const = 0;
-
-  //virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
 
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.

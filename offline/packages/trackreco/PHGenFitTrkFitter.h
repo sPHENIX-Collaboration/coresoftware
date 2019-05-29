@@ -8,13 +8,17 @@
 #ifndef TRACKRECO_PHGENFITTRKFITTER_H
 #define TRACKRECO_PHGENFITTRKFITTER_H
 
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/Track.h>
-
 #include <fun4all/SubsysReco.h>
 
+#include <TMatrixFfwd.h>         // for TMatrixF
+#include <TVector3.h>            // for TVector3
+
+#include <cstddef>              // for NULL
+#include <memory>                // for shared_ptr
 #include <string>
 #include <vector>
+
+class TClonesArray;
 
 namespace PHGenFit
 {
@@ -23,7 +27,9 @@ class Track;
 
 namespace genfit
 {
+class GFRaveVertex;
 class GFRaveVertexFactory;
+class Track;
 } /* namespace genfit */
 
 class SvtxTrack;
@@ -38,12 +44,7 @@ class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class TrkrClusterContainer;
-class SvtxEvalStack;
-class TFile;
 class TTree;
-
-//! \brief Helper class for using RAVE vertex finder.
-class PHRaveVertexFactory;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHGenFitTrkFitter : public SubsysReco

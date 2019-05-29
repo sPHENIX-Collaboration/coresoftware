@@ -11,13 +11,11 @@
 #include <fun4all/SubsysReco.h>
 
 // STL includes
-#include <set>
 #include <string>
 
 // forward declarations
 class PHCompositeNode;
 
-//class SvtxClusterMap;
 class TrkrClusterContainer;
 class SvtxVertexMap;
 class SvtxTrackMap;

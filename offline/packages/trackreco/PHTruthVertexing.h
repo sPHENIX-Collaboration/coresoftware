@@ -9,9 +9,11 @@
 
 #include "PHInitVertexing.h"
 
+#include <string>             // for string
 #include <vector>
 
 // forward declarations
+class PHCompositeNode;
 class PHG4TruthInfoContainer;
 
 /// \class PHTruthVertexing

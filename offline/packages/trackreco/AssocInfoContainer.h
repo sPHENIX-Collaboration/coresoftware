@@ -2,9 +2,13 @@
 #define TRACKRECO_ASSOCINFOCONTAINER_H
 
 #include <phool/PHObject.h>
+
 #include <trackbase/TrkrDefs.h>
 
+#include <iostream>              // for cout, ostream
 #include <map>
+#include <utility>               // for pair
+#include <vector>                // for vector
 
 class AssocInfoContainer : public PHObject
 {
