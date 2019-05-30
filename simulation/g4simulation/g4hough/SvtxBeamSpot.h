@@ -1,9 +1,8 @@
-#ifndef __SVTXBEAMSPOT_H__
-#define __SVTXBEAMSPOT_H__
+#ifndef G4HOUGH_SVTXBEAMSPOT_H
+#define G4HOUGH_SVTXBEAMSPOT_H
 
 #include <phool/PHObject.h>
-#include <vector>
-#include <set>
+
 #include <iostream>
 
 class SvtxBeamSpot : public PHObject {

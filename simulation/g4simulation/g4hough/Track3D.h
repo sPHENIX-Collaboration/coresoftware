@@ -1,12 +1,9 @@
-#ifndef __TRACK3D_H__
-#define __TRACK3D_H__
+#ifndef G4HOUGH_TRACK3D_H
+#define G4HOUGH_TRACK3D_H
 
-#include <vector>
 #include "Cluster3D.h"
 
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/LU>
+#include <vector>
 
 class Track3D {
  public:

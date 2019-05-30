@@ -10,12 +10,8 @@
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
-
-#include <mvtx/CylinderGeom_Mvtx.h>
-#include <intt/CylinderGeomIntt.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -28,24 +24,33 @@
 
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 // Helix Hough includes
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/HelixResolution.h>
 #include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixHough.h>
 #include <HelixHough/sPHENIXTracker.h>
 #include <HelixHough/VertexFinder.h>
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 // standard includes
 #include <cmath>
-#include <float.h>
+#include <cfloat>
+#include <cstddef>                                     // for NULL
 #include <iostream>
+#include <memory>                                       // for allocator_tra...
+#include <utility>                                      // for pair, make_pair
 
 using namespace std;
 

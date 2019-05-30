@@ -1,15 +1,12 @@
-#ifndef __VERTEXFITTER_H__
-#define __VERTEXFITTER_H__
+#ifndef G4HOUGH_VERTEXFITTER_H
+#define G4HOUGH_VERTEXFITTER_H
 
-#include "Track3D.h"
-
-#include "NewtonMinimizerGradHessian.h"
 #include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/LU>
 
 // standard includes
 #include <vector>
+
+class Track3D;
 
 /// \class VertexFitter
 ///

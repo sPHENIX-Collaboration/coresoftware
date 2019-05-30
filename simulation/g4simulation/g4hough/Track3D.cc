@@ -1,9 +1,13 @@
 #include "Track3D.h"
 
-#include <iostream>
-#include <fstream>
-#include <float.h>
-#include <limits.h>
+#include <Eigen/Core>                       // for MatrixXf, Product, Transpose
+#include <Eigen/Dense>
+
+#include <cfloat>
+#include <climits>
+#include <cmath>                           // for sqrt
+#include <memory>                           // for allocator_traits<>::value...
+
 using namespace std;
 using namespace Eigen;
 

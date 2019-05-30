@@ -3,17 +3,23 @@
 #include <trackbase_historic/SvtxHitMap.h>
 #include <trackbase_historic/SvtxHit.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
+#include <phool/PHTimeServer.h>                         // for PHTimeServer
+#include <phool/PHTimer.h>                              // for PHTimer
+#include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
+
+
+#include <cstddef>                                     // for NULL
 #include <iostream>
+#include <vector>                                       // for vector
 
 using namespace std;
 

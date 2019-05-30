@@ -7,26 +7,31 @@
 
 #include "PHG4TrackKalmanFitter.h"
 
+#include <trackbase_historic/SvtxCluster.h>
+#include <trackbase_historic/SvtxClusterMap.h>
+#include <trackbase_historic/SvtxHit.h>             // for SvtxHit
+#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxCluster.h>
-#include <trackbase_historic/SvtxClusterMap.h>
-#include <trackbase_historic/SvtxHit_v1.h>
-#include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
+#include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
 
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cell.h>
-
+#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
+
 #include <intt/CylinderGeomIntt.h>
 
 #include <g4main/PHG4Hit.h>
@@ -34,6 +39,7 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4Particlev2.h>
+#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
 #include <g4main/PHG4VtxPointv1.h>
 
 #include <phgenfit/Fitter.h>
@@ -41,48 +47,62 @@
 #include <phgenfit/Track.h>
 #include <phgenfit/SpacepointMeasurement.h>
 
+#include <phgeom/PHGeomUtility.h>
+
+#include <phfield/PHFieldUtility.h>
+
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                         // for PHObject
 
-#include <phgeom/PHGeomUtility.h>
-#include <phfield/PHFieldUtility.h>
-
-#include <GenFit/FieldManager.h>
+#include <GenFit/EventDisplay.h>                    // for EventDisplay
+#include <GenFit/Exception.h>                       // for Exception
+#include <GenFit/GFRaveConverters.h>
+#include <GenFit/GFRaveTrackParameters.h>           // for GFRaveTrackParame...
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/KalmanFitterInfo.h>
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
 #include <GenFit/Track.h>
-#include <GenFit/KalmanFitterInfo.h>
+#include <GenFit/TrackPoint.h>                      // for TrackPoint
 
 //Rave
-#include <rave/Version.h>
-#include <rave/Track.h>
-#include <rave/VertexFactory.h>
 #include <rave/ConstantMagneticField.h>
-
-//GenFit
-#include <GenFit/GFRaveConverters.h>
+#include <rave/VacuumPropagator.h>                  // for VacuumPropagator
+#include <rave/VertexFactory.h>
 
 #include <TClonesArray.h>
-#include <TMatrixDSym.h>
-#include <TTree.h>
-#include <TVector3.h>
-#include <TRandom3.h>
+#include <TMatrixDSymfwd.h>                         // for TMatrixDSym
+#include <TMatrixFfwd.h>                            // for TMatrixF
+#include <TMatrixT.h>                               // for TMatrixT, operator*
+#include <TMatrixTSym.h>                            // for TMatrixTSym
+#include <TMatrixTUtils.h>                          // for TMatrixTRow
 #include <TRotation.h>
+#include <TTree.h>
+#include <TVectorDfwd.h>                            // for TVectorD
+#include <TVectorT.h>                               // for TVectorT
+#include <TVector3.h>
 
 
 
+#include <cmath>                                   // for sqrt, NAN
 #include <iostream>
 #include <map>
+#include <memory>
 #include <utility>
 #include <vector>
-#include <memory>
 
+class PHField;
+class TGeoManager;
+namespace PHGenFit { class Measurement; }
+namespace genfit { class AbsTrackRep; }
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl
@@ -1055,7 +1075,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 //		if (phg4hit_position.Perp() > 30.) {
 //			pos.SetXYZ(phg4hit_position.X(), phg4hit_position.Y(),phg4hit_position.Z()); //DEBUG
 //			//pos.SetPerp(phg4hit_position.Perp());
-//			//pos.SetPhi(TMath::ATan2(phg4hit_position.Y(),phg4hit_position.X()));
+//			//pos.SetPhi(atan2(phg4hit_position.Y(),phg4hit_position.X()));
 //		}
 //
 //		if(phg4hit->get_trkid()!=1) {
@@ -1689,7 +1709,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //		TMatrixF ROT3(3, 3);
 //
 //		// rotate n along z to xz plane
-//		float phi = -TMath::ATan2(n.Y(), n.X());
+//		float phi = -atan2(n.Y(), n.X());
 //		ROT1[0][0] = cos(phi);
 //		ROT1[0][1] = -sin(phi);
 //		ROT1[0][2] = 0;
@@ -1703,7 +1723,7 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //		// rotate n along y to z
 //		TVector3 n1(n);
 //		n1.RotateZ(phi);
-//		float theta = -TMath::ATan2(n1.X(), n1.Z());
+//		float theta = -atan2(n1.X(), n1.Z());
 //		ROT2[0][0] = cos(theta);
 //		ROT2[0][1] = 0;
 //		ROT2[0][2] = sin(theta);
@@ -1718,8 +1738,8 @@ bool PHG4TrackKalmanFitter::FillSvtxVertexMap(
 //		TVector3 u2(u);
 //		u2.RotateZ(phi);
 //		u2.RotateY(theta);
-//		float phip = -TMath::ATan2(u2.Y(), u2.X());
-//		phip -= -TMath::ATan2(up.Y(), up.X());
+//		float phip = -atan2(u2.Y(), u2.X());
+//		phip -= -atan2(up.Y(), up.X());
 //		ROT3[0][0] = cos(phip);
 //		ROT3[0][1] = -sin(phip);
 //		ROT3[0][2] = 0;
@@ -1780,7 +1800,7 @@ bool PHG4TrackKalmanFitter::pos_cov_uvn_to_rz(const TVector3& u, const TVector3&
 
 	try {
 		// rotate u along z to up
-		float phi = -TMath::ATan2(up_uvn.Y(), up_uvn.X());
+		float phi = -atan2(up_uvn.Y(), up_uvn.X());
 		R[0][0] = cos(phi);
 		R[0][1] = -sin(phi);
 		R[0][2] = 0;
@@ -1881,7 +1901,7 @@ bool PHG4TrackKalmanFitter::pos_cov_XYZ_to_RZ(
 
 	try {
 		// rotate u along z to up
-		float phi = -TMath::ATan2(r.Y(), r.X());
+		float phi = -atan2(r.Y(), r.X());
 		R[0][0] = cos(phi);
 		R[0][1] = -sin(phi);
 		R[0][2] = 0;
@@ -1987,7 +2007,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 //		TMatrixF ROT3(3, 3);
 //
 //		// rotate n along z to xz plane
-//		float phi = -TMath::ATan2(n.Y(), n.X());
+//		float phi = -atan2(n.Y(), n.X());
 //		ROT1[0][0] = cos(phi);
 //		ROT1[0][1] = -sin(phi);
 //		ROT1[0][2] = 0;
@@ -2001,7 +2021,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 //		// rotate n along y to z
 //		TVector3 n1(n);
 //		n1.RotateZ(phi);
-//		float theta = -TMath::ATan2(n1.X(), n1.Z());
+//		float theta = -atan2(n1.X(), n1.Z());
 //		ROT2[0][0] = cos(theta);
 //		ROT2[0][1] = 0;
 //		ROT2[0][2] = sin(theta);
@@ -2016,7 +2036,7 @@ TMatrixF PHG4TrackKalmanFitter::get_rotation_matrix(const TVector3 x,
 //		TVector3 u2(u);
 //		u2.RotateZ(phi);
 //		u2.RotateY(theta);
-//		float phip = -TMath::ATan2(u2.Y(), u2.X());
+//		float phip = -atan2(u2.Y(), u2.X());
 //		ROT3[0][0] = cos(phip);
 //		ROT3[0][1] = -sin(phip);
 //		ROT3[0][2] = 0;

@@ -1,10 +1,10 @@
-#ifndef __HELIXHOUGHFUNCS_V1_H__
-#define __HELIXHOUGHFUNCS_V1_H__
+#ifndef G4HOUGH_HELIXHOUGHFUNCSV1_H
+#define G4HOUGH_HELIXHOUGHFUNCSV1_H
 
 #include "HelixHoughFuncs.h"
-#include <phool/PHObject.h>
 
-#include "HelixHoughSpace.h"
+#include <iostream>           // for cout, ostream
+#include <vector>             // for vector
 
 class HelixHoughSpace;
 

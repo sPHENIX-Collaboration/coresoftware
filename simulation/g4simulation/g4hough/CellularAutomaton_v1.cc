@@ -1,15 +1,20 @@
-
 #include "CellularAutomaton_v1.h"
-#include "HelixHoughSpace_v1.h"
+
+#include "HelixHoughSpace.h"    // for HelixHoughSpace
+#include "HelixKalmanFilter.h"  // for HelixKalmanFilter
+
+#include <phool/phool.h>        // for PHWHERE
 
 #include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/LU>
 
-#include <float.h>
-#include <sys/time.h>
+#include <algorithm>            // for sort
+#include <cfloat>
 #include <cmath>
+#include <cstdlib>             // for exit, NULL
 #include <iostream>
+#include <memory>               // for allocator_traits<>::value_type
+#include <sys/time.h>
+#include <utility>              // for swap, pair, make_pair
 
 using namespace std;
 using namespace Eigen;

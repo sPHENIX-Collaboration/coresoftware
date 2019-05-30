@@ -11,7 +11,7 @@
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHitMap.h>
-#include <trackbase_historic/SvtxHit_v1.h>
+#include <trackbase_historic/SvtxHit.h>                  // for SvtxHit
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
@@ -25,87 +25,102 @@
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4Cell.h>
 #include <g4detectors/PHG4CellContainer.h>
-#include <g4detectors/PHG4CylinderCellContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
-
 #include <g4detectors/PHG4CylinderGeom.h>
+
 #include <intt/CylinderGeomIntt.h>
+
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4bbc/BbcVertex.h>
 #include <g4bbc/BbcVertexMap.h>
 
 // sPHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phfield/PHFieldUtility.h>
+
 #include <phgeom/PHGeomUtility.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHRandomSeed.h>
-#include <phool/getClass.h>
+
 //FIXME remove includes below after having real vertxing
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
-// sGeant4 includes
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-
 // Helix Hough includes
-#include <HelixHough/HelixHough.h>
+#include <HelixHough/HelixKalmanState.h>                 // for HelixKalmanS...
 #include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixResolution.h>
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
+#include <HelixHough/sPHENIXSeedFinder.h>                // for sPHENIXSeedF...
 #include <HelixHough/VertexFinder.h>
 
-// GenFit
-#include <GenFit/FieldManager.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/GFRaveVertexFactory.h>
-#include <GenFit/MeasuredStateOnPlane.h>
-#include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
-#include <GenFit/Track.h>
 #include <phgenfit/Fitter.h>
+#include <phgenfit/Measurement.h>                        // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
-// gsl
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_rng.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                          // for SubsysReco
 
-// standard includes
-#include <float.h>
-#include <algorithm>
-#include <bitset>
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <tuple>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                                // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                              // for PHObject
+#include <phool/PHRandomSeed.h>
+#include <phool/PHTimer.h>                               // for PHTimer
+#include <phool/getClass.h>
+#include <phool/phool.h>                                 // for PHWHERE
+
+// GenFit
+#include <GenFit/EventDisplay.h>                         // for EventDisplay
+#include <GenFit/MeasuredStateOnPlane.h>
+#include <GenFit/RKTrackRep.h>
+#include <GenFit/Track.h>
 
 //ROOT includes for debugging
 #include <TFile.h>
+#include <TMatrixDSymfwd.h>                              // for TMatrixDSym
+#include <TMatrixTSym.h>                                 // for TMatrixTSym
+#include <TMatrixTUtils.h>                               // for TMatrixTRow
 #include <TNtuple.h>
+#include <TVector3.h>                                    // for TVector3
+#include <TVectorDfwd.h>                                 // for TVectorD
+#include <TVectorT.h>                                    // for TVectorT
 
-//BOOST for combi seeding
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-#include <boost/geometry/index/rtree.hpp>
+// gsl
+#include <gsl/gsl_rng.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/LU>
+
+//BOOST for combi seeding
+#include <boost/geometry/geometries/box.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/index/rtree.hpp>
+
+// standard includes
+#include <algorithm>
+#include <assert.h>                                      // for assert
+#include <cfloat>
+#include <climits>                                      // for UINT_MAX
+#include <cmath>
+#include <cstdlib>                                      // for NULL, exit
+#include <fstream>
+#include <iostream>
+#include <iterator>                                      // for back_insert_...
+#include <memory>
+#include <tuple>
+
+class PHField;
+class TGeoManager;
+namespace genfit { class AbsTrackRep; }
+
 using namespace Eigen;
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
@@ -2190,8 +2205,8 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
   for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc; i++)
   {
     std::vector<pointId> returned_values;
-    box box_region(point(-1 * TMath::Pi(), -2, _radii_all[i] - 0.3),
-                   point(TMath::Pi(), 2, _radii_all[i] + 0.3));
+    box box_region(point(-1 * M_PI, -2, _radii_all[i] - 0.3),
+                   point(M_PI, 2, _radii_all[i] + 0.3));
     bgi::query(rtree, bgi::within(box_region), std::back_inserter(returned_values));
     n_all += returned_values.size();
     if (do_print) cout << " Entries layer[" << i << " | " << _radii_all[i] << "] dr: " << _radii_all[i + 1] - _radii_all[i] << " : " << returned_values.size() << " | " << nlayer[i] << " | " << n_all << endl;
@@ -2201,8 +2216,8 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
   //start nearest neighbor search
   //  int start_layer = _nlayers_maps +_nlayers_intt + _nlayers_tpc -1;
   std::vector<pointId> returned_values;
-  box box_region(point(-1 * TMath::Pi(), -1.02, _radii_all[start_layer] - 0.3),
-                 point(TMath::Pi(), 1.02, _radii_all[start_layer] + 0.3));
+  box box_region(point(-1 * M_PI, -1.02, _radii_all[start_layer] - 0.3),
+                 point(M_PI, 1.02, _radii_all[start_layer] + 0.3));
 
   bgi::query(rtree, bgi::within(box_region), std::back_inserter(returned_values));
 

@@ -1,9 +1,15 @@
 #include "NewtonMinimizerGradHessian.h"
+
+#include "FunctionGradHessian.h"     // for FunctionGradHessian
 #include "SquareGradient.h"
-#include <iostream>
-#include <algorithm>
+
+#include <Eigen/Dense>
 #include <Eigen/LU>
 
+#include <algorithm>                 // for fill
+#include <cmath>                    // for fabs
+#include <iostream>
+#include <utility>                   // for swap
 
 using namespace std;
 using namespace Eigen;

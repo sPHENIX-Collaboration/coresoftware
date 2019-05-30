@@ -6,12 +6,16 @@
 #include <trackbase_historic/SvtxTrack.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
-#include <iostream>
+#include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
+
 #include <algorithm>
+#include <cstddef>                            // for NULL
+#include <iostream>
+#include <memory>                              // for allocator_traits<>::va...
+#include <utility>                             // for pair, make_pair
 
 using namespace std;
 

@@ -1,17 +1,12 @@
-
 #include "VertexFitter.h"
-#include "VertexFitFuncs.h"
-
-#include "Track3D.h"
 
 #include "NewtonMinimizerGradHessian.h"
+#include "VertexFitFuncs.h"
 
 // Eigen includes
-#include <Eigen/LU>
 #include <Eigen/Core>
 
-// standard includes
-#include <iostream>
+class Track3D;
 
 using namespace std;
 

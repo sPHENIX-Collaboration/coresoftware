@@ -1,7 +1,7 @@
 #include "SvtxBeamSpot.h"
 
 #include <cmath>
-#include <algorithm>
+#include <utility>  // for swap
 
 using namespace std;
 

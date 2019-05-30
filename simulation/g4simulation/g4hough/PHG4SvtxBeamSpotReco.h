@@ -1,12 +1,16 @@
-#ifndef __PHG4SVTXBEAMSPOTRECO__
-#define __PHG4SVTXBEAMSPOTRECO__
+#ifndef G4HOUGH_PHG4SVTXBEAMSPOTRECO_H
+#define G4HOUGH_PHG4SVTXBEAMSPOTRECO_H
 
 
 #include <fun4all/SubsysReco.h>
+
 #include <phool/PHTimeServer.h>
 
 #include <TPrincipal.h>
 
+#include <string>                // for string
+
+class PHCompositeNode;
 class SvtxBeamSpot;
 class SvtxVertexMap;
 

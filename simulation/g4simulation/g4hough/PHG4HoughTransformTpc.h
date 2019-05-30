@@ -15,21 +15,23 @@
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
+
 #include <phool/PHTimeServer.h>
-//#include <fun4all/Fun4AllReturnCodes.h>
-//#include <g4bbc/BbcVertexMap.h>
 
 // Helix Hough includes
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h> 
+#include <Eigen/Core>                  // for Matrix
 #endif
 
 // standard includes
-#include <float.h>
+#include <cfloat>
+#include <iostream>                    // for operator<<, endl, basic_ostream
 #include <map>
 #include <set>
+#include <string>                      // for string
 #include <vector>
 
 // forward declarations

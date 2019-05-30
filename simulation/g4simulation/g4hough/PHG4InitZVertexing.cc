@@ -1,54 +1,56 @@
-
 #include "PHG4InitZVertexing.h"
-#include "CellularAutomaton_v1.h"
 
-// g4hough includes
+#include "CellularAutomaton.h"                          // for CellularAutom...
+#include "CellularAutomaton_v1.h"
+#include "HelixHoughBin.h"                              // for HelixHoughBin
+#include "HelixHoughBin_v1.h"                           // for HelixHoughBin_v1
+#include "HelixHoughFuncs.h"                            // for HelixHoughFuncs
+#include "HelixHoughFuncs_v1.h"                         // for HelixHoughFun...
+#include "HelixHoughSpace.h"                            // for HelixHoughSpace
+#include "HelixHoughSpace_v1.h"                         // for HelixHoughSpa...
+
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
-#include <trackbase_historic/SvtxHit_v1.h>
-#include <trackbase_historic/SvtxHitMap.h>
 
-// sPHENIX Geant4 includes
+#include <g4bbc/BbcVertexMap.h>
+
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 
-#include <g4bbc/BbcVertexMap.h>
-#include <g4bbc/BbcVertex.h>
-
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
+#include <phool/PHTimer.h>                              // for PHTimer
 #include <phool/getClass.h>
-#include <phgeom/PHGeomUtility.h>
+#include <phool/phool.h>                                // for PHWHERE
 
-// sGeant4 includes
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4FieldManager.hh>
-
-// standard includes
+#include <TFile.h>                                      // for TFile
 #include <TNtuple.h>
-#include <cmath>
-#include <float.h>
-#include <iostream>
-#include <fstream>
-#include <bitset>
-#include <tuple>
-#include <map>
 
+#include <algorithm>                                    // for find
+#include <climits>                                     // for UINT_MAX
+#include <cmath>
+#include <cstdlib>                                     // for NULL, exit
+#include <iostream>
+#include <map>
+#include <memory>                                       // for allocator_tra...
+#include <set>                                          // for set, set<>::i...
+#include <utility>                                      // for pair, make_pair
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -72,13 +74,11 @@ PHG4InitZVertexing::PHG4InitZVertexing(unsigned int nlayers,
       _nlayers(nlayers),
       _min_nlayers(min_nlayers),
       _ca_nlayers(nlayers),
-      _ca_min_nlayers(min_nlayers),
       _ca_chi2(2.),
       _radii(),
       _material(),
       _user_material(),
       _mag_field(1.4),
-      _remove_hits(true),
       _use_max_kappa(false),
       fill_multi_zvtx(true),
       _min_pt(0.2),
@@ -119,22 +119,21 @@ PHG4InitZVertexing::PHG4InitZVertexing(unsigned int nlayers,
       _track_covars(),
       _vertex(),
       _vertex_list(),
-      _bbc_vertexes(NULL),
-      _clustermap(NULL),
-      _trackmap(NULL),
-      _vertexmap(NULL),
+      _bbc_vertexes(nullptr),
+      _clustermap(nullptr),
+      _trackmap(nullptr),
+      _vertexmap(nullptr),
       _vertex_finder(),
-	_hough_space(NULL),
-	_hough_funcs(NULL),
-	_mode(0),
-	_ntp_zvtx_by_event(NULL),
-	_ntp_zvtx_by_track(NULL),
-	_z0_dzdl(NULL),
-	_kappa_phi(NULL),
-	_d_phi(NULL),
-	_kappa_d_phi(NULL),
-	_ofile(NULL),
-	_ofile2(NULL),
+	_hough_space(nullptr),
+	_hough_funcs(nullptr),
+	_ntp_zvtx_by_event(nullptr),
+	_ntp_zvtx_by_track(nullptr),
+	_z0_dzdl(nullptr),
+	_kappa_phi(nullptr),
+	_d_phi(nullptr),
+	_kappa_d_phi(nullptr),
+	_ofile(nullptr),
+	_ofile2(nullptr),
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
@@ -485,9 +484,9 @@ int PHG4InitZVertexing::End(PHCompositeNode *topNode) {
 #endif
 
 	delete _t_output_io;
-	if (_hough_space != NULL) delete _hough_space;
-	if (_hough_funcs != NULL) delete _hough_funcs;
-	if (ca != NULL) delete ca;
+	delete _hough_space;
+	delete _hough_funcs;
+	delete ca;
 	_temp_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1033,7 +1032,8 @@ void PHG4InitZVertexing::vote_z_init(unsigned int zoomlevel){
         {
 
  		cluster_id = it->first;	
-		if (cluster_id != cluster_id) continue;
+// ???????????????? what is this ??????????????????
+//		if (cluster_id != cluster_id) continue;
 		bool used = false;
 		auto hitused = hits_used.find(cluster_id);
 		if (hitused != hits_used.end())
@@ -1668,7 +1668,9 @@ void PHG4InitZVertexing::prune_z(unsigned int zoomlevel){
 		cout<<"il "<<houghbin->get_dzdl_bin(zoomlevel)<<" iz "<<houghbin->get_z0_bin(zoomlevel)<<" count "<<houghbin->get_count()<<endl;
 #endif
 		unsigned int var[3] = {1<<3,1<<4,(1<<3)+(1<<4)};
-		unsigned int sign[3][4] ={0<<3,1<<3,0,0,0<<4,1<<4,0,0,(0<<3)+(0<<4),(0<<3)+(1<<4),(1<<3)+(0<<4),(1<<3)+(1<<4)};
+		unsigned int sign[3][4] = {{0<<3,1<<3,0,0},
+		                           {0<<4,1<<4,0,0},
+		                           {(0<<3)+(0<<4),(0<<3)+(1<<4),(1<<3)+(0<<4),(1<<3)+(1<<4)}};
 		for (unsigned int lz =0; lz<3; ++lz){
 		for (unsigned int ss = 0; ss<4; ++ss ){
 			if (lz<2 && ss>1) continue;
@@ -1722,12 +1724,12 @@ void PHG4InitZVertexing::prune_xy(unsigned int zoomlevel){
 #endif
 		// k, p, d, kd, kp, dp
                 unsigned int var[6] = {1,1<<1,1<<2,(1)+(1<<1),(1)+(1<<2),(1<<1)+(1<<2)};
-		unsigned int sign[6][4]={0,1,0,0,
-					 0<<1,1<<1,0,0,
-					 0<<2,1<<2,0,0,
-					 0,1<<1,1,(1)+(1<<1),
-					 0,1<<2,1, (1)+(1<<2),
-					 0,1<<2,1<<1,(1<<1)+(1<<2)};
+		unsigned int sign[6][4]={{0,1,0,0},
+					 {0<<1,1<<1,0,0},
+					 {0<<2,1<<2,0,0},
+					 {0,1<<1,1,(1)+(1<<1)},
+					 {0,1<<2,1, (1)+(1<<2)},
+					 {0,1<<2,1<<1,(1<<1)+(1<<2)}};
                 for (unsigned int kpd =0; kpd<6; ++kpd){
                 for (unsigned int ss = 0; ss<4; ++ss ){
 			if (kpd<3 && ss>1) continue;
@@ -1851,7 +1853,8 @@ int PHG4InitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_trac
                         ++it)
         {
                 cluster_id = it->first;
-                if (cluster_id != cluster_id) continue;
+// ???????????????? What is This ????????????????????
+//                if (cluster_id != cluster_id) continue;
                 bool used = false;
                 auto hitused = hits_used.find(cluster_id);
                 if (hitused != hits_used.end())
@@ -1861,7 +1864,8 @@ int PHG4InitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_trac
                 Cluster3D hit = it->second;
                 unsigned int layer = hit.get_layer();
 		unsigned int hitid =  hit.get_id();
-		if (hitid != hitid) continue;
+// ?????????????? What is This ??????????????????
+//		if (hitid != hitid) continue;
 		//cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
 		if (layer == layer0 ) layer_sorted_0.push_back(hitid);                
 		else if (layer == layer1) layer_sorted_1.push_back(hitid);

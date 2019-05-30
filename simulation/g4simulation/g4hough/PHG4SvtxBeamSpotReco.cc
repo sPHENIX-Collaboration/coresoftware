@@ -1,19 +1,34 @@
 #include "PHG4SvtxBeamSpotReco.h"
+
 #include "SvtxBeamSpot.h"
 
 #include <trackbase_historic/SvtxVertexMap.h>
 #include <trackbase_historic/SvtxVertex.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
+#include <phool/PHTimeServer.h>                // for PHTimeServer, PHTimeSe...
+#include <phool/PHTimer.h>                     // for PHTimer
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
+#include <phool/phool.h>                       // for PHWHERE
 
 #include <TPrincipal.h>
+#include <TMatrixDfwd.h>                       // for TMatrixD
+#include <TMatrixT.h>                          // for TMatrixT
+#include <TMatrixTUtils.h>                     // for TMatrixTRow_const
+#include <TVectorDfwd.h>                       // for TVectorD
+#include <TVectorT.h>                          // for TVectorT
 
+#include <cstddef>                            // for NULL
 #include <iostream>
+#include <map>                                 // for _Rb_tree_const_iterator
+#include <utility>                             // for pair
 
 using namespace std;
 

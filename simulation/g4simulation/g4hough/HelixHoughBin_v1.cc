@@ -1,7 +1,8 @@
 #include "HelixHoughBin_v1.h"
 
-#include "HelixHoughSpace_v1.h"
+#include <phool/phool.h>  // for PHWHERE
 
+#include <cstdlib>       // for exit, NULL
 #include <iostream>
 
 using namespace std;

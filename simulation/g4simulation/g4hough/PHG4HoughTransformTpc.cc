@@ -1,4 +1,5 @@
 #include "PHG4HoughTransformTpc.h"
+#include "SimpleTrack.h"
 
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxVertexMap.h>
@@ -9,7 +10,6 @@
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
 
@@ -18,23 +18,25 @@
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4main/PHG4VtxPoint.h>
+
 #include <g4bbc/BbcVertexMap.h>
 #include <g4bbc/BbcVertex.h>
 
-#include <mvtx/CylinderGeom_Mvtx.h>
-#include <intt/CylinderGeomIntt.h>
-
 // PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
+#include <phool/PHTimeServer.h>                         // for PHTimeServer
+#include <phool/PHTimer.h>                              // for PHTimer
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 // Helix Hough includes
-#include <HelixHough/HelixHough.h>
-#include <HelixHough/HelixResolution.h>
 #include <HelixHough/HelixRange.h>
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
@@ -42,15 +44,19 @@
 #include <HelixHough/VertexFinder.h>
 
 // ROOT includes
-#include <TH1D.h>
+#include <TTree.h>
+#include <TFile.h>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 // standard includes
+#include <algorithm>                                    // for sort
 #include <cmath>
 #include <iostream>
+#include <memory>                                       // for allocator_tra...
+#include <utility>                                      // for pair, make_pair
 
-#include "SimpleTrack.h"
-#include "TTree.h"
-#include "TFile.h"
 
 using findNode::getClass;
 using namespace std;
@@ -101,19 +107,19 @@ PHG4HoughTransformTpc::PHG4HoughTransformTpc(unsigned int seed_layers, unsigned 
   _track_errors(),
   _track_covars(),
   _vertex(),
-  _tracker(NULL),
-  _tracker_etap_seed(NULL),
-  _tracker_etam_seed(NULL),
+  _tracker(nullptr),
+  _tracker_etap_seed(nullptr),
+  _tracker_etam_seed(nullptr),
   _vertexFinder(),
-  _bbc_vertexes(NULL),
-  _g4clusters(NULL),
-  _g4tracks(NULL),
-  _g4vertexes(NULL),
+  _bbc_vertexes(nullptr),
+  _g4clusters(nullptr),
+  _g4tracks(nullptr),
+  _g4vertexes(nullptr),
   _timer(PHTimeServer::get()->insert_new("PHG4HoughTransformTpc")),
   _timer_initial_hough(PHTimeServer::get()->insert_new("PHG4HoughTransformTpc::track finding")),
   _write_reco_tree(false),
-  _reco_tree(NULL),
-  _recoevent(NULL)
+  _reco_tree(nullptr),
+  _recoevent(nullptr)
 {  
 }
 
@@ -242,9 +248,9 @@ int PHG4HoughTransformTpc::process_event(PHCompositeNode *topNode)
 
 int PHG4HoughTransformTpc::End(PHCompositeNode *topNode) {
   
-  delete _tracker_etap_seed; _tracker_etap_seed = NULL;
-  delete _tracker_etam_seed; _tracker_etam_seed = NULL;
-  delete _tracker; _tracker = NULL;
+  delete _tracker_etap_seed; _tracker_etap_seed = nullptr;
+  delete _tracker_etam_seed; _tracker_etam_seed = nullptr;
+  delete _tracker; _tracker = nullptr;
 
   if(_write_reco_tree==true)
   {
@@ -273,7 +279,7 @@ void PHG4HoughTransformTpc::projectToRadius(const SvtxTrack* track,
   // iterate once to see if there is a state vector closer to the intersection
   if (track->size_states() == 1) return;
 
-  const SvtxTrackState* closest = NULL;
+  const SvtxTrackState* closest = nullptr;
   float min_dist = FLT_MAX;
   for (SvtxTrack::ConstStateIter iter = track->begin_states();
        iter != track->end_states();

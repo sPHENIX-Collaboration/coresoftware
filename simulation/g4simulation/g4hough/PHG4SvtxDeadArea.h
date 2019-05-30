@@ -1,16 +1,19 @@
-#ifndef __PHG4SVTXDEADAREA_H__
-#define __PHG4SVTXDEADAREA_H__
+#ifndef G4HOUGH_PHG4SVTXDEADAREA_H
+#define G4HOUGH_PHG4SVTXDEADAREA_H
 
 #include <fun4all/SubsysReco.h>
 #include <phool/PHTimeServer.h>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined (__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
 #include <map>
+#include <string>                // for string
+#include <utility>               // for pair, make_pair
 
+class PHCompositeNode;
 class SvtxHitMap;
 
 class PHG4SvtxDeadArea : public SubsysReco {

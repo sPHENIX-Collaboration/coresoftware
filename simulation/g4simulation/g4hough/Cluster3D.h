@@ -1,8 +1,7 @@
-#ifndef __CLUSTER3D_H__
-#define __CLUSTER3D_H__
+#ifndef G4HOUGH_CLUSTER3D_H
+#define G4HOUGH_CLUSTER3D_H
 
 #include <iostream>
-#include <cmath>
 
 class Cluster3D
 {
