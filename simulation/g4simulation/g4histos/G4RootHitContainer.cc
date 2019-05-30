@@ -1,8 +1,12 @@
 #include "G4RootHitContainer.h"
 
+#include <g4main/PHG4Hit.h>      // for PHG4Hit
 #include <g4main/PHG4HitEval.h>
 
 #include <TClonesArray.h>
+
+#include <cmath>                // for NAN
+#include <ostream>               // for basic_ostream::operator<<, operator<<
 
 using namespace std;
 

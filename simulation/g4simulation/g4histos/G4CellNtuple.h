@@ -13,7 +13,6 @@ class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
 class TH1;
-class TH2;
 class TNtuple;
 
 class G4CellNtuple : public SubsysReco

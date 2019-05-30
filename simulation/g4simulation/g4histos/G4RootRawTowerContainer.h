@@ -3,6 +3,8 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
+
 class G4RootRawTower;
 class TClonesArray;
 

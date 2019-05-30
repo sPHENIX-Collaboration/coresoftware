@@ -3,7 +3,7 @@
 
 #include <phool/PHObject.h>
 
-#include <map>
+#include <iostream>          // for cout, ostream
 
 class G4RootRawTower : public PHObject
 {

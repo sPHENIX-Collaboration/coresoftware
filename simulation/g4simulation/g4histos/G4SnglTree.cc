@@ -1,22 +1,22 @@
 #include "G4SnglTree.h"
 
 #include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>        // for PHG4HitContainer, PHG4Hit...
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>             // for SubsysReco
 
 #include <phool/getClass.h>
 
 #include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-#include <TNtuple.h>
 #include <TTree.h>
 
-#include <boost/foreach.hpp>
-
+#include <cmath>                           // for atan2, sqrt
+#include <cstring>                         // for strcmp
+#include <iostream>                         // for ostringstream, operator<<
 #include <sstream>
+#include <utility>                          // for pair
 
 using namespace std;
 

@@ -2,9 +2,10 @@
 
 #include "G4RootScintillatorSlat.h"
 
-#include <g4detectors/PHG4ScintillatorSlat.h>
-
 #include <TClonesArray.h>
+
+#include <cmath>                    // for NAN
+#include <ostream>                   // for basic_ostream::operator<<, opera...
 
 using namespace std;
 

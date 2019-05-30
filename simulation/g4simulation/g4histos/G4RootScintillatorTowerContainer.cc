@@ -2,9 +2,10 @@
 
 #include "G4RootScintillatorTower.h"
 
-#include <calobase/RawTower.h>
-
 #include <TClonesArray.h>
+
+#include <cmath>                     // for NAN
+#include <ostream>                    // for basic_ostream::operator<<, oper...
 
 using namespace std;
 

@@ -3,23 +3,17 @@
 
 #include "G4EvtTree.h"
 
-#include <g4main/PHG4HitContainer.h>
-
 #include <fun4all/SubsysReco.h>
 
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
-// Forward declerations
-class Fun4AllHistoManager;
+// Forward declarations
 class PHCompositeNode;
+class PHG4HitContainer;
 class TFile;
-class TH1;
-class TH2;
 class TTree;
-class TNtuple;
 
 class G4SnglTree : public SubsysReco
 {

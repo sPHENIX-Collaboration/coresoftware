@@ -2,7 +2,6 @@
 
 #include <g4detectors/PHG4ScintillatorSlat.h>
 
-#include <cmath>
 #include <iostream>
 
 using namespace std;
