@@ -23,7 +23,7 @@ bool hit_sort(const unsigned int i, const unsigned int j) { return (i < j);}
 
 PHG4TrackGhostRejection::PHG4TrackGhostRejection(const int nlayers, const string &name) :
   SubsysReco(name),
-  _g4tracks(NULL),
+  _g4tracks(nullptr),
   _nlayers(nlayers),
   _max_shared_hits(_nlayers)
 {

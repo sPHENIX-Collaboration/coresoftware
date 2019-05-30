@@ -220,17 +220,17 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
   , _track_errors()
   , _track_covars()
   , _vertex()
-  , _tracker(NULL)
-  , _tracker_vertex(NULL)
-  , _tracker_etap_seed(NULL)
-  , _tracker_etam_seed(NULL)
+  , _tracker(nullptr)
+  , _tracker_vertex(nullptr)
+  , _tracker_etap_seed(nullptr)
+  , _tracker_etam_seed(nullptr)
   , _vertexFinder()
-  , _bbc_vertexes(NULL)
-  , _g4clusters(NULL)
-  , _g4tracks(NULL)
-  , _g4vertexes(NULL)
+  , _bbc_vertexes(nullptr)
+  , _g4clusters(nullptr)
+  , _g4tracks(nullptr)
+  , _g4vertexes(nullptr)
   , _svtxhitsmap(nullptr)
-  , _hit_used_map(NULL)
+  , _hit_used_map(nullptr)
   , _cells_svtx(nullptr)
   , _cells_intt(nullptr)
   , _cells_maps(nullptr)
@@ -240,14 +240,14 @@ PHG4KalmanPatRec::PHG4KalmanPatRec(
   , _n_max_iterations(2)
   , _seeding_only_mode(false)
   , _analyzing_mode(false)
-  , _analyzing_file(NULL)
-  , _analyzing_ntuple(NULL)
+  , _analyzing_file(nullptr)
+  , _analyzing_ntuple(nullptr)
   , _max_merging_dphi(0.1)
   , _max_merging_deta(0.1)
   , _max_merging_dr(0.1)
   , _max_merging_dz(0.1)
   , _max_share_hits(3)
-  , _fitter(NULL)
+  , _fitter(nullptr)
   ,
   //      _track_fitting_alg_name("DafRef"),
   _track_fitting_alg_name("KalmanFitter")
@@ -906,13 +906,13 @@ int PHG4KalmanPatRec::End(PHCompositeNode* topNode)
   delete _t_output_io;
 
   delete _tracker_etap_seed;
-  _tracker_etap_seed = NULL;
+  _tracker_etap_seed = nullptr;
   delete _tracker_etam_seed;
-  _tracker_etam_seed = NULL;
+  _tracker_etam_seed = nullptr;
   delete _tracker_vertex;
-  _tracker_vertex = NULL;
+  _tracker_vertex = nullptr;
   delete _tracker;
-  _tracker = NULL;
+  _tracker = nullptr;
 
 #ifdef _DEBUG_
   LogDebug("Leaving End \n");
@@ -950,7 +950,7 @@ void PHG4KalmanPatRec::projectToRadius(const SvtxTrack* track, double B,
   if (track->size_states() == 1)
     return;
 
-  const SvtxTrackState* closest = NULL;
+  const SvtxTrackState* closest = nullptr;
   float min_dist = FLT_MAX;
   for (SvtxTrack::ConstStateIter iter = track->begin_states();
        iter != track->end_states(); ++iter)
@@ -2145,7 +2145,7 @@ int PHG4KalmanPatRec::truth_seeding(int start_layer, PHCompositeNode* topNode)
         _target_hit_y.push_back(0.0);
         _target_hit_z.push_back(666.0);
       }
-      PHG4Particle* particle = NULL;
+      PHG4Particle* particle = nullptr;
       if (trk_id != 0)
         particle = _truthinfo->GetParticle(trk_id);
       _particles.push_back(particle);
@@ -4029,7 +4029,7 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode)
       cout << "dist: " << dphi << "rphi: " << pos.Perp() * pos.DeltaPhi(targ) << endl;
       TVector3 fitmom = test_track->get_mom();
       PHG4Particle* particle = _particles.at(itrack);
-      if (particle != NULL)
+      if (particle != nullptr)
       {
         TVector3 genmom(particle->get_px(), particle->get_py(), particle->get_pz());
         if (_analyzing_mode)
@@ -4445,7 +4445,7 @@ int PHG4KalmanPatRec::OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitT
 
   //FIXME use fitted vertex
   TVector3 vertex_position(0, 0, 0);
-  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = NULL;
+  std::unique_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
   try
   {
     gf_state_vertex_ca = std::unique_ptr<genfit::MeasuredStateOnPlane>(iter->second->extrapolateToPoint(vertex_position));
@@ -4863,7 +4863,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
     //		bool have_tp_with_fit_info = false;
     //		std::vector<unsigned int> clusterIDs = track->get_cluster_IDs();
     //		for (unsigned int i = clusterIDs.size() - 1; i >= 0; --i) {
-    //			std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = NULL;
+    //			std::unique_ptr<genfit::MeasuredStateOnPlane> kfsop = nullptr;
     //			genfit::Track genfit_track = track->getGenFitTrack();
     //			if (genfit_track->getNumPointsWithMeasurement() > 0) {
     //

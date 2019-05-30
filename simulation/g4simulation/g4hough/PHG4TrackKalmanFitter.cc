@@ -145,7 +145,7 @@ public:
 		try {
 			genfit::RaveToGFVertices(vertices,
 					_factory->create(
-							genfit::GFTracksToTracks(tracks, NULL,
+							genfit::GFTracksToTracks(tracks, nullptr,
 									IdGFTrackStateMap_, 0), use_beamspot),
 					IdGFTrackStateMap_);
 		} catch (genfit::Exception & e) {
@@ -197,37 +197,37 @@ PHG4TrackKalmanFitter::PHG4TrackKalmanFitter(const string &name) :
 		_over_write_svtxvertexmap(true),
 		_fit_primary_tracks(false),
 		_use_truth_vertex(false),
-		_fitter( NULL),
+		_fitter( nullptr),
 		_track_fitting_alg_name("DafRef"),
 		_primary_pid_guess(211),
 		_fit_min_pT(0.1),
 		_vertex_min_ndf(20),
-		_vertex_finder(NULL),
+		_vertex_finder(nullptr),
 		_vertexing_method("avf-smoothing:1"),
-		_truth_container(NULL),
-		_clustermap(NULL),
-		_trackmap(NULL),
-		_vertexmap(NULL),
-		_trackmap_refit(NULL),
-		_primary_trackmap(NULL),
-		_vertexmap_refit(NULL),
+		_truth_container(nullptr),
+		_clustermap(nullptr),
+		_trackmap(nullptr),
+		_vertexmap(nullptr),
+		_trackmap_refit(nullptr),
+		_primary_trackmap(nullptr),
+		_vertexmap_refit(nullptr),
 		_do_eval(false),
 		_eval_outname("PHG4TrackKalmanFitter_eval.root"),
-		_eval_tree(NULL),
-		_tca_particlemap(NULL),
-		_tca_vtxmap(NULL),
-		_tca_trackmap(NULL),
-		_tca_vertexmap(NULL),
-		_tca_trackmap_refit(NULL),
-		_tca_primtrackmap(NULL),
-		_tca_vertexmap_refit(NULL),
+		_eval_tree(nullptr),
+		_tca_particlemap(nullptr),
+		_tca_vtxmap(nullptr),
+		_tca_trackmap(nullptr),
+		_tca_vertexmap(nullptr),
+		_tca_trackmap_refit(nullptr),
+		_tca_primtrackmap(nullptr),
+		_tca_vertexmap_refit(nullptr),
 		_do_evt_display(false) {
 
 	Verbosity(0);
 
 	_event = 0;
 
-	_cluster_eval_tree = NULL;
+	_cluster_eval_tree = nullptr;
 	_cluster_eval_tree_x = WILD_FLOAT;
 	_cluster_eval_tree_y = WILD_FLOAT;
 	_cluster_eval_tree_z = WILD_FLOAT;
@@ -368,7 +368,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 	FillSvtxVertexMap(rave_vertices, rf_gf_tracks);
 
 	for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();) {
-		std::shared_ptr<PHGenFit::Track> rf_phgf_track = NULL;
+		std::shared_ptr<PHGenFit::Track> rf_phgf_track = nullptr;
 
 		if (svtxtrack_genfittrack_map.find(iter->second->get_id())
 				!= svtxtrack_genfittrack_map.end()) {
@@ -380,7 +380,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		if (rf_phgf_track) {
 
 			//FIXME figure out which vertex to use.
-			SvtxVertex* vertex = NULL;
+			SvtxVertex* vertex = nullptr;
 			if (_over_write_svtxvertexmap) {
 				if (_vertexmap->size() > 0)
 					vertex = _vertexmap->get(0);
@@ -390,7 +390,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 			}
 
 			//BEGIN DEBUG
-//			vertex = NULL;
+//			vertex = nullptr;
 //
 //			PHG4VtxPoint *truth_vtx = _truth_container->GetVtx(
 //					_truth_container->GetPrimaryVertexIndex());
@@ -474,7 +474,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 		_primary_trackmap->empty();
 
 		//FIXME figure out which vertex to use.
-		SvtxVertex* vertex = NULL;
+		SvtxVertex* vertex = nullptr;
 		if (_over_write_svtxvertexmap) {
 			if (_vertexmap->size() > 0)
 				vertex = _vertexmap->get(0);
@@ -498,7 +498,7 @@ int PHG4TrackKalmanFitter::process_event(PHCompositeNode *topNode) {
 						vertex);
 				if (rf_phgf_track) {
 //					//FIXME figure out which vertex to use.
-//					SvtxVertex* vertex = NULL;
+//					SvtxVertex* vertex = nullptr;
 //					if (_vertexmap_refit->size() > 0)
 //						vertex = _vertexmap_refit->get(0);
 					std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(svtx_track,
@@ -842,18 +842,18 @@ int PHG4TrackKalmanFitter::GetNodes(PHCompositeNode * topNode) {
 std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNode *topNode, const SvtxTrack* intrack,
 		const SvtxVertex* invertex) {
 
-	//std::shared_ptr<PHGenFit::Track> empty_track(NULL);
+	//std::shared_ptr<PHGenFit::Track> empty_track(nullptr);
 
 	if (!intrack) {
-		cerr << PHWHERE << " Input SvtxTrack is NULL!" << endl;
-		return NULL;
+		cerr << PHWHERE << " Input SvtxTrack is nullptr!" << endl;
+		return nullptr;
 	}
 
 	// get node containing the digitized hits
 	SvtxHitMap* hitsmap =  findNode::getClass<SvtxHitMap>(topNode, "SvtxHitMap");
 	if (!hitsmap) {
 		cout << PHWHERE << "ERROR: Can't find node SvtxHitMap" << endl;
-		return NULL;
+		return nullptr;
 	}
 
 	PHG4CellContainer* cells_svtx = findNode::getClass<PHG4CellContainer>(topNode,
@@ -880,7 +880,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 
 	if (!cells_svtx && !cells_mvtx && !cells_intt) {
 		cout << PHWHERE << "ERROR: Can't find any cell node!" << endl;
-		return NULL;
+		return nullptr;
 	}
 
 	// prepare seed
@@ -1214,7 +1214,7 @@ std::shared_ptr<PHGenFit::Track> PHG4TrackKalmanFitter::ReFitTrack(PHCompositeNo
 		if (Verbosity() >= 1)
 			LogWarning("Track fitting failed");
 		//delete track;
-		return NULL;
+		return nullptr;
 	}
 
 	return track;
@@ -1253,8 +1253,8 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 				vertex_cov[i][j] = vertex->get_error(i,j);
 	}
 
-	//genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = NULL;
-	std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state_beam_line_ca = NULL;
+	//genfit::MeasuredStateOnPlane* gf_state_beam_line_ca = nullptr;
+	std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state_beam_line_ca = nullptr;
 	try {
 		gf_state_beam_line_ca = std::shared_ptr<genfit::MeasuredStateOnPlane>(phgf_track->extrapolateToLine(vertex_position,
 				TVector3(0., 0., 1.)));
@@ -1262,7 +1262,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 		if (Verbosity() >= 2)
 			LogWarning("extrapolateToLine failed!");
 	}
-	if(!gf_state_beam_line_ca) return NULL;
+	if(!gf_state_beam_line_ca) return nullptr;
 
 	/*!
 	 *  1/p, u'/z', v'/z', u, v
@@ -1288,7 +1288,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	out_track->set_dca2d(u);
 	out_track->set_dca2d_error(sqrt(du2 + dvr2));
 
-	std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = NULL;
+	std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state_vertex_ca = nullptr;
 	try {
 		gf_state_vertex_ca = std::shared_ptr < genfit::MeasuredStateOnPlane
 				> (phgf_track->extrapolateToPoint(vertex_position));
@@ -1298,7 +1298,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 	}
 	if (!gf_state_vertex_ca) {
 		//delete out_track;
-		return NULL;
+		return nullptr;
 	}
 
 	TVector3 mom = gf_state_vertex_ca->getMom();
@@ -1497,7 +1497,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 //
 //		double radius = pos.Pt();
 //
-//		std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state = NULL;
+//		std::shared_ptr<genfit::MeasuredStateOnPlane> gf_state = nullptr;
 //		try {
 //			gf_state = std::shared_ptr < genfit::MeasuredStateOnPlane
 //					> (phgf_track->extrapolateToCylinder(radius,
@@ -1563,7 +1563,7 @@ std::shared_ptr<SvtxTrack> PHG4TrackKalmanFitter::MakeSvtxTrack(const SvtxTrack*
 			continue;
 		}
 
-		std::shared_ptr<const genfit::MeasuredStateOnPlane> gf_state = NULL;
+		std::shared_ptr<const genfit::MeasuredStateOnPlane> gf_state = nullptr;
 		try {
 			//gf_state = std::shared_ptr <genfit::MeasuredStateOnPlane> (const_cast<genfit::MeasuredStateOnPlane*> (&(kfi->getFittedState(true))));
 			const genfit::MeasuredStateOnPlane* temp_state = &(kfi->getFittedState(true));

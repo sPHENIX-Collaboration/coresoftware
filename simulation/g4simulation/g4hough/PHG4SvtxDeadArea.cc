@@ -27,7 +27,7 @@ using namespace std;
 
 PHG4SvtxDeadArea::PHG4SvtxDeadArea(const string &name) :
   SubsysReco(name),
-  _hits(NULL),
+  _hits(nullptr),
   _timer(PHTimeServer::get()->insert_new(name)) 
 {
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);

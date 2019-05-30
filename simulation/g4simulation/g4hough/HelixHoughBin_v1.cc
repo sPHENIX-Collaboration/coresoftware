@@ -21,7 +21,7 @@ HelixHoughBin_v1::HelixHoughBin_v1(unsigned int bin)
     _dzdl_low_bins(),
     _z0_bins(),
     _zoomlevel(0),
-    _hough_space(NULL) {
+    _hough_space(nullptr) {
 
   set_bin(_zoomlevel,bin);
 //  cout<<"HoughBin:: bin "<<bin<<endl;

@@ -35,8 +35,8 @@ using namespace std;
 PHG4SvtxBeamSpotReco::PHG4SvtxBeamSpotReco(const string &name) :
   SubsysReco(name),
   _pca(2),
-  _vertexes(NULL),
-  _beamspot(NULL),
+  _vertexes(nullptr),
+  _beamspot(nullptr),
   _timer(PHTimeServer::get()->insert_new(name)) {
 }
 

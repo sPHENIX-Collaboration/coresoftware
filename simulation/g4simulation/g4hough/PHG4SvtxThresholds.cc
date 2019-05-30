@@ -28,7 +28,7 @@ PHG4SvtxThresholds::PHG4SvtxThresholds(const string &name) :
   _fraction_of_mip(),
   _thresholds_by_layer(),
   _use_thickness_mip(),
-  _hits(NULL),
+  _hits(nullptr),
   _timer(PHTimeServer::get()->insert_new(name)) {
 }
 

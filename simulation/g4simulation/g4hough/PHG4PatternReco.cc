@@ -126,22 +126,22 @@ PHG4PatternReco::PHG4PatternReco(unsigned int nlayers,
       _track_covars(),
       _vertex(),
       _vertex_list(),
-      _bbc_vertexes(NULL),
-      _clustermap(NULL),
-      _trackmap(NULL),
-      _vertexmap(NULL),
+      _bbc_vertexes(nullptr),
+      _clustermap(nullptr),
+      _trackmap(nullptr),
+      _vertexmap(nullptr),
       _vertex_finder(),
-	_hough_space(NULL),
-	_hough_funcs(NULL),
+	_hough_space(nullptr),
+	_hough_funcs(nullptr),
 	_mode(0),
-	_ntp_zvtx_by_event(NULL),
-	_ntp_zvtx_by_track(NULL),
-	_z0_dzdl(NULL),
-	_kappa_phi(NULL),
-	_d_phi(NULL),
-	_kappa_d_phi(NULL),
-	_ofile(NULL),
-	_ofile2(NULL),
+	_ntp_zvtx_by_event(nullptr),
+	_ntp_zvtx_by_track(nullptr),
+	_z0_dzdl(nullptr),
+	_kappa_phi(nullptr),
+	_d_phi(nullptr),
+	_kappa_d_phi(nullptr),
+	_ofile(nullptr),
+	_ofile2(nullptr),
 	_fname("test.root"),
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
@@ -476,9 +476,9 @@ int PHG4PatternReco::End(PHCompositeNode *topNode) {
 #endif
 
 	delete _t_output_io;
-	if (_hough_space != NULL) delete _hough_space;
-	if (_hough_funcs != NULL) delete _hough_funcs;
-	if (ca != NULL) delete ca;
+	if (_hough_space != nullptr) delete _hough_space;
+	if (_hough_funcs != nullptr) delete _hough_funcs;
+	if (ca != nullptr) delete ca;
 	_temp_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
