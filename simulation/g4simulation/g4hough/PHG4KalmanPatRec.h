@@ -857,7 +857,7 @@ class PHG4KalmanPatRec : public SubsysReco
   std::vector<unsigned int> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
 
   //! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
-  //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
+  //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = nullptr);
   int OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator);
 
   //------------------

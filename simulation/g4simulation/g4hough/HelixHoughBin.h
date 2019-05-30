@@ -34,7 +34,7 @@ public:
   }
   virtual void Reset() {}
   virtual int isValid() const {return 0;}
-  virtual HelixHoughBin* Clone() const {return NULL;}
+  virtual HelixHoughBin* Clone() const {return nullptr;}
 
   virtual void init() {}
 

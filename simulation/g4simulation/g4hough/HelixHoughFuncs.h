@@ -1,16 +1,13 @@
-#ifndef __HELIXHOUGHFUNCS_H__
-#define __HELIXHOUGHFUNCS_H__
-
-#include <phool/PHObject.h>
-#include <limits.h>
-#include <cmath>
+#ifndef G4HOUGH_HELIXHOUGHFUNCS_H
+#define G4HOUGH_HELIXHOUGHFUNCS_H
 
 #include "HelixHoughSpace_v1.h"
 
-#ifndef M_PI
-#define M_PI           3.14159265358979323846
-#endif
- 
+#include <phool/PHObject.h>
+
+#include <climits>
+#include <cmath>
+
 class HelixHoughSpace;
 
 class HelixHoughFuncs : public PHObject {
@@ -25,7 +22,7 @@ public :
   }
   virtual void Reset() {}
   virtual int  isValid() const 			{return 0;}
-  virtual HelixHoughFuncs* Clone() const 	{return NULL;}
+  virtual HelixHoughFuncs* Clone() const 	{return nullptr;}
 
   // Define Hough space for helical tracks 
   virtual void set_current_zoom(unsigned int cur_zoom)		{}

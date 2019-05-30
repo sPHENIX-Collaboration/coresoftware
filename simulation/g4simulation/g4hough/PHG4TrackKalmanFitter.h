@@ -214,10 +214,10 @@ private:
 	 * \param intrack Input SvtxTrack
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
-	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
+	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = nullptr);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
-	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
+	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = nullptr);
 
 	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
 	bool FillSvtxVertexMap(

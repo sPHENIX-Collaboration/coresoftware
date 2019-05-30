@@ -1,16 +1,18 @@
-#ifndef __CELLULARAUTOMATON_H__
-#define __CELLULARAUTOMATON_H__
+#ifndef G4HOUGH_CELLULARAUTOMATON_H
+#define G4HOUGH_CELLULARAUTOMATON_H
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include "Track3D.h"
 #include "HelixTrackState.h"
 #endif
+
 #include "Cluster3D.h"
 #include "HelixHoughSpace.h"
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
-#include <limits.h>
+
+#include <climits>
 #include <cmath>
 #include <map>
 #include <set>
@@ -31,7 +33,7 @@ class CellularAutomaton : public PHObject {
   }
   virtual void Reset() {}
   virtual int  isValid() const {return 0;}
-  virtual CellularAutomaton* Clone() const {return NULL;}
+  virtual CellularAutomaton* Clone() const {return nullptr;}
 
   virtual void set_hough_space(HelixHoughSpace* hough_space) {}
   virtual void set_mag_field(float mag_field) {}

@@ -27,7 +27,7 @@ class PHG4SvtxMomentumRecal : public SubsysReco
  public:
  
   PHG4SvtxMomentumRecal(const std::string &name = "PHG4SvtxMomentumRecal",
-			TF1* correction = NULL);
+			TF1* correction = nullptr);
   virtual ~PHG4SvtxMomentumRecal() {}
 		
   int Init(PHCompositeNode *topNode);
