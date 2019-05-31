@@ -60,7 +60,7 @@ using namespace CLHEP;
 PHG4mRICHDetector::PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr):
   PHG4Detector(Node, dnam),
   params(parameters),
-  //block_physi(NULL),
+  //block_physi(nullptr),
   layer(lyr),
   active(0),
   absorberactive(0),
@@ -856,7 +856,7 @@ void PHG4mRICHDetector::build_mRICH_wall_hside(G4LogicalVolume* logicWorld)
   }
 
   G4ThreeVector pos(0, 0, 0);
-  mRICHwall->MakeImprint(logicWorld,pos,NULL,0,OverlapCheck());
+  mRICHwall->MakeImprint(logicWorld,pos,nullptr,0,OverlapCheck());
 
   printf("-----------------------------------------------------------------------------\n");
   printf("%d detectors are built\n",NumOfModule);

@@ -171,7 +171,7 @@ int PHG4Prototype2HcalCellReco::process_event(PHCompositeNode *topNode)
         {
           PHG4ScintillatorSlatDefs::keytype key = PHG4ScintillatorSlatDefs::genkey(irow, icolumn);
           slats->AddScintillatorSlat(key, slatarray[irow][icolumn]);
-          slatarray[irow][icolumn] = NULL;
+          slatarray[irow][icolumn] = nullptr;
           nslathits++;
         }
       }

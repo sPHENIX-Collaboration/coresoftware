@@ -801,7 +801,7 @@ PHG4HcalPrototypeDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich_log
   // going 1/2 trapezoid up
   // -((y_out + y_in)/2)/2-sc/2 + ((y_out + y_in)/2)/2 = -sc/2
 
-  new G4PVPlacement(NULL, G4ThreeVector( - sc_dimension[1] / 2., 0, 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
+  new G4PVPlacement(nullptr, G4ThreeVector( - sc_dimension[1] / 2., 0, 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
   //  new G4PVPlacement(hcal_rotm, G4ThreeVector(0, -((outer_steel_y_out + outer_steel_y_in)/2.)/2. - sc_dimension[1] / 2., 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
   G4RotationMatrix *hcal_rotm_sc = new G4RotationMatrix;
   hcal_rotm_sc->rotateZ((2 * M_PI - outer_tilt_angle)*rad);

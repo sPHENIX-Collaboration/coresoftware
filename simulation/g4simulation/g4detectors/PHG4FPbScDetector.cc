@@ -29,10 +29,10 @@ PHG4FPbScDetector::PHG4FPbScDetector( PHCompositeNode *Node, const std::string &
   y_position(0.0 * cm),
   z_position(400.0 * cm),
   layer_separation(0.0),
-  AbsorberMaterial(NULL),
-  ScintillatorMaterial(NULL),
-  stepping_action(NULL),
-  _region(NULL)
+  AbsorberMaterial(nullptr),
+  ScintillatorMaterial(nullptr),
+  stepping_action(nullptr),
+  _region(nullptr)
 {
   
 }

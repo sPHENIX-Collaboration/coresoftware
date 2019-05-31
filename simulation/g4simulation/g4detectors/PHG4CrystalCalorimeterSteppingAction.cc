@@ -37,11 +37,11 @@ using namespace std;
 PHG4CrystalCalorimeterSteppingAction::PHG4CrystalCalorimeterSteppingAction(PHG4CrystalCalorimeterDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(NULL)
-  , absorberhits_(NULL)
-  , hit(NULL)
-  , savehitcontainer(NULL)
-  , saveshower(NULL)
+  , hits_(nullptr)
+  , absorberhits_(nullptr)
+  , hit(nullptr)
+  , savehitcontainer(nullptr)
+  , saveshower(nullptr)
 {
 }
 
@@ -49,7 +49,7 @@ PHG4CrystalCalorimeterSteppingAction::~PHG4CrystalCalorimeterSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -248,7 +248,7 @@ bool PHG4CrystalCalorimeterSteppingAction::UserSteppingAction(const G4Step* aSte
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = NULL;
+        hit = nullptr;
       }
       else
       {

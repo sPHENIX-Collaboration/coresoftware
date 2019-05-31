@@ -47,20 +47,20 @@ using namespace std;
 PHG4SpacalPrototypeDetector::PHG4SpacalPrototypeDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam) :
     PHG4Detector(Node, dnam), 
     construction_params(parameters),
-    cylinder_solid(NULL), 
-    cylinder_logic(NULL), 
-    cylinder_physi(NULL), //
+    cylinder_solid(nullptr), 
+    cylinder_logic(nullptr), 
+    cylinder_physi(nullptr), //
     active(0), 
     absorberactive(0), //
-    step_limits(NULL), 
-    clading_step_limits(NULL), 
-    fiber_core_step_limits(NULL), //
-    _geom(NULL)
+    step_limits(nullptr), 
+    clading_step_limits(nullptr), 
+    fiber_core_step_limits(nullptr), //
+    _geom(nullptr)
 {}
 
 PHG4SpacalPrototypeDetector::~PHG4SpacalPrototypeDetector(void)
 {
-  // deleting NULL pointers is allowed (results in NOOP) 
+  // deleting nullptr pointers is allowed (results in NOOP) 
   // so checking for not null before deleting is not needed
   if (step_limits)
     delete step_limits;

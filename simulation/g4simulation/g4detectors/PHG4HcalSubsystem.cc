@@ -18,9 +18,9 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4HcalSubsystem::PHG4HcalSubsystem( const std::string &na, const int lyr):
-  detector_( NULL ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
+  detector_( nullptr ),
+  steppingAction_( nullptr ),
+  eventAction_(nullptr),
   radius(100),
   length(100),
   xpos(0),

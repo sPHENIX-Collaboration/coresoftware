@@ -22,9 +22,9 @@ using namespace std;
 PHG4HcalSteppingAction::PHG4HcalSteppingAction( PHG4HcalDetector* detector ):
   PHG4SteppingAction(0),
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hit(NULL),
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hit(nullptr),
   zmin(NAN),
   zmax(NAN),
   light_scint_model_(true),

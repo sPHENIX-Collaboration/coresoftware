@@ -22,9 +22,9 @@ using namespace std;
 PHG4HcalPrototypeSteppingAction::PHG4HcalPrototypeSteppingAction( PHG4HcalPrototypeDetector* detector ):
   PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hit(NULL)
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hit(nullptr)
 {}
 
 //____________________________________________________________________________..

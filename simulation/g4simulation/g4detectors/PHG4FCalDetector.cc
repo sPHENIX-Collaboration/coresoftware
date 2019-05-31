@@ -31,10 +31,10 @@ PHG4FCalDetector::PHG4FCalDetector( PHCompositeNode *Node ) :
   segment_thickness(scintillator_thickness/((double)(segments_per_thickness))),
   z_position(100.0 * cm),
   layer_separation(1.0 * mm),
-  AbsorberMaterial(NULL),
-  ScintillatorMaterial(NULL),
-  stepping_action(NULL),
-  _region(NULL)
+  AbsorberMaterial(nullptr),
+  ScintillatorMaterial(nullptr),
+  stepping_action(nullptr),
+  _region(nullptr)
 {
   
 }

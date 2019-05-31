@@ -21,8 +21,8 @@ using namespace std;
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr): 
   PHG4Subsystem(name),
   params(new PHParameters(Name())),
-  paramscontainer(NULL),
-  savetopNode(NULL),
+  paramscontainer(nullptr),
+  savetopNode(nullptr),
   overlapcheck(false),
   layer(lyr),
   usedb(0),

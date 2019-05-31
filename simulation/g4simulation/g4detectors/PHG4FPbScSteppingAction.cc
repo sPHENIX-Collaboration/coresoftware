@@ -15,7 +15,7 @@ using namespace std;
 
 
 PHG4FPbScSteppingAction::PHG4FPbScSteppingAction( PHG4FPbScDetector* detector) :
-    PHG4SteppingAction(detector->GetName()), detector_( detector ), hits_(NULL), hit(NULL)
+    PHG4SteppingAction(detector->GetName()), detector_( detector ), hits_(nullptr), hit(nullptr)
 {
 }
 

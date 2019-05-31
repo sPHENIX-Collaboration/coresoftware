@@ -174,7 +174,7 @@ void PHG4ForwardEcalDetector::Construct(G4LogicalVolume* logicWorld)
       if (iterator->second.type == i) buildType[i] = true;
   }
 
-  G4LogicalVolume* singletower[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+  G4LogicalVolume* singletower[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
   for (int i = 0; i < 7; i++)
     if (buildType[i]) singletower[i] = ConstructTower(i);
 
@@ -226,7 +226,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   else
   {
     cout << "PHG4ForwardEcalDetector::ConstructTower invalid type = " << type << endl;
-    material_scintillator = NULL;
+    material_scintillator = nullptr;
   }
 
   ostringstream single_tower_solid_name;
@@ -417,7 +417,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
     break;
   default:
     cout << "PHG4ForwardEcalDetector: Invalid tower type in ConstructTowerType3_4_5_6, stopping..." << endl;
-    return NULL;
+    return nullptr;
   }
 
   /* create logical volume for single tower */
@@ -533,7 +533,7 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
 
-    G4LogicalVolume* singletower = NULL;
+    G4LogicalVolume* singletower = nullptr;
     if (iterator->second.type == 0)
       singletower = singletowerIn[0];
     else if (iterator->second.type == 1)

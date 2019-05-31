@@ -61,7 +61,7 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4SpacalSubsystem* subs
   assert(_geom == nullptr);
 
   _geom = new SpacalGeom_t();
-  if (_geom == NULL)
+  if (_geom == nullptr)
   {
     cout
         << "PHG4FullProjSpacalDetector::Constructor - Fatal Error - invalid geometry object!"

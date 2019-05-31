@@ -18,16 +18,16 @@ using namespace std;
 PHG4ConeSteppingAction::PHG4ConeSteppingAction( PHG4ConeDetector* detector ):
   PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
-  hits_(NULL),
-  hit(NULL),
-  saveshower(NULL)
+  hits_(nullptr),
+  hit(nullptr),
+  saveshower(nullptr)
 {}
 
 PHG4ConeSteppingAction::~PHG4ConeSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -138,7 +138,7 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {

@@ -37,11 +37,11 @@ using namespace std;
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(NULL)
-  , absorberhits_(NULL)
-  , hitcontainer(NULL)
-  , hit(NULL)
-  , saveshower(NULL)
+  , hits_(nullptr)
+  , absorberhits_(nullptr)
+  , hitcontainer(nullptr)
+  , hit(nullptr)
+  , saveshower(nullptr)
   , absorbertruth(0)
   , light_scint_model(1)
 {
@@ -51,7 +51,7 @@ PHG4ForwardEcalSteppingAction::~PHG4ForwardEcalSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -268,7 +268,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = NULL;
+        hit = nullptr;
       }
       else
       {

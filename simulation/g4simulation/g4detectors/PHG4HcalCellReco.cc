@@ -168,7 +168,7 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
 	  if (slatarray[irow][icolumn])
 	    {
 	      slats->AddCell(slatarray[irow][icolumn]);
-	      slatarray[irow][icolumn] = NULL;
+	      slatarray[irow][icolumn] = nullptr;
 	      nslathits++;
 	    }
 	}

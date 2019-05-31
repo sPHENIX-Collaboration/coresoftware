@@ -29,8 +29,8 @@ using namespace std;
 PHG4CEmcTestBeamSubsystem::PHG4CEmcTestBeamSubsystem( const std::string &name, const int lyr ):
   PHG4Subsystem( name ),
   detector_( 0 ),
-  steppingAction_( NULL ),
-  eventAction_(NULL),
+  steppingAction_( nullptr ),
+  eventAction_(nullptr),
   place_in_x(0),
   place_in_y(0),
   place_in_z(0),

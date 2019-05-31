@@ -26,10 +26,10 @@ using namespace std;
 //_______________________________________________________________________
 PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr):
   PHG4DetectorSubsystem( name, lyr ),
-  _detector( NULL ),
+  _detector( nullptr ),
   _detectorName(name),
-  _steppingAction(NULL),
-  _eventAction(NULL)
+  _steppingAction(nullptr),
+  _eventAction(nullptr)
 {
   InitializeParameters();
 }

@@ -16,7 +16,7 @@
 using namespace std;
 //____________________________________________________________________________..
 PHG4FPbScRegionSteppingAction::PHG4FPbScRegionSteppingAction( PHG4FPbScDetector* detector ):
-  detector_( detector ), hits_(NULL), hit(NULL)
+  detector_( detector ), hits_(nullptr), hit(nullptr)
 {}
 
 //____________________________________________________________________________..
