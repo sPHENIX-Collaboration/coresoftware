@@ -10,13 +10,17 @@
 
 #include "PHG4TpcSpaceChargeDistortion.h"
 
+#include <TAxis.h>            // for TAxis
 #include <TFile.h>
-#include <TH2D.h>
-#include <TH2F.h>
-#include <TH3F.h>
+#include <TH1.h>              // for TH1
+#include <TH2.h>              // for TH2D
+#include <TH3.h>              // for TH3F
+#include <TObject.h>          // for TObject
+
 #include <gsl/gsl_randist.h>
 
 #include <cassert>
+#include <cstdlib>           // for exit, NULL
 #include <iostream>
 
 using namespace std;

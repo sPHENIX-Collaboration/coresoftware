@@ -2,7 +2,7 @@
 // it uses the same MapToPadPlane as the old containers version
 
 #include "PHG4TpcElectronDrift.h"
-#include "PHG4TpcPadPlaneReadout.h"
+#include "PHG4TpcPadPlane.h"                            // for PHG4TpcPadPlane
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -12,38 +12,48 @@
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase/TrkrDefs.h>
+
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameterInterface.h>           // for PHParameterIn...
+
 
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>                           // for PHDataNode
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <TFile.h>
 #include <TH1.h>
 #include <TNtuple.h>
 #include <TSystem.h>
 
-#include <Geant4/G4SystemOfUnits.hh>
-
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
 
 #include <cassert>
+#include <cmath>                                       // for sqrt, fabs, NAN
+#include <cstdlib>                                     // for exit
 #include <iostream>
-
+#include <map>                                          // for _Rb_tree_cons...
+#include <utility>                                      // for pair
+#
 using namespace std;
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)

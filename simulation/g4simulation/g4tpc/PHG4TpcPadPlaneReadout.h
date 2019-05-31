@@ -5,15 +5,17 @@
 
 #include <g4main/PHG4HitContainer.h>
 
+#include <string>                     // for string
 #include <vector>
 
-class TNtuple;
-class TF1;
+class PHCompositeNode;
 class PHG4CellContainer;
 class PHG4CylinderCellGeomContainer;
 class PHG4CylinderCellGeom;
+class TF1;
+class TNtuple;
 class TrkrHitSetContainer;
-class TrkrHitTruthContainer;
+class TrkrHitTruthAssoc;
 
 class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 {

@@ -1,8 +1,5 @@
 #include "PHG4TpcDigitizer.h"
 
-#include <g4main/PHG4Hit.h>
-
-
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
@@ -11,25 +8,26 @@
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
 
-
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeom.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/phool.h>                                // for PHWHERE
 
+#include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
 #include <gsl/gsl_randist.h>
 
-#include <cmath>
+#include <cstdlib>                                     // for exit
 #include <iostream>
 #include <limits>
+#include <memory>                                       // for allocator_tra...
 
 using namespace std;
 
@@ -46,9 +44,7 @@ PHG4TpcDigitizer::PHG4TpcDigitizer(const string &name)
   ,  // mV/fC
   ADCSignalConversionGain(numeric_limits<float>::signaling_NaN())
   ,  // will be assigned in PHG4TpcDigitizer::InitRun
-  ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())
-  ,  // will be assigned in PHG4TpcDigitizer::InitRun
-  _hitmap(nullptr)
+  ADCNoiseConversionGain(numeric_limits<float>::signaling_NaN())  // will be assigned in PHG4TpcDigitizer::InitRun
 {
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this funtcion
   cout << Name() << " random seed: " << seed << endl;

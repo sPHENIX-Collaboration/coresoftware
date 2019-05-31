@@ -1,16 +1,20 @@
 #include "PHG4TpcPadPlaneReadout.h"
 
+#include <g4detectors/PHG4Cell.h>                       // for PHG4Cell
+#include <g4detectors/PHG4CellDefs.h>                   // for genkey, keytype
 #include <g4detectors/PHG4CellContainer.h>
 #include <g4detectors/PHG4Cellv1.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
+#include <g4main/PHG4Hit.h>                             // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
 
 // Move to new storage containers
+#include <trackbase/TrkrDefs.h>                         // for hitkey, hitse...
+#include <trackbase/TrkrHit.h>                          // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <tpc/TpcDefs.h>
 #include <tpc/TpcHit.h>
@@ -20,7 +24,14 @@
 #include <TSystem.h>
 
 #include <cmath>
+#include <climits>                                     // for INT_MAX
+#include <cstdio>                                      // for sprintf
 #include <iostream>
+#include <map>                                          // for _Rb_tree_cons...
+#include <utility>                                      // for pair
+
+class PHCompositeNode;
+class TrkrHitTruthAssoc;
 
 using namespace std;
 

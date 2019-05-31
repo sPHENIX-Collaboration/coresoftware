@@ -14,16 +14,14 @@
 #include <gsl/gsl_rng.h>
 #endif
 
-#include <vector>
-
-class TrkrHitSetContainer;
-class TrkrHitTruthAssoc;
+#include <string>                              // for string
 
 class PHG4TpcPadPlane;
-class PHG4TpcPadPlaneReadout;
 class PHCompositeNode;
 class TH1;
 class TNtuple;
+class TrkrHitSetContainer;
+class TrkrHitTruthAssoc;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {

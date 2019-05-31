@@ -9,33 +9,33 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
-#include <TSystem.h>
-
-#include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fPostSt...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
-#include <boost/foreach.hpp>
-#include <boost/tokenizer.hpp>
-// this is an ugly hack, the gcc optimizer has a bug which
-// triggers the uninitialized variable warning which
-// stops compilation because of our -Werror
-#include <boost/version.hpp>  // to get BOOST_VERSION
-#if (__GNUC__ == 4 && __GNUC_MINOR__ == 4 && BOOST_VERSION == 105700)
-#pragma GCC diagnostic ignored "-Wuninitialized"
-#pragma message "ignoring bogus gcc warning in boost header lexical_cast.hpp"
-#include <boost/lexical_cast.hpp>
-#pragma GCC diagnostic warning "-Wuninitialized"
-#else
-#include <boost/lexical_cast.hpp>
-#endif
-
+#include <cmath>                               // for isfinite
+#include <cstdlib>                            // for exit
 #include <iostream>
+#include <string>                              // for operator<<, operator+
+
+class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
