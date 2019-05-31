@@ -4,6 +4,8 @@
 #include <g4detectors/PHG4CellDefs.h>
 
 #include <phool/PHObject.h>
+
+#include <iostream>                    // for cout, ostream
 #include <set>
 
 class InttDeadMap : public PHObject

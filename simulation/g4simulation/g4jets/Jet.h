@@ -4,6 +4,7 @@
 #include <phool/PHObject.h>
 
 #include <cmath>
+#include <cstddef>          // for size_t
 #include <iostream>
 #include <map>
 

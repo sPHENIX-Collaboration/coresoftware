@@ -7,17 +7,17 @@
 /// \author Mike McCumber
 //===========================================================
 
-#include "JetAlgo.h"
-#include "JetInput.h"
-
 // PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
 // standard includes
+#include <string>                // for string
 #include <vector>
 
 // forward declarations
+class Jet;
+class JetAlgo;
+class JetInput;
 class PHCompositeNode;
 
 /// \class JetReco

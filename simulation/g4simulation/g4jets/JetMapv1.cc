@@ -3,6 +3,10 @@
 #include "Jet.h"
 
 #include <cmath>
+#include <iterator>  // for reverse_iterator
+#include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
+#include <ostream>   // for operator<<, endl, ostream, basic_ostream::operat...
+#include <utility>   // for pair, make_pair
 
 using namespace std;
 

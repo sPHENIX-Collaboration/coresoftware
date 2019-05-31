@@ -5,6 +5,7 @@
 
 #include "Jet.h"
 
+#include <iostream>    // for cout, ostream
 #include <vector>
 
 // forward declarations
