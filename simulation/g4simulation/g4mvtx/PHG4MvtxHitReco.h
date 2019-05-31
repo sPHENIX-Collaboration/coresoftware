@@ -8,7 +8,7 @@
 
 #include <map>
 #include <string>
-#include <vector>
+#include <utility>                                      // for pair
 
 class PHCompositeNode;
 

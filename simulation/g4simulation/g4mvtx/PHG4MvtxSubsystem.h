@@ -5,9 +5,13 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
-class PHG4MvtxDetector;
-class PHG4MvtxSteppingAction;
+#include <string>                                    // for string
+
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
+class PHG4MvtxDetector;
+class PHG4SteppingAction;
 
 class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
 {
@@ -49,7 +53,7 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4MvtxSteppingAction* steppingAction_;
+  PHG4SteppingAction* steppingAction_;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */

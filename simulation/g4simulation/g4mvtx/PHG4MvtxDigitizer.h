@@ -6,15 +6,18 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <g4detectors/PHG4CellDefs.h>
-
-#include <map>
-#include <vector>
-
 // rootcint barfs with this header so we need to hide it
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
 #endif
+
+#include <map>
+#include <string>                // for string
+#include <utility>               // for pair, make_pair
+#include <vector>
+
+
+class PHCompositeNode;
 
 class PHG4MvtxDigitizer : public SubsysReco
 {

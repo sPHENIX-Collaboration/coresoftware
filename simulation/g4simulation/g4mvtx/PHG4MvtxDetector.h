@@ -6,18 +6,18 @@
 #include <g4main/PHG4Detector.h>
 
 #include <array>
+#include <cmath>                 // for M_PI
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
+#include <tuple>                  // for tuple
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
 class PHG4MvtxDisplayAction;
 class PHG4MvtxSubsystem;
-class PHParameters;
 class PHParametersContainer;
 
 class PHG4MvtxDetector : public PHG4Detector
