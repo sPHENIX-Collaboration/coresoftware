@@ -3,7 +3,6 @@
 #include <phparameter/PHParameters.h>
 
 #include <cmath>
-#include <ostream>                     // for operator<<, basic_ostream, bas...
 
 using namespace std;
 

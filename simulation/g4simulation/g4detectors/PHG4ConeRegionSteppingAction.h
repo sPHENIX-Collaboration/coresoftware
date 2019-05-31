@@ -1,9 +1,10 @@
-#ifndef PHG4VConeRegionSteppingAction_h
-#define PHG4VConeRegionSteppingAction_h
+#ifndef G4DETECTORS_PHG4CONEREGIONSTEPPINGACTION_H
+#define G4DETECTORS_PHG4CONEREGIONSTEPPINGACTION_H
 
 #include <Geant4/G4UserSteppingAction.hh>
 
 
+class G4Step;
 class PHCompositeNode;
 class PHG4ConeDetector;
 class PHG4Hit;

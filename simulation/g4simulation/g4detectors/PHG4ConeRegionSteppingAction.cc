@@ -1,4 +1,5 @@
 #include "PHG4ConeRegionSteppingAction.h"
+
 #include "PHG4ConeDetector.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -10,13 +11,26 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>             // for fGeomBoundary, fUndefined
+#include <Geant4/G4SystemOfUnits.hh>     // for cm
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
+#include <cstddef>                           // for NULL
 #include <iostream>
+#include <string>                             // for operator+, operator<<
+
+class G4VPhysicalVolume;
 
 using namespace std;
 //____________________________________________________________________________..
 PHG4ConeRegionSteppingAction::PHG4ConeRegionSteppingAction( PHG4ConeDetector* detector ):
-  detector_( detector ), hits_(NULL), hit(NULL)
+  detector_( detector ), hits_(nullptr), hit(nullptr)
 {}
 
 //____________________________________________________________________________..

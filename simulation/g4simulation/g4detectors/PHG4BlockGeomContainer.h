@@ -5,6 +5,7 @@
 
 #include <iostream>          // for cout, ostream
 #include <map>
+#include <utility>           // for make_pair, pair
 
 class PHG4BlockGeom;
 

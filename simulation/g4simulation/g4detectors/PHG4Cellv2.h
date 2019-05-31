@@ -10,6 +10,10 @@
 #include <map>
 #include <utility>               // for make_pair
 
+#if !defined(__CINT__) || defined(__CLING__)
+#include <type_traits>           // for __decay_and_strip<>::__type
+#endif
+
 //! specialized cells for TPC operations
 class PHG4Cellv2 : public PHG4Cell
 {

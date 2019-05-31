@@ -1,5 +1,7 @@
 #include "PHG4Cellv2.h"
 
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
 #include <iostream>
 
 using namespace std;

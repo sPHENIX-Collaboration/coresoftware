@@ -5,6 +5,7 @@
 
 #include <iostream>          // for cout, ostream
 #include <string>
+#include <utility>           // for pair
 
 class PHG4CylinderCellGeom: public PHObject
 {

@@ -1,10 +1,12 @@
 #include "PHG4CEmcTestBeamSteppingAction.h"
+
 #include "PHG4CEmcTestBeamDetector.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
@@ -19,6 +21,7 @@
 #include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
 #include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
 #include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
 #include <Geant4/G4Types.hh>                   // for G4double
 #include <Geant4/G4VTouchable.hh>              // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation

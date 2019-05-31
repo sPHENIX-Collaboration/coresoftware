@@ -6,14 +6,16 @@
 
 #include <g4main/PHG4HitDefs.h>  // for keytype
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
-#include <cstdint>
-#endif
 #include <iostream>
 #include <map>
 #include <utility>               // for make_pair
+
+#if !defined(__CINT__) || defined(__CLING__)
+#include <cstdint>
+#include <type_traits>           // for __decay_and_strip<>::__type
+#else
+#include <stdint.h>
+#endif
 
 class PHG4Cellv1: public PHG4Cell
 {

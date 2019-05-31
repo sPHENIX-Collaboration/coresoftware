@@ -1,7 +1,7 @@
-#ifndef PHG4ConeSubsystem_h
-#define PHG4ConeSubsystem_h
+#ifndef G4DETECTORS_PHG4CONESUBSYSTEM_H
+#define G4DETECTORS_PHG4CONESUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>

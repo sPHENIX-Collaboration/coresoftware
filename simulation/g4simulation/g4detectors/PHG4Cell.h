@@ -14,6 +14,10 @@
 #include <string>                // for string
 #include <utility>               // for pair, make_pair
 
+#if !defined(__CINT__) || defined(__CLING__)
+#include <type_traits>           // for __decay_and_strip<>::__type
+#endif
+
 class PHG4Cell: public PHObject
 {
  public:

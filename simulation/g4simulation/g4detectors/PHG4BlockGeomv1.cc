@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <ostream>    // for operator<<, basic_ostream, basic_ostream<>::__o...
 
 using namespace std;
 

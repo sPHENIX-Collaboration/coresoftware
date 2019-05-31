@@ -8,11 +8,14 @@
  * \date $Date: $
  */
 
-#ifndef PHG4CYLINDERCELLGEOMSPACALV1_H_
-#define PHG4CYLINDERCELLGEOMSPACALV1_H_
+#ifndef G4DETECTORS_PHG4CYLINDERCELLGEOMSPACALV1_H
+#define G4DETECTORS_PHG4CYLINDERCELLGEOMSPACALV1_H
 
 #include "PHG4CylinderCellGeom.h"
+
+#include <iostream>                // for cout, ostream
 #include <map>
+#include <utility>                 // for pair
 
 /*!
  * \brief PHG4CylinderCellGeom_Spacalv1

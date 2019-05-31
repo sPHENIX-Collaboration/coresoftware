@@ -5,6 +5,7 @@
 #include "PHG4CEmcTestBeamSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Subsystem.h>            // for PHG4Subsystem
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>

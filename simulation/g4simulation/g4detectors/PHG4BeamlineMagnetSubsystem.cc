@@ -4,7 +4,6 @@
 #include <phparameter/PHParameters.h>
 
 #include <cmath>                        // for NAN
-#include <cstddef>                      // for NULL
 #include <iostream>                      // for operator<<, endl, basic_ostream
 
 class PHCompositeNode;

@@ -2,8 +2,6 @@
 
 #include <g4main/PHG4HitDefs.h>  // for keytype
 
-#include <ostream>               // for operator<<, ostream, basic_ostream::...
-
 using namespace std;
 
 PHG4CylinderCellv1::PHG4CylinderCellv1():
