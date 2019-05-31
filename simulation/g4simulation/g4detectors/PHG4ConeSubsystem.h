@@ -6,9 +6,14 @@
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+#include <string>                  // for string
+
+class PHCompositeNode;
 class PHG4ConeDetector;
 class PHG4ConeSteppingAction;
+class PHG4Detector;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4ConeSubsystem: public PHG4Subsystem
 {

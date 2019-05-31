@@ -4,7 +4,7 @@
 #ifndef G4DETECTORS_PHG4HCALPROTOTYPEDETECTORMESSENGER_H
 #define G4DETECTORS_PHG4HCALPROTOTYPEDETECTORMESSENGER_H
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>       // for G4String
 #include <Geant4/G4UImessenger.hh>
 
 class PHG4HcalPrototypeDetector;

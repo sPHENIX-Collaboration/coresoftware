@@ -8,10 +8,15 @@
 
 #include <g4main/PHG4HitContainer.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>               // for PHIODataNode
+#include <phool/PHNode.h>                     // for PHNode
+#include <phool/PHNodeIterator.h>             // for PHNodeIterator
+#include <phool/PHObject.h>                   // for PHObject
+#include <phool/getClass.h>
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4SystemOfUnits.hh>          // for cm
+#include <Geant4/G4Types.hh>                  // for G4double
 
 #include <sstream>
 
@@ -23,10 +28,6 @@ PHG4HcalPrototypeSubsystem::PHG4HcalPrototypeSubsystem( const std::string &name,
   detector_( 0 ),
   steppingAction_( nullptr ),
   eventAction_(nullptr),
-  place_in_x(0),
-  place_in_y(0),
-  place_in_z(0),
-  rot_in_x(0),
   rot_in_y(0),
   rot_in_z(0),
   material("G4_AIR"),  // default - almost nothing
@@ -57,8 +58,6 @@ int PHG4HcalPrototypeSubsystem::Init( PHCompositeNode* topNode )
 
   // create detector
   detector_ = new PHG4HcalPrototypeDetector(topNode, Name(), layer);
-  //  detector_->SetPlace(place_in_x, place_in_y, place_in_z);
-  //  detector_->SetXRot(rot_in_x);
   detector_->SetYRot(rot_in_y);
   detector_->SetZRot(rot_in_z);
   detector_->SetActive(active);

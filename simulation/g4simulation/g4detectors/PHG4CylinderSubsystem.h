@@ -5,7 +5,11 @@
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <string>                   // for string
+
+class PHCompositeNode;
 class PHG4CylinderDetector;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4SteppingAction;
 

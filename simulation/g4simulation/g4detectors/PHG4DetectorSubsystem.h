@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 
+class PHCompositeNode;
 class PHParameters;
 class PHParametersContainer;
 

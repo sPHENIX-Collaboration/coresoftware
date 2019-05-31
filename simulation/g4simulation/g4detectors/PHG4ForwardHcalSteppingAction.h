@@ -8,6 +8,8 @@
 #include <Geant4/G4TouchableHandle.hh>
 
 class G4Step;
+class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4ForwardHcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;

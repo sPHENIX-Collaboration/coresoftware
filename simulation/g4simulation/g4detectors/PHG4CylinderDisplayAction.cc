@@ -1,15 +1,14 @@
 #include "PHG4CylinderDisplayAction.h"
 
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Utils.h>
 
 #include <phparameter/PHParameters.h>
 
-#include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-#include <iostream>
+class G4VPhysicalVolume;
 
 using namespace std;
 

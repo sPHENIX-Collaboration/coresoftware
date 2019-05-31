@@ -8,7 +8,9 @@
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                 // for make_pair, pair
 
+class PHCompositeNode;
 class PHParametersContainer;
 
 class PHG4DetectorGroupSubsystem : public PHG4Subsystem

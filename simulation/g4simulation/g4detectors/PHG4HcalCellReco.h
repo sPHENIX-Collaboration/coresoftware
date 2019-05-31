@@ -6,11 +6,8 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
-#include <map>
-#include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
 
 class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
 {

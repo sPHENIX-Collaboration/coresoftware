@@ -2,8 +2,12 @@
 #define G4DETECTORS_PHG4FORWARDECALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
-#include <Geant4/G4Step.hh>
 
+#include <Geant4/G4TouchableHandle.hh>
+
+class G4Step;
+class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4ForwardEcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;

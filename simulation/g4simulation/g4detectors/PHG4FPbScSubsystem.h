@@ -3,12 +3,13 @@
 
 #include <g4main/PHG4Subsystem.h>
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
+#include <string>                  // for string
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4FPbScDetector;
-class PHG4FPbScSteppingAction;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4FPbScSubsystem: public PHG4Subsystem
 {
@@ -58,7 +59,7 @@ class PHG4FPbScSubsystem: public PHG4Subsystem
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-    PHG4FPbScSteppingAction* steppingAction_;
+    PHG4SteppingAction* steppingAction_;
     PHG4EventAction *eventAction_;
     
     double x_position;

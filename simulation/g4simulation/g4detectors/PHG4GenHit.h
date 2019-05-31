@@ -3,6 +3,10 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <string>                // for string
+
+class PHCompositeNode;
+
 class PHG4GenHit: public SubsysReco
 {
  public:

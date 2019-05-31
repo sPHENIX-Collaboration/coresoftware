@@ -5,11 +5,11 @@
 #include <phparameter/PHParameterContainerInterface.h>
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                                      // for pair
 
 class PHCompositeNode;
 class PHG4Cell;
@@ -67,7 +67,6 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
   std::map<unsigned long long, PHG4Cell*>::iterator it;
   std::map<int, std::pair<double,double> > tmin_max;
 
-  PHTimeServer::timer _timer;
   int nbins[2];
   int chkenergyconservation;
 

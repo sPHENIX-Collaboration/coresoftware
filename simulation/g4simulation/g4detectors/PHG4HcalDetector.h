@@ -3,18 +3,19 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
 
 #include <map>
-#include <set>
+#include <string>                       // for string
 
 class G4Material;
-class G4Tubs;
 class G4LogicalVolume;
+class G4Tubs;
+class G4UserSteppingAction;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 
 class PHG4HcalDetector: public PHG4Detector
 {

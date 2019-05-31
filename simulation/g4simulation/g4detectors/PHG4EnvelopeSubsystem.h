@@ -5,6 +5,8 @@
 
 #include <Geant4/G4String.hh>
 
+#include <string>                  // for string
+
 class PHG4Detector;
 class PHG4EnvelopeDetector;
 class PHG4EnvelopeSteppingAction;

@@ -5,12 +5,13 @@
 
 #include <g4main/PHG4Subsystem.h>
 
-#include <Geant4/G4String.hh>
-#include <Geant4/G4Types.hh>
+#include <string>                  // for string
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4ForwardEcalDetector;
-class PHG4ForwardEcalSteppingAction;
+class PHG4SteppingAction;
 
 class PHG4ForwardEcalSubsystem : public PHG4Subsystem
 {

@@ -1,28 +1,33 @@
 #include "PHG4ForwardCalCellReco.h"
+
+#include "PHG4CylinderCell.h"            // for PHG4CylinderCell
 #include "PHG4CylinderCellv3.h"
 #include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCellDefs.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <phool/PHNodeIterator.h>
+#include <fun4all/SubsysReco.h>          // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>              // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
 #include <cmath>
 #include <cstdlib>
+#include <cstring>                      // for memset
 #include <iostream>
 #include <sstream>
-#include <limits>       // std::numeric_limits
 
 using namespace std;
 
 PHG4ForwardCalCellReco::PHG4ForwardCalCellReco(const string &name) :
   SubsysReco(name),
-  _timer(PHTimeServer::get()->insert_new(name.c_str())),
   chkenergyconservation(0),
   tmin_default(0.0),  // ns
   tmax_default(60.0), // ns
@@ -75,7 +80,6 @@ int PHG4ForwardCalCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4ForwardCalCellReco::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
     {
@@ -139,7 +143,6 @@ PHG4ForwardCalCellReco::process_event(PHCompositeNode *topNode)
     {
       CheckEnergy(topNode);
     }
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 
 }

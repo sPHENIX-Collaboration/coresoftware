@@ -1,18 +1,29 @@
 #include "PHG4HcalSubsystem.h"
+
 #include "PHG4HcalDetector.h"
 #include "PHG4HcalSteppingAction.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include <g4main/PHG4Utils.h>
 
-#include <g4main/PHG4PhenixDetector.h>
+#include <g4main/PHG4Utils.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>            // for PHIODataNode
+#include <phool/PHNode.h>                  // for PHNode
+#include <phool/PHNodeIterator.h>          // for PHNodeIterator
+#include <phool/PHObject.h>                // for PHObject
+#include <phool/getClass.h>
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4Types.hh>               // for G4double
 
+#include <cmath>                          // for asin, cos, sin, sqrt, M_PI
+#include <cstdlib>                        // for NULL, exit
+#include <iostream>                        // for operator<<, basic_ostream
 #include <sstream>
+
+class PHG4Detector;
+class PHG4SteppingAction;
 
 using namespace std;
 

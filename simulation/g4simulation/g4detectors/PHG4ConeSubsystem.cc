@@ -1,17 +1,26 @@
 #include "PHG4ConeSubsystem.h"
 #include "PHG4ConeDetector.h"
 #include "PHG4EventActionClearZeroEdep.h"
-#include "PHG4ConeRegionSteppingAction.h"
 #include "PHG4ConeSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>            // for PHIODataNode
+#include <phool/PHNode.h>                  // for PHNode
+#include <phool/PHNodeIterator.h>          // for PHNodeIterator
+#include <phool/PHObject.h>                // for PHObject
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4SystemOfUnits.hh>       // for cm
+#include <Geant4/G4Types.hh>               // for G4double
 
+#include <cmath>                          // for tan, atan, exp, M_PI
 #include <sstream>
+
+class PHG4Detector;
+class PHG4SteppingAction;
 
 using namespace std;
 

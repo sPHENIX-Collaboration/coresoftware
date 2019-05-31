@@ -5,8 +5,11 @@
 
 #include <g4main/PHG4DisplayAction.h>
 
-class G4VisAttributes;
+#include <string>                      // for string
+
 class G4LogicalVolume;
+class G4VisAttributes;
+class G4VPhysicalVolume;
 class PHParameters;
 
 class PHG4CylinderDisplayAction : public PHG4DisplayAction

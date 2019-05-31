@@ -1,7 +1,7 @@
 #ifndef G4DETECTORS_PHG4CELLDEFS_H
 #define G4DETECTORS_PHG4CELLDEFS_H
 
-#ifdef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <stdint.h>
 #else
 #include <cstdint>
@@ -16,7 +16,7 @@ namespace PHG4CellDefs
   typedef uint64_t keytype;
 
   // CINT does not know the __attribute__((unused))
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   // key layout
   // bit
   // 48-64 detector id (scintillator slat id, layer,...)

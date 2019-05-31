@@ -9,6 +9,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4CylinderDisplayAction;
 class PHG4CylinderSubsystem;
 class PHParameters;

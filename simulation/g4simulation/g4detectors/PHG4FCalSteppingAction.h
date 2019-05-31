@@ -3,6 +3,7 @@
 
 #include <Geant4/G4UserSteppingAction.hh>
 
+class G4Step;
 class PHCompositeNode;
 class PHG4FCalDetector;
 class PHG4Hit;

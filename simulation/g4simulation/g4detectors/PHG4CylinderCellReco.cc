@@ -4,35 +4,41 @@
 #include "PHG4CylinderCellGeomContainer.h"
 #include "PHG4CylinderCellGeom.h"
 
+#include "PHG4Cell.h"                                   // for PHG4Cell, PHG...
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
 #include "PHG4CellDefs.h"
 
 #include <phparameter/PHParametersContainer.h>
+#include <phparameter/PHParameterContainerInterface.h>  // for PHParameterCo...
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
-
-#include <TROOT.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <cmath>
 #include <cstdlib>
+#include <cstring>                                     // for memset
 #include <iostream>
+#include <iterator>                                     // for reverse_iterator
 #include <sstream>
-#include <limits>       // std::numeric_limits
+#include <vector>                                       // for vector
 
 using namespace std;
 
 PHG4CylinderCellReco::PHG4CylinderCellReco(const string &name) :
   SubsysReco(name),
   PHParameterContainerInterface(name),
-  _timer(PHTimeServer::get()->insert_new(name)),
   chkenergyconservation(0),
   sum_energy_before_cuts(0.),
   sum_energy_g4hit(0.)
@@ -328,7 +334,6 @@ int PHG4CylinderCellReco::InitRun(PHCompositeNode *topNode)
 int
 PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
 {
-  _timer.get()->restart();
 
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
@@ -838,7 +843,6 @@ PHG4CylinderCellReco::process_event(PHCompositeNode *topNode)
     {
       CheckEnergy(topNode);
     }
-  _timer.get()->stop();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
