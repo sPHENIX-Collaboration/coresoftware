@@ -1,5 +1,5 @@
-#ifndef PHG4GenHit_H__
-#define PHG4GenHit_H__
+#ifndef G4DETECTORS_PHG4GENHIT_H
+#define G4DETECTORS_PHG4GENHIT_H
 
 #include <fun4all/SubsysReco.h>
 

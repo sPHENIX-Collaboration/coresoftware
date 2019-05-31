@@ -1,5 +1,5 @@
-#ifndef G4DETECTORS_PHG4Cell_H
-#define G4DETECTORS_PHG4Cell_H
+#ifndef G4DETECTORS_PHG4CELL_H
+#define G4DETECTORS_PHG4CELL_H
 
 #include "PHG4CellDefs.h"
 

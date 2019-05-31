@@ -1,5 +1,5 @@
-#ifndef PHG4PSTOFDetector_h
-#define PHG4PSTOFDetector_h
+#ifndef G4DETECTORS_PHG4PSTOFDETECTOR_H
+#define G4DETECTORS_PHG4PSTOFDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 

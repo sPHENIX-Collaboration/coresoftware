@@ -1,5 +1,5 @@
-#ifndef PHG4VConeSteppingAction_h
-#define PHG4VConeSteppingAction_h
+#ifndef G4DETECTORS_PHG4CONESTEPPINGACTION_H
+#define G4DETECTORS_PHG4CONESTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 

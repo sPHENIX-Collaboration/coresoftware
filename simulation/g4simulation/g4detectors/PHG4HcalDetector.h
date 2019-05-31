@@ -1,5 +1,5 @@
-#ifndef PHG4HcalDetector_h
-#define PHG4HcalDetector_h
+#ifndef G4DETECTORS_PHG4HCALDETECTOR_H
+#define G4DETECTORS_PHG4HCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 

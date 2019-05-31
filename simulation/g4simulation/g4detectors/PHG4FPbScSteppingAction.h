@@ -1,5 +1,5 @@
-#ifndef PHG4FPbScSteppingAction_h
-#define PHG4FPbScSteppingAction_h
+#ifndef G4DETECTORS_PHG4FPBSCSTEPPINGACTION_H
+#define G4DETECTORS_PHG4FPBSCSTEPPINGACTION_H
 
 #include "g4main/PHG4SteppingAction.h"
 

@@ -1,5 +1,5 @@
-#ifndef PHG4VFPbScRegionSteppingAction_h
-#define PHG4VFPbScRegionSteppingAction_h
+#ifndef G4DETECTORS_PHG4FPBSCREGIONSTEPPINGACTION_H
+#define G4DETECTORS_PHG4FPBSCREGIONSTEPPINGACTION_H
 
 #include <Geant4/G4UserSteppingAction.hh>
 

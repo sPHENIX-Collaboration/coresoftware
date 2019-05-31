@@ -8,8 +8,8 @@
  * \date $Date: $
  */
 
-#ifndef PHG4OUTERHCALFIELDSETUP_H_
-#define PHG4OUTERHCALFIELDSETUP_H_
+#ifndef G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
+#define G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
 
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4UniformMagField.hh>

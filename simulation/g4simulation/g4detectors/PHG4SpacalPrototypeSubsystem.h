@@ -1,5 +1,5 @@
-#ifndef PHG4SpacalPrototypeSubsystem_h
-#define PHG4SpacalPrototypeSubsystem_h
+#ifndef G4DETECTORS_PHG4SPACALPROTOTYPESUBSYSTEM_H
+#define G4DETECTORS_PHG4SPACALPROTOTYPESUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 

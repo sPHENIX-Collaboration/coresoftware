@@ -1,5 +1,5 @@
-#ifndef PHG4VForwardEcalSteppingAction_h
-#define PHG4VForwardEcalSteppingAction_h
+#ifndef G4DETECTORS_PHG4FORWARDECALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4FORWARDECALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 #include <Geant4/G4Step.hh>

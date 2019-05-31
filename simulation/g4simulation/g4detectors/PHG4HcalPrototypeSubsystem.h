@@ -1,8 +1,8 @@
 // This is the subsystem code (header file) for the hcal prototype detector
 // created on 1/27/2014, Liang, HeXC
 //
-#ifndef PHG4HcalPrototypeSubsystem_h
-#define PHG4HcalPrototypeSubsystem_h
+#ifndef G4DETECTORS_PHG4HCALPROTOTYPESUBSYSTEM_H
+#define G4DETECTORS_PHG4HCALPROTOTYPESUBSYSTEM_H
 
 #include "g4main/PHG4Subsystem.h"
 

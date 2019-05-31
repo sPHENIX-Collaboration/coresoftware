@@ -1,5 +1,5 @@
-#ifndef PHG4HcalCellReco_H
-#define PHG4HcalCellReco_H
+#ifndef G4DETECTORS_PHG4HCALCELLRECO_H
+#define G4DETECTORS_PHG4HCALCELLRECO_H
 
 #include <phparameter/PHParameterInterface.h>
 

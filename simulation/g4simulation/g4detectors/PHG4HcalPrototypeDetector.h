@@ -2,8 +2,8 @@
 // created on 1/27/2014, Liang, HeXC
 // Updated on 3/21/2014, Liang, HeXC
 
-#ifndef PHG4HcalPrototypeDetector_h
-#define PHG4HcalPrototypeDetector_h
+#ifndef G4DETECTORS_PHG4HCALPROTOTYPEDETECTOR_H
+#define G4DETECTORS_PHG4HCALPROTOTYPEDETECTOR_H
 
 #include "PHG4HcalPrototypeDetectorMessenger.h"
 #include <g4main/PHG4Detector.h>

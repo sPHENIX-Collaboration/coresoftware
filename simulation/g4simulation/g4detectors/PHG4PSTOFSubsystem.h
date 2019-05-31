@@ -8,8 +8,8 @@
  * \date $Date$
  */
 
-#ifndef PHG4PSTOFSubsystem_h
-#define PHG4PSTOFSubsystem_h
+#ifndef G4DETECTORS_PHG4PSTOFSUBSYSTEM_H
+#define G4DETECTORS_PHG4PSTOFSUBSYSTEM_H
 
 #include "PHG4DetectorGroupSubsystem.h"
 

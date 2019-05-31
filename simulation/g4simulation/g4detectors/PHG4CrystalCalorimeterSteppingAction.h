@@ -1,5 +1,5 @@
-#ifndef PHG4VCrystalCalorimeterSteppingAction_h
-#define PHG4VCrystalCalorimeterSteppingAction_h
+#ifndef G4DETECTORS_PHG4CRYSTALCALORIMETERSTEPPINGACTION_H
+#define G4DETECTORS_PHG4CRYSTALCALORIMETERSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 #include <Geant4/G4Step.hh>

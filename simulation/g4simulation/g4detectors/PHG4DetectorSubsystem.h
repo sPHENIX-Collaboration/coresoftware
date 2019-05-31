@@ -1,5 +1,5 @@
-#ifndef PHG4DetectorSubsystem_h
-#define PHG4DetectorSubsystem_h
+#ifndef G4DETECTORS_PHG4DETECTORSUBSYSTEM_H
+#define G4DETECTORS_PHG4DETECTORSUBSYSTEM_H
 
 #include <g4main/PHG4Subsystem.h>
 

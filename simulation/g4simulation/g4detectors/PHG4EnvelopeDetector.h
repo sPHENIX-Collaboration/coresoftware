@@ -1,5 +1,5 @@
-#ifndef PHG4EnvelopeDetector_h
-#define PHG4EnvelopeDetector_h
+#ifndef G4DETECTORS_PHG4ENVELOPEDETECTOR_H
+#define G4DETECTORS_PHG4ENVELOPEDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 

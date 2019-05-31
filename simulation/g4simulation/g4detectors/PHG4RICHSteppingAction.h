@@ -8,8 +8,8 @@
  * \date $$Date: 2013/12/22 19:33:38 $$
  */
 
-#ifndef PHG4RICHSteppingAction_h
-#define PHG4RICHSteppingAction_h
+#ifndef G4DETECTORS_PHG4RICHSTEPPINGACTION_H
+#define G4DETECTORS_PHG4RICHSTEPPINGACTION_H
 
 #include <Geant4/G4UserSteppingAction.hh>
 

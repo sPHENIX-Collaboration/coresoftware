@@ -1,5 +1,5 @@
-#ifndef PHG4VSectorSteppingAction_h
-#define PHG4VSectorSteppingAction_h
+#ifndef G4DETECTORS_PHG4SECTORSTEPPINGACTION_H
+#define G4DETECTORS_PHG4SECTORSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 

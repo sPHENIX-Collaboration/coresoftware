@@ -8,8 +8,8 @@
  * \date $$Date: 2014/03/24 01:36:44 $$
  */
 
-#ifndef PHG4SpacalPrototypeSteppingAction_h
-#define PHG4SpacalPrototypeSteppingAction_h
+#ifndef G4DETECTORS_PHG4SPACALPROTOTYPESTEPPINGACTION_H
+#define G4DETECTORS_PHG4SPACALPROTOTYPESTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 #include <string>

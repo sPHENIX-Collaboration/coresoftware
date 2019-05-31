@@ -2,8 +2,8 @@
  *                        March 2nd 2017                         *
  *         mRICH Detector created by Cheuk-Ping Wong @GSU        *
  *===============================================================*/
-#ifndef PHG4mRICHDetector_h
-#define PHG4mRICHDetector_h
+#ifndef G4DETECTORS_PHG4MRICHDETECTOR_H
+#define G4DETECTORS_PHG4MRICHDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 #include <Geant4/G4ThreeVector.hh>

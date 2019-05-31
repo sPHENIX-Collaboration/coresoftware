@@ -1,5 +1,5 @@
-#ifndef PHG4VEnvelopeSteppingAction_h
-#define PHG4VEnvelopeSteppingAction_h
+#ifndef G4DETECTORS_PHG4ENVELOPESTEPPINGACTION_H
+#define G4DETECTORS_PHG4ENVELOPESTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 #include <Geant4/G4Step.hh>

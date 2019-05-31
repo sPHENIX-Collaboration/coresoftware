@@ -1,5 +1,5 @@
-#ifndef PHG4HcalDefs_h
-#define PHG4HcalDefs_h
+#ifndef G4DETECTORS_PHG4HCALDEFS_H
+#define G4DETECTORS_PHG4HCALDEFS_H
 
 #include <string>
 
