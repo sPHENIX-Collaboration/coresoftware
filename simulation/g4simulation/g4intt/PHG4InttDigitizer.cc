@@ -4,35 +4,42 @@
 
 #include "InttDeadMap.h"
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 // Move to new storage containers
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrDefs.h>
+
+#include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
+
 #include <intt/InttDefs.h>
 #include <intt/InttHit.h>
 
+#include <fun4all/Fun4AllBase.h>                    // for Fun4AllBase::VERB...
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                            // for PHWHERE
 
 #include <TSystem.h>
 
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                            // for gsl_rng_alloc
 
-#include <cfloat>
-#include <cmath>
-#include <iostream>
 #include <cassert>
+#include <cfloat>
+#include <cstdlib>                                 // for exit
+#include <iostream>
+#include <memory>                                   // for allocator_traits<...
+#include <type_traits>                              // for __decay_and_strip...
 
 using namespace std;
 

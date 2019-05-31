@@ -8,15 +8,15 @@
  * \date $Date: $
  */
 
-#ifndef G4INTT_PHG4INTTDeadMapLoader_H
-#define G4INTT_PHG4INTTDeadMapLoader_H
+#ifndef G4INTT_PHG4INTTDEADMAPLOADER_H
+#define G4INTT_PHG4INTTDEADMAPLOADER_H
 
 #include <fun4all/SubsysReco.h>
 
 #include <map>
 #include <string>
 
-class InttDeadMap;
+class PHCompositeNode;
 
 /*!
  * \brief PHG4InttDeadMapLoader loads dead map at inti run
@@ -49,7 +49,6 @@ class PHG4InttDeadMapLoader : public SubsysReco
   std::map<unsigned int, std::string> m_deadMapPathMap;
 
   std::string m_detector;
-  InttDeadMap* m_deadmap;
 };
 
 #endif /* G4INTT_PHG4INTTDeadMapLoader_H */

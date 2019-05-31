@@ -1,13 +1,14 @@
 #include "InttDeadMap.h"
 
+#include <g4detectors/PHG4CellDefs.h>
+
 #include <cassert>
 #include <iostream>
 #include <limits>
 
 using namespace std;
 
-int
-    InttDeadMap::s_wildCardID = -1;
+int InttDeadMap::s_wildCardID = -1;
 
 const InttDeadMap::Map&
 InttDeadMap::getDeadChannels(void) const

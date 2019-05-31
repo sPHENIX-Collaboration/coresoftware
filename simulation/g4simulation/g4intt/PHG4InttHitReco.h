@@ -7,8 +7,8 @@
 
 #include <fun4all/SubsysReco.h>
 
-#ifndef __CINT__
-#include <gsl/gsl_vector.h>
+#if !defined(__CINT__) || defined(__CLING__)
+#include <gsl/gsl_vector.h>             // for gsl_vector
 #endif
 
 #include <string>

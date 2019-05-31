@@ -5,11 +5,15 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
+#include <string>                                    // for string
+#include <utility>                                   // for pair
 #include <vector>
 
-class PHG4InttDetector;
-class PHG4InttSteppingAction;
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
+class PHG4InttDetector;
+class PHG4SteppingAction;
 
 class PHG4InttSubsystem : public PHG4DetectorGroupSubsystem
 {

@@ -6,15 +6,16 @@
 #include <g4main/PHG4SteppingAction.h>
 
 #include <map>
-#include <set>
 #include <vector>
+#include <utility>                      // for pair
 
+class G4Step;
+class PHCompositeNode;
 class PHG4InttDetector;
-class PHParametersContainer;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
-class PHG4CylinderGeomContainer;
+class PHParametersContainer;
 
 class PHG4InttSteppingAction : public PHG4SteppingAction
 {

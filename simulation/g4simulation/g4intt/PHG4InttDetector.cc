@@ -1,5 +1,6 @@
 #include "PHG4InttDetector.h"
 
+#include "PHG4InttDefs.h"                           // for SEGMENTATION_Z
 #include "PHG4InttDisplayAction.h"
 #include "PHG4InttFPHXParameterisation.h"
 #include "PHG4InttSubsystem.h"
@@ -11,30 +12,47 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
-#include <g4main/PHG4Utils.h>
+#include <g4main/PHG4Detector.h>                    // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>               // for PHG4DisplayAction
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNodeIterator.h>                   // for PHNodeIterator
+#include <phool/PHObject.h>                         // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                            // for PHWHERE
 
 #include <TSystem.h>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
+#include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVParameterised.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4UnionSolid.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4RotationMatrix.hh>               // for G4RotationMatrix
+#include <Geant4/G4String.hh>                       // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4GenericTrap.hh>
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>                  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>                  // for G4Transform3D
+#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4TwoVector.hh>                    // for G4TwoVector
+#include <Geant4/G4VPhysicalVolume.hh>              // for G4VPhysicalVolume
+#include <Geant4/geomdefs.hh>                       // for kZAxis
 
-#include <array>
-#include <boost/foreach.hpp>
 #include <boost/format.hpp>
+
+#include <algorithm>                                // for fill_n
+#include <array>
+#include <cassert>                                 // for assert
 #include <cmath>
+#include <cstdlib>                                 // for exit, NULL
+#include <iostream>                                 // for operator<<, basic...
+
+class G4VPVParameterisation;
+class G4VSolid;
 
 using namespace std;
 
