@@ -4,7 +4,10 @@
 #include "CellularAutomaton.h"
 
 #include "Cluster3D.h"          // for Cluster3D
+
+#if !defined(__CINT__) || defined(__CLING__)
 #include "HelixTrackState.h"    // for HelixTrackState
+#endif
 
 #include <iostream>             // for cout, ostream
 #include <map>                  // for map

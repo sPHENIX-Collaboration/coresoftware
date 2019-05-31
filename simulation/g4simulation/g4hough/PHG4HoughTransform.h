@@ -22,9 +22,9 @@
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h> 
+#include <Eigen/Core>                  // for Matrix
 #endif
 
-#include <Eigen/Core>                  // for Matrix
 
 // standard includes
 #include <cfloat>
