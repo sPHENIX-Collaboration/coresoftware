@@ -1,7 +1,5 @@
 #include "HelixHoughSpace_v1.h"
 
-#include <limits.h>
-
 using namespace std;
 
 HelixHoughSpace_v1::HelixHoughSpace_v1()
@@ -232,7 +230,7 @@ unsigned int HelixHoughSpace_v1::get_z0_bin(unsigned int zoomlevel, float z0) co
 unsigned int HelixHoughSpace_v1::get_bin(unsigned int zoomlevel, unsigned int* bins) const {
 
 //    cout<<"HoughSpace:: zoom "<<zoomlevel<<" kappa "<<bins[0]<<endl;
-    unsigned int bin;
+    unsigned int bin = 0;
     for (unsigned int izoom = 0; izoom<zoomlevel; izoom++) bin += get_n_kappa_bins(izoom)*get_n_phi_bins(izoom)*get_n_d_bins(izoom)*get_n_dzdl_bins(izoom)*get_n_z0_bins(izoom);  
     bin = bins[0] + _zoom_profile[zoomlevel][0] * (bins[1] + _zoom_profile[zoomlevel][1] * (bins[2] + _zoom_profile[zoomlevel][2] *( bins[3] + _zoom_profile[zoomlevel][3] * bins[4])));
     return bin;

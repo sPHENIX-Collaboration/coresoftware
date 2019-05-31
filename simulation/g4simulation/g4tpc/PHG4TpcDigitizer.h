@@ -9,16 +9,17 @@
 #include <trackbase/TrkrHitSet.h>
 
 #include <map>
+#include <string>                  // for string
+#include <utility>                 // for pair, make_pair
 #include <vector>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
+class PHCompositeNode;
 class SvtxHitMap;
-class PHG4Cell;
-class TrkrHit;
 
 class PHG4TpcDigitizer : public SubsysReco
 {
@@ -72,9 +73,6 @@ class PHG4TpcDigitizer : public SubsysReco
   // settings
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
-
-  // storage
-  SvtxHitMap *_hitmap;
 
 #ifndef __CINT__
   //! random generator that conform with sPHENIX standard

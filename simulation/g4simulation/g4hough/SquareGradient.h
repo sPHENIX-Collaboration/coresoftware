@@ -1,7 +1,9 @@
-#ifndef __SQUAREGRADIENT__
-#define __SQUAREGRADIENT__
+#ifndef G4HOUGH_SQUAREGRADIENT_H
+#define G4HOUGH_SQUAREGRADIENT_H
 
 #include "FunctionGradHessian.h"
+
+#include <Eigen/Core>             // for VectorXd, MatrixXd
 
 namespace NewtonMinimizer
 {

@@ -7,14 +7,17 @@
  * \version $$Revision: 1.3 $$
  * \date $$Date: 2014/08/28 22:18:35 $$
  */
-#ifndef PHG4CylinderGeom_Spacalv3_H__
-#define PHG4CylinderGeom_Spacalv3_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMSPACALV3_H
+#define G4DETECTORS_PHG4CYLINDERGEOMSPACALV3_H
 
 #include "PHG4CylinderGeom_Spacalv2.h"
 
+#include <iostream>                     // for operator<<, basic_ostream::op...
 #include <map>
 #include <string>
 #include <utility>  // std::pair, std::make_pair
+
+class PHParameters;
 
 class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
 {

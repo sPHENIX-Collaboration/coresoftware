@@ -2,30 +2,38 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4PhenixDetector.h>
+#include <g4main/PHG4Detector.h>           // for PHG4Detector
 #include <g4main/PHG4Utils.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/phool.h>
 
-#include <Geant4/G4Colour.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4FieldManager.hh>
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4UniformMagField.hh>
-#include <Geant4/G4QuadrupoleMagField.hh>
-#include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4ChordFinder.hh>
 #include <Geant4/G4ClassicalRK4.hh>
-#include <Geant4/G4TransportationManager.hh>
+#include <Geant4/G4FieldManager.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4MagneticField.hh>
+#include <Geant4/G4Mag_UsualEqRhs.hh>
+#include <Geant4/G4Material.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4QuadrupoleMagField.hh>
+#include <Geant4/G4RotationMatrix.hh>
+#include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>               // for G4double, G4bool
+#include <Geant4/G4UniformMagField.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <CLHEP/Units/SystemOfUnits.h>     // for cm, deg, tesla, twopi, meter
+
+#include <cstdlib>                        // for exit
+#include <iostream>                        // for operator<<, basic_ostream
+
+class G4VSolid;
+class PHCompositeNode;
 
 using namespace std;
 

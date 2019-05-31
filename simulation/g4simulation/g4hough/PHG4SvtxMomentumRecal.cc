@@ -3,15 +3,18 @@
 #include  <trackbase_historic/SvtxTrackMap.h>
 #include  <trackbase_historic/SvtxTrack.h>
 
-// PHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <fun4all/SubsysReco.h>               // for SubsysReco
+
 #include <phool/getClass.h>
+#include <phool/phool.h>                      // for PHWHERE
+
+#include <TF1.h>                              // for TF1
 
 // standard includes
 #include <iostream>
-#include <vector>
+#include <map>                                // for _Rb_tree_iterator
+#include <utility>                            // for pair
 
 using namespace std;
 

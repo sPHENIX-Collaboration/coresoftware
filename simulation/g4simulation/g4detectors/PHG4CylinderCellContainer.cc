@@ -1,14 +1,12 @@
 #include "PHG4CylinderCellContainer.h"
+
+#include "PHG4CylinderCell.h"      // for PHG4CylinderCell
 #include "PHG4CylinderCellv1.h"
 #include "PHG4CylinderCellDefs.h"
 
 #include <cstdlib>
 
 using namespace std;
-
-PHG4CylinderCellContainer::PHG4CylinderCellContainer()
-{
-}
 
 void
 PHG4CylinderCellContainer::Reset()

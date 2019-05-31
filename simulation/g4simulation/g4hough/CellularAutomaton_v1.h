@@ -1,13 +1,20 @@
-#ifndef __CELLULARAUTOMATON_V1_H__
-#define __CELLULARAUTOMATON_V1_H__
-
-// to use eigen3 package
-#ifndef __CINT__
-#include "HelixKalmanFilter.h"
-#endif
+#ifndef G4HOUGH_CELLULARAUTOMATONV1_H
+#define G4HOUGH_CELLULARAUTOMATONV1_H
 
 #include "CellularAutomaton.h"
 
+#include "Cluster3D.h"          // for Cluster3D
+
+#if !defined(__CINT__) || defined(__CLING__)
+#include "HelixTrackState.h"    // for HelixTrackState
+#endif
+
+#include <iostream>             // for cout, ostream
+#include <map>                  // for map
+#include <set>                  // for set
+#include <vector>               // for vector
+
+class HelixHoughSpace;
 class HelixKalmanFilter;
 
 class TrackSegment {

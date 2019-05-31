@@ -1,7 +1,5 @@
 #include "PHG4Cellv2.h"
 
-#include <phool/phool.h>
-
 #include <iostream>
 
 using namespace std;

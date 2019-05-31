@@ -3,6 +3,8 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
+
 class PHG4ScintillatorSlat;
 
 class G4RootScintillatorSlat : public PHObject

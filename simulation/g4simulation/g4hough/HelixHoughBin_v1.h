@@ -1,10 +1,11 @@
-#ifndef __HELIXHOUGHBIN_V1_H__
-#define __HELIXHOUGHBIN_V1_H__
+#ifndef G4HOUGH_HELIXHOUGHBINV1_H
+#define G4HOUGH_HELIXHOUGHBINV1_H
 
 #include "HelixHoughBin.h"
 #include "HelixHoughSpace.h"
 
-class HelixHoughSpace;
+#include <stddef.h>           // for size_t
+#include <iostream>           // for cout, ostream
 
 class HelixHoughBin_v1 : public HelixHoughBin {
 

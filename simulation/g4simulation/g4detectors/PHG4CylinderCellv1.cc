@@ -1,5 +1,8 @@
 #include "PHG4CylinderCellv1.h"
-#include "PHG4CylinderCellDefs.h"
+
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
+#include <ostream>               // for operator<<, ostream, basic_ostream::...
 
 using namespace std;
 

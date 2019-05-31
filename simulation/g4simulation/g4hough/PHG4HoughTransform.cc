@@ -10,12 +10,8 @@
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxCluster.h>
-
-#include <mvtx/CylinderGeom_Mvtx.h>
-#include <intt/CylinderGeomIntt.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeomContainer.h>
@@ -28,24 +24,33 @@
 
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 // Helix Hough includes
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/HelixResolution.h>
 #include <HelixHough/HelixRange.h>
-#include <HelixHough/HelixHough.h>
 #include <HelixHough/sPHENIXTracker.h>
 #include <HelixHough/VertexFinder.h>
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 // standard includes
 #include <cmath>
-#include <float.h>
+#include <cfloat>
+#include <cstddef>                                     // for NULL
 #include <iostream>
+#include <memory>                                       // for allocator_tra...
+#include <utility>                                      // for pair, make_pair
 
 using namespace std;
 
@@ -87,15 +92,15 @@ PHG4HoughTransform::PHG4HoughTransform(unsigned int nlayers,
       _track_errors(),
       _track_covars(),
       _vertex(),
-      _tracker(NULL),
-      _tracker_vertex(NULL),
-      _tracker_etap_seed(NULL),
-      _tracker_etam_seed(NULL),
+      _tracker(nullptr),
+      _tracker_vertex(nullptr),
+      _tracker_etap_seed(nullptr),
+      _tracker_etam_seed(nullptr),
       _vertexFinder(),
-      _bbc_vertexes(NULL),
-      _g4clusters(NULL),
-      _g4tracks(NULL),
-      _g4vertexes(NULL) {
+      _bbc_vertexes(nullptr),
+      _g4clusters(nullptr),
+      _g4tracks(nullptr),
+      _g4vertexes(nullptr) {
 }
 
 int PHG4HoughTransform::Init(PHCompositeNode* topNode) {
@@ -206,10 +211,10 @@ int PHG4HoughTransform::process_event(PHCompositeNode *topNode) {
 
 int PHG4HoughTransform::End(PHCompositeNode *topNode) {
 
-  delete _tracker_etap_seed; _tracker_etap_seed = NULL;
-  delete _tracker_etam_seed; _tracker_etam_seed = NULL;
-  delete _tracker_vertex; _tracker_vertex = NULL;
-  delete _tracker; _tracker = NULL;
+  delete _tracker_etap_seed; _tracker_etap_seed = nullptr;
+  delete _tracker_etam_seed; _tracker_etam_seed = nullptr;
+  delete _tracker_vertex; _tracker_vertex = nullptr;
+  delete _tracker; _tracker = nullptr;
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -228,7 +233,7 @@ void PHG4HoughTransform::projectToRadius(const SvtxTrack* track,
   // iterate once to see if there is a state vector closer to the intersection
   if (track->size_states() == 1) return;
 
-  const SvtxTrackState* closest = NULL;  
+  const SvtxTrackState* closest = nullptr;  
   float min_dist = FLT_MAX;
   for (SvtxTrack::ConstStateIter iter = track->begin_states();
        iter != track->end_states();

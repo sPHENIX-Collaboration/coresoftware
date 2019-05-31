@@ -1,14 +1,12 @@
 #include "HelixHoughFuncs_v1.h"
-#include "HelixHoughSpace_v1.h"
 
-#include <limits.h>
-#include <vector>
 #include <cmath>
+#include <vector>
 
 using namespace std;
 
 HelixHoughFuncs_v1::HelixHoughFuncs_v1()
- : _hough_space(NULL)
+ : _hough_space(nullptr)
 {
 
 }

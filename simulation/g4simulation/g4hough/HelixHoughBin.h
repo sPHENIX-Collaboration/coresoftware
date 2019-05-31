@@ -1,16 +1,17 @@
-#ifndef __HELIXHOUGHBIN_H__
-#define __HELIXHOUGHBIN_H__
+#ifndef G4HOUGH_HELIXHOUGHBIN_H
+#define G4HOUGH_HELIXHOUGHBIN_H
+
+
+#include "HelixHoughSpace.h"
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>
 
-#include "HelixHoughSpace.h"
-
-#include <iostream>
-#include <set>
-#include <map>
+#include <climits>
 #include <cmath>
-#include <limits.h>
+#include <iostream>
+#include <map>
+#include <set>
 
 class HelixHoughSpace;
 
@@ -33,7 +34,7 @@ public:
   }
   virtual void Reset() {}
   virtual int isValid() const {return 0;}
-  virtual HelixHoughBin* Clone() const {return NULL;}
+  virtual HelixHoughBin* Clone() const {return nullptr;}
 
   virtual void init() {}
 
@@ -62,16 +63,20 @@ public:
   virtual void set_phi_bin(unsigned int zoomlevel, unsigned int phi_bin) {}
   virtual unsigned int get_phi_high_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_phi_high_bin(unsigned int zoomlevel) {}
+  virtual void set_phi_high_bin(unsigned int zoomlevel, unsigned int phi_high_bin) {}
   virtual unsigned int get_phi_low_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_phi_low_bin(unsigned int zoomlevel) {}
+  virtual void set_phi_low_bin(unsigned int zoomlevel, unsigned int phi_low_bin) {}
   virtual unsigned int get_d_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_d_bin(unsigned int zoomlevel, unsigned int d_bin) {}
   virtual unsigned int get_dzdl_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_dzdl_bin(unsigned int zoomlevel, unsigned int dzdl_bin) {}
   virtual unsigned int get_dzdl_high_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_dzdl_high_bin(unsigned int zoomlevel) {}
+  virtual void set_dzdl_high_bin(unsigned int zoomlevel, unsigned int dzdl_high_bin) {}
   virtual unsigned int get_dzdl_low_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_dzdl_low_bin(unsigned int zoomlevel) {}
+  virtual void set_dzdl_low_bin(unsigned int zoomlevel, unsigned int dzdl_low_bin) {}
   virtual unsigned int  get_z0_bin(unsigned int zoomlevel) const {return UINT_MAX;}
   virtual void set_z0_bin(unsigned int zoomlevel, unsigned int z0_bin) {}
 

@@ -4,17 +4,15 @@
 #include <g4main/PHG4HitContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>           // for SubsysReco
 
 #include <phool/getClass.h>
 
 #include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
 #include <TNtuple.h>
 
-#include <boost/foreach.hpp>
-
 #include <sstream>
+#include <utility>                        // for pair
 
 using namespace std;
 

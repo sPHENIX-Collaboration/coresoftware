@@ -1,54 +1,45 @@
-#ifndef __PHG4INITZVERTEXING_H__
-#define __PHG4INITZVERTEXING_H__
-
-// PHENIX includes
-#include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
-#include <g4bbc/BbcVertexMap.h>
-
-// standard includes
-#include <vector>
-#include <map>
-#include <memory>
-#include <float.h>
-
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TFile.h>
+#ifndef G4HOUGH_PHG4INITZVERTEXING_H
+#define G4HOUGH_PHG4INITZVERTEXING_H
 
 // Helix Hough includes
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include "VertexFitter.h"
 #include "HelixTrackState.h"
 #include "Track3D.h"
+#include <Eigen/Core>            // for Matrix
 #endif
 
 #include "Cluster3D.h"
 
-#include <trackbase_historic/SvtxTrackState.h>
 
-// g4hough includes 
-#include "HelixHoughSpace_v1.h"
-#include "HelixHoughFuncs_v1.h"
-#include "HelixHoughBin_v1.h"
-#include "CellularAutomaton.h"
+#include <fun4all/SubsysReco.h>
+
+// standard includes
+#include <algorithm>             // for copy
+#include <map>
+#include <string>                // for string
+#include <vector>
+
 
 // forward declarations
+class BbcVertexMap;
+
+class CellularAutomaton;
+
 class HelixHoughBin;
 class HelixHoughSpace;   
 class HelixHoughFuncs;
-class HelixTrackState;
-class CellularAutomaton;
+
 class PHCompositeNode;
+class PHTimer;
+
 class SvtxClusterMap;
 class SvtxTrackMap;
-class SvtxTrack;
 class SvtxVertexMap;
-class SvtxVertex;
-class PHG4HitContainer;
 
+class TFile;
+class TH2D;
+class TH3D;
 class TNtuple;
 
 ///
@@ -226,7 +217,6 @@ private:
 	unsigned int _nlayers;               ///< number of detector layers
 	unsigned int _min_nlayers;     ///< minimum number of layers to make a track
 	unsigned int _ca_nlayers;
-	unsigned int _ca_min_nlayers;
 	
 	float _ca_chi2;
 	std::vector<float> _radii;           ///< radial distance of each layer (cm)
@@ -235,8 +225,6 @@ private:
 
 	float _mag_field; ///< in Tesla
 
-	bool _reject_ghosts;
-	bool _remove_hits;
 	bool _use_max_kappa;
 	bool fill_multi_zvtx;
 
@@ -302,7 +290,6 @@ private:
 
 	CellularAutomaton* ca;
 
-	int _mode;
 	TNtuple* _ntp_zvtx_by_event;
 	TNtuple* _ntp_zvtx_by_track;
 	TH2D* _z0_dzdl;

@@ -1,17 +1,16 @@
-#ifndef PHG4BLOCKCELLRECO_H
-#define PHG4BLOCKCELLRECO_H
+#ifndef G4DETECTORS_PHG4BLOCKCELLRECO_H
+#define G4DETECTORS_PHG4BLOCKCELLRECO_H
 
 #include <phparameter/PHParameterContainerInterface.h>
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                                      // for pair
 
 class PHCompositeNode;
-class PHG4BlockCell;
 
 class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterface
 {
@@ -59,7 +58,6 @@ class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterfac
   std::string geonodename;
   std::string seggeonodename;
   std::map<int, std::pair<int, int> > n_x_z_bins;
-  PHTimeServer::timer _timer;
   int chkenergyconservation;
 
 };

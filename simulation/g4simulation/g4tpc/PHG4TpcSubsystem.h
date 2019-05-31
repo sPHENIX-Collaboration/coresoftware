@@ -7,9 +7,11 @@
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
+class PHG4SteppingAction;
 class PHG4TpcDetector;
-class PHG4TpcSteppingAction;
 
 class PHG4TpcSubsystem : public PHG4DetectorSubsystem
 {

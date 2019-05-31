@@ -1,16 +1,10 @@
 #include "PHG4SvtxTrackProjection.h"
+
 #include "PHG4HoughTransform.h"
 
 #include  <trackbase_historic/SvtxTrackMap.h>
 #include  <trackbase_historic/SvtxTrack.h>
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
-// PHENIX Geant4 includes
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTower.h>
@@ -18,8 +12,21 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterUtility.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>               // for SubsysReco
+
+#include <phool/getClass.h>
+#include <phool/phool.h>                      // for PHWHERE
+
+#include <CLHEP/Vector/ThreeVector.h>
+
 // standard includes
+#include <cfloat>                            // for DBL_MAX
+#include <cmath>                              // for isnan, atan2, sqrt, NAN
+#include <cstdlib>                           // for abs
 #include <iostream>
+#include <map>                                // for _Rb_tree_iterator
+#include <utility>                            // for pair
 #include <vector>
 
 using namespace std;
@@ -27,8 +34,7 @@ using namespace std;
 PHG4SvtxTrackProjection::PHG4SvtxTrackProjection(const string &name) :
   SubsysReco(name),
   _num_cal_layers(4),
-  _magfield(1.5),
-  _mag_extent(156.5) // middle of Babar magent
+  _magfield(1.5)
 {
   _cal_radii.assign(_num_cal_layers,NAN);
   _cal_names.push_back("PRES"); // PRES not yet in G4

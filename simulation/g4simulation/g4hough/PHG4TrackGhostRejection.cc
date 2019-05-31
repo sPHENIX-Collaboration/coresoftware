@@ -6,12 +6,16 @@
 #include <trackbase_historic/SvtxTrack.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
-#include <iostream>
+#include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
+
 #include <algorithm>
+#include <cstddef>                            // for NULL
+#include <iostream>
+#include <memory>                              // for allocator_traits<>::va...
+#include <utility>                             // for pair, make_pair
 
 using namespace std;
 
@@ -19,7 +23,7 @@ bool hit_sort(const unsigned int i, const unsigned int j) { return (i < j);}
 
 PHG4TrackGhostRejection::PHG4TrackGhostRejection(const int nlayers, const string &name) :
   SubsysReco(name),
-  _g4tracks(NULL),
+  _g4tracks(nullptr),
   _nlayers(nlayers),
   _max_shared_hits(_nlayers)
 {

@@ -1,54 +1,38 @@
-#ifndef __PHG4PATTERNRECO_H__
-#define __PHG4PATTERNRECO_H__
-
-// PHENIX includes
-#include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
-#include <g4bbc/BbcVertexMap.h>
-
-// standard includes
-#include <vector>
-#include <map>
-#include <memory>
-#include <float.h>
-
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TFile.h>
-
-// Helix Hough includes
-#ifndef __CINT__
-#include "VertexFitter.h"
-#include "HelixTrackState.h"
-#include "Track3D.h"
-#endif
+#ifndef G4HOUGH_PHG4PATTERNRECO_H
+#define G4HOUGH_PHG4PATTERNRECO_H
 
 #include "Cluster3D.h"
 
-#include <trackbase_historic/SvtxTrackState.h>
+// Helix Hough includes
+#if !defined(__CINT__) || defined (__CLING__)
+#include "VertexFitter.h"
+#include "HelixTrackState.h"
+#include "Track3D.h"
+#include <Eigen/Core>            // for Matrix
+#endif
 
-// g4hough includes 
-#include "HelixHoughSpace_v1.h"
-#include "HelixHoughFuncs_v1.h"
-#include "HelixHoughBin_v1.h"
-#include "CellularAutomaton.h"
+#include <fun4all/SubsysReco.h>
+
+#include <map>
+#include <string>                // for string
+#include <vector>
+
 
 // forward declarations
+class BbcVertexMap;
+class CellularAutomaton;
 class HelixHoughBin;
 class HelixHoughSpace;   
 class HelixHoughFuncs;
-class HelixTrackState;
-class CellularAutomaton;
 class PHCompositeNode;
+class PHTimer;
 class SvtxClusterMap;
 class SvtxTrackMap;
-class SvtxTrack;
 class SvtxVertexMap;
-class SvtxVertex;
-class PHG4HitContainer;
 
+class TFile;
+class TH2D;
+class TH3D;
 class TNtuple;
 
 ///

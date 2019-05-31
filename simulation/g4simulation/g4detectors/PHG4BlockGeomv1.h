@@ -1,10 +1,9 @@
-#ifndef PHG4BlockGeomv1_H__
-#define PHG4BlockGeomv1_H__
+#ifndef G4DETECTORS_PHG4BLOCKGEOMV1_H
+#define G4DETECTORS_PHG4BLOCKGEOMV1_H
 
 #include "PHG4BlockGeom.h"
 
-#include <phool/phool.h>
-#include <cmath>
+#include <iostream>         // for cout, ostream
 
 class PHG4BlockGeomv1: public PHG4BlockGeom
 {

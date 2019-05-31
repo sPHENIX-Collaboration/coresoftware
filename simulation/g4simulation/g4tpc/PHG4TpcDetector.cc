@@ -3,24 +3,27 @@
 #include "PHG4TpcDisplayAction.h"
 #include "PHG4TpcSubsystem.h"
 
-#include <phparameter/PHParameters.h>
+#include <g4main/PHG4Detector.h>         // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <phparameter/PHParameters.h>
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4Region.hh>
-#include <Geant4/G4RegionStore.hh>
+#include <Geant4/G4String.hh>            // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
+#include <Geant4/G4VPhysicalVolume.hh>   // for G4VPhysicalVolume
 
 #include <cmath>
+#include <iostream>                      // for basic_ostream::operator<<
+#include <map>                           // for map
 #include <sstream>
+
+class PHCompositeNode;
 
 using namespace std;
 

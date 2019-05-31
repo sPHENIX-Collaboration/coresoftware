@@ -7,13 +7,15 @@
  * \version $$Revision: 1.3 $$
  * \date $$Date: 2014/08/28 22:18:35 $$
  */
-#ifndef PHG4CylinderGeom_Spacalv2_H__
-#define PHG4CylinderGeom_Spacalv2_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMSPACALV2_H
+#define G4DETECTORS_PHG4CYLINDERGEOMSPACALV2_H
 
 #include "PHG4CylinderGeom_Spacalv1.h"
 
-#include <string>
 #include <cmath>
+#include <iostream>                     // for cout, ostream
+
+class PHParameters;
 
 class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
 {

@@ -1,13 +1,10 @@
 #include "PHG4BlockCellGeomContainer.h"
+
 #include "PHG4BlockCellGeom.h"
-#include <cmath>
+
+#include <cstddef>             // for NULL
 
 using namespace std;
-
-PHG4BlockCellGeomContainer::PHG4BlockCellGeomContainer()
-{
-  return;
-}
 
 PHG4BlockCellGeomContainer::~PHG4BlockCellGeomContainer()
 {
@@ -66,6 +63,6 @@ PHG4BlockCellGeomContainer::GetLayerCellGeom(const int i)
       return iter->second;
     }
   cout << "Could not locate layer " << i << " in PHG4BlockCellGeomContainer" << endl;
-  return NULL;
+  return nullptr;
 }
 

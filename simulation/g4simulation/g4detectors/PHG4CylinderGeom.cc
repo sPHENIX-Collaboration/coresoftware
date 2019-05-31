@@ -1,5 +1,6 @@
 #include "PHG4CylinderGeom.h"
-#include <cmath>
+
+#include <ostream>  // for operator<<, endl, ostream, basic_ostream
 
 using namespace std;
 

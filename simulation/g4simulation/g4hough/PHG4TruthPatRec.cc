@@ -7,13 +7,14 @@
 
 #include "PHG4TruthPatRec.h"
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrack_FastSim.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxCluster.h>
 #include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxHit.h>
 #include <trackbase_historic/SvtxHitMap.h>
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase_historic/SvtxTrackMap.h>       // for SvtxTrackMap, Svtx...
+#include <trackbase_historic/SvtxTrackMap_v1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4Cell.h>
@@ -23,14 +24,21 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <fun4all/SubsysReco.h>                    // for SubsysReco
+
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                          // for PHNode
+#include <phool/PHNodeIterator.h>                  // for PHNodeIterator
+#include <phool/PHObject.h>                        // for PHObject
+#include <phool/phool.h>                           // for PHWHERE
 
 #include <iostream>
 #include <map>
 #include <memory>
 #include <set>
+#include <utility>                                 // for pair
 
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp <<std::endl

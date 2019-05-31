@@ -3,16 +3,19 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Utils.h>
+#include <cmath>                        // for NAN
+#include <cstddef>                      // for NULL
+#include <iostream>                      // for operator<<, endl, basic_ostream
 
-#include <Geant4/globals.hh>
+class PHCompositeNode;
+class PHG4Detector;
 
 using namespace std;
 
 //_______________________________________________________________________
 PHG4BeamlineMagnetSubsystem::PHG4BeamlineMagnetSubsystem( const std::string &na, const int lyr):
   PHG4DetectorSubsystem(na,lyr),
-  detector_( NULL )
+  detector_( nullptr )
 {
   InitializeParameters();
 }

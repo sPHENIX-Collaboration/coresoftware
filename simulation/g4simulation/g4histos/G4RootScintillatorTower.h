@@ -5,6 +5,8 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
+
 class RawTower;
 
 class G4RootScintillatorTower : public PHObject

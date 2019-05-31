@@ -1,6 +1,13 @@
-
 #include "HelixKalmanFilter.h"
-#include <iostream>
+
+#include "Cluster3D.h"
+#include "HelixTrackState.h"
+
+#include <Eigen/Dense>
+#include <Eigen/LU>
+
+#include <algorithm>                          // for copy
+#include <cmath>                             // for sqrt, M_PI, atan2
 
 using namespace std;
 using namespace Eigen;

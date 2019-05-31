@@ -1,9 +1,9 @@
-#ifndef PHG4CylinderCellGeom_H__
-#define PHG4CylinderCellGeom_H__
+#ifndef G4DETECTORS_PHG4CYLINDERCELLGEOM_H
+#define G4DETECTORS_PHG4CYLINDERCELLGEOM_H
 
 #include <phool/PHObject.h>
 
-#include <map>
+#include <iostream>          // for cout, ostream
 #include <string>
 
 class PHG4CylinderCellGeom: public PHObject

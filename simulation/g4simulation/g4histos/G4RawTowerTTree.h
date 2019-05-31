@@ -8,7 +8,6 @@
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TH1;
-class TH2;
 
 class G4RawTowerTTree : public SubsysReco
 {

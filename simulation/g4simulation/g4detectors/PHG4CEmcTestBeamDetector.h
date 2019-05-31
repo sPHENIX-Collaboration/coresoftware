@@ -1,18 +1,16 @@
-#ifndef PHG4CEmcTestBeamDetector_h
-#define PHG4CEmcTestBeamDetector_h
+#ifndef G4DETECTORS_PHG4CEMCTESTBEAMDETECTOR_H
+#define G4DETECTORS_PHG4CEMCTESTBEAMDETECTOR_H
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
 
-#include <map>
+#include <string>                 // for string
 #include <vector>
 
-class G4Material;
-class G4Box;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 
 class PHG4CEmcTestBeamDetector: public PHG4Detector
 {

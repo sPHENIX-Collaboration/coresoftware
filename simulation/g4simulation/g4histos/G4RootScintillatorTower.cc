@@ -2,7 +2,6 @@
 
 #include <calobase/RawTower.h>
 
-#include <cmath>
 #include <iostream>
 
 using namespace std;

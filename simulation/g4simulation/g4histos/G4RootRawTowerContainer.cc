@@ -5,6 +5,7 @@
 #include <TClonesArray.h>
 
 #include <cmath>
+#include <ostream>           // for basic_ostream::operator<<, operator<<, endl
 
 using namespace std;
 

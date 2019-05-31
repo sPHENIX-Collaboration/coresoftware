@@ -1,6 +1,6 @@
 #include "SquareGradient.h"
-#include <Eigen/LU>
-#include <iostream>
+
+#include <vector>  // for vector
 
 
 using namespace std;

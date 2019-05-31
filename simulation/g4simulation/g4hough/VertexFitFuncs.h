@@ -1,15 +1,14 @@
-#ifndef __VERTEXFITFUNCS__
-#define __VERTEXFITFUNCS__
+#ifndef G4HOUGH_VERTEXFITFUNCS_H
+#define G4HOUGH_VERTEXFITFUNCS_H
 
-
-#include "Track3D.h"
 
 #include "FunctionGradHessian.h"
 
-#include <Eigen/LU>
 #include <Eigen/Core>
-#include <Eigen/Dense>
 
+#include <vector>                 // for vector
+
+class Track3D;
 
 class HelixDCAFunc : public NewtonMinimizer::FunctionGradHessian
 {

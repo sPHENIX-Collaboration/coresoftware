@@ -1,5 +1,5 @@
-#ifndef __PHG4TRACKGHOSTREJECTION_H__
-#define __PHG4TRACKGHOSTREJECTION_H__
+#ifndef G4HOUGH_PHG4TRACKGHOSTREJECTION_H
+#define G4HOUGH_PHG4TRACKGHOSTREJECTION_H
 
 //===========================================================
 /// \file PHG4TrackGhostRejection.h
@@ -9,12 +9,11 @@
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
 
 // standard includes
-#include <vector>
 #include <map>
+#include <string>
+#include <vector>
 
 // forward declarations
 class PHCompositeNode;

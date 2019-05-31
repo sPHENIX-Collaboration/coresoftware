@@ -5,9 +5,13 @@
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <string>                   // for string
+
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4BlockDetector;
-class PHG4BlockSteppingAction;
 class PHG4DisplayAction;
+class PHG4SteppingAction;
 
 class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 {
@@ -44,7 +48,7 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   void SetDefaultParameters();
 
   //! detector geometry
-  /*! defives from PHG4Detector */
+  /*! defines from PHG4Detector */
   PHG4BlockDetector* m_Detector;
 
   //! particle tracking "stepping" action

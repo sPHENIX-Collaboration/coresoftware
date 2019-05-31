@@ -1,13 +1,18 @@
-#ifndef PHG4Cell_H__
-#define PHG4Cell_H__
+#ifndef G4DETECTORS_PHG4Cell_H
+#define G4DETECTORS_PHG4Cell_H
 
 #include "PHG4CellDefs.h"
-#include <g4main/PHG4Hit.h>
+
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
 #include <phool/PHObject.h>
 
 #include <cmath>
 #include <climits>
+#include <iostream>              // for ostream, cout, operator<<, endl, bas...
 #include <map>
+#include <string>                // for string
+#include <utility>               // for pair, make_pair
 
 class PHG4Cell: public PHObject
 {

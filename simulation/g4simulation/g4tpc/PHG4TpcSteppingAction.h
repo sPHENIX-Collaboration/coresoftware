@@ -3,12 +3,14 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4TpcDetector;
-class PHParameters;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class PHParameters;
 
 class PHG4TpcSteppingAction : public PHG4SteppingAction
 {

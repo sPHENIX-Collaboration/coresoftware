@@ -1,7 +1,8 @@
 #include "HelixHoughBin_v1.h"
 
-#include "HelixHoughSpace_v1.h"
+#include <phool/phool.h>  // for PHWHERE
 
+#include <cstdlib>       // for exit, NULL
 #include <iostream>
 
 using namespace std;
@@ -20,7 +21,7 @@ HelixHoughBin_v1::HelixHoughBin_v1(unsigned int bin)
     _dzdl_low_bins(),
     _z0_bins(),
     _zoomlevel(0),
-    _hough_space(NULL) {
+    _hough_space(nullptr) {
 
   set_bin(_zoomlevel,bin);
 //  cout<<"HoughBin:: bin "<<bin<<endl;

@@ -1,5 +1,5 @@
-#ifndef PHG4HOUGHTRANSFORM_H__
-#define PHG4HOUGHTRANSFORM_H__
+#ifndef G4HOUGH_PHG4HOUGHTRANSFORM_H
+#define G4HOUGH_PHG4HOUGHTRANSFORM_H
 
 //===========================================================
 /// \file PHG4HoughTransform.h
@@ -18,16 +18,20 @@
 #include <fun4all/SubsysReco.h>
 
 // Helix Hough includes
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h> 
+#include <Eigen/Core>                  // for Matrix
 #endif
 
+
 // standard includes
-#include <float.h>
+#include <cfloat>
+#include <iostream>                    // for operator<<, endl, basic_ostream
 #include <map>
 #include <set>
+#include <string>                      // for string
 #include <vector>
 
 // forward declarations
@@ -39,7 +43,6 @@ class SvtxTrack;
 class SvtxTrackMap;
 class SvtxTrackState;
 class SvtxVertexMap;
-class PHG4HitContainer;
 
 /// \class PHG4HoughTransform
 ///

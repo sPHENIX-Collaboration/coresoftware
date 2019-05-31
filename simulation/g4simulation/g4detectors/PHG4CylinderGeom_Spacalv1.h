@@ -12,6 +12,7 @@
 
 #include "PHG4CylinderGeomv2.h"
 
+#include <iostream>              // for cout, ostream
 #include <map>
 #include <string>
 

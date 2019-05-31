@@ -1,15 +1,20 @@
-
 #include "CellularAutomaton_v1.h"
-#include "HelixHoughSpace_v1.h"
+
+#include "HelixHoughSpace.h"    // for HelixHoughSpace
+#include "HelixKalmanFilter.h"  // for HelixKalmanFilter
+
+#include <phool/phool.h>        // for PHWHERE
 
 #include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/LU>
 
-#include <float.h>
-#include <sys/time.h>
+#include <algorithm>            // for sort
+#include <cfloat>
 #include <cmath>
+#include <cstdlib>             // for exit, NULL
 #include <iostream>
+#include <memory>               // for allocator_traits<>::value_type
+#include <sys/time.h>
+#include <utility>              // for swap, pair, make_pair
 
 using namespace std;
 using namespace Eigen;
@@ -21,8 +26,8 @@ using namespace Eigen;
 
 CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, std::vector<float>& detector_radii, std::vector<float>& detector_materials)
 	:
-	_hough_space(NULL),
-	_kalman(NULL),
+	_hough_space(nullptr),
+	_kalman(nullptr),
 	in_tracks(std::vector<Track3D>()),
 	ca_tracks(std::vector<Track3D>()),
 	ca_track_states(std::vector<HelixTrackState>()),
@@ -1071,7 +1076,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   double time1 = 0.;
   double time2 = 0.;
 
-  gettimeofday(&t1, NULL);
+  gettimeofday(&t1, nullptr);
 
   float ca_cos_ang_cut_diff = 1. - ca_cos_ang_cut;
   float ca_cos_ang_cut_diff_inv = 1. / ca_cos_ang_cut_diff;
@@ -1332,7 +1337,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
     }
   }
 
-  gettimeofday(&t2, NULL);
+  gettimeofday(&t2, nullptr);
   time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
   time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
   CAtime += (time2 - time1);
@@ -1412,7 +1417,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
      
       if(require_inner_hits && ninner_hits<2) continue;
 
-      gettimeofday(&t1, NULL);
+      gettimeofday(&t1, nullptr);
 
       float init_chi2 = temp_track.fit_track();
 #ifdef _DEBUG_
@@ -1425,7 +1430,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
     if (init_chi2 > fast_chi2_cut_max) { 
       if (init_chi2 > fast_chi2_cut_par0 +
                           fast_chi2_cut_par1 / kappa_to_pt(temp_track.kappa)) {
-        gettimeofday(&t2, NULL);
+        gettimeofday(&t2, nullptr);
         time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
         time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
         KALtime += (time2 - time1);
@@ -1466,7 +1471,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
     state.C *= 3.;
     state.chi2 *= 6.;
 
-    gettimeofday(&t2, NULL);
+    gettimeofday(&t2, nullptr);
     time1 = ((double)(t1.tv_sec) + (double)(t1.tv_usec) / 1000000.);
     time2 = ((double)(t2.tv_sec) + (double)(t2.tv_usec) / 1000000.);
     KALtime += (time2 - time1);

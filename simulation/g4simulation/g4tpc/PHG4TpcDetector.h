@@ -14,7 +14,7 @@
 class G4LogicalVolume;
 class G4UserLimits;
 class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
 class PHG4TpcDisplayAction;
 class PHG4TpcSubsystem;
 class PHParameters;

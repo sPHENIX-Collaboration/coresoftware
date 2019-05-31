@@ -1,9 +1,11 @@
-#ifndef PHG4CylinderGeomContainer_H__
-#define PHG4CylinderGeomContainer_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMCONTAINER_H
+#define G4DETECTORS_PHG4CYLINDERGEOMCONTAINER_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
+#include <utility>           // for make_pair, pair
 
 class PHG4CylinderGeom;
 

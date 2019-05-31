@@ -1,19 +1,26 @@
 #include "G4ScintillatorSlatTTree.h"
 
-#include "G4RootScintillatorSlat.h"
 #include "G4RootScintillatorSlatContainer.h"
 
 #include <g4detectors/PHG4ScintillatorSlat.h>
 #include <g4detectors/PHG4ScintillatorSlatContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                         // for PHIODataNode
+#include <phool/PHNode.h>                               // for PHNode
+#include <phool/PHNodeIterator.h>                       // for PHNodeIterator
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
 
 #include <TH1.h>
-#include <TH2.h>
 #include <TSystem.h>
+
+#include <iostream>                                     // for operator<<, endl
+#include <map>                                          // for _Rb_tree_cons...
+#include <utility>                                      // for pair
 
 using namespace std;
 

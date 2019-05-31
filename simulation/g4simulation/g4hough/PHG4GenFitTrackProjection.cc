@@ -5,29 +5,11 @@
  */
 
 #include "PHG4GenFitTrackProjection.h"
-#include "PHG4HoughTransform.h"
 
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackState.h>  // for SvtxTrackState
 
-#include <phgenfit/Fitter.h>
-#include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/Track.h>
-#include <phgenfit/SpacepointMeasurement.h>
-
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phgeom/PHGeomUtility.h>
-#include <phfield/PHFieldUtility.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
-#include <GenFit/RKTrackRep.h>
-#include <GenFit/FieldManager.h>
-
-// PHENIX Geant4 includes
 #include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTower.h>
@@ -35,13 +17,45 @@
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterUtility.h>
 
+#include <phgenfit/Fitter.h>
+
+#include <phgeom/PHGeomUtility.h>
+
+#include <phfield/PHFieldUtility.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                 // for SubsysReco
+
+#include <phool/getClass.h>
+#include <phool/phool.h>                        // for PHWHERE
+
+#include <GenFit/AbsTrackRep.h>                 // for AbsTrackRep
+#include <GenFit/MeasuredStateOnPlane.h>        // for MeasuredStateOnPlane
+#include <GenFit/RKTrackRep.h>
+
+
 //ROOT
-#include <TGeoManager.h>
+#include <TDatabasePDG.h>                       // for TDatabasePDG
+#include <TMatrixDSymfwd.h>                     // for TMatrixDSym
+#include <TMatrixTSym.h>                        // for TMatrixTSym
+#include <TMatrixTUtils.h>                      // for TMatrixTRow
+#include <TParticlePDG.h>                       // for TParticlePDG
+#include <TVector3.h>                           // for TVector3
+
+#include <CLHEP/Vector/ThreeVector.h>           // for Hep3Vector
 
 // standard includes
+#include <cfloat>                              // for DBL_MAX
+#include <cmath>                                // for isnan, atan2, sqrt, NAN
+#include <cstdlib>                             // for abs
 #include <iostream>
-#include <vector>
+#include <map>                                  // for _Rb_tree_iterator
 #include <memory>
+#include <utility>                              // for pair
+#include <vector>
+
+class PHField;
+class TGeoManager;
 
 //#define DEBUG
 

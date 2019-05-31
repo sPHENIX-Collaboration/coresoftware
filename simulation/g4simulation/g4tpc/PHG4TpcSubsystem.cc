@@ -3,21 +3,29 @@
 #include "PHG4TpcDisplayAction.h"
 #include "PHG4TpcSteppingAction.h"
 
+#include <g4detectors/PHG4DetectorSubsystem.h>  // for PHG4DetectorSubsystem
+
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>           // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-
-#include <pdbcalbase/PdbParameterMap.h>
+#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-
-#include <Geant4/globals.hh>
+#include <phool/PHIODataNode.h>                 // for PHIODataNode
+#include <phool/PHNode.h>                       // for PHNode
+#include <phool/PHNodeIterator.h>               // for PHNodeIterator
+#include <phool/PHObject.h>                     // for PHObject
 
 #include <boost/foreach.hpp>
 
+#include <cmath>                               // for NAN
+#include <iostream>                             // for operator<<, basic_ost...
 #include <set>
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 

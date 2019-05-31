@@ -1,14 +1,15 @@
 #include "PHG4BlockGeomContainer.h"
+
 #include "PHG4BlockGeom.h"
+
 #include <cmath>
+#include <cstddef>         // for NULL
 
 using namespace std;
 
 PHG4BlockGeomContainer::PHG4BlockGeomContainer()
-{
-  _magfield = NAN;
-  return;
-}
+  :  _magfield(NAN)
+{}
 
 PHG4BlockGeomContainer::~PHG4BlockGeomContainer()
 {
@@ -68,6 +69,6 @@ PHG4BlockGeomContainer::GetLayerGeom(const int i)
     return iter->second;
   }
   cout << "Could not locate layer " << i << " in PHG4BlockGeomContainer" << endl;
-  return NULL;
+  return nullptr;
 }
 

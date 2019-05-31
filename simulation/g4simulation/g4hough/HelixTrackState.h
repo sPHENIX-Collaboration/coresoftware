@@ -1,10 +1,7 @@
-#ifndef __HELIXTRACKSTATE_H__
-#define __HELIXTRACKSTATE_H__
+#ifndef G4HOUGH_HELIXTRACKSTATE_H
+#define G4HOUGH_HELIXTRACKSTATE_H
 
-#include <Eigen/LU>
 #include <Eigen/Core>
-#include <Eigen/Dense>
-
 
 class HelixTrackState
 {

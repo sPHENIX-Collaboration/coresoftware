@@ -5,40 +5,39 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHG4TrackKalmanFitter_H__
-#define __PHG4TrackKalmanFitter_H__
+#ifndef G4HOUGH_PHG4TRACKKALMANFITTER_H
+#define G4HOUGH_PHG4TRACKKALMANFITTER_H
 
 #include <fun4all/SubsysReco.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/Track.h>
+
+#include <TMatrixFfwd.h>         // for TMatrixF
+#include <TVector3.h>            // for TVector3
+
+#include <cstddef>              // for NULL
+#include <memory>                // for shared_ptr
 #include <string>
 #include <vector>
 
 namespace PHGenFit {
+class Fitter;
 class Track;
 } /* namespace PHGenFit */
 
 namespace genfit {
+class GFRaveVertex;
 class GFRaveVertexFactory;
+class Track;
 } /* namespace genfit */
 
 class SvtxTrack;
-namespace PHGenFit {
-class Fitter;
-} /* namespace PHGenFit */
-
 class SvtxTrackMap;
 class SvtxVertexMap;
 class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxClusterMap;
-class SvtxEvalStack;
-class TFile;
+class TClonesArray;
 class TTree;
-
-//! \brief Helper class for using RAVE vertex finder.
-class PHRaveVertexFactory;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHG4TrackKalmanFitter: public SubsysReco {
@@ -215,10 +214,10 @@ private:
 	 * \param intrack Input SvtxTrack
 	 * \param invertex Input Vertex, if fit track as a primary vertex
 	 */
-	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = NULL);
+	std::shared_ptr<PHGenFit::Track> ReFitTrack(PHCompositeNode *, const SvtxTrack* intrack, const SvtxVertex* invertex = nullptr);
 
 	//! Make SvtxTrack from PHGenFit::Track and SvtxTrack
-	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = NULL);
+	std::shared_ptr<SvtxTrack> MakeSvtxTrack(const SvtxTrack* svtxtrack, const std::shared_ptr<PHGenFit::Track>& genfit_track, const SvtxVertex * vertex = nullptr);
 
 	//! Fill SvtxVertexMap from GFRaveVertexes and Tracks
 	bool FillSvtxVertexMap(

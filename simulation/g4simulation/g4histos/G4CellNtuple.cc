@@ -6,18 +6,19 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TH1.h>
-#include <TH2.h>
 #include <TNtuple.h>
 
-#include <boost/foreach.hpp>
-
 #include <cassert>
+#include <cmath>                                        // for isfinite
+#include <iostream>                                     // for operator<<
 #include <sstream>
+#include <utility>                                      // for pair
 
 using namespace std;
 

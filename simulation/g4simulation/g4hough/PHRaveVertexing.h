@@ -5,34 +5,31 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHRaveVertexing_H__
-#define __PHRaveVertexing_H__
+#ifndef G4HOUGH_PHRAVEVERTEXING_H
+#define G4HOUGH_PHRAVEVERTEXING_H
 
 #include <fun4all/SubsysReco.h>
-#include <GenFit/GFRaveVertex.h>
-#include <GenFit/Track.h>
+
+#include <map>                   // for map, map<>::value_compare
 #include <string>
 #include <vector>
 
 namespace PHGenFit {
-class Track;
-} /* namespace PHGenFit */
-
-namespace genfit {
-class GFRaveVertexFactory;
-} /* namespace genfit */
-
-class SvtxTrack;
-namespace PHGenFit {
 class Fitter;
 } /* namespace PHGenFit */
 
+namespace genfit {
+class GFRaveVertex;
+class GFRaveVertexFactory;
+class Track;
+} /* namespace genfit */
+
+class PHCompositeNode;
 class PHTimer;
+class PHG4TruthInfoContainer;
+class SvtxTrack;
 class SvtxTrackMap;
 class SvtxVertexMap;
-class SvtxVertex;
-class PHCompositeNode;
-class PHG4TruthInfoContainer;
 
 //! \brief		Refit SvtxTracks with PHGenFit.
 class PHRaveVertexing: public SubsysReco {

@@ -5,7 +5,9 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4BlockDetector;
 class PHG4Hit;
 class PHG4HitContainer;

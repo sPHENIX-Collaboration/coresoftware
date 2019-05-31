@@ -1,18 +1,15 @@
-#ifndef __HELIXHOUGHSPACE_H__
-#define __HELIXHOUGHSPACE_H__
+#ifndef G4HOUGH_HELIXHOUGHSPACE_H
+#define G4HOUGH_HELIXHOUGHSPACE_H
 
 #include <phool/PHObject.h>
-#include <limits.h>
+
+#include <climits>
 #include <cmath>
 
 #ifndef ZOOMLEVEL_MAX
 #define ZOOMLEVEL_MAX           5
 #endif
 
-#ifndef M_PI
-#define M_PI           3.14159265358979323846
-#endif
- 
 class HelixHoughSpace : public PHObject {
 
 public :
@@ -25,7 +22,7 @@ public :
   }
   virtual void Reset() {}
   virtual int  isValid() const 			{return 0;}
-  virtual HelixHoughSpace* Clone() const 	{return NULL;}
+  virtual HelixHoughSpace* Clone() const 	{return nullptr;}
 
   // Define Hough space for helical tracks 
   virtual void add_one_zoom(std::vector<unsigned int>& one_zoom) {};

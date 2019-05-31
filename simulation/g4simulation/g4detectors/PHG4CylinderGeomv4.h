@@ -1,10 +1,9 @@
-#ifndef PHG4CylinderGeomv4_H__
-#define PHG4CylinderGeomv4_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMV4_H
+#define G4DETECTORS_PHG4CYLINDERGEOMV4_H
 
 #include "PHG4CylinderGeom.h"
 
-#include <phool/phool.h>
-#include <cmath>
+#include <iostream>            // for cout, ostream
 
 class PHG4CylinderGeomv4: public PHG4CylinderGeom
 {

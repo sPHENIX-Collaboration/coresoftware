@@ -6,14 +6,11 @@
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 // Forward declerations
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
-class TH1;
-class TH2;
 class TNtuple;
 
 class G4EdepNtuple : public SubsysReco

@@ -1,9 +1,11 @@
-#ifndef PHG4CylinderCellGeomContainer_H__
-#define PHG4CylinderCellGeomContainer_H__
+#ifndef G4DETECTORS_PHG4CYLINDERCELLGEOMCONTAINER_H
+#define G4DETECTORS_PHG4CYLINDERCELLGEOMCONTAINER_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
+#include <utility>           // for make_pair, pair
 
 class PHG4CylinderCellGeom;
 
@@ -16,7 +18,7 @@ class PHG4CylinderCellGeomContainer: public PHObject
   typedef std::pair<Iterator, Iterator> Range;
   typedef std::pair<ConstIterator, ConstIterator> ConstRange;
 
-  PHG4CylinderCellGeomContainer();
+  PHG4CylinderCellGeomContainer(){}
   virtual ~PHG4CylinderCellGeomContainer();
 
   void identify(std::ostream& os = std::cout) const;

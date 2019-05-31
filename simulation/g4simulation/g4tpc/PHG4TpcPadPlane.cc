@@ -1,11 +1,13 @@
 #include "PHG4TpcPadPlane.h"
 
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
+
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
 
 #include <string>
 

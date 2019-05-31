@@ -5,8 +5,11 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <string>                 // for string
+
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4BlockDisplayAction;
 class PHG4BlockSubsystem;
 class PHParameters;

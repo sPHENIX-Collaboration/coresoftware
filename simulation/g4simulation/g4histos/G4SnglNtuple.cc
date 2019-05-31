@@ -6,17 +6,17 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/SubsysReco.h>             // for SubsysReco
 
 #include <phool/getClass.h>
 
 #include <TFile.h>
 #include <TH1.h>
-#include <TH2.h>
 #include <TNtuple.h>
 
-#include <boost/foreach.hpp>
-
+#include <cmath>                           // for atan2, sqrt
 #include <sstream>
+#include <utility>                          // for pair
 
 using namespace std;
 

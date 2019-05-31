@@ -2,8 +2,12 @@
 #define G4TPC_PHG4TPCPADPLANE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <g4main/PHG4HitContainer.h>
+
 #include <phparameter/PHParameterInterface.h>
+
+#include <string>                              // for string
 
 class PHG4CellContainer;
 class TrkrHitSetContainer;

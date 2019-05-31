@@ -1,4 +1,6 @@
 #include "PHG4CellContainer.h"
+
+#include "PHG4Cell.h"      // for PHG4Cell
 #include "PHG4Cellv1.h"
 #include "PHG4CellDefs.h"
 

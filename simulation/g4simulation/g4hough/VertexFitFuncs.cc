@@ -1,8 +1,13 @@
 #include "VertexFitFuncs.h"
 
 #include "NewtonMinimizerGradHessian.h"
+#include "Track3D.h"
 
-#include <math.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include <cmath>
+#include <memory>                           // for allocator_traits<>::value...
 
 using namespace std;
 using namespace NewtonMinimizer;
