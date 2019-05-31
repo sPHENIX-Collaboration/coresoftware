@@ -17,8 +17,8 @@
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/getClass.h>
 #include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>                                // for PHWHERE
 
 #include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
