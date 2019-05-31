@@ -1,15 +1,12 @@
 #include "PHG4BlockDisplayAction.h"
 
+#include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phparameter/PHParameters.h>
 
-#include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
-
-#include <iostream>
 
 using namespace std;
 

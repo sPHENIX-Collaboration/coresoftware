@@ -12,12 +12,15 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 
-#include <cmath>
+#include <CLHEP/Units/SystemOfUnits.h>    // for twopi, halfpi, pi
 
+#include <cmath>
+#include <cstdlib>                       // for exit
 #include <iostream>
+#include <string>                         // for char_traits
+
 
 using namespace std;
 

@@ -1,9 +1,8 @@
-#ifndef PHG4CYLINDERCELLV3_H
-#define PHG4CYLINDERCELLV3_H
+#ifndef G4DETECTORS_PHG4CYLINDERCELLV3_H
+#define G4DETECTORS_PHG4CYLINDERCELLV3_H
 
 #include "PHG4CylinderCellv1.h"
-#include <cmath>
-#include <map>
+
 #include <iostream>
 
 class PHG4CylinderCellv3 : public PHG4CylinderCellv1

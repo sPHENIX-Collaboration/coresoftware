@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4DisplayAction.h>
 
+#include <string>                      // for string
+
 class G4VisAttributes;
 class G4LogicalVolume;
 class G4VPhysicalVolume;

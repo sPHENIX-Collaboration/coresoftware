@@ -1,8 +1,11 @@
-#ifndef PHG4Cellv1_h__
-#define PHG4Cellv1_h__
+#ifndef G4DETECTORS_PHG4CELLV1_H
+#define G4DETECTORS_PHG4CELLV1_H
 
 #include "PHG4Cell.h"
 #include "PHG4CellDefs.h"
+
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
 #ifdef __CINT__
 #include <stdint.h>
 #else
@@ -10,6 +13,7 @@
 #endif
 #include <iostream>
 #include <map>
+#include <utility>               // for make_pair
 
 class PHG4Cellv1: public PHG4Cell
 {

@@ -1,9 +1,13 @@
-#ifndef PHG4BeamlineMagnetSubsystem_h
-#define PHG4BeamlineMagnetSubsystem_h
+#ifndef G4DETECTORS_PHG4BEAMLINEMAGNETSUBSYSTEM_H
+#define G4DETECTORS_PHG4BEAMLINEMAGNETSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <string>                   // for string
+
+class PHCompositeNode;
 class PHG4BeamlineMagnetDetector;
+class PHG4Detector;
 
 class PHG4BeamlineMagnetSubsystem: public PHG4DetectorSubsystem
 {

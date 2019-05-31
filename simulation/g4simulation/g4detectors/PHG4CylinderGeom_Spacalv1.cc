@@ -13,9 +13,12 @@
 #include <phparameter/PHParameters.h>
 
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/globals.hh>
+
+#include <CLHEP/Units/SystemOfUnits.h>    // for twopi
 
 #include <cmath>
+#include <sstream>
+#include <utility>                        // for pair
 
 using namespace std;
 

@@ -1,5 +1,5 @@
-#ifndef PHG4BeamlineMagnetDetector_h
-#define PHG4BeamlineMagnetDetector_h
+#ifndef G4DETECTORS_PHG4BEAMLINEMAGNETDETECTOR_H
+#define G4DETECTORS_PHG4BEAMLINEMAGNETDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 

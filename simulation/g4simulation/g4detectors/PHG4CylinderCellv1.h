@@ -1,11 +1,15 @@
-#ifndef PHG4CYLINDERCELLV1_H
-#define PHG4CYLINDERCELLV1_H
+#ifndef G4DETECTORS_PHG4CYLINDERCELLV1_H
+#define G4DETECTORS_PHG4CYLINDERCELLV1_H
 
 #include "PHG4CylinderCell.h"
+
+#include "PHG4CylinderCellDefs.h"  // for keytype
+
 #include <g4main/PHG4HitDefs.h>
 
-#include <cmath>
+#include <iostream>                // for cout, ostream
 #include <map>
+#include <utility>                 // for make_pair
 
 class PHG4CylinderCellv1 : public PHG4CylinderCell
 {

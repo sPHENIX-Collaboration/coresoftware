@@ -1,12 +1,15 @@
-#ifndef PHG4CELLCONTAINER_H__
-#define PHG4CELLCONTAINER_H__
+#ifndef G4DETECTORS_PHG4CELLCONTAINER_H
+#define G4DETECTORS_PHG4CELLCONTAINER_H
 
-#include "PHG4Cell.h"
+#include "PHG4CellDefs.h"    // for keytype
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
-#include <set>
+#include <utility>           // for pair
+
+class PHG4Cell;
 
 class PHG4CellContainer: public PHObject
 {

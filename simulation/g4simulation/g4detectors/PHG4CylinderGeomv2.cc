@@ -2,6 +2,8 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <ostream>                     // for operator<<, basic_ostream, bas...
+
 using namespace std;
 
 PHG4CylinderGeomv2::PHG4CylinderGeomv2():

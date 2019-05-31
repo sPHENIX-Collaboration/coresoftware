@@ -1,5 +1,6 @@
 #include "PHG4CEmcTestBeamSubsystem.h"
 #include "PHG4CEmcTestBeamDetector.h"
+
 #include "PHG4EventActionClearZeroEdep.h"
 #include "PHG4CEmcTestBeamSteppingAction.h"
 
@@ -7,11 +8,19 @@
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>              // for PHIODataNode
+#include <phool/PHNode.h>                    // for PHNode
+#include <phool/PHNodeIterator.h>            // for PHNodeIterator
+#include <phool/PHObject.h>                  // for PHObject
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>                 // for G4double
 
+#include <cstddef>                          // for NULL
 #include <sstream>
+
+class PHG4Detector;
+class PHG4SteppingAction;
 
 using namespace std;
 

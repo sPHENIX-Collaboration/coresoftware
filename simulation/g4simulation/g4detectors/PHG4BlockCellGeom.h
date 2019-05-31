@@ -1,10 +1,11 @@
-#ifndef PHG4BlockCellGeom_H__
-#define PHG4BlockCellGeom_H__
+#ifndef G4DETECTORS_PHG4BLOCKCELLGEOM_H
+#define G4DETECTORS_PHG4BLOCKCELLGEOM_H
 
 #include <phool/PHObject.h>
 
-#include <map>
+#include <iostream>          // for cout, ostream
 #include <string>
+#include <utility>           // for pair
 
 class PHG4BlockCellGeom: public PHObject
 {

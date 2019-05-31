@@ -1,8 +1,9 @@
-#ifndef PHG4BlockGeomContainer_H__
-#define PHG4BlockGeomContainer_H__
+#ifndef G4DETECTORS_PHG4BLOCKGEOMCONTAINER_H
+#define G4DETECTORS_PHG4BLOCKGEOMCONTAINER_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
 
 class PHG4BlockGeom;

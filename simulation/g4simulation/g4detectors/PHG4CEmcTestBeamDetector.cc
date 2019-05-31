@@ -1,22 +1,25 @@
 #include "PHG4CEmcTestBeamDetector.h"
 
-#include <g4main/PHG4Utils.h>
-
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4RotationMatrix.hh>      // for G4RotationMatrix
+#include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>               // for G4double
 #include <Geant4/G4VisAttributes.hh>
 
+#include <algorithm>                       // for copy
+#include <cmath>                          // for cos, sin, NAN, acos, atan
+#include <iostream>                        // for operator<<, ostringstream
 #include <sstream>
+
+class G4VSolid;
+class PHCompositeNode;
 
 using namespace std;
 

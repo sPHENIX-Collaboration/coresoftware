@@ -14,7 +14,6 @@
 #include <boost/foreach.hpp>
 
 #include <cassert>
-#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>

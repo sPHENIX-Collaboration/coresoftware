@@ -9,14 +9,15 @@
  */
 
 #include "PHG4GDMLSubsystem.h"
+
 #include "PHG4GDMLDetector.h"
 
-#include <pdbcalbase/PdbParameterMap.h>
 #include <phparameter/PHParameters.h>
 
-#include <phool/getClass.h>
+#include <iostream>                    // for operator<<, basic_ostream, endl
 
-#include <Geant4/globals.hh>
+class PHCompositeNode;
+class PHG4Detector;
 
 using namespace std;
 

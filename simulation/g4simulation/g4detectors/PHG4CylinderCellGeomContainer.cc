@@ -1,13 +1,9 @@
 #include "PHG4CylinderCellGeomContainer.h"
+
 #include "PHG4CylinderCellGeom.h"
-#include <cmath>
+
 
 using namespace std;
-
-PHG4CylinderCellGeomContainer::PHG4CylinderCellGeomContainer()
-{
-  return;
-}
 
 PHG4CylinderCellGeomContainer::~PHG4CylinderCellGeomContainer()
 {

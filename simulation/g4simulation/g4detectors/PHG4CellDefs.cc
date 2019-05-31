@@ -2,6 +2,7 @@
 
 #include <phool/phool.h>
 
+#include <cstdlib>       // for exit
 #include <iostream>
 
 unsigned short

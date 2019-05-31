@@ -1,10 +1,12 @@
-#ifndef PHG4CylinderGeom_H__
-#define PHG4CylinderGeom_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOM_H
+#define G4DETECTORS_PHG4CYLINDERGEOM_H
 
 #include <phool/PHObject.h>
 
 #include <phool/phool.h>
+
 #include <cmath>
+#include <iostream>          // for cout, ostream
 
 class PHParameters;
 

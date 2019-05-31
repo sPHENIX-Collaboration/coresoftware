@@ -8,21 +8,21 @@
  * \date $Date: $
  */
 
-#ifndef PHG4GDMLDetector_H_
-#define PHG4GDMLDetector_H_
+#ifndef G4DETECTORS_PHG4GDMLDETECTOR_H
+#define G4DETECTORS_PHG4GDMLDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
-#include <string>
+
 
 #include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
 
+#include <string>
+
+class G4AssemblyVolume;
+class G4LogicalVolume;
+class G4UserSteppingAction;
 class PHCompositeNode;
 class PHParameters;
-class G4LogicalVolume;
-class G4AssemblyVolume;
-class G4UserSteppingAction;
-class G4UserSteppingAction;
 
 /*!
  * \brief PHG4GDMLDetector is a generic detector built from a GDML import
