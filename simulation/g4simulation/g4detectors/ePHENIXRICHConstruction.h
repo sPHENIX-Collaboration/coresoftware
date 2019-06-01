@@ -13,8 +13,11 @@
 #define G4DETECTORS_EPHENIXRICHCONSTRUCTION_H
 
 #include <Geant4/G4String.hh>
-#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>            // for G4int
+
+#if !defined(__CINT__) || defined(__CLING__)
+#include <Geant4/G4SystemOfUnits.hh>
+#endif
 
 #include <map>
 #include <set>

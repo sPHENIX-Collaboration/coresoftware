@@ -12,9 +12,11 @@
 #ifndef G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 #define G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 
-#include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4String.hh>             // for G4String
+#if !defined(__CINT__) || defined(__CLING__)
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4PhysicalConstants.hh>
+#endif
 #include <Geant4/G4Types.hh>              // for G4int
 
 class G4LogicalVolume;

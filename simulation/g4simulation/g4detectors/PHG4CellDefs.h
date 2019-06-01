@@ -4,9 +4,9 @@
 #define G4DETECTORS_PHG4CELLDEFS_H
 
 #if !defined(__CINT__) || defined(__CLING__)
-#include <stdint.h>
-#else
 #include <cstdint>
+#else
+#include <stdint.h>
 #endif
 
 namespace PHG4CellDefs
