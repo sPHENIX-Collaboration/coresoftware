@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4SPACALPROTOTYPESUBSYSTEM_H
 #define G4DETECTORS_PHG4SPACALPROTOTYPESUBSYSTEM_H
 

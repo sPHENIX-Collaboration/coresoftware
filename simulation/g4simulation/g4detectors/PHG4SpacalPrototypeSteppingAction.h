@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4SpacalPrototypeSteppingAction.h,v 1.1 2014/03/24 01:36:44 jinhuang Exp $$
 
 /*!

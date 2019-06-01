@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*===============================================================*
  *                        March 2nd 2017                         *
  *        mRICH Subsystem created by Cheuk-Ping Wong @GSU        *

@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4RICHSteppingAction.h,v 1.4 2013/12/22 19:33:38 nfeege Exp $$
 
 /*!

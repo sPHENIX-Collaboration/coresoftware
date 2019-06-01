@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // This is the steppingaction heaer file for the hcal prototype
 // created on 1/27/2014, Liang, HeXC
 //

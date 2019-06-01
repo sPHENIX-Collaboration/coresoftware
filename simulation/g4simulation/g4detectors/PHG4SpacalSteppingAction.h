@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  * \file ${file_name}
  * \brief

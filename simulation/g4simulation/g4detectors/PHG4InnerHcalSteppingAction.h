@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
 #define G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
 

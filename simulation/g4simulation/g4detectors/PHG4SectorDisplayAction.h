@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4SECTORDISPLAYACTION_H
 #define G4DETECTORS_PHG4SECTORDISPLAYACTION_H
 

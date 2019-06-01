@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // header file for the detector construction messager
 // Jan 2, 2014 hexc
 

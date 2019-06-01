@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4CylinderGeom_Spacalv1.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
 
 /*!
