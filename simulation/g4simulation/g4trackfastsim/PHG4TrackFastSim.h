@@ -11,13 +11,8 @@
 #define G4TRACKFASTSIM_PHG4TRACKFASTSIM_H
 
 #include <fun4all/SubsysReco.h>
-#include <g4main/PHG4HitContainer.h>
-#include <phgenfit/Measurement.h>
-#include <iostream>
-#include <string>
-#include <vector>
 
-#include <TMatrixDSym.h>
+#include <TMatrixDSymfwd.h>      // for TMatrixDSym
 #include <TVector3.h>
 
 // rootcint barfs with this header so we need to hide it
@@ -25,37 +20,26 @@
 #include <gsl/gsl_rng.h>
 #endif
 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <climits>              // for UINT_MAX
+
+class PHG4Hit;
+class PHG4HitContainer;
 class PHG4Particle;
-namespace PHGenFit
-{
-class PlanarMeasurement;
-} /* namespace PHGenFit */
-
-namespace PHGenFit
-{
-class Track;
-} /* namespace PHGenFit */
-
-namespace genfit
-{
-class GFRaveVertexFactory;
-} /* namespace genfit */
-
 class SvtxTrack;
+class SvtxTrackMap;
+class PHCompositeNode;
+class PHG4TruthInfoContainer;
+
 namespace PHGenFit
 {
 class Fitter;
+class Measurement;
+class PlanarMeasurement;
+class Track;
 } /* namespace PHGenFit */
-
-class SvtxTrackMap;
-class SvtxVertexMap;
-class SvtxVertex;
-class PHCompositeNode;
-class PHG4TruthInfoContainer;
-class SvtxClusterMap;
-class SvtxEvalStack;
-class TFile;
-class TTree;
 
 class PHG4TrackFastSim : public SubsysReco
 {

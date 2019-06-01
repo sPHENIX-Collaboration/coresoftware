@@ -16,9 +16,7 @@
 //Forward declerations
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class SvtxClusterMap;
 class SvtxTrackMap;
-class TFile;
 class TTree;
 class TH2D;
 

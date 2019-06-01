@@ -7,29 +7,8 @@
 
 #include "PHG4TrackFastSim.h"
 
-#include <GenFit/AbsMeasurement.h>
-#include <GenFit/EventDisplay.h>
-#include <GenFit/MeasuredStateOnPlane.h>
-#include <GenFit/RKTrackRep.h>
-#include <GenFit/StateOnPlane.h>
-#include <GenFit/Track.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHRandomSeed.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <calobase/RawTowerGeom.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <g4main/PHG4VtxPointv1.h>
-#include <phfield/PHFieldUtility.h>
 #include <phgenfit/Fitter.h>
+#include <phgenfit/Measurement.h>                  // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
@@ -42,16 +21,58 @@
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
 
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
+
+#include <phfield/PHFieldUtility.h>
+
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>               // for PHG4HitContainer
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                    // for SubsysReco
+
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                          // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                        // for PHObject
+#include <phool/PHRandomSeed.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <GenFit/AbsMeasurement.h>
+#include <GenFit/EventDisplay.h>
+#include <GenFit/MeasuredStateOnPlane.h>
+#include <GenFit/RKTrackRep.h>
+
 #include <TMath.h>
-#include <TMatrixF.h>
-#include <TString.h>
+#include <TMatrixTSym.h>                           // for TMatrixTSym
+#include <TMatrixTUtils.h>                         // for TMatrixTRow
+#include <TVector3.h>                              // for TVector3, operator*
+#include <TVectorDfwd.h>                           // for TVectorD
+#include <TVectorT.h>                              // for TVectorT
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
+#include <cassert>                                // for assert
 #include <cmath>
+#include <iostream>                                // for operator<<, basic_...
+#include <memory>                                  // for unique_ptr, alloca...
 #include <map>
 #include <utility>
+
+class PHField;
+class TGeoManager;
+namespace genfit 
+{
+class AbsTrackRep;
+class Track;
+}
 
 #define LogDebug(exp) \
   if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
@@ -65,11 +86,11 @@ using namespace std;
 PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   : SubsysReco(name)
   , _event(-1)
-  , _truth_container(NULL)
+  , _truth_container(nullptr)
   , _sub_top_node_name("SVTX")
   , /*_clustermap_out_name("SvtxClusterMap"),*/ _trackmap_out_name("SvtxTrackMap")
-  , /*_clustermap_out(NULL),*/ _trackmap_out(NULL)
-  , _fitter(NULL)
+  , /*_clustermap_out(nullptr),*/ _trackmap_out(nullptr)
+  , _fitter(nullptr)
   , _fit_alg_name("DafRef")  // was ("KalmanFitterRefTrack")
   , _primary_assumption_pid(211)
   , _do_evt_display(false)
@@ -242,7 +263,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
     //! Create measurements
     std::vector<PHGenFit::Measurement*> measurements;
 
-    PHGenFit::Measurement* vtx_meas = NULL;
+    PHGenFit::Measurement* vtx_meas = nullptr;
 
     if (_use_vertex_in_fitting)
     {
@@ -549,7 +570,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
         {
           if (gsl_ran_binomial(m_RandomGenerator, dethiteff, 1) > 0)
           {
-            PHGenFit::Measurement* meas = NULL;
+            PHGenFit::Measurement* meas = nullptr;
             if (dettype == Vertical_Plane)
             {
               if (Verbosity())
@@ -628,7 +649,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   //  else
   //  {
   //    LogError("Detector Type NOT implemented!");
-  //    return NULL;
+  //    return nullptr;
   //  }
 
   // always extrapolate to a z-line through the vertex
@@ -638,7 +659,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   if (pathlenth_orig_from_first_meas < -999990)
   {
     LogError("Extraction faild!");
-    return NULL;
+    return nullptr;
   }
 
   TVector3 mom = gf_state->getMom();
