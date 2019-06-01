@@ -9,11 +9,12 @@
 
 #include <map>
 #include <set>
+#include <string>                 // for string
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
 class PHParameters;
 
 class PHG4Prototype2InnerHcalDetector : public PHG4Detector

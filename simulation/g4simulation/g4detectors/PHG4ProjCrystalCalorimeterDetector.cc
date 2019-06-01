@@ -3,28 +3,30 @@
 #include "PHG4CrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterDisplayAction.h"
 
-#include <g4main/PHG4Utils.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
 #include <Geant4/G4Cons.hh>
+#include <Geant4/G4Element.hh>                    // for G4Element
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4RotationMatrix.hh>             // for G4RotationMatrix
+#include <Geant4/G4String.hh>                     // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>                // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>                // for G4Transform3D
 #include <Geant4/G4Trd.hh>
-#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
-
-#include <cmath>
-#include <sstream>
+#include <Geant4/G4VPhysicalVolume.hh>            // for G4VPhysicalVolume
 
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
+#include <vector>                                 // for vector
+
+class G4VSolid;
+class PHCompositeNode;
+class PHG4CrystalCalorimeterSubsystem;
 
 using namespace std;
 

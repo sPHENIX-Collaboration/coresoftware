@@ -12,8 +12,8 @@
 #define G4DETECTORS_PHG4OUTERHCALFIELD_H
 
 #include <Geant4/G4MagneticField.hh>
-#include <Geant4/globals.hh>
-#include <Geant4/G4ios.hh>
+#include <Geant4/G4Types.hh>          // for G4double, G4int
+
 /*!
  * \brief PHG4OuterHcalField
  *

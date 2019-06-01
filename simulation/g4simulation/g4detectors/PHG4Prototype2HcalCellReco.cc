@@ -1,27 +1,35 @@
 #include "PHG4Prototype2HcalCellReco.h"
 #include "PHG4ScintillatorSlatContainer.h"
+#include "PHG4ScintillatorSlat.h"              // for PHG4ScintillatorSlat
 #include "PHG4ScintillatorSlatv1.h"
+#include "PHG4ScintillatorSlatDefs.h"          // for genkey, keytype
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
-#include <phparameter/PHParameters.h>
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
 
 #include <TSystem.h>
 
+#include <array>                               // for array, array<>::value_...
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <limits>  // std::numeric_limits
+#include <map>                                 // for _Rb_tree_const_iterator
 #include <sstream>
+#include <utility>                             // for pair
 
 using namespace std;
 // for hcal dimension
@@ -29,7 +37,7 @@ using namespace std;
 #define ROWDIM 21 
 // 12 scintillator tiles per row (index starting at 1)
 #define COLUMNDIM 13
-static array<array<PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
+static array<array<PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {{nullptr}};
 
 PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name)
   : SubsysReco(name)

@@ -2,6 +2,8 @@
 
 #include <Geant4/G4TrackStatus.hh>
 
+#include <TSystem.h>
+
 #include <iostream>
 #include <map>
 
@@ -23,7 +25,7 @@ string PHG4TrackStatusDecode::GetTrackStatus(const int istatus)
   if (trackstatus.find(istatus) == trackstatus.end())
   {
     cout << "could not find status " << istatus << " in trackstatus map" << endl;
-    exit(1);
+    gSystem->Exit(1);
   }
   return trackstatus[istatus];
 }

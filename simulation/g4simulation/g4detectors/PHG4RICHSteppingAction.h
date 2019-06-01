@@ -13,8 +13,9 @@
 
 #include <Geant4/G4UserSteppingAction.hh>
 
-#include "Geant4/G4OpBoundaryProcess.hh"
+#include <Geant4/G4OpBoundaryProcess.hh>
 
+class G4Step;
 class PHCompositeNode;
 class PHG4RICHDetector;
 class PHG4Hit;

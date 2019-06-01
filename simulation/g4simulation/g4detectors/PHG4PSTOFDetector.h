@@ -4,11 +4,11 @@
 #include <g4main/PHG4Detector.h>
 
 #include <map>
-#include <set>
-#include <vector>
+#include <string>                 // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHParametersContainer;
 
 class PHG4PSTOFDetector : public PHG4Detector

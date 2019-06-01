@@ -12,8 +12,9 @@
 #define G4DETECTORS_PHG4SPACALPROTOTYPESTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
-#include <string>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;

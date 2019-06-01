@@ -15,7 +15,10 @@
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4PSTOFDetector;
+class PHG4SteppingAction;
 
 /**
    * \brief Fun4All module to simulate the Barrel PSTOF detector.

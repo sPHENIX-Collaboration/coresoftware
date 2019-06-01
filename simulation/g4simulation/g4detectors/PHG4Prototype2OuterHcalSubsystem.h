@@ -7,6 +7,8 @@
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4Prototype2OuterHcalDetector;
 class PHG4SteppingAction;
 

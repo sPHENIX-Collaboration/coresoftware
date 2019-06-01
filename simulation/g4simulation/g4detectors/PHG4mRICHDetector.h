@@ -6,17 +6,19 @@
 #define G4DETECTORS_PHG4MRICHDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
-#include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4Colour.hh>
 
-#include <set>
+#include <Geant4/G4Colour.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4Types.hh>        // for G4double, G4int
+
+#include <map>                      // for map
 #include <string>
 
 class G4LogicalVolume;
-class PHParameters;
-class G4VPhysicalVolume;
 class G4Material;
-class G4AssemblyVolume;
+class G4VPhysicalVolume;
+class PHParameters;
+class PHCompositeNode;
 
 //___________________________________________________________________________
 class PHG4mRICHDetector: public PHG4Detector

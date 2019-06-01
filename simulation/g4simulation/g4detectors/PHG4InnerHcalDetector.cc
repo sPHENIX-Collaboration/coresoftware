@@ -6,29 +6,31 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4Detector.h>
+#include <g4main/PHG4DisplayAction.h>
 #include <g4main/PHG4Utils.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TSystem.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
-#include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4RotationMatrix.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Trap.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4Transform3D.hh>
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4TwoVector.hh>
+#include <Geant4/G4Types.hh>
 #include <Geant4/G4UserLimits.hh>
+#include <Geant4/G4VSolid.hh>
 
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Circular_kernel_intersections.h>
@@ -39,8 +41,14 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
+#include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <iostream>
+#include <iterator>
 #include <sstream>
+
+class PHCompositeNode;
 
 typedef CGAL::Circle_2<PHG4InnerHcalDetector::Circular_k> Circle_2;
 typedef CGAL::Circular_arc_point_2<PHG4InnerHcalDetector::Circular_k> Circular_arc_point_2;

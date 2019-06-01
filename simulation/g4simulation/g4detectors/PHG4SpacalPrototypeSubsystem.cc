@@ -2,30 +2,24 @@
 
 
 #include "PHG4SpacalPrototypeDetector.h"
-#include "PHG4FullProjSpacalDetector.h"
-#include "PHG4CylinderGeom.h"
-#include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalPrototypeSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
 
-#include <g4main/PHG4Utils.h>
-#include <g4main/PHG4PhenixDetector.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                 // for PHIODataNode
+#include <phool/PHNode.h>                       // for PHNode
+#include <phool/PHNodeIterator.h>               // for PHNodeIterator
+#include <phool/PHObject.h>                     // for PHObject
+#include <phool/getClass.h>
 
-#include <pdbcalbase/PdbParameterMap.h>
-#include <pdbcalbase/PdbParameterMapContainer.h>
-
-#include <Geant4/globals.hh>
-
+#include <iostream>                             // for operator<<, basic_ost...
 #include <sstream>
-#include <cassert>
+
+class PHG4Detector;
 
 using namespace std;
 

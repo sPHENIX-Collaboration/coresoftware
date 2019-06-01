@@ -15,19 +15,15 @@
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
 
-#include <Geant4/G4Region.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
+#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
 
 #include <cassert>
-#include <map>
-#include <set>
+#include <string>                       // for string
+#include <utility>                      // for pair
 
-class G4Material;
-class G4Tubs;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4UserLimits;
+class PHCompositeNode;
+class PHG4CylinderGeom;
 class PHG4SpacalSubsystem;
 class PHParameters;
 

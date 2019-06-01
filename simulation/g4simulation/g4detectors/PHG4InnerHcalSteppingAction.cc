@@ -1,5 +1,5 @@
 #include "PHG4InnerHcalSteppingAction.h"
-#include "PHG4HcalDefs.h"
+
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4StepStatusDecode.h"
 
@@ -9,17 +9,36 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
-
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
 #include <TSystem.h>
 
+#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
+#include <cstdlib>                            // for exit
+#include <cmath>                               // for isfinite
 #include <iostream>
+#include <string>                              // for operator<<, operator+
+#include <utility>                             // for pair
+
+class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
@@ -201,7 +220,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
            << " post vol : " << touchpost->GetVolume()->GetName() << endl;
       cout << " previous phys pre vol: " << m_SaveVolPre->GetName()
            << " previous phys post vol: " << m_SaveVolPost->GetName() << endl;
-      exit(1);
+      gSystem->Exit(1);
     }
     // check if track id matches the initial one when the hit was created
     if (aTrack->GetTrackID() != m_SaveTrackId)
@@ -213,7 +232,7 @@ bool PHG4InnerHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
            << ", previous post step status: " << m_SavePostStepStatus
            << endl;
 
-      exit(1);
+      gSystem->Exit(1);
     }
     m_SavePreStepStatus = prePoint->GetStepStatus();
     m_SavePostStepStatus = postPoint->GetStepStatus();

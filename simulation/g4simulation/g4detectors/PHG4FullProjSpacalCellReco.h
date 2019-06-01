@@ -7,7 +7,6 @@
 
 #include <map>
 #include <string>
-#include <vector>
 
 class PHCompositeNode;
 class PHG4Cell;

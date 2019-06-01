@@ -7,9 +7,13 @@
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <string>                   // for string
+
+class PHCompositeNode;
 class PHG4mRICHDetector;
-class PHG4BlockSteppingAction;
+class PHG4Detector;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
 {

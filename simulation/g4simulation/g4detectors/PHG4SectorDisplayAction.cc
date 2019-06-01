@@ -1,16 +1,18 @@
 #include "PHG4SectorDisplayAction.h"
 
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4Utils.h>
 
-#include <Geant4/G4Color.hh>
+#include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4VPhysicalVolume.hh>
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
 #include <TSystem.h>
 
 #include <iostream>
+#include <utility>                     // for pair
 
 using namespace std;
 

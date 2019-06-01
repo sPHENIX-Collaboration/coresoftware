@@ -5,12 +5,13 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <map>
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4OuterHcalDetector;
-class PHG4OuterHcalSteppingAction;
+class PHG4SteppingAction;
 
 class PHG4OuterHcalSubsystem: public PHG4DetectorSubsystem
 {

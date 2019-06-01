@@ -1,5 +1,8 @@
 #include "PHG4FullProjSpacalCellReco.h"
 
+#include "PHG4Cell.h"                          // for PHG4Cell
+#include "PHG4CylinderGeom.h"                  // for PHG4CylinderGeom
+#include "PHG4CylinderGeom_Spacalv1.h"         // for PHG4CylinderGeom_Spaca...
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4CylinderCellGeomContainer.h"
@@ -10,20 +13,29 @@
 #include "PHG4CellDefs.h"
 #include "PHG4Cellv1.h"
 
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <fun4all/Fun4AllBase.h>               // for Fun4AllBase::VERBOSITY...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
-#include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
 
+#include <TAxis.h>                             // for TAxis
 #include <TFile.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TObject.h>                           // for TObject
 
 #include <boost/foreach.hpp>
 
@@ -32,8 +44,8 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
-#include <limits>       // std::numeric_limits
 #include <sstream>
+#include <utility>                             // for pair
 
 
 using namespace std;

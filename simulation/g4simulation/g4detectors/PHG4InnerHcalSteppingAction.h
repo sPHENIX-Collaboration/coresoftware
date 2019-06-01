@@ -5,7 +5,9 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4InnerHcalDetector;
 class PHParameters;
 class PHG4Hit;

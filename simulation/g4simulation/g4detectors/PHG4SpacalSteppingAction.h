@@ -11,8 +11,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
-#include <string>
-
+class G4Step;
+class PHCompositeNode;
 class PHG4SpacalDetector;
 class PHG4Hit;
 class PHG4HitContainer;

@@ -7,9 +7,13 @@
 
 #include <g4main/PHG4Subsystem.h>
 
+#include <string>                   // for string
+
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4SectorDetector;
-class PHG4SectorSteppingAction;
+class PHG4SteppingAction;
 
 class PHG4SectorSubsystem : public PHG4Subsystem
 {

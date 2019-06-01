@@ -5,6 +5,15 @@
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
+#include <Geant4/G4Types.hh>                 // for G4double, G4int
+
+#include <string>                            // for string
+
+class G4LogicalVolume;
+class G4VPhysicalVolume;
+class PHCompositeNode;
+class PHG4CrystalCalorimeterSubsystem;
+
 /**
  * \file ${file_name}
  * \brief Module to build crystal calorimeter with projective crystal geometry in Geant4

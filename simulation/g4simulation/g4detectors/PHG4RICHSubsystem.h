@@ -18,6 +18,8 @@
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4RICHDetector;
 

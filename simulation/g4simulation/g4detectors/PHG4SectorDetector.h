@@ -7,7 +7,11 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <string>                   // for string
+
 class G4LogicalVolume;
+class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4SectorDisplayAction;
 class PHG4SectorSubsystem;
 
@@ -27,7 +31,7 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
 
   //!@name volume accessors
   //@{
-  bool IsInSectorActive(G4VPhysicalVolume *);
+  bool IsInSectorActive(G4VPhysicalVolume *physvol);
   //@}
 
   void SuperDetector(const std::string &name) { superdetector = name; }
