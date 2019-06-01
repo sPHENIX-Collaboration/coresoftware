@@ -52,10 +52,11 @@
 #include <Geant4/G4CashKarpRKF45.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ios.hh>                     // for G4cout, G4endl
 
 #include <cassert>
+#include <cstdlib>                            // for exit, size_t
 #include <iostream>
-#include <sstream>
 #include <string>
 
 using namespace std;

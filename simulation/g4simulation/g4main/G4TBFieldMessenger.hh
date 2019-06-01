@@ -45,6 +45,7 @@ class G4UIcmdWithAString;
 class G4UIcmdWithAnInteger;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithoutParameter;
+class G4UIcommand;
 
 
 class G4TBFieldMessenger: public G4UImessenger

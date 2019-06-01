@@ -1,12 +1,17 @@
 #include "PHG4HitReadBack.h"
+
 #include "PHG4Hit.h"
 #include "PHG4HitContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 
-#include <phool/PHNodeIterator.h>
 #include <iostream>
+#include <map>                           // for _Rb_tree_const_iterator
+#include <utility>                       // for pair
+
+class PHCompositeNode;
 
 using namespace std;
 

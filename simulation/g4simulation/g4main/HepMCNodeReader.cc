@@ -11,6 +11,7 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
+#include <phool/PHNode.h>                // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
 #include <phool/PHRandomSeed.h>

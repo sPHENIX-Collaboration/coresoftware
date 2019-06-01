@@ -1,7 +1,10 @@
 #include "PHG4Detector.h"
+
+#include <Geant4/G4Colour.hh>            // for G4Colour
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
 #include <Geant4/G4VisAttributes.hh>
 
 PHG4Detector::PHG4Detector(PHCompositeNode *Node, const std::string &nam)

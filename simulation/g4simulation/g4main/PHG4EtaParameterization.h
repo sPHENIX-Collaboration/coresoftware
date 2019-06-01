@@ -1,13 +1,14 @@
 #ifndef __PHG4ETAPARAMETERIZATION_H__
 #define __PHG4ETAPARAMETERIZATION_H__
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4Types.hh>                // for G4int
 #include <Geant4/G4VPVParameterisation.hh>
 
+#include <iostream>                         // for cout, ostream
 #include <vector>
 
+class G4Tubs;
 class G4VPhysicalVolume;
-class G4Box;
 
 // Parameterization to define rings whose size changes with Z to 
 // correspond to fixed width in eta.
