@@ -1,5 +1,7 @@
-#ifndef __PHG4ETAPARAMETERIZATION_H__
-#define __PHG4ETAPARAMETERIZATION_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4ETAPARAMETERIZATION_H
+#define G4MAIN_PHG4ETAPARAMETERIZATION_H
 
 #include <Geant4/G4Types.hh>                // for G4int
 #include <Geant4/G4VPVParameterisation.hh>

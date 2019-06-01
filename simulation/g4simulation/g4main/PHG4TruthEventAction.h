@@ -1,5 +1,7 @@
-#ifndef PHG4TruthEventAction_h
-#define PHG4TruthEventAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4TRUTHEVENTACTION_H
+#define G4MAIN_PHG4TRUTHEVENTACTION_H
 
 #include "PHG4EventAction.h"
 

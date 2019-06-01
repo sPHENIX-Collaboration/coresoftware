@@ -1,5 +1,7 @@
-#ifndef __PHG4UISESSION_H__
-#define __PHG4UISESSION_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4UISESSION_H
+#define G4MAIN_PHG4UISESSION_H
 
 #include <Geant4/G4UIsession.hh>
 

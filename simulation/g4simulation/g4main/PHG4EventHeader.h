@@ -1,5 +1,7 @@
-#ifndef PHG4EVENTHEADER_H
-#define PHG4EVENTHEADER_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4EVENTHEADER_H
+#define G4MAIN_PHG4EVENTHEADER_H
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>

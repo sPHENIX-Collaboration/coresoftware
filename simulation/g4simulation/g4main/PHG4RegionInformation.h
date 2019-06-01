@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 //
 // ********************************************************************
 // * License and Disclaimer                                           *
@@ -32,8 +34,8 @@
 // transitions from one region to the next (ie. entering/exiting the calorimeter).
 //
 
-#ifndef PHG4RegionInformation_H
-#define PHG4RegionInformation_H 1
+#ifndef G4MAIN_PHG4REGIONINFORMATION_H
+#define G4MAIN_PHG4REGIONINFORMATION_H
 
 #include <Geant4/globals.hh>
 #include <Geant4/G4VUserRegionInformation.hh>

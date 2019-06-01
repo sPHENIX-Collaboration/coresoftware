@@ -1,5 +1,7 @@
-#ifndef PHG4HEADRECO_H__
-#define PHG4HEADRECO_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4HEADRECO_H
+#define G4MAIN_PHG4HEADRECO_H
 
 #include <fun4all/SubsysReco.h>
 

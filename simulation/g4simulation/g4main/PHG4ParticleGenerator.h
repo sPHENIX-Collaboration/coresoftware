@@ -1,5 +1,7 @@
-#ifndef PHG4ParticleGenerator_H__
-#define PHG4ParticleGenerator_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PARTICLEGENERATOR_H
+#define G4MAIN_PHG4PARTICLEGENERATOR_H
 
 #include "PHG4ParticleGeneratorBase.h"
 

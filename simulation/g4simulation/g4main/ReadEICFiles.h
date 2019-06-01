@@ -1,5 +1,7 @@
-#ifndef READEICFILES_H__
-#define READEICFILES_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_READEICFILES_H
+#define G4MAIN_READEICFILES_H
 
 #include <fun4all/SubsysReco.h>
 #include <phhepmc/PHHepMCGenHelper.h>

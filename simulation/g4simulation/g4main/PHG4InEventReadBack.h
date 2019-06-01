@@ -1,5 +1,7 @@
-#ifndef PHG4INEVENTREADBACK_H
-#define PHG4INEVENTREADBACK_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4INEVENTREADBACK_H
+#define G4MAIN_PHG4INEVENTREADBACK_H
 
 #include <fun4all/SubsysReco.h>
 
