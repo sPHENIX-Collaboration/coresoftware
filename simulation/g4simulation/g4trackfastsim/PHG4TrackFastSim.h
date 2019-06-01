@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  *  \file		PHG4TrackFastSim.h
  *  \brief		Kalman Filter based on smeared truth PHG4Hit
@@ -5,8 +7,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHG4TrackFastSim_H__
-#define __PHG4TrackFastSim_H__
+#ifndef G4TRACKFASTSIM_PHG4TRACKFASTSIM_H
+#define G4TRACKFASTSIM_PHG4TRACKFASTSIM_H
 
 #include <fun4all/SubsysReco.h>
 #include <g4main/PHG4HitContainer.h>

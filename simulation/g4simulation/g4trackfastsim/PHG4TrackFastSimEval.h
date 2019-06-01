@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  *  \file		PHG4TrackFastSimEval.h
  *  \brief		Evaluation module for PHG4TrackFastSim output
@@ -5,8 +7,8 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHG4TrackFastSimEval_H__
-#define __PHG4TrackFastSimEval_H__
+#ifndef G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H
+#define G4TRACKFASTSIM_PHG4TRACKFASTSIMEVAL_H
 
 #include <fun4all/SubsysReco.h>
 #include <string>
