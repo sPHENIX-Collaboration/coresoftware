@@ -10,10 +10,13 @@
 //===========================================================
 
 #include <fun4all/SubsysReco.h>
+
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
+
+#include <string>                // for string
 
 class PHCompositeNode;
 

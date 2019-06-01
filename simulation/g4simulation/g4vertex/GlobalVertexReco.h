@@ -10,10 +10,9 @@
 /// \author Mike McCumber
 //===========================================================
 
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHTimeServer.h>
+#include <string>                // for string
 
 class PHCompositeNode;
 

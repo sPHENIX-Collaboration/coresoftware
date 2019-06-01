@@ -1,22 +1,30 @@
 #include "GlobalVertexFastSimReco.h"
 
+#include "GlobalVertexMap.h"                // for GlobalVertexMap
 #include "GlobalVertexMapv1.h"
+#include "GlobalVertex.h"                   // for GlobalVertex
 #include "GlobalVertexv1.h"
 
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>             // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                   // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                 // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                    // for PHWHERE
 
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                    // for gsl_rng_alloc, gsl_rng_free
 
 #include <cmath>
+#include <cstdlib>                         // for exit
 #include <iostream>
 
 using namespace std;

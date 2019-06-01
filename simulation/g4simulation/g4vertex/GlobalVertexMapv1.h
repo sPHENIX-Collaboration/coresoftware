@@ -7,12 +7,9 @@
 
 #include "GlobalVertex.h"
 
-#include <phool/PHObject.h>
-
+#include <cstddef>        // for size_t
 #include <iostream>
 #include <map>
-
-class GlobalVertex;
 
 class GlobalVertexMapv1 : public GlobalVertexMap
 {
