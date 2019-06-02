@@ -1,7 +1,10 @@
-#include <HepMC/GenEvent.h>
-#include <CLHEP/Random/RandFlat.h>
+#ifndef FLOWAFTERBURNER_FLOWAFTERBURNER_H
+#define FLOWAFTERBURNER_FLOWAFTERBURNER_H
 
 #include <string>
+
+namespace CLHEP { class HepRandomEngine; }
+namespace HepMC { class GenEvent; }
 
 enum flowAfterburnerAlgorithm 
   {
@@ -18,3 +21,4 @@ flowAfterburner(HepMC::GenEvent *inEvent,
 		float mineta, float maxeta,
 		float minpt, float maxpt);
 
+#endif
