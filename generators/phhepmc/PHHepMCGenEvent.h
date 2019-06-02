@@ -2,12 +2,12 @@
 #define PHHEPMC_PHHEPMCGENEVENT_H
 
 #include <phool/PHObject.h>
+
 #include <phool/phool.h>
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenVertex.h>
 #include <HepMC/SimpleVector.h>
+
+#include <iostream>                // for cout, ostream
 
 namespace HepMC
 {

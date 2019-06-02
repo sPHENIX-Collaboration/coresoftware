@@ -1,10 +1,10 @@
 #ifndef PHHEPMC_PHGENEVENTLISTV1_H
 #define PHHEPMC_PHGENEVENTLISTV1_H
 
-#include "PHGenEvent.h"
 #include "PHGenEventList.h"
 #include "PHGenEventv1.h"
 
+#include <cstddef>          // for size_t
 #include <iostream>
 #include <map>
 #include <vector>

@@ -1,7 +1,11 @@
 #include "PHGenEventListv1.h"
 
-#include <algorithm>
+#include "PHGenEvent.h"  // for PHGenEvent
+
 #include <iostream>
+#include <iterator>      // for reverse_iterator
+#include <memory>        // for allocator_traits<>::value_type
+#include <utility>       // for pair, make_pair
 #include <vector>
 
 using namespace std;

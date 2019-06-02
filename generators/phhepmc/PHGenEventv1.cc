@@ -2,6 +2,8 @@
 
 #include <HepMC/GenEvent.h>
 
+#include <TString.h>         // for TString, operator<<
+
 #include <sstream>
 
 using namespace std;

@@ -2,42 +2,24 @@
 
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
+#include "PHHepMCGenHelper.h"            // for PHHepMCGenHelper, PHHepMCGen...
 
-#include <ffaobjects/RunHeader.h>
-
-#include <frog/FROG.h>
-
+#include <fun4all/Fun4AllBase.h>         // for Fun4AllBase::VERBOSITY_SOME
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
 
-
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
 #include <phool/PHRandomSeed.h>
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/IO_GenEvent.h>
 
-#include <TPRegexp.h>
-#include <TString.h>
-
-#include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
-#include <boost/iostreams/filter/bzip2.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
-
+#include <cassert>                      // for assert
 #include <fstream>
 #include <iostream>
-#include <istream>
-#include <sstream>
-#include <cstdlib>
-#include <memory>
 
 using namespace std;
 

@@ -3,12 +3,12 @@
 
 #include "PHGenEvent.h"
 
-#include <phool/PHObject.h>
-#include <phool/phool.h>
-
 #include <TString.h>
 
-#include <HepMC/GenEvent.h>
+#include <cstddef>      // for size_t
+#include <iostream>      // for cout, operator<<, ostream, endl, basic_ostream
+
+namespace HepMC { class GenEvent; }
 
 class PHGenEventv1 : public PHGenEvent
 {

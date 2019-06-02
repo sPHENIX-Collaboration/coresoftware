@@ -3,6 +3,9 @@
 #include "PHHepMCGenEvent.h"
 
 #include <cassert>
+#include <cstdlib>           // for exit
+#include <iterator>           // for reverse_iterator
+#include <utility>            // for pair, make_pair
 
 using namespace std;
 

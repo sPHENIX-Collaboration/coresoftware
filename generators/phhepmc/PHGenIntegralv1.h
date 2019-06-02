@@ -13,6 +13,9 @@
 
 #include "PHGenIntegral.h"
 
+#include <iostream>         // for cout, ostream
+#include <string>           // for string
+
 /*!
  * \brief PHGenIntegralv1
  */

@@ -3,7 +3,10 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <string>                // for string
 #include <vector>
+
+class PHCompositeNode;
 
 namespace HepMC
 {
