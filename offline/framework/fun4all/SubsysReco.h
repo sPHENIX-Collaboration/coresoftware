@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef FUN4ALL_SUBSYSRECO_H
 #define FUN4ALL_SUBSYSRECO_H
 
