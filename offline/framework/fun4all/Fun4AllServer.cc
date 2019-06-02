@@ -21,7 +21,6 @@
 #include <phool/recoConsts.h>
 
 #include <Rtypes.h>                       // for kMAXSIGNALS
-#include <RtypesCore.h>                   // for Stat_t
 #include <TDirectory.h>
 #include <TH1.h>
 #include <TROOT.h>
