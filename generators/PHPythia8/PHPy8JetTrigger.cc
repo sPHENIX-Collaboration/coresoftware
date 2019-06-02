@@ -1,13 +1,19 @@
 #include "PHPy8JetTrigger.h"
 
+#include <Pythia8/Event.h>             // for Event, Particle
 #include <Pythia8/Pythia.h>
 
 // fastjet includes
-#include <cassert>
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
-#include <fastjet/SISConePlugin.hh>
+
+#include <cmath>                      // for sqrt
+#include <cstdlib>                    // for abs
+#include <iostream>                    // for operator<<, endl, basic_ostream
+#include <memory>                      // for allocator_traits<>::value_type
+#include <utility>                     // for swap
+#include <vector>                      // for vector
 
 using namespace std;
 

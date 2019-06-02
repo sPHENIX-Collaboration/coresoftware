@@ -2,19 +2,28 @@
 
 #include "PHPy8GenTrigger.h"
 
+#include <phhepmc/PHGenIntegral.h>                 // for PHGenIntegral
 #include <phhepmc/PHGenIntegralv1.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
+#include <phhepmc/PHHepMCGenHelper.h>              // for PHHepMCGenHelper
 
+#include <fun4all/Fun4AllBase.h>                   // for Fun4AllBase::VERBO...
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                    // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                          // for PHNode
+#include <phool/PHNodeIterator.h>                  // for PHNodeIterator
+#include <phool/PHObject.h>                        // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                           // for PHWHERE
 
 #include <HepMC/GenEvent.h>
+#include <HepMC/Units.h>                           // for GEV, MM
 
+#include <Pythia8/Event.h>                         // for Event
+#include <Pythia8/Info.h>                          // for Info
 #include <Pythia8/Pythia.h>
 #include <Pythia8Plugins/HepMC2.h>
 
@@ -22,6 +31,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <iostream>                                // for operator<<, endl
 
 using namespace std;
 

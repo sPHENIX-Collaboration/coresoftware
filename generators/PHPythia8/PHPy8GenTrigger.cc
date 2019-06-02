@@ -1,8 +1,6 @@
 #include "PHPy8GenTrigger.h"
 
-#include <Pythia8/Pythia.h>
-
-#include <iterator>
+#include <sstream>
 
 using namespace std;
 
@@ -14,8 +12,6 @@ PHPy8GenTrigger::PHPy8GenTrigger(const std::string &name)
 }
 
 //__________________________________________________________
-PHPy8GenTrigger::~PHPy8GenTrigger() {}
-
 std::vector<int> PHPy8GenTrigger::convertToInts(std::string s)
 {
   vector<int> theVec;
