@@ -5,25 +5,24 @@
 #include "Fun4AllSyncManager.h"
 #include "Fun4AllUtils.h"
 
-#include <ffaobjects/RunHeader.h>
+#include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
 
 #include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
-#include <phool/getClass.h>
-#include <phool/recoConsts.h>
+#include <phool/PHNode.h>             // for PHNode
+#include <phool/PHNodeIterator.h>     // for PHNodeIterator
+#include <phool/phool.h>              // for PHWHERE
 
 #include <Event/Event.h>
+#include <Event/Eventiterator.h>      // for Eventiterator
 #include <Event/fileEventiterator.h>
 
 #include <cstdlib>
-#include <memory>
-
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/tokenizer.hpp>
+#include <iostream>                   // for operator<<, basic_ostream, endl
+#include <utility>                    // for pair
 
 using namespace std;
 

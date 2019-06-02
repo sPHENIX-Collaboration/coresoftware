@@ -5,8 +5,11 @@
 #include <HepMC/GenVertex.h>
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenRanges.h>
-#include <HepMC/IO_AsciiParticles.h>
+#include <HepMC/HeavyIon.h>
+#include <HepMC/IO_BaseClass.h>
 #include <HepMC/IO_GenEvent.h>
+#include <HepMC/IteratorRange.h>
+#include <HepMC/SimpleVector.h>
 
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -23,13 +26,16 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
+#include <boost/operators.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 #include <gsl/gsl_histogram.h>
 
-#include <iostream>
+#include <cmath>                                                   // for cos
 #include <cstdlib>
+#include <iostream>
 #include <string>
+#include <utility>                                                  // for swap
 
 int
 main ()

@@ -4,12 +4,21 @@
 #include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>          // for SubsysReco
 
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
+#include <phool/phool.h>                 // for PHWHERE
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <HepMC/GenEvent.h>              // for GenEvent::particle_const_ite...
+#include <HepMC/GenParticle.h>           // for GenParticle
+#include <HepMC/GenVertex.h>             // for GenVertex, GenVertex::partic...
+#include <HepMC/IteratorRange.h>         // for ancestors, children, descend...
+#include <HepMC/SimpleVector.h>          // for FourVector
+
+#include <cstdlib>                      // for abs
+#include <iostream>                      // for operator<<, basic_ostream::o...
+
+class PHCompositeNode;
 
 using namespace std;
 

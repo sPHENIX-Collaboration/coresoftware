@@ -4,6 +4,7 @@
 #include "PHPy8GenTrigger.h"
 
 #include <string>
+#include <vector>             // for vector
 
 namespace Pythia8
 {

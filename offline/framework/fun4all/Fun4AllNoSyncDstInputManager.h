@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef FUN4ALL_FUN4ALLNOSYNCDSTINPUTMANAGER_H
 #define FUN4ALL_FUN4ALLNOSYNCDSTINPUTMANAGER_H
 
@@ -5,7 +7,8 @@
 
 #include "Fun4AllReturnCodes.h"
 
-class PHCompositeNode;
+#include <string>                    // for string
+
 class PHNodeIOManager;
 class SyncObject;
 

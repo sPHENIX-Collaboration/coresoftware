@@ -1,15 +1,18 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef FUN4ALL_FUN4ALLSERVER_H
 #define FUN4ALL_FUN4ALLSERVER_H
 
 #include "Fun4AllBase.h"
 
-#include "Fun4AllHistoManager.h"
+#include "Fun4AllHistoManager.h"          // for Fun4AllHistoManager
 
 #include <phool/PHTimer.h>
 
 #include <iostream>
 #include <map>
 #include <string>
+#include <utility>          // for pair
 #include <vector>
 
 class Fun4AllInputManager;

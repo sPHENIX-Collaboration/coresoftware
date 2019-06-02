@@ -12,6 +12,7 @@
 #define PHHEPMC_PHGENINTEGRAL_H
 
 #include <phool/PHObject.h>
+
 #include <string>
 
 /*!

@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef FUN4ALL_FUN4ALLDUMMYINPUTMANAGER_H
 #define FUN4ALL_FUN4ALLDUMMYINPUTMANAGER_H
 
@@ -5,8 +7,9 @@
 
 #include "Fun4AllReturnCodes.h"
 
-class PHCompositeNode;
-class SubsysReco;
+#include <string>                 // for string
+
+class Fun4AllSyncManager;
 class SyncObject;
 
 class Fun4AllDummyInputManager : public Fun4AllInputManager

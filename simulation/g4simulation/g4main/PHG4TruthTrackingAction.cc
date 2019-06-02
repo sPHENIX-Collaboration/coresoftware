@@ -1,7 +1,9 @@
 #include "PHG4TruthTrackingAction.h"
 
+#include "PHG4Particle.h"                        // for PHG4Particle
 #include "PHG4Particlev2.h"
 #include "PHG4Particlev3.h"
+#include "PHG4Shower.h"                          // for PHG4Shower
 #include "PHG4Showerv1.h"
 #include "PHG4TrackUserInfoV1.h"
 #include "PHG4TruthEventAction.h"
@@ -11,11 +13,20 @@
 
 #include <phool/getClass.h>
 
+#include <Geant4/G4DynamicParticle.hh>           // for G4DynamicParticle
+#include <Geant4/G4ParticleDefinition.hh>        // for G4ParticleDefinition
 #include <Geant4/G4PrimaryParticle.hh>
+#include <Geant4/G4String.hh>                    // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4TrackingManager.hh>
-#include <Geant4/G4VUserPrimaryParticleInformation.hh>
+#include <Geant4/G4TrackVector.hh>               // for G4TrackVector
+#include <Geant4/G4VUserTrackInformation.hh>     // for G4VUserTrackInformation
+
+#include <cmath>                                // for sqrt
+#include <cstddef>                              // for size_t
+#include <iostream>                              // for operator<<, endl
+#include <utility>                               // for pair
 
 using namespace std;
 

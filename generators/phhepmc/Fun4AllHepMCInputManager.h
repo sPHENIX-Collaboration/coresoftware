@@ -7,13 +7,16 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
+
+#include <utility>                                  // for swap
 
 #ifndef __CINT__
 #include <boost/iostreams/filtering_streambuf.hpp>
 #endif
+
+class PHCompositeNode;
+class SyncObject;
 
 // forward declaration of classes in namespace
 namespace HepMC
@@ -22,8 +25,6 @@ class IO_GenEvent;
 class GenEvent;
 };  // namespace HepMC
 
-class PHHepMCGenEvent;
-class PHCompositeNode;
 
 class Fun4AllHepMCInputManager : public Fun4AllInputManager
 {

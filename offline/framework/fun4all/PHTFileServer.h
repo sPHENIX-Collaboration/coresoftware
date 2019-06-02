@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 //////////////////////////////////////////////////////////////////
 /*! 
   \file PHTFileServer.h
@@ -13,7 +15,6 @@
 
 #include <TFile.h>
 
-#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>

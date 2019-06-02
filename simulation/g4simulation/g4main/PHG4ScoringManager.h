@@ -19,7 +19,7 @@
 #include <vector>
 
 class Fun4AllHistoManager;
-class TH1;
+class PHCompositeNode;
 
 /*!
  * \brief PHG4ScoringManager is the connection between Fun4All to G4ScoringManager

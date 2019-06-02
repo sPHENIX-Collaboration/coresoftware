@@ -28,53 +28,60 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHDataNode.h>                    // for PHDataNode
+#include <phool/PHNode.h>                        // for PHNode
+#include <phool/PHNodeIterator.h>                // for PHNodeIterator
+#include <phool/PHObject.h>                      // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                         // for PHWHERE
 #include <phool/recoConsts.h>
 
 #include <eicphysicslist/EICPhysicsList.hh>
 
+#include <TSystem.h>                             // for TSystem, gSystem
 #include <TThread.h>
 
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4Cerenkov.hh>
-#include <Geant4/G4EmProcessOptions.hh>
-#include <Geant4/G4EmSaturation.hh>
-#include <Geant4/G4FastSimulationManager.hh>
+#include <Geant4/G4Element.hh>                   // for G4Element
+#include <Geant4/G4EventManager.hh>              // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
+#include <Geant4/G4IonisParamMat.hh>             // for G4IonisParamMat
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpAbsorption.hh>
 #include <Geant4/G4OpBoundaryProcess.hh>
 #include <Geant4/G4OpMieHG.hh>
 #include <Geant4/G4OpRayleigh.hh>
 #include <Geant4/G4OpWLS.hh>
-#include <Geant4/G4OpenGLImmediateX.hh>
 #include <Geant4/G4OpticalPhoton.hh>
 #include <Geant4/G4OpticalPhysics.hh>
-#include <Geant4/G4PAIModel.hh>
-#include <Geant4/G4PEEffectFluoModel.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4ParticleTypes.hh>
+#include <Geant4/G4PhotoElectricEffect.hh>       // for G4PhotoElectricEffect
 #include <Geant4/G4ProcessManager.hh>
+#include <Geant4/G4ProductionCuts.hh>            // for G4ProductionCuts
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4RegionStore.hh>
 #include <Geant4/G4RunManager.hh>
-#include <Geant4/G4Scintillation.hh>
 #include <Geant4/G4StepLimiterPhysics.hh>
+#include <Geant4/G4String.hh>                    // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>                     // for G4double, G4int
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
-#include <Geant4/globals.hh>
+#include <Geant4/G4VisManager.hh>                // for G4VisManager
+#include <Geant4/G4VModularPhysicsList.hh>       // for G4VModularPhysicsList
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
-#include <Geant4/LBE.hh>
 #include <Geant4/QGSP_BERT.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
@@ -96,8 +103,16 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <cstring>
+#include <exception>                             // for exception
+#include <iostream>                              // for operator<<, endl
 #include <memory>
+#include <set>                                   // for set, _Rb_tree_const_...
+#include <vector>                                // for vector, vector<>::it...
+
+class G4TrackingManager;
+class PHField;
+class PHG4EventAction;
+class PHG4SteppingAction;
 
 using namespace std;
 

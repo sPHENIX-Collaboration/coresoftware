@@ -2,7 +2,6 @@
 #define PHSARTRE_PHSARTREGENTRIGGER_H
 
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 

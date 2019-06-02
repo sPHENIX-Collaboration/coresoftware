@@ -1,17 +1,19 @@
 #include "Fun4AllRolloverFileOutStream.h"
 
 #include "Fun4AllEventOutputManager.h"
-#include "Fun4AllServer.h"
 
 #include <Event/Event.h>
+#include <Event/oBuffer.h>              // for oBuffer
 #include <Event/ogzBuffer.h>
 
 #include <phool/phool.h>
 
+#include <cstdio>                      // for snprintf
+#include <cstdlib>                     // for exit
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <iostream>
+#include <sys/stat.h>
+#include <unistd.h>                     // for close
 
 using namespace std;
 

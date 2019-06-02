@@ -8,7 +8,6 @@
 
 class G4Step;
 class PHG4SteppingAction;
-class PHCompositeNode;
 
 class PHG4PhenixSteppingAction : public G4UserSteppingAction
 {

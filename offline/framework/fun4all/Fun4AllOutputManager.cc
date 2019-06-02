@@ -1,7 +1,5 @@
 #include "Fun4AllOutputManager.h"
 
-#include "Fun4AllServer.h"
-
 #include <iostream>
 #include <string>
 #include <vector>

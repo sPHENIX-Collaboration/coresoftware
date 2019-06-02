@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // This Master manages the reading of the Input.
 // In principle all of this could be done in the Fun4AllServer
 // but this is simpler to develop and test while Fun4All is allready in use.
@@ -7,7 +9,7 @@
 
 #include "Fun4AllBase.h"
 
-#include <set>
+#include <string>         // for string
 #include <vector>
 
 class Fun4AllInputManager;

@@ -3,25 +3,11 @@
 
 #include "Fun4AllHepMCInputManager.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-
-#include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
 
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
 #endif
-
-// forward declaration of classes in namespace
-namespace HepMC
-{
-class IO_GenEvent;
-class GenEvent;
-};  // namespace HepMC
-
-class PHCompositeNode;
 
 //! Generate pile up collisions based on beam parameter
 //! If set_embedding_id(i) with a negative number or 0, the pile up event will be inserted with increasing positive embedding_id. This is the default operation mode.

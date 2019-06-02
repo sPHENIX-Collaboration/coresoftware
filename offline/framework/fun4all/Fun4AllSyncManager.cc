@@ -1,19 +1,17 @@
 #include "Fun4AllSyncManager.h"
 
-#include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllInputManager.h"
 #include "Fun4AllServer.h"
 
-#include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncObject.h>
 
-#include <phool/PHIODataNode.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/recoConsts.h>
+#include <phool/phool.h>            // for PHWHERE
 
 #include <cstdlib>
-#include <memory>
+#include <iostream>                 // for operator<<, endl, basic_ostream
+#include <list>                     // for list<>::const_iterator, _List_con...
 #include <string>
+#include <utility>                  // for pair
 #include <vector>
 
 using namespace std;

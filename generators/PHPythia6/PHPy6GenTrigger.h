@@ -1,8 +1,6 @@
 #ifndef PHPYTHIA6_PHPY6GENTRIGGER_H
 #define PHPYTHIA6_PHPY6GENTRIGGER_H
 
-#include <HepMC/GenEvent.h>
-
 #include <iostream>
 #include <sstream>
 #include <string>

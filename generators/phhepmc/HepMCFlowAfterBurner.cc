@@ -9,21 +9,25 @@
 #include <flowafterburner/flowAfterburner.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>               // for SubsysReco
 
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <HepMC/GenEvent.h>
-
 #include <CLHEP/Random/MTwistEngine.h>
-#include <CLHEP/Random/RandFlat.h>
 #include <CLHEP/Random/RandomEngine.h>
 
 #include <iostream>
+#include <iterator>                           // for operator!=, reverse_ite...
+#include <set>                                // for set, _Rb_tree_const_ite...
 #include <string>
+#include <utility>                            // for pair
 
 using namespace std;
+
+class PHCompositeNode;
+namespace HepMC { class GenEvent; }
 
 CLHEP::HepRandomEngine *engine = nullptr;
 

@@ -4,6 +4,9 @@
 #include "PHHepMCGenEvent.h"
 
 #include <phool/PHObject.h>
+
+#include <cstddef>           // for size_t
+#include <iostream>           // for cout, ostream
 #include <map>
 
 //! \brief PHHepMCGenEventMap is collection of HEPMC events input into this simulation

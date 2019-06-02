@@ -1,24 +1,27 @@
 #include "PHG4SimpleEventGenerator.h"
 
+#include "PHG4Particle.h"                // for PHG4Particle
 #include "PHG4Particlev2.h"
 #include "PHG4InEvent.h"
-#include "PHG4VtxPoint.h"
-#include "PHG4TruthInfoContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-
-#include <Geant4/G4ParticleTable.hh>
-#include <Geant4/G4ParticleDefinition.hh>
+#include <phool/PHDataNode.h>            // for PHDataNode
+#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNodeIterator.h>        // for PHNodeIterator
+#include <phool/PHObject.h>              // for PHObject
+#include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                 // for gsl_rng_uniform_pos
 
 #include <cstdlib>
 #include <cmath>
 #include <cassert>
+#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <memory>                        // for allocator_traits<>::value_type
 
 using namespace std;
 

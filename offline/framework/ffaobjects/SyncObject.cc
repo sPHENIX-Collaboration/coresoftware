@@ -28,7 +28,7 @@ SyncObject*
 SyncObject::clone() const
 {
   cout << "SyncObject::clone() not implemented by daughter class" << endl;
-  return NULL;
+  return nullptr;
 }
 
 SyncObject&

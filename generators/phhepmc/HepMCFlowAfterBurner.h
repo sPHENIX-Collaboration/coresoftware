@@ -8,6 +8,8 @@
 
 #include <string>
 
+class PHCompositeNode;
+
 class HepMCFlowAfterBurner : public SubsysReco
 {
  public:

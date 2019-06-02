@@ -1,7 +1,7 @@
 #include "Fun4AllServer.h"
 
 #include "Fun4AllHistoBinDefs.h"
-#include "Fun4AllInputManager.h"
+#include "Fun4AllHistoManager.h"          // for Fun4AllHistoManager
 #include "Fun4AllMemoryTracker.h"
 #include "Fun4AllOutputManager.h"
 #include "Fun4AllReturnCodes.h"
@@ -9,28 +9,26 @@
 #include "SubsysReco.h"
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-#include <phool/PHNodeIOManager.h>
+#include <phool/PHNode.h>                 // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHNodeReset.h>
 #include <phool/PHObject.h>
 #include <phool/PHPointerListIterator.h>
 #include <phool/PHTimeStamp.h>
-#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHTimer.h>                // for PHTimer
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/recoConsts.h>
 
+#include <Rtypes.h>                       // for kMAXSIGNALS
 #include <TDirectory.h>
-#include <TFile.h>
-#include <TH1D.h>
-#include <TNamed.h>
+#include <TH1.h>
 #include <TROOT.h>
+#include <TSysEvtHandler.h>               // for ESignals
 #include <TSystem.h>
 
 #include <boost/foreach.hpp>
 
-#include <sys/utsname.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>

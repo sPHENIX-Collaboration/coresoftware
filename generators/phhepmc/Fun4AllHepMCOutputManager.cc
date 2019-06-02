@@ -3,28 +3,30 @@
 #include "PHHepMCGenEvent.h"
 #include "PHHepMCGenEventMap.h"
 
+#include <fun4all/Fun4AllOutputManager.h>                 // for Fun4AllOutp...
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
 #include <phool/getClass.h>
+#include <phool/phool.h>                                  // for PHWHERE
 
-#include <HepMC/GenEvent.h>
 #include <HepMC/IO_GenEvent.h>
-
-#include <iostream>
-#include <string>
-#include <vector>
 
 #include <TPRegexp.h>
 #include <TString.h>
 
-#include <cassert>
-#include <fstream>
-#include <ostream>
-
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
+
+#include <cassert>
+#include <cstdlib>                                       // for exit
+#include <fstream>
+#include <iostream>
+#include <ostream>
+#include <string>
+#include <utility>                                        // for swap
+
+namespace HepMC { class GenEvent; }
 
 using namespace std;
 

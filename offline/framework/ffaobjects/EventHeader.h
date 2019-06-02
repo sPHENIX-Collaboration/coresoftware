@@ -1,9 +1,12 @@
-#ifndef EVENTHEADER_H
-#define EVENTHEADER_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_EVENTHEADER_H
+#define FFAOBJECTS_EVENTHEADER_H
 
 #include <phool/PHObject.h>
 
 #include <ctime>
+#include <iostream>          // for cout, ostream
 
 //! base class for EventHeaders
 class EventHeader: public PHObject

@@ -1,7 +1,11 @@
 #include "PHG4TrackUserInfoV1.h"
 
 #include <Geant4/G4Track.hh>
+
 #include <boost/lexical_cast.hpp>
+
+#include <iostream>                // for operator<<, basic_ostream, endl, cout
+#include <string>                  // for string, operator<<
 
 namespace PHG4TrackUserInfo
 {

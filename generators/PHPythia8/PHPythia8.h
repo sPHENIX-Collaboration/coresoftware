@@ -2,22 +2,19 @@
 #define PHPYTHIA8_PHPYTHIA8_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <phhepmc/PHHepMCGenHelper.h>
 
 #include <cmath>
-#include <iostream>
 #include <string>
 #include <vector>
 
 class PHCompositeNode;
-class PHHepMCGenEvent;
-class PHHepMCFilter;
 class PHGenIntegral;
 class PHPy8GenTrigger;
 
 namespace HepMC
 {
-class GenEvent;
 class Pythia8ToHepMC;
 };  // namespace HepMC
 
@@ -111,7 +108,7 @@ class PHPythia8 : public SubsysReco
  private:
   int read_config(const char *cfg_file = 0);
   int create_node_tree(PHCompositeNode *topNode);
-  double percent_diff(const double a, const double b) { return abs((a - b) / a); }
+  double percent_diff(const double a, const double b) { return fabs((a - b) / a); }
   int _eventcount;
 
   // event selection

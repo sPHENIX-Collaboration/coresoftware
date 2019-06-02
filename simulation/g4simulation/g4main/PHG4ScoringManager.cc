@@ -13,35 +13,46 @@
 #include "PHG4InEvent.h"
 #include "PHG4Particle.h"
 
+#include <phhepmc/PHHepMCGenEvent.h>
+#include <phhepmc/PHHepMCGenEventMap.h>
+
+#include <fun4all/Fun4AllBase.h>                   // for Fun4AllBase::VERBO...
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/PHTFileServer.h>
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
+
 #include <phool/getClass.h>
+
+#include <HepMC/SimpleVector.h>                    // for FourVector
+
+#include <TAxis.h>                                 // for TAxis
+#include <TDatabasePDG.h>
+#include <TH1.h>
+#include <TH3.h>                                   // for TH3, TH3D
+#include <TNamed.h>                                // for TNamed
+#include <TParticlePDG.h>                          // for TParticlePDG
+#include <TVector3.h>
 
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4ScoringManager.hh>
+#include <Geant4/G4String.hh>                      // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4THitsMap.hh>                    // for G4THitsMap
+#include <Geant4/G4ThreeVector.hh>                 // for G4ThreeVector
+#include <Geant4/G4Types.hh>                       // for G4int, G4double
 #include <Geant4/G4UImanager.hh>
-#include <Geant4/G4VPrimitiveScorer.hh>
+#include <Geant4/G4VScoringMesh.hh>                // for G4VScoringMesh
 #include <Geant4/G4Version.hh>
-
-#include <TDatabasePDG.h>
-#include <TFile.h>
-#include <TH1.h>
-#include <TH1D.h>
-#include <TH2.h>
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TString.h>
-#include <TVector3.h>
 
 #include <boost/format.hpp>
 
 #include <cassert>
+#include <climits>                                  // for numeric_limits
+#include <cmath>                                  // for fabs, M_PI
 #include <iostream>
+#include <map>                                     // for _Rb_tree_const_ite...
+#include <utility>                                 // for pair
 
 using namespace std;
 

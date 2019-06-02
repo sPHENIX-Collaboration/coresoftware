@@ -1,5 +1,7 @@
-#ifndef __SYNCOBJECTv1_H
-#define __SYNCOBJECTv1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_SYNCOBJECTV1_H
+#define FFAOBJECTS_SYNCOBJECTV1_H
 
 #include "SyncObject.h"
 #include <iostream>

@@ -14,20 +14,24 @@
 #include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
+#include <phool/PHIODataNode.h>          // for PHIODataNode
+#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNodeIterator.h>        // for PHNodeIterator
+#include <phool/PHObject.h>              // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/IO_GenEvent.h>
+#include <HepMC/SimpleVector.h>          // for FourVector
 
-#include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
 #include <cassert>
-#include <climits>
+#include <limits>
+#include <cstdlib>                      // for exit
 #include <iostream>
 
 using namespace std;

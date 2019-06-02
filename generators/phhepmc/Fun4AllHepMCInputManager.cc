@@ -1,41 +1,41 @@
 #include "Fun4AllHepMCInputManager.h"
 
+#include "PHHepMCGenEvent.h"
+#include "PHHepMCGenEventMap.h"
+
+#include <frog/FROG.h>
+
+#include <fun4all/Fun4AllInputManager.h>                  // for Fun4AllInpu...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                           // for PHIODataNode
+#include <phool/PHObject.h>                               // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                                  // for PHWHERE
 #include <phool/recoConsts.h>
 
-#include <PHHepMCGenEvent.h>
-#include <PHHepMCGenEventMap.h>
-
-#include <ffaobjects/RunHeader.h>
-
-#include <frog/FROG.h>
-
-#include <phool/PHRandomSeed.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
-
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>                            // for GenParticle
+#include <HepMC/GenVertex.h>                              // for GenVertex
 #include <HepMC/IO_GenEvent.h>
+#include <HepMC/SimpleVector.h>                           // for FourVector
+#include <HepMC/Units.h>                                  // for CM, GEV
 
 #include <TPRegexp.h>
 #include <TString.h>
 
-
-#include <gsl/gsl_const.h>
-
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <istream>
-#include <memory>
+#include <map>                                            // for _Rb_tree_it...
 #include <sstream>
-#include <cstdlib>
+#include <vector>                                         // for vector
 
 using namespace std;
 

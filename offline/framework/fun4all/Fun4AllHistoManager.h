@@ -1,9 +1,10 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef FUN4ALL_FUN4ALLHISTOMANAGER_H
 #define FUN4ALL_FUN4ALLHISTOMANAGER_H
 
 #include "Fun4AllBase.h"
 
-#include <iostream>
 #include <map>
 #include <string>
 

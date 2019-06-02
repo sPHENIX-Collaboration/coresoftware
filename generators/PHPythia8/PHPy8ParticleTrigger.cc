@@ -1,6 +1,10 @@
 #include "PHPy8ParticleTrigger.h"
 
+#include <Pythia8/Event.h>   // for Event, Particle
 #include <Pythia8/Pythia.h>
+
+#include <cstdlib>          // for abs
+#include <iostream>          // for operator<<, endl, basic_ostream, basic_o...
 
 using namespace std;
 

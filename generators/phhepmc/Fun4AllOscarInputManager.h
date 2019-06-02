@@ -4,21 +4,19 @@
 #include "PHHepMCGenHelper.h"
 
 #include <fun4all/Fun4AllInputManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>   // for SYNC_NOOBJECT, SYNC_OK
 
 #include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
 
 // forward declaration of classes in namespace
 namespace HepMC
 {
-class IO_GenEvent;
 class GenEvent;
 };  // namespace HepMC
 
 class PHCompositeNode;
-class PHHepMCGenEvent;
+class SyncObject;
 
 class Fun4AllOscarInputManager : public Fun4AllInputManager
 {

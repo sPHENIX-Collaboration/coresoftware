@@ -5,12 +5,12 @@
 
 #include "PHG4EventAction.h"
 
-#include <Geant4/G4ThreeVector.hh>
 #include <Geant4/globals.hh>
 
 #include <set>
 #include <map>
 
+class G4Event;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHCompositeNode;

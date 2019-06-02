@@ -1,20 +1,10 @@
 #include "PHHepMCGenEvent.h"
 
 #include <HepMC/GenEvent.h>
+#include <HepMC/SimpleVector.h>  // for FourVector
 
-#include <RVersion.h>  // root version
-#include <TBuffer.h>
-#include <TClass.h>
-
-#include <boost/foreach.hpp>
-
-#include <algorithm>
-#include <cassert>
-#include <cstdlib>
-#include <iomanip>
 #include <sstream>
-#include <stdexcept>
-#include <vector>
+#include <utility>               // for swap
 
 using namespace std;
 

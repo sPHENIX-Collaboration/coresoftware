@@ -1,11 +1,11 @@
 #include "Fun4AllOscarInputManager.h"
 
+#include "PHHepMCGenEvent.h"                              // for PHHepMCGenE...
 #include "PHHepMCGenEventMap.h"
-
-#include <ffaobjects/RunHeader.h>
 
 #include <frog/FROG.h>
 
+#include <fun4all/Fun4AllInputManager.h>                  // for Fun4AllInpu...
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
@@ -13,11 +13,15 @@
 #include <phool/getClass.h>
 #include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
+#include <phool/PHIODataNode.h>                           // for PHIODataNode
+#include <phool/PHNodeIterator.h>                         // for PHNodeIterator
 #include <phool/PHObject.h>
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/IO_GenEvent.h>
+#include <HepMC/GenParticle.h>                            // for GenParticle
+#include <HepMC/GenVertex.h>                              // for GenVertex
+#include <HepMC/SimpleVector.h>                           // for FourVector
+#include <HepMC/Units.h>                                  // for GEV, MM
 
 #include <TPRegexp.h>
 #include <TString.h>
@@ -27,11 +31,12 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include <cstdlib>
-#include <memory>
 #include <fstream>
 #include <iostream>
-#include <istream>
+#include <map>                                            // for _Rb_tree_it...
 #include <sstream>
+#include <utility>                                        // for swap, pair
+#include <vector>                                         // for vector
 
 
 using namespace std;

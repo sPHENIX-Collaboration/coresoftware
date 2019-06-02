@@ -5,12 +5,12 @@
 #include "Fun4AllServer.h"
 
 #include <phool/getClass.h>
+#include <phool/phool.h>            // for PHWHERE
 
 #include <Event/Event.h>
 
 #include <iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
 

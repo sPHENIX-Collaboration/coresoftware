@@ -9,13 +9,11 @@
 #include <HepMC/GenParticle.h>
 #include <HepMC/GenRanges.h>
 #include <HepMC/IO_AsciiParticles.h>
+#include <HepMC/IO_BaseClass.h>
 #include <HepMC/IO_GenEvent.h>
 
-#include <CLHEP/Random/RandomEngine.h>
 #include <CLHEP/Random/MTwistEngine.h>
-#include <CLHEP/Random/RandFlat.h>
 #include <CLHEP/Vector/LorentzVector.h>
-#include <CLHEP/Geometry/Point3D.h>
 
 #include <boost/version.hpp> // to get BOOST_VERSION
 #if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 106000  || BOOST_VERSION == 106700 ))
@@ -29,15 +27,15 @@
 #include <boost/property_tree/ptree.hpp>
 #endif
 
-#include <boost/foreach.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/operators.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
 
-#include <iostream>
-#include <cstdlib>
+#include <sstream>
 #include <string>
-#include <memory>
+#include <utility>                                                  // for swap
+
+namespace CLHEP { class HepRandomEngine; }
 
 CLHEP::HepRandomEngine * engine;
 

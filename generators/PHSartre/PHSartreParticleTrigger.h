@@ -4,6 +4,7 @@
 #include "PHSartreGenTrigger.h"
 
 #include <string>
+#include <vector>                // for vector
 
 class Event;
 

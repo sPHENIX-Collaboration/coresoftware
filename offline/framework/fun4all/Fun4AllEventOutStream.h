@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef FUN4ALL_FUN4ALLEVENTOUTSTREAM_H
 #define FUN4ALL_FUN4ALLEVENTOUTSTREAM_H
 
@@ -20,7 +22,6 @@
 #endif
 
 #include <map>
-#include <set>
 #include <string>
 
 class Event;

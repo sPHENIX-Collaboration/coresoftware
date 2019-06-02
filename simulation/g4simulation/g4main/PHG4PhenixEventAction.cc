@@ -1,6 +1,10 @@
 #include "PHG4PhenixEventAction.h"
 #include "PHG4EventAction.h"
 
+#include <phool/PHTimer.h>    // for PHTimer
+
+#include <iostream>           // for operator<<, endl, basic_ostream, cout
+
 const int VERBOSE = 0;
 
 PHG4PhenixEventAction::PHG4PhenixEventAction() :

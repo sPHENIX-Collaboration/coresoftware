@@ -10,7 +10,8 @@
 
 #include "PHGenIntegralv1.h"
 
-#include <cassert>
+#include <phool/PHObject.h>  // for PHObject
+
 #include <cstdlib>
 #include <iostream>
 using namespace std;

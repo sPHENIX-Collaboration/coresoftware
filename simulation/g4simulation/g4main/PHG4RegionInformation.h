@@ -37,14 +37,14 @@
 #ifndef G4MAIN_PHG4REGIONINFORMATION_H
 #define G4MAIN_PHG4REGIONINFORMATION_H
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4VUserRegionInformation.hh>
+#include <Geant4/G4Types.hh>                   // for G4bool
 
 class PHG4RegionInformation : public G4VUserRegionInformation
 {
   public:
     PHG4RegionInformation(); 
-    ~PHG4RegionInformation();
+    ~PHG4RegionInformation(){}
     void Print() const;
 
   private:

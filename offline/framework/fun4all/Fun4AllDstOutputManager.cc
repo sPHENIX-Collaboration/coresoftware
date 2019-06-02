@@ -5,13 +5,13 @@
 #include <phool/PHNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIterator.h>
+#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <boost/foreach.hpp>
 
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <vector>
 
 using namespace std;
 

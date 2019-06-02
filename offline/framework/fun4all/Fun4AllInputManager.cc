@@ -7,6 +7,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include <cstdint>                         // for uintmax_t
 #include <fstream>
 #include <iostream>
 

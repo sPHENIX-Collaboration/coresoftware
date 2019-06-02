@@ -12,7 +12,6 @@
 
 class G4Event;
 class PHG4EventAction;
-class PHCompositeNode;
 
 class PHG4PhenixEventAction : public G4UserEventAction
 {
