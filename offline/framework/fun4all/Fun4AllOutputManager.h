@@ -3,6 +3,7 @@
 
 #include "Fun4AllBase.h"
 
+#include <cstddef>       // for size_t
 #include <string>
 #include <vector>
 

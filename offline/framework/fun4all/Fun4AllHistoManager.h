@@ -3,7 +3,6 @@
 
 #include "Fun4AllBase.h"
 
-#include <iostream>
 #include <map>
 #include <string>
 

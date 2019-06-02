@@ -3,6 +3,11 @@
 
 #include "Fun4AllFileOutStream.h"
 
+#include <iostream>                // for cout, ostream
+#include <string>                  // for string
+
+class Event;
+
 class Fun4AllRolloverFileOutStream : public Fun4AllFileOutStream
 {
  public:

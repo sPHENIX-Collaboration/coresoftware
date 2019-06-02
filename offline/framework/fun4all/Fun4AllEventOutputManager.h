@@ -6,7 +6,6 @@
 #include <string>
 
 class Fun4AllEventOutStream;
-class PHNodeIOManager;
 class PHCompositeNode;
 
 class Fun4AllEventOutputManager : public Fun4AllOutputManager

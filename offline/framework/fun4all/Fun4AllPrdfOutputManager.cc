@@ -1,12 +1,12 @@
 #include "Fun4AllPrdfOutputManager.h"
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHNode.h>           // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHRawOManager.h>
 #include <phool/recoConsts.h>
 
 #include <iostream>
-#include <string>
 #include <vector>
 
 using namespace std;

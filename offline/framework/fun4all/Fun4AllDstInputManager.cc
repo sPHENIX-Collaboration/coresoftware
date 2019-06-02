@@ -1,9 +1,7 @@
 #include "Fun4AllDstInputManager.h"
 
-#include "Fun4AllHistoBinDefs.h"
 #include "Fun4AllReturnCodes.h"
 #include "Fun4AllServer.h"
-#include "Fun4AllSyncManager.h"
 
 #include <ffaobjects/RunHeader.h>
 #include <ffaobjects/SyncDefs.h>
@@ -12,16 +10,19 @@
 #include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
+#include <phool/PHNodeIterator.h>   // for PHNodeIterator
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
+#include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
 
 #include <TSystem.h>
 
 #include <cstdlib>
-#include <memory>
+#include <iostream>                 // for operator<<, basic_ostream, endl
+#include <utility>                  // for pair
+
+class TBranch;
 
 using namespace std;
 

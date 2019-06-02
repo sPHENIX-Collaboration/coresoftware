@@ -6,8 +6,14 @@
 #include <Event/Event.h>
 #include <Event/oEvent.h>
 #include <Event/packet.h>
+#include <Event/phenixTypes.h>                  // for PHDWORD
 
+#include <algorithm>                            // for copy, copy_backward, max
+#include <cstdlib>                             // for exit
+#include <exception>                            // for exception
+#include <iostream>                             // for operator<<, basic_ost...
 #include <queue>
+#include <utility>                              // for swap, pair
 
 using namespace std;
 

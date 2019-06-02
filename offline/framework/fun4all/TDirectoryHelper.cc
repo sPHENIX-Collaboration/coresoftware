@@ -1,14 +1,17 @@
 #include "TDirectoryHelper.h"
 
+#include <TCollection.h>  // for TIter
 #include <TDirectory.h>
 #include <TFile.h>
 #include <TH1.h>
+#include <TList.h>        // for TList
 #include <TObject.h>
 #include <TROOT.h>
 
 #include <cassert>
+#include <cstddef>       // for size_t
 #include <iostream>
-#include <list>
+#include <memory>         // for allocator_traits<>::value_type
 #include <string>
 #include <vector>
 

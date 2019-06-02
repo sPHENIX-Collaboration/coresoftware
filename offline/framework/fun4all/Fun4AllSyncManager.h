@@ -7,7 +7,7 @@
 
 #include "Fun4AllBase.h"
 
-#include <set>
+#include <string>         // for string
 #include <vector>
 
 class Fun4AllInputManager;

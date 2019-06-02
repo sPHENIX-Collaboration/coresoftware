@@ -5,8 +5,9 @@
 
 #include "Fun4AllReturnCodes.h"
 
-class PHCompositeNode;
-class SubsysReco;
+#include <string>                 // for string
+
+class Fun4AllSyncManager;
 class SyncObject;
 
 class Fun4AllDummyInputManager : public Fun4AllInputManager

@@ -3,7 +3,6 @@
 
 #include "Fun4AllInputManager.h"
 
-#include <map>
 #include <string>
 
 class Event;

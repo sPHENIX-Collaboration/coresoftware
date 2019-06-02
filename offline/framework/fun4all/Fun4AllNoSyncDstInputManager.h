@@ -5,7 +5,8 @@
 
 #include "Fun4AllReturnCodes.h"
 
-class PHCompositeNode;
+#include <string>                    // for string
+
 class PHNodeIOManager;
 class SyncObject;
 
