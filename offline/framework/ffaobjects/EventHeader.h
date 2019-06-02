@@ -4,6 +4,7 @@
 #include <phool/PHObject.h>
 
 #include <ctime>
+#include <iostream>          // for cout, ostream
 
 //! base class for EventHeaders
 class EventHeader: public PHObject

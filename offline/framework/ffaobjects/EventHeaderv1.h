@@ -3,6 +3,9 @@
 
 #include "EventHeader.h"
 
+#include <ctime>         // for time_t
+#include <iostream>       // for cout, ostream
+
 //! simple event header with ID and time
 class EventHeaderv1: public EventHeader
 {

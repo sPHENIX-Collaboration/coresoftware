@@ -1,5 +1,8 @@
 #include "FlagSavev1.h"
+
 #include <phool/PHFlag.h>
+
+#include <utility>         // for pair
 
 using namespace std;
 
