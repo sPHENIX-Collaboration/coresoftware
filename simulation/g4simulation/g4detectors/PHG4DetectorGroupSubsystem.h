@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4DETECTORGROUPSUBSYSTEM_H
 #define G4DETECTORS_PHG4DETECTORGROUPSUBSYSTEM_H
 
@@ -8,7 +8,9 @@
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                 // for make_pair, pair
 
+class PHCompositeNode;
 class PHParametersContainer;
 
 class PHG4DetectorGroupSubsystem : public PHG4Subsystem

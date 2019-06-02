@@ -1,32 +1,43 @@
 #include "PHG4HcalCellReco.h"
+
+#include "PHG4Cell.h"                          // for PHG4Cell
 #include "PHG4Cellv1.h"
 #include "PHG4CellContainer.h"
+#include "PHG4CellDefs.h"                      // for genkey, keytype
+
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4HitDefs.h>                // for hit_idbits
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
-#include <phool/PHNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
 
 #include <TSystem.h>
 
+#include <array>                               // for array, array<>::value_...
 #include <cmath>
 #include <cstdlib>
+#include <map>                                 // for _Rb_tree_const_iterator
 #include <iostream>
 #include <sstream>
-#include <limits>       // std::numeric_limits
+#include <utility>                             // for pair
 
 using namespace std;
 // for hcal dimension
 #define ROWDIM 320
 #define COLUMNDIM 24
 
-static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {nullptr};
+static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {{nullptr}};
 
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
@@ -168,7 +179,7 @@ PHG4HcalCellReco::process_event(PHCompositeNode *topNode)
 	  if (slatarray[irow][icolumn])
 	    {
 	      slats->AddCell(slatarray[irow][icolumn]);
-	      slatarray[irow][icolumn] = NULL;
+	      slatarray[irow][icolumn] = nullptr;
 	      nslathits++;
 	    }
 	}

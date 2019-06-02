@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4CYLINDERCELLGEOM_H
 #define G4DETECTORS_PHG4CYLINDERCELLGEOM_H
 
@@ -5,6 +7,7 @@
 
 #include <iostream>          // for cout, ostream
 #include <string>
+#include <utility>           // for pair
 
 class PHG4CylinderCellGeom: public PHObject
 {

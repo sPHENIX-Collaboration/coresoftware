@@ -1,11 +1,10 @@
 #include "PHG4InnerHcalDisplayAction.h"
 
-#include <Geant4/G4Color.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4VPhysicalVolume.hh>
-#include <Geant4/G4VisAttributes.hh>
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
-#include <iostream>
+#include <Geant4/G4Colour.hh>
+#include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4VisAttributes.hh>
 
 using namespace std;
 

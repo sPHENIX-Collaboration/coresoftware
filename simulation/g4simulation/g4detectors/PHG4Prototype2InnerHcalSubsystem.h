@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4PROTOTYPE2INNERHCALSUBSYSTEM_H
 #define G4DETECTORS_PHG4PROTOTYPE2INNERHCALSUBSYSTEM_H
 
@@ -7,6 +7,8 @@
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4Prototype2InnerHcalDetector;
 class PHG4SteppingAction;
 

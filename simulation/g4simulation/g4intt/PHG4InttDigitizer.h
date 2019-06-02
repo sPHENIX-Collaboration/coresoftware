@@ -5,13 +5,17 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <map>
-#include <vector>
-
 // rootcint barfs with this header so we need to hide it
 #ifndef __CINT__
 #include <gsl/gsl_rng.h>
 #endif
+
+#include <map>
+#include <string>                              // for string
+#include <utility>                             // for pair
+#include <vector>
+
+class PHCompositeNode;
 
 class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
 {

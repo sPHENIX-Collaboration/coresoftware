@@ -3,37 +3,38 @@
 #include "PHG4ForwardEcalDisplayAction.h"
 #include "PHG4ForwardEcalSubsystem.h"
 
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomv3.h"
-
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
-#include <g4main/PHG4Utils.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <g4main/PHG4Detector.h>           // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>      // for PHG4DisplayAction
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Trd.hh>
-#include <Geant4/G4Tubs.hh>
-#include <Geant4/G4TwoVector.hh>
-
 #include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4RotationMatrix.hh>      // for G4RotationMatrix
+#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
+#include <Geant4/G4Tubs.hh>
+#include <Geant4/G4VPhysicalVolume.hh>     // for G4VPhysicalVolume
 
-#include <cmath>
-#include <sstream>
+
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <utility>                         // for pair, make_pair
+
+class G4VSolid;
+class PHCompositeNode;
 
 using namespace std;
 
@@ -174,7 +175,7 @@ void PHG4ForwardEcalDetector::Construct(G4LogicalVolume* logicWorld)
       if (iterator->second.type == i) buildType[i] = true;
   }
 
-  G4LogicalVolume* singletower[7] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+  G4LogicalVolume* singletower[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
   for (int i = 0; i < 7; i++)
     if (buildType[i]) singletower[i] = ConstructTower(i);
 
@@ -226,7 +227,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   else
   {
     cout << "PHG4ForwardEcalDetector::ConstructTower invalid type = " << type << endl;
-    material_scintillator = NULL;
+    material_scintillator = nullptr;
   }
 
   ostringstream single_tower_solid_name;
@@ -417,7 +418,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
     break;
   default:
     cout << "PHG4ForwardEcalDetector: Invalid tower type in ConstructTowerType3_4_5_6, stopping..." << endl;
-    return NULL;
+    return nullptr;
   }
 
   /* create logical volume for single tower */
@@ -533,7 +534,7 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
 
-    G4LogicalVolume* singletower = NULL;
+    G4LogicalVolume* singletower = nullptr;
     if (iterator->second.type == 0)
       singletower = singletowerIn[0];
     else if (iterator->second.type == 1)

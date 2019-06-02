@@ -1,11 +1,10 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4PROTOTYPE3INNERHCALDETECTOR_H
 #define G4DETECTORS_PHG4PROTOTYPE3INNERHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4TwoVector.hh>
 
 #include <map>
@@ -15,7 +14,7 @@
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
 class PHParameters;
 
 class PHG4Prototype3InnerHcalDetector : public PHG4Detector

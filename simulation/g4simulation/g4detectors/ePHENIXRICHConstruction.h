@@ -13,16 +13,15 @@
 #define G4DETECTORS_EPHENIXRICHCONSTRUCTION_H
 
 #include <Geant4/G4String.hh>
+#include <Geant4/G4Types.hh>            // for G4int
 
-#ifndef __CINT__
-
-#include <Geant4/G4PhysicalConstants.hh>
+#if !defined(__CINT__) || defined(__CLING__)
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4VUserDetectorConstruction.hh>
 #endif
 
 #include <map>
 #include <set>
+#include <utility>                      // for pair
 
 class G4VPhysicalVolume;
 class G4LogicalVolume;

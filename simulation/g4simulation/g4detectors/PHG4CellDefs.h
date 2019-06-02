@@ -1,10 +1,12 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4CELLDEFS_H
 #define G4DETECTORS_PHG4CELLDEFS_H
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
+#if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
+#else
+#include <stdint.h>
 #endif
 
 namespace PHG4CellDefs
@@ -16,7 +18,7 @@ namespace PHG4CellDefs
   typedef uint64_t keytype;
 
   // CINT does not know the __attribute__((unused))
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   // key layout
   // bit
   // 48-64 detector id (scintillator slat id, layer,...)

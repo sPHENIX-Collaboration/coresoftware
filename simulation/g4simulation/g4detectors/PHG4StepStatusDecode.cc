@@ -2,6 +2,8 @@
 
 #include <Geant4/G4StepStatus.hh>
 
+#include <TSystem.h>
+
 #include <iostream>
 #include <map>
 
@@ -25,7 +27,7 @@ string PHG4StepStatusDecode::GetStepStatus(const int istatus)
   if (stepstatus.find(istatus) == stepstatus.end())
   {
     cout << "could not find status " << istatus << " in stepstatus map" << endl;
-    exit(1);
+    gSystem->Exit(1);
   }
   return stepstatus[istatus];
 }

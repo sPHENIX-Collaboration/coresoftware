@@ -8,27 +8,31 @@
 #include "PHG4SpacalSubsystem.h"
 
 #include "PHG4SpacalDisplayAction.h"
-
-#include "PHG4CylinderGeom.h"
-#include "PHG4CylinderGeomContainer.h"
+#include "PHG4CylinderGeom_Spacalv1.h"         // for PHG4CylinderGeom_Spacalv1
 #include "PHG4FullProjSpacalDetector.h"
 #include "PHG4FullProjTiltedSpacalDetector.h"
-//#include "PHG4ProjSpacalDetector.h"
 #include "PHG4SpacalDetector.h"
 #include "PHG4SpacalSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>          // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4PhenixDetector.h>
-#include <g4main/PHG4Utils.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                // for PHIODataNode
+#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNodeIterator.h>              // for PHNodeIterator
+#include <phool/PHObject.h>                    // for PHObject
+#include <phool/getClass.h>
 
-#include <Geant4/globals.hh>
+#include <TSystem.h>
 
+#include <iostream>                            // for operator<<, basic_ostream
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 
@@ -85,7 +89,7 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
   default:
     cout << "PHG4SpacalSubsystem::InitRun - unknown option exiting" << endl;
-    exit(1);
+    gSystem->Exit(1);
     break;
   }
 

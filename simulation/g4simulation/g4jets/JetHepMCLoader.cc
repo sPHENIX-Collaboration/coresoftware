@@ -10,26 +10,36 @@
 
 #include "JetHepMCLoader.h"
 
+#include "JetMap.h"                       // for JetMap
 #include "JetMapv1.h"
 #include "Jetv1.h"
-
-#include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
+#include <fun4all/Fun4AllBase.h>          // for Fun4AllBase::VERBOSITY_A_LOT
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/SubsysReco.h>           // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                 // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
+#include <phool/PHObject.h>               // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                  // for PHWHERE
 
-#include <TH1D.h>
-#include <TH2F.h>
+#include <TAxis.h>                        // for TAxis
+#include <TH1.h>
+#include <TH2.h>
+#include <TNamed.h>                       // for TNamed
 
-#include <boost/algorithm/string.hpp>
+#include <HepMC/GenEvent.h>               // for GenEvent, GenEvent::particl...
+#include <HepMC/GenParticle.h>            // for GenParticle
+#include <HepMC/SimpleVector.h>           // for FourVector
+#include <HepMC/Units.h>                  // for conversion_factor, GEV
 
 #include <cassert>
 #include <iostream>

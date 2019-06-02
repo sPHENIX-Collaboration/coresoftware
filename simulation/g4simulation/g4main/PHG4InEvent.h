@@ -1,5 +1,7 @@
-#ifndef G4MAIN_PHG4InEvent_H
-#define G4MAIN_PHG4InEvent_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4INEVENT_H
+#define G4MAIN_PHG4INEVENT_H
 
 #include <phool/PHObject.h>
 

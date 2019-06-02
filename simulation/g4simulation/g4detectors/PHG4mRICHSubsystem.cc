@@ -9,27 +9,33 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4EventAction.h>        // for PHG4EventAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Utils.h>
+#include <g4main/PHG4SteppingAction.h>     // for PHG4SteppingAction
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-
-#include <Geant4/globals.hh>
+#include <phool/PHIODataNode.h>            // for PHIODataNode
+#include <phool/PHNode.h>                  // for PHNode
+#include <phool/PHNodeIterator.h>          // for PHNodeIterator
+#include <phool/PHObject.h>                // for PHObject
+#include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
+#include <set>                             // for set
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 
 //_______________________________________________________________________
 PHG4mRICHSubsystem::PHG4mRICHSubsystem( const std::string &name, const int lyr):
   PHG4DetectorSubsystem( name, lyr ),
-  _detector( NULL ),
+  _detector( nullptr ),
   _detectorName(name),
-  _steppingAction(NULL),
-  _eventAction(NULL)
+  _steppingAction(nullptr),
+  _eventAction(nullptr)
 {
   InitializeParameters();
 }

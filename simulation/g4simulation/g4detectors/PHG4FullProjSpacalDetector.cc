@@ -7,48 +7,41 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 #include "PHG4FullProjSpacalDetector.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeom_Spacalv1.h"
-#include "PHG4SpacalDisplayAction.h"
-#include "PHG4SpacalSubsystem.h"
 
-#include <g4main/PHG4PhenixDetector.h>
+#include "PHG4SpacalDisplayAction.h"
 
 #include <g4gdml/PHG4GDMLConfig.hh>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Cons.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
+#include <Geant4/G4ExceptionSeverity.hh>   // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4SubtractionSolid.hh>
+#include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Trap.hh>
-#include <Geant4/G4Trd.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4UnionSolid.hh>
-#include <Geant4/G4UserLimits.hh>
+#include <Geant4/G4Types.hh>               // for G4double
 #include <Geant4/G4Vector3D.hh>
+#include <Geant4/globals.hh>               // for G4Exception, G4ExceptionDe...
 
 #include <TSystem.h>
 
 #include <boost/foreach.hpp>
-#include <boost/math/special_functions/sign.hpp>
 
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <functional>
+#include <cstdlib>                        // for exit, NULL
+#include <iostream>                        // for operator<<, basic_ostream
+#include <map>                             // for allocator, map<>::value_type
 #include <numeric>  // std::accumulate
 #include <sstream>
 #include <string>  // std::string, std::to_string
+#include <vector>                          // for vector
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -61,12 +54,12 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4SpacalSubsystem* subs
   assert(_geom == nullptr);
 
   _geom = new SpacalGeom_t();
-  if (_geom == NULL)
+  if (_geom == nullptr)
   {
     cout
         << "PHG4FullProjSpacalDetector::Constructor - Fatal Error - invalid geometry object!"
         << endl;
-    exit(1);
+    gSystem->Exit(1);
   }
 
   //this class loads Chris Cullen 2D spacal design July 2015 by default.

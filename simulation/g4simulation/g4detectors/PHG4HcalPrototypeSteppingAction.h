@@ -1,11 +1,15 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // This is the steppingaction heaer file for the hcal prototype
 // created on 1/27/2014, Liang, HeXC
 //
-#ifndef PHG4VHcalPrototypeSteppingAction_h
-#define PHG4VHcalPrototypeSteppingAction_h
+#ifndef G4DETECTORS_PHG4HCALPROTOTYPESTEPPINGACTION_H
+#define G4DETECTORS_PHG4HCALPROTOTYPESTEPPINGACTION_H
 
 #include "g4main/PHG4SteppingAction.h"
 
+class G4Step;
+class PHCompositeNode;
 class PHG4HcalPrototypeDetector;
 class PHG4Hit;
 class PHG4HitContainer;

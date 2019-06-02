@@ -5,11 +5,14 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <Geant4/G4Types.hh>      // for G4double
+
 #include <map>
 #include <string>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4ForwardEcalDisplayAction;
 class PHG4ForwardEcalSubsystem;
 class PHG4GDMLConfig;

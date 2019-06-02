@@ -1,17 +1,17 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H
 #define G4DETECTORS_PHG4INNERHCALSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <map>
-#include <set>
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4InnerHcalDetector;
-class PHG4InnerHcalSteppingAction;
+class PHG4SteppingAction;
 
 class PHG4InnerHcalSubsystem : public PHG4DetectorSubsystem
 {

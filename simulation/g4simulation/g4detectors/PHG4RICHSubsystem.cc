@@ -13,10 +13,20 @@
 #include "PHG4RICHDisplayAction.h"
 #include "PHG4RICHSteppingAction.h"
 
+#include <g4main/PHG4DisplayAction.h>      // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>            // for PHIODataNode
+#include <phool/PHNode.h>                  // for PHNode
+#include <phool/PHNodeIterator.h>          // for PHNodeIterator
+#include <phool/PHObject.h>                // for PHObject
+#include <phool/getClass.h>
+
+#include <Geant4/G4UserSteppingAction.hh>  // for G4UserSteppingAction
+
+class PHG4Detector;
 
 using namespace ePHENIXRICH;
 using namespace std;

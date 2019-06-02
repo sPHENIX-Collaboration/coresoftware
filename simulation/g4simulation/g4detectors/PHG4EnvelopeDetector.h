@@ -1,16 +1,18 @@
-#ifndef PHG4EnvelopeDetector_h
-#define PHG4EnvelopeDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4ENVELOPEDETECTOR_H
+#define G4DETECTORS_PHG4ENVELOPEDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>     // for G4String
 #include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
 
 #include <string>
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 
 class PHG4EnvelopeDetector: public PHG4Detector
 {

@@ -1,12 +1,13 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4MAIN_PHG4PHENIXDETECTOR_H
 #define G4MAIN_PHG4PHENIXDETECTOR_H
 
 #include <Geant4/G4VUserDetectorConstruction.hh>
-#include <Geant4/globals.hh>
+#include <Geant4/G4Types.hh>                      // for G4double
 
 #include <list>
+#include <string>                                 // for string
 
 class G4LogicalVolume;
 class G4Material;
@@ -58,8 +59,6 @@ class PHG4PhenixDetector : public G4VUserDetectorConstruction
   //! list of detectors to be constructed
 
   std::list<PHG4Detector*> m_DetectorList;
-
-  G4Material* defaultMaterial;
 
   G4LogicalVolume* logicWorld;    //pointer to the logical World
   G4VPhysicalVolume* physiWorld;  //pointer to the physical World

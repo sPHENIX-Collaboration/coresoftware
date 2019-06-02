@@ -1,9 +1,7 @@
 // Tell emacs that this is a C++ source
-// -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4SPACALDISPLAYACTION_H
 #define G4DETECTORS_PHG4SPACALDISPLAYACTION_H
-
-#include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <g4main/PHG4DisplayAction.h>
 
@@ -14,6 +12,7 @@
 class G4VisAttributes;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4CylinderGeom_Spacalv1;
 
 class PHG4SpacalDisplayAction : public PHG4DisplayAction
 {

@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4BEAMLINEMAGNETDETECTOR_H
 #define G4DETECTORS_PHG4BEAMLINEMAGNETDETECTOR_H
 
@@ -7,6 +9,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHParameters;
 
 class PHG4BeamlineMagnetDetector: public PHG4Detector

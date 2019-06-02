@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4Prototype2OuterHcalDetector;
 class PHParameters;
 class PHG4Hit;

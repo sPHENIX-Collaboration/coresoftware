@@ -3,25 +3,28 @@
 #ifndef G4DETECTORS_PHG4OUTERHCALDETECTOR_H
 #define G4DETECTORS_PHG4OUTERHCALDETECTOR_H
 
-#include "PHG4OuterHcalFieldSetup.h"
-
 #include <g4main/PHG4Detector.h>
 
 // cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
-#include <Geant4/G4RotationMatrix.hh>
+//#include <Geant4/G4RotationMatrix.hh>
+#include <Geant4/G4Types.hh>               // for G4double
 
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
 
 #include <map>
 #include <set>
+#include <string>                          // for string
+#include <utility>                         // for pair
 #include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHCompositeNode;
 class PHG4OuterHcalDisplayAction;
+class PHG4OuterHcalFieldSetup;
 class PHG4OuterHcalSubsystem;
 class PHParameters;
 

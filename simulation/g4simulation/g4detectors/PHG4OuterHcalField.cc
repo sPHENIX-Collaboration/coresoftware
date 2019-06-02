@@ -11,13 +11,16 @@
 #include "PHG4OuterHcalField.h"
 
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/G4Transform3D.hh>
+#include <Geant4/G4Field.hh>                   // for G4Field
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4EquationOfMotion.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+
+#include <cassert>                            // for assert
+#include <cmath>                              // for atan2, cos, sin, sqrt
 #include <iostream>
+
 using namespace std;
 
 PHG4OuterHcalField::PHG4OuterHcalField(bool isInIron, G4int steelPlates,

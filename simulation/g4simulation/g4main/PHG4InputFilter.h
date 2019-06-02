@@ -1,5 +1,7 @@
-#ifndef PHG4INPUTFILTER_H__
-#define PHG4INPUTFILTER_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4INPUTFILTER_H
+#define G4MAIN_PHG4INPUTFILTER_H
 
 #include <fun4all/SubsysReco.h>
 

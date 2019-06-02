@@ -1,8 +1,14 @@
-#ifndef PHG4SpacalPrototypeSubsystem_h
-#define PHG4SpacalPrototypeSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SPACALPROTOTYPESUBSYSTEM_H
+#define G4DETECTORS_PHG4SPACALPROTOTYPESUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <string>                   // for string
+
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4SpacalPrototypeDetector;
 class PHG4SteppingAction;
 

@@ -5,6 +5,7 @@
 
 #include <g4main/PHG4Detector.h>
 
+#include <Geant4/G4String.hh>     // for G4String
 #include <Geant4/G4Types.hh>
 
 #include <map>
@@ -12,7 +13,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
 class PHG4CrystalCalorimeterDisplayAction;
 class PHG4CrystalCalorimeterSubsystem;
 

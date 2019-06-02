@@ -1,17 +1,18 @@
 #include "PHG4SpacalDisplayAction.h"
 
-#include "PHG4CylinderGeom_Spacalv3.h"
+#include "PHG4CylinderGeom_Spacalv1.h"  // for PHG4CylinderGeom_Spacalv1
 
+#include <g4main/PHG4DisplayAction.h>   // for PHG4DisplayAction
 #include <g4main/PHG4Utils.h>
 
 #include <TSystem.h>
 
-#include <Geant4/G4Color.hh>
 #include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4VPhysicalVolume.hh>
+#include <Geant4/G4String.hh>           // for G4String
 #include <Geant4/G4VisAttributes.hh>
 
 #include <iostream>
+#include <utility>                      // for pair
 
 using namespace std;
 

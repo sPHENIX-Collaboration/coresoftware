@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: $
 
 /*!
@@ -8,8 +10,8 @@
  * \date $Date: $
  */
 
-#ifndef SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4MAIN_PHG4MAGNETICFIELD_H_
-#define SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4MAIN_PHG4MAGNETICFIELD_H_
+#ifndef G4MAIN_PHG4MAGNETICFIELD_H
+#define G4MAIN_PHG4MAGNETICFIELD_H
 
 #include <Geant4/G4MagneticField.hh>
 

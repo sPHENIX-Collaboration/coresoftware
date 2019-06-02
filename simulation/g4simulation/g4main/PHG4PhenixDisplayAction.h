@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4MAIN_PHG4PHENIXDISPLAYACTION_H
 #define G4MAIN_PHG4PHENIXDISPLAYACTION_H
 

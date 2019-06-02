@@ -7,40 +7,28 @@
 
 #include "PHG4TrackFastSimEval.h"
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/PHTFileServer.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <trackbase_historic/SvtxCluster.h>
-#include <trackbase_historic/SvtxClusterMap.h>
-#include <trackbase_historic/SvtxHit.h>
-#include <trackbase_historic/SvtxHitMap.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
-#include <trackbase_historic/SvtxVertex.h>
-#include <trackbase_historic/SvtxVertexMap.h>
 
-#include <g4eval/SvtxClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>
-#include <g4eval/SvtxHitEval.h>
-#include <g4eval/SvtxTrackEval.h>
-#include <g4eval/SvtxTruthEval.h>
-#include <g4eval/SvtxVertexEval.h>
+#include <g4main/PHG4Particle.h>
+#include <g4main/PHG4TruthInfoContainer.h>
 
-#include <TH2D.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/PHTFileServer.h>
+#include <fun4all/SubsysReco.h>                    // for SubsysReco
+
+#include <phool/getClass.h>
+#include <phool/phool.h>
+
+#include <TH2.h>
 #include <TTree.h>
 #include <TVector3.h>
 
 #include <cmath>
+#include <map>                                     // for _Rb_tree_const_ite...
 #include <iostream>
+#include <utility>                                 // for pair
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
@@ -58,7 +46,7 @@ PHG4TrackFastSimEval::PHG4TrackFastSimEval(const string &name, const string &fil
   , _trackmapname(trackmapname)
   , _event(0)
   , _flags(NONE)
-  , _eval_tree_tracks(NULL)
+  , _eval_tree_tracks(nullptr)
   , event(-1)
   , gtrackID(-1)
   , gflavor(0)
@@ -197,7 +185,7 @@ void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
     }
     //std::cout << "B1" << std::endl;
 
-    SvtxTrack_FastSim *track = NULL;
+    SvtxTrack_FastSim *track = nullptr;
 
     //std::cout << "TRACKmap size " << _trackmap->size() << std::endl;
     for (SvtxTrackMap::ConstIter track_itr = _trackmap->begin();

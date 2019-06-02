@@ -17,16 +17,10 @@
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Region.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
 
-#include <map>
-
-class G4Material;
-class G4Box;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class PHG4RICHDisplayAction;
+class G4UserSteppingAction;
+class PHCompositeNode;
 class PHG4RICHSubsystem;
 
 /**
@@ -71,7 +65,6 @@ class PHG4RICHDetector : public PHG4Detector,
   }
 
  private:
-  G4UserSteppingAction* stepping_action;
 
   G4Region* _region;
 };

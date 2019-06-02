@@ -1,26 +1,23 @@
-
 #include "TowerJetInput.h"
 
 #include "Jet.h"
-#include "JetInput.h"
 #include "Jetv1.h"
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
 
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
+
 #include <g4vertex/GlobalVertex.h>
 #include <g4vertex/GlobalVertexMap.h>
 
+#include <phool/getClass.h>
+
 #include <cassert>
-#include <cstdlib>
+#include <cmath>                             // for asinh, atan2, cos, cosh
 #include <iostream>
+#include <map>                               // for _Rb_tree_const_iterator
+#include <utility>                           // for pair
 #include <vector>
 
 using namespace std;

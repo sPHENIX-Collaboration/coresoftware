@@ -1,5 +1,7 @@
-#ifndef PHG4PrimaryGeneratorAction_H__
-#define PHG4PrimaryGeneratorAction_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PRIMARYGENERATORACTION_H
+#define G4MAIN_PHG4PRIMARYGENERATORACTION_H
 
 #include <Geant4/G4VUserPrimaryGeneratorAction.hh>
 

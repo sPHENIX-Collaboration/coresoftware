@@ -1,23 +1,17 @@
-
 #include "TrackJetInput.h"
 
 #include "Jet.h"
-#include "JetInput.h"
 #include "Jetv1.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
-
-// PHENIX Geant4 includes
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <phool/getClass.h>
+
 // standard includes
-#include <cstdlib>
 #include <iostream>
+#include <map>                                // for _Rb_tree_const_iterator
+#include <utility>                            // for pair
 #include <vector>
 
 using namespace std;

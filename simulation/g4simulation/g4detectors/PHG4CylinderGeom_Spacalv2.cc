@@ -19,7 +19,6 @@
 #include <cmath>
 #include <cstdlib>                       // for exit
 #include <iostream>
-#include <string>                         // for char_traits
 
 
 using namespace std;

@@ -83,7 +83,7 @@ PHG4ScintillatorSlatContainer::findScintillatorSlat(PHG4ScintillatorSlatDefs::ke
       return it->second;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 double

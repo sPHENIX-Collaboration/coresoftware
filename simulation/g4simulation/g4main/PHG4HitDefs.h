@@ -1,5 +1,7 @@
-#ifndef PHG4HITDEFS_H
-#define PHG4HITDEFS_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4HITDEFS_H
+#define G4MAIN_PHG4HITDEFS_H
 
 #include <string>
 

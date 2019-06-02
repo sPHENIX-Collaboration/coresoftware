@@ -1,5 +1,7 @@
 #include "PHG4PhenixDetector.h"
+
 #include "PHG4Detector.h"
+#include "PHG4DisplayAction.h"              // for PHG4DisplayAction
 #include "PHG4PhenixDisplayAction.h"
 #include "PHG4Reco.h"
 #include "PHG4RegionInformation.h"
@@ -7,22 +9,26 @@
 #include <phool/recoConsts.h>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Element.hh>
 #include <Geant4/G4GeometryManager.hh>
+#include <Geant4/G4LogicalVolume.hh>        // for G4LogicalVolume
 #include <Geant4/G4LogicalVolumeStore.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalVolumeStore.hh>
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4RegionStore.hh>
+#include <Geant4/G4String.hh>               // for G4String
 #include <Geant4/G4SolidStore.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4VSolid.hh>               // for G4GeometryType, G4VSolid
 
 #include <boost/foreach.hpp>
 
 #include <cmath>
+#include <cstdlib>                         // for exit
 #include <iostream>
+#include <vector>                           // for vector
 
 using namespace std;
 
@@ -30,7 +36,6 @@ using namespace std;
 PHG4PhenixDetector::PHG4PhenixDetector(PHG4Reco *subsys)
   : m_DisplayAction(dynamic_cast<PHG4PhenixDisplayAction *>(subsys->GetDisplayAction()))
   , m_Verbosity(0)
-  , defaultMaterial(nullptr)
   , logicWorld(nullptr)
   , physiWorld(nullptr)
   , WorldSizeX(1000 * cm)
@@ -61,8 +66,6 @@ G4VPhysicalVolume *PHG4PhenixDetector::Construct()
   G4LogicalVolumeStore::GetInstance()->Clean();
   G4SolidStore::GetInstance()->Clean();
   if (m_Verbosity > 0) std::cout << "PHG4PhenixDetector::Construct - cleaning done." << std::endl;
-  //default materials of the World
-  //  defaultMaterial  = nist->FindOrBuildMaterial("G4_AIR");
 
   // World
   G4VSolid *solidWorld = nullptr;

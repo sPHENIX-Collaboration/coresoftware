@@ -1,21 +1,24 @@
-#ifndef PHG4ConeDetector_h
-#define PHG4ConeDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CONEDETECTOR_H
+#define G4DETECTORS_PHG4CONEDETECTOR_H
 
 #include "g4main/PHG4Detector.h"
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
+#include <Geant4/G4String.hh>           // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
 
-#include <map>
+#include <string>                       // for string
 
 
-class G4Material;
 class G4Cons;
 class G4LogicalVolume;
-class G4Region;
+class G4Material;
+class G4UserSteppingAction;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 
 class PHG4ConeDetector: public PHG4Detector
 {
@@ -78,8 +81,6 @@ class PHG4ConeDetector: public PHG4Detector
 
  
   G4Material* TrackerMaterial;
-
-  G4Material* InactiveMaterial;
 
   G4Cons* block_solid;
   G4LogicalVolume* block_logic;

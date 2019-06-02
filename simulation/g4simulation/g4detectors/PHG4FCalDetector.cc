@@ -1,5 +1,6 @@
 #include "PHG4FCalDetector.h"
-#include <PHG4FCalSteppingAction.h>
+
+#include "PHG4FCalSteppingAction.h"
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
@@ -7,14 +8,20 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4Region.hh>            // for G4Region
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <cstdlib>                      // for NULL, exit
+#include <iostream>                      // for stringstream, operator<<
 #include <map>
 #include <sstream>
+#include <utility>                       // for pair
 
 
+class PHCompositeNode;
 
 using namespace std;
 
@@ -31,10 +38,9 @@ PHG4FCalDetector::PHG4FCalDetector( PHCompositeNode *Node ) :
   segment_thickness(scintillator_thickness/((double)(segments_per_thickness))),
   z_position(100.0 * cm),
   layer_separation(1.0 * mm),
-  AbsorberMaterial(NULL),
-  ScintillatorMaterial(NULL),
-  stepping_action(NULL),
-  _region(NULL)
+  AbsorberMaterial(nullptr),
+  ScintillatorMaterial(nullptr),
+  _region(nullptr)
 {
   
 }

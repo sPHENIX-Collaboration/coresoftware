@@ -9,18 +9,23 @@
  */
 
 #include "PHG4InttDeadMapLoader.h"
+
+#include "InttDeadMap.h"                       // for InttDeadMap
 #include "InttDeadMapv1.h"
 
 #include <phparameter/PHParameters.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
 
 // boost headers
-#include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -40,13 +45,13 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <utility>                             // for pair
 
 using namespace std;
 
 PHG4InttDeadMapLoader::PHG4InttDeadMapLoader(const std::string &detector)
   : SubsysReco("PHG4InttDeadMapLoader_" + detector)
   , m_detector(detector)
-  , m_deadmap(nullptr)
 {
 }
 
@@ -76,15 +81,15 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
 
   // Be careful as a previous calibrator may have been registered for this detector
   string deadMapName = "DEADMAP_" + m_detector;
-  InttDeadMap *m_deadmap = findNode::getClass<InttDeadMapv1>(DetNode, deadMapName);
-  if (!m_deadmap)
+  InttDeadMap *deadmap = findNode::getClass<InttDeadMapv1>(DetNode, deadMapName);
+  if (!deadmap)
   {
-    m_deadmap = new InttDeadMapv1();
-    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(m_deadmap, deadMapName, "PHObject");
+    deadmap = new InttDeadMapv1();
+    PHIODataNode<PHObject> *towerNode = new PHIODataNode<PHObject>(deadmap, deadMapName, "PHObject");
     DetNode->addNode(towerNode);
   }
 
-  assert(m_deadmap);
+  assert(deadmap);
 
   for (const auto pathiter : m_deadMapPathMap)
   {
@@ -133,7 +138,7 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
           assert(tokeniter != tok.end());
           int strip_phi = boost::lexical_cast<int>(*tokeniter);
 
-          m_deadmap->addDeadChannelIntt(ilayer, ladder_phi, ladder_z, strip_z, strip_phi);
+          deadmap->addDeadChannelIntt(ilayer, ladder_phi, ladder_z, strip_z, strip_phi);
           ++counter;
 
           if (Verbosity())
@@ -160,13 +165,13 @@ int PHG4InttDeadMapLoader::InitRun(PHCompositeNode *topNode)
     }  //  for (const auto iter = in_par_ranges.first; iter != in_par_ranges.second; ++iter)
 
     cout << "PHG4InttDeadMapLoader::" << m_detector << "::InitRun - loading " << counter << " dead channel for layer "
-         << ilayer << " from " << deadMapPath << ". Total dead chan = " << m_deadmap->size() << endl;
+         << ilayer << " from " << deadMapPath << ". Total dead chan = " << deadmap->size() << endl;
   }
 
   if (Verbosity())
   {
     cout << "PHG4InttDeadMapLoader::" << m_detector << "::InitRun - loading dead map completed : ";
-    m_deadmap->identify();
+    deadmap->identify();
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }

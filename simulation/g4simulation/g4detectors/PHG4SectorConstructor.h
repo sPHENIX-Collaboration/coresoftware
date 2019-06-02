@@ -12,15 +12,14 @@
 #ifndef G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 #define G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 
-#ifndef __CINT__
+#include <Geant4/G4String.hh>             // for G4String
+#include <Geant4/G4Types.hh>              // for G4int
 
-#include <Geant4/G4PhysicalConstants.hh>
+#if !defined(__CINT__) || defined(__CLING__)
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4VUserDetectorConstruction.hh>
+#include <Geant4/G4PhysicalConstants.hh>
+#endif
 
-#endif  // #ifndef __CINT__
-
-class G4VPhysicalVolume;
 class G4LogicalVolume;
 class G4PVPlacement;
 class G4VSolid;

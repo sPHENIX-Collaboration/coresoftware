@@ -3,6 +3,10 @@
 
 #include "InttDeadMap.h"
 
+#include <g4detectors/PHG4CellDefs.h>
+
+#include <iostream>                    // for cout, ostream
+
 class InttDeadMapv1 : public InttDeadMap
 {
  public:

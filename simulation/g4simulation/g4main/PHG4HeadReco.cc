@@ -1,19 +1,27 @@
 #include "PHG4HeadReco.h"
 
+#include "PHG4EventHeader.h"             // for PHG4EventHeader
 #include "PHG4EventHeaderv1.h"
 
+#include <ffaobjects/FlagSave.h>         // for FlagSave
 #include <ffaobjects/FlagSavev1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>          // for PHIODataNode
+#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNodeIterator.h>        // for PHNodeIterator
+#include <phool/PHObject.h>              // for PHObject
 #include <phool/phool.h>
 
 #include <TSystem.h>
 
 #include <HepMC/GenEvent.h>
+#include <HepMC/HeavyIon.h>              // for HeavyIon
 
+#include <cstdlib>
 #include <iostream>
 
 using namespace std;

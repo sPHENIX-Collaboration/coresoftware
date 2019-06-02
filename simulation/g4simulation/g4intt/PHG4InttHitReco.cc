@@ -2,35 +2,43 @@
 
 #include <intt/CylinderGeomIntt.h>
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>                      // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrDefs.h>
+
+#include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
+
 #include <intt/InttDefs.h>
 #include <intt/InttHit.h>
-
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                     // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                           // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                         // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                            // for PHWHERE
 
 #include <TSystem.h>
-
-#include <boost/format.hpp>
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <map>                                      // for _Rb_tree_const_it...
+#include <memory>                                   // for allocator_traits<...
+#include <utility>                                  // for pair, swap, make_...
+#include <vector>                                   // for vector
 
 using namespace std;
 

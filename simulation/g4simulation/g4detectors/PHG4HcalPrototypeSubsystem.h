@@ -1,17 +1,24 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // This is the subsystem code (header file) for the hcal prototype detector
 // created on 1/27/2014, Liang, HeXC
 //
-#ifndef PHG4HcalPrototypeSubsystem_h
-#define PHG4HcalPrototypeSubsystem_h
+#ifndef G4DETECTORS_PHG4HCALPROTOTYPESUBSYSTEM_H
+#define G4DETECTORS_PHG4HCALPROTOTYPESUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+#include <string>                  // for string
+
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4HcalPrototypeDetector;
 class PHG4HcalPrototypeSteppingAction;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4HcalPrototypeSubsystem: public PHG4Subsystem
 {
@@ -44,18 +51,6 @@ class PHG4HcalPrototypeSubsystem: public PHG4Subsystem
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
 
-  /*
-  void SetSize(const G4double sizex, const G4double sizey, const G4double sizez)
-     {dimension[0] = sizex; dimension[1] = sizey; dimension[2] = sizez;}
-  void SetPlaceZ(const G4double dbl) {place_in_z = dbl;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x;
-    place_in_y = place_y;
-    place_in_z = place_z;
-  }
-  */
-  //void SetXRot(const G4double dbl) {rot_in_x = dbl;}
   void SetYRot(const G4double dbl) {rot_in_y = dbl;}
   void SetZRot(const G4double dbl) {rot_in_z = dbl;}
 
@@ -79,10 +74,6 @@ class PHG4HcalPrototypeSubsystem: public PHG4Subsystem
   PHG4HcalPrototypeSteppingAction* steppingAction_;
   PHG4EventAction *eventAction_;
   G4double dimension[3];
-  G4double place_in_x;
-  G4double place_in_y;
-  G4double place_in_z;
-  G4double rot_in_x;
   G4double rot_in_y;
   G4double rot_in_z;
 

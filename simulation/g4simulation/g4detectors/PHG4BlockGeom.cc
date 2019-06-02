@@ -1,7 +1,5 @@
 #include "PHG4BlockGeom.h"
 
-#include <ostream>  // for operator<<, endl, ostream, basic_ostream
-
 using namespace std;
 
 void

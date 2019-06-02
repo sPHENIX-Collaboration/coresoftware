@@ -1,4 +1,5 @@
 #include "PHG4InnerHcalSubsystem.h"
+
 #include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDetector.h"
 #include "PHG4InnerHcalDisplayAction.h"
@@ -6,19 +7,25 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>    // for PHG4SteppingAction
 
-#include <pdbcalbase/PdbParameterMap.h>
-
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-
-#include <Geant4/globals.hh>
+#include <phool/PHIODataNode.h>           // for PHIODataNode
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
+#include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
+#include <cmath>                         // for NAN
+#include <iostream>                       // for operator<<, basic_ostream
 #include <set>
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 

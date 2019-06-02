@@ -1,20 +1,26 @@
-#ifndef PHG4FPbScDetector_h
-#define PHG4FPbScDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FPBSCDETECTOR_H
+#define G4DETECTORS_PHG4FPBSCDETECTOR_H
 
 #include "g4main/PHG4Detector.h"
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Region.hh>
+#include <Geant4/G4String.hh>           // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
 
+#include <cstddef>                     // for size_t
 #include <map>
+#include <string>                       // for string
 
 
 class G4Material;
 class G4Box;
 class G4LogicalVolume;
+class G4UserSteppingAction;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 
 class PHG4FPbScDetector: public PHG4Detector
 {
@@ -65,8 +71,6 @@ class PHG4FPbScDetector: public PHG4Detector
     std::map<unsigned int, G4Box* > scintillator_solid_;
     std::map<unsigned int, G4LogicalVolume* > scintillator_logic_;
     std::map<unsigned int, G4VPhysicalVolume* > scintillator_physi_;
-    
-    G4UserSteppingAction* stepping_action;
     
     G4Region* _region;
 };

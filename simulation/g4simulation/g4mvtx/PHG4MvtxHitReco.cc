@@ -3,36 +3,44 @@
 #include "PHG4MvtxHitReco.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
-
-#include <trackbase/TrkrHitSet.h>
-#include <trackbase/TrkrHitSetContainer.h>
-#include <trackbase/TrkrHitTruthAssoc.h>
-#include <trackbase/TrkrDefs.h>
 #include <mvtx/MvtxDefs.h>
 #include <mvtx/MvtxHit.h>
 
-#include <g4detectors/PHG4CylinderCellContainer.h>
+#include <trackbase/TrkrDefs.h>
+#include <trackbase/TrkrHit.h>                          // for TrkrHit
+#include <trackbase/TrkrHitSet.h>
+#include <trackbase/TrkrHitSetContainer.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+
+#include <g4detectors/PHG4CylinderGeom.h>               // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <phparameter/PHParameterContainerInterface.h>
-#include <phparameter/PHParametersContainer.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/Fun4AllServer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Hitv1.h>
+
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
+
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
+#include <phool/PHTimeServer.h>                         // for PHTimeServer
+#include <phool/PHTimer.h>                              // for PHTimer
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
-#include <TSystem.h>
+#include <TVector3.h>                                   // for TVector3, ope...
 
 #include <cmath>
 #include <cstdlib>
+#include <cstring>                                     // for memset
 #include <iostream>
-#include <sstream>
+#include <memory>                                       // for allocator_tra...
+#include <vector>                                       // for vector
 
 using namespace std;
 

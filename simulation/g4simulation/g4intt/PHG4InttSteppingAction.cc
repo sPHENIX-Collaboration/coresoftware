@@ -2,11 +2,6 @@
 #include "PHG4InttDefs.h"
 #include "PHG4InttDetector.h"
 
-
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
-#include <g4detectors/PHG4CylinderGeomContainer.h>
-
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
@@ -14,22 +9,35 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
 #include <TSystem.h>
 
+#include <Geant4/G4ParticleDefinition.hh>       // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>   // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepStatus.hh>               // for fGeomBoundary, fAtRes...
+#include <Geant4/G4String.hh>                   // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4TouchableHandle.hh>
-#include <Geant4/G4TouchableHistory.hh>
-#include <Geant4/G4VProcess.hh>
+#include <Geant4/G4Track.hh>                    // for G4Track
+#include <Geant4/G4TrackStatus.hh>              // for fStopAndKill
+#include <Geant4/G4Types.hh>                    // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>          // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>               // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>    // for G4VUserTrackInformation
 
-#include <gsl/gsl_math.h>
-
+#include <cassert>                             // for assert
 #include <iostream>
+#include <set>                                  // for set
+#include <string>                               // for operator<<, string
+#include <tuple>                                // for tie, tuple
+
+class PHCompositeNode;
 
 using namespace std;
 

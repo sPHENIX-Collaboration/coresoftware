@@ -1,11 +1,18 @@
 #include "PHG4ConsistencyCheck.h"
+
 #include "PHG4HitContainer.h"
-#include "PHG4InEvent.h"
 #include "PHG4TruthInfoContainer.h"
 #include "PHG4Hit.h"
 #include "PHG4Particle.h"
 
 #include <phool/getClass.h>
+
+#include <iostream>                  // for operator<<, basic_ostream::opera...
+#include <map>                       // for _Rb_tree_const_iterator, map<>::...
+#include <set>                       // for set
+#include <utility>                   // for pair
+
+class PHCompositeNode;
 
 using namespace std;
 

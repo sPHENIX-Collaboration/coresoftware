@@ -4,7 +4,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 
 #include <cmath>
-#include <ostream>
 #include <string>
 
 using namespace std;

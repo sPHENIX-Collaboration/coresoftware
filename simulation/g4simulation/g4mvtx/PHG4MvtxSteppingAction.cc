@@ -6,13 +6,28 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
 
 #include <Geant4/G4NavigationHistory.hh>
+#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
@@ -28,7 +43,12 @@
 #include <boost/lexical_cast.hpp>
 #endif
 
+#include <cmath>                              // for NAN
+#include <cstdlib>                            // for exit
 #include <iostream>
+#include <string>                              // for operator<<, basic_string
+
+class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..

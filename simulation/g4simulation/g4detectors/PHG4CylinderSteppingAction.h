@@ -1,13 +1,13 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4CYLINDERSTEPPINGACTION_H
 #define G4DETECTORS_PHG4CYLINDERSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
-#include <string>
-
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4CylinderDetector;
 class PHG4Hit;
 class PHG4HitContainer;

@@ -7,14 +7,29 @@
 #include <g4main/PHG4Shower.h>
 
 #include <g4main/PHG4TrackUserInfoV1.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 
 #include <phool/getClass.h>
 
+#include <Geant4/G4IonisParamMat.hh>           // for G4IonisParamMat
+#include <Geant4/G4Material.hh>                // for G4Material
 #include <Geant4/G4MaterialCutsCouple.hh>
+#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fAtRest...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>         // for G4VPhysicalVolume
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4TouchableHandle.hh>
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
-#include <boost/foreach.hpp>
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -30,6 +45,9 @@
 #endif
 
 #include <iostream>
+#include <string>                              // for basic_string, operator+
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -37,11 +55,11 @@ using namespace std;
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , hits_(NULL)
-  , absorberhits_(NULL)
-  , hitcontainer(NULL)
-  , hit(NULL)
-  , saveshower(NULL)
+  , hits_(nullptr)
+  , absorberhits_(nullptr)
+  , hitcontainer(nullptr)
+  , hit(nullptr)
+  , saveshower(nullptr)
   , absorbertruth(0)
   , light_scint_model(1)
 {
@@ -51,7 +69,7 @@ PHG4ForwardEcalSteppingAction::~PHG4ForwardEcalSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -268,7 +286,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = NULL;
+        hit = nullptr;
       }
       else
       {

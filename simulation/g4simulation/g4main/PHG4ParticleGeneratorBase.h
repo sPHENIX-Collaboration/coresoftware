@@ -1,15 +1,19 @@
-#ifndef PHG4ParticleGeneratorBase_H__
-#define PHG4ParticleGeneratorBase_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PARTICLEGENERATORBASE_H
+#define G4MAIN_PHG4PARTICLEGENERATORBASE_H
 
 #include <fun4all/SubsysReco.h>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
+#include <string>                // for string
 #include <vector>
 
+class PHCompositeNode;
 class PHG4InEvent;
 class PHG4Particle;
 

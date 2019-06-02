@@ -1,7 +1,5 @@
 #include "PHG4VtxPointv1.h"
 
-#include <ostream>  // for operator<<, basic_ostream, basic_ostream<>::__ost...
-
 using namespace std;
 
 void

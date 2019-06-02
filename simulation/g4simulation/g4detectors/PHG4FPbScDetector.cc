@@ -1,5 +1,4 @@
 #include "PHG4FPbScDetector.h"
-#include <PHG4FPbScSteppingAction.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
@@ -7,11 +6,19 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4Region.hh>            // for G4Region
+#include <Geant4/G4SystemOfUnits.hh>     // for cm
+#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
 #include <Geant4/G4Types.hh>
+#include <Geant4/G4VisAttributes.hh>
 
+#include <cstdlib>                      // for NULL, exit
+#include <iostream>                      // for stringstream, operator<<
 #include <map>
 #include <sstream>
+#include <utility>                       // for pair
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -29,10 +36,9 @@ PHG4FPbScDetector::PHG4FPbScDetector( PHCompositeNode *Node, const std::string &
   y_position(0.0 * cm),
   z_position(400.0 * cm),
   layer_separation(0.0),
-  AbsorberMaterial(NULL),
-  ScintillatorMaterial(NULL),
-  stepping_action(NULL),
-  _region(NULL)
+  AbsorberMaterial(nullptr),
+  ScintillatorMaterial(nullptr),
+  _region(nullptr)
 {
   
 }

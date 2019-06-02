@@ -4,8 +4,8 @@
 #include "Jet.h"
 #include "JetAlgo.h"
 
-// forward declarations
-class PHCompositeNode;
+#include <iostream>   // for cout, ostream
+#include <vector>     // for vector
 
 class FastJetAlgo : public JetAlgo
 {

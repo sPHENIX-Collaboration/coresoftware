@@ -1,5 +1,6 @@
 #include "InttDeadMapv1.h"
 
+#include <map>       // for _Rb_tree_const_iterator
 #include <iostream>
 
 using namespace std;

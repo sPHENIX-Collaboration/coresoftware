@@ -1,5 +1,7 @@
 #include "PHG4CEmcTestBeamDetector.h"
 
+#include <g4main/PHG4Detector.h>           // for PHG4Detector
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -9,6 +11,7 @@
 #include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Types.hh>               // for G4double
 #include <Geant4/G4VisAttributes.hh>

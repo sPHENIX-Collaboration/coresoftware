@@ -3,7 +3,6 @@
 #include "PHG4BlockGeom.h"
 
 #include <cmath>
-#include <cstddef>         // for NULL
 
 using namespace std;
 

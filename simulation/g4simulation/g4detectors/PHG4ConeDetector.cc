@@ -1,22 +1,19 @@
 #include "PHG4ConeDetector.h"
-#include "PHG4ConeRegionSteppingAction.h"
 
-#include <g4main/PHG4RegionInformation.h>
 #include <g4main/PHG4Utils.h>
-
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
 
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4RotationMatrix.hh>    // for G4RotationMatrix
+#include <Geant4/G4SystemOfUnits.hh>     // for cm
+#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
 #include <Geant4/G4PVPlacement.hh>
-
 #include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
 
+#include <cmath>                        // for M_PI
+#include <cstdlib>                      // for exit
+#include <iostream>                      // for operator<<, endl, basic_ostream
 #include <sstream>
 
 using namespace std;
@@ -26,7 +23,6 @@ using namespace std;
 PHG4ConeDetector::PHG4ConeDetector( PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
   PHG4Detector(Node, dnam),
   TrackerMaterial(nullptr),
-  InactiveMaterial(nullptr),
   block_solid(nullptr),
   block_logic(nullptr),
   block_physi(nullptr),

@@ -5,9 +5,9 @@
 #include "PHG4HcalPrototypeDetectorMessenger.h"
 
 #include "PHG4HcalPrototypeDetector.h"
+
+#include <Geant4/G4ApplicationState.hh>         // for G4State_Idle, G4State...
 #include <Geant4/G4UIdirectory.hh>
-#include <Geant4/G4UIcommand.hh>
-#include <Geant4/G4UIparameter.hh>
 #include <Geant4/G4UIcmdWithAString.hh>
 #include <Geant4/G4UIcmdWithADoubleAndUnit.hh>
 #include <Geant4/G4UIcmdWithoutParameter.hh>

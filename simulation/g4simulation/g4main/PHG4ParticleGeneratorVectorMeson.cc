@@ -1,22 +1,30 @@
 #include "PHG4ParticleGeneratorVectorMeson.h"
 
+#include "PHG4Particle.h"           // for PHG4Particle
 #include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
 
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <phool/PHDataNode.h>       // for PHDataNode
+#include <phool/PHNode.h>           // for PHNode
+#include <phool/PHNodeIterator.h>   // for PHNodeIterator
+#include <phool/PHObject.h>         // for PHObject
 #include <phool/PHRandomSeed.h>
-
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ParticleTable.hh>
+#include <phool/phool.h>            // for PHWHERE
 
 #include <TF1.h>
 #include <TLorentzVector.h>
+#include <TRandom.h>                // for TRandom
 #include <TRandom3.h>
 
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>            // for gsl_rng_uniform, gsl_rng_uniform_pos
+
+#include <cmath>                   // for sin, sqrt, cos, M_PI
+#include <iostream>                 // for operator<<, basic_ostream, basic_...
+#include <utility>                  // for pair
+#include <vector>                   // for vector, vector<>::const_iterator
 
 using namespace std;
 
@@ -291,7 +299,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
   double mt = sqrt(pow(mnow, 2) + pow(pt, 2));
-  double eta = TMath::ASinH(TMath::SinH(y) * mt / pt);
+  double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
 

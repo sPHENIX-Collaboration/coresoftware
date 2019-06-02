@@ -1,5 +1,7 @@
-#ifndef PHG4SCINTILLATORSLAT_H
-#define PHG4SCINTILLATORSLAT_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SCINTILLATORSLAT_H
+#define G4DETECTORS_PHG4SCINTILLATORSLAT_H
 
 #include "PHG4ScintillatorSlatDefs.h"
 

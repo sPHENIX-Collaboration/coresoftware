@@ -18,8 +18,12 @@
 #include <Geant4/G4Transform3D.hh>
 
 #include <cassert>
+#include <string>                       // for string
+#include <utility>                      // for pair
 
 class G4LogicalVolume;
+class PHCompositeNode;
+class PHG4CylinderGeom;
 class PHG4SpacalSubsystem;
 class PHParameters;
 

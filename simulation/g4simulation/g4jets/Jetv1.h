@@ -11,6 +11,11 @@
 
 #include "Jet.h"
 
+#include <cstddef>          // for size_t
+#include <iostream>
+#include <map>
+#include <utility>   // for pair, make_pair
+
 /*!
  * \brief Jetv1
  */

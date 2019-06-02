@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: $
 
 /*!
@@ -8,8 +10,8 @@
  * \date $Date: $
  */
 
-#ifndef PHG4SCORINGMANAGER_H_
-#define PHG4SCORINGMANAGER_H_
+#ifndef G4MAIN_PHG4SCORINGMANAGER_H
+#define G4MAIN_PHG4SCORINGMANAGER_H
 
 #include <fun4all/SubsysReco.h>
 

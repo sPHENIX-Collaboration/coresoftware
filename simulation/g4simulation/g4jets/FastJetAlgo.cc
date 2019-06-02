@@ -2,17 +2,18 @@
 #include "FastJetAlgo.h"
 
 #include "Jet.h"
-#include "JetInput.h"
 #include "Jetv1.h"
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
-#include <fastjet/SISConePlugin.hh>
 
 // standard includes
 #include <iostream>
+#include <map>                         // for _Rb_tree_iterator
+#include <memory>                      // for allocator_traits<>::value_type
+#include <utility>                     // for pair
 #include <vector>
 
 using namespace std;

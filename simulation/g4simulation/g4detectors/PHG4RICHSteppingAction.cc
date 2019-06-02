@@ -7,7 +7,9 @@
  */
 
 #include "PHG4RICHSteppingAction.h"
+
 #include "PHG4RICHDetector.h"
+#include "ePHENIXRICHConstruction.h"          // for ePHENIXRICHConstruction
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -17,9 +19,28 @@
 
 #include <phool/getClass.h>
 
+#include <Geant4/G4ExceptionSeverity.hh>      // for FatalException
+#include <Geant4/G4OpticalPhoton.hh>          // for G4OpticalPhoton
+#include <Geant4/G4ParticleDefinition.hh>     // for G4ParticleDefinition
 #include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4SDManager.hh>
+#include <Geant4/G4ProcessVector.hh>          // for G4ProcessVector
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>             // for fGeomBoundary
+#include <Geant4/G4String.hh>                 // for G4String
+#include <Geant4/G4SystemOfUnits.hh>          // for cm, nanosecond, GeV
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4Types.hh>                  // for G4int, G4double
+#include <Geant4/G4VPhysicalVolume.hh>        // for G4VPhysicalVolume
+#include <Geant4/G4VProcess.hh>               // for G4VProcess
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
+#include <Geant4/G4ios.hh>                    // for G4endl
+#include <Geant4/globals.hh>                  // for G4Exception, G4Exceptio...
+
+#include <cassert>                           // for assert
+#include <iostream>                           // for operator<<, basic_ostream
 
 using namespace std;
 

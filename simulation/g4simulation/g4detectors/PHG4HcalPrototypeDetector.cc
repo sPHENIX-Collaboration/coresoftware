@@ -5,35 +5,32 @@
 
 #include "PHG4HcalPrototypeDetector.h"
 
-#include <g4main/PHG4Utils.h>
+#include "PHG4HcalPrototypeDetectorMessenger.h"  // for PHG4HcalPrototypeDet...
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
+#include <g4main/PHG4Detector.h>                 // for PHG4Detector
 
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4Tubs.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4UnionSolid.hh>
-#include <Geant4/G4TwoVector.hh>
 #include <Geant4/G4Trap.hh>
-
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4Colour.hh>
-
 #include <Geant4/G4NistManager.hh>
-#include <Geant4/G4GeometryManager.hh>
-#include <Geant4/G4PhysicalVolumeStore.hh>
-#include <Geant4/G4LogicalVolumeStore.hh>
-#include <Geant4/G4SolidStore.hh>
+#include <Geant4/G4RotationMatrix.hh>            // for G4RotationMatrix
+#include <Geant4/G4SystemOfUnits.hh>             // for cm, mm, deg, rad
+#include <Geant4/G4ThreeVector.hh>               // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>               // for G4Transform3D
+#include <Geant4/G4Types.hh>                     // for G4double, G4int, G4bool
+#include <Geant4/G4ios.hh>                       // for G4cout, G4endl
 
 #include <Geant4/G4RunManager.hh>
 
+#include <cmath>                                // for cos, sin, M_PI, asin
 #include <sstream>
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -144,16 +141,6 @@ void PHG4HcalPrototypeDetector::Construct( G4LogicalVolume* world )
   
   ConstructDetector();
 
-  /*
-
-  hcal_rotm.rotateX(x_rot);
-  hcal_rotm.rotateY(y_rot);
-  hcal_rotm.rotateZ(z_rot);
-
-  new G4PVPlacement(G4Transform3D(hcal_rotm, G4ThreeVector(place_in_x, place_in_y, place_in_z)), hcal_log, "Hcal", logicWorld, 0, false, overlapcheck);
-  ConstructOuterHcal(hcal_log);
-    return;
-  */
 }
 
 
@@ -689,50 +676,6 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
     LayerNum++;
   }
 
-  /*
-  theta = 0.;
-  theta2 = hcal1TiltAngle;
-  G4double Rmid = hcal1RadiusIn + hcal1ScintSizeX / 2.0 + 0.5*cm;  // add extra 0.5cm 
-  for (G4int iLayer = 0; iLayer < nHcal1Layers; iLayer++) {  // need to figure out why the index starts at 2 ???
-    theta = hcal1DPhi/nHcal1Layers * iLayer - 0.008;  // add an off set 0.008 rad
-    //G4cout << "M_PI: " << M_PI << "     theta: " << theta << "    TileAngle: " << theta2 << G4endl;
-    //    G4double phi = iLayer*dPhi;
-    G4ThreeVector myTrans = G4ThreeVector(Rmid*cos(theta), Rmid*sin(theta), 0); 
-    //G4cout << " x: " << Rmid*cos(theta) << "    y: " << Rmid*sin(theta) << "   1.0*rad: " << 1.8*rad << G4endl;
-    G4RotationMatrix rotm  = G4RotationMatrix();
-    rotm.rotateZ((theta-theta2+0.01)*rad);        // Added a funge increment factor 0.01
-    G4Transform3D transform = G4Transform3D(rotm,myTrans);
-     
-    G4cout << "  iLayer " << iLayer << G4endl;
-
-    new G4PVPlacement(transform,             //rotation,position
-                      logicHcal1ScintLayer,           //its logical volume
-                      "hcal1ScintLayer",             //its name
-                      logicWorld,             //its mother volume: logicHcal1Ab
-                      false,                 //no boolean operation
-                      iLayer,                 //copy number
-                      checkOverlaps);       // checking overlaps 
-
-    theta -= 0.5*hcal1DPhi/nHcal1Layers;  // add an off set 05 rad 
-    G4ThreeVector absTrans = G4ThreeVector(Rmid*cos(theta), Rmid*sin(theta), 0); 
-    G4RotationMatrix rotAbsLayer  = G4RotationMatrix();
-    rotAbsLayer.rotateY(90*deg);
-    rotAbsLayer.rotateX(90*deg);
-    rotAbsLayer.rotateY(-90*deg);
-    rotAbsLayer.rotateZ((theta-theta2)*rad);
-    
-    G4Transform3D transformAbs = G4Transform3D(rotAbsLayer,absTrans);
-    
-    new G4PVPlacement(transformAbs,              //rotation,position
-		      logicHcal1AbsLayer,        //its logical volume
-		      "hcal1AbsLayer",           //its name
-		      logicWorld,                //its mother  volume
-		      false,                     //no boolean operation
-		      iLayer,                    //copy number
-		      checkOverlaps);            //overlaps checking
-		      }
-  
-  */							     
   return physiWorld;
 }
 
@@ -801,7 +744,7 @@ PHG4HcalPrototypeDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich_log
   // going 1/2 trapezoid up
   // -((y_out + y_in)/2)/2-sc/2 + ((y_out + y_in)/2)/2 = -sc/2
 
-  new G4PVPlacement(NULL, G4ThreeVector( - sc_dimension[1] / 2., 0, 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
+  new G4PVPlacement(nullptr, G4ThreeVector( - sc_dimension[1] / 2., 0, 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
   //  new G4PVPlacement(hcal_rotm, G4ThreeVector(0, -((outer_steel_y_out + outer_steel_y_in)/2.)/2. - sc_dimension[1] / 2., 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
   G4RotationMatrix *hcal_rotm_sc = new G4RotationMatrix;
   hcal_rotm_sc->rotateZ((2 * M_PI - outer_tilt_angle)*rad);

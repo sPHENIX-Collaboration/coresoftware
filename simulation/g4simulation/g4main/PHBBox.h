@@ -1,5 +1,7 @@
-#ifndef __PHBBOX_H__
-#define __PHBBOX_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHBBOX_H
+#define G4MAIN_PHBBOX_H
 
 #include <iostream>
 #include <iomanip>

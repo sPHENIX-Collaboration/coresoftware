@@ -2,23 +2,21 @@
 #include "TruthJetInput.h"
 
 #include "Jet.h"
-#include "JetInput.h"
 #include "Jetv1.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
-#include <phool/getClass.h>
-
-// PHENIX Geant4 includes
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
+#include <phool/getClass.h>
+#include <phool/phool.h>                    // for PHWHERE
+
 // standard includes
 #include <algorithm>  // std::find
+#include <cmath>                           // for asinh, sqrt
 #include <cstdlib>
 #include <iostream>
+#include <map>                              // for _Rb_tree_const_iterator
+#include <utility>                          // for pair
 #include <vector>
 
 using namespace std;

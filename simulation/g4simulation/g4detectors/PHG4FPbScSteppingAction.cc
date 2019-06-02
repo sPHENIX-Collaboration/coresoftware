@@ -3,19 +3,34 @@
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
+#include <Geant4/G4SystemOfUnits.hh>     // for cm
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
+
+#include <cstddef>                           // for NULL
+#include <iostream>                           // for operator<<, endl, basic...
+#include <map>                                // for _Rb_tree_iterator
+#include <string>                             // for operator+, string, char...
+#include <utility>                            // for pair
+
+class G4VPhysicalVolume;
 
 using namespace std;
 
 
 PHG4FPbScSteppingAction::PHG4FPbScSteppingAction( PHG4FPbScDetector* detector) :
-    PHG4SteppingAction(detector->GetName()), detector_( detector ), hits_(NULL), hit(NULL)
+    PHG4SteppingAction(detector->GetName()), detector_( detector ), hits_(nullptr)
 {
 }
 

@@ -1,9 +1,12 @@
-#ifndef PHG4VHcalSteppingAction_h
-#define PHG4VHcalSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4HCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4HCALSTEPPINGACTION_H
 
-#include "g4main/PHG4SteppingAction.h"
-#include <string>
+#include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4HcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;

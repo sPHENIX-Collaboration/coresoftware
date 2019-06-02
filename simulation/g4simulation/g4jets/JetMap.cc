@@ -1,8 +1,6 @@
 #include "JetMap.h"
 
-#include "Jet.h"
-
-#include <cmath>
+#include <ostream>  // for operator<<, endl, ostream, basic_ostream
 
 using namespace std;
 

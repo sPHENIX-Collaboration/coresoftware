@@ -1,11 +1,13 @@
 // Tell emacs that this is a C++ source
-// -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
 #define G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4OuterHcalDetector;
 class PHParameters;
 class PHG4Hit;

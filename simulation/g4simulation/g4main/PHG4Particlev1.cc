@@ -1,7 +1,5 @@
 #include "PHG4Particlev1.h"
 
-#include <ostream>
-
 using namespace std;
 
 PHG4Particlev1::PHG4Particlev1()

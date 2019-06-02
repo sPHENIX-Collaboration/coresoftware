@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id$
 
 /*!
@@ -8,14 +10,17 @@
  * \date $Date$
  */
 
-#ifndef PHG4PSTOFSubsystem_h
-#define PHG4PSTOFSubsystem_h
+#ifndef G4DETECTORS_PHG4PSTOFSUBSYSTEM_H
+#define G4DETECTORS_PHG4PSTOFSUBSYSTEM_H
 
 #include "PHG4DetectorGroupSubsystem.h"
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4PSTOFDetector;
+class PHG4SteppingAction;
 
 /**
    * \brief Fun4All module to simulate the Barrel PSTOF detector.

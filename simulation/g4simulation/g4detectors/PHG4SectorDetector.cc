@@ -2,19 +2,18 @@
 #include "PHG4SectorDisplayAction.h"
 #include "PHG4SectorSubsystem.h"
 
-#include <g4main/PHG4Utils.h>
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
-#include <Geant4/G4Cons.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4String.hh>          // for G4String
 
-#include <cassert>
+#include <map>                         // for _Rb_tree_iterator, _Rb_tree_co...
 #include <sstream>
+#include <utility>                     // for pair
+
+class G4VPhysicalVolume;
+class PHCompositeNode;
 
 using namespace std;
 using namespace PHG4Sector;
@@ -30,12 +29,12 @@ PHG4SectorDetector::PHG4SectorDetector(PHG4SectorSubsystem *subsys, PHCompositeN
 
 //_______________________________________________________________
 //_______________________________________________________________
-bool PHG4SectorDetector::IsInSectorActive(G4VPhysicalVolume *volume)
+bool PHG4SectorDetector::IsInSectorActive(G4VPhysicalVolume *physvol)
 {
   for (map_phy_vol_t::const_iterator it = map_active_phy_vol.begin();
        it != map_active_phy_vol.end(); ++it)
   {
-    if (volume == (*it).second)
+    if (physvol == (*it).second)
     {
       return true;
     }

@@ -5,10 +5,8 @@
 
 #include "Jet.h"
 
-#include <phool/PHObject.h>
-
-#include <cmath>
-#include <map>
+#include <cstddef>          // for size_t
+#include <iostream>
 #include <set>
 
 class JetMapv1 : public JetMap

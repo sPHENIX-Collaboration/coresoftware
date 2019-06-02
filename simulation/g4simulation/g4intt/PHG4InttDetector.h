@@ -3,13 +3,13 @@
 #ifndef G4INTT_PHG4INTTDETECTOR_H
 #define G4INTT_PHG4INTTDETECTOR_H
 
-#include "PHG4InttDefs.h"
-
 #include <g4main/PHG4Detector.h>
 
 #include <map>
 #include <set>
+#include <string>                 // for string
 #include <tuple>
+#include <utility>                // for pair
 #include <vector>
 
 class G4LogicalVolume;

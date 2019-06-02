@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4RICHSteppingAction.h,v 1.4 2013/12/22 19:33:38 nfeege Exp $$
 
 /*!
@@ -8,13 +10,14 @@
  * \date $$Date: 2013/12/22 19:33:38 $$
  */
 
-#ifndef PHG4RICHSteppingAction_h
-#define PHG4RICHSteppingAction_h
+#ifndef G4DETECTORS_PHG4RICHSTEPPINGACTION_H
+#define G4DETECTORS_PHG4RICHSTEPPINGACTION_H
 
 #include <Geant4/G4UserSteppingAction.hh>
 
-#include "Geant4/G4OpBoundaryProcess.hh"
+#include <Geant4/G4OpBoundaryProcess.hh>
 
+class G4Step;
 class PHCompositeNode;
 class PHG4RICHDetector;
 class PHG4Hit;

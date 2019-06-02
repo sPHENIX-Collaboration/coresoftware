@@ -2,8 +2,6 @@
 
 #include "PHG4BlockCellGeom.h"
 
-#include <cstddef>             // for NULL
-
 using namespace std;
 
 PHG4BlockCellGeomContainer::~PHG4BlockCellGeomContainer()

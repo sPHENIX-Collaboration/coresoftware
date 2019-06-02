@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4MAIN_PHG4IONGUN_H
 #define G4MAIN_PHG4IONGUN_H
 
@@ -5,7 +7,6 @@
 
 #include <string>
 
-class PHG4InEvent;
 class PHG4Particle;
 class PHCompositeNode;
 

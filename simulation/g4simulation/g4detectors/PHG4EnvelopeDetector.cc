@@ -1,32 +1,27 @@
 #include "PHG4EnvelopeDetector.h"
-#include "PHG4CylinderGeomContainer.h"
-#include "PHG4CylinderGeomv3.h"
 
-#include <g4main/PHG4Utils.h>
+#include <g4main/PHG4Detector.h>           // for PHG4Detector
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/getClass.h>
-
-#include <Geant4/G4AssemblyVolume.hh>
-#include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4ExtrudedSolid.hh>
-#include <Geant4/G4GenericTrap.hh>
-#include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4Trap.hh>
-#include <Geant4/G4Trd.hh>
+#include <Geant4/G4RotationMatrix.hh>      // for G4RotationMatrix
+#include <Geant4/G4SystemOfUnits.hh>       // for mm, m
+#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4TwoVector.hh>
+#include <Geant4/G4Types.hh>               // for G4double
 #include <Geant4/G4VisAttributes.hh>
+#include <Geant4/G4VPhysicalVolume.hh>     // for G4VPhysicalVolume
 
 
+#include <cmath>                          // for M_PI
 #include <iostream>
+
+class G4VSolid;
+class PHCompositeNode;
 
 using namespace std;
 

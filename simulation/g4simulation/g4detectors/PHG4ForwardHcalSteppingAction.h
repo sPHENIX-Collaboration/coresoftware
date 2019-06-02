@@ -1,13 +1,15 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef G4DETECTORS_PHG4VFORWARDHCALSTEPPINGACTION_H
-#define G4DETECTORS_PHG4VFORWARDHCALSTEPPINGACTION_H
+#ifndef G4DETECTORS_PHG4FORWARDHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4FORWARDHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
 #include <Geant4/G4TouchableHandle.hh>
 
 class G4Step;
+class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4ForwardHcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;

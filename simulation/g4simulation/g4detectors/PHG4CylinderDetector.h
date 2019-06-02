@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4CYLINDERDETECTOR_H
 #define G4DETECTORS_PHG4CYLINDERDETECTOR_H
 
@@ -9,6 +9,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4CylinderDisplayAction;
 class PHG4CylinderSubsystem;
 class PHParameters;

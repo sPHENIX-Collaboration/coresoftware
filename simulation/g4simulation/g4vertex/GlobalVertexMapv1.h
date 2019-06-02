@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4VERTEX_GLOBALVERTEXMAPV1_H
 #define G4VERTEX_GLOBALVERTEXMAPV1_H
 
@@ -5,12 +7,9 @@
 
 #include "GlobalVertex.h"
 
-#include <phool/PHObject.h>
-
+#include <cstddef>        // for size_t
 #include <iostream>
 #include <map>
-
-class GlobalVertex;
 
 class GlobalVertexMapv1 : public GlobalVertexMap
 {

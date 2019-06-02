@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  * \file ${file_name}
  * \brief
@@ -6,13 +8,13 @@
  * \date $$Date: 2014/03/24 01:36:44 $$
  */
 
-#ifndef PHG4VHcalSteppingAction_h
-#define PHG4VHcalSteppingAction_h
+#ifndef G4DETECTORS_PHG4SPACALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4SPACALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
-#include <string>
-
+class G4Step;
+class PHCompositeNode;
 class PHG4SpacalDetector;
 class PHG4Hit;
 class PHG4HitContainer;

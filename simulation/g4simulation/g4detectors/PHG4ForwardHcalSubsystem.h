@@ -5,6 +5,10 @@
 
 #include <g4main/PHG4Subsystem.h>
 
+#include <string>                  // for string
+
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4ForwardHcalDetector;
 class PHG4SteppingAction;

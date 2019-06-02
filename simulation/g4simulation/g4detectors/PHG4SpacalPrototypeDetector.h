@@ -8,19 +8,18 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4Transform3D.hh>
 
 #include <map>
-#include <set>
+#include <string>                       // for string
 #include <utility>
 
 class G4LogicalVolume;
-class G4Material;
 class G4UserLimits;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHCompositeNode;
 class PHParameters;
 
 class PHG4SpacalPrototypeDetector : public PHG4Detector

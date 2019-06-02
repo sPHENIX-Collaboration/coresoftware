@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4SpacalPrototypeSteppingAction.h,v 1.1 2014/03/24 01:36:44 jinhuang Exp $$
 
 /*!
@@ -8,12 +10,13 @@
  * \date $$Date: 2014/03/24 01:36:44 $$
  */
 
-#ifndef PHG4SpacalPrototypeSteppingAction_h
-#define PHG4SpacalPrototypeSteppingAction_h
+#ifndef G4DETECTORS_PHG4SPACALPROTOTYPESTEPPINGACTION_H
+#define G4DETECTORS_PHG4SPACALPROTOTYPESTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
-#include <string>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;

@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4INNERHCALDETECTOR_H
 #define G4DETECTORS_PHG4INNERHCALDETECTOR_H
 
@@ -13,12 +13,15 @@
 
 #include <map>
 #include <set>
+#include <string>                          // for string
 #include <vector>
+#include <utility>                         // for pair
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHCompositeNode;
 class PHG4InnerHcalDisplayAction;
 class PHG4InnerHcalSubsystem;
 class PHParameters;

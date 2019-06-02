@@ -1,6 +1,8 @@
 #include "GlobalVertexReco.h"
 
 #include "GlobalVertexMapv1.h"
+#include "GlobalVertexMap.h"                   // for GlobalVertexMap
+#include "GlobalVertex.h"                      // for GlobalVertex, GlobalVe...
 #include "GlobalVertexv1.h"
 
 #include <g4bbc/BbcVertex.h>
@@ -10,15 +12,22 @@
 #include <trackbase_historic/SvtxVertexMap.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                      // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                       // for PHWHERE
 
-#include <float.h>
+#include <cfloat>
 #include <cmath>
+#include <cstdlib>                            // for exit
+#include <set>                                 // for _Rb_tree_const_iterator
 #include <iostream>
+#include <utility>                             // for pair
 
 using namespace std;
 

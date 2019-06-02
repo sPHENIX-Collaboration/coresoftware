@@ -8,16 +8,28 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
-#include <Geant4/G4GDMLParser.hh>
 
+#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
+
+#include <g4main/PHG4DisplayAction.h>                // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
 
+#include <phool/PHIODataNode.h>                      // for PHIODataNode
+#include <phool/PHNode.h>                            // for PHNode
+#include <phool/PHNodeIterator.h>                    // for PHNodeIterator
+#include <phool/PHObject.h>                          // for PHObject
+#include <phool/phool.h>                             // for PHWHERE
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
-#include <Geant4/globals.hh>
-
+#include <cmath>                                    // for NAN
+#include <iostream>                                  // for operator<<, basi...
+#include <set>                                       // for _Rb_tree_const_i...
 #include <sstream>
+#include <utility>                                   // for pair
+
+class PHG4Detector;
+class PHG4SteppingAction;
 
 using namespace std;
 

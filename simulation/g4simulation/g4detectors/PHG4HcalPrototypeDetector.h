@@ -1,25 +1,32 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // This is the header file for the hcal prototype
 // created on 1/27/2014, Liang, HeXC
 // Updated on 3/21/2014, Liang, HeXC
 
-#ifndef PHG4HcalPrototypeDetector_h
-#define PHG4HcalPrototypeDetector_h
+#ifndef G4DETECTORS_PHG4HCALPROTOTYPEDETECTOR_H
+#define G4DETECTORS_PHG4HCALPROTOTYPEDETECTOR_H
 
 #include "PHG4HcalPrototypeDetectorMessenger.h"
+
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>           // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>
 
 #include <map>
+#include <string>                       // for string
 #include <vector>
 
-class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4PVPlacement;
-class G4Material;
 class G4Box;
+class G4LogicalVolume;
+class G4Material;
+class G4PVPlacement;
+class G4VPhysicalVolume;
+class PHCompositeNode;
+class PHG4HcalPrototypeDetectorMessenger;
 
 class PHG4HcalPrototypeDetector: public PHG4Detector
 {
@@ -41,18 +48,7 @@ class PHG4HcalPrototypeDetector: public PHG4Detector
   int IsInHcalPrototype(G4VPhysicalVolume*) const;
   //@}
 
-  /*
-  void SetPlaceZ(const G4double place_z) {place_in_z = place_z*cm;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x*cm;
-    place_in_y = place_y*cm;
-    place_in_z = place_z*cm;
-  }
-  */
-
   // We will keep these functions for now and deal with them later
-  //  void SetXRot(const G4double angle) {x_rot = angle*rad;}
   void SetYRot(const G4double angle) {hcalBoxRotationAngle_z = angle*rad;}
   void SetZRot(const G4double angle) {hcalBoxRotationAngle_y = angle*rad;}
   void SetActive(const int i = 1) {active = i;}
@@ -106,11 +102,8 @@ class PHG4HcalPrototypeDetector: public PHG4Detector
    */
   G4double hcalBoxSizeX, hcalBoxSizeY, hcalBoxSizeZ, hcalBoxRotationAngle_z, hcalBoxRotationAngle_y;
 
-  G4double hcal2SizeX, hcal2SizeY, hcal2SizeZ;
-  G4double hcal1SizeX, hcal1SizeY, hcal1SizeZ;
-
-  G4double hcal2RadiusIn, hcal2RadiusOut;
-  G4double hcal1RadiusIn, hcal1RadiusOut;
+  G4double hcal2RadiusIn;
+  G4double hcal1RadiusIn;
 
   G4int nScint360;
   G4int nHcal2Layers, nHcal1Layers;

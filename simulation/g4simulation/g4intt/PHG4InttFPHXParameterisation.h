@@ -3,6 +3,7 @@
 #ifndef G4INTT_PHG4INTTPARAMETERISATION_H
 #define G4INTT_PHG4INTTPARAMETERISATION_H
 
+#include <Geant4/G4Types.hh>                // for G4double, G4int
 #include <Geant4/G4VPVParameterisation.hh>
 
 class G4VPhysicalVolume;

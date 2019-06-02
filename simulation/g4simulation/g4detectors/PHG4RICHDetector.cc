@@ -9,23 +9,18 @@
  */
 
 #include "PHG4RICHDetector.h"
-#include "PHG4RICHDisplayAction.h"
 #include "PHG4RICHSteppingAction.h"
 
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4NistManager.hh>
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4VisAttributes.hh>
+#include <g4main/PHG4Detector.h>     // for PHG4Detector
 
-#include <boost/filesystem.hpp>
+#include <Geant4/G4Region.hh>        // for G4Region
+
 #include <boost/foreach.hpp>
 
 #include <map>
 #include <sstream>
+
+class PHCompositeNode;
 
 using namespace std;
 using namespace ePHENIXRICH;
@@ -33,7 +28,6 @@ using namespace ePHENIXRICH;
 PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node, const RICH_Geometry &g)
   : PHG4Detector(Node)
   , ePHENIXRICHConstruction(subsys, g)
-  , stepping_action(nullptr)
   , _region(nullptr)
 {
 }
@@ -41,7 +35,6 @@ PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *N
 PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node)
   : PHG4Detector(Node)
   , ePHENIXRICHConstruction(subsys)
-  , stepping_action(nullptr)
   , _region(nullptr)
 {
 }
