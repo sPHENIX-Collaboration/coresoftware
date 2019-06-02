@@ -9,7 +9,7 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/phool.h>                 // for PHWHERE
 
-#include <RtypesCore.h>                  // for Float_t, Int_t
+#include <Rtypes.h>                  // for Float_t, Int_t
 
 #include <HepMC/GenEvent.h>
 #include <HepMC/IO_BaseClass.h>          // for IO_BaseClass
