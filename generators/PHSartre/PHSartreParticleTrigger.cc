@@ -1,6 +1,10 @@
 #include "PHSartreParticleTrigger.h"
 
-#include <sartre/Sartre.h>
+#include <sartre/Event.h>
+
+#include <TLorentzVector.h>  // for TLorentzVector
+
+#include <iostream>          // for operator<<, endl, basic_ostream, basic_o...
 
 using namespace std;
 

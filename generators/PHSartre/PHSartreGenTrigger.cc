@@ -1,8 +1,6 @@
 #include "PHSartreGenTrigger.h"
 
-#include <sartre/Sartre.h>
-
-#include <iterator>
+#include <sstream>
 
 using namespace std;
 

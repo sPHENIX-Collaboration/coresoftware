@@ -1,22 +1,32 @@
 #include "PHSartre.h"
 #include "PHSartreGenTrigger.h"
 
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
+#include <phhepmc/PHHepMCGenHelper.h>       // for PHHepMCGenHelper
 
 #include <fun4all/Fun4AllReturnCodes.h>
-
-#include <phool/PHCompositeNode.h>
+#include <fun4all/SubsysReco.h>             // for SubsysReco
 
 #include <sartre/Sartre.h>
 
 #include <TGenPhaseSpace.h>
+#include <TLorentzVector.h>                 // for TLorentzVector
+#include <TParticlePDG.h>                   // for TParticlePDG
 
 #include <CLHEP/Vector/LorentzVector.h>
 
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>              // for GenParticle
+#include <HepMC/GenVertex.h>                // for GenVertex
+#include <HepMC/PdfInfo.h>                  // for PdfInfo
+#include <HepMC/SimpleVector.h>             // for FourVector
+#include <HepMC/Units.h>                    // for GEV, MM
 
-#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                    // for gsl_rng_uniform
+
+#include <cfloat>                          // for FLT_EPSILON
+#include <cmath>                            // for M_PI
+#include <iostream>                         // for operator<<, endl, basic_o...
+#include <memory>                           // for allocator_traits<>::value...
 
 using namespace std;
 

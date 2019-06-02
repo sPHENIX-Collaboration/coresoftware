@@ -5,24 +5,16 @@
 #include <phhepmc/PHHepMCGenHelper.h>
 
 #include <cmath>
-#include <iostream>
 #include <string>
 #include <vector>
 
 class PHCompositeNode;
-class PHHepMCGenEvent;
-class PHHepMCFilter;
 
 class Sartre;
 class Event;
 class EventGeneratorSettings;
 class PHSartreGenTrigger;
 class TGenPhaseSpace;
-
-namespace HepMC
-{
-class GenEvent;
-};
 
 class PHSartre : public SubsysReco
 {
@@ -107,7 +99,7 @@ class PHSartre : public SubsysReco
 
  private:
   int create_node_tree(PHCompositeNode *topNode);
-  double percent_diff(const double a, const double b) { return abs((a - b) / a); }
+  double percent_diff(const double a, const double b) { return fabs((a - b) / a); }
   void randomlyReverseBeams(Event *myEvent);
   void ReverseBeams(Event *myEvent);
 
