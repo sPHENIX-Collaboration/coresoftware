@@ -5,11 +5,9 @@
 
 #include <phool/getClass.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
+#include <vector>            // for vector, vector<>::const_iterator
 
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ParticleTable.hh>
+class PHCompositeNode;
 
 using namespace std;
 

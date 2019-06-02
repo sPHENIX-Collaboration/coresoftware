@@ -13,10 +13,14 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/phool.h>
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 
 #include <cstdlib>
 #include <iostream>
+#include <map>                            // for _Rb_tree_const_iterator
+#include <utility>                        // for pair
 #include <vector>
 
 using namespace std;

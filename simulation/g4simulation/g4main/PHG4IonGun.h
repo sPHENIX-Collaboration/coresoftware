@@ -7,7 +7,6 @@
 
 #include <string>
 
-class PHG4InEvent;
 class PHG4Particle;
 class PHCompositeNode;
 

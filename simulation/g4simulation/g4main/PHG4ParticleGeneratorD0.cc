@@ -1,23 +1,26 @@
 #include "PHG4ParticleGeneratorD0.h"
 
+#include "PHG4Particle.h"        // for PHG4Particle
 #include "PHG4Particlev1.h"
 #include "PHG4InEvent.h"
 
 #include <phool/getClass.h>
-#include <phool/recoConsts.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <phool/PHRandomSeed.h>
-
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ParticleTable.hh>
 
 #include <TF1.h>
 #include <TLorentzVector.h>
+#include <TRandom.h>             // for TRandom
 #include <TRandom3.h>
 
 #include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>         // for gsl_rng_uniform_pos, gsl_rng_uniform
+
+#include <cmath>                // for sqrt, sin, cos, M_PI
+#include <iostream>              // for operator<<, basic_ostream, basic_ost...
+#include <vector>                // for vector, vector<>::const_iterator
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -159,7 +162,7 @@ int PHG4ParticleGeneratorD0::process_event(PHCompositeNode *topNode)
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
   double mt = sqrt(pow(mnow, 2) + pow(pt, 2));
-  double eta = TMath::ASinH(TMath::SinH(y) * mt / pt);
+  double eta = asinh(sinh(y) * mt / pt);
 
   // Put it in a TLorentzVector
 

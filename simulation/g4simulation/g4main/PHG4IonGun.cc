@@ -1,20 +1,22 @@
 #include "PHG4IonGun.h"
 
 #include "PHG4InEvent.h"
+#include "PHG4Particle.h"                  // for PHG4Particle
 #include "PHG4Particlev3.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <phool/getClass.h>
 
-#include <Geant4/G4Event.hh>
 #include <Geant4/G4IonTable.hh>
-#include <Geant4/G4PrimaryParticle.hh>
-#include <Geant4/G4PrimaryVertex.hh>
+#include <Geant4/G4ParticleDefinition.hh>  // for G4ParticleDefinition
+#include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>
+
+#include <algorithm>                       // for fill
+#include <iostream>                        // for operator<<, basic_ostream
+#include <iterator>                        // for begin, end
+#include <cmath>                          // for NAN
 
 using namespace std;
 

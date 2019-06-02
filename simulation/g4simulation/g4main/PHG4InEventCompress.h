@@ -5,6 +5,9 @@
 
 #include <fun4all/SubsysReco.h>
 
+#include <string>                // for string
+
+class PHCompositeNode;
 class VariableArray;
 
 class PHG4InEventCompress: public SubsysReco

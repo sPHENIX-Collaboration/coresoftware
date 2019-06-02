@@ -5,6 +5,10 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <string>                       // for string
+
+class PHCompositeNode;
+
 class PHG4ParticleGenerator : public PHG4ParticleGeneratorBase
 {
  public:

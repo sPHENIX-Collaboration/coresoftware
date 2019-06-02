@@ -1,16 +1,18 @@
 #include "PHG4ParticleGenerator.h"
-#include "PHG4Particlev2.h"
 
+#include "PHG4Particle.h"    // for PHG4Particle
+#include "PHG4Particlev2.h"
 #include "PHG4InEvent.h"
 
 #include <phool/getClass.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-
-#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>     // for gsl_rng_uniform_pos
 
 #include <cmath>
+#include <iostream>          // for operator<<, endl, basic_ostream, basic_o...
+#include <vector>            // for vector, vector<>::iterator
+
+class PHCompositeNode;
 
 using namespace std;
 

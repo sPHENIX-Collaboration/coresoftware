@@ -3,9 +3,12 @@
 #ifndef G4MAIN_PHG4PARTICLEGENERATORVECTORMESON_H
 #define G4MAIN_PHG4PARTICLEGENERATORVECTORMESON_H
 
-#include <map>
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <map>
+#include <string>                       // for string
+
+class PHCompositeNode;
 class PHG4InEvent;
 class TRandom;
 class TF1;
