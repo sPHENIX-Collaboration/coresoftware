@@ -3,7 +3,8 @@
 
 #include "PHPy6GenTrigger.h"
 
-#include <HepMC/GenEvent.h>
+#include <string>             // for string
+#include <vector>             // for vector
 
 namespace HepMC
 {

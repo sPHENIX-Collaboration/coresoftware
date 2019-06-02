@@ -1,19 +1,21 @@
 #include "PHPy6JetTrigger.h"
 #include "PHPy6GenTrigger.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <phhepmc/PHHepMCGenEvent.h>
-
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>         // for GenParticle
+#include <HepMC/SimpleVector.h>        // for FourVector
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
-#include <fastjet/SISConePlugin.hh>
+
+#include <cmath>                      // for sqrt
+#include <cstdlib>                    // for abs
+#include <iostream>                    // for operator<<, endl, basic_ostream
+#include <memory>                      // for allocator_traits<>::value_type
+#include <utility>                     // for swap
+#include <vector>                      // for vector
 
 using namespace std;
 

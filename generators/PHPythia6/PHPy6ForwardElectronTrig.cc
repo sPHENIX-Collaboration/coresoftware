@@ -1,14 +1,11 @@
 #include "PHPy6ForwardElectronTrig.h"
 #include "PHPy6GenTrigger.h"
 
-#include <phool/PHCompositeNode.h>
-#include <phool/getClass.h>
-#include <phool/phool.h>
-
-#include <phhepmc/PHHepMCGenEvent.h>
-
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>     // for GenParticle
+#include <HepMC/SimpleVector.h>    // for FourVector
 
+#include <cmath>                  // for sqrt
 #include <cstdlib>
 #include <iostream>
 

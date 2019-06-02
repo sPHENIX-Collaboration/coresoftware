@@ -9,13 +9,7 @@
 #include <vector>
 
 class PHCompositeNode;
-class PHHepMCGenEvent;
 class PHPy6GenTrigger;
-
-namespace HepMC
-{
-class GenEvent;
-};
 
 class PHPythia6 : public SubsysReco
 {

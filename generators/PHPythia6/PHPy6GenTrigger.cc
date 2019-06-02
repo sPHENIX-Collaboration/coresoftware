@@ -1,7 +1,5 @@
 #include "PHPy6GenTrigger.h"
 
-#include <iterator>
-
 using namespace std;
 
 //__________________________________________________________
