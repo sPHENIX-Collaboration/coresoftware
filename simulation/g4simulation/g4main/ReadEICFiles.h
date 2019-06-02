@@ -4,11 +4,12 @@
 #define G4MAIN_READEICFILES_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <phhepmc/PHHepMCGenHelper.h>
 
 #include <string>
 
-class PHHepMCGenEvent;
+class PHCompositeNode;
 class TChain;
 
 namespace erhic

@@ -1,5 +1,8 @@
 #include "PHG4UIsession.h"
  
+#include <iostream>  // for flush, basic_ostream, ostream, cerr, cout
+#include <string>    // for operator<<
+
 PHG4UIsession::PHG4UIsession()
   : verbosity(0) {
 }

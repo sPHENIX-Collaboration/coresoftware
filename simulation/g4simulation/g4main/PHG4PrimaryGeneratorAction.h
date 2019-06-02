@@ -5,6 +5,7 @@
 
 #include <Geant4/G4VUserPrimaryGeneratorAction.hh>
 
+class G4Event;
 class PHG4InEvent;
 
 class PHG4PrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction

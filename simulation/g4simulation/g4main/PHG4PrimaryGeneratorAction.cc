@@ -9,15 +9,21 @@
 
 #include <Geant4/G4Event.hh>
 #include <Geant4/G4IonTable.hh>
+#include <Geant4/G4ParticleDefinition.hh>        // for G4ParticleDefinition
 #include <Geant4/G4ParticleTable.hh>
 #include <Geant4/G4PrimaryParticle.hh>
 #include <Geant4/G4PrimaryVertex.hh>
+#include <Geant4/G4String.hh>                    // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>                     // for G4double
 #include <Geant4/G4ThreeVector.hh>
 
+#include <cmath>                                // for sqrt
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <string>                                // for operator<<
+#include <utility>                               // for pair
 
 using namespace std;
 

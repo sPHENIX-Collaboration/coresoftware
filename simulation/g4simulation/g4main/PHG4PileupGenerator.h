@@ -5,7 +5,8 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
-class SubsysReco;
+#include <string>                       // for string
+
 class PHCompositeNode;
 
 class PHG4PileupGenerator : public PHG4ParticleGeneratorBase {

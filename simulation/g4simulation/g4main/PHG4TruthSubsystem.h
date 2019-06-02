@@ -7,6 +7,9 @@
 
 #include <string>
 
+class PHCompositeNode;
+class PHG4EventAction;
+class PHG4TrackingAction;
 class PHG4TruthTrackingAction;
 class PHG4TruthEventAction;
 

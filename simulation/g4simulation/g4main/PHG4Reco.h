@@ -10,19 +10,14 @@
 #include <phfield/PHFieldConfig.h>
 
 #include <list>
+#include <string>                   // for string
 
 // Forward declerations
-class G4LogicalVolume;
 class G4RunManager;
 class G4TBMagneticFieldSetup;
-class G4VModularPhysicsList;
-class G4VPhysicalVolume;
-class G4VUserPrimaryGeneratorAction;
-
+class G4VisManager;
 class PHCompositeNode;
-
 class PHG4DisplayAction;
-class PHG4EventGenerator;
 class PHG4PhenixDetector;
 class PHG4PhenixEventAction;
 class PHG4PhenixSteppingAction;
@@ -30,10 +25,6 @@ class PHG4PhenixTrackingAction;
 class PHG4PrimaryGeneratorAction;
 class PHG4Subsystem;
 class PHG4UIsession;
-
-// for the G4 cmd interface and the graphics
-class G4UImanager;
-class G4VisManager;
 
 /*!
   \class   PHG4Reco

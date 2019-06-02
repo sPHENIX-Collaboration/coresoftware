@@ -2,11 +2,9 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHRandomSeed.h>
-
-#include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+
+#include <iostream>                      // for operator<<, endl, basic_ostream
 
 using namespace std;
 

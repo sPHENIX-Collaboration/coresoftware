@@ -5,7 +5,8 @@
 
 #include "PHG4ParticleGeneratorBase.h"
 
-#include <map>
+#include <string>                       // for string
+#include <utility>                      // for pair
 #include <vector>
 
 class PHG4InEvent;

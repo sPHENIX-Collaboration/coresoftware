@@ -4,6 +4,7 @@
 #define G4MAIN_PHG4UTILS_H
 
 #include <string>
+#include <utility>  // for pair
 
 class G4VisAttributes;
 

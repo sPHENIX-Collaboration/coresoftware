@@ -4,6 +4,9 @@
 #define G4MAIN_PHG4TRACKUSERINFOV1_H
 
 #include <Geant4/G4VUserTrackInformation.hh>
+#include <Geant4/G4ios.hh>                    // for G4cout
+
+#include <ostream>                            // for operator<<, basic_ostre...
 
 class PHG4Shower;
 

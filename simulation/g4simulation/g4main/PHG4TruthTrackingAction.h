@@ -9,6 +9,8 @@
 
 #include <map>
 
+class G4Track;
+class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4TruthEventAction;
 

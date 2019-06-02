@@ -10,18 +10,25 @@
 
 #include "PHG4Hit.h"
 
+#include <Geant4/G4AffineTransform.hh>           // for G4AffineTransform
 #include <Geant4/G4EmSaturation.hh>
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
 #include <Geant4/G4NavigationHistory.hh>
+#include <Geant4/G4ReferenceCountedHandle.hh>    // for G4ReferenceCountedHa...
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>
+#include <Geant4/G4String.hh>                    // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4TouchableHandle.hh>           // for G4TouchableHandle
 #include <Geant4/G4Track.hh>
+#include <Geant4/G4VTouchable.hh>                // for G4VTouchable
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>                                 // for isfinite, NAN, sqrt
 #include <iostream>
 
 using namespace std;
