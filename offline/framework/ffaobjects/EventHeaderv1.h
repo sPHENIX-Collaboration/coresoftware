@@ -1,5 +1,7 @@
-#ifndef __EVENTHEADERv1_H
-#define __EVENTHEADERv1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_EVENTHEADERV1_H
+#define FFAOBJECTS_EVENTHEADERV1_H
 
 #include "EventHeader.h"
 

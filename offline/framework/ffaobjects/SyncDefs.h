@@ -1,5 +1,7 @@
-#ifndef SYNCDEFS_H__
-#define SYNCDEFS_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_SYNCDEFS_H
+#define FFAOBJECTS_SYNCDEFS_H
 
 namespace syncdefs
 {

@@ -1,5 +1,7 @@
-#ifndef FLAGSAVEV1_H
-#define FLAGSAVEV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_FLAGSAVEV1_H
+#define FFAOBJECTS_FLAGSAVEV1_H
 
 #include "FlagSave.h"
 #include <iostream>

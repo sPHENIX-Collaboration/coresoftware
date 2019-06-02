@@ -1,5 +1,7 @@
-#ifndef SYNCOBJECT_H
-#define SYNCOBJECT_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_SYNCOBJECT_H
+#define FFAOBJECTS_SYNCOBJECT_H
 
 #include <phool/PHObject.h>
 
