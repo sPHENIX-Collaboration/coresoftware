@@ -45,12 +45,12 @@ using namespace std;
 PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
+  , m_Detector("INTT")
   , m_ChkEnergyConservationFlag(0)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
 {
   InitializeParameters();
-  Detector(name);
 
   m_HitNodeName = "G4HIT_" + m_Detector;
   m_CellNodeName = "G4CELL_" + m_Detector;
@@ -209,7 +209,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     std::cout << "Could not locate geometry node " << m_GeoNodeName << std::endl;
     exit(1);
   }
-
   // loop over all of the layers in the hit container
   // we need the geometry object for this layer
   if (Verbosity() > 2) cout << " PHG4InttHitReco: Loop over hits" << endl;
@@ -263,7 +262,6 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
     // Use an algorithm similar to the one for the MVTX pixels, since it facilitates adding charge diffusion
     // for now we assume small charge diffusion
-
     vector<int> vybin;
     vector<int> vzbin;
     //vector<double> vlen;
@@ -286,8 +284,8 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       continue;
     }
     // this hit is skipped above if this dimensioning would be exceeded
-    double stripenergy[12][12] = {};  // init to 0
-    double stripeion[12][12] = {};    // init to 0
+    double stripenergy[13][13] = {};  // init to 0
+    double stripeion[13][13] = {};    // init to 0
 
     int nsegments = 10;
     // Loop over track segments and diffuse charge at each segment location, collect energy in pixels
@@ -362,6 +360,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       }
     }  // end loop over segments
     // now we have the energy deposited in each pixel, summed over all tracklet segments. We make a vector of all pixels with non-zero energy deposited
+
     for (int iz = minstrip_z; iz <= maxstrip_z; iz++)
     {
       for (int iy = minstrip_y; iy <= maxstrip_y; iy++)

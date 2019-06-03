@@ -48,7 +48,7 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   double m_Tmin;
   double m_Tmax;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_vector *m_LocalOutVec;
   gsl_vector *m_PathVec;
   gsl_vector *m_SegmentVec;
