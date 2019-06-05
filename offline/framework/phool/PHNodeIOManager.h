@@ -28,7 +28,6 @@ class PHNodeIOManager : public PHIOManager
   PHNodeIOManager(const std::string &, const PHAccessType, const PHTreeType);
   virtual ~PHNodeIOManager();
 
- public:
   virtual void closeFile();
   virtual bool write(PHCompositeNode *);
   virtual void print() const;
@@ -44,8 +43,7 @@ class PHNodeIOManager : public PHIOManager
   double GetBytesWritten();
   std::map<std::string, TBranch *> *GetBranchMap();
 
- public:
-  bool write(TObject **, const std::string &);
+  bool write(TObject **, const std::string &, int buffersize, int splitlevel);
 
  private:
   int FillBranchMap();
@@ -56,8 +54,6 @@ class PHNodeIOManager : public PHIOManager
   TFile *file;
   TTree *tree;
   std::string TreeName;
-  int bufSize;
-  int split;
   int accessMode;
   int CompressionLevel;
   std::map<std::string, TBranch *> fBranches;

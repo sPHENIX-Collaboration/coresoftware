@@ -44,9 +44,6 @@ class PHObject : public TObject
   virtual int Integrate(PHObject* obj) { return -1; }
   virtual void CopyContent(PHObject* obj);
 
-  int SplitLevel() const { return 99; }
-  int BufferSize() const { return 32000; }
-
  private:
   ClassDef(PHObject, 0)  // no I/O
 };
