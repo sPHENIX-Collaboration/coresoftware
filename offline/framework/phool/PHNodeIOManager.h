@@ -54,8 +54,6 @@ class PHNodeIOManager : public PHIOManager
   TFile *file;
   TTree *tree;
   std::string TreeName;
-//  int bufSize;
-//  int split;
   int accessMode;
   int CompressionLevel;
   std::map<std::string, TBranch *> fBranches;
