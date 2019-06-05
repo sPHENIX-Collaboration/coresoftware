@@ -39,8 +39,6 @@ PHNodeIOManager::PHNodeIOManager()
   : file(nullptr)
   , tree(nullptr)
   , TreeName("T")
-  , bufSize(0)
-  , split(0)
   , accessMode(PHReadOnly)
   , CompressionLevel(3)
   , isFunctionalFlag(0)
@@ -86,10 +84,6 @@ PHNodeIOManager::PHNodeIOManager(const string& f, const PHAccessType a,
 PHNodeIOManager::~PHNodeIOManager()
 {
   closeFile();
-  //   if (tree)
-  //     {
-  //       tree->Delete();
-  //     }
   delete file;
 }
 
@@ -109,8 +103,6 @@ bool PHNodeIOManager::setFile(const string& f, const string& title,
                               const PHAccessType a)
 {
   filename = f;
-  bufSize = 32000;
-  split = 0;
   accessMode = a;
   if (file)
   {
@@ -185,7 +177,7 @@ bool PHNodeIOManager::write(PHCompositeNode* topNode)
   return false;
 }
 
-bool PHNodeIOManager::write(TObject** data, const string& path)
+bool PHNodeIOManager::write(TObject** data, const string& path, int buffersize, int splitlevel)
 {
   if (file && tree)
   {
@@ -200,15 +192,19 @@ bool PHNodeIOManager::write(TObject** data, const string& path)
       // split = 1 they cannot be read back.  The new PHObjects
       // can be saved either way, but split = 1 makes interactive
       // display possible.
-      split = 99;
+//      split = 99;
+/*
       if ((*data)->InheritsFrom("PHObject"))
       {
         PHObject* phob = dynamic_cast<PHObject*>(*data);
         split = phob->SplitLevel();
         bufSize = phob->BufferSize();
       }
+*/
+      cout << "branch " << path << ", bufsize: " << buffersize
+	   << ", split: " << splitlevel << endl;
       tree->Branch(path.c_str(), (*data)->ClassName(),
-                   data, bufSize, split);
+                   data, buffersize, splitlevel);
     }
     else
     {
