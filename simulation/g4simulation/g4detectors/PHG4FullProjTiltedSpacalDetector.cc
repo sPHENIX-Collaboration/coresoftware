@@ -819,7 +819,11 @@ PHG4FullProjTiltedSpacalDetector::Construct_Tower(
       cout << "PHG4FullProjTiltedSpacalDetector::Construct_Tower::" << GetName()
            << " - constructed tower ID " << g_tower.id << " with "
            << fiber_count
-           << " fibers using Construct_Fibers_SameLengthFiberPerTower" << endl;
+           << " fibers using Construct_Fibers_SameLengthFiberPerTower."
+           << "V = "<<block_solid->GetCubicVolume()/(cm3)<<"cm3, "
+           << "m = "<<block_logic->GetMass()/gram<<"gram, "
+           << "Density = "<< (block_logic->GetMass()/gram) / (block_solid->GetCubicVolume()/cm3)<<"g/cm3"
+           << endl;
   }
   else
   {
