@@ -45,7 +45,7 @@ class PHCompositeNode;
 using namespace std;
 //____________________________________________________________________________..
 PHG4SpacalPrototypeSteppingAction::PHG4SpacalPrototypeSteppingAction(PHG4SpacalPrototypeDetector* detector) :
-  PHG4SteppingAction(0), 
+  PHG4SteppingAction(detector->GetName()),
   detector_(detector), 
   hits_(nullptr), 
   absorberhits_(nullptr),
