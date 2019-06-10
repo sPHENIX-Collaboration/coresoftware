@@ -347,6 +347,8 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // initialize registered subsystems
   BOOST_FOREACH (SubsysReco *reco, subsystems_)
   {
+    if (Verbosity() >= 1)
+      cout << "PHG4Reco::InitRun - " << reco->Name() << "->InitRun" << endl;
     reco->InitRun(topNode);
   }
 
@@ -887,7 +889,7 @@ void PHG4Reco::DefineMaterials()
 
   // E864 Pb-Scifi calorimeter
   // E864 Calorimeter is 99% Pb, 1% Antimony
-  //Nuclear Instruments and Methods in Physics Research A 406 (1998) 227–258
+  //Nuclear Instruments and Methods in Physics Research A 406 (1998) 227 258
   G4double density_e864 = (0.99 * 11.34 + 0.01 * 6.697) * g / cm3;
   G4Material *absorber_e864 = new G4Material("E864_Absorber", density_e864, 2);
   absorber_e864->AddMaterial(G4Material::GetMaterial("G4_Pb"), 0.99);
