@@ -44,17 +44,8 @@ else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \
     PHTrackSeeding_Dict.cc \
-<<<<<<< HEAD
     PHTrackSetMerging_Dict.cc \
     PHTrackPropagating_Dict.cc \
-=======
-<<<<<<< HEAD
-     PHTrackPropagating_Dict.cc \
-=======
-    PHTrackSetMerging_Dict.cc \
-    PHTrackPropagating_Dict.cc \
->>>>>>> prep for iterative tracking
->>>>>>> 1c838b099b2a5fa244c80987d10c9b7251e7c22f
     PHTrackFitting_Dict.cc \
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
