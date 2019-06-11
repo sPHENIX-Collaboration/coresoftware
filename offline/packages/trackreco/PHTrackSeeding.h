@@ -54,7 +54,7 @@ class PHTrackSeeding : public SubsysReco
 
   /// process event interface for trackers, called in process_event.
   /// implemented in derived classes
-  virtual int Process() = 0;
+  virtual int Process(PHCompositeNode *topNode) = 0;
 
   /// Called in SubsysReco::End
   virtual int End() = 0;

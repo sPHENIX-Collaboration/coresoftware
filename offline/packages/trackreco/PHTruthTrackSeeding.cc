@@ -62,7 +62,7 @@ int PHTruthTrackSeeding::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTruthTrackSeeding::Process()
+int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 {
 
   typedef std::map<int, std::set<TrkrCluster*> > TrkClustersMap;

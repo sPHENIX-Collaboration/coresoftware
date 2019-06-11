@@ -359,7 +359,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   return ret;
 }
 
-int PHHoughSeeding::Process()
+int PHHoughSeeding::Process(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
