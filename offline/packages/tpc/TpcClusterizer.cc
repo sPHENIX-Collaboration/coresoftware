@@ -53,12 +53,12 @@ bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vec
 {
   bool retval = true;
   double centval = adcval[phibin][zbin];
-  //cout << "enter is_local_maximum for phibin " << phibin << " zbin " << zbin << " adcval " << centval <<  endl; 
+  //cout << "enter is_local_maximum for phibin " << phibin << " zbin " << zbin << " adcval " << centval <<  endl;
 
-   
-  // search contiguous adc values for a larger signal 
+
+  // search contiguous adc values for a larger signal
   for(int iz = zbin - 4; iz <= zbin+4;iz++)
-    for(int iphi = phibin -2; iphi <= phibin + 2; iphi++) 
+    for(int iphi = phibin -2; iphi <= phibin + 2; iphi++)
       {
 	//cout << " is_local_maximum: iphi " <<  iphi << " iz " << iz << " adcval " << adcval[iphi][iz] << endl;
 	if(iz >= NZBinsMax) continue;
@@ -72,12 +72,12 @@ bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vec
 	    retval = false;
 	  }
       }
-  
+
 	//if(retval)  cout << "**********************   success: returning " << retval << endl;
-  
+
   return retval;
 }
-	
+
 void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown, int &zup, int &zdown,  std::vector<std::vector<double>> &adcval)
 {
   // search along phi at the peak in z
@@ -137,8 +137,54 @@ void TpcClusterizer::get_cluster(int phibin, int zbin, int &phiup, int &phidown,
     }
 }
 
-int TpcClusterizer::InitRun(PHCompositeNode* topNode)
+int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 {
+  PHNodeIterator iter(topNode);
+
+  // Looking for the DST node
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  if (!dstNode)
+  {
+    cout << PHWHERE << "DST Node missing, doing nothing." << endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // Create the Cluster node if required
+  TrkrClusterContainer *trkrclusters = findNode::getClass<TrkrClusterContainer>(dstNode, "TRKR_CLUSTER");
+  if (!trkrclusters)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    trkrclusters = new TrkrClusterContainer();
+    PHIODataNode<PHObject> *TrkrClusterContainerNode =
+        new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
+    DetNode->addNode(TrkrClusterContainerNode);
+  }
+
+  TrkrClusterHitAssoc *clusterhitassoc = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  if (!clusterhitassoc)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
+    }
+
+    clusterhitassoc = new TrkrClusterHitAssoc();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(clusterhitassoc, "TRKR_CLUSTERHITASSOC", "PHObject");
+    DetNode->addNode(newNode);
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -146,7 +192,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 {
   int print_layer = 47;
 
-  if (Verbosity() > 1000) 
+  if (Verbosity() > 1000)
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
 
   PHNodeIterator iter(topNode);
@@ -192,23 +238,23 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
   // The hits are stored in hitsets, where each hitset contains all hits in a given TPC readout (layer, sector, side), so clusters are confined to a hitset
   // The TPC clustering is more complicated than for the silicon, because we have to deal with overlapping clusters
 
-  // loop over the TPC HitSet objects 
+  // loop over the TPC HitSet objects
   TrkrHitSetContainer::ConstRange hitsetrange =  m_hits->getHitSets(TrkrDefs::TrkrId::tpcId);
   for (TrkrHitSetContainer::ConstIterator hitsetitr = hitsetrange.first;
        hitsetitr != hitsetrange.second;
        ++hitsetitr)
     {
       TrkrHitSet *hitset = hitsetitr->second;
-      if(Verbosity() > 1) 
+      if(Verbosity() > 1)
 	cout << "TpcClusterizer process hitsetkey " << hitsetitr->first << endl;
       if (Verbosity() > 2) hitset->identify();
-      
+
       // we have a single hitset, get the info that identifies the module
       int layer = TrkrDefs::getLayer(hitsetitr->first);
       // int sector = TpcDefs::getSectorId(hitsetitr->first);
       int side = TpcDefs::getSide(hitsetitr->first);
-      
-      // we will need the geometry object for this layer to get the global position	
+
+      // we will need the geometry object for this layer to get the global position
       PHG4CylinderCellGeom* layergeom = geom_container->GetLayerCellGeom(layer);
       int NPhiBins = layergeom->get_phibins();
       NPhiBinsMin = 0;
@@ -228,7 +274,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 
       // for convenience, create a 2D vector to store adc values in and initialize to zero
       std::vector<std::vector<double>> adcval (NPhiBins, std::vector<double>(NZBins, 0) );
-       
+
       TrkrHitSet::ConstRange hitrangei = hitset->getHits();
       for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	   hitr != hitrangei.second;
@@ -248,7 +294,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
       vector<int> phibinhi;
       vector<int> zbinlo;
       vector<int> zbinhi;
-      // we want to search the hit list for local maxima in phi-z space and cluster around them      
+      // we want to search the hit list for local maxima in phi-z space and cluster around them
       for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
 	   hitr != hitrangei.second;
 	   ++hitr)
@@ -256,7 +302,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  int phibin = TpcDefs::getPad(hitr->first);
 	  int zbin = TpcDefs::getTBin(hitr->first);
 	  if(!is_local_maximum(phibin, zbin, adcval)) continue;
-	  
+
 	  int phiup= 0;
 	  int phidown = 0;
 	  int zup= 0;
@@ -273,9 +319,9 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  zbinhi.push_back(zbin + zup);
 
 	  if(Verbosity() > 2)
-	    if(layer == print_layer) 
-	      cout << " cluster found in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown 
-		   << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl; 
+	    if(layer == print_layer)
+	      cout << " cluster found in layer " << layer << " around hitkey " << hitr->first << " with zbin " << zbin << " zup " << zup << " zdown " << zdown
+		   << " phibin " << phibin << " phiup " << phiup << " phidown " << phidown << endl;
 	}  // end loop over hits in this hitset
 
       // Now we analyze the clusters to get their parameters
@@ -291,7 +337,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	    if(layer == print_layer)
 	      {
 		cout << "iclus " << iclus << " layer " << layer << " radius " << radius << endl;
-		cout << "    z bin range " << zbinlo[iclus] << " to " << zbinhi[iclus] << " phibin range " << phibinlo[iclus] << " to " << phibinhi[iclus] << endl;  
+		cout << "    z bin range " << zbinlo[iclus] << " to " << zbinhi[iclus] << " phibin range " << phibinlo[iclus] << " to " << phibinhi[iclus] << endl;
 	      }
 
 	  std::vector<TrkrDefs::hitkey> hitkeyvec;
@@ -301,7 +347,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 		{
 		  double phi_center = layergeom->get_phicenter(iphi);
 		  double z = layergeom->get_zcenter(iz);
-	  
+
 		  zsum += z * adcval[iphi][iz];
 		  phi_sum += phi_center * adcval[iphi][iz];
 		  adc_sum += adcval[iphi][iz];
@@ -310,13 +356,13 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 		  if(adcval[iphi][iz] != 0)
 		    {
 		      TrkrDefs::hitkey hitkey = TpcDefs::genHitKey(iphi, iz);
-		      hitkeyvec.push_back(hitkey);		      
+		      hitkeyvec.push_back(hitkey);
 		    }
 		}
 	    }
 
 	  if(adc_sum < 10) continue;   // skip obvious noise "clusters"
-	  
+
 	  // This is the global position
 	  double clusphi = phi_sum / adc_sum;
 	  double clusz = zsum /  adc_sum;
@@ -340,7 +386,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 		  double dphi = layergeom->get_phicenter(iphi) - clusphi;
 		  dphi2_adc += dphi*dphi*adcval[iphi][iz];
 		  dphi_adc += dphi*adcval[iphi][iz];
-		  
+
 		  double dz = layergeom->get_zcenter(iz) - clusz;
 		  dz2_adc += dz*dz*adcval[iphi][iz];
 		  dz_adc += dz*adcval[iphi][iz];
@@ -371,7 +417,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  if (clusz < 0)
 	    clusz -= zz_shaping_correction;
 	  else
-	    clusz += zz_shaping_correction;	  
+	    clusz += zz_shaping_correction;
 
 	  // Fill in the cluster details
 	  //================
@@ -391,7 +437,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  DIM[2][0] = 0.0;
 	  DIM[2][1] = 0.0;
 	  DIM[2][2] = z_size * z_size;
-	  
+
 	  TMatrixF ERR(3, 3);
 	  ERR[0][0] = 0.0;
 	  ERR[0][1] = 0.0;
@@ -402,7 +448,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  ERR[2][0] = 0.0;
 	  ERR[2][1] = 0.0;
 	  ERR[2][2] = z_err * z_err;
-	  
+
 	  TMatrixF ROT(3, 3);
 	  ROT[0][0] = cos(clusphi);
 	  ROT[0][1] = -sin(clusphi);
@@ -413,13 +459,13 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  ROT[2][0] = 0.0;
 	  ROT[2][1] = 0.0;
 	  ROT[2][2] = 1.0;
-	  
+
 	  TMatrixF ROT_T(3, 3);
 	  ROT_T.Transpose(ROT);
-	  
+
 	  TMatrixF COVAR_DIM(3, 3);
 	  COVAR_DIM = ROT * DIM * ROT_T;
-	  
+
 	  clus->setSize(0, 0, COVAR_DIM[0][0]);
 	  clus->setSize(0, 1, COVAR_DIM[0][1]);
 	  clus->setSize(0, 2, COVAR_DIM[0][2]);
@@ -430,10 +476,10 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	  clus->setSize(2, 1, COVAR_DIM[2][1]);
 	  clus->setSize(2, 2, COVAR_DIM[2][2]);
 	  //cout << " covar_dim[2][2] = " <<  COVAR_DIM[2][2] << endl;
-	  
+
 	  TMatrixF COVAR_ERR(3, 3);
 	  COVAR_ERR = ROT * ERR * ROT_T;
-	  
+
 	  clus->setError(0, 0, COVAR_ERR[0][0]);
 	  clus->setError(0, 1, COVAR_ERR[0][1]);
 	  clus->setError(0, 2, COVAR_ERR[0][2]);
@@ -457,7 +503,7 @@ int TpcClusterizer::process_event(PHCompositeNode* topNode)
 	    {
 	      m_clusterhitassoc->addAssoc(ckey, hitkeyvec[i]);
 	    }
-	  
+
 	} // end loop over clusters for this hitset
     }  // end loop over hitsets
 
