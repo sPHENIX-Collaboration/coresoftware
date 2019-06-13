@@ -51,7 +51,6 @@ PHG4HcalDetector::PHG4HcalDetector( PHCompositeNode *Node, const std::string &dn
   PHG4Detector(Node, dnam),
   TrackerMaterial(nullptr),
   TrackerThickness(100 * cm),
-  cylinder_solid(nullptr),
   cylinder_logic(nullptr),
   cylinder_physi(nullptr),
   radius(100 * cm),

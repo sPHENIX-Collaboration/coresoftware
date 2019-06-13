@@ -34,8 +34,6 @@ PHG4FCalDetector::PHG4FCalDetector( PHCompositeNode *Node ) :
   nlayers(4),
   segments_per_column(20),
   segments_per_thickness(1),
-  segment_length(length/((double)(segments_per_column))),
-  segment_thickness(scintillator_thickness/((double)(segments_per_thickness))),
   z_position(100.0 * cm),
   layer_separation(1.0 * mm),
   AbsorberMaterial(nullptr),
