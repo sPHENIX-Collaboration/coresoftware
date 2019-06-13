@@ -17,7 +17,7 @@ class SvtxTrackState_v1 : public SvtxTrackState
   void identify(std::ostream &os = std::cout) const;
   void Reset() { *this = SvtxTrackState_v1(0.0); }
   int isValid() const { return 1; }
-  SvtxTrackState *Clone() const { return new SvtxTrackState_v1(*this); }
+  SvtxTrackState *clone() const { return new SvtxTrackState_v1(*this); }
 
   float get_pathlength() const { return _pathlength; }
 

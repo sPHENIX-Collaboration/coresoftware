@@ -5,14 +5,20 @@ AM_INIT_AUTOMAKE
 
 dnl order is important, if AC_PROG_LIBTOOL is called before AC_PROG_CXX(CC g++)
 dnl it will choose the g++ compiler over CC on Solaris
-AC_PROG_CXX(CC g++)
+AC_PROG_CXX(CC g++ clang++)
 LT_INIT([disable-static])
 
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
-if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-overloaded-virtual -Wno-deprecated-declarations -Wno-undefined-bool-conversion -Werror"
+ ;;
+ g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+ ;;
+esac
+
 
 dnl test for root 6
 if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then

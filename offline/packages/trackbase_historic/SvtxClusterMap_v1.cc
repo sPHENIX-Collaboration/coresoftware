@@ -21,7 +21,7 @@ SvtxClusterMap_v1::SvtxClusterMap_v1(const SvtxClusterMap_v1& clustermap)
        ++iter)
   {
     const SvtxCluster* cluster = iter->second;
-    _map.insert(make_pair(cluster->get_id(), cluster->Clone()));
+    _map.insert(make_pair(cluster->get_id(), cluster->clone()));
   }
 }
 
@@ -33,7 +33,7 @@ SvtxClusterMap_v1& SvtxClusterMap_v1::operator=(const SvtxClusterMap_v1& cluster
        ++iter)
   {
     const SvtxCluster* cluster = iter->second;
-    _map.insert(make_pair(cluster->get_id(), cluster->Clone()));
+    _map.insert(make_pair(cluster->get_id(), cluster->clone()));
   }
   return *this;
 }
@@ -79,7 +79,7 @@ SvtxCluster* SvtxClusterMap_v1::insert(const SvtxCluster* clus)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, clus->Clone()));
+  _map.insert(make_pair(index, clus->clone()));
   _map[index]->set_id(index);
   return _map[index];
 }

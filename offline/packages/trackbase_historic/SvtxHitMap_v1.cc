@@ -22,7 +22,7 @@ SvtxHitMap_v1::SvtxHitMap_v1(const SvtxHitMap_v1& hitmap)
        ++iter)
   {
     const SvtxHit* hit = iter->second;
-    _map.insert(make_pair(hit->get_id(), hit->Clone()));
+    _map.insert(make_pair(hit->get_id(), hit->clone()));
   }
 }
 
@@ -34,7 +34,7 @@ SvtxHitMap_v1& SvtxHitMap_v1::operator=(const SvtxHitMap_v1& hitmap)
        ++iter)
   {
     const SvtxHit* hit = iter->second;
-    _map.insert(make_pair(hit->get_id(), hit->Clone()));
+    _map.insert(make_pair(hit->get_id(), hit->clone()));
   }
   return *this;
 }
@@ -80,7 +80,7 @@ SvtxHit* SvtxHitMap_v1::insert(const SvtxHit* hit)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, hit->Clone()));
+  _map.insert(make_pair(index, hit->clone()));
   _map[index]->set_id(index);
   return _map[index];
 }

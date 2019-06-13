@@ -23,7 +23,7 @@ SvtxTrackMap_v1::SvtxTrackMap_v1(const SvtxTrackMap_v1& trackmap)
        ++iter)
   {
     const SvtxTrack* track = iter->second;
-    _map.insert(make_pair(track->get_id(), track->Clone()));
+    _map.insert(make_pair(track->get_id(), track->clone()));
   }
 }
 
@@ -35,7 +35,7 @@ SvtxTrackMap_v1& SvtxTrackMap_v1::operator=(const SvtxTrackMap_v1& trackmap)
        ++iter)
   {
     const SvtxTrack* track = iter->second;
-    _map.insert(make_pair(track->get_id(), track->Clone()));
+    _map.insert(make_pair(track->get_id(), track->clone()));
   }
   return *this;
 }
@@ -81,7 +81,7 @@ SvtxTrack* SvtxTrackMap_v1::insert(const SvtxTrack* track)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, track->Clone()));
+  _map.insert(make_pair(index, track->clone()));
   _map[index]->set_id(index);
   return _map[index];
 }

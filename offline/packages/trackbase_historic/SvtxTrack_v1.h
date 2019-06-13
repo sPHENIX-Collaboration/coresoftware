@@ -24,7 +24,7 @@ class SvtxTrack_v1 : public SvtxTrack
   void identify(std::ostream& os = std::cout) const;
   void Reset() { *this = SvtxTrack_v1(); }
   int isValid() const;
-  SvtxTrack* Clone() const { return new SvtxTrack_v1(*this); }
+  SvtxTrack* clone() const { return new SvtxTrack_v1(*this); }
 
   //
   // basic track information ---------------------------------------------------
