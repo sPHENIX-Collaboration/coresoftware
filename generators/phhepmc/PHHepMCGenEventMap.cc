@@ -22,7 +22,7 @@ PHHepMCGenEventMap::PHHepMCGenEventMap(const PHHepMCGenEventMap& eventmap)
        ++iter)
   {
     const PHHepMCGenEvent* event = iter->second;
-    _map.insert(make_pair(event->get_embedding_id(), event->Clone()));
+    _map.insert(make_pair(event->get_embedding_id(), event->clone()));
   }
 }
 
@@ -34,7 +34,7 @@ PHHepMCGenEventMap& PHHepMCGenEventMap::operator=(const PHHepMCGenEventMap& even
        ++iter)
   {
     const PHHepMCGenEvent* event = iter->second;
-    _map.insert(make_pair(event->get_embedding_id(), event->Clone()));
+    _map.insert(make_pair(event->get_embedding_id(), event->clone()));
   }
   return *this;
 }
@@ -90,7 +90,7 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_active_event(const PHHepMCGenEvent* 
   if (!_map.empty()) index = _map.rbegin()->first + 1;
 
   if (event)
-    _map.insert(make_pair(index, event->Clone()));
+    _map.insert(make_pair(index, event->clone()));
   else
     _map.insert(make_pair(index, new PHHepMCGenEvent()));
 
@@ -104,7 +104,7 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_background_event(const PHHepMCGenEve
   if (!_map.empty()) index = _map.begin()->first - 1;
 
   if (event)
-    _map.insert(make_pair(index, event->Clone()));
+    _map.insert(make_pair(index, event->clone()));
   else
     _map.insert(make_pair(index, new PHHepMCGenEvent()));
 
@@ -124,7 +124,7 @@ PHHepMCGenEvent* PHHepMCGenEventMap::insert_event(const int index, const PHHepMC
   }
 
   if (event)
-    _map.insert(make_pair(index, event->Clone()));
+    _map.insert(make_pair(index, event->clone()));
   else
     _map.insert(make_pair(index, new PHHepMCGenEvent()));
 

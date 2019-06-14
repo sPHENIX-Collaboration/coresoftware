@@ -22,7 +22,7 @@ class SvtxClusterMap : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxClusterMap* Clone() const { return NULL; }
+  virtual SvtxClusterMap* clone() const { return NULL; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

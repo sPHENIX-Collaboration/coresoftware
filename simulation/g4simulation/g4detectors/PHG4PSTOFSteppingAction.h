@@ -31,7 +31,6 @@ class PHG4PSTOFSteppingAction : public PHG4SteppingAction
  private:
   //! pointer to the detector
   PHG4PSTOFDetector* detector_;
-  const PHParametersContainer* paramscontainer;
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4Hit* hit;

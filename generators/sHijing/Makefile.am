@@ -18,7 +18,7 @@ AM_CPPFLAGS = \
 
 AM_FFLAGS="-DFVOIDP=INTEGER*8"
 # turn off warnings about unused functions in cfortran.h
-AM_CXXFLAGS=-Wno-unused-function -Wall -Werror
+AM_CXXFLAGS=-Wall -Wno-unused-function -Werror
 noinst_HEADERS = \
   HijCrdn.h \
   HijJet1.h \

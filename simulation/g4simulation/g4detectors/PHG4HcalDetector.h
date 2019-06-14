@@ -14,7 +14,6 @@
 
 class G4Material;
 class G4LogicalVolume;
-class G4Tubs;
 class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
@@ -74,7 +73,6 @@ class PHG4HcalDetector: public PHG4Detector
   G4Material* TrackerMaterial;
   G4double    TrackerThickness;
 
-  G4Tubs* cylinder_solid;
   G4LogicalVolume* cylinder_logic;
   G4VPhysicalVolume* cylinder_physi;
   std::map<const G4VPhysicalVolume*, int> box_vol;

@@ -48,7 +48,7 @@ public:
    virtual void setEndValTime(const PHTimeStamp &)   = 0;
    virtual void setDescription(const std::string &)     = 0;
    virtual void setUserName(const std::string &)        = 0;
-   
+   using PHObject::isValid;   
    virtual int isValid(const PHTimeStamp &) const = 0;
 
   ClassDef(PdbCalBank,1);

@@ -73,33 +73,6 @@ class PHG4HcalPrototypeDetector: public PHG4Detector
 
   void CalculateGeometry();
 
-  /*
- G4double hcalBoxSizeX, hcalBoxSizeY, hcalBoxSizeZ, hcalBoxRotationAngle_z, hcalBoxRotationAngle_y;
-
-  G4double hcal2SizeX, hcal2SizeY, hcal2SizeZ;
-  G4double hcal1SizeX, hcal1SizeY, hcal1SizeZ;
-
-  G4double hcal2RadiusIn, hcal2RadiusOut;
-  G4double hcal1RadiusIn, hcal1RadiusOut;
-
-  G4double hcal2Abs_dxa, hcal2Abs_dxb;
-  G4double hcal2Abs_dya, hcal2Abs_dyb;
-  G4double hcal2Abs_dz;
-
-  G4double hcal1Abs_dxa, hcal1Abs_dxb;
-  G4double hcal1Abs_dya, hcal1Abs_dyb;
-  G4double hcal1Abs_dz;
-
-  G4int nScint360;
-  G4int nHcal2Layers, nHcal1Layers;
-
-  G4double hcal2ScintSizeX, hcal2ScintSizeY, hcal2ScintSizeZ;
-  G4double hcal1ScintSizeX, hcal1ScintSizeY, hcal1ScintSizeZ;
-  G4double hcal2TiltAngle, hcal1TiltAngle;
-  G4double hcal2DPhi, hcal1DPhi;
-  G4double hcalJunctionSizeX, hcalJunctionSizeY, hcalJunctionSizeZ;
-
-   */
   G4double hcalBoxSizeX, hcalBoxSizeY, hcalBoxSizeZ, hcalBoxRotationAngle_z, hcalBoxRotationAngle_y;
 
   G4double hcal2RadiusIn;
@@ -144,8 +117,6 @@ class PHG4HcalPrototypeDetector: public PHG4Detector
   void SetTiltViaNcross(const int ncross);
 
   PHG4HcalPrototypeDetectorMessenger*  fDetectorMessenger;
-
-  double outer_tilt_angle;
 
   int active;
   int absorberactive;

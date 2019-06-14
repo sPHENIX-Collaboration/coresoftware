@@ -67,7 +67,7 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
        ++iter)
   {
     SvtxTrackState* state = iter->second;
-    _states.insert(make_pair(state->get_pathlength(), state->Clone()));
+    _states.insert(make_pair(state->get_pathlength(), state->clone()));
   }
 
   // copy over cluster ID set
@@ -198,7 +198,7 @@ SvtxTrackState* SvtxTrack_v1::get_state(float pathlength)
 
 SvtxTrackState* SvtxTrack_v1::insert_state(const SvtxTrackState* state)
 {
-  _states.insert(make_pair(state->get_pathlength(), state->Clone()));
+  _states.insert(make_pair(state->get_pathlength(), state->clone()));
   return _states[state->get_pathlength()];
 }
 

@@ -2,7 +2,6 @@
 
 #include <CLHEP/Units/SystemOfUnits.h>
 
-using namespace std;
 using namespace CLHEP;  // units
 
 PHFieldUniform::PHFieldUniform(

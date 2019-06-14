@@ -6,9 +6,14 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-if test $ac_cv_prog_gxx = yes; then
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-overloaded-virtual -Werror"
+ ;;
+ g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
+ ;;
+esac
 
 ROOTLIBS=`root-config --libs`
 AC_SUBST(ROOTLIBS)

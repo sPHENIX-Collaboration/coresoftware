@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_PHG4FCALDETECTOR_H
 #define G4DETECTORS_PHG4FCALDETECTOR_H
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4String.hh>     // for G4String
@@ -33,7 +33,7 @@ class PHG4FCalDetector: public PHG4Detector
     { 
       if ( _region )
         return _region->GetRegionalSteppingAction();
-      else return 0;
+      else return nullptr;
     }
     
     bool isInScintillator(G4VPhysicalVolume * volume);
@@ -44,7 +44,6 @@ class PHG4FCalDetector: public PHG4Detector
     
     G4double length, absorber_thickness, scintillator_thickness;
     unsigned int nlayers, segments_per_column, segments_per_thickness;
-    G4double segment_length, segment_thickness;
     G4double z_position;
     G4double layer_separation;
     

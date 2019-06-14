@@ -18,7 +18,7 @@ class SvtxTrackMap_v1 : public SvtxTrackMap
   void identify(std::ostream& os = std::cout) const;
   void Reset();
   int isValid() const { return 1; }
-  SvtxTrackMap* Clone() const { return new SvtxTrackMap_v1(*this); }
+  SvtxTrackMap* clone() const { return new SvtxTrackMap_v1(*this); }
 
   bool empty() const { return _map.empty(); }
   size_t size() const { return _map.size(); }
