@@ -245,7 +245,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
   {
     TrkrHitSet *hitset = hitsetitr->second;
     if (Verbosity() > 1)
-      cout << "TpcClusterizer process hitsetkey " << hitsetitr->first << endl;
+      cout << "TpcClusterizer process hitsetkey " << hitsetitr->first
+           << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
+           << " side " << (int) TpcDefs::getSide(hitsetitr->first)
+           << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
+           << endl;
     if (Verbosity() > 2) hitset->identify();
 
     // we have a single hitset, get the info that identifies the module
