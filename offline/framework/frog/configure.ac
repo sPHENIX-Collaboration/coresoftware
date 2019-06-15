@@ -9,9 +9,14 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   treat warnings as errors: -Werror
-if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-overloaded-virtual -Wno-deprecated-declarations -Wno-undefined-bool-conversion -Werror"
+ ;;
+ g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+ ;;
+esac
 
 dnl test for root 6
 if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then

@@ -1,12 +1,14 @@
 #ifndef __SVTXHIT_H__
 #define __SVTXHIT_H__
 
-#include <TObject.h>
 #include <g4detectors/PHG4CellDefs.h>
+
+#include <phool/PHObject.h>
+
 #include <limits.h>
 #include <iostream>
 
-class SvtxHit : public TObject
+class SvtxHit : public PHObject
 {
  public:
   virtual ~SvtxHit() {}
@@ -19,7 +21,7 @@ class SvtxHit : public TObject
   }
   virtual void Reset(){};
   virtual int isValid() const { return 0; }
-  virtual SvtxHit* Clone() const { return NULL; }
+  virtual SvtxHit* clone() const { return NULL; }
 
   // digitized hit info
 

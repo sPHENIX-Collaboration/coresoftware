@@ -35,7 +35,6 @@ class PHCompositeNode;
 using namespace std;
 
 // static double no_overlap = 0.00015 * cm; // added safety margin against overlaps by using same boundary between volumes
-static const double inch = 2.54 * cm;
 
 PHG4HcalPrototypeDetector::PHG4HcalPrototypeDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
   PHG4Detector(Node, dnam),
@@ -51,7 +50,6 @@ PHG4HcalPrototypeDetector::PHG4HcalPrototypeDetector( PHCompositeNode *Node, con
   world_mat(nullptr),
   steel(nullptr),
   scint_mat(nullptr),
-  outer_tilt_angle(NAN),
   active(0),
   absorberactive(0),
   layer(lyr),
@@ -113,20 +111,6 @@ PHG4HcalPrototypeDetector::PHG4HcalPrototypeDetector( PHCompositeNode *Node, con
 int
 PHG4HcalPrototypeDetector::IsInHcalPrototype(G4VPhysicalVolume * volume) const
 {
-  /*
-  if (active && volume == sandwich_vol[2])
-    {
-      return 1;
-    }
-  if (absorberactive && (volume == sandwich_vol[0] || volume == sandwich_vol[1]))
-    {
-      return -1;
-    }
-  if (absorberactive && sandwich_vol[3] && volume == sandwich_vol[3])
-    {
-      return -1;
-    }
-  */
 
   return 0;  // not sure what value to return for now.
 }
@@ -135,7 +119,6 @@ void PHG4HcalPrototypeDetector::Construct( G4LogicalVolume* world )
 {
   logicWorld = world;
 
-  //  physiWorld = world->GetSolid();
 
   DefineMaterials();
   
@@ -154,10 +137,6 @@ void PHG4HcalPrototypeDetector::DefineMaterials()
 
   steel = nist->FindOrBuildMaterial("G4_Fe"); // Need to fix this *******
   scint_mat = nist->FindOrBuildMaterial("G4_POLYSTYRENE");
-  
-  // If one wishes to test other density value for water material, one should use instead:
-  //G4Material * H2O = man->BuildMaterialWithNewDensity("G4_WATER_MODIFIED","G4_WATER",1000*g/cm/cm/cm);
-  //G4cout << "-> Density of water material (g/cm3)=" << waterMaterial->GetDensity()/(g/cm/cm/cm) << G4endl;
   
   G4cout << *(G4Material::GetMaterialTable()) << G4endl;
 }
@@ -225,15 +204,9 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
 
   // Construct outer scintillator 1U
   G4double outer1UpDz = 649.8*mm;
-  //  G4double outer1UpTheta = 0.0;
-  //G4double outer1UpPhi = 0.0;
   G4double outer1UpDy1 = 2*0.35*cm;
-  //G4double outer1UpDy2 = 0.35*cm;
-  //G4double outer1UpDx1 = 0.25*179.3*mm;
   G4double outer1UpDx2 = 179.3*mm;
-  //G4double outer1UpDx3 = 0.25*113.2*mm;
   G4double outer1UpDx4 = 113.2*mm;
-  //G4double outer1UpAlp1 = 0., outer1UpAlp2 = 0.;
 
   G4Trap *outer1USheetSolid = new G4Trap("outer1USheet",                      //its name
 					 outer1UpDy1, outer1UpDz, 
@@ -371,11 +344,6 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
   logicHcal2AbsLayer = new G4LogicalVolume(hcal2AbsLayerJunct,    //  hcal2AbsLayer,
 					   steel,
 					   "hcal2AbsLayer");
-  /* old plain absorber
-  logicHcal2AbsLayer = new G4LogicalVolume(hcal2AbsLayer,
-					   steel,
-					   "hcal2AbsLayer");
-  */
 
   // hcal2Aborber visualization attributes
   G4VisAttributes* hcal2AbsVisAtt= new G4VisAttributes(G4Colour(0.5,0.5,1.0)); 
@@ -385,8 +353,6 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
   // place scintillator layers insides the HCal2 absorber volume 
   //
   
-  // Calculate the title angle
-  // SetTiltViaNcross(2);    // with 2 crossings?  This function does not work yet!  :((
 
   G4double theta = 0.;
   G4double theta2 = hcal2TiltAngle;   // I am not convinced that I got the tilt angle right.  So I simply forced it to 
@@ -433,7 +399,6 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
     yposShift = rScintLayerCenter * sin(theta);
     G4ThreeVector myTrans = G4ThreeVector(RmidScintLayerX + xposShift - xPadding, yposShift+0.3*cm, 0); // hcal2RadiusIn + hcal1ScintSizeX/2.0
     G4RotationMatrix rotm  = G4RotationMatrix();
-    //    rotm.rotateZ((theta+theta2+0.02)*rad);        // Added a funge increment factor 0.02
     rotm.rotateZ((iLayer + nHcal2Layers/2 + 1)*0.020*rad+tiltPadding);        // Added a funge increment factor 0.02
     G4Transform3D transform = G4Transform3D(rotm,myTrans);
      
@@ -468,15 +433,9 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
   // Construct inner scintillator 1U
   // The numbers are read off from Don's drawings
   G4double inner1UpDz = 316.8*mm;
-  //  G4double inner1UpTheta = 0.0;
-  //G4double inner1UpPhi = 0.0;
   G4double inner1UpDy1 = 2*0.35*cm;
-  //G4double inner1UpDy2 = 0.35*cm;
-  //G4double inner1UpDx1 = 0.25*108.6*mm;
   G4double inner1UpDx2 = 108.6*mm;
-  //G4double inner1UpDx3 = 0.25*77.4*mm;
   G4double inner1UpDx4 = 77.4*mm;
-  //G4double inner1UpAlp1 = 0., inner1UpAlp2 = 0.;
 
   G4Trap *inner1USheetSolid = new G4Trap("inner1USheet",             //its name
 					 inner1UpDy1, inner1UpDz, 
@@ -490,16 +449,12 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
   // Detector placement
   // Position the inner right 1U sheet
   G4ThreeVector threeVecInner1U_1_inner = G4ThreeVector(0*cm, 0*cm, -0.252*(inner1UpDx2+inner1UpDx4));
-  //G4RotationMatrix rot1U_1  = G4RotationMatrix();   // We could reuse this from outer hcal construct
-  //rot1U_1.rotateZ(90*deg);
-  //rot1U_1.rotateX(-90*deg);
 
   G4Transform3D transformInner1U_1 = G4Transform3D(rot1U_1,threeVecInner1U_1_inner);
 
   new G4PVPlacement(transformInner1U_1,
 		    logicInner1USheet,
 		    "inner1USheet",
-		    //logicWorld,
 		    logicHcal1ScintLayer,
 		    false,
 		    0,                    // Copy one
@@ -680,86 +635,10 @@ G4VPhysicalVolume*  PHG4HcalPrototypeDetector::ConstructDetector()
 }
 
 
-/*
-// here we build up the outer hcal from the sandwiches (steel + scintillator)
-int
-PHG4HcalPrototypeDetector::ConstructOuterHcal( G4LogicalVolume* logicWorld )
-{
-  G4Material* Air = G4Material::GetMaterial("G4_AIR");
-  G4VSolid*  outer_sandwich = new G4Trap("Hcal_Outer_Sandwich_Trap", outer_steel_z, outer_steel_x, outer_steel_y_out+ sc_dimension[1]+4*no_overlap, outer_steel_y_in+ sc_dimension[1]+4*no_overlap);
-  G4LogicalVolume* outer_sandwich_log =  new G4LogicalVolume(outer_sandwich, Air, "Hcal_Outer_Sandwich", 0, 0, 0);
-  G4VisAttributes* cemcVisAtt = new G4VisAttributes();
-  cemcVisAtt->SetForceSolid(false);
-  cemcVisAtt->SetColour(G4Colour::Blue());
-outer_sandwich_log->SetVisAttributes(cemcVisAtt);
-  ostringstream outer_hcal_name;
-      // hcal_rotm->rotateZ(270 * deg);
-      // new G4PVPlacement(hcal_rotm, G4ThreeVector(0, 0, 0), outer_sandwich_log,"hcal_1" , logicWorld, 0, i, overlapcheck);
-      // hcal_rotm->rotateZ(90 * deg+i*outer_tilt_angle*rad + 2*deg);
-      // new G4PVPlacement(hcal_rotm, G4ThreeVector(0, 0, 0), outer_sandwich_log,"hcal_1" , logicWorld, 0, i, overlapcheck);
-      // return 0;
-  //  for (int i=0; i<15; i++)
-  double yup = -((num_sandwiches-1)*(outer_steel_y_out+sc_dimension[1])+outer_steel_y_out)/2.;
-  double xup = 0.;
-  for (int i=0; i<15; i++)
-    {
-      outer_hcal_name.str("");
-      outer_hcal_name << "OuterHcal_" << i;
-      G4RotationMatrix *hcal_rotm = new G4RotationMatrix;
-
-      hcal_rotm->rotateZ(270 * deg-i*outer_tilt_angle*rad);
-
-      new G4PVPlacement(hcal_rotm, G4ThreeVector(xup, yup, 0), outer_sandwich_log,outer_hcal_name.str().c_str() , logicWorld, 0, i, overlapcheck);
-      yup += ((outer_steel_y_out+outer_steel_y_in)/2.+sc_dimension[1]+9*no_overlap)*cos(i*outer_tilt_angle);
-      xup -=  ((outer_steel_y_out+outer_steel_y_in)/2.+sc_dimension[1]+9*no_overlap)*sin(i*outer_tilt_angle);
-    }
-  ConstructSandwichVolume(outer_sandwich_log);
-
-  return 0;
-}
-
-// here we put a single tungsten + scintillator sandwich together
-int
-PHG4HcalPrototypeDetector::ConstructSandwichVolume(G4LogicalVolume* sandwich_log)
-{
-  vector<G4LogicalVolume*> block_logic;
-  G4VSolid*  outer_steel_trd = new G4Trap("Hcal_outer_steel_trd", outer_steel_z, outer_steel_x, outer_steel_y_out, outer_steel_y_in);
-  G4LogicalVolume* outer_steel_log =  new G4LogicalVolume(outer_steel_trd, G4Material::GetMaterial("G4_Fe"), "Hcal_Outer_Steel", 0, 0, 0);
-  G4VisAttributes* cemcVisAtt = new G4VisAttributes();
-  cemcVisAtt->SetVisibility(true);
-  cemcVisAtt->SetForceSolid(false);
-  cemcVisAtt->SetColour(G4Colour::Magenta());
-  outer_steel_log->SetVisAttributes(cemcVisAtt);
-  G4VSolid *outer_scintillator = new G4Box("Outer_Scinti_Box", sc_dimension[1] / 2., sc_dimension[0] / 2., sc_dimension[2] / 2.);
-  G4LogicalVolume* outer_scinti_log = new G4LogicalVolume(outer_scintillator, G4Material::GetMaterial("G4_POLYSTYRENE"), "Hcal_Outer_Sc", 0, 0, 0);
-  G4VisAttributes* cemcVisAtt1 = new G4VisAttributes();
-  cemcVisAtt1->SetVisibility(true);
-  cemcVisAtt1->SetForceSolid(false);
-  cemcVisAtt1->SetColour(G4Colour::Green());
-  outer_scinti_log->SetVisAttributes(cemcVisAtt1);
-  //  G4RotationMatrix *hcal_rotm = new G4RotationMatrix;
-  //  hcal_rotm->rotateZ(270 * deg);
-  // get to the bottom of the sandwich volome
-  // -((y_out + y_in)/2)/2-sc/2
-  // going 1/2 trapezoid up
-  // -((y_out + y_in)/2)/2-sc/2 + ((y_out + y_in)/2)/2 = -sc/2
-
-  new G4PVPlacement(nullptr, G4ThreeVector( - sc_dimension[1] / 2., 0, 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
-  //  new G4PVPlacement(hcal_rotm, G4ThreeVector(0, -((outer_steel_y_out + outer_steel_y_in)/2.)/2. - sc_dimension[1] / 2., 0), outer_steel_log, "HcalSteel", sandwich_log, 0, false, overlapcheck);
-  G4RotationMatrix *hcal_rotm_sc = new G4RotationMatrix;
-  hcal_rotm_sc->rotateZ((2 * M_PI - outer_tilt_angle)*rad);
-  new G4PVPlacement(hcal_rotm_sc, G4ThreeVector(((outer_steel_y_out + outer_steel_y_in)/2.)/2.+no_overlap, 0, 0), outer_scinti_log, "HcalScinti", sandwich_log, 0, false, overlapcheck);
-  return 0;
-}
-
-*/
 
 void
 PHG4HcalPrototypeDetector::CalculateGeometry()
 {
-  // tilt angle outer steel
-  // outer_tilt_angle = atan((outer_steel_y_out-outer_steel_y_in)/outer_plate_x);
-  // cout << "outer tilt angle: " << outer_tilt_angle*180./M_PI << endl;
     return;
 }
 
@@ -767,16 +646,6 @@ PHG4HcalPrototypeDetector::CalculateGeometry()
 
 void PHG4HcalPrototypeDetector::SetMaterial(G4String materialChoice)
 {
-  /*
-  // search the material by its name   
-  G4Material* pttoMaterial =
-    G4NistManager::Instance()->FindOrBuildMaterial(materialChoice);
-  if (pttoMaterial) {
-    world_mat = pttoMaterial;
-    logicWorld->SetMaterial(world_mat);
-    G4RunManager::GetRunManager()->PhysicsHasBeenModified();
-  }
-  */
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -822,17 +691,6 @@ void PHG4HcalPrototypeDetector::SetTiltViaNcross(const int ncross)
   cSide = hcal1RadiusIn + hcal1ScintSizeX/2;
   bSide = hcal1RadiusIn + hcal1ScintSizeX;
 
-  /* This part is the same both for the inner and the outer hcal section
-  G4doube alpha = 0;
-  if (ncr > 1)
-    {
-      alpha = (360. / nScint360 * M_PI / 180.) * (ncr - 1);
-    }
-  else
-    {
-      alpha = (360. / nScint360 * M_PI / 180.) / 2.;
-    }
-  */
 
   sinbSide = sin(alpha) * bSide / (sqrt(bSide * bSide + cSide * cSide - 2.0 * bSide * cSide * cos(alpha)));
   beta = asin(sinbSide);  // This is the slat angle

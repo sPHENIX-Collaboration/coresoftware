@@ -41,7 +41,6 @@ using namespace std;
 PHG4PSTOFSteppingAction::PHG4PSTOFSteppingAction(PHG4PSTOFDetector* detector, const PHParametersContainer* parameters)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
-  , paramscontainer(parameters)
   , hits_(nullptr)
   , hit(nullptr)
   , savehitcontainer(nullptr)

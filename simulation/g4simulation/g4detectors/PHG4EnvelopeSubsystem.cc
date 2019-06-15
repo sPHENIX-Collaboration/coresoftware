@@ -21,7 +21,6 @@ PHG4EnvelopeSubsystem::PHG4EnvelopeSubsystem( const std::string &name, const int
 	PHG4Subsystem( name ),
 	detector_( 0 ),
 	steppingAction_( nullptr ),
-	eventAction_(nullptr),
 	material("G4_PbWO4"),  // default - lead tungstate crystal
 	active(1),
 	detector_type(name)

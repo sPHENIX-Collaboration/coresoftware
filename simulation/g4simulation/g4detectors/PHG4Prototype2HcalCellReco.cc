@@ -37,7 +37,7 @@ using namespace std;
 #define ROWDIM 21 
 // 12 scintillator tiles per row (index starting at 1)
 #define COLUMNDIM 13
-static array<array<PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {{nullptr}};
+static array<array<PHG4ScintillatorSlat *, COLUMNDIM>, ROWDIM> slatarray = {{{nullptr}}};
 
 PHG4Prototype2HcalCellReco::PHG4Prototype2HcalCellReco(const string &name)
   : SubsysReco(name)

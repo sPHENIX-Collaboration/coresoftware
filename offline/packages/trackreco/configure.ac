@@ -5,9 +5,14 @@ AM_INIT_AUTOMAKE
 AC_PROG_CXX(CC g++)
 LT_INIT([disable-static])
 
-if test $ac_cv_prog_gxx = yes; then
-  CXXFLAGS="$CXXFLAGS -Wall"
-fi
+case $CXX in
+ clang++)
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-overloaded-virtual -Werror"
+ ;;
+ g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+ ;;
+esac
 
 dnl test for root 6
 if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then

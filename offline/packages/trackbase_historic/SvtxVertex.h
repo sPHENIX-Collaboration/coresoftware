@@ -1,10 +1,11 @@
 #ifndef __SVTXVERTEX_H__
 #define __SVTXVERTEX_H__
 
-#include <limits.h>
 #include <phool/PHObject.h>
+
 #include <cmath>
 #include <iostream>
+#include <limits.h>
 #include <set>
 #include <vector>
 
@@ -25,7 +26,7 @@ class SvtxVertex : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxVertex* Clone() const { return NULL; }
+  virtual SvtxVertex* clone() const { return NULL; }
 
   // vertex info
 

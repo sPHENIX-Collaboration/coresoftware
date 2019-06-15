@@ -37,7 +37,7 @@ private:
 	float  	yt	[_lenJ][_lenI];
     };
 
-    int  _dummy;
+//    int  _dummy;
     float  _realdummy;
 
     static HIJCRDN* _hijcrdn;
@@ -53,7 +53,7 @@ HijCrdn::init(void)
 // Constructor
 inline
 HijCrdn::HijCrdn()
-    : _dummy		(-999),
+	:// _dummy		(-999),
       _realdummy	(-999.)
 {}
 

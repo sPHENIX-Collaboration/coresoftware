@@ -45,7 +45,7 @@ class SvtxTrack : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxTrack* Clone() const { return NULL; }
+  virtual SvtxTrack* clone() const { return NULL; }
 
   //
   // basic track information ---------------------------------------------------

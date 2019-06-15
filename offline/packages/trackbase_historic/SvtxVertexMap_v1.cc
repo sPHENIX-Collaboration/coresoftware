@@ -20,7 +20,7 @@ SvtxVertexMap_v1::SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap)
        ++iter)
   {
     const SvtxVertex* vertex = iter->second;
-    _map.insert(make_pair(vertex->get_id(), vertex->Clone()));
+    _map.insert(make_pair(vertex->get_id(), vertex->clone()));
   }
 }
 
@@ -32,7 +32,7 @@ SvtxVertexMap_v1& SvtxVertexMap_v1::operator=(const SvtxVertexMap_v1& vertexmap)
        ++iter)
   {
     const SvtxVertex* vertex = iter->second;
-    _map.insert(make_pair(vertex->get_id(), vertex->Clone()));
+    _map.insert(make_pair(vertex->get_id(), vertex->clone()));
   }
   return *this;
 }
@@ -85,5 +85,5 @@ SvtxVertex* SvtxVertexMap_v1::insert(SvtxVertex* vertex)
 
 SvtxVertex* SvtxVertexMap_v1::insert_clone(const SvtxVertex* vertex)
 {
-  return insert(vertex->Clone());
+  return insert(vertex->clone());
 }

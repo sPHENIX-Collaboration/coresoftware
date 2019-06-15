@@ -65,7 +65,6 @@ class PHG4CEmcTestBeamDetector: public PHG4Detector
   G4double w_dimension[3];
   G4double sc_dimension[3];
   G4double gap;
-  G4int num_planes_;
   G4double place_in_x;
   G4double place_in_y;
   G4double place_in_z;

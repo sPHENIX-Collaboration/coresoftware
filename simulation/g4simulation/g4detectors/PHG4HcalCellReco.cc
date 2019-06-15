@@ -37,7 +37,7 @@ using namespace std;
 #define ROWDIM 320
 #define COLUMNDIM 24
 
-static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {{nullptr}};
+static array< array< PHG4Cell *, COLUMNDIM>, ROWDIM> slatarray = {{{nullptr}}};
 
 PHG4HcalCellReco::PHG4HcalCellReco(const string &name) :
   SubsysReco(name),
