@@ -75,6 +75,13 @@ int PHTruthTrackSeeding::Process()
     TrkrDefs::cluskey cluskey = clusiter->first;
     unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);
 
+
+    if (Verbosity() >= 3)
+    {
+      cout <<__PRETTY_FUNCTION__<<" process cluster ";
+      cluster->identify();
+    }
+
     // get the hits for this cluster
     TrkrClusterHitAssoc::ConstRange hitrange = clusterhitassoc->getHits(cluskey);  // returns range of pairs {cluster key, hit key} for this cluskey
     for (TrkrClusterHitAssoc::ConstIterator clushititer = hitrange.first; clushititer != hitrange.second; ++clushititer)
@@ -105,18 +112,37 @@ int PHTruthTrackSeeding::Process()
         if (it != m_trackID_clusters.end())
         {
           it->second.insert(cluster);
+          if (Verbosity() >= 3)
+          {
+            cout <<__PRETTY_FUNCTION__<<" append particle"<<particle_id<<" -> cluster "<<cluskey<<endl;;
+            cluster->identify();
+          }
         }
         else
         {
           std::set<TrkrCluster*> clusters;
           clusters.insert(cluster);
           m_trackID_clusters.insert(std::pair<int, std::set<TrkrCluster*> >(particle_id, clusters));
+
+
+          if (Verbosity() >= 3)
+          {
+            cout <<__PRETTY_FUNCTION__<<" new particle"<<particle_id<<" -> cluster "<<cluskey<<endl;;
+            cluster->identify();
+          }
+
         }
       }  // loop over g4hits associated with hit
     }    // loop over hits associated with cluster
   }      // loop over clusters
 
   //==================================
+
+  if (Verbosity() >= 2)
+  {
+    cout <<__PRETTY_FUNCTION__
+        <<" _track_map->size = "<<_track_map->size()<<endl;
+  }
 
   // Build track
   for (TrkClustersMap::const_iterator trk_clusters_itr = m_trackID_clusters.begin();
@@ -138,7 +164,16 @@ int PHTruthTrackSeeding::Process()
         svtx_track->insert_cluster_key(cluster->getClusKey());
         _assoc_container->SetClusterTrackAssoc(cluster->getClusKey(), svtx_track->get_id());
       }
+
       _track_map->insert(svtx_track.get());
+
+      if (Verbosity() >= 2)
+      {
+        cout <<__PRETTY_FUNCTION__<<" particle "<<trk_clusters_itr->first<<" -> "
+            <<trk_clusters_itr->second.size()<<" clusters"
+            <<" _track_map->size = "<< (_track_map->size()) <<": ";
+        _track_map->identify();
+      }
     }
   }
 
