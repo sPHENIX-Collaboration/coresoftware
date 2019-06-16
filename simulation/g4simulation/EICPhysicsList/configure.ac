@@ -17,11 +17,11 @@ case $CXX in
  ;;
 esac
 
-dnl   AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | gawk '{print $1>=4.8?"1":"0"}'` = 1)
+dnl   AM_CONDITIONAL(GCC_GE_48, test `g++ -dumpversion | awk '{print $1>=4.8?"1":"0"}'` = 1)
 
 
 dnl test for root 6
-if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then
+if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 fi
