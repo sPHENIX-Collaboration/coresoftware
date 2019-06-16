@@ -10,7 +10,7 @@ dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Wno-delete-non-virtual-dtor -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"

@@ -12,7 +12,7 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Wno-overloaded-virtual -Wno-deprecated-declarations -Wno-undefined-bool-conversion -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
