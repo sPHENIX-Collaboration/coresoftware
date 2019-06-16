@@ -28,7 +28,7 @@ PHGeomIOTGeo::PHGeomIOTGeo()
 
 PHGeomIOTGeo::~PHGeomIOTGeo()
 {
-  Reset();
+    Data.resize(0);
 }
 
 PHObject*
