@@ -43,7 +43,7 @@ PHHepMCGenEvent& PHHepMCGenEvent::operator=(const PHHepMCGenEvent& event)
 
 PHHepMCGenEvent::~PHHepMCGenEvent()
 {
-  Reset();
+  delete _theEvt;
 }
 
 void PHHepMCGenEvent::Reset()

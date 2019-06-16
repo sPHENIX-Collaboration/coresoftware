@@ -24,7 +24,7 @@ class PHGenIntegralv1 : public PHGenIntegral
  public:
   PHGenIntegralv1();
   explicit PHGenIntegralv1(const std::string& description);
-  virtual ~PHGenIntegralv1();
+  virtual ~PHGenIntegralv1(){}
 
   virtual PHObject* clone() const;
   virtual int isValid() const { return 1; }
@@ -39,37 +39,37 @@ class PHGenIntegralv1 : public PHGenIntegral
   //! Integrated luminosity in pb^-1
   Double_t get_Integrated_Lumi() const
   {
-    return fIntegratedLumi;
+    return m_IntegratedLumi;
   }
 
   //! Integrated luminosity in pb^-1
   void set_Integrated_Lumi(Double_t integratedLumi)
   {
-    fIntegratedLumi = integratedLumi;
+    m_IntegratedLumi = integratedLumi;
   }
 
-  //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
+  //! Number of accepted events in the event generator. This can be higher than m_NProcessedEvent depending on trigger on the event generator
   ULong64_t get_N_Generator_Accepted_Event() const
   {
-    return fNGeneratorAcceptedEvent;
+    return m_NGeneratorAcceptedEvent;
   }
 
-  //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
+  //! Number of accepted events in the event generator. This can be higher than m_NProcessedEvent depending on trigger on the event generator
   void set_N_Generator_Accepted_Event(ULong64_t nGeneratorAcceptedEvent)
   {
-    fNGeneratorAcceptedEvent = nGeneratorAcceptedEvent;
+    m_NGeneratorAcceptedEvent = nGeneratorAcceptedEvent;
   }
 
   //! Number of processed events in the Fun4All cycles
   ULong64_t get_N_Processed_Event() const
   {
-    return fNProcessedEvent;
+    return m_NProcessedEvent;
   }
 
   //! Number of processed events in the Fun4All cycles
   void set_N_Processed_Event(ULong64_t nProcessedEvent)
   {
-    fNProcessedEvent = nProcessedEvent;
+    m_NProcessedEvent = nProcessedEvent;
   }
 
   //! Sum of weight assigned to the events by the generators.
@@ -77,7 +77,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
   Double_t get_Sum_Of_Weight() const
   {
-    return fSumOfWeight;
+    return m_SumOfWeight;
   }
 
   //! Sum of weight assigned to the events by the generators.
@@ -85,38 +85,38 @@ class PHGenIntegralv1 : public PHGenIntegral
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
   void set_Sum_Of_Weight(Double_t sumOfWeight)
   {
-    fSumOfWeight = sumOfWeight;
+    m_SumOfWeight = sumOfWeight;
   }
 
   //! description on the source
   const std::string& get_Description() const
   {
-    return fDescription;
+    return m_Description;
   }
 
   //! description on the source
   void set_Description(const std::string& description)
   {
-    fDescription = description;
+    m_Description = description;
   }
 
  private:
   //! Number of processed events in the Fun4All cycles
-  ULong64_t fNProcessedEvent;
+  ULong64_t m_NProcessedEvent;
 
-  //! Number of accepted events in the event generator. This can be higher than fNProcessedEvent depending on trigger on the event generator
-  ULong64_t fNGeneratorAcceptedEvent;
+  //! Number of accepted events in the event generator. This can be higher than m_NProcessedEvent depending on trigger on the event generator
+  ULong64_t m_NGeneratorAcceptedEvent;
 
   //! Integrated luminosity in pb^-1
-  Double_t fIntegratedLumi;
+  Double_t m_IntegratedLumi;
 
   //! Sum of weight assigned to the events by the generators.
   //! Event weight is normally 1 and thus equal to number of the generated event and is uninteresting.
   //! However, there are several cases where one may have nontrivial event weights, e.g. using user hooks in Pythia8 generators to reweight the phase space
-  Double_t fSumOfWeight;
+  Double_t m_SumOfWeight;
 
   //! description on the source
-  std::string fDescription;
+  std::string m_Description;
 
   ClassDef(PHGenIntegralv1, 1)
 };
