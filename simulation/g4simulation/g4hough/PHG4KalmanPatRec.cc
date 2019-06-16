@@ -2265,7 +2265,7 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
     if (search_values.size() == 0) continue;
 
     for (std::vector<pointId>::iterator second_point = search_values.begin();
-         second_point != search_values.end(); second_point++)
+         second_point != search_values.end(); ++second_point)
     {
       if (do_print) cout << "#seed " << n_seed++ << " (" << n_start << ") : " << search_values.size() << endl;
       if (search_values.size() > 1)
@@ -2493,7 +2493,7 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
                               point(phi_prediction2 + search_window3, eta_prediction2 + search_window3, _radii_all[iLayer - 1] + 0.3));
               bgi::query(rtree, bgi::within(search_box3), std::back_inserter(candidates3));
               for (std::vector<pointId>::iterator check_point3 = candidates3.begin();
-                   check_point3 != candidates3.end(); check_point3++)
+                   check_point3 != candidates3.end(); ++check_point3)
               {
                 if (do_print) cout << "      check #" << iLayer << "id: " << check_point3->second << " phi: " << check_point3->first.get<0>() << " eta: " << check_point3->first.get<1>() << " r: " << check_point3->first.get<2>() << endl;
               }
@@ -2506,7 +2506,7 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
               int min_index = 666;
               float min_dphi = 666.6;
               for (std::vector<pointId>::iterator check_point = candidates2.begin();
-                   check_point != candidates2.end(); check_point++)
+                   check_point != candidates2.end(); ++check_point)
               {
                 float check_dphi = check_point->first.get<0>() - phi_prediction;
                 if (check_dphi < min_dphi)
@@ -2532,7 +2532,7 @@ int PHG4KalmanPatRec::combi_seeding(int start_layer)
             int min_index = 666;
             float min_dphi = 666.6;
             for (std::vector<pointId>::iterator check_point = candidates.begin();
-                 check_point != candidates.end(); check_point++)
+                 check_point != candidates.end(); ++check_point)
             {
               float check_dphi = check_point->first.get<0>() - phi_prediction;
               if (check_dphi < min_dphi)
