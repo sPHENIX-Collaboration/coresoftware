@@ -8,7 +8,7 @@ LT_INIT([disable-static])
 
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Wno-overloaded-virtual -Wno-tautological-compare -Wno-unused-private-field -Wno-switch-bool -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
