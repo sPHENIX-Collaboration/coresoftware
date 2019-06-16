@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libphfield_io.la \
    libphfield.la
 
-AM_CXXFLAGS = \
- -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib

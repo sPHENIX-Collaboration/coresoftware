@@ -6,8 +6,6 @@ AM_CPPFLAGS = \
   -I$(OPT_SPHENIX)/JETSCAPE-1.0/include \
   -I/usr/include/openmpi-x86_64
 
-#AM_CXXFLAGS = -Werror -Wno-unused-variable
-
 bin_PROGRAMS = \
   brickTest \
   FinalStateHadrons \

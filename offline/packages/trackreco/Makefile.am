@@ -16,7 +16,7 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include/eigen3
 
 AM_CXXFLAGS = \
- -Werror -DRAVE -DRaveDllExport=
+ -DRAVE -DRaveDllExport=
 
 AM_LDFLAGS = \
   -L$(libdir) \

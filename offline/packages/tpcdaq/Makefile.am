@@ -12,8 +12,6 @@ lib_LTLIBRARIES = \
    libtpcdaq.la \
    libtpcdaq_io.la
 
-AM_CXXFLAGS = -Werror
-
 libtpcdaq_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib

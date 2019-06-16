@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libjetbackground_io.la \
    libjetbackground.la
 
-AM_CXXFLAGS = \
- -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib

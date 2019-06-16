@@ -5,8 +5,6 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir`
 
-AM_CXXFLAGS = -Werror
-
 lib_LTLIBRARIES = libPHPythia6.la
 
 pkginclude_HEADERS = \

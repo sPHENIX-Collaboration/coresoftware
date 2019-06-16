@@ -9,7 +9,7 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
 if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall"
+   CXXFLAGS="$CXXFLAGS -Wall -Werror"
 fi
 
 dnl test for root 6

@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libg4bbc_io.la \
    libg4bbc.la
 
-AM_CXXFLAGS = \
- -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
