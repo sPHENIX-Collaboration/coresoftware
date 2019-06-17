@@ -3,13 +3,14 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libflowafterburner.la
 
-AM_CXXFLAGS = -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-   `geant4-config --libs-without-gui` \
-  -lHepMC -lgsl -lgslcblas -lpthread
+  `geant4-config --libs-without-gui` \
+  -lHepMC \
+  -lgsl \
+  -lgslcblas \
+  -lpthread
 
 AM_CPPFLAGS = \
   -I$(includedir) \

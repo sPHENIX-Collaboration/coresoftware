@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libg4vertex_io.la \
    libg4vertex.la
 
-AM_CXXFLAGS = \
- -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib

@@ -3,13 +3,11 @@
 using namespace std;
 
 RunHeaderv1::RunHeaderv1()
-{
-  RunNumber = 0;
-  TimeStart = 0;
-  TimeStop = 0;
-  Bfield = -99999.;
-  return;
-}
+  : RunNumber(0)
+  , TimeStart(0)
+  , TimeStop(0)
+  , Bfield(-99999.)
+{}
 
 void RunHeaderv1::Reset()
 {

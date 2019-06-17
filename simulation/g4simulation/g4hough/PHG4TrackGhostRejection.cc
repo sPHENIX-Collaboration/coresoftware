@@ -152,7 +152,7 @@ int PHG4TrackGhostRejection::process_event(PHCompositeNode *topNode)
   //----------------------
 
   std::multimap<unsigned,unsigned int>::iterator iter;
-  for (iter = _overlapping.begin(); iter != _overlapping.end(); iter++) {
+  for (iter = _overlapping.begin(); iter != _overlapping.end(); ++iter) {
 
     unsigned int key = iter->first;
     unsigned int value = iter->second;

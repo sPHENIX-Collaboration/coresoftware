@@ -9,8 +9,6 @@ AM_CPPFLAGS = \
 lib_LTLIBRARIES = \
    libg4eval.la
 
-AM_CXXFLAGS = -Werror
-
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib

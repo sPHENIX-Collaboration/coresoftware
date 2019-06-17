@@ -10,9 +10,6 @@ lib_LTLIBRARIES = \
    libg4jets_io.la \
    libg4jets.la
 
-AM_CXXFLAGS = \
- -Wall -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
