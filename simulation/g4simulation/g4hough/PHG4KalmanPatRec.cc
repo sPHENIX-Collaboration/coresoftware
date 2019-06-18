@@ -4001,8 +4001,11 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode)
       if (Verbosity() > 1) _t_translate_to_PHGenFitTrack->stop();
       continue;
     }
+<<<<<<< HEAD
     _t_track_prop_tot->restart();
 
+=======
+>>>>>>> Merge fix
 #ifdef EXTRAP_STUDY
     /**/
     if (_target_hit_z.at(itrack) < 110)
@@ -4138,7 +4141,11 @@ int PHG4KalmanPatRec::FullTrackFitting(PHCompositeNode* topNode)
 
       //_trackID_PHGenFitTrack.erase(iter);
     }  // loop _PHGenFitTracks
+<<<<<<< HEAD
     _t_track_prop_tot->stop();
+=======
+
+>>>>>>> Merge fix
     if (_PHGenFitTracks.size() == 0) continue;
 
 #ifdef _DEBUG_
