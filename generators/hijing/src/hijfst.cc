@@ -1,8 +1,9 @@
-#include "fastjet/ClusterSequence.hh"
+#include <fastjet/ClusterSequence.hh>
+
 #include <algorithm>
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
 using namespace std;
 using namespace fastjet;
@@ -48,7 +49,7 @@ hijfst_control(int enable, vector<string> valgorithm, vector<float> vR, vector<i
   enablep = (enable==1) ? true: false;
   
   algo_info_vec.clear();
-  for (int i = 0; i < valgorithm.size(); i++)
+  for (int i = 0; i < valgorithm.size(); ++i)
     {
       string algorithmName = valgorithm[i];
       transform(algorithmName.begin(), algorithmName.end(), algorithmName.begin(), ::toupper);
@@ -99,7 +100,7 @@ hijfst_(int *n, int *N, int *K, float *P, float *V)
 	}
     }
 
-  for (vector<algo_info>::iterator it = algo_info_vec.begin(); it != algo_info_vec.end(); it++)
+  for (vector<algo_info>::iterator it = algo_info_vec.begin(); it != algo_info_vec.end(); ++it)
     {
       algo_info a = *it;
 
