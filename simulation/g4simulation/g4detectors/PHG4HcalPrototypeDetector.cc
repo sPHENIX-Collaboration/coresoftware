@@ -19,13 +19,12 @@
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4RotationMatrix.hh>            // for G4RotationMatrix
+#include <Geant4/G4RunManager.hh>
 #include <Geant4/G4SystemOfUnits.hh>             // for cm, mm, deg, rad
 #include <Geant4/G4ThreeVector.hh>               // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>               // for G4Transform3D
 #include <Geant4/G4Types.hh>                     // for G4double, G4int, G4bool
 #include <Geant4/G4ios.hh>                       // for G4cout, G4endl
-
-#include <Geant4/G4RunManager.hh>
 
 #include <cmath>                                // for cos, sin, M_PI, asin
 #include <sstream>
@@ -38,6 +37,40 @@ using namespace std;
 
 PHG4HcalPrototypeDetector::PHG4HcalPrototypeDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
   PHG4Detector(Node, dnam),
+  nScint360(15),  // This is legacy variable in case one wants to build a cylindrical calorimeter 
+  nHcal1Layers(16),
+  nHcal2Layers(nHcal1Layers),
+  hcal2ScintSizeX(2.54*26.1*cm),      // from Don's drawing
+  hcal2ScintSizeY(0.85*cm),           // Changed from 8.0cm to 8.5cm following   
+  hcal2ScintSizeZ(2.54*29.53*cm),     // from Don's drawing
+  hcal1ScintSizeX(2.54*12.43*cm),     // from Don's drawing
+  hcal1ScintSizeY(0.85*cm),           // Changed from 8.0cm to 8.5cm following  
+  hcal1ScintSizeZ(2.54*17.1*cm),      // from Don's drawing
+  hcal1TiltAngle(0.27),
+  hcal2TiltAngle(0.14),
+  hcal1DPhi(0.27),   // calculated based on Don's drawing.  (twopi/16.0);
+  hcal2DPhi(0.288),  // calculated based on Don's drawing.  (twopi/16.0);
+  hcal1RadiusIn(1855*mm),
+  hcal2RadiusIn(hcal1RadiusIn + hcal1ScintSizeX),
+  // The frame box for the HCAL.
+  hcalBoxSizeX(1.1*(hcal2ScintSizeX + hcal1ScintSizeX)), 
+  hcalBoxSizeY(2.54*40.0*cm),    // need to get more accurate dimension for the box             
+  hcalBoxSizeZ(1.1*hcal2ScintSizeZ),
+  hcalBoxRotationAngle_z(0.0*rad),   // Rotation along z-axis
+  hcalBoxRotationAngle_y(0.0*rad),   // Rotation along y-axis
+  hcal2Abs_dxa(2.54*27.1*cm),   // these numbers are from Don't drawings
+  hcal2Abs_dxb(hcal2Abs_dxa),
+  hcal2Abs_dya(2.54*1.099*cm),
+  hcal2Abs_dyb(2.54*1.776*cm),
+  hcal2Abs_dz(hcal2ScintSizeZ),
+  hcal1Abs_dxa(hcal1ScintSizeX),  // these numbers are from Don't drawings
+  hcal1Abs_dxb(hcal1ScintSizeX),
+  hcal1Abs_dya(2.54*0.787*cm),
+  hcal1Abs_dyb(2.54*1.115*cm),    
+  hcal1Abs_dz(hcal1ScintSizeZ),
+  hcalJunctionSizeX(2.54*1.0*cm),
+  hcalJunctionSizeY(hcal2ScintSizeY),
+  hcalJunctionSizeZ(hcal2Abs_dz),
   physiWorld(nullptr),
   logicWorld(nullptr),
   logicHcalBox(nullptr),
@@ -55,52 +88,7 @@ PHG4HcalPrototypeDetector::PHG4HcalPrototypeDetector( PHCompositeNode *Node, con
   layer(lyr),
   blackhole(0)
 {
-  // Outer Hcal dimensions
-  hcal2ScintSizeX = 2.54*26.1*cm;      // from Don's drawing
-  hcal2ScintSizeZ = 2.54*29.53*cm;     // from Don's drawing
-  hcal2ScintSizeY = 0.85*cm;           // Changed from 8.0cm to 8.5cm following Don's suggestion
 
-  // Inner Hcal dimensions
-  hcal1ScintSizeX = 2.54*12.43*cm;     // from Don's drawing
-  hcal1ScintSizeZ = 2.54*17.1*cm;      // from Don's drawing
-  hcal1ScintSizeY = 0.85*cm;           // Changed from 8.0cm to 8.5cm following Don's suggestion
-
-  // Radius dimension
-  hcal1RadiusIn = 1855*mm;
-  hcal2RadiusIn = hcal1RadiusIn + hcal1ScintSizeX;
-
-  nScint360 = 15;  // This is legacy variable in case one wants to build a cylindrical calorimeter 
-  nHcal2Layers = nHcal1Layers = 16;
-
-  hcal2DPhi = 0.288;  // calculated based on Don's drawing.  (twopi/16.0);
-  hcal1DPhi = 0.27;   // calculated based on Don's drawing.  (twopi/16.0);
-
-  hcal2TiltAngle = 0.14;
-  hcal1TiltAngle = 0.27;
-
-  hcal2Abs_dxa = 2.54*27.1*cm;   // these numbers are from Don't drawings
-  hcal2Abs_dxb = hcal2Abs_dxa;
-  hcal2Abs_dya = 2.54*1.099*cm;
-  hcal2Abs_dyb = 2.54*1.776*cm;  
-  hcal2Abs_dz  = hcal2ScintSizeZ;
-
-  hcalJunctionSizeX = 2.54*1.0*cm;
-  hcalJunctionSizeY = hcal2ScintSizeY;
-  hcalJunctionSizeZ = hcal2Abs_dz;
-
-  hcal1Abs_dxa = hcal1ScintSizeX;  // these numbers are from Don't drawings
-  hcal1Abs_dxb = hcal1ScintSizeX;
-  hcal1Abs_dya = 2.54*0.787*cm;
-  hcal1Abs_dyb = 2.54*1.115*cm;    
-  hcal1Abs_dz  = hcal1ScintSizeZ;
-
-  // The frame box for the HCAL.
-  hcalBoxSizeX = 1.1*(hcal2ScintSizeX + hcal1ScintSizeX); 
-  hcalBoxSizeY = 2.54*40.0*cm;    // need to get more accurate dimension for the box             
-  hcalBoxSizeZ = 1.1*hcal2ScintSizeZ;
-
-  hcalBoxRotationAngle_z = 0.0*rad;   // Rotation along z-axis
-  hcalBoxRotationAngle_y = 0.0*rad;   // Rotation along y-axis
 
   // create commands for interactive definition of the detector  
   fDetectorMessenger = new PHG4HcalPrototypeDetectorMessenger(this);
