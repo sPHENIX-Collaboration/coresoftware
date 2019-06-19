@@ -59,15 +59,9 @@ class PHG4Cell: public PHObject
   // this adds showers to the shower map
   virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
 
-  virtual EdepConstRange get_g4hits() {
-    std::map <PHG4HitDefs::keytype, float> dummy;
-    return std::make_pair(dummy.begin(), dummy.end());
-  }
+  virtual EdepConstRange get_g4hits();
 
-  virtual ShowerEdepConstRange get_g4showers() {
-    std::map <int, float> dummy;
-    return std::make_pair(dummy.begin(), dummy.end());
-  }
+  virtual ShowerEdepConstRange get_g4showers();
 
   virtual short int get_detid() const {return -1;}
   // for backward compatibility, layers and detector ids are identical
