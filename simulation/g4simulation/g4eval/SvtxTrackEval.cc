@@ -763,8 +763,6 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
   }
 
   unsigned int nclusters_by_layer = 0;
-  int layer_occupied[100];
-  for(int i = 0;i<100;i++) layer_occupied[i] = 0;
 
   // loop over all clusters
   for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
@@ -786,7 +784,6 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
 
     // loop over all particles
     std::set<PHG4Particle*> particles = _clustereval.all_truth_particles(cluster_key);
-
     for (std::set<PHG4Particle*>::iterator jter = particles.begin();
          jter != particles.end();
          ++jter)
@@ -794,13 +791,11 @@ unsigned int SvtxTrackEval::get_nclusters_contribution_by_layer(SvtxTrack* track
       PHG4Particle* candidate = *jter;
       if (get_truth_eval()->are_same_particle(candidate, particle))
       {
-	layer_occupied[cluster_layer]++;
+        nclusters_by_layer |= (0x3FFFFFFF & (0x1 << cluster_layer));
       }
     }
   }
-  for(int i = 0;i<100;i++){
-    if(layer_occupied[i]>0) nclusters_by_layer++;
-  }
+
   if (_do_cache) _cache_get_nclusters_contribution_by_layer.insert(make_pair(make_pair(track, particle), nclusters_by_layer));
 
   return nclusters_by_layer;

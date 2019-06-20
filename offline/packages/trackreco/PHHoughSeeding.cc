@@ -208,52 +208,29 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   ret = GetNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
   // End new interface ----
-  //  , _nlayers_seeding(nlayers_seeding)
-  // , _min_nlayers_seeding(min_nlayers_seeding)
-  if(_nlayers_seeding == 12){
-    int seeding_layers[] = {
-      (int) (_nlayers_maps + _nlayers_intt),
-      (int) (_nlayers_maps + _nlayers_intt + 1),
-      (int) (_nlayers_maps + _nlayers_intt + 2),
-      
-      (int) (_nlayers_maps + _nlayers_intt + 9),
-      (int) (_nlayers_maps + _nlayers_intt + 10),
-      (int) (_nlayers_maps + _nlayers_intt + 11),
-      
-      (int) (_nlayers_maps + _nlayers_intt + 20),
-      (int) (_nlayers_maps + _nlayers_intt + 21),
-      
-      (int) (_nlayers_maps + _nlayers_intt + 31),
-      (int) (_nlayers_maps + _nlayers_intt + 32),
-      
-      (int) (_nlayers_maps + _nlayers_intt + 38),
-      
-      (int) (_nlayers_maps + _nlayers_intt + 45)
-    };
-    set_seeding_layer(seeding_layers, _nlayers_seeding);
-    set_min_nlayers_seeding(_min_nlayers_seeding);
-  }else{
-    int seeding_layers[] = {
-      //      (int) (_nlayers_maps + _nlayers_intt),
-      //  (int) (_nlayers_maps + _nlayers_intt + 6),
-      //  (int) (_nlayers_maps + _nlayers_intt + 12),
-      //  (int) (_nlayers_maps + _nlayers_intt + 18),
-      //  (int) (_nlayers_maps + _nlayers_intt + 24),
-      //  (int) (_nlayers_maps + _nlayers_intt + 30),
-      //  (int) (_nlayers_maps + _nlayers_intt + 39)
+
+  int min_layers = 4;
+  int nlayers_seeds = 7;
+  int seeding_layers[] = {
+    //      (int) (_nlayers_maps + _nlayers_intt),
+    //  (int) (_nlayers_maps + _nlayers_intt + 6),
+    //  (int) (_nlayers_maps + _nlayers_intt + 12),
+    //  (int) (_nlayers_maps + _nlayers_intt + 18),
+    //  (int) (_nlayers_maps + _nlayers_intt + 24),
+    //  (int) (_nlayers_maps + _nlayers_intt + 30),
+    //  (int) (_nlayers_maps + _nlayers_intt + 39)
       //7,13,19,25,31,37,46
-      (int) (_nlayers_maps + _nlayers_intt + 1),
-      (int) (_nlayers_maps + _nlayers_intt + 7),
-      (int) (_nlayers_maps + _nlayers_intt + 15),
-      (int) (_nlayers_maps + _nlayers_intt + 23),
-      (int) (_nlayers_maps + _nlayers_intt + 31),
-      (int) (_nlayers_maps + _nlayers_intt + 39),
-      (int) (_nlayers_maps + _nlayers_intt + 46)};
-      set_seeding_layer(seeding_layers, _nlayers_seeding);
-      set_min_nlayers_seeding(_min_nlayers_seeding);
-  }
+    (int) (_nlayers_maps + _nlayers_intt + 1),
+    (int) (_nlayers_maps + _nlayers_intt + 7),
+    (int) (_nlayers_maps + _nlayers_intt + 15),
+    (int) (_nlayers_maps + _nlayers_intt + 23),
+    (int) (_nlayers_maps + _nlayers_intt + 31),
+    (int) (_nlayers_maps + _nlayers_intt + 39),
+    (int) (_nlayers_maps + _nlayers_intt + 46)
+  };
 
-
+  set_seeding_layer(seeding_layers, nlayers_seeds);
+  set_min_nlayers_seeding(min_layers);
 
   ret = InitializeGeometry(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK)
@@ -347,7 +324,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
     {
       cout << "   Maximum DCA cut: " << _dcaxy_cut << endl;
     }
-    cout << " Maximum DCAZ cut: " << _dcaz_cut << endl;
+    cout << "   Maximum DCAZ cut: " << _dcaz_cut << endl;
     cout << " Phi bin scale: " << _bin_scale << endl;
     cout << " Z bin scale: " << _z_bin_scale << endl;
     cout << " Momentum rescale factor: " << _pt_rescale << endl;
@@ -359,7 +336,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
   return ret;
 }
 
-int PHHoughSeeding::Process(PHCompositeNode *topNode)
+int PHHoughSeeding::Process()
 {
   if (Verbosity() > 0)
   {
@@ -367,8 +344,6 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
     cout << "nMapsLayers = " << _nlayers_maps << endl;
     cout << "nInttLayers = " << _nlayers_intt << endl;
     cout << "nTPCLayers = " << _nlayers_tpc << endl;
-    cout << "n seeding layers = " << _nlayers_seeding << endl;
-    cout << "n min layers = " << _min_nlayers_seeding << endl;
   }
   // start fresh
   int code;
@@ -380,58 +355,34 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
 
   _vertex.clear();
   _vertex.assign(3, 0.0);
-  
+
   /*iteration from Christof*/ {
     _tracks.clear();
     _track_errors.clear();
     _track_covars.clear();
-    
-    /*no iterations, choose layer configuration*/ {
-      if(_nlayers_seeding == 12){
-	int seeding_layers[] = {
-	  (int) (_nlayers_maps + _nlayers_intt),
-	  (int) (_nlayers_maps + _nlayers_intt + 1),
-	  (int) (_nlayers_maps + _nlayers_intt + 2),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 9),
-	  (int) (_nlayers_maps + _nlayers_intt + 10),
-	  (int) (_nlayers_maps + _nlayers_intt + 11),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 20),
-	  (int) (_nlayers_maps + _nlayers_intt + 21),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 31),
-	  (int) (_nlayers_maps + _nlayers_intt + 32),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 38),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 45)
-	};
-	cout << "Setting up 12 layers" << endl;
-	set_seeding_layer(seeding_layers, _nlayers_seeding);
-	set_min_nlayers_seeding(_min_nlayers_seeding);
-      }else{
-	int seeding_layers[] = {
-	  (int) (_nlayers_maps + _nlayers_intt + 1),
-	  (int) (_nlayers_maps + _nlayers_intt + 8),
-	  (int) (_nlayers_maps + _nlayers_intt + 16),
-	  (int) (_nlayers_maps + _nlayers_intt + 24),
-	  (int) (_nlayers_maps + _nlayers_intt + 31),
-	  (int) (_nlayers_maps + _nlayers_intt + 40),
-	  (int) (_nlayers_maps + _nlayers_intt + 45)
-	};
-	cout << "Setting up 7 layers" << endl;
-	set_seeding_layer(seeding_layers, _nlayers_seeding);
-	set_min_nlayers_seeding(_min_nlayers_seeding);
-      }
-      _min_combo_hits = _min_nlayers_seeding;
-      _max_combo_hits = _nlayers_seeding;
-      
+
+    /*iteration 1 from Christof*/ {
+      int min_layers = 4;
+      int nlayers_seeds = 7;
+      int seeding_layers[] = {
+	//(int) (_nlayers_maps + _nlayers_intt),
+	(int) (_nlayers_maps + _nlayers_intt + 1),
+          (int) (_nlayers_maps + _nlayers_intt + 8),
+          (int) (_nlayers_maps + _nlayers_intt + 16),
+          (int) (_nlayers_maps + _nlayers_intt + 24),
+          (int) (_nlayers_maps + _nlayers_intt + 32),
+          (int) (_nlayers_maps + _nlayers_intt + 40),
+          (int) (_nlayers_maps + _nlayers_intt + 45)  // avoid the outer TPC layer, it is inefficient
+                                                      //7,13,19,25,31,37,46
+      };
+
+      set_seeding_layer(seeding_layers, nlayers_seeds);
+      set_min_nlayers_seeding(min_layers);
+      _min_combo_hits = min_layers;
+      _max_combo_hits = nlayers_seeds;
+
       if (Verbosity() >= 1) _t_seed_init1->restart();
     }
-    int ret = InitializeGeometry(topNode);
-    if (ret != Fun4AllReturnCodes::EVENT_OK)
-      return ret;
 
     _min_nlayers_seeding--;
     if (Verbosity() >= 1) _t_seeding->restart();
@@ -562,12 +513,8 @@ int PHHoughSeeding::InitializeGeometry(PHCompositeNode* topNode)
   PHG4CylinderGeomContainer* mapsladdergeos = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
 
-  cout << "layer array size: " << _seeding_layer.size() << endl;
-  cout << "init _nlayers_seeding " << _nlayers_seeding << endl;
-  cout << "init _min_layers_seeding " << _nlayers_seeding << endl;
-  cout << "init n min layers = " << _min_nlayers_seeding << endl;
   _nlayers_seeding = _seeding_layer.size();
-  
+
   //=================================================//
   //  Initializing HelixHough objects                //
   //=================================================//

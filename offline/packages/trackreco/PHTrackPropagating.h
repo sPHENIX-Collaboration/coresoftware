@@ -47,15 +47,11 @@ class PHTrackPropagating : public SubsysReco
   ///
   virtual int End() = 0;
 
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
-
   //SvtxClusterMap *_cluster_map;
   TrkrClusterContainer *_cluster_map;
   SvtxVertexMap *_vertex_map;
   SvtxTrackMap *_track_map;
   AssocInfoContainer *_assoc_container;
-
-  std::string _track_map_name;
 
  private:
   /// fetch node pointers

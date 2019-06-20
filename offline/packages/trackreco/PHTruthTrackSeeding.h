@@ -57,7 +57,7 @@ class PHTruthTrackSeeding : public PHTrackSeeding
  protected:
   int Setup(PHCompositeNode* topNode);
 
-  int Process(PHCompositeNode* topNode);
+  int Process();
 
   int End();
 
