@@ -22,13 +22,11 @@
 
 PHG4OuterHcalFieldSetup::PHG4OuterHcalFieldSetup(G4int steelPlates,
                                                  G4double scintiGap, G4double tiltAngle)
-  : /*G4int*/ n_steel_plates(steelPlates)
-  ,
-  /*G4double*/ scinti_gap(scintiGap)
-  ,
-  /*G4double*/ tilt_angle(tiltAngle)
+  : fMinStep(0.005 * mm)
+  , n_steel_plates(steelPlates) /*G4int*/
+  , scinti_gap(scintiGap) /*G4double*/
+  , tilt_angle(tiltAngle) /*G4double*/
 {
-  fMinStep = 0.005 * mm;  // minimal step of 10 microns
   G4int nvar = 8;
 
   {

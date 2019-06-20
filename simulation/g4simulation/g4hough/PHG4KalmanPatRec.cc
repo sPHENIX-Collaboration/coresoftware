@@ -3791,7 +3791,7 @@ int PHG4KalmanPatRec::CleanupSeeds()
     SimpleTrack3D track = _tracks[itrack];
 
     cout << __LINE__ << endl;
-    printf("itrack: %5d => {%5d, %5d, %5d, %5d} \n",
+    printf("itrack: %5u => {%5d, %5d, %5d, %5d} \n",
            itrack,
            id, iz, iphi, idzdl);
   }
@@ -4967,7 +4967,7 @@ int PHG4KalmanPatRec::TrackPropPatRec(
 
 #ifdef _DEBUG_
     cout << __LINE__ << ": ";
-    printf("layer: %d: r: %f: phi: %f +- %f; theta: %f +- %f\n",
+    printf("layer: %u: r: %f: phi: %f +- %f; theta: %f +- %f\n",
            layer, pos.Perp(),
            phi_center, phi_window,
            theta_center, theta_window);

@@ -7,7 +7,7 @@ AC_PROG_CXX(CC g++)
 AC_PROG_F77(gfortran)
 LT_INIT([disable-static])
 
-nl   no point in suppressing warnings people should
+dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   make warnings fatal errors: -Werror
 if test $ac_cv_prog_gxx = yes; then

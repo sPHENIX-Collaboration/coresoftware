@@ -8,7 +8,7 @@ namespace SeamStress
   {
     public:
       Needle(){}
-      ~Needle(){}
+      virtual ~Needle(){}
       
       virtual void operator()(void *thread)
       {

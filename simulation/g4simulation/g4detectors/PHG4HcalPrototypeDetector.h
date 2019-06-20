@@ -73,18 +73,22 @@ class PHG4HcalPrototypeDetector: public PHG4Detector
 
   void CalculateGeometry();
 
-  G4double hcalBoxSizeX, hcalBoxSizeY, hcalBoxSizeZ, hcalBoxRotationAngle_z, hcalBoxRotationAngle_y;
 
-  G4double hcal2RadiusIn;
-  G4double hcal1RadiusIn;
 
   G4int nScint360;
-  G4int nHcal2Layers, nHcal1Layers;
+  G4int nHcal1Layers;
+  G4int nHcal2Layers; 
 
   G4double hcal2ScintSizeX, hcal2ScintSizeY, hcal2ScintSizeZ;
   G4double hcal1ScintSizeX, hcal1ScintSizeY, hcal1ScintSizeZ;
-  G4double hcal2TiltAngle, hcal1TiltAngle;
-  G4double hcal2DPhi, hcal1DPhi;
+  G4double hcal1TiltAngle;
+  G4double hcal2TiltAngle;
+  G4double  hcal1DPhi;
+  G4double hcal2DPhi; 
+
+  G4double hcal1RadiusIn;
+  G4double hcal2RadiusIn;
+  G4double hcalBoxSizeX, hcalBoxSizeY, hcalBoxSizeZ, hcalBoxRotationAngle_z, hcalBoxRotationAngle_y;
 
   G4double hcal2Abs_dxa, hcal2Abs_dxb;
   G4double hcal2Abs_dya, hcal2Abs_dyb;
@@ -99,7 +103,6 @@ class PHG4HcalPrototypeDetector: public PHG4Detector
   
   G4VPhysicalVolume* physiWorld;
   G4LogicalVolume*   logicWorld;
-  //G4Tubs*            solidWorld;
 
   G4LogicalVolume*   logicHcalBox;
   G4Box*             solidHcalBox;
