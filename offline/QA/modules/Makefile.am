@@ -17,8 +17,6 @@ libqa_modules_la_LIBADD = \
   -lfun4all \
   -lphg4hit \
   -lg4detectors_io \
-  -lg4hough_io \
-  -lg4hough \
   -lcalo_io -lcalo_util \
   -lg4jets_io \
   -ltrackbase_historic_io \

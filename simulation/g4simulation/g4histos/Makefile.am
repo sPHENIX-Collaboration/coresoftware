@@ -14,7 +14,6 @@ libg4histos_la_LDFLAGS = \
    -lfun4all \
    -lphg4hit \
    -lg4detectors \
-   -lg4hough \
    -lg4testbench
 
 AM_CPPFLAGS = \
