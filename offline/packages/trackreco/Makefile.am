@@ -31,6 +31,7 @@ pkginclude_HEADERS = \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTruthTrackSeeding.h \
+  PHGenFitTrackProjection.h \
   PHTruthVertexing.h
 
 ROOTDICTS = \
@@ -51,6 +52,7 @@ else
     PHHoughSeeding_Dict.cc \
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
+    PHGenFitTrackProjection_Dict.cc \
     PHRaveVertexing_Dict.cc
 endif
 
@@ -70,6 +72,7 @@ libtrack_reco_la_SOURCES = \
   PHHoughSeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
+  PHGenFitTrackProjection.cc \
   PHRaveVertexing.cc
 
 
@@ -96,6 +99,7 @@ libtrack_reco_la_LIBADD = \
   -lmvtx_io \
   -lintt_io \
   -ltrackbase_historic_io \
+  -lcalo_io \
   -lphparameter
 
 # Rule for generating table CINT dictionaries.
