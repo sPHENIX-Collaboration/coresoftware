@@ -61,7 +61,6 @@ libphnodedump_la_LIBADD = \
   -lcalotrigger_io \
   -lffaobjects \
   -lg4detectors_io \
-  -lg4hough_io \
   -lg4jets_io \
   -lphg4hit \
   -lSubsysReco \

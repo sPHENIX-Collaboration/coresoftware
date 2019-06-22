@@ -21,7 +21,6 @@ libg4jets_la_LIBADD = \
   libg4jets_io.la \
   -lfun4all \
   -lphg4hit \
-  -lg4hough_io \
   -lcalo_io \
   -lcalo_util \
   -lg4vertex_io \
