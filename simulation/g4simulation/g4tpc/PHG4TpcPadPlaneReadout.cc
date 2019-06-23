@@ -799,9 +799,9 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
   MaxRadius[2] = get_double_param("tpc_maxradius_outer");
 
-  Thickness[0] = (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
-  Thickness[1] = (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
-  Thickness[2] = (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
+  Thickness[0] = NTpcLayers[0]<=0 ? 0 : (MaxRadius[0] - MinRadius[0]) / NTpcLayers[0];
+  Thickness[1] = NTpcLayers[1]<=0 ? 0 : (MaxRadius[1] - MinRadius[1]) / NTpcLayers[1];
+  Thickness[2] = NTpcLayers[2]<=0 ? 0 : (MaxRadius[2] - MinRadius[2]) / NTpcLayers[2];
 
   MaxRadius[0] = get_double_param("tpc_maxradius_inner");
   MaxRadius[1] = get_double_param("tpc_maxradius_mid");
