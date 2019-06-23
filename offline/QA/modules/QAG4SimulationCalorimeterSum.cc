@@ -14,7 +14,7 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-#include <g4hough/PHG4HoughTransform.h>
+//#include <g4hough/PHG4HoughTransform.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 
@@ -327,8 +327,6 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTra
       topNode, towergeonodename.c_str());
   assert(towergeo);
 
-  const double radius = towergeo->get_radius() + towergeo->get_thickness() * 0.5;
-
   if (Verbosity() > 2)
   {
     towergeo->identify();
@@ -351,15 +349,19 @@ bool QAG4SimulationCalorimeterSum::eval_trk_proj(const string &detector, SvtxTra
 
   // curved tracks inside mag field
   // straight projections thereafter
+
   std::vector<double> point;
   point.assign(3, NAN);
-  PHG4HoughTransform::projectToRadius(track, _magField, radius, point);
+
+//  const double radius = towergeo->get_radius() + towergeo->get_thickness() * 0.5;
+
+//  PHG4HoughTransform::projectToRadius(track, _magField, radius, point);
 
   if (std::isnan(point[0]) or std::isnan(point[1]) or std::isnan(point[2]))
   {
-    cout << __PRETTY_FUNCTION__ << "::" << Name()
-         << " - Error - track extrapolation failure:";
-    track->identify();
+    // cout << __PRETTY_FUNCTION__ << "::" << Name()
+    //      << " - Error - track extrapolation failure:";
+    // track->identify();
     return false;
   }
 

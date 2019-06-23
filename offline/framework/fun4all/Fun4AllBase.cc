@@ -13,9 +13,9 @@ Fun4AllBase::Fun4AllBase(const string& name)
 
 Fun4AllBase::~Fun4AllBase()
 {
-  if (Verbosity() >= VERBOSITY_MORE)
+  if (m_Verbosity >= VERBOSITY_MORE)
   {
-    cout << "Deleting " << Name() << endl;
+    cout << "Deleting " << m_ThisName << endl;
   }
   return;
 }

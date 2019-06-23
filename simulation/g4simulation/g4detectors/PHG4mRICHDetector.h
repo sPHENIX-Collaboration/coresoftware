@@ -175,12 +175,13 @@ class PHG4mRICHDetector::PolyPar
   bool surface;
 
   PolyPar();
-  ~PolyPar();
+  ~PolyPar(){}
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::LensPar
 {
  public:
+  std::string name;
   G4double n;
   G4double f;
   G4double diameter;
@@ -188,7 +189,6 @@ class PHG4mRICHDetector::LensPar
   G4double centerThickness;
   G4double grooveWidth;
 
-  std::string name;
   G4double halfXYZ[3];
   G4ThreeVector pos;
   G4Material* material;
@@ -200,7 +200,7 @@ class PHG4mRICHDetector::LensPar
   bool surface;
   
   LensPar();
-  ~LensPar();
+  ~LensPar(){}
 
   void Set_halfXYZ(G4double halfX,G4double grooveDensity);
   G4double GetSagita(G4double r);

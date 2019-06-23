@@ -14,7 +14,6 @@ libg4dst_la_LDFLAGS = \
   -lcalotrigger_io \
   -lg4bbc_io \
   -lg4detectors_io \
-  -lg4hough_io \
   -lg4intt_io \
   -lg4jets_io \
   -lg4vertex_io \

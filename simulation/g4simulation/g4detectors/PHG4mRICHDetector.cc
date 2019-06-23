@@ -160,50 +160,42 @@ PHG4mRICHDetector::BoxPar::~BoxPar() { ; }
 //________________________________________________________________________//
 PHG4mRICHDetector::PolyPar::PolyPar()
   : name("")
+  , pos(G4ThreeVector(0 * mm, 0 * mm, 0 * mm))
+  , start(0.)
+  , theta(0.)
+  , numSide(0)
+  , num_zLayer(0)
+  , material(G4Material::GetMaterial("G4_AIR"))
+  , sensitivity(0)
+  , color(G4Colour(0, 0, 0, 0))
+  , visibility(false)
+  , wireframe(false)
+  , surface(false)
 {
-  pos = G4ThreeVector(0 * mm, 0 * mm, 0 * mm);
-  start = (G4double) 0;
-  theta = (G4double) 0;
-  numSide = 0;
-  num_zLayer = 0;
   fill(begin(z), end(z), (G4double) 0 * mm);
   fill(begin(rinner), end(rinner), (G4double) 0 * mm);
   fill(begin(router), end(router), (G4double) 0 * mm);
-  material = G4Material::GetMaterial("G4_AIR");
-  sensitivity = 0;
-
-  color = G4Colour(0, 0, 0, 0);
-  visibility = false;
-  wireframe = false;
-  surface = false;
 }
-//________________________________________________________________________//
-PHG4mRICHDetector::PolyPar::~PolyPar() { ; }
 //________________________________________________________________________//
 PHG4mRICHDetector::LensPar::LensPar()
   : name("")
+  , n(0.)
+  , f(0.)
+  , diameter(0.)
+  , eff_diameter(0.)
+  , centerThickness(0.)
+  , grooveWidth(0.)
+  , pos(G4ThreeVector(0 * mm, 0 * mm, 0 * mm))
+  , material(G4Material::GetMaterial("G4_AIR"))
+  , sensitivity(0.)
+  , color(G4Colour(0, 0, 0, 0))
+  , visibility(false)
+  , wireframe(false)
+  , surface(false)
+
 {
-  n = 0;
-  f = 0;
-  diameter = 0;
-  eff_diameter = 0;
-  centerThickness = 0;
-  grooveWidth = 0;
-
   fill(begin(halfXYZ), end(halfXYZ), (G4double) 0 * mm);
-  pos = G4ThreeVector(0 * mm, 0 * mm, 0 * mm);
-  ;
-  material = G4Material::GetMaterial("G4_AIR");
-  ;
-  sensitivity = 0;
-
-  color = G4Colour(0, 0, 0, 0);
-  visibility = false;
-  wireframe = false;
-  surface = false;
 }
-//________________________________________________________________________//
-PHG4mRICHDetector::LensPar::~LensPar() { ; }
 //________________________________________________________________________//
 void PHG4mRICHDetector::LensPar::Set_halfXYZ(G4double halfX, G4double grooveDensity)
 {

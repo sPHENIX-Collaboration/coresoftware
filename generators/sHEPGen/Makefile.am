@@ -6,8 +6,6 @@ AM_CPPFLAGS = \
   -I`root-config --incdir` \
   -I$(OPT_SPHENIX)/HEPGenPlusPlus/include
 
-AM_CXXFLAGS = -Werror
-
 lib_LTLIBRARIES = libsHEPGen.la
 
 pkginclude_HEADERS = \

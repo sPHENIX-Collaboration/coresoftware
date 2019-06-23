@@ -15,6 +15,7 @@ using namespace std;
 PHG4CylinderDisplayAction::PHG4CylinderDisplayAction(const std::string &name, PHParameters *pars)
   : PHG4DisplayAction(name)
   , m_Params(pars)
+  , m_MyVolume(nullptr)
   , m_VisAtt(nullptr)
 {
 }

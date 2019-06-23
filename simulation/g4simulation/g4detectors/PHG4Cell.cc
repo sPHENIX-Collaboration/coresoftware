@@ -31,6 +31,18 @@ ostream& operator<<(ostream& stream, const PHG4Cell * cell){
   return stream;
 }
 
+PHG4Cell::EdepConstRange PHG4Cell::get_g4hits()
+{
+  static map <PHG4HitDefs::keytype, float> dummy;
+  return make_pair(dummy.begin(), dummy.end());
+}
+
+PHG4Cell::ShowerEdepConstRange PHG4Cell::get_g4showers()
+{
+  static map <int, float> dummy;
+  return make_pair(dummy.begin(), dummy.end());
+}
+
 void
 PHG4Cell::Reset()
 {

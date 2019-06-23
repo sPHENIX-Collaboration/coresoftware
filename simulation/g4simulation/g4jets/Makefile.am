@@ -10,9 +10,6 @@ lib_LTLIBRARIES = \
    libg4jets_io.la \
    libg4jets.la
 
-AM_CXXFLAGS = \
- -Wall -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
@@ -24,7 +21,6 @@ libg4jets_la_LIBADD = \
   libg4jets_io.la \
   -lfun4all \
   -lphg4hit \
-  -lg4hough_io \
   -lcalo_io \
   -lcalo_util \
   -lg4vertex_io \

@@ -58,7 +58,7 @@ public:
 	int End(PHCompositeNode *topNode);
 
 
-	void set_file_name(std::string fname){_fname = fname;}
+	void set_file_name(const std::string &fname){_fname = fname;}
 	void set_mag_field(float mag_field) {
 		_mag_field = mag_field;
 	}
@@ -77,9 +77,9 @@ public:
 	void set_max_dzdl(float dzdl_max) {_max_dzdl = dzdl_max;}
 	void set_min_z0(float z0_min) { _min_z0 = z0_min;}
 	void set_max_z0(float z0_max) { _max_z0 = z0_max;}
-	float get_max_kappa() {return _max_kappa;}
-	float get_min_z0() {return _min_z0;}
-	float get_max_z0() {return _max_z0;}
+	float get_max_kappa() const {return _max_kappa;}
+	float get_min_z0() const {return _min_z0;}
+	float get_max_z0() const {return _max_z0;}
 	
 	/// radiation length per layer, sequential layer indexes required here
 	void set_material(int layer, float value);
@@ -150,7 +150,7 @@ public:
 	void set_nzooms() {nzooms = zooms_vec.size();}
 	void reset_zooms() {zooms_vec.clear();}
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
 private:
 
@@ -324,7 +324,7 @@ private:
 	int helicity;
 	int n_vtx_tracks;
 	
-#endif // __CINT__
+#endif // !defined(__CINT__) || defined(__CLING__)
 };
 
-#endif // __PHG4INITZVERTEXING_H__
+#endif // G4HOUGH_PHG4INITZVERTEXING_H

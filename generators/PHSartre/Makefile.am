@@ -6,8 +6,6 @@ AM_CPPFLAGS = \
   -I$(OPT_SPHENIX)/include \
   -I`root-config --incdir` 
 
-AM_CXXFLAGS = -Werror
-
 lib_LTLIBRARIES = libPHSartre.la 
 
 pkginclude_HEADERS = \

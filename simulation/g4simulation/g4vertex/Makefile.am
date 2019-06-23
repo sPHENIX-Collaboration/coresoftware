@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libg4vertex_io.la \
    libg4vertex.la
 
-AM_CXXFLAGS = \
- -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
@@ -24,7 +21,6 @@ libg4vertex_la_LIBADD = \
   -lg4detectors \
   -lfun4all \
   -lg4bbc_io \
-  -lg4hough_io \
   -ltrackbase_historic_io \
   libg4vertex_io.la
 

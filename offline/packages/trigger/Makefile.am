@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libcalotrigger_io.la \
    libcalotrigger.la
 
-AM_CXXFLAGS = \
- -Werror
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
