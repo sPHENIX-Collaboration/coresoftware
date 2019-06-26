@@ -1,16 +1,19 @@
 /*!
- *  \file		  PHTrackSeeding.h
- *  \brief		Base class for track seeding
- *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ *  \file		PHTrackSetMerging.h
+ *  \brief		Base class for track container merging
+ *  \author		Christof Roland <cer@mit.edu>
  */
 
-#ifndef TRACKRECO_PHTRACKSEEDING_H
-#define TRACKRECO_PHTRACKSEEDING_H
+#ifndef TRACKRECO_PHTRACKSETMERGING_H
+#define TRACKRECO_PHTRACKSETMERGING_H
+
+#include "AssocInfoContainer.h"
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 
 // STL includes
+#include <set>
 #include <string>
 
 // forward declarations
@@ -22,24 +25,24 @@ class SvtxVertexMap;
 class SvtxTrackMap;
 class AssocInfoContainer;
 
-/// \class PHTrackSeeding
+/// \class PHTrackSetMerging
 ///
 /// \brief Base class for track seeding
 ///
-class PHTrackSeeding : public SubsysReco
+class PHTrackSetMerging : public SubsysReco
 {
  public:
-  PHTrackSeeding(const std::string &name = "PHTrackSeeding");
-  virtual ~PHTrackSeeding() {}
+  PHTrackSetMerging(const std::string &name = "PHTrackSetMerging");
+  virtual ~PHTrackSetMerging() {}
 
+  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
-  //virtual const std::set<unsigned int>& get_seeding_layers() const = 0;
-
-  //virtual void set_seeding_layers(const unsigned int a[], const unsigned int n) = 0;
+  void set_track_map_name_in1(const std::string &map_name) { _track_map_name_in1 = map_name; }
+  void set_track_map_name_in2(const std::string &map_name) { _track_map_name_in2 = map_name; }
+  void set_track_map_name_out(const std::string &map_name) { _track_map_name_out = map_name; }
 
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
@@ -48,7 +51,7 @@ class PHTrackSeeding : public SubsysReco
 
   /// process event interface for trackers, called in process_event.
   /// implemented in derived classes
-  virtual int Process(PHCompositeNode *topNode) = 0;
+  virtual int Process() = 0;
 
   /// Called in SubsysReco::End
   virtual int End() = 0;
@@ -56,10 +59,14 @@ class PHTrackSeeding : public SubsysReco
   //SvtxClusterMap *_cluster_map;
   TrkrClusterContainer *_cluster_map;
   SvtxVertexMap *_vertex_map;
-  SvtxTrackMap *_track_map;
+  SvtxTrackMap *_track_map_in1;
+  SvtxTrackMap *_track_map_in2;
+  SvtxTrackMap *_track_map_out;
   AssocInfoContainer *_assoc_container;
 
-  std::string _track_map_name;
+  std::string _track_map_name_in1;
+  std::string _track_map_name_in2;
+  std::string _track_map_name_out;
 
  private:
   /// create new node output pointers
