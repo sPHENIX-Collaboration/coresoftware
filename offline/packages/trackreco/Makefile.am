@@ -24,16 +24,15 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   AssocInfoContainer.h \
+  PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHInitVertexing.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
+  PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
-  PHTrackSetMerging.h \
-  PHGenFitTrackProjection.h \
-  PHTrackSetMerging.h \
   PHTruthVertexing.h
 
 ROOTDICTS = \
