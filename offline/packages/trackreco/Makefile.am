@@ -33,6 +33,7 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTrackSetMerging.h \
   PHGenFitTrackProjection.h \
+  PHTrackSetMerging.h \
   PHTruthVertexing.h
 
 ROOTDICTS = \
@@ -66,6 +67,7 @@ libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHInitVertexing.cc \
   PHTrackSeeding.cc \
+  PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
