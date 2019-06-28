@@ -27,7 +27,7 @@ class Fun4AllDummyInputManager : public Fun4AllInputManager
   int PushBackEvents(const int /*nevt*/) { return 0; }
 
  private:
-  int numevents;
+  int m_NumEvents;
 };
 
 #endif

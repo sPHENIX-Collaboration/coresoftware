@@ -34,37 +34,37 @@ class Fun4AllSyncManager : public Fun4AllBase
 
   int fileopen(const std::string &managername = "NONE", const std::string &filename = "NONE");
   int fileclose(const std::string &managername = "NONE");
-  int CurrentRun() { return currentrun; }
-  void CurrentRun(const int ival) { currentrun = ival; }
+  int CurrentRun() { return m_CurrentRun; }
+  void CurrentRun(const int ival) { m_CurrentRun = ival; }
   void CurrentEvent(const int evt);
   void Print(const std::string &what = "ALL") const;
-  void SegmentNumber(const int iseg) { prdf_segment = iseg; }
-  int SegmentNumber() const { return prdf_segment; }
+  void SegmentNumber(const int iseg) { m_PrdfSegment = iseg; }
+  int SegmentNumber() const { return m_PrdfSegment; }
   int BranchSelect(const std::string &managername, const std::string &branch, int iflag);
   int BranchSelect(const std::string &branch, const int iflag);
   int setBranches(const std::string &managername);
   int setBranches();
-  void TotalEvents(const int i) { events_total = i; }
-  int TotalEvents() const { return events_total; }
-  void PrdfEvents(const int i) { prdf_events = i; }
-  int PrdfEvents() const { return prdf_events; }
+  void TotalEvents(const int i) { m_EventsTotal = i; }
+  int TotalEvents() const { return m_EventsTotal; }
+  void PrdfEvents(const int i) { m_PrdfEvents = i; }
+  int PrdfEvents() const { return m_PrdfEvents; }
   void GetInputFullFileList(std::vector<std::string> &fnames) const;
-  void Repeat(const int i = -1) { repeat = i; }
+  void Repeat(const int i = -1) { m_Repeat = i; }
   void PushBackInputMgrsEvents(const int i);
   int ResetEvent();
-  const std::vector<Fun4AllInputManager *> GetInputManagers() const { return InManager; }
+  const std::vector<Fun4AllInputManager *> GetInputManagers() const { return m_InManager; }
 
  private:
   int CheckSync(unsigned i);
-  int prdf_segment;
-  int prdf_events;
-  int events_total;
-  int currentrun;
-  int currentevent;
-  int repeat;
-  SyncObject *MasterSync;
-  std::vector<Fun4AllInputManager *> InManager;
-  std::vector<int> iretInManager;
+  int m_PrdfSegment;
+  int m_PrdfEvents;
+  int m_EventsTotal;
+  int m_CurrentRun;
+  int m_CurrentEvent;
+  int m_Repeat;
+  SyncObject *m_MasterSync;
+  std::vector<Fun4AllInputManager *> m_InManager;
+  std::vector<int> m_iretInManager;
 };
 
 #endif

@@ -27,15 +27,15 @@ class Fun4AllPrdfInputManager : public Fun4AllInputManager
   int GetSyncObject(SyncObject **mastersync);
   int SyncIt(const SyncObject *mastersync);
 
- protected:
-  int segment;
-  int events_total;
-  int events_thisfile;
-  PHCompositeNode *topNode;
-  Event *evt;
-  Event *save_evt;
-  Eventiterator *eventiterator;
-  SyncObject *syncobject;
+ private:
+  int m_Segment;
+  int m_EventsTotal;
+  int m_EventsThisFile;
+  PHCompositeNode *m_topNode;
+  Event *m_Event;
+  Event *m_SaveEvent;
+  Eventiterator *m_EventIterator;
+  SyncObject *m_SyncObject;
   std::string m_PrdfNodeName;
 };
 

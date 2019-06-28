@@ -28,23 +28,23 @@ using namespace std;
 
 Fun4AllPrdfInputManager::Fun4AllPrdfInputManager(const string &name, const string &prdfnodename, const string &topnodename)
   : Fun4AllInputManager(name, prdfnodename, topnodename)
-  , segment(-999)
-  , events_total(0)
-  , events_thisfile(0)
-  , evt(nullptr)
-  , save_evt(nullptr)
-  , eventiterator(nullptr)
-  , syncobject(new SyncObjectv1())
+  , m_Segment(-999)
+  , m_EventsTotal(0)
+  , m_EventsThisFile(0)
+  , m_Event(nullptr)
+  , m_SaveEvent(nullptr)
+  , m_EventIterator(nullptr)
+  , m_SyncObject(new SyncObjectv1())
   , m_PrdfNodeName(prdfnodename)
 {
   Fun4AllServer *se = Fun4AllServer::instance();
-  topNode = se->topNode(TopNodeName());
-  PHNodeIterator iter(topNode);
+  m_topNode = se->topNode(TopNodeName());
+  PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   if (!PrdfNode)
   {
-    PHDataNode<Event> *newNode = new PHDataNode<Event>(evt, m_PrdfNodeName, "Event");
-    topNode->addNode(newNode);
+    PHDataNode<Event> *newNode = new PHDataNode<Event>(m_Event, m_PrdfNodeName, "Event");
+    m_topNode->addNode(newNode);
   }
   return;
 }
@@ -55,7 +55,7 @@ Fun4AllPrdfInputManager::~Fun4AllPrdfInputManager()
   {
     fileclose();
   }
-  delete syncobject;
+  delete m_SyncObject;
 }
 
 int Fun4AllPrdfInputManager::fileopen(const string &filenam)
@@ -75,17 +75,17 @@ int Fun4AllPrdfInputManager::fileopen(const string &filenam)
     cout << Name() << ": opening file " << FileName() << endl;
   }
   int status = 0;
-  eventiterator = new fileEventiterator(fname.c_str(), status);
-  events_thisfile = 0;
+  m_EventIterator = new fileEventiterator(fname.c_str(), status);
+  m_EventsThisFile = 0;
   if (status)
   {
-    delete eventiterator;
-    eventiterator = nullptr;
+    delete m_EventIterator;
+    m_EventIterator = nullptr;
     cout << PHWHERE << Name() << ": could not open file " << fname << endl;
     return -1;
   }
   pair<int, int> runseg = Fun4AllUtils::GetRunSegment(fname);
-  segment = runseg.second;
+  m_Segment = runseg.second;
   IsOpen(1);
   AddToFileOpened(fname);  // add file to the list of files which were opened
   return 0;
@@ -119,39 +119,39 @@ readagain:
     cout << "Getting Event from " << Name() << endl;
   }
   //  cout << "running event " << nevents << endl;
-  PHNodeIterator iter(topNode);
+  PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
-  if (save_evt)  // if an event was pushed back, copy saved pointer and reset save_evt pointer
+  if (m_SaveEvent)  // if an event was pushed back, copy saved pointer and reset m_SaveEvent pointer
   {
-    evt = save_evt;
-    save_evt = nullptr;
-    events_thisfile--;
-    events_total--;
+    m_Event = m_SaveEvent;
+    m_SaveEvent = nullptr;
+    m_EventsThisFile--;
+    m_EventsTotal--;
   }
   else
   {
-    evt = eventiterator->getNextEvent();
+    m_Event = m_EventIterator->getNextEvent();
   }
-  PrdfNode->setData(evt);
-  if (!evt)
+  PrdfNode->setData(m_Event);
+  if (!m_Event)
   {
     fileclose();
     goto readagain;
   }
   if (Verbosity() > 1)
   {
-    cout << Name() << " PRDF run " << evt->getRunNumber() << ", evt no: " << evt->getEvtSequence() << endl;
+    cout << Name() << " PRDF run " << m_Event->getRunNumber() << ", evt no: " << m_Event->getEvtSequence() << endl;
   }
-  events_total++;
-  events_thisfile++;
-  SetRunNumber(evt->getRunNumber());
-  MySyncManager()->PrdfEvents(events_thisfile);
-  MySyncManager()->SegmentNumber(segment);
-  MySyncManager()->CurrentEvent(evt->getEvtSequence());
-  syncobject->EventCounter(events_thisfile);
-  syncobject->SegmentNumber(segment);
-  syncobject->RunNumber(evt->getRunNumber());
-  syncobject->EventNumber(evt->getEvtSequence());
+  m_EventsTotal++;
+  m_EventsThisFile++;
+  SetRunNumber(m_Event->getRunNumber());
+  MySyncManager()->PrdfEvents(m_EventsThisFile);
+  MySyncManager()->SegmentNumber(m_Segment);
+  MySyncManager()->CurrentEvent(m_Event->getEvtSequence());
+  m_SyncObject->EventCounter(m_EventsThisFile);
+  m_SyncObject->SegmentNumber(m_Segment);
+  m_SyncObject->RunNumber(m_Event->getRunNumber());
+  m_SyncObject->EventNumber(m_Event->getEvtSequence());
   // check if the local SubsysReco discards this event
   if (RejectEvent() != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -168,8 +168,8 @@ int Fun4AllPrdfInputManager::fileclose()
     cout << Name() << ": fileclose: No Input file open" << endl;
     return -1;
   }
-  delete eventiterator;
-  eventiterator = nullptr;
+  delete m_EventIterator;
+  m_EventIterator = nullptr;
   IsOpen(0);
   // if we have a file list, move next entry to top of the list
   // or repeat the same entry again
@@ -185,12 +185,12 @@ void Fun4AllPrdfInputManager::Print(const string &what) const
 
 int Fun4AllPrdfInputManager::ResetEvent()
 {
-  PHNodeIterator iter(topNode);
+  PHNodeIterator iter(m_topNode);
   PHDataNode<Event> *PrdfNode = dynamic_cast<PHDataNode<Event> *>(iter.findFirst("PHDataNode", m_PrdfNodeName));
   PrdfNode->setData(nullptr);  // set pointer in Node to nullptr before deleting it
-  delete evt;
-  evt = nullptr;
-  syncobject->Reset();
+  delete m_Event;
+  m_Event = nullptr;
+  m_SyncObject->Reset();
   return 0;
 }
 
@@ -199,13 +199,13 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
   // PushBackEvents is supposedly pushing events back on the stack which works
   // easily with root trees (just grab a different entry) but hard in these HepMC ASCII files.
   // A special case is when the synchronization fails and we need to only push back a single
-  // event. In this case we save the evt pointer as save_evt which is used in the run method
+  // event. In this case we save the m_Event pointer as m_SaveEvent which is used in the run method
   // instead of getting the next event.
   if (i > 0)
   {
-    if (i == 1 && evt)  // check on evt pointer makes sure it is not done from the cmd line
+    if (i == 1 && m_Event)  // check on m_Event pointer makes sure it is not done from the cmd line
     {
-      save_evt = evt;
+      m_SaveEvent = m_Event;
       return 0;
     }
     cout << PHWHERE << Name()
@@ -213,7 +213,7 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
          << endl;
     return -1;
   }
-  if (!eventiterator)
+  if (!m_EventIterator)
   {
     cout << PHWHERE << Name()
          << " no file open" << endl;
@@ -226,8 +226,8 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
   int errorflag = 0;
   while (nevents > 0 && !errorflag)
   {
-    evt = eventiterator->getNextEvent();
-    if (!evt)
+    m_Event = m_EventIterator->getNextEvent();
+    if (!m_Event)
     {
       cout << "Error after skipping " << i - nevents
            << " file exhausted?" << endl;
@@ -238,10 +238,11 @@ int Fun4AllPrdfInputManager::PushBackEvents(const int i)
     {
       if (Verbosity() > 3)
       {
-        cout << "Skipping evt no: " << evt->getEvtSequence() << endl;
+        cout << "Skipping evt no: " << m_Event->getEvtSequence() << endl;
       }
     }
-    delete evt;
+    delete m_Event;
+    m_Event = nullptr;
     nevents--;
   }
   return errorflag;
@@ -255,11 +256,11 @@ int Fun4AllPrdfInputManager::GetSyncObject(SyncObject **mastersync)
   // of syncobject is copied
   if (!(*mastersync))
   {
-    if (syncobject) *mastersync = syncobject->clone();
+    if (m_SyncObject) *mastersync = m_SyncObject->clone();
   }
   else
   {
-    *(*mastersync) = *syncobject;  // copy syncobject content
+    *(*mastersync) = *m_SyncObject;  // copy syncobject content
   }
   return Fun4AllReturnCodes::SYNC_OK;
 }
@@ -276,7 +277,7 @@ int Fun4AllPrdfInputManager::SyncIt(const SyncObject *mastersync)
          << endl;
     return Fun4AllReturnCodes::SYNC_FAIL;
   }
-  int iret = syncobject->Different(mastersync);
+  int iret = m_SyncObject->Different(mastersync);
   if (iret)
   {
     cout << "big problem" << endl;
