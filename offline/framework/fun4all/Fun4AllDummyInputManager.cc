@@ -10,7 +10,7 @@ using namespace std;
 
 Fun4AllDummyInputManager::Fun4AllDummyInputManager(const string &name, const string &nodename)
   : Fun4AllInputManager(name, nodename)
-  , numevents(0)
+  , m_NumEvents(0)
 {
   FileName("NOFILE-0000000000-0000.root");
   return;
@@ -33,10 +33,10 @@ void Fun4AllDummyInputManager::setSyncManager(Fun4AllSyncManager *master)
 
 int Fun4AllDummyInputManager::run(const int nevents)
 {
-  numevents += nevents;
+  m_NumEvents += nevents;
   if (Verbosity() > 0)
   {
-    cout << "Event No: " << numevents << endl;
+    cout << "Event No: " << m_NumEvents << endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
 }
