@@ -441,7 +441,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   //--------------------
 
   //!
-  int check_track_exists(MapPHGenFitTrack::iterator);
+  int check_track_exists(MapPHGenFitTrack::iterator, SvtxTrackMap::Iter);
 
   //! Main function
   int KalmanTrkProp();
@@ -535,7 +535,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   int* _hit_used_map;
   int _hit_used_map_size;
-
+  std::multimap<TrkrDefs::cluskey, unsigned int> _gftrk_hitkey_map;
   // PHG4CellContainer* _cells_svtx;
   // PHG4CellContainer* _cells_intt;
   //PHG4CellContainer* _cells_maps;
