@@ -330,7 +330,7 @@ int PHGenFitTrkProp::Process()
     cout << "nTPCLayers = " << _nlayers_tpc << endl;
   }
   // start fresh
-  _gftrk_hitkey_map->clear();
+  _gftrk_hitkey_map.clear();
   // TODO vertex using strategy
   _vertex.clear();
   _vertex.assign(3, 0.0);
