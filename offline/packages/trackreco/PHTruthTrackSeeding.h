@@ -10,7 +10,7 @@
 #include "PHTrackSeeding.h"
 
 #include <set>
-#include <string>            // for string
+#include <string>  // for string
 
 // forward declarations
 class PHCompositeNode;
@@ -71,8 +71,8 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   PHG4HitContainer* phg4hits_intt;
   PHG4HitContainer* phg4hits_mvtx;
 
-  TrkrHitTruthAssoc *hittruthassoc;
-  TrkrClusterHitAssoc *clusterhitassoc;
+  TrkrHitTruthAssoc* hittruthassoc;
+  TrkrClusterHitAssoc* clusterhitassoc;
 
   //SvtxHitMap* hitsmap;
   //PHG4CellContainer* cells_svtx;
