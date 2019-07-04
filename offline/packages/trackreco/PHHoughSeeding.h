@@ -63,8 +63,9 @@ class PHHoughSeeding : public PHTrackSeeding
       unsigned int nlayers_maps = 3,
       unsigned int nlayers_intt = 8,
       unsigned int nlayers_tpc = 60,
-      unsigned int seeding_nlayer = 7,
-      unsigned int min_seeding_nlayer = 4);
+      unsigned int seeding_nlayer = 12,
+      unsigned int min_seeding_nlayer = 4
+);
 
   virtual ~PHHoughSeeding()
   {
@@ -73,7 +74,7 @@ class PHHoughSeeding : public PHTrackSeeding
  protected:
   int Setup(PHCompositeNode *topNode);
 
-  int Process();
+  int Process(PHCompositeNode *topNode);
 
   int End();
 
