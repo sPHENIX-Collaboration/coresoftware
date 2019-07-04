@@ -2678,15 +2678,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             layersfromtruth = trackeval->get_nclusters_contribution_by_layer(track, g4particle);
           }
         }
-	cout << "nhits" << nhits
-	     << " nmaps " << nmaps
-	     << " nintt " << nintt
-	     << " ntpc " << ntpc
-	     << " nlmaps " << nlmaps
-	     << " nlintt " << nlintt 
-	     << " nltpc " << nltpc
-	     << " layers " << layers
-	     << endl;
+
         float track_data[] = {(float) _ievent,
                               trackID,
                               px,

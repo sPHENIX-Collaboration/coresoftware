@@ -386,54 +386,6 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
     _track_errors.clear();
     _track_covars.clear();
     
-    /*no iterations, choose layer configuration*/ {
-      if(_nlayers_seeding == 12){
-	int seeding_layers[] = {
-	  (int) (_nlayers_maps + _nlayers_intt),
-	  (int) (_nlayers_maps + _nlayers_intt + 1),
-	  (int) (_nlayers_maps + _nlayers_intt + 2),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 9),
-	  (int) (_nlayers_maps + _nlayers_intt + 10),
-	  (int) (_nlayers_maps + _nlayers_intt + 11),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 20),
-	  (int) (_nlayers_maps + _nlayers_intt + 21),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 31),
-	  (int) (_nlayers_maps + _nlayers_intt + 32),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 38),
-	  
-	  (int) (_nlayers_maps + _nlayers_intt + 45)
-	};
-	cout << "Setting up 12 layers" << endl;
-	set_seeding_layer(seeding_layers, _nlayers_seeding);
-	set_min_nlayers_seeding(_min_nlayers_seeding);
-      }else{
-	int seeding_layers[] = {
-	  (int) (_nlayers_maps + _nlayers_intt + 1),
-	  (int) (_nlayers_maps + _nlayers_intt + 8),
-	  (int) (_nlayers_maps + _nlayers_intt + 16),
-	  (int) (_nlayers_maps + _nlayers_intt + 24),
-	  (int) (_nlayers_maps + _nlayers_intt + 31),
-	  (int) (_nlayers_maps + _nlayers_intt + 40),
-	  (int) (_nlayers_maps + _nlayers_intt + 45)
-	};
-	cout << "Setting up 7 layers" << endl;
-	set_seeding_layer(seeding_layers, _nlayers_seeding);
-	set_min_nlayers_seeding(_min_nlayers_seeding);
-      }
-      _min_combo_hits = _min_nlayers_seeding;
-      _max_combo_hits = _nlayers_seeding;
-      
-      if (Verbosity() >= 1) _t_seed_init1->restart();
-    }
-    int ret = InitializeGeometry(topNode);
-    if (ret != Fun4AllReturnCodes::EVENT_OK)
-      return ret;
-
-    _min_nlayers_seeding--;
     if (Verbosity() >= 1) _t_seeding->restart();
 
     //-----------------------------------
