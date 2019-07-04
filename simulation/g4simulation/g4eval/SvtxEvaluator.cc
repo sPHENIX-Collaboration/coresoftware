@@ -2501,12 +2501,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float pt = v.Pt();
         float eta = v.Eta();
         float phi = v.Phi();
-	/*cout << "qmzqq" << endl;
-	for(Int_t i=0;i<6;i++){
-	  cout << track->get_error(i,0) << "\t" << track->get_error(i,1) << "\t" << track->get_error(i,2) << "\t" << track->get_error(i,3) << "\t" << track->get_error(i,4) << "\t" << track->get_error(i,5) << endl;
-	}
-	cout << "positions: " << track->get_x() << "\t" << track->get_y() << "\t" << track->get_z() << endl;
-	cout << "momenta: " << px << "\t" << py << "\t" << pz << endl;*/
 	float CVxx = track->get_error(3,3);
 	float CVxy = track->get_error(3,4);
 	float CVxz = track->get_error(3,5);
