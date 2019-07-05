@@ -155,7 +155,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                  "gvx:gvy:gvz:gvt:"
                                                  "gfpx:gfpy:gfpz:gfx:gfy:gfz:"
                                                  "gembed:gprimary:"
-                                                 "trackID:px:py:pz:pt:eta:phi:"
+                                                 "trackID:px:py:pz:pt:eta:phi:deltapt:deltaeta:deltaphi:"
                                                  "charge:quality:chisq:ndf:nhits:layers:nmaps:nintt:ntpc:nlmaps:nlintt:nltpc:"
                                                  "dca2d:dca2dsigma:dca3dxy:dca3dxysigma:dca3dz:dca3dzsigma:pcax:pcay:pcaz:nfromtruth:nwrong:ntrumaps:ntruintt:ntrutpc:layersfromtruth:"
                                                  "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
@@ -2197,6 +2197,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float pt = NAN;
         float eta = NAN;
         float phi = NAN;
+	float deltapt = NAN;
+	float deltaeta = NAN;
+	float deltaphi = NAN;
         float pcax = NAN;
         float pcay = NAN;
         float pcaz = NAN;
@@ -2284,6 +2287,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             pt = v.Pt();
             eta = v.Eta();
             phi = v.Phi();
+	    float CVxx = track->get_error(3,3);
+	    float CVxy = track->get_error(3,4);
+	    float CVxz = track->get_error(3,5);
+	    float CVyy = track->get_error(4,4);
+	    float CVyz = track->get_error(4,5);
+	    float CVzz = track->get_error(5,5);
+	    deltapt = sqrt((CVxx*px*px+2*CVxy*px*py+CVyy*py*py)/(px*px+py*py));
+	    deltaeta = sqrt((CVzz*(px*px+py*py)*(px*px+py*py)+pz*(-2*(CVxz*px+CVyz*py)*(px*px+py*py)+CVxx*px*px*pz+CVyy*py*py*pz+2*CVxy*px*py*pz))/((px*px+py*py)*(px*px+py*py)*(px*px+py*py+pz*pz)));
+	    deltaphi = sqrt((CVyy*px*px-2*CVxy*px*py+CVxx*py*py)/((px*px+py*py)*(px*px+py*py)));
             pcax = track->get_x();
             pcay = track->get_y();
             pcaz = track->get_z();
@@ -2356,6 +2368,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                                pt,
                                eta,
                                phi,
+			       deltapt,
+			       deltaeta,
+			       deltaphi,
                                charge,
                                quality,
                                chisq,
@@ -2507,9 +2522,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	float CVyy = track->get_error(4,4);
 	float CVyz = track->get_error(4,5);
 	float CVzz = track->get_error(5,5);
-	float deltapt = TMath::Sqrt((CVxx*px*px+2*CVxy*px*py+CVyy*py*py)/(px*px+py*py));
-        float deltaeta = TMath::Sqrt((CVzz*(px*px+py*py)*(px*px+py*py)+pz*(-2*(CVxz*px+CVyz*py)*(px*px+py*py)+CVxx*px*px*pz+CVyy*py*py*pz+2*CVxy*px*py*pz))/((px*px+py*py)*(px*px+py*py)*(px*px+py*py+pz*pz)*(px*px+py*py+pz*pz)));
-	float deltaphi = TMath::Sqrt((CVyy*px*px-2*CVxy*px*py+CVxx*py*py)/((px*px+py*py)*(px*px+py*py)));
+	float deltapt = sqrt((CVxx*px*px+2*CVxy*px*py+CVyy*py*py)/(px*px+py*py));
+        float deltaeta = sqrt((CVzz*(px*px+py*py)*(px*px+py*py)+pz*(-2*(CVxz*px+CVyz*py)*(px*px+py*py)+CVxx*px*px*pz+CVyy*py*py*pz+2*CVxy*px*py*pz))/((px*px+py*py)*(px*px+py*py)*(px*px+py*py+pz*pz)));
+	float deltaphi = sqrt((CVyy*px*px-2*CVxy*px*py+CVxx*py*py)/((px*px+py*py)*(px*px+py*py)));
         float pcax = track->get_x();
         float pcay = track->get_y();
         float pcaz = track->get_z();
