@@ -12,11 +12,12 @@
 #include <trackbase_historic/SvtxTrack_FastSim.h>
 
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>                    // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -26,9 +27,9 @@
 #include <TVector3.h>
 
 #include <cmath>
-#include <map>                                     // for _Rb_tree_const_ite...
 #include <iostream>
-#include <utility>                                 // for pair
+#include <map>      // for _Rb_tree_const_ite...
+#include <utility>  // for pair
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
@@ -56,12 +57,16 @@ PHG4TrackFastSimEval::PHG4TrackFastSimEval(const string &name, const string &fil
   , gvx(NAN)
   , gvy(NAN)
   , gvz(NAN)
+  , gvt(NAN)
   , trackID(-1)
   , charge(0)
   , nhits(-1)
   , px(NAN)
   , py(NAN)
   , pz(NAN)
+  , pcax(NAN)
+  , pcay(NAN)
+  , pcaz(NAN)
   , dca2d(NAN)
   , _h2d_Delta_mom_vs_truth_mom(nullptr)
   , _h2d_Delta_mom_vs_truth_eta(nullptr)
@@ -90,12 +95,16 @@ int PHG4TrackFastSimEval::Init(PHCompositeNode *topNode)
   _eval_tree_tracks->Branch("gvx", &gvx, "gvx/F");
   _eval_tree_tracks->Branch("gvy", &gvy, "gvy/F");
   _eval_tree_tracks->Branch("gvz", &gvz, "gvz/F");
+  _eval_tree_tracks->Branch("gvt", &gvt, "gvt/F");
   _eval_tree_tracks->Branch("trackID", &trackID, "trackID/I");
   _eval_tree_tracks->Branch("charge", &charge, "charge/I");
   _eval_tree_tracks->Branch("nhits", &nhits, "nhits/I");
   _eval_tree_tracks->Branch("px", &px, "px/F");
   _eval_tree_tracks->Branch("py", &py, "py/F");
   _eval_tree_tracks->Branch("pz", &pz, "pz/F");
+  _eval_tree_tracks->Branch("pcax", &pcax, "pcax/F");
+  _eval_tree_tracks->Branch("pcay", &pcay, "pcay/F");
+  _eval_tree_tracks->Branch("pcaz", &pcaz, "pcaz/F");
   _eval_tree_tracks->Branch("dca2d", &dca2d, "dca2d/F");
 
   _h2d_Delta_mom_vs_truth_eta = new TH2D("_h2d_Delta_mom_vs_truth_eta",
@@ -215,6 +224,15 @@ void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
     gpy = g4particle->get_py();
     gpz = g4particle->get_pz();
 
+    PHG4VtxPoint *vtx = _truth_container->GetVtx(g4particle->get_vtx_id());
+    if (vtx)
+    {
+      gvx = vtx->get_x();
+      gvy = vtx->get_y();
+      gvz = vtx->get_z();
+      gvt = vtx->get_t();
+    }
+
     if (track)
     {
       //std::cout << "C1" << std::endl;
@@ -225,6 +243,9 @@ void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
       px = track->get_px();
       py = track->get_py();
       pz = track->get_pz();
+      pcax = track->get_x();
+      pcay = track->get_y();
+      pcaz = track->get_z();
       dca2d = track->get_dca2d();
 
       TVector3 truth_mom(gpx, gpy, gpz);

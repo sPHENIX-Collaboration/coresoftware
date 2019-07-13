@@ -93,6 +93,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   float gvx;
   float gvy;
   float gvz;
+  float gvt;
 
   //-- reco
   int trackID;
@@ -101,6 +102,9 @@ class PHG4TrackFastSimEval : public SubsysReco
   float px;
   float py;
   float pz;
+  float pcax;
+  float pcay;
+  float pcaz;
   float dca2d;
 
   //Histos
