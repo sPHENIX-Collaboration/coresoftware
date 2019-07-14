@@ -17,6 +17,7 @@
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class SvtxTrackMap;
+class SvtxVertexMap;
 class TTree;
 class TH2D;
 
@@ -62,10 +63,12 @@ class PHG4TrackFastSimEval : public SubsysReco
   }
 
   //User modules
-  void fill_tree(PHCompositeNode*);
   void reset_variables();
 
  private:
+  void fill_track_tree(PHCompositeNode*);
+  void fill_vertex_tree(PHCompositeNode*);
+
   //output filename
   std::string _outfile_name;
 
@@ -83,6 +86,7 @@ class PHG4TrackFastSimEval : public SubsysReco
 
   //TTrees
   TTree* _eval_tree_tracks;
+  TTree* _eval_tree_vertex;
   int event;
   //-- truth
   int gtrackID;
@@ -107,6 +111,16 @@ class PHG4TrackFastSimEval : public SubsysReco
   float pcaz;
   float dca2d;
 
+  //vertex
+  float vx;
+  float vy;
+  float vz;
+  float deltavx;
+  float deltavy;
+  float deltavz;
+  int ntracks;
+  int n_from_truth;
+
   //Histos
   TH2D* _h2d_Delta_mom_vs_truth_mom;
   TH2D* _h2d_Delta_mom_vs_truth_eta;
@@ -114,6 +128,7 @@ class PHG4TrackFastSimEval : public SubsysReco
   //Node pointers
   PHG4TruthInfoContainer* _truth_container;
   SvtxTrackMap* _trackmap;
+  SvtxVertexMap* _vertexmap;
 };
 
 #endif  //* __PHG4TrackFastSimEval_H__ *//

@@ -10,10 +10,11 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase_historic/SvtxVertexMap.h>
 
 #include <g4main/PHG4Particle.h>
-#include <g4main/PHG4VtxPoint.h>
 #include <g4main/PHG4TruthInfoContainer.h>
+#include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
@@ -26,6 +27,7 @@
 #include <TTree.h>
 #include <TVector3.h>
 
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <map>      // for _Rb_tree_const_ite...
@@ -48,31 +50,14 @@ PHG4TrackFastSimEval::PHG4TrackFastSimEval(const string &name, const string &fil
   , _event(0)
   , _flags(NONE)
   , _eval_tree_tracks(nullptr)
-  , event(-1)
-  , gtrackID(-1)
-  , gflavor(0)
-  , gpx(NAN)
-  , gpy(NAN)
-  , gpz(NAN)
-  , gvx(NAN)
-  , gvy(NAN)
-  , gvz(NAN)
-  , gvt(NAN)
-  , trackID(-1)
-  , charge(0)
-  , nhits(-1)
-  , px(NAN)
-  , py(NAN)
-  , pz(NAN)
-  , pcax(NAN)
-  , pcay(NAN)
-  , pcaz(NAN)
-  , dca2d(NAN)
+  , _eval_tree_vertex(nullptr)
   , _h2d_Delta_mom_vs_truth_mom(nullptr)
   , _h2d_Delta_mom_vs_truth_eta(nullptr)
   , _truth_container(nullptr)
   , _trackmap(nullptr)
+  , _vertexmap(nullptr)
 {
+  reset_variables();
 }
 
 //----------------------------------------------------------------------------//
@@ -115,6 +100,23 @@ int PHG4TrackFastSimEval::Init(PHCompositeNode *topNode)
                                          "#frac{#Delta p}{truth p} vs. truth p", 41, -0.5, 40.5, 1000, -1,
                                          1);
 
+  // create TTree - vertex
+  _eval_tree_vertex = new TTree("vertex", "FastSim Eval => vertces");
+  _eval_tree_vertex->Branch("gvx", &gvx, "gvx/F");
+  _eval_tree_vertex->Branch("gvy", &gvy, "gvy/F");
+  _eval_tree_vertex->Branch("gvz", &gvz, "gvz/F");
+  _eval_tree_vertex->Branch("gvt", &gvt, "gvt/F");
+  _eval_tree_vertex->Branch("vx", &vx, "vx/F");
+  _eval_tree_vertex->Branch("vy", &vy, "vy/F");
+  _eval_tree_vertex->Branch("vz", &vz, "vz/F");
+  _eval_tree_vertex->Branch("deltavx", &deltavx, "deltavx/F");
+  _eval_tree_vertex->Branch("deltavy", &deltavy, "deltavy/F");
+  _eval_tree_vertex->Branch("deltavz", &deltavz, "deltavz/F");
+  _eval_tree_vertex->Branch("gID", &gtrackID, "gID/I");
+  _eval_tree_vertex->Branch("ID", &trackID, "ID/I");
+  _eval_tree_vertex->Branch("ntracks", &ntracks, "ntracks/I");
+  _eval_tree_vertex->Branch("n_from_truth", &n_from_truth, "n_from_truth/I");
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -133,7 +135,8 @@ int PHG4TrackFastSimEval::process_event(PHCompositeNode *topNode)
   GetNodes(topNode);
 
   //std::cout << "Filling trees" << std::endl;
-  fill_tree(topNode);
+  fill_track_tree(topNode);
+  fill_vertex_tree(topNode);
   //std::cout << "DONE" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -148,6 +151,7 @@ int PHG4TrackFastSimEval::End(PHCompositeNode *topNode)
   PHTFileServer::get().cd(_outfile_name);
 
   _eval_tree_tracks->Write();
+  _eval_tree_vertex->Write();
 
   _h2d_Delta_mom_vs_truth_eta->Write();
   _h2d_Delta_mom_vs_truth_mom->Write();
@@ -161,12 +165,9 @@ int PHG4TrackFastSimEval::End(PHCompositeNode *topNode)
 //-- fill_tree():
 //--   Fill the trees with truth, track fit, and cluster information
 //----------------------------------------------------------------------------//
-void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
+void PHG4TrackFastSimEval::fill_track_tree(PHCompositeNode *topNode)
 {
   // Make sure to reset all the TTree variables before trying to set them.
-  reset_variables();
-  //std::cout << "A1" << std::endl;
-  event = _event;
 
   if (!_truth_container)
   {
@@ -186,6 +187,10 @@ void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
   for (PHG4TruthInfoContainer::ConstIterator truth_itr = range.first;
        truth_itr != range.second; ++truth_itr)
   {
+    reset_variables();
+    //std::cout << "A1" << std::endl;
+    event = _event;
+
     PHG4Particle *g4particle = truth_itr->second;
     if (!g4particle)
     {
@@ -224,6 +229,10 @@ void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
     gpy = g4particle->get_py();
     gpz = g4particle->get_pz();
 
+    gvx = NAN;
+    gvy = NAN;
+    gvz = NAN;
+    gvt = NAN;
     PHG4VtxPoint *vtx = _truth_container->GetVtx(g4particle->get_vtx_id());
     if (vtx)
     {
@@ -265,6 +274,102 @@ void PHG4TrackFastSimEval::fill_tree(PHCompositeNode *topNode)
 }
 
 //----------------------------------------------------------------------------//
+//-- fill_tree():
+//--   Fill the trees with truth, track fit, and cluster information
+//----------------------------------------------------------------------------//
+void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode *topNode)
+{
+  if (!_truth_container)
+  {
+    LogError("_truth_container not found!");
+    return;
+  }
+
+  if (!_trackmap)
+  {
+    LogError("_trackmap not found!");
+    return;
+  }
+
+  if (!_vertexmap)
+  {
+    return;
+  }
+
+  for (SvtxVertexMap::Iter iter = _vertexmap->begin();
+       iter != _vertexmap->end();
+       ++iter)
+  {
+    SvtxVertex *vertex = iter->second;
+
+    // Make sure to reset all the TTree variables before trying to set them.
+    reset_variables();
+    //std::cout << "A1" << std::endl;
+    event = _event;
+
+    if (!vertex)
+    {
+      LogDebug("");
+      continue;
+    }
+
+    //std::cout << "C1" << std::endl;
+    trackID = vertex->get_id();
+    ntracks = vertex->size_tracks();
+
+    vx = vertex->get_x();
+    vy = vertex->get_y();
+    vz = vertex->get_z();
+    deltavx = sqrt(vertex->get_error(1, 1));
+    deltavy = sqrt(vertex->get_error(2, 2));
+    deltavz = sqrt(vertex->get_error(3, 3));
+
+    // best matched vertex
+    PHG4VtxPoint *best_vtx = nullptr;
+    int best_n_match = -1;
+    map<PHG4VtxPoint *, int> vertex_match_map;
+    for (auto iter = vertex->begin_tracks(); iter != vertex->end_tracks(); ++iter)
+    {
+      const auto &trackID = *iter;
+      const auto trackIter = _trackmap->find(trackID);
+
+      if (trackIter == _trackmap->end()) continue;
+
+      SvtxTrack_FastSim *temp = dynamic_cast<SvtxTrack_FastSim *>(trackIter->second);
+
+      if (!temp) continue;
+
+      const auto g4trackID = temp->get_truth_track_id();
+      const PHG4Particle *g4particle = _truth_container->GetParticle(g4trackID);
+      assert(g4particle);
+      PHG4VtxPoint *vtx = _truth_container->GetVtx(g4particle->get_vtx_id());
+
+      int n_match = ++vertex_match_map[vtx];
+
+      if (n_match > best_n_match)
+      {
+        best_n_match = n_match;
+        best_vtx = vtx;
+      }
+    }
+    if (best_vtx)
+    {
+      gvx = best_vtx->get_x();
+      gvy = best_vtx->get_y();
+      gvz = best_vtx->get_z();
+      gvt = best_vtx->get_t();
+
+      n_from_truth = best_n_match;
+      gtrackID = best_vtx->get_id();
+    }
+  }
+  //std::cout << "B3" << std::endl;
+
+  _eval_tree_vertex->Fill();
+  return;
+}
+
+//----------------------------------------------------------------------------//
 //-- reset_variables():
 //--   Reset all the tree variables to their default values.
 //--   Needs to be called at the start of every event
@@ -276,21 +381,35 @@ void PHG4TrackFastSimEval::reset_variables()
   //-- truth
   gtrackID = -9999;
   gflavor = -9999;
-  gpx = -9999;
-  gpy = -9999;
-  gpz = -9999;
-  gvx = -9999;
-  gvy = -9999;
-  gvz = -9999;
+  gpx = NAN;
+  gpy = NAN;
+  gpz = NAN;
+
+  gvx = NAN;
+  gvy = NAN;
+  gvz = NAN;
+  gvt = NAN;
 
   //-- reco
   trackID = -9999;
   charge = -9999;
   nhits = -9999;
-  px = -9999;
-  py = -9999;
-  pz = -9999;
-  dca2d = -9999;
+  px = NAN;
+  py = NAN;
+  pz = NAN;
+  pcax = NAN;
+  pcay = NAN;
+  pcaz = NAN;
+  dca2d = NAN;
+
+  vx = NAN;
+  vy = NAN;
+  vz = NAN;
+  deltavx = NAN;
+  deltavy = NAN;
+  deltavz = NAN;
+  ntracks = 0;
+  n_from_truth = 0;
 }
 
 //----------------------------------------------------------------------------//
@@ -313,13 +432,20 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode,
                                                _trackmapname);
   //std::cout << _trackmapname.c_str() << std::endl;
-  if (!_trackmap && _event < 2)
+  if (!_trackmap)
   {
     cout << PHWHERE << "SvtxTrackMap node with name "
          << _trackmapname
          << " not found on node tree"
          << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
+  if (!_vertexmap && _event < 2)
+  {
+    cout << PHWHERE << "SvtxTrackMap node with name SvtxVertexMap not found on node tree. Will not build the vertex eval tree"
+         << endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
