@@ -362,10 +362,10 @@ void PHG4TrackFastSimEval::fill_vertex_tree(PHCompositeNode *topNode)
       n_from_truth = best_n_match;
       gtrackID = best_vtx->get_id();
     }
+    _eval_tree_vertex->Fill();
   }
   //std::cout << "B3" << std::endl;
 
-  _eval_tree_vertex->Fill();
   return;
 }
 
@@ -408,8 +408,8 @@ void PHG4TrackFastSimEval::reset_variables()
   deltavx = NAN;
   deltavy = NAN;
   deltavz = NAN;
-  ntracks = 0;
-  n_from_truth = 0;
+  ntracks = -9999;
+  n_from_truth = -9999;
 }
 
 //----------------------------------------------------------------------------//
