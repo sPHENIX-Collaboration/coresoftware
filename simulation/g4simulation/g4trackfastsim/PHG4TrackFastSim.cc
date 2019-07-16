@@ -383,7 +383,8 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
     SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
                                               particle->get_track_id(),
                                               measurements.size(), vtx);
-    svtx_track_out->identify();
+    if (Verbosity() > 1)
+      svtx_track_out->identify();
 
     if (svtx_track_out)
     {
@@ -823,7 +824,8 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   double pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
                                                                         TVector3(0., 0., 1.));
 
-  cout << __PRETTY_FUNCTION__ << __LINE__ << " pathlenth_orig_from_first_meas = " << pathlenth_orig_from_first_meas << endl;
+  if (Verbosity() > 1)
+    cout << __PRETTY_FUNCTION__ << __LINE__ << " pathlenth_orig_from_first_meas = " << pathlenth_orig_from_first_meas << endl;
   if (pathlenth_orig_from_first_meas < -999990)
   {
     LogError("Extraction faild!");
