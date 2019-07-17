@@ -9,6 +9,7 @@ class PHCompositeNode;
 class RawClusterContainer;
 class RawTowerGeomContainer;
 class BEmcRecFEMC;
+class BEmcProfile;
 
 class RawClusterBuilderTemplateFEMC : public SubsysReco
 {
@@ -24,12 +25,14 @@ class RawClusterBuilderTemplateFEMC : public SubsysReco
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void setEnergyNorm(float norm) { fEnergyNorm = norm; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
+  void LoadProfile(char *fname);
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
   bool Cell2Abs(RawTowerGeomContainer *towergeom, float phiC, float etaC, float &phi, float &eta);
 
   RawClusterContainer *_clusters;
+  BEmcProfile *_emcprof;
 
   BEmcRecFEMC *bemc;
   float fEnergyNorm;
