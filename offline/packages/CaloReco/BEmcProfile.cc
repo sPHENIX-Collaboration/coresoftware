@@ -96,8 +96,8 @@ BEmcProfile::BEmcProfile(char* fname)
 BEmcProfile::~BEmcProfile()
 {
   if( bloaded ) {
-    delete energy_array;
-    delete theta_array;
+    delete [] energy_array;
+    delete [] theta_array;
     for( int i=0; i<nth*nen*NP; i++ ) {
       delete hmean[i];
       delete hsigma[i];
