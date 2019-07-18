@@ -53,6 +53,7 @@ endif
 libcalo_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
   BEmcCluster.cc \
+  BEmcProfile.cc \
   BEmcRec.cc \
   BEmcRecCEMC.cc \
   BEmcRecFEMC.cc \

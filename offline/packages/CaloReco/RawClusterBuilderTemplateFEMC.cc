@@ -2,6 +2,7 @@
 
 #include "BEmcCluster.h"
 #include "BEmcRecFEMC.h"
+#include "BEmcProfile.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -40,6 +41,7 @@ RawClusterBuilderTemplateFEMC::~RawClusterBuilderTemplateFEMC()
 RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string &name)
   : SubsysReco(name)
   , _clusters(nullptr)
+  , _emcprof(nullptr)
   , _min_tower_e(0.020)
   , chkenergyconservation(0)
   , detector("NONE")
@@ -63,6 +65,11 @@ RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string &
   bemc->SetVertex(vertex);
   // Define threshold ... not used now
   bemc->SetTowerThreshold(0);
+}
+
+void RawClusterBuilderTemplateFEMC::LoadProfile(char *fname) 
+{ 
+  _emcprof = new BEmcProfile(fname); 
 }
 
 int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
@@ -280,6 +287,7 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
   std::vector<EmcModule> *pPeaks = &Peaks;
 
   float xout, yout, zout;
+  float theta;
   float prob;
   float chi2 = NAN;
   int ndf;
@@ -322,9 +330,14 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
 
       pp->GetGlobalPos(xout, yout, zout);
 
+      hlist = pp->GetHitList();
+      float zVert = 0; // !!!!! In future it should take actual zVert
+      theta = atan(sqrt(xout * xout + yout * yout)/fabs(zout-zVert));
+
       //      prob = pp->GetProb(chi2,ndf);
-      prob = 0;  // !!! No prob for EEMC yet; makes sence only for proj. geom.
+      prob = -1;
       ndf = 0;
+      if( _emcprof != nullptr ) prob = _emcprof->GetProb(&hlist,NBINX,ecl,theta);
 
       cluster = new RawClusterv1();
       cluster->set_energy(ecl);
@@ -340,7 +353,6 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
       else
         cluster->set_chi2(0);
 
-      hlist = pp->GetHitList();
       ph = hlist.begin();
       while (ph != hlist.end())
       {
