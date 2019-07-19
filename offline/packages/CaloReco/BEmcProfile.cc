@@ -6,7 +6,7 @@
 
 const int NP = 4; // Number of profiles in a bin
 
-BEmcProfile::BEmcProfile(char* fname)
+BEmcProfile::BEmcProfile(const char* fname)
   :bloaded(false)
   ,thresh(0.01)
   ,nen(0)

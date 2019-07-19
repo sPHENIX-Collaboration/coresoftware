@@ -6,7 +6,7 @@ class BEmcProfile
 {
 
 public:
-  BEmcProfile(char* fname);
+  BEmcProfile(const char* fname);
   ~BEmcProfile();
 
   float GetProb(std::vector<EmcModule>* plist, int NX, float en, float theta);

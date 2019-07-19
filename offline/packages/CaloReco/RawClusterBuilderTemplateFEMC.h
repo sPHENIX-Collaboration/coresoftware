@@ -25,7 +25,7 @@ class RawClusterBuilderTemplateFEMC : public SubsysReco
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void setEnergyNorm(float norm) { fEnergyNorm = norm; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
-  void LoadProfile(char *fname);
+  void LoadProfile(const char *fname);
 
  private:
   void CreateNodes(PHCompositeNode *topNode);
