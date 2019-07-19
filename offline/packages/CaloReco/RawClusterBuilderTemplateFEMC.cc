@@ -67,7 +67,7 @@ RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string &
   bemc->SetTowerThreshold(0);
 }
 
-void RawClusterBuilderTemplateFEMC::LoadProfile(char *fname) 
+void RawClusterBuilderTemplateFEMC::LoadProfile(const char *fname) 
 { 
   _emcprof = new BEmcProfile(fname); 
 }
