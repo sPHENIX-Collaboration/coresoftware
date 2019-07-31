@@ -109,12 +109,13 @@ int PHGenFitTrackProjection::InitRun(PHCompositeNode *topNode) {
 			"DafRef",
 			"RKTrackRep", false);
 
-	_fitter->set_verbosity(Verbosity());
 
 	if (!_fitter) {
 		cerr << PHWHERE << endl;
 		return Fun4AllReturnCodes::ABORTRUN;
 	}
+
+	_fitter->set_verbosity(Verbosity());
 
 	if (Verbosity() > 0) {
 		cout
