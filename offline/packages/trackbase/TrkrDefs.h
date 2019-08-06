@@ -52,7 +52,8 @@ namespace TrkrDefs
   {
     mvtxId = 0,
     inttId = 1,
-    tpcId = 2
+    tpcId = 2,
+    outertrackerId = 3
   };
   
   
