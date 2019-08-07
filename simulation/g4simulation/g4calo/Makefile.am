@@ -15,7 +15,6 @@ AM_CPPFLAGS = \
 
 pkginclude_HEADERS = \
   HcalRawTowerBuilder.h \
-  Prototype2RawTowerBuilder.h \
   RawTowerBuilder.h \
   RawTowerBuilderByHitIndex.h \
   RawTowerDigitizer.h
@@ -23,7 +22,6 @@ pkginclude_HEADERS = \
 if ! MAKEROOT6
   ROOT5_DICTS = \
     HcalRawTowerBuilder_Dict.cc \
-    Prototype2RawTowerBuilder_Dict.cc \
     RawTowerBuilder_Dict.cc \
     RawTowerBuilderByHitIndex_Dict.cc \
     RawTowerDigitizer_Dict.cc
@@ -32,7 +30,6 @@ endif
 libg4calo_la_SOURCES = \
   $(ROOT5_DICTS) \
   HcalRawTowerBuilder.cc \
-  Prototype2RawTowerBuilder.cc \
   RawTowerBuilder.cc \
   RawTowerBuilderByHitIndex.cc \
   RawTowerDigitizer.cc
