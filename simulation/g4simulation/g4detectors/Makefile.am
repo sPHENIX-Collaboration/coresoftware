@@ -80,20 +80,15 @@ pkginclude_HEADERS = \
   PHG4HcalCellReco.h \
   PHG4InnerHcalSubsystem.h \
   PHG4OuterHcalSubsystem.h \
-  PHG4PrototypeHcalDefs.h \
-  PHG4Prototype2HcalCellReco.h \
-  PHG4Prototype2OuterHcalSubsystem.h \
-  PHG4Prototype2InnerHcalSubsystem.h \
-  PHG4Prototype3InnerHcalSubsystem.h \
   PHG4PSTOFSubsystem.h \
   PHG4RICHSubsystem.h \
   PHG4ScintillatorSlat.h \
+  PHG4ScintillatorSlatv1.h \
   PHG4ScintillatorSlatContainer.h \
   PHG4ScintillatorSlatDefs.h \
   PHG4SectorConstructor.h \
   PHG4SectorSubsystem.h \
   PHG4SpacalSubsystem.h \
-  PHG4SpacalPrototypeSubsystem.h \
   PHG4StepStatusDecode.h 
 
 # I/O dictionaries have to exist for root5 and root6. For ROOT6 we need
@@ -195,20 +190,14 @@ else
   PHG4GenHit_Dict.cc \
   PHG4HcalCellReco_Dict.cc \
   PHG4HcalSubsystem_Dict.cc \
-  PHG4HcalPrototypeSubsystem_Dict.cc \
   PHG4InnerHcalSubsystem_Dict.cc \
   PHG4OuterHcalSubsystem_Dict.cc \
-  PHG4Prototype2InnerHcalSubsystem_Dict.cc \
-  PHG4Prototype2HcalCellReco_Dict.cc \
-  PHG4Prototype2OuterHcalSubsystem_Dict.cc \
-  PHG4Prototype3InnerHcalSubsystem_Dict.cc \
   PHG4RICHSubsystem_Dict.cc \
   PHG4SectorConstructor_Dict.cc \
   PHG4SectorSubsystem_Dict.cc \
   PHG4PSTOFSubsystem_Dict.cc \
   PHG4FullProjSpacalCellReco_Dict.cc \
   PHG4SpacalSubsystem_Dict.cc \
-  PHG4SpacalPrototypeSubsystem_Dict.cc \
   PHG4mRICHSubsystem_Dict.cc
 
 endif
@@ -302,10 +291,6 @@ libg4detectors_la_SOURCES = \
   PHG4HcalDetector.cc \
   PHG4HcalSteppingAction.cc \
   PHG4HcalSubsystem.cc \
-  PHG4HcalPrototypeDetector.cc \
-  PHG4HcalPrototypeDetectorMessenger.cc \
-  PHG4HcalPrototypeSteppingAction.cc \
-  PHG4HcalPrototypeSubsystem.cc \
   PHG4InnerHcalDetector.cc \
   PHG4InnerHcalDisplayAction.cc \
   PHG4InnerHcalSteppingAction.cc \
@@ -317,16 +302,6 @@ libg4detectors_la_SOURCES = \
   PHG4OuterHcalSteppingAction.cc \
   PHG4OuterHcalSubsystem.cc \
   PHG4ProjCrystalCalorimeterDetector.cc \
-  PHG4Prototype2InnerHcalDetector.cc \
-  PHG4Prototype2InnerHcalSteppingAction.cc \
-  PHG4Prototype2InnerHcalSubsystem.cc \
-  PHG4Prototype2HcalCellReco.cc \
-  PHG4Prototype2OuterHcalDetector.cc \
-  PHG4Prototype2OuterHcalSteppingAction.cc \
-  PHG4Prototype2OuterHcalSubsystem.cc \
-  PHG4Prototype3InnerHcalDetector.cc \
-  PHG4Prototype3InnerHcalSteppingAction.cc \
-  PHG4Prototype3InnerHcalSubsystem.cc \
   PHG4RICHDetector.cc \
   PHG4RICHDisplayAction.cc \
   PHG4RICHSteppingAction.cc \
@@ -347,11 +322,8 @@ libg4detectors_la_SOURCES = \
   PHG4FullProjSpacalDetector.cc \
   PHG4FullProjTiltedSpacalDetector.cc \
   PHG4FullProjSpacalCellReco.cc \
-  PHG4SpacalPrototypeDetector.cc \
   PHG4SpacalSteppingAction.cc \
-  PHG4SpacalPrototypeSteppingAction.cc \
   PHG4SpacalSubsystem.cc \
-  PHG4SpacalPrototypeSubsystem.cc \
   PHG4mRICHDetector.cc \
   PHG4mRICHSteppingAction.cc \
   PHG4mRICHSubsystem.cc
