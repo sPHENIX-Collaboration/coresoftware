@@ -75,6 +75,8 @@ int PHPythia6::Init(PHCompositeNode *topNode)
     cout << PHWHERE << " ERROR: seed " << fSeed << " is not valid" << endl;
     exit(2);
   }
+  // print out seed so we can make this is reproducible
+  cout << "PHPythia6 random seed: " << fSeed << endl;
 
   /* read pythia configuration and initialize */
   if (!_configFile.empty()) ReadConfig(_configFile);
