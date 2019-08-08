@@ -86,12 +86,14 @@ class CylinderGeomOuterTracker : public PHG4CylinderGeom
   }
 
  protected:
+
   int m_Layer;
   int m_NStripsPhi;
   int m_NStripsZ;
   double m_InnerRadius;
   double m_OuterRadius;
   double m_Length;
+
   double m_dZ;
   double m_dPhi;
 

@@ -36,33 +36,29 @@ bool CylinderGeomOuterTracker::load_geometry()
   return true;
 }
 
-void CylinderGeomOuterTracker::find_pixel_center(const int pixel_z_bin, const int pixel_phi_bin, double &phi, double &z)
+void CylinderGeomOuterTracker::find_pixel_center(const int pixel_phi_bin, const int pixel_z_bin, double &phi, double &z)
 {
-  //double pixel_radius = (m_InnerRadius + m_OuterRadius) / 2.0;
-  // Ladder
-  phi = m_dPhi *  pixel_phi_bin;
-  z = m_dZ * pixel_z_bin;
-  /*
-  location[0] = pixel_radius * cos(phi);
-  location[1] = pixel_radius * sin(phi);
-  location[2] = m_dZ * pixel_z_bin;
-  */
+  phi = m_dPhi / 2.0 + m_dPhi *  pixel_phi_bin - M_PI;
+  z = m_dZ / 2.0 + m_dZ * pixel_z_bin - m_Length/2.0;
+
+  //cout << " pixel_phi_bin " << pixel_phi_bin << " m_dPhi " << m_dPhi << " phi " << phi << endl;
+  //cout << " pixel_z_bin " << pixel_z_bin << " m_dZ " << m_dZ << " z " << z << endl;
 }
 
 void CylinderGeomOuterTracker::find_pixel_index_values(const double xin, const double yin, const double zin, int &pixel_y_index, int &pixel_z_index)
 {
   // expect cm
 
-  // get the strip z index
-  pixel_z_index = (int) (zin / m_dZ);
+  // get the strip z index - z is from -m_Length/2 to + m_Length/2
+  pixel_z_index = (int) ( (zin + m_Length/2.0) / m_dZ);
 
-  //double sensor_radius = (m_InnerRadius + m_OuterRadius) / 2.0;
-  double phi_in = atan(yin/xin);
-  // get phi_in in the correct sector
-  cout << " Fix quadrant: phi_in " << phi_in << " yin " << yin << " xin " << xin << endl;
+  double phi_in = atan2(yin, xin);
 
-  // get the strip y index
-  pixel_y_index = (int) (phi_in / m_dPhi);
+  // get the strip y index -   phi is from -pi to +pi
+  pixel_y_index = (int) ( (phi_in + M_PI ) / m_dPhi);
+
+  //cout << " phi_in " << phi_in << " yin " << yin << " xin " << xin << " zin " << zin << endl;
+  //cout << " pixel y index " << pixel_y_index << " pixel_z_index " << pixel_z_index << endl;
 
 }
 

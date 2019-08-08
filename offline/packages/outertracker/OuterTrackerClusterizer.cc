@@ -207,30 +207,6 @@ int OuterTrackerClusterizer::process_event(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/*
-void OuterTrackerClusterizer::CalculateLadderThresholds(PHCompositeNode* topNode)
-{
-  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_OUTERTRACKER");
-  if (!geom_container) return;
-
-  PHG4CylinderGeomContainer::ConstRange layerrange = geom_container->get_begin_end();
-  for (PHG4CylinderGeomContainer::ConstIterator layeriter = layerrange.first;
-       layeriter != layerrange.second;
-       ++layeriter)
-  {
-    // index mapping
-    int layer = layeriter->second->get_layer();
-
-    // cluster threshold
-    float thickness = (layeriter->second)->get_OuterRadius() - (layeriter->second)->get_InnerRadius();
-    float threshold = _fraction_of_mip * 0.003876 * thickness;
-
-  }
-
-  return;
-}
-*/
-
 void OuterTrackerClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 {
   if (Verbosity() > 0)
@@ -241,8 +217,12 @@ void OuterTrackerClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
   //----------
 
   // get the geometry node
-  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_OUTERTRACKER");
-  if (!geom_container) return;
+  PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_OuterTracker");
+  if (!geom_container)
+    { 
+      cout << PHWHERE << " Did not find node CYLINDERGEOM_OuterTracker" << endl;
+      return;
+    }
 
   //-----------
   // Clustering
@@ -364,11 +344,7 @@ void OuterTrackerClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	    // now get the positions from the geometry
 	    
 	    double phi_location, z_location;
-	    geom->find_pixel_center(
-				    col,
-				    row,
-				    phi_location,
-				    z_location );
+	    geom->find_pixel_center(row, col, phi_location, z_location);
 	    
 	    phisum += phi_location * hit_adc;
 	    zsum += z_location * hit_adc;
