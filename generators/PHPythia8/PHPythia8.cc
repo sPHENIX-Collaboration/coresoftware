@@ -106,6 +106,8 @@ int PHPythia8::Init(PHCompositeNode *topNode)
     cout << PHWHERE << " ERROR: seed " << seed << " is not valid" << endl;
     exit(1);
   }
+// print out seed so we can make this is reproducible
+  cout << "PHPythia8 random seed: " << seed << endl;
 
   _pythia->init();
 
