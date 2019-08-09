@@ -270,11 +270,12 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
   vector<PHGenFit::Track*> rf_tracks;
 
-  PHG4VtxPoint* vtxPoint = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+  PHG4VtxPoint * truthVtx = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+  TVector3 vtxPoint (truthVtx->get_x(), truthVtx->get_y(), truthVtx->get_z());
   // Smear the vertex ONCE for all particles in the event
-  vtxPoint->set_x(vtxPoint->get_x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
-  vtxPoint->set_y(vtxPoint->get_y() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
-  vtxPoint->set_z(vtxPoint->get_z() + gsl_ran_gaussian(m_RandomGenerator, _vertex_z_resolution));
+  vtxPoint.SetX(vtxPoint.x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
+  vtxPoint.SetY(vtxPoint.y() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
+  vtxPoint.SetZ(vtxPoint.z() + gsl_ran_gaussian(m_RandomGenerator, _vertex_z_resolution));
 
   PHG4TruthInfoContainer::ConstRange itr_range;
   if (_primary_tracking)
@@ -296,7 +297,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
   {
     PHG4Particle* particle = itr->second;
 
-    TVector3 seed_pos(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z());
+    TVector3 seed_pos(vtxPoint.x(), vtxPoint.y(), vtxPoint.z());
     TVector3 seed_mom(0, 0, 0);
     TMatrixDSym seed_cov(6);
 
@@ -307,9 +308,9 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
     if (_use_vertex_in_fitting)
     {
-      vtx_meas = VertexMeasurement(TVector3(vtxPoint->get_x(),
-                                            vtxPoint->get_y(),
-                                            vtxPoint->get_z()),
+      vtx_meas = VertexMeasurement(TVector3(vtxPoint.x(),
+                                            vtxPoint.y(),
+                                            vtxPoint.z()),
                                    _vertex_xy_resolution,
                                    _vertex_z_resolution);
       measurements.push_back(vtx_meas);
@@ -379,7 +380,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    TVector3 vtx(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z());
+    TVector3 vtx(vtxPoint.x(), vtxPoint.y(), vtxPoint.z());
     SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
                                               particle->get_track_id(),
                                               measurements.size(), vtx);
