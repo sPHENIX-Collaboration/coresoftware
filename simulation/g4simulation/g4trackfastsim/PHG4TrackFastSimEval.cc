@@ -102,6 +102,7 @@ int PHG4TrackFastSimEval::Init(PHCompositeNode *topNode)
 
   // create TTree - vertex
   _eval_tree_vertex = new TTree("vertex", "FastSim Eval => vertces");
+  _eval_tree_vertex->Branch("event", &event, "event/I");
   _eval_tree_vertex->Branch("gvx", &gvx, "gvx/F");
   _eval_tree_vertex->Branch("gvy", &gvy, "gvy/F");
   _eval_tree_vertex->Branch("gvz", &gvz, "gvz/F");
