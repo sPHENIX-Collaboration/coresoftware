@@ -443,7 +443,7 @@ int PHG4TrackFastSimEval::GetNodes(PHCompositeNode *topNode)
   }
 
   _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
-  if (!_vertexmap && _event < 2)
+  if (!_vertexmap && Verbosity())
   {
     cout << PHWHERE << "SvtxTrackMap node with name SvtxVertexMap not found on node tree. Will not build the vertex eval tree"
          << endl;
