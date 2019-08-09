@@ -129,6 +129,8 @@ std::set<PHG4Hit*> SvtxClusterEval::all_truth_hits(TrkrDefs::cluskey cluster_key
 	    g4hit = _g4hits_tpc->findHit(g4hitkey);
 	  else if(trkrid == TrkrDefs::inttId)
 	    g4hit = _g4hits_intt->findHit(g4hitkey);
+	  else if(trkrid == TrkrDefs::outertrackerId)
+	    g4hit = _g4hits_outertracker->findHit(g4hitkey);
 	  else
 	    g4hit = _g4hits_mvtx->findHit(g4hitkey);
 	  truth_hits.insert(g4hit);	      
@@ -590,6 +592,7 @@ void SvtxClusterEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  _g4hits_outertracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_OuterTracker");
 
   return;
 }

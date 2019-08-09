@@ -32,6 +32,7 @@ SvtxHitEval::SvtxHitEval(PHCompositeNode* topNode)
   , _g4hits_tpc(nullptr)
   , _g4hits_intt(nullptr)
   , _g4hits_mvtx(nullptr)
+  , _g4hits_outertracker(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
   , _verbosity(1)
@@ -152,45 +153,6 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 
   std::set<PHG4Hit*> truth_hits;
 
-  /*
-  // hop from reco hit to g4cell
-  PHG4Cell* cell = nullptr;
-  if (_g4cells_svtx) cell = _g4cells_svtx->findCell(hit->get_cellid());
-  if (!cell && _g4cells_tracker) cell = _g4cells_tracker->findCell(hit->get_cellid());
-  if (!cell && _g4cells_maps) cell = _g4cells_maps->findCell(hit->get_cellid());
-
-  // only noise hits (cellid left at default value) should not trace
-  if ((_strict) && (hit->get_cellid() != 0xFFFFFFFF))
-    assert(cell);
-  else if (!cell)
-  {
-    ++_errors;
-    cout << PHWHERE << " nerr: " << _errors << endl;
-    return truth_hits;
-  }
-
-  //cout << "Eval: hitid " << hit->get_id() << " cellid " << cell->get_cellid() << endl;
-  // loop over all the g4hits in this cell
-  for (PHG4Cell::EdepConstIterator g4iter = cell->get_g4hits().first;
-       g4iter != cell->get_g4hits().second;
-       ++g4iter)
-  {
-    //cout << "    Looking for hit " << g4iter->first << " in layer " << cell->get_layer() << " with edep " << g4iter->second << endl;
-    PHG4Hit* g4hit = nullptr;
-    if (_g4hits_svtx) g4hit = _g4hits_svtx->findHit(g4iter->first);
-    if (!g4hit && _g4hits_tracker) g4hit = _g4hits_tracker->findHit(g4iter->first);
-    if (!g4hit && _g4hits_maps) g4hit = _g4hits_maps->findHit(g4iter->first);
-    if (!g4hit) cout << "    Failed to find  g4hit " << g4iter->first << " with edep " << g4iter->second << endl;
-    if (_strict)
-      assert(g4hit);
-    else if (!g4hit)
-    {
-      ++_errors;
-      cout << PHWHERE << " nerr: " << _errors << endl;
-      continue;
-    }
-  */
-
   // get all of the g4hits for this hit_key
   // have to start with all hitsets, unfortunately
   TrkrHitSetContainer::ConstRange all_hitsets = _hitmap->getHitSets(); 
@@ -220,6 +182,8 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
 		g4hit = _g4hits_tpc->findHit(g4hitkey);
 	      else if(trkrid == TrkrDefs::inttId)
 		g4hit = _g4hits_intt->findHit(g4hitkey);
+	      else if(trkrid == TrkrDefs::outertrackerId)
+		g4hit = _g4hits_outertracker->findHit(g4hitkey);
 	      else
 		g4hit = _g4hits_mvtx->findHit(g4hitkey);
 
@@ -688,6 +652,7 @@ void SvtxHitEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  _g4hits_outertracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_OuterTracker");
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
@@ -704,8 +669,8 @@ bool SvtxHitEval::has_node_pointers()
   }
 
   if (_strict)
-    assert(_g4hits_tpc || _g4hits_intt || _g4hits_mvtx);
-  else if (!_g4hits_tpc && !_g4hits_intt && !_g4hits_mvtx)
+    assert(_g4hits_tpc || _g4hits_intt || _g4hits_mvtx || _g4hits_outertracker);
+  else if (!_g4hits_tpc && !_g4hits_intt && !_g4hits_mvtx && !_g4hits_outertracker)
   {
     cout << "no hits" << endl;
     return false;

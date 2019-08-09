@@ -90,7 +90,7 @@ class SvtxClusterEval
   PHG4HitContainer * _g4hits_tpc;
   PHG4HitContainer * _g4hits_intt;
   PHG4HitContainer * _g4hits_mvtx;
-
+  PHG4HitContainer * _g4hits_outertracker;
 
   bool _strict;
   int _verbosity;

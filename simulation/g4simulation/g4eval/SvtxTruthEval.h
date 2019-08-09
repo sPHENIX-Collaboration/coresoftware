@@ -61,6 +61,7 @@ class SvtxTruthEval
   PHG4HitContainer* _g4hits_svtx;
   PHG4HitContainer* _g4hits_tracker;
   PHG4HitContainer* _g4hits_maps;
+  PHG4HitContainer* _g4hits_outertracker;
 
   bool _strict;
   int _verbosity;

@@ -23,6 +23,7 @@ SvtxTruthEval::SvtxTruthEval(PHCompositeNode* topNode)
   , _g4hits_svtx(nullptr)
   , _g4hits_tracker(nullptr)
   , _g4hits_maps(nullptr)
+  , _g4hits_outertracker(nullptr)
   , _strict(false)
   , _verbosity(1)
   , _errors(0)
@@ -118,6 +119,18 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits()
     }
   }
 
+  // loop over all the g4hits in the outertracker layers
+  if (_g4hits_outertracker)
+  {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_outertracker->getHits().first;
+         g4iter != _g4hits_outertracker->getHits().second;
+         ++g4iter)
+    {
+      PHG4Hit* g4hit = g4iter->second;
+      truth_hits.insert(g4hit);
+    }
+  }
+
   if (_do_cache) _cache_all_truth_hits = truth_hits;
 
   return truth_hits;
@@ -184,6 +197,19 @@ std::set<PHG4Hit*> SvtxTruthEval::all_truth_hits(PHG4Particle* particle)
   {
     for (PHG4HitContainer::ConstIterator g4iter = _g4hits_maps->getHits().first;
          g4iter != _g4hits_maps->getHits().second;
+         ++g4iter)
+    {
+      PHG4Hit* g4hit = g4iter->second;
+      if (!is_g4hit_from_particle(g4hit, particle)) continue;
+      truth_hits.insert(g4hit);
+    }
+  }
+
+  // loop over all the g4hits in the outertracker layers
+  if (_g4hits_outertracker)
+  {
+    for (PHG4HitContainer::ConstIterator g4iter = _g4hits_outertracker->getHits().first;
+         g4iter != _g4hits_outertracker->getHits().second;
          ++g4iter)
     {
       PHG4Hit* g4hit = g4iter->second;
@@ -379,6 +405,7 @@ void SvtxTruthEval::get_node_pointers(PHCompositeNode* topNode)
   _g4hits_svtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
   _g4hits_tracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
   _g4hits_maps = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  _g4hits_outertracker = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_OuterTracker");
 
   return;
 }
@@ -391,8 +418,8 @@ bool SvtxTruthEval::has_node_pointers()
     return false;
 
   if (_strict)
-    assert(_g4hits_svtx || _g4hits_tracker || _g4hits_maps);
-  else if (!_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps)
+    assert(_g4hits_svtx || _g4hits_tracker || _g4hits_maps || _g4hits_outertracker);
+  else if (!_g4hits_svtx && !_g4hits_tracker && !_g4hits_maps && !_g4hits_outertracker)
     return false;
 
   return true;
