@@ -70,6 +70,7 @@ PHPythia8::PHPythia8(const std::string &name)
 PHPythia8::~PHPythia8()
 {
   delete _pythia;
+  delete _pythiaToHepMC;
 }
 
 int PHPythia8::Init(PHCompositeNode *topNode)
