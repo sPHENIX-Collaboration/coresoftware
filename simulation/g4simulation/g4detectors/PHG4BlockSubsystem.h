@@ -44,6 +44,14 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
+  void set_color(const double red, const double green, const double blue, const double alpha=1.)
+  {
+    m_ColorArray[0] = red;
+    m_ColorArray[1] = green;
+    m_ColorArray[2] = blue;
+    m_ColorArray[3] = alpha;
+  }
+
  private:
   void SetDefaultParameters();
 
@@ -58,6 +66,12 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
+  //! Color setting if we want to override the default
+#if !defined(__CINT__) || defined(__CLING__)
+  std::array<double,4> m_ColorArray;
+#else
+  double m_ColorArray[4];
+#endif
 };
 
 #endif

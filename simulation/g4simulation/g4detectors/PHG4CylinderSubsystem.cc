@@ -37,6 +37,7 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int ly
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
 {
+  m_ColorArray.fill(NAN);
   InitializeParameters();
 }
 
@@ -54,7 +55,16 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
     GetParams()->set_double_param("length", PHG4Utils::GetLengthForRapidityCoverage(GetParams()->get_double_param("radius") + GetParams()->get_double_param("thickness")) * 2);
   }
   // create display settings before detector
-  m_DisplayAction = new PHG4CylinderDisplayAction(Name(), GetParams());
+  PHG4CylinderDisplayAction *disp_action = new PHG4CylinderDisplayAction(Name(), GetParams());
+  if (isfinite(m_ColorArray[0]) &&
+      isfinite(m_ColorArray[1]) &&
+      isfinite(m_ColorArray[2]) &&
+      isfinite(m_ColorArray[3]))
+  {
+    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1],m_ColorArray[2],m_ColorArray[3]);
+  }
+  m_DisplayAction = disp_action;
+
   // create detector
   m_Detector = new PHG4CylinderDetector(this, topNode, GetParams(), Name(), GetLayer());
   G4double detlength = GetParams()->get_double_param("length");

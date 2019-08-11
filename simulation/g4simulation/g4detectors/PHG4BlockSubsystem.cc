@@ -50,7 +50,15 @@ int PHG4BlockSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create display settings before detector (detector adds its volumes to it)
-  m_DisplayAction = new PHG4BlockDisplayAction(Name(), GetParams());
+  PHG4BlockDisplayAction *disp_action = new PHG4BlockDisplayAction(Name(), GetParams());
+   if (isfinite(m_ColorArray[0]) &&
+      isfinite(m_ColorArray[1]) &&
+      isfinite(m_ColorArray[2]) &&
+      isfinite(m_ColorArray[3]))
+  {
+    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1],m_ColorArray[2],m_ColorArray[3]);
+  }
+  m_DisplayAction = disp_action;
   // create detector
   m_Detector = new PHG4BlockDetector(this, topNode, GetParams(), Name(), GetLayer());
   m_Detector->SuperDetector(SuperDetector());
