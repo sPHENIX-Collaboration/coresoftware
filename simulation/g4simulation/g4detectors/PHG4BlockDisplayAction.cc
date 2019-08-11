@@ -15,12 +15,14 @@ PHG4BlockDisplayAction::PHG4BlockDisplayAction(const std::string &name, PHParame
   , m_Params(pars)
   , m_MyVolume(nullptr)
   , m_VisAtt(nullptr)
+  , m_Colour(nullptr)
 {
 }
 
 PHG4BlockDisplayAction::~PHG4BlockDisplayAction()
 {
   delete m_VisAtt;
+  delete m_Colour;
 }
 
 void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
@@ -43,6 +45,24 @@ void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     m_VisAtt->SetVisibility(true);
     m_VisAtt->SetForceSolid(true);
   }
+  if (m_Colour)
+  {
+    m_VisAtt->SetColour(m_Colour->GetRed(),
+                        m_Colour->GetGreen(),
+                        m_Colour->GetBlue(), 
+                        m_Colour->GetAlpha());
+    m_VisAtt->SetVisibility(true);
+    m_VisAtt->SetForceSolid(true);
+  }
   m_MyVolume->SetVisAttributes(m_VisAtt);
+  return;
+}
+
+void  PHG4BlockDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
+{
+  if (isfinite(red) && isfinite(green) && isfinite(blue) && isfinite(alpha))
+  {
+    m_Colour = new G4Colour(red,green,blue,alpha);
+  }
   return;
 }
