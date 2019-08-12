@@ -33,7 +33,8 @@ pkginclude_HEADERS = \
   PHTrackSeeding.h \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
-  PHTruthVertexing.h
+  PHTruthVertexing.h \
+  PHRaveVertexing.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc

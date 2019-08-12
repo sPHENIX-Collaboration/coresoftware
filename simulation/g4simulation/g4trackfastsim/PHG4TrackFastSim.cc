@@ -8,7 +8,7 @@
 #include "PHG4TrackFastSim.h"
 
 #include <phgenfit/Fitter.h>
-#include <phgenfit/Measurement.h>                  // for Measurement
+#include <phgenfit/Measurement.h>  // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
 #include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
@@ -20,6 +20,10 @@
 #include <trackbase_historic/SvtxTrackState.h>
 #include <trackbase_historic/SvtxTrackState_v1.h>
 #include <trackbase_historic/SvtxTrack_FastSim.h>
+#include <trackbase_historic/SvtxVertex.h>     // for SvtxVertex
+#include <trackbase_historic/SvtxVertexMap.h>  // for SvtxVertexMap
+#include <trackbase_historic/SvtxVertexMap_v1.h>
+#include <trackbase_historic/SvtxVertex_v1.h>
 
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
@@ -27,19 +31,19 @@
 #include <phfield/PHFieldUtility.h>
 
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>               // for PHG4HitContainer
+#include <g4main/PHG4HitContainer.h>  // for PHG4HitContainer
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                    // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                          // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                        // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -49,30 +53,41 @@
 #include <GenFit/MeasuredStateOnPlane.h>
 #include <GenFit/RKTrackRep.h>
 
+#include <GenFit/FitStatus.h>              // for FitStatus
+#include <GenFit/GFRaveTrackParameters.h>  // for GFRaveTrackParameters
+#include <GenFit/GFRaveVertex.h>
+#include <GenFit/GFRaveVertexFactory.h>
+#include <GenFit/KalmanFittedStateOnPlane.h>  // for KalmanFittedStateOn...
+#include <GenFit/KalmanFitterInfo.h>
+#include <GenFit/MeasuredStateOnPlane.h>
+#include <GenFit/RKTrackRep.h>
+#include <GenFit/Track.h>
+#include <GenFit/TrackPoint.h>
+
 #include <TMath.h>
-#include <TMatrixTSym.h>                           // for TMatrixTSym
-#include <TMatrixTUtils.h>                         // for TMatrixTRow
-#include <TVector3.h>                              // for TVector3, operator*
-#include <TVectorDfwd.h>                           // for TVectorD
-#include <TVectorT.h>                              // for TVectorT
+#include <TMatrixTSym.h>    // for TMatrixTSym
+#include <TMatrixTUtils.h>  // for TMatrixTRow
+#include <TVector3.h>       // for TVector3, operator*
+#include <TVectorDfwd.h>    // for TVectorD
+#include <TVectorT.h>       // for TVectorT
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
-#include <cassert>                                // for assert
+#include <cassert>  // for assert
 #include <cmath>
-#include <iostream>                                // for operator<<, basic_...
-#include <memory>                                  // for unique_ptr, alloca...
+#include <iostream>  // for operator<<, basic_...
 #include <map>
+#include <memory>  // for unique_ptr, alloca...
 #include <utility>
 
 class PHField;
 class TGeoManager;
-namespace genfit 
+namespace genfit
 {
 class AbsTrackRep;
 class Track;
-}
+}  // namespace genfit
 
 #define LogDebug(exp) \
   if (Verbosity()) std::cout << "PHG4TrackFastSim (DEBUG): " << __FILE__ << ": " << __LINE__ << ": " << exp << "\n"
@@ -90,7 +105,12 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
   , _sub_top_node_name("SVTX")
   , /*_clustermap_out_name("SvtxClusterMap"),*/ _trackmap_out_name("SvtxTrackMap")
   , /*_clustermap_out(nullptr),*/ _trackmap_out(nullptr)
+  , _vertexmap(nullptr)
   , _fitter(nullptr)
+  , _vertex_finder(nullptr)
+  , _vertexing_method("kalman-smoothing:1")
+  , _vertex_min_ndf(10)
+  , _do_vertexing(false)
   , _fit_alg_name("DafRef")  // was ("KalmanFitterRefTrack")
   , _primary_assumption_pid(211)
   , _do_evt_display(false)
@@ -109,7 +129,10 @@ PHG4TrackFastSim::PHG4TrackFastSim(const std::string& name)
 
 PHG4TrackFastSim::~PHG4TrackFastSim()
 {
-  delete _fitter;
+  if (_fitter)
+    delete _fitter;
+  if (_vertex_finder)
+    delete _vertex_finder;
   gsl_rng_free(m_RandomGenerator);
 }
 
@@ -194,6 +217,22 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
     }
   }
 
+  if (_do_vertexing)
+  {
+    _vertex_finder = new genfit::GFRaveVertexFactory(Verbosity(), true);
+    //_vertex_finder->setMethod("kalman-smoothing:1"); //! kalman-smoothing:1 is the defaul method
+    _vertex_finder->setMethod(_vertexing_method.data());
+    //_vertex_finder->setBeamspot();
+
+    //_vertex_finder = new PHRaveVertexFactory(Verbosity());
+
+    if (!_vertex_finder)
+    {
+      cerr << PHWHERE << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+  }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -231,11 +270,12 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
   vector<PHGenFit::Track*> rf_tracks;
 
-  PHG4VtxPoint* vtxPoint = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+  PHG4VtxPoint * truthVtx = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+  TVector3 vtxPoint (truthVtx->get_x(), truthVtx->get_y(), truthVtx->get_z());
   // Smear the vertex ONCE for all particles in the event
-  vtxPoint->set_x(vtxPoint->get_x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
-  vtxPoint->set_y(vtxPoint->get_y() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
-  vtxPoint->set_z(vtxPoint->get_z() + gsl_ran_gaussian(m_RandomGenerator, _vertex_z_resolution));
+  vtxPoint.SetX(vtxPoint.x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
+  vtxPoint.SetY(vtxPoint.y() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
+  vtxPoint.SetZ(vtxPoint.z() + gsl_ran_gaussian(m_RandomGenerator, _vertex_z_resolution));
 
   PHG4TruthInfoContainer::ConstRange itr_range;
   if (_primary_tracking)
@@ -249,6 +289,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
     itr_range = _truth_container->GetParticleRange();
   }
 
+  GenFitTrackMap gf_track_map;
   // Now we can loop over the particles
 
   for (PHG4TruthInfoContainer::ConstIterator itr = itr_range.first;
@@ -256,7 +297,7 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
   {
     PHG4Particle* particle = itr->second;
 
-    TVector3 seed_pos(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z());
+    TVector3 seed_pos(vtxPoint.x(), vtxPoint.y(), vtxPoint.z());
     TVector3 seed_mom(0, 0, 0);
     TMatrixDSym seed_cov(6);
 
@@ -267,9 +308,9 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
     if (_use_vertex_in_fitting)
     {
-      vtx_meas = VertexMeasurement(TVector3(vtxPoint->get_x(),
-                                            vtxPoint->get_y(),
-                                            vtxPoint->get_z()),
+      vtx_meas = VertexMeasurement(TVector3(vtxPoint.x(),
+                                            vtxPoint.y(),
+                                            vtxPoint.z()),
                                    _vertex_xy_resolution,
                                    _vertex_z_resolution);
       measurements.push_back(vtx_meas);
@@ -339,18 +380,81 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
       continue;
     }
 
-    TVector3 vtx(vtxPoint->get_x(), vtxPoint->get_y(), vtxPoint->get_z());
+    TVector3 vtx(vtxPoint.x(), vtxPoint.y(), vtxPoint.z());
     SvtxTrack* svtx_track_out = MakeSvtxTrack(track,
                                               particle->get_track_id(),
                                               measurements.size(), vtx);
+    if (Verbosity() > 1)
+      svtx_track_out->identify();
 
     if (svtx_track_out)
     {
-      _trackmap_out->insert(svtx_track_out);
+      //      track -> output container
+
+      const unsigned int track_id = _trackmap_out->insert(svtx_track_out)->get_id();
+      gf_track_map.insert({track->getGenFitTrack(), track_id});
+
       delete svtx_track_out;  // insert makes a clone
     }
 
   }  // Loop all primary particles
+
+  //vertex finding
+  if (_do_vertexing)
+  {
+    if (!_vertex_finder)
+    {
+      cout << __PRETTY_FUNCTION__ << "Failed to init vertex finder" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    if (!_vertexmap)
+    {
+      cout << __PRETTY_FUNCTION__ << "Failed to init vertex map" << endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+    //    genfit::GFRaveVertexFactory* _vertex_finder = new genfit::GFRaveVertexFactory(10, true);
+    //    _vertex_finder->setMethod("kalman-smoothing:1");
+    //    _vertex_finder->setBeamspot();
+
+    vector<genfit::GFRaveVertex*> rave_vertices;
+    if (rf_tracks.size() >= 2)
+    {
+      try
+      {
+        vector<genfit::Track*> rf_gf_tracks;
+        for (std::vector<PHGenFit::Track*>::iterator it = rf_tracks.begin(); it != rf_tracks.end(); ++it)
+        {
+          genfit::Track* track = (*it)->getGenFitTrack();
+
+          if (Verbosity())
+          {
+            TVector3 pos, mom;
+            TMatrixDSym cov;
+
+            track->getFittedState().getPosMomCov(pos, mom, cov);
+
+            cout << "Track getCharge = " << track->getFitStatus()->getCharge() << " getChi2 = " << track->getFitStatus()->getChi2() << " getNdf = " << track->getFitStatus()->getNdf() << endl;
+            pos.Print();
+            mom.Print();
+            cov.Print();
+          }
+          if (track->getFitStatus()->getNdf() > _vertex_min_ndf)
+            rf_gf_tracks.push_back(track);
+        }
+        _vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
+      }
+      catch (...)
+      {
+        if (Verbosity() > 1)
+          std::cout << PHWHERE << "GFRaveVertexFactory::findVertices failed!";
+      }
+    }
+
+    if (Verbosity())
+      cout << __PRETTY_FUNCTION__ << __LINE__ << " rf_tracks = " << rf_tracks.size() << " rave_vertices = " << rave_vertices.size() << endl;
+    FillSvtxVertexMap(rave_vertices, gf_track_map);
+  }
 
   //! add tracks to event display
   if (_do_evt_display)
@@ -374,6 +478,61 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
   //	}
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+/*
+ * Fill SvtxVertexMap from GFRaveVertexes and Tracks
+ */
+bool PHG4TrackFastSim::FillSvtxVertexMap(
+    const std::vector<genfit::GFRaveVertex*>& rave_vertices,
+    const GenFitTrackMap& gf_track_map)
+{
+  for (genfit::GFRaveVertex* rave_vtx : rave_vertices)
+  {
+    if (!rave_vtx)
+    {
+      cerr << PHWHERE << endl;
+      return false;
+    }
+
+    std::shared_ptr<SvtxVertex> svtx_vtx(new SvtxVertex_v1());
+
+    svtx_vtx->set_chisq(rave_vtx->getChi2());
+    svtx_vtx->set_ndof(rave_vtx->getNdf());
+    svtx_vtx->set_position(0, rave_vtx->getPos().X());
+    svtx_vtx->set_position(1, rave_vtx->getPos().Y());
+    svtx_vtx->set_position(2, rave_vtx->getPos().Z());
+
+    for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+        svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
+
+    for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
+    {
+      //TODO improve speed
+      const genfit::Track* rave_track =
+          rave_vtx->getParameters(i)->getTrack();
+      //      for(auto iter : gf_track_map) {
+      //        if (iter.second == rave_track)
+      //          svtx_vtx->insert_track(iter.first);
+      //      }
+      auto iter = gf_track_map.find(rave_track);
+      if (iter != gf_track_map.end())
+        svtx_vtx->insert_track(iter->second);
+    }
+
+    if (_vertexmap)
+    {
+      _vertexmap->insert_clone(svtx_vtx.get());
+    }
+    else
+    {
+      LogError("!_vertexmap");
+    }
+
+  }  //loop over RAVE vertices
+
+  return true;
 }
 
 int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
@@ -416,6 +575,16 @@ int PHG4TrackFastSim::CreateNodes(PHCompositeNode* topNode)
   tb_node->addNode(tracks_node);
   if (Verbosity() > 0)
     cout << _trackmap_out_name.c_str() << " node added" << endl;
+
+  if (_do_vertexing)
+  {
+    _vertexmap = new SvtxVertexMap_v1;
+    PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+        _vertexmap, "SvtxVertexMap", "PHObject");
+    tb_node->addNode(vertexes_node);
+    if (Verbosity() > 0)
+      cout << "Svtx/SvtxVertexMap node added" << endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -656,6 +825,8 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
   double pathlenth_orig_from_first_meas = phgf_track->extrapolateToLine(*gf_state, vtx,
                                                                         TVector3(0., 0., 1.));
 
+  if (Verbosity() > 1)
+    cout << __PRETTY_FUNCTION__ << __LINE__ << " pathlenth_orig_from_first_meas = " << pathlenth_orig_from_first_meas << endl;
   if (pathlenth_orig_from_first_meas < -999990)
   {
     LogError("Extraction faild!");
@@ -748,6 +919,42 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     // the state is cloned on insert_state, so delete this copy here!
     delete state;
   }
+
+  //  // State Projections
+  //  {
+  //    // Project to a cylinder at fixed r
+  //    pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, 2., TVector3(0., 0., 0.),
+  //                                                                  TVector3(0., 0., 1.), 0, -1);
+  //
+  //    SvtxTrackState* state = new SvtxTrackState_v1(pathlenth_from_first_meas - pathlenth_orig_from_first_meas);
+  //    state->set_x(gf_state->getPos().x());
+  //    state->set_y(gf_state->getPos().y());
+  //    state->set_z(gf_state->getPos().z());
+  //
+  //    state->set_px(gf_state->getMom().x());
+  //    state->set_py(gf_state->getMom().y());
+  //    state->set_pz(gf_state->getMom().z());
+  //
+  //    //    state->set_name(string("BeamPipe"));
+  //
+  //    for (int i = 0; i < 6; i++)
+  //    {
+  //      for (int j = i; j < 6; j++)
+  //      {
+  //        state->set_error(i, j, gf_state->get6DCov()[i][j]);
+  //      }
+  //    }
+  //    out_track->insert_state(state);
+  //
+  //    cout << __PRETTY_FUNCTION__ << __LINE__;
+  //    state->identify();
+  //
+  //    // the state is cloned on insert_state, so delete this copy here!
+  //    delete state;
+  //  }
+  //
+  //  cout << __PRETTY_FUNCTION__ << __LINE__;
+  //  out_track->identify();
 
   return static_cast<SvtxTrack*>(out_track);
 }
