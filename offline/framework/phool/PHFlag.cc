@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <utility>   // for pair
 
 using namespace std;
 

@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <sys/stat.h>
+#include <unistd.h>             // for close
 
 using namespace std;
 
