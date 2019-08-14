@@ -1,6 +1,11 @@
 #include "PHSartre.h"
 #include "PHSartreGenTrigger.h"
 
+#include <sartre/Enumerations.h>            // for incoherent
+#include <sartre/Event.h>                   // for Particle, Event
+#include <sartre/EventGeneratorSettings.h>  // for EventGeneratorSettings
+
+
 #include <phhepmc/PHHepMCGenHelper.h>       // for PHHepMCGenHelper
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -23,10 +28,13 @@
 
 #include <gsl/gsl_rng.h>                    // for gsl_rng_uniform
 
-#include <cfloat>                          // for FLT_EPSILON
+#include <cfloat>                           // for FLT_EPSILON
 #include <cmath>                            // for M_PI
+#include <cstdlib>                          // for getenv
 #include <iostream>                         // for operator<<, endl, basic_o...
 #include <memory>                           // for allocator_traits<>::value...
+
+class PHHepMCGenEvent;
 
 using namespace std;
 

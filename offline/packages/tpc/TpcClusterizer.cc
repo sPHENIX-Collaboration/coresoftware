@@ -11,16 +11,19 @@
 #include <trackbase/TrkrHitSetContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                         // for PHIODataNode
+#include <phool/PHNode.h>                               // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                             // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
-#include <TMatrixF.h>
 #include <TMatrixFfwd.h>    // for TMatrixF
 #include <TMatrixT.h>       // for TMatrixT, ope...
 #include <TMatrixTUtils.h>  // for TMatrixTRow

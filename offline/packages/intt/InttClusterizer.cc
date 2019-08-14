@@ -20,8 +20,7 @@
 #include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
+#include <phool/PHObject.h>                         // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
@@ -37,6 +36,7 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <vector>                                   // for vector
 
 using namespace boost;
 using namespace std;
@@ -76,7 +76,6 @@ InttClusterizer::InttClusterizer(const string& name,
   , _thresholds_by_layer()
   , _make_z_clustering()
   , _make_e_weights()
-  , _timer(PHTimeServer::get()->insert_new(name))
 {
 }
 
@@ -184,7 +183,6 @@ int InttClusterizer::InitRun(PHCompositeNode* topNode)
 
 int InttClusterizer::process_event(PHCompositeNode* topNode)
 {
-  _timer.get()->restart();
 
   // get node containing the digitized hits
   m_hits = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
@@ -213,7 +211,6 @@ int InttClusterizer::process_event(PHCompositeNode* topNode)
   ClusterLadderCells(topNode);
   PrintClusters(topNode);
 
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
