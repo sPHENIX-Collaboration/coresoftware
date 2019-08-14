@@ -18,6 +18,7 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                     // for SubsysReco
@@ -46,7 +47,6 @@ PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_Detector("INTT")
-  , m_ChkEnergyConservationFlag(0)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
 {
@@ -343,7 +343,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
           // here m_SegmentVec.1 (Y) and m_SegmentVec.2 (Z) are the center of the circle, and diffusion_radius is the circle radius
           // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
-          double striparea_frac = circle_rectangle_intersection(y1, z1, y2, z2, gsl_vector_get(m_SegmentVec, 1), gsl_vector_get(m_SegmentVec, 2), diffusion_radius) / (M_PI * (diffusion_radius * diffusion_radius));
+          double striparea_frac = PHG4Utils::circle_rectangle_intersection(y1, z1, y2, z2, gsl_vector_get(m_SegmentVec, 1), gsl_vector_get(m_SegmentVec, 2), diffusion_radius) / (M_PI * (diffusion_radius * diffusion_radius));
           // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
           stripenergy[iy - minstrip_y][iz - minstrip_z] += striparea_frac * hiter->second->get_edep() / (float) nsegments;
           if (hiter->second->has_property(PHG4Hit::prop_eion))
@@ -424,85 +424,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       hitsetcontainer->identify();
       hittruthassoc->identify();
     }
-  if (m_ChkEnergyConservationFlag)
-    {
-      CheckEnergy(topNode);
-    }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4InttHitReco::CheckEnergy(PHCompositeNode *topNode)
-{
-
-  return 0;
-}
-
-double PHG4InttHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const
-{
-  // Find the area of overlap of a circle and rectangle
-  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
-
-  // move the rectangle to the frame where the circle is at (0,0)
-  x1 -= mx;
-  x2 -= mx;
-  y1 -= my;
-  y2 -= my;
-
-  if (Verbosity() > 7)
-  {
-    cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
-    cout << " sA21 " << sA(r, x2, y1)
-         << " sA11 " << sA(r, x1, y1)
-         << " sA22 " << sA(r, x2, y2)
-         << " sA12 " << sA(r, x1, y2)
-         << endl;
-  }
-
-  return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
-}
-
-double PHG4InttHitReco::sA(double r, double x, double y) const
-{
-  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
-  // It is called repeatedly to find the overlap area between the circle and rectangle
-  // I found this code implementing the integral on a web forum called "ars technica",
-  // https://arstechnica.com/civis/viewtopic.php?t=306492
-  // posted by "memp"
-
-  double a;
-
-  if (x < 0)
-  {
-    return -sA(r, -x, y);
-  }
-
-  if (y < 0)
-  {
-    return -sA(r, x, -y);
-  }
-
-  if (x > r)
-  {
-    x = r;
-  }
-
-  if (y > r)
-  {
-    y = r;
-  }
-
-  if (x * x + y * y > r * r)
-  {
-    a = r * r * asin(x / r) + x * sqrt(r * r - x * x) + r * r * asin(y / r) + y * sqrt(r * r - y * y) - r * r * M_PI_2;
-
-    a *= 0.5;
-  }
-  else
-  {
-    a = x * y;
-  }
-
-  return a;
 }
 
 void PHG4InttHitReco::SetDefaultParameters()

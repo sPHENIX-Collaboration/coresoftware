@@ -34,21 +34,10 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
 
  protected:
 
-  double circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r);
-  double sA(double r, double x, double y);
-
-  std::map<int, int> binning;
-  std::map<int, std::pair<double, double> > zmin_max;  // zmin/zmax for each layer for faster lookup
-  std::map<int, double> etastep;
   std::string detector;
   std::string hitnodename;
-  std::string cellnodename;
   std::string geonodename;
-  std::string seggeonodename;
-  int nbins[2];
-  int chkenergyconservation;
   std::map<int, std::pair<double, double> > tmin_max;
-  //std::map<unsigned long long, PHG4Cell *> celllist;  // This map holds the hit cells
 };
 
 #endif

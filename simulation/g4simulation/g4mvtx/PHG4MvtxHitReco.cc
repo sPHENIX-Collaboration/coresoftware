@@ -19,6 +19,7 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                         // for SubsysReco
@@ -48,11 +49,8 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
   , detector(name)
-  , chkenergyconservation(0)
 {
   SetDefaultParameters();  // sets default timing window
-  memset(nbins, 0, sizeof(nbins));
-
   if (Verbosity() > 0)
     cout << "Creating PHG4MvtxHitReco for name = " << name << endl;
 }
@@ -76,25 +74,6 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     cout << "Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
-  /*
-  cellnodename = "G4CELL_" + detector;
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
-  if (!cells)
-  {
-    PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode",
-                                                          detector));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(detector);
-      dstNode->addNode(DetNode);
-    }
-    cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
-    DetNode->addNode(newNode);
-  }
-  */
 
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
@@ -156,16 +135,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  /*
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
-  if (!cells)
-  {
-    cout << "could not locate cell node " << cellnodename << endl;
-    exit(1);
-  }
-  */
-
-  geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
   if (!geo)
   {
@@ -493,7 +462,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
             // here segvec.X and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
             // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
-            double pixarea_frac = circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius, 2));
+            double pixarea_frac = PHG4Utils::circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius, 2));
             // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
             pixenergy[ix - xbin_min][iz - zbin_min] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
             if (hiter->second->has_property(PHG4Hit::prop_eion))
@@ -580,75 +549,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-
-double PHG4MvtxHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r)
-{
-  // Find the area of overlap of a circle and rectangle
-  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
-
-  // move the rectangle to the frame where the circle is at (0,0)
-  x1 -= mx;
-  x2 -= mx;
-  y1 -= my;
-  y2 -= my;
-
-  if (Verbosity() > 7)
-  {
-    cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
-    cout << " sA21 " << sA(r, x2, y1)
-         << " sA11 " << sA(r, x1, y1)
-         << " sA22 " << sA(r, x2, y2)
-         << " sA12 " << sA(r, x1, y2)
-         << endl;
-  }
-
-  return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
-}
-
-double PHG4MvtxHitReco::sA(double r, double x, double y)
-{
-  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
-  // It is called repeatedly to find the overlap area between the circle and rectangle
-  // I found this code implementing the integral on a web forum called "ars technica",
-  // https://arstechnica.com/civis/viewtopic.php?t=306492
-  // posted by "memp"
-
-  double a;
-
-  if (x < 0)
-  {
-    return -sA(r, -x, y);
-  }
-
-  if (y < 0)
-  {
-    return -sA(r, x, -y);
-  }
-
-  if (x > r)
-  {
-    x = r;
-  }
-
-  if (y > r)
-  {
-    y = r;
-  }
-
-  if (x * x + y * y > r * r)
-  {
-    a = r * r * asin(x / r) + x * sqrt(r * r - x * x) + r * r * asin(y / r) + y * sqrt(r * r - y * y) - r * r * M_PI_2;
-
-    a *= 0.5;
-  }
-  else
-  {
-    a = x * y;
-  }
-
-  return a;
 }
 
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)

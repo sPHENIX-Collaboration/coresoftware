@@ -323,3 +323,70 @@ std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
     }
   return make_pair(false,NAN);
 }
+
+double PHG4Utils::sA(double r, double x, double y)
+{
+  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
+  // It is called repeatedly to find the overlap area between the circle and rectangle
+  // I found this code implementing the integral on a web forum called "ars technica",
+  // https://arstechnica.com/civis/viewtopic.php?t=306492
+  // posted by "memp"
+
+  double a;
+
+  if (x < 0)
+  {
+    return -sA(r, -x, y);
+  }
+
+  if (y < 0)
+  {
+    return -sA(r, x, -y);
+  }
+
+  if (x > r)
+  {
+    x = r;
+  }
+
+  if (y > r)
+  {
+    y = r;
+  }
+
+  if (x * x + y * y > r * r)
+  {
+    a = r * r * asin(x / r) + x * sqrt(r * r - x * x) + r * r * asin(y / r) + y * sqrt(r * r - y * y) - r * r * M_PI_2;
+
+    a *= 0.5;
+  }
+  else
+  {
+    a = x * y;
+  }
+
+  return a;
+}
+
+double PHG4Utils::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r)
+{
+  // Find the area of overlap of a circle and rectangle
+  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
+
+  // move the rectangle to the frame where the circle is at (0,0)
+  x1 -= mx;
+  x2 -= mx;
+  y1 -= my;
+  y2 -= my;
+
+  // {
+  //   cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
+  //   cout << " sA21 " << sA(r, x2, y1)
+  //        << " sA11 " << sA(r, x1, y1)
+  //        << " sA22 " << sA(r, x2, y2)
+  //        << " sA12 " << sA(r, x1, y2)
+  //        << endl;
+  // }
+
+  return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
+}
