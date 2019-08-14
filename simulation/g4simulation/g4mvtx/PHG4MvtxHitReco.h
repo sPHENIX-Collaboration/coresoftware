@@ -7,7 +7,7 @@
 
 #include <map>
 #include <string>
-#include <utility>                                      // for pair
+#include <utility>  // for pair
 
 class PHCompositeNode;
 
@@ -33,7 +33,6 @@ class PHG4MvtxHitReco : public SubsysReco, public PHParameterContainerInterface
   void SetDefaultParameters();
 
  protected:
-
   std::string detector;
   std::string hitnodename;
   std::string geonodename;

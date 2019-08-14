@@ -2,16 +2,16 @@
 
 #include <intt/CylinderGeomIntt.h>
 
-#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
+#include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                      // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <intt/InttDefs.h>
 #include <intt/InttHit.h>
@@ -21,25 +21,25 @@
 #include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                            // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <map>                                      // for _Rb_tree_const_it...
-#include <memory>                                   // for allocator_traits<...
-#include <utility>                                  // for pair, swap, make_...
-#include <vector>                                   // for vector
+#include <map>      // for _Rb_tree_const_it...
+#include <memory>   // for allocator_traits<...
+#include <utility>  // for pair, swap, make_...
+#include <vector>   // for vector
 
 using namespace std;
 
@@ -115,39 +115,39 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!hitsetcontainer)
-    {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
+  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!hitsetcontainer)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
         dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
-
-      hitsetcontainer = new TrkrHitSetContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
-      DetNode->addNode(newNode);
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
     }
 
- TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
-  if(!hittruthassoc)
-    {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
+    hitsetcontainer = new TrkrHitSetContainer();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
-      hittruthassoc = new TrkrHitTruthAssoc();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
-      DetNode->addNode(newNode);
+  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  if (!hittruthassoc)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
     }
+
+    hittruthassoc = new TrkrHitTruthAssoc();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
@@ -187,21 +187,21 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
- // Get the TrkrHitSetContainer node
+  // Get the TrkrHitSetContainer node
   TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!hitsetcontainer)
-    {
-      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
-      exit(1);
-    }
+  if (!hitsetcontainer)
+  {
+    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    exit(1);
+  }
 
   // Get the TrkrHitTruthAssoc node
   TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
-  if(!hittruthassoc)
-    {
-      cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
-      exit(1);
-    }
+  if (!hittruthassoc)
+  {
+    cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
+    exit(1);
+  }
 
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
@@ -390,40 +390,39 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
-      
+
       // generate the key for this hit
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
       // See if this hit already exists
       TrkrHit *hit = hitsetit->second->getHit(hitkey);
-      if(!hit)
-	{
-	  // Otherwise, create a new one
-	  hit = new InttHit();
-	  hitsetit->second->addHitSpecificKey(hitkey, hit);
-	}
-      
+      if (!hit)
+      {
+        // Otherwise, create a new one
+        hit = new InttHit();
+        hitsetit->second->addHitSpecificKey(hitkey, hit);
+      }
+
       // Either way, add the energy to it
-      if(Verbosity() > 2) 
-	cout << "add energy " << venergy[i1].first << " to intthit " << endl;
+      if (Verbosity() > 2)
+        cout << "add energy " << venergy[i1].first << " to intthit " << endl;
       hit->addEnergy(venergy[i1].first);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
-      if(Verbosity() > 2)
-	cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;      
+      if (Verbosity() > 2)
+        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;
     }
 
   }  // end loop over g4hits
 
-
   // print the list of entries in the association table
-  if(Verbosity() > 0)
-    {
-      cout << "From PHG4InttHitReco: " << endl;
-      hitsetcontainer->identify();
-      hittruthassoc->identify();
-    }
+  if (Verbosity() > 0)
+  {
+    cout << "From PHG4InttHitReco: " << endl;
+    hitsetcontainer->identify();
+    hittruthassoc->identify();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
