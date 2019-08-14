@@ -1,4 +1,4 @@
-// this is the new trackbase version 
+// this is the new trackbase version
 
 #include "PHG4MvtxHitReco.h"
 
@@ -7,40 +7,41 @@
 #include <mvtx/MvtxHit.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                          // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <g4detectors/PHG4CylinderGeom.h>               // for PHG4CylinderGeom
+#include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <phparameter/PHParameterContainerInterface.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                               // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                             // for PHObject
-#include <phool/PHTimeServer.h>                         // for PHTimeServer
-#include <phool/PHTimer.h>                              // for PHTimer
+#include <phool/PHObject.h>      // for PHObject
+#include <phool/PHTimeServer.h>  // for PHTimeServer
+#include <phool/PHTimer.h>       // for PHTimer
 #include <phool/getClass.h>
-#include <phool/phool.h>                                // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
-#include <TVector3.h>                                   // for TVector3, ope...
+#include <TVector3.h>  // for TVector3, ope...
 
 #include <cmath>
 #include <cstdlib>
-#include <cstring>                                     // for memset
+#include <cstring>  // for memset
 #include <iostream>
-#include <memory>                                       // for allocator_tra...
-#include <vector>                                       // for vector
+#include <memory>  // for allocator_tra...
+#include <vector>  // for vector
 
 using namespace std;
 
@@ -48,12 +49,8 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
   , detector(name)
-  , _timer(PHTimeServer::get()->insert_new(name))
-  , chkenergyconservation(0)
 {
   SetDefaultParameters();  // sets default timing window
-  memset(nbins, 0, sizeof(nbins));
-
   if (Verbosity() > 0)
     cout << "Creating PHG4MvtxHitReco for name = " << name << endl;
 }
@@ -77,25 +74,6 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
     cout << "Could not locate g4 hit node " << hitnodename << endl;
     exit(1);
   }
-  /*
-  cellnodename = "G4CELL_" + detector;
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
-  if (!cells)
-  {
-    PHNodeIterator dstiter(dstNode);
-    PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode",
-                                                          detector));
-    if (!DetNode)
-    {
-      DetNode = new PHCompositeNode(detector);
-      dstNode->addNode(DetNode);
-    }
-    cells = new PHG4CellContainer();
-    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(cells, cellnodename.c_str(), "PHObject");
-    DetNode->addNode(newNode);
-  }
-  */
 
   geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
@@ -110,38 +88,38 @@ int PHG4MvtxHitReco::InitRun(PHCompositeNode *topNode)
   }
 
   TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!hitsetcontainer)
-    {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
+  if (!hitsetcontainer)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
         dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
-
-      hitsetcontainer = new TrkrHitSetContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
-      DetNode->addNode(newNode);
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
     }
 
-  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
-  if(!hittruthassoc)
-    {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
+    hitsetcontainer = new TrkrHitSetContainer();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
-      hittruthassoc = new TrkrHitTruthAssoc();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
-      DetNode->addNode(newNode);
+  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  if (!hittruthassoc)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
     }
+
+    hittruthassoc = new TrkrHitTruthAssoc();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -150,7 +128,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 {
   //cout << PHWHERE << "Entering process_event for PHG4MvtxHitReco" << endl;
 
-  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
@@ -158,16 +135,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
-  /*
-  PHG4CellContainer *cells = findNode::getClass<PHG4CellContainer>(topNode, cellnodename);
-  if (!cells)
-  {
-    cout << "could not locate cell node " << cellnodename << endl;
-    exit(1);
-  }
-  */
-
-  geonodename = "CYLINDERGEOM_" + detector;
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, geonodename.c_str());
   if (!geo)
   {
@@ -177,19 +144,19 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
   // Get the TrkrHitSetContainer node
   TrkrHitSetContainer *trkrhitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!trkrhitsetcontainer)
-    {
-      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
-      exit(1);
-    }
+  if (!trkrhitsetcontainer)
+  {
+    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    exit(1);
+  }
 
   // Get the TrkrHitTruthAssoc node
   TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
-  if(!hittruthassoc)
-    {
-      cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
-      exit(1);
-    }
+  if (!hittruthassoc)
+  {
+    cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
+    exit(1);
+  }
 
   // loop over all of the layers in the g4hit container
   PHG4HitContainer::LayerIter layer;
@@ -495,7 +462,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 
             // here segvec.X and segvec.Z are the center of the circle, and diffusion_radius is the circle radius
             // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
-            double pixarea_frac = circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius, 2));
+            double pixarea_frac = PHG4Utils::circle_rectangle_intersection(x1, z1, x2, z2, segvec.X(), segvec.Z(), ydiffusion_radius) / (M_PI * pow(ydiffusion_radius, 2));
             // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
             pixenergy[ix - xbin_min][iz - zbin_min] += pixarea_frac * hiter->second->get_edep() / (float) nsegments;
             if (hiter->second->has_property(PHG4Hit::prop_eion))
@@ -538,282 +505,50 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       // loop over all fired cells for this g4hit and add them to the TrkrHitSet
       for (unsigned int i1 = 0; i1 < vpixel.size(); i1++)  // loop over all fired cells
       {
-	// This is the new storage object version
-	//====================================
+        // This is the new storage object version
+        //====================================
 
-	// We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx	
-	TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number);
-	// Use existing hitset or add new one if needed
-	TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
+        // We need to create the TrkrHitSet if not already made - each TrkrHitSet should correspond to a chip for the Mvtx
+        TrkrDefs::hitsetkey hitsetkey = MvtxDefs::genHitSetKey(*layer, stave_number, chip_number);
+        // Use existing hitset or add new one if needed
+        TrkrHitSetContainer::Iterator hitsetit = trkrhitsetcontainer->findOrAddHitSet(hitsetkey);
 
-	// generate the key for this hit
-	TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
-	// See if this hit already exists
-	TrkrHit *hit = nullptr;
-	hit = hitsetit->second->getHit(hitkey);
-	if(!hit)
-	  {
-	    // Otherwise, create a new one
-	    hit = new MvtxHit();
-	    hitsetit->second->addHitSpecificKey(hitkey, hit);
-	  }
+        // generate the key for this hit
+        TrkrDefs::hitkey hitkey = MvtxDefs::genHitKey(vzbin[i1], vxbin[i1]);
+        // See if this hit already exists
+        TrkrHit *hit = nullptr;
+        hit = hitsetit->second->getHit(hitkey);
+        if (!hit)
+        {
+          // Otherwise, create a new one
+          hit = new MvtxHit();
+          hitsetit->second->addHitSpecificKey(hitkey, hit);
+        }
 
-	// Either way, add the energy to it
-	hit->addEnergy(venergy[i1].first);
-	
-	// now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
-	// There is only one TrkrHit per pixel, but there may be multiple g4hits
-	// How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
+        // Either way, add the energy to it
+        hit->addEnergy(venergy[i1].first);
 
-	// How do we check if this association already exists?
-	//cout << "PHG4MvtxHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl; 
-	hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
-	
-      } // end loop over hit cells
-    }  // end loop over g4hits for this layer
+        // now we update the TrkrHitTruthAssoc map - the map contains <hitsetkey, std::pair <hitkey, g4hitkey> >
+        // There is only one TrkrHit per pixel, but there may be multiple g4hits
+        // How do we know how much energy from PHG4Hit went into TrkrHit? We don't, have to sort it out in evaluator to save memory
 
-  } // end loop over layers
+        // How do we check if this association already exists?
+        //cout << "PHG4MvtxHitReco: adding association entry for hitkey " << hitkey << " and g4hitkey " << hiter->first << endl;
+        hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
+
+      }  // end loop over hit cells
+    }    // end loop over g4hits for this layer
+
+  }  // end loop over layers
 
   // print the list of entries in the association table
-  if(Verbosity() > 2)
+  if (Verbosity() > 2)
   {
     cout << "From PHG4MvtxHitReco: " << endl;
     hittruthassoc->identify();
   }
 
-  if (chkenergyconservation)
-  {
-    CheckEnergy(topNode);
-  }
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4MvtxHitReco::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4MvtxHitReco::CheckEnergy(PHCompositeNode *topNode)
-{
-  return 0;
-}
-
-bool PHG4MvtxHitReco::lines_intersect(
-    double ax,
-    double ay,
-    double bx,
-    double by,
-    double cx,
-    double cy,
-    double dx,
-    double dy,
-    double *rx,  // intersection point (output)
-    double *ry)
-{
-  // Find if a line segment limited by points A and B
-  // intersects line segment limited by points C and D.
-  // First check if an infinite line defined by A and B intersects
-  // segment (C,D). If h is from 0 to 1 line and line segment intersect
-  // Then check in intersection point is between C and D
-
-  double ex = bx - ax;  // E=B-A
-  double ey = by - ay;
-  double fx = dx - cx;  // F=D-C
-  double fy = dy - cy;
-  double px = -ey;  // P
-  double py = ex;
-
-  double bottom = fx * px + fy * py;  // F*P
-  double gx = ax - cx;                // A-C
-  double gy = ay - cy;
-  double top = gx * px + gy * py;  // G*P
-
-  double h = 99999.;
-  if (bottom != 0.)
-  {
-    h = top / bottom;
-  }
-
-  //intersection point R = C + F*h
-  if (h > 0. && h < 1.)
-  {
-    *rx = cx + fx * h;
-    *ry = cy + fy * h;
-    //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
-    if ((*rx > ax && *rx > bx) || (*rx < ax && *rx < bx) || (*ry < ay && *ry < by) || (*ry > ay && *ry > by))
-    {
-      //cout << "       NO segment/segment intersection!" << endl;
-      return false;
-    }
-    else
-    {
-      //cout << "       segment/segment intersection!" << endl;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-bool PHG4MvtxHitReco::line_and_rectangle_intersect(
-    double ax,
-    double ay,
-    double bx,
-    double by,
-    double cx,
-    double cy,
-    double dx,
-    double dy,
-    double *rr  // length of the line segment inside the rectangle (output)
-)
-{
-  // find if a line isegment limited by points (A,B)
-  // intersects with a rectangle defined by two
-  // corner points (C,D) two other points are E and F
-  //   E--------D
-  //   |        |
-  //   |        |
-  //   C--------F
-
-  if (cx > dx || cy > dy)
-  {
-    cerr << "ERROR: Bad rectangle definition!" << endl;
-    return false;
-  }
-
-  double ex = cx;
-  double ey = dy;
-  double fx = dx;
-  double fy = cy;
-  double rx = 99999.;
-  double ry = 99999.;
-
-  vector<double> vx;
-  vector<double> vy;
-
-  bool i1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy, &rx, &ry);
-  if (i1)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy, &rx, &ry);
-  if (i2)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy, &rx, &ry);
-  if (i3)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey, &rx, &ry);
-  if (i4)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-
-  //cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
-  //cout << "Number of intersections = " << vx.size() << endl;
-
-  *rr = 0.;
-  if (vx.size() == 2)
-  {
-    *rr = sqrt((vx[0] - vx[1]) * (vx[0] - vx[1]) + (vy[0] - vy[1]) * (vy[0] - vy[1]));
-    //  cout << "Length of intersection = " << *rr << endl;
-  }
-  if (vx.size() == 1)
-  {
-    // find which point (A or B) is within the rectangle
-    if (ax > cx && ay > cy && ax < dx && ay < dy)  // point A is inside the rectangle
-    {
-      //cout << "Point A is inside the rectangle." << endl;
-      *rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
-    }
-    if (bx > cx && by > cy && bx < dx && by < dy)  // point B is inside the rectangle
-    {
-      //cout << "Point B is inside the rectangle." << endl;
-      *rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
-    }
-  }
-
-  if (i1 || i2 || i3 || i4)
-  {
-    return true;
-  }
-  return false;
-}
-
-double PHG4MvtxHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r)
-{
-  // Find the area of overlap of a circle and rectangle
-  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
-
-  // move the rectangle to the frame where the circle is at (0,0)
-  x1 -= mx;
-  x2 -= mx;
-  y1 -= my;
-  y2 -= my;
-
-  if (Verbosity() > 7)
-  {
-    cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
-    cout << " sA21 " << sA(r, x2, y1)
-         << " sA11 " << sA(r, x1, y1)
-         << " sA22 " << sA(r, x2, y2)
-         << " sA12 " << sA(r, x1, y2)
-         << endl;
-  }
-
-  return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
-}
-
-double PHG4MvtxHitReco::sA(double r, double x, double y)
-{
-  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
-  // It is called repeatedly to find the overlap area between the circle and rectangle
-  // I found this code implementing the integral on a web forum called "ars technica",
-  // https://arstechnica.com/civis/viewtopic.php?t=306492
-  // posted by "memp"
-
-  double a;
-
-  if (x < 0)
-  {
-    return -sA(r, -x, y);
-  }
-
-  if (y < 0)
-  {
-    return -sA(r, x, -y);
-  }
-
-  if (x > r)
-  {
-    x = r;
-  }
-
-  if (y > r)
-  {
-    y = r;
-  }
-
-  if (x * x + y * y > r * r)
-  {
-    a = r * r * asin(x / r) + x * sqrt(r * r - x * x) + r * r * asin(y / r) + y * sqrt(r * r - y * y) - r * r * M_PI_2;
-
-    a *= 0.5;
-  }
-  else
-  {
-    a = x * y;
-  }
-
-  return a;
 }
 
 void PHG4MvtxHitReco::set_timing_window(const int detid, const double tmin, const double tmax)
@@ -833,7 +568,8 @@ void PHG4MvtxHitReco::SetDefaultParameters()
 {
   cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
   for (int ilayer = 0; ilayer < 3; ilayer++)
+  {
     tmin_max.insert(std::make_pair(ilayer, std::make_pair(-5000, 5000)));
-
+  }
   return;
 }
