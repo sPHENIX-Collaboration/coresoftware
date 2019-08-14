@@ -1,5 +1,6 @@
 #include "PHG4Utils.h"
 
+#include <phool/phool.h>
 #include <Geant4/G4Colour.hh>          // for G4Colour
 #include <Geant4/G4VisAttributes.hh>
 
@@ -169,4 +170,156 @@ void PHG4Utils::SetColour(G4VisAttributes* att, const string& material)
     att->SetColour(G4Colour::Cyan());
   }
   return;
+}
+// returns success/failure and intersection point (x/y)
+std::pair<bool,std::pair<double,double>> PHG4Utils::lines_intersect(
+					   double ax,
+					   double ay,
+					   double bx,
+					   double by,
+					   double cx,
+					   double cy,
+					   double dx,
+					   double dy
+					   )
+{
+
+  // Find if a line segment limited by points A and B
+  // intersects line segment limited by points C and D.
+  // First check if an infinite line defined by A and B intersects
+  // segment (C,D). If h is from 0 to 1 line and line segment intersect
+  // Then check in intersection point is between C and D
+  double rx = NAN;
+  double ry = NAN;
+  double ex = bx - ax; // E=B-A
+  double ey = by - ay;
+  double fx = dx - cx; // F=D-C
+  double fy = dy - cy;
+  double px = -ey;     // P
+  double py = ex;
+
+  double bottom = fx * px + fy * py; // F*P
+  double gx = ax - cx; // A-C
+  double gy = ay - cy;
+  double top = gx * px + gy * py; // G*P
+
+  double h = 99999.;
+  if (bottom != 0.)
+    {
+      h = top / bottom;
+    }
+
+  //intersection point R = C + F*h
+  if (h > 0. && h < 1.)
+    {
+      rx = cx + fx * h;
+      ry = cy + fy * h;
+      //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
+      if ((rx > ax && rx > bx) || (rx < ax && rx < bx) || (ry < ay && ry < by) || (ry > ay && ry > by))
+	{
+	  //cout << "       NO segment/segment intersection!" << endl;
+	  return make_pair(false,make_pair(NAN,NAN));
+	}
+      else
+	{
+	  //cout << "       segment/segment intersection!" << endl;
+	  return make_pair(true,make_pair(rx,ry));
+	}
+    }
+
+  return make_pair(false,make_pair(NAN,NAN));
+}
+
+// returns success/failure and length of the line segment inside the rectangle (output)
+std::pair<bool, double> PHG4Utils::line_and_rectangle_intersect(
+							 double ax,
+							 double ay,
+							 double bx,
+							 double by,
+							 double cx,
+							 double cy,
+							 double dx,
+							 double dy
+							 )
+{
+
+  // find if a line isegment limited by points (A,B)
+  // intersects with a rectangle defined by two
+  // corner points (C,D) two other points are E and F
+  //   E--------D
+  //   |        |
+  //   |        |
+  //   C--------F
+
+  if (cx > dx || cy > dy)
+    {
+      cout << PHWHERE << "ERROR: Bad rectangle definition!" << endl;
+      return make_pair(false,NAN);
+    }
+
+  double ex = cx;
+  double ey = dy;
+  double fx = dx;
+  double fy = cy;
+
+  vector<double> vx;
+  vector<double> vy;
+  pair<bool,pair<double,double>> intersect1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy);
+//  bool i1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy, &rx, &ry);
+  if (intersect1.first)
+    {
+      vx.push_back(intersect1.second.first);
+      vy.push_back(intersect1.second.second);
+    }
+  pair<bool,pair<double,double>> intersect2  = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy);
+//  bool i2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy, &rx, &ry);
+  if (intersect2.first)
+    {
+      vx.push_back(intersect2.second.first);
+      vy.push_back(intersect2.second.second);
+    }
+  pair<bool,pair<double,double>> intersect3  = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy);
+//  bool i3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy, &rx, &ry);
+  if (intersect3.first)
+    {
+      vx.push_back(intersect3.second.first);
+      vy.push_back(intersect3.second.second);
+    }
+  pair<bool,pair<double,double>> intersect4  = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey);
+//  bool i4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey, &rx, &ry);
+  if (intersect4.first)
+    {
+      vx.push_back(intersect4.second.first);
+      vy.push_back(intersect4.second.second);
+    }
+
+  //cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
+  //cout << "Number of intersections = " << vx.size() << endl;
+
+  double rr = 0.;
+  if (vx.size() == 2)
+    {
+      rr = sqrt( (vx[0] - vx[1]) * (vx[0] - vx[1]) + (vy[0] - vy[1]) * (vy[0] - vy[1]) );
+      //  cout << "Length of intersection = " << *rr << endl;
+    }
+  if (vx.size() == 1)
+    {
+      // find which point (A or B) is within the rectangle
+      if (ax > cx && ay > cy && ax < dx && ay < dy)   // point A is inside the rectangle
+	{
+	  //cout << "Point A is inside the rectangle." << endl;
+	  rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
+	}
+      if (bx > cx && by > cy && bx < dx && by < dy)   // point B is inside the rectangle
+	{
+	  //cout << "Point B is inside the rectangle." << endl;
+	  rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
+	}
+    }
+
+  if (intersect1.first || intersect2.first || intersect3.first || intersect4.first)
+    {
+      return make_pair(true,rr);
+    }
+  return make_pair(false,NAN);
 }

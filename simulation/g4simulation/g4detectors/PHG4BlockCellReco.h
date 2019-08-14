@@ -41,10 +41,6 @@ class PHG4BlockCellReco : public SubsysReco, public PHParameterContainerInterfac
  protected:
   void set_size(const int i, const double sizeA, const double sizeB, const int what);
   int CheckEnergy(PHCompositeNode *topNode);
-  static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
-  static double get_eta(const double radius, const double z);
-  bool lines_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rx, double* ry);
-  bool line_and_rectangle_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rr);
 
   double sum_energy_g4hit;
   std::map<int, int>  binning;

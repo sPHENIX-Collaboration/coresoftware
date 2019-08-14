@@ -48,7 +48,6 @@ PHG4MvtxHitReco::PHG4MvtxHitReco(const string &name)
   : SubsysReco(name)
   , PHParameterContainerInterface(name)
   , detector(name)
-  , _timer(PHTimeServer::get()->insert_new(name))
   , chkenergyconservation(0)
 {
   SetDefaultParameters();  // sets default timing window
@@ -150,7 +149,6 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
 {
   //cout << PHWHERE << "Entering process_event for PHG4MvtxHitReco" << endl;
 
-  _timer.get()->restart();
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
@@ -581,172 +579,9 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
     hittruthassoc->identify();
   }
 
-  if (chkenergyconservation)
-  {
-    CheckEnergy(topNode);
-  }
-  _timer.get()->stop();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4MvtxHitReco::End(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4MvtxHitReco::CheckEnergy(PHCompositeNode *topNode)
-{
-  return 0;
-}
-
-bool PHG4MvtxHitReco::lines_intersect(
-    double ax,
-    double ay,
-    double bx,
-    double by,
-    double cx,
-    double cy,
-    double dx,
-    double dy,
-    double *rx,  // intersection point (output)
-    double *ry)
-{
-  // Find if a line segment limited by points A and B
-  // intersects line segment limited by points C and D.
-  // First check if an infinite line defined by A and B intersects
-  // segment (C,D). If h is from 0 to 1 line and line segment intersect
-  // Then check in intersection point is between C and D
-
-  double ex = bx - ax;  // E=B-A
-  double ey = by - ay;
-  double fx = dx - cx;  // F=D-C
-  double fy = dy - cy;
-  double px = -ey;  // P
-  double py = ex;
-
-  double bottom = fx * px + fy * py;  // F*P
-  double gx = ax - cx;                // A-C
-  double gy = ay - cy;
-  double top = gx * px + gy * py;  // G*P
-
-  double h = 99999.;
-  if (bottom != 0.)
-  {
-    h = top / bottom;
-  }
-
-  //intersection point R = C + F*h
-  if (h > 0. && h < 1.)
-  {
-    *rx = cx + fx * h;
-    *ry = cy + fy * h;
-    //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
-    if ((*rx > ax && *rx > bx) || (*rx < ax && *rx < bx) || (*ry < ay && *ry < by) || (*ry > ay && *ry > by))
-    {
-      //cout << "       NO segment/segment intersection!" << endl;
-      return false;
-    }
-    else
-    {
-      //cout << "       segment/segment intersection!" << endl;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-bool PHG4MvtxHitReco::line_and_rectangle_intersect(
-    double ax,
-    double ay,
-    double bx,
-    double by,
-    double cx,
-    double cy,
-    double dx,
-    double dy,
-    double *rr  // length of the line segment inside the rectangle (output)
-)
-{
-  // find if a line isegment limited by points (A,B)
-  // intersects with a rectangle defined by two
-  // corner points (C,D) two other points are E and F
-  //   E--------D
-  //   |        |
-  //   |        |
-  //   C--------F
-
-  if (cx > dx || cy > dy)
-  {
-    cerr << "ERROR: Bad rectangle definition!" << endl;
-    return false;
-  }
-
-  double ex = cx;
-  double ey = dy;
-  double fx = dx;
-  double fy = cy;
-  double rx = 99999.;
-  double ry = 99999.;
-
-  vector<double> vx;
-  vector<double> vy;
-
-  bool i1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy, &rx, &ry);
-  if (i1)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy, &rx, &ry);
-  if (i2)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy, &rx, &ry);
-  if (i3)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey, &rx, &ry);
-  if (i4)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-
-  //cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
-  //cout << "Number of intersections = " << vx.size() << endl;
-
-  *rr = 0.;
-  if (vx.size() == 2)
-  {
-    *rr = sqrt((vx[0] - vx[1]) * (vx[0] - vx[1]) + (vy[0] - vy[1]) * (vy[0] - vy[1]));
-    //  cout << "Length of intersection = " << *rr << endl;
-  }
-  if (vx.size() == 1)
-  {
-    // find which point (A or B) is within the rectangle
-    if (ax > cx && ay > cy && ax < dx && ay < dy)  // point A is inside the rectangle
-    {
-      //cout << "Point A is inside the rectangle." << endl;
-      *rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
-    }
-    if (bx > cx && by > cy && bx < dx && by < dy)  // point B is inside the rectangle
-    {
-      //cout << "Point B is inside the rectangle." << endl;
-      *rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
-    }
-  }
-
-  if (i1 || i2 || i3 || i4)
-  {
-    return true;
-  }
-  return false;
-}
 
 double PHG4MvtxHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r)
 {
@@ -833,7 +668,8 @@ void PHG4MvtxHitReco::SetDefaultParameters()
 {
   cout << "PHG4MvtxHitReco: Setting Mvtx timing window defaults to tmin = -5000 and  tmax = 5000 ns" << endl;
   for (int ilayer = 0; ilayer < 3; ilayer++)
+  {
     tmin_max.insert(std::make_pair(ilayer, std::make_pair(-5000, 5000)));
-
+  }
   return;
 }

@@ -14,6 +14,7 @@
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>                         // for SubsysReco
@@ -174,8 +175,8 @@ int PHG4BlockCellReco::InitRun(PHCompositeNode *topNode)
     {
       // calculate eta at radius+ thickness (outer radius)
       // length via eta coverage is calculated using the outer radius
-      double etamin = get_eta(radius + 0.5*layergeom->get_size_y(), zmin);
-      double etamax = get_eta(radius + 0.5*layergeom->get_size_y(), zmax);
+      double etamin = PHG4Utils::get_eta(radius + 0.5*layergeom->get_size_y(), zmin);
+      double etamax = PHG4Utils::get_eta(radius + 0.5*layergeom->get_size_y(), zmax);
       zmin_max[layer] = make_pair(etamin, etamax);
       double etastepsize = (sizeiter->second).first;
       double d_etabins;
@@ -314,7 +315,7 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
         double etabin[2];
         for (int i = 0; i < 2; i++)
         {
-          etax[i] = get_etaphi(hiter->second->get_x(i), hiter->second->get_y(i), hiter->second->get_z(i));
+          etax[i] = PHG4Utils::get_etaphi(hiter->second->get_x(i), hiter->second->get_y(i), hiter->second->get_z(i));
           etabin[i] = geo->get_etabin( etax[i].first );
           xbin[i] = geo->get_xbin( etax[i].second );
         }
@@ -396,16 +397,15 @@ PHG4BlockCellReco::process_event(PHCompositeNode *topNode)
               double dx = geo->get_xcenter(ibp) + geo->get_xstep() / 2.;
               double cy = geo->get_etacenter(ibz) - geo->get_etastep() / 2.;
               double dy = geo->get_etacenter(ibz) + geo->get_etastep() / 2.;
-              double rr = 0.;
               //cout << "##### line: " << ax << " " << ay << " " << bx << " " << by << endl;
               //cout << "####### cell: " << cx << " " << cy << " " << dx << " " << dy << endl;
-              bool yesno = line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy, &rr);
-              if (yesno)
+              pair<bool,double> intersect = PHG4Utils::line_and_rectangle_intersect(ax, ay, bx, by, cx, cy, dx, dy);
+              if (intersect.first)
               {
-                if (Verbosity() > 0) cout << "CELL FIRED: " << ibp << " " << ibz << " " << rr << endl;
+                if (Verbosity() > 0) cout << "CELL FIRED: " << ibp << " " << ibz << " " << intersect.second << endl;
                 vx.push_back(ibp);
                 veta.push_back(ibz);
-                vdedx.push_back(rr);
+                vdedx.push_back(intersect.second);
               }
             }
           }
@@ -526,185 +526,7 @@ PHG4BlockCellReco::set_size(const int i, const double sizeA, const double sizeB,
   return;
 }
 
-pair<double, double>
-PHG4BlockCellReco::get_etaphi(const double x, const double y, const double z)
-{
-  double radius = sqrt(x * x + y * y);
-  double phi = atan2(y, x);
-  double theta = atan2(radius, z);
-  double eta = -log(tan(theta / 2.));
-  return make_pair(eta, phi);
-}
-
-double
-PHG4BlockCellReco::get_eta(const double radius, const double z)
-{
-  double eta;
-  double theta;
-  theta = atan2(radius, fabs(z));
-  eta = -log(tan(theta / 2.));
-  if (z < 0)
-  {
-    eta = -eta;
-  }
-  return eta;
-}
-
 //---------------------------------------------------------------
-
-bool PHG4BlockCellReco::lines_intersect( double ax,
-                                         double ay,
-                                         double bx,
-                                         double by,
-                                         double cx,
-                                         double cy,
-                                         double dx,
-                                         double dy,
-                                         double* rx, // intersection point (output)
-                                         double* ry
-                                         )
-{
-
-  // Find if a line segment limited by points A and B
-  // intersects line segment limited by points C and D.
-  // First check if an infinite line defined by A and B intersects
-  // segment (C,D). If h is from 0 to 1 line and line segment intersect
-  // Then check in intersection point is between C and D
-
-  double ex = bx - ax; // E=B-A
-  double ey = by - ay;
-  double fx = dx - cx; // F=D-C
-  double fy = dy - cy;
-  double px = -ey;     // P
-  double py = ex;
-
-  double bottom = fx * px + fy * py; // F*P
-  double gx = ax - cx; // A-C
-  double gy = ay - cy;
-  double top = gx * px + gy * py; // G*P
-
-  double h = 99999.;
-  if (bottom != 0.)
-  {
-    h = top / bottom;
-  }
-
-  //intersection point R = C + F*h
-  if (h > 0. && h < 1.)
-  {
-    *rx = cx + fx * h;
-    *ry = cy + fy * h;
-    //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
-    if ((*rx > ax && *rx > bx) || (*rx < ax && *rx < bx) || (*ry < ay && *ry < by) || (*ry > ay && *ry > by))
-    {
-      //cout << "       NO segment/segment intersection!" << endl;
-      return false;
-    }
-    else
-    {
-      //cout << "       segment/segment intersection!" << endl;
-      return true;
-    }
-  }
-
-  return false;
-}
-
-//---------------------------------------------------------------
-
-bool  PHG4BlockCellReco::line_and_rectangle_intersect( double ax,
-                                                       double ay,
-                                                       double bx,
-                                                       double by,
-                                                       double cx,
-                                                       double cy,
-                                                       double dx,
-                                                       double dy,
-                                                       double* rr // length of the line segment inside the rectangle (output)
-                                                       )
-{
-
-  // find if a line isegment limited by points (A,B)
-  // intersects with a rectangle defined by two
-  // corner points (C,D) two other points are E and F
-  //   E--------D
-  //   |        |
-  //   |        |
-  //   C--------F
-
-  if (cx > dx || cy > dy)
-  {
-    cerr << "ERROR: Bad rectangle definition!" << endl;
-    return false;
-  }
-
-  double ex = cx;
-  double ey = dy;
-  double fx = dx;
-  double fy = cy;
-  double rx = 99999.;
-  double ry = 99999.;
-
-  vector<double> vx;
-  vector<double> vy;
-
-  bool i1 = lines_intersect(ax, ay, bx, by, cx, cy, fx, fy, &rx, &ry);
-  if (i1)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i2 = lines_intersect(ax, ay, bx, by, fx, fy, dx, dy, &rx, &ry);
-  if (i2)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i3 = lines_intersect(ax, ay, bx, by, ex, ey, dx, dy, &rx, &ry);
-  if (i3)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-  bool i4 = lines_intersect(ax, ay, bx, by, cx, cy, ex, ey, &rx, &ry);
-  if (i4)
-  {
-    vx.push_back(rx);
-    vy.push_back(ry);
-  }
-
-  //cout << "Rectangle intersections: " << i1 << " " << i2 << " " << i3 << " " << i4 << endl;
-  //cout << "Number of intersections = " << vx.size() << endl;
-
-  *rr = 0.;
-  if (vx.size() == 2)
-  {
-    *rr = sqrt( (vx[0] - vx[1]) * (vx[0] - vx[1]) + (vy[0] - vy[1]) * (vy[0] - vy[1]) );
-    //  cout << "Length of intersection = " << *rr << endl;
-  }
-
-  if (vx.size() == 1)
-  {
-    // find which point (A or B) is within the rectangle
-    if (ax > cx && ay > cy && ax < dx && ay < dy)   // point A is inside the rectangle
-    {
-      //cout << "Point A is inside the rectangle." << endl;
-      *rr = sqrt((vx[0] - ax) * (vx[0] - ax) + (vy[0] - ay) * (vy[0] - ay));
-    }
-    if (bx > cx && by > cy && bx < dx && by < dy)   // point B is inside the rectangle
-    {
-      //cout << "Point B is inside the rectangle." << endl;
-      *rr = sqrt((vx[0] - bx) * (vx[0] - bx) + (vy[0] - by) * (vy[0] - by));
-    }
-  }
-
-  if (i1 || i2 || i3 || i4)
-  {
-    return true;
-  }
-
-  return false;
-}
 
 
 int

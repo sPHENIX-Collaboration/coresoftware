@@ -19,6 +19,8 @@ class PHG4Utils
   static double get_eta(const double theta);
   static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
   static double get_eta(const double radius, const double z);
+  static std::pair<bool,double> line_and_rectangle_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy);
+  static std::pair<bool, std::pair<double,double>> lines_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy);
 
  private:
   static double _eta_coverage;

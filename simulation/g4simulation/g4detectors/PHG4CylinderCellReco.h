@@ -47,10 +47,6 @@ class PHG4CylinderCellReco : public SubsysReco, public PHParameterContainerInter
  protected:
   void set_size(const int i, const double sizeA, const double sizeB);
   int CheckEnergy(PHCompositeNode *topNode);
-  static std::pair<double, double> get_etaphi(const double x, const double y, const double z);
-  static double get_eta(const double radius, const double z);
-  bool lines_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rx, double* ry);
-  bool line_and_rectangle_intersect( double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy, double* rr);
 
   std::map<int, int>  binning;
   std::map<int, std::pair <double,double> > cell_size; // cell size in phi/z
