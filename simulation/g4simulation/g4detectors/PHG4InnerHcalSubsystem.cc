@@ -186,7 +186,7 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
-  set_default_string_param("material", "SS310");
+  set_default_string_param("material", "G4_Al");
 }
 
 void PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)
