@@ -33,6 +33,8 @@
 #include <cstdlib>
 #include <iostream>                                // for operator<<, endl
 
+class PHHepMCGenEvent;
+
 using namespace std;
 
 PHPythia8::PHPythia8(const std::string &name)

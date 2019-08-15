@@ -23,6 +23,7 @@
 #include <map>                           // for map
 #include <sstream>
 
+class G4VSolid;
 class PHCompositeNode;
 
 using namespace std;

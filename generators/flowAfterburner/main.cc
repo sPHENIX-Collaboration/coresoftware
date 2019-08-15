@@ -5,15 +5,10 @@
 #include "flowAfterburner.h"
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenRanges.h>
-#include <HepMC/IO_AsciiParticles.h>
 #include <HepMC/IO_BaseClass.h>
 #include <HepMC/IO_GenEvent.h>
 
 #include <CLHEP/Random/MTwistEngine.h>
-#include <CLHEP/Vector/LorentzVector.h>
 
 #include <boost/version.hpp> // to get BOOST_VERSION
 #if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 106000  || BOOST_VERSION == 106700 || BOOST_VERSION == 107000))
