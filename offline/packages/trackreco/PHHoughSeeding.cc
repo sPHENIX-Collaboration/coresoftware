@@ -201,6 +201,7 @@ PHHoughSeeding::PHHoughSeeding(
 
 int PHHoughSeeding::Setup(PHCompositeNode* topNode)
 {
+  //cout << PHWHERE << "Entering Setup" << endl; 
   // Start new interface ----
   int ret = PHTrackSeeding::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
@@ -361,6 +362,8 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
 
 int PHHoughSeeding::Process(PHCompositeNode *topNode)
 {
+  _track_map->identify();
+
   if (Verbosity() > 0)
   {
     cout << "PHHoughSeeding::process_event -- entered" << endl;

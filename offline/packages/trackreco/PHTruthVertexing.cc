@@ -41,7 +41,7 @@ int PHTruthVertexing::Setup(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTruthVertexing::Process()
+int PHTruthVertexing::Process(PHCompositeNode* topNode)
 {
   PHG4VtxPoint* first_point = _g4truth_container->GetPrimaryVtx(
       _g4truth_container->GetPrimaryVertexIndex());
@@ -107,5 +107,10 @@ int PHTruthVertexing::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find node G4TruthInfo" << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHTruthVertexing::End()
+{
   return Fun4AllReturnCodes::EVENT_OK;
 }

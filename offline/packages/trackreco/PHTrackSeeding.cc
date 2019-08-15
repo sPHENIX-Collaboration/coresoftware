@@ -50,6 +50,8 @@ int PHTrackSeeding::End(PHCompositeNode* topNode)
 
 int PHTrackSeeding::Setup(PHCompositeNode* topNode)
 {
+  //cout << PHWHERE << "Entering Setup" << endl;
+ 
   int ret = CreateNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -82,19 +84,18 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);
     if (Verbosity() > 0)
-      cout << "SVTX node added" << endl;
+      cout << PHWHERE << "SVTX node added" << endl;
   }
 
   _track_map = new SvtxTrackMap_v1;
-  //  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-  //    _track_map, _track_map_name, "PHObject");
-
   PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
       _track_map, "SvtxTrackMap", "PHObject");
 
+  _track_map->identify();
+
   tb_node->addNode(tracks_node);
   if (Verbosity() > 0){
-    cout << "Svtx/SvtxTrackMap node added" << endl;
+    cout << PHWHERE << "Svtx/SvtxTrackMap node added" << endl;
     // cout << "Svtx/" << _track_map_name << " node added" << endl;
   }
   _assoc_container = new AssocInfoContainer;
@@ -102,7 +103,7 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
       _assoc_container, "AssocInfoContainer", "PHObject");
   tb_node->addNode(assoc_node);
   if (Verbosity() > 0)
-    cout << "Svtx/AssocInfoContainer node added" << endl;
+    cout << PHWHERE << "Svtx/AssocInfoContainer node added" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
