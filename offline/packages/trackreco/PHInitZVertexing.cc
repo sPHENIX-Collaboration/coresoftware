@@ -159,8 +159,6 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 
 int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
 
-  cout << PHWHERE << "Entering Setup" << endl;
-
   int ret = PHInitVertexing::Setup(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -264,8 +262,7 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
 int PHInitZVertexing::Process(PHCompositeNode* topNode) 
 {
 
-	if (Verbosity() > 0)
-		cout << "PHInitZVertexing::Process -- entered" << endl;
+	if (Verbosity() > 0) cout << "PHInitZVertexing::Process -- entered" << endl;
 
 	// start fresh
 	for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
@@ -328,7 +325,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
         	shift_coordinate_system(shift_dx,shift_dy,shift_dz);
 
 		for (unsigned int iattempt =0; iattempt<nattempt; ++iattempt ){
-			cout<<iattempt << " th attempt "<<endl;
+		  //cout<<iattempt << " th attempt "<<endl;
 			helicity = 1;
 
 #ifdef _TRIPLETS_ 
@@ -422,8 +419,8 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
 		code = 0;
 		code = fit_vertex();
 		// note: _vertex[2] is the z of the last vertex in the vertex list - NOT the best vertex
-		// But PHHoughSeeding uses the first vertex in the list, - also NOT the best vertex
-		cout<<"seq "<<iseq<<" : vertex_z = "<< _vertex[2] <<", shift_z = "<<shift_dz<<endl;
+		//cout<<"seq "<<iseq<<" : vertex_z = "<< _vertex[2] <<", shift_z = "<<shift_dz<<endl;
+		// PHHoughSeeding uses the vertex from this list that has the largest number of tracks
 		if (iseq==0)
 		{
 			if (code==-1) zvtx_found = false;
@@ -524,8 +521,7 @@ int PHInitZVertexing::create_nodes(PHCompositeNode* topNode) {
 	PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(_trackmap,
 			"SvtxTrackMap", "PHObject");
 	tb_node->addNode(tracks_node);
-	if (Verbosity() > 0)
-		cout << "Svtx/SvtxTrackMap node added" << endl;
+	if (Verbosity() > 0) cout << "Svtx/SvtxTrackMap node added" << endl;
 
 	return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -602,7 +598,7 @@ int PHInitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 
 		if (std::find(_seeding_layer.begin(), _seeding_layer.end(),
 			iter->second) != _seeding_layer.end()) {
-		  cout << " inserting _layer_ilayer_map entry number " <<ilayer << " for layer " << iter->second  << endl; 
+		  if(Verbosity() > 0) cout << " PHInitZVertexing: inserting _layer_ilayer_map entry number " <<ilayer << " for layer " << iter->second  << endl; 
 			_layer_ilayer_map.insert(make_pair(iter->second, ilayer));
 			++ilayer;
 		}
@@ -700,9 +696,12 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
 
   unsigned int clusid = 0;
   unsigned int ilayer = 0;
-  cout << PHWHERE << "Get clusters:" << endl;
-  cout << " _cluster_map has " << _cluster_map->size() << " entries " << endl; 	
-  cout << " _layer_ilayer_map has " << _layer_ilayer_map.size() << " entries" << endl;
+  if(Verbosity() > 1)
+    {
+      cout << PHWHERE << "Get clusters:" << endl;
+      cout << " _cluster_map has " << _cluster_map->size() << " entries " << endl; 	
+      cout << " _layer_ilayer_map has " << _layer_ilayer_map.size() << " entries" << endl;
+    }
 
   TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
   for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
@@ -915,7 +914,6 @@ int PHInitZVertexing::export_output(){
 	}
 
         hits_map.clear();
-	_vertex_map->identify();
 	_trackmap->clear();
 
 	// clean up for the next event
@@ -976,7 +974,7 @@ void PHInitZVertexing::initialize_houghbin(){
           }
         }
 
-        cout<<"bins_map.size " <<bins_map.size()<<endl;
+        if(Verbosity() > 0) cout<<"bins_map.size " <<bins_map.size()<<endl;
 }
 
 void PHInitZVertexing::vote_z_init(unsigned int zoomlevel){
@@ -1805,7 +1803,7 @@ void PHInitZVertexing::bins_to_Track3D(std::vector<Track3D>& new_tracks, int ima
 		}
 		break;
 	}
-	cout<< "Number of tracks added : (to be used for initial vertexing or track seeding)"<<new_tracks.size()<<endl;
+	//cout<< "Number of tracks added : (to be used for initial vertexing or track seeding)"<<new_tracks.size()<<endl;
 
 }
 
@@ -1849,10 +1847,12 @@ int PHInitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks
 		else continue;
         }
 
-	cout<<"layer 0 " <<layer_sorted_0.size()<<endl;
-	cout<<"layer 1 " <<layer_sorted_1.size()<<endl;
-	cout<<"layer 2 " <<layer_sorted_2.size()<<endl;
-		
+	if(Verbosity() > 1)
+	  {
+	    cout<<"layer 0 " <<layer_sorted_0.size()<<endl;
+	    cout<<"layer 1 " <<layer_sorted_1.size()<<endl;
+	    cout<<"layer 2 " <<layer_sorted_2.size()<<endl;
+	  }
 
 	std::set<unsigned int> clusters;
 	bool fill_track = false;
@@ -1927,14 +1927,14 @@ int PHInitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks
 	}// layer 0
 
 	
-	cout<<"number of triplets "<<new_tracks.size()<<endl;	
+	if(Verbosity() > 1) cout<<"number of triplets "<<new_tracks.size()<<endl;	
 	return 1;	
 }
 
 
 int PHInitZVertexing::cellular_automaton_zvtx_init(std::vector<Track3D>& candidate_tracks){
 
-	cout<<"Entering cellular autumaton : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
+  if(Verbosity() > 1) cout<<"Entering cellular autumaton : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
 	ca =	new CellularAutomaton_v1(candidate_tracks,_radii,_material);
 	ca->set_hough_space(_hough_space);
 	ca->set_mag_field(_mag_field);
@@ -2020,7 +2020,7 @@ int PHInitZVertexing::cellular_automaton_zvtx_third(std::vector<Track3D>& candid
 */
 
 int PHInitZVertexing::fit_vertex(){
-	cout<<"Enter fit_vertex: all tracks vector size " << _tracks.size()<<endl;
+  if(Verbosity() > 1) cout<<"Enter fit_vertex: all tracks vector size " << _tracks.size()<<endl;
 
 	if (_tracks.empty()) return -1;
 	std::vector<Track3D> vtx_tracks;
@@ -2058,8 +2058,7 @@ int PHInitZVertexing::fit_vertex(){
 
 	for (unsigned int j=2; j<(nzbins-3); ++j)
 	{
-	  if(Verbosity() > 200) 
-	    cout<<"z countz "<<j<<" "<<zcounts[j]<<endl;
+	  if(Verbosity() > 200)  cout<<"z countz "<<j<<" "<<zcounts[j]<<endl;
 	  //		bool threebinspeak = _mult_threebins*(zcounts[j-2]) < (zcounts[j-1]+zcounts[j]+zcounts[j+1]) 
 	  //				&& _mult_threebins*(zcounts[j+2]) < (zcounts[j-1]+zcounts[j]+zcounts[j+1]);
 
@@ -2084,15 +2083,18 @@ int PHInitZVertexing::fit_vertex(){
 		zsums.push_back(0.0);
 		zsigmas.push_back(0.0);
 		if(onebinpeak)
-		  cout<<"   zbin " << j << " added one bin vertex at " << zvertex << "  to nvertices with " << zcounts[j] << " contributing tracks  " << endl;	
+		  if(Verbosity() > 1) cout<<"   zbin " << j << " added one bin vertex at " << zvertex << "  to nvertices with " << zcounts[j] << " contributing tracks  " << endl;	
 		if(twobinspeak)
-		  cout<<"   zbin " << j << " added two bin vertex at " << zvertex << " to nvertices with " << zcounts[j]+zcounts[j+1] << " contributing tracks  " << endl;	
+		  if(Verbosity() > 1) cout<<"   zbin " << j << " added two bin vertex at " << zvertex << " to nvertices with " << zcounts[j]+zcounts[j+1] << " contributing tracks  " << endl;	
 		}
 	}
 
-	cout<<"number of candidate z-vertices : "<< zvertices.size()<<endl;
-	for (unsigned int j = 0; j <zvertices.size(); ++j)
-	  cout<<"vertex " << j << " primary vertex position : "<<zvertices[j]<<endl;
+	if(Verbosity() > 1)
+	  {
+	    cout<<"number of candidate z-vertices : "<< zvertices.size()<<endl;
+	    for (unsigned int j = 0; j <zvertices.size(); ++j)
+	      cout<<"vertex " << j << " primary vertex position : "<<zvertices[j]<<endl;
+	  }
 
 	unsigned int izvtx= 999;
     	for (unsigned int i = 0; i < nzvtx; ++i) {
@@ -2110,12 +2112,12 @@ int PHInitZVertexing::fit_vertex(){
 	zsums[izvtx] += zvtx;
 	}
 
-	cout << "Loop over vertices and check for tracks that pass the dcaz cut of " << _dcaz_cut << endl;
+	if(Verbosity() > 1) cout << "Loop over vertices and check for tracks that pass the dcaz cut of " << _dcaz_cut << endl;
 	for (unsigned int iz = 0; iz<zvertices.size();++iz ){
-	  cout << " vertex " << iz << " ntracks passed " << nzvtxes[iz] << endl; 
+	  if(Verbosity() > 1) cout << " vertex " << iz << " ntracks passed " << nzvtxes[iz] << endl; 
 	if (nzvtxes[iz]==0) continue;
 	zmeans[iz] = zsums[iz]/nzvtxes[iz];
-	cout<<"zmean for passed vertex "<< iz <<" = "<<zmeans[iz]<<endl;
+	if(Verbosity() > 1) cout<<"zmean for passed vertex "<< iz <<" = "<<zmeans[iz]<<endl;
 	zvertices[iz] = zmeans[iz];
 	zsums[iz]=0.;
         	if (fill_multi_zvtx){
@@ -2168,7 +2170,7 @@ int PHInitZVertexing::fit_vertex(){
 		std::vector<Eigen::Matrix<float, 5, 5> > one_track_covars;
 		_multi_vtx_track_covars.push_back(one_track_covars);
 		zsigmas[i] = sqrt(zsums[i]/(nzvtxes[i]-1));
-		cout<<" Add passed vertex " << i << " to _multi_vtx,  with zvertex " << zvertices[i] << " and zsigma = "<<zsigmas[i]<<endl;
+		if(Verbosity() > 1) cout<<" Add passed vertex " << i << " to _multi_vtx,  with zvertex " << zvertices[i] << " and zsigma = "<<zsigmas[i]<<endl;
 	}
 
 	unsigned int nzvtx_final = 0;
@@ -2183,7 +2185,7 @@ int PHInitZVertexing::fit_vertex(){
                 }
 
 	        if (!pass_dcaz || izvtx >= _multi_vtx.size()) continue;
-		cout<<"adding a track to _multi_vtx number "<<izvtx<<endl;
+		if(Verbosity() > 1) cout<<"adding a track to _multi_vtx number "<<izvtx<<endl;
 		//		if (fabs(vtx_tracks[k].z0-zmeans[k])> _dcaz_cut/*10*zsigmz*/)continue;
 		++nzvtx_final;
 
@@ -2193,13 +2195,13 @@ int PHInitZVertexing::fit_vertex(){
 
     	}
 
-	cout<<"start final fitting of vertices in _multi_vtx.. "<<endl;
+	if(Verbosity() > 1) cout<<"start final fitting of vertices in _multi_vtx.. "<<endl;
 	for (unsigned int i = 0; i<_multi_vtx.size(); ++i)
 	{
-	  cout << " _multi_vtx " << i << " has " << _multi_vtx_tracks[i].size() << " tracks " << endl;
+	  	if(Verbosity() > 1) cout << " _multi_vtx " << i << " has " << _multi_vtx_tracks[i].size() << " tracks " << endl;
 		if (_multi_vtx_tracks[i].size()==0) continue;
 		_vertex[2] = _multi_vtx[i];
-    		if (Verbosity() > 0) {
+    		if (Verbosity() > 1) {
       		cout << " seed track vertex pre-fit: "
            		<< _vertex[0] << " "
         		<< _vertex[1] << " "
@@ -2212,10 +2214,11 @@ int PHInitZVertexing::fit_vertex(){
 		_vertex_finder.findVertex( _multi_vtx_tracks[i], _multi_vtx_track_covars[i], _vertex, 0.005, true);
 
 		n_vtx_tracks = _multi_vtx_tracks[i].size();
-		cout<<"          - number of fitted tracks for vertex "<<i<< " : "<<n_vtx_tracks <<endl;
+		
 
-  		//if (Verbosity() > 0) 
+  		if (Verbosity() > 1) 
 		{
+		  cout<<"          - number of fitted tracks for vertex "<<i<< " : "<<n_vtx_tracks <<endl;
 		  cout << " seed track vertex post-fit: "
 		       << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   		}
@@ -2227,10 +2230,13 @@ int PHInitZVertexing::fit_vertex(){
 
 	}// loop over vertices
 
-	cout<<"final vertices after fitting: "<<endl;
-	for (unsigned int i = 0; i<_vertex_list.size(); ++i){
-	  cout<<" _mult_vtx " << i<<" vertex "<<_vertex_list[i][2]<<endl;
-	}
+	if(Verbosity() > 1) 
+	  {
+	    cout<<"final vertices after fitting: "<<endl;
+	    for (unsigned int i = 0; i<_vertex_list.size(); ++i){
+	      cout<<" _mult_vtx " << i<<" vertex "<<_vertex_list[i][2]<<endl;
+	    }
+	  }
 
 
         for (unsigned int k = 0; k < nzvtx; ++k){

@@ -362,9 +362,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
 
 int PHHoughSeeding::Process(PHCompositeNode *topNode)
 {
-  //_track_map->identify();
-
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     cout << "PHHoughSeeding::process_event -- entered" << endl;
     cout << "nMapsLayers = " << _nlayers_maps << endl;
@@ -1190,7 +1188,7 @@ int PHHoughSeeding::fast_vertex_from_bbc()
       _vertex[1] = 0.0;
       _vertex[2] = vertex->get_z();
 
-      if (Verbosity())
+      if (Verbosity() > 1)
         cout << " initial bbc vertex guess: " << _vertex[0] << " "
              << _vertex[1] << " " << _vertex[2] << endl;
     }
@@ -1245,7 +1243,7 @@ int PHHoughSeeding::fast_vertex_guessing()
   _vertex.clear();
   _vertex.assign(3, 0.0);
 
-  if (Verbosity())
+  if (Verbosity() > 1)
     cout << " seed track finding count: " << _tracks.size() << endl;
 
   if (!_tracks.empty())
@@ -1261,7 +1259,7 @@ int PHHoughSeeding::fast_vertex_guessing()
 
     _vertex[2] = zsum / _tracks.size();
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
       cout << " seed track vertex pre-fit: " << _vertex[0] << " "
            << _vertex[1] << " " << _vertex[2] << endl;
@@ -1278,7 +1276,7 @@ int PHHoughSeeding::fast_vertex_guessing()
   _track_errors.clear();
   _track_covars.clear();
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     cout << " seed track vertex post-fit: " << _vertex[0] << " "
          << _vertex[1] << " " << _vertex[2] << endl;
@@ -1323,7 +1321,7 @@ int PHHoughSeeding::initial_vertex_finding()
   // don't need the tracker object anymore
   _tracker_vertex->clear();
 
-  if (Verbosity())
+  if (Verbosity() > 1)
     cout << " initial track finding count: " << _tracks.size() << endl;
 
   if (!_tracks.empty())
@@ -1345,7 +1343,7 @@ int PHHoughSeeding::initial_vertex_finding()
     _vertex[1] = ysum / _tracks.size();
     _vertex[2] = zsum / _tracks.size();
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
       cout << " initial track vertex pre-fit: " << _vertex[0] - shift_dx
            << " " << _vertex[1] - shift_dy << " "
@@ -1366,7 +1364,7 @@ int PHHoughSeeding::initial_vertex_finding()
   // shift back to the global coordinates
   shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     cout << " initial track vertex post-fit: " << _vertex[0] << " "
          << _vertex[1] << " " << _vertex[2] << endl;
@@ -1384,14 +1382,16 @@ int PHHoughSeeding::vertexing()
     {
       SvtxVertex* svtx_vtx = _vertex_map->get(ivert);
       int ntr = svtx_vtx->size_tracks();
+      if(Verbosity() > 0) cout << " vertex number " << ivert << " has " << ntr << " tracks " << endl;
       if(ntr > ntracksmax) 
 	{
 	  ntracksmax = ntr;
 	  best_vert = ivert; 
+	  if(Verbosity() > 0) cout << "  update to ntracksmax = " << ntracksmax << " best_vert = " << best_vert << endl;
 	}
     }
   SvtxVertex* svtx_vtx = _vertex_map->get(best_vert);
-  cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
+  if(Verbosity() > 0) cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
 
   _vertex.clear();
   _vertex.assign(3, 0.0);
@@ -1451,12 +1451,12 @@ int PHHoughSeeding::full_track_seeding()
   // we will need the tracker object below to refit the tracks... so we won't
   // reset it here
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
     cout << " final track count: " << _tracks.size() << endl;
 #ifdef _USE_ALAN_FULL_VERTEXING_
   if (!_tracks.empty())
   {
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
       cout << " final vertex pre-fit: " << _vertex[0] - shift_dx << " "
            << _vertex[1] - shift_dy << " " << _vertex[2] - shift_dz
@@ -1468,7 +1468,7 @@ int PHHoughSeeding::full_track_seeding()
     _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.020, false);
     _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.005, false);
 
-    if (Verbosity() > 0)
+    if (Verbosity() > 1)
     {
       cout << " final vertex post-fit: " << _vertex[0] - shift_dx << " "
            << _vertex[1] - shift_dy << " " << _vertex[2] - shift_dz
@@ -1707,7 +1707,7 @@ int PHHoughSeeding::export_output()
   if (Verbosity() > 5)
     vtxptr->identify();
 
-  if (Verbosity() > 0)
+  if (Verbosity() > 1)
   {
     cout << "PHHoughSeeding::process_event -- leaving process_event"
          << endl;

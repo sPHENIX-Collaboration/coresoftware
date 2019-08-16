@@ -97,16 +97,16 @@ int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<H
 	}
 
 	int code = 0;
-	cout<< "CellularAutomaton:: initializing..."<<endl;
+	//cout<< "CellularAutomaton:: initializing..."<<endl;
 	code = init();
-	cout<<code<<endl;
+	//cout<<code<<endl;
 	if (!code) 
         {
           cout << PHWHERE << "::Error - Initialization failed. " << endl;
           exit(1);
         }
 	code = 0;
-	cout<<"CellularAutomaton:: processing tracks... "<<endl;
+	//cout<<"CellularAutomaton:: processing tracks... "<<endl;
 	code = process_tracks();
 	if (!code)		
         {
@@ -114,7 +114,7 @@ int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<H
           exit(1);
         }
 	code = 0;
-	cout<<"CellularAutomaton:: outputting ca tracks..."<<endl;
+	//cout<<"CellularAutomaton:: outputting ca tracks..."<<endl;
 	code = get_ca_tracks(output_tracks, output_track_states);
 	if (!code)
         {
@@ -231,7 +231,7 @@ void CellularAutomaton_v1::set_input_tracks(std::vector<Track3D>& input_tracks)
 
 */
 	in_tracks = input_tracks;
-	cout<<"Setting input tracks : size = " << in_tracks.size()<<endl; 
+	//cout<<"Setting input tracks : size = " << in_tracks.size()<<endl; 
 
 }
 
@@ -258,7 +258,7 @@ int CellularAutomaton_v1::process_tracks()
 
 	for (unsigned int i = 0; i < in_tracks.size(); ++i) 
 	{ // loop over input tracks
-		cout<<"track candidate "<<i<<endl;
+	  //cout<<"track candidate "<<i<<endl;
 
 		switch(triplet_mode){
 
@@ -915,7 +915,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
       		}
 
       		float init_chi2 = temp_track.fit_track();
-                cout<<"chi2 from fit_track "<<init_chi2 <<" kappa "<< temp_track.kappa <<endl;
+                if(0) cout<<"chi2 from fit_track "<<init_chi2 <<" kappa "<< temp_track.kappa <<endl;
 
 #ifdef _DEBUG_
           	cout	<<" kappa " <<temp_track.kappa <<" phi "<<temp_track.phi<<" d "<<temp_track.d
@@ -1219,7 +1219,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   swap(cur_seg, next_seg);
   swap(cur_seg_size, next_seg_size);
 
-  cout<<"number of segments from first 3 layers : " << cur_seg_size<<endl;
+  // cout<<"number of segments from first 3 layers : " << cur_seg_size<<endl;
   unsigned int which_seg;
 
   // add hits to segments layer-by-layer, cutting out bad segments
