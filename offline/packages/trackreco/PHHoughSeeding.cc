@@ -362,7 +362,7 @@ int PHHoughSeeding::Setup(PHCompositeNode* topNode)
 
 int PHHoughSeeding::Process(PHCompositeNode *topNode)
 {
-  _track_map->identify();
+  //_track_map->identify();
 
   if (Verbosity() > 0)
   {
@@ -1377,7 +1377,21 @@ int PHHoughSeeding::initial_vertex_finding()
 
 int PHHoughSeeding::vertexing()
 {
-  SvtxVertex* svtx_vtx = _vertex_map->get(0);
+  // For now we can handle only one initial vertex - find the one with the largest associated number of tracks
+  int ntracksmax = -1;
+  unsigned int best_vert = 0;
+  for(unsigned int ivert=0;ivert<_vertex_map->size(); ++ivert)
+    {
+      SvtxVertex* svtx_vtx = _vertex_map->get(ivert);
+      int ntr = svtx_vtx->size_tracks();
+      if(ntr > ntracksmax) 
+	{
+	  ntracksmax = ntr;
+	  best_vert = ivert; 
+	}
+    }
+  SvtxVertex* svtx_vtx = _vertex_map->get(best_vert);
+  cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
 
   _vertex.clear();
   _vertex.assign(3, 0.0);

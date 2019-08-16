@@ -248,7 +248,7 @@ int CellularAutomaton_v1::get_ca_tracks(std::vector<Track3D>& output_tracks, std
 	output_track_states.push_back(ca_track_states[i]);
 	}
 
-	cout<<"newly added ca tracks : "<< ca_tracks.size() <<" tracks. "<<endl;
+	//cout<<"newly added ca tracks : "<< ca_tracks.size() <<" tracks. "<<endl;
 	return 1;
 }
 
@@ -328,7 +328,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
 //        for (unsigned int l = 0; l < nlayers; ++l) {
 	for (unsigned int l = 0; l< 3; ++l){
-	cout<<"layer_sorted["<<l<<"].size = "<< layer_sorted[l].size()<<endl;
+	  //cout<<"layer_sorted["<<l<<"].size = "<< layer_sorted[l].size()<<endl;
         	if (layer_sorted[l].size() == 0) {
         	return 0;
     		}
@@ -480,8 +480,8 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
   	swap(cur_seg_size, next_seg_size);
 
 
-  	cout<<"number of complete segments : " << complete_segments.size()<<endl;
-  	cout<<"number of current segments : "<< cur_seg_size<<endl;
+  	//cout<<"number of complete segments : " << complete_segments.size()<<endl;
+  	//cout<<"number of current segments : "<< cur_seg_size<<endl;
 
   	// copy complete segments over to current segments
        	for (unsigned int i = 0; i < complete_segments.size(); ++i) {
@@ -541,7 +541,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
   	for (unsigned int i = 0; i<cur_seg_size; i++) {
   		if ((*cur_seg)[i].n_hits ==0) --nsegs;
   	}
-  	cout<<"number of segments from triplets to be processed "<< nsegs<<endl;
+  	//cout<<"number of segments from triplets to be processed "<< nsegs<<endl;
 
 
 #ifdef _FULL_TEST_
@@ -898,9 +898,9 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
 		if ((*cur_seg)[i].n_hits ==0) continue;
 
-//#ifdef _DEBUG_
+#ifdef _DEBUG_
 		cout<<"segment " <<i <<endl;
-//#endif
+#endif
       		temp_track.hits.assign((*cur_seg)[i].n_hits, SimpleHit3D());
 //		float seg_kappa = (*cur_seg)[i].kappa;
 
@@ -960,9 +960,9 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 		cout<<"nfits "<<nfits<<endl;
 #endif
     		}
-//#ifdef _DEBUG_
+#ifdef _DEBUG_
     		cout<<"z0 after kalman "<<state.z0<<endl;
-//#endif
+#endif
    		// fudge factor for non-gaussian hit sizes
            	state.C *= 3.;
     		state.chi2 *= 6.;
@@ -982,7 +982,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
 	// no chi2 cut for tests on triplets
 
-		cout<<"state.chi2 from kalman "<<state.chi2<<endl;
+		//cout<<"state.chi2 from kalman "<<state.chi2<<endl;
 		if (seeding_mode){
     			if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) > ca_chi2_cut && cur_seg_size !=1) continue;
 		} else {
@@ -1004,7 +1004,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 //	cout<<"best_track.size "<<best_track.size()<<endl;
   	ca_tracks.push_back(best_track.back());
   	ca_track_states.push_back(best_track_state.back());
-  	cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
+  	//cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
 
 
 	//    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
@@ -1324,8 +1324,8 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
 
   }//l = 3
 
-  cout<<"number of complete segments : " << complete_segments.size()<<endl;
-  cout<<"number of current segments : "<< cur_seg_size<<endl;
+  //cout<<"number of complete segments : " << complete_segments.size()<<endl;
+  //cout<<"number of current segments : "<< cur_seg_size<<endl;
 
   // copy complete segments over to current segments
   for (unsigned int i = 0; i < complete_segments.size(); ++i) {
@@ -1346,7 +1346,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   std::set<unsigned int> comp1;
   std::set<unsigned int> comp2;
 
-  cout<<"number of segments generated "<< cur_seg_size<<endl;
+  //cout<<"number of segments generated "<< cur_seg_size<<endl;
   if (cur_seg_size==0  || cur_seg_size>10000) return 1;
   for (unsigned int i = cur_seg_size-1; i>0; --i){
     if ((*cur_seg)[i].n_hits==0) continue;
@@ -1389,7 +1389,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   for (unsigned int i = 0; i<cur_seg_size; i++) {
   if ((*cur_seg)[i].n_hits ==0) --nsegs;
   }
-  cout<<"number of segments to be processed "<< nsegs<<endl;
+  //cout<<"number of segments to be processed "<< nsegs<<endl;
 
   Track3D temp_track;
   temp_track.hits.assign(nlayers, SimpleHit3D());
@@ -1466,7 +1466,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
       _kalman->addHit(temp_track.hits[h], state);
       nfits += 1;
     }
-    cout<<"z0 after kalman "<<state.z0<<endl;
+    //cout<<"z0 after kalman "<<state.z0<<endl;
 
     // fudge factor for non-gaussian hit sizes
     state.C *= 3.;
@@ -1515,7 +1515,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
 
   ca_tracks.push_back(best_track.back());
   ca_track_states.push_back(best_track_state.back());
-  cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
+  //cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
 
 
 //    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
