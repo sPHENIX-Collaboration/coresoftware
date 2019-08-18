@@ -1,7 +1,9 @@
-#ifndef G4HOUGH_PHG4PATTERNRECO_H
-#define G4HOUGH_PHG4PATTERNRECO_H
+#ifndef TRACKRECO_PHPATTERNRECO_H
+#define TRACKRECO_PHPATTERNRECO_H
 
-#include "Cluster3D.h"
+#include <HelixHough/SimpleHit3D.h>
+
+#include <trackbase/TrkrDefs.h>
 
 // Helix Hough includes
 #if !defined(__CINT__) || defined (__CLING__)
@@ -26,7 +28,7 @@ class HelixHoughSpace;
 class HelixHoughFuncs;
 class PHCompositeNode;
 class PHTimer;
-class SvtxClusterMap;
+class TrkrClusterContainer;
 class SvtxTrackMap;
 class SvtxVertexMap;
 
@@ -36,13 +38,13 @@ class TH3D;
 class TNtuple;
 
 ///
-class PHG4PatternReco: public SubsysReco {
+class PHPatternReco: public SubsysReco {
 
 public:
 
-	PHG4PatternReco(unsigned int nlayers = 7, unsigned int min_nlayers = 7,
-			const std::string &name = "PHG4PatternReco");
-	virtual ~PHG4PatternReco() {
+	PHPatternReco(unsigned int nlayers = 7, unsigned int min_nlayers = 7,
+			const std::string &name = "PHPatternReco");
+	virtual ~PHPatternReco() {
 	}
 
 	int Init(PHCompositeNode *topNode);
@@ -276,7 +278,7 @@ private:
 
 	// node pointers
 	BbcVertexMap* _bbc_vertexes;
-	SvtxClusterMap* _clustermap;
+	TrkrClusterContainer* _clustermap;
 	SvtxTrackMap* _trackmap;
 	SvtxVertexMap* _vertexmap;
 	VertexFitter _vertex_finder;
@@ -303,7 +305,7 @@ private:
 	std::vector<std::vector<unsigned int> > zooms_vec;
 
 	std::map<unsigned int, bool> hits_used;
-	std::map<unsigned int, Cluster3D>   hits_map;
+	std::map<unsigned int, SimpleHit3D>   hits_map;
 	std::map<unsigned int, HelixHoughBin* > bins_map;
         std::map<unsigned int, HelixHoughBin* > bins_map_prev;
         std::map<unsigned int, HelixHoughBin* > bins_map_cur;
@@ -324,4 +326,4 @@ private:
 #endif // __CINT__
 };
 
-#endif // __PHG4PATTERNRECO_H__
+#endif // __PHPATTERNRECO_H__

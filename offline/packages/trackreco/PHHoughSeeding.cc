@@ -1393,6 +1393,12 @@ int PHHoughSeeding::vertexing()
   SvtxVertex* svtx_vtx = _vertex_map->get(best_vert);
   if(Verbosity() > 0) cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
 
+  if(svtx_vtx->get_z() < -30.0 || svtx_vtx->get_z() > 30.0)
+    {
+      cout << endl << PHWHERE << "Vertex z position is not valid, cannot go on!" << endl << endl;
+      exit(1); 
+    }
+
   _vertex.clear();
   _vertex.assign(3, 0.0);
 

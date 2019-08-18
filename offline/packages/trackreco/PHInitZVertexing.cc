@@ -157,16 +157,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 	zooms_vec.clear();
 }
 
-int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
-
-  int ret = PHInitVertexing::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  int code = Fun4AllReturnCodes::ABORTRUN;
-
-  code = create_nodes(topNode);
-  if(code != Fun4AllReturnCodes::EVENT_OK)
-    return code;
+int PHInitZVertexing::Init(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
   _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
@@ -174,7 +165,7 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
   
   if (!_use_max_kappa){
     _max_kappa = pt_to_kappa(_min_pt);
-    cout<<"kappa max "<<_max_kappa<<endl;
+    //cout<<"kappa max "<<_max_kappa<<endl;
   }
   
   set_nzooms();
@@ -216,6 +207,21 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
   _kappa_d_phi = new TH3D("kappa_d_phi","kappa_d_phi",n_kappa_bins,_hough_space->get_kappa_min(),_hough_space->get_kappa_max(),n_d_bins,_hough_space->get_d_min(),_hough_space->get_d_max(),n_phi_bins,_hough_space->get_phi_min(),_hough_space->get_phi_max());
 
 #endif
+	return Fun4AllReturnCodes::EVENT_OK;
+}
+
+
+
+int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
+
+  int ret = PHInitVertexing::Setup(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  int code = Fun4AllReturnCodes::ABORTRUN;
+
+  code = create_nodes(topNode);
+  if(code != Fun4AllReturnCodes::EVENT_OK)
+    return code;
 
   code = initialize_geometry(topNode);
   if(code != Fun4AllReturnCodes::EVENT_OK)
@@ -254,8 +260,7 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
       << "==========================================================================="
       << endl;
   }
-  
-  
+    
   return code;
 }
 
@@ -295,7 +300,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
         separate_helicity = true;
 #endif
 
-	// There was an Init() call here in the PHG4 version - not sure why!
+        Init(topNode);
 
 	bool zvtx_found = false;
         _ca_nlayers = 3; // 3(vertexing)/4(track seeding) for p+p
@@ -706,7 +711,6 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
   TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
   for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
     {
-      clusid += 1;
       TrkrCluster *cluster = iter->second;
       TrkrDefs::cluskey cluskey = iter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
@@ -740,9 +744,11 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
 	  // the clusterkey can be recovered from the cluster later
 	  hits_map.insert(std::pair<unsigned int, SimpleHit3D>(hit3d.get_id(),hit3d));
 	  hits_used.insert(std::pair<unsigned int, bool>(hit3d.get_id(),false));
+
+	  clusid += 1;	
 	}
     }
-	
+  
   if (Verbosity() > 10) {
     cout << "-------------------------------------------------------------------"
 	 << endl;
@@ -808,114 +814,112 @@ int PHInitZVertexing::export_output(){
 	TrkrDefs::cluskey clusterkey;
 
         for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
-		if (_tracks.at(itrack).vertex_id >= nvertex) continue;
-                SvtxTrack_v1 track;
-                track.set_id(itrack);
-                track_hits.clear();
-                track_hits = _tracks.at(itrack).hits;
-		//  cout<<"hits vector assigned " <<endl;
-                for (unsigned int ihit = 0; ihit < track_hits.size(); ++ihit) {
-		  if ((track_hits.at(ihit).get_id()) >= _cluster_map->size()) {
-		    continue;
-		  }
-		  //TrkrCluster* cluster = _cluster_map->findCluster(track_hits.at(ihit).get_id());
-		  clusterkey = track_hits.at(ihit).get_cluskey();
-		  
+	  if (_tracks.at(itrack).vertex_id >= nvertex) continue;
+	  SvtxTrack_v1 track;
+	  track.set_id(itrack);
+	  track_hits.clear();
+	  track_hits = _tracks.at(itrack).hits;
+	  //  cout<<"hits vector assigned " <<endl;
+	  for (unsigned int ihit = 0; ihit < track_hits.size(); ++ihit) {
+	    if ((track_hits.at(ihit).get_id()) >= _cluster_map->size()) {
+	      continue;
+	    }
+	    clusterkey = track_hits.at(ihit).get_cluskey();
+	    
 #ifdef _DEBUG_
-		  cout
-		    <<__LINE__
-		    <<": itrack: " << itrack
-		    <<": nhits: " << track_hits.size()
-		    <<": clusterID: " << clusterID
-		    <<": clusterkey: " << clusterkey
-		    <<": layer: " << layer
-		    <<endl;
+	    cout
+	      <<__LINE__
+	      <<": itrack: " << itrack
+	      <<": nhits: " << track_hits.size()
+	      <<": clusterID: " << clusterID
+	      <<": clusterkey: " << clusterkey
+	      <<": layer: " << layer
+	      <<endl;
 #endif
-		  
-		  track.insert_cluster_key(clusterkey);
-                }
-		//		cout<<"hits added to a track "<<endl;
-                float kappa = _tracks.at(itrack).kappa;
-                float d = _tracks.at(itrack).d;
-                float phi = _tracks.at(itrack).phi;
-                float dzdl = _tracks.at(itrack).dzdl;
-                float z0 = _tracks.at(itrack).z0;
-		
-                float pT = kappa_to_pt(kappa);
-		
-                float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
-                float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
+	    
+	    track.insert_cluster_key(clusterkey);
+	  }
+	  //		cout<<"hits added to a track "<<endl;
+	  float kappa = _tracks.at(itrack).kappa;
+	  float d = _tracks.at(itrack).d;
+	  float phi = _tracks.at(itrack).phi;
+	  float dzdl = _tracks.at(itrack).dzdl;
+	  float z0 = _tracks.at(itrack).z0;
+	  
+	  float pT = kappa_to_pt(kappa);
+	  
+	  float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
+	  float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
+	  
+	  // find helicity from cross product sign
+	  short int helicity;
+	  if ((track_hits[0].get_x()- x_center)*(track_hits[track_hits.size()-1].get_y()- y_center)
+	      - (track_hits[0].get_y()- y_center)*(track_hits[track_hits.size()-1].get_x()- x_center)> 0)
+	    {
+	      helicity = 1;
+	    } else {
+	    helicity = -1;
+	  }
+	  
+	  float pZ = 0;
+	  if (dzdl != 1) {
+	    pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
+	  }
+	  int ndf = 2 * _tracks.at(itrack).hits.size() - 5;
+	  //              track.set_chisq(_track_errors[itrack]);
+	  track.set_ndf(ndf);
+	  track.set_px(pT * cos(phi - helicity * M_PI / 2));
+	  track.set_py(pT * sin(phi - helicity * M_PI / 2));
+	  track.set_pz(pZ);
+	  
+	  track.set_dca2d(d);
+	  //                track.set_dca2d_error(sqrt(_track_covars[itrack](1, 1)));
+	  
+	  //		cout<<"track parameters set "<<endl;
+	  if (_mag_field > 0) {
+	    track.set_charge(helicity);
+	  } else {
+	    track.set_charge(-1.0 * helicity);
+	  }
+	  
+	  
+	  /*              Eigen::Matrix<float, 6, 6> euclidean_cov =
+			  Eigen::Matrix<float, 6, 6>::Zero(6, 6);
+			  convertHelixCovarianceToEuclideanCovariance(_mag_field, phi, d, kappa,
+			  z0, dzdl, _track_covars[itrack], euclidean_cov);
+	  */
+	  for (unsigned int row = 0; row < 6; ++row) {
+	    for (unsigned int col = 0; col < 6; ++col) {
+	      //                      track.set_error(row, col, euclidean_cov(row, col));
+	    }
+	  }
+	  
+	  unsigned int vid = _tracks.at(itrack).vertex_id;
+	  
+	  track.set_x(svtx_vertex_list[vid].get_x() + d * cos(phi));
+	  track.set_y(svtx_vertex_list[vid].get_y() + d * sin(phi));
+	  track.set_z(svtx_vertex_list[vid].get_z() + z0);
 
-                // find helicity from cross product sign
-                short int helicity;
-		if ((track_hits[0].get_x()- x_center)*(track_hits[track_hits.size()-1].get_y()- y_center)
-		- (track_hits[0].get_y()- y_center)*(track_hits[track_hits.size()-1].get_x()- x_center)> 0)
-		{
-                        helicity = 1;
-                } else {
-                        helicity = -1;
-                }
+	  _trackmap->insert(&track);
+	  svtx_vertex_list[vid].insert_track(track.get_id());
 
-                float pZ = 0;
-                if (dzdl != 1) {
-                        pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
-                }
-                int ndf = 2 * _tracks.at(itrack).hits.size() - 5;
-//              track.set_chisq(_track_errors[itrack]);
-                track.set_ndf(ndf);
-                track.set_px(pT * cos(phi - helicity * M_PI / 2));
-                track.set_py(pT * sin(phi - helicity * M_PI / 2));
-                track.set_pz(pZ);
-
-                track.set_dca2d(d);
-//                track.set_dca2d_error(sqrt(_track_covars[itrack](1, 1)));
-
-//		cout<<"track parameters set "<<endl;
-                if (_mag_field > 0) {
-                        track.set_charge(helicity);
-                } else {
-                        track.set_charge(-1.0 * helicity);
-                }
-
-
-  /*              Eigen::Matrix<float, 6, 6> euclidean_cov =
-                Eigen::Matrix<float, 6, 6>::Zero(6, 6);
-                convertHelixCovarianceToEuclideanCovariance(_mag_field, phi, d, kappa,
-                                z0, dzdl, _track_covars[itrack], euclidean_cov);
-*/
-                for (unsigned int row = 0; row < 6; ++row) {
-                        for (unsigned int col = 0; col < 6; ++col) {
-  //                      track.set_error(row, col, euclidean_cov(row, col));
-                        }
-                }
-//		cout<<"set track "<<endl;
-		unsigned int vid = _tracks.at(itrack).vertex_id;
-//		cout<<"vertex_id "<<vid<<endl;
-                track.set_x(svtx_vertex_list[vid].get_x() + d * cos(phi));
-                track.set_y(svtx_vertex_list[vid].get_y() + d * sin(phi));
-                track.set_z(svtx_vertex_list[vid].get_z() + z0);
-
-//		cout<<"set vertex "<<endl;
-                _trackmap->insert(&track);
-                svtx_vertex_list[vid].insert_track(track.get_id());
-
-                if (Verbosity() > 5) {
-                        cout << "track " << itrack << " quality = " << track.get_quality()
-                        << endl;
-                        cout << "px = " << track.get_px() << " py = " << track.get_py()
-                        << " pz = " << track.get_pz() << endl;
-                }
+	  if (Verbosity() > 5) {
+	    cout << "track " << itrack << " quality = " << track.get_quality()
+		 << endl;
+	    cout << "px = " << track.get_px() << " py = " << track.get_py()
+		 << " pz = " << track.get_pz() << endl;
+	  }
         }  // track loop
 
 	// add the contents of the vector of vertex objects to the node tree
 	for (unsigned int vid = 0; vid < _vertex_list.size(); ++vid ){
-        SvtxVertex *vtxptr = _vertex_map->insert_clone(&svtx_vertex_list[vid]);
-        if (Verbosity() > 5) vtxptr->identify();
+	  SvtxVertex *vtxptr = _vertex_map->insert_clone(&svtx_vertex_list[vid]);
+	  if (Verbosity() > 5) vtxptr->identify();
 	}
-
+	
         hits_map.clear();
 	_trackmap->clear();
-
+	
 	// clean up for the next event
 	for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
         _tracks.clear();
@@ -924,9 +928,9 @@ int PHInitZVertexing::export_output(){
         _vertex.clear();
         _vertex.assign(3, 0.0);
 	_vertex_list.clear();	
-
+	
         return Fun4AllReturnCodes::EVENT_OK;
-
+	
 }
 
 float PHInitZVertexing::kappa_to_pt(float kappa) {

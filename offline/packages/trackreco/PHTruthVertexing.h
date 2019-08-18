@@ -41,6 +41,7 @@ class PHTruthVertexing : public PHInitVertexing
   }
 
  protected:
+
   int Setup(PHCompositeNode *topNode);
 
   int Process(PHCompositeNode *topNode);

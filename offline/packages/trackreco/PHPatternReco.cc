@@ -1,5 +1,5 @@
 
-#include "PHG4PatternReco.h"
+#include "PHPatternReco.h"
 #include "CellularAutomaton_v1.h"
 #include "CellularAutomaton.h"                          // for CellularAutom...
 #include "HelixHoughBin.h"                              // for HelixHoughBin
@@ -19,8 +19,9 @@
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxClusterMap.h>
-#include <trackbase_historic/SvtxCluster.h>
+
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrCluster.h>
 
 // sPHENIX Geant4 includes
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -70,7 +71,7 @@ using namespace std;
 using namespace Eigen;
 
 
-PHG4PatternReco::PHG4PatternReco(unsigned int nlayers,
+PHPatternReco::PHPatternReco(unsigned int nlayers,
                                        unsigned int min_nlayers,
                                        const string& name)
     : SubsysReco(name),
@@ -167,7 +168,7 @@ PHG4PatternReco::PHG4PatternReco(unsigned int nlayers,
 	zooms_vec.clear();
 }
 
-int PHG4PatternReco::Init(PHCompositeNode* topNode) {
+int PHPatternReco::Init(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
 //    _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
@@ -223,7 +224,7 @@ int PHG4PatternReco::Init(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4PatternReco::InitRun(PHCompositeNode* topNode) {
+int PHPatternReco::InitRun(PHCompositeNode* topNode) {
 
 	int code = Fun4AllReturnCodes::ABORTRUN;
 
@@ -246,7 +247,7 @@ int PHG4PatternReco::InitRun(PHCompositeNode* topNode) {
 
 	if (Verbosity() > 0) {
 		cout
-				<< "====================== PHG4PatternReco::InitRun() ======================"
+				<< "====================== PHPatternReco::InitRun() ======================"
 				<< endl;
 		cout << " Magnetic field set to: " << _mag_field << " Tesla" << endl;
 		cout << " Number of tracking layers: " << _nlayers << endl;
@@ -273,11 +274,10 @@ int PHG4PatternReco::InitRun(PHCompositeNode* topNode) {
 	return code;
 }
 
-int PHG4PatternReco::process_event(PHCompositeNode *topNode) 
+int PHPatternReco::process_event(PHCompositeNode *topNode) 
 {
 
-	if (Verbosity() > 0)
-		cout << "PHG4PatternReco::process_event -- entered" << endl;
+	if (Verbosity() > 0) cout << "PHPatternReco::process_event -- entered" << endl;
 
 	// start fresh
 	for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
@@ -362,7 +362,7 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 			set_nbins(zoomlevel);
 
 #ifdef _DEBUG_
-//        cout<<"PHG4PatternReco:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
+//        cout<<"PHPatternReco:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
 #endif
 
 			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
@@ -458,7 +458,7 @@ int PHG4PatternReco::process_event(PHCompositeNode *topNode)
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4PatternReco::End(PHCompositeNode *topNode) {
+int PHPatternReco::End(PHCompositeNode *topNode) {
 #ifdef _DEBUG_
 	_ofile->cd();
 	_z0_dzdl->Write();
@@ -485,16 +485,16 @@ int PHG4PatternReco::End(PHCompositeNode *topNode) {
 }
 
 
-void PHG4PatternReco::set_material(int layer, float value) {
+void PHPatternReco::set_material(int layer, float value) {
 	_user_material[layer] = value;
 }
 
-void PHG4PatternReco::add_zoom(unsigned int n_kappa, unsigned int n_phi, unsigned int n_d,unsigned int n_dzdl, unsigned int n_z0) {
+void PHPatternReco::add_zoom(unsigned int n_kappa, unsigned int n_phi, unsigned int n_d,unsigned int n_dzdl, unsigned int n_z0) {
         std::vector<unsigned int> zoom {n_kappa, n_phi, n_d, n_dzdl, n_z0};
 	zooms_vec.push_back(zoom);
 }
 
-int PHG4PatternReco::create_nodes(PHCompositeNode* topNode) {
+int PHPatternReco::create_nodes(PHCompositeNode* topNode) {
 	// create nodes...
 	PHNodeIterator iter(topNode);
 
@@ -535,7 +535,7 @@ int PHG4PatternReco::create_nodes(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4PatternReco::initialize_geometry(PHCompositeNode *topNode) {
+int PHPatternReco::initialize_geometry(PHCompositeNode *topNode) {
 
 	//---------------------------------------------------------
 	// Grab Run-Dependent Detector Geometry and Configure Hough
@@ -696,7 +696,7 @@ int PHG4PatternReco::initialize_geometry(PHCompositeNode *topNode) {
 }
 
 
-int PHG4PatternReco::get_nodes(PHCompositeNode* topNode) {
+int PHPatternReco::get_nodes(PHCompositeNode* topNode) {
 
 	//---------------------------------
 	// Get Objects off of the Node Tree
@@ -705,11 +705,20 @@ int PHG4PatternReco::get_nodes(PHCompositeNode* topNode) {
 	// Pull the reconstructed track information off the node tree...
 	_bbc_vertexes = findNode::getClass<BbcVertexMap>(topNode, "BbcVertexMap");
 
+	/*
 	_clustermap = findNode::getClass<SvtxClusterMap>(topNode, "SvtxClusterMap");
 	if (!_clustermap) {
 		cerr << PHWHERE << " ERROR: Can't find node SvtxClusterMap" << endl;
 		return Fun4AllReturnCodes::ABORTEVENT;
 	}
+	*/
+
+	_clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+	if (!_clustermap)
+	  {
+	    cerr << PHWHERE << " ERROR: Can't find node TrkrClusterContainer" << endl;
+	    return Fun4AllReturnCodes::ABORTEVENT;
+	  }
 
 	// Pull the reconstructed track information off the node tree...
 	_trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -728,298 +737,305 @@ int PHG4PatternReco::get_nodes(PHCompositeNode* topNode) {
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4PatternReco::translate_input(PHCompositeNode* topNode) {
+int PHPatternReco::translate_input(PHCompositeNode* topNode) {
 
-	
-        for (SvtxClusterMap::Iter iter = _clustermap->begin();
-                iter != _clustermap->end(); ++iter) 
+  unsigned int clusid = 0;
+  unsigned int ilayer = 0;
+  TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
+  for(TrkrClusterContainer::ConstIterator iter = clusrange.first; iter != clusrange.second; ++iter)
+    {
+      TrkrCluster *cluster = iter->second;
+      TrkrDefs::cluskey cluskey = iter->first;
+      unsigned int layer = TrkrDefs::getLayer(cluskey);
+      //cout << "  cluster with layer " << layer << " _nlayers = " << _nlayers << endl;
+      std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
+      if(it != _layer_ilayer_map.end())
 	{
+	  ilayer = it->second;
+	  //cout << "    set ilayer to " << ilayer << endl;
 
-        	SvtxCluster* cluster = iter->second;
-
-                unsigned int ilayer = UINT_MAX;
-                std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(cluster->get_layer());
-                if(it != _layer_ilayer_map.end())
-                        ilayer = it->second;
-                if(ilayer >= _nlayers) continue;
-
-                Cluster3D hit3d;
-
-                hit3d.set_id(cluster->get_id());
-                hit3d.set_layer(ilayer);
-
-//		cout<<" adding cluster, id =  "<< cluster->get_id()<<", layer = "<<cluster->get_layer()<<endl;
-                hit3d.set_x(cluster->get_x());
-                hit3d.set_y(cluster->get_y());
-                hit3d.set_z(cluster->get_z());
-                for (int i = 0; i < 3; ++i) {
-                        for (int j = i; j < 3; ++j) {
-                                hit3d.set_error(i, j, cluster->get_error(i, j));
-
-	                //hit3d.set_size(i, j, cluster->get_size(i, j)); // original
-        	        hit3d.set_size(i, j, cluster->get_error(i, j)*sqrt(12.)); // yuhw 2017-05-08
-                        }
-                }
-                hits_map.insert(std::pair<unsigned int, Cluster3D>(hit3d.get_id(),hit3d));
-		hits_used.insert(std::pair<unsigned int, bool>(hit3d.get_id(),false));
-        }
+	  if(ilayer >= _nlayers) continue;
+	  
+	  SimpleHit3D hit3d;
+	  
+	  hit3d.set_cluskey(cluskey);  // will be added to SvtxTrack later, needed to find the cluster in TrkrClusterContainer
+	  hit3d.set_id(clusid);
+	  hit3d.set_layer(ilayer);
+	  
+	  //		cout<<" adding cluster, id =  "<< cluster->get_id()<<", layer = "<<cluster->get_layer()<<endl;
+	  
+	  hit3d.set_x(cluster->getPosition(0));
+	  hit3d.set_y(cluster->getPosition(1));
+	  hit3d.set_z(cluster->getPosition(2));
+	  for (int i = 0; i < 3; ++i) {
+	    for (int j = i; j < 3; ++j) {
+	      hit3d.set_error(i, j, cluster->getError(i, j));
+	      
+	      //hit3d.set_size(i, j, cluster->get_size(i, j)); // original
+	      hit3d.set_size(i, j, cluster->getError(i, j)*sqrt(12.)); // yuhw 2017-05-08
+	    }
+	  }
+	  cout << "     inserting hit with layer " << ilayer << " into hits_map" << endl;
+	  hits_map.insert(std::pair<unsigned int, SimpleHit3D>(hit3d.get_id(),hit3d));
+	  hits_used.insert(std::pair<unsigned int, bool>(hit3d.get_id(),false));
+	  
+      clusid += 1;
+	}
+    }
 	
-        if (Verbosity() > 10) {
-        cout << "-------------------------------------------------------------------"
-             << endl;
-        cout << "PHG4PatternReco::process_event has the following input clusters:"
-             << endl;
-
-	cout << "n init clusters = " << hits_map.size() << endl;
-
-		for (std::map<unsigned int,Cluster3D>::iterator it=hits_map.begin(); 
-			it!=hits_map.end(); 
-			++it)
-		{
-                	Cluster3D hit = it->second;
-			hit.print();
-		}
-	   
-
-        cout << "-------------------------------------------------------------------"
-             << endl;
-        }
-
-	return Fun4AllReturnCodes::EVENT_OK;
+  if (Verbosity() > 10) {
+    cout << "-------------------------------------------------------------------"
+	 << endl;
+    cout << "PHPatternReco::process_event has the following input clusters:"
+	 << endl;
+    
+    cout << "n init clusters = " << hits_map.size() << endl;
+    
+    for (std::map<unsigned int,SimpleHit3D>::iterator it=hits_map.begin(); 
+	 it!=hits_map.end(); 
+	 ++it)
+      {
+	SimpleHit3D hit = it->second;
+	hit.print();
+      }
+    
+    
+    cout << "-------------------------------------------------------------------"
+	 << endl;
+  }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHG4PatternReco::export_output(){
+int PHPatternReco::export_output(){
 
-	// clear mvtx at the begining of an event
-//	_vertexmap->clear();
-//	_trackmap->clear();
-//        if (_tracks.empty())
-//                return Fun4AllReturnCodes::EVENT_OK;
-/*
-	std::vector<SvtxVertex_v1> svtx_vertex_list;
-	unsigned int nvertex = _vertex_list.size();
-	for (unsigned int vid = 0; vid < nvertex; ++vid ){
+  // clear mvtx at the begining of an event
+  //	_vertexmap->clear();
+  //	_trackmap->clear();
+  //        if (_tracks.empty())
+  //                return Fun4AllReturnCodes::EVENT_OK;
+  /*
+    std::vector<SvtxVertex_v1> svtx_vertex_list;
+    unsigned int nvertex = _vertex_list.size();
+    for (unsigned int vid = 0; vid < nvertex; ++vid ){
+    
+    SvtxVertex_v1 vertex;
+    vertex.set_t0(0.0);
+    for (int i = 0; i < 3; ++i)
+    vertex.set_position(i, _vertex_list[vid][i]);
+    vertex.set_chisq(0.0);
+    vertex.set_ndof(0);
+    vertex.set_error(0, 0, 0.0);
+    vertex.set_error(0, 1, 0.0);
+    vertex.set_error(0, 2, 0.0);
+    vertex.set_error(1, 0, 0.0);
+    vertex.set_error(1, 1, 0.0);
+    vertex.set_error(1, 2, 0.0);
+    vertex.set_error(2, 0, 0.0);
+    vertex.set_error(2, 1, 0.0);
+    vertex.set_error(2, 2, 0.0);
+    
+    svtx_vertex_list.push_back(vertex);
+    }
+    
+    cout<<"vertex list "<<endl;
+    // at this point we should already have an initial pt and pz guess...
+    // need to translate this into the PHG4Track object...
+    */
+  // read vertices from SvtxVertexMap 
+  // store vertex object in a map (so that it can have an vertex_id = -1)	
+  // and assign a vertex_id to each track
+  std::map<int, SvtxVertex*> svtx_vertex_list;
+  
+  // loop over all vertexes on node
+  for (SvtxVertexMap::Iter iter = _vertexmap->begin();
+       iter != _vertexmap->end();
+       ++iter) {
+    SvtxVertex* vertex = iter->second;
+    int vertex_id = (int) vertex->get_id();
+    cout<<"vertex id "<< vertex->get_id()<<", z " <<vertex->get_position(2)<<endl;
+    svtx_vertex_list[vertex_id] = vertex; 	
+  }
+  // add a vertex with a vertex_id = 9999 for triplets not tied to a reco vertex
+  SvtxVertex_v1 fake_vertex;
+  fake_vertex.set_t0(0.0);
+  for (int i = 0; i < 3; ++i)
+    fake_vertex.set_position(i,999.0);
+  fake_vertex.set_chisq(0.0);
+  fake_vertex.set_ndof(0);
+  fake_vertex.set_error(0, 0, 0.0);
+  fake_vertex.set_error(0, 1, 0.0);
+  fake_vertex.set_error(0, 2, 0.0);
+  fake_vertex.set_error(1, 0, 0.0);
+  fake_vertex.set_error(1, 1, 0.0);
+  fake_vertex.set_error(1, 2, 0.0);
+  fake_vertex.set_error(2, 0, 0.0);
+  fake_vertex.set_error(2, 1, 0.0);
+  fake_vertex.set_error(2, 2, 0.0);
+  //	svtx_vertex_list[9999] = fake_vertex;
+  
+  std::vector<SimpleHit3D> track_hits;
+  track_hits.clear();
+  TrkrDefs::cluskey clusterkey;
+  
+  for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
+    //		if (_tracks.at(itrack).vertex_id >= nvertex) continue;
+    //		a triplet is allowed to have no reco vertex tied to it, assign -1
+    SvtxTrack_v1 track;
+    track.set_id(itrack);
+    track_hits.clear();
+    track_hits = _tracks.at(itrack).hits;
+    //		cout<<"hits vector assigned " <<endl;
+    for (unsigned int ihit = 0; ihit < track_hits.size(); ++ihit) {
+      if ((track_hits.at(ihit).get_id()) >= _clustermap->size()) {
+	continue;
+      }
 
-        SvtxVertex_v1 vertex;
-        vertex.set_t0(0.0);
-        for (int i = 0; i < 3; ++i)
-        vertex.set_position(i, _vertex_list[vid][i]);
-        vertex.set_chisq(0.0);
-        vertex.set_ndof(0);
-        vertex.set_error(0, 0, 0.0);
-        vertex.set_error(0, 1, 0.0);
-        vertex.set_error(0, 2, 0.0);
-        vertex.set_error(1, 0, 0.0);
-        vertex.set_error(1, 1, 0.0);
-        vertex.set_error(1, 2, 0.0);
-        vertex.set_error(2, 0, 0.0);
-        vertex.set_error(2, 1, 0.0);
-        vertex.set_error(2, 2, 0.0);
-
-	svtx_vertex_list.push_back(vertex);
-	}
-
-	cout<<"vertex list "<<endl;
-        // at this point we should already have an initial pt and pz guess...
-        // need to translate this into the PHG4Track object...
-*/
-	// read vertices from SvtxVertexMap 
-	// store vertex object in a map (so that it can have an vertex_id = -1)	
-	// and assign a vertex_id to each track
-	std::map<int, SvtxVertex*> svtx_vertex_list;
-   
-	// loop over all vertexes on node
-        for (SvtxVertexMap::Iter iter = _vertexmap->begin();
-	iter != _vertexmap->end();
-	++iter) {
-		SvtxVertex* vertex = iter->second;
-		int vertex_id = (int) vertex->get_id();
-//		cout<<"vertex id "<< vertex->get_id()<<", z " <<vertex->get_position(2)<<endl;
-		svtx_vertex_list[vertex_id] = vertex; 	
-	}
-	// add a vertex with a vertex_id = 9999 for triplets not tied to a reco vertex
-	SvtxVertex_v1 fake_vertex;
-        fake_vertex.set_t0(0.0);
-        for (int i = 0; i < 3; ++i)
-        fake_vertex.set_position(i,999.0);
-        fake_vertex.set_chisq(0.0);
-        fake_vertex.set_ndof(0);
-        fake_vertex.set_error(0, 0, 0.0);
-        fake_vertex.set_error(0, 1, 0.0);
-        fake_vertex.set_error(0, 2, 0.0);
-        fake_vertex.set_error(1, 0, 0.0);
-        fake_vertex.set_error(1, 1, 0.0);
-        fake_vertex.set_error(1, 2, 0.0);
-        fake_vertex.set_error(2, 0, 0.0);
-        fake_vertex.set_error(2, 1, 0.0);
-        fake_vertex.set_error(2, 2, 0.0);
-//	svtx_vertex_list[9999] = fake_vertex;
-
-        std::vector<Cluster3D> track_hits;
-	track_hits.clear();
-        int clusterID;
-
-        for (unsigned int itrack = 0; itrack < _tracks.size(); ++itrack) {
-//		if (_tracks.at(itrack).vertex_id >= nvertex) continue;
-//		a triplet is allowed to have no reco vertex tied to it, assign -1
-                SvtxTrack_v1 track;
-                track.set_id(itrack);
-                track_hits.clear();
-                track_hits = _tracks.at(itrack).hits;
-//		cout<<"hits vector assigned " <<endl;
-                for (unsigned int ihit = 0; ihit < track_hits.size(); ++ihit) {
-                        if ((track_hits.at(ihit).get_id()) >= _clustermap->size()) {
-                                continue;
-                        }
-                        SvtxCluster* cluster = _clustermap->get(
-                        track_hits.at(ihit).get_id());
-                        clusterID = cluster->get_id();
-
-			if (Verbosity() > 5) {
-                        cout
-                        <<__LINE__
-                        <<": itrack: " << itrack
-                        <<": nhits: " << track_hits.size()
-                        <<": clusterID: " << clusterID
-                        <<": layer: " << cluster->get_layer()
-                        <<endl;
-			}
-                        track.insert_cluster(clusterID);
-                }
-
-
-//		cout<<"hits added to a track "<<endl;
-                float kappa = _tracks.at(itrack).kappa;
-                float d = _tracks.at(itrack).d;
-                float phi = _tracks.at(itrack).phi;
-                float dzdl = _tracks.at(itrack).dzdl;
-                float z0 = _tracks.at(itrack).z0;
-
-                float pT = kappa_to_pt(kappa);
-
-                float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
-                float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
-
-                // find helicity from cross product sign
-                short int helicity;
-		if ((track_hits[0].get_x()- x_center)*(track_hits[track_hits.size()-1].get_y()- y_center)
-		- (track_hits[0].get_y()- y_center)*(track_hits[track_hits.size()-1].get_x()- x_center)> 0)
-		{
-                        helicity = 1;
-                } else {
-                        helicity = -1;
-                }
-
-                float pZ = 0;
-                if (dzdl != 1) {
-                        pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
-                }
-                int ndf = 2 * _tracks.at(itrack).hits.size() - 5;
-//              track.set_chisq(_track_errors[itrack]);
-                track.set_ndf(ndf);
-                track.set_px(pT * cos(phi - helicity * M_PI / 2));
-                track.set_py(pT * sin(phi - helicity * M_PI / 2));
-                track.set_pz(pZ);
-
-                track.set_dca2d(d);
-//                track.set_dca2d_error(sqrt(_track_covars[itrack](1, 1)));
-
-//		cout<<"track parameters set "<<endl;
-                if (_mag_field > 0) {
-                        track.set_charge(helicity);
-                } else {
-                        track.set_charge(-1.0 * helicity);
-                }
-
-
-  /*              Eigen::Matrix<float, 6, 6> euclidean_cov =
-                Eigen::Matrix<float, 6, 6>::Zero(6, 6);
-                convertHelixCovarianceToEuclideanCovariance(_mag_field, phi, d, kappa,
-                                z0, dzdl, _track_covars[itrack], euclidean_cov);
-*/
-                for (unsigned int row = 0; row < 6; ++row) {
-                        for (unsigned int col = 0; col < 6; ++col) {
-  //                      track.set_error(row, col, euclidean_cov(row, col));
-                        }
-                }
-//		cout<<"set track "<<endl;
-		unsigned int vid =9999;// _tracks.at(itrack).vertex_id
-		float distance = 9999;
-		for (std::map<int,SvtxVertex*>::iterator it=svtx_vertex_list.begin();
-                        it!=svtx_vertex_list.end();
-                        ++it){
-			unsigned int iv = it->second->get_id();
-			float zvtx = it->second->get_position(2);
-			if (fabs(z0-zvtx) <distance){ 
-			vid = iv;
-			distance = fabs(z0-zvtx);
-			}
-		}
-
-		//if a triplet doesn't have a reco vertex tied to it, assign 9999
-		if (fabs(z0 - distance)>0.05) vid = 9999;		
-		if (Verbosity() > 5) cout<<"vertex_id "<<vid<<endl;
-		// pca 
-		if (vid==9999){
-		track.set_x(0.);
-		track.set_y(0.);
-		track.set_z(0.);
-		}else {
-                track.set_x(svtx_vertex_list[vid]->get_x() + d * cos(phi));
-                track.set_y(svtx_vertex_list[vid]->get_y() + d * sin(phi));
-                track.set_z(svtx_vertex_list[vid]->get_z() + z0);
-		}
-
-                _trackmap->insert(&track);
-		if (vid==9999) fake_vertex.insert_track(track.get_id());
-                else svtx_vertex_list[vid]->insert_track(track.get_id());
-
-                if (Verbosity() > 5) {
-                        cout << "track " << itrack << " quality = " << track.get_quality()
-                        << endl;
-                        cout << "px = " << track.get_px() << " py = " << track.get_py()
-                        << " pz = " << track.get_pz() << endl;
-                }
-        }  // track loop
-
-//	do not repeat saving vertices this time, add only fake vertex
- 	SvtxVertex *vtxptr = _vertexmap->insert_clone(&fake_vertex);
-	if (Verbosity() > 5) vtxptr->identify();
-
-/*	
+      clusterkey = track_hits.at(ihit).get_cluskey();
+      
+      if (Verbosity() > 5) {
+	int layer = TrkrDefs::getLayer(clusterkey);
+	cout
+	  <<__LINE__
+	  <<": itrack: " << itrack
+	  <<": nhits: " << track_hits.size()
+	  <<": clusterkey: " << clusterkey
+	  <<": layer: " << layer
+	  <<endl;
+      }
+      track.insert_cluster_key(clusterkey);
+    }
+      
+    //		cout<<"hits added to a track "<<endl;
+    float kappa = _tracks.at(itrack).kappa;
+    float d = _tracks.at(itrack).d;
+    float phi = _tracks.at(itrack).phi;
+    float dzdl = _tracks.at(itrack).dzdl;
+    float z0 = _tracks.at(itrack).z0;
+    
+    float pT = kappa_to_pt(kappa);
+    
+    float x_center = cos(phi) * (d + 1 / kappa); // x coordinate of circle center
+    float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
+    
+    // find helicity from cross product sign
+    short int helicity;
+    if ((track_hits[0].get_x()- x_center)*(track_hits[track_hits.size()-1].get_y()- y_center)
+	- (track_hits[0].get_y()- y_center)*(track_hits[track_hits.size()-1].get_x()- x_center)> 0)
+      {
+	helicity = 1;
+      } else {
+      helicity = -1;
+    }
+    
+    float pZ = 0;
+    if (dzdl != 1) {
+      pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
+    }
+    int ndf = 2 * _tracks.at(itrack).hits.size() - 5;
+    //              track.set_chisq(_track_errors[itrack]);
+    track.set_ndf(ndf);
+    track.set_px(pT * cos(phi - helicity * M_PI / 2));
+    track.set_py(pT * sin(phi - helicity * M_PI / 2));
+    track.set_pz(pZ);
+    
+    track.set_dca2d(d);
+    //                track.set_dca2d_error(sqrt(_track_covars[itrack](1, 1)));
+    
+    //		cout<<"track parameters set "<<endl;
+    if (_mag_field > 0) {
+      track.set_charge(helicity);
+    } else {
+      track.set_charge(-1.0 * helicity);
+    }
+    
+    
+    /*              Eigen::Matrix<float, 6, 6> euclidean_cov =
+		    Eigen::Matrix<float, 6, 6>::Zero(6, 6);
+		    convertHelixCovarianceToEuclideanCovariance(_mag_field, phi, d, kappa,
+		    z0, dzdl, _track_covars[itrack], euclidean_cov);
+    */
+    for (unsigned int row = 0; row < 6; ++row) {
+      for (unsigned int col = 0; col < 6; ++col) {
+	//                      track.set_error(row, col, euclidean_cov(row, col));
+      }
+    }
+    //		cout<<"set track "<<endl;
+    unsigned int vid =9999;// _tracks.at(itrack).vertex_id
+    float distance = 9999;
+    for (std::map<int,SvtxVertex*>::iterator it=svtx_vertex_list.begin();
+	 it!=svtx_vertex_list.end();
+	 ++it){
+      unsigned int iv = it->second->get_id();
+      float zvtx = it->second->get_position(2);
+      if (fabs(z0-zvtx) <distance){ 
+	vid = iv;
+	distance = fabs(z0-zvtx);
+      }
+    }
+    
+    //if a triplet doesn't have a reco vertex tied to it, assign 9999
+    if (fabs(z0 - distance)>0.05) vid = 9999;		
+    if (Verbosity() > 5) cout<<"vertex_id "<<vid<<endl;
+    // pca 
+    if (vid==9999){
+      track.set_x(0.);
+      track.set_y(0.);
+      track.set_z(0.);
+    }else {
+      track.set_x(svtx_vertex_list[vid]->get_x() + d * cos(phi));
+      track.set_y(svtx_vertex_list[vid]->get_y() + d * sin(phi));
+      track.set_z(svtx_vertex_list[vid]->get_z() + z0);
+    }
+    
+    _trackmap->insert(&track);
+    if (vid==9999) fake_vertex.insert_track(track.get_id());
+    else svtx_vertex_list[vid]->insert_track(track.get_id());
+    
+    if (Verbosity() > 5) {
+      cout << "track " << itrack << " quality = " << track.get_quality()  << endl;
+      cout << "px = " << track.get_px() << " py = " << track.get_py()  << " pz = " << track.get_pz() << endl;
+    }
+  }  // track loop
+  
+  //	do not repeat saving vertices this time, add only fake vertex
+  SvtxVertex *vtxptr = _vertexmap->insert_clone(&fake_vertex);
+  if (Verbosity() > 5) vtxptr->identify();
+  
+  /*	
 	for (unsigned int vid = 0; vid < _vertex_list.size(); ++vid ){
-        SvtxVertex *vtxptr = _vertexmap->insert_clone(&svtx_vertex_list[vid]);
-        if (Verbosity() > 5) vtxptr->identify();
+	SvtxVertex *vtxptr = _vertexmap->insert_clone(&svtx_vertex_list[vid]);
+	if (Verbosity() > 5) vtxptr->identify();
 	}
-*/
-        hits_map.clear();
-
-	for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
-        _tracks.clear();
-        _track_errors.clear();
-        _track_covars.clear();
-        _vertex.clear();
-        _vertex.assign(3, 0.0);
-	_vertex_list.clear();	
-
-        return Fun4AllReturnCodes::EVENT_OK;
-
+  */
+  hits_map.clear();
+  
+  for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
+  _tracks.clear();
+  _track_errors.clear();
+  _track_covars.clear();
+  _vertex.clear();
+  _vertex.assign(3, 0.0);
+  _vertex_list.clear();	
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+  
 }
-
-float PHG4PatternReco::kappa_to_pt(float kappa) {
+  
+float PHPatternReco::kappa_to_pt(float kappa) {
 	return _pt_rescale * _mag_field / 333.6 / kappa;
 }
 
-float PHG4PatternReco::pt_to_kappa(float pt) {
+float PHPatternReco::pt_to_kappa(float pt) {
 	return _pt_rescale * _mag_field / 333.6 / pt;
 }
 
-void PHG4PatternReco::set_max_kappa(float kappa_max){
+void PHPatternReco::set_max_kappa(float kappa_max){
 	_max_kappa = kappa_max;
 	_use_max_kappa = true;
 }
 
-void PHG4PatternReco::set_nbins(unsigned int izoom){
+void PHPatternReco::set_nbins(unsigned int izoom){
         nkappa = _hough_space->get_n_kappa_bins(izoom);
         nphi = _hough_space->get_n_phi_bins(izoom);
         nd = _hough_space->get_n_d_bins(izoom);
@@ -1027,7 +1043,7 @@ void PHG4PatternReco::set_nbins(unsigned int izoom){
         nz0 = _hough_space->get_n_z0_bins(izoom);
 }
 
-void PHG4PatternReco::initialize_houghbin(){
+void PHPatternReco::initialize_houghbin(){
         for (ik=0; ik<nkappa; ++ik){
           for (ip=0; ip<nphi; ++ip) {
             for (id=0;id<nd; ++id) {
@@ -1054,7 +1070,7 @@ void PHG4PatternReco::initialize_houghbin(){
         cout<<"bins_map.size " <<bins_map.size()<<endl;
 }
 
-void PHG4PatternReco::vote_z_init(unsigned int zoomlevel){
+void PHPatternReco::vote_z_init(unsigned int zoomlevel){
 
         float hitpos3d[3];
         unsigned int cluster_id=-999;
@@ -1077,7 +1093,7 @@ void PHG4PatternReco::vote_z_init(unsigned int zoomlevel){
         int icluster=0;//test
 
 //	cout<<"kappa min " <<kappa_min<<" kappa max "<<kappa_max<<" phi_min " <<phi_min<<endl;
-        for (std::map<unsigned int,Cluster3D>::iterator it=hits_map.begin();
+        for (std::map<unsigned int,SimpleHit3D>::iterator it=hits_map.begin();
                         it!=hits_map.end();
                         ++it)
         {
@@ -1090,7 +1106,7 @@ void PHG4PatternReco::vote_z_init(unsigned int zoomlevel){
 		if (hitused != hits_used.end())
 		used = hits_used.find(cluster_id)->second;
 		if(used) continue;
-		Cluster3D hit = it->second;
+		SimpleHit3D hit = it->second;
 		hitpos3d[0] = hit.get_x();
 		hitpos3d[1] = hit.get_y();
 		hitpos3d[2] = hit.get_z();
@@ -1150,7 +1166,7 @@ void PHG4PatternReco::vote_z_init(unsigned int zoomlevel){
 }
 
 
-void PHG4PatternReco::find_track_candidates_z_init(unsigned int zoomlevel){
+void PHPatternReco::find_track_candidates_z_init(unsigned int zoomlevel){
         bins_map_sel.erase(bins_map_sel.begin(), bins_map_sel.end());
 	bins_map_sel.clear();
 
@@ -1207,7 +1223,7 @@ void PHG4PatternReco::find_track_candidates_z_init(unsigned int zoomlevel){
 }
 
 
-void PHG4PatternReco::vote_z(unsigned int zoomlevel){
+void PHPatternReco::vote_z(unsigned int zoomlevel){
 
             set_nbins(zoomlevel); // at next zoom, bin number changes
 
@@ -1233,7 +1249,7 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
                         ++iter){
                 cluster_id = *iter;
 
-                Cluster3D hit = hits_map.find(cluster_id)->second;
+                SimpleHit3D hit = hits_map.find(cluster_id)->second;
                 hitpos3d[0] = hit.get_x();
                 hitpos3d[1] = hit.get_y();
                 hitpos3d[2] = hit.get_z();
@@ -1335,7 +1351,7 @@ void PHG4PatternReco::vote_z(unsigned int zoomlevel){
 }
 
 
-void PHG4PatternReco::find_track_candidates_z(unsigned int zoomlevel){
+void PHPatternReco::find_track_candidates_z(unsigned int zoomlevel){
         bins_map_sel.erase(bins_map_sel.begin(),bins_map_sel.end());
 	bins_map_sel.clear();
 
@@ -1373,7 +1389,7 @@ void PHG4PatternReco::find_track_candidates_z(unsigned int zoomlevel){
         cout<<"bins_map_sel.size at zoom "<< zoomlevel<<" (find_track_candidates_z) : " <<bins_map_sel.size()<<endl;
 }
 
-void PHG4PatternReco::vote_xy(unsigned int zoomlevel){
+void PHPatternReco::vote_xy(unsigned int zoomlevel){
 	
 	int count = -1;
 #ifdef _DEBUG_
@@ -1425,7 +1441,7 @@ void PHG4PatternReco::vote_xy(unsigned int zoomlevel){
                         iter != houghbin->end_clusters(); ++iter){
                         cluster_id = *iter;
 
-			Cluster3D hit = hits_map.find(cluster_id)->second;
+			SimpleHit3D hit = hits_map.find(cluster_id)->second;
                         hitpos3d[0] = hit.get_x();
                         hitpos3d[1] = hit.get_y();
 #ifdef _DEBUG_
@@ -1659,7 +1675,7 @@ void PHG4PatternReco::vote_xy(unsigned int zoomlevel){
 
 }
 
-void PHG4PatternReco::find_track_candidates_xy(unsigned int zoomlevel){
+void PHPatternReco::find_track_candidates_xy(unsigned int zoomlevel){
 
         bins_map_prev.erase(bins_map_prev.begin(), bins_map_prev.end());
 	bins_map_prev.clear();
@@ -1702,7 +1718,7 @@ void PHG4PatternReco::find_track_candidates_xy(unsigned int zoomlevel){
 
 }
 
-void PHG4PatternReco::prune_z(unsigned int zoomlevel){
+void PHPatternReco::prune_z(unsigned int zoomlevel){
 	set_nbins(zoomlevel);
 	for (std::map<unsigned int,HelixHoughBin*>::iterator it=bins_map_sel.begin(); it!=bins_map_sel.end(); ++it){
 		HelixHoughBin* houghbin = it->second;
@@ -1755,7 +1771,7 @@ void PHG4PatternReco::prune_z(unsigned int zoomlevel){
         cout<<"bins_map_sel.size at zoom " <<zoomlevel<<" (prune_z) : " <<bins_map_sel.size()<<endl;	
 }
 
-void PHG4PatternReco::prune_xy(unsigned int zoomlevel){
+void PHPatternReco::prune_xy(unsigned int zoomlevel){
 
         set_nbins(zoomlevel);
         cout<<"bins_map_prev.size at zoom " <<zoomlevel<<" (pre prune_xy) : " <<bins_map_prev.size()<<endl;
@@ -1811,7 +1827,7 @@ void PHG4PatternReco::prune_xy(unsigned int zoomlevel){
 
 }
 
-void PHG4PatternReco::reset_hits_used(){
+void PHPatternReco::reset_hits_used(){
 
 	for (std::map<unsigned int,bool>::iterator it = hits_used.begin(); 
 		it != hits_used.end(); ++it){
@@ -1819,7 +1835,7 @@ void PHG4PatternReco::reset_hits_used(){
 	}
 }
 
-void PHG4PatternReco::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap, unsigned int zoomlevel){
+void PHPatternReco::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap, unsigned int zoomlevel){
 
 	unsigned int icluster = 0;
 	switch (imap){
@@ -1832,7 +1848,7 @@ void PHG4PatternReco::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap
                         	iter != houghbin->end_clusters();
                         	++iter){
                 	//cout<< "cluster_id "<<*iter<<endl;    
-                	Cluster3D hit = hits_map.find(*iter)->second;
+                	SimpleHit3D hit = hits_map.find(*iter)->second;
                		track.hits.push_back(hit);
 			track.hits[icluster].set_id(*iter);
 			++icluster;
@@ -1847,7 +1863,7 @@ void PHG4PatternReco::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap
 			HelixHoughBin *houghbin = it->second;	
 			Track3D track;
 			icluster = 0;
-			track.hits.assign(houghbin->get_count(),Cluster3D());
+			track.hits.assign(houghbin->get_count(),SimpleHit3D());
 #ifdef _DEBUG_
 //			cout<<"bin "<< houghbin->get_global_bin(zoomlevel);
 //			cout<<" : start loop over clusters "<<endl;
@@ -1861,7 +1877,7 @@ void PHG4PatternReco::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap
 			auto search =  hits_map.find(*iter);
 			if (search != hits_map.end())
 			{
-			Cluster3D hit = hits_map.find(*iter)->second;
+			SimpleHit3D hit = hits_map.find(*iter)->second;
 			track.hits[icluster] = hit;
 			track.hits[icluster].set_id(*iter);
 			track.kappa = houghbin->get_kappa_center(zoomlevel);
@@ -1881,7 +1897,7 @@ void PHG4PatternReco::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap
 
 }
 
-int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks, bool forward){
+int PHPatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks, bool forward){
  
 	unsigned int layer0 = 0;
 	unsigned int layer1 = 1;
@@ -1896,7 +1912,7 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 	std::vector<unsigned int> layer_sorted_1;
 	std::vector<unsigned int> layer_sorted_2;
 
-        for (std::map<unsigned int,Cluster3D>::iterator it=hits_map.begin();
+        for (std::map<unsigned int,SimpleHit3D>::iterator it=hits_map.begin();
                         it!=hits_map.end();
                         ++it)
         {
@@ -1908,11 +1924,11 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
                 used = hits_used.find(cluster_id)->second;
                 if(used) continue;
 
-                Cluster3D hit = it->second;
+                SimpleHit3D hit = it->second;
                 unsigned int layer = hit.get_layer();
 		unsigned int hitid =  hit.get_id();
 		if (hitid != hitid) continue;
-		//cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
+		//cout<<"cluster_id "<< it->first <<" layer "<< layer<<" hitid "<<hitid<<endl;
 		if (layer == layer0 ) layer_sorted_0.push_back(hitid);                
 		else if (layer == layer1) layer_sorted_1.push_back(hitid);
 		else if (layer == layer2) layer_sorted_2.push_back(hitid);
@@ -1938,7 +1954,7 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 //		cout<<"cluster_id for hit 0 "<< *it0<<endl;
  		auto search0 = hits_map.find(*it0);
 		if (search0 == hits_map.end()) continue;
- 		Cluster3D hit0 = hits_map.find(*it0)->second;
+ 		SimpleHit3D hit0 = hits_map.find(*it0)->second;
 		float phi_h0 = atan2(hit0.get_y(),hit0.get_x());
 		phi_h0 = shift_phi_range(phi_h0);
 		float z_h0 = hit0.get_z();
@@ -1949,7 +1965,7 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 
 		for (std::vector<unsigned int>::iterator it1 = layer_sorted_1.begin(); it1 != layer_sorted_1.end(); ++it1 )
 		{
-			Cluster3D hit1 = hits_map.find(*it1)->second;
+			SimpleHit3D hit1 = hits_map.find(*it1)->second;
 	                float phi_h1 = atan2(hit1.get_y(),hit1.get_x());
 			phi_h1 = shift_phi_range(phi_h1);
 			float z_h1 = hit1.get_z();
@@ -1963,7 +1979,7 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 
 			for(std::vector<unsigned int>::iterator it2 = layer_sorted_2.begin(); it2 != layer_sorted_2.end(); ++it2)
 			{
-				Cluster3D hit2 = hits_map.find(*it2)->second;
+				SimpleHit3D hit2 = hits_map.find(*it2)->second;
 				float phi_h2 = atan2(hit2.get_y(),hit2.get_x());
 				phi_h2 = shift_phi_range(phi_h2);
 				float phi_h1h2 = phi_h2-phi_h1;
@@ -1984,10 +2000,10 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 		if (fill_track)	{
 //			cout<<" fill_track "<<endl;
 			unsigned int nclusters =0 ;
-			track.hits.assign(clusters.size(),Cluster3D());
+			track.hits.assign(clusters.size(),SimpleHit3D());
 			for (std::set<unsigned int>::iterator it=clusters.begin(); it!=clusters.end(); ++it ){
 			//cout<<"cluster id  "<<*it<<endl;
-			Cluster3D hit = hits_map.find(*it)->second;
+			SimpleHit3D hit = hits_map.find(*it)->second;
 			track.hits[nclusters] = hit;
 			track.hits[nclusters].set_id(*it);
 			++nclusters;
@@ -2001,7 +2017,7 @@ int PHG4PatternReco::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks,
 	return 1;	
 }
 
-int PHG4PatternReco::turnoff_hits_used_in_triplets(){
+int PHPatternReco::turnoff_hits_used_in_triplets(){
 
         // loop over all triplets
         for (SvtxTrackMap::Iter iter = _trackmap->begin();
@@ -2023,7 +2039,7 @@ int PHG4PatternReco::turnoff_hits_used_in_triplets(){
 
 }
 
-int PHG4PatternReco::cellular_automaton_zvtx_init(std::vector<Track3D>& candidate_tracks){
+int PHPatternReco::cellular_automaton_zvtx_init(std::vector<Track3D>& candidate_tracks){
 
 	cout<<"Entering cellular autumaton : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
 	ca =	new CellularAutomaton_v1(candidate_tracks,_radii,_material);
@@ -2059,7 +2075,7 @@ int PHG4PatternReco::cellular_automaton_zvtx_init(std::vector<Track3D>& candidat
 }
 
 /*
-int PHG4PatternReco::cellular_automaton_zvtx_second(std::vector<Track3D>& candidate_tracks){
+int PHPatternReco::cellular_automaton_zvtx_second(std::vector<Track3D>& candidate_tracks){
 
 
         cout<<"Entering cellular autumaton zvtx_second : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
@@ -2085,7 +2101,7 @@ int PHG4PatternReco::cellular_automaton_zvtx_second(std::vector<Track3D>& candid
 
 }
 
-int PHG4PatternReco::cellular_automaton_zvtx_third(std::vector<Track3D>& candidate_tracks){
+int PHPatternReco::cellular_automaton_zvtx_third(std::vector<Track3D>& candidate_tracks){
 
         cout<<"Entering cellular autumaton zvtx_third : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
         ca =    new CellularAutomaton_v1(candidate_tracks,_radii,_material);
@@ -2110,7 +2126,7 @@ int PHG4PatternReco::cellular_automaton_zvtx_third(std::vector<Track3D>& candida
 
 */
 
-int PHG4PatternReco::fit_vertex(){
+int PHPatternReco::fit_vertex(){
 	cout<<"tracks size " << _tracks.size()<<endl;
 
 	if (_tracks.empty()) return -1;
@@ -2346,7 +2362,7 @@ int PHG4PatternReco::fit_vertex(){
 
 } 
 
-void PHG4PatternReco::convertHelixCovarianceToEuclideanCovariance(float B,
+void PHPatternReco::convertHelixCovarianceToEuclideanCovariance(float B,
 		float phi, float d, float kappa, float z0, float dzdl,
 		Eigen::Matrix<float, 5, 5> const& input,
 		Eigen::Matrix<float, 6, 6>& output) {
@@ -2387,13 +2403,13 @@ void PHG4PatternReco::convertHelixCovarianceToEuclideanCovariance(float B,
 	output = J * input * (J.transpose());
 }
 
-void PHG4PatternReco::shift_coordinate_system(double dx, double dy, double dz) {
+void PHPatternReco::shift_coordinate_system(double dx, double dy, double dz) {
 
-        for (std::map<unsigned int,Cluster3D>::iterator it=hits_map.begin();
+        for (std::map<unsigned int,SimpleHit3D>::iterator it=hits_map.begin();
                         it!=hits_map.end();
                         ++it)
         {
-		Cluster3D hit = it->second;
+		SimpleHit3D hit = it->second;
                 hit.set_x(hit.get_x() + dx);
 		hit.set_y(hit.get_y() + dy);
 		hit.set_z(hit.get_z() + dz);
@@ -2416,7 +2432,7 @@ void PHG4PatternReco::shift_coordinate_system(double dx, double dy, double dz) {
         return;
 }
 
-float PHG4PatternReco::shift_phi_range(float _phi){
+float PHPatternReco::shift_phi_range(float _phi){
 
 	if (_phi < 0.) _phi += 2.*M_PI;
 	return _phi;

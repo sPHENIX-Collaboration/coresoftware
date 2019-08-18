@@ -33,6 +33,7 @@ class PHInitVertexing : public SubsysReco
   int process_event(PHCompositeNode *topNode);
 
  protected:
+
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
   /// overrided in derived classes
   virtual int Setup(PHCompositeNode *topNode);
