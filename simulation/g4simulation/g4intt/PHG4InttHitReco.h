@@ -8,7 +8,7 @@
 #include <fun4all/SubsysReco.h>
 
 #if !defined(__CINT__) || defined(__CLING__)
-#include <gsl/gsl_vector.h>             // for gsl_vector
+#include <gsl/gsl_vector.h>  // for gsl_vector
 #endif
 
 #include <string>
@@ -31,19 +31,12 @@ class PHG4InttHitReco : public SubsysReco, public PHParameterInterface
   void SetDefaultParameters();
 
   void Detector(const std::string &d) { m_Detector = d; }
-  void checkenergy(const int i = 1) { m_ChkEnergyConservationFlag = i; }
-
-  double circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const;
-  double sA(double r, double x, double y) const;
 
  protected:
-  int CheckEnergy(PHCompositeNode *topNode);
   std::string m_Detector;
   std::string m_HitNodeName;
   std::string m_CellNodeName;
   std::string m_GeoNodeName;
-
-  int m_ChkEnergyConservationFlag;
 
   double m_Tmin;
   double m_Tmax;

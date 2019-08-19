@@ -5,15 +5,17 @@
 #include "PHCompositeNode.h"
 #include "PHIODataNode.h"
 #include "PHNodeIterator.h"
-#include "PHObject.h"
 #include "phooldefs.h"
 
 #include <RVersion.h>
+#include <TBranch.h>                                         // for TBranch
 #include <TBranchObject.h>
 #include <TClass.h>
+#include <TDirectory.h>                                      // for TDirectory
 #include <TFile.h>
 #include <TLeafObject.h>
 #include <TObject.h>
+#include <TObjArray.h>                                       // for TObjArray
 #include <TROOT.h>
 #include <TTree.h>
 

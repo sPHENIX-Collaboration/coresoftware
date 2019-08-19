@@ -8,8 +8,6 @@
 #include "MvtxDefs.h"
 #include "CylinderGeom_Mvtx.h"
 
-#include <g4detectors/PHG4CylinderCellGeom.h>
-#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
@@ -47,40 +45,9 @@
 #include <string>
 #include <vector>                                   // for vector
 
-class PHCompositeNode;
-
 using namespace boost;
 using namespace std;
 
-/*
-bool MvtxClusterizer::are_adjacent(const pixel lhs,
-                                   const pixel rhs)
-{
-  if (GetZClustering())
-  {
-    // column is first, row is second
-    if (fabs(lhs.first - rhs.first) <= 1)
-    {
-      if (fabs(lhs.second - rhs.second) <= 1)
-      {
-        return true;
-      }
-    }
-  }
-  else
-  {
-    if (fabs(lhs.first - rhs.first) == 0)
-    {
-      if (fabs(lhs.second - rhs.second) <= 1)
-      {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-*/
 
 bool MvtxClusterizer::are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs)
 {
