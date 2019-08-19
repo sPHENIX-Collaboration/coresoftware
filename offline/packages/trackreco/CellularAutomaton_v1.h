@@ -40,7 +40,7 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 
  public:
 
-	CellularAutomaton_v1(std::vector<Track3D>& input_tracks, std::vector<float>& radius, std::vector<float>& material);
+	CellularAutomaton_v1(std::vector<SimpleTrack3D>& input_tracks, std::vector<float>& radius, std::vector<float>& material);
 //	CellularAutomaton_v1(const CellularAutomaton_v1& cellular_automaton);
 	virtual ~CellularAutomaton_v1() {};
 
@@ -68,21 +68,21 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	void set_seeding_mode(bool mod) {seeding_mode = mod;}
 	void set_hits_map(std::map<unsigned int, SimpleHit3D>& hits_map){_hits_map = hits_map;}
 
-	int run(std::vector<Track3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states, std::map<unsigned int, bool>& hits_used);	
+	int run(std::vector<SimpleTrack3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states, std::map<unsigned int, bool>& hits_used);	
 
 
  private:
 
 	void set_detector_radii(std::vector<float>& radii);
 	void set_detector_materials(std::vector<float>& materials);
-	void set_input_tracks(std::vector<Track3D>& input_tracks);
+	void set_input_tracks(std::vector<SimpleTrack3D>& input_tracks);
 	void set_cylinder_kalman();
 
 	int init();
 	int process_tracks();
-	int process_single_track(Track3D& track);
-	int process_single_triplet(Track3D& track);
-	int get_ca_tracks(std::vector<Track3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states);	
+	int process_single_track(SimpleTrack3D& track);
+	int process_single_triplet(SimpleTrack3D& track);
+	int get_ca_tracks(std::vector<SimpleTrack3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states);	
 
 	int calculate_kappa_tangents(                        
 			float x1, float y1, float z1, float x2, float y2, float z2, 
@@ -109,8 +109,8 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 
 	HelixHoughSpace* _hough_space;
 	HelixKalmanFilter* _kalman;
-	std::vector<Track3D> in_tracks;
-	std::vector<Track3D> ca_tracks;
+	std::vector<SimpleTrack3D> in_tracks;
+	std::vector<SimpleTrack3D> ca_tracks;
 	std::vector<HelixKalmanState> ca_track_states;
 
 	std::vector<unsigned int> temp_combo;

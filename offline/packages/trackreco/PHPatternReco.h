@@ -7,8 +7,8 @@
 #if !defined(__CINT__) || defined (__CLING__)
 #include "VertexFitter.h"
 #include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/HelixKalmanState.h>
-#include "Track3D.h"
 #include <Eigen/Core>            // for Matrix
 #endif
 
@@ -188,10 +188,10 @@ private:
 	/// convert from momentum to inverse curvature
 	float pt_to_kappa(float pt);
 
-	void bins_to_Track3D(std::vector<Track3D>& temp_tracks, int imap, unsigned int zoomlevel);
-	int build_triplets_to_Track3D(std::vector<Track3D>& new_tracks, bool forward);
+	void bins_to_SimpleTrack3D(std::vector<SimpleTrack3D>& temp_tracks, int imap, unsigned int zoomlevel);
+	int build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>& new_tracks, bool forward);
 	int turnoff_hits_used_in_triplets();
-	int cellular_automaton_zvtx_init(std::vector<Track3D>& temp_tracks);
+	int cellular_automaton_zvtx_init(std::vector<SimpleTrack3D>& temp_tracks);
 	int fit_vertex();	
 
 	/// convert the covariance from HelixHough coords to x,y,z,px,py,pz
@@ -267,8 +267,8 @@ private:
 	std::map<int, unsigned int> _layer_ilayer_map;
 
 	// object storage
-	std::vector<Track3D> _temp_tracks;
-	std::vector<Track3D> _tracks;    ///< working array of tracks
+	std::vector<SimpleTrack3D> _temp_tracks;
+	std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
 	std::vector<HelixKalmanState> _track_states;
 	std::vector<double> _track_errors;     ///< working array of track chisq
 	std::vector<Eigen::Matrix<float, 5, 5> > _track_covars; ///< working array of track covariances

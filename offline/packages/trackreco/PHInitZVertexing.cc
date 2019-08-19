@@ -336,7 +336,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
 #ifdef _TRIPLETS_ 
 			_temp_tracks.clear();
 
-			build_triplets_to_Track3D(_temp_tracks, true); // false : backward
+			build_triplets_to_SimpleTrack3D(_temp_tracks, true); // false : backward
 #endif
 
 #ifdef _HOUGHTRANSF_
@@ -407,7 +407,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
 
 
 			// high pt, primary vertex originating tracks
-			bins_to_Track3D(_temp_tracks,1,zoomlevel);// 0(z) 1(xy) : create Track3D objects, save cluster_id
+			bins_to_SimpleTrack3D(_temp_tracks,1,zoomlevel);// 0(z) 1(xy) : create SimpleTrack3D objects, save cluster_id
 #endif
 
 			code = 0;
@@ -1749,14 +1749,14 @@ void PHInitZVertexing::reset_hits_used(){
 	}
 }
 
-void PHInitZVertexing::bins_to_Track3D(std::vector<Track3D>& new_tracks, int imap, unsigned int zoomlevel){
+void PHInitZVertexing::bins_to_SimpleTrack3D(std::vector<SimpleTrack3D>& new_tracks, int imap, unsigned int zoomlevel){
 
 	unsigned int icluster = 0;
 	switch (imap){
 		case 0: // not implemented yet		 
 		for (std::map<unsigned int,HelixHoughBin*>::iterator it = bins_map_sel.begin(); it != bins_map_sel.end(); ++it){
 			HelixHoughBin *houghbin = it->second;
-			Track3D track;
+			SimpleTrack3D track;
 			icluster = 0;
 			for(HelixHoughBin::ClusterIter iter = houghbin->begin_clusters();
                         	iter != houghbin->end_clusters();
@@ -1775,7 +1775,7 @@ void PHInitZVertexing::bins_to_Track3D(std::vector<Track3D>& new_tracks, int ima
 		cout<<"bins_map_prev selected, total bins : "<< bins_map_prev.size()<<endl;
 		for (std::map<unsigned int,HelixHoughBin*>::iterator it = bins_map_prev.begin(); it != bins_map_prev.end(); ++it){
 			HelixHoughBin *houghbin = it->second;	
-			Track3D track;
+			SimpleTrack3D track;
 			icluster = 0;
 			track.hits.assign(houghbin->get_count(),SimpleHit3D());
 #ifdef _DEBUG_
@@ -1811,7 +1811,7 @@ void PHInitZVertexing::bins_to_Track3D(std::vector<Track3D>& new_tracks, int ima
 
 }
 
-int PHInitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks, bool forward){
+int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>& new_tracks, bool forward){
  
 	unsigned int layer0 = 0;
 	unsigned int layer1 = 1;
@@ -1878,7 +1878,7 @@ int PHInitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks
 		float z_h0 = hit0.get_z();
 
                 // one track candidate for each hit on the first layer
-                Track3D track;
+                SimpleTrack3D track;
 		clusters.insert(*it0);
 
 		for (std::vector<unsigned int>::iterator it1 = layer_sorted_1.begin(); it1 != layer_sorted_1.end(); ++it1 )
@@ -1936,7 +1936,7 @@ int PHInitZVertexing::build_triplets_to_Track3D(std::vector<Track3D>& new_tracks
 }
 
 
-int PHInitZVertexing::cellular_automaton_zvtx_init(std::vector<Track3D>& candidate_tracks){
+int PHInitZVertexing::cellular_automaton_zvtx_init(std::vector<SimpleTrack3D>& candidate_tracks){
 
   if(Verbosity() > 1) cout<<"Entering cellular autumaton : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
 	ca =	new CellularAutomaton_v1(candidate_tracks,_radii,_material);
@@ -1972,7 +1972,7 @@ int PHInitZVertexing::cellular_automaton_zvtx_init(std::vector<Track3D>& candida
 }
 
 /*
-int PHInitZVertexing::cellular_automaton_zvtx_second(std::vector<Track3D>& candidate_tracks){
+int PHInitZVertexing::cellular_automaton_zvtx_second(std::vector<SimpleTrack3D>& candidate_tracks){
 
 
         cout<<"Entering cellular autumaton zvtx_second : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
@@ -1998,7 +1998,7 @@ int PHInitZVertexing::cellular_automaton_zvtx_second(std::vector<Track3D>& candi
 
 }
 
-int PHInitZVertexing::cellular_automaton_zvtx_third(std::vector<Track3D>& candidate_tracks){
+int PHInitZVertexing::cellular_automaton_zvtx_third(std::vector<SimpleTrack3D>& candidate_tracks){
 
         cout<<"Entering cellular autumaton zvtx_third : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
         ca =    new CellularAutomaton_v1(candidate_tracks,_radii,_material);
@@ -2027,7 +2027,7 @@ int PHInitZVertexing::fit_vertex(){
   if(Verbosity() > 1) cout<<"Enter fit_vertex: all tracks vector size " << _tracks.size()<<endl;
 
 	if (_tracks.empty()) return -1;
-	std::vector<Track3D> vtx_tracks;
+	std::vector<SimpleTrack3D> vtx_tracks;
 	vtx_tracks.clear();
 	_tracks.swap(vtx_tracks);
 
@@ -2158,7 +2158,7 @@ int PHInitZVertexing::fit_vertex(){
 	}
 
 	std::vector<float> _multi_vtx;
-	std::vector<std::vector<Track3D> > _multi_vtx_tracks;
+	std::vector<std::vector<SimpleTrack3D> > _multi_vtx_tracks;
         std::vector<std::vector<double> > _multi_vtx_track_errors;     ///< working array of track chisq
         std::vector<std::vector<Eigen::Matrix<float, 5, 5> > > _multi_vtx_track_covars; ///< working array of track covariances
 
@@ -2167,7 +2167,7 @@ int PHInitZVertexing::fit_vertex(){
 	{
 		if (nzvtxes[i]==0) continue;
 		_multi_vtx.push_back(zvertices[i]);
-		std::vector<Track3D> one_vtx_tracks;
+		std::vector<SimpleTrack3D> one_vtx_tracks;
 		_multi_vtx_tracks.push_back(one_vtx_tracks);
 		std::vector<double> one_track_errors;
 		_multi_vtx_track_errors.push_back(one_track_errors);
@@ -2227,7 +2227,7 @@ int PHInitZVertexing::fit_vertex(){
 		       << _vertex[0] << " " << _vertex[1] << " " << _vertex[2] << endl;
   		}
 	
-		// add vertex_id to Track3D
+		// add vertex_id to SimpleTrack3D
 		//		std::vector<float> pre_vtx(3,0.0);
 
 		_vertex_list.push_back(_vertex);
@@ -2258,7 +2258,7 @@ int PHInitZVertexing::fit_vertex(){
 //              if (pass_dcaz && izvtx <9999) 
                 ++nzvtx_final;
 
-                Track3D vtx_track = vtx_tracks[k];
+                SimpleTrack3D vtx_track = vtx_tracks[k];
 		vtx_track.set_vertex_id(izvtx);
 //		cout<<"vertex_id "<< izvtx<<endl;
                 _tracks.push_back(vtx_track);

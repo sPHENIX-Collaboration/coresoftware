@@ -1,4 +1,4 @@
-#include "Track3D.h"
+#include "SimpleTrack3D.h"
 
 #include <Eigen/Core>                       // for MatrixXf, Product, Transpose
 #include <Eigen/Dense>
@@ -11,7 +11,7 @@
 using namespace std;
 using namespace Eigen;
 
-Track3D::Track3D()
+SimpleTrack3D::SimpleTrack3D()
   : hits(std::vector<SimpleHit3D> ()),
     phi(FLT_MAX), 
     d(FLT_MAX), 
@@ -24,14 +24,14 @@ Track3D::Track3D()
     
 }	
 
-void Track3D::reset() {
+void SimpleTrack3D::reset() {
 	hits.clear();
 	cluster_ids.clear();
 }
 
-float Track3D::fit_track(float scale) {
+float SimpleTrack3D::fit_track(float scale) {
 /*
-  cout << "Track3D: "
+  cout << "SimpleTrack3D: "
       << "id: " << index 
       << "(phi,d,kappa,dzdl,z0) = (" << phi << "," << d << "," << kappa <<","<<dzdl<<","<<z0 << ") "
       << endl;

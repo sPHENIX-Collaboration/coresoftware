@@ -6,7 +6,7 @@
 // standard includes
 #include <vector>
 
-class Track3D;
+class SimpleTrack3D;
 
 /// \class VertexFitter
 ///
@@ -20,11 +20,11 @@ class VertexFitter {
   VertexFitter();
   virtual ~VertexFitter() {}
 
-  bool findVertex(std::vector<Track3D>& tracks,
+  bool findVertex(std::vector<SimpleTrack3D>& tracks,
                   std::vector<Eigen::Matrix<float, 5, 5> >& covariances,
                   std::vector<float>& vertex, float sigma, bool fix_xy = false);
 
-  bool findVertex(std::vector<Track3D>& tracks,
+  bool findVertex(std::vector<SimpleTrack3D>& tracks,
                   std::vector<float>& vertex, float sigma, bool fix_xy = false);
 
  protected:

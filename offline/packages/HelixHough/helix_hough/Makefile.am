@@ -39,6 +39,7 @@ packageinclude_HEADERS = \
 
 libHelixHough_la_SOURCES = \
   SimpleHit3D.cpp \
+  SimpleTrack3D.cpp \
   sPHENIX/sPHENIXSeedFinder.cpp \
   sPHENIX/sPHENIXTracker.cpp \
   sPHENIX/sPHENIXTrackerTpc.cpp \

@@ -1,16 +1,17 @@
 #include "VertexFitter.h"
 
-#include "NewtonMinimizerGradHessian.h"
-#include "VertexFitFuncs.h"
+#include <HelixHough/NewtonMinimizerGradHessian.h>
+#include <HelixHough/VertexFitFunc.h>
 
 // Eigen includes
 #include <Eigen/Core>
 
-class Track3D;
+class SimpleTrack3D;
 
 using namespace std;
 
-using namespace NewtonMinimizer;
+//using namespace NewtonMinimizer;
+using namespace FitNewton;
 using namespace Eigen;
 
 VertexFitter::VertexFitter()
@@ -26,16 +27,17 @@ VertexFitter::VertexFitter()
 ///
 /// \return true if successful
 ///
-bool VertexFitter::findVertex(vector<Track3D>& tracks, vector<float>& vertex, float sigma, bool fix_xy)
+bool VertexFitter::findVertex(vector<SimpleTrack3D>& tracks, vector<float>& vertex, float sigma, bool fix_xy)
 {
   vector<Matrix<float,5,5> > covariances;
   return findVertex(tracks, covariances, vertex, sigma, fix_xy);
 }
 
-bool VertexFitter::findVertex(vector<Track3D>& tracks, vector<Matrix<float,5,5> >& covariances, vector<float>& vertex, float sigma, bool fix_xy)
+bool VertexFitter::findVertex(vector<SimpleTrack3D>& tracks, vector<Matrix<float,5,5> >& covariances, vector<float>& vertex, float sigma, bool fix_xy)
 {
-  VertexFitFuncs _vertexfit;
-  NewtonMinimizer::NewtonMinimizerGradHessian _minimizer;
+  VertexFitFunc _vertexfit;
+  //NewtonMinimizer::NewtonMinimizerGradHessian _minimizer;
+  FitNewton::NewtonMinimizerGradHessian _minimizer;
 
   // setup function to minimize
   // expo-dca2 => ~dca^2 w/ extreme outlier de-weighting

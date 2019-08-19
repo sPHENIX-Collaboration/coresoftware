@@ -26,7 +26,6 @@ pkginclude_HEADERS = \
   AssocInfoContainer.h \
   CellularAutomaton.h \
   CellularAutomaton_v1.h \
-  FunctionGradHessian.h \
   HelixHoughBin.h \
   HelixHoughBin_v1.h \
   HelixHoughFuncs.h \
@@ -34,7 +33,6 @@ pkginclude_HEADERS = \
   HelixHoughSpace.h \
   HelixHoughSpace_v1.h \
   HelixKalmanFilter.h \
-  NewtonMinimizerGradHessian.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
@@ -47,9 +45,6 @@ pkginclude_HEADERS = \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
-  SquareGradient.h \
-  Track3D.h \
-  VertexFitFuncs.h \
   VertexFitter.h 
 
 ROOTDICTS = \
@@ -102,10 +97,6 @@ libtrack_reco_io_la_SOURCES = \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
-  NewtonMinimizerGradHessian.cc \
-  SquareGradient.cc \
-  Track3D.cc \
-  VertexFitFuncs.cc \
   VertexFitter.cc
 libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
