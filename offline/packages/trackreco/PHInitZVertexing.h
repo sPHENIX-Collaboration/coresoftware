@@ -2,13 +2,13 @@
 #define TRACKRECO_PHINITZVERTEXING_H
 
 #include "PHInitVertexing.h"   // base class
-#include "HelixTrackState.h"
 #include "VertexFitter.h"
 #include "Track3D.h"
 
 // Helix Hough includes
 #if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/HelixKalmanState.h>
 #include <Eigen/Core>            // for Matrix
 #endif
 
@@ -273,8 +273,8 @@ private:
 
 	// object storage
 	std::vector<Track3D> _temp_tracks;
-	std::vector<Track3D> _tracks;    ///< working array of tracks
-	std::vector<HelixTrackState> _track_states;
+        std::vector<Track3D> _tracks;    ///< working array of tracks
+        std::vector<HelixKalmanState> _track_states;
 	std::vector<double> _track_errors;     ///< working array of track chisq
 	std::vector<Eigen::Matrix<float, 5, 5> > _track_covars; ///< working array of track covariances
 	std::vector<float> _vertex;          ///< working array for collision vertex

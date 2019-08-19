@@ -3,7 +3,7 @@
 
 #if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
-#include "HelixTrackState.h"
+#include <HelixHough/HelixKalmanState.h>
 #endif
 
 #include "Track3D.h"
@@ -18,7 +18,7 @@
 #include <set>
 
 class Track3D;
-class HelixTrackState;
+class HelixKalmanState;
 class HelixHoughSpace;
 
 class CellularAutomaton : public PHObject {
@@ -52,7 +52,7 @@ class CellularAutomaton : public PHObject {
   virtual void set_seeding_mode(bool mod) {}
   virtual void set_hits_map(std::map<unsigned int, SimpleHit3D>& hits_map) {}
 
-  virtual int run(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states, std::map<unsigned int, bool>& hits_used) {return 0;}
+  virtual int run(std::vector<Track3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states, std::map<unsigned int, bool>& hits_used) {return 0;}
 
  private:
 
@@ -65,7 +65,7 @@ class CellularAutomaton : public PHObject {
   virtual int process_tracks() {return 0;}
   virtual int process_single_track(Track3D& track) {return 0;}
   virtual int process_single_triplet(Track3D& track) {return 0;}
-  virtual int get_ca_tracks(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states) {return 0;}
+  virtual int get_ca_tracks(std::vector<Track3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states) {return 0;}
 
   virtual int calculate_kappa_tangents(
                         float x1, float y1, float z1, float x2, float y2, float z2,

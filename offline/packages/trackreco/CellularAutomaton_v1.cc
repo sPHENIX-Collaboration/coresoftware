@@ -31,7 +31,7 @@ CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, s
 	_kalman(nullptr),
 	in_tracks(std::vector<Track3D>()),
 	ca_tracks(std::vector<Track3D>()),
-	ca_track_states(std::vector<HelixTrackState>()),
+	ca_track_states(std::vector<HelixKalmanState>()),
 	temp_combo(std::vector<unsigned int>()),
 	combos(std::set<std::vector<unsigned int> >()),
 	layer_sorted(std::vector<std::vector<SimpleHit3D> >()),
@@ -88,7 +88,7 @@ void CellularAutomaton_v1::Reset(){
 }
 
 
-int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states, std::map<unsigned int, bool>& hits_used)
+int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states, std::map<unsigned int, bool>& hits_used)
 {
 	if (remove_hits){
 //	cout<< "hits_used size "<< hits_used.size()<<endl;
@@ -235,7 +235,7 @@ void CellularAutomaton_v1::set_input_tracks(std::vector<Track3D>& input_tracks)
 
 }
 
-int CellularAutomaton_v1::get_ca_tracks(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states)
+int CellularAutomaton_v1::get_ca_tracks(std::vector<Track3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states)
 {
 	// push back new ca processed tracks into _tracks
 	   
@@ -781,7 +781,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 		                if (temp_track.kappa != temp_track.kappa )  continue;
                 		if (temp_track.z0 != temp_track.z0) continue;
 
-		                HelixTrackState state;
+		                HelixKalmanState state;
 		                state.phi = temp_track.phi;
 		                if (state.phi < 0.) {
 		                state.phi += 2. * M_PI;
@@ -892,7 +892,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 	temp_track.hits.assign(nlayers, SimpleHit3D());
 
 	std::vector<Track3D> best_track;
-	std::vector<HelixTrackState> best_track_state;
+	std::vector<HelixKalmanState> best_track_state;
 	float best_chi2 = 9999;
 	for (unsigned int i = 0; i< cur_seg_size; ++i) {
 
@@ -930,7 +930,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
                         if (temp_track.z0 != temp_track.z0) continue;
 		}
 
-    		HelixTrackState state;
+    		HelixKalmanState state;
     		state.phi = temp_track.phi;
     		if (state.phi < 0.) {
       		state.phi += 2. * M_PI;
@@ -1395,7 +1395,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   temp_track.hits.assign(nlayers, SimpleHit3D());
 
   std::vector<Track3D> best_track;
-  std::vector<HelixTrackState> best_track_state;
+  std::vector<HelixKalmanState> best_track_state;
   float best_chi2 = 9999;
   for (unsigned int i = 0; i< cur_seg_size; ++i) {
 
@@ -1439,7 +1439,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
       }
     }
 
-    HelixTrackState state;
+    HelixKalmanState state;
     state.phi = temp_track.phi;
     if (state.phi < 0.) {
       state.phi += 2. * M_PI;

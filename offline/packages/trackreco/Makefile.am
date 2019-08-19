@@ -33,7 +33,6 @@ pkginclude_HEADERS = \
   HelixHoughFuncs_v1.h \
   HelixHoughSpace.h \
   HelixHoughSpace_v1.h \
-  HelixTrackState.h \
   HelixKalmanFilter.h \
   NewtonMinimizerGradHessian.h \
   PHGenFitTrackProjection.h \
@@ -102,7 +101,6 @@ libtrack_reco_io_la_SOURCES = \
   HelixHoughBin_v1.cc \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
-  HelixTrackState.cc \
   HelixKalmanFilter.cc \
   NewtonMinimizerGradHessian.cc \
   SquareGradient.cc \

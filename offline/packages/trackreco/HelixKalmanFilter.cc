@@ -1,7 +1,7 @@
 #include "HelixKalmanFilter.h"
-#include "HelixTrackState.h"
 
 #include <HelixHough/SimpleHit3D.h>
+#include <HelixHough/HelixKalmanState.h>
 
 #include <Eigen/Dense>
 #include <Eigen/LU>
@@ -31,7 +31,7 @@ HelixKalmanFilter::HelixKalmanFilter(std::vector<float>& detector_radii,
 }
 
 
-void HelixKalmanFilter::addHit(SimpleHit3D& hit, HelixTrackState& state) {
+void HelixKalmanFilter::addHit(SimpleHit3D& hit, HelixKalmanState& state) {
 
   // H : observation(projector) matrix (with 2 observables in this case, phi and z)
   Matrix<float, 2, 5> H = Matrix<float, 2, 5>::Zero(2, 5);
@@ -96,7 +96,7 @@ void HelixKalmanFilter::addHit(SimpleHit3D& hit, HelixTrackState& state) {
 }
 
 void HelixKalmanFilter::calculateProjections(SimpleHit3D& hit,
-                                          HelixTrackState& state,
+                                          HelixKalmanState& state,
                                           Matrix<float, 2, 5>& H,
                                           Matrix<float, 2, 1>& ha) {
   det_radii[hit.get_layer()] =
@@ -156,7 +156,7 @@ void HelixKalmanFilter::calculateMeasurements(SimpleHit3D& hit,
   m(1) = hit.get_z();
 }
 
-void HelixKalmanFilter::calculateMSCovariance(HelixTrackState& state,
+void HelixKalmanFilter::calculateMSCovariance(HelixKalmanState& state,
                                         Matrix<float, 5, 5>& Q) {
   Matrix<float, 5, 3> dAdAp = Matrix<float, 5, 3>::Zero(5, 3);
   float phi_p = 0.;
@@ -202,7 +202,7 @@ void HelixKalmanFilter::subtractProjections(Matrix<float, 2, 1>& m,
 
 }
 
-void HelixKalmanFilter::updateIntersection(HelixTrackState& state, int layer) {
+void HelixKalmanFilter::updateIntersection(HelixKalmanState& state, int layer) {
   float phi = state.phi;
   float d = state.d;
   float k = state.kappa;
@@ -268,7 +268,7 @@ void HelixKalmanFilter::updateIntersection(HelixTrackState& state, int layer) {
   state.position = (layer + 1);
 }
 
-bool HelixKalmanFilter::calculateScatteringVariance(HelixTrackState& state,
+bool HelixKalmanFilter::calculateScatteringVariance(HelixKalmanState& state,
                                                  float& var) {
   if ((state.position == 0) || (state.position > nlayers)) {
     var = 0.;
@@ -285,7 +285,7 @@ bool HelixKalmanFilter::calculateScatteringVariance(HelixTrackState& state,
 // dA/dA' , where A are the global helix parameters with pivot (0,0,0), and A'
 // are the 3 helix parameters phi,k,dzdl with the pivot being the intersection
 // at the current layer
-void HelixKalmanFilter::calculate_dAdAp(HelixTrackState& state,
+void HelixKalmanFilter::calculate_dAdAp(HelixKalmanState& state,
                                   Matrix<float, 5, 3>& dAdAp, float& phi_p,
                                   float& cosphi_p, float& sinphi_p) {
   float phi = state.phi;
@@ -511,7 +511,7 @@ void HelixKalmanFilter::calculate_dAdAp(HelixTrackState& state,
 }
 
 // dA'/dp , where p is the momentum vector
-void HelixKalmanFilter::calculate_dApdp(HelixTrackState& state,
+void HelixKalmanFilter::calculate_dApdp(HelixKalmanState& state,
                                   Matrix<float, 3, 3>& dApdp, Vector3f& p,
                                   float phi, float cosphi, float sinphi) {
   float k = state.kappa;
@@ -633,7 +633,7 @@ void HelixKalmanFilter::calculate_dbdt(Matrix<float, 3, 2>& dbdt_out) {
   dbdt_out(1, 1) = 1.;
 }
 
-void HelixKalmanFilter::calculate_dxda(SimpleHit3D& hit, HelixTrackState& state,
+void HelixKalmanFilter::calculate_dxda(SimpleHit3D& hit, HelixKalmanState& state,
                                     Matrix<float, 3, 5>& dxda, float& x,
                                     float& y, float& z) {
   float phi = state.phi;
