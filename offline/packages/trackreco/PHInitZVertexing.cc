@@ -52,6 +52,7 @@
 #include <memory>                                       // for allocator_tra...
 #include <set>                                          // for set, set<>::i...
 #include <utility>                                      // for pair, make_pair
+#include <limits>
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -83,6 +84,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
       _use_max_kappa(false),
       fill_multi_zvtx(true),
       _min_pt(0.2),
+      _max_kappa(numeric_limits<float>::max()),
       _min_d(-1.0),
       _max_d(1.0),
       _min_dzdl(-0.9),

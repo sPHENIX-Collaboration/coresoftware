@@ -55,6 +55,7 @@
 #include <map>
 #include <memory>                                       // for allocator_tra...
 #include <utility>                                      // for pair, make_pair
+#include <limits>
 
 class PHObject;
 
@@ -90,6 +91,7 @@ PHPatternReco::PHPatternReco(unsigned int nlayers,
       _use_max_kappa(false),
       fill_multi_zvtx(true),
       _min_pt(0.2),
+      _max_kappa(numeric_limits<float>::max()),
       _min_d(-1.0),
       _max_d(1.0),
       _min_dzdl(-0.9),

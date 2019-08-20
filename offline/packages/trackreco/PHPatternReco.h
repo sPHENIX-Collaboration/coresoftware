@@ -220,7 +220,7 @@ private:
 
 	float _mag_field; ///< in Tesla
 
-	bool _reject_ghosts;
+//	bool _reject_ghosts;
 	bool _remove_hits;
 	bool _use_max_kappa;
 	bool fill_multi_zvtx;
