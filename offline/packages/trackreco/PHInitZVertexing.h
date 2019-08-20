@@ -150,7 +150,7 @@ public:
 
   int Setup(PHCompositeNode *topNode);
   int Process(PHCompositeNode *topNode);
-  int End();
+  int End(PHCompositeNode * /*topNode*/);
 
 private:
 
