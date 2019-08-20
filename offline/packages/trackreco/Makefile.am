@@ -55,9 +55,7 @@ ROOTDICTS = \
   HelixHoughBin_Dict.cc \
   HelixHoughBin_v1_Dict.cc \
   HelixHoughFuncs_Dict.cc \
-  HelixHoughFuncs_v1_Dict.cc \
-  CellularAutomaton_Dict.cc \
-  CellularAutomaton_v1_Dict.cc 
+  HelixHoughFuncs_v1_Dict.cc 
 
 if MAKEROOT6
   pcmdir = $(libdir)

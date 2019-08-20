@@ -1,16 +1,13 @@
 #ifndef TRACKRECO_CELLULARAUTOMATON_H
 #define TRACKRECO_CELLULARAUTOMATON_H
 
-#if !defined(__CINT__) || defined(__CLING__)
+
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/HelixKalmanState.h>
-#endif
 
-#include "HelixHoughSpace.h"
-
-#include <phool/PHObject.h>
-#include <phool/phool.h>
+//#include <phool/PHObject.h>
+//#include <phool/phool.h>
 
 #include <climits>
 #include <cmath>
@@ -20,7 +17,7 @@
 class HelixKalmanState;
 class HelixHoughSpace;
 
-class CellularAutomaton : public PHObject {
+class CellularAutomaton  {
 
  public:
   virtual ~CellularAutomaton() {};
