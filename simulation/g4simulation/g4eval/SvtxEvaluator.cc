@@ -258,17 +258,20 @@ int SvtxEvaluator::End(PHCompositeNode* topNode)
     cout << "===========================================================================" << endl;
   }
 
-  _errors += _svtxevalstack->get_errors();
-
-  if (Verbosity() > -1)
-  {
-    if ((_errors > 0) || (Verbosity() > 0))
+  if(_svtxevalstack)
     {
-      cout << "SvtxEvaluator::End() - Error Count: " << _errors << endl;
-    }
-  }
+      _errors += _svtxevalstack->get_errors();
+      
+      if (Verbosity() > -1)
+	{
+	  if ((_errors > 0) || (Verbosity() > 0))
+	    {
+	      cout << "SvtxEvaluator::End() - Error Count: " << _errors << endl;
+	    }
+	}
 
-  delete _svtxevalstack;
+      delete _svtxevalstack;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
