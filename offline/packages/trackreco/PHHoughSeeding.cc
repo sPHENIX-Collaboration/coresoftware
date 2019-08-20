@@ -1391,12 +1391,18 @@ int PHHoughSeeding::vertexing()
 	}
     }
   SvtxVertex* svtx_vtx = _vertex_map->get(best_vert);
+  if(!svtx_vtx)
+    {
+      cout << endl << PHWHERE << "Do not have a valid vertex, skipping this event " << endl << endl;
+      return  Fun4AllReturnCodes::ABORTEVENT;
+    }  
+
   if(Verbosity() > 0) cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
 
   if(svtx_vtx->get_z() < -30.0 || svtx_vtx->get_z() > 30.0)
     {
-      cout << endl << PHWHERE << "Vertex z position is not valid, cannot go on!" << endl << endl;
-      exit(1); 
+      cout << endl << PHWHERE << "Vertex z position is not valid: Z = " << svtx_vtx->get_z() << " skipping this event" << endl << endl;
+      return  Fun4AllReturnCodes::ABORTEVENT;
     }
 
   _vertex.clear();
