@@ -66,9 +66,7 @@ if MAKEROOT6
   HelixHoughBin_Dict_rdict.pcm \
   HelixHoughBin_v1_Dict_rdict.pcm \
   HelixHoughFuncs_Dict_rdict.pcm \
-  HelixHoughFuncs_v1_Dict_rdict.pcm \
-  CellularAutomaton_Dict_rdict.pcm \
-  CellularAutomaton_v1_Dict_rdict.pcm 
+  HelixHoughFuncs_v1_Dict_rdict.pcm 
 else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \
