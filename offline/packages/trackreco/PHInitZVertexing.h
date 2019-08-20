@@ -25,7 +25,7 @@
 // forward declarations
 class BbcVertexMap;
 
-class CellularAutomaton;
+//class CellularAutomaton;
 class HelixHoughBin;
 class HelixHoughSpace;   
 class HelixHoughFuncs;
@@ -289,7 +289,7 @@ private:
   	HelixHoughSpace* _hough_space;
 	HelixHoughFuncs* _hough_funcs;
 
-	CellularAutomaton* ca;
+//	CellularAutomaton* ca;
 
 	TNtuple* _ntp_zvtx_by_event;
 	TNtuple* _ntp_zvtx_by_track;
