@@ -46,7 +46,7 @@ class PHTruthVertexing : public PHInitVertexing
 
   int Process(PHCompositeNode *topNode);
 
-  int End();
+  int End(PHCompositeNode * /*topNode*/);
 
  private:
   /// fetch node pointers

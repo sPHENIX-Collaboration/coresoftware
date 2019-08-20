@@ -110,7 +110,7 @@ int PHTruthVertexing::GetNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHTruthVertexing::End()
+int PHTruthVertexing::End(PHCompositeNode * /*topNode*/)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }

@@ -42,7 +42,6 @@ class PHInitVertexing : public SubsysReco
   /// implemented in derived classes
   virtual int Process(PHCompositeNode *topNode) = 0;
 
-  virtual int End() = 0;
 
   TrkrClusterContainer *_cluster_map;
   SvtxVertexMap *_vertex_map;

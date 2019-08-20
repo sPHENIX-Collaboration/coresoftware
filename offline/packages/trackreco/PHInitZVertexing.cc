@@ -471,7 +471,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
 	return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHInitZVertexing::End() {
+int PHInitZVertexing::End(PHCompositeNode * /*topNode*/) {
 #ifdef _DEBUG_
 	_ofile->cd();
 	_z0_dzdl->Write();
