@@ -2,11 +2,11 @@
 #define TRACKRECO_PHINITZVERTEXING_H
 
 #include "PHInitVertexing.h"   // base class
-#include "VertexFitter.h"
 
 
 // Helix Hough includes
 #if !defined(__CINT__) || defined(__CLING__)
+#include "VertexFitter.h"
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/HelixKalmanState.h>
@@ -272,6 +272,7 @@ private:
 	/// recorded layer indexes to internal sequential indexes
 	std::map<int, unsigned int> _layer_ilayer_map;
 
+#if !defined(__CINT__) || defined(__CLING__) // shield ROOT5 CINT from Eigen
 	// object storage
 	std::vector<SimpleTrack3D> _temp_tracks;
         std::vector<SimpleTrack3D> _tracks;    ///< working array of tracks
@@ -284,7 +285,10 @@ private:
 	// node pointers
 	BbcVertexMap* _bbc_vertexes;
 	SvtxTrackMap* _trackmap;
+
+
 	VertexFitter _vertex_finder;
+#endif
 
   	HelixHoughSpace* _hough_space;
 	HelixHoughFuncs* _hough_funcs;

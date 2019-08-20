@@ -153,7 +153,7 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	bool triplet_mode;
 	bool seeding_mode;
 
-	ClassDef(CellularAutomaton_v1,1)
+//	ClassDef(CellularAutomaton_v1,1)
 };
 
 #endif

@@ -90,7 +90,7 @@ class CellularAutomaton  {
  protected:
   CellularAutomaton(){}
 
-  ClassDef(CellularAutomaton,1);
+//  ClassDef(CellularAutomaton,1);
 };
 
 #endif
