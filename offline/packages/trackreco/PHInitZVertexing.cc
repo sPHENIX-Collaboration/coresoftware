@@ -52,6 +52,7 @@
 #include <memory>                                       // for allocator_tra...
 #include <set>                                          // for set, set<>::i...
 #include <utility>                                      // for pair, make_pair
+#include <limits>
 
 #define LogDebug(exp)		std::cout<<"DEBUG: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
 #define LogError(exp)		std::cout<<"ERROR: "  <<__FILE__<<": "<<__LINE__<<": "<< exp
@@ -83,6 +84,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
       _use_max_kappa(false),
       fill_multi_zvtx(true),
       _min_pt(0.2),
+      _max_kappa(numeric_limits<float>::max()),
       _min_d(-1.0),
       _max_d(1.0),
       _min_dzdl(-0.9),
@@ -489,7 +491,7 @@ int PHInitZVertexing::End() {
 	delete _t_output_io;
 	delete _hough_space;
 	delete _hough_funcs;
-	delete ca;
+//	delete ca;
 	_temp_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
@@ -1942,7 +1944,7 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
 int PHInitZVertexing::cellular_automaton_zvtx_init(std::vector<SimpleTrack3D>& candidate_tracks){
 
   if(Verbosity() > 1) cout<<"Entering cellular autumaton : processing "<< candidate_tracks.size()<<" tracks. "<<endl;
-	ca =	new CellularAutomaton_v1(candidate_tracks,_radii,_material);
+  std::unique_ptr<CellularAutomaton_v1> ca(new CellularAutomaton_v1(candidate_tracks,_radii,_material));
 	ca->set_hough_space(_hough_space);
 	ca->set_mag_field(_mag_field);
 	ca->set_pt_rescale(_pt_rescale);

@@ -20,7 +20,7 @@ class HelixKalmanFilter;
 class TrackSegment {
  public:
   TrackSegment()
-      : chi2(0.), ux(0.), uy(0.), kappa(0.), dkappa(0.), seed(0), n_hits(0) {}
+      : chi2(0.), ux(0.), uy(0.), kappa(0.), dkappa(0.), helicity(0), seed(0), bin(0), n_hits(0) {}
   ~TrackSegment() {}
 
   float chi2;
@@ -153,7 +153,7 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	bool triplet_mode;
 	bool seeding_mode;
 
-	ClassDef(CellularAutomaton_v1,1)
+//	ClassDef(CellularAutomaton_v1,1)
 };
 
 #endif

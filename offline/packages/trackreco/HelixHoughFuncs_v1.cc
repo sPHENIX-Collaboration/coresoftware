@@ -6,7 +6,7 @@
 using namespace std;
 
 HelixHoughFuncs_v1::HelixHoughFuncs_v1()
- : _hough_space(nullptr)
+ : _hough_space(nullptr),_cur_zoom(0)
 {
 
 }

@@ -21,7 +21,7 @@
 
 // forward declarations
 class BbcVertexMap;
-class CellularAutomaton;
+//class CellularAutomaton;
 class HelixHoughBin;
 class HelixHoughSpace;   
 class HelixHoughFuncs;
@@ -220,7 +220,7 @@ private:
 
 	float _mag_field; ///< in Tesla
 
-	bool _reject_ghosts;
+//	bool _reject_ghosts;
 	bool _remove_hits;
 	bool _use_max_kappa;
 	bool fill_multi_zvtx;
@@ -285,7 +285,7 @@ private:
   	HelixHoughSpace* _hough_space;
 	HelixHoughFuncs* _hough_funcs;
 
-	CellularAutomaton* ca;
+//	CellularAutomaton* ca;
 
 	int _mode;
 	TNtuple* _ntp_zvtx_by_event;

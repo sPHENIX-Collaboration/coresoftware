@@ -55,9 +55,7 @@ ROOTDICTS = \
   HelixHoughBin_Dict.cc \
   HelixHoughBin_v1_Dict.cc \
   HelixHoughFuncs_Dict.cc \
-  HelixHoughFuncs_v1_Dict.cc \
-  CellularAutomaton_Dict.cc \
-  CellularAutomaton_v1_Dict.cc 
+  HelixHoughFuncs_v1_Dict.cc 
 
 if MAKEROOT6
   pcmdir = $(libdir)
@@ -68,9 +66,7 @@ if MAKEROOT6
   HelixHoughBin_Dict_rdict.pcm \
   HelixHoughBin_v1_Dict_rdict.pcm \
   HelixHoughFuncs_Dict_rdict.pcm \
-  HelixHoughFuncs_v1_Dict_rdict.pcm \
-  CellularAutomaton_Dict_rdict.pcm \
-  CellularAutomaton_v1_Dict_rdict.pcm 
+  HelixHoughFuncs_v1_Dict_rdict.pcm 
 else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \

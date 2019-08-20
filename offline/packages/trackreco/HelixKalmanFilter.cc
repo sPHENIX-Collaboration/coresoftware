@@ -18,13 +18,13 @@ static inline float sign(float x) {
 
 HelixKalmanFilter::HelixKalmanFilter(std::vector<float>& detector_radii,
 				std::vector<float>& detector_material, float B) : 
+    det_radii(detector_radii),
+    det_scatter_variance(detector_material),
 	nlayers(detector_radii.size()),
 	signk_store(0.),
         Bfield(B),
         Bfield_inv(1. / B) 
 {
-	det_radii = detector_radii;
-	det_scatter_variance = detector_material;
 	for (unsigned int i = 0; i < det_scatter_variance.size(); ++i) {
 	det_scatter_variance[i] = det_scatter_variance[i] * 0.0136 * 0.0136;
  	}
