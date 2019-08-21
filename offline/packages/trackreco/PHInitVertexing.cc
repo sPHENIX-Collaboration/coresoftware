@@ -28,20 +28,16 @@ PHInitVertexing::PHInitVertexing(const std::string& name)
 
 int PHInitVertexing::InitRun(PHCompositeNode* topNode)
 {
-  //cout << PHWHERE << "Entering InitRun" << endl;
   return Setup(topNode);
 }
 
 int PHInitVertexing::process_event(PHCompositeNode* topNode)
 {
-  //cout << PHWHERE << "Entering Process_event"<< endl;
   return Process(topNode);
 }
 
 int PHInitVertexing::Setup(PHCompositeNode* topNode)
 {
-  //cout << PHWHERE << "Entering Setup" << endl;
-
   int ret = CreateNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -53,8 +49,6 @@ int PHInitVertexing::Setup(PHCompositeNode* topNode)
 
 int PHInitVertexing::CreateNodes(PHCompositeNode* topNode)
 {
-  //cout << PHWHERE << "Entering CreateNodes" << endl;
-
   // create nodes...
   PHNodeIterator iter(topNode);
 

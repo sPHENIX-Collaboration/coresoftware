@@ -82,7 +82,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
       _user_material(),
       _mag_field(1.4),
       _use_max_kappa(false),
-      fill_multi_zvtx(true),
+      fill_multi_zvtx(false),
       _min_pt(0.2),
       _max_kappa(numeric_limits<float>::max()),
       _min_d(-1.0),
@@ -135,6 +135,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 	_kappa_d_phi(nullptr),
 	_ofile(nullptr),
 	_ofile2(nullptr),
+         _fname("init_zvtx_diagnostic_file.root"),
 	  _nlayers_all(67),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
@@ -230,9 +231,12 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
     return code;
   
 #ifdef _MULTIVTX_
-  _ofile2 = new TFile(_fname.c_str(),"recreate");
-  _ntp_zvtx_by_event = new TNtuple("ntp_zvtx_by_event","all vertices found event-by-event","event:zvtx");
-  _ntp_zvtx_by_track = new TNtuple("ntp_zvtx_by_track","track-by-track (zvtx + z0) distribution", "event:zvtx");
+  if(fill_multi_zvtx)
+    {
+      _ofile2 = new TFile(_fname.c_str(),"recreate");
+      _ntp_zvtx_by_event = new TNtuple("ntp_zvtx_by_event","all vertices found event-by-event","event:zvtx");
+      _ntp_zvtx_by_track = new TNtuple("ntp_zvtx_by_track","track-by-track (zvtx + z0) distribution", "event:zvtx");
+    }
 #endif
   
   _t_output_io = new PHTimer("_t_output_io");
@@ -348,7 +352,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
 			set_nbins(zoomlevel);
 
 #ifdef _DEBUG_
-//        cout<<"InitZVertexing:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
+			cout<<"InitZVertexing:: nkappa " <<nkappa<<" nphi "<<nphi<<" nd "<<nd<<" ndzdl "<<ndzdl<<" nz0 " <<nz0<<endl;
 #endif
 
 			for(unsigned int i=0; i<_temp_tracks.size(); ++i) _temp_tracks[i].reset();
@@ -482,10 +486,14 @@ int PHInitZVertexing::End(PHCompositeNode * /*topNode*/) {
 #endif
 
 #ifdef _MULTIVTX_
-        _ofile2->cd();
-        _ntp_zvtx_by_event->Write();
-	_ntp_zvtx_by_track->Write();
-        _ofile2->Close();
+	if(fill_multi_zvtx)
+	  {
+	    if(Verbosity() > 0) cout << PHWHERE << "Output multivtx info to file " << _fname.c_str() << endl;
+	    _ofile2->cd();
+	    _ntp_zvtx_by_event->Write();
+	    _ntp_zvtx_by_track->Write();
+	    _ofile2->Close();
+	  }
 #endif
 
 	delete _t_output_io;
@@ -1077,7 +1085,7 @@ void PHInitZVertexing::vote_z_init(unsigned int zoomlevel){
         hitpos3d[0]=-999; hitpos3d[1]= -999; hitpos3d[2]=-999;
         ++icluster;//test
         }
-        cout<<"total number of clusters "<<icluster<<endl;
+        if(Verbosity() > 0) cout<<"total number of clusters "<<icluster<<endl;
 
 }
 
@@ -1135,7 +1143,7 @@ void PHInitZVertexing::find_track_candidates_z_init(unsigned int zoomlevel){
 		}
 
 	}
-        cout<<"bins_map_sel.size at zoom "<<zoomlevel << " : (find_track_candidates_z_init) " <<bins_map_sel.size()<<endl;
+        if(Verbosity() > 0) cout<<"bins_map_sel.size at zoom "<<zoomlevel << " : (find_track_candidates_z_init) " <<bins_map_sel.size()<<endl;
 
 }
 
@@ -1266,7 +1274,7 @@ void PHInitZVertexing::vote_z(unsigned int zoomlevel){
 	    bins_map_prev.erase(bins_map_prev.begin(),bins_map_prev.end());
 	    bins_map_prev.clear();
 
-	    cout<<"bins_map_cur.size at zoom "<<zoomlevel << " (vote_z) : " <<bins_map_cur.size()<<endl;
+	    if(Verbosity() > 0) cout<<"bins_map_cur.size at zoom "<<zoomlevel << " (vote_z) : " <<bins_map_cur.size()<<endl;
 }
 
 
@@ -1305,7 +1313,7 @@ void PHInitZVertexing::find_track_candidates_z(unsigned int zoomlevel){
 	bins_map_cur.erase(bins_map_cur.begin(), bins_map_cur.end());
 	bins_map_cur.clear();
 
-        cout<<"bins_map_sel.size at zoom "<< zoomlevel<<" (find_track_candidates_z) : " <<bins_map_sel.size()<<endl;
+        if(Verbosity() > 0) cout<<"bins_map_sel.size at zoom "<< zoomlevel<<" (find_track_candidates_z) : " <<bins_map_sel.size()<<endl;
 }
 
 void PHInitZVertexing::vote_xy(unsigned int zoomlevel){
@@ -1588,7 +1596,7 @@ void PHInitZVertexing::vote_xy(unsigned int zoomlevel){
                 }//cluster
 
         }//binsmap_sel
-        cout<<"bins_map_cur.size at zoom "<<zoomlevel <<" (vote_xy) : " <<bins_map_cur.size()<<endl;
+        if(Verbosity() > 0) cout<<"bins_map_cur.size at zoom "<<zoomlevel <<" (vote_xy) : " <<bins_map_cur.size()<<endl;
 	bins_map_sel.erase(bins_map_sel.begin(), bins_map_sel.end());
 	bins_map_sel.clear();
 
@@ -1631,7 +1639,7 @@ void PHInitZVertexing::find_track_candidates_xy(unsigned int zoomlevel){
 
         }
 
-        cout<<"bins_map_prev.size at zoom "<<zoomlevel <<" (find_track_candidates_xy) " <<bins_map_prev.size()<<endl;
+        if(Verbosity() > 0) cout<<"bins_map_prev.size at zoom "<<zoomlevel <<" (find_track_candidates_xy) " <<bins_map_prev.size()<<endl;
 	bins_map_cur.erase(bins_map_cur.begin(), bins_map_cur.end());
 	bins_map_cur.clear();
 
@@ -1687,7 +1695,7 @@ void PHInitZVertexing::prune_z(unsigned int zoomlevel){
 
 	}
 
-        cout<<"bins_map_sel.size at zoom " <<zoomlevel<<" (prune_z) : " <<bins_map_sel.size()<<endl;	
+        if(Verbosity() > 0) cout<<"bins_map_sel.size at zoom " <<zoomlevel<<" (prune_z) : " <<bins_map_sel.size()<<endl;	
 }
 
 void PHInitZVertexing::prune_xy(unsigned int zoomlevel){
@@ -1742,7 +1750,7 @@ void PHInitZVertexing::prune_xy(unsigned int zoomlevel){
 
         }
 
-        cout<<"bins_map_prev.size at zoom " <<zoomlevel<<" (prune_xy) : " <<bins_map_prev.size()<<endl;
+        if(Verbosity() > 0) cout<<"bins_map_prev.size at zoom " <<zoomlevel<<" (prune_xy) : " <<bins_map_prev.size()<<endl;
 
 }
 
@@ -1836,8 +1844,9 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
                         ++it)
         {
                 unsigned int cluster_id = it->first;
-// ???????????????? What is This ????????????????????
-//                if (cluster_id != cluster_id) continue;
+		// ???????????????? What is This ????????????????????
+		// This is a test whether cluster_id is nan - nan's fail this test
+                if (cluster_id != cluster_id) continue;
                 bool used = false;
                 auto hitused = hits_used.find(cluster_id);
                 if (hitused != hits_used.end())
@@ -1847,9 +1856,9 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
                 SimpleHit3D hit = it->second;
                 unsigned int layer = hit.get_layer();
 		unsigned int hitid =  hit.get_id();
-// ?????????????? What is This ??????????????????
-//		if (hitid != hitid) continue;
-		//cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
+
+		if (hitid != hitid) continue;
+		if(Verbosity() > 0) cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
 		if (layer == layer0 ) layer_sorted_0.push_back(hitid);                
 		else if (layer == layer1) layer_sorted_1.push_back(hitid);
 		else if (layer == layer2) layer_sorted_2.push_back(hitid);
@@ -1874,7 +1883,7 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
 		++cluster_layer0;
 		clusters.clear();
 		fill_track = false;
-//		cout<<"cluster_id for hit 0 "<< *it0<<endl;
+		if(Verbosity() > 0) cout<<"cluster_id for hit 0 "<< *it0<<endl;
  		auto search0 = hits_map.find(*it0);
 		if (search0 == hits_map.end()) continue;
  		SimpleHit3D hit0 = hits_map.find(*it0)->second;
@@ -1921,11 +1930,11 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
 		} // layer 1
 
 		if (fill_track)	{
-//			cout<<" fill_track "<<endl;
+		  if(Verbosity() > 0) cout<<" fill_track "<<endl;
 			unsigned int nclusters =0 ;
 			track.hits.assign(clusters.size(),SimpleHit3D());
 			for (std::set<unsigned int>::iterator it=clusters.begin(); it!=clusters.end(); ++it ){
-			//cout<<"cluster id  "<<*it<<endl;
+			  if(Verbosity() > 0) cout<<"cluster id  "<<*it<<endl;
 			SimpleHit3D hit = hits_map.find(*it)->second;
 			track.hits[nclusters] = hit;
 			track.hits[nclusters].set_id(*it);
@@ -1951,7 +1960,7 @@ int PHInitZVertexing::cellular_automaton_zvtx_init(std::vector<SimpleTrack3D>& c
 	ca->set_remove_hits(true);
 //	ca->set_propagate_forward(false);// need to implement triplet in forward propagation
 	ca->set_propagate_forward(true);
-
+        ca->set_verbose(Verbosity());
 //	ca->set_mode(0);
         ca->set_triplet_mode(true); // triplet
 	ca->set_seeding_mode(false);
@@ -2067,7 +2076,7 @@ int PHInitZVertexing::fit_vertex(){
 
 	for (unsigned int j=2; j<(nzbins-3); ++j)
 	{
-	  if(Verbosity() > 200)  cout<<"z countz "<<j<<" "<<zcounts[j]<<endl;
+	  if(Verbosity() > 200 && zcounts[j] > 0)  cout<<"z countz "<<j<<" "<<zcounts[j]<<endl;
 	  //		bool threebinspeak = _mult_threebins*(zcounts[j-2]) < (zcounts[j-1]+zcounts[j]+zcounts[j+1]) 
 	  //				&& _mult_threebins*(zcounts[j+2]) < (zcounts[j-1]+zcounts[j]+zcounts[j+1]);
 
@@ -2124,32 +2133,32 @@ int PHInitZVertexing::fit_vertex(){
 	if(Verbosity() > 1) cout << "Loop over vertices and check for tracks that pass the dcaz cut of " << _dcaz_cut << endl;
 	for (unsigned int iz = 0; iz<zvertices.size();++iz ){
 	  if(Verbosity() > 1) cout << " vertex " << iz << " ntracks passed " << nzvtxes[iz] << endl; 
-	if (nzvtxes[iz]==0) continue;
-	zmeans[iz] = zsums[iz]/nzvtxes[iz];
-	if(Verbosity() > 1) cout<<"zmean for passed vertex "<< iz <<" = "<<zmeans[iz]<<endl;
-	zvertices[iz] = zmeans[iz];
-	zsums[iz]=0.;
-        	if (fill_multi_zvtx){
-        	float ntp_data[2];
-        	ntp_data[0] = _event;
-        	ntp_data[1] = zmeans[iz];
-		_ntp_zvtx_by_event->Fill(ntp_data);
-		}
+	  if (nzvtxes[iz]==0) continue;
+	  zmeans[iz] = zsums[iz]/nzvtxes[iz];
+	  if(Verbosity() > 1) cout<<"zmean for passed vertex "<< iz <<" = "<<zmeans[iz]<<endl;
+	  zvertices[iz] = zmeans[iz];
+	  zsums[iz]=0.;
+	  if (fill_multi_zvtx){
+	    float ntp_data[2];
+	    ntp_data[0] = _event;
+	    ntp_data[1] = zmeans[iz];
+	    _ntp_zvtx_by_event->Fill(ntp_data);
 	}
-
+	}
+	
 	for (unsigned int j = 0; j < nzvtx; ++j){
-		double zvtx = vtx_tracks[j].z0;
-		if (zvtx != zvtx) continue;
-
+	  double zvtx = vtx_tracks[j].z0;
+	  if (zvtx != zvtx) continue;
+	  
 #ifdef _MULTIVTX_
-		if (fill_multi_zvtx){
-		float ntp_data[2];
-		ntp_data[0] = _event;
-		ntp_data[1] = vtx_tracks[j].z0;
-		//		ntp_data[1] = vtx_tracks[j].d;
-		//		cout<<"event "<<ntp_data[0]<<" "<< "vtx "<<ntp_data[1]<<endl;
-        	_ntp_zvtx_by_track->Fill(ntp_data);
-		}
+	  if (fill_multi_zvtx){
+	  float ntp_data[2];
+	  ntp_data[0] = _event;
+	  ntp_data[1] = vtx_tracks[j].z0;
+	  //		ntp_data[1] = vtx_tracks[j].d;
+	  //		cout<<"event "<<ntp_data[0]<<" "<< "vtx "<<ntp_data[1]<<endl;
+	  _ntp_zvtx_by_track->Fill(ntp_data);
+	}
 #endif
                 bool pass_dcaz= false;
                 for (unsigned int k = 0; k<zvertices.size(); ++k) {

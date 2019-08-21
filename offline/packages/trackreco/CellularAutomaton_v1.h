@@ -67,6 +67,7 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	void set_triplet_mode(bool mod) {triplet_mode = mod;}
 	void set_seeding_mode(bool mod) {seeding_mode = mod;}
 	void set_hits_map(std::map<unsigned int, SimpleHit3D>& hits_map){_hits_map = hits_map;}
+	void set_verbose(int v) {verbose = v;}
 
 	int run(std::vector<SimpleTrack3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states, std::map<unsigned int, bool>& hits_used);	
 
@@ -152,6 +153,7 @@ class CellularAutomaton_v1 : public CellularAutomaton {
 	bool require_inner_hits;
 	bool triplet_mode;
 	bool seeding_mode;
+	int verbose;
 
 //	ClassDef(CellularAutomaton_v1,1)
 };
