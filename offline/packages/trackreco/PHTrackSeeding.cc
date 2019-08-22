@@ -87,17 +87,22 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
       cout << PHWHERE << "SVTX node added" << endl;
   }
 
-  _track_map = new SvtxTrackMap_v1;
-  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-      _track_map, "SvtxTrackMap", "PHObject");
+  
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!_track_map)
+    {
+      _track_map = new SvtxTrackMap_v1;
+      PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
+								       _track_map, "SvtxTrackMap", "PHObject");
+      tb_node->addNode(tracks_node);
+      if (Verbosity() > 0){
+	cout << PHWHERE << "Svtx/SvtxTrackMap node added" << endl;
+	// cout << "Svtx/" << _track_map_name << " node added" << endl;
+      }
+    }
+  if(Verbosity() > 0)
+    _track_map->identify();
 
-  _track_map->identify();
-
-  tb_node->addNode(tracks_node);
-  if (Verbosity() > 0){
-    cout << PHWHERE << "Svtx/SvtxTrackMap node added" << endl;
-    // cout << "Svtx/" << _track_map_name << " node added" << endl;
-  }
   _assoc_container = new AssocInfoContainer;
   PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
       _assoc_container, "AssocInfoContainer", "PHObject");
