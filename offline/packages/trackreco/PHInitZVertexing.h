@@ -49,8 +49,7 @@ public:
 
 	PHInitZVertexing(unsigned int nlayers = 7, unsigned int min_nlayers = 7,
 			const std::string &name = "PHInitZVertexing");
-	virtual ~PHInitZVertexing() {
-	}
+	virtual ~PHInitZVertexing() ;
 
 	void set_file_name(const std::string &fname){_fname = fname;}
 	void set_mag_field(float mag_field) {

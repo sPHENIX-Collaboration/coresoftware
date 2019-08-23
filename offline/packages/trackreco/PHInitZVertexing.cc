@@ -160,6 +160,15 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 	zooms_vec.clear();
 }
 
+PHInitZVertexing::
+~PHInitZVertexing()
+{
+  if (_t_output_io)  delete _t_output_io;
+  if (_hough_space) delete _hough_space;
+  if (_hough_funcs) delete _hough_funcs;
+//  delete ca;
+}
+
 int PHInitZVertexing::Init(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
@@ -496,10 +505,6 @@ int PHInitZVertexing::End(PHCompositeNode * /*topNode*/) {
 	  }
 #endif
 
-	delete _t_output_io;
-	delete _hough_space;
-	delete _hough_funcs;
-//	delete ca;
 	_temp_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;

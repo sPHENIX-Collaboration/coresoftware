@@ -43,8 +43,7 @@ public:
 
 	PHPatternReco(unsigned int nlayers = 7, unsigned int min_nlayers = 7,
 			const std::string &name = "PHPatternReco");
-	virtual ~PHPatternReco() {
-	}
+	virtual ~PHPatternReco() ;
 
 	int Init(PHCompositeNode *topNode);
 	int InitRun(PHCompositeNode *topNode);

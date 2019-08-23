@@ -170,6 +170,14 @@ PHPatternReco::PHPatternReco(unsigned int nlayers,
 	zooms_vec.clear();
 }
 
+PHPatternReco::~PHPatternReco()
+{
+  delete _t_output_io;
+  if (_hough_space != nullptr) delete _hough_space;
+  if (_hough_funcs != nullptr) delete _hough_funcs;
+//  if (ca != nullptr) delete ca;
+}
+
 int PHPatternReco::Init(PHCompositeNode* topNode) {
 
 #ifdef _DEBUG_
@@ -477,10 +485,6 @@ int PHPatternReco::End(PHCompositeNode *topNode) {
         _ofile2->Close();
 #endif
 
-	delete _t_output_io;
-	if (_hough_space != nullptr) delete _hough_space;
-	if (_hough_funcs != nullptr) delete _hough_funcs;
-//	if (ca != nullptr) delete ca;
 	_temp_tracks.clear();
 
 	return Fun4AllReturnCodes::EVENT_OK;
