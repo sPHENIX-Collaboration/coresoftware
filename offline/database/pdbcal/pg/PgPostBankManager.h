@@ -1,5 +1,7 @@
-#ifndef PDBCAL_PG_PGPOSTBANKMANAGER_H
-#define PDBCAL_PG_PGPOSTBANKMANAGER_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PDBCALPG_PGPOSTBANKMANAGER_H
+#define PDBCALPG_PGPOSTBANKMANAGER_H
 
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbBankManager.h>
