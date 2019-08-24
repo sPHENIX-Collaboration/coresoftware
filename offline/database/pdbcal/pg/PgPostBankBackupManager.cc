@@ -7,6 +7,7 @@
  */
 
 #include "PgPostBankBackupManager.h"
+
 #include "PgPostApplication.h"
 #include "PgPostBankBackupLog.h"
 #include "PgPostBankBackupStorage.h"
@@ -27,10 +28,14 @@
 #include <RDBC/TSQLResultSet.h>
 #include <RDBC/TSQLStatement.h>
 
+#include <TBuffer.h>
 #include <TBufferFile.h>
+#include <TCollection.h>                 // for TIter
+#include <TDirectory.h>                  // for gDirectory, TDirectory (ptr ...
 #include <TFile.h>
 #include <TKey.h>
 #include <TList.h>
+#include <TObject.h>                     // for TObject, TObject::kWriteDelete
 #include <TString.h>
 
 #include <algorithm>
@@ -920,7 +925,7 @@ int PgPostBankBackupManager::fetchAllBank2TFile(const std::string &bankName,
          << file_name << endl;
 
   std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
-  if (!rs.get())
+  if (!rs || !rs.get())
   //  TSQLResultSet * rs(stmt->ExecuteQuery(tem.str().c_str()));
   //  if (!rs)
   {
@@ -1082,7 +1087,7 @@ bool PgPostBankBackupManager::isRIdExist(const std::string &bankName, int rid)
 
   TSQLStatement *stmt = con->CreateStatement();
   std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
-  if ((&*rs) && rs->Next())
+  if ((rs) && rs->Next())
   {
     return true;
   }
@@ -1110,7 +1115,7 @@ int PgPostBankBackupManager::getTotalRowCount(const std::string &bankName)
 
   TSQLStatement *stmt = con->CreateStatement();
   std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
-  if ((&*rs) && rs->Next())
+  if ((rs) && rs->Next())
   {
     return rs->GetInt(1);
   }
@@ -1145,7 +1150,7 @@ PgPostBankBackupManager::getListOfRId(const string &bankName,
 
   TSQLStatement *stmt = con->CreateStatement();
   std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
-  while ((&*rs) && rs->Next())
+  while ((rs) && rs->Next())
   {
     int rid = rs->GetInt(1);
     l.push_back(rid);

@@ -48,7 +48,7 @@ int PgPostApplication::Register(const string &dbname)
 {
   if (__instance.get()) return -1;
   mySpecificCopy = new PgPostApplication(dbname);
-  __instance = std::auto_ptr<PdbApplication>(mySpecificCopy);
+  __instance = std::unique_ptr<PdbApplication>(mySpecificCopy);
   return 0;
 }
 

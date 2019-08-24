@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: PgPostBankBackupLog.hh,v 1.2 2014/05/19 17:06:23 jinhuang Exp $
 
 /*!
@@ -8,8 +10,8 @@
  * \date $Date: 2014/05/19 17:06:23 $
  */
 
-#ifndef PDBCAL_PG_PGPOSTBANKBACKUPLOG_H
-#define PDBCAL_PG_PGPOSTBANKBACKUPLOG_H
+#ifndef PDBCALPG_PGPOSTBANKBACKUPLOG_H
+#define PDBCALPG_PGPOSTBANKBACKUPLOG_H
 
 #include <string>
 

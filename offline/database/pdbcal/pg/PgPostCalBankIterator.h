@@ -1,5 +1,7 @@
-#ifndef PDBCAL_PG_PGPOSTCALBANKITERATOR_H
-#define PDBCAL_PG_PGPOSTCALBANKITERATOR_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PDBCALPG_PGPOSTCALBANKITERATOR_H
+#define PDBCALPG_PGPOSTCALBANKITERATOR_H
 
 #include <pdbcalbase/PdbBankID.h>
 #include <pdbcalbase/PdbCalBankIterator.h>
