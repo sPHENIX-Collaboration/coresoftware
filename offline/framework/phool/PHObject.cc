@@ -1,15 +1,24 @@
 #include "PHObject.h"
 #include "phool.h"
 
-#include <cstdlib>
+#include <TSystem.h>
+
 #include <iostream>
+
+PHObject*
+PHObject::CloneMe() const
+{
+  std::cout << PHWHERE << " clone() not implemented by daugther class"
+            << std::endl;
+  return nullptr;
+}
 
 PHObject*
 PHObject::clone() const
 {
   std::cout << PHWHERE << " clone() not implemented by daugther class"
             << std::endl;
-  return 0;
+  return nullptr;
 }
 
 void PHObject::identify(std::ostream& out) const
@@ -116,9 +125,25 @@ int PHObject::isImplemented(const unsigned int) const
   return 0;
 }
 
-void PHObject::CopyContent(PHObject* obj)
+
+void PHObject::CopyContent(const PHObject* obj)
 {
   std::cout << PHWHERE
             << " CopyContent(PHObject *obj) is not implemented" << std::endl;
-  exit(1);
+  gSystem->Exit(1);
+}
+
+
+void PHObject::CopyFrom(const PHObject &obj)
+{
+  std::cout << PHWHERE
+            << " CopyFrom(const PHObject &obj) is not implemented" << std::endl;
+  gSystem->Exit(1);
+}
+
+void PHObject::CopyFrom(const PHObject *obj)
+{
+  std::cout << PHWHERE
+            << " CopyFrom(const PHObject *obj) is not implemented" << std::endl;
+  gSystem->Exit(1);
 }

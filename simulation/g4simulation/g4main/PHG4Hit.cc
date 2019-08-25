@@ -1,32 +1,50 @@
 #include "PHG4Hit.h"
 
+#include <TSystem.h> // for gSystem
+
 #include <cstdlib>
 #include <type_traits>
 
 using namespace std;
-
+/*
 void
-PHG4Hit::Copy(PHG4Hit const &g4hit)
+PHG4Hit::Copy(TObject &g4hit)
 {
+  PHG4Hit *hit = dynamic_cast<PHG4Hit *> (&g4hit);
+  if (!hit)
+  {
+  return;
+  }
+  Copy(*hit);
+}
+*/
+void
+PHG4Hit::CopyFrom(PHObject const &g4h)
+{
+  const PHG4Hit *g4hit = dynamic_cast<const PHG4Hit *> (&g4h);
+  if (! g4hit)
+  {
+    gSystem->Exit(1);
+  }
   for (int i =0; i<2; i++)
     {
-      set_x(i,g4hit.get_x(i));
-      set_y(i,g4hit.get_y(i));
-      set_z(i,g4hit.get_z(i));
-      set_t(i,g4hit.get_t(i));
+      set_x(i,g4hit->get_x(i));
+      set_y(i,g4hit->get_y(i));
+      set_z(i,g4hit->get_z(i));
+      set_t(i,g4hit->get_t(i));
     }
-  set_hit_id(g4hit.get_hit_id());
-  set_trkid(g4hit.get_trkid());
-  set_edep(g4hit.get_edep());
+  set_hit_id(g4hit->get_hit_id());
+  set_trkid(g4hit->get_trkid());
+  set_edep(g4hit->get_edep());
   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
     {
       PROPERTY prop_id = static_cast<PHG4Hit::PROPERTY> (ic);
-      if (g4hit.has_property(prop_id))
+      if (g4hit->has_property(prop_id))
         {
-	  set_property_nocheck(prop_id,g4hit.get_property_nocheck(prop_id));
+	  set_property_nocheck(prop_id,g4hit->get_property_nocheck(prop_id));
 	}
     }
-  set_hit_type(g4hit.get_hit_type()); 
+  set_hit_type(g4hit->get_hit_type());
 }
 
 

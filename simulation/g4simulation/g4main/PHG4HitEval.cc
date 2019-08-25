@@ -24,18 +24,20 @@ PHG4HitEval::PHG4HitEval() :
 
 PHG4HitEval::PHG4HitEval(PHG4Hit const &g4hit)
 {
-  Copy(g4hit);
+  CopyFrom(g4hit);
 }
 
 void
-PHG4HitEval::Copy(PHG4Hit const &g4hit)
+PHG4HitEval::CopyFrom(PHObject const &g4hit)
 {
-  PHG4Hitv1::Copy(g4hit);
+  PHG4Hit::CopyFrom(g4hit);
 
   // fill the branched variables from the property arrays
-  eion = PHG4Hitv1::get_eion();
-  scint_id = PHG4Hitv1::get_scint_id();
-  light_yield = PHG4Hitv1::get_light_yield();
-  path_length = PHG4Hitv1::get_path_length();
+
+  const PHG4Hit *g4h = dynamic_cast<const PHG4Hit *> (&g4hit);
+  eion = g4h->get_eion();
+  scint_id = g4h->get_scint_id();
+  light_yield = g4h->get_light_yield();
+  path_length = g4h->get_path_length();
 
 }
