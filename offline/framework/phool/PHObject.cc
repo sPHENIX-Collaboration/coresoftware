@@ -148,7 +148,7 @@ void PHObject::CopyFrom(const PHObject *obj)
   gSystem->Exit(1);
 }
 
-PHObject *PHObject::Clone(const char *newname = "") const
+PHObject *PHObject::Clone(const char *newname) const
 {
 std::cout << PHWHERE
 	  << "You are overriding the TObject::Clone method which is not supported"  << std::endl;
