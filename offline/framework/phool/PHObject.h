@@ -22,8 +22,8 @@ class PHObject : public TObject
   virtual PHObject* CloneMe() const;
   virtual PHObject* clone() const;
 
-  virtual PHObject *Clone(const char *newname = "") const final {return nullptr;}
-  virtual void 	Copy (TObject &object) const final {return;}
+  virtual PHObject *Clone(const char *newname = "") const final;
+  virtual void 	Copy(TObject &object) const final;
   /** identify Function from PHObject
       @param os Output Stream 
    */

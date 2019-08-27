@@ -147,3 +147,17 @@ void PHObject::CopyFrom(const PHObject *obj)
             << " CopyFrom(const PHObject *obj) is not implemented" << std::endl;
   gSystem->Exit(1);
 }
+
+PHObject *PHObject::Clone(const char *newname = "") const
+{
+std::cout << PHWHERE
+	  << "You are overriding the TObject::Clone method which is not supported"  << std::endl;
+  gSystem->Exit(1);
+}
+
+void PHObject::Copy (TObject &object) const
+{
+std::cout << PHWHERE
+	  << "You are overriding the TObject::Copy method which is not supported"  << std::endl;
+  gSystem->Exit(1);
+}
