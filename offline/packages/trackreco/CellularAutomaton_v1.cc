@@ -3,6 +3,7 @@
 #include "HelixHoughSpace.h"    // for HelixHoughSpace
 #include "HelixKalmanFilter.h"  // for HelixKalmanFilter
 
+
 #include <phool/phool.h>        // for PHWHERE
 
 #include <Eigen/Core>
@@ -20,20 +21,20 @@ using namespace std;
 using namespace Eigen;
 
 //#define _DEBUG_
-// if _FULL_TEST_ is not chosen, only triplets are translated into Track3D
+// if _FULL_TEST_ is not chosen, only triplets are translated into SimpleTrack3D
 #define _FULL_TEST_
 
 
-CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, std::vector<float>& detector_radii, std::vector<float>& detector_materials)
+CellularAutomaton_v1::CellularAutomaton_v1(std::vector<SimpleTrack3D>& input_tracks, std::vector<float>& detector_radii, std::vector<float>& detector_materials)
 	:
 	_hough_space(nullptr),
 	_kalman(nullptr),
-	in_tracks(std::vector<Track3D>()),
-	ca_tracks(std::vector<Track3D>()),
-	ca_track_states(std::vector<HelixTrackState>()),
+	in_tracks(std::vector<SimpleTrack3D>()),
+	ca_tracks(std::vector<SimpleTrack3D>()),
+	ca_track_states(std::vector<HelixKalmanState>()),
 	temp_combo(std::vector<unsigned int>()),
 	combos(std::set<std::vector<unsigned int> >()),
-	layer_sorted(std::vector<std::vector<Cluster3D> >()),
+	layer_sorted(std::vector<std::vector<SimpleHit3D> >()),
 	nlayers(10),
 	rlayers(8),
 	allowed_missing_inner_hits(0),
@@ -53,7 +54,7 @@ CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, s
 	_detector_materials(std::vector<float>()),
 	_integrated_scatter(std::vector<float>()),
 	_hits_used(std::map<unsigned int, bool>()),
-	_hits_map(std::map<unsigned int,Cluster3D>()),
+	_hits_map(std::map<unsigned int,SimpleHit3D>()),
 	CAtime(0.),
 	KALtime(0.),
 	forward(false),
@@ -61,7 +62,8 @@ CellularAutomaton_v1::CellularAutomaton_v1(std::vector<Track3D>& input_tracks, s
         remove_inner_hits(false),
         require_inner_hits(false),
 	triplet_mode(true),
-	seeding_mode(false)
+        seeding_mode(false),
+        verbose(0)
 {
 	set_input_tracks(input_tracks);
 	set_detector_radii(detector_radii);
@@ -87,7 +89,7 @@ void CellularAutomaton_v1::Reset(){
 }
 
 
-int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states, std::map<unsigned int, bool>& hits_used)
+int CellularAutomaton_v1::run(std::vector<SimpleTrack3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states, std::map<unsigned int, bool>& hits_used)
 {
 	if (remove_hits){
 //	cout<< "hits_used size "<< hits_used.size()<<endl;
@@ -96,16 +98,16 @@ int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<H
 	}
 
 	int code = 0;
-	cout<< "CellularAutomaton:: initializing..."<<endl;
+	if(verbose > 0) cout<< "CellularAutomaton:: initializing..."<<endl;
 	code = init();
-	cout<<code<<endl;
+	if(verbose > 0) cout<<code<<endl;
 	if (!code) 
         {
           cout << PHWHERE << "::Error - Initialization failed. " << endl;
           exit(1);
         }
 	code = 0;
-	cout<<"CellularAutomaton:: processing tracks... "<<endl;
+	if(verbose > 0) cout<<"CellularAutomaton:: processing tracks... "<<endl;
 	code = process_tracks();
 	if (!code)		
         {
@@ -113,7 +115,7 @@ int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<H
           exit(1);
         }
 	code = 0;
-	cout<<"CellularAutomaton:: outputting ca tracks..."<<endl;
+	if(verbose > 0) cout<<"CellularAutomaton:: outputting ca tracks..."<<endl;
 	code = get_ca_tracks(output_tracks, output_track_states);
 	if (!code)
         {
@@ -123,8 +125,8 @@ int CellularAutomaton_v1::run(std::vector<Track3D>& output_tracks, std::vector<H
 
 	if(remove_hits){
 	_hits_used.swap(hits_used);		
-//        cout<< "hits_used size "<< hits_used.size()<<endl;
-//        cout<< "_hits_used size "<<_hits_used.size()<<endl;
+	if(verbose > 0)  cout<< "hits_used size "<< hits_used.size()<<endl;
+	if(verbose > 0) cout<< "_hits_used size "<<_hits_used.size()<<endl;
 	}
 
 	for (unsigned int i = 0; i<in_tracks.size(); ++i) in_tracks[i].reset();
@@ -167,7 +169,7 @@ int CellularAutomaton_v1::init()
 
 	combos.clear();
 
-        std::vector<Cluster3D> one_layer;
+        std::vector<SimpleHit3D> one_layer;
         layer_sorted.clear();
         layer_sorted.assign(nlayers, one_layer);
 
@@ -220,7 +222,7 @@ void CellularAutomaton_v1::set_cylinder_kalman(){
       	new HelixKalmanFilter(_detector_radii, _detector_materials, _mag_field);
 }
 
-void CellularAutomaton_v1::set_input_tracks(std::vector<Track3D>& input_tracks) 
+void CellularAutomaton_v1::set_input_tracks(std::vector<SimpleTrack3D>& input_tracks) 
 {
 /*
 	for (unsigned int i = 0; i < input_tracks.size(); ++i)
@@ -230,11 +232,11 @@ void CellularAutomaton_v1::set_input_tracks(std::vector<Track3D>& input_tracks)
 
 */
 	in_tracks = input_tracks;
-	cout<<"Setting input tracks : size = " << in_tracks.size()<<endl; 
+	//cout<<"Setting input tracks : size = " << in_tracks.size()<<endl; 
 
 }
 
-int CellularAutomaton_v1::get_ca_tracks(std::vector<Track3D>& output_tracks, std::vector<HelixTrackState>& output_track_states)
+int CellularAutomaton_v1::get_ca_tracks(std::vector<SimpleTrack3D>& output_tracks, std::vector<HelixKalmanState>& output_track_states)
 {
 	// push back new ca processed tracks into _tracks
 	   
@@ -247,7 +249,7 @@ int CellularAutomaton_v1::get_ca_tracks(std::vector<Track3D>& output_tracks, std
 	output_track_states.push_back(ca_track_states[i]);
 	}
 
-	cout<<"newly added ca tracks : "<< ca_tracks.size() <<" tracks. "<<endl;
+	//cout<<"newly added ca tracks : "<< ca_tracks.size() <<" tracks. "<<endl;
 	return 1;
 }
 
@@ -257,8 +259,7 @@ int CellularAutomaton_v1::process_tracks()
 
 	for (unsigned int i = 0; i < in_tracks.size(); ++i) 
 	{ // loop over input tracks
-
-	  //cout<<"track candidate "<<i<<endl;
+	  if(verbose > 0) cout<<"track candidate "<<i<<endl;
 
 		switch(triplet_mode){
 
@@ -269,7 +270,7 @@ int CellularAutomaton_v1::process_tracks()
 		case 1: // Track propagated from triplets, forward mode only for now
 		process_single_triplet(in_tracks[i]);
 /*
-		Track3D itrack = in_tracks[i]; // hit triplets with track parameters from HT  
+		SimpleTrack3D itrack = in_tracks[i]; // hit triplets with track parameters from HT  
 		int code = 0;
 		unsigned int missing_layers = 0;
 		bool last_layer = false;
@@ -291,7 +292,7 @@ int CellularAutomaton_v1::process_tracks()
 }
 
 
-int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : from hough transform
+int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track : from hough transform
 
         std::vector<TrackSegment> segments1;
         std::vector<TrackSegment> segments2;
@@ -309,11 +310,11 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 		layer_sorted[l].clear();
 	}
 
-	//cout<<"track.hits.size "<<track.hits.size()<<endl;
+	if(verbose > 0) cout<<"track.hits.size "<<track.hits.size()<<endl;
   	for (unsigned int i = 0; i < track.hits.size(); ++i) {
-    		Cluster3D hit = track.hits[i];
+    		SimpleHit3D hit = track.hits[i];
     		unsigned int layer = (unsigned int) hit.get_layer();
-		//cout<<"layer "<<layer<< endl;
+		if(verbose > 0) cout<<"layer "<<layer<< endl;
        	 	if (!forward) layer = nlayers-layer-1;
                 if (layer > (nlayers-1)) continue;
     		unsigned int min = (layer - allowed_missing_inner_hits);
@@ -322,13 +323,13 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
     		}
     		for (unsigned int l = min; l <= layer; ++l) {
       		layer_sorted[l].push_back(hit);
-		//cout<<"adding hit in layer "<<l<<endl;
+		if(verbose > 0) cout<<"adding hit in layer "<<l<<endl;
 		}
 	}
 
 //        for (unsigned int l = 0; l < nlayers; ++l) {
 	for (unsigned int l = 0; l< 3; ++l){
-	  //cout<<"layer_sorted["<<l<<"].size = "<< layer_sorted[l].size()<<endl;
+	  if(verbose > 0) cout<<"layer_sorted["<<l<<"].size = "<< layer_sorted[l].size()<<endl;
         	if (layer_sorted[l].size() == 0) {
         	return 0;
     		}
@@ -541,7 +542,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
   	for (unsigned int i = 0; i<cur_seg_size; i++) {
   		if ((*cur_seg)[i].n_hits ==0) --nsegs;
   	}
-  	cout<<"number of segments from triplets to be processed "<< nsegs<<endl;
+  	//cout<<"number of segments from triplets to be processed "<< nsegs<<endl;
 
 
 #ifdef _FULL_TEST_
@@ -588,7 +589,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 			}else {
 			// get positions from hits_map
 			auto searchl2 = _hits_map.find((*cur_seg)[i].hits[l-2]);
-			Cluster3D clusterl2 = searchl2->second;
+			SimpleHit3D clusterl2 = searchl2->second;
 			x1 = clusterl2.get_x();
 			y1 = clusterl2.get_y();
 			z1 = clusterl2.get_z();
@@ -607,7 +608,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 			} else {
 			// get positions from hits_map
 			auto searchl1 = _hits_map.find((*cur_seg)[i].hits[l-1]);
-			Cluster3D clusterl1 = searchl1->second;
+			SimpleHit3D clusterl1 = searchl1->second;
 			x2 = clusterl1.get_x();
 			y2 = clusterl1.get_y();
 			z2 = clusterl1.get_z(); 
@@ -619,28 +620,28 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
                         // convert segment to track to process it through kalman filter or just call fit_track
 
-			Track3D init_track;
+			SimpleTrack3D init_track;
 			bool fit_layer = (l >= 6);
 			if (fit_layer){
-                                //init_track.hits.assign(l, Cluster3D());
-                                init_track.hits.assign((*cur_seg)[i].n_hits, Cluster3D());
+                                //init_track.hits.assign(l, SimpleHit3D());
+                                init_track.hits.assign((*cur_seg)[i].n_hits, SimpleHit3D());
 
                 		for (unsigned int ll = 0; ll < (*cur_seg)[i].n_hits; ++ll) {
                 			if (ll<3){
                 			init_track.hits[ll] = layer_sorted[ll][(*cur_seg)[i].hits[ll]];
                 			}else {
                 			auto search = _hits_map.find((*cur_seg)[i].hits[ll]);
-                			Cluster3D cluster = search->second;
+                			SimpleHit3D cluster = search->second;
                 			init_track.hits[ll] = cluster;
                 			}
 		                }
 			}
 
-                        	for (std::map<unsigned int,Cluster3D>::iterator jt = _hits_map.begin();
+                        	for (std::map<unsigned int,SimpleHit3D>::iterator jt = _hits_map.begin();
                                                 jt!= _hits_map.end();
                                                 ++jt) {
 
-                        	Cluster3D hit3d = jt->second;
+                        	SimpleHit3D hit3d = jt->second;
                         	unsigned int layer = hit3d.get_layer();
                         	if (layer != l) continue;
 				which_seg = i;
@@ -765,8 +766,8 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
 				// fit init_track to get kappa to compare with new kappa
 				// copy init_track over to temp_track and add a hit in kalman filter
-				Track3D temp_track;
-			        temp_track.hits.assign(init_track.hits.size()+1, Cluster3D());
+				SimpleTrack3D temp_track;
+			        temp_track.hits.assign(init_track.hits.size()+1, SimpleHit3D());
 
       				for (unsigned int ll = 0; ll < init_track.hits.size(); ++ll) {
         			temp_track.hits[ll] = init_track.hits[ll];
@@ -781,7 +782,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 		                if (temp_track.kappa != temp_track.kappa )  continue;
                 		if (temp_track.z0 != temp_track.z0) continue;
 
-		                HelixTrackState state;
+		                HelixKalmanState state;
 		                state.phi = temp_track.phi;
 		                if (state.phi < 0.) {
 		                state.phi += 2. * M_PI;
@@ -888,11 +889,11 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
 #endif
 
-	Track3D temp_track;
-	temp_track.hits.assign(nlayers, Cluster3D());
+	SimpleTrack3D temp_track;
+	temp_track.hits.assign(nlayers, SimpleHit3D());
 
-	std::vector<Track3D> best_track;
-	std::vector<HelixTrackState> best_track_state;
+	std::vector<SimpleTrack3D> best_track;
+	std::vector<HelixKalmanState> best_track_state;
 	float best_chi2 = 9999;
 	for (unsigned int i = 0; i< cur_seg_size; ++i) {
 
@@ -901,7 +902,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 #ifdef _DEBUG_
 		cout<<"segment " <<i <<endl;
 #endif
-      		temp_track.hits.assign((*cur_seg)[i].n_hits, Cluster3D());
+      		temp_track.hits.assign((*cur_seg)[i].n_hits, SimpleHit3D());
 //		float seg_kappa = (*cur_seg)[i].kappa;
 
       		for (unsigned int l = 0; l < (*cur_seg)[i].n_hits; ++l) {
@@ -909,13 +910,13 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
         	temp_track.hits[l] = layer_sorted[l][(*cur_seg)[i].hits[l]];
 		}else {
 		auto search = _hits_map.find((*cur_seg)[i].hits[l]);
-		Cluster3D cluster = search->second;
+		SimpleHit3D cluster = search->second;
 		temp_track.hits[l] = cluster;
 		}
       		}
 
       		float init_chi2 = temp_track.fit_track();
-                cout<<"chi2 from fit_track "<<init_chi2 <<" kappa "<< temp_track.kappa <<endl;
+		if(verbose > 0)  cout<<"chi2 from fit_track "<<init_chi2 <<" kappa "<< temp_track.kappa <<endl;
 
 #ifdef _DEBUG_
           	cout	<<" kappa " <<temp_track.kappa <<" phi "<<temp_track.phi<<" d "<<temp_track.d
@@ -930,7 +931,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
                         if (temp_track.z0 != temp_track.z0) continue;
 		}
 
-    		HelixTrackState state;
+    		HelixKalmanState state;
     		state.phi = temp_track.phi;
     		if (state.phi < 0.) {
       		state.phi += 2. * M_PI;
@@ -1001,10 +1002,10 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 
 	if (best_track.empty()) return 1;
 
-//	cout<<"best_track.size "<<best_track.size()<<endl;
+	if(verbose > 0) cout<<"best_track.size "<<best_track.size()<<endl;
   	ca_tracks.push_back(best_track.back());
   	ca_track_states.push_back(best_track_state.back());
-  	//cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
+	if(verbose > 0) cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
 
 
 	//    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
@@ -1027,7 +1028,7 @@ int CellularAutomaton_v1::process_single_triplet(Track3D& track){ // track : fro
 	return 1;
 }
 
-int CellularAutomaton_v1::process_single_track(Track3D& track)
+int CellularAutomaton_v1::process_single_track(SimpleTrack3D& track)
 {
 
         std::vector<TrackSegment> segments1;
@@ -1052,7 +1053,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
  
 //  cout<<"track.hits.size "<<track.hits.size()<<endl;
   for (unsigned int i = 0; i < track.hits.size(); ++i) {
-    Cluster3D hit = track.hits[i];
+    SimpleHit3D hit = track.hits[i];
     unsigned int layer = (unsigned int) hit.get_layer();
     if (layer > (nlayers-1)) continue;
     if (!forward) layer = nlayers-layer-1;
@@ -1219,7 +1220,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   swap(cur_seg, next_seg);
   swap(cur_seg_size, next_seg_size);
 
-  cout<<"number of segments from first 3 layers : " << cur_seg_size<<endl;
+  // cout<<"number of segments from first 3 layers : " << cur_seg_size<<endl;
   unsigned int which_seg;
 
   // add hits to segments layer-by-layer, cutting out bad segments
@@ -1389,13 +1390,13 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
   for (unsigned int i = 0; i<cur_seg_size; i++) {
   if ((*cur_seg)[i].n_hits ==0) --nsegs;
   }
-  cout<<"number of segments to be processed "<< nsegs<<endl;
+  //cout<<"number of segments to be processed "<< nsegs<<endl;
 
-  Track3D temp_track;
-  temp_track.hits.assign(nlayers, Cluster3D());
+  SimpleTrack3D temp_track;
+  temp_track.hits.assign(nlayers, SimpleHit3D());
 
-  std::vector<Track3D> best_track;
-  std::vector<HelixTrackState> best_track_state;
+  std::vector<SimpleTrack3D> best_track;
+  std::vector<HelixKalmanState> best_track_state;
   float best_chi2 = 9999;
   for (unsigned int i = 0; i< cur_seg_size; ++i) {
 
@@ -1404,7 +1405,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
 #ifdef _DEBUG_
       cout<<"segment " <<i <<endl;
 #endif
-      temp_track.hits.assign((*cur_seg)[i].n_hits, Cluster3D());
+      temp_track.hits.assign((*cur_seg)[i].n_hits, SimpleHit3D());
 
       for (unsigned int l = 0; l < (*cur_seg)[i].n_hits; ++l) {
         temp_track.hits[l] = layer_sorted[l][(*cur_seg)[i].hits[l]];
@@ -1439,7 +1440,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
       }
     }
 
-    HelixTrackState state;
+    HelixKalmanState state;
     state.phi = temp_track.phi;
     if (state.phi < 0.) {
       state.phi += 2. * M_PI;
@@ -1466,7 +1467,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
       _kalman->addHit(temp_track.hits[h], state);
       nfits += 1;
     }
-    //cout<<"z0 after kalman "<<state.z0<<endl;
+    if(verbose > 0) cout<<"z0 after kalman "<<state.z0<<endl;
 
     // fudge factor for non-gaussian hit sizes
     state.C *= 3.;
@@ -1515,7 +1516,7 @@ int CellularAutomaton_v1::process_single_track(Track3D& track)
 
   ca_tracks.push_back(best_track.back());
   ca_track_states.push_back(best_track_state.back());
-  cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
+  if(verbose > 0) cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
 
 
 //    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
