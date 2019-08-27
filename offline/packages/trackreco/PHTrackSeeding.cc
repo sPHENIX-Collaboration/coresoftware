@@ -50,6 +50,8 @@ int PHTrackSeeding::End(PHCompositeNode* topNode)
 
 int PHTrackSeeding::Setup(PHCompositeNode* topNode)
 {
+  //cout << PHWHERE << "Entering Setup" << endl;
+ 
   int ret = CreateNodes(topNode);
   if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
 
@@ -82,27 +84,31 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);
     if (Verbosity() > 0)
-      cout << "SVTX node added" << endl;
+      cout << PHWHERE << "SVTX node added" << endl;
   }
 
-  _track_map = new SvtxTrackMap_v1;
-  //  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-  //    _track_map, _track_map_name, "PHObject");
+  
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!_track_map)
+    {
+      _track_map = new SvtxTrackMap_v1;
+      PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
+								       _track_map, "SvtxTrackMap", "PHObject");
+      tb_node->addNode(tracks_node);
+      if (Verbosity() > 0){
+	cout << PHWHERE << "Svtx/SvtxTrackMap node added" << endl;
+	// cout << "Svtx/" << _track_map_name << " node added" << endl;
+      }
+    }
+  if(Verbosity() > 0)
+    _track_map->identify();
 
-  PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-      _track_map, "SvtxTrackMap", "PHObject");
-
-  tb_node->addNode(tracks_node);
-  if (Verbosity() > 0){
-    cout << "Svtx/SvtxTrackMap node added" << endl;
-    // cout << "Svtx/" << _track_map_name << " node added" << endl;
-  }
   _assoc_container = new AssocInfoContainer;
   PHIODataNode<PHObject>* assoc_node = new PHIODataNode<PHObject>(
       _assoc_container, "AssocInfoContainer", "PHObject");
   tb_node->addNode(assoc_node);
   if (Verbosity() > 0)
-    cout << "Svtx/AssocInfoContainer node added" << endl;
+    cout << PHWHERE << "Svtx/AssocInfoContainer node added" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
