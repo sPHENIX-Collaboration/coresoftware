@@ -153,6 +153,7 @@ PHObject *PHObject::Clone(const char *newname) const
 std::cout << PHWHERE
 	  << "You are overriding the TObject::Clone method which is not supported"  << std::endl;
   gSystem->Exit(1);
+  return nullptr;
 }
 
 void PHObject::Copy (TObject &object) const
