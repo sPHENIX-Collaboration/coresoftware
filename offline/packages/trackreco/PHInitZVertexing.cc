@@ -169,8 +169,23 @@ PHInitZVertexing::
 //  delete ca;
 }
 
-int PHInitZVertexing::Init(PHCompositeNode* topNode) {
+int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
 
+  // calls the base class Setup method, which calls the base class CreateNodes and GetNodes methods
+  int ret = PHInitVertexing::Setup(topNode);
+  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
+
+  int code = Fun4AllReturnCodes::ABORTRUN;
+
+  // calls the create_nodes in this class
+  code = create_nodes(topNode);
+  if(code != Fun4AllReturnCodes::EVENT_OK)
+    return code;
+
+  code = initialize_geometry(topNode);
+  if(code != Fun4AllReturnCodes::EVENT_OK)
+    return code;
+  
 #ifdef _DEBUG_
   _ofile = new TFile("z0_dzdl_kappa_phi_d.root","recreate");
 #endif
@@ -219,26 +234,7 @@ int PHInitZVertexing::Init(PHCompositeNode* topNode) {
   _kappa_d_phi = new TH3D("kappa_d_phi","kappa_d_phi",n_kappa_bins,_hough_space->get_kappa_min(),_hough_space->get_kappa_max(),n_d_bins,_hough_space->get_d_min(),_hough_space->get_d_max(),n_phi_bins,_hough_space->get_phi_min(),_hough_space->get_phi_max());
 
 #endif
-	return Fun4AllReturnCodes::EVENT_OK;
-}
 
-
-
-int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
-
-  int ret = PHInitVertexing::Setup(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) return ret;
-
-  int code = Fun4AllReturnCodes::ABORTRUN;
-
-  code = create_nodes(topNode);
-  if(code != Fun4AllReturnCodes::EVENT_OK)
-    return code;
-
-  code = initialize_geometry(topNode);
-  if(code != Fun4AllReturnCodes::EVENT_OK)
-    return code;
-  
 #ifdef _MULTIVTX_
   if(fill_multi_zvtx)
     {
@@ -315,7 +311,7 @@ int PHInitZVertexing::Process(PHCompositeNode* topNode)
         separate_helicity = true;
 #endif
 
-        Init(topNode);
+        //Init(topNode);
 
 	bool zvtx_found = false;
         _ca_nlayers = 3; // 3(vertexing)/4(track seeding) for p+p

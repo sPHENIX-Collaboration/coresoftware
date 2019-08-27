@@ -39,7 +39,6 @@ pkginclude_HEADERS = \
   PHHoughSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
-  PHPatternReco.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackSetMerging.h \
@@ -71,7 +70,6 @@ else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \
     PHInitZVertexing_Dict.cc \
-    PHPatternReco_Dict.cc \
     PHTrackSeeding_Dict.cc \
     PHTrackSetMerging_Dict.cc \
     PHTrackPropagating_Dict.cc \
@@ -99,7 +97,6 @@ libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
-  PHPatternReco.cc \
   PHTrackSeeding.cc \
   PHTrackSetMerging.cc \
   PHTrackPropagating.cc \

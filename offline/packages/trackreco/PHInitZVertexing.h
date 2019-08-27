@@ -153,8 +153,6 @@ public:
 
 private:
 
-  int Init(PHCompositeNode *topNode);
-
 	//--------------
 	// InitRun Calls
 	//--------------
