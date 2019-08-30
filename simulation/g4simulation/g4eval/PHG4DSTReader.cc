@@ -311,7 +311,7 @@ int PHG4DSTReader::process_event(PHCompositeNode *topNode)
           //
           assert(hit);
 
-          new ((*(rec._arr.get()))[rec._cnt]) hit_type(*hit);
+          new ((*(rec._arr.get()))[rec._cnt]) hit_type(hit);
 
           hit_type *new_hit =
               dynamic_cast<hit_type *>(rec._arr.get()->At(rec._cnt));

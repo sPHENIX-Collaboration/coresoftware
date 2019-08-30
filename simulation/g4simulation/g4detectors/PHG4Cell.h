@@ -42,7 +42,7 @@ class PHG4Cell: public PHObject
   virtual ~PHG4Cell() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Copy(PHG4Cell const &g4cell);
+  virtual void CopyFrom(const PHObject *phobj);
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
   virtual void Reset();
 
