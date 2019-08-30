@@ -26,7 +26,7 @@ PHG4Hitv1::PHG4Hitv1():
 
 }
 
-PHG4Hitv1::PHG4Hitv1(const PHG4Hit &g4hit)
+PHG4Hitv1::PHG4Hitv1(const PHG4Hit *g4hit)
 {
   CopyFrom(g4hit);
 }

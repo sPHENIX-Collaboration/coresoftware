@@ -2,30 +2,17 @@
 
 #include <TSystem.h> // for gSystem
 
+#include <cassert>
 #include <cstdlib>
 #include <type_traits>
 
 using namespace std;
-/*
+
 void
-PHG4Hit::Copy(TObject &g4hit)
+PHG4Hit::CopyFrom(const PHObject *phobj)
 {
-  PHG4Hit *hit = dynamic_cast<PHG4Hit *> (&g4hit);
-  if (!hit)
-  {
-  return;
-  }
-  Copy(*hit);
-}
-*/
-void
-PHG4Hit::CopyFrom(PHObject const &g4h)
-{
-  const PHG4Hit *g4hit = dynamic_cast<const PHG4Hit *> (&g4h);
-  if (! g4hit)
-  {
-    gSystem->Exit(1);
-  }
+  const PHG4Hit *g4hit = dynamic_cast<const PHG4Hit *> (phobj);
+  assert(g4hit);
   for (int i =0; i<2; i++)
     {
       set_x(i,g4hit->get_x(i));
@@ -165,6 +152,7 @@ PHG4Hit::get_property_info(const PROPERTY prop_id)
 
   default:
     cout << "PHG4Hit::get_property_info - Fatal Error - unknown index " << prop_id << endl;
+    gSystem->Exit(1);
     exit(1);
   }
 }
