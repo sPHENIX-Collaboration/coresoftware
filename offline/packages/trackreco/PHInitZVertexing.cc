@@ -1245,7 +1245,8 @@ void PHInitZVertexing::vote_z(unsigned int zoomlevel){
                                 }
                                 else
                                 {
-                                HelixHoughBin* cur_bin = houghbin->Clone();
+				  HelixHoughBin* cur_bin = dynamic_cast<HelixHoughBin *> (houghbin->CloneMe());
+				  assert(cur_bin);
 				cur_bin->clear_clusters();
                                 cur_bin->set_zoomlevel(zoomlevel);
                                 cur_bin->set_bin(zoomlevel,curbin);
@@ -1453,7 +1454,8 @@ void PHInitZVertexing::vote_xy(unsigned int zoomlevel){
                                 }
                                 else
                                 {
-                                HelixHoughBin* cur_bin = houghbin->Clone();
+				  HelixHoughBin* cur_bin = dynamic_cast<HelixHoughBin*> (houghbin->CloneMe());
+				  assert(cur_bin);
 				cur_bin->clear_clusters();
                                 cur_bin->set_zoomlevel(zoomlevel);
                                 cur_bin->set_bin(zoomlevel,curbin);
@@ -1560,7 +1562,8 @@ void PHInitZVertexing::vote_xy(unsigned int zoomlevel){
                                 }
                                 else
                                 {
-                                HelixHoughBin* cur_bin = houghbin->Clone();
+				  HelixHoughBin* cur_bin = dynamic_cast<HelixHoughBin *> (houghbin->CloneMe());
+				  assert(cur_bin);
                                 cur_bin->clear_clusters();
                                 cur_bin->set_zoomlevel(zoomlevel);
                                 cur_bin->set_bin(zoomlevel,curbin);
@@ -1845,9 +1848,6 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
                         ++it)
         {
                 unsigned int cluster_id = it->first;
-		// ???????????????? What is This ????????????????????
-		// This is a test whether cluster_id is nan - nan's fail this test
-                if (cluster_id != cluster_id) continue;
                 bool used = false;
                 auto hitused = hits_used.find(cluster_id);
                 if (hitused != hits_used.end())
@@ -1858,7 +1858,6 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
                 unsigned int layer = hit.get_layer();
 		unsigned int hitid =  hit.get_id();
 
-		if (hitid != hitid) continue;
 		if(Verbosity() > 0) cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
 		if (layer == layer0 ) layer_sorted_0.push_back(hitid);                
 		else if (layer == layer1) layer_sorted_1.push_back(hitid);

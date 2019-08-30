@@ -21,7 +21,7 @@ public:
   void identify(std::ostream &os=std::cout) const {};
   void Reset() {}
   int  isValid() const {return 1;}
-  HelixHoughFuncs* Clone() const {return new HelixHoughFuncs_v1(*this);}
+  PHObject* CloneMe() const {return new HelixHoughFuncs_v1(*this);}
 
   void set_current_zoom(unsigned int cur_zoom) { _cur_zoom = cur_zoom;}
   void set_hough_space(HelixHoughSpace* hough_space); 

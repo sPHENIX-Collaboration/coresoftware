@@ -18,7 +18,7 @@ public:
   void identify(std::ostream &os=std::cout) const;
   void Reset() {};
   int  isValid() const {return 1;}
-  HelixHoughBin* Clone() const {return new HelixHoughBin_v1(*this);}
+  PHObject* CloneMe() const {return new HelixHoughBin_v1(*this);}
 
   void init();
 

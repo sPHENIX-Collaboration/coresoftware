@@ -22,7 +22,7 @@ public :
   }
   virtual void Reset() {}
   virtual int  isValid() const 			{return 0;}
-  virtual HelixHoughFuncs* Clone() const 	{return nullptr;}
+  virtual PHObject* CloneMe() const 	{return nullptr;}
 
   // Define Hough space for helical tracks 
   virtual void set_current_zoom(unsigned int cur_zoom)		{}
