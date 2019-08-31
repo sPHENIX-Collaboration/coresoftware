@@ -35,7 +35,7 @@ class PHFieldConfigv1 : public PHFieldConfig
   virtual ~PHFieldConfigv1() {}
 
   /// Virtual copy constructor.
-  virtual PHObject*
+  virtual PHObject* CloneMe() const;
   clone() const;
 
   /** identify Function from PHObject
