@@ -1,4 +1,5 @@
 #include "PHObject.h"
+
 #include "phool.h"
 
 #include <TSystem.h>
@@ -123,14 +124,6 @@ int PHObject::isImplemented(const unsigned int) const
             << " isImplemented(const unsigned int) not implemented by daughter class"
             << std::endl;
   return 0;
-}
-
-
-void PHObject::CopyContent(const PHObject* obj)
-{
-  std::cout << PHWHERE
-            << " CopyContent(PHObject *obj) is not implemented" << std::endl;
-  gSystem->Exit(1);
 }
 
 

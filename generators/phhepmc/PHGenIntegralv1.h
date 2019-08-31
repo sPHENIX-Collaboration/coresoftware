@@ -26,7 +26,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   explicit PHGenIntegralv1(const std::string& description);
   virtual ~PHGenIntegralv1(){}
 
-  virtual PHObject* CloneMe() const;
+  virtual PHObject* CloneMe() const {return new PHGenIntegralv1(*this);}
   virtual int isValid() const { return 1; }
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
@@ -34,7 +34,7 @@ class PHGenIntegralv1 : public PHGenIntegral
   virtual int Integrate() const { return 1; }
   /// For integral objects, e.g. integrated luminosity counter, integrate with another object from another run
   virtual int Integrate(PHObject*);
-  virtual void CopyContent(const PHObject* obj);
+  virtual void CopyFrom(const PHObject* obj);
 
   //! Integrated luminosity in pb^-1
   Double_t get_Integrated_Lumi() const
