@@ -23,7 +23,7 @@ class RawClusterv1 : public RawCluster
   RawClusterv1();
   virtual ~RawClusterv1() {}
   virtual void Reset();
-  //  virtual PHObject* clone() const;
+  virtual PHObject *CloneMe() const {return new RawClusterv1(*this);}
   virtual int isValid() const { return towermap.size() > 0; }
   virtual void identify(std::ostream& os = std::cout) const;
 
