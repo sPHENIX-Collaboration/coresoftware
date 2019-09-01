@@ -6,11 +6,11 @@ using namespace std;
 
 static int nowarning = 0;
 
-RunHeader*
-RunHeader::clone() const
+PHObject *
+RunHeader::CloneMe() const
 {
-  cout << "RunHeader::clone() is not implemented in daugther class" << endl;
-  return NULL;
+  cout << "RunHeader::CloneMe() is not implemented in daugther class" << endl;
+  return nullptr;
 }
 
 void

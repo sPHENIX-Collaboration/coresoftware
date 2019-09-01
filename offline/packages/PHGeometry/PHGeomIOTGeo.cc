@@ -31,13 +31,6 @@ PHGeomIOTGeo::~PHGeomIOTGeo()
     Data.resize(0);
 }
 
-PHObject*
-PHGeomIOTGeo::clone() const
-{
-  PHGeomIOTGeo* geo = new PHGeomIOTGeo(*this);
-  return geo;
-}
-
 void PHGeomIOTGeo::SetGeometry(const TGeoVolume* g)
 {
   if (!g)

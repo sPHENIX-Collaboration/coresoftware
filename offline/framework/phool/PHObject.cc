@@ -127,13 +127,6 @@ int PHObject::isImplemented(const unsigned int) const
 }
 
 
-void PHObject::CopyFrom(const PHObject &obj)
-{
-  std::cout << PHWHERE
-            << " CopyFrom(const PHObject &obj) is not implemented" << std::endl;
-  gSystem->Exit(1);
-}
-
 void PHObject::CopyFrom(const PHObject *obj)
 {
   std::cout << PHWHERE

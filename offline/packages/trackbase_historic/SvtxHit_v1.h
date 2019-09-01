@@ -18,7 +18,7 @@ class SvtxHit_v1 : public SvtxHit
   void identify(std::ostream& os = std::cout) const;
   void Reset() { *this = SvtxHit_v1(); }
   int isValid() const;
-  SvtxHit* clone() const { return (new SvtxHit_v1(*this)); }
+  PHObject* CloneMe() const { return (new SvtxHit_v1(*this)); }
 
   // digitized hit info
 

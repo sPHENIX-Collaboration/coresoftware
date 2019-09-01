@@ -18,6 +18,7 @@
 
 #include <TSystem.h>
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>                 // for operator<<, basic_ostream, endl
 #include <utility>                  // for pair
@@ -231,7 +232,11 @@ int Fun4AllDstInputManager::GetSyncObject(SyncObject **mastersync)
   // of syncobject is copied
   if (!(*mastersync))
   {
-    if (syncobject) *mastersync = syncobject->clone();
+    if (syncobject) 
+    {
+      *mastersync = dynamic_cast<SyncObject *> (syncobject->CloneMe());
+      assert(*mastersync);
+    }
   }
   else
   {

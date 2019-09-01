@@ -22,7 +22,7 @@ class SvtxVertexMap : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxVertexMap* clone() const { return NULL; }
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }

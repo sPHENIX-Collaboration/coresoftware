@@ -2,6 +2,7 @@
 
 #include "SvtxCluster.h"
 
+#include <cassert>
 #include <iterator>       // for reverse_iterator
 #include <map>            // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <utility>        // for pair, make_pair
@@ -20,8 +21,9 @@ SvtxClusterMap_v1::SvtxClusterMap_v1(const SvtxClusterMap_v1& clustermap)
        iter != clustermap.end();
        ++iter)
   {
-    const SvtxCluster* cluster = iter->second;
-    _map.insert(make_pair(cluster->get_id(), cluster->clone()));
+    SvtxCluster* cluster = dynamic_cast<SvtxCluster*> (iter->second->CloneMe());
+    assert(cluster);
+    _map.insert(make_pair(cluster->get_id(),  cluster));
   }
 }
 
@@ -32,8 +34,9 @@ SvtxClusterMap_v1& SvtxClusterMap_v1::operator=(const SvtxClusterMap_v1& cluster
        iter != clustermap.end();
        ++iter)
   {
-    const SvtxCluster* cluster = iter->second;
-    _map.insert(make_pair(cluster->get_id(), cluster->clone()));
+    SvtxCluster* cluster = dynamic_cast<SvtxCluster*> (iter->second->CloneMe());
+    assert(cluster);
+    _map.insert(make_pair(cluster->get_id(), cluster));
   }
   return *this;
 }
@@ -79,7 +82,8 @@ SvtxCluster* SvtxClusterMap_v1::insert(const SvtxCluster* clus)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, clus->clone()));
+
+  _map.insert(make_pair(index, dynamic_cast<SvtxCluster*> (clus->CloneMe())));
   _map[index]->set_id(index);
   return _map[index];
 }

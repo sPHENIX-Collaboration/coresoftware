@@ -21,7 +21,7 @@ class SvtxHit : public PHObject
   }
   virtual void Reset(){};
   virtual int isValid() const { return 0; }
-  virtual SvtxHit* clone() const { return NULL; }
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   // digitized hit info
 

@@ -30,7 +30,7 @@ class PHHepMCGenEvent : public PHObject
     PHOOL_VIRTUAL_WARNING;
     return 0;
   }
-  PHHepMCGenEvent* clone() const { return new PHHepMCGenEvent(*this); }
+  PHObject* CloneMe() const { return new PHHepMCGenEvent(*this); }
   virtual HepMC::GenEvent* getEvent();
   virtual const HepMC::GenEvent* getEvent() const;
 

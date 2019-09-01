@@ -24,10 +24,10 @@ int SyncObject::isValid() const
   return 0;
 }
 
-SyncObject*
-SyncObject::clone() const
+PHObject*
+SyncObject::CloneMe() const
 {
-  cout << "SyncObject::clone() not implemented by daughter class" << endl;
+  cout << "SyncObject::CloneMe() not implemented by daughter class" << endl;
   return nullptr;
 }
 
