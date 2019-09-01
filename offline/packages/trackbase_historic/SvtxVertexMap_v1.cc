@@ -64,14 +64,14 @@ void SvtxVertexMap_v1::identify(ostream& os) const
 const SvtxVertex* SvtxVertexMap_v1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 SvtxVertex* SvtxVertexMap_v1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 

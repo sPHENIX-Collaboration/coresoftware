@@ -186,14 +186,14 @@ int SvtxTrack_v1::isValid() const
 const SvtxTrackState* SvtxTrack_v1::get_state(float pathlength) const
 {
   ConstStateIter iter = _states.find(pathlength);
-  if (iter == _states.end()) return NULL;
+  if (iter == _states.end()) return nullptr;
   return iter->second;
 }
 
 SvtxTrackState* SvtxTrack_v1::get_state(float pathlength)
 {
   StateIter iter = _states.find(pathlength);
-  if (iter == _states.end()) return NULL;
+  if (iter == _states.end()) return nullptr;
   return iter->second;
 }
 

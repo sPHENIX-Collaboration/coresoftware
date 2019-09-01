@@ -133,9 +133,9 @@ class SvtxTrack : public PHObject
   virtual size_t count_states(float pathlength) const { return 0; }
   virtual void clear_states() {}
 
-  virtual const SvtxTrackState* get_state(float pathlength) const { return NULL; }
-  virtual SvtxTrackState* get_state(float pathlength) { return NULL; }
-  virtual SvtxTrackState* insert_state(const SvtxTrackState* state) { return NULL; }
+  virtual const SvtxTrackState* get_state(float pathlength) const { return nullptr; }
+  virtual SvtxTrackState* get_state(float pathlength) { return nullptr; }
+  virtual SvtxTrackState* insert_state(const SvtxTrackState* state) { return nullptr; }
   virtual size_t erase_state(float pathlength) { return 0; }
 
   virtual ConstStateIter begin_states() const { return StateMap().end(); }

@@ -67,14 +67,14 @@ void SvtxTrackMap_v1::identify(ostream& os) const
 const SvtxTrack* SvtxTrackMap_v1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 SvtxTrack* SvtxTrackMap_v1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
@@ -82,7 +82,7 @@ SvtxTrack* SvtxTrackMap_v1::insert(const SvtxTrack* track)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, dynamic_cast<SvtxTrack*> (track->clone())));
+  _map.insert(make_pair(index, dynamic_cast<SvtxTrack*> (track->CloneMe())));
   _map[index]->set_id(index);
   return _map[index];
 }

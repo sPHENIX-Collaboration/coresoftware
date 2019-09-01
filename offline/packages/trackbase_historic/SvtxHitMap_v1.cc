@@ -66,14 +66,14 @@ void SvtxHitMap_v1::identify(ostream& os) const
 const SvtxHit* SvtxHitMap_v1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 SvtxHit* SvtxHitMap_v1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 

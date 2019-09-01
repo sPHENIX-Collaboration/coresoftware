@@ -29,9 +29,9 @@ class SvtxHitMap : public PHObject
   virtual size_t count(unsigned int idkey) const { return 0; }
   virtual void clear() {}
 
-  virtual const SvtxHit* get(unsigned int idkey) const { return NULL; }
-  virtual SvtxHit* get(unsigned int idkey) { return NULL; }
-  virtual SvtxHit* insert(const SvtxHit* hit) { return NULL; }
+  virtual const SvtxHit* get(unsigned int idkey) const { return nullptr; }
+  virtual SvtxHit* get(unsigned int idkey) { return nullptr; }
+  virtual SvtxHit* insert(const SvtxHit* hit) { return nullptr; }
   virtual size_t erase(unsigned int idkey) { return 0; }
 
   virtual ConstIter begin() const { return HitMap().end(); }
