@@ -17,8 +17,7 @@ PHObject::CloneMe() const
 PHObject*
 PHObject::clone() const
 {
-  std::cout << PHWHERE << " clone() not implemented by daugther class"
-            << std::endl;
+  std::cout << PHWHERE << " clone() is obsolete" << std::endl;
   return nullptr;
 }
 

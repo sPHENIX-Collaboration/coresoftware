@@ -20,7 +20,7 @@ class PHObject : public TObject
   virtual ~PHObject() {}
   /// Virtual copy constructor.
   virtual PHObject* CloneMe() const;
-  virtual PHObject* clone() const;
+  virtual PHObject* clone() const final;
 
   virtual PHObject *Clone(const char *newname = "") const final;
   virtual void 	Copy(TObject &object) const final;
