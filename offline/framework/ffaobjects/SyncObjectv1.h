@@ -14,7 +14,7 @@ class SyncObjectv1: public SyncObject
   SyncObjectv1();
   SyncObjectv1(const SyncObject&);
 
-  PHObject *clone() const {return new SyncObjectv1(*this);}
+  PHObject *CloneMe() const {return new SyncObjectv1(*this);}
   /// dtor
   virtual ~SyncObjectv1() {}
 
