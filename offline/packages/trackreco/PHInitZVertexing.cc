@@ -923,12 +923,14 @@ int PHInitZVertexing::export_output(){
         }  // track loop
 
 	if(Verbosity() > 0)
-	  cout << PHWHERE << "Found " << _vertex_list.size() << " vertices" << endl;
+	  {
+	    cout << PHWHERE << "Found " << _vertex_list.size() << " vertices" << endl;
+	  }
 
 	// add the contents of the vector of vertex objects to the node tree
 	for (unsigned int vid = 0; vid < _vertex_list.size(); ++vid ){
 	  SvtxVertex *vtxptr = _vertex_map->insert_clone(&svtx_vertex_list[vid]);
-	  if (Verbosity() > 5) vtxptr->identify();
+	  if (Verbosity() > 0) vtxptr->identify();
 	}
 	
         hits_map.clear();

@@ -33,6 +33,9 @@ class SvtxTrack_v1 : public SvtxTrack
   unsigned int get_id() const { return _track_id; }
   void set_id(unsigned int id) { _track_id = id; }
 
+  unsigned int get_vertex_id() const { return _vertex_id; }
+  void set_vertex_id(unsigned int id) { _vertex_id = id; }
+
   bool get_positive_charge() const { return _is_positive_charge; }
   void set_positive_charge(bool ispos) { _is_positive_charge = ispos; }
 
@@ -181,6 +184,7 @@ class SvtxTrack_v1 : public SvtxTrack
  private:
   // track information
   unsigned int _track_id;
+  unsigned int _vertex_id;
   bool _is_positive_charge;
   float _chisq;
   unsigned int _ndf;
@@ -196,7 +200,7 @@ class SvtxTrack_v1 : public SvtxTrack
   float _dca3d_z_error;
 
   // extended track information (primary tracks only)
-  // unsigned int _vertex_id;
+
 
   // track state information
   StateMap _states;  //< path length => state object

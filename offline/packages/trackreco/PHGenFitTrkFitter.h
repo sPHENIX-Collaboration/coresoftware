@@ -17,6 +17,7 @@
 #include <memory>                // for shared_ptr
 #include <string>
 #include <vector>
+#include <map>
 
 class TClonesArray;
 
@@ -373,6 +374,9 @@ class PHGenFitTrkFitter : public SubsysReco
   float _cluster_eval_tree_gz;
 
   bool _do_evt_display;
+
+  std::map<unsigned int, unsigned int> _rave_vertex_gf_track_map;
+
 };
 
 #endif

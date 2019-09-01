@@ -410,7 +410,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   void set_vertex_error(const float a)
   {
     _vertex_error.clear();
-    _vertex_error.assign(3, a);
+    // _vertex_error.assign(3, a);
   }
 
   int get_primary_pid_guess() const
@@ -457,7 +457,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
   //--------------------
 
   //! KalmanTrkProp Call.
-  int BuildLayerZPhiHitMap();
+  int BuildLayerZPhiHitMap(const unsigned int ivert);
 
   //! layer: 7 bits, z: 11 bits, phi: 14 bits
   unsigned int encode_cluster_index(const unsigned int layer, const float z, const float rphi);
@@ -473,17 +473,18 @@ class PHGenFitTrkProp : public PHTrackPropagating
   //			const unsigned int init_layer = 0, const unsigned int end_layer = 66,
   //			const bool use_fitted_state_once = false);
   int TrackPropPatRec(
-      //const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
-      MapPHGenFitTrack::iterator& track_iter,
-      const unsigned int init_layer = 0, const unsigned int end_layer = 66,
-      const bool use_fitted_state_once = false);
-
+		      const unsigned int ivert,
+		      //const int iPHGenFitTrack, std::shared_ptr<PHGenFit::Track> &track,
+		      MapPHGenFitTrack::iterator& track_iter,
+		      const unsigned int init_layer = 0, const unsigned int end_layer = 66,
+		      const bool use_fitted_state_once = false);
+  
   //!
   //PHGenFit::Measurement* SvtxClusterToPHGenFitMeasurement(const SvtxCluster* cluster);
   PHGenFit::Measurement* TrkrClusterToPHGenFitMeasurement(const TrkrCluster* cluster);
 
   //! TrackPropPatRec Call.
-  std::vector<TrkrDefs::cluskey> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
+  std::vector<TrkrDefs::cluskey> SearchHitsNearBy(const unsigned int ivert, const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
 
   //! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
   //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
@@ -524,9 +525,12 @@ class PHGenFitTrkProp : public PHTrackPropagating
 
   // object storage
 
-  std::vector<float> _vertex;        ///< working array for collision vertex
-  std::vector<float> _vertex_error;  ///< sqrt(cov)
-
+  std::vector<std::vector<float>> _vertex;        ///< working array for collision vertex list
+  std::vector<std::vector<float>> _vertex_error;  ///< sqrt(cov)
+  
+  //  std::vector<float> _vertex;        ///< working array for collision vertex
+  // std::vector<float> _vertex_error;  ///< sqrt(cov)
+  
   // node pointers
   BbcVertexMap* _bbc_vertexes;
 
@@ -596,12 +600,12 @@ class PHGenFitTrkProp : public PHTrackPropagating
   std::map<int, float> _search_wins_phi;
   std::map<int, float> _search_wins_theta;
 
-  std::multimap<unsigned int, TrkrDefs::cluskey> _layer_thetaID_phiID_cluserID;
+  std::vector<std::multimap<unsigned int, TrkrDefs::cluskey>> _layer_thetaID_phiID_clusterID;
 
   float _half_max_theta;
   float _half_max_phi;
-  float _layer_thetaID_phiID_cluserID_phiSize;
-  float _layer_thetaID_phiID_cluserID_zSize;
+  float _layer_thetaID_phiID_clusterID_phiSize;
+  float _layer_thetaID_phiID_clusterID_zSize;
 
   MapPHGenFitTrack _PHGenFitTracks;
   //! +1: inside out; -1: outside in
