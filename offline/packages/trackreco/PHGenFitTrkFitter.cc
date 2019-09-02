@@ -208,7 +208,7 @@ PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
   , _fit_min_pT(0.1)
   , _vertex_min_ndf(20)
   , _vertex_finder(NULL)
-  , _vertexing_method("avf-smoothing:1")
+  , _vertexing_method("avf-smoothing:1")    // this works only for single collision events. Use "avr-minweight:0.5-primcut:9-seccut:9" for multi-vertex events.
   , _truth_container(NULL)
   , _clustermap(NULL)
   , _trackmap(NULL)

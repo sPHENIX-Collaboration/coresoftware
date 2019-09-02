@@ -137,6 +137,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
 	_ofile2(nullptr),
          _fname("init_zvtx_diagnostic_file.root"),
 	  _nlayers_all(67),
+	 _nclus_mvtx(0),
 	  _layer_ilayer_map_all(),
 	  _radii_all(),
 	  zooms_vec(),
@@ -726,6 +727,9 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
       TrkrDefs::cluskey cluskey = iter->first;
       unsigned int layer = TrkrDefs::getLayer(cluskey);
 
+      if(layer < 3) 
+	_nclus_mvtx++;
+
       std::map<int, unsigned int>::const_iterator it = _layer_ilayer_map.find(layer);
       if(it != _layer_ilayer_map.end())
 	{
@@ -759,7 +763,22 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
 	  clusid += 1;	
 	}
     }
-  
+
+  // estimate the minimum number of tracks per vertex requirement from the number of clusters in the MVTX layers
+  int rough_tracknum = _nclus_mvtx / 3;
+  if(rough_tracknum < 50)
+    _min_zvtx_tracks = 1;
+  else if(rough_tracknum < 100)
+    _min_zvtx_tracks = 2;
+  else if(rough_tracknum < 150)
+    _min_zvtx_tracks = 3;
+  else if(rough_tracknum < 300)
+    _min_zvtx_tracks = 4;
+  else
+    _min_zvtx_tracks = 5;
+
+  if(Verbosity() > 0)   cout << " PHInitZVertexing will use _min_zvtx_tracks = " << _min_zvtx_tracks << " for this event, which has " << _nclus_mvtx << " MVTX clusters " << endl;
+
   if (Verbosity() > 10) {
     cout << "-------------------------------------------------------------------"
 	 << endl;

@@ -303,6 +303,7 @@ private:
 
 	std::string _fname;
 	int _nlayers_all;
+	int _nclus_mvtx;
 	std::map<int, unsigned int> _layer_ilayer_map_all;
 	std::vector<float> _radii_all;
 	std::vector<std::vector<unsigned int> > zooms_vec;
