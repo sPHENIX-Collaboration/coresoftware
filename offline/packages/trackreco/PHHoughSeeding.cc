@@ -407,7 +407,7 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
       // here expect vertex to be better than +/- 500 um
     }
 
-    if(Verbosity() > 10) cout << " _vertex.size() = " << _vertex.size() << endl;
+    if(Verbosity() > 1) cout << PHWHERE << " _vertex.size() = " << _vertex.size() << endl;
     for(unsigned int ivert = 0; ivert < _vertex.size(); ++ivert)
       {
 	//-----------------------------------
@@ -416,7 +416,7 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
 	
 	// We have a list of vertices, now we want to seed tracks for each vertex. 
 	// loop over vertices and call full_track_seeding for each one
-	if(Verbosity() > 10) cout << "Call full_track_seeding for ivert = " << ivert << endl;
+	if(Verbosity() > 1) cout << "Call full_track_seeding for ivert = " << ivert << " at Z = " << _vertex[ivert][2] << endl;
 	
 	code = full_track_seeding(ivert);
 	if (code != Fun4AllReturnCodes::EVENT_OK)
@@ -1150,7 +1150,7 @@ int PHHoughSeeding::translate_input()
     }
   //cout << "_clusters size " << _clusters.size() << endl;  
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 10)
     {
       cout
         << "-------------------------------------------------------------------"

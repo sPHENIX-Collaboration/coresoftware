@@ -538,7 +538,7 @@ int PHGenFitTrkProp::KalmanTrkProp()
 
   //_track_map->identify();
 
-  if (Verbosity() >= 5){
+  if (Verbosity() > 1){
     cout << " found " << _track_map->size() << " track seeds " << endl;
   }
 
@@ -705,7 +705,7 @@ int PHGenFitTrkProp::KalmanTrkProp()
       ++phtrk_iter;
     }
   
-  if(Verbosity() > 10)
+  if(Verbosity() > 1)
     {
       std::cout << "=========================" << std::endl;
       std::cout << "PHGenFitTrkProp::KalmanTrkProp: End: Event: " << _event << std::endl;

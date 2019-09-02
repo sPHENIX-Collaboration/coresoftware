@@ -247,7 +247,7 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
   _t_output_io = new PHTimer("_t_output_io");
   _t_output_io->stop();
   
-  if (Verbosity() > 0) {
+  if (Verbosity() > 1) {
     cout
       << "====================== Leaving PHInitZVertexing::Setup() ======================"
       << endl;
@@ -278,7 +278,7 @@ int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
 int PHInitZVertexing::Process(PHCompositeNode* topNode) 
 {
 
-	if (Verbosity() > 0) cout << "PHInitZVertexing::Process -- entered" << endl;
+	if (Verbosity() > 1) cout << "PHInitZVertexing::Process -- entered" << endl;
 
 	// start fresh
 	for(unsigned int i=0; i<_tracks.size(); ++i) _tracks[i].reset();
@@ -614,7 +614,7 @@ int PHInitZVertexing::initialize_geometry(PHCompositeNode *topNode) {
 
 		if (std::find(_seeding_layer.begin(), _seeding_layer.end(),
 			iter->second) != _seeding_layer.end()) {
-		  if(Verbosity() > 0) cout << " PHInitZVertexing: inserting _layer_ilayer_map entry number " <<ilayer << " for layer " << iter->second  << endl; 
+		  if(Verbosity() > 1) cout << " PHInitZVertexing: inserting _layer_ilayer_map entry number " <<ilayer << " for layer " << iter->second  << endl; 
 			_layer_ilayer_map.insert(make_pair(iter->second, ilayer));
 			++ilayer;
 		}
@@ -994,7 +994,7 @@ void PHInitZVertexing::initialize_houghbin(){
           }
         }
 
-        if(Verbosity() > 0) cout<<"bins_map.size " <<bins_map.size()<<endl;
+        if(Verbosity() > 5) cout<<"bins_map.size " <<bins_map.size()<<endl;
 }
 
 void PHInitZVertexing::vote_z_init(unsigned int zoomlevel){
@@ -1088,7 +1088,7 @@ void PHInitZVertexing::vote_z_init(unsigned int zoomlevel){
         hitpos3d[0]=-999; hitpos3d[1]= -999; hitpos3d[2]=-999;
         ++icluster;//test
         }
-        if(Verbosity() > 0) cout<<"total number of clusters "<<icluster<<endl;
+        if(Verbosity() > 1) cout<<"total number of clusters "<<icluster<<endl;
 
 }
 
@@ -1146,7 +1146,7 @@ void PHInitZVertexing::find_track_candidates_z_init(unsigned int zoomlevel){
 		}
 
 	}
-        if(Verbosity() > 0) cout<<"bins_map_sel.size at zoom "<<zoomlevel << " : (find_track_candidates_z_init) " <<bins_map_sel.size()<<endl;
+        if(Verbosity() > 1) cout<<"bins_map_sel.size at zoom "<<zoomlevel << " : (find_track_candidates_z_init) " <<bins_map_sel.size()<<endl;
 
 }
 
@@ -1277,7 +1277,7 @@ void PHInitZVertexing::vote_z(unsigned int zoomlevel){
 	    bins_map_prev.erase(bins_map_prev.begin(),bins_map_prev.end());
 	    bins_map_prev.clear();
 
-	    if(Verbosity() > 0) cout<<"bins_map_cur.size at zoom "<<zoomlevel << " (vote_z) : " <<bins_map_cur.size()<<endl;
+	    if(Verbosity() > 1) cout<<"bins_map_cur.size at zoom "<<zoomlevel << " (vote_z) : " <<bins_map_cur.size()<<endl;
 }
 
 
@@ -1316,7 +1316,7 @@ void PHInitZVertexing::find_track_candidates_z(unsigned int zoomlevel){
 	bins_map_cur.erase(bins_map_cur.begin(), bins_map_cur.end());
 	bins_map_cur.clear();
 
-        if(Verbosity() > 0) cout<<"bins_map_sel.size at zoom "<< zoomlevel<<" (find_track_candidates_z) : " <<bins_map_sel.size()<<endl;
+        if(Verbosity() > 1) cout<<"bins_map_sel.size at zoom "<< zoomlevel<<" (find_track_candidates_z) : " <<bins_map_sel.size()<<endl;
 }
 
 void PHInitZVertexing::vote_xy(unsigned int zoomlevel){
@@ -1599,7 +1599,7 @@ void PHInitZVertexing::vote_xy(unsigned int zoomlevel){
                 }//cluster
 
         }//binsmap_sel
-        if(Verbosity() > 0) cout<<"bins_map_cur.size at zoom "<<zoomlevel <<" (vote_xy) : " <<bins_map_cur.size()<<endl;
+        if(Verbosity() > 1) cout<<"bins_map_cur.size at zoom "<<zoomlevel <<" (vote_xy) : " <<bins_map_cur.size()<<endl;
 	bins_map_sel.erase(bins_map_sel.begin(), bins_map_sel.end());
 	bins_map_sel.clear();
 
@@ -1642,7 +1642,7 @@ void PHInitZVertexing::find_track_candidates_xy(unsigned int zoomlevel){
 
         }
 
-        if(Verbosity() > 0) cout<<"bins_map_prev.size at zoom "<<zoomlevel <<" (find_track_candidates_xy) " <<bins_map_prev.size()<<endl;
+        if(Verbosity() > 1) cout<<"bins_map_prev.size at zoom "<<zoomlevel <<" (find_track_candidates_xy) " <<bins_map_prev.size()<<endl;
 	bins_map_cur.erase(bins_map_cur.begin(), bins_map_cur.end());
 	bins_map_cur.clear();
 
@@ -1698,7 +1698,7 @@ void PHInitZVertexing::prune_z(unsigned int zoomlevel){
 
 	}
 
-        if(Verbosity() > 0) cout<<"bins_map_sel.size at zoom " <<zoomlevel<<" (prune_z) : " <<bins_map_sel.size()<<endl;	
+        if(Verbosity() > 1) cout<<"bins_map_sel.size at zoom " <<zoomlevel<<" (prune_z) : " <<bins_map_sel.size()<<endl;	
 }
 
 void PHInitZVertexing::prune_xy(unsigned int zoomlevel){
@@ -1753,7 +1753,7 @@ void PHInitZVertexing::prune_xy(unsigned int zoomlevel){
 
         }
 
-        if(Verbosity() > 0) cout<<"bins_map_prev.size at zoom " <<zoomlevel<<" (prune_xy) : " <<bins_map_prev.size()<<endl;
+        if(Verbosity() > 1) cout<<"bins_map_prev.size at zoom " <<zoomlevel<<" (prune_xy) : " <<bins_map_prev.size()<<endl;
 
 }
 
@@ -1861,7 +1861,7 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
 		unsigned int hitid =  hit.get_id();
 
 		if (hitid != hitid) continue;
-		if(Verbosity() > 0) cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
+		if(Verbosity() > 1) cout<<"layer "<< layer<<" hitid "<<hitid<<endl;
 		if (layer == layer0 ) layer_sorted_0.push_back(hitid);                
 		else if (layer == layer1) layer_sorted_1.push_back(hitid);
 		else if (layer == layer2) layer_sorted_2.push_back(hitid);
@@ -1886,7 +1886,7 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
 		++cluster_layer0;
 		clusters.clear();
 		fill_track = false;
-		if(Verbosity() > 0) cout<<"cluster_id for hit 0 "<< *it0<<endl;
+		if(Verbosity() > 1) cout<<"cluster_id for hit 0 "<< *it0<<endl;
  		auto search0 = hits_map.find(*it0);
 		if (search0 == hits_map.end()) continue;
  		SimpleHit3D hit0 = hits_map.find(*it0)->second;
@@ -1933,11 +1933,11 @@ int PHInitZVertexing::build_triplets_to_SimpleTrack3D(std::vector<SimpleTrack3D>
 		} // layer 1
 
 		if (fill_track)	{
-		  if(Verbosity() > 0) cout<<" fill_track "<<endl;
+		  if(Verbosity() > 1) cout<<" fill_track "<<endl;
 			unsigned int nclusters =0 ;
 			track.hits.assign(clusters.size(),SimpleHit3D());
 			for (std::set<unsigned int>::iterator it=clusters.begin(); it!=clusters.end(); ++it ){
-			  if(Verbosity() > 0) cout<<"cluster id  "<<*it<<endl;
+			  if(Verbosity() > 1) cout<<"cluster id  "<<*it<<endl;
 			SimpleHit3D hit = hits_map.find(*it)->second;
 			track.hits[nclusters] = hit;
 			track.hits[nclusters].set_id(*it);
