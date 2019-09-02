@@ -773,9 +773,11 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
   else if(rough_tracknum < 150)
     _min_zvtx_tracks = 3;
   else if(rough_tracknum < 300)
-    _min_zvtx_tracks = 4;
-  else
     _min_zvtx_tracks = 5;
+  else if(rough_tracknum < 500)
+    _min_zvtx_tracks = 7;
+  else
+    _min_zvtx_tracks = 10;
 
   if(Verbosity() > 0)   cout << " PHInitZVertexing will use _min_zvtx_tracks = " << _min_zvtx_tracks << " for this event, which has " << _nclus_mvtx << " MVTX clusters " << endl;
 
