@@ -113,9 +113,9 @@ private:
 #if !defined(__CINT__) || defined (__CLING__)
   std::array<float,3>                _pos;             //< mean position of the shower hits
   std::array<float,6>                _covar;           //< covariance of shower hits
-#else
-  float _pos[3];
-  float _covar[6];
+//#else
+//  float _pos[3];
+//  float _covar[6];
 #endif
   std::map<int, unsigned int> _nhits;       //< number of hits in different volumes
   std::map<int, float> _edep;               //< energy deposit in different volumes
