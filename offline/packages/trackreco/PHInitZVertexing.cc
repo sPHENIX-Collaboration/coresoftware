@@ -102,6 +102,7 @@ PHInitZVertexing::PHInitZVertexing(unsigned int nlayers,
       _mult_twobins(1.),
       _mult_threebins(1.),
       _min_zvtx_tracks(1),
+      _override_min_zvtx_tracks(1),
       bin(0),
       ik(0),
       ip(0),
@@ -168,6 +169,13 @@ PHInitZVertexing::
   if (_hough_space) delete _hough_space;
   if (_hough_funcs) delete _hough_funcs;
 //  delete ca;
+}
+
+void PHInitZVertexing::set_min_zvtx_tracks(unsigned int min_zvtx_tracks)
+{
+  _min_zvtx_tracks = min_zvtx_tracks;
+  _override_min_zvtx_tracks = true;
+  std::cout << " _min_zvtx_tracks set to " << _min_zvtx_tracks << " and _override_min_zvtx_tracks set to " << _override_min_zvtx_tracks << std::endl;
 }
 
 int PHInitZVertexing::Setup(PHCompositeNode* topNode) {
@@ -765,21 +773,27 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
     }
 
   // estimate the minimum number of tracks per vertex requirement from the number of clusters in the MVTX layers
-  int rough_tracknum = _nclus_mvtx / 3;
-  if(rough_tracknum < 50)
-    _min_zvtx_tracks = 1;
-  else if(rough_tracknum < 100)
-    _min_zvtx_tracks = 2;
-  else if(rough_tracknum < 150)
-    _min_zvtx_tracks = 3;
-  else if(rough_tracknum < 300)
-    _min_zvtx_tracks = 5;
-  else if(rough_tracknum < 500)
-    _min_zvtx_tracks = 7;
-  else
-    _min_zvtx_tracks = 10;
+  if(!_override_min_zvtx_tracks)
+    {
+      int rough_tracknum = _nclus_mvtx / 3;
+      if(rough_tracknum < 50)
+	_min_zvtx_tracks = 1;
+      else if(rough_tracknum < 100)
+	_min_zvtx_tracks = 2;
+      else if(rough_tracknum < 150)
+	_min_zvtx_tracks = 3;
+      else if(rough_tracknum < 300)
+	_min_zvtx_tracks = 5;
+      else if(rough_tracknum < 500)
+	_min_zvtx_tracks = 7;
+      else
+	_min_zvtx_tracks = 10;
 
-  if(Verbosity() > 0)   cout << " PHInitZVertexing will use _min_zvtx_tracks = " << _min_zvtx_tracks << " for this event, which has " << _nclus_mvtx << " MVTX clusters " << endl;
+      if(Verbosity() > 0)   cout << " PHInitZVertexing: _override_min_zvtx_tracks = " << _override_min_zvtx_tracks 
+				 << " will use _min_zvtx_tracks = " << _min_zvtx_tracks 
+				 << " for this event, which has " << _nclus_mvtx << " MVTX clusters " << endl;
+    }
+
 
   if (Verbosity() > 10) {
     cout << "-------------------------------------------------------------------"

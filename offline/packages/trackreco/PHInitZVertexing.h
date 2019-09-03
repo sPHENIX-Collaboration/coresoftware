@@ -21,7 +21,6 @@
 #include <string>                // for string
 #include <vector>
 
-
 // forward declarations
 class BbcVertexMap;
 
@@ -125,10 +124,7 @@ public:
 		_mult_threebins= mult;
 	}
 
-	void set_min_zvtx_tracks(unsigned int min_zvtx_tracks)
-	{
-		_min_zvtx_tracks = min_zvtx_tracks;
-	}
+	void set_min_zvtx_tracks(unsigned int min_zvtx_tracks);
 
 	const std::vector<int>& get_seeding_layer() const {
 		return _seeding_layer;
@@ -247,7 +243,7 @@ private:
 	float _mult_twobins;
 	float _mult_threebins;
 	unsigned int _min_zvtx_tracks;
-
+        bool _override_min_zvtx_tracks;
 
         unsigned int bin;
 
