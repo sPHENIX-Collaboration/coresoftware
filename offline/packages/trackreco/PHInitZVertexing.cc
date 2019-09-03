@@ -776,18 +776,14 @@ int PHInitZVertexing::translate_input(PHCompositeNode* topNode) {
   if(!_override_min_zvtx_tracks)
     {
       int rough_tracknum = _nclus_mvtx / 3;
-      if(rough_tracknum < 50)
+      if(rough_tracknum < 100)
 	_min_zvtx_tracks = 1;
-      else if(rough_tracknum < 100)
-	_min_zvtx_tracks = 2;
-      else if(rough_tracknum < 150)
-	_min_zvtx_tracks = 3;
       else if(rough_tracknum < 300)
-	_min_zvtx_tracks = 5;
-      else if(rough_tracknum < 500)
-	_min_zvtx_tracks = 7;
+	_min_zvtx_tracks = 2;
+      else if(rough_tracknum < 3000)
+	_min_zvtx_tracks = 3;
       else
-	_min_zvtx_tracks = 10;
+	_min_zvtx_tracks = 4;
 
       if(Verbosity() > 0)   cout << " PHInitZVertexing: _override_min_zvtx_tracks = " << _override_min_zvtx_tracks 
 				 << " will use _min_zvtx_tracks = " << _min_zvtx_tracks 
