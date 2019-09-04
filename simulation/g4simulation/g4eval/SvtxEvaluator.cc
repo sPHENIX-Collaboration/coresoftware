@@ -61,6 +61,7 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   , _ievent(0)
   , _svtxevalstack(nullptr)
   , _strict(false)
+  , _use_initial_vertex(false)
   , _errors(0)
   , _do_vertex_eval(true)
   , _do_gpoint_eval(true)
@@ -206,6 +207,7 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
     _svtxevalstack = new SvtxEvalStack(topNode);
     _svtxevalstack->set_strict(_strict);
     _svtxevalstack->set_verbosity(Verbosity() + 1);
+    _svtxevalstack->set_use_initial_vertex(_use_initial_vertex);
   }
   else
   {

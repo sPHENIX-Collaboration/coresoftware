@@ -208,6 +208,7 @@ class PHGenFitTrkFitter : public SubsysReco
     _fit_min_pT = cutMinPT;
   }
 
+
   bool is_over_write_svtxtrackmap() const
   {
     return _over_write_svtxtrackmap;
@@ -216,16 +217,6 @@ class PHGenFitTrkFitter : public SubsysReco
   void set_over_write_svtxtrackmap(bool overWriteSvtxtrackmap)
   {
     _over_write_svtxtrackmap = overWriteSvtxtrackmap;
-  }
-
-  bool is_over_write_svtxvertexmap() const
-  {
-    return _over_write_svtxvertexmap;
-  }
-
-  void set_over_write_svtxvertexmap(bool overWriteSvtxvertexmap)
-  {
-    _over_write_svtxvertexmap = overWriteSvtxvertexmap;
   }
 
   bool is_use_truth_vertex() const
@@ -315,7 +306,6 @@ class PHGenFitTrkFitter : public SubsysReco
   OutPutMode _output_mode;
 
   bool _over_write_svtxtrackmap;
-  bool _over_write_svtxvertexmap;
 
   bool _fit_primary_tracks;
 
