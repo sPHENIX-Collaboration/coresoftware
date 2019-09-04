@@ -10,6 +10,7 @@ class PHCompositeNode;
 class PHG4HcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4HcalSteppingAction : public PHG4SteppingAction
 {
@@ -20,8 +21,8 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
   PHG4HcalSteppingAction( PHG4HcalDetector* );
 
   //! destroctor
-  virtual ~PHG4HcalSteppingAction()
-  {}
+  virtual ~PHG4HcalSteppingAction();
+
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
@@ -43,10 +44,11 @@ class PHG4HcalSteppingAction : public PHG4SteppingAction
   PHG4HcalDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
+  PHG4HitContainer * m_HitContainer;
+  PHG4HitContainer * m_AbsorberHits;
   PHG4HitContainer *m_SaveHitContainer;
-  PHG4Hit *hit;
+  PHG4Hit *m_Hit;
+  PHG4Shower *m_SaveShower;
   float zmin;
   float zmax;
 

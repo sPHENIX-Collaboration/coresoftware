@@ -14,7 +14,6 @@ class PHCompositeNode;
 class PHG4Detector;
 class PHG4HcalDetector;
 class PHG4HcalSteppingAction;
-class PHG4EventAction;
 class PHG4SteppingAction;
 
 class PHG4HcalSubsystem: public PHG4Subsystem
@@ -47,7 +46,6 @@ class PHG4HcalSubsystem: public PHG4Subsystem
   //! accessors (reimplemented)
   virtual PHG4Detector* GetDetector( void ) const;
   virtual PHG4SteppingAction* GetSteppingAction( void ) const;
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
 
   void SetRadius(const G4double dbl) {radius = dbl;}
   void SetLength(const G4double dbl) {length = dbl;}
@@ -94,7 +92,6 @@ class PHG4HcalSubsystem: public PHG4Subsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4HcalSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
   G4double radius;
   G4double length;
   G4double xpos,ypos,zpos;

@@ -2,7 +2,6 @@
 
 #include "PHG4HcalDetector.h"
 #include "PHG4HcalSteppingAction.h"
-#include "PHG4EventActionClearZeroEdep.h"
 
 #include <g4main/PHG4Utils.h>
 #include <g4main/PHG4HitContainer.h>
@@ -31,7 +30,6 @@ using namespace std;
 PHG4HcalSubsystem::PHG4HcalSubsystem( const std::string &na, const int lyr):
   detector_( nullptr ),
   steppingAction_( nullptr ),
-  eventAction_(nullptr),
   radius(100),
   length(100),
   xpos(0),
@@ -106,7 +104,6 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
           dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
         }
       cylinder_hits->AddLayer(layer);
-      PHG4EventActionClearZeroEdep *evtac = new PHG4EventActionClearZeroEdep(topNode, nodename.str());
       if (absorberactive)
         {
           nodename.str("");
@@ -124,9 +121,7 @@ int PHG4HcalSubsystem::InitRun( PHCompositeNode* topNode )
               dstNode->addNode( new PHIODataNode<PHObject>( cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str().c_str(), "PHObject" ));
             }
           cylinder_hits->AddLayer(layer);
-          evtac->AddNode(nodename.str());
         }
-      eventAction_ = evtac;
       steppingAction_ = new PHG4HcalSteppingAction(detector_);
       steppingAction_->set_zmin(zpos - detlength / 2.);
       steppingAction_->set_zmax(zpos + detlength / 2.);
