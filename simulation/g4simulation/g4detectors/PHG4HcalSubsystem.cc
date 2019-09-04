@@ -39,7 +39,7 @@ PHG4HcalSubsystem::PHG4HcalSubsystem( const std::string &na, const int lyr):
   zpos(0),
   lengthViaRapidityCoverage(true),
   TrackerThickness(100),
-  material("G4_Galactic"),
+  material("G4_Fe"),
   _sciTilt(0),
   _sciWidth(0.7),
   _sciNum(256),
@@ -51,9 +51,9 @@ PHG4HcalSubsystem::PHG4HcalSubsystem( const std::string &na, const int lyr):
   superdetector("NONE"),
   light_scint_model_(true),
   light_balance_(false),
-  light_balance_inner_radius_(0.0),
+  light_balance_inner_radius_(0.0*cm),
   light_balance_inner_corr_(1.0),
-  light_balance_outer_radius_(10.0),
+  light_balance_outer_radius_(10.0*cm),
   light_balance_outer_corr_(1.0)  
 {
   // put the layer into the name so we get unique names

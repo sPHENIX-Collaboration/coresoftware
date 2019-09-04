@@ -102,6 +102,9 @@ void PHG4HcalDetector::Construct( G4LogicalVolume* logicWorld )
                                        length / 2.0, 0, twopi);
   double innerlength = PHG4Utils::GetLengthForRapidityCoverage(radius) * 2;
   double deltalen = (length - innerlength) / 2.; // length difference on one side
+  cout << "length: " << length << ", inner radius: " << radius 
+       << ", thickness: " << TrackerThickness << endl;
+
   double cone_size_multiplier = 1.01; // 1 % larger
   double cone_thickness = TrackerThickness * cone_size_multiplier;
   double inner_cone_radius = radius - ((cone_thickness - TrackerThickness) / 2.);
@@ -126,7 +129,7 @@ void PHG4HcalDetector::Construct( G4LogicalVolume* logicWorld )
                                        G4String(GetName().c_str()),
                                        0, 0, 0);
   G4VisAttributes* VisAtt = new G4VisAttributes();
-  PHG4Utils::SetColour(VisAtt, material);
+  VisAtt->SetColour(G4Colour::Grey());
   VisAtt->SetVisibility(true);
   VisAtt->SetForceSolid(true);
   cylinder_logic->SetVisAttributes(VisAtt);

@@ -39,15 +39,11 @@ PHG4HcalSteppingAction::PHG4HcalSteppingAction( PHG4HcalDetector* detector ):
   detector_( detector ),
   hits_(nullptr),
   absorberhits_(nullptr),
+  m_SaveHitContainer(nullptr),
   hit(nullptr),
   zmin(NAN),
   zmax(NAN),
-  light_scint_model_(true),
-  light_balance_(false),
-  light_balance_inner_radius_(0.0),
-  light_balance_inner_corr_(1.0),
-  light_balance_outer_radius_(10.0),
-  light_balance_outer_corr_(1.0)  
+  light_scint_model_(true)
 {}
 
 //____________________________________________________________________________..
@@ -174,54 +170,15 @@ bool PHG4HcalSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
           if (light_scint_model_)
             {
               light_yield = GetVisibleEnergyDeposition(aStep);
-
-              static bool once = true;
-              if (once && edep>0)
-                {
-                  once = false;
-
-                  cout << "PHG4HcalSteppingAction::UserSteppingAction::"
-		    //
-		       << detector_->GetName() << " - "
-		       << " use scintillating light model at each Geant4 steps. "
-		       <<"First step: "
-		       <<"Material = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetName()<<", "
-		       <<"Birk Constant = "<<aTrack->GetMaterialCutsCouple()->GetMaterial()->GetIonisation()->GetBirksConstant()<<","
-		       <<"edep = " <<edep<<", "
-		       <<"eion = " <<eion<<", "
-		       <<"light_yield = " <<light_yield
-		       << endl;
-                }
-
             }
           else
             {
               light_yield = eion;
             }
 
-          if (light_balance_)
+          if (ValidCorrection())
             {
-              float r = sqrt(
-			     pow(postPoint->GetPosition().x() / cm, 2)
-			     + pow(postPoint->GetPosition().y() / cm, 2));
-              const float cor = GetLightCorrection(r);
-              light_yield = light_yield * cor;
-
-              static bool once = true;
-              if (once && light_yield>0)
-                {
-                  once = false;
-
-                  cout << "PHG4HcalSteppingAction::UserSteppingAction::"
-		    //
-		       << detector_->GetName() << " - "
-		       << " use a simple light collection model with linear radial dependence. "
-		       <<"First step: "
-		       <<"r = " <<r<<", "
-		       <<"correction ratio = " <<cor<<", "
-		       <<"light_yield after cor. = " <<light_yield
-		       << endl;
-                }
+              light_yield = light_yield * GetLightCorrection(postPoint->GetPosition().x()/cm, (postPoint->GetPosition().y()/cm));
 
             }
         }
@@ -295,14 +252,4 @@ void PHG4HcalSteppingAction::SetInterfacePointers( PHCompositeNode* topNode )
 	  std::cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << std::endl;
 	}
     }
-}
-
-float PHG4HcalSteppingAction::GetLightCorrection(float r) {
-  float m = (light_balance_outer_corr_ - light_balance_inner_corr_)/(light_balance_outer_radius_ - light_balance_inner_radius_);
-  float b = light_balance_inner_corr_ - m*light_balance_inner_radius_;
-  float value = m*r+b;  
-  if (value > 1.0) return 1.0;
-  if (value < 0.0) return 0.0;
-
-  return value;
 }
