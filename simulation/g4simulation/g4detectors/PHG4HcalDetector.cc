@@ -102,9 +102,6 @@ void PHG4HcalDetector::Construct(G4LogicalVolume* logicWorld)
                                        length / 2.0, 0, twopi);
   double innerlength = PHG4Utils::GetLengthForRapidityCoverage(radius) * 2;
   double deltalen = (length - innerlength) / 2.;  // length difference on one side
-  cout << "length: " << length << ", inner radius: " << radius
-       << ", thickness: " << TrackerThickness << endl;
-
   double cone_size_multiplier = 1.01;  // 1 % larger
   double cone_thickness = TrackerThickness * cone_size_multiplier;
   double inner_cone_radius = radius - ((cone_thickness - TrackerThickness) / 2.);
