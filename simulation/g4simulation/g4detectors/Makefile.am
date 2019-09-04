@@ -78,6 +78,7 @@ pkginclude_HEADERS = \
   PHG4FullProjSpacalCellReco.h \
   PHG4HcalDefs.h \
   PHG4HcalCellReco.h \
+  PHG4HcalSubsystem.h \
   PHG4InnerHcalSubsystem.h \
   PHG4OuterHcalSubsystem.h \
   PHG4PSTOFSubsystem.h \

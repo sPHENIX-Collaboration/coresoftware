@@ -39,7 +39,7 @@ PHG4HcalSubsystem::PHG4HcalSubsystem( const std::string &na, const int lyr):
   zpos(0),
   lengthViaRapidityCoverage(true),
   TrackerThickness(100),
-  material("G4_GALACTIC"),
+  material("G4_Galactic"),
   _sciTilt(0),
   _sciWidth(0.7),
   _sciNum(256),
