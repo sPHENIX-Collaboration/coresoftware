@@ -14,46 +14,41 @@ class PHG4Shower;
 
 class PHG4HcalSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4HcalSteppingAction( PHG4HcalDetector* );
+  PHG4HcalSteppingAction(PHG4HcalDetector*);
 
   //! destroctor
   virtual ~PHG4HcalSteppingAction();
-
 
   //! stepping action
   virtual bool UserSteppingAction(const G4Step*, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode*);
 
-  void set_zmin(const float z) {zmin = z;}
-  void set_zmax(const float z) {zmax = z;}
+  void set_zmin(const float z) { zmin = z; }
+  void set_zmax(const float z) { zmax = z; }
 
   void SetLightScintModel(const bool b = true)
   {
     light_scint_model_ = b;
   }
-  
-  private:
 
+ private:
   //! pointer to the detector
   PHG4HcalDetector* detector_;
 
   //! pointer to hit container
-  PHG4HitContainer * m_HitContainer;
-  PHG4HitContainer * m_AbsorberHits;
-  PHG4HitContainer *m_SaveHitContainer;
-  PHG4Hit *m_Hit;
-  PHG4Shower *m_SaveShower;
+  PHG4HitContainer* m_HitContainer;
+  PHG4HitContainer* m_AbsorberHits;
+  PHG4HitContainer* m_SaveHitContainer;
+  PHG4Hit* m_Hit;
+  PHG4Shower* m_SaveShower;
   float zmin;
   float zmax;
 
-  bool  light_scint_model_;
+  bool light_scint_model_;
 };
 
-
-#endif // PHG4VHcalSteppingAction_h
+#endif  // PHG4VHcalSteppingAction_h
