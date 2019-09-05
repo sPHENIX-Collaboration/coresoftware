@@ -269,6 +269,7 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
   std::set<SvtxVertex*> all_vertexes;
 
   // loop over all vertexes on node
+
   for (SvtxVertexMap::Iter iter = _vertexmap->begin();
        iter != _vertexmap->end();
        ++iter)
@@ -410,14 +411,11 @@ void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
   if( _use_initial_vertex)
     {
       _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");  // always there, initial vertices
-      cout << PHWHERE << "Using SvtxVertexMap " << endl;
     }
   else
     {
       _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices
-      cout << PHWHERE << "Using SvtxVertexMapRefit " << endl;
     }
-  _vertexmap->identify();
   
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
