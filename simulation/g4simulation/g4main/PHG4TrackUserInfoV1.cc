@@ -159,4 +159,4 @@ void SetShower(G4Track* track, PHG4Shower* shower)
   }
 }
 
-};  // namespace PHG4TrackUserInfo
+}  // namespace PHG4TrackUserInfo
