@@ -108,7 +108,9 @@ int PHTruthVertexing::Process(PHCompositeNode* topNode)
       
       _vertex_map->insert(vertex);
     }
-  _vertex_map->identify();
+  
+  if (Verbosity() > 0)
+    _vertex_map->identify();
 
   /*
   PHG4VtxPoint* first_point = _g4truth_container->GetPrimaryVtx(
