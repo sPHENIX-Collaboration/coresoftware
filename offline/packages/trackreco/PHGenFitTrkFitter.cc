@@ -207,8 +207,7 @@ PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
   , _fit_min_pT(0.1)
   , _vertex_min_ndf(20)
   , _vertex_finder(NULL)
-    //, _vertexing_method("avf-smoothing:1")    // this works only for single collision events. 
-  ,  _vertexing_method("avr-minweight:0.5-primcut:9-seccut:9")  // for multi-vertex events.
+  ,  _vertexing_method("avr-smoothing:1-minweight:0.5-primcut:9-seccut:9")  // for multi-vertex events.
   , _truth_container(NULL)
   , _clustermap(NULL)
   , _trackmap(NULL)
@@ -1588,7 +1587,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
     const std::vector<genfit::Track*>& gf_tracks)
 {
 
-  if(Verbosity()> 1) cout << "Rave vertices size " << rave_vertices.size() << endl;
+  if(Verbosity() > 0) cout << "Rave vertices size " << rave_vertices.size() << endl;
   if(rave_vertices.size() > 0)
     {
       for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx)
@@ -1601,7 +1600,7 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
 	      return false;
 	    }
 	  
-	  if(Verbosity() > 1) cout << "   ivtx " << ivtx << " Z " << rave_vtx->getPos().Z() << endl;
+	  if(Verbosity() > 0) cout << "   ivtx " << ivtx << " has  Z = " << rave_vtx->getPos().Z() << endl;
 	  
 	  std::shared_ptr<SvtxVertex> svtx_vtx(new SvtxVertex_v1());
 	  
@@ -1626,14 +1625,14 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
 		    {
 		      svtx_vtx->insert_track(j);
 		      _rave_vertex_gf_track_map.insert(std::pair<unsigned int, unsigned int>(j, ivtx));
-		      if(Verbosity() > 1) cout << " rave vertex " << ivtx << " at Z " << svtx_vtx->get_position(2) << " rave track " << i  << " genfit track ID " << j << endl;
+		      if(Verbosity() > 0) cout << " rave vertex " << ivtx << " at Z " << svtx_vtx->get_position(2) << " rave track " << i  << " genfit track ID " << j << endl;
 		    }
 		}
 	    }
 	  
 	  if (_vertexmap_refit)
 	    {
-	      if(Verbosity() > 1) cout << "insert svtx_vtx into _vertexmap_refit " << endl;
+	      if(Verbosity() > 0) cout << "insert svtx_vtx into _vertexmap_refit " << endl;
 	      _vertexmap_refit->insert_clone(svtx_vtx.get());
 	      if(Verbosity() > 10) _vertexmap_refit->identify();
 	    }

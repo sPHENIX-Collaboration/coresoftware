@@ -1425,64 +1425,8 @@ int PHHoughSeeding::vertexing()
 
   if(_vertex.size() == 0)
     {
-      cout << endl << PHWHERE << "Do not have a valid vertex, skipping this event " << endl << endl;
-      return  Fun4AllReturnCodes::ABORTEVENT;
+      cout << endl << PHWHERE << "Do not have a valid vertex, skip track seeding for this event  " << endl << endl;
     }  
-
-
-
-  /*
-  // For now we can handle only one initial vertex - find the one with the largest associated number of tracks
-  int ntracksmax = -1;
-  unsigned int best_vert = 0;
-  for(unsigned int ivert=0;ivert<_vertex_map->size(); ++ivert)
-    {
-      SvtxVertex* svtx_vtx = _vertex_map->get(ivert);
-      int ntr = svtx_vtx->size_tracks();
-      if(Verbosity() > 0) cout << " vertex number " << ivert << " has " << ntr << " tracks " << endl;
-      if(ntr > ntracksmax) 
-	{
-	  ntracksmax = ntr;
-	  best_vert = ivert; 
-	  if(Verbosity() > 0) cout << "  update to ntracksmax = " << ntracksmax << " best_vert = " << best_vert << endl;
-	}
-    }
-
-  SvtxVertex* svtx_vtx = _vertex_map->get(best_vert);
-  if(!svtx_vtx)
-    {
-      cout << endl << PHWHERE << "Do not have a valid vertex, skipping this event " << endl << endl;
-      return  Fun4AllReturnCodes::ABORTEVENT;
-    }  
-
-  if(Verbosity() > 0) cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
-
-  if(svtx_vtx->get_z() < -30.0 || svtx_vtx->get_z() > 30.0)
-    {
-      cout << endl << PHWHERE << "Vertex z position is not valid: Z = " << svtx_vtx->get_z() << " skipping this event" << endl << endl;
-      return  Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _vertex.clear();
-  _vertex.assign(3, 0.0);
-
-  _vertex[0] = svtx_vtx->get_x();
-  _vertex[1] = svtx_vtx->get_y();
-  _vertex[2] = svtx_vtx->get_z();
-
-  _vertex_error[0] = sqrt(svtx_vtx->get_error(0, 0));
-  _vertex_error[1] = sqrt(svtx_vtx->get_error(1, 1));
-  _vertex_error[2] = sqrt(svtx_vtx->get_error(2, 2));
-
-  if (Verbosity() > 1)
-  {
-    cout << __LINE__ << " PHHoughSeeding::vertexing: {" << _vertex[0]
-         << ", " << _vertex[1] << ", " << _vertex[2] << "} +- {"
-         << _vertex_error[0] << ", " << _vertex_error[1] << ", "
-         << _vertex_error[2] << "}" << endl;
-  }
-  */
-
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
