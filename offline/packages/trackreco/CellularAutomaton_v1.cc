@@ -259,7 +259,7 @@ int CellularAutomaton_v1::process_tracks()
 
 	for (unsigned int i = 0; i < in_tracks.size(); ++i) 
 	{ // loop over input tracks
-	  if(verbose > 0) cout<<"track candidate "<<i<<endl;
+	  if(verbose > 10) cout<<"track candidate "<<i<<endl;
 
 		switch(triplet_mode){
 
@@ -310,11 +310,11 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
 		layer_sorted[l].clear();
 	}
 
-	if(verbose > 0) cout<<"track.hits.size "<<track.hits.size()<<endl;
+	if(verbose > 10) cout<<"track.hits.size "<<track.hits.size()<<endl;
   	for (unsigned int i = 0; i < track.hits.size(); ++i) {
     		SimpleHit3D hit = track.hits[i];
     		unsigned int layer = (unsigned int) hit.get_layer();
-		if(verbose > 0) cout<<"layer "<<layer<< endl;
+		if(verbose > 10) cout<<"layer "<<layer<< endl;
        	 	if (!forward) layer = nlayers-layer-1;
                 if (layer > (nlayers-1)) continue;
     		unsigned int min = (layer - allowed_missing_inner_hits);
@@ -323,13 +323,13 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
     		}
     		for (unsigned int l = min; l <= layer; ++l) {
       		layer_sorted[l].push_back(hit);
-		if(verbose > 0) cout<<"adding hit in layer "<<l<<endl;
+		if(verbose > 10) cout<<"adding hit in layer "<<l<<endl;
 		}
 	}
 
 //        for (unsigned int l = 0; l < nlayers; ++l) {
 	for (unsigned int l = 0; l< 3; ++l){
-	  if(verbose > 0) cout<<"layer_sorted["<<l<<"].size = "<< layer_sorted[l].size()<<endl;
+	  if(verbose > 10) cout<<"layer_sorted["<<l<<"].size = "<< layer_sorted[l].size()<<endl;
         	if (layer_sorted[l].size() == 0) {
         	return 0;
     		}
@@ -916,7 +916,7 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
       		}
 
       		float init_chi2 = temp_track.fit_track();
-		if(verbose > 0)  cout<<"chi2 from fit_track "<<init_chi2 <<" kappa "<< temp_track.kappa <<endl;
+		if(verbose > 10)  cout<<"chi2 from fit_track "<<init_chi2 <<" kappa "<< temp_track.kappa <<endl;
 
 #ifdef _DEBUG_
           	cout	<<" kappa " <<temp_track.kappa <<" phi "<<temp_track.phi<<" d "<<temp_track.d
@@ -1002,10 +1002,10 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
 
 	if (best_track.empty()) return 1;
 
-	if(verbose > 0) cout<<"best_track.size "<<best_track.size()<<endl;
+	if(verbose > 10) cout<<"best_track.size "<<best_track.size()<<endl;
   	ca_tracks.push_back(best_track.back());
   	ca_track_states.push_back(best_track_state.back());
-	if(verbose > 0) cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
+	if(verbose > 10) cout <<"ca track added, chi2 =  "<< (best_track_state.back().chi2)/(2. * ((float)(temp_track.hits.size())) - 5.) <<" z0 = "<<best_track_state.back().z0<<endl;
 
 
 	//    if ((remove_hits == true) && (state.chi2 < chi2_removal_cut) &&
