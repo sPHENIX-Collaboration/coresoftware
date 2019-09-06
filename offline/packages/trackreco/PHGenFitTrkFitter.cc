@@ -199,8 +199,7 @@ PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
   , _flags(NONE)
   , _output_mode(PHGenFitTrkFitter::MakeNewNode)
   , _over_write_svtxtrackmap(true)
-  , _over_write_svtxvertexmap(true)
-  , _fit_primary_tracks(false)
+   , _fit_primary_tracks(false)
   , _use_truth_vertex(false)
   , _fitter(NULL)
   , _track_fitting_alg_name("DafRef")
@@ -208,7 +207,7 @@ PHGenFitTrkFitter::PHGenFitTrkFitter(const string& name)
   , _fit_min_pT(0.1)
   , _vertex_min_ndf(20)
   , _vertex_finder(NULL)
-  , _vertexing_method("avf-smoothing:1")
+  ,  _vertexing_method("avr-smoothing:1-minweight:0.5-primcut:9-seccut:9")  // for multi-vertex events.
   , _truth_container(NULL)
   , _clustermap(NULL)
   , _trackmap(NULL)
@@ -334,7 +333,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
        ++iter)
   {
     SvtxTrack* svtx_track = iter->second;
-    if(Verbosity() > 50)
+    if(Verbosity() > 10)
       {
 	cout << "   process SVTXTrack " << iter->first << endl;
 	svtx_track->identify();
@@ -344,25 +343,25 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     if (!(svtx_track->get_pt() > _fit_min_pT))
       continue;
 
-    //! stands for Refit_PHGenFit_Track
+    // This is the final track (re)fit. It does not include the collision vertex. If fit_primary_track is set, a refit including the vertex is done below.
+    //! rf_phgf_track stands for Refit_PHGenFit_Track
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = ReFitTrack(topNode, svtx_track);
-
     if (rf_phgf_track)
       {
-	svtxtrack_genfittrack_map[svtx_track->get_id()] =
-          rf_phgf_tracks.size();
+	svtxtrack_genfittrack_map[svtx_track->get_id()] =  rf_phgf_tracks.size();
 	rf_phgf_tracks.push_back(rf_phgf_track);
 	if (rf_phgf_track->get_ndf() > _vertex_min_ndf)
 	  rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
+	if(Verbosity() > 10) cout << "Done refitting input track" << svtx_track->get_id() << " or rf_phgf_track " <<   rf_phgf_tracks.size() << endl;     
       }
-     
+
   }
   
   /*
-	 * add tracks to event display
-	 * needs to make copied for smart ptrs will be destroied even
-	 * there are still references in TGeo::EventView
-	 */
+   * add tracks to event display
+   * needs to make copied for smart ptrs will be destroied even
+   * there are still references in TGeo::EventView
+   */
   if (_do_evt_display)
   {
     vector<genfit::Track*> copy;
@@ -373,12 +372,12 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     _fitter->getEventDisplay()->addEvent(copy);
   }
 
-  //! find vertex using tracks
+  //! find vertices using final tracks
   std::vector<genfit::GFRaveVertex*> rave_vertices;
   rave_vertices.clear();
   if (rf_gf_tracks.size() >= 2)
   {
-    //_vertex_finder->findVertices(&rave_vertices,rf_gf_tracks,rf_gf_states);
+    if(Verbosity() > 10) cout << "Call Rave vertex finder" << endl;
     try
     {
       _vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
@@ -390,89 +389,76 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     }
   }
 
+  if(rave_vertices.size() == 0)
+    {
+      cout << PHWHERE << " Rave found no vertices - SvtxVertexMapRefit will be empty" << endl;
+    }
+
+  // Creates new SvtxVertex objects and copies in the rave vertex info and associated rave tracks. Then adds the vertices to _svtxmap
+  // also makes a map of (trackid/vertex), _rave_vertex_gf_track_map for later use
   FillSvtxVertexMap(rave_vertices, rf_gf_tracks);
 
+  // Finds the refitted rf_phgf_track corresponding to each SvtxTrackMap entry
+  // Converts it to an SvtxTrack in MakeSvtxTrack
+  // MakeSvtxTrack takes a vertex that it gets from the map made in FillSvtxVertex
+  // If the refit was succesful, the track on the node tree is replaced with the new one
+  // If not, the track is erased from the node tree
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();)
   {
     std::shared_ptr<PHGenFit::Track> rf_phgf_track = NULL;
 
+    // find the genfit track that corresponds to this one on the node tree
+    unsigned int itrack =0;
     if (svtxtrack_genfittrack_map.find(iter->second->get_id()) != svtxtrack_genfittrack_map.end())
     {
-      unsigned int itrack =
-          svtxtrack_genfittrack_map[iter->second->get_id()];
+      itrack =
+	svtxtrack_genfittrack_map[iter->second->get_id()];
       rf_phgf_track = rf_phgf_tracks[itrack];
     }
 
     if (rf_phgf_track)
     {
-      //FIXME figure out which vertex to use.
       SvtxVertex* vertex = NULL;
-      if (_over_write_svtxvertexmap)
-      {
-        if (_vertexmap->size() > 0)
-          vertex = _vertexmap->get(0);
-	//cout << PHWHERE << "        will use vertex " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
-      }
-      else
-      {
-        if (_vertexmap_refit->size() > 0)
-          vertex = _vertexmap_refit->get(0);
-      }
 
-      //BEGIN DEBUG
-      //			vertex = NULL;
-      //
-      //			PHG4VtxPoint *truth_vtx = _truth_container->GetVtx(
-      //					_truth_container->GetPrimaryVertexIndex());
-      //			if(!truth_vtx) {
-      //				LogDebug("!truth_vtx");
-      //				return Fun4AllReturnCodes::ABORTEVENT;
-      //			}
-      //
-      //			LogDebug("");
-      //			truth_vtx->identify();
-      //
-      //			vertex = new SvtxVertex_v1();
-      //			vertex->set_x(truth_vtx->get_x());
-      //			vertex->set_y(truth_vtx->get_y());
-      //			vertex->set_z(truth_vtx->get_z());
-      //
-      //			for(int i=0;i<3;i++)
-      //				for(int j=0;j<3;j++)
-      //					vertex->set_error(i,j,0);
-      //END DEBUG
+      unsigned int ivert = 0;
+      ivert = _rave_vertex_gf_track_map[itrack];
 
-      //			SvtxTrack* rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
-      //					vertex);
-
+      if (_vertexmap_refit->size() > 0)
+	{
+	  vertex = _vertexmap_refit->get(ivert);
+	  
+	  if(Verbosity() > 20) cout << PHWHERE << "     gf track " << itrack << " will add to track: _vertexmap_refit vertex " << ivert 
+				    << " with position x,y,z = " << vertex->get_x() << "  " << vertex->get_y() << "  " << vertex->get_z() << endl;
+	}
       std::shared_ptr<SvtxTrack> rf_track = MakeSvtxTrack(iter->second, rf_phgf_track,
-                                                          vertex);
+							  vertex);
+      
 #ifdef _DEBUG_
       cout << __LINE__ << endl;
 #endif
       if (!rf_track)
-      {
-        //if (_output_mode == OverwriteOriginalNode)
+	{
+	  //if (_output_mode == OverwriteOriginalNode)
 #ifdef _DEBUG_
-        LogDebug("!rf_track, continue.");
+	  LogDebug("!rf_track, continue.");
 #endif
-        if (_over_write_svtxtrackmap)
-        {
-          auto key = iter->first;
-          ++iter;
-          _trackmap->erase(key);
-          continue;
-        }
-      }
-
+	  if (_over_write_svtxtrackmap)
+	    {
+	      auto key = iter->first;
+	      ++iter;
+	      _trackmap->erase(key);
+	      continue;
+	    }
+	}
+      
       //			delete vertex;//DEBUG
-
+      
       //			rf_phgf_tracks.push_back(rf_phgf_track);
       //			rf_gf_tracks.push_back(rf_phgf_track->getGenFitTrack());
-
+      
       if (!(_over_write_svtxtrackmap) || _output_mode == DebugMode)
         if (_trackmap_refit)
-        {
+	  {
           _trackmap_refit->insert(rf_track.get());
           //					delete rf_track;
         }
@@ -482,9 +468,6 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
         *(dynamic_cast<SvtxTrack_v1*>(iter->second)) =
             *(dynamic_cast<SvtxTrack_v1*>(rf_track.get()));
 //				delete rf_track;
-#ifdef _DEBUG_
-        cout << __LINE__ << endl;
-#endif
       }
     }
     else
@@ -515,24 +498,19 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
   cout << __LINE__ << endl;
 #endif
   /*!
-	 * Fit track as primary track, This part need to be called after FillSvtxVertexMap
-	 */
+   * Optionally fit track as primary track by including collision vertex, 
+   This part need to be called after FillSvtxVertexMap
+   */
   if (_fit_primary_tracks && rave_vertices.size() > 0)
   {
     _primary_trackmap->empty();
 
     //FIXME figure out which vertex to use.
     SvtxVertex* vertex = NULL;
-    if (_over_write_svtxvertexmap)
-    {
-      if (_vertexmap->size() > 0)
-        vertex = _vertexmap->get(0);
-    }
-    else
-    {
-      if (_vertexmap_refit->size() > 0)
-        vertex = _vertexmap_refit->get(0);
-    }
+    if (_vertexmap_refit->size() > 0)
+      vertex = _vertexmap_refit->get(0);
+
+    // fix this, have to get vertex ID from track
 
     if (vertex)
     {
@@ -805,24 +783,13 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
       cout << "Svtx/PrimaryTrackMap node added" << endl;
   }
 
-  if (!(_over_write_svtxvertexmap))
-  {
-    _vertexmap_refit = new SvtxVertexMap_v1;
-    PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-        _vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
-    tb_node->addNode(vertexes_node);
-    if (Verbosity() > 0)
-      cout << "Svtx/SvtxVertexMapRefit node added" << endl;
-  }
-  else if (!findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap"))
-  {
-    _vertexmap = new SvtxVertexMap_v1;
-    PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
-        _vertexmap, "SvtxVertexMap", "PHObject");
-    tb_node->addNode(vertexes_node);
-    if (Verbosity() > 0)
-      cout << "Svtx/SvtxVertexMap node added" << endl;
-  }
+  // always write final vertex results to SvtxVertexMapRefit
+  _vertexmap_refit = new SvtxVertexMap_v1;
+  PHIODataNode<PHObject>* vertexes_node = new PHIODataNode<PHObject>(
+								     _vertexmap_refit, "SvtxVertexMapRefit", "PHObject");
+  tb_node->addNode(vertexes_node);
+  if (Verbosity() > 0)
+    cout << "Svtx/SvtxVertexMapRefit node added" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -899,17 +866,14 @@ int PHGenFitTrkFitter::GetNodes(PHCompositeNode* topNode)
   }
 
   // Output Svtx Vertices
-  if (!(_over_write_svtxvertexmap))
-  {
-    _vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
-                                                         "SvtxVertexMapRefit");
-    if (!_vertexmap_refit && _event < 2)
+  _vertexmap_refit = findNode::getClass<SvtxVertexMap>(topNode,
+						       "SvtxVertexMapRefit");
+  if (!_vertexmap_refit && _event < 2)
     {
       cout << PHWHERE << " SvtxVertexMapRefit node not found on node tree"
            << endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1046,7 +1010,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 #endif
 
   // sort clusters with radius before fitting
-  if(Verbosity() > 20)   intrack->identify();
+  if(Verbosity() > 10)   intrack->identify();
   std::map<float, TrkrDefs::cluskey> m_r_cluster_id;
   for (auto iter = intrack->begin_cluster_keys();
        iter != intrack->end_cluster_keys(); ++iter)
@@ -1058,7 +1022,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     float r = sqrt(x * x + y * y);
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
-    if(Verbosity() > 20) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
+    if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
   }
 
   for (auto iter = m_r_cluster_id.begin();
@@ -1135,7 +1099,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     PHGenFit::Measurement* meas = new PHGenFit::PlanarMeasurement(pos, n,
 								  cluster->getRPhiError(), cluster->getZError());
 
-    if(Verbosity() > 50)
+    if(Verbosity() > 10)
       {
 	cout << "Add meas layer " << layer << " cluskey " << cluster_key 
 	     << endl
@@ -1184,7 +1148,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     return NULL;
   }
 
-  if(Verbosity() > 50)
+  if(Verbosity() > 10)
     cout << " track->getChisq() " << track->get_chi2() << " get_ndf " << track->get_ndf() 
 	 << " mom.X " << track->get_mom().X() 
 	 << " mom.Y " << track->get_mom().Y() 
@@ -1407,7 +1371,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     // vn is momentum vector, pos_in is position vector (of what?)
     pos_cov_XYZ_to_RZ(vn, pos_in, cov_in, pos_out, cov_out);
 
-    if(Verbosity() > 50)
+    if(Verbosity() > 30)
       {
 	cout << " vn.X " << vn.X() << " vn.Y " << vn.Y() << " vn.Z " << vn.Z() << endl;
 	cout << " pos_in.X " << pos_in[0][0] << " pos_in.Y " << pos_in[1][0] << " pos_in.Z " << pos_in[2][0] << endl;
@@ -1622,76 +1586,62 @@ bool PHGenFitTrkFitter::FillSvtxVertexMap(
     const std::vector<genfit::GFRaveVertex*>& rave_vertices,
     const std::vector<genfit::Track*>& gf_tracks)
 {
-  if (_over_write_svtxvertexmap)
-  {
-    _vertexmap->clear();
-  }
 
-  for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx)
-  {
-    genfit::GFRaveVertex* rave_vtx = rave_vertices[ivtx];
-
-    if (!rave_vtx)
+  if(Verbosity() > 0) cout << "Rave vertices size " << rave_vertices.size() << endl;
+  if(rave_vertices.size() > 0)
     {
-      cerr << PHWHERE << endl;
-      return false;
+      for (unsigned int ivtx = 0; ivtx < rave_vertices.size(); ++ivtx)
+	{
+	  genfit::GFRaveVertex* rave_vtx = rave_vertices[ivtx];
+	  
+	  if (!rave_vtx)
+	    {
+	      cerr << PHWHERE << endl;
+	      return false;
+	    }
+	  
+	  if(Verbosity() > 0) cout << "   ivtx " << ivtx << " has  Z = " << rave_vtx->getPos().Z() << endl;
+	  
+	  std::shared_ptr<SvtxVertex> svtx_vtx(new SvtxVertex_v1());
+	  
+	  svtx_vtx->set_chisq(rave_vtx->getChi2());
+	  svtx_vtx->set_ndof(rave_vtx->getNdf());
+	  svtx_vtx->set_position(0, rave_vtx->getPos().X());
+	  svtx_vtx->set_position(1, rave_vtx->getPos().Y());
+	  svtx_vtx->set_position(2, rave_vtx->getPos().Z());
+	  
+	  for (int i = 0; i < 3; i++)
+	    for (int j = 0; j < 3; j++)
+	      svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
+	  
+	  for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
+	    {
+	      //TODO Assume id's are sync'ed between _trackmap_refit and gf_tracks, need to change?
+	      const genfit::Track* rave_track =
+		rave_vtx->getParameters(i)->getTrack();
+	      for (unsigned int j = 0; j < gf_tracks.size(); j++)
+		{
+		  if (rave_track == gf_tracks[j])
+		    {
+		      svtx_vtx->insert_track(j);
+		      _rave_vertex_gf_track_map.insert(std::pair<unsigned int, unsigned int>(j, ivtx));
+		      if(Verbosity() > 0) cout << " rave vertex " << ivtx << " at Z " << svtx_vtx->get_position(2) << " rave track " << i  << " genfit track ID " << j << endl;
+		    }
+		}
+	    }
+	  
+	  if (_vertexmap_refit)
+	    {
+	      if(Verbosity() > 0) cout << "insert svtx_vtx into _vertexmap_refit " << endl;
+	      _vertexmap_refit->insert_clone(svtx_vtx.get());
+	      if(Verbosity() > 10) _vertexmap_refit->identify();
+	    }
+	  else
+	    {
+	      LogError("!_vertexmap_refit");
+	    }
+	}  //loop over RAVE vertices
     }
-
-    std::shared_ptr<SvtxVertex> svtx_vtx(new SvtxVertex_v1());
-
-    svtx_vtx->set_chisq(rave_vtx->getChi2());
-    svtx_vtx->set_ndof(rave_vtx->getNdf());
-    svtx_vtx->set_position(0, rave_vtx->getPos().X());
-    svtx_vtx->set_position(1, rave_vtx->getPos().Y());
-    svtx_vtx->set_position(2, rave_vtx->getPos().Z());
-
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 3; j++)
-        svtx_vtx->set_error(i, j, rave_vtx->getCov()[i][j]);
-
-    for (unsigned int i = 0; i < rave_vtx->getNTracks(); i++)
-    {
-      //TODO Assume id's are sync'ed between _trackmap_refit and gf_tracks, need to change?
-      const genfit::Track* rave_track =
-          rave_vtx->getParameters(i)->getTrack();
-      for (unsigned int j = 0; j < gf_tracks.size(); j++)
-      {
-        if (rave_track == gf_tracks[j])
-          svtx_vtx->insert_track(j);
-      }
-    }
-
-    if (_over_write_svtxvertexmap)
-    {
-      if (_vertexmap)
-      {
-        _vertexmap->insert_clone(svtx_vtx.get());
-      }
-      else
-      {
-        LogError("!_vertexmap");
-      }
-    }
-    else
-    {
-      if (_vertexmap_refit)
-      {
-        _vertexmap_refit->insert_clone(svtx_vtx.get());
-      }
-      else
-      {
-        LogError("!_vertexmap_refit");
-      }
-    }
-
-    //		if (Verbosity() >= 2) {
-    //			cout << PHWHERE << endl;
-    //			svtx_vtx->Print();
-    //			_vertexmap_refit->Print();
-    //		}
-
-    //delete svtx_vtx;
-  }  //loop over RAVE vertices
 
   return true;
 }

@@ -188,7 +188,7 @@ PHHoughSeeding::PHHoughSeeding(
   this->set_seeding_layer(seeding_layers, 7);
 
   _vertex_error.clear();
-  _vertex_error.assign(3, 0.0100);
+  //_vertex_error.assign(3, 0.0100);
 
   if (_analyzing_mode)
   {
@@ -380,9 +380,11 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
   _all_track_covars.clear();
 
   _vertex.clear();
-  _vertex.assign(3, 0.0);
+  _vertex_error.clear();
+  _vertex_tracks.clear();
   
   /*iteration from Christof*/ {
+    // currently only one pass is made
     _tracks.clear();
     _track_errors.clear();
     _track_covars.clear();
@@ -405,18 +407,27 @@ int PHHoughSeeding::Process(PHCompositeNode *topNode)
       // here expect vertex to be better than +/- 500 um
     }
 
-    //-----------------------------------
-    // Seeding - Alan's Hough Tracking with selected layers
-    //-----------------------------------
-    code = full_track_seeding();
-    if (code != Fun4AllReturnCodes::EVENT_OK)
-      return code;
-
-    if (Verbosity() >= 1) _t_seeding->stop();
-
-    _t_seed_init1->stop();
-
-    if (Verbosity() > 1) print_timers();
+    if(Verbosity() > 1) cout << PHWHERE << " _vertex.size() = " << _vertex.size() << endl;
+    for(unsigned int ivert = 0; ivert < _vertex.size(); ++ivert)
+      {
+	//-----------------------------------
+	// Seeding - Alan's Hough Tracking with selected layers
+	//-----------------------------------
+	
+	// We have a list of vertices, now we want to seed tracks for each vertex. 
+	// loop over vertices and call full_track_seeding for each one
+	if(Verbosity() > 1) cout << "Call full_track_seeding for ivert = " << ivert << " at Z = " << _vertex[ivert][2] << endl;
+	
+	code = full_track_seeding(ivert);
+	if (code != Fun4AllReturnCodes::EVENT_OK)
+	  return code;
+	
+	if (Verbosity() >= 1) _t_seeding->stop();
+	
+	_t_seed_init1->stop();
+	
+	if (Verbosity() > 1) print_timers();
+      }
 
   } /*end of iteration*/
 
@@ -1139,7 +1150,7 @@ int PHHoughSeeding::translate_input()
     }
   //cout << "_clusters size " << _clusters.size() << endl;  
 
-  if (Verbosity() > 1)
+  if (Verbosity() > 10)
     {
       cout
         << "-------------------------------------------------------------------"
@@ -1184,19 +1195,19 @@ int PHHoughSeeding::fast_vertex_from_bbc()
 
     if (vertex)
     {
-      _vertex[0] = 0.0;
-      _vertex[1] = 0.0;
-      _vertex[2] = vertex->get_z();
+      _vertex[0][0] = 0.0;
+      _vertex[0][1] = 0.0;
+      _vertex[0][2] = vertex->get_z();
 
       if (Verbosity() > 1)
-        cout << " initial bbc vertex guess: " << _vertex[0] << " "
-             << _vertex[1] << " " << _vertex[2] << endl;
+        cout << " initial bbc vertex guess: " << _vertex[0][0] << " "
+             << _vertex[0][1] << " " << _vertex[0][2] << endl;
     }
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+/*
 int PHHoughSeeding::fast_vertex_guessing()
 {
   // fast vertex guessing uses two tracker objects
@@ -1241,7 +1252,10 @@ int PHHoughSeeding::fast_vertex_guessing()
   newtracks.clear();
 
   _vertex.clear();
-  _vertex.assign(3, 0.0);
+  std::vector<float> vert;
+  vert.assign(3, 0.0);
+  _vertex.pushback(vert);
+
 
   if (Verbosity() > 1)
     cout << " seed track finding count: " << _tracks.size() << endl;
@@ -1257,18 +1271,18 @@ int PHHoughSeeding::fast_vertex_guessing()
       zsum += _tracks[i].z0;
     }
 
-    _vertex[2] = zsum / _tracks.size();
+    _vertex[0][2] = zsum / _tracks.size();
 
     if (Verbosity() > 1)
     {
-      cout << " seed track vertex pre-fit: " << _vertex[0] << " "
-           << _vertex[1] << " " << _vertex[2] << endl;
+      cout << " seed track vertex pre-fit: " << _vertex[0][0] << " "
+           << _vertex[0][1] << " " << _vertex[0][2] << endl;
     }
 
     // start with the average position and converge from there
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 3.00, true);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.10, true);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.02, true);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[0], 3.00, true);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[0], 0.10, true);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[0], 0.02, true);
   }
 
   // we don't need the tracks anymore
@@ -1278,13 +1292,15 @@ int PHHoughSeeding::fast_vertex_guessing()
 
   if (Verbosity() > 1)
   {
-    cout << " seed track vertex post-fit: " << _vertex[0] << " "
-         << _vertex[1] << " " << _vertex[2] << endl;
+    cout << " seed track vertex post-fit: " << _vertex[0][0] << " "
+         << _vertex[0][1] << " " << _vertex[0][2] << endl;
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+*/
 
+/*
 int PHHoughSeeding::initial_vertex_finding()
 {
   // shift to the guess vertex position
@@ -1372,70 +1388,68 @@ int PHHoughSeeding::initial_vertex_finding()
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+*/
 
 int PHHoughSeeding::vertexing()
 {
-  // For now we can handle only one initial vertex - find the one with the largest associated number of tracks
-  int ntracksmax = -1;
-  unsigned int best_vert = 0;
+  _vertex.clear();
+  _vertex_error.clear();
+  _vertex_tracks.clear();
+
+  // make a vector of vectors containing all of the vertex locations from the node tree
   for(unsigned int ivert=0;ivert<_vertex_map->size(); ++ivert)
     {
       SvtxVertex* svtx_vtx = _vertex_map->get(ivert);
-      int ntr = svtx_vtx->size_tracks();
-      if(Verbosity() > 0) cout << " vertex number " << ivert << " has " << ntr << " tracks " << endl;
-      if(ntr > ntracksmax) 
-	{
-	  ntracksmax = ntr;
-	  best_vert = ivert; 
-	  if(Verbosity() > 0) cout << "  update to ntracksmax = " << ntracksmax << " best_vert = " << best_vert << endl;
-	}
+
+      if(svtx_vtx->get_z() < -30.0 || svtx_vtx->get_z() > 30.0)
+	continue;
+
+      std::vector<float> this_vertex_pos;
+      this_vertex_pos.assign(3,0.0);
+      this_vertex_pos[0] = svtx_vtx->get_x();
+      this_vertex_pos[1] = svtx_vtx->get_y();
+      this_vertex_pos[2] = svtx_vtx->get_z();
+
+      std::vector<float> this_vertex_error;
+      this_vertex_error.assign(3,0.0);
+      this_vertex_error[0] = sqrt(svtx_vtx->get_error(0,0));
+      this_vertex_error[1] = sqrt(svtx_vtx->get_error(1,1));
+      this_vertex_error[2] = sqrt(svtx_vtx->get_error(2,2));
+
+      _vertex.push_back(this_vertex_pos);
+      _vertex_error.push_back(this_vertex_error);
+      _vertex_tracks.push_back( svtx_vtx->size_tracks());
     }
-  SvtxVertex* svtx_vtx = _vertex_map->get(best_vert);
-  if(!svtx_vtx)
+
+  if(Verbosity() > 10) cout << " vertex list has " << _vertex.size() << " Svtxmap has " << _vertex_map->size() << endl;
+
+  if(_vertex.size() == 0)
     {
-      cout << endl << PHWHERE << "Do not have a valid vertex, skipping this event " << endl << endl;
-      return  Fun4AllReturnCodes::ABORTEVENT;
+      cout << endl << PHWHERE << "Do not have a valid vertex, skip track seeding for this event  " << endl << endl;
     }  
-
-  if(Verbosity() > 0) cout << PHWHERE << " Using vertex number " << best_vert << " with z = " << svtx_vtx->get_z() << endl;
-
-  if(svtx_vtx->get_z() < -30.0 || svtx_vtx->get_z() > 30.0)
-    {
-      cout << endl << PHWHERE << "Vertex z position is not valid: Z = " << svtx_vtx->get_z() << " skipping this event" << endl << endl;
-      return  Fun4AllReturnCodes::ABORTEVENT;
-    }
-
-  _vertex.clear();
-  _vertex.assign(3, 0.0);
-
-  _vertex[0] = svtx_vtx->get_x();
-  _vertex[1] = svtx_vtx->get_y();
-  _vertex[2] = svtx_vtx->get_z();
-
-  _vertex_error[0] = sqrt(svtx_vtx->get_error(0, 0));
-  _vertex_error[1] = sqrt(svtx_vtx->get_error(1, 1));
-  _vertex_error[2] = sqrt(svtx_vtx->get_error(2, 2));
-
-  if (Verbosity() > 1)
-  {
-    cout << __LINE__ << " PHHoughSeeding::vertexing: {" << _vertex[0]
-         << ", " << _vertex[1] << ", " << _vertex[2] << "} +- {"
-         << _vertex_error[0] << ", " << _vertex_error[1] << ", "
-         << _vertex_error[2] << "}" << endl;
-  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHHoughSeeding::full_track_seeding()
+int PHHoughSeeding::full_track_seeding(int ivert)
 {
-  float shift_dx = -_vertex[0];
-  float shift_dy = -_vertex[1];
-  float shift_dz = -_vertex[2];
-  // shift to initial vertex position
-  shift_coordinate_system(shift_dx, shift_dy, shift_dz);
+  if(Verbosity() > 10) cout << "Entering full_track_seeding with ivert = " << ivert << endl;
 
-  // reset track storage and tracker
+  float shift_dx = -_vertex[ivert][0];
+  float shift_dy = -_vertex[ivert][1];
+  float shift_dz = -_vertex[ivert][2];
+  // shift to initial vertex position
+  //cout << "shifting coord system to vertex " << ivert << " dx " << shift_dx << " dy " << shift_dy << " dz " << shift_dz << endl;
+  shift_coordinate_system(shift_dx, shift_dy, shift_dz, ivert);
+
+  // _tracks is a vector of SimpleTrack3D objects
+  // it may already contain entries from previous vertices
+  // We do not want to overwrite those, so save them for later
+  std::vector<SimpleTrack3D> previous_tracks = _tracks;
+  std::vector<double> previous_track_errors = _track_errors;
+  std::vector<Eigen::Matrix<float, 5, 5> > previous_track_covars = _track_covars;
+
+  // reset track storage and tracker to use it for this vertex
   _tracks.clear();
   _track_errors.clear();
   _track_covars.clear();
@@ -1456,6 +1470,7 @@ int PHHoughSeeding::full_track_seeding()
     cout << "SEEDSTUDY nafter clean: " << _tracks.size() << endl;
   for (unsigned int tt = 0; tt < _tracks.size(); ++tt)
   {
+    _tracks[tt].set_vertex_id(ivert);
     _track_covars.push_back((_tracker->getKalmanStates())[tt].C);
     _track_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
   }
@@ -1475,33 +1490,33 @@ int PHHoughSeeding::full_track_seeding()
            << endl;
     }
 
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.300, false);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.100, false);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.020, false);
-    _vertexFinder.findVertex(_tracks, _track_covars, _vertex, 0.005, false);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[ivert], 0.300, false);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[ivert], 0.100, false);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[ivert], 0.020, false);
+    _vertexFinder.findVertex(_tracks, _track_covars, _vertex[ivert], 0.005, false);
 
     if (Verbosity() > 1)
     {
-      cout << " final vertex post-fit: " << _vertex[0] - shift_dx << " "
-           << _vertex[1] - shift_dy << " " << _vertex[2] - shift_dz
+      cout << " final vertex post-fit: " << _vertex[ivert][0] - shift_dx << " "
+           << _vertex[ivert][1] - shift_dy << " " << _vertex[ivert][2] - shift_dz
            << endl;
     }
   }
 #endif
   // shift back to global coordinates
-  shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
+  shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz, ivert);
 
 #ifdef _USE_ALAN_TRACK_REFITTING_
   if (Verbosity() >= 1) _t_seeds_cleanup->restart();
   // we still need to update the track fields for DCA and PCA
   // we can do that from the final vertex position
 
-  shift_dx = -_vertex[0];
-  shift_dy = -_vertex[1];
-  shift_dz = -_vertex[2];
+  shift_dx = -_vertex[ivert][0];
+  shift_dy = -_vertex[ivert][1];
+  shift_dz = -_vertex[ivert][2];
 
   // shift to precision final vertex
-  shift_coordinate_system(shift_dx, shift_dy, shift_dz);
+  shift_coordinate_system(shift_dx, shift_dy, shift_dz, ivert);
 
   // recompute track fits to fill dca and pca + error fields
   std::vector<SimpleTrack3D> refit_tracks;
@@ -1522,6 +1537,7 @@ int PHHoughSeeding::full_track_seeding()
 
   for (unsigned int tt = 0; tt < refit_tracks.size(); ++tt)
   {
+    refit_tracks[tt].set_vertex_id(ivert);
     refit_errors.push_back(_tracker->getKalmanStates()[tt].chi2);
     refit_covars.push_back(_tracker->getKalmanStates()[tt].C);
   }
@@ -1531,21 +1547,45 @@ int PHHoughSeeding::full_track_seeding()
   _track_covars = refit_covars;
 
   // shift back to global coordinates
-  shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz);
+  shift_coordinate_system(-shift_dx, -shift_dy, -shift_dz, ivert);
   if (Verbosity() >= 1) _t_seeds_cleanup->stop();
 #endif
 
   // okay now we are done with the tracker
   _tracker->clear();
 
-  //FIXME yuhw
-  _clusters.clear();
+  // Now we add back the tracks from previous vertices at the start of the track list
+  previous_tracks.insert( previous_tracks.end(), _tracks.begin(), _tracks.end() );
+  previous_track_errors.insert( previous_track_errors.end(), _track_errors.begin(), _track_errors.end() );
+  previous_track_covars.insert( previous_track_covars.end(), _track_covars.begin(), _track_covars.end() );  
+  _tracks = previous_tracks;
+  _track_errors = previous_track_errors;
+  _track_covars = previous_track_covars;
+
+  // is this necessary before going out of scope?
+  previous_tracks.clear();
+  previous_track_errors.clear();
+  previous_track_covars.clear();
+
+  if(Verbosity() > 2)
+    {
+      cout << "Leaving full_track_seeding with ivert = " << ivert << " _tracks.size() = " << _tracks.size() << " list of tracks:" << endl;
+      for(unsigned int itrack = 0; itrack < _tracks.size(); ++itrack)
+	{
+	  cout << " trackid " << itrack << " vertexid " << _tracks[itrack].vertex_id << endl;
+	}
+    }
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHHoughSeeding::export_output()
 {
+
+  // _tracks etc. contain the SimpleTrack3D tracks accumulated for all vertices
+  // Each SimpleTrack3D knows which vertex ID it was seeded from
+
   _all_tracks = _tracks;
   _all_track_errors = _track_errors;
   _all_track_covars = _track_covars;
@@ -1553,158 +1593,182 @@ int PHHoughSeeding::export_output()
   if (_all_tracks.empty())
     return Fun4AllReturnCodes::EVENT_OK;
 
-  SvtxVertex_v1 vertex;
-  vertex.set_t0(0.0);
-  for (int i = 0; i < 3; ++i)
-    vertex.set_position(i, _vertex[i]);
-  vertex.set_chisq(0.0);
-  vertex.set_ndof(0);
-  vertex.set_error(0, 0, 0.0);
-  vertex.set_error(0, 1, 0.0);
-  vertex.set_error(0, 2, 0.0);
-  vertex.set_error(1, 0, 0.0);
-  vertex.set_error(1, 1, 0.0);
-  vertex.set_error(1, 2, 0.0);
-  vertex.set_error(2, 0, 0.0);
-  vertex.set_error(2, 1, 0.0);
-  vertex.set_error(2, 2, 0.0);
+  // We have possibly multiple vertices in the event
+  // These are stored as a vector of vertex position vectors in _vertex
 
-  // at this point we should already have an initial pt and pz guess...
-  // need to translate this into the PHG4Track object...
+  // clear the SvtxMap on the node tree, will be rewritten
+  _vertex_map->clear();
 
-  vector<SimpleHit3D> track_hits;
-  TrkrDefs::cluskey clusterkey;
-
-  // _all_tracks is a SimpleTrack3D object filled in helixhough, track_hits is a SimpleHit3D object set eqaul to the simple hits associated with the track in helixhough
-  // The SimpleHit3D knows the cluskey for its clusters
-  // Here we make SvtxTrack objects
-  for (unsigned int itrack = 0; itrack < _all_tracks.size(); itrack++)
-  {
-    SvtxTrack_v1 track;
-    track.set_id(itrack);
-    track_hits.clear();
-    track_hits = _all_tracks.at(itrack).hits;
-
-    //cout << " insert cluster in svtxtrack " << endl;
-    for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++)
+  // loop over all collision vertices
+  for(unsigned int ivert = 0; ivert < _vertex.size(); ++ivert)
     {
-      //cout << " cluster id " << track_hits.at(ihit).get_id() << " _cluster_map->size " << _cluster_map->size() << " cluskey " <<  track_hits.at(ihit).get_cluskey() << endl;
-      if (track_hits.at(ihit).get_id() >= _cluster_map->size())
-      {
-        continue;
-      }
-      // Note: clusters can be accessd only by clusterkey
-      clusterkey = track_hits.at(ihit).get_cluskey();
-						     
-      //mark hit asu used by iteration number n
-      //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
-      _assoc_container->SetClusterTrackAssoc(clusterkey, track.get_id());
+      if(Verbosity() > 10) cout << PHWHERE << "processing vertex " << ivert << endl;
+
+      SvtxVertex_v1 vertex;
+      vertex.set_t0(0.0);
+      for (int i = 0; i < 3; ++i)
+	vertex.set_position(i, _vertex[ivert][i]);
+      vertex.set_chisq(0.0);
+      vertex.set_ndof(0);
+      vertex.set_error(0, 0, 0.0);
+      vertex.set_error(0, 1, 0.0);
+      vertex.set_error(0, 2, 0.0);
+      vertex.set_error(1, 0, 0.0);
+      vertex.set_error(1, 1, 0.0);
+      vertex.set_error(1, 2, 0.0);
+      vertex.set_error(2, 0, 0.0);
+      vertex.set_error(2, 1, 0.0);
+      vertex.set_error(2, 2, 0.0);
+
+      // at this point we should already have an initial pt and pz guess...
+      // need to translate this into the SvtxTrack object...
       
+      vector<SimpleHit3D> track_hits;
+      TrkrDefs::cluskey clusterkey;
+      
+      // _all_tracks is a SimpleTrack3D object filled in helixhough, track_hits is a SimpleHit3D object set equal to the simple hits associated with the track in helixhough
+      // The SimpleHit3D knows the cluskey for its clusters
+      // Here we make SvtxTrack objects
+      for (unsigned int itrack = 0; itrack < _all_tracks.size(); itrack++)
+	{
+	  // only tracks from this vertex 
+	  if(_all_tracks.at(itrack).vertex_id != ivert)
+	    continue;
+
+	  if(Verbosity() > 10) cout << PHWHERE << "      processing track " << itrack << endl;
+	  SvtxTrack_v1 track;
+	  track.set_id(itrack);
+	  track.set_vertex_id(ivert);
+	  track_hits.clear();
+	  track_hits = _all_tracks.at(itrack).hits;
+	  
+	  //cout << " insert cluster in svtxtrack " << endl;
+	  for (unsigned int ihit = 0; ihit < track_hits.size(); ihit++)
+	    {
+	      //cout << " cluster id " << track_hits.at(ihit).get_id() << " _cluster_map->size " << _cluster_map->size() << " cluskey " <<  track_hits.at(ihit).get_cluskey() << endl;
+	      if (track_hits.at(ihit).get_id() >= _cluster_map->size())
+		{
+		  continue;
+		}
+	      // Note: clusters can be accessd only by clusterkey
+	      clusterkey = track_hits.at(ihit).get_cluskey();
+	      
+	      //mark hits as used by iteration number n
+	      //_hit_used_map[track_hits.at(ihit).get_id()] = _n_iteration;
+	      _assoc_container->SetClusterTrackAssoc(clusterkey, track.get_id());
+	      
 #ifdef _DEBUG_
-      TrkrCluster* cluster = _cluster_map->findCluster(clusterkey);
-      cout
-          << __LINE__
-          << ": itrack: " << itrack
-          << ": nhits: " << track_hits.size()
-          << ": cluster key: " << clusterkey
-          << endl;
-      cluster->identify();
+	      TrkrCluster* cluster = _cluster_map->findCluster(clusterkey);
+	      cout
+		<< __LINE__
+		<< ": itrack: " << itrack
+		<< ": nhits: " << track_hits.size()
+		<< ": cluster key: " << clusterkey
+		<< endl;
+	      cluster->identify();
 #endif
+	      
+	      //TODO verify this change
+	      //if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
+	      track.insert_cluster_key(clusterkey);
+	      //}
+	    }
 
-      //TODO verify this change
-      //if ((clusterLayer < (int) _nlayers_seeding) && (clusterLayer >= 0)) {
-      track.insert_cluster_key(clusterkey);
-      //}
-    }
-
-    float kappa = _all_tracks.at(itrack).kappa;
-    float d = _all_tracks.at(itrack).d;
-    float phi = _all_tracks.at(itrack).phi;
-    float dzdl = _all_tracks.at(itrack).dzdl;
-    float z0 = _all_tracks.at(itrack).z0;
-
-    //    track.set_helix_phi(phi);
-    //    track.set_helix_kappa(kappa);
-    //    track.set_helix_d(d);
-    //    track.set_helix_z0(z0);
-    //    track.set_helix_dzdl(dzdl);
-
-    float pT = kappaToPt(kappa);
-
-    float x_center = cos(phi) * (d + 1 / kappa);  // x coordinate of circle center
-    float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
-
-    // find helicity from cross product sign
-    short int helicity;
-    if ((track_hits[0].get_x() - x_center) * (track_hits[track_hits.size() - 1].get_y() - y_center) - (track_hits[0].get_y() - y_center) * (track_hits[track_hits.size() - 1].get_x() - x_center) > 0)
-    {
-      helicity = 1;
-    }
-    else
-    {
-      helicity = -1;
-    }
-    float pZ = 0;
-    if (dzdl != 1)
-    {
-      pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
-    }
-    int ndf = 2 * _all_tracks.at(itrack).hits.size() - 5;
-    track.set_chisq(_all_track_errors[itrack]);
-    track.set_ndf(ndf);
-    track.set_px(pT * cos(phi - helicity * M_PI / 2));
-    track.set_py(pT * sin(phi - helicity * M_PI / 2));
-    track.set_pz(pZ);
-
-    track.set_dca2d(d);
-    track.set_dca2d_error(sqrt(_all_track_covars[itrack](1, 1)));
-
-    if (_magField > 0)
-    {
-      track.set_charge(helicity);
-    }
-    else
-    {
-      track.set_charge(-1.0 * helicity);
-    }
-
-    Eigen::Matrix<float, 6, 6> euclidean_cov =
-        Eigen::Matrix<float, 6, 6>::Zero(6, 6);
-    convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
-                                                z0, dzdl, _all_track_covars[itrack], euclidean_cov);
-
-    for (unsigned int row = 0; row < 6; ++row)
-    {
-      for (unsigned int col = 0; col < 6; ++col)
-      {
-        track.set_error(row, col, euclidean_cov(row, col));
-      }
-    }
-
-    track.set_x(vertex.get_x() + d * cos(phi));
-    track.set_y(vertex.get_y() + d * sin(phi));
-    track.set_z(vertex.get_z() + z0);
-
+	  float kappa = _all_tracks.at(itrack).kappa;
+	  float d = _all_tracks.at(itrack).d;
+	  float phi = _all_tracks.at(itrack).phi;
+	  float dzdl = _all_tracks.at(itrack).dzdl;
+	  float z0 = _all_tracks.at(itrack).z0;
+	  
+	  //    track.set_helix_phi(phi);
+	  //    track.set_helix_kappa(kappa);
+	  //    track.set_helix_d(d);
+	  //    track.set_helix_z0(z0);
+	  //    track.set_helix_dzdl(dzdl);
+	  
+	  float pT = kappaToPt(kappa);
+	  
+	  float x_center = cos(phi) * (d + 1 / kappa);  // x coordinate of circle center
+	  float y_center = sin(phi) * (d + 1 / kappa);  // y    "      "     " "
+	  
+	  // find helicity from cross product sign
+	  short int helicity;
+	  if ((track_hits[0].get_x() - x_center) * (track_hits[track_hits.size() - 1].get_y() - y_center) - (track_hits[0].get_y() - y_center) * (track_hits[track_hits.size() - 1].get_x() - x_center) > 0)
+	    {
+	      helicity = 1;
+	    }
+	  else
+	    {
+	      helicity = -1;
+	    }
+	  float pZ = 0;
+	  if (dzdl != 1)
+	    {
+	      pZ = pT * dzdl / sqrt(1.0 - dzdl * dzdl);
+	    }
+	  int ndf = 2 * _all_tracks.at(itrack).hits.size() - 5;
+	  track.set_chisq(_all_track_errors[itrack]);
+	  track.set_ndf(ndf);
+	  track.set_px(pT * cos(phi - helicity * M_PI / 2));
+	  track.set_py(pT * sin(phi - helicity * M_PI / 2));
+	  track.set_pz(pZ);
+	  
+	  track.set_dca2d(d);
+	  track.set_dca2d_error(sqrt(_all_track_covars[itrack](1, 1)));
+	  
+	  if (_magField > 0)
+	    {
+	      track.set_charge(helicity);
+	    }
+	  else
+	    {
+	      track.set_charge(-1.0 * helicity);
+	    }
+	  
+	  Eigen::Matrix<float, 6, 6> euclidean_cov =
+	    Eigen::Matrix<float, 6, 6>::Zero(6, 6);
+	  convertHelixCovarianceToEuclideanCovariance(_magField, phi, d, kappa,
+						      z0, dzdl, _all_track_covars[itrack], euclidean_cov);
+	  
+	  for (unsigned int row = 0; row < 6; ++row)
+	    {
+	      for (unsigned int col = 0; col < 6; ++col)
+		{
+		  track.set_error(row, col, euclidean_cov(row, col));
+		}
+	    }
+	  
+	  track.set_x(vertex.get_x() + d * cos(phi));
+	  track.set_y(vertex.get_y() + d * sin(phi));
+	  track.set_z(vertex.get_z() + z0);
+	  
 #ifdef _DEBUG_
-    cout
-        << __LINE__
-        << ": itrack: " << itrack
-        << ": nhits: " << track_hits.size()
-        << endl;
+	  cout
+	    << __LINE__
+	    << ": itrack: " << itrack
+	    << ": nhits: " << track_hits.size()
+	    << endl;
 #endif
-    //cout << " insert track in trackmap " << endl;
-    _track_map->insert(&track);
-    vertex.insert_track(track.get_id());
+	  //cout << " insert track in trackmap " << endl;
+	  _track_map->insert(&track);
+	  vertex.insert_track(track.get_id());
+	  
+	  if (Verbosity() > 5)
+	    {
+	      cout << "track " << itrack << " quality = " << track.get_quality()
+		   << endl;
+	      cout << "px = " << track.get_px() << " py = " << track.get_py()
+		   << " pz = " << track.get_pz() << endl;
+	      cout << " cluster keys size " << track.size_cluster_keys() << endl;
+	    }
+	}  // track loop
 
-    if (Verbosity() > 5)
-    {
-      cout << "track " << itrack << " quality = " << track.get_quality()
-           << endl;
-      cout << "px = " << track.get_px() << " py = " << track.get_py()
-           << " pz = " << track.get_pz() << endl;
-      cout << " cluster keys size " << track.size_cluster_keys() << endl;
-    }
-  }  // track loop
+      if(Verbosity() > 2) cout << " adding vertex " << ivert << " to node tree" << endl;
+      SvtxVertex* vtxptr = _vertex_map->insert_clone(&vertex);
+      if (Verbosity() > 5)
+	vtxptr->identify();
+      
+    } // vertex loop
 
 #ifdef _DEBUG_
   _track_map->identify();
@@ -1714,12 +1778,8 @@ int PHHoughSeeding::export_output()
       tr->identify();
     }
 #endif
-
-  SvtxVertex* vtxptr = _vertex_map->insert_clone(&vertex);
-  if (Verbosity() > 5)
-    vtxptr->identify();
-
-  if (Verbosity() > 1)
+  
+  if (Verbosity() > 2)
   {
     cout << "PHHoughSeeding::process_event -- leaving process_event"
          << endl;
@@ -1731,7 +1791,7 @@ int PHHoughSeeding::export_output()
   _all_track_errors.clear();
   _all_track_covars.clear();
   _vertex.clear();
-  _vertex.assign(3, 0.0);
+  //_vertex.assign(3, 0.0);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1788,8 +1848,9 @@ void PHHoughSeeding::convertHelixCovarianceToEuclideanCovariance(float B,
 }
 
 void PHHoughSeeding::shift_coordinate_system(double dx, double dy,
-                                             double dz)
+                                             double dz, int ivertex)
 {
+
   for (unsigned int ht = 0; ht < _clusters.size(); ++ht)
   {
     _clusters[ht].set_x(_clusters[ht].get_x() + dx);
@@ -1807,9 +1868,11 @@ void PHHoughSeeding::shift_coordinate_system(double dx, double dy,
     }
   }
 
-  _vertex[0] += dx;
-  _vertex[1] += dy;
-  _vertex[2] += dz;
+  // This has to be modified to work on a specific vertex
+
+  _vertex[ivertex][0] += dx;
+  _vertex[ivertex][1] += dy;
+  _vertex[ivertex][2] += dz;
 
   return;
 }

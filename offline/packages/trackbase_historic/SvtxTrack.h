@@ -54,6 +54,9 @@ class SvtxTrack : public PHObject
   virtual unsigned int get_id() const { return UINT_MAX; }
   virtual void set_id(unsigned int id) {}
 
+  virtual unsigned int get_vertex_id() const { return UINT_MAX; }
+  virtual void set_vertex_id(unsigned int vertex_id) {}
+
   virtual unsigned int get_truth_track_id() const { return UINT_MAX; }
   virtual void set_truth_track_id(unsigned int truthTrackId) {}
 

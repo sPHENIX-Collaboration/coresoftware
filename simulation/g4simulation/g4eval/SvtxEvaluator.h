@@ -42,7 +42,7 @@ class SvtxEvaluator : public SubsysReco
   int End(PHCompositeNode *topNode);
 
   void set_strict(bool b) { _strict = b; }
-
+  void set_use_initial_vertex(bool use_init_vtx) {_use_initial_vertex = use_init_vtx;}
   void do_vertex_eval(bool b) { _do_vertex_eval = b; }
   void do_gpoint_eval(bool b) { _do_gpoint_eval = b; }
   void do_g4hit_eval(bool b) { _do_g4hit_eval = b; }
@@ -66,6 +66,7 @@ class SvtxEvaluator : public SubsysReco
   // evaluator output ntuples
 
   bool _strict;
+  bool _use_initial_vertex;
   unsigned int _errors;
 
   bool _do_vertex_eval;
