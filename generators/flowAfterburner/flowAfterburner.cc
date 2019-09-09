@@ -151,8 +151,14 @@ calc_v2(double b, double eta, double pt)
   float temp2 = pow (pt + 0.1, -a2) / (1 + exp (-(pt - 4.5) / a3));
   float temp3 = 0.01 / (1 + exp (-(pt - 4.5) / a3));
 
-  v2 = (a4 * (temp1 + temp2) + temp3) * exp (-0.5 * eta * eta / 6.27 / 6.27);
+  //v2 = (a4 * (temp1 + temp2) + temp3) * exp (-0.5 * eta * eta / 6.27 / 6.27);
   
+  // Adjust flow rapidity dependence to better match PHOBOS 200 GeV Au+Au data
+  // JGL 9/9/2019
+  // See JS ToG talk at https://indico.bnl.gov/event/6764/ 
+
+  v2 = (a4 * (temp1 + temp2) + temp3) * exp (-0.5 * eta * eta / 2.0 / 2.0);
+ 
   return v2;
 }
   
