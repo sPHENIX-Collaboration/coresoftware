@@ -389,7 +389,7 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
     }
   }
 
-  if(rave_vertices.size() == 0)
+  if(Verbosity() > 10 && rave_vertices.size() == 0)
     {
       cout << PHWHERE << " Rave found no vertices - SvtxVertexMapRefit will be empty" << endl;
     }
