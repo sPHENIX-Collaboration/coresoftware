@@ -34,7 +34,15 @@
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VSolid.hh>
 
+#include <boost/version.hpp> // to get BOOST_VERSION
+#if (BOOST_VERSION == 107000)
+#pragma GCC diagnostic ignored "-pedantic"
 #include <CGAL/Boolean_set_operations_2.h>
+#pragma GCC diagnostic warning "-pedantic"
+#else
+#include <CGAL/Boolean_set_operations_2.h>
+#endif
+
 #include <CGAL/Circular_kernel_intersections.h>
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/Object.h>

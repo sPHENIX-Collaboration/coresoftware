@@ -11,8 +11,8 @@
 
 namespace HepMC
 {
-class GenEvent;
-};
+  class GenEvent;
+}
 
 class PHHepMCGenEvent : public PHObject
 {

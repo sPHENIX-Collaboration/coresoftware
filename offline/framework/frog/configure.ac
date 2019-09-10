@@ -15,7 +15,7 @@ dnl odbc++ uses auto_ptr
   CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
  ;;
  g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
  ;;
 esac
 
