@@ -27,7 +27,7 @@ class SyncObject: public PHObject
   /// isValid returns non zero if object contains valid data
   virtual int isValid() const;
 
-  virtual SyncObject* clone() const;
+  virtual PHObject* CloneMe() const;
   virtual SyncObject& operator=(const SyncObject &source);
   virtual int Different(const SyncObject *other) const;
 
@@ -56,7 +56,6 @@ class SyncObject: public PHObject
 
  private: // prevent doc++ from showing ClassDef
   friend class SyncObjectv1;
-  friend class SyncObjectv2;
   friend class Fun4AllDstInputManager;
   friend class DumpSyncObject;
   friend class SegmentSelect;

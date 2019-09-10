@@ -155,7 +155,7 @@ PgPostBankManager::createBank(const string &className, PdbBankID bankID, const s
   if (classMap->find(rName) != classMap->end())
   {
     PdbCalBank *b = (*classMap)[rName];
-    PdbCalBank *b1 = b->clone();
+    PdbCalBank *b1 = dynamic_cast<PdbCalBank *> (b->CloneMe());
     PgPostBankWrapper *bw = new PgPostBankWrapper(b1);
     bw->setBankID(bankID.getInternalValue());
     PHTimeStamp ts;

@@ -22,16 +22,16 @@ class SvtxClusterMap : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxClusterMap* clone() const { return NULL; }
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   virtual bool empty() const { return true; }
   virtual size_t size() const { return 0; }
   virtual size_t count(unsigned int idkey) const { return 0; }
   virtual void clear() {}
 
-  virtual const SvtxCluster* get(unsigned int idkey) const { return NULL; }
-  virtual SvtxCluster* get(unsigned int idkey) { return NULL; }
-  virtual SvtxCluster* insert(const SvtxCluster* cluster) { return NULL; }
+  virtual const SvtxCluster* get(unsigned int idkey) const { return nullptr; }
+  virtual SvtxCluster* get(unsigned int idkey) { return nullptr; }
+  virtual SvtxCluster* insert(const SvtxCluster* cluster) { return nullptr; }
   virtual size_t erase(unsigned int idkey) { return 0; }
 
   virtual ConstIter begin() const { return ClusterMap().end(); }

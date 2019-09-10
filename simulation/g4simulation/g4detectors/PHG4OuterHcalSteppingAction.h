@@ -31,8 +31,6 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   //! reimplemented from base class
   virtual void SetInterfacePointers(PHCompositeNode *);
 
-  double GetLightCorrection(const double r) const;
-
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }
 
@@ -61,11 +59,6 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   int m_IsBlackHoleFlag;
   int m_NScintiPlates;
   int m_LightScintModelFlag;
-
-  double m_LightBalanceInnerCorr;
-  double m_LightBalanceInnerRadius;
-  double m_LightBalanceOuterCorr;
-  double m_LightBalanceOuterRadius;
 };
 
 #endif  // G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H

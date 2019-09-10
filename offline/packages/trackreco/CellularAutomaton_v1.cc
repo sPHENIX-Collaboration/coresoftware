@@ -183,7 +183,8 @@ int CellularAutomaton_v1::init()
 
 void CellularAutomaton_v1::set_hough_space(HelixHoughSpace* hough_space) {
 
-  	_hough_space = hough_space->Clone();
+  _hough_space = dynamic_cast<HelixHoughSpace*> (hough_space->CloneMe());
+  assert(_hough_space);
 }
 
 void CellularAutomaton_v1::set_mag_field(float mag_field) {
@@ -261,13 +262,8 @@ int CellularAutomaton_v1::process_tracks()
 	{ // loop over input tracks
 	  if(verbose > 10) cout<<"track candidate "<<i<<endl;
 
-		switch(triplet_mode){
-
-		case 0: // Tracks from Hough  Transform
-		process_single_track(in_tracks[i]);
-		break;
-
-		case 1: // Track propagated from triplets, forward mode only for now
+	  if (triplet_mode)
+	  {
 		process_single_triplet(in_tracks[i]);
 /*
 		SimpleTrack3D itrack = in_tracks[i]; // hit triplets with track parameters from HT  
@@ -281,10 +277,12 @@ int CellularAutomaton_v1::process_tracks()
 			if (code==0) ++missing_layers;
 			if (missing_layers > (nlayers-rlayers)) break;
 		}
-*/		
-		break;// case 1
-
-		}
+*/
+	  }
+	  else
+	  {
+		process_single_track(in_tracks[i]);
+	  }
 	}
 
 	return 1;
@@ -665,10 +663,100 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
 //                		auto search = _hits_used.find(hit1);
 //                		if(search != _hits_used.end() && search->second ) continue;
 
-				switch (fit_layer){
-	
-				case false :
+				if (fit_layer)
+				{
+				// fit init_track to get kappa to compare with new kappa
+				// copy init_track over to temp_track and add a hit in kalman filter
+				SimpleTrack3D temp_track;
+			        temp_track.hits.assign(init_track.hits.size()+1, SimpleHit3D());
 
+      				for (unsigned int ll = 0; ll < init_track.hits.size(); ++ll) {
+        			temp_track.hits[ll] = init_track.hits[ll];
+      				}
+				temp_track.hits[init_track.hits.size()] = hit3d;
+
+				// track fitting instead of computing from triplets
+
+ 				float temp_chi2 = temp_track.fit_track();
+//				cout<<"chi2 from fit_track "<<init_chi2 <<endl;			
+				if (temp_chi2 != temp_chi2) continue;
+		                if (temp_track.kappa != temp_track.kappa )  continue;
+                		if (temp_track.z0 != temp_track.z0) continue;
+
+		                HelixKalmanState state;
+		                state.phi = temp_track.phi;
+		                if (state.phi < 0.) {
+		                state.phi += 2. * M_PI;
+		                }
+		                state.d = temp_track.d;
+		                state.kappa = temp_track.kappa;
+		                state.nu = sqrt(state.kappa);
+		                state.z0 = temp_track.z0;
+		                state.dzdl = temp_track.dzdl;
+		                state.C = Matrix<float, 5, 5>::Zero(5, 5);
+		                state.C(0, 0) = pow(0.01, 2.);
+		                state.C(1, 1) = pow(0.01, 2.);
+		                state.C(2, 2) = pow(0.01 * state.nu, 2.);
+		                state.C(3, 3) = pow(0.05, 2.);
+		                state.C(4, 4) = pow(0.05, 2.);
+		                state.chi2 = 0.;
+		                state.position = 0;
+		                state.x_int = 0.;
+		                state.y_int = 0.;
+		                state.z_int = 0.;
+			
+				// place holder for kalman filter
+/*
+	                	unsigned int nfits = 0;
+                		for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
+                		_kalman->addHit(temp_track.hits[h], state);
+                		nfits += 1;
+                		cout<<"nfits "<<nfits<<endl;
+                		}
+                		cout<<"z0 after kalman "<<state.z0<<endl;
+
+                		// fudge factor for non-gaussian hit sizes
+                                state.C *= 3.;
+                		state.chi2 *= 6.;
+                		// kappa cut here drives both efficiency and ghost track rates down at the same time
+                                if (!(temp_track.kappa == temp_track.kappa) ) {
+                		continue;
+                		}
+                		if (!(state.chi2 == state.chi2)) {
+                		continue;
+                		}
+
+*/
+              			if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) < ca_chi2_cut /* 10. */) {
+					// translate temp_track into temp_segment (only hit info is saved) and save in next segments
+					for (unsigned int ll = 0; ll < l; ++ll) {
+                                        temp_segment.hits[ll] = (*cur_seg)[which_seg].hits[ll];
+                                        }
+                                        temp_segment.hits[l] = hit1;
+					temp_segment.n_hits = l + 1;
+
+                                        if (next_seg->size() == next_seg_size) { // first new segment
+                                                next_seg->push_back(temp_segment);
+                                                missing_layers_map_next.insert(make_pair(next_seg->size()-1, missing_layers));
+                                                next_seg_size += 1;
+                                        } else { // next new segments
+                                        #ifdef _DEBUG_
+                                        cout<<"Next segment size inconsistent "<<endl;
+                                        #endif
+                                                (*next_seg)[next_seg_size] = temp_segment;
+                                                missing_layers_map_next.insert(make_pair(next_seg->size()-1, missing_layers));
+                                                next_seg_size += 1;
+                                        }
+                                        ++added_next_segments;
+#ifdef _DEBUG_
+                                        cout<<"segment "<< which_seg << " added segment "<<added_next_segments<<endl;
+#endif
+                		
+                		}// chi2 from track fitting and/or kalman filter : looser cuts than computing kappa from triplets
+	
+				}
+				else
+				{
 	//        		x3 = layer_sorted[l][j].get_x();
 	//        		y3 = layer_sorted[l][j].get_y();
 	//        		z3 = layer_sorted[l][j].get_z();
@@ -759,104 +847,7 @@ int CellularAutomaton_v1::process_single_triplet(SimpleTrack3D& track){ // track
 					cout<<"segment "<< which_seg << " added segment "<<added_next_segments<<endl;
 #endif
          			} // chi2 cut from segment building method -> change to switch - case block
-			
-				break;
-
-				case true :				
-
-				// fit init_track to get kappa to compare with new kappa
-				// copy init_track over to temp_track and add a hit in kalman filter
-				SimpleTrack3D temp_track;
-			        temp_track.hits.assign(init_track.hits.size()+1, SimpleHit3D());
-
-      				for (unsigned int ll = 0; ll < init_track.hits.size(); ++ll) {
-        			temp_track.hits[ll] = init_track.hits[ll];
-      				}
-				temp_track.hits[init_track.hits.size()] = hit3d;
-
-				// track fitting instead of computing from triplets
-
- 				float temp_chi2 = temp_track.fit_track();
-//				cout<<"chi2 from fit_track "<<init_chi2 <<endl;			
-				if (temp_chi2 != temp_chi2) continue;
-		                if (temp_track.kappa != temp_track.kappa )  continue;
-                		if (temp_track.z0 != temp_track.z0) continue;
-
-		                HelixKalmanState state;
-		                state.phi = temp_track.phi;
-		                if (state.phi < 0.) {
-		                state.phi += 2. * M_PI;
-		                }
-		                state.d = temp_track.d;
-		                state.kappa = temp_track.kappa;
-		                state.nu = sqrt(state.kappa);
-		                state.z0 = temp_track.z0;
-		                state.dzdl = temp_track.dzdl;
-		                state.C = Matrix<float, 5, 5>::Zero(5, 5);
-		                state.C(0, 0) = pow(0.01, 2.);
-		                state.C(1, 1) = pow(0.01, 2.);
-		                state.C(2, 2) = pow(0.01 * state.nu, 2.);
-		                state.C(3, 3) = pow(0.05, 2.);
-		                state.C(4, 4) = pow(0.05, 2.);
-		                state.chi2 = 0.;
-		                state.position = 0;
-		                state.x_int = 0.;
-		                state.y_int = 0.;
-		                state.z_int = 0.;
-			
-				// place holder for kalman filter
-/*
-	                	unsigned int nfits = 0;
-                		for (unsigned int h = 0; h < temp_track.hits.size(); ++h) {
-                		_kalman->addHit(temp_track.hits[h], state);
-                		nfits += 1;
-                		cout<<"nfits "<<nfits<<endl;
-                		}
-                		cout<<"z0 after kalman "<<state.z0<<endl;
-
-                		// fudge factor for non-gaussian hit sizes
-                                state.C *= 3.;
-                		state.chi2 *= 6.;
-                		// kappa cut here drives both efficiency and ghost track rates down at the same time
-                                if (!(temp_track.kappa == temp_track.kappa) ) {
-                		continue;
-                		}
-                		if (!(state.chi2 == state.chi2)) {
-                		continue;
-                		}
-
-*/
-              			if (state.chi2 / (2. * ((float)(temp_track.hits.size())) - 5.) < ca_chi2_cut /* 10. */) {
-					// translate temp_track into temp_segment (only hit info is saved) and save in next segments
-					for (unsigned int ll = 0; ll < l; ++ll) {
-                                        temp_segment.hits[ll] = (*cur_seg)[which_seg].hits[ll];
-                                        }
-                                        temp_segment.hits[l] = hit1;
-					temp_segment.n_hits = l + 1;
-
-                                        if (next_seg->size() == next_seg_size) { // first new segment
-                                                next_seg->push_back(temp_segment);
-                                                missing_layers_map_next.insert(make_pair(next_seg->size()-1, missing_layers));
-                                                next_seg_size += 1;
-                                        } else { // next new segments
-                                        #ifdef _DEBUG_
-                                        cout<<"Next segment size inconsistent "<<endl;
-                                        #endif
-                                                (*next_seg)[next_seg_size] = temp_segment;
-                                                missing_layers_map_next.insert(make_pair(next_seg->size()-1, missing_layers));
-                                                next_seg_size += 1;
-                                        }
-                                        ++added_next_segments;
-#ifdef _DEBUG_
-                                        cout<<"segment "<< which_seg << " added segment "<<added_next_segments<<endl;
-#endif
-                		
-                		}// chi2 from track fitting and/or kalman filter : looser cuts than computing kappa from triplets
-	
-				break;
-
-				}// l>=6 switch	
-
+				}
 
 			}// clusters on layer l		
 			

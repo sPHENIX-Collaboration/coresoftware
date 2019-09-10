@@ -23,12 +23,12 @@ class PHG4HitEval : public PHG4Hitv1
 public:
   PHG4HitEval();
 
-  PHG4HitEval(const PHG4Hit& g4hit);
+  PHG4HitEval(const PHG4Hit *g4hit);
 
   virtual
     ~PHG4HitEval(){}
 
-  virtual void Copy(PHG4Hit const &g4hit);
+  virtual void CopyFrom(const PHObject *phobj);
 
   float
   get_eion() const

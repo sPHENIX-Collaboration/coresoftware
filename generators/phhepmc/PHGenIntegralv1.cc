@@ -33,12 +33,6 @@ PHGenIntegralv1::PHGenIntegralv1(const std::string& description)
   , m_Description(description)
 {}
 
-PHObject* PHGenIntegralv1::clone() const
-{
-  //this class is simple, use the default copy constructor for cloning
-  return new PHGenIntegralv1(*this);
-}
-
 void PHGenIntegralv1::identify(ostream& os) const
 {
   os << "PHGenIntegralv1::identify: " << get_Description() << endl
@@ -87,13 +81,13 @@ int PHGenIntegralv1::Integrate(PHObject* incoming_object)
   return m_NProcessedEvent;
 }
 
-void PHGenIntegralv1::CopyContent(PHObject* incoming_object)
+void PHGenIntegralv1::CopyFrom(const PHObject* incoming_object)
 {
   const PHGenIntegral* in_gen = dynamic_cast<const PHGenIntegral*>(incoming_object);
 
   if (!in_gen)
   {
-    cout << "PHGenIntegralv1::CopyContent - Fatal Error - "
+    cout << "PHGenIntegralv1::CopyFrom - Fatal Error - "
          << "input object is not a PHGenIntegral: ";
     incoming_object->identify();
 

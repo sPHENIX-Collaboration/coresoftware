@@ -22,7 +22,7 @@ public:
   // PHObject virtual overloads
    
   void         identify(std::ostream& os = std::cout) const;
-  PHG4Shower*  Clone() const {return (new PHG4Showerv1(*this));}
+  PHG4Shower*  CloneMe() const {return (new PHG4Showerv1(*this));}
   void         Reset() {*this = PHG4Showerv1();}
   int          isValid() const;
 
@@ -110,8 +110,13 @@ private:
   int                  _id;                 //< unique identifier within container
   int                  _parent_particle_id; //< association of shower to parent particle id
   int                  _parent_shower_id;   //< association of shower to parent shower id
-  float                _pos[3];             //< mean position of the shower hits
-  float                _covar[6];           //< covariance of shower hits
+#if !defined(__CINT__) || defined (__CLING__)
+  std::array<float,3>                _pos;             //< mean position of the shower hits
+  std::array<float,6>                _covar;           //< covariance of shower hits
+//#else
+//  float _pos[3];
+//  float _covar[6];
+#endif
   std::map<int, unsigned int> _nhits;       //< number of hits in different volumes
   std::map<int, float> _edep;               //< energy deposit in different volumes
   std::map<int, float> _eion;               //< ionization energy in different volumes

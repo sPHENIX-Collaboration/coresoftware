@@ -15,13 +15,13 @@ class PHPy8GenTrigger;
 
 namespace HepMC
 {
-class Pythia8ToHepMC;
-};  // namespace HepMC
+  class Pythia8ToHepMC;
+}  // namespace HepMC
 
 namespace Pythia8
 {
-class Pythia;
-};
+  class Pythia;
+}
 
 class PHPythia8 : public SubsysReco
 {

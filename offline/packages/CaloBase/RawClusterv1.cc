@@ -30,12 +30,6 @@ void RawClusterv1::Reset()
   towermap.clear();
 }
 
-//PHObject* RawClusterv1::clone() const
-//{
-//  RawClusterv1 * obj = new RawClusterv1(*this);
-//  return obj;
-//}
-
 void RawClusterv1::addTower(const RawClusterDefs::keytype twrid, const float etower)
 {
   if (towermap.find(twrid) != towermap.end())

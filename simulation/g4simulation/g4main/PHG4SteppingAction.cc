@@ -186,9 +186,9 @@ double PHG4SteppingAction::GetLightCorrection(const double r) const
   double correction = 1.;
   if (ValidCorrection())
   {
-    double m = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
+    double slope = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
     double b = m_LightBalanceInnerCorr - m * m_LightBalanceInnerRadius;
-    correction = m * r + b;
+    correction = slope * r + b;
     correction = std::min(correction, 1.);
     correction = std::max(correction, 0.);
   }

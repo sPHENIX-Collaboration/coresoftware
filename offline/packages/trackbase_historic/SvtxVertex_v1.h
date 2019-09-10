@@ -18,7 +18,7 @@ class SvtxVertex_v1 : public SvtxVertex
   void identify(std::ostream& os = std::cout) const;
   void Reset() { *this = SvtxVertex_v1(); }
   int isValid() const;
-  SvtxVertex* clone() const { return new SvtxVertex_v1(*this); }
+  PHObject* CloneMe() const { return new SvtxVertex_v1(*this); }
 
   // vertex info
 

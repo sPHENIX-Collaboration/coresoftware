@@ -2,6 +2,7 @@
 
 #include "Jet.h"
 
+#include <cassert>
 #include <cmath>
 #include <iterator>  // for reverse_iterator
 #include <map>       // for _Rb_tree_const_iterator, _Rb_tree_iterator
@@ -18,24 +19,25 @@ JetMapv1::JetMapv1()
 {
 }
 
-JetMapv1::JetMapv1(const JetMapv1& jets)
-  : _algo(jets.get_algo())
-  , _par(jets.get_par())
+JetMapv1::JetMapv1(const JetMap *jets)
+  : _algo(jets->get_algo())
+  , _par(jets->get_par())
   , _src()
   , _map()
 {
-  for (ConstSrcIter iter = jets.begin_src();
-       iter != jets.end_src();
+  for (ConstSrcIter iter = jets->begin_src();
+       iter != jets->end_src();
        ++iter)
   {
     _src.insert(*iter);
   }
 
-  for (ConstIter iter = jets.begin();
-       iter != jets.end();
+  for (ConstIter iter = jets->begin();
+       iter != jets->end();
        ++iter)
   {
-    Jet* jet = (iter->second)->Clone();
+    Jet* jet = dynamic_cast<Jet *> ((iter->second)->CloneMe());
+    assert(jet);
     _map.insert(make_pair(jet->get_id(), jet));
   }
 }
@@ -58,7 +60,8 @@ JetMapv1& JetMapv1::operator=(const JetMapv1& jets)
        iter != jets.end();
        ++iter)
   {
-    Jet* jet = (iter->second)->Clone();
+    Jet* jet = dynamic_cast<Jet *> ((iter->second)->CloneMe());
+    assert(jet);
     _map.insert(make_pair(jet->get_id(), jet));
   }
 
@@ -83,7 +86,7 @@ void JetMapv1::Reset()
   }
 }
 
-JetMap* JetMapv1::Clone() const
+PHObject* JetMapv1::CloneMe() const
 {
   JetMap* map = new JetMapv1(*this);
   return map;

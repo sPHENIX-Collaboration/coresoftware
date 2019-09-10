@@ -2,6 +2,7 @@
 
 #include <phool/phool.h>  // for PHWHERE
 
+#include <cassert>
 #include <cstdlib>       // for exit, NULL
 #include <iostream>
 
@@ -48,7 +49,8 @@ void HelixHoughBin_v1::init() {
 
 void HelixHoughBin_v1::set_hough_space(HelixHoughSpace* hough_space) {
   
-  _hough_space = hough_space->Clone();
+  _hough_space = dynamic_cast<HelixHoughSpace*> (hough_space->CloneMe());
+  assert(_hough_space);
 }
 
 

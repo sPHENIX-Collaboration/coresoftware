@@ -20,6 +20,7 @@
 #include <Event/Eventiterator.h>      // for Eventiterator
 #include <Event/fileEventiterator.h>
 
+#include <cassert>
 #include <cstdlib>
 #include <iostream>                   // for operator<<, basic_ostream, endl
 #include <utility>                    // for pair
@@ -256,7 +257,11 @@ int Fun4AllPrdfInputManager::GetSyncObject(SyncObject **mastersync)
   // of syncobject is copied
   if (!(*mastersync))
   {
-    if (m_SyncObject) *mastersync = m_SyncObject->clone();
+    if (m_SyncObject)
+    {
+      *mastersync = dynamic_cast<SyncObject *> (m_SyncObject->CloneMe());
+      assert(*mastersync);
+    }
   }
   else
   {

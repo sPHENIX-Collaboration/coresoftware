@@ -1,19 +1,22 @@
 #include "PHG4Cell.h"
 
+#include <cassert>
 #include <cstdlib>
 
 using namespace std;
 
 void
-PHG4Cell::Copy(PHG4Cell const &g4cell)
+PHG4Cell::CopyFrom(const PHObject *phobj)
 {
-  set_cellid(g4cell.get_cellid());
+  const PHG4Cell *g4cell = dynamic_cast<const PHG4Cell *> (phobj);
+  assert(g4cell);
+  set_cellid(g4cell->get_cellid());
   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
     {
       PROPERTY prop_id = static_cast<PHG4Cell::PROPERTY> (ic);
-      if (g4cell.has_property(prop_id))
+      if (g4cell->has_property(prop_id))
         {
-	  set_property_nocheck(prop_id,g4cell.get_property_nocheck(prop_id));
+	  set_property_nocheck(prop_id,g4cell->get_property_nocheck(prop_id));
 	}
     }
 }

@@ -60,7 +60,7 @@ int Jetv1::isValid() const
   return 1;
 }
 
-Jet* Jetv1::Clone() const
+PHObject* Jetv1::CloneMe() const
 {
   Jet* jet = new Jetv1(*this);
   return jet;

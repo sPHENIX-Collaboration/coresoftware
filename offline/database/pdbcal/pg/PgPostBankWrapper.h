@@ -21,7 +21,7 @@ class PgPostBankWrapper : public PgPostCalBank
   PgPostBankWrapper();
   PgPostBankWrapper(PdbCalBank *b);
   virtual ~PgPostBankWrapper();
-  virtual PgPostCalBank *clone() const { return new PgPostBankWrapper(*this); }
+  virtual PHObject *CloneMe() const { return new PgPostBankWrapper(*this); }
 
   void printHeader() const;
   void print() { bank->print(); }

@@ -4,6 +4,7 @@
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
+#include <cassert>
 #include <climits>
 #include <map>
 #include <vector>                // for vector
@@ -68,8 +69,8 @@ SvtxTrack_v1& SvtxTrack_v1::operator=(const SvtxTrack_v1& track)
        iter != track.end_states();
        ++iter)
   {
-    SvtxTrackState* state = iter->second;
-    _states.insert(make_pair(state->get_pathlength(), state->clone()));
+    SvtxTrackState* state = dynamic_cast< SvtxTrackState*> (iter->second->CloneMe());
+    _states.insert(make_pair(state->get_pathlength(), state));
   }
 
   // copy over cluster ID set
@@ -188,20 +189,20 @@ int SvtxTrack_v1::isValid() const
 const SvtxTrackState* SvtxTrack_v1::get_state(float pathlength) const
 {
   ConstStateIter iter = _states.find(pathlength);
-  if (iter == _states.end()) return NULL;
+  if (iter == _states.end()) return nullptr;
   return iter->second;
 }
 
 SvtxTrackState* SvtxTrack_v1::get_state(float pathlength)
 {
   StateIter iter = _states.find(pathlength);
-  if (iter == _states.end()) return NULL;
+  if (iter == _states.end()) return nullptr;
   return iter->second;
 }
 
 SvtxTrackState* SvtxTrack_v1::insert_state(const SvtxTrackState* state)
 {
-  _states.insert(make_pair(state->get_pathlength(), state->clone()));
+  _states.insert(make_pair(state->get_pathlength(), dynamic_cast< SvtxTrackState*> (state->CloneMe())));
   return _states[state->get_pathlength()];
 }
 

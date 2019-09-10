@@ -32,7 +32,7 @@ public:
   void add_particles(const int pid, const unsigned int count);
 
   //! set the starting time for the event
-  void set_t0(const double t0);
+  void set_t0(const double t) { _t0 = t;}
   
   //! range of randomized eta values
   void set_eta_range(const double eta_min, const double eta_max);

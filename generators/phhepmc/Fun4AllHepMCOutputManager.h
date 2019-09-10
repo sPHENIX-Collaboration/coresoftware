@@ -8,8 +8,8 @@
 
 namespace HepMC
 {
-class IO_GenEvent;
-};
+  class IO_GenEvent;
+}
 
 class PHCompositeNode;
 

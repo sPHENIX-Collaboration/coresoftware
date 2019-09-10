@@ -5,8 +5,8 @@
 
 namespace phooldefs
 {
-static const std::string branchpathdelim = ".";
-static const std::string nodetreepathdelim = "/";
-};  // namespace phooldefs
+  static const std::string branchpathdelim = ".";
+  static const std::string nodetreepathdelim = "/";
+}  // namespace phooldefs
 
 #endif

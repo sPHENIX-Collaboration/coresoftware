@@ -12,8 +12,8 @@
 // forward declaration of classes in namespace
 namespace HepMC
 {
-class GenEvent;
-};  // namespace HepMC
+  class GenEvent;
+}  // namespace HepMC
 
 class PHCompositeNode;
 class SyncObject;

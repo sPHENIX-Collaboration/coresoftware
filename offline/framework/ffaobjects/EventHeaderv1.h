@@ -18,7 +18,7 @@ class EventHeaderv1: public EventHeader
   /// dtor
   virtual ~EventHeaderv1() {}
 
-  EventHeaderv1 * clone() const { return new EventHeaderv1(*this); }
+  PHObject *CloneMe() const { return new EventHeaderv1(*this); }
 
   ///  Clear Event
   void Reset();
