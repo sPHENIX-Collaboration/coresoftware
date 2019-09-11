@@ -21,8 +21,10 @@ PHG4Showerv1::PHG4Showerv1()
   , _g4particle_ids()
   , _g4hit_ids()
 {
-  _pos.fill(NAN);
-  _covar.fill(NAN);
+  // with C++11 begin() and end() exist, you do not need the array size anymore
+  // to fill an array
+  fill(std::begin(_pos), std::end(_pos), NAN);
+  fill(std::begin(_covar), std::end(_covar), NAN);
 }
 
 void PHG4Showerv1::identify(ostream &os) const
