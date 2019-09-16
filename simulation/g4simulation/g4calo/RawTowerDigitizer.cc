@@ -20,9 +20,9 @@
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 
+#include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
-#include <gsl/gsl_cdf.h>
 
 #include <cmath>
 #include <cstdlib>    // for exit
@@ -167,7 +167,7 @@ int RawTowerDigitizer::process_event(PHCompositeNode *topNode)
     else if (m_DigiAlgorithm == kSiPM_photon_digitization)
     {
       // for photon digitization towers can be created if sim_tower is null pointer
-      digi_tower = simple_photon_digitization(sim_tower);
+      digi_tower = sipm_photon_digitization(sim_tower);
     }
     else
     {
@@ -274,14 +274,17 @@ RawTowerDigitizer::sipm_photon_digitization(RawTower *sim_tower)
   {
     energy = sim_tower->get_energy();
   }
-  const double photon_count_mean = energy * m_PhotonElecYieldVisibleGeV;
-  const double poission_param_per_pixel = photon_count_mean / m_SiPMEffectivePixel;
-  const double prob_activated_per_pixel = gsl_cdf_poisson_Q(0, poission_param_per_pixel);
-  const double active_pixel = gsl_ran_binomial(m_RandomGenerator , prob_activated_per_pixel, m_SiPMEffectivePixel);
 
-//  const int photon_count = gsl_ran_poisson(m_RandomGenerator, photon_count_mean);
+  int signal_ADC = 0;
 
-  const int signal_ADC = floor(active_pixel / m_PhotonElecADC);
+  if (energy > 0)
+  {
+    const double photon_count_mean = energy * m_PhotonElecYieldVisibleGeV;
+    const double poission_param_per_pixel = photon_count_mean / m_SiPMEffectivePixel;
+    const double prob_activated_per_pixel = gsl_cdf_poisson_Q(0, poission_param_per_pixel);
+    const double active_pixel = gsl_ran_binomial(m_RandomGenerator, prob_activated_per_pixel, m_SiPMEffectivePixel);
+    signal_ADC = floor(active_pixel / m_PhotonElecADC);
+  }
 
   const double pedstal = m_PedstalCentralADC + ((m_PedstalWidthADC > 0) ? gsl_ran_gaussian(m_RandomGenerator, m_PedstalWidthADC) : 0);
   const int sum_ADC = signal_ADC + (int) pedstal;
