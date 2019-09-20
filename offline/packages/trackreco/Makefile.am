@@ -1,3 +1,4 @@
+
 ##############################################
 # please add new classes in alphabetical order
 
@@ -24,17 +25,16 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   AssocInfoContainer.h \
-  PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
+  PHRTreeSeeding.h \
   PHInitVertexing.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
-  PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
-  PHTruthVertexing.h \
-  PHRaveVertexing.h
+  PHGenFitTrackProjection.h \
+  PHTruthVertexing.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc
@@ -46,13 +46,13 @@ else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \
     PHTrackSeeding_Dict.cc \
-    PHTrackSetMerging_Dict.cc \
-    PHTrackPropagating_Dict.cc \
+     PHTrackPropagating_Dict.cc \
     PHTrackFitting_Dict.cc \
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
     PHHoughSeeding_Dict.cc \
+    PHRTreeSeeding.cc \
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
@@ -67,13 +67,13 @@ libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHInitVertexing.cc \
   PHTrackSeeding.cc \
-  PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
   PHTruthVertexing.cc \
   PHTruthTrackSeeding.cc \
   PHHoughSeeding.cc \
+  PHRTreeSeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
