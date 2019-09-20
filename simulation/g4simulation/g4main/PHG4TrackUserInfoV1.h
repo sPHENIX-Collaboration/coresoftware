@@ -81,6 +81,6 @@ void SetUserPrimaryId(G4Track* track, const int userprimaryid);
 void SetWanted(G4Track* track, const int wanted);
 void SetKeep(G4Track* track, const int keep);
 void SetShower(G4Track* track, PHG4Shower* ptr);
-};  // namespace PHG4TrackUserInfo
+}  // namespace PHG4TrackUserInfo
 
 #endif

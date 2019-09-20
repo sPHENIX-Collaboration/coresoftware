@@ -2,6 +2,7 @@
 
 #include "SvtxHit.h"
 
+#include <cassert>
 #include <iterator>   // for reverse_iterator
 #include <map>
 #include <utility>    // for pair, make_pair
@@ -21,8 +22,8 @@ SvtxHitMap_v1::SvtxHitMap_v1(const SvtxHitMap_v1& hitmap)
        iter != hitmap.end();
        ++iter)
   {
-    const SvtxHit* hit = iter->second;
-    _map.insert(make_pair(hit->get_id(), hit->clone()));
+    SvtxHit* hit = dynamic_cast<SvtxHit *> (iter->second->CloneMe());
+    _map.insert(make_pair(hit->get_id(), hit));
   }
 }
 
@@ -33,8 +34,8 @@ SvtxHitMap_v1& SvtxHitMap_v1::operator=(const SvtxHitMap_v1& hitmap)
        iter != hitmap.end();
        ++iter)
   {
-    const SvtxHit* hit = iter->second;
-    _map.insert(make_pair(hit->get_id(), hit->clone()));
+    SvtxHit* hit = dynamic_cast<SvtxHit *> (iter->second->CloneMe());
+    _map.insert(make_pair(hit->get_id(), hit));
   }
   return *this;
 }
@@ -65,14 +66,14 @@ void SvtxHitMap_v1::identify(ostream& os) const
 const SvtxHit* SvtxHitMap_v1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 SvtxHit* SvtxHitMap_v1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
@@ -80,7 +81,7 @@ SvtxHit* SvtxHitMap_v1::insert(const SvtxHit* hit)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, hit->clone()));
+  _map.insert(make_pair(index, dynamic_cast<SvtxHit *> (hit->CloneMe())));
   _map[index]->set_id(index);
   return _map[index];
 }

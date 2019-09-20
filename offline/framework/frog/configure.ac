@@ -11,10 +11,11 @@ dnl   at least see them, so here we go for g++: -Wall
 dnl   treat warnings as errors: -Werror
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall"
+dnl odbc++ uses auto_ptr
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
  ;;
  g++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
  ;;
 esac
 

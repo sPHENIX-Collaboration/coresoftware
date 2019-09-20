@@ -169,7 +169,7 @@ PHFieldUtility::GetFieldConfigNode(const PHFieldConfig *default_config, PHCompos
     }
     else
     {
-      field = static_cast<PHFieldConfig *>(default_config->Clone());
+      field = static_cast<PHFieldConfig *>(default_config->CloneMe());
       if (verbosity)
       {
         cout << "PHFieldUtility::GetFieldConfigNode - field map with configuration from input default: ";

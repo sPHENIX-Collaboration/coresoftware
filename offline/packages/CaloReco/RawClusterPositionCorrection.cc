@@ -232,7 +232,8 @@ int RawClusterPositionCorrection::process_event(PHCompositeNode *topNode)
       eclus_recalib_val = eclus_calib_constants.at(etabin).at(phibin);
       ecore_recalib_val = ecore_calib_constants.at(etabin).at(phibin);
     }
-    RawCluster *recalibcluster = static_cast<RawCluster *>(cluster->Clone());
+    RawCluster *recalibcluster = dynamic_cast<RawCluster *>(cluster->CloneMe());
+    assert(recalibcluster);
     recalibcluster->set_energy(clus_energy / eclus_recalib_val);
     recalibcluster->set_ecore(cluster->get_ecore() / ecore_recalib_val);
     _recalib_clusters->AddCluster(recalibcluster);

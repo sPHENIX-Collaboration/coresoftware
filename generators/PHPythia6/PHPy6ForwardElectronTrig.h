@@ -7,8 +7,8 @@
 
 namespace HepMC
 {
-class GenEvent;
-};
+  class GenEvent;
+}
 
 class PHPy6ForwardElectronTrig : public PHPy6GenTrigger
 {
@@ -19,7 +19,7 @@ class PHPy6ForwardElectronTrig : public PHPy6GenTrigger
   //! destructor
   ~PHPy6ForwardElectronTrig(void) {}
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   bool Apply(const HepMC::GenEvent* evt);
 #endif
 

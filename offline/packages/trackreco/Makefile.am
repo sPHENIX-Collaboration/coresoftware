@@ -1,4 +1,3 @@
-
 ##############################################
 # please add new classes in alphabetical order
 
@@ -25,34 +24,60 @@ AM_LDFLAGS = \
 
 pkginclude_HEADERS = \
   AssocInfoContainer.h \
+  CellularAutomaton.h \
+  CellularAutomaton_v1.h \
+  HelixHoughBin.h \
+  HelixHoughBin_v1.h \
+  HelixHoughFuncs.h \
+  HelixHoughFuncs_v1.h \
+  HelixHoughSpace.h \
+  HelixHoughSpace_v1.h \
+  HelixKalmanFilter.h \
+  PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
-  PHRTreeSeeding.h \
   PHInitVertexing.h \
+  PHInitZVertexing.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
+  PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
-  PHGenFitTrackProjection.h \
-  PHTruthVertexing.h
+  PHTruthVertexing.h \
+  VertexFitter.h \
+  PHRaveVertexing.h
 
 ROOTDICTS = \
-  AssocInfoContainer_Dict.cc
+  AssocInfoContainer_Dict.cc \
+  HelixHoughSpace_Dict.cc \
+  HelixHoughSpace_v1_Dict.cc \
+  HelixHoughBin_Dict.cc \
+  HelixHoughBin_v1_Dict.cc \
+  HelixHoughFuncs_Dict.cc \
+  HelixHoughFuncs_v1_Dict.cc 
+
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-    AssocInfoContainer_Dict_rdict.pcm
+  AssocInfoContainer_Dict_rdict.pcm \
+  HelixHoughSpace_Dict_rdict.pcm \
+  HelixHoughSpace_v1_Dict_rdict.pcm \
+  HelixHoughBin_Dict_rdict.pcm \
+  HelixHoughBin_v1_Dict_rdict.pcm \
+  HelixHoughFuncs_Dict_rdict.pcm \
+  HelixHoughFuncs_v1_Dict_rdict.pcm 
 else
   ROOT5_DICTS = \
     PHInitVertexing_Dict.cc \
+    PHInitZVertexing_Dict.cc \
     PHTrackSeeding_Dict.cc \
-     PHTrackPropagating_Dict.cc \
+    PHTrackSetMerging_Dict.cc \
+    PHTrackPropagating_Dict.cc \
     PHTrackFitting_Dict.cc \
     PH3DVertexing_Dict.cc \
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
     PHHoughSeeding_Dict.cc \
-    PHRTreeSeeding.cc \
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
@@ -61,27 +86,33 @@ endif
 
 libtrack_reco_io_la_SOURCES = \
   $(ROOTDICTS) \
-  AssocInfoContainer.cc 
-
+  AssocInfoContainer.cc \
+  CellularAutomaton_v1.cc \
+  HelixHoughBin_v1.cc \
+  HelixHoughFuncs_v1.cc \
+  HelixHoughSpace_v1.cc \
+  HelixKalmanFilter.cc \
+  VertexFitter.cc
 libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHInitVertexing.cc \
+  PHInitZVertexing.cc \
   PHTrackSeeding.cc \
+  PHTrackSetMerging.cc \
   PHTrackPropagating.cc \
   PHTrackFitting.cc \
   PH3DVertexing.cc \
   PHTruthVertexing.cc \
   PHTruthTrackSeeding.cc \
   PHHoughSeeding.cc \
-  PHRTreeSeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
-  PHRaveVertexing.cc
-
+  PHRaveVertexing.cc 
 
 libtrack_reco_io_la_LIBADD = \
-  -lphool
+  -lphool \
+  -lHelixHough
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
@@ -90,7 +121,6 @@ libtrack_reco_la_LIBADD = \
   -lg4detectors \
   -lgsl \
   -lgslcblas \
-  -lHelixHough \
   -lFitNewton \
   -lSeamstress \
   -lgenfit2 \
@@ -104,7 +134,7 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter
+  -lphparameter 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

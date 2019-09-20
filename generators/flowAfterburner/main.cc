@@ -54,13 +54,13 @@ main ()
   std::string input = pt.get("FLOWAFTERBURNER.INPUT", "sHijing.dat");
   std::string output = pt.get("FLOWAFTERBURNER.OUTPUT", "flowAfterburner.dat");
 
-  float mineta = pt.get("FLOWAFTERBURNER.CUTS.MINETA", -1.0);
-  float maxeta = pt.get("FLOWAFTERBURNER.CUTS.MAXETA", 1.0);
+  float mineta = pt.get("FLOWAFTERBURNER.CUTS.MINETA", -4.0);
+  float maxeta = pt.get("FLOWAFTERBURNER.CUTS.MAXETA", 4.0);
 
   float minpt = pt.get("FLOWAFTERBURNER.CUTS.MINPT", 0.0);
   float maxpt = pt.get("FLOWAFTERBURNER.CUTS.MAXPT", 100.0);
 
-  std::string algorithmName = pt.get("FLOWAFTERBURNER.ALGORITHM", "JJNEW");
+  std::string algorithmName = pt.get("FLOWAFTERBURNER.ALGORITHM", "MINBIAS");
 
   // Open input file.
   HepMC::IO_GenEvent ascii_in (input.c_str(), std::ios::in);

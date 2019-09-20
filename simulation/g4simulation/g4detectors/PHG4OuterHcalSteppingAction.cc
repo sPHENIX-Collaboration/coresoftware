@@ -79,10 +79,6 @@ PHG4OuterHcalSteppingAction::PHG4OuterHcalSteppingAction(PHG4OuterHcalDetector* 
   , m_IsBlackHoleFlag(m_Params->get_int_param("blackhole"))
   , m_NScintiPlates(m_Params->get_int_param(PHG4HcalDefs::scipertwr) * m_Params->get_int_param("n_towers"))
   , m_LightScintModelFlag(m_Params->get_int_param("light_scint_model"))
-  , m_LightBalanceInnerCorr(m_Params->get_double_param("light_balance_inner_corr"))
-  , m_LightBalanceInnerRadius(m_Params->get_double_param("light_balance_inner_radius") * cm)
-  , m_LightBalanceOuterCorr(m_Params->get_double_param("light_balance_outer_corr"))
-  , m_LightBalanceOuterRadius(m_Params->get_double_param("light_balance_outer_radius") * cm)
 {
   SetName(m_Detector->GetName());
 }
@@ -99,6 +95,13 @@ PHG4OuterHcalSteppingAction::~PHG4OuterHcalSteppingAction()
 int PHG4OuterHcalSteppingAction::Init()
 {
   m_EnableFieldCheckerFlag = m_Params->get_int_param("field_check");
+// method in base class for light correction
+  SetLightCorrection(m_Params->get_double_param("light_balance_inner_radius") * cm,
+		     m_Params->get_double_param("light_balance_inner_corr"),
+		     m_Params->get_double_param("light_balance_outer_radius") * cm,
+		     m_Params->get_double_param("light_balance_outer_corr")
+    );
+
   return 0;
 }
 
@@ -287,14 +290,11 @@ bool PHG4OuterHcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
         light_yield = eion;
       }
 
-      if (isfinite(m_LightBalanceOuterRadius) &&
-          isfinite(m_LightBalanceInnerRadius) &&
-          isfinite(m_LightBalanceOuterCorr) &&
-          isfinite(m_LightBalanceInnerCorr))
+      if (ValidCorrection())
       {
-        double r = sqrt(postPoint->GetPosition().x() * postPoint->GetPosition().x() + postPoint->GetPosition().y() * postPoint->GetPosition().y());
-        double cor = GetLightCorrection(r);
-        light_yield = light_yield * cor;
+double cor =  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
+cout << "applying cor: " << cor << endl;
+        light_yield = light_yield *  GetLightCorrection(postPoint->GetPosition().x() , (postPoint->GetPosition().y() ));
       }
     }
 
@@ -395,18 +395,6 @@ void PHG4OuterHcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
       cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
     }
   }
-}
-
-double
-PHG4OuterHcalSteppingAction::GetLightCorrection(const double r) const
-{
-  double m = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
-  double b = m_LightBalanceInnerCorr - m * m_LightBalanceInnerRadius;
-  double value = m * r + b;
-  if (value > 1.0) return 1.0;
-  if (value < 0.0) return 0.0;
-
-  return value;
 }
 
 void PHG4OuterHcalSteppingAction::FieldChecker(const G4Step* aStep)

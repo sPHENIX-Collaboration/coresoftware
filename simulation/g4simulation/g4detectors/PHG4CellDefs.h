@@ -49,14 +49,14 @@ namespace PHG4CellDefs
     keytype genkey(const unsigned short layer, const unsigned short zbin, const unsigned short iphibin);
     unsigned short int get_zbin(const PHG4CellDefs::keytype key);
     unsigned short int get_phibin(const PHG4CellDefs::keytype key);
-  };
+  }
 
   namespace EtaPhiBinning
   {
     keytype genkey(const unsigned short layer, const unsigned short etabin, const unsigned short phibin);
     unsigned short int get_etabin(const PHG4CellDefs::keytype key);
     unsigned short int get_phibin(const PHG4CellDefs::keytype key);
-  };
+  }
 
   namespace SpacalBinning
   {
@@ -64,34 +64,34 @@ namespace PHG4CellDefs
     unsigned short get_etabin(const PHG4CellDefs::keytype key);
     unsigned short get_phibin(const PHG4CellDefs::keytype key);
     unsigned short get_fiberid(const PHG4CellDefs::keytype key);
-  };
+  }
 
   namespace ScintillatorSlatBinning 
   {
     keytype genkey(const unsigned short layer, const unsigned short irow, const unsigned short icolumn);
     unsigned short int get_row(const PHG4CellDefs::keytype key);
     unsigned short int get_column(const PHG4CellDefs::keytype key);
-  };
+  }
 
   namespace EtaXsizeBinning
   {
     keytype genkey(const unsigned short layer, const unsigned short etabin, const unsigned short xbin);
     unsigned short int get_etabin(const PHG4CellDefs::keytype key);
     unsigned short int get_xsizebin(const PHG4CellDefs::keytype key);
-  };
+  }
 
   namespace MVTXBinning
   {
     keytype genkey(const unsigned short layer, const unsigned int bit32_index);
     unsigned int get_index(const PHG4CellDefs::keytype key);
-  };
+  }
 
   namespace TPCBinning
   {
     keytype genkey(const unsigned short lyr, const unsigned short mod, const unsigned short pad);
     unsigned short get_radbin(const PHG4CellDefs::keytype key);
     unsigned short get_phibin(const PHG4CellDefs::keytype key);
-  };
+  }
 
 
 }

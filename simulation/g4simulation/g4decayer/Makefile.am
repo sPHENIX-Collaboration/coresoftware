@@ -10,6 +10,8 @@ lib_LTLIBRARIES = \
 #  AM_CXXFLAGS = -std=c++11
 #endif
 
+AM_CXXFLAGS=`geant4-config --cflags`
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \

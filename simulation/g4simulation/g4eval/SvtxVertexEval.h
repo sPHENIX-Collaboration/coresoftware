@@ -65,6 +65,8 @@ class SvtxVertexEval
 
   unsigned int get_errors() { return _errors + _trackeval.get_errors(); }
 
+  void set_use_initial_vertex(bool use_init_vertex) {_use_initial_vertex= use_init_vertex;}
+
  private:
   void get_node_pointers(PHCompositeNode* topNode);
   bool has_node_pointers();
@@ -75,6 +77,7 @@ class SvtxVertexEval
   PHG4TruthInfoContainer* _truthinfo;
 
   bool _strict;
+  bool _use_initial_vertex;
   int _verbosity;
   unsigned int _errors;
 

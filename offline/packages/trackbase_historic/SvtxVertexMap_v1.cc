@@ -2,6 +2,7 @@
 
 #include "SvtxVertex.h"
 
+#include <cassert>
 #include <iterator>      // for reverse_iterator
 #include <utility>       // for pair, make_pair
 
@@ -19,8 +20,8 @@ SvtxVertexMap_v1::SvtxVertexMap_v1(const SvtxVertexMap_v1& vertexmap)
        iter != vertexmap.end();
        ++iter)
   {
-    const SvtxVertex* vertex = iter->second;
-    _map.insert(make_pair(vertex->get_id(), vertex->clone()));
+    SvtxVertex* vertex = dynamic_cast<SvtxVertex*> (iter->second->CloneMe());
+    _map.insert(make_pair(vertex->get_id(), vertex));
   }
 }
 
@@ -31,8 +32,8 @@ SvtxVertexMap_v1& SvtxVertexMap_v1::operator=(const SvtxVertexMap_v1& vertexmap)
        iter != vertexmap.end();
        ++iter)
   {
-    const SvtxVertex* vertex = iter->second;
-    _map.insert(make_pair(vertex->get_id(), vertex->clone()));
+    SvtxVertex* vertex = dynamic_cast<SvtxVertex*> (iter->second->CloneMe());
+    _map.insert(make_pair(vertex->get_id(), vertex));
   }
   return *this;
 }
@@ -63,14 +64,14 @@ void SvtxVertexMap_v1::identify(ostream& os) const
 const SvtxVertex* SvtxVertexMap_v1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 SvtxVertex* SvtxVertexMap_v1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
@@ -85,5 +86,5 @@ SvtxVertex* SvtxVertexMap_v1::insert(SvtxVertex* vertex)
 
 SvtxVertex* SvtxVertexMap_v1::insert_clone(const SvtxVertex* vertex)
 {
-  return insert(vertex->clone());
+  return insert(dynamic_cast<SvtxVertex*> (vertex->CloneMe()));
 }

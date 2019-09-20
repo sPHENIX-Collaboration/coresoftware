@@ -309,12 +309,10 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector fieldVector)
   {
     // If the new field's value is Zero, then it is best to
     //  insure that it is not used for propagation.
-    if(fEMfield) delete fEMfield;
-    fEMfield = 0;
+    delete fEMfield;
+    fEMfield = nullptr;
     fEquation->SetFieldObj(fEMfield);   // As a double check ...
-
-    G4MagneticField* fEMfield = 0;
-     fieldMgr->SetDetectorField(fEMfield);
+    fieldMgr->SetDetectorField(fEMfield);
   }
 }
 

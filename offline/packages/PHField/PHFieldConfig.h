@@ -37,6 +37,8 @@ class PHFieldConfig : public PHObject
   virtual int
   isValid() const;
 
+  virtual PHObject* CloneMe() const {return nullptr;}
+
   enum FieldConfigTypes
   {
     //! Constant field

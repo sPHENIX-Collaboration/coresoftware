@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <iostream>
-#include <limits.h>
+#include <climits>
 #include <set>
 #include <vector>
 
@@ -26,7 +26,7 @@ class SvtxVertex : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxVertex* clone() const { return NULL; }
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   // vertex info
 

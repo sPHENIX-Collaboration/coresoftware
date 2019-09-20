@@ -25,13 +25,6 @@ PHFieldConfigv1::PHFieldConfigv1(FieldConfigTypes field_config,
 {
 }
 
-/// Virtual copy constructor.
-PHObject*
-PHFieldConfigv1::clone() const
-{
-  return new PHFieldConfigv1(*this);
-}
-
 /** identify Function from PHObject
  @param os Output Stream
  */

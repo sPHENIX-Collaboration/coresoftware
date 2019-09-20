@@ -8,8 +8,8 @@
 
 namespace Pythia8
 {
-class Pythia;
-};
+  class Pythia;
+}
 
 class PHPy8ParticleTrigger : public PHPy8GenTrigger
 {

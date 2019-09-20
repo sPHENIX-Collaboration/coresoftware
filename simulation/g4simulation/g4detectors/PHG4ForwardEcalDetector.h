@@ -44,7 +44,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     _mapping_tower_file = filename;
   }
 
-  virtual void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type)
+  void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type)
   {
     if (type == 0)
     {

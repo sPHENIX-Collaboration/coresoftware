@@ -15,6 +15,8 @@
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbClassMap.h>
 
+#include <phool/PHTimeStamp.h>       // for PHTimeStamp
+
 #include <TNamed.h>
 
 #include <cassert>
@@ -23,6 +25,8 @@
 #include <map>
 #include <sstream>
 #include <string>
+
+class PdbCalChan;
 
 using namespace std;
 
