@@ -5,6 +5,8 @@ lib_LTLIBRARIES = \
     libg4detectors_io.la \
     libg4detectors.la
 
+AM_CXXFLAGS = `geant4-config --cflags  | sed s/-Woverloaded-virtual// | sed s/-pedantic// | sed s/-Wshadow// | sed s/-W\ //`
+
 AM_CPPFLAGS = \
     -DCGAL_DISABLE_ROUNDING_MATH_CHECK \
     -I$(includedir) \
