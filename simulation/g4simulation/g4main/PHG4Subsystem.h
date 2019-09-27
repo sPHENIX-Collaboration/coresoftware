@@ -4,10 +4,12 @@
 #define G4MAIN_PHG4SUBSYSTEM_H
 
 #include <fun4all/SubsysReco.h>
+#include <fun4all/Fun4AllReturnCodes.h>
 
 #include <iostream>
 #include <string>
 
+class G4LogicalVolume;
 class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4EventAction;
@@ -20,7 +22,10 @@ class PHG4Subsystem: public SubsysReco
   public:
 
   //! constructor
-  PHG4Subsystem( const std::string &name = "Generic Subsystem" ): SubsysReco(name),
+  PHG4Subsystem( const std::string &name = "Generic Subsystem" ): 
+SubsysReco(name),
+  m_MyMotherSubsystem(nullptr),
+m_MyLogicalVolume(nullptr),
 overlapcheck(false)
   {}
 
@@ -29,7 +34,7 @@ overlapcheck(false)
 
   //! event processing
   virtual int process_after_geant(PHCompositeNode *)
-  { return 0; }
+  { return Fun4AllReturnCodes::EVENT_OK; }
 
   //! return pointer to created detector object
   virtual PHG4Detector* GetDetector( void ) const
@@ -55,7 +60,15 @@ overlapcheck(false)
 
   bool CheckOverlap() const {return overlapcheck;}
 
+  void SetMotherSubsystem(PHG4Subsystem *subsys) {m_MyMotherSubsystem = subsys;}
+  PHG4Subsystem *GetMotherSubsystem() const {return m_MyMotherSubsystem;}
+
+  void SetLogicalVolume(G4LogicalVolume *vol) {m_MyLogicalVolume = vol;}
+  G4LogicalVolume *GetLogicalVolume() const {return m_MyLogicalVolume;}
+
  private:
+  PHG4Subsystem *m_MyMotherSubsystem;
+  G4LogicalVolume *m_MyLogicalVolume;
   bool overlapcheck;
 
 };

@@ -12,6 +12,7 @@ class G4LogicalVolume;
 class G4UserSteppingAction;
 class G4VSolid;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 //! base class for phenix detector creation
 /*! derived classes must implement construct method, which takes the "world" logical volume as argument */
@@ -22,7 +23,7 @@ class PHG4Detector
   // delete default ctor, nobody should use it
   PHG4Detector() = delete;
   // this is the ctor we use
-  PHG4Detector(PHCompositeNode *Node, const std::string &nam = "NONE");
+  explicit PHG4Detector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam);
 
   //! destructor
   virtual ~PHG4Detector(void)
@@ -34,7 +35,9 @@ class PHG4Detector
   construct all logical and physical volumes relevant for given detector and place them
   inside the world logical volume
   */
-  virtual void Construct(G4LogicalVolume *world) = 0;
+  virtual void Construct(G4LogicalVolume *world);
+
+  virtual void ConstructMe(G4LogicalVolume *mothervolume) {return;}
 
   virtual void Verbosity(const int v) { m_Verbosity = v; }
 
@@ -53,6 +56,7 @@ class PHG4Detector
 
  private:
   PHCompositeNode *m_topNode;
+  PHG4Subsystem *m_MySubsystem;
   int m_Verbosity;
   bool m_OverlapCheck;
   int m_ColorIndex;
