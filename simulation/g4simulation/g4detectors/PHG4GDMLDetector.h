@@ -15,7 +15,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-
 #include <Geant4/G4Types.hh>
 
 #include <string>
@@ -33,7 +32,7 @@ class PHParameters;
 class PHG4GDMLDetector : public PHG4Detector
 {
  public:
-  PHG4GDMLDetector(PHG4Subsystem *subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
+  PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
 
   virtual ~PHG4GDMLDetector();
 
@@ -48,8 +47,8 @@ class PHG4GDMLDetector : public PHG4Detector
   void Print(const std::string& what = "ALL") const;
 
  private:
-  void SetDisplayProperty( G4AssemblyVolume* av);
-  void SetDisplayProperty( G4LogicalVolume* lv);
+  void SetDisplayProperty(G4AssemblyVolume* av);
+  void SetDisplayProperty(G4LogicalVolume* lv);
 
   std::string m_GDMPath;
   std::string m_TopVolName;

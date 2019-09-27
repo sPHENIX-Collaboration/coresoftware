@@ -14,7 +14,7 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <iostream>                    // for operator<<, basic_ostream, endl
+#include <iostream>  // for operator<<, basic_ostream, endl
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -35,8 +35,8 @@ PHG4GDMLSubsystem::~PHG4GDMLSubsystem()
 //_______________________________________________________________________
 int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-//  PHNodeIterator iter(topNode);
-//  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  //  PHNodeIterator iter(topNode);
+  //  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
   m_Detector = new PHG4GDMLDetector(this, topNode, Name(), GetParams());
