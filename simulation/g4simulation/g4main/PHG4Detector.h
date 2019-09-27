@@ -37,7 +37,7 @@ class PHG4Detector
   */
   virtual void Construct(G4LogicalVolume *world);
 
-  virtual void ConstructMe(G4LogicalVolume *mothervolume) {return;}
+  virtual void ConstructMe(G4LogicalVolume *mothervolume) { return; }
 
   virtual void Verbosity(const int v) { m_Verbosity = v; }
 
@@ -52,7 +52,7 @@ class PHG4Detector
   }
   virtual int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
-  virtual PHCompositeNode *topNode() {return m_topNode;}
+  virtual PHCompositeNode *topNode() { return m_topNode; }
 
  private:
   PHCompositeNode *m_topNode;
