@@ -18,14 +18,14 @@ class PHG4BeamlineMagnetDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int layer = 0 );
+  PHG4BeamlineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int layer = 0 );
 
   //! destructor
   virtual ~PHG4BeamlineMagnetDetector( void )
   {}
 
   //! construct
-  void Construct( G4LogicalVolume* world );
+  void ConstructMe( G4LogicalVolume* world );
 
   bool IsInBeamlineMagnet(const G4VPhysicalVolume*) const;
   void SuperDetector(const std::string &name) {superdetector = name;}

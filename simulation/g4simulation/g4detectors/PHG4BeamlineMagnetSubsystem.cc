@@ -24,7 +24,7 @@ int PHG4BeamlineMagnetSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 {
 
   /* create magnet */
-  detector_ = new PHG4BeamlineMagnetDetector(topNode, GetParams(), Name(), GetLayer());
+  detector_ = new PHG4BeamlineMagnetDetector(this, topNode, GetParams(), Name(), GetLayer());
 
   return 0;
 

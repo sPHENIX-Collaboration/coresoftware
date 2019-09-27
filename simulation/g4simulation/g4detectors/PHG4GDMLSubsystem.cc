@@ -39,7 +39,7 @@ int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 //  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  m_Detector = new PHG4GDMLDetector(topNode, Name(), GetParams());
+  m_Detector = new PHG4GDMLDetector(this, topNode, Name(), GetParams());
   m_Detector->OverlapCheck(CheckOverlap());
 
   //  set<string> nodes;

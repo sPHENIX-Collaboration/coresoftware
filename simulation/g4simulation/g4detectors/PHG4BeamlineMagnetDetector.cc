@@ -3,6 +3,7 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>           // for PHG4Detector
+#include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
@@ -38,8 +39,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________
-PHG4BeamlineMagnetDetector::PHG4BeamlineMagnetDetector( PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int lyr ):
-  PHG4Detector(Node,dnam),
+PHG4BeamlineMagnetDetector::PHG4BeamlineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,  PHParameters *parameters, const std::string &dnam, const int lyr ):
+						       PHG4Detector(subsys, Node,dnam),
   params(parameters),
   magnet_physi(nullptr),
   cylinder_physi(nullptr),
@@ -58,7 +59,7 @@ bool PHG4BeamlineMagnetDetector::IsInBeamlineMagnet(const G4VPhysicalVolume * vo
 
 
 //_______________________________________________________________
-void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
+void PHG4BeamlineMagnetDetector::ConstructMe( G4LogicalVolume* logicMother )
 {
   G4Material *TrackerMaterial = G4Material::GetMaterial(params->get_string_param("material"));
 
@@ -172,7 +173,7 @@ void PHG4BeamlineMagnetDetector::Construct( G4LogicalVolume* logicWorld )
                                                                params->get_double_param("place_z")*cm) ),
                                    magnet_logic,
                                    G4String(GetName().c_str()),
-                                   logicWorld, 0, false, OverlapCheck());
+                                   logicMother, 0, false, OverlapCheck());
 
 
   /* Add volume with solid magnet material */

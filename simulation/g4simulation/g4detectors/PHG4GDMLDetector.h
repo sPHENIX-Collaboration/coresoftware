@@ -24,6 +24,7 @@ class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4UserSteppingAction;
 class PHCompositeNode;
+class PHG4Subsystem;
 class PHParameters;
 
 /*!
@@ -32,12 +33,12 @@ class PHParameters;
 class PHG4GDMLDetector : public PHG4Detector
 {
  public:
-  PHG4GDMLDetector(PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
+  PHG4GDMLDetector(PHG4Subsystem *subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
 
   virtual ~PHG4GDMLDetector();
 
   //! construct
-  void Construct(G4LogicalVolume* world);
+  void ConstructMe(G4LogicalVolume* world);
 
   G4UserSteppingAction* GetSteppingAction()
   {

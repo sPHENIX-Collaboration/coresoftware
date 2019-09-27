@@ -12,6 +12,7 @@
 
 #include <g4main/PHG4Utils.h>
 #include <g4main/PHG4Detector.h>          // for PHG4Detector
+#include <g4main/PHG4Subsystem.h>
 
 #include <phparameter/PHParameters.h>
 
@@ -38,8 +39,8 @@
 
 using namespace std;
 
-PHG4GDMLDetector::PHG4GDMLDetector(PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters)
-  : PHG4Detector(Node, dnam)
+PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem *subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters)
+  : PHG4Detector(subsys, Node, dnam)
   , m_GDMPath(parameters->get_string_param("GDMPath"))
   , m_TopVolName(parameters->get_string_param("TopVolName"))
   , m_placeX(parameters->get_double_param("place_x") * cm)
@@ -68,7 +69,7 @@ PHG4GDMLDetector::Print(const std::string& what) const
        << m_rotationZ << "rad" << endl;
 }
 
-void PHG4GDMLDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {
