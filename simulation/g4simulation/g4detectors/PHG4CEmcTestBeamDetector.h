@@ -7,7 +7,7 @@
 
 #include <Geant4/G4Types.hh>
 
-#include <string>                 // for string
+#include <string>  // for string
 #include <vector>
 
 class G4LogicalVolume;
@@ -15,52 +15,49 @@ class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4Subsystem;
 
-class PHG4CEmcTestBeamDetector: public PHG4Detector
+class PHG4CEmcTestBeamDetector : public PHG4Detector
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CEmcTestBeamDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr = 0 );
+  PHG4CEmcTestBeamDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr = 0);
 
   //! destructor
-  virtual ~PHG4CEmcTestBeamDetector( void )
-  {}
+  virtual ~PHG4CEmcTestBeamDetector(void)
+  {
+  }
 
   //! construct
-  virtual void ConstructMe( G4LogicalVolume* world );
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
   //@{
-  int IsInCEmcTestBeam(G4VPhysicalVolume*) const;
+  int IsInCEmcTestBeam(G4VPhysicalVolume *) const;
   //@}
 
-  void SetPlaceZ(const G4double place_z) {place_in_z = place_z;}
+  void SetPlaceZ(const G4double place_z) { place_in_z = place_z; }
   void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
   {
     place_in_x = place_x;
     place_in_y = place_y;
     place_in_z = place_z;
   }
-  void SetXRot(const G4double angle) {x_rot = angle;}
-  void SetYRot(const G4double angle) {y_rot = angle;}
-  void SetZRot(const G4double angle) {z_rot = angle;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
-  int IsActive() const {return active;}
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
+  void SetXRot(const G4double angle) { x_rot = angle; }
+  void SetYRot(const G4double angle) { y_rot = angle; }
+  void SetZRot(const G4double angle) { z_rot = angle; }
+  void SetActive(const int i = 1) { active = i; }
+  void SetAbsorberActive(const int i = 1) { absorberactive = i; }
+  int IsActive() const { return active; }
+  void SuperDetector(const std::string &name) { superdetector = name; }
+  const std::string SuperDetector() const { return superdetector; }
+  int get_Layer() const { return layer; }
 
-  void BlackHole(const int i=1) {blackhole = i;}
-  int IsBlackHole() const {return blackhole;}
+  void BlackHole(const int i = 1) { blackhole = i; }
+  int IsBlackHole() const { return blackhole; }
 
-  private:
-
+ private:
   void CalculateGeometry();
-  int ConstructTowerVolume(G4LogicalVolume* tower);
-  int ConstructSandwichVolume(G4LogicalVolume* sandwich);
-
+  int ConstructTowerVolume(G4LogicalVolume *tower);
+  int ConstructSandwichVolume(G4LogicalVolume *sandwich);
 
   std::vector<G4VPhysicalVolume *> sandwich_vol;
   G4double w_dimension[3];
@@ -90,7 +87,6 @@ class PHG4CEmcTestBeamDetector: public PHG4Detector
   int blackhole;
   std::string detector_type;
   std::string superdetector;
-  
 };
 
 #endif

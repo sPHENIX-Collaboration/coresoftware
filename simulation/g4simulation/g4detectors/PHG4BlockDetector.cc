@@ -5,24 +5,24 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>         // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>    // for G4RotationMatrix
-#include <Geant4/G4String.hh>            // for G4String
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4UserLimits.hh>
 
-#include <CLHEP/Units/SystemOfUnits.h>   // for cm, deg
+#include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg
 
-#include <cmath>                         // for isfinite
-#include <cstdlib>                      // for exit
-#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <cmath>     // for isfinite
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
 class G4VSolid;
