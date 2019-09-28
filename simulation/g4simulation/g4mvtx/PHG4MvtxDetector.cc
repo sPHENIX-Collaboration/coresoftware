@@ -11,36 +11,36 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
-#include <g4main/PHG4Detector.h>                    // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>               // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
-#include <phool/PHNodeIterator.h>                   // for PHNodeIterator
-#include <phool/PHObject.h>                         // for PHObject
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4GDMLParser.hh>
-#include <Geant4/G4GDMLReadStructure.hh>            // for G4GDMLReadStructure
+#include <Geant4/G4GDMLReadStructure.hh>  // for G4GDMLReadStructure
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4RotationMatrix.hh>               // for G4RotationMatrix
-#include <Geant4/G4String.hh>                       // for G4String
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>                  // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>                  // for G4Transform3D
-#include <Geant4/G4Types.hh>                        // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>              // for G4VPhysicalVolume
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
+#include <Geant4/G4Types.hh>            // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <cmath>
-#include <cstdio>                                  // for sprintf
-#include <iostream>                                 // for operator<<, basic...
+#include <cstdio>    // for sprintf
+#include <iostream>  // for operator<<, basic...
 #include <memory>
 #include <sstream>
-#include <utility>                                  // for pair, make_pair
-#include <vector>                                   // for vector, vector<>:...
+#include <utility>  // for pair, make_pair
+#include <vector>   // for vector, vector<>:...
 
 using namespace std;
 

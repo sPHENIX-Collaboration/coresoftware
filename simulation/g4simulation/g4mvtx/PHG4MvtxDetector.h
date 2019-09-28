@@ -6,11 +6,11 @@
 #include <g4main/PHG4Detector.h>
 
 #include <array>
-#include <cmath>                 // for M_PI
+#include <cmath>  // for M_PI
 #include <map>
 #include <set>
 #include <string>
-#include <tuple>                  // for tuple
+#include <tuple>  // for tuple
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
@@ -58,7 +58,7 @@ class PHG4MvtxDetector : public PHG4Detector
   void FillPVArray(G4AssemblyVolume* av);
   void FindSensor(G4LogicalVolume* lv);
   // calculated quantities
-  double get_phistep(int lay) const { return 2.0 * M_PI /  m_N_staves[lay]; }
+  double get_phistep(int lay) const { return 2.0 * M_PI / m_N_staves[lay]; }
 
   static constexpr int n_Layers = 3;
   PHG4MvtxDisplayAction* m_DisplayAction;
@@ -79,7 +79,6 @@ class PHG4MvtxDetector : public PHG4Detector
   double m_PixelX;
   double m_PixelZ;
   double m_PixelThickness;
-
 
   std::string m_Detector;
   std::string m_SuperDetector;
