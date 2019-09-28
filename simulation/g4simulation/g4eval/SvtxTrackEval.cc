@@ -5,6 +5,8 @@
 
 #include <g4main/PHG4Hit.h>
 
+#include <trackbase/TrkrDefs.h>               // for cluskey, getLayer
+
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 

@@ -341,7 +341,7 @@ void SvtxEvaluator::printInputInfo(PHCompositeNode* topNode)
     }
 
     cout << "---SVXVERTEXES-------------" << endl;
-    SvtxVertexMap* vertexmap = NULL;
+    SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
     else
@@ -395,7 +395,7 @@ void SvtxEvaluator::printOutputInfo(PHCompositeNode* topNode)
     float vy = NAN;
     float vz = NAN;
 
-    SvtxVertexMap* vertexmap = NULL;
+    SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
     else
@@ -766,7 +766,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       _timer->restart();
     }
 
-    SvtxVertexMap* vertexmap = NULL;
+    SvtxVertexMap* vertexmap = nullptr;
     if(_use_initial_vertex)
       vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
     else

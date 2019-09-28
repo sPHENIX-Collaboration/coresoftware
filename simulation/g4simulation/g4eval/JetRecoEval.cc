@@ -3,6 +3,7 @@
 #include "JetTruthEval.h"
 #include "CaloEvalStack.h"
 #include "CaloRawClusterEval.h"
+#include "CaloRawTowerEval.h"                 // for CaloRawTowerEval
 #include "SvtxTrackEval.h"
 #include "SvtxEvalStack.h"
 

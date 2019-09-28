@@ -16,6 +16,8 @@
 #include <map>
 #include <utility>   // for pair, make_pair
 
+class PHObject;
+
 /*!
  * \brief Jetv1
  */

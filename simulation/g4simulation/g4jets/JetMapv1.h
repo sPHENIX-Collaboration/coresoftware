@@ -9,6 +9,8 @@
 #include <iostream>
 #include <set>
 
+class PHObject;
+
 class JetMapv1 : public JetMap
 {
  public:

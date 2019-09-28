@@ -10,6 +10,10 @@
 
 #include "PHG4HitEval.h"
 
+#include "PHG4Hit.h"         // for PHG4Hit
+
+#include <phool/PHObject.h>  // for PHObject
+
 #include <cassert>
 #include <cmath>
 

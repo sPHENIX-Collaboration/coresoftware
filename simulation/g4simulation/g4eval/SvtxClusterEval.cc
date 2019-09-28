@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cfloat>
 #include <cmath>
+#include <iostream>                          // for operator<<, basic_ostream
 #include <map>
 #include <set>
 
@@ -27,7 +28,6 @@ using namespace std;
 SvtxClusterEval::SvtxClusterEval(PHCompositeNode* topNode)
   : _hiteval(topNode)
   , _clustermap(nullptr)
-    //  , _hitmap(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
   , _verbosity(1)
