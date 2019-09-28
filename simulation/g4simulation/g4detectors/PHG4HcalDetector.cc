@@ -12,7 +12,7 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/G4Colour.hh>              // for G4Colour
+#include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>

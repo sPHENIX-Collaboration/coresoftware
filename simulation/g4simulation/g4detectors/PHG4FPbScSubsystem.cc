@@ -6,8 +6,8 @@
 #include "PHG4FPbScSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>      // for PHG4SteppingAction
-#include <g4main/PHG4Subsystem.h>  // for PHG4Subsystem
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
+#include <g4main/PHG4Subsystem.h>       // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode

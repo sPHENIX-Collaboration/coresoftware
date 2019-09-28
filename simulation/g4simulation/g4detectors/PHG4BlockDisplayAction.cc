@@ -5,11 +5,11 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <Geant4/G4Colour.hh>          // for G4Colour
+#include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
-#include <cmath>                       // for isfinite
+#include <cmath>  // for isfinite
 
 using namespace std;
 
@@ -52,7 +52,7 @@ void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
   {
     m_VisAtt->SetColour(m_Colour->GetRed(),
                         m_Colour->GetGreen(),
-                        m_Colour->GetBlue(), 
+                        m_Colour->GetBlue(),
                         m_Colour->GetAlpha());
     m_VisAtt->SetVisibility(true);
     m_VisAtt->SetForceSolid(true);
@@ -61,11 +61,11 @@ void PHG4BlockDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
   return;
 }
 
-void  PHG4BlockDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
+void PHG4BlockDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
 {
   if (isfinite(red) && isfinite(green) && isfinite(blue) && isfinite(alpha))
   {
-    m_Colour = new G4Colour(red,green,blue,alpha);
+    m_Colour = new G4Colour(red, green, blue, alpha);
   }
   return;
 }

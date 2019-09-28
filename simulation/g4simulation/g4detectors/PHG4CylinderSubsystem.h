@@ -5,8 +5,8 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <array>                    // for array
-#include <string>                   // for string
+#include <array>   // for array
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4CylinderDetector;
@@ -46,7 +46,7 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
   PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
-  void set_color(const double red, const double green, const double blue, const double alpha=1.)
+  void set_color(const double red, const double green, const double blue, const double alpha = 1.)
   {
     m_ColorArray[0] = red;
     m_ColorArray[1] = green;
@@ -71,11 +71,10 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 
   //! Color setting if we want to override the default
 #if !defined(__CINT__) || defined(__CLING__)
-  std::array<double,4> m_ColorArray;
+  std::array<double, 4> m_ColorArray;
 #else
   double m_ColorArray[4];
 #endif
-
 };
 
 #endif  // G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H

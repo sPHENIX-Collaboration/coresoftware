@@ -13,9 +13,9 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/G4String.hh>  // for G4String
-#include <Geant4/G4SystemOfUnits.hh>    // for cm
-#include <Geant4/G4Types.hh>   // for G4double
+#include <Geant4/G4String.hh>         // for G4String
+#include <Geant4/G4SystemOfUnits.hh>  // for cm
+#include <Geant4/G4Types.hh>          // for G4double
 
 #include <cmath>     // for asin, cos, sin, sqrt, M_PI
 #include <cstdlib>   // for NULL, exit
