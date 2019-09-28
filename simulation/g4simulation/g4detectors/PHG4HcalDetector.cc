@@ -47,8 +47,8 @@ using namespace std;
 int PHG4HcalDetector::INACTIVE = -100;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4HcalDetector::PHG4HcalDetector(PHCompositeNode* Node, const std::string& dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4HcalDetector::PHG4HcalDetector(PHG4Subsystem *subsys, PHCompositeNode* Node, const std::string& dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , TrackerMaterial(nullptr)
   , TrackerThickness(100 * cm)
   , cylinder_logic(nullptr)
@@ -86,7 +86,7 @@ int PHG4HcalDetector::IsInCylinderActive(const G4VPhysicalVolume* volume)
 }
 
 //_______________________________________________________________
-void PHG4HcalDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   TrackerMaterial = G4Material::GetMaterial(material);
 

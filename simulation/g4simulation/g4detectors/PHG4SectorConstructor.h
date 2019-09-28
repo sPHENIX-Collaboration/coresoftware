@@ -24,7 +24,7 @@ class G4LogicalVolume;
 class G4PVPlacement;
 class G4VSolid;
 class PHG4SectorDisplayAction;
-class PHG4SectorSubsystem;
+class PHG4Subsystem;
 
 #include <map>
 #include <utility>
@@ -363,7 +363,7 @@ class Sector_Geometry
 class PHG4SectorConstructor
 {
  public:
-  PHG4SectorConstructor(const std::string &name, PHG4SectorSubsystem *subsys);
+  PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys);
   virtual ~PHG4SectorConstructor(){}
 
   void

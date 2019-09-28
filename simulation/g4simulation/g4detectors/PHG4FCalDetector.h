@@ -18,16 +18,17 @@ class G4LogicalVolume;
 class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 class PHG4FCalDetector: public PHG4Detector
 {
   public:
     
-    PHG4FCalDetector( PHCompositeNode *Node );
+  PHG4FCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &name );
     
     virtual ~PHG4FCalDetector( void ){}
     
-    virtual void Construct( G4LogicalVolume* world );
+    virtual void ConstructMe( G4LogicalVolume* world );
     
     virtual G4UserSteppingAction* GetSteppingAction() 
     { 

@@ -28,7 +28,7 @@ class G4LogicalVolume;
 class G4OpticalSurface;
 class G4PVPlacement;
 class PHG4RICHDisplayAction;
-class PHG4RICHSubsystem;
+class PHG4Subsystem;
 
 namespace ePHENIXRICH
 {
@@ -375,8 +375,8 @@ class ePHENIXRICHConstruction
 {
  public:
   virtual ~ePHENIXRICHConstruction() {}
-  ePHENIXRICHConstruction(PHG4RICHSubsystem* subsys);
-  ePHENIXRICHConstruction(PHG4RICHSubsystem* subsys, const RICH_Geometry& g);
+  ePHENIXRICHConstruction(PHG4Subsystem* subsys);
+  ePHENIXRICHConstruction(PHG4Subsystem* subsys, const RICH_Geometry& g);
 
   virtual void
   OverlapCheck(bool check)

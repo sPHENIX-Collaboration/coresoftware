@@ -26,8 +26,8 @@ class PHCompositeNode;
 using namespace std;
 
 
-PHG4FCalDetector::PHG4FCalDetector( PHCompositeNode *Node ) :
-  PHG4Detector(Node),
+PHG4FCalDetector::PHG4FCalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &name ) :
+  PHG4Detector(subsys, Node, name),
   length(1.0 * m),
   absorber_thickness(5.0 * mm),
   scintillator_thickness(5.0 * cm),
@@ -75,7 +75,7 @@ unsigned int PHG4FCalDetector::computeIndex(unsigned int layer, G4double x, G4do
 }
 
 
-void PHG4FCalDetector::Construct( G4LogicalVolume* logicWorld )
+void PHG4FCalDetector::ConstructMe( G4LogicalVolume* logicWorld )
 {
 //   const G4MaterialTable* mattab = G4Material::GetMaterialTable();
 //   for(unsigned int i=0;i<mattab->size();i++)

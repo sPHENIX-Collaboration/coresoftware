@@ -14,7 +14,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4ForwardEcalDisplayAction;
-class PHG4ForwardEcalSubsystem;
+class PHG4Subsystem;
 class PHG4GDMLConfig;
 
 /**
@@ -27,13 +27,13 @@ class PHG4ForwardEcalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ForwardEcalDetector(PHG4ForwardEcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam = "BLOCK");
+  PHG4ForwardEcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4ForwardEcalDetector();
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
   int IsInForwardEcal(G4VPhysicalVolume *) const;

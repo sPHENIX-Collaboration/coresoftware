@@ -17,12 +17,13 @@ class G4LogicalVolume;
 class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 class PHG4HcalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4HcalDetector(PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
+  PHG4HcalDetector(PHG4Subsystem *subsys, PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
 
   //! destructor
   virtual ~PHG4HcalDetector(void)
@@ -30,7 +31,7 @@ class PHG4HcalDetector : public PHG4Detector
   }
 
   //! construct
-  void Construct(G4LogicalVolume* world);
+  void ConstructMe(G4LogicalVolume* world);
 
   void SetRadius(const G4double dbl) { radius = dbl * cm; }
   void SetLength(const G4double dbl) { length = dbl * cm; }

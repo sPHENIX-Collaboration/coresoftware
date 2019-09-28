@@ -5,8 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-// cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
-//#include <Geant4/G4RotationMatrix.hh>
 #include <Geant4/G4Types.hh>               // for G4double
 
 #include <CGAL/Exact_circular_kernel_2.h>
@@ -25,8 +23,8 @@ class G4VSolid;
 class PHCompositeNode;
 class PHG4OuterHcalDisplayAction;
 class PHG4OuterHcalFieldSetup;
-class PHG4OuterHcalSubsystem;
 class PHParameters;
+class PHG4Subsystem;
 
 class PHG4OuterHcalDetector : public PHG4Detector
 {
@@ -34,13 +32,13 @@ class PHG4OuterHcalDetector : public PHG4Detector
   typedef CGAL::Exact_circular_kernel_2 Circular_k;
   typedef CGAL::Point_2<Circular_k> Point_2;
   //! constructor
-  PHG4OuterHcalDetector(PHG4OuterHcalSubsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam = "HCALOUT");
+  PHG4OuterHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4OuterHcalDetector();
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   virtual void Print(const std::string &what = "ALL") const;
 

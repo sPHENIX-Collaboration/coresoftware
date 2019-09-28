@@ -25,21 +25,21 @@ class PHCompositeNode;
 using namespace std;
 using namespace ePHENIXRICH;
 
-PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node, const RICH_Geometry &g)
-  : PHG4Detector(Node)
+PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &dnam,  const RICH_Geometry &g)
+  : PHG4Detector(subsys, Node, dnam)
   , ePHENIXRICHConstruction(subsys, g)
   , _region(nullptr)
 {
 }
 
-PHG4RICHDetector::PHG4RICHDetector(PHG4RICHSubsystem *subsys, PHCompositeNode *Node)
-  : PHG4Detector(Node)
+PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , ePHENIXRICHConstruction(subsys)
   , _region(nullptr)
 {
 }
 
-void PHG4RICHDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4RICHDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   _region = new G4Region("FCALREGION");
   _region->SetRegionalSteppingAction(new PHG4RICHSteppingAction(this));

@@ -29,8 +29,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4ForwardHcalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
-  : PHG4Detector(Node, dnam)
+PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardHcalDisplayAction*>(subsys->GetDisplayAction()))
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
@@ -90,7 +90,7 @@ int PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume* volume) const
 }
 
 //_______________________________________________________________________
-void PHG4ForwardHcalDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {

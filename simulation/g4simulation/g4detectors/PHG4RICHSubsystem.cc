@@ -60,7 +60,7 @@ int PHG4RICHSubsystem::Init(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4RICHDisplayAction(Name());
   // create detector
-  m_Detector = new PHG4RICHDetector(this, topNode, geom);
+  m_Detector = new PHG4RICHDetector(this, topNode, Name(), geom);
   m_Detector->Verbosity(Verbosity());
   m_Detector->OverlapCheck(CheckOverlap());
 

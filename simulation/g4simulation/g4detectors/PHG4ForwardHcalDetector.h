@@ -15,7 +15,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4ForwardHcalDisplayAction;
-class PHG4ForwardHcalSubsystem;
+class PHG4Subsystem;
 
 /**
  * \file ${file_name}
@@ -27,13 +27,13 @@ class PHG4ForwardHcalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ForwardHcalDetector(PHG4ForwardHcalSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam = "BLOCK");
+  PHG4ForwardHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4ForwardHcalDetector() {}
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
   int IsInForwardHcal(G4VPhysicalVolume *) const;

@@ -39,7 +39,7 @@ int PHG4FCalSubsystem::Init( PHCompositeNode* topNode )
   }
   
   // create detector
-  detector_ = new PHG4FCalDetector(topNode);
+  detector_ = new PHG4FCalDetector(this, topNode, Name());
   detector_->Verbosity(Verbosity());
   
   // create stepping action

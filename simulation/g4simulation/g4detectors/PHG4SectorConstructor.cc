@@ -38,7 +38,7 @@
 using namespace PHG4Sector;
 using namespace std;
 
-PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4SectorSubsystem *subsys)
+PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
   : overlapcheck_sector(false)
   , name_base(name)
   , m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction *>(subsys->GetDisplayAction()))

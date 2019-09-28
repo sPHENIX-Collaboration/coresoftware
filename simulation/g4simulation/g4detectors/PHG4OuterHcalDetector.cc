@@ -66,8 +66,8 @@ using namespace std;
 // scintilator length takes care of this
 static double subtract_from_scinti_x = 0.1 * mm;
 
-PHG4OuterHcalDetector::PHG4OuterHcalDetector(PHG4OuterHcalSubsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
-  : PHG4Detector(Node, dnam)
+PHG4OuterHcalDetector::PHG4OuterHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parames, const std::string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4OuterHcalDisplayAction *>(subsys->GetDisplayAction()))
   , m_FieldSetup(nullptr)
   , m_Params(parames)
@@ -412,7 +412,7 @@ void PHG4OuterHcalDetector::ShiftSecantToTangent(PHG4OuterHcalDetector::Point_2 
   return;
 }
 
-void PHG4OuterHcalDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4OuterHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
 #ifdef SCINTITEST
   ConstructOuterHcal(logicWorld);

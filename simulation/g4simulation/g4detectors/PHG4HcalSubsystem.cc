@@ -68,7 +68,7 @@ int PHG4HcalSubsystem::InitRun(PHCompositeNode* topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   // create detector
-  detector_ = new PHG4HcalDetector(topNode, Name(), layer);
+  detector_ = new PHG4HcalDetector(this, topNode, Name(), layer);
   detector_->SetRadius(radius);
   G4double detlength = length;
   if (lengthViaRapidityCoverage)

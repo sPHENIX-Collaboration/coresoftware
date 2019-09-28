@@ -22,8 +22,8 @@ class PHCompositeNode;
 
 using namespace std;
 
-PHG4FPbScDetector::PHG4FPbScDetector( PHCompositeNode *Node, const std::string &nam  ) :
-  PHG4Detector(Node, nam),
+PHG4FPbScDetector::PHG4FPbScDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &nam  ) :
+  PHG4Detector(subsys, Node, nam),
   tower_cross_section(5.535 * cm),
   segments_per_column(12*6),
   segments_per_height(12*3),
@@ -75,7 +75,7 @@ unsigned int PHG4FPbScDetector::computeIndex(unsigned int layer, G4double x, G4d
 }
 
 
-void PHG4FPbScDetector::Construct( G4LogicalVolume* logicWorld )
+void PHG4FPbScDetector::ConstructMe( G4LogicalVolume* logicWorld )
 {
 //   const G4MaterialTable* mattab = G4Material::GetMaterialTable();
 //   for(unsigned int i=0;i<mattab->size();i++)

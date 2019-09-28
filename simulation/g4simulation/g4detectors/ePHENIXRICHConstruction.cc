@@ -48,13 +48,13 @@ class G4VSolid;
 using namespace std;
 using namespace ePHENIXRICH;
 
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4Subsystem *subsys)
   : m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction *>(subsys->GetDisplayAction()))
   , overlapcheck_rich(false)
 
 {
 }
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys, const RICH_Geometry &g)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4Subsystem *subsys, const RICH_Geometry &g)
   : geom(g)
   , m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction *>(subsys->GetDisplayAction()))
   , overlapcheck_rich(false)

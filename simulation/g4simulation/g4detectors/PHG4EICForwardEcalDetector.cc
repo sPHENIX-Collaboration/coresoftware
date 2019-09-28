@@ -25,7 +25,7 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4ForwardEcalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
   : PHG4ForwardEcalDetector(subsys, Node, dnam)
   , _tower_dx(30 * mm)
   , _tower_dy(30 * mm)
@@ -41,7 +41,7 @@ PHG4EICForwardEcalDetector::~PHG4EICForwardEcalDetector()
 }
 
 //_______________________________________________________________________
-void PHG4EICForwardEcalDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {

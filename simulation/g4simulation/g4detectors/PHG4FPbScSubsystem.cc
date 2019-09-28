@@ -49,7 +49,7 @@ int PHG4FPbScSubsystem::Init( PHCompositeNode* topNode )
   }
   
   // create detector
-  detector_ = new PHG4FPbScDetector(topNode, Name());
+  detector_ = new PHG4FPbScDetector(this, topNode, Name());
   detector_->set_Place(x_position, y_position, z_position);
   detector_->Verbosity(Verbosity());
   
