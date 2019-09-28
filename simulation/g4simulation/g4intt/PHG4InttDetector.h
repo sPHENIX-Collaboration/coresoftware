@@ -15,19 +15,19 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHG4InttDisplayAction;
-class PHG4InttSubsystem;
+class PHG4Subsystem;
 class PHParametersContainer;
 
 class PHG4InttDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4InttDetector(PHG4InttSubsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
+  PHG4InttDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
   virtual ~PHG4InttDetector() {}
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
   //@{

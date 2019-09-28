@@ -56,8 +56,8 @@ class G4VSolid;
 
 using namespace std;
 
-PHG4InttDetector::PHG4InttDetector(PHG4InttSubsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> &layer_b_e)
-  : PHG4Detector(Node, dnam)
+PHG4InttDetector::PHG4InttDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> &layer_b_e)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4InttDisplayAction*>(subsys->GetDisplayAction()))
   , m_ParamsContainer(parameters)
   , m_IsSupportActive(0)
@@ -101,7 +101,7 @@ int PHG4InttDetector::IsInIntt(G4VPhysicalVolume *volume) const
   return 0;
 }
 
-void PHG4InttDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4InttDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   if (Verbosity() > 0)
   {
