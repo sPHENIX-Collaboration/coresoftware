@@ -5,7 +5,10 @@
 
 #include "PHG4DetectorSubsystem.h"
 
+#if !defined(__CINT__) || defined(__CLING__)
 #include <array>   // for array
+#endif
+
 #include <string>  // for string
 
 class PHCompositeNode;
