@@ -42,7 +42,7 @@
 #include <Geant4/G4ios.hh>  // for G4cout, G4endl
 
 #include <algorithm>  // for fill, max
-#include <cmath>  // for floor, sqrt, acos, asin
+#include <cmath>      // for floor, sqrt, acos, asin
 #include <cstdio>
 #include <iostream>  // for operator<<, basic_os...
 #include <iterator>  // for begin, end

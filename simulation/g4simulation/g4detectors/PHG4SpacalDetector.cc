@@ -11,14 +11,14 @@
 #include "PHG4SpacalDisplayAction.h"
 #include "PHG4SpacalSubsystem.h"
 
-#include <g4main/PHG4Detector.h>          // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                 // for PHNode
-#include <phool/PHNodeIterator.h>         // for PHNodeIterator
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
@@ -30,17 +30,17 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4String.hh>             // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>        // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>        // for G4Transform3D, G4RotateZ3D
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D, G4RotateZ3D
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
 
 #include <boost/foreach.hpp>
 
 #include <cassert>
-#include <iostream>                       // for operator<<, basic_ostream
+#include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
 
 class PHG4CylinderGeom;

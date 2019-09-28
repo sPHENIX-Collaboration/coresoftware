@@ -6,7 +6,7 @@
 #include <g4main/PHG4Detector.h>
 
 #include <map>
-#include <string>                 // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -18,10 +18,10 @@ class PHG4PSTOFDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4PSTOFDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam);
+  PHG4PSTOFDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4PSTOFDetector(){}
+  virtual ~PHG4PSTOFDetector() {}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume *world);
@@ -35,8 +35,8 @@ class PHG4PSTOFDetector : public PHG4Detector
 
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
- 
-protected:
+
+ protected:
   int IsActive;
   int IsAbsorberActive;
   int nmod;

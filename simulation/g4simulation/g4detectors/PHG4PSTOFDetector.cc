@@ -3,28 +3,28 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
-#include <g4main/PHG4Detector.h>                // for PHG4Detector
+#include <g4main/PHG4Detector.h>  // for PHG4Detector
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>           // for G4RotationMatrix
-#include <Geant4/G4String.hh>                   // for G4String
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>              // for G4ThreeVector
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4VisAttributes.hh>
 
 #include <cmath>
-#include <iostream>                             // for operator<<, endl, bas...
-#include <utility>                              // for pair
+#include <iostream>  // for operator<<, endl, bas...
+#include <utility>   // for pair
 
 class PHCompositeNode;
 
 using namespace std;
 
-PHG4PSTOFDetector::PHG4PSTOFDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
+PHG4PSTOFDetector::PHG4PSTOFDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
   : PHG4Detector(subsys, Node, dnam)
   , paramscontainer(params)
 {
@@ -98,8 +98,8 @@ void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
       G4VPhysicalVolume *vol = new G4PVPlacement(rotm, G4ThreeVector(x, y, z), pstof_log_vol, "PSTOF", logicWorld, false, modnum, OverlapCheck());
       if (IsActive)
       {
-	active_phys_vols[vol] = modnum;
-//        active_phys_vols.insert(vol);
+        active_phys_vols[vol] = modnum;
+        //        active_phys_vols.insert(vol);
       }
     }
   }

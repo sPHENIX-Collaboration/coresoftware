@@ -17,11 +17,11 @@
 #include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Transform3D.hh>
-#include <Geant4/G4Types.hh>            // for G4double
+#include <Geant4/G4Types.hh>  // for G4double
 
 #include <map>
-#include <string>                       // for string
-#include <utility>                      // for pair
+#include <string>   // for string
+#include <utility>  // for pair
 
 class G4Tubs;
 class G4LogicalVolume;

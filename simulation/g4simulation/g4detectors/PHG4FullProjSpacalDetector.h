@@ -15,11 +15,11 @@
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
 
-#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D
 
 #include <cassert>
-#include <string>                       // for string
-#include <utility>                      // for pair
+#include <string>   // for string
+#include <utility>  // for pair
 
 class G4LogicalVolume;
 class PHCompositeNode;

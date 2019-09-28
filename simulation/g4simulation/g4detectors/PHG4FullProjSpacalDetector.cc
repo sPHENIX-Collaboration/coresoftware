@@ -13,18 +13,18 @@
 #include <g4gdml/PHG4GDMLConfig.hh>
 
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4ExceptionSeverity.hh>   // for FatalException
+#include <Geant4/G4ExceptionSeverity.hh>  // for FatalException
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Trap.hh>
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Types.hh>               // for G4double
+#include <Geant4/G4Types.hh>  // for G4double
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/globals.hh>               // for G4Exception, G4ExceptionDe...
+#include <Geant4/globals.hh>  // for G4Exception, G4ExceptionDe...
 
 #include <TSystem.h>
 
@@ -33,13 +33,13 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstdlib>                        // for exit, NULL
-#include <iostream>                        // for operator<<, basic_ostream
-#include <map>                             // for allocator, map<>::value_type
-#include <numeric>  // std::accumulate
+#include <cstdlib>   // for exit, NULL
+#include <iostream>  // for operator<<, basic_ostream
+#include <map>       // for allocator, map<>::value_type
+#include <numeric>   // std::accumulate
 #include <sstream>
 #include <string>  // std::string, std::to_string
-#include <vector>                          // for vector
+#include <vector>  // for vector
 
 class PHCompositeNode;
 

@@ -11,9 +11,9 @@
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4ThreeVector.hh>
-#include <Geant4/G4Types.hh>        // for G4double, G4int
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 
-#include <map>                      // for map
+#include <map>  // for map
 #include <string>
 
 class G4LogicalVolume;
@@ -24,20 +24,18 @@ class PHCompositeNode;
 class PHG4Subsystem;
 
 //___________________________________________________________________________
-class PHG4mRICHDetector: public PHG4Detector
+class PHG4mRICHDetector : public PHG4Detector
 {
-
  public:
-  
   //! constructor
-  PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr = 0);
-  
+  PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr = 0);
+
   //! destructor
   virtual ~PHG4mRICHDetector();
-  
+
   //! construct
-  virtual void ConstructMe( G4LogicalVolume* world );
-  
+  virtual void ConstructMe(G4LogicalVolume* world);
+
   //name volume accessors
   //bool IsInBlock(G4VPhysicalVolume*) const;
   int IsInmRICH(G4VPhysicalVolume*) const;
@@ -55,9 +53,9 @@ class PHG4mRICHDetector: public PHG4Detector
     absorberactive = i;
   }
 
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
+  void SuperDetector(const std::string& name) { superdetector = name; }
+  const std::string SuperDetector() const { return superdetector; }
+  int get_Layer() const { return layer; }
 
   enum
   {
@@ -82,33 +80,33 @@ class PHG4mRICHDetector: public PHG4Detector
   class PolyPar;
   class LensPar;
 
-  PHParameters *params;
-  
+  PHParameters* params;
+
   G4VPhysicalVolume* build_box(BoxPar* par, G4LogicalVolume* motherLV);
   G4VPhysicalVolume* build_polyhedra(PolyPar* par, G4LogicalVolume* motherLV);
 
-  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);//, int detectorSetup);    //single mRICH
-  G4VPhysicalVolume* build_holderBox(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
-  void build_foamHolder(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
-  void build_aerogel(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
+  G4LogicalVolume* Construct_a_mRICH(G4LogicalVolume* logicWorld);  //, int detectorSetup);    //single mRICH
+  G4VPhysicalVolume* build_holderBox(mRichParameter* detectorParameter, G4LogicalVolume* motherLV);
+  void build_foamHolder(mRichParameter* detectorParameter, G4LogicalVolume* motherLV);
+  void build_aerogel(mRichParameter* detectorParameter, G4VPhysicalVolume* motherPV);
   void build_lens(LensPar* par, G4LogicalVolume* motherLV);
-  void build_mirror(mRichParameter* detectorParameter,G4VPhysicalVolume* motherPV);
-  void build_sensor(mRichParameter* detectorParameter,G4LogicalVolume* motherLV);
+  void build_mirror(mRichParameter* detectorParameter, G4VPhysicalVolume* motherPV);
+  void build_sensor(mRichParameter* detectorParameter, G4LogicalVolume* motherLV);
 
   void build_mRICH_wall_hside(G4LogicalVolume* space);
   void build_mRICH_wall_eside(G4LogicalVolume* space);
   void build_mRICH_sector(G4LogicalVolume* logicWorld, int numSector);
-  
+
   int layer;
   int active;
   int absorberactive;
   //int blackhole;
   std::string superdetector;
-  G4VPhysicalVolume *mRICH_PV;         //physical volume of detector box of single module  
-  G4VPhysicalVolume *sensor_PV[4];     //physical volume of sensors the sensitive components
+  G4VPhysicalVolume* mRICH_PV;      //physical volume of detector box of single module
+  G4VPhysicalVolume* sensor_PV[4];  //physical volume of sensors the sensitive components
 
-  std::map<const G4VPhysicalVolume*, int> sensor_vol; // physical volume of senseors
-  std::map<const G4VPhysicalVolume*, int> aerogel_vol; // physical volume of senseors
+  std::map<const G4VPhysicalVolume*, int> sensor_vol;   // physical volume of senseors
+  std::map<const G4VPhysicalVolume*, int> aerogel_vol;  // physical volume of senseors
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::mRichParameter
@@ -134,7 +132,6 @@ class PHG4mRICHDetector::mRichParameter
   BoxPar* GetBoxPar(std::string componentName);
   LensPar* GetLensPar(std::string componentName);
   PolyPar* GetPolyPar(std::string componentName);
-
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::BoxPar
@@ -164,7 +161,7 @@ class PHG4mRICHDetector::PolyPar
   G4double theta;
   G4int numSide;
   G4int num_zLayer;
-  G4double z[4];                      //max. layer is 4                                                                                                     
+  G4double z[4];  //max. layer is 4
   G4double rinner[4];
   G4double router[4];
   G4Material* material;
@@ -176,7 +173,7 @@ class PHG4mRICHDetector::PolyPar
   bool surface;
 
   PolyPar();
-  ~PolyPar(){}
+  ~PolyPar() {}
 };
 //___________________________________________________________________________
 class PHG4mRICHDetector::LensPar
@@ -199,13 +196,12 @@ class PHG4mRICHDetector::LensPar
   bool visibility;
   bool wireframe;
   bool surface;
-  
+
   LensPar();
-  ~LensPar(){}
+  ~LensPar() {}
 
-  void Set_halfXYZ(G4double halfX,G4double grooveDensity);
+  void Set_halfXYZ(G4double halfX, G4double grooveDensity);
   G4double GetSagita(G4double r);
-
 };
 //___________________________________________________________________________
 #endif
