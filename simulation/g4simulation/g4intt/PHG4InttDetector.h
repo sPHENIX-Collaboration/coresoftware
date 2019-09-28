@@ -7,9 +7,9 @@
 
 #include <map>
 #include <set>
-#include <string>                 // for string
+#include <string>  // for string
 #include <tuple>
-#include <utility>                // for pair
+#include <utility>  // for pair
 #include <vector>
 
 class G4LogicalVolume;
@@ -22,7 +22,7 @@ class PHG4InttDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4InttDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
+  PHG4InttDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *parameters, const std::string &dnam, const std::pair<std::vector<std::pair<int, int>>::const_iterator, std::vector<std::pair<int, int>>::const_iterator> &layer_b_e);
 
   //! destructor
   virtual ~PHG4InttDetector() {}
@@ -58,7 +58,7 @@ class PHG4InttDetector : public PHG4Detector
   void AddGeometryNode();
   int ConstructIntt(G4LogicalVolume *sandwich);
 
-  PHG4InttDisplayAction* m_DisplayAction;
+  PHG4InttDisplayAction *m_DisplayAction;
   PHParametersContainer *m_ParamsContainer;
 
   std::string m_DetectorType;
