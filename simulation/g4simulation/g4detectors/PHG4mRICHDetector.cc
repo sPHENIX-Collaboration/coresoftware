@@ -55,8 +55,8 @@ using namespace std;
 using namespace CLHEP;
 
 //_______________________________________________________________
-PHG4mRICHDetector::PHG4mRICHDetector(PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4mRICHDetector::PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , params(parameters)
   ,
   //block_physi(nullptr),
@@ -87,7 +87,7 @@ int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume* volume) const
   return INACTIVE;
 }
 //______________________________________________________________
-void PHG4mRICHDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4mRICHDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   int subsystemSetup = params->get_int_param("subsystemSetup");
   // -1: single module

@@ -12,18 +12,19 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHParametersContainer;
+class PHG4Subsystem;
 
 class PHG4PSTOFDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4PSTOFDetector(PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam = "PSTOF");
+  PHG4PSTOFDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4PSTOFDetector(){}
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   virtual void Print(const std::string &what = "ALL") const;
 

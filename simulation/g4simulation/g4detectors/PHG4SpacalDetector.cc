@@ -49,13 +49,13 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
+PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
                                        PHCompositeNode *Node,
                                        const std::string &dnam,
                                        PHParameters *parameters,
                                        const int lyr,
                                        bool init_geom)
-  : PHG4Detector(Node, dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
   , cylinder_solid(nullptr)
   , cylinder_logic(nullptr)
@@ -116,7 +116,7 @@ int PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume *volume)
 }
 
 //_______________________________________________________________
-void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   assert(_geom);
 

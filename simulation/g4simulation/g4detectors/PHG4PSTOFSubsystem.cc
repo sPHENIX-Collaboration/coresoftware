@@ -50,7 +50,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new PHG4PSTOFDetector(topNode, GetParamsContainer(), Name());
+  detector_ = new PHG4PSTOFDetector(this, topNode, GetParamsContainer(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 

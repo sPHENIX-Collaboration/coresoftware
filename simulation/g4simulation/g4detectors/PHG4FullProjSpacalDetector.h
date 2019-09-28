@@ -24,7 +24,7 @@
 class G4LogicalVolume;
 class PHCompositeNode;
 class PHG4CylinderGeom;
-class PHG4SpacalSubsystem;
+class PHG4Subsystem;
 class PHParameters;
 
 //! Fully projective SPACAL built from 2D tapered modules.
@@ -35,14 +35,14 @@ class PHG4FullProjSpacalDetector : public PHG4SpacalDetector
  public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4FullProjSpacalDetector(PHG4SpacalSubsystem* subsys,
+  PHG4FullProjSpacalDetector(PHG4Subsystem* subsys,
                              PHCompositeNode* Node, const std::string& dnam,
                              PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
   virtual ~PHG4FullProjSpacalDetector(void) {}
   virtual void
-  Construct(G4LogicalVolume* world);
+  ConstructMe(G4LogicalVolume* world);
 
   virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();

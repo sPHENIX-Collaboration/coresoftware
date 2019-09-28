@@ -24,8 +24,8 @@ class PHCompositeNode;
 
 using namespace std;
 
-PHG4PSTOFDetector::PHG4PSTOFDetector(PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
-  : PHG4Detector(Node, dnam)
+PHG4PSTOFDetector::PHG4PSTOFDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , paramscontainer(params)
 {
   const PHParameters *par = paramscontainer->GetParameters(-1);
@@ -50,7 +50,7 @@ int PHG4PSTOFDetector::IsInPSTOF(G4VPhysicalVolume *volume) const
   return 0;
 }
 
-void PHG4PSTOFDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4PSTOFDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   G4Material *Glass = G4Material::GetMaterial("G4_GLASS_PLATE");
   G4Box *pstof_box = new G4Box("pstof_box", 0.8 * cm, 6 * cm, 5 * cm);

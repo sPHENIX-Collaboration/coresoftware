@@ -21,6 +21,7 @@ class G4Material;
 class G4VPhysicalVolume;
 class PHParameters;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 //___________________________________________________________________________
 class PHG4mRICHDetector: public PHG4Detector
@@ -29,13 +30,13 @@ class PHG4mRICHDetector: public PHG4Detector
  public:
   
   //! constructor
-  PHG4mRICHDetector( PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam="BLOCK", const int lyr = 0);
+  PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr = 0);
   
   //! destructor
   virtual ~PHG4mRICHDetector();
   
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe( G4LogicalVolume* world );
   
   //name volume accessors
   //bool IsInBlock(G4VPhysicalVolume*) const;

@@ -31,21 +31,21 @@ class PHCompositeNode;
 class PHG4CylinderGeom;
 class PHG4GDMLConfig;
 class PHG4SpacalDisplayAction;
-class PHG4SpacalSubsystem;
 class PHParameters;
+class PHG4Subsystem;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
  public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
-  PHG4SpacalDetector(PHG4SpacalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
+  PHG4SpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
                      PHParameters* parameters, const int layer = 0, bool init_geom = true);
 
   virtual ~PHG4SpacalDetector(void);
 
   virtual void
-  Construct(G4LogicalVolume* world);
+  ConstructMe(G4LogicalVolume* world);
 
   virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();

@@ -47,7 +47,7 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4SpacalSubsystem* subsys, PHCompositeNode* Node,
+PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
                                                        const std::string& dnam, PHParameters* parameters, const int lyr)
   : PHG4SpacalDetector(subsys, Node, dnam, parameters, lyr, false)
 {
@@ -73,7 +73,7 @@ PHG4FullProjSpacalDetector::PHG4FullProjSpacalDetector(PHG4SpacalSubsystem* subs
 }
 
 //_______________________________________________________________
-void PHG4FullProjSpacalDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4FullProjSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (get_geom_v3()->get_construction_verbose() >= 1)
   {
