@@ -26,8 +26,8 @@ class PHCompositeNode;
 using namespace std;
 
 //___________________________________________________________________________________
-PHG4EnvelopeDetector::PHG4EnvelopeDetector(  PHCompositeNode *Node, const std::string &dnam ):
-	PHG4Detector(Node, dnam),
+PHG4EnvelopeDetector::PHG4EnvelopeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam ):
+	PHG4Detector(subsys, Node, dnam),
 	_placeInX(0.0*mm),
 	_placeInY(0.0*mm),
 	_placeInZ(2.0*m),
@@ -63,7 +63,7 @@ PHG4EnvelopeDetector::IsInEnvelope(G4VPhysicalVolume * volume) const
 }
 
 void
-PHG4EnvelopeDetector::Construct( G4LogicalVolume* logicWorld )
+PHG4EnvelopeDetector::ConstructMe( G4LogicalVolume* logicWorld )
 {
 
 

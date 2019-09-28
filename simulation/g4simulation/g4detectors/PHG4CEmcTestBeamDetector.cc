@@ -28,8 +28,8 @@ using namespace std;
 
 static double no_overlap = 0.0001 * cm; // added safety margin against overlaps by using same boundary between volumes
 
-PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector( PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
-  PHG4Detector(Node, dnam),
+PHG4CEmcTestBeamDetector::PHG4CEmcTestBeamDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr  ):
+  PHG4Detector(subsys,Node, dnam),
   gap(0.25 * mm),
   place_in_x(0 * cm),
   place_in_y(0 * cm),
@@ -86,7 +86,7 @@ PHG4CEmcTestBeamDetector::IsInCEmcTestBeam(G4VPhysicalVolume * volume) const
 }
 
 void
-PHG4CEmcTestBeamDetector::Construct( G4LogicalVolume* logicWorld )
+PHG4CEmcTestBeamDetector::ConstructMe( G4LogicalVolume* logicWorld )
 {
   CalculateGeometry();
   G4Material* Air = G4Material::GetMaterial("G4_AIR");

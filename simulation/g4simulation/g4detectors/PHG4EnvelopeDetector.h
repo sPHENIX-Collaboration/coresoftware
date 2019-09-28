@@ -13,18 +13,19 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 class PHG4EnvelopeDetector: public PHG4Detector
 {
  public:
   //Constructor
-  PHG4EnvelopeDetector(  PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4EnvelopeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 	
   //Destructor
   virtual ~PHG4EnvelopeDetector();
 	
   //Construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe( G4LogicalVolume* world );
 	
   //Volume accessors
   bool IsInEnvelope(G4VPhysicalVolume*) const;

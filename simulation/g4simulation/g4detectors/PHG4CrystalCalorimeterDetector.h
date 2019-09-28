@@ -15,7 +15,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4CrystalCalorimeterDisplayAction;
-class PHG4CrystalCalorimeterSubsystem;
+class PHG4Subsystem;
 
 /**
  * \file ${file_name}
@@ -27,13 +27,13 @@ class PHG4CrystalCalorimeterDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4CrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam = "BLOCK");
+  PHG4CrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4CrystalCalorimeterDetector() {}
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //! check if volume is in this calorimeter
   virtual int IsInCrystalCalorimeter(G4VPhysicalVolume *) const;

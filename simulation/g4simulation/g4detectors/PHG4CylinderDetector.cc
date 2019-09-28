@@ -27,8 +27,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________
-PHG4CylinderDetector::PHG4CylinderDetector(PHG4CylinderSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4CylinderDetector::PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
   , m_CylinderPhysicalVolume(nullptr)
   , m_DisplayAction(dynamic_cast<PHG4CylinderDisplayAction *>(subsys->GetDisplayAction()))
@@ -47,7 +47,7 @@ bool PHG4CylinderDetector::IsInCylinder(const G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 

@@ -31,8 +31,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________
-PHG4BlockDetector::PHG4BlockDetector(PHG4BlockSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4BlockDetector::PHG4BlockDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
   , m_BlockPhysi(nullptr)
   , m_DisplayAction(dynamic_cast<PHG4BlockDisplayAction *>(subsys->GetDisplayAction()))
@@ -51,7 +51,7 @@ bool PHG4BlockDetector::IsInBlock(G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 

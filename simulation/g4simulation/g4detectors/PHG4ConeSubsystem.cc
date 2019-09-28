@@ -62,7 +62,7 @@ int PHG4ConeSubsystem::Init( PHCompositeNode* topNode )
     PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode","DST" ));
 
   // create detector
-  detector_ = new PHG4ConeDetector(topNode, Name(), layer);
+    detector_ = new PHG4ConeDetector(this,topNode, Name(), layer);
   detector_->SetR1(rMin1, rMax1);
   detector_->SetR2(rMin2, rMax2);
   detector_->SetZlength(dZ);

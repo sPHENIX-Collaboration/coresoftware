@@ -30,8 +30,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
-  : PHG4Detector(Node, dnam)
+PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
   , _place_in_z(-1080.0 * mm)
@@ -84,7 +84,7 @@ int PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume* vo
 }
 
 //_______________________________________________________________________
-void PHG4CrystalCalorimeterDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {

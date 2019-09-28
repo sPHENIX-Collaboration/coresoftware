@@ -20,8 +20,8 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4ConeDetector::PHG4ConeDetector( PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
-  PHG4Detector(Node, dnam),
+PHG4ConeDetector::PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
+  PHG4Detector(subsys,Node, dnam),
   TrackerMaterial(nullptr),
   block_solid(nullptr),
   block_logic(nullptr),
@@ -60,7 +60,7 @@ bool PHG4ConeDetector::IsInConeInactive(G4VPhysicalVolume * volume)
 }
 
 //_______________________________________________________________
-void PHG4ConeDetector::Construct( G4LogicalVolume* logicWorld )
+void PHG4ConeDetector::ConstructMe( G4LogicalVolume* logicWorld )
 {
 
   TrackerMaterial = G4Material::GetMaterial(material.c_str());

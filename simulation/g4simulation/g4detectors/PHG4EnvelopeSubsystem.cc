@@ -19,7 +19,7 @@ using namespace std;
 
 PHG4EnvelopeSubsystem::PHG4EnvelopeSubsystem( const std::string &name, const int lyr ):
 	PHG4Subsystem( name ),
-	detector_( 0 ),
+	detector_( nullptr ),
 	steppingAction_( nullptr ),
 	material("G4_PbWO4"),  // default - lead tungstate crystal
 	active(1),
@@ -34,7 +34,7 @@ int PHG4EnvelopeSubsystem::Init( PHCompositeNode* topNode )
 	PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
 	// create detector
-	detector_ = new PHG4EnvelopeDetector(topNode, Name());
+	detector_ = new PHG4EnvelopeDetector(this, topNode, Name());
 	detector_->SetActive(active);
 	detector_->OverlapCheck(CheckOverlap());
 	

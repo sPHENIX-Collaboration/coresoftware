@@ -19,6 +19,7 @@ class G4Material;
 class G4UserSteppingAction;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 class PHG4ConeDetector: public PHG4Detector
 {
@@ -26,14 +27,14 @@ class PHG4ConeDetector: public PHG4Detector
   public:
 
   //! constructor
-  PHG4ConeDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4ConeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam, const int lyr = 0 );
 
   //! destructor
   virtual ~PHG4ConeDetector( void )
   {}
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe( G4LogicalVolume* world );
 
   //!@name volume accessors
   //@{

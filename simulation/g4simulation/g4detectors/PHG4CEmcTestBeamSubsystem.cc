@@ -64,7 +64,7 @@ PHG4CEmcTestBeamSubsystem::Init( PHCompositeNode* topNode )
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
   // create detector
-  detector_ = new PHG4CEmcTestBeamDetector(topNode, Name(), layer);
+  detector_ = new PHG4CEmcTestBeamDetector(this, topNode, Name(), layer);
   detector_->SetPlace(place_in_x, place_in_y, place_in_z);
   detector_->SetXRot(rot_in_x);
   detector_->SetYRot(rot_in_y);
