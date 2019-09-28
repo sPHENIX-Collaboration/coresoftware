@@ -35,9 +35,9 @@
 
 #include <algorithm>
 #include <cassert>
-#include <climits>
 #include <cmath>
 #include <iostream>  // for operator<<, basic_ostream
+#include <limits>                          // for numeric_limits
 #include <map>       // for map<>::value_type, map
 #include <memory>    // for allocator_traits<>::value_...
 #include <numeric>   // std::accumulate
@@ -83,7 +83,7 @@ void PHG4FullProjTiltedSpacalDetector::ConstructMe(G4LogicalVolume* logicWorld)
          << " - start with PHG4SpacalDetector::Construct()." << endl;
   }
 
-  PHG4SpacalDetector::Construct(logicWorld);
+  PHG4SpacalDetector::ConstructMe(logicWorld);
 
   if (get_geom_v3()->get_construction_verbose() >= 1)
   {

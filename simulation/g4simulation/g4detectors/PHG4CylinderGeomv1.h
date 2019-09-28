@@ -7,6 +7,8 @@
 
 #include <iostream>            // for cout, ostream
 
+class PHParameters;
+
 class PHG4CylinderGeomv1: public PHG4CylinderGeom
 {
  public:

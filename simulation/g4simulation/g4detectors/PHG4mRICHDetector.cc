@@ -46,7 +46,6 @@
 #include <cstdio>
 #include <iostream>  // for operator<<, basic_os...
 #include <iterator>  // for begin, end
-#include <set>       // for _Rb_tree_const_iterator
 #include <string>
 
 class PHCompositeNode;

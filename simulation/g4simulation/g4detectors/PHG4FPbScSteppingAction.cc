@@ -4,6 +4,7 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>        // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
@@ -18,7 +19,6 @@
 #include <Geant4/G4VTouchable.hh>             // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
-#include <cstddef>                           // for NULL
 #include <iostream>                           // for operator<<, endl, basic...
 #include <map>                                // for _Rb_tree_iterator
 #include <string>                             // for operator+, string, char...

@@ -5,8 +5,11 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <Geant4/G4Colour.hh>          // for G4Colour
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
+
+#include <cmath>                       // for isfinite
 
 using namespace std;
 
