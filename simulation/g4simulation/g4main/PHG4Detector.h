@@ -35,9 +35,9 @@ class PHG4Detector
   construct all logical and physical volumes relevant for given detector and place them
   inside the world logical volume
   */
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void Construct(G4LogicalVolume *world) final;
 
-  virtual void ConstructMe(G4LogicalVolume *mothervolume) { return; }
+  virtual void ConstructMe(G4LogicalVolume *mothervolume) = 0;
 
   virtual void Verbosity(const int v) { m_Verbosity = v; }
 
