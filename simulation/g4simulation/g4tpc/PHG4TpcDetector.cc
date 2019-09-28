@@ -29,8 +29,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________
-PHG4TpcDetector::PHG4TpcDetector(PHG4TpcSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
-  : PHG4Detector(Node, dnam)
+PHG4TpcDetector::PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4TpcDisplayAction *>(subsys->GetDisplayAction()))
   , params(parameters)
   , g4userlimits(nullptr)
@@ -63,7 +63,7 @@ int PHG4TpcDetector::IsInTpc(G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4TpcDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   // create Tpc envelope
   // tpc consists of (from inside to gas volume, outside is reversed up to now)
