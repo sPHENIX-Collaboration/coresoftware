@@ -5,9 +5,9 @@
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
-#include <Geant4/G4Types.hh>                 // for G4double, G4int
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 
-#include <string>                            // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;

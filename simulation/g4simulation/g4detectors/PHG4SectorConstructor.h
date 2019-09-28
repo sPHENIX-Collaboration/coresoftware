@@ -12,12 +12,12 @@
 #ifndef G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 #define G4DETECTORS_PHG4SECTORCONSTRUCTOR_H
 
-#include <Geant4/G4String.hh>             // for G4String
-#include <Geant4/G4Types.hh>              // for G4int
+#include <Geant4/G4String.hh>  // for G4String
+#include <Geant4/G4Types.hh>   // for G4int
 
 #if !defined(__CINT__) || defined(__CLING__)
-#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4SystemOfUnits.hh>
 #endif
 
 class G4LogicalVolume;
@@ -364,7 +364,7 @@ class PHG4SectorConstructor
 {
  public:
   PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys);
-  virtual ~PHG4SectorConstructor(){}
+  virtual ~PHG4SectorConstructor() {}
 
   void
   Construct_Sectors(G4LogicalVolume *WorldLog);

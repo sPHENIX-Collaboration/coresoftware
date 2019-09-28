@@ -11,9 +11,9 @@
 #include "PHG4RICHDetector.h"
 #include "PHG4RICHSteppingAction.h"
 
-#include <g4main/PHG4Detector.h>     // for PHG4Detector
+#include <g4main/PHG4Detector.h>  // for PHG4Detector
 
-#include <Geant4/G4Region.hh>        // for G4Region
+#include <Geant4/G4Region.hh>  // for G4Region
 
 #include <boost/foreach.hpp>
 
@@ -25,7 +25,7 @@ class PHCompositeNode;
 using namespace std;
 using namespace ePHENIXRICH;
 
-PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &dnam,  const RICH_Geometry &g)
+PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &dnam, const RICH_Geometry &g)
   : PHG4Detector(subsys, Node, dnam)
   , ePHENIXRICHConstruction(subsys, g)
   , _region(nullptr)

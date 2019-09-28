@@ -5,8 +5,8 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4String.hh>     // for G4String
-#include <Geant4/G4Types.hh>      // for G4double
+#include <Geant4/G4String.hh>  // for G4String
+#include <Geant4/G4Types.hh>   // for G4double
 
 #include <map>
 #include <string>

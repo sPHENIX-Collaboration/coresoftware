@@ -6,24 +6,22 @@
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
-#include <g4main/PHG4Detector.h>           // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>      // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>      // for G4RotationMatrix
-#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4PhysicalConstants.hh>
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VPhysicalVolume.hh>     // for G4VPhysicalVolume
-
-
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <cassert>
 #include <cmath>
@@ -31,7 +29,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <utility>                         // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class G4VSolid;
 class PHCompositeNode;

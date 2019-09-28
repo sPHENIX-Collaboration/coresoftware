@@ -1,8 +1,8 @@
 #include "PHG4InnerHcalDetector.h"
 
+#include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDisplayAction.h"
 #include "PHG4InnerHcalSubsystem.h"
-#include "PHG4HcalDefs.h"
 
 #include <phparameter/PHParameters.h>
 

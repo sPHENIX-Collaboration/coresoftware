@@ -39,8 +39,8 @@ class PHG4RICHDetector : public PHG4Detector,
                          public ePHENIXRICH::ePHENIXRICHConstruction
 {
  public:
-  PHG4RICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string &dname, const ePHENIXRICH::RICH_Geometry& g);
-  PHG4RICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string &dname);
+  PHG4RICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dname, const ePHENIXRICH::RICH_Geometry& g);
+  PHG4RICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dname);
 
   virtual ~PHG4RICHDetector(void)
   {
@@ -65,7 +65,6 @@ class PHG4RICHDetector : public PHG4Detector,
   }
 
  private:
-
   G4Region* _region;
 };
 

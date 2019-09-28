@@ -5,15 +5,15 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4Types.hh>               // for G4double
+#include <Geant4/G4Types.hh>  // for G4double
 
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
 
 #include <map>
 #include <set>
-#include <string>                          // for string
-#include <utility>                         // for pair
+#include <string>   // for string
+#include <utility>  // for pair
 #include <vector>
 
 class G4AssemblyVolume;

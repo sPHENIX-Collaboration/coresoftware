@@ -1,6 +1,6 @@
 #include "PHG4EICForwardEcalDetector.h"
 
-#include "PHG4ForwardEcalDetector.h"       // for PHG4ForwardEcalDetector
+#include "PHG4ForwardEcalDetector.h"  // for PHG4ForwardEcalDetector
 #include "PHG4ForwardEcalDisplayAction.h"
 
 #include <Geant4/G4Box.hh>
@@ -8,17 +8,17 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>      // for G4RotationMatrix
-#include <Geant4/G4SystemOfUnits.hh>       // for cm, mm
-#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
-#include <Geant4/G4Types.hh>               // for G4double, G4int
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4SystemOfUnits.hh>   // for cm, mm
+#include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>     // for G4Transform3D
+#include <Geant4/G4Types.hh>           // for G4double, G4int
 
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <utility>                         // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class PHCompositeNode;
 

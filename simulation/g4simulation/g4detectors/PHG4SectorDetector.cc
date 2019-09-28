@@ -6,11 +6,11 @@
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4String.hh>          // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 
-#include <map>                         // for _Rb_tree_iterator, _Rb_tree_co...
+#include <map>  // for _Rb_tree_iterator, _Rb_tree_co...
 #include <sstream>
-#include <utility>                     // for pair
+#include <utility>  // for pair
 
 class G4VPhysicalVolume;
 class PHCompositeNode;

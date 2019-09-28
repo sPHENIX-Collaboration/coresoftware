@@ -23,7 +23,7 @@ class PHG4HcalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4HcalDetector(PHG4Subsystem *subsys, PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
+  PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int layer = 0);
 
   //! destructor
   virtual ~PHG4HcalDetector(void)

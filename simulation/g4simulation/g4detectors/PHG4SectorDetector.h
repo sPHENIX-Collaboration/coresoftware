@@ -7,7 +7,7 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
