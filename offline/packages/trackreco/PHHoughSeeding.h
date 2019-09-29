@@ -342,7 +342,7 @@ class PHHoughSeeding : public PHTrackSeeding
     _min_combo_hits = minNlayersSeeding;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
  private:
   //--------------

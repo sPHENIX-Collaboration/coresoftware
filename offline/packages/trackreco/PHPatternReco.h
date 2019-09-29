@@ -144,7 +144,6 @@ public:
 	void reset_zooms() {zooms_vec.clear();}
 
 #if !defined(__CINT__) || defined(__CLING__)
-//#ifndef __CINT__
 
 private:
 
