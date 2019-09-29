@@ -13,6 +13,7 @@
 #include <fun4all/Fun4AllBase.h>
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>           // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -20,6 +21,7 @@
 #include <TH1.h>
 #include <TH2.h>
 #include <TNamed.h>
+#include <TString.h>                      // for operator+, TString, Form
 
 #include <cassert>
 #include <cmath>
@@ -32,22 +34,14 @@ using namespace std;
 QAG4SimulationJet::QAG4SimulationJet(const std::string& truth_jet,
                                      enu_flags flags)
   : SubsysReco("QAG4SimulationJet_" + truth_jet)
-  ,  //
-  _jetevalstacks()
-  ,  //
-  _truth_jet(truth_jet)
+  , _jetevalstacks()
+  , _truth_jet(truth_jet)
   , _reco_jets()
   , _flags(flags)
-  ,  //
-  eta_range(-1, 1)
-  ,  //
-  _jet_match_dEta(.1)
+  , eta_range(-1, 1)
+  , _jet_match_dEta(.1)
   , _jet_match_dPhi(.1)
   , _jet_match_dE_Ratio(.5)
-{
-}
-
-QAG4SimulationJet::~QAG4SimulationJet()
 {
 }
 
@@ -87,11 +81,6 @@ int QAG4SimulationJet::InitRun(PHCompositeNode* topNode)
     _jettrutheval->set_verbosity(Verbosity() + 1);
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int QAG4SimulationJet::End(PHCompositeNode* topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
