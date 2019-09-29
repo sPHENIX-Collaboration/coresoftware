@@ -358,7 +358,7 @@ class RICH_Geometry
   G4OpticalSurface* RICH_Photocathode_OpticalSurface;
 };
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
 /**
    * \brief This class creates the ePHENIX RICH volumes for Geant4 based on the geometry
@@ -426,8 +426,8 @@ class ePHENIXRICHConstruction
   std::set<G4VPhysicalVolume*> sector_vec;
 };
 
-#endif
+#endif // #if !defined(__CINT__) || defined(__CLING__)
 
 }  //namespace ePHENIXRICH
 
-#endif /* EPHENIXRICHCONSTRUCTION_H_ */
+#endif // G4DETECTORS_EPHENIXRICHCONSTRUCTION_H

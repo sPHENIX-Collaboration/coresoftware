@@ -99,7 +99,7 @@ class Sector_Geometry
     return N_Sector;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   std::vector<Layer> &
   get_layer_list()
   {
@@ -145,7 +145,7 @@ class Sector_Geometry
     N_Sector = sector;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   void
   set_layer_list(const std::vector<Layer> &layerList)
   {
@@ -225,7 +225,7 @@ class Sector_Geometry
 
   // layer descriptions
  public:
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
   typedef std::vector<Layer> t_layer_list;
   t_layer_list layer_list;
@@ -357,7 +357,7 @@ class Sector_Geometry
   std::string material;
 };
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
 //! \brief Generalized detector which use sectors of flat panels to cover full azimuthal acceptance
 class PHG4SectorConstructor
@@ -412,6 +412,6 @@ class PHG4SectorConstructor
   map_phy_vol_t map_active_phy_vol;  //! active physics volume
 };
 
-#endif  // #ifndef __CINT__
+#endif  // #if !defined(__CINT__) || defined(__CLING__)
 }  // namespace PHG4Sector
 #endif /* PHG4SectorConstructor_H_ */

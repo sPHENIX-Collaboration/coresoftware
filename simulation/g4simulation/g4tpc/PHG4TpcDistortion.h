@@ -12,7 +12,7 @@
 #define G4TPC_PHG4TPCDISTORTION_H
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -58,7 +58,7 @@ class PHG4TpcDistortion
   //! The verbosity level. 0 means not verbose at all.
   int verbosity;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
 #endif

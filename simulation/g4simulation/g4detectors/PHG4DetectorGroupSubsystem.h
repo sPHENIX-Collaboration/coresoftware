@@ -25,7 +25,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
 
   virtual ~PHG4DetectorGroupSubsystem() {}
 // stupid rootcint does not support final keyword
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   int Init(PHCompositeNode *) final;
   int InitRun(PHCompositeNode *) final;
 #else
