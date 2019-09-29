@@ -63,7 +63,7 @@ class PHG4ParticleGeneratorBase : public SubsysReco
   double t0;
   std::vector<PHG4Particle *> particlelist;
   unsigned int seed;
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
 #endif
 };

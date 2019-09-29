@@ -4,21 +4,21 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>          // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4String.hh>             // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>        // for G4ThreeVector
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
 
 #include <cmath>
-#include <iostream>                       // for operator<<, endl, basic_ost...
+#include <iostream>  // for operator<<, endl, basic_ost...
 #include <sstream>
 
 class G4VSolid;
@@ -27,8 +27,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________
-PHG4CylinderDetector::PHG4CylinderDetector(PHG4CylinderSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4CylinderDetector::PHG4CylinderDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
   , m_CylinderPhysicalVolume(nullptr)
   , m_DisplayAction(dynamic_cast<PHG4CylinderDisplayAction *>(subsys->GetDisplayAction()))
@@ -47,7 +47,7 @@ bool PHG4CylinderDetector::IsInCylinder(const G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
@@ -79,5 +79,5 @@ void PHG4CylinderDetector::Construct(G4LogicalVolume *logicWorld)
                                                cylinder_logic,
                                                G4String(GetName()),
                                                logicWorld, 0, false, OverlapCheck());
-   m_DisplayAction->SetMyVolume(cylinder_logic);
+  m_DisplayAction->SetMyVolume(cylinder_logic);
 }

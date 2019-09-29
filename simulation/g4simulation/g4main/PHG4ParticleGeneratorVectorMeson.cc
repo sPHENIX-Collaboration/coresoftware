@@ -22,6 +22,7 @@
 #include <gsl/gsl_rng.h>            // for gsl_rng_uniform, gsl_rng_uniform_pos
 
 #include <cmath>                   // for sin, sqrt, cos, M_PI
+#include <cstdlib>                 // for exit
 #include <iostream>                 // for operator<<, basic_ostream, basic_...
 #include <utility>                  // for pair
 #include <vector>                   // for vector, vector<>::const_iterator

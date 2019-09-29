@@ -4,25 +4,25 @@
 #include "PHG4CrystalCalorimeterDisplayAction.h"
 
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Element.hh>                    // for G4Element
+#include <Geant4/G4Element.hh>  // for G4Element
 #include <Geant4/G4GenericTrap.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>             // for G4RotationMatrix
-#include <Geant4/G4String.hh>                     // for G4String
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>                // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>                // for G4Transform3D
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D
 #include <Geant4/G4Trd.hh>
 #include <Geant4/G4TwoVector.hh>
-#include <Geant4/G4VPhysicalVolume.hh>            // for G4VPhysicalVolume
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
-#include <vector>                                 // for vector
+#include <vector>  // for vector
 
 class G4VSolid;
 class PHCompositeNode;
@@ -31,7 +31,7 @@ class PHG4CrystalCalorimeterSubsystem;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam)
+PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam)
   : PHG4CrystalCalorimeterDetector(subsys, Node, dnam)
   ,
   //  _dx_front(50.19*mm),		//****************************************************************//
@@ -74,7 +74,7 @@ int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume
 }
 
 //_______________________________________________________________________
-void PHG4ProjCrystalCalorimeterDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   if (Verbosity() > 0)
   {

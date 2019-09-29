@@ -13,7 +13,7 @@ class RawTowerDeadMap;
 class RawTower;
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -197,7 +197,7 @@ class RawTowerDigitizer : public SubsysReco
   // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
   unsigned int m_SiPMEffectivePixel;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *m_RandomGenerator;
 #endif
 };

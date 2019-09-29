@@ -7,19 +7,19 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <string>                   // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4SectorDisplayAction;
-class PHG4SectorSubsystem;
+class PHG4Subsystem;
 
 class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorConstructor
 {
  public:
   //! constructor
-  PHG4SectorDetector(PHG4SectorSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam = "SECTOR");
+  PHG4SectorDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4SectorDetector(void)
@@ -27,7 +27,7 @@ class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorCon
   }
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
   //@{

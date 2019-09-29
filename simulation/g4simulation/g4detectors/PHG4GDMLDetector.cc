@@ -10,8 +10,9 @@
 
 #include "PHG4GDMLDetector.h"
 
+#include <g4main/PHG4Detector.h>  // for PHG4Detector
+#include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
-#include <g4main/PHG4Detector.h>          // for PHG4Detector
 
 #include <phparameter/PHParameters.h>
 
@@ -21,25 +22,24 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>     // for G4RotationMatrix
-#include <Geant4/G4String.hh>             // for G4String
-#include <Geant4/G4ThreeVector.hh>        // for G4ThreeVector
-#include <Geant4/G4VPhysicalVolume.hh>    // for G4VPhysicalVolume
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4VisAttributes.hh>
 
+#include <CLHEP/Units/SystemOfUnits.h>  // for cm, degree
 
-#include <CLHEP/Units/SystemOfUnits.h>    // for cm, degree
-
-#include <cstdlib>                       // for exit
-#include <iostream>                       // for operator<<, basic_ostream
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, basic_ostream
 #include <memory>
-#include <vector>                         // for vector, vector<>::iterator
+#include <vector>  // for vector, vector<>::iterator
 
 using namespace std;
 
-PHG4GDMLDetector::PHG4GDMLDetector(PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters)
-  : PHG4Detector(Node, dnam)
+PHG4GDMLDetector::PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters)
+  : PHG4Detector(subsys, Node, dnam)
   , m_GDMPath(parameters->get_string_param("GDMPath"))
   , m_TopVolName(parameters->get_string_param("TopVolName"))
   , m_placeX(parameters->get_double_param("place_x") * cm)
@@ -68,7 +68,7 @@ PHG4GDMLDetector::Print(const std::string& what) const
        << m_rotationZ << "rad" << endl;
 }
 
-void PHG4GDMLDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {
@@ -85,7 +85,7 @@ void PHG4GDMLDetector::Construct(G4LogicalVolume* logicWorld)
   unique_ptr<G4GDMLReadStructure> reader(new G4GDMLReadStructure());
   G4GDMLParser gdmlParser(reader.get());
   gdmlParser.SetOverlapCheck(OverlapCheck());
-//  gdmlParser.Read(m_GDMPath, false);
+  //  gdmlParser.Read(m_GDMPath, false);
   gdmlParser.Read(m_GDMPath, OverlapCheck());
 
   //  G4AssemblyVolume* av_ITSUStave = reader->GetAssembly(assemblyname);

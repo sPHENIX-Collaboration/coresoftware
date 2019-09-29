@@ -13,8 +13,9 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/G4String.hh>  // for G4String
-#include <Geant4/G4Types.hh>   // for G4double
+#include <Geant4/G4String.hh>         // for G4String
+#include <Geant4/G4SystemOfUnits.hh>  // for cm
+#include <Geant4/G4Types.hh>          // for G4double
 
 #include <cmath>     // for asin, cos, sin, sqrt, M_PI
 #include <cstdlib>   // for NULL, exit
@@ -68,7 +69,7 @@ int PHG4HcalSubsystem::InitRun(PHCompositeNode* topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
   // create detector
-  detector_ = new PHG4HcalDetector(topNode, Name(), layer);
+  detector_ = new PHG4HcalDetector(this, topNode, Name(), layer);
   detector_->SetRadius(radius);
   G4double detlength = length;
   if (lengthViaRapidityCoverage)

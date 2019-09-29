@@ -1,8 +1,17 @@
 #include "BEmcProfile.h"
+#include "BEmcCluster.h"
 
-#include "TROOT.h"
-#include "TMath.h"
-#include "TFile.h"
+#include <TFile.h>
+#include <TH1.h>     // for TH1F
+#include <TMath.h>
+#include <TROOT.h>
+
+#include <cmath>    // for sqrt, log, pow, fabs
+#include <cstdio>   // for printf, sprintf
+#include <cstdlib>  // for abs
+#include <memory>    // for allocator_traits<>::value_type
+
+//class EmcModule;
 
 const int NP = 4; // Number of profiles in a bin
 

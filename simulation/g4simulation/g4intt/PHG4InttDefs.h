@@ -14,7 +14,7 @@ static const int SUPPORTPARAMS = -3;
 // this set only exists so we can iterate over the enum
 // yes it can be made more fancy but this will do
 // and yes stupid CINT does not understand C++11
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 static std::set<int> m_SensorSegmentationSet{SEGMENTATION_Z, SEGMENTATION_PHI};
 #endif
 // passive volume indices

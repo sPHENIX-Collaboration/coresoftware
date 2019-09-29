@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
 #else
 #include <stdint.h>
@@ -34,12 +34,11 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
 
   QAG4SimulationCalorimeterSum(enu_flags flags = kDefaultFlag);
 
-  virtual ~QAG4SimulationCalorimeterSum();
+  virtual ~QAG4SimulationCalorimeterSum(){}
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
   uint32_t
   get_flags() const
@@ -126,7 +125,7 @@ class QAG4SimulationCalorimeterSum : public SubsysReco
   int Init_TrackProj(PHCompositeNode *topNode);
   int process_event_TrackProj(PHCompositeNode *topNode);
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //CINT is not c++11 compatible
   std::shared_ptr<CaloEvalStack> _caloevalstack_cemc;
   std::shared_ptr<CaloEvalStack> _caloevalstack_hcalin;

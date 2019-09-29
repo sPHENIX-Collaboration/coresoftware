@@ -16,7 +16,7 @@
 #include <TVector3.h>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -322,7 +322,7 @@ class PHG4TrackFastSim : public SubsysReco
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng* m_RandomGenerator;
 #endif

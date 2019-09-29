@@ -6,7 +6,7 @@
 #include <fun4all/SubsysReco.h>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -64,7 +64,7 @@ class PHG4InttDigitizer : public SubsysReco, public PHParameterInterface
   unsigned int m_nCells;
   unsigned int m_nDeadCells;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
 #endif

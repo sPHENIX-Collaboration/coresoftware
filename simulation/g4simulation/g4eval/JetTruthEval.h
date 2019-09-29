@@ -4,12 +4,11 @@
 #include "CaloEvalStack.h"
 #include "SvtxEvalStack.h"
 
-#include <g4jets/Jet.h>
-
 #include <map>
 #include <set>
 #include <string>
 
+class Jet;
 class JetMap;
 
 class PHCompositeNode;
