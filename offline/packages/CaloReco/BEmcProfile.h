@@ -1,13 +1,14 @@
-#include "TH1F.h"
+#include <vector>  // for vector
 
-#include "BEmcCluster.h"
+class EmcModule;
+class TH1F;
 
 class BEmcProfile
 {
 
 public:
   BEmcProfile(const char* fname);
-  ~BEmcProfile();
+  virtual ~BEmcProfile();
 
   float GetProb(std::vector<EmcModule>* plist, int NX, float en, float theta);
   float GetTowerEnergy( int iy, int iz, std::vector<EmcModule>* plist, int nx );
