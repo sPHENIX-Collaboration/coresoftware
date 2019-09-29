@@ -40,7 +40,7 @@ class PHGenEventListv1 : public PHGenEventList
 
   std::vector<PHGenEventVersion> _genevents;
 
-#ifndef __CINT____                                                     // hide from dictionary generation
+#if !defined(__CINT__) || defined(__CLING__)
   mutable bool _stale;                                                 //! exclude from ROOT I/O
   mutable std::map<unsigned int, const PHGenEvent*> _id_genevent_map;  //! exclude from ROOT I/O
 #endif                                                                 // __CINT__

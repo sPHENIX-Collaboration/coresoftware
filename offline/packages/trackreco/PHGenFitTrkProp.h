@@ -127,7 +127,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
     }
   };
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   typedef std::list<std::pair<TrackQuality, std::shared_ptr<PHGenFit::Track> > > MapPHGenFitTrack;
 #endif
 
@@ -423,7 +423,7 @@ class PHGenFitTrkProp : public PHTrackPropagating
     _primary_pid_guess = primaryPidGuess;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
  private:
   //--------------

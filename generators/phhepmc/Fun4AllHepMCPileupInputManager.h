@@ -5,7 +5,7 @@
 
 #include <string>
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -50,7 +50,7 @@ class Fun4AllHepMCPileupInputManager : public Fun4AllHepMCInputManager
 
   bool _first_run;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
 #endif
 };

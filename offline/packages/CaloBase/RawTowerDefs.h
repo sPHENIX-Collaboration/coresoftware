@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <cstdlib>
 #else
 #include <stdlib.h>

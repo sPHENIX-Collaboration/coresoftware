@@ -54,7 +54,7 @@ class PHGenEventv1 : public PHGenEvent
   // from there. This might make better use of space and ROOT compression.
   TString _event_record;
 
-#ifndef __CINT____                  // hide from dictionary generation
+#if !defined(__CINT__) || defined(__CLING__)
   mutable bool _stale;              //! exclude from ROOT I/O
   mutable HepMC::GenEvent* _event;  //! exclude from ROOT I/O
 #endif                              // __CINT__

@@ -25,7 +25,7 @@ class TPCIntegratedCharge : public SubsysReco
   int End(PHCompositeNode *topNode);
 
  private:
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
   Fun4AllHistoManager *getHistoManager();
 
@@ -34,7 +34,7 @@ class TPCIntegratedCharge : public SubsysReco
   unsigned int m_minLayer;
   unsigned int m_maxLayer;
 
-#endif  // #ifndef __CINT__
+#endif  // #if !defined(__CINT__) || defined(__CLING__)
 };
 
 #endif  // __CALOEVALUATOR_H__
