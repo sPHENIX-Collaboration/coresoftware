@@ -6,6 +6,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
@@ -75,7 +76,8 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                         TrackerMaterial,
                                                         G4String(GetName()),
                                                         nullptr, nullptr, g4userlimits);
-  GetMySubsystem()->SetLogicalVolume(cylinder_logic);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(cylinder_logic);
   m_CylinderPhysicalVolume = new G4PVPlacement(0, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
                                                cylinder_logic,
                                                G4String(GetName()),

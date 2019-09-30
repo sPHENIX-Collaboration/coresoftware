@@ -22,7 +22,7 @@ class PHG4EnvelopeDetector : public PHG4Detector
   PHG4EnvelopeDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //Destructor
-  virtual ~PHG4EnvelopeDetector();
+  virtual ~PHG4EnvelopeDetector(){}
 
   //Construct
   virtual void ConstructMe(G4LogicalVolume *world);

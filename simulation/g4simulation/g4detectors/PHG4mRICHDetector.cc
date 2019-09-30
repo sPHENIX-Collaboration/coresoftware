@@ -57,9 +57,7 @@ using namespace CLHEP;
 PHG4mRICHDetector::PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr)
   : PHG4Detector(subsys, Node, dnam)
   , params(parameters)
-  ,
-  //block_physi(nullptr),
-  layer(lyr)
+  , layer(lyr)
   , active(0)
   , absorberactive(0)
   , mRICH_PV(nullptr)
@@ -67,9 +65,6 @@ PHG4mRICHDetector::PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Nod
 {
 }
 
-PHG4mRICHDetector::~PHG4mRICHDetector()
-{
-}
 //_______________________________________________________________
 int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume* volume) const
 {

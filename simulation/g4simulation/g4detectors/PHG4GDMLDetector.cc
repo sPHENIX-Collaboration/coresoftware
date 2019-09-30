@@ -98,6 +98,8 @@ void PHG4GDMLDetector::ConstructMe(G4LogicalVolume* logicWorld)
     Print();
     exit(121);
   }
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(vol);
 
   G4RotationMatrix* rotm = new G4RotationMatrix();
   rotm->rotateX(m_rotationX);

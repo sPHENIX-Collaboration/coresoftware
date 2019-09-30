@@ -3,6 +3,8 @@
 #include "PHG4CrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterDisplayAction.h"
 
+#include <g4main/PHG4Subsystem.h>
+
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4Element.hh>  // for G4Element
 #include <Geant4/G4GenericTrap.hh>
@@ -51,11 +53,6 @@ PHG4ProjCrystalCalorimeterDetector::PHG4ProjCrystalCalorimeterDetector(PHG4Subsy
 }
 
 //_______________________________________________________________________
-PHG4ProjCrystalCalorimeterDetector::~PHG4ProjCrystalCalorimeterDetector()
-{
-}
-
-//_______________________________________________________________________
 int PHG4ProjCrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume *volume) const
 {
   // if hit is in absorber material
@@ -99,7 +96,7 @@ void PHG4ProjCrystalCalorimeterDetector::ConstructMe(G4LogicalVolume *logicWorld
                                             _sPhi, _dPhi);
 
   G4LogicalVolume *ecal_envelope_log = new G4LogicalVolume(ecal_envelope_cone, Air, G4String("eEcal_envelope"), 0, 0, 0);
-
+  GetMySubsystem()->SetLogicalVolume(ecal_envelope_log);
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;

@@ -7,6 +7,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -78,7 +79,9 @@ void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                      G4String(GetName()),
                                                      nullptr, nullptr, g4userlimits);
 
-  GetMySubsystem()->SetLogicalVolume(block_logic);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(block_logic);
+
   G4RotationMatrix *rotm = new G4RotationMatrix();
   rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
   m_BlockPhysi = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),

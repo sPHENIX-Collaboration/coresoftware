@@ -1,5 +1,6 @@
 #include "PHG4ConeDetector.h"
 
+#include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
 #include <Geant4/G4Cons.hh>
@@ -78,6 +79,9 @@ void PHG4ConeDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                     TrackerMaterial,
                                     G4String(GetName().c_str()),
                                     0, 0, 0);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(block_logic);
+
   G4VisAttributes *matVis = new G4VisAttributes();
   PHG4Utils::SetColour(matVis, material);
   matVis->SetVisibility(true);

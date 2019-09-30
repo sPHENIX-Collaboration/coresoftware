@@ -28,7 +28,7 @@ class PHG4EICForwardEcalDetector : public PHG4ForwardEcalDetector
   PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4EICForwardEcalDetector();
+  virtual ~PHG4EICForwardEcalDetector(){}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume* world);

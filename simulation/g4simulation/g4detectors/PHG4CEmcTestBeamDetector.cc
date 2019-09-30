@@ -1,6 +1,7 @@
 #include "PHG4CEmcTestBeamDetector.h"
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
@@ -91,11 +92,10 @@ void PHG4CEmcTestBeamDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
   G4VSolid* cemc_tub = new G4Tubs("CEmcTub", inner_radius - 2 * no_overlap, outer_radius + 2 * no_overlap, (w_dimension[2] + 2 * no_overlap) / 2., 0, cemc_angular_coverage);
   G4LogicalVolume* cemc_log = new G4LogicalVolume(cemc_tub, Air, G4String("CEmc"), 0, 0, 0);
-  //  G4VisAttributes* cemcVisAtt = new G4VisAttributes();
-  // cemcVisAtt->SetVisibility(true);
-  // cemcVisAtt->SetForceSolid(true);
-  // cemcVisAtt->SetColour(G4Colour::Magenta());
-  // cemc_log->SetVisAttributes(cemcVisAtt);
+
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(cemc_log);
+
   G4RotationMatrix cemc_rotm;
   // put our cemc at center displacement in x
   double radius_at_center = inner_radius + (outer_radius - inner_radius) / 2.;

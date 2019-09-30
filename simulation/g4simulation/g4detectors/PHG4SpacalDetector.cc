@@ -13,6 +13,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -158,6 +159,8 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
                                        G4String(GetName()), 0, 0, 0);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(cylinder_logic);
   GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
 
   cylinder_physi = new G4PVPlacement(0,
