@@ -70,9 +70,9 @@ void G4JLeicVTXDetector::ConstructMe(G4LogicalVolume *logicWorld)
     }
 
     double cb_VTX_ladder_deltaphi = 2 * M_PI / NUM;
-    string solidname = "cb_VTX_ladder_Solid_" + ilayer;
+    string solidname = "cb_VTX_ladder_Solid_" + to_string(ilayer);
     G4VSolid *solid = new G4Box(solidname, cb_VTX_ladder_Thickness / 2., cb_VTX_ladder_DY / 2., cb_VTX_ladder_DZ / 2.);
-    string logical_name = "cb_VTX_ladder_Logic_" + ilayer;
+    string logical_name = "cb_VTX_ladder_Logic_" + to_string(ilayer);
     G4LogicalVolume *logical = new G4LogicalVolume(solid, G4Material::GetMaterial("G4_Si"), logical_name);
     G4VisAttributes *attr_cb_VTX_ladder = nullptr;
     switch (ilayer)

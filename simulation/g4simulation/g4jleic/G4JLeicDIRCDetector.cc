@@ -67,7 +67,7 @@ void G4JLeicDIRCDetector::ConstructMe(G4LogicalVolume *logicWorld)
     double y = -dR * sin(phi);
     G4RotationMatrix rot;
     rot.rotateZ(cb_DIRC_bars_deltaphi * ia);
-    string physname = "cb_DIRC_bars_Phys_" + ia;
+    string physname = "cb_DIRC_bars_Phys_" + to_string(ia);
     G4VPhysicalVolume *phy = new G4PVPlacement(G4Transform3D(rot, G4ThreeVector(x, y, -400)),
                                                logical, physname,
                                                logicWorld, ia, false, OverlapCheck());
