@@ -64,7 +64,6 @@ class G4JLeicVTXSubsystem : public PHG4DetectorGroupSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
 };
 
-#endif // G4JLEIC_G4JLEICVTXSUBSYSTEM_H
+#endif  // G4JLEIC_G4JLEICVTXSUBSYSTEM_H

@@ -6,18 +6,18 @@
 #include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                 // for PHIODataNode
-#include <phool/PHNode.h>                       // for PHNode
-#include <phool/PHNodeIterator.h>               // for PHNodeIterator
-#include <phool/PHObject.h>                     // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
-#include <set>                                  // for set
+#include <set>  // for set
 #include <sstream>
 
 using namespace std;
@@ -40,7 +40,7 @@ int G4JLeicVTXSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new G4JLeicVTXDetector(topNode, GetParamsContainer(), Name());
+  detector_ = new G4JLeicVTXDetector(this, topNode, GetParamsContainer(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 
@@ -120,48 +120,48 @@ PHG4SteppingAction *G4JLeicVTXSubsystem::GetSteppingAction(void) const
 
 void G4JLeicVTXSubsystem::SetDefaultParameters()
 {
-// all units are in cm
+  // all units are in cm
   set_default_double_param(0, "Dx", 0.005);
   set_default_double_param(0, "Dy", 2.);
   set_default_double_param(0, "Dz", 10.);
   set_default_double_param(0, "Rin", 3.5);
-  set_default_double_param(0, "PixelDx", 10./10.); // dz/10.
-  set_default_double_param(0, "PixelDy", 2./50.);  // dy/50
+  set_default_double_param(0, "PixelDx", 10. / 10.);  // dz/10.
+  set_default_double_param(0, "PixelDy", 2. / 50.);   // dy/50
 
   set_default_double_param(1, "Dx", 0.005);
   set_default_double_param(1, "Dy", 2.);
   set_default_double_param(1, "Dz", 11.);
   set_default_double_param(1, "Rin", 4.5);
-  set_default_double_param(1, "PixelDx", 11./10.); // dz/10
-  set_default_double_param(1, "PixelDy", 2./50.); // dy/50
+  set_default_double_param(1, "PixelDx", 11. / 10.);  // dz/10
+  set_default_double_param(1, "PixelDy", 2. / 50.);   // dy/50
 
   set_default_double_param(2, "Dx", 0.005);
   set_default_double_param(2, "Dy", 4.);
   set_default_double_param(2, "Dz", 18.);
   set_default_double_param(2, "Rin", 6.5);
-  set_default_double_param(2, "PixelDx", 18./50.); // dz/50
-  set_default_double_param(2, "PixelDy", 4./10.); // dy/10
+  set_default_double_param(2, "PixelDx", 18. / 50.);  // dz/50
+  set_default_double_param(2, "PixelDy", 4. / 10.);   // dy/10
 
   set_default_double_param(3, "Dx", 0.005);
   set_default_double_param(3, "Dy", 4.);
   set_default_double_param(3, "Dz", 24.);
   set_default_double_param(3, "Rin", 10.5);
-  set_default_double_param(3, "PixelDx", 24./50.); // dz/50
-  set_default_double_param(3, "PixelDy", 4./10.); // dy/10
+  set_default_double_param(3, "PixelDx", 24. / 50.);  // dz/50
+  set_default_double_param(3, "PixelDy", 4. / 10.);   // dy/10
 
   set_default_double_param(4, "Dx", 0.005);
   set_default_double_param(4, "Dy", 4.);
   set_default_double_param(4, "Dz", 36.);
   set_default_double_param(4, "Rin", 13.5);
-  set_default_double_param(4, "PixelDx", 36./50.); // dz/50
-  set_default_double_param(4, "PixelDy", 4./10.); // dy/10
+  set_default_double_param(4, "PixelDx", 36. / 50.);  // dz/50
+  set_default_double_param(4, "PixelDy", 4. / 10.);   // dy/10
 
   set_default_double_param(5, "Dx", 0.005);
   set_default_double_param(5, "Dy", 4.);
   set_default_double_param(5, "Dz", 48.);
   set_default_double_param(5, "Rin", 15.5);
-  set_default_double_param(5, "PixelDx", 48./50.); // dz/50
-  set_default_double_param(5, "PixelDy", 4./10.); // dy/10
+  set_default_double_param(5, "PixelDx", 48. / 50.);  // dz/50
+  set_default_double_param(5, "PixelDy", 4. / 10.);   // dy/10
 
   // geometry version number
   // we use negative numbers until the "official" version

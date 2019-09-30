@@ -24,8 +24,8 @@ class PHCompositeNode;
 
 using namespace std;
 
-G4JLeicVTXDetector::G4JLeicVTXDetector(PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
-  : PHG4Detector(Node, dnam)
+G4JLeicVTXDetector::G4JLeicVTXDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params, const std::string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_ParamsContainer(params)
 {
   const PHParameters *par = m_ParamsContainer->GetParameters(-1);
@@ -48,17 +48,17 @@ int G4JLeicVTXDetector::IsInVTX(G4VPhysicalVolume *volume) const
   return 0;
 }
 
-void G4JLeicVTXDetector::Construct(G4LogicalVolume *logicWorld)
+void G4JLeicVTXDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   cout << "constructing VTX" << endl;
   for (int ilayer = 0; ilayer < m_Layers; ilayer++)
   {
     // get parameters for this layer
     const PHParameters *par = m_ParamsContainer->GetParameters(ilayer);
-    double cb_VTX_ladder_DZ = par->get_double_param("Dz")*cm;
-    double cb_VTX_ladder_DY = par->get_double_param("Dy")*cm;
-    double cb_VTX_ladder_Thickness = par->get_double_param("Dx")*cm;
-    double dR = par->get_double_param("Rin")*cm;
+    double cb_VTX_ladder_DZ = par->get_double_param("Dz") * cm;
+    double cb_VTX_ladder_DY = par->get_double_param("Dy") * cm;
+    double cb_VTX_ladder_Thickness = par->get_double_param("Dx") * cm;
+    double dR = par->get_double_param("Rin") * cm;
     double myL = 2 * M_PI * dR;
     int NUM = myL / cb_VTX_ladder_DY;
 
@@ -90,20 +90,21 @@ void G4JLeicVTXDetector::Construct(G4LogicalVolume *logicWorld)
     }
     attr_cb_VTX_ladder->SetForceSolid(true);
     logical->SetVisAttributes(attr_cb_VTX_ladder);
-    for (int ia = 0; ia < NUM; ia++) {
+    for (int ia = 0; ia < NUM; ia++)
+    {
       double phi = (ia * (cb_VTX_ladder_deltaphi));
-      double x = - dR * cos(phi) ;
-      double y = - dR * sin(phi) ;
+      double x = -dR * cos(phi);
+      double y = -dR * sin(phi);
       G4RotationMatrix rot;
       rot.rotateZ(cb_VTX_ladder_deltaphi * ia);
-      rot.rotateZ( -7. * deg);
+      rot.rotateZ(-7. * deg);
       ostringstream physname;
-      physname <<  "cb_VTX_ladder_Phys_" << ilayer << "_" << ia;
+      physname << "cb_VTX_ladder_Phys_" << ilayer << "_" << ia;
       G4VPhysicalVolume *phy = new G4PVPlacement(G4Transform3D(rot, G4ThreeVector(x, y, -400)),
-						 logical, physname.str(),
-						 logicWorld, 0, false, OverlapCheck());
-// layer starts at zero but needs to be positive to mark active volume
-      m_PhysicalVolumesMap.insert(make_pair(phy,ilayer+1)); 
+                                                 logical, physname.str(),
+                                                 logicWorld, 0, false, OverlapCheck());
+      // layer starts at zero but needs to be positive to mark active volume
+      m_PhysicalVolumesMap.insert(make_pair(phy, ilayer + 1));
     }
   }
 

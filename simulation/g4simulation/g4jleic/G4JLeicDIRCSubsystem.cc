@@ -6,18 +6,18 @@
 #include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>          // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>                 // for PHIODataNode
-#include <phool/PHNode.h>                       // for PHNode
-#include <phool/PHNodeIterator.h>               // for PHNodeIterator
-#include <phool/PHObject.h>                     // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
-#include <set>                                  // for set
+#include <set>  // for set
 #include <sstream>
 
 using namespace std;
@@ -40,7 +40,7 @@ int G4JLeicDIRCSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new G4JLeicDIRCDetector(topNode, GetParams(), Name());
+  detector_ = new G4JLeicDIRCDetector(this, topNode, GetParams(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 
@@ -116,8 +116,8 @@ PHG4SteppingAction *G4JLeicDIRCSubsystem::GetSteppingAction(void) const
 
 void G4JLeicDIRCSubsystem::SetDefaultParameters()
 {
-// all units are in cm
-  set_default_double_param("PixelDy", 4./10.); // dy/10
+  // all units are in cm
+  set_default_double_param("PixelDy", 4. / 10.);  // dy/10
 
-  set_default_int_param( "layers", 6);
+  set_default_int_param("layers", 6);
 }

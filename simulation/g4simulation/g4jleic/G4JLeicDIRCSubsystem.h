@@ -64,7 +64,6 @@ class G4JLeicDIRCSubsystem : public PHG4DetectorSubsystem
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
   PHG4SteppingAction* steppingAction_;
-
 };
 
-#endif // G4JLEIC_G4JLEICDIRCSUBSYSTEM_H
+#endif  // G4JLEIC_G4JLEICDIRCSUBSYSTEM_H

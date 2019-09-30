@@ -6,24 +6,25 @@
 #include <g4main/PHG4Detector.h>
 
 #include <map>
-#include <string>                 // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 class PHParametersContainer;
 
 class G4JLeicVTXDetector : public PHG4Detector
 {
  public:
   //! constructor
-  G4JLeicVTXDetector(PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam = "VTX");
+  G4JLeicVTXDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParametersContainer *params_array, const std::string &dnam);
 
   //! destructor
-  virtual ~G4JLeicVTXDetector(){}
+  virtual ~G4JLeicVTXDetector() {}
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   virtual void Print(const std::string &what = "ALL") const;
 
@@ -34,8 +35,8 @@ class G4JLeicVTXDetector : public PHG4Detector
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
- 
-protected:
+
+ protected:
   int m_IsActiveFlag;
   int m_IsAbsorberActiveFlag;
   int m_Layers;
@@ -45,4 +46,4 @@ protected:
   std::string m_SuperDetector;
 };
 
-#endif // G4JLEIC_G4JLEICVTXDETECTOR_H
+#endif  // G4JLEIC_G4JLEICVTXDETECTOR_H

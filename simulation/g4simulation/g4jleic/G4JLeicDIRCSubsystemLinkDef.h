@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class G4JLeicDIRCSubsystem-!;
+#pragma link C++ class G4JLeicDIRCSubsystem - !;
 
 #endif /* __CINT__ */

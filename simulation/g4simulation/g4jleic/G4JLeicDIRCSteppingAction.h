@@ -34,10 +34,10 @@ class G4JLeicDIRCSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer* m_HitContainer;
   PHG4Hit* m_Hit;
-  PHG4HitContainer *m_SaveHitContainer;
+  PHG4HitContainer* m_SaveHitContainer;
 
-  G4VPhysicalVolume *m_SaveVolPre;
-  G4VPhysicalVolume *m_SaveVolPost;
+  G4VPhysicalVolume* m_SaveVolPre;
+  G4VPhysicalVolume* m_SaveVolPost;
   int m_SaveTrackId;
   int m_SavePreStepStatus;
   int m_SavePostStepStatus;
