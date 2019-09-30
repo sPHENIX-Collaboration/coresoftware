@@ -75,6 +75,7 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
                                                         TrackerMaterial,
                                                         G4String(GetName()),
                                                         nullptr, nullptr, g4userlimits);
+  GetMySubsystem()->SetLogicalVolume(cylinder_logic);
   m_CylinderPhysicalVolume = new G4PVPlacement(0, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
                                                cylinder_logic,
                                                G4String(GetName()),
