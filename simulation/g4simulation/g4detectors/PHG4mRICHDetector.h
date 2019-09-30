@@ -31,7 +31,7 @@ class PHG4mRICHDetector : public PHG4Detector
   PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr = 0);
 
   //! destructor
-  virtual ~PHG4mRICHDetector();
+  virtual ~PHG4mRICHDetector() {}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume* world);

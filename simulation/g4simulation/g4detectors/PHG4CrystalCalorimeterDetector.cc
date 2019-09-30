@@ -4,6 +4,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
@@ -111,6 +112,9 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              _sPhi, _dPhi);
 
   G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, Air, G4String("eemc_envelope"), 0, 0, 0);
+
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(eemc_envelope_log);
 
   GetDisplayAction()->AddVolume(eemc_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */

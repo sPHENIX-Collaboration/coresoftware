@@ -27,7 +27,7 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
   PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4ProjCrystalCalorimeterDetector();
+  virtual ~PHG4ProjCrystalCalorimeterDetector(){}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume* world);

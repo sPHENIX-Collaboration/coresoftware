@@ -8,6 +8,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
@@ -87,11 +88,6 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
 }
 
 //_______________________________________________________________________
-PHG4ForwardEcalDetector::~PHG4ForwardEcalDetector()
-{
-}
-
-//_______________________________________________________________________
 int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
 {
   if (volume->GetName().find(_towerlogicnameprefix) != string::npos)
@@ -149,6 +145,8 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(ecal_envelope_log);
   /* Define visualization attributes for envelope cone */
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
 

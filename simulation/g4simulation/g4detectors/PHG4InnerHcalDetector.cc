@@ -8,6 +8,7 @@
 
 #include <g4main/PHG4Detector.h>
 #include <g4main/PHG4DisplayAction.h>
+#include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
@@ -411,6 +412,10 @@ void PHG4InnerHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4VSolid *hcal_envelope_cylinder = new G4Tubs("InnerHcal_envelope_solid", m_EnvelopeInnerRadius, m_EnvelopeOuterRadius, m_EnvelopeZ / 2., 0, 2 * M_PI);
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
+
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(hcal_envelope_log);
+
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);

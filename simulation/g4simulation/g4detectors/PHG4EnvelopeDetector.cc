@@ -1,6 +1,7 @@
 #include "PHG4EnvelopeDetector.h"
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4Cons.hh>
@@ -44,10 +45,6 @@ PHG4EnvelopeDetector::PHG4EnvelopeDetector(PHG4Subsystem* subsys, PHCompositeNod
 }
 
 //_______________________________________________________________________________________
-PHG4EnvelopeDetector::~PHG4EnvelopeDetector()
-{
-}
-
 bool PHG4EnvelopeDetector::IsInEnvelope(G4VPhysicalVolume* volume) const
 {
   if (volume->GetName().find("arbage") != string::npos)
@@ -87,6 +84,9 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                                 sPhi, dPhi);
 
   G4LogicalVolume* GarbageCollector_logical = new G4LogicalVolume(GarbageCollector_solid, material_crystal, G4String("GarbageCollector"), 0, 0, 0);
+
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(GarbageCollector_logical);
 
   G4VisAttributes* ecalVisAtt = new G4VisAttributes();
   ecalVisAtt->SetVisibility(true);

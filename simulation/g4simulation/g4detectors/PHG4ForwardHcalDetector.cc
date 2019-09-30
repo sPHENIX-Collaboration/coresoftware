@@ -4,6 +4,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
@@ -117,6 +118,9 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              _sPhi, _dPhi);
 
   G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, Air, G4String("hHcal_envelope"), 0, 0, 0);
+
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(hcal_envelope_log);
 
   m_DisplayAction->AddVolume(hcal_envelope_log, "FHcalEnvelope");
 

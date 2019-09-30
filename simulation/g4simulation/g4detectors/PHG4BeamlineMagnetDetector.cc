@@ -158,6 +158,9 @@ void PHG4BeamlineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                       G4Material::GetMaterial("G4_Galactic"),
                                                       G4String(GetName().c_str()),
                                                       0, 0, 0);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(magnet_logic);
+
   magnet_logic->SetVisAttributes(fieldVis);
 
   /* Set field manager for logical volume */

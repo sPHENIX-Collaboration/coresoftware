@@ -3,6 +3,7 @@
 #include "PHG4CylinderGeomv3.h"
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
+#include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
@@ -126,6 +127,8 @@ void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                        TrackerMaterial,
                                        G4String(GetName().c_str()),
                                        0, 0, 0);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(cylinder_logic);
   G4VisAttributes* VisAtt = new G4VisAttributes();
   VisAtt->SetColour(G4Colour::Grey());
   VisAtt->SetVisibility(true);

@@ -53,6 +53,7 @@ class PHG4Detector
   virtual int DisplayVolume(G4VSolid *volume, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual int DisplayVolume(G4LogicalVolume *checksolid, G4LogicalVolume *logvol, G4RotationMatrix *rotm = nullptr);
   virtual PHCompositeNode *topNode() { return m_topNode; }
+  virtual PHG4Subsystem *GetMySubsystem() {return m_MySubsystem;}
 
  private:
   PHCompositeNode *m_topNode;
