@@ -560,6 +560,16 @@ int PHG4Reco::ApplyCommand(const std::string &cmd)
 
 int PHG4Reco::StartGui()
 {
+  char *args[] = {"/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/opt/sphenix/core/root-6.16.00/bin/root.exe"};
+G4UIExecutive* ui = new G4UIExecutive(1,args);
+  G4VisManager* visManager = new G4VisExecutive;
+  visManager->Initialize();
+  G4UImanager* UImanager = G4UImanager::GetUIpointer();
+    UImanager->ApplyCommand("/control/execute init_vis.mac");
+    ui->SessionStart();
+    delete ui;
+    return 0;
+/*
   if (!gui_thread)
   {
     InitUImanager();
@@ -568,6 +578,7 @@ int PHG4Reco::StartGui()
     return 0;
   }
   return 1;
+*/
 }
 
 int PHG4Reco::InitUImanager()
