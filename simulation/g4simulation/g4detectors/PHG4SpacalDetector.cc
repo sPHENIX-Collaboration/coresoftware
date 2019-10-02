@@ -159,8 +159,6 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 
   cylinder_logic = new G4LogicalVolume(cylinder_solid, cylinder_mat,
                                        G4String(GetName()), 0, 0, 0);
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(cylinder_logic);
   GetDisplayAction()->AddVolume(cylinder_logic, "SpacalCylinder");
 
   cylinder_physi = new G4PVPlacement(0,

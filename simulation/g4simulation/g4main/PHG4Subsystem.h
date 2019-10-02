@@ -71,11 +71,16 @@ class PHG4Subsystem : public SubsysReco
 
   bool CheckOverlap() const { return overlapcheck; }
 
-  void SetMotherSubsystem(PHG4Subsystem *subsys) { m_MyMotherSubsystem = subsys; }
+  void SetMotherSubsystem(PHG4Subsystem *subsys);
   PHG4Subsystem *GetMotherSubsystem() const { return m_MyMotherSubsystem; }
 
   void SetLogicalVolume(G4LogicalVolume *vol) { m_MyLogicalVolume = vol; }
   G4LogicalVolume *GetLogicalVolume() const { return m_MyLogicalVolume; }
+
+// this method is used to check if it can be used as mothervolume
+// Subsystems which can be mothervolume need to implement this 
+// and return true
+  virtual bool CanBeMotherSubsystem() const {return false;}
 
  private:
   PHG4Subsystem *m_MyMotherSubsystem;

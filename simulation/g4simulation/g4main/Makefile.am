@@ -187,6 +187,7 @@ libg4testbench_la_SOURCES = \
   PHG4ScoringManager.cc \
   PHG4SimpleEventGenerator.cc \
   PHG4SteppingAction.cc \
+  PHG4Subsystem.cc \
   PHG4TrackUserInfoV1.cc \
   PHG4TruthEventAction.cc \
   PHG4TruthSubsystem.cc \

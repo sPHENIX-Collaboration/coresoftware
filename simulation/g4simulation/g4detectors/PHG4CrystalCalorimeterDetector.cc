@@ -113,9 +113,6 @@ void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* eemc_envelope_log = new G4LogicalVolume(eemc_envelope_solid, Air, G4String("eemc_envelope"), 0, 0, 0);
 
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(eemc_envelope_log);
-
   GetDisplayAction()->AddVolume(eemc_envelope_log, "Envelope");
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix eemc_rotm;
