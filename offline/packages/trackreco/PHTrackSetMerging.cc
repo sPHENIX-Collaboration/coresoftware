@@ -2,21 +2,24 @@
 
 #include "AssocInfoContainer.h"
 
-//#include <trackbase_historic/SvtxClusterMap.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <trackbase/TrkrClusterContainer.h>
-#include <trackbase/TrkrClusterv1.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>                  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                        // for PHNode
 #include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>                      // for PHObject
 #include <phool/getClass.h>
+#include <phool/phool.h>                         // for PHWHERE
+
+#include <iostream>                              // for operator<<, basic_os...
 
 using namespace std;
 

@@ -1,6 +1,5 @@
 #include "PHInitZVertexing.h"
 
-#include "CellularAutomaton.h"                          // for CellularAutom...
 #include "CellularAutomaton_v1.h"
 #include "HelixHoughBin.h"                              // for HelixHoughBin
 #include "HelixHoughBin_v1.h"                           // for HelixHoughBin_v1
@@ -13,14 +12,12 @@
 #include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
-
-#include <g4bbc/BbcVertexMap.h>
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -29,7 +26,6 @@
 
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -44,7 +40,6 @@
 #include <TNtuple.h>
 
 #include <algorithm>                                    // for find
-#include <climits>                                     // for UINT_MAX
 #include <cmath>
 #include <cstdlib>                                     // for NULL, exit
 #include <iostream>

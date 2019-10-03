@@ -7,13 +7,10 @@
 #ifndef TRACKRECO_PHTRACKSETMERGING_H
 #define TRACKRECO_PHTRACKSETMERGING_H
 
-#include "AssocInfoContainer.h"
-
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
 
 // STL includes
-#include <set>
 #include <string>
 
 // forward declarations

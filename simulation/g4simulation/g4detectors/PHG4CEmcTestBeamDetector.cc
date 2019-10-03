@@ -93,9 +93,6 @@ void PHG4CEmcTestBeamDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4VSolid* cemc_tub = new G4Tubs("CEmcTub", inner_radius - 2 * no_overlap, outer_radius + 2 * no_overlap, (w_dimension[2] + 2 * no_overlap) / 2., 0, cemc_angular_coverage);
   G4LogicalVolume* cemc_log = new G4LogicalVolume(cemc_tub, Air, G4String("CEmc"), 0, 0, 0);
 
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(cemc_log);
-
   G4RotationMatrix cemc_rotm;
   // put our cemc at center displacement in x
   double radius_at_center = inner_radius + (outer_radius - inner_radius) / 2.;

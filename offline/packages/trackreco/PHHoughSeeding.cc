@@ -15,7 +15,6 @@
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/sPHENIXSeedFinder.h>               // for sPHENIXSeedFi...
-#include <HelixHough/VertexFinder.h>
 
 
 // trackbase_historic includes
@@ -43,6 +42,7 @@
 
 #include <phool/PHTimer.h>                              // for PHTimer
 #include <phool/getClass.h>
+#include <phool/phool.h>                                // for PHWHERE
 
 #include <Eigen/Core>                  // for Matrix
 #include <Eigen/Dense>

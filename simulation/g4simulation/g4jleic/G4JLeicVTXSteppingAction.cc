@@ -11,7 +11,6 @@
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
-#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 

@@ -85,9 +85,6 @@ void PHG4EnvelopeDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* GarbageCollector_logical = new G4LogicalVolume(GarbageCollector_solid, material_crystal, G4String("GarbageCollector"), 0, 0, 0);
 
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(GarbageCollector_logical);
-
   G4VisAttributes* ecalVisAtt = new G4VisAttributes();
   ecalVisAtt->SetVisibility(true);
   ecalVisAtt->SetForceSolid(false);

@@ -57,14 +57,10 @@
 #include <GenFit/GFRaveTrackParameters.h>  // for GFRaveTrackParameters
 #include <GenFit/GFRaveVertex.h>
 #include <GenFit/GFRaveVertexFactory.h>
-#include <GenFit/KalmanFittedStateOnPlane.h>  // for KalmanFittedStateOn...
-#include <GenFit/KalmanFitterInfo.h>
-#include <GenFit/MeasuredStateOnPlane.h>
-#include <GenFit/RKTrackRep.h>
 #include <GenFit/Track.h>
-#include <GenFit/TrackPoint.h>
 
 #include <TMath.h>
+#include <TMatrixDSymfwd.h>                        // for TMatrixDSym
 #include <TMatrixTSym.h>    // for TMatrixTSym
 #include <TMatrixTUtils.h>  // for TMatrixTRow
 #include <TVector3.h>       // for TVector3, operator*
@@ -86,7 +82,6 @@ class TGeoManager;
 namespace genfit
 {
 class AbsTrackRep;
-class Track;
 }  // namespace genfit
 
 #define LogDebug(exp) \

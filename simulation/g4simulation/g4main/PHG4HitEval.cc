@@ -17,8 +17,6 @@
 #include <cassert>
 #include <cmath>
 
-class PHG4Hit;
-
 PHG4HitEval::PHG4HitEval() :
     eion(NAN), scint_id(-9999), light_yield(NAN), path_length(NAN)
 

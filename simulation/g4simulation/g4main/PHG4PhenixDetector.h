@@ -10,7 +10,6 @@
 #include <string>                                 // for string
 
 class G4LogicalVolume;
-class G4Material;
 class G4VPhysicalVolume;
 class PHG4Detector;
 class PHG4PhenixDisplayAction;

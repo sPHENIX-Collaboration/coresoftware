@@ -80,6 +80,11 @@ class PHG4ConeSubsystem: public PHG4Subsystem
   void SetActive(const int i = 1) {active = i;}
   void SuperDetector(const std::string &name) {superdetector = name;}
 
+// this method is used to check if it can be used as mothervolume
+// Subsystems which can be mothervolume need to implement this 
+// and return true
+  virtual bool CanBeMotherSubsystem() const {return true;}
+
   private:
 
   //! detector geometry

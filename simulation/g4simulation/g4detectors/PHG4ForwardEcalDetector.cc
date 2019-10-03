@@ -145,8 +145,6 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(ecal_envelope_log);
   /* Define visualization attributes for envelope cone */
   GetDisplayAction()->AddVolume(ecal_envelope_log, "Envelope");
 

@@ -119,9 +119,6 @@ void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   G4LogicalVolume* hcal_envelope_log = new G4LogicalVolume(hcal_envelope_solid, Air, G4String("hHcal_envelope"), 0, 0, 0);
 
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(hcal_envelope_log);
-
   m_DisplayAction->AddVolume(hcal_envelope_log, "FHcalEnvelope");
 
   /* Define rotation attributes for envelope cone */

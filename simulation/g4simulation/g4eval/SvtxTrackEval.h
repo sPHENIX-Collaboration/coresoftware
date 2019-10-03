@@ -14,7 +14,6 @@ class PHCompositeNode;
 class PHG4Hit;
 class PHG4Particle;
 
-class TrkrClusterContainer;
 class SvtxHitEval;
 class SvtxTrack;
 class SvtxTrackMap;

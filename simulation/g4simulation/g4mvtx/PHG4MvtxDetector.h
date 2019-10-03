@@ -17,7 +17,7 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4MvtxDisplayAction;
-class PHG4MvtxSubsystem;
+class PHG4Subsystem;
 class PHParametersContainer;
 
 class PHG4MvtxDetector : public PHG4Detector

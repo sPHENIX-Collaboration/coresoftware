@@ -48,9 +48,9 @@
 #include <boost/format.hpp>
 
 #include <cassert>
-#include <climits>                                  // for numeric_limits
 #include <cmath>                                  // for fabs, M_PI
 #include <iostream>
+#include <limits>                                  // for numeric_limits
 #include <map>                                     // for _Rb_tree_const_ite...
 #include <utility>                                 // for pair
 
