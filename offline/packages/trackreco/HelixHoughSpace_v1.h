@@ -6,6 +6,8 @@
 #include <iostream>           // for cout, ostream
 #include <vector>             // for vector
 
+class PHObject;
+
 class HelixHoughSpace_v1 : public HelixHoughSpace {
 
 public:

@@ -18,6 +18,8 @@
 #include <gsl/gsl_rng.h>
 
 #include <iostream>                            // for operator<<, basic_ostream
+#include <set>                                 // for _Rb_tree_iterator, set
+#include <utility>                             // for pair
 
 class PHCompositeNode;
 

@@ -5,12 +5,9 @@
 
 #include <g4jets/Jet.h>
 #include <g4jets/JetMap.h>
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4Particle.h>
+
 #include <g4main/PHG4TruthInfoContainer.h>
 
-#include <phool/PHCompositeNode.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 

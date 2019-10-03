@@ -1,7 +1,6 @@
 #include "PHG4TpcDetector.h"
 #include "PHG4TpcDefs.h"
 #include "PHG4TpcDisplayAction.h"
-#include "PHG4TpcSubsystem.h"
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction

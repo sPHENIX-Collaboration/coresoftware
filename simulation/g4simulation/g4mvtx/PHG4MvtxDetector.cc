@@ -2,7 +2,6 @@
 
 #include "PHG4MvtxDefs.h"
 #include "PHG4MvtxDisplayAction.h"
-#include "PHG4MvtxSubsystem.h"
 
 #include <mvtx/CylinderGeom_Mvtx.h>
 
@@ -13,6 +12,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>                   // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>

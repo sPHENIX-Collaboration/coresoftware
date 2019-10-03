@@ -7,6 +7,8 @@
 #include <stddef.h>           // for size_t
 #include <iostream>           // for cout, ostream
 
+class PHObject;
+
 class HelixHoughBin_v1 : public HelixHoughBin {
 
 public:
