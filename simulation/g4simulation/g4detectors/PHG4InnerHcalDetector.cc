@@ -413,9 +413,6 @@ void PHG4InnerHcalDetector::ConstructMe(G4LogicalVolume *logicWorld)
   m_VolumeEnvelope = hcal_envelope_cylinder->GetCubicVolume();
   G4LogicalVolume *hcal_envelope_log = new G4LogicalVolume(hcal_envelope_cylinder, Air, G4String("Hcal_envelope"), 0, 0, 0);
 
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(hcal_envelope_log);
-
   G4RotationMatrix hcal_rotm;
   hcal_rotm.rotateX(m_Params->get_double_param("rot_x") * deg);
   hcal_rotm.rotateY(m_Params->get_double_param("rot_y") * deg);

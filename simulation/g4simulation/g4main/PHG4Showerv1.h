@@ -7,6 +7,7 @@
 
 #include "PHG4HitDefs.h"
 
+#include <cstddef>       // for size_t
 #include <iostream>
 #include <map>
 #include <set>

@@ -1,7 +1,6 @@
 #include "PHG4TpcDetector.h"
 #include "PHG4TpcDefs.h"
 #include "PHG4TpcDisplayAction.h"
-#include "PHG4TpcSubsystem.h"
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
@@ -89,9 +88,6 @@ void PHG4TpcDetector::ConstructMe(G4LogicalVolume *logicWorld)
   G4LogicalVolume *tpc_envelope_logic = new G4LogicalVolume(tpc_envelope,
                                                             G4Material::GetMaterial("G4_AIR"),
                                                             "tpc_envelope");
-  PHG4Subsystem *mysys = GetMySubsystem();
-  mysys->SetLogicalVolume(tpc_envelope_logic);
-
   m_DisplayAction->AddVolume(tpc_envelope_logic, "TpcEnvelope");
 
   ConstructTpcCageVolume(tpc_envelope_logic);

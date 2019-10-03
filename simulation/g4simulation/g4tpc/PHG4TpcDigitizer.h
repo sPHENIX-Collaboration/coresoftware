@@ -19,7 +19,6 @@
 #endif
 
 class PHCompositeNode;
-class SvtxHitMap;
 
 class PHG4TpcDigitizer : public SubsysReco
 {

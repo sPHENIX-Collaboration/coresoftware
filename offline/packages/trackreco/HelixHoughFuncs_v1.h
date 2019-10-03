@@ -7,6 +7,7 @@
 #include <vector>             // for vector
 
 class HelixHoughSpace;
+class PHObject;
 
 class HelixHoughFuncs_v1 : public HelixHoughFuncs {
 

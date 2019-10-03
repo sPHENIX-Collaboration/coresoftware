@@ -1,7 +1,6 @@
 #include "PHG4BlockDetector.h"
 
 #include "PHG4BlockDisplayAction.h"
-#include "PHG4BlockSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 

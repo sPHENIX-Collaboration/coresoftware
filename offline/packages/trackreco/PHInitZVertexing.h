@@ -32,9 +32,7 @@ class HelixHoughFuncs;
 class PHCompositeNode;
 class PHTimer;
 
-class TrkrClusterContainer;
 class SvtxTrackMap;
-class SvtxVertexMap;
 
 class TFile;
 class TH2D;

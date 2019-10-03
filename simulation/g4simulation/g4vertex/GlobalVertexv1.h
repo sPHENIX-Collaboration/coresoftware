@@ -10,6 +10,8 @@
 #include <map>
 #include <utility>         // for pair, make_pair
 
+class PHObject;
+
 class GlobalVertexv1 : public GlobalVertex
 {
  public:

@@ -8,7 +8,6 @@
 class G4Step;
 class PHCompositeNode;
 class PHG4FPbScDetector;
-class PHG4Hit;
 class PHG4HitContainer;
 
 class PHG4FPbScSteppingAction : public PHG4SteppingAction

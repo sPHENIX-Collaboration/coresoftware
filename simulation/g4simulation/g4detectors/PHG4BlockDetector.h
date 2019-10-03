@@ -11,9 +11,8 @@ class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4BlockDisplayAction;
-class PHG4BlockSubsystem;
-class PHParameters;
 class PHG4Subsystem;
+class PHParameters;
 
 class PHG4BlockDetector : public PHG4Detector
 {

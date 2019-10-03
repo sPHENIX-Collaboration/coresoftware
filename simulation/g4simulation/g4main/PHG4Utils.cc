@@ -4,8 +4,10 @@
 #include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4VisAttributes.hh>
 
+#include <algorithm>                  // for copy
 #include <cmath>
 #include <iostream>  // for operator<<, endl, basic_ostream
+#include <vector>                     // for vector
 
 using namespace std;
 

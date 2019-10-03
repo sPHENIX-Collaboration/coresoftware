@@ -5,7 +5,7 @@
 
 #include "PHG4EventAction.h"
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4Types.hh>
 
 #include <set>
 #include <map>

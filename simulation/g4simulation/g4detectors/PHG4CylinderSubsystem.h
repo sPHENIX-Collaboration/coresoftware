@@ -56,6 +56,10 @@ class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
     m_ColorArray[2] = blue;
     m_ColorArray[3] = alpha;
   }
+// this method is used to check if it can be used as mothervolume
+// Subsystems which can be mothervolume need to implement this 
+// and return true
+  virtual bool CanBeMotherSubsystem() const {return true;}
 
  private:
   void SetDefaultParameters();

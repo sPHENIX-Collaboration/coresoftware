@@ -29,8 +29,6 @@
 #include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>      // for PHObject
-#include <phool/PHTimeServer.h>  // for PHTimeServer
-#include <phool/PHTimer.h>       // for PHTimer
 #include <phool/getClass.h>
 #include <phool/phool.h>  // for PHWHERE
 
@@ -38,7 +36,6 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <cstring>  // for memset
 #include <iostream>
 #include <memory>  // for allocator_tra...
 #include <vector>  // for vector
