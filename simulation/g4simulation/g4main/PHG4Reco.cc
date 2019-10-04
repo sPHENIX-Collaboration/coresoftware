@@ -118,9 +118,6 @@ class PHG4SteppingAction;
 
 using namespace std;
 
-// for the G4 cmd line interface
-G4UImanager *UImanager = nullptr;
-
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
@@ -137,6 +134,7 @@ PHG4Reco::PHG4Reco(const string &name)
   , generatorAction_(nullptr)
   , visManager(nullptr)
   , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
+  , m_UImanager(nullptr)
   , _eta_coverage(1.0)
   , mapdim(PHFieldConfig::kFieldUniform)
   , fieldmapfile("NONE")
@@ -551,7 +549,7 @@ void PHG4Reco::Dump_GDML(const std::string &filename)
 int PHG4Reco::ApplyCommand(const std::string &cmd)
 {
   InitUImanager();
-  int iret = UImanager->ApplyCommand(cmd.c_str());
+  int iret = m_UImanager->ApplyCommand(cmd.c_str());
   return iret;
 }
 //_________________________________________________________________
@@ -564,7 +562,7 @@ int PHG4Reco::StartGui()
   char *args[] = {(char *)("root.exe")};
   G4UIExecutive* ui = new G4UIExecutive(1,args);
   InitUImanager();
-  UImanager->ApplyCommand("/control/execute init_vis.mac");
+  m_UImanager->ApplyCommand("/control/execute init_gui_vis.mac");
   ui->SessionStart();
   delete ui;
   return 0;
@@ -572,13 +570,13 @@ int PHG4Reco::StartGui()
 
 int PHG4Reco::InitUImanager()
 {
-  if (!UImanager)
+  if (!m_UImanager)
   {
     // Get the pointer to the User Interface manager
     // Initialize visualization
     visManager = new G4VisExecutive;
     visManager->Initialize();
-    UImanager = G4UImanager::GetUIpointer();
+    m_UImanager = G4UImanager::GetUIpointer();
   }
   return 0;
 }
@@ -642,12 +640,6 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
   {
     reco->ResetEvent(topNode);
   }
-  return 0;
-}
-
-//_________________________________________________________________
-int PHG4Reco::End(PHCompositeNode *)
-{
   return 0;
 }
 
