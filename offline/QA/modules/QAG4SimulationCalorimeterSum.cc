@@ -9,14 +9,14 @@
 #include <g4main/PHG4TruthInfoContainer.h>
 
 #include <calobase/RawCluster.h>
-#include <calobase/RawClusterContainer.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
-//#include <g4hough/PHG4HoughTransform.h>
-
 #include <trackbase_historic/SvtxTrack.h>
+
+#include <g4eval/SvtxTrackEval.h>            // for SvtxTrackEval
+
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllHistoManager.h>
@@ -33,6 +33,8 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <iterator>                          // for reverse_iterator
+#include <utility>                           // for pair
 #include <vector>
 
 using namespace std;
@@ -40,20 +42,12 @@ using namespace std;
 QAG4SimulationCalorimeterSum::QAG4SimulationCalorimeterSum(
     QAG4SimulationCalorimeterSum::enu_flags flags)
   : SubsysReco("QAG4SimulationCalorimeterSum")
-  ,  //
-  _flags(flags)
-  ,  //
-  _calo_name_cemc("CEMC")
+  , _flags(flags)
+  , _calo_name_cemc("CEMC")
   , _calo_name_hcalin("HCALIN")
-  ,  //
-  _calo_name_hcalout("HCALOUT")
-  ,  //
-  _truth_container(nullptr)
+  , _calo_name_hcalout("HCALOUT")
+  , _truth_container(nullptr)
   , _magField(+1.4)
-{
-}
-
-QAG4SimulationCalorimeterSum::~QAG4SimulationCalorimeterSum()
 {
 }
 
@@ -103,11 +97,6 @@ int QAG4SimulationCalorimeterSum::InitRun(PHCompositeNode *topNode)
       _svtxevalstack->set_verbosity(Verbosity() + 1);
     }
   }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int QAG4SimulationCalorimeterSum::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

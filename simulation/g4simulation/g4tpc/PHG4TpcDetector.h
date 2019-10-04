@@ -5,9 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-// cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
-#include <Geant4/G4RotationMatrix.hh>
-
 #include <set>
 #include <string>
 
@@ -16,14 +13,14 @@ class G4UserLimits;
 class G4VPhysicalVolume;
 class PHCompositeNode;
 class PHG4TpcDisplayAction;
-class PHG4TpcSubsystem;
+class PHG4Subsystem;
 class PHParameters;
 
 class PHG4TpcDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4TpcDetector(PHG4TpcSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  PHG4TpcDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4TpcDetector(void)
@@ -31,7 +28,7 @@ class PHG4TpcDetector : public PHG4Detector
   }
 
   //! construct
-  void Construct(G4LogicalVolume *world);
+  void ConstructMe(G4LogicalVolume *world);
 
   int IsInTpc(G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }

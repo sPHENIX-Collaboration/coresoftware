@@ -7,6 +7,7 @@
 
 #include <string>                      // for string
 
+class G4Colour;
 class G4LogicalVolume;
 class G4VisAttributes;
 class G4VPhysicalVolume;
@@ -21,12 +22,13 @@ class PHG4CylinderDisplayAction : public PHG4DisplayAction
 
   void ApplyDisplayAction(G4VPhysicalVolume *physvol);
   void SetMyVolume(G4LogicalVolume *vol) { m_MyVolume = vol; }
-
+  void SetColor(const double red, const double green, const double blue, const double alpha=1.);
 
  private:
   PHParameters *m_Params;
   G4LogicalVolume *m_MyVolume;
   G4VisAttributes *m_VisAtt;
+  G4Colour *m_Colour;
 };
 
 #endif  // G4DETECTORS_PHG4CYLINDERDISPLAYACTION_H

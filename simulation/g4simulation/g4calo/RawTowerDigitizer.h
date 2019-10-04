@@ -13,7 +13,7 @@ class RawTowerDeadMap;
 class RawTower;
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -34,15 +34,18 @@ class RawTowerDigitizer : public SubsysReco
   unsigned int get_seed() const { return m_Seed; }
   enum enu_digi_algorithm
   {
-    //! directly pass the energy of sim tower to digitalized tower
+    //! directly pass the energy of sim tower to digitized tower
     kNo_digitization = 0,
     //! wrong spelling, kept for macro compatibility
     kNo_digitalization = 0,
 
-    //! simple digitization with photon statistics, ADC conversion and pedstal
+    //! simple digitization with photon statistics, single amplitude ADC conversion and pedestal
     kSimple_photon_digitization = 1,
     //! wrong spelling, kept for macro compatibility
-    kSimple_photon_digitalization = 1
+    kSimple_photon_digitalization = 1,
+
+    //! digitization with photon statistics on SiPM with an effective pixel N, ADC conversion and pedestal
+    kSiPM_photon_digitization = 2
   };
 
   enu_digi_algorithm
@@ -141,6 +144,12 @@ class RawTowerDigitizer : public SubsysReco
     m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
+  // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
+  void set_sipm_effective_pixel(const unsigned int &d) { m_SiPMEffectivePixel = d; }
+
+  // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
+  unsigned int get_sipm_effective_pixel() { return m_SiPMEffectivePixel; }
+
  private:
   void CreateNodes(PHCompositeNode *topNode);
 
@@ -148,6 +157,10 @@ class RawTowerDigitizer : public SubsysReco
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
   RawTower *simple_photon_digitization(RawTower *sim_tower);
+
+  //! digitization with photon statistics on SiPM with an effective pixel N, ADC conversion and pedestal
+  //! this function use the effective pixel to count for the effect that the sipm is not evenly lit
+  RawTower *sipm_photon_digitization(RawTower *sim_tower);
 
   enu_digi_algorithm m_DigiAlgorithm;
 
@@ -180,7 +193,11 @@ class RawTowerDigitizer : public SubsysReco
   int m_TowerType;
 
   unsigned int m_Seed;
-#ifndef __CINT__
+
+  // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
+  unsigned int m_SiPMEffectivePixel;
+
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *m_RandomGenerator;
 #endif
 };

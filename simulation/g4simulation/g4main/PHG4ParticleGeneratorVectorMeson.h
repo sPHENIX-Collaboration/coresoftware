@@ -100,7 +100,7 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   double pt_min;
   double pt_max;
   double mass;
-  double width;
+  double m_Width;
   double m1;
   double m2;
   int _histrand_init;

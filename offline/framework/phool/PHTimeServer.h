@@ -51,7 +51,7 @@ class PHTimeServer
     }
 
    private:
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
     std::shared_ptr<PHTimer> _timer;
 #endif
     unsigned short _uid;

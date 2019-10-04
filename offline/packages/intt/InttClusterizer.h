@@ -5,8 +5,7 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <phool/PHTimeServer.h>
-#include <limits>
+#include <climits>
 #include <map>
 #include <string>
 #include <utility>
@@ -89,7 +88,6 @@ class InttClusterizer : public SubsysReco
   std::map<int, bool> _make_z_clustering;     // layer->z_clustering_option
   std::map<int, bool> _make_e_weights;        // layer->energy_weighting_option
 
-  PHTimeServer::timer _timer;
 };
 
 #endif

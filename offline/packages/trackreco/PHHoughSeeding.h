@@ -15,7 +15,6 @@
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
-#include <HelixHough/sPHENIXSeedFinder.h>
 #include <Eigen/Core>                  // for Matrix
 #endif
 
@@ -30,22 +29,11 @@
 // forward declarations
 class BbcVertexMap;
 class PHCompositeNode;
-class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
-class PHG4HitContainer;
 class PHTimer;
 class sPHENIXSeedFinder;
-class SvtxTrackMap;
-class SvtxTrack;
-class SvtxVertexMap;
-class SvtxVertex;
 class TNtuple;
 class TFile;
-
-namespace genfit
-{
-class GFRaveVertexFactory;
-} /* namespace genfit */
 
 /// \class PHHoughSeeding
 ///
@@ -323,11 +311,13 @@ class PHHoughSeeding : public PHTrackSeeding
     _max_merging_dz = maxMergingDz;
   }
 
+  /*
   void set_vertex_error(const float a)
   {
     _vertex_error.clear();
     _vertex_error.assign(3, a);
   }
+  */
 
   unsigned int get_min_nlayers_seeding() const
   {
@@ -340,7 +330,7 @@ class PHHoughSeeding : public PHTrackSeeding
     _min_combo_hits = minNlayersSeeding;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
  private:
   //--------------
@@ -382,16 +372,16 @@ class PHHoughSeeding : public PHTrackSeeding
   int fast_vertex_from_bbc();
 
   /// code to seed vertex from initial tracking using a broad search window
-  int fast_vertex_guessing();
+  //int fast_vertex_guessing();
 
   /// code to produce an initial track vertex from the seed
-  int initial_vertex_finding();
+  //int initial_vertex_finding();
 
   /// SvtxVtxMap[0] -> _vertex and _vertex_error
   int vertexing();
 
   /// code to perform the final tracking and vertexing
-  int full_track_seeding();
+  int full_track_seeding(int ivert);
 
   /// code to translate back to the SVTX universe
   int export_output();
@@ -425,7 +415,7 @@ class PHHoughSeeding : public PHTrackSeeding
                                                    Eigen::Matrix<float, 6, 6> &output);
 
   /// translate the clusters, tracks, and vertex from one origin to another
-  void shift_coordinate_system(double dx, double dy, double dz);
+  void shift_coordinate_system(double dx, double dy, double dz, int ivertex);
 
   int _event;
   PHTimer *_t_seeding;
@@ -498,8 +488,9 @@ class PHHoughSeeding : public PHTrackSeeding
   std::vector<double> _all_track_errors;                       ///< working array of track chisq
   std::vector<Eigen::Matrix<float, 5, 5> > _all_track_covars;  ///< working array of track covariances
 
-  std::vector<float> _vertex;        ///< working array for collision vertex
-  std::vector<float> _vertex_error;  ///< sqrt(cov)
+  std::vector<std::vector<float>> _vertex;        ///< working array for collision vertex list
+  std::vector<std::vector<float>> _vertex_error;  ///< sqrt(cov)
+  std::vector<int> _vertex_tracks;  /// tracks in this vertex
 
   // track finding routines
   sPHENIXSeedFinder *_tracker;            ///< finds full tracks

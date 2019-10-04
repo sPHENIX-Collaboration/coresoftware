@@ -34,7 +34,7 @@ void PHNodeIntegrate::perform(PHNode *node)
           // we are guaranteed that it exists (and we handle only
           // objects which come from the current input file
           PHObject *runobj = findNode::getClass<PHObject>(runnode, node->getName());
-          runobj->CopyContent(sumobj);
+          runobj->CopyFrom(sumobj);
         }
         else
         {

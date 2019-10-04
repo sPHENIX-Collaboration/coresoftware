@@ -13,6 +13,6 @@ namespace PHG4HcalDefs
   static const std::string outerrad = "outer_radius";
   static const std::string n_towers = "n_towers";
   static const std::string n_scinti_tiles = "n_scinti_tiles";
-};
+}
 
 #endif

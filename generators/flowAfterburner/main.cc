@@ -5,15 +5,10 @@
 #include "flowAfterburner.h"
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenVertex.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenRanges.h>
-#include <HepMC/IO_AsciiParticles.h>
 #include <HepMC/IO_BaseClass.h>
 #include <HepMC/IO_GenEvent.h>
 
 #include <CLHEP/Random/MTwistEngine.h>
-#include <CLHEP/Vector/LorentzVector.h>
 
 #include <boost/version.hpp> // to get BOOST_VERSION
 #if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 106000  || BOOST_VERSION == 106700 || BOOST_VERSION == 107000))
@@ -59,13 +54,13 @@ main ()
   std::string input = pt.get("FLOWAFTERBURNER.INPUT", "sHijing.dat");
   std::string output = pt.get("FLOWAFTERBURNER.OUTPUT", "flowAfterburner.dat");
 
-  float mineta = pt.get("FLOWAFTERBURNER.CUTS.MINETA", -1.0);
-  float maxeta = pt.get("FLOWAFTERBURNER.CUTS.MAXETA", 1.0);
+  float mineta = pt.get("FLOWAFTERBURNER.CUTS.MINETA", -4.0);
+  float maxeta = pt.get("FLOWAFTERBURNER.CUTS.MAXETA", 4.0);
 
   float minpt = pt.get("FLOWAFTERBURNER.CUTS.MINPT", 0.0);
   float maxpt = pt.get("FLOWAFTERBURNER.CUTS.MAXPT", 100.0);
 
-  std::string algorithmName = pt.get("FLOWAFTERBURNER.ALGORITHM", "JJNEW");
+  std::string algorithmName = pt.get("FLOWAFTERBURNER.ALGORITHM", "MINBIAS");
 
   // Open input file.
   HepMC::IO_GenEvent ascii_in (input.c_str(), std::ios::in);

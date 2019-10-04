@@ -10,6 +10,8 @@
 #include <map>
 #include <utility>         // for pair, make_pair
 
+class PHObject;
+
 class GlobalVertexv1 : public GlobalVertex
 {
  public:
@@ -21,7 +23,7 @@ class GlobalVertexv1 : public GlobalVertex
   void identify(std::ostream& os = std::cout) const;
   void Reset() { *this = GlobalVertexv1(); }
   int isValid() const;
-  GlobalVertex* Clone() const { return new GlobalVertexv1(*this); }
+  PHObject* CloneMe() const { return new GlobalVertexv1(*this); }
 
   // vertex info
 

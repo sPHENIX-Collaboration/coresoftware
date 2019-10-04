@@ -16,7 +16,7 @@ class SvtxTrackState : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxTrackState *clone() const { return NULL; }
+  virtual PHObject *CloneMe() const { return nullptr; }
 
   virtual float get_pathlength() const { return NAN; }
 

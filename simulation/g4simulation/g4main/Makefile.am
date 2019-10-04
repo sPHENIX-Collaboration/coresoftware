@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CXXFLAGS = -DG4INTY_USE_XT -DG4VIS_USE_OPENGL -DG4UI_USE_TCSH -DG4UI_USE_XM -DG4VIS_USE_OPENGLXM -DG4VIS_USE_RAYTRACERX -DG4VIS_USE_OPENGLX
+AM_CXXFLAGS = `geant4-config --cflags | sed s/-Woverloaded-virtual// | sed s/-W\ // | sed s/-Wshadow//`
 
 # set in configure.in to check if gcc version >= 4.8
 #if GCC_GE_48
@@ -187,6 +187,7 @@ libg4testbench_la_SOURCES = \
   PHG4ScoringManager.cc \
   PHG4SimpleEventGenerator.cc \
   PHG4SteppingAction.cc \
+  PHG4Subsystem.cc \
   PHG4TrackUserInfoV1.cc \
   PHG4TruthEventAction.cc \
   PHG4TruthSubsystem.cc \

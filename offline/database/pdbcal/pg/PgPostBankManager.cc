@@ -11,13 +11,14 @@
 #include <pdbcalbase/RunToTime.h>
 #include <pdbcalbase/PdbBankManager.h>
 
+#include <phool/PHTimeStamp.h>                 // for PHTimeStamp, operator<<
 #include <phool/phool.h>
 
 #include <RDBC/TSQLConnection.h>
 #include <RDBC/TSQLResultSet.h>
 #include <RDBC/TSQLStatement.h>
 
-#include <TString.h>
+//#include <TString.h>
 
 #include <cstdlib>
 #include <ctime>
@@ -154,7 +155,7 @@ PgPostBankManager::createBank(const string &className, PdbBankID bankID, const s
   if (classMap->find(rName) != classMap->end())
   {
     PdbCalBank *b = (*classMap)[rName];
-    PdbCalBank *b1 = b->clone();
+    PdbCalBank *b1 = dynamic_cast<PdbCalBank *> (b->CloneMe());
     PgPostBankWrapper *bw = new PgPostBankWrapper(b1);
     bw->setBankID(bankID.getInternalValue());
     PHTimeStamp ts;
@@ -277,8 +278,8 @@ PdbCalBank *PgPostBankManager::fetchBank(const string &className, PdbBankID bank
   cout << "exe : " << tem.str() << endl;
 #endif
 
-  std::auto_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
-  if ((&*rs) && rs->Next())
+  std::unique_ptr<TSQLResultSet> rs(stmt->ExecuteQuery(tem.str().c_str()));
+  if ((rs) && rs->Next())
   {
     PdbCalBank *bank = (PdbCalBank *) (rs->GetObject(7));
     PgPostBankWrapper *bw = new PgPostBankWrapper(bank);

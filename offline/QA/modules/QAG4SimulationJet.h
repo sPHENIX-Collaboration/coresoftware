@@ -11,7 +11,7 @@
 #include <string>
 #include <utility>  // std::pair, std::make_pair
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
 #else
 #include <stdint.h>
@@ -43,7 +43,7 @@ class QAG4SimulationJet : public SubsysReco
 
   QAG4SimulationJet(const std::string &truth_jet, enu_flags flags =
                                                       kDefaultFlag);
-  virtual ~QAG4SimulationJet();
+  virtual ~QAG4SimulationJet(){}
 
   //! add reco jet to the process list
   //! @return number of reco jet on list
@@ -132,7 +132,6 @@ class QAG4SimulationJet : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
  private:
   int Init_Spectrum(PHCompositeNode *topNode, const std::string &jet_name);
@@ -147,7 +146,7 @@ class QAG4SimulationJet : public SubsysReco
   get_histo_prefix(const std::string &src_jet_name = "",
                    const std::string &reco_jet_name = "");
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! cache the jet evaluation modules
   typedef std::map<std::string, std::shared_ptr<JetEvalStack>> jetevalstacks_map;
   jetevalstacks_map _jetevalstacks;

@@ -16,6 +16,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 //GenFit
 
@@ -109,6 +110,17 @@ class Track
     _clusterkeys = clusterkeys;
   }
 
+  void set_vertex_id(const unsigned int vert_id)
+  {
+    _vertex_id = vert_id;
+  }
+
+  unsigned int get_vertex_id()
+  {
+    //std::cout << " Track: returning vertex_id = " << _vertex_id << std::endl;
+    return _vertex_id;
+  }
+
 
   int get_verbosity() const
   {
@@ -135,6 +147,7 @@ class Track
   //std::vector<PHGenFit::Measurement*> _measurements;
   std::vector<unsigned int> _clusterIDs;
   std::vector<TrkrDefs::cluskey> _clusterkeys;
+  unsigned int _vertex_id;
 
   //SMART(genfit::Track) _track;
 };

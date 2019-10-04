@@ -11,7 +11,7 @@
 
 #include <utility>                                  // for swap
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined (__CLING__)
 #include <boost/iostreams/filtering_streambuf.hpp>
 #endif
 
@@ -21,9 +21,9 @@ class SyncObject;
 // forward declaration of classes in namespace
 namespace HepMC
 {
-class IO_GenEvent;
-class GenEvent;
-};  // namespace HepMC
+  class IO_GenEvent;
+  class GenEvent;
+}  // namespace HepMC
 
 
 class Fun4AllHepMCInputManager : public Fun4AllInputManager
@@ -103,7 +103,7 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
 #endif
 };

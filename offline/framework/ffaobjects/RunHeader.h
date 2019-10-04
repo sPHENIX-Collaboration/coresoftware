@@ -16,7 +16,7 @@ class RunHeader: public PHObject
   /// dtor
   virtual ~RunHeader() {}
 
-  virtual RunHeader* clone() const;
+  virtual PHObject* CloneMe() const;
 
   /// Clear Event
   virtual void Reset();

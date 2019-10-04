@@ -10,6 +10,8 @@
 #include <string>
 #include <utility>
 
+class CaloEvalStack;
+
 class JetMap;
 
 class PHCompositeNode;
@@ -21,6 +23,7 @@ class PHG4Shower;
 class RawClusterContainer;
 class RawTowerContainer;
 
+class SvtxEvalStack;
 class SvtxTrackMap;
 
 class JetRecoEval

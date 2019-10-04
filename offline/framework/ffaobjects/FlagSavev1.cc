@@ -6,8 +6,8 @@
 
 using namespace std;
 
-FlagSavev1 * 
-FlagSavev1::clone() const
+PHObject * 
+FlagSavev1::CloneMe() const
 {
   FlagSavev1 * ret = new FlagSavev1();
 

@@ -8,9 +8,12 @@
 #define MVTX_MVTXCLUSTERIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <utility>
 #include <trackbase/TrkrDefs.h>
 
+#include <string>                // for string
+#include <utility>
+
+class PHCompositeNode;
 class TrkrHit;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;

@@ -8,8 +8,8 @@
 
 namespace HepMC
 {
-class GenEvent;
-};
+  class GenEvent;
+}
 
 class PHPy6GenTrigger
 {
@@ -20,7 +20,7 @@ class PHPy6GenTrigger
  public:
   virtual ~PHPy6GenTrigger();
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   virtual bool Apply(const HepMC::GenEvent* evt)
   {
     std::cout << "PHPy8GenTrigger::Apply - in virtual function" << std::endl;

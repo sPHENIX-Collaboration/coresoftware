@@ -17,10 +17,10 @@ class PHHepMCGenEventMap;
 
 namespace HepMC
 {
-class GenEvent;
-};
+  class GenEvent;
+}
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -90,7 +90,7 @@ class PHHepMCGenHelper
     return _geneventmap;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *get_random_generator()
   {
     return RandomGenerator;
@@ -103,7 +103,7 @@ class PHHepMCGenHelper
   }
 
  protected:
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
 #endif
 

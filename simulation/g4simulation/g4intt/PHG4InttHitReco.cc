@@ -2,43 +2,44 @@
 
 #include <intt/CylinderGeomIntt.h>
 
-#include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
+#include <g4detectors/PHG4CylinderGeom.h>  // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <trackbase/TrkrDefs.h>
-#include <trackbase/TrkrHit.h>                      // for TrkrHit
+#include <trackbase/TrkrHit.h>  // for TrkrHit
 #include <trackbase/TrkrHitSet.h>
 #include <trackbase/TrkrHitSetContainer.h>
 #include <trackbase/TrkrHitTruthAssoc.h>
 
-#include <phparameter/PHParameterInterface.h>       // for PHParameterInterface
+#include <phparameter/PHParameterInterface.h>  // for PHParameterInterface
 
 #include <intt/InttDefs.h>
 #include <intt/InttHit.h>
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Utils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/getClass.h>
-#include <phool/phool.h>                            // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 
 #include <TSystem.h>
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <map>                                      // for _Rb_tree_const_it...
-#include <memory>                                   // for allocator_traits<...
-#include <utility>                                  // for pair, swap, make_...
-#include <vector>                                   // for vector
+#include <map>      // for _Rb_tree_const_it...
+#include <memory>   // for allocator_traits<...
+#include <utility>  // for pair, swap, make_...
+#include <vector>   // for vector
 
 using namespace std;
 
@@ -46,7 +47,6 @@ PHG4InttHitReco::PHG4InttHitReco(const std::string &name)
   : SubsysReco(name)
   , PHParameterInterface(name)
   , m_Detector("INTT")
-  , m_ChkEnergyConservationFlag(0)
   , m_Tmin(NAN)
   , m_Tmax(NAN)
 {
@@ -115,39 +115,39 @@ int PHG4InttHitReco::InitRun(PHCompositeNode *topNode)
     exit(1);
   }
 
-TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!hitsetcontainer)
-    {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
+  TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
+  if (!hitsetcontainer)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
         dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
-
-      hitsetcontainer = new TrkrHitSetContainer();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
-      DetNode->addNode(newNode);
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
     }
 
- TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
-  if(!hittruthassoc)
-    {
-      PHNodeIterator dstiter(dstNode);
-      PHCompositeNode *DetNode =
-        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
-      if (!DetNode)
-	{
-	  DetNode = new PHCompositeNode("TRKR");
-	  dstNode->addNode(DetNode);
-	}
+    hitsetcontainer = new TrkrHitSetContainer();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hitsetcontainer, "TRKR_HITSET", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
-      hittruthassoc = new TrkrHitTruthAssoc();
-      PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
-      DetNode->addNode(newNode);
+  TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
+  if (!hittruthassoc)
+  {
+    PHNodeIterator dstiter(dstNode);
+    PHCompositeNode *DetNode =
+        dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", "TRKR"));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode("TRKR");
+      dstNode->addNode(DetNode);
     }
+
+    hittruthassoc = new TrkrHitTruthAssoc();
+    PHIODataNode<PHObject> *newNode = new PHIODataNode<PHObject>(hittruthassoc, "TRKR_HITTRUTHASSOC", "PHObject");
+    DetNode->addNode(newNode);
+  }
 
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
@@ -187,21 +187,21 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
     exit(1);
   }
 
- // Get the TrkrHitSetContainer node
+  // Get the TrkrHitSetContainer node
   TrkrHitSetContainer *hitsetcontainer = findNode::getClass<TrkrHitSetContainer>(topNode, "TRKR_HITSET");
-  if(!hitsetcontainer)
-    {
-      cout << "Could not locate TRKR_HITSET node, quit! " << endl;
-      exit(1);
-    }
+  if (!hitsetcontainer)
+  {
+    cout << "Could not locate TRKR_HITSET node, quit! " << endl;
+    exit(1);
+  }
 
   // Get the TrkrHitTruthAssoc node
   TrkrHitTruthAssoc *hittruthassoc = findNode::getClass<TrkrHitTruthAssoc>(topNode, "TRKR_HITTRUTHASSOC");
-  if(!hittruthassoc)
-    {
-      cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
-      exit(1);
-    }
+  if (!hittruthassoc)
+  {
+    cout << "Could not locate TRKR_HITTRUTHASSOC node, quit! " << endl;
+    exit(1);
+  }
 
   PHG4CylinderGeomContainer *geo = findNode::getClass<PHG4CylinderGeomContainer>(topNode, m_GeoNodeName);
   if (!geo)
@@ -343,7 +343,7 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
 
           // here m_SegmentVec.1 (Y) and m_SegmentVec.2 (Z) are the center of the circle, and diffusion_radius is the circle radius
           // circle_rectangle_intersection returns the overlap area of the circle and the pixel. It is very fast if there is no overlap.
-          double striparea_frac = circle_rectangle_intersection(y1, z1, y2, z2, gsl_vector_get(m_SegmentVec, 1), gsl_vector_get(m_SegmentVec, 2), diffusion_radius) / (M_PI * (diffusion_radius * diffusion_radius));
+          double striparea_frac = PHG4Utils::circle_rectangle_intersection(y1, z1, y2, z2, gsl_vector_get(m_SegmentVec, 1), gsl_vector_get(m_SegmentVec, 2), diffusion_radius) / (M_PI * (diffusion_radius * diffusion_radius));
           // assume that the energy is deposited uniformly along the tracklet length, so that this segment gets the fraction 1/nsegments of the energy
           stripenergy[iy - minstrip_y][iz - minstrip_z] += striparea_frac * hiter->second->get_edep() / (float) nsegments;
           if (hiter->second->has_property(PHG4Hit::prop_eion))
@@ -390,119 +390,40 @@ int PHG4InttHitReco::process_event(PHCompositeNode *topNode)
       TrkrDefs::hitsetkey hitsetkey = InttDefs::genHitSetKey(sphxlayer, ladder_z_index, ladder_phi_index);
       // Use existing hitset or add new one if needed
       TrkrHitSetContainer::Iterator hitsetit = hitsetcontainer->findOrAddHitSet(hitsetkey);
-      
+
       // generate the key for this hit
       TrkrDefs::hitkey hitkey = InttDefs::genHitKey(vzbin[i1], vybin[i1]);
       // See if this hit already exists
       TrkrHit *hit = hitsetit->second->getHit(hitkey);
-      if(!hit)
-	{
-	  // Otherwise, create a new one
-	  hit = new InttHit();
-	  hitsetit->second->addHitSpecificKey(hitkey, hit);
-	}
-      
+      if (!hit)
+      {
+        // Otherwise, create a new one
+        hit = new InttHit();
+        hitsetit->second->addHitSpecificKey(hitkey, hit);
+      }
+
       // Either way, add the energy to it
-      if(Verbosity() > 2) 
-	cout << "add energy " << venergy[i1].first << " to intthit " << endl;
+      if (Verbosity() > 2)
+        cout << "add energy " << venergy[i1].first << " to intthit " << endl;
       hit->addEnergy(venergy[i1].first);
 
       // Add this hit to the association map
       hittruthassoc->addAssoc(hitsetkey, hitkey, hiter->first);
 
-      if(Verbosity() > 2)
-	cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;      
+      if (Verbosity() > 2)
+        cout << "PHG4InttHitReco: added hit wirh hitsetkey " << hitsetkey << " hitkey " << hitkey << " g4hitkey " << hiter->first << endl;
     }
 
   }  // end loop over g4hits
 
-
   // print the list of entries in the association table
-  if(Verbosity() > 0)
-    {
-      cout << "From PHG4InttHitReco: " << endl;
-      hitsetcontainer->identify();
-      hittruthassoc->identify();
-    }
-  if (m_ChkEnergyConservationFlag)
-    {
-      CheckEnergy(topNode);
-    }
+  if (Verbosity() > 0)
+  {
+    cout << "From PHG4InttHitReco: " << endl;
+    hitsetcontainer->identify();
+    hittruthassoc->identify();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4InttHitReco::CheckEnergy(PHCompositeNode *topNode)
-{
-
-  return 0;
-}
-
-double PHG4InttHitReco::circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r) const
-{
-  // Find the area of overlap of a circle and rectangle
-  // Calls sA, which uses an analytic formula to determine the integral of the circle between limits set by the corners of the rectangle
-
-  // move the rectangle to the frame where the circle is at (0,0)
-  x1 -= mx;
-  x2 -= mx;
-  y1 -= my;
-  y2 -= my;
-
-  if (Verbosity() > 7)
-  {
-    cout << " mx " << mx << " my " << my << " r " << r << " x1 " << x1 << " x2 " << x2 << " y1 " << y1 << " y2 " << y2 << endl;
-    cout << " sA21 " << sA(r, x2, y1)
-         << " sA11 " << sA(r, x1, y1)
-         << " sA22 " << sA(r, x2, y2)
-         << " sA12 " << sA(r, x1, y2)
-         << endl;
-  }
-
-  return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
-}
-
-double PHG4InttHitReco::sA(double r, double x, double y) const
-{
-  // Uses analytic formula for the integral of a circle between limits set by the corner of a rectangle
-  // It is called repeatedly to find the overlap area between the circle and rectangle
-  // I found this code implementing the integral on a web forum called "ars technica",
-  // https://arstechnica.com/civis/viewtopic.php?t=306492
-  // posted by "memp"
-
-  double a;
-
-  if (x < 0)
-  {
-    return -sA(r, -x, y);
-  }
-
-  if (y < 0)
-  {
-    return -sA(r, x, -y);
-  }
-
-  if (x > r)
-  {
-    x = r;
-  }
-
-  if (y > r)
-  {
-    y = r;
-  }
-
-  if (x * x + y * y > r * r)
-  {
-    a = r * r * asin(x / r) + x * sqrt(r * r - x * x) + r * r * asin(y / r) + y * sqrt(r * r - y * y) - r * r * M_PI_2;
-
-    a *= 0.5;
-  }
-  else
-  {
-    a = x * y;
-  }
-
-  return a;
 }
 
 void PHG4InttHitReco::SetDefaultParameters()

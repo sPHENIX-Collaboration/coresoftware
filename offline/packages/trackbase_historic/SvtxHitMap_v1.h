@@ -18,7 +18,7 @@ class SvtxHitMap_v1 : public SvtxHitMap
   void identify(std::ostream& os = std::cout) const;
   void Reset();
   int isValid() const { return 1; }
-  SvtxHitMap* clone() const { return new SvtxHitMap_v1(*this); }
+  PHObject* CloneMe() const { return new SvtxHitMap_v1(*this); }
 
   bool empty() const { return _map.empty(); }
   size_t size() const { return _map.size(); }

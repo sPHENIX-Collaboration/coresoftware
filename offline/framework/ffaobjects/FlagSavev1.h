@@ -4,6 +4,7 @@
 #define FFAOBJECTS_FLAGSAVEV1_H
 
 #include "FlagSave.h"
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -20,7 +21,7 @@ class FlagSavev1: public FlagSave
   /// dtor
   virtual ~FlagSavev1() {}
 
-  FlagSavev1 * clone() const;
+  PHObject *CloneMe() const;
 
   ///  Clear Event
   void Reset() {}

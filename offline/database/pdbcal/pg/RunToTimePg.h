@@ -1,7 +1,12 @@
-#ifndef __RUNTOTIMEPG_HH__
-#define __RUNTOTIMEPG_HH__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PDBCALPG_RUNTOTIMEPG_H
+#define PDBCALPG_RUNTOTIMEPG_H
 
 #include <pdbcalbase/RunToTime.h>
+
+#include <phool/PHTimeStamp.h>     // for PHTimeStamp
+
 #include <map>
 #include <string>
 
@@ -38,4 +43,4 @@ class RunToTimePg : public RunToTime
   odbc::Connection *con;
 };
 
-#endif /* __RUNTOTIMEPG_HH__ */
+#endif // PDBCALPG_RUNTOTIMEPG_H

@@ -47,7 +47,7 @@ class GlobalVertexFastSimReco : public SubsysReco
   float _y_smear;
   float _z_smear;
   float _t_smear;
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
 #endif
 };

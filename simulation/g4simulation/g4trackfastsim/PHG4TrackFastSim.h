@@ -12,24 +12,26 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <TMatrixDSymfwd.h>      // for TMatrixDSym
+#include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TVector3.h>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
+#include <climits>  // for UINT_MAX
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
-#include <climits>              // for UINT_MAX
 
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Particle;
 class SvtxTrack;
 class SvtxTrackMap;
+class SvtxVertexMap;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 
@@ -40,6 +42,12 @@ class Measurement;
 class PlanarMeasurement;
 class Track;
 } /* namespace PHGenFit */
+namespace genfit
+{
+class GFRaveVertex;
+class GFRaveVertexFactory;
+class Track;
+} /* namespace genfit */
 
 class PHG4TrackFastSim : public SubsysReco
 {
@@ -181,6 +189,31 @@ class PHG4TrackFastSim : public SubsysReco
     _primary_tracking = pTrk;
   }
 
+  //! https://rave.hepforge.org/trac/wiki/RaveMethods
+  const std::string& get_vertexing_method() const
+  {
+    return _vertexing_method;
+  }
+
+  //! https://rave.hepforge.org/trac/wiki/RaveMethods
+  void set_vertexing_method(const std::string& vertexingMethod)
+  {
+    _vertexing_method = vertexingMethod;
+  }
+
+  double get_vertex_min_ndf() const {
+    return _vertex_min_ndf;
+  }
+
+  void set_vertex_min_ndf(double vertexMinPT) {
+    _vertex_min_ndf = vertexMinPT;
+  }
+
+  void enable_vertexing(const bool& b = true)
+  {
+    _do_vertexing = b;
+  }
+
  private:
   /*!
 	 * Create needed nodes.
@@ -212,6 +245,15 @@ class PHG4TrackFastSim : public SubsysReco
                            const unsigned int truth_track_id = UINT_MAX,
                            const unsigned int nmeas = 0, const TVector3& vtx = TVector3(0.0, 0.0, 0.0));
 
+  typedef std::map<const genfit::Track*, unsigned int> GenFitTrackMap;
+
+  /*
+  * Fill SvtxVertexMap from GFRaveVertexes and Tracks
+  */
+  bool FillSvtxVertexMap(
+      const std::vector<genfit::GFRaveVertex*>& rave_vertices,
+      const GenFitTrackMap& gf_tracks);
+
   //! Event counter
   int _event;
 
@@ -238,11 +280,17 @@ class PHG4TrackFastSim : public SubsysReco
   //	SvtxClusterMap* _clustermap_out;
 
   SvtxTrackMap* _trackmap_out;
+  SvtxVertexMap* _vertexmap;
 
   /*!
 	 *	GenFit fitter interface
 	 */
   PHGenFit::Fitter* _fitter;
+  genfit::GFRaveVertexFactory* _vertex_finder;
+  //! https://rave.hepforge.org/trac/wiki/RaveMethods
+  std::string _vertexing_method;
+  double _vertex_min_ndf;
+  bool _do_vertexing;
 
   /*!
 	 * Available choices:
@@ -267,22 +315,6 @@ class PHG4TrackFastSim : public SubsysReco
 
   double _vertex_xy_resolution;
   double _vertex_z_resolution;
-
-  //  double _phi_resolution;  //deprecated
-  //
-  //  double _r_resolution;  //deprecated
-  //
-  //  double _z_resolution;  //deprecated
-  //
-  //  //!
-  //  double _pat_rec_hit_finding_eff;  //deprecated
-  //
-  //  //!
-  //  double _pat_rec_noise_prob;  //deprecated
-
-  //!
-//  int _N_DETECTOR_LAYER; //deprecated
-
   //!
   int _primary_tracking;
 
@@ -290,10 +322,9 @@ class PHG4TrackFastSim : public SubsysReco
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
 
-
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
-  gsl_rng *m_RandomGenerator;
+  gsl_rng* m_RandomGenerator;
 #endif
 };
 

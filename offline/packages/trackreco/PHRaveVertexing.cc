@@ -200,6 +200,8 @@ int PHRaveVertexing::process_event(PHCompositeNode* topNode)
 
   if (Verbosity() > 1)
   {
+    _vertexmap->identify();
+
     std::cout << "=============== Timers: ===============" << std::endl;
     std::cout << "Event: " << _event << std::endl;
     std::cout << "Translate:                " << _t_translate->get_accumulated_time() / 1000. << " sec" << std::endl;
@@ -412,8 +414,31 @@ genfit::Track* PHRaveVertexing::TranslateSvtxToGenFitTrack(SvtxTrack* svtx_track
   try
   {
     // The first state is extracted to PCA, second one is the one with measurement
-    SvtxTrackState* svtx_state = (++(svtx_track->begin_states()))->second;
+    SvtxTrackState* svtx_state(nullptr);
     //SvtxTrackState* svtx_state = (svtx_track->begin_states())->second;
+
+    if (svtx_track->begin_states() == svtx_track->end_states())
+    {
+      LogDebug("TranslateSvtxToGenFitTrack no state in track!");
+      return nullptr;
+    }
+    else if (++(svtx_track->begin_states()) == svtx_track->end_states())
+    {
+      // only one state in track
+      svtx_state = (svtx_track->begin_states())->second;
+    }
+    else
+    {
+      // multiple state in track
+      // The first state is extracted to PCA, second one is the one with measurement
+      svtx_state = (++(svtx_track->begin_states()))->second;
+    }
+
+    if (!svtx_state)
+    {
+      LogDebug("TranslateSvtxToGenFitTrack invalid state found on track!");
+      return nullptr;
+    }
 
     TVector3 pos(svtx_state->get_x(), svtx_state->get_y(), svtx_state->get_z());
     TVector3 mom(svtx_state->get_px(), svtx_state->get_py(), svtx_state->get_pz());

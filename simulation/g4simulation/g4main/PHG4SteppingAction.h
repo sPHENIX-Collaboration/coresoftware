@@ -45,9 +45,9 @@ class PHG4SteppingAction
   virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
   virtual double GetLightCorrection(const double r) const;
   virtual double GetLightCorrection(const double xpos, const double ypos) const;
+  virtual bool ValidCorrection() const;
 
  private:
-  bool ValidCorrection() const;
   int m_Verbosity;
   double m_LightBalanceInnerRadius;
   double m_LightBalanceInnerCorr;

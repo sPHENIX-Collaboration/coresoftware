@@ -24,6 +24,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>                           // for pair
 #include <vector>
 
 using namespace std;

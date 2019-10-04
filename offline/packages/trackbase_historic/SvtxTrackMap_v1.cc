@@ -2,6 +2,7 @@
 
 #include "SvtxTrack.h"
 
+#include <cassert>
 #include <iterator>     // for reverse_iterator
 #include <map>          // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>      // for operator<<, endl, ostream, basic_ostream, bas...
@@ -22,8 +23,8 @@ SvtxTrackMap_v1::SvtxTrackMap_v1(const SvtxTrackMap_v1& trackmap)
        iter != trackmap.end();
        ++iter)
   {
-    const SvtxTrack* track = iter->second;
-    _map.insert(make_pair(track->get_id(), track->clone()));
+    SvtxTrack* track = dynamic_cast<SvtxTrack*> (iter->second->CloneMe());
+    _map.insert(make_pair(track->get_id(), track));
   }
 }
 
@@ -34,8 +35,8 @@ SvtxTrackMap_v1& SvtxTrackMap_v1::operator=(const SvtxTrackMap_v1& trackmap)
        iter != trackmap.end();
        ++iter)
   {
-    const SvtxTrack* track = iter->second;
-    _map.insert(make_pair(track->get_id(), track->clone()));
+    SvtxTrack* track = dynamic_cast<SvtxTrack*> (iter->second->CloneMe());
+    _map.insert(make_pair(track->get_id(), track));
   }
   return *this;
 }
@@ -66,14 +67,14 @@ void SvtxTrackMap_v1::identify(ostream& os) const
 const SvtxTrack* SvtxTrackMap_v1::get(unsigned int id) const
 {
   ConstIter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
 SvtxTrack* SvtxTrackMap_v1::get(unsigned int id)
 {
   Iter iter = _map.find(id);
-  if (iter == _map.end()) return NULL;
+  if (iter == _map.end()) return nullptr;
   return iter->second;
 }
 
@@ -81,7 +82,7 @@ SvtxTrack* SvtxTrackMap_v1::insert(const SvtxTrack* track)
 {
   unsigned int index = 0;
   if (!_map.empty()) index = _map.rbegin()->first + 1;
-  _map.insert(make_pair(index, track->clone()));
+  _map.insert(make_pair(index, dynamic_cast<SvtxTrack*> (track->CloneMe())));
   _map[index]->set_id(index);
   return _map[index];
 }

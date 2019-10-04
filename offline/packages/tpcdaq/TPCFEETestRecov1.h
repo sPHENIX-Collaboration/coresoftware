@@ -115,7 +115,7 @@ class TPCFEETestRecov1 : public SubsysReco
     //! 3-D Graph clustering based on PHMakeGroups()
     void Clustering(int zero_suppression, bool verbosity = false);
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
     const std::vector<std::vector<std::vector<int>>> &getData() const
     {
@@ -133,7 +133,7 @@ class TPCFEETestRecov1 : public SubsysReco
 
     std::multimap<int, SampleID> m_groups;
 
-#endif  // #ifndef __CINT__
+#endif  // #if !defined(__CINT__) || defined(__CLING__)
   };
 
   //! buffer for a cluster's data
@@ -157,11 +157,11 @@ class TPCFEETestRecov1 : public SubsysReco
     std::set<int> padys;
     std::set<int> samples;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
     std::map<int, std::vector<double>> padx_samples;
     std::map<int, std::vector<double>> pady_samples;
     std::vector<double> sum_samples;
-#endif  // #ifndef __CINT__
+#endif  // #if !defined(__CINT__) || defined(__CLING__)
 
     int min_sample;
     int max_sample;
@@ -225,7 +225,7 @@ class TPCFEETestRecov1 : public SubsysReco
   };
 
  private:
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
   // IO stuff
 
@@ -258,7 +258,7 @@ class TPCFEETestRecov1 : public SubsysReco
   //! Clustering then prepare IOs
   void Clustering(void);
 
-#endif  // #ifndef __CINT__
+#endif  // #if !defined(__CINT__) || defined(__CLING__)
 
   int m_clusteringZeroSuppression;
   int m_nPreSample;

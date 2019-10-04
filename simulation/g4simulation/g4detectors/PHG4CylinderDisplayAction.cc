@@ -5,6 +5,7 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
@@ -17,12 +18,14 @@ PHG4CylinderDisplayAction::PHG4CylinderDisplayAction(const std::string &name, PH
   , m_Params(pars)
   , m_MyVolume(nullptr)
   , m_VisAtt(nullptr)
+  , m_Colour(nullptr)
 {
 }
 
 PHG4CylinderDisplayAction::~PHG4CylinderDisplayAction()
 {
   delete m_VisAtt;
+  delete m_Colour;
 }
 
 void PHG4CylinderDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
@@ -44,6 +47,26 @@ void PHG4CylinderDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     m_VisAtt->SetVisibility(true);
     m_VisAtt->SetForceSolid(true);
   }
+  if (m_Colour)
+  {
+    m_VisAtt->SetColour(m_Colour->GetRed(),
+                        m_Colour->GetGreen(),
+                        m_Colour->GetBlue(),
+                        m_Colour->GetAlpha());
+    m_VisAtt->SetVisibility(true);
+    m_VisAtt->SetForceSolid(true);
+  }
+// drawing 200 segments per circle makes it look smoother than default
+  m_VisAtt->SetForceLineSegmentsPerCircle(200);
   m_MyVolume->SetVisAttributes(m_VisAtt);
+  return;
+}
+
+void  PHG4CylinderDisplayAction::SetColor(const double red, const double green, const double blue, const double alpha)
+{
+  if (isfinite(red) && isfinite(green) && isfinite(blue) && isfinite(alpha))
+  {
+    m_Colour = new G4Colour(red,green,blue,alpha);
+  }
   return;
 }

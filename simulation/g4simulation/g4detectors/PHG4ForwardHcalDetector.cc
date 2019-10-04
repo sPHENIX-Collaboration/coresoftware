@@ -2,26 +2,27 @@
 #include "PHG4ForwardHcalDisplayAction.h"
 #include "PHG4ForwardHcalSubsystem.h"
 
-#include <g4main/PHG4Detector.h>           // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>      // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>      // for G4RotationMatrix
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>         // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>         // for G4Transform3D
-#include <Geant4/G4VPhysicalVolume.hh>     // for G4VPhysicalVolume
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <utility>                         // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
 class G4VSolid;
 class PHCompositeNode;
@@ -29,8 +30,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4ForwardHcalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
-  : PHG4Detector(Node, dnam)
+PHG4ForwardHcalDetector::PHG4ForwardHcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardHcalDisplayAction*>(subsys->GetDisplayAction()))
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
@@ -90,7 +91,7 @@ int PHG4ForwardHcalDetector::IsInForwardHcal(G4VPhysicalVolume* volume) const
 }
 
 //_______________________________________________________________________
-void PHG4ForwardHcalDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4ForwardHcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {

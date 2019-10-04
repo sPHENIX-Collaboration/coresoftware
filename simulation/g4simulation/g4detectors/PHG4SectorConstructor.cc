@@ -10,7 +10,7 @@
 #include "PHG4SectorDisplayAction.h"
 #include "PHG4SectorSubsystem.h"
 
-#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>     // for G4DisplacedSolid
@@ -18,18 +18,18 @@
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialTable.hh>      // for G4MaterialTable
-#include <Geant4/G4PhysicalConstants.hh>  // for pi
+#include <Geant4/G4MaterialTable.hh>  // for G4MaterialTable
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4PhysicalConstants.hh>  // for pi
 #include <Geant4/G4Sphere.hh>
-#include <Geant4/G4SystemOfUnits.hh>      // for cm, um, perCent
-#include <Geant4/G4ThreeVector.hh>        // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>        // for G4Transform3D, G4RotateX3D
+#include <Geant4/G4SystemOfUnits.hh>  // for cm, um, perCent
+#include <Geant4/G4ThreeVector.hh>    // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4ios.hh>                // for G4cout, G4endl
-#include <Geant4/globals.hh>              // for G4Exception
+#include <Geant4/G4ios.hh>    // for G4cout, G4endl
+#include <Geant4/globals.hh>  // for G4Exception
 
-#include <algorithm>                      // for max
+#include <algorithm>  // for max
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -38,7 +38,7 @@
 using namespace PHG4Sector;
 using namespace std;
 
-PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4SectorSubsystem *subsys)
+PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsystem *subsys)
   : overlapcheck_sector(false)
   , name_base(name)
   , m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction *>(subsys->GetDisplayAction()))

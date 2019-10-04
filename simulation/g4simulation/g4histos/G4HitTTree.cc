@@ -76,9 +76,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
       PHG4Hit *inhit = hit_iter->second;
       if (savehits)
       {
-        hits->AddHit(*inhit);
-        //	  PHG4Hit *g4h = hits->AddHit( *inhit);
-        //g4h->identify();
+        hits->AddHit(inhit);
       }
       etot += inhit->get_edep();
       eion += inhit->get_eion();
@@ -97,9 +95,7 @@ int G4HitTTree::process_event(PHCompositeNode *topNode)
       PHG4Hit *inhit = hit_iter->second;
       if (savehits)
       {
-        //PHG4Hit *g4h = hits->AddHit( *inhit);
-        hits->AddHit(*inhit);
-        //	  g4h->identify();
+        hits->AddHit(inhit);
       }
     }
   }

@@ -32,7 +32,7 @@ class TrkrClusterv1 : public TrkrCluster
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset() {}
   virtual int isValid() const;
-  virtual TrkrCluster* clone() const { return new TrkrClusterv1(*this); }
+  virtual PHObject* CloneMe() const { return new TrkrClusterv1(*this); }
   virtual void setClusKey(TrkrDefs::cluskey id) { m_cluskey = id; }
   virtual TrkrDefs::cluskey getClusKey() const { return m_cluskey; }
   //

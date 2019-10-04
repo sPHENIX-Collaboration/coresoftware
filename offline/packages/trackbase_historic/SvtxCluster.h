@@ -2,8 +2,9 @@
 #define __SVTXCLUSTER_H__
 
 #include <phool/PHObject.h>
+
 #include <cmath>
-#include <limits.h>
+#include <climits>
 #include <iostream>
 #include <set>
 
@@ -24,7 +25,7 @@ class SvtxCluster : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual SvtxCluster* clone() const { return NULL; }
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   // cluster info
 

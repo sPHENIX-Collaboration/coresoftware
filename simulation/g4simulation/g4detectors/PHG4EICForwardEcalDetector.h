@@ -13,7 +13,7 @@
 
 class G4LogicalVolume;
 class PHCompositeNode;
-class PHG4ForwardEcalSubsystem;
+class PHG4Subsystem;
 
 /**
  * \file ${file_name}
@@ -25,13 +25,13 @@ class PHG4EICForwardEcalDetector : public PHG4ForwardEcalDetector
 {
  public:
   //! constructor
-  PHG4EICForwardEcalDetector(PHG4ForwardEcalSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam = "BLOCK");
+  PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4EICForwardEcalDetector();
+  virtual ~PHG4EICForwardEcalDetector(){}
 
   //! construct
-  virtual void Construct(G4LogicalVolume* world);
+  virtual void ConstructMe(G4LogicalVolume* world);
 
   void SetTowerDimensions(G4double dx, G4double dy, G4double dz)
   {

@@ -42,11 +42,10 @@
 #include <Geant4/G4ios.hh>  // for G4cout, G4endl
 
 #include <algorithm>  // for fill, max
-#include <cmath>  // for floor, sqrt, acos, asin
+#include <cmath>      // for floor, sqrt, acos, asin
 #include <cstdio>
 #include <iostream>  // for operator<<, basic_os...
 #include <iterator>  // for begin, end
-#include <set>       // for _Rb_tree_const_iterator
 #include <string>
 
 class PHCompositeNode;
@@ -55,12 +54,10 @@ using namespace std;
 using namespace CLHEP;
 
 //_______________________________________________________________
-PHG4mRICHDetector::PHG4mRICHDetector(PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4mRICHDetector::PHG4mRICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , params(parameters)
-  ,
-  //block_physi(nullptr),
-  layer(lyr)
+  , layer(lyr)
   , active(0)
   , absorberactive(0)
   , mRICH_PV(nullptr)
@@ -68,9 +65,6 @@ PHG4mRICHDetector::PHG4mRICHDetector(PHCompositeNode* Node, PHParameters* parame
 {
 }
 
-PHG4mRICHDetector::~PHG4mRICHDetector()
-{
-}
 //_______________________________________________________________
 int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume* volume) const
 {
@@ -87,7 +81,7 @@ int PHG4mRICHDetector::IsInmRICH(G4VPhysicalVolume* volume) const
   return INACTIVE;
 }
 //______________________________________________________________
-void PHG4mRICHDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4mRICHDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   int subsystemSetup = params->get_int_param("subsystemSetup");
   // -1: single module

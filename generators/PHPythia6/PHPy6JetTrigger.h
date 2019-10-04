@@ -7,8 +7,8 @@
 
 namespace HepMC
 {
-class GenEvent;
-};
+  class GenEvent;
+}
 
 class PHPy6JetTrigger : public PHPy6GenTrigger
 {
@@ -16,7 +16,7 @@ class PHPy6JetTrigger : public PHPy6GenTrigger
   PHPy6JetTrigger(const std::string& name = "PHPy6JetTrigger");
   virtual ~PHPy6JetTrigger();
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   bool Apply(const HepMC::GenEvent* evt);
 #endif
 

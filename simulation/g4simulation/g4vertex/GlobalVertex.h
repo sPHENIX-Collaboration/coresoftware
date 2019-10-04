@@ -32,7 +32,7 @@ class GlobalVertex : public PHObject
   }
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
-  virtual GlobalVertex* Clone() const { return nullptr; }
+  virtual PHObject* CloneMe() const { return nullptr; }
 
   // vertex info
 

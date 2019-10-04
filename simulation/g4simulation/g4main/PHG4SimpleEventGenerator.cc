@@ -70,11 +70,6 @@ void PHG4SimpleEventGenerator::add_particles(const int pid, const unsigned int n
   return;
 }
 
-void PHG4SimpleEventGenerator::set_t0(const double t0) {
-  _t0 = t0;
-  return;
-}
-
 void PHG4SimpleEventGenerator::set_eta_range(const double min, const double max) {
   if (min > max)
     {

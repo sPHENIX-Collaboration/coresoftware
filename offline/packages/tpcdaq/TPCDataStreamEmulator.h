@@ -58,7 +58,7 @@ class TPCDataStreamEmulator : public SubsysReco
   }
 
  private:
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
   Fun4AllHistoManager *getHistoManager();
   int writeWavelet(int layer, int side, int phibin, int hittime, const std::vector<unsigned int> &wavelet);
@@ -87,7 +87,7 @@ class TPCDataStreamEmulator : public SubsysReco
   TH2 *m_hLayerSumHit;
   TH2 *m_hLayerSumDataSize;
 
-#endif  // #ifndef __CINT__
+#endif  // #if !defined(__CINT__) || defined(__CLING__)
 };
 
 #endif /* TPCDATASTREAMEMULATOR_H_ */

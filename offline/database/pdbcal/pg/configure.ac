@@ -12,7 +12,8 @@ dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall"
+dnl odbc++ has issues
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations -Wno-overloaded-virtual"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"

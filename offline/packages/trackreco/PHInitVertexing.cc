@@ -33,7 +33,7 @@ int PHInitVertexing::InitRun(PHCompositeNode* topNode)
 
 int PHInitVertexing::process_event(PHCompositeNode* topNode)
 {
-  return Process();
+  return Process(topNode);
 }
 
 int PHInitVertexing::Setup(PHCompositeNode* topNode)
@@ -70,7 +70,7 @@ int PHInitVertexing::CreateNodes(PHCompositeNode* topNode)
     tb_node = new PHCompositeNode("SVTX");
     dstNode->addNode(tb_node);
     if (Verbosity() > 0)
-      cout << "SVTX node added" << endl;
+      cout << PHWHERE << "SVTX node added" << endl;
   }
 
   _vertex_map = new SvtxVertexMap_v1;
@@ -78,7 +78,7 @@ int PHInitVertexing::CreateNodes(PHCompositeNode* topNode)
       _vertex_map, "SvtxVertexMap", "PHObject");
   tb_node->addNode(vertexes_node);
   if (Verbosity() > 0)
-    cout << "Svtx/SvtxVertexMap node added" << endl;
+    cout << PHWHERE << "Svtx/SvtxVertexMap node added" << endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

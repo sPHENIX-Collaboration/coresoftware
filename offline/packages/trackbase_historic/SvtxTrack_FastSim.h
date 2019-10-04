@@ -32,7 +32,7 @@ class SvtxTrack_FastSim : public SvtxTrack_v1
   void identify(std::ostream& os = std::cout) const;
   void Reset() { *this = SvtxTrack_FastSim(); }
   int isValid() const;
-  SvtxTrack* clone() const { return new SvtxTrack_FastSim(*this); }
+  PHObject* CloneMe() const { return new SvtxTrack_FastSim(*this); }
 
   void set_num_measurements(int nmeas) { _nmeas = nmeas; }
   unsigned int get_num_measurements() { return _nmeas; }

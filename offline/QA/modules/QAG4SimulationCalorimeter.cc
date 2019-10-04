@@ -15,7 +15,6 @@
 
 #include <g4eval/CaloEvalStack.h>
 #include <g4eval/CaloRawClusterEval.h>
-#include <g4eval/SvtxEvalStack.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -33,9 +32,12 @@
 #include <TString.h>
 #include <TVector3.h>
 
+#include <CLHEP/Vector/ThreeVector.h>        // for Hep3Vector
+
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>                          // for reverse_iterator
 #include <map>
 #include <utility>
 
@@ -44,26 +46,18 @@ using namespace std;
 QAG4SimulationCalorimeter::QAG4SimulationCalorimeter(const string &calo_name,
                                                      QAG4SimulationCalorimeter::enu_flags flags)
   : SubsysReco("QAG4SimulationCalorimeter_" + calo_name)
-  ,  //
-  _calo_name(calo_name)
+  , _calo_name(calo_name)
   , _flags(flags)
-  ,  //
-  _calo_hit_container(nullptr)
+  , _calo_hit_container(nullptr)
   , _calo_abs_hit_container(nullptr)
-  , _truth_container(
-        nullptr)
-{
-}
-
-QAG4SimulationCalorimeter::~QAG4SimulationCalorimeter()
+  , _truth_container(nullptr)
 {
 }
 
 int QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
 {
   PHNodeIterator iter(topNode);
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst(
-      "PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   assert(dstNode);
 
   if (flag(kProcessG4Hit))
@@ -113,11 +107,6 @@ int QAG4SimulationCalorimeter::InitRun(PHCompositeNode *topNode)
       _caloevalstack->next_event(topNode);
     }
   }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int QAG4SimulationCalorimeter::End(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

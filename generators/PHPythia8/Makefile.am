@@ -16,15 +16,14 @@ pkginclude_HEADERS = \
 libPHPythia8_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs`
+  `root-config --libs` \
+  `fastjet-config --libs`
 
 libPHPythia8_la_LIBADD = \
   -lSubsysReco \
   -lpythia8 \
   -lphhepmc \
-  -lHepMC \
-  -lfastjet \
-  -lCGAL
+  -lHepMC
 
 if ! MAKEROOT6
 ROOT5_DICTS = \

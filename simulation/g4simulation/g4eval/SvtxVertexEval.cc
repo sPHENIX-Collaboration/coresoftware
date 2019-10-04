@@ -25,6 +25,7 @@ SvtxVertexEval::SvtxVertexEval(PHCompositeNode* topNode)
   , _trackmap(nullptr)
   , _truthinfo(nullptr)
   , _strict(false)
+  , _use_initial_vertex(false)
   , _verbosity(1)
   , _errors(0)
   , _do_cache(true)
@@ -268,6 +269,7 @@ std::set<SvtxVertex*> SvtxVertexEval::all_vertexes_from(PHG4VtxPoint* truthpoint
   std::set<SvtxVertex*> all_vertexes;
 
   // loop over all vertexes on node
+
   for (SvtxVertexMap::Iter iter = _vertexmap->begin();
        iter != _vertexmap->end();
        ++iter)
@@ -405,8 +407,16 @@ unsigned int SvtxVertexEval::get_ntracks_contribution(SvtxVertex* vertex, PHG4Vt
 void SvtxVertexEval::get_node_pointers(PHCompositeNode* topNode)
 {
   // need things off the DST...
-  _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");
 
+  if( _use_initial_vertex)
+    {
+      _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMap");  // always there, initial vertices
+    }
+  else
+    {
+      _vertexmap = findNode::getClass<SvtxVertexMap>(topNode, "SvtxVertexMapRefit");  // Rave vertices
+    }
+  
   _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
 
   _truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");

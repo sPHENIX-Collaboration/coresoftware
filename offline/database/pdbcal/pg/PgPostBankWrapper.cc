@@ -2,6 +2,9 @@
 #include "PgPostApplication.h"
 #include "PgPostBankWrapperManager.h"
 
+#include <pdbcalbase/PdbBankID.h>        // for PdbBankID
+#include <pdbcalbase/PdbCalBank.h>       // for PdbCalBank
+
 #include <phool/phool.h>
 #include <phool/PHTimeStamp.h>
 

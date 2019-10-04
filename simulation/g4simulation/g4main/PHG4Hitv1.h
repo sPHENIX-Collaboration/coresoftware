@@ -6,10 +6,10 @@
 #include "PHG4Hit.h"
 #include "PHG4HitDefs.h"
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
+#if !defined(__CINT__) || defined (__CLING__)
 #include <cstdint>
+#else
+#include <stdint.h>
 #endif
 #include <iostream>
 #include <map>
@@ -18,7 +18,7 @@ class PHG4Hitv1 : public PHG4Hit
 {
  public:
   PHG4Hitv1();
-  explicit PHG4Hitv1(const PHG4Hit &g4hit);
+  explicit PHG4Hitv1(const PHG4Hit *g4hit);
   virtual ~PHG4Hitv1() {}
   void identify(std::ostream& os  = std::cout) const;
   void Reset();

@@ -22,6 +22,7 @@
 #include <gsl/gsl_rng.h>            // for gsl_rng_uniform, gsl_rng_uniform_pos
 
 #include <cmath>                   // for sin, sqrt, cos, M_PI
+#include <cstdlib>                 // for exit
 #include <iostream>                 // for operator<<, basic_ostream, basic_...
 #include <utility>                  // for pair
 #include <vector>                   // for vector, vector<>::const_iterator
@@ -61,7 +62,7 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   , pt_min(4.)
   , pt_max(4.)
   , mass(9.46)
-  , width(54.02e-6)
+  , m_Width(54.02e-6)
   , m1(0.511e-3)
   , m2(0.511e-3)
   , _histrand_init(0)
@@ -179,7 +180,7 @@ void PHG4ParticleGeneratorVectorMeson::set_mass(const double mass_in)
 
 void PHG4ParticleGeneratorVectorMeson::set_width(const double width_in)
 {
-  width = width_in;
+  m_Width = width_in;
   return;
 }
 
@@ -294,7 +295,7 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
 
   // The mass of the meson is taken from a Breit-Wigner lineshape
 
-  double mnow = trand->BreitWigner(mass, width);
+  double mnow = trand->BreitWigner(mass, m_Width);
 
   // Get the pseudorapidity, eta, from the rapidity, mass and pt
 
@@ -348,14 +349,14 @@ int PHG4ParticleGeneratorVectorMeson::process_event(PHCompositeNode *topNode)
     {
       _vertex_size_mean = sqrt(pow(vtx_x, 2) + pow(vtx_y, 2) + pow(vtx_z, 2));
       double r = smearvtx(_vertex_size_mean, _vertex_size_width, _vertex_size_func_r);
-      double x = 0.0;
-      double y = 0.0;
-      double z = 0.0;
-      gsl_ran_dir_3d(RandomGenerator, &x, &y, &z);
-      x *= r;
-      y *= r;
-      z *= r;
-      vtxindex = ineve->AddVtx(vtx_x + x, vtx_y + y, vtx_z + z, t0);
+      double x1 = 0.0;
+      double y1 = 0.0;
+      double z1 = 0.0;
+      gsl_ran_dir_3d(RandomGenerator, &x1, &y1, &z1);
+      x1 *= r;
+      y1 *= r;
+      z1 *= r;
+      vtxindex = ineve->AddVtx(vtx_x + x1, vtx_y + y1, vtx_z + z1, t0);
     }
     else if (decay_id == 0)
     {
@@ -494,11 +495,11 @@ PHG4ParticleGeneratorVectorMeson::smearvtx(const double position, const double w
   double res = position;
   if (dist == Uniform)
   {
-    res = (position - width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * width;
+    res = (position - m_Width) + 2 * gsl_rng_uniform_pos(RandomGenerator) * m_Width;
   }
   else if (dist == Gaus)
   {
-    res = position + gsl_ran_gaussian(RandomGenerator, width);
+    res = position + gsl_ran_gaussian(RandomGenerator, m_Width);
   }
   return res;
 }

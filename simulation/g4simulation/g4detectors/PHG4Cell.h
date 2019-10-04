@@ -16,10 +16,6 @@
 #include <string>                // for string
 #include <utility>               // for pair, make_pair
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <type_traits>           // for __decay_and_strip<>::__type
-#endif
-
 class PHG4Cell: public PHObject
 {
  public:
@@ -42,7 +38,7 @@ class PHG4Cell: public PHObject
   virtual ~PHG4Cell() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Copy(PHG4Cell const &g4cell);
+  virtual void CopyFrom(const PHObject *phobj);
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
   virtual void Reset();
 

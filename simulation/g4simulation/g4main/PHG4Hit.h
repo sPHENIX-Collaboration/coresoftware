@@ -20,7 +20,7 @@ class PHG4Hit: public PHObject
   virtual ~PHG4Hit() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Copy(PHG4Hit const &g4hit);
+  virtual void CopyFrom(const PHObject *phobj);
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Hit * hit);
   virtual void Reset();
 

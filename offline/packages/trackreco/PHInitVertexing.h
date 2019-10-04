@@ -16,7 +16,6 @@
 // forward declarations
 class PHCompositeNode;
 
-//class SvtxClusterMap;
 class TrkrClusterContainer;
 class SvtxVertexMap;
 
@@ -34,15 +33,16 @@ class PHInitVertexing : public SubsysReco
   int process_event(PHCompositeNode *topNode);
 
  protected:
+
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
   /// overrided in derived classes
   virtual int Setup(PHCompositeNode *topNode);
 
   /// process event interface for trackers, called in process_event.
   /// implemented in derived classes
-  virtual int Process() = 0;
+  virtual int Process(PHCompositeNode *topNode) = 0;
 
-  //SvtxClusterMap *_cluster_map;
+
   TrkrClusterContainer *_cluster_map;
   SvtxVertexMap *_vertex_map;
 
