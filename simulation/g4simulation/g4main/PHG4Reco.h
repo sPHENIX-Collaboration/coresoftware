@@ -9,12 +9,14 @@
 
 #include <phfield/PHFieldConfig.h>
 
+
 #include <list>
 #include <string>                   // for string
 
 // Forward declerations
 class G4RunManager;
 class G4TBMagneticFieldSetup;
+class G4UImessenger;
 class G4VisManager;
 class PHCompositeNode;
 class PHG4DisplayAction;
@@ -130,6 +132,7 @@ class PHG4Reco : public SubsysReco
   void ApplyDisplayAction();
 
  private:
+  static void g4guithread(void *ptr);
   int InitUImanager();
   void DefineMaterials();
   void DefineRegions();
@@ -171,6 +174,9 @@ class PHG4Reco : public SubsysReco
 
   // visualization
   G4VisManager *visManager;
+
+// Message interface to Fun4All
+  G4UImessenger *m_Fun4AllMessenger;
 
   double _eta_coverage;
   PHFieldConfig::FieldConfigTypes mapdim;

@@ -19,12 +19,7 @@ void SetNewValue(G4UIcommand*, G4String);
 private:
 
   G4UIdirectory*             m_Fun4AllDir;
-//  G4UIdirectory*             detDir;
   G4UIcmdWithAnInteger*      m_RunCmd;
-//  G4UIcmdWithAString*        fMaterCmd;
-//  G4UIcmdWithoutParameter*   fUpdateCmd;
-  /* G4UIcmdWithADoubleAndUnit  *outerHcalDPhiCmd, *outerPlateTiltAngleCmd; */
-  /* G4UIcmdWithADoubleAndUnit  *innerHcalDPhiCmd, *innerPlateTiltAngleCmd; */
   Fun4AllServer *se;
 };
 
