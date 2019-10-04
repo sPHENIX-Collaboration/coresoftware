@@ -31,7 +31,7 @@ class PHG4OuterTrackerDetector : public PHG4Detector
   virtual ~PHG4OuterTrackerDetector() {}
   
   //! construct
-  virtual void Construct(G4LogicalVolume* world);
+  virtual void ConstructMe(G4LogicalVolume* world);
 
   //!@name volume accessors
   //@{

@@ -1528,8 +1528,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
         PHG4Particle* g4particle = trutheval->get_particle(g4hit);
 
-	int outlayer = TrkrDefs::getLayer(cluster_key);
-	cout << " cluster_key " << cluster_key << " layer " << outlayer << endl;
+	//int outlayer = TrkrDefs::getLayer(cluster_key);
+	//cout << " cluster_key " << cluster_key << " layer " << outlayer << endl;
         float hitID = (float) cluster_key;
         float x = cluster->getX();
         float y = cluster->getY();
@@ -1853,8 +1853,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  TrkrDefs::cluskey cluster_key = *iter;
           TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 
-	  int outlayer = TrkrDefs::getLayer(cluster_key);
-	  cout << " cluster_key " << cluster_key << " layer " << outlayer << endl;
+	  //int outlayer = TrkrDefs::getLayer(cluster_key);
+	  //cout << " cluster_key " << cluster_key << " layer " << outlayer << endl;
 
           PHG4Hit* g4hit = clustereval->max_truth_hit_by_energy(cluster_key);
           PHG4Particle* g4particle = trutheval->get_particle(g4hit);

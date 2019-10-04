@@ -47,7 +47,7 @@
 using namespace std;
 
 PHG4OuterTrackerDetector::PHG4OuterTrackerDetector(PHG4OuterTrackerSubsystem* subsys, const int layer_in, PHCompositeNode* Node, const PHParametersContainer* _paramsContainer, const std::string& dnam)
-  : PHG4Detector(Node, dnam)
+  : PHG4Detector(subsys, Node, dnam)
     , m_DisplayAction(dynamic_cast<PHG4OuterTrackerDisplayAction*>(subsys->GetDisplayAction()))
 {
 if (Verbosity() > 0)
@@ -103,7 +103,7 @@ int PHG4OuterTrackerDetector::IsBlackHole(G4VPhysicalVolume* volume) const
   return 0;
 }
 
-void PHG4OuterTrackerDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4OuterTrackerDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
 // This is called from PHG4PhenixDetector::Construct()
 
