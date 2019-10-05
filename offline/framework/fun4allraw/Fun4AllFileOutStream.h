@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FUN4ALL_FUN4ALLFILEOUTSTREAM_H
-#define FUN4ALL_FUN4ALLFILEOUTSTREAM_H
+#ifndef FUN4ALLRAW_FUN4ALLFILEOUTSTREAM_H
+#define FUN4ALLRAW_FUN4ALLFILEOUTSTREAM_H
 
 #include "Fun4AllEventOutStream.h"
 
