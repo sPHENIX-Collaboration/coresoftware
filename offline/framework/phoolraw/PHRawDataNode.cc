@@ -3,8 +3,9 @@
 
 #include "PHRawDataNode.h"
 
-#include "PHIOManager.h"
 #include "PHRawOManager.h"
+
+#include <phool/PHIOManager.h>
 
 #include <Event/phenixTypes.h>
 

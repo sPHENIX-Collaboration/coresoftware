@@ -5,7 +5,7 @@
 //  Purpose: Node digested by the PHRawOManager
 //  Author: Matthias Messer
 
-#include "PHDataNode.h"
+#include <phool/PHDataNode.h>
 
 #include <Event/phenixTypes.h>
 

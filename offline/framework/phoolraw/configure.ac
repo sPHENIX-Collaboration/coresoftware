@@ -1,4 +1,4 @@
-AC_INIT(phool, [2.0])
+AC_INIT(phoolraw, [2.0])
 AC_CONFIG_SRCDIR([configure.ac])
 
 AM_INIT_AUTOMAKE

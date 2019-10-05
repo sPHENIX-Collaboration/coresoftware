@@ -27,7 +27,7 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 
-#include "PHIOManager.h"
+#include <phool/PHIOManager.h>
 
 #include <Event/phenixTypes.h>
 

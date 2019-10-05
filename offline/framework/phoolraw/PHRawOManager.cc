@@ -8,9 +8,11 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 #include "PHRawOManager.h"
-#include "PHCompositeNode.h"
+
 #include "PHRawDataNode.h"
-#include "phool.h"
+
+#include <phool/PHCompositeNode.h>
+#include <phool/phool.h>
 
 #include <Event/EventTypes.h>
 #include <Event/oBuffer.h>
