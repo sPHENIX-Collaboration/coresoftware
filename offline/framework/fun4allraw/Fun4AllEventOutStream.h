@@ -6,7 +6,7 @@
 // base class for output streams writing Events in
 // one or the other form
 
-#include "Fun4AllBase.h"
+#include <fun4all/Fun4AllBase.h>
 
 #include <Event/phenixTypes.h>
 
