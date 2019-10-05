@@ -28,9 +28,9 @@ pkginclude_HEADERS = \
   Fun4AllRolloverFileOutStream.h
 
 lib_LTLIBRARIES = \
-  libfun4all_raw.la
+  libfun4allraw.la
 
-libfun4all_raw_la_SOURCES = \
+libfun4allraw_la_SOURCES = \
   $(ROOT5_FUN4ALLDICTS) \
   Fun4AllEventOutStream.cc \
   Fun4AllEventOutputManager.cc \
@@ -39,10 +39,10 @@ libfun4all_raw_la_SOURCES = \
   Fun4AllPrdfOutputManager.cc \
   Fun4AllRolloverFileOutStream.cc
 
-libfun4all_raw_la_LIBADD = \
+libfun4allraw_la_LIBADD = \
   -lfun4all \
   -lEvent \
-  -lphool_raw
+  -lphoolraw
 
 BUILT_SOURCES = testexternals.cc
 
@@ -50,7 +50,7 @@ noinst_PROGRAMS = \
   testexternals
 
 testexternals_SOURCES = testexternals.cc
-testexternals_LDADD   = libfun4all_raw.la
+testexternals_LDADD   = libfun4allraw.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
