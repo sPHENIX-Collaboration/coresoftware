@@ -1,5 +1,6 @@
 #include "PHG4Reco.h"
 
+#include "Fun4AllMessenger.h"
 #include "G4TBMagneticFieldSetup.hh"
 #include "PHG4DisplayAction.h"
 #include "PHG4InEvent.h"
@@ -26,6 +27,7 @@
 #include <phfield/PHFieldUtility.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>                    // for PHDataNode
@@ -40,7 +42,6 @@
 #include <eicphysicslist/EICPhysicsList.hh>
 
 #include <TSystem.h>                             // for TSystem, gSystem
-#include <TThread.h>
 
 #include <CLHEP/Random/Random.h>
 
@@ -100,6 +101,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <boost/dll.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -116,14 +118,6 @@ class PHG4SteppingAction;
 
 using namespace std;
 
-static TThread *gui_thread = nullptr;
-
-// for the G4 cmd line interface
-G4UImanager *UImanager = nullptr;
-
-// the gui thread
-void g4guithread(void *ptr);
-
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
@@ -139,6 +133,8 @@ PHG4Reco::PHG4Reco(const string &name)
   , m_DisplayAction(nullptr)
   , generatorAction_(nullptr)
   , visManager(nullptr)
+  , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
+  , m_UImanager(nullptr)
   , _eta_coverage(1.0)
   , mapdim(PHFieldConfig::kFieldUniform)
   , fieldmapfile("NONE")
@@ -167,11 +163,11 @@ PHG4Reco::~PHG4Reco(void)
 {
   // one can delete null pointer (it results in a nop), so checking if
   // they are non zero is not needed
-  delete gui_thread;
   delete field_;
   delete runManager_;
   delete uisession_;
   delete visManager;
+  delete  m_Fun4AllMessenger;
   while (subsystems_.begin() != subsystems_.end())
   {
     delete subsystems_.back();
@@ -553,32 +549,34 @@ void PHG4Reco::Dump_GDML(const std::string &filename)
 int PHG4Reco::ApplyCommand(const std::string &cmd)
 {
   InitUImanager();
-  int iret = UImanager->ApplyCommand(cmd.c_str());
+  int iret = m_UImanager->ApplyCommand(cmd.c_str());
   return iret;
 }
 //_________________________________________________________________
 
 int PHG4Reco::StartGui()
 {
-  if (!gui_thread)
-  {
-    InitUImanager();
-    gui_thread = new TThread("G4Gui", g4guithread);
-    gui_thread->Run();
-    return 0;
-  }
-  return 1;
+
+// kludge, using boost::dll::program_location().string().c_str() for the
+// program name and putting it into args lead to invalid reads in G4String
+  char *args[] = {(char *)("root.exe")};
+  G4UIExecutive* ui = new G4UIExecutive(1,args);
+  InitUImanager();
+  m_UImanager->ApplyCommand("/control/execute init_gui_vis.mac");
+  ui->SessionStart();
+  delete ui;
+  return 0;
 }
 
 int PHG4Reco::InitUImanager()
 {
-  if (!UImanager)
+  if (!m_UImanager)
   {
     // Get the pointer to the User Interface manager
     // Initialize visualization
     visManager = new G4VisExecutive;
     visManager->Initialize();
-    UImanager = G4UImanager::GetUIpointer();
+    m_UImanager = G4UImanager::GetUIpointer();
   }
   return 0;
 }
@@ -586,7 +584,6 @@ int PHG4Reco::InitUImanager()
 //_________________________________________________________________
 int PHG4Reco::process_event(PHCompositeNode *topNode)
 {
-  TThread::Lock();
   // make sure Actions and subsystems have the relevant pointers set
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   generatorAction_->SetInEvent(ineve);
@@ -605,7 +602,6 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " caught exception thrown during process_event from "
            << reco->Name() << endl;
       cout << "error: " << e.what() << endl;
-      TThread::UnLock();
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
@@ -632,11 +628,9 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " caught exception thrown during process_after_geant from "
            << g4sub->Name() << endl;
       cout << "error: " << e.what() << endl;
-      TThread::UnLock();
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  TThread::UnLock();
   return 0;
 }
 
@@ -646,12 +640,6 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
   {
     reco->ResetEvent(topNode);
   }
-  return 0;
-}
-
-//_________________________________________________________________
-int PHG4Reco::End(PHCompositeNode *)
-{
   return 0;
 }
 
@@ -706,23 +694,6 @@ void PHG4Reco::set_rapidity_coverage(const double eta)
 void PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
-  return;
-}
-
-void g4guithread(void *ptr)
-{
-  TThread::Lock();
-  G4UIExecutive *ui = new G4UIExecutive(0, nullptr, "Xm");
-  if (ui->IsGUI() && boost::filesystem::exists("gui.mac"))
-  {
-    UImanager->ApplyCommand("/control/execute gui.mac");
-  }
-  TThread::UnLock();
-  ui->SessionStart();
-  TThread::Lock();
-  delete ui;
-  TThread::UnLock();
-  gui_thread = nullptr;
   return;
 }
 
