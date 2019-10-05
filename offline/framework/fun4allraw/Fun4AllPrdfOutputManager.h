@@ -3,7 +3,7 @@
 #ifndef FUN4ALL_FUN4ALLPRDFOUTPUTMANAGER_H
 #define FUN4ALL_FUN4ALLPRDFOUTPUTMANAGER_H
 
-#include "Fun4AllOutputManager.h"
+#include <fun4all/Fun4AllOutputManager.h>
 
 #include <string>
 

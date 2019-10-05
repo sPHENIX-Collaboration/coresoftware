@@ -1,6 +1,6 @@
 #include "Fun4AllFileOutStream.h"
 
-#include "Fun4AllServer.h"
+#include <fun4all/Fun4AllServer.h>
 
 #include <Event/Event.h>
 #include <Event/oBuffer.h>     // for oBuffer

@@ -2,7 +2,8 @@
 
 #include "Fun4AllEventOutStream.h"
 #include "Fun4AllRolloverFileOutStream.h"
-#include "Fun4AllServer.h"
+
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/getClass.h>
 #include <phool/phool.h>            // for PHWHERE

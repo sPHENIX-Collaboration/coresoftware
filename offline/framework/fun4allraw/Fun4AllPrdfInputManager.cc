@@ -1,9 +1,9 @@
 #include "Fun4AllPrdfInputManager.h"
 
-#include "Fun4AllReturnCodes.h"
-#include "Fun4AllServer.h"
-#include "Fun4AllSyncManager.h"
-#include "Fun4AllUtils.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllSyncManager.h>
+#include <fun4all/Fun4AllUtils.h>
 
 #include <ffaobjects/SyncObject.h>    // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
