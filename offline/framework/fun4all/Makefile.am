@@ -76,7 +76,6 @@ libfun4all_la_LIBADD = \
   libSubsysReco.la \
   libTDirectoryHelper.la \
   -lboost_filesystem \
-  -lEvent \
   -lFROG \
   -lffaobjects \
   -lphool
