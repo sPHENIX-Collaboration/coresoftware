@@ -1,5 +1,7 @@
-#ifndef PHOOL_PHRAWDATANODE_H
-#define PHOOL_PHRAWDATANODE_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHOOLRAW_PHRAWDATANODE_H
+#define PHOOLRAW_PHRAWDATANODE_H
 
 //  Declaration of class PHRawDataNode
 //  Purpose: Node digested by the PHRawOManager
