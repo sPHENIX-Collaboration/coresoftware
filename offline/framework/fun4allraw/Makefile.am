@@ -3,8 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
-  -I$(ROOTSYS)/include \
-  -I$(OPT_SPHENIX)/include
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -15,8 +14,7 @@ ROOT5_SUBSYSRECODICTS =
 
 ROOT5_FUN4ALLDICTS = \
   Fun4AllPrdfInputManager_Dict.cc \
-  Fun4AllPrdfOutputManager_Dict.cc \
-  Fun4AllOutputManager_Dict.cc
+  Fun4AllPrdfOutputManager_Dict.cc
 endif
 
 pkginclude_HEADERS = \
