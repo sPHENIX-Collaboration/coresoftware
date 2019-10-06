@@ -29,8 +29,8 @@ class Fun4AllEventOutputManager : public Fun4AllOutputManager
   void SetOutfileName(const std::string &fname);
 
  protected:
-  std::string outfilerule;
-  Fun4AllEventOutStream *outstream;
+  std::string m_OutFileRule;
+  Fun4AllEventOutStream *m_OutStream;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H */
