@@ -20,9 +20,9 @@
 #include <Event/phenixTypes.h>
 
 #include <fcntl.h>
-#include <iostream>
 #include <sys/stat.h>
-#include <unistd.h>             // for close
+#include <unistd.h>  // for close
+#include <iostream>
 
 using namespace std;
 
