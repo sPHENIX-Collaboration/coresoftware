@@ -11,8 +11,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 if ! MAKEROOT6
-ROOT5_SUBSYSRECODICTS =
-
 ROOT5_FUN4ALLDICTS = \
   Fun4AllPrdfInputManager_Dict.cc \
   Fun4AllPrdfOutputManager_Dict.cc
