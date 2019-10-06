@@ -1,12 +1,12 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FUN4ALL_FUN4ALLROLLOVERFILEOUTSTREAM_H
-#define FUN4ALL_FUN4ALLROLLOVERFILEOUTSTREAM_H
+#ifndef FUN4ALLRAW_FUN4ALLROLLOVERFILEOUTSTREAM_H
+#define FUN4ALLRAW_FUN4ALLROLLOVERFILEOUTSTREAM_H
 
 #include "Fun4AllFileOutStream.h"
 
-#include <iostream>                // for cout, ostream
-#include <string>                  // for string
+#include <iostream>  // for cout, ostream
+#include <string>    // for string
 
 class Event;
 

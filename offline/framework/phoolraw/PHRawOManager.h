@@ -1,5 +1,7 @@
-#ifndef PHOOL_PHRAWOMANAGER_H
-#define PHOOL_PHRAWOMANAGER_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHOOLRAW_PHRAWOMANAGER_H
+#define PHOOLRAW_PHRAWOMANAGER_H
 
 //-----------------------------------------------------------------------------
 //
@@ -27,7 +29,7 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 
-#include "PHIOManager.h"
+#include <phool/PHIOManager.h>
 
 #include <Event/phenixTypes.h>
 

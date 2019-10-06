@@ -1,29 +1,29 @@
 #include "Fun4AllPrdfInputManager.h"
 
-#include "Fun4AllReturnCodes.h"
-#include "Fun4AllServer.h"
-#include "Fun4AllSyncManager.h"
-#include "Fun4AllUtils.h"
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
+#include <fun4all/Fun4AllSyncManager.h>
+#include <fun4all/Fun4AllUtils.h>
 
-#include <ffaobjects/SyncObject.h>    // for SyncObject
+#include <ffaobjects/SyncObject.h>  // for SyncObject
 #include <ffaobjects/SyncObjectv1.h>
 
 #include <frog/FROG.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
-#include <phool/PHNode.h>             // for PHNode
-#include <phool/PHNodeIterator.h>     // for PHNodeIterator
-#include <phool/phool.h>              // for PHWHERE
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/phool.h>           // for PHWHERE
 
 #include <Event/Event.h>
-#include <Event/Eventiterator.h>      // for Eventiterator
+#include <Event/Eventiterator.h>  // for Eventiterator
 #include <Event/fileEventiterator.h>
 
 #include <cassert>
 #include <cstdlib>
-#include <iostream>                   // for operator<<, basic_ostream, endl
-#include <utility>                    // for pair
+#include <iostream>  // for operator<<, basic_ostream, endl
+#include <utility>   // for pair
 
 using namespace std;
 
@@ -259,7 +259,7 @@ int Fun4AllPrdfInputManager::GetSyncObject(SyncObject **mastersync)
   {
     if (m_SyncObject)
     {
-      *mastersync = dynamic_cast<SyncObject *> (m_SyncObject->CloneMe());
+      *mastersync = dynamic_cast<SyncObject *>(m_SyncObject->CloneMe());
       assert(*mastersync);
     }
   }

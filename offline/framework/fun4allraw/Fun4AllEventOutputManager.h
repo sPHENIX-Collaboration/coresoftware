@@ -1,9 +1,9 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H
-#define FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H
+#ifndef FUN4ALLRAW_FUN4ALLEVENTOUTPUTMANAGER_H
+#define FUN4ALLRAW_FUN4ALLEVENTOUTPUTMANAGER_H
 
-#include "Fun4AllOutputManager.h"
+#include <fun4all/Fun4AllOutputManager.h>
 
 #include <string>
 
@@ -29,8 +29,8 @@ class Fun4AllEventOutputManager : public Fun4AllOutputManager
   void SetOutfileName(const std::string &fname);
 
  protected:
-  std::string outfilerule;
-  Fun4AllEventOutStream *outstream;
+  std::string m_OutFileRule;
+  Fun4AllEventOutStream *m_OutStream;
 };
 
 #endif /* FUN4ALL_FUN4ALLEVENTOUTPUTMANAGER_H */

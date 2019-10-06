@@ -8,9 +8,11 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 #include "PHRawOManager.h"
-#include "PHCompositeNode.h"
+
 #include "PHRawDataNode.h"
-#include "phool.h"
+
+#include <phool/PHCompositeNode.h>
+#include <phool/phool.h>
 
 #include <Event/EventTypes.h>
 #include <Event/oBuffer.h>
@@ -18,9 +20,9 @@
 #include <Event/phenixTypes.h>
 
 #include <fcntl.h>
-#include <iostream>
 #include <sys/stat.h>
-#include <unistd.h>             // for close
+#include <unistd.h>  // for close
+#include <iostream>
 
 using namespace std;
 

@@ -1,9 +1,9 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H
-#define FUN4ALL_FUN4ALLPRDFINPUTMANAGER_H
+#ifndef FUN4ALLRAW_FUN4ALLPRDFINPUTMANAGER_H
+#define FUN4ALLRAW_FUN4ALLPRDFINPUTMANAGER_H
 
-#include "Fun4AllInputManager.h"
+#include <fun4all/Fun4AllInputManager.h>
 
 #include <string>
 

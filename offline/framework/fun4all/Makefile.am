@@ -22,8 +22,6 @@ ROOT5_FUN4ALLDICTS = \
   Fun4AllHistoManager_Dict.cc \
   Fun4AllInputManager_Dict.cc \
   Fun4AllNoSyncDstInputManager_Dict.cc \
-  Fun4AllPrdfInputManager_Dict.cc \
-  Fun4AllPrdfOutputManager_Dict.cc \
   Fun4AllOutputManager_Dict.cc \
   Fun4AllServer_Dict.cc \
   Fun4AllSyncManager_Dict.cc
@@ -34,19 +32,13 @@ pkginclude_HEADERS = \
   Fun4AllDstInputManager.h \
   Fun4AllDstOutputManager.h \
   Fun4AllDummyInputManager.h \
-  Fun4AllEventOutStream.h \
-  Fun4AllEventOutputManager.h \
-  Fun4AllFileOutStream.h \
   Fun4AllHistoBinDefs.h \
   Fun4AllHistoManager.h \
   Fun4AllInputManager.h \
   Fun4AllMemoryTracker.h \
   Fun4AllNoSyncDstInputManager.h \
   Fun4AllOutputManager.h \
-  Fun4AllPrdfInputManager.h \
-  Fun4AllPrdfOutputManager.h \
   Fun4AllReturnCodes.h \
-  Fun4AllRolloverFileOutStream.h \
   Fun4AllServer.h \
   Fun4AllSyncManager.h \
   Fun4AllUtils.h \
@@ -70,17 +62,11 @@ libfun4all_la_SOURCES = \
   Fun4AllDstInputManager.cc \
   Fun4AllDstOutputManager.cc \
   Fun4AllDummyInputManager.cc \
-  Fun4AllEventOutStream.cc \
-  Fun4AllEventOutputManager.cc \
-  Fun4AllFileOutStream.cc \
   Fun4AllHistoManager.cc \
   Fun4AllInputManager.cc \
   Fun4AllMemoryTracker.cc \
   Fun4AllNoSyncDstInputManager.cc \
   Fun4AllOutputManager.cc \
-  Fun4AllPrdfInputManager.cc \
-  Fun4AllPrdfOutputManager.cc \
-  Fun4AllRolloverFileOutStream.cc \
   Fun4AllServer.cc \
   Fun4AllSyncManager.cc \
   Fun4AllUtils.cc \
@@ -90,11 +76,9 @@ libfun4all_la_LIBADD = \
   libSubsysReco.la \
   libTDirectoryHelper.la \
   -lboost_filesystem \
-  -lEvent \
   -lFROG \
   -lffaobjects \
-  -lphool \
-  -lphool_raw
+  -lphool
 
 libSubsysReco_la_SOURCES = \
   $(ROOT5_SUBSYSRECODICTS) \
