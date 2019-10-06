@@ -17,7 +17,7 @@ class Fun4AllPrdfOutputManager : public Fun4AllOutputManager
   Fun4AllPrdfOutputManager(const std::string &myname = "PRDFOUT", const std::string &filename = "data_out.prdf");
 
   //! destructor
-  virtual ~Fun4AllPrdfOutputManager(void);
+  virtual ~Fun4AllPrdfOutputManager();
 
   //! PRDF node initialization [class specific method]
   int InitPrdfNode(PHCompositeNode *top_node, const std::string &nodeName = "SIMPRDF");
@@ -33,13 +33,13 @@ class Fun4AllPrdfOutputManager : public Fun4AllOutputManager
     initialize prdf output manager every time 
     the output file name is changed including first event
   */
-  int InitPrdfManager(void);
+  int InitPrdfManager();
 
   //! prdf node
-  PHCompositeNode *prdfNode;
+  PHCompositeNode *m_PrdfNode;
 
   //! output manager
-  PHRawOManager *prdfOut;
+  PHRawOManager *m_PrdfOutManager;
 };
 
 #endif
