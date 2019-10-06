@@ -3,17 +3,17 @@
 #include "Fun4AllEventOutputManager.h"
 
 #include <Event/Event.h>
-#include <Event/oBuffer.h>              // for oBuffer
+#include <Event/oBuffer.h>  // for oBuffer
 #include <Event/ogzBuffer.h>
 
 #include <phool/phool.h>
 
-#include <cstdio>                      // for snprintf
-#include <cstdlib>                     // for exit
 #include <fcntl.h>
-#include <iostream>
 #include <sys/stat.h>
-#include <unistd.h>                     // for close
+#include <unistd.h>  // for close
+#include <cstdio>    // for snprintf
+#include <cstdlib>   // for exit
+#include <iostream>
 
 using namespace std;
 

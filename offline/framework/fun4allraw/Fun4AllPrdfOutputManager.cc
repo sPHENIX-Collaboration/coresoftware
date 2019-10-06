@@ -3,7 +3,7 @@
 #include <phoolraw/PHRawOManager.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHNode.h>           // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/recoConsts.h>
 

@@ -5,8 +5,8 @@
 
 #include "Fun4AllFileOutStream.h"
 
-#include <iostream>                // for cout, ostream
-#include <string>                  // for string
+#include <iostream>  // for cout, ostream
+#include <string>    // for string
 
 class Event;
 

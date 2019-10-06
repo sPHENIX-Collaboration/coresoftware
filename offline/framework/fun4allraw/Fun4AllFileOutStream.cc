@@ -3,18 +3,18 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <Event/Event.h>
-#include <Event/oBuffer.h>     // for oBuffer
+#include <Event/oBuffer.h>  // for oBuffer
 #include <Event/olzoBuffer.h>
 
 #include <phool/phool.h>
 
-#include <cstdio>             // for snprintf
-#include <cstdlib>            // for exit
-#include <cstring>
 #include <fcntl.h>
-#include <iostream>
 #include <sys/stat.h>
-#include <unistd.h>            // for close
+#include <unistd.h>  // for close
+#include <cstdio>    // for snprintf
+#include <cstdlib>   // for exit
+#include <cstring>
+#include <iostream>
 
 using namespace std;
 

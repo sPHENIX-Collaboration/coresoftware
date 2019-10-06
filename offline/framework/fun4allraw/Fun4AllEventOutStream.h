@@ -10,7 +10,7 @@
 
 #include <Event/phenixTypes.h>
 
-#if !defined(__CINT__) || defined (__CLING__)
+#if !defined(__CINT__) || defined(__CLING__)
 #include <boost/version.hpp>  // to get BOOST_VERSION
 #if (__GNUC__ == 4 && __GNUC_MINOR__ == 8 && (BOOST_VERSION == 105700 || BOOST_VERSION == 106000 || BOOST_VERSION == 106300))
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
@@ -59,7 +59,7 @@ class Fun4AllEventOutStream : public Fun4AllBase
   int max_npackets;
   int npackets;
   int default_addall;
-#if !defined(__CINT__) || defined (__CLING__)
+#if !defined(__CINT__) || defined(__CLING__)
   std::map<int, boost::numeric::interval<int> > addpktrange;
   std::map<int, boost::numeric::interval<int> > droppktrange;
 #endif
