@@ -2,6 +2,8 @@
 #include <phool/phool.h>
 #include <iostream>
 
+class PHObject;
+
 using namespace std;
 
 static int nowarning = 0;

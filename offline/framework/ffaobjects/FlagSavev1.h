@@ -10,6 +10,7 @@
 #include <string>
 
 class PHFlag;
+class PHObject;
 
 ///
 class FlagSavev1: public FlagSave

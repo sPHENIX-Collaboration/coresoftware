@@ -1,5 +1,7 @@
 #include "Fun4AllPrdfOutputManager.h"
 
+#include <fun4all/Fun4AllOutputManager.h>  // for Fun4AllOutputManager
+
 #include <phoolraw/PHRawOManager.h>
 
 #include <phool/PHCompositeNode.h>
@@ -8,7 +10,6 @@
 #include <phool/recoConsts.h>
 
 #include <iostream>
-#include <vector>
 
 using namespace std;
 

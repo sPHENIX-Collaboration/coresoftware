@@ -5,6 +5,7 @@
 
 #include "PHRawOManager.h"
 
+#include <phool/PHDataNode.h>   // for PHDataNode
 #include <phool/PHIOManager.h>
 
 #include <Event/phenixTypes.h>

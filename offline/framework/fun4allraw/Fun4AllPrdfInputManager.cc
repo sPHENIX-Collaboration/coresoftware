@@ -1,5 +1,6 @@
 #include "Fun4AllPrdfInputManager.h"
 
+#include <fun4all/Fun4AllInputManager.h>  // for Fun4AllInputManager
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllSyncManager.h>
@@ -14,6 +15,7 @@
 #include <phool/PHDataNode.h>
 #include <phool/PHNode.h>          // for PHNode
 #include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 #include <phool/phool.h>           // for PHWHERE
 
 #include <Event/Event.h>

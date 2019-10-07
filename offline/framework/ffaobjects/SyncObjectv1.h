@@ -4,7 +4,10 @@
 #define FFAOBJECTS_SYNCOBJECTV1_H
 
 #include "SyncObject.h"
+
 #include <iostream>
+
+class PHObject;
 
 class SyncObjectv1: public SyncObject
 {

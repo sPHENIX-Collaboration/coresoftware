@@ -4,6 +4,8 @@
 
 #include <utility>         // for pair
 
+class PHObject;
+
 using namespace std;
 
 PHObject * 

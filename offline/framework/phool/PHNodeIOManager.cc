@@ -25,7 +25,6 @@
 #endif
 
 #include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
