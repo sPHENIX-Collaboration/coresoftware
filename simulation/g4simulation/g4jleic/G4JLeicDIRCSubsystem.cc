@@ -3,7 +3,6 @@
 #include "G4JLeicDIRCSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
-#include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction

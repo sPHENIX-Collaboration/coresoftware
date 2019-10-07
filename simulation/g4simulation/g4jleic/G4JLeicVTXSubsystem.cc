@@ -5,6 +5,8 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
+#include <g4detectors/PHG4DetectorGroupSubsystem.h>  // for PHG4DetectorGrou...
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
