@@ -5,6 +5,8 @@
 
 #include <phfield/PHField.h>
 
+#include <TVector3.h>                   // for TVector3
+
 #include <CLHEP/Units/SystemOfUnits.h>
 
 #include <cassert>

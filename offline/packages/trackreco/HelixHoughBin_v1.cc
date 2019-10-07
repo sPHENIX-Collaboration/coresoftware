@@ -1,5 +1,6 @@
 #include "HelixHoughBin_v1.h"
 
+#include <phool/PHObject.h>  // for PHObject
 #include <phool/phool.h>  // for PHWHERE
 
 #include <cassert>

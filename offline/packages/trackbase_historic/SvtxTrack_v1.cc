@@ -4,7 +4,8 @@
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 
-#include <cassert>
+#include <phool/PHObject.h>      // for PHObject
+
 #include <climits>
 #include <map>
 #include <vector>                // for vector

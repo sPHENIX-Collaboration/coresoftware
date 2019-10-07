@@ -7,6 +7,8 @@
 #include <cstddef>
 #include <iostream>
 
+class PHObject;
+
 class SvtxHitMap_v1 : public SvtxHitMap
 {
  public:

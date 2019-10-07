@@ -7,6 +7,8 @@
 #include <iostream>
 #include <set>
 
+class PHObject;
+
 class SvtxCluster_v1 : public SvtxCluster
 {
  public:

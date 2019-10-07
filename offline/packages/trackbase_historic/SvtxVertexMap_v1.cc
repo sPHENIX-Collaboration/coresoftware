@@ -2,7 +2,8 @@
 
 #include "SvtxVertex.h"
 
-#include <cassert>
+#include <phool/PHObject.h>  // for PHObject
+
 #include <iterator>      // for reverse_iterator
 #include <utility>       // for pair, make_pair
 

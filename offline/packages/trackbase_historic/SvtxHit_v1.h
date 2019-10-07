@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+class PHObject;
+
 class SvtxHit_v1 : public SvtxHit
 {
  public:

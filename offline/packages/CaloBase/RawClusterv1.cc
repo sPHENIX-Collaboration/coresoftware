@@ -3,6 +3,7 @@
 #include <phool/phool.h>
 
 #include <cmath>
+#include <climits>
 #include <cstdlib>
 #include <limits>
 #include <string>

@@ -7,6 +7,8 @@
 #include <iostream>
 #include <set>
 
+class PHObject;
+
 class SvtxVertex_v1 : public SvtxVertex
 {
  public:

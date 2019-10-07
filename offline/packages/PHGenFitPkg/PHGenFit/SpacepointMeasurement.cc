@@ -8,6 +8,7 @@
 
 #include <GenFit/SpacepointMeasurement.h>
 
+#include <TMatrixDSymfwd.h>                // for TMatrixDSym
 #include <TMatrixTSym.h>
 #include <TVector3.h>
 #include <TVectorDfwd.h>
