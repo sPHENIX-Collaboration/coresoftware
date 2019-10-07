@@ -6,8 +6,6 @@
 #include <pdbcalbase/Pdb.h>
 #include <pdbcalbase/PdbApplication.h>
 
-#include <phool/phool.h>
-
 #include <string>
 
 class PdbCalBank;

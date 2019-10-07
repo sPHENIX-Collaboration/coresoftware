@@ -11,9 +11,9 @@
 #include "ePHENIXRICHConstruction.h"
 
 #include "PHG4RICHDisplayAction.h"
-#include "PHG4RICHSubsystem.h"
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>               // for PHG4Subsystem
 
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4DisplacedSolid.hh>  // for G4DisplacedSolid
@@ -34,6 +34,7 @@
 #include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>      // for G4RotateX3D, G4Rotat...
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>                    // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 #include <Geant4/G4ios.hh>              // for G4cout, G4endl
 

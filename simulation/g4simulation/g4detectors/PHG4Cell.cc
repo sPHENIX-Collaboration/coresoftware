@@ -1,5 +1,9 @@
 #include "PHG4Cell.h"
 
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
+#include <phool/PHObject.h>      // for PHObject
+
 #include <cassert>
 #include <cstdlib>
 

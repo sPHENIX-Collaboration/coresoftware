@@ -53,6 +53,7 @@
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
+#include <Geant4/G4MaterialPropertyVector.hh>          // for G4MaterialPropertyVector
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpAbsorption.hh>
 #include <Geant4/G4OpBoundaryProcess.hh>
@@ -60,10 +61,8 @@
 #include <Geant4/G4OpRayleigh.hh>
 #include <Geant4/G4OpWLS.hh>
 #include <Geant4/G4OpticalPhoton.hh>
-#include <Geant4/G4OpticalPhysics.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
-#include <Geant4/G4ParticleTypes.hh>
 #include <Geant4/G4PhotoElectricEffect.hh>       // for G4PhotoElectricEffect
 #include <Geant4/G4ProcessManager.hh>
 #include <Geant4/G4ProductionCuts.hh>            // for G4ProductionCuts
@@ -76,6 +75,7 @@
 #include <Geant4/G4Types.hh>                     // for G4double, G4int
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
+#include <Geant4/G4UImessenger.hh>                     // for G4UImessenger
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
 #include <Geant4/G4VisManager.hh>                // for G4VisManager
@@ -101,7 +101,6 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
-#include <boost/dll.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -112,6 +111,7 @@
 #include <vector>                                // for vector, vector<>::it...
 
 class G4TrackingManager;
+class G4VPhysicalVolume;
 class PHField;
 class PHG4EventAction;
 class PHG4SteppingAction;

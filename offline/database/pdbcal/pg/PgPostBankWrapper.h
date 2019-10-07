@@ -14,6 +14,7 @@
 #include <string>
 
 class PdbCalChan;
+class PHObject;
 
 class PgPostBankWrapper : public PgPostCalBank
 {

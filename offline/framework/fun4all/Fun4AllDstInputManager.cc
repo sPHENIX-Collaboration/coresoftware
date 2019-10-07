@@ -13,6 +13,7 @@
 #include <phool/PHNodeIOManager.h>
 #include <phool/PHNodeIntegrate.h>
 #include <phool/PHNodeIterator.h>   // for PHNodeIterator
+#include <phool/PHObject.h>         // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>            // for PHWHERE, PHReadOnly, PHRunTree
 

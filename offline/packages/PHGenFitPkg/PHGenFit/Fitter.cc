@@ -12,6 +12,7 @@
 
 //ROOT
 #include <TGeoManager.h>
+#include <RVersion.h>                      // for ROOT_VERSION, ROOT_VERSION...
 
 //GenFit
 #include <GenFit/AbsKalmanFitter.h>

@@ -8,16 +8,20 @@
 #include "HelixHoughSpace.h"                            // for HelixHoughSpace
 #include "HelixHoughSpace_v1.h"                         // for HelixHoughSpa...
 
+#include <HelixHough/HelixKalmanState.h>                // for HelixKalmanState
+#include <HelixHough/SimpleHit3D.h>                     // for SimpleHit3D
+#include <HelixHough/SimpleTrack3D.h>                   // for SimpleTrack3D
+
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>            // for SvtxTrackMap
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -40,6 +44,7 @@
 #include <TNtuple.h>
 
 #include <algorithm>                                    // for find
+#include <cassert>                                     // for assert
 #include <cmath>
 #include <cstdlib>                                     // for NULL, exit
 #include <iostream>

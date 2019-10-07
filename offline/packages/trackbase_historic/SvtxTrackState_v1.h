@@ -7,6 +7,8 @@
 #include <iostream>
 #include <string>            // for string, basic_string
 
+class PHObject;
+
 class SvtxTrackState_v1 : public SvtxTrackState
 {
  public:

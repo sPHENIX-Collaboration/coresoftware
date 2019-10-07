@@ -2,7 +2,8 @@
 
 #include "SvtxHit.h"
 
-#include <cassert>
+#include <phool/PHObject.h>  // for PHObject
+
 #include <iterator>   // for reverse_iterator
 #include <map>
 #include <utility>    // for pair, make_pair

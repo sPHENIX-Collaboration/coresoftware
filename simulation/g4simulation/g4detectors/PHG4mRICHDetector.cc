@@ -24,12 +24,12 @@
 
 #include <Geant4/G4AssemblyVolume.hh>
 #include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalBorderSurface.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4MaterialPropertiesTable.hh>  // for G4MaterialProperties...
 #include <Geant4/G4OpticalSurface.hh>
+#include <Geant4/G4PhysicalConstants.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4Polycone.hh>
 #include <Geant4/G4Polyhedra.hh>
@@ -37,6 +37,7 @@
 #include <Geant4/G4SurfaceProperty.hh>  // for dielectric_dielectric
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Types.hh>                    // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 #include <Geant4/G4ios.hh>  // for G4cout, G4endl

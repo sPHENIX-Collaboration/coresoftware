@@ -4,6 +4,7 @@
 #include "CellularAutomaton.h"
 
 #include <HelixHough/SimpleHit3D.h>       
+#include <HelixHough/SimpleTrack3D.h>     // for SimpleTrack3D
 
 #if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/HelixKalmanState.h>    // for HelixKalmanState

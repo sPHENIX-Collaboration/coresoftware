@@ -4,6 +4,7 @@
 #include "PHG4FCalSteppingAction.h"
 
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -19,7 +20,7 @@ class PHG4Detector;
 //_______________________________________________________________________
 PHG4FCalSubsystem::PHG4FCalSubsystem(const char* name)
   : PHG4Subsystem(name)
-  , detector_(0)
+  , detector_(nullptr)
 {
 }
 

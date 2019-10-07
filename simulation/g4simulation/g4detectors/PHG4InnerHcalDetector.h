@@ -5,9 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-// cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
-#include <Geant4/G4RotationMatrix.hh>
-
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
 

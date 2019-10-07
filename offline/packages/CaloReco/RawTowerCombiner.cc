@@ -13,7 +13,6 @@
 
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
 #include <phool/PHNode.h>
 #include <phool/PHNodeIterator.h>
 

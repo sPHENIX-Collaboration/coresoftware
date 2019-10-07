@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_PHG4CONEDETECTOR_H
 #define G4DETECTORS_PHG4CONEDETECTOR_H
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4String.hh>  // for G4String

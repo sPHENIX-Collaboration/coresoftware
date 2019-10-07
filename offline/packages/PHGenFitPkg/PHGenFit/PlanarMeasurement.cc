@@ -8,7 +8,12 @@
 
 #include <GenFit/PlanarMeasurement.h>
 #include <GenFit/DetPlane.h>
+#include <GenFit/SharedPlanePtr.h>     // for SharedPlanePtr
 
+#include <TMatrixDSymfwd.h>            // for TMatrixDSym
+#include <TMatrixTSym.h>               // for TMatrixTSym
+#include <TVectorDfwd.h>               // for TVectorD
+#include <TVectorT.h>                  // for TVectorT
 #include <TVector3.h>
 
 namespace PHGenFit

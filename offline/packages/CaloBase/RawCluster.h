@@ -14,8 +14,10 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
+#include <string>                        // for string
 #include <utility>
-#if defined(__CLING__)
+
+#if !defined(__CINT__) || defined(__CLING__)
 #include <type_traits>
 #endif
 

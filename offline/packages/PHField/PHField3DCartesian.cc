@@ -1,5 +1,6 @@
 #include "PHField3DCartesian.h"
 
+#include <TDirectory.h>                        // for TDirectory, gDirectory
 #include <TFile.h>
 #include <TNtuple.h>
 

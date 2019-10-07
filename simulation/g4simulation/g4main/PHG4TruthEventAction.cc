@@ -23,7 +23,6 @@
 
 #include <Eigen/Dense>
 
-#include <algorithm>  // for copy
 #include <cmath>      // for isnan
 #include <cstdlib>    // for abs
 #include <iostream>   // for operator<<, endl

@@ -1,5 +1,7 @@
 #include "InttDeadMapv1.h"
 
+#include <g4detectors/PHG4CellDefs.h>  // for keytype
+
 #include <map>       // for _Rb_tree_const_iterator
 #include <iostream>
 

@@ -9,7 +9,6 @@
 
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalDisplayAction.h"
-#include "PHG4SpacalSubsystem.h"
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
@@ -36,6 +35,7 @@
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>  // for G4Transform3D, G4RotateZ3D
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>              // for G4double
 #include <Geant4/G4UserLimits.hh>
 
 #include <boost/foreach.hpp>
@@ -139,13 +139,13 @@ void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
         << "PHG4SpacalDetector::Construct - ERROR - not yet support unsymmetric system. Let me know if you need it. - Jin"
         << endl;
     _geom->Print();
-    exit(-1);
+    gSystem->Exit(-1);
   }
   if (_geom->get_zmin() * cm >= _geom->get_zmax() * cm)
   {
     cout << "PHG4SpacalDetector::Construct - ERROR - zmin >= zmax!" << endl;
     _geom->Print();
-    exit(-1);
+    gSystem->Exit(-1);
   }
 
   G4Tubs *_cylinder_solid = new G4Tubs(G4String(GetName()),

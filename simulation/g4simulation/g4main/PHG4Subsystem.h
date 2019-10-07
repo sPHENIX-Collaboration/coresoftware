@@ -10,6 +10,7 @@
 #include <string>
 
 class G4LogicalVolume;
+class PHCompositeNode;
 class PHG4Detector;
 class PHG4DisplayAction;
 class PHG4EventAction;

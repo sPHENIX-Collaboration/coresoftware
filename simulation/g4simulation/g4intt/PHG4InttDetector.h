@@ -14,6 +14,7 @@
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4InttDisplayAction;
 class PHG4Subsystem;
 class PHParametersContainer;

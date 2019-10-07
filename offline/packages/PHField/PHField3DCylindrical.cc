@@ -1,6 +1,6 @@
-
 #include "PHField3DCylindrical.h"
 
+#include <TDirectory.h>                        // for TDirectory, gDirectory
 #include <TFile.h>
 #include <TNtuple.h>
 
@@ -14,7 +14,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <iterator>
-#include <memory>
 #include <set>
 #include <utility>
 

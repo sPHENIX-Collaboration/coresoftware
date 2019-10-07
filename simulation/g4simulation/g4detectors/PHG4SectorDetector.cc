@@ -1,9 +1,9 @@
 #include "PHG4SectorDetector.h"
 #include "PHG4SectorDisplayAction.h"
-#include "PHG4SectorSubsystem.h"
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
 
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4String.hh>  // for G4String

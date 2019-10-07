@@ -28,9 +28,11 @@
 #include <GenFit/TrackPoint.h>
 
 #include <TMatrixDfwd.h>                      // for TMatrixD
+#include <TMatrixDSymfwd.h>                   // for TMatrixDSym
 #include <TMatrixT.h>                         // for TMatrixT
 #include <TMatrixTSym.h>                      // for TMatrixTSym
 #include <TVectorDfwd.h>                      // for TVectorD
+#include <TVector3.h>                         // for TVector3
 #include <TVectorT.h>                         // for TVectorT, operator-
 
 //STL

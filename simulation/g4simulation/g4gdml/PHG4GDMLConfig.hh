@@ -13,6 +13,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>  // for operator<<, basic_ostream, basic_ostream...
 #include <set>
 
 class G4VPhysicalVolume;
@@ -24,8 +25,8 @@ class G4LogicalVolume;
 class PHG4GDMLConfig : public PHObject
 {
  public:
-  PHG4GDMLConfig();
-  virtual ~PHG4GDMLConfig();
+  PHG4GDMLConfig() {}
+  virtual ~PHG4GDMLConfig() {}
 
   virtual void Reset()
   {
@@ -43,6 +44,7 @@ class PHG4GDMLConfig : public PHObject
   void exclude_logical_vol(const G4LogicalVolume *vol) { excluded_logical_vol.insert(vol); }
   const std::set<const G4VPhysicalVolume *> &get_excluded_physical_vol() const { return excluded_physical_vol; }
   const std::set<const G4LogicalVolume *> &get_excluded_logical_vol() const { return excluded_logical_vol; }
+
  private:
   std::set<const G4VPhysicalVolume *> excluded_physical_vol;
   std::set<const G4LogicalVolume *> excluded_logical_vol;

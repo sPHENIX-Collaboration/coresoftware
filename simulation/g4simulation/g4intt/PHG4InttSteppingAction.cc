@@ -19,6 +19,7 @@
 #include <Geant4/G4ParticleDefinition.hh>       // for G4ParticleDefinition
 #include <Geant4/G4ReferenceCountedHandle.hh>   // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>                // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>               // for fGeomBoundary, fAtRes...
 #include <Geant4/G4String.hh>                   // for G4String
 #include <Geant4/G4SystemOfUnits.hh>

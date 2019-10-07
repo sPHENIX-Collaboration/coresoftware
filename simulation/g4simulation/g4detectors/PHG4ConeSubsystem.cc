@@ -4,6 +4,7 @@
 #include "PHG4EventActionClearZeroEdep.h"
 
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>    // for PHIODataNode
@@ -27,7 +28,7 @@ using namespace std;
 //_______________________________________________________________________
 PHG4ConeSubsystem::PHG4ConeSubsystem(const std::string& name, const int lyr)
   : PHG4Subsystem(name)
-  , detector_(0)
+  , detector_(nullptr)
   , steppingAction_(nullptr)
   , eventAction_(nullptr)
   , place_in_x(0)

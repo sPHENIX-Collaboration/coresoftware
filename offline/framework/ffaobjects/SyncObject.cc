@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+class PHObject;
+
 using namespace std;
 
 void SyncObject::Reset()

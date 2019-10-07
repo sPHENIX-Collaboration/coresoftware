@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <memory>                         // for allocator_traits<>::value_type
 #include <sstream>
 
 using namespace std;

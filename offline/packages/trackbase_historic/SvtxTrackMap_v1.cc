@@ -2,7 +2,8 @@
 
 #include "SvtxTrack.h"
 
-#include <cassert>
+#include <phool/PHObject.h>  // for PHObject
+
 #include <iterator>     // for reverse_iterator
 #include <map>          // for _Rb_tree_const_iterator, _Rb_tree_iterator
 #include <ostream>      // for operator<<, endl, ostream, basic_ostream, bas...

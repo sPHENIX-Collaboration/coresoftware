@@ -8,6 +8,8 @@
 #include <iostream>
 #include <map>
 
+class PHObject;
+
 class SvtxVertexMap_v1 : public SvtxVertexMap
 {
  public:

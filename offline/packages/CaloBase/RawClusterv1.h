@@ -11,11 +11,13 @@
 #include <map>
 #include <utility>
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
+#if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
+#else
+#include <stdint.h>
 #endif
+
+class PHObject;
 
 class RawClusterv1 : public RawCluster
 {

@@ -1,7 +1,6 @@
 #include "PHG4CEmcTestBeamDetector.h"
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
-#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>

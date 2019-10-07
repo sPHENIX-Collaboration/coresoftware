@@ -19,6 +19,7 @@
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>               // for G4StepPoint
 #include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fPostSt...
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
 #include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle

@@ -3,7 +3,6 @@
 #include "PHG4InttDefs.h"  // for SEGMENTATION_Z
 #include "PHG4InttDisplayAction.h"
 #include "PHG4InttFPHXParameterisation.h"
-#include "PHG4InttSubsystem.h"
 
 #include <intt/CylinderGeomIntt.h>
 
@@ -14,6 +13,7 @@
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>                   // for PHG4Subsystem
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>

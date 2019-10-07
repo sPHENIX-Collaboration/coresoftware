@@ -1,6 +1,5 @@
 #include "PHG4CylinderDetector.h"
 #include "PHG4CylinderDisplayAction.h"
-#include "PHG4CylinderSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 
@@ -17,6 +16,8 @@
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4UserLimits.hh>
+
+#include <TSystem.h>
 
 #include <cmath>
 #include <iostream>  // for operator<<, endl, basic_ost...
@@ -55,7 +56,7 @@ void PHG4CylinderDetector::ConstructMe(G4LogicalVolume *logicWorld)
   if (!TrackerMaterial)
   {
     std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
+    gSystem->Exit(1);
   }
 
   // determine length of cylinder using PHENIX's rapidity coverage if flag is true

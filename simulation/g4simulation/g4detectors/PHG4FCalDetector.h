@@ -10,6 +10,7 @@
 #include <Geant4/G4Types.hh>
 
 #include <map>
+#include <string>                 // for string
 
 class G4Material;
 class G4Box;

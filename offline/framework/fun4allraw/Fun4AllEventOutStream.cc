@@ -1,5 +1,7 @@
 #include "Fun4AllEventOutStream.h"
 
+#include <fun4all/Fun4AllBase.h>                // for Fun4AllBase
+
 #include <phool/phool.h>
 
 #include <Event/A_Event.h>

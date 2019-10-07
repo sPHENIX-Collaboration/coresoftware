@@ -7,8 +7,8 @@
 
 #include <odbc++/connection.h>
 #include <odbc++/drivermanager.h>
-#include <odbc++/preparedstatement.h>
 #include <odbc++/resultset.h>
+#include <odbc++/statement.h>
 #include <odbc++/types.h>
 
 #include <cstdlib>
@@ -25,18 +25,18 @@ using namespace std;
 // cache entries for 10 runs which should be sufficient for everybody
 unsigned int maxentries = 10;
 
-RunToTimePg* RunToTimePg::mySpecificCopy = 0;
+RunToTimePg* RunToTimePg::mySpecificCopy = nullptr;
 
 RunToTimePg::RunToTimePg()
 {
-  con = 0;
+  con = nullptr;
   return;
 }
 
 RunToTimePg::~RunToTimePg()
 {
-  mySpecificCopy = 0;
-  __instance = 0;
+  mySpecificCopy = nullptr;
+  __instance = nullptr;
   while (beginruntimes.begin() != beginruntimes.end())
   {
     delete beginruntimes.begin()->second;
@@ -83,14 +83,14 @@ int RunToTimePg::GetConnection()
 int RunToTimePg::DisconnectDB()
 {
   delete con;
-  con = 0;
+  con = nullptr;
   return 0;
 }
 
 PHTimeStamp*
 RunToTimePg::getTime(const int runNumber, const string& what)
 {
-  PHTimeStamp* whatTime = 0;
+  PHTimeStamp* whatTime = nullptr;
   //  Establish connection to Postgres...
   GetConnection();  // on error this method will exit
   Statement* stmt = con->createStatement();
@@ -105,7 +105,7 @@ RunToTimePg::getTime(const int runNumber, const string& what)
 #endif
 
   //  Get results of search...
-  ResultSet* rs = 0;
+  ResultSet* rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str());
@@ -207,7 +207,7 @@ RunToTimePg::getBeginTime(const int runNumber)
   }
   if (!BeginRunTime)
   {
-    return 0;
+    return nullptr;
   }
   PHTimeStamp* TS = new PHTimeStamp(*BeginRunTime);
   return TS;
@@ -228,7 +228,7 @@ RunToTimePg::getEndTime(const int runNumber)
   }
   if (!EndRunTime)
   {
-    return 0;
+    return nullptr;
   }
   PHTimeStamp* TS = new PHTimeStamp(*EndRunTime);
   return TS;
@@ -250,7 +250,7 @@ int RunToTimePg::getRunNumber(const PHTimeStamp& ts)
       << " order by runnumber desc limit 1";
 
   //  Get results of search...
-  ResultSet* rs = 0;
+  ResultSet* rs = nullptr;
   try
   {
     rs = stmt->executeQuery(cmd.str().c_str());
