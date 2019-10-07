@@ -26,6 +26,7 @@
 #include <Geant4/G4ThreeVector.hh>    // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>    // for G4Transform3D, G4RotateX3D
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>              // for G4int
 #include <Geant4/G4ios.hh>    // for G4cout, G4endl
 #include <Geant4/globals.hh>  // for G4Exception
 

@@ -13,6 +13,7 @@
 #include <TGeoManager.h>
 #include <TGeoVolume.h>
 #include <TMemFile.h>
+#include <TObject.h>      // for TObject
 
 #include <cassert>
 #include <iostream>
