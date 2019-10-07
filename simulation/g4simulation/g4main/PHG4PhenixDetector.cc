@@ -20,6 +20,7 @@
 #include <Geant4/G4String.hh>               // for G4String
 #include <Geant4/G4SolidStore.hh>
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>                 // for G4ThreeVector
 #include <Geant4/G4Tubs.hh>
 #include <Geant4/G4VSolid.hh>               // for G4GeometryType, G4VSolid
 

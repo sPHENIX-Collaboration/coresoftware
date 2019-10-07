@@ -8,6 +8,7 @@
 #include <vector>            // for vector, vector<>::const_iterator
 
 class PHCompositeNode;
+class PHG4Particle;
 
 using namespace std;
 

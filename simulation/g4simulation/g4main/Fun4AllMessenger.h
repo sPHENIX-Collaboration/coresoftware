@@ -7,6 +7,8 @@
 
 class Fun4AllServer;
 class G4UIcmdWithAnInteger;
+class G4UIcommand;
+class G4UIdirectory;
 
 class Fun4AllMessenger: public G4UImessenger
 {
