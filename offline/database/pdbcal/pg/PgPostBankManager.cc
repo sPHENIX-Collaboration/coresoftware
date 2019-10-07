@@ -11,6 +11,7 @@
 #include <pdbcalbase/RunToTime.h>
 #include <pdbcalbase/PdbBankManager.h>
 
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/PHTimeStamp.h>                 // for PHTimeStamp, operator<<
 #include <phool/phool.h>
 
@@ -18,7 +19,7 @@
 #include <RDBC/TSQLResultSet.h>
 #include <RDBC/TSQLStatement.h>
 
-//#include <TString.h>
+#include <TString.h>
 
 #include <cstdlib>
 #include <ctime>
