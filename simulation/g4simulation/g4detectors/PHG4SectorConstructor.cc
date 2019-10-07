@@ -8,9 +8,9 @@
 
 #include "PHG4SectorConstructor.h"
 #include "PHG4SectorDisplayAction.h"
-#include "PHG4SectorSubsystem.h"
 
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>         // for PHG4Subsystem
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4DisplacedSolid.hh>     // for G4DisplacedSolid

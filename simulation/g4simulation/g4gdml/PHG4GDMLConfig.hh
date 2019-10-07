@@ -13,6 +13,7 @@
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for operator<<, basic_ostream, basic_ostream...
 #include <set>
 
 class G4VPhysicalVolume;

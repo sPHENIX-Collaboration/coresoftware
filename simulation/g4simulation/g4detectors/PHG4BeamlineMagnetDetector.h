@@ -10,6 +10,7 @@
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
+class PHG4Subsystem;
 class PHParameters;
 
 class PHG4BeamlineMagnetDetector : public PHG4Detector

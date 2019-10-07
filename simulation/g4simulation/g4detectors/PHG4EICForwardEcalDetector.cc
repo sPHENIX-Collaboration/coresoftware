@@ -3,14 +3,13 @@
 #include "PHG4ForwardEcalDetector.h"  // for PHG4ForwardEcalDetector
 #include "PHG4ForwardEcalDisplayAction.h"
 
-#include <g4main/PHG4Subsystem.h>
-
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>              // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm, mm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>     // for G4Transform3D
@@ -22,6 +21,7 @@
 #include <sstream>
 #include <utility>  // for pair, make_pair
 
+class G4VSolid;
 class PHCompositeNode;
 
 using namespace std;

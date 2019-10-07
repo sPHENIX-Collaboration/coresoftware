@@ -5,6 +5,7 @@
 
 #include "PHG4CylinderCell.h"
 
+#include "PHG4Cell.h"              // for PHG4Cell::EdepMap, PHG4Cell::Showe...
 #include "PHG4CylinderCellDefs.h"  // for keytype
 
 #include <g4main/PHG4HitDefs.h>

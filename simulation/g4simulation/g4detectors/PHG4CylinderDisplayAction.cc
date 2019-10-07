@@ -9,6 +9,8 @@
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4VisAttributes.hh>
 
+#include <cmath>
+
 class G4VPhysicalVolume;
 
 using namespace std;

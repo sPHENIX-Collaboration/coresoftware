@@ -3,7 +3,6 @@
 #include <phparameter/PHParameters.h>
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
-#include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 
 #include <phool/phool.h>
@@ -35,6 +34,7 @@
 
 class G4VSolid;
 class PHCompositeNode;
+class PHG4Subsystem;
 
 using namespace std;
 

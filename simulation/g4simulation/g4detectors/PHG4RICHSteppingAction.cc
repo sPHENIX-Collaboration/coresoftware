@@ -20,6 +20,7 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4ExceptionSeverity.hh>      // for FatalException
+#include <Geant4/G4OpBoundaryProcess.hh>      // for StepTooSmall, Undefined
 #include <Geant4/G4OpticalPhoton.hh>          // for G4OpticalPhoton
 #include <Geant4/G4ParticleDefinition.hh>     // for G4ParticleDefinition
 #include <Geant4/G4ProcessManager.hh>

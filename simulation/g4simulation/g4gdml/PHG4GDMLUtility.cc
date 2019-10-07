@@ -12,29 +12,23 @@
 #include "PHG4GDMLWriteStructure.hh"
 #include "PHG4GDMLConfig.hh"
 
+#include <fun4all/Fun4AllServer.h>
+
 #include <phool/PHNodeIterator.h>
-#include <phool/PHTypedNodeIterator.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
+#include <phool/PHObject.h>                // for PHObject
 #include <phool/getClass.h>
-#include <fun4all/Fun4AllServer.h>
+
 
 #include <Geant4/G4VPhysicalVolume.hh>
 
 #include <cassert>
+#include <iostream>                        // for operator<<, stringstream
 #include <sstream>
 #include <stdexcept>
 
 using namespace std;
-
-PHG4GDMLUtility::~PHG4GDMLUtility()
-{
-  // TODO Auto-generated destructor stub
-}
-PHG4GDMLUtility::PHG4GDMLUtility()
-{
-  // TODO Auto-generated constructor stub
-}
 
 void PHG4GDMLUtility::Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode)
 {
@@ -75,7 +69,7 @@ PHG4GDMLConfig * PHG4GDMLUtility::GetOrMakeConfigNode(PHCompositeNode *topNode, 
 
       throw runtime_error(serr.str());
 
-      return NULL;
+      return nullptr;
     }
 
   PHG4GDMLConfig *config = findNode::getClass<PHG4GDMLConfig>(parNode,

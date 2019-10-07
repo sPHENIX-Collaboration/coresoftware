@@ -51,7 +51,6 @@
 // finally system headers
 #include <cassert>
 #include <cmath>                               // for isfinite, sqrt
-#include <cstdlib>                            // for exit
 #include <iostream>
 #include <string>                              // for operator<<, string
 #include <utility>                             // for pair

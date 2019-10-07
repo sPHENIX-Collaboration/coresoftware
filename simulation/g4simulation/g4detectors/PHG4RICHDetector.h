@@ -18,6 +18,8 @@
 
 #include <Geant4/G4Region.hh>
 
+#include <string>                     // for string
+
 class G4LogicalVolume;
 class G4UserSteppingAction;
 class PHCompositeNode;

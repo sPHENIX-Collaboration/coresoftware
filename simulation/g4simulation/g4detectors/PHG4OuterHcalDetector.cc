@@ -3,7 +3,6 @@
 #include "PHG4HcalDefs.h"
 #include "PHG4OuterHcalDisplayAction.h"
 #include "PHG4OuterHcalFieldSetup.h"
-#include "PHG4OuterHcalSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 

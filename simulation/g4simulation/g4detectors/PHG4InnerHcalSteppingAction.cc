@@ -32,7 +32,6 @@
 #include <Geant4/G4VTouchable.hh>              // for G4VTouchable
 #include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
-#include <cstdlib>                            // for exit
 #include <cmath>                               // for isfinite
 #include <iostream>
 #include <string>                              // for operator<<, operator+

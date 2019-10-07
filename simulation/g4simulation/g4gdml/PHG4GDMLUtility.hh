@@ -23,7 +23,7 @@ class PHCompositeNode;
 class PHG4GDMLUtility
 {
  public:
-  virtual ~PHG4GDMLUtility();
+  virtual ~PHG4GDMLUtility(){}
 
   //! save the current Geant4 geometry to GDML file. Reading PHG4GDMLConfig from topNode
   static void Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode = nullptr);
@@ -42,7 +42,7 @@ class PHG4GDMLUtility
   }
 
  private:
-  PHG4GDMLUtility();
+  PHG4GDMLUtility(){}
 };
 
 #endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4GDML_PHG4GDMLUTILITY_HH_ */

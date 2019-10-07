@@ -17,7 +17,6 @@
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4Types.hh>  // for G4double
 
-#include <cstddef>  // for NULL
 #include <sstream>
 
 class PHG4Detector;
