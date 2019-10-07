@@ -1,5 +1,7 @@
 #include "RunHeader.h"
+
 #include <phool/phool.h>
+
 #include <iostream>
 
 class PHObject;
