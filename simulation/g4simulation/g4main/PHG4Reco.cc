@@ -83,9 +83,14 @@
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
+#include <Geant4/FTFP_INCLXX.hh>
+#include <Geant4/FTFP_INCLXX_HP.hh>
 #include <Geant4/QGSP_BERT.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
+#include <Geant4/QGSP_INCLXX.hh>
+#include <Geant4/QGSP_INCLXX_HP.hh>
+
 
 #if G4VERSION_NUMBER <= 951
 #define HAVE_LHEP
@@ -241,6 +246,15 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     myphysicslist = new QGSP_BERT_HP(Verbosity());
   }
 #endif
+  else if (physicslist == "FTFP_INCLXX")
+  {
+    myphysicslist = new FTFP_INCLXX(Verbosity());
+  }
+  else if (physicslist == "FTFP_INCLXX_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new FTFP_INCLXX_HP(Verbosity());
+  }
   else if (physicslist == "EIC")
   {
     myphysicslist = new EICPhysicsList();
