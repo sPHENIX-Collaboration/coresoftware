@@ -12,6 +12,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>                           // for PHIODataNode
+#include <phool/PHNodeIterator.h>                         // for PHNodeIterator
 #include <phool/PHObject.h>                               // for PHObject
 #include <phool/getClass.h>
 #include <phool/phool.h>                                  // for PHWHERE
@@ -351,7 +352,7 @@ Fun4AllHepMCInputManager::ConvertFromOscar()
   {
     if (theLine.find("#") == 0) continue;
     vector<double> theInfo;  //format: N,pid,px,py,pz,E,mass,xvtx,yvtx,zvtx,?
-    double number;
+    double number = NAN;
     for (istringstream numbers_iss(theLine); numbers_iss >> number;)
     {
       theInfo.push_back(number);
