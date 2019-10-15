@@ -33,6 +33,9 @@ CLHEP::HepRandomEngine *engine = nullptr;
 
 set<string> algoset = {"MINBIAS", "MINBIAS_V2_ONLY", "CUSTOM"};
 
+// we want to keep the default eta range identical between here and 
+// the flowAfterburner executable. If you change the default eta range here
+// please apply the same change to generators/flowAfterburner/main.cc
 HepMCFlowAfterBurner::HepMCFlowAfterBurner(const std::string &name)
   : SubsysReco(name)
   , algorithmName("MINBIAS")
