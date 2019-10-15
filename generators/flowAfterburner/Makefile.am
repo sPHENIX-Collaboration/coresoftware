@@ -6,16 +6,14 @@ lib_LTLIBRARIES = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs-without-gui` \
-  -lHepMC \
+  -lCLHEP \
   -lgsl \
   -lgslcblas \
-  -lpthread
+  -lHepMC
 
 AM_CPPFLAGS = \
   -I$(includedir) \
-  -I$(OFFLINE_MAIN)/include \
-  `geant4-config --cflags-without-gui`
+  -I$(OFFLINE_MAIN)/include
 
 pkginclude_HEADERS = \
   flowAfterburner.h
@@ -34,8 +32,6 @@ flowAfterburner_SOURCES = \
 flowAfterburner_LDADD = \
   libflowafterburner.la
 
-# just to add the missing ostream-inst.o
-# from the gcc 4.3.2 compiler bug
 test_LDADD = \
   libflowafterburner.la
 
