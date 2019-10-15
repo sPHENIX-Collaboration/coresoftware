@@ -39,6 +39,11 @@ main ()
 {
   using namespace boost::property_tree;
   iptree pt;
+// These values (coded here or in the xml file are used only in the
+// flowAfterburner executable. If you want to adjust them in the flow
+// module of our simulations you need to change
+// generators/phhepmc/HepMCFlowAfterBurner.cc
+// for the default and/or the values set in the macro
 
   std::ifstream config_file("flowAfterburner.xml");
 
@@ -47,7 +52,6 @@ main ()
       // Read XML configuration file.
       read_xml (config_file, pt);
     }
-
   long randomSeed = pt.get ("FLOWAFTERBURNER.RANDOM.SEED", 11793);
   engine = new CLHEP::MTwistEngine (randomSeed);
 
