@@ -33,18 +33,13 @@ class PHG4ScoringManager : public SubsysReco
  public:
   PHG4ScoringManager();
 
-  virtual ~PHG4ScoringManager();
+  virtual ~PHG4ScoringManager(){}
 
   //! full initialization
-  int Init(PHCompositeNode *);
-
   int InitRun(PHCompositeNode *topNode);
 
   //! event processing method
   int process_event(PHCompositeNode *);
-
-  //! Clean up after each event.
-  int ResetEvent(PHCompositeNode *);
 
   //! end of run method
   int End(PHCompositeNode *);

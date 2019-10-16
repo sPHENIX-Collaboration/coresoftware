@@ -61,16 +61,6 @@ PHG4ScoringManager::PHG4ScoringManager()
 {
 }
 
-PHG4ScoringManager::~PHG4ScoringManager()
-{
-}
-
-//_________________________________________________________________
-int PHG4ScoringManager::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
 int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
 {
   //1. check G4RunManager
@@ -209,11 +199,6 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
     }  //          if (_load_all_particle) else
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4ScoringManager::ResetEvent(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
