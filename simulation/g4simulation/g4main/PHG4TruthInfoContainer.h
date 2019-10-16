@@ -48,8 +48,8 @@ public:
   ConstIterator AddParticle(const int particleid, PHG4Particle* newparticle);
   void delete_particle(Iterator piter); 
   
-  PHG4Particle* GetParticle(const int particleid);
-  PHG4Particle* GetPrimaryParticle(const int particleid);
+  PHG4Particle* GetParticle(const int trackid);
+  PHG4Particle* GetPrimaryParticle(const int trackid);
 
   bool is_primary(const PHG4Particle* p) const;
   
