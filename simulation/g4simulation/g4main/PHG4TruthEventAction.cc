@@ -37,10 +37,10 @@ class PHG4VtxPoint;
 using namespace std;
 
 //___________________________________________________
-PHG4TruthEventAction::PHG4TruthEventAction(void)
-  : truthInfoList_(0)
-  , prev_existing_lower_key(0)
-  , prev_existing_upper_key(0)
+PHG4TruthEventAction::PHG4TruthEventAction()
+  : m_TruthInfoContainer(nullptr)
+  , m_LowerKeyPrevExist(0)
+  , m_UpperKeyPrevExist(0)
 {
 }
 
@@ -48,17 +48,17 @@ PHG4TruthEventAction::PHG4TruthEventAction(void)
 void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt)
 {
   // if we do not find the node we need to make it.
-  if (!truthInfoList_)
+  if (!m_TruthInfoContainer)
   {
     std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
     return;
   }
 
-  const PHG4TruthInfoContainer::Map& map = truthInfoList_->GetMap();
+  const PHG4TruthInfoContainer::Map& map = m_TruthInfoContainer->GetMap();
   if (!map.empty())
   {
-    prev_existing_lower_key = map.begin()->first;
-    prev_existing_upper_key = map.rbegin()->first;
+    m_LowerKeyPrevExist = map.begin()->first;
+    m_UpperKeyPrevExist = map.rbegin()->first;
   }
 }
 
@@ -66,7 +66,7 @@ void PHG4TruthEventAction::BeginOfEventAction(const G4Event* evt)
 void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 {
   // if we do not find the node we need to make it.
-  if (!truthInfoList_)
+  if (!m_TruthInfoContainer)
   {
     std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
     return;
@@ -77,21 +77,21 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
    PruneShowers();
    ProcessShowers();
   // construct a list of track ids to preserve in the the output that includes any
-  // track designated in the writeList_ during processing or its ancestry chain
+  // track designated in the m_WriteSet during processing or its ancestry chain
 
-  std::set<G4int> savelist;
+  std::set<int> savelist;
   std::set<int> savevtxlist;
 
-  for (std::set<G4int>::const_iterator write_iter = writeList_.begin();
-       write_iter != writeList_.end();
+  for (std::set<int>::const_iterator write_iter = m_WriteSet.begin();
+       write_iter != m_WriteSet.end();
        ++write_iter)
   {
-    std::vector<G4int> wrttracks;
+    std::vector<int> wrttracks;
     std::vector<int> wrtvtx;
 
     // usertrackid
-    G4int mytrkid = *write_iter;
-    PHG4Particle* particle = truthInfoList_->GetParticle(mytrkid);
+    int mytrkid = *write_iter;
+    PHG4Particle* particle = m_TruthInfoContainer->GetParticle(mytrkid);
 
     // if track is already in save list, nothing needs to be done
     if (savelist.find(mytrkid) != savelist.end())
@@ -106,10 +106,10 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 
     // now crawl up the truth info and add parents until we hit
     // a track which is already being saved
-    G4int parentid = particle->get_parent_id();
+    int parentid = particle->get_parent_id();
     while (savelist.find(parentid) == savelist.end() && parentid != 0)
     {
-      particle = truthInfoList_->GetParticle(parentid);
+      particle = m_TruthInfoContainer->GetParticle(parentid);
       wrttracks.push_back(parentid);
       wrtvtx.push_back(particle->get_vtx_id());
       parentid = particle->get_parent_id();
@@ -137,7 +137,7 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
   // in the save list and are not primary particles (parent_id == 0)
 
   int removed[4] = {0};
-  PHG4TruthInfoContainer::Range truth_range = truthInfoList_->GetParticleRange();
+  PHG4TruthInfoContainer::Range truth_range = m_TruthInfoContainer->GetParticleRange();
   PHG4TruthInfoContainer::Iterator truthiter = truth_range.first;
   while (truthiter != truth_range.second)
   {
@@ -153,9 +153,9 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
       // tracks from a previous geant pass will not be recorded as leaving
       // hit in the sim, so we exclude this range from the removal
       // for regular sims, that range is zero to zero
-      if (((trackid < prev_existing_lower_key) || (trackid > prev_existing_upper_key)) && ((truthiter->second)->get_parent_id() != 0))
+      if (((trackid < m_LowerKeyPrevExist) || (trackid > m_UpperKeyPrevExist)) && ((truthiter->second)->get_parent_id() != 0))
       {
-        truthInfoList_->delete_particle(truthiter++);
+        m_TruthInfoContainer->delete_particle(truthiter++);
         removed[1]++;
       }
       else
@@ -173,14 +173,14 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     }
   }
 
-  PHG4TruthInfoContainer::VtxRange vtxrange = truthInfoList_->GetVtxRange();
+  PHG4TruthInfoContainer::VtxRange vtxrange = m_TruthInfoContainer->GetVtxRange();
   PHG4TruthInfoContainer::VtxIterator vtxiter = vtxrange.first;
   while (vtxiter != vtxrange.second)
   {
     removed[2]++;
     if (savevtxlist.find(vtxiter->first) == savevtxlist.end())
     {
-      truthInfoList_->delete_vtx(vtxiter++);
+      m_TruthInfoContainer->delete_vtx(vtxiter++);
       removed[3]++;
     }
     else
@@ -202,8 +202,8 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
       {
         if (userdata->get_embed())
         {
-          truthInfoList_->AddEmbededTrkId(userdata->get_user_track_id(), userdata->get_embed());
-          truthInfoList_->AddEmbededVtxId(userdata->get_user_vtx_id(), userdata->get_embed());
+          m_TruthInfoContainer->AddEmbededTrkId(userdata->get_user_track_id(), userdata->get_embed());
+          m_TruthInfoContainer->AddEmbededVtxId(userdata->get_user_vtx_id(), userdata->get_embed());
         }
       }
       part = part->GetNext();
@@ -215,19 +215,19 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
 }
 
 //___________________________________________________
-void PHG4TruthEventAction::AddTrackidToWritelist(const G4int trackid)
+void PHG4TruthEventAction::AddTrackidToWritelist(const int trackid)
 {
-  writeList_.insert(trackid);
+  m_WriteSet.insert(trackid);
 }
 
 //___________________________________________________
 void PHG4TruthEventAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   //now look for the map and grab a pointer to it.
-  truthInfoList_ = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  m_TruthInfoContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
 
   // if we do not find the node we need to make it.
-  if (!truthInfoList_)
+  if (!m_TruthInfoContainer)
   {
     std::cout << "PHG4TruthEventAction::SetInterfacePointers - unable to find G4TruthInfo" << std::endl;
   }
@@ -260,7 +260,7 @@ void PHG4TruthEventAction::SearchNode(PHCompositeNode* top)
           PHG4HitContainer* object = dynamic_cast<PHG4HitContainer*>(DNode->getData());
           if (object)
           {
-            hitmap_[object->GetID()] = object;
+            m_HitContainerMap[object->GetID()] = object;
           }
         }
       }
@@ -270,13 +270,13 @@ void PHG4TruthEventAction::SearchNode(PHCompositeNode* top)
 
 int PHG4TruthEventAction::ResetEvent(PHCompositeNode*)
 {
-  writeList_.clear();
+  m_WriteSet.clear();
   return 0;
 }
 
 void PHG4TruthEventAction::PruneShowers()
 {
-  PHG4TruthInfoContainer::ShowerRange range = truthInfoList_->GetShowerRange();
+  PHG4TruthInfoContainer::ShowerRange range = m_TruthInfoContainer->GetShowerRange();
   for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
        iter != range.second;
        ++iter)
@@ -289,7 +289,7 @@ void PHG4TruthEventAction::PruneShowers()
          ++jter)
     {
       int g4particle_id = *jter;
-      PHG4Particle* particle = truthInfoList_->GetParticle(g4particle_id);
+      PHG4Particle* particle = m_TruthInfoContainer->GetParticle(g4particle_id);
       if (!particle)
       {
         remove_ids.insert(g4particle_id);
@@ -310,8 +310,8 @@ void PHG4TruthEventAction::PruneShowers()
          ++jter)
     {
       int g4hitmap_id = jter->first;
-      std::map<int, PHG4HitContainer*>::iterator mapiter = hitmap_.find(g4hitmap_id);
-      if (mapiter == hitmap_.end())
+      std::map<int, PHG4HitContainer*>::iterator mapiter = m_HitContainerMap.find(g4hitmap_id);
+      if (mapiter == m_HitContainerMap.end())
       {
         continue;
       }
@@ -349,7 +349,7 @@ void PHG4TruthEventAction::PruneShowers()
     }
   }
 
-  range = truthInfoList_->GetShowerRange();
+  range = m_TruthInfoContainer->GetShowerRange();
   for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
        iter != range.second;)
   {
@@ -359,7 +359,7 @@ void PHG4TruthEventAction::PruneShowers()
     {
       if (shower->get_edep() == 0)  // check whether this shower has already been processed in the previous simulation cycles
       {
-        truthInfoList_->delete_shower(iter++);
+        m_TruthInfoContainer->delete_shower(iter++);
         continue;
       }
     }
@@ -370,7 +370,7 @@ void PHG4TruthEventAction::PruneShowers()
 
 void PHG4TruthEventAction::ProcessShowers()
 {
-  PHG4TruthInfoContainer::ShowerRange range = truthInfoList_->GetShowerRange();
+  PHG4TruthInfoContainer::ShowerRange range = m_TruthInfoContainer->GetShowerRange();
   for (PHG4TruthInfoContainer::ShowerIterator iter = range.first;
        iter != range.second;
        ++iter)
@@ -388,8 +388,8 @@ void PHG4TruthEventAction::ProcessShowers()
          ++iter)
     {
       int g4hitmap_id = iter->first;
-      std::map<int, PHG4HitContainer*>::iterator mapiter = hitmap_.find(g4hitmap_id);
-      if (mapiter == hitmap_.end())
+      std::map<int, PHG4HitContainer*>::iterator mapiter = m_HitContainerMap.find(g4hitmap_id);
+      if (mapiter == m_HitContainerMap.end())
       {
         continue;
       }
@@ -417,7 +417,7 @@ void PHG4TruthEventAction::ProcessShowers()
           continue;
         }
 
-        PHG4Particle* particle = truthInfoList_->GetParticle(g4hit->get_trkid());
+        PHG4Particle* particle = m_TruthInfoContainer->GetParticle(g4hit->get_trkid());
         if (!particle)
         {
           cout << PHWHERE << " missing g4particle for track "
@@ -425,7 +425,7 @@ void PHG4TruthEventAction::ProcessShowers()
           continue;
         }
 
-        PHG4VtxPoint* vtx = truthInfoList_->GetVtx(particle->get_vtx_id());
+        PHG4VtxPoint* vtx = m_TruthInfoContainer->GetVtx(particle->get_vtx_id());
         if (!vtx)
         {
           cout << PHWHERE << " missing g4vertex" << endl;
