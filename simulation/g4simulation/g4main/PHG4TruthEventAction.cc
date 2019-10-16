@@ -71,7 +71,11 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
     return;
   }
-
+// First deal with the showers - they do need the info which
+// is removed from the maps in the subsequent cleanup to reduce the
+// output file size
+   PruneShowers();
+   ProcessShowers();
   // construct a list of track ids to preserve in the the output that includes any
   // track designated in the writeList_ during processing or its ancestry chain
 
@@ -206,9 +210,6 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     }
     pvtx = pvtx->GetNext();
   }
-
-  PruneShowers();
-  ProcessShowers();
 
   return;
 }
