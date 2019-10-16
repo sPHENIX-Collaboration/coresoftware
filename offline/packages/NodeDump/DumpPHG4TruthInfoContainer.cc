@@ -3,6 +3,7 @@
 #include <phool/PHIODataNode.h>
 
 #include <g4main/PHG4Particle.h>
+#include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 #include <g4main/PHG4VtxPoint.h>
 
@@ -32,7 +33,15 @@ int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
   if (truthcontainer)
   {
     *fout << "number of G4 tracks: " << truthcontainer->size() << endl;
+    *fout << "min trk index: " << truthcontainer->mintrkindex() << endl;
+    *fout << "max trk index: " << truthcontainer->maxtrkindex() << endl;
     *fout << "number of G4 Vertices: " << truthcontainer->GetNumVertices() << endl;
+    *fout << "min vtx index: " << truthcontainer->minvtxindex() << endl;
+    *fout << "max vtx index: " << truthcontainer->maxvtxindex() << endl;
+    *fout << "number of Showers: " << truthcontainer->shower_size() << endl;
+    *fout << "min shower index: " << truthcontainer->minshowerindex() << endl;
+    *fout << "max shower index: " << truthcontainer->maxshowerindex() << endl;
+
     PHG4TruthInfoContainer::ConstVtxIterator vtxiter;
     //      std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = truthcontainer->GetVtxRange();
     PHG4TruthInfoContainer::ConstVtxRange vtxbegin_end = truthcontainer->GetVtxRange();
@@ -48,6 +57,18 @@ int DumpPHG4TruthInfoContainer::process_Node(PHNode *myNode)
     {
       *fout << "particle number: " << particle_iter->first << endl;
       (particle_iter->second)->identify(*fout);
+    }
+    PHG4TruthInfoContainer::ConstShowerIterator shower_iter;
+    PHG4TruthInfoContainer::ConstShowerRange showerbegin_end = truthcontainer->GetShowerRange();
+    for (shower_iter = showerbegin_end.first; shower_iter != showerbegin_end.second; ++shower_iter)
+    {
+      *fout << "shower " << shower_iter->first << endl;
+      *fout << "get_id(): " << shower_iter->second->get_id() << endl;
+      *fout << "get_parent_particle_id(): " << shower_iter->second->get_parent_particle_id() << endl;
+      *fout << "get_parent_shower_id(): " << shower_iter->second->get_parent_shower_id() << endl;
+      *fout << "get_x(): " << shower_iter->second->get_x() << endl;
+      *fout << "get_y(): " << shower_iter->second->get_y() << endl;
+      *fout << "get_z(): " << shower_iter->second->get_z() << endl;
     }
   }
   return 0;
