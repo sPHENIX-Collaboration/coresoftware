@@ -23,10 +23,10 @@
 
 #include <Eigen/Dense>
 
-#include <cmath>      // for isnan
-#include <cstdlib>    // for abs
-#include <iostream>   // for operator<<, endl
-#include <iterator>   // for reverse_iterator
+#include <cmath>     // for isnan
+#include <cstdlib>   // for abs
+#include <iostream>  // for operator<<, endl
+#include <iterator>  // for reverse_iterator
 #include <map>
 #include <string>   // for operator==
 #include <utility>  // for swap, pair
@@ -71,11 +71,11 @@ void PHG4TruthEventAction::EndOfEventAction(const G4Event* evt)
     std::cout << "PHG4TruthEventAction::EndOfEventAction - unable to find G4TruthInfo node" << std::endl;
     return;
   }
-// First deal with the showers - they do need the info which
-// is removed from the maps in the subsequent cleanup to reduce the
-// output file size
-   PruneShowers();
-   ProcessShowers();
+  // First deal with the showers - they do need the info which
+  // is removed from the maps in the subsequent cleanup to reduce the
+  // output file size
+  PruneShowers();
+  ProcessShowers();
   // construct a list of track ids to preserve in the the output that includes any
   // track designated in the m_WriteSet during processing or its ancestry chain
 

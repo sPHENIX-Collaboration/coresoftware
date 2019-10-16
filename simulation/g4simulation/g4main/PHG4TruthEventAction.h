@@ -5,19 +5,17 @@
 
 #include "PHG4EventAction.h"
 
-#include <set>
 #include <map>
+#include <set>
 
 class G4Event;
 class PHG4HitContainer;
 class PHG4TruthInfoContainer;
 class PHCompositeNode;
 
-class PHG4TruthEventAction: public PHG4EventAction
+class PHG4TruthEventAction : public PHG4EventAction
 {
-
-public:
-
+ public:
   //! constructor
   PHG4TruthEventAction();
 
@@ -27,32 +25,30 @@ public:
   void BeginOfEventAction(const G4Event*);
 
   void EndOfEventAction(const G4Event*);
-  
-  int ResetEvent(PHCompositeNode *);
+
+  int ResetEvent(PHCompositeNode*);
 
   //! get relevant nodes from top node passed as argument
-  void SetInterfacePointers( PHCompositeNode* );
-  
+  void SetInterfacePointers(PHCompositeNode*);
+
   //! add id into track list
-  void AddTrackidToWritelist( const int trackid);
+  void AddTrackidToWritelist(const int trackid);
 
  private:
-
   void SearchNode(PHCompositeNode* topNode);
   void PruneShowers();
   void ProcessShowers();
-  
+
   //! set of track ids to be written out
   std::set<int> m_WriteSet;
 
   //! pointer to truth information container
   PHG4TruthInfoContainer* m_TruthInfoContainer;
-  
+
   int m_LowerKeyPrevExist;
   int m_UpperKeyPrevExist;
 
-  std::map<int,PHG4HitContainer*> m_HitContainerMap;
+  std::map<int, PHG4HitContainer*> m_HitContainerMap;
 };
-
 
 #endif

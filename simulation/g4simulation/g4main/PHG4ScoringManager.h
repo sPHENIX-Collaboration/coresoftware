@@ -33,7 +33,7 @@ class PHG4ScoringManager : public SubsysReco
  public:
   PHG4ScoringManager();
 
-  virtual ~PHG4ScoringManager(){}
+  virtual ~PHG4ScoringManager() {}
 
   //! full initialization
   int InitRun(PHCompositeNode *topNode);
@@ -66,7 +66,6 @@ class PHG4ScoringManager : public SubsysReco
   void G4Command(const std::string &cmd);
 
  private:
-
   Fun4AllHistoManager *getHistoManager();
   void makeScoringHistograms();
 

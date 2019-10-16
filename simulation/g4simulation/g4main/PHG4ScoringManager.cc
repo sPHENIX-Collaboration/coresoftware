@@ -16,7 +16,7 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-#include <fun4all/Fun4AllBase.h>                   // for Fun4AllBase::VERBO...
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBO...
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -24,35 +24,35 @@
 
 #include <phool/getClass.h>
 
-#include <HepMC/SimpleVector.h>                    // for FourVector
+#include <HepMC/SimpleVector.h>  // for FourVector
 
-#include <TAxis.h>                                 // for TAxis
+#include <TAxis.h>  // for TAxis
 #include <TDatabasePDG.h>
 #include <TH1.h>
-#include <TH3.h>                                   // for TH3, TH3D
-#include <TNamed.h>                                // for TNamed
-#include <TParticlePDG.h>                          // for TParticlePDG
+#include <TH3.h>           // for TH3, TH3D
+#include <TNamed.h>        // for TNamed
+#include <TParticlePDG.h>  // for TParticlePDG
 #include <TVector3.h>
 
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4ScoringManager.hh>
-#include <Geant4/G4String.hh>                      // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4THitsMap.hh>                    // for G4THitsMap
-#include <Geant4/G4ThreeVector.hh>                 // for G4ThreeVector
-#include <Geant4/G4Types.hh>                       // for G4int, G4double
+#include <Geant4/G4THitsMap.hh>     // for G4THitsMap
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Types.hh>        // for G4int, G4double
 #include <Geant4/G4UImanager.hh>
-#include <Geant4/G4VScoringMesh.hh>                // for G4VScoringMesh
+#include <Geant4/G4VScoringMesh.hh>  // for G4VScoringMesh
 #include <Geant4/G4Version.hh>
 
 #include <boost/format.hpp>
 
 #include <cassert>
-#include <cmath>                                  // for fabs, M_PI
+#include <cmath>  // for fabs, M_PI
 #include <iostream>
-#include <limits>                                  // for numeric_limits
-#include <map>                                     // for _Rb_tree_const_ite...
-#include <utility>                                 // for pair
+#include <limits>   // for numeric_limits
+#include <map>      // for _Rb_tree_const_ite...
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -277,12 +277,12 @@ void PHG4ScoringManager::makeScoringHistograms()
       //      fDivisionAxisNames[0] = "Z";
       //      fDivisionAxisNames[1] = "PHI";
       //      fDivisionAxisNames[2] = "R";
-//      G4VSolid * tubsSolid = new G4Tubs(tubsName+"0", // name
-//                0.,           // R min
-//                fSize[0],     // R max
-//                fSize[1],     // Dz
-//                0.,           // starting phi
-//                                        twopi*rad);   // segment phi
+      //      G4VSolid * tubsSolid = new G4Tubs(tubsName+"0", // name
+      //                0.,           // R min
+      //                fSize[0],     // R max
+      //                fSize[1],     // Dz
+      //                0.,           // starting phi
+      //                                        twopi*rad);   // segment phi
       meshBoundMin[0] = (-meshSize[1] + meshTranslate[0]) / cm;
       meshBoundMax[0] = (meshSize[1] + meshTranslate[0]) / cm;
       meshBoundMin[1] = 0;
@@ -307,7 +307,7 @@ void PHG4ScoringManager::makeScoringHistograms()
     {
       G4String psname = msMapItr->first;
 #if G4VERSION_NUMBER >= 1040
-      std::map<G4int, G4StatDouble*> &score = *(msMapItr->second->GetMap());
+      std::map<G4int, G4StatDouble *> &score = *(msMapItr->second->GetMap());
 #else
       std::map<G4int, G4double *> &score = *(msMapItr->second->GetMap());
 #endif
