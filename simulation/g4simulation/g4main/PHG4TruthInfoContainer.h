@@ -63,7 +63,7 @@ public:
   Range GetSecondaryParticleRange() {return Range(particlemap.begin(),particlemap.upper_bound(0));}
   ConstRange GetSecondaryParticleRange() const {return ConstRange(particlemap.begin(),particlemap.upper_bound(0));}
 
-  //! particle size
+  //! track -> particle map size
   unsigned int size( void ) const {return particlemap.size();}
   int GetNumPrimaryVertexParticles() {
     return std::distance(particlemap.upper_bound(0),particlemap.end());
