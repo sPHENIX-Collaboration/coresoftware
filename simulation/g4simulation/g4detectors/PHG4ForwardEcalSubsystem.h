@@ -42,17 +42,9 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
-  /** Set mapping file for calorimeter towers
-   */
-  void SetTowerMappingFile(const std::string& filename)
-  {
-    mappingfile_ = filename;
-  }
-
-  void BlackHole(const int i = 1) { blackhole = i; }
-
   void SetEICDetector() { EICDetector = 1; }
   void SetfsPHENIXDetector() { EICDetector = 0; }
+  void SetTowerMappingFile(const std::string &filename);
 
  private:
   void SetDefaultParameters();
@@ -69,10 +61,7 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
 
-  int blackhole;
-
   std::string detector_type;
-  std::string mappingfile_;
 
   int EICDetector;
 };

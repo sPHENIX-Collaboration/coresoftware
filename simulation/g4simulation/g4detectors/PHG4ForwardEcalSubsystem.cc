@@ -10,6 +10,7 @@
 #include <g4main/PHG4DisplayAction.h>       // for PHG4DisplayAction
 #include <g4main/PHG4SteppingAction.h>      // for PHG4SteppingAction
 #include <g4main/PHG4Subsystem.h>           // for PHG4Subsystem
+#include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>             // for PHIODataNode
@@ -31,9 +32,7 @@ PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem(const std::string& name, cons
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
-  , blackhole(0)
   , detector_type(name)
-  , mappingfile_("")
   , EICDetector(0)
 {
   InitializeParameters();
@@ -64,12 +63,9 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   }
 
   m_Detector->SuperDetector(SuperDetector());
-  m_Detector->BlackHole(blackhole);
   m_Detector->OverlapCheck(CheckOverlap());
   m_Detector->Verbosity(Verbosity());
-  m_Detector->SetTowerMappingFile(mappingfile_);
-
-    set<string> nodes;
+  set<string> nodes;
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
@@ -141,6 +137,20 @@ PHG4Detector* PHG4ForwardEcalSubsystem::GetDetector(void) const
 
 void PHG4ForwardEcalSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("bla", 117.27);
+  ostringstream mappingfilename;
+  const char *calibroot = getenv("CALIBRATIONROOT");
+  if (calibroot)
+  {
+    mappingfilename << calibroot;
+  }
+  mappingfilename << "/ForwardEcal/mapping/towerMap_FEMC_fsPHENIX_v004.txt";
+  set_default_string_param("mapping_file",mappingfilename.str());
+  set_default_string_param("mapping_file_md5",PHG4Utils::md5sum(get_string_param("mapping_file")));
   return;
+}
+
+void PHG4ForwardEcalSubsystem::SetTowerMappingFile(const std::string &filename)
+{
+  set_string_param("mapping_file",filename);
+  set_string_param("mapping_file_md5", PHG4Utils::md5sum(get_string_param("mapping_file")));
 }

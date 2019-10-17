@@ -65,6 +65,8 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , _tower6_dx(NAN)
   , _tower6_dy(NAN)
   , _tower6_dz(NAN)
+  , m_MappingTowerFile(m_Params->get_string_param("mapping_file"))
+  , m_TowerLogicNamePrefix("hEcalTower")
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
   , _place_in_z(3150.0 * mm)
@@ -79,12 +81,9 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , _sPhi(0)
   , _dPhi(2 * M_PI)
   , m_ActiveFlag(m_Params->get_int_param("active"))
-  , _absorberactive(m_Params->get_int_param("absorberactive"))
-  , _layer(0)
-  , _blackhole(0)
-  , _towerlogicnameprefix("hEcalTower")
+  , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
+  , m_Layer(0)
   , m_SuperDetector("NONE")
-  , _mapping_tower_file("")
 {
   m_Params->Print();
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
@@ -102,7 +101,7 @@ int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
       return 1;
     }
   }
-  if (_absorberactive)
+  if (m_AbsorberActiveFlag)
   {
     if (m_AbsorberLogicalVolSet.find(mylogvol) != m_AbsorberLogicalVolSet.end())
     {
@@ -121,7 +120,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     cout << "PHG4ForwardEcalDetector: Begin Construction" << endl;
   }
 
-  if (_mapping_tower_file.empty())
+  if (m_MappingTowerFile.empty())
   {
     cout << "ERROR in PHG4ForwardEcalDetector: No tower mapping file specified. Abort detector construction." << endl;
     cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
@@ -152,7 +151,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   ecal_rotm.rotateZ(_rot_in_z);
 
   /* Place envelope cone in simulation */
-  string name_envelope = _towerlogicnameprefix + "_envelope";
+  string name_envelope = m_TowerLogicNamePrefix + "_envelope";
 
   new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
                     ecal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
@@ -225,7 +224,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   }
 
   ostringstream single_tower_solid_name;
-  single_tower_solid_name << _towerlogicnameprefix << "_single_scintillator_type" << type;
+  single_tower_solid_name << m_TowerLogicNamePrefix << "_single_scintillator_type" << type;
 
   G4VSolid* single_tower_solid = new G4Box(G4String(single_tower_solid_name.str().c_str()),
                                            _tower_dx / 2.0,
@@ -260,7 +259,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
 
   /* place physical volumes for scintillator */
 
-  string name_scintillator = _towerlogicnameprefix + "_single_plate_scintillator";
+  string name_scintillator = m_TowerLogicNamePrefix + "_single_plate_scintillator";
 
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0),
                     logic_scint,
@@ -340,8 +339,8 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
   G4double ypos_i = 0;
   G4double zpos_i = (-1 * _tower2_dz / 2.0) + thickness_absorber / 2.0;
 
-  string name_absorber = _towerlogicnameprefix + "_single_plate_absorber2";
-  string name_scintillator = _towerlogicnameprefix + "_single_plate_scintillator2";
+  string name_absorber = m_TowerLogicNamePrefix + "_single_plate_absorber2";
+  string name_scintillator = m_TowerLogicNamePrefix + "_single_plate_scintillator2";
   for (int i = 1; i <= nlayers; i++)
   {
     new G4PVPlacement(0, G4ThreeVector(xpos_i, ypos_i, zpos_i),
@@ -483,7 +482,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   G4double zpos_i = 0.0;
 
   ostringstream name_scintillator;
-  name_scintillator << _towerlogicnameprefix << "_single_fiber_scintillator" << type;
+  name_scintillator << m_TowerLogicNamePrefix << "_single_fiber_scintillator" << type;
 
   for (int i = 0; i < num_fibers_x; i++)
   {
@@ -500,7 +499,7 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
   // Place the absorber inside the envelope
 
   ostringstream name_absorber;
-  name_absorber << _towerlogicnameprefix << "_single_absorber" << type;
+  name_absorber << m_TowerLogicNamePrefix << "_single_absorber" << type;
 
   new G4PVPlacement(0, G4ThreeVector(0.0, 0.0, 0.0),
                     single_absorber_logic,
@@ -568,10 +567,10 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
   ifstream istream_mapping;
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(_mapping_tower_file.c_str());
+    istream_mapping.open(m_MappingTowerFile.c_str());
     if (!istream_mapping)
     {
-      cerr << "ERROR in PHG4ForwardEcalDetector: Failed to open mapping file " << _mapping_tower_file << endl;
+      cerr << "ERROR in PHG4ForwardEcalDetector: Failed to open mapping file " << m_MappingTowerFile << endl;
       exit(1);
     }
   }
@@ -605,14 +604,14 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> type >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
+        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_MappingTowerFile << endl;
         exit(1);
       }
 
       /* Construct unique name for tower */
       /* Mapping file uses cm, this class uses mm for length */
       ostringstream towername;
-      towername << _towerlogicnameprefix << "_t_" << type << "_j_" << idx_j << "_k_" << idx_k;
+      towername << m_TowerLogicNamePrefix << "_t_" << type << "_j_" << idx_j << "_k_" << idx_k;
 
       /* Add Geant4 units */
       pos_x = pos_x * cm;
@@ -636,7 +635,7 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
+        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_MappingTowerFile << endl;
         exit(1);
       }
 

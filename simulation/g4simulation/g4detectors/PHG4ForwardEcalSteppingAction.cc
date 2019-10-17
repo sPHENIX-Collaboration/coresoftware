@@ -1,6 +1,8 @@
 #include "PHG4ForwardEcalSteppingAction.h"
 #include "PHG4ForwardEcalDetector.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hitv1.h>
@@ -59,11 +61,13 @@ PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDete
   , detector_(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
+  , m_Params(parameters)
   , hitcontainer(nullptr)
   , hit(nullptr)
   , saveshower(nullptr)
   , absorbertruth(0)
   , light_scint_model(1)
+  , m_IsBlackHole(m_Params->get_int_param("blackhole"))
 {
 }
 
@@ -121,7 +125,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   const G4Track* aTrack = aStep->GetTrack();
 
   // if this block stops everything, just put all kinetic energy into edep
-  if (detector_->IsBlackHole())
+  if (m_IsBlackHole)
   {
     edep = aTrack->GetKineticEnergy() / GeV;
     G4Track* killtrack = const_cast<G4Track*>(aTrack);

@@ -42,12 +42,14 @@ class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
   //! pointer to hit container
   PHG4HitContainer* hits_;
   PHG4HitContainer* absorberhits_;
+  const PHParameters *m_Params;
   PHG4HitContainer* hitcontainer;
   PHG4Hit* hit;
   PHG4Shower* saveshower;
 
   int absorbertruth;
   int light_scint_model;
+  int m_IsBlackHole;
 };
 
 #endif  // PHG4ForwardEcalSteppingAction_h

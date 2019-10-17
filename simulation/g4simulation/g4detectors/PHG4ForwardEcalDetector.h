@@ -43,7 +43,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   //! Select mapping file for calorimeter tower
   void SetTowerMappingFile(const std::string &filename)
   {
-    _mapping_tower_file = filename;
+    m_MappingTowerFile = filename;
   }
 
   void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type)
@@ -104,18 +104,17 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   void SetZRot(G4double rot_in_z) { _rot_in_z = rot_in_z; }
 
   void SetActive(const int i = 1) {m_ActiveFlag = i; }
-  void SetAbsorberActive(const int i = 1) { _absorberactive = i; }
+  void SetAbsorberActive(const int i = 1) { m_AbsorberActiveFlag = i; }
 
   int IsActive() const { return m_ActiveFlag; }
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
 
-  int get_Layer() const { return _layer; }
+  int get_Layer() const { return m_Layer; }
 
-  void BlackHole(const int i = 1) { _blackhole = i; }
-  int IsBlackHole() const { return _blackhole; }
   PHG4ForwardEcalDisplayAction *GetDisplayAction() { return m_DisplayAction; }
+
 
  private:
   G4LogicalVolume *ConstructTower(int type);
@@ -166,7 +165,13 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   G4double _tower6_dy;
   G4double _tower6_dz;
 
+  std::string m_MappingTowerFile;
+  std::string m_TowerLogicNamePrefix;
+
  protected:
+  const std::string TowerLogicNamePrefix() const {return m_TowerLogicNamePrefix;}
+  const std::string MappingTowerFile() const {return  m_MappingTowerFile;}
+
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig *gdml_config;
 
@@ -189,13 +194,10 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   G4double _dPhi;
 
   int m_ActiveFlag;
-  int _absorberactive;
-  int _layer;
-  int _blackhole;
+  int m_AbsorberActiveFlag;
+  int m_Layer;
 
-  std::string _towerlogicnameprefix;
   std::string m_SuperDetector;
-  std::string _mapping_tower_file;
 
   std::map<std::string, G4double> _map_global_parameter;
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
