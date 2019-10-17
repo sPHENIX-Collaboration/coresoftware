@@ -27,8 +27,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
-  : PHG4ForwardEcalDetector(subsys, Node, dnam)
+PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
+  : PHG4ForwardEcalDetector(subsys, Node, parameters, dnam)
   , _tower_dx(30 * mm)
   , _tower_dy(30 * mm)
   , _tower_dz(170.0 * mm)

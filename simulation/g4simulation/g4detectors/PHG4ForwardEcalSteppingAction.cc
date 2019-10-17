@@ -30,6 +30,8 @@
 #include <Geant4/G4TouchableHandle.hh>
 #include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
+#include <TSystem.h>
+
 #include <boost/tokenizer.hpp>
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
@@ -52,7 +54,7 @@ class PHCompositeNode;
 using namespace std;
 
 //____________________________________________________________________________..
-PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector)
+PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , detector_(detector)
   , hits_(nullptr)
@@ -322,14 +324,16 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
+  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
   absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
   if (!hits_)
   {
     std::cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+    gSystem->Exit(1);
   }
+// this is perfectly fine if absorber hits are disabled
   if (!absorberhits_)
   {
     if (Verbosity() > 0)

@@ -8,6 +8,7 @@
 #include <Geant4/G4Types.hh>  // for G4double
 
 #include <map>
+#include <set>
 #include <string>
 
 class G4LogicalVolume;
@@ -16,6 +17,7 @@ class PHCompositeNode;
 class PHG4ForwardEcalDisplayAction;
 class PHG4Subsystem;
 class PHG4GDMLConfig;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -27,7 +29,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
 {
  public:
   //! constructor
-  PHG4ForwardEcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
+  PHG4ForwardEcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4ForwardEcalDetector(){}
@@ -101,13 +103,13 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   void SetYRot(G4double rot_in_y) { _rot_in_y = rot_in_y; }
   void SetZRot(G4double rot_in_z) { _rot_in_z = rot_in_z; }
 
-  void SetActive(const int i = 1) { _active = i; }
+  void SetActive(const int i = 1) {m_ActiveFlag = i; }
   void SetAbsorberActive(const int i = 1) { _absorberactive = i; }
 
-  int IsActive() const { return _active; }
+  int IsActive() const { return m_ActiveFlag; }
 
-  void SuperDetector(const std::string &name) { _superdetector = name; }
-  const std::string SuperDetector() const { return _superdetector; }
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
 
   int get_Layer() const { return _layer; }
 
@@ -131,6 +133,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   };
 
   PHG4ForwardEcalDisplayAction *m_DisplayAction;
+  PHParameters *m_Params;
 
   std::map<std::string, towerposition> _map_tower;
 
@@ -164,6 +167,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   G4double _tower6_dz;
 
  protected:
+  //! registry for volumes that should not be exported, i.e. fibers
+  PHG4GDMLConfig *gdml_config;
+
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
   G4double _place_in_y;
@@ -182,19 +188,18 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   G4double _sPhi;
   G4double _dPhi;
 
-  int _active;
+  int m_ActiveFlag;
   int _absorberactive;
   int _layer;
   int _blackhole;
 
   std::string _towerlogicnameprefix;
-  std::string _superdetector;
+  std::string m_SuperDetector;
   std::string _mapping_tower_file;
 
   std::map<std::string, G4double> _map_global_parameter;
-
-  //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig *gdml_config;
+  std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
+  std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
 };
 
 #endif

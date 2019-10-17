@@ -14,12 +14,13 @@ class PHG4ForwardEcalDetector;
 class PHG4Hit;
 class PHG4HitContainer;
 class PHG4Shower;
+class PHParameters;
 
 class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector*);
+  PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector *, const PHParameters *parameters);
 
   //! destroctor
   virtual ~PHG4ForwardEcalSteppingAction();

@@ -2,6 +2,8 @@
 
 #include "PHG4ForwardEcalDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4gdml/PHG4GDMLConfig.hh>
 #include <g4gdml/PHG4GDMLUtility.hh>
 
@@ -38,9 +40,10 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction*>(subsys->GetDisplayAction()))
+  , m_Params(parameters)
   , _tower0_dx(30 * mm)
   , _tower0_dy(30 * mm)
   , _tower0_dz(170.0 * mm)
@@ -75,14 +78,15 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , _dZ(170 * mm)
   , _sPhi(0)
   , _dPhi(2 * M_PI)
-  , _active(1)
-  , _absorberactive(0)
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , _absorberactive(m_Params->get_int_param("absorberactive"))
   , _layer(0)
   , _blackhole(0)
   , _towerlogicnameprefix("hEcalTower")
-  , _superdetector("NONE")
+  , m_SuperDetector("NONE")
   , _mapping_tower_file("")
 {
+  m_Params->Print();
   gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
 }
@@ -90,31 +94,24 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
 //_______________________________________________________________________
 int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
 {
-  if (volume->GetName().find(_towerlogicnameprefix) != string::npos)
+  G4LogicalVolume *mylogvol = volume->GetLogicalVolume();
+  if (m_ActiveFlag)
   {
-    if (volume->GetName().find("scintillator") != string::npos)
+    if (m_ScintiLogicalVolSet.find(mylogvol) != m_ScintiLogicalVolSet.end())
     {
-      if (_active)
-        return 1;
-      else
-        return 0;
-    }
-    /* only record energy in actual absorber- drop energy lost in air gaps inside ecal envelope */
-    else if (volume->GetName().find("absorber") != string::npos)
-    {
-      if (_absorberactive)
-        return -1;
-      else
-        return 0;
-    }
-    else if (volume->GetName().find("envelope") != string::npos)
-    {
-      return 0;
+      return 1;
     }
   }
-
+  if (_absorberactive)
+  {
+    if (m_AbsorberLogicalVolSet.find(mylogvol) != m_AbsorberLogicalVolSet.end())
+    {
+      return -1;
+    }
+  }
   return 0;
 }
+
 
 //_______________________________________________________________________
 void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
@@ -172,7 +169,10 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4LogicalVolume* singletower[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
   for (int i = 0; i < 7; i++)
     if (buildType[i]) singletower[i] = ConstructTower(i);
-
+  if (Verbosity() > 1)
+  {
+    cout << singletower << endl;
+  }
   /* Place calorimeter towers within envelope */
   PlaceTower(ecal_envelope_log, singletower);
 
@@ -330,6 +330,8 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
                                                      "hEcal_scintillator_plate_logic2",
                                                      0, 0, 0);
 
+  m_AbsorberLogicalVolSet.insert(logic_absorber);
+  m_ScintiLogicalVolSet.insert(logic_scint);
   GetDisplayAction()->AddVolume(logic_absorber, "Absorber");
   GetDisplayAction()->AddVolume(logic_scint, "Scintillator");
 
@@ -340,7 +342,6 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 
   string name_absorber = _towerlogicnameprefix + "_single_plate_absorber2";
   string name_scintillator = _towerlogicnameprefix + "_single_plate_scintillator2";
-
   for (int i = 1; i <= nlayers; i++)
   {
     new G4PVPlacement(0, G4ThreeVector(xpos_i, ypos_i, zpos_i),
@@ -469,7 +470,8 @@ PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
                                                                    material_scintillator,
                                                                    fiberLogicName,
                                                                    0, 0, 0);
-
+  m_AbsorberLogicalVolSet.insert(single_absorber_logic);
+  m_ScintiLogicalVolSet.insert(single_scintillator_logic);
   GetDisplayAction()->AddVolume(single_absorber_logic, "Absorber");
   GetDisplayAction()->AddVolume(single_scintillator_logic, "Fiber");
 

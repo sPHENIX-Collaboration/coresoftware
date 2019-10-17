@@ -4,6 +4,8 @@
 #include "PHG4ForwardEcalDisplayAction.h"
 #include "PHG4ForwardEcalSteppingAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4DisplayAction.h>       // for PHG4DisplayAction
 #include <g4main/PHG4SteppingAction.h>      // for PHG4SteppingAction
@@ -25,17 +27,16 @@ using namespace std;
 
 //_______________________________________________________________________
 PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem(const std::string& name, const int lyr)
-  : PHG4Subsystem(name)
-  , detector_(0)
-  , steppingAction_(nullptr)
+  : PHG4DetectorSubsystem(name, lyr)
+  , m_Detector(nullptr)
+  , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
-  , active(1)
-  , absorber_active(0)
   , blackhole(0)
   , detector_type(name)
   , mappingfile_("")
   , EICDetector(0)
 {
+  InitializeParameters();
 }
 
 //_______________________________________________________________________
@@ -45,7 +46,7 @@ PHG4ForwardEcalSubsystem::~PHG4ForwardEcalSubsystem()
 }
 
 //_______________________________________________________________________
-int PHG4ForwardEcalSubsystem::Init(PHCompositeNode* topNode)
+int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
   PHCompositeNode* dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
@@ -54,48 +55,67 @@ int PHG4ForwardEcalSubsystem::Init(PHCompositeNode* topNode)
   m_DisplayAction = new PHG4ForwardEcalDisplayAction(Name());
   // create detector
   if (EICDetector)
-    detector_ = new PHG4EICForwardEcalDetector(this, topNode, Name());
-  else
-    detector_ = new PHG4ForwardEcalDetector(this, topNode, Name());
-
-  detector_->SetActive(active);
-  detector_->SetAbsorberActive(absorber_active);
-  detector_->BlackHole(blackhole);
-  detector_->OverlapCheck(CheckOverlap());
-  detector_->Verbosity(Verbosity());
-  detector_->SetTowerMappingFile(mappingfile_);
-
-  if (active)
   {
+    m_Detector = new PHG4EICForwardEcalDetector(this, topNode, GetParams(), Name());
+  }
+  else
+  {
+    m_Detector = new PHG4ForwardEcalDetector(this, topNode, GetParams(), Name());
+  }
+
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->BlackHole(blackhole);
+  m_Detector->OverlapCheck(CheckOverlap());
+  m_Detector->Verbosity(Verbosity());
+  m_Detector->SetTowerMappingFile(mappingfile_);
+
     set<string> nodes;
-
-    // create hit output node
+  if (GetParams()->get_int_param("active"))
+  {
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(SuperDetector());
+      dstNode->addNode(DetNode);
+    }
     ostringstream nodename;
-    nodename << "G4HIT_" << detector_type;
-
-    PHG4HitContainer* scintillator_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str().c_str());
-    if (!scintillator_hits)
+    if (SuperDetector() != "NONE")
     {
-      scintillator_hits = new PHG4HitContainer(nodename.str());
-      PHIODataNode<PHObject>* hitNode = new PHIODataNode<PHObject>(scintillator_hits, nodename.str().c_str(), "PHObject");
-      dstNode->addNode(hitNode);
+      nodename << "G4HIT_" << SuperDetector();
+    }
+    else
+    {
+      nodename << "G4HIT_" << Name();
+    }
+    nodes.insert(nodename.str());
+
+    if (GetParams()->get_int_param("absorberactive"))
+    {
+      nodename.str("");
+      if (SuperDetector() != "NONE")
+      {
+        nodename << "G4HIT_ABSORBER_" << SuperDetector();
+      }
+      else
+      {
+        nodename << "G4HIT_ABSORBER_" << Name();
+      }
       nodes.insert(nodename.str());
     }
+    for (auto nodename: nodes)
 
-    ostringstream absnodename;
-    absnodename << "G4HIT_ABSORBER_" << detector_type;
-
-    PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, absnodename.str().c_str());
-    if (!absorber_hits)
+//    BOOST_FOREACH (string node, nodes)
     {
-      absorber_hits = new PHG4HitContainer(absnodename.str());
-      PHIODataNode<PHObject>* abshitNode = new PHIODataNode<PHObject>(absorber_hits, absnodename.str().c_str(), "PHObject");
-      dstNode->addNode(abshitNode);
-      nodes.insert(nodename.str());
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      if (!g4_hits)
+      {
+        g4_hits = new PHG4HitContainer(nodename);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, nodename, "PHObject"));
+      }
     }
-
     // create stepping action
-    steppingAction_ = new PHG4ForwardEcalSteppingAction(detector_);
+    m_SteppingAction = new PHG4ForwardEcalSteppingAction(m_Detector, GetParams());
   }
 
   return 0;
@@ -106,9 +126,9 @@ int PHG4ForwardEcalSubsystem::process_event(PHCompositeNode* topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-  if (steppingAction_)
+  if (m_SteppingAction)
   {
-    steppingAction_->SetInterfacePointers(topNode);
+    m_SteppingAction->SetInterfacePointers(topNode);
   }
   return 0;
 }
@@ -116,5 +136,11 @@ int PHG4ForwardEcalSubsystem::process_event(PHCompositeNode* topNode)
 //_______________________________________________________________________
 PHG4Detector* PHG4ForwardEcalSubsystem::GetDetector(void) const
 {
-  return detector_;
+  return m_Detector;
+}
+
+void PHG4ForwardEcalSubsystem::SetDefaultParameters()
+{
+  set_default_double_param("bla", 117.27);
+  return;
 }

@@ -3,7 +3,7 @@
 #ifndef G4DETECTORS_PHG4FORWARDECALSUBSYSTEM_H
 #define G4DETECTORS_PHG4FORWARDECALSUBSYSTEM_H
 
-#include <g4main/PHG4Subsystem.h>
+#include "PHG4DetectorSubsystem.h"
 
 #include <string>                  // for string
 
@@ -13,7 +13,7 @@ class PHG4DisplayAction;
 class PHG4ForwardEcalDetector;
 class PHG4SteppingAction;
 
-class PHG4ForwardEcalSubsystem : public PHG4Subsystem
+class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
 {
  public:
   /** Constructor
@@ -25,11 +25,11 @@ class PHG4ForwardEcalSubsystem : public PHG4Subsystem
   virtual ~PHG4ForwardEcalSubsystem();
 
   /**
-     Creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
+     Creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
      Creates the stepping action and place it on the node tree, under "ACTIONS" node
      Creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int Init(PHCompositeNode*);
+  int InitRunSubsystem(PHCompositeNode*);
 
   /** Event processing
    */
@@ -37,8 +37,8 @@ class PHG4ForwardEcalSubsystem : public PHG4Subsystem
 
   /** Accessors (reimplemented)
    */
-  PHG4Detector* GetDetector(void) const;
-  PHG4SteppingAction* GetSteppingAction(void) const {return steppingAction_;}
+  PHG4Detector* GetDetector() const;
+  PHG4SteppingAction* GetSteppingAction() const {return m_SteppingAction;}
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
@@ -49,28 +49,26 @@ class PHG4ForwardEcalSubsystem : public PHG4Subsystem
     mappingfile_ = filename;
   }
 
-  void SetActive(const int i = 1) { active = i; }
-  void SetAbsorberActive(const int i = 1) { absorber_active = i; }
   void BlackHole(const int i = 1) { blackhole = i; }
 
   void SetEICDetector() { EICDetector = 1; }
   void SetfsPHENIXDetector() { EICDetector = 0; }
 
  private:
+  void SetDefaultParameters();
+
   /** Pointer to the Geant4 implementation of the detector
    */
-  PHG4ForwardEcalDetector* detector_;
+  PHG4ForwardEcalDetector* m_Detector;
 
   /** Stepping action
    */
-  PHG4SteppingAction *steppingAction_;
+  PHG4SteppingAction *m_SteppingAction;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
 
-  int active;
-  int absorber_active;
   int blackhole;
 
   std::string detector_type;
