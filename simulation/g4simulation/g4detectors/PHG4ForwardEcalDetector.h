@@ -103,9 +103,6 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   void SetYRot(G4double rot_in_y) { _rot_in_y = rot_in_y; }
   void SetZRot(G4double rot_in_z) { _rot_in_z = rot_in_z; }
 
-  void SetActive(const int i = 1) {m_ActiveFlag = i; }
-  void SetAbsorberActive(const int i = 1) { m_AbsorberActiveFlag = i; }
-
   int IsActive() const { return m_ActiveFlag; }
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
@@ -133,6 +130,8 @@ class PHG4ForwardEcalDetector : public PHG4Detector
 
   PHG4ForwardEcalDisplayAction *m_DisplayAction;
   PHParameters *m_Params;
+  //! registry for volumes that should not be exported, i.e. fibers
+  PHG4GDMLConfig *gdml_config;
 
   std::map<std::string, towerposition> _map_tower;
 
@@ -168,12 +167,20 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   std::string m_MappingTowerFile;
   std::string m_TowerLogicNamePrefix;
 
+  std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
+  std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
+
  protected:
   const std::string TowerLogicNamePrefix() const {return m_TowerLogicNamePrefix;}
   const std::string MappingTowerFile() const {return  m_MappingTowerFile;}
-
-  //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig *gdml_config;
+  void AbsorberLogicalVolSetInsert(G4LogicalVolume *logvol)
+  {
+    m_AbsorberLogicalVolSet.insert(logvol);
+  }
+  void ScintiLogicalVolSetInsert(G4LogicalVolume *logvol)
+  {
+    m_ScintiLogicalVolSet.insert(logvol);
+  }
 
   /* Calorimeter envelope geometry */
   G4double _place_in_x;
@@ -200,8 +207,6 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   std::string m_SuperDetector;
 
   std::map<std::string, G4double> _map_global_parameter;
-  std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
-  std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
 };
 
 #endif

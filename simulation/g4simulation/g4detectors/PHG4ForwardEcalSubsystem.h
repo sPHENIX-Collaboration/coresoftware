@@ -42,8 +42,8 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
-  void SetEICDetector() { EICDetector = 1; }
-  void SetfsPHENIXDetector() { EICDetector = 0; }
+  void SetEICDetector() { m_EICDetectorFlag = 1; }
+  void SetfsPHENIXDetector() { m_EICDetectorFlag = 0; }
   void SetTowerMappingFile(const std::string &filename);
 
  private:
@@ -61,9 +61,7 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction* m_DisplayAction;
 
-  std::string detector_type;
-
-  int EICDetector;
+  int m_EICDetectorFlag;
 };
 
 #endif

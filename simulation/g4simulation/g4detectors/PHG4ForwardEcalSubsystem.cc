@@ -32,8 +32,7 @@ PHG4ForwardEcalSubsystem::PHG4ForwardEcalSubsystem(const std::string& name, cons
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
   , m_DisplayAction(nullptr)
-  , detector_type(name)
-  , EICDetector(0)
+  , m_EICDetectorFlag(0)
 {
   InitializeParameters();
 }
@@ -53,7 +52,7 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4ForwardEcalDisplayAction(Name());
   // create detector
-  if (EICDetector)
+  if (m_EICDetectorFlag)
   {
     m_Detector = new PHG4EICForwardEcalDetector(this, topNode, GetParams(), Name());
   }
@@ -145,7 +144,7 @@ void PHG4ForwardEcalSubsystem::SetDefaultParameters()
   }
   mappingfilename << "/ForwardEcal/mapping/towerMap_FEMC_fsPHENIX_v004.txt";
   set_default_string_param("mapping_file",mappingfilename.str());
-  set_default_string_param("mapping_file_md5",PHG4Utils::md5sum(get_string_param("mapping_file")));
+  set_default_string_param("mapping_file_md5",PHG4Utils::md5sum(mappingfilename.str()));
   return;
 }
 

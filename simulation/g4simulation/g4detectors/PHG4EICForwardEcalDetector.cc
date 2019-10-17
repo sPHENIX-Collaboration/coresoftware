@@ -148,7 +148,8 @@ PHG4EICForwardEcalDetector::ConstructTower()
                                                      material_scintillator,
                                                      "hEcal_scintillator_plate_logic",
                                                      0, 0, 0);
-
+  AbsorberLogicalVolSetInsert(logic_absorber);
+  ScintiLogicalVolSetInsert(logic_scint);
   GetDisplayAction()->AddVolume(logic_absorber, "Absorber");
   GetDisplayAction()->AddVolume(logic_scint, "Scintillator");
 
