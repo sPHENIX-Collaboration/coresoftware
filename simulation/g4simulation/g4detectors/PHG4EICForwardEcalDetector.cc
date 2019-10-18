@@ -3,6 +3,8 @@
 #include "PHG4ForwardEcalDetector.h"  // for PHG4ForwardEcalDetector
 #include "PHG4ForwardEcalDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -14,6 +16,8 @@
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>     // for G4Transform3D
 #include <Geant4/G4Types.hh>           // for G4double, G4int
+
+#include <TSystem.h>
 
 #include <cstdlib>
 #include <fstream>
@@ -43,13 +47,6 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   if (Verbosity() > 0)
   {
     cout << "PHG4EICForwardEcalDetector: Begin Construction" << endl;
-  }
-
-  if (MappingTowerFile().empty())
-  {
-    cout << "ERROR in PHG4EICForwardEcalDetector: No tower mapping file specified. Abort detector construction." << endl;
-    cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
-    exit(1);
   }
 
   /* Read parameters for detector construction and mappign from file */
@@ -222,15 +219,12 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
 {
   /* Open the datafile, if it won't open return an error */
   ifstream istream_mapping;
+  istream_mapping.open(GetParams()->get_string_param("mapping_file"));
   if (!istream_mapping.is_open())
-  {
-    istream_mapping.open(MappingTowerFile().c_str());
-    if (!istream_mapping)
     {
-      cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to open mapping file " << MappingTowerFile() << endl;
-      exit(1);
+      cout << "ERROR in PHG4EICForwardEcalDetector: Failed to open mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+      gSystem->Exit(1);
     }
-  }
 
   /* loop over lines in file */
   string line_mapping;
@@ -261,8 +255,8 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << MappingTowerFile() << endl;
-        exit(1);
+        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+        gSystem->Exit(1);
       }
 
       /* Construct unique name for tower */
@@ -292,8 +286,8 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << MappingTowerFile() << endl;
-        exit(1);
+        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+        gSystem->Exit(1);
       }
 
       _map_global_parameter.insert(make_pair(parname, parval));

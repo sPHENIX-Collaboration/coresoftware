@@ -58,13 +58,14 @@ using namespace std;
 //____________________________________________________________________________..
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
-  , detector_(detector)
+  , m_Detector(detector)
   , hits_(nullptr)
   , absorberhits_(nullptr)
   , m_Params(parameters)
   , hitcontainer(nullptr)
   , hit(nullptr)
   , saveshower(nullptr)
+  , m_IsActiveFlag(m_Params->get_int_param("active"))
   , absorbertruth(0)
   , light_scint_model(1)
   , m_IsBlackHole(m_Params->get_int_param("blackhole"))
@@ -86,20 +87,20 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();
   G4VPhysicalVolume* volume = touch->GetVolume();
 
-  // detector_->IsInForwardEcal(volume)
+  // m_Detector->IsInForwardEcal(volume)
   // returns
   //  0 is outside of Forward ECAL
   //  1 is inside scintillator
   // -1 is inside absorber (dead material)
 
-  int whichactive = detector_->IsInForwardEcal(volume);
+  int whichactive = m_Detector->IsInForwardEcal(volume);
 
   if (!whichactive)
   {
     return false;
   }
 
-  int layer_id = detector_->get_Layer();
+  int layer_id = m_Detector->get_Layer();
   int tower_id = -1;
   int idx_j = -1;
   int idx_k = -1;
@@ -133,7 +134,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
   }
 
   /* Make sure we are in a volume */
-  if (detector_->IsActive())
+  if (m_IsActiveFlag)
   {
     int idx_l = -1;
     /* Check if particle is 'geantino' */
@@ -218,7 +219,7 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
           {
             cout << "PHG4ForwardEcalSteppingAction::UserSteppingAction::"
                  //
-                 << detector_->GetName() << " - "
+                 << m_Detector->GetName() << " - "
                  << " use scintillating light model at each Geant4 steps. "
                  << "First step: "
                  << "Material = "
@@ -316,15 +317,15 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   string hitnodename;
   string absorbernodename;
 
-  if (detector_->SuperDetector() != "NONE")
+  if (m_Detector->SuperDetector() != "NONE")
   {
-    hitnodename = "G4HIT_" + detector_->SuperDetector();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->SuperDetector();
+    hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
-    hitnodename = "G4HIT_" + detector_->GetName();
-    absorbernodename = "G4HIT_ABSORBER_" + detector_->GetName();
+    hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.

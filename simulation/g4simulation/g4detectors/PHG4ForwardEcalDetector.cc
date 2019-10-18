@@ -26,6 +26,8 @@
 #include <Geant4/G4Types.hh>               // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
+#include <TSystem.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -44,6 +46,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
+  , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
   , _tower0_dx(30 * mm)
   , _tower0_dy(30 * mm)
   , _tower0_dz(170.0 * mm)
@@ -65,11 +68,11 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , _tower6_dx(NAN)
   , _tower6_dy(NAN)
   , _tower6_dz(NAN)
-  , m_MappingTowerFile(m_Params->get_string_param("mapping_file"))
+  , m_ActiveFlag(m_Params->get_int_param("active"))
+  , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
+  , m_Layer(0)
+  , m_SuperDetector("NONE")
   , m_TowerLogicNamePrefix("hEcalTower")
-  , _place_in_x(0.0 * mm)
-  , _place_in_y(0.0 * mm)
-  , _place_in_z(3150.0 * mm)
   , _rot_in_x(0.0)
   , _rot_in_y(0.0)
   , _rot_in_z(0.0)
@@ -80,13 +83,11 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , _dZ(170 * mm)
   , _sPhi(0)
   , _dPhi(2 * M_PI)
-  , m_ActiveFlag(m_Params->get_int_param("active"))
-  , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
-  , m_Layer(0)
-  , m_SuperDetector("NONE")
+  , _place_in_x(0.0 * mm)
+  , _place_in_y(0.0 * mm)
+  , _place_in_z(3150.0 * mm)
 {
   m_Params->Print();
-  gdml_config = PHG4GDMLUtility::GetOrMakeConfigNode(Node);
   assert(gdml_config);
 }
 
@@ -118,13 +119,6 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   //if ( Verbosity() > 0 )
   {
     cout << "PHG4ForwardEcalDetector: Begin Construction" << endl;
-  }
-
-  if (m_MappingTowerFile.empty())
-  {
-    cout << "ERROR in PHG4ForwardEcalDetector: No tower mapping file specified. Abort detector construction." << endl;
-    cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
-    exit(1);
   }
 
   /* Read parameters for detector construction and mappign from file */
@@ -565,15 +559,12 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
 {
   /* Open the datafile, if it won't open return an error */
   ifstream istream_mapping;
+    istream_mapping.open(m_Params->get_string_param("mapping_file"));
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(m_MappingTowerFile.c_str());
-    if (!istream_mapping)
-    {
-      cerr << "ERROR in PHG4ForwardEcalDetector: Failed to open mapping file " << m_MappingTowerFile << endl;
-      exit(1);
+      cout << "ERROR in PHG4ForwardEcalDetector: Failed to open mapping file " << m_Params->get_string_param("mapping_file") << endl;
+      gSystem->Exit(1);
     }
-  }
 
   /* loop over lines in file */
   string line_mapping;
@@ -598,14 +589,14 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       G4double pos_x, pos_y, pos_z;
       G4double size_x, size_y, size_z;
       G4double rot_x, rot_y, rot_z;
-      G4double type;
+      int type;
       string dummys;
 
       /* read string- break if error */
       if (!(iss >> dummys >> type >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_MappingTowerFile << endl;
-        exit(1);
+        cout << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_Params->get_string_param("mapping_file") << endl;
+        gSystem->Exit(1);
       }
 
       /* Construct unique name for tower */
@@ -635,8 +626,8 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_MappingTowerFile << endl;
-        exit(1);
+        cerr << "ERROR in PHG4ForwardEcalDetector: Failed to read line in mapping file " << m_Params->get_string_param("mapping_file") << endl;
+        gSystem->Exit(1);
       }
 
       _map_global_parameter.insert(make_pair(parname, parval));

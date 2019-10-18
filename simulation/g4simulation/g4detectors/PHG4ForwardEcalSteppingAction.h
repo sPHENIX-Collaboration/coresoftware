@@ -37,7 +37,7 @@ class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
   int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
 
   //! pointer to the detector
-  PHG4ForwardEcalDetector* detector_;
+  PHG4ForwardEcalDetector* m_Detector;
 
   //! pointer to hit container
   PHG4HitContainer* hits_;
@@ -47,9 +47,10 @@ class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
   PHG4Hit* hit;
   PHG4Shower* saveshower;
 
+  int m_IsActiveFlag;
   int absorbertruth;
   int light_scint_model;
   int m_IsBlackHole;
 };
 
-#endif  // PHG4ForwardEcalSteppingAction_h
+#endif  // G4DETECTORS_PHG4FORWARDECALSTEPPINGACTION_H
