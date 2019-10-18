@@ -32,7 +32,7 @@ class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*);
 
  private:
-  int FindTowerIndex(G4TouchableHandle touch, int& j, int& k);
+  int FindTowerIndex(G4TouchableHandle &touch, int& j, int& k);
 
   int ParseG4VolumeName(G4VPhysicalVolume* volume, int& j, int& k);
 
@@ -40,12 +40,12 @@ class PHG4ForwardEcalSteppingAction : public PHG4SteppingAction
   PHG4ForwardEcalDetector* m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer* hits_;
-  PHG4HitContainer* absorberhits_;
+  PHG4HitContainer* m_SignalHitContainer;
+  PHG4HitContainer* m_AbsorberHitContainer;
   const PHParameters *m_Params;
-  PHG4HitContainer* hitcontainer;
-  PHG4Hit* hit;
-  PHG4Shower* saveshower;
+  PHG4HitContainer* m_CurrentHitContainer;
+  PHG4Hit* m_Hit;
+  PHG4Shower* m_CurrentShower;
 
   int m_IsActiveFlag;
   int absorbertruth;

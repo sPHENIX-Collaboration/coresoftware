@@ -59,12 +59,12 @@ using namespace std;
 PHG4ForwardEcalSteppingAction::PHG4ForwardEcalSteppingAction(PHG4ForwardEcalDetector* detector, const PHParameters* parameters)
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
-  , hits_(nullptr)
-  , absorberhits_(nullptr)
+  , m_SignalHitContainer(nullptr)
+  , m_AbsorberHitContainer(nullptr)
   , m_Params(parameters)
-  , hitcontainer(nullptr)
-  , hit(nullptr)
-  , saveshower(nullptr)
+  , m_CurrentHitContainer(nullptr)
+  , m_Hit(nullptr)
+  , m_CurrentShower(nullptr)
   , m_IsActiveFlag(m_Params->get_int_param("active"))
   , absorbertruth(0)
   , light_scint_model(1)
@@ -78,7 +78,7 @@ PHG4ForwardEcalSteppingAction::~PHG4ForwardEcalSteppingAction()
   // and the memory is still allocated, so we need to delete it here
   // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
-  delete hit;
+  delete m_Hit;
 }
 
 //____________________________________________________________________________..
@@ -153,50 +153,50 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
     {
     case fGeomBoundary:
     case fUndefined:
-      if (!hit)
+      if (!m_Hit)
       {
-        hit = new PHG4Hitv1();
+        m_Hit = new PHG4Hitv1();
       }
-      hit->set_scint_id(tower_id);
+      m_Hit->set_scint_id(tower_id);
 
       /* Set hit location (tower index) */
-      hit->set_index_j(idx_j);
-      hit->set_index_k(idx_k);
-      hit->set_index_l(idx_l);
+      m_Hit->set_index_j(idx_j);
+      m_Hit->set_index_k(idx_k);
+      m_Hit->set_index_l(idx_l);
 
       /* Set hit location (space point) */
-      hit->set_x(0, prePoint->GetPosition().x() / cm);
-      hit->set_y(0, prePoint->GetPosition().y() / cm);
-      hit->set_z(0, prePoint->GetPosition().z() / cm);
+      m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
+      m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
+      m_Hit->set_z(0, prePoint->GetPosition().z() / cm);
 
       /* Set hit time */
-      hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
+      m_Hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
 
       //set the track ID
-      hit->set_trkid(aTrack->GetTrackID());
+      m_Hit->set_trkid(aTrack->GetTrackID());
       /* set intial energy deposit */
-      hit->set_edep(0);
-      hit->set_eion(0);
+      m_Hit->set_edep(0);
+      m_Hit->set_eion(0);
 
       /* Now add the hit to the hit collection */
       // here we do things which are different between scintillator and absorber hits
       if (whichactive > 0)
       {
-        hitcontainer = hits_;
-        hit->set_light_yield(0);  // for scintillator only, initialize light yields
+        m_CurrentHitContainer = m_SignalHitContainer;
+        m_Hit->set_light_yield(0);  // for scintillator only, initialize light yields
       }
       else
       {
-        hitcontainer = absorberhits_;
+        m_CurrentHitContainer = m_AbsorberHitContainer;
       }
       // here we set what is common for scintillator and absorber hits
       if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
       {
         if (PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p))
         {
-          hit->set_trkid(pp->GetUserTrackId());
-          hit->set_shower_id(pp->GetShower()->get_id());
-          saveshower = pp->GetShower();
+          m_Hit->set_trkid(pp->GetUserTrackId());
+          m_Hit->set_shower_id(pp->GetShower()->get_id());
+          m_CurrentShower = pp->GetShower();
         }
       }
       break;
@@ -239,27 +239,27 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
 
     /* Update exit values- will be overwritten with every step until
        * we leave the volume or the particle ceases to exist */
-    hit->set_x(1, postPoint->GetPosition().x() / cm);
-    hit->set_y(1, postPoint->GetPosition().y() / cm);
-    hit->set_z(1, postPoint->GetPosition().z() / cm);
+    m_Hit->set_x(1, postPoint->GetPosition().x() / cm);
+    m_Hit->set_y(1, postPoint->GetPosition().y() / cm);
+    m_Hit->set_z(1, postPoint->GetPosition().z() / cm);
 
-    hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
+    m_Hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 
     /* sum up the energy to get total deposited */
-    hit->set_edep(hit->get_edep() + edep);
-    hit->set_eion(hit->get_eion() + eion);
+    m_Hit->set_edep(m_Hit->get_edep() + edep);
+    m_Hit->set_eion(m_Hit->get_eion() + eion);
     if (whichactive > 0)
     {
-      hit->set_light_yield(hit->get_light_yield() + light_yield);
+      m_Hit->set_light_yield(m_Hit->get_light_yield() + light_yield);
     }
 
     if (geantino)
     {
-      hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
-      hit->set_eion(-1);
+      m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way geantinos survive the g4hit compression
+      m_Hit->set_eion(-1);
       if (whichactive > 0)
       {
-        hit->set_light_yield(-1);
+        m_Hit->set_light_yield(-1);
       }
     }
     if (edep > 0 && (whichactive > 0 || absorbertruth > 0))
@@ -284,23 +284,23 @@ bool PHG4ForwardEcalSteppingAction::UserSteppingAction(const G4Step* aStep, bool
         aTrack->GetTrackStatus() == fStopAndKill)
     {
       // save only hits with energy deposit (or -1 for geantino)
-      if (hit->get_edep())
+      if (m_Hit->get_edep())
       {
-        hitcontainer->AddHit(layer_id, hit);
-        if (saveshower)
+        m_CurrentHitContainer->AddHit(layer_id, m_Hit);
+        if (m_CurrentShower)
         {
-          saveshower->add_g4hit_id(hitcontainer->GetID(), hit->get_hit_id());
+          m_CurrentShower->add_g4hit_id(m_CurrentHitContainer->GetID(), m_Hit->get_hit_id());
         }
         // ownership has been transferred to container, set to null
         // so we will create a new hit for the next track
-        hit = nullptr;
+        m_Hit = nullptr;
       }
       else
       {
         // if this hit has no energy deposit, just reset it for reuse
         // this means we have to delete it in the dtor. If this was
         // the last hit we processed the memory is still allocated
-        hit->Reset();
+        m_Hit->Reset();
       }
     }
     return true;
@@ -329,17 +329,17 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   }
 
   //now look for the map and grab a pointer to it.
-  hits_ = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
-  absorberhits_ = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
+  m_SignalHitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename.c_str());
 
   // if we do not find the node it's messed up.
-  if (!hits_)
+  if (!m_SignalHitContainer)
   {
     std::cout << "PHG4ForwardEcalSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
     gSystem->Exit(1);
   }
 // this is perfectly fine if absorber hits are disabled
-  if (!absorberhits_)
+  if (!m_AbsorberHitContainer)
   {
     if (Verbosity() > 0)
     {
@@ -348,7 +348,7 @@ void PHG4ForwardEcalSteppingAction::SetInterfacePointers(PHCompositeNode* topNod
   }
 }
 
-int PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle touch, int& j, int& k)
+int PHG4ForwardEcalSteppingAction::FindTowerIndex(G4TouchableHandle &touch, int& j, int& k)
 {
   int j_0, k_0;  //The j and k indices for the scintillator / tower
 
