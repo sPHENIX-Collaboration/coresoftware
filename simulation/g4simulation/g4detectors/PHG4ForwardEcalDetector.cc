@@ -47,27 +47,6 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
   , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
-  , _tower0_dx(30 * mm)
-  , _tower0_dy(30 * mm)
-  , _tower0_dz(170.0 * mm)
-  , _tower1_dx(30 * mm)
-  , _tower1_dy(30 * mm)
-  , _tower1_dz(170.0 * mm)
-  , _tower2_dx(30 * mm)
-  , _tower2_dy(30 * mm)
-  , _tower2_dz(170.0 * mm)
-  , _tower3_dx(NAN)
-  , _tower3_dy(NAN)
-  , _tower3_dz(NAN)
-  , _tower4_dx(NAN)
-  , _tower4_dy(NAN)
-  , _tower4_dz(NAN)
-  , _tower5_dx(NAN)
-  , _tower5_dy(NAN)
-  , _tower5_dz(NAN)
-  , _tower6_dx(NAN)
-  , _tower6_dy(NAN)
-  , _tower6_dz(NAN)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_Layer(0)
@@ -651,92 +630,6 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
     m_TowerDz[i] =  parit->second * cm;
   }
 
-  parit = _map_global_parameter.find("Gtower0_dx");
-  if (parit != _map_global_parameter.end())
-    _tower0_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower0_dy");
-  if (parit != _map_global_parameter.end())
-    _tower0_dy = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower0_dz");
-  if (parit != _map_global_parameter.end())
-    _tower0_dz = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower1_dx");
-  if (parit != _map_global_parameter.end())
-    _tower1_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower1_dy");
-  if (parit != _map_global_parameter.end())
-    _tower1_dy = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower1_dz");
-  if (parit != _map_global_parameter.end())
-    _tower1_dz = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower2_dx");
-  if (parit != _map_global_parameter.end())
-    _tower2_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower2_dy");
-  if (parit != _map_global_parameter.end())
-    _tower2_dy = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower2_dz");
-  if (parit != _map_global_parameter.end())
-    _tower2_dz = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower3_dx");
-  if (parit != _map_global_parameter.end())
-    _tower3_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower3_dy");
-  if (parit != _map_global_parameter.end())
-    _tower3_dy = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower3_dz");
-  if (parit != _map_global_parameter.end())
-    _tower3_dz = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower4_dx");
-  if (parit != _map_global_parameter.end())
-    _tower4_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower4_dy");
-  if (parit != _map_global_parameter.end())
-    _tower4_dy = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower4_dz");
-  if (parit != _map_global_parameter.end())
-    _tower4_dz = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower5_dx");
-  if (parit != _map_global_parameter.end())
-    _tower5_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower5_dy");
-  if (parit != _map_global_parameter.end())
-    _tower5_dy = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower5_dz");
-  if (parit != _map_global_parameter.end())
-    _tower5_dz = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower6_dx");
-  if (parit != _map_global_parameter.end())
-    _tower6_dx = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gtower6_dy");
-  if (parit != _map_global_parameter.end())
-  {
-    _tower6_dy = parit->second * cm;
-  }
-  parit = _map_global_parameter.find("Gtower6_dz");
-  if (parit != _map_global_parameter.end())
-  {
-    _tower6_dz = parit->second * cm;
-  }
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())
   {
@@ -797,49 +690,8 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
 
 void  PHG4ForwardEcalDetector::SetTowerDimensions(G4double dx, G4double dy, G4double dz, int type)
 {
+  assert(type >=0 && type <= 6);
   m_TowerDx[type] = dx;
   m_TowerDy[type] = dy;
   m_TowerDz[type] = dz;
-  if (type == 0)
-  {
-    _tower0_dx = dx;
-    _tower0_dy = dy;
-    _tower0_dz = dz;
-  }
-  else if (type == 1)
-  {
-    _tower1_dx = dx;
-    _tower1_dy = dy;
-    _tower1_dz = dz;
-  }
-  else if (type == 2)
-  {
-    _tower2_dx = dx;
-    _tower2_dy = dy;
-    _tower2_dz = dz;
-  }
-  else if (type == 3)
-  {
-    _tower3_dx = dx;
-    _tower3_dy = dy;
-    _tower3_dz = dz;
-  }
-  else if (type == 4)
-  {
-    _tower4_dx = dx;
-    _tower4_dy = dy;
-    _tower4_dz = dz;
-  }
-  else if (type == 5)
-  {
-    _tower5_dx = dx;
-    _tower5_dy = dy;
-    _tower5_dz = dz;
-  }
-  else if (type == 6)
-  {
-    _tower6_dx = dx;
-    _tower6_dy = dy;
-    _tower6_dz = dz;
-  }
 }

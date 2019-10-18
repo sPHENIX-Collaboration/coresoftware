@@ -85,38 +85,10 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig *gdml_config;
 
+  /* ECAL tower geometry */
   double m_TowerDx[7];
   double m_TowerDy[7];
   double m_TowerDz[7];
-  /* ECAL tower geometry */
-  G4double _tower0_dx;
-  G4double _tower0_dy;
-  G4double _tower0_dz;
-
-  G4double _tower1_dx;
-  G4double _tower1_dy;
-  G4double _tower1_dz;
-
-  G4double _tower2_dx;
-  G4double _tower2_dy;
-  G4double _tower2_dz;
-
-  G4double _tower3_dx;
-  G4double _tower3_dy;
-  G4double _tower3_dz;
-
-  G4double _tower4_dx;
-  G4double _tower4_dy;
-  G4double _tower4_dz;
-
-  G4double _tower5_dx;
-  G4double _tower5_dy;
-  G4double _tower5_dz;
-
-  G4double _tower6_dx;
-  G4double _tower6_dy;
-  G4double _tower6_dz;
-
 
   int m_ActiveFlag;
   int m_AbsorberActiveFlag;
