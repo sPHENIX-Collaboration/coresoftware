@@ -73,9 +73,9 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_Layer(0)
   , m_SuperDetector("NONE")
   , m_TowerLogicNamePrefix("hEcalTower")
-  , _rot_in_x(0.0)
-  , _rot_in_y(0.0)
-  , _rot_in_z(0.0)
+  , m_XRot(0.0)
+  , m_YRot(0.0)
+  , m_ZRot(0.0)
   , _rMin1(110 * mm)
   , _rMax1(2250 * mm)
   , _rMin2(120 * mm)
@@ -88,6 +88,18 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , _place_in_z(3150.0 * mm)
 {
   m_Params->Print();
+  for (int i=0; i<3; i++)
+  {
+    m_TowerDx[i] = 30 * mm;
+    m_TowerDy[i] = 30 * mm;
+    m_TowerDz[i] = 170.0 * mm;
+  }
+  for (int i=3; i<7; i++)
+  {
+    m_TowerDx[i] = NAN;
+    m_TowerDy[i] = NAN;
+    m_TowerDz[i] = NAN;
+  }
   assert(gdml_config);
 }
 
@@ -140,9 +152,9 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
-  ecal_rotm.rotateX(_rot_in_x);
-  ecal_rotm.rotateY(_rot_in_y);
-  ecal_rotm.rotateZ(_rot_in_z);
+  ecal_rotm.rotateX(m_XRot);
+  ecal_rotm.rotateY(m_YRot);
+  ecal_rotm.rotateZ(m_ZRot);
 
   /* Place envelope cone in simulation */
   string name_envelope = m_TowerLogicNamePrefix + "_envelope";
@@ -151,17 +163,20 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                     ecal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter towers */
-  bool buildType[7] = {false, false, false, false, false, false, false};
+  G4LogicalVolume* singletower[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
   typedef std::map<std::string, towerposition>::iterator it_type;
   for (it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator)
   {
     for (int i = 0; i < 7; i++)
-      if (iterator->second.type == i) buildType[i] = true;
+    {
+      if (iterator->second.type == i) 
+      {
+      singletower[i] = ConstructTower(i);
+      }
+    }
   }
 
-  G4LogicalVolume* singletower[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-  for (int i = 0; i < 7; i++)
-    if (buildType[i]) singletower[i] = ConstructTower(i);
+
   if (Verbosity() > 1)
   {
     cout << singletower << endl;
@@ -180,7 +195,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   {
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower, type = " << type << endl;
   }
-
+  assert(type >=0 && type <=6);
   // This method allows construction of Type 0,1 tower (PbGl or PbW04).
   // Call a separate routine to generate Type 2 towers (PbSc)
   // Call a separate routine to generate Type 3-6 towers (E864 Pb-Scifi)
@@ -191,24 +206,17 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   /* create logical volume for single tower */
   G4Material* material_air = G4Material::GetMaterial("G4_AIR");
 
-  G4double _tower_dx = 0.0;
-  G4double _tower_dy = 0.0;
-  G4double _tower_dz = 0.0;
-
   G4Material* material_scintillator;
-
+  double tower_dx =  m_TowerDx[type];
+  double tower_dy =  m_TowerDy[type];
+  double tower_dz =  m_TowerDz[type];
+  cout << "building type " << type << " towers" << endl;
   if (type == 0)
   {
-    _tower_dx = _tower0_dx;
-    _tower_dy = _tower0_dy;
-    _tower_dz = _tower0_dz;
     material_scintillator = G4Material::GetMaterial("G4_LEAD_OXIDE");
   }
   else if (type == 1)
   {
-    _tower_dx = _tower1_dx;
-    _tower_dy = _tower1_dy;
-    _tower_dz = _tower1_dz;
     material_scintillator = G4Material::GetMaterial("G4_PbWO4");
   }
   else
@@ -221,9 +229,9 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   single_tower_solid_name << m_TowerLogicNamePrefix << "_single_scintillator_type" << type;
 
   G4VSolid* single_tower_solid = new G4Box(G4String(single_tower_solid_name.str().c_str()),
-                                           _tower_dx / 2.0,
-                                           _tower_dy / 2.0,
-                                           _tower_dz / 2.0);
+                                           tower_dx / 2.0,
+                                           tower_dy / 2.0,
+                                           tower_dz / 2.0);
 
   ostringstream single_tower_logic_name;
   single_tower_logic_name << "single_tower_logic_type" << type;
@@ -237,9 +245,9 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   single_scintillator_name << "single_scintillator_type" << type;
 
   G4VSolid* solid_scintillator = new G4Box(G4String(single_scintillator_name.str().c_str()),
-                                           _tower_dx / 2.0,
-                                           _tower_dy / 2.0,
-                                           _tower_dz / 2.0);
+                                           tower_dx / 2.0,
+                                           tower_dy / 2.0,
+                                           tower_dz / 2.0);
 
   ostringstream hEcal_scintillator_plate_logic_name;
   hEcal_scintillator_plate_logic_name << "hEcal_scintillator_plate_logic_type" << type;
@@ -274,18 +282,17 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
 G4LogicalVolume*
 PHG4ForwardEcalDetector::ConstructTowerType2()
 {
-  if (Verbosity() > 0)
+//  if (Verbosity() > 0)
   {
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type 2..." << endl;
   }
-
   /* create logical volume for single tower */
   G4Material* material_air = G4Material::GetMaterial("G4_AIR");
 
   G4VSolid* single_tower_solid = new G4Box(G4String("single_tower_solid2"),
-                                           _tower2_dx / 2.0,
-                                           _tower2_dy / 2.0,
-                                           _tower2_dz / 2.0);
+                                           m_TowerDx[2] / 2.0,
+                                           m_TowerDy[2] / 2.0,
+                                           m_TowerDz[2] / 2.0);
 
   G4LogicalVolume* single_tower_logic = new G4LogicalVolume(single_tower_solid,
                                                             material_air,
@@ -295,18 +302,18 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
   /* create geometry volumes for scintillator and absorber plates to place inside single_tower */
   // PHENIX EMCal JGL 3/27/2016
   G4int nlayers = 66;
-  G4double thickness_layer = _tower2_dz / (float) nlayers;
+  G4double thickness_layer = m_TowerDz[2] / (float) nlayers;
   G4double thickness_absorber = thickness_layer * 0.23;      // 27% absorber by length
   G4double thickness_scintillator = thickness_layer * 0.73;  // 73% scintillator by length
 
   G4VSolid* solid_absorber = new G4Box(G4String("single_plate_absorber_solid2"),
-                                       _tower2_dx / 2.0,
-                                       _tower2_dy / 2.0,
+                                       m_TowerDx[2] / 2.0,
+                                       m_TowerDy[2] / 2.0,
                                        thickness_absorber / 2.0);
 
   G4VSolid* solid_scintillator = new G4Box(G4String("single_plate_scintillator2"),
-                                           _tower2_dx / 2.0,
-                                           _tower2_dy / 2.0,
+                                           m_TowerDx[2] / 2.0,
+                                           m_TowerDy[2] / 2.0,
                                            thickness_scintillator / 2.0);
 
   /* create logical volumes for scintillator and absorber plates to place inside single_tower */
@@ -331,7 +338,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
   /* place physical volumes for absorber and scintillator plates */
   G4double xpos_i = 0;
   G4double ypos_i = 0;
-  G4double zpos_i = (-1 * _tower2_dz / 2.0) + thickness_absorber / 2.0;
+  G4double zpos_i = (-1 * m_TowerDz[2] / 2.0) + thickness_absorber / 2.0;
 
   string name_absorber = m_TowerLogicNamePrefix + "_single_plate_absorber2";
   string name_scintillator = m_TowerLogicNamePrefix + "_single_plate_scintillator2";
@@ -367,40 +374,31 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 G4LogicalVolume*
 PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 {
-  if (Verbosity() > 0)
+  //if (Verbosity() > 0)
   {
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type ..." << type << endl;
   }
 
   double tower_dx, tower_dy, tower_dz;
   int num_fibers_x, num_fibers_y;
+  tower_dx = m_TowerDx[type];
+  tower_dy = m_TowerDy[type];
+  tower_dz = m_TowerDz[type];
   switch (type)
   {
   case 3:
-    tower_dx = _tower3_dx;
-    tower_dy = _tower3_dy;
-    tower_dz = _tower3_dz;
     num_fibers_x = 10;
     num_fibers_y = 10;
     break;
   case 4:
-    tower_dx = _tower4_dx;
-    tower_dy = _tower4_dy;
-    tower_dz = _tower4_dz;
     num_fibers_x = 9;
     num_fibers_y = 10;
     break;
   case 5:
-    tower_dx = _tower5_dx;
-    tower_dy = _tower5_dy;
-    tower_dz = _tower5_dz;
     num_fibers_x = 10;
     num_fibers_y = 9;
     break;
   case 6:
-    tower_dx = _tower6_dx;
-    tower_dy = _tower6_dy;
-    tower_dz = _tower6_dz;
     num_fibers_x = 9;
     num_fibers_y = 9;
     break;
@@ -636,6 +634,22 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
 
   /* Update member variables for global parameters based on parsed parameter file */
   std::map<string, G4double>::iterator parit;
+  ostringstream twr;
+  for (int i=0; i<7; i++)
+  {
+    twr.str("");
+    twr << "Gtower" << i << "_dx";
+    parit = _map_global_parameter.find(twr.str());
+    m_TowerDx[i] =  parit->second * cm;
+    twr.str("");
+    twr << "Gtower" << i << "_dy";
+    parit = _map_global_parameter.find(twr.str());
+    m_TowerDy[i] =  parit->second * cm;
+    twr.str("");
+    twr << "Gtower" << i << "_dz";
+    parit = _map_global_parameter.find(twr.str());
+    m_TowerDz[i] =  parit->second * cm;
+  }
 
   parit = _map_global_parameter.find("Gtower0_dx");
   if (parit != _map_global_parameter.end())
@@ -715,55 +729,117 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
 
   parit = _map_global_parameter.find("Gtower6_dy");
   if (parit != _map_global_parameter.end())
+  {
     _tower6_dy = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gtower6_dz");
   if (parit != _map_global_parameter.end())
+  {
     _tower6_dz = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gr1_inner");
   if (parit != _map_global_parameter.end())
+  {
     _rMin1 = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gr1_outer");
   if (parit != _map_global_parameter.end())
+  {
     _rMax1 = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gr2_inner");
   if (parit != _map_global_parameter.end())
+  {
     _rMin2 = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gr2_outer");
   if (parit != _map_global_parameter.end())
+  {
     _rMax2 = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
+  {
     _dZ = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
+  {
     _place_in_x = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gy0");
   if (parit != _map_global_parameter.end())
+  {
     _place_in_y = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Gz0");
   if (parit != _map_global_parameter.end())
+  {
     _place_in_z = parit->second * cm;
-
+  }
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())
-    _rot_in_x = parit->second;
-
+  {
+    m_XRot = parit->second;
+  }
   parit = _map_global_parameter.find("Grot_y");
   if (parit != _map_global_parameter.end())
-    _rot_in_y = parit->second;
-
+  {
+    m_YRot = parit->second;
+  }
   parit = _map_global_parameter.find("Grot_z");
   if (parit != _map_global_parameter.end())
-    _rot_in_z = parit->second;
-
+  {
+    m_ZRot = parit->second;
+  }
   return 0;
+}
+
+void  PHG4ForwardEcalDetector::SetTowerDimensions(G4double dx, G4double dy, G4double dz, int type)
+{
+  m_TowerDx[type] = dx;
+  m_TowerDy[type] = dy;
+  m_TowerDz[type] = dz;
+  if (type == 0)
+  {
+    _tower0_dx = dx;
+    _tower0_dy = dy;
+    _tower0_dz = dz;
+  }
+  else if (type == 1)
+  {
+    _tower1_dx = dx;
+    _tower1_dy = dy;
+    _tower1_dz = dz;
+  }
+  else if (type == 2)
+  {
+    _tower2_dx = dx;
+    _tower2_dy = dy;
+    _tower2_dz = dz;
+  }
+  else if (type == 3)
+  {
+    _tower3_dx = dx;
+    _tower3_dy = dy;
+    _tower3_dz = dz;
+  }
+  else if (type == 4)
+  {
+    _tower4_dx = dx;
+    _tower4_dy = dy;
+    _tower4_dz = dz;
+  }
+  else if (type == 5)
+  {
+    _tower5_dx = dx;
+    _tower5_dy = dy;
+    _tower5_dz = dz;
+  }
+  else if (type == 6)
+  {
+    _tower6_dx = dx;
+    _tower6_dy = dy;
+    _tower6_dz = dz;
+  }
 }

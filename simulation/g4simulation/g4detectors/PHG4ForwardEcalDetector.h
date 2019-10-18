@@ -40,51 +40,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   //!@name volume accessors
   int IsInForwardEcal(G4VPhysicalVolume *) const;
 
-  void SetTowerDimensions(G4double dx, G4double dy, G4double dz, int type)
-  {
-    if (type == 0)
-    {
-      _tower0_dx = dx;
-      _tower0_dy = dy;
-      _tower0_dz = dz;
-    }
-    else if (type == 1)
-    {
-      _tower1_dx = dx;
-      _tower1_dy = dy;
-      _tower1_dz = dz;
-    }
-    else if (type == 2)
-    {
-      _tower2_dx = dx;
-      _tower2_dy = dy;
-      _tower2_dz = dz;
-    }
-    else if (type == 3)
-    {
-      _tower3_dx = dx;
-      _tower3_dy = dy;
-      _tower3_dz = dz;
-    }
-    else if (type == 4)
-    {
-      _tower4_dx = dx;
-      _tower4_dy = dy;
-      _tower4_dz = dz;
-    }
-    else if (type == 5)
-    {
-      _tower5_dx = dx;
-      _tower5_dy = dy;
-      _tower5_dz = dz;
-    }
-    else if (type == 6)
-    {
-      _tower6_dx = dx;
-      _tower6_dy = dy;
-      _tower6_dz = dz;
-    }
-  }
+  void SetTowerDimensions(G4double dx, G4double dy, G4double dz, int type);
 
   void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
   {
@@ -93,9 +49,13 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     _place_in_z = place_in_z;
   }
 
-  void SetXRot(G4double rot_in_x) { _rot_in_x = rot_in_x; }
-  void SetYRot(G4double rot_in_y) { _rot_in_y = rot_in_y; }
-  void SetZRot(G4double rot_in_z) { _rot_in_z = rot_in_z; }
+  void SetXRot(G4double rot_in_x) { m_XRot = rot_in_x; }
+  void SetYRot(G4double rot_in_y) { m_YRot = rot_in_y; }
+  void SetZRot(G4double rot_in_z) { m_ZRot = rot_in_z; }
+
+  double GetXRot() const { return m_XRot; }
+  double GetYRot() const { return m_YRot; }
+  double GetZRot() const { return m_ZRot; }
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
@@ -125,7 +85,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   //! registry for volumes that should not be exported, i.e. fibers
   PHG4GDMLConfig *gdml_config;
 
-
+  double m_TowerDx[7];
+  double m_TowerDy[7];
+  double m_TowerDz[7];
   /* ECAL tower geometry */
   G4double _tower0_dx;
   G4double _tower0_dy;
@@ -168,6 +130,10 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
 
+  G4double m_XRot;
+  G4double m_YRot;
+  G4double m_ZRot;
+
  protected:
   const std::string TowerLogicNamePrefix() const {return m_TowerLogicNamePrefix;}
   PHParameters *GetParams() const {return m_Params;} 
@@ -180,10 +146,6 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     m_ScintiLogicalVolSet.insert(logvol);
   }
 
-
-  G4double _rot_in_x;
-  G4double _rot_in_y;
-  G4double _rot_in_z;
 
   G4double _rMin1;
   G4double _rMax1;

@@ -68,9 +68,9 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
-  ecal_rotm.rotateX(_rot_in_x);
-  ecal_rotm.rotateY(_rot_in_y);
-  ecal_rotm.rotateZ(_rot_in_z);
+  ecal_rotm.rotateX(GetXRot());
+  ecal_rotm.rotateY(GetYRot());
+  ecal_rotm.rotateZ(GetZRot());
 
   /* Place envelope cone in simulation */
   ostringstream name_envelope;
@@ -343,15 +343,15 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
 
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())
-    _rot_in_x = parit->second;
+    SetXRot(parit->second);
 
   parit = _map_global_parameter.find("Grot_y");
   if (parit != _map_global_parameter.end())
-    _rot_in_y = parit->second;
+    SetYRot(parit->second);
 
   parit = _map_global_parameter.find("Grot_z");
   if (parit != _map_global_parameter.end())
-    _rot_in_z = parit->second;
+    SetZRot(parit->second);
 
   return 0;
 }
