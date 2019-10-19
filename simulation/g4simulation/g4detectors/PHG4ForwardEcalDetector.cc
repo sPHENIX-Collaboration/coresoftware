@@ -259,7 +259,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
 G4LogicalVolume*
 PHG4ForwardEcalDetector::ConstructTowerType2()
 {
-//  if (Verbosity() > 0)
+  if (Verbosity() > 0)
   {
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type 2..." << endl;
   }
@@ -351,7 +351,7 @@ PHG4ForwardEcalDetector::ConstructTowerType2()
 G4LogicalVolume*
 PHG4ForwardEcalDetector::ConstructTowerType3_4_5_6(int type)
 {
-  //if (Verbosity() > 0)
+  if (Verbosity() > 0)
   {
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower type ..." << type << endl;
   }
@@ -562,7 +562,6 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       /* Mapping file uses cm, this class uses mm for length */
       ostringstream towername;
       towername << m_TowerLogicNamePrefix << "_t_" << type << "_j_" << idx_j << "_k_" << idx_k;
-
       /* Add Geant4 units */
       pos_x = pos_x * cm;
       pos_y = pos_y * cm;
@@ -580,7 +579,7 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
     {
       /* If this line is not a comment and not a tower, save parameter as string / value. */
       string parname;
-      G4double parval;
+      double parval;
 
       /* read string- break if error */
       if (!(iss >> parname >> parval))
@@ -589,26 +588,25 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
         gSystem->Exit(1);
       }
 
-      _map_global_parameter.insert(make_pair(parname, parval));
+      m_GlobalParameterMap.insert(make_pair(parname, parval));
     }
   }
-
   /* Update member variables for global parameters based on parsed parameter file */
-  std::map<string, G4double>::iterator parit;
+  std::map<string, double>::iterator parit;
   ostringstream twr;
   for (int i=0; i<7; i++)
   {
     twr.str("");
     twr << "Gtower" << i << "_dx";
-    parit = _map_global_parameter.find(twr.str());
+    parit = m_GlobalParameterMap.find(twr.str());
     m_TowerDx[i] =  parit->second * cm;
     twr.str("");
     twr << "Gtower" << i << "_dy";
-    parit = _map_global_parameter.find(twr.str());
+    parit = m_GlobalParameterMap.find(twr.str());
     m_TowerDy[i] =  parit->second * cm;
     twr.str("");
     twr << "Gtower" << i << "_dz";
-    parit = _map_global_parameter.find(twr.str());
+    parit = m_GlobalParameterMap.find(twr.str());
     m_TowerDz[i] =  parit->second * cm;
   }
   ostringstream rad;
@@ -617,58 +615,58 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
     int index = i+1;
     rad.str("");
     rad << "Gr" << index << "_inner";
-    parit = _map_global_parameter.find(rad.str());
-    if (parit != _map_global_parameter.end())
+    parit = m_GlobalParameterMap.find(rad.str());
+    if (parit != m_GlobalParameterMap.end())
     {
       m_RMin[i] = parit->second * cm;
     }
     rad.str("");
     rad << "Gr" << index << "_outer";
-    parit = _map_global_parameter.find(rad.str());
-    if (parit != _map_global_parameter.end())
+    parit = m_GlobalParameterMap.find(rad.str());
+    if (parit != m_GlobalParameterMap.end())
     {
       m_RMax[i] = parit->second * cm;
     }
   }
-  parit = _map_global_parameter.find("Gdz");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Gdz");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_dZ = parit->second * cm;
   }
-  parit = _map_global_parameter.find("Gx0");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Gx0");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_PlaceX = parit->second * cm;
   }
-  parit = _map_global_parameter.find("Gy0");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Gy0");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_PlaceY = parit->second * cm;
   }
-  parit = _map_global_parameter.find("Gz0");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Gz0");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_PlaceZ = parit->second * cm;
   }
-  parit = _map_global_parameter.find("Grot_x");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Grot_x");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_XRot = parit->second;
   }
-  parit = _map_global_parameter.find("Grot_y");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Grot_y");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_YRot = parit->second;
   }
-  parit = _map_global_parameter.find("Grot_z");
-  if (parit != _map_global_parameter.end())
+  parit = m_GlobalParameterMap.find("Grot_z");
+  if (parit != m_GlobalParameterMap.end())
   {
     m_ZRot = parit->second;
   }
   return 0;
 }
 
-void  PHG4ForwardEcalDetector::SetTowerDimensions(G4double dx, G4double dy, G4double dz, int type)
+void  PHG4ForwardEcalDetector::SetTowerDimensions(double dx, double dy, double dz, int type)
 {
   assert(type >=0 && type <= 6);
   m_TowerDx[type] = dx;

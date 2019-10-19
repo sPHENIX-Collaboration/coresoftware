@@ -5,8 +5,6 @@
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/G4Types.hh>  // for G4double
-
 #include <cassert>
 #include <map>
 #include <set>
@@ -41,9 +39,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   //!@name volume accessors
   int IsInForwardEcal(G4VPhysicalVolume *) const;
 
-  void SetTowerDimensions(G4double dx, G4double dy, G4double dz, int type);
+  void SetTowerDimensions(double dx, double dy, double dz, int type);
 
-  void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
+  void SetPlace(double place_in_x, double place_in_y, double place_in_z)
   {
     m_PlaceX = place_in_x;
     m_PlaceY = place_in_y;
@@ -57,9 +55,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   double GetPlaceY() const {return m_PlaceY;}
   double GetPlaceZ() const {return m_PlaceZ;}
 
-  void SetXRot(G4double rot_in_x) { m_XRot = rot_in_x; }
-  void SetYRot(G4double rot_in_y) { m_YRot = rot_in_y; }
-  void SetZRot(G4double rot_in_z) { m_ZRot = rot_in_z; }
+  void SetXRot(double rot_in_x) { m_XRot = rot_in_x; }
+  void SetYRot(double rot_in_y) { m_YRot = rot_in_y; }
+  void SetZRot(double rot_in_z) { m_ZRot = rot_in_z; }
 
   double GetXRot() const { return m_XRot; }
   double GetYRot() const { return m_YRot; }
@@ -92,9 +90,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
 
   struct towerposition
   {
-    G4double x;
-    G4double y;
-    G4double z;
+    double x;
+    double y;
+    double z;
     int type;
   };
 
@@ -112,9 +110,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   double m_YRot;
   double m_ZRot;
 
-  G4double m_PlaceX;
-  G4double m_PlaceY;
-  G4double m_PlaceZ;
+  double m_PlaceX;
+  double m_PlaceY;
+  double m_PlaceZ;
 
   double m_RMin[2];
   double m_RMax[2];
@@ -129,6 +127,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   std::string m_TowerLogicNamePrefix;
 
   std::map<std::string, towerposition> m_TowerPositionMap;
+  std::map<std::string, double> m_GlobalParameterMap;
 
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
@@ -144,8 +143,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   {
     m_ScintiLogicalVolSet.insert(logvol);
   }
-
-  std::map<std::string, G4double> _map_global_parameter;
+  std::map<std::string, double>::const_iterator FindIter(const std::string &name) {return m_GlobalParameterMap.find(name);}
+  std::map<std::string, double>::const_iterator EndIter() {return m_GlobalParameterMap.end();}
+  void InsertParam(const std::string &parname, double parval) {m_GlobalParameterMap.insert(make_pair(parname, parval));}
 };
 
 #endif

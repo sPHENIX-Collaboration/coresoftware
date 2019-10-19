@@ -289,24 +289,24 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
         cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << GetParams()->get_string_param("mapping_file") << endl;
         gSystem->Exit(1);
       }
-
-      _map_global_parameter.insert(make_pair(parname, parval));
+      InsertParam(parname, parval);
     }
   }
 
   /* Update member variables for global parameters based on parsed parameter file */
-  std::map<string, G4double>::iterator parit;
+  std::map<string, double>::const_iterator parit;
 
-  parit = _map_global_parameter.find("Gtower_dx");
-  if (parit != _map_global_parameter.end())
+   
+  parit = FindIter("Gtower_dx");
+  if (parit != EndIter())
     _tower_dx = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gtower_dy");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gtower_dy");
+  if (parit != EndIter())
     _tower_dy = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gtower_dz");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gtower_dz");
+  if (parit != EndIter())
     _tower_dz = parit->second * cm;
 
   ostringstream rad;
@@ -315,50 +315,50 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
     int index = i+1;
     rad.str("");
     rad << "Gr" << index << "_inner";
-    parit = _map_global_parameter.find(rad.str());
-    if (parit != _map_global_parameter.end())
+    parit = FindIter(rad.str());
+    if (parit != EndIter())
     {
       SetRMin(i, parit->second * cm);
     }
     rad.str("");
     rad << "Gr" << index << "_outer";
-    parit = _map_global_parameter.find(rad.str());
-    if (parit != _map_global_parameter.end())
+    parit = FindIter(rad.str());
+    if (parit != EndIter())
     {
       SetRMax(i,parit->second * cm);
     }
   }
-  parit = _map_global_parameter.find("Gdz");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gdz");
+  if (parit != EndIter())
   {
     SetdZ(parit->second * cm);
   }
-  parit = _map_global_parameter.find("Gx0");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gx0");
+  if (parit != EndIter())
   {
     SetPlaceX(parit->second * cm);
   }
 
-  parit = _map_global_parameter.find("Gy0");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gy0");
+  if (parit != EndIter())
   {
     SetPlaceY(parit->second * cm);
   }
-  parit = _map_global_parameter.find("Gz0");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gz0");
+  if (parit != EndIter())
   {
     SetPlaceZ(parit->second * cm);
   }
-  parit = _map_global_parameter.find("Grot_x");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Grot_x");
+  if (parit != EndIter())
     SetXRot(parit->second);
 
-  parit = _map_global_parameter.find("Grot_y");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Grot_y");
+  if (parit != EndIter())
     SetYRot(parit->second);
 
-  parit = _map_global_parameter.find("Grot_z");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Grot_z");
+  if (parit != EndIter())
     SetZRot(parit->second);
 
   return 0;
