@@ -47,24 +47,20 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
   , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
+  , m_XRot(0.0)
+  , m_YRot(0.0)
+  , m_ZRot(0.0)
+  , m_PlaceX(0.0 * mm)
+  , m_PlaceY(0.0 * mm)
+  , m_PlaceZ(3150.0 * mm)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_Layer(0)
   , m_SuperDetector("NONE")
   , m_TowerLogicNamePrefix("hEcalTower")
-  , m_XRot(0.0)
-  , m_YRot(0.0)
-  , m_ZRot(0.0)
-  , _rMin1(110 * mm)
-  , _rMax1(2250 * mm)
-  , _rMin2(120 * mm)
-  , _rMax2(2460 * mm)
   , _dZ(170 * mm)
   , _sPhi(0)
   , _dPhi(2 * M_PI)
-  , _place_in_x(0.0 * mm)
-  , _place_in_y(0.0 * mm)
-  , _place_in_z(3150.0 * mm)
 {
   m_Params->Print();
   for (int i=0; i<3; i++)
@@ -79,6 +75,10 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
     m_TowerDy[i] = NAN;
     m_TowerDz[i] = NAN;
   }
+  m_RMin[0] = 110 * mm;
+  m_RMax[0] = 2250 * mm;
+  m_RMin[1] = 120 * mm;
+  m_RMax[1] = 2460 * mm;
   assert(gdml_config);
 }
 
@@ -119,8 +119,8 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
 
   G4VSolid* ecal_envelope_solid = new G4Cons("hEcal_envelope_solid",
-                                             _rMin1, _rMax1,
-                                             _rMin2, _rMax2,
+                                             m_RMin[0], m_RMax[0],
+                                             m_RMin[1], m_RMax[1],
                                              _dZ / 2.,
                                              _sPhi, _dPhi);
 
@@ -138,7 +138,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   /* Place envelope cone in simulation */
   string name_envelope = m_TowerLogicNamePrefix + "_envelope";
 
-  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
+  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(m_PlaceX, m_PlaceY, m_PlaceZ)),
                     ecal_envelope_log, name_envelope, logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter towers */
@@ -629,26 +629,24 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
     parit = _map_global_parameter.find(twr.str());
     m_TowerDz[i] =  parit->second * cm;
   }
-
-  parit = _map_global_parameter.find("Gr1_inner");
-  if (parit != _map_global_parameter.end())
+  ostringstream rad;
+  for (int i=0; i<2; i++)
   {
-    _rMin1 = parit->second * cm;
-  }
-  parit = _map_global_parameter.find("Gr1_outer");
-  if (parit != _map_global_parameter.end())
-  {
-    _rMax1 = parit->second * cm;
-  }
-  parit = _map_global_parameter.find("Gr2_inner");
-  if (parit != _map_global_parameter.end())
-  {
-    _rMin2 = parit->second * cm;
-  }
-  parit = _map_global_parameter.find("Gr2_outer");
-  if (parit != _map_global_parameter.end())
-  {
-    _rMax2 = parit->second * cm;
+    int index = i+1;
+    rad.str("");
+    rad << "Gr" << index << "_inner";
+    parit = _map_global_parameter.find(rad.str());
+    if (parit != _map_global_parameter.end())
+    {
+      m_RMin[i] = parit->second * cm;
+    }
+    rad.str("");
+    rad << "Gr" << index << "_outer";
+    parit = _map_global_parameter.find(rad.str());
+    if (parit != _map_global_parameter.end())
+    {
+      m_RMax[i] = parit->second * cm;
+    }
   }
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
@@ -658,17 +656,17 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
   {
-    _place_in_x = parit->second * cm;
+    m_PlaceX = parit->second * cm;
   }
   parit = _map_global_parameter.find("Gy0");
   if (parit != _map_global_parameter.end())
   {
-    _place_in_y = parit->second * cm;
+    m_PlaceY = parit->second * cm;
   }
   parit = _map_global_parameter.find("Gz0");
   if (parit != _map_global_parameter.end())
   {
-    _place_in_z = parit->second * cm;
+    m_PlaceZ = parit->second * cm;
   }
   parit = _map_global_parameter.find("Grot_x");
   if (parit != _map_global_parameter.end())

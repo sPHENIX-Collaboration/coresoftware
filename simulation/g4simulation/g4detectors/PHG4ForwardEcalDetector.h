@@ -7,6 +7,7 @@
 
 #include <Geant4/G4Types.hh>  // for G4double
 
+#include <cassert>
 #include <map>
 #include <set>
 #include <string>
@@ -44,10 +45,17 @@ class PHG4ForwardEcalDetector : public PHG4Detector
 
   void SetPlace(G4double place_in_x, G4double place_in_y, G4double place_in_z)
   {
-    _place_in_x = place_in_x;
-    _place_in_y = place_in_y;
-    _place_in_z = place_in_z;
+    m_PlaceX = place_in_x;
+    m_PlaceY = place_in_y;
+    m_PlaceZ = place_in_z;
   }
+  void SetPlaceX(double place_x) {m_PlaceX = place_x;}
+  void SetPlaceY(double place_y) {m_PlaceY = place_y;}
+  void SetPlaceZ(double place_z) {m_PlaceZ = place_z;}
+
+  double GetPlaceX() const {return m_PlaceX;}
+  double GetPlaceY() const {return m_PlaceY;}
+  double GetPlaceZ() const {return m_PlaceZ;}
 
   void SetXRot(G4double rot_in_x) { m_XRot = rot_in_x; }
   void SetYRot(G4double rot_in_y) { m_YRot = rot_in_y; }
@@ -56,6 +64,12 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   double GetXRot() const { return m_XRot; }
   double GetYRot() const { return m_YRot; }
   double GetZRot() const { return m_ZRot; }
+
+  double GetRMin(int i) const {assert(i>=0 && i<=1); return m_RMin[i];}
+  double GetRMax(int i) const {assert(i>=0 && i<=1); return m_RMax[i];}
+
+  void SetRMin(int i, double val) {assert(i>=0 && i<=1);  m_RMin[i] = val;}
+  void SetRMax(int i, double val) {assert(i>=0 && i<=1);  m_RMax[i] = val;}
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
@@ -90,6 +104,17 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   double m_TowerDy[7];
   double m_TowerDz[7];
 
+  double m_XRot;
+  double m_YRot;
+  double m_ZRot;
+
+  G4double m_PlaceX;
+  G4double m_PlaceY;
+  G4double m_PlaceZ;
+
+  double m_RMin[2];
+  double m_RMax[2];
+
   int m_ActiveFlag;
   int m_AbsorberActiveFlag;
   int m_Layer;
@@ -101,10 +126,6 @@ class PHG4ForwardEcalDetector : public PHG4Detector
 
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
-
-  G4double m_XRot;
-  G4double m_YRot;
-  G4double m_ZRot;
 
  protected:
   const std::string TowerLogicNamePrefix() const {return m_TowerLogicNamePrefix;}
@@ -118,19 +139,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     m_ScintiLogicalVolSet.insert(logvol);
   }
 
-
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
-
   G4double _dZ;
   G4double _sPhi;
   G4double _dPhi;
-  /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
 
 
   std::map<std::string, G4double> _map_global_parameter;
