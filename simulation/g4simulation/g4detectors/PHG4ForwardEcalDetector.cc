@@ -46,7 +46,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
-  , gdml_config(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
+  , m_GdmlConfig(PHG4GDMLUtility::GetOrMakeConfigNode(Node))
   , m_XRot(0.0)
   , m_YRot(0.0)
   , m_ZRot(0.0)
@@ -77,7 +77,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   m_RMax[0] = 2250 * mm;
   m_RMin[1] = 120 * mm;
   m_RMax[1] = 2460 * mm;
-  assert(gdml_config);
+  assert(m_GdmlConfig);
 }
 
 //_______________________________________________________________________
@@ -142,7 +142,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   /* Construct single calorimeter towers */
   G4LogicalVolume* singletower[7] = {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
   typedef std::map<std::string, towerposition>::iterator it_type;
-  for (it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator)
+  for (it_type iterator = m_TowerPositionMap.begin(); iterator != m_TowerPositionMap.end(); ++iterator)
   {
     for (int i = 0; i < 7; i++)
     {
@@ -490,7 +490,7 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
   /* Loop over all tower positions in vector and place tower */
   typedef std::map<std::string, towerposition>::iterator it_type;
 
-  for (it_type iterator = _map_tower.begin(); iterator != _map_tower.end(); ++iterator)
+  for (it_type iterator = m_TowerPositionMap.begin(); iterator != m_TowerPositionMap.end(); ++iterator)
   {
     if (Verbosity() > 0)
     {
@@ -498,33 +498,17 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
 
-    G4LogicalVolume* singletower = nullptr;
-    if (iterator->second.type == 0)
-      singletower = singletowerIn[0];
-    else if (iterator->second.type == 1)
-      singletower = singletowerIn[1];
-    else if (iterator->second.type == 2)
-      singletower = singletowerIn[2];
-    else if (iterator->second.type == 3)
-      singletower = singletowerIn[3];
-    else if (iterator->second.type == 4)
-      singletower = singletowerIn[4];
-    else if (iterator->second.type == 5)
-      singletower = singletowerIn[5];
-    else if (iterator->second.type == 6)
-      singletower = singletowerIn[6];
-    else
-      cout << "PHG4ForwardEcalDetector::PlaceTower invalid type =  " << iterator->second.type << endl;
+    assert(iterator->second.type >=0 && iterator->second.type <=6);
+    G4LogicalVolume* singletower = singletowerIn[iterator->second.type];
 
     G4PVPlacement* tower_placement =
         new G4PVPlacement(0, G4ThreeVector(iterator->second.x, iterator->second.y, iterator->second.z),
                           singletower,
-                          iterator->first.c_str(),
+                          iterator->first,
                           ecalenvelope,
                           0, 0, OverlapCheck());
 
-    assert(gdml_config);
-    gdml_config->exclude_physical_vol(tower_placement);
+    m_GdmlConfig->exclude_physical_vol(tower_placement);
   }
 
   return 0;
@@ -590,7 +574,7 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
       tower_new.y = pos_y;
       tower_new.z = pos_z;
       tower_new.type = type;
-      _map_tower.insert(make_pair(towername.str(), tower_new));
+      m_TowerPositionMap.insert(make_pair(towername.str(), tower_new));
     }
     else
     {

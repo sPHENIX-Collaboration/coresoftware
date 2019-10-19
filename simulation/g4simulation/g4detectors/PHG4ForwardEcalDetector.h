@@ -101,7 +101,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   PHG4ForwardEcalDisplayAction *m_DisplayAction;
   PHParameters *m_Params;
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig *gdml_config;
+  PHG4GDMLConfig *m_GdmlConfig;
 
   /* ECAL tower geometry */
   double m_TowerDx[7];
@@ -128,7 +128,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   std::string m_SuperDetector;
   std::string m_TowerLogicNamePrefix;
 
-  std::map<std::string, towerposition> _map_tower;
+  std::map<std::string, towerposition> m_TowerPositionMap;
 
   std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
