@@ -32,7 +32,7 @@ class PHG4EICForwardEcalDetector : public PHG4ForwardEcalDetector
   virtual ~PHG4EICForwardEcalDetector(){}
 
   //! construct
-  virtual void ConstructMe(G4LogicalVolume* world);
+  virtual void ConstructMe(G4LogicalVolume* world) override;
 
   void SetTowerDimensions(G4double dx, G4double dy, G4double dz)
   {
