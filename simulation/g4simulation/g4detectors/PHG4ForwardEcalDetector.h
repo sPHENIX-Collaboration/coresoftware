@@ -31,7 +31,7 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   PHG4ForwardEcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4ForwardEcalDetector(){}
+  virtual ~PHG4ForwardEcalDetector() {}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume *world);
@@ -47,13 +47,13 @@ class PHG4ForwardEcalDetector : public PHG4Detector
     m_PlaceY = place_in_y;
     m_PlaceZ = place_in_z;
   }
-  void SetPlaceX(double place_x) {m_PlaceX = place_x;}
-  void SetPlaceY(double place_y) {m_PlaceY = place_y;}
-  void SetPlaceZ(double place_z) {m_PlaceZ = place_z;}
+  void SetPlaceX(double place_x) { m_PlaceX = place_x; }
+  void SetPlaceY(double place_y) { m_PlaceY = place_y; }
+  void SetPlaceZ(double place_z) { m_PlaceZ = place_z; }
 
-  double GetPlaceX() const {return m_PlaceX;}
-  double GetPlaceY() const {return m_PlaceY;}
-  double GetPlaceZ() const {return m_PlaceZ;}
+  double GetPlaceX() const { return m_PlaceX; }
+  double GetPlaceY() const { return m_PlaceY; }
+  double GetPlaceZ() const { return m_PlaceZ; }
 
   void SetXRot(double rot_in_x) { m_XRot = rot_in_x; }
   void SetYRot(double rot_in_y) { m_YRot = rot_in_y; }
@@ -63,15 +63,31 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   double GetYRot() const { return m_YRot; }
   double GetZRot() const { return m_ZRot; }
 
-  double GetRMin(int i) const {assert(i>=0 && i<=1); return m_RMin[i];}
-  double GetRMax(int i) const {assert(i>=0 && i<=1); return m_RMax[i];}
+  double GetRMin(int i) const
+  {
+    assert(i >= 0 && i <= 1);
+    return m_RMin[i];
+  }
+  double GetRMax(int i) const
+  {
+    assert(i >= 0 && i <= 1);
+    return m_RMax[i];
+  }
 
-  void SetRMin(int i, double val) {assert(i>=0 && i<=1);  m_RMin[i] = val;}
-  void SetRMax(int i, double val) {assert(i>=0 && i<=1);  m_RMax[i] = val;}
+  void SetRMin(int i, double val)
+  {
+    assert(i >= 0 && i <= 1);
+    m_RMin[i] = val;
+  }
+  void SetRMax(int i, double val)
+  {
+    assert(i >= 0 && i <= 1);
+    m_RMax[i] = val;
+  }
 
-  double GetdZ() const {return m_dZ;}
+  double GetdZ() const { return m_dZ; }
 
-  void SetdZ(double val) {m_dZ = val;}
+  void SetdZ(double val) { m_dZ = val; }
 
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
@@ -79,7 +95,6 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   int get_Layer() const { return m_Layer; }
 
   PHG4ForwardEcalDisplayAction *GetDisplayAction() { return m_DisplayAction; }
-
 
  private:
   G4LogicalVolume *ConstructTower(int type);
@@ -133,8 +148,8 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
 
  protected:
-  const std::string TowerLogicNamePrefix() const {return m_TowerLogicNamePrefix;}
-  PHParameters *GetParams() const {return m_Params;} 
+  const std::string TowerLogicNamePrefix() const { return m_TowerLogicNamePrefix; }
+  PHParameters *GetParams() const { return m_Params; }
   void AbsorberLogicalVolSetInsert(G4LogicalVolume *logvol)
   {
     m_AbsorberLogicalVolSet.insert(logvol);
@@ -143,9 +158,9 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   {
     m_ScintiLogicalVolSet.insert(logvol);
   }
-  std::map<std::string, double>::const_iterator FindIter(const std::string &name) {return m_GlobalParameterMap.find(name);}
-  std::map<std::string, double>::const_iterator EndIter() {return m_GlobalParameterMap.end();}
-  void InsertParam(const std::string &parname, double parval) {m_GlobalParameterMap.insert(make_pair(parname, parval));}
+  std::map<std::string, double>::const_iterator FindIter(const std::string &name) { return m_GlobalParameterMap.find(name); }
+  std::map<std::string, double>::const_iterator EndIter() { return m_GlobalParameterMap.end(); }
+  void InsertParam(const std::string &parname, double parval) { m_GlobalParameterMap.insert(make_pair(parname, parval)); }
 };
 
 #endif

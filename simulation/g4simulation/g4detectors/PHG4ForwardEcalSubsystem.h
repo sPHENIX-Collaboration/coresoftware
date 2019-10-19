@@ -5,7 +5,7 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                  // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -38,13 +38,13 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
   /** Accessors (reimplemented)
    */
   PHG4Detector* GetDetector() const;
-  PHG4SteppingAction* GetSteppingAction() const {return m_SteppingAction;}
+  PHG4SteppingAction* GetSteppingAction() const { return m_SteppingAction; }
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
   void SetEICDetector() { m_EICDetectorFlag = 1; }
   void SetfsPHENIXDetector() { m_EICDetectorFlag = 0; }
-  void SetTowerMappingFile(const std::string &filename);
+  void SetTowerMappingFile(const std::string& filename);
 
  private:
   void SetDefaultParameters();
@@ -55,7 +55,7 @@ class PHG4ForwardEcalSubsystem : public PHG4DetectorSubsystem
 
   /** Stepping action
    */
-  PHG4SteppingAction *m_SteppingAction;
+  PHG4SteppingAction* m_SteppingAction;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */

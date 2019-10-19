@@ -26,10 +26,10 @@ class PHG4EICForwardEcalDetector : public PHG4ForwardEcalDetector
 {
  public:
   //! constructor
-  PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam);
+  PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4EICForwardEcalDetector(){}
+  virtual ~PHG4EICForwardEcalDetector() {}
 
   //! construct
   virtual void ConstructMe(G4LogicalVolume* world) override;

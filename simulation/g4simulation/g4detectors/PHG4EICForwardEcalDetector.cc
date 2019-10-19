@@ -11,7 +11,7 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
-#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm, mm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>     // for G4Transform3D
@@ -31,7 +31,7 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
+PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4ForwardEcalDetector(subsys, Node, parameters, dnam)
   , _tower_dx(30 * mm)
   , _tower_dy(30 * mm)
@@ -59,7 +59,7 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              GetRMin(0), GetRMax(0),
                                              GetRMin(1), GetRMax(1),
                                              GetdZ() / 2.,
-                                             0, 2*M_PI);
+                                             0, 2 * M_PI);
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
@@ -221,10 +221,10 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
   ifstream istream_mapping;
   istream_mapping.open(GetParams()->get_string_param("mapping_file"));
   if (!istream_mapping.is_open())
-    {
-      cout << "ERROR in PHG4EICForwardEcalDetector: Failed to open mapping file " << GetParams()->get_string_param("mapping_file") << endl;
-      gSystem->Exit(1);
-    }
+  {
+    cout << "ERROR in PHG4EICForwardEcalDetector: Failed to open mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+    gSystem->Exit(1);
+  }
 
   /* loop over lines in file */
   string line_mapping;
@@ -296,7 +296,6 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
   /* Update member variables for global parameters based on parsed parameter file */
   std::map<string, double>::const_iterator parit;
 
-   
   parit = FindIter("Gtower_dx");
   if (parit != EndIter())
     _tower_dx = parit->second * cm;
@@ -310,9 +309,9 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
     _tower_dz = parit->second * cm;
 
   ostringstream rad;
-  for (int i=0; i<2; i++)
+  for (int i = 0; i < 2; i++)
   {
-    int index = i+1;
+    int index = i + 1;
     rad.str("");
     rad << "Gr" << index << "_inner";
     parit = FindIter(rad.str());
@@ -325,7 +324,7 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
     parit = FindIter(rad.str());
     if (parit != EndIter())
     {
-      SetRMax(i,parit->second * cm);
+      SetRMax(i, parit->second * cm);
     }
   }
   parit = FindIter("Gdz");

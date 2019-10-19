@@ -23,7 +23,7 @@
 #include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>  // for G4Transform3D
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4Types.hh>               // for G4double, G4int
+#include <Geant4/G4Types.hh>            // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <TSystem.h>
@@ -42,7 +42,7 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters *parameters, const std::string& dnam)
+PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
   : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4ForwardEcalDisplayAction*>(subsys->GetDisplayAction()))
   , m_Params(parameters)
@@ -61,13 +61,13 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_TowerLogicNamePrefix("hEcalTower")
 {
   m_Params->Print();
-  for (int i=0; i<3; i++)
+  for (int i = 0; i < 3; i++)
   {
     m_TowerDx[i] = 30 * mm;
     m_TowerDy[i] = 30 * mm;
     m_TowerDz[i] = 170.0 * mm;
   }
-  for (int i=3; i<7; i++)
+  for (int i = 3; i < 7; i++)
   {
     m_TowerDx[i] = NAN;
     m_TowerDy[i] = NAN;
@@ -83,7 +83,7 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
 //_______________________________________________________________________
 int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
 {
-  G4LogicalVolume *mylogvol = volume->GetLogicalVolume();
+  G4LogicalVolume* mylogvol = volume->GetLogicalVolume();
   if (m_ActiveFlag)
   {
     if (m_ScintiLogicalVolSet.find(mylogvol) != m_ScintiLogicalVolSet.end())
@@ -100,7 +100,6 @@ int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
   }
   return 0;
 }
-
 
 //_______________________________________________________________________
 void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
@@ -120,7 +119,7 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
                                              m_RMin[0], m_RMax[0],
                                              m_RMin[1], m_RMax[1],
                                              m_dZ / 2.,
-                                             0, 2*M_PI);
+                                             0, 2 * M_PI);
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
@@ -146,13 +145,12 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   {
     for (int i = 0; i < 7; i++)
     {
-      if (iterator->second.type == i) 
+      if (iterator->second.type == i)
       {
-      singletower[i] = ConstructTower(i);
+        singletower[i] = ConstructTower(i);
       }
     }
   }
-
 
   if (Verbosity() > 1)
   {
@@ -172,7 +170,7 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   {
     cout << "PHG4ForwardEcalDetector: Build logical volume for single tower, type = " << type << endl;
   }
-  assert(type >=0 && type <=6);
+  assert(type >= 0 && type <= 6);
   // This method allows construction of Type 0,1 tower (PbGl or PbW04).
   // Call a separate routine to generate Type 2 towers (PbSc)
   // Call a separate routine to generate Type 3-6 towers (E864 Pb-Scifi)
@@ -184,9 +182,9 @@ PHG4ForwardEcalDetector::ConstructTower(int type)
   G4Material* material_air = G4Material::GetMaterial("G4_AIR");
 
   G4Material* material_scintillator;
-  double tower_dx =  m_TowerDx[type];
-  double tower_dy =  m_TowerDy[type];
-  double tower_dz =  m_TowerDz[type];
+  double tower_dx = m_TowerDx[type];
+  double tower_dy = m_TowerDy[type];
+  double tower_dz = m_TowerDz[type];
   cout << "building type " << type << " towers" << endl;
   if (type == 0)
   {
@@ -498,7 +496,7 @@ int PHG4ForwardEcalDetector::PlaceTower(G4LogicalVolume* ecalenvelope, G4Logical
            << " at x = " << iterator->second.x << " , y = " << iterator->second.y << " , z = " << iterator->second.z << endl;
     }
 
-    assert(iterator->second.type >=0 && iterator->second.type <=6);
+    assert(iterator->second.type >= 0 && iterator->second.type <= 6);
     G4LogicalVolume* singletower = singletowerIn[iterator->second.type];
 
     G4PVPlacement* tower_placement =
@@ -518,12 +516,12 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
 {
   /* Open the datafile, if it won't open return an error */
   ifstream istream_mapping;
-    istream_mapping.open(m_Params->get_string_param("mapping_file"));
+  istream_mapping.open(m_Params->get_string_param("mapping_file"));
   if (!istream_mapping.is_open())
   {
-      cout << "ERROR in PHG4ForwardEcalDetector: Failed to open mapping file " << m_Params->get_string_param("mapping_file") << endl;
-      gSystem->Exit(1);
-    }
+    cout << "ERROR in PHG4ForwardEcalDetector: Failed to open mapping file " << m_Params->get_string_param("mapping_file") << endl;
+    gSystem->Exit(1);
+  }
 
   /* loop over lines in file */
   string line_mapping;
@@ -594,25 +592,25 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
   /* Update member variables for global parameters based on parsed parameter file */
   std::map<string, double>::iterator parit;
   ostringstream twr;
-  for (int i=0; i<7; i++)
+  for (int i = 0; i < 7; i++)
   {
     twr.str("");
     twr << "Gtower" << i << "_dx";
     parit = m_GlobalParameterMap.find(twr.str());
-    m_TowerDx[i] =  parit->second * cm;
+    m_TowerDx[i] = parit->second * cm;
     twr.str("");
     twr << "Gtower" << i << "_dy";
     parit = m_GlobalParameterMap.find(twr.str());
-    m_TowerDy[i] =  parit->second * cm;
+    m_TowerDy[i] = parit->second * cm;
     twr.str("");
     twr << "Gtower" << i << "_dz";
     parit = m_GlobalParameterMap.find(twr.str());
-    m_TowerDz[i] =  parit->second * cm;
+    m_TowerDz[i] = parit->second * cm;
   }
   ostringstream rad;
-  for (int i=0; i<2; i++)
+  for (int i = 0; i < 2; i++)
   {
-    int index = i+1;
+    int index = i + 1;
     rad.str("");
     rad << "Gr" << index << "_inner";
     parit = m_GlobalParameterMap.find(rad.str());
@@ -666,9 +664,9 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
   return 0;
 }
 
-void  PHG4ForwardEcalDetector::SetTowerDimensions(double dx, double dy, double dz, int type)
+void PHG4ForwardEcalDetector::SetTowerDimensions(double dx, double dy, double dz, int type)
 {
-  assert(type >=0 && type <= 6);
+  assert(type >= 0 && type <= 6);
   m_TowerDx[type] = dx;
   m_TowerDy[type] = dy;
   m_TowerDz[type] = dz;

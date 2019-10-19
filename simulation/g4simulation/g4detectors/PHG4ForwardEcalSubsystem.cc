@@ -6,20 +6,20 @@
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4DisplayAction.h>       // for PHG4DisplayAction
-#include <g4main/PHG4SteppingAction.h>      // for PHG4SteppingAction
-#include <g4main/PHG4Subsystem.h>           // for PHG4Subsystem
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
+#include <g4main/PHG4Subsystem.h>       // for PHG4Subsystem
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>             // for PHIODataNode
-#include <phool/PHNode.h>                   // for PHNode
-#include <phool/PHNodeIterator.h>           // for PHNodeIterator
-#include <phool/PHObject.h>                 // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <set>                              // for set
+#include <set>  // for set
 #include <sstream>
 
 class PHG4Detector;
@@ -68,7 +68,7 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   if (GetParams()->get_int_param("active"))
   {
     PHNodeIterator dstIter(dstNode);
-    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    PHCompositeNode* DetNode = dynamic_cast<PHCompositeNode*>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
     if (!DetNode)
     {
       DetNode = new PHCompositeNode(SuperDetector());
@@ -98,11 +98,11 @@ int PHG4ForwardEcalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       }
       nodes.insert(nodename.str());
     }
-    for (auto nodename: nodes)
+    for (auto nodename : nodes)
 
-//    BOOST_FOREACH (string node, nodes)
+    //    BOOST_FOREACH (string node, nodes)
     {
-      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
+      PHG4HitContainer* g4_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename);
       if (!g4_hits)
       {
         g4_hits = new PHG4HitContainer(nodename);
@@ -137,19 +137,19 @@ PHG4Detector* PHG4ForwardEcalSubsystem::GetDetector(void) const
 void PHG4ForwardEcalSubsystem::SetDefaultParameters()
 {
   ostringstream mappingfilename;
-  const char *calibroot = getenv("CALIBRATIONROOT");
+  const char* calibroot = getenv("CALIBRATIONROOT");
   if (calibroot)
   {
     mappingfilename << calibroot;
   }
   mappingfilename << "/ForwardEcal/mapping/towerMap_FEMC_fsPHENIX_v004.txt";
-  set_default_string_param("mapping_file",mappingfilename.str());
-  set_default_string_param("mapping_file_md5",PHG4Utils::md5sum(mappingfilename.str()));
+  set_default_string_param("mapping_file", mappingfilename.str());
+  set_default_string_param("mapping_file_md5", PHG4Utils::md5sum(mappingfilename.str()));
   return;
 }
 
-void PHG4ForwardEcalSubsystem::SetTowerMappingFile(const std::string &filename)
+void PHG4ForwardEcalSubsystem::SetTowerMappingFile(const std::string& filename)
 {
-  set_string_param("mapping_file",filename);
+  set_string_param("mapping_file", filename);
   set_string_param("mapping_file_md5", PHG4Utils::md5sum(get_string_param("mapping_file")));
 }
