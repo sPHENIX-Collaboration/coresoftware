@@ -58,8 +58,8 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4VSolid* ecal_envelope_solid = new G4Cons("hEcal_envelope_solid",
                                              GetRMin(0), GetRMax(0),
                                              GetRMin(1), GetRMax(1),
-                                             _dZ / 2.,
-                                             _sPhi, _dPhi);
+                                             GetdZ() / 2.,
+                                             0, 2*M_PI);
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
@@ -330,8 +330,9 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
   }
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
-    _dZ = parit->second * cm;
-
+  {
+    SetdZ(parit->second * cm);
+  }
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())
   {

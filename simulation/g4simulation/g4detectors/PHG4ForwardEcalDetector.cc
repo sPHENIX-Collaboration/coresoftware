@@ -53,14 +53,12 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_PlaceX(0.0 * mm)
   , m_PlaceY(0.0 * mm)
   , m_PlaceZ(3150.0 * mm)
+  , m_dZ(170 * mm)
   , m_ActiveFlag(m_Params->get_int_param("active"))
   , m_AbsorberActiveFlag(m_Params->get_int_param("absorberactive"))
   , m_Layer(0)
   , m_SuperDetector("NONE")
   , m_TowerLogicNamePrefix("hEcalTower")
-  , _dZ(170 * mm)
-  , _sPhi(0)
-  , _dPhi(2 * M_PI)
 {
   m_Params->Print();
   for (int i=0; i<3; i++)
@@ -121,8 +119,8 @@ void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4VSolid* ecal_envelope_solid = new G4Cons("hEcal_envelope_solid",
                                              m_RMin[0], m_RMax[0],
                                              m_RMin[1], m_RMax[1],
-                                             _dZ / 2.,
-                                             _sPhi, _dPhi);
+                                             m_dZ / 2.,
+                                             0, 2*M_PI);
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
@@ -651,7 +649,7 @@ int PHG4ForwardEcalDetector::ParseParametersFromTable()
   parit = _map_global_parameter.find("Gdz");
   if (parit != _map_global_parameter.end())
   {
-    _dZ = parit->second * cm;
+    m_dZ = parit->second * cm;
   }
   parit = _map_global_parameter.find("Gx0");
   if (parit != _map_global_parameter.end())

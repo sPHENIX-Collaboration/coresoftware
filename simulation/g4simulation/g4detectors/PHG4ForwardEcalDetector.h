@@ -71,6 +71,10 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   void SetRMin(int i, double val) {assert(i>=0 && i<=1);  m_RMin[i] = val;}
   void SetRMax(int i, double val) {assert(i>=0 && i<=1);  m_RMax[i] = val;}
 
+  double GetdZ() const {return m_dZ;}
+
+  void SetdZ(double val) {m_dZ = val;}
+
   void SuperDetector(const std::string &name) { m_SuperDetector = name; }
   const std::string SuperDetector() const { return m_SuperDetector; }
 
@@ -115,6 +119,8 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   double m_RMin[2];
   double m_RMax[2];
 
+  double m_dZ;
+
   int m_ActiveFlag;
   int m_AbsorberActiveFlag;
   int m_Layer;
@@ -138,11 +144,6 @@ class PHG4ForwardEcalDetector : public PHG4Detector
   {
     m_ScintiLogicalVolSet.insert(logvol);
   }
-
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
-
 
   std::map<std::string, G4double> _map_global_parameter;
 };
