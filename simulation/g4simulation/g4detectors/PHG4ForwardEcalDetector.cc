@@ -60,7 +60,6 @@ PHG4ForwardEcalDetector::PHG4ForwardEcalDetector(PHG4Subsystem* subsys, PHCompos
   , m_SuperDetector("NONE")
   , m_TowerLogicNamePrefix("hEcalTower")
 {
-  m_Params->Print();
   for (int i = 0; i < 3; i++)
   {
     m_TowerDx[i] = 30 * mm;
@@ -104,7 +103,7 @@ int PHG4ForwardEcalDetector::IsInForwardEcal(G4VPhysicalVolume* volume) const
 //_______________________________________________________________________
 void PHG4ForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
-  //if ( Verbosity() > 0 )
+  if ( Verbosity() > 0 )
   {
     cout << "PHG4ForwardEcalDetector: Begin Construction" << endl;
   }
