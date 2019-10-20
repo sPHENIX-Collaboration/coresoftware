@@ -16,7 +16,7 @@ class G4VPhysicalVolume;
 class PHG4ForwardEcalDisplayAction : public PHG4DisplayAction
 {
  public:
-  PHG4ForwardEcalDisplayAction(const std::string &name);
+  explicit PHG4ForwardEcalDisplayAction(const std::string &name);
 
   virtual ~PHG4ForwardEcalDisplayAction();
 

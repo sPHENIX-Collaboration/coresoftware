@@ -23,6 +23,7 @@ class PHG4Utils
   static std::pair<bool, std::pair<double, double>> lines_intersect(double ax, double ay, double bx, double by, double cx, double cy, double dx, double dy);
   static double circle_rectangle_intersection(double x1, double y1, double x2, double y2, double mx, double my, double r);
   static double sA(double r, double x, double y);
+  static std::string md5sum(const std::string &filename);
 
  private:
   static double _eta_coverage;

@@ -4,10 +4,15 @@
 #include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4VisAttributes.hh>
 
-#include <algorithm>                  // for copy
+#include <boost/algorithm/hex.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/uuid/detail/md5.hpp>
+
+#include <algorithm>  // for copy
 #include <cmath>
+#include <fstream>
 #include <iostream>  // for operator<<, endl, basic_ostream
-#include <vector>                     // for vector
+#include <vector>    // for vector
 
 using namespace std;
 
@@ -387,4 +392,29 @@ double PHG4Utils::circle_rectangle_intersection(double x1, double y1, double x2,
   // }
 
   return sA(r, x2, y1) - sA(r, x1, y1) - sA(r, x2, y2) + sA(r, x1, y2);
+}
+
+string PHG4Utils::md5sum(const std::string& filename)
+{
+  ifstream myfile;
+  myfile.open(filename);
+  if (!myfile.is_open())
+  {
+    cout << "Error opening " << filename << endl;
+    exit(1);
+  }
+  boost::uuids::detail::md5 hash;
+  boost::uuids::detail::md5::digest_type digest;
+  char c;
+  while (myfile.get(c))
+  {
+    hash.process_bytes(&c, 1);
+  }
+  myfile.close();
+  hash.get_digest(digest);
+  const auto charDigest = reinterpret_cast<const char*>(&digest);
+  std::string result;
+  boost::algorithm::hex(charDigest, charDigest + sizeof(boost::uuids::detail::md5::digest_type), std::back_inserter(result));
+  boost::algorithm::to_lower(result);
+  return result;
 }
