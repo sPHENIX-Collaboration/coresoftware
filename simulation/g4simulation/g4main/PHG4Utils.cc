@@ -1,8 +1,11 @@
 #include "PHG4Utils.h"
 
 #include <phool/phool.h>
+
 #include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4VisAttributes.hh>
+
+#include <TSystem.h>
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/algorithm/string.hpp>
@@ -10,8 +13,10 @@
 
 #include <algorithm>  // for copy
 #include <cmath>
+#include <cstdlib>  // for exit
 #include <fstream>
 #include <iostream>  // for operator<<, endl, basic_ostream
+#include <iterator>  // for back_insert_iterator
 #include <vector>    // for vector
 
 using namespace std;
@@ -401,6 +406,7 @@ string PHG4Utils::md5sum(const std::string& filename)
   if (!myfile.is_open())
   {
     cout << "Error opening " << filename << endl;
+    gSystem->Exit(1);
     exit(1);
   }
   boost::uuids::detail::md5 hash;
