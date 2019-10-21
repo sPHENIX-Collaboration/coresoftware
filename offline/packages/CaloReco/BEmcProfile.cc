@@ -111,8 +111,8 @@ BEmcProfile::~BEmcProfile()
       delete hmean[i];
       delete hsigma[i];
     }
-    delete hmean;
-    delete hsigma;
+    delete [] hmean;
+    delete [] hsigma;
   }
 }
 
@@ -131,7 +131,7 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   // z coordinate below means x coordinate
 
   float ee;
-  int ich, iy, iz;
+  int ich;
 
   int iy0=-1, iz0=-1;
   float emax=0;
@@ -152,8 +152,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   for( int i=0; i<nn; i++ ) {
     ee = (*plist)[i].amp;
     ich = (*plist)[i].ich;
-    iy = ich/NX;
-    iz = ich%NX;
+    int iy = ich/NX;
+    int iz = ich%NX;
     if( ee>thresh && abs(iz-iz0)<=3 && abs(iy-iy0)<=3 ) {
       etot += ee;
       sz += iz*ee;
@@ -421,11 +421,10 @@ float BEmcProfile::GetTowerEnergy( int iy, int iz, std::vector<EmcModule>* plist
   int nn = plist->size();
   if( nn <= 0 ) return 0;
 
-  int ich, iyt, izt;
   for( int i=0; i<nn; i++ ) {
-    ich = (*plist)[i].ich;
-    iyt = ich/NX;
-    izt = ich%NX;
+    int ich = (*plist)[i].ich;
+    int iyt = ich/NX;
+    int izt = ich%NX;
     if( iy==iyt && iz==izt  ) {
       return (*plist)[i].amp;
     }

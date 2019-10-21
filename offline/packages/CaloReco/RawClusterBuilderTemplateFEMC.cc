@@ -37,6 +37,7 @@ using namespace std;
 RawClusterBuilderTemplateFEMC::~RawClusterBuilderTemplateFEMC()
 {
   delete bemc;
+  delete _emcprof;
 }
 
 RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string &name)
