@@ -83,26 +83,17 @@
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
+#include <Geant4/FTFP_BERT_HP.hh>
 #include <Geant4/FTFP_INCLXX.hh>
 #include <Geant4/FTFP_INCLXX_HP.hh>
 #include <Geant4/QGSP_BERT.hh>
+#include <Geant4/QGSP_BERT_HP.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
 #include <Geant4/QGSP_INCLXX.hh>
 #include <Geant4/QGSP_INCLXX_HP.hh>
 
 
-#if G4VERSION_NUMBER <= 951
-#define HAVE_LHEP
-#include <Geant4/LHEP.hh>
-#endif
-
-#if G4VERSION_NUMBER >= 1001
-#define HAVE_FTFP_BERT_HP
-#define HAVE_QGSP_BERT_HP
-#include <Geant4/FTFP_BERT_HP.hh>
-#include <Geant4/QGSP_BERT_HP.hh>
-#endif
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
@@ -213,9 +204,28 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     myphysicslist = new FTFP_BERT(Verbosity());
   }
+  else if (physicslist == "FTFP_BERT_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new FTFP_BERT_HP(Verbosity());
+  }
+  else if (physicslist == "FTFP_INCLXX")
+  {
+    myphysicslist = new FTFP_INCLXX(Verbosity());
+  }
+  else if (physicslist == "FTFP_INCLXX_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new FTFP_INCLXX_HP(Verbosity());
+  }
   else if (physicslist == "QGSP_BERT")
   {
     myphysicslist = new QGSP_BERT(Verbosity());
+  }
+  else if (physicslist == "QGSP_BERT_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new QGSP_BERT_HP(Verbosity());
   }
   else if (physicslist == "QGSP_BIC")
   {
@@ -226,34 +236,14 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_BIC_HP(Verbosity());
   }
-#ifdef HAVE_LHEP
-  else if (physicslist == "LHEP")
+  else if (physicslist == "QGSP_INCLXX")
   {
-    myphysicslist = new LHEP(Verbosity());
+    myphysicslist = new QGSP_INCLXX(Verbosity());
   }
-#endif
-#ifdef HAVE_FTFP_BERT_HP
-  else if (physicslist == "FTFP_BERT_HP")
+  else if (physicslist == "QGSP_INCLXX_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new FTFP_BERT_HP(Verbosity());
-  }
-#endif
-#ifdef HAVE_QGSP_BERT_HP
-  else if (physicslist == "QGSP_BERT_HP")
-  {
-    setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new QGSP_BERT_HP(Verbosity());
-  }
-#endif
-  else if (physicslist == "FTFP_INCLXX")
-  {
-    myphysicslist = new FTFP_INCLXX(Verbosity());
-  }
-  else if (physicslist == "FTFP_INCLXX_HP")
-  {
-    setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new FTFP_INCLXX_HP(Verbosity());
+    myphysicslist = new QGSP_INCLXX_HP(Verbosity());
   }
   else if (physicslist == "EIC")
   {
