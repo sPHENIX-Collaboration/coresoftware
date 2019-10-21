@@ -13,10 +13,10 @@
 
 #include <algorithm>  // for copy
 #include <cmath>
-#include <cstdlib>                              // for exit
+#include <cstdlib>  // for exit
 #include <fstream>
 #include <iostream>  // for operator<<, endl, basic_ostream
-#include <iterator>                              // for back_insert_iterator
+#include <iterator>  // for back_insert_iterator
 #include <vector>    // for vector
 
 using namespace std;

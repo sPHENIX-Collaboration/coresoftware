@@ -30,30 +30,30 @@
 #include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>                    // for PHDataNode
-#include <phool/PHNode.h>                        // for PHNode
-#include <phool/PHNodeIterator.h>                // for PHNodeIterator
-#include <phool/PHObject.h>                      // for PHObject
+#include <phool/PHDataNode.h>      // for PHDataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                         // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
 #include <eicphysicslist/EICPhysicsList.hh>
 
-#include <TSystem.h>                             // for TSystem, gSystem
+#include <TSystem.h>  // for TSystem, gSystem
 
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4Cerenkov.hh>
-#include <Geant4/G4Element.hh>                   // for G4Element
-#include <Geant4/G4EventManager.hh>              // for G4EventManager
+#include <Geant4/G4Element.hh>       // for G4Element
+#include <Geant4/G4EventManager.hh>  // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
-#include <Geant4/G4IonisParamMat.hh>             // for G4IonisParamMat
+#include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
-#include <Geant4/G4MaterialPropertyVector.hh>          // for G4MaterialPropertyVector
+#include <Geant4/G4MaterialPropertiesTable.hh>  // for G4MaterialProperties...
+#include <Geant4/G4MaterialPropertyVector.hh>   // for G4MaterialPropertyVector
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpAbsorption.hh>
 #include <Geant4/G4OpBoundaryProcess.hh>
@@ -63,23 +63,23 @@
 #include <Geant4/G4OpticalPhoton.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
-#include <Geant4/G4PhotoElectricEffect.hh>       // for G4PhotoElectricEffect
+#include <Geant4/G4PhotoElectricEffect.hh>  // for G4PhotoElectricEffect
 #include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4ProductionCuts.hh>            // for G4ProductionCuts
+#include <Geant4/G4ProductionCuts.hh>  // for G4ProductionCuts
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4RegionStore.hh>
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4StepLimiterPhysics.hh>
-#include <Geant4/G4String.hh>                    // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Types.hh>                     // for G4double, G4int
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
-#include <Geant4/G4UImessenger.hh>                     // for G4UImessenger
+#include <Geant4/G4UImessenger.hh>          // for G4UImessenger
+#include <Geant4/G4VModularPhysicsList.hh>  // for G4VModularPhysicsList
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
-#include <Geant4/G4VisManager.hh>                // for G4VisManager
-#include <Geant4/G4VModularPhysicsList.hh>       // for G4VModularPhysicsList
+#include <Geant4/G4VisManager.hh>  // for G4VisManager
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
@@ -93,18 +93,16 @@
 #include <Geant4/QGSP_INCLXX.hh>
 #include <Geant4/QGSP_INCLXX_HP.hh>
 
-
-
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
-#include <exception>                             // for exception
-#include <iostream>                              // for operator<<, endl
+#include <exception>  // for exception
+#include <iostream>   // for operator<<, endl
 #include <memory>
-#include <set>                                   // for set, _Rb_tree_const_...
-#include <vector>                                // for vector, vector<>::it...
+#include <set>     // for set, _Rb_tree_const_...
+#include <vector>  // for vector, vector<>::it...
 
 class G4TrackingManager;
 class G4VPhysicalVolume;
@@ -163,7 +161,7 @@ PHG4Reco::~PHG4Reco(void)
   delete runManager_;
   delete uisession_;
   delete visManager;
-  delete  m_Fun4AllMessenger;
+  delete m_Fun4AllMessenger;
   while (subsystems_.begin() != subsystems_.end())
   {
     delete subsystems_.back();
@@ -560,11 +558,10 @@ int PHG4Reco::ApplyCommand(const std::string &cmd)
 
 int PHG4Reco::StartGui()
 {
-
-// kludge, using boost::dll::program_location().string().c_str() for the
-// program name and putting it into args lead to invalid reads in G4String
-  char *args[] = {(char *)("root.exe")};
-  G4UIExecutive* ui = new G4UIExecutive(1,args);
+  // kludge, using boost::dll::program_location().string().c_str() for the
+  // program name and putting it into args lead to invalid reads in G4String
+  char *args[] = {(char *) ("root.exe")};
+  G4UIExecutive *ui = new G4UIExecutive(1, args);
   InitUImanager();
   m_UImanager->ApplyCommand("/control/execute init_gui_vis.mac");
   ui->SessionStart();
@@ -972,16 +969,16 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
   sPHENIX_tpc_gas->AddMaterial(G4Material::GetMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
 
-    // LHCb aerogel
-//    double density = 2.200 * g / cm3;
-    G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
-                                                   2.200 * g / cm3, 2);
-        SiO2AerogelQuartz->AddElement(G4Element::GetElement("Si"), 1);
-    SiO2AerogelQuartz->AddElement(G4Element::GetElement("O"), 2);
+  // LHCb aerogel
+  //    double density = 2.200 * g / cm3;
+  G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
+                                                 2.200 * g / cm3, 2);
+  SiO2AerogelQuartz->AddElement(G4Element::GetElement("Si"), 1);
+  SiO2AerogelQuartz->AddElement(G4Element::GetElement("O"), 2);
 
-    G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
-    AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
-                            100.0 * perCent);
+  G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
+  AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
+                          100.0 * perCent);
 
   //
   // CF4
