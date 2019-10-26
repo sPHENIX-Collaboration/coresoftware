@@ -2116,7 +2116,7 @@ int PHInitZVertexing::fit_vertex(){
 	  // Note: this gets a twobinspeak even if only bin j or only bin j+1 is filled
 	  bool twobinspeak =  _mult_twobins*(zcounts[j-1]+zcounts[j-2])<(zcounts[j]+zcounts[j+1]) 
 									&& _mult_twobins*(zcounts[j+2]+zcounts[j+3])< (zcounts[j]+zcounts[j+1]);
-	  bool onebinpeak = _mult_onebin*(zcounts[j-1])<zcounts[j] && _mult_onebin*(zcounts[j+1]< zcounts[j]);
+	  bool onebinpeak = (_mult_onebin*(zcounts[j-1])<zcounts[j]) && (_mult_onebin*zcounts[j+1]< zcounts[j]);
 		
 	  // discard if number of tracks <  the minimum
 	  if ((zcounts[j]>=_min_zvtx_tracks && onebinpeak) || ( (zcounts[j]+zcounts[j+1])>= _min_zvtx_tracks && twobinspeak) 
