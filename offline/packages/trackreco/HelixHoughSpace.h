@@ -71,11 +71,11 @@ public :
   virtual float get_dzdl_center(unsigned int zoomlevel, std::vector<unsigned int>& v_il) const  {return NAN;}
   virtual float get_z0_center(unsigned int zoomlevel, std::vector<unsigned int>& v_iz) const    {return NAN;}
 */
-  virtual unsigned int get_kappa_bin(unsigned int zoomlevel, float kappa) const {return NAN;} 
-  virtual unsigned int get_phi_bin(unsigned int zoomlevel, float phi) const   {return NAN;}
-  virtual unsigned int get_d_bin(unsigned int zoomlevel, float d) const     {return NAN;} 
-  virtual unsigned int get_dzdl_bin(unsigned int zoomlevel, float dzdl) const  {return NAN;}
-  virtual unsigned int get_z0_bin(unsigned int zoomlevel, float z0) const    {return NAN;}
+  virtual unsigned int get_kappa_bin(unsigned int zoomlevel, float kappa) const {return UINT_MAX;} 
+  virtual unsigned int get_phi_bin(unsigned int zoomlevel, float phi) const   {return UINT_MAX;}
+  virtual unsigned int get_d_bin(unsigned int zoomlevel, float d) const     {return UINT_MAX;} 
+  virtual unsigned int get_dzdl_bin(unsigned int zoomlevel, float dzdl) const  {return UINT_MAX;}
+  virtual unsigned int get_z0_bin(unsigned int zoomlevel, float z0) const    {return UINT_MAX;}
 
 
   virtual unsigned int get_bin(unsigned int zoomlevel, unsigned int* bins) const {return UINT_MAX;}

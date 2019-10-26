@@ -20,7 +20,11 @@ dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
+  if test `g++ -dumpversion | gawk '{print $1>=8.0?"1":"0"}'` = 1; then
+   CXXFLAGS="$CXXFLAGS -Wall -Wno-deprecated-declarations -Werror -pedantic "
+  else
    CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
+  fi
 fi
 
 dnl test for root 6
