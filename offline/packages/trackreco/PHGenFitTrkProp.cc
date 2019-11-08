@@ -527,10 +527,12 @@ int PHGenFitTrkProp::KalmanTrkProp()
    */  
   // A map is needed for each vertex location. This is a vector of maps
   _layer_thetaID_phiID_clusterID.clear();
-  for(unsigned int ivert=0; ivert<_vertex.size(); ++ivert)
+  /*  for(unsigned int ivert=0; ivert<_vertex.size(); ++ivert)
     {
       BuildLayerZPhiHitMap(ivert);      
     }
+  */
+  BuildLayerZPhiHitMap(0);
 
   vector<genfit::Track*> evt_disp_copy;
 
@@ -586,12 +588,13 @@ int PHGenFitTrkProp::KalmanTrkProp()
 	    }
 
 	  // associate this track with the same vertex as the seed track
-	  unsigned int ivert = tracklet->get_vertex_id();
+	  //	  unsigned int ivert = tracklet->get_vertex_id();
+	  unsigned int ivert = 0;
 	  gftrk_iter->second->set_vertex_id(ivert);
 	  //cout << PHWHERE << " read back track vertex ID from Genfit track " << gftrk_iter->second->get_vertex_id() << endl;
 	  if(ivert > _vertex.size())
 	    {
-	      cout << PHWHERE << " Track vertex is screwed up, have to quit! " << endl;
+	      cout << PHWHERE << " Track vertex is screwed up, have to quit! #" << ivert << " v_size: " << _vertex.size()  << endl;
 	      return Fun4AllReturnCodes::ABORTRUN;
 	    }
 	  
