@@ -118,38 +118,6 @@ class Measurement;
 #include <Eigen/Core>                  // for Matrix
 #include <Eigen/Dense>
 
-//Helix FCN includes
-//#include "Minuit2-5.34.14/test/MnSim/GaussFcn.h"
-//#include "Minuit2-5.34.14/test/MnSim/HelixFcn.h"
-//#include "Minuit2-5.34.14/test/MnSim/HelixFcn.cpp"
-//#include "HelixFcn.cpp"
-
-
-
-
-
-
-//#include "Minuit2-5.34.14/inc/Minuit2/FunctionMinimum.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnUserParameters.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnUserParameterState.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MinimumPrint.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnMigrad.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnMinos.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnContours.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnPlot.h"
-//#include "Minuit2-5.34.14/inc/Minuit2/MnStrategy.h"
-// #include "Minuit2/FunctionMinimum.h"
-// #include "Minuit2/MnUserParameterState.h"
-// #include "Minuit2/MnPrint.h"
-// #include "Minuit2/MnMigrad.h"
-// #include "Minuit2/MnMinos.h"
-// #include "Minuit2/MnContours.h"
-// #include "Minuit2/MnPlot.h"
-// #include "Minuit2/MinosError.h"
-// #include "Minuit2/ContoursError.h"
-
-
-
 //ROOT includes for debugging
 #include <TFile.h>
 #include <TNtuple.h>
@@ -181,11 +149,11 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
                                    // for pair, make_pair
 //#include <assert.h>
 
-//#include "Math/Minimizer.h"
-//#include "Math/Factory.h"
-//#include "Math/Functor.h"
-//#include "Minuit2/Minuit2Minimizer.h"
-//#include "Math/Functor.h"
+#include "Math/Minimizer.h"
+#include "Math/Factory.h"
+#include "Math/Functor.h"
+#include "Minuit2/Minuit2Minimizer.h"
+#include "Math/Functor.h"
 
 
 
@@ -196,7 +164,7 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 
 
 using namespace std;
-//using namespace ROOT::Minuit2;
+using namespace ROOT::Minuit2;
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
@@ -505,7 +473,6 @@ double PHRTreeSeeding::phiadd(double phi1, double phi2){
   else return s;
 }
 
-
 double PHRTreeSeeding::phidiff(double phi1, double phi2){
   double d = phi1-phi2;
   if(d>M_PI) return d-2*M_PI;
@@ -571,12 +538,13 @@ double PHRTreeSeeding::chisq(const double *xx)
   return chi2;
 }
 
-/*int PHRTreeSeeding::Process()
-{
+//int PHRTreeSeeding::Process()
+/*{
   return  Fun4AllReturnCodes::EVENT_OK;
 }
-*/
 
+
+*/
 int PHRTreeSeeding::Process(PHCompositeNode *topNode)
 {
 
@@ -599,11 +567,18 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
 
 
   //for different purpose
-  phisr = 0.005*2;
-  etasr = 0.0035*2;
-  phist = 0.001*1;
-  etast = 0.003*1;
-
+  phisr = 0.005*5;// *2
+  etasr = 0.0035*5;// *2;
+  /* 0.7 version
+    phist = 0.001*1;
+    etast = 0.003*1;
+    0.9 version 
+    phist = 0.001*2;
+    etast = 0.003*2;
+  */
+  phist = 0.001*5;// *7;
+  etast = 0.003*5;// *7;
+  
   bgi::rtree<pointKey, bgi::quadratic<16> > rtree;
   PHTimer* t_fill = new PHTimer("t_fill");
   t_fill->stop();
@@ -706,7 +681,7 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
 	wquery(rtree,currentphi-dphidr*(_radii_all[lastgoodlayer]-_radii_all[newlayer])-phist,currenteta-etast,newlayer-0.5,currentphi-dphidr*(_radii_all[lastgoodlayer]-_radii_all[newlayer])+phist,currenteta+etast,newlayer+0.5,newlayer_clusters);
 	if(newlayer_clusters.empty()){
 	  failures+=1;
-	  if(failures>3) break;
+	  if(failures>3) break; //0.7 2 0.9 3
 	}
 	else{
 	  double xinrecord = 100.0;
@@ -729,7 +704,7 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
 	}
 	//newlayer--;
       }
-      if(failures>3) continue;
+      if(failures>3) continue; //0.7 2 0.9 3 
 
       double sum = std::accumulate(curvatureestimates.begin(), curvatureestimates.end(), 0.0);
       double mean = sum / curvatureestimates.size();
