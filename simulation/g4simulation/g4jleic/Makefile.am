@@ -22,6 +22,7 @@ libg4jleic_la_LIBADD = \
   -lg4testbench 
 
 pkginclude_HEADERS = \
+  G4JLeicBeamLineMagnetSubsystem.h \
   G4JLeicDIRCSubsystem.h \
   G4JLeicVTXSubsystem.h
 
@@ -42,6 +43,7 @@ pcmdir = $(libdir)
 nobase_dist_pcm_DATA =
 else
   ROOT5_DICTS = \
+  G4JLeicBeamLineMagnetSubsystem_Dict.cc \
   G4JLeicDIRCSubsystem_Dict.cc \
   G4JLeicVTXSubsystem_Dict.cc
 endif
@@ -49,6 +51,10 @@ endif
 
 libg4jleic_la_SOURCES = \
   $(ROOT5_DICTS) \
+  G4JLeicBeamLineMagnetDetector.cc \
+  G4JLeicBeamLineMagnetDisplayAction.cc \
+  G4JLeicBeamLineMagnetSteppingAction.cc \
+  G4JLeicBeamLineMagnetSubsystem.cc \
   G4JLeicDIRCDetector.cc \
   G4JLeicDIRCDisplayAction.cc \
   G4JLeicDIRCSubsystem.cc \
