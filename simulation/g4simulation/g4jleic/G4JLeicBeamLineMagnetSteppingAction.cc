@@ -42,6 +42,7 @@ G4JLeicBeamLineMagnetSteppingAction::G4JLeicBeamLineMagnetSteppingAction(G4JLeic
   : PHG4SteppingAction(detector->GetName())
   , m_Detector(detector)
   , m_HitContainer(nullptr)
+  , m_AbsorberHitContainer(nullptr)
   , m_Hit(nullptr)
   , m_SaveHitContainer(nullptr)
   , m_SaveVolPre(nullptr)
@@ -155,8 +156,7 @@ bool G4JLeicBeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep
     }
     else
     {
-      cout << "implement stuff for whichactive < 0" << endl;
-      gSystem->Exit(1);
+      m_SaveHitContainer = m_AbsorberHitContainer;
     }
     if (G4VUserTrackInformation* p = aTrack->GetUserInformation())
     {
@@ -282,21 +282,32 @@ bool G4JLeicBeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep
 void G4JLeicBeamLineMagnetSteppingAction::SetInterfacePointers(PHCompositeNode* topNode)
 {
   string hitnodename;
+  string absorbernodename;
   if (m_Detector->SuperDetector() != "NONE")
   {
     hitnodename = "G4HIT_" + m_Detector->SuperDetector();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->SuperDetector();
   }
   else
   {
     hitnodename = "G4HIT_" + m_Detector->GetName();
+    absorbernodename = "G4HIT_ABSORBER_" + m_Detector->GetName();
   }
 
   //now look for the map and grab a pointer to it.
   m_HitContainer = findNode::getClass<PHG4HitContainer>(topNode, hitnodename);
+  m_AbsorberHitContainer = findNode::getClass<PHG4HitContainer>(topNode, absorbernodename);
 
   // if we do not find the node we need to make it.
   if (!m_HitContainer)
   {
     std::cout << "G4JLeicBeamLineMagnetSteppingAction::SetTopNode - unable to find " << hitnodename << std::endl;
+  }
+  if (!m_AbsorberHitContainer)
+  {
+    if (Verbosity() > 1)
+    {
+      cout << "G4JLeicBeamLineMagnetSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
+    }
   }
 }

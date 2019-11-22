@@ -43,6 +43,9 @@ G4JLeicBeamLineMagnetSubsystem::~G4JLeicBeamLineMagnetSubsystem()
 //_______________________________________________________________________
 int G4JLeicBeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 {
+    PHNodeIterator iter(topNode);
+    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
   // create display settings before detector
   G4JLeicBeamLineMagnetDisplayAction *displayaction = new G4JLeicBeamLineMagnetDisplayAction(Name(), GetParams());
@@ -51,11 +54,16 @@ int G4JLeicBeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   m_Detector = new G4JLeicBeamLineMagnetDetector(this, topNode, GetParams(), Name(), GetLayer());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
+  set<string> nodes;
   if (GetParams()->get_int_param("active"))
   {
-    PHNodeIterator iter(topNode);
-    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+    PHNodeIterator dstIter(dstNode);
+    PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstIter.findFirst("PHCompositeNode", SuperDetector()));
+    if (!DetNode)
+    {
+      DetNode = new PHCompositeNode(SuperDetector());
+      dstNode->addNode(DetNode);
+    }
 
     ostringstream nodename;
     if (SuperDetector() != "NONE")
@@ -84,11 +92,30 @@ int G4JLeicBeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     {
       nodename << "G4HIT_" << Name();
     }
-    PHG4HitContainer *magnet_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
-    if (!magnet_hits)
+    nodes.insert(nodename.str());
+    if (GetParams()->get_int_param("absorberactive"))
     {
-      dstNode->addNode(new PHIODataNode<PHObject>(magnet_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+      nodename.str("");
+      if (SuperDetector() != "NONE")
+      {
+        nodename << "G4HIT_ABSORBER_" << SuperDetector();
+      }
+      else
+      {
+        nodename << "G4HIT_ABSORBER_" << Name();
+      }
+      nodes.insert(nodename.str());
     }
+    for (auto node : nodes)
+    {
+      PHG4HitContainer *g4_hits = findNode::getClass<PHG4HitContainer>(topNode, node);
+      if (!g4_hits)
+      {
+        g4_hits = new PHG4HitContainer(node);
+        DetNode->addNode(new PHIODataNode<PHObject>(g4_hits, node, "PHObject"));
+      }
+    }
+
     m_SteppingAction = new G4JLeicBeamLineMagnetSteppingAction(m_Detector, GetParams());
   }
   else if (GetParams()->get_int_param("blackhole"))
@@ -135,7 +162,6 @@ void G4JLeicBeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("rot_z", 0.);
   set_default_double_param("inner_radius", 4);
   set_default_double_param("outer_radius", 100);
-  set_default_string_param("material", "G4_Galactic");
 }
 
 void G4JLeicBeamLineMagnetSubsystem::Print(const string& what) const

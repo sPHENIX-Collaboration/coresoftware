@@ -44,18 +44,18 @@ void G4JLeicBeamLineMagnetDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *p
     visatt->SetVisibility(true);
     visatt->SetForceSolid(true);
     m_VisAttVec.push_back(visatt);  // for later deletion
-    if (it.second == "QUADRUPOLE")
+    if (it.second == "DIPOLE")
     {
-      visatt->SetColour(G4Color(0.8, 0.3, 0.1, 0.9));
+      visatt->SetColour(G4Color(0.2, 0.8, 0.2, 1.));
     }
     else if (it.second == "FIELDVOLUME")
     {
       visatt->SetColour(G4Colour::Gray());
       visatt->SetForceSolid(false);
     }
-    else if (it.second == "DIPOLE")
+    else if (it.second == "QUADRUPOLE")
     {
-      visatt->SetColour(G4Color(0.2, 0.8, 0.2, 1.));
+      visatt->SetColour(G4Color(0.8, 0.3, 0.1, 0.9));
     }
     else if (it.second == "SOLENOID")
     {

@@ -53,11 +53,15 @@ G4JLeicBeamLineMagnetDetector::G4JLeicBeamLineMagnetDetector(PHG4Subsystem *subs
 }
 
 //_______________________________________________________________
-bool G4JLeicBeamLineMagnetDetector::IsInBeamLineMagnet(const G4VPhysicalVolume *volume) const
+int G4JLeicBeamLineMagnetDetector::IsInBeamLineMagnet(const G4VPhysicalVolume *volume) const
 {
   if (volume == magnet_physi)
   {
-    return true;
+    return 1;
+  }
+  else if (volume == magnet_iron_physi)
+  {
+    return -1;
   }
   return false;
 }
@@ -65,14 +69,6 @@ bool G4JLeicBeamLineMagnetDetector::IsInBeamLineMagnet(const G4VPhysicalVolume *
 //_______________________________________________________________
 void G4JLeicBeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 {
-
-  G4Material *TrackerMaterial = G4Material::GetMaterial(params->get_string_param("material"));
-
-  if (!TrackerMaterial)
-  {
-    std::cout << "Error: Can not set material" << std::endl;
-    exit(-1);
-  }
 
   /* Define origin vector (center of magnet) */
   G4ThreeVector origin(params->get_double_param("place_x") * cm,
@@ -113,7 +109,6 @@ void G4JLeicBeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
        * Therefore, place magnetic field center at the correct location and angle for the
        * magnet AND do the same transformations for the logical volume (see below). */
     magField = new G4QuadrupoleMagField(fieldGradient, origin, rotm);
-    //      magField = new PHG4QuadrupoleMagField ( fieldGradient, origin, rotm );
 
     if (Verbosity() > 0)
     {
@@ -140,9 +135,6 @@ void G4JLeicBeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                         G4String(GetName().c_str()),
                                                         0, 0, 0);
   m_DisplayAction->AddVolume(magnet_iron_logic,magnettype);
-  cout << "x: " << params->get_double_param("place_x")*cm
-       << ", y: " << params->get_double_param("place_y")*cm
-       << ", z: " << params->get_double_param("place_z")*cm << endl;
   magnet_iron_physi = new G4PVPlacement(G4Transform3D(*rotm,origin),
                                      magnet_iron_logic,
                                      G4String(GetName().append("_Solid").c_str()),

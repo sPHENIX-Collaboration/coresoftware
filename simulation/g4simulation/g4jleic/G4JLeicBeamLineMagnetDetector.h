@@ -28,7 +28,7 @@ class G4JLeicBeamLineMagnetDetector : public PHG4Detector
   //! construct
   void ConstructMe(G4LogicalVolume *world);
 
-  bool IsInBeamLineMagnet(const G4VPhysicalVolume *) const;
+  int IsInBeamLineMagnet(const G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
   int get_Layer() const { return layer; }

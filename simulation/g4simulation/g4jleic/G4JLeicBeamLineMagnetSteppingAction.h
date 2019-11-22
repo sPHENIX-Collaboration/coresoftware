@@ -33,6 +33,7 @@ class G4JLeicBeamLineMagnetSteppingAction : public PHG4SteppingAction
   G4JLeicBeamLineMagnetDetector* m_Detector;
   //! pointer to hit container
   PHG4HitContainer* m_HitContainer;
+  PHG4HitContainer* m_AbsorberHitContainer;
   PHG4Hit* m_Hit;
   PHG4HitContainer* m_SaveHitContainer;
 
