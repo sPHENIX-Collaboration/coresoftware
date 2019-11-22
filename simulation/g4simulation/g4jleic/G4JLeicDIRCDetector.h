@@ -37,9 +37,6 @@ class G4JLeicDIRCDetector : public PHG4Detector
   const std::string SuperDetector() const { return m_SuperDetector; }
 
  protected:
-  int m_IsActiveFlag;
-  int m_IsAbsorberActiveFlag;
-  int m_Layers;
   PHParameters *m_Params;
   std::set<G4VPhysicalVolume *> m_PhysicalVolumesSet;
 
