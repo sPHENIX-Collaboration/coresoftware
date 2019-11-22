@@ -15,9 +15,8 @@
 
 using namespace std;
 
-G4JLeicBeamLineMagnetDisplayAction::G4JLeicBeamLineMagnetDisplayAction(const std::string &name, PHParameters *pars)
+G4JLeicBeamLineMagnetDisplayAction::G4JLeicBeamLineMagnetDisplayAction(const std::string &name)
   : PHG4DisplayAction(name)
-  , m_Params(pars)
 {
 }
 

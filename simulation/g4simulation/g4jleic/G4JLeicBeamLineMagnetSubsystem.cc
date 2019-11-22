@@ -48,7 +48,7 @@ int G4JLeicBeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
     PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
   // create display settings before detector
-  G4JLeicBeamLineMagnetDisplayAction *displayaction = new G4JLeicBeamLineMagnetDisplayAction(Name(), GetParams());
+  G4JLeicBeamLineMagnetDisplayAction *displayaction = new G4JLeicBeamLineMagnetDisplayAction(Name());
   m_DisplayAction = displayaction;
   /* create magnet */
   m_Detector = new G4JLeicBeamLineMagnetDetector(this, topNode, GetParams(), Name(), GetLayer());
