@@ -127,7 +127,7 @@ void G4JLeicVTXSubsystem::SetDefaultParameters()
   set_default_double_param(0, "Dy", 2.);
   set_default_double_param(0, "Dz", 10.);
   set_default_double_param(0, "Rin", 3.5);
-  set_default_double_param(0, "PixelDx", 10. / 10.);  // dz/10.
+  set_default_double_param(0, "PixelDx", 1.);  // dz/10. = 1.
   set_default_double_param(0, "PixelDy", 2. / 50.);   // dy/50
 
   set_default_double_param(1, "Dx", 0.005);
