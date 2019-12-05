@@ -7,7 +7,7 @@
 
 namespace Pythia8
 {
-  class Pythia;
+class Pythia;
 }
 
 class PHPy8JetTrigger : public PHPy8GenTrigger
@@ -32,7 +32,7 @@ class PHPy8JetTrigger : public PHPy8GenTrigger
   double _minPt;
   double _minZ;
   double _R;
-  int    _nconst;
+  int _nconst;
 };
 
 #endif

@@ -1,6 +1,6 @@
 #include "PHPy8JetTrigger.h"
 
-#include <Pythia8/Event.h>             // for Event, Particle
+#include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
 // fastjet includes
@@ -8,12 +8,12 @@
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
-#include <cmath>                      // for sqrt
-#include <cstdlib>                    // for abs
-#include <iostream>                    // for operator<<, endl, basic_ostream
-#include <memory>                      // for allocator_traits<>::value_type
-#include <utility>                     // for swap
-#include <vector>                      // for vector
+#include <cmath>     // for sqrt
+#include <cstdlib>   // for abs
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <memory>    // for allocator_traits<>::value_type
+#include <utility>   // for swap
+#include <vector>    // for vector
 
 using namespace std;
 
@@ -91,7 +91,6 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
     if (pt > _minPt && ijet_nconst >= _nconst)
     {
- 
       if (_minZ > 0.0)
       {
         // Loop over constituents, calculate the z of the leading particle
@@ -102,7 +101,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
                                fastjets[ijet].py() * fastjets[ijet].py() +
                                fastjets[ijet].pz() * fastjets[ijet].pz());
 
-       for (unsigned int j = 0; j < constituents.size(); j++)
+        for (unsigned int j = 0; j < constituents.size(); j++)
         {
           double con_ptot = sqrt(constituents[j].px() * constituents[j].px() +
                                  constituents[j].py() * constituents[j].py() +
