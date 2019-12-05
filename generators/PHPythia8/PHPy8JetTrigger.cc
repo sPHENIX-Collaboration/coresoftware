@@ -25,6 +25,7 @@ PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name)
   , _minPt(10.0)
   , _minZ(0.0)
   , _R(1.0)
+  , _nconst(0)
 {
 }
 
@@ -85,8 +86,12 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
     if (pt > max_pt) max_pt = pt;
 
-    if (pt > _minPt)
+    vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    int ijet_nconst = constituents.size();
+
+    if (pt > _minPt && ijet_nconst >= _nconst)
     {
+ 
       if (_minZ > 0.0)
       {
         // Loop over constituents, calculate the z of the leading particle
@@ -97,8 +102,7 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
                                fastjets[ijet].py() * fastjets[ijet].py() +
                                fastjets[ijet].pz() * fastjets[ijet].pz());
 
-        vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
-        for (unsigned int j = 0; j < constituents.size(); j++)
+       for (unsigned int j = 0; j < constituents.size(); j++)
         {
           double con_ptot = sqrt(constituents[j].px() * constituents[j].px() +
                                  constituents[j].py() * constituents[j].py() +
@@ -160,6 +164,11 @@ void PHPy8JetTrigger::SetMinLeadingZ(double minZ)
 void PHPy8JetTrigger::SetJetR(double R)
 {
   _R = R;
+}
+
+void PHPy8JetTrigger::SetMinNumConstituents(int nconst)
+{
+  _nconst = nconst;
 }
 
 void PHPy8JetTrigger::PrintConfig()
