@@ -1,128 +1,104 @@
-#ifndef PHG4OuterHcalDetector_h
-#define PHG4OuterHcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4OUTERHCALDETECTOR_H
+#define G4DETECTORS_PHG4OUTERHCALDETECTOR_H
 
-#include "g4main/PHG4Detector.h"
+#include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
+#include <Geant4/G4Types.hh>  // for G4double
+
+#include <CGAL/Exact_circular_kernel_2.h>
+#include <CGAL/point_generators_2.h>
 
 #include <map>
-#include <vector>
 #include <set>
+#include <string>   // for string
+#include <utility>  // for pair
+#include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHCompositeNode;
+class PHG4OuterHcalDisplayAction;
+class PHG4OuterHcalFieldSetup;
+class PHParameters;
+class PHG4Subsystem;
 
-
-class PHG4OuterHcalDetector: public PHG4Detector
+class PHG4OuterHcalDetector : public PHG4Detector
 {
-
-  public:
-
+ public:
+  typedef CGAL::Exact_circular_kernel_2 Circular_k;
+  typedef CGAL::Point_2<Circular_k> Point_2;
   //! constructor
-  PHG4OuterHcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK", const int lyr = 0 );
+  PHG4OuterHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *params, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4OuterHcalDetector();
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe(G4LogicalVolume *world);
+
+  virtual void Print(const std::string &what = "ALL") const;
 
   //!@name volume accessors
   //@{
-  int IsInOuterHcal(G4VPhysicalVolume*) const;
+  int IsInOuterHcal(G4VPhysicalVolume *) const;
   //@}
 
-  void SetPlaceZ(const G4double place_z) {place_in_z = place_z*cm;}
-  void SetPlace(const G4double place_x, const G4double place_y, const G4double place_z)
-  {
-    place_in_x = place_x*cm;
-    place_in_y = place_y*cm;
-    place_in_z = place_z*cm;
-  }
-  void SetXRot(const G4double angle) {x_rot = angle*rad;}
-  void SetYRot(const G4double angle) {y_rot = angle*rad;}
-  void SetZRot(const G4double angle) {z_rot = angle*rad;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetAbsorberActive(const int i = 1) {absorberactive = i;}
-  int IsActive() const {return active;}
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-  int get_Layer() const {return layer;}
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
+  int get_Layer() const { return m_Layer; }
+  void ShiftSecantToTangent(Point_2 &lowleft, Point_2 &upleft, Point_2 &upright, Point_2 &lowright);
+  int ConsistencyCheck() const;
+  void SetTiltViaNcross();
+  int CheckTiltAngle() const;
+  void ConstructHcalSingleScintillators(G4LogicalVolume *hcalenvelope);
+  G4VSolid *ConstructScintillatorBox(G4LogicalVolume *hcalenvelope);
+  std::pair<int, int> GetLayerTowerId(G4VPhysicalVolume *volume) const;
 
-  void BlackHole(const int i=1) {blackhole = i;}
-  int IsBlackHole() const {return blackhole;}
-  void SetStepLimits(const double slim) {steplimits = slim;}
+ protected:
+  int ConstructOuterHcal(G4LogicalVolume *hcalenvelope);
+  G4VSolid *ConstructSteelPlate(G4LogicalVolume *hcalenvelope);
+  G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume *hcalenvelope);
+  G4double x_at_y(Point_2 &p0, Point_2 &p1, G4double yin);
+  PHG4OuterHcalDisplayAction *m_DisplayAction;
+  PHG4OuterHcalFieldSetup *m_FieldSetup;
+  PHParameters *m_Params;
+  G4AssemblyVolume *m_ScintiMotherAssembly;
+  G4VSolid *m_SteelCutoutForMagnetG4Solid;
+  double m_InnerRadius;
+  double m_OuterRadius;
+  double m_SizeZ;
+  double m_ScintiTileX;
+  double m_ScintiTileXLower;
+  double m_ScintiTileXUpper;
+  double m_ScintiTileZ;
+  double m_ScintiTileThickness;
+  double m_ScintiGap;
+  double m_ScintiInnerRadius;
+  double m_ScintiOuterRadius;
+  double m_TiltAngle;
+  double m_EnvelopeInnerRadius;
+  double m_EnvelopeOuterRadius;
+  double m_EnvelopeZ;
+  double m_VolumeEnvelope;
+  double m_VolumeSteel;
+  double m_VolumeScintillator;
 
-  private:
-  void AddGeometryNode();
-  int ConstructOuterHcal(G4LogicalVolume* sandwich);
-  G4VSolid *ConstructHcalSteel(G4LogicalVolume* hcalenvelope);
-  G4VSolid *ConstructHcalScintillator(G4LogicalVolume* hcalenvelope);
-  int ConstructHcalSingleScintillator(G4LogicalVolume* hcalenvelope);
-  G4AssemblyVolume *ConstructHcalScintillatorAssembly(G4LogicalVolume* hcalenvelope);
-  int DisplayVolume(G4VSolid *volume,  G4LogicalVolume* logvol, G4RotationMatrix* rotm=NULL);
+  int m_NumScintiPlates;
+  int m_NumScintiTiles;
 
-  // for the initial trapezoid
-  G4double steel_rectangle_plate_x; // the rectangle after eta cutout
-  G4double steel_plate_x;
-  G4double steel_plate_yin;
-  G4double steel_plate_yout;
-  G4double steel_plate_z;
-  G4int n_steel_plates;
-  // the scintillator envelop
-  G4double scinti_tile_x;
-  G4double scinti_tile_y;
-  G4double scinti_tile_z;
-  G4double scinti_gap;
-  G4double scinti_eta_coverage;
-  G4double scinti_gap_neighbor;
-  G4int n_scinti_tiles;
-  G4double gap_between_tiles;
-  // the cylinder envelope
-  G4double envelope_inner_radius;
-  G4double envelope_outer_radius;
-  G4double envelope_z;
-  //
-  G4double tilt_angle;
-  // eta at which we cut the steel/scintillator plates to accomodate for magnet related cutout
-  G4double etacutline;
-  // the box we need to cut out
-  G4double cutbox_x;
-  G4double cutbox_y;
-  G4double cutbox_z;
-  G4double cuttrapezoid_x;
-  G4double cuttrapezoid_y;
-  G4double cuttrapezoid_z_short;
-  G4double cuttrapezoid_z_long;
-  G4double testbox_x[2];
-  G4double testbox_y[2];
-  G4double testbox_z[2];
-  std::set<G4VPhysicalVolume *>steel_absorber_vec;
-  std::set<G4VPhysicalVolume *>scinti_slats_vec;
-  /* G4VPhysicalVolume *inner_absorber; */
-  /* G4VPhysicalVolume *outer_scinti; */
-  /* G4VPhysicalVolume *outer_absorber; */
+  int m_ActiveFlag;
+  int m_AbsorberActiveFlag;
 
-   G4double place_in_x;
-   G4double place_in_y;
-   G4double place_in_z;
-   G4double x_rot;
-   G4double y_rot;
-   G4double z_rot;
-  int active;
-  int absorberactive;
-  int layer;
-  int blackhole;
-  G4double steplimits;
-  std::string detector_type;
-  std::string superdetector;
-  std::vector<G4VSolid *> scinti_tiles_vec; 
-  std::string scintilogicnameprefix;
+  int m_Layer;
+  std::string m_SuperDetector;
+  std::string m_ScintiLogicNamePrefix;
+  std::vector<G4VSolid *> m_ScintiTilesVec;
+  std::set<G4VPhysicalVolume *> m_SteelAbsorberVec;
+  std::map<G4VPhysicalVolume *, std::pair<int, int>> m_ScintiTilePhysVolMap;
 };
 
 #endif

@@ -1,16 +1,14 @@
 #include "PHG4BlockGeomContainer.h"
-#include "PHG4BlockGeom.h"
-#include <cmath>
 
-ClassImp(PHG4BlockGeomContainer)
+#include "PHG4BlockGeom.h"
+
+#include <cmath>
 
 using namespace std;
 
 PHG4BlockGeomContainer::PHG4BlockGeomContainer()
-{
-  _magfield = NAN;
-  return;
-}
+  :  _magfield(NAN)
+{}
 
 PHG4BlockGeomContainer::~PHG4BlockGeomContainer()
 {
@@ -28,7 +26,7 @@ PHG4BlockGeomContainer::identify(std::ostream& os) const
   os << "mag field: " << _magfield << endl;
   os << "number of layers: " << _layergeoms.size() << endl;
   map<int,PHG4BlockGeom *>::const_iterator iter;
-  for (iter=_layergeoms.begin(); iter != _layergeoms.end(); iter++)
+  for (iter=_layergeoms.begin(); iter != _layergeoms.end(); ++iter)
   {
     (iter->second)->identify(os);
   }
@@ -70,6 +68,6 @@ PHG4BlockGeomContainer::GetLayerGeom(const int i)
     return iter->second;
   }
   cout << "Could not locate layer " << i << " in PHG4BlockGeomContainer" << endl;
-  return NULL;
+  return nullptr;
 }
 

@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<HIJING>
+  <EFRM>200.0</EFRM>
+  <FRAME>CMS</FRAME>
+  <PROJ>A</PROJ>
+  <TARG>A</TARG>
+  <IAP>197</IAP>
+  <IZP>79</IZP>
+  <IAT>197</IAT>
+  <IZT>79</IZT>
+  <!-- number of events -->
+  <N>20</N>
+  <BMIN>0</BMIN>
+  <BMAX>4</BMAX>
+  <KEEP_SPECTATORS>1</KEEP_SPECTATORS>
+  <OUTPUT>sHijing.dat</OUTPUT>
+<!-- random number seed if we want to fix it, default is random
+  <RANDOM>
+    <SEED>11793</SEED>
+  </RANDOM>
+-->
+  <HIPR1>
+    <5>5.0</5>
+  </HIPR1>
+  <IHPR2>
+    <2>1</2>
+    <21>1</21>
+  </IHPR2>
+  <FastJet>
+    <Algorithm>
+      <Name>AntikT</Name>
+      <R>0.2</R>		
+      <PID>2000000</PID>		    
+      <EtaMin>-2</EtaMin>	      
+      <EtaMax>2</EtaMax>	      
+      <EtMin>2</EtMin>	 	
+    </Algorithm>
+    <Algorithm>
+      <Name>AntikT</Name>
+      <R>0.4</R>		
+      <PID>4000000</PID>		    
+      <EtaMin>-2</EtaMin>	      
+      <EtaMax>2</EtaMax>	      
+      <EtMin>2</EtMin>	 	
+    </Algorithm>
+    <Algorithm>
+      <Name>AntikT</Name>
+      <R>0.6</R>		
+      <PID>6000000</PID>		    
+      <EtaMin>-2</EtaMin>	      
+      <EtaMax>2</EtaMax>	      
+      <EtMin>2</EtMin>	 	
+    </Algorithm>
+  </FastJet>
+</HIJING>

@@ -1,0 +1,11 @@
+      FVOIDP FUNCTION HIPARNT_ADDRESS() 
+
+      COMMON/HIPARNT/HIPR1(100),IHPR2(50),HINT1(100),IHNT2(50)
+      SAVE  /HIPARNT/
+      EXTERNAL HIDATA ! All that is required to force loading of BLOCK DATA
+      FVOIDP GETADDR
+
+      HIPARNT_ADDRESS = GETADDR(HIPR1(1))
+      
+      RETURN
+      END

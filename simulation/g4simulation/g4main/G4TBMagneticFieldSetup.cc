@@ -33,43 +33,31 @@
 
 #include "G4TBMagneticFieldSetup.hh"
 #include "G4TBFieldMessenger.hh"
+#include "PHG4MagneticField.h"
 
-#include <g4field/PHG4Field2D.h>
-#include <g4field/PHG4Field3D.h>
-#include <g4field/PHG4FieldsPHENIX.h>
 
-#include <fun4all/Fun4AllServer.h>
-#include <fun4all/getClass.h>
-
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNodeIterator.h>
-
-#include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4UniformMagField.hh>
 #include <Geant4/G4MagneticField.hh>
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4EquationOfMotion.hh>
-#include <Geant4/G4EqMagElectricField.hh>
 #include <Geant4/G4Mag_UsualEqRhs.hh>
 #include <Geant4/G4MagIntegratorStepper.hh>
 #include <Geant4/G4MagIntegratorDriver.hh>
 #include <Geant4/G4ChordFinder.hh>
-
 #include <Geant4/G4ExplicitEuler.hh>
 #include <Geant4/G4ImplicitEuler.hh>
 #include <Geant4/G4SimpleRunge.hh>
 #include <Geant4/G4SimpleHeum.hh>
 #include <Geant4/G4ClassicalRK4.hh>
-#include <Geant4/G4HelixExplicitEuler.hh>
-#include <Geant4/G4HelixImplicitEuler.hh>
-#include <Geant4/G4HelixSimpleRunge.hh>
 #include <Geant4/G4CashKarpRKF45.hh>
-#include <Geant4/G4RKG3_Stepper.hh>
+#include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ios.hh>                     // for G4cout, G4endl
 
-
-#include <sstream>
+#include <cassert>
+#include <cstdlib>                            // for exit, size_t
+#include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -77,51 +65,15 @@ using namespace std;
 //
 //  Constructors:
 
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
-  : verbosity(0), fChordFinder(0), fStepper(0), fIntgrDriver(0)
-{
-  //solenoidal field along the axis of the cyclinders?
-  fEMfield = new G4UniformMagField(G4ThreeVector(0.0, 0.0, magfield*tesla));
-  fFieldMessenger = new G4TBFieldMessenger(this) ;
-  fEquation = new  G4Mag_UsualEqRhs(fEMfield);
-  fMinStep     = 0.005 * mm ; // minimal step of 10 microns
-  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
-
-  fFieldManager = GetGlobalFieldManager();
-  UpdateField();
-
-  double point[4] = {0,0,0,0};
-  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
-  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
-    {
-      magfield_at_000[i] = magfield_at_000[i]/tesla;
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
-G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const int dim)
+G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(PHField * phfield)
   : verbosity(0),
     fChordFinder(0), 
     fStepper(0),
     fIntgrDriver(0)
 {    
+  assert(phfield);
 
-  switch(dim)
-    {
-    case 1: 
-      fEMfield = new PHG4FieldsPHENIX(fieldmapname);
-      break;
-    case 2: 
-      fEMfield = new PHG4Field2D(fieldmapname);
-      break;
-    case 3:
-      fEMfield = new PHG4Field3D(fieldmapname);
-      break;
-    default:
-      cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << endl;
-      exit(1);
-    }
+  fEMfield = new PHG4MagneticField(phfield);
   fFieldMessenger = new G4TBFieldMessenger(this) ;  
   fEquation = new  G4Mag_UsualEqRhs(fEMfield); 
   fMinStep     = 0.005*mm ; // minimal step of 10 microns
@@ -138,11 +90,78 @@ G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const
   if (verbosity > 0)
     {
       cout << "field: x" << magfield_at_000[0]
-	   << ", y: " << magfield_at_000[1]
-	   << ", z: " << magfield_at_000[2]
-	   << endl;
+     << ", y: " << magfield_at_000[1]
+     << ", z: " << magfield_at_000[2]
+     << endl;
     }
 }
+
+//G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const float magfield)
+//  : verbosity(0), fChordFinder(0), fStepper(0), fIntgrDriver(0)
+//{
+//  //solenoidal field along the axis of the cyclinders?
+//  fEMfield = new G4UniformMagField(G4ThreeVector(0.0, 0.0, magfield*tesla));
+//  fFieldMessenger = new G4TBFieldMessenger(this) ;
+//  fEquation = new  G4Mag_UsualEqRhs(fEMfield);
+//  fMinStep     = 0.005 * mm ; // minimal step of 10 microns
+//  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
+//
+//  fFieldManager = GetGlobalFieldManager();
+//  UpdateField();
+//
+//  double point[4] = {0,0,0,0};
+//  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
+//  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
+//    {
+//      magfield_at_000[i] = magfield_at_000[i]/tesla;
+//    }
+//}
+//
+///////////////////////////////////////////////////////////////////////////////////
+//
+//G4TBMagneticFieldSetup::G4TBMagneticFieldSetup(const string &fieldmapname, const int dim, const float magfield_rescale)
+//  : verbosity(0),
+//    fChordFinder(0),
+//    fStepper(0),
+//    fIntgrDriver(0)
+//{
+//
+//  switch(dim)
+//    {
+//    case 1:
+//      fEMfield = new PHG4FieldsPHENIX(fieldmapname,magfield_rescale);
+//      break;
+//    case 2:
+//      fEMfield = new PHG4Field2D(fieldmapname,0,magfield_rescale);
+//      break;
+//    case 3:
+//      fEMfield = new PHG4Field3D(fieldmapname,0,magfield_rescale);
+//      break;
+//    default:
+//      cout << "Invalid dimension, valid is 2 for 2D, 3 for 3D" << endl;
+//      exit(1);
+//    }
+//  fFieldMessenger = new G4TBFieldMessenger(this) ;
+//  fEquation = new  G4Mag_UsualEqRhs(fEMfield);
+//  fMinStep     = 0.005*mm ; // minimal step of 10 microns
+//  fStepperType = 4 ;        // ClassicalRK4 -- the default stepper
+//
+//  fFieldManager = GetGlobalFieldManager();
+//  UpdateField();
+//  double point[4] = {0,0,0,0};
+//  fEMfield->GetFieldValue(&point[0],&magfield_at_000[0]);
+//  for (size_t i=0; i<sizeof(magfield_at_000)/sizeof(double);i++)
+//    {
+//      magfield_at_000[i] = magfield_at_000[i]/tesla;
+//    }
+//  if (verbosity > 0)
+//    {
+//      cout << "field: x" << magfield_at_000[0]
+//	   << ", y: " << magfield_at_000[1]
+//	   << ", z: " << magfield_at_000[2]
+//	   << endl;
+//    }
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -219,25 +238,25 @@ void G4TBMagneticFieldSetup::SetStepper()
       message << "Stepper in use: G4CashKarpRKF45";     
       break;
     case 6:  
-      fStepper = NULL; // new G4RKG3_Stepper( fEquation, nvar );       
+      fStepper = nullptr; // new G4RKG3_Stepper( fEquation, nvar );       
       message << "G4RKG3_Stepper is not currently working for Magnetic Field";
       break;
     case 7:  
-      fStepper = NULL; // new G4HelixExplicitEuler( fEquation ); 
+      fStepper = nullptr; // new G4HelixExplicitEuler( fEquation ); 
       message << "G4HelixExplicitEuler is not valid for Magnetic Field";     
       break;
     case 8:  
-      fStepper = NULL; // new G4HelixImplicitEuler( fEquation ); 
+      fStepper = nullptr; // new G4HelixImplicitEuler( fEquation ); 
       message << "G4HelixImplicitEuler is not valid for Magnetic Field";     
       break;
     case 9:  
-      fStepper = NULL; // new G4HelixSimpleRunge( fEquation );   
+      fStepper = nullptr; // new G4HelixSimpleRunge( fEquation );   
       message << "G4HelixSimpleRunge is not valid for Magnetic Field";     
       break;
-    default: fStepper = NULL;
+    default: fStepper = nullptr;
   }
     
-  if (verbosity >= 0) {
+  if (verbosity > 0) {
     G4cout << " ---------- G4TBMagneticFieldSetup::SetStepper() -----------" << G4endl;
     G4cout << "  " << message.str() << endl;
     G4cout << "  Minimum step size: " << fMinStep/mm << " mm" << G4endl;
@@ -290,12 +309,10 @@ void G4TBMagneticFieldSetup::SetFieldValue(const G4ThreeVector fieldVector)
   {
     // If the new field's value is Zero, then it is best to
     //  insure that it is not used for propagation.
-    if(fEMfield) delete fEMfield;
-    fEMfield = 0;
+    delete fEMfield;
+    fEMfield = nullptr;
     fEquation->SetFieldObj(fEMfield);   // As a double check ...
-
-    G4MagneticField* fEMfield = 0;
-     fieldMgr->SetDetectorField(fEMfield);
+    fieldMgr->SetDetectorField(fEMfield);
   }
 }
 

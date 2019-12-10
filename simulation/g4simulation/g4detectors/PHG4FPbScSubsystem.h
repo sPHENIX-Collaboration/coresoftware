@@ -1,14 +1,17 @@
-#ifndef PHG4FPbScSubsystem_h
-#define PHG4FPbScSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FPBSCSUBSYSTEM_H
+#define G4DETECTORS_PHG4FPBSCSUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
+#include <string>                  // for string
 
+class PHCompositeNode;
+class PHG4Detector;
 class PHG4FPbScDetector;
-class PHG4FPbScSteppingAction;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4FPbScSubsystem: public PHG4Subsystem
 {
@@ -16,7 +19,7 @@ class PHG4FPbScSubsystem: public PHG4Subsystem
   public:
     
     //! constructor
-    PHG4FPbScSubsystem( const char* name = "FPBSC" );
+  PHG4FPbScSubsystem( const std::string &name = "FPBSC" );
     
     //! destructor
     virtual ~PHG4FPbScSubsystem( void )
@@ -58,7 +61,7 @@ class PHG4FPbScSubsystem: public PHG4Subsystem
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-    PHG4FPbScSteppingAction* steppingAction_;
+    PHG4SteppingAction* steppingAction_;
     PHG4EventAction *eventAction_;
     
     double x_position;

@@ -1,0 +1,11 @@
+This is a README file for the package.
+
+--
+HIJING 1_383bs.2
+
+internal "bug-fixed" special version in GENSER
+Routines and common blocks beginning from "py" are renamed: "py" is substituted
+by "pyhi". This way hijing hopefully can be used together with pythia.
+
+NMXHEP for HEPEVT is 10000, PHEP and VHEP in double precision. HEPEVT is
+compatible for example with pythia 6_326.2

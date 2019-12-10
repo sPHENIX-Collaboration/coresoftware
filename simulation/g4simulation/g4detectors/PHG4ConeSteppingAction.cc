@@ -4,20 +4,50 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-
+#include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>        // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
+#include <Geant4/G4ParticleDefinition.hh>     // for G4ParticleDefinition
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>             // for fGeomBoundary, fUndefined
+#include <Geant4/G4String.hh>                 // for G4String
+#include <Geant4/G4SystemOfUnits.hh>          // for cm, nanosecond, GeV
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <iostream>
+#include <string>                             // for string, operator+, oper...
+
+class G4VPhysicalVolume;
+class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
 PHG4ConeSteppingAction::PHG4ConeSteppingAction( PHG4ConeDetector* detector ):
-  detector_( detector )
+  PHG4SteppingAction(detector->GetName()),
+  detector_( detector ),
+  hits_(nullptr),
+  hit(nullptr),
+  saveshower(nullptr)
 {}
+
+PHG4ConeSteppingAction::~PHG4ConeSteppingAction()
+{
+  // if the last hit was a zero energie deposit hit, it is just reset
+  // and the memory is still allocated, so we need to delete it here
+  // if the last hit was saved, hit is a nullptr pointer which are
+  // legal to delete (it results in a no operation)
+  delete hit;
+}
 
 //____________________________________________________________________________..
 bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
@@ -31,7 +61,7 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = 0;
+  int layer_id =  detector_->get_Layer();
   // make sure we are in a volume
   if ( detector_->IsInConeActive(volume) )
     {
@@ -53,32 +83,31 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
         {
         case fGeomBoundary:
         case fUndefined:
-          hit = new PHG4Hitv1();
+	  if (! hit)
+	    {
+	      hit = new PHG4Hitv1();
+	    }
           //here we set the entrance values in cm
           hit->set_x( 0, prePoint->GetPosition().x() / cm);
           hit->set_y( 0, prePoint->GetPosition().y() / cm );
           hit->set_z( 0, prePoint->GetPosition().z() / cm );
 	  // time in ns
           hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
-          //set the track ID
-	  {
-	    int trkoffset = 0;
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
-	      {
-		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
-		  {
-		    trkoffset = pp->GetTrackIdOffset();
-		  }
-	      }
-	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
-	  }
+ 	  //set the track ID
+	  hit->set_trkid(aTrack->GetTrackID());
+	  //set the initial energy deposit
+	  hit->set_edep(0);
 
-          //set the initial energy deposit
-          hit->set_edep(0);
-
-          // Now add the hit
-          hits_->AddHit(layer_id, hit);
-
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  hit->set_trkid(pp->GetUserTrackId());
+		  hit->set_shower_id(pp->GetShower()->get_id());
+		  saveshower = pp->GetShower();
+		}
+	    }
+	  
           break;
         default:
           break;
@@ -108,8 +137,35 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 	      }
 	}
 
-      //       hit->identify();
-      // return true to indicate the hit was used
+      // if any of these conditions is true this is the last step in
+      // this volume and we need to save the hit
+      // postPoint->GetStepStatus() == fGeomBoundary: track leaves this volume
+      // postPoint->GetStepStatus() == fWorldBoundary: track leaves this world
+      // (not sure if this will ever be the case)
+      // aTrack->GetTrackStatus() == fStopAndKill: track ends
+      if (postPoint->GetStepStatus() == fGeomBoundary || postPoint->GetStepStatus() == fWorldBoundary|| aTrack->GetTrackStatus() == fStopAndKill)
+	{
+          // save only hits with energy deposit (or -1 for geantino)
+	  if (hit->get_edep())
+	    {
+	      hits_->AddHit(layer_id, hit);
+	      if (saveshower)
+		{
+		  saveshower->add_g4hit_id(hits_->GetID(),hit->get_hit_id());
+		}
+	      // ownership has been transferred to container, set to null
+	      // so we will create a new hit for the next track
+	      hit = nullptr;
+	    }
+	  else
+	    {
+	      // if this hit has no energy deposit, just reset it for reuse
+	      // this means we have to delete it in the dtor. If this was
+	      // the last hit we processed the memory is still allocated
+	      hit->Reset();
+	    }
+ 	}
+       // return true to indicate the hit was used
       return true;
 
     }

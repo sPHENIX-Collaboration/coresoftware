@@ -1,5 +1,5 @@
-// $$Id: PHG4SpacalSteppingAction.h,v 1.1 2014/03/24 01:36:44 jinhuang Exp $$
-
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  * \file ${file_name}
  * \brief
@@ -8,52 +8,53 @@
  * \date $$Date: 2014/03/24 01:36:44 $$
  */
 
-#ifndef PHG4VHcalSteppingAction_h
-#define PHG4VHcalSteppingAction_h
+#ifndef G4DETECTORS_PHG4SPACALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4SPACALSTEPPINGACTION_H
 
-#include "g4main/PHG4SteppingAction.h"
-#include <string>
+#include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4SpacalDetector;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4SpacalSteppingAction : public PHG4SteppingAction
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4SpacalSteppingAction(PHG4SpacalDetector*);
+  explicit PHG4SpacalSteppingAction(PHG4SpacalDetector *);
 
   //! destroctor
-  virtual
-  ~PHG4SpacalSteppingAction()
-  {
-  }
+  virtual ~PHG4SpacalSteppingAction();
 
   //! stepping action
   virtual bool
-  UserSteppingAction(const G4Step*, bool);
+  UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
   virtual void
-  SetInterfacePointers(PHCompositeNode*);
+  SetInterfacePointers(PHCompositeNode *);
 
   double
   get_zmin();
 
   double
   get_zmax();
-private:
 
+ private:
   //! pointer to the detector
-  PHG4SpacalDetector* detector_;
+  PHG4SpacalDetector *detector_;
 
-//! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
+  //! pointer to hit container
+  PHG4HitContainer *hits_;
+  PHG4HitContainer *absorberhits_;
   PHG4Hit *hit;
+  PHG4HitContainer *savehitcontainer;
+  PHG4Shower *saveshower;
+  int savetrackid;
+  int savepoststepstatus;
 };
 
-#endif // PHG4VHcalSteppingAction_h
+#endif  // PHG4VHcalSteppingAction_h

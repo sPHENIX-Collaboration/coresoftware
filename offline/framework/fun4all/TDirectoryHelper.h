@@ -1,25 +1,26 @@
-#ifndef __TDirectoryHelper_h__
-#define __TDirectoryHelper_h__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FUN4ALL_TDIRECTORYHELPER_H
+#define FUN4ALL_TDIRECTORYHELPER_H
+
+#include <string>
+#include <vector>
 
 class TH1;
 class TDirectory;
 class TFile;
 
-#include <string>
-#include <vector>
-
-class TDirectoryHelper 
+class TDirectoryHelper
 {
-public:
-
+ public:
   static void duplicateDir(TDirectory* dest, TDirectory* source);
-  
-  static TH1* getHisto(TDirectory* dir, const std::string& histoname, 
-		       const std::string& where);
-  
-  static TDirectory* mkdir(TDirectory* topDir, 
-			   const char* path, 
-			   std::vector<std::string>* titles=0);
+
+  static TH1* getHisto(TDirectory* dir, const std::string& histoname,
+                       const std::string& where);
+
+  static TDirectory* mkdir(TDirectory* topDir,
+                           const char* path,
+                           std::vector<std::string>* titles = 0);
 
   static bool mkpath(TDirectory* dir, const std::string& path);
 
@@ -28,7 +29,7 @@ public:
   static bool pathIsInDir(const std::string& path, TDirectory* dir);
 
   static void splitPath(const std::string& path,
-			std::vector<std::string>& paths);
+                        std::vector<std::string>& paths);
 };
 
 #endif

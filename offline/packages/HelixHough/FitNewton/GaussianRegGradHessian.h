@@ -1,8 +1,16 @@
-#ifndef __GAUSSIANREGGRADHESSIAN__
-#define __GAUSSIANREGGRADHESSIAN__
+#ifndef FITNEWTON_GAUSSIANREGGRADHESSIAN_H
+#define FITNEWTON_GAUSSIANREGGRADHESSIAN_H
 
 #include "FunctionGradHessian.h"
-#include "Pincushion.h"
+#include "Seamstress.h"
+
+#include <Eigen/Core>
+
+#include <cstddef>
+#include <pthread.h>
+#include <vector>
+
+namespace SeamStress { template <class TClass> class Pincushion; }
 
 namespace FitNewton
 {

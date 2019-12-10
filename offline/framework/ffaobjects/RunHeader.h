@@ -1,5 +1,7 @@
-#ifndef RUNHEADER_H
-#define RUNHEADER_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_RUNHEADER_H
+#define FFAOBJECTS_RUNHEADER_H
 
 #include <phool/PHObject.h>
 
@@ -14,7 +16,7 @@ class RunHeader: public PHObject
   /// dtor
   virtual ~RunHeader() {}
 
-  virtual RunHeader* clone() const;
+  virtual PHObject* CloneMe() const;
 
   /// Clear Event
   virtual void Reset();

@@ -1,9 +1,13 @@
-#ifndef PHG4CylinderGeomContainer_H__
-#define PHG4CylinderGeomContainer_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMCONTAINER_H
+#define G4DETECTORS_PHG4CYLINDERGEOMCONTAINER_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
+#include <utility>           // for make_pair, pair
 
 class PHG4CylinderGeom;
 
@@ -24,6 +28,7 @@ class PHG4CylinderGeomContainer: public PHObject
   int AddLayerGeom(const int i, PHG4CylinderGeom *mygeom);
   int AddLayerGeom(PHG4CylinderGeom *mygeom);
   PHG4CylinderGeom *GetLayerGeom(const int i);
+  PHG4CylinderGeom *GetFirstLayerGeom();
   int get_NLayers() const {return layergeoms.size();}
   std::pair<std::map<int,PHG4CylinderGeom *>::const_iterator, std::map<int,PHG4CylinderGeom *>::const_iterator> get_begin_end() const {return std::make_pair(layergeoms.begin(), layergeoms.end());}
 

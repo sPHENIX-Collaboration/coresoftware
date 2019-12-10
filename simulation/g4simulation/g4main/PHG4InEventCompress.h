@@ -1,8 +1,13 @@
-#ifndef PHG4INEVENTCOMPRESS_H
-#define PHG4INEVENTCOMPRESS_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4INEVENTCOMPRESS_H
+#define G4MAIN_PHG4INEVENTCOMPRESS_H
 
 #include <fun4all/SubsysReco.h>
 
+#include <string>                // for string
+
+class PHCompositeNode;
 class VariableArray;
 
 class PHG4InEventCompress: public SubsysReco

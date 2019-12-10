@@ -1,65 +1,66 @@
-#ifndef PHG4PhenixDetector_h
-#define PHG4PhenixDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PHENIXDETECTOR_H
+#define G4MAIN_PHG4PHENIXDETECTOR_H
 
 #include <Geant4/G4VUserDetectorConstruction.hh>
-#include <Geant4/globals.hh>
-#include <list>
+#include <Geant4/G4Types.hh>                      // for G4double
 
-class PHG4Detector;
-class G4Material;
+#include <list>
+#include <string>                                 // for string
+
 class G4LogicalVolume;
 class G4VPhysicalVolume;
+class PHG4Detector;
+class PHG4PhenixDisplayAction;
+class PHG4Reco;
 
 //! this is the main detector construction class, passed to geant to construct the entire phenix detector
-class PHG4PhenixDetector: public G4VUserDetectorConstruction
+class PHG4PhenixDetector : public G4VUserDetectorConstruction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4PhenixDetector();
+  PHG4PhenixDetector(PHG4Reco* subsys);
 
   //! destructor
-  virtual ~PHG4PhenixDetector()
-  {}
+  virtual ~PHG4PhenixDetector();
 
-  void Verbosity(int verb) {verbosity = verb;}
-  
+  void Verbosity(const int verb) { m_Verbosity = verb; }
+  int Verbosity() const { return m_Verbosity; }
+
   //! register a detector. This is called in PHG4Reco::Init based on which detectors are found on the tree
-  void AddDetector( PHG4Detector* detector )
-  { detectors_.push_back( detector ); }
+  void AddDetector(PHG4Detector* detector)
+  {
+    m_DetectorList.push_back(detector);
+  }
 
   //! this is called by geant to actually construct all detectors
-  virtual G4VPhysicalVolume* Construct( void );
+  virtual G4VPhysicalVolume* Construct();
 
-  G4double GetWorldSizeX() const
-  {return WorldSizeX;}
+  G4double GetWorldSizeX() const { return WorldSizeX; }
 
-  G4double GetWorldSizeY() const
-  {return WorldSizeY;}
-  G4double GetWorldSizeZ() const
-  {return WorldSizeZ;}
+  G4double GetWorldSizeY() const { return WorldSizeY; }
+  G4double GetWorldSizeZ() const { return WorldSizeZ; }
 
-  void SetWorldSizeX(const G4double sx) {WorldSizeX = sx;}
-  void SetWorldSizeY(const G4double sy) {WorldSizeY = sy;}
-  void SetWorldSizeZ(const G4double sz) {WorldSizeZ = sz;}
+  void SetWorldSizeX(const G4double sx) { WorldSizeX = sx; }
+  void SetWorldSizeY(const G4double sy) { WorldSizeY = sy; }
+  void SetWorldSizeZ(const G4double sz) { WorldSizeZ = sz; }
 
-  void SetWorldShape(const std::string &s) {worldshape = s;}
-  void SetWorldMaterial(const std::string &s) {worldmaterial = s;}
+  void SetWorldShape(const std::string& s) { worldshape = s; }
+  void SetWorldMaterial(const std::string& s) { worldmaterial = s; }
+  G4VPhysicalVolume* GetPhysicalVolume(void) { return physiWorld; }
 
-  protected:
+ private:
+  PHG4PhenixDisplayAction* m_DisplayAction;
 
-  private:
-  int verbosity;
-  
+  int m_Verbosity;
+
   //! list of detectors to be constructed
-  typedef std::list<PHG4Detector*> DetectorList;
-  DetectorList detectors_;
 
-  G4Material* defaultMaterial;
+  std::list<PHG4Detector*> m_DetectorList;
 
-  G4LogicalVolume* logicWorld; //pointer to the logical World
-  G4VPhysicalVolume* physiWorld; //pointer to the physical World
+  G4LogicalVolume* logicWorld;    //pointer to the logical World
+  G4VPhysicalVolume* physiWorld;  //pointer to the physical World
   G4double WorldSizeX;
   G4double WorldSizeY;
   G4double WorldSizeZ;
@@ -67,4 +68,4 @@ class PHG4PhenixDetector: public G4VUserDetectorConstruction
   std::string worldmaterial;
 };
 
-#endif
+#endif  // G4MAIN_PHG4PHENIXDETECTOR_H

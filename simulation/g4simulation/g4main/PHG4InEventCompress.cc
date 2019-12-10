@@ -1,4 +1,5 @@
 #include "PHG4InEventCompress.h"
+
 #include "PHG4InEvent.h"
 #include "PHG4VtxPoint.h"
 #include "PHG4Particle.h"
@@ -8,19 +9,26 @@
 #include <vararray/VariableArrayUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/phool.h>
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 
 #include <cstdlib>
 #include <iostream>
+#include <map>                            // for _Rb_tree_const_iterator
+#include <utility>                        // for pair
 #include <vector>
 
 using namespace std;
 
-PHG4InEventCompress::PHG4InEventCompress(const std::string &name): SubsysReco(name)
+PHG4InEventCompress::PHG4InEventCompress(const std::string &name): 
+  SubsysReco(name),
+  vtxarray(nullptr),
+  particlearray(nullptr)
 {}
 
 int
@@ -56,7 +64,7 @@ PHG4InEventCompress::process_event(PHCompositeNode *topNode)
   map<int, PHG4VtxPoint *>::const_iterator vtxiter;
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end = inEvent->GetVertices();
   vector<short> svtxvec;
-  for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; vtxiter++)
+  for (vtxiter = vtxbegin_end.first; vtxiter != vtxbegin_end.second; ++vtxiter)
     {
       if ((*vtxiter).first > 0xFFFF)
 	{
@@ -74,7 +82,7 @@ PHG4InEventCompress::process_event(PHCompositeNode *topNode)
   pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = inEvent->GetParticles();
   multimap<int,PHG4Particle *>::const_iterator particle_iter;
   vector<short> spartvec;
-  for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
+  for (particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
     {
       if ((*particle_iter).first > 0xFFFF)
 	{

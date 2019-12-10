@@ -1,5 +1,7 @@
-#ifndef PHG4VUserTrackingAction_h
-#define PHG4VUserTrackingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PHENIXTRACKINGACTION_H
+#define G4MAIN_PHG4PHENIXTRACKINGACTION_H
 
 #include <Geant4/G4UserTrackingAction.hh>
 #include <list>
@@ -15,7 +17,7 @@ class PHG4PhenixTrackingAction : public G4UserTrackingAction
 public:
   PHG4PhenixTrackingAction( void ) : verbosity_(0) {}
 
-  virtual ~PHG4PhenixTrackingAction() {}
+  virtual ~PHG4PhenixTrackingAction();
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
   void AddAction( PHG4TrackingAction* action ) { actions_.push_back( action ); }

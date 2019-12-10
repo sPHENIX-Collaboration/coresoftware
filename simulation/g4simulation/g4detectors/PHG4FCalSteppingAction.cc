@@ -1,19 +1,35 @@
 #include "PHG4FCalSteppingAction.h"
+
 #include "PHG4FCalDetector.h"
+
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Hitv1.h>
+#include <g4main/PHG4Shower.h>
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
+
+#include <iostream>                           // for operator<<, endl, basic...
+#include <map>                                // for _Rb_tree_iterator
+#include <utility>                            // for pair
+
+class G4VPhysicalVolume;
 
 using namespace std;
 
 
-PHG4FCalSteppingAction::PHG4FCalSteppingAction( PHG4FCalDetector* detector ) : detector_( detector )
+PHG4FCalSteppingAction::PHG4FCalSteppingAction( PHG4FCalDetector* detector ) :
+    detector_( detector ), hits_(nullptr), hit(nullptr)
 {
   
 }
@@ -65,6 +81,29 @@ void PHG4FCalSteppingAction::UserSteppingAction( const G4Step* aStep)
     PHG4TrackUserInfoV1* pv = new PHG4TrackUserInfoV1();
     pv->SetWanted(true);
     aTrack->SetUserInformation(pv);
+  }
+
+  //set the track ID
+  {
+    hit->set_trkid(aTrack->GetTrackID());
+    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+      {
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    mhit->set_trkid(pp->GetUserTrackId());
+	    mhit->set_shower_id(pp->GetShower()->get_id());
+	  }
+      }
+  }
+
+  {
+    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+      {
+	if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+	  {
+	    pp->GetShower()->add_g4hit_id(hits_->GetID(),mhit->get_hit_id());
+	  }
+      }
   }
   
 }

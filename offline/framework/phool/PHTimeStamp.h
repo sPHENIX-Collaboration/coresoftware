@@ -7,74 +7,70 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef PHTIMESTAMP_H__
-#define PHTIMESTAMP_H__
+#ifndef PHOOL_PHTIMESTAMP_H
+#define PHOOL_PHTIMESTAMP_H
 
-#include <ctime>
 #include "PHObject.h"
 
-
+#include <ctime>
+#include <iosfwd> 
 
 typedef unsigned long long phtime_t;
 
-  class  PHTimeStamp : public PHObject
-{ 
+class PHTimeStamp : public PHObject
+{
+ public:
+  static const unsigned long long PHFarFuture;  // set to ULLONG_MAX
 
-  public:
-    enum { PHFarFuture = 2147483647 };
-   
-    PHTimeStamp();
+  PHTimeStamp();
 
-    PHTimeStamp(const int, const int, const int, const int, const int, const int, const int = 0);
-    PHTimeStamp(const time_t);
-    void setBinTics(const phtime_t t);
-   
-    virtual ~PHTimeStamp() {}
+  PHTimeStamp(const int, const int, const int, const int, const int, const int, const int = 0);
+  PHTimeStamp(const time_t);
+  void setBinTics(const phtime_t t);
 
-  public: 
-    void set(const int, const int, const int, const int, const int, const int, const int = 0);
+  virtual ~PHTimeStamp() {}
 
-    void set(const char *);
+ public:
+  void set(const int, const int, const int, const int, const int, const int, const int = 0);
 
-    void setToSystemTime();
-    void setToFarFuture() { setTics(PHFarFuture); }
-   
-    phtime_t getBinaryTime() const { return binaryTime; }
-    time_t getTics() const;
-    void   setTics(const time_t);
+  void set(const char *);
 
-    int isInRange(const PHTimeStamp &, const PHTimeStamp &);
-    void print();
-   
-    int operator == (const PHTimeStamp &) const;
-    int operator != (const PHTimeStamp &) const;
-    int operator >  (const PHTimeStamp &) const;
-    int operator >= (const PHTimeStamp &) const;
-    int operator <  (const PHTimeStamp &) const;
-    int operator <= (const PHTimeStamp &) const;
+  void setToSystemTime();
+  void setToFarFuture() { setTics(PHFarFuture); }
+  phtime_t getBinaryTime() const { return binaryTime; }
+  time_t getTics() const;
+  void setTics(const time_t);
 
-    PHTimeStamp & operator =  (const PHTimeStamp &);
-    PHTimeStamp   operator += (time_t);
-    PHTimeStamp   operator -= (time_t);
+  int isInRange(const PHTimeStamp &, const PHTimeStamp &);
+  void print();
 
+  int operator==(const PHTimeStamp &) const;
+  int operator!=(const PHTimeStamp &) const;
+  int operator>(const PHTimeStamp &) const;
+  int operator>=(const PHTimeStamp &) const;
+  int operator<(const PHTimeStamp &) const;
+  int operator<=(const PHTimeStamp &) const;
 
-    char * formatTimeString() const;
-    void print() const;
-  
-  private:
-    phtime_t ticsToBinaryTime(time_t) const;
-    time_t   binaryTimeToTics(phtime_t) const;
-  
-  protected: 
-    phtime_t binaryTime;
-    ClassDef(PHTimeStamp,1)
-  }; 
+  PHTimeStamp operator+=(time_t);
+  PHTimeStamp operator-=(time_t);
 
-  PHTimeStamp operator + (const PHTimeStamp &, time_t);
-  PHTimeStamp operator - (const PHTimeStamp &, time_t);
-  time_t      operator - (const PHTimeStamp &, const PHTimeStamp &);
+  char *formatTimeString() const;
+  void print() const;
 
-  std::ostream &   operator << (std::ostream &, const PHTimeStamp &);
-  std::istream &   operator >> (std::istream &, PHTimeStamp &);
-   
-#endif /* __PHTIMESTAMP_H__ */ 
+ private:
+  phtime_t ticsToBinaryTime(time_t) const;
+  time_t binaryTimeToTics(phtime_t) const;
+
+ protected:
+  phtime_t binaryTime;
+  ClassDef(PHTimeStamp, 1)
+};
+
+PHTimeStamp operator+(const PHTimeStamp &, time_t);
+PHTimeStamp operator-(const PHTimeStamp &, time_t);
+time_t operator-(const PHTimeStamp &, const PHTimeStamp &);
+
+std::ostream &operator<<(std::ostream &, const PHTimeStamp &);
+std::istream &operator>>(std::istream &, PHTimeStamp &);
+
+#endif /* PHOOL_PHTIMESTAMP_H */

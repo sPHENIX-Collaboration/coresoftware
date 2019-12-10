@@ -10,14 +10,16 @@
 
 #include "PHG4CylinderGeom_Spacalv2.h"
 
-#include <Geant4/globals.hh>
+#include <phparameter/PHParameters.h>
+
 #include <Geant4/G4PhysicalConstants.hh>
 
-#include <cmath>
+#include <CLHEP/Units/SystemOfUnits.h>    // for twopi, halfpi, pi
 
+#include <cmath>
+#include <cstdlib>                       // for exit
 #include <iostream>
 
-ClassImp(PHG4CylinderGeom_Spacalv2)
 
 using namespace std;
 
@@ -57,7 +59,8 @@ PHG4CylinderGeom_Spacalv2::Print(Option_t *opt) const
   cout << "\t" << "get_block_depth() = " << get_block_depth() << endl;
   cout << "\t" << "get_assembly_spacing() = " << get_assembly_spacing() << endl;
   cout << "\t" << "get_reg_fiber_grid_distance_taper() = "
-      << get_reg_fiber_grid_distance_taper()<<" = sqrt(3)*"<< get_reg_fiber_grid_distance_taper()/sqrt(3.)<< endl;
+      << get_reg_fiber_grid_distance_taper() << " = sqrt(3)*"
+      << get_reg_fiber_grid_distance_taper() / sqrt(3.) << endl;
   cout << "\t" << "get_reg_fiber_grid_distance_nontaper() = "
       << get_reg_fiber_grid_distance_nontaper() << endl;
 
@@ -74,18 +77,41 @@ PHG4CylinderGeom_Spacalv2::SetDefault()
   polar_taper_ratio = 1 + 1.1 / 42.;
   assembly_spacing = 0.0001; // order ~1um clearance around all structures
 
+//  init_default_sector_map();
+
+}
+
+void
+PHG4CylinderGeom_Spacalv2::ImportParameters(const PHParameters & param)
+{
+  PHG4CylinderGeom_Spacalv1::ImportParameters(param);
+
+  if (param.exist_int_param("azimuthal_n_sec"))
+    azimuthal_n_sec = param.get_int_param("azimuthal_n_sec");
+  if (param.exist_double_param("azimuthal_tilt"))
+    azimuthal_tilt = param.get_double_param("azimuthal_tilt");
+  if (param.exist_int_param("azimuthal_seg_visible"))
+    azimuthal_seg_visible = static_cast<bool>(param.get_int_param(
+        "azimuthal_seg_visible"));
+  if (param.exist_double_param("polar_taper_ratio"))
+    polar_taper_ratio = param.get_double_param("polar_taper_ratio");
+  if (param.exist_double_param("assembly_spacing"))
+    assembly_spacing = param.get_double_param("assembly_spacing");
+
+  return;
 }
 
 double
 PHG4CylinderGeom_Spacalv2::get_sec_azimuthal_width() const
 {
-  const double azimuthal_width_base =   get_radius() * twopi / (double) (get_azimuthal_n_sec())
-      - get_assembly_spacing();
+  const double azimuthal_width_base = get_radius() * twopi
+      / (double) (get_azimuthal_n_sec()) - get_assembly_spacing();
 
   // triggernometry stuff to make a tight connection after tilting
 
-  const double theta1 =  get_azimuthal_tilt();
-  const double theta2 = pi + (twopi/get_azimuthal_n_sec()) - halfpi -get_azimuthal_tilt();
+  const double theta1 = get_azimuthal_tilt();
+  const double theta2 = pi + (twopi / get_azimuthal_n_sec()) - halfpi
+      - get_azimuthal_tilt();
 
   return azimuthal_width_base * sin(theta2) / sin(theta1 + theta2);
 }
@@ -100,10 +126,10 @@ PHG4CylinderGeom_Spacalv2::get_half_polar_taper_angle() const
 int
 PHG4CylinderGeom_Spacalv2::get_azimuthal_n_sec() const
 {
-  if (config == kNonProjective)
-    //For kNonProjective geometry, azimuthal_n_sec is calculated, and can not be set externally
-    return PHG4CylinderGeom_Spacalv1::get_azimuthal_n_sec();
-  else
+//  if (config == kNonProjective)
+//    //For kNonProjective geometry, azimuthal_n_sec is calculated, and can not be set externally
+//    return PHG4CylinderGeom_Spacalv1::get_azimuthal_n_sec();
+//  else
     return azimuthal_n_sec;
 }
 
@@ -120,6 +146,7 @@ PHG4CylinderGeom_Spacalv2::set_azimuthal_n_sec(int azimuthalNSec)
     }
 
   azimuthal_n_sec = azimuthalNSec;
+//  init_default_sector_map();
 }
 
 bool
@@ -149,8 +176,7 @@ double
 PHG4CylinderGeom_Spacalv2::get_reg_fiber_grid_distance_taper() const
 {
   const double mid_plane_width = get_block_width()
-      * ((get_polar_taper_ratio() - 1) * 0.5 + 1)
-      - get_assembly_spacing();
+      * ((get_polar_taper_ratio() - 1) * 0.5 + 1) - get_assembly_spacing();
 
   const int n_grid = floor(mid_plane_width / (get_fiber_distance() * sqrt(3.)));
 

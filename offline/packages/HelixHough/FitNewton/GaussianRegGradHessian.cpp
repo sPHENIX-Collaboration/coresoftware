@@ -1,6 +1,10 @@
 #include "GaussianRegGradHessian.h"
+#include "Pincushion.h"
+
 #include <Eigen/LU>
 
+#include <cmath>
+#include <memory>
 
 using namespace std;
 using namespace Eigen;

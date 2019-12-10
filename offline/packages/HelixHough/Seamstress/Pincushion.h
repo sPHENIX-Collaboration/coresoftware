@@ -1,8 +1,8 @@
-#ifndef __PINCUSHION__
-#define __PINCUSHION__
+#ifndef SEAMSTRESS_PINCUSHION_H
+#define SEAMSTRESS_PINCUSHION_H
 
 #include "Seamstress.h"
-
+#include "Needle.h"
 
 namespace SeamStress
 {

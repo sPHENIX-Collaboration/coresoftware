@@ -10,6 +10,7 @@
 
 #include "PHIOManager.h"
 
-PHIOManager::PHIOManager():
-  eventNumber(0)
-{}
+PHIOManager::PHIOManager()
+  : eventNumber(0)
+{
+}

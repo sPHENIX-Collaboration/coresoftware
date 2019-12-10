@@ -1,9 +1,7 @@
 #include "PHG4EventActionClearZeroEdep.h"
 #include <g4main/PHG4HitContainer.h>
 
-#include <fun4all/getClass.h>
-
-#include <Geant4/G4Event.hh>
+#include <phool/getClass.h>
 
 #include <boost/foreach.hpp>
 
@@ -13,7 +11,7 @@ using namespace std;
 PHG4EventActionClearZeroEdep::PHG4EventActionClearZeroEdep( PHCompositeNode *node, const string &name ):
   topNode(node)
 {
-  nodename_set.insert(name);
+  AddNode(name);
 }
 
 

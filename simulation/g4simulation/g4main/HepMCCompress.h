@@ -1,5 +1,7 @@
-#ifndef HEPMCCOMPRESS_H__
-#define HEPMCCOMPRESS_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_HEPMCCOMPRESS_H
+#define G4MAIN_HEPMCCOMPRESS_H
 
 #include <fun4all/SubsysReco.h>
 

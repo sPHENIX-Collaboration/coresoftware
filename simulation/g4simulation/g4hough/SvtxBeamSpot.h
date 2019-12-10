@@ -1,9 +1,8 @@
-#ifndef __SVTXBEAMSPOT_H__
-#define __SVTXBEAMSPOT_H__
+#ifndef G4HOUGH_SVTXBEAMSPOT_H
+#define G4HOUGH_SVTXBEAMSPOT_H
 
 #include <phool/PHObject.h>
-#include <vector>
-#include <set>
+
 #include <iostream>
 
 class SvtxBeamSpot : public PHObject {
@@ -11,15 +10,13 @@ class SvtxBeamSpot : public PHObject {
 public:
   
   SvtxBeamSpot();
-  SvtxBeamSpot(const SvtxBeamSpot &beamspot);
-  SvtxBeamSpot& operator=(const SvtxBeamSpot &beamspot);
-  virtual ~SvtxBeamSpot();
+  virtual ~SvtxBeamSpot() {}
 
   // PHObject virtual overloads
   
   void         identify(std::ostream& os = std::cout) const;
-  void         Reset();
-  int          IsValid() const;
+  void         Reset() {*this = SvtxBeamSpot();}
+  int          isValid() const;
 
   // beamspot info
  
@@ -37,8 +34,10 @@ public:
   
 private:
 
+  unsigned int covar_index(unsigned int i, unsigned int j) const;
+  
   float  _pos[2]; //< position x,y
-  float* _err[2]; //< variance covariance matrix (+/- cm^2)
+  float  _err[3]; //< variance covariance matrix (packed storage) (+/- cm^2)
   
   ClassDef(SvtxBeamSpot, 1);
 };

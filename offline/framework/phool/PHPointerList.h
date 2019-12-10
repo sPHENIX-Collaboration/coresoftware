@@ -1,5 +1,5 @@
-#ifndef PHPOINTERLIST_H__
-#define PHPOINTERLIST_H__
+#ifndef PHOOL_PHPOINTERLIST_H
+#define PHOOL_PHPOINTERLIST_H
 
 //  Purpose: a template list of pointers
 //
@@ -24,183 +24,180 @@
 //
 //  Author: Matthias Messer
 
-#include "phool.h"
-#include "PHNode.h"
-
 #include <iostream>
 
-template <class T> 
-class PHPointerList 
-{ 
-  
-public: 
-  PHPointerList(size_t = 2); 
-  PHPointerList(const PHPointerList<T> &);
-  PHPointerList<T> & operator = (const PHPointerList<T> &);
-  virtual ~PHPointerList(); 
-  
-public: 
-  T*           operator[](size_t) const;
-  void	   	clear();
-  void		clearAndDestroy();
-  size_t	length() const;
-  T*		removeLast();
-  T*		removeAt(size_t);
-  PHBoolean    append(T*);
-  PHBoolean    insertAt(T*, size_t);
-  
-private:
-  PHBoolean grow(size_t = 0);
-  
-private: 
-  T**       items;
-  size_t    maxNItems;
-  size_t    nItems;
+template <class T>
+class PHPointerList
+{
+ public:
+  explicit PHPointerList(size_t = 2);
+  PHPointerList(const PHPointerList<T>&);
+  PHPointerList<T>& operator=(const PHPointerList<T>&);
+  virtual ~PHPointerList();
+
+ public:
+  T* operator[](size_t) const;
+  void clear();
+  void clearAndDestroy();
+  size_t length() const;
+  T* removeLast();
+  T* removeAt(size_t);
+  bool append(T*);
+  bool insertAt(T*, size_t);
+
+ private:
+  bool grow(size_t = 0);
+
+ private:
+  T** items;
+  size_t maxNItems;
+  size_t nItems;
 };
 
 // Implementation of member functions
-template<class T> 
+template <class T>
 PHPointerList<T>::PHPointerList(size_t initialSize)
-{   
+{
   maxNItems = initialSize;
   items = new T*[maxNItems];
   nItems = 0;
 }
 
-template<class T> 
-PHPointerList<T>::PHPointerList(const PHPointerList<T> & l)
+template <class T>
+PHPointerList<T>::PHPointerList(const PHPointerList<T>& l)
 {
   *this = l;
 }
 
-template<class T> 
-PHPointerList<T> & 
-PHPointerList<T>::operator = (const PHPointerList<T> & l)
+template <class T>
+PHPointerList<T>&
+PHPointerList<T>::operator=(const PHPointerList<T>& l)
 {
-  if(this != &l){
+  if (this != &l)
+  {
     maxNItems = l.maxNItems;
     grow(l.maxNItems);
     nItems = l.length();
-    for (size_t i=0; i<nItems; ++i)
-      {
-	items[i] = l[i];
-      }
+    for (size_t i = 0; i < nItems; ++i)
+    {
+      items[i] = l[i];
+    }
   }
   return *this;
 }
 
-template<class T> 
+template <class T>
 PHPointerList<T>::~PHPointerList()
 {
   // This deletes the internal list of pointers and NOT the actual objects.
-  delete [] items;
+  delete[] items;
 }
 
-template<class T> 
-PHBoolean 
-PHPointerList<T>::grow(size_t newSize)
+template <class T>
+bool PHPointerList<T>::grow(size_t newSize)
 {
-  if (newSize == 0) 
-    {
-      newSize = maxNItems * 2;
-    }
+  if (newSize == 0)
+  {
+    newSize = maxNItems * 2;
+  }
   T** buffer = items;
   items = new T*[newSize];
-  if (items) 
+  if (items)
+  {
+    for (size_t i = 0; i < maxNItems; ++i)
     {
-      for (size_t i=0; i<maxNItems; ++i)
-	{
-	  items[i] = buffer[i];
-	}
-      delete [] buffer;
-      maxNItems = newSize;
+      items[i] = buffer[i];
     }
-  else 
-    {
-      std::cout << "PHPointerList<T>::grow: Out of memory?" << std::endl;
-      return False;
-    }
+    delete[] buffer;
+    maxNItems = newSize;
+  }
+  else
+  {
+    std::cout << "PHPointerList<T>::grow: Out of memory?" << std::endl;
+    return false;
+  }
 
-  return True;
+  return true;
 }
 
-template<class T> inline T* PHPointerList<T>::operator[](size_t i) const
+template <class T>
+inline T* PHPointerList<T>::operator[](size_t i) const
 {
-  if (i < nItems) 
-    {
-      return items[i];
-    }
-  else 
-    {
-      std::cout << "PHPointerList<T>::operator[]: nItems exceeded" << std::endl;
-      return 0;
-    }
+  if (i < nItems)
+  {
+    return items[i];
+  }
+  else
+  {
+    std::cout << "PHPointerList<T>::operator[]: nItems exceeded" << std::endl;
+    return 0;
+  }
 }
 
-template<class T> 
-inline PHBoolean 
+template <class T>
+inline bool
 PHPointerList<T>::append(T* item)
 {
-  if (nItems < maxNItems) 
+  if (nItems < maxNItems)
+  {
+    items[nItems] = item;
+    ++nItems;
+    return true;
+  }
+  else
+  {
+    if (grow())
     {
       items[nItems] = item;
       ++nItems;
-      return True;
+      return true;
     }
-  else 
+    else
     {
-      if (grow()) 
-	{
-	  items[nItems] = item;
-	  ++nItems;
-	  return True;
-	}
-      else 
-	{
-	  std::cout << "PHPointerList<T>::append: max nItems exceeded" << std::endl;
-	  return False;
-	}
+      std::cout << "PHPointerList<T>::append: max nItems exceeded" << std::endl;
+      return false;
     }
+  }
 }
 
-template<class T> 
-inline PHBoolean 
+template <class T>
+inline bool
 PHPointerList<T>::insertAt(T* item, size_t pos)
 {
   // This function inserts item at pos in the internal list
-  if (pos > nItems) 
-    {
-      std::cout << "PHPointerList<T>::insertAt: insert beyond nItems" << std::endl;
-      return False;
-    }
-  
+  if (pos > nItems)
+  {
+    std::cout << "PHPointerList<T>::insertAt: insert beyond nItems" << std::endl;
+    return false;
+  }
+
   // Append is used here as a convenient way to let the list grow, if necessary.
   append(item);
-  
+
   // Now all items are shifted upwards in the list by one, starting at pos.
-  for (size_t i=nItems; i>pos; --i)
-    {
-      items[i] = items[i-1];
-    }
-  
+  for (size_t i = nItems; i > pos; --i)
+  {
+    items[i] = items[i - 1];
+  }
+
   items[pos] = item;
-  
-  return True;
+
+  return true;
 }
 
-template<class T> 
-inline void 
+template <class T>
+inline void
 PHPointerList<T>::clear()
 {
   nItems = 0;
   items[nItems] = 0;
 }
 
-template<class T> 
-inline void 
+template <class T>
+inline void
 PHPointerList<T>::clearAndDestroy()
 {
-  for (size_t i=0; i<nItems; ++i)
+  for (size_t i = 0; i < nItems; ++i)
   {
     delete items[i];
   }
@@ -208,59 +205,59 @@ PHPointerList<T>::clearAndDestroy()
   items[nItems] = 0;
 }
 
-template<class T> 
-inline size_t 
+template <class T>
+inline size_t
 PHPointerList<T>::length() const
 {
   return nItems;
 }
 
-template<class T> 
-inline T* 
+template <class T>
+inline T*
 PHPointerList<T>::removeLast()
 {
-  if (nItems > 0) 
-    {
-      return items[nItems--];
-    }
-   else 
-     {
-       std::cout << "PHPointerList<T>::removeLast: no items in list" << std::endl;
-       return 0;
-     }  
+  if (nItems > 0)
+  {
+    return items[nItems--];
+  }
+  else
+  {
+    std::cout << "PHPointerList<T>::removeLast: no items in list" << std::endl;
+    return 0;
+  }
 }
 
-template<class T> 
-inline T* 
+template <class T>
+inline T*
 PHPointerList<T>::removeAt(size_t i)
 {
-  if (i > nItems) 
-    {
-      return 0;
-    }
+  if (i > nItems)
+  {
+    return 0;
+  }
 
-  T *item = items[i];
-  
-   for (size_t j=i; j<nItems-1; ++j)
-     {
-       items[j] = items[j+1];
-     }
-   --nItems;
-   
-   return item;
+  T* item = items[i];
+
+  for (size_t j = i; j < nItems - 1; ++j)
+  {
+    items[j] = items[j + 1];
+  }
+  --nItems;
+
+  return item;
 }
 
 // Implementation of external functions.
-template<class T> 
-std::ostream & 
-operator << (std::ostream & stream , const PHPointerList<T> & thislist)
+template <class T>
+std::ostream&
+operator<<(std::ostream& stream, const PHPointerList<T>& thislist)
 {
-   for (size_t i=0; i<thislist.length(); ++i) 
-     {
-       stream << *(thislist[i]) << std::endl;
-     }
+  for (size_t i = 0; i < thislist.length(); ++i)
+  {
+    stream << *(thislist[i]) << std::endl;
+  }
 
-   return stream;
+  return stream;
 }
 
-#endif /* __PHPOINTERLIST_H__ */
+#endif

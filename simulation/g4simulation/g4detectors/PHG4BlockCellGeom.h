@@ -1,10 +1,13 @@
-#ifndef PHG4BlockCellGeom_H__
-#define PHG4BlockCellGeom_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4BLOCKCELLGEOM_H
+#define G4DETECTORS_PHG4BLOCKCELLGEOM_H
 
 #include <phool/PHObject.h>
 
-#include <map>
+#include <iostream>          // for cout, ostream
 #include <string>
+#include <utility>           // for pair
 
 class PHG4BlockCellGeom: public PHObject
 {
@@ -64,8 +67,6 @@ class PHG4BlockCellGeom: public PHObject
 
   int _layer;
   int _binning;
-  double _radius;
-  double _thickness;
 
   int _nzbins;
   double _zmin;

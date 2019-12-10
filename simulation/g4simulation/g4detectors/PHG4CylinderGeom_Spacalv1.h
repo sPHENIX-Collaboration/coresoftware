@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4CylinderGeom_Spacalv1.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
 
 /*!
@@ -7,37 +9,42 @@
  * \version $$Revision: 1.2 $$
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
-#ifndef PHG4CylinderGeom_Spacalv1_H__
-#define PHG4CylinderGeom_Spacalv1_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMSPACALV1_H
+#define G4DETECTORS_PHG4CYLINDERGEOMSPACALV1_H
 
 #include "PHG4CylinderGeomv2.h"
+
+#include <iostream>              // for cout, ostream
+#include <map>
 #include <string>
-#include <cmath>
+
+class PHParameters;
 
 class PHG4CylinderGeom_Spacalv1 : public PHG4CylinderGeomv2
 {
-public:
-
+ public:
   /** @name Ctor DTor and IDs
    */
   ///@{
   PHG4CylinderGeom_Spacalv1();
 
-  virtual
-  ~PHG4CylinderGeom_Spacalv1()
+  virtual ~PHG4CylinderGeom_Spacalv1()
   {
+    sector_map.clear();
   }
 
-  virtual
-  void
-  identify(std::ostream& os = std::cout) const;
+  virtual void
+  identify(std::ostream &os = std::cout) const;
 
   virtual void
   Print(Option_t *option = "") const;
 
-  virtual
-  void
+  virtual void
   SetDefault();
+
+  //! load parameters from PHParameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHParameters &param);
+
   ///@}
 
   /** @name Set Cylinder Geometry
@@ -102,17 +109,35 @@ public:
   /** @name Azimuthal segments
    */
   ///@{
-  virtual
-  int
+  virtual int
   get_azimuthal_n_sec() const;
 
-  virtual
-  double
+  virtual double
   get_azimuthal_distance() const;
 
-  virtual
-  double
+  virtual double
   get_z_distance() const;
+
+  //! sector map sector_ID -> azimuthal rotation.
+  typedef std::map<int, double> sector_map_t;
+
+  //! sector map sector_ID -> azimuthal rotation.
+  const sector_map_t &
+  get_sector_map() const
+  {
+    return sector_map;
+  }
+
+  //! sector map sector_ID -> azimuthal rotation.
+  sector_map_t &
+  get_sector_map()
+  {
+    return sector_map;
+  }
+
+  //! load a default map that populate all the sectors
+  void
+  init_default_sector_map();
 
   ///@}
 
@@ -173,7 +198,7 @@ public:
   }
 
   void
-  set_absorber_mat(std::string absorberMat)
+  set_absorber_mat(const std::string &absorberMat)
   {
     absorber_mat = absorberMat;
   }
@@ -185,7 +210,7 @@ public:
   }
 
   void
-  set_fiber_clading_mat(std::string fiberCladingMat)
+  set_fiber_clading_mat(const std::string &fiberCladingMat)
   {
     fiber_clading_mat = fiberCladingMat;
   }
@@ -197,7 +222,7 @@ public:
   }
 
   void
-  set_fiber_core_mat(std::string fiberCoreMat)
+  set_fiber_core_mat(const std::string &fiberCoreMat)
   {
     fiber_core_mat = fiberCoreMat;
   }
@@ -207,17 +232,6 @@ public:
   /** @name General options
    */
   ///@{
-  double
-  get_calo_step_size() const
-  {
-    return get_fiber_distance() / 10.;
-  }
-
-  double
-  get_fiber_clading_step_size() const
-  {
-    return get_fiber_clading_thickness() / 10.;
-  }
 
   double
   get_fiber_core_step_size() const
@@ -229,11 +243,27 @@ public:
   {
 
     //! fiber always placed radially
-    kNonProjective,
+    kNonProjective = 0,
+    //! alias of above, more explicit
+    k1DProjectiveSpacal = kNonProjective,
 
-    //! Block constructed with taper in polar direction, non-taper in azimuthal direction.
-    //! The final layout is approximately projective in both azimuthal and polar directions.
-    kProjective_PolarTaper
+    //! Fully projective spacal with 2D tapered modules
+    kFullProjective_2DTaper = 2,
+
+    //! Fully projective spacal with 2D tapered modules. To speed up construction, same-length fiber is used cross one tower
+    kFullProjective_2DTaper_SameLengthFiberPerTower = 3,
+
+    //! Fully projective spacal with 2D tapered modules and allow azimuthal tilts
+    kFullProjective_2DTaper_Tilted = 4,
+
+    //! Fully projective spacal with 2D tapered modules and allow azimuthal tilts. To speed up construction, same-length fiber is used cross one tower
+    kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower = 5,
+
+    //! alias of above, the default 2D-projective SPACAL
+    k2DProjectiveSpacal = kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower,
+
+    //! max allowed value, for boundary cross check
+    kInvalidSpacalConfig
   };
 
   config_t
@@ -254,8 +284,7 @@ public:
     return virualize_fiber;
   }
 
-  virtual
-  bool is_azimuthal_seg_visible() const
+  virtual bool is_azimuthal_seg_visible() const
   {
     return false;
   }
@@ -266,8 +295,7 @@ public:
     virualize_fiber = virualizeFiber;
   }
 
-  int
-  get_construction_verbose() const
+  int get_construction_verbose() const
   {
     return construction_verbose;
   }
@@ -280,7 +308,7 @@ public:
 
   ///@}
 
-protected:
+ protected:
   std::string absorber_mat;
   std::string fiber_core_mat;
   std::string fiber_clading_mat;
@@ -294,8 +322,10 @@ protected:
   bool virualize_fiber;
   int construction_verbose;
 
-ClassDef(PHG4CylinderGeom_Spacalv1,1)
+  //! sector map sector_ID -> azimuthal rotation.
+  sector_map_t sector_map;
 
+  ClassDef(PHG4CylinderGeom_Spacalv1, 2)
 };
 
 #endif

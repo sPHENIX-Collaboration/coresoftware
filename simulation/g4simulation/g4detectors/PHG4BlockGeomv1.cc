@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <cmath>
 
-ClassImp(PHG4BlockGeomv1)
-
 using namespace std;
 
 PHG4BlockGeomv1::PHG4BlockGeomv1() :

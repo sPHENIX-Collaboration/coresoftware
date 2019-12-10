@@ -1,12 +1,14 @@
-#ifndef DUMPER_H__
-#define DUMPER_H__
+#ifndef NODEDUMP_DUMPER_H
+#define NODEDUMP_DUMPER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
+class PHCompositeNode;
 class PHNodeDump;
 
-class Dumper: public SubsysReco
+class Dumper : public SubsysReco
 {
  public:
   Dumper(const std::string &name = "DUMPER");
@@ -14,16 +16,12 @@ class Dumper: public SubsysReco
   int End(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   void SetOutDir(const std::string &outdir);
-  int DumpCompositeNode(PHCompositeNode *ThisTopNode);
   void SetPrecision(const int digits);
   int AddIgnore(const std::string &name);
   int Select(const std::string &name);
 
  private:
   PHNodeDump *nodedump;
-
 };
 
-#endif /* __DUMPER_H__ */
-
-
+#endif

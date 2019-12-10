@@ -3,11 +3,19 @@ AUTOMAKE_OPTIONS = foreign
 lib_LTLIBRARIES = \
   libg4decayer.la
 
-INCLUDES = \
+# set in configure.in to check if gcc version >= 4.8
+# leave this here to show how it can be done, -std=c++11 is now
+# enabled by default in our config.site
+#if GCC_GE_48
+#  AM_CXXFLAGS = -std=c++11
+#endif
+
+AM_CXXFLAGS=`geant4-config --cflags`
+
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I${G4_MAIN}/include \
-  -I${G4_MAIN}/include/Geant4
+  -I${G4_MAIN}/include
 
 libg4decayer_la_LDFLAGS = \
   -L$(libdir) \
@@ -23,15 +31,11 @@ libg4decayer_la_SOURCES = \
   Pythia6.cc \
   G4Pythia6Decayer.cc \
   G4Pythia6DecayerMessenger.cc \
-  P6DExtDecayerPhysics.cc \
-  P6DPhysicsList.cc
+  P6DExtDecayerPhysics.cc
 
 pkginclude_HEADERS = \
   EDecayType.hh \
-  G4Pythia6Decayer.hh \
-  G4Pythia6DecayerMessenger.hh \
-  P6DExtDecayerPhysics.hh \
-  P6DPhysicsList.hh
+  P6DExtDecayerPhysics.hh
 
 ################################################
 # linking tests

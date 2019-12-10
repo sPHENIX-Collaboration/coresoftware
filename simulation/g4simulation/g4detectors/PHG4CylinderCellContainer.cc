@@ -1,17 +1,12 @@
 #include "PHG4CylinderCellContainer.h"
-#include "PHG4CylinderCell.h"
+
+#include "PHG4CylinderCell.h"      // for PHG4CylinderCell
 #include "PHG4CylinderCellv1.h"
 #include "PHG4CylinderCellDefs.h"
 
 #include <cstdlib>
 
 using namespace std;
-
-ClassImp(PHG4CylinderCellContainer)
-
-PHG4CylinderCellContainer::PHG4CylinderCellContainer()
-{
-}
 
 void
 PHG4CylinderCellContainer::Reset()
@@ -29,32 +24,33 @@ PHG4CylinderCellContainer::identify(ostream& os) const
 {
    map<unsigned int,PHG4CylinderCell *>::const_iterator iter;
    os << "Number of cells: " << size() << endl;
-   for (iter = cellmap.begin(); iter != cellmap.end(); iter++)
+   for (iter = cellmap.begin(); iter != cellmap.end(); ++iter)
      {
        os << "cell key 0x" << hex << iter->first << dec << endl;
        (iter->second)->identify();
      }
    set<int>::const_iterator siter;
    os << "Number of layers: " << num_layers() << endl;
-   for (siter = layers.begin(); siter != layers.end(); siter++)
+   for (siter = layers.begin(); siter != layers.end(); ++siter)
      {
        os << "layer : " << *siter << endl;
      }
   return;
 }
 
-unsigned int
-PHG4CylinderCellContainer::genkey(const int detid)
+
+PHG4CylinderCellDefs::keytype
+PHG4CylinderCellContainer::genkey(const unsigned int detid)
 {
-  if ((detid >> phg4cylindercelldefs::keybits) > 0)
+  if ((detid >> PHG4CylinderCellDefs::keybits) > 0)
     {
       cout << " detector id too large: " << detid << endl;
       exit(1);
     }
-  int shiftval = detid << phg4cylindercelldefs::cell_idbits;
-  int cellid = cellmap.size();
+  unsigned int shiftval = detid << PHG4CylinderCellDefs::cell_idbits;
+  unsigned int cellid = cellmap.size();
   cellid++;
-  int newkey = cellid | shiftval;
+  PHG4CylinderCellDefs::keytype newkey = cellid | shiftval;
   if (cellmap.find(newkey) != cellmap.end())
     {
       cout << " duplicate key: " << newkey << " exiting now" << endl;
@@ -63,26 +59,41 @@ PHG4CylinderCellContainer::genkey(const int detid)
   return newkey;
 }
 
-std::map<unsigned int,PHG4CylinderCell *>::const_iterator
-PHG4CylinderCellContainer::AddCylinderCell(const int detid, PHG4CylinderCell *newcell)
+PHG4CylinderCellContainer::ConstIterator
+PHG4CylinderCellContainer::AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcell)
 {
-  unsigned int key = genkey(detid);
+  PHG4CylinderCellDefs::keytype key = genkey(detid);
   layers.insert(newcell->get_layer());
   newcell->set_cell_id(key);
   cellmap[key] = newcell;
   return cellmap.find(key);
 }
 
-PHG4CylinderCellContainer::ConstRange PHG4CylinderCellContainer::getCylinderCells(const int detid) const
+PHG4CylinderCellContainer::ConstIterator
+PHG4CylinderCellContainer::AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcell)
 {
-  if ((detid >> phg4cylindercelldefs::keybits) > 0)
+  if(cellmap.find(key)!=cellmap.end())
+   {
+     cout << "PHG4CylinderCellContainer::AddCylinderCellSpecifyKey: duplicate key: " << key << " exiting now" << endl;
+     exit(1);
+   }
+  layers.insert(newcell->get_layer());
+  newcell->set_cell_id(key);
+  cellmap[key] = newcell;
+  return cellmap.find(key);
+}
+
+PHG4CylinderCellContainer::ConstRange 
+PHG4CylinderCellContainer::getCylinderCells(const unsigned int detid) const
+{
+  if ((detid >> PHG4CylinderCellDefs::keybits) > 0)
     {
       cout << " detector id too large: " << detid << endl;
       exit(1);
     }
   //  unsigned int shiftval = detid << cell_idbits;
-  unsigned int keylow = detid << phg4cylindercelldefs::cell_idbits;
-  unsigned int keyup = ((detid + 1)<< phg4cylindercelldefs::cell_idbits) -1 ;
+  PHG4CylinderCellDefs::keytype keylow = detid << PHG4CylinderCellDefs::cell_idbits;
+  PHG4CylinderCellDefs::keytype keyup = ((detid + 1)<< PHG4CylinderCellDefs::cell_idbits) -1 ;
 //   cout << "keylow: 0x" << hex << keylow << dec << endl;
 //   cout << "keyup: 0x" << hex << keyup << dec << endl;
   ConstRange retpair;
@@ -91,11 +102,13 @@ PHG4CylinderCellContainer::ConstRange PHG4CylinderCellContainer::getCylinderCell
   return retpair;
 }
 
-PHG4CylinderCellContainer::ConstRange PHG4CylinderCellContainer::getCylinderCells( void ) const
+PHG4CylinderCellContainer::ConstRange 
+PHG4CylinderCellContainer::getCylinderCells( void ) const
 { return std::make_pair( cellmap.begin(), cellmap.end() ); }
 
 
-PHG4CylinderCellContainer::Iterator PHG4CylinderCellContainer::findOrAddCylinderCell(unsigned int key)
+PHG4CylinderCellContainer::Iterator 
+PHG4CylinderCellContainer::findOrAddCylinderCell(PHG4CylinderCellDefs::keytype key)
 {
   PHG4CylinderCellContainer::Iterator it = cellmap.find(key);
   if(it == cellmap.end())
@@ -109,7 +122,8 @@ PHG4CylinderCellContainer::Iterator PHG4CylinderCellContainer::findOrAddCylinder
   return it;
 }
 
-PHG4CylinderCell* PHG4CylinderCellContainer::findCylinderCell(unsigned int key)
+PHG4CylinderCell* 
+PHG4CylinderCellContainer::findCylinderCell(PHG4CylinderCellDefs::keytype key)
 {
   PHG4CylinderCellContainer::ConstIterator it = cellmap.find(key);
 
@@ -126,7 +140,7 @@ PHG4CylinderCellContainer::getTotalEdep() const
 {
   ConstIterator iter;
   double totalenergy = 0;
-  for (iter = cellmap.begin(); iter != cellmap.end(); iter++)
+  for (iter = cellmap.begin(); iter != cellmap.end(); ++iter)
     {
       totalenergy += iter->second->get_edep();
     }

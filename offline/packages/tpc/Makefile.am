@@ -1,0 +1,91 @@
+##############################################
+# please add new classes in alphabetical order
+
+AUTOMAKE_OPTIONS = foreign
+
+lib_LTLIBRARIES = \
+  libtpc_io.la \
+  libtpc.la
+
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include  \
+  -I$(ROOTSYS)/include 
+
+AM_LDFLAGS = \
+  -L$(libdir) \
+  -L$(ROOTSYS)/lib \
+  -L$(OFFLINE_MAIN)/lib
+
+pkginclude_HEADERS = \
+  TpcDefs.h \
+  TpcHit.h \
+  TpcClusterizer.h
+
+ROOTDICTS = \
+  TpcHit_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    TpcHit_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    TpcClusterizer_Dict.cc 
+endif
+
+# sources for tpc library
+libtpc_la_SOURCES = \
+  $(ROOT5_DICTS) \
+  TpcClusterizer.cc
+
+
+libtpc_la_LIBADD = \
+  libtpc_io.la \
+  -lfun4all \
+  -lSpectrum
+
+# sources for io library
+libtpc_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  TpcDefs.cc \
+  TpcHit.cc
+
+libtpc_io_la_LIBADD = \
+  -ltrack_io \
+  -lg4detectors_io \
+  -ltrackbase_historic_io
+
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
+################################################
+# linking tests
+
+BUILT_SOURCES = testexternals.cc
+
+noinst_PROGRAMS = \
+  testexternals_tpc_io \
+  testexternals_tpc
+
+testexternals_tpc_io_SOURCES = testexternals.cc
+testexternals_tpc_io_LDADD = libtpc_io.la
+
+testexternals_tpc_SOURCES = testexternals.cc
+testexternals_tpc_LDADD = libtpc.la
+
+testexternals.cc:
+	echo "//*** this is a generated file. Do not commit, do not edit" > $@
+	echo "int main()" >> $@
+	echo "{" >> $@
+	echo "  return 0;" >> $@
+	echo "}" >> $@
+
+################################################
+
+clean-local:
+	rm -f *Dict* *.pcm $(BUILT_SOURCES)

@@ -1,10 +1,11 @@
-#ifndef PHG4CylinderGeomv4_H__
-#define PHG4CylinderGeomv4_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMV4_H
+#define G4DETECTORS_PHG4CYLINDERGEOMV4_H
 
 #include "PHG4CylinderGeom.h"
 
-#include <phool/phool.h>
-#include <cmath>
+#include <iostream>            // for cout, ostream
 
 class PHG4CylinderGeomv4: public PHG4CylinderGeom
 {
@@ -26,6 +27,7 @@ class PHG4CylinderGeomv4: public PHG4CylinderGeom
 		    const double tck,
 		    const double st) :
     N_sensors_in_layer(lnsensors),
+    layer(-1),
     layer_radius(lr),
     radius_stagger(rs),
     layer_NZ(lnz),

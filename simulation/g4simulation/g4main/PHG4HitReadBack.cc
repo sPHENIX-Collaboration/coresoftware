@@ -1,12 +1,17 @@
 #include "PHG4HitReadBack.h"
+
 #include "PHG4Hit.h"
 #include "PHG4HitContainer.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
 
-#include <phool/PHNodeIterator.h>
+#include <phool/getClass.h>
+
 #include <iostream>
+#include <map>                           // for _Rb_tree_const_iterator
+#include <utility>                       // for pair
+
+class PHCompositeNode;
 
 using namespace std;
 
@@ -35,7 +40,7 @@ PHG4HitReadBack::process_event(PHCompositeNode *topNode)
   PHG4HitContainer::ConstIterator begin,end,it;
   begin = hititer.first;
   end = hititer.second;
-  for (it=begin; it != end; it++)
+  for (it=begin; it != end; ++it)
     {
       cout << "key: 0x" << hex << it->first << dec << endl;
       cout << "x: " << it->second->get_x(0) << endl;
@@ -44,7 +49,7 @@ PHG4HitReadBack::process_event(PHCompositeNode *topNode)
   hititer = phc->getHits(2);
   begin = hititer.first;
   end = hititer.second;
-  for (it=begin; it != end; it++)
+  for (it=begin; it != end; ++it)
     {
       cout << "key: 0x" << hex << it->first << dec << endl;
       cout << "x: " << it->second->get_x(0) << endl;
@@ -53,7 +58,7 @@ PHG4HitReadBack::process_event(PHCompositeNode *topNode)
   hititer = phc->getHits(3);
   begin = hititer.first;
   end = hititer.second;
-  for (it=begin; it != end; it++)
+  for (it=begin; it != end; ++it)
     {
       cout << "key: 0x" << hex << it->first << dec << endl;
       cout << "x: " << it->second->get_x(0) << endl;

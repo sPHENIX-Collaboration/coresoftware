@@ -1,27 +1,45 @@
 #include "PHG4CEmcTestBeamSteppingAction.h"
+
 #include "PHG4CEmcTestBeamDetector.h"
 
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
-
+#include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
 
+#include <Geant4/G4ParticleDefinition.hh>      // for G4ParticleDefinition
+#include <Geant4/G4ReferenceCountedHandle.hh>  // for G4ReferenceCountedHandle
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>               // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>              // for fGeomBoundary, fUndefined
+#include <Geant4/G4String.hh>                  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>             // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>         // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                   // for G4Track
+#include <Geant4/G4TrackStatus.hh>             // for fStopAndKill
+#include <Geant4/G4Types.hh>                   // for G4double
+#include <Geant4/G4VTouchable.hh>              // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>   // for G4VUserTrackInformation
 
 #include <iostream>
+#include <string>                              // for operator+, string, ope...
+
+class G4VPhysicalVolume;
+class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
 PHG4CEmcTestBeamSteppingAction::PHG4CEmcTestBeamSteppingAction( PHG4CEmcTestBeamDetector* detector ):
-  PHG4SteppingAction(NULL),
+  PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
-  hits_(NULL),
-  absorberhits_(NULL),
-  hit(NULL)
+  hits_(nullptr),
+  absorberhits_(nullptr),
+  hit(nullptr)
 {}
 
 //____________________________________________________________________________..
@@ -82,36 +100,42 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction( const G4Step* aStep, bo
 	  hit->set_x( 0, prePoint->GetPosition().x() / cm);
 	  hit->set_y( 0, prePoint->GetPosition().y() / cm );
 	  hit->set_z( 0, prePoint->GetPosition().z() / cm );
-	  hit->set_px( 0, prePoint->GetMomentum().x() / GeV );
-	  hit->set_py( 0, prePoint->GetMomentum().y() / GeV );
-	  hit->set_pz( 0, prePoint->GetMomentum().z() / GeV );
 	  // time in ns
 	  hit->set_t( 0, prePoint->GetGlobalTime() / nanosecond );
 	  //set the track ID
 	  {
-	    int trkoffset = 0;
-	    if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+            hit->set_trkid(aTrack->GetTrackID());
+            if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
 	      {
 		if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
 		  {
-		    trkoffset = pp->GetTrackIdOffset();
+		    hit->set_trkid(pp->GetUserTrackId());
+		    hit->set_shower_id(pp->GetShower()->get_id());
 		  }
 	      }
-	    hit->set_trkid(aTrack->GetTrackID() + trkoffset);
 	  }
 
 	  //set the initial energy deposit
 	  hit->set_edep(0);
 	  hit->set_eion(0); // only implemented for v5 otherwise empty
-
+          PHG4HitContainer *hitcontainer;
+	  // here we do things which are different between scintillator and absorber hits
 	  if (whichactive > 0) // return of isinCEmcTestDetector, > 0 hit in scintillator, < 0 hit in absorber
 	    {
-	      // Now add the hit
-	      hits_->AddHit(tower_id, hit);
+              hitcontainer = hits_;
 	    }
 	  else
 	    {
-	      absorberhits_->AddHit(tower_id, hit);
+	      hitcontainer = absorberhits_;
+	    }
+	  // here we set what is common for scintillator and absorber hits
+	  hitcontainer->AddHit(tower_id, hit);
+	  if ( G4VUserTrackInformation* p = aTrack->GetUserInformation() )
+	    {
+	      if ( PHG4TrackUserInfoV1* pp = dynamic_cast<PHG4TrackUserInfoV1*>(p) )
+		{
+		  pp->GetShower()->add_g4hit_id(hitcontainer->GetID(),hit->get_hit_id());
+		}
 	    }
 	  break;
 	default:
@@ -123,10 +147,6 @@ bool PHG4CEmcTestBeamSteppingAction::UserSteppingAction( const G4Step* aStep, bo
       hit->set_x( 1, postPoint->GetPosition().x() / cm );
       hit->set_y( 1, postPoint->GetPosition().y() / cm );
       hit->set_z( 1, postPoint->GetPosition().z() / cm );
-
-      hit->set_px(1, postPoint->GetMomentum().x() / GeV );
-      hit->set_py(1, postPoint->GetMomentum().y() / GeV );
-      hit->set_pz(1, postPoint->GetMomentum().z() / GeV );
 
       hit->set_t( 1, postPoint->GetGlobalTime() / nanosecond );
       //sum up the energy to get total deposited
@@ -189,7 +209,7 @@ void PHG4CEmcTestBeamSteppingAction::SetInterfacePointers( PHCompositeNode* topN
     }
   if ( ! absorberhits_)
     {
-      if (verbosity > 0)
+      if (Verbosity() > 0)
 	{
 	  cout << "PHG4HcalSteppingAction::SetTopNode - unable to find " << absorbernodename << endl;
 	}

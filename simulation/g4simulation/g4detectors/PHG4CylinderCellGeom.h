@@ -1,10 +1,13 @@
-#ifndef PHG4CylinderCellGeom_H__
-#define PHG4CylinderCellGeom_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERCELLGEOM_H
+#define G4DETECTORS_PHG4CYLINDERCELLGEOM_H
 
 #include <phool/PHObject.h>
 
-#include <map>
+#include <iostream>          // for cout, ostream
 #include <string>
+#include <utility>           // for pair
 
 class PHG4CylinderCellGeom: public PHObject
 {
@@ -28,16 +31,16 @@ class PHG4CylinderCellGeom: public PHObject
   double get_etastep() const;
   double get_etamin() const;
 
-  std::pair<double, double> get_zbounds(const int ibin) const;
-  std::pair<double, double> get_phibounds(const int ibin) const;
-  std::pair<double, double> get_etabounds(const int ibin) const;
-  double get_etacenter(const int ibin) const;
-  double get_zcenter(const int ibin) const;
-  double get_phicenter(const int ibin) const;
+  virtual std::pair<double, double> get_zbounds(const int ibin) const;
+  virtual std::pair<double, double> get_phibounds(const int ibin) const;
+  virtual std::pair<double, double> get_etabounds(const int ibin) const;
+  virtual double get_etacenter(const int ibin) const;
+  virtual double get_zcenter(const int ibin) const;
+  virtual double get_phicenter(const int ibin) const;
 
-  int get_etabin(const double eta) const;
-  int get_zbin(const double z) const;
-  int get_phibin(const double phi) const;
+  virtual int get_etabin(const double eta) const;
+  virtual int get_zbin(const double z) const;
+  virtual int get_phibin(const double phi) const;
 
    void set_layer(const int i) {layer = i;}
    void set_binning(const int i) {binning = i;}

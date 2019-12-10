@@ -1,7 +1,10 @@
 #include "VertexFitFunc.h"
-#include "NewtonMinimizerGradHessian.h"
 
-#include <math.h>
+#include "NewtonMinimizerGradHessian.h"
+#include "SimpleTrack3D.h"
+
+#include <cmath>
+#include <memory>
 
 using namespace std;
 using namespace FitNewton;
@@ -172,7 +175,7 @@ bool HelixDCAFunc::calcValGradHessian(const VectorXd& x, double& val, VectorXd& 
   dpdx = Matrix<float,3,5>::Zero(3,5);
   for(int i=0;i<5;++i){dpdx(0,i) = temp_1_5(0,i);}
   temp_1_5 = D*duy2dx + uy2*dDdx;
-  for(int i=0;i<5;++i){dpdx(1,i) = temp_1_5(1,i);}
+  for(int i=0;i<5;++i){dpdx(1,i) = temp_1_5(0,i);}
   dpdx(2,4) = x(0);
   
   point_covariance += dpdx * covariance * (dpdx.transpose());

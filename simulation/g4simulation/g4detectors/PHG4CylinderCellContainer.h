@@ -1,18 +1,24 @@
-#ifndef PHG4CYLINDERCELLCONTAINER_H__
-#define PHG4CYLINDERCELLCONTAINER_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERCELLCONTAINER_H
+#define G4DETECTORS_PHG4CYLINDERCELLCONTAINER_H
 
-#include "PHG4CylinderCell.h"
+#include "PHG4CylinderCellDefs.h"  // for keytype
 
 #include <phool/PHObject.h>
 
+#include <iostream>                // for cout, ostream
 #include <map>
 #include <set>
+#include <utility>                 // for pair, make_pair
+
+class PHG4CylinderCell;
 
 class PHG4CylinderCellContainer: public PHObject
 {
 
   public:
-  typedef std::map<unsigned int,PHG4CylinderCell *> Map;
+  typedef std::map<PHG4CylinderCellDefs::keytype,PHG4CylinderCell *> Map;
   typedef Map::iterator Iterator;
   typedef Map::const_iterator ConstIterator;
   typedef std::pair<Iterator, Iterator> Range;
@@ -20,7 +26,7 @@ class PHG4CylinderCellContainer: public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4CylinderCellContainer();
+  PHG4CylinderCellContainer(){}
 
   virtual ~PHG4CylinderCellContainer() {}
 
@@ -28,10 +34,11 @@ class PHG4CylinderCellContainer: public PHObject
 
   void identify(std::ostream& os = std::cout) const;
 
-  ConstIterator AddCylinderCell(const int detid, PHG4CylinderCell *newcylinderCell);
+  ConstIterator AddCylinderCell(const unsigned int detid, PHG4CylinderCell *newcylinderCell);
+  ConstIterator AddCylinderCellSpecifyKey(const PHG4CylinderCellDefs::keytype key, PHG4CylinderCell *newcylinderCell);
   
   //! preferred removal method, key is currently the cell id
-  void RemoveCylinderCell(unsigned int key) {
+  void RemoveCylinderCell(PHG4CylinderCellDefs::keytype key) {
     cellmap.erase(key);
   }
 
@@ -48,23 +55,23 @@ class PHG4CylinderCellContainer: public PHObject
 	  }
 	else
 	  {
-	    its++;
+	    ++its;
 	  }
       }
   }
 
 
-  Iterator findOrAddCylinderCell(unsigned int key);
+  Iterator findOrAddCylinderCell(PHG4CylinderCellDefs::keytype key);
 
-  unsigned int genkey(const int detid);
+  PHG4CylinderCellDefs::keytype genkey(const unsigned int detid);
 
   //! return all cylinderCells matching a given detid
-  ConstRange getCylinderCells(const int detid) const;
+  ConstRange getCylinderCells(const unsigned int detid) const;
 
   //! return all hist
   ConstRange getCylinderCells( void ) const;
 
-  PHG4CylinderCell* findCylinderCell(unsigned int key);
+  PHG4CylinderCell* findCylinderCell(PHG4CylinderCellDefs::keytype key);
 
   unsigned int size( void ) const
   { return cellmap.size(); }

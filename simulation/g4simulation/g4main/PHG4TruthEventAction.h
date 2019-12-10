@@ -1,66 +1,54 @@
-#ifndef PHG4TruthEventAction_h
-#define PHG4TruthEventAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4TRUTHEVENTACTION_H
+#define G4MAIN_PHG4TRUTHEVENTACTION_H
 
 #include "PHG4EventAction.h"
 
-#include <phool/PHCompositeNode.h>
-
-#include <Geant4/G4ThreeVector.hh>
-#include <Geant4/globals.hh>
-
-#include <boost/bimap.hpp>
-
+#include <map>
 #include <set>
 
+class G4Event;
+class PHG4HitContainer;
 class PHG4TruthInfoContainer;
+class PHCompositeNode;
 
-class PHG4TruthEventAction: public PHG4EventAction
+class PHG4TruthEventAction : public PHG4EventAction
 {
-
-public:
-  typedef boost::bimap<int,G4ThreeVector> bimap_type;
-
+ public:
   //! constructor
-  PHG4TruthEventAction( void );
+  PHG4TruthEventAction();
 
   //! destuctor
-  virtual ~PHG4TruthEventAction( void )
-  {}
+  virtual ~PHG4TruthEventAction() {}
 
   void BeginOfEventAction(const G4Event*);
 
   void EndOfEventAction(const G4Event*);
-  
-  int ResetEvent(PHCompositeNode *);
+
+  int ResetEvent(PHCompositeNode*);
 
   //! get relevant nodes from top node passed as argument
-  void SetInterfacePointers( PHCompositeNode* );
-  
+  void SetInterfacePointers(PHCompositeNode*);
+
   //! add id into track list
-  void AddTrackidToWritelist( const G4int trackid);
+  void AddTrackidToWritelist(const int trackid);
 
-  void TrackIdOffset(const int i) {trackidoffset = i;}
-
-
-  bimap_type::iterator AddVertex(G4ThreeVector& v);
-  
  private:
-  
-  
-  //! set of track ids to be written out
+  void SearchNode(PHCompositeNode* topNode);
+  void PruneShowers();
+  void ProcessShowers();
 
-  std::set<G4int> writeList_;
+  //! set of track ids to be written out
+  std::set<int> m_WriteSet;
 
   //! pointer to truth information container
-  PHG4TruthInfoContainer* truthInfoList_;
+  PHG4TruthInfoContainer* m_TruthInfoContainer;
 
-  int trackidoffset;
-  
-  // TESTING
-  // Bidirectional map of vertexid <-> vertex position
-  int vertexid_;
-  bimap_type vertexIdMap_;  
+  int m_LowerKeyPrevExist;
+  int m_UpperKeyPrevExist;
+
+  std::map<int, PHG4HitContainer*> m_HitContainerMap;
 };
-
 
 #endif

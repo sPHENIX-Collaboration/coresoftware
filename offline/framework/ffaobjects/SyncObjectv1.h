@@ -1,8 +1,13 @@
-#ifndef __SYNCOBJECTv1_H
-#define __SYNCOBJECTv1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_SYNCOBJECTV1_H
+#define FFAOBJECTS_SYNCOBJECTV1_H
 
 #include "SyncObject.h"
+
 #include <iostream>
+
+class PHObject;
 
 class SyncObjectv1: public SyncObject
 {
@@ -12,7 +17,7 @@ class SyncObjectv1: public SyncObject
   SyncObjectv1();
   SyncObjectv1(const SyncObject&);
 
-  SyncObjectv1 *clone() const {return new SyncObjectv1(*this);}
+  PHObject *CloneMe() const {return new SyncObjectv1(*this);}
   /// dtor
   virtual ~SyncObjectv1() {}
 
@@ -36,6 +41,9 @@ class SyncObjectv1: public SyncObject
   /// set Run Number
   void RunNumber(const int ival) {runnumber = ival;}
 
+  /// set Segment Number
+  void SegmentNumber(const int ival) {segmentnumber = ival;}
+
  protected:
   /// get Event Counter
   int EventCounter() const {return eventcounter;}
@@ -44,11 +52,12 @@ class SyncObjectv1: public SyncObject
   /// get Run Number
   int RunNumber() const {return runnumber;}
 
+private:
   int eventcounter;      // running counter
   int eventnumber;  // Event number
   int runnumber;  // Run number
+  int segmentnumber; // segment number
 
- private: // prevent doc++ from showing ClassDef
   ClassDef(SyncObjectv1,1)
 };
 

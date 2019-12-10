@@ -1,38 +1,40 @@
-#ifndef PHNODEITERATOR_H__
-#define PHNODEITERATOR_H__
+#ifndef PHOOL_PHNODEITERATOR_H
+#define PHOOL_PHNODEITERATOR_H
 
 //  Declaration of class PHNodeIterator
 //  Purpose: iterator to navigate a node tree
 //  Author: Matthias Messer
 
-#include "phool.h"
-#include "PHCompositeNode.h"
+//#include "PHCompositeNode.h"
 #include "PHPointerList.h"
 
+#include <string> 
+
+class PHCompositeNode;
+class PHNode;
 class PHNodeOperation;
 
-class PHNodeIterator { 
+class PHNodeIterator
+{
+ public:
+  explicit PHNodeIterator(PHCompositeNode*);
+  virtual ~PHNodeIterator() {}
+  PHNodeIterator();
 
-public: 
-   PHNodeIterator(PHCompositeNode*); 
-   virtual ~PHNodeIterator() {} 
-   PHNodeIterator(); 
-   
-public:
-   void                   print();
-   PHPointerList<PHNode>& ls();
-   PHNode*                findFirst(const std::string&, const std::string&);
-   PHNode*                findFirst(const std::string&);
-   PHBoolean              cd(const std::string &pathString = "");
-   PHBoolean              addNode(PHNode*);
-   void                   forEach(PHNodeOperation&);
-   void                   for_each(PHNodeOperation&);
-   PHCompositeNode *get_currentNode() const {return  currentNode;}
+ public:
+  void print();
+  PHPointerList<PHNode>& ls();
+  PHNode* findFirst(const std::string&, const std::string&);
+  PHNode* findFirst(const std::string&);
+  bool cd(const std::string& pathString = "");
+  bool addNode(PHNode*);
+  void forEach(PHNodeOperation&);
+  void for_each(PHNodeOperation&);
+  PHCompositeNode* get_currentNode() const { return currentNode; }
 
-protected: 
-   PHCompositeNode *currentNode;
-   PHPointerList<PHNode> subNodeList;
+ protected:
+  PHCompositeNode* currentNode;
+  PHPointerList<PHNode> subNodeList;
+};
 
-}; 
-
-#endif /* __PHNODEITERATOR_H__ */
+#endif

@@ -1,5 +1,5 @@
-// $$Id: PHG4SpacalSubsystem.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
-
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  * \file ${file_name}
  * \brief
@@ -8,129 +8,69 @@
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
 
-#ifndef PHG4SpacalSubsystem_h
-#define PHG4SpacalSubsystem_h
+#ifndef G4DETECTORS_PHG4SPACALSUBSYSTEM_H
+#define G4DETECTORS_PHG4SPACALSUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
-#include "PHG4CylinderGeom_Spacalv2.h"
+#include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
+#include <string>                   // for string
 
+class PHCompositeNode;
+class PHG4Detector;
+class PHG4DisplayAction;
 class PHG4SpacalDetector;
-class PHG4SpacalSteppingAction;
-class PHG4EventAction;
+class PHG4SteppingAction;
 
-class PHG4SpacalSubsystem : public PHG4Subsystem
+class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4SpacalSubsystem(const std::string &name = "HCALCYLINDER",
-      const int layer = 0);
+  PHG4SpacalSubsystem(const std::string &name = "PHG4SpacalSubsystem",
+                      const int layer = 0);
 
   //! destructor
-  virtual
-  ~PHG4SpacalSubsystem(void)
-  {
-  }
+  virtual ~PHG4SpacalSubsystem();
 
   //! init
   /*!
-   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-   reates the stepping action and place it on the node tree, under "ACTIONS" node
-   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
+  called during InitRun (the original InitRun does common setup and calls this one)
+  creates the detector object 
+  ceates the stepping action 
+  creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
-  int
-  InitRun(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode *);
 
   //! event processing
   /*!
    get all relevant nodes from top nodes (namely hit list)
    and pass that to the stepping action
    */
-  int
-  process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector*
-  GetDetector(void) const;
-  virtual PHG4SteppingAction*
-  GetSteppingAction(void) const;
-  PHG4EventAction*
-  GetEventAction() const
-  {
-    return eventAction_;
-  }
-  void
-  SetLengthViaRapidityCoverage(const G4bool bl)
-  {
-    lengthViaRapidityCoverage = bl;
-  }
+  virtual PHG4Detector *GetDetector() const;
+  virtual PHG4SteppingAction *GetSteppingAction() const { return steppingAction_; }
 
-  void
-  SetActive(const int i = 1)
-  {
-    active = i;
-  }
-  void
-  SetAbsorberActive(const int i = 1)
-  {
-    absorberactive = i;
-  }
-  void
-  SuperDetector(const std::string &name)
-  {
-    superdetector = name;
-  }
-  const std::string
-  SuperDetector()
-  {
-    return superdetector;
-  }
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
   void
   Print(const std::string &what = "ALL") const;
 
-  typedef PHG4CylinderGeom_Spacalv2 SpacalGeom_t;
-
-  const SpacalGeom_t &
-  get_geom() const
-  {
-    return _geom;
-  }
-
-SpacalGeom_t &
-  get_geom()
-  {
-    return _geom;
-  }
-
-  void
-  set_geom(const SpacalGeom_t & geom)
-  {
-    _geom = geom;
-  }
-
-private:
-  SpacalGeom_t _geom;
+ private:
+  void SetDefaultParameters();
+  //  SpacalGeom_t _geom;
 
   //! detector geometry
   /*! defives from PHG4Detector */
-  PHG4SpacalDetector* detector_;
+  PHG4SpacalDetector *detector_;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SpacalSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
+  PHG4SteppingAction *steppingAction_;
 
-  int active;
-  int absorberactive;
-  int layer;
-  G4bool lengthViaRapidityCoverage;
-  std::string detector_type;
-  std::string superdetector;
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
 };
 
 #endif

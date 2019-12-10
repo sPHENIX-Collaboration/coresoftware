@@ -1,11 +1,12 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I$(includedir) -I$(OPT_SPHENIX)/include  -I$(OFFLINE_MAIN)/include -I`root-config --incdir`
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(OPT_SPHENIX)/include \
+  -I`root-config --incdir`
 
 lib_LTLIBRARIES = libFROG.la
-
-libFROG_la_LDFLAGS = \
-  `root-config --libs`
 
 libFROG_la_LIBADD = \
   -L$(OPT_SPHENIX)/lib \
@@ -13,18 +14,28 @@ libFROG_la_LIBADD = \
 
 noinst_HEADERS = FROGLinkDef.h
 
-pkginclude_HEADERS =    \
-  pgsearch.h \
-  dCachesearch.h  \
+pkginclude_HEADERS = \
   FROG.h
 
-libFROG_la_SOURCES = \
-  pgsearch.cc  dCachesearch.cc \
-  FROG.cc       \
+if ! MAKEROOT6
+ROOT5DICTS = \
   FROG_Dict.cc
+libFROG_la_LDFLAGS = \
+  `root-config --libs`
+endif
 
-BUILT_SOURCES = testexternals.cc
+libFROG_la_SOURCES = \
+  $(ROOT5DICTS) \
+  FROG.cc
+
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
 noinst_PROGRAMS = testexternals
+
+BUILT_SOURCES = \
+  testexternals.cc
+
 testexternals_SOURCES = testexternals.cc
 
 testexternals_LDADD = \
@@ -37,13 +48,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-# Rule for generating CINT dictionaries from class headers.
-FROG_Dict.cc:   \
-  pgsearch.h   \
-  FROG.h       \
-  FROGLinkDef.h
-	rootcint -f $@ -c  $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

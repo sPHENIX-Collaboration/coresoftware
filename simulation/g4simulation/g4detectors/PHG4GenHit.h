@@ -1,7 +1,13 @@
-#ifndef PHG4GenHit_H__
-#define PHG4GenHit_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4GENHIT_H
+#define G4DETECTORS_PHG4GENHIT_H
 
 #include <fun4all/SubsysReco.h>
+
+#include <string>                // for string
+
+class PHCompositeNode;
 
 class PHG4GenHit: public SubsysReco
 {

@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4CylinderGeom_Spacalv2.h,v 1.3 2014/08/28 22:18:35 jinhuang Exp $$
 
 /*!
@@ -7,12 +9,15 @@
  * \version $$Revision: 1.3 $$
  * \date $$Date: 2014/08/28 22:18:35 $$
  */
-#ifndef PHG4CylinderGeom_Spacalv2_H__
-#define PHG4CylinderGeom_Spacalv2_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMSPACALV2_H
+#define G4DETECTORS_PHG4CYLINDERGEOMSPACALV2_H
 
 #include "PHG4CylinderGeom_Spacalv1.h"
-#include <string>
+
 #include <cmath>
+#include <iostream>                     // for cout, ostream
+
+class PHParameters;
 
 class PHG4CylinderGeom_Spacalv2 : public PHG4CylinderGeom_Spacalv1
 {
@@ -31,6 +36,9 @@ public:
   virtual void
   SetDefault();
 
+  //! load parameters from PHParameters, which interface to Database/XML/ROOT files
+  virtual void ImportParameters(const PHParameters & param);
+
   virtual
   int
   get_azimuthal_n_sec() const;
@@ -39,12 +47,14 @@ public:
   void
   set_azimuthal_n_sec(int azimuthalNSec);
 
+  //! azimuthal tilt in rad
   double
   get_azimuthal_tilt() const
   {
     return azimuthal_tilt;
   }
 
+  //! azimuthal tilt in rad
   void
   set_azimuthal_tilt(double azimuthalTilt)
   {
@@ -81,9 +91,12 @@ public:
             (get_radius()) * (get_radius())
                 + (get_sec_azimuthal_width() / 2)
                     * (get_sec_azimuthal_width() / 2)) - get_radius()) - get_assembly_spacing();
-    return sqrt(
-        available_depth * available_depth
-            - get_sec_azimuthal_width() * get_sec_azimuthal_width());
+    if (available_depth < get_sec_azimuthal_width())
+      return NAN;
+    else
+      return sqrt(
+          available_depth * available_depth
+              - get_sec_azimuthal_width() * get_sec_azimuthal_width());
   }
 
   double
@@ -122,6 +135,8 @@ public:
 protected:
 
   int azimuthal_n_sec;
+
+  //! azimuthal tilt in rad
   double azimuthal_tilt;
   bool azimuthal_seg_visible;
   double polar_taper_ratio;

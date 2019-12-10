@@ -3,9 +3,13 @@
 #include "PHG4Particle.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/getClass.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
 #include <cmath>
+#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <map>                           // for multimap<>::iterator, _Rb_tr...
+#include <utility>                       // for pair
 
 using namespace std;
 
@@ -28,7 +32,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
     }
   pair<multimap<int, PHG4Particle *>::iterator, multimap<int, PHG4Particle *>::iterator > beginend =   ineve->GetParticles_Modify();
   multimap<int, PHG4Particle *>::iterator particleiter;
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "PHG4InputFilter before filter" << endl;
       ineve->identify();
@@ -42,7 +46,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (eta < etamin)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
@@ -54,7 +58,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (eta > etamax)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
@@ -66,7 +70,7 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (pt < ptmin)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
@@ -78,15 +82,15 @@ PHG4InputFilter::process_event(PHCompositeNode *topNode)
           if (pt > ptmax)
             {
               multimap<int, PHG4Particle *>::iterator particleiter_cache = particleiter  ;
-              particleiter_cache++;
+              ++particleiter_cache;
               ineve->DeleteParticle(particleiter);
               particleiter = particleiter_cache;
               continue;
             }
         }
-      particleiter++;
+      ++particleiter;
     }
-  if (verbosity > 0)
+  if (Verbosity() > 0)
     {
       cout << "PHG4InputFilter: after filter" << endl;
       ineve->identify();

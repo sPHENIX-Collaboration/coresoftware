@@ -1,11 +1,10 @@
-#ifndef PHG4EVENTHEADERV1_H
-#define PHG4EVENTHEADERV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4EVENTHEADERV1_H
+#define G4MAIN_PHG4EVENTHEADERV1_H
 
 #include "PHG4EventHeader.h"
 
-#include <phool/phool.h>
-
-#include <cmath>
 #include <iostream>
 
 ///
@@ -51,6 +50,3 @@ class PHG4EventHeaderv1: public PHG4EventHeader
 };
 
 #endif
-
-
-

@@ -1,10 +1,10 @@
-#ifndef __SEAMSTRESS__
-#define __SEAMSTRESS__
+#ifndef SEAMSTRESS_SEAMSTRESS_H
+#define SEAMSTRESS_SEAMSTRESS_H
 
 #include <pthread.h>
-#include "Needle.h"
 #include <vector>
 
+namespace SeamStress { class Needle; }
 
 namespace SeamStress
 {

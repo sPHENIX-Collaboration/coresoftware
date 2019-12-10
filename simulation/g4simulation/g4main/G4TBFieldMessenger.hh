@@ -32,19 +32,20 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-#ifndef G4TBFieldMessenger_h
-#define G4TBFieldMessenger_h 1
+#ifndef G4MAIN_G4TBFIELDMESSENGER_H
+#define G4MAIN_G4TBFIELDMESSENGER_H
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>
+#include <Geant4/G4Types.hh>
 #include <Geant4/G4UImessenger.hh>
 
 class G4TBMagneticFieldSetup;
 class G4UIdirectory;
 class G4UIcmdWithAString;
 class G4UIcmdWithAnInteger;
-class G4UIcmdWithADouble;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWithoutParameter;
+class G4UIcommand;
 
 
 class G4TBFieldMessenger: public G4UImessenger

@@ -1,87 +1,87 @@
-#ifndef PHG4CylinderSubsystem_h
-#define PHG4CylinderSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H
+#define G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
+#include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4String.hh>
+#if !defined(__CINT__) || defined(__CLING__)
+#include <array>   // for array
+#endif
 
+#include <string>  // for string
+
+class PHCompositeNode;
 class PHG4CylinderDetector;
-class PHG4CylinderSteppingAction;
-class PHG4EventAction;
+class PHG4Detector;
+class PHG4DisplayAction;
+class PHG4SteppingAction;
 
-class PHG4CylinderSubsystem: public PHG4Subsystem
+class PHG4CylinderSubsystem : public PHG4DetectorSubsystem
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4CylinderSubsystem( const std::string &name = "CYLINDER", const int layer = 0 );
+  PHG4CylinderSubsystem(const std::string& name = "CYLINDER", const int layer = 0);
 
   //! destructor
-  virtual ~PHG4CylinderSubsystem( void )
-  {}
+  virtual ~PHG4CylinderSubsystem(void);
 
-  //! init
+  //! init runwise stuff
   /*!
-  creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
+  creates the m_Detector object and place it on the node tree, under "DETECTORS" node (or whatever)
   reates the stepping action and place it on the node tree, under "ACTIONS" node
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
-  int InitRun(PHCompositeNode *);
+  int InitRunSubsystem(PHCompositeNode*);
 
   //! event processing
   /*!
   get all relevant nodes from top nodes (namely hit list)
   and pass that to the stepping action
   */
-  int process_event(PHCompositeNode *);
+  int process_event(PHCompositeNode*);
+
+  //! Print info (from SubsysReco)
+  void Print(const std::string& what = "ALL") const;
 
   //! accessors (reimplemented)
-  virtual PHG4Detector* GetDetector( void ) const;
-  virtual PHG4SteppingAction* GetSteppingAction( void ) const;
-  PHG4EventAction* GetEventAction() const {return eventAction_;}
+  PHG4Detector* GetDetector(void) const;
+  PHG4SteppingAction* GetSteppingAction(void) const { return m_SteppingAction; }
 
-  void SetRadius(const G4double dbl) {radius = dbl;}
-  void SetLength(const G4double dbl) {length = dbl;}
-  void SetLengthViaRapidityCoverage(const G4bool bl) {lengthViaRapidityCoverage = bl;}
-  void SetPosition(const G4double x, const G4double y, const G4double z)
+  PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
+  void set_color(const double red, const double green, const double blue, const double alpha = 1.)
   {
-    xpos = x;
-    ypos = y;
-    zpos = z;
+    m_ColorArray[0] = red;
+    m_ColorArray[1] = green;
+    m_ColorArray[2] = blue;
+    m_ColorArray[3] = alpha;
   }
-  void SetThickness(const G4double dbl) {TrackerThickness = dbl;}
-  void SetMaterial(const std::string &mat) {material = mat;}
-  void SetActive(const int i = 1) {active = i;}
-  void SetReducedTruthInfo(const bool b) {reduced = b;}
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() {return superdetector;}
+// this method is used to check if it can be used as mothervolume
+// Subsystems which can be mothervolume need to implement this 
+// and return true
+  virtual bool CanBeMotherSubsystem() const {return true;}
 
-  void BlackHole(const int i=1) {blackhole = i;}
-
-  private:
+ private:
+  void SetDefaultParameters();
 
   //! detector geometry
-  /*! defives from PHG4Detector */
-  PHG4CylinderDetector* detector_;
+  /*! derives from PHG4Detector */
+  PHG4CylinderDetector* m_Detector;
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4CylinderSteppingAction* steppingAction_;
-  PHG4EventAction *eventAction_;
-  G4double radius;
-  G4double length;
-  G4double xpos,ypos,zpos;
-  G4bool lengthViaRapidityCoverage;
-  G4double TrackerThickness;
-  G4String material;
-  int active;
-  bool reduced;
-  int layer;
-  int blackhole;
-  std::string detector_type;
-  std::string superdetector;
+  PHG4SteppingAction* m_SteppingAction;
+
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction* m_DisplayAction;
+
+  //! Color setting if we want to override the default
+#if !defined(__CINT__) || defined(__CLING__)
+  std::array<double, 4> m_ColorArray;
+#else
+  double m_ColorArray[4];
+#endif
 };
 
-#endif
+#endif  // G4DETECTORS_PHG4CYLINDERSUBSYSTEM_H

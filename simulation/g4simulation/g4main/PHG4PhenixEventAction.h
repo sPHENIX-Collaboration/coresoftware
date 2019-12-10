@@ -1,5 +1,7 @@
-#ifndef PHG4VUserEventAction_h
-#define PHG4VUserEventAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PHENIXEVENTACTION_H
+#define G4MAIN_PHG4PHENIXEVENTACTION_H
 
 #include <phool/PHTimeServer.h>
 
@@ -10,7 +12,6 @@
 
 class G4Event;
 class PHG4EventAction;
-class PHCompositeNode;
 
 class PHG4PhenixEventAction : public G4UserEventAction
 {
@@ -18,8 +19,7 @@ class PHG4PhenixEventAction : public G4UserEventAction
   public:
   PHG4PhenixEventAction( void );
 
-  virtual ~PHG4PhenixEventAction()
-  {}
+  virtual ~PHG4PhenixEventAction();
 
   //! register an action. This is called in PHG4Reco::Init based on which actions are found on the tree
   void AddAction( PHG4EventAction* action )

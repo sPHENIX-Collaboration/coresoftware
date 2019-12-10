@@ -1,64 +1,104 @@
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = \
+AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include/eigen3 \
   -I$(OFFLINE_MAIN)/include \
-  -I$(G4_MAIN)/include \
-  -I$(G4_MAIN)/include/Geant4 \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libg4eval_io.la \
    libg4eval.la
-
-AM_CXXFLAGS = -Wall -Werror -msse2
-
-libg4eval_io_la_LDFLAGS = \
-  -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  -lphool
 
 libg4eval_la_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib \
-  `geant4-config --libs` \
+  -L$(OFFLINE_MAIN)/lib
+
+libg4eval_la_LIBADD = \
+  -lcalo_io \
+  -lCLHEP \
   -lfun4all \
-  -lg4hough \
-  -lHelixHough \
-  -lFitNewton \
-  -lcemc \
-  libg4eval_io.la
+  -lg4detectors_io \
+  -lg4jets_io \
+  -lg4vertex_io \
+  -ltrackbase_historic_io \
+  -ltrack_io \
+  -ltpc_io \
+  -lphg4hit
 
 pkginclude_HEADERS = \
-  PHG4Evaluator.h \
-  PHG4CalEvaluator.h \
+  BaseTruthEval.h \
+  CaloEvalStack.h \
+  CaloEvaluator.h \
+  CaloRawClusterEval.h \
+  CaloRawTowerEval.h \
+  CaloTruthEval.h \
+  JetEvalStack.h \
+  JetEvaluator.h \
+  JetRecoEval.h \
+  JetTruthEval.h \
+  MomentumEvaluator.h \
+  PHG4DstCompressReco.h \
   PHG4DSTReader.h \
-  EvalLinks.h \
-  EvalLinksV1.h
+  SvtxEvalStack.h \
+  SvtxEvaluator.h \
+  TrkrEvaluator.h \
+  SvtxHitEval.h \
+  SvtxClusterEval.h \
+  SvtxTrackEval.h \
+  SvtxTruthEval.h \
+  SvtxVertexEval.h
 
-#pkginclude_HEADERS = $(include_HEADERS)
-
-libg4eval_io_la_SOURCES = \
-  EvalLinks.C \
-  EvalLinks_Dict.C \
-  EvalLinksV1.C \
-  EvalLinksV1_Dict.C
+if ! MAKEROOT6
+  ROOT5DICTS = \
+  CaloEvalStack_Dict.cc \
+  CaloTruthEval_Dict.cc \
+  CaloRawTowerEval_Dict.cc \
+  CaloRawClusterEval_Dict.cc \
+  CaloEvaluator_Dict.cc \
+  JetEvalStack_Dict.cc \
+  JetTruthEval_Dict.cc \
+  JetRecoEval_Dict.cc \
+  JetEvaluator_Dict.cc \
+  PHG4DSTReader_Dict.cc \
+  SvtxEvalStack_Dict.cc \
+  SvtxTruthEval_Dict.cc \
+  SvtxHitEval_Dict.cc \
+  SvtxClusterEval_Dict.cc \
+  SvtxTrackEval_Dict.cc \
+  SvtxVertexEval_Dict.cc \
+  SvtxEvaluator_Dict.cc \
+  TrkrEvaluator_Dict.cc \
+  MomentumEvaluator_Dict.cc \
+  PHG4DstCompressReco_Dict.cc
+endif
 
 libg4eval_la_SOURCES = \
-  PHG4Evaluator.C \
-  PHG4Evaluator_Dict.C \
-  PHG4CalEvaluator.C \
-  PHG4CalEvaluator_Dict.C \
+  $(ROOT5DICTS) \
+  BaseTruthEval.cc \
+  CaloEvalStack.cc \
+  CaloTruthEval.cc \
+  CaloRawTowerEval.cc \
+  CaloRawClusterEval.cc \
+  CaloEvaluator.cc \
+  JetEvalStack.cc \
+  JetTruthEval.cc \
+  JetRecoEval.cc \
+  JetEvaluator.cc \
   PHG4DSTReader.cc \
-  PHG4DSTReader_Dict.C
+  SvtxEvalStack.cc \
+  SvtxTruthEval.cc \
+  SvtxHitEval.cc \
+  SvtxClusterEval.cc \
+  SvtxTrackEval.cc \
+  SvtxVertexEval.cc \
+  SvtxEvaluator.cc \
+  TrkrEvaluator.cc \
+  MomentumEvaluator.cc \
+  PHG4DstCompressReco.cc 
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
-
-%_Dict.cpp: %.h %LinkDef.h
-	rootcint -f $@ -c $(DEFAULT_INCLUDES) $(INCLUDES) $^
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 ################################################
 # linking tests
@@ -66,13 +106,15 @@ libg4eval_la_SOURCES = \
 noinst_PROGRAMS = testexternals
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 testexternals_LDADD = \
-  libg4eval_io.la \
   libg4eval.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -80,4 +122,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

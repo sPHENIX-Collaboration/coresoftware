@@ -1,10 +1,11 @@
-#ifndef PHG4BlockGeomv1_H__
-#define PHG4BlockGeomv1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4BLOCKGEOMV1_H
+#define G4DETECTORS_PHG4BLOCKGEOMV1_H
 
 #include "PHG4BlockGeom.h"
 
-#include <phool/phool.h>
-#include <cmath>
+#include <iostream>         // for cout, ostream
 
 class PHG4BlockGeomv1: public PHG4BlockGeom
 {
@@ -28,9 +29,9 @@ class PHG4BlockGeomv1: public PHG4BlockGeom
   double get_center_z() const {return _center[2];}
   double get_z_rot() const {return _rotation_z;}
 
-  double get_size_global_x() const {return _size[0];}
-  double get_size_global_y() const {return _size[1];}
-  double get_size_global_z() const {return _size[2];}
+  double get_size_x() const {return _size[0];}
+  double get_size_y() const {return _size[1];}
+  double get_size_z() const {return _size[2];}
 
   double get_rot_matrix(const int i, const int j) const {return _rot_matrix[i][j];}
 

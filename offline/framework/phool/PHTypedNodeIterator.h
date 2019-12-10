@@ -1,12 +1,13 @@
-#ifndef __PHTYPEDNODEITERATOR_H__
-#define __PHTYPEDNODEITERATOR_H__
+#ifndef PHOOL_PHTYPEDNODEITERATOR_H
+#define PHOOL_PHTYPEDNODEITERATOR_H
 
 #include "PHNodeIterator.h"
 
 #include <cstddef>
 
 class TObject;
-template<typename T> class PHIODataNode;
+template <typename T>
+class PHIODataNode;
 class PHCompositeNode;
 
 //  A special PHOOL node iterator that simplifies finding and adding
@@ -18,15 +19,18 @@ class PHCompositeNode;
 template <class T>
 class PHTypedNodeIterator : public PHNodeIterator
 {
-public:
-
+ public:
   /// Constructor
-  PHTypedNodeIterator(PHCompositeNode* n) : PHNodeIterator(n) { 
-    myIODataNode = 0;
+  explicit PHTypedNodeIterator(PHCompositeNode* n)
+    : PHNodeIterator(n)
+  {
+    myIODataNode = nullptr;
   }
 
-  PHTypedNodeIterator() : PHNodeIterator() {    
-    myIODataNode = 0;
+  PHTypedNodeIterator()
+    : PHNodeIterator()
+  {
+    myIODataNode = nullptr;
   }
 
   T& operator*();
@@ -34,7 +38,6 @@ public:
   /// Destructor
   //  virtual ~PHTypedNodeIterator();  // Need a virtual ~PHNodeIterator() !
   ~PHTypedNodeIterator() {}
-
   /**
    * Finds an IODataNode of name "name" containing data of type "T".
    * A null pointer will be returned if the node is not found, or if
@@ -43,7 +46,6 @@ public:
   PHIODataNode<T>* FindIODataNode(const char* name);
 
   PHIODataNode<T>* find(const char* name);
-  
 
   /**
    * Adds a data node called "name" to the tree, and inserts "data".
@@ -51,18 +53,17 @@ public:
    * object, so remember to "cd" to the desired location in the tree!
    *
    */
-  PHBoolean AddIODataNode(T* data, const char* name);
+  bool AddIODataNode(T* data, const char* name);
 
-  PHBoolean insert(T* data, const char* name);
-  
-protected:
-  PHIODataNode<T>* myIODataNode;  
+  bool insert(T* data, const char* name);
 
+ protected:
+  PHIODataNode<T>* myIODataNode;
 };
 
 template <class T>
 T&
-PHTypedNodeIterator<T>::operator*()
+    PHTypedNodeIterator<T>::operator*()
 {
   return *(myIODataNode->getData());
 }
@@ -79,47 +80,45 @@ PHIODataNode<T>*
 PHTypedNodeIterator<T>::find(const char* name)
 {
   // TODO:  also check that "name" is not a null string!
-  if (!name) 
-    {
-      return 0;
-    }
+  if (!name)
+  {
+    return 0;
+  }
 
   // Can't do dynamic_cast here; it fails if node was created as
   // PHIODataNode<X> instead of PHIODataNode<T>, even if T is a
   // derived class of X!  In general, T -> X does not imply A<T> ->
   // A<X>.  ("->" denotes "derives from", and "A" is any template
   // class)
-  myIODataNode = 
-    static_cast<PHIODataNode<T>*>(findFirst("PHIODataNode", name));
+  myIODataNode =
+      static_cast<PHIODataNode<T>*>(findFirst("PHIODataNode", name));
 
   return myIODataNode;
 }
 
 template <class T>
-PHBoolean
-PHTypedNodeIterator<T>::AddIODataNode(T* data, const char* name)
+bool PHTypedNodeIterator<T>::AddIODataNode(T* data, const char* name)
 {
   return insert(data, name);
 }
 
 template <class T>
-PHBoolean
-PHTypedNodeIterator<T>::insert(T* data, const char* name)
+bool PHTypedNodeIterator<T>::insert(T* data, const char* name)
 {
   // TODO:  also check that "name" is not a null string!
   if (!name)
-    {
-      return False;
-    }
-  
+  {
+    return false;
+  }
+
   // For IODataNode, ought to check (if possible) that T derives from
   // TObject.  Will typeid() give us this info?
   PHIODataNode<T>* n = new PHIODataNode<T>(data, name);
-  if (!n) 
-    {
-      // problem creating node?
-      return False;
-    }
+  if (!n)
+  {
+    // problem creating node?
+    return false;
+  }
 
   return addNode(n);
 }
@@ -127,4 +126,4 @@ PHTypedNodeIterator<T>::insert(T* data, const char* name)
 // Typedef to simplify notation.
 typedef PHTypedNodeIterator<TObject> PHRootNodeIterator;
 
-#endif /* __PHTYPEDNODEITERATOR_H__ */
+#endif

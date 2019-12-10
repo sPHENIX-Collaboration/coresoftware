@@ -1,14 +1,21 @@
-#ifndef PHG4ConeSubsystem_h
-#define PHG4ConeSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CONESUBSYSTEM_H
+#define G4DETECTORS_PHG4CONESUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
 #include <Geant4/G4String.hh>
 
+#include <string>                  // for string
+
+class PHCompositeNode;
 class PHG4ConeDetector;
 class PHG4ConeSteppingAction;
+class PHG4Detector;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4ConeSubsystem: public PHG4Subsystem
 {
@@ -72,6 +79,11 @@ class PHG4ConeSubsystem: public PHG4Subsystem
   PHG4EventAction* GetEventAction() const {return eventAction_;}
   void SetActive(const int i = 1) {active = i;}
   void SuperDetector(const std::string &name) {superdetector = name;}
+
+// this method is used to check if it can be used as mothervolume
+// Subsystems which can be mothervolume need to implement this 
+// and return true
+  virtual bool CanBeMotherSubsystem() const {return true;}
 
   private:
 

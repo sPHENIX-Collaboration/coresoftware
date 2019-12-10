@@ -1,7 +1,4 @@
 #include "PHG4BlockGeom.h"
-#include <cmath>
-
-ClassImp(PHG4BlockGeom)
 
 using namespace std;
 

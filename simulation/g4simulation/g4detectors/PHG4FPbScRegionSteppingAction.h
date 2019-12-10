@@ -1,9 +1,12 @@
-#ifndef PHG4VFPbScRegionSteppingAction_h
-#define PHG4VFPbScRegionSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FPBSCREGIONSTEPPINGACTION_H
+#define G4DETECTORS_PHG4FPBSCREGIONSTEPPINGACTION_H
 
 #include <Geant4/G4UserSteppingAction.hh>
 
 
+class G4Step;
 class PHCompositeNode;
 class PHG4FPbScDetector;
 class PHG4Hit;

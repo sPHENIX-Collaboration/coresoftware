@@ -32,12 +32,16 @@
 #include "G4TBFieldMessenger.hh"
 
 #include "G4TBMagneticFieldSetup.hh"
+
+#include <Geant4/G4ApplicationState.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4UIdirectory.hh>
 #include <Geant4/G4UIcmdWithAString.hh>
 #include <Geant4/G4UIcmdWithAnInteger.hh>
-#include <Geant4/G4UIcmdWithADouble.hh>
 #include <Geant4/G4UIcmdWithADoubleAndUnit.hh>
 #include <Geant4/G4UIcmdWithoutParameter.hh>
+
+class G4UIcommand;
 
 //////////////////////////////////////////////////////////////////////////////
 

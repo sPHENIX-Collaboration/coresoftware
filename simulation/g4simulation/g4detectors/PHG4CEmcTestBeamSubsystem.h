@@ -1,14 +1,20 @@
-#ifndef PHG4CEmcTestBeamSubsystem_h
-#define PHG4CEmcTestBeamSubsystem_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CEMCTESTBEAMSUBSYSTEM_H
+#define G4DETECTORS_PHG4CEMCTESTBEAMSUBSYSTEM_H
 
-#include "g4main/PHG4Subsystem.h"
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Types.hh>
+
+#include <string>                  // for string
 
 class PHCompositeNode;
 class PHG4CEmcTestBeamDetector;
 class PHG4CEmcTestBeamSteppingAction;
+class PHG4Detector;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4CEmcTestBeamSubsystem: public PHG4Subsystem
 {

@@ -34,8 +34,8 @@
 // see http://root.cern.ch/root/License.html
 // ----------------------------------------------------------------------------
 
-#include <G4Pythia6Decayer.hh>
-#include <Pythia6.hh>
+#include "G4Pythia6Decayer.hh"
+#include "Pythia6.hh"
 
 #include <Geant4/G4DynamicParticle.hh>
 #include <Geant4/G4DecayProducts.hh>
@@ -44,7 +44,7 @@
 #include <Geant4/G4Track.hh>
 #include <Geant4/G4SystemOfUnits.hh>
 
-#include <Geant4/CLHEP/Vector/LorentzVector.h>
+#include <CLHEP/Vector/LorentzVector.h>
 
 #include <cmath>
 

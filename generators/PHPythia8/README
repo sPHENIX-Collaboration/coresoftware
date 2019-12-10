@@ -1,0 +1,11 @@
+to get started
+
+add to .cshrc
+ setenv PYTHIA8 ${OFFLINE_MAIN}/share/Pythia8
+ setenv PYTHIA8DATA ${PYTHIA8}/xmldoc
+
+login in a new window
+cp the phpythia8.cfg to working area
+
+you will need to add the HepMC node reader after the PHPythia8
+to feed the hepmc node into GEANT4

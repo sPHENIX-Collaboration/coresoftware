@@ -1,14 +1,13 @@
 #include "PHG4InEvent.h"
+
 #include "PHG4Particle.h"
+#include "PHG4VtxPoint.h"
 #include "PHG4VtxPointv1.h"
 
-#include <phool/phool.h>
-
+#include <cmath>
 #include <cstdlib>
 
 using namespace std;
-
-ClassImp(PHG4InEvent)
 
 PHG4InEvent::~PHG4InEvent()
 {
@@ -46,7 +45,7 @@ int
 PHG4InEvent::AddVtxCommon(PHG4VtxPoint *newvtx)
 {
   std::pair< std::map<int, PHG4VtxPoint *>::const_iterator, std::map<int, PHG4VtxPoint *>::const_iterator > vtxbegin_end =  GetVertices();
-  for (map<int, PHG4VtxPoint *>::const_iterator viter = vtxbegin_end.first; viter != vtxbegin_end.second; viter++)
+  for (map<int, PHG4VtxPoint *>::const_iterator viter = vtxbegin_end.first; viter != vtxbegin_end.second; ++viter)
     {
       if (*newvtx == *(viter->second))
 	{
@@ -67,9 +66,9 @@ PHG4InEvent::AddParticle(const int vtxid, PHG4Particle *particle)
       cout << "cannot add particle to non existing vertex, id: " << vtxid << endl;
       exit(1);
     }
-  std::pair< std::multimap<int,PHG4Particle *>::const_iterator, std::multimap<int,PHG4Particle *>::const_iterator > particles = GetParticles(vtxid);
-
   // checking for duplicate particles - sometimes interesting
+  //  std::pair< std::multimap<int,PHG4Particle *>::const_iterator, std::multimap<int,PHG4Particle *>::const_iterator > particles = GetParticles(vtxid);
+
 //   for (multimap<int,PHG4Particle *>::const_iterator piter = particles.first; piter != particles.second; piter++)
 //     {
 //       if (*particle == *(piter->second))
@@ -135,23 +134,23 @@ PHG4InEvent::identify(ostream& os) const
 {
   os << "vtx: " << endl;
   multimap<int,PHG4Particle *>::const_iterator particle_iter;
-  for(map<int,PHG4VtxPoint *>::const_iterator iter = vtxlist.begin(); iter != vtxlist.end(); iter++)
+  for(map<int,PHG4VtxPoint *>::const_iterator iter = vtxlist.begin(); iter != vtxlist.end(); ++iter)
     {
       os << "vtx " << iter->first << " , ";
       iter->second->identify(os);
       pair<multimap<int, PHG4Particle *>::const_iterator, multimap<int, PHG4Particle *>::const_iterator > particlebegin_end = GetParticles(iter->first);
-      for(particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; particle_iter++)
+      for(particle_iter = particlebegin_end.first; particle_iter != particlebegin_end.second; ++particle_iter)
 	{
 	  os << "vtx " << particle_iter->first << ", ";
 	  particle_iter->second->identify(os);
 	}
     }
-  if (embedded_particlelist.size())
+  if (!embedded_particlelist.empty())
     {
       os << "embedded particles:" << endl;
-      for (set<PHG4Particle *>::const_iterator iter = embedded_particlelist.begin(); iter != embedded_particlelist.end(); iter++)
+      for (map<PHG4Particle *,int>::const_iterator iter = embedded_particlelist.begin(); iter != embedded_particlelist.end(); ++iter)
 	{
-	  (*iter)->identify(os);
+	  (iter->first)->identify(os);
 	}
     }
   else
@@ -164,11 +163,12 @@ PHG4InEvent::identify(ostream& os) const
 int
 PHG4InEvent::isEmbeded(PHG4Particle *p) const
 {
-  if (embedded_particlelist.find(p) != embedded_particlelist.end())
-    {
-      return true;
-    }
-  return false;
+  std::map<PHG4Particle*,int>::const_iterator iter = embedded_particlelist.find(p);
+  if (iter == embedded_particlelist.end()) {
+    return 0;
+  }
+
+  return iter->second;
 }
 
 void

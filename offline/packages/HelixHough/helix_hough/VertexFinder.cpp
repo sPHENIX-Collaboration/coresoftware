@@ -2,18 +2,15 @@
 #include "VertexFinder.h"
 
 // Helix Hough includes
-#include <SimpleTrack3D.h>
 #include <VertexFitFunc.h>
 
 // FitNewton includes
 #include <NewtonMinimizerGradHessian.h>
 
 // Eigen includes
-#include <Eigen/LU>
 #include <Eigen/Core>
 
-// standard includes
-#include <iostream>
+class SimpleTrack3D;
 
 using namespace std;
 

@@ -1,64 +1,52 @@
-#ifndef PHG4SectorDetector_h
-#define PHG4SectorDetector_h
-
-#include "g4main/PHG4Detector.h"
-
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4Region.hh>
-#include <Geant4/globals.hh>
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SECTORDETECTOR_H
+#define G4DETECTORS_PHG4SECTORDETECTOR_H
 
 #include "PHG4SectorConstructor.h"
 
-#include <map>
+#include <g4main/PHG4Detector.h>
 
+#include <string>  // for string
 
-class G4Material;
-class G4Cons;
 class G4LogicalVolume;
-class G4Region;
 class G4VPhysicalVolume;
+class PHCompositeNode;
+class PHG4SectorDisplayAction;
+class PHG4Subsystem;
 
-class PHG4SectorDetector: public PHG4Detector, public PHG4Sector::PHG4SectorConstructor
+class PHG4SectorDetector : public PHG4Detector, public PHG4Sector::PHG4SectorConstructor
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4SectorDetector( PHCompositeNode *Node, const std::string &dnam="SECTOR");
+  PHG4SectorDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4SectorDetector( void )
-  {}
+  virtual ~PHG4SectorDetector(void)
+  {
+  }
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
   //@{
-  bool IsInSectorActive(G4VPhysicalVolume*);
-  bool IsInSectorInactive(G4VPhysicalVolume*);
+  bool IsInSectorActive(G4VPhysicalVolume *physvol);
   //@}
 
+  void SuperDetector(const std::string &name) { superdetector = name; }
+  const std::string SuperDetector() const { return superdetector; }
 
-  virtual G4UserSteppingAction* GetSteppingAction() 
-  { 
-    if ( _region )
-      return _region->GetRegionalSteppingAction();
-    else return 0;
+  virtual void OverlapCheck(const bool chk = true)
+  {
+    PHG4Detector::OverlapCheck(chk);
+    PHG4SectorConstructor::OverlapCheck(chk);
   }
 
-
-  void SuperDetector(const std::string &name) {superdetector = name;}
-  const std::string SuperDetector() const {return superdetector;}
-
-
-  private:
-
-
-  G4Region* _region;
+ private:
+  PHG4SectorDisplayAction *m_DisplayAction;
 
   std::string superdetector;
-  
 };
 
 #endif

@@ -1,10 +1,6 @@
 #ifndef __HELIX_HOUGH_H__
 #define __HELIX_HOUGH_H__
 
-#include <cmath>
-#include <vector>
-#include <set>
-#include <map>
 #include "fastvec.h"
 #include "HelixRange.h"
 #include "HelixResolution.h"
@@ -13,6 +9,10 @@
 #include "HelixKalmanState.h"
 #include <xmmintrin.h>
 #include <emmintrin.h>
+#include <cmath>
+#include <vector>
+#include <set>
+#include <map>
 
 #ifndef M_PI
 #define M_PI           3.14159265358979323846
@@ -43,7 +43,7 @@ public:
     max_z0 = (((z0 > max_z0)-1)&max_z0) ^ (((z0 <= max_z0)-1)&z0);
   }
   
-  void mergeRange(ParRange& other)
+  void mergeRange(ParRange const& other)
   {
     min_phi = (((other.min_phi < min_phi)-1)&min_phi) ^ (((other.min_phi >= min_phi)-1)&other.min_phi);
     max_phi = (((other.max_phi > max_phi)-1)&max_phi) ^ (((other.max_phi <= max_phi)-1)&other.max_phi);
@@ -120,7 +120,7 @@ class HelixHough
   public:
     HelixHough(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range);
     HelixHough(std::vector<std::vector<unsigned int> >& zoom_profile, unsigned int minzoom, HelixRange& range);
-    ~HelixHough();
+    virtual ~HelixHough();
     
     void initHelixHough(unsigned int n_phi, unsigned int n_d, unsigned int n_k, unsigned int n_dzdl, unsigned int n_z0, HelixResolution& min_resolution, HelixResolution& max_resolution, HelixRange& range);
     
@@ -192,6 +192,9 @@ class HelixHough
     void setLayersAtATime(unsigned int l){layers_at_a_time = l;}
     
     void setSmoothBack(bool sb){smooth_back=sb;}
+
+    void setCullInputHits( bool cih ){ cull_input_hits = cih; }
+    void setIterateClustering( bool icl ){ iterate_clustering = icl; }
     
   protected:
     bool remove_hits;
@@ -288,7 +291,11 @@ class HelixHough
     std::vector<HelixKalmanState> seed_states;
     
     unsigned int n_layers;
+    int layer_start;
+    int layer_end;
     bool smooth_back;
+    bool cull_input_hits;
+    bool iterate_clustering;
 };
 
 #endif

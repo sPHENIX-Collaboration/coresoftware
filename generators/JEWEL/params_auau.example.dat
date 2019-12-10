@@ -1,0 +1,23 @@
+# This is an example parameter file.
+# Let's write output to another file:
+LOGFILE example_auau_recoil.log
+HEPMCFILE example_auau_recoil.hepmc
+# Let's change the generation phase space:
+PTMIN 10.
+PTMAX -1.
+ETAMAX 1.0
+NSET 1
+WEXPO 6
+SQRTS 200
+NEVENT 10000
+# atomic and mass numbers of incoming nuclei, only for AuAu 
+MASS 197 
+NPROTON 79
+# this is to include recoil effects
+KEEPRECOILS T
+# to write the output necessary for subtraction of the thermal momentum components
+WRITESCATCEN T
+# to write out dummy particles (needed for 4MomSub subtraction)
+WRITEDUMMIES T
+# And we also want to change the medium parameters:
+MEDIUMPARAMS ${OFFLINE_MAIN}/share/jewel/medium.params.dat

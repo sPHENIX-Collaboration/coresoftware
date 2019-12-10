@@ -24,6 +24,7 @@ FourHitSeedFinder::FourHitSeedFinder(vector<float>& detrad, unsigned int n_phi, 
 
 void FourHitSeedFinder::findTracks(vector<SimpleHit3D>& hits, vector<SimpleTrack3D>& tracks, const HelixRange& range)
 {
+  cout << "findTracks" << endl;
 //   findTracks_3_4(hits, tracks, range);
   findTracks_6(hits, tracks, range);
   

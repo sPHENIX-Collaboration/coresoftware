@@ -1,15 +1,8 @@
 #include "PHG4BlockCellGeomContainer.h"
-#include "PHG4BlockCellGeom.h"
-#include <cmath>
 
-ClassImp(PHG4BlockCellGeomContainer)
+#include "PHG4BlockCellGeom.h"
 
 using namespace std;
-
-PHG4BlockCellGeomContainer::PHG4BlockCellGeomContainer()
-{
-  return;
-}
 
 PHG4BlockCellGeomContainer::~PHG4BlockCellGeomContainer()
 {
@@ -25,7 +18,7 @@ void
 PHG4BlockCellGeomContainer::identify(std::ostream& os) const
 {
   map<int,PHG4BlockCellGeom *>::const_iterator iter;
-  for (iter=layergeoms.begin(); iter != layergeoms.end(); iter++)
+  for (iter=layergeoms.begin(); iter != layergeoms.end(); ++iter)
     {
       cout << "layer " << iter->first << endl;
       (iter->second)->identify(os);
@@ -68,6 +61,6 @@ PHG4BlockCellGeomContainer::GetLayerCellGeom(const int i)
       return iter->second;
     }
   cout << "Could not locate layer " << i << " in PHG4BlockCellGeomContainer" << endl;
-  return NULL;
+  return nullptr;
 }
 

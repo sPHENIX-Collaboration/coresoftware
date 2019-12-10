@@ -1,56 +1,56 @@
-#ifndef PHG4VInnerHcalSteppingAction_h
-#define PHG4VInnerHcalSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
+#define G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
+class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4InnerHcalDetector;
+class PHParameters;
 class PHG4Hit;
 class PHG4HitContainer;
+class PHG4Shower;
 
 class PHG4InnerHcalSteppingAction : public PHG4SteppingAction
 {
-
-  public:
-
+ public:
   //! constructor
-  PHG4InnerHcalSteppingAction( PHG4InnerHcalDetector* );
+  PHG4InnerHcalSteppingAction(PHG4InnerHcalDetector *, const PHParameters *parameters);
 
-  //! destroctor
-  virtual ~PHG4InnerHcalSteppingAction()
-  {}
+  //! destructor
+  virtual ~PHG4InnerHcalSteppingAction();
 
   //! stepping action
-  virtual bool UserSteppingAction(const G4Step*, bool);
+  virtual bool UserSteppingAction(const G4Step *, bool);
 
   //! reimplemented from base class
-  virtual void SetInterfacePointers( PHCompositeNode* );
+  virtual void SetInterfacePointers(PHCompositeNode *);
 
-  float GetLightCorrection(float r);
-  void SetLightCorrection(float inner_radius, float inner_corr,
-			  float outer_radius, float outer_corr) {
-    light_balance_ = true;
-    light_balance_inner_radius_ = inner_radius;
-    light_balance_inner_corr_ = inner_corr;
-    light_balance_outer_radius_ = outer_radius;
-    light_balance_outer_corr_ = outer_corr;
-  }
-  
-  private:
-
+ private:
   //! pointer to the detector
-  PHG4InnerHcalDetector* detector_;
+  PHG4InnerHcalDetector *m_Detector;
 
   //! pointer to hit container
-  PHG4HitContainer * hits_;
-  PHG4HitContainer * absorberhits_;
-  PHG4Hit *hit;
-
-  bool  light_balance_;
-  float light_balance_inner_radius_;
-  float light_balance_inner_corr_;
-  float light_balance_outer_radius_;
-  float light_balance_outer_corr_;
+  PHG4HitContainer *m_Hits;
+  PHG4HitContainer *m_AbsorberHits;
+  PHG4Hit *m_Hit;
+  const PHParameters *m_Params;
+  PHG4HitContainer *m_SaveHitContainer;
+  PHG4Shower *m_SaveShower;
+  G4VPhysicalVolume *m_SaveVolPre;
+  G4VPhysicalVolume *m_SaveVolPost;
+  int m_SaveTrackId;
+  int m_SavePreStepStatus;
+  int m_SavePostStepStatus;
+  // since getting parameters is a map search we do not want to
+  // do this in every step, the parameters used are cached
+  // in the following variables
+  int m_IsActive;
+  int m_IsBlackHole;
+  int m_LightScintModel;
 };
 
-
-#endif // PHG4InnerHcalSteppingAction_h
+#endif  // G4DETECTORS_PHG4INNERHCALSTEPPINGACTION_H

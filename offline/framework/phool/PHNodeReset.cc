@@ -1,28 +1,29 @@
 //  Implementation of class PHNodeReset
 //  Author: Matthias Messer
 
-#include "PHNodeReset.h" 
+#include "PHNodeReset.h"
+
 #include "PHDataNode.h"
-#include "PHIODataNode.h" 
+#include "PHNode.h"
 #include "PHObject.h"
 
-void
-PHNodeReset::perform(PHNode* node)
-{
-  if ( node->getResetFlag() != True ) return;
+#include <iostream>
+#include <string>
 
-   if (node->getType() == "PHDataNode")
-     {  
-       if (node->getObjectType() == "PHObject")
-	 {
-	  (((PHDataNode<PHObject>*)node)->getData())->Reset();
-         }
-     }
-   else if (node->getType() == "PHIODataNode")
-     {
-       if (node->getObjectType() == "PHObject")
-	 {
-	   (((PHDataNode<PHObject>*)node)->getData())->Reset();
-	 }
-     }
+using namespace std;
+
+void PHNodeReset::perform(PHNode* node)
+{
+  if (node->getResetFlag() != true) return;
+  if (verbosity > 0)
+  {
+    cout << "PHNodeReset: Resetting " << node->getName() << endl;
+  }
+  if (node->getType() == "PHDataNode" || node->getType() == "PHIODataNode")
+  {
+    if (node->getObjectType() == "PHObject")
+    {
+      (static_cast<PHDataNode<PHObject>*>(node))->getData()->Reset();
+    }
+  }
 }

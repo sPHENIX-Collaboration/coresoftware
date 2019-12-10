@@ -1,5 +1,7 @@
-#ifndef FLAGSAVE_H
-#define FLAGSAVE_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_FLAGSAVE_H
+#define FFAOBJECTS_FLAGSAVE_H
 
 #include <phool/PHObject.h>
 #include <phool/phool.h>

@@ -1,6 +1,10 @@
 #include "ChiSquareGradHessian.h"
+
+#include "Pincushion.h"
+
 #include <Eigen/LU>
 
+#include <memory>
 
 using namespace std;
 using namespace Eigen;

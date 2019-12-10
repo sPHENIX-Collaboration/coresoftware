@@ -1,8 +1,12 @@
-#ifndef PHG4VCEmcTestBeamSteppingAction_h
-#define PHG4VCEmcTestBeamSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CEMCTESTBEAMSTEPPINGACTION_H
+#define G4DETECTORS_PHG4CEMCTESTBEAMSTEPPINGACTION_H
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4CEmcTestBeamDetector;
 class PHG4Hit;
 class PHG4HitContainer;

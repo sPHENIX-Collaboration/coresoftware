@@ -1,59 +1,49 @@
 #include "PHG4BlockDetector.h"
-#include "PHG4BlockRegionSteppingAction.h"
 
-#include <g4main/PHG4RegionInformation.h>
-#include <g4main/PHG4Utils.h>
+#include "PHG4BlockDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <fun4all/getClass.h>
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
-#include <Geant4/G4Material.hh>
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
+#include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
+#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4UserLimits.hh>
 
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Colour.hh>
+#include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg
 
+#include <cmath>     // for isfinite
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
+
+class G4VSolid;
+class PHCompositeNode;
 
 using namespace std;
 
 //_______________________________________________________________
-//note this inactive thickness is ~1.5% of a radiation length
-PHG4BlockDetector::PHG4BlockDetector( PHCompositeNode *Node, const std::string &dnam,const int lyr  ):
-  PHG4Detector(Node, dnam),
-  center_in_x(0*cm),
-  center_in_y(0*cm),
-  center_in_z(-200*cm),
-  _region(NULL),
-  active(0),
-  layer(lyr),
-  blackhole(0)
+PHG4BlockDetector::PHG4BlockDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
+  , m_Params(parameters)
+  , m_BlockPhysi(nullptr)
+  , m_DisplayAction(dynamic_cast<PHG4BlockDisplayAction *>(subsys->GetDisplayAction()))
+  , m_Layer(lyr)
 {
-  //set the default radii
-  for (int i = 0; i < 3; i++)
-    {
-      dimension[i] = 100 * cm;
-    }
-
 }
 
 //_______________________________________________________________
-bool PHG4BlockDetector::IsInBlock(G4VPhysicalVolume * volume) const
+bool PHG4BlockDetector::IsInBlock(G4VPhysicalVolume *volume) const
 {
-  if (active && volume == block_physi)
-  {
-    return true;
-  }
-  return false;
-}
-
-bool PHG4BlockDetector::IsInBlockActive(G4VPhysicalVolume * volume) const
-{
-  if (volume == block_physi)
+  if (volume == m_BlockPhysi)
   {
     return true;
   }
@@ -61,45 +51,41 @@ bool PHG4BlockDetector::IsInBlockActive(G4VPhysicalVolume * volume) const
 }
 
 //_______________________________________________________________
-void PHG4BlockDetector::Construct( G4LogicalVolume* logicWorld )
+void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
+  G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
-  TrackerMaterial = G4Material::GetMaterial(material.c_str());
+  if (!TrackerMaterial)
+  {
+    std::cout << "Error: Can not set material" << std::endl;
+    exit(-1);
+  }
 
+  G4VSolid *block_solid = new G4Box(G4String(GetName()),
+                                    m_Params->get_double_param("size_x") / 2. * cm,
+                                    m_Params->get_double_param("size_y") / 2. * cm,
+                                    m_Params->get_double_param("size_z") / 2. * cm);
 
-  if ( ! TrackerMaterial )
-    {
-      std::cout << "Error: Can not set material" << std::endl;
-      exit(-1);
-    }
+  double steplimits = m_Params->get_double_param("steplimits") * cm;
+  G4UserLimits *g4userlimits = nullptr;
+  if (isfinite(steplimits))
+  {
+    g4userlimits = new G4UserLimits(steplimits);
+  }
 
-  block_solid = new G4Box(G4String(GetName().c_str()),
-                          dimension[0]/2., dimension[1]/2., dimension[2]/2.);
+  G4LogicalVolume *block_logic = new G4LogicalVolume(block_solid,
+                                                     TrackerMaterial,
+                                                     G4String(GetName()),
+                                                     nullptr, nullptr, g4userlimits);
 
-  block_logic = new G4LogicalVolume(block_solid,
-                                    TrackerMaterial,
-                                    G4String(GetName().c_str()),
-                                    0, 0, 0);
-  G4VisAttributes* matVis = new G4VisAttributes();
-  if (IsBlackHole())
-    {
-      PHG4Utils::SetColour(matVis, "BlackHole");
-      matVis->SetVisibility(false);
-      matVis->SetForceSolid(false);
-    }
-  else
-    {
-      PHG4Utils::SetColour(matVis, material);
-      matVis->SetVisibility(true);
-      matVis->SetForceSolid(true);
-    }
-  block_logic->SetVisAttributes(matVis);
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(block_logic);
 
-  G4RotationMatrix *rotm  = new G4RotationMatrix();
-  rotm->rotateZ(z_rot);
-  block_physi = new G4PVPlacement(rotm, G4ThreeVector(center_in_x, center_in_y, center_in_z),
-                                  block_logic,
-                                  G4String(GetName().c_str()),
-                                  logicWorld, 0, false, overlapcheck);
-
+  G4RotationMatrix *rotm = new G4RotationMatrix();
+  rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);
+  m_BlockPhysi = new G4PVPlacement(rotm, G4ThreeVector(m_Params->get_double_param("place_x") * cm, m_Params->get_double_param("place_y") * cm, m_Params->get_double_param("place_z") * cm),
+                                   block_logic,
+                                   G4String(GetName()),
+                                   logicWorld, 0, false, OverlapCheck());
+  m_DisplayAction->SetMyVolume(block_logic);
 }
