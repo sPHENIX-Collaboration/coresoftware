@@ -3,11 +3,13 @@
 
 #include <phool/phool.h>
 
+#include <climits>
+#include <cmath>
 #include <cstdlib>
+#include <string>
+#include <utility>
 
 using namespace std;
-
-ClassImp(PHG4Hitv1)
 
 PHG4Hitv1::PHG4Hitv1():
  hitid(ULONG_LONG_MAX),
@@ -24,9 +26,9 @@ PHG4Hitv1::PHG4Hitv1():
 
 }
 
-PHG4Hitv1::PHG4Hitv1(PHG4Hit const &g4hit)
+PHG4Hitv1::PHG4Hitv1(const PHG4Hit *g4hit)
 {
-  Copy(g4hit);
+  CopyFrom(g4hit);
 }
 
 void

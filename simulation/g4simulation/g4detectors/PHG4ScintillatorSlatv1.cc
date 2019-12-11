@@ -1,5 +1,7 @@
 #include "PHG4ScintillatorSlatv1.h"
 
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
 using namespace std;
 
 PHG4ScintillatorSlatv1::PHG4ScintillatorSlatv1():

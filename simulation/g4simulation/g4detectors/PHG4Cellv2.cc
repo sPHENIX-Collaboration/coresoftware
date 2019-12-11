@@ -1,6 +1,6 @@
 #include "PHG4Cellv2.h"
 
-#include <phool/phool.h>
+#include <g4main/PHG4HitDefs.h>  // for keytype
 
 #include <iostream>
 

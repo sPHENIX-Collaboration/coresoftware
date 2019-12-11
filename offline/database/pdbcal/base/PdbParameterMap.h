@@ -1,10 +1,12 @@
-#ifndef PDBPARAMETERMAP__H
-#define PDBPARAMETERMAP__H
+#ifndef PDBCAL_BASE_PDBPARAMETERMAP_H
+#define PDBCAL_BASE_PDBPARAMETERMAP_H
 
 #include "PdbCalChan.h"
 
+#include <cstddef>
 #include <map>
 #include <string>
+#include <utility>
 
 class PdbParameterMap: public PdbCalChan
 {

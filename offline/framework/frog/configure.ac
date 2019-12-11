@@ -9,15 +9,22 @@ LT_INIT([disable-static])
 dnl   no point in suppressing warnings people should
 dnl   at least see them, so here we go for g++: -Wall
 dnl   treat warnings as errors: -Werror
-if test $ac_cv_prog_gxx = yes; then
-   CXXFLAGS="$CXXFLAGS -Wall -Werror"
-fi
+case $CXX in
+ clang++)
+dnl odbc++ uses auto_ptr
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-deprecated-declarations"
+ ;;
+ g++)
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -pedantic"
+ ;;
+esac
 
 dnl test for root 6
-if test `root-config --version | gawk '{print $1>=6.?"1":"0"}'` = 1; then
+if test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1; then
 CINTDEFS=" -noIncludePaths  -inlineInputHeader "
 AC_SUBST(CINTDEFS)
 fi
+AM_CONDITIONAL([MAKEROOT6],[test `root-config --version | awk '{print $1>=6.?"1":"0"}'` = 1])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

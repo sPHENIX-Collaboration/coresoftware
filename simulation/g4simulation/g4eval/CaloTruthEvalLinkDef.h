@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class CaloTruthEval-!;
+#pragma link C++ class CaloTruthEval - !;
 
 #endif /* __CINT__ */

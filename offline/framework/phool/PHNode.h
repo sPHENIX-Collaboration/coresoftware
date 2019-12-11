@@ -1,5 +1,5 @@
-#ifndef PHNODE_H__
-#define PHNODE_H__
+#ifndef PHOOL_PHNODE_H
+#define PHOOL_PHNODE_H
 
 //  Declaration of class PHNode
 //  Purpose: abstract base class for all node classes
@@ -36,20 +36,22 @@ class PHNode
   virtual void setResetFlag(const bool b) { reset_able = b; }
   virtual bool getResetFlag() const { return reset_able; }
   void makeTransient() { persistent = false; }
- protected:
-  PHNode();
-  PHNode(const PHNode &);  // implement invalid copy ctor
-  PHNode &operator=(const PHNode &);
 
+ protected:
   PHNode *parent;
   bool persistent;
   std::string type;
   std::string objecttype;
   std::string name;
-  std::string objectclass;
   bool reset_able;
+  std::string objectclass;
+
+ private:
+  PHNode() = delete;
+  PHNode(const PHNode &) = delete;
+  PHNode &operator=(const PHNode &) = delete;
 };
 
 std::ostream &operator<<(std::ostream &, const PHNode &);
 
-#endif /* __PHNODE_H__ */
+#endif

@@ -9,10 +9,11 @@
 
 #include "TrkrDefs.h"
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 
 #include <iostream>
 #include <map>
+#include <utility>           // for pair
 
 class TrkrHit;
 
@@ -24,7 +25,7 @@ class TrkrHit;
  * which bounds clustering. Therefore, a TrkrHitSet should contain all
  * TrkrHits which could belong the the same cluster.
  */
-class TrkrHitSet : public TObject
+class TrkrHitSet : public PHObject
 {
  public:
   // iterator typedef
@@ -35,7 +36,7 @@ class TrkrHitSet : public TObject
   //! ctor
   TrkrHitSet();
   //! dtor
-  virtual ~TrkrHitSet() {}
+  virtual ~TrkrHitSet();
   //! TObject functions
   void identify(std::ostream& os = std::cout) const;
   void Reset();
@@ -67,10 +68,7 @@ class TrkrHitSet : public TObject
    * @brief Remove a hit using its key
    * @param[in] key to be removed
    */
-  void removeHit(TrkrDefs::hitkey key)
-  {
-    m_hits.erase(key);
-  }
+  void removeHit(TrkrDefs::hitkey key);
 
   /**
    * @brief Get a specific hit based on its index.

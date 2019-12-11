@@ -1,5 +1,5 @@
-#ifndef DUMPRAWTOWERCONTAINER_H__
-#define DUMPRAWTOWERCONTAINER_H__
+#ifndef NODEDUMP_DUMPRAWTOWERCONTAINER_H
+#define NODEDUMP_DUMPRAWTOWERCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpRawTowerContainer : public DumpObject
   virtual ~DumpRawTowerContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPRAWTOWERCONTAINER_H__ */
-
+#endif

@@ -1,9 +1,11 @@
-#ifndef PHG4ColorDefs_h
-#define PHG4ColorDefs_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4COLORDEFS_H
+#define G4MAIN_PHG4COLORDEFS_H
 
 #include <Geant4/G4VisAttributes.hh>
 
-namespace PHG4TPCColorDefs
+namespace PHG4TpcColorDefs
 {
   static G4Colour tpc_cu_color = G4Colour::Yellow();
   static G4Colour tpc_fr4_color = G4Colour::Grey();

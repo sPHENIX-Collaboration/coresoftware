@@ -1,24 +1,20 @@
-#ifndef PHG4EICForwardEcalDetector_h
-#define PHG4EICForwardEcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4EICFORWARDECALDETECTOR_H
+#define G4DETECTORS_PHG4EICFORWARDECALDETECTOR_H
 
-#include <g4main/PHG4Detector.h>
 #include <PHG4ForwardEcalDetector.h>
 
-#include <Geant4/globals.hh>
+#include <Geant4/G4String.hh>
 #include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4Material.hh>
 
-#include <string>
 #include <map>
-#include <vector>
-#include <set>
+#include <string>
 
-class G4AssemblyVolume;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
+class PHG4Subsystem;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -26,42 +22,41 @@ class G4VSolid;
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
-class PHG4EICForwardEcalDetector: public PHG4ForwardEcalDetector
+class PHG4EICForwardEcalDetector : public PHG4ForwardEcalDetector
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4EICForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4EICForwardEcalDetector();
+  virtual ~PHG4EICForwardEcalDetector() {}
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe(G4LogicalVolume* world) override;
 
-  virtual void SetTowerDimensions(G4double dx, G4double dy, G4double dz) {
-  _tower_dx = dx;
-  _tower_dy = dy;
-  _tower_dz = dz;
+  void SetTowerDimensions(G4double dx, G4double dy, G4double dz)
+  {
+    _tower_dx = dx;
+    _tower_dy = dy;
+    _tower_dz = dz;
   }
 
-  void SetMaterialScintillator( G4String material ) { _materialScintillator = material; }
-  void SetMaterialAbsorber( G4String material ) { _materialAbsorber = material; }
+  void SetMaterialScintillator(G4String material) { _materialScintillator = material; }
+  void SetMaterialAbsorber(G4String material) { _materialAbsorber = material; }
 
-private:
-
+ private:
   G4LogicalVolume* ConstructTower();
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower);
+  int PlaceTower(G4LogicalVolume* envelope, G4LogicalVolume* tower);
   int ParseParametersFromTable();
 
-  struct towerposition {
+  struct towerposition
+  {
     G4double x;
     G4double y;
     G4double z;
-  } ;
+  };
 
-  std::map< std::string, towerposition > _map_tower;
+  std::map<std::string, towerposition> _map_tower;
 
   /* ECAL tower geometry */
   G4double _tower_dx;
@@ -70,7 +65,6 @@ private:
 
   G4String _materialScintillator;
   G4String _materialAbsorber;
-
 };
 
 #endif

@@ -1,10 +1,10 @@
 #include "PHG4InEventReadBack.h"
 #include "PHG4InEvent.h"
+#include "PHG4Particle.h"                 // for PHG4Particle
 #include "PHG4Particlev1.h"
 #include "PHG4VtxPointv1.h"
 
 #include <vararray/VariableArray.h>
-#include <vararray/VariableArrayIds.h>
 #include <vararray/VariableArrayUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -12,11 +12,11 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/phool.h>
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 
-#include <cstdlib>
 #include <iostream>
-#include <vector>
 
 using namespace std;
 

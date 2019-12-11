@@ -1,33 +1,31 @@
-#ifndef __QAG4SimulationJet_H__
-#define __QAG4SimulationJet_H__
+#ifndef QA_QAG4SIMULATIONJET_H
+#define QA_QAG4SIMULATIONJET_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHCompositeNode.h>
-
-#include <string>
-#include <set>
-#include <map>
-#include <utility>      // std::pair, std::make_pair
-#include <stdint.h>
-#ifndef __CINT__
-#include <memory>
-#endif
 
 #include <TString.h>
 
-class PHCompositeNode;
-class Fun4AllHistoManager;
-class TH1F;
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <utility>  // std::pair, std::make_pair
+
+#if !defined(__CINT__) || defined(__CLING__)
+#include <cstdint>
+#else
+#include <stdint.h>
+#endif
+
 class JetEvalStack;
 class JetTruthEval;
 class Jet;
+class PHCompositeNode;
 
 /// \class QAG4SimulationJet
 class QAG4SimulationJet : public SubsysReco
 {
-
-public:
-
+ public:
   enum enu_flags
   {
     //! spectrum of truth jets
@@ -40,19 +38,16 @@ public:
     kProcessTruthMatching = 1 << 3,
 
     //! default. Do everything
-    kDefaultFlag = kProcessTruthSpectrum | kProcessRecoSpectrum
-        | kProcessTruthMatching
+    kDefaultFlag = kProcessTruthSpectrum | kProcessRecoSpectrum | kProcessTruthMatching
   };
 
-  QAG4SimulationJet(const std::string & truth_jet, enu_flags flags =
-      kDefaultFlag);
-  virtual
-  ~QAG4SimulationJet();
+  QAG4SimulationJet(const std::string &truth_jet, enu_flags flags =
+                                                      kDefaultFlag);
+  virtual ~QAG4SimulationJet(){}
 
   //! add reco jet to the process list
   //! @return number of reco jet on list
-  int
-  add_reco_jet(const std::string & reco_jet)
+  int add_reco_jet(const std::string &reco_jet)
   {
     _reco_jets.insert(reco_jet);
     return _reco_jets.size();
@@ -134,34 +129,24 @@ public:
   void
   set_eta_range(double low, double high);
 
-  int
-  Init(PHCompositeNode *topNode);
-  int
-  InitRun(PHCompositeNode *topNode);
-  int
-  process_event(PHCompositeNode *topNode);
-  int
-  End(PHCompositeNode *topNode);
+  int Init(PHCompositeNode *topNode);
+  int InitRun(PHCompositeNode *topNode);
+  int process_event(PHCompositeNode *topNode);
 
-private:
+ private:
+  int Init_Spectrum(PHCompositeNode *topNode, const std::string &jet_name);
+  int process_Spectrum(PHCompositeNode *topNode, const std::string &jet_name, const bool is_reco_jet);
 
-  int
-  Init_Spectrum(PHCompositeNode *topNode, const std::string & jet_name);
-  int
-  process_Spectrum(PHCompositeNode *topNode, const std::string & jet_name, const bool is_reco_jet);
-
-  int
-  Init_TruthMatching(PHCompositeNode *topNode, const std::string & reco_jet_name);
-  int
-  process_TruthMatching(PHCompositeNode *topNode,
-      const std::string & reco_jet_name);
+  int Init_TruthMatching(PHCompositeNode *topNode, const std::string &reco_jet_name);
+  int process_TruthMatching(PHCompositeNode *topNode,
+                            const std::string &reco_jet_name);
 
   //! common prefix for QA histograms
   std::string
-  get_histo_prefix(const std::string & src_jet_name = "",
-      const std::string & reco_jet_name = "");
+  get_histo_prefix(const std::string &src_jet_name = "",
+                   const std::string &reco_jet_name = "");
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! cache the jet evaluation modules
   typedef std::map<std::string, std::shared_ptr<JetEvalStack>> jetevalstacks_map;
   jetevalstacks_map _jetevalstacks;
@@ -182,11 +167,11 @@ private:
   //! string description of eta range
   //! @return TString as ROOT likes
   TString
-  get_eta_range_str(const char * eta_name = "#eta_{Jet}") const;
+  get_eta_range_str(const char *eta_name = "#eta_{Jet}") const;
 
   //! acceptance cut on jet object
   bool
-  jet_acceptance_cut(const Jet * jet) const;
+  jet_acceptance_cut(const Jet *jet) const;
 
   //! Eta difference cut for matched jets
   double _jet_match_dEta;
@@ -198,4 +183,4 @@ private:
   double _jet_match_dE_Ratio;
 };
 
-#endif // __CALOEVALUATOR_H__
+#endif  // QA_QAG4SIMULATIONJET_H

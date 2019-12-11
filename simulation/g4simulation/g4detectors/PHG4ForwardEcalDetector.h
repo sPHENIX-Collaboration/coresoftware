@@ -1,23 +1,22 @@
-#ifndef PHG4ForwardEcalDetector_h
-#define PHG4ForwardEcalDetector_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FORWARDECALDETECTOR_H
+#define G4DETECTORS_PHG4FORWARDECALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4RotationMatrix.hh>
-#include <Geant4/G4Material.hh>
-
-#include <string>
+#include <cassert>
 #include <map>
-#include <vector>
 #include <set>
+#include <string>
 
-class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4VSolid;
+class PHCompositeNode;
+class PHG4ForwardEcalDisplayAction;
+class PHG4Subsystem;
+class PHG4GDMLConfig;
+class PHParameters;
 
 /**
  * \file ${file_name}
@@ -25,129 +24,143 @@ class G4VSolid;
  * \author Nils Feege <nils.feege@stonybrook.edu>
  */
 
-class PHG4ForwardEcalDetector: public PHG4Detector
+class PHG4ForwardEcalDetector : public PHG4Detector
 {
-
-public:
-
+ public:
   //! constructor
-  PHG4ForwardEcalDetector( PHCompositeNode *Node, const std::string &dnam="BLOCK" );
+  PHG4ForwardEcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
-  virtual ~PHG4ForwardEcalDetector();
+  virtual ~PHG4ForwardEcalDetector() {}
 
   //! construct
-  virtual void Construct( G4LogicalVolume* world );
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   //!@name volume accessors
-  int IsInForwardEcal(G4VPhysicalVolume*) const;
+  int IsInForwardEcal(G4VPhysicalVolume *) const;
 
-  //! Select mapping file for calorimeter tower
-  void SetTowerMappingFile( std::string filename ) {
-    _mapping_tower_file = filename;
+  void SetTowerDimensions(double dx, double dy, double dz, int type);
+
+  void SetPlace(double place_in_x, double place_in_y, double place_in_z)
+  {
+    m_PlaceX = place_in_x;
+    m_PlaceY = place_in_y;
+    m_PlaceZ = place_in_z;
+  }
+  void SetPlaceX(double place_x) { m_PlaceX = place_x; }
+  void SetPlaceY(double place_y) { m_PlaceY = place_y; }
+  void SetPlaceZ(double place_z) { m_PlaceZ = place_z; }
+
+  double GetPlaceX() const { return m_PlaceX; }
+  double GetPlaceY() const { return m_PlaceY; }
+  double GetPlaceZ() const { return m_PlaceZ; }
+
+  void SetXRot(double rot_in_x) { m_XRot = rot_in_x; }
+  void SetYRot(double rot_in_y) { m_YRot = rot_in_y; }
+  void SetZRot(double rot_in_z) { m_ZRot = rot_in_z; }
+
+  double GetXRot() const { return m_XRot; }
+  double GetYRot() const { return m_YRot; }
+  double GetZRot() const { return m_ZRot; }
+
+  double GetRMin(int i) const
+  {
+    assert(i >= 0 && i <= 1);
+    return m_RMin[i];
+  }
+  double GetRMax(int i) const
+  {
+    assert(i >= 0 && i <= 1);
+    return m_RMax[i];
   }
 
-  virtual void SetTowerDimensions(G4double dx, G4double dy, G4double dz, G4double type) {
-    if(type==0){
-      _tower0_dx = dx;
-      _tower0_dy = dy;
-      _tower0_dz = dz;
-    }
-    else if(type==1){
-      _tower1_dx = dx;
-      _tower1_dy = dy;
-      _tower1_dz = dz;
-    }
-    else if(type==2){
-      _tower2_dx = dx;
-      _tower2_dy = dy;
-      _tower2_dz = dz;
-    }
+  void SetRMin(int i, double val)
+  {
+    assert(i >= 0 && i <= 1);
+    m_RMin[i] = val;
+  }
+  void SetRMax(int i, double val)
+  {
+    assert(i >= 0 && i <= 1);
+    m_RMax[i] = val;
   }
 
-  void SetPlace( G4double place_in_x, G4double place_in_y, G4double place_in_z) {
-    _place_in_x = place_in_x;
-    _place_in_y = place_in_y;
-    _place_in_z = place_in_z;
-  }
+  double GetdZ() const { return m_dZ; }
 
-  void SetXRot( G4double rot_in_x ) { _rot_in_x = rot_in_x; }
-  void SetYRot( G4double rot_in_y ) { _rot_in_y = rot_in_y; }
-  void SetZRot( G4double rot_in_z ) { _rot_in_z = rot_in_z; }
+  void SetdZ(double val) { m_dZ = val; }
 
-  void SetActive(const int i = 1) {_active = i;}
-  void SetAbsorberActive(const int i = 1) {_absorberactive = i;}
+  void SuperDetector(const std::string &name) { m_SuperDetector = name; }
+  const std::string SuperDetector() const { return m_SuperDetector; }
 
-  int IsActive() const {return _active;}
+  int get_Layer() const { return m_Layer; }
 
-  void SuperDetector(const std::string &name) {_superdetector = name;}
-  const std::string SuperDetector() const {return _superdetector;}
+  PHG4ForwardEcalDisplayAction *GetDisplayAction() { return m_DisplayAction; }
 
-  int get_Layer() const {return _layer;}
-
-  void BlackHole(const int i=1) {_blackhole = i;}
-  int IsBlackHole() const {return _blackhole;}
-
-private:
-
-  G4LogicalVolume* ConstructTower( int type );
-  G4LogicalVolume* ConstructTowerType2();
-  int PlaceTower(G4LogicalVolume* envelope , G4LogicalVolume* tower0, G4LogicalVolume* tower1, G4LogicalVolume* tower2 );
+ private:
+  G4LogicalVolume *ConstructTower(int type);
+  G4LogicalVolume *ConstructTowerType2();
+  G4LogicalVolume *ConstructTowerType3_4_5_6(int type);
+  int PlaceTower(G4LogicalVolume *envelope, G4LogicalVolume *tower[6]);
   int ParseParametersFromTable();
 
-  struct towerposition {
-    G4double x;
-    G4double y;
-    G4double z;
-    G4double type; 
-  } ;
+  struct towerposition
+  {
+    double x;
+    double y;
+    double z;
+    int type;
+  };
 
-  std::map< std::string, towerposition > _map_tower;
+  PHG4ForwardEcalDisplayAction *m_DisplayAction;
+  PHParameters *m_Params;
+  //! registry for volumes that should not be exported, i.e. fibers
+  PHG4GDMLConfig *m_GdmlConfig;
 
   /* ECAL tower geometry */
-  G4double _tower0_dx;
-  G4double _tower0_dy;
-  G4double _tower0_dz;
+  double m_TowerDx[7];
+  double m_TowerDy[7];
+  double m_TowerDz[7];
 
-  G4double _tower1_dx;
-  G4double _tower1_dy;
-  G4double _tower1_dz;
+  double m_XRot;
+  double m_YRot;
+  double m_ZRot;
 
-  G4double _tower2_dx;
-  G4double _tower2_dy;
-  G4double _tower2_dz;
+  double m_PlaceX;
+  double m_PlaceY;
+  double m_PlaceZ;
 
-protected:
+  double m_RMin[2];
+  double m_RMax[2];
 
-  /* Calorimeter envelope geometry */
-  G4double _place_in_x;
-  G4double _place_in_y;
-  G4double _place_in_z;
+  double m_dZ;
 
-  G4double _rot_in_x;
-  G4double _rot_in_y;
-  G4double _rot_in_z;
+  int m_ActiveFlag;
+  int m_AbsorberActiveFlag;
+  int m_Layer;
 
-  G4double _rMin1;
-  G4double _rMax1;
-  G4double _rMin2;
-  G4double _rMax2;
+  std::string m_SuperDetector;
+  std::string m_TowerLogicNamePrefix;
 
-  G4double _dZ;
-  G4double _sPhi;
-  G4double _dPhi;
+  std::map<std::string, towerposition> m_TowerPositionMap;
+  std::map<std::string, double> m_GlobalParameterMap;
 
-  int _active;
-  int _absorberactive;
-  int _layer;
-  int _blackhole;
+  std::set<G4LogicalVolume *> m_AbsorberLogicalVolSet;
+  std::set<G4LogicalVolume *> m_ScintiLogicalVolSet;
 
-  std::string _towerlogicnameprefix;
-  std::string _superdetector;
-  std::string _mapping_tower_file;
-
-  std::map< std::string, G4double > _map_global_parameter;
-
+ protected:
+  const std::string TowerLogicNamePrefix() const { return m_TowerLogicNamePrefix; }
+  PHParameters *GetParams() const { return m_Params; }
+  void AbsorberLogicalVolSetInsert(G4LogicalVolume *logvol)
+  {
+    m_AbsorberLogicalVolSet.insert(logvol);
+  }
+  void ScintiLogicalVolSetInsert(G4LogicalVolume *logvol)
+  {
+    m_ScintiLogicalVolSet.insert(logvol);
+  }
+  std::map<std::string, double>::const_iterator FindIter(const std::string &name) { return m_GlobalParameterMap.find(name); }
+  std::map<std::string, double>::const_iterator EndIter() { return m_GlobalParameterMap.end(); }
+  void InsertParam(const std::string &parname, double parval) { m_GlobalParameterMap.insert(make_pair(parname, parval)); }
 };
 
 #endif

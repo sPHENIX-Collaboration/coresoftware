@@ -1,12 +1,17 @@
-#ifndef __PHG4SVTXTHRESHOLDS__
-#define __PHG4SVTXTHRESHOLDS__
+#ifndef G4HOUGH_PHG4SVTXTHRESHOLDS_H
+#define G4HOUGH_PHG4SVTXTHRESHOLDS_H
+
+
+#include <fun4all/SubsysReco.h>
+
+#include <phool/PHTimeServer.h>
 
 #include <map>
 #include <iostream>
+#include <string>                // for string
+#include <utility>               // for pair, make_pair
 
-#include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
-
+class PHCompositeNode;
 class SvtxHitMap;
 
 class PHG4SvtxThresholds : public SubsysReco
@@ -67,7 +72,7 @@ class PHG4SvtxThresholds : public SubsysReco
 
   void CalculateCylinderThresholds(PHCompositeNode *topNode);
   void CalculateLadderThresholds(PHCompositeNode *topNode);
-  void CalculateMapsLadderThresholds(PHCompositeNode *topNode);
+  void CalculateMVTXLadderThresholds(PHCompositeNode *topNode);
 
   // settings
   std::map<int,float> _fraction_of_mip;

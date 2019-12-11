@@ -13,6 +13,5 @@ class DumpTowerBackground : public DumpObject
   virtual ~DumpTowerBackground() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
-

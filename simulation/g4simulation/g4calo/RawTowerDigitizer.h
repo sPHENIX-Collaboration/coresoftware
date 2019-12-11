@@ -1,8 +1,7 @@
-#ifndef RawTowerDigitizer_H__
-#define RawTowerDigitizer_H__
+#ifndef G4CALO_RAWTOWERDIGITIZER_H
+#define G4CALO_RAWTOWERDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
 #include <string>
 
@@ -14,7 +13,7 @@ class RawTowerDeadMap;
 class RawTower;
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -29,166 +28,178 @@ class RawTowerDigitizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  void Detector(const std::string &d) { detector = d; }
-  void TowerType(const int type) { _tower_type = type; }
+  void Detector(const std::string &d) { m_Detector = d; }
+  void TowerType(const int type) { m_TowerType = type; }
   void set_seed(const unsigned int iseed);
-  unsigned int get_seed() const { return seed; }
+  unsigned int get_seed() const { return m_Seed; }
   enum enu_digi_algorithm
   {
-    //! directly pass the energy of sim tower to digitalized tower
+    //! directly pass the energy of sim tower to digitized tower
     kNo_digitization = 0,
     //! wrong spelling, kept for macro compatibility
     kNo_digitalization = 0,
 
-    //! simple digitization with photon statistics, ADC conversion and pedstal
+    //! simple digitization with photon statistics, single amplitude ADC conversion and pedestal
     kSimple_photon_digitization = 1,
     //! wrong spelling, kept for macro compatibility
-    kSimple_photon_digitalization = 1
+    kSimple_photon_digitalization = 1,
+
+    //! digitization with photon statistics on SiPM with an effective pixel N, ADC conversion and pedestal
+    kSiPM_photon_digitization = 2
   };
 
   enu_digi_algorithm
   get_digi_algorithm() const
   {
-    return _digi_algorithm;
+    return m_DigiAlgorithm;
   }
 
   void
   set_digi_algorithm(enu_digi_algorithm digiAlgorithm)
   {
-    _digi_algorithm = digiAlgorithm;
+    m_DigiAlgorithm = digiAlgorithm;
   }
 
   double
   get_pedstal_central_ADC() const
   {
-    return _pedstal_central_ADC;
+    return m_PedstalCentralADC;
   }
 
   void
   set_pedstal_central_ADC(const double pedstalCentralAdc)
   {
-    _pedstal_central_ADC = pedstalCentralAdc;
+    m_PedstalCentralADC = pedstalCentralAdc;
   }
 
   double
   get_pedstal_width_ADC() const
   {
-    return _pedstal_width_ADC;
+    return m_PedstalWidthADC;
   }
 
   void
   set_pedstal_width_ADC(const double pedstalWidthAdc)
   {
-    _pedstal_width_ADC = pedstalWidthAdc;
+    m_PedstalWidthADC = pedstalWidthAdc;
   }
 
   double
   get_photonelec_ADC() const
   {
-    return _photonelec_ADC;
+    return m_PhotonElecADC;
   }
 
   void
   set_photonelec_ADC(const double photonelecAdc)
   {
-    _photonelec_ADC = photonelecAdc;
+    m_PhotonElecADC = photonelecAdc;
   }
 
   double
   get_photonelec_yield_visible_GeV() const
   {
-    return _photonelec_yield_visible_GeV;
+    return m_PhotonElecYieldVisibleGeV;
   }
 
   void
   set_photonelec_yield_visible_GeV(const double photonelecYieldVisibleGeV)
   {
-    _photonelec_yield_visible_GeV = photonelecYieldVisibleGeV;
+    m_PhotonElecYieldVisibleGeV = photonelecYieldVisibleGeV;
   }
 
   double
   get_zero_suppression_ADC() const
   {
-    return _zero_suppression_ADC;
+    return m_ZeroSuppressionADC;
   }
 
   void
   set_zero_suppression_ADC(const double zeroSuppressionAdc)
   {
-    _zero_suppression_ADC = zeroSuppressionAdc;
+    m_ZeroSuppressionADC = zeroSuppressionAdc;
   }
 
   std::string
   get_raw_tower_node_prefix() const
   {
-    return _raw_tower_node_prefix;
+    return m_RawTowerNodePrefix;
   }
 
   void
   set_raw_tower_node_prefix(const std::string &rawTowerNodePrefix)
   {
-    _raw_tower_node_prefix = rawTowerNodePrefix;
+    m_RawTowerNodePrefix = rawTowerNodePrefix;
   }
 
   std::string
   get_sim_tower_node_prefix() const
   {
-    return _sim_tower_node_prefix;
+    return m_SimTowerNodePrefix;
   }
 
   void
   set_sim_tower_node_prefix(const std::string &simTowerNodePrefix)
   {
-    _sim_tower_node_prefix = simTowerNodePrefix;
+    m_SimTowerNodePrefix = simTowerNodePrefix;
   }
 
- protected:
-  void CreateNodes(PHCompositeNode *topNode);
+  // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
+  void set_sipm_effective_pixel(const unsigned int &d) { m_SiPMEffectivePixel = d; }
 
-  enu_digi_algorithm _digi_algorithm;
+  // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
+  unsigned int get_sipm_effective_pixel() { return m_SiPMEffectivePixel; }
+
+ private:
+  void CreateNodes(PHCompositeNode *topNode);
 
   //! simple digitization with photon statistics, ADC conversion and pedstal
   //! \param  sim_tower simulation tower input
   //! \return a new RawTower object contain digitalized value of ADC output in RawTower::get_energy()
   RawTower *simple_photon_digitization(RawTower *sim_tower);
 
-  RawTowerContainer *_sim_towers;
-  RawTowerContainer *_raw_towers;
-  RawTowerGeomContainer *rawtowergeom;
-  RawTowerDeadMap *m_deadmap;
+  //! digitization with photon statistics on SiPM with an effective pixel N, ADC conversion and pedestal
+  //! this function use the effective pixel to count for the effect that the sipm is not evenly lit
+  RawTower *sipm_photon_digitization(RawTower *sim_tower);
 
-  std::string detector;
-  std::string SimTowerNodeName;
-  std::string RawTowerNodeName;
-  std::string TowerGeomNodeName;
+  enu_digi_algorithm m_DigiAlgorithm;
 
-  std::string _sim_tower_node_prefix;
-  std::string _raw_tower_node_prefix;
+  RawTowerContainer *m_SimTowers;
+  RawTowerContainer *m_RawTowers;
+  RawTowerGeomContainer *m_RawTowerGeom;
+  RawTowerDeadMap *m_DeadMap;
+
+  std::string m_Detector;
+
+  std::string m_SimTowerNodePrefix;
+  std::string m_RawTowerNodePrefix;
 
   //! photon electron yield per GeV of visible energy
-  double _photonelec_yield_visible_GeV;
+  double m_PhotonElecYieldVisibleGeV;
 
   //! photon electron per ADC unit
-  double _photonelec_ADC;
+  double m_PhotonElecADC;
 
   //! pedstal central in unit of ADC
-  double _pedstal_central_ADC;
+  double m_PedstalCentralADC;
 
   //! pedstal width in unit of ADC
-  double _pedstal_width_ADC;
+  double m_PedstalWidthADC;
 
   //! zero suppression in unit of ADC
-  double _zero_suppression_ADC;
+  double m_ZeroSuppressionADC;
 
   //! tower type to act on
-  int _tower_type;
+  int m_TowerType;
 
-  PHTimeServer::timer _timer;
+  unsigned int m_Seed;
 
-  unsigned int seed;
-#ifndef __CINT__
-  gsl_rng *RandomGenerator;
+  // ! SiPM effective pixel per tower, only used with kSiPM_photon_digitalization
+  unsigned int m_SiPMEffectivePixel;
+
+#if !defined(__CINT__) || defined(__CLING__)
+  gsl_rng *m_RandomGenerator;
 #endif
 };
 
-#endif /* RawTowerDigitizer_H__ */
+#endif /* G4CALO_RAWTOWERDIGITIZER_H */

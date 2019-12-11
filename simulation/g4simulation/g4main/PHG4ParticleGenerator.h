@@ -1,13 +1,18 @@
-#ifndef PHG4ParticleGenerator_H__
-#define PHG4ParticleGenerator_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PARTICLEGENERATOR_H
+#define G4MAIN_PHG4PARTICLEGENERATOR_H
 
 #include "PHG4ParticleGeneratorBase.h"
 
+#include <string>                       // for string
 
-class PHG4ParticleGenerator: public PHG4ParticleGeneratorBase
+class PHCompositeNode;
+
+class PHG4ParticleGenerator : public PHG4ParticleGeneratorBase
 {
  public:
-  PHG4ParticleGenerator(const std::string &name="PGENERATOR");
+  PHG4ParticleGenerator(const std::string &name = "PGENERATOR");
   virtual ~PHG4ParticleGenerator() {}
 
   int process_event(PHCompositeNode *topNode);

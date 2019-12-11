@@ -1,58 +1,63 @@
-/**
- * @file g4mvtx/PHG4MvtxDigitizer.h
- * @author D. McGlinchey
- * @date June 2018
- * @brief Digitization class for simulated mvtx hits
- */
+// Tell emacs that this is a C++ source
+// -*- C++ -*-.
+
 #ifndef G4MVTX_PHG4MVTXDIGITIZER_H
 #define G4MVTX_PHG4MVTXDIGITIZER_H
 
 #include <fun4all/SubsysReco.h>
 
+// rootcint barfs with this header so we need to hide it
+#if !defined(__CINT__) || defined(__CLING__)
+#include <gsl/gsl_rng.h>
+#endif
+
 #include <map>
+#include <string>                // for string
+#include <utility>               // for pair, make_pair
+#include <vector>
 
-class TrkrHitSetContainer;
 
-/**
- * @brief Digitization class for simulated mvtx hits
- */
+class PHCompositeNode;
+
 class PHG4MvtxDigitizer : public SubsysReco
 {
  public:
-
   PHG4MvtxDigitizer(const std::string &name = "PHG4MvtxDigitizer");
-  virtual ~PHG4MvtxDigitizer(){}
-  
+  virtual ~PHG4MvtxDigitizer();
+
   //! module initialization
-  int Init(PHCompositeNode *topNode){return 0;}
-  
+  int Init(PHCompositeNode *topNode) { return 0; }
+
   //! run initialization
   int InitRun(PHCompositeNode *topNode);
-  
-    //! event processing
+
+  //! event processing
   int process_event(PHCompositeNode *topNode);
-  
+
   //! end of process
-  int End(PHCompositeNode *topNode) {return 0;}
-  
-  void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc) {
-    m_maxAdc.insert(std::make_pair(layer,max_adc));
-    m_energyScale.insert(std::make_pair(layer,energy_per_adc));
+  int End(PHCompositeNode *topNode) { return 0; };
+
+  void set_adc_scale(const int layer, const unsigned int max_adc, const float energy_per_adc)
+  {
+    _max_adc.insert(std::make_pair(layer, max_adc));
+    _energy_scale.insert(std::make_pair(layer, energy_per_adc));
   }
-  
+
  private:
+  void CalculateMvtxLadderCellADCScale(PHCompositeNode *topNode);
+  void DigitizeMvtxLadderCells(PHCompositeNode *topNode);
 
-  void CalculateADCScale(PHCompositeNode *topNode);
+  std::vector<float> adc_input;
+  std::vector<int> is_populated;
 
-  void DigitizeCells(PHCompositeNode *topNode);
-  void PrintHits(PHCompositeNode *topNode);
-  
   // settings
-  std::map<int,unsigned int> m_maxAdc;
-  std::map<int,float> m_energyScale;
+  std::map<int, unsigned int> _max_adc;
+  std::map<int, float> _energy_scale;
 
-  // storage
-  TrkrHitSetContainer* m_hitsets;
+#if !defined(__CINT__) || defined(__CLING__)
+  //! random generator that conform with sPHENIX standard
+  gsl_rng *RandomGenerator;
+#endif
 };
 
-#endif //G4MVTX_PHG4MVTXDIGITIZER_H
+#endif

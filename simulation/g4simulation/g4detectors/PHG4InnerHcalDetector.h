@@ -1,25 +1,27 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4INNERHCALDETECTOR_H
 #define G4DETECTORS_PHG4INNERHCALDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
-
-// cannot fwd declare G4RotationMatrix, it is a typedef pointing to clhep
-#include <Geant4/G4RotationMatrix.hh>
 
 #include <CGAL/Exact_circular_kernel_2.h>
 #include <CGAL/point_generators_2.h>
 
 #include <map>
 #include <set>
+#include <string>   // for string
+#include <utility>  // for pair
 #include <vector>
 
 class G4AssemblyVolume;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4VSolid;
+class PHCompositeNode;
+class PHG4InnerHcalDisplayAction;
 class PHParameters;
+class PHG4Subsystem;
 
 class PHG4InnerHcalDetector : public PHG4Detector
 {
@@ -28,13 +30,13 @@ class PHG4InnerHcalDetector : public PHG4Detector
   typedef CGAL::Point_2<Circular_k> Point_2;
 
   //! constructor
-  PHG4InnerHcalDetector(PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
+  PHG4InnerHcalDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam);
 
   //! destructor
   virtual ~PHG4InnerHcalDetector();
 
   //! construct
-  virtual void Construct(G4LogicalVolume *world);
+  virtual void ConstructMe(G4LogicalVolume *world);
 
   virtual void Print(const std::string &what = "ALL") const;
 
@@ -60,6 +62,7 @@ class PHG4InnerHcalDetector : public PHG4Detector
  protected:
   int ConstructInnerHcal(G4LogicalVolume *sandwich);
   double x_at_y(Point_2 &p0, Point_2 &p1, double yin);
+  PHG4InnerHcalDisplayAction *m_DisplayAction;
   PHParameters *m_Params;
   G4AssemblyVolume *m_ScintiMotherAssembly;
   double m_InnerRadius;

@@ -5,11 +5,16 @@
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>          // for SubsysReco
 
 #include <phool/getClass.h>
 
 #include <cmath>
+#include <iostream>                      // for operator<<, basic_ostream
+
+class PHCompositeNode;
 
 using namespace std;
 

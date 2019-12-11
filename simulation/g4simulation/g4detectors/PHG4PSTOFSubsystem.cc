@@ -16,15 +16,18 @@
 #include <phparameter/PHParametersContainer.h>
 
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
-#include <pdbcalbase/PdbParameterMap.h>
-
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
-
-#include <Geant4/globals.hh>
 
 #include <boost/foreach.hpp>
 
+#include <set>  // for set
 #include <sstream>
 
 using namespace std;
@@ -47,7 +50,7 @@ int PHG4PSTOFSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  detector_ = new PHG4PSTOFDetector(topNode, GetParamsContainer(), Name());
+  detector_ = new PHG4PSTOFDetector(this, topNode, GetParamsContainer(), Name());
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
 

@@ -1,4 +1,5 @@
 #include "PHG4FPbScRegionSteppingAction.h"
+
 #include "PHG4FPbScDetector.h"
 
 #include <g4main/PHG4HitContainer.h>
@@ -10,13 +11,25 @@
 #include <phool/getClass.h>
 
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>             // for fGeomBoundary, fUndefined
+#include <Geant4/G4SystemOfUnits.hh>          // for cm, nanosecond, GeV
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <iostream>
+#include <string>                             // for operator+, operator<<
+
+class G4VPhysicalVolume;
 
 using namespace std;
 //____________________________________________________________________________..
 PHG4FPbScRegionSteppingAction::PHG4FPbScRegionSteppingAction( PHG4FPbScDetector* detector ):
-  detector_( detector ), hits_(NULL), hit(NULL)
+  detector_( detector ), hits_(nullptr), hit(nullptr)
 {}
 
 //____________________________________________________________________________..
@@ -32,10 +45,10 @@ void PHG4FPbScRegionSteppingAction::UserSteppingAction( const G4Step* aStep)
 
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = 0;
   // make sure we are in a volume
   if ( detector_->isInScintillator(volume) )
     {
+      int layer_id = 0;
       G4StepPoint * prePoint = aStep->GetPreStepPoint();
       G4StepPoint * postPoint = aStep->GetPostStepPoint();
        cout << "track id " << aTrack->GetTrackID() << endl;

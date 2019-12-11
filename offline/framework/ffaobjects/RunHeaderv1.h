@@ -1,5 +1,7 @@
-#ifndef RUNHEADERV1_H
-#define RUNHEADERV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_RUNHEADERV1_H
+#define FFAOBJECTS_RUNHEADERV1_H
 
 #include "RunHeader.h"
 

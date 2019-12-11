@@ -5,28 +5,46 @@
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4Hitv1.h>
 #include <g4main/PHG4Shower.h>
+#include <g4main/PHG4SteppingAction.h>        // for PHG4SteppingAction
 #include <g4main/PHG4TrackUserInfoV1.h>
 
 #include <phool/getClass.h>
 
+#include <Geant4/G4ParticleDefinition.hh>     // for G4ParticleDefinition
 #include <Geant4/G4Step.hh>
+#include <Geant4/G4StepPoint.hh>              // for G4StepPoint
+#include <Geant4/G4StepStatus.hh>             // for fGeomBoundary, fUndefined
+#include <Geant4/G4String.hh>                 // for G4String
+#include <Geant4/G4SystemOfUnits.hh>          // for cm, nanosecond, GeV
+#include <Geant4/G4ThreeVector.hh>            // for G4ThreeVector
+#include <Geant4/G4TouchableHandle.hh>        // for G4TouchableHandle
+#include <Geant4/G4Track.hh>                  // for G4Track
+#include <Geant4/G4TrackStatus.hh>            // for fStopAndKill
+#include <Geant4/G4Types.hh>                  // for G4double
+#include <Geant4/G4VTouchable.hh>             // for G4VTouchable
+#include <Geant4/G4VUserTrackInformation.hh>  // for G4VUserTrackInformation
 
 #include <iostream>
+#include <string>                             // for string, operator+, oper...
+
+class G4VPhysicalVolume;
+class PHCompositeNode;
 
 using namespace std;
 //____________________________________________________________________________..
 PHG4ConeSteppingAction::PHG4ConeSteppingAction( PHG4ConeDetector* detector ):
+  PHG4SteppingAction(detector->GetName()),
   detector_( detector ),
-  hits_(NULL),
-  hit(NULL),
-  saveshower(NULL)
+  hits_(nullptr),
+  hit(nullptr),
+  saveshower(nullptr)
 {}
 
 PHG4ConeSteppingAction::~PHG4ConeSteppingAction()
 {
   // if the last hit was a zero energie deposit hit, it is just reset
   // and the memory is still allocated, so we need to delete it here
-  // if the last hit was saved, hit is a NULL pointer which are
+  // if the last hit was saved, hit is a nullptr pointer which are
   // legal to delete (it results in a no operation)
   delete hit;
 }
@@ -137,7 +155,7 @@ bool PHG4ConeSteppingAction::UserSteppingAction( const G4Step* aStep, bool )
 		}
 	      // ownership has been transferred to container, set to null
 	      // so we will create a new hit for the next track
-	      hit = NULL;
+	      hit = nullptr;
 	    }
 	  else
 	    {

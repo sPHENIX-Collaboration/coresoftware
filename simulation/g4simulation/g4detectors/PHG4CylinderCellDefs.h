@@ -1,5 +1,7 @@
-#ifndef PHG4CYLINDERCELLGEFS_H
-#define PHG4CYLINDERCELLGEFS_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERCELLDEFS_H
+#define G4DETECTORS_PHG4CYLINDERCELLDEFS_H
 
 namespace PHG4CylinderCellDefs
 {

@@ -1,15 +1,22 @@
-#ifndef PHG4Cell_H__
-#define PHG4Cell_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CELL_H
+#define G4DETECTORS_PHG4CELL_H
 
 #include "PHG4CellDefs.h"
-#include <g4main/PHG4Hit.h>
-#include <TObject.h>
+
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
+#include <phool/PHObject.h>
 
 #include <cmath>
 #include <climits>
+#include <iostream>              // for ostream, cout, operator<<, endl, bas...
 #include <map>
+#include <string>                // for string
+#include <utility>               // for pair, make_pair
 
-class PHG4Cell: public TObject
+class PHG4Cell: public PHObject
 {
  public:
   typedef std::map<PHG4HitDefs::keytype, float> EdepMap;
@@ -31,7 +38,7 @@ class PHG4Cell: public TObject
   virtual ~PHG4Cell() {}
 
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Copy(PHG4Cell const &g4cell);
+  virtual void CopyFrom(const PHObject *phobj);
   friend std::ostream &operator<<(std::ostream & stream, const PHG4Cell * cell);
   virtual void Reset();
 
@@ -43,19 +50,14 @@ class PHG4Cell: public TObject
 
   // this adds hits to the g4 hit list map
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep) {return;}
+  virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const float edep, const float light_yield) {return;}
   virtual void add_edep(const PHG4HitDefs::keytype g4hitid, const int tbin, const float edep) {return;}
   // this adds showers to the shower map
   virtual void add_shower_edep(const int g4showerid, const float edep) {return;}
 
-  virtual EdepConstRange get_g4hits() {
-    std::map <PHG4HitDefs::keytype, float> dummy;
-    return std::make_pair(dummy.begin(), dummy.end());
-  }
+  virtual EdepConstRange get_g4hits();
 
-  virtual ShowerEdepConstRange get_g4showers() {
-    std::map <int, float> dummy;
-    return std::make_pair(dummy.begin(), dummy.end());
-  }
+  virtual ShowerEdepConstRange get_g4showers();
 
   virtual short int get_detid() const {return -1;}
   // for backward compatibility, layers and detector ids are identical

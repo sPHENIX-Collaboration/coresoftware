@@ -1,13 +1,15 @@
-#ifndef PHPy6ParticleTrigger_h
-#define PHPy6ParticleTrigger_h
+#ifndef PHPYTHIA6_PHPY6PARTICLETRIGGER_H
+#define PHPYTHIA6_PHPY6PARTICLETRIGGER_H
 
 #include "PHPy6GenTrigger.h"
-#include <HepMC/GenEvent.h>
+
+#include <string>             // for string
+#include <vector>             // for vector
 
 namespace HepMC
 {
   class GenEvent;
-};
+}
 
 /**
  * Fun4All module based in PHPythia8/PHPy8ParticleTrigger
@@ -17,25 +19,24 @@ namespace HepMC
  * This trigger makes use of the conversion of Pythia6 events to HepMC format done in PHPythia6.
  *
  */
-class PHPy6ParticleTrigger: public PHPy6GenTrigger
+class PHPy6ParticleTrigger : public PHPy6GenTrigger
 {
-public:
-
+ public:
   //! constructor
   PHPy6ParticleTrigger(const std::string &name = "PHPy6ParticleTriggerger");
 
   //! destructor
-  ~PHPy6ParticleTrigger( void ){}
+  ~PHPy6ParticleTrigger(void) {}
 
-#ifndef __CINT__
-  bool Apply(const HepMC::GenEvent* evt);
+#if !defined(__CINT__) || defined(__CLING__)
+  bool Apply(const HepMC::GenEvent *evt);
 #endif
 
-  void AddParticles(std::string particles);
+  void AddParticles(const std::string &particles);
   void AddParticles(int particle);
   void AddParticles(std::vector<int> particles);
 
-  void AddParents(std::string parents);
+  void AddParents(const std::string &parents);
   void AddParents(int parent);
   void AddParents(std::vector<int> parents);
 
@@ -61,8 +62,7 @@ public:
 
   void PrintConfig();
 
-protected:
-
+ protected:
   // trigger variables
   std::vector<int> _theParents;
   std::vector<int> _theParticles;
@@ -77,7 +77,6 @@ protected:
   bool _doPtHighCut, _doPtLowCut, _doBothPtCut;
   bool _doPHighCut, _doPLowCut, _doBothPCut;
   bool _doPzHighCut, _doPzLowCut, _doBothPzCut;
-
 };
 
 #endif

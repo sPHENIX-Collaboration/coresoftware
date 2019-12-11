@@ -1,8 +1,11 @@
-#ifndef FUN4ALLOUTPUTMANAGER_H__
-#define FUN4ALLOUTPUTMANAGER_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FUN4ALL_FUN4ALLOUTPUTMANAGER_H
+#define FUN4ALL_FUN4ALLOUTPUTMANAGER_H
 
 #include "Fun4AllBase.h"
 
+#include <cstddef>       // for size_t
 #include <string>
 #include <vector>
 
@@ -68,40 +71,46 @@ class Fun4AllOutputManager : public Fun4AllBase
   //! retrieves pointer to vector of event selector module names
   virtual std::vector<std::string> *EventSelector()
   {
-    return &EventSelectors;
+    return &m_EventSelectorsVector;
   }
 
   //! retrieves pointer to vector of event selector module ids
   virtual std::vector<unsigned> *RecoModuleIndex()
   {
-    return &recomoduleindex;
+    return &m_RecoModuleIndexVector;
   }
 
   //! decides if event is to be written or not
   virtual int DoNotWriteEvent(std::vector<int> *retcodes) const;
 
   //! get number of Events
-  virtual size_t EventsWritten() const { return nEvents; }
+  virtual size_t EventsWritten() const { return m_NEvents; }
+  //! increment number of events
+  virtual void IncrementEvents(const unsigned int i) { m_NEvents += i; }
   //! get output file name
-  virtual std::string OutFileName() const { return outfilename; }
+  virtual std::string OutFileName() const { return m_OutFileName; }
+  void OutFileName(const std::string &name) { m_OutFileName = name; }
+
  protected:
   /*! 
     constructor.
     is protected since we do not want the  class to be created in root macros
   */
   Fun4AllOutputManager(const std::string &myname);
+  Fun4AllOutputManager(const std::string &myname, const std::string &outfname);
 
+ private:
   //! Number of Events
-  size_t nEvents;
-
-  //! vector of event selectors modules
-  std::vector<std::string> EventSelectors;
-
-  //! vector of associated module indexes
-  std::vector<unsigned> recomoduleindex;
+  unsigned int m_NEvents;
 
   //! output file name
-  std::string outfilename;
+  std::string m_OutFileName;
+
+  //! vector of event selectors modules
+  std::vector<std::string> m_EventSelectorsVector;
+
+  //! vector of associated module indexes
+  std::vector<unsigned> m_RecoModuleIndexVector;
 };
 
-#endif /* __FUN4ALLOUTPUTMANAGER_H__ */
+#endif

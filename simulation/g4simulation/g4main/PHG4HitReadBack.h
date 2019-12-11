@@ -1,7 +1,13 @@
-#ifndef __PHG4HITREADBACK__H__
-#define __PHG4HITREADBACK__H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4HITREADBACK_H
+#define G4MAIN_PHG4HITREADBACK_H
 
 #include <fun4all/SubsysReco.h>
+
+#include <string>                // for string
+
+class PHCompositeNode;
 
 class PHG4HitReadBack : public SubsysReco
 {

@@ -4,8 +4,12 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
 #include <cmath>
+#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <map>                           // for multimap<>::iterator, _Rb_tr...
+#include <utility>                       // for pair
 
 using namespace std;
 

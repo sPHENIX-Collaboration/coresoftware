@@ -6,7 +6,7 @@
 #include <string>
 namespace odbc
 {
- class Connection;
+class Connection;
 }
 
 class FROG

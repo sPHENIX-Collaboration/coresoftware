@@ -1,15 +1,14 @@
-#ifndef PHG4FullProjSpacalCellReco_H
-#define PHG4FullProjSpacalCellReco_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FULLPROJSPACALCELLRECO_H
+#define G4DETECTORS_PHG4FULLPROJSPACALCELLRECO_H
 
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
 
-#include <phool/PHTimeServer.h>
-
 #include <map>
 #include <string>
-#include <vector>
 
 class PHCompositeNode;
 class PHG4Cell;
@@ -51,10 +50,10 @@ class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHParameterInterfa
     void load_data_file(const std::string & input_file, const std::string & histogram_light_guide_model, const std::string & histogram_fiber_model);
 
     //! Whether use light collection model
-    bool use_light_guide_model() const {return data_grid_light_guide_efficiency != NULL;}
+    bool use_light_guide_model() const {return data_grid_light_guide_efficiency != nullptr;}
 
     //! Whether use Light Transmission Efficiency model for the fiber
-    bool use_fiber_model() const {return data_grid_fiber_trans != NULL;}
+    bool use_fiber_model() const {return data_grid_fiber_trans != nullptr;}
 
     //! get Light Collection Efficiency for the light guide as function of x,y position in fraction of tower width
     double get_light_guide_efficiency(const double x_fraction, const double y_fraction);
@@ -86,7 +85,6 @@ class PHG4FullProjSpacalCellReco : public SubsysReco,  public PHParameterInterfa
   std::string geonodename;
   std::string seggeonodename;
 
-  PHTimeServer::timer _timer;
   double sum_energy_g4hit;
   int chkenergyconservation;
   std::map<unsigned int, PHG4Cell *> celllist;

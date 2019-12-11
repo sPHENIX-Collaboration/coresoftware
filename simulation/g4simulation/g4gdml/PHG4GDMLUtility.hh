@@ -23,26 +23,26 @@ class PHCompositeNode;
 class PHG4GDMLUtility
 {
  public:
-  virtual ~PHG4GDMLUtility();
+  virtual ~PHG4GDMLUtility() {}
 
   //! save the current Geant4 geometry to GDML file. Reading PHG4GDMLConfig from topNode
-  static void Dump_GDML(const std::string &filename, G4VPhysicalVolume * vol, PHCompositeNode *topNode = nullptr);
+  static void Dump_GDML(const std::string &filename, G4VPhysicalVolume *vol, PHCompositeNode *topNode = nullptr);
 
-  static constexpr const char * get_PHG4GDML_Schema()
+  static constexpr const char *get_PHG4GDML_Schema()
   {
     return "http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd";
   }
 
   //! Get or make the parameter node PHG4GDMLConfig from DST nodes. If not found, make a new one
-  static PHG4GDMLConfig * GetOrMakeConfigNode(PHCompositeNode *topNode, bool build_new = true);
+  static PHG4GDMLConfig *GetOrMakeConfigNode(PHCompositeNode *topNode, bool build_new = true);
 
-  static constexpr const char * getDSTNodeName()
+  static constexpr const char *getDSTNodeName()
   {
     return "G4GDML_CONFIG";
   }
 
  private:
-  PHG4GDMLUtility();
+  PHG4GDMLUtility() {}
 };
 
 #endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4GDML_PHG4GDMLUTILITY_HH_ */

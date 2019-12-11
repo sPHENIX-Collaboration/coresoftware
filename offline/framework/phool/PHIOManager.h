@@ -1,10 +1,11 @@
-#ifndef PHIOMANAGER_H__
-#define PHIOMANAGER_H__
+#ifndef PHOOL_PHIOMANAGER_H
+#define PHOOL_PHIOMANAGER_H
 
 //  Declaration of class PHIOManager
 //  Purpose: Abstract base class for file IO
 //  Author: Matthias Messer
 
+#include <cstddef>
 #include <string>
 
 class PHCompositeNode;
@@ -13,6 +14,7 @@ class PHIOManager
 {
  public:
   virtual ~PHIOManager() {}
+
  public:
   std::string getFilename() const { return filename; }
   size_t getEventNumber() const { return eventNumber; }
@@ -31,4 +33,4 @@ class PHIOManager
   size_t eventNumber;
 };
 
-#endif /* PHIOMANAGER_H__ */
+#endif

@@ -11,12 +11,12 @@
 //
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
-#ifndef PDBBANKID_HH__
-#define PDBBANKID_HH__
+#ifndef PDBCAL_BASE_PDBBANKID_H
+#define PDBCAL_BASE_PDBBANKID_H
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 
-class PdbBankID : public TObject {
+class PdbBankID : public PHObject {
 public:
    PdbBankID(const int val = 0);
    virtual ~PdbBankID(){}
@@ -35,4 +35,4 @@ private:
 
 };
 
-#endif /* PDBBANKID_HH__ */
+#endif /* PDBCAL_BASE_PDBBANKID_H */

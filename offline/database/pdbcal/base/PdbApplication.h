@@ -1,24 +1,22 @@
-#ifndef PDBAPPLICATION_H__
-#define PDBAPPLICATION_H__
+#ifndef PDBCAL_BASE_PDBAPPLICATION_H
+#define PDBCAL_BASE_PDBAPPLICATION_H
 
 #include "Pdb.h"
 
-#include <cstddef> // for size_t
-#include <memory>  // for auto_ptr
+#include <memory>  // for unique_ptr
 #include <string>
 
 class PdbCalBank;
-class PHTimeStamp;
 
 class PdbApplication
 {
 
 protected:
   PdbApplication() {}
-  virtual ~PdbApplication() {}
 
 public:
   static PdbApplication *instance();
+  virtual ~PdbApplication() {}
 
 
   virtual PdbStatus startUpdate() = 0;
@@ -36,13 +34,13 @@ public:
   virtual int DisconnectDB() = 0;
 
 protected:
-  // Wrap the singleton object in an auto_ptr so it gets cleaned up.
-  // Even though auto_ptr is often a horrible choice, here it should be ok
+  // Wrap the singleton object in an unique_ptr so it gets cleaned up.
+  // Even though unique_ptr is often a horrible choice, here it should be ok
   // since __instance will never be copied. If this wouldn't be visible for
   // CINT a good choice would have been boost::scoped_ptr, or in C++11
   // std::unique_ptr.
-  friend class std::auto_ptr<PdbApplication>;
-  static std::auto_ptr<PdbApplication> __instance;
+  friend class std::unique_ptr<PdbApplication>;
+  static std::unique_ptr<PdbApplication> __instance;
 };
 
-#endif /* PDBAPPLICATION_H */
+#endif /* PDBCAL_BASE_PDBAPPLICATION_H */

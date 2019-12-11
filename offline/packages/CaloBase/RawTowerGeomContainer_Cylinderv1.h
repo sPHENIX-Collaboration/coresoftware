@@ -1,18 +1,23 @@
-#ifndef RawTowerGeomContainer_Cylinderv1_H__
-#define RawTowerGeomContainer_Cylinderv1_H__
+#ifndef CALOBASE_RAWTOWERGEOMCONTAINER_CYLINDERV1_H
+#define CALOBASE_RAWTOWERGEOMCONTAINER_CYLINDERV1_H
 
 #include "RawTowerGeomContainerv1.h"
+
+#include "RawTowerDefs.h"
+
+#include <iostream>
+#include <utility>
+#include <vector>
 
 /*! \class RawTowerGeomContainer_Cylinderv1
  \brief With additional description to conveniently use in central calorimeter with eta-phi bins
  */
 class RawTowerGeomContainer_Cylinderv1 : public RawTowerGeomContainerv1
 {
-
-public:
+ public:
   RawTowerGeomContainer_Cylinderv1(
-      RawTowerDefs::CalorimeterId caloid  = RawTowerDefs::NONE);
-  virtual ~RawTowerGeomContainer_Cylinderv1() {Reset();}
+      RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE);
+  virtual ~RawTowerGeomContainer_Cylinderv1() { Reset(); }
 
   virtual void
   identify(std::ostream& os = std::cout) const;
@@ -31,13 +36,11 @@ public:
     return thickness;
   }
 
-  int
-  get_phibins() const
+  int get_phibins() const
   {
     return phi_bound_map.size();
   }
-  int
-  get_etabins() const
+  int get_etabins() const
   {
     return eta_bound_map.size();
   }
@@ -51,10 +54,8 @@ public:
   double
   get_phicenter(const int ibin) const;
 
-  int
-  get_etabin(const double eta) const;
-  int
-  get_phibin(const double phi) const;
+  int get_etabin(const double eta) const;
+  int get_phibin(const double phi) const;
 
   void
   set_radius(const double r)
@@ -71,14 +72,12 @@ public:
   void
   set_etabins(const int i);
 
-
   void
-  set_etabounds(const int ibin, const std::pair<double, double> & bounds);
+  set_etabounds(const int ibin, const std::pair<double, double>& bounds);
   void
-  set_phibounds(const int ibin, const std::pair<double, double> & bounds);
+  set_phibounds(const int ibin, const std::pair<double, double>& bounds);
 
-protected:
-
+ protected:
   double radius;
   double thickness;
 
@@ -88,7 +87,7 @@ protected:
   bound_map_t eta_bound_map;
   bound_map_t phi_bound_map;
 
-ClassDef(RawTowerGeomContainer_Cylinderv1,1)
+  ClassDef(RawTowerGeomContainer_Cylinderv1, 1)
 };
 
-#endif /* RawTowerGeomContainer_Cylinderv1_H__ */
+#endif

@@ -1,36 +1,27 @@
-#ifndef __PHPYTHIA8_H__
-#define __PHPYTHIA8_H__
+#ifndef PHPYTHIA8_PHPYTHIA8_H
+#define PHPYTHIA8_PHPYTHIA8_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <phhepmc/PHHepMCGenHelper.h>
 
-#ifndef __CINT__
-#include <Pythia8/Pythia.h>
-#endif
-
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
-#endif
-
-#include <iostream>
+#include <cmath>
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
-class PHHepMCGenEvent;
-class PHHepMCFilter;
 class PHGenIntegral;
 class PHPy8GenTrigger;
 
 namespace HepMC
 {
-class GenEvent;
-class Pythia8ToHepMC;
-};
+  class Pythia8ToHepMC;
+}  // namespace HepMC
 
 namespace Pythia8
 {
-class Pythia;
-};
+  class Pythia;
+}
 
 class PHPythia8 : public SubsysReco
 {
@@ -113,10 +104,11 @@ class PHPythia8 : public SubsysReco
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
   //! whether to store the integrated luminosity and other event statistics to the TOP/RUN/PHGenIntegral node
   void save_integrated_luminosity(const bool b) { _save_integrated_luminosity = b; }
+
  private:
   int read_config(const char *cfg_file = 0);
   int create_node_tree(PHCompositeNode *topNode);
-  double percent_diff(const double a, const double b) { return abs((a - b) / a); }
+  double percent_diff(const double a, const double b) { return fabs((a - b) / a); }
   int _eventcount;
 
   // event selection
@@ -124,10 +116,8 @@ class PHPythia8 : public SubsysReco
   bool _triggersOR;
   bool _triggersAND;
 
-// PYTHIA
-#ifndef __CINT__
+  // PYTHIA
   Pythia8::Pythia *_pythia;
-#endif
 
   std::string _configFile;
   std::vector<std::string> _commands;
@@ -145,4 +135,4 @@ class PHPythia8 : public SubsysReco
   PHGenIntegral *_integral_node;
 };
 
-#endif /* __PHPYTHIA8_H__ */
+#endif /* PHPYTHIA8_PHPYTHIA8_H */

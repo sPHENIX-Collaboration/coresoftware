@@ -1,10 +1,13 @@
-#ifndef PHG4CylinderCellGeom_H__
-#define PHG4CylinderCellGeom_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERCELLGEOM_H
+#define G4DETECTORS_PHG4CYLINDERCELLGEOM_H
 
 #include <phool/PHObject.h>
 
-#include <map>
+#include <iostream>          // for cout, ostream
 #include <string>
+#include <utility>           // for pair
 
 class PHG4CylinderCellGeom: public PHObject
 {

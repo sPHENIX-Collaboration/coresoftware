@@ -1,4 +1,4 @@
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHGeomTGeo.h
@@ -8,10 +8,12 @@
  * \date $Date: $
  */
 
-#ifndef PHGEOMTGEO_H_
-#define PHGEOMTGEO_H_
+#ifndef PHGEOMETRY_PHGEOMTGEO_H
+#define PHGEOMETRY_PHGEOMTGEO_H
 
 #include <phool/PHObject.h>
+
+#include <iostream>
 
 class TGeoManager;
 
@@ -23,10 +25,9 @@ class TGeoManager;
  */
 class PHGeomTGeo : public PHObject
 {
-public:
+ public:
   PHGeomTGeo();
-  virtual
-  ~PHGeomTGeo();
+  virtual ~PHGeomTGeo();
 
   /** identify Function from PHObject
       @param os Output Stream
@@ -43,21 +44,18 @@ public:
   //! Once assigned, the TGeoManager will be locked to avoid a second TGeoManager override gGeoManager and lead to an invalid PHGeomTGeo
   //! The pointer TGeoManager should be the current gGeoManager
   void
-  SetGeometry(TGeoManager * g);
+  SetGeometry(TGeoManager* g);
 
-  TGeoManager *
+  TGeoManager*
   GetGeometry();
 
   //! Since ROOT force TGeoManager is a unique object via global pointer gGeoManager,
   //! this function checks whether _fGeom is still the current gGeoManager which avoids operates on an invalid pointer
   bool ConsistencyCheck() const;
 
-protected:
-
+ protected:
   //! store and stream the full geometry via DST objects
-  TGeoManager * _fGeom;
-
-//  ClassDef(PHGeomTGeo,1)
+  TGeoManager* _fGeom;
 };
 
-#endif /* PHGEOMTGEO_H_ */
+#endif

@@ -1,26 +1,31 @@
 #include "ReadEICFiles.h"
 
-#include <phhepmc/PHHepMCGenEvent.h>
-#include <phhepmc/PHHepMCGenEventMap.h>
-
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/getClass.h>
-#include <phool/PHCompositeNode.h>
-#include <phool/PHNodeIterator.h>
-
 #include <HepMC/GenEvent.h>
+#include <HepMC/GenParticle.h>           // for GenParticle
 #include <HepMC/GenVertex.h>
+#include <HepMC/PdfInfo.h>               // for PdfInfo
+#include <HepMC/SimpleVector.h>          // for FourVector
+#include <HepMC/Units.h>                 // for GEV, MM
 
 // eicsmear classes
 #include <eicsmear/erhic/EventMC.h>
+#include <eicsmear/erhic/ParticleMC.h>   // for ParticleMC
+#include <eicsmear/erhic/Pid.h>          // for Pid
 
 // General Root and C++ classes
+#include <TBranch.h>                     // for TBranch
 #include <TChain.h>
+#include <TVector3.h>                    // for TVector3
+
+#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <vector>                        // for vector
+
+class PHCompositeNode;
+class PHHepMCGenEvent;
 
 using namespace std;
-
-typedef PHIODataNode<PHObject> PHObjectNode_t;
 
 ///////////////////////////////////////////////////////////////////
 
@@ -124,8 +129,8 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
   vector< unsigned > origin_index;
 
   /* save pointers to beam particles */
-  HepMC::GenParticle *hepmc_beam1 = NULL;
-  HepMC::GenParticle *hepmc_beam2 = NULL;
+  HepMC::GenParticle *hepmc_beam1 = nullptr;
+  HepMC::GenParticle *hepmc_beam2 = nullptr;
 
   for (unsigned ii = 0; ii < GenEvent->GetNTracks(); ii++)
     {
@@ -197,7 +202,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
       unsigned parent_index = track_pp->GetParentIndex();
 
-      HepMC::GenParticle *pmother = NULL;
+      HepMC::GenParticle *pmother = nullptr;
       for ( unsigned m = 0; m < hepmc_particles.size(); m++ )
         {
           if ( origin_index.at( m ) == parent_index )
@@ -262,6 +267,7 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
       if ( ! hepmc_particles.at(p)->production_vertex() )
         {
           cout << "ReadEICFiles::process_event - Missing production vertex for one or more non-beam particles!" << endl;
+          delete evt;
           return Fun4AllReturnCodes::ABORTRUN;
         }
     }

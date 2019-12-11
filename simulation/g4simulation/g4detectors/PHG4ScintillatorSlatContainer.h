@@ -1,12 +1,18 @@
-#ifndef PHG4SCINTILLATORSLATCONTAINER_H__
-#define PHG4SCINTILLATORSLATCONTAINER_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SCINTILLATORSLATCONTAINER_H
+#define G4DETECTORS_PHG4SCINTILLATORSLATCONTAINER_H
 
-#include "PHG4ScintillatorSlat.h"
+#include "PHG4ScintillatorSlatDefs.h"  // for keytype
 
 #include <phool/PHObject.h>
 
 #include <map>
 #include <set>
+#include <iostream>                    // for cout, ostream
+#include <utility>                     // for pair
+
+class PHG4ScintillatorSlat;
 
 class PHG4ScintillatorSlatContainer: public PHObject
 {

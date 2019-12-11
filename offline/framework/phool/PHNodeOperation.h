@@ -1,5 +1,5 @@
-#ifndef PHNodeOperation_h
-#define PHNodeOperation_h
+#ifndef PHOOL_PHNODEOPERATION_H
+#define PHOOL_PHNODEOPERATION_H
 
 //  Declaration of class PHNodeOperation
 //  Purpose: abstract strategy base class which operates on PHNodes
@@ -28,9 +28,10 @@ class PHNodeOperation
 
   virtual void Verbosity(const int i) { verbosity = i; }
   virtual int Verbosity() const { return verbosity; }
+
  protected:
   virtual void perform(PHNode*) = 0;
   int verbosity;
 };
 
-#endif /* PHNodeOperation_h */
+#endif

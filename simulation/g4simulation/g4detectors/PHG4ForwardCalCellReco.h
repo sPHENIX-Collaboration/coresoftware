@@ -1,11 +1,13 @@
-#ifndef PHG4FORWARDCALCELLRECO_H
-#define PHG4FORWARDCALCELLRECO_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FORWARDCALCELLRECO_H
+#define G4DETECTORS_PHG4FORWARDCALCELLRECO_H
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+
 #include <string>
 #include <map>
-#include <vector>
+#include <utility>               // for pair
 
 class PHCompositeNode;
 class PHG4CylinderCell;
@@ -44,7 +46,6 @@ class PHG4ForwardCalCellReco : public SubsysReco
   std::string detector;
   std::string hitnodename;
   std::string cellnodename;
-  PHTimeServer::timer _timer;
   int nbins[2];
   int chkenergyconservation;
   std::map<unsigned int, PHG4CylinderCell *> celllist;

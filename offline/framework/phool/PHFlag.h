@@ -1,5 +1,5 @@
-#ifndef PHFLAG_H
-#define PHFLAG_H
+#ifndef PHOOL_PHFLAG_H
+#define PHOOL_PHFLAG_H
 
 /*
   General purpose flag package:
@@ -21,7 +21,7 @@ class PHFlag
  public:
   PHFlag() {}
   virtual ~PHFlag() {}
-  virtual const std::string get_CharFlag(const std::string &flag) const;
+  virtual const std::string get_CharFlag(const std::string &name) const;
   virtual const std::string get_CharFlag(const std::string &name, const std::string &defaultval);
   virtual void set_CharFlag(const std::string &name, const std::string &flag);
 
@@ -51,6 +51,7 @@ class PHFlag
   virtual const std::map<std::string, float> *FloatMap() const { return &floatflag; }
   virtual const std::map<std::string, double> *DoubleMap() const { return &doubleflag; }
   virtual const std::map<std::string, std::string> *CharMap() const { return &charflag; }
+
  protected:
   std::map<std::string, int> intflag;
   std::map<std::string, double> doubleflag;
@@ -58,4 +59,4 @@ class PHFlag
   std::map<std::string, std::string> charflag;
 };
 
-#endif /* PHFLAG_H */
+#endif

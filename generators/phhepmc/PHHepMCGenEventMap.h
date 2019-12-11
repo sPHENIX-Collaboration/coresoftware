@@ -1,9 +1,12 @@
-#ifndef __PHHEPMCGENEVENTMAP_H__
-#define __PHHEPMCGENEVENTMAP_H__
+#ifndef PHHEPMC_PHHEPMCGENEVENTMAP_H
+#define PHHEPMC_PHHEPMCGENEVENTMAP_H
 
 #include "PHHepMCGenEvent.h"
 
 #include <phool/PHObject.h>
+
+#include <cstddef>           // for size_t
+#include <iostream>           // for cout, ostream
 #include <map>
 
 //! \brief PHHepMCGenEventMap is collection of HEPMC events input into this simulation
@@ -33,7 +36,7 @@ class PHHepMCGenEventMap : public PHObject
   void identify(std::ostream& os = std::cout) const;
   void Reset();
   int isValid() const { return 1; }
-  PHHepMCGenEventMap* Clone(const char* newname = "") const { return new PHHepMCGenEventMap(*this); }
+  PHHepMCGenEventMap* CloneMe() const { return new PHHepMCGenEventMap(*this); }
   //! container service
   bool empty() const { return _map.empty(); }
   size_t size() const { return _map.size(); }
@@ -75,6 +78,7 @@ class PHHepMCGenEventMap : public PHObject
   //! for c++11 range-based for loop
   const HepMCGenEventMap& get_map() const { return _map; }
   HepMCGenEventMap& get_map() { return _map; }
+
  private:
   HepMCGenEventMap _map;
 

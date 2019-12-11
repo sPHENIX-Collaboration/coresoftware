@@ -17,8 +17,7 @@ AM_CPPFLAGS = \
   -isystem$(OFFLINE_MAIN)/include 
 
 AM_FFLAGS="-DFVOIDP=INTEGER*8"
-# turn off warnings about unused functions in cfortran.h
-AM_CXXFLAGS=-Wno-unused-function -Wall -Werror
+
 noinst_HEADERS = \
   HijCrdn.h \
   HijJet1.h \

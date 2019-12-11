@@ -1,12 +1,18 @@
-#ifndef PHG4CYLINDERCELLCONTAINER_H__
-#define PHG4CYLINDERCELLCONTAINER_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERCELLCONTAINER_H
+#define G4DETECTORS_PHG4CYLINDERCELLCONTAINER_H
 
-#include "PHG4CylinderCell.h"
+#include "PHG4CylinderCellDefs.h"  // for keytype
 
 #include <phool/PHObject.h>
 
+#include <iostream>                // for cout, ostream
 #include <map>
 #include <set>
+#include <utility>                 // for pair, make_pair
+
+class PHG4CylinderCell;
 
 class PHG4CylinderCellContainer: public PHObject
 {
@@ -20,7 +26,7 @@ class PHG4CylinderCellContainer: public PHObject
   typedef std::set<int>::const_iterator LayerIter;
   typedef std::pair<LayerIter, LayerIter> LayerRange;
 
-  PHG4CylinderCellContainer();
+  PHG4CylinderCellContainer(){}
 
   virtual ~PHG4CylinderCellContainer() {}
 

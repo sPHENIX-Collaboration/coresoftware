@@ -1,7 +1,8 @@
-#ifndef G4TOWERNTUPLE_H__
-#define G4TOWERNTUPLE_H__
+#ifndef G4HISTOS_G4TOWERNTUPLE_H
+#define G4HISTOS_G4TOWERNTUPLE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <map>
 #include <set>
 #include <string>
@@ -12,15 +13,13 @@ class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
 class TH1;
-class TH2;
 class TNtuple;
 
-class G4TowerNtuple: public SubsysReco
+class G4TowerNtuple : public SubsysReco
 {
  public:
-
   //! constructor
-  G4TowerNtuple( const std::string &name = "G4TowerNtuple", const std::string &filename = "G4TowerNtuple.root" );
+  G4TowerNtuple(const std::string &name = "G4TowerNtuple", const std::string &filename = "G4TowerNtuple.root");
 
   //! destructor
   virtual ~G4TowerNtuple();
@@ -36,7 +35,7 @@ class G4TowerNtuple: public SubsysReco
 
   void AddNode(const std::string &name, const std::string &twrtype, const int detid);
 
-protected:
+ protected:
   int nblocks;
   Fun4AllHistoManager *hm;
   std::vector<TH1 *> nhits;
@@ -50,4 +49,4 @@ protected:
   TFile *outfile;
 };
 
-#endif 
+#endif

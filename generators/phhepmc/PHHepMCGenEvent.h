@@ -1,18 +1,18 @@
-#ifndef __PHHEPMCGENEVENT__
-#define __PHHEPMCGENEVENT__
+#ifndef PHHEPMC_PHHEPMCGENEVENT_H
+#define PHHEPMC_PHHEPMCGENEVENT_H
 
 #include <phool/PHObject.h>
+
 #include <phool/phool.h>
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>
-#include <HepMC/GenVertex.h>
 #include <HepMC/SimpleVector.h>
+
+#include <iostream>                // for cout, ostream
 
 namespace HepMC
 {
-class GenEvent;
-};
+  class GenEvent;
+}
 
 class PHHepMCGenEvent : public PHObject
 {
@@ -30,7 +30,7 @@ class PHHepMCGenEvent : public PHObject
     PHOOL_VIRTUAL_WARNING;
     return 0;
   }
-  PHHepMCGenEvent* Clone() const { return new PHHepMCGenEvent(*this); }
+  PHObject* CloneMe() const { return new PHHepMCGenEvent(*this); }
   virtual HepMC::GenEvent* getEvent();
   virtual const HepMC::GenEvent* getEvent() const;
 
@@ -61,7 +61,7 @@ class PHHepMCGenEvent : public PHObject
   //! host an HepMC event
   bool addEvent(HepMC::GenEvent* evt);
   bool addEvent(HepMC::GenEvent& evt);
-  bool swapEvent(HepMC::GenEvent* & evt);
+  bool swapEvent(HepMC::GenEvent*& evt);
   void clearEvent();
 
   //! move the collision vertex position in the Hall coordinate system, use PHENIX units of cm, ns
@@ -94,4 +94,4 @@ class PHHepMCGenEvent : public PHObject
   ClassDef(PHHepMCGenEvent, 5)
 };
 
-#endif  // __PHHEPMCEVENT__
+#endif  // PHHEPMC_PHHEPMCEVENT_H

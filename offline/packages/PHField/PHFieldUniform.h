@@ -1,12 +1,7 @@
-
-#ifndef __PHFieldUniform_H__
-#define __PHFieldUniform_H__
+#ifndef PHFIELD_PHFIELDUNIFORM_H
+#define PHFIELD_PHFIELDUNIFORM_H
 
 #include "PHField.h"
-
-#include <map>
-#include <string>
-#include <vector>
 
 class PHFieldUniform : public PHField
 {
@@ -61,4 +56,4 @@ class PHFieldUniform : public PHField
  private:
 };
 
-#endif  // __PHFieldUniform_H
+#endif

@@ -11,50 +11,43 @@
 #include "PHG4RICHDetector.h"
 #include "PHG4RICHSteppingAction.h"
 
-#include <Geant4/G4Box.hh>
-#include <Geant4/G4Colour.hh>
-#include <Geant4/G4LogicalVolume.hh>
-#include <Geant4/G4Material.hh>
-#include <Geant4/G4NistManager.hh>
-#include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4VisAttributes.hh>
-#include <Geant4/G4Types.hh>
+#include <g4main/PHG4Detector.h>  // for PHG4Detector
+
+#include <Geant4/G4Region.hh>  // for G4Region
+
+#include <boost/foreach.hpp>
 
 #include <map>
 #include <sstream>
-#include <boost/foreach.hpp>
-#include <boost/filesystem.hpp>
+
+class PHCompositeNode;
 
 using namespace std;
 using namespace ePHENIXRICH;
 
-PHG4RICHDetector::PHG4RICHDetector(PHCompositeNode *Node, const RICH_Geometry & g) :
-  PHG4Detector(Node),
-  ePHENIXRICHConstruction(g),
-  stepping_action(NULL),
-  _region(NULL)
-{}
-
-PHG4RICHDetector::PHG4RICHDetector(PHCompositeNode *Node) :
-  PHG4Detector(Node),
-  ePHENIXRICHConstruction(),
-  stepping_action(NULL),
-  _region(NULL)
-{}
-
-void
-PHG4RICHDetector::Construct(G4LogicalVolume* logicWorld)
+PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &dnam, const RICH_Geometry &g)
+  : PHG4Detector(subsys, Node, dnam)
+  , ePHENIXRICHConstruction(subsys, g)
+  , _region(nullptr)
 {
+}
 
+PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
+  , ePHENIXRICHConstruction(subsys)
+  , _region(nullptr)
+{
+}
+
+void PHG4RICHDetector::ConstructMe(G4LogicalVolume *logicWorld)
+{
   _region = new G4Region("FCALREGION");
   _region->SetRegionalSteppingAction(new PHG4RICHSteppingAction(this));
 
   ePHENIXRICHConstruction::Construct_RICH(logicWorld);
 
-  BOOST_FOREACH( map_log_vol_t::value_type &vol_pair, map_log_vol )
-    {
-      _region->AddRootLogicalVolume(vol_pair.second);
-    }
-
+  BOOST_FOREACH (map_log_vol_t::value_type &vol_pair, map_log_vol)
+  {
+    _region->AddRootLogicalVolume(vol_pair.second);
+  }
 }
-

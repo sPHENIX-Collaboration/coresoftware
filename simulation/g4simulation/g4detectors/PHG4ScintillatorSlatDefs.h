@@ -1,7 +1,9 @@
-#ifndef PHG4SCINTILLATORSLATGEFS_H
-#define PHG4SCINTILLATORSLATGEFS_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SCINTILLATORSLATDEFS_H
+#define G4DETECTORS_PHG4SCINTILLATORSLATDEFS_H
 
-#include <map>
+#include <utility>  // for pair
 
 namespace PHG4ScintillatorSlatDefs
 {

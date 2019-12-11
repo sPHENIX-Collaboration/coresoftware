@@ -2,6 +2,7 @@
 
 #include <phool/phool.h>
 
+#include <cstdlib>       // for exit
 #include <iostream>
 
 unsigned short
@@ -135,16 +136,16 @@ PHG4CellDefs::EtaXsizeBinning::get_xsizebin(const PHG4CellDefs::keytype key)
 }
 
 PHG4CellDefs::keytype
-PHG4CellDefs::MapsBinning::genkey(const unsigned short detid, const unsigned int bit32_index)
+PHG4CellDefs::MVTXBinning::genkey(const unsigned short detid, const unsigned int bit32_index)
 {
-  PHG4CellDefs::keytype key = generic_32bit_genkey(detid, mapsbinning, bit32_index);
+  PHG4CellDefs::keytype key = generic_32bit_genkey(detid, mvtxbinning, bit32_index);
   return key;
 }
 
 unsigned int
-PHG4CellDefs::MapsBinning::get_index(const PHG4CellDefs::keytype key)
+PHG4CellDefs::MVTXBinning::get_index(const PHG4CellDefs::keytype key)
 {
-  unsigned int index = generic_32bit_key(key,mapsbinning);
+  unsigned int index = generic_32bit_key(key,mvtxbinning);
   return index;
 }
 

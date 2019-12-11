@@ -5,6 +5,7 @@
 #include <Geant4/G4ThreeVector.hh>
 #include <Geant4/G4Tubs.hh>
 
+#include <algorithm>                     // for copy
 #include <cmath>
 #include <cstdlib>
 #include <iostream>

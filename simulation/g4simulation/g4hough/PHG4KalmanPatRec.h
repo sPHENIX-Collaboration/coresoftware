@@ -5,43 +5,22 @@
  *  \author Christof Roland & Haiwang Yu
  */
 
-#ifndef __PHG4KALMANPATREC_H__
-#define __PHG4KALMANPATREC_H__
+#ifndef G4HOUGH_PHG4KALMANPATREC_H
+#define G4HOUGH_PHG4KALMANPATREC_H
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <g4bbc/BbcVertexMap.h>
-#include <phool/PHTimeServer.h>
-#include <phool/PHTimer.h>
 
-// Helix Hough includes
-#ifndef __CINT__
+// Helix Hough + Eigen includes (hidden from rootcint)
+#if !defined(__CINT__) || defined(__CLING__)
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
-#include <HelixHough/sPHENIXSeedFinder.h>
+#include <Eigen/Core>                              // for Matrix
 #endif
 
-// standard includes
-#include <float.h>
-#include <list>
-#include <map>
-#include <memory>
-#include <vector>
 
-// PHGenFit
-#include <phgenfit/Fitter.h>
-//#include <phgenfit/Measurement.h>
 
-// g4hough includes
-#include "SvtxTrackState.h"
-//#include <g4main/PHG4Particle.h>
-
-#include <g4main/PHG4Hit.h>
-#include <g4main/PHG4Particle.h>
-
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 //BOOST for combi seeding
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
@@ -50,22 +29,37 @@
 #include <boost/geometry/index/rtree.hpp>
 #endif
 
+// standard includes
+#include <cfloat>
+#include <iostream>                                // for operator<<, basic_...
+#include <list>
+#include <map>
+#include <memory>
+#include <set>                                     // for set
+#include <string>                                  // for string
+#include <utility>                                 // for pair
+#include <vector>
+
 // forward declarations
+class BbcVertexMap;
+
 class PHCompositeNode;
+
+class PHG4CellContainer;
+class PHG4CylinderGeomContainer;
+class PHG4Particle;
+class PHG4TruthInfoContainer;
+class PHTimer;
+
+class sPHENIXSeedFinder;
+
 class SvtxClusterMap;
 class SvtxCluster;
 class SvtxTrackMap;
 class SvtxTrack;
+class SvtxTrackState;
 class SvtxVertexMap;
-class SvtxVertex;
 class SvtxHitMap;
-class PHG4CellContainer;
-class PHG4CylinderGeomContainer;
-
-class PHG4HitContainer;
-class PHG4Hit;
-class PHG4Particle;
-class PHG4TruthInfoContainer;
 
 class TNtuple;
 class TFile;
@@ -77,21 +71,7 @@ class Track;
 class Measurement;
 } /* namespace PHGenFit */
 
-#ifndef __CINT__
-//BOOST for combi seeding
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-
-#include <boost/geometry/index/rtree.hpp>
-#endif
-
-namespace genfit
-{
-class GFRaveVertexFactory;
-} /* namespace genfit */
-
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
@@ -877,7 +857,7 @@ class PHG4KalmanPatRec : public SubsysReco
   std::vector<unsigned int> SearchHitsNearBy(const unsigned int layer, const float z_center, const float phi_center, const float z_window, const float phi_window);
 
   //! ExportOutput Call. Make SvtxTrack from PHGenFit::Track and set of clusters
-  //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = NULL);
+  //std::shared_ptr<SvtxTrack> MakeSvtxTrack(const int genfit_track_ID, const SvtxVertex * vertex = nullptr);
   int OutputPHGenFitTrack(PHCompositeNode* topNode, MapPHGenFitTrack::iterator);
 
   //------------------

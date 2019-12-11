@@ -1,10 +1,14 @@
-#ifndef PHG4CylinderGeom_H__
-#define PHG4CylinderGeom_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERGEOM_H
+#define G4DETECTORS_PHG4CYLINDERGEOM_H
 
 #include <phool/PHObject.h>
 
 #include <phool/phool.h>
+
 #include <cmath>
+#include <iostream>          // for cout, ostream
 
 class PHParameters;
 

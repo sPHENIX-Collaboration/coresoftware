@@ -8,14 +8,21 @@
 
 #include "TrkrHit.h"
 
-#include <phool/phool.h>
-
+#include <cstdlib>     // for exit
 #include <iostream>
+#include <type_traits>  // for __decay_and_strip<>::__type
+
 
 TrkrHitSet::TrkrHitSet()
   : m_hitSetKey(TrkrDefs::HITSETKEYMAX)
   , m_hits()
 {
+}
+
+TrkrHitSet::~TrkrHitSet()
+{
+  // frees the memory associated with the pointers gto the TrkrHit objects
+  Reset();
 }
 
 void TrkrHitSet::print() const
@@ -38,15 +45,37 @@ void TrkrHitSet::Reset()
 
 void TrkrHitSet::identify(std::ostream& os) const
 {
-  os << "TrkrHitSet: " << std::endl
-     << "        id: 0x" << std::hex << getHitSetKey() << std::dec << std::endl
-     << "     nhits: " << m_hits.size() << std::endl;
-  
+  int layer = TrkrDefs::getLayer(getHitSetKey());
+  int trkrid =  TrkrDefs::getTrkrId(getHitSetKey());    
+  os << "TrkrHitSet: "   << "       hitsetkey " << getHitSetKey() << " TrkrId " << trkrid << " layer " << layer << " nhits: " << m_hits.size() << std::endl;
+
   for ( auto& entry : m_hits )
   {
+    std::cout << " hitkey " << entry.first << std::endl;
     (entry.second)->identify(os);
   }
 }
+
+
+void TrkrHitSet::removeHit(TrkrDefs::hitkey key)
+{
+
+  TrkrHitSet::ConstIterator it = m_hits.find(key);
+
+  if (it != m_hits.end())
+  {
+    delete it->second;
+    m_hits.erase(key);
+  }
+  else
+  {
+    identify();
+    std::cout << "TrkrHitSet::removeHit: deleting a nonexist key: " << key << " exiting now" << std::endl;
+    exit(1);
+  }
+}
+
+
 
 TrkrHitSet::ConstIterator
 TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
@@ -55,7 +84,7 @@ TrkrHitSet::addHitSpecificKey(const TrkrDefs::hitkey key, TrkrHit* hit)
 
   if ( !ret.second )
   {
-    std::cout << "TrkrHitSet::AddHitSpecifyKey: duplicate key: " << key << " exiting now" << std::endl;
+    std::cout << "TrkrHitSet::AddHitSpecificKey: duplicate key: " << key << " exiting now" << std::endl;
     exit(1);
   }
   else

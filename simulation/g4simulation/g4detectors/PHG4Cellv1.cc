@@ -1,8 +1,14 @@
 #include "PHG4Cellv1.h"
 
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
 #include <phool/phool.h>
 
+#include <climits>       // for UINT_MAX, INT_MIN
+#include <cmath>         // for NAN
+#include <cstdlib>       // for exit
 #include <iostream>
+#include <string>         // for operator<<, string
 
 using namespace std;
 

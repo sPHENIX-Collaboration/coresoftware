@@ -48,7 +48,7 @@ class RawTowerBuilder : public SubsysReco
   }
 
   void
-  set_sim_tower_node_prefix(const std::string simTowerNodePrefix)
+  set_sim_tower_node_prefix(const std::string &simTowerNodePrefix)
   {
     m_SimTowerNodePrefix = simTowerNodePrefix;
   }

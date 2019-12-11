@@ -1,14 +1,13 @@
 #include "PHG4InEvent.h"
+
 #include "PHG4Particle.h"
+#include "PHG4VtxPoint.h"
 #include "PHG4VtxPointv1.h"
 
-#include <phool/phool.h>
-
+#include <cmath>
 #include <cstdlib>
 
 using namespace std;
-
-ClassImp(PHG4InEvent)
 
 PHG4InEvent::~PHG4InEvent()
 {

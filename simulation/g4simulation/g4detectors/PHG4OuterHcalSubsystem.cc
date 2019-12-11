@@ -1,31 +1,48 @@
 #include "PHG4OuterHcalSubsystem.h"
+
 #include "PHG4OuterHcalDetector.h"
+#include "PHG4OuterHcalDisplayAction.h"
 #include "PHG4OuterHcalSteppingAction.h"
 #include "PHG4HcalDefs.h"
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>    // for PHG4SteppingAction
 
-#include <pdbcalbase/PdbParameterMap.h>
-
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>           // for PHIODataNode
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 #include <phool/getClass.h>
-
-#include <Geant4/globals.hh>
 
 #include <boost/foreach.hpp>
 
+#include <cmath>                         // for NAN
+#include <iostream>                       // for operator<<, basic_ostream
+#include <set>                            // for set
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 
 //_______________________________________________________________________
 PHG4OuterHcalSubsystem::PHG4OuterHcalSubsystem( const std::string &name, const int lyr ):
   PHG4DetectorSubsystem( name, lyr ),
-  detector_( nullptr ),
-  steppingAction_( nullptr )
+  m_Detector( nullptr ),
+  m_SteppingAction( nullptr ),
+  m_DisplayAction(nullptr)
 {
   InitializeParameters();
+}
+
+//_______________________________________________________________________
+PHG4OuterHcalSubsystem::~PHG4OuterHcalSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -35,10 +52,13 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
   PHNodeIterator iter( topNode );
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST" ));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4OuterHcalDisplayAction(Name());
+
   // create detector
-  detector_ = new PHG4OuterHcalDetector(topNode, GetParams(), Name());
-  detector_->SuperDetector(SuperDetector());
-  detector_->OverlapCheck(CheckOverlap());
+  m_Detector = new PHG4OuterHcalDetector(this, topNode, GetParams(), Name());
+  m_Detector->SuperDetector(SuperDetector());
+  m_Detector->OverlapCheck(CheckOverlap());
   set<string> nodes;
   if (GetParams()->get_int_param("active"))
     {
@@ -82,19 +102,19 @@ PHG4OuterHcalSubsystem::InitRunSubsystem( PHCompositeNode* topNode )
 	    }
 	}
       // create stepping action
-      steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, GetParams());
-      steppingAction_->Init();
+      m_SteppingAction = new PHG4OuterHcalSteppingAction(m_Detector, GetParams());
+      m_SteppingAction->Init();
     }
   else
     {
       if (GetParams()->get_int_param("blackhole"))
 	{
-	  steppingAction_ = new PHG4OuterHcalSteppingAction(detector_, GetParams());
-	  steppingAction_->Init();
+	  m_SteppingAction = new PHG4OuterHcalSteppingAction(m_Detector, GetParams());
+	  m_SteppingAction->Init();
 	}
     }
-  return 0;
 
+  return 0;
 }
 
 //_______________________________________________________________________
@@ -103,9 +123,9 @@ PHG4OuterHcalSubsystem::process_event( PHCompositeNode * topNode )
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
-    if (steppingAction_)
+    if (m_SteppingAction)
         {
-            steppingAction_->SetInterfacePointers( topNode );
+            m_SteppingAction->SetInterfacePointers( topNode );
         }
     return 0;
 }
@@ -115,9 +135,9 @@ PHG4OuterHcalSubsystem::Print(const string &what) const
 {
   cout << "Outer Hcal Parameters: " << endl;
   GetParams()->Print();
-  if (detector_)
+  if (m_Detector)
     {
-      detector_->Print(what);
+      m_Detector->Print(what);
     }
   return;
 }
@@ -126,13 +146,7 @@ PHG4OuterHcalSubsystem::Print(const string &what) const
 //_______________________________________________________________________
 PHG4Detector* PHG4OuterHcalSubsystem::GetDetector( void ) const
 {
-    return detector_;
-}
-
-//_______________________________________________________________________
-PHG4SteppingAction* PHG4OuterHcalSubsystem::GetSteppingAction( void ) const
-{
-    return steppingAction_;
+    return m_Detector;
 }
 
 void

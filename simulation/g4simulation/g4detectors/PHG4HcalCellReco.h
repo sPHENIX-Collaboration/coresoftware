@@ -1,16 +1,15 @@
-#ifndef PHG4HcalCellReco_H
-#define PHG4HcalCellReco_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4HCALCELLRECO_H
+#define G4DETECTORS_PHG4HCALCELLRECO_H
 
 #include <phparameter/PHParameterInterface.h>
 
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
+
 #include <string>
-#include <map>
-#include <vector>
 
 class PHCompositeNode;
-class PHG4CylinderCell;
 
 class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
 {
@@ -41,7 +40,6 @@ class PHG4HcalCellReco : public SubsysReco, public PHParameterInterface
   std::string detector;
   std::string hitnodename;
   std::string cellnodename;
-  PHTimeServer::timer _timer;
 
   int chkenergyconservation;
 

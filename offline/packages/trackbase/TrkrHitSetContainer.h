@@ -1,12 +1,15 @@
 #ifndef TRACKBASE_TRKRHITSETCONTAINER_H
 #define TRACKBASE_TRKRHITSETCONTAINER_H
 
-#include "TrkrHitSet.h"
+#include "TrkrDefs.h"        // for hitsetkey, TrkrId
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
-#include <set>
+#include <utility>           // for pair
+
+class TrkrHitSet;
 
 /**
  * Container for TrkrHitSet objects
@@ -24,7 +27,7 @@ class TrkrHitSetContainer : public PHObject
   TrkrHitSetContainer();
 
   //! dtor
-  virtual ~TrkrHitSetContainer() {}
+  virtual ~TrkrHitSetContainer();
   //! PHObject functions
   void Reset();
   void identify(std::ostream &os = std::cout) const;

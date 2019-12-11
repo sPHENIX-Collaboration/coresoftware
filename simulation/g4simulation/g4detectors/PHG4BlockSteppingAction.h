@@ -1,9 +1,13 @@
-#ifndef PHG4VBlockSteppingAction_h
-#define PHG4VBlockSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4BLOCKSTEPPINGACTION_H
+#define G4DETECTORS_PHG4BLOCKSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4BlockDetector;
 class PHG4Hit;
 class PHG4HitContainer;
@@ -27,21 +31,21 @@ class PHG4BlockSteppingAction : public PHG4SteppingAction
 
  private:
   //! pointer to the detector
-  PHG4BlockDetector *detector_;
-  const PHParameters *params;
+  PHG4BlockDetector *m_Detector;
+  const PHParameters *m_Params;
   //! pointer to hit container
-  PHG4HitContainer *hits_;
-  PHG4Hit *hit;
-  PHG4Shower *saveshower;
-  G4VPhysicalVolume *savevolpre;
-  G4VPhysicalVolume *savevolpost;
-  int savetrackid;
-  int saveprestepstatus;
-  int savepoststepstatus;
-  int active;
-  int IsBlackHole;
+  PHG4HitContainer *m_HitContainer;
+  PHG4Hit *m_Hit;
+  PHG4Shower *m_SaveShower;
+  G4VPhysicalVolume *m_SaveVolPre;
+  G4VPhysicalVolume *m_SaveVolPost;
+  int m_SaveTrackId;
+  int m_SavePreStepStatus;
+  int m_SavePostStepStatus;
+  int m_ActiveFlag;
+  int m_BlackHoleFlag;
 
-  int use_g4_steps;
+  int m_UseG4StepsFlag;
 };
 
 #endif  //__G4PHPHYTHIAREADER_H__

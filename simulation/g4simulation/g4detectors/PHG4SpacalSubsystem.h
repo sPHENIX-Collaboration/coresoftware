@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*!
  * \file ${file_name}
  * \brief
@@ -6,16 +8,18 @@
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
 
-#ifndef PHG4SpacalSubsystem_h
-#define PHG4SpacalSubsystem_h
+#ifndef G4DETECTORS_PHG4SPACALSUBSYSTEM_H
+#define G4DETECTORS_PHG4SPACALSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <Geant4/G4String.hh>
-#include <Geant4/G4Types.hh>
+#include <string>                   // for string
 
+class PHCompositeNode;
+class PHG4Detector;
+class PHG4DisplayAction;
 class PHG4SpacalDetector;
-class PHG4SpacalSteppingAction;
+class PHG4SteppingAction;
 
 class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 {
@@ -25,15 +29,14 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
                       const int layer = 0);
 
   //! destructor
-  virtual ~PHG4SpacalSubsystem(void)
-  {
-  }
+  virtual ~PHG4SpacalSubsystem();
 
   //! init
   /*!
-   creates the detector_ object and place it on the node tree, under "DETECTORS" node (or whatever)
-   reates the stepping action and place it on the node tree, under "ACTIONS" node
-   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
+  called during InitRun (the original InitRun does common setup and calls this one)
+  creates the detector object 
+  ceates the stepping action 
+  creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
    */
   int InitRunSubsystem(PHCompositeNode *);
 
@@ -45,15 +48,16 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
   int process_event(PHCompositeNode *);
 
   //! accessors (reimplemented)
-  virtual PHG4Detector *
-  GetDetector(void) const;
-  virtual PHG4SteppingAction *
-  GetSteppingAction(void) const;
+  virtual PHG4Detector *GetDetector() const;
+  virtual PHG4SteppingAction *GetSteppingAction() const { return steppingAction_; }
+
+  PHG4DisplayAction *GetDisplayAction() const { return m_DisplayAction; }
 
   void
   Print(const std::string &what = "ALL") const;
 
  private:
+  void SetDefaultParameters();
   //  SpacalGeom_t _geom;
 
   //! detector geometry
@@ -62,9 +66,11 @@ class PHG4SpacalSubsystem : public PHG4DetectorSubsystem
 
   //! particle tracking "stepping" action
   /*! derives from PHG4SteppingActions */
-  PHG4SpacalSteppingAction *steppingAction_;
+  PHG4SteppingAction *steppingAction_;
 
-  void SetDefaultParameters();
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
 };
 
 #endif

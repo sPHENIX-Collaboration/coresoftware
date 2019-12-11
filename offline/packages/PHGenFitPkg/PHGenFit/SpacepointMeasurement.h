@@ -4,42 +4,41 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-
-#ifndef __PHGenFit_SpacepointMeasurement__
-#define __PHGenFit_SpacepointMeasurement__
+#ifndef PHGENFIT_SPACEPOINTMEASUREMENT_H
+#define PHGENFIT_SPACEPOINTMEASUREMENT_H
 
 #include "Measurement.h"
 
+#include <TMatrixDSymfwd.h>
+
 class TVector3;
 
-namespace PHGenFit {
-
+namespace PHGenFit
+{
 class SpacepointMeasurement : public Measurement
 {
-public:
-	/*!
+ public:
+  /*!
 	 * Ctor
 	 * \param pos measurement position
 	 * \param resolution standard dev for diagnal elements of the cov, other elements are zero
 	 */
-	SpacepointMeasurement(const TVector3& pos, const double resolution);
+  SpacepointMeasurement(const TVector3& pos, const double resolution);
 
-	/*!
+  /*!
 	 * Ctor
 	 * \param pos measurement position
 	 * \param covariance matrix
 	 */
-	SpacepointMeasurement(const TVector3& pos, const TMatrixDSym& cov);
+  SpacepointMeasurement(const TVector3& pos, const TMatrixDSym& cov);
 
+  void init(const TVector3& pos, const TMatrixDSym& cov);
 
-	void init(const TVector3& pos, const TMatrixDSym& cov);
+  //!dtor
+  ~SpacepointMeasurement();
 
-	//!dtor
-	~SpacepointMeasurement();
+ protected:
+};
+}  // namespace PHGenFit
 
-protected:
-
-	};
-} //End of PHGenFit namespace
-
-#endif //__PHGenFit_SpacepointMeasurement__
+#endif

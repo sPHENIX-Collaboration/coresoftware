@@ -1,20 +1,28 @@
-#include <HepMC/GenEvent.h>
-#include <CLHEP/Random/RandFlat.h>
+#ifndef FLOWAFTERBURNER_FLOWAFTERBURNER_H
+#define FLOWAFTERBURNER_FLOWAFTERBURNER_H
 
 #include <string>
 
-enum flowAfterburnerAlgorithm 
-  {
-    minbias_algorithm,
-    minbias_v2_algorithm,
-    custom_algorithm
-  };
+namespace CLHEP
+{
+class HepRandomEngine;
+}
+namespace HepMC
+{
+class GenEvent;
+}
 
-  
-int
-flowAfterburner(HepMC::GenEvent *inEvent, 
-		CLHEP::HepRandomEngine *engine, 
-		std::string algorithmName,
-		float mineta, float maxeta,
-		float minpt, float maxpt);
+enum flowAfterburnerAlgorithm
+{
+  minbias_algorithm,
+  minbias_v2_algorithm,
+  custom_algorithm
+};
 
+int flowAfterburner(HepMC::GenEvent *inEvent,
+                    CLHEP::HepRandomEngine *engine,
+                    std::string algorithmName,
+                    float mineta, float maxeta,
+                    float minpt, float maxpt);
+
+#endif

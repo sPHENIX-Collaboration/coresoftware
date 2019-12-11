@@ -1,5 +1,5 @@
-#ifndef __PDBCLASSMAP_HH__
-#define __PDBCLASSMAP_HH__
+#ifndef PDBCAL_BASE_PDBCLASSMAP_H
+#define PDBCAL_BASE_PDBCLASSMAP_H
 
 //
 // This class is a singleton wrapper around the STL-map.
@@ -83,4 +83,4 @@ PdbClassMap<T>* PdbClassMap<T>::instance()
 
 template <typename T> PdbClassMap<T>* PdbClassMap<T>::_instance = 0;
 
-#endif /* __PDBCLASSMAP_HH__ */
+#endif /* PDBCAL_BASE_PDBCLASSMAP_H */

@@ -1,16 +1,18 @@
 AUTOMAKE_OPTIONS = foreign
 
-AM_CPPFLAGS = -I$(includedir) -I$(OFFLINE_MAIN)/include -I`root-config --incdir`
-
-AM_CXXFLAGS = -Werror
+AM_CPPFLAGS = \
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I`root-config --incdir`
 
 lib_LTLIBRARIES = libPHPythia6.la
 
 pkginclude_HEADERS = \
-  PHPythia6.h \
-  PHPy6GenTrigger.h \
   PHPy6ForwardElectronTrig.h \
-  PHPy6ParticleTrigger.h
+  PHPy6GenTrigger.h \
+  PHPy6JetTrigger.h \
+  PHPy6ParticleTrigger.h \
+  PHPythia6.h
 
 libPHPythia6_la_LDFLAGS =  \
   -L$(libdir) \
@@ -19,26 +21,37 @@ libPHPythia6_la_LDFLAGS =  \
   `root-config --libs`
 
 libPHPythia6_la_LIBADD = \
-  -lphool -lSubsysReco -lfun4all -lPythia6 -lEG -lEGPythia6 \
-  -lphhepmc -lHepMC -lHepMCfio -lgsl -lgslcblas -lfastjet \
+  -lSubsysReco \
+  -lEGPythia6 \
+  -lphhepmc \
+  -lHepMC \
+  -lHepMCfio \
+  -lfastjet \
   -lCGAL
 
+if ! MAKEROOT6
+ROOT5_DICTS = \
+  PHPy6ForwardElectronTrig_Dict.cc \
+  PHPy6GenTrigger_Dict.cc \
+  PHPy6JetTrigger_Dict.cc \
+  PHPy6ParticleTrigger_Dict.cc \
+  PHPythia6_Dict.cc 
+endif
 
 libPHPythia6_la_SOURCES = \
-  PHPythia6.C \
-  PHPythia6_Dict.C \
-  PHPy6GenTrigger.C \
-  PHPy6GenTrigger.h \
-  PHPy6JetTrigger.C \
-  PHPy6JetTrigger.h \
-  PHPy6ForwardElectronTrig.C \
-  PHPy6ForwardElectronTrig.h \
-  PHPy6ParticleTrigger.C \
-  PHPy6ParticleTrigger.h
+  $(ROOT5_DICTS) \
+  PHPythia6.cc \
+  PHPy6GenTrigger.cc \
+  PHPy6JetTrigger.cc \
+  PHPy6ForwardElectronTrig.cc \
+  PHPy6ParticleTrigger.cc
 
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
@@ -46,23 +59,16 @@ noinst_PROGRAMS = \
 testexternals_LDADD = \
   libPHPythia6.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-PHPythia6_Dict.C: \
-  PHPythia6.h \
-  PHPy6GenTrigger.h \
-  PHPy6JetTrigger.h \
-  PHPy6ForwardElectronTrig.h \
-  PHPy6ParticleTrigger.h \
-  PHPythia6LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
 clean-local:
-	rm -f *Dict*
-	rm -f testexternals*
+	rm -f *Dict* $(BUILT_SOURCES)
 

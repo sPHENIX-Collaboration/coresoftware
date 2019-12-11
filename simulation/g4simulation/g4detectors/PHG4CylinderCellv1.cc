@@ -1,5 +1,6 @@
 #include "PHG4CylinderCellv1.h"
-#include "PHG4CylinderCellDefs.h"
+
+#include <g4main/PHG4HitDefs.h>  // for keytype
 
 using namespace std;
 

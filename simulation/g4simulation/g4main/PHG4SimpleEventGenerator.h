@@ -1,9 +1,12 @@
-#ifndef PHG4SimpleEventGenerator_H__
-#define PHG4SimpleEventGenerator_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4SIMPLEEVENTGENERATOR_H
+#define G4MAIN_PHG4SIMPLEEVENTGENERATOR_H
 
 #include "PHG4ParticleGeneratorBase.h"
 
-#include <map>
+#include <string>                       // for string
+#include <utility>                      // for pair
 #include <vector>
 
 class PHG4InEvent;
@@ -29,7 +32,7 @@ public:
   void add_particles(const int pid, const unsigned int count);
 
   //! set the starting time for the event
-  void set_t0(const double t0);
+  void set_t0(const double t) { _t0 = t;}
   
   //! range of randomized eta values
   void set_eta_range(const double eta_min, const double eta_max);

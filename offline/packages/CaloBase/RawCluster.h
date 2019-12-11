@@ -1,18 +1,25 @@
-#ifndef RAWCLUSTER_H__
-#define RAWCLUSTER_H__
+#ifndef CALOBASE_RAWCLUSTER_H
+#define CALOBASE_RAWCLUSTER_H
 
 #include "RawClusterDefs.h"
 #include "RawTowerDefs.h"
 
-#include <CLHEP/Vector/ThreeVector.h>
-
 #include <phool/PHObject.h>
 #include <phool/phool.h>
+
+#include <CLHEP/Vector/ThreeVector.h>
+
 #include <climits>
 #include <cmath>  // def of NAN
+#include <cstddef>
+#include <iostream>
 #include <map>
+#include <string>                        // for string
+#include <utility>
 
-class RawTower;
+#if !defined(__CINT__) || defined(__CLING__)
+#include <type_traits>
+#endif
 
 class RawCluster : public PHObject
 {
@@ -26,12 +33,7 @@ class RawCluster : public PHObject
   virtual ~RawCluster() {}
   virtual void Reset() { PHOOL_VIRTUAL_WARNING; }
 
-  /// make a copy, using TObject::Clone() function instead
-//  virtual PHObject* clone() const
-//  {
-//    PHOOL_VIRTUAL_WARNING;
-//    return nullptr;
-//  };
+  virtual PHObject *CloneMe() const {return nullptr;}
 
   virtual int isValid() const
   {
@@ -97,7 +99,7 @@ class RawCluster : public PHObject
     return NAN;
   }
   //
-  
+
   /*! \page where is RawCluster::get_eta() ? 
   * 
   * get_eta() is retired!
@@ -125,7 +127,7 @@ class RawCluster : public PHObject
   *    return NAN;
   *  }
   */
-   
+
   //! access Cartesian coordinate system
   virtual float get_x() const
   {
@@ -157,15 +159,15 @@ class RawCluster : public PHObject
     PHOOL_VIRTUAL_WARN("get_prob()");
     return NAN;
   }
-  //! isolation ET default 
+  //! isolation ET default
   virtual float get_et_iso() const
   {
     PHOOL_VIRTUAL_WARN("get_et_iso()");
     return NAN;
   }
-  //! isolation ET the radius and hueristic can be specified 
+  //! isolation ET the radius and hueristic can be specified
   virtual float get_et_iso(const int radiusx10, bool subtracted, bool clusterTower) const
-  { 
+  {
     PHOOL_VIRTUAL_WARN("get_et_iso(const int radiusx10, bool subtracted, bool clusterTower)");
     return NAN;
   }
@@ -209,7 +211,7 @@ class RawCluster : public PHObject
   virtual void set_prob(const float prob) { PHOOL_VIRTUAL_WARNING; }
   //! isolation ET
   virtual void set_et_iso(const float e) { PHOOL_VIRTUAL_WARNING; }
-  virtual void set_et_iso(const float e,const int radiusx10, bool subtracted, bool clusterTower) { PHOOL_VIRTUAL_WARNING; }
+  virtual void set_et_iso(const float e, const int radiusx10, bool subtracted, bool clusterTower) { PHOOL_VIRTUAL_WARNING; }
   //  //! truth cluster's PHG4Particle ID
   //  virtual void set_truth_track_ID(const int i) { PHOOL_VIRTUAL_WARNING; }
   //  //! truth cluster's PHG4Particle flavor
@@ -217,7 +219,8 @@ class RawCluster : public PHObject
   //
   /*
    *
-   * @} */  // end of setters
+   * @} */
+  // end of setters
 
   /** @defgroup property_map property map definitions
    *  @{
@@ -244,15 +247,15 @@ class RawCluster : public PHObject
     prop_et_iso_calotower_R01 = 21,
     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_sub_R02 = 22,
-     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
+    //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_R02 = 23,
-     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
+    //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_sub_R03 = 24,
-     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
+    //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_R03 = 25,
-     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
+    //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_sub_R04 = 26,
-     //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
+    //! isolation ET by the calorimeter tower heuristic with subtracted background R=.2
     prop_et_iso_calotower_R04 = 27,
     //    // ----- truth cluster quantities -----
     //    //! truth cluster's PHG4Particle ID
@@ -293,4 +296,4 @@ class RawCluster : public PHObject
   ClassDef(RawCluster, 1)
 };
 
-#endif /*RAWCLUSTER_H__ */
+#endif

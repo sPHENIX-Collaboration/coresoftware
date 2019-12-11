@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 #ifndef G4MAIN_PHG4RECO_H
 #define G4MAIN_PHG4RECO_H
 
@@ -7,26 +9,25 @@
 
 #include <phfield/PHFieldConfig.h>
 
+
 #include <list>
+#include <string>                   // for string
 
 // Forward declerations
-class PHCompositeNode;
 class G4RunManager;
-class PHG4PrimaryGeneratorAction;
+class G4TBMagneticFieldSetup;
+class G4UImanager;
+class G4UImessenger;
+class G4VisManager;
+class PHCompositeNode;
+class PHG4DisplayAction;
 class PHG4PhenixDetector;
 class PHG4PhenixEventAction;
 class PHG4PhenixSteppingAction;
 class PHG4PhenixTrackingAction;
+class PHG4PrimaryGeneratorAction;
 class PHG4Subsystem;
-class PHG4EventGenerator;
-class G4VModularPhysicsList;
-class G4TBMagneticFieldSetup;
-class G4VUserPrimaryGeneratorAction;
 class PHG4UIsession;
-
-// for the G4 cmd interface and the graphics
-class G4UImanager;
-class G4VisManager;
 
 /*!
   \class   PHG4Reco
@@ -52,9 +53,6 @@ class PHG4Reco : public SubsysReco
 
   //! Clean up after each event.
   int ResetEvent(PHCompositeNode *);
-
-  //! end of run method
-  int End(PHCompositeNode *);
 
   //! print info
   void Print(const std::string &what = std::string()) const;
@@ -116,23 +114,23 @@ class PHG4Reco : public SubsysReco
 
   static void G4Seed(const unsigned int i);
 
-  // this is an ugly hack to get Au ions working for CAD
+  // this is a hack to get ions working for CAD and NSRL
   // our particle generators have pdg build in which doesn't work
-  // with ions, so the generator action has to be replaced
-  // which is hardcoded in PHG4Reco (it has to be created after
-  // the physics lists are instantiated
-  void setGeneratorAction(G4VUserPrimaryGeneratorAction *action);
+  // with ions, so the default generator action has to be replaced
+  //  void setGeneratorAction(PHG4PrimaryGeneratorAction *action);
 
   PHG4Subsystem *getSubsystem(const std::string &name);
-
+  PHG4DisplayAction *GetDisplayAction() { return m_DisplayAction; }
   void Dump_GDML(const std::string &filename);
 
   void G4Verbosity(const int i);
 
   //! disable event/track/stepping actions to reduce resource consumption for G4 running only. E.g. dose analysis
-  void setDisableUserActions(bool b = true) {m_disableUserActions = b;}
+  void setDisableUserActions(bool b = true) { m_disableUserActions = b; }
+  void ApplyDisplayAction();
 
- protected:
+ private:
+  static void g4guithread(void *ptr);
   int InitUImanager();
   void DefineMaterials();
   void DefineRegions();
@@ -161,6 +159,10 @@ class PHG4Reco : public SubsysReco
   //! pointer to main tracking action
   PHG4PhenixTrackingAction *trackingAction_;
 
+  //! display attribute setting
+  /*! derives from PHG4DisplayAction */
+  PHG4DisplayAction *m_DisplayAction;
+
   //! event generator (read from PHG4INEVENT node)
   PHG4PrimaryGeneratorAction *generatorAction_;
 
@@ -171,6 +173,11 @@ class PHG4Reco : public SubsysReco
   // visualization
   G4VisManager *visManager;
 
+// Message interface to Fun4All
+  G4UImessenger *m_Fun4AllMessenger;
+
+// for the G4 cmd line interface
+  G4UImanager *m_UImanager;
   double _eta_coverage;
   PHFieldConfig::FieldConfigTypes mapdim;
   std::string fieldmapfile;
@@ -185,7 +192,6 @@ class PHG4Reco : public SubsysReco
 
   bool save_DST_geometry_;
   bool m_disableUserActions;
-
 };
 
 #endif

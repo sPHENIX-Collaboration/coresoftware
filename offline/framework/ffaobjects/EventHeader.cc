@@ -1,8 +1,6 @@
 #include "EventHeader.h"
 #include <iostream>
 
-ClassImp(EventHeader)
-
 /// Clear Event
 void
 EventHeader::Reset()

@@ -1,5 +1,7 @@
 #include "MvtxDefs.h"
 
+#include <trackbase/TrkrDefs.h>
+
 uint8_t
 MvtxDefs::getStaveId(TrkrDefs::hitsetkey key)
 {
@@ -42,7 +44,7 @@ MvtxDefs::getRow(TrkrDefs::hitkey key)
   return tmp;
 }
 
-TrkrDefs::hitkey 
+TrkrDefs::hitkey
 MvtxDefs::genHitKey(const uint16_t col, const uint16_t row)
 {
   TrkrDefs::hitkey key = (col << MvtxDefs::kBitShiftCol);

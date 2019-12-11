@@ -12,6 +12,8 @@
 
 #include <iostream>
 
+class PHObject;
+
 /**
  * @brief Version 1 of TrkrCluster
  *
@@ -30,30 +32,30 @@ class TrkrClusterv1 : public TrkrCluster
   virtual ~TrkrClusterv1() {}
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void Reset() override {}
+  virtual void Reset() {}
   virtual int isValid() const;
-  virtual TrkrCluster* clone() const { return new TrkrClusterv1(*this); }
-  virtual void setClusKey(TrkrDefs::cluskey id) override { m_cluskey = id; }
+  virtual PHObject* CloneMe() const { return new TrkrClusterv1(*this); }
+  virtual void setClusKey(TrkrDefs::cluskey id) { m_cluskey = id; }
   virtual TrkrDefs::cluskey getClusKey() const { return m_cluskey; }
   //
   // cluster position
   //
   virtual float getX() const { return m_pos[0]; } 
-  virtual void setX(float x) override { m_pos[0] = x; }
+  virtual void setX(float x) { m_pos[0] = x; }
   virtual float getY() const { return m_pos[1]; }
-  virtual void setY(float y) override { m_pos[1] = y; }
+  virtual void setY(float y) { m_pos[1] = y; }
   virtual float getZ() const { return m_pos[2]; }
-  virtual void setZ(float z) override { m_pos[2] = z; }
+  virtual void setZ(float z) { m_pos[2] = z; }
   virtual float getPosition(int coor) const { return m_pos[coor]; }
-  virtual void setPosition(int coor, float xi) override { m_pos[coor] = xi; }
-  virtual void setGlobal() override { m_isGlobal = true; }
-  virtual void setLocal() override { m_isGlobal = false; }
-  virtual bool isGlobal() override { return m_isGlobal; }
+  virtual void setPosition(int coor, float xi) { m_pos[coor] = xi; }
+  virtual void setGlobal() { m_isGlobal = true; }
+  virtual void setLocal() { m_isGlobal = false; }
+  virtual bool isGlobal() { return m_isGlobal; }
   //
   // cluster info
   //
   virtual unsigned int getAdc() const { return m_adc; }
-  virtual void setAdc(unsigned int adc) override { m_adc = adc; }
+  virtual void setAdc(unsigned int adc) { m_adc = adc; }
   virtual float getSize(unsigned int i, unsigned int j) const;        //< get cluster dimension covar
   virtual void setSize(unsigned int i, unsigned int j, float value);  //< set cluster dimension covar
 
@@ -70,7 +72,7 @@ class TrkrClusterv1 : public TrkrCluster
   virtual float getPhiError() const;
   virtual float getZError() const;
 
- private:
+ protected:
   unsigned int covarIndex(unsigned int i, unsigned int j) const;
 
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
@@ -80,7 +82,7 @@ class TrkrClusterv1 : public TrkrCluster
   float m_size[6];              //< size covariance matrix (packed storage) (+/- cm^2)
   float m_err[6];               //< covariance matrix: rad, arc and z
 
-  ClassDef(TrkrClusterv1, 1);
+  ClassDef(TrkrClusterv1, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTERV1_H

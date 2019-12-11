@@ -7,6 +7,10 @@
 
 #include "TrkrHitCellAssoc.h"
 
+#include <g4detectors/PHG4CellDefs.h>  // for keytype
+
+#include <type_traits>                 // for __decay_and_strip<>::__type
+
 TrkrHitCellAssoc::TrkrHitCellAssoc()
   : m_map()
 {

@@ -1,14 +1,24 @@
-#ifndef __SPHENIXTRACKER__
-#define __SPHENIXTRACKER__
+#ifndef SPHENIX_SPHENIXTRACKER_H
+#define SPHENIX_SPHENIXTRACKER_H
 
 #include "HelixHough.h"
-#include <vector>
-#include <set>
-#include <map>
-#include <string>
-#include "CylinderKalman.h"
 #include "HelixKalmanState.h"
-#include "Pincushion.h"
+#include "HelixRange.h"
+#include "SimpleHit3D.h"
+#include "Seamstress.h"
+
+#include <algorithm>
+#include <cmath>
+#include <map>
+#include <memory>
+#include <set>
+#include <vector>
+
+class CylinderKalman;
+class HelixResolution;
+class SimpleTrack3D;
+
+namespace SeamStress { template <class TClass> class Pincushion; }
 
 class AngleIndexPair {
  public:

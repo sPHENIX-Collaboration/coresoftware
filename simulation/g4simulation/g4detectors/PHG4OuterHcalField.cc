@@ -11,13 +11,16 @@
 #include "PHG4OuterHcalField.h"
 
 #include <Geant4/G4Vector3D.hh>
-#include <Geant4/G4Transform3D.hh>
+#include <Geant4/G4Field.hh>                   // for G4Field
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4TransportationManager.hh>
-#include <Geant4/G4EquationOfMotion.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>                  // for G4double, G4int
+
+#include <cassert>                            // for assert
+#include <cmath>                              // for atan2, cos, sin, sqrt
 #include <iostream>
+
 using namespace std;
 
 PHG4OuterHcalField::PHG4OuterHcalField(bool isInIron, G4int steelPlates,
@@ -112,21 +115,6 @@ PHG4OuterHcalField::GetFieldValue(const double Point[4], double *Bfield) const
       Bfield[0] = B_New.x();
       Bfield[1] = B_New.y();
       Bfield[2] = B_New.z();
-
-      static bool once = true;
-      if (once)
-        {
-          once = false;
-          cout << "PHG4OuterHcalField::GetFieldValue"
-              << " - After-burner activated to produce 3D magnetic field in the outer HCal. First call to the after-burner: "
-              << (is_in_iron ? "inside iron, " : "inside gap, ") << "and R = "
-              << R / cm << " cm, field change from "
-              //
-              << "(" << B0.x() / tesla << "," << B0.y() / tesla << ","
-              << B0.z() / tesla << ") T" << " to " << "(" << B_New.x() / tesla
-              << "," << B_New.y() / tesla << "," << B_New.z() / tesla << ") T"
-              << endl;
-        }
     }
   else
     {

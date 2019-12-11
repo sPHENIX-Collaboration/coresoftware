@@ -1,9 +1,14 @@
 #include "NewtonMinimizerGradHessian.h"
+
+#include "FunctionGradHessian.h"
 #include "SquareGradient.h"
-#include <iostream>
-#include <algorithm>
+
 #include <Eigen/LU>
 
+#include <algorithm>                 // for fill
+#include <cmath>
+#include <iostream>
+#include <utility>
 
 using namespace std;
 using namespace Eigen;

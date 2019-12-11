@@ -1,7 +1,14 @@
-#ifndef __EVENTHEADERv1_H
-#define __EVENTHEADERv1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_EVENTHEADERV1_H
+#define FFAOBJECTS_EVENTHEADERV1_H
 
 #include "EventHeader.h"
+
+#include <ctime>         // for time_t
+#include <iostream>       // for cout, ostream
+
+class PHObject;
 
 //! simple event header with ID and time
 class EventHeaderv1: public EventHeader
@@ -13,7 +20,7 @@ class EventHeaderv1: public EventHeader
   /// dtor
   virtual ~EventHeaderv1() {}
 
-  EventHeaderv1 * clone() const { return new EventHeaderv1(*this); }
+  PHObject *CloneMe() const { return new EventHeaderv1(*this); }
 
   ///  Clear Event
   void Reset();

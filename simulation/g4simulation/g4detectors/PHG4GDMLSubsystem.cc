@@ -9,14 +9,15 @@
  */
 
 #include "PHG4GDMLSubsystem.h"
+
 #include "PHG4GDMLDetector.h"
 
-#include <pdbcalbase/PdbParameterMap.h>
 #include <phparameter/PHParameters.h>
 
-#include <phool/getClass.h>
+#include <iostream>  // for operator<<, basic_ostream, endl
 
-#include <Geant4/globals.hh>
+class PHCompositeNode;
+class PHG4Detector;
 
 using namespace std;
 
@@ -34,11 +35,11 @@ PHG4GDMLSubsystem::~PHG4GDMLSubsystem()
 //_______________________________________________________________________
 int PHG4GDMLSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-//  PHNodeIterator iter(topNode);
-//  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  //  PHNodeIterator iter(topNode);
+  //  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
   // create detector
-  m_Detector = new PHG4GDMLDetector(topNode, Name(), GetParams());
+  m_Detector = new PHG4GDMLDetector(this, topNode, Name(), GetParams());
   m_Detector->OverlapCheck(CheckOverlap());
 
   //  set<string> nodes;

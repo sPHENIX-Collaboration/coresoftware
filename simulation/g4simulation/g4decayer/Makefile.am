@@ -10,6 +10,8 @@ lib_LTLIBRARIES = \
 #  AM_CXXFLAGS = -std=c++11
 #endif
 
+AM_CXXFLAGS=`geant4-config --cflags`
+
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
@@ -33,8 +35,6 @@ libg4decayer_la_SOURCES = \
 
 pkginclude_HEADERS = \
   EDecayType.hh \
-  G4Pythia6Decayer.hh \
-  G4Pythia6DecayerMessenger.hh \
   P6DExtDecayerPhysics.hh
 
 ################################################

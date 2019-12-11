@@ -1,10 +1,7 @@
-#ifndef __HELIXKALMANSTATE__
-#define __HELIXKALMANSTATE__
+#ifndef KALMAN_HELIXKALMANSTATE_H
+#define KALMAN_HELIXKALMANSTATE_H
 
-#include <Eigen/LU>
 #include <Eigen/Core>
-#include <Eigen/Dense>
-
 
 class HelixKalmanState
 {

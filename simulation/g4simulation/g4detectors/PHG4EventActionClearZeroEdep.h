@@ -1,5 +1,7 @@
-#ifndef PHG4EventActionClearZeroEdep_h
-#define PHG4EventActionClearZeroEdep_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4EVENTACTIONCLEARZEROEDEP_H
+#define G4DETECTORS_PHG4EVENTACTIONCLEARZEROEDEP_H
 
 #include <g4main/PHG4EventAction.h>
 

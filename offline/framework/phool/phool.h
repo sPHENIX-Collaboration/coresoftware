@@ -1,5 +1,5 @@
-#ifndef __PHOOL_H__
-#define __PHOOL_H__
+#ifndef PHOOL_PHOOL_H
+#define PHOOL_PHOOL_H
 
 //  Standard PHOOL's header file.
 //  Purpose: declarations and definitions for PHOOL
@@ -28,7 +28,7 @@ enum PHTreeType
 // General purpose functions
 void PHMessage(const std::string&, int, const std::string&);
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #define PHWHERE __FILE__ << ":" << __LINE__ << ": "
 #define PHMESSAGE(x)                          \
   do                                          \

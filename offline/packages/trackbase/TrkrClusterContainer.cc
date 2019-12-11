@@ -5,13 +5,10 @@
  * @brief Implementation of TrkrClusterContainer
  */
 #include "TrkrClusterContainer.h"
+#include "TrkrCluster.h"
 #include "TrkrClusterv1.h"
 
 #include <cstdlib>
-
-TrkrClusterContainer::TrkrClusterContainer()
-{
-}
 
 void TrkrClusterContainer::Reset()
 {
@@ -30,7 +27,8 @@ void TrkrClusterContainer::identify(std::ostream& os) const
   os << "Number of clusters: " << size() << std::endl;
   for (iter = m_clusmap.begin(); iter != m_clusmap.end(); ++iter)
   {
-    os << "clus key 0x" << std::hex << iter->first << std::dec << std::endl;
+    int layer = TrkrDefs::getLayer(iter->first);
+    os << "clus key " << iter->first  << " layer " << layer << std::endl;
     (iter->second)->identify();
   }
   os << "------------------------------" << std::endl;

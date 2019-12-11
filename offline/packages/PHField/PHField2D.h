@@ -1,11 +1,10 @@
 
-#ifndef __PHField2D_H__
-#define __PHField2D_H__
+#ifndef PHFIELD_PHFIELD2D_H
+#define PHFIELD_PHFIELD2D_H
 
 #include "PHField.h"
 
 #include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
 
 #include <map>
 #include <string>
@@ -54,4 +53,4 @@ class PHField2D : public PHField
   mutable unsigned int z_index1_cache;
 };
 
-#endif  // __PHField2D_H
+#endif

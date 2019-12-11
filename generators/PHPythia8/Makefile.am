@@ -5,8 +5,6 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I`root-config --incdir` 
 
-AM_CXXFLAGS = -Werror
-
 lib_LTLIBRARIES = libPHPythia8.la 
 
 pkginclude_HEADERS = \
@@ -18,30 +16,35 @@ pkginclude_HEADERS = \
 libPHPythia8_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  `root-config --libs`
+  `root-config --libs` \
+  `fastjet-config --libs`
 
 libPHPythia8_la_LIBADD = \
-  -lgsl \
-  -lgslcblas \
-  -lphool \
   -lSubsysReco \
-  -lfun4all \
-  -lboost_iostreams \
   -lpythia8 \
   -lphhepmc \
-  -lHepMC \
-  -lfastjet \
-  -lCGAL
+  -lHepMC
+
+if ! MAKEROOT6
+ROOT5_DICTS = \
+  PHPythia8_Dict.cc \
+  PHPy8GenTrigger_Dict.cc \
+  PHPy8JetTrigger_Dict.cc \
+  PHPy8ParticleTrigger_Dict.cc
+endif
 
 libPHPythia8_la_SOURCES = \
-  PHPythia8.C \
-  PHPy8GenTrigger.C \
-  PHPy8ParticleTrigger.C \
-  PHPy8JetTrigger.C \
-  PHPythia8_Dict.C
+  $(ROOT5_DICTS) \
+  PHPythia8.cc \
+  PHPy8GenTrigger.cc \
+  PHPy8ParticleTrigger.cc \
+  PHPy8JetTrigger.cc
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
@@ -49,21 +52,16 @@ noinst_PROGRAMS = \
 testexternals_LDADD = \
   libPHPythia8.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-PHPythia8_Dict.C: \
-  PHPythia8.h \
-  PHPy8GenTrigger.h \
-  PHPy8ParticleTrigger.h \
-  PHPy8JetTrigger.h \
-  PHPythia8LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
+
 clean-local:
-	rm -f *Dict*
-	rm -f testexternals*
+	rm -f *Dict* $(BUILT_SOURCES)

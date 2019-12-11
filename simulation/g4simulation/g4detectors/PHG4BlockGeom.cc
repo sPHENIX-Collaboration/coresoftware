@@ -1,5 +1,4 @@
 #include "PHG4BlockGeom.h"
-#include <cmath>
 
 using namespace std;
 

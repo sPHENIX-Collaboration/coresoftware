@@ -1,5 +1,7 @@
-#ifndef __GLOBALVERTEXRECO_H__
-#define __GLOBALVERTEXRECO_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4VERTEX_GLOBALVERTEXRECO_H
+#define G4VERTEX_GLOBALVERTEXRECO_H
 
 //===========================================================
 /// \file GlobalVertexReco.h
@@ -9,8 +11,8 @@
 //===========================================================
 
 #include <fun4all/SubsysReco.h>
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHTimeServer.h>
+
+#include <string>                // for string
 
 class PHCompositeNode;
 
@@ -18,24 +20,34 @@ class PHCompositeNode;
 ///
 /// \brief simple truth vertex smearing algorithm
 ///
-class GlobalVertexReco : public SubsysReco {
-
+class GlobalVertexReco : public SubsysReco
+{
  public:
- 
   GlobalVertexReco(const std::string &name = "GlobalVertexReco");
   virtual ~GlobalVertexReco();
-		
+
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_x_defaults(float xdefault, float xerr) {_xdefault = xdefault; _xerr = xerr;}
-  void set_y_defaults(float ydefault, float yerr) {_ydefault = ydefault; _yerr = yerr;}
-  void set_t_defaults(float tdefault, float terr) {_tdefault = tdefault; _terr = terr;}
+  void set_x_defaults(float xdefault, float xerr)
+  {
+    _xdefault = xdefault;
+    _xerr = xerr;
+  }
+  void set_y_defaults(float ydefault, float yerr)
+  {
+    _ydefault = ydefault;
+    _yerr = yerr;
+  }
+  void set_t_defaults(float tdefault, float terr)
+  {
+    _tdefault = tdefault;
+    _terr = terr;
+  }
 
  private:
-
   int CreateNodes(PHCompositeNode *topNode);
 
   float _xdefault, _xerr;
@@ -43,4 +55,4 @@ class GlobalVertexReco : public SubsysReco {
   float _tdefault, _terr;
 };
 
-#endif // __GLOBALVERTEXRECO_H__
+#endif  // G4VERTEX_GLOBALVERTEXRECO_H

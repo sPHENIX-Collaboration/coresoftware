@@ -1,63 +1,74 @@
+##############################################
+# please add new classes/includes/everything else in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-    libg4tpc_io.la \
-    libg4tpc.la
+  libg4tpc.la
 
 AM_CPPFLAGS = \
-    -I$(includedir) \
-    -I$(OFFLINE_MAIN)/include \
-    -I$(G4_MAIN)/include \
-    -I$(ROOTSYS)/include
+  -I$(includedir) \
+  -I$(OFFLINE_MAIN)/include \
+  -I$(G4_MAIN)/include \
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
-    -L$(libdir) \
-    -L$(OFFLINE_MAIN)/lib
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib
 
 libg4tpc_la_LIBADD = \
-  libg4tpc_io.la \
   -lphool \
-  -lg4testbench \
-  -lphg4hit \
   -lg4detectors \
-  -lphparameter
+  -lphg4hit \
+  -lphparameter \
+  -ltpc_io
 
 pkginclude_HEADERS = \
-  PHG4CellTPCv1.h \
-  PHG4TPCElectronDrift.h \
-  PHG4TPCPadPlane.h \
-  PHG4TPCPadPlaneReadout.h \
-  PHG4TPCSubsystem.h
+  PHG4TpcElectronDrift.h \
+  PHG4TpcPadPlane.h \
+  PHG4TpcPadPlaneReadout.h \
+  PHG4TpcDigitizer.h \
+  PHG4TpcSubsystem.h \
+  PHG4TpcDistortion.h \
+  PHG4TpcSpaceChargeDistortion.h 
 
+if MAKEROOT6
+else
+  ROOT5_DICTS = \
+    PHG4TpcElectronDrift_Dict.cc \
+    PHG4TpcPadPlane_Dict.cc \
+    PHG4TpcPadPlaneReadout_Dict.cc \
+    PHG4TpcDigitizer_Dict.cc \
+    PHG4TpcSubsystem_Dict.cc \
+    PHG4TpcDistortion_Dict.cc\
+    PHG4TpcSpaceChargeDistortion_Dict.cc 
+endif
 
 libg4tpc_la_SOURCES = \
-  PHG4TPCDetector.cc \
-  PHG4TPCElectronDrift.cc \
-  PHG4TPCElectronDrift_Dict.cc \
-  PHG4TPCPadPlane.cc \
-  PHG4TPCPadPlane_Dict.cc \
-  PHG4TPCPadPlaneSimple.cc \
-  PHG4TPCPadPlaneSimple_Dict.cc \
-  PHG4TPCPadPlaneReadout.cc \
-  PHG4TPCPadPlaneReadout_Dict.cc \
-  PHG4TPCSteppingAction.cc \
-  PHG4TPCSubsystem.cc \
-  PHG4TPCSubsystem_Dict.cc
-
-libg4tpc_io_la_SOURCES = \
-  PHG4CellTPCv1.cc \
-  PHG4CellTPCv1_Dict.cc
+  $(ROOT5_DICTS) \
+  PHG4TpcDetector.cc \
+  PHG4TpcDigitizer.cc \
+  PHG4TpcDisplayAction.cc \
+  PHG4TpcDistortion.cc \
+  PHG4TpcElectronDrift.cc \
+  PHG4TpcPadPlane.cc \
+  PHG4TpcPadPlaneReadout.cc \
+  PHG4TpcSpaceChargeDistortion.cc \
+  PHG4TpcSteppingAction.cc \
+  PHG4TpcSubsystem.cc
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
-  testexternals
+  testexternals 
 
 BUILT_SOURCES = testexternals.cc
 
@@ -71,8 +82,5 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-##############################################
-# please add new classes in alphabetical order
-
 clean-local:
-	rm -f *Dict* $(BUILT_SOURCES)
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

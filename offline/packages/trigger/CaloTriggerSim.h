@@ -11,6 +11,7 @@
 #include <fun4all/SubsysReco.h>
 
 // standard includes
+#include <string>
 #include <vector>
 
 // forward declarations
@@ -31,7 +32,7 @@ class CaloTriggerSim : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
-  void set_truncation(const int emulate_truncation);
+  void set_truncation(const int emulate_truncation) { m_EmulateTruncationFlag = emulate_truncation; }
   double truncate_8bit(const double raw_E) const;
 
  private:

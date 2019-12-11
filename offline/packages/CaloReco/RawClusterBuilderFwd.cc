@@ -2,29 +2,41 @@
 
 #include "PHMakeGroups.h"
 
+#include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
+#include <calobase/RawClusterDefs.h>
 #include <calobase/RawClusterv1.h>
-
 #include <calobase/RawTower.h>
-#include <calobase/RawTowerGeomContainer.h>
-#include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
+#include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
 
-#include <phool/PHCompositeNode.h>
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/phool.h>
 
+#include <cassert>
+#include <cmath>
+#include <exception>
 #include <iostream>
-#include <stdexcept>
-#include <vector>
 #include <map>
-
+#include <stdexcept>
+#include <utility>
+#include <vector>
 
 using namespace std;
 
 class twrs_fwd
 {
-public:
+ public:
   twrs_fwd(RawTower *);
   virtual ~twrs_fwd() {}
   bool is_adjacent(twrs_fwd &);
@@ -44,103 +56,102 @@ public:
   {
     return bin_k;
   }
-protected:
+
+ protected:
   int bin_j;
   int bin_k;
   RawTowerDefs::keytype id;
 };
 
-twrs_fwd::twrs_fwd(RawTower *rt):
-  id(-1)
+twrs_fwd::twrs_fwd(RawTower *rt)
+  : id(-1)
 {
   bin_j = rt->get_bineta();
   bin_k = rt->get_binphi();
 }
 
-bool
-twrs_fwd::is_adjacent(twrs_fwd &tower)
+bool twrs_fwd::is_adjacent(twrs_fwd &tower)
 {
-  if(bin_j-1<=tower.get_j_bin() && tower.get_j_bin()<=bin_j+1)
+  if (bin_j - 1 <= tower.get_j_bin() && tower.get_j_bin() <= bin_j + 1)
+  {
+    if (bin_k - 1 <= tower.get_k_bin() && tower.get_k_bin() <= bin_k + 1)
     {
-      if(bin_k-1<=tower.get_k_bin() && tower.get_k_bin()<=bin_k+1)
-	{
-	  return true;
-	}
+      return true;
     }
-  
+  }
+
   return false;
 }
 
-bool operator<(const twrs_fwd& a, const twrs_fwd& b)
+bool operator<(const twrs_fwd &a, const twrs_fwd &b)
 {
   if (a.get_j_bin() != b.get_j_bin())
-    {
-      return a.get_j_bin() < b.get_j_bin();
-    }
+  {
+    return a.get_j_bin() < b.get_j_bin();
+  }
   return a.get_k_bin() < b.get_k_bin();
 }
 
-RawClusterBuilderFwd::RawClusterBuilderFwd(const std::string& name):
-  SubsysReco( name ),
-  _clusters(NULL),
-  _min_tower_e(0.0),
-  chkenergyconservation(0),
-  detector("NONE")
-{}
+RawClusterBuilderFwd::RawClusterBuilderFwd(const std::string &name)
+  : SubsysReco(name)
+  , _clusters(nullptr)
+  , _min_tower_e(0.0)
+  , chkenergyconservation(0)
+  , detector("NONE")
+{
+}
 
 int RawClusterBuilderFwd::InitRun(PHCompositeNode *topNode)
 {
   try
-    {
-      CreateNodes(topNode);
-    }
+  {
+    CreateNodes(topNode);
+  }
   catch (std::exception &e)
-    {
-      std::cout << PHWHERE << ": " << e.what() << std::endl;
-      throw;
-    }
+  {
+    std::cout << PHWHERE << ": " << e.what() << std::endl;
+    throw;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
 {
-
   string towernodename = "TOWER_CALIB_" + detector;
   // Grab the towers
-  RawTowerContainer* towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
+  RawTowerContainer *towers = findNode::getClass<RawTowerContainer>(topNode, towernodename.c_str());
   if (!towers)
-    {
-      std::cout << PHWHERE << ": Could not find node " << towernodename.c_str() << std::endl;
-      return Fun4AllReturnCodes::DISCARDEVENT;
-    }
+  {
+    std::cout << PHWHERE << ": Could not find node " << towernodename.c_str() << std::endl;
+    return Fun4AllReturnCodes::DISCARDEVENT;
+  }
   string towergeomnodename = "TOWERGEOM_" + detector;
   RawTowerGeomContainer *towergeom = findNode::getClass<RawTowerGeomContainer>(topNode, towergeomnodename.c_str());
-  if (! towergeom)
-   {
-     cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
-     return Fun4AllReturnCodes::ABORTEVENT;
-   }
+  if (!towergeom)
+  {
+    cout << PHWHERE << ": Could not find node " << towergeomnodename.c_str() << endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
   // make the list of towers above threshold
   std::vector<twrs_fwd> towerVector;
-  RawTowerContainer::ConstRange begin_end  = towers->getTowers();
+  RawTowerContainer::ConstRange begin_end = towers->getTowers();
   RawTowerContainer::ConstIterator itr = begin_end.first;
   for (; itr != begin_end.second; ++itr)
+  {
+    RawTower *tower = itr->second;
+    RawTowerDefs::keytype towerid = itr->first;
+    if (tower->get_energy() > _min_tower_e)
     {
-      RawTower* tower = itr->second;
-      RawTowerDefs::keytype towerid = itr->first;
-      if (tower->get_energy() > _min_tower_e)
-        {
-          twrs_fwd twr(tower);
-	  twr.set_id(towerid);
-          towerVector.push_back(twr);
-        }
+      twrs_fwd twr(tower);
+      twr.set_id(towerid);
+      towerVector.push_back(twr);
     }
+  }
 
   // cluster the towers
   std::multimap<int, twrs_fwd> clusteredTowers;
   PHMakeGroups(towerVector, clusteredTowers);
-
 
   RawCluster *cluster = nullptr;
   int last_id = -1;
@@ -160,7 +171,7 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     }
     assert(cluster);
 
-    const twrs_fwd & tmptower = ctitr->second;
+    const twrs_fwd &tmptower = ctitr->second;
     RawTower *rawtower = towers->getTower(tmptower.get_id());
 
     const double e = rawtower->get_energy();
@@ -219,32 +230,31 @@ int RawClusterBuilderFwd::process_event(PHCompositeNode *topNode)
     }
   }  //  for (const auto & cluster_pair : _clusters->getClustersMap())
   if (chkenergyconservation)
+  {
+    double ecluster = _clusters->getTotalEdep();
+    double etower = towers->getTotalEdep();
+    if (ecluster > 0)
     {
-      double ecluster = _clusters->getTotalEdep();
-      double etower = towers->getTotalEdep();
-      if (ecluster > 0)
-	{
-	  if (fabs(etower - ecluster) / ecluster > 1e-9)
-	    {
-	      cout << "energy conservation violation: ETower: " << etower
-		   << " ECluster: " << ecluster 
-		   << " diff: " << etower - ecluster << endl;
-	    }
-	}
-      else
-	{
-	  if (etower != 0)
-	    {
-	      cout << "energy conservation violation: ETower: " << etower
-                 << " ECluster: " << ecluster << endl;
-	    }
-	}
+      if (fabs(etower - ecluster) / ecluster > 1e-9)
+      {
+        cout << "energy conservation violation: ETower: " << etower
+             << " ECluster: " << ecluster
+             << " diff: " << etower - ecluster << endl;
+      }
     }
+    else
+    {
+      if (etower != 0)
+      {
+        cout << "energy conservation violation: ETower: " << etower
+             << " ECluster: " << ecluster << endl;
+      }
+    }
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
-bool RawClusterBuilderFwd::CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer *towergeom)
+bool RawClusterBuilderFwd::CorrectPhi(RawCluster *cluster, RawTowerContainer *towers, RawTowerGeomContainer *towergeom)
 {
   double sum = cluster->get_energy();
   double phimin = 999.;
@@ -252,50 +262,49 @@ bool RawClusterBuilderFwd::CorrectPhi(RawCluster* cluster, RawTowerContainer* to
   RawCluster::TowerConstRange begin_end = cluster->get_towers();
   RawCluster::TowerConstIterator iter;
   for (iter = begin_end.first; iter != begin_end.second; ++iter)
-    { 
-      RawTower* tmpt = towers->getTower(iter->first);
-      RawTowerGeom *tgeo =  
-	towergeom->get_tower_geometry(tmpt->get_id()); 
-      double phi = tgeo->get_phi();
-      if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
-      if (phi < phimin)
-        {
-          phimin = phi;
-        }
-      if (phi > phimax)
-        {
-          phimax = phi;
-        }
+  {
+    RawTower *tmpt = towers->getTower(iter->first);
+    RawTowerGeom *tgeo =
+        towergeom->get_tower_geometry(tmpt->get_id());
+    double phi = tgeo->get_phi();
+    if (phi > M_PI) phi = phi - 2. * M_PI;  // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
+    if (phi < phimin)
+    {
+      phimin = phi;
     }
+    if (phi > phimax)
+    {
+      phimax = phi;
+    }
+  }
 
-  if ((phimax - phimin) < 3.) return false; // cluster is not at phi discontinuity
+  if ((phimax - phimin) < 3.) return false;  // cluster is not at phi discontinuity
 
   float mean = 0.;
-  for (iter =begin_end.first; iter != begin_end.second; ++iter)
-    { 
-      RawTower* tmpt = towers->getTower(iter->first);
-      double e = tmpt->get_energy();
-      RawTowerGeom *tgeo =  
-	towergeom->get_tower_geometry(tmpt->get_id()); 
-      double phi = tgeo->get_phi();
-      if(phi > M_PI) phi = phi - 2.*M_PI; // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
-      if (phi < 0.)
-        {
-          phi = phi + 2.*M_PI;  // shift phi range for correct mean calculation
-        }
-      mean += e * phi;
+  for (iter = begin_end.first; iter != begin_end.second; ++iter)
+  {
+    RawTower *tmpt = towers->getTower(iter->first);
+    double e = tmpt->get_energy();
+    RawTowerGeom *tgeo =
+        towergeom->get_tower_geometry(tmpt->get_id());
+    double phi = tgeo->get_phi();
+    if (phi > M_PI) phi = phi - 2. * M_PI;  // correct the cluster phi for slat geometry which is 0-2pi (L. Xue)
+    if (phi < 0.)
+    {
+      phi = phi + 2. * M_PI;  // shift phi range for correct mean calculation
     }
+    mean += e * phi;
+  }
   mean = mean / sum;
   if (mean > M_PI)
-    {
-      mean = mean - 2.*M_PI;  // shift back
-    }
+  {
+    mean = mean - 2. * M_PI;  // shift back
+  }
 
   cluster->set_phi(mean);
 
-  return true; // mean phi was corrected
+  return true;  // mean phi was corrected
 }
-
 
 int RawClusterBuilderFwd::End(PHCompositeNode *topNode)
 {
@@ -307,19 +316,20 @@ void RawClusterBuilderFwd::CreateNodes(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
 
   // Grab the cEMC node
-  PHCompositeNode *dstNode = static_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = static_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
   if (!dstNode)
-    {
-      std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
-      throw std::runtime_error("Failed to find DST node in EmcRawTowerBuilder::CreateNodes");
-    }
+  {
+    std::cerr << PHWHERE << "DST Node missing, doing nothing." << std::endl;
+    throw std::runtime_error("Failed to find DST node in EmcRawTowerBuilder::CreateNodes");
+  }
 
   PHNodeIterator dstiter(dstNode);
-  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode*>(dstiter.findFirst("PHCompositeNode",detector ));
-  if(!DetNode){
-      DetNode = new PHCompositeNode(detector);
-      dstNode->addNode(DetNode);
-   }
+  PHCompositeNode *DetNode = dynamic_cast<PHCompositeNode *>(dstiter.findFirst("PHCompositeNode", detector));
+  if (!DetNode)
+  {
+    DetNode = new PHCompositeNode(detector);
+    dstNode->addNode(DetNode);
+  }
 
   _clusters = new RawClusterContainer();
   ClusterNodeName = "CLUSTER_" + detector;

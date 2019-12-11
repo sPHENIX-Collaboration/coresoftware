@@ -1,11 +1,13 @@
 // Tell emacs that this is a C++ source
-// -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
 #define G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class G4VPhysicalVolume;
+class PHCompositeNode;
 class PHG4OuterHcalDetector;
 class PHParameters;
 class PHG4Hit;
@@ -28,8 +30,6 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
 
   //! reimplemented from base class
   virtual void SetInterfacePointers(PHCompositeNode *);
-
-  double GetLightCorrection(const double r) const;
 
   void FieldChecker(const G4Step *);
   void EnableFieldChecker(const int i = 1) { m_EnableFieldCheckerFlag = i; }
@@ -59,11 +59,6 @@ class PHG4OuterHcalSteppingAction : public PHG4SteppingAction
   int m_IsBlackHoleFlag;
   int m_NScintiPlates;
   int m_LightScintModelFlag;
-
-  double m_LightBalanceInnerCorr;
-  double m_LightBalanceInnerRadius;
-  double m_LightBalanceOuterCorr;
-  double m_LightBalanceOuterRadius;
 };
 
-#endif  // PHG4OuterHcalSteppingAction_h
+#endif  // G4DETECTORS_PHG4OUTERHCALSTEPPINGACTION_H

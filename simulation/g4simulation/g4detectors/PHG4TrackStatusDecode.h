@@ -1,5 +1,7 @@
-#ifndef PHG4TrackStatusDecode_h
-#define PHG4TrackStatusDecode_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4TRACKSTATUSDECODE_H
+#define G4DETECTORS_PHG4TRACKSTATUSDECODE_H
 
 #include <string>
 

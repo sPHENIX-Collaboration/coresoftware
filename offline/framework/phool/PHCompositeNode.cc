@@ -15,11 +15,6 @@
 
 using namespace std;
 
-PHCompositeNode::PHCompositeNode()
-  : PHNode("NULL")
-{
-}
-
 PHCompositeNode::PHCompositeNode(const string& name)
   : PHNode(name, "PHCompositeNode")
   , deleteMe(0)

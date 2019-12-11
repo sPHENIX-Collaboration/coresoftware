@@ -1,5 +1,5 @@
-#ifndef DUMPGLOBALVERTEXMAP_H__
-#define DUMPGLOBALVERTEXMAP_H__
+#ifndef NODEDUMP_DUMPGLOBALVERTEXMAP_H
+#define NODEDUMP_DUMPGLOBALVERTEXMAP_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpGlobalVertexMap : public DumpObject
   virtual ~DumpGlobalVertexMap() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPGLOBALVERTEXMAP_H__ */
-
+#endif

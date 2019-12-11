@@ -2,41 +2,43 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <calobase/RawTowerGeomContainer.h>
 #include <calobase/RawTowerGeom.h>
+#include <calobase/RawTowerGeomContainer.h>
 
+#include <map>
+#include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
 typedef PHIODataNode<RawTowerGeomContainer> MyNode_t;
 
-DumpRawTowerGeomContainer::DumpRawTowerGeomContainer(const string &NodeName): DumpObject(NodeName)
+DumpRawTowerGeomContainer::DumpRawTowerGeomContainer(const string &NodeName)
+  : DumpObject(NodeName)
 {
-  return ;
+  return;
 }
 
 int DumpRawTowerGeomContainer::process_Node(PHNode *myNode)
 {
-  RawTowerGeomContainer *rawtowergeom = NULL;
-  MyNode_t *thisNode = static_cast <MyNode_t *> (myNode);
+  RawTowerGeomContainer *rawtowergeom = nullptr;
+  MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
-    {
-      rawtowergeom = thisNode->getData();
-    }
+  {
+    rawtowergeom = thisNode->getData();
+  }
   if (rawtowergeom)
+  {
+    *fout << "Calorimeter ID: " << rawtowergeom->get_calorimeter_id() << endl;
+    *fout << "size: " << rawtowergeom->size() << endl;
+    rawtowergeom->identify(*fout);
+    RawTowerGeomContainer::ConstRange all_towers = rawtowergeom->get_tower_geometries();
+    for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
+         it != all_towers.second; ++it)
     {
-      *fout << "Calorimeter ID: " << rawtowergeom->get_calorimeter_id() << endl;
-      *fout << "size: " << rawtowergeom->size() << endl;
-      rawtowergeom->identify(*fout);
-      RawTowerGeomContainer::ConstRange all_towers = rawtowergeom->get_tower_geometries();
-  for (RawTowerGeomContainer::ConstIterator it = all_towers.first;
-       it != all_towers.second; ++it)
-    {
-       it->second->identify(*fout);
+      it->second->identify(*fout);
     }
-
-    }
+  }
   return 0;
 }
-

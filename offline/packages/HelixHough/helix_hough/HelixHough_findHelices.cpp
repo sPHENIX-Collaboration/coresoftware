@@ -1,8 +1,16 @@
 #include "HelixHough.h"
-#include <sys/time.h>
+#include "HelixRange.h"
+#include "SimpleHit3D.h"
+#include "SimpleTrack3D.h"
+
 #include <algorithm>
+#include <cstddef>
 #include <cmath>
 #include <iostream>
+#include <memory>
+#include <sys/time.h>
+#include <utility>
+#include <vector>
 
 using namespace std;
 
@@ -118,7 +126,6 @@ void HelixHough::findHelices(vector<SimpleHit3D>& hits_init, unsigned int min_hi
     hits.push_back(hits_init[in]);
     }
   }
-
 
   index_mapping.clear();
   index_mapping.resize(hits.size(), 0);

@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+class PHObject;
+
 using namespace std;
 
 void SyncObject::Reset()
@@ -24,11 +26,11 @@ int SyncObject::isValid() const
   return 0;
 }
 
-SyncObject*
-SyncObject::clone() const
+PHObject*
+SyncObject::CloneMe() const
 {
-  cout << "SyncObject::clone() not implemented by daughter class" << endl;
-  return NULL;
+  cout << "SyncObject::CloneMe() not implemented by daughter class" << endl;
+  return nullptr;
 }
 
 SyncObject&

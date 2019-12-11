@@ -1,69 +1,74 @@
-#ifndef PGPOSTBANKMANAGER_HH__
-#define PGPOSTBANKMANAGER_HH__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PDBCALPG_PGPOSTBANKMANAGER_H
+#define PDBCALPG_PGPOSTBANKMANAGER_H
 
-#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankManager.h>
+
+#include <phool/PHTimeStamp.h>
 
 #include <map>
 #include <set>
 #include <string>
+#include <ctime> 
 
-class PgPostBankManager : public PdbBankManager {
+class PdbApplication;
+class PdbCalBank;
+class PdbCalBankIterator;
 
-public:
+class PgPostBankManager : public PdbBankManager
+{
+ public:
   static PgPostBankManager *instance();
   static int Register();
-  virtual ~PgPostBankManager( );
+  virtual ~PgPostBankManager();
 
-protected:  
+ protected:
   PgPostBankManager();
 
-public:
- 
-
-  virtual PdbCalBankIterator* getIterator();
-  virtual PdbCalBank* createBank(const std::string &,
-				 PdbBankID,
-				 const std::string &, PHTimeStamp &,PHTimeStamp &,const std::string &);
-
+ public:
+  virtual PdbCalBankIterator *getIterator();
+  virtual PdbCalBank *createBank(const std::string &,
+                                 PdbBankID,
+                                 const std::string &, PHTimeStamp &, PHTimeStamp &, const std::string &);
 
   // create bank with run number as key
-  PdbCalBank* createBank(const int, const std::string &, PdbBankID, const std::string &, const std::string &, const time_t duration=60);
+  PdbCalBank *createBank(const int, const std::string &, PdbBankID, const std::string &, const std::string &, const time_t duration = 60);
 
   // create bank for a given range of run numbers rather than timestamps
-  PdbCalBank* createBank(const int, const int, const std::string &, PdbBankID, const std::string &, const std::string &);
+  PdbCalBank *createBank(const int, const int, const std::string &, PdbBankID, const std::string &, const std::string &);
 
   // fetch banks with run number as key
-  PdbCalBank* fetchBank(const std::string &, PdbBankID, const std::string &, const int);
+  PdbCalBank *fetchBank(const std::string &, PdbBankID, const std::string &, const int);
 
-  PdbCalBank* fetchClosestBank(const std::string &, PdbBankID, const std::string &, const int);
+  PdbCalBank *fetchClosestBank(const std::string &, PdbBankID, const std::string &, const int);
 
-
-//   void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, const int);
-//   void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, const int);
+  //   void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, const int);
+  //   void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, const int);
 
   // fetch banks with timestamp as key
-  PdbCalBank* fetchBank(const std::string &, PdbBankID, const std::string &, const PHTimeStamp &);
+  PdbCalBank *fetchBank(const std::string &, PdbBankID, const std::string &, const PHTimeStamp &);
 
-  PdbCalBank* fetchClosestBank(const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
+  PdbCalBank *fetchClosestBank(const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
 
   // void fetchAllBanks(PdbBankList &, const std::string &, PdbBankID, const std::string &, PHTimeStamp &);
 
   // void fetchAllBanks(PdbBankList &, const std::string &, const std::string &, PHTimeStamp &);
-  
-  PdbApplication* getApplication();
-  
-  void fillCalibObject(PdbCalBank*, const std::string &,  PHTimeStamp &) {}
 
-  void GetUsedBankRids(std::map<std::string,std::set<int> > &usedbanks) const;
-  void ClearUsedBankRids() {BankRid.clear();}
+  PdbApplication *getApplication();
+
+  void fillCalibObject(PdbCalBank *, const std::string &, PHTimeStamp &) {}
+
+  void GetUsedBankRids(std::map<std::string, std::set<int> > &usedbanks) const;
+  void ClearUsedBankRids() { BankRid.clear(); }
   void SetMaxInsertTime(const PHTimeStamp &tMax);
 
-private:
+ private:
   static PgPostBankManager *mySpecificCopy;
-  std::map<std::string,std::set<int> > BankRid;
+  std::map<std::string, std::set<int> > BankRid;
   std::string getRealName(const std::string &);
   PHTimeStamp tMaxInsertTime;
 };
 
-#endif /* __PGPOSTBANKMANAGER_HH__ */
+#endif /* PDBCAL_PG_PGPOSTBANKMANAGER_H */

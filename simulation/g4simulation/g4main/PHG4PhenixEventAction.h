@@ -1,5 +1,7 @@
-#ifndef PHG4VUserEventAction_h
-#define PHG4VUserEventAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PHENIXEVENTACTION_H
+#define G4MAIN_PHG4PHENIXEVENTACTION_H
 
 #include <phool/PHTimeServer.h>
 
@@ -10,7 +12,6 @@
 
 class G4Event;
 class PHG4EventAction;
-class PHCompositeNode;
 
 class PHG4PhenixEventAction : public G4UserEventAction
 {

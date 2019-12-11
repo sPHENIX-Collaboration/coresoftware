@@ -7,25 +7,32 @@
  */
 #include "PHG4SpacalSubsystem.h"
 
-#include "PHG4CylinderGeom.h"
-#include "PHG4CylinderGeomContainer.h"
+#include "PHG4SpacalDisplayAction.h"
+#include "PHG4CylinderGeom_Spacalv1.h"         // for PHG4CylinderGeom_Spacalv1
 #include "PHG4FullProjSpacalDetector.h"
 #include "PHG4FullProjTiltedSpacalDetector.h"
-//#include "PHG4ProjSpacalDetector.h"
 #include "PHG4SpacalDetector.h"
 #include "PHG4SpacalSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>          // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4PhenixDetector.h>
-#include <g4main/PHG4Utils.h>
+#include <g4main/PHG4SteppingAction.h>         // for PHG4SteppingAction
 
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>                // for PHIODataNode
+#include <phool/PHNode.h>                      // for PHNode
+#include <phool/PHNodeIterator.h>              // for PHNodeIterator
+#include <phool/PHObject.h>                    // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/globals.hh>
+#include <TSystem.h>
 
+#include <iostream>                            // for operator<<, basic_ostream
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 
@@ -34,8 +41,15 @@ PHG4SpacalSubsystem::PHG4SpacalSubsystem(const std::string& na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
   , detector_(nullptr)
   , steppingAction_(nullptr)
+  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
+}
+
+//_______________________________________________________________________
+PHG4SpacalSubsystem::~PHG4SpacalSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -52,35 +66,30 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   //       _geom.set_zmin(-half_length);
   //       _geom.set_zmax(+half_length);
   //    }
-
+  // create display settings before detector (detector adds its volumes to it)
+  m_DisplayAction = new PHG4SpacalDisplayAction(Name());
   switch (GetParams()->get_int_param("config"))
   {
   case PHG4CylinderGeom_Spacalv1::kNonProjective:
     if (Verbosity() > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4SpacalDetector" << endl;
-    detector_ = new PHG4SpacalDetector(topNode, Name(), GetParams(), GetLayer());
-    break;
-
-  case PHG4CylinderGeom_Spacalv1::kProjective_PolarTaper:
-    cout << "PHG4SpacalSubsystem::InitRun - PHG4ProjSpacalDetector is obsolete" << endl;
-    exit(10);
-//    detector_ = new PHG4ProjSpacalDetector(topNode, Name(), GetParams(), GetLayer());
+    detector_ = new PHG4SpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_SameLengthFiberPerTower:
     if (Verbosity() > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjSpacalDetector" << endl;
-    detector_ = new PHG4FullProjSpacalDetector(topNode, Name(), GetParams(), GetLayer());
+    detector_ = new PHG4FullProjSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted:
   case PHG4CylinderGeom_Spacalv1::kFullProjective_2DTaper_Tilted_SameLengthFiberPerTower:
     if (Verbosity() > 0) cout << "PHG4SpacalSubsystem::InitRun - use PHG4FullProjTiltedSpacalDetector" << endl;
-    detector_ = new PHG4FullProjTiltedSpacalDetector(topNode, Name(), GetParams(), GetLayer());
+    detector_ = new PHG4FullProjTiltedSpacalDetector(this, topNode, Name(), GetParams(), GetLayer());
     break;
 
   default:
     cout << "PHG4SpacalSubsystem::InitRun - unknown option exiting" << endl;
-    exit(1);
+    gSystem->Exit(1);
     break;
   }
 
@@ -88,17 +97,20 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
   detector_->SetAbsorberActive(GetParams()->get_int_param("absorberactive"));
   detector_->SuperDetector(SuperDetector());
   detector_->OverlapCheck(CheckOverlap());
-
+  // the geometry object is set during detector construction, we need it for the
+  // display to extract the visibility setting for logical volumes
+  PHG4SpacalDisplayAction* DispAct = dynamic_cast<PHG4SpacalDisplayAction*>(m_DisplayAction);
+  DispAct->SetGeom(detector_->get_geom());
   if (GetParams()->get_int_param("active"))
   {
     ostringstream nodename;
-    if (SuperDetector()  != "NONE")
+    if (SuperDetector() != "NONE")
     {
-      nodename << "G4HIT_" << SuperDetector() ;
+      nodename << "G4HIT_" << SuperDetector();
     }
     else
     {
-      nodename << "G4HIT_" <<  Name() << "_" << GetLayer();
+      nodename << "G4HIT_" << Name() << "_" << GetLayer();
     }
     PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
     if (!cylinder_hits)
@@ -117,12 +129,12 @@ int PHG4SpacalSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
       {
         nodename << "G4HIT_ABSORBER_" << Name() << "_" << GetLayer();
       }
-      PHG4HitContainer* cylinder_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
-      if (!cylinder_hits)
+      PHG4HitContainer* absorber_hits = findNode::getClass<PHG4HitContainer>(topNode, nodename.str());
+      if (!absorber_hits)
       {
-        dstNode->addNode(new PHIODataNode<PHObject>(cylinder_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
+        dstNode->addNode(new PHIODataNode<PHObject>(absorber_hits = new PHG4HitContainer(nodename.str()), nodename.str(), "PHObject"));
       }
-      cylinder_hits->AddLayer(GetLayer());
+      absorber_hits->AddLayer(GetLayer());
     }
     steppingAction_ = new PHG4SpacalSteppingAction(detector_);
   }
@@ -148,11 +160,6 @@ PHG4Detector* PHG4SpacalSubsystem::GetDetector(void) const
 }
 
 //_______________________________________________________________________
-PHG4SteppingAction* PHG4SpacalSubsystem::GetSteppingAction(void) const
-{
-  return steppingAction_;
-}
-
 void PHG4SpacalSubsystem::Print(const std::string& what) const
 {
   detector_->Print(what);
@@ -176,8 +183,8 @@ void PHG4SpacalSubsystem::SetDefaultParameters()
   set_default_int_param("virualize_fiber", 0.);
   set_default_int_param("config", static_cast<int>(PHG4CylinderGeom_Spacalv1::kNonProjective));
 
-  set_default_double_param("divider_width", 0); // radial size of the divider between blocks. <=0 means no dividers
-  set_default_string_param("divider_mat", "G4_AIR"); // materials of the divider. G4_AIR is equivalent to not installing one in the term of material distribution
+  set_default_double_param("divider_width", 0);       // radial size of the divider between blocks. <=0 means no dividers
+  set_default_string_param("divider_mat", "G4_AIR");  // materials of the divider. G4_AIR is equivalent to not installing one in the term of material distribution
 
   return;
 }

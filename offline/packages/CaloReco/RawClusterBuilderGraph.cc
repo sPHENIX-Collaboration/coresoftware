@@ -3,21 +3,33 @@
 #include "PHMakeGroups.h"
 
 #include <calobase/RawClusterContainer.h>
+#include <calobase/RawCluster.h>
 #include <calobase/RawClusterv1.h>
-
+#include <calobase/RawClusterDefs.h>
 #include <calobase/RawTower.h>
 #include <calobase/RawTowerContainer.h>
+#include <calobase/RawTowerDefs.h>
 #include <calobase/RawTowerGeom.h>
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/PHCompositeNode.h>
+#include <fun4all/SubsysReco.h>
+
 #include <phool/getClass.h>
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>
+#include <phool/PHNodeIterator.h>
+#include <phool/PHObject.h>
+#include <phool/phool.h>
 
 #include <cassert>
+#include <cmath>
+#include <exception>
 #include <iostream>
 #include <map>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -102,7 +114,7 @@ bool operator<(const twrs &a, const twrs &b)
 
 RawClusterBuilderGraph::RawClusterBuilderGraph(const std::string &name)
   : SubsysReco(name)
-  , _clusters(NULL)
+  , _clusters(nullptr)
   , _min_tower_e(0.0)
   , chkenergyconservation(0)
   , detector("NONE")

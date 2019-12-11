@@ -1,11 +1,13 @@
-
 #include "PHG4UIsession.h"
  
+#include <iostream>  // for flush, basic_ostream, ostream, cerr, cout
+#include <string>    // for operator<<
+
 PHG4UIsession::PHG4UIsession()
   : verbosity(0) {
 }
 
-G4UIsession * PHG4UIsession::SessionStart() { return NULL; }
+G4UIsession * PHG4UIsession::SessionStart() { return nullptr; }
  
 void PHG4UIsession::PauseSessionStart(const G4String&) {;}
 

@@ -1,5 +1,4 @@
 #include "PHG4CylinderGeom.h"
-#include <cmath>
 
 using namespace std;
 

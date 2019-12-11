@@ -3,39 +3,35 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
 
 class Event;
 
-class PHSartreGenTrigger {
-
- protected:  
+class PHSartreGenTrigger
+{
+ protected:
   //! constructor
   PHSartreGenTrigger(const std::string &name = "PHSartreGenTrigger");
 
  public:
   virtual ~PHSartreGenTrigger();
 
-  #ifndef __CINT__
-  virtual bool Apply(Event *event) {
+  virtual bool Apply(Event *event)
+  {
     std::cout << "PHSartreGenTrigger::Apply - in virtual function" << std::endl;
     return false;
   }
-  #endif
 
-  virtual std::string GetName() { return _name; }
-  
+  virtual std::string GetName() { return m_Name; }
+
   std::vector<int> convertToInts(std::string s);
+  int Verbosity() const { return m_Verbosity; }
+  void Verbosity(int v) { m_Verbosity = v; }
 
-  void Verbosity(int v) { _verbosity = v; }
-
-protected:
-  int _verbosity;  
-  
-private:
-  std::string _name;
+ protected:
+ private:
+  int m_Verbosity;
+  std::string m_Name;
 };
 
-#endif	
-
+#endif

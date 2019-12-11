@@ -1,27 +1,32 @@
-#ifndef __CLUSTERJETINPUT_H__
-#define __CLUSTERJETINPUT_H__
+#ifndef G4JET_CLUSTERJETINPUT_H
+#define G4JET_CLUSTERJETINPUT_H
 
-#include <phool/PHCompositeNode.h>
-
+// first my own include
 #include "JetInput.h"
+
+// then other local incudes
 #include "Jet.h"
 
+// finally system includes
+#include <iostream>    // for cout, ostream
 #include <vector>
 
-class ClusterJetInput : public JetInput {
-  
-public:
+// forward declarations
+class PHCompositeNode;
 
+class ClusterJetInput : public JetInput
+{
+ public:
   ClusterJetInput(Jet::SRC input);
   virtual ~ClusterJetInput() {}
 
   void identify(std::ostream& os = std::cout);
-  
-  Jet::SRC get_src() {return _input;}
-  
-  std::vector<Jet*> get_input(PHCompositeNode *topNode);
-  
-private:
+
+  Jet::SRC get_src() { return _input; }
+
+  std::vector<Jet*> get_input(PHCompositeNode* topNode);
+
+ private:
   int _verbosity;
   Jet::SRC _input;
 };

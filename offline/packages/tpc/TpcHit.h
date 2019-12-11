@@ -9,11 +9,7 @@
 
 #include <trackbase/TrkrHit.h>
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
-#include <cstdint>
-#endif
+#include <iostream>             // for cout, ostream
 
 /**
  * @brief Tpc hit object
@@ -23,32 +19,34 @@
  */
 class TpcHit : public TrkrHit
 {
-public:
+ public:
   //! ctor
   TpcHit();
   //! dtor
-  virtual ~TpcHit() {};
+  virtual ~TpcHit(){};
 
   // PHObject virtual overloads
   virtual void identify(std::ostream& os = std::cout) const;
   virtual void Reset();
   virtual int isValid() const;
-  
+
+  //void addEnergy(const double edep) {m_edep += edep;}
+  //double getEnergy() const {return m_edep;}
+
   /**
    * @brief Set the ADC information
    * @param[in] adc ADC value
    */
-  void setAdc(const short adc) { m_adc = adc; }
+  //void setAdc(const short adc) { m_adc = adc; }
 
   /**
    * @brief Get ADC value
    * @param[out] ADC value
    */
-  short getAdc() const { return m_adc; }
+  //short getAdc() const { return m_adc; }
 
-private:
-  short m_adc;
-  ClassDef(TpcHit,1);
+ private:
+  ClassDef(TpcHit, 1);
 };
 
-#endif //TPC_TPCHIT_H
+#endif  //TPC_TPCHIT_H

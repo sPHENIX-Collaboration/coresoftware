@@ -1,15 +1,21 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 /*===============================================================*
  *                        March 2nd 2017                         *
  *        mRICH Subsystem created by Cheuk-Ping Wong @GSU        *
  *===============================================================*/
-#ifndef PHG4mRICHSubsystem_h
-#define PHG4mRICHSubsystem_h
+#ifndef G4DETECTORS_PHG4MRICHSUBSYSTEM_H
+#define G4DETECTORS_PHG4MRICHSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
 
+#include <string>                   // for string
+
+class PHCompositeNode;
 class PHG4mRICHDetector;
-class PHG4BlockSteppingAction;
+class PHG4Detector;
 class PHG4EventAction;
+class PHG4SteppingAction;
 
 class PHG4mRICHSubsystem: public PHG4DetectorSubsystem
 {

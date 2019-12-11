@@ -1,5 +1,5 @@
-#ifndef __RETOWERCEMC_H__
-#define __RETOWERCEMC_H__
+#ifndef JETBACKGROUND_RETOWERCEMC_H
+#define JETBACKGROUND_RETOWERCEMC_H
 
 //===========================================================
 /// \file RetowerCEMC.h
@@ -7,15 +7,11 @@
 /// \author Dennis V. Perepelitsa
 //===========================================================
 
-// PHENIX includes
-#include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
-#include <phool/PHTimeServer.h>
 
-// standard includes
+// system includes
+#include <string>
 #include <vector>
-
-#include <calobase/RawTowerContainer.h>
 
 // forward declarations
 class PHCompositeNode;
@@ -31,20 +27,17 @@ class RetowerCEMC : public SubsysReco
 {
  public:
   RetowerCEMC(const std::string &name = "RetowerCEMC");
-  virtual ~RetowerCEMC();
+  virtual ~RetowerCEMC() {}
 
-  int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode *topNode);
 
  private:
   int CreateNode(PHCompositeNode *topNode);
 
   int _NETA;
   int _NPHI;
-  std::vector< std::vector<float> > _EMCAL_RETOWER_E;
-
+  std::vector<std::vector<float> > _EMCAL_RETOWER_E;
 };
 
-#endif  // __RETOWERCEMC_H__
+#endif

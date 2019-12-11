@@ -1,9 +1,11 @@
-#ifndef RawTowerDeadMap_H__
-#define RawTowerDeadMap_H__
+#ifndef CALOBASE_RAWTOWERDEADMAP_H
+#define CALOBASE_RAWTOWERDEADMAP_H
 
 #include "RawTowerDefs.h"
 
 #include <phool/PHObject.h>
+
+#include <iostream>
 #include <set>
 
 class RawTowerDeadMap : public PHObject
@@ -29,6 +31,7 @@ class RawTowerDeadMap : public PHObject
   virtual Map &getDeadTowers(void);
 
   virtual unsigned int size() const { return 0; }
+
  protected:
   RawTowerDeadMap(RawTowerDefs::CalorimeterId caloid = RawTowerDefs::NONE)
   {
@@ -38,4 +41,4 @@ class RawTowerDeadMap : public PHObject
   ClassDef(RawTowerDeadMap, 1)
 };
 
-#endif /* RawTowerDeadMap_H__ */
+#endif

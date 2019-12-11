@@ -10,31 +10,28 @@
 
 #include "PHGenIntegralv1.h"
 
+#include <phool/PHObject.h>  // for PHObject
+
 #include <cstdlib>
 #include <iostream>
-#include <cassert>
+
 using namespace std;
 
 PHGenIntegralv1::PHGenIntegralv1()
-{
-  Reset();
-}
+  : m_NProcessedEvent(0)
+  , m_NGeneratorAcceptedEvent(0)
+  , m_IntegratedLumi(0.)
+  , m_SumOfWeight(0.)
+  , m_Description("Source Not Provided")
+{}
 
 PHGenIntegralv1::PHGenIntegralv1(const std::string& description)
-{
-  Reset();
-  fDescription = description;
-}
-
-PHGenIntegralv1::~PHGenIntegralv1()
-{
-}
-
-PHObject* PHGenIntegralv1::clone() const
-{
-  //this class is simple, use the default copy constructor for cloning
-  return new PHGenIntegralv1(*this);
-}
+  : m_NProcessedEvent(0)
+  , m_NGeneratorAcceptedEvent(0)
+  , m_IntegratedLumi(0.)
+  , m_SumOfWeight(0.)
+  , m_Description(description)
+{}
 
 void PHGenIntegralv1::identify(ostream& os) const
 {
@@ -47,14 +44,14 @@ void PHGenIntegralv1::identify(ostream& os) const
 
 void PHGenIntegralv1::Reset()
 {
-  fNProcessedEvent = 0;
-  fNGeneratorAcceptedEvent = 0;
-  fIntegratedLumi = 0;
-  fSumOfWeight = 0;
-  fDescription = "Source Not Provided";
+  m_NProcessedEvent = 0;
+  m_NGeneratorAcceptedEvent = 0;
+  m_IntegratedLumi = 0;
+  m_SumOfWeight = 0;
+  m_Description = "Source Not Provided";
 }
 
-int PHGenIntegralv1::Integrate( PHObject* incoming_object)
+int PHGenIntegralv1::Integrate(PHObject* incoming_object)
 {
   const PHGenIntegral* in_gen = dynamic_cast<const PHGenIntegral*>(incoming_object);
 
@@ -67,40 +64,39 @@ int PHGenIntegralv1::Integrate( PHObject* incoming_object)
     exit(EXIT_FAILURE);
   }
 
-  if (fIntegratedLumi == 0 and fNProcessedEvent == 0)
+  if (m_IntegratedLumi == 0 and m_NProcessedEvent == 0)
   {
-    fDescription = in_gen->get_Description();
+    m_Description = in_gen->get_Description();
   }
-  else if (fDescription != in_gen->get_Description())
+  else if (m_Description != in_gen->get_Description())
   {
-    fDescription = fDescription + ", and " + in_gen->get_Description();
+    m_Description = m_Description + ", and " + in_gen->get_Description();
   }
 
-  fNProcessedEvent += in_gen->get_N_Processed_Event();
-  fNGeneratorAcceptedEvent += in_gen->get_N_Generator_Accepted_Event();
-  fIntegratedLumi += in_gen->get_Integrated_Lumi();
-  fSumOfWeight += in_gen->get_Sum_Of_Weight();
+  m_NProcessedEvent += in_gen->get_N_Processed_Event();
+  m_NGeneratorAcceptedEvent += in_gen->get_N_Generator_Accepted_Event();
+  m_IntegratedLumi += in_gen->get_Integrated_Lumi();
+  m_SumOfWeight += in_gen->get_Sum_Of_Weight();
 
-  return fNProcessedEvent;
+  return m_NProcessedEvent;
 }
 
-void PHGenIntegralv1::CopyContent( PHObject* incoming_object)
+void PHGenIntegralv1::CopyFrom(const PHObject* incoming_object)
 {
-  const PHGenIntegral * in_gen = dynamic_cast<const PHGenIntegral *>(incoming_object);
+  const PHGenIntegral* in_gen = dynamic_cast<const PHGenIntegral*>(incoming_object);
 
   if (!in_gen)
   {
-    cout << "PHGenIntegralv1::CopyContent - Fatal Error - "
+    cout << "PHGenIntegralv1::CopyFrom - Fatal Error - "
          << "input object is not a PHGenIntegral: ";
     incoming_object->identify();
 
     exit(EXIT_FAILURE);
   }
 
-  fNProcessedEvent = in_gen->get_N_Processed_Event();
-  fNGeneratorAcceptedEvent = in_gen->get_N_Generator_Accepted_Event();
-  fIntegratedLumi = in_gen->get_Integrated_Lumi();
-  fSumOfWeight = in_gen->get_Sum_Of_Weight();
-  fDescription = in_gen->get_Description();
-
+  m_NProcessedEvent = in_gen->get_N_Processed_Event();
+  m_NGeneratorAcceptedEvent = in_gen->get_N_Generator_Accepted_Event();
+  m_IntegratedLumi = in_gen->get_Integrated_Lumi();
+  m_SumOfWeight = in_gen->get_Sum_Of_Weight();
+  m_Description = in_gen->get_Description();
 }

@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4DETECTORS_PHG4DETECTORGROUPSUBSYSTEM_H
 #define G4DETECTORS_PHG4DETECTORGROUPSUBSYSTEM_H
 
@@ -8,7 +8,9 @@
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                 // for make_pair, pair
 
+class PHCompositeNode;
 class PHParametersContainer;
 
 class PHG4DetectorGroupSubsystem : public PHG4Subsystem
@@ -23,7 +25,7 @@ class PHG4DetectorGroupSubsystem : public PHG4Subsystem
 
   virtual ~PHG4DetectorGroupSubsystem() {}
 // stupid rootcint does not support final keyword
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   int Init(PHCompositeNode *) final;
   int InitRun(PHCompositeNode *) final;
 #else

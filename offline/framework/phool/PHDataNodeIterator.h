@@ -1,10 +1,10 @@
-#ifndef __PHDATANODEITERATOR_H__
-#define __PHDATANODEITERATOR_H__
+#ifndef PHOOL_PHDATANODEITERATOR_H
+#define PHOOL_PHDATANODEITERATOR_H
 
-#include <cstddef>
-#include "PHIODataNode.h"
 #include "PHIODataNode.h"
 #include "PHNodeIterator.h"
+
+#include <cstddef>
 
 /**
  * A special PHOOL node iterator that simplifies finding and adding data
@@ -90,4 +90,4 @@ PHDataNodeIterator::AddIODataNode(T* data, const char* name)
   return addNode(n);
 }
 
-#endif /* __PHDATANODEITERATOR_H__ */
+#endif

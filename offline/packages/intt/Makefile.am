@@ -1,54 +1,74 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libintt.la \
-  libintt_io.la
-
+  libintt_io.la \
+  libintt.la 
 
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
-  -I$(ROOTSYS)/include 
+  -I$(ROOTSYS)/include
 
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+pkginclude_HEADERS = \
+  InttDefs.h \
+  InttHit.h \
+  InttClusterizer.h \
+  CylinderGeomIntt.h
+
+ROOTDICTS = \
+  InttHit_Dict.cc \
+  CylinderGeomIntt_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+  InttHit_Dict_rdict.pcm \
+  CylinderGeomIntt_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+  InttClusterizer_Dict.cc
+
+endif
+
 # sources for intt library
 libintt_la_SOURCES = \
-  InttDefs.cc \
-  InttDefs_Dict.cc 
+  $(ROOT5_DICTS) \
+  InttClusterizer.cc
 
 libintt_la_LIBADD = \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io
+  libintt_io.la \
+  -lCLHEP \
+  -lphg4hit \
+  -lSubsysReco
 
 # sources for io library
 libintt_io_la_SOURCES = \
-  InttHit.cc \
-  InttHit_Dict.cc
+  $(ROOTDICTS) \
+  CylinderGeomIntt.cc \
+  InttDefs.cc \
+  InttHit.cc
 
 libintt_io_la_LIBADD = \
-  libintt.la \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io 
+  -lCLHEP \
+  -lg4detectors_io \
+  -lphool \
+  -ltrack_io \
+  -ltrackbase_historic_io
 
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-
-##############################################
-# please add new classes in alphabetical order
-
-pkginclude_HEADERS = \
-  InttDefs.h \
-  InttHit.h
-
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 
 ################################################
@@ -76,4 +96,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

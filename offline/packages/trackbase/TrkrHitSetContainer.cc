@@ -15,11 +15,16 @@ TrkrHitSetContainer::TrkrHitSetContainer()
 {
 }
 
+TrkrHitSetContainer::~TrkrHitSetContainer()
+{
+  Reset();
+}
+
 void TrkrHitSetContainer::Reset()
 {
   while (m_hitmap.begin() != m_hitmap.end())
   {
-    delete m_hitmap.begin()->second;
+    delete m_hitmap.begin()->second;   // frees up memory for TrkrHit objects
     m_hitmap.erase(m_hitmap.begin());
   }
   return;
@@ -31,7 +36,8 @@ void TrkrHitSetContainer::identify(std::ostream& os) const
   os << "Number of hits: " << size() << std::endl;
   for (iter = m_hitmap.begin(); iter != m_hitmap.end(); ++iter)
   {
-    os << "hit key 0x" << std::hex << iter->first << std::dec << std::endl;
+    int layer = TrkrDefs::getLayer(iter->first);
+    os << "hitsetkey " << iter->first << " layer " <<layer << std::endl;
     (iter->second)->identify();
   }
   return;

@@ -8,14 +8,14 @@
  * \date $Date: $
  */
 
-#ifndef SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RawTowerDeadMapLoader_H_
-#define SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RawTowerDeadMapLoader_H_
+#ifndef CALORECO_RAWTOWERDEADMAPLOADER_H
+#define CALORECO_RAWTOWERDEADMAPLOADER_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
-class RawTowerDeadMap;
-
+class PHCompositeNode;
 
 /*!
  * \brief RawTowerDeadMapLoader loads dead map at inti run
@@ -25,9 +25,9 @@ class RawTowerDeadMapLoader : public SubsysReco
  public:
   RawTowerDeadMapLoader(const std::string& detector);
 
-  virtual ~RawTowerDeadMapLoader();
+  virtual ~RawTowerDeadMapLoader() {}
 
-  virtual int InitRun(PHCompositeNode *topNode);
+  virtual int InitRun(PHCompositeNode* topNode);
 
   const std::string& deadMapPath() const
   {
@@ -53,7 +53,6 @@ class RawTowerDeadMapLoader : public SubsysReco
   std::string m_detector;
   std::string m_deadMapPath;
 
-  RawTowerDeadMap * m_deadmap;
 };
 
-#endif /* SIMULATION_CORESOFTWARE_SIMULATION_G4SIMULATION_G4CEMC_RawTowerDeadMapLoader_H_ */
+#endif

@@ -1,7 +1,11 @@
-#ifndef PHG4CylinderGeomv3_H__
-#define PHG4CylinderGeomv3_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMV3_H
+#define G4DETECTORS_PHG4CYLINDERGEOMV3_H
 
 #include "PHG4CylinderGeomv2.h"
+
+#include <iostream>              // for cout, ostream
 
 class PHG4CylinderGeomv3: public PHG4CylinderGeomv2
 {

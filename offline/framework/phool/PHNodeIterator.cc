@@ -8,13 +8,16 @@
 //  Author: Matthias Messer
 //-----------------------------------------------------------------------------
 #include "PHNodeIterator.h"
+
+#include "PHCompositeNode.h" 
+#include "PHNode.h"
 #include "PHNodeOperation.h"
 #include "PHPointerListIterator.h"
 #include "phooldefs.h"
 
 #include <boost/algorithm/string.hpp>
 
-#include <iostream>
+#include <utility> 
 #include <vector>
 
 using namespace std;

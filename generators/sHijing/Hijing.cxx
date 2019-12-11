@@ -39,6 +39,7 @@
 #include <vector>
 #include <numeric>
 #include <cmath>
+#include <random>
 
 #define f2cFortran
 #define gFortran

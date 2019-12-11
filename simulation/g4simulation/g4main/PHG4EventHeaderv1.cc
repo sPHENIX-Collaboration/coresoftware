@@ -1,6 +1,6 @@
 #include "PHG4EventHeaderv1.h"
 
-ClassImp(PHG4EventHeaderv1)
+#include <cmath>
 
 using namespace std;
 

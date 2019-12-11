@@ -1,9 +1,12 @@
-#ifndef PHG4VEnvelopeSteppingAction_h
-#define PHG4VEnvelopeSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4ENVELOPESTEPPINGACTION_H
+#define G4DETECTORS_PHG4ENVELOPESTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
-#include <Geant4/G4Step.hh>
 
+class G4Step;
+class PHCompositeNode;
 class PHG4EnvelopeDetector;
 class PHG4Hit;
 class PHG4HitContainer;

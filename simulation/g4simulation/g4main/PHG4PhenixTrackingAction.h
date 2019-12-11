@@ -1,5 +1,7 @@
-#ifndef PHG4VUserTrackingAction_h
-#define PHG4VUserTrackingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PHENIXTRACKINGACTION_H
+#define G4MAIN_PHG4PHENIXTRACKINGACTION_H
 
 #include <Geant4/G4UserTrackingAction.hh>
 #include <list>

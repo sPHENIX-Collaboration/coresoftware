@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: $
 
 /*!
@@ -8,21 +10,21 @@
  * \date $Date: $
  */
 
-#ifndef PHG4GDMLDetector_H_
-#define PHG4GDMLDetector_H_
+#ifndef G4DETECTORS_PHG4GDMLDETECTOR_H
+#define G4DETECTORS_PHG4GDMLDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
-#include <string>
 
 #include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
 
-class PHCompositeNode;
-class PHParameters;
-class G4LogicalVolume;
+#include <string>
+
 class G4AssemblyVolume;
+class G4LogicalVolume;
 class G4UserSteppingAction;
-class G4UserSteppingAction;
+class PHCompositeNode;
+class PHG4Subsystem;
+class PHParameters;
 
 /*!
  * \brief PHG4GDMLDetector is a generic detector built from a GDML import
@@ -30,12 +32,12 @@ class G4UserSteppingAction;
 class PHG4GDMLDetector : public PHG4Detector
 {
  public:
-  PHG4GDMLDetector(PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
+  PHG4GDMLDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, PHParameters* parameters);
 
   virtual ~PHG4GDMLDetector();
 
   //! construct
-  void Construct(G4LogicalVolume* world);
+  void ConstructMe(G4LogicalVolume* world);
 
   G4UserSteppingAction* GetSteppingAction()
   {
@@ -45,8 +47,8 @@ class PHG4GDMLDetector : public PHG4Detector
   void Print(const std::string& what = "ALL") const;
 
  private:
-  void SetDisplayProperty( G4AssemblyVolume* av);
-  void SetDisplayProperty( G4LogicalVolume* lv);
+  void SetDisplayProperty(G4AssemblyVolume* av);
+  void SetDisplayProperty(G4LogicalVolume* lv);
 
   std::string m_GDMPath;
   std::string m_TopVolName;

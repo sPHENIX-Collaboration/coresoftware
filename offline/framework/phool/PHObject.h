@@ -1,5 +1,5 @@
-#ifndef PHOBJECT_H__
-#define PHOBJECT_H__
+#ifndef PHOOL_PHOBJECT_H
+#define PHOOL_PHOBJECT_H
 
 //  Declaration of class PHObject
 //  Purpose: Tiny layer between TObject and output objects and
@@ -7,18 +7,29 @@
 //  Author: Chris Pinkenburg
 
 #include <TObject.h>
+
 #include <iostream>
 
 class PHObject : public TObject
 {
  public:
   /// ctor
-  PHObject();
+  PHObject() {}
 
   /// dtor
   virtual ~PHObject() {}
   /// Virtual copy constructor.
+  virtual PHObject* CloneMe() const;
+
+#if !defined(__CINT__) || defined(__CLING__)
+  virtual PHObject* clone() const final;
+  virtual PHObject *Clone(const char *newname = "") const final;
+  virtual void 	Copy(TObject &object) const final;
+#else
   virtual PHObject* clone() const;
+  virtual PHObject *Clone(const char *newname = "") const;
+  virtual void 	Copy(TObject &object) const;
+#endif
 
   /** identify Function from PHObject
       @param os Output Stream 
@@ -42,17 +53,10 @@ class PHObject : public TObject
 
   virtual int Integrate() const { return 0; }
   virtual int Integrate(PHObject* obj) { return -1; }
-  virtual void CopyContent(PHObject* obj);
+  virtual void CopyFrom(const PHObject *obj);
 
-  void SplitLevel(const int i) { split = i; }
-  int SplitLevel() const { return split; }
-  void BufferSize(const int i) { bufSize = i; }
-  int BufferSize() const { return bufSize; }
  private:
-  int split;    //! not saved, it is set to change the split level for this object
-  int bufSize;  //! not saved, it is set to change the buffer size for this object
-
   ClassDef(PHObject, 0)  // no I/O
 };
 
-#endif /* PHOBJECT_H__ */
+#endif /* PHOOL_PHOBJECT_H */

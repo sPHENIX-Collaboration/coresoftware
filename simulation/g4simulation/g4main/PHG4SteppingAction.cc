@@ -7,23 +7,41 @@
  */
 
 #include "PHG4SteppingAction.h"
+
 #include "PHG4Hit.h"
 
+#include <Geant4/G4AffineTransform.hh>           // for G4AffineTransform
 #include <Geant4/G4EmSaturation.hh>
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4Material.hh>
+#include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
 #include <Geant4/G4NavigationHistory.hh>
+#include <Geant4/G4ReferenceCountedHandle.hh>    // for G4ReferenceCountedHa...
 #include <Geant4/G4Step.hh>
 #include <Geant4/G4StepPoint.hh>
+#include <Geant4/G4String.hh>                    // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
 #include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4TouchableHandle.hh>           // for G4TouchableHandle
 #include <Geant4/G4Track.hh>
+#include <Geant4/G4VTouchable.hh>                // for G4VTouchable
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>                                 // for isfinite, NAN, sqrt
 #include <iostream>
 
 using namespace std;
+
+PHG4SteppingAction::PHG4SteppingAction(const std::string& name, const int i)
+  : m_Verbosity(i)
+  , m_LightBalanceInnerRadius(NAN)
+  , m_LightBalanceInnerCorr(NAN)
+  , m_LightBalanceOuterRadius(NAN)
+  , m_LightBalanceOuterCorr(NAN)
+  , m_Name(name)
+{
+}
 
 double
 PHG4SteppingAction::GetScintLightYield(const G4Step* step)
@@ -168,9 +186,9 @@ double PHG4SteppingAction::GetLightCorrection(const double r) const
   double correction = 1.;
   if (ValidCorrection())
   {
-    double m = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
+    double slope = (m_LightBalanceOuterCorr - m_LightBalanceInnerCorr) / (m_LightBalanceOuterRadius - m_LightBalanceInnerRadius);
     double b = m_LightBalanceInnerCorr - m * m_LightBalanceInnerRadius;
-    correction = m * r + b;
+    correction = slope * r + b;
     correction = std::min(correction, 1.);
     correction = std::max(correction, 0.);
   }

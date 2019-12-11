@@ -1,4 +1,5 @@
 #include "PHG4InEventCompress.h"
+
 #include "PHG4InEvent.h"
 #include "PHG4VtxPoint.h"
 #include "PHG4Particle.h"
@@ -8,22 +9,26 @@
 #include <vararray/VariableArrayUtils.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <phool/getClass.h>
 
+#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/phool.h>
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 
 #include <cstdlib>
 #include <iostream>
+#include <map>                            // for _Rb_tree_const_iterator
+#include <utility>                        // for pair
 #include <vector>
 
 using namespace std;
 
 PHG4InEventCompress::PHG4InEventCompress(const std::string &name): 
   SubsysReco(name),
-  vtxarray(NULL),
-  particlearray(NULL)
+  vtxarray(nullptr),
+  particlearray(nullptr)
 {}
 
 int

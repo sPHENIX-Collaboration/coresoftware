@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $$Id: PHG4CylinderGeom_Spacalv3.h,v 1.3 2014/08/28 22:18:35 jinhuang Exp $$
 
 /*!
@@ -7,22 +9,24 @@
  * \version $$Revision: 1.3 $$
  * \date $$Date: 2014/08/28 22:18:35 $$
  */
-#ifndef PHG4CylinderGeom_Spacalv3_H__
-#define PHG4CylinderGeom_Spacalv3_H__
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMSPACALV3_H
+#define G4DETECTORS_PHG4CYLINDERGEOMSPACALV3_H
 
+#include "PHG4CylinderGeom_Spacalv2.h"
+
+#include <iostream>                     // for operator<<, basic_ostream::op...
 #include <map>
 #include <string>
 #include <utility>  // std::pair, std::make_pair
-#include "PHG4CylinderGeom_Spacalv2.h"
+
+class PHParameters;
 
 class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
 {
  public:
   PHG4CylinderGeom_Spacalv3();
 
-  virtual ~PHG4CylinderGeom_Spacalv3()
-  {
-  }
+  virtual ~PHG4CylinderGeom_Spacalv3();
 
   virtual void
   identify(std::ostream& os = std::cout) const;
@@ -66,7 +70,7 @@ class PHG4CylinderGeom_Spacalv3 : public PHG4CylinderGeom_Spacalv2
   }
 
   void
-  set_sidewall_mat(std::string absorberMat)
+  set_sidewall_mat(const std::string &absorberMat)
   {
     sidewall_mat = absorberMat;
   }

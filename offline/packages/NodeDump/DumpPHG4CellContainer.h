@@ -1,5 +1,5 @@
-#ifndef DUMPPHG4CELLCONTAINER_H__
-#define DUMPPHG4CELLCONTAINER_H__
+#ifndef NODEDUMP_DUMPPHG4CELLCONTAINER_H
+#define NODEDUMP_DUMPPHG4CELLCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpPHG4CellContainer : public DumpObject
   virtual ~DumpPHG4CellContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* __DUMPPHG4CELLCONTAINER_H__ */
-
+#endif

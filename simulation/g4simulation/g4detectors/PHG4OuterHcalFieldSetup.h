@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: $                                                                                             
 
 /*!
@@ -8,22 +10,16 @@
  * \date $Date: $
  */
 
-#ifndef PHG4OUTERHCALFIELDSETUP_H_
-#define PHG4OUTERHCALFIELDSETUP_H_
+#ifndef G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
+#define G4DETECTORS_PHG4OUTERHCALFIELDSETUP_H
 
-#include <Geant4/G4MagneticField.hh>
-#include <Geant4/G4UniformMagField.hh>
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 
-#include <string>
-
-class G4FieldManager;
 class G4ChordFinder;
-class G4EquationOfMotion;
-class G4Mag_EqRhs;
+class G4FieldManager;
 class G4Mag_UsualEqRhs;
 class G4MagIntegratorStepper;
-class G4MagInt_Driver;
-class G4TBFieldMessenger;
+class G4MagneticField;
 
 /*!
  * \brief PHG4OuterHcalFieldSetup following Geant4 example F03FieldSetup
@@ -34,7 +30,7 @@ public:
   PHG4OuterHcalFieldSetup(G4int steelPlates, G4double scintiGap,
       G4double tiltAngle);
   virtual
-  ~PHG4OuterHcalFieldSetup();
+    ~PHG4OuterHcalFieldSetup(){}
 
   G4FieldManager*
   get_Field_Manager_Gap() const

@@ -1,12 +1,13 @@
-#ifndef PHG4VUserSteppingAction_h
-#define PHG4VUserSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4PHENIXSTEPPINGACTION_H
+#define G4MAIN_PHG4PHENIXSTEPPINGACTION_H
 
 #include <Geant4/G4UserSteppingAction.hh>
 #include <list>
 
 class G4Step;
 class PHG4SteppingAction;
-class PHCompositeNode;
 
 class PHG4PhenixSteppingAction : public G4UserSteppingAction
 {

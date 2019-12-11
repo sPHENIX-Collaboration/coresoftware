@@ -1,5 +1,5 @@
-#ifndef DUMPPHG4BLOCKGEOMCONTAINER_H__
-#define DUMPPHG4BLOCKGEOMCONTAINER_H__
+#ifndef NODEDUMP_DUMPPHG4BLOCKGEOMCONTAINER_H
+#define NODEDUMP_DUMPPHG4BLOCKGEOMCONTAINER_H
 
 #include "DumpObject.h"
 
@@ -14,8 +14,7 @@ class DumpPHG4BlockGeomContainer : public DumpObject
   virtual ~DumpPHG4BlockGeomContainer() {}
 
  protected:
-   int process_Node(PHNode *mynode);
+  int process_Node(PHNode *mynode);
 };
 
-#endif /* DUMPPHG4BLOCKGEOMCONTAINER_H__ */
-
+#endif

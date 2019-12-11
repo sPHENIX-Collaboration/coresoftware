@@ -1,12 +1,16 @@
-#ifndef FLAGSAVEV1_H
-#define FLAGSAVEV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FFAOBJECTS_FLAGSAVEV1_H
+#define FFAOBJECTS_FLAGSAVEV1_H
 
 #include "FlagSave.h"
+
 #include <iostream>
 #include <map>
 #include <string>
 
 class PHFlag;
+class PHObject;
 
 ///
 class FlagSavev1: public FlagSave
@@ -18,7 +22,7 @@ class FlagSavev1: public FlagSave
   /// dtor
   virtual ~FlagSavev1() {}
 
-  FlagSavev1 * clone() const;
+  PHObject *CloneMe() const;
 
   ///  Clear Event
   void Reset() {}

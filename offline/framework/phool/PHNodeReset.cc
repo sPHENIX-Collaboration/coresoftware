@@ -4,10 +4,11 @@
 #include "PHNodeReset.h"
 
 #include "PHDataNode.h"
-#include "PHIODataNode.h"
+#include "PHNode.h"
 #include "PHObject.h"
 
 #include <iostream>
+#include <string>
 
 using namespace std;
 

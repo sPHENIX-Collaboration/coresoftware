@@ -1,8 +1,9 @@
-#ifndef __SIMPLEHIT3D__
-#define __SIMPLEHIT3D__
+#ifndef HELIXHOUGH_SIMPLEHIT3D_H
+#define HELIXHOUGH_SIMPLEHIT3D_H
 
 #include <iostream>
-#include <cmath>
+
+#include <trackbase/TrkrDefs.h>
 
 class SimpleHit3D
 {
@@ -11,6 +12,9 @@ public:
 
   SimpleHit3D();
   virtual ~SimpleHit3D() {}
+
+  TrkrDefs::cluskey get_cluskey() const {return _cluskey;}
+  void         set_cluskey(TrkrDefs::cluskey key) {_cluskey = key;}
 
   unsigned int get_id() const {return _id;}
   void         set_id(unsigned int id) {_id = id;}
@@ -34,11 +38,13 @@ public:
 
   float get_size(unsigned int i, unsigned int j) const;
   void  set_size(unsigned int i, unsigned int j, float value);
+
    
 private:
   
   unsigned int covar_index(unsigned int i, unsigned int j) const;
 
+  TrkrDefs::cluskey _cluskey;
   unsigned int _id;
   int _layer;
   
@@ -48,6 +54,7 @@ private:
   
   float _err[6]; //< error covariance matrix (x,y,z)
   float _size[6]; //< size covariance matrix (x,y,z)
+  
 };
 
 #endif // __SIMPLEHIT3D__

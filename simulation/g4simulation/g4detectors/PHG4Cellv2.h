@@ -1,15 +1,20 @@
-#ifndef PHG4Cellv2_h__
-#define PHG4Cellv2_h__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CELLV2_H
+#define G4DETECTORS_PHG4CELLV2_H
 
 #include "PHG4Cell.h"
 #include "PHG4CellDefs.h"
-#ifdef __CINT__
-#include <stdint.h>
-#else
-#include <cstdint>
-#endif
+
+#include <g4main/PHG4HitDefs.h>  // for keytype
+
 #include <iostream>
 #include <map>
+#include <utility>               // for make_pair
+
+#if !defined(__CINT__) || defined(__CLING__)
+#include <type_traits>           // for __decay_and_strip<>::__type
+#endif
 
 //! specialized cells for TPC operations
 class PHG4Cellv2 : public PHG4Cell

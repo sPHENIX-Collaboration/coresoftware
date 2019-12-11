@@ -1,10 +1,13 @@
-#ifndef __NEWTONMINIMIZERGRADHESSIAN__
-#define __NEWTONMINIMIZERGRADHESSIAN__
+#ifndef G4HOUGH_NEWTONMINIMIZERGRADHESSIAN_H
+#define G4HOUGH_NEWTONMINIMIZERGRADHESSIAN_H
 
-#include "FunctionGradHessian.h"
+#include <Eigen/Core>  // for VectorXd
+
+#include <vector>      // for vector
 
 namespace NewtonMinimizer
 {
+  class FunctionGradHessian;
   class NewtonMinimizerGradHessian
   {
     public:

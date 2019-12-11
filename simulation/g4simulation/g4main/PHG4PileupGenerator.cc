@@ -2,17 +2,15 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHRandomSeed.h>
-
-#include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
+
+#include <iostream>                      // for operator<<, endl, basic_ostream
 
 using namespace std;
 
 PHG4PileupGenerator::PHG4PileupGenerator(const string &name)
     : PHG4ParticleGeneratorBase(name),
-      _generator(NULL),
+      _generator(nullptr),
       _min_integration_time(-1000.0),
       _max_integration_time(+1000.0),
       _collision_rate(100.0),
@@ -24,10 +22,7 @@ PHG4PileupGenerator::PHG4PileupGenerator(const string &name)
 }
 
 PHG4PileupGenerator::~PHG4PileupGenerator() {
-  if (_generator) {
     delete _generator;
-    _generator = NULL;
-  }
 }
 
 int PHG4PileupGenerator::Init(PHCompositeNode *topNode) {

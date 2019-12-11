@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXMOMENTUMRECAL_H__
-#define __PHG4SVTXMOMENTUMRECAL_H__
+#ifndef G4HOUGH_PHG4SVTXMOMENTUMRECAL_H
+#define G4HOUGH_PHG4SVTXMOMENTUMRECAL_H
 
 //===========================================================
 /// \file PHG4SvtxMomentumRecal.h
@@ -7,20 +7,15 @@
 /// \author Mike McCumber
 //===========================================================
 
-#include "PHG4HoughTransform.h"
-#include "SvtxTrack.h"
-
-// PHENIX includes
 #include <fun4all/SubsysReco.h>
 
-#include <TF1.h>
-
 // std includes
-#include <vector>
+#include <cstddef>              // for NULL
 #include <string>
 
 // forward declarations
 class PHCompositeNode;
+class TF1;
 
 /// \class PHG4SvtxMomentumRecal
 ///
@@ -32,7 +27,7 @@ class PHG4SvtxMomentumRecal : public SubsysReco
  public:
  
   PHG4SvtxMomentumRecal(const std::string &name = "PHG4SvtxMomentumRecal",
-			TF1* correction = NULL);
+			TF1* correction = nullptr);
   virtual ~PHG4SvtxMomentumRecal() {}
 		
   int Init(PHCompositeNode *topNode);

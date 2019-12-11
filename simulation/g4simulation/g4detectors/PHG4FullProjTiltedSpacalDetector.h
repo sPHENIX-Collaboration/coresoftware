@@ -1,4 +1,5 @@
-// $$Id: PHG4FullProjTiltedSpacalDetector.h,v 1.2 2015/02/10 15:39:26 pinkenbu Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,24 +9,22 @@
  * \date $$Date: 2015/02/10 15:39:26 $$
  */
 
-#ifndef PHG4FullProjTiltedSpacalDetector_h
-#define PHG4FullProjTiltedSpacalDetector_h
+#ifndef G4DETECTORS_PHG4FULLPROJTILTEDSPACALDETECTOR_H
+#define G4DETECTORS_PHG4FULLPROJTILTEDSPACALDETECTOR_H
 
 #include "PHG4CylinderGeom_Spacalv3.h"
 #include "PHG4SpacalDetector.h"
 
-#include <Geant4/G4Region.hh>
-#include <Geant4/G4Types.hh>
-#include <Geant4/globals.hh>
+#include <Geant4/G4Transform3D.hh>
 
-#include <map>
-#include <set>
+#include <cassert>
+#include <string>   // for string
+#include <utility>  // for pair
 
-class G4Material;
-class G4Tubs;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
-class G4UserLimits;
+class PHCompositeNode;
+class PHG4CylinderGeom;
+class PHG4Subsystem;
 class PHParameters;
 
 //! Fully projective SPACAL built from 2D tapered modules and allow azimuthal tilts
@@ -34,13 +33,14 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
  public:
   typedef PHG4CylinderGeom_Spacalv3 SpacalGeom_t;
 
-  PHG4FullProjTiltedSpacalDetector(PHCompositeNode* Node, const std::string& dnam,
+  PHG4FullProjTiltedSpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
                                    PHParameters* parameters, const int layer = 0);
 
   // empty dtor, step limits are deleted in base class
   virtual ~PHG4FullProjTiltedSpacalDetector(void) {}
+
   virtual void
-  Construct(G4LogicalVolume* world);
+  ConstructMe(G4LogicalVolume* world);
 
   virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();
@@ -50,7 +50,7 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
   Construct_Tower(const SpacalGeom_t::geom_tower& tower);
   //! a block for the light guide along z axis that fit to the tower
   virtual G4LogicalVolume*
-  Construct_LightGuide(const SpacalGeom_t::geom_tower & tower, const int index_x, const int index_y);
+  Construct_LightGuide(const SpacalGeom_t::geom_tower& tower, const int index_x, const int index_y);
 
   //! a block along z axis built with G4Trd that is slightly tapered in x dimension
   virtual int
@@ -68,23 +68,24 @@ class PHG4FullProjTiltedSpacalDetector : public PHG4SpacalDetector
     return new SpacalGeom_t(*get_geom_v3());
   }
 
-
  private:
-//  SpacalGeom_t* _geom;
-
+  //  SpacalGeom_t* _geom;
   //! get the v3 cast of the geometry object
-  SpacalGeom_t *
+  SpacalGeom_t*
   get_geom_v3()
   {
-    return dynamic_cast<SpacalGeom_t *> (_geom);
+    SpacalGeom_t* v3_geom = dynamic_cast<SpacalGeom_t*>(_geom);
+    assert(v3_geom);
+    return v3_geom;
   }
 
-  const SpacalGeom_t *
+  const SpacalGeom_t*
   get_geom_v3() const
   {
-    return dynamic_cast<const SpacalGeom_t *> (_geom);
+    SpacalGeom_t* v3_geom = dynamic_cast<SpacalGeom_t*>(_geom);
+    assert(v3_geom);
+    return v3_geom;
   }
-
 };
 
 #endif

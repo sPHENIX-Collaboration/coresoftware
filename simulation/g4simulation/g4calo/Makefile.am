@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 # List of shared libraries to produce
@@ -10,18 +13,26 @@ AM_CPPFLAGS = \
   -I$(ROOTSYS)/include \
   -I${G4_MAIN}/include
 
+pkginclude_HEADERS = \
+  HcalRawTowerBuilder.h \
+  RawTowerBuilder.h \
+  RawTowerBuilderByHitIndex.h \
+  RawTowerDigitizer.h
+
+if ! MAKEROOT6
+  ROOT5_DICTS = \
+    HcalRawTowerBuilder_Dict.cc \
+    RawTowerBuilder_Dict.cc \
+    RawTowerBuilderByHitIndex_Dict.cc \
+    RawTowerDigitizer_Dict.cc
+endif
 
 libg4calo_la_SOURCES = \
+  $(ROOT5_DICTS) \
   HcalRawTowerBuilder.cc \
-  HcalRawTowerBuilder_Dict.cc \
-  Prototype2RawTowerBuilder.cc \
-  Prototype2RawTowerBuilder_Dict.cc \
   RawTowerBuilder.cc \
-  RawTowerBuilder_Dict.cc \
   RawTowerBuilderByHitIndex.cc \
-  RawTowerBuilderByHitIndex_Dict.cc \
-  RawTowerDigitizer.cc \
-  RawTowerDigitizer_Dict.cc
+  RawTowerDigitizer.cc
 
 libg4calo_la_LDFLAGS = \
   -L$(libdir) \
@@ -44,26 +55,18 @@ libg4calo_la_LIBADD = \
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-##############################################
-# please add new classes in alphabetical order
-
-pkginclude_HEADERS = \
-  HcalRawTowerBuilder.h \
-  RawTowerBuilder.h \
-  RawTowerBuilderByHitIndex.h \
-  RawTowerDigitizer.h
-
 ################################################
 # linking tests
 
 noinst_PROGRAMS = \
   testexternals_g4calo
 
+BUILT_SOURCES = testexternals.cc
 
-testexternals_g4calo_SOURCES = testexternals.C
+testexternals_g4calo_SOURCES = testexternals.cc
 testexternals_g4calo_LDADD = libg4calo.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@

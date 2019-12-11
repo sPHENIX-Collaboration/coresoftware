@@ -1,4 +1,6 @@
 #include "PHG4ScintillatorSlatContainer.h"
+
+#include "PHG4ScintillatorSlat.h"      // for PHG4ScintillatorSlat
 #include "PHG4ScintillatorSlatDefs.h"
 
 #include <cstdlib>
@@ -81,7 +83,7 @@ PHG4ScintillatorSlatContainer::findScintillatorSlat(PHG4ScintillatorSlatDefs::ke
       return it->second;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 double

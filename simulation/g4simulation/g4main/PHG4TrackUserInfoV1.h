@@ -1,26 +1,39 @@
-#ifndef PHG4TrackUserInfoV1_H__
-#define PHG4TrackUserInfoV1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4TRACKUSERINFOV1_H
+#define G4MAIN_PHG4TRACKUSERINFOV1_H
 
 #include <Geant4/G4VUserTrackInformation.hh>
+#include <Geant4/G4ios.hh>                    // for G4cout
+
+#include <ostream>                            // for operator<<, basic_ostre...
 
 class PHG4Shower;
 
 // Made this with "V1" in the name in case we ever want to inherit from
 // it with other versions...
 
-// Use the UserTrackInformation to attach a flag telling the framework 
+// Use the UserTrackInformation to attach a flag telling the framework
 // to save the track in the truth output.  Other uses might include keeping
-// track of the 
+// track of the
 
 class PHG4TrackUserInfoV1 : public G4VUserTrackInformation
 {
-public:
-  PHG4TrackUserInfoV1() : G4VUserTrackInformation("TrackUserInfoV1"),
-			  usertrackid(0), userparentid(0), userprimaryid(0),
-			  wanted(0), keep(0) , shower(NULL) {}
+ public:
+  PHG4TrackUserInfoV1()
+    : G4VUserTrackInformation("TrackUserInfoV1")
+    , usertrackid(0)
+    , userparentid(0)
+    , userprimaryid(0)
+    , wanted(0)
+    , keep(0)
+    , shower(nullptr)
+  {
+  }
   virtual ~PHG4TrackUserInfoV1() {}
 
-  void Print() const {
+  void Print() const
+  {
     G4cout << "PHG4TrackUserInfoV1: " << std::endl;
     G4cout << "   UserTrackId = " << usertrackid << std::endl;
     G4cout << "   UserParentId = " << userparentid << std::endl;
@@ -29,25 +42,25 @@ public:
     G4cout << "   Keep = " << keep << std::endl;
   }
 
-  void SetUserTrackId(const int val) {usertrackid = val;}
-  int GetUserTrackId() const {return usertrackid;}
-  
-  void SetUserParentId(const int val) {userparentid = val;}
-  int GetUserParentId() const {return userparentid;}
+  void SetUserTrackId(const int val) { usertrackid = val; }
+  int GetUserTrackId() const { return usertrackid; }
 
-  void SetUserPrimaryId(const int val) {userprimaryid = val;}
-  int GetUserPrimaryId() const {return userprimaryid;}
+  void SetUserParentId(const int val) { userparentid = val; }
+  int GetUserParentId() const { return userparentid; }
 
-  void SetWanted(const int val) {wanted = val;}
-  int GetWanted() const {return wanted;}
+  void SetUserPrimaryId(const int val) { userprimaryid = val; }
+  int GetUserPrimaryId() const { return userprimaryid; }
 
-  void SetKeep(const int val) {keep = val;}
-  int GetKeep() const {return keep;}
+  void SetWanted(const int val) { wanted = val; }
+  int GetWanted() const { return wanted; }
 
-  void SetShower(PHG4Shower *ptr) {shower = ptr;}
-  PHG4Shower* GetShower() const {return shower;}
+  void SetKeep(const int val) { keep = val; }
+  int GetKeep() const { return keep; }
 
-private:
+  void SetShower(PHG4Shower* ptr) { shower = ptr; }
+  PHG4Shower* GetShower() const { return shower; }
+
+ private:
   int usertrackid;
   int userparentid;
   int userprimaryid;
@@ -60,14 +73,14 @@ private:
 // to the track.
 class G4Track;
 
-namespace PHG4TrackUserInfo 
+namespace PHG4TrackUserInfo
 {
-  void SetUserTrackId(G4Track* track, const int usertrackid);
-  void SetUserParentId(G4Track* track, const int userparentid);
-  void SetUserPrimaryId(G4Track* track, const int userprimaryid);
-  void SetWanted(G4Track* track, const int wanted);
-  void SetKeep(G4Track* track, const int keep);
-  void SetShower(G4Track* track, PHG4Shower* ptr);
-};
+void SetUserTrackId(G4Track* track, const int usertrackid);
+void SetUserParentId(G4Track* track, const int userparentid);
+void SetUserPrimaryId(G4Track* track, const int userprimaryid);
+void SetWanted(G4Track* track, const int wanted);
+void SetKeep(G4Track* track, const int keep);
+void SetShower(G4Track* track, PHG4Shower* ptr);
+}  // namespace PHG4TrackUserInfo
 
 #endif

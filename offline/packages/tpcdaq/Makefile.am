@@ -1,3 +1,6 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 AM_CPPFLAGS = \
@@ -6,9 +9,8 @@ AM_CPPFLAGS = \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
-   libtpcdaq.la
-
-AM_CXXFLAGS = -Wall -Werror -msse2
+   libtpcdaq.la \
+   libtpcdaq_io.la
 
 libtpcdaq_la_LDFLAGS = \
   -L$(libdir) \
@@ -19,38 +21,68 @@ libtpcdaq_la_LIBADD = \
   -lg4dst \
   -lphool
 
-libtpcdaq_la_SOURCES = \
-  TPCIntegratedCharge.cc \
-  TPCIntegratedCharge_Dict.C \
-  TPCDataStreamEmulator.cc \
-  TPCDataStreamEmulator_Dict.C  \
-  TPCFEETestRecov1.cc \
-  TPCFEETestRecov1_Dict.C  \
-  TPCDaqDefs.cc \
-  TPCDaqDefs_Dict.C 
-
-# Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
-
-##############################################
-# please add new classes in alphabetical order
+libtpcdaq_io_la_LIBADD = \
+  -lphool
 
 pkginclude_HEADERS = \
-  TPCDaqDefs.h 
-  
+  TPCDaqDefs.h
+
+ROOTDICTS = \
+  TPCFEETestRecov1_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    TPCFEETestRecov1_Dict_rdict.pcm
+else
+  ROOT5_IO_DICTS = \
+    MvtxDefs_Dict.cc
+
+  ROOT5_DICTS = \
+    TPCIntegratedCharge_Dict.cc \
+    TPCDataStreamEmulator_Dict.cc
+endif
+
+libtpcdaq_la_SOURCES = \
+  $(ROOT5_DICTS) \
+  TPCIntegratedCharge.cc \
+  TPCDataStreamEmulator.cc \
+  TPCDaqDefs.cc \
+  TPCDaqDefs_Dict.cc
+
+libtpcdaq_io_la_SOURCES = \
+  $(ROOTDICTS) \
+  TPCFEETestRecov1.cc
+
+# Rule for generating table CINT dictionaries.
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
+
 ################################################
 # linking tests
 
-noinst_PROGRAMS = testexternals
+noinst_PROGRAMS = \
+  testexternals \
+  testexternals_io
 
 BUILT_SOURCES = \
-  testexternals.C
+  testexternals.cc
+
+testexternals_SOURCES = \
+  testexternals.cc
 
 testexternals_LDADD = \
   libtpcdaq.la
 
-testexternals.C:
+testexternals_io_SOURCES = \
+  testexternals.cc
+
+testexternals_io_LDADD = \
+  libtpcdaq_io.la
+
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -58,4 +90,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict* testexternals.C
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

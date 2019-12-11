@@ -7,11 +7,9 @@
 #ifndef TRACKBASE_TRKRDEFUTIL_H
 #define TRACKBASE_TRKRDEFUTIL_H
 
-#ifdef __CINT__
-#include <limits.h>
+#if defined(__CINT__) && !defined(__CLING__)
 #include <stdint.h>
 #else
-#include <climits>
 #include <cstdint>
 #endif
 #include <iostream>
@@ -27,7 +25,7 @@ namespace TrkrDefs
   typedef uint64_t cluskey;     // 64 but TrkrCluster id type
   typedef uint32_t clushitkey;  // 32 bit hit id type in TrkrCluster
   
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   
   /// Max values for keys (used as defaults or invalid values)
   static hitkey HITKEYMAX __attribute__((unused)) = UINT32_MAX;

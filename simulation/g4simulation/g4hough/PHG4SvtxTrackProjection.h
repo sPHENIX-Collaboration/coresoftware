@@ -1,5 +1,5 @@
-#ifndef __PHG4SVTXTRACKPROJECTION_H__
-#define __PHG4SVTXTRACKPROJECTION_H__
+#ifndef G4HOUGH_PHG4SVTXTRACKPROJECTION_H
+#define G4HOUGH_PHG4SVTXTRACKPROJECTION_H
 
 //===========================================================
 /// \file PHG4SvtxTrackProjection.h
@@ -9,7 +9,7 @@
 
 #include "PHG4HoughTransform.h"
 
-#include "SvtxTrack.h"
+#include <trackbase_historic/SvtxTrack.h>
 
 // PHENIX includes
 #include <fun4all/SubsysReco.h>
@@ -49,7 +49,6 @@ class PHG4SvtxTrackProjection : public SubsysReco
   std::vector<std::string> _cal_names;
   std::vector<float> _cal_radii;
   double _magfield;
-  double _mag_extent;
 };
 
-#endif // __PHG4SVTXTRACKPROJECTION_H__
+#endif // G4HOUGH_PHG4INITZVERTEXING_H

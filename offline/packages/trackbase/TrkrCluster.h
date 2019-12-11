@@ -11,8 +11,15 @@
 
 #include <phool/PHObject.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
+
+#if defined(__CINT__) && !defined(__CLING__)
+#include <limits.h>
+#else
+#include <climits>
+#endif
+
 
 /**
  * @brief Base class for cluster object
@@ -69,7 +76,7 @@ class TrkrCluster : public PHObject
   virtual float getZError() const { return NAN; }
  protected:
   TrkrCluster() {}
-  ClassDef(TrkrCluster, 1);
+  ClassDef(TrkrCluster, 1)
 };
 
 #endif //TRACKBASE_TRKRCLUSTER_H

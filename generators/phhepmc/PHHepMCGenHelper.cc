@@ -14,20 +14,24 @@
 #include "PHHepMCGenEventMap.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>
+#include <phool/PHIODataNode.h>          // for PHIODataNode
+#include <phool/PHNode.h>                // for PHNode
+#include <phool/PHNodeIterator.h>        // for PHNodeIterator
+#include <phool/PHObject.h>              // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
+#include <phool/phool.h>                 // for PHWHERE
 
-#include <HepMC/GenEvent.h>
-#include <HepMC/IO_GenEvent.h>
+#include <HepMC/SimpleVector.h>          // for FourVector
 
-#include <gsl/gsl_const.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
 
 #include <cassert>
-#include <climits>
+#include <limits>
+#include <cstdlib>                      // for exit
 #include <iostream>
 
 using namespace std;
@@ -50,10 +54,9 @@ PHHepMCGenHelper::PHHepMCGenHelper()
   , _reuse_vertex_embedding_id(numeric_limits<int>::min())
   , _geneventmap(nullptr)
 {
-
   RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   unsigned int seed = PHRandomSeed();  // fixed seed is handled in this function
-  gsl_rng_set(RandomGenerator, seed );
+  gsl_rng_set(RandomGenerator, seed);
 }
 
 PHHepMCGenHelper::~PHHepMCGenHelper()

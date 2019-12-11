@@ -9,19 +9,22 @@
  */
 
 #include "PHG4CylinderGeom_Spacalv3.h"
+#include "PHG4CylinderGeom_Spacalv1.h"    // for PHG4CylinderGeom_Spacalv1::...
 
 #include <phparameter/PHParameters.h>
 
-#include <Geant4/globals.hh>
 #include <Geant4/G4PhysicalConstants.hh>
 
+#include <CLHEP/Units/SystemOfUnits.h>    // for twopi
+
 #include <algorithm>
-#include <cmath>
 #include <cassert>
+#include <cmath>
+#include <cstdlib>                       // for exit
 #include <iostream>
-#include <sstream>
 #include <limits>       // std::numeric_limits
 #include <map>
+#include <sstream>
 
 using namespace std;
 using std::make_pair;
@@ -29,6 +32,11 @@ using std::make_pair;
 PHG4CylinderGeom_Spacalv3::PHG4CylinderGeom_Spacalv3()
 {
   SetDefault();
+}
+
+PHG4CylinderGeom_Spacalv3::~PHG4CylinderGeom_Spacalv3()
+{
+  sector_tower_map.erase(sector_tower_map.begin(), sector_tower_map.end());
 }
 
 void

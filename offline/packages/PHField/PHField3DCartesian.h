@@ -1,10 +1,9 @@
-#ifndef __PHField3DCartesian_H__
-#define __PHField3DCartesian_H__
+#ifndef PHFIELD_PHFIELD3DCARTESIAN_H
+#define PHFIELD_PHFIELD3DCARTESIAN_H
 
 #include "PHField.h"
 
-#include <map>
-#include <set>
+#include <string>
 
 //! untested code - I don't know if this is being used, drop me a line (with the field) and I test this - Chris P.
 class PHField3DCartesian : public PHField
@@ -41,4 +40,4 @@ class PHField3DCartesian : public PHField
   mutable int cache_misses;
 };
 
-#endif  // __PHFIELD3D_H
+#endif

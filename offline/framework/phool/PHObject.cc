@@ -1,22 +1,26 @@
 #include "PHObject.h"
+
 #include "phool.h"
 
-#include <cstdlib>
+#include <TSystem.h>
+
 #include <iostream>
 
-PHObject::PHObject()
-  : split(99)
-  , bufSize(32000)
+class TObject;
+
+PHObject*
+PHObject::CloneMe() const
 {
-  return;
+  std::cout << PHWHERE << " clone() not implemented by daugther class"
+            << std::endl;
+  return nullptr;
 }
 
 PHObject*
 PHObject::clone() const
 {
-  std::cout << PHWHERE << " clone() not implemented by daugther class"
-            << std::endl;
-  return 0;
+  std::cout << PHWHERE << " clone() is obsolete" << std::endl;
+  return nullptr;
 }
 
 void PHObject::identify(std::ostream& out) const
@@ -39,7 +43,7 @@ void PHObject::Reset()
             << std::endl;
   std::cout << "load the libraries which contain these classes and try again"
             << std::endl;
-  exit(1);
+  gSystem->Exit(1);
 }
 
 int PHObject::isValid() const
@@ -123,9 +127,25 @@ int PHObject::isImplemented(const unsigned int) const
   return 0;
 }
 
-void PHObject::CopyContent(PHObject* obj)
+
+void PHObject::CopyFrom(const PHObject *obj)
 {
   std::cout << PHWHERE
-            << " CopyContent(PHObject *obj) is not implemented" << std::endl;
-  exit(1);
+            << " CopyFrom(const PHObject *obj) is not implemented" << std::endl;
+  gSystem->Exit(1);
+}
+
+PHObject *PHObject::Clone(const char *newname) const
+{
+std::cout << PHWHERE
+	  << "You are overriding the TObject::Clone method which is not supported"  << std::endl;
+  gSystem->Exit(1);
+  return nullptr;
+}
+
+void PHObject::Copy (TObject &object) const
+{
+std::cout << PHWHERE
+	  << "You are overriding the TObject::Copy method which is not supported"  << std::endl;
+  gSystem->Exit(1);
 }

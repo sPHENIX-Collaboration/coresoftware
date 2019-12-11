@@ -5,27 +5,28 @@
  * @brief Implementation of Mvtx hit object
  */
 #include "MvtxHit.h"
-#include "MvtxDefs.h"
+
+#include <trackbase/TrkrHit.h>
+
+#include <ostream>              // for operator<<, endl, ostream, basic_ostream
 
 MvtxHit::MvtxHit()
   : TrkrHit()
 {
 }
 
-void 
-MvtxHit::identify(std::ostream& os) const
+void MvtxHit::identify(std::ostream& os) const
 {
   os << "I am an MvtxHit" << std::endl;
 }
 
-void 
-MvtxHit::Reset()
+void MvtxHit::Reset()
 {
   TrkrHit::Reset();
 }
 
-int 
-MvtxHit::isValid() const
+int MvtxHit::isValid() const
 {
   return 1;
 }
+

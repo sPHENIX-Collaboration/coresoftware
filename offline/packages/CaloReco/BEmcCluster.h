@@ -1,5 +1,5 @@
-#ifndef EMCCLUSTER_H
-#define EMCCLUSTER_H
+#ifndef CALORECO_EMCCLUSTER_H
+#define CALORECO_EMCCLUSTER_H
 
 // Name: EmcCluster.h
 // Author: A. Bazilevsky (RIKEN-BNL)
@@ -8,10 +8,11 @@
 #include <TObject.h>
 
 #include <cmath>
+#include <cstdlib>
+#include <vector>
 
 // Forward declarations
 class BEmcRec;
-class EmcCluster;
 class EmcPeakarea;
 
 /** One tower information for internal clustering use.
@@ -23,22 +24,22 @@ class EmcModule
  public:
   EmcModule();
   EmcModule(int ich_, int softkey_, float amp_, float tof_,
-	    int deadmap_, int warnmap_, float adc_, float tac_);
+            int deadmap_, int warnmap_, float adc_, float tac_);
 
   virtual ~EmcModule() {}
 
-  int ich;   // module id (linear)
-  int softKey; /* software key = arm/sector/row/column =
+  int ich;      // module id (linear)
+  int softKey;  /* software key = arm/sector/row/column =
 		  100000 * iarm +
 		  10000 * iS +
 		  100 * iy +
 		  iz                       */
-  float amp; // module signal
-  float tof; // module time-of-flight
-  int deadmap; // module dead map: see emcCalibratedDataObject.h
-  int warnmap; // MV 2001/12/06
-  float adc; // ADC amplitude
-  float tac; // TAC amplitude
+  float amp;    // module signal
+  float tof;    // module time-of-flight
+  int deadmap;  // module dead map: see emcCalibratedDataObject.h
+  int warnmap;  // MV 2001/12/06
+  float adc;    // ADC amplitude
+  float tac;    // TAC amplitude
 };
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -52,39 +53,36 @@ class EmcModule
 
 class EmcCluster : public TObject
 {
-
-public:
-
+ public:
   /// Constructor (zero Hit List)
-  EmcCluster()
-  {}
+EmcCluster(): fOwner(nullptr)
+  {
+  }
 
-  EmcCluster(BEmcRec *sector): fOwner(sector)
-  {}
-
-  /// Constructor (inputs Hit List)
-#ifndef __CINT__
-
-  EmcCluster(const std::vector<EmcModule>& hlist,
-	     BEmcRec *sector)
+  EmcCluster(BEmcRec* sector)
     : fOwner(sector)
   {
-    fHitList = hlist;
   }
-#endif
+
+  /// Constructor (inputs Hit List)
+
+  EmcCluster(const std::vector<EmcModule>& hlist,
+             BEmcRec* sector)
+    : fHitList(hlist), fOwner(sector)
+  {
+  }
 
   ///
   virtual ~EmcCluster()
-  {}
+  {
+  }
 
   /// Reinitializes EmcCluster supplying new Hit List.
-#ifndef __CINT__
 
-  void ReInitialize( const std::vector<EmcModule>& hlist )
+  void ReInitialize(const std::vector<EmcModule>& hlist)
   {
     fHitList = hlist;
   }
-#endif
   /// Returns number of EmcModules in EmcCluster
   int GetNofHits()
   {
@@ -93,39 +91,37 @@ public:
   /// Returns n EmcModules (sorted) with the maximum energy
   void GetHits(EmcModule* phit, int n);
   /// Returns EmcCluster fHitList
-#ifndef __CINT__
 
   std::vector<EmcModule> GetHitList()
   {
     return fHitList;
   };
-#endif
   /// Returns the EmcModule with the maximum energy
   EmcModule GetMaxTower();
   /// Returns the EmcModule corresponding to the reconstructed impact tower
   EmcModule GetImpactTower();
   /// Returns the energy of the ich-tower (numbering from 0)
-  float GetTowerEnergy( int ich );
+  float GetTowerEnergy(int ich);
   /// Returns the energy of the tower ix,iy (numbering from 0)
-  float GetTowerEnergy( int ix, int iy );
+  float GetTowerEnergy(int ix, int iy);
   /// Returns the ToF of the ich-tower (numbering from 0)
-  float GetTowerToF( int ich );
+  float GetTowerToF(int ich);
   /// Returns the Dead Map of the ich-tower (numbering from 0)
-  int GetTowerDeadMap( int ich );
+  int GetTowerDeadMap(int ich);
   /// Returns the Warning Map of the ich-tower (numbering from 0)
-  int GetTowerWarnMap( int ich ); // MV 2002/02/18 bugfix
-  float GetTowerADC( int ich ); // MV 2002/03/12 bugfix
-  float GetTowerTAC( int ich ); // MV 2002/03/12 bugfix
+  int GetTowerWarnMap(int ich);  // MV 2002/02/18 bugfix
+  float GetTowerADC(int ich);    // MV 2002/03/12 bugfix
+  float GetTowerTAC(int ich);    // MV 2002/03/12 bugfix
   /// Returns the number of dead channels around MaxTower
   int GetNDead();
-  int GetDeadMap(); // MV 2001/12/06
-  int GetWarnMap(); // MV 2001/12/06
+  int GetDeadMap();  // MV 2001/12/06
+  int GetWarnMap();  // MV 2001/12/06
   /// Returns the energy in 2x2 towers around the cluster Center of Gravity
   float GetE4();
   /// Returns the energy in 3x3 towers around the cluster Center of Gravity
   float GetE9();
   /// Returns the energy in 3x3 towers around the tower ich
-  float GetE9( int ich );
+  float GetE9(int ich);
   /// Returns the cluster energy taking into account towers with E>Ethresh
   float GetECore();
   /// Ecore corrected for energy leak sidewise core towers
@@ -133,33 +129,29 @@ public:
   /// Returns the EmcCluster total energy
   float GetTotalEnergy();
   /// Returns EmcCluster 1-st (pxcg,pycg) and 2-d momenta (pxx,pxy,pyy)
-  void GetMoments( float* pxcg, float* pycg,
-		   float* pxx, float* pxy, float* pyy );
+  void GetMoments(float* pxcg, float* pycg,
+                  float* pxx, float* pxy, float* pyy);
   /// Returns the EmcCluster corrected position in Sector (SM) frame
-  void GetCorrPos( float* pxc, float* pyc );
+  void GetCorrPos(float* pxc, float* pyc);
   /// Returns the EmcCluster position in PHENIX global coord system
-  void GetGlobalPos( float& xg, float& yg, float& zg );
+  void GetGlobalPos(float& xg, float& yg, float& zg);
   /// Returns the errors for the reconstructed energy and position
-  void GetErrors( float* pde, float* pdx, float* pdy, float* pdz);
+  void GetErrors(float* pde, float* pdx, float* pdy, float* pdz);
   /// Substitutes a number of functions above (to save CPU time)
-  void GetChar( float* pe,
-		float* pxcg, float* pysg,
-		float* pxc, float* pyc,
-		float* pxg, float* pyg, float* pzg,
-		float* pxx, float* pxy, float* pyy,
-		float* pde, float* pdx, float* pdy, float* pdz );
+  void GetChar(float* pe,
+               float* pxcg, float* pysg,
+               float* pxc, float* pyc,
+               float* pxg, float* pyg, float* pzg,
+               float* pxx, float* pxy, float* pyy,
+               float* pde, float* pdx, float* pdy, float* pdz);
   /// Splits the EmcCluster onto peakarea's; also returns peak tower array corresponding to peakarea array
-  int GetPeaks( std::vector<EmcPeakarea> *PkList, std::vector<EmcModule> *ppeaks );
-  float GetProb(float &chi2, int &ndf);
+  int GetPeaks(std::vector<EmcPeakarea>* PkList, std::vector<EmcModule>* ppeaks);
+  float GetProb(float& chi2, int& ndf);
 
-protected:
-
-#ifndef __CINT__
-
+ protected:
   std::vector<EmcModule> fHitList;
-#endif
 
-  BEmcRec *fOwner; // what sector it belongs to
+  BEmcRec* fOwner;  // what sector it belongs to
 
   // static members
   static int const fgMaxNofPeaks;
@@ -169,8 +161,7 @@ protected:
   static float const fgXABSURD;
   static float const fgYABSURD;
 
-public:
-
+ public:
   // MV 2002/02/28 moved these functions here from #define's
 
   static int max(int a, int b)
@@ -216,7 +207,6 @@ public:
   {
     return x < 0. ? int(x - 1) : int(x);
   }
-
 };
 
 // ///////////////////////////////////////////////////////////////////////////
@@ -226,29 +216,35 @@ public:
     @ingroup clustering
 */
 
-class EmcPeakarea: public EmcCluster
+class EmcPeakarea : public EmcCluster
 {
-
-public:
-
+ public:
   /// Constructor (zero Hit List)
-  EmcPeakarea(): fNdf(0), fCL(1.)
-  {}
+  EmcPeakarea()
+    : fNdf(0)
+    , fCL(1.)
+  {
+  }
 
-  EmcPeakarea(BEmcRec *sector):
-    EmcCluster(sector), fNdf(0), fCL(1.)
-  {}
+  EmcPeakarea(BEmcRec* sector)
+    : EmcCluster(sector)
+    , fNdf(0)
+    , fCL(1.)
+  {
+  }
 
   /// Constructor (inputs Hit List)
-#ifndef __CINT__
 
-  EmcPeakarea(const std::vector<EmcModule>& hlist, BEmcRec *sector):
-    EmcCluster(hlist, sector), fNdf(0), fCL(1.)
-  {}
-#endif
+  EmcPeakarea(const std::vector<EmcModule>& hlist, BEmcRec* sector)
+    : EmcCluster(hlist, sector)
+    , fNdf(0)
+    , fCL(1.)
+  {
+  }
 
   virtual ~EmcPeakarea()
-  {}
+  {
+  }
 
   /// Returns Chi2
   float GetChi2();
@@ -256,37 +252,33 @@ public:
   int GetNdf() const
   {
     return fNdf;
-  } 
+  }
   // fetch number of degrees of freedom
   float GetCL() const
   {
     return fCL;
-  } 
+  }
   // get CL (call only after GetChar())
   float GetCLNew();
 
   /// Returns peakarea's 1st momentum (COG) after Shower Shape fit
-  void GetCGmin( float* pxcgmin, float* pycgmin );
+  void GetCGmin(float* pxcgmin, float* pycgmin);
 
   /// Substitutes a number of functions above (to save CPU time)
-  void GetChar( float* pe, float* pec, float* pecore, float* pecorec,
-		float* pxcg, float* pysg,
-		float* pxcgmin, float* pysgmin,
-		float* pxc, float* pyc,
-		float* pxg, float* pyg, float* pzg,
-		float* pxx, float* pxy, float* pyy,
-		float* pchi,
-		float* pde, float* pdx, float* pdy, float* pdz );
+  void GetChar(float* pe, float* pec, float* pecore, float* pecorec,
+               float* pxcg, float* pysg,
+               float* pxcgmin, float* pysgmin,
+               float* pxc, float* pyc,
+               float* pxg, float* pyg, float* pzg,
+               float* pxx, float* pxy, float* pyy,
+               float* pchi,
+               float* pde, float* pdx, float* pdy, float* pdz);
 
-
-protected:
-
-  int fNdf; // Number of degrees of freedom
-  float fCL; // Confidence level
-
+ protected:
+  int fNdf;   // Number of degrees of freedom
+  float fCL;  // Confidence level
 };
 
 // ///////////////////////////////////////////////////////////////////////////
 
-
-#endif // #ifdef EMCCLUSTER_H
+#endif

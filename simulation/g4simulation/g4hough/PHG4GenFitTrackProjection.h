@@ -4,14 +4,11 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHG4GENFITTRACKPROJECTION_H__
-#define __PHG4GENFITTRACKPROJECTION_H__
+#ifndef G4HOUGH_PHG4GENFITTRACKPROJECTION_H
+#define G4HOUGH_PHG4GENFITTRACKPROJECTION_H
 
-#include "PHG4HoughTransform.h"
+#include <trackbase_historic/SvtxTrack.h>
 
-#include "SvtxTrack.h"
-
-// PHENIX includes
 #include <fun4all/SubsysReco.h>
 
 // std includes

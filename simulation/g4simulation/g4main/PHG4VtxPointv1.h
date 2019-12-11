@@ -1,8 +1,13 @@
-#ifndef PHG4VTXPOINTV1_H__
-#define PHG4VTXPOINTV1_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4MAIN_PHG4VTXPOINTV1_H
+#define G4MAIN_PHG4VTXPOINTV1_H
 
 #include "PHG4VtxPoint.h"
+
+#include <climits> // for INT_MIN
 #include <cmath> // def of NAN
+#include <iostream>   // for cout, ostream
 
 class PHG4VtxPointv1: public PHG4VtxPoint
 {

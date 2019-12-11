@@ -4,7 +4,7 @@
 
 #include <phool/PHIODataNode.h>
 
-#include <climits>
+#include <ostream>
 #include <string>
 
 using namespace std;
@@ -19,7 +19,7 @@ DumpCaloTriggerInfo::DumpCaloTriggerInfo(const string &NodeName)
 
 int DumpCaloTriggerInfo::process_Node(PHNode *myNode)
 {
-  CaloTriggerInfo *calotriggerinfo = NULL;
+  CaloTriggerInfo *calotriggerinfo = nullptr;
   MyNode_t *thisNode = static_cast<MyNode_t *>(myNode);
   if (thisNode)
   {

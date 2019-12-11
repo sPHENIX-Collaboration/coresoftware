@@ -1,9 +1,10 @@
-#ifndef PHG4CYLINDERCELLV3_H
-#define PHG4CYLINDERCELLV3_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERCELLV3_H
+#define G4DETECTORS_PHG4CYLINDERCELLV3_H
 
 #include "PHG4CylinderCellv1.h"
-#include <cmath>
-#include <map>
+
 #include <iostream>
 
 class PHG4CylinderCellv3 : public PHG4CylinderCellv1

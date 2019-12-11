@@ -4,47 +4,59 @@
  *  \author		Haiwang Yu <yuhw@nmsu.edu>
  */
 
-#ifndef __PHGenFit_Measurement__
-#define __PHGenFit_Measurement__
+#ifndef PHGENFIT_MEASUREMENT_H
+#define PHGENFIT_MEASUREMENT_H
+
+#include <GenFit/AbsMeasurement.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <climits>
 
-#include <GenFit/AbsMeasurement.h>
+namespace PHGenFit
+{
+class Measurement
+{
+ public:
+  //!ctor
+  Measurement()
+    : _measurement(NULL)
+    , _clusterID(UINT_MAX){};
 
-namespace PHGenFit {
+  //!dtor
+  ~Measurement() {}
 
-class Measurement {
-public:
-	//!ctor
-	Measurement() :
-			_measurement(NULL),
-			_clusterID(UINT_MAX)
-			{
-	}
-	;
+  //!
+  genfit::AbsMeasurement* getMeasurement()
+  {
+    return _measurement;
+  }
 
-	//!dtor
-	~Measurement();
+  // old tracking
+  unsigned int get_cluster_ID() const
+  {
+    return _clusterID;
+  }
+  void set_cluster_ID(unsigned int clusterId)
+  {
+    _clusterID = clusterId;
+  }
 
-	//!
-	genfit::AbsMeasurement* getMeasurement() {
-		return _measurement;
-	}
+  // new tracking
+  TrkrDefs::cluskey get_cluster_key() const
+  {
+    return _clusterkey;
+  }
+  void set_cluster_key(TrkrDefs::cluskey clusterkey)
+  {
+    _clusterkey = clusterkey;
+  }
 
-	unsigned int get_cluster_ID() const {
-		return _clusterID;
-	}
-
-	void set_cluster_ID(unsigned int clusterId) {
-		_clusterID = clusterId;
-	}
-
-protected:
-
-	genfit::AbsMeasurement* _measurement;
-	unsigned int _clusterID;
+ protected:
+  genfit::AbsMeasurement* _measurement;
+  unsigned int _clusterID;
+  TrkrDefs::cluskey _clusterkey;
 
 };
-} //End of PHGenFit namespace
+}  // namespace PHGenFit
 
-#endif //__PHGenFit_Measurement__
+#endif

@@ -9,31 +9,38 @@
 #include <flowafterburner/flowAfterburner.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>               // for SubsysReco
 
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <HepMC/GenEvent.h>
-
 #include <CLHEP/Random/MTwistEngine.h>
-#include <CLHEP/Random/RandFlat.h>
 #include <CLHEP/Random/RandomEngine.h>
 
 #include <iostream>
+#include <iterator>                           // for operator!=, reverse_ite...
+#include <set>                                // for set, _Rb_tree_const_ite...
 #include <string>
+#include <utility>                            // for pair
 
 using namespace std;
+
+class PHCompositeNode;
+namespace HepMC { class GenEvent; }
 
 CLHEP::HepRandomEngine *engine = nullptr;
 
 set<string> algoset = {"MINBIAS", "MINBIAS_V2_ONLY", "CUSTOM"};
 
+// we want to keep the default eta range identical between here and 
+// the flowAfterburner executable. If you change the default eta range here
+// please apply the same change to generators/flowAfterburner/main.cc
 HepMCFlowAfterBurner::HepMCFlowAfterBurner(const std::string &name)
   : SubsysReco(name)
   , algorithmName("MINBIAS")
-  , mineta(-2)
-  , maxeta(2)
+  , mineta(-4)
+  , maxeta(4)
   , minpt(0.)
   , maxpt(100.)
   , seedset(0)
@@ -139,11 +146,11 @@ void HepMCFlowAfterBurner::setAlgorithmName(const std::string &name)
   else
   {
     cout << "algorithm " << name << " not in list of possible algorithms" << endl;
-      cout << "possible algorithms are" << endl;
-      for (auto &al : algoset)
-      {
-	cout << al << endl;
-      }
+    cout << "possible algorithms are" << endl;
+    for (auto &al : algoset)
+    {
+      cout << al << endl;
+    }
   }
   return;
 }

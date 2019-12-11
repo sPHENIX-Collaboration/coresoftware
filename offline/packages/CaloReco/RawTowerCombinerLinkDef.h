@@ -1,5 +1,5 @@
 #ifdef __CINT__
 
-#pragma link C++ class RawTowerCombiner-!;
+#pragma link C++ class RawTowerCombiner - !;
 
 #endif /* __CINT__ */

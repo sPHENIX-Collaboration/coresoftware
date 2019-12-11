@@ -1,5 +1,5 @@
-#ifndef PHIODATANODE_H__
-#define PHIODATANODE_H__
+#ifndef PHOOL_PHIODATANODE_H
+#define PHOOL_PHIODATANODE_H
 
 //  Declaration of class PHIODataNode which can hold persistent data
 //  Author: Matthias Messer
@@ -25,15 +25,21 @@ class PHIODataNode : public PHDataNode<T>
   PHIODataNode(T *, const std::string &, const std::string &);
   virtual ~PHIODataNode() {}
   typedef PHTypedNodeIterator<T> iterator;
+  void BufferSize(int size) {buffersize = size;}
+  void SplitLevel(int split) {splitlevel = split;}
 
  protected:
   virtual bool write(PHIOManager *, const std::string & = "");
-  PHIODataNode() {}
+  PHIODataNode() = delete;
+  int buffersize;
+  int splitlevel;
 };
 
 template <class T>
 PHIODataNode<T>::PHIODataNode(T *d, const std::string &name)
   : PHDataNode<T>(d, name)
+  , buffersize(32000)
+  , splitlevel(99)
 {
   this->type = "PHIODataNode";
   TObject *TO = static_cast<TObject *>(d);
@@ -44,6 +50,8 @@ template <class T>
 PHIODataNode<T>::PHIODataNode(T *d, const std::string &name,
                               const std::string &objtype)
   : PHDataNode<T>(d, name, objtype)
+  , buffersize(32000)
+  , splitlevel(99)
 {
   this->type = "PHIODataNode";
   TObject *TO = static_cast<TObject *>(d);
@@ -62,7 +70,7 @@ bool PHIODataNode<T>::write(PHIOManager *IOManager, const std::string &path)
       bool bret = false;
       if (dynamic_cast<TObject *>(this->data.data))
       {
-        bret = np->write(&(this->data.tobj), newPath);
+        bret = np->write(&(this->data.tobj), newPath, buffersize, splitlevel);
       }
       return bret;
     }
@@ -70,4 +78,4 @@ bool PHIODataNode<T>::write(PHIOManager *IOManager, const std::string &path)
   return true;
 }
 
-#endif /* __PHIODATANODE_H__ */
+#endif /* PHOOL_PHIODATANODE_H */

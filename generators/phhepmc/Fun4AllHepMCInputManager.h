@@ -1,5 +1,5 @@
-#ifndef FUN4ALLHEPMCINPUTMANAGER_H__
-#define FUN4ALLHEPMCINPUTMANAGER_H__
+#ifndef PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H
+#define PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H
 
 #include "PHHepMCGenHelper.h"
 
@@ -7,27 +7,24 @@
 #include <fun4all/Fun4AllReturnCodes.h>
 
 #include <fstream>
-#include <iostream>
-#include <map>
 #include <string>
 
-#ifndef __CINT__
+#include <utility>                                  // for swap
+
+#if !defined(__CINT__) || defined (__CLING__)
 #include <boost/iostreams/filtering_streambuf.hpp>
 #endif
 
-#ifndef __CINT__
-#include <gsl/gsl_rng.h>
-#endif
+class PHCompositeNode;
+class SyncObject;
 
 // forward declaration of classes in namespace
 namespace HepMC
 {
-class IO_GenEvent;
-class GenEvent;
-};
+  class IO_GenEvent;
+  class GenEvent;
+}  // namespace HepMC
 
-class PHHepMCGenEvent;
-class PHCompositeNode;
 
 class Fun4AllHepMCInputManager : public Fun4AllInputManager
 {
@@ -37,7 +34,6 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   virtual int fileopen(const std::string &filenam);
   virtual int fileclose();
   virtual int run(const int nevents = 0);
-  int isOpen() { return isopen; }
   void ReadOscar(const int i = 1) { readoscar = i; }
   virtual void Print(const std::string &what = "ALL") const;
   virtual int PushBackEvents(const int i);
@@ -84,10 +80,9 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
- protected:
-  int OpenNextFile();
 
-  int isopen;
+ protected:
+
   int events_total;
   int events_thisfile;
   int readoscar;
@@ -108,9 +103,9 @@ class Fun4AllHepMCInputManager : public Fun4AllInputManager
   //! helper for insert HepMC event to DST node and add vertex smearing
   PHHepMCGenHelper hepmc_helper;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   boost::iostreams::filtering_streambuf<boost::iostreams::input> zinbuffer;
 #endif
 };
 
-#endif /* __FUN4ALLHEPMCINPUTMANAGER_H__ */
+#endif /* PHHEPMC_FUN4ALLHEPMCINPUTMANAGER_H */

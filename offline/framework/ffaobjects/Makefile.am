@@ -1,8 +1,5 @@
 AUTOMAKE_OPTIONS = foreign
 
-BUILT_SOURCES = \
-  testexternals.cc
-
 lib_LTLIBRARIES = libffaobjects.la
 
 AM_CPPFLAGS = \
@@ -10,13 +7,39 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I$(ROOTSYS)/include
 
-AM_CXXFLAGS = -Wall -Werror
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
 
 libffaobjects_la_LIBADD = \
   -lphool
+
+ROOTDICTS = \
+  FlagSave_Dict.cc \
+  FlagSavev1_Dict.cc \
+  RunHeader_Dict.cc \
+  SyncObject_Dict.cc \
+  SyncObjectv1_Dict.cc \
+  EventHeader_Dict.cc \
+  EventHeaderv1_Dict.cc
+
+# for root6 we need pcm and dictionaries but only for
+# i/o classes. For root5 we need only dictionaries but
+# those for i/o and classes available on the cmd line
+# MAKEROOT6 is set in the configure.ac, true for root6
+if MAKEROOT6
+# this is a tweak to install files in $(libdir), automake refuses
+# to install other files in libdir, this construct gets around this
+pcmdir = $(libdir)
+nobase_dist_pcm_DATA = \
+  FlagSave_Dict_rdict.pcm \
+  FlagSavev1_Dict_rdict.pcm \
+  RunHeader_Dict_rdict.pcm \
+  SyncObject_Dict_rdict.pcm \
+  SyncObjectv1_Dict_rdict.pcm \
+  EventHeader_Dict_rdict.pcm \
+  EventHeaderv1_Dict_rdict.pcm
+endif
 
 pkginclude_HEADERS = \
   FlagSave.h \
@@ -25,24 +48,19 @@ pkginclude_HEADERS = \
   SyncDefs.h \
   SyncObject.h \
   SyncObjectv1.h \
-  SyncObjectv2.h \
   EventHeader.h \
   EventHeaderv1.h
 
-noinst_HEADERS = \
-  libffaobjects_LinkDef.h
-
 libffaobjects_la_SOURCES = \
-  FlagSave.cc \
+  $(ROOTDICTS) \
   FlagSavev1.cc \
   RunHeader.cc \
   SyncObject.cc \
   SyncObjectv1.cc \
-  SyncObjectv2.cc \
   EventHeader.cc \
   EventHeaderv1.cc
 
-nodist_libffaobjects_la_SOURCES = libffaobjects_Dict.cc
+BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \
   testexternals
@@ -60,17 +78,11 @@ testexternals.cc:
 	echo "  return 0;" >> $@
 	echo "}" >> $@
 
-libffaobjects_Dict.cc: \
-  FlagSave.h \
-  FlagSavev1.h \
-  RunHeader.h \
-  SyncObject.h \
-  SyncObjectv1.h \
-  SyncObjectv2.h  \
-  EventHeader.h \
-  EventHeaderv1.h \
-  libffaobjects_LinkDef.h
-	rootcint -f $@ @CINTDEFS@ -c  $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+%_Dict.cc: %.h %LinkDef.h
+	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 clean-local:
-	rm -f *Dict.*
+	rm -f *Dict.* *.pcm $(BUILT_SOURCES)

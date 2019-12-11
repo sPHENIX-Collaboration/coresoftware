@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: $
 
 /*!
@@ -8,13 +10,17 @@
  * \date $Date: $
  */
 
-#ifndef PHG4GDMLSUBSYSTEM_H_
-#define PHG4GDMLSUBSYSTEM_H_
+#ifndef G4DETECTORS_PHG4GDMLSUBSYSTEM_H
+#define G4DETECTORS_PHG4GDMLSUBSYSTEM_H
 
 #include "PHG4DetectorSubsystem.h"
+
 #include <string>
 
+class PHCompositeNode;
 class PHG4GDMLDetector;
+class PHG4Detector;
+class PHG4SteppingAction;
 
 /*!
  * \brief PHG4GDMLSubsystem is a generic detector built from a GDML import

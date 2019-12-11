@@ -2,10 +2,12 @@
 //  Purpose: single parameter storage class 
 //  Author: Cesar & federica
 
-#ifndef PDBPARAMETERERROR_HH__
-#define PDBPARAMETERERROR_HH__
+#ifndef PDBCAL_BASE_PDBPARAMETERERROR_H
+#define PDBCAL_BASE_PDBPARAMETERERROR_H
 
 #include "PdbParameter.h"
+
+#include <string> 
 
 class PdbParameterError : public PdbParameter 
 {
@@ -27,4 +29,4 @@ class PdbParameterError : public PdbParameter
   ClassDef(PdbParameterError,1);
 };
 
-#endif /* PDBPARAMETERERROR_HH__ */
+#endif /* PDBCAL_BASE_PDBPARAMETERERROR_H */

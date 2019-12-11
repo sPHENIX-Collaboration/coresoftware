@@ -1,9 +1,11 @@
+##############################################
+# please add new classes in alphabetical order
+
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libmvtx.la \
-  libmvtx_io.la
-
+  libmvtx_io.la \
+  libmvtx.la 
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -15,43 +17,55 @@ AM_LDFLAGS = \
   -L$(ROOTSYS)/lib \
   -L$(OFFLINE_MAIN)/lib
 
+pkginclude_HEADERS = \
+  MvtxDefs.h \
+  MvtxHit.h \
+  MvtxClusterizer.h \
+  CylinderGeom_Mvtx.h
+
+ROOTDICTS = \
+  MvtxHit_Dict.cc \
+  CylinderGeom_Mvtx_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    MvtxHit_Dict_rdict.pcm \
+    CylinderGeom_Mvtx_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    MvtxClusterizer_Dict.cc
+endif
+
 # sources for mvtx library
 libmvtx_la_SOURCES = \
-  MvtxClusterizer.cc \
-  MvtxClusterizer_Dict.cc \
-  MvtxDefs.cc \
-  MvtxDefs_Dict.cc 
+  $(ROOT5_DICTS) \
+  MvtxClusterizer.cc
 
 libmvtx_la_LIBADD = \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io
+  libmvtx_io.la \
+  -lCLHEP \
+  -lphg4hit \
+  -lSubsysReco
 
 # sources for io library
 libmvtx_io_la_SOURCES = \
-  MvtxHit.cc \
-  MvtxHit_Dict.cc
+  $(ROOTDICTS) \
+  CylinderGeom_Mvtx.cc \
+  MvtxDefs.cc \
+  MvtxHit.cc
 
 libmvtx_io_la_LIBADD = \
-  libmvtx.la \
-  -lfun4all \
-  -ltrack_util \
-  -ltrack_io
-
-
+  -lphool \
+  -lg4detectors_io \
+  -ltrack_io \
+  -ltrackbase_historic_io
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@  -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
 
-
-##############################################
-# please add new classes in alphabetical order
-
-pkginclude_HEADERS = \
-  MvtxClusterizer.h \
-  MvtxDefs.h \
-  MvtxHit.h
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 
 
@@ -80,4 +94,4 @@ testexternals.cc:
 ################################################
 
 clean-local:
-	rm -f *Dict* *.pcm
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

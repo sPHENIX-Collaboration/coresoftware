@@ -1,5 +1,5 @@
-#ifndef PHCOMPOSITENODE_H__
-#define PHCOMPOSITENODE_H__
+#ifndef PHOOL_PHCOMPOSITENODE_H
+#define PHOOL_PHCOMPOSITENODE_H
 
 //  Declaration of class PHCompositeNode
 //  Purpose: a node which can hold other nodes
@@ -7,15 +7,16 @@
 #include "PHNode.h"
 #include "PHPointerList.h"
 
+#include <string>
+
 class PHIOManager;
-class PHNodeIterator;
 
 class PHCompositeNode : public PHNode
 {
   friend class PHNodeIterator;
 
  public:
-  PHCompositeNode(const std::string &);
+  explicit PHCompositeNode(const std::string &);
   virtual ~PHCompositeNode();
 
   //
@@ -42,7 +43,7 @@ class PHCompositeNode : public PHNode
   int deleteMe;
 
  private:
-  PHCompositeNode();
+  PHCompositeNode() = delete;
 };
 
-#endif /* PHCOMPOSITENODE_H__ */
+#endif

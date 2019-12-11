@@ -1,7 +1,13 @@
-#ifndef PHG4CylinderGeomv2_H__
-#define PHG4CylinderGeomv2_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4CYLINDERGEOMV2_H
+#define G4DETECTORS_PHG4CYLINDERGEOMV2_H
 
 #include "PHG4CylinderGeomv1.h"
+
+#include <iostream>              // for cout, ostream
+
+class PHParameters;
 
 class PHG4CylinderGeomv2: public PHG4CylinderGeomv1
 {

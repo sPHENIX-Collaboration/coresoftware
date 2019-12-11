@@ -1,5 +1,5 @@
-#ifndef PHPOINTERLIST_H__
-#define PHPOINTERLIST_H__
+#ifndef PHOOL_PHPOINTERLIST_H
+#define PHOOL_PHPOINTERLIST_H
 
 //  Purpose: a template list of pointers
 //
@@ -24,15 +24,13 @@
 //
 //  Author: Matthias Messer
 
-#include "PHNode.h"
-
 #include <iostream>
 
 template <class T>
 class PHPointerList
 {
  public:
-  PHPointerList(size_t = 2);
+  explicit PHPointerList(size_t = 2);
   PHPointerList(const PHPointerList<T>&);
   PHPointerList<T>& operator=(const PHPointerList<T>&);
   virtual ~PHPointerList();
@@ -262,4 +260,4 @@ operator<<(std::ostream& stream, const PHPointerList<T>& thislist)
   return stream;
 }
 
-#endif /* __PHPOINTERLIST_H__ */
+#endif

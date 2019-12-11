@@ -7,8 +7,6 @@
 #ifndef TRACKBASE_TRKRHIT_H
 #define TRACKBASE_TRKRHIT_H
 
-#include "TrkrDefs.h"
-
 #include <phool/PHObject.h>
 
 #include <iostream>
@@ -24,7 +22,8 @@ class TrkrHit : public PHObject
 {
  public:
   //! ctor
-  TrkrHit() {}
+  TrkrHit(); 
+
   //! dtor
   virtual ~TrkrHit() {}
   // PHObject virtual overloads
@@ -35,7 +34,14 @@ class TrkrHit : public PHObject
   virtual void Reset() {}
   virtual int isValid() const { return 0; }
 
+  void addEnergy(const double edep) {m_edep += edep;}
+  double getEnergy() {return m_edep;}
+  void setAdc(const unsigned int adc) {m_adc = adc;}
+  unsigned int getAdc() { return m_adc;}
+
  protected:
+  double m_edep;
+  unsigned int m_adc;
   ClassDef(TrkrHit, 1);
 };
 

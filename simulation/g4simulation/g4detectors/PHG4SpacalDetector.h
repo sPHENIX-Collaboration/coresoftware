@@ -1,4 +1,5 @@
-// $$Id: PHG4SpacalDetector.h,v 1.2 2014/08/12 03:49:12 jinhuang Exp $$
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 
 /*!
  * \file ${file_name}
@@ -8,53 +9,49 @@
  * \date $$Date: 2014/08/12 03:49:12 $$
  */
 
-#ifndef PHG4SpacalDetector_h
-#define PHG4SpacalDetector_h
+#ifndef G4DETECTORS_PHG4SPACALDETECTOR_H
+#define G4DETECTORS_PHG4SPACALDETECTOR_H
 
 #include "PHG4CylinderGeom_Spacalv1.h"
 
 #include <g4main/PHG4Detector.h>
 
-#include <Geant4/globals.hh>
-#include <Geant4/G4Region.hh>
-#include <Geant4/G4Types.hh>
 #include <Geant4/G4Transform3D.hh>
+#include <Geant4/G4Types.hh>  // for G4double
 
 #include <map>
-#include <set>
-#include <utility>
+#include <string>   // for string
+#include <utility>  // for pair
 
-class G4Material;
 class G4Tubs;
 class G4LogicalVolume;
-class G4VPhysicalVolume;
 class G4UserLimits;
+class G4VPhysicalVolume;
+class PHCompositeNode;
+class PHG4CylinderGeom;
 class PHG4GDMLConfig;
+class PHG4SpacalDisplayAction;
 class PHParameters;
+class PHG4Subsystem;
 
 class PHG4SpacalDetector : public PHG4Detector
 {
-
-public:
+ public:
   typedef PHG4CylinderGeom_Spacalv1 SpacalGeom_t;
 
-  PHG4SpacalDetector(PHCompositeNode* Node, const std::string& dnam,
-      PHParameters *parameters,  const int layer = 0, bool init_geom = true);
+  PHG4SpacalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam,
+                     PHParameters* parameters, const int layer = 0, bool init_geom = true);
 
-  virtual
-  ~PHG4SpacalDetector(void);
+  virtual ~PHG4SpacalDetector(void);
 
-  virtual
-  void
-  Construct(G4LogicalVolume* world);
+  virtual void
+  ConstructMe(G4LogicalVolume* world);
 
-  virtual
-  std::pair<G4LogicalVolume *,G4Transform3D>
+  virtual std::pair<G4LogicalVolume*, G4Transform3D>
   Construct_AzimuthalSeg();
 
-  virtual
-  G4LogicalVolume *
-  Construct_Fiber(const G4double length, const std::string & id);
+  virtual G4LogicalVolume*
+  Construct_Fiber(const G4double length, const std::string& id);
 
   void
   SetActive(const int i = 1)
@@ -74,8 +71,7 @@ public:
     detector_type = typ;
   }
 
-  int
-  IsInCylinderActive(const G4VPhysicalVolume*);
+  int IsInCylinderActive(const G4VPhysicalVolume*);
 
   void
   SuperDetector(const std::string& name)
@@ -89,47 +85,24 @@ public:
     return superdetector;
   }
 
-  int
-  get_Layer() const
+  int get_Layer() const
   {
     return layer;
-  }
-
-  G4UserSteppingAction*
-  GetSteppingAction()
-  {
-    if (_region)
-      return _region->GetRegionalSteppingAction();
-    else
-      return 0;
   }
 
   virtual void
   Print(const std::string& what = "ALL") const;
 
-  const SpacalGeom_t *
+  const SpacalGeom_t*
   get_geom() const
   {
     return _geom;
   }
 
-  virtual
-  PHG4CylinderGeom * clone_geom() const
+  virtual PHG4CylinderGeom* clone_geom() const
   {
     return new SpacalGeom_t(*_geom);
   }
-
-//  SpacalGeom_t &
-//  get_geom()
-//  {
-//    return _geom;
-//  }
-
-//  void
-//  set_geom(const SpacalGeom_t & geom)
-//  {
-//    _geom = geom;
-//  }
 
   enum
   {
@@ -140,9 +113,12 @@ public:
     INACTIVE = -100
   };
 
-protected:
+  PHG4SpacalDisplayAction* GetDisplayAction() { return m_DisplayAction; }
 
-  G4Region* _region;
+ private:
+  PHG4SpacalDisplayAction* m_DisplayAction;
+
+ protected:
   G4Tubs* cylinder_solid;
   G4LogicalVolume* cylinder_logic;
   G4VPhysicalVolume* cylinder_physi;
@@ -163,16 +139,15 @@ protected:
   std::string detector_type;
   std::string superdetector;
 
-//  G4UserLimits * step_limits;
-//  G4UserLimits * clading_step_limits;
-  G4UserLimits * fiber_core_step_limits;
+  //  G4UserLimits * step_limits;
+  //  G4UserLimits * clading_step_limits;
+  G4UserLimits* fiber_core_step_limits;
 
   //! registry for volumes that should not be exported, i.e. fibers
-  PHG4GDMLConfig * gdml_config;
-//private:
+  PHG4GDMLConfig* gdml_config;
+  //private:
 
-  SpacalGeom_t * _geom;
-
+  SpacalGeom_t* _geom;
 };
 
 #endif

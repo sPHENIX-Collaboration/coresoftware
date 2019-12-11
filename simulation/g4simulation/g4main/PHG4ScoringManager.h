@@ -1,3 +1,5 @@
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
 // $Id: $
 
 /*!
@@ -8,8 +10,8 @@
  * \date $Date: $
  */
 
-#ifndef PHG4SCORINGMANAGER_H_
-#define PHG4SCORINGMANAGER_H_
+#ifndef G4MAIN_PHG4SCORINGMANAGER_H
+#define G4MAIN_PHG4SCORINGMANAGER_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -17,7 +19,7 @@
 #include <vector>
 
 class Fun4AllHistoManager;
-class TH1;
+class PHCompositeNode;
 
 /*!
  * \brief PHG4ScoringManager is the connection between Fun4All to G4ScoringManager
@@ -31,18 +33,13 @@ class PHG4ScoringManager : public SubsysReco
  public:
   PHG4ScoringManager();
 
-  virtual ~PHG4ScoringManager();
+  virtual ~PHG4ScoringManager() {}
 
   //! full initialization
-  int Init(PHCompositeNode *);
-
   int InitRun(PHCompositeNode *topNode);
 
   //! event processing method
   int process_event(PHCompositeNode *);
-
-  //! Clean up after each event.
-  int ResetEvent(PHCompositeNode *);
 
   //! end of run method
   int End(PHCompositeNode *);
@@ -69,7 +66,6 @@ class PHG4ScoringManager : public SubsysReco
   void G4Command(const std::string &cmd);
 
  private:
-
   Fun4AllHistoManager *getHistoManager();
   void makeScoringHistograms();
 

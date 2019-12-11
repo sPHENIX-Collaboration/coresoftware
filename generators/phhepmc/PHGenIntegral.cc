@@ -12,16 +12,6 @@
 
 #include <limits>
 
-PHGenIntegral::PHGenIntegral()
-{
-  // TODO Auto-generated constructor stub
-}
-
-PHGenIntegral::~PHGenIntegral()
-{
-  // TODO Auto-generated destructor stub
-}
-
 //! cross sections for the processed events in pb
 Double_t PHGenIntegral::get_CrossSection_Processed_Event() const
 {

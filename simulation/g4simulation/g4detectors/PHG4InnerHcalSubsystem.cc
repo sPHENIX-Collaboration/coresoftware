@@ -1,22 +1,31 @@
 #include "PHG4InnerHcalSubsystem.h"
+
 #include "PHG4HcalDefs.h"
 #include "PHG4InnerHcalDetector.h"
+#include "PHG4InnerHcalDisplayAction.h"
 #include "PHG4InnerHcalSteppingAction.h"
 
 #include <phparameter/PHParameters.h>
 
+#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
+#include <g4main/PHG4SteppingAction.h>    // for PHG4SteppingAction
 
-#include <pdbcalbase/PdbParameterMap.h>
-
+#include <phool/PHCompositeNode.h>
+#include <phool/PHIODataNode.h>           // for PHIODataNode
+#include <phool/PHNode.h>                 // for PHNode
+#include <phool/PHNodeIterator.h>         // for PHNodeIterator
+#include <phool/PHObject.h>               // for PHObject
 #include <phool/getClass.h>
-
-#include <Geant4/globals.hh>
 
 #include <boost/foreach.hpp>
 
+#include <cmath>                         // for NAN
+#include <iostream>                       // for operator<<, basic_ostream
 #include <set>
 #include <sstream>
+
+class PHG4Detector;
 
 using namespace std;
 
@@ -25,8 +34,15 @@ PHG4InnerHcalSubsystem::PHG4InnerHcalSubsystem(const std::string &name, const in
   : PHG4DetectorSubsystem(name, lyr)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
+  , m_DisplayAction(nullptr)
 {
   InitializeParameters();
+}
+
+//_______________________________________________________________________
+PHG4InnerHcalSubsystem::~PHG4InnerHcalSubsystem()
+{
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
@@ -35,8 +51,11 @@ int PHG4InnerHcalSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   PHNodeIterator iter(topNode);
   PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
 
+  // create display settings before detector
+  m_DisplayAction = new PHG4InnerHcalDisplayAction(Name());
+
   // create detector
-  m_Detector = new PHG4InnerHcalDetector(topNode, GetParams(), Name());
+  m_Detector = new PHG4InnerHcalDetector(this, topNode, GetParams(), Name());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   set<string> nodes;
@@ -167,7 +186,7 @@ void PHG4InnerHcalSubsystem::SetDefaultParameters()
   set_default_int_param(PHG4HcalDefs::scipertwr, 4);
   set_default_int_param(PHG4HcalDefs::n_scinti_tiles, 12);
 
-  set_default_string_param("material", "SS310");
+  set_default_string_param("material", "G4_Al");
 }
 
 void PHG4InnerHcalSubsystem::SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr)

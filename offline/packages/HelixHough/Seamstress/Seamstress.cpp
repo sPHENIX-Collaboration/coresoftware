@@ -1,5 +1,9 @@
 #include "Seamstress.h"
-#include <iostream>
+#include "Needle.h"
+
+#include <cstddef>
+#include <memory>
+
 using namespace std;
 
 

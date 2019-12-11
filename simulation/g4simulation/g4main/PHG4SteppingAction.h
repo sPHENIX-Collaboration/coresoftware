@@ -1,5 +1,5 @@
 // Tell emacs that this is a C++ source
-// This file is really -*- C++ -*-.
+//  -*- C++ -*-.
 #ifndef G4MAIN_PHG4STEPPINGACTION_H
 #define G4MAIN_PHG4STEPPINGACTION_H
 
@@ -13,12 +13,7 @@ class PHG4Hit;
 class PHG4SteppingAction
 {
  public:
-  PHG4SteppingAction(const int i = 0)
-    : m_Verbosity(i)
-    , m_Name("NONAME")
-  {
-  }
-
+  PHG4SteppingAction(const std::string& name, const int i = 0);
   virtual ~PHG4SteppingAction()
   {
   }
@@ -46,13 +41,13 @@ class PHG4SteppingAction
   virtual void SetInterfacePointers(PHCompositeNode*) { return; }
   virtual void Print(const std::string& what) const { return; }
   std::string GetName() const { return m_Name; }
-  void SetName(const std::string &name) { m_Name = name; }
+  void SetName(const std::string& name) { m_Name = name; }
   virtual void SetLightCorrection(const double inner_radius, const double inner_corr, const double outer_radius, const double outer_corr);
   virtual double GetLightCorrection(const double r) const;
   virtual double GetLightCorrection(const double xpos, const double ypos) const;
+  virtual bool ValidCorrection() const;
 
  private:
-  bool ValidCorrection() const;
   int m_Verbosity;
   double m_LightBalanceInnerRadius;
   double m_LightBalanceInnerCorr;

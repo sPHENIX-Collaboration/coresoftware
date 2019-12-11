@@ -1,17 +1,22 @@
-#ifndef FUN4ALLSERVER_H
-#define FUN4ALLSERVER_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef FUN4ALL_FUN4ALLSERVER_H
+#define FUN4ALL_FUN4ALLSERVER_H
 
 #include "Fun4AllBase.h"
-#include "Fun4AllHistoManager.h"
+
+#include "Fun4AllHistoManager.h"          // for Fun4AllHistoManager
 
 #include <phool/PHTimer.h>
 
 #include <iostream>
 #include <map>
 #include <string>
+#include <utility>          // for pair
 #include <vector>
 
 class Fun4AllInputManager;
+class Fun4AllMemoryTracker;
 class Fun4AllSyncManager;
 class Fun4AllOutputManager;
 class PHCompositeNode;
@@ -103,6 +108,7 @@ class Fun4AllServer : public Fun4AllBase
   void NodeIdentify(const std::string &name);
   void KeepDBConnection(const int i = 1) { keep_db_connected = i; }
   void PrintTimer(const std::string &name = "");
+  void PrintMemoryTracker(const std::string &name = "") const;
 
  protected:
   Fun4AllServer(const std::string &name = "Fun4AllServer");
@@ -113,30 +119,33 @@ class Fun4AllServer : public Fun4AllBase
   int unregisterSubsystemsNow();
   int setRun(const int runnumber);
   static Fun4AllServer *__instance;
+  TH1 *FrameWorkVars;
+  Fun4AllMemoryTracker *ffamemtracker;
+  Fun4AllHistoManager *ServerHistoManager;
+  PHTimeStamp *beginruntimestamp;
+  PHCompositeNode *TopNode;
+  Fun4AllSyncManager *defaultSyncManager;
+
   int OutNodeCount;
   int bortime_override;
   int ScreamEveryEvent;
   int unregistersubsystem;
   int runnumber;
   int eventnumber;
+  int keep_db_connected;
+
   std::vector<std::string> ComplaintList;
-  PHCompositeNode *TopNode;
   std::vector<std::pair<SubsysReco *, PHCompositeNode *> > Subsystems;
   std::vector<std::pair<SubsysReco *, PHCompositeNode *> > DeleteSubsystems;
   std::vector<int> RetCodes;
   std::vector<Fun4AllOutputManager *> OutputManager;
   std::vector<TDirectory *> TDirCollection;
-  Fun4AllHistoManager *ServerHistoManager;
   std::vector<Fun4AllHistoManager *> HistoManager;
   std::map<std::string, PHCompositeNode *> topnodemap;
-  PHTimeStamp *beginruntimestamp;
   std::string default_Tdirectory;
-  Fun4AllSyncManager *defaultSyncManager;
   std::vector<Fun4AllSyncManager *> SyncManagers;
   std::map<int, int> retcodesmap;
   std::map<const std::string, PHTimer> timer_map;
-  TH1 *FrameWorkVars;
-  int keep_db_connected;
 };
 
-#endif /* __FUN4ALLSERVER_H */
+#endif

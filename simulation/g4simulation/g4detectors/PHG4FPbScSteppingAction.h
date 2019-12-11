@@ -1,11 +1,13 @@
-#ifndef PHG4FPbScSteppingAction_h
-#define PHG4FPbScSteppingAction_h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4FPBSCSTEPPINGACTION_H
+#define G4DETECTORS_PHG4FPBSCSTEPPINGACTION_H
 
-#include "g4main/PHG4SteppingAction.h"
+#include <g4main/PHG4SteppingAction.h>
 
+class G4Step;
 class PHCompositeNode;
 class PHG4FPbScDetector;
-class PHG4Hit;
 class PHG4HitContainer;
 
 class PHG4FPbScSteppingAction : public PHG4SteppingAction
@@ -21,7 +23,6 @@ class PHG4FPbScSteppingAction : public PHG4SteppingAction
   private:
     PHG4FPbScDetector* detector_;
     PHG4HitContainer* hits_;
-    PHG4Hit* hit;
 };
 
 

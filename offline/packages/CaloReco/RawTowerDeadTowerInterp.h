@@ -1,7 +1,8 @@
-#ifndef RawTowerDeadTowerInterp_H__
-#define RawTowerDeadTowerInterp_H__
+#ifndef CALORECO_RAWTOWERDEADTOWERINTERP_H
+#define CALORECO_RAWTOWERDEADTOWERINTERP_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <string>
 
 class PHCompositeNode;
@@ -41,4 +42,4 @@ class RawTowerDeadTowerInterp : public SubsysReco
   std::string _calib_tower_node_prefix;
 };
 
-#endif /* RawTowerDeadTowerInterp_H__ */
+#endif

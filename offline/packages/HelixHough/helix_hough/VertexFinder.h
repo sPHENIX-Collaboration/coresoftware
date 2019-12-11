@@ -1,15 +1,12 @@
-#ifndef __VERTEXFINDER_H__
-#define __VERTEXFINDER_H__
-
-// Helix Hough includes
-#include "SimpleTrack3D.h"
+#ifndef HELIXHOUGH_VERTEXFINDER_H
+#define HELIXHOUGH_VERTEXFINDER_H
 
 #include <Eigen/Core>
-#include <Eigen/Dense>
-#include <Eigen/LU>
 
 // standard includes
 #include <vector>
+
+class SimpleTrack3D;
 
 /// \class VertexFinder
 ///

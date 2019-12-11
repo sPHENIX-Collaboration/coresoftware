@@ -2,14 +2,14 @@
 //  Purpose: Calibration bank base class
 //  Author: Matthias Messer
 
-#ifndef PDBCALBANK_HH__
-#define PDBCALBANK_HH__
+#ifndef PDBCAL_BASE_PDBCALBANK_H
+#define PDBCAL_BASE_PDBCALBANK_H
 
 #include "PdbBankID.h"
 
 #include <phool/PHTimeStamp.h>
 
-#include <TObject.h>
+#include <phool/PHObject.h>
 
 #include <cstddef>
 #include <string>
@@ -17,12 +17,12 @@
 class PdbCalChan;
 class PHTimeStamp;
 
-class PdbCalBank : public  TObject 
+class PdbCalBank : public  PHObject 
 {
 public:
-   PdbCalBank();
-   virtual ~PdbCalBank();
-   virtual PdbCalBank* clone() const = 0;
+  PdbCalBank() {}
+  virtual ~PdbCalBank() {}
+   virtual PHObject* CloneMe() const = 0;
 
    virtual void printHeader() const = 0;
    virtual void print() = 0;
@@ -48,10 +48,10 @@ public:
    virtual void setEndValTime(const PHTimeStamp &)   = 0;
    virtual void setDescription(const std::string &)     = 0;
    virtual void setUserName(const std::string &)        = 0;
-   
+   using PHObject::isValid;   
    virtual int isValid(const PHTimeStamp &) const = 0;
 
-  ClassDef(PdbCalBank,2);
+  ClassDef(PdbCalBank,1);
 };
 
-#endif /* PDBCALBANK_HH__ */
+#endif /* PDBCAL_BASE_PDBCALBANK_H */

@@ -1,26 +1,23 @@
-#ifndef G4EDEPNTUPLE_H__
-#define G4EDEPNTUPLE_H__
+#ifndef G4HISTOS_G4EDEPNTUPLE_H
+#define G4HISTOS_G4EDEPNTUPLE_H
 
 #include <fun4all/SubsysReco.h>
+
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 // Forward declerations
 class Fun4AllHistoManager;
 class PHCompositeNode;
 class TFile;
-class TH1;
-class TH2;
 class TNtuple;
 
-class G4EdepNtuple: public SubsysReco
+class G4EdepNtuple : public SubsysReco
 {
  public:
-
   //! constructor
-  G4EdepNtuple( const std::string &name = "G4EdepNtuple", const std::string &filename = "G4EdepNtuple.root" );
+  G4EdepNtuple(const std::string &name = "G4EdepNtuple", const std::string &filename = "G4EdepNtuple.root");
 
   //! destructor
   virtual ~G4EdepNtuple();
@@ -34,9 +31,9 @@ class G4EdepNtuple: public SubsysReco
   //! end of run method
   int End(PHCompositeNode *);
 
-  void AddNode(const std::string &name, const int detid=0);
+  void AddNode(const std::string &name, const int detid = 0);
 
-protected:
+ protected:
   int nblocks;
   Fun4AllHistoManager *hm;
   std::string _filename;
@@ -46,4 +43,4 @@ protected:
   TFile *outfile;
 };
 
-#endif 
+#endif

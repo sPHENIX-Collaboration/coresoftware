@@ -1,18 +1,12 @@
-#ifndef __HELIXKALMANFILTER_H__
-#define __HELIXKALMANFILTER_H__
+#ifndef G4HOUGH_HELIXKALMANFILTER_H
+#define G4HOUGH_HELIXKALMANFILTER_H
 
-#include "HelixTrackState.h"
-#include "Cluster3D.h"
-#include <phool/PHObject.h>
-
-#include <Eigen/LU>
 #include <Eigen/Core>
-#include <Eigen/Dense>
 
 #include <vector>
 
-class HelixTrackState;
 class Cluster3D;
+class HelixTrackState;
 
 class HelixKalmanFilter 
 {

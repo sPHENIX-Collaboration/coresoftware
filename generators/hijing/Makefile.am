@@ -9,7 +9,7 @@ AM_FFLAGS = -fno-second-underscore
 lib_LTLIBRARIES = libhijing.la libhijing_dummy.la
 
 libhijing_la_SOURCES = \
-  src/hijfst.C \
+  src/hijfst.cc \
   src/hijing.f \
   src/pyhii3au.f \
   src/pyhiinit.f \

@@ -3,26 +3,29 @@
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
 
-#include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
+
+#include <g4main/PHG4Subsystem.h>                 // for PHG4Subsystem
 
 #include <phool/getClass.h>
 #include <phool/phool.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
-#include <phool/PHIODataNode.h>
+#include <phool/PHNode.h>                         // for PHNode
 #include <phool/PHNodeIterator.h>
 
+#include <cstdlib>                               // for exit, NULL
 #include <iostream>
 #include <sstream>
+#include <utility>                                // for pair
 
 using namespace std;
 
 PHG4DetectorSubsystem::PHG4DetectorSubsystem(const std::string &name, const int lyr): 
   PHG4Subsystem(name),
   params(new PHParameters(Name())),
-  paramscontainer(NULL),
-  savetopNode(NULL),
+  paramscontainer(nullptr),
+  savetopNode(nullptr),
   overlapcheck(false),
   layer(lyr),
   usedb(0),

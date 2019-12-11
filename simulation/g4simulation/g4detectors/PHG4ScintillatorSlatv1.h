@@ -1,12 +1,17 @@
-#ifndef PHG4SCINTILLATORSLATV1_H
-#define PHG4SCINTILLATORSLATV1_H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4SCINTILLATORSLATV1_H
+#define G4DETECTORS_PHG4SCINTILLATORSLATV1_H
 
 #include "PHG4ScintillatorSlat.h"
+
+#include "PHG4ScintillatorSlatDefs.h"  // for keytype
+
 #include <g4main/PHG4HitDefs.h>
 
-#include <cmath>
+#include <iostream>                    // for cout, ostream
 #include <set>
-#include <map>
+#include <utility>                     // for make_pair, pair
 
 class PHG4ScintillatorSlatv1 : public PHG4ScintillatorSlat
 {

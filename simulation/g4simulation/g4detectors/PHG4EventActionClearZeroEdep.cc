@@ -3,8 +3,6 @@
 
 #include <phool/getClass.h>
 
-#include <Geant4/G4Event.hh>
-
 #include <boost/foreach.hpp>
 
 using namespace std;

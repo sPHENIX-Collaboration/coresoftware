@@ -9,9 +9,6 @@ lib_LTLIBRARIES = \
    libg4bbc_io.la \
    libg4bbc.la
 
-AM_CXXFLAGS = \
- -Werror -msse2
-
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib
@@ -26,28 +23,43 @@ libg4bbc_la_LIBADD = \
 
 pkginclude_HEADERS = \
   BbcVertex.h \
-  BbcVertex_v1.h \
+  BbcVertexv1.h \
   BbcVertexMap.h \
-  BbcVertexMap_v1.h \
+  BbcVertexMapv1.h \
   BbcVertexFastSimReco.h
 
+ROOTDICTS = \
+  BbcVertex_Dict.cc \
+  BbcVertexv1_Dict.cc \
+  BbcVertexMap_Dict.cc \
+  BbcVertexMapv1_Dict.cc
+if MAKEROOT6
+  pcmdir = $(libdir)
+  nobase_dist_pcm_DATA = \
+    BbcVertex_Dict_rdict.pcm \
+    BbcVertexv1_Dict_rdict.pcm \
+    BbcVertexMap_Dict_rdict.pcm \
+    BbcVertexMapv1_Dict_rdict.pcm
+else
+  ROOT5_DICTS = \
+    BbcVertexFastSimReco_Dict.cc
+endif
+
 libg4bbc_io_la_SOURCES = \
-  BbcVertex.C \
-  BbcVertex_Dict.C \
-  BbcVertex_v1.C \
-  BbcVertex_v1_Dict.C \
-  BbcVertexMap.C \
-  BbcVertexMap_Dict.C \
-  BbcVertexMap_v1.C \
-  BbcVertexMap_v1_Dict.C
+  $(ROOTDICTS) \
+  BbcVertexv1.cc \
+  BbcVertexMapv1.cc
 
 libg4bbc_la_SOURCES = \
-  BbcVertexFastSimReco.C \
-  BbcVertexFastSimReco_Dict.C 
+  $(ROOT5_DICTS) \
+  BbcVertexFastSimReco.cc
 
 # Rule for generating table CINT dictionaries.
-%_Dict.C: %.h %LinkDef.h
+%_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
+
+#just to get the dependency
+%_Dict_rdict.pcm: %_Dict.cc ;
 
 ################################################
 # linking tests
@@ -56,13 +68,15 @@ noinst_PROGRAMS = \
   testexternalsg4bbc_io \
   testexternalsg4bbc
 
-testexternalsg4bbc_io_SOURCES = testexternals.C
+BUILT_SOURCES = testexternals.cc
+
+testexternalsg4bbc_io_SOURCES = testexternals.cc
 testexternalsg4bbc_io_LDADD = libg4bbc_io.la
 
-testexternalsg4bbc_SOURCES = testexternals.C
+testexternalsg4bbc_SOURCES = testexternals.cc
 testexternalsg4bbc_LDADD = libg4bbc_io.la
 
-testexternals.C:
+testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@
 	echo "int main()" >> $@
 	echo "{" >> $@
@@ -70,4 +84,4 @@ testexternals.C:
 	echo "}" >> $@
 
 clean-local:
-	rm -f *Dict*
+	rm -f *Dict* $(BUILT_SOURCES) *.pcm

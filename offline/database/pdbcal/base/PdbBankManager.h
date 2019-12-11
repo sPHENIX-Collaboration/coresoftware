@@ -2,8 +2,8 @@
 //  Purpose: Abstract factory class to handle banks
 //  Author: Matthias Messer
 
-#ifndef PDBBANKMANAGER_HH__
-#define PDBBANKMANAGER_HH__
+#ifndef PDBCAL_BASE_PDBBANKMANAGER_H
+#define PDBCAL_BASE_PDBBANKMANAGER_H
 
 #include "PdbBankID.h"
 
@@ -16,7 +16,6 @@
 
 class PdbCalBank;
 class PdbApplication;
-class PdbBankList;
 class PdbCalBankIterator;
 
 class PdbBankManager 
@@ -24,7 +23,7 @@ class PdbBankManager
 
 protected:
 
-  PdbBankManager();
+  PdbBankManager(){}
   virtual ~PdbBankManager();
 
 public:
@@ -114,4 +113,4 @@ protected:
 
 };
 
-#endif /* PDBBANKMANAGER_HH__ */
+#endif /* PDBCAL_BASE_PDBBANKMANAGER_H */

@@ -1,9 +1,13 @@
-#ifndef PHG4BlockGeomContainer_H__
-#define PHG4BlockGeomContainer_H__
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef G4DETECTORS_PHG4BLOCKGEOMCONTAINER_H
+#define G4DETECTORS_PHG4BLOCKGEOMCONTAINER_H
 
 #include <phool/PHObject.h>
 
+#include <iostream>          // for cout, ostream
 #include <map>
+#include <utility>           // for make_pair, pair
 
 class PHG4BlockGeom;
 
