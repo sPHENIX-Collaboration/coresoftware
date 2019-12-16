@@ -46,7 +46,6 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   , phg4hits_mvtx(nullptr)
   , hittruthassoc(nullptr)
   , clusterhitassoc(nullptr)
-  , _seeding_layers({7, 13, 19, 25, 31, 37, 40})
   , _min_clusters_per_track(3)
 {
 }

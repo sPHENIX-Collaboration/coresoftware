@@ -43,17 +43,6 @@ class PHTruthTrackSeeding : public PHTrackSeeding
     _min_clusters_per_track = minClustersPerTrack;
   }
 
-  const std::set<unsigned int>& get_seeding_layers() const
-  {
-    return _seeding_layers;
-  }
-
-  void set_seeding_layers(const unsigned int a[], const unsigned int n)
-  {
-    _seeding_layers.clear();
-    for (unsigned int i = 0; i < n; ++i) _seeding_layers.insert(a[i]);
-  }
-
  protected:
   int Setup(PHCompositeNode* topNode);
 
@@ -78,9 +67,6 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //PHG4CellContainer* cells_svtx;
   //PHG4CellContainer* cells_intt;
   //PHG4CellContainer* cells_maps;
-
-  /// seeding layers
-  std::set<unsigned int> _seeding_layers;
 
   unsigned int _min_clusters_per_track;
 };
