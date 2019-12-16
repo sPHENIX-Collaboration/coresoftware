@@ -149,7 +149,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
   for (TrkClustersMap::const_iterator trk_clusters_itr = m_trackID_clusters.begin();
        trk_clusters_itr != m_trackID_clusters.end(); ++trk_clusters_itr)
   {
-    if (trk_clusters_itr->second.size() <=  _min_clusters_per_track)
+    if (trk_clusters_itr->second.size() <  _min_clusters_per_track)
       continue;
 
     // check number of layers also pass the _min_clusters_per_track cut to avoid tight loopers
@@ -168,7 +168,7 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
           <<endl;
     }
 
-    if (layers.size() >  _min_clusters_per_track)
+    if (layers.size() >=  _min_clusters_per_track)
     {
 
       std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
