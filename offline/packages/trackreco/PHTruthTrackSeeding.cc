@@ -27,6 +27,8 @@
 #include <map>       // for multimap, map<>::c...
 #include <memory>
 #include <utility>  // for pair
+#include <cassert>
+#include <set>
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
@@ -45,7 +47,7 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   , hittruthassoc(nullptr)
   , clusterhitassoc(nullptr)
   , _seeding_layers({7, 13, 19, 25, 31, 37, 40})
-  , _min_clusters_per_track(0)
+  , _min_clusters_per_track(3)
 {
 }
 
@@ -148,8 +150,28 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
   for (TrkClustersMap::const_iterator trk_clusters_itr = m_trackID_clusters.begin();
        trk_clusters_itr != m_trackID_clusters.end(); ++trk_clusters_itr)
   {
-    if (trk_clusters_itr->second.size() > _min_clusters_per_track)
+    if (trk_clusters_itr->second.size() <=  _min_clusters_per_track)
+      continue;
+
+    // check number of layers also pass the _min_clusters_per_track cut to avoid tight loopers
+    set<uint8_t> layers;
+    for (TrkrCluster* cluster : trk_clusters_itr->second)
     {
+      assert(cluster);
+      const uint8_t layer = TrkrDefs::getLayer(cluster->getClusKey());
+      layers.insert(layer);
+    }
+    if (Verbosity()>2)
+    {
+      cout <<__PRETTY_FUNCTION__<<" particle "<<trk_clusters_itr->first<<" -> "
+          <<trk_clusters_itr->second.size()<<" clusters covering "<<layers.size()<<" layers."
+          <<" Layer/clusters cuts are > "<<_min_clusters_per_track
+          <<endl;
+    }
+
+    if (layers.size() >  _min_clusters_per_track)
+    {
+
       std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
 
       svtx_track->set_id(_track_map->size());
