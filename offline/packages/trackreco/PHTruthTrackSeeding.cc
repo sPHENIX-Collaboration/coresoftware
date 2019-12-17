@@ -119,7 +119,6 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
             cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle with ID of "<<particle_id<<". Exiting..."<<endl;
             exit(1);
           }
-
           const double monentum2 =
               particle->get_px() * particle->get_px()
               +
@@ -127,6 +126,13 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
               +
               particle->get_pz() * particle->get_pz()
               ;
+
+          if (Verbosity() >= 10)
+          {
+            cout <<__PRETTY_FUNCTION__<<" check momentum for particle"<<particle_id<<" -> cluster "<<cluskey
+                <<" = "<<sqrt(monentum2)<<endl;;
+            particle->identify();
+          }
 
           if (monentum2 < _min_momentum * _min_momentum)
           {
