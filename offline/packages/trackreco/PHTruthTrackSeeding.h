@@ -43,6 +43,18 @@ class PHTruthTrackSeeding : public PHTrackSeeding
     _min_clusters_per_track = minClustersPerTrack;
   }
 
+  //! minimal truth momentum cut
+  double get_min_momentum() const
+  {
+    return _min_momentum;
+  }
+
+  //! minimal truth momentum cut
+  void set_min_momentum(double m)
+  {
+    _min_momentum = m;
+  }
+
  protected:
   int Setup(PHCompositeNode* topNode);
 
@@ -69,6 +81,9 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //PHG4CellContainer* cells_maps;
 
   unsigned int _min_clusters_per_track;
+
+  //! minimal truth momentum cut
+  double _min_momentum;
 };
 
 #endif

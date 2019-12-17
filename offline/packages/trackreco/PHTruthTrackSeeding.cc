@@ -13,6 +13,7 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
+#include <g4main/PHG4Particle.h>  // for PHG4Particle
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for keytype
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -47,6 +48,7 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   , hittruthassoc(nullptr)
   , clusterhitassoc(nullptr)
   , _min_clusters_per_track(3)
+  , _min_momentum(50e-3)  // default to p > 50 MeV
 {
 }
 
@@ -107,6 +109,36 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
           phg4hit = phg4hits_mvtx->findHit(g4hitkey);
 
         int particle_id = phg4hit->get_trkid();
+
+        // monentum cut-off
+        if (_min_momentum>0)
+        {
+          PHG4Particle* particle = _g4truth_container->GetParticle(particle_id);
+          if (!particle)
+          {
+            cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle with ID of "<<particle_id<<". Exiting..."<<endl;
+            exit(1);
+          }
+
+          const double monentum2 =
+              particle->get_px() * particle->get_px()
+              +
+              particle->get_py() * particle->get_py()
+              +
+              particle->get_pz() * particle->get_pz()
+              ;
+
+          if (monentum2 < _min_momentum * _min_momentum)
+          {
+            if (Verbosity() >= 3)
+            {
+              cout <<__PRETTY_FUNCTION__<<" ignore low momentum particle"<<particle_id<<" -> cluster "<<cluskey<<endl;;
+              particle->identify();
+            }
+            continue;
+          }
+        }
+
 
         TrkClustersMap::iterator it = m_trackID_clusters.find(particle_id);
 
