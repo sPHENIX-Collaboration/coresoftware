@@ -1,7 +1,5 @@
 #include "RawClusterBuilderTopo.h"
 
-#include "PHMakeGroups.h"
-
 #include <calobase/RawClusterContainer.h>
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterv1.h>
@@ -32,6 +30,8 @@
 #include <utility>
 #include <vector>
 
+#include <algorithm>
+
 bool sort_by_pair_second( const std::pair<int,float> &a,  const std::pair<int,float> &b) 
 { 
   return (a.second > b.second); 
@@ -42,6 +42,10 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   , _clusters(nullptr)
   , _min_tower_e(0.0)
 {
+
+  // geometry defined at run-time
+  _HCAL_NETA = -1;
+  _HCAL_NPHI = -1;
 
   _noise_LAYER[0] = 0.0025;
   _noise_LAYER[1] = 0.006;
@@ -65,10 +69,12 @@ int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
     std::cout << PHWHERE << ": " << e.what() << std::endl;
     throw;
   }
-  
-  std::cout << "RawClusterBuilderTopo::InitRun: initialized with sigma_noise in IHCal / OHCal = " << _noise_LAYER[0] << " / " << _noise_LAYER[1] << std::endl;
-  std::cout << "RawClusterBuilderTopo::InitRun: initialized with noise multiples for seeding / growth / perimeter ( S / N / P ) = " << _sigma_seed << " / " << _sigma_grow << " / " << _sigma_peri << std::endl;
-  std::cout << "RawClusterBuilderTopo::InitRun: initialized with allow_corner_neighbor = " << _allow_corner_neighbor << std::endl;
+
+  if ( Verbosity() > 0 ) {
+    std::cout << "RawClusterBuilderTopo::InitRun: initialized with sigma_noise in IHCal / OHCal = " << _noise_LAYER[0] << " / " << _noise_LAYER[1] << std::endl;
+    std::cout << "RawClusterBuilderTopo::InitRun: initialized with noise multiples for seeding / growth / perimeter ( S / N / P ) = " << _sigma_seed << " / " << _sigma_grow << " / " << _sigma_peri << std::endl;
+    std::cout << "RawClusterBuilderTopo::InitRun: initialized with allow_corner_neighbor = " << _allow_corner_neighbor << std::endl;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -109,18 +115,30 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
       std::cout << "RawClusterBuilderTopo::process_event: pointer to TOWERGEOM_HCALOUT: " << geomOH << std::endl;
     }
 
+
+  if ( _HCAL_NETA < 0 ) {
+
+    // define geometry only once if it has not been yet
+    _HCAL_NETA = geomOH->get_etabins();
+    _HCAL_NPHI = geomOH->get_phibins();
+
+    _TOWERMAP_STATUS_LAYER_ETA_PHI.resize( 2, std::vector<std::vector<int> > ( _HCAL_NETA, std::vector<int>( _HCAL_NPHI, -2 ) ) );
+    _TOWERMAP_E_LAYER_ETA_PHI.resize( 2, std::vector<std::vector<float> > ( _HCAL_NETA, std::vector<float>( _HCAL_NPHI, 0 ) ) );
+    
+  }
+
   // reset maps
   for (int ilayer = 0; ilayer < 2; ilayer++) {
-    for (int ieta = 0; ieta < 24; ieta++) {
-      for (int iphi = 0; iphi < 64; iphi++) { 
-
+    for (int ieta = 0; ieta < _HCAL_NETA; ieta++) {
+      for (int iphi = 0; iphi < _HCAL_NPHI; iphi++) { 
+	
 	_TOWERMAP_STATUS_LAYER_ETA_PHI[ ilayer ][ ieta ][ iphi ] = -2; // set tower does not exist
 	_TOWERMAP_E_LAYER_ETA_PHI[ ilayer ][ ieta ][ iphi ] = 0; // set zero energy
-
+	
       }
     }
   }
-
+  
   // setup 
   std::vector< std::pair<int, float> > list_of_seeds;
   
@@ -245,10 +263,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	    if ( delta_layer == 0 && delta_eta == 0 && delta_phi == 0 ) continue; // this is the same tower
 	    
 	    int test_eta = grow_eta + delta_eta;
-	    if ( grow_eta + delta_eta < 0 || grow_eta + delta_eta >= 24 ) { continue; } // ignore if at the (eta) edge of calorimeter
+	    if ( grow_eta + delta_eta < 0 || grow_eta + delta_eta >= _HCAL_NETA ) { continue; } // ignore if at the (eta) edge of calorimeter
 	    
 	    int test_layer = ( grow_layer + delta_layer ) % 2; // wrap around in layer
-	    int test_phi = ( grow_phi + delta_phi ) % 64; // wrap around in phi
+	    int test_phi = ( grow_phi + delta_phi + _HCAL_NPHI ) % _HCAL_NPHI; // wrap around in phi (add 64 to avoid -1)
 
 	    // now begin to check 8-same-layer + 5-different-layer-edge-plus + optional 4-different-layer-corner neighbors
 	    if (Verbosity() > 10)
@@ -323,10 +341,10 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	    if ( delta_layer == 0 && delta_eta == 0 && delta_phi == 0 ) continue; // this is the same tower
 	    
 	    int test_eta = core_eta + delta_eta;
-	    if ( core_eta + delta_eta < 0 || core_eta + delta_eta >= 24 ) { continue; } // ignore if at the (eta) edge of calorimeter
+	    if ( core_eta + delta_eta < 0 || core_eta + delta_eta >= _HCAL_NETA ) { continue; } // ignore if at the (eta) edge of calorimeter
 	    
 	    int test_layer = ( core_layer + delta_layer ) % 2; // wrap around in layer
-	    int test_phi = ( core_phi + delta_phi ) % 64; // wrap around in phi
+	    int test_phi = ( core_phi + delta_phi + _HCAL_NPHI ) % _HCAL_NPHI; // wrap around in phi (add 64 to avoid -1)
 
 	    // now begin to check 8-same-layer + 5-different-layer-edge-plus + optional 4-different-layer-corner neighbors
 	    if (Verbosity() > 10)
@@ -344,9 +362,9 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	      continue;
 	    }
 
-	    // if tower is owned by THIS cluster already, continue
-	    if ( _TOWERMAP_STATUS_LAYER_ETA_PHI[ test_layer ][ test_eta ][ test_phi ] == cluster_index ) {
-	      if (Verbosity() > 10) std::cout << " --> --> --> already owned by this cluster index " << cluster_index << std::endl;
+	    // if tower is owned by somebody else (including current cluster), continue. ( allowed during perimeter fixing state )
+	    if ( _TOWERMAP_STATUS_LAYER_ETA_PHI[ test_layer ][ test_eta ][ test_phi ] > -1  ) {
+	      if (Verbosity() > 10) std::cout << " --> --> --> already owned by other cluster index " << cluster_index << std::endl;
 	      continue;
 	    }
 	    
@@ -356,13 +374,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	      continue;
 	    }
 
-	    // if tower is owned by somebody else, continue (although should this really happen?)
-	    if ( _TOWERMAP_STATUS_LAYER_ETA_PHI[ test_layer ][ test_eta ][ test_phi ] > -1  ) {
-	      if (Verbosity() > 10) std::cout << " --> --> --> already owned by other cluster index " << cluster_index << std::endl;
-	      continue;
-	    }
-	  
-	    // tower good to be added to cluster and to list of grow towers
+	    // perimeter tower good to be added to cluster
 	    cluster_tower_ID.push_back( get_ID( test_layer, test_eta, test_phi ) );
 	    _TOWERMAP_STATUS_LAYER_ETA_PHI[ test_layer ][ test_eta ][ test_phi ] = cluster_index;
 	    if (Verbosity() > 10) std::cout << " --> --> --> add this tower ( ID " <<  get_ID( test_layer, test_eta, test_phi ) << " ) to cluster " << std::endl;

@@ -4,6 +4,7 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <vector>
 
 class PHCompositeNode;
 class RawClusterContainer;
@@ -63,8 +64,11 @@ class RawClusterBuilderTopo : public SubsysReco
 
   float _min_tower_e;
 
-  float _TOWERMAP_E_LAYER_ETA_PHI[2][24][64];
-  int _TOWERMAP_STATUS_LAYER_ETA_PHI[2][24][64];
+  std::vector< std::vector< std::vector<float> > > _TOWERMAP_E_LAYER_ETA_PHI;
+  std::vector< std::vector< std::vector<int> > > _TOWERMAP_STATUS_LAYER_ETA_PHI;
+
+  int _HCAL_NETA;
+  int _HCAL_NPHI;
 
   float _noise_LAYER[2];
 
