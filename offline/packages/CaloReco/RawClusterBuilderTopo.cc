@@ -40,7 +40,6 @@ bool sort_by_pair_second( const std::pair<int,float> &a,  const std::pair<int,fl
 RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   : SubsysReco(name)
   , _clusters(nullptr)
-  , _min_tower_e(0.0)
 {
 
   // geometry defined at run-time

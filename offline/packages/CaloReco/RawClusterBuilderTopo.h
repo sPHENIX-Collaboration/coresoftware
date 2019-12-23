@@ -25,14 +25,11 @@ class RawClusterBuilderTopo : public SubsysReco
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
 
-  void set_threshold_energy(const float e) { _min_tower_e = e; }
-
- private:
-  void CreateNodes(PHCompositeNode *topNode);
-
   void set_noise( float noise_0, float noise_1 ) {
+
     _noise_LAYER[ 0 ] = noise_0;
     _noise_LAYER[ 1 ] = noise_1;
+
   }
 
   void set_significance( float seed, float grow, float peri ) {
@@ -49,6 +46,10 @@ class RawClusterBuilderTopo : public SubsysReco
 
   }
 
+ private:
+  void CreateNodes(PHCompositeNode *topNode);
+
+
   int get_ID( int ilayer, int ieta, int iphi ) {
     return ilayer * 24 * 64 + ieta * 64 + iphi;
   }
@@ -64,11 +65,8 @@ class RawClusterBuilderTopo : public SubsysReco
   int get_iphi_from_ID( int ID ) {
     return ( (int) ( ID % 64 ) );
   }
-  
-  
+    
   RawClusterContainer *_clusters;
-
-  float _min_tower_e;
 
   std::vector< std::vector< std::vector<float> > > _TOWERMAP_E_LAYER_ETA_PHI;
   std::vector< std::vector< std::vector<int> > > _TOWERMAP_STATUS_LAYER_ETA_PHI;
