@@ -1,6 +1,12 @@
 #ifndef CALORECO_RAWCLUSTERTOPO_H
 #define CALORECO_RAWCLUSTERTOPO_H
 
+//===========================================================
+/// \file RawClusterBuilderTopo.h
+/// \brief 3-D topoClustering across calorimeter layers
+/// \author Dennis V. Perepelitsa
+//===========================================================
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
