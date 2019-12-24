@@ -9,7 +9,6 @@
 
 #include "PHTrackSeeding.h"
 
-#include <set>
 #include <string>  // for string
 
 // forward declarations

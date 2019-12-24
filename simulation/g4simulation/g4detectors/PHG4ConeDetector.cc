@@ -1,5 +1,6 @@
 #include "PHG4ConeDetector.h"
 
+#include <g4main/PHG4Detector.h>         // for PHG4Detector
 #include <g4main/PHG4Subsystem.h>
 #include <g4main/PHG4Utils.h>
 

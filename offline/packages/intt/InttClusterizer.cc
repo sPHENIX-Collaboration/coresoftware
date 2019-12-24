@@ -34,7 +34,6 @@
 
 #include <cmath>
 #include <iostream>
-#include <memory>
 #include <set>
 #include <vector>                                   // for vector
 

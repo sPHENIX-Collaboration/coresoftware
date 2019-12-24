@@ -8,8 +8,6 @@
 
 #include <trackbase/TrkrHit.h>  // for TrkrHit
 
-#include <iosfwd>               // for ostream
-
 TpcHit::TpcHit()
   : TrkrHit()
 {
