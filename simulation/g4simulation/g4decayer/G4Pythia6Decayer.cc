@@ -37,16 +37,22 @@
 #include "G4Pythia6Decayer.hh"
 #include "Pythia6.hh"
 
+ 
 #include <Geant4/G4DynamicParticle.hh>
 #include <Geant4/G4DecayProducts.hh>
-#include <Geant4/G4DecayTable.hh>
+#include <Geant4/G4ios.hh>                        // for G4cout, G4endl
+#include <Geant4/G4ParticleDefinition.hh>         // for G4ParticleDefinition
 #include <Geant4/G4ParticleTable.hh>
-#include <Geant4/G4Track.hh>
+#include <Geant4/G4String.hh>                     // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Track.hh>
+#include <Geant4/G4VExtDecayer.hh>         // for G4VExtDecayer
 
 #include <CLHEP/Vector/LorentzVector.h>
 
-#include <cmath>
+#include <cstdlib>                        // for abs
+#include <iostream>                        // for operator<<, basic_ostream:...
+#include <string>                          // for operator<<
 
 const  EDecayType G4Pythia6Decayer::fgkDefaultDecayType = kAll;
 

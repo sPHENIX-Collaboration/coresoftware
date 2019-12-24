@@ -36,12 +36,16 @@
 #include "Pythia6.hh"
 #include "EDecayType.hh"
 
+#include <Geant4/G4ThreeVector.hh>              // for G4ThreeVector
+#include <Geant4/G4Types.hh>                    // for G4int, G4bool
 #include <Geant4/G4VExtDecayer.hh>
 
-#include <Geant4/globals.hh>
-
-class G4Track;
 class G4DecayProducts;
+class G4DynamicParticle;
+class G4ParticleDefinition;
+class G4Track;
+
+namespace CLHEP { class HepLorentzVector; }
 
 /// Pythia6 decayer
 ///

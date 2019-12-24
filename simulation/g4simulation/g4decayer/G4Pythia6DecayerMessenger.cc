@@ -40,10 +40,15 @@
 #include "G4Pythia6Decayer.hh"
 #include "EDecayType.hh"
 
-#include <Geant4/G4UIdirectory.hh>
+#include <Geant4/G4ApplicationState.hh>           // for G4State_Idle
 #include <Geant4/G4UIcmdWithAnInteger.hh>
+#include <Geant4/G4UIdirectory.hh>
+#include <Geant4/G4UImessenger.hh>         // for G4UImessenger
 
 #include <sstream>
+#include <string>                          // for basic_string
+
+class G4UIcommand;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
