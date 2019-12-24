@@ -97,8 +97,12 @@ void P6DExtDecayerPhysics::ConstructProcess()
     } 
     
     G4ProcessVector* processVector = pmanager->GetProcessList();
-    for (G4int i=0; i<processVector->length(); i++) {
-    
+#if G4VERSION_NUMBER >= 1060
+    for (size_t i=0; i<processVector->length(); i++)
+#else
+    for (G4int i=0; i<processVector->length(); i++)
+#endif
+    {
       G4Decay* decay = dynamic_cast<G4Decay*>((*processVector)[i]);
       if ( decay )
 	{
