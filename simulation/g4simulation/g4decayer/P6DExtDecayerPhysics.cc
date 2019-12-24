@@ -37,6 +37,7 @@
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ProcessManager.hh>
 #include <Geant4/G4VPhysicsConstructor.hh>
+#include <Geant4/G4Version.hh>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 // hack for Geant 10.03.p03
