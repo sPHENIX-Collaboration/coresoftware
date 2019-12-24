@@ -106,12 +106,12 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
   hm->registerHisto(h);
 
   hm->registerHisto(new TH1D("hNChEta",  //
-               "Charged particle #eta distribution;#eta;Count",
-               1000, -5, 5));
+                             "Charged particle #eta distribution;#eta;Count",
+                             1000, -5, 5));
 
   hm->registerHisto(new TH1D("hVertexZ",  //
-               "Vertex z distribution;z [cm];Count",
-               1000, -200, 200));
+                             "Vertex z distribution;z [cm];Count",
+                             1000, -200, 200));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -302,7 +302,7 @@ void PHG4ScoringManager::makeScoringHistograms()
     }
     else
     {
-    cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << (int) meshShape << ". Skipping this mesh!" << endl;
+      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << (int) meshShape << ". Skipping this mesh!" << endl;
       g4mesh->List();
       continue;
     }
@@ -394,7 +394,7 @@ PHG4ScoringManager::getHistoManager()
   static string histname("PHG4ScoringManager_HISTOS");
   Fun4AllServer *se = Fun4AllServer::instance();
   Fun4AllHistoManager *hm = se->getHistoManager(histname);
-  if (! hm)
+  if (!hm)
   {
     if (Verbosity())
       cout
