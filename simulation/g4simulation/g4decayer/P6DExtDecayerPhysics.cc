@@ -35,8 +35,17 @@
 
 #include <Geant4/G4Decay.hh>
 #include <Geant4/G4ParticleDefinition.hh>
+#include <Geant4/G4ParticleTable.hh>  // for G4ParticleTable::G4PTblDi...
 #include <Geant4/G4ProcessManager.hh>
+#include <Geant4/G4ProcessVector.hh>  // for G4ProcessVector
+#include <Geant4/G4Types.hh>          // for G4int
 #include <Geant4/G4VPhysicsConstructor.hh>
+#include <Geant4/G4VProcess.hh>  // for G4VProcess
+#include <Geant4/G4Version.hh>
+#include <Geant4/G4ios.hh>  // for G4cout, G4endl
+
+#include <ostream>  // for operator<<, basic_ostream
+#include <string>   // for operator<<
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 // hack for Geant 10.03.p03
