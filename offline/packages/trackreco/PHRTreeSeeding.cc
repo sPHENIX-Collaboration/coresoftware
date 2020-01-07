@@ -1,5 +1,3 @@
-
-
  /*!
  *  \file PHRTreeSeeding.C
  *  \brief Progressive pattern recgnition based on GenFit Kalman filter
@@ -7,98 +5,15 @@
  *  \author Christof Roland & Haiwang Yu
  */
 
-
-
 //begin
 
-//#ifndef G4HOUGH_PHG4KALMANPATREC_H
-//#define G4HOUGH_PHG4KALMANPATREC_H
-
-#include <fun4all/SubsysReco.h>
-
-// Helix Hough + Eigen includes (hidden from rootcint)
-#if !defined(__CINT__) || defined(__CLING__)
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/VertexFinder.h>
-#include <Eigen/Core>                              // for Matrix
-#endif
-
-
-
-#if !defined(__CINT__) || defined(__CLING__)
-//BOOST for combi seeding
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/box.hpp>
-#include <boost/geometry/geometries/point.hpp>
-
-#include <boost/geometry/index/rtree.hpp>
-#endif
-
-// standard includes
-#include <cfloat>
-#include <iostream>                                // for operator<<, basic_...
-#include <list>
-#include <map>
-#include <memory>
-#include <set>                                     // for set
-#include <string>                                  // for string
-#include <utility>                                 // for pair
-#include <vector>
-
-// forward declarations
-class BbcVertexMap;
-
-class PHCompositeNode;
-
-class PHG4CellContainer;
-class PHG4CylinderGeomContainer;
-class PHG4Particle;
-class PHG4TruthInfoContainer;
-class PHTimer;
-
-class sPHENIXSeedFinder;
-
-class SvtxClusterMap;
-class SvtxCluster;
-class SvtxTrackMap;
-class SvtxTrack;
-class SvtxTrackState;
-class SvtxVertexMap;
-class SvtxHitMap;
-
-class TNtuple;
-class TFile;
-
-namespace PHGenFit
-{
-class Fitter;
-class Track;
-class Measurement;
-} /* namespace PHGenFit */
-//end
-
-
-
 #include "PHRTreeSeeding.h"
-
-#include "AssocInfoContainer.h"                         // for AssocInfoCont...
-
-// Helix Hough includes
-#include <HelixHough/HelixKalmanState.h>                // for HelixKalmanState
-#include <HelixHough/HelixRange.h>
-#include <HelixHough/SimpleHit3D.h>
-#include <HelixHough/SimpleTrack3D.h>
-#include <HelixHough/sPHENIXSeedFinder.h>               // for sPHENIXSeedFi...
-#include <HelixHough/VertexFinder.h>
-
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
 
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
@@ -115,46 +30,34 @@ class Measurement;
 
 #include <phool/PHTimer.h>                              // for PHTimer
 #include <phool/getClass.h>
-
-#include <Eigen/Core>                  // for Matrix
-#include <Eigen/Dense>
+#include <phool/phool.h>                                // for PHWHERE
 
 //ROOT includes for debugging
 #include <TFile.h>
 #include <TNtuple.h>
-#include <TAxis.h>
-#include <TGraph.h>
+#include <TVector3.h>                                    // for TVector3
+
 //BOOST for combi seeding
+#include <boost/geometry.hpp>
 #include <boost/geometry/geometries/box.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/index/rtree.hpp>
+
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+#include <utility>                                      // for pair, make_pair
+#include <vector>
+
+// forward declarations
+class PHCompositeNode;
+
+//end
 
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
 typedef bg::model::box<point> box;
 typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 
-
-
-// standard includes
-#include <TH1.h>
-#include <stdio.h>      /* printf */
-#include <math.h>       /* copysign */
-#include <algorithm>
-#include <climits>                                     // for UINT_MAX
-#include <cmath>
-#include <iostream>
-#include <memory>
-#include <set>                                          // for set
-#include <tuple>
-#include <utility>   
-                                   // for pair, make_pair
-//#include <assert.h>
-
-#include "Math/Minimizer.h"
-#include "Math/Factory.h"
-#include "Math/Functor.h"
-#include "Minuit2/Minuit2Minimizer.h"
-#include "Math/Functor.h"
 
 
 
@@ -165,11 +68,10 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 
 
 using namespace std;
-using namespace ROOT::Minuit2;
+//using namespace ROOT::Minuit2;
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-//typedef uint64_t cluskey;
 
 vector<TrkrCluster*> clusterpoints;
 SvtxVertex *_vertex;
