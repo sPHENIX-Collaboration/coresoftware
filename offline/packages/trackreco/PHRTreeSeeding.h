@@ -229,12 +229,15 @@ class PHRTreeSeeding : public PHTrackSeeding
   PHRTreeSeeding(
       const std::string &name = "PHRTreeSeeding",
       unsigned int nlayers_maps = 3,
-      unsigned int nlayers_intt = 8,
-      unsigned int nlayers_tpc = 60,
-      unsigned int seeding_nlayer = 7,
-      unsigned int min_seeding_nlayer = 4);
+      unsigned int nlayers_intt = 4,
+      unsigned int nlayers_tpc = 48,
+      unsigned int start_layer = 53);
+
   double chisq(const double *xx);
   //vector<TrkrCluster*> clusterpoints;
+  void set_phi_scale(float scale) { _phi_scale = scale; }
+  void set_z_scale(float scale) { _z_scale = scale; }
+
   virtual ~PHRTreeSeeding()
   {
   }
@@ -269,14 +272,15 @@ class PHRTreeSeeding : public PHTrackSeeding
   //seed searching parameters
   double phisr,etasr,phist,etast,phixt,etaxt;
 
-  double outermostlayerradius; 
   std::vector<float> _radii_all;
+
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);
   double pointKeyToTuple(pointKey *pK);
   double costfunction(const double *xx);
   //double chisq(const double *xx);
-  void wquery(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax,std::vector<pointKey> &returned_values);
+  void FillTree();
+  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax,std::vector<pointKey> &returned_values);
 
 
 #ifndef __CINT__
@@ -284,7 +288,7 @@ class PHRTreeSeeding : public PHTrackSeeding
 
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
-
+  bgi::rtree<pointKey, bgi::quadratic<16> > _rtree;
 
 
   //int _nlayers_all;
@@ -294,7 +298,9 @@ class PHRTreeSeeding : public PHTrackSeeding
   unsigned int _nlayers_maps;
   unsigned int _nlayers_intt;
   unsigned int _nlayers_tpc;
-
+  unsigned int _start_layer;
+  float _phi_scale;
+  float _z_scale;
   //std::vector<float> _radii_all;
 
 
