@@ -219,6 +219,7 @@ void PHG4MvtxSubsystem::SetDefaultParameters()
 
     set_default_double_param(ilyr, "layer_nominal_radius", mvtxdat[ilyr][kRmd]);
     set_default_double_param(ilyr, "phitilt", NAN);
+    set_default_double_param(ilyr, "phi0", NAN);
 
     set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
   }

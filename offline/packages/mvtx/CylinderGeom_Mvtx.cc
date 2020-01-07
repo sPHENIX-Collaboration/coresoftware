@@ -1,5 +1,7 @@
 #include "CylinderGeom_Mvtx.h"
 
+#include "SegmentationAlpide.h"
+
 #include <TRotation.h>
 #include <TVector3.h>
 
@@ -8,13 +10,14 @@
 
 using namespace std;
 
-CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_z, double in_pixel_thickness)
+CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_staves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_phi0, double in_pixel_x, double in_pixel_z, double in_pixel_thickness)
   : layer(in_layer)
   , stave_type(in_stave_type)
   , N_staves(in_N_staves)
   , layer_radius(in_layer_nominal_radius)
   , stave_phi_step(in_phistep)
   , stave_phi_tilt(in_phitilt)
+  , stave_phi_0(in_phi0)
   , pixel_x(in_pixel_x)
   , pixel_z(in_pixel_z)
   , pixel_thickness(in_pixel_thickness)
@@ -31,8 +34,10 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_s
   //    For mid and outer layer (stave types 1 and 2):   0.7500 x 0.0009 x 1.5000
   if (stave_type == 0)
   {
-    Zsensor = 2.994;  //3.01;   // cm
-    Xsensor = 1.376;  //1.505;   // cm
+    //Zsensor = 2.994;  //3.01;   // cm
+    //Xsensor = 1.376;  //1.505;   // cm
+    Zsensor = SegmentationAlpide::ActiveMatrixSizeCols;
+    Xsensor = SegmentationAlpide::ActiveMatrixSizeRows;
   }
   else
   {
@@ -40,21 +45,21 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_s
     Xsensor = 1.5;  // cm
   }
 
-  /*      
+  /*
   // In the ITS we should have these numbers for how staves are built (from ITS.gdml file)
    lyr rad   L   staves     modules                                                                                                     chips/module
-   0  23    290    12   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
-   1  31    290    16   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
-   2  39    290    20   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04) 
-   3  194  900    24   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)      
-   4  247  900    30   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)      
-   5  253 1500   42   7 (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03) 
-   6  405 1500   48  7  (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03) 
+   0  23    290    12   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04)
+   1  31    290    16   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04)
+   2  39    290    20   1 (x=0, y=0, z=0)                                                                                     9 (x=0, y=-0.00875, z=- 12.04, -9,03, -6.02, -3.01, 0, 3.01, 6.02, 9.03, 12.04)
+   3  194  900    24   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)
+   4  247  900    30   4 (x=0, y=-0.06075, z= -31.605, -10.535, 10.535, 31.605)                    14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)
+   5  253 1500   42   7 (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)
+   6  405 1500   48  7  (x=0, y=-0.06075, z = -63.21, -42.14, -21.07, 0.0, 21.07, 42.14, 63.21)   14  (x = -0.755 or +0.755, y= -0.00825, z = -9.03, -9.03, -6.02, -6.02, -3.01, -3.01, 0, 0, 3.01, 3.01, 6.02, 6.02, 9.03, 9.03)
    sensor is in chip at (x=0, y=-0.0016, z=0)
    3-6 half-staves are in 3-6 staves at:  (x = -1.29, y = +2.067, z = 0)  or (x = +1.29 cm, y = 2.243, z = 0)
    // layers 0,1,2 have one stave with 1 module and 7 chips in that module
    // where layers 3 and 4  have two half-staves with 4 modules and 7 chips/module
-   // layers 5 and 6 have two half staves with 7 modules and 7 chips/module 
+   // layers 5 and 6 have two half staves with 7 modules and 7 chips/module
    */
 
   // Note that stave is centered at origin with normal to face of sensor pointing in +y direction
@@ -62,7 +67,7 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_s
 
   // for all layers
   //double loc_sensor_in_chip_data[3] = {0.0, -0.0016, 0.0};
-  double loc_sensor_in_chip_data[3] = {0.0620, -0.0016, 0.0};  // mvtx_stave_v01.gdml
+  double loc_sensor_in_chip_data[3] = {0.058128, -0.0005, 0.0};  // mvtx_stave_v1.gdml
 
   for (int i = 0; i < 3; i++)
     loc_sensor_in_chip[i] = loc_sensor_in_chip_data[i];
@@ -75,29 +80,29 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_s
     0.0, -0.00875, -12.04,
     0.0, -0.00875, -9.03,
     0.0, -0.00875, -6.02,
-    0.0, -0.00875, -3.01,	   
+    0.0, -0.00875, -3.01,
     0.0, -0.00875, 0.0,
-    0.0, -0.00875, 3.01,	   
-    0.0, -0.00875, 6.02,	   
-    0.0, -0.00875, 9.03,	   
-    0.0, -0.00875, 12.04};	   
+    0.0, -0.00875, 3.01,
+    0.0, -0.00875, 6.02,
+    0.0, -0.00875, 9.03,
+    0.0, -0.00875, 12.04};
   double inner_loc_module_in_halfstave_data[3] = {0.0, 0.0, 0.0};   // only one module
-  double inner_loc_halfstave_in_stave_data[3] = {0.0, 0.00625, 0.0}; 
+  double inner_loc_halfstave_in_stave_data[3] = {0.0, 0.00625, 0.0};
   */
 
   // from mvtx_stave_v01.gdml
   double inner_loc_chip_in_module_data[9][3] = {
-    {0.0, -0.00875, -12.060},
-    {0.0, -0.00875, -9.0450},
-    {0.0, -0.00875, -6.0300},
-    {0.0, -0.00875, -3.0150},
-    {0.0, -0.00875, 0.0},
-    {0.0, -0.00875, 3.0150},
-    {0.0, -0.00875, 6.0300},
-    {0.0, -0.00875, 9.0450},
-    {0.0, -0.00875, 12.060}};
+    {0.0275, -0.02075, -12.060},
+    {0.0275, -0.02075, -9.0450},
+    {0.0275, -0.02075, -6.0300},
+    {0.0275, -0.02075, -3.0150},
+    {0.0275, -0.02075, 0.0},
+    {0.0275, -0.02075, 3.0150},
+    {0.0275, -0.02075, 6.0300},
+    {0.0275, -0.02075, 9.0450},
+    {0.0275, -0.02075, 12.060}};
   double inner_loc_module_in_halfstave_data[3] = {0.0, 0.0, 0.0};  // only one module
-  double inner_loc_halfstave_in_stave_data[3] = {0.0, 0.00625, 0.0};
+  double inner_loc_halfstave_in_stave_data[3] = {-0.0275, 0.01825, 0.0};
 
   for (int i = 0; i < 3; i++)
   {
@@ -196,12 +201,12 @@ CylinderGeom_Mvtx::CylinderGeom_Mvtx(int in_layer, int in_stave_type, int in_N_s
 TVector3
 CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location)
 {
-  double stave_phi = stave_phi_step * (double) stave;
+  double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
 
   /*
-    cout << endl << "CylinderGeom_Mvtx::get_local_from_world_coords: " << " Stave type " << stave_type 
-	 << " chip " << chip 
+    cout << endl << "CylinderGeom_Mvtx::get_local_from_world_coords: " << " Stave type " << stave_type
+	 << " chip " << chip
 	 << " world coords " << world_location.X() << " " << world_location.Y() << " " << world_location.Z() << endl;
   */
 
@@ -328,10 +333,10 @@ CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int half_stave, int mo
 TVector3
 CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
 {
-  double stave_phi = stave_phi_step * (double) stave;
+  double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
 
-  /*  
+  /*
     cout << endl << "CylinderGeom_Mvtx::get_world_from_local_coords: " << " stave type " << stave_type
 	 << " chip " << chip
 	 << " local coords " << sensor_local.X() << " " << sensor_local.Y() << " " << sensor_local.Z() << endl;
@@ -511,20 +516,56 @@ int CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local)
 
   // start pixel numbering from the middle of the sensor
   // find the pixel grid point
-
+/*
   double npix_x = sensor_local.X() / pixel_x;
   int Ngridx = int(npix_x);
 
   double npix_z = sensor_local.Z() / pixel_z;
   int Ngridz = int(npix_z);
 
+
   //  Combine the grid locations into a single integer
   // transform to the grid location referenced to top left corner of the chip as (0,0)
   Ngridx += get_NX() / 2;
   Ngridz += get_NZ() / 2;
+*/
+  //YCM (2020-01-02): It seems that due some round issues, local coords of hits at the edge of the sensor volume
+  //                  are out by some fraction of microns from the ActiveMatrix. Making a safety check inside 0.1 um
+  double EPS = 5e-6;
+  if ( fabs(fabs(sensor_local.X()) - SegmentationAlpide::ActiveMatrixSizeRows/2.f) < EPS ){
+    //cout << " Adjusting X,  before X= " << sensor_local.X() << endl;
+    sensor_local.SetX( ((sensor_local.X() < 0 ) ? -1 : 1) * (SegmentationAlpide::ActiveMatrixSizeRows/2.f - EPS) );
+    //cout << " Adjusting X,  after X= " << sensor_local.X() << endl;
+  }
+  if ( fabs(fabs(sensor_local.Z()) - SegmentationAlpide::ActiveMatrixSizeCols/2.f) < EPS ){
+    //cout << " Adjusting Z,  before Z= " << sensor_local.Z() << endl;
+    sensor_local.SetZ( ((sensor_local.Z() < 0 ) ? -1 : 1) * (SegmentationAlpide::ActiveMatrixSizeCols/2.f - EPS) );
+    //cout << " Adjusting Z,  after Z= " << sensor_local.Z() << endl;
+  }
+  // YCM (2020-01-02): go from sensor to chip local coords
+  TVector3 in_chip = sensor_local;
+  TVector3 tr(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
+  in_chip += tr;
+  int Ngridx, Ngridz;
+  bool px_in = SegmentationAlpide::localToDetector(in_chip.X(), in_chip.Z(), Ngridx, Ngridz);
+
+  if (!px_in)
+    cout << PHWHERE
+          << " Pixel is out sensor. ("
+          << sensor_local.X() << ", "
+          << sensor_local.Y() << ", "
+          << sensor_local.Z() << ")."
+          << endl << " and out of chip ("
+          << in_chip.X() << ", "
+          << in_chip.Y() << ", "
+          << in_chip.Z() << ")."
+          << endl;
+
+  if (Ngridx < 0 || Ngridx >= get_NX() || Ngridz < 0 || Ngridz >= get_NZ())
+    cout << PHWHERE << "Wrong pixel value X= " << Ngridx << " and Z= " << Ngridz  << endl;
 
   /*
-  cout << "Transformed grid locations: " 
+  cout << "Transformed grid locations: "
        << " Ngridx (ref to neg x, neg y corner) " << Ngridx
        << " Ngridz (ref to neg x, neg y corner) " << Ngridz
        << endl;

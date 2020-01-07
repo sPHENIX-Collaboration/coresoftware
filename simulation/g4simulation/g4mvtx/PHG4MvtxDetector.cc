@@ -66,6 +66,7 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
     m_N_staves[ilayer] = params->get_int_param("N_staves");
     m_nominal_radius[ilayer] = params->get_double_param("layer_nominal_radius");
     m_nominal_phitilt[ilayer] = params->get_double_param("phitilt");
+    m_nominal_phi0[ilayer] = params->get_double_param("phi0");
   }
   const PHParameters* alpide_params = m_ParamsContainer->GetParameters(PHG4MvtxDefs::ALPIDE_SEGMENTATION);
   m_PixelX = alpide_params->get_double_param("pixel_x");
@@ -217,6 +218,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   int N_staves = m_N_staves[layer];
   G4double layer_nominal_radius = m_nominal_radius[layer];
   G4double phitilt = m_nominal_phitilt[layer];
+  G4double phi0 = m_nominal_phi0[layer];
 
   if (N_staves < 0)
   {
@@ -263,7 +265,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   {
     // Place the ladder segment envelopes at the correct z and phi
     // This is the azimuthal angle at which we place the stave
-    G4double phi_rotation = (double) iphi * phistep;
+    G4double phi_rotation = phi0 + (double) iphi * phistep;
 
     G4RotationMatrix Ra;
     G4ThreeVector Ta;
@@ -389,6 +391,7 @@ void PHG4MvtxDetector::AddGeometryNode()
                                                         m_nominal_radius[ilayer] / cm,
                                                         get_phistep(ilayer) / rad,
                                                         m_nominal_phitilt[ilayer] / rad,
+                                                        m_nominal_phi0[ilayer] / rad,
                                                         m_PixelX,
                                                         m_PixelZ,
                                                         m_PixelThickness);

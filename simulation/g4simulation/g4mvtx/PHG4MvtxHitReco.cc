@@ -216,13 +216,13 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       {
         cout << endl
              << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
-        cout << "  world exit point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
-        cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0) << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;
+        cout << "  world exit point position:  " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
+        cout << "  local coords of entry point from G4             " << hiter->second->get_local_x(0) << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;
         TVector3 world_in(hiter->second->get_x(0), hiter->second->get_y(0), hiter->second->get_z(0));
         TVector3 local_in_check = layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
         cout << "  local coords of entry point from geom (a check) " << local_in_check.X() << " " << local_in_check.Y() << " " << local_in_check.Z() << endl;
-        cout << "  local coords of exit point from G4 " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;
-        cout << "  local coords of exit point from geom (a check) " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;
+        cout << "  local coords of exit point from G4              " << hiter->second->get_local_x(1) << " " << hiter->second->get_local_y(1) << " " << hiter->second->get_local_z(1) << endl;
+        cout << "  local coords of exit point from geom (a check)  " << local_out.X() << " " << local_out.Y() << " " << local_out.Z() << endl;
         cout << endl;
       }
 
@@ -233,22 +233,23 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
         TVector3 location_out = layergeom->get_world_from_local_coords(stave_number, half_stave_number, module_number, chip_number, local_out);
 
         cout << endl
-             << "      PHG4MvtxHitReco:  Found world entry location from geometry for  "
+             << "      PHG4MvtxHitReco:  Found world entry location from geometry for"
              << " stave number " << stave_number
              << " half stave number " << half_stave_number
-             << " module number" << module_number
+             << " module number " << module_number
+             << " chip number " << chip_number
              << endl
              << " x = " << location_in.X()
              << " y = " << location_in.Y()
-             << " z  = " << location_in.Z()
+             << " z = " << location_in.Z()
              << " radius " << sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
              << " angle " << atan(location_in.Y() / location_in.X())
              << endl;
-        cout << "     PHG4MvtxHitReco: The world entry location from G4 was "
+        cout << "     PHG4MvtxHitReco: The world entry location from G4 was"
              << endl
              << " x = " << hiter->second->get_x(0)
-             << " y " << hiter->second->get_y(0)
-             << " z " << hiter->second->get_z(0)
+             << " y = " << hiter->second->get_y(0)
+             << " z = " << hiter->second->get_z(0)
              << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2))
              << " angle " << atan(hiter->second->get_y(0) / hiter->second->get_x(0))
              << endl;
@@ -260,22 +261,23 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
              << endl
              << endl;
 
-        cout << "      PHG4MvtxHitReco:  Found world exit location from geometry for  "
+        cout << "      PHG4MvtxHitReco:  Found world exit location from geometry for "
              << " stave number " << stave_number
              << " half stave number " << half_stave_number
-             << " module number" << module_number
+             << " module number " << module_number
+             << " chip number " << chip_number
              << endl
              << " x = " << location_out.X()
              << " y = " << location_out.Y()
-             << " z  = " << location_out.Z()
+             << " z = " << location_out.Z()
              << " radius " << sqrt(pow(location_out.X(), 2) + pow(location_out.Y(), 2))
              << " angle " << atan(location_out.Y() / location_out.X())
              << endl;
         cout << "     PHG4MvtxHitReco: The world exit location from G4 was "
              << endl
              << " x = " << hiter->second->get_x(1)
-             << " y " << hiter->second->get_y(1)
-             << " z " << hiter->second->get_z(1)
+             << " y = " << hiter->second->get_y(1)
+             << " z = " << hiter->second->get_z(1)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2))
              << " angle " << atan(hiter->second->get_y(1) / hiter->second->get_x(1))
              << endl;

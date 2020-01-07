@@ -10,7 +10,7 @@
 class CylinderGeom_Mvtx : public PHG4CylinderGeom
 {
  public:
-  CylinderGeom_Mvtx(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_pixel_x, double in_pixel_z, double in_pixel_thickness);
+  CylinderGeom_Mvtx(int layer, int stave_type, int in_Nstaves, double in_layer_nominal_radius, double in_phistep, double in_phitilt, double in_phi0, double in_pixel_x, double in_pixel_z, double in_pixel_thickness);
 
   //! default ctor to allow ROOT stream of this class. Implemented using c++11 feature of delegating constructors
   CylinderGeom_Mvtx()
@@ -21,6 +21,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
           /*double in_layer_nominal_radius*/ 3,
           /*double in_phistep*/ 0,
           /*double in_phitilt*/ 0,
+          /*double in_phi0*/ 0,
           /*double in_pixel_x*/ 20e-4,
           /*double in_pixel_z*/ 20e-4,
           /*double in_pixel_thickness*/ 18e-4)
@@ -72,6 +73,7 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double layer_radius;
   double stave_phi_step;
   double stave_phi_tilt;
+  double stave_phi_0;
 
   // finding the sensor location
   //  double sensor_z_spacing;
