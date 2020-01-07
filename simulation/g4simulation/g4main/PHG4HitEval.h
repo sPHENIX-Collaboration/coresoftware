@@ -15,6 +15,9 @@
 
 #include "PHG4Hitv1.h"
 
+class PHG4Hit;
+class PHObject;
+
 /*!
  * \brief PHG4HitEval for evaluating PHG4Hitv1 in CINT readable evaluation trees
  */

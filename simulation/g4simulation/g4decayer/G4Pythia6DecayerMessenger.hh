@@ -33,13 +33,14 @@
 #define G4_PYTHIA6_DECAYER_MESSENGER_H 
 
 #include <Geant4/G4UImessenger.hh>
-#include <Geant4/globals.hh>
+
+#include <Geant4/G4String.hh>              // for G4String
+
 
 class G4Pythia6Decayer;
-
-class G4UIdirectory;
 class G4UIcmdWithAnInteger;
-class G4UIcmdWithABool;
+class G4UIcommand;
+class G4UIdirectory;
 
 /// Messenger class that defines commands for G4Pythia6Decayer.
 ///

@@ -2,8 +2,10 @@
 
 #include "PHG4HitDefs.h"
 
+#include <algorithm>      // for fill
 #include <cmath>
 #include <iostream>
+#include <iterator>       // for begin, end
 #include <utility>
 
 using namespace std;

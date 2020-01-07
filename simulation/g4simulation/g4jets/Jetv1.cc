@@ -11,6 +11,8 @@
 #include <cmath>
 #include <iostream>
 
+class PHObject;
+
 using namespace std;
 
 Jetv1::Jetv1()

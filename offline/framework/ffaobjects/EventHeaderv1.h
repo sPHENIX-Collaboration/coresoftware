@@ -8,6 +8,8 @@
 #include <ctime>         // for time_t
 #include <iostream>       // for cout, ostream
 
+class PHObject;
+
 //! simple event header with ID and time
 class EventHeaderv1: public EventHeader
 {

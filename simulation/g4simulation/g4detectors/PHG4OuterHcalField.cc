@@ -15,7 +15,7 @@
 #include <Geant4/G4FieldManager.hh>
 #include <Geant4/G4TransportationManager.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4SystemOfUnits.hh>
+#include <Geant4/G4Types.hh>                  // for G4double, G4int
 
 #include <cassert>                            // for assert
 #include <cmath>                              // for atan2, cos, sin, sqrt

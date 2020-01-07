@@ -1,8 +1,8 @@
 #include "RawClusterBuilderTemplateFEMC.h"
 
 #include "BEmcCluster.h"
-#include "BEmcRecFEMC.h"
 #include "BEmcProfile.h"
+#include "BEmcRecFEMC.h"
 
 #include <calobase/RawCluster.h>
 #include <calobase/RawClusterContainer.h>
@@ -14,12 +14,13 @@
 #include <calobase/RawTowerGeomContainer.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHNodeIterator.h>
 #include <phool/PHObject.h>
+#include <phool/getClass.h>
 #include <phool/phool.h>
 
 #include <cmath>
@@ -36,6 +37,7 @@ using namespace std;
 RawClusterBuilderTemplateFEMC::~RawClusterBuilderTemplateFEMC()
 {
   delete bemc;
+  delete _emcprof;
 }
 
 RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string &name)
@@ -67,9 +69,9 @@ RawClusterBuilderTemplateFEMC::RawClusterBuilderTemplateFEMC(const std::string &
   bemc->SetTowerThreshold(0);
 }
 
-void RawClusterBuilderTemplateFEMC::LoadProfile(const char *fname) 
-{ 
-  _emcprof = new BEmcProfile(fname); 
+void RawClusterBuilderTemplateFEMC::LoadProfile(const char *fname)
+{
+  _emcprof = new BEmcProfile(fname);
 }
 
 int RawClusterBuilderTemplateFEMC::InitRun(PHCompositeNode *topNode)
@@ -331,13 +333,13 @@ int RawClusterBuilderTemplateFEMC::process_event(PHCompositeNode *topNode)
       pp->GetGlobalPos(xout, yout, zout);
 
       hlist = pp->GetHitList();
-      float zVert = 0; // !!!!! In future it should take actual zVert
-      theta = atan(sqrt(xout * xout + yout * yout)/fabs(zout-zVert));
+      float zVert = 0;  // !!!!! In future it should take actual zVert
+      theta = atan(sqrt(xout * xout + yout * yout) / fabs(zout - zVert));
 
       //      prob = pp->GetProb(chi2,ndf);
       prob = -1;
       ndf = 0;
-      if( _emcprof != nullptr ) prob = _emcprof->GetProb(&hlist,NBINX,ecl,theta);
+      if (_emcprof != nullptr) prob = _emcprof->GetProb(&hlist, NBINX, ecl, theta);
 
       cluster = new RawClusterv1();
       cluster->set_energy(ecl);

@@ -5,7 +5,11 @@
 
 #include "PHG4DetectorSubsystem.h"
 
-#include <string>                   // for string
+#if !defined(__CINT__) || defined(__CLING__)
+#include <array>   // for array
+#endif
+
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4Detector;
@@ -44,13 +48,17 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
 
   PHG4DisplayAction* GetDisplayAction() const { return m_DisplayAction; }
 
-  void set_color(const double red, const double green, const double blue, const double alpha=1.)
+  void set_color(const double red, const double green, const double blue, const double alpha = 1.)
   {
     m_ColorArray[0] = red;
     m_ColorArray[1] = green;
     m_ColorArray[2] = blue;
     m_ColorArray[3] = alpha;
   }
+// this method is used to check if it can be used as mothervolume
+// Subsystems which can be mothervolume need to implement this 
+// and return true
+  virtual bool CanBeMotherSubsystem() const {return true;}
 
  private:
   void SetDefaultParameters();
@@ -68,7 +76,7 @@ class PHG4BlockSubsystem : public PHG4DetectorSubsystem
   PHG4DisplayAction* m_DisplayAction;
   //! Color setting if we want to override the default
 #if !defined(__CINT__) || defined(__CLING__)
-  std::array<double,4> m_ColorArray;
+  std::array<double, 4> m_ColorArray;
 #else
   double m_ColorArray[4];
 #endif

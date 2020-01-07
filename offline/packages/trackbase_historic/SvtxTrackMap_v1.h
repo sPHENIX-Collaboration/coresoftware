@@ -7,6 +7,8 @@
 #include <cstddef>        // for size_t
 #include <iostream>        // for cout, ostream
 
+class PHObject;
+
 class SvtxTrackMap_v1 : public SvtxTrackMap
 {
  public:

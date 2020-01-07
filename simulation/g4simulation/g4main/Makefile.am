@@ -50,6 +50,7 @@ libg4testbench_la_LIBADD = \
   -lboost_filesystem \
   -lEICPhysicsList \
   -leicsmear \
+  -lfun4all \
   -lg4decayer \
   -lgsl \
   -lgslcblas \
@@ -155,6 +156,7 @@ libphg4hit_la_SOURCES = \
 
 libg4testbench_la_SOURCES = \
   $(ROOT5TBDICTS) \
+  Fun4AllMessenger.cc \
   G4TBMagneticFieldSetup.cc \
   G4TBFieldMessenger.cc \
   HepMCNodeReader.cc \
@@ -187,6 +189,7 @@ libg4testbench_la_SOURCES = \
   PHG4ScoringManager.cc \
   PHG4SimpleEventGenerator.cc \
   PHG4SteppingAction.cc \
+  PHG4Subsystem.cc \
   PHG4TrackUserInfoV1.cc \
   PHG4TruthEventAction.cc \
   PHG4TruthSubsystem.cc \

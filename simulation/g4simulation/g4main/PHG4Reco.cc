@@ -1,5 +1,6 @@
 #include "PHG4Reco.h"
 
+#include "Fun4AllMessenger.h"
 #include "G4TBMagneticFieldSetup.hh"
 #include "PHG4DisplayAction.h"
 #include "PHG4InEvent.h"
@@ -26,32 +27,33 @@
 #include <phfield/PHFieldUtility.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHDataNode.h>                    // for PHDataNode
-#include <phool/PHNode.h>                        // for PHNode
-#include <phool/PHNodeIterator.h>                // for PHNodeIterator
-#include <phool/PHObject.h>                      // for PHObject
+#include <phool/PHDataNode.h>      // for PHDataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/PHRandomSeed.h>
 #include <phool/getClass.h>
-#include <phool/phool.h>                         // for PHWHERE
+#include <phool/phool.h>  // for PHWHERE
 #include <phool/recoConsts.h>
 
 #include <eicphysicslist/EICPhysicsList.hh>
 
-#include <TSystem.h>                             // for TSystem, gSystem
-#include <TThread.h>
+#include <TSystem.h>  // for TSystem, gSystem
 
 #include <CLHEP/Random/Random.h>
 
 #include <Geant4/G4Cerenkov.hh>
-#include <Geant4/G4Element.hh>                   // for G4Element
-#include <Geant4/G4EventManager.hh>              // for G4EventManager
+#include <Geant4/G4Element.hh>       // for G4Element
+#include <Geant4/G4EventManager.hh>  // for G4EventManager
 #include <Geant4/G4HadronicProcessStore.hh>
-#include <Geant4/G4IonisParamMat.hh>             // for G4IonisParamMat
+#include <Geant4/G4IonisParamMat.hh>  // for G4IonisParamMat
 #include <Geant4/G4LossTableManager.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
+#include <Geant4/G4MaterialPropertiesTable.hh>  // for G4MaterialProperties...
+#include <Geant4/G4MaterialPropertyVector.hh>   // for G4MaterialPropertyVector
 #include <Geant4/G4NistManager.hh>
 #include <Geant4/G4OpAbsorption.hh>
 #include <Geant4/G4OpBoundaryProcess.hh>
@@ -59,70 +61,56 @@
 #include <Geant4/G4OpRayleigh.hh>
 #include <Geant4/G4OpWLS.hh>
 #include <Geant4/G4OpticalPhoton.hh>
-#include <Geant4/G4OpticalPhysics.hh>
 #include <Geant4/G4ParticleDefinition.hh>
 #include <Geant4/G4ParticleTable.hh>
-#include <Geant4/G4ParticleTypes.hh>
-#include <Geant4/G4PhotoElectricEffect.hh>       // for G4PhotoElectricEffect
+#include <Geant4/G4PhotoElectricEffect.hh>  // for G4PhotoElectricEffect
 #include <Geant4/G4ProcessManager.hh>
-#include <Geant4/G4ProductionCuts.hh>            // for G4ProductionCuts
+#include <Geant4/G4ProductionCuts.hh>  // for G4ProductionCuts
 #include <Geant4/G4Region.hh>
 #include <Geant4/G4RegionStore.hh>
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4StepLimiterPhysics.hh>
-#include <Geant4/G4String.hh>                    // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4Types.hh>                     // for G4double, G4int
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 #include <Geant4/G4UIExecutive.hh>
 #include <Geant4/G4UImanager.hh>
+#include <Geant4/G4UImessenger.hh>          // for G4UImessenger
+#include <Geant4/G4VModularPhysicsList.hh>  // for G4VModularPhysicsList
 #include <Geant4/G4Version.hh>
 #include <Geant4/G4VisExecutive.hh>
-#include <Geant4/G4VisManager.hh>                // for G4VisManager
-#include <Geant4/G4VModularPhysicsList.hh>       // for G4VModularPhysicsList
+#include <Geant4/G4VisManager.hh>  // for G4VisManager
 
 // physics lists
 #include <Geant4/FTFP_BERT.hh>
+#include <Geant4/FTFP_BERT_HP.hh>
+#include <Geant4/FTFP_INCLXX.hh>
+#include <Geant4/FTFP_INCLXX_HP.hh>
 #include <Geant4/QGSP_BERT.hh>
+#include <Geant4/QGSP_BERT_HP.hh>
 #include <Geant4/QGSP_BIC.hh>
 #include <Geant4/QGSP_BIC_HP.hh>
-
-#if G4VERSION_NUMBER <= 951
-#define HAVE_LHEP
-#include <Geant4/LHEP.hh>
-#endif
-
-#if G4VERSION_NUMBER >= 1001
-#define HAVE_FTFP_BERT_HP
-#define HAVE_QGSP_BERT_HP
-#include <Geant4/FTFP_BERT_HP.hh>
-#include <Geant4/QGSP_BERT_HP.hh>
-#endif
+#include <Geant4/QGSP_INCLXX.hh>
+#include <Geant4/QGSP_INCLXX_HP.hh>
 
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
-#include <exception>                             // for exception
-#include <iostream>                              // for operator<<, endl
+#include <exception>  // for exception
+#include <iostream>   // for operator<<, endl
 #include <memory>
-#include <set>                                   // for set, _Rb_tree_const_...
-#include <vector>                                // for vector, vector<>::it...
+#include <set>     // for set, _Rb_tree_const_...
+#include <vector>  // for vector, vector<>::it...
 
 class G4TrackingManager;
+class G4VPhysicalVolume;
 class PHField;
 class PHG4EventAction;
 class PHG4SteppingAction;
 
 using namespace std;
-
-static TThread *gui_thread = nullptr;
-
-// for the G4 cmd line interface
-G4UImanager *UImanager = nullptr;
-
-// the gui thread
-void g4guithread(void *ptr);
 
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
@@ -139,6 +127,8 @@ PHG4Reco::PHG4Reco(const string &name)
   , m_DisplayAction(nullptr)
   , generatorAction_(nullptr)
   , visManager(nullptr)
+  , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
+  , m_UImanager(nullptr)
   , _eta_coverage(1.0)
   , mapdim(PHFieldConfig::kFieldUniform)
   , fieldmapfile("NONE")
@@ -167,11 +157,11 @@ PHG4Reco::~PHG4Reco(void)
 {
   // one can delete null pointer (it results in a nop), so checking if
   // they are non zero is not needed
-  delete gui_thread;
   delete field_;
   delete runManager_;
   delete uisession_;
   delete visManager;
+  delete m_Fun4AllMessenger;
   while (subsystems_.begin() != subsystems_.end())
   {
     delete subsystems_.back();
@@ -212,9 +202,28 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   {
     myphysicslist = new FTFP_BERT(Verbosity());
   }
+  else if (physicslist == "FTFP_BERT_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new FTFP_BERT_HP(Verbosity());
+  }
+  else if (physicslist == "FTFP_INCLXX")
+  {
+    myphysicslist = new FTFP_INCLXX(Verbosity());
+  }
+  else if (physicslist == "FTFP_INCLXX_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new FTFP_INCLXX_HP(Verbosity());
+  }
   else if (physicslist == "QGSP_BERT")
   {
     myphysicslist = new QGSP_BERT(Verbosity());
+  }
+  else if (physicslist == "QGSP_BERT_HP")
+  {
+    setenv("AllowForHeavyElements", "1", 1);
+    myphysicslist = new QGSP_BERT_HP(Verbosity());
   }
   else if (physicslist == "QGSP_BIC")
   {
@@ -225,26 +234,15 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_BIC_HP(Verbosity());
   }
-#ifdef HAVE_LHEP
-  else if (physicslist == "LHEP")
+  else if (physicslist == "QGSP_INCLXX")
   {
-    myphysicslist = new LHEP(Verbosity());
+    myphysicslist = new QGSP_INCLXX(Verbosity());
   }
-#endif
-#ifdef HAVE_FTFP_BERT_HP
-  else if (physicslist == "FTFP_BERT_HP")
+  else if (physicslist == "QGSP_INCLXX_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new FTFP_BERT_HP(Verbosity());
+    myphysicslist = new QGSP_INCLXX_HP(Verbosity());
   }
-#endif
-#ifdef HAVE_QGSP_BERT_HP
-  else if (physicslist == "QGSP_BERT_HP")
-  {
-    setenv("AllowForHeavyElements", "1", 1);
-    myphysicslist = new QGSP_BERT_HP(Verbosity());
-  }
-#endif
   else if (physicslist == "EIC")
   {
     myphysicslist = new EICPhysicsList();
@@ -553,32 +551,33 @@ void PHG4Reco::Dump_GDML(const std::string &filename)
 int PHG4Reco::ApplyCommand(const std::string &cmd)
 {
   InitUImanager();
-  int iret = UImanager->ApplyCommand(cmd.c_str());
+  int iret = m_UImanager->ApplyCommand(cmd.c_str());
   return iret;
 }
 //_________________________________________________________________
 
 int PHG4Reco::StartGui()
 {
-  if (!gui_thread)
-  {
-    InitUImanager();
-    gui_thread = new TThread("G4Gui", g4guithread);
-    gui_thread->Run();
-    return 0;
-  }
-  return 1;
+  // kludge, using boost::dll::program_location().string().c_str() for the
+  // program name and putting it into args lead to invalid reads in G4String
+  char *args[] = {(char *) ("root.exe")};
+  G4UIExecutive *ui = new G4UIExecutive(1, args);
+  InitUImanager();
+  m_UImanager->ApplyCommand("/control/execute init_gui_vis.mac");
+  ui->SessionStart();
+  delete ui;
+  return 0;
 }
 
 int PHG4Reco::InitUImanager()
 {
-  if (!UImanager)
+  if (!m_UImanager)
   {
     // Get the pointer to the User Interface manager
     // Initialize visualization
     visManager = new G4VisExecutive;
     visManager->Initialize();
-    UImanager = G4UImanager::GetUIpointer();
+    m_UImanager = G4UImanager::GetUIpointer();
   }
   return 0;
 }
@@ -586,7 +585,6 @@ int PHG4Reco::InitUImanager()
 //_________________________________________________________________
 int PHG4Reco::process_event(PHCompositeNode *topNode)
 {
-  TThread::Lock();
   // make sure Actions and subsystems have the relevant pointers set
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   generatorAction_->SetInEvent(ineve);
@@ -605,7 +603,6 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " caught exception thrown during process_event from "
            << reco->Name() << endl;
       cout << "error: " << e.what() << endl;
-      TThread::UnLock();
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
@@ -632,11 +629,9 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
       cout << PHWHERE << " caught exception thrown during process_after_geant from "
            << g4sub->Name() << endl;
       cout << "error: " << e.what() << endl;
-      TThread::UnLock();
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   }
-  TThread::UnLock();
   return 0;
 }
 
@@ -646,12 +641,6 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
   {
     reco->ResetEvent(topNode);
   }
-  return 0;
-}
-
-//_________________________________________________________________
-int PHG4Reco::End(PHCompositeNode *)
-{
   return 0;
 }
 
@@ -706,23 +695,6 @@ void PHG4Reco::set_rapidity_coverage(const double eta)
 void PHG4Reco::G4Seed(const unsigned int i)
 {
   CLHEP::HepRandom::setTheSeed(i);
-  return;
-}
-
-void g4guithread(void *ptr)
-{
-  TThread::Lock();
-  G4UIExecutive *ui = new G4UIExecutive(0, nullptr, "Xm");
-  if (ui->IsGUI() && boost::filesystem::exists("gui.mac"))
-  {
-    UImanager->ApplyCommand("/control/execute gui.mac");
-  }
-  TThread::UnLock();
-  ui->SessionStart();
-  TThread::Lock();
-  delete ui;
-  TThread::UnLock();
-  gui_thread = nullptr;
   return;
 }
 
@@ -997,16 +969,16 @@ PMMA      -3  12.01 1.008 15.99  6.  1.  8.  1.19  3.6  5.7  1.4
   sPHENIX_tpc_gas->AddMaterial(CF4, den_CF4_2 * CF4_frac / den_sphenix_tpc_gas);
   sPHENIX_tpc_gas->AddMaterial(G4Material::GetMaterial("G4_Ne"), den_G4_Ne * G4_Ne_frac / den_sphenix_tpc_gas);
 
-    // LHCb aerogel
-//    double density = 2.200 * g / cm3;
-    G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
-                                                   2.200 * g / cm3, 2);
-        SiO2AerogelQuartz->AddElement(G4Element::GetElement("Si"), 1);
-    SiO2AerogelQuartz->AddElement(G4Element::GetElement("O"), 2);
+  // LHCb aerogel
+  //    double density = 2.200 * g / cm3;
+  G4Material *SiO2AerogelQuartz = new G4Material("ePHENIX_AerogelQuartz",
+                                                 2.200 * g / cm3, 2);
+  SiO2AerogelQuartz->AddElement(G4Element::GetElement("Si"), 1);
+  SiO2AerogelQuartz->AddElement(G4Element::GetElement("O"), 2);
 
-    G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
-    AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
-                            100.0 * perCent);
+  G4Material *AerogTypeA = new G4Material("ePHENIX_AeroGel", 0.200 * g / cm3, 1);
+  AerogTypeA->AddMaterial(G4Material::GetMaterial("ePHENIX_AerogelQuartz"),
+                          100.0 * perCent);
 
   //
   // CF4

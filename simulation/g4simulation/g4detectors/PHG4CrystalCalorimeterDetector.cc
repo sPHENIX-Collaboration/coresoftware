@@ -1,37 +1,39 @@
 #include "PHG4CrystalCalorimeterDetector.h"
 #include "PHG4CrystalCalorimeterDisplayAction.h"
-#include "PHG4CrystalCalorimeterSubsystem.h"
 
-#include <g4main/PHG4Detector.h>                  // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>             // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4Element.hh>                    // for G4Element
+#include <Geant4/G4Element.hh>  // for G4Element
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>             // for G4RotationMatrix
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>                     // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>                // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>                // for G4Transform3D
-#include <Geant4/G4Types.hh>                      // for G4double
-#include <Geant4/G4VPhysicalVolume.hh>            // for G4VPhysicalVolume
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>      // for G4Transform3D
+#include <Geant4/G4Types.hh>            // for G4double
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
-#include <utility>                                // for pair, make_pair
+#include <utility>  // for pair, make_pair
 
+class G4VSolid;
 class PHCompositeNode;
 
 using namespace std;
 
 //_______________________________________________________________________
-PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
-  : PHG4Detector(Node, dnam)
+PHG4CrystalCalorimeterDetector::PHG4CrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , _place_in_x(0.0 * mm)
   , _place_in_y(0.0 * mm)
   , _place_in_z(-1080.0 * mm)
@@ -84,7 +86,7 @@ int PHG4CrystalCalorimeterDetector::IsInCrystalCalorimeter(G4VPhysicalVolume* vo
 }
 
 //_______________________________________________________________________
-void PHG4CrystalCalorimeterDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4CrystalCalorimeterDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   if (Verbosity() > 0)
   {

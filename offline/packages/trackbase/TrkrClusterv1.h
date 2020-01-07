@@ -12,6 +12,8 @@
 
 #include <iostream>
 
+class PHObject;
+
 /**
  * @brief Version 1 of TrkrCluster
  *

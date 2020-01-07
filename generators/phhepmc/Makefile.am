@@ -20,10 +20,6 @@ pkginclude_HEADERS = \
   Fun4AllHepMCOutputManager.h \
   Fun4AllOscarInputManager.h \
   HepMCFlowAfterBurner.h \
-  PHGenEvent.h \
-  PHGenEventv1.h \
-  PHGenEventList.h \
-  PHGenEventListv1.h \
   PHGenIntegral.h \
   PHGenIntegralv1.h \
   PHHepMCGenEvent.h \
@@ -45,10 +41,6 @@ libphhepmc_la_LIBADD = \
   -lgslcblas
 
 ROOT_DICTS = \
-  PHGenEvent_Dict.cc \
-  PHGenEventv1_Dict.cc \
-  PHGenEventList_Dict.cc \
-  PHGenEventListv1_Dict.cc \
   PHGenIntegral_Dict.cc \
   PHGenIntegralv1_Dict.cc \
   PHHepMC_io_Dict.cc \
@@ -57,10 +49,6 @@ ROOT_DICTS = \
 if MAKEROOT6
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
-  PHGenEvent_Dict_rdict.pcm \
-  PHGenEventv1_Dict_rdict.pcm \
-  PHGenEventList_Dict_rdict.pcm \
-  PHGenEventListv1_Dict_rdict.pcm \
   PHGenIntegral_Dict_rdict.pcm \
   PHGenIntegralv1_Dict_rdict.pcm \
   PHHepMC_io_Dict_rdict.pcm \
@@ -90,8 +78,6 @@ libphhepmc_la_SOURCES = \
 
 libphhepmc_io_la_SOURCES = \
   $(ROOT_DICTS) \
-  PHGenEventv1.cc \
-  PHGenEventListv1.cc \
   PHHepMCGenEvent.cc \
   PHHepMCGenEventMap.cc \
   PHGenIntegral.cc \

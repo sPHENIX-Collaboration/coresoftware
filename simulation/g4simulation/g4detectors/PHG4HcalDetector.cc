@@ -12,6 +12,7 @@
 #include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
+#include <Geant4/G4Colour.hh>  // for G4Colour
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4ExtrudedSolid.hh>
 #include <Geant4/G4LogicalVolume.hh>
@@ -47,8 +48,8 @@ using namespace std;
 int PHG4HcalDetector::INACTIVE = -100;
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4HcalDetector::PHG4HcalDetector(PHCompositeNode* Node, const std::string& dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4HcalDetector::PHG4HcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , TrackerMaterial(nullptr)
   , TrackerThickness(100 * cm)
   , cylinder_logic(nullptr)
@@ -86,7 +87,7 @@ int PHG4HcalDetector::IsInCylinderActive(const G4VPhysicalVolume* volume)
 }
 
 //_______________________________________________________________
-void PHG4HcalDetector::Construct(G4LogicalVolume* logicWorld)
+void PHG4HcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 {
   TrackerMaterial = G4Material::GetMaterial(material);
 
@@ -102,7 +103,7 @@ void PHG4HcalDetector::Construct(G4LogicalVolume* logicWorld)
                                        length / 2.0, 0, twopi);
   double innerlength = PHG4Utils::GetLengthForRapidityCoverage(radius) * 2;
   double deltalen = (length - innerlength) / 2.;  // length difference on one side
-  double cone_size_multiplier = 1.01;  // 1 % larger
+  double cone_size_multiplier = 1.01;             // 1 % larger
   double cone_thickness = TrackerThickness * cone_size_multiplier;
   double inner_cone_radius = radius - ((cone_thickness - TrackerThickness) / 2.);
   double cone_length = deltalen * cone_size_multiplier;

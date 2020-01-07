@@ -1,6 +1,5 @@
 #include "PHInitZVertexing.h"
 
-#include "CellularAutomaton.h"                          // for CellularAutom...
 #include "CellularAutomaton_v1.h"
 #include "HelixHoughBin.h"                              // for HelixHoughBin
 #include "HelixHoughBin_v1.h"                           // for HelixHoughBin_v1
@@ -9,18 +8,20 @@
 #include "HelixHoughSpace.h"                            // for HelixHoughSpace
 #include "HelixHoughSpace_v1.h"                         // for HelixHoughSpa...
 
+#include <HelixHough/HelixKalmanState.h>                // for HelixKalmanState
+#include <HelixHough/SimpleHit3D.h>                     // for SimpleHit3D
+#include <HelixHough/SimpleTrack3D.h>                   // for SimpleTrack3D
+
 #include <trackbase_historic/SvtxVertexMap.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
 #include <trackbase_historic/SvtxVertex.h>
 #include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackMap.h>            // for SvtxTrackMap
 #include <trackbase_historic/SvtxTrackMap_v1.h>
 #include <trackbase_historic/SvtxTrack_v1.h>
 
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrCluster.h>
-
-#include <g4bbc/BbcVertexMap.h>
+#include <trackbase/TrkrDefs.h>                         // for getLayer, clu...
 
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderGeom.h>
@@ -29,7 +30,6 @@
 
 // sPHENIX includes
 #include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -44,7 +44,7 @@
 #include <TNtuple.h>
 
 #include <algorithm>                                    // for find
-#include <climits>                                     // for UINT_MAX
+#include <cassert>                                     // for assert
 #include <cmath>
 #include <cstdlib>                                     // for NULL, exit
 #include <iostream>
@@ -2116,7 +2116,7 @@ int PHInitZVertexing::fit_vertex(){
 	  // Note: this gets a twobinspeak even if only bin j or only bin j+1 is filled
 	  bool twobinspeak =  _mult_twobins*(zcounts[j-1]+zcounts[j-2])<(zcounts[j]+zcounts[j+1]) 
 									&& _mult_twobins*(zcounts[j+2]+zcounts[j+3])< (zcounts[j]+zcounts[j+1]);
-	  bool onebinpeak = _mult_onebin*(zcounts[j-1])<zcounts[j] && _mult_onebin*(zcounts[j+1]< zcounts[j]);
+	  bool onebinpeak = (_mult_onebin*(zcounts[j-1])<zcounts[j]) && (_mult_onebin*zcounts[j+1]< zcounts[j]);
 		
 	  // discard if number of tracks <  the minimum
 	  if ((zcounts[j]>=_min_zvtx_tracks && onebinpeak) || ( (zcounts[j]+zcounts[j+1])>= _min_zvtx_tracks && twobinspeak) 

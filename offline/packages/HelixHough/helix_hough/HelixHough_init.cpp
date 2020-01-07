@@ -6,7 +6,6 @@
 #include "SimpleTrack3D.h"
 
 #include <iostream>
-#include <memory>
 #include <utility>
 #include <vector>
 

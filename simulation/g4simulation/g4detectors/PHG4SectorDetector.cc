@@ -1,16 +1,16 @@
 #include "PHG4SectorDetector.h"
 #include "PHG4SectorDisplayAction.h"
-#include "PHG4SectorSubsystem.h"
 
 #include <g4main/PHG4Detector.h>       // for PHG4Detector
 #include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>      // for PHG4Subsystem
 
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4String.hh>          // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 
-#include <map>                         // for _Rb_tree_iterator, _Rb_tree_co...
+#include <map>  // for _Rb_tree_iterator, _Rb_tree_co...
 #include <sstream>
-#include <utility>                     // for pair
+#include <utility>  // for pair
 
 class G4VPhysicalVolume;
 class PHCompositeNode;
@@ -20,8 +20,8 @@ using namespace PHG4Sector;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4SectorDetector::PHG4SectorDetector(PHG4SectorSubsystem *subsys, PHCompositeNode *Node, const std::string &dnam)
-  : PHG4Detector(Node, dnam)
+PHG4SectorDetector::PHG4SectorDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, const std::string &dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , PHG4SectorConstructor(dnam, subsys)
   , m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction *>(subsys->GetDisplayAction()))
 {
@@ -44,7 +44,7 @@ bool PHG4SectorDetector::IsInSectorActive(G4VPhysicalVolume *physvol)
 }
 
 //_______________________________________________________________
-void PHG4SectorDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4SectorDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   Construct_Sectors(logicWorld);
 

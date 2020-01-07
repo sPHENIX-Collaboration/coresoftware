@@ -107,7 +107,7 @@ class SvtxClusterEval
   std::map<std::pair<TrkrDefs::cluskey, PHG4Particle*>, float> _cache_get_energy_contribution_g4particle;
   std::map<std::pair<TrkrDefs::cluskey, PHG4Hit*>, float> _cache_get_energy_contribution_g4hit;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! cluster azimuthal searching window in _clusters_per_layer. Unit: rad
   static constexpr float _clusters_searching_window = 0.1f;
   std::multimap<unsigned int, innerMap> _clusters_per_layer;

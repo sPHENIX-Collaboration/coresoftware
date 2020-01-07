@@ -19,7 +19,7 @@
  */
 namespace MvtxDefs
 {
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 // hitsetkey layout:
 //  Mvtx specific lower 16 bits
 //   24 - 32  tracker id

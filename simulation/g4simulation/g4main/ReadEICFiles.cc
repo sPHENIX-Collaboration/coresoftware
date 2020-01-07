@@ -23,6 +23,7 @@
 #include <vector>                        // for vector
 
 class PHCompositeNode;
+class PHHepMCGenEvent;
 
 using namespace std;
 

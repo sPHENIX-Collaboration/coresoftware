@@ -10,10 +10,12 @@
 
 #include "PHG4HitEval.h"
 
+#include "PHG4Hit.h"         // for PHG4Hit
+
+#include <phool/PHObject.h>  // for PHObject
+
 #include <cassert>
 #include <cmath>
-
-class PHG4Hit;
 
 PHG4HitEval::PHG4HitEval() :
     eion(NAN), scint_id(-9999), light_yield(NAN), path_length(NAN)

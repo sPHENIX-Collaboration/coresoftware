@@ -5,14 +5,14 @@
 
 #include "PHG4CrystalCalorimeterDetector.h"
 
-#include <Geant4/G4Types.hh>                 // for G4double, G4int
+#include <Geant4/G4Types.hh>  // for G4double, G4int
 
-#include <string>                            // for string
+#include <string>  // for string
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class PHCompositeNode;
-class PHG4CrystalCalorimeterSubsystem;
+class PHG4Subsystem;
 
 /**
  * \file ${file_name}
@@ -24,13 +24,13 @@ class PHG4ProjCrystalCalorimeterDetector : public PHG4CrystalCalorimeterDetector
 {
  public:
   //! constructor
-  PHG4ProjCrystalCalorimeterDetector(PHG4CrystalCalorimeterSubsystem* subsys, PHCompositeNode* Node, const std::string& dnam = "BLOCK");
+  PHG4ProjCrystalCalorimeterDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam);
 
   //! destructor
-  virtual ~PHG4ProjCrystalCalorimeterDetector();
+  virtual ~PHG4ProjCrystalCalorimeterDetector(){}
 
   //! construct
-  virtual void Construct(G4LogicalVolume* world);
+  virtual void ConstructMe(G4LogicalVolume* world);
 
   //!@name volume accessors
   virtual int IsInCrystalCalorimeter(G4VPhysicalVolume*) const;

@@ -18,8 +18,11 @@
 #include <cassert>
 #include <cfloat>
 #include <cmath>
+#include <iostream>                          // for operator<<, endl, basic_...
 #include <map>
 #include <set>
+
+class TrkrHit;
 
 using namespace std;
 

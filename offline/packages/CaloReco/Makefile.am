@@ -28,6 +28,7 @@ AM_CPPFLAGS = \
 pkginclude_HEADERS = \
   RawClusterBuilderFwd.h \
   RawClusterBuilderGraph.h \
+  RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
   RawClusterBuilderTemplateFEMC.h \
   RawClusterPositionCorrection.h \
@@ -37,6 +38,7 @@ pkginclude_HEADERS = \
 if ! MAKEROOT6
   ROOT5_DICTS = \
   RawClusterBuilderGraph_Dict.cc \
+  RawClusterBuilderTopo_Dict.cc \
   RawClusterBuilderTemplate_Dict.cc \
   RawClusterBuilderTemplateFEMC_Dict.cc \
   RawClusterBuilderTemplateEEMC_Dict.cc \
@@ -59,6 +61,7 @@ libcalo_reco_la_SOURCES = \
   BEmcRecFEMC.cc \
   BEmcRecEEMC.cc \
   RawClusterBuilderGraph.cc \
+  RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
   RawClusterBuilderTemplateFEMC.cc \
   RawClusterBuilderTemplateEEMC.cc \

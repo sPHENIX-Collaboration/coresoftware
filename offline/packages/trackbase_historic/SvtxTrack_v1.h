@@ -12,6 +12,8 @@
 #include <map>
 #include <utility>               // for pair
 
+class PHObject;
+
 class SvtxTrack_v1 : public SvtxTrack
 {
  public:

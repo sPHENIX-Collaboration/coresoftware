@@ -28,6 +28,7 @@
 
 // boost headers
 #include <boost/tokenizer.hpp>
+#include <boost/token_iterator.hpp>            // for token_iterator
 // this is an ugly hack, the gcc optimizer has a bug which
 // triggers the uninitialized variable warning which
 // stops compilation because of our -Werror

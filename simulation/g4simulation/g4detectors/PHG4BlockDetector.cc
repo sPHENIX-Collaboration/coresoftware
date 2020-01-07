@@ -1,28 +1,28 @@
 #include "PHG4BlockDetector.h"
 
 #include "PHG4BlockDisplayAction.h"
-#include "PHG4BlockSubsystem.h"
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4Detector.h>         // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
-#include <Geant4/G4RotationMatrix.hh>    // for G4RotationMatrix
-#include <Geant4/G4String.hh>            // for G4String
+#include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>       // for G4ThreeVector
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
 #include <Geant4/G4UserLimits.hh>
 
-#include <CLHEP/Units/SystemOfUnits.h>   // for cm, deg
+#include <CLHEP/Units/SystemOfUnits.h>  // for cm, deg
 
-#include <cmath>                         // for isfinite
-#include <cstdlib>                      // for exit
-#include <iostream>                      // for operator<<, endl, basic_ostream
+#include <cmath>     // for isfinite
+#include <cstdlib>   // for exit
+#include <iostream>  // for operator<<, endl, basic_ostream
 #include <sstream>
 
 class G4VSolid;
@@ -31,8 +31,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________
-PHG4BlockDetector::PHG4BlockDetector(PHG4BlockSubsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
-  : PHG4Detector(Node, dnam)
+PHG4BlockDetector::PHG4BlockDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+  : PHG4Detector(subsys, Node, dnam)
   , m_Params(parameters)
   , m_BlockPhysi(nullptr)
   , m_DisplayAction(dynamic_cast<PHG4BlockDisplayAction *>(subsys->GetDisplayAction()))
@@ -51,7 +51,7 @@ bool PHG4BlockDetector::IsInBlock(G4VPhysicalVolume *volume) const
 }
 
 //_______________________________________________________________
-void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4BlockDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   G4Material *TrackerMaterial = G4Material::GetMaterial(m_Params->get_string_param("material"));
 
@@ -77,6 +77,9 @@ void PHG4BlockDetector::Construct(G4LogicalVolume *logicWorld)
                                                      TrackerMaterial,
                                                      G4String(GetName()),
                                                      nullptr, nullptr, g4userlimits);
+
+  PHG4Subsystem *mysys = GetMySubsystem();
+  mysys->SetLogicalVolume(block_logic);
 
   G4RotationMatrix *rotm = new G4RotationMatrix();
   rotm->rotateZ(m_Params->get_double_param("rot_z") * deg);

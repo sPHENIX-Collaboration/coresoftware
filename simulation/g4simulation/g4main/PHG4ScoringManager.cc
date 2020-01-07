@@ -16,7 +16,7 @@
 #include <phhepmc/PHHepMCGenEvent.h>
 #include <phhepmc/PHHepMCGenEventMap.h>
 
-#include <fun4all/Fun4AllBase.h>                   // for Fun4AllBase::VERBO...
+#include <fun4all/Fun4AllBase.h>  // for Fun4AllBase::VERBO...
 #include <fun4all/Fun4AllHistoManager.h>
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/Fun4AllServer.h>
@@ -24,51 +24,41 @@
 
 #include <phool/getClass.h>
 
-#include <HepMC/SimpleVector.h>                    // for FourVector
+#include <HepMC/SimpleVector.h>  // for FourVector
 
-#include <TAxis.h>                                 // for TAxis
+#include <TAxis.h>  // for TAxis
 #include <TDatabasePDG.h>
 #include <TH1.h>
-#include <TH3.h>                                   // for TH3, TH3D
-#include <TNamed.h>                                // for TNamed
-#include <TParticlePDG.h>                          // for TParticlePDG
+#include <TH3.h>           // for TH3, TH3D
+#include <TNamed.h>        // for TNamed
+#include <TParticlePDG.h>  // for TParticlePDG
 #include <TVector3.h>
 
 #include <Geant4/G4RunManager.hh>
 #include <Geant4/G4ScoringManager.hh>
-#include <Geant4/G4String.hh>                      // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4THitsMap.hh>                    // for G4THitsMap
-#include <Geant4/G4ThreeVector.hh>                 // for G4ThreeVector
-#include <Geant4/G4Types.hh>                       // for G4int, G4double
+#include <Geant4/G4THitsMap.hh>     // for G4THitsMap
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Types.hh>        // for G4int, G4double
 #include <Geant4/G4UImanager.hh>
-#include <Geant4/G4VScoringMesh.hh>                // for G4VScoringMesh
+#include <Geant4/G4VScoringMesh.hh>  // for G4VScoringMesh
 #include <Geant4/G4Version.hh>
 
 #include <boost/format.hpp>
 
 #include <cassert>
-#include <climits>                                  // for numeric_limits
-#include <cmath>                                  // for fabs, M_PI
+#include <cmath>  // for fabs, M_PI
 #include <iostream>
-#include <map>                                     // for _Rb_tree_const_ite...
-#include <utility>                                 // for pair
+#include <limits>   // for numeric_limits
+#include <map>      // for _Rb_tree_const_ite...
+#include <utility>  // for pair
 
 using namespace std;
 
 PHG4ScoringManager::PHG4ScoringManager()
   : SubsysReco("PHG4ScoringManager")
 {
-}
-
-PHG4ScoringManager::~PHG4ScoringManager()
-{
-}
-
-//_________________________________________________________________
-int PHG4ScoringManager::Init(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
@@ -115,15 +105,13 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
 
-  hm->registerHisto(
-      new TH1D("hNChEta",  //
-               "Charged particle #eta distribution;#eta;Count",
-               1000, -5, 5));
+  hm->registerHisto(new TH1D("hNChEta",  //
+                             "Charged particle #eta distribution;#eta;Count",
+                             1000, -5, 5));
 
-  hm->registerHisto(
-      new TH1D("hVertexZ",  //
-               "Vertex z distribution;z [cm];Count",
-               1000, -200, 200));
+  hm->registerHisto(new TH1D("hVertexZ",  //
+                             "Vertex z distribution;z [cm];Count",
+                             1000, -200, 200));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -154,7 +142,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
     if (once)
     {
       once = false;
-      cout << "TPCDataStreamEmulator::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
+      cout << "PHG4ScoringManager::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
     }
   }
   else
@@ -179,23 +167,20 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve)
   {
-    cout << "TPCDataStreamEmulator::process_event - Error - "
+    cout << "PHG4ScoringManager::process_event - Error - "
          << "unable to find DST node "
          << "PHG4INEVENT" << endl;
   }
   else
   {
-    const auto primary_range =
-        ineve->GetParticles();
-    for (auto particle_iter =
-             primary_range.first;
+    const auto primary_range = ineve->GetParticles();
+    for (auto particle_iter = primary_range.first;
          particle_iter != primary_range.second;
          ++particle_iter)
     {
       const PHG4Particle *p = particle_iter->second;
       assert(p);
-      TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(
-          p->get_pid());
+      TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(p->get_pid());
       assert(pdg_p);
       if (fabs(pdg_p->Charge()) > 0)
       {
@@ -209,11 +194,6 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
     }  //          if (_load_all_particle) else
   }
 
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int PHG4ScoringManager::ResetEvent(PHCompositeNode *topNode)
-{
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -268,13 +248,20 @@ void PHG4ScoringManager::makeScoringHistograms()
     // process shape
     const G4ThreeVector meshSize = g4mesh->GetSize();
     const G4ThreeVector meshTranslate = g4mesh->GetTranslation();
+#if G4VERSION_NUMBER >= 1060
+    const G4VScoringMesh::MeshShape meshShape = g4mesh->GetShape();
+#else
     const MeshShape meshShape = g4mesh->GetShape();
+#endif
     //PHENIX units
     vector<double> meshBoundMin = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
     //PHENIX units
     vector<double> meshBoundMax = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
-
+#if G4VERSION_NUMBER >= 1060
+    if (meshShape == G4VScoringMesh::MeshShape::box)
+#else
     if (meshShape == boxMesh)
+#endif
     {
       meshBoundMin[0] = (-meshSize[0] + meshTranslate[0]) / cm;
       meshBoundMax[0] = (meshSize[0] + meshTranslate[0]) / cm;
@@ -287,17 +274,21 @@ void PHG4ScoringManager::makeScoringHistograms()
       divisionAxisNames[1] += " [cm]";
       divisionAxisNames[2] += " [cm]";
     }
+#if G4VERSION_NUMBER >= 1060
+    else if (meshShape == G4VScoringMesh::MeshShape::cylinder)
+#else
     else if (meshShape == cylinderMesh)
+#endif
     {
       //      fDivisionAxisNames[0] = "Z";
       //      fDivisionAxisNames[1] = "PHI";
       //      fDivisionAxisNames[2] = "R";
-//      G4VSolid * tubsSolid = new G4Tubs(tubsName+"0", // name
-//                0.,           // R min
-//                fSize[0],     // R max
-//                fSize[1],     // Dz
-//                0.,           // starting phi
-//                                        twopi*rad);   // segment phi
+      //      G4VSolid * tubsSolid = new G4Tubs(tubsName+"0", // name
+      //                0.,           // R min
+      //                fSize[0],     // R max
+      //                fSize[1],     // Dz
+      //                0.,           // starting phi
+      //                                        twopi*rad);   // segment phi
       meshBoundMin[0] = (-meshSize[1] + meshTranslate[0]) / cm;
       meshBoundMax[0] = (meshSize[1] + meshTranslate[0]) / cm;
       meshBoundMin[1] = 0;
@@ -311,18 +302,23 @@ void PHG4ScoringManager::makeScoringHistograms()
     }
     else
     {
-      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << meshShape << ". Skipping this mesh!" << endl;
+      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << (int) meshShape << ". Skipping this mesh!" << endl;
       g4mesh->List();
       continue;
     }
 
+#if G4VERSION_NUMBER >= 1060
+    G4VScoringMesh::MeshScoreMap fSMap = g4mesh->GetScoreMap();
+    G4VScoringMesh::MeshScoreMap::const_iterator msMapItr = fSMap.begin();
+#else
     MeshScoreMap fSMap = g4mesh->GetScoreMap();
     MeshScoreMap::const_iterator msMapItr = fSMap.begin();
+#endif
     for (; msMapItr != fSMap.end(); ++msMapItr)
     {
       G4String psname = msMapItr->first;
 #if G4VERSION_NUMBER >= 1040
-      std::map<G4int, G4StatDouble*> &score = *(msMapItr->second->GetMap());
+      std::map<G4int, G4StatDouble *> &score = *(msMapItr->second->GetMap());
 #else
       std::map<G4int, G4double *> &score = *(msMapItr->second->GetMap());
 #endif
@@ -333,6 +329,7 @@ void PHG4ScoringManager::makeScoringHistograms()
       const string htitle = boost::str(boost::format("Mesh %1%, Primitive scorer %2%: score [%3%]") % meshName.c_str() % psname.data() % unit.data());
 
       if (Verbosity())
+      {
         cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName
              << "  scorer " << psname
              << "  with axis: "
@@ -343,7 +340,7 @@ void PHG4ScoringManager::makeScoringHistograms()
              << "[unit: " << unit << "]."
              << " Saving to histogram " << hname << " : " << htitle
              << endl;
-
+      }
       //book histogram
       TH3 *h = new TH3D(hname.c_str(),   //
                         htitle.c_str(),  //
@@ -397,7 +394,7 @@ PHG4ScoringManager::getHistoManager()
   static string histname("PHG4ScoringManager_HISTOS");
   Fun4AllServer *se = Fun4AllServer::instance();
   Fun4AllHistoManager *hm = se->getHistoManager(histname);
-  if (not hm)
+  if (!hm)
   {
     if (Verbosity())
       cout

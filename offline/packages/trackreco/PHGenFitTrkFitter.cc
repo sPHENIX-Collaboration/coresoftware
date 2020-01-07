@@ -85,6 +85,7 @@
 #include <TVector3.h>
 #include <TMath.h>                                  // for ATan2
 #include <TMatrixDSymfwd.h>                         // for TMatrixDSym
+#include <TMatrixFfwd.h>                            // for TMatrixF
 #include <TMatrixT.h>                               // for TMatrixT, operator*
 #include <TMatrixTSym.h>                            // for TMatrixTSym
 #include <TMatrixTUtils.h>                          // for TMatrixTRow

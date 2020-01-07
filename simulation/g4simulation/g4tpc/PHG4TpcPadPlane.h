@@ -24,7 +24,7 @@ class PHG4TpcPadPlane : public SubsysReco, public PHParameterInterface
 
   virtual ~PHG4TpcPadPlane() {}
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   int process_event(PHCompositeNode *) final
   {
     return 0;

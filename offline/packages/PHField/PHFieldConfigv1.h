@@ -16,6 +16,8 @@
 #include <iostream>
 #include <string>
 
+class PHObject;
+
 /*!
  * \brief PHFieldConfigv1 implements field configuration information for input a field map file */
 class PHFieldConfigv1 : public PHFieldConfig

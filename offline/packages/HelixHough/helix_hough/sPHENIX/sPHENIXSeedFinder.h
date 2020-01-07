@@ -3,6 +3,7 @@
 
 #include "HelixHough.h"
 #include "HelixKalmanState.h"
+#include "HelixRange.h"        // for HelixRange
 #include "SimpleHit3D.h"
 #include "Seamstress.h"
 

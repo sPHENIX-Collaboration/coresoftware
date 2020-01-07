@@ -6,10 +6,10 @@
 #include "PHG4Hit.h"
 #include "PHG4HitDefs.h"
 
-#ifdef __CINT__
-#include <stdint.h>
-#else
+#if !defined(__CINT__) || defined (__CLING__)
 #include <cstdint>
+#else
+#include <stdint.h>
 #endif
 #include <iostream>
 #include <map>

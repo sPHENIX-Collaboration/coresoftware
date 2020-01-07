@@ -7,7 +7,7 @@
 #include <fun4all/SubsysReco.h>
 
 // rootcint barfs with this header so we need to hide it
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 #include <gsl/gsl_rng.h>
 #endif
 
@@ -54,7 +54,7 @@ class PHG4MvtxDigitizer : public SubsysReco
   std::map<int, unsigned int> _max_adc;
   std::map<int, float> _energy_scale;
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng *RandomGenerator;
 #endif

@@ -25,7 +25,6 @@
 #endif
 
 #include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
 
 #include <cassert>
 #include <cstdlib>
@@ -428,7 +427,7 @@ PHNodeIOManager::reconstructNodeTree(PHCompositeNode* topNode)
   // Loop over all branches in the tree. Each branch-name contains the
   // full 'path' of composite-nodes in the original node tree. We
   // split the name and reconstruct the tree.
-  string delimeters = phooldefs::branchpathdelim + "/";  // add old backslash for backward compat
+  string delimeters = phooldefs::branchpathdelim + phooldefs::legacypathdelims;  // add old backslash for backward compat
   for (i = 0; i < (size_t)(branchArray->GetEntriesFast()); i++)
   {
     string branchname = (*branchArray)[i]->GetName();

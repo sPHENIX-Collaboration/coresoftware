@@ -9,16 +9,16 @@
 
 #include "PHG4CylinderGeomContainer.h"
 #include "PHG4SpacalDisplayAction.h"
-#include "PHG4SpacalSubsystem.h"
 
-#include <g4main/PHG4Detector.h>          // for PHG4Detector
-#include <g4main/PHG4DisplayAction.h>     // for PHG4DisplayAction
+#include <g4main/PHG4Detector.h>       // for PHG4Detector
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                 // for PHNode
-#include <phool/PHNodeIterator.h>         // for PHNodeIterator
-#include <phool/PHObject.h>               // for PHObject
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <g4gdml/PHG4GDMLConfig.hh>
@@ -30,17 +30,18 @@
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4PhysicalConstants.hh>
-#include <Geant4/G4String.hh>             // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SystemOfUnits.hh>
-#include <Geant4/G4ThreeVector.hh>        // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>        // for G4Transform3D, G4RotateZ3D
+#include <Geant4/G4ThreeVector.hh>  // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>  // for G4Transform3D, G4RotateZ3D
 #include <Geant4/G4Tubs.hh>
+#include <Geant4/G4Types.hh>              // for G4double
 #include <Geant4/G4UserLimits.hh>
 
 #include <boost/foreach.hpp>
 
 #include <cassert>
-#include <iostream>                       // for operator<<, basic_ostream
+#include <iostream>  // for operator<<, basic_ostream
 #include <sstream>
 
 class PHG4CylinderGeom;
@@ -49,13 +50,13 @@ using namespace std;
 
 //_______________________________________________________________
 //note this inactive thickness is ~1.5% of a radiation length
-PHG4SpacalDetector::PHG4SpacalDetector(PHG4SpacalSubsystem *subsys,
+PHG4SpacalDetector::PHG4SpacalDetector(PHG4Subsystem *subsys,
                                        PHCompositeNode *Node,
                                        const std::string &dnam,
                                        PHParameters *parameters,
                                        const int lyr,
                                        bool init_geom)
-  : PHG4Detector(Node, dnam)
+  : PHG4Detector(subsys, Node, dnam)
   , m_DisplayAction(dynamic_cast<PHG4SpacalDisplayAction *>(subsys->GetDisplayAction()))
   , cylinder_solid(nullptr)
   , cylinder_logic(nullptr)
@@ -116,7 +117,7 @@ int PHG4SpacalDetector::IsInCylinderActive(const G4VPhysicalVolume *volume)
 }
 
 //_______________________________________________________________
-void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
+void PHG4SpacalDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
   assert(_geom);
 
@@ -138,13 +139,13 @@ void PHG4SpacalDetector::Construct(G4LogicalVolume *logicWorld)
         << "PHG4SpacalDetector::Construct - ERROR - not yet support unsymmetric system. Let me know if you need it. - Jin"
         << endl;
     _geom->Print();
-    exit(-1);
+    gSystem->Exit(-1);
   }
   if (_geom->get_zmin() * cm >= _geom->get_zmax() * cm)
   {
     cout << "PHG4SpacalDetector::Construct - ERROR - zmin >= zmax!" << endl;
     _geom->Print();
-    exit(-1);
+    gSystem->Exit(-1);
   }
 
   G4Tubs *_cylinder_solid = new G4Tubs(G4String(GetName()),

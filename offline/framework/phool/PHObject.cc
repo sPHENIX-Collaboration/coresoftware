@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+class TObject;
+
 PHObject*
 PHObject::CloneMe() const
 {
@@ -41,7 +43,7 @@ void PHObject::Reset()
             << std::endl;
   std::cout << "load the libraries which contain these classes and try again"
             << std::endl;
-  exit(1);
+  gSystem->Exit(1);
 }
 
 int PHObject::isValid() const

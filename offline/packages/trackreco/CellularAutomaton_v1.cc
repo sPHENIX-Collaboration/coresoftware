@@ -3,12 +3,16 @@
 #include "HelixHoughSpace.h"    // for HelixHoughSpace
 #include "HelixKalmanFilter.h"  // for HelixKalmanFilter
 
+#include <HelixHough/HelixKalmanState.h>  // for HelixKalmanState
+#include <HelixHough/SimpleHit3D.h>       // for SimpleHit3D
 
+#include <phool/PHObject.h>               // for PHObject
 #include <phool/phool.h>        // for PHWHERE
 
 #include <Eigen/Core>
 
 #include <algorithm>            // for sort
+#include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>             // for exit, NULL

@@ -1,6 +1,7 @@
 #include "PHG4InttFPHXParameterisation.h"
 
 #include <Geant4/G4ThreeVector.hh>
+#include <Geant4/G4Types.hh>             // for G4double, G4int
 #include <Geant4/G4VPhysicalVolume.hh>
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

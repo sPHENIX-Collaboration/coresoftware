@@ -40,8 +40,7 @@ libphg4gdml_la_SOURCES = \
   PHG4GDMLWriteSetup.cc \
   PHG4GDMLWriteParamvol.cc \
   PHG4GDMLWriteStructure.cc \
-  PHG4GDMLUtility.cc \
-  PHG4GDMLConfig.cc
+  PHG4GDMLUtility.cc
 
 
 ##############################################

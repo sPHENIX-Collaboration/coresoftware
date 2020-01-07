@@ -54,7 +54,7 @@ RawTowerDigitizer::RawTowerDigitizer(const std::string &name)
 {
   m_RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
   m_Seed = PHRandomSeed();  // fixed seed handled in PHRandomSeed()
-  cout << Name() << " Random Seed: " << m_Seed << endl;
+  // cout << Name() << " Random Seed: " << m_Seed << endl;
   gsl_rng_set(m_RandomGenerator, m_Seed);
 }
 

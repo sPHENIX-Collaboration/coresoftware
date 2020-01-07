@@ -13,7 +13,7 @@
 #define G4DETECTORS_EPHENIXRICHCONSTRUCTION_H
 
 #include <Geant4/G4String.hh>
-#include <Geant4/G4Types.hh>            // for G4int
+#include <Geant4/G4Types.hh>  // for G4int
 
 #if !defined(__CINT__) || defined(__CLING__)
 #include <Geant4/G4SystemOfUnits.hh>
@@ -21,14 +21,14 @@
 
 #include <map>
 #include <set>
-#include <utility>                      // for pair
+#include <utility>  // for pair
 
 class G4VPhysicalVolume;
 class G4LogicalVolume;
 class G4OpticalSurface;
 class G4PVPlacement;
 class PHG4RICHDisplayAction;
-class PHG4RICHSubsystem;
+class PHG4Subsystem;
 
 namespace ePHENIXRICH
 {
@@ -358,7 +358,7 @@ class RICH_Geometry
   G4OpticalSurface* RICH_Photocathode_OpticalSurface;
 };
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
 /**
    * \brief This class creates the ePHENIX RICH volumes for Geant4 based on the geometry
@@ -375,8 +375,8 @@ class ePHENIXRICHConstruction
 {
  public:
   virtual ~ePHENIXRICHConstruction() {}
-  ePHENIXRICHConstruction(PHG4RICHSubsystem* subsys);
-  ePHENIXRICHConstruction(PHG4RICHSubsystem* subsys, const RICH_Geometry& g);
+  ePHENIXRICHConstruction(PHG4Subsystem* subsys);
+  ePHENIXRICHConstruction(PHG4Subsystem* subsys, const RICH_Geometry& g);
 
   virtual void
   OverlapCheck(bool check)
@@ -426,8 +426,8 @@ class ePHENIXRICHConstruction
   std::set<G4VPhysicalVolume*> sector_vec;
 };
 
-#endif
+#endif // #if !defined(__CINT__) || defined(__CLING__)
 
 }  //namespace ePHENIXRICH
 
-#endif /* EPHENIXRICHCONSTRUCTION_H_ */
+#endif // G4DETECTORS_EPHENIXRICHCONSTRUCTION_H

@@ -18,10 +18,12 @@
 
 #include <Geant4/G4Region.hh>
 
+#include <string>                     // for string
+
 class G4LogicalVolume;
 class G4UserSteppingAction;
 class PHCompositeNode;
-class PHG4RICHSubsystem;
+class PHG4Subsystem;
 
 /**
    * \brief This class creates the ePHENIX RICH volumes for Geant4 within Fun4All via
@@ -39,15 +41,15 @@ class PHG4RICHDetector : public PHG4Detector,
                          public ePHENIXRICH::ePHENIXRICHConstruction
 {
  public:
-  PHG4RICHDetector(PHG4RICHSubsystem* subsys, PHCompositeNode* Node, const ePHENIXRICH::RICH_Geometry& g);
-  PHG4RICHDetector(PHG4RICHSubsystem* subsys, PHCompositeNode* Node);
+  PHG4RICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dname, const ePHENIXRICH::RICH_Geometry& g);
+  PHG4RICHDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dname);
 
   virtual ~PHG4RICHDetector(void)
   {
   }
 
   virtual void
-  Construct(G4LogicalVolume* world);
+  ConstructMe(G4LogicalVolume* world);
 
   virtual G4UserSteppingAction*
   GetSteppingAction()
@@ -65,7 +67,6 @@ class PHG4RICHDetector : public PHG4Detector,
   }
 
  private:
-
   G4Region* _region;
 };
 

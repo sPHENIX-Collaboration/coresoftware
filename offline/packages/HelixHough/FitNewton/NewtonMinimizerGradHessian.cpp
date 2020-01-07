@@ -5,6 +5,7 @@
 
 #include <Eigen/LU>
 
+#include <algorithm>                 // for fill
 #include <cmath>
 #include <iostream>
 #include <utility>

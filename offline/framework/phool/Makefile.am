@@ -1,9 +1,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 lib_LTLIBRARIES = \
-  libphool.la \
-  libphool_raw.la
-
+  libphool.la
 
 AM_CPPFLAGS = \
   -I$(includedir) \
@@ -18,10 +16,6 @@ libphool_la_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
   `root-config --libs`
-
-libphool_raw_la_LIBADD = \
-  libphool.la \
-  -lEvent
 
 ROOTDICTS = \
   PHObject_Dict.cc \
@@ -62,10 +56,6 @@ libphool_la_SOURCES = \
   PHTimeStamp.cc \
   recoConsts.cc
 
-libphool_raw_la_SOURCES = \
-  PHRawDataNode.cc \
-  PHRawOManager.cc
-
 pkginclude_HEADERS =  \
   getClass.h \
   PHCompositeNode.h \
@@ -87,7 +77,6 @@ pkginclude_HEADERS =  \
   PHRandomSeed.h \
   PHPointerList.h \
   PHPointerListIterator.h \
-  PHRawOManager.h \
   PHTimer.h \
   PHTimeServer.h \
   PHTimeStamp.h \
@@ -98,17 +87,12 @@ BUILT_SOURCES = \
   testexternals.cc
 
 noinst_PROGRAMS = \
-  testexternals \
-  testexternals_raw
+  testexternals
 
 
 testexternals_SOURCES = testexternals.cc
 testexternals_LDADD = \
   libphool.la
-
-testexternals_raw_SOURCES = testexternals.cc
-testexternals_raw_LDADD = \
-  libphool_raw.la
 
 testexternals.cc:
 	echo "//*** this is a generated file. Do not commit, do not edit" > $@

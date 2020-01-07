@@ -11,6 +11,7 @@
 
 #include <trackbase/TrkrCluster.h>                      // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrDefs.h>                         // for cluskey, getL...
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -52,7 +53,6 @@
 #include <phgenfit/Fitter.h>
 #include <phgenfit/Measurement.h>                       // for Measurement
 #include <phgenfit/PlanarMeasurement.h>
-#include <phgenfit/SpacepointMeasurement.h>
 #include <phgenfit/Track.h>
 
 //ROOT includes for debugging
@@ -484,7 +484,7 @@ int PHGenFitTrkProp::check_track_exists(MapPHGenFitTrack::iterator iter, SvtxTra
       cout << " trk map size: " << _gftrk_hitkey_map.count(iCluId) << endl;
       cout << "n: " << n << "#Clu_g = " << iCluId << " ntrack match: "  << _assoc_container->GetTracksFromCluster(cluster_ID).size()
 	   << " layer: " << (float)TrkrDefs::getLayer(cluster_ID)
-	   << " r: " << TMath::Sqrt(_cluster_map->findCluster(cluster_ID)->getX()*_cluster_map->findCluster(cluster_ID)->getX() +_cluster_map->findCluster(cluster_ID)->getY()*_cluster_map->findCluster(cluster_ID)->getY() )
+	   << " r: " << sqrt(_cluster_map->findCluster(cluster_ID)->getX()*_cluster_map->findCluster(cluster_ID)->getX() +_cluster_map->findCluster(cluster_ID)->getY()*_cluster_map->findCluster(cluster_ID)->getY() )
 	   << " used: " << n_clu_used
 	   << endl;
       n++;

@@ -15,7 +15,6 @@
 #include <HelixHough/SimpleHit3D.h>
 #include <HelixHough/SimpleTrack3D.h>
 #include <HelixHough/VertexFinder.h>
-#include <HelixHough/sPHENIXSeedFinder.h>
 #include <Eigen/Core>                  // for Matrix
 #endif
 
@@ -30,22 +29,11 @@
 // forward declarations
 class BbcVertexMap;
 class PHCompositeNode;
-class PHG4CellContainer;
 class PHG4CylinderGeomContainer;
-class PHG4HitContainer;
 class PHTimer;
 class sPHENIXSeedFinder;
-class SvtxTrackMap;
-class SvtxTrack;
-class SvtxVertexMap;
-class SvtxVertex;
 class TNtuple;
 class TFile;
-
-namespace genfit
-{
-class GFRaveVertexFactory;
-} /* namespace genfit */
 
 /// \class PHHoughSeeding
 ///
@@ -342,7 +330,7 @@ class PHHoughSeeding : public PHTrackSeeding
     _min_combo_hits = minNlayersSeeding;
   }
 
-#ifndef __CINT__
+#if !defined(__CINT__) || defined(__CLING__)
 
  private:
   //--------------

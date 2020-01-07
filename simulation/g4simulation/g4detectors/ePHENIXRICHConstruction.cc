@@ -11,50 +11,51 @@
 #include "ePHENIXRICHConstruction.h"
 
 #include "PHG4RICHDisplayAction.h"
-#include "PHG4RICHSubsystem.h"
 
-#include <g4main/PHG4DisplayAction.h>            // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
+#include <g4main/PHG4Subsystem.h>               // for PHG4Subsystem
 
 #include <Geant4/G4Cons.hh>
-#include <Geant4/G4DisplacedSolid.hh>            // for G4DisplacedSolid
+#include <Geant4/G4DisplacedSolid.hh>  // for G4DisplacedSolid
 #include <Geant4/G4IntersectionSolid.hh>
 #include <Geant4/G4LogicalSkinSurface.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
-#include <Geant4/G4MaterialPropertiesTable.hh>   // for G4MaterialProperties...
+#include <Geant4/G4MaterialPropertiesTable.hh>  // for G4MaterialProperties...
 #include <Geant4/G4OpticalSurface.hh>
 #include <Geant4/G4Orb.hh>
-#include <Geant4/G4PhysicalConstants.hh>         // for pi
 #include <Geant4/G4PVPlacement.hh>
+#include <Geant4/G4PhysicalConstants.hh>  // for pi
 #include <Geant4/G4Sphere.hh>
-#include <Geant4/G4String.hh>                    // for G4String
+#include <Geant4/G4String.hh>  // for G4String
 #include <Geant4/G4SubtractionSolid.hh>
-#include <Geant4/G4SurfaceProperty.hh>           // for dielectric_metal
-#include <Geant4/G4SystemOfUnits.hh>             // for cm, eV, um
-#include <Geant4/G4ThreeVector.hh>               // for G4ThreeVector
-#include <Geant4/G4Transform3D.hh>               // for G4RotateX3D, G4Rotat...
+#include <Geant4/G4SurfaceProperty.hh>  // for dielectric_metal
+#include <Geant4/G4SystemOfUnits.hh>    // for cm, eV, um
+#include <Geant4/G4ThreeVector.hh>      // for G4ThreeVector
+#include <Geant4/G4Transform3D.hh>      // for G4RotateX3D, G4Rotat...
 #include <Geant4/G4Tubs.hh>
-#include <Geant4/G4VPhysicalVolume.hh>           // for G4VPhysicalVolume
-#include <Geant4/G4ios.hh>                       // for G4cout, G4endl
+#include <Geant4/G4Types.hh>                    // for G4double, G4int
+#include <Geant4/G4VPhysicalVolume.hh>  // for G4VPhysicalVolume
+#include <Geant4/G4ios.hh>              // for G4cout, G4endl
 
 #include <cassert>
 #include <cmath>
 #include <iostream>
 #include <sstream>
-#include <string>                                // for operator+, operator<<
+#include <string>  // for operator+, operator<<
 
 class G4VSolid;
 
 using namespace std;
 using namespace ePHENIXRICH;
 
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4Subsystem *subsys)
   : m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction *>(subsys->GetDisplayAction()))
   , overlapcheck_rich(false)
 
 {
 }
-ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4RICHSubsystem *subsys, const RICH_Geometry &g)
+ePHENIXRICHConstruction::ePHENIXRICHConstruction(PHG4Subsystem *subsys, const RICH_Geometry &g)
   : geom(g)
   , m_DisplayAction(dynamic_cast<PHG4RICHDisplayAction *>(subsys->GetDisplayAction()))
   , overlapcheck_rich(false)
