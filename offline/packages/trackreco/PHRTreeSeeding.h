@@ -1,7 +1,6 @@
 #ifndef TRACKRECO_PHRTREESEEDING_H
 #define TRACKRECO_PHRTREESEEDING_H
 
-
 /*!
  *  \file RTreeSeeding.h
  *  \brief Progressive pattern recgnition based on GenFit Kalman filter
@@ -9,29 +8,28 @@
  *  \author Christof Roland & Haiwang Yu
  */
 
-
 //begin
 
-#include "PHTrackSeeding.h"                              // for PHTrackSeeding
-#include <trackbase/TrkrDefs.h>                          // for cluskey
+#include <trackbase/TrkrDefs.h>  // for cluskey
+#include "PHTrackSeeding.h"      // for PHTrackSeeding
 
 #if !defined(__CINT__) || defined(__CLING__)
-#include <boost/geometry/geometries/box.hpp>             // for box
-#include <boost/geometry/geometries/point.hpp>           // for point
-#include <boost/geometry/index/rtree.hpp>                // for rtree
+#include <boost/geometry/geometries/box.hpp>    // for box
+#include <boost/geometry/geometries/point.hpp>  // for point
+#include <boost/geometry/index/rtree.hpp>       // for rtree
 #endif
 
-#include <stdint.h>                                      // for uint64_t
-#include <map>                                           // for map
-#include <string>                                        // for string
-#include <utility>                                       // for pair
-#include <vector>                                        // for vector
+#include <stdint.h>  // for uint64_t
+#include <map>       // for map
+#include <string>    // for string
+#include <utility>   // for pair
+#include <vector>    // for vector
 
 class PHCompositeNode;  // lines 196-196
-class SvtxClusterMap;  // lines 202-202
-class SvtxHitMap;  // lines 211-211
-class SvtxTrackMap;  // lines 204-204
-class SvtxVertexMap;  // lines 206-206
+class SvtxClusterMap;   // lines 202-202
+class SvtxHitMap;       // lines 211-211
+class SvtxTrackMap;     // lines 204-204
+class SvtxVertexMap;    // lines 206-206
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
@@ -51,8 +49,6 @@ class SvtxVertexMap;  // lines 206-206
 
 //end
 
-
-
 #if !defined(__CINT__) || defined(__CLING__)
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
@@ -61,9 +57,7 @@ typedef bg::model::box<point> box;
 typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 #endif
 
-
 typedef uint64_t cluskey;
-
 
 class PHRTreeSeeding : public PHTrackSeeding
 {
@@ -86,29 +80,28 @@ class PHRTreeSeeding : public PHTrackSeeding
 
  protected:
   int Setup(PHCompositeNode *topNode);
-  int GetNodes(PHCompositeNode* topNode);
+  int GetNodes(PHCompositeNode *topNode);
   int Process();
   int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
 
   int End();
-  
+
  private:
   /// fetch node pointers
 
   // node pointers
-  SvtxClusterMap* _g4clusters;
-  SvtxTrackMap* _g4tracks;
-  SvtxVertexMap* _g4vertexes;
+  SvtxClusterMap *_g4clusters;
+  SvtxTrackMap *_g4tracks;
+  SvtxVertexMap *_g4vertexes;
   TrkrClusterContainer *_cluster_map;
   //nodes to get norm vector
-  SvtxHitMap* _svtxhitsmap;
-  int* _hit_used_map;
+  SvtxHitMap *_svtxhitsmap;
+  int *_hit_used_map;
   int _hit_used_map_size;
 
-
   //seed searching parameters
-  double phisr,etasr,phist,etast,phixt,etaxt;
+  double phisr, etasr, phist, etast, phixt, etaxt;
 
   std::vector<float> _radii_all;
 
@@ -119,11 +112,10 @@ class PHRTreeSeeding : public PHTrackSeeding
 
 #if !defined(__CINT__) || defined(__CLING__)
   double pointKeyToTuple(pointKey *pK);
-  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax,std::vector<pointKey> &returned_values);
+  void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
 #endif
 
  private:
-
   std::map<int, unsigned int> _layer_ilayer_map_all;
   std::map<int, unsigned int> _layer_ilayer_map;
 
@@ -140,9 +132,8 @@ class PHRTreeSeeding : public PHTrackSeeding
   //std::vector<float> _radii_all;
 
 #if !defined(__CINT__) || defined(__CLING__)
-  bgi::rtree<pointKey, bgi::quadratic<16> > _rtree;
-#endif // __CINT__
-
+  bgi::rtree<pointKey, bgi::quadratic<16>> _rtree;
+#endif  // __CINT__
 };
 
 #endif
