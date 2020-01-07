@@ -37,6 +37,7 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
+  PHRTreeSeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHTrackPropagating.h \
@@ -78,6 +79,7 @@ else
     PHTruthVertexing_Dict.cc \
     PHTruthTrackSeeding_Dict.cc \
     PHHoughSeeding_Dict.cc \
+    PHRTreeSeeding_Dict.cc \
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
@@ -105,6 +107,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthVertexing.cc \
   PHTruthTrackSeeding.cc \
   PHHoughSeeding.cc \
+  PHRTreeSeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
