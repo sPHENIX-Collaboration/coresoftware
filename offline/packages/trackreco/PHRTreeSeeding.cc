@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <numeric>
 #include <utility>  // for pair, make_pair
 #include <vector>
 
@@ -416,7 +417,7 @@ double /*PHRTreeSeeding::*/ costfunction(const double *xx)
 double PHRTreeSeeding::chisq(const double *xx)
 {
   double chi2 = 0.;
-  for (vector<TrkrCluster *>::iterator i = clusterpoints.begin(); i != clusterpoints.end(); i++)
+  for (vector<TrkrCluster *>::iterator i = clusterpoints.begin(); i != clusterpoints.end(); ++i)
   {
     TrkrCluster *tc = *i;
     double qa = tc->getError(0, 0);
@@ -506,7 +507,7 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
   int numberofseeds = 0;
   cout << " entries in tree: " << _rtree.size() << endl;
 
-  for (unsigned int iteration = 0; iteration < 1; iteration++)
+  for (unsigned int iteration = 0; iteration < 1; ++iteration)
   {
     if (iteration == 1) _start_layer -= 7;
     vector<pointKey> StartLayerClusters;
@@ -531,7 +532,7 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
                 SecondLayerClusters);
       cout << " entries in second layer: " << SecondLayerClusters.size() << endl;
 
-      for (vector<pointKey>::iterator SecondCluster = SecondLayerClusters.begin(); SecondCluster != SecondLayerClusters.end(); SecondCluster++)
+      for (vector<pointKey>::iterator SecondCluster = SecondLayerClusters.begin(); SecondCluster != SecondLayerClusters.end(); ++SecondCluster)
       {
         double currentphi = SecondCluster->first.get<0>();
         double currenteta = SecondCluster->first.get<1>();
@@ -589,7 +590,7 @@ int PHRTreeSeeding::Process(PHCompositeNode *topNode)
           {
             double xinrecord = 100.0;
             pointKey *xinkey = &*newlayer_clusters.begin();
-            for (std::vector<pointKey>::iterator it = newlayer_clusters.begin(); it != newlayer_clusters.end(); it++)
+            for (std::vector<pointKey>::iterator it = newlayer_clusters.begin(); it != newlayer_clusters.end(); ++it)
             {
               double dist = abs(phidiff(it->first.get<0>(), currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]))) + abs(it->first.get<1>() - currenteta);
 
