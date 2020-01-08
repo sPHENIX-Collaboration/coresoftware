@@ -46,6 +46,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <numeric>
 #include <utility>  // for pair, make_pair
 #include <vector>
 
