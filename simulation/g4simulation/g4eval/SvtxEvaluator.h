@@ -55,6 +55,7 @@ class SvtxEvaluator : public SubsysReco
   void do_track_match(bool b) { _do_track_match = b; }
   void do_eval_light(bool b) { _do_eval_light = b; }
   void scan_for_embedded(bool b) { _scan_for_embedded = b; }
+  void set_track_map_name(const std::string &map_name) { _trackmapname = map_name; }
 
  private:
   unsigned int _ievent;

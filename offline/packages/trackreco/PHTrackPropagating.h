@@ -34,6 +34,7 @@ class PHTrackPropagating : public SubsysReco
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
   int End(PHCompositeNode *topNode);
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
  protected:
   /// setup interface for trackers, called in InitRun, setup things like pointers to nodes.
@@ -47,7 +48,6 @@ class PHTrackPropagating : public SubsysReco
   ///
   virtual int End() = 0;
 
-  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
   //SvtxClusterMap *_cluster_map;
   TrkrClusterContainer *_cluster_map;

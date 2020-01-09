@@ -238,6 +238,7 @@ class PHGenFitTrkFitter : public SubsysReco
   {
     _vertex_min_ndf = vertexMinPT;
   }
+  void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
  private:
   //! Event counter
@@ -332,6 +333,7 @@ class PHGenFitTrkFitter : public SubsysReco
   PHG4TruthInfoContainer* _truth_container;
   TrkrClusterContainer* _clustermap;
   SvtxTrackMap* _trackmap;
+  std::string _track_map_name;
   SvtxVertexMap* _vertexmap;
 
   //! Output Node pointers
