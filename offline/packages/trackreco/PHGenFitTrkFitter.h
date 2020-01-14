@@ -10,9 +10,16 @@
 
 #include <fun4all/SubsysReco.h>
 
+#if !defined(__CINT__) || defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
 // shared pointer later on uses this, forward declaration does not cut it
 #include <phgenfit/Track.h> 
+#else
+namespace PHGenFit
+{
+  class Track;
+} /* namespace PHGenFit */
+#endif
 
 #include <TMatrixFfwd.h>         // for TMatrixF
 #include <TVector3.h>            // for TVector3
