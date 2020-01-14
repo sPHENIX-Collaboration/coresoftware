@@ -106,7 +106,7 @@ string Fun4AllMemoryTracker::CreateFullTrackerName(const string &trackername, co
 
 void Fun4AllMemoryTracker::PrintMemoryTracker(const string &name) const
 {
-  map<const string, std::vector<int>>::const_iterator iter;
+  map<string, std::vector<int>>::const_iterator iter;
   if (name.empty())
   {
     for (iter = mMemoryTrackerMap.begin(); iter != mMemoryTrackerMap.end(); ++iter)
