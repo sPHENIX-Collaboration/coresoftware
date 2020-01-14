@@ -10,6 +10,10 @@
 
 #include <fun4all/SubsysReco.h>
 
+// needed, it crashes on Ubuntu using singularity with local cvmfs install
+// shared pointer later on uses this, forward declaration does not cut it
+#include <phgenfit/Track.h> 
+
 #include <TMatrixFfwd.h>         // for TMatrixF
 #include <TVector3.h>            // for TVector3
 
@@ -20,11 +24,6 @@
 #include <map>
 
 class TClonesArray;
-
-namespace PHGenFit
-{
-class Track;
-} /* namespace PHGenFit */
 
 namespace genfit
 {
