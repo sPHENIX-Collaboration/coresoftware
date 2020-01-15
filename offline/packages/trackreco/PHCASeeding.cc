@@ -467,6 +467,11 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         bidirectionalLinks.push_back((*belowLink));
       }
     }
+    cout << "bidirectional links found:" << endl;
+    for(vector<keylink>::iterator l = bidirectionalLinks.begin(); l != bidirectionalLinks.end(); ++l)
+    {
+      cout << (*l)[0] << " <-> " << (*l)[1] << endl;
+    }
     // follow bidirectional links to form lists of cluster keys
     // (to be fitted for track seed parameters)
     vector<keylist> trackSeedKeyLists;
@@ -508,6 +513,22 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
     {
       cout << trackKeyChain->size() << endl;
+    }
+    cout << "track key associations:" << endl;
+    for(size_t i=0;i<trackSeedKeyLists.size();++i)
+    {
+      cout << "seed " << i << ":" << endl;
+      for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
+      {
+        TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
+        TVector3 vec(cl->getPosition(0) - _vertex->get_x(), cl->getPosition(1) - _vertex->get_y(), cl->getPosition(2) - _vertex->get_z());
+
+        double clus_phi = vec.Phi();
+        clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
+        double clus_eta = vec.Eta();
+        unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
+        cout << "(eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ")" << endl;
+      }
     }
   }
     // Turn track cluster chains into track candidates using ALICE simplified KF.
