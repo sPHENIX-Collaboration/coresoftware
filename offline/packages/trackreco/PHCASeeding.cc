@@ -479,12 +479,13 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     // (only check last element of each pair because we start from the outer layers and go inward)
     for(vector<keylink>::iterator startCand = bidirectionalLinks.begin(); startCand != bidirectionalLinks.end(); ++startCand)
     {
-      bool has_previous_link = false;
+      bool has_above_link = false;
       for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
       {
-        if((*startCand)[0] == (*testlink)[1]) has_previous_link = true;
+        if((*startCand) == (*testlink)) continue;
+        if((*startCand)[0] == (*testlink)[1]) has_above_link = true;
       }
-      if(!has_previous_link)
+      if(!has_above_link)
       {
         trackSeedKeyLists.push_back({(*startCand)[0],(*startCand)[1]});
       }
