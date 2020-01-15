@@ -1,0 +1,46 @@
+make  all-am
+make[1]: Entering directory `/direct/sphenix+u/mjpeters/coresoftware/offline/packages/trackreco/build'
+/bin/sh ./libtool  --tag=CXX   --mode=compile g++ -DPACKAGE_NAME=\"trackreco\" -DPACKAGE_TARNAME=\"trackreco\" -DPACKAGE_VERSION=\"1.00\" -DPACKAGE_STRING=\"trackreco\ 1.00\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"trackreco\" -DVERSION=\"1.00\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -I. -I..  -I/sphenix/u/mjpeters/install/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/release/release_new/new.3/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/opt/sphenix/core/geant4.10.02.p02/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/opt/sphenix/core/root-6.16.00/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/release/release_new/new.3/include/eigen3  -DRAVE -DRaveDllExport= -g -O2 -std=c++11 -Wall -Werror -MT PHCASeeding.lo -MD -MP -MF .deps/PHCASeeding.Tpo -c -o PHCASeeding.lo ../PHCASeeding.cc
+libtool: compile:  g++ -DPACKAGE_NAME=\"trackreco\" -DPACKAGE_TARNAME=\"trackreco\" -DPACKAGE_VERSION=\"1.00\" "-DPACKAGE_STRING=\"trackreco 1.00\"" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DPACKAGE=\"trackreco\" -DVERSION=\"1.00\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_DLFCN_H=1 -DLT_OBJDIR=\".libs/\" -I. -I.. -I/sphenix/u/mjpeters/install/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/release/release_new/new.3/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/opt/sphenix/core/geant4.10.02.p02/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/opt/sphenix/core/root-6.16.00/include -I/cvmfs/sphenix.sdcc.bnl.gov/x8664_sl7/release/release_new/new.3/include/eigen3 -DRAVE -DRaveDllExport= -g -O2 -std=c++11 -Wall -Werror -MT PHCASeeding.lo -MD -MP -MF .deps/PHCASeeding.Tpo -c ../PHCASeeding.cc  -fPIC -DPIC -o .libs/PHCASeeding.o
+../PHCASeeding.cc: In member function 'virtual int PHCASeeding::Process(PHCompositeNode*)':
+../PHCASeeding.cc:470:9: error: 'TrkrDef' has not been declared
+         TrkrDef::cluskey trackHead = trackKeyChain->back();
+         ^
+../PHCASeeding.cc:470:26: error: expected ';' before 'trackHead'
+         TrkrDef::cluskey trackHead = trackKeyChain->back();
+                          ^
+../PHCASeeding.cc:474:27: error: 'trackHead' was not declared in this scope
+           if(testlink[0]==trackHead)
+                           ^
+../PHCASeeding.cc:480:12: error: 'no_next_link' was not declared in this scope
+         if(no_next_link) reached_end = true;
+            ^
+../PHCASeeding.cc:483:47: error: 'trackSeedKeyList' was not declared in this scope
+     cout << "track key chains assembled: " << trackSeedKeyList.size() << endl;
+                                               ^
+../PHCASeeding.cc:487:29: error: 'std::vector<std::vector<long unsigned int> >::iterator' has no member named 'size'
+       cout << trackKeyChain.size() << endl;
+                             ^
+../PHCASeeding.cc:607:13: error: 'StartPhi' was not declared in this scope
+         if (StartPhi * curv_mean < 0) helicity -= 2;
+             ^
+../PHCASeeding.cc:610:53: error: 'StartCluster' was not declared in this scope
+         TrkrCluster *cl = _cluster_map->findCluster(StartCluster->second);
+                                                     ^
+../PHCASeeding.cc:614:31: error: 'StartPhi' was not declared in this scope
+         track.set_px(pt * cos(StartPhi));
+                               ^
+../PHCASeeding.cc:616:45: error: 'StartEta' was not declared in this scope
+         track.set_pz(pt / tan(2 * atan(exp(-StartEta))));
+                                             ^
+../PHCASeeding.cc:630:5: error: no return statement in function returning non-void [-Werror=return-type]
+     }
+     ^
+../PHCASeeding.cc: At global scope:
+../PHCASeeding.cc:631:3: error: expected declaration before '}' token
+   }
+   ^
+cc1plus: all warnings being treated as errors
+make[1]: *** [PHCASeeding.lo] Error 1
+make[1]: Leaving directory `/direct/sphenix+u/mjpeters/coresoftware/offline/packages/trackreco/build'
+make: *** [all] Error 2
