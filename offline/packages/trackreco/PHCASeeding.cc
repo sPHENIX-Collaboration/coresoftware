@@ -49,6 +49,7 @@
 #include <numeric>
 #include <utility>  // for pair, make_pair
 #include <vector>
+#include <algorithm> // for find
 
 // forward declarations
 class PHCompositeNode;
@@ -58,6 +59,8 @@ class PHCompositeNode;
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
 typedef bg::model::box<point> box;
 typedef std::pair<point, TrkrDefs::cluskey> pointKey;
+typedef std::array<TrkrDefs::cluskey,2> keylink;
+typedef std::vector<TrkrDefs::cluskey> keylist;
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
@@ -348,60 +351,167 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
 
   for (unsigned int iteration = 0; iteration < 1; ++iteration)
   {
-    if (iteration == 1) _start_layer -= 7;
-    vector<pointKey> StartLayerClusters;
-    _rtree.query(bgi::intersects(
-                     box(point(0, -3, ((double) _start_layer - 0.5)),
-                         point(2 * M_PI, 3, ((double) _start_layer + 0.5)))),
-                 std::back_inserter(StartLayerClusters));
-
-    for (vector<pointKey>::iterator StartCluster = StartLayerClusters.begin(); StartCluster != StartLayerClusters.end(); StartCluster++)
+    vector<pointKey> allClusters;
+    vector<keylink> belowLinks;
+    vector<keylink> aboveLinks;
+    // messy way of getting vector<pointKey> for all clusters
+    QueryTree(_rtree,
+              0, // phi
+              -3, // eta
+              -1, // layer 
+              2*M_PI, // phi
+              3, // eta
+              100, // layer
+              allClusters);
+    cout << "number of total clusters: " << allClusters.size() << endl;
+    for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); StartCluster++)
     {
+      // get clusters near this one in adjacent layers
       double StartPhi = StartCluster->first.get<0>();
       double StartEta = StartCluster->first.get<1>();
+      unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
+      cout << "starting cluster:" << endl;
+      cout << "eta: " << StartEta << endl;
+      cout << "phi: " << StartPhi << endl;
+      cout << "layer: " << StartLayer << endl;
 
-      vector<pointKey> SecondLayerClusters;
+      vector<pointKey> ClustersAbove;
+      vector<pointKey> ClustersBelow;
       QueryTree(_rtree,
-                StartPhi - phisr,
-                StartEta - etasr,
-                (double) _start_layer - 1.5,
-                StartPhi + phisr,
-                StartEta + etasr,
-                (double) _start_layer - 0.5,
-                SecondLayerClusters);
-      cout << " entries in second layer: " << SecondLayerClusters.size() << endl;
-
-      for (vector<pointKey>::iterator SecondCluster = SecondLayerClusters.begin(); SecondCluster != SecondLayerClusters.end(); ++SecondCluster)
+                0,
+                -3,
+                (double) StartLayer - 1.5,
+                2*M_PI,
+                3,
+                (double) StartLayer - 0.5,
+                ClustersBelow);
+      QueryTree(_rtree,
+                0,
+                -3,
+                (double) StartLayer + 0.5,
+                2*M_PI,
+                3,
+                (double) StartLayer + 1.5,
+                ClustersAbove);
+      cout << " entries in below layer: " << ClustersBelow.size() << endl;
+      cout << " entries in above layer: " << ClustersAbove.size() << endl;
+      vector<array<double,2>> delta_below;
+      vector<array<double,2>> delta_above;
+      // calculate (delta_eta, delta_phi) vector for each neighboring cluster
+      for (vector<pointKey>::iterator BelowCandidate = ClustersBelow.begin(); BelowCandidate != ClustersBelow.end(); ++BelowCandidate)
       {
-        double currentphi = SecondCluster->first.get<0>();
-        double currenteta = SecondCluster->first.get<1>();
-        int lastgoodlayer = _start_layer - 1;
-
-        int failures = 0;
-
-        double dphidr = phidiff(StartPhi, currentphi) / (_radii_all[_start_layer] - _radii_all[_start_layer - 1]);
-        double detadr = (StartEta - currenteta) / (_radii_all[_start_layer] - _radii_all[_start_layer - 1]);
-
-        double ther = (_radii_all[_start_layer] + _radii_all[_start_layer - 1]) / 2;
-
-        vector<double> curvatureestimates;
-        curvatureestimates.push_back(copysign(2 / sqrt(ther * ther + 1 / dphidr / dphidr), dphidr));
-        vector<double> phi_zigzag;
-        phi_zigzag.push_back(dphidr);
-        vector<double> z_zigzag;
-        z_zigzag.push_back(detadr);
-
-        vector<TrkrDefs::cluskey> cluskeys;
-        cluskeys.push_back(StartCluster->second);
-        cluskeys.push_back(SecondCluster->second);
-        cout << " phi 1: " << StartPhi
-             << " phi 2: " << currentphi
-             << " dphi: " << dphidr
-             << " eta 1: " << StartEta
-             << " eta 2: " << currenteta
-             << " deta: " << detadr
-             << endl;
-
+        double belowphi = BelowCandidate->first.get<0>();
+        double beloweta = BelowCandidate->first.get<1>();
+        delta_below.push_back(
+          {phidiff(StartPhi, belowphi),
+          StartEta - beloweta});
+      }
+      for(vector<pointKey>::iterator AboveCandidate = ClustersAbove.begin(); AboveCandidate != ClustersAbove.end(); ++AboveCandidate)
+      {
+        double abovephi = AboveCandidate->first.get<0>();
+        double aboveeta = AboveCandidate->first.get<1>();
+        delta_above.push_back(
+          {phidiff(StartPhi, abovephi),
+          StartEta - aboveeta});
+      }
+      cout << "delta_below:" << endl;
+      for(size_t i=0;i<delta_below.size();i++)
+      {
+        cout << "dphi: " << delta_below[i][0] << endl;
+        cout << "deta: " << delta_below[i][1] << endl;
+      }
+      cout << "delta_above:" << endl;
+      for(size_t i=0;i<delta_above.size();i++)
+      {
+        cout << "dphi: " << delta_above[i][0] << endl;
+        cout << "deta: " << delta_above[i][1] << endl;
+      }
+      // find the three clusters closest to a straight line
+      // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
+      double maxCosPlaneAngle = 0.;
+      TrkrDefs::cluskey bestBelowCluster = 0;
+      TrkrDefs::cluskey bestAboveCluster = 0;
+      for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
+      {
+        for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
+        {
+          double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1];
+          cout << "dotProduct: " << dotProduct << endl;
+          double belowSqLength = delta_below[iBelow][0]*delta_below[iBelow][0]+delta_below[iBelow][1]*delta_below[iBelow][1];
+          cout << "below squared length: " << belowSqLength << endl;
+          double aboveSqLength = delta_above[iAbove][0]*delta_above[iAbove][0]+delta_above[iAbove][1]*delta_above[iAbove][1];
+          cout << "above squared length: " << aboveSqLength << endl;
+          double cosPlaneAngle = dotProduct*dotProduct / (belowSqLength*aboveSqLength);
+          cout << "cos plane angle: " << cosPlaneAngle << endl;
+          if(cosPlaneAngle > maxCosPlaneAngle)
+          {
+            maxCosPlaneAngle = cosPlaneAngle;
+            bestBelowCluster = ClustersBelow[iBelow].second;
+            bestAboveCluster = ClustersAbove[iAbove].second;
+          }
+        }
+      }
+      belowLinks.push_back({StartCluster->second,bestBelowCluster});
+      aboveLinks.push_back({StartCluster->second,bestAboveCluster});
+      cout << "max collinearity: " << maxCosPlaneAngle << endl;
+      cout << "key triplet: " << bestBelowCluster << " " << StartCluster->second << " " << bestAboveCluster << endl;
+    }
+    // remove all triplets for which there isn't a mutual association between two clusters
+    vector<keylink> bidirectionalLinks;
+    for(vector<keylink>::iterator belowLink = belowLinks.begin(); belowLink != belowLinks.end(); ++belowLink)
+    {
+      keylink reversed = {(*belowLink)[1],(*belowLink)[0]};
+      vector<keylink>::iterator sameAboveLinkExists = find(aboveLinks.begin(),aboveLinks.end(),reversed);
+      if(sameAboveLinkExists != aboveLinks.end())
+      {
+        bidirectionalLinks.push_back((*belowLink));
+      }
+    }
+    // follow bidirectional links to form lists of cluster keys
+    // (to be fitted for track seed parameters)
+    vector<keylist> trackSeedKeyLists;
+    // get starting cluster keys, create a keylist for each
+    // (only check last element of each pair because we start from the outer layers and go inward)
+    for(vector<keylink>::iterator startCand = bidirectionalLinks.begin(); startCand != bidirectionalLinks.end(); ++startCand)
+    {
+      bool has_previous_link = false;
+      for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
+      {
+        if((*startCand)[0] == (*testlink)[1]) has_previous_link = true;
+      }
+      if(!has_previous_link)
+      {
+        trackSeedKeyLists.push_back({(*startCand)[0],(*startCand)[1]});
+      }
+    }
+    // assemble track cluster chains from starting cluster keys (ordered from outside in)
+    for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+    {
+      bool reached_end = false;
+      while(!reached_end)
+      {
+        TrkrDefs::cluskey trackHead = trackKeyChain->back();
+        bool no_next_link = true;
+        for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
+        {
+          if((*testlink)[0]==trackHead)
+          {
+            trackKeyChain->push_back((*testlink)[1]);
+            no_next_link = false;
+          }
+        }
+        if(no_next_link) reached_end = true;
+      }
+    }
+    cout << "track key chains assembled: " << trackSeedKeyLists.size() << endl;
+    cout << "track key chain lengths: " << endl;
+    for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+    {
+      cout << trackKeyChain->size() << endl;
+    }
+  }
+    // Turn track cluster chains into track candidates using ALICE simplified KF.
+/*
         for (unsigned int newlayer = _start_layer - 2; newlayer >= (_start_layer - 7); newlayer--)
         {
           vector<pointKey> newlayer_clusters;
@@ -497,9 +607,20 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         const double BQ = 0.01 * 1.4 * 0.299792458;
         double pt = BQ / abs(curv_mean);
         double pterror = BQ * curv_stdev / (curv_mean * curv_mean);
-
+*/
         //    pt:z:dz:phi:dphi:c:dc
-        NT->Fill(pt, pterror, z_mean, z_stdev, phi_mean, phi_stdev, curv_mean, curv_stdev, cluskeys.size());
+        double StartEta = 0.;
+        double StartPhi = 0.;
+        double pt = 1.;
+        double pterror = 0.1;
+        double z_mean = 0;
+        double z_stdev = 0.1;
+        double phi_mean = 0.;
+        double phi_stdev = 0.1;
+        double curv_mean = 0.1;
+        double curv_stdev = 0.01;
+        vector<double> cluskeys = {0,0,0};
+        NT->Fill(pt, pterror, z_mean, z_stdev, phi_mean, phi_stdev, curv_mean, curv_stdev,cluskeys.size());
         SvtxTrack_v1 track;
         track.set_id(numberofseeds);
 
@@ -512,7 +633,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         if (StartPhi * curv_mean < 0) helicity -= 2;
         track.set_charge(-helicity);
 
-        TrkrCluster *cl = _cluster_map->findCluster(StartCluster->second);
+        TrkrCluster *cl = _cluster_map->findCluster(0);
         track.set_x(_vertex->get_x());  //track.set_x(cl->getX());
         track.set_y(_vertex->get_y());  //track.set_y(cl->getY());
         track.set_z(_vertex->get_z());  //track.set_z(cl->getZ());
@@ -530,13 +651,13 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         track.set_error(5, 5, pterror * pterror / tan(2 * atan(exp(-StartEta))) / tan(2 * atan(exp(-StartEta))));
         _track_map->insert(&track);
 
-        numberofseeds++;
-      }
-    }
-  }
-  t_seed->stop();
-  cout << "number of seeds " << numberofseeds << endl;
-  cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+        //numberofseeds++;
+//      }
+//    }
+//  }
+//  t_seed->stop();
+  //cout << "number of seeds " << numberofseeds << endl;
+  //cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
 
   /*
 
