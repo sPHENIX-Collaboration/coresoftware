@@ -422,18 +422,6 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
          AboveY,
          AboveZ});
     }
-    LogDebug(" delta_below:" << endl);
-    for(size_t i=0;i<delta_below.size();i++)
-    {
-      LogDebug(" dphi: " << delta_below[i][0] << endl);
-      LogDebug(" deta: " << delta_below[i][1] << endl);
-    }
-    LogDebug(" delta_above:" << endl);
-    for(size_t i=0;i<delta_above.size();i++)
-    {
-      LogDebug(" dphi: " << delta_above[i][0] << endl);
-      LogDebug(" deta: " << delta_above[i][1] << endl);
-    }
     // find the three clusters closest to a straight line
     // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
     double maxCosPlaneAngle = 0;
@@ -458,7 +446,20 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     belowLinks.push_back({StartCluster->second,bestBelowCluster});
     aboveLinks.push_back({StartCluster->second,bestAboveCluster});
     LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
-    LogDebug(" key triplet: " << bestBelowCluster << " " << StartCluster->second << " " << bestAboveCluster << endl);
+    cout << "am I crashing here?" << endl;
+    if(bestBelowCluster==0 || bestAboveCluster == 0)
+    {
+      LogDebug("Incomplete triplet, skipping debug output" << endl);
+    }
+    else
+    {
+      TrkrCluster* bcl = _cluster_map->findCluster(bestBelowCluster);
+      TrkrCluster* scl = _cluster_map->findCluster(StartCluster->second);
+      TrkrCluster* acl = _cluster_map->findCluster(bestAboveCluster);
+      LogDebug(" found triplet: (" << bcl->getPosition(0) << "," << bcl->getPosition(1) << "," << bcl->getPosition(2)
+       << ")<-(" << scl->getPosition(0) << "," << scl->getPosition(1) << "," << scl->getPosition(2) << ")->(" 
+       << acl->getPosition(0) << "," << acl->getPosition(1) << "," << acl->getPosition(2) << ")" << endl);
+    }
   }
   // remove all triplets for which there isn't a mutual association between two clusters
   vector<keylink> bidirectionalLinks;
@@ -542,8 +543,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
          LogDebug(" Eta or Phi jump too large! " << endl);
          jumpcount++;
       }
-      LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") ");
-      LogDebug(" (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
+      LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
+        " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
       lasteta = clus_eta;
       lastphi = clus_phi;
     }
@@ -588,6 +589,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       float nextCluster_y = nextCluster->getPosition(1);
       float nextCluster_z = nextCluster->getPosition(2);
       float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
+      LogDebug("Transporting from " << x << " to " << nextCluster_x << "...");
+      
       if(!trackSeed.TransportToX(nextAlice_x,trackLine,Bz,maxSinPhi))
       {
         LogError("Transport failed! Aborting for this seed...");
