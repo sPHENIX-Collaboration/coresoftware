@@ -64,10 +64,6 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 typedef std::array<TrkrDefs::cluskey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
 
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
-
 using namespace std;
 //using namespace ROOT::Minuit2;
 namespace bg = boost::geometry;
@@ -446,6 +442,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     belowLinks.push_back({StartCluster->second,bestBelowCluster});
     aboveLinks.push_back({StartCluster->second,bestAboveCluster});
     LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
+#if defined(_DEBUG_)
     if(bestBelowCluster==0 || bestAboveCluster == 0)
     {
       LogDebug("Incomplete triplet, skipping debug output" << endl);
@@ -459,6 +456,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
        << ")<-(" << scl->getPosition(0) << "," << scl->getPosition(1) << "," << scl->getPosition(2) << ")->(" 
        << acl->getPosition(0) << "," << acl->getPosition(1) << "," << acl->getPosition(2) << ")" << endl);
     }
+#endif
   }
   // remove all triplets for which there isn't a mutual association between two clusters
   vector<keylink> bidirectionalLinks;
@@ -536,7 +534,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       double clus_eta = vec.Eta();
       double etajump = clus_eta-lasteta;
       double phijump = clus_phi-lastphi;
+      #if defined(_DEBUG_) 
       unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
+      #endif
       if((fabs(etajump)>0.1 && lasteta!=-100) || (fabs(phijump)>1 && lastphi!=-100))
       {
          LogDebug(" Eta or Phi jump too large! " << endl);
@@ -575,20 +575,22 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     float Bz = 1.4*0.000299792458f;
     // configurable max sin phi (algorithm doesn't work when track is too horizontal)
     float maxSinPhi = 0.999;
-    float alice_x = sqrt(x0*x0+y0*y0);
     float x = x0;
     float y = y0;
+    #if defined(_DEBUG_)
     float z = z0;
+    float alice_x = sqrt(x0*x0+y0*y0);
+    #endif
     float trackCartesian_x = 0.;
     float trackCartesian_y = 0.;
     float trackCartesian_z = 0.;
-    cout << endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl;
+    LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl);
     int cluster_ctr = 1;
-    // starting at SECOND cluster, perform track propagation
+    // starting at second cluster, perform track propagation
     for(keylist::iterator clusterkey = next(trackKeyChain->begin()); clusterkey != trackKeyChain->end(); ++clusterkey)
     {
-      cout << "cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl;
-      cout << "this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl;
+      LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl);
+      LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl);
       // get cluster from key
       TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
       // find ALICE x-coordinate
@@ -598,17 +600,17 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
       // rotate track coordinates to match orientation of next cluster
       float newPhi = atan(nextCluster_y/nextCluster_x);
-      cout << "new phi = " << newPhi << endl; 
+      LogDebug("new phi = " << newPhi << endl);
       float oldPhi = atan(y/x);
-      cout << "old phi = " << oldPhi << endl;
+      LogDebug("old phi = " << oldPhi << endl);
       float alpha = newPhi - oldPhi;
-      cout << "alpha = " << alpha << endl;
+      LogDebug("alpha = " << alpha << endl);
       if(!trackSeed.Rotate(alpha,trackLine,maxSinPhi))
       {
         LogError("Rotate failed! Aborting for this seed...");
         break;
       }
-      cout << "track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl;
+      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
       LogDebug("Transporting from " << alice_x << " to " << nextAlice_x << "...");
       if(!trackSeed.TransportToX(nextAlice_x,trackLine,Bz,maxSinPhi))
       {
@@ -617,24 +619,24 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       }
       // convert ALICE coordinates to sPHENIX cartesian coordinates, for debugging
       float predicted_alice_x = trackSeed.GetX();
-      cout << "new track ALICE x = " << trackSeed.GetX() << endl;
+      LogDebug("new track ALICE x = " << trackSeed.GetX() << endl);
       float predicted_alice_y = trackSeed.GetY();
-      cout << "new track ALICE y = " << trackSeed.GetY() << endl;
+      LogDebug("new track ALICE y = " << trackSeed.GetY() << endl);
       float predicted_z = trackSeed.GetZ();
-      cout << "new track z = " << trackSeed.GetZ() << endl;
+      LogDebug("new track z = " << trackSeed.GetZ() << endl);
       float cos_phi = x/sqrt(x*x+y*y);
-      cout << "cos_phi = " << cos_phi << endl;
+      LogDebug("cos_phi = " << cos_phi << endl);
       float sin_phi = y/sqrt(x*x+y*y);
-      cout << "sin phi = " << sin_phi << endl;
+      LogDebug("sin phi = " << sin_phi << endl);
       trackCartesian_x = predicted_alice_x*cos_phi+predicted_alice_y*sin_phi;
       trackCartesian_y = predicted_alice_x*sin_phi-predicted_alice_y*cos_phi;
       trackCartesian_z = predicted_z;
-      cout << "Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl;
-      cout << "Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl;
-      cout << "track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl;
+      LogDebug("Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl);
+      LogDebug("Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl);
+      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
       //float nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
       float nextCluster_alice_y = 0.;
-      cout << "next cluster ALICE y = " << nextCluster_alice_y << endl;
+      LogDebug("next cluster ALICE y = " << nextCluster_alice_y << endl);
       float y2_error = .015*.015;
       float z2_error = .015*.015;
       // Apply Kalman filter
@@ -645,9 +647,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       }
       x = nextCluster_x;
       y = nextCluster_y;
+      #if defined(_DEBUG_)
       z = nextCluster_z;
       alice_x = nextAlice_x;
-      cout << "cluster done" << endl << endl;
+      #endif
       cluster_ctr++;
     } 
     //    pt:z:dz:phi:dphi:c:dc
@@ -690,9 +693,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     _track_map->insert(&track);
     numberofseeds++;
   }
-//t_seed->stop();
-//cout << "number of seeds " << numberofseeds << endl;
-//cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->stop();
+  cout << "number of seeds " << numberofseeds << endl;
+  cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   fpara.cd();
   NT->Write();
   fpara.Close();
