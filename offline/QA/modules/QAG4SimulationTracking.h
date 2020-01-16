@@ -23,31 +23,22 @@ class SvtxTrack;
 class QAG4SimulationTracking : public SubsysReco
 {
  public:
-
-
   QAG4SimulationTracking();
-
   virtual ~QAG4SimulationTracking(){}
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
 
-
-  //! common prefix for QA histograms
-  std::string
-  get_histo_prefix();
-
+  // common prefix for QA histograms
+  std::string get_histo_prefix();
  private:
+  #if !defined(__CINT__) || defined(__CLING__)
+    //CINT is not c++11 compatible
+    std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
+  #endif
 
-#if !defined(__CINT__) || defined(__CLING__)
-  //CINT is not c++11 compatible
-  std::shared_ptr<SvtxEvalStack> m_svtxEvalStack;
-#endif
-
-  PHG4TruthInfoContainer *m_truthContainer;
-
-
+  PHG4TruthInfoContainer *_truthContainer;
 };
 
 #endif  // QA_QAG4SimulationTracking_H

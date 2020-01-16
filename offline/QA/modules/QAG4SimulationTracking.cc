@@ -28,6 +28,7 @@
 #include <TH2.h>
 #include <TNamed.h>
 #include <TString.h>
+#include <TVector3.h>
 
 #include <cassert>
 #include <cmath>
@@ -40,28 +41,28 @@ using namespace std;
 
 QAG4SimulationTracking::QAG4SimulationTracking()
   : SubsysReco("QAG4SimulationTracking")
-  , m_svtxEvalStack(nullptr)
-  , m_truthContainer(nullptr)
+  , _svtxEvalStack(nullptr)
+  , _truthContainer(nullptr)
 {
 }
 
 int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
 {
-  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+  _truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
                                                                 "G4TruthInfo");
-  if (!m_truthContainer)
+  if (!_truthContainer)
   {
     cout << "QAG4SimulationTracking::InitRun - Fatal Error - "
          << "unable to find DST node "
          << "G4TruthInfo" << endl;
-    assert(m_truthContainer);
+    assert(_truthContainer);
   }
 
-  if (!m_svtxEvalStack)
+  if (!_svtxEvalStack)
   {
-    m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
-    m_svtxEvalStack->set_strict(true);
-    m_svtxEvalStack->set_verbosity(Verbosity() + 1);
+    _svtxEvalStack.reset(new SvtxEvalStack(topNode));
+    _svtxEvalStack->set_strict(true);
+    _svtxEvalStack->set_verbosity(Verbosity() + 1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -71,19 +72,25 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
-  TH1D *h = new TH1D(TString(get_histo_prefix()) + "Normalization",  //
+
+  // reco pT / gen pT histogram
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "pTRecoGenRatio",
+                             "Reco p_{T}/Truth p_{T}",500, 0, 2));
+  // reco pT histogram
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "nReco_pTGen",
+                             "Reco tracks at truth p_{T}",200, -0.5, 50.5));
+  // reco pT histogram
+  hm->registerHisto(new TH1F(TString(get_histo_prefix()) + "nGen_pTGen",
+                             "Truth p_{T}",200, -0.5, 50.5));
+  
+  // n events and n tracks histogram
+  TH1F *h = new TH1F(TString(get_histo_prefix()) + "Normalization",
                      TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Event");
   h->GetXaxis()->SetBinLabel(i++, "Track");
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
-
-  hm->registerHisto(
-      new TH1F(
-          TString(get_histo_prefix()) + "_pT_gpTReco",  //
-          "Reco p_{T}/Truth p_{T}",
-          1000, 0, 2));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -97,28 +104,77 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  if (m_svtxEvalStack)
-    m_svtxEvalStack->next_event(topNode);
+  if (_svtxEvalStack)
+    _svtxEvalStack->next_event(topNode);
 
-  // fill histogram
-  //  PHG4Particle *primary = get_truth_particle();
-  //  if (!primary)
-  //    return Fun4AllReturnCodes::DISCARDEVENT;
-
-  SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
+  SvtxTrackEval *trackeval = _svtxEvalStack->get_track_eval();
   assert(trackeval);
 
-  TH1F *h_pT_gpTReco = dynamic_cast<TH1F *>(hm->getHisto(
-      get_histo_prefix() + "_pT_gpTReco"  //
-      ));
-  assert(h_pT_gpTReco);
-
-  h_pT_gpTReco->Fill(1);
-
-  TH1D *h_norm = dynamic_cast<TH1D *>(hm->getHisto(
-      get_histo_prefix() + "Normalization"));
+  // reco pT / gen pT histogram
+  TH1F *h_pTRecoGenRatio = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "pTRecoGenRatio"));
+  assert(h_pTRecoGenRatio);
+  
+  // reco histogram plotted at gen pT
+  TH1F *h_nReco_pTGen = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen"));
+  assert(h_nReco_pTGen);
+  
+  // gen pT histogram
+  TH1F *h_nGen_pTGen = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "nGen_pTGen"));
+  assert(h_nGen_pTGen);
+  
+  // n events and n tracks histogram
+  TH1F *h_norm = dynamic_cast<TH1F *>(hm->getHisto(get_histo_prefix() + "Normalization"));
   assert(h_norm);
   h_norm->Fill("Event", 1);
+  
+  // fill histograms that need truth information
+  if(_truthContainer)
+  {
+    PHG4TruthInfoContainer::ConstRange range = _truthContainer->GetPrimaryParticleRange();
+    for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+    {
+      // get the truth particle information
+      PHG4Particle* g4particle = iter->second;
+      
+      // is this needed? what does it mean?
+//      if (_scan_for_embedded)
+//      {
+//        if (trutheval->get_embed(g4particle) <= 0) continue;
+//      }
+      
+      float gpx = g4particle->get_px();
+      float gpy = g4particle->get_py();
+      float gpz = g4particle->get_px();
+      float gpt = 0;
+
+      if (gpx != 0 && gpy != 0) {
+        TVector3 gv(gpx,gpy,gpz);
+        gpt = gv.Pt();
+  //      geta = gv.Pt();
+  //      gphi = gv.Pt();
+      }
+      h_nGen_pTGen->Fill(gpt);
+
+      // look for best matching track in reco data & get its information
+      SvtxTrack* track = trackeval->best_track_from(g4particle);
+      if(track) {
+        h_nReco_pTGen->Fill(gpt);
+        
+        float px = track->get_px();
+        float py = track->get_py();
+        float pz = track->get_pz();
+        float pt;
+        TVector3 v(px,py,pz);
+        pt = v.Pt();
+  //      eta = v.Pt();
+  //      phi = v.Pt();
+        
+        float pt_ratio = (gpt != 0) ? pt/gpt : 0;
+        h_pTRecoGenRatio->Fill(pt_ratio);
+        h_norm->Fill("Track", 1);
+      }
+    }
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
