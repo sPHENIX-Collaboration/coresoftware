@@ -8,8 +8,6 @@
 //begin
 
 #include "PHCASeeding.h"
-#include "GPUTPCTrackLinearisation.h"
-#include "GPUTPCTrackParam.h"
 
 // trackbase_historic includes
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -332,6 +330,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   phisr = 0.005 * _phi_scale;  // *2
   etasr = 0.0035 * _z_scale;   // *2;
   /* 0.7 version
+     phist = 0.001*1;
+     etast = 0.003*1;
      0.9 version 
      phist = 0.001*2;
      etast = 0.003*2;
@@ -349,285 +349,210 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   int numberofseeds = 0;
   LogDebug(" entries in tree: " << _rtree.size() << endl);
 
-  vector<pointKey> allClusters;
-  vector<keylink> belowLinks;
-  vector<keylink> aboveLinks;
-  // messy way of getting vector<pointKey> for all clusters
-  QueryTree(_rtree,
-            0, // phi
-            -3, // eta
-            -1, // layer 
-            2*M_PI, // phi
-            3, // eta
-            100, // layer
-            allClusters);
-  LogDebug(" number of total clusters: " << allClusters.size() << endl);
-  for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); StartCluster++)
+  for (unsigned int iteration = 0; iteration < 1; ++iteration)
   {
-    // get clusters near this one in adjacent layers
-    double StartPhi = StartCluster->first.get<0>();
-    double StartEta = StartCluster->first.get<1>();
-    unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
-    TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
-    double StartX = StartCl->getPosition(0);
-    double StartY = StartCl->getPosition(1);
-    double StartZ = StartCl->getPosition(2);
-    LogDebug(" starting cluster:" << endl);
-    LogDebug(" eta: " << StartEta << endl);
-    LogDebug(" phi: " << StartPhi << endl);
-    LogDebug(" layer: " << StartLayer << endl);
+    vector<pointKey> allClusters;
+    vector<keylink> belowLinks;
+    vector<keylink> aboveLinks;
+    // messy way of getting vector<pointKey> for all clusters
+    QueryTree(_rtree,
+              0, // phi
+              -3, // eta
+              -1, // layer 
+              2*M_PI, // phi
+              3, // eta
+              100, // layer
+              allClusters);
+    LogDebug(" number of total clusters: " << allClusters.size() << endl);
+    for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); StartCluster++)
+    {
+      // get clusters near this one in adjacent layers
+      double StartPhi = StartCluster->first.get<0>();
+      double StartEta = StartCluster->first.get<1>();
+      unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
+      TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
+      double StartX = StartCl->getPosition(0);
+      double StartY = StartCl->getPosition(1);
+      double StartZ = StartCl->getPosition(2);
+      LogDebug(" starting cluster:" << endl);
+      LogDebug(" eta: " << StartEta << endl);
+      LogDebug(" phi: " << StartPhi << endl);
+      LogDebug(" layer: " << StartLayer << endl);
 
-    vector<pointKey> ClustersAbove;
-    vector<pointKey> ClustersBelow;
-    QueryTree(_rtree,
-              StartPhi-M_PI/6,
-              StartEta-1,
-              (double) StartLayer - 1.5,
-              StartPhi+M_PI/6,
-              StartEta+1,
-              (double) StartLayer - 0.5,
-              ClustersBelow);
-    QueryTree(_rtree,
-              StartPhi-M_PI/6,
-              StartEta-1,
-              (double) StartLayer + 0.5,
-              StartPhi+M_PI/6,
-              StartEta+1,
-              (double) StartLayer + 1.5,
-              ClustersAbove);
-    LogDebug(" entries in below layer: " << ClustersBelow.size() << endl);
-    LogDebug(" entries in above layer: " << ClustersAbove.size() << endl);
-    vector<array<double,3>> delta_below;
-    vector<array<double,3>> delta_above;
-    // calculate (delta_eta, delta_phi) vector for each neighboring cluster
-    for (vector<pointKey>::iterator BelowCandidate = ClustersBelow.begin(); BelowCandidate != ClustersBelow.end(); ++BelowCandidate)
-    {
-      TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate->second);
-      double BelowX = BelowCl->getPosition(0)-StartX;
-      double BelowY = BelowCl->getPosition(1)-StartY;
-      double BelowZ = BelowCl->getPosition(2)-StartZ;
-      delta_below.push_back(
-        {BelowX,
-         BelowY,
-         BelowZ});
-    }
-    for(vector<pointKey>::iterator AboveCandidate = ClustersAbove.begin(); AboveCandidate != ClustersAbove.end(); ++AboveCandidate)
-    {
-      TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate->second);
-      double AboveX = AboveCl->getPosition(0)-StartX;
-      double AboveY = AboveCl->getPosition(1)-StartY;
-      double AboveZ = AboveCl->getPosition(2)-StartZ;
-      delta_above.push_back(
-        {AboveX,
-         AboveY,
-         AboveZ});
-    }
-    LogDebug(" delta_below:" << endl);
-    for(size_t i=0;i<delta_below.size();i++)
-    {
-      LogDebug(" dphi: " << delta_below[i][0] << endl);
-      LogDebug(" deta: " << delta_below[i][1] << endl);
-    }
-    LogDebug(" delta_above:" << endl);
-    for(size_t i=0;i<delta_above.size();i++)
-    {
-      LogDebug(" dphi: " << delta_above[i][0] << endl);
-      LogDebug(" deta: " << delta_above[i][1] << endl);
-    }
-    // find the three clusters closest to a straight line
-    // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
-    double maxCosPlaneAngle = 0;
-    TrkrDefs::cluskey bestBelowCluster = 0;
-    TrkrDefs::cluskey bestAboveCluster = 0;
-    for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
-    {
-      for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
+      vector<pointKey> ClustersAbove;
+      vector<pointKey> ClustersBelow;
+      QueryTree(_rtree,
+                StartPhi-M_PI/6,
+                StartEta-1,
+                (double) StartLayer - 1.5,
+                StartPhi+M_PI/6,
+                StartEta+1,
+                (double) StartLayer - 0.5,
+                ClustersBelow);
+      QueryTree(_rtree,
+                StartPhi-M_PI/6,
+                StartEta-1,
+                (double) StartLayer + 0.5,
+                StartPhi+M_PI/6,
+                StartEta+1,
+                (double) StartLayer + 1.5,
+                ClustersAbove);
+      LogDebug(" entries in below layer: " << ClustersBelow.size() << endl);
+      LogDebug(" entries in above layer: " << ClustersAbove.size() << endl);
+      vector<array<double,3>> delta_below;
+      vector<array<double,3>> delta_above;
+      // calculate (delta_eta, delta_phi) vector for each neighboring cluster
+      for (vector<pointKey>::iterator BelowCandidate = ClustersBelow.begin(); BelowCandidate != ClustersBelow.end(); ++BelowCandidate)
       {
-        double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1]+delta_below[iBelow][2]*delta_above[iAbove][2];
-        double belowSqLength = sqrt(pow(delta_below[iBelow][0],2)+pow(delta_below[iBelow][1],2)+pow(delta_below[iBelow][2],2));
-        double aboveSqLength = sqrt(pow(delta_above[iAbove][0],2)+pow(delta_above[iAbove][1],2)+pow(delta_above[iAbove][2],2));
-        double cosPlaneAngle = dotProduct / (belowSqLength*aboveSqLength);
-        if(cosPlaneAngle < maxCosPlaneAngle )
+        TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate->second);
+        double BelowX = BelowCl->getPosition(0)-StartX;
+        double BelowY = BelowCl->getPosition(1)-StartY;
+        double BelowZ = BelowCl->getPosition(2)-StartZ;
+        delta_below.push_back(
+          {BelowX,
+           BelowY,
+           BelowZ});
+      }
+      for(vector<pointKey>::iterator AboveCandidate = ClustersAbove.begin(); AboveCandidate != ClustersAbove.end(); ++AboveCandidate)
+      {
+        TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate->second);
+        double AboveX = AboveCl->getPosition(0)-StartX;
+        double AboveY = AboveCl->getPosition(1)-StartY;
+        double AboveZ = AboveCl->getPosition(2)-StartZ;
+        delta_above.push_back(
+          {AboveX,
+           AboveY,
+           AboveZ});
+      }
+      LogDebug(" delta_below:" << endl);
+      for(size_t i=0;i<delta_below.size();i++)
+      {
+        LogDebug(" dphi: " << delta_below[i][0] << endl);
+        LogDebug(" deta: " << delta_below[i][1] << endl);
+      }
+      LogDebug(" delta_above:" << endl);
+      for(size_t i=0;i<delta_above.size();i++)
+      {
+        LogDebug(" dphi: " << delta_above[i][0] << endl);
+        LogDebug(" deta: " << delta_above[i][1] << endl);
+      }
+      // find the three clusters closest to a straight line
+      // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
+      double maxCosPlaneAngle = 0;
+      TrkrDefs::cluskey bestBelowCluster = 0;
+      TrkrDefs::cluskey bestAboveCluster = 0;
+      for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
+      {
+        for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
         {
-          maxCosPlaneAngle = cosPlaneAngle;
-          bestBelowCluster = ClustersBelow[iBelow].second;
-          bestAboveCluster = ClustersAbove[iAbove].second;
+          double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1]+delta_below[iBelow][2]*delta_above[iAbove][2];
+          double belowSqLength = sqrt(pow(delta_below[iBelow][0],2)+pow(delta_below[iBelow][1],2)+pow(delta_below[iBelow][2],2));
+          double aboveSqLength = sqrt(pow(delta_above[iAbove][0],2)+pow(delta_above[iAbove][1],2)+pow(delta_above[iAbove][2],2));
+          double cosPlaneAngle = dotProduct / (belowSqLength*aboveSqLength);
+          if(cosPlaneAngle < maxCosPlaneAngle )
+          {
+            maxCosPlaneAngle = cosPlaneAngle;
+            bestBelowCluster = ClustersBelow[iBelow].second;
+            bestAboveCluster = ClustersAbove[iAbove].second;
+          }
         }
       }
+      belowLinks.push_back({StartCluster->second,bestBelowCluster});
+      aboveLinks.push_back({StartCluster->second,bestAboveCluster});
+      LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
+      LogDebug(" key triplet: " << bestBelowCluster << " " << StartCluster->second << " " << bestAboveCluster << endl);
     }
-    belowLinks.push_back({StartCluster->second,bestBelowCluster});
-    aboveLinks.push_back({StartCluster->second,bestAboveCluster});
-    LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
-    LogDebug(" key triplet: " << bestBelowCluster << " " << StartCluster->second << " " << bestAboveCluster << endl);
-  }
-  // remove all triplets for which there isn't a mutual association between two clusters
-  vector<keylink> bidirectionalLinks;
-  for(vector<keylink>::iterator belowLink = belowLinks.begin(); belowLink != belowLinks.end(); ++belowLink)
-  {
-    keylink reversed = {(*belowLink)[1],(*belowLink)[0]};
-    vector<keylink>::iterator sameAboveLinkExists = find(aboveLinks.begin(),aboveLinks.end(),reversed);
-    if(sameAboveLinkExists != aboveLinks.end())
+    // remove all triplets for which there isn't a mutual association between two clusters
+    vector<keylink> bidirectionalLinks;
+    for(vector<keylink>::iterator belowLink = belowLinks.begin(); belowLink != belowLinks.end(); ++belowLink)
     {
-      bidirectionalLinks.push_back((*belowLink));
+      keylink reversed = {(*belowLink)[1],(*belowLink)[0]};
+      vector<keylink>::iterator sameAboveLinkExists = find(aboveLinks.begin(),aboveLinks.end(),reversed);
+      if(sameAboveLinkExists != aboveLinks.end())
+      {
+        bidirectionalLinks.push_back((*belowLink));
+      }
     }
-  }
-  LogDebug(" bidirectional links found:" << endl);
-  for(vector<keylink>::iterator l = bidirectionalLinks.begin(); l != bidirectionalLinks.end(); ++l)
-  {
-    LogDebug(" "<< (*l)[0] << " <-> " << (*l)[1] << endl);
-  }
-  // follow bidirectional links to form lists of cluster keys
-  // (to be fitted for track seed parameters)
-  vector<keylist> trackSeedKeyLists;
-  // get starting cluster keys, create a keylist for each
-  // (only check last element of each pair because we start from the outer layers and go inward)
-  for(vector<keylink>::iterator startCand = bidirectionalLinks.begin(); startCand != bidirectionalLinks.end(); ++startCand)
-  {
-    bool has_above_link = false;
-    for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
+    LogDebug(" bidirectional links found:" << endl);
+    for(vector<keylink>::iterator l = bidirectionalLinks.begin(); l != bidirectionalLinks.end(); ++l)
     {
-      if((*startCand) == (*testlink)) continue;
-      if((*startCand)[0] == (*testlink)[1]) has_above_link = true;
+      LogDebug(" "<< (*l)[0] << " <-> " << (*l)[1] << endl);
     }
-    if(!has_above_link)
+    // follow bidirectional links to form lists of cluster keys
+    // (to be fitted for track seed parameters)
+    vector<keylist> trackSeedKeyLists;
+    // get starting cluster keys, create a keylist for each
+    // (only check last element of each pair because we start from the outer layers and go inward)
+    for(vector<keylink>::iterator startCand = bidirectionalLinks.begin(); startCand != bidirectionalLinks.end(); ++startCand)
     {
-      trackSeedKeyLists.push_back({(*startCand)[0],(*startCand)[1]});
-    }
-  }
-  // assemble track cluster chains from starting cluster keys (ordered from outside in)
-  for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
-  {
-    bool reached_end = false;
-    while(!reached_end)
-    {
-      TrkrDefs::cluskey trackHead = trackKeyChain->back();
-      bool no_next_link = true;
+      bool has_above_link = false;
       for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
       {
-        if((*testlink)[0]==trackHead)
+        if((*startCand) == (*testlink)) continue;
+        if((*startCand)[0] == (*testlink)[1]) has_above_link = true;
+      }
+      if(!has_above_link)
+      {
+        trackSeedKeyLists.push_back({(*startCand)[0],(*startCand)[1]});
+      }
+    }
+    // assemble track cluster chains from starting cluster keys (ordered from outside in)
+    for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
+    {
+      bool reached_end = false;
+      while(!reached_end)
+      {
+        TrkrDefs::cluskey trackHead = trackKeyChain->back();
+        bool no_next_link = true;
+        for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
         {
-          trackKeyChain->push_back((*testlink)[1]);
-          no_next_link = false;
+          if((*testlink)[0]==trackHead)
+          {
+            trackKeyChain->push_back((*testlink)[1]);
+            no_next_link = false;
+          }
         }
+        if(no_next_link) reached_end = true;
       }
-      if(no_next_link) reached_end = true;
     }
-  }
-  LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << endl);
-  LogDebug(" track key chain lengths: " << endl);
-  for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
-  {
-    LogDebug(" " << trackKeyChain->size() << endl);
-  }
-  int jumpcount = 0;
-  LogDebug(" track key associations:" << endl);
-  for(size_t i=0;i<trackSeedKeyLists.size();++i)
-  {
-    LogDebug(" seed " << i << ":" << endl);
-    double lasteta = -100;
-    double lastphi = -100;
-    for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
+    LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << endl);
+    LogDebug(" track key chain lengths: " << endl);
+    for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
     {
-      TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
-      TVector3 vec(cl->getPosition(0) - _vertex->get_x(), cl->getPosition(1) - _vertex->get_y(), cl->getPosition(2) - _vertex->get_z());
-
-      double clus_phi = vec.Phi();
-      clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
-      double clus_eta = vec.Eta();
-      double etajump = clus_eta-lasteta;
-      double phijump = clus_phi-lastphi;
-      unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
-      if((fabs(etajump)>0.1 && lasteta!=-100) || (fabs(phijump)>1 && lastphi!=-100))
-      {
-         LogDebug(" Eta or Phi jump too large! " << endl);
-         jumpcount++;
-      }
-      LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") ");
-      LogDebug(" (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
-      lasteta = clus_eta;
-      lastphi = clus_phi;
+      LogDebug(" " << trackKeyChain->size() << endl);
     }
+    int jumpcount = 0;
+    LogDebug(" track key associations:" << endl);
+    for(size_t i=0;i<trackSeedKeyLists.size();++i)
+    {
+      LogDebug(" seed " << i << ":" << endl);
+      double lasteta = -100;
+      double lastphi = -100;
+      for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
+      {
+        TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
+        TVector3 vec(cl->getPosition(0) - _vertex->get_x(), cl->getPosition(1) - _vertex->get_y(), cl->getPosition(2) - _vertex->get_z());
+
+        double clus_phi = vec.Phi();
+        clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
+        double clus_eta = vec.Eta();
+        double etajump = clus_eta-lasteta;
+        double phijump = clus_phi-lastphi;
+        unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
+        if((fabs(etajump)>0.1 && lasteta!=-100) || (fabs(phijump)>1 && lastphi!=-100))
+        {
+           LogDebug(" Eta or Phi jump too large! " << endl);
+           jumpcount++;
+        }
+        LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") ");
+        LogDebug(" (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
+        lasteta = clus_eta;
+        lastphi = clus_phi;
+      }
+    }
+    LogDebug(" Total large jumps: " << jumpcount << endl);
   }
-  LogDebug(" Total large jumps: " << jumpcount << endl);
     // Turn track cluster chains into track candidates using ALICE simplified KF.
-
-  for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
-  {
-    // get starting cluster from key
-    TrkrCluster* startCluster = _cluster_map->findCluster(trackKeyChain->at(0));
-    // Transform sPHENIX coordinates into ALICE-compatible coordinates
-    double x0 = startCluster->getPosition(0);
-    double y0 = startCluster->getPosition(1);
-    double z0 = startCluster->getPosition(2);
-    LogDebug("Initial (x,y,z): (" << x0 << "," << y0 << "," << z0 << ")" << endl);
-    // ALICE x coordinate = distance from beampipe
-    float alice_x0 = sqrt(x0*x0+y0*y0);
-    float alice_y0 = 0;
-    float alice_z0 = z0;
-    // Initialize track and linearisation
-    GPUTPCTrackParam trackSeed;
-    trackSeed.InitParam();
-    trackSeed.SetX(alice_x0);
-    trackSeed.SetY(alice_y0);
-    trackSeed.SetZ(alice_z0);
-    GPUTPCTrackLinearisation trackLine; // default constructor is fine for now
-    // convert B field to ALICE-compatible units
-    float Bz = 1.4*0.000299792458f;
-    // configurable max sin phi (algorithm doesn't work when track is too horizontal)
-    float maxSinPhi = 0.99;
-    float x = x0;
-    float y = y0;
-    float z = z0;
-    // starting at SECOND cluster, perform track propagation
-    for(keylist::iterator clusterkey = next(trackKeyChain->begin()); clusterkey != trackKeyChain->end(); ++clusterkey)
-    {
-      // get cluster from key
-      TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
-      // find ALICE x-coordinate, and transport to that x
-      float nextCluster_x = nextCluster->getPosition(0);
-      float nextCluster_y = nextCluster->getPosition(1);
-      float nextCluster_z = nextCluster->getPosition(2);
-      float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
-      if(!trackSeed.TransportToX(nextAlice_x,trackLine,Bz,maxSinPhi))
-      {
-        LogError("Transport failed! Aborting for this seed...");
-        break;
-      }
-      // convert ALICE coordinates to sPHENIX cartesian coordinates, for debugging
-      float predicted_alice_y = trackSeed.GetY();
-      float predicted_z = trackSeed.GetZ();
-      float cos_theta = x/sqrt(x*x+y*y);
-      float sin_theta = y/sqrt(x*x+y*y);
-      float delta_y = predicted_alice_y*cos_theta;
-      float delta_x = predicted_alice_y*sin_theta;
-      float trackCartesian_x = x + delta_x;
-      float trackCartesian_y = y + delta_y;
-      float trackCartesian_z = predicted_z;
-      cout << "Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl;
-      cout << "Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl;
-      // Rotate track coordinate system to be parallel to layer
-      float newTheta = atan(trackCartesian_y/trackCartesian_x);
-      float oldTheta = atan(y/x);
-      float alpha = newTheta - oldTheta;
-      if(!trackSeed.Rotate(alpha,trackLine,maxSinPhi))
-      {
-        LogError("Rotate failed! Aborting for this seed...");
-        break;
-      }
-      // Calculate squared errors in Y and Z
-      float z2_error = (nextCluster_z-predicted_z)*(nextCluster_z-predicted_z);
-      float nextCluster_alice_y = (nextCluster_x*x+nextCluster_y*y+nextCluster_z*z)/sqrt(x*x+y*y+z*z);
-      float y2_error = (nextCluster_alice_y-predicted_alice_y)*(nextCluster_alice_y-predicted_alice_y);
-      // Apply Kalman filter
-      if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,maxSinPhi))
-      {
-        LogError("Kalman filter failed! Aborting for this seed...");
-        break;
-      }
-      x = trackCartesian_x;
-      y = trackCartesian_y;
-      z = trackCartesian_z;
-    } 
 /*
         for (unsigned int newlayer = _start_layer - 2; newlayer >= (_start_layer - 7); newlayer--)
         {
@@ -726,49 +651,60 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         double pterror = BQ * curv_stdev / (curv_mean * curv_mean);
 */
         //    pt:z:dz:phi:dphi:c:dc
-    // Fill NT with track parameters
-    float StartPhi = atan(y0/x0);
-    float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
-    float track_pt = 1./(trackSeed.GetQPt());
-    float track_pterr = trackSeed.GetErr2QPt();
-    float track_z = trackSeed.GetZ();
-    float track_zerr = trackSeed.GetErr2Z();
-    float track_phi = 0.;
-    float track_phierr = 0.001;
-    float track_curvature = trackSeed.GetKappa(Bz);
-    float track_curverr = 0.001;
-    NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
-    SvtxTrack_v1 track;
-    track.set_id(numberofseeds);
-    for (unsigned int j = 0; j < trackKeyChain->size(); j++)
-    {
-      track.insert_cluster_key(trackKeyChain->at(j));
-    }
-    track.set_ndf(trackSeed.GetNDF());
-    if(trackSeed.GetQPt()<0) track.set_charge(-1);
-    else track.set_charge(1);
-    TrkrCluster *cl = _cluster_map->findCluster(0);
-    track.set_x(_vertex->get_x());  //track.set_x(cl->getX());
-    track.set_y(_vertex->get_y());  //track.set_y(cl->getY());
-    track.set_z(_vertex->get_z());  //track.set_z(cl->getZ());
-    track.set_px(track_pt * cos(StartPhi));
-    track.set_py(track_pt * sin(StartPhi));
-    track.set_pz(track_pt / tan(2 * atan(exp(-StartEta))));
-    track.set_error(0, 0, cl->getError(0, 0));
-    track.set_error(0, 1, cl->getError(0, 1));
-    track.set_error(0, 2, cl->getError(0, 2));
-    track.set_error(1, 1, cl->getError(1, 1));
-    track.set_error(1, 2, cl->getError(1, 2));
-    track.set_error(2, 2, cl->getError(2, 2));
-    track.set_error(3, 3, track_pterr * track_pterr * cos(StartPhi) * cos(StartPhi));
-    track.set_error(4, 4, track_pterr * track_pterr * sin(StartPhi) * sin(StartPhi));
-    track.set_error(5, 5, track_pterr * track_pterr / tan(2 * atan(exp(-StartEta))) / tan(2 * atan(exp(-StartEta))));
-    _track_map->insert(&track);
-    numberofseeds++;
-  }
-//t_seed->stop();
-//cout << "number of seeds " << numberofseeds << endl;
-//cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+        double StartEta = 0.;
+        double StartPhi = 0.;
+        double pt = 1.;
+        double pterror = 0.1;
+        double z_mean = 0;
+        double z_stdev = 0.1;
+        double phi_mean = 0.;
+        double phi_stdev = 0.1;
+        double curv_mean = 0.1;
+        double curv_stdev = 0.01;
+        vector<double> cluskeys = {0,0,0};
+        NT->Fill(pt, pterror, z_mean, z_stdev, phi_mean, phi_stdev, curv_mean, curv_stdev,cluskeys.size());
+        SvtxTrack_v1 track;
+        track.set_id(numberofseeds);
+
+        for (unsigned int j = 0; j < cluskeys.size(); j++)
+        {
+          track.insert_cluster_key(cluskeys.at(j));
+        }
+        track.set_ndf(2 * cluskeys.size() - 5);
+        short int helicity = 1;
+        if (StartPhi * curv_mean < 0) helicity -= 2;
+        track.set_charge(-helicity);
+
+        TrkrCluster *cl = _cluster_map->findCluster(0);
+        track.set_x(_vertex->get_x());  //track.set_x(cl->getX());
+        track.set_y(_vertex->get_y());  //track.set_y(cl->getY());
+        track.set_z(_vertex->get_z());  //track.set_z(cl->getZ());
+        track.set_px(pt * cos(StartPhi));
+        track.set_py(pt * sin(StartPhi));
+        track.set_pz(pt / tan(2 * atan(exp(-StartEta))));
+        track.set_error(0, 0, cl->getError(0, 0));
+        track.set_error(0, 1, cl->getError(0, 1));
+        track.set_error(0, 2, cl->getError(0, 2));
+        track.set_error(1, 1, cl->getError(1, 1));
+        track.set_error(1, 2, cl->getError(1, 2));
+        track.set_error(2, 2, cl->getError(2, 2));
+        track.set_error(3, 3, pterror * pterror * cos(StartPhi) * cos(StartPhi));
+        track.set_error(4, 4, pterror * pterror * sin(StartPhi) * sin(StartPhi));
+        track.set_error(5, 5, pterror * pterror / tan(2 * atan(exp(-StartEta))) / tan(2 * atan(exp(-StartEta))));
+        _track_map->insert(&track);
+
+        //numberofseeds++;
+//      }
+//    }
+//  }
+//  t_seed->stop();
+  //cout << "number of seeds " << numberofseeds << endl;
+  //cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+
+  /*
+
+  */
+
   fpara.cd();
   NT->Write();
   fpara.Close();
