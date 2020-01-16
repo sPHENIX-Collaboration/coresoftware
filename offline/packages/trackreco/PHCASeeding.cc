@@ -579,6 +579,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     float x = x0;
     float y = y0;
     float z = z0;
+    float trackCartesian_x = 0.;
+    float trackCartesian_y = 0.;
+    float trackCartesian_z = 0.;
     cout << endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl;
     int cluster_ctr = 1;
     // starting at SECOND cluster, perform track propagation
@@ -600,7 +603,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       cout << "old phi = " << oldPhi << endl;
       float alpha = newPhi - oldPhi;
       cout << "alpha = " << alpha << endl;
-      if(!trackSeed.Rotate(-alpha,trackLine,maxSinPhi))
+      if(!trackSeed.Rotate(alpha,trackLine,maxSinPhi))
       {
         LogError("Rotate failed! Aborting for this seed...");
         break;
@@ -623,17 +626,17 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       cout << "cos_phi = " << cos_phi << endl;
       float sin_phi = y/sqrt(x*x+y*y);
       cout << "sin phi = " << sin_phi << endl;
-      float trackCartesian_x = predicted_alice_x*cos_phi+predicted_alice_y*sin_phi;
-      float trackCartesian_y = predicted_alice_x*sin_phi-predicted_alice_y*cos_phi;
-      float trackCartesian_z = predicted_z;
+      trackCartesian_x = predicted_alice_x*cos_phi+predicted_alice_y*sin_phi;
+      trackCartesian_y = predicted_alice_x*sin_phi-predicted_alice_y*cos_phi;
+      trackCartesian_z = predicted_z;
       cout << "Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl;
       cout << "Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl;
       cout << "track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl;
       //float nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
       float nextCluster_alice_y = 0.;
       cout << "next cluster ALICE y = " << nextCluster_alice_y << endl;
-      float y2_error = 1.;
-      float z2_error = 1.;
+      float y2_error = .015*.015;
+      float z2_error = .015*.015;
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,maxSinPhi))
       {
@@ -647,115 +650,17 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       cout << "cluster done" << endl << endl;
       cluster_ctr++;
     } 
-/*
-        for (unsigned int newlayer = _start_layer - 2; newlayer >= (_start_layer - 7); newlayer--)
-        {
-          vector<pointKey> newlayer_clusters;
-          cout << " window - "
-               << " phimin " << currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) - phist
-               << " phimax " << currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) + phist
-               << " etamin " << currenteta - etast
-               << " etamax " << currenteta + etast
-               << endl;
-          QueryTree(_rtree,
-                    currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) - phist,
-                    currenteta - etast,
-                    newlayer - 0.5,
-                    currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) + phist,
-                    currenteta + etast,
-                    newlayer + 0.5,
-                    newlayer_clusters);
-
-          if (newlayer_clusters.empty())
-          {
-            failures += 1;
-            if (failures > 2) break;  //0.7 2 0.9 3
-          }
-          else
-          {
-            double xinrecord = 100.0;
-            pointKey *xinkey = &*newlayer_clusters.begin();
-            for (std::vector<pointKey>::iterator it = newlayer_clusters.begin(); it != newlayer_clusters.end(); ++it)
-            {
-              double dist = abs(phidiff(it->first.get<0>(), currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]))) + abs(it->first.get<1>() - currenteta);
-
-              cout << " nuphi: " << it->first.get<0>()
-                   << " nueta: " << it->first.get<1>()
-                   << " dist: " << dist
-                   << " lay: " << newlayer
-                   << " dl: " << lastgoodlayer - newlayer
-                   << " r: " << _radii_all[newlayer]
-                   << " dr: " << _radii_all[lastgoodlayer] - _radii_all[newlayer]
-                   << endl;
-              if (dist < xinrecord)
-              {
-                *xinkey = *it;
-                xinrecord = dist;
-              }
-            }
-
-            dphidr = phidiff(currentphi, xinkey->first.get<0>()) / (_radii_all[lastgoodlayer] - _radii_all[newlayer]);
-            detadr = (currenteta - xinkey->first.get<1>()) / (_radii_all[lastgoodlayer] - _radii_all[newlayer]);
-            ther = (_radii_all[lastgoodlayer] - _radii_all[newlayer]) / 2;
-
-            curvatureestimates.push_back(copysign(2 / sqrt(ther * ther + 1 / dphidr / dphidr), dphidr));
-
-            phi_zigzag.push_back(dphidr);
-            z_zigzag.push_back(detadr);
-
-            cluskeys.push_back(xinkey->second);
-
-            currentphi = xinkey->first.get<0>();
-            currenteta = (currenteta + xinkey->first.get<1>()) / 2;
-
-            lastgoodlayer = newlayer;
-          }
-        }
-        if (failures > 2) continue;  //0.7 2 0.9 3
-
-        double phi_sum = std::accumulate(phi_zigzag.begin(), phi_zigzag.end(), 0.0);
-        double phi_mean = phi_sum / phi_zigzag.size();
-
-        std::vector<double> phi_diff(phi_zigzag.size());
-        std::transform(phi_zigzag.begin(), phi_zigzag.end(), phi_diff.begin(),
-                       std::bind2nd(std::minus<double>(), phi_mean));
-        double phi_sq_sum = std::inner_product(phi_diff.begin(), phi_diff.end(), phi_diff.begin(), 0.0);
-        double phi_stdev = std::sqrt(phi_sq_sum / (phi_zigzag.size() - 1));
-
-        double z_sum = std::accumulate(z_zigzag.begin(), z_zigzag.end(), 0.0);
-        double z_mean = z_sum / z_zigzag.size();
-
-        std::vector<double> z_diff(z_zigzag.size());
-        std::transform(z_zigzag.begin(), z_zigzag.end(), z_diff.begin(),
-                       std::bind2nd(std::minus<double>(), z_mean));
-        double z_sq_sum = std::inner_product(z_diff.begin(), z_diff.end(), z_diff.begin(), 0.0);
-        double z_stdev = std::sqrt(z_sq_sum / (z_zigzag.size() - 1));
-
-        double curv_sum = std::accumulate(curvatureestimates.begin(), curvatureestimates.end(), 0.0);
-        double curv_mean = curv_sum / curvatureestimates.size();
-
-        std::vector<double> curv_diff(curvatureestimates.size());
-        std::transform(curvatureestimates.begin(), curvatureestimates.end(), curv_diff.begin(),
-                       std::bind2nd(std::minus<double>(), curv_mean));
-        double curv_sq_sum = std::inner_product(curv_diff.begin(), curv_diff.end(), curv_diff.begin(), 0.0);
-        double curv_stdev = std::sqrt(curv_sq_sum / (curvatureestimates.size() - 1));
-
-        const double BQ = 0.01 * 1.4 * 0.299792458;
-        double pt = BQ / abs(curv_mean);
-        double pterror = BQ * curv_stdev / (curv_mean * curv_mean);
-*/
-        //    pt:z:dz:phi:dphi:c:dc
+    //    pt:z:dz:phi:dphi:c:dc
     // Fill NT with track parameters
-    float StartPhi = atan(y0/x0);
     float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
-    float track_pt = 1./(trackSeed.GetQPt());
-    float track_pterr = trackSeed.GetErr2QPt();
+    float track_pt = abs( 1./(trackSeed.GetQPt()));
+    float track_pterr = sqrt(trackSeed.GetErr2QPt());
     float track_z = trackSeed.GetZ();
-    float track_zerr = trackSeed.GetErr2Z();
-    float track_phi = 0.;
-    float track_phierr = 0.001;
+    float track_zerr = sqrt(trackSeed.GetErr2Z());
+    float track_phi = atan(trackCartesian_y/trackCartesian_x);
+    float track_phierr = 0.01;
     float track_curvature = trackSeed.GetKappa(Bz);
-    float track_curverr = 0.001;
+    float track_curverr = sqrt(trackSeed.GetErr2QPt())*Bz;
     NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
     SvtxTrack_v1 track;
     track.set_id(numberofseeds);
@@ -767,11 +672,11 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     if(trackSeed.GetQPt()<0) track.set_charge(-1);
     else track.set_charge(1);
     TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain->at(0));
-    track.set_x(_vertex->get_x());  //track.set_x(cl->getX());
-    track.set_y(_vertex->get_y());  //track.set_y(cl->getY());
-    track.set_z(_vertex->get_z());  //track.set_z(cl->getZ());
-    track.set_px(track_pt * cos(StartPhi));
-    track.set_py(track_pt * sin(StartPhi));
+    track.set_x(trackCartesian_x);  //track.set_x(cl->getX());
+    track.set_y(trackCartesian_y);  //track.set_y(cl->getY());
+    track.set_z(trackCartesian_z);  //track.set_z(cl->getZ());
+    track.set_px(track_pt * cos(track_phi));
+    track.set_py(track_pt * sin(track_phi));
     track.set_pz(track_pt / tan(2 * atan(exp(-StartEta))));
     track.set_error(0, 0, cl->getError(0, 0));
     track.set_error(0, 1, cl->getError(0, 1));
@@ -779,8 +684,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     track.set_error(1, 1, cl->getError(1, 1));
     track.set_error(1, 2, cl->getError(1, 2));
     track.set_error(2, 2, cl->getError(2, 2));
-    track.set_error(3, 3, track_pterr * track_pterr * cos(StartPhi) * cos(StartPhi));
-    track.set_error(4, 4, track_pterr * track_pterr * sin(StartPhi) * sin(StartPhi));
+    track.set_error(3, 3, track_pterr * track_pterr * cos(track_phi) * cos(track_phi));
+    track.set_error(4, 4, track_pterr * track_pterr * sin(track_phi) * sin(track_phi));
     track.set_error(5, 5, track_pterr * track_pterr / tan(2 * atan(exp(-StartEta))) / tan(2 * atan(exp(-StartEta))));
     _track_map->insert(&track);
     numberofseeds++;
