@@ -74,23 +74,17 @@ CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int half_stave, int mo
   double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
 
-  /*
-    cout << endl << "CylinderGeom_Mvtx::get_local_from_world_coords: " << " Stave type " << stave_type
-	 << " chip " << chip
-	 << " world coords " << world_location.X() << " " << world_location.Y() << " " << world_location.Z() << endl;
-  */
-
-  TVector3 res;
-
-  // Inner stave
+  // Starting from its location in the world
+  TVector3 res = world_location;
 
   // transform location of stave from its location in the world - this is just a translation
   TVector3 tr4(layer_radius * cos(stave_phi), layer_radius * sin(stave_phi), 0.0);
-  res = world_location - tr4;
+  res -= tr4;
 
   // Rotate stave from its angle in the world
   // This requires rotating it by:
-  //   removing the tilt (for layers 0-2)
+  //   removing the tilt
+  //   removing the offsetfor first layer
   //   removing the angle that makes it point at the origin when it was at it's location in the world
   //   rotating it by -90 degrees to make the face point vertically up in y
   TRotation R;
@@ -101,25 +95,25 @@ CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int half_stave, int mo
   TVector3 tr3(inner_loc_halfstave_in_stave[0],
                inner_loc_halfstave_in_stave[1],
                inner_loc_halfstave_in_stave[2]);
-  res = res - tr3;
+  res -= tr3;
 
-  // transfor from half stave to module
+  // transfor from half stave to location in module
   TVector3 tr2a(inner_loc_module_in_halfstave[0],
                 inner_loc_module_in_halfstave[1],
                 inner_loc_module_in_halfstave[2]);
-  res = res - tr2a;
+  res -= tr2a;
 
   // transform location in module to location in chip
   TVector3 tr2(inner_loc_chip_in_module[chip][0],
                inner_loc_chip_in_module[chip][1],
                inner_loc_chip_in_module[chip][2]);
-  res = res - tr2;
+  res -= tr2;
 
   // transform location in chip to location in sensor
   TVector3 tr1(loc_sensor_in_chip[0],
                loc_sensor_in_chip[1],
                loc_sensor_in_chip[2]);
-  res = res - tr1;
+  res -= tr1;
 
   return res;
 }
@@ -130,39 +124,32 @@ CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int half_stave, int mo
   double stave_phi = stave_phi_0 + stave_phi_step * (double) stave;
   double stave_phi_offset = M_PI / 2.0;  // stave initially points so that sensor faces upward in y
 
-  /*
-    cout << endl << "CylinderGeom_Mvtx::get_world_from_local_coords: " << " stave type " << stave_type
-	 << " chip " << chip
-	 << " local coords " << sensor_local.X() << " " << sensor_local.Y() << " " << sensor_local.Z() << endl;
-  */
-
-  // Inner stave
   // Start with the point in sensor local coords
-  TVector3 pos1 = sensor_local;
+  TVector3 res = sensor_local;
 
   // transform sensor location to location in chip
   TVector3 tr1(loc_sensor_in_chip[0],
                loc_sensor_in_chip[1],
                loc_sensor_in_chip[2]);
-  TVector3 res = pos1 + tr1;
+  res += tr1;
 
   // transform location in chip to location in module
   TVector3 tr2(inner_loc_chip_in_module[chip][0],
                inner_loc_chip_in_module[chip][1],
                inner_loc_chip_in_module[chip][2]);
-  res = res + tr2;
+  res += tr2;
 
   // module to half stave
   TVector3 tr2a(inner_loc_module_in_halfstave[0],
                 inner_loc_module_in_halfstave[1],
                 inner_loc_module_in_halfstave[2]);
-  res = res + tr2a;
+  res += tr2a;
 
   // transform location in half stave to location in stave
   TVector3 tr3(inner_loc_halfstave_in_stave[0],
                inner_loc_halfstave_in_stave[1],
                inner_loc_halfstave_in_stave[2]);
-  res = res + tr3;
+  res += tr3;
 
   // Rotate stave to its angle in the world
   // This requires rotating it by
@@ -179,27 +166,12 @@ CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int half_stave, int mo
   TVector3 tr4(layer_radius * cos(stave_phi),
                layer_radius * sin(stave_phi),
                0.0);
-  res = res + tr4;
+  res += tr4;
 
   return res;
 }
 
-int CylinderGeom_Mvtx::get_pixel_number_from_xbin_zbin(int xbin, int ybin)
-{
-  return xbin + ybin * get_NX();
-}
-
-int CylinderGeom_Mvtx::get_pixel_X_from_pixel_number(int NXZ)
-{
-    return NXZ % get_NX();
-}
-
-int CylinderGeom_Mvtx::get_pixel_Z_from_pixel_number(int NXZ)
-{
-   return NXZ / get_NX();
-}
-
-int CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local)
+bool CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol)
 {
   //YCM (2020-01-02): It seems that due some round issues, local coords of hits at the edge of the sensor volume
   //                  are out by some fraction of microns from the ActiveMatrix. Making a safety check inside 0.1 um
@@ -218,30 +190,24 @@ int CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local)
   TVector3 in_chip = sensor_local;
   TVector3 tr(loc_sensor_in_chip[0], loc_sensor_in_chip[1], loc_sensor_in_chip[2]);
   in_chip += tr;
-  int Ngridx, Ngridz;
-  bool px_in = SegmentationAlpide::localToDetector(in_chip.X(), in_chip.Z(), Ngridx, Ngridz);
 
+  return SegmentationAlpide::localToDetector(in_chip.X(), in_chip.Z(), iRow, iCol);
+}
+
+int CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local)
+{
+  int Ngridx, Ngridz;
+  bool px_in = get_pixel_from_local_coords(sensor_local, Ngridx, Ngridz);
   if (!px_in)
     cout << PHWHERE
           << " Pixel is out sensor. ("
           << sensor_local.X() << ", "
           << sensor_local.Y() << ", "
           << sensor_local.Z() << ")."
-          << endl << " and out of chip ("
-          << in_chip.X() << ", "
-          << in_chip.Y() << ", "
-          << in_chip.Z() << ")."
           << endl;
 
   if (Ngridx < 0 || Ngridx >= get_NX() || Ngridz < 0 || Ngridz >= get_NZ())
     cout << PHWHERE << "Wrong pixel value X= " << Ngridx << " and Z= " << Ngridz  << endl;
-
-  /*
-  cout << "Transformed grid locations: "
-       << " Ngridx (ref to neg x, neg y corner) " << Ngridx
-       << " Ngridz (ref to neg x, neg y corner) " << Ngridz
-       << endl;
-  */
 
   // numbering starts at zero
   return Ngridx + Ngridz * get_NX();
@@ -249,36 +215,24 @@ int CylinderGeom_Mvtx::get_pixel_from_local_coords(TVector3 sensor_local)
 
 TVector3 CylinderGeom_Mvtx::get_local_coords_from_pixel(int NXZ)
 {
-  //  NZ = (int)  ( Zsensor / (pixel_z) );
-  //  NX = (int)  ( Xsensor / (pixel_x) );
-
-  //cout  << " Pixels in X: NX  " << NX  << " pixels in Z: NZ  " << NZ << endl;
-
   int Ngridz = NXZ / get_NX();
   int Ngridx = NXZ % get_NX();
 
-  // change to a grid centered on the sensor
-  Ngridx -= get_NX() / 2;
-  Ngridz -= get_NZ() / 2;
+  return get_local_coords_from_pixel(Ngridx, Ngridz);
+}
 
-  double sensor_local_x = (double) Ngridx * pixel_x;
-  if (sensor_local_x < 0)
-    sensor_local_x -= pixel_x / 2.0;
-  else
-    sensor_local_x += pixel_x / 2.0;
-
-  double sensor_local_z = (double) Ngridz * pixel_z;
-  if (sensor_local_z < 0)
-    sensor_local_z -= pixel_z / 2.0;
-  else
-    sensor_local_z += pixel_z / 2.0;
-
-  // The front of the sensor is at y = 0.0009, the back is at y = -0.0009
-  // if we wanted the coordinates of the entrance or exit point, we would make y = to 0.0009 or -0.0009
-  // Because we want the coords of the center of the pixel, we take y = 0
-  TVector3 sensor_local_coords(sensor_local_x, 0.0, sensor_local_z);
-
-  return sensor_local_coords;
+TVector3 CylinderGeom_Mvtx::get_local_coords_from_pixel(int iRow, int iCol)
+{
+  TVector3 local;
+  bool check = SegmentationAlpide::detectorToLocal((float)iRow, (float)iCol, local);
+  if ( ! check)
+    cout << PHWHERE << "Pixel coord ( " << iRow << ", " << iCol <<" )" << "out of range" << endl;
+  // Transform location in chip to location in sensors
+  TVector3 trChipToSens(loc_sensor_in_chip[0],
+                        loc_sensor_in_chip[1],
+                        loc_sensor_in_chip[2]);
+  local -= trChipToSens;
+  return local;
 }
 
 void CylinderGeom_Mvtx::identify(std::ostream& os) const
@@ -292,59 +246,6 @@ void CylinderGeom_Mvtx::identify(std::ostream& os) const
      << ", pixel_thickness: " << pixel_thickness
      << endl;
   return;
-}
-
-int CylinderGeom_Mvtx::get_ladder_z_index(int module, int chip)
-{
-  // return the z index of the sensor on the stave
-  // this depends on the stave type
-  // stave_type 0 has 1 module with 9 chips / module in 9 z locations (no half staves)
-  // stave_type 1 has 2 half-staves separted in azimuth, with 4 modules each lined up in z, with 14 chips / module paired in 7 z locations,  the pairs separated in azimuth
-  // stave_type 2 has 2 half staves separated in azimuth, each with 7 modules lined up in z, with 14 chips / module paired in 7 z locations, the pairs separated in azimuth
-
-  /*int ladder_z_index;
-
-  if (stave_type == 0)
-  {
-    // only 1 module
-    ladder_z_index = chip;
-  }
-  else
-  {
-    // stave_type 1 or 2
-    // half stave number does not affect z location, it affects only phi location
-    ladder_z_index = module * 7 + chip;
-  }
-
-  return ladder_z_index;*/
- return chip;
-}
-
-int CylinderGeom_Mvtx::get_ladder_phi_index(int stave, int half_stave, int chip)
-{
-  // return the phi index of the sensor on the stave
-  // this depends on the stave type
-  // stave_type 0 has 1 module with 9 chips / module in 9 z locations (no half staves)
-  // stave_type 1 has 2 half-staves separted in azimuth, with 4 modules each lined up in z, with 14 chips / module paired in 7 z locations,  the pairs separated in azimuth
-  // stave_type 2 has 2 half staves separated in azimuth, each with 7 modules lined up in z, with 14 chips / module paired in 7 z locations, the pairs separated in azimuth
-/*
-  int ladder_phi_index;
-
-  if (stave_type == 0)
-  {
-    // no half staves
-    ladder_phi_index = stave;
-  }
-  else
-  {
-    // stave_type 1 or 2
-    // each stave has two half staves separated in azimuth, with two rows of chips each also separated in azimuth
-    ladder_phi_index = stave * 4 + half_stave * 2 + chip % 2;
-  }
-
-  return ladder_phi_index;
-  */
- return stave;
 }
 
 void CylinderGeom_Mvtx::find_sensor_center(int stave, int half_stave, int module, int chip, double location[])

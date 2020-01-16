@@ -39,16 +39,37 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   TVector3 get_local_from_world_coords(int stave, int half_stave, int module, int chip, TVector3 world_location);
   TVector3 get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local);
 
+  TVector3 get_local_from_world_coords(int stave, int chip, TVector3 world_location)
+  {
+    return get_local_from_world_coords(stave, 0, 0, chip, world_location);
+  }
+
+
+  TVector3 get_world_from_local_coords(int stave, int chip, TVector3 sensor_local)
+  {
+    return get_world_from_local_coords(stave, 0, 0, chip, sensor_local);
+  }
+
+  bool get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol);
   int get_pixel_from_local_coords(TVector3 sensor_local);
-    bool get_pixel_from_local_coords(TVector3 sensor_local, int& iRow, int& iCol);
 
   TVector3 get_local_coords_from_pixel(int NXZ);
   TVector3 get_local_coords_from_pixel(int iRow, int iCol);
 
-  int get_pixel_X_from_pixel_number(int NXZ);
-  int get_pixel_Z_from_pixel_number(int NXZ);
+  int get_pixel_X_from_pixel_number(int NXZ)
+  {
+    return NXZ % get_NX();
+  }
 
-  int get_pixel_number_from_xbin_zbin(int xbin, int zbin); // obsolete
+  int get_pixel_Z_from_pixel_number(int NXZ)
+  {
+    return NXZ / get_NX();
+  }
+
+  int get_pixel_number_from_xbin_zbin(int xbin, int zbin) // obsolete
+  {
+      return xbin + zbin * get_NX();
+  }
 
   double get_pixel_x() const { return pixel_x; }  // pitch
   double get_pixel_z() const { return pixel_z; }  // length
@@ -60,8 +81,8 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   double get_stave_phi_tilt() const { return stave_phi_tilt; }
   double get_stave_phi_0() const { return stave_phi_0; }
 
-  int get_ladder_phi_index(int stave, int half_stave, int chip);
-  int get_ladder_z_index(int module, int chip);
+  int get_ladder_phi_index(int stave, int half_stave, int chip) {return stave; }
+  int get_ladder_z_index(int module, int chip) { return chip; }
 
   void find_sensor_center(int stave_number, int half_stave_number, int module_number, int chip_number, double location[]);
 
