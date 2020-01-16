@@ -3,6 +3,8 @@
 
 #include "PHG4TpcElectronDrift.h"
 #include "PHG4TpcPadPlane.h"                            // for PHG4TpcPadPlane
+#include "PHG4TpcDistortion.h"
+#include "PHG4TpcAnalyticSpaceChargeDistortion.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -73,6 +75,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , max_active_radius(NAN)
   , min_time(NAN)
   , max_time(NAN)
+  , distortion(new PHG4TpcAnalyticSpaceChargeDistortion())
 {
   //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();
@@ -87,6 +90,7 @@ PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
   gsl_rng_free(RandomGenerator);
   delete padplane;
   delete temp_hitsetcontainer;
+  delete distortion;
 }
 
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
@@ -308,6 +312,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
       double radstart = sqrt(x_start * x_start + y_start * y_start);
+      double phistart = atan2(y_start,x_start);
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -330,8 +335,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         continue;
       }
       double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
-      double x_final = x_start + rantrans * cos(ranphi);
-      double y_final = y_start + rantrans * sin(ranphi);
+      double distrphi= distortion->get_rphi_distortion(radstart,phistart,z_start);
+      double distr= distortion->get_r_distortion(radstart,phistart,z_start);
+      double x_final = x_start + rantrans * cos(ranphi)+distr*cos(phistart)+distrphi*sin(phistart);
+      double y_final = y_start + rantrans * sin(ranphi)+distr*sin(phistart)+distrphi*cos(phistart);
       double rad_final = sqrt(x_final * x_final + y_final * y_final);
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
