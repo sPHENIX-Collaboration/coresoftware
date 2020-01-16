@@ -33,7 +33,14 @@ class SvtxTrackMap;     // lines 204-204
 class SvtxVertex;
 class SvtxVertexMap;    // lines 206-206
 
+//#define _DEBUG_
+
+#if defined(_DEBUG_)
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#else
+#define LogDebug(exp) (void)0
+#endif
+
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
 #define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
 

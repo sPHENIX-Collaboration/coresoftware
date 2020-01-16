@@ -64,6 +64,10 @@ typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 typedef std::array<TrkrDefs::cluskey,2> keylink;
 typedef std::vector<TrkrDefs::cluskey> keylist;
 
+#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
+
 using namespace std;
 //using namespace ROOT::Minuit2;
 namespace bg = boost::geometry;
@@ -328,6 +332,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   phisr = 0.005 * _phi_scale;  // *2
   etasr = 0.0035 * _z_scale;   // *2;
   /* 0.7 version
+     phist = 0.001*1;
+     etast = 0.003*1;
      0.9 version 
      phist = 0.001*2;
      etast = 0.003*2;
@@ -343,7 +349,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   FillTree();
 
   int numberofseeds = 0;
-  LogDebug(" entries in tree: " << _rtree.size() << endl);
+  cout << " entries in tree: " << _rtree.size() << endl;
 
   vector<pointKey> allClusters;
   vector<keylink> belowLinks;
@@ -357,81 +363,87 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
             3, // eta
             100, // layer
             allClusters);
-  LogDebug(" number of total clusters: " << allClusters.size() << endl);
+  cout << "number of total clusters: " << allClusters.size() << endl;
   for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); StartCluster++)
   {
     // get clusters near this one in adjacent layers
     double StartPhi = StartCluster->first.get<0>();
     double StartEta = StartCluster->first.get<1>();
     unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
-    TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
-    double StartX = StartCl->getPosition(0);
-    double StartY = StartCl->getPosition(1);
-    double StartZ = StartCl->getPosition(2);
-    LogDebug(" starting cluster:" << endl);
-    LogDebug(" eta: " << StartEta << endl);
-    LogDebug(" phi: " << StartPhi << endl);
-    LogDebug(" layer: " << StartLayer << endl);
+    cout << "starting cluster:" << endl;
+    cout << "eta: " << StartEta << endl;
+    cout << "phi: " << StartPhi << endl;
+    cout << "layer: " << StartLayer << endl;
 
     vector<pointKey> ClustersAbove;
     vector<pointKey> ClustersBelow;
     QueryTree(_rtree,
-              StartPhi-M_PI/6,
-              StartEta-1,
+              StartPhi - 0.1,
+              StartEta - 0.1,
               (double) StartLayer - 1.5,
-              StartPhi+M_PI/6,
-              StartEta+1,
+              StartPhi + 0.1,
+              StartEta + 0.1,
               (double) StartLayer - 0.5,
               ClustersBelow);
     QueryTree(_rtree,
-              StartPhi-M_PI/6,
-              StartEta-1,
+              StartPhi - 0.1,
+              StartEta - 0.1,
               (double) StartLayer + 0.5,
-              StartPhi+M_PI/6,
-              StartEta+1,
+              StartPhi + 0.1,
+              StartEta + 0.1,
               (double) StartLayer + 1.5,
               ClustersAbove);
-    LogDebug(" entries in below layer: " << ClustersBelow.size() << endl);
-    LogDebug(" entries in above layer: " << ClustersAbove.size() << endl);
-    vector<array<double,3>> delta_below;
-    vector<array<double,3>> delta_above;
+    cout << " entries in below layer: " << ClustersBelow.size() << endl;
+    cout << " entries in above layer: " << ClustersAbove.size() << endl;
+    vector<array<double,2>> delta_below;
+    vector<array<double,2>> delta_above;
     // calculate (delta_eta, delta_phi) vector for each neighboring cluster
     for (vector<pointKey>::iterator BelowCandidate = ClustersBelow.begin(); BelowCandidate != ClustersBelow.end(); ++BelowCandidate)
     {
-      TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate->second);
-      double BelowX = BelowCl->getPosition(0)-StartX;
-      double BelowY = BelowCl->getPosition(1)-StartY;
-      double BelowZ = BelowCl->getPosition(2)-StartZ;
+      double belowphi = BelowCandidate->first.get<0>();
+      double beloweta = BelowCandidate->first.get<1>();
       delta_below.push_back(
-        {BelowX,
-         BelowY,
-         BelowZ});
+        {phidiff(StartPhi, belowphi),
+        StartEta - beloweta});
     }
     for(vector<pointKey>::iterator AboveCandidate = ClustersAbove.begin(); AboveCandidate != ClustersAbove.end(); ++AboveCandidate)
     {
-      TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate->second);
-      double AboveX = AboveCl->getPosition(0)-StartX;
-      double AboveY = AboveCl->getPosition(1)-StartY;
-      double AboveZ = AboveCl->getPosition(2)-StartZ;
+      double abovephi = AboveCandidate->first.get<0>();
+      double aboveeta = AboveCandidate->first.get<1>();
       delta_above.push_back(
-        {AboveX,
-         AboveY,
-         AboveZ});
+        {phidiff(StartPhi, abovephi),
+        StartEta - aboveeta});
+    }
+    cout << "delta_below:" << endl;
+    for(size_t i=0;i<delta_below.size();i++)
+    {
+      cout << "dphi: " << delta_below[i][0] << endl;
+      cout << "deta: " << delta_below[i][1] << endl;
+    }
+    cout << "delta_above:" << endl;
+    for(size_t i=0;i<delta_above.size();i++)
+    {
+      cout << "dphi: " << delta_above[i][0] << endl;
+      cout << "deta: " << delta_above[i][1] << endl;
     }
     // find the three clusters closest to a straight line
     // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
-    double maxCosPlaneAngle = 0;
+    double maxCosPlaneAngle = 0.;
     TrkrDefs::cluskey bestBelowCluster = 0;
     TrkrDefs::cluskey bestAboveCluster = 0;
     for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
     {
       for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
       {
-        double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1]+delta_below[iBelow][2]*delta_above[iAbove][2];
-        double belowSqLength = sqrt(pow(delta_below[iBelow][0],2)+pow(delta_below[iBelow][1],2)+pow(delta_below[iBelow][2],2));
-        double aboveSqLength = sqrt(pow(delta_above[iAbove][0],2)+pow(delta_above[iAbove][1],2)+pow(delta_above[iAbove][2],2));
-        double cosPlaneAngle = dotProduct / (belowSqLength*aboveSqLength);
-        if(cosPlaneAngle < maxCosPlaneAngle )
+        double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1];
+        cout << "dotProduct: " << dotProduct << endl;
+        double belowSqLength = delta_below[iBelow][0]*delta_below[iBelow][0]+delta_below[iBelow][1]*delta_below[iBelow][1];
+        cout << "below squared length: " << belowSqLength << endl;
+        double aboveSqLength = delta_above[iAbove][0]*delta_above[iAbove][0]+delta_above[iAbove][1]*delta_above[iAbove][1];
+        cout << "above squared length: " << aboveSqLength << endl;
+        double cosPlaneAngle = dotProduct*dotProduct / (belowSqLength*aboveSqLength);
+        cout << "cos plane angle: " << cosPlaneAngle << endl;
+        if(cosPlaneAngle > maxCosPlaneAngle)
         {
           maxCosPlaneAngle = cosPlaneAngle;
           bestBelowCluster = ClustersBelow[iBelow].second;
@@ -441,22 +453,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     }
     belowLinks.push_back({StartCluster->second,bestBelowCluster});
     aboveLinks.push_back({StartCluster->second,bestAboveCluster});
-    LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
-#if defined(_DEBUG_)
-    if(bestBelowCluster==0 || bestAboveCluster == 0)
-    {
-      LogDebug("Incomplete triplet, skipping debug output" << endl);
-    }
-    else
-    {
-      TrkrCluster* bcl = _cluster_map->findCluster(bestBelowCluster);
-      TrkrCluster* scl = _cluster_map->findCluster(StartCluster->second);
-      TrkrCluster* acl = _cluster_map->findCluster(bestAboveCluster);
-      LogDebug(" found triplet: (" << bcl->getPosition(0) << "," << bcl->getPosition(1) << "," << bcl->getPosition(2)
-       << ")<-(" << scl->getPosition(0) << "," << scl->getPosition(1) << "," << scl->getPosition(2) << ")->(" 
-       << acl->getPosition(0) << "," << acl->getPosition(1) << "," << acl->getPosition(2) << ")" << endl);
-    }
-#endif
+    cout << "max collinearity: " << maxCosPlaneAngle << endl;
+    cout << "key triplet: " << bestBelowCluster << " " << StartCluster->second << " " << bestAboveCluster << endl;
   }
   // remove all triplets for which there isn't a mutual association between two clusters
   vector<keylink> bidirectionalLinks;
@@ -469,10 +467,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       bidirectionalLinks.push_back((*belowLink));
     }
   }
-  LogDebug(" bidirectional links found:" << endl);
+  cout << "bidirectional links found:" << endl;
   for(vector<keylink>::iterator l = bidirectionalLinks.begin(); l != bidirectionalLinks.end(); ++l)
   {
-    LogDebug(" "<< (*l)[0] << " <-> " << (*l)[1] << endl);
+    cout << (*l)[0] << " <-> " << (*l)[1] << endl;
   }
   // follow bidirectional links to form lists of cluster keys
   // (to be fitted for track seed parameters)
@@ -511,19 +509,16 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       if(no_next_link) reached_end = true;
     }
   }
-  LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << endl);
-  LogDebug(" track key chain lengths: " << endl);
+  cout << "track key chains assembled: " << trackSeedKeyLists.size() << endl;
+  cout << "track key chain lengths: " << endl;
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
-    LogDebug(" " << trackKeyChain->size() << endl);
+    cout << trackKeyChain->size() << endl;
   }
-  int jumpcount = 0;
-  LogDebug(" track key associations:" << endl);
+  cout << "track key associations:" << endl;
   for(size_t i=0;i<trackSeedKeyLists.size();++i)
   {
-    LogDebug(" seed " << i << ":" << endl);
-    double lasteta = -100;
-    double lastphi = -100;
+    cout << "seed " << i << ":" << endl;
     for(size_t j=0;j<trackSeedKeyLists[i].size();++j)
     {
       TrkrCluster* cl = _cluster_map->findCluster(trackSeedKeyLists[i][j]);
@@ -532,25 +527,12 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       double clus_phi = vec.Phi();
       clus_phi -= 2 * M_PI * floor(clus_phi / (2 * M_PI));
       double clus_eta = vec.Eta();
-      double etajump = clus_eta-lasteta;
-      double phijump = clus_phi-lastphi;
-      #if defined(_DEBUG_) 
       unsigned int lay = TrkrDefs::getLayer(trackSeedKeyLists[i][j]);
-      #endif
-      if((fabs(etajump)>0.1 && lasteta!=-100) || (fabs(phijump)>1 && lastphi!=-100))
-      {
-         LogDebug(" Eta or Phi jump too large! " << endl);
-         jumpcount++;
-      }
-      LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
-        " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
-      lasteta = clus_eta;
-      lastphi = clus_phi;
+      cout << "(eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ")" << endl;
     }
   }
-  LogDebug(" Total large jumps: " << jumpcount << endl);
-    // Turn track cluster chains into track candidates using ALICE simplified KF.
 
+  // Turn track cluster chains into track candidates using ALICE simplified KF.
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
     // get starting cluster from key
@@ -570,118 +552,173 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     trackSeed.SetX(alice_x0);
     trackSeed.SetY(alice_y0);
     trackSeed.SetZ(alice_z0);
+    GPUTPCTrackLinearisation trackLine; // default constructor is fine for now
     // convert B field to ALICE-compatible units
     float Bz = 1.4*0.000299792458f;
     // configurable max sin phi (algorithm doesn't work when track is too horizontal)
-    float maxSinPhi = 0.999;
+    float maxSinPhi = 0.99;
     float x = x0;
     float y = y0;
-    #if defined(_DEBUG_)
     float z = z0;
-    float alice_x = sqrt(x0*x0+y0*y0);
-    #endif
-    float trackCartesian_x = 0.;
-    float trackCartesian_y = 0.;
-    float trackCartesian_z = 0.;
-    // Pre-set momentum-based parameters to improve numerical stability
-    TrkrCluster* SecondCluster = _cluster_map->findCluster(trackKeyChain->at(1));
-    float second_x = SecondCluster->getPosition(0);
-    float second_y = SecondCluster->getPosition(1);
-    float second_z = SecondCluster->getPosition(2);
-    float second_alice_x = sqrt(second_x*second_x+second_y*second_y);
-    float delta_alice_x = second_alice_x - alice_x0;
-    float first_phi = atan(y0/x0);
-    float second_alice_y = (second_x/cos(first_phi)-second_y/sin(first_phi))/(sin(first_phi)/cos(first_phi)+cos(first_phi)/sin(first_phi));
-    float init_SinPhi = second_alice_y / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
-    float delta_z = second_z - z0;
-    float init_DzDs = delta_z / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
-    trackSeed.SetSinPhi(init_SinPhi);
-    LogDebug("Set initial SinPhi to " << init_SinPhi << endl);
-    trackSeed.SetDzDs(init_DzDs);
-    LogDebug("Set initial DzDs to " << init_DzDs << endl);
-    GPUTPCTrackLinearisation trackLine(trackSeed);
-
-    LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl);
-    int cluster_ctr = 1;
-    // starting at second cluster, perform track propagation
+    // starting at SECOND cluster, perform track propagation
     for(keylist::iterator clusterkey = next(trackKeyChain->begin()); clusterkey != trackKeyChain->end(); ++clusterkey)
     {
-      LogDebug("cluster " << cluster_ctr << " -> " << cluster_ctr + 1 << endl);
-      LogDebug("this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl);
       // get cluster from key
       TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
-      // find ALICE x-coordinate
+      // find ALICE x-coordinate, and transport to that x
       float nextCluster_x = nextCluster->getPosition(0);
       float nextCluster_y = nextCluster->getPosition(1);
       float nextCluster_z = nextCluster->getPosition(2);
       float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
-      // rotate track coordinates to match orientation of next cluster
-      float newPhi = atan(nextCluster_y/nextCluster_x);
-      LogDebug("new phi = " << newPhi << endl);
-      float oldPhi = atan(y/x);
-      LogDebug("old phi = " << oldPhi << endl);
-      float alpha = newPhi - oldPhi;
-      LogDebug("alpha = " << alpha << endl);
-      if(!trackSeed.Rotate(alpha,trackLine,maxSinPhi))
-      {
-        LogError("Rotate failed! Aborting for this seed...");
-        break;
-      }
-      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
-      LogDebug("Transporting from " << alice_x << " to " << nextAlice_x << "...");
       if(!trackSeed.TransportToX(nextAlice_x,trackLine,Bz,maxSinPhi))
       {
         LogError("Transport failed! Aborting for this seed...");
         break;
       }
       // convert ALICE coordinates to sPHENIX cartesian coordinates, for debugging
-      float predicted_alice_x = trackSeed.GetX();
-      LogDebug("new track ALICE x = " << trackSeed.GetX() << endl);
       float predicted_alice_y = trackSeed.GetY();
-      LogDebug("new track ALICE y = " << trackSeed.GetY() << endl);
       float predicted_z = trackSeed.GetZ();
-      LogDebug("new track z = " << trackSeed.GetZ() << endl);
-      float cos_phi = x/sqrt(x*x+y*y);
-      LogDebug("cos_phi = " << cos_phi << endl);
-      float sin_phi = y/sqrt(x*x+y*y);
-      LogDebug("sin phi = " << sin_phi << endl);
-      trackCartesian_x = predicted_alice_x*cos_phi+predicted_alice_y*sin_phi;
-      trackCartesian_y = predicted_alice_x*sin_phi-predicted_alice_y*cos_phi;
-      trackCartesian_z = predicted_z;
-      LogDebug("Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl);
-      LogDebug("Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl);
-      LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
-      //float nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
-      float nextCluster_alice_y = 0.;
-      LogDebug("next cluster ALICE y = " << nextCluster_alice_y << endl);
-      float y2_error = .015*.015;
-      float z2_error = .015*.015;
-      LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << endl);
+      float cos_theta = x/sqrt(x*x+y*y);
+      float sin_theta = y/sqrt(x*x+y*y);
+      float delta_y = predicted_alice_y*cos_theta;
+      float delta_x = predicted_alice_y*sin_theta;
+      float trackCartesian_x = x + delta_x;
+      float trackCartesian_y = y + delta_y;
+      float trackCartesian_z = predicted_z;
+      cout << "Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl;
+      cout << "Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl;
+      // Rotate track coordinate system to be parallel to layer
+      float newTheta = atan(trackCartesian_y/trackCartesian_x);
+      float oldTheta = atan(y/x);
+      float alpha = newTheta - oldTheta;
+      if(!trackSeed.Rotate(alpha,trackLine,maxSinPhi))
+      {
+        LogError("Rotate failed! Aborting for this seed...");
+        break;
+      }
+      // Calculate squared errors in Y and Z
+      float z2_error = (nextCluster_z-predicted_z)*(nextCluster_z-predicted_z);
+      float nextCluster_alice_y = (nextCluster_x*x+nextCluster_y*y+nextCluster_z*z)/sqrt(x*x+y*y+z*z);
+      float y2_error = (nextCluster_alice_y-predicted_alice_y)*(nextCluster_alice_y-predicted_alice_y);
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,maxSinPhi))
       {
-        LogError("Kalman filter failed for seed " << numberofseeds << "! Aborting for this seed..." << endl);
+        LogError("Kalman filter failed! Aborting for this seed...");
         break;
       }
-      x = nextCluster_x;
-      y = nextCluster_y;
-      #if defined(_DEBUG_)
-      z = nextCluster_z;
-      alice_x = nextAlice_x;
-      #endif
-      cluster_ctr++;
+      x = trackCartesian_x;
+      y = trackCartesian_y;
+      z = trackCartesian_z;
     } 
-    //    pt:z:dz:phi:dphi:c:dc
+/*
+        for (unsigned int newlayer = _start_layer - 2; newlayer >= (_start_layer - 7); newlayer--)
+        {
+          vector<pointKey> newlayer_clusters;
+          cout << " window - "
+               << " phimin " << currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) - phist
+               << " phimax " << currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) + phist
+               << " etamin " << currenteta - etast
+               << " etamax " << currenteta + etast
+               << endl;
+          QueryTree(_rtree,
+                    currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) - phist,
+                    currenteta - etast,
+                    newlayer - 0.5,
+                    currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]) + phist,
+                    currenteta + etast,
+                    newlayer + 0.5,
+                    newlayer_clusters);
+
+          if (newlayer_clusters.empty())
+          {
+            failures += 1;
+            if (failures > 2) break;  //0.7 2 0.9 3
+          }
+          else
+          {
+            double xinrecord = 100.0;
+            pointKey *xinkey = &*newlayer_clusters.begin();
+            for (std::vector<pointKey>::iterator it = newlayer_clusters.begin(); it != newlayer_clusters.end(); ++it)
+            {
+              double dist = abs(phidiff(it->first.get<0>(), currentphi - dphidr * (_radii_all[lastgoodlayer] - _radii_all[newlayer]))) + abs(it->first.get<1>() - currenteta);
+
+              cout << " nuphi: " << it->first.get<0>()
+                   << " nueta: " << it->first.get<1>()
+                   << " dist: " << dist
+                   << " lay: " << newlayer
+                   << " dl: " << lastgoodlayer - newlayer
+                   << " r: " << _radii_all[newlayer]
+                   << " dr: " << _radii_all[lastgoodlayer] - _radii_all[newlayer]
+                   << endl;
+              if (dist < xinrecord)
+              {
+                *xinkey = *it;
+                xinrecord = dist;
+              }
+            }
+
+            dphidr = phidiff(currentphi, xinkey->first.get<0>()) / (_radii_all[lastgoodlayer] - _radii_all[newlayer]);
+            detadr = (currenteta - xinkey->first.get<1>()) / (_radii_all[lastgoodlayer] - _radii_all[newlayer]);
+            ther = (_radii_all[lastgoodlayer] - _radii_all[newlayer]) / 2;
+
+            curvatureestimates.push_back(copysign(2 / sqrt(ther * ther + 1 / dphidr / dphidr), dphidr));
+
+            phi_zigzag.push_back(dphidr);
+            z_zigzag.push_back(detadr);
+
+            cluskeys.push_back(xinkey->second);
+
+            currentphi = xinkey->first.get<0>();
+            currenteta = (currenteta + xinkey->first.get<1>()) / 2;
+
+            lastgoodlayer = newlayer;
+          }
+        }
+        if (failures > 2) continue;  //0.7 2 0.9 3
+
+        double phi_sum = std::accumulate(phi_zigzag.begin(), phi_zigzag.end(), 0.0);
+        double phi_mean = phi_sum / phi_zigzag.size();
+
+        std::vector<double> phi_diff(phi_zigzag.size());
+        std::transform(phi_zigzag.begin(), phi_zigzag.end(), phi_diff.begin(),
+                       std::bind2nd(std::minus<double>(), phi_mean));
+        double phi_sq_sum = std::inner_product(phi_diff.begin(), phi_diff.end(), phi_diff.begin(), 0.0);
+        double phi_stdev = std::sqrt(phi_sq_sum / (phi_zigzag.size() - 1));
+
+        double z_sum = std::accumulate(z_zigzag.begin(), z_zigzag.end(), 0.0);
+        double z_mean = z_sum / z_zigzag.size();
+
+        std::vector<double> z_diff(z_zigzag.size());
+        std::transform(z_zigzag.begin(), z_zigzag.end(), z_diff.begin(),
+                       std::bind2nd(std::minus<double>(), z_mean));
+        double z_sq_sum = std::inner_product(z_diff.begin(), z_diff.end(), z_diff.begin(), 0.0);
+        double z_stdev = std::sqrt(z_sq_sum / (z_zigzag.size() - 1));
+
+        double curv_sum = std::accumulate(curvatureestimates.begin(), curvatureestimates.end(), 0.0);
+        double curv_mean = curv_sum / curvatureestimates.size();
+
+        std::vector<double> curv_diff(curvatureestimates.size());
+        std::transform(curvatureestimates.begin(), curvatureestimates.end(), curv_diff.begin(),
+                       std::bind2nd(std::minus<double>(), curv_mean));
+        double curv_sq_sum = std::inner_product(curv_diff.begin(), curv_diff.end(), curv_diff.begin(), 0.0);
+        double curv_stdev = std::sqrt(curv_sq_sum / (curvatureestimates.size() - 1));
+
+        const double BQ = 0.01 * 1.4 * 0.299792458;
+        double pt = BQ / abs(curv_mean);
+        double pterror = BQ * curv_stdev / (curv_mean * curv_mean);
+*/
+        //    pt:z:dz:phi:dphi:c:dc
     // Fill NT with track parameters
+    float StartPhi = atan(y0/x0);
     float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
-    float track_pt = abs( 1./(trackSeed.GetQPt()));
-    float track_pterr = sqrt(trackSeed.GetErr2QPt());
+    float track_pt = 1./(trackSeed.GetQPt());
+    float track_pterr = trackSeed.GetErr2QPt();
     float track_z = trackSeed.GetZ();
-    float track_zerr = sqrt(trackSeed.GetErr2Z());
-    float track_phi = atan(trackCartesian_y/trackCartesian_x);
-    float track_phierr = 0.01;
+    float track_zerr = trackSeed.GetErr2Z();
+    float track_phi = 0.;
+    float track_phierr = 0.001;
     float track_curvature = trackSeed.GetKappa(Bz);
-    float track_curverr = sqrt(trackSeed.GetErr2QPt())*Bz;
+    float track_curverr = 0.001;
     NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
     SvtxTrack_v1 track;
     track.set_id(numberofseeds);
@@ -692,12 +729,12 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     track.set_ndf(trackSeed.GetNDF());
     if(trackSeed.GetQPt()<0) track.set_charge(-1);
     else track.set_charge(1);
-    TrkrCluster *cl = _cluster_map->findCluster(trackKeyChain->at(0));
-    track.set_x(trackCartesian_x);  //track.set_x(cl->getX());
-    track.set_y(trackCartesian_y);  //track.set_y(cl->getY());
-    track.set_z(trackCartesian_z);  //track.set_z(cl->getZ());
-    track.set_px(track_pt * cos(track_phi));
-    track.set_py(track_pt * sin(track_phi));
+    TrkrCluster *cl = _cluster_map->findCluster(0);
+    track.set_x(_vertex->get_x());  //track.set_x(cl->getX());
+    track.set_y(_vertex->get_y());  //track.set_y(cl->getY());
+    track.set_z(_vertex->get_z());  //track.set_z(cl->getZ());
+    track.set_px(track_pt * cos(StartPhi));
+    track.set_py(track_pt * sin(StartPhi));
     track.set_pz(track_pt / tan(2 * atan(exp(-StartEta))));
     track.set_error(0, 0, cl->getError(0, 0));
     track.set_error(0, 1, cl->getError(0, 1));
@@ -705,15 +742,15 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     track.set_error(1, 1, cl->getError(1, 1));
     track.set_error(1, 2, cl->getError(1, 2));
     track.set_error(2, 2, cl->getError(2, 2));
-    track.set_error(3, 3, track_pterr * track_pterr * cos(track_phi) * cos(track_phi));
-    track.set_error(4, 4, track_pterr * track_pterr * sin(track_phi) * sin(track_phi));
+    track.set_error(3, 3, track_pterr * track_pterr * cos(StartPhi) * cos(StartPhi));
+    track.set_error(4, 4, track_pterr * track_pterr * sin(StartPhi) * sin(StartPhi));
     track.set_error(5, 5, track_pterr * track_pterr / tan(2 * atan(exp(-StartEta))) / tan(2 * atan(exp(-StartEta))));
     _track_map->insert(&track);
     numberofseeds++;
   }
-  t_seed->stop();
-  cout << "number of seeds " << numberofseeds << endl;
-  cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+//t_seed->stop();
+//cout << "number of seeds " << numberofseeds << endl;
+//cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   fpara.cd();
   NT->Write();
   fpara.Close();
