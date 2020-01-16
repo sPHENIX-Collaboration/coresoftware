@@ -570,7 +570,6 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     trackSeed.SetX(alice_x0);
     trackSeed.SetY(alice_y0);
     trackSeed.SetZ(alice_z0);
-    GPUTPCTrackLinearisation trackLine; // default constructor is fine for now
     // convert B field to ALICE-compatible units
     float Bz = 1.4*0.000299792458f;
     // configurable max sin phi (algorithm doesn't work when track is too horizontal)
@@ -584,6 +583,24 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     float trackCartesian_x = 0.;
     float trackCartesian_y = 0.;
     float trackCartesian_z = 0.;
+    // Pre-set momentum-based parameters to improve numerical stability
+    TrkrCluster* SecondCluster = _cluster_map->findCluster(trackKeyChain->at(1));
+    float second_x = SecondCluster->getPosition(0);
+    float second_y = SecondCluster->getPosition(1);
+    float second_z = SecondCluster->getPosition(2);
+    float second_alice_x = sqrt(second_x*second_x+second_y*second_y);
+    float delta_alice_x = second_alice_x - alice_x0;
+    float first_phi = atan(y0/x0);
+    float second_alice_y = (second_x/cos(first_phi)-second_y/sin(first_phi))/(sin(first_phi)/cos(first_phi)+cos(first_phi)/sin(first_phi));
+    float init_SinPhi = second_alice_y / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
+    float delta_z = second_z - z0;
+    float init_DzDs = delta_z / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
+    trackSeed.SetSinPhi(init_SinPhi);
+    LogDebug("Set initial SinPhi to " << init_SinPhi << endl);
+    trackSeed.SetDzDs(init_DzDs);
+    LogDebug("Set initial DzDs to " << init_DzDs << endl);
+    GPUTPCTrackLinearisation trackLine(trackSeed);
+
     LogDebug(endl << endl << "------------------------" << endl << "seed size: " << trackKeyChain->size() << endl << endl << endl);
     int cluster_ctr = 1;
     // starting at second cluster, perform track propagation
@@ -639,10 +656,11 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       LogDebug("next cluster ALICE y = " << nextCluster_alice_y << endl);
       float y2_error = .015*.015;
       float z2_error = .015*.015;
+      LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << endl);
       // Apply Kalman filter
       if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,maxSinPhi))
       {
-        LogError("Kalman filter failed! Aborting for this seed...");
+        LogError("Kalman filter failed for seed " << numberofseeds << "! Aborting for this seed..." << endl);
         break;
       }
       x = nextCluster_x;
