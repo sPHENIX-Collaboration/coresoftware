@@ -588,13 +588,25 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       cout << "this cluster (x,y,z) = (" << x << "," << y << "," << z << ")" << endl;
       // get cluster from key
       TrkrCluster* nextCluster = _cluster_map->findCluster(*clusterkey);
-      // find ALICE x-coordinate, and transport to that x
+      // find ALICE x-coordinate
       float nextCluster_x = nextCluster->getPosition(0);
       float nextCluster_y = nextCluster->getPosition(1);
       float nextCluster_z = nextCluster->getPosition(2);
       float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
+      // rotate track coordinates to match orientation of next cluster
+      float newPhi = atan(nextCluster_y/nextCluster_x);
+      cout << "new phi = " << newPhi << endl; 
+      float oldPhi = atan(y/x);
+      cout << "old phi = " << oldPhi << endl;
+      float alpha = newPhi - oldPhi;
+      cout << "alpha = " << alpha << endl;
+      if(!trackSeed.Rotate(-alpha,trackLine,maxSinPhi))
+      {
+        LogError("Rotate failed! Aborting for this seed...");
+        break;
+      }
+      cout << "track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl;
       LogDebug("Transporting from " << alice_x << " to " << nextAlice_x << "...");
-      
       if(!trackSeed.TransportToX(nextAlice_x,trackLine,Bz,maxSinPhi))
       {
         LogError("Transport failed! Aborting for this seed...");
@@ -616,20 +628,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       float trackCartesian_z = predicted_z;
       cout << "Track transported to (x,y,z) = (" << trackCartesian_x << "," << trackCartesian_y << "," << trackCartesian_z << ")" << endl;
       cout << "Next cluster is at (x,y,z) = (" << nextCluster_x << "," << nextCluster_y << "," << nextCluster_z << ")" << endl;
-      // Rotate track coordinate system to be parallel to layer
-      float newPhi = atan(trackCartesian_y/trackCartesian_x);
-      cout << "new phi = " << newPhi << endl; 
-      float oldPhi = atan(y/x);
-      cout << "old phi = " << oldPhi << endl;
-      float alpha = newPhi - oldPhi;
-      cout << "alpha = " << alpha << endl;
-      if(!trackSeed.Rotate(-alpha,trackLine,maxSinPhi))
-      {
-        LogError("Rotate failed! Aborting for this seed...");
-        break;
-      }
       cout << "track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl;
-      float nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
+      //float nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
+      float nextCluster_alice_y = 0.;
       cout << "next cluster ALICE y = " << nextCluster_alice_y << endl;
       float y2_error = 1.;
       float z2_error = 1.;
@@ -639,10 +640,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         LogError("Kalman filter failed! Aborting for this seed...");
         break;
       }
-      x = trackCartesian_x;
-      y = trackCartesian_y;
-      z = trackCartesian_z;
-      alice_x = sqrt(trackCartesian_x*trackCartesian_x+trackCartesian_y*trackCartesian_y);
+      x = nextCluster_x;
+      y = nextCluster_y;
+      z = nextCluster_z;
+      alice_x = nextAlice_x;
       cout << "cluster done" << endl << endl;
       cluster_ctr++;
     } 
