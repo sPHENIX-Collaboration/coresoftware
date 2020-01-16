@@ -1,5 +1,7 @@
-/*
- * From Alice version of 08/04/2019
+/**
+ * @file mvtx/SegmentationAlpide.h
+ * @author YCM, from ALICE geom of 08/04/2019
+ * @brief mvtx object with ALPIDE chip description
  */
 #ifndef MVTX_ALPIDE_SEGMENTATION_H
 #define MVTX_ALPIDE_SEGMENTATION_H
@@ -34,23 +36,23 @@ class SegmentationAlpide
   /// Returns kTRUE if point x,z is inside sensitive volume, kFALSE otherwise.
   /// A value of -1 for iRow or iCol indicates that this point is outside of the
   /// detector segmentation as defined.
-  /// \param float x Detector local coordinate x in cm with respect to
+  /// @param float x Detector local coordinate x in cm with respect to
   /// the center of the sensitive volume.
-  /// \param float z Detector local coordinate z in cm with respect to
+  /// @param float z Detector local coordinate z in cm with respect to
   /// the center of the sensitive volulme.
-  /// \param int iRow Detector x cell coordinate. Has the range 0 <= iRow < mNumberOfRows
-  /// \param int iCol Detector z cell coordinate. Has the range 0 <= iCol < mNumberOfColumns
+  /// @param int iRow Detector x cell coordinate. Has the range 0 <= iRow < mNumberOfRows
+  /// @param int iCol Detector z cell coordinate. Has the range 0 <= iCol < mNumberOfColumns
   static bool localToDetector(float x, float z, int& iRow, int& iCol);
   /// same but w/o check for row/column range
   static void localToDetectorUnchecked(float xRow, float zCol, int& iRow, int& iCol);
 
   /// Transformation from Detector cell coordiantes to Geant detector centered
   /// local coordinates (cm)
-  /// \param int iRow Detector x cell coordinate. Has the range 0 <= iRow < mNumberOfRows
-  /// \param int iCol Detector z cell coordinate. Has the range 0 <= iCol < mNumberOfColumns
-  /// \param float x Detector local coordinate x in cm with respect to the
+  /// @param int iRow Detector x cell coordinate. Has the range 0 <= iRow < mNumberOfRows
+  /// @param int iCol Detector z cell coordinate. Has the range 0 <= iCol < mNumberOfColumns
+  /// @param float x Detector local coordinate x in cm with respect to the
   /// center of the sensitive volume.
-  /// \param float z Detector local coordinate z in cm with respect to the
+  /// @param float z Detector local coordinate z in cm with respect to the
   /// center of the sensitive volulme.
   /// If iRow and or iCol is outside of the segmentation range a value of -0.5*Dx()
   /// or -0.5*Dz() is returned.

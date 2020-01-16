@@ -1,3 +1,8 @@
+/**
+ * @file mvtx/SegmentationAlpide.cc
+ * @author YCM, from Alice geom of 08/04/2019
+ * @brief mvtx object with ALPIDE chip description
+ */
 #include "SegmentationAlpide.h"
 #include <cstdio>
 
