@@ -216,7 +216,7 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       {
         cout << endl
              << "  world entry point position: " << hiter->second->get_x(0) << " " << hiter->second->get_y(0) << " " << hiter->second->get_z(0) << endl;
-        cout << "  world exit point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
+        cout << "  world exit  point position: " << hiter->second->get_x(1) << " " << hiter->second->get_y(1) << " " << hiter->second->get_z(1) << endl;
         cout << "  local coords of entry point from G4 " << hiter->second->get_local_x(0) << " " << hiter->second->get_local_y(0) << " " << hiter->second->get_local_z(0) << endl;
         TVector3 world_in(hiter->second->get_x(0), hiter->second->get_y(0), hiter->second->get_z(0));
         TVector3 local_in_check = layergeom->get_local_from_world_coords(stave_number, half_stave_number, module_number, chip_number, world_in);
@@ -241,15 +241,15 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
              << endl
              << " x = " << location_in.X()
              << " y = " << location_in.Y()
-             << " z  = " << location_in.Z()
+             << " z = " << location_in.Z()
              << " radius " << sqrt(pow(location_in.X(), 2) + pow(location_in.Y(), 2))
              << " angle " << atan(location_in.Y() / location_in.X())
              << endl;
         cout << "     PHG4MvtxHitReco: The world entry location from G4 was "
              << endl
              << " x = " << hiter->second->get_x(0)
-             << " y " << hiter->second->get_y(0)
-             << " z " << hiter->second->get_z(0)
+             << " y = " << hiter->second->get_y(0)
+             << " z = " << hiter->second->get_z(0)
              << " radius " << sqrt(pow(hiter->second->get_x(0), 2) + pow(hiter->second->get_y(0), 2))
              << " angle " << atan(hiter->second->get_y(0) / hiter->second->get_x(0))
              << endl;
@@ -268,15 +268,15 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
              << endl
              << " x = " << location_out.X()
              << " y = " << location_out.Y()
-             << " z  = " << location_out.Z()
+             << " z = " << location_out.Z()
              << " radius " << sqrt(pow(location_out.X(), 2) + pow(location_out.Y(), 2))
              << " angle " << atan(location_out.Y() / location_out.X())
              << endl;
         cout << "     PHG4MvtxHitReco: The world exit location from G4 was "
              << endl
              << " x = " << hiter->second->get_x(1)
-             << " y " << hiter->second->get_y(1)
-             << " z " << hiter->second->get_z(1)
+             << " y = " << hiter->second->get_y(1)
+             << " z = " << hiter->second->get_z(1)
              << " radius " << sqrt(pow(hiter->second->get_x(1), 2) + pow(hiter->second->get_y(1), 2))
              << " angle " << atan(hiter->second->get_y(1) / hiter->second->get_x(1))
              << endl;
