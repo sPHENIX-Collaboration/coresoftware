@@ -1,5 +1,7 @@
 #include "CylinderGeom_Mvtx.h"
 
+#include "SegmentationAlpide.h"
+
 #include <TRotation.h>
 #include <TVector3.h>
 
@@ -260,3 +262,15 @@ void CylinderGeom_Mvtx::find_sensor_center(int stave, int half_stave, int module
 
   return;
 }
+
+// hide SegmentationAlpide include from root5 rootcint (rootcling is fine)
+int CylinderGeom_Mvtx::get_NZ() const
+{
+  return SegmentationAlpide::NCols;
+}
+
+int CylinderGeom_Mvtx::get_NX() const
+{
+ return SegmentationAlpide::NRows;
+}
+

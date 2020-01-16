@@ -1,8 +1,6 @@
 #ifndef MVTX_CYLINDERGEOMMVTX_H
 #define MVTX_CYLINDERGEOMMVTX_H
 
-#include "SegmentationAlpide.h"
-
 #include <g4detectors/PHG4CylinderGeom.h>
 
 #include <TVector3.h>
@@ -89,8 +87,8 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   int get_N_staves() const { return N_staves; }
   int get_N_half_staves() const { return N_half_staves; }
 
-  int get_NZ() const { return SegmentationAlpide::NCols; }
-  int get_NX() const { return SegmentationAlpide::NRows; }
+  int get_NZ() const;
+  int get_NX() const;
 
  protected:
   int layer;
