@@ -42,6 +42,7 @@ class TH2D;
 ///                                                                -Ross
 ///                                                                15-Jan-2020
 ///
+class TFormula;
 class PHG4TpcAnalyticSpaceChargeDistortion : public PHG4TpcDistortion
 {
  public:

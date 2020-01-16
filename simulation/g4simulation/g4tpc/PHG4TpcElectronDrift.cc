@@ -65,6 +65,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , temp_hitsetcontainer(new TrkrHitSetContainer())// this is used as a buffer for charge collection from a single g4hit
   , hittruthassoc(nullptr)
   , padplane(nullptr)
+  , distortion(new PHG4TpcAnalyticSpaceChargeDistortion())
   , dlong(nullptr)
   , dtrans(nullptr)
   , diffusion_trans(NAN)
@@ -75,7 +76,6 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , max_active_radius(NAN)
   , min_time(NAN)
   , max_time(NAN)
-  , distortion(new PHG4TpcAnalyticSpaceChargeDistortion())
 {
   //cout << "Constructor of PHG4TpcElectronDrift" << endl;
   InitializeParameters();

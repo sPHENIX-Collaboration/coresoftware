@@ -23,6 +23,7 @@ class TNtuple;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 class PHG4TpcDistortion;
+class PHG4TpcAnalyticSpaceChargeDistortion;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {

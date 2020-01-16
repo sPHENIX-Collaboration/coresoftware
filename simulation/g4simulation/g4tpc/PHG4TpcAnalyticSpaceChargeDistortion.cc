@@ -12,6 +12,7 @@
 
 #include <TAxis.h>            // for TAxis
 #include <TObject.h>          // for TObject
+#include <TFormula.h>
 
 #include <gsl/gsl_randist.h>
 
@@ -29,13 +30,13 @@ PHG4TpcAnalyticSpaceChargeDistortion::PHG4TpcAnalyticSpaceChargeDistortion( int 
   //note that the canonical variable names, in order, are x,y,z, but they refer to r, phi, and z.
 
   float rmax=78.0;
-  floar rmin=20.0;
+  float rmin=20.0;
   
-  *delr=new TFormula("delr","[0]*cos([1]*(x+[2]))");
+  delr=new TFormula("delr","[0]*cos([1]*(x+[2]))");
   //set the default secret numbers:
-  delr->SetParameters(1.5,TMath::Pi()*2/(rmax-rmin),-rmin);
-  TFormula *delphi=new TFormula("delphi","0.0");
-  TFormula *delz=new TFormula("delz","0.0");
+  delr->SetParameters(1.5,M_PI*2/(rmax-rmin),-rmin);
+   delphi=new TFormula("delphi","0.0");
+   delz=new TFormula("delz","0.0");
 }
 
 PHG4TpcAnalyticSpaceChargeDistortion::~PHG4TpcAnalyticSpaceChargeDistortion()
@@ -52,7 +53,7 @@ double
 PHG4TpcAnalyticSpaceChargeDistortion::get_r_distortion(double r, double phi, double z)
 {
 
-  double del=delr.Eval(r,phi,z);
+  double del=delr->Eval(r,phi,z);
   if (verbosity > 0)
   {
     cout << "PHG4TpcAnalyticSpaceChargeDistortion::get_r_distortion - input"
@@ -70,7 +71,7 @@ double
 PHG4TpcAnalyticSpaceChargeDistortion::get_rphi_distortion(double r, double phi, double z)
 {
 
-  double del=r*delphi.Eval(r,phi,z);
+  double del=r*delphi->Eval(r,phi,z);
   if (verbosity > 0)
   {
     cout << "PHG4TpcAnalyticSpaceChargeDistortion::get_r_distortion - input"
@@ -88,7 +89,7 @@ double
 PHG4TpcAnalyticSpaceChargeDistortion::get_z_distortion(double r, double phi, double z)
 {
 
-  double del=delz.Eval(r,phi,z);
+  double del=delz->Eval(r,phi,z);
   if (verbosity > 0)
   {
     cout << "PHG4TpcAnalyticSpaceChargeDistortion::get_r_distortion - input"
