@@ -5,7 +5,13 @@
 
 namespace PHG4MvtxDefs
 {
+
+#if !defined(__CINT__) || defined(__CLING__)
   static constexpr unsigned int kNLayers = 3;
+#else
+  static const unsigned int kNLayers = 3;
+#endif
+
   enum {
     kRmn,
     kRmd,

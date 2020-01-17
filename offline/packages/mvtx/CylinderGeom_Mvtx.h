@@ -54,20 +54,11 @@ class CylinderGeom_Mvtx : public PHG4CylinderGeom
   TVector3 get_local_coords_from_pixel(int NXZ);
   TVector3 get_local_coords_from_pixel(int iRow, int iCol);
 
-  int get_pixel_X_from_pixel_number(int NXZ)
-  {
-    return NXZ % get_NX();
-  }
+  int get_pixel_X_from_pixel_number(int NXZ);
 
-  int get_pixel_Z_from_pixel_number(int NXZ)
-  {
-    return NXZ / get_NX();
-  }
+  int get_pixel_Z_from_pixel_number(int NXZ);
 
-  int get_pixel_number_from_xbin_zbin(int xbin, int zbin) // obsolete
-  {
-      return xbin + zbin * get_NX();
-  }
+  int get_pixel_number_from_xbin_zbin(int xbin, int zbin); // obsolete
 
   double get_pixel_x() const { return pixel_x; }  // pitch
   double get_pixel_z() const { return pixel_z; }  // length

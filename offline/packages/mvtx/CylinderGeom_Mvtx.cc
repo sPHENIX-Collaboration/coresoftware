@@ -274,3 +274,17 @@ int CylinderGeom_Mvtx::get_NX() const
  return SegmentationAlpide::NRows;
 }
 
+int CylinderGeom_Mvtx::get_pixel_X_from_pixel_number(int NXZ)
+{
+  return NXZ % get_NX();
+}
+
+int CylinderGeom_Mvtx::get_pixel_Z_from_pixel_number(int NXZ)
+{
+  return NXZ / get_NX();
+}
+
+int CylinderGeom_Mvtx::get_pixel_number_from_xbin_zbin(int xbin, int zbin) // obsolete
+{
+  return xbin + zbin * get_NX();
+}
