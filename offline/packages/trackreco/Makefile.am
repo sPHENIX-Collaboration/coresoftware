@@ -35,6 +35,7 @@ pkginclude_HEADERS = \
   HelixKalmanFilter.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
+  PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
@@ -42,6 +43,7 @@ pkginclude_HEADERS = \
   PHInitZVertexing.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
+  PHTrackFitting.h \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
@@ -83,6 +85,7 @@ else
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
+    PHActsTrkFitter_Dict.cc \
     PHRaveVertexing_Dict.cc
 endif
 
@@ -111,6 +114,7 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
+  PHActsTrkFitter.cc \
   PHRaveVertexing.cc 
 
 libtrack_reco_io_la_LIBADD = \
