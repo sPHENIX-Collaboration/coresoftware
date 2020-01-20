@@ -375,10 +375,11 @@ int PHG4MvtxHitReco::process_event(PHCompositeNode *topNode)
       }
 
       // need to check that values of xbin and zbin are within the valid range
+      // YCM: Fix pixel range: Xbin (row) 0 to 511, Zbin (col) 0 to 1023
       if (xbin_min < 0) xbin_min = 0;
       if (zbin_min < 0) zbin_min = 0;
-      if (xbin_max > maxNX) xbin_max = maxNX;
-      if (zbin_max > maxNZ) xbin_max = maxNZ;
+      if (xbin_max >= maxNX) xbin_max = maxNX-1;
+      if (zbin_max >= maxNZ) xbin_max = maxNZ-1;
 
       if (Verbosity() > 1)
       {
