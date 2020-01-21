@@ -292,7 +292,7 @@ void PHCASeeding::FillTree()
     TrkrCluster *cluster = iter->second;
     TrkrDefs::cluskey ckey = iter->first;
     unsigned int layer = TrkrDefs::getLayer(ckey);
-    if (layer < 39) continue;
+    if (layer < 7) continue;
 
     TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
 
@@ -364,6 +364,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     double StartPhi = StartCluster->first.get<0>();
     double StartEta = StartCluster->first.get<1>();
     unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
+    if(StartLayer > 54.5) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
     double StartX = StartCl->getPosition(0);
     double StartY = StartCl->getPosition(1);
@@ -549,7 +550,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     }
   }
   LogDebug(" Total large jumps: " << jumpcount << endl);
-    // Turn track cluster chains into track candidates using ALICE simplified KF.
+  // Turn track cluster chains into track candidates using ALICE simplified KF.
 
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
@@ -570,8 +571,8 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     trackSeed.SetX(alice_x0);
     trackSeed.SetY(alice_y0);
     trackSeed.SetZ(alice_z0);
-    // convert B field to ALICE-compatible units
-    float Bz = 1.4*0.000299792458f;
+    // convert B field to ALICE-compatible units (kG times this constant)
+    float Bz = 14*0.000299792458f;
     // configurable max sin phi (algorithm doesn't work when track is too horizontal)
     float maxSinPhi = 0.999;
     float x = x0;
@@ -675,11 +676,13 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     // Fill NT with track parameters
     float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
     float track_pt = abs( 1./(trackSeed.GetQPt()));
-    float track_pterr = sqrt(trackSeed.GetErr2QPt());
+    LogDebug("Track pt = " << track_pt << endl);
+    float track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
+    LogDebug("Track pterr = " << track_pterr << endl);
     float track_z = trackSeed.GetZ();
     float track_zerr = sqrt(trackSeed.GetErr2Z());
     float track_phi = atan(trackCartesian_y/trackCartesian_x);
-    float track_phierr = 0.01;
+    float track_phierr = .01;
     float track_curvature = trackSeed.GetKappa(Bz);
     float track_curverr = sqrt(trackSeed.GetErr2QPt())*Bz;
     NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
