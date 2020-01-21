@@ -78,7 +78,9 @@ class PHCASeeding : public PHTrackSeeding
       unsigned int nlayers_tpc = 48,
       unsigned int start_layer = 53);
 
+#if !defined(__CINT__) || defined(__CLING__)
   double chisq(const double *xx);
+#endif
   void set_phi_scale(float scale) { _phi_scale = scale; }
   void set_z_scale(float scale) { _z_scale = scale; }
 
