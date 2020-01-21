@@ -292,7 +292,7 @@ void PHCASeeding::FillTree()
     TrkrCluster *cluster = iter->second;
     TrkrDefs::cluskey ckey = iter->first;
     unsigned int layer = TrkrDefs::getLayer(ckey);
-    if (layer < 39) continue;
+    if (layer < 7) continue;
 
     TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
 
@@ -364,6 +364,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     double StartPhi = StartCluster->first.get<0>();
     double StartEta = StartCluster->first.get<1>();
     unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
+    if(StartLayer > 54.5) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
     double StartX = StartCl->getPosition(0);
     double StartY = StartCl->getPosition(1);
