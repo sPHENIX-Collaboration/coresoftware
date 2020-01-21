@@ -76,7 +76,13 @@ class PHCASeeding : public PHTrackSeeding
       unsigned int nlayers_maps = 3,
       unsigned int nlayers_intt = 4,
       unsigned int nlayers_tpc = 48,
-      unsigned int start_layer = 53);
+      unsigned int start_layer = 55,
+      float cluster_z_error = 0.015,
+      float cluster_alice_y_error = 0.015,
+      float neighbor_phi_width = M_PI/6,
+      float neighbor_eta_width = 1,
+      float maxSinPhi = 0.999,
+      float Bz = 14*0.000299792458f);
 
 #if !defined(__CINT__) || defined(__CLING__)
   double chisq(const double *xx);
@@ -137,6 +143,12 @@ class PHCASeeding : public PHTrackSeeding
   unsigned int _nlayers_intt;
   unsigned int _nlayers_tpc;
   unsigned int _start_layer;
+  float _cluster_z_error;
+  float _cluster_alice_y_error;
+  float _neighbor_phi_width;
+  float _neighbor_eta_width;
+  float _max_sin_phi;
+  float _Bz;
   float _phi_scale;
   float _z_scale;
   //std::vector<float> _radii_all;
