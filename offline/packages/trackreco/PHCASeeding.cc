@@ -56,6 +56,21 @@
 // forward declarations
 class PHCompositeNode;
 
+
+
+//#define _DEBUG_
+
+#if defined(_DEBUG_)
+#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#else
+#define LogDebug(exp) (void)0
+#endif
+
+#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
+
+//#define _DEBUG_
+
 //end
 
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
