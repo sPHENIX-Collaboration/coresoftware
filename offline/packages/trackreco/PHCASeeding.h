@@ -93,11 +93,11 @@ class PHCASeeding : public PHTrackSeeding
   }
 
  protected:
-  virtual int Setup(PHCompositeNode *topNode) override;
-  virtual int Process(PHCompositeNode *topNode) override;
+  virtual int Setup(PHCompositeNode *topNode);
+  virtual int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
 
-  virtual int End() override;
+  virtual int End();
 
  private:
   /// fetch node pointers
