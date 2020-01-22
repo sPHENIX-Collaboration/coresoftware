@@ -75,10 +75,7 @@ class PHG4MvtxDetector : public PHG4Detector
   std::array<int, n_Layers> m_N_staves;
   std::array<double, n_Layers> m_nominal_radius;
   std::array<double, n_Layers> m_nominal_phitilt;
-  // sensor parameters
-  double m_PixelX;
-  double m_PixelZ;
-  double m_PixelThickness;
+  std::array<double, n_Layers> m_nominal_phi0;
 
   std::string m_Detector;
   std::string m_SuperDetector;

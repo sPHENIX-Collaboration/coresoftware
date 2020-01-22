@@ -7,10 +7,15 @@
 #ifndef TRACKRECO_PHTRUTHVERTEXING_H
 #define TRACKRECO_PHTRUTHVERTEXING_H
 
-#include "PHInitVertexing.h"
 
+// rootcint barfs with this header so we need to hide it
+#if !defined(__CINT__) || defined(__CLING__)
+#include <gsl/gsl_rng.h>
+#endif
 #include <string>             // for string
 #include <vector>
+
+#include "PHInitVertexing.h"
 
 // forward declarations
 class PHCompositeNode;
@@ -25,7 +30,7 @@ class PHTruthVertexing : public PHInitVertexing
 {
  public:
   PHTruthVertexing(const std::string &name = "PHTruthVertexing");
-  virtual ~PHTruthVertexing() {}
+  virtual ~PHTruthVertexing();
 
   void set_vertex_error(const float &x_err, const float &y_err, const float &z_err)
   {
@@ -56,6 +61,10 @@ class PHTruthVertexing : public PHInitVertexing
 
   /// manually assigned vertex error (standard dev), cm
   std::vector<float> _vertex_error;
+
+#if !defined(__CINT__) || defined(__CLING__)
+  gsl_rng *m_RandomGenerator;
+#endif
 };
 
 #endif

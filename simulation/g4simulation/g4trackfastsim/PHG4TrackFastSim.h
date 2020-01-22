@@ -17,7 +17,15 @@
 
 // rootcint barfs with this header so we need to hide it
 #if !defined(__CINT__) || defined(__CLING__)
+// needed, it crashes on Ubuntu using singularity with local cvmfs install
+// shared pointer later on uses this, forward declaration does not cut it
+#include <phgenfit/Track.h> 
 #include <gsl/gsl_rng.h>
+#else
+namespace PHGenFit
+{
+  class Track;
+} /* namespace PHGenFit */
 #endif
 
 #include <climits>  // for UINT_MAX
