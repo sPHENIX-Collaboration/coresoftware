@@ -94,7 +94,6 @@ class PHCASeeding : public PHTrackSeeding
 
  protected:
   int Setup(PHCompositeNode *topNode);
-  int Process();
   int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
 
