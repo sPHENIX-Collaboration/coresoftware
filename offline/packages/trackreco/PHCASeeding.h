@@ -21,22 +21,22 @@
 #include <boost/geometry/index/rtree.hpp>       // for ca
 #endif
 
-#include <cmath>  // for M_PI
+#include <cmath>     // for M_PI
 #include <map>       // for map
 #include <stdint.h>  // for uint64_t
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
 
-+// rootcint does not like M_PI in the default arguments (the dict.cc file
-+// translates this into a string and does not convert M_PI to its definition)
-+// This kludge defines it to Root's Pi() for rootcint use 
-+#if defined(__CINT__) && ! defined(__CLING__)
-+#include <TMath.h>
-+#ifndef M_PI
-+#define M_PI TMath::Pi()
-+#endif
-+#endif
+// rootcint does not like M_PI in the default arguments (the dict.cc file
+// translates this into a string and does not convert M_PI to its definition)
+// This kludge defines it to Root's Pi() for rootcint use 
+#if defined(__CINT__) && ! defined(__CLING__)
+#include <TMath.h>
+#ifndef M_PI
+#define M_PI TMath::Pi()
+#endif
+#endif
  
 class PHCompositeNode;  // lines 196-196
 class SvtxClusterMap;   // lines 202-202
