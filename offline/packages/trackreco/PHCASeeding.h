@@ -45,18 +45,6 @@ class SvtxTrackMap;     // lines 204-204
 class SvtxVertex;
 class SvtxVertexMap;    // lines 206-206
 
-//#define _DEBUG_
-
-#if defined(_DEBUG_)
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#else
-#define LogDebug(exp) (void)0
-#endif
-
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
-
-//#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -105,22 +93,18 @@ class PHCASeeding : public PHTrackSeeding
   }
 
  protected:
-  int Setup(PHCompositeNode *topNode);
-  int GetNodes(PHCompositeNode *topNode);
-  int Process();
-  int Process(PHCompositeNode *topNode);
+  virtual int Setup(PHCompositeNode *topNode) override;
+  virtual int Process(PHCompositeNode *topNode) override;
   int InitializeGeometry(PHCompositeNode *topNode);
 
-  int End();
+  virtual int End() override;
 
  private:
   /// fetch node pointers
 
   // node pointers
-  SvtxClusterMap *_g4clusters;
   SvtxTrackMap *_g4tracks;
   SvtxVertexMap *_g4vertexes;
-  TrkrClusterContainer *_cluster_map;
   //nodes to get norm vector
   SvtxHitMap *_svtxhitsmap;
   int *_hit_used_map;

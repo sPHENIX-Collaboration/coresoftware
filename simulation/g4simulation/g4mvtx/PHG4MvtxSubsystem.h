@@ -5,6 +5,7 @@
 
 #include <g4detectors/PHG4DetectorGroupSubsystem.h>
 
+#include <cmath>                                     // for asin
 #include <string>                                    // for string
 
 class PHCompositeNode;
@@ -25,8 +26,8 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
   //! InitRunSubsystem
   /*!
   called during InitRun (the original InitRun does common setup and calls this one)
-  creates the detector object 
-  ceates the stepping action 
+  creates the detector object
+  creates the stepping action
   creates relevant hit nodes that will be populated by the stepping action and stored in the output DST
   */
   int InitRunSubsystem(PHCompositeNode*);
@@ -46,7 +47,11 @@ class PHG4MvtxSubsystem : public PHG4DetectorGroupSubsystem
 
  private:
   void SetDefaultParameters();
-
+  static double radii2Turbo(double rMin, double rMid, double rMax, double sensW)
+  {
+    // compute turbo angle from radii and sensor width
+    return std::asin((rMax * rMax - rMin * rMin) / (2 * rMid * sensW));
+  }
   //! detector geometry
   /*! defives from PHG4Detector */
   PHG4MvtxDetector* m_Detector;

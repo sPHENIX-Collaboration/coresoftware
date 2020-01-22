@@ -56,6 +56,21 @@
 // forward declarations
 class PHCompositeNode;
 
+
+
+//#define _DEBUG_
+
+#if defined(_DEBUG_)
+#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#else
+#define LogDebug(exp) (void)0
+#endif
+
+#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
+
+//#define _DEBUG_
+
 //end
 
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
@@ -82,10 +97,8 @@ PHCASeeding::PHCASeeding(
     float maxSinPhi,
     float Bz)
   : PHTrackSeeding(name)
-  , _g4clusters(nullptr)
   , _g4tracks(nullptr)
   , _g4vertexes(nullptr)
-  , _cluster_map(nullptr)
   , _svtxhitsmap(nullptr)
   , _hit_used_map(nullptr)
   , _hit_used_map_size(0)
@@ -245,20 +258,6 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 }
 
 
-int PHCASeeding::GetNodes(PHCompositeNode *topNode)
-{
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
-
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_cluster_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 double PHCASeeding::phiadd(double phi1, double phi2)
 {
@@ -743,9 +742,6 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   cout << "Called Setup" << endl;
   cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
-  //  int ret = GetNodes(topNode);
-  //return ret;
-  GetNodes(topNode);
   InitializeGeometry(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }

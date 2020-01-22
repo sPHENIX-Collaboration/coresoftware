@@ -16,6 +16,15 @@
 
 #if !defined(__CINT__) || defined(__CLING__)
 #include <Eigen/Core>                         // for Matrix
+// needed, it crashes on Ubuntu using singularity with local cvmfs install
+// shared pointer later on uses this, forward declaration does not cut it
+#include <phgenfit/Track.h> 
+#include <gsl/gsl_rng.h>
+#else
+namespace PHGenFit
+{
+  class Track;
+} /* namespace PHGenFit */
 #endif
 
 // standard includes
@@ -41,7 +50,6 @@ class TNtuple;
 namespace PHGenFit
 {
 class Fitter;
-class Track;
 class Measurement;
 } /* namespace PHGenFit */
 
