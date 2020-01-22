@@ -25,6 +25,7 @@
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
+#include <cmath>  // for M_PI
 
 class PHCompositeNode;  // lines 196-196
 class SvtxClusterMap;   // lines 202-202
