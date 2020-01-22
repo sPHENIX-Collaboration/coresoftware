@@ -94,7 +94,6 @@ class PHCASeeding : public PHTrackSeeding
 
  protected:
   int Setup(PHCompositeNode *topNode);
-  int GetNodes(PHCompositeNode *topNode);
   int Process();
   int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
@@ -105,10 +104,8 @@ class PHCASeeding : public PHTrackSeeding
   /// fetch node pointers
 
   // node pointers
-  SvtxClusterMap *_g4clusters;
   SvtxTrackMap *_g4tracks;
   SvtxVertexMap *_g4vertexes;
-  TrkrClusterContainer *_cluster_map;
   //nodes to get norm vector
   SvtxHitMap *_svtxhitsmap;
   int *_hit_used_map;

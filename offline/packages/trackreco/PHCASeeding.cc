@@ -97,10 +97,8 @@ PHCASeeding::PHCASeeding(
     float maxSinPhi,
     float Bz)
   : PHTrackSeeding(name)
-  , _g4clusters(nullptr)
   , _g4tracks(nullptr)
   , _g4vertexes(nullptr)
-  , _cluster_map(nullptr)
   , _svtxhitsmap(nullptr)
   , _hit_used_map(nullptr)
   , _hit_used_map_size(0)
@@ -260,20 +258,6 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 }
 
 
-int PHCASeeding::GetNodes(PHCompositeNode *topNode)
-{
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
-
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_cluster_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 double PHCASeeding::phiadd(double phi1, double phi2)
 {
@@ -758,9 +742,6 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   cout << "Called Setup" << endl;
   cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
-  //  int ret = GetNodes(topNode);
-  //return ret;
-  GetNodes(topNode);
   InitializeGeometry(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
