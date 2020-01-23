@@ -599,7 +599,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     float second_z = SecondCluster->getPosition(2);
     float second_alice_x = sqrt(second_x*second_x+second_y*second_y);
     float delta_alice_x = second_alice_x - alice_x0;
-    float first_phi = atan(y0/x0);
+    float first_phi = atan2(y0,x0);
     float second_alice_y = (second_x/cos(first_phi)-second_y/sin(first_phi))/(sin(first_phi)/cos(first_phi)+cos(first_phi)/sin(first_phi));
     float init_SinPhi = second_alice_y / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
     float delta_z = second_z - z0;
@@ -625,7 +625,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       float nextCluster_z = nextCluster->getPosition(2);
       float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
       // rotate track coordinates to match orientation of next cluster
-      float newPhi = atan(nextCluster_y/nextCluster_x);
+      float newPhi = atan2(nextCluster_y,nextCluster_x);
       LogDebug("new phi = " << newPhi << endl);
       float oldPhi = atan(y/x);
       LogDebug("old phi = " << oldPhi << endl);
