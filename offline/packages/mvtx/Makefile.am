@@ -21,7 +21,9 @@ pkginclude_HEADERS = \
   MvtxDefs.h \
   MvtxHit.h \
   MvtxClusterizer.h \
-  CylinderGeom_Mvtx.h
+  CylinderGeom_Mvtx.h \
+  SegmentationAlpide.h
+
 
 ROOTDICTS = \
   MvtxHit_Dict.cc \
@@ -52,7 +54,8 @@ libmvtx_io_la_SOURCES = \
   $(ROOTDICTS) \
   CylinderGeom_Mvtx.cc \
   MvtxDefs.cc \
-  MvtxHit.cc
+  MvtxHit.cc \
+  SegmentationAlpide.cc
 
 libmvtx_io_la_LIBADD = \
   -lphool \

@@ -23,7 +23,8 @@
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 
-#include <cmath>                                    // for NAN
+#include <mvtx/SegmentationAlpide.h>                 // for Alpide constants
+
 #include <iostream>                                  // for operator<<, basi...
 #include <set>                                       // for _Rb_tree_const_i...
 #include <sstream>
@@ -32,6 +33,7 @@
 class PHG4Detector;
 
 using namespace std;
+using namespace PHG4MvtxDefs;
 
 //_______________________________________________________________________
 PHG4MvtxSubsystem::PHG4MvtxSubsystem(const std::string& name, const int _n_layers)
@@ -190,40 +192,29 @@ PHG4SteppingAction* PHG4MvtxSubsystem::GetSteppingAction(void) const
   return steppingAction_;
 }
 
+//_______________________________________________________________________
 void PHG4MvtxSubsystem::SetDefaultParameters()
 {
-  //TODO: Move to defMvtx at some point
-  const int kNLr = 3;
-  enum
-  {
-    kRmn,
-    kRmd,
-    kRmx,
-    kNModPerStave,
-    kPhi0,
-    kNStave,
-    kNPar
-  };
-  // Radii are from last TDR (ALICE-TDR-017.pdf Tab. 1.1, rMid is mean value)
-  const double mvtxdat[kNLr][kNPar] = {
-      {22.4, 23.4, 26.7, 9., 0., 12.},  // for each layer: rMin,rMid,rMax,NChip/Stave, phi0, nStaves
-      {30.1, 31.5, 34.6, 9., 0., 16.},
-      {37.8, 39.3, 42.1, 9., 0., 20.}};
-
   for (set<int>::const_iterator lyr_it = GetDetIds().first; lyr_it != GetDetIds().second; ++lyr_it)
   {
     const int& ilyr = *lyr_it;
+    const double rLr = mvtxdat[ilyr][kRmd];
+    double turbo = radii2Turbo(mvtxdat[ilyr][kRmn], rLr, mvtxdat[ilyr][kRmx], SegmentationAlpide::SensorSizeRows * 10.);
+
     set_default_int_param(ilyr, "active", 1);  //non-automatic initialization in PHG4DetectorGroupSubsystem
     set_default_int_param(ilyr, "layer", ilyr);
     set_default_int_param(ilyr, "N_staves", mvtxdat[ilyr][kNStave]);
 
-    set_default_double_param(ilyr, "layer_nominal_radius", mvtxdat[ilyr][kRmd]);
-    set_default_double_param(ilyr, "phitilt", NAN);
-
+    set_default_double_param(ilyr, "layer_nominal_radius", rLr);
+    set_default_double_param(ilyr, "phitilt", turbo);
+    set_default_double_param(ilyr, "phi0", mvtxdat[ilyr][kPhi0]);
     set_default_string_param(ilyr, "material", "G4_AIR");  // default - almost nothing
   }
-  set_default_string_param(PHG4MvtxDefs::GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
+
+  set_default_string_param(GLOBAL, "stave_geometry_file", "ITS.gdml");  // default - almost nothing
+  /*
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_x", NAN);
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_z", NAN);
   set_default_double_param(PHG4MvtxDefs::ALPIDE_SEGMENTATION, "pixel_thickness", NAN);
+  */
 }

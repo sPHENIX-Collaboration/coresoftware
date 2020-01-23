@@ -39,6 +39,7 @@ pkginclude_HEADERS = \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
   PHRTreeSeeding.h \
+  PHCASeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
   PHTrackPropagating.h \
@@ -48,7 +49,10 @@ pkginclude_HEADERS = \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
   VertexFitter.h \
-  PHRaveVertexing.h
+  PHRaveVertexing.h \
+  GPUTPCBaseTrackParam.h \
+  GPUTPCTrackLinearisation.h \
+  GPUTPCTrackParam.h
 
 ROOTDICTS = \
   AssocInfoContainer_Dict.cc \
@@ -82,6 +86,7 @@ else
     PHTruthTrackSeeding_Dict.cc \
     PHHoughSeeding_Dict.cc \
     PHRTreeSeeding_Dict.cc \
+    PHCASeeding_Dict.cc \
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
@@ -97,7 +102,8 @@ libtrack_reco_io_la_SOURCES = \
   HelixHoughFuncs_v1.cc \
   HelixHoughSpace_v1.cc \
   HelixKalmanFilter.cc \
-  VertexFitter.cc
+  VertexFitter.cc \
+  GPUTPCTrackParam.cxx
 libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
   PHInitVertexing.cc \
@@ -111,6 +117,7 @@ libtrack_reco_la_SOURCES = \
   PHTruthTrackSeeding.cc \
   PHHoughSeeding.cc \
   PHRTreeSeeding.cc \
+  PHCASeeding.cc \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \

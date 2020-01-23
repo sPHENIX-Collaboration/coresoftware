@@ -63,12 +63,10 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   }
 
   RawClusterContainer *clusters = nullptr;
-  RawTowerGeomContainer *geom = nullptr;
   if (_input == Jet::CEMC_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_CEMC");
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_CEMC");
-    if (!clusters || !geom)
+    if (!clusters)
     {
       return std::vector<Jet *>();
     }
@@ -76,8 +74,7 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   else if (_input == Jet::HCALIN_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALIN");
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALIN");
-    if (!clusters || !geom)
+    if (!clusters)
     {
       return std::vector<Jet *>();
     }
@@ -85,8 +82,15 @@ std::vector<Jet *> ClusterJetInput::get_input(PHCompositeNode *topNode)
   else if (_input == Jet::HCALOUT_CLUSTER)
   {
     clusters = findNode::getClass<RawClusterContainer>(topNode, "CLUSTER_HCALOUT");
-    geom = findNode::getClass<RawTowerGeomContainer>(topNode, "TOWERGEOM_HCALOUT");
-    if (!clusters || !geom)
+    if (!clusters)
+    {
+      return std::vector<Jet *>();
+    }
+  }
+  else if (_input == Jet::HCAL_TOPO_CLUSTER)
+  {
+    clusters = findNode::getClass<RawClusterContainer>(topNode, "TOPOCLUSTER_HCAL");
+    if (!clusters)
     {
       return std::vector<Jet *>();
     }
