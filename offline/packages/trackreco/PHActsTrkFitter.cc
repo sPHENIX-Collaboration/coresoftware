@@ -95,23 +95,11 @@ PHActsTrkFitter::PHActsTrkFitter(const string& name)
 
 }
 
-/*
- * Init
 
-int PHActsTrkFitter::Init(PHCompositeNode* topNode)
-{
-
-  return Fun4AllReturnCodes::EVENT_OK;
-}
- */
-
-/*
- * Init run
- */
 int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 {
-GetNodes(topNode);
-
+  GetNodes(topNode);
+  
   _geomanager = PHGeomUtility::GetTGeoManager(topNode);
   if(!_geomanager )
     {
@@ -122,68 +110,55 @@ GetNodes(topNode);
   TGeoVolume *topVol = _geomanager->GetTopVolume();
   TObjArray *nodeArray = topVol->GetNodes();
 
- // recursive search for names containing siactive
- TIter iObj(nodeArray); 
- while(TObject *obj = iObj())
-   {
-     TGeoNode *node = dynamic_cast<TGeoNode*>(obj);
-     cout<< node->GetName() << "  -- has number of daughters = " << node->GetNdaughters() << endl;
-     
-     auto daughters = node->GetNodes();
-     TIter dObj(daughters);
-     while(TObject *obj = dObj())
-       {
-	 TGeoNode *dnode = dynamic_cast<TGeoNode*>(obj);
-	 if(isActive(dnode->GetName()))
-	   cout << " --- found active volume = " << dnode->GetName() << " in " << node->GetName() << endl;       
-	 
-	 int ndaught = dnode->GetNdaughters();
-	 if(ndaught > 0)
-	   {
-	     cout << "     dnode " << dnode->GetName() << " has " << ndaught << " daughters " << endl; 
-	     
-	     auto grands = dnode->GetNodes();
-	     
-	     TIter gObj(grands);
-	     while(TObject *gobj = gObj())
-	       {
-		 TGeoNode *gnode = dynamic_cast<TGeoNode*>(gobj);
-		 if(isActive(gnode->GetName()))
-		   cout << " --- found active volume = " << gnode->GetName() << " in " << dnode->GetName() << endl;       
-		 
-		 int ggrands = gnode->GetNdaughters();
-		 if(ggrands > 0)
-		   {
-		     cout << "     gnode " << gnode->GetName() << "has " << ggrands << " daughters " << endl; 
-		   }
-	       }
-	   }
-       }
-   }
- return Fun4AllReturnCodes::EVENT_OK;
-}
+ // recursive search for names containing siactive (INTT) or MVTXSensor (MVTX)
+  // This establishes the heirarchy of volumes containing the sensors
+  // For the MVTX it is 
+  //    av_1_impr_phiindex_MVTXHalfStave_pv_0
+  //    MVTXModule_0
+  //    MVTXChip_(0 to 8)?
+  //    MVTXSensor_1
+  // For the INTT it is:
+  //    ladder_layer_(0 or 1)?_phi_index_posz    (or _negz)
+  //    siactive_layer_(0 or 1)?
 
-bool PHActsTrkFitter::isActive(std::string dstr)
-{
-  //cout<< "       " << dstr <<endl;
-  
-  std::string refactive("siactive");
-  if (dstr.compare(0, refactive.length(), refactive) == 0)
+  TIter iObj(nodeArray); 
+  while(TObject *obj = iObj())
     {
-      return true;
+      TGeoNode *node = dynamic_cast<TGeoNode*>(obj);
+      cout<< " Top Node is " << node->GetName()  << endl;
+      isActive(node);
     }
-  
-  return false;
+
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/*
- * process_event():
- *  Call user instructions for every event.
- *  This function contains the analysis structure.
- *
- */
+void PHActsTrkFitter::isActive(TGeoNode *gnode)
+{
+  std::string node_str = gnode->GetName();
+  std::string intt_refactive("siactive");
+  std::string mvtx_refactive("MVTXSensor");
 
+  if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
+    {
+      cout << "          ******* Found INTT active volume " << node_str << endl;
+      return;
+    }
+  else if (node_str.compare(0, mvtx_refactive.length(), mvtx_refactive) == 0)
+    {
+      cout << "          ******* Found MVTX active volume " << node_str << endl;
+      return;
+    }
 
+  
+  int ndaught = gnode->GetNdaughters();
+  for(int i=0; i<ndaught; ++i)
+    {
+      cout << "     " << gnode->GetName() << "  daughter " << i << " has name " << gnode->GetDaughter(i)->GetName() << endl;
+      isActive(gnode->GetDaughter(i));
+      
+    }
+}
+      
 int PHActsTrkFitter::Process()
 {
   _event++;
