@@ -115,17 +115,18 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   // For the MVTX it is 
   //    av_1_impr_phiindex_MVTXHalfStave_pv_0
   //    MVTXModule_0
-  //    MVTXChip_(0 to 8)?
+  //    MVTXChip_(0 to 8)
   //    MVTXSensor_1
   // For the INTT it is:
-  //    ladder_layer_(0 or 1)?_phi_index_posz    (or _negz)
+  //    ladder_layer_(0 or 1)?_phiindex_posz    (or _negz)
   //    siactive_layer_(0 or 1)?
 
   TIter iObj(nodeArray); 
   while(TObject *obj = iObj())
     {
       TGeoNode *node = dynamic_cast<TGeoNode*>(obj);
-      cout<< " Top Node is " << node->GetName()  << endl;
+      cout<< " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName()  << endl;
+      cout << " Mother volume name is " << node->GetMotherVolume()->GetName() << endl;
       isActive(node);
     }
 
@@ -134,28 +135,30 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 
 void PHActsTrkFitter::isActive(TGeoNode *gnode)
 {
+  // Recursively searches gnode for silicon sensors, prints out heirarchy
+
   std::string node_str = gnode->GetName();
   std::string intt_refactive("siactive");
   std::string mvtx_refactive("MVTXSensor");
 
   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
     {
-      cout << "          ******* Found INTT active volume " << node_str << endl;
+      cout << "          ******* Found INTT active volume,  node is " << gnode->GetName() << " volume name is "   << gnode->GetVolume()->GetName() << endl;
+      cout << "          Mother volume name is " << gnode->GetMotherVolume()->GetName() << endl;
       return;
     }
   else if (node_str.compare(0, mvtx_refactive.length(), mvtx_refactive) == 0)
     {
-      cout << "          ******* Found MVTX active volume " << node_str << endl;
+      cout << "          ******* Found MVTX active volume,  node is " << gnode->GetName() << " volume name is " << gnode->GetVolume()->GetName() << endl;
+      cout << "          Mother volume name is " << gnode->GetMotherVolume()->GetName() << endl;
       return;
     }
 
-  
   int ndaught = gnode->GetNdaughters();
   for(int i=0; i<ndaught; ++i)
     {
-      cout << "     " << gnode->GetName() << "  daughter " << i << " has name " << gnode->GetDaughter(i)->GetName() << endl;
-      isActive(gnode->GetDaughter(i));
-      
+      cout << "     " << gnode->GetVolume()->GetName() << "  daughter " << i << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
+      isActive(gnode->GetDaughter(i));      
     }
 }
       
