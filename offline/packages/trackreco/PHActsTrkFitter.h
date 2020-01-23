@@ -28,6 +28,7 @@ class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
 class TrkrClusterContainer;
 class TTree;
+class TGeoManager;
 
 //! \brief		Refit SvtxTracks with Acts.
 class PHActsTrkFitter : public PHTrackFitting
@@ -76,6 +77,8 @@ int Process();
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
 
+  bool isActive(std::string);
+
   /*
 	 * fit track with SvtxTrack as input seed.
 	 * \param intrack Input SvtxTrack
@@ -85,6 +88,8 @@ int Process();
   PHG4CylinderGeomContainer* _geom_container_intt;
   SvtxTrackMap* _trackmap;
   TrkrClusterContainer* _clustermap;
+
+  TGeoManager* _geomanager;
 };
 
 #endif

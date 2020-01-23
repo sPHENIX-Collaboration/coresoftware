@@ -40,6 +40,7 @@
 #include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
 #include <g4main/PHG4VtxPointv1.h>
 
+#include <phgeom/PHGeomUtility.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
@@ -63,18 +64,12 @@
 #include "Acts/Utilities/ParameterDefinitions.hpp"
 */
 
-//#include <TClonesArray.h>
 #include <TRotation.h>
-//#include <TTree.h>
 #include <TVector3.h>
 #include <TMath.h>                                  // for ATan2
-//#include <TMatrixDSymfwd.h>                         // for TMatrixDSym
-//#include <TMatrixFfwd.h>                            // for TMatrixF
 #include <TMatrixT.h>                               // for TMatrixT, operator*
-//#include <TMatrixTSym.h>                            // for TMatrixTSym
-//#include <TMatrixTUtils.h>                          // for TMatrixTRow
-//#include <TVectorDfwd.h>                            // for TVectorD
-//#include <TVectorT.h>                               // for TVectorT
+#include <TObject.h>
+#include <TGeoManager.h>
 
 #include <cmath>                                   // for sqrt, NAN
 #include <iostream>
@@ -84,7 +79,6 @@
 #include <vector>
 
 class PHField;
-class TGeoManager;
 
 using namespace std;
 
@@ -116,13 +110,72 @@ int PHActsTrkFitter::Init(PHCompositeNode* topNode)
  */
 int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 {
-  //CreateNodes(topNode);
-  GetNodes(topNode);
+GetNodes(topNode);
 
-  //TGeoManager* tgeo_manager = PHGeomUtility::GetTGeoManager(topNode);
+  _geomanager = PHGeomUtility::GetTGeoManager(topNode);
+  if(!_geomanager )
+    {
+      cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
+      return false;
+    }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+  TGeoVolume *topVol = _geomanager->GetTopVolume();
+  TObjArray *nodeArray = topVol->GetNodes();
+
+ // recursive search for names containing siactive
+ TIter iObj(nodeArray); 
+ while(TObject *obj = iObj())
+   {
+     TGeoNode *node = dynamic_cast<TGeoNode*>(obj);
+     cout<< node->GetName() << "  -- has number of daughters = " << node->GetNdaughters() << endl;
+     
+     auto daughters = node->GetNodes();
+     TIter dObj(daughters);
+     while(TObject *obj = dObj())
+       {
+	 TGeoNode *dnode = dynamic_cast<TGeoNode*>(obj);
+	 if(isActive(dnode->GetName()))
+	   cout << " --- found active volume = " << dnode->GetName() << " in " << node->GetName() << endl;       
+	 
+	 int ndaught = dnode->GetNdaughters();
+	 if(ndaught > 0)
+	   {
+	     cout << "     dnode " << dnode->GetName() << " has " << ndaught << " daughters " << endl; 
+	     
+	     auto grands = dnode->GetNodes();
+	     
+	     TIter gObj(grands);
+	     while(TObject *gobj = gObj())
+	       {
+		 TGeoNode *gnode = dynamic_cast<TGeoNode*>(gobj);
+		 if(isActive(gnode->GetName()))
+		   cout << " --- found active volume = " << gnode->GetName() << " in " << dnode->GetName() << endl;       
+		 
+		 int ggrands = gnode->GetNdaughters();
+		 if(ggrands > 0)
+		   {
+		     cout << "     gnode " << gnode->GetName() << "has " << ggrands << " daughters " << endl; 
+		   }
+	       }
+	   }
+       }
+   }
+ return Fun4AllReturnCodes::EVENT_OK;
 }
+
+bool PHActsTrkFitter::isActive(std::string dstr)
+{
+  //cout<< "       " << dstr <<endl;
+  
+  std::string refactive("siactive");
+  if (dstr.compare(0, refactive.length(), refactive) == 0)
+    {
+      return true;
+    }
+  
+  return false;
+}
+
 /*
  * process_event():
  *  Call user instructions for every event.
@@ -404,9 +457,9 @@ int PHActsTrkFitter::Process()
        ++iter)
   {
     SvtxTrack* svtx_track = iter->second;
-    if(Verbosity() > 10)
+    if(Verbosity() > 0)
       {
-	cout << "   process SVTXTrack " << iter->first << endl;
+	cout << "   found SVTXTrack " << iter->first << endl;
 	svtx_track->identify();
       }
     if (!svtx_track)
