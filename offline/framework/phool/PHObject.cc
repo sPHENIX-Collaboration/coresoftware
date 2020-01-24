@@ -11,7 +11,7 @@ class TObject;
 PHObject*
 PHObject::CloneMe() const
 {
-  std::cout << PHWHERE << " clone() not implemented by daugther class"
+  std::cout << PHWHERE << " CloneMe() not implemented by daugther class"
             << std::endl;
   return nullptr;
 }

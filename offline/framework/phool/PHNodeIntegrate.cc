@@ -41,7 +41,7 @@ void PHNodeIntegrate::perform(PHNode *node)
           // since this object was also copied to the node tree we only need
           // to store it in case a second file gets opened where this one then
           // serves as the object which contains the sum
-          sumobj = obj->clone();
+          sumobj = obj->CloneMe();
           PHIODataNode<PHObject> *sumobjnode = new PHIODataNode<PHObject>(sumobj, node->getName(), "PHObject");
           runsumnode->addNode(sumobjnode);
         }

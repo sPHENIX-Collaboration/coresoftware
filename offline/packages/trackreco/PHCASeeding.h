@@ -10,8 +10,9 @@
 
 //begin
 
-#include <trackbase/TrkrDefs.h>  // for cluskey
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
+
+#include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
 
 #if !defined(__CINT__) || defined(__CLING__)
@@ -20,12 +21,23 @@
 #include <boost/geometry/index/rtree.hpp>       // for ca
 #endif
 
-#include <stdint.h>  // for uint64_t
+#include <cmath>     // for M_PI
 #include <map>       // for map
+#include <stdint.h>  // for uint64_t
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
 
+// rootcint does not like M_PI in the default arguments (the dict.cc file
+// translates this into a string and does not convert M_PI to its definition)
+// This kludge defines it to Root's Pi() for rootcint use 
+#if defined(__CINT__) && ! defined(__CLING__)
+#include <TMath.h>
+#ifndef M_PI
+#define M_PI TMath::Pi()
+#endif
+#endif
+ 
 class PHCompositeNode;  // lines 196-196
 class SvtxClusterMap;   // lines 202-202
 class SvtxHitMap;       // lines 211-211
@@ -33,18 +45,6 @@ class SvtxTrackMap;     // lines 204-204
 class SvtxVertex;
 class SvtxVertexMap;    // lines 206-206
 
-//#define _DEBUG_
-
-#if defined(_DEBUG_)
-#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#else
-#define LogDebug(exp) (void)0
-#endif
-
-#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
-#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
-
-//#define _DEBUG_
 
 //#define _USE_ALAN_FULL_VERTEXING_
 #define _USE_ALAN_TRACK_REFITTING_
@@ -66,8 +66,6 @@ typedef bg::model::box<point> box;
 typedef std::pair<point, TrkrDefs::cluskey> pointKey;
 #endif
 
-typedef uint64_t cluskey;
-
 class PHCASeeding : public PHTrackSeeding
 {
  public:
@@ -76,7 +74,13 @@ class PHCASeeding : public PHTrackSeeding
       unsigned int nlayers_maps = 3,
       unsigned int nlayers_intt = 4,
       unsigned int nlayers_tpc = 48,
-      unsigned int start_layer = 53);
+      unsigned int start_layer = 55,
+      float cluster_z_error = 0.015,
+      float cluster_alice_y_error = 0.015,
+      float neighbor_phi_width = M_PI/6,
+      float neighbor_eta_width = 1,
+      float maxSinPhi = 0.999,
+      float Bz = 14*0.000299792458f);
 
 #if !defined(__CINT__) || defined(__CLING__)
   double chisq(const double *xx);
@@ -89,22 +93,18 @@ class PHCASeeding : public PHTrackSeeding
   }
 
  protected:
-  int Setup(PHCompositeNode *topNode);
-  int GetNodes(PHCompositeNode *topNode);
-  int Process();
-  int Process(PHCompositeNode *topNode);
+  virtual int Setup(PHCompositeNode *topNode);
+  virtual int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
 
-  int End();
+  virtual int End();
 
  private:
   /// fetch node pointers
 
   // node pointers
-  SvtxClusterMap *_g4clusters;
   SvtxTrackMap *_g4tracks;
   SvtxVertexMap *_g4vertexes;
-  TrkrClusterContainer *_cluster_map;
   //nodes to get norm vector
   SvtxHitMap *_svtxhitsmap;
   int *_hit_used_map;
@@ -137,6 +137,12 @@ class PHCASeeding : public PHTrackSeeding
   unsigned int _nlayers_intt;
   unsigned int _nlayers_tpc;
   unsigned int _start_layer;
+  float _cluster_z_error;
+  float _cluster_alice_y_error;
+  float _neighbor_phi_width;
+  float _neighbor_eta_width;
+  float _max_sin_phi;
+  float _Bz;
   float _phi_scale;
   float _z_scale;
   //std::vector<float> _radii_all;

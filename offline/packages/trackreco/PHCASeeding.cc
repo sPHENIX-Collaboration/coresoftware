@@ -56,6 +56,21 @@
 // forward declarations
 class PHCompositeNode;
 
+
+
+//#define _DEBUG_
+
+#if defined(_DEBUG_)
+#define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#else
+#define LogDebug(exp) (void)0
+#endif
+
+#define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp
+#define LogWarning(exp) std::cout << "WARNING: " << __FILE__ << ": " << __LINE__ << ": " << exp
+
+//#define _DEBUG_
+
 //end
 
 typedef bg::model::point<float, 3, bg::cs::cartesian> point;
@@ -74,12 +89,16 @@ PHCASeeding::PHCASeeding(
     unsigned int nlayers_maps,
     unsigned int nlayers_intt,
     unsigned int nlayers_tpc,
-    unsigned int start_layer)
+    unsigned int start_layer,
+    float cluster_z_error,
+    float cluster_alice_y_error,
+    float neighbor_phi_width,
+    float neighbor_eta_width,
+    float maxSinPhi,
+    float Bz)
   : PHTrackSeeding(name)
-  , _g4clusters(nullptr)
   , _g4tracks(nullptr)
   , _g4vertexes(nullptr)
-  , _cluster_map(nullptr)
   , _svtxhitsmap(nullptr)
   , _hit_used_map(nullptr)
   , _hit_used_map_size(0)
@@ -89,10 +108,17 @@ PHCASeeding::PHCASeeding(
   , etast(0.003)
   , phixt(0.008)
   , etaxt(0.005)
+  , _vertex(nullptr)
   , _nlayers_maps(nlayers_maps)
   , _nlayers_intt(nlayers_intt)
   , _nlayers_tpc(nlayers_tpc)
   , _start_layer(start_layer)
+  , _cluster_z_error(cluster_z_error)
+  , _cluster_alice_y_error(cluster_alice_y_error)
+  , _neighbor_phi_width(neighbor_phi_width)
+  , _neighbor_eta_width(neighbor_eta_width)
+  , _max_sin_phi(maxSinPhi)
+  , _Bz(Bz)
   , _phi_scale(2)
   , _z_scale(2)
 {
@@ -172,7 +198,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
     PHG4CylinderCellGeomContainer::ConstRange begin_end =
         cellgeos->get_begin_end();
     PHG4CylinderCellGeomContainer::ConstIterator miter = begin_end.first;
-    for (; miter != begin_end.second; miter++)
+    for (; miter != begin_end.second; ++miter)
     {
       PHG4CylinderCellGeom *geo = miter->second;
       _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
@@ -191,7 +217,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
     PHG4CylinderGeomContainer::ConstRange begin_end =
         laddergeos->get_begin_end();
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
-    for (; miter != begin_end.second; miter++)
+    for (; miter != begin_end.second; ++miter)
     {
       PHG4CylinderGeom *geo = miter->second;
       _radii_all[_layer_ilayer_map_all[geo->get_layer()]] =
@@ -209,7 +235,7 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
     PHG4CylinderGeomContainer::ConstRange begin_end =
         mapsladdergeos->get_begin_end();
     PHG4CylinderGeomContainer::ConstIterator miter = begin_end.first;
-    for (; miter != begin_end.second; miter++)
+    for (; miter != begin_end.second; ++miter)
     {
       PHG4CylinderGeom *geo = miter->second;
 
@@ -232,20 +258,6 @@ int PHCASeeding::InitializeGeometry(PHCompositeNode *topNode)
 }
 
 
-int PHCASeeding::GetNodes(PHCompositeNode *topNode)
-{
-  //---------------------------------
-  // Get Objects off of the Node Tree
-  //---------------------------------
-
-  _cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_cluster_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find node TRKR_CLUSTER" << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
 double PHCASeeding::phiadd(double phi1, double phi2)
 {
@@ -283,7 +295,7 @@ void PHCASeeding::FillTree()
   t_fill->stop();
   int n_dupli = 0;
   int nlayer[60];
-  for (int j = 0; j < 60; j++) nlayer[j] = 0;
+  for (int j = 0; j < 60; ++j) nlayer[j] = 0;
 
   TrkrClusterContainer::ConstRange clusrange = _cluster_map->getClusters();
 
@@ -292,7 +304,7 @@ void PHCASeeding::FillTree()
     TrkrCluster *cluster = iter->second;
     TrkrDefs::cluskey ckey = iter->first;
     unsigned int layer = TrkrDefs::getLayer(ckey);
-    if (layer < 7) continue;
+    if (layer < (_nlayers_maps + _nlayers_intt)) continue;
 
     TVector3 vec(cluster->getPosition(0) - _vertex->get_x(), cluster->getPosition(1) - _vertex->get_y(), cluster->getPosition(2) - _vertex->get_z());
 
@@ -305,10 +317,10 @@ void PHCASeeding::FillTree()
     QueryTree(_rtree, clus_phi - 0.00001, clus_eta - 0.00001, layer - 0.5, clus_phi + 0.00001, clus_eta + 0.00001, layer + 0.5, testduplicate);
     if (!testduplicate.empty())
     {
-      n_dupli++;
+      ++n_dupli;
       continue;
     }
-    nlayer[layer]++;
+    ++nlayer[layer];
     t_fill->restart();
     _rtree.insert(std::make_pair(point(clus_phi, clus_eta, clus_l), ckey));
     t_fill->stop();
@@ -358,13 +370,13 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
             100, // layer
             allClusters);
   LogDebug(" number of total clusters: " << allClusters.size() << endl);
-  for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); StartCluster++)
+  for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); ++StartCluster)
   {
     // get clusters near this one in adjacent layers
     double StartPhi = StartCluster->first.get<0>();
     double StartEta = StartCluster->first.get<1>();
     unsigned int StartLayer = TrkrDefs::getLayer(StartCluster->second);
-    if(StartLayer > 54.5) continue;
+    //if(StartLayer > _start_layer) continue;
     TrkrCluster* StartCl = _cluster_map->findCluster(StartCluster->second);
     double StartX = StartCl->getPosition(0);
     double StartY = StartCl->getPosition(1);
@@ -377,19 +389,19 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     vector<pointKey> ClustersAbove;
     vector<pointKey> ClustersBelow;
     QueryTree(_rtree,
-              StartPhi-M_PI/6,
-              StartEta-1,
+              StartPhi-_neighbor_phi_width,
+              StartEta-_neighbor_eta_width,
               (double) StartLayer - 1.5,
-              StartPhi+M_PI/6,
-              StartEta+1,
+              StartPhi+_neighbor_phi_width,
+              StartEta+_neighbor_eta_width,
               (double) StartLayer - 0.5,
               ClustersBelow);
     QueryTree(_rtree,
-              StartPhi-M_PI/6,
-              StartEta-1,
+              StartPhi-_neighbor_phi_width,
+              StartEta-_neighbor_eta_width,
               (double) StartLayer + 0.5,
-              StartPhi+M_PI/6,
-              StartEta+1,
+              StartPhi+_neighbor_phi_width,
+              StartEta+_neighbor_eta_width,
               (double) StartLayer + 1.5,
               ClustersAbove);
     LogDebug(" entries in below layer: " << ClustersBelow.size() << endl);
@@ -541,7 +553,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       if((fabs(etajump)>0.1 && lasteta!=-100) || (fabs(phijump)>1 && lastphi!=-100))
       {
          LogDebug(" Eta or Phi jump too large! " << endl);
-         jumpcount++;
+         ++jumpcount;
       }
       LogDebug(" (eta,phi,layer) = (" << clus_eta << "," << clus_phi << "," << lay << ") " <<
         " (x,y,z) = (" << cl->getPosition(0) << "," << cl->getPosition(1) << "," << cl->getPosition(2) << ")" << endl);
@@ -571,10 +583,6 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     trackSeed.SetX(alice_x0);
     trackSeed.SetY(alice_y0);
     trackSeed.SetZ(alice_z0);
-    // convert B field to ALICE-compatible units (kG times this constant)
-    float Bz = 14*0.000299792458f;
-    // configurable max sin phi (algorithm doesn't work when track is too horizontal)
-    float maxSinPhi = 0.999;
     float x = x0;
     float y = y0;
     #if defined(_DEBUG_)
@@ -591,7 +599,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     float second_z = SecondCluster->getPosition(2);
     float second_alice_x = sqrt(second_x*second_x+second_y*second_y);
     float delta_alice_x = second_alice_x - alice_x0;
-    float first_phi = atan(y0/x0);
+    float first_phi = atan2(y0,x0);
     float second_alice_y = (second_x/cos(first_phi)-second_y/sin(first_phi))/(sin(first_phi)/cos(first_phi)+cos(first_phi)/sin(first_phi));
     float init_SinPhi = second_alice_y / sqrt(delta_alice_x*delta_alice_x + second_alice_y*second_alice_y);
     float delta_z = second_z - z0;
@@ -617,20 +625,20 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       float nextCluster_z = nextCluster->getPosition(2);
       float nextAlice_x = sqrt(nextCluster_x*nextCluster_x+nextCluster_y*nextCluster_y);
       // rotate track coordinates to match orientation of next cluster
-      float newPhi = atan(nextCluster_y/nextCluster_x);
+      float newPhi = atan2(nextCluster_y,nextCluster_x);
       LogDebug("new phi = " << newPhi << endl);
       float oldPhi = atan(y/x);
       LogDebug("old phi = " << oldPhi << endl);
       float alpha = newPhi - oldPhi;
       LogDebug("alpha = " << alpha << endl);
-      if(!trackSeed.Rotate(alpha,trackLine,maxSinPhi))
+      if(!trackSeed.Rotate(alpha,trackLine,_max_sin_phi))
       {
         LogError("Rotate failed! Aborting for this seed...");
         break;
       }
       LogDebug("track coordinates (ALICE) after rotation: (" << trackSeed.GetX() << "," << trackSeed.GetY() << "," << trackSeed.GetZ() << ")" << endl);
       LogDebug("Transporting from " << alice_x << " to " << nextAlice_x << "...");
-      if(!trackSeed.TransportToX(nextAlice_x,trackLine,Bz,maxSinPhi))
+      if(!trackSeed.TransportToX(nextAlice_x,trackLine,_Bz,_max_sin_phi))
       {
         LogError("Transport failed! Aborting for this seed...");
         break;
@@ -655,11 +663,11 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       //float nextCluster_alice_y = (nextCluster_x/cos(newPhi) - nextCluster_y/sin(newPhi))/(tan(newPhi)+1./tan(newPhi));
       float nextCluster_alice_y = 0.;
       LogDebug("next cluster ALICE y = " << nextCluster_alice_y << endl);
-      float y2_error = .015*.015;
-      float z2_error = .015*.015;
+      float y2_error = _cluster_alice_y_error*_cluster_alice_y_error;
+      float z2_error = _cluster_z_error*_cluster_z_error;
       LogDebug("track ALICE SinPhi = " << trackSeed.GetSinPhi() << endl);
       // Apply Kalman filter
-      if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,maxSinPhi))
+      if(!trackSeed.Filter(nextCluster_alice_y,nextCluster_z,y2_error,z2_error,_max_sin_phi))
       {
         LogError("Kalman filter failed for seed " << numberofseeds << "! Aborting for this seed..." << endl);
         break;
@@ -670,7 +678,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       z = nextCluster_z;
       alice_x = nextAlice_x;
       #endif
-      cluster_ctr++;
+      ++cluster_ctr;
     } 
     //    pt:z:dz:phi:dphi:c:dc
     // Fill NT with track parameters
@@ -682,13 +690,18 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     float track_z = trackSeed.GetZ();
     float track_zerr = sqrt(trackSeed.GetErr2Z());
     float track_phi = atan(trackCartesian_y/trackCartesian_x);
-    float track_phierr = .01;
-    float track_curvature = trackSeed.GetKappa(Bz);
-    float track_curverr = sqrt(trackSeed.GetErr2QPt())*Bz;
+    float last_cluster_phierr = _cluster_map->findCluster(trackKeyChain->back())->getPhiError();
+    // phi error assuming error in track radial coordinate is zero
+    float track_phierr = sqrt(pow(last_cluster_phierr,2)+(pow(trackSeed.GetX(),2)*trackSeed.GetErr2Y()) / 
+      pow(pow(trackSeed.GetX(),2)+pow(trackSeed.GetY(),2),2));
+    LogDebug("Track phi = " << track_phi << endl);
+    LogDebug("Track phierr = " << track_phierr << endl);
+    float track_curvature = trackSeed.GetKappa(_Bz);
+    float track_curverr = sqrt(trackSeed.GetErr2QPt())*_Bz;
     NT->Fill(track_pt, track_pterr, track_z, track_zerr, track_phi, track_phierr, track_curvature, track_curverr, trackKeyChain->size());
     SvtxTrack_v1 track;
     track.set_id(numberofseeds);
-    for (unsigned int j = 0; j < trackKeyChain->size(); j++)
+    for (unsigned int j = 0; j < trackKeyChain->size(); ++j)
     {
       track.insert_cluster_key(trackKeyChain->at(j));
     }
@@ -712,7 +725,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     track.set_error(4, 4, track_pterr * track_pterr * sin(track_phi) * sin(track_phi));
     track.set_error(5, 5, track_pterr * track_pterr / tan(2 * atan(exp(-StartEta))) / tan(2 * atan(exp(-StartEta))));
     _track_map->insert(&track);
-    numberofseeds++;
+    ++numberofseeds;
   }
   t_seed->stop();
   cout << "number of seeds " << numberofseeds << endl;
@@ -729,9 +742,6 @@ int PHCASeeding::Setup(PHCompositeNode *topNode)
   cout << "Called Setup" << endl;
   cout << "topNode:" << topNode << endl;
   PHTrackSeeding::Setup(topNode);
-  //  int ret = GetNodes(topNode);
-  //return ret;
-  GetNodes(topNode);
   InitializeGeometry(topNode);
   return Fun4AllReturnCodes::EVENT_OK;
 }
