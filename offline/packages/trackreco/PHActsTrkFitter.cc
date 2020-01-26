@@ -100,14 +100,21 @@ PHActsTrkFitter::PHActsTrkFitter(const string& name)
 int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
+
+  // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key  
+  MakeTGeoNodeMap(topNode);
   
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void PHActsTrkFitter::MakeTGeoNodeMap(PHCompositeNode *topNode)
+{
   _geomanager = PHGeomUtility::GetTGeoManager(topNode);
   if(!_geomanager )
     {
       cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
-      return false;
+      return;
     }
-
   TGeoVolume *topVol = _geomanager->GetTopVolume();
   TObjArray *nodeArray = topVol->GetNodes();
 
@@ -137,16 +144,16 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 	}
       else
 	continue;
-      
-      if(Verbosity() > 100)
+
+      bool print_sensor_paths = false;  // normally false
+      if(print_sensor_paths)
 	{
+	  // Descends the node tree to find the active silicon nodes - used for information only
 	  cout<< " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName()  << endl;
 	  cout << " Top Node mother volume name is " << node->GetMotherVolume()->GetName() << endl;
 	  isActive(node);
 	}
     }
-  
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
@@ -154,7 +161,7 @@ void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
   int layer = -1;           // sPHENIX layer number
   int itype = -1;           // specifies inner (0) or outer (1) sensor
   int ladder_phi = -1;  // copy number of ladder in phi
-  int iz = -1;                // specifies positive (1) or negative (0) z
+  int zposneg = -1;                // specifies positive (1) or negative (0) z
   int ladder_z = -1;      // 0-3, from most negative z to most positive
   
   std::string s = gnode->GetName();
@@ -177,12 +184,13 @@ void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
     if(counter == 3)
       {
 	ladder_phi = std::atoi(token.c_str());
-	if( s.compare(0, posz.length(), posz) ==0 ) iz = 1; 
-	if( s.compare(0, negz.length(), negz) ==0 ) iz = 0; 
+	if( s.compare(0, negz.length(), negz) ==0 ) zposneg = 0; 
+	if( s.compare(0, posz.length(), posz) ==0 ) zposneg = 1; 
       }	
     counter ++;
   }
-  ladder_z = iz * 2 + itype;  // Check!!!!!
+  // From SteppingAction:  if(zposneg == 1) ladderz = ladderz_base + 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
+  ladder_z = itype  + zposneg*2;  // Check that ladder_base = itype
 
   // The active sensor is a daughter of gnode
   int ndaught = gnode->GetNdaughters();
@@ -212,7 +220,7 @@ void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
   _cluster_node_map.insert(tmp);
 
   if(Verbosity() > 1)    
-    std::cout << " INTT layer " << layer << " ladder_phi " << ladder_phi << " ladder_z " << ladder_z << " name " << sensor_node->GetName() << std::endl;
+    std::cout << " INTT layer " << layer << " ladder_phi " << ladder_phi << " itype " << itype << " zposneg " << zposneg << " ladder_z " << ladder_z << " name " << sensor_node->GetName() << std::endl;
   
   return;
 }
@@ -371,7 +379,7 @@ int PHActsTrkFitter::Process()
 
       // extract detector element identifier from cluskey and make Identifier for accessing TGeo element
       unsigned int layer = TrkrDefs::getLayer(cluskey);
-      if(Verbosity() > 1) cout << " layer " << layer << endl;
+      if(Verbosity() > 0) cout << " layer " << layer << endl;
 
       TVector3 world(x,y,z);
       TVector3 local(0,0,0);
@@ -385,7 +393,7 @@ int PHActsTrkFitter::Process()
 	{
 	  unsigned int staveid = MvtxDefs::getStaveId(cluskey);
 	  unsigned int chipid = MvtxDefs::getChipId(cluskey);
-	  if(Verbosity() > 1) 
+	  if(Verbosity() > 0) 
 	    cout << "   MVTX cluster with staveid " << staveid << " chipid " << chipid << endl; 
 
 	  // make key for this sensor
@@ -396,8 +404,9 @@ int PHActsTrkFitter::Process()
 	  if(it != _cluster_node_map.end())
 	    {
 	      TGeoNode *sensor_node = it->second;
-	      if(Verbosity() > 1) 
-		cout << "Process: MVTX layer " << layer << " staveid " << staveid << " chipid " << chipid <<  " node " << sensor_node->GetName() << endl;;
+	      if(Verbosity() > 0) 
+		cout << "       Found in _cluster_node_map: layer " << layer << " staveid " << staveid << " chipid " << chipid 
+		     <<  " node " << sensor_node->GetName() << endl;
 	    }
 	  else
 	    {
@@ -433,7 +442,7 @@ int PHActsTrkFitter::Process()
 	  
 	  local_err = ROT * ERR * ROT_T;
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    {
 	      for(int i=0;i<3;++i)
 		{
@@ -458,7 +467,7 @@ int PHActsTrkFitter::Process()
 	{
 	  unsigned int ladderzid = InttDefs::getLadderZId(cluskey);
 	  unsigned int ladderphiid = InttDefs::getLadderPhiId(cluskey);
-	  if(Verbosity() > 1) 
+	  if(Verbosity() > 0) 
 	    cout << "   Intt cluster with ladderzid " << ladderzid << " ladderphid " << ladderphiid << endl; 
 
 	  // make identifier for this sensor
@@ -469,8 +478,9 @@ int PHActsTrkFitter::Process()
 	  if(it != _cluster_node_map.end())
 	    {
 	      TGeoNode *sensor_node = it->second;
-	      if(Verbosity() > 1)
-		cout << "Process: INTT layer " << layer << " ladderzid " << ladderzid << " ladderphiid " << ladderphiid <<  " node " << sensor_node->GetName() << endl;;
+	      if(Verbosity() > 0)
+		cout << "      Found in _cluster_node_map:  layer " << layer << " ladderzid " << ladderzid << " ladderphiid " << ladderphiid 
+		     <<  " node " << sensor_node->GetName() << endl;;
 	    }
 	  else
 	    cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
@@ -507,7 +517,7 @@ int PHActsTrkFitter::Process()
 	  TMatrixF local_err(3, 3);
 	  local_err = ROT * ERR * ROT_T;
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    {
 	      for(int i=0;i<3;++i)
 		{
@@ -565,7 +575,7 @@ int PHActsTrkFitter::Process()
 	  TMatrixF local_err(3, 3);
 	  local_err = ROT * ERR * ROT_T;
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 1)
 	    {
 	      cout << " r " <<  " local 3D " << radius << endl;
 	      cout << " r-phi " <<  " local 3D " << r_clusphi << endl;
@@ -587,7 +597,7 @@ int PHActsTrkFitter::Process()
 	}
 
       // local and local_err now contain the position and covariance matrix in local coords
-      if(Verbosity() > 0)
+      if(Verbosity() > 1)
 	{
 	  for(int i=0;i<2;++i)
 	    {

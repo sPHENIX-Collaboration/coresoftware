@@ -80,6 +80,7 @@ int Process();
   int CreateNodes(PHCompositeNode*);
 
   void isActive(TGeoNode *gnode);
+  void MakeTGeoNodeMap(PHCompositeNode*);
   void getInttKeyFromNode(TGeoNode *gnode);
   void getMvtxKeyFromNode(TGeoNode *gnode);
 

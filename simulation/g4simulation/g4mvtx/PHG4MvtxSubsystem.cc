@@ -157,6 +157,7 @@ int PHG4MvtxSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 
     // create stepping action
     steppingAction_ = new PHG4MvtxSteppingAction(m_Detector);
+    steppingAction_->Verbosity(Verbosity());
   }
   else
   {
