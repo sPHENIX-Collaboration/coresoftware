@@ -10,6 +10,7 @@
 
 #include "PHTrackFitting.h"
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <cstddef>              // for NULL
 #include <memory>                // for shared_ptr
@@ -79,6 +80,8 @@ int Process();
   int CreateNodes(PHCompositeNode*);
 
   void isActive(TGeoNode *gnode);
+  void getInttKeyFromNode(TGeoNode *gnode);
+  void getMvtxKeyFromNode(TGeoNode *gnode);
 
   /*
 	 * fit track with SvtxTrack as input seed.
@@ -91,6 +94,9 @@ int Process();
   TrkrClusterContainer* _clustermap;
 
   TGeoManager* _geomanager;
+
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
+
 };
 
 #endif

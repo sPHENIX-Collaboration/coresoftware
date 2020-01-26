@@ -10,6 +10,8 @@
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
+#include <mvtx/MvtxDefs.h>
+#include <intt/InttDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
@@ -70,6 +72,7 @@
 #include <TMatrixT.h>                               // for TMatrixT, operator*
 #include <TObject.h>
 #include <TGeoManager.h>
+#include <TGeoMatrix.h>
 
 #include <cmath>                                   // for sqrt, NAN
 #include <iostream>
@@ -92,9 +95,7 @@ PHActsTrkFitter::PHActsTrkFitter(const string& name)
   Verbosity(0);
 
   _event = 0;
-
 }
-
 
 int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 {
@@ -110,66 +111,239 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   TGeoVolume *topVol = _geomanager->GetTopVolume();
   TObjArray *nodeArray = topVol->GetNodes();
 
- // recursive search for names containing siactive (INTT) or MVTXSensor (MVTX)
-  // This establishes the heirarchy of volumes containing the sensors
-  // For the MVTX it is 
-  //    av_1_impr_phiindex_MVTXHalfStave_pv_0
-  //    MVTXModule_0
-  //    MVTXChip_(0 to 8)
-  //    MVTXSensor_1
-  // For the INTT it is:
-  //    ladder_layer_(0 or 1)?_phiindex_posz    (or _negz)
-  //    siactive_layer_(0 or 1)?
-
   TIter iObj(nodeArray); 
   while(TObject *obj = iObj())
     {
       TGeoNode *node = dynamic_cast<TGeoNode*>(obj);
-      cout<< " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName()  << endl;
-      cout << " Mother volume name is " << node->GetMotherVolume()->GetName() << endl;
-      isActive(node);
+      std::string node_str = node->GetName();
+
+      std::string mvtx("av_1");
+      std::string intt("ladder");
+      std::string intt_ext("ladderext");
+
+      if ( node_str.compare(0, mvtx.length(), mvtx) == 0 )       // is it in the MVTX?
+	{
+	  if(Verbosity() > 100)  cout << " node " << node->GetName() << " is in the MVTX" << endl;
+	  getMvtxKeyFromNode(node);
+	}
+      else if ( node_str.compare(0, intt.length(), intt) ==0 ) 	      // is it in the INTT?
+	{
+	  // We do not want the "ladderext" nodes
+	  if ( node_str.compare(0, intt_ext.length(), intt_ext) ==0 ) 
+	    continue;
+	  
+	  if(Verbosity() > 100) cout << " node " << node->GetName() << " is in the INTT" << endl;	  
+	  getInttKeyFromNode(node);
+	}
+      else
+	continue;
+      
+      if(Verbosity() > 100)
+	{
+	  cout<< " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName()  << endl;
+	  cout << " Top Node mother volume name is " << node->GetMotherVolume()->GetName() << endl;
+	  isActive(node);
+	}
+    }
+  
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
+{
+  int layer = -1;           // sPHENIX layer number
+  int itype = -1;           // specifies inner (0) or outer (1) sensor
+  int ladder_phi = -1;  // copy number of ladder in phi
+  int iz = -1;                // specifies positive (1) or negative (0) z
+  int ladder_z = -1;      // 0-3, from most negative z to most positive
+  
+  std::string s = gnode->GetName();
+  std::string delimiter = "_";
+  std::string posz("posz");
+  std::string negz("negz");
+  
+  size_t pos = 0;
+  std::string token;
+
+  int counter = 0;
+  while ((pos = s.find(delimiter)) != std::string::npos) {
+    token = s.substr(0, pos);
+    //std::cout << token << std::endl;
+    s.erase(0, pos + delimiter.length());
+    if(counter == 1) 
+      layer = std::atoi(token.c_str()) + 3;
+    if(counter == 2)
+      itype = std::atoi(token.c_str());
+    if(counter == 3)
+      {
+	ladder_phi = std::atoi(token.c_str());
+	if( s.compare(0, posz.length(), posz) ==0 ) iz = 1; 
+	if( s.compare(0, negz.length(), negz) ==0 ) iz = 0; 
+      }	
+    counter ++;
+  }
+  ladder_z = iz * 2 + itype;  // Check!!!!!
+
+  // The active sensor is a daughter of gnode
+  int ndaught = gnode->GetNdaughters();
+  if(ndaught == 0)
+    {
+      cout << PHWHERE << "OOPS: Did not find INTT sensor! Quit." << endl;
+      exit(1);
     }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+  std::string intt_refactive("siactive");  
+  TGeoNode *sensor_node = 0;
+  for(int i=0; i<ndaught; ++i)
+    {
+      std::string node_str = gnode->GetDaughter(i)->GetName();
+
+      if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
+	{
+	  sensor_node = gnode->GetDaughter(i);      
+	  break;      
+	}
+    } 
+ 
+  // unique key identifying this sensor
+  TrkrDefs::hitsetkey node_key = InttDefs::genHitSetKey(layer, ladder_z, ladder_phi);
+
+  std::pair<TrkrDefs::hitsetkey, TGeoNode*> tmp = make_pair(node_key, sensor_node);
+  _cluster_node_map.insert(tmp);
+
+  if(Verbosity() > 1)    
+    std::cout << " INTT layer " << layer << " ladder_phi " << ladder_phi << " ladder_z " << ladder_z << " name " << sensor_node->GetName() << std::endl;
+  
+  return;
+}
+
+void PHActsTrkFitter::getMvtxKeyFromNode(TGeoNode *gnode)
+{
+  int counter = 0;
+  int impr = -1;   // stave number, 1-48 in TGeo
+  int layer = -1;
+  int stave = -1;  // derived from impr
+  int chip = -1;   // 9 chips per stave
+
+  std::string s = gnode->GetName();
+  std::string delimiter = "_";
+  
+  size_t pos = 0;
+  std::string token;
+
+  while ((pos = s.find(delimiter)) != std::string::npos) {
+    token = s.substr(0, pos);
+    //std::cout << token << std::endl;
+    s.erase(0, pos + delimiter.length());
+    if(counter == 3) 
+      impr = std::atoi(token.c_str());
+ 
+    counter ++;
+  }
+
+  // extract layer and stave info from impr
+  // int staves_in_layer[3] = {12, 16, 20}; 
+  // note - impr stave count starts from 1, not 0, but TrkrCluster counting starts from 0, so we reduce it by 1 here
+  impr -= 1;
+ 
+ if(impr < 12)
+    {
+      layer = 0;
+      stave = impr;
+    }
+  else if(impr > 11 && impr < 28)
+    {
+      layer = 1;
+      stave = impr - 12;
+    }
+  else
+    {
+      layer = 2;
+      stave = impr - 28;
+    }
+
+  // Now descend node tree to find chip ID's - there are multiple chips per stave
+  TGeoNode *module_node = gnode->GetDaughter(0);    
+  int mnd = module_node->GetNdaughters();
+  std::string mvtx_chip("MVTXChip");
+  for(int i=0; i<mnd; ++i)
+    {
+      std::string dstr = module_node->GetDaughter(i)->GetName();
+      if (dstr.compare(0, mvtx_chip.length(), mvtx_chip) == 0)
+	{
+	  if(Verbosity() > 1) 
+	    cout << "Found MVTX layer " << layer << " stave " << stave << " chip  " << i << " with node name " <<  module_node->GetDaughter(i)->GetName() << endl;
+
+	  // Make key for this chip
+	  TrkrDefs::hitsetkey node_key = MvtxDefs::genHitSetKey(layer, stave, i);
+
+	  // add sensor node to map
+	  TGeoNode *sensor_node = module_node->GetDaughter(i)->GetDaughter(0);
+	  std::pair<TrkrDefs::hitsetkey, TGeoNode*> tmp = make_pair(node_key, sensor_node);
+	  _cluster_node_map.insert(tmp);
+	  
+	  if(Verbosity() > 1)    
+	    std::cout << " MVTX layer " << layer << " stave " << stave << " chip " << chip << " name " << sensor_node->GetName() << std::endl;
+	}
+    }
+  
+  return;
 }
 
 void PHActsTrkFitter::isActive(TGeoNode *gnode)
 {
+  // For looking at the node tree only.
   // Recursively searches gnode for silicon sensors, prints out heirarchy
 
   std::string node_str = gnode->GetName();
+
   std::string intt_refactive("siactive");
   std::string mvtx_refactive("MVTXSensor");
 
   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
     {
-      cout << "          ******* Found INTT active volume,  node is " << gnode->GetName() << " volume name is "   << gnode->GetVolume()->GetName() << endl;
-      cout << "          Mother volume name is " << gnode->GetMotherVolume()->GetName() << endl;
+      cout << "          ******* Found INTT active volume,  node is " << gnode->GetName() 
+	   << " volume name is "   << gnode->GetVolume()->GetName() << endl;
+
+      //const TGeoMatrix* tgMatrix = gnode->GetMatrix();
+      //tgMatrix->Print();
+
       return;
     }
   else if (node_str.compare(0, mvtx_refactive.length(), mvtx_refactive) == 0)
     {
-      cout << "          ******* Found MVTX active volume,  node is " << gnode->GetName() << " volume name is " << gnode->GetVolume()->GetName() << endl;
-      cout << "          Mother volume name is " << gnode->GetMotherVolume()->GetName() << endl;
+      cout << "          ******* Found MVTX active volume,  node is " << gnode->GetName() 
+	   << " volume name is " << gnode->GetVolume()->GetName() << endl;
+
+      //const TGeoMatrix* tgMatrix = gnode->GetMatrix();
+      //tgMatrix->Print();
+
       return;
     }
 
   int ndaught = gnode->GetNdaughters();
+  if(ndaught == 0)
+    {
+      cout << "     No further daughters" << endl;
+    }
+
   for(int i=0; i<ndaught; ++i)
     {
-      cout << "     " << gnode->GetVolume()->GetName() << "  daughter " << i << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
+      cout << "     " << gnode->GetVolume()->GetName() << "  daughter " << i 
+	   << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
       isActive(gnode->GetDaughter(i));      
     }
 }
-      
+
 int PHActsTrkFitter::Process()
 {
   _event++;
 
   if (Verbosity() > 1)
-    std::cout << PHWHERE << "Events processed: " << _event << std::endl;
-
-  cout << "Start PHActsTrkfitter::process_event" << endl;
+    {
+      std::cout << PHWHERE << "Events processed: " << _event << std::endl;
+            cout << "Start PHActsTrkfitter::process_event" << endl;
+    }
 
   // Access the TrkrClusters 
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
@@ -197,7 +371,7 @@ int PHActsTrkFitter::Process()
 
       // extract detector element identifier from cluskey and make Identifier for accessing TGeo element
       unsigned int layer = TrkrDefs::getLayer(cluskey);
-      if(Verbosity() > 0) cout << " layer " << layer << endl;
+      if(Verbosity() > 1) cout << " layer " << layer << endl;
 
       TVector3 world(x,y,z);
       TVector3 local(0,0,0);
@@ -211,7 +385,25 @@ int PHActsTrkFitter::Process()
 	{
 	  unsigned int staveid = MvtxDefs::getStaveId(cluskey);
 	  unsigned int chipid = MvtxDefs::getChipId(cluskey);
-	  // make identifier for this chip
+	  if(Verbosity() > 1) 
+	    cout << "   MVTX cluster with staveid " << staveid << " chipid " << chipid << endl; 
+
+	  // make key for this sensor
+	  TrkrDefs::hitsetkey cluster_node_key = MvtxDefs::genHitSetKey(layer, staveid, chipid);
+	  // get the TGeoNode for it
+	  std::map<TrkrDefs::hitsetkey, TGeoNode*>::iterator it;
+	  it = _cluster_node_map.find(cluster_node_key);
+	  if(it != _cluster_node_map.end())
+	    {
+	      TGeoNode *sensor_node = it->second;
+	      if(Verbosity() > 1) 
+		cout << "Process: MVTX layer " << layer << " staveid " << staveid << " chipid " << chipid <<  " node " << sensor_node->GetName() << endl;;
+	    }
+	  else
+	    {
+	      cout << PHWHERE << " Did not find entry in TGeo map for cluster with layer " << layer << " staveid " << staveid 
+		   << " chipid " << chipid  << ". That should be impossible!" << endl;
+	    }
 
 	  // transform position back to local coords on chip
 	  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
@@ -266,7 +458,22 @@ int PHActsTrkFitter::Process()
 	{
 	  unsigned int ladderzid = InttDefs::getLadderZId(cluskey);
 	  unsigned int ladderphiid = InttDefs::getLadderPhiId(cluskey);
+	  if(Verbosity() > 1) 
+	    cout << "   Intt cluster with ladderzid " << ladderzid << " ladderphid " << ladderphiid << endl; 
+
 	  // make identifier for this sensor
+	  TrkrDefs::hitsetkey cluster_node_key = InttDefs::genHitSetKey(layer, ladderzid, ladderphiid);
+	  // get the TGeoNode for it
+	  std::map<TrkrDefs::hitsetkey, TGeoNode*>::iterator it;
+	  it = _cluster_node_map.find(cluster_node_key);
+	  if(it != _cluster_node_map.end())
+	    {
+	      TGeoNode *sensor_node = it->second;
+	      if(Verbosity() > 1)
+		cout << "Process: INTT layer " << layer << " ladderzid " << ladderzid << " ladderphiid " << ladderphiid <<  " node " << sensor_node->GetName() << endl;;
+	    }
+	  else
+	    cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
 
 	  // transform position back to local coords on sensor
 	  // TBD! convert world to local for INTT
@@ -327,7 +534,6 @@ int PHActsTrkFitter::Process()
 	  unsigned int side = TpcDefs::getSide(cluskey);
 	  unsigned int pad = TpcDefs::getPad(cluskey);
 	  unsigned int tbin = TpcDefs::getTBin(cluskey);
-	  // make identifier for this TPC layer -- how?
 	  */
 
 	  // transform position local coords on cylinder, at center of layer
@@ -395,37 +601,10 @@ int PHActsTrkFitter::Process()
 	}
 
     }
+
   /*
   // create Acts measurement container
   
-  // create the Acts cluster object
-
-  // create Acts measurement
-  //==================
-  //using SourceLink = MinimalSourceLink;
-  using SourceLink = clusiter;  // links from meaurement back to sPHENIX cluster
-  
-  template <ParID_t... params>
-    using MeasurementType = Measurement<SourceLink, params...>;
-  
-  auto plane = Surface::makeShared<PlaneSurface>(Vector3D(0., 0., 0.),
-                                                 Vector3D(1., 0., 0.));
-
-  ActsSymMatrixD<2> covpp;
-  covpp << 0.01, 0., 0., 0.02;
-  MeasurementType<ParDef::eLOC_0, ParDef::eLOC_1> mpp(
-						      plane, {}, std::move(covpp), 0.1, 0.2);
-  
-  std::vector<FittableMeasurement<SourceLink>> measurements{
-    std::move(mc), std::move(mp), std::move(mpp)};
-  
-  //Acts::ActsSymMatrixD<3> covariance;
-
-
-
-  // create Acts track container
-
-
   */
 
 
@@ -477,19 +656,6 @@ int PHActsTrkFitter::CreateNodes(PHCompositeNode* topNode)
  */
 int PHActsTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
-  //DST objects
-  /*
-  //Truth container
-  _truth_container = findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                                                                "G4TruthInfo");
-  if (!_truth_container && _event < 2)
-  {
-    cout << PHWHERE << " PHG4TruthInfoContainer node not found on node tree"
-         << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  */
-
   _geom_container_mvtx = findNode::getClass<
     PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!_geom_container_mvtx)
