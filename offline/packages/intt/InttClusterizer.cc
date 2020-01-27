@@ -480,6 +480,8 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
 	ERR[2][2] = pow(zsize * invsqrt12 * corr_factor, 2);
+
+	cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
 	
 	TMatrixF ROT(3, 3);
 	ROT[0][0] = cos(ladderphi);

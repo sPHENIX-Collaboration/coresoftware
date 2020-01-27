@@ -429,6 +429,7 @@ int PHActsTrkFitter::Process()
 	  // returns the center of the sensor in world coordinates - used to get the ladder phi location
 	  layergeom->find_sensor_center(staveid, 0, 0, chipid, ladder_location);
 	  double ladderphi = atan2(ladder_location[1], ladder_location[0]);
+	  ladderphi += layergeom->get_stave_phi_tilt();
 
 	  // this is the matrix that was used to rotate from local to global coords 
 	  TMatrixF ROT(3, 3);
@@ -449,7 +450,7 @@ int PHActsTrkFitter::Process()
 	  
 	  local_err = ROT * ERR * ROT_T;
 
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 0)
 	    {
 	      for(int i=0;i<3;++i)
 		{
@@ -469,6 +470,11 @@ int PHActsTrkFitter::Process()
 	  local_err_2D[1][0] = local_err[2][1];
 	  local_err_2D[1][1] = local_err[2][2];
 
+	  if(Verbosity() > 0)
+	    {
+	      cout << " MVTX: local_2D[0]  " << local_2D[0] << " local_2D[1] " <<   local_2D[1]  << endl;
+	      cout << " MVTX: local_err_2D[0][0]  " << local_err_2D[0][0] << " local_err_2D[1][1] " <<   local_err_2D[1][1]  << endl;
+	    }
 	}
       else if (trkrid == TrkrDefs::inttId)
 	{
@@ -527,7 +533,7 @@ int PHActsTrkFitter::Process()
 	  TMatrixF local_err(3, 3);
 	  local_err = ROT * ERR * ROT_T;
 
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 0)
 	    {
 	      for(int i=0;i<3;++i)
 		{
@@ -540,12 +546,19 @@ int PHActsTrkFitter::Process()
 		  }
 	    }
 
-	  local_2D[0] = local[1];
-	  local_2D[1] = local[2];
-	  local_err_2D[0][0] = local_err[1][1];
-	  local_err_2D[0][1] = local_err[1][2];
-	  local_err_2D[1][0] = local_err[2][1];
-	  local_err_2D[1][1] = local_err[2][2];
+	  local_2D[0] = local[1];  // r*phi
+	  local_2D[1] = local[2];  // z
+	  local_err_2D[0][0] = local_err[1][1];  // r*phi
+	  local_err_2D[0][1] = 0.0;
+	  local_err_2D[1][0] = 0.0;  
+	  local_err_2D[1][1] = local_err[2][2];  // z
+
+	  if(Verbosity() > 0)
+	    {
+	      cout << " INTT: local_2D[0]  " << local_2D[0] << " local_2D[1] " <<   local_2D[1]  << endl;
+	      cout << " INTT: local_err_2D[0][0]  " << local_err_2D[0][0] << " local_err_2D[1][1] " <<   local_err_2D[1][1]  << endl;
+	    }
+
 	}
       else  // TPC
 	{
