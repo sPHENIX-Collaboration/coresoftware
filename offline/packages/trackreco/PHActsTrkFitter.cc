@@ -189,8 +189,10 @@ void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
       }	
     counter ++;
   }
-  // From SteppingAction:  if(zposneg == 1) ladderz = ladderz_base + 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
-  ladder_z = itype  + zposneg*2;  // Check that ladder_base = itype
+
+  // signz = (ladder_z > 1) ? 1. : -1.; (i.e. zposneg = 0 for signz = -1, 1 for signz =+1)
+  // const int itype = ladder_z % 2;   (i.e. itype = 0 or 1 for ladder_z = 0-3, zposneg = 0 for ladder_z = 0 or 1, =1 for ladder_z = 2 or 3.)
+  ladder_z = itype  + zposneg*2;  
 
   // The active sensor is a daughter of gnode
   int ndaught = gnode->GetNdaughters();
@@ -364,12 +366,10 @@ int PHActsTrkFitter::Process()
       float x = cluster->getPosition(0);
       float y = cluster->getPosition(1);
       float z = cluster->getPosition(2);
-
       double radius = sqrt(x*x+y*y);
 
       // In local coords the covariances are in the  r*phi vs z frame
       // They have been rotated into global coordinates in TrkrCluster
-
       TMatrixF ERR(3,3);
       for(int i=0; i < 3; ++i)
 	for(int j =0; j<3; j++)
@@ -389,6 +389,7 @@ int PHActsTrkFitter::Process()
       double local_err_2D[2][2] = {0};
 
       unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  // 0 for MVTX, 1 for INTT, 2 for TPC
+      TGeoNode *sensor_node;
       if(trkrid == TrkrDefs::mvtxId)
 	{
 	  unsigned int staveid = MvtxDefs::getStaveId(cluskey);
@@ -403,7 +404,7 @@ int PHActsTrkFitter::Process()
 	  it = _cluster_node_map.find(cluster_node_key);
 	  if(it != _cluster_node_map.end())
 	    {
-	      TGeoNode *sensor_node = it->second;
+	      sensor_node = it->second;
 	      if(Verbosity() > 0) 
 		cout << "       Found in _cluster_node_map: layer " << layer << " staveid " << staveid << " chipid " << chipid 
 		     <<  " node " << sensor_node->GetName() << endl;
@@ -417,6 +418,11 @@ int PHActsTrkFitter::Process()
 	  // transform position back to local coords on chip
 	  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(staveid, 0, 0, chipid, world);
+	  double segcent[3];
+	  layergeom->find_sensor_center(staveid, 0, 0, chipid, segcent);
+	  cout << " segment center: " << segcent[0] << " " << segcent[1] << " " << segcent[2] << endl;
+	  cout << " world; " << world[0] << " " << world[1] << " " << world[2] << endl;
+	  cout << " local; " << local[0] << " " << local[1] << " " << local[2] << endl;
 
 	  // rotate errors back to local coords too
 	  double ladder_location[3] = {0.0, 0.0, 0.0};
@@ -424,6 +430,7 @@ int PHActsTrkFitter::Process()
 	  layergeom->find_sensor_center(staveid, 0, 0, chipid, ladder_location);
 	  double ladderphi = atan2(ladder_location[1], ladder_location[0]);
 
+	  // this is the matrix that was used to rotate from local to global coords 
 	  TMatrixF ROT(3, 3);
 	  ROT[0][0] = cos(ladderphi);
 	  ROT[0][1] = -1.0 * sin(ladderphi);
@@ -434,7 +441,7 @@ int PHActsTrkFitter::Process()
 	  ROT[2][0] = 0.0; 
 	  ROT[2][1] = 0.0;
 	  ROT[2][2] = 1.0;
-
+	  // we want the inverse rotation
 	  ROT.Invert();
 
 	  TMatrixF ROT_T(3, 3);
@@ -477,7 +484,7 @@ int PHActsTrkFitter::Process()
 	  it = _cluster_node_map.find(cluster_node_key);
 	  if(it != _cluster_node_map.end())
 	    {
-	      TGeoNode *sensor_node = it->second;
+	      sensor_node = it->second;
 	      if(Verbosity() > 0)
 		cout << "      Found in _cluster_node_map:  layer " << layer << " ladderzid " << ladderzid << " ladderphiid " << ladderphiid 
 		     <<  " node " << sensor_node->GetName() << endl;;
@@ -486,10 +493,13 @@ int PHActsTrkFitter::Process()
 	    cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
 
 	  // transform position back to local coords on sensor
-	  // TBD! convert world to local for INTT
 	  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
-
-	  //local = layergeom->get_local_from_world_coords(staveid, 0, 0, chipid, world);
+	  local = layergeom->get_local_from_world_coords(ladderzid, ladderphiid, world);
+	  double segcent[3];
+	  layergeom->find_segment_center(ladderzid, ladderphiid,segcent);
+	  cout << " segment center: " << segcent[0] << " " << segcent[1] << " " << segcent[2] << endl;
+	  cout << " world; " << world[0] << " " << world[1] << " " << world[2] << endl;
+	  cout << " local; " << local[0] << " " << local[1] << " " << local[2] << endl;
 
 	  // rotate errors back to local coords too	
 	  double ladder_location[3] = {0.0, 0.0, 0.0};

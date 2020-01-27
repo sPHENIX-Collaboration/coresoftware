@@ -6,6 +6,8 @@
 #include <cmath>
 #include <iostream>
 
+#include <TVector3.h>
+
 class CylinderGeomIntt : public PHG4CylinderGeom
 {
  public:
@@ -69,6 +71,7 @@ class CylinderGeomIntt : public PHG4CylinderGeom
   void find_strip_center(const int segment_z_bin, const int segment_phi_bin, const int strip_column, const int strip_index, double location[]);
   void find_strip_index_values(const int segment_z_bin, const double ypos, const double zpos, int &strip_y_index, int &strip_z_index);
   void find_strip_center_localcoords(const int segment_z_bin, const int strip_y_index, const int strip_z_index, double location[]);
+  TVector3 get_local_from_world_coords(const int segment_z_bin, const int segment_phi_bin, TVector3 world);
 
   double get_thickness() const
   {

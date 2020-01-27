@@ -221,7 +221,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     StoreLocalCoordinate(m_Hit, aStep, true, false);
 
-    if (Verbosity() > 1)
+    if (Verbosity() > 0)
     {
       cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
            << "    " << prePoint->GetPosition().y() / cm
@@ -320,7 +320,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       postPoint->GetStepStatus() == fAtRestDoItProc ||
       aTrack->GetTrackStatus() == fStopAndKill)
   {
-    if (Verbosity() > 1)
+    if (Verbosity() > 0)
     {
       cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to "
            << aTrack->GetTrackStatus() << endl;
@@ -339,7 +339,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
       }
-      if (Verbosity() > 1)
+      if (Verbosity() > 0)
       {
         m_Hit->print();
       }
