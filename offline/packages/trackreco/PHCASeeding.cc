@@ -353,13 +353,18 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
 
   _rtree.clear();
   FillTree();
+  t_seed->stop();
+  cout << "RTree fill time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->restart();
 
   int numberofseeds = 0;
   LogDebug(" entries in tree: " << _rtree.size() << endl);
 
   vector<pointKey> allClusters;
-  vector<keylink> belowLinks;
-  vector<keylink> aboveLinks;
+  vector<set<keylink>> belowLinks;
+  vector<set<keylink>> aboveLinks;
+  belowLinks.resize(_nlayers_tpc);
+  aboveLinks.resize(_nlayers_tpc);
   // messy way of getting vector<pointKey> for all clusters
   QueryTree(_rtree,
             0, // phi
@@ -369,7 +374,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
             3, // eta
             100, // layer
             allClusters);
+  t_seed->stop();
+  cout << "allClusters search time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   LogDebug(" number of total clusters: " << allClusters.size() << endl);
+  t_seed->restart();
   for (vector<pointKey>::iterator StartCluster = allClusters.begin(); StartCluster != allClusters.end(); ++StartCluster)
   {
     // get clusters near this one in adjacent layers
@@ -408,7 +416,26 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     LogDebug(" entries in above layer: " << ClustersAbove.size() << endl);
     vector<array<double,3>> delta_below;
     vector<array<double,3>> delta_above;
+    delta_below.clear();
+    delta_above.clear();
+    delta_below.resize(ClustersBelow.size());
+    delta_above.resize(ClustersAbove.size());
     // calculate (delta_eta, delta_phi) vector for each neighboring cluster
+
+    transform(ClustersBelow.begin(),ClustersBelow.end(),delta_below.begin(),
+      [&](pointKey BelowCandidate){
+        TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate.second);
+        return array<double,3>{BelowCl->getPosition(0)-StartX,
+          BelowCl->getPosition(1)-StartY,
+          BelowCl->getPosition(2)-StartZ};});
+
+    transform(ClustersAbove.begin(),ClustersAbove.end(),delta_above.begin(),
+      [&](pointKey AboveCandidate){
+        TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate.second);
+        return array<double,3>{AboveCl->getPosition(0)-StartX,
+          AboveCl->getPosition(1)-StartY,
+          AboveCl->getPosition(2)-StartZ};});
+/*
     for (vector<pointKey>::iterator BelowCandidate = ClustersBelow.begin(); BelowCandidate != ClustersBelow.end(); ++BelowCandidate)
     {
       TrkrCluster* BelowCl = _cluster_map->findCluster(BelowCandidate->second);
@@ -420,6 +447,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
          BelowY,
          BelowZ});
     }
+
     for(vector<pointKey>::iterator AboveCandidate = ClustersAbove.begin(); AboveCandidate != ClustersAbove.end(); ++AboveCandidate)
     {
       TrkrCluster* AboveCl = _cluster_map->findCluster(AboveCandidate->second);
@@ -431,9 +459,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
          AboveY,
          AboveZ});
     }
+*/
     // find the three clusters closest to a straight line
     // (by maximizing the cos of the angle between the (delta_eta,delta_phi) vectors)
-    double maxCosPlaneAngle = 0;
+    double maxCosPlaneAngle = 1;
     TrkrDefs::cluskey bestBelowCluster = 0;
     TrkrDefs::cluskey bestAboveCluster = 0;
     for(size_t iAbove = 0; iAbove<delta_above.size(); ++iAbove)
@@ -441,10 +470,10 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       for(size_t iBelow = 0; iBelow<delta_below.size(); ++iBelow)
       {
         double dotProduct = delta_below[iBelow][0]*delta_above[iAbove][0]+delta_below[iBelow][1]*delta_above[iAbove][1]+delta_below[iBelow][2]*delta_above[iAbove][2];
-        double belowSqLength = sqrt(pow(delta_below[iBelow][0],2)+pow(delta_below[iBelow][1],2)+pow(delta_below[iBelow][2],2));
-        double aboveSqLength = sqrt(pow(delta_above[iAbove][0],2)+pow(delta_above[iAbove][1],2)+pow(delta_above[iAbove][2],2));
+        double belowSqLength = sqrt(delta_below[iBelow][0]*delta_below[iBelow][0]+delta_below[iBelow][1]*delta_below[iBelow][1]+delta_below[iBelow][2]*delta_below[iBelow][2]);
+        double aboveSqLength = sqrt(delta_above[iAbove][0]*delta_above[iAbove][0]+delta_above[iAbove][1]*delta_above[iAbove][1]+delta_above[iAbove][2]*delta_above[iAbove][2]);
         double cosPlaneAngle = dotProduct / (belowSqLength*aboveSqLength);
-        if(cosPlaneAngle < maxCosPlaneAngle )
+        if(cosPlaneAngle < maxCosPlaneAngle)
         {
           maxCosPlaneAngle = cosPlaneAngle;
           bestBelowCluster = ClustersBelow[iBelow].second;
@@ -452,8 +481,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
         }
       }
     }
-    belowLinks.push_back({StartCluster->second,bestBelowCluster});
-    aboveLinks.push_back({StartCluster->second,bestAboveCluster});
+    int layer_index = StartLayer - (_nlayers_intt + _nlayers_maps);
+    belowLinks[layer_index].insert({StartCluster->second,bestBelowCluster});
+    aboveLinks[layer_index].insert({StartCluster->second,bestAboveCluster});
     LogDebug(" max collinearity: " << maxCosPlaneAngle << endl);
 #if defined(_DEBUG_)
     if(bestBelowCluster==0 || bestAboveCluster == 0)
@@ -471,40 +501,51 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     }
 #endif
   }
+  t_seed->stop();
+  cout << "triplet forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->restart();
   // remove all triplets for which there isn't a mutual association between two clusters
-  vector<keylink> bidirectionalLinks;
-  for(vector<keylink>::iterator belowLink = belowLinks.begin(); belowLink != belowLinks.end(); ++belowLink)
+  vector<vector<keylink>> bidirectionalLinks;
+  bidirectionalLinks.resize(_nlayers_tpc);
+  for(int layer = _nlayers_tpc - 1; layer > 0; --layer)
   {
-    keylink reversed = {(*belowLink)[1],(*belowLink)[0]};
-    vector<keylink>::iterator sameAboveLinkExists = find(aboveLinks.begin(),aboveLinks.end(),reversed);
-    if(sameAboveLinkExists != aboveLinks.end())
+    for(set<keylink>::iterator belowLink = belowLinks[layer].begin(); belowLink != belowLinks[layer].end(); ++belowLink)
     {
-      bidirectionalLinks.push_back((*belowLink));
+      keylink reversed = {(*belowLink)[1],(*belowLink)[0]};
+      set<keylink>::iterator sameAboveLinkExists = aboveLinks[layer-1].find(reversed);
+      if(sameAboveLinkExists != aboveLinks[layer-1].end())
+      {
+        bidirectionalLinks[layer].push_back((*belowLink));
+      }
     }
   }
-  LogDebug(" bidirectional links found:" << endl);
-  for(vector<keylink>::iterator l = bidirectionalLinks.begin(); l != bidirectionalLinks.end(); ++l)
-  {
-    LogDebug(" "<< (*l)[0] << " <-> " << (*l)[1] << endl);
-  }
+  t_seed->stop();
+  cout << "bidirectional link forming time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->restart();   
   // follow bidirectional links to form lists of cluster keys
   // (to be fitted for track seed parameters)
   vector<keylist> trackSeedKeyLists;
   // get starting cluster keys, create a keylist for each
   // (only check last element of each pair because we start from the outer layers and go inward)
-  for(vector<keylink>::iterator startCand = bidirectionalLinks.begin(); startCand != bidirectionalLinks.end(); ++startCand)
+  for(unsigned int layer = 0; layer < _nlayers_tpc - 1; ++layer)
   {
-    bool has_above_link = false;
-    for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
+    for(vector<keylink>::iterator startCand = bidirectionalLinks[layer].begin(); startCand != bidirectionalLinks[layer].end(); ++startCand)
     {
-      if((*startCand) == (*testlink)) continue;
-      if((*startCand)[0] == (*testlink)[1]) has_above_link = true;
-    }
-    if(!has_above_link)
-    {
-      trackSeedKeyLists.push_back({(*startCand)[0],(*startCand)[1]});
+      bool has_above_link = any_of(bidirectionalLinks[layer+1].begin(),bidirectionalLinks[layer+1].end(),[&](keylink k){return (*startCand)[0]==k[1];});
+//      for(vector<keylink>::iterator testlink = bidirectionalLinks[layer+1].begin(); !has_above_link && (testlink != bidirectionalLinks[layer+1].end()); ++testlink)
+//      {
+//        if((*startCand) == (*testlink)) continue;
+//        if((*startCand)[0] == (*testlink)[1]) has_above_link = true;
+//      } 
+      if(!has_above_link)
+      {
+        trackSeedKeyLists.push_back({(*startCand)[0],(*startCand)[1]});
+      }
     }
   }
+  t_seed->stop();
+  cout << "starting cluster finding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->restart();
   // assemble track cluster chains from starting cluster keys (ordered from outside in)
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
@@ -512,8 +553,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     while(!reached_end)
     {
       TrkrDefs::cluskey trackHead = trackKeyChain->back();
+      unsigned int trackHead_layer = TrkrDefs::getLayer(trackHead) - (_nlayers_intt + _nlayers_maps);
       bool no_next_link = true;
-      for(vector<keylink>::iterator testlink = bidirectionalLinks.begin(); testlink != bidirectionalLinks.end(); ++testlink)
+      for(vector<keylink>::iterator testlink = bidirectionalLinks[trackHead_layer].begin(); testlink != bidirectionalLinks[trackHead_layer].end(); ++testlink)
       {
         if((*testlink)[0]==trackHead)
         {
@@ -524,6 +566,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
       if(no_next_link) reached_end = true;
     }
   }
+  t_seed->stop();
+  cout << "keychain assembly time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->restart();
   LogDebug(" track key chains assembled: " << trackSeedKeyLists.size() << endl);
   LogDebug(" track key chain lengths: " << endl);
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
@@ -563,7 +608,9 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   }
   LogDebug(" Total large jumps: " << jumpcount << endl);
   // Turn track cluster chains into track candidates using ALICE simplified KF.
-
+  t_seed->stop();
+  cout << "eta-phi sanity check time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  t_seed->restart();
   for(vector<keylist>::iterator trackKeyChain = trackSeedKeyLists.begin(); trackKeyChain != trackSeedKeyLists.end(); ++trackKeyChain)
   {
     // get starting cluster from key
@@ -683,7 +730,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
     //    pt:z:dz:phi:dphi:c:dc
     // Fill NT with track parameters
     float StartEta = -log(tan(atan(z0/sqrt(x0*x0+y0*y0))));
-    float track_pt = abs( 1./(trackSeed.GetQPt()));
+    float track_pt = fabs( 1./(trackSeed.GetQPt()));
     LogDebug("Track pt = " << track_pt << endl);
     float track_pterr = sqrt(trackSeed.GetErr2QPt())/(trackSeed.GetQPt()*trackSeed.GetQPt());
     LogDebug("Track pterr = " << track_pterr << endl);
@@ -729,7 +776,7 @@ int PHCASeeding::Process(PHCompositeNode *topNode)
   }
   t_seed->stop();
   cout << "number of seeds " << numberofseeds << endl;
-  cout << "seeding time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
+  cout << "Kalman filtering time: " << t_seed->get_accumulated_time() / 1000 << " s" << endl;
   fpara.cd();
   NT->Write();
   fpara.Close();
