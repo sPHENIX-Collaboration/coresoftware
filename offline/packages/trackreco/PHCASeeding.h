@@ -71,14 +71,14 @@ class PHCASeeding : public PHTrackSeeding
  public:
   PHCASeeding(
       const std::string &name = "PHCASeeding",
-      unsigned int nlayers_maps = 3,
-      unsigned int nlayers_intt = 4,
-      unsigned int nlayers_tpc = 48,
+      const unsigned int nlayers_maps = 3,
+      const unsigned int nlayers_intt = 4,
+      const unsigned int nlayers_tpc = 48,
       unsigned int start_layer = 55,
       float cluster_z_error = 0.015,
       float cluster_alice_y_error = 0.015,
-      float neighbor_phi_width = M_PI/6,
-      float neighbor_eta_width = 1,
+      float neighbor_phi_width = .05,
+      float neighbor_eta_width = .01,
       float maxSinPhi = 0.999,
       float Bz = 14*0.000299792458f);
 
@@ -133,9 +133,9 @@ class PHCASeeding : public PHTrackSeeding
   //std::vector<int> _seeding_layer;
   SvtxVertex *_vertex;
 
-  unsigned int _nlayers_maps;
-  unsigned int _nlayers_intt;
-  unsigned int _nlayers_tpc;
+  const unsigned int _nlayers_maps;
+  const unsigned int _nlayers_intt;
+  const unsigned int _nlayers_tpc;
   unsigned int _start_layer;
   float _cluster_z_error;
   float _cluster_alice_y_error;
