@@ -235,9 +235,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
   nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
+  ntion = new TNtuple("ntion","gas ionization hits","hit:x:y:z:r:phi:n_e");
   nthit = new TNtuple("nthit", "hit stuff", "hit:layer:phi:phicenter:z_gem:zcenter:weight");
   ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
   se->registerHisto(nt);
+  se->registerHisto(ntion);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
   padplane->InitRun(topNode);
@@ -363,8 +365,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
              << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl;
       }
 
-      if (Verbosity() > 0)
+      if (Verbosity() > 0){
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
+        ntion->Fill(ihit, x_start, y_start, z_start, rad_start, phi_start, 1);
+
+      }
 
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
@@ -485,6 +490,7 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
     outf->WriteTObject(nt);
     outf->WriteTObject(ntpad);
     outf->WriteTObject(nthit);
+    outf->WriteTObject(ntion);
     outf->Close();
   }
 
