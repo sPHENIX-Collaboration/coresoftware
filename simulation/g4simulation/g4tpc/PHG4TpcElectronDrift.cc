@@ -367,7 +367,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 
       if (Verbosity() > 0){
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
-        ntion->Fill(ihit, x_start, y_start, z_start, rad_start, phi_start, 1);
+        ntion->Fill(ihit, x_start, y_start, z_start, radstart, phistart, 1);
 
       }
 
