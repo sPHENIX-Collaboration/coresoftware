@@ -13,14 +13,16 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
   -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3
+  -I$(OFFLINE_MAIN)/include/eigen3 \
+  -I//phenix/u/frawley/git/install/include/
 
 AM_CXXFLAGS = \
  -DRAVE -DRaveDllExport=
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L/phenix/u/frawley/git/install/lib64
 
 pkginclude_HEADERS = \
   AssocInfoContainer.h \
@@ -148,7 +150,15 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter 
+  -lphparameter \
+  -lACTFramework \
+  -lActsCore \
+  -lActsTGeoPlugin \
+  -lACTFWTGeoDetector \
+  -lActsTGeoPlugin \
+  -lACTFWFatras \
+  -lACTFWExamplesCommon
+
 
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h

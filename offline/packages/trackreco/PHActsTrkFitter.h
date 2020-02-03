@@ -32,6 +32,15 @@ class TTree;
 class TGeoManager;
 class TGeoNode;
 
+namespace FW {
+class IBaseDetector;
+class TGeoManager;
+}
+
+namespace Acts {
+class TrackingVolume;
+}
+
 //! \brief		Refit SvtxTracks with Acts.
 class PHActsTrkFitter : public PHTrackFitting
 {
@@ -78,11 +87,12 @@ int Process();
 
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
-
+  void BuildLayers();
   void isActive(TGeoNode *gnode);
   void MakeTGeoNodeMap(PHCompositeNode*);
   void getInttKeyFromNode(TGeoNode *gnode);
   void getMvtxKeyFromNode(TGeoNode *gnode);
+  int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
 
   /*
 	 * fit track with SvtxTrack as input seed.

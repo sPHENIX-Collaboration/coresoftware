@@ -59,6 +59,38 @@
 #include <phfield/PHFieldUtility.h>
 #include <phgeom/PHGeomUtility.h>
 
+
+// Acts Geometry building classes
+#include "ACTFW/Geometry/GeometryExampleBase.hpp"
+#include "ACTFW/TGeoDetector/TGeoDetector.hpp"
+#include "Acts/Plugins/TGeo/TGeoDetectorElement.hpp"
+#include "ACTFW/Detector/IBaseDetector.hpp"
+#include "Acts/Surfaces/Surface.hpp"
+#include "Acts/Surfaces/PlaneSurface.hpp"
+#include "Acts/Geometry/TrackingGeometry.hpp"
+#include "ACTFW/Detector/IBaseDetector.hpp"
+
+#include <Acts/Geometry/GeometryContext.hpp>
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#include "Acts/Geometry/TrackingVolume.hpp"
+
+#include "ACTFW/Detector/IBaseDetector.hpp"
+#include "ACTFW/Framework/AlgorithmContext.hpp"
+#include "ACTFW/Framework/IContextDecorator.hpp"
+#include "ACTFW/Framework/WhiteBoard.hpp"
+#include "ACTFW/Geometry/CommonGeometry.hpp"
+//#include "ACTFW/Io/Csv/CsvOptionsWriter.hpp"
+//#include "ACTFW/Io/Csv/CsvTrackingGeometryWriter.hpp"
+//#include "ACTFW/Io/Root/RootMaterialWriter.hpp"
+#include "ACTFW/Options/CommonOptions.hpp"
+//#include "ACTFW/Plugins/Json/JsonMaterialWriter.hpp"
+#include "ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp"
+#include "ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp"
+#include "ACTFW/Plugins/Obj/ObjWriterOptions.hpp"
+#include "ACTFW/Utilities/Options.hpp"
+#include "ACTFW/Utilities/Paths.hpp"
+
+
 /*
 #include "Acts/EventData/Measurement.hpp"
 #include "Acts/EventData/MeasurementHelpers.hpp"
@@ -85,7 +117,6 @@ class PHField;
 
 using namespace std;
 
-
 /*
  * Constructor
  */
@@ -101,11 +132,352 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 {
   GetNodes(topNode);
 
+  // run Acts layer builder
+  BuildLayers();
+
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key  
   MakeTGeoNodeMap(topNode);
   
-  return Fun4AllReturnCodes::EVENT_OK;
+return Fun4AllReturnCodes::EVENT_OK;
 }
+
+void PHActsTrkFitter::BuildLayers()
+{
+/*
+  // arguments for calling ACTFW/Geometry/GeometryExampleBase::ProcessGeometry()
+  ACTFWTGeoGeometryExample 
+    -n1 
+    -l0 
+    --geo-tgeo-filename=sPhenix.root 
+    --geo-tgeo-worldvolume="World" 
+    --geo-subdetectors MVTX Silicon 
+    --geo-tgeo-nlayers=0 0 
+    --geo-tgeo-clayers=1 1 
+    --geo-tgeo-players=0 0 
+    --geo-tgeo-clayernames MVTX siactive 
+    --geo-tgeo-cmodulenames MVTXSensor siactive 
+    --geo-tgeo-cmoduleaxes xzy yzx 
+    --geo-tgeo-clayersplits 5. 10. 
+    --output-obj true 
+  */
+
+  // define int argc and char* argv to provide options to processGeometry
+  int argc = 27;
+  std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
+
+  char *arg[27];
+  for(int i = 0;i < argc; ++i)
+    {
+      // need a copy, since .c_str() returns a const char * and process geometry will not take a const
+      arg[i] = strdup(argstr[i].c_str());
+    }
+  for(int i=0;i<argc;++i)
+    cout << " argc " << argc << " i " << i << " arg " << arg[i] << endl;
+  
+  /*
+    acts-framework:
+    (compiled binary = ACTFWTGeoGeometryExample)
+    basically just feeds options to GeometryExampleBase::ProcessGeometry
+    We replace this with a call from here, after creating an instance of TGeoDetector
+        - call GeometryExampleBase = acts-framework/Examples/Common/src/GeometryExampleBase(.cpp)::ProcessGeometry() with arguments and the new instance of TGeoDetector
+           sets up options, adds options to detector
+           returns 0, fills detector object
+           - calls Geometry::build()  =  in acts-framework/Examples/Common/include/ACTFW/Geometry/CommonGeometry.hpp (= namespace Geometry) 
+              material decoration
+              returns TGeoDetector::finalize =  std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>
+              TrackingGeometry = acts-core/Core/include/Acts/Geometry/TrackingGeometry.hpp 
+              - calls TGeoDetecrtor::finalize() = cts-framework/Detectors/TGeoDetector/include/ACTFW/TGeoDetector/TGeoDetector(.hpp)::finalize (inherits from FW::IBaseDetector)
+                    creates DetectorStore
+                    returns   std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>
+                  - calls TGeo::buildTGeoDetector()  = acts-framework/Detectors/TGeoDetector/include/ACTFW/TGeoDetector/BuildTGeoDetector.hpp ( = namespace TGeo)
+                      initializes TGeoManager from file
+   acts-core from here on:
+                      - calls TGeoLayerBuilder::buildLayers = acts-core/Plugins/TGeo/include/Acts/Plugins/TGeo/TGeoLayerBuilder(.hpp)::buildLayers  (inherits from Acts::ILayerBuilder)
+                           quits of TGeoManager is nullptr
+  */
+
+  // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() here
+  // so we get access to the results. The layer builder magically gets the TGeoManager
+  TGeoDetector detector;
+  MakeActsGeometry(argc, arg, detector);
+
+  std::cout << " Leaving PHActsTrkFitter::BuildLayers " << endl;
+}
+
+int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector)
+{
+  std::cout << "Entering MakeActsGeometry" << std::endl; 
+
+  // setup and parse options
+  auto desc = FW::Options::makeDefaultOptions();
+  FW::Options::addSequencerOptions(desc);
+  FW::Options::addGeometryOptions(desc);
+  FW::Options::addMaterialOptions(desc);
+  FW::Options::addObjWriterOptions(desc);
+  //  FW::Options::addCsvWriterOptions(desc);
+  FW::Options::addOutputOptions(desc);
+
+  // Add specific options for this geometry
+  detector.addOptions(desc);
+  auto vm = FW::Options::parse(desc, argc, argv);
+  if (vm.empty()) { return EXIT_FAILURE; }
+
+  // Now read the standard options
+  auto logLevel = FW::Options::readLogLevel(vm);
+  auto nEvents  = FW::Options::readSequencerConfig(vm).events;
+
+  // The geometry, material and decoration
+  auto geometry          = FW::Geometry::build(vm, detector);
+  std::cout << " back from CommonGeometry::build" << std::endl;
+  // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
+  auto tGeometry         = geometry.first;
+  auto contextDecorators = geometry.second;
+
+  // The detectors
+  read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
+
+  auto surfaceLogLevel
+      = Acts::Logging::Level(vm["geo-surface-loglevel"].as<size_t>());
+  //  auto layerLogLevel
+  //  = Acts::Logging::Level(vm["geo-layer-loglevel"].as<size_t>());
+  auto volumeLogLevel
+      = Acts::Logging::Level(vm["geo-volume-loglevel"].as<size_t>());
+
+  // understand what this event loop does
+  std::cout << "nEvents " << nEvents << std::endl;
+  //for (size_t ievt = 0; ievt < nEvents; ++ievt) {
+  for (size_t ievt = 0; ievt < 1; ++ievt) {
+
+    // Setup the event and algorithm context
+    FW::WhiteBoard eventStore(
+        Acts::getDefaultLogger("EventStore#" + std::to_string(ievt), logLevel));
+    size_t ialg = 0;
+
+    // The geometry context
+    FW::AlgorithmContext context(ialg, ievt, eventStore);
+
+    /// Decorate the context
+    for (auto& cdr : contextDecorators) {
+      if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
+        throw std::runtime_error("Failed to decorate event context");
+    }
+
+    std::string geoContextStr = "";
+    if (contextDecorators.size() > 0) {
+      // We need indeed a context object
+      if (nEvents > 1) { geoContextStr = "_geoContext" + std::to_string(ievt); }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Output directory
+    std::string outputDir = vm["output-dir"].template as<std::string>();
+    std::cout << "outptDir = " << outputDir.c_str() << std::endl;
+
+    // OBJ output
+    if (vm["output-obj"].as<bool>()) {
+      // The writers
+      std::vector<std::shared_ptr<FW::Obj::ObjSurfaceWriter>> subWriters;
+      std::vector<std::shared_ptr<std::ofstream>>             subStreams;
+      // Loop and create the obj output writers per defined sub detector
+      for (auto sdet : subDetectors) {
+        // Sub detector stream
+        auto sdStream = std::shared_ptr<std::ofstream>(new std::ofstream);
+        std::string sdOutputName
+            = FW::joinPaths(outputDir, sdet + geoContextStr + ".obj");
+        sdStream->open(sdOutputName);
+        // Object surface writers
+        FW::Obj::ObjSurfaceWriter::Config sdObjWriterConfig
+            = FW::Options::readObjSurfaceWriterConfig(
+                vm, sdet, surfaceLogLevel);
+        sdObjWriterConfig.outputStream = sdStream;
+        // Let's not write the layer surface when we have misalignment
+        if (contextDecorators.size() > 0) {
+          sdObjWriterConfig.outputLayerSurface = false;
+        }
+        auto sdObjWriter
+            = std::make_shared<FW::Obj::ObjSurfaceWriter>(sdObjWriterConfig);
+        // Push back
+        subWriters.push_back(sdObjWriter);
+        subStreams.push_back(sdStream);
+      }
+
+      // Configure the tracking geometry writer
+      auto tgObjWriterConfig = FW::Options::readObjTrackingGeometryWriterConfig(
+          vm, "ObjTrackingGeometryWriter", volumeLogLevel);
+
+      tgObjWriterConfig.surfaceWriters = subWriters;
+      auto tgObjWriter = std::make_shared<FW::Obj::ObjTrackingGeometryWriter>(
+          tgObjWriterConfig);
+
+      std::cout << "Write tracking geometry object" << std::endl;
+
+      // Write the tracking geometry object
+      tgObjWriter->write(context, *tGeometry);
+
+      // Close the output streams
+      for (auto sStreams : subStreams) { sStreams->close(); }
+    }
+
+    // I think we do not need this in sPHENIX
+    /*
+    // CSV output
+    if (vm["output-csv"].as<bool>()) {
+      // setup the tracking geometry writer
+      FW::CsvTrackingGeometryWriter::Config tgCsvWriterConfig;
+      tgCsvWriterConfig.trackingGeometry = tGeometry;
+      tgCsvWriterConfig.outputDir        = outputDir;
+      tgCsvWriterConfig.writePerEvent    = true;
+      auto tgCsvWriter
+          = std::make_shared<FW::CsvTrackingGeometryWriter>(tgCsvWriterConfig);
+
+      // Write the tracking geometry object
+      tgCsvWriter->write(context);
+    }
+
+    // Get the file name from the options
+    std::string materialFileName = vm["mat-output-file"].as<std::string>();
+
+    if (!materialFileName.empty() and vm["output-root"].template as<bool>()) {
+
+      // The writer of the indexed material
+      FW::RootMaterialWriter::Config rmwConfig("MaterialWriter");
+      rmwConfig.fileName = materialFileName + ".root";
+      FW::RootMaterialWriter rmwImpl(rmwConfig);
+      rmwImpl.write(*tGeometry);
+    }
+
+    if (!materialFileName.empty() and vm["output-json"].template as<bool>()) {
+      /// The name of the output file
+      std::string fileName = vm["mat-output-file"].template as<std::string>();
+      // the material writer
+      Acts::JsonGeometryConverter::Config jmConverterCfg(
+          "JsonGeometryConverter", Acts::Logging::INFO);
+      jmConverterCfg.processSensitives
+          = vm["mat-output-sensitives"].template as<bool>();
+      jmConverterCfg.processApproaches
+          = vm["mat-output-approaches"].template as<bool>();
+      jmConverterCfg.processRepresenting
+          = vm["mat-output-representing"].template as<bool>();
+      jmConverterCfg.processBoundaries
+          = vm["mat-output-boundaries"].template as<bool>();
+      jmConverterCfg.processVolumes
+          = vm["mat-output-volumes"].template as<bool>();
+      jmConverterCfg.writeData = vm["mat-output-data"].template as<bool>();
+
+      // The writer
+      FW::Json::JsonMaterialWriter jmwImpl(std::move(jmConverterCfg),
+                                           materialFileName + ".json");
+
+      jmwImpl.write(*tGeometry);
+    }
+    */
+  }
+
+ /// Begin Joe's addition to get list of IBaseDetector objects from
+  /// ACTS TrackingGeometry object
+  std::cout<<"Debug: Begin Joe"<<std::endl;
+  // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
+  auto vol = tGeometry->highestTrackingVolume();
+  // vol is a TrackingVolume pointer
+  std::cout << " Volume name " << vol->volumeName() << std::endl;
+
+  // Get the confined volumes in the highest tracking volume
+  auto confinedVolumes = vol->confinedVolumes();
+
+  // confinedVolumes is a shared_ptr<TrackingVolumeArray>
+
+  // volumeVector is a std::vector<TrackingVolumePtrs>
+  auto volumeVector = confinedVolumes->arrayObjects();
+
+  // Now get the trackingVolume that correspond to each detector subsystem
+  // The first entry is the MVTX
+  auto mvtxVolumes = volumeVector.at(0)->confinedVolumes();
+  // mvtxVolumes is a shared_ptr<TrackingVolumeArray>
+  // Now get the individual TrackingVolumePtrs corresponding to each MVTX
+  // volume
+  auto siliconFgap = mvtxVolumes->arrayObjects().at(0);
+  auto mvtxBarrel = mvtxVolumes->arrayObjects().at(1);
+  auto siliconSgap = mvtxVolumes->arrayObjects().at(2);
+
+  std::cout << "siliconFgap name " << siliconFgap->volumeName() << std::endl;
+  std::cout << "mvtxBarrel name " << mvtxBarrel->volumeName() << std::endl;
+  std::cout << "siliconSgap name " << siliconSgap->volumeName() << std::endl;
+
+  // INTT only has one volume, so there is not an added iterator like for the  MVTX
+  auto inttVolume = volumeVector.at(1);
+  std::cout<<"Got all the volumes "<<std::endl;
+
+  // Now get the LayerArrays corresponding to each volume
+  auto inttLayerArray = inttVolume->confinedLayers();
+  auto siliconFgapLayerArray = siliconFgap->confinedLayers();
+  auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();
+  auto siliconSgapLayerArray = siliconSgap->confinedLayers();
+  // Each of these is a BinnedArray<LayerPtr>
+  // BinnedArray is an ACTS object that holds arrays
+  // apparently std::vector was not good enough (?)
+
+  auto mvtx0LayerVector = siliconFgapLayerArray->arrayObjects();
+  for(unsigned int i=0;i<mvtx0LayerVector.size(); ++i)
+    {
+      auto vol = mvtx0LayerVector.at(i)->trackingVolume();
+      std::cout << "  mvtx0:   layer index " << i  << " " << vol->volumeName() << std::endl;
+    }
+  auto mvtx1LayerVector = mvtxBarrelLayerArray->arrayObjects();
+  for(unsigned int i=0;i<mvtx1LayerVector.size(); ++i)
+    {
+      auto vol = mvtx1LayerVector.at(i)->trackingVolume();
+      std::cout << "  mvtx1:   layer index " << i  << " " << vol->volumeName() << std::endl;
+    }
+  auto mvtx2LayerVector = siliconSgapLayerArray->arrayObjects();
+  for(unsigned int i=0;i<mvtx2LayerVector.size(); ++i)
+    {
+      auto vol = mvtx2LayerVector.at(i)->trackingVolume();
+      std::cout << "  mvtx2:   layer index " << i  << " " << vol->volumeName() << std::endl;
+    }
+
+  // Now get a vector corresponding to each layer for the INTT
+  auto inttLayerVector = inttLayerArray->arrayObjects();
+  // inttLayerVector is now a std::vector<LayerPtr>
+  for(unsigned int i=0; i<inttLayerVector.size(); i++){
+  
+    auto vol = inttLayerVector.at(i)->trackingVolume();
+    std::cout << "    layer index " << i  << " " << vol->volumeName() << std::endl;
+
+    // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
+    auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
+    // Only 2 of the INTT layers are not null (?) - need to understand
+    if(surfaceArray == NULL)
+      continue;
+    
+    // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
+    auto surfaceVector = surfaceArray->surfaces();
+    for(unsigned int j=0; j<surfaceVector.size(); j++){
+
+      std::cout << "    surface index " << j  << " " << surfaceVector.at(j)->name() << std::endl;
+
+      // So this is a DetectorElementBase type object now
+      // While iterating over Surfaces in the surfaceVector, can grab
+      // the corresponding associatedDetectorElement that matches
+      // this j-th surface
+      //auto inttElement = surfaceVector.at(j)->associatedDetectorElement();
+      
+      // inttElement is now the base class DetectorElementBase from which
+      // TGeoDetectorElement derives from. DetectorElementBase does not 
+      // contain the Identifier() member variable. But these objects, 
+      // in our case, are the TGeoDetectorElements
+
+      //std::cout << "  base: element " << j << " thickness " << inttElement->thickness() << "   " << std::endl;
+      
+      // TODO - need to figure out how to downcast to get the identifier
+      //auto identifier = dynamic_cast<TGeoDetectorElement>(inttElement)->identifier();
+    }
+   }
+
+  std::cout << "Leaving MakeActsGeometry()" << std::endl; 
+
+  return 0;
+}
+
 
 void PHActsTrkFitter::MakeTGeoNodeMap(PHCompositeNode *topNode)
 {
@@ -687,8 +1059,16 @@ int PHActsTrkFitter::CreateNodes(PHCompositeNode* topNode)
  * GetNodes():
  *  Get all the all the required nodes off the node tree
  */
+
 int PHActsTrkFitter::GetNodes(PHCompositeNode* topNode)
 {
+  _geomanager = PHGeomUtility::GetTGeoManager(topNode);
+  if(!_geomanager )
+    {
+      cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   _geom_container_mvtx = findNode::getClass<
     PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!_geom_container_mvtx)
