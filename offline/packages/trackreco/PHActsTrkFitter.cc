@@ -177,11 +177,10 @@ void PHActsTrkFitter::BuildLayers()
   /*
     acts-framework:
     (compiled binary = ACTFWTGeoGeometryExample)
-    basically just feeds options to GeometryExampleBase::ProcessGeometry
-    We replace this with a call from here, after creating an instance of TGeoDetector
-        - call GeometryExampleBase = acts-framework/Examples/Common/src/GeometryExampleBase(.cpp)::ProcessGeometry() with arguments and the new instance of TGeoDetector
-           sets up options, adds options to detector
-           returns 0, fills detector object
+    (basically just feeds options to GeometryExampleBase::ProcessGeometry)
+        (- calls GeometryExampleBase = acts-framework/Examples/Common/src/GeometryExampleBase(.cpp)::ProcessGeometry() with arguments and the instance of TGeoDetector)
+           (sets up options, adds options to detector)
+    **** All of the above replaced by the method here called MakeActsGeometry()
            - calls Geometry::build()  =  in acts-framework/Examples/Common/include/ACTFW/Geometry/CommonGeometry.hpp (= namespace Geometry) 
               material decoration
               returns TGeoDetector::finalize =  std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>
@@ -196,7 +195,7 @@ void PHActsTrkFitter::BuildLayers()
                            quits of TGeoManager is nullptr
   */
 
-  // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() here
+  // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
   TGeoDetector detector;
   MakeActsGeometry(argc, arg, detector);
@@ -373,8 +372,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     */
   }
 
- /// Begin Joe's addition to get list of IBaseDetector objects from
-  /// ACTS TrackingGeometry object
+ /// Begin Joe's addition to get list of IBaseDetector objects from ACTS TrackingGeometry object
   std::cout<<"Debug: Begin Joe"<<std::endl;
   // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
   auto vol = tGeometry->highestTrackingVolume();
