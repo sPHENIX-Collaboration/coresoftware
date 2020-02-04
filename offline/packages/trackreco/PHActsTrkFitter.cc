@@ -82,8 +82,8 @@
 //#include "ACTFW/Io/Csv/CsvOptionsWriter.hpp"
 //#include "ACTFW/Io/Csv/CsvTrackingGeometryWriter.hpp"
 //#include "ACTFW/Io/Root/RootMaterialWriter.hpp"
-#include "ACTFW/Options/CommonOptions.hpp"
 //#include "ACTFW/Plugins/Json/JsonMaterialWriter.hpp"
+#include "ACTFW/Options/CommonOptions.hpp"
 #include "ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp"
 #include "ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp"
 #include "ACTFW/Plugins/Obj/ObjWriterOptions.hpp"
@@ -232,7 +232,10 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   auto tGeometry         = geometry.first;
   auto contextDecorators = geometry.second;
 
+  std::cout << "contextDecorators.size() =  " << contextDecorators.size() << std::endl;
+
   // The detectors
+  // "MVTX" and "Silicon"
   read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
   auto surfaceLogLevel
@@ -371,32 +374,46 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     }
     */
   }
+  
+  /// Begin Joe's addition to get list of IBaseDetector objects from ACTS TrackingGeometry object
+  std::cout<<"Dump of surfaces for MVTX and INTT:"<<std::endl;
 
- /// Begin Joe's addition to get list of IBaseDetector objects from ACTS TrackingGeometry object
-  std::cout<<"Debug: Begin Joe"<<std::endl;
+  // we need A dummy context  
+  //====================
+  // Setup the event and algorithm context
+  FW::WhiteBoard eventStore(
+			    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
+  size_t ialg = 0;
+  // The geometry context
+  FW::AlgorithmContext context(ialg, 0, eventStore);  
+  /// Decorate the context
+  for (auto& cdr : contextDecorators) {
+    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
+      throw std::runtime_error("Failed to decorate event context");
+  }
+  
+
   // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
   auto vol = tGeometry->highestTrackingVolume();
   // vol is a TrackingVolume pointer
   std::cout << " Volume name " << vol->volumeName() << std::endl;
 
   // Get the confined volumes in the highest tracking volume
-  auto confinedVolumes = vol->confinedVolumes();
-
   // confinedVolumes is a shared_ptr<TrackingVolumeArray>
+  auto confinedVolumes = vol->confinedVolumes();
 
   // volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
 
   // Now get the trackingVolume that correspond to each detector subsystem
+
   // The first entry is the MVTX
   auto mvtxVolumes = volumeVector.at(0)->confinedVolumes();
   // mvtxVolumes is a shared_ptr<TrackingVolumeArray>
-  // Now get the individual TrackingVolumePtrs corresponding to each MVTX
-  // volume
+  // Now get the individual TrackingVolumePtrs corresponding to each MVTX volume
   auto siliconFgap = mvtxVolumes->arrayObjects().at(0);
   auto mvtxBarrel = mvtxVolumes->arrayObjects().at(1);
   auto siliconSgap = mvtxVolumes->arrayObjects().at(2);
-
   std::cout << "siliconFgap name " << siliconFgap->volumeName() << std::endl;
   std::cout << "mvtxBarrel name " << mvtxBarrel->volumeName() << std::endl;
   std::cout << "siliconSgap name " << siliconSgap->volumeName() << std::endl;
@@ -413,24 +430,91 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // Each of these is a BinnedArray<LayerPtr>
   // BinnedArray is an ACTS object that holds arrays
   // apparently std::vector was not good enough (?)
+  auto mvtxLayerVector0 = siliconFgapLayerArray->arrayObjects();
+  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();
+  auto mvtxLayerVector2 = siliconSgapLayerArray->arrayObjects();
 
-  auto mvtx0LayerVector = siliconFgapLayerArray->arrayObjects();
-  for(unsigned int i=0;i<mvtx0LayerVector.size(); ++i)
+  for(unsigned int i=0;i<mvtxLayerVector0.size(); ++i)
     {
-      auto vol = mvtx0LayerVector.at(i)->trackingVolume();
-      std::cout << "  mvtx0:   layer index " << i  << " " << vol->volumeName() << std::endl;
+      auto vol = mvtxLayerVector0.at(i)->trackingVolume();
+      std::cout << "  **************** mvtx0 " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
+
+      // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
+      auto surfaceArray = mvtxLayerVector0.at(i)->surfaceArray();
+
+      if(surfaceArray == NULL)
+	continue;
+      
+      // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
+      auto surfaceVector = surfaceArray->surfaces();
+      for(unsigned int j=0; j<surfaceVector.size(); j++){
+	/*
+	auto vec3d =  surfaceVector.at(j)->center(context);
+	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
+	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
+	*/
+
+	// dump the surface description	
+	std::cout << " --------------------------" << std::endl;
+	surfaceVector.at(j)->toStream(context, std::cout);
+	std::cout << std::endl;
+      }
     }
-  auto mvtx1LayerVector = mvtxBarrelLayerArray->arrayObjects();
-  for(unsigned int i=0;i<mvtx1LayerVector.size(); ++i)
+
+  for(unsigned int i=0;i<mvtxLayerVector1.size(); ++i)
     {
-      auto vol = mvtx1LayerVector.at(i)->trackingVolume();
-      std::cout << "  mvtx1:   layer index " << i  << " " << vol->volumeName() << std::endl;
+      auto vol = mvtxLayerVector1.at(i)->trackingVolume();
+      std::cout << "  ********** mvtx1 " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
+
+      // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
+      auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
+
+      if(surfaceArray == NULL)
+	continue;
+      
+      // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
+      auto surfaceVector = surfaceArray->surfaces();
+      for(unsigned int j=0; j<surfaceVector.size(); j++){
+	
+	/*	
+	auto vec3d =  surfaceVector.at(j)->center(context);
+	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
+	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
+	*/
+
+	// dump the surface description	
+	std::cout << " --------------------------" << std::endl;
+	surfaceVector.at(j)->toStream(context, std::cout);
+	std::cout << std::endl;
+      }
     }
-  auto mvtx2LayerVector = siliconSgapLayerArray->arrayObjects();
-  for(unsigned int i=0;i<mvtx2LayerVector.size(); ++i)
+
+  for(unsigned int i=0;i<mvtxLayerVector2.size(); ++i)
     {
-      auto vol = mvtx2LayerVector.at(i)->trackingVolume();
-      std::cout << "  mvtx2:   layer index " << i  << " " << vol->volumeName() << std::endl;
+      auto vol = mvtxLayerVector2.at(i)->trackingVolume();
+      std::cout << "  *********** mvtx2 " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
+
+      // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
+      auto surfaceArray = mvtxLayerVector2.at(i)->surfaceArray();
+
+      if(surfaceArray == NULL)
+	continue;
+      
+      // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
+      auto surfaceVector = surfaceArray->surfaces();
+      for(unsigned int j=0; j<surfaceVector.size(); j++){
+	/*	
+	auto vec3d =  surfaceVector.at(j)->center(context);
+	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
+	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
+	*/
+
+	// dump the surface description	
+	std::cout << " --------------------------" << std::endl;
+	surfaceVector.at(j)->toStream(context, std::cout);
+	std::cout << std::endl;
+
+      }
     }
 
   // Now get a vector corresponding to each layer for the INTT
@@ -439,7 +523,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   for(unsigned int i=0; i<inttLayerVector.size(); i++){
   
     auto vol = inttLayerVector.at(i)->trackingVolume();
-    std::cout << "    layer index " << i  << " " << vol->volumeName() << std::endl;
+    std::cout << "  *********** intt  layer index " << i  << " " << vol->volumeName() << std::endl;
 
     // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
     auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
@@ -451,7 +535,16 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     auto surfaceVector = surfaceArray->surfaces();
     for(unsigned int j=0; j<surfaceVector.size(); j++){
 
-      std::cout << "    surface index " << j  << " " << surfaceVector.at(j)->name() << std::endl;
+      /*
+	auto vec3d =  surfaceVector.at(j)->center(context);
+	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
+	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
+      */
+
+	// dump the surface description	
+      std::cout << " --------------------------" << std::endl;
+      surfaceVector.at(j)->toStream(context, std::cout);
+      std::cout << std::endl;
 
       // So this is a DetectorElementBase type object now
       // While iterating over Surfaces in the surfaceVector, can grab
