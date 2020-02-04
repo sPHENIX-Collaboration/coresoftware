@@ -93,6 +93,7 @@ int Process();
   void getInttKeyFromNode(TGeoNode *gnode);
   void getMvtxKeyFromNode(TGeoNode *gnode);
   int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
+  TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
 
   /*
 	 * fit track with SvtxTrack as input seed.

@@ -424,43 +424,12 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   // Now get the LayerArrays corresponding to each volume
   auto inttLayerArray = inttVolume->confinedLayers();
-  auto siliconFgapLayerArray = siliconFgap->confinedLayers();
-  auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();
-  auto siliconSgapLayerArray = siliconSgap->confinedLayers();
+  auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
+
   // Each of these is a BinnedArray<LayerPtr>
   // BinnedArray is an ACTS object that holds arrays
   // apparently std::vector was not good enough (?)
-  auto mvtxLayerVector0 = siliconFgapLayerArray->arrayObjects();
-  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();
-  auto mvtxLayerVector2 = siliconSgapLayerArray->arrayObjects();
-
-  for(unsigned int i=0;i<mvtxLayerVector0.size(); ++i)
-    {
-      auto vol = mvtxLayerVector0.at(i)->trackingVolume();
-      std::cout << "  **************** mvtx0 " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
-
-      // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
-      auto surfaceArray = mvtxLayerVector0.at(i)->surfaceArray();
-
-      if(surfaceArray == NULL)
-	continue;
-      
-      // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
-      auto surfaceVector = surfaceArray->surfaces();
-      for(unsigned int j=0; j<surfaceVector.size(); j++){
-	/*
-	auto vec3d =  surfaceVector.at(j)->center(context);
-	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
-	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
-	*/
-
-	// dump the surface description	
-	std::cout << " --------------------------" << std::endl;
-	surfaceVector.at(j)->toStream(context, std::cout);
-	std::cout << std::endl;
-      }
-    }
-
+  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
   for(unsigned int i=0;i<mvtxLayerVector1.size(); ++i)
     {
       auto vol = mvtxLayerVector1.at(i)->trackingVolume();
@@ -476,44 +445,24 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       auto surfaceVector = surfaceArray->surfaces();
       for(unsigned int j=0; j<surfaceVector.size(); j++){
 	
-	/*	
+
 	auto vec3d =  surfaceVector.at(j)->center(context);
 	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
 	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
-	*/
 
-	// dump the surface description	
-	std::cout << " --------------------------" << std::endl;
-	surfaceVector.at(j)->toStream(context, std::cout);
-	std::cout << std::endl;
-      }
-    }
+	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
+	unsigned int layer = i / 2;
+	TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
+	std::cout << " mvtx hitsetkey = " << hitsetkey << std::endl;	  
 
-  for(unsigned int i=0;i<mvtxLayerVector2.size(); ++i)
-    {
-      auto vol = mvtxLayerVector2.at(i)->trackingVolume();
-      std::cout << "  *********** mvtx2 " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
 
-      // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
-      auto surfaceArray = mvtxLayerVector2.at(i)->surfaceArray();
-
-      if(surfaceArray == NULL)
-	continue;
-      
-      // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
-      auto surfaceVector = surfaceArray->surfaces();
-      for(unsigned int j=0; j<surfaceVector.size(); j++){
-	/*	
-	auto vec3d =  surfaceVector.at(j)->center(context);
-	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
-	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
-	*/
-
-	// dump the surface description	
-	std::cout << " --------------------------" << std::endl;
-	surfaceVector.at(j)->toStream(context, std::cout);
-	std::cout << std::endl;
-
+	// optionally dump the surface description	
+	if(Verbosity() > -1)
+	  {
+	    std::cout << " --------------------------" << std::endl;
+	    surfaceVector.at(j)->toStream(context, std::cout);
+	    std::cout << std::endl;
+	  }
       }
     }
 
@@ -535,16 +484,17 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     auto surfaceVector = surfaceArray->surfaces();
     for(unsigned int j=0; j<surfaceVector.size(); j++){
 
-      /*
 	auto vec3d =  surfaceVector.at(j)->center(context);
 	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
 	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
-      */
 
-	// dump the surface description	
-      std::cout << " --------------------------" << std::endl;
-      surfaceVector.at(j)->toStream(context, std::cout);
-      std::cout << std::endl;
+	// optionally dump the surface description	
+      if(Verbosity() > 1)
+	{
+	  std::cout << " --------------------------" << std::endl;
+	  surfaceVector.at(j)->toStream(context, std::cout);
+	  std::cout << std::endl;
+	}
 
       // So this is a DetectorElementBase type object now
       // While iterating over Surfaces in the surfaceVector, can grab
@@ -567,6 +517,27 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   std::cout << "Leaving MakeActsGeometry()" << std::endl; 
 
   return 0;
+}
+
+TrkrDefs::hitsetkey PHActsTrkFitter::GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
+{
+  // Look up the MVTX sensor index values from the world position of the surface center
+
+  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
+  if(!layergeom)
+    {
+      std::cout << PHWHERE << "Did not get layergeom for layer " << layer  << std::endl;
+    }
+
+  unsigned int stave = 0;
+  unsigned int chip = 0;
+  layergeom->get_sensor_indices_from_world_coords(world, stave, chip);
+
+  std::cout << " layer " << layer << " world coords " << world[0] << " " << world[1] << " " << world[2] << " stave " << stave << " chip " << chip << std::endl;
+  TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip);
+  std::cout << " mvtx hitsetkey = " << mvtx_hitsetkey << std::endl;
+  
+  return mvtx_hitsetkey;
 }
 
 
