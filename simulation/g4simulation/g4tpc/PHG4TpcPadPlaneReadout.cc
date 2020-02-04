@@ -86,6 +86,7 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
 
 PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
 {
+  gsl_rng_free(RandomGenerator);
   delete fcharge;
   for (int ipad = 0; ipad < 10; ipad++)
   {
