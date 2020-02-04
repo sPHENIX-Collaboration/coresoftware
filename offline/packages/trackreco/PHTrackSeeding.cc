@@ -88,16 +88,15 @@ int PHTrackSeeding::CreateNodes(PHCompositeNode* topNode)
   }
 
   
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
     {
       _track_map = new SvtxTrackMap_v1;
-      PHIODataNode<PHObject>* tracks_node = new PHIODataNode<PHObject>(
-								       _track_map, "SvtxTrackMap", "PHObject");
+      PHIODataNode<PHObject>* tracks_node = 
+	new PHIODataNode<PHObject>(_track_map, _track_map_name, "PHObject");
       tb_node->addNode(tracks_node);
       if (Verbosity() > 0){
-	cout << PHWHERE << "Svtx/SvtxTrackMap node added" << endl;
-	// cout << "Svtx/" << _track_map_name << " node added" << endl;
+	cout << PHWHERE << "Svtx/" <<_track_map_name  << " node added" << endl;
       }
     }
   if(Verbosity() > 0)
@@ -132,21 +131,14 @@ int PHTrackSeeding::GetNodes(PHCompositeNode* topNode)
     cerr << PHWHERE << " ERROR: Can't find SvtxVertexMap." << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
-  /* 
+ 
  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
     cerr << PHWHERE << " ERROR: Can't find " << _track_map_name << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  */
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode,"SvtxTrackMap");
-  if (!_track_map)
-  {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+
   _assoc_container = findNode::getClass<AssocInfoContainer>(topNode, "AssocInfoContainer");
   if (!_assoc_container)
   {

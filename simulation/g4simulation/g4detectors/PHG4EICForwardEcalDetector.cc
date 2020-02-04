@@ -3,19 +3,23 @@
 #include "PHG4ForwardEcalDetector.h"  // for PHG4ForwardEcalDetector
 #include "PHG4ForwardEcalDisplayAction.h"
 
+#include <phparameter/PHParameters.h>
+
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Cons.hh>
 #include <Geant4/G4LogicalVolume.hh>
 #include <Geant4/G4Material.hh>
 #include <Geant4/G4PVPlacement.hh>
 #include <Geant4/G4RotationMatrix.hh>  // for G4RotationMatrix
-#include <Geant4/G4String.hh>              // for G4String
+#include <Geant4/G4String.hh>          // for G4String
 #include <Geant4/G4SystemOfUnits.hh>   // for cm, mm
 #include <Geant4/G4ThreeVector.hh>     // for G4ThreeVector
 #include <Geant4/G4Transform3D.hh>     // for G4Transform3D
 #include <Geant4/G4Types.hh>           // for G4double, G4int
 
-#include <cstdlib>
+#include <TSystem.h>
+
+#include <cmath>                          // for M_PI
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -27,8 +31,8 @@ class PHCompositeNode;
 using namespace std;
 
 //_______________________________________________________________________
-PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, const std::string& dnam)
-  : PHG4ForwardEcalDetector(subsys, Node, dnam)
+PHG4EICForwardEcalDetector::PHG4EICForwardEcalDetector(PHG4Subsystem* subsys, PHCompositeNode* Node, PHParameters* parameters, const std::string& dnam)
+  : PHG4ForwardEcalDetector(subsys, Node, parameters, dnam)
   , _tower_dx(30 * mm)
   , _tower_dy(30 * mm)
   , _tower_dz(170.0 * mm)
@@ -45,13 +49,6 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
     cout << "PHG4EICForwardEcalDetector: Begin Construction" << endl;
   }
 
-  if (_mapping_tower_file.empty())
-  {
-    cout << "ERROR in PHG4EICForwardEcalDetector: No tower mapping file specified. Abort detector construction." << endl;
-    cout << "Please run SetTowerMappingFile( std::string filename ) first." << endl;
-    exit(1);
-  }
-
   /* Read parameters for detector construction and mappign from file */
   ParseParametersFromTable();
 
@@ -59,10 +56,10 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
   G4Material* Air = G4Material::GetMaterial("G4_AIR");
 
   G4VSolid* ecal_envelope_solid = new G4Cons("hEcal_envelope_solid",
-                                             _rMin1, _rMax1,
-                                             _rMin2, _rMax2,
-                                             _dZ / 2.,
-                                             _sPhi, _dPhi);
+                                             GetRMin(0), GetRMax(0),
+                                             GetRMin(1), GetRMax(1),
+                                             GetdZ() / 2.,
+                                             0, 2 * M_PI);
 
   G4LogicalVolume* ecal_envelope_log = new G4LogicalVolume(ecal_envelope_solid, Air, G4String("hEcal_envelope"), 0, 0, 0);
 
@@ -71,16 +68,16 @@ void PHG4EICForwardEcalDetector::ConstructMe(G4LogicalVolume* logicWorld)
 
   /* Define rotation attributes for envelope cone */
   G4RotationMatrix ecal_rotm;
-  ecal_rotm.rotateX(_rot_in_x);
-  ecal_rotm.rotateY(_rot_in_y);
-  ecal_rotm.rotateZ(_rot_in_z);
+  ecal_rotm.rotateX(GetXRot());
+  ecal_rotm.rotateY(GetYRot());
+  ecal_rotm.rotateZ(GetZRot());
 
   /* Place envelope cone in simulation */
   ostringstream name_envelope;
   name_envelope.str("");
-  name_envelope << _towerlogicnameprefix << "_envelope" << endl;
+  name_envelope << TowerLogicNamePrefix() << "_envelope";
 
-  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(_place_in_x, _place_in_y, _place_in_z)),
+  new G4PVPlacement(G4Transform3D(ecal_rotm, G4ThreeVector(GetPlaceX(), GetPlaceY(), GetPlaceZ())),
                     ecal_envelope_log, name_envelope.str().c_str(), logicWorld, 0, false, OverlapCheck());
 
   /* Construct single calorimeter tower */
@@ -148,7 +145,8 @@ PHG4EICForwardEcalDetector::ConstructTower()
                                                      material_scintillator,
                                                      "hEcal_scintillator_plate_logic",
                                                      0, 0, 0);
-
+  AbsorberLogicalVolSetInsert(logic_absorber);
+  ScintiLogicalVolSetInsert(logic_scint);
   GetDisplayAction()->AddVolume(logic_absorber, "Absorber");
   GetDisplayAction()->AddVolume(logic_scint, "Scintillator");
 
@@ -159,11 +157,11 @@ PHG4EICForwardEcalDetector::ConstructTower()
 
   ostringstream name_absorber;
   name_absorber.str("");
-  name_absorber << _towerlogicnameprefix << "_single_plate_absorber" << endl;
+  name_absorber << TowerLogicNamePrefix() << "_single_plate_absorber";
 
   ostringstream name_scintillator;
   name_scintillator.str("");
-  name_scintillator << _towerlogicnameprefix << "_single_plate_scintillator" << endl;
+  name_scintillator << TowerLogicNamePrefix() << "_single_plate_scintillator";
 
   for (int i = 1; i <= nlayers; i++)
   {
@@ -221,14 +219,11 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
 {
   /* Open the datafile, if it won't open return an error */
   ifstream istream_mapping;
+  istream_mapping.open(GetParams()->get_string_param("mapping_file"));
   if (!istream_mapping.is_open())
   {
-    istream_mapping.open(_mapping_tower_file.c_str());
-    if (!istream_mapping)
-    {
-      cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to open mapping file " << _mapping_tower_file << endl;
-      exit(1);
-    }
+    cout << "ERROR in PHG4EICForwardEcalDetector: Failed to open mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+    gSystem->Exit(1);
   }
 
   /* loop over lines in file */
@@ -260,15 +255,15 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> dummys >> dummy >> idx_j >> idx_k >> idx_l >> pos_x >> pos_y >> pos_z >> size_x >> size_y >> size_z >> rot_x >> rot_y >> rot_z))
       {
-        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
-        exit(1);
+        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+        gSystem->Exit(1);
       }
 
       /* Construct unique name for tower */
       /* Mapping file uses cm, this class uses mm for length */
       ostringstream towername;
       towername.str("");
-      towername << _towerlogicnameprefix << "_j_" << idx_j << "_k_" << idx_k;
+      towername << TowerLogicNamePrefix() << "_j_" << idx_j << "_k_" << idx_k;
 
       /* Add Geant4 units */
       pos_x = pos_x * cm;
@@ -291,72 +286,79 @@ int PHG4EICForwardEcalDetector::ParseParametersFromTable()
       /* read string- break if error */
       if (!(iss >> parname >> parval))
       {
-        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << _mapping_tower_file << endl;
-        exit(1);
+        cerr << "ERROR in PHG4EICForwardEcalDetector: Failed to read line in mapping file " << GetParams()->get_string_param("mapping_file") << endl;
+        gSystem->Exit(1);
       }
-
-      _map_global_parameter.insert(make_pair(parname, parval));
+      InsertParam(parname, parval);
     }
   }
 
   /* Update member variables for global parameters based on parsed parameter file */
-  std::map<string, G4double>::iterator parit;
+  std::map<string, double>::const_iterator parit;
 
-  parit = _map_global_parameter.find("Gtower_dx");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gtower_dx");
+  if (parit != EndIter())
     _tower_dx = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gtower_dy");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gtower_dy");
+  if (parit != EndIter())
     _tower_dy = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gtower_dz");
-  if (parit != _map_global_parameter.end())
+  parit = FindIter("Gtower_dz");
+  if (parit != EndIter())
     _tower_dz = parit->second * cm;
 
-  parit = _map_global_parameter.find("Gr1_inner");
-  if (parit != _map_global_parameter.end())
-    _rMin1 = parit->second * cm;
+  ostringstream rad;
+  for (int i = 0; i < 2; i++)
+  {
+    int index = i + 1;
+    rad.str("");
+    rad << "Gr" << index << "_inner";
+    parit = FindIter(rad.str());
+    if (parit != EndIter())
+    {
+      SetRMin(i, parit->second * cm);
+    }
+    rad.str("");
+    rad << "Gr" << index << "_outer";
+    parit = FindIter(rad.str());
+    if (parit != EndIter())
+    {
+      SetRMax(i, parit->second * cm);
+    }
+  }
+  parit = FindIter("Gdz");
+  if (parit != EndIter())
+  {
+    SetdZ(parit->second * cm);
+  }
+  parit = FindIter("Gx0");
+  if (parit != EndIter())
+  {
+    SetPlaceX(parit->second * cm);
+  }
 
-  parit = _map_global_parameter.find("Gr1_outer");
-  if (parit != _map_global_parameter.end())
-    _rMax1 = parit->second * cm;
+  parit = FindIter("Gy0");
+  if (parit != EndIter())
+  {
+    SetPlaceY(parit->second * cm);
+  }
+  parit = FindIter("Gz0");
+  if (parit != EndIter())
+  {
+    SetPlaceZ(parit->second * cm);
+  }
+  parit = FindIter("Grot_x");
+  if (parit != EndIter())
+    SetXRot(parit->second);
 
-  parit = _map_global_parameter.find("Gr2_inner");
-  if (parit != _map_global_parameter.end())
-    _rMin2 = parit->second * cm;
+  parit = FindIter("Grot_y");
+  if (parit != EndIter())
+    SetYRot(parit->second);
 
-  parit = _map_global_parameter.find("Gr2_outer");
-  if (parit != _map_global_parameter.end())
-    _rMax2 = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gdz");
-  if (parit != _map_global_parameter.end())
-    _dZ = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gx0");
-  if (parit != _map_global_parameter.end())
-    _place_in_x = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gy0");
-  if (parit != _map_global_parameter.end())
-    _place_in_y = parit->second * cm;
-
-  parit = _map_global_parameter.find("Gz0");
-  if (parit != _map_global_parameter.end())
-    _place_in_z = parit->second * cm;
-
-  parit = _map_global_parameter.find("Grot_x");
-  if (parit != _map_global_parameter.end())
-    _rot_in_x = parit->second;
-
-  parit = _map_global_parameter.find("Grot_y");
-  if (parit != _map_global_parameter.end())
-    _rot_in_y = parit->second;
-
-  parit = _map_global_parameter.find("Grot_z");
-  if (parit != _map_global_parameter.end())
-    _rot_in_z = parit->second;
+  parit = FindIter("Grot_z");
+  if (parit != EndIter())
+    SetZRot(parit->second);
 
   return 0;
 }

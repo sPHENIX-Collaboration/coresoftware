@@ -33,10 +33,19 @@
 #include "P6DExtDecayerPhysics.hh"
 #include "G4Pythia6Decayer.hh"
 
-#include <Geant4/G4VPhysicsConstructor.hh>
-#include <Geant4/G4ParticleDefinition.hh>
-#include <Geant4/G4ProcessManager.hh>
 #include <Geant4/G4Decay.hh>
+#include <Geant4/G4ParticleDefinition.hh>
+#include <Geant4/G4ParticleTable.hh>  // for G4ParticleTable::G4PTblDi...
+#include <Geant4/G4ProcessManager.hh>
+#include <Geant4/G4ProcessVector.hh>  // for G4ProcessVector
+#include <Geant4/G4Types.hh>          // for G4int
+#include <Geant4/G4VPhysicsConstructor.hh>
+#include <Geant4/G4VProcess.hh>  // for G4VProcess
+#include <Geant4/G4Version.hh>
+#include <Geant4/G4ios.hh>  // for G4cout, G4endl
+
+#include <ostream>  // for operator<<, basic_ostream
+#include <string>   // for operator<<
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 // hack for Geant 10.03.p03
@@ -45,20 +54,19 @@
 #define aParticleIterator ((subInstanceManager.offset[g4vpcInstanceID])._aParticleIterator)
 #endif
 
-
 P6DExtDecayerPhysics::P6DExtDecayerPhysics(const G4String& name)
-  : G4VPhysicsConstructor(name),
-    _active_force_decay(false),
-    _force_decay_type(kAll)
+  : G4VPhysicsConstructor(name)
+  , _active_force_decay(false)
+  , _force_decay_type(kAll)
 {
-/// Standard constructor
+  /// Standard constructor
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-P6DExtDecayerPhysics::~P6DExtDecayerPhysics() 
+P6DExtDecayerPhysics::~P6DExtDecayerPhysics()
 {
-/// Destructor
+  /// Destructor
 }
 
 //
@@ -69,62 +77,69 @@ P6DExtDecayerPhysics::~P6DExtDecayerPhysics()
 
 void P6DExtDecayerPhysics::ConstructParticle()
 {
-/// Nothing to be done here
+  /// Nothing to be done here
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 void P6DExtDecayerPhysics::ConstructProcess()
 {
-/// Loop over all particles instantiated and add external decayer
-/// to all decay processes if External decayer is set
+  /// Loop over all particles instantiated and add external decayer
+  /// to all decay processes if External decayer is set
 
   // Create Geant4 external decayer
   G4Pythia6Decayer* extDecayer = new G4Pythia6Decayer();
-  extDecayer->SetVerboseLevel(0); 
- 
+  extDecayer->SetVerboseLevel(0);
+
   aParticleIterator->reset();
   int decayer_used = 0;
   while ((*aParticleIterator)())
-  {    
+  {
     G4ParticleDefinition* particle = aParticleIterator->value();
     G4ProcessManager* pmanager = particle->GetProcessManager();
-    
-    if ( verboseLevel > 1 ) {
-      G4cout << "Setting ext decayer for: " 
-             <<  aParticleIterator->value()->GetParticleName() 
+
+    if (verboseLevel > 1)
+    {
+      G4cout << "Setting ext decayer for: "
+             << aParticleIterator->value()->GetParticleName()
              << G4endl;
-    } 
-    
+    }
+
     G4ProcessVector* processVector = pmanager->GetProcessList();
-    for (G4int i=0; i<processVector->length(); i++) {
-    
+#if G4VERSION_NUMBER >= 1060
+    for (size_t i = 0; i < processVector->length(); i++)
+#else
+    for (G4int i = 0; i < processVector->length(); i++)
+#endif
+    {
       G4Decay* decay = dynamic_cast<G4Decay*>((*processVector)[i]);
-      if ( decay )
-	{
-          // The extDecayer will be deleted in G4Decay destructor
-	  // increment counter in case we want to print out stats
-	  // for whatever reason (non null means it is used and
-	  // must not be deleted)
-          decay->SetExtDecayer(extDecayer);
-          decayer_used++;
-	}
-    }              
+      if (decay)
+      {
+        // The extDecayer will be deleted in G4Decay destructor
+        // increment counter in case we want to print out stats
+        // for whatever reason (non null means it is used and
+        // must not be deleted)
+        decay->SetExtDecayer(extDecayer);
+        decayer_used++;
+      }
+    }
   }
 
-  if (_active_force_decay) {
+  if (_active_force_decay)
+  {
     extDecayer->ForceDecayType(_force_decay_type);
   }
 
   // If the extDecayer isn't used for this particle we need to delete it here
   // as far as I see this never happens but this makes coverity happy
-  if (! decayer_used)
-    {
-      delete  extDecayer;
-    }
-  if ( verboseLevel > 0 ) {
+  if (!decayer_used)
+  {
+    delete extDecayer;
+  }
+  if (verboseLevel > 0)
+  {
     G4cout << "External decayer physics constructed." << G4endl;
-  }  
+  }
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

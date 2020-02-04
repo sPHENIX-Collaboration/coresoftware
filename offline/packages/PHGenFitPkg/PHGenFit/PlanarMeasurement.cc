@@ -9,6 +9,7 @@
 #include <GenFit/PlanarMeasurement.h>
 #include <GenFit/DetPlane.h>
 #include <GenFit/SharedPlanePtr.h>     // for SharedPlanePtr
+#include <GenFit/StateOnPlane.h>
 
 #include <TMatrixDSymfwd.h>            // for TMatrixDSym
 #include <TMatrixTSym.h>               // for TMatrixTSym

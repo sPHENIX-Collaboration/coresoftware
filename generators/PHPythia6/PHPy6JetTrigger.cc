@@ -2,20 +2,20 @@
 #include "PHPy6GenTrigger.h"
 
 #include <HepMC/GenEvent.h>
-#include <HepMC/GenParticle.h>         // for GenParticle
-#include <HepMC/SimpleVector.h>        // for FourVector
+#include <HepMC/GenParticle.h>   // for GenParticle
+#include <HepMC/SimpleVector.h>  // for FourVector
 
 // fastjet includes
 #include <fastjet/ClusterSequence.hh>
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
-#include <cmath>                      // for sqrt
-#include <cstdlib>                    // for abs
-#include <iostream>                    // for operator<<, endl, basic_ostream
-#include <memory>                      // for allocator_traits<>::value_type
-#include <utility>                     // for swap
-#include <vector>                      // for vector
+#include <cmath>     // for sqrt
+#include <cstdlib>   // for abs
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <memory>    // for allocator_traits<>::value_type
+#include <utility>   // for swap
+#include <vector>    // for vector
 
 using namespace std;
 
@@ -26,6 +26,7 @@ PHPy6JetTrigger::PHPy6JetTrigger(const std::string &name)
   , m_theEtaLow(1.0)
   , m_minPt(10.0)
   , m_R(1.0)
+  , m_nconst(0)
 {
 }
 
@@ -80,7 +81,10 @@ bool PHPy6JetTrigger::Apply(const HepMC::GenEvent *evt)
 
     if (pt > max_pt) max_pt = pt;
 
-    if (pt > m_minPt)
+    vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    const int nconst = constituents.size();
+
+    if (pt > m_minPt && nconst >= m_nconst)
     {
       jetFound = true;
       break;

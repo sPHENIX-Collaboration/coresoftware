@@ -7,7 +7,7 @@
 
 namespace HepMC
 {
-  class GenEvent;
+class GenEvent;
 }
 
 class PHPy6JetTrigger : public PHPy6GenTrigger
@@ -23,6 +23,7 @@ class PHPy6JetTrigger : public PHPy6GenTrigger
   void SetEtaHighLow(double etaHigh, double etaLow);
   void SetMinJetPt(double minPt) { m_minPt = minPt; }
   void SetJetR(double R) { m_R = R; }
+  void SetMinNumConstituents(int nconst) { m_nconst = nconst; }
 
   void PrintConfig();
 
@@ -31,6 +32,7 @@ class PHPy6JetTrigger : public PHPy6GenTrigger
   double m_theEtaLow;
   double m_minPt;
   double m_R;
+  int m_nconst;
 };
 
 #endif

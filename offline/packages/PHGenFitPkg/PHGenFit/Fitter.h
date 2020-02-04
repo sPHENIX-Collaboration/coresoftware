@@ -8,7 +8,16 @@
 #ifndef PHGENFIT_FITTER_H
 #define PHGENFIT_FITTER_H
 
-//STL
+#if !defined(__CINT__) || defined(__CLING__)
+// needed, it crashes on Ubuntu using singularity with local cvmfs install
+// shared pointer later on uses this, forward declaration does not cut it
+#include <phgenfit/Track.h> 
+#else
+namespace PHGenFit
+{
+  class Track;
+} /* namespace PHGenFit */
+#endif
 
 #include <GenFit/EventDisplay.h>
 #include "GenFit/Exception.h"
@@ -32,7 +41,6 @@ class AbsBField;
 
 namespace PHGenFit
 {
-class Track;
 
 class Fitter
 {

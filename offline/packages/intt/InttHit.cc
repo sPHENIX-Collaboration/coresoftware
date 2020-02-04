@@ -8,8 +8,6 @@
 
 #include <trackbase/TrkrHit.h>  // for TrkrHit
 
-#include <iosfwd>
-
 InttHit::InttHit()
   : TrkrHit()
 {

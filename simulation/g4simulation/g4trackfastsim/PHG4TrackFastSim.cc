@@ -187,7 +187,9 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       RawTowerGeomContainer::ConstIterator twr_iter = twr_range.first;
       RawTowerGeom* temp_geo = twr_iter->second;
 
-      _state_location.push_back(temp_geo->get_center_z() - (temp_geo->get_size_z() / 2.0));
+      //Changed by Barak on 12/10/19
+      _state_location.push_back(temp_geo->get_center_z());
+
     }
     else if ((_state_names[i] == "CEMC") || (_state_names[i] == "IHCAL") || (_state_names[i] == "OHCAL"))
     {

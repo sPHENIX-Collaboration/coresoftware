@@ -1,6 +1,6 @@
 #include "PHPy8JetTrigger.h"
 
-#include <Pythia8/Event.h>             // for Event, Particle
+#include <Pythia8/Event.h>  // for Event, Particle
 #include <Pythia8/Pythia.h>
 
 // fastjet includes
@@ -8,12 +8,12 @@
 #include <fastjet/JetDefinition.hh>
 #include <fastjet/PseudoJet.hh>
 
-#include <cmath>                      // for sqrt
-#include <cstdlib>                    // for abs
-#include <iostream>                    // for operator<<, endl, basic_ostream
-#include <memory>                      // for allocator_traits<>::value_type
-#include <utility>                     // for swap
-#include <vector>                      // for vector
+#include <cmath>     // for sqrt
+#include <cstdlib>   // for abs
+#include <iostream>  // for operator<<, endl, basic_ostream
+#include <memory>    // for allocator_traits<>::value_type
+#include <utility>   // for swap
+#include <vector>    // for vector
 
 using namespace std;
 
@@ -25,6 +25,7 @@ PHPy8JetTrigger::PHPy8JetTrigger(const std::string &name)
   , _minPt(10.0)
   , _minZ(0.0)
   , _R(1.0)
+  , _nconst(0)
 {
 }
 
@@ -85,7 +86,10 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
 
     if (pt > max_pt) max_pt = pt;
 
-    if (pt > _minPt)
+    vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
+    int ijet_nconst = constituents.size();
+
+    if (pt > _minPt && ijet_nconst >= _nconst)
     {
       if (_minZ > 0.0)
       {
@@ -97,7 +101,6 @@ bool PHPy8JetTrigger::Apply(Pythia8::Pythia *pythia)
                                fastjets[ijet].py() * fastjets[ijet].py() +
                                fastjets[ijet].pz() * fastjets[ijet].pz());
 
-        vector<fastjet::PseudoJet> constituents = fastjets[ijet].constituents();
         for (unsigned int j = 0; j < constituents.size(); j++)
         {
           double con_ptot = sqrt(constituents[j].px() * constituents[j].px() +
@@ -160,6 +163,11 @@ void PHPy8JetTrigger::SetMinLeadingZ(double minZ)
 void PHPy8JetTrigger::SetJetR(double R)
 {
   _R = R;
+}
+
+void PHPy8JetTrigger::SetMinNumConstituents(int nconst)
+{
+  _nconst = nconst;
 }
 
 void PHPy8JetTrigger::PrintConfig()

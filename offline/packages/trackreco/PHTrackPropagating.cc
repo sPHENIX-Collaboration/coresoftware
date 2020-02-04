@@ -73,10 +73,10 @@ int PHTrackPropagating::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  _track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  _track_map = findNode::getClass<SvtxTrackMap>(topNode, _track_map_name);
   if (!_track_map)
   {
-    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap." << endl;
+    cerr << PHWHERE << " ERROR: Can't find SvtxTrackMap: " << _track_map_name << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
