@@ -66,7 +66,7 @@
 #include "Acts/Plugins/TGeo/TGeoDetectorElement.hpp"
 #include "ACTFW/Detector/IBaseDetector.hpp"
 #include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Surfaces/PlaneSurface.hpp"
+#include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "ACTFW/Detector/IBaseDetector.hpp"
 
@@ -143,24 +143,6 @@ return Fun4AllReturnCodes::EVENT_OK;
 
 void PHActsTrkFitter::BuildLayers()
 {
-/*
-  // arguments for calling ACTFW/Geometry/GeometryExampleBase::ProcessGeometry()
-  ACTFWTGeoGeometryExample 
-    -n1 
-    -l0 
-    --geo-tgeo-filename=sPhenix.root 
-    --geo-tgeo-worldvolume="World" 
-    --geo-subdetectors MVTX Silicon 
-    --geo-tgeo-nlayers=0 0 
-    --geo-tgeo-clayers=1 1 
-    --geo-tgeo-players=0 0 
-    --geo-tgeo-clayernames MVTX siactive 
-    --geo-tgeo-cmodulenames MVTXSensor siactive 
-    --geo-tgeo-cmoduleaxes xzy yzx 
-    --geo-tgeo-clayersplits 5. 10. 
-    --output-obj true 
-  */
-
   // define int argc and char* argv to provide options to processGeometry
   int argc = 27;
   std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
@@ -231,19 +213,19 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   auto tGeometry         = geometry.first;
   auto contextDecorators = geometry.second;
-
+  
   std::cout << "contextDecorators.size() =  " << contextDecorators.size() << std::endl;
 
   // The detectors
   // "MVTX" and "Silicon"
   read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
+  /*
   auto surfaceLogLevel
       = Acts::Logging::Level(vm["geo-surface-loglevel"].as<size_t>());
-  //  auto layerLogLevel
-  //  = Acts::Logging::Level(vm["geo-layer-loglevel"].as<size_t>());
   auto volumeLogLevel
       = Acts::Logging::Level(vm["geo-volume-loglevel"].as<size_t>());
+  */
 
   // understand what this event loop does
   std::cout << "nEvents " << nEvents << std::endl;
@@ -269,113 +251,9 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       // We need indeed a context object
       if (nEvents > 1) { geoContextStr = "_geoContext" + std::to_string(ievt); }
     }
-
-    // ---------------------------------------------------------------------------------
-    // Output directory
-    std::string outputDir = vm["output-dir"].template as<std::string>();
-    std::cout << "outptDir = " << outputDir.c_str() << std::endl;
-
-    // OBJ output
-    if (vm["output-obj"].as<bool>()) {
-      // The writers
-      std::vector<std::shared_ptr<FW::Obj::ObjSurfaceWriter>> subWriters;
-      std::vector<std::shared_ptr<std::ofstream>>             subStreams;
-      // Loop and create the obj output writers per defined sub detector
-      for (auto sdet : subDetectors) {
-        // Sub detector stream
-        auto sdStream = std::shared_ptr<std::ofstream>(new std::ofstream);
-        std::string sdOutputName
-            = FW::joinPaths(outputDir, sdet + geoContextStr + ".obj");
-        sdStream->open(sdOutputName);
-        // Object surface writers
-        FW::Obj::ObjSurfaceWriter::Config sdObjWriterConfig
-            = FW::Options::readObjSurfaceWriterConfig(
-                vm, sdet, surfaceLogLevel);
-        sdObjWriterConfig.outputStream = sdStream;
-        // Let's not write the layer surface when we have misalignment
-        if (contextDecorators.size() > 0) {
-          sdObjWriterConfig.outputLayerSurface = false;
-        }
-        auto sdObjWriter
-            = std::make_shared<FW::Obj::ObjSurfaceWriter>(sdObjWriterConfig);
-        // Push back
-        subWriters.push_back(sdObjWriter);
-        subStreams.push_back(sdStream);
-      }
-
-      // Configure the tracking geometry writer
-      auto tgObjWriterConfig = FW::Options::readObjTrackingGeometryWriterConfig(
-          vm, "ObjTrackingGeometryWriter", volumeLogLevel);
-
-      tgObjWriterConfig.surfaceWriters = subWriters;
-      auto tgObjWriter = std::make_shared<FW::Obj::ObjTrackingGeometryWriter>(
-          tgObjWriterConfig);
-
-      std::cout << "Write tracking geometry object" << std::endl;
-
-      // Write the tracking geometry object
-      tgObjWriter->write(context, *tGeometry);
-
-      // Close the output streams
-      for (auto sStreams : subStreams) { sStreams->close(); }
-    }
-
-    // I think we do not need this in sPHENIX
-    /*
-    // CSV output
-    if (vm["output-csv"].as<bool>()) {
-      // setup the tracking geometry writer
-      FW::CsvTrackingGeometryWriter::Config tgCsvWriterConfig;
-      tgCsvWriterConfig.trackingGeometry = tGeometry;
-      tgCsvWriterConfig.outputDir        = outputDir;
-      tgCsvWriterConfig.writePerEvent    = true;
-      auto tgCsvWriter
-          = std::make_shared<FW::CsvTrackingGeometryWriter>(tgCsvWriterConfig);
-
-      // Write the tracking geometry object
-      tgCsvWriter->write(context);
-    }
-
-    // Get the file name from the options
-    std::string materialFileName = vm["mat-output-file"].as<std::string>();
-
-    if (!materialFileName.empty() and vm["output-root"].template as<bool>()) {
-
-      // The writer of the indexed material
-      FW::RootMaterialWriter::Config rmwConfig("MaterialWriter");
-      rmwConfig.fileName = materialFileName + ".root";
-      FW::RootMaterialWriter rmwImpl(rmwConfig);
-      rmwImpl.write(*tGeometry);
-    }
-
-    if (!materialFileName.empty() and vm["output-json"].template as<bool>()) {
-      /// The name of the output file
-      std::string fileName = vm["mat-output-file"].template as<std::string>();
-      // the material writer
-      Acts::JsonGeometryConverter::Config jmConverterCfg(
-          "JsonGeometryConverter", Acts::Logging::INFO);
-      jmConverterCfg.processSensitives
-          = vm["mat-output-sensitives"].template as<bool>();
-      jmConverterCfg.processApproaches
-          = vm["mat-output-approaches"].template as<bool>();
-      jmConverterCfg.processRepresenting
-          = vm["mat-output-representing"].template as<bool>();
-      jmConverterCfg.processBoundaries
-          = vm["mat-output-boundaries"].template as<bool>();
-      jmConverterCfg.processVolumes
-          = vm["mat-output-volumes"].template as<bool>();
-      jmConverterCfg.writeData = vm["mat-output-data"].template as<bool>();
-
-      // The writer
-      FW::Json::JsonMaterialWriter jmwImpl(std::move(jmConverterCfg),
-                                           materialFileName + ".json");
-
-      jmwImpl.write(*tGeometry);
-    }
-    */
   }
+
   
-  /// Begin Joe's addition to get list of IBaseDetector objects from ACTS TrackingGeometry object
   std::cout<<"Dump of surfaces for MVTX and INTT:"<<std::endl;
 
   // we need A dummy context  
@@ -405,35 +283,22 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
 
-  // Now get the trackingVolume that correspond to each detector subsystem
-
   // The first entry is the MVTX
+  //=====================
   auto mvtxVolumes = volumeVector.at(0)->confinedVolumes();
   // mvtxVolumes is a shared_ptr<TrackingVolumeArray>
   // Now get the individual TrackingVolumePtrs corresponding to each MVTX volume
-  auto siliconFgap = mvtxVolumes->arrayObjects().at(0);
   auto mvtxBarrel = mvtxVolumes->arrayObjects().at(1);
-  auto siliconSgap = mvtxVolumes->arrayObjects().at(2);
-  std::cout << "siliconFgap name " << siliconFgap->volumeName() << std::endl;
   std::cout << "mvtxBarrel name " << mvtxBarrel->volumeName() << std::endl;
-  std::cout << "siliconSgap name " << siliconSgap->volumeName() << std::endl;
-
-  // INTT only has one volume, so there is not an added iterator like for the  MVTX
-  auto inttVolume = volumeVector.at(1);
-  std::cout<<"Got all the volumes "<<std::endl;
-
   // Now get the LayerArrays corresponding to each volume
-  auto inttLayerArray = inttVolume->confinedLayers();
   auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
 
-  // Each of these is a BinnedArray<LayerPtr>
-  // BinnedArray is an ACTS object that holds arrays
-  // apparently std::vector was not good enough (?)
+  // Thiis is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
   auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
   for(unsigned int i=0;i<mvtxLayerVector1.size(); ++i)
     {
       auto vol = mvtxLayerVector1.at(i)->trackingVolume();
-      std::cout << "  ********** mvtx1 " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
+      std::cout << "  ********** mvtx barrel " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
 
       // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
       auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
@@ -444,31 +309,46 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
       auto surfaceVector = surfaceArray->surfaces();
       for(unsigned int j=0; j<surfaceVector.size(); j++){
-	
 
-	auto vec3d =  surfaceVector.at(j)->center(context);
-	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
-	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
+       	auto vec3d =  surfaceVector.at(j)->center(context);
+	//auto normal_vec3d =  surfaceVector.at(j)->normal(context);
+	std::cout << std::endl << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2)  << std::endl;
 
 	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
 	unsigned int layer = i / 2;
 	TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
 	std::cout << " mvtx hitsetkey = " << hitsetkey << std::endl;	  
 
-
 	// optionally dump the surface description	
-	if(Verbosity() > -1)
+	if(Verbosity() > 1)
 	  {
 	    std::cout << " --------------------------" << std::endl;
 	    surfaceVector.at(j)->toStream(context, std::cout);
 	    std::cout << std::endl;
 	  }
+
+	// Add this surface to the map
+	std::pair<TrkrDefs::hitsetkey, const Acts::Surface*> tmp = make_pair(hitsetkey, surfaceVector.at(j));
+	_cluster_surface_map.insert(tmp);
+	std::cout << " _cluster_surface_map size now " << _cluster_surface_map.size() << std::endl;
+
+	if(Verbosity() > 1)
+	  {
+	    // check it is in there
+	    std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
+	    surf_iter->second->toStream(context,std::cout);	
+	  }
+
       }
     }
 
-  // Now get a vector corresponding to each layer for the INTT
+  // INTT only has one volume, so there is not an added iterator like for the  MVTX
+  //========================================================
+  auto inttVolume = volumeVector.at(1);
+  auto inttLayerArray = inttVolume->confinedLayers();
+
   auto inttLayerVector = inttLayerArray->arrayObjects();
-  // inttLayerVector is now a std::vector<LayerPtr>
+  // inttLayerVector is a std::vector<LayerPtr>
   for(unsigned int i=0; i<inttLayerVector.size(); i++){
   
     auto vol = inttLayerVector.at(i)->trackingVolume();
@@ -476,7 +356,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
     // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
     auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
-    // Only 2 of the INTT layers are not null (?) - need to understand
     if(surfaceArray == NULL)
       continue;
     
@@ -485,8 +364,24 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     for(unsigned int j=0; j<surfaceVector.size(); j++){
 
 	auto vec3d =  surfaceVector.at(j)->center(context);
-	auto normal_vec3d =  surfaceVector.at(j)->normal(context);
-	std::cout << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << " normal = " << normal_vec3d(0) << " " << normal_vec3d(1) << " " << normal_vec3d(2) << std::endl;
+	//auto normal_vec3d =  surfaceVector.at(j)->normal(context);
+	std::cout << std::endl << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << std::endl;
+
+	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
+	// The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
+	// out which layer to use to get the layergeom
+	double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
+	double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
+
+	unsigned int layer = 0;
+	for(unsigned int i = 0;i<4;++i)
+	  {
+	    if( fabs(layer_rad - ref_rad[i]) < 0.1)
+	      layer = i + 3;
+	  }
+
+	TrkrDefs::hitsetkey hitsetkey = GetInttHitSetKeyFromCoords(layer, world_center);
+	std::cout << " intt hitsetkey = " << hitsetkey << std::endl;	  
 
 	// optionally dump the surface description	
       if(Verbosity() > 1)
@@ -496,26 +391,22 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 	  std::cout << std::endl;
 	}
 
-      // So this is a DetectorElementBase type object now
-      // While iterating over Surfaces in the surfaceVector, can grab
-      // the corresponding associatedDetectorElement that matches
-      // this j-th surface
-      //auto inttElement = surfaceVector.at(j)->associatedDetectorElement();
-      
-      // inttElement is now the base class DetectorElementBase from which
-      // TGeoDetectorElement derives from. DetectorElementBase does not 
-      // contain the Identifier() member variable. But these objects, 
-      // in our case, are the TGeoDetectorElements
+	// Add this surface to the map
+	std::pair<TrkrDefs::hitsetkey, const Acts::Surface*> tmp = make_pair(hitsetkey, surfaceVector.at(j));
+	_cluster_surface_map.insert(tmp);
+	std::cout << " _cluster_surface_map size now " << _cluster_surface_map.size() << std::endl;
 
-      //std::cout << "  base: element " << j << " thickness " << inttElement->thickness() << "   " << std::endl;
-      
-      // TODO - need to figure out how to downcast to get the identifier
-      //auto identifier = dynamic_cast<TGeoDetectorElement>(inttElement)->identifier();
+	if(Verbosity() > 1)
+	  {
+	    // check it is in there
+	    std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
+	    surf_iter->second->toStream(context,std::cout);
+	  }
     }
-   }
+  }
 
   std::cout << "Leaving MakeActsGeometry()" << std::endl; 
-
+  
   return 0;
 }
 
@@ -534,10 +425,40 @@ TrkrDefs::hitsetkey PHActsTrkFitter::GetMvtxHitSetKeyFromCoords(unsigned int lay
   layergeom->get_sensor_indices_from_world_coords(world, stave, chip);
 
   std::cout << " layer " << layer << " world coords " << world[0] << " " << world[1] << " " << world[2] << " stave " << stave << " chip " << chip << std::endl;
+  double check_pos[3] = {0,0,0};
+  layergeom->find_sensor_center(stave, 0, 0, chip, check_pos);
+  std::cout << "     --- check world coords from stave and chip: " << check_pos[0] << " " << check_pos[1] <<  "  " << check_pos[2] << std::endl;
+
   TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip);
   std::cout << " mvtx hitsetkey = " << mvtx_hitsetkey << std::endl;
   
   return mvtx_hitsetkey;
+}
+
+TrkrDefs::hitsetkey PHActsTrkFitter::GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
+{
+  // Look up the INTT sensor index values from the world position of the surface center
+
+  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
+  if(!layergeom)
+    {
+      std::cout << PHWHERE << "Did not get layergeom for layer " << layer  << std::endl;
+    }
+
+  double location[3] = {world[0], world[1], world[2]};
+  int segment_z_bin = 0;
+  int segment_phi_bin = 0;
+  layergeom->find_indices_from_segment_center(segment_z_bin, segment_phi_bin, location);
+  std::cout << " layer " << layer << " world coords " << location[0] << " " << location[1] << " " << location[2] << " segment_phi_bin " << segment_phi_bin << " segment_z_bin " << segment_z_bin << std::endl;
+
+  double check_pos[3] = {0,0,0};
+  layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
+  std::cout << "     --- check world coords from segment phi and z bin: " << check_pos[0] << " " << check_pos[1] <<  "  " << check_pos[2] << std::endl;
+
+  TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin);
+  std::cout << " intt hitsetkey = " << intt_hitsetkey << std::endl;
+  
+  return intt_hitsetkey;
 }
 
 
@@ -736,7 +657,7 @@ void PHActsTrkFitter::getMvtxKeyFromNode(TGeoNode *gnode)
 
 void PHActsTrkFitter::isActive(TGeoNode *gnode)
 {
-  // For looking at the node tree only.
+  // Not used in analysis: diagnostic, for looking at the node tree only.
   // Recursively searches gnode for silicon sensors, prints out heirarchy
 
   std::string node_str = gnode->GetName();
@@ -790,6 +711,8 @@ int PHActsTrkFitter::Process()
     }
 
   // Access the TrkrClusters 
+  TrkrDefs::hitsetkey hitset_key;
+
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
   for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
     {
@@ -832,10 +755,10 @@ int PHActsTrkFitter::Process()
 	    cout << "   MVTX cluster with staveid " << staveid << " chipid " << chipid << endl; 
 
 	  // make key for this sensor
-	  TrkrDefs::hitsetkey cluster_node_key = MvtxDefs::genHitSetKey(layer, staveid, chipid);
+	  hitset_key = MvtxDefs::genHitSetKey(layer, staveid, chipid);
 	  // get the TGeoNode for it
 	  std::map<TrkrDefs::hitsetkey, TGeoNode*>::iterator it;
-	  it = _cluster_node_map.find(cluster_node_key);
+	  it = _cluster_node_map.find(hitset_key);
 	  if(it != _cluster_node_map.end())
 	    {
 	      sensor_node = it->second;
@@ -849,6 +772,23 @@ int PHActsTrkFitter::Process()
 		   << " chipid " << chipid  << ". That should be impossible!" << endl;
 	    }
 
+	  /*
+	  // Find Acts surface corresponding to this cluster
+	  std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter;
+	  cout << " get the surface pointer" << endl;
+	  surf_iter = _cluster_surface_map.find(hitset_key);  
+	  if(surf_iter != _cluster_surface_map.end())
+	    {	      
+	      TrkrDefs::hitsetkey found_key = surf_iter->first;
+	      cout << "Found surf_iter with key " << found_key << endl; 
+	      const Acts::Surface *surf = surf_iter->second;
+	      cout<< "Got surface pair" << endl;
+	      surf->toStream("", std::cout);
+	    }
+	  else
+	    cout << "Failed to find associated surface element" << endl;
+	  */
+	  
 	  // transform position back to local coords on chip
 	  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(staveid, 0, 0, chipid, world);
@@ -918,10 +858,10 @@ int PHActsTrkFitter::Process()
 	    cout << "   Intt cluster with ladderzid " << ladderzid << " ladderphid " << ladderphiid << endl; 
 
 	  // make identifier for this sensor
-	  TrkrDefs::hitsetkey cluster_node_key = InttDefs::genHitSetKey(layer, ladderzid, ladderphiid);
+	  hitset_key = InttDefs::genHitSetKey(layer, ladderzid, ladderphiid);
 	  // get the TGeoNode for it
 	  std::map<TrkrDefs::hitsetkey, TGeoNode*>::iterator it;
-	  it = _cluster_node_map.find(cluster_node_key);
+	  it = _cluster_node_map.find(hitset_key);
 	  if(it != _cluster_node_map.end())
 	    {
 	      sensor_node = it->second;
@@ -932,6 +872,41 @@ int PHActsTrkFitter::Process()
 	  else
 	    cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
 
+	  // Find Acts surface corresponding to this cluster
+
+	  /* 
+	  // we need A dummy context  
+	  //====================
+	  auto logLevel   = Acts::Logging::Level('0');
+
+	  // Setup the event and algorithm context
+	  FW::WhiteBoard eventStore(
+				    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
+	  size_t ialg = 0;
+	  // The geometry context
+	  FW::AlgorithmContext context(ialg, 0, eventStore);  
+	  
+	  /// Decorate the context
+	  for (auto& cdr : contextDecorators) {
+	    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
+	      throw std::runtime_error("Failed to decorate event context");
+	  }
+	  
+	  std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter;
+	  cout << " get the surface pointer" << endl;
+	  surf_iter = _cluster_surface_map.find(hitset_key);  
+	  if(surf_iter != _cluster_surface_map.end())
+	    {	      
+	      TrkrDefs::hitsetkey found_key = surf_iter->first;
+	      cout << "Found surf_iter with key " << found_key << endl; 
+	      const Acts::Surface *surf = surf_iter->second;
+	      cout<< "Got surface pair" << endl;
+	      surf->toStream(context, std::cout);
+	    }
+	  else
+	    cout << "Failed to find associated surface element" << endl;
+	  */
+	  
 	  // transform position back to local coords on sensor
 	  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(ladderzid, ladderphiid, world);
@@ -997,21 +972,21 @@ int PHActsTrkFitter::Process()
       else  // TPC
 	{
 	  /*
-	  unsigned int sectorid = TpcDefs::getSectorId(cluskey);
-	  unsigned int side = TpcDefs::getSide(cluskey);
-	  unsigned int pad = TpcDefs::getPad(cluskey);
-	  unsigned int tbin = TpcDefs::getTBin(cluskey);
+	    unsigned int sectorid = TpcDefs::getSectorId(cluskey);
+	    unsigned int side = TpcDefs::getSide(cluskey);
+	    unsigned int pad = TpcDefs::getPad(cluskey);
+	    unsigned int tbin = TpcDefs::getTBin(cluskey);
 	  */
-
+	  
 	  // transform position local coords on cylinder, at center of layer
 	  // What do we mean by local coords on a cylinder?
 	  // has to be phi and z, right?
 	  // so it is just the phi and z part of the global coords
-
+	  
 	  double clusphi = atan2(world[1], world[0]);
 	  double r_clusphi = radius*clusphi;
 	  double ztpc = world[2];
-
+	  
 	  // rotate errors back to local coords too	
 	  TMatrixF ROT(3, 3);
 	  ROT[0][0] = cos(clusphi);
@@ -1023,15 +998,15 @@ int PHActsTrkFitter::Process()
 	  ROT[2][0] = 0.0; 
 	  ROT[2][1] = 0.0;
 	  ROT[2][2] = 1.0;
-
+	  
 	  ROT.Invert();
-
+	  
 	  TMatrixF ROT_T(3, 3);
 	  ROT_T.Transpose(ROT);
 	  
 	  TMatrixF local_err(3, 3);
 	  local_err = ROT * ERR * ROT_T;
-
+	  
 	  if(Verbosity() > 1)
 	    {
 	      cout << " r " <<  " local 3D " << radius << endl;
@@ -1044,7 +1019,7 @@ int PHActsTrkFitter::Process()
 		    cout << "   " << i << "   " << j << " local_err 3D " << local_err[i][j] << endl;
 		  }
 	    }
-      
+	  
 	  local_2D[0] = r_clusphi;
 	  local_2D[1] = ztpc;
 	  local_err_2D[0][0] = local_err[1][1];
@@ -1052,7 +1027,7 @@ int PHActsTrkFitter::Process()
 	  local_err_2D[1][0] = local_err[2][1];
 	  local_err_2D[1][1] = local_err[2][2];
 	}
-
+      
       // local and local_err now contain the position and covariance matrix in local coords
       if(Verbosity() > 1)
 	{
@@ -1066,45 +1041,59 @@ int PHActsTrkFitter::Process()
 		cout << "   " << i << "   " << j << " cov_2D " << local_err_2D[i][j] << endl;	      	      
 	      }
 	}
-
+      
     }
-
-  /*
-  // create Acts measurement container
   
+  /*
+  // make a dummy context  
+  //=================
+  // Setup the event and algorithm context
+  auto logLevel = FW::Options::readLogLevel(vm);
+  FW::WhiteBoard eventStore(
+			    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
+  size_t ialg = 0;
+  // The geometry context
+  FW::AlgorithmContext context(ialg, 0, eventStore);  
+  /// Decorate the context
+  for (auto& cdr : contextDecorators) {
+    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
+      throw std::runtime_error("Failed to decorate event context");
+  }
   */
 
+  // std::cout << "  Found surface associated with hitsetkey " << hitset_key << std::endl;
+  //  cout << surf->name() << endl;  
 
-  // _trackmap is SvtxTrackMap from the node tree
-  // We need to convert to Acts tracks
-  for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-       ++iter)
-  {
-    SvtxTrack* svtx_track = iter->second;
-    if(Verbosity() > 0)
+    /*
+      // create Acts measurement container
+  
+    */
+  
+  
+    // _trackmap is SvtxTrackMap from the node tree
+    // We need to convert to Acts tracks
+    for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
+         ++iter)
       {
-	cout << "   found SVTXTrack " << iter->first << endl;
-	svtx_track->identify();
+	SvtxTrack* svtx_track = iter->second;
+	if(Verbosity() > 0)
+	  {
+	    cout << "   found SVTXTrack " << iter->first << endl;
+	    svtx_track->identify();
+	  }
+	if (!svtx_track)
+	  continue;
+	
       }
-    if (!svtx_track)
-      continue;
-
-  }
-  return 0;
+    return 0;
 }
 
-/*
- * End
- */
 int PHActsTrkFitter::End(PHCompositeNode* topNode)
 {
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-/*
- * dtor
- */
 PHActsTrkFitter::~PHActsTrkFitter()
 {
 

@@ -38,7 +38,8 @@ class TGeoManager;
 }
 
 namespace Acts {
-class TrackingVolume;
+  class TrackingVolume;
+  class Surface;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
@@ -94,6 +95,7 @@ int Process();
   void getMvtxKeyFromNode(TGeoNode *gnode);
   int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
 
   /*
 	 * fit track with SvtxTrack as input seed.
@@ -108,6 +110,7 @@ int Process();
   TGeoManager* _geomanager;
 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
+  std::map<TrkrDefs::hitsetkey, const Acts::Surface*> _cluster_surface_map;
 
 };
 
