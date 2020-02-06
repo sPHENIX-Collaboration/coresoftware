@@ -41,6 +41,7 @@ namespace FW {
 namespace Acts {
   class TrackingVolume;
   class Surface;
+  class PlaneSurface;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
@@ -113,7 +114,7 @@ int Process();
   std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey, const Acts::Surface*> _cluster_surface_map;
+  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
 
 };
 
