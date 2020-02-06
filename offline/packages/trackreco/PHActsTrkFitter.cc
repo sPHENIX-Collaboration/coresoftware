@@ -69,6 +69,7 @@
 #include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "ACTFW/Detector/IBaseDetector.hpp"
+#include "ACTFW/Io/Root/RootMaterialDecorator.hpp"
 
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
@@ -169,12 +170,11 @@ void PHActsTrkFitter::BuildLayers()
               TrackingGeometry = acts-core/Core/include/Acts/Geometry/TrackingGeometry.hpp 
               - calls TGeoDetecrtor::finalize() = cts-framework/Detectors/TGeoDetector/include/ACTFW/TGeoDetector/TGeoDetector(.hpp)::finalize (inherits from FW::IBaseDetector)
                     creates DetectorStore
-                    returns   std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>
+                    returns   std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>     (TrackingGeometryPtr = std::shared_ptr<const Acts::TrackingGeometry>)
                   - calls TGeo::buildTGeoDetector()  = acts-framework/Detectors/TGeoDetector/include/ACTFW/TGeoDetector/BuildTGeoDetector.hpp ( = namespace TGeo)
                       initializes TGeoManager from file
    acts-core from here on:
                       - calls TGeoLayerBuilder::buildLayers = acts-core/Plugins/TGeo/include/Acts/Plugins/TGeo/TGeoLayerBuilder(.hpp)::buildLayers  (inherits from Acts::ILayerBuilder)
-                           quits of TGeoManager is nullptr
   */
 
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
@@ -212,9 +212,11 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   std::cout << " back from CommonGeometry::build" << std::endl;
   // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   auto tGeometry         = geometry.first;
-  auto contextDecorators = geometry.second;
-  
-  std::cout << "contextDecorators.size() =  " << contextDecorators.size() << std::endl;
+  //auto contextDecorators = geometry.second;
+  //std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators = geometry.second; 
+  contextDecorators = geometry.second; 
+
+   std::cout << "contextDecorators.size() =  " << contextDecorators.size() << std::endl;
 
   // The detectors
   // "MVTX" and "Silicon"
@@ -229,48 +231,36 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   // understand what this event loop does
   std::cout << "nEvents " << nEvents << std::endl;
+  nEvents = 1;
   //for (size_t ievt = 0; ievt < nEvents; ++ievt) {
-  for (size_t ievt = 0; ievt < 1; ++ievt) {
-
-    // Setup the event and algorithm context
-    FW::WhiteBoard eventStore(
-        Acts::getDefaultLogger("EventStore#" + std::to_string(ievt), logLevel));
-    size_t ialg = 0;
-
-    // The geometry context
-    FW::AlgorithmContext context(ialg, ievt, eventStore);
-
-    /// Decorate the context
-    for (auto& cdr : contextDecorators) {
-      if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
-        throw std::runtime_error("Failed to decorate event context");
-    }
-
-    std::string geoContextStr = "";
-    if (contextDecorators.size() > 0) {
-      // We need indeed a context object
-      if (nEvents > 1) { geoContextStr = "_geoContext" + std::to_string(ievt); }
-    }
-  }
-
+  //  for (size_t ievt = 0; ievt < 1; ++ievt) {
   
-  std::cout<<"Dump of surfaces for MVTX and INTT:"<<std::endl;
+  size_t ievt = 0;
+  size_t ialg = 0;
 
-  // we need A dummy context  
-  //====================
   // Setup the event and algorithm context
   FW::WhiteBoard eventStore(
-			    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
-  size_t ialg = 0;
+			    Acts::getDefaultLogger("EventStore#" + std::to_string(ievt), logLevel));
+  
   // The geometry context
-  FW::AlgorithmContext context(ialg, 0, eventStore);  
+  FW::AlgorithmContext context(ialg, ievt, eventStore);
+
+  // this is not executed because contextDecorators has size 0
   /// Decorate the context
   for (auto& cdr : contextDecorators) {
     if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
       throw std::runtime_error("Failed to decorate event context");
   }
-  
 
+  // This is not executed because size is 0
+  std::string geoContextStr = "";
+  if (contextDecorators.size() > 0) {
+    // We need indeed a context object
+    if (nEvents > 1) { geoContextStr = "_geoContext" + std::to_string(ievt); }
+  }
+
+  std::cout<<"Dump of surfaces for MVTX and INTT:"<<std::endl;
+  
   // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
   auto vol = tGeometry->highestTrackingVolume();
   // vol is a TrackingVolume pointer
@@ -302,7 +292,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
       // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
       auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
-
       if(surfaceArray == NULL)
 	continue;
       
@@ -310,37 +299,32 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       auto surfaceVector = surfaceArray->surfaces();
       for(unsigned int j=0; j<surfaceVector.size(); j++){
 
-       	auto vec3d =  surfaceVector.at(j)->center(context);
-	//auto normal_vec3d =  surfaceVector.at(j)->normal(context);
-	std::cout << std::endl << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2)  << std::endl;
+	auto surf = surfaceVector.at(j);
+	auto vec3d =  surf->center(context);
+	std::cout << std::endl << "  surface index " << j  << " " << surf->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2)  << std::endl;
 
 	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
 	unsigned int layer = i / 2;
 	TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
 	std::cout << " mvtx hitsetkey = " << hitsetkey << std::endl;	  
 
-	// optionally dump the surface description	
-	if(Verbosity() > 1)
-	  {
-	    std::cout << " --------------------------" << std::endl;
-	    surfaceVector.at(j)->toStream(context, std::cout);
-	    std::cout << std::endl;
-	  }
-
 	// Add this surface to the map
-	std::pair<TrkrDefs::hitsetkey, const Acts::Surface*> tmp = make_pair(hitsetkey, surfaceVector.at(j));
+	std::pair<TrkrDefs::hitsetkey, const Acts::Surface*> tmp = make_pair(hitsetkey, surf);
 	_cluster_surface_map.insert(tmp);
 	std::cout << " _cluster_surface_map size now " << _cluster_surface_map.size() << std::endl;
 
-	if(Verbosity() > 1)
+	if(Verbosity() > -1)
 	  {
 	    // check it is in there
+	    std::cout << "Recover surface from _cluster_surface_map " << std::endl;
 	    std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
 	    surf_iter->second->toStream(context,std::cout);	
 	  }
 
       }
     }
+  // end of MVTX
+  //=================================
 
   // INTT only has one volume, so there is not an added iterator like for the  MVTX
   //========================================================
@@ -362,17 +346,17 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
     auto surfaceVector = surfaceArray->surfaces();
     for(unsigned int j=0; j<surfaceVector.size(); j++){
-
-	auto vec3d =  surfaceVector.at(j)->center(context);
-	//auto normal_vec3d =  surfaceVector.at(j)->normal(context);
-	std::cout << std::endl << "  surface index " << j  << " " << surfaceVector.at(j)->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << std::endl;
-
-	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
-	// The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
-	// out which layer to use to get the layergeom
-	double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
-	double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
-
+      
+      auto surf =  surfaceVector.at(j);
+      auto vec3d =  surf->center(context);
+      std::cout << std::endl << "  surface index " << j  << " " << surf->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << std::endl;
+      
+      std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
+      // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
+      // out which layer to use to get the layergeom
+      double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
+      double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
+      
 	unsigned int layer = 0;
 	for(unsigned int i = 0;i<4;++i)
 	  {
@@ -383,27 +367,23 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 	TrkrDefs::hitsetkey hitsetkey = GetInttHitSetKeyFromCoords(layer, world_center);
 	std::cout << " intt hitsetkey = " << hitsetkey << std::endl;	  
 
-	// optionally dump the surface description	
-      if(Verbosity() > 1)
-	{
-	  std::cout << " --------------------------" << std::endl;
-	  surfaceVector.at(j)->toStream(context, std::cout);
-	  std::cout << std::endl;
-	}
-
 	// Add this surface to the map
-	std::pair<TrkrDefs::hitsetkey, const Acts::Surface*> tmp = make_pair(hitsetkey, surfaceVector.at(j));
+	std::pair<TrkrDefs::hitsetkey, const Acts::Surface*> tmp = make_pair(hitsetkey, surf);
 	_cluster_surface_map.insert(tmp);
 	std::cout << " _cluster_surface_map size now " << _cluster_surface_map.size() << std::endl;
 
-	if(Verbosity() > 1)
+	if(Verbosity() > -1)
 	  {
 	    // check it is in there
+	    std::cout <<"Recover surface from _cluster_surface_map " << std::endl;
 	    std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
 	    surf_iter->second->toStream(context,std::cout);
 	  }
     }
   }
+
+  // end of INTT
+  //=================================
 
   std::cout << "Leaving MakeActsGeometry()" << std::endl; 
   
@@ -710,6 +690,34 @@ int PHActsTrkFitter::Process()
             cout << "Start PHActsTrkfitter::process_event" << endl;
     }
 
+  // we need A dummy context  
+  //====================
+  auto logLevel   = Acts::Logging::Level('0');
+  
+  // Setup the event and algorithm context
+  FW::WhiteBoard eventStore(
+			    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
+  size_t ialg = 0;
+  size_t ievt = 0;
+  size_t nEvents = 1;
+  // The geometry context
+  FW::AlgorithmContext context(ialg, ievt, eventStore);  
+  
+  /// Decorate the context
+  for (auto& cdr : contextDecorators) {
+    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
+      throw std::runtime_error("Failed to decorate event context");
+  }
+
+  // This is not executed because size is 0
+  std::string geoContextStr = "";
+  if (contextDecorators.size() > 0) {
+    // We need indeed a context object
+    if (nEvents > 1) { geoContextStr = "_geoContext" + std::to_string(ievt); }
+  }
+
+  cout << "      context algoritmNumber " << context.algorithmNumber << " eventNumber " << context.eventNumber << endl;
+
   // Access the TrkrClusters 
   TrkrDefs::hitsetkey hitset_key;
 
@@ -747,6 +755,7 @@ int PHActsTrkFitter::Process()
 
       unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  // 0 for MVTX, 1 for INTT, 2 for TPC
       TGeoNode *sensor_node;
+      const Acts::Surface *surf;
       if(trkrid == TrkrDefs::mvtxId)
 	{
 	  unsigned int staveid = MvtxDefs::getStaveId(cluskey);
@@ -772,7 +781,7 @@ int PHActsTrkFitter::Process()
 		   << " chipid " << chipid  << ". That should be impossible!" << endl;
 	    }
 
-	  /*
+	 
 	  // Find Acts surface corresponding to this cluster
 	  std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter;
 	  cout << " get the surface pointer" << endl;
@@ -780,15 +789,15 @@ int PHActsTrkFitter::Process()
 	  if(surf_iter != _cluster_surface_map.end())
 	    {	      
 	      TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      cout << "Found surf_iter with key " << found_key << endl; 
-	      const Acts::Surface *surf = surf_iter->second;
+	      cout << "MVTX: Found surf_iter with key " << found_key << endl; 
+	      surf = surf_iter->second;
 	      cout<< "Got surface pair" << endl;
-	      surf->toStream("", std::cout);
 	    }
 	  else
-	    cout << "Failed to find associated surface element" << endl;
-	  */
-	  
+	    {
+	      cout << "Failed to find associated surface element" << endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
+	    }
 	  // transform position back to local coords on chip
 	  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(staveid, 0, 0, chipid, world);
@@ -873,24 +882,6 @@ int PHActsTrkFitter::Process()
 	    cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
 
 	  // Find Acts surface corresponding to this cluster
-
-	  /* 
-	  // we need A dummy context  
-	  //====================
-	  auto logLevel   = Acts::Logging::Level('0');
-
-	  // Setup the event and algorithm context
-	  FW::WhiteBoard eventStore(
-				    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
-	  size_t ialg = 0;
-	  // The geometry context
-	  FW::AlgorithmContext context(ialg, 0, eventStore);  
-	  
-	  /// Decorate the context
-	  for (auto& cdr : contextDecorators) {
-	    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
-	      throw std::runtime_error("Failed to decorate event context");
-	  }
 	  
 	  std::map<TrkrDefs::hitsetkey, const Acts::Surface*>::iterator surf_iter;
 	  cout << " get the surface pointer" << endl;
@@ -898,15 +889,18 @@ int PHActsTrkFitter::Process()
 	  if(surf_iter != _cluster_surface_map.end())
 	    {	      
 	      TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      cout << "Found surf_iter with key " << found_key << endl; 
-	      const Acts::Surface *surf = surf_iter->second;
+	      cout << "INTT: Found surf_iter with key " << found_key << endl; 
+	      surf = surf_iter->second;
 	      cout<< "Got surface pair" << endl;
-	      surf->toStream(context, std::cout);
+	      //std::cout << surf->name() << std::endl;
+	      //surf->toStream(context, std::cout);
 	    }
 	  else
-	    cout << "Failed to find associated surface element" << endl;
-	  */
-	  
+	    {
+	      cout << "Failed to find associated surface element" << endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
+	    }
+
 	  // transform position back to local coords on sensor
 	  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(ladderzid, ladderphiid, world);
@@ -971,6 +965,7 @@ int PHActsTrkFitter::Process()
 	}
       else  // TPC
 	{
+	  surf = 0;
 	  /*
 	    unsigned int sectorid = TpcDefs::getSectorId(cluskey);
 	    unsigned int side = TpcDefs::getSide(cluskey);
@@ -1041,53 +1036,85 @@ int PHActsTrkFitter::Process()
 		cout << "   " << i << "   " << j << " cov_2D " << local_err_2D[i][j] << endl;	      	      
 	      }
 	}
-      
+
+      /*
+      class PlanarModuleCluster
+	: public Measurement_t<ParDef::eLOC_0, ParDef::eLOC_1, ParDef::eT> {
+      public:
+	/// Constructor from DigitizationCells
+	///
+	/// @param [in] mSurface is the module surface
+	/// @param [in] cIdentifier is the channel identifier of the local position
+	/// @param [in] cov is the covariance matrix
+	/// @param [in] loc0 is the local position in the first coordinate
+	/// @param [in] loc1 is the local position in the second coordinate
+	/// @param [in] t Timestamp of the cluster
+	/// @param [in] dCells is the vector of digitization cells
+	PlanarModuleCluster(std::shared_ptr<const Surface> mSurface,
+			    const Identifier& identifier, ActsSymMatrixD<3> cov,
+			    double loc0, double loc1, double t,
+			    std::vector<DigitizationCell> dCells,
+			    const DigitizationModule* dModule = nullptr)
+	  : Measurement_t<ParDef::eLOC_0, ParDef::eLOC_1, ParDef::eT>(
+								      std::move(mSurface), identifier,  // original measurement
+								      std::move(cov), loc0, loc1, t),
+	    m_digitizationCells(std::move(dCells)),
+	    m_digitizationModule(dModule) {}
+      */
+
+      /*
+         // create the planar cluster
+        Acts::PlanarModuleCluster pCluster(
+            hitSurface.getSharedPtr(),
+            Identifier(Identifier::identifier_type(hit.geoId().value()),
+                       hitParticles),
+            std::move(cov),
+            localX,
+            localY,
+            hit.time,
+            std::move(usedCells));
+      */
+  
+      //if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+      if(trkrid == TrkrDefs::mvtxId)
+	{
+	  // check that we have a surface
+	  std::cout << surf->name() << std::endl;  // this causes a segfault for the intt only
+	  //surf->toStream(context, std::cout);  // this causes a segfault for mvtx and intt - problem with the context???
+
+	  // create Acts measurement container
+	  // See DigitizationAlgorithm.cpp for example above
+
+	  // define identifier
+	  // is local_err the correct covariance?
+	  // define time
+	  // define hits - empty vector?
+	  //Acts::PlanarModuleCluster acts_meas(surf.getSharedPtr(), identifier, std::move(local_err), local_2D[0], local_2D[1], time, std::move(hits));
+	  
+
+
+	  
+	}
     }
   
-  /*
-  // make a dummy context  
-  //=================
-  // Setup the event and algorithm context
-  auto logLevel = FW::Options::readLogLevel(vm);
-  FW::WhiteBoard eventStore(
-			    Acts::getDefaultLogger("EventStore#" + std::to_string(0), logLevel));
-  size_t ialg = 0;
-  // The geometry context
-  FW::AlgorithmContext context(ialg, 0, eventStore);  
-  /// Decorate the context
-  for (auto& cdr : contextDecorators) {
-    if (cdr->decorate(context) != FW::ProcessCode::SUCCESS)
-      throw std::runtime_error("Failed to decorate event context");
-  }
-  */
-
-  // std::cout << "  Found surface associated with hitsetkey " << hitset_key << std::endl;
-  //  cout << surf->name() << endl;  
-
-    /*
-      // create Acts measurement container
-  
-    */
-  
-  
-    // _trackmap is SvtxTrackMap from the node tree
-    // We need to convert to Acts tracks
-    for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
-         ++iter)
-      {
-	SvtxTrack* svtx_track = iter->second;
-	if(Verbosity() > 0)
-	  {
-	    cout << "   found SVTXTrack " << iter->first << endl;
-	    svtx_track->identify();
-	  }
-	if (!svtx_track)
-	  continue;
-	
-      }
-    return 0;
+  // _trackmap is SvtxTrackMap from the node tree
+  // We need to convert to Acts tracks
+  for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
+       ++iter)
+    {
+      SvtxTrack* svtx_track = iter->second;
+      if(Verbosity() > 0)
+	{
+	  cout << "   found SVTXTrack " << iter->first << endl;
+	  svtx_track->identify();
+	}
+      if (!svtx_track)
+	continue;
+      
+    }
+  return 0;
 }
-
+ 
 int PHActsTrkFitter::End(PHCompositeNode* topNode)
 {
 

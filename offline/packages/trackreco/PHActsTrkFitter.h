@@ -33,8 +33,9 @@ class TGeoManager;
 class TGeoNode;
 
 namespace FW {
-class IBaseDetector;
-class TGeoManager;
+  class IBaseDetector;
+  class TGeoManager;
+  class IContextDecorator;
 }
 
 namespace Acts {
@@ -108,6 +109,8 @@ int Process();
   TrkrClusterContainer* _clustermap;
 
   TGeoManager* _geomanager;
+
+  std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
   std::map<TrkrDefs::hitsetkey, const Acts::Surface*> _cluster_surface_map;
