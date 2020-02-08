@@ -18,6 +18,9 @@
 #include <vector>
 #include <map>
 
+#include <Acts/Geometry/GeometryContext.hpp>
+//#include "Acts/Plugins/Identification/Identifier.hpp"
+
 class TClonesArray;
 
 class SvtxTrack;
@@ -39,9 +42,10 @@ namespace FW {
 }
 
 namespace Acts {
-  class TrackingVolume;
-  class Surface;
-  class PlaneSurface;
+class TrackingVolume;
+class Surface;
+class PlaneSurface;
+ class PlanarModuleCluster;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
@@ -110,6 +114,8 @@ int Process();
   TrkrClusterContainer* _clustermap;
 
   TGeoManager* _geomanager;
+
+  Acts::GeometryContext  geo_ctxt;
 
   std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
 
