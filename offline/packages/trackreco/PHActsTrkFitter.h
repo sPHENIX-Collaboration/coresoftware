@@ -20,6 +20,7 @@
 
 #include <Acts/Geometry/GeometryContext.hpp>
 //#include "Acts/Plugins/Identification/Identifier.hpp"
+#include <TMatrixD.h>
 
 class TClonesArray;
 
@@ -100,6 +101,9 @@ int Process();
   void getInttKeyFromNode(TGeoNode *gnode);
   void getMvtxKeyFromNode(TGeoNode *gnode);
   int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
+  TMatrixD GetMvtxCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
+  TMatrixD GetInttCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
+TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
 

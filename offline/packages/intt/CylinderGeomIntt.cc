@@ -47,13 +47,12 @@ TVector3 CylinderGeomIntt::get_local_from_world_coords(const int segment_z_bin, 
 
   // subtract center location of sensor from world coords
   local = world - cent;
-  cout << "After subtraction, local is " << local[0] << " " << local[1] << " " << local[2] << endl;
+
   // rotate the residual into local coords
   const double phi = m_OffsetPhi + m_dPhi * segment_phi_bin;
   const double rotate = phi + m_OffsetRot;
-  cout << "rotate = " << rotate << endl;
   local.RotateZ(-rotate);
-  cout << "After rotation, local is " << local[0] << " " << local[1] << " " << local[2] << endl;
+
   return local;
 }
 

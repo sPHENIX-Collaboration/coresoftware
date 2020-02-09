@@ -749,39 +749,37 @@ int PHActsTrkFitter::Process()
 
       // In local coords the covariances are in the  r*phi vs z frame
       // They have been rotated into global coordinates in TrkrCluster
-      TMatrixD ERR(3,3);
+      TMatrixD world_err(3,3);
       for(int i=0; i < 3; ++i)
 	for(int j =0; j<3; j++)
 	  {
-	    ERR[i][j] = cluster->getError(i,j);
+	    world_err[i][j] = cluster->getError(i,j);
 	  }
 
       // extract detector element identifiers from cluskey so we can access the Surface and TGeoNode
       unsigned int layer = TrkrDefs::getLayer(cluskey);
-      if(Verbosity() > 0) cout << " layer " << layer << endl;
+      if(Verbosity() > 0) cout << std::endl << " layer " << layer << endl;
 
       TVector3 world(x,y,z);
       TVector3 local(0,0,0);
       TMatrixD local_err(3, 3);
 
       double local_2D[2] = {0};
-      double local_err_2D[2][2] = {0};
 
       unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  // 0 for MVTX, 1 for INTT, 2 for TPC
       TGeoNode *sensor_node;
       std::shared_ptr<const Acts::Surface> surf;
 
       // Getting the hitsetkey from the cluskey is detector specific
-
-      if(trkrid == TrkrDefs::mvtxId)
+      if(trkrid == TrkrDefs::mvtxId)   	  // MVTX
 	{
 	  unsigned int staveid = MvtxDefs::getStaveId(cluskey);
 	  unsigned int chipid = MvtxDefs::getChipId(cluskey);
-	  if(Verbosity() > 0) 
-	    cout << "   MVTX cluster with staveid " << staveid << " chipid " << chipid << endl; 
+	  if(Verbosity() > 0)   cout << "   MVTX cluster with staveid " << staveid << " chipid " << chipid << endl; 
 
 	  // make key for this sensor
 	  hsetkey = MvtxDefs::genHitSetKey(layer, staveid, chipid);
+
 	  // get the TGeoNode for it
 	  std::map<TrkrDefs::hitsetkey, TGeoNode*>::iterator it;
 	  it = _cluster_node_map.find(hsetkey);
@@ -789,102 +787,56 @@ int PHActsTrkFitter::Process()
 	    {
 	      sensor_node = it->second;
 	      if(Verbosity() > 0) 
-		cout << "       Found in _cluster_node_map: layer " << layer << " staveid " << staveid << " chipid " << chipid 
+		cout << "    Found in _cluster_node_map: layer " << layer << " staveid " << staveid << " chipid " << chipid 
 		     <<  " node " << sensor_node->GetName() << endl;
 	    }
 	  else
 	    {
-	      cout << PHWHERE << " Did not find entry in TGeo map for cluster with layer " << layer << " staveid " << staveid 
-		   << " chipid " << chipid  << ". That should be impossible!" << endl;
+	      cout << PHWHERE << "No entry in TGeo map for cluster: layer " << layer << " staveid " << staveid << " chipid " << chipid  << " - should be impossible!" << endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 	 
-	  // Find Acts surface corresponding to this cluster
+	  // Find Acts surface corresponding to it
 	  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter;
-	  cout << " get the surface pointer" << endl;
 	  surf_iter = _cluster_surface_map.find(hsetkey);  
 	  if(surf_iter != _cluster_surface_map.end())
 	    {	      
 	      TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      cout << "MVTX: Found surf_iter with key " << found_key << endl; 
+	      cout << "    Found surf_iter with key " << found_key << endl; 
 	      surf = surf_iter->second->getSharedPtr();
-	      cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
-
+	      //cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
 	      //surf->toStream(geo_ctxt, std::cout);  // this causes a segfault for mvtx and intt
 	    }
 	  else
 	    {
-	      cout << "Failed to find associated surface element" << endl;
+	      cout << PHWHERE << "Failed to find associated surface element - should be impossible!" << endl;
 	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
-	  // transform position back to local coords on chip
+
 	  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(staveid, 0, 0, chipid, world);
-	  double segcent[3];
-	  layergeom->find_sensor_center(staveid, 0, 0, chipid, segcent);
-	  if(Verbosity() > 0)
-	    {
-	      cout << " segment center: " << segcent[0] << " " << segcent[1] << " " << segcent[2] << endl;
-	      cout << " world; " << world[0] << " " << world[1] << " " << world[2] << endl;
-	      cout << " local; " << local[0] << " " << local[1] << " " << local[2] << endl;
-	    }
-	  // rotate errors back to local coords too
-	  double ladder_location[3] = {0.0, 0.0, 0.0};
-	  // returns the center of the sensor in world coordinates - used to get the ladder phi location
-	  layergeom->find_sensor_center(staveid, 0, 0, chipid, ladder_location);
-	  double ladderphi = atan2(ladder_location[1], ladder_location[0]);
-	  ladderphi += layergeom->get_stave_phi_tilt();
-
-	  // this is the matrix that was used to rotate from local to global coords 
-	  TMatrixD ROT(3, 3);
-	  ROT[0][0] = cos(ladderphi);
-	  ROT[0][1] = -1.0 * sin(ladderphi);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(ladderphi);
-	  ROT[1][1] = cos(ladderphi);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0; 
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  // we want the inverse rotation
-	  ROT.Invert();
-
-	  TMatrixD ROT_T(3, 3);
-	  ROT_T.Transpose(ROT);
-	  
-	  local_err = ROT * ERR * ROT_T;
-
-	  if(Verbosity() > 0)
-	    {
-	      for(int i=0;i<3;++i)
-		{
-		  cout << " i " << i << " local 3D " << local[i] << endl;
-		}
-	      for(int i=0;i<3;++i)
-		for(int j = 0; j<3; ++j)
-		  {
-		    cout << "  " << i << "    " << j << " local_err 3D " << local_err[i][j] << endl;
-		  }
-	    }
-	  
 	  local_2D[0] = local[0];
 	  local_2D[1] = local[2];
-	  local_err_2D[0][0] = local_err[1][1];
-	  local_err_2D[0][1] = local_err[1][2];
-	  local_err_2D[1][0] = local_err[2][1];
-	  local_err_2D[1][1] = local_err[2][2];
 
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 10)
 	    {
-	      cout << " MVTX: local_2D[0]  " << local_2D[0] << " local_2D[1] " <<   local_2D[1]  << endl;
-	      cout << " MVTX: local_err_2D[0][0]  " << local_err_2D[0][0] << " local_err_2D[1][1] " <<   local_err_2D[1][1]  << endl;
+	      double segcent[3];
+	      layergeom->find_sensor_center(staveid, 0, 0, chipid, segcent);
+	      cout << "   segment center: " << segcent[0] << " " << segcent[1] << " " << segcent[2] << endl;
+	      cout << "   world; " << world[0] << " " << world[1] << " " << world[2] << endl;
+	      cout << "   local; " << local[0] << " " << local[1] << " " << local[2] << endl;
 	    }
+
+	  // transform covariance matrix back to local coords on chip
+	  local_err = GetMvtxCovarLocal(layer, staveid, chipid, world_err);
+
 	}
-      else if (trkrid == TrkrDefs::inttId)
+      else if (trkrid == TrkrDefs::inttId)  	  // INTT
 	{
 	  unsigned int ladderzid = InttDefs::getLadderZId(cluskey);
 	  unsigned int ladderphiid = InttDefs::getLadderPhiId(cluskey);
 	  if(Verbosity() > 0) 
-	    cout << "   Intt cluster with ladderzid " << ladderzid << " ladderphid " << ladderphiid << endl; 
+	    cout << "    Intt cluster with ladderzid " << ladderzid << " ladderphid " << ladderphiid << endl; 
 
 	  // make identifier for this sensor
 	  hsetkey = InttDefs::genHitSetKey(layer, ladderzid, ladderphiid);
@@ -899,93 +851,48 @@ int PHActsTrkFitter::Process()
 		     <<  " node " << sensor_node->GetName() << endl;;
 	    }
 	  else
-	    cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
+	    {
+	      cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
+	      return Fun4AllReturnCodes::ABORTEVENT; 	      
+	    }
 
 	  // Find Acts surface corresponding to this cluster
 	  
 	  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter;
-	  cout << " get the surface pointer" << endl;
 	  surf_iter = _cluster_surface_map.find(hsetkey);  
 	  if(surf_iter != _cluster_surface_map.end())
 	    {	      
 	      TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      cout << "INTT: Found surf_iter with key " << found_key << endl; 
+	      cout << "    Found surf_iter with key " << found_key << endl; 
 	      surf = surf_iter->second->getSharedPtr();
-	      cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
-
-	      //surf->toStream(geo_ctxt, std::cout);
+	      // cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
+	      // surf->toStream(geo_ctxt, std::cout);
 	    }
 	  else
 	    {
-	      cout << "Failed to find associated surface element" << endl;
+	      cout << "Failed to find associated surface element - should be impossible " << endl;
 	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 
 	  // transform position back to local coords on sensor
 	  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(ladderzid, ladderphiid, world);
-	  double segcent[3];
-	  layergeom->find_segment_center(ladderzid, ladderphiid,segcent);
-	  if(Verbosity() > 0)
-	    {
-	      cout << " segment center: " << segcent[0] << " " << segcent[1] << " " << segcent[2] << endl;
-	      cout << " world; " << world[0] << " " << world[1] << " " << world[2] << endl;
-	      cout << " local; " << local[0] << " " << local[1] << " " << local[2] << endl;
-	    }
-	  // rotate errors back to local coords too	
-	  double ladder_location[3] = {0.0, 0.0, 0.0};
-	  layergeom->find_segment_center(ladderzid,
-					 ladderphiid,
-					 ladder_location);
-	  double ladderphi = atan2(ladder_location[1], ladder_location[0]);
-	  
-	  TMatrixD ROT(3, 3);
-	  ROT[0][0] = cos(ladderphi);
-	  ROT[0][1] = -1.0 * sin(ladderphi);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(ladderphi);
-	  ROT[1][1] = cos(ladderphi);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0; 
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  
-	   ROT.Invert();
+	  local_2D[0] = local[1];     // r*phi
+	  local_2D[1] = local[2];    // z
 
-	   TMatrixD ROT_T(3, 3);
-	   ROT_T.Transpose(ROT);
-	  
-	  TMatrixD local_err(3, 3);
-	  local_err = ROT * ERR * ROT_T;
-
-	  if(Verbosity() > 0)
+	  if(Verbosity() > 10)
 	    {
-	      for(int i=0;i<3;++i)
-		{
-		  cout << " i " << i << " local 3D " << local[i] << endl;
-		}
-	      for(int i=0;i<3;++i)
-		for(int j = 0; j<3; ++j)
-		  {
-		    cout << "    " << i << "   " << j << " local_err 3D " << local_err[i][j] << endl;
-		  }
+	      double segcent[3];
+	      layergeom->find_segment_center(ladderzid, ladderphiid,segcent);
+	      cout << "   segment center: " << segcent[0] << " " << segcent[1] << " " << segcent[2] << endl;
+	      cout << "   world; " << world[0] << " " << world[1] << " " << world[2] << endl;
+	      cout << "   local; " << local[0] << " " << local[1] << " " << local[2] << endl;
 	    }
 
-	  local_2D[0] = local[1];  // r*phi
-	  local_2D[1] = local[2];  // z
-	  local_err_2D[0][0] = local_err[1][1];  // r*phi
-	  local_err_2D[0][1] = 0.0;
-	  local_err_2D[1][0] = 0.0;  
-	  local_err_2D[1][1] = local_err[2][2];  // z
-
-	  if(Verbosity() > 0)
-	    {
-	      cout << " INTT: local_2D[0]  " << local_2D[0] << " local_2D[1] " <<   local_2D[1]  << endl;
-	      cout << " INTT: local_err_2D[0][0]  " << local_err_2D[0][0] << " local_err_2D[1][1] " <<   local_err_2D[1][1]  << endl;
-	    }
+	  local_err = GetInttCovarLocal(layer, ladderzid, ladderphiid, world_err);
 
 	}
-      else  // TPC
+      else        // TPC
 	{
 	  surf = 0;  // keeps the compiler happy for now
 	  
@@ -995,70 +902,42 @@ int PHActsTrkFitter::Process()
 	  
 	  // transform position local coords on cylinder, at center of layer
 	  // What do we mean by local coords on a cylinder?
-	  // has to be phi and z, right?
-	  // so it is just the phi and z part of the global coords
+	  // has to be r*phi and z, right?
+	  // so it is just the r*phi and z part of the global coords
 	  
 	  double clusphi = atan2(world[1], world[0]);
 	  double r_clusphi = radius*clusphi;
 	  double ztpc = world[2];
-	  
-	  // rotate errors back to local coords too	
-	  TMatrixD ROT(3, 3);
-	  ROT[0][0] = cos(clusphi);
-	  ROT[0][1] = -1.0 * sin(clusphi);
-	  ROT[0][2] = 0.0;
-	  ROT[1][0] = sin(clusphi);
-	  ROT[1][1] = cos(clusphi);
-	  ROT[1][2] = 0.0;
-	  ROT[2][0] = 0.0; 
-	  ROT[2][1] = 0.0;
-	  ROT[2][2] = 1.0;
-	  
-	  ROT.Invert();
-	  
-	  TMatrixD ROT_T(3, 3);
-	  ROT_T.Transpose(ROT);
-	  
-	  TMatrixD local_err(3, 3);
-	  local_err = ROT * ERR * ROT_T;
-	  
-	  if(Verbosity() > 1)
-	    {
-	      cout << " r " <<  " local 3D " << radius << endl;
-	      cout << " r-phi " <<  " local 3D " << r_clusphi << endl;
-	      cout << " z " << " local 3D " << ztpc << endl;
-	      
-	      for(int i=0;i<3;++i)
-		for(int j = 0; j<3; ++j)
-		  {
-		    cout << "   " << i << "   " << j << " local_err 3D " << local_err[i][j] << endl;
-		  }
-	    }
-	  
+
 	  local_2D[0] = r_clusphi;
 	  local_2D[1] = ztpc;
-	  local_err_2D[0][0] = local_err[1][1];
-	  local_err_2D[0][1] = local_err[1][2];
-	  local_err_2D[1][0] = local_err[2][1];
-	  local_err_2D[1][1] = local_err[2][2];
+
+	  local_err = TransformCovarToLocal(clusphi, world_err);
+
 	}
       
       //====================================================
+      // Finished with detector specific cluster stuff 
       // We have the data needed to construct an Acts  measurement for this cluster
       //====================================================
 
+      // is local_err the correct covariance?
+      Acts::ActsSymMatrixD<3> cov;   	  // ActsSymMatrix = Eigen::Matrix<double, rows, rows> 
+      cov << local_err[0][0],  local_err[0][1],  local_err[0][2],
+	local_err[1][0], local_err[1][1], local_err[1][2],
+	local_err[2][0], local_err[2][1], local_err[2][2];
+      
       // local and local_err contain the position and covariance matrix in local coords
-      if(Verbosity() > 1)
+      if(Verbosity() > 0)
 	{
+	  std::cout << "    layer " << layer << std::endl;
 	  for(int i=0;i<2;++i)
 	    {
-	      cout << " i " << i << " local_2D " << local_2D[i]  << endl;
+	      cout << "    i " << i << "   local 2D position " << local_2D[i]  << endl;
 	    }
-	  for(int i=0;i<2;++i)
-	    for(int j=0;j<2;++j)
-	      {
-		cout << "   " << i << "   " << j << " cov_2D " << local_err_2D[i][j] << endl;	      	      
-	      }
+	  
+	  std::cout << "    local covariance matrix:" << std::endl;
+	  std::cout << cov << std::endl;
 	}
 
       /*
@@ -1091,19 +970,13 @@ int PHActsTrkFitter::Process()
 
 	  const Acts::MinimalSourceLink  id;    	   // Acts identifier 
 	  std::vector<Acts::DigitizationCell> hits;    // define hits - empty vector OK?
-	  // is local_err the correct covariance?
-	  Acts::ActsSymMatrixD<3> cov;   	  // ActsSymMatrix = Eigen::Matrix<double, rows, rows> 
-	  cov << local_err[0][0],  local_err[0][1],  local_err[0][2],
-	    local_err[1][0], local_err[1][1], local_err[1][2],
-	    local_err[2][0], local_err[2][1], local_err[2][2];
-	  std::cout << "Covariance matrix:" << std::endl;
-	  std::cout << cov << std::endl;
+
 	  // cluster positions on surface
 	  double x = local_2D[0];
 	  double y = local_2D[1];
 	  double time = 0;
 
-	  std::cout << "Create measurement " << endl;
+	  std::cout << "    Create measurement " << endl;
 	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, x, y, time, hits);
 
 	  // Have to store this in a container 
@@ -1136,6 +1009,88 @@ int PHActsTrkFitter::Process()
       
     }
   return 0;
+}
+
+// methods for converting TrkrCluster data to what Acts needs
+
+TMatrixD PHActsTrkFitter::GetMvtxCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err)
+{
+  TMatrixD local_err(3,3);
+
+  // rotate errors back to local coords
+  double ladder_location[3] = {0.0, 0.0, 0.0};
+
+  // returns the center of the sensor in world coordinates - used to get the ladder phi location
+  CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(_geom_container_mvtx->GetLayerGeom(layer));
+  layergeom->find_sensor_center(staveid, 0, 0, chipid, ladder_location);
+  double ladderphi = atan2(ladder_location[1], ladder_location[0]);
+  ladderphi += layergeom->get_stave_phi_tilt();
+
+  local_err = TransformCovarToLocal(ladderphi, world_err);
+  
+  if(Verbosity() > 10)
+    {
+      for(int i=0;i<3;++i)
+	for(int j = 0; j<3; ++j)
+	  {
+	    cout << "  " << i << "    " << j << " local_err " << local_err[i][j] << endl;
+	  }
+    }
+    
+  return local_err;
+}
+
+TMatrixD PHActsTrkFitter::GetInttCovarLocal(const unsigned int layer, const unsigned int ladderzid, const unsigned int ladderphiid, TMatrixD world_err)
+{
+  TMatrixD local_err(3,3);
+
+  // rotate errors back to local coords
+  double ladder_location[3] = {0.0, 0.0, 0.0};
+
+  // rotate errors back to local coords 
+  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
+  layergeom->find_segment_center(ladderzid, ladderphiid, ladder_location);
+  double ladderphi = atan2(ladder_location[1], ladder_location[0]);
+
+  local_err = TransformCovarToLocal(ladderphi, world_err);
+  
+  if(Verbosity() > 10)
+    {
+      for(int i=0;i<3;++i)
+	for(int j = 0; j<3; ++j)
+	  {
+	    cout << "  INTT: " << i << "    " << j << " local_err " << local_err[i][j] << endl;
+	  }
+    }
+    
+  return local_err;
+}
+
+TMatrixD PHActsTrkFitter::TransformCovarToLocal(const double ladderphi, TMatrixD world_err)
+{
+  TMatrixD local_err(3,3);
+  
+  // this is the matrix that was used to rotate from local to global coords 
+  TMatrixD ROT(3, 3);
+  ROT[0][0] = cos(ladderphi);
+  ROT[0][1] = -1.0 * sin(ladderphi);
+  ROT[0][2] = 0.0;
+  ROT[1][0] = sin(ladderphi);
+  ROT[1][1] = cos(ladderphi);
+  ROT[1][2] = 0.0;
+  ROT[2][0] = 0.0; 
+  ROT[2][1] = 0.0;
+  ROT[2][2] = 1.0;
+  // we want the inverse rotation
+  ROT.Invert();
+  
+  TMatrixD ROT_T(3, 3);
+  ROT_T.Transpose(ROT);
+  
+  local_err = ROT * world_err * ROT_T;
+
+  return local_err;
+
 }
  
 int PHActsTrkFitter::End(PHCompositeNode* topNode)
