@@ -30,10 +30,11 @@
 
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 //
 #include <intt/CylinderGeomIntt.h>
-
 #include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <g4main/PHG4Particle.h>
@@ -92,11 +93,10 @@
 #include "ACTFW/Utilities/Paths.hpp"
 
 
-//#define ACTS_CORE_IDENTIFIER_PLUGIN "Acts/Plugins/Identification/Identifier.hpp"
-
-
 #include "Acts/Plugins/Digitization/DigitizationCell.hpp"
 #include "Acts/Plugins/Digitization/PlanarModuleCluster.hpp"
+#include "Acts/Utilities/Definitions.hpp"
+
 /*
 #include "Acts/EventData/Measurement.hpp"
 #include "Acts/EventData/MeasurementHelpers.hpp"
@@ -113,7 +113,7 @@
 #include <TGeoManager.h>
 #include <TGeoMatrix.h>
 
-#include <cmath>                                   // for sqrt, NAN
+#include <cmath>                              // for sqrt, NAN
 #include <iostream>
 #include <map>
 #include <memory>
@@ -140,15 +140,111 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   GetNodes(topNode);
 
   // run Acts layer builder
-  BuildLayers();
+  BuildSiliconLayers();
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key  
   MakeTGeoNodeMap(topNode);
+
+BuildTpcSurfaceMap();
   
 return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHActsTrkFitter::BuildLayers()
+void PHActsTrkFitter::BuildTpcSurfaceMap()
+{
+  std::cout << "Entering BuildTpcSurfaceMap" << endl;
+
+  // Make a map of surfaces corresponding to each TPC sectorid and side.
+  // There are 12 sectors and 2 sides of the membrane
+  // We additionally subdivide these surfaces into approximately plane surfaces segmented in Z and phi
+
+  // these don't change, we are building it this way!
+  unsigned int NTpcLayers = 48;
+  unsigned int NTpcModulesPerLayer = 12;
+  unsigned int NTpcSides = 2;
+
+  // These are arbitrary subdivisions, and may change
+  unsigned int NSurfZ = 10;
+  unsigned int NSurfPhi = 10;
+
+  double MinSurfZ = 0.0;
+  double MaxSurfZ = 100.0;
+
+  SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
+  ModulePhi = 2.0 * M_PI / 12.0;
+  ModulePhiStart = - M_PI;
+  SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
+
+  for(unsigned int iz = 0; iz < NSurfZ; ++iz)
+    {
+      double z_center =  SurfStepZ / 2.0 + (double) iz * SurfStepZ;
+
+      for(unsigned int side = 0; side < NTpcSides; ++side)
+	{
+	  if(side == 0)
+	    z_center = -z_center;
+
+	  //std::cout << " iz " << iz << " z_center " << z_center << endl;
+
+	  for(unsigned int ilayer = 0; ilayer < NTpcLayers; ++ilayer)
+	    {
+	      int tpc_layer = ilayer + 7;
+	      //std::cout << " tpc_layer " << tpc_layer << endl;
+
+	      PHG4CylinderCellGeom *layergeom = _geom_container_tpc->GetLayerCellGeom(tpc_layer);
+	      if(!layergeom)
+		{
+		  std::cout << PHWHERE << "Did not get layergeom for layer " <<tpc_layer  << std::endl;
+		}
+	      
+	      double radius = layergeom->get_radius();
+
+	      //std::cout << " radius " << radius << std::endl;
+
+	      for(unsigned int imod = 0; imod < NTpcModulesPerLayer; ++imod)
+		{
+		  double min_phi = ModulePhiStart + (double) imod * ModulePhi;
+
+		  //std::cout << " imod " << imod << " min_phi " << min_phi << endl;
+		  
+		  for(unsigned int iphi = 0; iphi < NSurfPhi; ++iphi)
+		    {
+		      double phi_center = min_phi +  SurfStepPhi / 2.0 + (double) iphi * SurfStepPhi;		      
+		      double x_center = radius * cos(phi_center);
+		      double y_center = radius * sin(phi_center);
+
+		      //std::cout << " iphi " << iphi << " phi_center " << phi_center << " x_center " << x_center << " y_center " << y_center << std::endl;
+		      
+		      // There is a surface constructor that is a Vector3D for the center and a Vector3D for the normal. 
+		      Acts::Vector3D center_vec(x_center, y_center, z_center);
+		      
+		      // The normsal vector is a unit vector pointing to the center of the beam line at z = z_center
+		      double x_norm = - x_center / sqrt(x_center*x_center + y_center*y_center);
+		      double y_norm = -y_center / sqrt(x_center*x_center + y_center*y_center);
+		      double z_norm = 0;
+		      
+		      Acts::Vector3D center_norm(x_norm, y_norm, z_norm);
+		      
+		      auto surf = Acts::Surface::makeShared<Acts::PlaneSurface>(center_vec, center_norm);
+
+		      // make up a fake cluskey with the "cluster id" being composed of iphi and iz
+		      unsigned int i_phi_z = iphi + 100*iz;
+		      TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(tpc_layer, imod, side, i_phi_z);
+
+		      //std::cout << " surfkey " << surfkey << " imod " << imod << " side " << side << " iphi " << iphi << " iz " << iz << " i_phi_z " << i_phi_z << endl;
+
+		      // Add this surface to the map
+		      std::pair<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(surfkey, surf);
+		      _cluster_surface_map_tpc.insert(tmp);
+		      //std::cout << " TPC: _cluster_surface_map size now " << _cluster_surface_map_tpc.size() << std::endl;		      
+		    }
+		}		  
+	    }
+	}
+    }
+ }  
+
+void PHActsTrkFitter::BuildSiliconLayers()
 {
   // define int argc and char* argv to provide options to processGeometry
   int argc = 27;
@@ -894,23 +990,48 @@ int PHActsTrkFitter::Process()
 	}
       else        // TPC
 	{
-	  surf = 0;  // keeps the compiler happy for now
-	  
-	  unsigned int sectorid = TpcDefs::getSectorId(cluskey);
-	  unsigned int side = TpcDefs::getSide(cluskey);
-	  hsetkey = TpcDefs::genHitSetKey(layer, sectorid, side);
-	  
-	  // transform position local coords on cylinder, at center of layer
-	  // What do we mean by local coords on a cylinder?
-	  // has to be r*phi and z, right?
-	  // so it is just the r*phi and z part of the global coords
-	  
 	  double clusphi = atan2(world[1], world[0]);
+	  //std::cout << " original clusphi " << clusphi << std::endl;
+	  //if(clusphi < 0) clusphi += 2.0 * M_PI;
 	  double r_clusphi = radius*clusphi;
 	  double ztpc = world[2];
+	  
+	  // figure out which surface this cluster is in
 
-	  local_2D[0] = r_clusphi;
-	  local_2D[1] = ztpc;
+	  unsigned int tpc_layer = layer;
+	  unsigned int sectorid = TpcDefs::getSectorId(cluskey);
+	  unsigned int side = TpcDefs::getSide(cluskey);
+
+	  // use the cluster coords to assign the subsurface indices
+	  double module_phi_low = ModulePhiStart + (double) sectorid * ModulePhi;
+	  unsigned int iphi = (clusphi - module_phi_low) / SurfStepPhi;
+	  unsigned int iz = fabs(ztpc) / SurfStepZ;
+	  double module_z_low = (double) iz * SurfStepZ;
+
+	  unsigned int i_phi_z = iphi + 100*iz;
+
+	  //std::cout << " clusphi " << clusphi << " module_phi_low " << module_phi_low << " iz " << iz << " ModulePhi " << ModulePhi << std::endl;
+	  //std::cout << " ztpc " << ztpc << " SurfStepZ " << SurfStepZ << std::endl;
+	  //std::cout << "    TPC layer " << tpc_layer  << " sectorid " << sectorid << " side " << side << " iphi " << iphi << " iz " << iz << " i_phi_z " << i_phi_z << std::endl;
+
+	  // get surface
+	  TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(tpc_layer, sectorid, side, i_phi_z);
+	  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter;
+	  surf_iter = _cluster_surface_map_tpc.find(surfkey);  
+	  if(surf_iter != _cluster_surface_map_tpc.end())
+	    {	      
+	      TrkrDefs::cluskey found_key = surf_iter->first;
+	      cout << "    Found surf_iter with key " << found_key << endl; 
+	      surf = surf_iter->second->getSharedPtr();
+	      cout<< "    Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
+	      // surf->toStream(geo_ctxt, std::cout);
+	    }
+
+	  // transformation of cluster to local surface coords
+	  // Coords are r*phi relative to sector phi center, and z part of the global coords
+
+	  local_2D[0] = r_clusphi - radius * (module_phi_low + SurfStepPhi / 2.0);
+	  local_2D[1] = ztpc - (module_z_low + SurfStepZ / 2.0);
 
 	  local_err = TransformCovarToLocal(clusphi, world_err);
 
@@ -964,19 +1085,18 @@ int PHActsTrkFitter::Process()
 	    m_digitizationCells(std::move(dCells)),
 	    m_digitizationModule(dModule) {}
       */
-  
+
+      const Acts::MinimalSourceLink  id;    	   // Acts identifier 
+      std::vector<Acts::DigitizationCell> hits;    // define hits - empty vector OK?
+            
       if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
 	{
-
-	  const Acts::MinimalSourceLink  id;    	   // Acts identifier 
-	  std::vector<Acts::DigitizationCell> hits;    // define hits - empty vector OK?
-
 	  // cluster positions on surface
 	  double x = local_2D[0];
 	  double y = local_2D[1];
 	  double time = 0;
-
-	  std::cout << "    Create measurement " << endl;
+	  
+	  std::cout << "    Create measurement for trkrid " << trkrid << endl;
 	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, x, y, time, hits);
 
 	  // Have to store this in a container 
@@ -988,8 +1108,21 @@ int PHActsTrkFitter::Process()
       else
 	{
 	  // TPC
-	  // figure out how to make a measurement for a TPC cluster
+	  
+	  /*
+
+	  // cluster positions on surface
+	  double x = local_2D[0];
+	  double y = local_2D[1];
+	  double time = 0;
+	  
+	  std::cout << "    Create measurement for trkrid " << trkrid << endl;
+	  // This compiles but fails an assertion during running - hase it down
+	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, x, y, time, hits);  
+
+	  */
 	}
+
 
     }
   
@@ -1134,14 +1267,24 @@ int PHActsTrkFitter::GetNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  _geom_container_tpc =
+    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!_geom_container_tpc)
+    {
+      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+
+
   _geom_container_intt = findNode::getClass<
     PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   if (!_geom_container_intt)
     {
-    cout << PHWHERE << " CYLINDERGEOM_INTT  node not found on node tree"
-         << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+      cout << PHWHERE << " CYLINDERGEOM_INTT  node not found on node tree"
+	   << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
 
   // Input Trkr Clusters
   _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");

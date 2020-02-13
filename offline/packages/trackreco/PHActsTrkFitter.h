@@ -31,6 +31,7 @@ class SvtxVertex;
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
+class PHG4CylinderCellGeomContainer;
 class TrkrClusterContainer;
 class TTree;
 class TGeoManager;
@@ -95,7 +96,8 @@ int Process();
 
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
-  void BuildLayers();
+  void BuildSiliconLayers();
+void BuildTpcSurfaceMap();
   void isActive(TGeoNode *gnode);
   void MakeTGeoNodeMap(PHCompositeNode*);
   void getInttKeyFromNode(TGeoNode *gnode);
@@ -114,6 +116,8 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
 	 */
   PHG4CylinderGeomContainer* _geom_container_mvtx;
   PHG4CylinderGeomContainer* _geom_container_intt;
+  PHG4CylinderCellGeomContainer* _geom_container_tpc;
+
   SvtxTrackMap* _trackmap;
   TrkrClusterContainer* _clustermap;
 
@@ -125,6 +129,12 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
   std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
+  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
+
+double SurfStepPhi;
+double SurfStepZ;
+double ModulePhi;
+double ModulePhiStart;
 
 };
 
