@@ -127,7 +127,7 @@ CylinderGeom_Mvtx::get_sensor_indices_from_world_coords(std::vector<double> &wor
   double phi = atan2(world[1], world[0]);
   if(phi < 0) phi += 2.0*M_PI;
   int stave_tmp = (int) ( (phi - stave_phi_0) / stave_phi_step );
-  std::cout << " phi " << phi << " stave_phi_0 " << stave_phi_0 << " stave_phi_step " << stave_phi_step << " stave_tmp " << stave_tmp << std::endl;
+  //std::cout << " phi " << phi << " stave_phi_0 " << stave_phi_0 << " stave_phi_step " << stave_phi_step << " stave_tmp " << stave_tmp << std::endl;
 
   // sensor is from z
   double chip_delta_z = (inner_loc_chip_in_module[8][2] - inner_loc_chip_in_module[0][2]) / 8.0; 

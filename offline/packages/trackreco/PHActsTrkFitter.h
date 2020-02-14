@@ -133,7 +133,7 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
 
 double SurfStepPhi;
 double SurfStepZ;
-double ModulePhi;
+double ModuleStepPhi;
 double ModulePhiStart;
 
 };

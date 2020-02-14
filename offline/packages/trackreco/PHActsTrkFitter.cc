@@ -152,7 +152,7 @@ return Fun4AllReturnCodes::EVENT_OK;
 
 void PHActsTrkFitter::BuildTpcSurfaceMap()
 {
-  std::cout << "Entering BuildTpcSurfaceMap" << endl;
+  //  std::cout << "Entering BuildTpcSurfaceMap" << endl;
 
   // Make a map of surfaces corresponding to each TPC sectorid and side.
   // There are 12 sectors and 2 sides of the membrane
@@ -171,25 +171,20 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
   double MaxSurfZ = 100.0;
 
   SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
-  ModulePhi = 2.0 * M_PI / 12.0;
+  ModuleStepPhi = 2.0 * M_PI / 12.0;
   ModulePhiStart = - M_PI;
   SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
 
   for(unsigned int iz = 0; iz < NSurfZ; ++iz)
     {
-      double z_center =  SurfStepZ / 2.0 + (double) iz * SurfStepZ;
-
       for(unsigned int side = 0; side < NTpcSides; ++side)
 	{
-	  if(side == 0)
-	    z_center = -z_center;
-
-	  //std::cout << " iz " << iz << " z_center " << z_center << endl;
+	  double z_center =  SurfStepZ / 2.0 + (double) iz * SurfStepZ;
+	  if(side == 0)  z_center = - z_center;
 
 	  for(unsigned int ilayer = 0; ilayer < NTpcLayers; ++ilayer)
 	    {
-	      int tpc_layer = ilayer + 7;
-	      //std::cout << " tpc_layer " << tpc_layer << endl;
+	      int tpc_layer = ilayer + 7;  // 3 MVTX and 4 INTT layers ahead of TPC
 
 	      PHG4CylinderCellGeom *layergeom = _geom_container_tpc->GetLayerCellGeom(tpc_layer);
 	      if(!layergeom)
@@ -199,22 +194,16 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 	      
 	      double radius = layergeom->get_radius();
 
-	      //std::cout << " radius " << radius << std::endl;
-
 	      for(unsigned int imod = 0; imod < NTpcModulesPerLayer; ++imod)
 		{
-		  double min_phi = ModulePhiStart + (double) imod * ModulePhi;
-
-		  //std::cout << " imod " << imod << " min_phi " << min_phi << endl;
-		  
 		  for(unsigned int iphi = 0; iphi < NSurfPhi; ++iphi)
 		    {
-		      double phi_center = min_phi +  SurfStepPhi / 2.0 + (double) iphi * SurfStepPhi;		      
+		      double min_phi = ModulePhiStart + (double) imod * ModuleStepPhi + (double) iphi * SurfStepPhi;
+
+		      double phi_center = min_phi +  SurfStepPhi / 2.0;		      
 		      double x_center = radius * cos(phi_center);
 		      double y_center = radius * sin(phi_center);
 
-		      //std::cout << " iphi " << iphi << " phi_center " << phi_center << " x_center " << x_center << " y_center " << y_center << std::endl;
-		      
 		      // There is a surface constructor that is a Vector3D for the center and a Vector3D for the normal. 
 		      Acts::Vector3D center_vec(x_center, y_center, z_center);
 		      
@@ -231,12 +220,9 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 		      unsigned int i_phi_z = iphi + 100*iz;
 		      TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(tpc_layer, imod, side, i_phi_z);
 
-		      //std::cout << " surfkey " << surfkey << " imod " << imod << " side " << side << " iphi " << iphi << " iz " << iz << " i_phi_z " << i_phi_z << endl;
-
 		      // Add this surface to the map
 		      std::pair<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(surfkey, surf);
 		      _cluster_surface_map_tpc.insert(tmp);
-		      //std::cout << " TPC: _cluster_surface_map size now " << _cluster_surface_map_tpc.size() << std::endl;		      
 		    }
 		}		  
 	    }
@@ -256,8 +242,9 @@ void PHActsTrkFitter::BuildSiliconLayers()
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
       arg[i] = strdup(argstr[i].c_str());
     }
-  for(int i=0;i<argc;++i)
-    cout << " argc " << argc << " i " << i << " arg " << arg[i] << endl;
+
+  //for(int i=0;i<argc;++i)
+  //  cout << " argc " << argc << " i " << i << " arg " << arg[i] << endl;
   
   /*
     acts-framework:
@@ -284,13 +271,10 @@ void PHActsTrkFitter::BuildSiliconLayers()
   TGeoDetector detector;
   MakeActsGeometry(argc, arg, detector);
 
-  std::cout << " Leaving PHActsTrkFitter::BuildLayers " << endl;
 }
 
 int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector)
 {
-  std::cout << "Entering MakeActsGeometry" << std::endl; 
-
   // setup and parse options
   auto desc = FW::Options::makeDefaultOptions();
   FW::Options::addSequencerOptions(desc);
@@ -307,28 +291,19 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   // Now read the standard options
   auto logLevel = FW::Options::readLogLevel(vm);
-  auto nEvents  = FW::Options::readSequencerConfig(vm).events;
+  //auto nEvents  = FW::Options::readSequencerConfig(vm).events;
 
   // The geometry, material and decoration
   auto geometry          = FW::Geometry::build(vm, detector);
-  std::cout << " back from CommonGeometry::build" << std::endl;
   // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   auto tGeometry         = geometry.first;
   //std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators = geometry.second; 
   contextDecorators = geometry.second; 
 
-  std::cout << "geometry.second size : " << geometry.second.size()  << " contextDecorators.size() =  " << contextDecorators.size() << std::endl;
-
   // The detectors
   // "MVTX" and "Silicon"
   read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
-  // understand what this event loop does
-  std::cout << "nEvents " << nEvents << std::endl;
-  nEvents = 1;
-  //for (size_t ievt = 0; ievt < nEvents; ++ievt) {
-  //  for (size_t ievt = 0; ievt < 1; ++ievt) {
-  
   size_t ievt = 0;
   size_t ialg = 0;
 
@@ -348,10 +323,8 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   geo_ctxt = context.geoContext;
 
-  //  Acts::GeometryContext geo_ctxt = context.geoContext;
-  std::cout << " geoContext has value? " << geo_ctxt.has_value()  << std::endl;  
-  const std::type_info &type = geo_ctxt.type();
-  std::cout << " type name " << type.name() << std::endl;
+  //const std::type_info &type = geo_ctxt.type();
+  //std::cout << " type name " << type.name() << std::endl;
 
 
   /*
@@ -363,12 +336,10 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   }
   */
 
-  std::cout<<"Dump of surfaces for MVTX and INTT:"<<std::endl;
-  
   // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
   auto vol = tGeometry->highestTrackingVolume();
   // vol is a TrackingVolume pointer
-  std::cout << " Volume name " << vol->volumeName() << std::endl;
+  //std::cout << " Volume name " << vol->volumeName() << std::endl;
 
   // Get the confined volumes in the highest tracking volume
   // confinedVolumes is a shared_ptr<TrackingVolumeArray>
@@ -383,7 +354,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // mvtxVolumes is a shared_ptr<TrackingVolumeArray>
   // Now get the individual TrackingVolumePtrs corresponding to each MVTX volume
   auto mvtxBarrel = mvtxVolumes->arrayObjects().at(1);
-  std::cout << "mvtxBarrel name " << mvtxBarrel->volumeName() << std::endl;
+
   // Now get the LayerArrays corresponding to each volume
   auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
 
@@ -391,8 +362,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
   for(unsigned int i=0;i<mvtxLayerVector1.size(); ++i)
     {
-      auto vol = mvtxLayerVector1.at(i)->trackingVolume();
-      std::cout << "  ********** mvtx barrel " << "  layer index " << i  << " " << vol->volumeName() << std::endl;
+      //auto vol = mvtxLayerVector1.at(i)->trackingVolume();
 
       // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
       auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
@@ -405,20 +375,16 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
 	auto surf = surfaceVector.at(j)->getSharedPtr();
 	auto vec3d =  surf->center(context.geoContext);
-	std::cout << std::endl << "  surface index " << j  << " " << surf->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2)  << std::endl;
-	std::cout << " surface type " << surf->type() << std::endl;
 	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
 	unsigned int layer = i / 2;
 	TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
-	std::cout << " mvtx hitsetkey = " << hitsetkey << std::endl;	  
 
 	// Add this surface to the map
 	std::pair<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(hitsetkey, surf);
 
 	_cluster_surface_map.insert(tmp);
-	std::cout << " _cluster_surface_map size now " << _cluster_surface_map.size() << std::endl;
 
-	if(Verbosity() > -1)
+	if(Verbosity() > 0)
 	  {
 	    // check it is in there
 	    std::cout << "Recover surface from _cluster_surface_map " << std::endl;
@@ -454,8 +420,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // inttLayerVector is a std::vector<LayerPtr>
   for(unsigned int i=0; i<inttLayerVector.size(); i++){
   
-    auto vol = inttLayerVector.at(i)->trackingVolume();
-    std::cout << "  *********** intt  layer index " << i  << " " << vol->volumeName() << std::endl;
+    //auto vol = inttLayerVector.at(i)->trackingVolume();
 
     // Get the ACTS::SurfaceArray from each INTT LayerPtr being iterated over
     auto surfaceArray = inttLayerVector.at(i)->surfaceArray();
@@ -468,8 +433,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       
       auto surf =  surfaceVector.at(j)->getSharedPtr();
       auto vec3d =  surf->center(context.geoContext);
-      std::cout << std::endl << "  surface index " << j  << " " << surf->name() << " center = " << vec3d(0) << " " << vec3d(1) << " " << vec3d(2) << std::endl;
-      std::cout << " surface type " << surf->type() << std::endl;
       
       std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
       // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
@@ -485,14 +448,12 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 	  }
 
 	TrkrDefs::hitsetkey hitsetkey = GetInttHitSetKeyFromCoords(layer, world_center);
-	std::cout << " intt hitsetkey = " << hitsetkey << std::endl;	  
 
 	// Add this surface to the map
 	std::pair<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(hitsetkey, surf);
 	_cluster_surface_map.insert(tmp);
-	std::cout << " _cluster_surface_map size now " << _cluster_surface_map.size() << std::endl;
 
-	if(Verbosity() > -1)
+	if(Verbosity() > 0)
 	  {
 	    // check it is in there
 	    std::cout <<"Recover surface from _cluster_surface_map " << std::endl;
@@ -516,8 +477,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   // end of INTT
   //=================================
-
-  std::cout << "Leaving MakeActsGeometry()" << std::endl; 
   
   return 0;
 }
@@ -536,13 +495,10 @@ TrkrDefs::hitsetkey PHActsTrkFitter::GetMvtxHitSetKeyFromCoords(unsigned int lay
   unsigned int chip = 0;
   layergeom->get_sensor_indices_from_world_coords(world, stave, chip);
 
-  std::cout << " layer " << layer << " world coords " << world[0] << " " << world[1] << " " << world[2] << " stave " << stave << " chip " << chip << std::endl;
   double check_pos[3] = {0,0,0};
   layergeom->find_sensor_center(stave, 0, 0, chip, check_pos);
-  std::cout << "     --- check world coords from stave and chip: " << check_pos[0] << " " << check_pos[1] <<  "  " << check_pos[2] << std::endl;
 
   TrkrDefs::hitsetkey mvtx_hitsetkey = MvtxDefs::genHitSetKey(layer, stave, chip);
-  std::cout << " mvtx hitsetkey = " << mvtx_hitsetkey << std::endl;
   
   return mvtx_hitsetkey;
 }
@@ -561,14 +517,11 @@ TrkrDefs::hitsetkey PHActsTrkFitter::GetInttHitSetKeyFromCoords(unsigned int lay
   int segment_z_bin = 0;
   int segment_phi_bin = 0;
   layergeom->find_indices_from_segment_center(segment_z_bin, segment_phi_bin, location);
-  std::cout << " layer " << layer << " world coords " << location[0] << " " << location[1] << " " << location[2] << " segment_phi_bin " << segment_phi_bin << " segment_z_bin " << segment_z_bin << std::endl;
 
   double check_pos[3] = {0,0,0};
   layergeom->find_segment_center(segment_z_bin, segment_phi_bin, check_pos);
-  std::cout << "     --- check world coords from segment phi and z bin: " << check_pos[0] << " " << check_pos[1] <<  "  " << check_pos[2] << std::endl;
 
   TrkrDefs::hitsetkey intt_hitsetkey = InttDefs::genHitSetKey(layer, segment_z_bin, segment_phi_bin);
-  std::cout << " intt hitsetkey = " << intt_hitsetkey << std::endl;
   
   return intt_hitsetkey;
 }
@@ -657,8 +610,6 @@ void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
     counter ++;
   }
 
-  // signz = (ladder_z > 1) ? 1. : -1.; (i.e. zposneg = 0 for signz = -1, 1 for signz =+1)
-  // const int itype = ladder_z % 2;   (i.e. itype = 0 or 1 for ladder_z = 0-3, zposneg = 0 for ladder_z = 0 or 1, =1 for ladder_z = 2 or 3.)
   ladder_z = itype  + zposneg*2;  
 
   // The active sensor is a daughter of gnode
@@ -822,13 +773,6 @@ int PHActsTrkFitter::Process()
             cout << "Start PHActsTrkfitter::process_event" << endl;
     }
 
-  /*
-  // Check the geometry context
-  const std::type_info &type = geo_ctxt.type();
-  std::cout << " type name " << type.name() << std::endl;
-  std::cout << " geo_ctxt has value? " << geo_ctxt.has_value()  << std::endl;  
-  */
-
   TrkrDefs::hitsetkey hsetkey;
 
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
@@ -897,8 +841,7 @@ int PHActsTrkFitter::Process()
 	  surf_iter = _cluster_surface_map.find(hsetkey);  
 	  if(surf_iter != _cluster_surface_map.end())
 	    {	      
-	      TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      cout << "    Found surf_iter with key " << found_key << endl; 
+	      //TrkrDefs::hitsetkey found_key = surf_iter->first;
 	      surf = surf_iter->second->getSharedPtr();
 	      //cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
 	      //surf->toStream(geo_ctxt, std::cout);  // this causes a segfault for mvtx and intt
@@ -939,37 +882,32 @@ int PHActsTrkFitter::Process()
 	  // get the TGeoNode for it
 	  std::map<TrkrDefs::hitsetkey, TGeoNode*>::iterator it;
 	  it = _cluster_node_map.find(hsetkey);
-	  if(it != _cluster_node_map.end())
-	    {
-	      sensor_node = it->second;
-	      if(Verbosity() > 0)
-		cout << "      Found in _cluster_node_map:  layer " << layer << " ladderzid " << ladderzid << " ladderphiid " << ladderphiid 
-		     <<  " node " << sensor_node->GetName() << endl;;
-	    }
-	  else
+	  if(it == _cluster_node_map.end())
 	    {
 	      cout << PHWHERE << " Did not find entry in TGeo map for this cluster. That should be impossible!" << endl;
 	      return Fun4AllReturnCodes::ABORTEVENT; 	      
 	    }
 
+	  sensor_node = it->second;
+	  if(Verbosity() > 0)
+	    cout << "      Found in _cluster_node_map:  layer " << layer << " ladderzid " << ladderzid << " ladderphiid " << ladderphiid 
+		 <<  " node " << sensor_node->GetName() << endl;;
+
 	  // Find Acts surface corresponding to this cluster
 	  
 	  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter;
 	  surf_iter = _cluster_surface_map.find(hsetkey);  
-	  if(surf_iter != _cluster_surface_map.end())
-	    {	      
-	      TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      cout << "    Found surf_iter with key " << found_key << endl; 
-	      surf = surf_iter->second->getSharedPtr();
-	      // cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
-	      // surf->toStream(geo_ctxt, std::cout);
-	    }
-	  else
+	  if(surf_iter == _cluster_surface_map.end())
 	    {
 	      cout << "Failed to find associated surface element - should be impossible " << endl;
 	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 
+	  //TrkrDefs::hitsetkey found_key = surf_iter->first;
+	  surf = surf_iter->second->getSharedPtr();
+	  // cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
+	  // surf->toStream(geo_ctxt, std::cout);
+	  
 	  // transform position back to local coords on sensor
 	  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(ladderzid, ladderphiid, world);
@@ -991,47 +929,68 @@ int PHActsTrkFitter::Process()
       else        // TPC
 	{
 	  double clusphi = atan2(world[1], world[0]);
-	  //std::cout << " original clusphi " << clusphi << std::endl;
-	  //if(clusphi < 0) clusphi += 2.0 * M_PI;
 	  double r_clusphi = radius*clusphi;
 	  double ztpc = world[2];
 	  
-	  // figure out which surface this cluster is in
-
+	  // figure out which layer, module, side this cluster is in
 	  unsigned int tpc_layer = layer;
 	  unsigned int sectorid = TpcDefs::getSectorId(cluskey);
 	  unsigned int side = TpcDefs::getSide(cluskey);
 
 	  // use the cluster coords to assign the subsurface indices
-	  double module_phi_low = ModulePhiStart + (double) sectorid * ModulePhi;
+	  double module_phi_low = ModulePhiStart + (double) sectorid * ModuleStepPhi;
 	  unsigned int iphi = (clusphi - module_phi_low) / SurfStepPhi;
 	  unsigned int iz = fabs(ztpc) / SurfStepZ;
-	  double module_z_low = (double) iz * SurfStepZ;
+	  unsigned int i_phi_z = iphi + 100*iz;  // for making map key
 
-	  unsigned int i_phi_z = iphi + 100*iz;
-
-	  //std::cout << " clusphi " << clusphi << " module_phi_low " << module_phi_low << " iz " << iz << " ModulePhi " << ModulePhi << std::endl;
-	  //std::cout << " ztpc " << ztpc << " SurfStepZ " << SurfStepZ << std::endl;
-	  //std::cout << "    TPC layer " << tpc_layer  << " sectorid " << sectorid << " side " << side << " iphi " << iphi << " iz " << iz << " i_phi_z " << i_phi_z << std::endl;
+	  if(Verbosity() > 0)
+	    {
+	      double check_surf_rphi_center = radius * (module_phi_low + (double) iphi * SurfStepPhi + SurfStepPhi / 2.0);
+	      double check_surf_z_center = (double) iz * SurfStepZ + SurfStepZ / 2.0;
+	      if(side == 0)  check_surf_z_center = - check_surf_z_center;
+	      
+	      std::cout << " xworld " << world[0] << " yworld " << world[1] << " clusphi " << clusphi << std::endl;
+	      std::cout << " sectorid " << sectorid << " side " << side << " iphi " << iphi << " iz " << iz << " i_phi_z " << i_phi_z << std::endl;
+	      cout <<     "    r_clusphi " << r_clusphi << " check_surf_rphi center " << check_surf_rphi_center 
+		   << " ztpc " <<  ztpc  << " check_surf_z_center " << check_surf_z_center 
+		   << std::endl;
+	    }
 
 	  // get surface
 	  TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(tpc_layer, sectorid, side, i_phi_z);
 	  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter;
 	  surf_iter = _cluster_surface_map_tpc.find(surfkey);  
-	  if(surf_iter != _cluster_surface_map_tpc.end())
-	    {	      
-	      TrkrDefs::cluskey found_key = surf_iter->first;
-	      cout << "    Found surf_iter with key " << found_key << endl; 
-	      surf = surf_iter->second->getSharedPtr();
-	      cout<< "    Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
-	      // surf->toStream(geo_ctxt, std::cout);
+	  if(surf_iter == _cluster_surface_map_tpc.end())
+	    {
+	      std::cout << PHWHERE << "Failed to find surface, should be impossible!" << std::endl;
+	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 
-	  // transformation of cluster to local surface coords
-	  // Coords are r*phi relative to sector phi center, and z part of the global coords
+	  //TrkrDefs::cluskey found_key = surf_iter->first;
+	  surf = surf_iter->second->getSharedPtr();
 
-	  local_2D[0] = r_clusphi - radius * (module_phi_low + SurfStepPhi / 2.0);
-	  local_2D[1] = ztpc - (module_z_low + SurfStepZ / 2.0);
+	  // transformation of cluster to local surface coords
+	  // Coords are r*phi relative to surface r-phi center, and z relative to surface z center
+	  Acts::Vector3D center = surf->center(geo_ctxt);
+	  double surf_rphi_center = atan2(center[1], center[0]) * radius;
+	  double surf_z_center = center[2];
+	  if(Verbosity() > 0)
+	    {
+	      std::cout << "    surface center readback:   x " << center[0] << " y " << center[1] << " phi " << atan2(center[1], center[0]) << " z " << center[2] 
+			<< " surf_rphi_center " << surf_rphi_center << " surf_z_center " << surf_z_center 
+			<< std::endl;
+	    }
+
+	  local_2D[0] = r_clusphi - surf_rphi_center;
+	  local_2D[1] = ztpc - surf_z_center;
+
+	  if(Verbosity() > 0)
+	    {
+	      cout <<     "    r_clusphi " << r_clusphi << " surf_rphi center " << surf_rphi_center 
+		   << " ztpc " <<  ztpc  << " surf_z_center " << surf_z_center 
+		   << " local rphi " << local_2D[0] << " local z " << local_2D[1]
+		   << std::endl;
+	    }
 
 	  local_err = TransformCovarToLocal(clusphi, world_err);
 
@@ -1061,43 +1020,25 @@ int PHActsTrkFitter::Process()
 	  std::cout << cov << std::endl;
 	}
 
-      /*
-      class PlanarModuleCluster
-	: public Measurement_t<ParDef::eLOC_0, ParDef::eLOC_1, ParDef::eT> {
-      public:
-	/// Constructor from DigitizationCells
-	///
-	/// @param [in] mSurface is the module surface
-	/// @param [in] cIdentifier is the channel identifier of the local position
-	/// @param [in] cov is the covariance matrix
-	/// @param [in] loc0 is the local position in the first coordinate
-	/// @param [in] loc1 is the local position in the second coordinate
-	/// @param [in] t Timestamp of the cluster
-	/// @param [in] dCells is the vector of digitization cells
-	PlanarModuleCluster(std::shared_ptr<const Surface> mSurface,
-			    const Identifier& identifier, ActsSymMatrixD<3> cov,
-			    double loc0, double loc1, double t,
-			    std::vector<DigitizationCell> dCells,
-			    const DigitizationModule* dModule = nullptr)
-	  : Measurement_t<ParDef::eLOC_0, ParDef::eLOC_1, ParDef::eT>(
-								      std::move(mSurface), identifier,  // original measurement
-								      std::move(cov), loc0, loc1, t),
-	    m_digitizationCells(std::move(dCells)),
-	    m_digitizationModule(dModule) {}
-      */
-
       const Acts::MinimalSourceLink  id;    	   // Acts identifier 
       std::vector<Acts::DigitizationCell> hits;    // define hits - empty vector OK?
-            
-      if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId)
+
+      // cluster positions on surface
+      double xlocal = local_2D[0];
+      double ylocal = local_2D[1];
+      double time = 0;
+
+      if(Verbosity() > 0)
+	{      
+	  std::cout << "    Layer " << layer << " create measurement for trkrid " << trkrid 
+		    << " surface " << surf->name() << " surface type " << surf->type() 
+		    << " local x " << xlocal << " local y " << ylocal
+		    << endl;
+	}
+
+      if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::tpcId)
 	{
-	  // cluster positions on surface
-	  double x = local_2D[0];
-	  double y = local_2D[1];
-	  double time = 0;
-	  
-	  std::cout << "    Create measurement for trkrid " << trkrid << endl;
-	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, x, y, time, hits);
+	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, xlocal, ylocal, time, hits);
 
 	  // Have to store this in a container 
 	  // DigitizationAlgorithm.cpp makes a map
@@ -1105,25 +1046,6 @@ int PHActsTrkFitter::Process()
 	  // Does TGeoNode come into it?
 	  
 	}
-      else
-	{
-	  // TPC
-	  
-	  /*
-
-	  // cluster positions on surface
-	  double x = local_2D[0];
-	  double y = local_2D[1];
-	  double time = 0;
-	  
-	  std::cout << "    Create measurement for trkrid " << trkrid << endl;
-	  // This compiles but fails an assertion during running - hase it down
-	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, x, y, time, hits);  
-
-	  */
-	}
-
-
     }
   
   // _trackmap is SvtxTrackMap from the node tree
