@@ -13,8 +13,7 @@ AM_CPPFLAGS = \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
   -I$(ROOTSYS)/include \
-  -I$(OFFLINE_MAIN)/include/eigen3 \
-  -I//phenix/u/frawley/git/install/include/
+  -I$(OFFLINE_MAIN)/include/eigen3 
 
 AM_CXXFLAGS = \
  -DRAVE -DRaveDllExport=
@@ -22,7 +21,7 @@ AM_CXXFLAGS = \
 AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
-  -L/phenix/u/frawley/git/install/lib64
+  -L$(OFFLINE_MAIN)/lib64
 
 pkginclude_HEADERS = \
   AssocInfoContainer.h \

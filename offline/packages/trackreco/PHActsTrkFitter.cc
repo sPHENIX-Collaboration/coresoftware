@@ -60,49 +60,31 @@
 #include <phfield/PHFieldUtility.h>
 #include <phgeom/PHGeomUtility.h>
 
-
-// Acts Geometry building classes
-#include "ACTFW/Geometry/GeometryExampleBase.hpp"
-#include "ACTFW/TGeoDetector/TGeoDetector.hpp"
-//#include "Acts/Plugins/TGeo/TGeoDetectorElement.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
+// Acts classes
 #include "Acts/Surfaces/Surface.hpp"
 #include "Acts/Surfaces/PlaneSurface.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
-//#include "ACTFW/Io/Root/RootMaterialDecorator.hpp"
-
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include "Acts/Geometry/TrackingVolume.hpp"
-
+#include "Acts/Plugins/Digitization/DigitizationCell.hpp"
+#include "Acts/Plugins/Digitization/PlanarModuleCluster.hpp"
+#include "Acts/Utilities/Definitions.hpp"
 #include "ACTFW/Detector/IBaseDetector.hpp"
 #include "ACTFW/Framework/AlgorithmContext.hpp"
 #include "ACTFW/Framework/IContextDecorator.hpp"
 #include "ACTFW/Framework/WhiteBoard.hpp"
 #include "ACTFW/Geometry/CommonGeometry.hpp"
-//#include "ACTFW/Io/Csv/CsvOptionsWriter.hpp"
-//#include "ACTFW/Io/Csv/CsvTrackingGeometryWriter.hpp"
-//#include "ACTFW/Io/Root/RootMaterialWriter.hpp"
-//#include "ACTFW/Plugins/Json/JsonMaterialWriter.hpp"
 #include "ACTFW/Options/CommonOptions.hpp"
 #include "ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp"
 #include "ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp"
 #include "ACTFW/Plugins/Obj/ObjWriterOptions.hpp"
 #include "ACTFW/Utilities/Options.hpp"
 #include "ACTFW/Utilities/Paths.hpp"
-
-
-#include "Acts/Plugins/Digitization/DigitizationCell.hpp"
-#include "Acts/Plugins/Digitization/PlanarModuleCluster.hpp"
-#include "Acts/Utilities/Definitions.hpp"
-
-/*
-#include "Acts/EventData/Measurement.hpp"
-#include "Acts/EventData/MeasurementHelpers.hpp"
-#include "Acts/Surfaces/CylinderSurface.hpp"
-#include "Acts/Utilities/ParameterDefinitions.hpp"
-*/
+#include "ACTFW/Geometry/GeometryExampleBase.hpp"
+#include "ACTFW/TGeoDetector/TGeoDetector.hpp"
+#include "ACTFW/Detector/IBaseDetector.hpp"
+#include "ACTFW/Detector/IBaseDetector.hpp"
 
 #include <TRotation.h>
 #include <TVector3.h>
