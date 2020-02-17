@@ -70,7 +70,7 @@
 #include "Acts/Surfaces/PlaneSurface.hpp"
 #include "Acts/Geometry/TrackingGeometry.hpp"
 #include "ACTFW/Detector/IBaseDetector.hpp"
-#include "ACTFW/Io/Root/RootMaterialDecorator.hpp"
+//#include "ACTFW/Io/Root/RootMaterialDecorator.hpp"
 
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
@@ -233,10 +233,18 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 void PHActsTrkFitter::BuildSiliconLayers()
 {
   // define int argc and char* argv to provide options to processGeometry
-  int argc = 27;
-  std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
 
-  char *arg[27];
+  /*
+  int argc = 27;
+    char *arg[27];
+    std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
+  */
+
+  int argc = 24;
+  char *arg[24];
+  std::string argstr[24]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx",  "--output-obj", "true"};
+
+
   for(int i = 0;i < argc; ++i)
     {
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
@@ -323,10 +331,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   geo_ctxt = context.geoContext;
 
-  //const std::type_info &type = geo_ctxt.type();
-  //std::cout << " type name " << type.name() << std::endl;
-
-
   /*
   // This is not executed because size is 0
   std::string geoContextStr = "";
@@ -339,7 +343,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
   auto vol = tGeometry->highestTrackingVolume();
   // vol is a TrackingVolume pointer
-  //std::cout << " Volume name " << vol->volumeName() << std::endl;
 
   // Get the confined volumes in the highest tracking volume
   // confinedVolumes is a shared_ptr<TrackingVolumeArray>
@@ -360,14 +363,18 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   // Thiis is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
   auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
+
+  // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
+  // the layer number has to be deduced from the radius
   for(unsigned int i=0;i<mvtxLayerVector1.size(); ++i)
     {
-      //auto vol = mvtxLayerVector1.at(i)->trackingVolume();
 
       // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
       auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
       if(surfaceArray == NULL)
 	continue;
+
+      double ref_rad[3] = {2.556, 3.359, 4.134};
       
       // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
       auto surfaceVector = surfaceArray->surfaces();
@@ -376,7 +383,14 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 	auto surf = surfaceVector.at(j)->getSharedPtr();
 	auto vec3d =  surf->center(context.geoContext);
 	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
-	unsigned int layer = i / 2;
+	double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
+	unsigned int layer = 0;
+	for(unsigned int i = 0;i<3;++i)
+	  {
+	    if( fabs(layer_rad - ref_rad[i]) < 0.1)
+	      layer = i;
+	  }
+
 	TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
 
 	// Add this surface to the map
@@ -386,8 +400,12 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
 	if(Verbosity() > 0)
 	  {
+	    unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+	    unsigned int chip = MvtxDefs::getChipId(hitsetkey);
+
 	    // check it is in there
-	    std::cout << "Recover surface from _cluster_surface_map " << std::endl;
+	    std::cout << "Layer radius " << layer_rad << " Layer " << layer << " stave " << stave << " chip " << chip 
+		      << " recover surface from _cluster_surface_map " << std::endl;
 	    std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
 	    std::cout << " surface type " << surf_iter->second->type() << std::endl;
 	    surf_iter->second->toStream(geo_ctxt,std::cout);	
@@ -433,12 +451,13 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       
       auto surf =  surfaceVector.at(j)->getSharedPtr();
       auto vec3d =  surf->center(context.geoContext);
+
+      double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
       
       std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
       // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
       // out which layer to use to get the layergeom
       double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
-      double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
       
 	unsigned int layer = 0;
 	for(unsigned int i = 0;i<4;++i)
@@ -456,7 +475,11 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 	if(Verbosity() > 0)
 	  {
 	    // check it is in there
-	    std::cout <<"Recover surface from _cluster_surface_map " << std::endl;
+	    unsigned int ladderPhi = InttDefs::getLadderPhiId(hitsetkey);
+	    unsigned int ladderZ = InttDefs::getLadderZId(hitsetkey);
+ 
+	    std::cout <<"Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ 
+		      << " recover surface from _cluster_surface_map " << std::endl;
 	    std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
 	    std::cout << " surface type " << surf->type() << std::endl;
 	    surf_iter->second->toStream(geo_ctxt,std::cout);
