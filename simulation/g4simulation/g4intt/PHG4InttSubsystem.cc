@@ -72,6 +72,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   // create detector
   pair<vector<pair<int, int>>::const_iterator, vector<pair<int, int>>::const_iterator> layer_begin_end = make_pair(m_LayerConfigVector.begin(), m_LayerConfigVector.end());
   m_Detector = new PHG4InttDetector(this, topNode, GetParamsContainer(), Name(), layer_begin_end);
+  m_Detector->Verbosity(Verbosity());
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->Detector(m_DetectorType);
   m_Detector->OverlapCheck(CheckOverlap());
@@ -124,6 +125,7 @@ int PHG4InttSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
     // create stepping action
     m_SteppingAction = new PHG4InttSteppingAction(m_Detector, GetParamsContainer(), layer_begin_end);
+    m_SteppingAction->Verbosity(Verbosity());
   }
   else
   {

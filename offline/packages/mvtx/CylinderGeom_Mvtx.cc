@@ -120,6 +120,23 @@ CylinderGeom_Mvtx::get_local_from_world_coords(int stave, int half_stave, int mo
   return res;
 }
 
+void
+CylinderGeom_Mvtx::get_sensor_indices_from_world_coords(std::vector<double> &world, unsigned int &stave_index, unsigned int &chip_index)
+{
+  // stave number is fom phi
+  double phi = atan2(world[1], world[0]);
+  if(phi < 0) phi += 2.0*M_PI;
+  int stave_tmp = (int) ( (phi - stave_phi_0) / stave_phi_step );
+  //std::cout << " phi " << phi << " stave_phi_0 " << stave_phi_0 << " stave_phi_step " << stave_phi_step << " stave_tmp " << stave_tmp << std::endl;
+
+  // sensor is from z
+  double chip_delta_z = (inner_loc_chip_in_module[8][2] - inner_loc_chip_in_module[0][2]) / 8.0; 
+  int chip_tmp = (int) (world[2]/chip_delta_z) + 4;  // 0-9 
+
+  stave_index = stave_tmp;
+  chip_index = chip_tmp;
+}
+
 TVector3
 CylinderGeom_Mvtx::get_world_from_local_coords(int stave, int half_stave, int module, int chip, TVector3 sensor_local)
 {

@@ -330,7 +330,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
 {
   string material_name(lv->GetMaterial()->GetName());
 
-  if (Verbosity() >= 5)
+  if (Verbosity() >= 50)
   {
     cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
          << material_name << endl;
@@ -342,7 +342,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
     if (material_name.find(nam) != std::string::npos)
     {
       m_DisplayAction->AddVolume(lv, nam);
-      if (Verbosity() >= 5)
+      if (Verbosity() >= 50)
       {
         cout << "SetDisplayProperty - LV " << lv->GetName() << " display with " << nam << endl;
       }
