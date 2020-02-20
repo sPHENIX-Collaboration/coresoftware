@@ -35,55 +35,31 @@ class TrkrHitTruthAssoc;
 
 using namespace std;
 
+namespace
+{
+
+  //______________________________________________________________________
+  template<class T> T square( const T& x ) { return x*x; }
+
+  //______________________________________________________________________
+  double get_pad_response( double position, const std::array<double,2>& par )
+  { return std::get<0>(par)-std::abs(position - std::get<1>(par)); }
+
+}
+
 PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
   : PHG4TpcPadPlane(name)
-  , fcharge(nullptr)
-  , GeomContainer(nullptr)
-  , LayerGeom(nullptr)
-  , rad_gem(NAN)
-  , output_radius(0)
-  , neffelectrons_threshold(NAN)
-  , MinLayer()
-  , MaxLayer()
-  , MinRadius()
-  , MaxRadius()
-  , Thickness()
-  , MinZ(NAN)
-  , MaxZ(NAN)
-  , sigmaT(NAN)
-  , sigmaL()
-  , PhiBinWidth()
-  , ZBinWidth(NAN)
-  , tpc_drift_velocity(NAN)
-  , tpc_adc_clock(NAN)
-  , NZBins(INT_MAX)
-  , NPhiBins()
-  , NTpcLayers()
-  , tpc_region(INT_MAX)
-  , zigzag_pads(INT_MAX)
-  , hit(0)
 {
   InitializeParameters();
 
-  fcharge = new TF1("fcharge", "gaus(0)");
-
-  for (int ipad = 0; ipad < 10; ipad++)
+  // initialize gaussian weights
+  for( int i = 0; i < _ngauss_steps; ++i )
   {
-    char name[500];
-    sprintf(name, "fpad%i", ipad);
-    fpad[ipad] = new TF1(name, "[0]-abs(x-[1])");
+    const double x = -4.5 + 2.0*_nsigmas*i/_ngauss_steps;
+    _gauss_weights[i] = std::exp( -square( x )/2 );
   }
 
   return;
-}
-
-PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
-{
-  delete fcharge;
-  for (int ipad = 0; ipad < 10; ipad++)
-  {
-    delete fpad[ipad];
-  }
 }
 
 int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
@@ -541,27 +517,23 @@ void PHG4TpcPadPlaneReadout::populate_rectangular_phibins(const unsigned int lay
 
 void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share)
 {
-  double nsigmas = 5.0;
-
-  double radius = LayerGeom->get_radius();
-  double phistepsize = LayerGeom->get_phistep();
+  const double radius = LayerGeom->get_radius();
+  const double phistepsize = LayerGeom->get_phistep();
+  const auto phibins = LayerGeom->get_phibins();
 
   // make the charge distribution gaussian
   double rphi = phi * radius;
-  fcharge->SetParameter(0, 1.0);
-  fcharge->SetParameter(1, rphi);
-  fcharge->SetParameter(2, cloud_sig_rp);
   if (Verbosity() > 100)
     if (LayerGeom->get_layer() == 47)
     {
-      cout << "     populate_zigzag_phibins for layer " << layernum << " with radius " << radius << " phi " << phi
+      cout << " populate_zigzag_phibins for layer " << layernum << " with radius " << radius << " phi " << phi
            << " rphi " << rphi << " phistepsize " << phistepsize << endl;
       cout << " fcharge created: radius " << radius << " rphi " << rphi << " cloud_sig_rp " << cloud_sig_rp << endl;
     }
 
   // Get the range of phi values that completely contains all pads  that touch the charge distribution - (nsigmas + 1/2 pad width) in each direction
-  double philim_low = phi - (nsigmas * cloud_sig_rp / radius) - phistepsize;
-  double philim_high = phi + (nsigmas * cloud_sig_rp / radius) + phistepsize;
+  const double philim_low = phi - (_nsigmas * cloud_sig_rp / radius) - phistepsize;
+  const double philim_high = phi + (_nsigmas * cloud_sig_rp / radius) + phistepsize;
 
   // Find the pad range that covers this phi range
   int phibin_low = LayerGeom->get_phibin(philim_low);
@@ -579,7 +551,9 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   double pad_rphi = 2.0 * LayerGeom->get_phistep() * radius;
 
   // Make a TF1 for each pad in the phi range
-  int pad_keep[10];
+  using PadParameterSet = std::array<double,2>;
+  std::array<PadParameterSet,10> pad_parameters;
+  std::array<int,10> pad_keep;
   for (int ipad = 0; ipad <= npads; ipad++)
   {
     int pad_now = phibin_low + ipad;
@@ -587,10 +561,8 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
     if (pad_now >= LayerGeom->get_phibins()) pad_now -= LayerGeom->get_phibins();
 
     pad_keep[ipad] = pad_now;
-    double rphi_pad_now = LayerGeom->get_phicenter(pad_now) * radius;
-
-    fpad[ipad]->SetParameter(0, pad_rphi / 2.0);
-    fpad[ipad]->SetParameter(1, rphi_pad_now);
+    const double rphi_pad_now = LayerGeom->get_phicenter(pad_now) * radius;
+    pad_parameters[ipad] = {{ pad_rphi / 2.0, rphi_pad_now }};
 
     if (Verbosity() > 100)
       if (layernum == 47)
@@ -604,17 +576,17 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   for (int i = 0; i < 10; i++)
     overlap[i] = 0;
 
-  int nsteps = 100;
-  double xstep = 2.0 * nsigmas * cloud_sig_rp / (double) nsteps;
-  for (int i = 0; i < nsteps; i++)
+  double xstep = 2.0 * _nsigmas * cloud_sig_rp / (double) _ngauss_steps;
+  for (int i = 0; i < _ngauss_steps; i++)
   {
-    double x = rphi - 4.5 * cloud_sig_rp + (double) i * xstep;
-    double charge = fcharge->Eval(x);
+    const double x = rphi - 4.5 * cloud_sig_rp + (double) i * xstep;
+    const double charge = _gauss_weights[i];
     for (int ipad = 0; ipad <= npads; ipad++)
     {
-      if (fpad[ipad]->Eval(x) > 0.0)
+      const double pad_response = get_pad_response( x, pad_parameters[ipad] );
+      if( pad_response > 0 )
       {
-        double prod = charge * fpad[ipad]->Eval(x);
+        const double prod = charge * pad_response;
         overlap[ipad] += prod;
       }
     }  // pads
@@ -632,7 +604,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   return;
 }
 
-void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
+void PHG4TpcPadPlaneReadout::populate_zbins(const double z, const std::array<double,2>& cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share)
 {
   int zbin = LayerGeom->get_zbin(z);
   if (zbin < 0 || zbin > LayerGeom->get_zbins())

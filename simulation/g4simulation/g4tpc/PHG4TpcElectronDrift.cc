@@ -53,7 +53,7 @@
 #include <iostream>
 #include <map>                                          // for _Rb_tree_cons...
 #include <utility>                                      // for pair
-#
+
 using namespace std;
 
 PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)

@@ -5,6 +5,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 
+#include <array>
+#include <climits>
+#include <cmath>
 #include <string>                     // for string
 #include <vector>
 
@@ -21,7 +24,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 {
  public:
   PHG4TpcPadPlaneReadout(const std::string &name = "PHG4TpcPadPlaneReadout");
-  virtual ~PHG4TpcPadPlaneReadout();
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
@@ -29,48 +31,50 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   void MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
 
-  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
-  void populate_zbins(const double z, const double cloud_sig_zz[2], std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
-
   void SetDefaultParameters();
   void UpdateInternalParameters();
 
- protected:
+  private:
+
+  void populate_rectangular_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
+  void populate_zbins(const double z, const std::array<double,2>& cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
+
   std::string seggeonodename;
 
-  TF1 *fcharge;
-  TF1 *fpad[10];
+  PHG4CylinderCellGeomContainer *GeomContainer = nullptr;
+  PHG4CylinderCellGeom *LayerGeom = nullptr;
 
-  PHG4CylinderCellGeomContainer *GeomContainer;
-  PHG4CylinderCellGeom *LayerGeom;
+  double rad_gem = NAN;
+  double output_radius = 0;
 
-  double rad_gem;
-  double output_radius;
+  double neffelectrons_threshold = NAN;
 
-  double neffelectrons_threshold;
+  std::array<int,3> MinLayer;
+  std::array<int,3> MaxLayer;
+  std::array<double,3> MinRadius;
+  std::array<double,3> MaxRadius;
+  std::array<double,3> Thickness;
+  double MinZ = NAN;
+  double MaxZ = NAN;
+  double sigmaT = NAN;
+  std::array<double,2> sigmaL;
+  std::array<double,3> PhiBinWidth;
+  double ZBinWidth = NAN;
+  double tpc_drift_velocity = NAN;
+  double tpc_adc_clock = NAN;
 
-  int MinLayer[3];
-  int MaxLayer[3];
-  double MinRadius[3];
-  double MaxRadius[3];
-  double Thickness[3];
-  double MinZ;
-  double MaxZ;
-  double sigmaT;
-  double sigmaL[2];
-  double PhiBinWidth[3];
-  double ZBinWidth;
-  double tpc_drift_velocity;
-  double tpc_adc_clock;
+  int NZBins = INT_MAX;
+  std::array<int,3> NPhiBins;
+  std::array<int,3> NTpcLayers;
+  int tpc_region = INT_MAX;
+  int zigzag_pads = INT_MAX;
+  int hit = 0;
 
-  int NZBins;
-  int NPhiBins[3];
-
-  int NTpcLayers[3];
-  int tpc_region;
-  int zigzag_pads;
-  int hit;
+  // gaussian sampling
+  static constexpr double _nsigmas = 5;
+  static constexpr int _ngauss_steps = 100;
+  std::array<double, _ngauss_steps> _gauss_weights;
 
   std::vector<int> adc_zbin;
   std::vector<int> pad_phibin;
