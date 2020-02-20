@@ -9,14 +9,12 @@ lib_LTLIBRARIES = \
   libtrack_reco.la
 
 AM_CPPFLAGS = \
+  -DRAVE -DRaveDllExport= \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include \
   -I${G4_MAIN}/include \
   -I$(ROOTSYS)/include \
   -I$(OFFLINE_MAIN)/include/eigen3 
-
-AM_CXXFLAGS = \
- -DRAVE -DRaveDllExport=
 
 AM_LDFLAGS = \
   -L$(libdir) \
@@ -91,7 +89,6 @@ else
     PHGenFitTrkProp_Dict.cc \
     PHGenFitTrkFitter_Dict.cc \
     PHGenFitTrackProjection_Dict.cc \
-    PHActsTrkFitter_Dict.cc \
     PHRaveVertexing_Dict.cc
 endif
 
@@ -105,8 +102,24 @@ libtrack_reco_io_la_SOURCES = \
   HelixKalmanFilter.cc \
   VertexFitter.cc \
   GPUTPCTrackParam.cxx
+
+if MAKE_ACTS
+ACTS_SOURCES = \
+  PHActsTrkFitter.cc
+
+ACTS_LIBS = \
+  -lACTFramework \
+  -lActsCore \
+  -lActsTGeoPlugin \
+  -lACTFWTGeoDetector \
+  -lActsTGeoPlugin \
+  -lACTFWFatras \
+  -lACTFWExamplesCommon
+endif
+
 libtrack_reco_la_SOURCES = \
   $(ROOT5_DICTS) \
+  $(ACTS_SOURCES) \
   PHInitVertexing.cc \
   PHInitZVertexing.cc \
   PHTrackSeeding.cc \
@@ -122,7 +135,6 @@ libtrack_reco_la_SOURCES = \
   PHGenFitTrkProp.cc \
   PHGenFitTrkFitter.cc \
   PHGenFitTrackProjection.cc \
-  PHActsTrkFitter.cc \
   PHRaveVertexing.cc 
 
 libtrack_reco_io_la_LIBADD = \
@@ -131,6 +143,7 @@ libtrack_reco_io_la_LIBADD = \
 
 libtrack_reco_la_LIBADD = \
   libtrack_reco_io.la \
+  $(ACTS_LIBS) \
   -lSubsysReco \
   -lg4testbench \
   -lg4detectors \
@@ -149,14 +162,7 @@ libtrack_reco_la_LIBADD = \
   -lintt_io \
   -ltrackbase_historic_io \
   -lcalo_io \
-  -lphparameter \
-  -lACTFramework \
-  -lActsCore \
-  -lActsTGeoPlugin \
-  -lACTFWTGeoDetector \
-  -lActsTGeoPlugin \
-  -lACTFWFatras \
-  -lACTFWExamplesCommon
+  -lphparameter
 
 
 # Rule for generating table CINT dictionaries.
