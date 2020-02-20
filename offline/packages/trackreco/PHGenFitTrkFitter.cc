@@ -118,6 +118,9 @@ using namespace std;
 //______________________________________________________
 namespace {
 
+  // square
+  template< class T > T square( T x ) { return x*x; }
+
   // convert gf state to SvtxTrackState_v1
   SvtxTrackState_v1 create_track_state( float pathlength, const genfit::MeasuredStateOnPlane* gf_state )
   {
@@ -209,6 +212,10 @@ int PHGenFitTrkFitter::InitRun(PHCompositeNode* topNode)
     PHTFileServer::get().open(_eval_outname, "RECREATE");
     init_eval_tree();
   }
+
+  // print disabled layers
+  for( const auto& layer:_disabled_layers )
+  { std::cout << PHWHERE << " Layer " << layer << " is disabled." << std::endl; }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -696,6 +703,25 @@ int PHGenFitTrkFitter::CreateNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+//______________________________________________________
+void PHGenFitTrkFitter::disable_layer( int layer, bool disabled )
+{
+  if( disabled ) _disabled_layers.insert( layer );
+  else _disabled_layers.erase( layer );
+}
+
+//______________________________________________________
+void PHGenFitTrkFitter::set_disabled_layers( const std::set<int>& layers )
+{ _disabled_layers = layers; }
+
+//______________________________________________________
+void PHGenFitTrkFitter::clear_disabled_layers()
+{ _disabled_layers.clear(); }
+
+//______________________________________________________
+const std::set<int>& PHGenFitTrkFitter::get_disabled_layers() const
+{ return _disabled_layers; }
+
 /*
  * GetNodes():
  *  Get all the all the required nodes off the node tree
@@ -921,7 +947,7 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
     float x = cluster->getPosition(0);
     float y = cluster->getPosition(1);
-    float r = sqrt(x * x + y * y);
+    float r = sqrt(square(x) + square(y));
     m_r_cluster_id.insert(std::pair<float, TrkrDefs::cluskey>(r, cluster_key));
     int layer_out = TrkrDefs::getLayer(cluster_key);
     if(Verbosity() > 10) cout << "    Layer " << layer_out << " cluster " << cluster_key << " radius " << r << endl;
@@ -932,6 +958,12 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
        ++iter)
   {
     TrkrDefs::cluskey cluster_key = iter->second;
+    const int layer = TrkrDefs::getLayer(cluster_key);
+
+    // skip disabled layers
+    if( _disabled_layers.find( layer ) != _disabled_layers.end() )
+    { continue; }
+
     TrkrCluster* cluster = _clustermap->findCluster(cluster_key);
     if (!cluster)
     {
@@ -963,7 +995,6 @@ std::shared_ptr<PHGenFit::Track> PHGenFitTrkFitter::ReFitTrack(PHCompositeNode* 
 
     // get the trkrid
     unsigned int trkrid = TrkrDefs::getTrkrId(cluster_key);
-    int layer = TrkrDefs::getLayer(cluster_key);
 
     if(trkrid == TrkrDefs::mvtxId)
       {
@@ -1434,6 +1465,7 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     const genfit::MeasuredStateOnPlane* gf_state = nullptr;
     try
     {
+      // this works because KalmanFitterInfo returns a const reference to internal object and not a temporary object
       gf_state = &kfi->getFittedState(true);
     }
     catch (...)
@@ -1462,6 +1494,98 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
         << sqrt(state->get_x() * state->get_x() + state->get_y() * state->get_y())
         << endl;
 #endif
+  }
+
+  // loop over clusters, check if layer is disabled, include extrapolated SvtxTrackState
+  if( !_disabled_layers.empty() )
+  {
+
+    unsigned int id_min = 0;
+    for (auto iter = svtx_track->begin_cluster_keys(); iter != svtx_track->end_cluster_keys(); ++iter)
+    {
+
+      auto cluster_key = *iter;
+      auto cluster = _clustermap->findCluster(cluster_key);
+      const int layer = TrkrDefs::getLayer(cluster_key);
+
+      // skip enabled layers
+      if( _disabled_layers.find( layer ) == _disabled_layers.end() )
+      { continue; }
+
+      // get position
+      TVector3 pos(cluster->getPosition(0), cluster->getPosition(1), cluster->getPosition(2));
+      float r_cluster = std::sqrt( square(pos[0]) + square(pos[1]) );
+
+      // loop over states
+      /* find first state whose radius is larger than that of cluster if any */
+      unsigned int id = id_min;
+      for( ; id < gftrack->getNumPointsWithMeasurement(); ++id)
+      {
+
+        auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+        if (!trpoint) continue;
+
+        auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+        if (!kfi) continue;
+
+        const genfit::MeasuredStateOnPlane* gf_state = nullptr;
+        try
+        {
+
+          gf_state = &kfi->getFittedState(true);
+
+        } catch (...) {
+
+          if (Verbosity() > 1)
+          { LogWarning("Failed to get kf fitted state"); }
+
+        }
+
+        if( !gf_state ) continue;
+
+        float r_track = std::sqrt( square( gf_state->getPos().x() ) + square( gf_state->getPos().y() ) );
+        if( r_track > r_cluster ) break;
+
+      }
+
+      // forward extrapolation
+      genfit::MeasuredStateOnPlane gf_state;
+      float pathlength = 0;
+
+      // first point is previous, if valid
+      if( id > 0 )  id_min = id-1;
+
+      // extrapolate forward
+      /*
+      TODO: should better understand difference between getForwardUpdate and getBackwardUpdate
+      current combination is what gives the smallest residuals it seems
+      */
+      {
+        auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
+        auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+        gf_state = *kfi->getForwardUpdate();
+        pathlength = gf_state.extrapolateToPoint( pos );
+        auto tmp = *kfi->getBackwardUpdate();
+        pathlength -= tmp.extrapolateToPoint( vertex_position );
+      }
+
+      // also extrapolate backward from next state if any
+      // and take the weighted average between both points
+      if( id > 0 && id < gftrack->getNumPointsWithMeasurement() )
+      {
+        auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id, rep);
+        auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
+        genfit::KalmanFittedStateOnPlane gf_state_backward = *kfi->getBackwardUpdate();
+        gf_state_backward.extrapolateToPlane( gf_state.getPlane() );
+        gf_state = genfit::calcAverageState( gf_state, gf_state_backward );
+      }
+
+      // create new svtx state and add to track
+      auto state = create_track_state(  pathlength, &gf_state );
+      out_track->insert_state( &state );
+
+    }
+
   }
 
   return out_track;

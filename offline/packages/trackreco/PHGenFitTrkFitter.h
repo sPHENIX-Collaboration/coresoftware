@@ -24,11 +24,11 @@ namespace PHGenFit
 #include <TMatrixFfwd.h>         // for TMatrixF
 #include <TVector3.h>            // for TVector3
 
-#include <cstddef>              // for nullptr
+#include <map>
 #include <memory>                // for shared_ptr
+#include <set>
 #include <string>
 #include <vector>
-#include <map>
 
 class TClonesArray;
 
@@ -226,6 +226,23 @@ class PHGenFitTrkFitter : public SubsysReco
   }
   void set_track_map_name(const std::string &map_name) { _track_map_name = map_name; }
 
+  //!@name disabled layers interface
+  //@{
+
+  //! mark layer as disbled
+  void disable_layer( int layer, bool disabled = true );
+
+  //! set disabled layers
+  void set_disabled_layers( const std::set<int>& );
+
+  //! clear disabled layers
+  void clear_disabled_layers();
+
+  //! get disabled layers
+  const std::set<int>& get_disabled_layers() const;
+
+  //@}
+
  private:
   //! Event counter
   int _event = 0;
@@ -295,6 +312,10 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //!
   bool _use_truth_vertex = false;
+
+  //! disabled layers
+  /** clusters belonging to disabled layers are not included in track fit */
+  std::set<int> _disabled_layers;
 
   std::unique_ptr<PHGenFit::Fitter> _fitter;
 
