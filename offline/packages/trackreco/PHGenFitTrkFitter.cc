@@ -115,6 +115,33 @@ static constexpr float WILD_FLOAT = -9999;
 
 using namespace std;
 
+//______________________________________________________
+namespace {
+
+  // convert gf state to SvtxTrackState_v1
+  SvtxTrackState_v1 create_track_state( float pathlength, const genfit::MeasuredStateOnPlane* gf_state )
+  {
+
+    SvtxTrackState_v1 out( pathlength );
+    out.set_x(gf_state->getPos().x());
+    out.set_y(gf_state->getPos().y());
+    out.set_z(gf_state->getPos().z());
+
+    out.set_px(gf_state->getMom().x());
+    out.set_py(gf_state->getMom().y());
+    out.set_pz(gf_state->getMom().z());
+
+    for (int i = 0; i < 6; i++)
+    {
+      for (int j = i; j < 6; j++)
+      { out.set_error(i, j, gf_state->get6DCov()[i][j]); }
+    }
+
+    return out;
+
+  }
+
+}
 
 /*
  * Constructor
@@ -1097,10 +1124,16 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
   //cout << PHWHERE << "        u " << u << " v " << v << " du2 " << du2 << " dv2 " << dv2 << " dvr2 " << dvr2 << endl;
   //delete gf_state_beam_line_ca;
 
-  //const SvtxTrack_v1* temp_track = static_cast<const SvtxTrack_v1*> (svtx_track);
-  //	SvtxTrack_v1* out_track = new SvtxTrack_v1(
-  //			*static_cast<const SvtxTrack_v1*>(svtx_track));
-  std::shared_ptr<SvtxTrack_v1> out_track(new SvtxTrack_v1(*static_cast<const SvtxTrack_v1*>(svtx_track)));
+  // create new track
+  std::shared_ptr<SvtxTrack_v1> out_track( new SvtxTrack_v1() );
+
+  // assign all members from old
+  /* we need asignment operator instead of copy constructor, because the former makes a deep copy of the track state, as opposed to the latter */
+  *out_track = *static_cast<const SvtxTrack_v1*>(svtx_track);
+
+  // clear states and insert empty one for vertex position
+  out_track->clear_states();
+  out_track->insert_state( new SvtxTrackState_v1(0.0) );
 
   out_track->set_dca2d(u);
   out_track->set_dca2d_error(sqrt(du2 + dvr2));
@@ -1398,12 +1431,10 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       continue;
     }
 
-    std::shared_ptr<const genfit::MeasuredStateOnPlane> gf_state = nullptr;
+    const genfit::MeasuredStateOnPlane* gf_state = nullptr;
     try
     {
-      //gf_state = std::shared_ptr <genfit::MeasuredStateOnPlane> (const_cast<genfit::MeasuredStateOnPlane*> (&(kfi->getFittedState(true))));
-      const genfit::MeasuredStateOnPlane* temp_state = &(kfi->getFittedState(true));
-      gf_state = std::shared_ptr<genfit::MeasuredStateOnPlane>(new genfit::MeasuredStateOnPlane(*temp_state));
+      gf_state = &kfi->getFittedState(true);
     }
     catch (...)
     {
@@ -1419,26 +1450,9 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
     genfit::MeasuredStateOnPlane temp;
     float pathlength = -phgf_track->extrapolateToPoint(temp, vertex_position, id);
 
-    std::shared_ptr<SvtxTrackState> state = std::shared_ptr<SvtxTrackState>(new SvtxTrackState_v1(pathlength));
-    state->set_x(gf_state->getPos().x());
-    state->set_y(gf_state->getPos().y());
-    state->set_z(gf_state->getPos().z());
-
-    state->set_px(gf_state->getMom().x());
-    state->set_py(gf_state->getMom().y());
-    state->set_pz(gf_state->getMom().z());
-
-    //gf_state->getCov().Print();
-
-    for (int i = 0; i < 6; i++)
-    {
-      for (int j = i; j < 6; j++)
-      {
-        state->set_error(i, j, gf_state->get6DCov()[i][j]);
-      }
-    }
-
-    out_track->insert_state(state.get());
+    // create new svtx state and add to track
+    auto state = create_track_state( pathlength, gf_state );
+    out_track->insert_state( &state );
 
 #ifdef _DEBUG_
     cout
