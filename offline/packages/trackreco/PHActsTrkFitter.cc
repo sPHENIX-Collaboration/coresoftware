@@ -172,6 +172,7 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 	      if(!layergeom)
 		{
 		  std::cout << PHWHERE << "Did not get layergeom for layer " <<tpc_layer  << std::endl;
+		  return Fun4AllReturnCodes::ABORTEVENT;
 		}
 	      
 	      double radius = layergeom->get_radius();
