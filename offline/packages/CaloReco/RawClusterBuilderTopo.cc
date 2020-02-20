@@ -101,7 +101,7 @@ std::vector<int> RawClusterBuilderTopo::get_adjacent_towers_by_ID( int ID ) {
     
     for (int new_eta = EMCal_eta_start; new_eta <= EMCal_eta_end; new_eta++) {
       for (int delta_phi = 0; delta_phi < 4; delta_phi++) {
-	int new_phi = ( EMCal_phi_start + delta_phi + 256 ) % 256;
+	int new_phi = ( EMCal_phi_start + delta_phi + _EMCAL_NPHI ) % _EMCAL_NPHI;
 	
 	int EMCal_tower = get_ID( 2, new_eta, new_phi );
 	if ( Verbosity() > 20 ) std::cout << "RawClusterBuilderTopo::get_adjacent_towers_by_ID : HCal tower with eta / phi = " << this_eta << " / " << this_phi << ", adding EMCal tower with eta / phi = " << new_eta << " / " << new_phi << std::endl;
