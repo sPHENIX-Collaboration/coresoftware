@@ -1556,10 +1556,6 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
       if( id > 0 )  id_min = id-1;
 
       // extrapolate forward
-      /*
-      TODO: should better understand difference between getForwardUpdate and getBackwardUpdate
-      current combination is what gives the smallest residuals it seems
-      */
       {
         auto trpoint = gftrack->getPointWithMeasurementAndFitterInfo(id_min, rep);
         auto kfi = static_cast<genfit::KalmanFitterInfo*>(trpoint->getFitterInfo(rep));
