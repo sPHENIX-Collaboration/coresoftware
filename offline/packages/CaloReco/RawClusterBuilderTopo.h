@@ -76,68 +76,61 @@ class RawClusterBuilderTopo : public SubsysReco
 
   static int RawClusterBuilderTopo_constants_IHCal_eta_given_EMCal[];
 
-  // additional geometric constants
-  enum GeomConstant
-  {
-    HCAL_ETA = 24,
-    HCAL_PHI = 64,
-    EMCAL_ETA = 96,
-    EMCAL_PHI = 256
-  };
-
-  // utility functions to express IHCal<->EMCal overlap in phi
-  int get_first_matching_EMCal_phi_from_IHCal( int index_hcal_phi ) {
-    return ( (68 + 4 * ( index_hcal_phi - 32) + EMCAL_PHI ) % EMCAL_PHI );
-  }
-
-  int get_matching_HCal_phi_from_EMCal( int index_emcal_phi ) { 
-    return ( (32 + ( index_emcal_phi - 68 ) / 4 + HCAL_PHI ) % HCAL_PHI );
-  }
-
-  std::vector<int> get_adjacent_towers_by_ID( int ID );
-
-  int get_ID( int ilayer, int ieta, int iphi ) {
-    if ( ilayer < 2 ) return ilayer * HCAL_ETA * HCAL_PHI + ieta * HCAL_PHI + iphi;
-    else return EMCAL_PHI * EMCAL_ETA + ieta * EMCAL_PHI + iphi;
-  }
-  
-  int get_ilayer_from_ID( int ID ) {
-    if ( ID < EMCAL_PHI * EMCAL_ETA ) return ( (int) ( ID / ( HCAL_ETA * HCAL_PHI ) ) );
-    else return 2;
-  }
-  
-  int get_ieta_from_ID( int ID ) {
-    if ( ID < EMCAL_PHI * EMCAL_ETA ) return ( (int) ( ( ID % ( HCAL_ETA * HCAL_PHI ) ) / ( HCAL_PHI ) ) );
-    else return ( (int) ( ( ID - EMCAL_PHI * EMCAL_ETA ) / EMCAL_PHI ) );
-  }
-  
-  int get_iphi_from_ID( int ID ) {
-    if ( ID < EMCAL_PHI * EMCAL_ETA ) return ( (int) ( ID % HCAL_PHI ) );
-    else return ( (int) ( ( ID - EMCAL_PHI * EMCAL_ETA ) % EMCAL_PHI ) );
-  }
-
-  int get_status_from_ID( int ID ) {
-    if ( ID < EMCAL_PHI * EMCAL_ETA ) return _TOWERMAP_STATUS_LAYER_ETA_PHI[ get_ilayer_from_ID( ID ) ][ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
-    else return _EMTOWERMAP_STATUS_ETA_PHI[ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
-  }
-
-  float get_E_from_ID( int ID ) {
-    if ( ID < EMCAL_PHI * EMCAL_ETA ) return _TOWERMAP_E_LAYER_ETA_PHI[ get_ilayer_from_ID( ID ) ][ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
-    else return _EMTOWERMAP_E_ETA_PHI[ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
-  }
-
-  void set_status_by_ID( int ID , int status ) {
-    if ( ID < EMCAL_PHI * EMCAL_ETA ) _TOWERMAP_STATUS_LAYER_ETA_PHI[ get_ilayer_from_ID( ID ) ][ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ] = status;
-    else _EMTOWERMAP_STATUS_ETA_PHI[ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ] = status;
-  }
-  
-  RawClusterContainer *_clusters;
-
+  // geometric parameters defined at runtime
   int _EMCAL_NETA;
   int _EMCAL_NPHI;
 
   int _HCAL_NETA;
   int _HCAL_NPHI;
+
+  // utility functions to express IHCal<->EMCal overlap in phi
+  int get_first_matching_EMCal_phi_from_IHCal( int index_hcal_phi ) {
+    return ( (68 + 4 * ( index_hcal_phi - 32) + _EMCAL_NPHI ) % _EMCAL_NPHI );
+  }
+
+  int get_matching_HCal_phi_from_EMCal( int index_emcal_phi ) { 
+    return ( (32 + ( index_emcal_phi - 68 ) / 4 + _HCAL_NPHI ) % _HCAL_NPHI );
+  }
+
+  std::vector<int> get_adjacent_towers_by_ID( int ID );
+
+  int get_ID( int ilayer, int ieta, int iphi ) {
+    if ( ilayer < 2 ) return ilayer * _HCAL_NETA * _HCAL_NPHI + ieta * _HCAL_NPHI + iphi;
+    else return _EMCAL_NPHI * _EMCAL_NETA + ieta * _EMCAL_NPHI + iphi;
+  }
+  
+  int get_ilayer_from_ID( int ID ) {
+    if ( ID < _EMCAL_NPHI * _EMCAL_NETA ) return ( (int) ( ID / ( _HCAL_NETA * _HCAL_NPHI ) ) );
+    else return 2;
+  }
+  
+  int get_ieta_from_ID( int ID ) {
+    if ( ID < _EMCAL_NPHI * _EMCAL_NETA ) return ( (int) ( ( ID % ( _HCAL_NETA * _HCAL_NPHI ) ) / ( _HCAL_NPHI ) ) );
+    else return ( (int) ( ( ID - _EMCAL_NPHI * _EMCAL_NETA ) / _EMCAL_NPHI ) );
+  }
+  
+  int get_iphi_from_ID( int ID ) {
+    if ( ID < _EMCAL_NPHI * _EMCAL_NETA ) return ( (int) ( ID % _HCAL_NPHI ) );
+    else return ( (int) ( ( ID - _EMCAL_NPHI * _EMCAL_NETA ) % _EMCAL_NPHI ) );
+  }
+
+  int get_status_from_ID( int ID ) {
+    if ( ID < _EMCAL_NPHI * _EMCAL_NETA ) return _TOWERMAP_STATUS_LAYER_ETA_PHI[ get_ilayer_from_ID( ID ) ][ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
+    else return _EMTOWERMAP_STATUS_ETA_PHI[ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
+  }
+
+  float get_E_from_ID( int ID ) {
+    if ( ID < _EMCAL_NPHI * _EMCAL_NETA ) return _TOWERMAP_E_LAYER_ETA_PHI[ get_ilayer_from_ID( ID ) ][ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
+    else return _EMTOWERMAP_E_ETA_PHI[ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ];
+  }
+
+  void set_status_by_ID( int ID , int status ) {
+    if ( ID < _EMCAL_NPHI * _EMCAL_NETA ) _TOWERMAP_STATUS_LAYER_ETA_PHI[ get_ilayer_from_ID( ID ) ][ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ] = status;
+    else _EMTOWERMAP_STATUS_ETA_PHI[ get_ieta_from_ID( ID ) ][ get_iphi_from_ID( ID ) ] = status;
+  }
+  
+  RawClusterContainer *_clusters;
+
 
   float _noise_LAYER[3];
 
