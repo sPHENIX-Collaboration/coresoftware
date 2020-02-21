@@ -21,16 +21,11 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-//#include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
-//#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
-
 
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
-
-//#include <phfield/PHFieldUtility.h>
 
 #include <phgeom/PHGeomUtility.h>
 
@@ -65,23 +60,16 @@
 
 #include <ACTFW/Options/CommonOptions.hpp>
 
-//#include <ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp>
-//#include <ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp>
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
 
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 
 #include <ACTFW/Utilities/Options.hpp>
-//#include <ACTFW/Utilities/Paths.hpp>
 
-//#include <TRotation.h>
 #include <TVector3.h>
-//#include <TMatrixD.h>
-//#include <TMath.h>                                  // for ATan2
 #include <TMatrixT.h>                               // for TMatrixT, operator*
 #include <TObject.h>
 #include <TGeoManager.h>
-//#include <TGeoMatrix.h>
 #include <TSystem.h>
 
 #include <cmath>                              // for sqrt, NAN
