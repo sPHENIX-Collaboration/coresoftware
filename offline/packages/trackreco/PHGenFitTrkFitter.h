@@ -325,8 +325,12 @@ class PHGenFitTrkFitter : public SubsysReco
   double _vertex_min_ndf = 20;
 
   #if !defined(__CINT__) || defined(__CLING__)
-  std::unique_ptr<PHGenFit::Fitter> _fitter;
-  std::unique_ptr<genfit::GFRaveVertexFactory> _vertex_finder;
+  /*
+  need to use shared_ptr and not unique_ptr because root5 cint
+  requires the existence of a copy constructor, which the unique_ptr forbids
+  */
+  std::shared_ptr<PHGenFit::Fitter> _fitter;
+  std::shared_ptr<genfit::GFRaveVertexFactory> _vertex_finder;
   #endif
 
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
