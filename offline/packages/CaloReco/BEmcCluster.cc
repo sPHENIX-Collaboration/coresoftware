@@ -524,7 +524,10 @@ void EmcCluster::GetErrors(float* pde, float* pdx, float* pdy, float* pdz)
 
 float EmcCluster::GetProb(float& chi2, int& ndf)
 {
-  return fOwner->GetProb(fHitList, chi2, ndf);
+  float e, xg, yg, zg;
+  e = GetTotalEnergy();
+  GetGlobalPos(xg,yg,zg);
+  return fOwner->GetProb(fHitList, e,xg,yg,zg, chi2, ndf);
 }
 
 // ///////////////////////////////////////////////////////////////////////////
