@@ -1164,7 +1164,15 @@ std::shared_ptr<SvtxTrack> PHGenFitTrkFitter::MakeSvtxTrack(const SvtxTrack* svt
 
   // clear states and insert empty one for vertex position
   out_track->clear_states();
-  out_track->insert_state( new SvtxTrackState_v1(0.0) );
+  {
+    /*
+    insert first, dummy state, as done in SvtxTrack_v1 constructor,
+    so that the track state list is never empty. Note that insert_state, despite taking a pointer as argument,
+    does not take ownership of the state
+    */
+    SvtxTrackState_v1 first(0.0);
+    out_track->insert_state( &first );
+  }
 
   out_track->set_dca2d(u);
   out_track->set_dca2d_error(sqrt(du2 + dvr2));
