@@ -39,7 +39,7 @@ namespace
 {
 
   //______________________________________________________________________
-  template<class T> T square( const T& x ) { return x*x; }
+  template<class T> constexpr T square( const T& x ) { return x*x; }
 
   //______________________________________________________________________
   double get_pad_response( double position, const std::array<double,2>& par )
@@ -149,6 +149,10 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
     return;
   }
 
+  // store phi bins and zbins upfront to avoid repetitive checks on the phi methods
+  const auto phibins = LayerGeom->get_phibins();
+  const auto zbins = LayerGeom->get_zbins();
+
   // Create the distribution function of charge on the pad plane around the electron position
 
   // The resolution due to pad readout includes the charge spread during GEM multiplication.
@@ -231,8 +235,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       float neffelectrons = nelec * (pad_share) * (adc_bin_share);
       if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be below the noise suppression threshold
 
-      if (zbin_num >= LayerGeom->get_zbins()) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << LayerGeom->get_zbins() << endl;
-      if (pad_num >= LayerGeom->get_phibins()) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << LayerGeom->get_phibins() << endl;
+      if (zbin_num >= zbins) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << zbins << endl;
+      if (pad_num >= phibins) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << phibins << endl;
 
       // collect information to do simple clustering. Checks operation of PHG4CylinderCellTpcReco, and
       // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
@@ -323,6 +327,10 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
     return;
   }
 
+  // store phi bins and zbins upfront to avoid repetitive checks on the phi methods
+  const auto phibins = LayerGeom->get_phibins();
+  const auto zbins = LayerGeom->get_zbins();
+
   // Create the distribution function of charge on the pad plane around the electron position
 
   // The resolution due to pad readout includes the charge spread during GEM multiplication.
@@ -405,8 +413,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       float neffelectrons = nelec * (pad_share) * (adc_bin_share);
       if (neffelectrons < neffelectrons_threshold) continue;  // skip signals that will be below the noise suppression threshold
 
-      if (zbin_num >= LayerGeom->get_zbins()) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << LayerGeom->get_zbins() << endl;
-      if (pad_num >= LayerGeom->get_phibins()) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << LayerGeom->get_phibins() << endl;
+      if (zbin_num >= zbins) cout << " Error making key: adc_zbin " << zbin_num << " nzbins " << zbins << endl;
+      if (pad_num >= phibins) cout << " Error making key: pad_phibin " << pad_num << " nphibins " << phibins << endl;
 
       // collect information to do simple clustering. Checks operation of PHG4CylinderCellTpcReco, and
       // is also useful for comparison with PHG4TpcClusterizer result when running single track events.
@@ -430,7 +438,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       unsigned int side = 0;
       if (zcenter > 0) side = 1;
       // get the Tpc readout sector - there are 12 sectors with how many pads each?
-      unsigned int pads_per_sector = LayerGeom->get_phibins() / 12;
+      unsigned int pads_per_sector = phibins / 12;
       unsigned int sector = pad_num / pads_per_sector;
       TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layernum, sector, side);
       // Use existing hitset or add new one if needed
@@ -479,10 +487,8 @@ void PHG4TpcPadPlaneReadout::populate_rectangular_phibins(const unsigned int lay
 {
   double cloud_sig_rp_inv = 1. / cloud_sig_rp;
 
-  //int phibin = get_phibin(tpc_region, phi);
-  //int nphibins = NPhiBins[tpc_region];
-  int phibin = LayerGeom->get_phibin(phi);
-  int nphibins = LayerGeom->get_phibins();
+  const int phibin = LayerGeom->get_phibin(phi);
+  const int nphibins = LayerGeom->get_phibins();
 
   double radius = LayerGeom->get_radius();
   double phidisp = phi - LayerGeom->get_phicenter(phibin);
@@ -548,7 +554,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   if (npads < 0 || npads > 9) npads = 9;  // can happen if phibin_high wraps around. If so, limit to 10 pads and fix below
 
   // Calculate the maximum extent in r-phi of pads in this layer. Pads are assumed to touch the center of the next phi bin on both sides.
-  double pad_rphi = 2.0 * LayerGeom->get_phistep() * radius;
+  const double pad_rphi = 2.0 * LayerGeom->get_phistep() * radius;
 
   // Make a TF1 for each pad in the phi range
   using PadParameterSet = std::array<double,2>;
@@ -558,7 +564,7 @@ void PHG4TpcPadPlaneReadout::populate_zigzag_phibins(const unsigned int layernum
   {
     int pad_now = phibin_low + ipad;
     // check that we do not exceed the maximum number of pads, wrap if necessary
-    if (pad_now >= LayerGeom->get_phibins()) pad_now -= LayerGeom->get_phibins();
+    if (pad_now >= phibins) pad_now -= phibins;
 
     pad_keep[ipad] = pad_now;
     const double rphi_pad_now = LayerGeom->get_phicenter(pad_now) * radius;
