@@ -84,16 +84,16 @@ class PHGenFitTrkFitter : public SubsysReco
   PHGenFitTrkFitter(const std::string& name = "PHGenFitTrkFitter");
 
   //!Initialization, called for initialization
-  int Init(PHCompositeNode*) override;
+  virtual int Init(PHCompositeNode*);
 
   //!Initialization Run, called for initialization of a run
-  int InitRun(PHCompositeNode*) override;
+  virtual int InitRun(PHCompositeNode*);
 
   //!Process Event, called for each event
-  int process_event(PHCompositeNode*) override;
+  virtual int process_event(PHCompositeNode*);
 
   //!End, write and close files
-  int End(PHCompositeNode*) override;
+  virtual int End(PHCompositeNode*);
 
   //! For evalution
   //! Change eval output filename
@@ -243,7 +243,7 @@ class PHGenFitTrkFitter : public SubsysReco
 
   //@}
 
- private:
+  private:
   //! Event counter
   int _event = 0;
 
@@ -317,8 +317,6 @@ class PHGenFitTrkFitter : public SubsysReco
   /** clusters belonging to disabled layers are not included in track fit */
   std::set<int> _disabled_layers;
 
-  std::unique_ptr<PHGenFit::Fitter> _fitter;
-
   //! KalmanFitterRefTrack, KalmanFitter, DafSimple, DafRef
   std::string _track_fitting_alg_name = "DafRef";
 
@@ -326,7 +324,10 @@ class PHGenFitTrkFitter : public SubsysReco
   double _fit_min_pT = 0.1;
   double _vertex_min_ndf = 20;
 
+  #if !defined(__CINT__) || defined(__CLING__)
+  std::unique_ptr<PHGenFit::Fitter> _fitter;
   std::unique_ptr<genfit::GFRaveVertexFactory> _vertex_finder;
+  #endif
 
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   std::string _vertexing_method = "avr-smoothing:1-minweight:0.5-primcut:9-seccut:9";
