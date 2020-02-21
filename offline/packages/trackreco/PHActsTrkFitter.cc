@@ -10,99 +10,88 @@
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <mvtx/MvtxDefs.h>
+
+#include <intt/CylinderGeomIntt.h>
 #include <intt/InttDefs.h>
+
+#include <mvtx/CylinderGeom_Mvtx.h>
+#include <mvtx/MvtxDefs.h>
+
+#include <tpc/TpcDefs.h>
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
-#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
+//#include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
+//#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
 
-#include <mvtx/MvtxDefs.h>
-#include <intt/InttDefs.h>
-#include <tpc/TpcDefs.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
-//
-#include <intt/CylinderGeomIntt.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
-#include <g4main/PHG4VtxPointv1.h>
+//#include <phfield/PHFieldUtility.h>
 
 #include <phgeom/PHGeomUtility.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
-
 // Acts classes
-#include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Surfaces/PlaneSurface.hpp"
-#include "Acts/Geometry/TrackingGeometry.hpp"
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
-#include "Acts/Geometry/TrackingVolume.hpp"
-#include "Acts/Plugins/Digitization/DigitizationCell.hpp"
-#include "Acts/Plugins/Digitization/PlanarModuleCluster.hpp"
-#include "Acts/Utilities/Definitions.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
-#include "ACTFW/Framework/AlgorithmContext.hpp"
-#include "ACTFW/Framework/IContextDecorator.hpp"
-#include "ACTFW/Framework/WhiteBoard.hpp"
-#include "ACTFW/Geometry/CommonGeometry.hpp"
-#include "ACTFW/Options/CommonOptions.hpp"
-#include "ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp"
-#include "ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp"
-#include "ACTFW/Plugins/Obj/ObjWriterOptions.hpp"
-#include "ACTFW/Utilities/Options.hpp"
-#include "ACTFW/Utilities/Paths.hpp"
-#include "ACTFW/Geometry/GeometryExampleBase.hpp"
-#include "ACTFW/TGeoDetector/TGeoDetector.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
+#include <Acts/Geometry/TrackingVolume.hpp>
 
-#include <TRotation.h>
+#include <Acts/Plugins/Digitization/DigitizationCell.hpp>
+#include <Acts/Plugins/Digitization/PlanarModuleCluster.hpp>
+
+#include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Surfaces/PlaneSurface.hpp>
+
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
+#include <Acts/Utilities/Logger.hpp>                            // for getDe...
+
+#include <ACTFW/Detector/IBaseDetector.hpp>
+
+#include <ACTFW/Framework/AlgorithmContext.hpp>
+#include <ACTFW/Framework/IContextDecorator.hpp>
+#include <ACTFW/Framework/WhiteBoard.hpp>
+
+#include <ACTFW/Geometry/CommonGeometry.hpp>
+
+#include <ACTFW/Options/CommonOptions.hpp>
+
+//#include <ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp>
+//#include <ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp>
+#include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
+
+#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
+
+#include <ACTFW/Utilities/Options.hpp>
+//#include <ACTFW/Utilities/Paths.hpp>
+
+//#include <TRotation.h>
 #include <TVector3.h>
-#include <TMatrixD.h>
-#include <TMath.h>                                  // for ATan2
+//#include <TMatrixD.h>
+//#include <TMath.h>                                  // for ATan2
 #include <TMatrixT.h>                               // for TMatrixT, operator*
 #include <TObject.h>
 #include <TGeoManager.h>
-#include <TGeoMatrix.h>
+//#include <TGeoMatrix.h>
+#include <TSystem.h>
 
 #include <cmath>                              // for sqrt, NAN
+#include <cstddef>                                              // for size_t
+#include <cstdlib>                                              // for atoi
 #include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
 #include <vector>
-
-class PHField;
 
 using namespace std;
 
@@ -172,7 +161,7 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 	      if(!layergeom)
 		{
 		  std::cout << PHWHERE << "Did not get layergeom for layer " <<tpc_layer  << std::endl;
-		  return Fun4AllReturnCodes::ABORTEVENT;
+		  gSystem->Exit(1);
 		}
 	      
 	      double radius = layergeom->get_radius();
