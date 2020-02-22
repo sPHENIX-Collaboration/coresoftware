@@ -9,45 +9,34 @@
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "PHTrackFitting.h"
-#include <fun4all/SubsysReco.h>
+
 #include <trackbase/TrkrDefs.h>
 
-#include <cstddef>              // for NULL
+#include <Acts/Geometry/GeometryContext.hpp>
+
+#include <TMatrixDfwd.h>                      // for TMatrixD
+
+#include <map>
 #include <memory>                // for shared_ptr
 #include <string>
 #include <vector>
-#include <map>
 
-#include <Acts/Geometry/GeometryContext.hpp>
-//#include "Acts/Plugins/Identification/Identifier.hpp"
-#include <TMatrixD.h>
 
-class TClonesArray;
-
-class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
-class SvtxVertex;
 class PHCompositeNode;
-class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class TrkrClusterContainer;
-class TTree;
 class TGeoManager;
 class TGeoNode;
 
 namespace FW {
   class IBaseDetector;
-  class TGeoManager;
   class IContextDecorator;
 }
 
 namespace Acts {
-class TrackingVolume;
-class Surface;
-class PlaneSurface;
- class PlanarModuleCluster;
+  class Surface;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
