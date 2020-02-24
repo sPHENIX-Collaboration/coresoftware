@@ -2,7 +2,7 @@
  *  \file		PHActsTrkFitter.C
  *  \brief		Refit SvtxTracks with PHActs.
  *  \details	Refit SvtxTracks with PHActs.
- *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ *  \author	        Tony Frawley <afrawley@fsu.edu>
  */
 
 #include "PHActsTrkFitter.h"
@@ -88,8 +88,24 @@ using namespace std;
  */
 PHActsTrkFitter::PHActsTrkFitter(const string& name)
   : PHTrackFitting(name)
+  , _geom_container_mvtx(nullptr)
+  , _geom_container_intt(nullptr)
+  , _geom_container_tpc(nullptr)
+  , _trackmap(nullptr)
+  , _clustermap(nullptr)
+  , _geomanager(nullptr)
+  , MinSurfZ(0.0)
+  , MaxSurfZ(100.0)
+  , NSurfZ(10)
+  , NSurfPhi(10)
 {
   Verbosity(0);
+  
+  // These are arbitrary subdivisions, and may change
+  SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
+  ModuleStepPhi = 2.0 * M_PI / 12.0;
+  ModulePhiStart = - M_PI;
+  SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
 
   _event = 0;
 }
@@ -104,36 +120,18 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key  
   MakeTGeoNodeMap(topNode);
 
-BuildTpcSurfaceMap();
+  // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
+  BuildTpcSurfaceMap();
   
-return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHActsTrkFitter::BuildTpcSurfaceMap()
 {
-  //  std::cout << "Entering BuildTpcSurfaceMap" << endl;
-
   // Make a map of surfaces corresponding to each TPC sectorid and side.
   // There are 12 sectors and 2 sides of the membrane
   // We additionally subdivide these surfaces into approximately plane surfaces segmented in Z and phi
-
-  // these don't change, we are building it this way!
-  unsigned int NTpcLayers = 48;
-  unsigned int NTpcModulesPerLayer = 12;
-  unsigned int NTpcSides = 2;
-
-  // These are arbitrary subdivisions, and may change
-  unsigned int NSurfZ = 10;
-  unsigned int NSurfPhi = 10;
-
-  double MinSurfZ = 0.0;
-  double MaxSurfZ = 100.0;
-
-  SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
-  ModuleStepPhi = 2.0 * M_PI / 12.0;
-  ModulePhiStart = - M_PI;
-  SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
-
+  // Subdivisions for creating TPC Acts::Surfaces are defined in constructor and header file
   for(unsigned int iz = 0; iz < NSurfZ; ++iz)
     {
       for(unsigned int side = 0; side < NTpcSides; ++side)
@@ -190,6 +188,10 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
     }
  }  
 
+
+/**
+ * Builds silicon layers in the ACTS surface world
+ */
 void PHActsTrkFitter::BuildSiliconLayers()
 {
   // define int argc and char* argv to provide options to processGeometry
@@ -200,6 +202,7 @@ void PHActsTrkFitter::BuildSiliconLayers()
     std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
   */
 
+  // Can hard code geometry options since the TGeo options are fixed by our detector design
   int argc = 24;
   char *arg[24];
   std::string argstr[24]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx",  "--output-obj", "true"};
@@ -211,9 +214,6 @@ void PHActsTrkFitter::BuildSiliconLayers()
       arg[i] = strdup(argstr[i].c_str());
     }
 
-  //for(int i=0;i<argc;++i)
-  //  cout << " argc " << argc << " i " << i << " arg " << arg[i] << endl;
-  
   /*
     acts-framework:
     (compiled binary = ACTFWTGeoGeometryExample)
@@ -415,7 +415,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
       
       std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
-      // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
+      // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to use the radius to figure 
       // out which layer to use to get the layergeom
       double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
       
@@ -536,10 +536,10 @@ void PHActsTrkFitter::MakeTGeoNodeMap(PHCompositeNode *topNode)
 	  if(Verbosity() > 100)  cout << " node " << node->GetName() << " is in the MVTX" << endl;
 	  getMvtxKeyFromNode(node);
 	}
-      else if ( node_str.compare(0, intt.length(), intt) ==0 ) 	      // is it in the INTT?
+      else if ( node_str.compare(0, intt.length(), intt) == 0 ) 	      // is it in the INTT?
 	{
 	  // We do not want the "ladderext" nodes
-	  if ( node_str.compare(0, intt_ext.length(), intt_ext) ==0 ) 
+	  if ( node_str.compare(0, intt_ext.length(), intt_ext) == 0 ) 
 	    continue;
 	  
 	  if(Verbosity() > 100) cout << " node " << node->GetName() << " is in the INTT" << endl;	  
