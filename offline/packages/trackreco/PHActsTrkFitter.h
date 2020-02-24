@@ -2,7 +2,7 @@
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
  *  \details	Refit SvtxTracks with Acts
- *  \author		Tony Frawley <afrawleyu@fsu.edu>
+ *  \author		Tony Frawley <afrawley@fsu.edu>
  */
 
 #ifndef TRACKRECO_ACTSTRKFITTER_H
@@ -120,10 +120,22 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
 
-double SurfStepPhi;
-double SurfStepZ;
-double ModuleStepPhi;
-double ModulePhiStart;
+
+  // TPC surface subdivisions
+  double MinSurfZ;
+  double MaxSurfZ;
+  unsigned int NSurfZ;
+  unsigned int NSurfPhi;
+  double SurfStepPhi;
+  double SurfStepZ;
+  double ModuleStepPhi;
+  double ModulePhiStart;
+
+  // these don't change, we are building the tpc this way!
+  const unsigned int NTpcLayers = 48;
+  const unsigned int NTpcModulesPerLayer = 12;
+  const unsigned int NTpcSides = 2;
+
 
 };
 
