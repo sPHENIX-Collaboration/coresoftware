@@ -5,7 +5,10 @@
 
 #include <g4main/PHG4HitContainer.h>
 
+#if !defined(__CINT__) || defined(__CLING__)
 #include <array>
+#endif
+
 #include <climits>
 #include <cmath>
 #include <string>                     // for string
@@ -40,6 +43,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   void populate_zigzag_phibins(const unsigned int layernum, const double phi, const double cloud_sig_rp, std::vector<int> &pad_phibin, std::vector<double> &pad_phibin_share);
   void populate_zbins(const double z, const std::array<double,2>& cloud_sig_zz, std::vector<int> &adc_zbin, std::vector<double> &adc_zbin_share);
 
+#if !defined(__CINT__) || defined(__CLING__)
   std::string seggeonodename;
 
   PHG4CylinderCellGeomContainer *GeomContainer = nullptr;
@@ -75,6 +79,7 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static constexpr double _nsigmas = 5;
   static constexpr int _ngauss_steps = 100;
   std::array<double, _ngauss_steps> _gauss_weights;
+#endif
 
   std::vector<int> adc_zbin;
   std::vector<int> pad_phibin;
