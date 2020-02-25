@@ -55,7 +55,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   double neffelectrons_threshold = NAN;
 
   std::array<int,3> MinLayer;
-  std::array<int,3> MaxLayer;
   std::array<double,3> MinRadius;
   std::array<double,3> MaxRadius;
   std::array<double,3> Thickness;
@@ -71,7 +70,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   int NZBins = INT_MAX;
   std::array<int,3> NPhiBins;
   std::array<int,3> NTpcLayers;
-  int tpc_region = INT_MAX;
   int zigzag_pads = INT_MAX;
   int hit = 0;
 
