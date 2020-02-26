@@ -244,6 +244,8 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
 
 int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 {
+  unsigned int print_layer = 18;  
+
   PHG4HitContainer *g4hit = findNode::getClass<PHG4HitContainer>(topNode, hitnodename.c_str());
   if (!g4hit)
   {
@@ -364,6 +366,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     }  // end loop over electrons for this g4hit
     ihit++;
 
+    cout << "Finished drifting electrons from g4hit " << ihit << " now process temp_hitsetcontainer  with size " << temp_hitsetcontainer->size() << endl;
+
     // transfer the hits from temp_hitsetcontainer to hitsetcontainer on the node tree
     TrkrHitSetContainer::ConstRange temp_hitset_range = temp_hitsetcontainer->getHitSets(TrkrDefs::TrkrId::tpcId);
     for (TrkrHitSetContainer::ConstIterator temp_hitset_iter = temp_hitset_range.first;
@@ -375,7 +379,9 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	const unsigned int layer = TrkrDefs::getLayer(node_hitsetkey);
 	const int sector = TpcDefs::getSectorId(node_hitsetkey);
 	const int side = TpcDefs::getSide(node_hitsetkey);	
-	if(Verbosity()>100)   
+
+	//if(Verbosity()>100)   
+	if(layer == print_layer)
 	  cout << "PHG4TpcElectronDrift: temp_hitset with key: " << node_hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
 	// find or add this hitset on the node tree
@@ -390,14 +396,17 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    TrkrDefs::hitkey temp_hitkey = temp_hit_iter->first;
 	    TrkrHit *temp_tpchit = temp_hit_iter->second;
 
-	    if(Verbosity() > 100)
-	      cout << "      temp_hitkey " << temp_hitkey << " pad " << TpcDefs::getPad(temp_hitkey) << " z bin " << TpcDefs::getTBin(temp_hitkey) 
-		   << "  energy " << temp_tpchit->getEnergy() << endl;
+	    //if(Verbosity() > 100)
+	if(layer == print_layer)
+	  cout << "      temp_hitkey " << temp_hitkey << " pad " << TpcDefs::getPad(temp_hitkey) << " z bin " << TpcDefs::getTBin(temp_hitkey) 
+	       << "  energy " << temp_tpchit->getEnergy() << endl;
 	    
 	    // find or add this hit to the node tree	    
 	    TrkrHit *node_hit = node_hitsetit->second->getHit(temp_hitkey);
 	    if(!node_hit)
 	      {
+		if(layer == print_layer)
+		  cout << "    did not find existing hit, make a new one" << endl;
 		// Otherwise, create a new one
 		node_hit = new TpcHit();
 		node_hitsetit->second->addHitSpecificKey(temp_hitkey, node_hit);
@@ -405,7 +414,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    
 	    // Either way, add the energy to it
 	    node_hit->addEnergy(temp_tpchit->getEnergy());
-	    
+	    	if(layer == print_layer) cout << "  added energy to hitkey " << temp_hitkey << " energy is now " << node_hit->getEnergy() << endl;	    
 	    // Add the hit-g4hit association	    
 	    hittruthassoc->findOrAddAssoc(node_hitsetkey, temp_hitkey, hiter->first);
 	    
@@ -417,8 +426,6 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
     
   } // end loop over g4hits
   
-
-  unsigned int print_layer = 47;  
 
   if(Verbosity() > 2)
     {
