@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <string>
+#include <set>
 
 #if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
@@ -24,7 +25,7 @@ class QAG4SimulationTracking : public SubsysReco
 {
  public:
   QAG4SimulationTracking();
-  virtual ~QAG4SimulationTracking(){}
+  virtual ~QAG4SimulationTracking() {}
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -32,11 +33,20 @@ class QAG4SimulationTracking : public SubsysReco
 
   // common prefix for QA histograms
   std::string get_histo_prefix();
+
+  //! If added, only process truth particle associated with the selected list of EmbeddingIDs
+  //! Call multiple times to add multiple EmbeddingIDs
+  //! For EmbeddingID<0, all negative embedding IDs are accepted for pile up events.
+  void addEmbeddingID(int embeddingID);
+
+
  private:
-  #if !defined(__CINT__) || defined(__CLING__)
-    //CINT is not c++11 compatible
-    std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
-  #endif
+#if !defined(__CINT__) || defined(__CLING__)
+  //CINT is not c++11 compatible
+  std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
+  std::set<int> m_embeddingIDs;
+
+#endif
 
   PHG4TruthInfoContainer *_truthContainer;
 };
