@@ -211,8 +211,8 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       {
         TVector3 gv(gpx, gpy, gpz);
         gpt = gv.Pt();
-        geta = gv.Pt();
-        //      gphi = gv.Pt();
+        geta = gv.Eta();
+        //      gphi = gv.Phi();
       }
       if (m_etaRange.first < geta and geta < m_etaRange.second)
       {
