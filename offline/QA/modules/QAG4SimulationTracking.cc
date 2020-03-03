@@ -44,6 +44,7 @@ using namespace std;
 QAG4SimulationTracking::QAG4SimulationTracking()
   : SubsysReco("QAG4SimulationTracking")
   , _svtxEvalStack(nullptr)
+  , m_etaRange(-1, 1)
   , _truthContainer(nullptr)
 {
 }
@@ -83,8 +84,8 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   hm->registerHisto(h);
 
   h = new TH2F(TString(get_histo_prefix()) + "pTRecoGenRatio_pTGen",
-               ";Truth p_{T} [GeV/c];Reco p_{T}/Truth p_{T}", 200, 0.1, 50.5, 500, 0, 2);
-  QAHistManagerDef::useLogBins(h->GetXaxis());
+               ";Truth p_{T} [GeV/c];Reco p_{T}/Truth p_{T}", 200, 0, 50, 500, 0, 2);
+  //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
   // reco pT histogram
@@ -96,6 +97,17 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   h = new TH1F(TString(get_histo_prefix()) + "nGen_pTGen",
                ";Truth p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
+  // reco pT histogram
+  h = new TH1F(TString(get_histo_prefix()) + "nReco_etaGen",
+               "Reco tracks at truth  #eta;Truth  #eta", 200, -2, 2);
+  //  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  // reco pT histogram
+  h = new TH1F(TString(get_histo_prefix()) + "nGen_etaGen",
+               ";Truth #eta;Track count / bin", 200, -2, 2);
+  //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
   // n events and n tracks histogram
@@ -151,6 +163,14 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH1 *h_nGen_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_pTGen"));
   assert(h_nGen_pTGen);
 
+  // reco histogram plotted at gen eta
+  TH1 *h_nReco_etaGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_etaGen"));
+  assert(h_nReco_etaGen);
+
+  // gen eta histogram
+  TH1 *h_nGen_etaGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_etaGen"));
+  assert(h_nGen_etaGen);
+
   // n events and n tracks histogram
   TH1 *h_norm = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "Normalization"));
   assert(h_norm);
@@ -165,6 +185,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       // get the truth particle information
       PHG4Particle *g4particle = iter->second;
 
+      if (Verbosity())
+      {
+        cout << "QAG4SimulationTracking::process_event - processing ";
+        g4particle->identify();
+      }
+
       if (m_embeddingIDs.size() > 0)
       {
         //only analyze subset of particle with proper embedding IDs
@@ -173,6 +199,33 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
         // skip if no match
         if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end()) continue;
+      }
+
+      double gpx = g4particle->get_px();
+      double gpy = g4particle->get_py();
+      double gpz = g4particle->get_px();
+      double gpt = 0;
+      double geta = NAN;
+
+      if (gpx != 0 && gpy != 0)
+      {
+        TVector3 gv(gpx, gpy, gpz);
+        gpt = gv.Pt();
+        geta = gv.Pt();
+        //      gphi = gv.Pt();
+      }
+      if (m_etaRange.first < geta and geta < m_etaRange.second)
+      {
+        if (Verbosity())
+        {
+          cout << "QAG4SimulationTracking::process_event - accept particle eta = " << geta << endl;
+        }
+      }
+      else
+      {
+        if (Verbosity())
+          cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << endl;
+        continue;
       }
 
       const int pid = g4particle->get_pid();
@@ -200,24 +253,14 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       }
       h_norm->Fill("Truth Track", 1);
 
-      double gpx = g4particle->get_px();
-      double gpy = g4particle->get_py();
-      double gpz = g4particle->get_px();
-      double gpt = 0;
-
-      if (gpx != 0 && gpy != 0)
-      {
-        TVector3 gv(gpx, gpy, gpz);
-        gpt = gv.Pt();
-        //      geta = gv.Pt();
-        //      gphi = gv.Pt();
-      }
       h_nGen_pTGen->Fill(gpt);
+      h_nGen_etaGen->Fill(geta);
 
       // look for best matching track in reco data & get its information
       SvtxTrack *track = trackeval->best_track_from(g4particle);
       if (track)
       {
+        h_nReco_etaGen->Fill(geta);
         h_nReco_pTGen->Fill(gpt);
 
         double px = track->get_px();
@@ -226,7 +269,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         double pt;
         TVector3 v(px, py, pz);
         pt = v.Pt();
-        //      eta = v.Pt();
+        //        eta = v.Pt();
         //      phi = v.Pt();
 
         float pt_ratio = (gpt != 0) ? pt / gpt : 0;

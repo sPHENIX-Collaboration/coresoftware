@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <set>
+#include <utility>
 
 #if !defined(__CINT__) || defined(__CLING__)
 #include <cstdint>
@@ -39,14 +40,19 @@ class QAG4SimulationTracking : public SubsysReco
   //! For EmbeddingID<0, all negative embedding IDs are accepted for pile up events.
   void addEmbeddingID(int embeddingID);
 
+  void setEtaRange(double low, double high)
+  {
+    m_etaRange.first = low;
+    m_etaRange.second = high;
+  }
 
  private:
 #if !defined(__CINT__) || defined(__CLING__)
   //CINT is not c++11 compatible
   std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
-
 #endif
+  std::pair<double, double> m_etaRange;
 
   PHG4TruthInfoContainer *_truthContainer;
 };
