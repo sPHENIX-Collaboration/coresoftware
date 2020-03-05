@@ -2,17 +2,17 @@
 #include "PHParameters.h"
 
 #include <pdbcalbase/PdbApplication.h>
-#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbBankID.h>
+#include <pdbcalbase/PdbBankManager.h>
 #include <pdbcalbase/PdbCalBank.h>
 #include <pdbcalbase/PdbParameterMap.h>
 #include <pdbcalbase/PdbParameterMapContainer.h>
 
-#include <phool/phool.h>
-#include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
 #include <phool/PHTimeStamp.h>
+#include <phool/getClass.h>
+#include <phool/phool.h>
 
 #include <TBufferXML.h>
 #include <TFile.h>
@@ -20,35 +20,35 @@
 
 #include <boost/stacktrace.hpp>
 
+#include <unistd.h>
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <sstream>
-#include <unistd.h>
 
 using namespace std;
 
-PHParametersContainer::PHParametersContainer(const string &name):
-  superdetectorname(name)
-{}
+PHParametersContainer::PHParametersContainer(const string &name)
+  : superdetectorname(name)
+{
+}
 
 PHParametersContainer::~PHParametersContainer()
 {
-  while(parametermap.begin() != parametermap.end())
-    {
-      delete parametermap.begin()->second;
-      parametermap.erase(parametermap.begin());
-    }
+  while (parametermap.begin() != parametermap.end())
+  {
+    delete parametermap.begin()->second;
+    parametermap.erase(parametermap.begin());
+  }
 }
 
-void
-PHParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontainer)
+void PHParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontainer)
 {
-// this fill only existing detids - no new ones are created (if the PdbParameterMapContainer contains
-// entries from another detector)
-  PdbParameterMapContainer::parConstRange begin_end =  saveparamcontainer->get_ParameterMaps();
+  // this fill only existing detids - no new ones are created (if the PdbParameterMapContainer contains
+  // entries from another detector)
+  PdbParameterMapContainer::parConstRange begin_end = saveparamcontainer->get_ParameterMaps();
   for (PdbParameterMapContainer::parIter iter = begin_end.first; iter != begin_end.second; ++iter)
   {
     Iterator pariter = parametermap.find(iter->first);
@@ -61,10 +61,9 @@ PHParametersContainer::FillFrom(const PdbParameterMapContainer *saveparamcontain
   return;
 }
 
-void
-PHParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *saveparamcontainer, const string &name)
+void PHParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *saveparamcontainer, const string &name)
 {
-  PdbParameterMapContainer::parConstRange begin_end =  saveparamcontainer->get_ParameterMaps();
+  PdbParameterMapContainer::parConstRange begin_end = saveparamcontainer->get_ParameterMaps();
   for (PdbParameterMapContainer::parIter iter = begin_end.first; iter != begin_end.second; ++iter)
   {
     Iterator pariter = parametermap.find(iter->first);
@@ -77,21 +76,20 @@ PHParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *savepar
     {
       PHParameters *params = new PHParameters(name);
       params->FillFrom(iter->second);
-      AddPHParameters(iter->first,params);
+      AddPHParameters(iter->first, params);
     }
   }
   return;
 }
 
-void
-PHParametersContainer::AddPHParameters(const int detid, PHParameters *params)
+void PHParametersContainer::AddPHParameters(const int detid, PHParameters *params)
 {
   if (parametermap.find(detid) != parametermap.end())
-    {
-      cout << PHWHERE << " detector id " << detid << " already exists for " 
-	   << (parametermap.find(detid))->second->Name() << endl;
-      gSystem->Exit(1);
-    }
+  {
+    cout << PHWHERE << " detector id " << detid << " already exists for "
+         << (parametermap.find(detid))->second->Name() << endl;
+    gSystem->Exit(1);
+  }
   parametermap[detid] = params;
 }
 
@@ -102,7 +100,7 @@ PHParametersContainer::GetParameters(const int detid) const
   if (iter == parametermap.end())
   {
     cout << "could not find parameters for detector id " << detid
-	 << endl;
+         << endl;
     cout << "Here is the stacktrace: " << endl;
     cout << boost::stacktrace::stacktrace();
     cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
@@ -117,34 +115,34 @@ PHParametersContainer::GetParametersToModify(const int detid)
 {
   map<int, PHParameters *>::iterator iter = parametermap.find(detid);
   if (iter == parametermap.end())
-    {
-      return nullptr;
-    }
+  {
+    return nullptr;
+  }
   return iter->second;
 }
 
-int
-PHParametersContainer::WriteToFile(const string &extension, const string &dir)
+int PHParametersContainer::WriteToFile(const string &extension, const string &dir)
 {
   ostringstream fullpath;
   ostringstream fnamestream;
-  PdbBankID bankID(0); // lets start at zero
+  PdbBankID bankID(0);  // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
   fullpath << dir;
   // add / if directory lacks ending /
   if (*(dir.rbegin()) != '/')
-    {
-      fullpath << "/";
-    }
-  fnamestream << superdetectorname << "_geoparams" << "-" << bankID.getInternalValue()
-      << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
-      << "." << extension;
+  {
+    fullpath << "/";
+  }
+  fnamestream << superdetectorname << "_geoparams"
+              << "-" << bankID.getInternalValue()
+              << "-" << TStart.getTics() << "-" << TStop.getTics() << "-" << time(0)
+              << "." << extension;
   string fname = fnamestream.str();
   std::transform(fname.begin(), fname.end(), fname.begin(), ::tolower);
   fullpath << fname;
 
-  cout <<"PHParameters::WriteToFile - save to "<<fullpath.str()<<endl;
+  cout << "PHParameters::WriteToFile - save to " << fullpath.str() << endl;
 
   PdbParameterMapContainer *myparm = new PdbParameterMapContainer();
   CopyToPdbParameterMapContainer(myparm);
@@ -162,95 +160,90 @@ PHParametersContainer::WriteToFile(const string &extension, const string &dir)
   return 0;
 }
 
-int
-PHParametersContainer::WriteToDB()
+int PHParametersContainer::WriteToDB()
 {
-  PdbBankManager* bankManager = PdbBankManager::instance();
+  PdbBankManager *bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
   if (!application->startUpdate())
-    {
-      cout << PHWHERE << " Aborting, Database not writable" << endl;
-      application->abort();
-      exit(1);
-    }
+  {
+    cout << PHWHERE << " Aborting, Database not writable" << endl;
+    application->abort();
+    exit(1);
+  }
 
   //  Make a bank ID...
-  PdbBankID bankID(0); // lets start at zero
+  PdbBankID bankID(0);  // lets start at zero
   PHTimeStamp TStart(0);
   PHTimeStamp TStop(0xffffffff);
 
   string tablename = superdetectorname + "_geoparams";
   std::transform(tablename.begin(), tablename.end(), tablename.begin(),
-      ::tolower);
+                 ::tolower);
   PdbCalBank *NewBank = bankManager->createBank("PdbParameterMapContainerBank", bankID,
-      "Geometry Parameters", TStart, TStop, tablename);
+                                                "Geometry Parameters", TStart, TStop, tablename);
   if (NewBank)
-    {
-      NewBank->setLength(1);
-      PdbParameterMapContainer *myparm = (PdbParameterMapContainer*) &NewBank->getEntry(0);
-      CopyToPdbParameterMapContainer(myparm);
-      application->commit(NewBank);
-      delete NewBank;
-    }
+  {
+    NewBank->setLength(1);
+    PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) &NewBank->getEntry(0);
+    CopyToPdbParameterMapContainer(myparm);
+    application->commit(NewBank);
+    delete NewBank;
+  }
   else
-    {
-      cout << PHWHERE " Committing to DB failed" << endl;
-      return -1;
-    }
+  {
+    cout << PHWHERE " Committing to DB failed" << endl;
+    return -1;
+  }
   return 0;
 }
 
-void
-PHParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparmap)
+void PHParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContainer *myparmap)
 {
   std::map<int, PHParameters *>::const_iterator iter;
   for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
-    {
-      PdbParameterMap *myparm = new PdbParameterMap();
-      iter->second->CopyToPdbParameterMap(myparm);
-      myparmap->AddPdbParameterMap(iter->first,myparm);
-    }
+  {
+    PdbParameterMap *myparm = new PdbParameterMap();
+    iter->second->CopyToPdbParameterMap(myparm);
+    myparmap->AddPdbParameterMap(iter->first, myparm);
+  }
   return;
 }
 
-void
-PHParametersContainer::Print(Option_t *option) const
+void PHParametersContainer::Print(Option_t *option) const
 {
   cout << "Name: " << Name() << endl;
   map<int, PHParameters *>::const_iterator iter;
   for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
-    {
-      cout << "parameter detid: " << iter->first << endl;
-      iter->second->Print();
-    }
+  {
+    cout << "parameter detid: " << iter->first << endl;
+    iter->second->Print();
+  }
   return;
 }
 
-void
-PHParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
+void PHParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename)
 {
   PdbParameterMapContainer *myparmap = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
-  if (! myparmap)
-    {
-      myparmap = new PdbParameterMapContainer();
-      PHIODataNode<PdbParameterMapContainer> *newnode =
-          new PHIODataNode<PdbParameterMapContainer>(myparmap, nodename);
-      topNode->addNode(newnode);
-    }
+  if (!myparmap)
+  {
+    myparmap = new PdbParameterMapContainer();
+    PHIODataNode<PdbParameterMapContainer> *newnode =
+        new PHIODataNode<PdbParameterMapContainer>(myparmap, nodename);
+    topNode->addNode(newnode);
+  }
   else
-    {
-       myparmap->Reset();
-    }
+  {
+    myparmap->Reset();
+  }
   CopyToPdbParameterMapContainer(myparmap);
   return;
 }
 
-int
-PHParametersContainer::ExistDetid(const int detid) const
+int PHParametersContainer::ExistDetid(const int detid) const
 {
   if (parametermap.find(detid) != parametermap.end())
-    {
-      return 1;
-    }
+  {
+    return 1;
+  }
   return 0;
 }
