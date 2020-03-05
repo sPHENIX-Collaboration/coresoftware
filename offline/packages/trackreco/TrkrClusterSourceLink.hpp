@@ -12,13 +12,13 @@ class TrkrClusterSourceLink
 {
 public:
 
-  /// Instantiate with a cluskey, associated surface, and values that actually
+  /// Instantiate with a clusid, associated surface, and values that actually
   /// make the measurement. Acts requires the surface be available in this class
-  TrkrClusterSourceLink(TrkrDefs::cluskey cluskey,
+  TrkrClusterSourceLink(unsigned int clusid,
 			std::shared_ptr<const Acts::Surface> surface,
 			Acts::BoundVector loc,
 			Acts::ActsSymMatrixD<3> cov)
-    : m_cluskey(cluskey)
+    : m_clusid(clusid)
     , m_surface(surface)
     , m_loc(loc)
     , m_cov(cov)
@@ -57,7 +57,7 @@ public:
 
 private:
   /// Clusterkey and the corresponding surface to which it belongs to
-  TrkrDefs::cluskey m_cluskey;
+  unsigned int m_clusid;
   std::shared_ptr<const Acts::Surface> m_surface;
   /// Local x and y position for cluster
   Acts::BoundVector m_loc;
@@ -69,7 +69,7 @@ private:
   friend constexpr bool
   operator==(const TrkrClusterSourceLink& lhs, const TrkrClusterSourceLink& rhs)
   {
-    return lhs.m_cluskey == rhs.m_cluskey;
+    return lhs.m_clusid == rhs.m_clusid;
   }
 
 };

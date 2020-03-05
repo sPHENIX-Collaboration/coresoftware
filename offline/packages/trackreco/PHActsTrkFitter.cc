@@ -763,14 +763,19 @@ int PHActsTrkFitter::Process()
             cout << "Start PHActsTrkfitter::process_event" << endl;
     }
 
-  TrkrDefs::hitsetkey hsetkey;
+  std::map<TrkrDefs::cluskey, unsigned int> cluskey_hitid; 
+  unsigned int  hitid = 0;
 
+  TrkrDefs::hitsetkey hsetkey;
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
   for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
     {
       TrkrCluster *cluster = clusiter->second;
       TrkrDefs::cluskey cluskey = clusiter->first;
 
+      // map to an arbitrary hitid for later use by Acts 
+      cluskey_hitid.insert(std::pair<TrkrDefs::cluskey, unsigned int>(cluskey, hitid));
+     
       // get the cluster parameters in global coordinates
       float x = cluster->getPosition(0);
       float y = cluster->getPosition(1);
@@ -1023,20 +1028,17 @@ int PHActsTrkFitter::Process()
 		    << endl;
 	}
 
-      if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::tpcId)
-	{
-	  // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
-	  TrkrClusterSourceLink sourceLink(cluskey,surf,loc,cov);
-	  // Can obtain the measurement like this
-	  auto measurement = *sourceLink;
-	  // Have to store this in a container 
-	  // DigitizationAlgorithm.cpp makes a map
-	  // what does tracking need?
-	  // KF tracking needs SourceLinks, track seeds (I think), and options for how
-	  // to run KF tracking
-	  // Does TGeoNode come into it?
-	  
-	}
+      // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
+      TrkrClusterSourceLink sourceLink(hitid,surf,loc,cov);
+      // Can obtain the measurement like this
+      auto measurement = *sourceLink;
+      // Have to store this in a container 
+      // DigitizationAlgorithm.cpp makes a map
+      // what does tracking need?
+      // KF tracking needs SourceLinks, track seeds (I think), and options for how
+      // to run KF tracking
+      
+      hitid++;
     }
   
   // _trackmap is SvtxTrackMap from the node tree
@@ -1052,6 +1054,29 @@ int PHActsTrkFitter::Process()
 	}
       if (!svtx_track)
 	continue;
+
+     // loop over clusters for this track and make ProtoTracks
+      std::vector<size_t> proto_track;
+      for (SvtxTrack::ConstClusterKeyIter iter = svtx_track->begin_cluster_keys();
+	   iter != svtx_track->end_cluster_keys();
+	   ++iter)
+	{
+	  TrkrDefs::cluskey cluster_key = *iter;
+
+	  // find the corresponding hit index
+	  unsigned int hitid = cluskey_hitid.find(cluster_key)->second;
+	  cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
+
+	  // add to the Acts ProtoTrack
+	  proto_track.push_back(hitid);
+	}
+
+      if(Verbosity() > 0)
+	for(unsigned int i=0;i<proto_track.size(); ++i)
+	  {
+	    cout << "   proto_track readback:  hitid " << proto_track[i] << endl;
+	  }
+      
       
     }
   return 0;
