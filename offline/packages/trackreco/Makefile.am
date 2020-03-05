@@ -47,6 +47,7 @@ pkginclude_HEADERS = \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
+  TrkrClusterSourceLink.hpp \
   VertexFitter.h \
   PHRaveVertexing.h \
   GPUTPCBaseTrackParam.h \
