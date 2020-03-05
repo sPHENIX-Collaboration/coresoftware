@@ -1,5 +1,7 @@
-#ifndef PHParameterContainerInterface__H
-#define PHParameterContainerInterface__H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHPARAMETER_PHPARAMETERCONTAINERINTERFACE_H
+#define PHPARAMETER_PHPARAMETERCONTAINERINTERFACE_H
 
 #include <map>
 #include <string>
@@ -46,4 +48,4 @@ class PHParameterContainerInterface
   std::map<int, PHParameters *> macroparams;
 };
 
-#endif
+#endif   // PHPARAMETER_PHPARAMETERCONTAINERINTERFACE_H

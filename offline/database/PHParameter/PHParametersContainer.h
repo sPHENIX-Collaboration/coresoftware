@@ -1,5 +1,7 @@
-#ifndef PHParametersContainer__h
-#define PHParametersContainer__h
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHPARAMETER_PHPARAMETERSCONTAINER_H
+#define PHPARAMETER_PHPARAMETERSCONTAINER_H
 
 #include <phool/PHObject.h>
 
@@ -23,9 +25,9 @@ class PHParametersContainer : public PHObject
   explicit PHParametersContainer(const std::string &name = "NONE");
   virtual ~PHParametersContainer();
 
-  void AddPHParameters(const int layer, PHParameters *params);
-  const PHParameters *GetParameters(const int layer) const;
-  PHParameters *GetParametersToModify(const int layer);
+  void AddPHParameters(const int detid, PHParameters *params);
+  const PHParameters *GetParameters(const int detid) const;
+  PHParameters *GetParametersToModify(const int detid);
   int WriteToFile(const std::string &extension, const std::string &dir);
   int WriteToDB();
 
@@ -46,4 +48,4 @@ class PHParametersContainer : public PHObject
   std::map<int, PHParameters *> parametermap;
 };
 
-#endif  //PHParametersContainer__h
+#endif  //  PHPARAMETER_PHPARAMETERSCONTAINER_H

@@ -18,6 +18,8 @@
 #include <TFile.h>
 #include <TSystem.h>
 
+#include <boost/stacktrace.hpp>
+
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
@@ -39,7 +41,6 @@ PHParametersContainer::~PHParametersContainer()
       delete parametermap.begin()->second;
       parametermap.erase(parametermap.begin());
     }
-
 }
 
 void
@@ -83,37 +84,41 @@ PHParametersContainer::CreateAndFillFrom(const PdbParameterMapContainer *savepar
 }
 
 void
-PHParametersContainer::AddPHParameters(const int layer, PHParameters *params)
+PHParametersContainer::AddPHParameters(const int detid, PHParameters *params)
 {
-  if (parametermap.find(layer) != parametermap.end())
+  if (parametermap.find(detid) != parametermap.end())
     {
-      cout << PHWHERE << " layer " << layer << " already exists for " 
-	   << (parametermap.find(layer))->second->Name() << endl;
+      cout << PHWHERE << " detector id " << detid << " already exists for " 
+	   << (parametermap.find(detid))->second->Name() << endl;
       gSystem->Exit(1);
     }
-  parametermap[layer] = params;
+  parametermap[detid] = params;
 }
 
 const PHParameters *
-PHParametersContainer::GetParameters(const int layer) const
+PHParametersContainer::GetParameters(const int detid) const
 {
-  map<int, PHParameters *>::const_iterator iter = parametermap.find(layer);
-if (iter == parametermap.end())
+  map<int, PHParameters *>::const_iterator iter = parametermap.find(detid);
+  if (iter == parametermap.end())
   {
-    cout << "could not find parameters for layer " << layer
+    cout << "could not find parameters for detector id " << detid
 	 << endl;
-    return NULL;
+    cout << "Here is the stacktrace: " << endl;
+    cout << boost::stacktrace::stacktrace();
+    cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
+    gSystem->Exit(1);
+    exit(1);
   }
- return iter->second;
+  return iter->second;
 }
 
 PHParameters *
-PHParametersContainer::GetParametersToModify(const int layer)
+PHParametersContainer::GetParametersToModify(const int detid)
 {
-  map<int, PHParameters *>::iterator iter = parametermap.find(layer);
+  map<int, PHParameters *>::iterator iter = parametermap.find(detid);
   if (iter == parametermap.end())
     {
-      return NULL;
+      return nullptr;
     }
   return iter->second;
 }
