@@ -263,11 +263,11 @@ void PHParameters::FillFrom(const PdbParameterMap *saveparams)
   return;
 }
 
-void PHParameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int layer)
+void PHParameters::FillFrom(const PdbParameterMapContainer *saveparamcontainer, const int detid)
 {
-  //  assert(saveparamcontainer != NULL);
+  //  assert(saveparamcontainer != nullptr);
 
-  const PdbParameterMap *saveparams = saveparamcontainer->GetParameters(layer);
+  const PdbParameterMap *saveparams = saveparamcontainer->GetParameters(detid);
   if (!saveparams)
   {
     return;
@@ -342,7 +342,7 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
   return;
 }
 
-void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int layer)
+void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int detid)
 {
   // write itself since this class is fine with saving by root
   PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
@@ -353,7 +353,7 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
         new PHIODataNode<PdbParameterMapContainer>(nodeparamcontainer, nodename);
     topNode->addNode(newnode);
   }
-  PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(layer);
+  PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(detid);
   if (nodeparams)
   {
     nodeparams->Reset();
@@ -361,7 +361,7 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
   else
   {
     nodeparams = new PdbParameterMap();
-    nodeparamcontainer->AddPdbParameterMap(layer, nodeparams);
+    nodeparamcontainer->AddPdbParameterMap(detid, nodeparams);
   }
   CopyToPdbParameterMap(nodeparams);
   return;
@@ -405,7 +405,7 @@ int PHParameters::WriteToDB()
   return 0;
 }
 
-int PHParameters::ReadFromDB(const string &name, const int layer)
+int PHParameters::ReadFromDB(const string &name, const int detid)
 {
   PdbBankManager *bankManager = PdbBankManager::instance();
   PdbApplication *application = bankManager->getApplication();
@@ -429,7 +429,7 @@ int PHParameters::ReadFromDB(const string &name, const int layer)
   if (NewBank)
   {
     PdbParameterMapContainer *myparm = (PdbParameterMapContainer *) &NewBank->getEntry(0);
-    FillFrom(myparm, layer);
+    FillFrom(myparm, detid);
     delete NewBank;
   }
   else
@@ -514,7 +514,7 @@ int PHParameters::WriteToFile(const string &extension, const string &dir)
   return 0;
 }
 
-int PHParameters::ReadFromFile(const string &name, const string &extension, const int layer, const int issuper, const string &dir)
+int PHParameters::ReadFromFile(const string &name, const string &extension, const int detid, const int issuper, const string &dir)
 {
   PHTimeStamp TSearch(10);
   PdbBankID bankID(0);
@@ -581,13 +581,13 @@ int PHParameters::ReadFromFile(const string &name, const string &extension, cons
     PdbParameterMapContainer *myparm = static_cast<PdbParameterMapContainer *>(f->Get("PdbParameterMapContainer"));
     assert(myparm);
 
-    if (myparm->GetParameters(layer) == nullptr)
-      cout << "Missing PdbParameterMapContainer layer #" << layer << endl;
-    assert(myparm->GetParameters(layer));
+    if (myparm->GetParameters(detid) == nullptr)
+      cout << "Missing PdbParameterMapContainer Detector Id " << detid << endl;
+    assert(myparm->GetParameters(detid));
 
-    cout << "Received PdbParameterMapContainer layer #" << layer << " with (Hash = 0x" << std::hex << myparm->GetParameters(layer)->get_hash() << std::dec << ")" << endl;
+    cout << "Received PdbParameterMapContainer Detector Id " << detid << " with (Hash = 0x" << std::hex << myparm->GetParameters(detid)->get_hash() << std::dec << ")" << endl;
 
-    FillFrom(myparm, layer);
+    FillFrom(myparm, detid);
     delete myparm;
   }
   else
