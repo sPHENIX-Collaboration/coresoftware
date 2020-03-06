@@ -56,6 +56,7 @@ public:
   }
 
 private:
+  
   /// Hitindex corresponding to clusID and the corresponding 
   /// surface to which it belongs to
   unsigned int m_clusid;

@@ -56,21 +56,13 @@ class PHActsTrkFitter : public PHTrackFitting
   //! dtor
   ~PHActsTrkFitter();
 
-  //!Initialization, called for initialization
-  //int Init(PHCompositeNode*);
-
-  //!Initialization Run, called for initialization of a run
-  //  int InitRun(PHCompositeNode*);
-
-  //!Process Event, called for each event
-  //int process_event(PHCompositeNode*);
 
   //!End, write and close files
   int End(PHCompositeNode*);
 
-int Setup(PHCompositeNode* topNode);
+  int Setup(PHCompositeNode* topNode);
 
-int Process();
+  int Process();
 
   //Flags of different kinds of outputs
   enum Flag
@@ -90,7 +82,7 @@ int Process();
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
   void BuildSiliconLayers();
-void BuildTpcSurfaceMap();
+  void BuildTpcSurfaceMap();
   void isActive(TGeoNode *gnode);
   void MakeTGeoNodeMap(PHCompositeNode*);
   void getInttKeyFromNode(TGeoNode *gnode);
