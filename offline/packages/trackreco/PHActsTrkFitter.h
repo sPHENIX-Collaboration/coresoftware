@@ -12,7 +12,11 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <Acts/Geometry/GeometryContext.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
+#include <Acts/Utilities/Logger.hpp>                            // for getDe...
+
+#include "TrkrClusterSourceLink.hpp"
 
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
@@ -119,7 +123,7 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
   std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
-
+  std::map<unsigned int, TrkrClusterSourceLink> hitidSourceLink;
 
   // TPC surface subdivisions
   double MinSurfZ;

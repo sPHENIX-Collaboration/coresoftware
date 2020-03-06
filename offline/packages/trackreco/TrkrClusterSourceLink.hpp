@@ -56,7 +56,8 @@ public:
   }
 
 private:
-  /// Clusterkey and the corresponding surface to which it belongs to
+  /// Hitindex corresponding to clusID and the corresponding 
+  /// surface to which it belongs to
   unsigned int m_clusid;
   std::shared_ptr<const Acts::Surface> m_surface;
   /// Local x and y position for cluster

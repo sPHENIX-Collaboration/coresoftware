@@ -35,28 +35,15 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-
-// Acts classes
+#include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingVolume.hpp>
-
-#include <Acts/Plugins/Digitization/DigitizationCell.hpp>
-#include <Acts/Plugins/Digitization/PlanarModuleCluster.hpp>
-
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
-
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
-#include <Acts/Utilities/Logger.hpp>                            // for getDe...
-
-// This needs to stay after these other Acts includes
-#include "TrkrClusterSourceLink.hpp"
-
-
+#include <Acts/EventData/TrackParameters.hpp>
 #include <ACTFW/Detector/IBaseDetector.hpp>
-
+#include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 #include <ACTFW/Framework/IContextDecorator.hpp>
 #include <ACTFW/Framework/WhiteBoard.hpp>
@@ -1030,17 +1017,20 @@ int PHActsTrkFitter::Process()
 
       // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
       TrkrClusterSourceLink sourceLink(hitid,surf,loc,cov);
-      // Can obtain the measurement like this
-      auto measurement = *sourceLink;
-      // Have to store this in a container 
-      // DigitizationAlgorithm.cpp makes a map
-      // what does tracking need?
+    
+      // Store in map which maps arbitrary hitID to sourceLink. hitId can access
+      // Clusterkey via cluskey_hitid map
+      hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid,sourceLink));
       // KF tracking needs SourceLinks, track seeds (I think), and options for how
       // to run KF tracking
       
       hitid++;
     }
-  
+
+  // Create a vector of Acts::CurvilinearParameters for track seeds
+  FW::TrackParametersContainer trackSeeds;
+  trackSeeds.reserve(_trackmap->size());
+
   // _trackmap is SvtxTrackMap from the node tree
   // We need to convert to Acts tracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
@@ -1054,6 +1044,21 @@ int PHActsTrkFitter::Process()
 	}
       if (!svtx_track)
 	continue;
+
+      /// Get the necessary parameters and values for the TrackParametersContainer
+      //Acts::ActsSymMatrixD<3> seedCov;
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+      Acts::Vector3D seedPos( svtx_track->get_x(), 
+			      svtx_track->get_y(),
+			      svtx_track->get_z() );
+      Acts::Vector3D seedMom( svtx_track->get_px(),
+			      svtx_track->get_py(),
+			      svtx_track->get_pz() );
+
+      // Just set to 0?
+      double trackTime = 0;
+      int trackQ = svtx_track->get_charge();
+      trackSeeds.emplace_back(cov, seedPos, seedMom, trackQ, trackTime);
 
      // loop over clusters for this track and make ProtoTracks
       std::vector<size_t> proto_track;
