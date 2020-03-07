@@ -11,6 +11,7 @@
 //begin
 
 #include "PHTrackSeeding.h"      // for PHTrackSeeding
+#include <phool/PHTimer.h>
 
 #include <trackbase/TrkrDefs.h>  // for cluskey
 #include <trackbase/TrkrCluster.h>
@@ -27,6 +28,8 @@
 #include <string>    // for string
 #include <utility>   // for pair
 #include <vector>    // for vector
+
+#include <TNtuple.h>
 
 // rootcint does not like M_PI in the default arguments (the dict.cc file
 // translates this into a string and does not convert M_PI to its definition)
@@ -96,7 +99,7 @@ class PHCASeeding : public PHTrackSeeding
   virtual int Setup(PHCompositeNode *topNode);
   virtual int Process(PHCompositeNode *topNode);
   int InitializeGeometry(PHCompositeNode *topNode);
-
+  int FindSeedsLayerSkip(double cosTheta_limit,TNtuple* NT,PHTimer* t);
   virtual int End();
 
  private:
@@ -118,7 +121,6 @@ class PHCASeeding : public PHTrackSeeding
   double phiadd(double phi1, double phi2);
   double phidiff(double phi1, double phi2);
   void FillTree();
-
 #if !defined(__CINT__) || defined(__CLING__)
   double pointKeyToTuple(pointKey *pK);
   void QueryTree(const bgi::rtree<pointKey, bgi::quadratic<16>> &rtree, double phimin, double etamin, double lmin, double phimax, double etamax, double lmax, std::vector<pointKey> &returned_values);
