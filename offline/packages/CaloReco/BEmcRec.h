@@ -10,6 +10,7 @@
 
 class EmcCluster;
 class EmcModule;
+//class BEmcProfile;
 
 typedef struct SecGeom
 {
@@ -25,6 +26,9 @@ typedef struct TowerGeom
   float Xcenter;  // Tower center position
   float Ycenter;
   float Zcenter;
+  float dX[2]; // Tower i-th trans. dimension spread in global coord X
+  float dY[2];
+  float dZ[2];
 
 } TowerGeom;
 
@@ -53,9 +57,10 @@ class BEmcRec
   void SetConf(int nx, int ny) { SetGeometry(nx, ny, 1., 1.); }
   bool SetTowerGeometry(int ix, int iy, float xx, float yy, float zz);
   bool GetTowerGeometry(int ix, int iy, TowerGeom &geom);
+  bool CompleteTowerGeometry();
   void PrintTowerGeometry(const char *fname);
 
-  void SetPlaneGeometry() { bCYL = false; }
+  void SetPlanarGeometry() { bCYL = false; }
   void SetCylindricalGeometry() { bCYL = true; }
   bool isCylindrical() const { return bCYL; }
 
@@ -103,16 +108,18 @@ class BEmcRec
   void SetProfileParameters(int, float, float, float);
   void SetChi2Limit(int lim);
   int GetTowerID(int iy, int iz, int nn, int *iyy, int *izz, float *ee);
-  float GetProb(std::vector<EmcModule> HitList, float &chi2, int &ndf);
   float ClusterChisq(int, EmcModule *, float, float, float,
                      int &ndf);  // ndf added MV 28.01.00
   float Chi2Correct(float chi2, int ndf);
+  void Tower2Global(float E, float xC, float yC, float &xA, float &yA, float &zA);
 
-  // Virtual (Calorimeter specific) functions
-  virtual void CorrectEnergy(float energy, float x, float y, float *ecorr) = 0;
-  virtual void CorrectPosition(float energy, float x, float y, float *xcorr, float *ycorr) = 0;
-  virtual void CorrectECore(float ecore, float x, float y, float *ecorecorr) = 0;
-  virtual void Tower2Global(float en, float xsec, float ysec, float &xA, float &yA, float &zA) = 0;
+  // Calorimeter specific functions to be specified in respective inherited object
+  virtual void CorrectEnergy(float energy, float x, float y, float* ecorr) {*ecorr=energy;}
+  virtual void CorrectECore(float ecore, float x, float y, float* ecorecorr) {*ecorecorr=ecore;}
+  virtual void CorrectPosition(float energy, float x, float y, float* xcorr, float* ycorr) {*xcorr=x; *ycorr=y;}
+  virtual void CorrectShowerDepth(float energy, float x, float y, float z, float& xc, float& yc, float& zc ) {xc=x; yc=y; zc=z; }
+  virtual void LoadProfile(const char *fname);
+  virtual float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
 
   void TwoGamma(int, EmcModule *, float *, float *, float *, float *,
                 float *, float *, float *);
@@ -181,6 +188,8 @@ class BEmcRec
   float fPpar4;
   float fPshiftx;
   float fPshifty;
+
+  //  BEmcProfile *_emcprof;
 
  private:
   // the default copy ctor will not work

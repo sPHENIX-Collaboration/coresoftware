@@ -2,7 +2,7 @@
 // Author: A. Bazilevsky, Apr 2012
 // Modified from EmcSectorRec.cxx and EmcScSectorRec.cxx
 
-// BEmcRec -- base class for barrel EMcal for sPHENIX
+// BEmcRec -- base class for sPHENIX EMCal
 
 // ///////////////////////////////////////////////////////////////////////////
 
@@ -89,6 +89,7 @@ BEmcRec::BEmcRec()
   , fPpar4(NAN)
   , fPshiftx(NAN)
   , fPshifty(NAN)
+    //  , _emcprof(nullptr)
 {
   fModules = new vector<EmcModule>;
   fClusters = new vector<EmcCluster>;
@@ -100,6 +101,8 @@ BEmcRec::BEmcRec()
 
 BEmcRec::~BEmcRec()
 {
+  //  if (_emcprof) delete _emcprof;
+
   if (fModules)
   {
     fModules->clear();
@@ -114,6 +117,11 @@ BEmcRec::~BEmcRec()
 }
 
 // ///////////////////////////////////////////////////////////////////////////
+void BEmcRec::LoadProfile(const char *fname) 
+{
+  printf("Warning from BEmcRec::LoadProfile(): No acton defined for shower profile evaluation; should be defined in a detector specific module BEmcRec{Name}\n");
+}
+
 
 void BEmcRec::SetGeometry(int nx, int ny, float txsz, float tysz)
 {
@@ -134,7 +142,8 @@ void BEmcRec::PrintTowerGeometry(const char* fname)
 
   //  printf("Info: Print from BEmcRec::PrintTowerGeometry():\n");
   //  printf("      Number of bins: %d %d\n",fNx,fNy);
-  fprintf(pf, "Number of bins: %d %d\n", fNx, fNy);
+  fprintf(pf, "Number of bins:\n%d %d\n", fNx, fNy);
+  fprintf(pf, "ix iy x y z dx0 dy0 dz0 dx1 dy1 dz1\n");
   int ich;
   TowerGeom geom;
   std::map<int, TowerGeom>::iterator it;
@@ -148,7 +157,7 @@ void BEmcRec::PrintTowerGeometry(const char* fname)
       {
         geom = it->second;
         //	printf("       %d %d: %f %f %f\n",ix,iy,geom.Xcenter,geom.Ycenter,geom.Zcenter);
-        fprintf(pf, "%d %d %f %f %f\n", ix, iy, geom.Xcenter, geom.Ycenter, geom.Zcenter);
+        fprintf(pf, "%d %d %f %f %f %f %f %f %f %f %f\n", ix, iy, geom.Xcenter, geom.Ycenter, geom.Zcenter, geom.dX[0],  geom.dY[0],  geom.dZ[0], geom.dX[1], geom.dY[1],  geom.dZ[1]);
       }
     }
   }
@@ -176,9 +185,81 @@ bool BEmcRec::SetTowerGeometry(int ix, int iy, float xx, float yy, float zz)
   geom.Xcenter = xx;
   geom.Ycenter = yy;
   geom.Zcenter = zz;
+  geom.dX[0] = geom.dX[1] = 0; // These should be calculated by CompleteTowerGeometry()
+  geom.dY[0] = geom.dY[1] = 0;
+  geom.dZ[0] = geom.dZ[1] = 0;
 
   int ich = iy * fNx + ix;
   fTowerGeom[ich] = geom;
+  return true;
+}
+
+bool BEmcRec::CompleteTowerGeometry()
+// Calculates tower front size from coordinates of tower center coordinates
+{
+  if( fTowerGeom.empty() || fNx <= 0 ) {
+    printf("Error in BEmcRec::CalculateTowerSize(): Tower geometry not well setup (NX=%d)\n",fNx);
+    return false;
+  }
+
+  std::map<int, TowerGeom>::iterator it;
+
+  for( it = fTowerGeom.begin(); it != fTowerGeom.end(); it++ ){
+
+    int ich = it->first;
+    TowerGeom geom0 = it->second;
+    int ix = ich%fNx;
+    int iy = ich/fNx;
+
+    // Next tower in x
+    TowerGeom geomx;
+    int idx = 0;
+    if (ix < fNx / 2)
+      {
+	idx += 1;
+	while (!GetTowerGeometry(ix + idx, iy, geomx) && idx < fNx / 2) idx += 1;
+      }
+    else
+      {
+	idx -= 1;
+	while (!GetTowerGeometry(ix + idx, iy, geomx) && idx > -fNx / 2) idx -= 1;
+      }
+    if (idx >= fNx / 2 || idx <= -fNx / 2)
+      {
+	printf("Error in BEmcRec::CalculateTowerSize(): Error when locating neighbour for (ix,iy)=(%d,%d)\n", ix, iy);
+	return false;
+      }
+    
+    // Next tower in y
+    TowerGeom geomy;
+    int idy = 0;
+    if (iy < fNy / 2)
+      {
+	idy += 1;
+	while (!GetTowerGeometry(ix, iy + idy, geomy) && idy < fNy / 2) idy += 1;
+      }
+    else
+      {
+	idy -= 1;
+	while (!GetTowerGeometry(ix, iy + idy, geomy) && idy > -fNy / 2) idy -= 1;
+      }
+    if (idy >= fNy / 2 || idy <= -fNy / 2)
+      {
+	printf("Error in BEmcRec::CalculateTowerSize(): Error when locating neighbour for (ix,iy)=(%d,%d)\n", ix, iy);
+	return false;
+      }
+
+    geom0.dX[0] = (geomx.Xcenter - geom0.Xcenter) / float(idx);
+    geom0.dY[0] = (geomx.Ycenter - geom0.Ycenter) / float(idx);
+    geom0.dZ[0] = (geomx.Zcenter - geom0.Zcenter) / float(idx);
+    geom0.dX[1] = (geomy.Xcenter - geom0.Xcenter) / float(idy);
+    geom0.dY[1] = (geomy.Ycenter - geom0.Ycenter) / float(idy);
+    geom0.dZ[1] = (geomy.Zcenter - geom0.Zcenter) / float(idy);
+
+    it->second = geom0;
+
+  } // it = fTowerGeom.begin()
+  
   return true;
 }
 
@@ -206,6 +287,62 @@ void  BEmcRec::SetGeometry(SecGeom const &geom, PHMatrix * rm, PHVector * tr )
 
 }
 */
+
+void BEmcRec::Tower2Global(float E, float xC, float yC,
+                               float& xA, float& yA, float& zA)
+// xC and yC are local position in tower units
+// For CYL geometry (xC,yC) is actually (phiC,zC)
+{
+
+  xA = 0;
+  yA = 0;
+  zA = 0;
+
+  int ix = xC + 0.5;  // tower #
+  if (ix < 0 || ix >= fNx)
+  {
+    printf("Error in BEmcRec::SectorToGlobal: wrong input x: %d\n", ix);
+    return;
+  }
+
+  int iy = yC + 0.5;  // tower #
+  if (iy < 0 || iy >= fNy)
+  {
+    printf("Error in BEmcRec::SectorToGlobal: wrong input y: %d\n", iy);
+    return;
+  }
+
+  // Get tower where the shower is positioned
+  TowerGeom geom0;
+
+  if (!GetTowerGeometry(ix, iy, geom0)) { 
+    // Weird case: cluster center of gravity outside the EMCal, take geometry from the neighbouring tower
+    int idx[4] = {1,0,-1, 0};
+    int idy[4] = {0,1, 0,-1};
+    int ii = 0;
+    while( ii<4 && !GetTowerGeometry(ix+idx[ii], iy+idy[ii], geom0) ) ii++;
+    if( ii >= 4 ) {
+      printf("Error in BEmcRec::SectorToGlobal: can not identify neighbour for tower (%d,%d)\n", ix,iy);
+      return;
+    }
+    float Xc = geom0.Xcenter - idx[ii]*geom0.dX[0] - idy[ii]*geom0.dX[1];
+    float Yc = geom0.Ycenter - idx[ii]*geom0.dY[0] - idy[ii]*geom0.dY[1];
+    float Zc = geom0.Zcenter - idx[ii]*geom0.dZ[0] - idy[ii]*geom0.dZ[1];
+    geom0.Xcenter = Xc;
+    geom0.Ycenter = Yc;
+    geom0.Zcenter = Zc;
+  }
+
+  float xt = geom0.Xcenter + (xC - ix) * geom0.dX[0] + (yC - iy) * geom0.dX[1];
+  float yt = geom0.Ycenter + (xC - ix) * geom0.dY[0] + (yC - iy) * geom0.dY[1];
+  float zt = geom0.Zcenter + (xC - ix) * geom0.dZ[0] + (yC - iy) * geom0.dZ[1];
+
+  CorrectShowerDepth(E, xt, yt, zt, xA, yA, zA);
+
+  //  rA = sqrt(xA*xA+yA*yA);
+  //  phiA = atan2(yA, xA);
+  
+}
 
 // ///////////////////////////////////////////////////////////////////////////
 
@@ -1279,167 +1416,12 @@ int BEmcRec::GetTowerID(int iy, int iz, int nn, int* iyy, int* izz, float* ee)
   return -1;
 }
 
-float BEmcRec::GetProb(vector<EmcModule> HitList, float& chi2, int& ndf)
+float BEmcRec::GetProb(vector<EmcModule> HitList, float et, float xg, float yg, float zg, float& chi2, int& ndf)
+// Do nothing; should be defined in a detector specific module BEmcRec<Name>
 {
-  const float thresh = 0.01;
-  const int DXY = 3;  // 2 is for 5x5 matrix; 3 for 7x7 matrix
-  const int Nmax = 1000;
-  float ee[Nmax];
-  int iyy[Nmax];
-  int izz[Nmax];
-
-  int ich;
-  vector<EmcModule>::iterator ph = HitList.begin();
-
   chi2 = 0;
   ndf = 0;
-
-  int nn = 0;
-
-  while (ph != HitList.end())
-  {
-    ee[nn] = ph->amp;
-    if (ee[nn] > thresh)
-    {
-      ich = ph->ich;
-      izz[nn] = ich % fNx;
-      iyy[nn] = ich / fNx;
-      nn++;
-      if (nn >= Nmax)
-      {
-        printf("BEmcRec::GetProb: Cluster size is too big. Skipping the rest of the towers\n");
-        break;
-      }
-    }  // if( ee[nn]
-    ++ph;
-  }  // while( ph
-
-  if (nn <= 0) return -1;
-
-  int iy0 = -1, iz0 = -1;
-  float emax = 0;
-
-  for (int i = 0; i < nn; i++)
-  {
-    if (ee[i] > emax)
-    {
-      emax = ee[i];
-      iy0 = iyy[i];
-      iz0 = izz[i];
-    }
-  }
-
-  if (emax <= 0) return -1;
-
-  int id;
-  float etot = 0;
-  float sz = 0;
-  float sy = 0;
-
-  for (int idz = -DXY; idz <= DXY; idz++)
-  {
-    for (int idy = -DXY; idy <= DXY; idy++)
-    {
-      id = GetTowerID(iy0 + idy, iz0 + idz, nn, iyy, izz, ee);
-      if (id >= 0)
-      {
-        etot += ee[id];
-        sz += ee[id] * (iz0 + idz);
-        sy += ee[id] * (iy0 + idy);
-      }
-    }
-  }
-  float zcg = sz / etot;  // Here cg allowed to be out of range
-  float ycg = sy / etot;
-  int iz0cg = int(zcg + 0.5);
-  int iy0cg = int(ycg + 0.5);
-  float ddz = fabs(zcg - iz0cg);
-  float ddy = fabs(ycg - iy0cg);
-
-  int isz = 1;
-  if (zcg - iz0cg < 0) isz = -1;
-  int isy = 1;
-  if (ycg - iy0cg < 0) isy = -1;
-
-  // 4 central towers: 43
-  //                   12
-  // Tower 1 - central one
-  float e1, e2, e3, e4;
-  e1 = e2 = e3 = e4 = 0;
-  id = GetTowerID(iy0cg, iz0cg, nn, iyy, izz, ee);
-  if (id >= 0) e1 = ee[id];
-  id = GetTowerID(iy0cg, iz0cg + isz, nn, iyy, izz, ee);
-  if (id >= 0) e2 = ee[id];
-  id = GetTowerID(iy0cg + isy, iz0cg + isz, nn, iyy, izz, ee);
-  if (id >= 0) e3 = ee[id];
-  id = GetTowerID(iy0cg + isy, iz0cg, nn, iyy, izz, ee);
-  if (id >= 0) e4 = ee[id];
-
-  float e1t = (e1 + e2 + e3 + e4) / etot;
-  float e2t = (e1 + e2 - e3 - e4) / etot;
-  float e3t = (e1 - e2 - e3 + e4) / etot;
-  float e4t = (e3) / etot;
-  //  float e5t = (e2+e4)/etot;
-
-  float rr = sqrt((0.5 - ddz) * (0.5 - ddz) + (0.5 - ddy) * (0.5 - ddy));
-
-  float c1, c2, c11;
-
-  float logE = log(etot);
-
-  // e1 energy is the most effective for PID if properly tuned !
-  // Discrimination power is very sensitive to paramter c1: the bigger it is
-  // the better discrimination;
-  c1 = 0.95;
-  c2 = 0.0066364 * logE + 0.00466667;
-  if (c2 < 0) c2 = 0;
-  float e1p = c1 - c2 * rr * rr;
-  c1 = 0.034 - 0.01523 * logE + 0.0029 * logE * logE;
-  float err1 = c1;
-
-  // For e2
-  c1 = 0.00844086 + 0.00645359 * logE - 0.00119381 * logE * logE;
-  if (etot > 15) c1 = 0.00844086 + 0.00645359 * log(15.) - 0.00119381 * log(15.) * log(15.);  // Const at etot>15GeV
-  if (c1 < 0) c1 = 0;
-  c2 = 3.9;                                                      // Fixed
-  float e2p = sqrt(c1 + 0.25 * c2) - sqrt(c1 + c2 * ddy * ddy);  // =0 at ddy=0.5
-
-  c1 = 0.0212333 + 0.0420473 / etot;
-  c2 = 0.090;  // Fixed
-  float err2 = c1 + c2 * ddy;
-  if (ddy > 0.3) err2 = c1 + c2 * 0.3;  // Const at ddy>0.3
-
-  // For e3
-  c1 = 0.0107857 + 0.0056801 * logE - 0.000892016 * logE * logE;
-  if (etot > 15) c1 = 0.0107857 + 0.0056801 * log(15.) - 0.000892016 * log(15.) * log(15.);  // Const at etot>15GeV
-  if (c1 < 0) c1 = 0;
-  c2 = 3.9;                                                      // Fixed
-  float e3p = sqrt(c1 + 0.25 * c2) - sqrt(c1 + c2 * ddz * ddz);  // =0 at ddz=0.5
-
-  //  c1 = 0.0200 + 0.042/etot;
-  c1 = 0.0167 + 0.058 / etot;
-  c2 = 0.090;  // Fixed
-  float err3 = c1 + c2 * ddz;
-  if (ddz > 0.3) err3 = c1 + c2 * 0.3;  // Const at ddz>0.3
-
-  // For e4
-  float e4p = 0.25 - 0.668 * rr + 0.460 * rr * rr;
-  c11 = 0.171958 + 0.0142421 * logE - 0.00214827 * logE * logE;
-  //  c11 = 0.171085 + 0.0156215*logE - -0.0025809*logE*logE;
-  float err4 = 0.102 - 1.43 * c11 * rr + c11 * rr * rr;  // Min is set to x=1.43/2.
-  err4 *= 1.1;
-
-  chi2 = 0.;
-  chi2 += (e1p - e1t) * (e1p - e1t) / err1 / err1;
-  chi2 += (e2p - e2t) * (e2p - e2t) / err2 / err2;
-  chi2 += (e3p - e3t) * (e3p - e3t) / err3 / err3;
-  chi2 += (e4p - e4t) * (e4p - e4t) / err4 / err4;
-  ndf = 4;
-
-  //  chi2 /= 1.1;
-  float prob = TMath::Prob(chi2, ndf);
-
-  return prob;
+  return -1;
 }
 
 float BEmcRec::ClusterChisq(int nh, EmcModule* phit, float e, float x,
