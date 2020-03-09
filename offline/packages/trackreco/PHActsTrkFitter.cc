@@ -1048,29 +1048,16 @@ int PHActsTrkFitter::Process()
 
   
       /// Get the necessary parameters and values for the TrackParametersContainer
-      Acts::ActsSymMatrixD<6> seedCov;
-      
-      Acts::Vector3D seedPos( svtx_track->get_x(), 
-			      svtx_track->get_y(),
+      Acts::BoundSymMatrix seedCov =  getActsCovMatrix(svtx_track);
+      Acts::Vector3D seedPos( svtx_track->get_x() , 
+			      svtx_track->get_y() , 
 			      svtx_track->get_z() );
-      Acts::Vector3D seedMom( svtx_track->get_px(),
-			      svtx_track->get_py(),
+      Acts::Vector3D seedMom( svtx_track->get_px() ,
+			      svtx_track->get_py() ,
 			      svtx_track->get_pz() );
-
       // Just set to 0?
       double trackTime = 0;
       int trackQ = svtx_track->get_charge();
-      // Get the track seed covariance matrix
-      TMatrixDSym seed_cov(6);
-      for(int i = 0; i < 6; i++){
-	for(int j= 0; j <6; j++){
-	  seed_cov[i][j] = svtx_track->get_error(i,j);
-	}       
-      }
-
-      // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
-      // x,y,px,py, qoverp, time
-
       trackSeeds.emplace_back(seedCov, seedPos, seedMom, trackQ, trackTime);
 
      // loop over clusters for this track and make ProtoTracks
@@ -1107,7 +1094,57 @@ int PHActsTrkFitter::Process()
   return 0;
 }
 
+/**
+ * Helper function that puts together the acts covariance matrix from the
+ * SvtxTrack covariance matrix
+ */
+Acts::BoundSymMatrix PHActsTrkFitter::getActsCovMatrix(SvtxTrack *track)
+{
+  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
+  const double px = track->get_px();
+  const double py = track->get_py();
+  const double pz = track->get_pz();
+  const double p = sqrt(px * px + py * py + pz * pz);
 
+  // Get the track seed covariance matrix
+  // These are the variances, so the std devs are sqrt(seed_cov[i][j])
+  TMatrixDSym seed_cov(6);
+  for(int i = 0; i < 6; i++){
+    for(int j= 0; j <6; j++){
+      seed_cov[i][j] = track->get_error(i,j);
+    }       
+  }
+
+  const double sigmap = sqrt(  px * px * seed_cov[3][3]
+			     + py * py * seed_cov[4][4] 
+			     + pz * pz * seed_cov[5][5] );
+
+  // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
+  // x,y,phi/theta of p, qoverp, time
+  const double phi            = atan(py / px);
+  const double pxfracerr      = seed_cov[3][3] / (px * px);
+  const double pyfracerr      = seed_cov[4][4] / (py * py);
+  const double phiPrefactor   = py/(px * (1 + (py/px)*(py/px) ) );
+  const double sigmaPhi       = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
+  const double theta          = acos(pz / p);
+  const double thetaPrefactor = ((pz * theta) / ( p * sqrt(1-(pz/p)*(pz/p))));
+  const double sigmaTheta     = thetaPrefactor 
+    * sqrt(sigmap*sigmap/(p*p) + seed_cov[5][5]/(pz*pz));
+  const double sigmaQOverP    = sigmap / (p * p);
+
+  // Just set to 0 for now?
+  const double sigmaTime      = 0;
+
+  matrix(Acts::eLOC_0, Acts::eLOC_0)  = seed_cov[0][0];
+  matrix(Acts::eLOC_1, Acts::eLOC_1)  = seed_cov[1][1];
+  matrix(Acts::ePHI, Acts::ePHI )     = sigmaPhi * sigmaPhi;
+  matrix(Acts::eTHETA, Acts::eTHETA ) = sigmaTheta * sigmaTheta;
+  matrix(Acts::eQOP, Acts::eQOP )     = sigmaQOverP * sigmaQOverP;
+  matrix(Acts::eT, Acts::eT )         = sigmaTime;
+  
+  return matrix;
+}
+  
 
 // methods for converting TrkrCluster data to what Acts needs
 

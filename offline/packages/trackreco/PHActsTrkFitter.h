@@ -33,6 +33,7 @@ class PHG4CylinderCellGeomContainer;
 class TrkrClusterContainer;
 class TGeoManager;
 class TGeoNode;
+class SvtxTrack;
 
 namespace FW {
   class IBaseDetector;
@@ -93,7 +94,8 @@ class PHActsTrkFitter : public PHTrackFitting
 TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
- 
+  Acts::BoundSymMatrix getActsCovMatrix(SvtxTrack *track);
+
   /*
 	 * fit track with SvtxTrack as input seed.
 	 * \param intrack Input SvtxTrack
