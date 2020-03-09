@@ -63,7 +63,7 @@
 #include <TObject.h>
 #include <TGeoManager.h>
 #include <TSystem.h>
-
+#include <TMatrixDSym.h>
 #include <cmath>                              // for sqrt, NAN
 #include <cstddef>                                              // for size_t
 #include <cstdlib>                                              // for atoi
@@ -752,7 +752,9 @@ int PHActsTrkFitter::Process()
 
   std::map<TrkrDefs::cluskey, unsigned int> cluskey_hitid; 
   unsigned int  hitid = 0;
+  
 
+  TrkrClusterSourceLinkContainer sourceLinks;
   TrkrDefs::hitsetkey hsetkey;
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
   for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
@@ -983,12 +985,13 @@ int PHActsTrkFitter::Process()
       // We have the data needed to construct an Acts  measurement for this cluster
       //====================================================
 
-      // is local_err the correct covariance?
-      Acts::ActsSymMatrixD<3> cov;   	  // ActsSymMatrix = Eigen::Matrix<double, rows, rows> 
-      cov << local_err[0][0],  local_err[0][1],  local_err[0][2],
-	local_err[1][0], local_err[1][1], local_err[1][2],
-	local_err[2][0], local_err[2][1], local_err[2][2];
-      
+      // Get the 2D location covariance uncertainty for the cluster
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+      cov(Acts::eLOC_0, Acts::eLOC_0) = local_err[0][0];
+      cov(Acts::eLOC_1, Acts::eLOC_0) = local_err[1][0];
+      cov(Acts::eLOC_0, Acts::eLOC_1) = local_err[0][1];
+      cov(Acts::eLOC_1, Acts::eLOC_1) = local_err[1][1];
+
       // local and local_err contain the position and covariance matrix in local coords
       if(Verbosity() > 0)
 	{
@@ -1016,14 +1019,12 @@ int PHActsTrkFitter::Process()
 	}
 
       // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
-      TrkrClusterSourceLink sourceLink(hitid,surf,loc,cov);
-    
+      TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov);
+      sourceLinks.emplace_hint(sourceLinks.end(), sourceLink);
       // Store in map which maps arbitrary hitID to sourceLink. hitId can access
       // Clusterkey via cluskey_hitid map
-      hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid,sourceLink));
-      // KF tracking needs SourceLinks, track seeds (I think), and options for how
-      // to run KF tracking
-      
+      hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid, sourceLink));
+  
       hitid++;
     }
 
@@ -1045,9 +1046,10 @@ int PHActsTrkFitter::Process()
       if (!svtx_track)
 	continue;
 
+  
       /// Get the necessary parameters and values for the TrackParametersContainer
-      //Acts::ActsSymMatrixD<3> seedCov;
-      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+      Acts::ActsSymMatrixD<6> seedCov;
+      
       Acts::Vector3D seedPos( svtx_track->get_x(), 
 			      svtx_track->get_y(),
 			      svtx_track->get_z() );
@@ -1058,7 +1060,18 @@ int PHActsTrkFitter::Process()
       // Just set to 0?
       double trackTime = 0;
       int trackQ = svtx_track->get_charge();
-      trackSeeds.emplace_back(cov, seedPos, seedMom, trackQ, trackTime);
+      // Get the track seed covariance matrix
+      TMatrixDSym seed_cov(6);
+      for(int i = 0; i < 6; i++){
+	for(int j= 0; j <6; j++){
+	  seed_cov[i][j] = svtx_track->get_error(i,j);
+	}       
+      }
+
+      // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
+      // x,y,px,py, qoverp, time
+
+      trackSeeds.emplace_back(seedCov, seedPos, seedMom, trackQ, trackTime);
 
      // loop over clusters for this track and make ProtoTracks
       std::vector<size_t> proto_track;
@@ -1070,8 +1083,10 @@ int PHActsTrkFitter::Process()
 
 	  // find the corresponding hit index
 	  unsigned int hitid = cluskey_hitid.find(cluster_key)->second;
-	  cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
 
+	  if(Verbosity() > 0){
+	    cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
+	  }
 	  // add to the Acts ProtoTrack
 	  proto_track.push_back(hitid);
 	}
@@ -1081,11 +1096,18 @@ int PHActsTrkFitter::Process()
 	  {
 	    cout << "   proto_track readback:  hitid " << proto_track[i] << endl;
 	  }
-      
+    
+
+      // Call KF now. Have proto_track, a vector of hitIds corresponding 
+      // to clusters that  belong to this track, trackSeeds which correspond 
+      // to the PHGenFitTrkProp track seeds, and the cluster source links
+
       
     }
   return 0;
 }
+
+
 
 // methods for converting TrkrCluster data to what Acts needs
 
@@ -1115,6 +1137,8 @@ TMatrixD PHActsTrkFitter::GetMvtxCovarLocal(const unsigned int layer, const unsi
     
   return local_err;
 }
+
+
 
 TMatrixD PHActsTrkFitter::GetInttCovarLocal(const unsigned int layer, const unsigned int ladderzid, const unsigned int ladderphiid, TMatrixD world_err)
 {

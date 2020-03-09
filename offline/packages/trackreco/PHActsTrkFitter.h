@@ -93,7 +93,7 @@ class PHActsTrkFitter : public PHTrackFitting
 TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
-
+ 
   /*
 	 * fit track with SvtxTrack as input seed.
 	 * \param intrack Input SvtxTrack
