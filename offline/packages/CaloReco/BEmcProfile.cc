@@ -141,7 +141,7 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   // z coordinate below means x coordinate
 
   float ee;
-  int ich;
+  int ich, iy, iz;
 
   int iy0 = -1, iz0 = -1;
   float emax = 0;
@@ -165,8 +165,8 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   {
     ee = (*plist)[i].amp;
     ich = (*plist)[i].ich;
-    int iy = ich / NX;
-    int iz = ich % NX;
+    iy = ich / NX;
+    iz = ich % NX;
     if (ee > thresh && abs(iz - iz0) <= 3 && abs(iy - iy0) <= 3)
     {
       etot += ee;
@@ -363,10 +363,10 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float ddz, fl
   }
 
   // Safety margin (slightly away from bin edge)
-  if (ddz < 0.021) ddz = 0.021;
-  if (ddz > 0.489) ddz = 0.489;
-  if (ddy < 0.021) ddy = 0.021;
-  if (ddy > 0.489) ddy = 0.489;
+  //  if (ddz < 0.021) ddz = 0.021;
+  //  if (ddz > 0.489) ddz = 0.489;
+  //  if (ddy < 0.021) ddy = 0.021;
+  //  if (ddy > 0.489) ddy = 0.489;
 
   // Energy bin
   int ie2 = 0;
@@ -439,6 +439,18 @@ void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float ddz, fl
   if (pr < 0) pr = 0;
   float er = ert1 + (ert2 - ert1) / (pow(th2, 2) - pow(th1, 2)) * (pow(theta, 2) - pow(th1, 2));
   if (er < 0) er = 0;
+
+  // Additional error due to binning in xx
+  //
+  int ibin1 = ibin;
+  if( ibin>1 ) ibin1 = ibin-1;
+  int ibin2 = ibin;
+  if( ibin < hmean[ii11]->GetNbinsX() )
+    if( hmean[ii11]->GetBinContent(ibin+1) > 0 ) ibin2 = ibin+1;
+  float dd = (hmean[ii11]->GetBinContent(ibin2) -
+              hmean[ii11]->GetBinContent(ibin1) ) / 2.;
+  //  if( fabs(dd)>er ) printf("ie=%d it=%d bin=%d: %f %f\n",ie1,it1,ibin,er,dd);
+  er = sqrt(er*er + dd*dd);
 
   ep = pr;
   err = er;

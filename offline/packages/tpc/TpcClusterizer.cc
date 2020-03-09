@@ -192,7 +192,7 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
-  int print_layer = 47;
+  int print_layer = 18;
 
   if (Verbosity() > 1000)
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
@@ -247,16 +247,18 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        ++hitsetitr)
   {
     TrkrHitSet *hitset = hitsetitr->second;
-    if (Verbosity() > 1)
-      cout << "TpcClusterizer process hitsetkey " << hitsetitr->first
-           << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
-           << " side " << (int) TpcDefs::getSide(hitsetitr->first)
-           << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
-           << endl;
-    if (Verbosity() > 2) hitset->identify();
+    int layer = TrkrDefs::getLayer(hitsetitr->first);
+    if (Verbosity() > 1 && layer == print_layer)
+      {
+	cout << "TpcClusterizer process hitsetkey " << hitsetitr->first
+	     << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
+	     << " side " << (int) TpcDefs::getSide(hitsetitr->first)
+	     << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
+	     << endl;
+	if (Verbosity() > 5) hitset->identify();
+      }
 
     // we have a single hitset, get the info that identifies the module
-    int layer = TrkrDefs::getLayer(hitsetitr->first);
     // int sector = TpcDefs::getSectorId(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
 

@@ -154,6 +154,12 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     hit->set_x(0, prePoint->GetPosition().x() / cm);
     hit->set_y(0, prePoint->GetPosition().y() / cm);
     hit->set_z(0, prePoint->GetPosition().z() / cm);
+
+    // momentum
+    hit->set_px(0, prePoint->GetMomentum().x() / GeV);
+    hit->set_py(0, prePoint->GetMomentum().y() / GeV);
+    hit->set_pz(0, prePoint->GetMomentum().z() / GeV);
+
     // time in ns
     hit->set_t(0, prePoint->GetGlobalTime() / nanosecond);
     //set and save the track ID
@@ -219,6 +225,10 @@ bool PHG4TpcSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     hit->set_x(1, postPoint->GetPosition().x() / cm);
     hit->set_y(1, postPoint->GetPosition().y() / cm);
     hit->set_z(1, postPoint->GetPosition().z() / cm);
+
+    hit->set_px(1, postPoint->GetMomentum().x() / GeV);
+    hit->set_py(1, postPoint->GetMomentum().y() / GeV);
+    hit->set_pz(1, postPoint->GetMomentum().z() / GeV);
 
     hit->set_t(1, postPoint->GetGlobalTime() / nanosecond);
 

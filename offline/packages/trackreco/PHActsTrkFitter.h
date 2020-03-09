@@ -2,52 +2,41 @@
  *  \file		PHActsTrkFitter.h
  *  \brief		Refit SvtxTracks with Acts.
  *  \details	Refit SvtxTracks with Acts
- *  \author		Tony Frawley <afrawleyu@fsu.edu>
+ *  \author		Tony Frawley <afrawley@fsu.edu>
  */
 
 #ifndef TRACKRECO_ACTSTRKFITTER_H
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "PHTrackFitting.h"
-#include <fun4all/SubsysReco.h>
+
 #include <trackbase/TrkrDefs.h>
 
-#include <cstddef>              // for NULL
+#include <Acts/Geometry/GeometryContext.hpp>
+
+#include <TMatrixDfwd.h>                      // for TMatrixD
+
+#include <map>
 #include <memory>                // for shared_ptr
 #include <string>
 #include <vector>
-#include <map>
 
-#include <Acts/Geometry/GeometryContext.hpp>
-//#include "Acts/Plugins/Identification/Identifier.hpp"
-#include <TMatrixD.h>
 
-class TClonesArray;
-
-class SvtxTrack;
 class SvtxTrackMap;
-class SvtxVertexMap;
-class SvtxVertex;
 class PHCompositeNode;
-class PHG4TruthInfoContainer;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class TrkrClusterContainer;
-class TTree;
 class TGeoManager;
 class TGeoNode;
 
 namespace FW {
   class IBaseDetector;
-  class TGeoManager;
   class IContextDecorator;
 }
 
 namespace Acts {
-class TrackingVolume;
-class Surface;
-class PlaneSurface;
- class PlanarModuleCluster;
+  class Surface;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
@@ -131,10 +120,22 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
 
-double SurfStepPhi;
-double SurfStepZ;
-double ModuleStepPhi;
-double ModulePhiStart;
+
+  // TPC surface subdivisions
+  double MinSurfZ;
+  double MaxSurfZ;
+  unsigned int NSurfZ;
+  unsigned int NSurfPhi;
+  double SurfStepPhi;
+  double SurfStepZ;
+  double ModuleStepPhi;
+  double ModulePhiStart;
+
+  // these don't change, we are building the tpc this way!
+  const unsigned int NTpcLayers = 48;
+  const unsigned int NTpcModulesPerLayer = 12;
+  const unsigned int NTpcSides = 2;
+
 
 };
 

@@ -2,7 +2,7 @@
  *  \file		PHActsTrkFitter.C
  *  \brief		Refit SvtxTracks with PHActs.
  *  \details	Refit SvtxTracks with PHActs.
- *  \author		Haiwang Yu <yuhw@nmsu.edu>
+ *  \author	        Tony Frawley <afrawley@fsu.edu>
  */
 
 #include "PHActsTrkFitter.h"
@@ -10,99 +10,76 @@
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
-#include <mvtx/MvtxDefs.h>
+
+#include <intt/CylinderGeomIntt.h>
 #include <intt/InttDefs.h>
 
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
-#include <trackbase_historic/SvtxTrackMap_v1.h>
-#include <trackbase_historic/SvtxTrackState_v1.h>
-#include <trackbase_historic/SvtxTrack_v1.h>
-#include <trackbase_historic/SvtxVertexMap_v1.h>
-#include <trackbase_historic/SvtxVertex_v1.h>
-#include <trackbase_historic/SvtxTrackState.h>      // for SvtxTrackState
-#include <trackbase_historic/SvtxVertex.h>          // for SvtxVertex
-#include <trackbase_historic/SvtxVertexMap.h>       // for SvtxVertexMap
-
+#include <mvtx/CylinderGeom_Mvtx.h>
 #include <mvtx/MvtxDefs.h>
-#include <intt/InttDefs.h>
+
 #include <tpc/TpcDefs.h>
+
+#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
-//
-#include <intt/CylinderGeomIntt.h>
-#include <mvtx/CylinderGeom_Mvtx.h>
-
-#include <g4main/PHG4Particle.h>
-#include <g4main/PHG4Particlev2.h>
-#include <g4main/PHG4TruthInfoContainer.h>
-#include <g4main/PHG4VtxPoint.h>                    // for PHG4VtxPoint
-#include <g4main/PHG4VtxPointv1.h>
-
 #include <phgeom/PHGeomUtility.h>
 
-#include <fun4all/Fun4AllReturnCodes.h>
-#include <fun4all/PHTFileServer.h>
-#include <fun4all/SubsysReco.h>                     // for SubsysReco
 
-#include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>
-#include <phool/PHNode.h>                           // for PHNode
-#include <phool/PHNodeIterator.h>
-#include <phool/PHObject.h>                         // for PHObject
+#include <fun4all/Fun4AllReturnCodes.h>
+
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <phfield/PHFieldUtility.h>
-#include <phgeom/PHGeomUtility.h>
-
 // Acts classes
-#include "Acts/Surfaces/Surface.hpp"
-#include "Acts/Surfaces/PlaneSurface.hpp"
-#include "Acts/Geometry/TrackingGeometry.hpp"
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
-#include "Acts/Geometry/TrackingVolume.hpp"
-#include "Acts/Plugins/Digitization/DigitizationCell.hpp"
-#include "Acts/Plugins/Digitization/PlanarModuleCluster.hpp"
-#include "Acts/Utilities/Definitions.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
-#include "ACTFW/Framework/AlgorithmContext.hpp"
-#include "ACTFW/Framework/IContextDecorator.hpp"
-#include "ACTFW/Framework/WhiteBoard.hpp"
-#include "ACTFW/Geometry/CommonGeometry.hpp"
-#include "ACTFW/Options/CommonOptions.hpp"
-#include "ACTFW/Plugins/Obj/ObjSurfaceWriter.hpp"
-#include "ACTFW/Plugins/Obj/ObjTrackingGeometryWriter.hpp"
-#include "ACTFW/Plugins/Obj/ObjWriterOptions.hpp"
-#include "ACTFW/Utilities/Options.hpp"
-#include "ACTFW/Utilities/Paths.hpp"
-#include "ACTFW/Geometry/GeometryExampleBase.hpp"
-#include "ACTFW/TGeoDetector/TGeoDetector.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
-#include "ACTFW/Detector/IBaseDetector.hpp"
+#include <Acts/Geometry/TrackingVolume.hpp>
 
-#include <TRotation.h>
+#include <Acts/Plugins/Digitization/DigitizationCell.hpp>
+#include <Acts/Plugins/Digitization/PlanarModuleCluster.hpp>
+
+#include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Surfaces/PlaneSurface.hpp>
+
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
+#include <Acts/Utilities/Logger.hpp>                            // for getDe...
+
+#include <ACTFW/Detector/IBaseDetector.hpp>
+
+#include <ACTFW/Framework/AlgorithmContext.hpp>
+#include <ACTFW/Framework/IContextDecorator.hpp>
+#include <ACTFW/Framework/WhiteBoard.hpp>
+
+#include <ACTFW/Geometry/CommonGeometry.hpp>
+
+#include <ACTFW/Options/CommonOptions.hpp>
+
+#include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
+
+#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
+
+#include <ACTFW/Utilities/Options.hpp>
+
 #include <TVector3.h>
-#include <TMatrixD.h>
-#include <TMath.h>                                  // for ATan2
 #include <TMatrixT.h>                               // for TMatrixT, operator*
 #include <TObject.h>
 #include <TGeoManager.h>
-#include <TGeoMatrix.h>
+#include <TSystem.h>
 
 #include <cmath>                              // for sqrt, NAN
+#include <cstddef>                                              // for size_t
+#include <cstdlib>                                              // for atoi
 #include <iostream>
 #include <map>
 #include <memory>
 #include <utility>
 #include <vector>
-
-class PHField;
 
 using namespace std;
 
@@ -111,8 +88,24 @@ using namespace std;
  */
 PHActsTrkFitter::PHActsTrkFitter(const string& name)
   : PHTrackFitting(name)
+  , _geom_container_mvtx(nullptr)
+  , _geom_container_intt(nullptr)
+  , _geom_container_tpc(nullptr)
+  , _trackmap(nullptr)
+  , _clustermap(nullptr)
+  , _geomanager(nullptr)
+  , MinSurfZ(0.0)
+  , MaxSurfZ(100.0)
+  , NSurfZ(10)
+  , NSurfPhi(10)
 {
   Verbosity(0);
+  
+  // These are arbitrary subdivisions, and may change
+  SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
+  ModuleStepPhi = 2.0 * M_PI / 12.0;
+  ModulePhiStart = - M_PI;
+  SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
 
   _event = 0;
 }
@@ -127,36 +120,18 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key  
   MakeTGeoNodeMap(topNode);
 
-BuildTpcSurfaceMap();
+  // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
+  BuildTpcSurfaceMap();
   
-return Fun4AllReturnCodes::EVENT_OK;
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 void PHActsTrkFitter::BuildTpcSurfaceMap()
 {
-  //  std::cout << "Entering BuildTpcSurfaceMap" << endl;
-
   // Make a map of surfaces corresponding to each TPC sectorid and side.
   // There are 12 sectors and 2 sides of the membrane
   // We additionally subdivide these surfaces into approximately plane surfaces segmented in Z and phi
-
-  // these don't change, we are building it this way!
-  unsigned int NTpcLayers = 48;
-  unsigned int NTpcModulesPerLayer = 12;
-  unsigned int NTpcSides = 2;
-
-  // These are arbitrary subdivisions, and may change
-  unsigned int NSurfZ = 10;
-  unsigned int NSurfPhi = 10;
-
-  double MinSurfZ = 0.0;
-  double MaxSurfZ = 100.0;
-
-  SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
-  ModuleStepPhi = 2.0 * M_PI / 12.0;
-  ModulePhiStart = - M_PI;
-  SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
-
+  // Subdivisions for creating TPC Acts::Surfaces are defined in constructor and header file
   for(unsigned int iz = 0; iz < NSurfZ; ++iz)
     {
       for(unsigned int side = 0; side < NTpcSides; ++side)
@@ -172,6 +147,7 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 	      if(!layergeom)
 		{
 		  std::cout << PHWHERE << "Did not get layergeom for layer " <<tpc_layer  << std::endl;
+		  gSystem->Exit(1);
 		}
 	      
 	      double radius = layergeom->get_radius();
@@ -212,6 +188,10 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
     }
  }  
 
+
+/**
+ * Builds silicon layers in the ACTS surface world
+ */
 void PHActsTrkFitter::BuildSiliconLayers()
 {
   // define int argc and char* argv to provide options to processGeometry
@@ -222,6 +202,7 @@ void PHActsTrkFitter::BuildSiliconLayers()
     std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
   */
 
+  // Can hard code geometry options since the TGeo options are fixed by our detector design
   int argc = 24;
   char *arg[24];
   std::string argstr[24]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx",  "--output-obj", "true"};
@@ -233,9 +214,6 @@ void PHActsTrkFitter::BuildSiliconLayers()
       arg[i] = strdup(argstr[i].c_str());
     }
 
-  //for(int i=0;i<argc;++i)
-  //  cout << " argc " << argc << " i " << i << " arg " << arg[i] << endl;
-  
   /*
     acts-framework:
     (compiled binary = ACTFWTGeoGeometryExample)
@@ -437,7 +415,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
       double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
       
       std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
-      // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to uswe the radius to figure 
+      // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to use the radius to figure 
       // out which layer to use to get the layergeom
       double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
       
@@ -558,10 +536,10 @@ void PHActsTrkFitter::MakeTGeoNodeMap(PHCompositeNode *topNode)
 	  if(Verbosity() > 100)  cout << " node " << node->GetName() << " is in the MVTX" << endl;
 	  getMvtxKeyFromNode(node);
 	}
-      else if ( node_str.compare(0, intt.length(), intt) ==0 ) 	      // is it in the INTT?
+      else if ( node_str.compare(0, intt.length(), intt) == 0 ) 	      // is it in the INTT?
 	{
 	  // We do not want the "ladderext" nodes
-	  if ( node_str.compare(0, intt_ext.length(), intt_ext) ==0 ) 
+	  if ( node_str.compare(0, intt_ext.length(), intt_ext) == 0 ) 
 	    continue;
 	  
 	  if(Verbosity() > 100) cout << " node " << node->GetName() << " is in the INTT" << endl;	  
@@ -778,13 +756,19 @@ int PHActsTrkFitter::Process()
             cout << "Start PHActsTrkfitter::process_event" << endl;
     }
 
-  TrkrDefs::hitsetkey hsetkey;
+  std::map<TrkrDefs::cluskey, unsigned int> cluskey_hitid; 
+  unsigned int  hitid = 0;
 
+  TrkrDefs::hitsetkey hsetkey;
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
   for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
     {
       TrkrCluster *cluster = clusiter->second;
       TrkrDefs::cluskey cluskey = clusiter->first;
+
+      // map to an arbitrary hitid for later use by Acts 
+      cluskey_hitid.insert(std::pair<TrkrDefs::cluskey, unsigned int>(cluskey, hitid));
+      hitid++;
 
       // get the cluster parameters in global coordinates
       float x = cluster->getPosition(0);
@@ -1062,12 +1046,65 @@ int PHActsTrkFitter::Process()
       if(Verbosity() > 0)
 	{
 	  cout << "   found SVTXTrack " << iter->first << endl;
-	  svtx_track->identify();
+	  //svtx_track->identify();
 	}
       if (!svtx_track)
 	continue;
+  
+      // loop over clusters for this track
+      std::vector<unsigned int> proto_track;
+      for (SvtxTrack::ConstClusterKeyIter iter = svtx_track->begin_cluster_keys();
+	   iter != svtx_track->end_cluster_keys();
+	   ++iter)
+	{
+	  TrkrDefs::cluskey cluster_key = *iter;
+
+	  // find the corresponding hit index
+	  unsigned int hitid = cluskey_hitid.find(cluster_key)->second;
+	  cout << "cluskey " << cluster_key << " hitid " << hitid << endl;
+
+	  // add to the Acts ProtoTrack
+	  proto_track.push_back(hitid);
+
+	}
+      for(unsigned int i=0;i<proto_track.size(); ++i)
+	{
+	  cout << "   proto_track readback:  hitid " << proto_track[i] << endl;
+
+	}
       
     }
+
+  /*
+  // set up the fit config object
+  FittingAlgorithm::Config fitCfg;
+
+  // source links
+  // a map of source links vs hit index values?
+  // what is a source link?
+  fitCfg.inputSourceLinks = hitSmearingCfg.outputSourceLinks;
+
+  // ProtoTracks are vectors of unsigned ints
+  // Containing a list of hit index values
+  // How does the track fitter get the actual measurement though?
+  fitCfg.inputProtoTracks = trackFinderCfg.outputProtoTracks;
+
+  // initial track parameters
+  // see SingleTrackParameters.hpp for the parameters
+  fitCfg.inputInitialTrackParameters
+      = particleSmearingCfg.outputTrackParameters;
+
+  // make the fitter
+  // what is trackingGeometry?
+  // what is magneticField?
+  fitCfg.outputTrajectories = "trajectories";
+  fitCfg.fit                = FittingAlgorithm::makeFitterFunction(
+      trackingGeometry, magneticField, logLevel);
+
+  // execute the fitter
+  // what does the sequencer call? "execute", I think
+  */
+
   return 0;
 }
 
@@ -1163,7 +1200,6 @@ PHActsTrkFitter::~PHActsTrkFitter()
 {
 
 }
-
 
 int PHActsTrkFitter::CreateNodes(PHCompositeNode* topNode)
 {
