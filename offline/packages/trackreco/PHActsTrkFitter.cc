@@ -35,6 +35,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
+
 // Acts classes
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
@@ -49,6 +50,10 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
+
+// This needs to stay after these other Acts includes
+#include "TrkrClusterSourceLink.hpp"
+
 
 #include <ACTFW/Detector/IBaseDetector.hpp>
 
@@ -83,6 +88,8 @@
 
 using namespace std;
 
+
+
 /*
  * Constructor
  */
@@ -100,7 +107,7 @@ PHActsTrkFitter::PHActsTrkFitter(const string& name)
   , NSurfPhi(10)
 {
   Verbosity(0);
-  
+
   // These are arbitrary subdivisions, and may change
   SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
   ModuleStepPhi = 2.0 * M_PI / 12.0;
@@ -1008,30 +1015,31 @@ int PHActsTrkFitter::Process()
 	  std::cout << "    local covariance matrix:" << std::endl;
 	  std::cout << cov << std::endl;
 	}
-
-      const Acts::MinimalSourceLink  id;    	   // Acts identifier 
-      std::vector<Acts::DigitizationCell> hits;    // define hits - empty vector OK?
-
-      // cluster positions on surface
-      double xlocal = local_2D[0];
-      double ylocal = local_2D[1];
-      double time = 0;
+ 
+      // Cluster positions on GeoObject/Surface
+      Acts::BoundVector loc = Acts::BoundVector::Zero();     
+      loc[Acts::eLOC_0]     = local_2D[0];  
+      loc[Acts::eLOC_1]     = local_2D[1];
 
       if(Verbosity() > 0)
 	{      
 	  std::cout << "    Layer " << layer << " create measurement for trkrid " << trkrid 
 		    << " surface " << surf->name() << " surface type " << surf->type() 
-		    << " local x " << xlocal << " local y " << ylocal
+		    << " local x " << loc[Acts::eLOC_0] << " local y " << loc[Acts::eLOC_1]
 		    << endl;
 	}
 
       if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::tpcId)
 	{
-	  Acts::PlanarModuleCluster acts_meas(surf, id, cov, xlocal, ylocal, time, hits);
-
+	  // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
+	  TrkrClusterSourceLink sourceLink(cluskey,surf,loc,cov);
+	  // Can obtain the measurement like this
+	  auto measurement = *sourceLink;
 	  // Have to store this in a container 
 	  // DigitizationAlgorithm.cpp makes a map
 	  // what does tracking need?
+	  // KF tracking needs SourceLinks, track seeds (I think), and options for how
+	  // to run KF tracking
 	  // Does TGeoNode come into it?
 	  
 	}
@@ -1203,7 +1211,7 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 int PHActsTrkFitter::CreateNodes(PHCompositeNode* topNode)
 {
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -1266,6 +1274,7 @@ int PHActsTrkFitter::GetNodes(PHCompositeNode* topNode)
          << endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
 
   /*
   // Input Svtx Vertices

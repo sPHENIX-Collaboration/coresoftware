@@ -1,5 +1,7 @@
-#ifndef PHParameterContainerInterface__H
-#define PHParameterContainerInterface__H
+// Tell emacs that this is a C++ source
+//  -*- C++ -*-.
+#ifndef PHPARAMETER_PHPARAMETERCONTAINERINTERFACE_H
+#define PHPARAMETER_PHPARAMETERCONTAINERINTERFACE_H
 
 #include <map>
 #include <string>
@@ -15,9 +17,9 @@ class PHParameterContainerInterface
   virtual ~PHParameterContainerInterface();
 
   void set_name(const std::string &name);
-  virtual void  SetDefaultParameters() = 0;
+  virtual void SetDefaultParameters() = 0;
 
- // Get/Set parameters from macro
+  // Get/Set parameters from macro
   void set_double_param(const int id, const std::string &name, const double dval);
   double get_double_param(const int id, const std::string &name) const;
   void set_int_param(const int id, const std::string &name, const int ival);
@@ -32,13 +34,13 @@ class PHParameterContainerInterface
   int ExistDetid(const int detid) const;
 
  protected:
-  void set_default_double_param( const std::string &name, const double dval);
-  void set_default_int_param( const std::string &name, const int ival);
-  void set_default_string_param( const std::string &name, const std::string &sval);
+  void set_default_double_param(const std::string &name, const double dval);
+  void set_default_int_param(const std::string &name, const int ival);
+  void set_default_string_param(const std::string &name, const std::string &sval);
   void InitializeParameters();
-  const PHParametersContainer *GetParamsContainer() {return paramscontainer;}
-  PHParametersContainer *GetParamsContainerModify() {return paramscontainer;}
-  const PHParameters *GetDefaultParameters() {return defaultparams;}
+  const PHParametersContainer *GetParamsContainer() { return paramscontainer; }
+  PHParametersContainer *GetParamsContainerModify() { return paramscontainer; }
+  const PHParameters *GetDefaultParameters() { return defaultparams; }
 
  private:
   PHParametersContainer *paramscontainer;
@@ -46,4 +48,4 @@ class PHParameterContainerInterface
   std::map<int, PHParameters *> macroparams;
 };
 
-#endif
+#endif  // PHPARAMETER_PHPARAMETERCONTAINERINTERFACE_H

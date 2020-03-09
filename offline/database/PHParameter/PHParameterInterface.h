@@ -13,12 +13,12 @@ class PHParameterInterface
 {
  public:
   PHParameterInterface(const std::string &name);
-  virtual ~PHParameterInterface(){}
+  virtual ~PHParameterInterface() {}
 
   void set_paramname(const std::string &name);
-  virtual void  SetDefaultParameters() = 0;
+  virtual void SetDefaultParameters() = 0;
 
- // Get/Set parameters from macro
+  // Get/Set parameters from macro
   void set_double_param(const std::string &name, const double dval);
   double get_double_param(const std::string &name) const;
   void set_int_param(const std::string &name, const int ival);
@@ -29,10 +29,11 @@ class PHParameterInterface
   void UpdateParametersWithMacro();
   void SaveToNodeTree(PHCompositeNode *runNode, const std::string &nodename);
   void PutOnParNode(PHCompositeNode *parNode, const std::string &nodename);
+
  protected:
-  void set_default_double_param( const std::string &name, const double dval);
-  void set_default_int_param( const std::string &name, const int ival);
-  void set_default_string_param( const std::string &name, const std::string &sval);
+  void set_default_double_param(const std::string &name, const double dval);
+  void set_default_int_param(const std::string &name, const int ival);
+  void set_default_string_param(const std::string &name, const std::string &sval);
   void InitializeParameters();
 
  private:
@@ -44,7 +45,6 @@ class PHParameterInterface
   std::map<const std::string, double> m_DefaultDoubleParMap;
   std::map<const std::string, int> m_DefaultIntParMap;
   std::map<const std::string, std::string> m_DefaultStringParMap;
-
 };
 
-#endif //PHPARAMETER_PHPARAMETERINTERFACE_H
+#endif  // PHPARAMETER_PHPARAMETERINTERFACE_H
