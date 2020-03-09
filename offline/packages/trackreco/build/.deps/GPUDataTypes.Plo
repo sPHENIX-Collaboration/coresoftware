@@ -1,0 +1,6 @@
+GPUDataTypes.lo: ../GPUDataTypes.cxx /usr/include/stdc-predef.h \
+ ../GPUDataTypes.h
+
+/usr/include/stdc-predef.h:
+
+../GPUDataTypes.h:
