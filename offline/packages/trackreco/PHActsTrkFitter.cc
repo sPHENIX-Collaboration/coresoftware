@@ -41,6 +41,7 @@
 #include <Acts/Geometry/TrackingVolume.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
+#include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <ACTFW/Detector/IBaseDetector.hpp>
 #include <ACTFW/EventData/Track.hpp>
@@ -49,14 +50,12 @@
 #include <ACTFW/Framework/WhiteBoard.hpp>
 
 #include <ACTFW/Geometry/CommonGeometry.hpp>
-
 #include <ACTFW/Options/CommonOptions.hpp>
-
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
-
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
-
 #include <ACTFW/Utilities/Options.hpp>
+#include <ACTFW/Fitting/FittingAlgorithm.hpp>
+
 
 #include <TVector3.h>
 #include <TMatrixT.h>                               // for TMatrixT, operator*
@@ -74,6 +73,9 @@
 #include <vector>
 
 using namespace std;
+
+
+
 
 /*
  * Constructor
@@ -194,12 +196,7 @@ void PHActsTrkFitter::BuildSiliconLayers()
     std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
   */
 
-  // Can hard code geometry options since the TGeo options are fixed by our detector design
-  int argc = 24;
-  char *arg[24];
-  std::string argstr[24]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx",  "--output-obj", "true"};
-
-
+  // Set vector of chars to arguments needed
   for(int i = 0;i < argc; ++i)
     {
       // need a copy, since .c_str() returns a const char * and process geometry will not take a const
@@ -1026,13 +1023,18 @@ int PHActsTrkFitter::Process()
       hitid++;
     }
 
-  // Create a vector of Acts::CurvilinearParameters for track seeds
-  FW::TrackParametersContainer trackSeeds;
-  trackSeeds.reserve(_trackmap->size());
-  
+  /// Construct a perigee surface as the target surface (?)
+  auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
+      Acts::Vector3D{0.,0.,0.});
+
+  /// Make a vector of source links to fill for each SvtxTrack
   std::vector<TrkrClusterSourceLink> trackSourceLinks;
-  // _trackmap is SvtxTrackMap from the node tree
-  // We need to convert to Acts tracks
+
+  FW::FittingAlgorithm::Config fitCfg;
+  fitCfg.fit = FW::FittingAlgorithm::makeFitterFunction(trackingGeometry, magneticField, loglevel);
+
+  /// _trackmap is SvtxTrackMap from the node tree
+  /// We need to convert to Acts tracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
        ++iter)
     {
@@ -1057,7 +1059,8 @@ int PHActsTrkFitter::Process()
       // Just set to 0?
       double trackTime = 0;
       int trackQ = svtx_track->get_charge();
-      trackSeeds.emplace_back(seedCov, seedPos, seedMom, trackQ, trackTime);
+
+      FW::TrackParameters trackSeed(seedCov, seedPos, seedMom, trackQ, trackTime);
 
       /// Loop over clusters for this track and make a list of sourceLinks 
       /// that correspond to this track
@@ -1085,11 +1088,12 @@ int PHActsTrkFitter::Process()
 	  }
     
 
-      // Call KF now. Have proto_track, a vector of hitIds corresponding 
-      // to clusters that belong to this track, trackSeeds which correspond 
-      // to the PHGenFitTrkProp track seeds, and the cluster source links
-   
-
+      // Call KF now. Have a vector of sourceLinks corresponding to clusters
+      // associated to this track and the corresponding track seed which corresponds
+      // to the PHGenFitTrkProp track seeds
+      //Acts::KalmanFitterOptions kfOptions(geo_ctxt, ctx.magFieldContext,
+      // 				  ctx.calibContext, &(*pSurface));
+      //auto result = m_cfg.fit(trackSourceLinks, trackSeed, kfOptions);
       
     }
   return 0;

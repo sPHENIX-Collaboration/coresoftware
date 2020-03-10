@@ -133,6 +133,11 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   const unsigned int NTpcLayers = 48;
   const unsigned int NTpcModulesPerLayer = 12;
   const unsigned int NTpcSides = 2;
+  
+    // Can hard code geometry options since the TGeo options are fixed by our detector design
+  int argc = 24;
+  char *arg[24];
+  const std::string argstr[24]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx",  "--output-obj", "true"};
 
 
 };
