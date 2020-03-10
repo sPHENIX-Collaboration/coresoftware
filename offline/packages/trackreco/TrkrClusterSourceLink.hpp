@@ -3,6 +3,17 @@
 #include <Acts/EventData/SourceLinkConcept.hpp>
 #include <Acts/EventData/detail/fittable_type_generator.hpp>
 
+#include <Acts/Geometry/GeometryID.hpp>
+#include <boost/container/flat_map.hpp>
+#include <boost/container/flat_set.hpp>
+
+namespace FW{
+  namespace detail {
+    struct CompareGeometryId;
+  }
+}
+
+
 
 /**
  * This class creates an Acts::SourceLink that relates TrkrClusters to the
@@ -12,14 +23,15 @@ class TrkrClusterSourceLink
 {
 public:
 
-  /// Instantiate with a cluskey, associated surface, and values that actually
+  /// Instantiate with a hitid, associated surface, and values that actually
   /// make the measurement. Acts requires the surface be available in this class
-  TrkrClusterSourceLink(TrkrDefs::cluskey cluskey,
+  TrkrClusterSourceLink(unsigned int hitid,
 			std::shared_ptr<const Acts::Surface> surface,
 			Acts::BoundVector loc,
-			Acts::ActsSymMatrixD<3> cov)
-    : m_cluskey(cluskey)
+			Acts::BoundMatrix cov)
+    : m_hitid(hitid)
     , m_surface(surface)
+    , m_geoId(surface->geoID())
     , m_loc(loc)
     , m_cov(cov)
 {
@@ -34,6 +46,11 @@ public:
   TrkrClusterSourceLink& operator=(TrkrClusterSourceLink&&)      = default;
   TrkrClusterSourceLink& operator=(const TrkrClusterSourceLink&) = default;
   
+  const Acts::GeometryID geoId() const 
+  {
+    return m_geoId;
+  }
+
   /// Needs referenceSurface function to satisfy SourceLinkConcept
   const Acts::Surface& referenceSurface() const 
   {
@@ -55,25 +72,38 @@ public:
 	  m_loc[1]};
   }
 
+  const unsigned int hitID() const
+  {
+    return m_hitid;
+  }
+
 private:
-  /// Clusterkey and the corresponding surface to which it belongs to
-  TrkrDefs::cluskey m_cluskey;
+  
+  /// Hitindex corresponding to hitID and the corresponding 
+  /// surface to which it belongs to
+  unsigned int m_hitid;
   std::shared_ptr<const Acts::Surface> m_surface;
+  Acts::GeometryID m_geoId;
+
   /// Local x and y position for cluster
   Acts::BoundVector m_loc;
   /// Cluster covariance matrix
-  Acts::ActsSymMatrixD<3> m_cov;
+  Acts::BoundMatrix m_cov;
 
   /// Needs equality operator defined to satisfy SourceLinkConcept
   /// Equate the cluster keys
   friend constexpr bool
   operator==(const TrkrClusterSourceLink& lhs, const TrkrClusterSourceLink& rhs)
   {
-    return lhs.m_cluskey == rhs.m_cluskey;
+    return lhs.m_hitid == rhs.m_hitid;
   }
 
 };
 
+// Construct a container for TrkrSourceLinks
+template <typename T>
+using GeometryIdMultiset = boost::container::flat_multiset<T, FW::detail::CompareGeometryId>;
+using TrkrClusterSourceLinkContainer = GeometryIdMultiset<TrkrClusterSourceLink>;
 
 /// Ensure that the SourceLink class satisfies SourceLinkConcept conditions
 static_assert(Acts::SourceLinkConcept<TrkrClusterSourceLink>, 

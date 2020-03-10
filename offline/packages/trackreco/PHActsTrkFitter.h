@@ -12,7 +12,11 @@
 
 #include <trackbase/TrkrDefs.h>
 
-#include <Acts/Geometry/GeometryContext.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
+#include <Acts/Utilities/Logger.hpp>                            // for getDe...
+
+#include "TrkrClusterSourceLink.hpp"
 
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
@@ -29,6 +33,7 @@ class PHG4CylinderCellGeomContainer;
 class TrkrClusterContainer;
 class TGeoManager;
 class TGeoNode;
+class SvtxTrack;
 
 namespace FW {
   class IBaseDetector;
@@ -52,21 +57,13 @@ class PHActsTrkFitter : public PHTrackFitting
   //! dtor
   ~PHActsTrkFitter();
 
-  //!Initialization, called for initialization
-  //int Init(PHCompositeNode*);
-
-  //!Initialization Run, called for initialization of a run
-  //  int InitRun(PHCompositeNode*);
-
-  //!Process Event, called for each event
-  //int process_event(PHCompositeNode*);
 
   //!End, write and close files
   int End(PHCompositeNode*);
 
-int Setup(PHCompositeNode* topNode);
+  int Setup(PHCompositeNode* topNode);
 
-int Process();
+  int Process();
 
   //Flags of different kinds of outputs
   enum Flag
@@ -86,7 +83,7 @@ int Process();
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
   void BuildSiliconLayers();
-void BuildTpcSurfaceMap();
+  void BuildTpcSurfaceMap();
   void isActive(TGeoNode *gnode);
   void MakeTGeoNodeMap(PHCompositeNode*);
   void getInttKeyFromNode(TGeoNode *gnode);
@@ -97,6 +94,7 @@ void BuildTpcSurfaceMap();
 TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  Acts::BoundSymMatrix getActsCovMatrix(SvtxTrack *track);
 
   /*
 	 * fit track with SvtxTrack as input seed.
@@ -119,7 +117,7 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
   std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
-
+  std::map<unsigned int, TrkrClusterSourceLink> hitidSourceLink;
 
   // TPC surface subdivisions
   double MinSurfZ;
