@@ -75,8 +75,6 @@
 
 using namespace std;
 
-
-
 /*
  * Constructor
  */
@@ -1031,7 +1029,8 @@ int PHActsTrkFitter::Process()
   // Create a vector of Acts::CurvilinearParameters for track seeds
   FW::TrackParametersContainer trackSeeds;
   trackSeeds.reserve(_trackmap->size());
-
+  
+  std::vector<TrkrClusterSourceLink> trackSourceLinks;
   // _trackmap is SvtxTrackMap from the node tree
   // We need to convert to Acts tracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
@@ -1060,8 +1059,9 @@ int PHActsTrkFitter::Process()
       int trackQ = svtx_track->get_charge();
       trackSeeds.emplace_back(seedCov, seedPos, seedMom, trackQ, trackTime);
 
-     // loop over clusters for this track and make ProtoTracks
-      std::vector<size_t> proto_track;
+      /// Loop over clusters for this track and make a list of sourceLinks 
+      /// that correspond to this track
+      trackSourceLinks.clear();
       for (SvtxTrack::ConstClusterKeyIter iter = svtx_track->begin_cluster_keys();
 	   iter != svtx_track->end_cluster_keys();
 	   ++iter)
@@ -1075,19 +1075,20 @@ int PHActsTrkFitter::Process()
 	    cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
 	  }
 	  // add to the Acts ProtoTrack
-	  proto_track.push_back(hitid);
+	  trackSourceLinks.push_back(hitidSourceLink.find(hitid)->second);
 	}
 
       if(Verbosity() > 0)
-	for(unsigned int i=0;i<proto_track.size(); ++i)
+	for(unsigned int i=0;i<trackSourceLinks.size(); ++i)
 	  {
-	    cout << "   proto_track readback:  hitid " << proto_track[i] << endl;
+	    cout << "   proto_track readback:  hitid " << trackSourceLinks.at(i).hitID()<< endl;
 	  }
     
 
       // Call KF now. Have proto_track, a vector of hitIds corresponding 
-      // to clusters that  belong to this track, trackSeeds which correspond 
+      // to clusters that belong to this track, trackSeeds which correspond 
       // to the PHGenFitTrkProp track seeds, and the cluster source links
+   
 
       
     }
@@ -1117,17 +1118,21 @@ Acts::BoundSymMatrix PHActsTrkFitter::getActsCovMatrix(SvtxTrack *track)
 
   const double sigmap = sqrt(  px * px * seed_cov[3][3]
 			     + py * py * seed_cov[4][4] 
-			     + pz * pz * seed_cov[5][5] );
+			     + pz * pz * seed_cov[5][5] ) / p ;
 
   // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
   // x,y,phi/theta of p, qoverp, time
-  const double phi            = atan(py / px);
+  double phi                  = atan(py / px);
+  if(phi < -1 * M_PI)
+    phi += 2. * M_PI;
+  else if(phi > M_PI)
+    phi -= 2. * M_PI;
   const double pxfracerr      = seed_cov[3][3] / (px * px);
   const double pyfracerr      = seed_cov[4][4] / (py * py);
-  const double phiPrefactor   = py/(px * (1 + (py/px)*(py/px) ) );
+  const double phiPrefactor   = fabs(py)/(fabs(px) * (1 + (py/px)*(py/px) ) );
   const double sigmaPhi       = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
   const double theta          = acos(pz / p);
-  const double thetaPrefactor = ((pz * theta) / ( p * sqrt(1-(pz/p)*(pz/p))));
+  const double thetaPrefactor = ((fabs(pz)) / ( p * sqrt(1-(pz/p)*(pz/p))));
   const double sigmaTheta     = thetaPrefactor 
     * sqrt(sigmap*sigmap/(p*p) + seed_cov[5][5]/(pz*pz));
   const double sigmaQOverP    = sigmap / (p * p);
@@ -1135,6 +1140,31 @@ Acts::BoundSymMatrix PHActsTrkFitter::getActsCovMatrix(SvtxTrack *track)
   // Just set to 0 for now?
   const double sigmaTime      = 0;
 
+  if(Verbosity() > 10){
+    cout << "Track (px,py,pz,p) = (" << px << "," << py 
+	 << "," << pz << "," << p << ")" << endl;
+    cout << "Track covariance matrix: " << endl;
+    for(int i = 0; i < 6; i++){
+      for(int j = 0; j < 6; j++){
+	cout << seed_cov[i][j] << ", ";
+      }
+      cout << endl;
+    }
+    cout << "Corresponding calculations: " << endl;
+    cout << "perr: " << sigmap << endl;
+    cout << "phi: " << phi<< endl;
+    cout << "pxfracerr: " << pxfracerr << endl;
+    cout << "pyfracerr: " << pyfracerr << endl;
+    cout << "phiPrefactor: " << phiPrefactor << endl;
+    cout << "sigmaPhi: " << sigmaPhi << endl;
+    cout << "theta: " << theta << endl;
+    cout << "thetaPrefactor: " << thetaPrefactor << endl;
+    cout << "sigmaTheta: " << sigmaTheta << endl;
+    cout << "sigmaQOverP: " << sigmaQOverP << endl;
+
+  }
+
+  // seed covariances are already variances, so don't need to square them
   matrix(Acts::eLOC_0, Acts::eLOC_0)  = seed_cov[0][0];
   matrix(Acts::eLOC_1, Acts::eLOC_1)  = seed_cov[1][1];
   matrix(Acts::ePHI, Acts::ePHI )     = sigmaPhi * sigmaPhi;

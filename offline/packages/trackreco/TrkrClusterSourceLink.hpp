@@ -23,13 +23,13 @@ class TrkrClusterSourceLink
 {
 public:
 
-  /// Instantiate with a clusid, associated surface, and values that actually
+  /// Instantiate with a hitid, associated surface, and values that actually
   /// make the measurement. Acts requires the surface be available in this class
-  TrkrClusterSourceLink(unsigned int clusid,
+  TrkrClusterSourceLink(unsigned int hitid,
 			std::shared_ptr<const Acts::Surface> surface,
 			Acts::BoundVector loc,
 			Acts::BoundMatrix cov)
-    : m_clusid(clusid)
+    : m_hitid(hitid)
     , m_surface(surface)
     , m_geoId(surface->geoID())
     , m_loc(loc)
@@ -72,11 +72,16 @@ public:
 	  m_loc[1]};
   }
 
+  const unsigned int hitID() const
+  {
+    return m_hitid;
+  }
+
 private:
   
-  /// Hitindex corresponding to clusID and the corresponding 
+  /// Hitindex corresponding to hitID and the corresponding 
   /// surface to which it belongs to
-  unsigned int m_clusid;
+  unsigned int m_hitid;
   std::shared_ptr<const Acts::Surface> m_surface;
   Acts::GeometryID m_geoId;
 
@@ -90,7 +95,7 @@ private:
   friend constexpr bool
   operator==(const TrkrClusterSourceLink& lhs, const TrkrClusterSourceLink& rhs)
   {
-    return lhs.m_clusid == rhs.m_clusid;
+    return lhs.m_hitid == rhs.m_hitid;
   }
 
 };
