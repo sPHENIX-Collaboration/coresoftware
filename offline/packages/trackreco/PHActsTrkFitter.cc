@@ -89,8 +89,8 @@ PHActsTrkFitter::PHActsTrkFitter(const string& name)
   , _clustermap(nullptr)
   , _geomanager(nullptr)
   , MinSurfZ(0.0)
-  , MaxSurfZ(100.0)
-  , NSurfZ(10)
+  , MaxSurfZ(110.0)
+  , NSurfZ(11)
   , NSurfPhi(10)
 {
   Verbosity(0);
