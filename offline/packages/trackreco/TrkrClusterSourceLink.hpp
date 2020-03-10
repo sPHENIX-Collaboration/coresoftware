@@ -31,10 +31,10 @@ public:
 			Acts::BoundMatrix cov)
     : m_clusid(clusid)
     , m_surface(surface)
+    , m_geoId(surface->geoID())
     , m_loc(loc)
     , m_cov(cov)
 {
-  m_geoId = surface->geoID();
 }
 
   /// Must be default constructible to satisfy SourceLinkConcept
