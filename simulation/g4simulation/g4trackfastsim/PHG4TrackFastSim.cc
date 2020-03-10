@@ -60,12 +60,12 @@
 #include <GenFit/Track.h>
 
 #include <TMath.h>
-#include <TMatrixDSymfwd.h>                        // for TMatrixDSym
-#include <TMatrixTSym.h>    // for TMatrixTSym
-#include <TMatrixTUtils.h>  // for TMatrixTRow
-#include <TVector3.h>       // for TVector3, operator*
-#include <TVectorDfwd.h>    // for TVectorD
-#include <TVectorT.h>       // for TVectorT
+#include <TMatrixDSymfwd.h>  // for TMatrixDSym
+#include <TMatrixTSym.h>     // for TMatrixTSym
+#include <TMatrixTUtils.h>   // for TMatrixTRow
+#include <TVector3.h>        // for TVector3, operator*
+#include <TVectorDfwd.h>     // for TVectorD
+#include <TVectorT.h>        // for TVectorT
 
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_rng.h>
@@ -128,18 +128,17 @@ PHG4TrackFastSim::~PHG4TrackFastSim()
   gsl_rng_free(m_RandomGenerator);
 }
 
-
 int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 {
   _event = -1;
 
   int ret = CreateNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) 
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
   {
     return ret;
   }
   ret = GetNodes(topNode);
-  if (ret != Fun4AllReturnCodes::EVENT_OK) 
+  if (ret != Fun4AllReturnCodes::EVENT_OK)
   {
     return ret;
   }
@@ -183,7 +182,6 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 
       //Changed by Barak on 12/10/19
       _state_location.push_back(temp_geo->get_center_z());
-
     }
     else if ((_state_names[i] == "CEMC") || (_state_names[i] == "IHCAL") || (_state_names[i] == "OHCAL"))
     {
@@ -263,8 +261,8 @@ int PHG4TrackFastSim::process_event(PHCompositeNode* topNode)
 
   vector<PHGenFit::Track*> rf_tracks;
 
-  PHG4VtxPoint * truthVtx = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
-  TVector3 vtxPoint (truthVtx->get_x(), truthVtx->get_y(), truthVtx->get_z());
+  PHG4VtxPoint* truthVtx = _truth_container->GetPrimaryVtx(_truth_container->GetPrimaryVertexIndex());
+  TVector3 vtxPoint(truthVtx->get_x(), truthVtx->get_y(), truthVtx->get_z());
   // Smear the vertex ONCE for all particles in the event
   vtxPoint.SetX(vtxPoint.x() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));
   vtxPoint.SetY(vtxPoint.y() + gsl_ran_gaussian(m_RandomGenerator, _vertex_xy_resolution));

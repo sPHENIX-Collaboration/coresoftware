@@ -19,12 +19,12 @@
 #if !defined(__CINT__) || defined(__CLING__)
 // needed, it crashes on Ubuntu using singularity with local cvmfs install
 // shared pointer later on uses this, forward declaration does not cut it
-#include <phgenfit/Track.h> 
 #include <gsl/gsl_rng.h>
+#include <phgenfit/Track.h>
 #else
 namespace PHGenFit
 {
-  class Track;
+class Track;
 } /* namespace PHGenFit */
 #endif
 
@@ -206,11 +206,13 @@ class PHG4TrackFastSim : public SubsysReco
     _vertexing_method = vertexingMethod;
   }
 
-  double get_vertex_min_ndf() const {
+  double get_vertex_min_ndf() const
+  {
     return _vertex_min_ndf;
   }
 
-  void set_vertex_min_ndf(double vertexMinPT) {
+  void set_vertex_min_ndf(double vertexMinPT)
+  {
     _vertex_min_ndf = vertexMinPT;
   }
 
