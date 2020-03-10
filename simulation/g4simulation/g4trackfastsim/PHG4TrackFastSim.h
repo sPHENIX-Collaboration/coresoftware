@@ -70,10 +70,7 @@ class PHG4TrackFastSim : public SubsysReco
   explicit PHG4TrackFastSim(const std::string& name = "PHG4TrackFastSim");
 
   //! dtor
-  ~PHG4TrackFastSim();
-
-  //!Initialization, called for initialization
-  int Init(PHCompositeNode*);
+  virtual ~PHG4TrackFastSim();
 
   //!Initialization Run, called for initialization of a run
   int InitRun(PHCompositeNode*);
@@ -86,12 +83,12 @@ class PHG4TrackFastSim : public SubsysReco
 
   bool is_do_evt_display() const
   {
-    return _do_evt_display;
+    return m_DoEvtDisplayFlag;
   }
 
   void set_do_evt_display(bool doEvtDisplay)
   {
-    _do_evt_display = doEvtDisplay;
+    m_DoEvtDisplayFlag = doEvtDisplay;
   }
 
   const std::string& get_fit_alg_name() const
@@ -222,6 +219,8 @@ class PHG4TrackFastSim : public SubsysReco
     _do_vertexing = b;
   }
 
+  void DisplayEvent() const;
+
  private:
   /*!
 	 * Create needed nodes.
@@ -313,7 +312,7 @@ class PHG4TrackFastSim : public SubsysReco
   int _primary_assumption_pid;
 
   //!
-  bool _do_evt_display;
+  bool m_DoEvtDisplayFlag;
 
   /*!
 	 * For PseudoPatternRecognition function.
