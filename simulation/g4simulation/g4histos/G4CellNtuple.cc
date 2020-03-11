@@ -6,7 +6,7 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <fun4all/Fun4AllHistoManager.h>
-#include <fun4all/SubsysReco.h>                         // for SubsysReco
+#include <fun4all/SubsysReco.h>  // for SubsysReco
 
 #include <phool/getClass.h>
 
@@ -15,10 +15,10 @@
 #include <TNtuple.h>
 
 #include <cassert>
-#include <cmath>                                        // for isfinite
-#include <iostream>                                     // for operator<<
+#include <cmath>     // for isfinite
+#include <iostream>  // for operator<<
 #include <sstream>
-#include <utility>                                      // for pair
+#include <utility>  // for pair
 
 using namespace std;
 
@@ -89,8 +89,8 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
           cout << "invalid edep: " << edep << endl;
         }
         esum += cell_iter->second->get_edep();
-	int phibin = ~0x0;
-	int etabin = ~0x0;
+        int phibin = ~0x0;
+        int etabin = ~0x0;
         double phi = NAN;
         double eta = NAN;
         int layer = cell_iter->second->get_layer();
@@ -102,18 +102,18 @@ int G4CellNtuple::process_event(PHCompositeNode *topNode)
         }
         if (cell_iter->second->has_binning(PHG4CellDefs::etaphibinning))
         {
-        phibin = PHG4CellDefs::EtaPhiBinning::get_phibin(cell_iter->second->get_cellid());
-        etabin =  PHG4CellDefs::EtaPhiBinning::get_etabin(cell_iter->second->get_cellid());
-        phi = cellgeom->get_phicenter(phibin);
-        eta = cellgeom->get_etacenter(etabin);
-	}
+          phibin = PHG4CellDefs::EtaPhiBinning::get_phibin(cell_iter->second->get_cellid());
+          etabin = PHG4CellDefs::EtaPhiBinning::get_etabin(cell_iter->second->get_cellid());
+          phi = cellgeom->get_phicenter(phibin);
+          eta = cellgeom->get_etacenter(etabin);
+        }
         else if (cell_iter->second->has_binning(PHG4CellDefs::sizebinning))
         {
-        phibin = PHG4CellDefs::SizeBinning::get_phibin(cell_iter->second->get_cellid());
-        etabin =  PHG4CellDefs::SizeBinning::get_zbin(cell_iter->second->get_cellid());
-        phi = cellgeom->get_phicenter(phibin);
-        eta = cellgeom->get_zcenter(etabin);
-	}
+          phibin = PHG4CellDefs::SizeBinning::get_phibin(cell_iter->second->get_cellid());
+          etabin = PHG4CellDefs::SizeBinning::get_zbin(cell_iter->second->get_cellid());
+          phi = cellgeom->get_phicenter(phibin);
+          eta = cellgeom->get_zcenter(etabin);
+        }
         assert(cellgeom != nullptr);
         ntup->Fill(detid,
                    cell_iter->second->get_layer(),
