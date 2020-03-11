@@ -19,7 +19,7 @@
 
 #include <tpc/TpcDefs.h>
 
-#include <trackbase_historic/SvtxTrack_v1.h>
+#include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
 #include <g4detectors/PHG4CylinderGeom.h>           // for PHG4CylinderGeom
@@ -35,28 +35,15 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-
-// Acts classes
+#include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingVolume.hpp>
-
-#include <Acts/Plugins/Digitization/DigitizationCell.hpp>
-#include <Acts/Plugins/Digitization/PlanarModuleCluster.hpp>
-
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
-
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
-#include <Acts/Utilities/Logger.hpp>                            // for getDe...
-
-// This needs to stay after these other Acts includes
-#include "TrkrClusterSourceLink.hpp"
-
-
+#include <Acts/EventData/TrackParameters.hpp>
 #include <ACTFW/Detector/IBaseDetector.hpp>
-
+#include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 #include <ACTFW/Framework/IContextDecorator.hpp>
 #include <ACTFW/Framework/WhiteBoard.hpp>
@@ -76,7 +63,7 @@
 #include <TObject.h>
 #include <TGeoManager.h>
 #include <TSystem.h>
-
+#include <TMatrixDSym.h>
 #include <cmath>                              // for sqrt, NAN
 #include <cstddef>                                              // for size_t
 #include <cstdlib>                                              // for atoi
@@ -87,8 +74,6 @@
 #include <vector>
 
 using namespace std;
-
-
 
 /*
  * Constructor
@@ -102,8 +87,8 @@ PHActsTrkFitter::PHActsTrkFitter(const string& name)
   , _clustermap(nullptr)
   , _geomanager(nullptr)
   , MinSurfZ(0.0)
-  , MaxSurfZ(100.0)
-  , NSurfZ(10)
+  , MaxSurfZ(110.0)
+  , NSurfZ(11)
   , NSurfPhi(10)
 {
   Verbosity(0);
@@ -765,7 +750,9 @@ int PHActsTrkFitter::Process()
 
   std::map<TrkrDefs::cluskey, unsigned int> cluskey_hitid; 
   unsigned int  hitid = 0;
+  
 
+  TrkrClusterSourceLinkContainer sourceLinks;
   TrkrDefs::hitsetkey hsetkey;
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
   for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
@@ -775,8 +762,7 @@ int PHActsTrkFitter::Process()
 
       // map to an arbitrary hitid for later use by Acts 
       cluskey_hitid.insert(std::pair<TrkrDefs::cluskey, unsigned int>(cluskey, hitid));
-      hitid++;
-
+     
       // get the cluster parameters in global coordinates
       float x = cluster->getPosition(0);
       float y = cluster->getPosition(1);
@@ -997,12 +983,13 @@ int PHActsTrkFitter::Process()
       // We have the data needed to construct an Acts  measurement for this cluster
       //====================================================
 
-      // is local_err the correct covariance?
-      Acts::ActsSymMatrixD<3> cov;   	  // ActsSymMatrix = Eigen::Matrix<double, rows, rows> 
-      cov << local_err[0][0],  local_err[0][1],  local_err[0][2],
-	local_err[1][0], local_err[1][1], local_err[1][2],
-	local_err[2][0], local_err[2][1], local_err[2][2];
-      
+      // Get the 2D location covariance uncertainty for the cluster
+      Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
+      cov(Acts::eLOC_0, Acts::eLOC_0) = local_err[0][0];
+      cov(Acts::eLOC_1, Acts::eLOC_0) = local_err[1][0];
+      cov(Acts::eLOC_0, Acts::eLOC_1) = local_err[0][1];
+      cov(Acts::eLOC_1, Acts::eLOC_1) = local_err[1][1];
+
       // local and local_err contain the position and covariance matrix in local coords
       if(Verbosity() > 0)
 	{
@@ -1029,22 +1016,21 @@ int PHActsTrkFitter::Process()
 		    << endl;
 	}
 
-      if(trkrid == TrkrDefs::mvtxId || trkrid == TrkrDefs::inttId || trkrid == TrkrDefs::tpcId)
-	{
-	  // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
-	  TrkrClusterSourceLink sourceLink(cluskey,surf,loc,cov);
-	  // Can obtain the measurement like this
-	  auto measurement = *sourceLink;
-	  // Have to store this in a container 
-	  // DigitizationAlgorithm.cpp makes a map
-	  // what does tracking need?
-	  // KF tracking needs SourceLinks, track seeds (I think), and options for how
-	  // to run KF tracking
-	  // Does TGeoNode come into it?
-	  
-	}
-    }
+      // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
+      TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov);
+      sourceLinks.emplace_hint(sourceLinks.end(), sourceLink);
+      // Store in map which maps arbitrary hitID to sourceLink. hitId can access
+      // Clusterkey via cluskey_hitid map
+      hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid, sourceLink));
   
+      hitid++;
+    }
+
+  // Create a vector of Acts::CurvilinearParameters for track seeds
+  FW::TrackParametersContainer trackSeeds;
+  trackSeeds.reserve(_trackmap->size());
+  
+  std::vector<TrkrClusterSourceLink> trackSourceLinks;
   // _trackmap is SvtxTrackMap from the node tree
   // We need to convert to Acts tracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
@@ -1054,13 +1040,28 @@ int PHActsTrkFitter::Process()
       if(Verbosity() > 0)
 	{
 	  cout << "   found SVTXTrack " << iter->first << endl;
-	  //svtx_track->identify();
+	  svtx_track->identify();
 	}
       if (!svtx_track)
 	continue;
+
   
-      // loop over clusters for this track
-      std::vector<unsigned int> proto_track;
+      /// Get the necessary parameters and values for the TrackParametersContainer
+      Acts::BoundSymMatrix seedCov =  getActsCovMatrix(svtx_track);
+      Acts::Vector3D seedPos( svtx_track->get_x() , 
+			      svtx_track->get_y() , 
+			      svtx_track->get_z() );
+      Acts::Vector3D seedMom( svtx_track->get_px() ,
+			      svtx_track->get_py() ,
+			      svtx_track->get_pz() );
+      // Just set to 0?
+      double trackTime = 0;
+      int trackQ = svtx_track->get_charge();
+      trackSeeds.emplace_back(seedCov, seedPos, seedMom, trackQ, trackTime);
+
+      /// Loop over clusters for this track and make a list of sourceLinks 
+      /// that correspond to this track
+      trackSourceLinks.clear();
       for (SvtxTrack::ConstClusterKeyIter iter = svtx_track->begin_cluster_keys();
 	   iter != svtx_track->end_cluster_keys();
 	   ++iter)
@@ -1069,52 +1070,111 @@ int PHActsTrkFitter::Process()
 
 	  // find the corresponding hit index
 	  unsigned int hitid = cluskey_hitid.find(cluster_key)->second;
-	  cout << "cluskey " << cluster_key << " hitid " << hitid << endl;
 
+	  if(Verbosity() > 0){
+	    cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
+	  }
 	  // add to the Acts ProtoTrack
-	  proto_track.push_back(hitid);
-
+	  trackSourceLinks.push_back(hitidSourceLink.find(hitid)->second);
 	}
-      for(unsigned int i=0;i<proto_track.size(); ++i)
-	{
-	  cout << "   proto_track readback:  hitid " << proto_track[i] << endl;
 
-	}
+      if(Verbosity() > 0)
+	for(unsigned int i=0;i<trackSourceLinks.size(); ++i)
+	  {
+	    cout << "   proto_track readback:  hitid " << trackSourceLinks.at(i).hitID()<< endl;
+	  }
+    
+
+      // Call KF now. Have proto_track, a vector of hitIds corresponding 
+      // to clusters that belong to this track, trackSeeds which correspond 
+      // to the PHGenFitTrkProp track seeds, and the cluster source links
+   
+
       
     }
-
-  /*
-  // set up the fit config object
-  FittingAlgorithm::Config fitCfg;
-
-  // source links
-  // a map of source links vs hit index values?
-  // what is a source link?
-  fitCfg.inputSourceLinks = hitSmearingCfg.outputSourceLinks;
-
-  // ProtoTracks are vectors of unsigned ints
-  // Containing a list of hit index values
-  // How does the track fitter get the actual measurement though?
-  fitCfg.inputProtoTracks = trackFinderCfg.outputProtoTracks;
-
-  // initial track parameters
-  // see SingleTrackParameters.hpp for the parameters
-  fitCfg.inputInitialTrackParameters
-      = particleSmearingCfg.outputTrackParameters;
-
-  // make the fitter
-  // what is trackingGeometry?
-  // what is magneticField?
-  fitCfg.outputTrajectories = "trajectories";
-  fitCfg.fit                = FittingAlgorithm::makeFitterFunction(
-      trackingGeometry, magneticField, logLevel);
-
-  // execute the fitter
-  // what does the sequencer call? "execute", I think
-  */
-
   return 0;
 }
+
+/**
+ * Helper function that puts together the acts covariance matrix from the
+ * SvtxTrack covariance matrix
+ */
+Acts::BoundSymMatrix PHActsTrkFitter::getActsCovMatrix(SvtxTrack *track)
+{
+  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
+  const double px = track->get_px();
+  const double py = track->get_py();
+  const double pz = track->get_pz();
+  const double p = sqrt(px * px + py * py + pz * pz);
+
+  // Get the track seed covariance matrix
+  // These are the variances, so the std devs are sqrt(seed_cov[i][j])
+  TMatrixDSym seed_cov(6);
+  for(int i = 0; i < 6; i++){
+    for(int j= 0; j <6; j++){
+      seed_cov[i][j] = track->get_error(i,j);
+    }       
+  }
+
+  const double sigmap = sqrt(  px * px * seed_cov[3][3]
+			     + py * py * seed_cov[4][4] 
+			     + pz * pz * seed_cov[5][5] ) / p ;
+
+  // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
+  // x,y,phi/theta of p, qoverp, time
+  double phi                  = atan(py / px);
+  if(phi < -1 * M_PI)
+    phi += 2. * M_PI;
+  else if(phi > M_PI)
+    phi -= 2. * M_PI;
+  const double pxfracerr      = seed_cov[3][3] / (px * px);
+  const double pyfracerr      = seed_cov[4][4] / (py * py);
+  const double phiPrefactor   = fabs(py)/(fabs(px) * (1 + (py/px)*(py/px) ) );
+  const double sigmaPhi       = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
+  const double theta          = acos(pz / p);
+  const double thetaPrefactor = ((fabs(pz)) / ( p * sqrt(1-(pz/p)*(pz/p))));
+  const double sigmaTheta     = thetaPrefactor 
+    * sqrt(sigmap*sigmap/(p*p) + seed_cov[5][5]/(pz*pz));
+  const double sigmaQOverP    = sigmap / (p * p);
+
+  // Just set to 0 for now?
+  const double sigmaTime      = 0;
+
+  if(Verbosity() > 10){
+    cout << "Track (px,py,pz,p) = (" << px << "," << py 
+	 << "," << pz << "," << p << ")" << endl;
+    cout << "Track covariance matrix: " << endl;
+    for(int i = 0; i < 6; i++){
+      for(int j = 0; j < 6; j++){
+	cout << seed_cov[i][j] << ", ";
+      }
+      cout << endl;
+    }
+    cout << "Corresponding calculations: " << endl;
+    cout << "perr: " << sigmap << endl;
+    cout << "phi: " << phi<< endl;
+    cout << "pxfracerr: " << pxfracerr << endl;
+    cout << "pyfracerr: " << pyfracerr << endl;
+    cout << "phiPrefactor: " << phiPrefactor << endl;
+    cout << "sigmaPhi: " << sigmaPhi << endl;
+    cout << "theta: " << theta << endl;
+    cout << "thetaPrefactor: " << thetaPrefactor << endl;
+    cout << "sigmaTheta: " << sigmaTheta << endl;
+    cout << "sigmaQOverP: " << sigmaQOverP << endl;
+
+  }
+
+  // seed covariances are already variances, so don't need to square them
+  matrix(Acts::eLOC_0, Acts::eLOC_0)  = seed_cov[0][0];
+  matrix(Acts::eLOC_1, Acts::eLOC_1)  = seed_cov[1][1];
+  matrix(Acts::ePHI, Acts::ePHI )     = sigmaPhi * sigmaPhi;
+  matrix(Acts::eTHETA, Acts::eTHETA ) = sigmaTheta * sigmaTheta;
+  matrix(Acts::eQOP, Acts::eQOP )     = sigmaQOverP * sigmaQOverP;
+  matrix(Acts::eT, Acts::eT )         = sigmaTime;
+  
+  return matrix;
+}
+  
 
 // methods for converting TrkrCluster data to what Acts needs
 
@@ -1144,6 +1204,8 @@ TMatrixD PHActsTrkFitter::GetMvtxCovarLocal(const unsigned int layer, const unsi
     
   return local_err;
 }
+
+
 
 TMatrixD PHActsTrkFitter::GetInttCovarLocal(const unsigned int layer, const unsigned int ladderzid, const unsigned int ladderphiid, TMatrixD world_err)
 {
@@ -1208,6 +1270,7 @@ PHActsTrkFitter::~PHActsTrkFitter()
 {
 
 }
+
 
 int PHActsTrkFitter::CreateNodes(PHCompositeNode* topNode)
 {
