@@ -23,7 +23,7 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/BareAlgorithm.hpp>
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
-#include "TrkrClusterSourceLink.hpp"
+
 
 /**
  * This class contains the information required to run the Kalman fitter

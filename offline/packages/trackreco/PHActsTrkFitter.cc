@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-
+#include "ActsFittingAlgorithm.h"
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
