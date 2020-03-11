@@ -124,6 +124,8 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     // if we are in an active logical volume whioch is located in this ladder
     auto iter = m_Detector->get_ActiveVolumeTuple(touch->GetVolume(1));
     tie(inttlayer, ladderz, ladderphi, zposneg) = iter->second;
+    if (Verbosity() > 0)
+      cout << "     inttlayer " << inttlayer << " ladderz_base " << ladderz << " ladderphi " << ladderphi << " zposneg " << zposneg << endl;
     if (inttlayer < 0 || inttlayer > 7)
     {
       assert(!"PHG4InttSteppingAction: check Intt ladder layer.");
@@ -198,6 +200,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
     {
       ladderz += 2;  // ladderz = 0, 1 for negative z and = 2, 3 for positive z
     }
+    if(Verbosity() > 0) cout << "     ladderz = " << ladderz << endl;
 
     m_Hit->set_ladder_z_index(ladderz);
 
@@ -218,7 +221,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
 
     StoreLocalCoordinate(m_Hit, aStep, true, false);
 
-    if (Verbosity() > 1)
+    if (Verbosity() > 0)
     {
       cout << "     prePoint hit position x,y,z = " << prePoint->GetPosition().x() / cm
            << "    " << prePoint->GetPosition().y() / cm
@@ -317,7 +320,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       postPoint->GetStepStatus() == fAtRestDoItProc ||
       aTrack->GetTrackStatus() == fStopAndKill)
   {
-    if (Verbosity() > 1)
+    if (Verbosity() > 0)
     {
       cout << " postPoint step status changed to " << postPoint->GetStepStatus() << " or aTrack status changed to "
            << aTrack->GetTrackStatus() << endl;
@@ -336,7 +339,7 @@ bool PHG4InttSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
       {
         m_SaveShower->add_g4hit_id(m_SaveHitContainer->GetID(), m_Hit->get_hit_id());
       }
-      if (Verbosity() > 1)
+      if (Verbosity() > 0)
       {
         m_Hit->print();
       }
