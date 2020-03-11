@@ -279,6 +279,13 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // The geometry context
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
+  // Make a fit configuration
+  //FittingAlgorithm::Config fitCfg;
+  //fitCfg.fit = FW::FittingAlgorithm::makeFitterFunction(tGeometry,
+  //magneticField,
+  //                                                   logLevel);
+
+
   // this is not executed because contextDecorators has size 0
   /// Decorate the context
   for (auto& cdr : contextDecorators) {
@@ -1038,8 +1045,10 @@ int PHActsTrkFitter::Process()
   /// Make a vector of source links to fill for each SvtxTrack
   std::vector<TrkrClusterSourceLink> trackSourceLinks;
 
-
-
+  /// Setup a context for this event
+  FW::WhiteBoard eventStore(Acts::getDefaultLogger("EventStore#" + std::to_string(_event), logLevel));                  
+  FW::AlgorithmContext context(0, _event, eventStore);
+  
   /// _trackmap is SvtxTrackMap from the node tree
   /// We need to convert to Acts tracks
   for (SvtxTrackMap::Iter iter = _trackmap->begin(); iter != _trackmap->end();
