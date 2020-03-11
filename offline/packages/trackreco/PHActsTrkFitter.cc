@@ -48,7 +48,7 @@
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 #include <ACTFW/Framework/IContextDecorator.hpp>
 #include <ACTFW/Framework/WhiteBoard.hpp>
-
+#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/Geometry/CommonGeometry.hpp>
 #include <ACTFW/Options/CommonOptions.hpp>
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
@@ -195,6 +195,11 @@ void PHActsTrkFitter::BuildSiliconLayers()
     char *arg[27];
     std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
   */
+ 
+    // Can hard code geometry options since the TGeo options are fixed by our detector design
+  const int argc = 28;
+  char *arg[argc];
+  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx",  "--output-obj", "true","--bf-values",  "0", "0", "1.4"};
 
   // Set vector of chars to arguments needed
   for(int i = 0;i < argc; ++i)
@@ -240,6 +245,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   FW::Options::addObjWriterOptions(desc);
   //  FW::Options::addCsvWriterOptions(desc);
   FW::Options::addOutputOptions(desc);
+  FW::Options::addBFieldOptions(desc);
 
   // Add specific options for this geometry
   detector.addOptions(desc);
@@ -256,6 +262,8 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   auto tGeometry         = geometry.first;
   //std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators = geometry.second; 
   contextDecorators = geometry.second; 
+
+  auto magneticField = FW::Options::readBField(vm);
 
   // The detectors
   // "MVTX" and "Silicon"
@@ -1030,8 +1038,7 @@ int PHActsTrkFitter::Process()
   /// Make a vector of source links to fill for each SvtxTrack
   std::vector<TrkrClusterSourceLink> trackSourceLinks;
 
-  FW::FittingAlgorithm::Config fitCfg;
-  fitCfg.fit = FW::FittingAlgorithm::makeFitterFunction(trackingGeometry, magneticField, loglevel);
+
 
   /// _trackmap is SvtxTrackMap from the node tree
   /// We need to convert to Acts tracks
