@@ -52,6 +52,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   double rad_gem = NAN;
   double output_radius = 0;
 
+  static const unsigned int print_layer = 18;
+
   double neffelectrons_threshold = NAN;
 
   std::array<int,3> MinLayer;

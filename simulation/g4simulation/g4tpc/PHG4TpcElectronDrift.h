@@ -50,6 +50,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TH1 *dtrans;
   TNtuple *nt;
   TNtuple *nthit;
+  TNtuple *ntfinalhit;
   TNtuple *ntpad;
   std::string detector;
   std::string hitnodename;
