@@ -54,7 +54,6 @@
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Utilities/Options.hpp>
-#include <ACTFW/Fitting/FittingAlgorithm.hpp>
 
 
 #include <TVector3.h>
@@ -74,7 +73,7 @@
 
 using namespace std;
 
-
+FittingAlgorithm::Config fitCfg;
 
 
 /*
@@ -280,10 +279,8 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration
-  //FittingAlgorithm::Config fitCfg;
-  //fitCfg.fit = FW::FittingAlgorithm::makeFitterFunction(tGeometry,
-  //magneticField,
-  //                                                   logLevel);
+  
+  fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, magneticField, logLevel);
 
 
   // this is not executed because contextDecorators has size 0
@@ -1107,10 +1104,26 @@ int PHActsTrkFitter::Process()
       // Call KF now. Have a vector of sourceLinks corresponding to clusters
       // associated to this track and the corresponding track seed which corresponds
       // to the PHGenFitTrkProp track seeds
-      //Acts::KalmanFitterOptions kfOptions(geo_ctxt, ctx.magFieldContext,
-      // 				  ctx.calibContext, &(*pSurface));
-      //auto result = m_cfg.fit(trackSourceLinks, trackSeed, kfOptions);
+      Acts::KalmanFitterOptions kfOptions(context.geoContext, 
+					  context.magFieldContext,
+					  context.calibContext,
+					  &(*pSurface));
+      auto result = fitCfg.fit(trackSourceLinks, trackSeed, kfOptions);
       
+      if(result.ok()) {
+	const auto& fitOutput = result.value();
+	if(fitOutput.fittedParameters){
+	  const auto& params = fitOutput.fittedParameters.value();
+	  // Get position, momentum from params
+	  if(Verbosity() > 10){
+	    std::cout<<"Fitted parameters for track"<<std::endl;
+	    std::cout<<" position : " << params.position().transpose()<<std::endl;
+	    std::cout<<" momentum : " << params.momentum().transpose()<<std::endl;
+	  }
+	}
+	
+      }
+
     }
   return 0;
 }
@@ -1170,7 +1183,7 @@ Acts::BoundSymMatrix PHActsTrkFitter::getActsCovMatrix(SvtxTrack *track)
       }
       cout << endl;
     }
-    cout << "Corresponding calculations: " << endl;
+    cout << "Corresponding uncertainty calculations: " << endl;
     cout << "perr: " << sigmap << endl;
     cout << "phi: " << phi<< endl;
     cout << "pxfracerr: " << pxfracerr << endl;
@@ -1282,7 +1295,10 @@ TMatrixD PHActsTrkFitter::TransformCovarToLocal(const double ladderphi, TMatrixD
  
 int PHActsTrkFitter::End(PHCompositeNode* topNode)
 {
-
+  if(Verbosity() > 10)
+    {
+      std::cout<<"Finished PHActsTrkFitter"<<std::endl;
+    }
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
