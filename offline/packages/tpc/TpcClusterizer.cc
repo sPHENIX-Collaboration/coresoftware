@@ -51,6 +51,8 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , NPhiBinsMin(0)
   , NZBinsMax(0)
   , NZBinsMin(0)
+  , hit_nt(nullptr)
+  , cluster_nt(nullptr)
 {
 }
 
