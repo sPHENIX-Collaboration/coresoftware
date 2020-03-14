@@ -203,7 +203,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
       double gpx = g4particle->get_px();
       double gpy = g4particle->get_py();
-      double gpz = g4particle->get_px();
+      double gpz = g4particle->get_pz();
       double gpt = 0;
       double geta = NAN;
 
@@ -286,5 +286,5 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 string
 QAG4SimulationTracking::get_histo_prefix()
 {
-  return "h_QAG4Sim_Tracking_";
+  return string("h_") + Name() + string("_");
 }
