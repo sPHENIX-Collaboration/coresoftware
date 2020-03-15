@@ -25,7 +25,7 @@ class SvtxTrack;
 class QAG4SimulationTracking : public SubsysReco
 {
  public:
-  QAG4SimulationTracking();
+  QAG4SimulationTracking(const std::string & name = "QAG4SimulationTracking");
   virtual ~QAG4SimulationTracking() {}
 
   int Init(PHCompositeNode *topNode);

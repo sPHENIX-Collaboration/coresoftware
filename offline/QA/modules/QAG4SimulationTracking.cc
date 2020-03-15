@@ -41,8 +41,8 @@
 
 using namespace std;
 
-QAG4SimulationTracking::QAG4SimulationTracking()
-  : SubsysReco("QAG4SimulationTracking")
+QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
+  : SubsysReco(name)
   , _svtxEvalStack(nullptr)
   , m_etaRange(-1, 1)
   , _truthContainer(nullptr)
@@ -177,106 +177,109 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   h_norm->Fill("Event", 1);
 
   // fill histograms that need truth information
-  if (_truthContainer)
+  if (!_truthContainer)
   {
-    PHG4TruthInfoContainer::ConstRange range = _truthContainer->GetPrimaryParticleRange();
-    for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
-    {
-      // get the truth particle information
-      PHG4Particle *g4particle = iter->second;
+    cout << "QAG4SimulationTracking::process_event - fatal error - missing _truthContainer! ";
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
+  PHG4TruthInfoContainer::ConstRange range = _truthContainer->GetPrimaryParticleRange();
+  for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+  {
+    // get the truth particle information
+    PHG4Particle *g4particle = iter->second;
+
+    if (Verbosity())
+    {
+      cout << "QAG4SimulationTracking::process_event - processing ";
+      g4particle->identify();
+    }
+
+    if (m_embeddingIDs.size() > 0)
+    {
+      //only analyze subset of particle with proper embedding IDs
+      int candidate_embedding_id = trutheval->get_embed(g4particle);
+      if (candidate_embedding_id < 0) candidate_embedding_id = -1;
+
+      // skip if no match
+      if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end()) continue;
+    }
+
+    double gpx = g4particle->get_px();
+    double gpy = g4particle->get_py();
+    double gpz = g4particle->get_pz();
+    double gpt = 0;
+    double geta = NAN;
+
+    if (gpx != 0 && gpy != 0)
+    {
+      TVector3 gv(gpx, gpy, gpz);
+      gpt = gv.Pt();
+      geta = gv.Eta();
+      //      gphi = gv.Phi();
+    }
+    if (m_etaRange.first < geta and geta < m_etaRange.second)
+    {
       if (Verbosity())
       {
-        cout << "QAG4SimulationTracking::process_event - processing ";
-        g4particle->identify();
+        cout << "QAG4SimulationTracking::process_event - accept particle eta = " << geta << endl;
       }
+    }
+    else
+    {
+      if (Verbosity())
+        cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << endl;
+      continue;
+    }
 
-      if (m_embeddingIDs.size() > 0)
-      {
-        //only analyze subset of particle with proper embedding IDs
-        int candidate_embedding_id = trutheval->get_embed(g4particle);
-        if (candidate_embedding_id < 0) candidate_embedding_id = -1;
+    const int pid = g4particle->get_pid();
+    TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(pid);
+    if (!pdg_p)
+    {
+      cout << "QAG4SimulationTracking::process_event - Error - invalid particle ID = " << pid << endl;
+      continue;
+    }
 
-        // skip if no match
-        if (m_embeddingIDs.find(candidate_embedding_id) == m_embeddingIDs.end()) continue;
-      }
+    const double gcharge = pdg_p->Charge() / 3;
+    if (gcharge > 0)
+    {
+      h_norm->Fill("Truth Track+", 1);
+    }
+    else if (gcharge < 0)
+    {
+      h_norm->Fill("Truth Track-", 1);
+    }
+    else
+    {
+      if (Verbosity())
+        cout << "QAG4SimulationTracking::process_event - invalid particle ID = " << pid << endl;
+      continue;
+    }
+    h_norm->Fill("Truth Track", 1);
 
-      double gpx = g4particle->get_px();
-      double gpy = g4particle->get_py();
-      double gpz = g4particle->get_pz();
-      double gpt = 0;
-      double geta = NAN;
+    h_nGen_pTGen->Fill(gpt);
+    h_nGen_etaGen->Fill(geta);
 
-      if (gpx != 0 && gpy != 0)
-      {
-        TVector3 gv(gpx, gpy, gpz);
-        gpt = gv.Pt();
-        geta = gv.Eta();
-        //      gphi = gv.Phi();
-      }
-      if (m_etaRange.first < geta and geta < m_etaRange.second)
-      {
-        if (Verbosity())
-        {
-          cout << "QAG4SimulationTracking::process_event - accept particle eta = " << geta << endl;
-        }
-      }
-      else
-      {
-        if (Verbosity())
-          cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << endl;
-        continue;
-      }
+    // look for best matching track in reco data & get its information
+    SvtxTrack *track = trackeval->best_track_from(g4particle);
+    if (track)
+    {
+      h_nReco_etaGen->Fill(geta);
+      h_nReco_pTGen->Fill(gpt);
 
-      const int pid = g4particle->get_pid();
-      TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(pid);
-      if (!pdg_p)
-      {
-        cout << "QAG4SimulationTracking::process_event - Error - invalid particle ID = " << pid << endl;
-        continue;
-      }
+      double px = track->get_px();
+      double py = track->get_py();
+      double pz = track->get_pz();
+      double pt;
+      TVector3 v(px, py, pz);
+      pt = v.Pt();
+      //        eta = v.Pt();
+      //      phi = v.Pt();
 
-      const double gcharge = pdg_p->Charge() / 3;
-      if (gcharge > 0)
-      {
-        h_norm->Fill("Truth Track+", 1);
-      }
-      else if (gcharge < 0)
-      {
-        h_norm->Fill("Truth Track-", 1);
-      }
-      else
-      {
-        if (Verbosity())
-          cout << "QAG4SimulationTracking::process_event - invalid particle ID = " << pid << endl;
-        continue;
-      }
-      h_norm->Fill("Truth Track", 1);
-
-      h_nGen_pTGen->Fill(gpt);
-      h_nGen_etaGen->Fill(geta);
-
-      // look for best matching track in reco data & get its information
-      SvtxTrack *track = trackeval->best_track_from(g4particle);
-      if (track)
-      {
-        h_nReco_etaGen->Fill(geta);
-        h_nReco_pTGen->Fill(gpt);
-
-        double px = track->get_px();
-        double py = track->get_py();
-        double pz = track->get_pz();
-        double pt;
-        TVector3 v(px, py, pz);
-        pt = v.Pt();
-        //        eta = v.Pt();
-        //      phi = v.Pt();
-
-        float pt_ratio = (gpt != 0) ? pt / gpt : 0;
-        h_pTRecoGenRatio->Fill(pt_ratio);
-        h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
-        h_norm->Fill("Reco Track", 1);
-      }
+      float pt_ratio = (gpt != 0) ? pt / gpt : 0;
+      h_pTRecoGenRatio->Fill(pt_ratio);
+      h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
+      h_norm->Fill("Reco Track", 1);
     }
   }
 

@@ -25,7 +25,7 @@ class SvtxTrack;
 class QAG4SimulationUpsilon : public SubsysReco
 {
  public:
-  QAG4SimulationUpsilon();
+  QAG4SimulationUpsilon(const std::string & name = "QAG4SimulationUpsilon");
   virtual ~QAG4SimulationUpsilon() {}
 
   int Init(PHCompositeNode *topNode);
@@ -46,6 +46,17 @@ class QAG4SimulationUpsilon : public SubsysReco
     m_etaRange.second = high;
   }
 
+
+  void setQuarkoniaPID(const int pid)
+  {
+    m_quarkoniaPID = pid;
+  }
+
+  void setDaughterAbsPID(const int pid)
+  {
+    m_daughterAbsPID = pid;
+  }
+
  private:
 #if !defined(__CINT__) || defined(__CLING__)
   //CINT is not c++11 compatible
@@ -55,6 +66,9 @@ class QAG4SimulationUpsilon : public SubsysReco
   std::pair<double, double> m_etaRange;
 
   PHG4TruthInfoContainer *_truthContainer;
+
+  int m_quarkoniaPID = 553;
+  int m_daughterAbsPID = 11;
 };
 
 #endif  // QA_QAG4SimulationUpsilon_H
