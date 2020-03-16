@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "ActsFittingAlgorithm.h"
+//#include "ActsFittingAlgorithm.h"
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -28,7 +28,6 @@
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
 
 #include <phgeom/PHGeomUtility.h>
-
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -52,7 +51,7 @@
 #include <ACTFW/Geometry/CommonGeometry.hpp>
 #include <ACTFW/Options/CommonOptions.hpp>
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
-#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
+
 #include <ACTFW/Utilities/Options.hpp>
 
 
@@ -73,7 +72,7 @@
 
 using namespace std;
 
-FittingAlgorithm::Config fitCfg;
+//FittingAlgorithm::Config fitCfg;
 
 
 /*
@@ -158,7 +157,7 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 		      // There is a surface constructor that is a Vector3D for the center and a Vector3D for the normal. 
 		      Acts::Vector3D center_vec(x_center, y_center, z_center);
 		      
-		      // The normsal vector is a unit vector pointing to the center of the beam line at z = z_center
+		      // The normal vector is a unit vector pointing to the center of the beam line at z = z_center
 		      double x_norm = - x_center / sqrt(x_center*x_center + y_center*y_center);
 		      double y_norm = -y_center / sqrt(x_center*x_center + y_center*y_center);
 		      double z_norm = 0;
@@ -229,7 +228,7 @@ void PHActsTrkFitter::BuildSiliconLayers()
 
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
-  TGeoDetector detector;
+  
   MakeActsGeometry(argc, arg, detector);
 
 }
@@ -252,7 +251,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   if (vm.empty()) { return EXIT_FAILURE; }
 
   // Now read the standard options
-  auto logLevel = FW::Options::readLogLevel(vm);
+  logLevel = FW::Options::readLogLevel(vm);
   //auto nEvents  = FW::Options::readSequencerConfig(vm).events;
 
   // The geometry, material and decoration
@@ -280,7 +279,9 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 
   // Make a fit configuration
   
-  fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, magneticField, logLevel);
+  //fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, 
+  //magneticField,
+  // 						    logLevel);
 
 
   // this is not executed because contextDecorators has size 0
@@ -322,7 +323,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   // Now get the LayerArrays corresponding to each volume
   auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
 
-  // Thiis is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
+  // This is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
   auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
 
   // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
@@ -330,18 +331,20 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   for(unsigned int i=0;i<mvtxLayerVector1.size(); ++i)
     {
 
-      // Get the ACTS::SurfaceArray from each MVTX LayerPtr being iterated over
+      // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
       auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
       if(surfaceArray == NULL)
 	continue;
 
       double ref_rad[3] = {2.556, 3.359, 4.134};
       
-      // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
+      // surfaceVector is an Acts::SurfaceVector, vector of surfaces
+      //std::vector<const Surface*>
       auto surfaceVector = surfaceArray->surfaces();
       for(unsigned int j=0; j<surfaceVector.size(); j++){
 
 	auto surf = surfaceVector.at(j)->getSharedPtr();
+
 	auto vec3d =  surf->center(context.geoContext);
 	std::vector<double> world_center = { vec3d(0)/10.0, vec3d(1)/10.0, vec3d(2)/10.0 };  // convert from mm to cm
 	double layer_rad = sqrt(pow(world_center[0],2) + pow(world_center[1],2));
@@ -358,6 +361,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
 	std::pair<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(hitsetkey, surf);
 
 	_cluster_surface_map.insert(tmp);
+
 
 	if(Verbosity() > 0)
 	  {
@@ -406,11 +410,12 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
     if(surfaceArray == NULL)
       continue;
     
-    // surfaceVector is an ACTS::SurfaceVector, vector of surfaces
+    // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     auto surfaceVector = surfaceArray->surfaces();
     for(unsigned int j=0; j<surfaceVector.size(); j++){
       
-      auto surf =  surfaceVector.at(j)->getSharedPtr();
+      auto surf = surfaceVector.at(j)->getSharedPtr();
+   
       auto vec3d =  surf->center(context.geoContext);
 
       double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
@@ -760,7 +765,6 @@ int PHActsTrkFitter::Process()
   std::map<TrkrDefs::cluskey, unsigned int> cluskey_hitid; 
   unsigned int  hitid = 0;
   
-
   TrkrClusterSourceLinkContainer sourceLinks;
   TrkrDefs::hitsetkey hsetkey;
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
@@ -769,9 +773,11 @@ int PHActsTrkFitter::Process()
       TrkrCluster *cluster = clusiter->second;
       TrkrDefs::cluskey cluskey = clusiter->first;
 
+      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  // 0 for MVTX, 1 for INTT, 2 for TPC
+
       // map to an arbitrary hitid for later use by Acts 
       cluskey_hitid.insert(std::pair<TrkrDefs::cluskey, unsigned int>(cluskey, hitid));
-     
+
       // get the cluster parameters in global coordinates
       float x = cluster->getPosition(0);
       float y = cluster->getPosition(1);
@@ -797,7 +803,6 @@ int PHActsTrkFitter::Process()
 
       double local_2D[2] = {0};
 
-      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  // 0 for MVTX, 1 for INTT, 2 for TPC
       TGeoNode *sensor_node;
       std::shared_ptr<const Acts::Surface> surf;
 
@@ -833,9 +838,10 @@ int PHActsTrkFitter::Process()
 	  if(surf_iter != _cluster_surface_map.end())
 	    {	      
 	      //TrkrDefs::hitsetkey found_key = surf_iter->first;
-	      surf = surf_iter->second->getSharedPtr();
-	      //cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
-	      //surf->toStream(geo_ctxt, std::cout);  // this causes a segfault for mvtx and intt
+	      surf = surf_iter->second;
+	      if(Verbosity() > 0)
+		cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
+	  
 	    }
 	  else
 	    {
@@ -895,7 +901,7 @@ int PHActsTrkFitter::Process()
 	    }
 
 	  //TrkrDefs::hitsetkey found_key = surf_iter->first;
-	  surf = surf_iter->second->getSharedPtr();
+	  surf = surf_iter->second;
 	  // cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
 	  // surf->toStream(geo_ctxt, std::cout);
 	  
@@ -919,6 +925,7 @@ int PHActsTrkFitter::Process()
 	}
       else        // TPC
 	{
+
 	  double clusphi = atan2(world[1], world[0]);
 	  double r_clusphi = radius*clusphi;
 	  double ztpc = world[2];
@@ -962,6 +969,7 @@ int PHActsTrkFitter::Process()
 
 	  // transformation of cluster to local surface coords
 	  // Coords are r*phi relative to surface r-phi center, and z relative to surface z center
+
 	  Acts::Vector3D center = surf->center(geo_ctxt);
 	  double surf_rphi_center = atan2(center[1], center[0]) * radius;
 	  double surf_z_center = center[2];
@@ -1021,17 +1029,16 @@ int PHActsTrkFitter::Process()
 	{      
 	  std::cout << "    Layer " << layer << " create measurement for trkrid " << trkrid 
 		    << " surface " << surf->name() << " surface type " << surf->type() 
-		    << " local x " << loc[Acts::eLOC_0] << " local y " << loc[Acts::eLOC_1]
-		    << endl;
+		    << " local x " << loc[Acts::eLOC_0] << " local y " << loc[Acts::eLOC_1]  << endl;
 	}
-
-      // TrkrClusterSourceLink takes care of creating an Acts::FittableMeasurement
+   
+      /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
       TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov);
       sourceLinks.emplace_hint(sourceLinks.end(), sourceLink);
-      // Store in map which maps arbitrary hitID to sourceLink. hitId can access
-      // Clusterkey via cluskey_hitid map
+      /// Store in map which maps arbitrary hitID to sourceLink. hitId can access
+      /// Clusterkey via cluskey_hitid map
       hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid, sourceLink));
-  
+            
       hitid++;
     }
 
@@ -1090,6 +1097,7 @@ int PHActsTrkFitter::Process()
 	  if(Verbosity() > 0){
 	    cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
 	  }
+
 	  // add to the Acts ProtoTrack
 	  trackSourceLinks.push_back(hitidSourceLink.find(hitid)->second);
 	}
@@ -1100,7 +1108,7 @@ int PHActsTrkFitter::Process()
 	    cout << "   proto_track readback:  hitid " << trackSourceLinks.at(i).hitID()<< endl;
 	  }
     
-
+      /*
       // Call KF now. Have a vector of sourceLinks corresponding to clusters
       // associated to this track and the corresponding track seed which corresponds
       // to the PHGenFitTrkProp track seeds
@@ -1108,7 +1116,8 @@ int PHActsTrkFitter::Process()
 					  context.magFieldContext,
 					  context.calibContext,
 					  &(*pSurface));
-      auto result = fitCfg.fit(trackSourceLinks, trackSeed, kfOptions);
+      
+      //auto result = fitCfg.fit(trackSourceLinks, trackSeed, kfOptions);
       
       if(result.ok()) {
 	const auto& fitOutput = result.value();
@@ -1123,6 +1132,7 @@ int PHActsTrkFitter::Process()
 	}
 	
       }
+      */
 
     }
   return 0;

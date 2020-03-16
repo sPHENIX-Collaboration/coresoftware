@@ -15,7 +15,7 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
-
+#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include "TrkrClusterSourceLink.hpp"
 
 
@@ -43,6 +43,7 @@ namespace FW {
 
 namespace Acts {
   class Surface;
+  class TrackingGeometry;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
@@ -116,7 +117,7 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
+  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
   std::map<unsigned int, TrkrClusterSourceLink> hitidSourceLink;
 
@@ -136,8 +137,7 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   const unsigned int NTpcSides = 2;
  
   Acts::Logging::Level logLevel;
-
-
+  TGeoDetector detector;
 };
 
 #endif
