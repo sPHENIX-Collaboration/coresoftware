@@ -113,11 +113,11 @@ int QAG4SimulationUpsilon::Init(PHCompositeNode *topNode)
   hm->registerHisto(h);
 
   h = new TH1F(TString(get_histo_prefix()) + "nGen_Pair_InvMassGen",
-               ";Truth Invariant Mass [GeV/c^2];Pair count / bin", 200, 0, 15);
+               ";Truth Invariant Mass [GeV/c^2];Pair count / bin", 450, 0, 15);
   //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH1F(TString(get_histo_prefix()) + "nReco_Pair_InvMassReco",
-               ";Reco Invariant Mass [GeV/c^2];Pair count / bin", 200, 0, 15);
+               ";Reco Invariant Mass [GeV/c^2];Pair count / bin", 450, 0, 15);
   //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
