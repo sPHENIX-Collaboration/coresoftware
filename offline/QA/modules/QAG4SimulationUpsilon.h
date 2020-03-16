@@ -1,5 +1,5 @@
-#ifndef QA_QAG4SimulationTracking_H
-#define QA_QAG4SimulationTracking_H
+#ifndef QA_QAG4SimulationUpsilon_H
+#define QA_QAG4SimulationUpsilon_H
 
 #include <fun4all/SubsysReco.h>
 
@@ -21,12 +21,12 @@ class CaloEvalStack;
 class SvtxEvalStack;
 class SvtxTrack;
 
-/// \class QAG4SimulationTracking
-class QAG4SimulationTracking : public SubsysReco
+/// \class QAG4SimulationUpsilon
+class QAG4SimulationUpsilon : public SubsysReco
 {
  public:
-  QAG4SimulationTracking(const std::string & name = "QAG4SimulationTracking");
-  virtual ~QAG4SimulationTracking() {}
+  QAG4SimulationUpsilon(const std::string & name = "QAG4SimulationUpsilon");
+  virtual ~QAG4SimulationUpsilon() {}
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
@@ -46,6 +46,17 @@ class QAG4SimulationTracking : public SubsysReco
     m_etaRange.second = high;
   }
 
+
+  void setQuarkoniaPID(const int pid)
+  {
+    m_quarkoniaPID = pid;
+  }
+
+  void setDaughterAbsPID(const int pid)
+  {
+    m_daughterAbsPID = pid;
+  }
+
  private:
 #if !defined(__CINT__) || defined(__CLING__)
   //CINT is not c++11 compatible
@@ -55,6 +66,9 @@ class QAG4SimulationTracking : public SubsysReco
   std::pair<double, double> m_etaRange;
 
   PHG4TruthInfoContainer *_truthContainer;
+
+  int m_quarkoniaPID = 553;
+  int m_daughterAbsPID = 11;
 };
 
-#endif  // QA_QAG4SimulationTracking_H
+#endif  // QA_QAG4SimulationUpsilon_H
