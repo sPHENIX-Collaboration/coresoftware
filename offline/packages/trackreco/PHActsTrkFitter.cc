@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-//#include "ActsFittingAlgorithm.h"
+#include "ActsFittingAlgorithm.h"
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -72,7 +72,7 @@
 
 using namespace std;
 
-//FittingAlgorithm::Config fitCfg;
+FittingAlgorithm::Config fitCfg;
 
 
 /*
@@ -271,17 +271,16 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   size_t ialg = 0;
 
   // Setup the event and algorithm context
-  FW::WhiteBoard eventStore(
-			    Acts::getDefaultLogger("EventStore#" + std::to_string(ievt), logLevel));
+  FW::WhiteBoard eventStore(Acts::getDefaultLogger("EventStore#" + std::to_string(ievt), 
+						   logLevel));
   
   // The geometry context
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration
-  
-  //fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, 
-  //magneticField,
-  // 						    logLevel);
+  fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, 
+						    magneticField,
+   						    logLevel);
 
 
   // this is not executed because contextDecorators has size 0
@@ -773,7 +772,7 @@ int PHActsTrkFitter::Process()
       TrkrCluster *cluster = clusiter->second;
       TrkrDefs::cluskey cluskey = clusiter->first;
 
-      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  // 0 for MVTX, 1 for INTT, 2 for TPC
+      unsigned int trkrid = TrkrDefs::getTrkrId(cluskey);  
 
       // map to an arbitrary hitid for later use by Acts 
       cluskey_hitid.insert(std::pair<TrkrDefs::cluskey, unsigned int>(cluskey, hitid));
@@ -900,11 +899,8 @@ int PHActsTrkFitter::Process()
 	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 
-	  //TrkrDefs::hitsetkey found_key = surf_iter->first;
 	  surf = surf_iter->second;
-	  // cout<< "Got surface pair " << surf->name() << " surface type " << surf->type() << std::endl;
-	  // surf->toStream(geo_ctxt, std::cout);
-	  
+
 	  // transform position back to local coords on sensor
 	  CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(_geom_container_intt->GetLayerGeom(layer));
 	  local = layergeom->get_local_from_world_coords(ladderzid, ladderphiid, world);
@@ -964,7 +960,6 @@ int PHActsTrkFitter::Process()
 	      return Fun4AllReturnCodes::ABORTEVENT;
 	    }
 
-	  //TrkrDefs::cluskey found_key = surf_iter->first;
 	  surf = surf_iter->second->getSharedPtr();
 
 	  // transformation of cluster to local surface coords
@@ -1035,8 +1030,8 @@ int PHActsTrkFitter::Process()
       /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
       TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov);
       sourceLinks.emplace_hint(sourceLinks.end(), sourceLink);
-      /// Store in map which maps arbitrary hitID to sourceLink. hitId can access
-      /// Clusterkey via cluskey_hitid map
+      /// Store in map which maps arbitrary hitID to sourceLink. 
+      /// hitId can access Clusterkey via cluskey_hitid map
       hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid, sourceLink));
             
       hitid++;
@@ -1090,15 +1085,15 @@ int PHActsTrkFitter::Process()
 	   ++iter)
 	{
 	  TrkrDefs::cluskey cluster_key = *iter;
-
-	  // find the corresponding hit index
+	  
+	  /// Find the corresponding hit index
 	  unsigned int hitid = cluskey_hitid.find(cluster_key)->second;
 
 	  if(Verbosity() > 0){
 	    cout << "    cluskey " << cluster_key << " has hitid " << hitid << endl;
 	  }
 
-	  // add to the Acts ProtoTrack
+	  /// add to the Acts ProtoTrack
 	  trackSourceLinks.push_back(hitidSourceLink.find(hitid)->second);
 	}
 
@@ -1108,22 +1103,25 @@ int PHActsTrkFitter::Process()
 	    cout << "   proto_track readback:  hitid " << trackSourceLinks.at(i).hitID()<< endl;
 	  }
     
-      /*
-      // Call KF now. Have a vector of sourceLinks corresponding to clusters
-      // associated to this track and the corresponding track seed which corresponds
-      // to the PHGenFitTrkProp track seeds
+      
+      /// Call KF now. Have a vector of sourceLinks corresponding to clusters
+      /// associated to this track and the corresponding track seed which corresponds
+      /// to the PHGenFitTrkProp track seeds
       Acts::KalmanFitterOptions kfOptions(context.geoContext, 
 					  context.magFieldContext,
 					  context.calibContext,
 					  &(*pSurface));
       
-      //auto result = fitCfg.fit(trackSourceLinks, trackSeed, kfOptions);
+
+      /// Run the fitter
+      auto result = fitCfg.fit(trackSourceLinks, trackSeed, kfOptions);
       
+      /// Check that the result is okay
       if(result.ok()) {
 	const auto& fitOutput = result.value();
 	if(fitOutput.fittedParameters){
 	  const auto& params = fitOutput.fittedParameters.value();
-	  // Get position, momentum from params
+	  /// Get position, momentum from params
 	  if(Verbosity() > 10){
 	    std::cout<<"Fitted parameters for track"<<std::endl;
 	    std::cout<<" position : " << params.position().transpose()<<std::endl;
@@ -1132,9 +1130,12 @@ int PHActsTrkFitter::Process()
 	}
 	
       }
-      */
+      
+      /// Add a new track to a container to put on the node tree
+
 
     }
+
   return 0;
 }
 
