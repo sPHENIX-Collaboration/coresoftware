@@ -81,6 +81,12 @@ PHG4ParticleGeneratorVectorMeson::PHG4ParticleGeneratorVectorMeson(const string 
   return;
 }
 
+PHG4ParticleGeneratorVectorMeson::
+~PHG4ParticleGeneratorVectorMeson()
+{
+  if (trand) delete trand;
+}
+
 void PHG4ParticleGeneratorVectorMeson::add_decay_particles(const std::string &name1, const std::string &name2, const unsigned int decay_id)
 {
   decay1_names.insert(std::pair<unsigned int, std::string>(decay_id, name1));
