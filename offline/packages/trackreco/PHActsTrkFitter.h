@@ -15,8 +15,10 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
-
+#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
+#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include "TrkrClusterSourceLink.hpp"
+
 
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
@@ -42,14 +44,13 @@ namespace FW {
 
 namespace Acts {
   class Surface;
+  class TrackingGeometry;
 }
 
 //! \brief		Refit SvtxTracks with Acts.
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
-  /*!
-	 */
 
   //! Default constructor
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
@@ -96,11 +97,7 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   Acts::BoundSymMatrix getActsCovMatrix(SvtxTrack *track);
 
-  /*
-	 * fit track with SvtxTrack as input seed.
-	 * \param intrack Input SvtxTrack
-	 * \param invertex Input Vertex, if fit track as a primary vertex
-	 */
+
   PHG4CylinderGeomContainer* _geom_container_mvtx;
   PHG4CylinderGeomContainer* _geom_container_intt;
   PHG4CylinderCellGeomContainer* _geom_container_tpc;
@@ -114,8 +111,9 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
 
   std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
 
+  /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
+  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
   std::map<unsigned int, TrkrClusterSourceLink> hitidSourceLink;
 
@@ -134,6 +132,9 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   const unsigned int NTpcModulesPerLayer = 12;
   const unsigned int NTpcSides = 2;
 
+  Acts::Logging::Level logLevel;
+  // The acts geometry object
+  TGeoDetector detector;
 
 };
 

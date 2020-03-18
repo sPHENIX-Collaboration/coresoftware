@@ -13,8 +13,6 @@ namespace FW{
   }
 }
 
-
-
 /**
  * This class creates an Acts::SourceLink that relates TrkrClusters to the
  * surface they were measured on. The source link is needed for the fitting
@@ -76,6 +74,7 @@ public:
   {
     return m_hitid;
   }
+
 
 private:
   
