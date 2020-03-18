@@ -6,7 +6,7 @@
 #include "PHG4ParticleGeneratorBase.h"
 
 #include <map>
-#include <string>                       // for string
+#include <string>  // for string
 
 class PHCompositeNode;
 class PHG4InEvent;
@@ -24,7 +24,7 @@ class PHG4ParticleGeneratorVectorMeson : public PHG4ParticleGeneratorBase
   };
 
   explicit PHG4ParticleGeneratorVectorMeson(const std::string &name = "PGUN");
-  virtual ~PHG4ParticleGeneratorVectorMeson() ;
+  virtual ~PHG4ParticleGeneratorVectorMeson();
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
