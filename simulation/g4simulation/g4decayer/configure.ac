@@ -24,7 +24,7 @@ if test $ac_cv_prog_gxx = yes; then
 fi
 case $CXX in
  clang++)
-  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template"
+  CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-undefined-var-template -Wno-shadow"
  ;;
  g++)
   CXXFLAGS="$CXXFLAGS -Wall -Werror"
