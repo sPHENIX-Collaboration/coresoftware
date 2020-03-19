@@ -206,7 +206,7 @@ int SvtxEvaluator::process_event(PHCompositeNode* topNode)
   {
     _svtxevalstack = new SvtxEvalStack(topNode);
     _svtxevalstack->set_strict(_strict);
-    _svtxevalstack->set_verbosity(Verbosity() + 1);
+    _svtxevalstack->set_verbosity(Verbosity());
     _svtxevalstack->set_use_initial_vertex(_use_initial_vertex);
   }
   else
@@ -264,7 +264,7 @@ int SvtxEvaluator::End(PHCompositeNode* topNode)
     {
       _errors += _svtxevalstack->get_errors();
       
-      if (Verbosity() > -1)
+      if (Verbosity() > 0)
 	{
 	  if ((_errors > 0) || (Verbosity() > 0))
 	    {

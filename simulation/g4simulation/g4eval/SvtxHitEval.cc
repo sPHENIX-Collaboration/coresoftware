@@ -128,7 +128,7 @@ std::set<PHG4Hit*> SvtxHitEval::all_truth_hits(TrkrDefs::hitkey hit_key)
   if (!has_node_pointers())
   {
     ++_errors;
-    cout << PHWHERE << " nerr: " << _errors << endl;
+    if(_verbosity > 0)  cout << PHWHERE << " nerr: " << _errors << endl;
     return std::set<PHG4Hit*>();
   }
 
