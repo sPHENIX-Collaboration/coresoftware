@@ -719,7 +719,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	{
 	  // we have a single hitset, get the layer
 	  unsigned int layer = TrkrDefs::getLayer(hitsetiter->first);
-	  if(layer > _nlayers_maps + _nlayers_intt)
+	  if(layer >= _nlayers_maps + _nlayers_intt)
 	    {	
 	      // count all hits in this hitset
 	      TrkrHitSet::ConstRange hitrangei = hitsetiter->second->getHits();
@@ -1708,14 +1708,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
             gx = g4hit->get_avg_x();
             gy = g4hit->get_avg_y();
             gz = g4hit->get_avg_z();
-            //cout << " old eval: truth cluster averages:  layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << endl;
+	    gt = g4hit->get_avg_t();
           }  // not TPC
 
-          g4hitID = g4hit->get_hit_id();
-          TVector3 gpos(gx, gy, gz);
-          gr = gpos.Perp();
-          gphi = gpos.Phi();
-          geta = gpos.Eta();
+	    g4hitID = g4hit->get_hit_id();
+	    TVector3 gpos(gx, gy, gz);
+	    gr = gpos.Perp();
+	    gphi = gpos.Phi();
+	    geta = gpos.Eta();
+
 	  //if(layer < 7) cout << "           gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " phi - gphi " << phi - gphi << endl; 
 
           if (g4particle)
@@ -1826,7 +1827,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     // need things off of the DST...
     SvtxTrackMap* trackmap = findNode::getClass<SvtxTrackMap>(topNode, _trackmapname.c_str());
     TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-    TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHIT");
+    TrkrClusterHitAssoc* clusterhitmap = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
     if (trackmap)
     {
       for (SvtxTrackMap::Iter iter = trackmap->begin();
@@ -1834,16 +1835,17 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
            ++iter)
       {
         SvtxTrack* track = iter->second;
+
         PHG4Particle* truth = trackeval->max_truth_particle_by_nclusters(track);
         if (truth)
         {
           if (trutheval->get_embed(truth) <= 0) continue;
         }
 
-        for (SvtxTrack::ConstClusterIter iter = track->begin_clusters();
-             iter != track->end_clusters();
+        for (SvtxTrack::ConstClusterKeyIter iter = track->begin_cluster_keys();
+             iter != track->end_cluster_keys();
              ++iter)
-        {
+	  {
 	  TrkrDefs::cluskey cluster_key = *iter;
           TrkrCluster* cluster = clustermap->findCluster(cluster_key);
 
@@ -1867,7 +1869,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float e = cluster->getAdc();
           float adc = cluster->getAdc();
           float layer = (float) TrkrDefs::getLayer(cluster_key);
- 
+
 	  // count all hits for this cluster
 	  float size = 0;
 	  TrkrClusterHitAssoc::ConstRange hitrange = clusterhitmap->getHits(cluster_key);  
@@ -1881,39 +1883,170 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float trackID = NAN;
           trackID = track->get_id();
 
-          float g4hitID = NAN;
-          float gx = NAN;
-          float gy = NAN;
-          float gz = NAN;
-          float gt = NAN;
-          float gtrackID = NAN;
-          float gflavor = NAN;
-          float gpx = NAN;
-          float gpy = NAN;
-          float gpz = NAN;
-          float gvx = NAN;
-          float gvy = NAN;
-          float gvz = NAN;
-          float gfpx = NAN;
-          float gfpy = NAN;
-          float gfpz = NAN;
-          float gfx = NAN;
-          float gfy = NAN;
-          float gfz = NAN;
-          float gembed = NAN;
-          float gprimary = NAN;
-
+	  float g4hitID = NAN;
+	  float gx = NAN;
+	  float gy = NAN;
+	  float gz = NAN;
+	  float gr = NAN;
+	  float gphi = NAN;
+	  float geta = NAN;
+	  float gt = NAN;
+	  float gtrackID = NAN;
+	  float gflavor = NAN;
+	  float gpx = NAN;
+	  float gpy = NAN;
+	  float gpz = NAN;
+	  float gvx = NAN;
+	  float gvy = NAN;
+	  float gvz = NAN;
+	  float gvt = NAN;
+	  float gfpx = NAN;
+	  float gfpy = NAN;
+	  float gfpz = NAN;
+	  float gfx = NAN;
+	  float gfy = NAN;
+	  float gfz = NAN;
+	  float gembed = NAN;
+	  float gprimary = NAN;
+	  
           float efromtruth = NAN;
 
           if (g4hit)
           {
-            g4hitID = g4hit->get_hit_id();
-            gx = g4hit->get_avg_x();
-            gy = g4hit->get_avg_y();
-            gz = g4hit->get_avg_z();
-            gt = g4hit->get_avg_t();
+          if (layer >= _nlayers_maps + _nlayers_intt)
+	    {
+	      // This calculates the truth cluster position for the TPC from all of the contributing g4hits, typically 2-4 for the TPC
+	      // Complicated, since only the part of the energy that is collected within a layer contributes to the position
+	      //===============================================================================
+	      
+	      PHG4CylinderCellGeomContainer* geom_container =
+                findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+	      if (!geom_container)
+		{
+		  std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+		  return;
+		}
+	      
+	      PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
+	      // get layer boundaries here (for nominal layer value) for later use
+	      // radii of layer boundaries
+	      float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
+	      float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
+	      
+	      gx = 0.0;
+	      gy = 0.0;
+	      gz = 0.0;
+	      gt = 0.0;
+	      float gwt = 0.0;
+	      
+	      //cout << "Eval: cluster in layer " << layer << " rbin " << rbin << " rbout " << rbout << endl;
+	      std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster_key);
+	      for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
+		   iter != truth_hits.end();
+		   ++iter)
+		{
+		  PHG4Hit* this_g4hit = *iter;
+		  
+		  float rbegin = sqrt(this_g4hit->get_x(0) * this_g4hit->get_x(0) + this_g4hit->get_y(0) * this_g4hit->get_y(0));
+		  float rend = sqrt(this_g4hit->get_x(1) * this_g4hit->get_x(1) + this_g4hit->get_y(1) * this_g4hit->get_y(1));
+		  //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " rbegin " << rbegin << " rend " << rend << endl;
+		  
+		  // make sure the entry point is at lower radius
+		  float xl[2];
+		  float yl[2];
+		  float zl[2];
+		  
+		  if (rbegin < rend)
+		    {
+		      xl[0] = this_g4hit->get_x(0);
+		      yl[0] = this_g4hit->get_y(0);
+		      zl[0] = this_g4hit->get_z(0);
+		      xl[1] = this_g4hit->get_x(1);
+		      yl[1] = this_g4hit->get_y(1);
+		      zl[1] = this_g4hit->get_z(1);
+		    }
+		  else
+		    {
+		      xl[0] = this_g4hit->get_x(1);
+		      yl[0] = this_g4hit->get_y(1);
+		      zl[0] = this_g4hit->get_z(1);
+		      xl[1] = this_g4hit->get_x(0);
+		      yl[1] = this_g4hit->get_y(0);
+		      zl[1] = this_g4hit->get_z(0);
+		      swap(rbegin, rend);
+		      //cout << "swapped in and out " << endl;
+		    }
+		  
+		  // check that the g4hit is not completely outside the cluster layer. Just skip this g4hit if it is
+		  // this can happen because an electron moves across a layer boundary during drift and readout
+		  // so the g4hit is recorded in the cell as contributing to that layer, even though it was outside the boundaries
+		  if (rbegin < rbin && rend < rbin)
+		    continue;
+		  if (rbegin > rbout && rend > rbout)
+		    continue;
+		  
+		  float xin = xl[0];
+		  float yin = yl[0];
+		  float zin = zl[0];
+		  float xout = xl[1];
+		  float yout = yl[1];
+		  float zout = zl[1];
+		  
+		  float t = NAN;
+		  
+		  if (rbegin < rbin)
+		    {
+		      // line segment begins before boundary, find where it crosses
+		      t = line_circle_intersection(xl, yl, zl, rbin);
+		      if (t > 0)
+			{
+			  xin = xl[0] + t * (xl[1] - xl[0]);
+			  yin = yl[0] + t * (yl[1] - yl[0]);
+			  zin = zl[0] + t * (zl[1] - zl[0]);
+			}
+		    }
+		  
+		  if (rend > rbout)
+		    {
+		      // line segment ends after boundary, find where it crosses
+		      t = line_circle_intersection(xl, yl, zl, rbout);
+		      if (t > 0)
+			{
+			  xout = xl[0] + t * (xl[1] - xl[0]);
+			  yout = yl[0] + t * (yl[1] - yl[0]);
+			  zout = zl[0] + t * (zl[1] - zl[0]);
+			}
+		    }
+		  
+		  // we want only the fraction of edep inside the layer
+		  gx += (xin + xout) * 0.5 * this_g4hit->get_edep() * (xout - xin) / (xl[1] - xl[0]);
+		  gy += (yin + yout) * 0.5 * this_g4hit->get_edep() * (yout - yin) / (yl[1] - yl[0]);
+		  gz += (zin + zout) * 0.5 * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
+		  gt += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
+		  gwt += this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
+		}  // loop over this_g4hit
+	      gx /= gwt;
+	      gy /= gwt;
+	      gz /= gwt;
+	      gt /= gwt;
+	      //cout << " weighted means: gx " << gx << " gy " << gy << " gz " << gz << endl;
+	    }  // if TPC
+          else
+	    {
+	      g4hitID = g4hit->get_hit_id();
+	      gx = g4hit->get_avg_x();
+	      gy = g4hit->get_avg_y();
+	      gz = g4hit->get_avg_z();
+	      gt = g4hit->get_avg_t();
+	    }
 
-            if (g4particle)
+	    g4hitID = g4hit->get_hit_id();
+	    TVector3 gpos(gx, gy, gz);
+	    gr = gpos.Perp();
+	    gphi = gpos.Phi();
+	    geta = gpos.Eta();
+
+	  if (g4particle)
             {
               gtrackID = g4particle->get_track_id();
               gflavor = g4particle->get_pid();
@@ -1927,6 +2060,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
                 gvx = vtx->get_x();
                 gvy = vtx->get_y();
                 gvz = vtx->get_z();
+		gvt = vtx->get_t();
               }
               PHG4Hit* outerhit = nullptr;
               if (_do_eval_light == false)
@@ -1954,51 +2088,55 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
           float nparticles = clustereval->all_truth_particles(cluster_key).size();
 
           float cluster_data[] = {(float) _ievent,
-                                  hitID,
-                                  x,
-                                  y,
-                                  z,
-                                  r,
-                                  phi,
-                                  eta,
-                                  ex,
-                                  ey,
-                                  ez,
-                                  ephi,
-                                  e,
-                                  adc,
-                                  layer,
-                                  size,
-                                  phisize,
-                                  zsize,
-                                  trackID,
-                                  g4hitID,
-                                  gx,
-                                  gy,
-                                  gz,
-                                  gt,
-                                  gtrackID,
-                                  gflavor,
-                                  gpx,
-                                  gpy,
-                                  gpz,
-                                  gvx,
-                                  gvy,
-                                  gvz,
-                                  gfpx,
-                                  gfpy,
-                                  gfpz,
-                                  gfx,
-                                  gfy,
-                                  gfz,
-                                  gembed,
-                                  gprimary,
-                                  efromtruth,
-                                  nparticles,
-                                  nhit_tpc_all,
-                                  nhit_tpc_in,
-                                  nhit_tpc_mid,
-                                  nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+                                hitID,
+                                x,
+                                y,
+                                z,
+                                r,
+                                phi,
+                                eta,
+                                ex,
+                                ey,
+                                ez,
+                                ephi,
+                                e,
+                                adc,
+                                layer,
+                                size,
+                                phisize,
+                                zsize,
+                                trackID,
+                                g4hitID,
+                                gx,
+                                gy,
+                                gz,
+                                gr,
+                                gphi,
+                                geta,
+                                gt,
+                                gtrackID,
+                                gflavor,
+                                gpx,
+                                gpy,
+                                gpz,
+                                gvx,
+                                gvy,
+                                gvz,
+                                gvt,
+                                gfpx,
+                                gfpy,
+                                gfpz,
+                                gfx,
+                                gfy,
+                                gfz,
+                                gembed,
+                                gprimary,
+                                efromtruth,
+                                nparticles,
+                                nhit_tpc_all,
+                                nhit_tpc_in,
+                                nhit_tpc_mid,
+                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
 
           _ntp_cluster->Fill(cluster_data);
         }
