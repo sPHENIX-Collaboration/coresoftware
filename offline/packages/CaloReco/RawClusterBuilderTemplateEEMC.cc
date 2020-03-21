@@ -56,7 +56,7 @@ RawClusterBuilderTemplateEEMC::RawClusterBuilderTemplateEEMC(const std::string &
   //
   // Some initial values for clustering
   //
-  bemc->SetPlaneGeometry();
+  bemc->SetPlanarGeometry();
   // Configuration: number of towers in Phi and Eta, and tower dimension (here still in angle units and eta units)
   bemc->SetGeometry(64, 64, 1.0, 1.0);
   // Define vertex ... not used now

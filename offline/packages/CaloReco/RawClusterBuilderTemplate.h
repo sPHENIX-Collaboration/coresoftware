@@ -10,31 +10,38 @@ class RawCluster;
 class RawClusterContainer;
 class RawTowerContainer;
 class RawTowerGeomContainer;
-class BEmcRecCEMC;
+class BEmcRec;
+//class BEmcProfile;
 
 class RawClusterBuilderTemplate : public SubsysReco
 {
  public:
-  RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderGraph");
+  RawClusterBuilderTemplate(const std::string& name = "RawClusterBuilderTemplate");
   virtual ~RawClusterBuilderTemplate();
 
   int InitRun(PHCompositeNode* topNode);
   int process_event(PHCompositeNode* topNode);
   int End(PHCompositeNode* topNode);
-  void Detector(const std::string& d) { detector = d; }
+  void Detector(const std::string& d);
+
+  void SetCylindricalGeometry();
+  void SetPlanarGeometry();
+  void PrintGeometry() { bPrintGeom = true; } // Prints it at InitRun time
+  void PrintCylGeom(RawTowerGeomContainer *towergeom, const char* fname);
 
   void set_threshold_energy(const float e) { _min_tower_e = e; }
   void setEnergyNorm(float norm) { fEnergyNorm = norm; }
   void checkenergy(const int i = 1) { chkenergyconservation = i; }
+  void LoadProfile(const char *fname);
 
  private:
   void CreateNodes(PHCompositeNode* topNode);
-  bool CorrectPhi(RawCluster* cluster, RawTowerContainer* towers, RawTowerGeomContainer* towergemom);
   bool Cell2Abs(RawTowerGeomContainer* towergeom, float phiC, float etaC, float& phi, float& eta);
 
   RawClusterContainer* _clusters;
+  //  BEmcProfile *_emcprof;
 
-  BEmcRecCEMC* bemc;
+  BEmcRec* bemc;
   float fEnergyNorm;
 
   float _min_tower_e;
@@ -42,6 +49,13 @@ class RawClusterBuilderTemplate : public SubsysReco
 
   std::string detector;
   std::string ClusterNodeName;
+
+  int BINX0;
+  int NBINX;
+  int BINY0;
+  int NBINY;
+
+  bool bPrintGeom;
 };
 
 #endif /* RawClusterBuilderTemplate_H__ */

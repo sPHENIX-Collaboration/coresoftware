@@ -1,4 +1,4 @@
-#include "QAG4SimulationTracking.h"
+#include "QAG4SimulationUpsilon.h"
 #include "QAHistManagerDef.h"
 
 #include <g4eval/CaloEvalStack.h>
@@ -32,6 +32,8 @@
 #include <TString.h>
 #include <TVector3.h>
 
+#include <CLHEP/Vector/LorentzVector.h>
+
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -41,7 +43,7 @@
 
 using namespace std;
 
-QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
+QAG4SimulationUpsilon::QAG4SimulationUpsilon(const std::string &name)
   : SubsysReco(name)
   , _svtxEvalStack(nullptr)
   , m_etaRange(-1, 1)
@@ -49,13 +51,13 @@ QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
 {
 }
 
-int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
+int QAG4SimulationUpsilon::InitRun(PHCompositeNode *topNode)
 {
   _truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
                                                                "G4TruthInfo");
   if (!_truthContainer)
   {
-    cout << "QAG4SimulationTracking::InitRun - Fatal Error - "
+    cout << "QAG4SimulationUpsilon::InitRun - Fatal Error - "
          << "unable to find DST node "
          << "G4TruthInfo" << endl;
     assert(_truthContainer);
@@ -71,7 +73,7 @@ int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
+int QAG4SimulationUpsilon::Init(PHCompositeNode *topNode)
 {
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -110,30 +112,41 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
+  h = new TH1F(TString(get_histo_prefix()) + "nGen_Pair_InvMassGen",
+               ";Truth Invariant Mass [GeV/c^2];Pair count / bin", 450, 0, 15);
+  //  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH1F(TString(get_histo_prefix()) + "nReco_Pair_InvMassReco",
+               ";Reco Invariant Mass [GeV/c^2];Pair count / bin", 450, 0, 15);
+  //  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
   // n events and n tracks histogram
   h = new TH1F(TString(get_histo_prefix()) + "Normalization",
                TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
   int i = 1;
   h->GetXaxis()->SetBinLabel(i++, "Event");
-  h->GetXaxis()->SetBinLabel(i++, "Truth Track");
   h->GetXaxis()->SetBinLabel(i++, "Truth Track+");
   h->GetXaxis()->SetBinLabel(i++, "Truth Track-");
   h->GetXaxis()->SetBinLabel(i++, "Reco Track");
+  h->GetXaxis()->SetBinLabel(i++, "Truth Upsilon");
+  h->GetXaxis()->SetBinLabel(i++, "Truth Upsilon in Acc.");
+  h->GetXaxis()->SetBinLabel(i++, "Reco Upsilon");
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void QAG4SimulationTracking::addEmbeddingID(int embeddingID)
+void QAG4SimulationUpsilon::addEmbeddingID(int embeddingID)
 {
   m_embeddingIDs.insert(embeddingID);
 }
 
-int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
+int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 2)
-    cout << "QAG4SimulationTracking::process_event() entered" << endl;
+    cout << "QAG4SimulationUpsilon::process_event() entered" << endl;
 
   // histogram manager
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
@@ -171,15 +184,27 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH1 *h_nGen_etaGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_etaGen"));
   assert(h_nGen_etaGen);
 
+  // inv mass
+  TH1 *h_nGen_Pair_InvMassGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_Pair_InvMassGen"));
+  assert(h_nGen_etaGen);
+  // inv mass
+  TH1 *h_nReco_Pair_InvMassReco = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_Pair_InvMassReco"));
+  assert(h_nGen_etaGen);
+
   // n events and n tracks histogram
   TH1 *h_norm = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "Normalization"));
   assert(h_norm);
   h_norm->Fill("Event", 1);
 
+  //buffer for daugther particles
+  typedef set<pair<PHG4Particle *, SvtxTrack *>> truth_reco_set_t;
+  truth_reco_set_t truth_reco_set_pos;
+  truth_reco_set_t truth_reco_set_neg;
+
   // fill histograms that need truth information
   if (!_truthContainer)
   {
-    cout << "QAG4SimulationTracking::process_event - fatal error - missing _truthContainer! ";
+    cout << "QAG4SimulationUpsilon::process_event - fatal error - missing _truthContainer! ";
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
@@ -191,7 +216,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
     if (Verbosity())
     {
-      cout << "QAG4SimulationTracking::process_event - processing ";
+      cout << "QAG4SimulationUpsilon::process_event - processing ";
       g4particle->identify();
     }
 
@@ -222,21 +247,29 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     {
       if (Verbosity())
       {
-        cout << "QAG4SimulationTracking::process_event - accept particle eta = " << geta << endl;
+        cout << "QAG4SimulationUpsilon::process_event - accept particle eta = " << geta << endl;
       }
     }
     else
     {
       if (Verbosity())
-        cout << "QAG4SimulationTracking::process_event - ignore particle eta = " << geta << endl;
+        cout << "QAG4SimulationUpsilon::process_event - ignore particle eta = " << geta << endl;
       continue;
     }
 
     const int pid = g4particle->get_pid();
+
+    if (abs(pid) != abs(m_daughterAbsPID))
+    {
+      if (Verbosity())
+        cout << "QAG4SimulationUpsilon::process_event - ignore particle PID = " << pid << " as m_daughterAbsPID = " << m_daughterAbsPID << endl;
+      continue;
+    }
+
     TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(pid);
     if (!pdg_p)
     {
-      cout << "QAG4SimulationTracking::process_event - Error - invalid particle ID = " << pid << endl;
+      cout << "QAG4SimulationUpsilon::process_event - Error - invalid particle ID = " << pid << endl;
       continue;
     }
 
@@ -252,10 +285,10 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     else
     {
       if (Verbosity())
-        cout << "QAG4SimulationTracking::process_event - invalid particle ID = " << pid << endl;
+        cout << "QAG4SimulationUpsilon::process_event - invalid neutral decay particle ID = " << pid << endl;
       continue;
     }
-    h_norm->Fill("Truth Track", 1);
+    //        h_norm->Fill("Truth Track", 1);
 
     h_nGen_pTGen->Fill(gpt);
     h_nGen_etaGen->Fill(geta);
@@ -281,13 +314,104 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
       h_norm->Fill("Reco Track", 1);
     }
+
+    if (gcharge > 0)
+    {
+      truth_reco_set_pos.insert(make_pair(g4particle, track));
+    }
+    else if (gcharge < 0)
+    {
+      truth_reco_set_neg.insert(make_pair(g4particle, track));
+    }
+  }  //  for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
+
+  //building pairs with buffer for daugter particles
+  TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(m_quarkoniaPID);
+  if (!pdg_p)
+  {
+    cout << "QAG4SimulationUpsilon::process_event - Fatal Error - invalid particle ID m_quarkoniaPID = " << m_quarkoniaPID << endl;
+
+    return Fun4AllReturnCodes::ABORTRUN;
   }
+  const double quarkonium_mass = pdg_p->Mass();
+  TParticlePDG *pdg_d = TDatabasePDG::Instance()->GetParticle(m_daughterAbsPID);
+  if (!pdg_d)
+  {
+    cout << "QAG4SimulationUpsilon::process_event - Fatal Error - invalid particle ID m_daughterAbsPID = " << m_daughterAbsPID << endl;
+
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+  const double daughter_mass = pdg_d->Mass();
+
+  for (const auto &pair_pos : truth_reco_set_pos)
+    for (const auto &pair_neg : truth_reco_set_neg)
+    {
+      assert(pair_pos.first);
+      assert(pair_neg.first);
+
+      const CLHEP::HepLorentzVector gv_pos(
+          pair_pos.first->get_px(),
+          pair_pos.first->get_py(),
+          pair_pos.first->get_pz(),
+          pair_pos.first->get_e());
+
+      const CLHEP::HepLorentzVector gv_neg(
+          pair_neg.first->get_px(),
+          pair_neg.first->get_py(),
+          pair_neg.first->get_pz(),
+          pair_neg.first->get_e());
+
+      const CLHEP::HepLorentzVector gv_quakonium = gv_pos + gv_neg;
+
+      if (fabs(quarkonium_mass - gv_quakonium.m()) > 1e-3)
+      {
+        if (Verbosity())
+        {
+          cout << "QAG4SimulationUpsilon::process_event - invalid pair with in compativle mass with " << quarkonium_mass << "GeV for PID = " << m_quarkoniaPID << ": " << endl;
+          pair_pos.first->identify();
+          pair_neg.first->identify();
+        }
+        continue;
+      }
+
+      h_nGen_Pair_InvMassGen->Fill(gv_quakonium.m());
+      h_norm->Fill("Truth Upsilon in Acc.", 1);
+
+      if (pair_pos.second and pair_neg.second)
+      {
+        CLHEP::HepLorentzVector v_pos;
+        CLHEP::HepLorentzVector v_neg;
+
+        v_pos.setVectM(
+            CLHEP::Hep3Vector(
+                pair_pos.second->get_px(),
+                pair_pos.second->get_py(),
+                pair_pos.second->get_pz()),
+            daughter_mass);
+        v_neg.setVectM(
+            CLHEP::Hep3Vector(
+                pair_neg.second->get_px(),
+                pair_neg.second->get_py(),
+                pair_neg.second->get_pz()),
+            daughter_mass);
+
+
+        const CLHEP::HepLorentzVector v_quakonium = v_pos + v_neg;
+
+
+        h_nReco_Pair_InvMassReco->Fill(v_quakonium.m());
+        h_norm->Fill("Reco Upsilon", 1);
+
+      }//      if (pair_pos.second and pair_neg.second)
+
+
+    }  //    for (const auto &pair_neg : truth_reco_set_neg)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 string
-QAG4SimulationTracking::get_histo_prefix()
+QAG4SimulationUpsilon::get_histo_prefix()
 {
   return string("h_") + Name() + string("_");
 }

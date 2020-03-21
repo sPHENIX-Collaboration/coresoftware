@@ -3,15 +3,23 @@
 
 #include "BEmcRec.h"
 
+class BEmcProfile;
+
 class BEmcRecCEMC : public BEmcRec
 {
  public:
-  BEmcRecCEMC(){};
-  ~BEmcRecCEMC() {}
+  BEmcRecCEMC();
+  ~BEmcRecCEMC();
   void CorrectEnergy(float energy, float x, float y, float *ecorr);
-  void CorrectPosition(float energy, float x, float y, float *xcorr, float *ycorr);
   void CorrectECore(float ecore, float x, float y, float *ecorecorr);
-  void Tower2Global(float E, float xC, float yC, float &xA, float &yA, float &zA);
+  void CorrectPosition(float energy, float x, float y, float *xcorr, float *ycorr);
+  void CorrectShowerDepth(float energy, float x, float y, float z, float& xc, float& yc, float& zc );
+
+  void LoadProfile(const char *fname);
+  float GetProb(std::vector<EmcModule> HitList, float e, float xg, float yg, float zg, float &chi2, int &ndf);
+
+ private:
+  BEmcProfile *_emcprof;
 };
 
 #endif

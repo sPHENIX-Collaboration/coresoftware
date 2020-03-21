@@ -26,6 +26,7 @@ pkginclude_HEADERS = \
   QAG4SimulationCalorimeter.h \
   QAG4SimulationCalorimeterSum.h \
   QAG4SimulationTracking.h \
+  QAG4SimulationUpsilon.h \
   QAG4SimulationJet.h \
   QAHistManagerDef.h
 
@@ -35,6 +36,7 @@ if ! MAKEROOT6
     QAG4SimulationCalorimeter_Dict.cc \
     QAG4SimulationCalorimeterSum_Dict.cc \
     QAG4SimulationTracking_Dict.cc \
+    QAG4SimulationUpsilon_Dict.cc \
     QAG4SimulationJet_Dict.cc 
 endif
 
@@ -44,6 +46,7 @@ libqa_modules_la_SOURCES = \
   QAG4SimulationCalorimeter.cc \
   QAG4SimulationCalorimeterSum.cc \
   QAG4SimulationTracking.cc \
+  QAG4SimulationUpsilon.cc \
   QAG4SimulationJet.cc
 
 # Rule for generating table CINT dictionaries.
