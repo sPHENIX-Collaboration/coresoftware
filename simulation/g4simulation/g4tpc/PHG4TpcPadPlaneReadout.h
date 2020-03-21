@@ -81,6 +81,9 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static constexpr double _nsigmas = 5;
   static constexpr int _ngauss_steps = 100;
   std::array<double, _ngauss_steps> _gauss_weights;
+
+  double averageGEMGain = NAN;
+
 #endif
 
   std::vector<int> adc_zbin;
@@ -90,8 +93,6 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 
   // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
   double getSingleEGEMAmplification();
-  double averageGEMGain = NAN;
-
 #if !defined(__CINT__) || defined(__CLING__)
   gsl_rng *RandomGenerator;
 #endif
