@@ -293,6 +293,9 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   _HCAL_NETA = -1;
   _HCAL_NPHI = -1;
 
+  for (int i=0; i<3; ++i)
+    _geom_containers[i] = nullptr;
+	  
   _noise_LAYER[0] = 0.0025;
   _noise_LAYER[1] = 0.006;
   _noise_LAYER[2] = 0.03; // EM
@@ -312,7 +315,6 @@ RawClusterBuilderTopo::RawClusterBuilderTopo(const std::string &name)
   _local_max_minE_LAYER[0] = 1;
   _local_max_minE_LAYER[1] = 1;
   _local_max_minE_LAYER[2] = 1;
-  
 }
 
 int RawClusterBuilderTopo::InitRun(PHCompositeNode *topNode)
