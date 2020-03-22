@@ -5,6 +5,68 @@
  *  \author	        Tony Frawley <afrawley@fsu.edu>
  */
 
+/*
+//modularizing:
+
+MakeActsGeometry  
+  // Create acts geometry
+  // Make (hitsetkey,surface) map and place on node tree
+
+MakeActsSourceLinks 
+  // Get hitsetkeys from clusters, look up surfaces
+  // Convert cluster pos to local coords
+  // Make local covariance for acts
+  // Create (cluskey,hitid) map 
+  // Create sourceLinks from TrkrClusters (SourceLink needs hitid, surface, local_pos, local_covariance)
+  // Place SourceLinks on node tree
+  // Place (cluskey,hitid) map on node tree
+
+MakeActsTracks
+  // Make a vector of source links for each track from cluskey->hitid->SourceLink
+  // Make acts tracks 
+  // Place acts tracks on node tree
+
+PHActsTrkFitter   
+  // Loop over acts tracks
+  //   Set up KF options
+  //   Call track fitter
+
+
+Create acts geometry (makes (hitsetkey,surface) maps)
+  BuildSiliconLayers();  
+      MakeActsGeometry  // makes (hitsetkey,surface) map for silicon
+  BuildTpcSurfaceMap  // makes (hitsetkey,surface) map for silicon
+  MakeTGeoNodeMap(topNode);  // makes cluster-node map - not used?
+    isActive  // not used
+
+Create source links from TrkrClusters
+  GetMvtxHitSetKeyFromCoords
+  GetInttHitSetKeyFromCoords
+  Creates (cluskey,hitid) map  
+  Finds surface for each cluster from (cluster,surface) map
+  Transforms position and covar to local coords
+      GetMvtxCovarLocal
+      GetInttCovarLocal
+      TransformCovarToLocal
+      getActsCovMatrix
+  Creates TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov), adds to vector: sourceLinks.emplace_hint(sourceLinks.end(), sourceLink);
+  maps hitID to sourceLink. 
+  hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid, sourceLink));
+
+Loop over SvtxTracks to make sourcelink list for each track
+  Makes a vector of source links for each track from clusterkey->hitid->SourceLink  -- needs to be moved 
+  New: make acts tracks.
+  Place acts tracks on node tree
+
+PHActsTrackFitter::Process()
+Loops over acts tracks
+  Sets up KF options
+  Calls track fitter
+
+
+*/
+
+
 #include "PHActsTrkFitter.h"
 #include "ActsFittingAlgorithm.h"
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster

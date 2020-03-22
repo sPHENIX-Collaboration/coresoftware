@@ -32,6 +32,7 @@ pkginclude_HEADERS = \
   HelixHoughSpace.h \
   HelixHoughSpace_v1.h \
   HelixKalmanFilter.h \
+  MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHActsTrkFitter.h \
@@ -106,7 +107,8 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  PHActsTrkFitter.cc
+  PHActsTrkFitter.cc \
+  MakeActsGeometry.cc
 
 ACTS_LIBS = \
   -lACTFramework \
