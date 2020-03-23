@@ -34,6 +34,7 @@ pkginclude_HEADERS = \
   HelixKalmanFilter.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
+  PHActsSourceLinks.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -106,7 +107,8 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  PHActsTrkFitter.cc
+  PHActsTrkFitter.cc \
+  PHActsSourceLinks.cc
 
 ACTS_LIBS = \
   -lACTFramework \
