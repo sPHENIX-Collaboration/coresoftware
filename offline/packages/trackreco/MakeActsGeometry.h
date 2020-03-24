@@ -16,7 +16,8 @@
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
 
-#include "ActsFittingAlgorithm.h"
+//#include "ActsFittingAlgorithm.h"
+#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 
 #include <map>
 #include <memory>                // for shared_ptr

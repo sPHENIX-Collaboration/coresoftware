@@ -17,6 +17,7 @@
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
+#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
 #include "TrkrClusterSourceLink.hpp"
 
@@ -115,7 +116,7 @@ class PHActsTrkFitter : public PHTrackFitting
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
   std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
-  std::map<unsigned int, TrkrClusterSourceLink> hitidSourceLink;
+  std::map<unsigned int, FW::Data::TrkrClusterSourceLink> hitidSourceLink;
 
   // TPC surface subdivisions
   double MinSurfZ;

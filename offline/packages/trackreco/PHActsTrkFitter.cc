@@ -68,8 +68,9 @@ Loops over acts tracks
 
 
 #include "PHActsTrkFitter.h"
-#include "ActsFittingAlgorithm.h"
 #include "MakeActsGeometry.h"
+
+#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -135,8 +136,7 @@ Loops over acts tracks
 
 using namespace std;
 
-TrkrFittingAlgorithm::Config fitCfg;
-
+FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
 /*
  * Constructor
@@ -324,7 +324,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration
-  //fitCfg.fit = TrkrFittingAlgorithm::makeTrkrFitterFunction(tGeometry, 
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(tGeometry, 
 						    magneticField,
    						    logLevel);
 
@@ -809,7 +809,7 @@ int PHActsTrkFitter::Process()
   std::map<TrkrDefs::cluskey, unsigned int> cluskey_hitid; 
   unsigned int  hitid = 0;
   
-  TrkrClusterSourceLinkContainer sourceLinks;
+  FW::TrkrClusterSourceLinkContainer sourceLinks;
   TrkrDefs::hitsetkey hsetkey;
   TrkrClusterContainer::ConstRange clusrange = _clustermap->getClusters();
   for(TrkrClusterContainer::ConstIterator clusiter = clusrange.first; clusiter != clusrange.second; ++clusiter)
@@ -1073,11 +1073,11 @@ int PHActsTrkFitter::Process()
 	}
    
       /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
-      TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov);
+      FW::Data::TrkrClusterSourceLink sourceLink(hitid, surf, loc, cov);
       sourceLinks.emplace_hint(sourceLinks.end(), sourceLink);
       /// Store in map which maps arbitrary hitID to sourceLink. 
       /// hitId can access Clusterkey via cluskey_hitid map
-      hitidSourceLink.insert(std::pair<unsigned int, TrkrClusterSourceLink>(hitid, sourceLink));
+      hitidSourceLink.insert(std::pair<unsigned int, FW::Data::TrkrClusterSourceLink>(hitid, sourceLink));
             
       hitid++;
     }
@@ -1087,7 +1087,7 @@ int PHActsTrkFitter::Process()
       Acts::Vector3D{0.,0.,0.});
 
   /// Make a vector of source links to fill for each SvtxTrack
-  std::vector<TrkrClusterSourceLink> trackSourceLinks;
+  std::vector<FW::Data::TrkrClusterSourceLink> trackSourceLinks;
 
   /// Setup a context for this event
   FW::WhiteBoard eventStore(Acts::getDefaultLogger("EventStore#" + std::to_string(_event), logLevel));                  

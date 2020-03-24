@@ -35,6 +35,7 @@ pkginclude_HEADERS = \
   MakeActsGeometry.h \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
+  PHActsSourceLinks.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -48,7 +49,6 @@ pkginclude_HEADERS = \
   PHTrackSetMerging.h \
   PHTruthTrackSeeding.h \
   PHTruthVertexing.h \
-  TrkrClusterSourceLink.hpp \
   VertexFitter.h \
   PHRaveVertexing.h \
   GPUTPCBaseTrackParam.h \
@@ -108,7 +108,8 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   PHActsTrkFitter.cc \
-  MakeActsGeometry.cc
+  MakeActsGeometry.cc \
+  PHActsSourceLinks.cc
 
 ACTS_LIBS = \
   -lACTFramework \
