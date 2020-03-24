@@ -69,6 +69,10 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
   return;
 }
 
+PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
+{
+  gsl_rng_free(RandomGenerator);
+}
 
 int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
 {

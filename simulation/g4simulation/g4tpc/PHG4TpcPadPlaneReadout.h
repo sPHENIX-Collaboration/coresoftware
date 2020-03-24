@@ -30,6 +30,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
  public:
   PHG4TpcPadPlaneReadout(const std::string &name = "PHG4TpcPadPlaneReadout");
 
+  virtual ~PHG4TpcPadPlaneReadout();
+
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
   void MapToPadPlane(PHG4CellContainer *g4cells, const double x_gem, const double y_gem, const double t_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit);
