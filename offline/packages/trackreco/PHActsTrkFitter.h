@@ -17,8 +17,8 @@
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
-#include "TrkrClusterSourceLink.hpp"
 
+#include "TrkrClusterSourceLink.hpp"
 
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
@@ -83,18 +83,18 @@ class PHActsTrkFitter : public PHTrackFitting
 
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
-  void BuildSiliconLayers();
-  void BuildTpcSurfaceMap();
-  void isActive(TGeoNode *gnode);
-  void MakeTGeoNodeMap(PHCompositeNode*);
-  void getInttKeyFromNode(TGeoNode *gnode);
-  void getMvtxKeyFromNode(TGeoNode *gnode);
-  int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
+  //  void BuildSiliconLayers();
+  //void BuildTpcSurfaceMap();
+  // void isActive(TGeoNode *gnode);
+  //void MakeTGeoNodeMap(PHCompositeNode*);
+  // void getInttKeyFromNode(TGeoNode *gnode);
+  // void getMvtxKeyFromNode(TGeoNode *gnode);
+  //int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
   TMatrixD GetMvtxCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
   TMatrixD GetInttCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
-TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
-  TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
-  TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
+  //TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  //TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   Acts::BoundSymMatrix getActsCovMatrix(SvtxTrack *track);
 
 

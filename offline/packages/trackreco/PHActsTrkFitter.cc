@@ -69,6 +69,7 @@ Loops over acts tracks
 
 #include "PHActsTrkFitter.h"
 #include "ActsFittingAlgorithm.h"
+#include "MakeActsGeometry.h"
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -134,7 +135,7 @@ Loops over acts tracks
 
 using namespace std;
 
-FittingAlgorithm::Config fitCfg;
+TrkrFittingAlgorithm::Config fitCfg;
 
 
 /*
@@ -169,6 +170,11 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   GetNodes(topNode);
 
   // run Acts layer builder
+
+  //  MakeActsGeometry *acts_geo = new MakeActsGeometry();
+  //acts_geo->BuildAllGeometry(topNode);
+
+  /*
   BuildSiliconLayers();
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key  
@@ -176,10 +182,11 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
 
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
   BuildTpcSurfaceMap();
+  */
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
+/*
 void PHActsTrkFitter::BuildTpcSurfaceMap()
 {
   // Make a map of surfaces corresponding to each TPC sectorid and side.
@@ -241,21 +248,16 @@ void PHActsTrkFitter::BuildTpcSurfaceMap()
 	}
     }
  }  
-
+*/
 
 /**
  * Builds silicon layers in the ACTS surface world
  */
+/*
 void PHActsTrkFitter::BuildSiliconLayers()
 {
   // define int argc and char* argv to provide options to processGeometry
 
-  /*
-  int argc = 27;
-    char *arg[27];
-    std::string argstr[27]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1",  "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor",  "siactive",  "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--geo-tgeo-clayersplits", "5.",  "10.",  "--output-obj", "true"};
-  */
- 
     // Can hard code geometry options since the TGeo options are fixed by our detector design
   const int argc = 28;
   char *arg[argc];
@@ -268,33 +270,15 @@ void PHActsTrkFitter::BuildSiliconLayers()
       arg[i] = strdup(argstr[i].c_str());
     }
 
-  /*
-    acts-framework:
-    (compiled binary = ACTFWTGeoGeometryExample)
-    (basically just feeds options to GeometryExampleBase::ProcessGeometry)
-        (- calls GeometryExampleBase = acts-framework/Examples/Common/src/GeometryExampleBase(.cpp)::ProcessGeometry() with arguments and the instance of TGeoDetector)
-           (sets up options, adds options to detector)
-    **** All of the above replaced by the method here called MakeActsGeometry()
-           - calls Geometry::build()  =  in acts-framework/Examples/Common/include/ACTFW/Geometry/CommonGeometry.hpp (= namespace Geometry) 
-              material decoration
-              returns TGeoDetector::finalize =  std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>
-              TrackingGeometry = acts-core/Core/include/Acts/Geometry/TrackingGeometry.hpp 
-              - calls TGeoDetecrtor::finalize() = cts-framework/Detectors/TGeoDetector/include/ACTFW/TGeoDetector/TGeoDetector(.hpp)::finalize (inherits from FW::IBaseDetector)
-                    creates DetectorStore
-                    returns   std::pair<FW::IBaseDetector::TrackingGeometryPtr, ContextDecorators>     (TrackingGeometryPtr = std::shared_ptr<const Acts::TrackingGeometry>)
-                  - calls TGeo::buildTGeoDetector()  = acts-framework/Detectors/TGeoDetector/include/ACTFW/TGeoDetector/BuildTGeoDetector.hpp ( = namespace TGeo)
-                      initializes TGeoManager from file
-   acts-core from here on:
-                      - calls TGeoLayerBuilder::buildLayers = acts-core/Plugins/TGeo/include/Acts/Plugins/TGeo/TGeoLayerBuilder(.hpp)::buildLayers  (inherits from Acts::ILayerBuilder)
-  */
-
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
   
   MakeActsGeometry(argc, arg, detector);
 
 }
+*/
 
+/*
 int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector)
 {
   // setup and parse options
@@ -340,7 +324,7 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration
-  fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, 
+  //fitCfg.fit = TrkrFittingAlgorithm::makeTrkrFitterFunction(tGeometry, 
 						    magneticField,
    						    logLevel);
 
@@ -353,15 +337,6 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   }
 
   geo_ctxt = context.geoContext;
-
-  /*
-  // This is not executed because size is 0
-  std::string geoContextStr = "";
-  if (contextDecorators.size() > 0) {
-    // We need indeed a context object
-    if (nEvents > 1) { geoContextStr = "_geoContext" + std::to_string(ievt); }
-  }
-  */
 
   // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
   auto vol = tGeometry->highestTrackingVolume();
@@ -530,7 +505,9 @@ int PHActsTrkFitter::MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector&
   
   return 0;
 }
+*/
 
+/*
 TrkrDefs::hitsetkey PHActsTrkFitter::GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
   // Look up the MVTX sensor index values from the world position of the surface center
@@ -552,7 +529,8 @@ TrkrDefs::hitsetkey PHActsTrkFitter::GetMvtxHitSetKeyFromCoords(unsigned int lay
   
   return mvtx_hitsetkey;
 }
-
+*/
+/*
 TrkrDefs::hitsetkey PHActsTrkFitter::GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
   // Look up the INTT sensor index values from the world position of the surface center
@@ -575,8 +553,9 @@ TrkrDefs::hitsetkey PHActsTrkFitter::GetInttHitSetKeyFromCoords(unsigned int lay
   
   return intt_hitsetkey;
 }
+*/
 
-
+/*
 void PHActsTrkFitter::MakeTGeoNodeMap(PHCompositeNode *topNode)
 {
   _geomanager = PHGeomUtility::GetTGeoManager(topNode);
@@ -625,7 +604,8 @@ void PHActsTrkFitter::MakeTGeoNodeMap(PHCompositeNode *topNode)
 	}
     }
 }
-
+*/
+/*
 void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
 {
   int layer = -1;           // sPHENIX layer number
@@ -694,7 +674,9 @@ void  PHActsTrkFitter::getInttKeyFromNode(TGeoNode *gnode)
   
   return;
 }
+*/
 
+/*
 void PHActsTrkFitter::getMvtxKeyFromNode(TGeoNode *gnode)
 {
   int counter = 0;
@@ -767,7 +749,8 @@ void PHActsTrkFitter::getMvtxKeyFromNode(TGeoNode *gnode)
   
   return;
 }
-
+*/
+/*
 void PHActsTrkFitter::isActive(TGeoNode *gnode)
 {
   // Not used in analysis: diagnostic, for looking at the node tree only.
@@ -812,7 +795,7 @@ void PHActsTrkFitter::isActive(TGeoNode *gnode)
       isActive(gnode->GetDaughter(i));      
     }
 }
-
+*/
 int PHActsTrkFitter::Process()
 {
   _event++;
@@ -1160,10 +1143,12 @@ int PHActsTrkFitter::Process()
 	}
 
       if(Verbosity() > 0)
-	for(unsigned int i=0;i<trackSourceLinks.size(); ++i)
-	  {
-	    cout << "   proto_track readback:  hitid " << trackSourceLinks.at(i).hitID()<< endl;
-	  }
+	{
+	  for(unsigned int i=0;i<trackSourceLinks.size(); ++i)
+	    {
+	      cout << "   proto_track readback:  hitid " << trackSourceLinks.at(i).hitID()<< endl;
+	    }
+	}
     
       
       /// Call KF now. Have a vector of sourceLinks corresponding to clusters
@@ -1188,11 +1173,12 @@ int PHActsTrkFitter::Process()
 	    std::cout<<"Fitted parameters for track"<<std::endl;
 	    std::cout<<" position : " << params.position().transpose()<<std::endl;
 	    std::cout<<" momentum : " << params.momentum().transpose()<<std::endl;
+	    }
 	  }
+
 	}
-	
-      }
-      
+
+
       /// Add a new track to a container to put on the node tree
 
 
