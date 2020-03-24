@@ -20,10 +20,8 @@ Create acts geometry (makes (hitsetkey,surface) maps)
     isActive  // not used
 */
 
-
 #include "MakeActsGeometry.h"
-//#include <trackbase/TrkrCluster.h>                  // for TrkrCluster
-//#include <trackbase/TrkrClusterContainer.h>
+
 #include <trackbase/TrkrDefs.h>
 
 #include <intt/CylinderGeomIntt.h>
@@ -72,7 +70,6 @@ Create acts geometry (makes (hitsetkey,surface) maps)
 #include <TObject.h>
 #include <TGeoManager.h>
 #include <TSystem.h>
-//#include <TMatrixDSym.h>
 #include <cmath>                              // for sqrt, NAN
 #include <cstddef>                                              // for size_t
 #include <cstdlib>                                              // for atoi
@@ -88,8 +85,7 @@ using namespace std;
  * Constructor
  */
 MakeActsGeometry::MakeActsGeometry(const string& name)
-  : SubsysReco(name)
-  , _geom_container_mvtx(nullptr)
+  : _geom_container_mvtx(nullptr)
   , _geom_container_intt(nullptr)
   , _geom_container_tpc(nullptr)
   , _geomanager(nullptr)
@@ -97,8 +93,8 @@ MakeActsGeometry::MakeActsGeometry(const string& name)
   , MaxSurfZ(110.0)
   , NSurfZ(11)
   , NSurfPhi(10)
+  ,_verbosity(0)
 {
-  Verbosity(0);
 
   // These are arbitrary subdivisions, and may change
   SurfStepZ = (MaxSurfZ - MinSurfZ) / (double) NSurfZ;
@@ -107,14 +103,12 @@ MakeActsGeometry::MakeActsGeometry(const string& name)
   SurfStepPhi = 2.0 * M_PI / (double) (NSurfPhi * NTpcModulesPerLayer);
 
 }
-int MakeActsGeometry::Init(PHCompositeNode* topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
 
-int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
+int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
 {
-  GetNodes(topNode);
+  GetNodes(topNode);    // for geometry nodes
+
+  CreateNodes(topNode);   // for writing surface map
 
   // run Acts layer builder
   BuildSiliconLayers();
@@ -124,6 +118,8 @@ int MakeActsGeometry::InitRun(PHCompositeNode *topNode)
 
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
   BuildTpcSurfaceMap();
+
+  // Put the surface map on the node tree
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -213,11 +209,11 @@ void MakeActsGeometry::BuildSiliconLayers()
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
   
-  MakeGeometry(argc, arg, detector);
+  MakeSiliconGeometry(argc, arg, detector);
 
 }
 
-int MakeActsGeometry::MakeGeometry(int argc, char* argv[], FW::IBaseDetector& detector)
+int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetector& detector)
 {
   // setup and parse options
   auto desc = FW::Options::makeDefaultOptions();
@@ -261,11 +257,11 @@ int MakeActsGeometry::MakeGeometry(int argc, char* argv[], FW::IBaseDetector& de
   // The geometry context
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
-  // Make a fit configuration
-  //  fitCfg.fit = FittingAlgorithm::makeFitterFunction(tGeometry, 
-  //						    magneticField,
-  //						    logLevel);
-
+  // Make a fit configuration 
+  fitCfg.fit = TrkrFittingAlgorithm::makeTrkrFitterFunction(tGeometry, 
+  						    magneticField,
+  						    logLevel);
+  
 
   // this is not executed because contextDecorators has size 0
   /// Decorate the context
@@ -337,7 +333,7 @@ int MakeActsGeometry::MakeGeometry(int argc, char* argv[], FW::IBaseDetector& de
 	_cluster_surface_map.insert(tmp);
 
 
-	if(Verbosity() > 0)
+	if(_verbosity > 0)
 	  {
 	    unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
 	    unsigned int chip = MvtxDefs::getChipId(hitsetkey);
@@ -412,7 +408,7 @@ int MakeActsGeometry::MakeGeometry(int argc, char* argv[], FW::IBaseDetector& de
 	std::pair<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(hitsetkey, surf);
 	_cluster_surface_map.insert(tmp);
 
-	if(Verbosity() > 0)
+	if(_verbosity > 0)
 	  {
 	    // check it is in there
 	    unsigned int ladderPhi = InttDefs::getLadderPhiId(hitsetkey);
@@ -513,7 +509,7 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
 
       if ( node_str.compare(0, mvtx.length(), mvtx) == 0 )       // is it in the MVTX?
 	{
-	  if(Verbosity() > 100)  cout << " node " << node->GetName() << " is in the MVTX" << endl;
+	  if(_verbosity > 100)  cout << " node " << node->GetName() << " is in the MVTX" << endl;
 	  getMvtxKeyFromNode(node);
 	}
       else if ( node_str.compare(0, intt.length(), intt) == 0 ) 	      // is it in the INTT?
@@ -522,7 +518,7 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
 	  if ( node_str.compare(0, intt_ext.length(), intt_ext) == 0 ) 
 	    continue;
 	  
-	  if(Verbosity() > 100) cout << " node " << node->GetName() << " is in the INTT" << endl;	  
+	  if(_verbosity > 100) cout << " node " << node->GetName() << " is in the INTT" << endl;	  
 	  getInttKeyFromNode(node);
 	}
       else
@@ -602,7 +598,7 @@ void  MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
   std::pair<TrkrDefs::hitsetkey, TGeoNode*> tmp = make_pair(node_key, sensor_node);
   _cluster_node_map.insert(tmp);
 
-  if(Verbosity() > 1)    
+  if(_verbosity > 1)    
     std::cout << " INTT layer " << layer << " ladder_phi " << ladder_phi << " itype " << itype << " zposneg " << zposneg << " ladder_z " << ladder_z << " name " << sensor_node->GetName() << std::endl;
   
   return;
@@ -662,7 +658,7 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
       std::string dstr = module_node->GetDaughter(i)->GetName();
       if (dstr.compare(0, mvtx_chip.length(), mvtx_chip) == 0)
 	{
-	  if(Verbosity() > 1) 
+	  if(_verbosity > 1) 
 	    cout << "Found MVTX layer " << layer << " stave " << stave << " chip  " << i << " with node name " <<  module_node->GetDaughter(i)->GetName() << endl;
 
 	  // Make key for this chip
@@ -673,7 +669,7 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 	  std::pair<TrkrDefs::hitsetkey, TGeoNode*> tmp = make_pair(node_key, sensor_node);
 	  _cluster_node_map.insert(tmp);
 	  
-	  if(Verbosity() > 1)    
+	  if(_verbosity > 1)    
 	    std::cout << " MVTX layer " << layer << " stave " << stave << " chip " << chip << " name " << sensor_node->GetName() << std::endl;
 	}
     }
@@ -724,20 +720,6 @@ void MakeActsGeometry::isActive(TGeoNode *gnode)
 	   << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
       isActive(gnode->GetDaughter(i));      
     }
-}
-
-int MakeActsGeometry::process_event(PHCompositeNode *topNode)
-{
-  return Fun4AllReturnCodes::EVENT_OK;
-}
-
-int MakeActsGeometry::End(PHCompositeNode* topNode)
-{
-  if(Verbosity() > 10)
-    {
-      std::cout<<"Finished MakeActsGeometry"<<std::endl;
-    }
-  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 MakeActsGeometry::~MakeActsGeometry()
@@ -793,26 +775,6 @@ int MakeActsGeometry::GetNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
-  /*
-  // Input Trkr Clusters
-  _clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
-  if (!_clustermap)
-  {
-    cout << PHWHERE << " TRKR_CLUSTER node not found on node tree"
-         << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  // Input Svtx Tracks
-  _trackmap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
-  if (!_trackmap)
-  {
-    cout << PHWHERE << " SvtxTrackMap node not found on node tree"
-         << endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  */
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 

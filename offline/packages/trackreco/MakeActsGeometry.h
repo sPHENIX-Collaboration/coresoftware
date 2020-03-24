@@ -5,8 +5,8 @@
  *  \author		Tony Frawley <afrawley@fsu.edu>
  */
 
-#ifndef MAKEACTSGEOMETRY_H
-#define MAKEACTSGEOMETRY_H
+#ifndef MAKE_ACTS_GEOMETRY_H
+#define MAKE_ACTS_GEOMETRY_H
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -15,6 +15,8 @@
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
+
+#include "ActsFittingAlgorithm.h"
 
 #include <map>
 #include <memory>                // for shared_ptr
@@ -38,7 +40,7 @@ namespace Acts {
   class TrackingGeometry;
 }
 
-class MakeActsGeometry : public SubsysReco
+class MakeActsGeometry
 {
  public:
 
@@ -48,10 +50,11 @@ class MakeActsGeometry : public SubsysReco
   //! dtor
   ~MakeActsGeometry();
 
-  int Init(PHCompositeNode *topNode);
-  int InitRun(PHCompositeNode *topNode);
-  int process_event(PHCompositeNode *topNode);
-  int End(PHCompositeNode*);
+  int BuildAllGeometry(PHCompositeNode *topNode);
+  void SetVerbosity(int verbosity)
+  {
+    _verbosity = verbosity;
+  }
 
   //Flags of different kinds of outputs
   enum Flag
@@ -60,23 +63,27 @@ class MakeActsGeometry : public SubsysReco
     NONE = 0,
   };
 
+  TrkrFittingAlgorithm::Config fitCfg;
 
  private:
-
   //! Get all the nodes
   int GetNodes(PHCompositeNode*);
 
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
+
+  // silicon layers made by BuildSiliconLayers and its helper functions
   void BuildSiliconLayers();
-  void BuildTpcSurfaceMap();
-  void isActive(TGeoNode *gnode);
-  void MakeTGeoNodeMap(PHCompositeNode*);
+  int MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
   void getInttKeyFromNode(TGeoNode *gnode);
   void getMvtxKeyFromNode(TGeoNode *gnode);
-  int MakeGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  void isActive(TGeoNode *gnode);
+
+  void BuildTpcSurfaceMap();
+
+  void MakeTGeoNodeMap(PHCompositeNode*);
 
   PHG4CylinderGeomContainer* _geom_container_mvtx;
   PHG4CylinderGeomContainer* _geom_container_intt;
@@ -92,7 +99,6 @@ class MakeActsGeometry : public SubsysReco
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
   std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
-//  std::map<unsigned int, TrkrClusterSourceLink> hitidSourceLink;
 
   // TPC surface subdivisions
   double MinSurfZ;
@@ -113,6 +119,7 @@ class MakeActsGeometry : public SubsysReco
   // The acts geometry object
   TGeoDetector detector;
 
+  int _verbosity;
 };
 
 #endif
