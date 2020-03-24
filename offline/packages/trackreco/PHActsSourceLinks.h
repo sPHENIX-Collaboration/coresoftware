@@ -19,6 +19,7 @@
 
 class PHCompositeNode;
 class TrkrClusterContainer;
+class TrkrCluster;
 class TGeoNode;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
@@ -31,12 +32,16 @@ namespace Acts {
   class Surface;
 }
 
+using Surface = std::shared_ptr<const Acts::Surface>;
+
 
 /**
  * This class is responsible for creating Acts TrkrClusterSourceLinks from
  * the SvtxClusters. The class creates a node of TrkrClusterSourceLinks and
  * places it on the node tree for other Acts modules to use (e.g. for use of
- * track propagation or track fitting)
+ * track propagation or track fitting). SourceLinks are created from the 
+ * SvtxClusterContainer contents (SvtxClusters) and are put into a special
+ * SourceLinkContainer that is defined in TrkrClusterSourceLink.hpp
  */
 class PHActsSourceLinks : public SubsysReco
 {
@@ -61,14 +66,14 @@ class PHActsSourceLinks : public SubsysReco
   /**
    * Functions
    */
-   /// Create nodes on tree if they don't yet exist
+   /// Create sourceLink related nodes on tree if they don't yet exist
   void createNodeTree(PHCompositeNode *topNode);
 
   /// Get a TGeoNode from the m_clusterNodeMap
   TGeoNode* getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
 
   /// Get a Surface from the m_surfaceNodeMap;
-  std::shared_ptr<const Acts::Surface> getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
+  Surface getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
 
   /// Get the local covariance matrix for the Mvtx cluster in a form Acts 
   /// can accept
@@ -87,8 +92,19 @@ class PHActsSourceLinks : public SubsysReco
   /// Transform the covariance to the local coordinate frame
   TMatrixD transformCovarToLocal(const double ladderPhi, TMatrixD worldErr);
   
- 
+  /// Function which returns MVTX local coordinates and error, as well as
+  /// corresponding surface
+  Surface getMvtxLocalCoords(double (&local2D)[2], TMatrixD &localErr, 
+			     TrkrCluster *cluster, TrkrDefs::cluskey clusKey);
 
+  /// Same as above, except for INTT
+  Surface getInttLocalCoords(double (&local2D)[2], TMatrixD &localErr,
+			     TrkrCluster *cluster, TrkrDefs::cluskey clusKey);
+
+  /// Same as above, except for TPC
+  Surface getTpcLocalCoords(double (&local2D)[2], TMatrixD &localErr,
+			    TrkrCluster *cluster, TrkrDefs::cluskey clusKey);
+  
   /**
    * Member variables
    */
@@ -99,31 +115,34 @@ class PHActsSourceLinks : public SubsysReco
   /// Function to get necessary nodes off node tree
   int GetNodes(PHCompositeNode *topNode);
 
-  /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink
-  std::map<TrkrDefs::cluskey, unsigned int> m_hitIdClusKey;
+  /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
+  /// on node tree by this module
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
-  /// Container for source links
-  TrkrClusterSourceLinkContainer m_sourceLinks;
+  /// Container for source links, to be put on node tree by this module
+  TrkrClusterSourceLinkContainer *m_sourceLinks;
 
   /// Map relating hit set keys to TGeoNodes
   std::map<TrkrDefs::hitsetkey, TGeoNode*> *m_clusterNodeMap;
 
   /// Map relating hit set keys to Acts::Surfaces
-  std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> *m_clusterSurfaceMap;
+  std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
 
   /// Get the TPC surface cluster map
-  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> m_clusterSurfaceMapTpc;
+  std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
+
   /// Tracking geometry objects
   PHG4CylinderGeomContainer* m_geomContainerMvtx;
   PHG4CylinderGeomContainer* m_geomContainerIntt;
   PHG4CylinderCellGeomContainer* m_geomContainerTpc;
 
+
+  /// TPC surface subdivisions. These will come from the ActsGeometry helper class once it is finished
   /// These don't change, we are building the tpc this way!
   const unsigned int m_nTpcLayers = 48;
   const unsigned int m_nTpcModulesPerLayer = 12;
   const unsigned int m_nTpcSides = 2;
 
-  /// TPC surface subdivisions. These will come from the ActsGeometry helper class once it is finished
   double m_minSurfZ;
   double m_maxSurfZ;
   unsigned int m_nSurfZ;
