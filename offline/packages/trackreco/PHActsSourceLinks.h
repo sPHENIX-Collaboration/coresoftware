@@ -15,7 +15,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>                    
 #include <Acts/Utilities/Logger.hpp>   
 #include <ACTFW/EventData/Track.hpp>       
-#include "TrkrClusterSourceLink.hpp"
+#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
 class PHCompositeNode;
 class TrkrClusterContainer;
@@ -120,7 +120,7 @@ class PHActsSourceLinks : public SubsysReco
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
 
   /// Container for source links, to be put on node tree by this module
-  TrkrClusterSourceLinkContainer *m_sourceLinks;
+  FW::TrkrClusterSourceLinkContainer *m_sourceLinks;
 
   /// Map relating hit set keys to TGeoNodes
   std::map<TrkrDefs::hitsetkey, TGeoNode*> *m_clusterNodeMap;

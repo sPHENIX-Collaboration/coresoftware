@@ -198,7 +198,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 	}
 
       /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
-      TrkrClusterSourceLink sourceLink(hitId, surface, loc, cov);
+      FW::Data::TrkrClusterSourceLink sourceLink(hitId, surface, loc, cov);
 
       /// Add the sourceLink to the container
       m_sourceLinks->emplace_hint(m_sourceLinks->end(), sourceLink);
@@ -586,13 +586,13 @@ void PHActsSourceLinks::createNodeTree(PHCompositeNode *topNode)
     }
 
   /// Do the same for the SourceLink container
-  m_sourceLinks = findNode::getClass<TrkrClusterSourceLinkContainer>(topNode,"TrkrClusterSourceLinks");
+  m_sourceLinks = findNode::getClass<FW::TrkrClusterSourceLinkContainer>(topNode,"TrkrClusterSourceLinks");
 
   if( !m_sourceLinks )
     {
-      m_sourceLinks = new TrkrClusterSourceLinkContainer();
-      PHDataNode<TrkrClusterSourceLinkContainer> *sourceLinkNode = 
-       new PHDataNode<TrkrClusterSourceLinkContainer>(m_sourceLinks,
+      m_sourceLinks = new FW::TrkrClusterSourceLinkContainer();
+      PHDataNode<FW::TrkrClusterSourceLinkContainer> *sourceLinkNode = 
+	new PHDataNode<FW::TrkrClusterSourceLinkContainer>(m_sourceLinks,
 						      "TrkrClusterSourceLinks");
       svtxNode->addNode(sourceLinkNode);
     }
