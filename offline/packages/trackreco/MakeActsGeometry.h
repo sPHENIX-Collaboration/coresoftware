@@ -64,7 +64,7 @@ class MakeActsGeometry
     NONE = 0,
   };
 
-  TrkrFittingAlgorithm::Config fitCfg;
+  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
  private:
   //! Get all the nodes

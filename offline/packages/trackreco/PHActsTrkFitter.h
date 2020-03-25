@@ -19,8 +19,6 @@
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
-#include "TrkrClusterSourceLink.hpp"
-
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
 #include <map>

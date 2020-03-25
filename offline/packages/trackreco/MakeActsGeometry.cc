@@ -258,10 +258,13 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration 
-  fitCfg.fit = TrkrFittingAlgorithm::makeTrkrFitterFunction(tGeometry, 
+
+
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(tGeometry, 
   						    magneticField,
   						    logLevel);
   
+
 
   // this is not executed because contextDecorators has size 0
   /// Decorate the context
