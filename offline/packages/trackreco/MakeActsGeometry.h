@@ -57,6 +57,42 @@ class MakeActsGeometry
     _verbosity = verbosity;
   }
 
+std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> getSurfaceMapSilicon()
+{
+return _cluster_surface_map_silicon;
+}
+  
+  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> getSurfaceMapTpc()
+  {
+return _cluster_surface_map_tpc;
+}
+
+    std::map<TrkrDefs::hitsetkey, TGeoNode*> getNodeMap()
+    {
+return _cluster_node_map;
+}
+
+      double getSurfStepZ()
+      {
+return SurfStepZ;
+}
+	double getSurfStepPhi()
+	{
+return SurfStepPhi;
+}
+
+	  double getModuleStepPhi()
+	  {
+return ModuleStepPhi;
+}
+
+	  double getModulePhiStart()
+	  {
+return ModulePhiStart;
+}
+
+
+
   //Flags of different kinds of outputs
   enum Flag
   {
@@ -98,7 +134,7 @@ class MakeActsGeometry
 
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
+  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map_silicon;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
 
   // TPC surface subdivisions
@@ -114,7 +150,8 @@ class MakeActsGeometry
   // these don't change, we are building the tpc this way!
   const unsigned int NTpcLayers = 48;
   const unsigned int NTpcModulesPerLayer = 12;
-  const unsigned int NTpcSides = 2;
+const unsigned int NTpcSides = 2;
+
 
   Acts::Logging::Level logLevel;
   // The acts geometry object

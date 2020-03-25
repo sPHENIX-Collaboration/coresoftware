@@ -333,7 +333,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
 	// Add this surface to the map
 	std::pair<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(hitsetkey, surf);
 
-	_cluster_surface_map.insert(tmp);
+	_cluster_surface_map_silicon.insert(tmp);
 
 
 	if(_verbosity > 0)
@@ -343,8 +343,8 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
 
 	    // check it is in there
 	    std::cout << "Layer radius " << layer_rad << " Layer " << layer << " stave " << stave << " chip " << chip 
-		      << " recover surface from _cluster_surface_map " << std::endl;
-	    std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
+		      << " recover surface from _cluster_surface_map_silicon " << std::endl;
+	    std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter = _cluster_surface_map_silicon.find(hitsetkey);
 	    std::cout << " surface type " << surf_iter->second->type() << std::endl;
 	    surf_iter->second->toStream(geo_ctxt,std::cout);	
 	    auto assoc_layer = surf->associatedLayer();
@@ -409,7 +409,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
 
 	// Add this surface to the map
 	std::pair<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>> tmp = make_pair(hitsetkey, surf);
-	_cluster_surface_map.insert(tmp);
+	_cluster_surface_map_silicon.insert(tmp);
 
 	if(_verbosity > 0)
 	  {
@@ -418,8 +418,8 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
 	    unsigned int ladderZ = InttDefs::getLadderZId(hitsetkey);
  
 	    std::cout <<"Layer radius " << layer_rad << " layer " << layer << " ladderPhi " << ladderPhi << " ladderZ " << ladderZ 
-		      << " recover surface from _cluster_surface_map " << std::endl;
-	    std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter = _cluster_surface_map.find(hitsetkey);
+		      << " recover surface from _cluster_surface_map_silicon " << std::endl;
+	    std::map<TrkrDefs::hitsetkey, std::shared_ptr<const Acts::Surface>>::iterator surf_iter = _cluster_surface_map_silicon.find(hitsetkey);
 	    std::cout << " surface type " << surf->type() << std::endl;
 	    surf_iter->second->toStream(geo_ctxt,std::cout);
 	    auto assoc_layer = surf->associatedLayer();
