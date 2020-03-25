@@ -11,11 +11,12 @@
 #include <vector>
 
 /// Acts includes to create all necessary definitions
-#include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
+
+#include <ACTFW/EventData/Track.hpp>
+#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
 class PHCompositeNode;
 class TrkrClusterContainer;

@@ -6,13 +6,15 @@
 #include <trackbase/TrkrDefs.h>
 
 /// Acts includes to create all necessary definitions
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
-
-#include <ACTFW/EventData/Track.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
+
+#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ACTFW/EventData/Track.hpp>
+
+
 
 #include <map>
 #include <string>
