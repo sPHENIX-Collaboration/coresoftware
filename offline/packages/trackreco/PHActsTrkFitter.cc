@@ -113,6 +113,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   
   geo_ctxt = acts_geo->getGeoContext();
   contextDecorators = acts_geo->getContextDecorators();
+  fitCfg = acts_geo->getFitCfg();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

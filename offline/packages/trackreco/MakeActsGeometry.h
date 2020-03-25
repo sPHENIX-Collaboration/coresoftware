@@ -109,9 +109,15 @@ return contextDecorators;
     NONE = 0,
   };
 
+  FW::TrkrClusterFittingAlgorithm::Config getFitCfg()
+    {
+      return fitCfg;
+    }
+  
+ private:
+
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
- private:
   //! Get all the nodes
   int GetNodes(PHCompositeNode*);
 
