@@ -45,10 +45,16 @@
 
 
 PHActsSourceLinks::PHActsSourceLinks(const std::string& name)
-  : SubsysReco(name)
+  : SubsysReco(name) 
   , m_clusterMap(nullptr)
-  , m_clusterNodeMap(nullptr)
-  , m_clusterSurfaceMap(nullptr)
+  , m_hitIdClusKey(nullptr)
+  , m_sourceLinks(nullptr) 
+  , m_clusterNodeMap(nullptr) 
+  , m_clusterSurfaceMap(nullptr) 
+  , m_clusterSurfaceMapTpc(nullptr) 
+  , m_geomContainerMvtx(nullptr)
+  , m_geomContainerIntt(nullptr)
+  , m_geomContainerTpc(nullptr) 
   , m_minSurfZ(0.0)
   , m_maxSurfZ(110.)
   , m_nSurfZ(11)
@@ -76,8 +82,9 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 {
   /// Check if Acts geometry has been built and is on the node tree
 
+
   /// Check and create nodes that this module will build
-  createNodeTree(topNode);
+  createNodes(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -91,6 +98,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
       std::cout << "Starting PHActsSourceLinks process_event" << std::endl;
     }
 
+  /// Get the nodes from the node tree
+  if(getNodes(topNode) == Fun4AllReturnCodes::ABORTEVENT)
+    return Fun4AllReturnCodes::ABORTEVENT;
+
   /// Arbitrary hitId that is used to mape between cluster key and an
   /// unsigned int which Acts can take
   unsigned int hitId = 0;
@@ -100,17 +111,18 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
   for(clusIter = clusRange.first; clusIter != clusRange.second; ++clusIter)
     {
-      TrkrDefs::cluskey clusKey = clusIter->first;
-      TrkrCluster *cluster = clusIter->second;
+      const TrkrDefs::cluskey clusKey = clusIter->first;
+      const TrkrCluster *cluster = clusIter->second;
       
-      unsigned int layer = TrkrDefs::getLayer(clusKey);
+      const unsigned int layer = TrkrDefs::getLayer(clusKey);
       
       /// Create the clusKey hitId pair to insert into the map
-      unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
+      const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
       m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>
 			    (clusKey, hitId));
 
-      /// Local coordinates and surface to be set
+      /// Local coordinates and surface to be set by the correct tracking
+      /// detector function below
       TMatrixD localErr(3, 3);
       double local2D[2] = {0};
       Surface surface;
@@ -198,10 +210,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 	}
 
       /// TrkrClusterSourceLink creates an Acts::FittableMeasurement
-      FW::Data::TrkrClusterSourceLink sourceLink(hitId, surface, loc, cov);
+      SourceLink sourceLink(hitId, surface, loc, cov);
 
       /// Add the sourceLink to the container
-      m_sourceLinks->emplace_hint(m_sourceLinks->end(), sourceLink);
+      m_sourceLinks->insert(std::pair<unsigned int, SourceLink>(hitId, sourceLink));
                  
       hitId++;
     } 
@@ -228,12 +240,12 @@ int PHActsSourceLinks::End(PHCompositeNode *topNode)
 
 Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 					     TMatrixD &localErr,
-					     TrkrCluster *cluster,
-					     TrkrDefs::cluskey clusKey)
+					     const TrkrCluster *cluster,
+					     const TrkrDefs::cluskey clusKey)
 {
-  float x = cluster->getPosition(0);
-  float y = cluster->getPosition(1);
-  float z = cluster->getPosition(2);
+  const float x = cluster->getPosition(0);
+  const float y = cluster->getPosition(1);
+  const float z = cluster->getPosition(2);
 
   // In local coords the covariances are in the  r*phi vs z frame
   // They have been rotated into global coordinates in TrkrCluster
@@ -250,24 +262,24 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   TVector3 world(x,y,z);
   
   /// Get some geometry values
-  double clusPhi = atan2(world[1], world[0]);	  
-  double radius = sqrt(x*x + y*y);
-  double rClusPhi = radius * clusPhi;
-  double zTpc = world[2];
+  const double clusPhi = atan2(world[1], world[0]);	  
+  const double radius = sqrt(x*x + y*y);
+  const double rClusPhi = radius * clusPhi;
+  const double zTpc = world[2];
   
-  unsigned int layer = TrkrDefs::getLayer(clusKey);
-  unsigned int sectorId = TpcDefs::getSectorId(clusKey);
-  unsigned int side = TpcDefs::getSide(clusKey);
+  const unsigned int layer = TrkrDefs::getLayer(clusKey);
+  const unsigned int sectorId = TpcDefs::getSectorId(clusKey);
+  const unsigned int side = TpcDefs::getSide(clusKey);
   
-  double modulePhiLow = m_modulePhiStart + (double) sectorId * m_moduleStepPhi;
+  const double modulePhiLow = m_modulePhiStart + (double) sectorId * m_moduleStepPhi;
   
-  unsigned int iPhi = (clusPhi - modulePhiLow) / m_surfStepPhi;
-  unsigned int iZ = fabs(zTpc) / m_surfStepZ;
-  unsigned int iPhiZ = iPhi + 100. * iZ; /// for making a map key
+  const unsigned int iPhi = (clusPhi - modulePhiLow) / m_surfStepPhi;
+  const unsigned int iZ = fabs(zTpc) / m_surfStepZ;
+  const unsigned int iPhiZ = iPhi + 100. * iZ; /// for making a map key
   
   if(Verbosity() > 0)
     {
-      double checkSurfRphiCenter = radius * (modulePhiLow + (double) iPhi * m_surfStepPhi + m_surfStepPhi / 2.0);
+      const double checkSurfRphiCenter = radius * (modulePhiLow + (double) iPhi * m_surfStepPhi + m_surfStepPhi / 2.0);
       double checkSurfZCenter = (double) iZ * m_surfStepZ + m_surfStepZ / 2.0;
       if(side == 0) 
 	checkSurfZCenter = - checkSurfZCenter;
@@ -285,13 +297,12 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   
   
   /// Get the surface key to find the surface from the map
-  TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(layer, sectorId, 
+  const TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(layer, sectorId, 
 						  side, iPhiZ);
-  std::map<TrkrDefs::cluskey, 
-	   Surface>::iterator surfIter;
+  std::map<TrkrDefs::cluskey, Surface>::iterator surfIter;
   
-  surfIter = m_clusterSurfaceMapTpc.find(surfkey);  
-  if(surfIter == m_clusterSurfaceMapTpc.end())
+  surfIter = m_clusterSurfaceMapTpc->find(surfkey);  
+  if(surfIter == m_clusterSurfaceMapTpc->end())
     {
       std::cout << PHWHERE << "Failed to find surface, should be impossible!" << std::endl;
       return nullptr;
@@ -304,17 +315,15 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
 
 Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
 					      TMatrixD &localErr,
-					      TrkrCluster *cluster,
-					      TrkrDefs::cluskey clusKey)
+					      const TrkrCluster *cluster,
+					      const TrkrDefs::cluskey clusKey)
 {
-  TGeoNode *sensorNode;
-  Surface surface;
+  
   TVector3 local(0,0,0);
-  TrkrDefs::hitsetkey hitSetKey;
 
-  float x = cluster->getPosition(0);
-  float y = cluster->getPosition(1);
-  float z = cluster->getPosition(2);
+  const float x = cluster->getPosition(0);
+  const float y = cluster->getPosition(1);
+  const float z = cluster->getPosition(2);
   
   // In local coords the covariances are in the  r*phi vs z frame
   // They have been rotated into global coordinates in TrkrCluster
@@ -328,17 +337,17 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
     }
   
   /// Extract detector element IDs to access the correct Surface
-  TVector3 world(x,y,z);
+  const TVector3 world(x,y,z);
   
   /// Get the INTT geometry
-  unsigned int ladderZId = InttDefs::getLadderZId(clusKey);
-  unsigned int ladderPhiId = InttDefs::getLadderPhiId(clusKey);
-  unsigned int layer = TrkrDefs::getLayer(clusKey);
+  const unsigned int ladderZId = InttDefs::getLadderZId(clusKey);
+  const unsigned int ladderPhiId = InttDefs::getLadderPhiId(clusKey);
+  const unsigned int layer = TrkrDefs::getLayer(clusKey);
       
-  hitSetKey = InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
+  const TrkrDefs::hitsetkey hitSetKey = InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
   
   /// Get the TGeoNode
-  sensorNode = getNodeFromClusterMap(hitSetKey);
+  const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
   
   if(!sensorNode)
     {
@@ -350,7 +359,7 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
     }
   
   /// Now we have the geo node, so find the corresponding Acts::Surface	
-  surface = getSurfaceFromClusterMap(hitSetKey);
+  Surface surface = getSurfaceFromClusterMap(hitSetKey);
   if(!surface)
     {
       std::cout << PHWHERE 
@@ -360,7 +369,8 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
     }
   
   // transform position back to local coords on sensor
-  CylinderGeomIntt *layerGeom = dynamic_cast<CylinderGeomIntt*>(m_geomContainerIntt->GetLayerGeom(layer));
+  CylinderGeomIntt *layerGeom = 
+    dynamic_cast<CylinderGeomIntt*>(m_geomContainerIntt->GetLayerGeom(layer));
   local = layerGeom->get_local_from_world_coords(ladderZId, 
 						 ladderPhiId, 
 						 world);
@@ -382,22 +392,20 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   /// Get the local covariance error
   localErr = getInttCovarLocal(layer, ladderZId, ladderPhiId, worldErr);
   
-  
   return surface;
 }
 
 
 Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2], 
 					      TMatrixD &localErr,
-					      TrkrCluster *cluster, 
-					      TrkrDefs::cluskey clusKey)
+					      const TrkrCluster *cluster, 
+					      const TrkrDefs::cluskey clusKey)
 {
-  TGeoNode *sensorNode;
-  Surface surface;
   TVector3 local(0,0,0);
-  float x = cluster->getPosition(0);
-  float y = cluster->getPosition(1);
-  float z = cluster->getPosition(2);
+ 
+  const float x = cluster->getPosition(0);
+  const float y = cluster->getPosition(1);
+  const float z = cluster->getPosition(2);
   
   // In local coords the covariances are in the  r*phi vs z frame
   // They have been rotated into global coordinates in TrkrCluster
@@ -411,14 +419,13 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
     }
   
   /// Extract detector element IDs to access the correct Surface
-  TVector3 world(x,y,z);
+  const TVector3 world(x,y,z);
   
   /// Get the Mvtx geometry
-  unsigned int staveId = MvtxDefs::getStaveId(clusKey);
-  unsigned int chipId = MvtxDefs::getChipId(clusKey);
-  unsigned int layer = TrkrDefs::getLayer(clusKey);
-  TrkrDefs::hitsetkey hitSetKey;
-  
+  const unsigned int staveId = MvtxDefs::getStaveId(clusKey);
+  const unsigned int chipId = MvtxDefs::getChipId(clusKey);
+  const unsigned int layer = TrkrDefs::getLayer(clusKey);
+ 
   if(Verbosity() > 10)
     {
       std::cout << "MVTX cluster with stave id: " << staveId
@@ -426,10 +433,12 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
     }
   
   /// Generate the hitsetkey
-  hitSetKey = MvtxDefs::genHitSetKey(layer, staveId, chipId);
+  TrkrDefs::hitsetkey hitSetKey = MvtxDefs::genHitSetKey(layer, 
+							 staveId, 
+							 chipId);
   
   /// Get the TGeoNode
-  sensorNode = getNodeFromClusterMap(hitSetKey);
+  const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
   
   if(!sensorNode)
     {
@@ -441,7 +450,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
     }
   
   /// Now we have the geo node, so find the corresponding Acts::Surface	
-  surface = getSurfaceFromClusterMap(hitSetKey);
+  Surface surface = getSurfaceFromClusterMap(hitSetKey);
   if(!surface)
     {
       std::cout << PHWHERE 
@@ -476,7 +485,7 @@ Surface PHActsSourceLinks::getMvtxLocalCoords(double (&local2D)[2],
 
 
 
-int PHActsSourceLinks::GetNodes(PHCompositeNode *topNode)
+int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 {
 
   m_clusterMap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
@@ -499,6 +508,18 @@ int PHActsSourceLinks::GetNodes(PHCompositeNode *topNode)
 		<< std::endl;
 
       return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_clusterSurfaceMapTpc = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "clusterSurfaceTpcMapName");
+
+  if( !m_clusterSurfaceMapTpc )
+    {
+      std::cout << PHWHERE 
+		<< "clusterSurfaceTpcMapName node not found on node tree. Exiting"
+		<< std::endl;
+      
+      return Fun4AllReturnCodes::ABORTEVENT;
+
     }
 
   m_clusterSurfaceMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, Surface>>(topNode, "clusterSurfaceMapName");
@@ -528,7 +549,7 @@ int PHActsSourceLinks::GetNodes(PHCompositeNode *topNode)
     {
       std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" 
 		<< std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
 
   m_geomContainerIntt = findNode::getClass<
@@ -546,24 +567,24 @@ int PHActsSourceLinks::GetNodes(PHCompositeNode *topNode)
 }
 
 
-void PHActsSourceLinks::createNodeTree(PHCompositeNode *topNode)
+void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
 {
   
   PHNodeIterator iter(topNode);
 
   /// Get the DST Node
-  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "DST"));
 
   /// Check that it is there
   if ( !dstNode )
     {
       std::cerr << "DST Node missing, quitting" << std::endl;
-      throw std::runtime_error("failed to find DST node in PHActsSourceLinks::CreateNodeTree");
+      throw std::runtime_error("failed to find DST node in PHActsSourceLinks::createNodes");
     }
   
   
   /// Get the tracking subnode
-  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode*>(iter.findFirst("PHCompositeNode", "SVTX"));
   
   /// Check that it is there
   if ( !svtxNode )
@@ -586,18 +607,17 @@ void PHActsSourceLinks::createNodeTree(PHCompositeNode *topNode)
     }
 
   /// Do the same for the SourceLink container
-  m_sourceLinks = findNode::getClass<FW::TrkrClusterSourceLinkContainer>(topNode,"TrkrClusterSourceLinks");
+  m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode,"TrkrClusterSourceLinks");
 
   if( !m_sourceLinks )
     {
-      m_sourceLinks = new FW::TrkrClusterSourceLinkContainer();
-      PHDataNode<FW::TrkrClusterSourceLinkContainer> *sourceLinkNode = 
-	new PHDataNode<FW::TrkrClusterSourceLinkContainer>(m_sourceLinks,
-						      "TrkrClusterSourceLinks");
+      m_sourceLinks = new std::map<unsigned int, SourceLink>;
+      PHDataNode<std::map<unsigned int, SourceLink>>
+	*sourceLinkNode = new PHDataNode<std::map<unsigned int, SourceLink>>
+	(m_sourceLinks, "TrkrClusterSourceLinks");
+      
       svtxNode->addNode(sourceLinkNode);
     }
-  
-
 
   return;
 }
@@ -661,7 +681,6 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
     }
 
   return surface;
-
 }
 
 
@@ -697,35 +716,6 @@ TMatrixD PHActsSourceLinks::getMvtxCovarLocal(const unsigned int layer, const un
 }
 
 
-TMatrixD PHActsSourceLinks::transformCovarToLocal(const double ladderPhi, 
-						TMatrixD worldErr)
-{
-  TMatrixD localErr(3,3);
-  
-  // this is the matrix that was used to rotate from local to global coords 
-  TMatrixD ROT(3, 3);
-  ROT[0][0] = cos(ladderPhi);
-  ROT[0][1] = -1.0 * sin(ladderPhi);
-  ROT[0][2] = 0.0;
-  ROT[1][0] = sin(ladderPhi);
-  ROT[1][1] = cos(ladderPhi);
-  ROT[1][2] = 0.0;
-  ROT[2][0] = 0.0; 
-  ROT[2][1] = 0.0;
-  ROT[2][2] = 1.0;
-  // we want the inverse rotation
-  ROT.Invert();
-  
-  TMatrixD ROT_T(3, 3);
-  ROT_T.Transpose(ROT);
-  
-  localErr = ROT * worldErr * ROT_T;
-
-  return localErr;
-
-}
-
-
 TMatrixD PHActsSourceLinks::getInttCovarLocal(const unsigned int layer, const unsigned int ladderZId, const unsigned int ladderPhiId, TMatrixD worldErr)
 {
   TMatrixD localErr(3,3);
@@ -752,4 +742,33 @@ TMatrixD PHActsSourceLinks::getInttCovarLocal(const unsigned int layer, const un
 	}
     }
   return localErr;
+}
+
+
+TMatrixD PHActsSourceLinks::transformCovarToLocal(const double ladderPhi, 
+						TMatrixD worldErr)
+{
+  TMatrixD localErr(3,3);
+  
+  // this is the matrix that was used to rotate from local to global coords 
+  TMatrixD ROT(3, 3);
+  ROT[0][0] = cos(ladderPhi);
+  ROT[0][1] = -1.0 * sin(ladderPhi);
+  ROT[0][2] = 0.0;
+  ROT[1][0] = sin(ladderPhi);
+  ROT[1][1] = cos(ladderPhi);
+  ROT[1][2] = 0.0;
+  ROT[2][0] = 0.0; 
+  ROT[2][1] = 0.0;
+  ROT[2][2] = 1.0;
+  // we want the inverse rotation
+  ROT.Invert();
+  
+  TMatrixD ROT_T(3, 3);
+  ROT_T.Transpose(ROT);
+  
+  localErr = ROT * worldErr * ROT_T;
+
+  return localErr;
+
 }

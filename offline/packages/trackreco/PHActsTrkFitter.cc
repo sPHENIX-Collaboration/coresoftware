@@ -34,7 +34,7 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-#include <Acts/Geometry/GeometryContext.hpp>
+
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingVolume.hpp>
@@ -1143,6 +1143,7 @@ int PHActsTrkFitter::Process()
  * Helper function that puts together the acts covariance matrix from the
  * SvtxTrack covariance matrix
  */
+
 Acts::BoundSymMatrix PHActsTrkFitter::getActsCovMatrix(SvtxTrack *track)
 {
   Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();

@@ -35,6 +35,7 @@ pkginclude_HEADERS = \
   PHGenFitTrackProjection.h \
   PHGenFitTrkFitter.h \
   PHActsSourceLinks.h \
+  PHActsTracks.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -107,7 +108,8 @@ libtrack_reco_io_la_SOURCES = \
 if MAKE_ACTS
 ACTS_SOURCES = \
   PHActsTrkFitter.cc \
-  PHActsSourceLinks.cc
+  PHActsSourceLinks.cc \
+  PHActsTracks.cc
 
 ACTS_LIBS = \
   -lACTFramework \
