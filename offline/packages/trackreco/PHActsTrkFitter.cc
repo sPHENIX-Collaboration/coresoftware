@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+
 #include <trackbase/TrkrCluster.h>                  // for TrkrCluster
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase/TrkrDefs.h>
@@ -34,7 +34,6 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingVolume.hpp>
@@ -42,6 +41,7 @@
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
+
 #include <ACTFW/Detector/IBaseDetector.hpp>
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
@@ -51,7 +51,7 @@
 #include <ACTFW/Geometry/CommonGeometry.hpp>
 #include <ACTFW/Options/CommonOptions.hpp>
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
-
+#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ACTFW/Utilities/Options.hpp>
 
 
