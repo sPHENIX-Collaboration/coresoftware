@@ -86,11 +86,20 @@ return SurfStepPhi;
 return ModuleStepPhi;
 }
 
-	  double getModulePhiStart()
-	  {
+	    double getModulePhiStart()
+	    {
 return ModulePhiStart;
 }
 
+	      Acts::GeometryContext  getGeoContext()
+	      {
+return geo_ctxt;
+}
+
+		std::vector<std::shared_ptr<FW::IContextDecorator> > getContextDecorators()
+		{
+return contextDecorators;
+}
 
 
   //Flags of different kinds of outputs

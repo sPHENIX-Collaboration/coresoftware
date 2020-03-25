@@ -109,7 +109,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode *topNode)
   SurfStepZ = acts_geo->getSurfStepZ();
   SurfStepPhi = acts_geo->getSurfStepPhi();
   ModulePhiStart = acts_geo->getModulePhiStart();
-  ModuleStepPhi = acts_geo->getModuleStepPhi();
+ModuleStepPhi = acts_geo->getModuleStepPhi();
+
+geo_ctxt = acts_geo->getGeoContext();
+contextDecorators = acts_geo->getContextDecorators();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -476,13 +479,14 @@ int PHActsTrkFitter::Process()
 					  context.magFieldContext,
 					  context.calibContext,
 					  &(*pSurface));
+
       
 
       /// Run the fitter
       auto result = fitCfg.fit(trackSourceLinks, trackSeed, kfOptions);
 
 
-      /*            
+
       /// Check that the result is okay
       if(result.ok()) {
 	const auto& fitOutput = result.value();
@@ -497,7 +501,6 @@ int PHActsTrkFitter::Process()
 	  }
 
 	}
-      */
 
 
       /// Add a new track to a container to put on the node tree
