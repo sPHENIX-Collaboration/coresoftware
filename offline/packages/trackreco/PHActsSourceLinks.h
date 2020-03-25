@@ -5,17 +5,17 @@
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
-#include <string>
+#include <TMatrixDfwd.h>
 #include <map>
+#include <string>
 #include <vector>
-#include <TMatrixDfwd.h>  
 
 /// Acts includes to create all necessary definitions
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>                    
-#include <Acts/Utilities/Logger.hpp>   
-#include <ACTFW/EventData/Track.hpp>       
+#include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 class PHCompositeNode;
 class TrkrClusterContainer;
@@ -24,12 +24,14 @@ class TGeoNode;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 
-namespace FW {
-  class IBaseDetector;
+namespace FW
+{
+class IBaseDetector;
 }
 
-namespace Acts {
-  class Surface;
+namespace Acts
+{
+class Surface;
 }
 
 using Surface = std::shared_ptr<const Acts::Surface>;
@@ -45,10 +47,9 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
  */
 class PHActsSourceLinks : public SubsysReco
 {
-
  public:
-   /// Default constructor
-   PHActsSourceLinks(const std::string& name = "PHActsSourceLinks");
+  /// Default constructor
+  PHActsSourceLinks(const std::string &name = "PHActsSourceLinks");
 
   /// Destructor
   virtual ~PHActsSourceLinks() {}
@@ -60,55 +61,54 @@ class PHActsSourceLinks : public SubsysReco
   int process_event(PHCompositeNode *topNode);
 
  private:
-
   /**
    * Functions
    */
-   /// Create sourceLink related nodes on tree if they don't yet exist
+  /// Create sourceLink related nodes on tree if they don't yet exist
   void createNodes(PHCompositeNode *topNode);
 
-   /// Function to get necessary nodes off node tree
+  /// Function to get necessary nodes off node tree
   int getNodes(PHCompositeNode *topNode);
 
   /// Get a TGeoNode from the m_clusterNodeMap
-  TGeoNode* getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
+  TGeoNode *getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
 
   /// Get a Surface from the m_surfaceNodeMap;
   Surface getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKey);
 
-  /// Get the local covariance matrix for the Mvtx cluster in a form Acts 
+  /// Get the local covariance matrix for the Mvtx cluster in a form Acts
   /// can accept
-  TMatrixD getMvtxCovarLocal(const unsigned int layer, 
-			     const unsigned int staveid, 
-			     const unsigned int chipid, 
-			     TMatrixD world_err);
+  TMatrixD getMvtxCovarLocal(const unsigned int layer,
+                             const unsigned int staveid,
+                             const unsigned int chipid,
+                             TMatrixD world_err);
 
-  /// Get the local covariance matrix for the Intt cluster in a form Acts 
+  /// Get the local covariance matrix for the Intt cluster in a form Acts
   /// can accept
   TMatrixD getInttCovarLocal(const unsigned int layer,
-  			     const unsigned int ladderZId, 
-  			     const unsigned int ladderPhiId,
-			     TMatrixD worldErr);
+                             const unsigned int ladderZId,
+                             const unsigned int ladderPhiId,
+                             TMatrixD worldErr);
 
   /// Transform the covariance to the local coordinate frame
   TMatrixD transformCovarToLocal(const double ladderPhi, TMatrixD worldErr);
-  
+
   /// Function which returns MVTX local coordinates and error, as well as
   /// corresponding surface
-  Surface getMvtxLocalCoords(double (&local2D)[2], TMatrixD &localErr, 
-			    const TrkrCluster *cluster, 
-			     const TrkrDefs::cluskey clusKey);
+  Surface getMvtxLocalCoords(double (&local2D)[2], TMatrixD &localErr,
+                             const TrkrCluster *cluster,
+                             const TrkrDefs::cluskey clusKey);
 
   /// Same as above, except for INTT
   Surface getInttLocalCoords(double (&local2D)[2], TMatrixD &localErr,
-			     const TrkrCluster *cluster, 
-			     const TrkrDefs::cluskey clusKey);
+                             const TrkrCluster *cluster,
+                             const TrkrDefs::cluskey clusKey);
 
   /// Same as above, except for TPC
   Surface getTpcLocalCoords(double (&local2D)[2], TMatrixD &localErr,
-			    const TrkrCluster *cluster, 
-			    const TrkrDefs::cluskey clusKey);
-  
+                            const TrkrCluster *cluster,
+                            const TrkrDefs::cluskey clusKey);
+
   /**
    * Member variables
    */
@@ -124,7 +124,7 @@ class PHActsSourceLinks : public SubsysReco
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
   /// Map relating hit set keys to TGeoNodes
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> *m_clusterNodeMap;
+  std::map<TrkrDefs::hitsetkey, TGeoNode *> *m_clusterNodeMap;
 
   /// Map relating hit set keys to Acts::Surfaces
   std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
@@ -136,7 +136,6 @@ class PHActsSourceLinks : public SubsysReco
   PHG4CylinderGeomContainer *m_geomContainerMvtx;
   PHG4CylinderGeomContainer *m_geomContainerIntt;
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
-
 
   /// TPC surface subdivisions. These will come from the ActsGeometry helper class once it is finished
   /// These don't change, we are building the tpc this way!
@@ -152,8 +151,6 @@ class PHActsSourceLinks : public SubsysReco
   double m_surfStepZ;
   double m_moduleStepPhi;
   double m_modulePhiStart;
-
-
 };
 
 #endif

@@ -2,21 +2,20 @@
 #ifndef TRACKRECO_PHACTSTRACKS_H
 #define TRACKRECO_PHACTSTRACKS_H
 
-
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
 /// Acts includes to create all necessary definitions
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>                    
-#include <Acts/Utilities/Logger.hpp>   
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/Logger.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
 
 class PHCompositeNode;
@@ -36,17 +35,18 @@ struct ActsTrack
 {
   /// Default constructor. There is not a no argument constructor
   /// as source links don't have a no argument constructor
-ActsTrack(FW::TrackParameters seed, std::vector<SourceLink> links) :
-  trackSeed(seed), sourceLinks(links) {}
+  ActsTrack(FW::TrackParameters seed, std::vector<SourceLink> links)
+    : trackSeed(seed)
+    , sourceLinks(links)
+  {
+  }
 
   /// The acts track parameters for this track
   FW::TrackParameters trackSeed;
-  
+
   /// The corresponding source links that are associated to the above track
   std::vector<SourceLink> sourceLinks;
 };
-
-
 
 /**
  * This class is responsible for taking SvtxTracks and converting them to track
@@ -57,10 +57,9 @@ ActsTrack(FW::TrackParameters seed, std::vector<SourceLink> links) :
  */
 class PHActsTracks : public SubsysReco
 {
-
  public:
   /// Default constructor and destructor
-  PHActsTracks(const std::string& name = "PHActsTracks");
+  PHActsTracks(const std::string &name = "PHActsTracks");
   virtual ~PHActsTracks() {}
 
   /// Inherited SubsysReco functions
@@ -68,17 +67,15 @@ class PHActsTracks : public SubsysReco
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
-  
-  
+
  private:
-  
   /** 
    * Member functions
    */
 
   /// Create track seed node if it doesn't exist yet
   void createNodes(PHCompositeNode *topNode);
-  
+
   /// Get nodes off node tree needed to execute module
   int getNodes(PHCompositeNode *topNode);
 
@@ -103,9 +100,6 @@ class PHActsTracks : public SubsysReco
 
   /// Map of hitid:SourceLinks created in PHActsSourceLinks
   std::map<unsigned int, SourceLink> *m_sourceLinks;
-
 };
-
-
 
 #endif
