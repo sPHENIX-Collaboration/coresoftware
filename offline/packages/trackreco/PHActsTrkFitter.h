@@ -19,7 +19,6 @@
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
-
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
 #include <map>
@@ -83,20 +82,11 @@ class PHActsTrkFitter : public PHTrackFitting
 
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
-  void BuildSiliconLayers();
-  void BuildTpcSurfaceMap();
-  void isActive(TGeoNode *gnode);
-  void MakeTGeoNodeMap(PHCompositeNode*);
-  void getInttKeyFromNode(TGeoNode *gnode);
-  void getMvtxKeyFromNode(TGeoNode *gnode);
-  int MakeActsGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
+
   TMatrixD GetMvtxCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
   TMatrixD GetInttCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
-TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
-  TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
-  TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world);
+  TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
   Acts::BoundSymMatrix getActsCovMatrix(SvtxTrack *track);
-
 
   PHG4CylinderGeomContainer* _geom_container_mvtx;
   PHG4CylinderGeomContainer* _geom_container_intt;
@@ -113,15 +103,11 @@ TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
 
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map;
+  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map_silicon;
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
   std::map<unsigned int, FW::Data::TrkrClusterSourceLink> hitidSourceLink;
 
   // TPC surface subdivisions
-  double MinSurfZ;
-  double MaxSurfZ;
-  unsigned int NSurfZ;
-  unsigned int NSurfPhi;
   double SurfStepPhi;
   double SurfStepZ;
   double ModuleStepPhi;
