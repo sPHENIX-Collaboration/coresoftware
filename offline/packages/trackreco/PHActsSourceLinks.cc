@@ -48,9 +48,6 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_clusterMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
-  //, m_clusterNodeMap(nullptr)
-  //, m_clusterSurfaceMap(nullptr)
-  //, m_clusterSurfaceMapTpc(nullptr)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
@@ -58,6 +55,10 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_maxSurfZ(0.0)
   , m_nSurfZ(0)
   , m_nSurfPhi(0)
+  , m_surfStepPhi(0.0)
+  , m_surfStepZ(0.0)
+  , m_moduleStepPhi(0.0)
+  , m_modulePhiStart(0.0)
 {
   Verbosity(0);
 }
@@ -544,41 +545,7 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-  /*
-  m_clusterNodeMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, TGeoNode *>>(topNode, "ClusterNodeMapName");
-
-  if (!m_clusterNodeMap)
-  {
-    std::cout << PHWHERE
-              << "ClusterNodeMapName node not found on node tree. Exiting."
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  
-  m_clusterSurfaceMapTpc = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "clusterSurfaceTpcMapName");
-
-  if (!m_clusterSurfaceMapTpc)
-  {
-    std::cout << PHWHERE
-              << "clusterSurfaceTpcMapName node not found on node tree. Exiting"
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_clusterSurfaceMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, Surface>>(topNode, "clusterSurfaceMapName");
-
-  if (!m_clusterSurfaceMap)
-  {
-    std::cout << PHWHERE
-              << "clusterSurfaceMapName node not found on node tree. Exiting."
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-  */
+ 
   m_geomContainerMvtx = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!m_geomContainerMvtx)
