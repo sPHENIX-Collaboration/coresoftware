@@ -20,6 +20,7 @@ class PHG4TpcPadPlane;
 class PHCompositeNode;
 class TH1;
 class TNtuple;
+class TFile;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
 
@@ -48,6 +49,7 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   PHG4TpcPadPlane *padplane;
   TH1 *dlong;
   TH1 *dtrans;
+  TFile *m_outf;
   TNtuple *nt;
   TNtuple *nthit;
   TNtuple *ntfinalhit;
