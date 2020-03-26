@@ -16,7 +16,6 @@
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
 
-//#include "ActsFittingAlgorithm.h"
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 
 #include <map>
@@ -57,58 +56,62 @@ class MakeActsGeometry
     _verbosity = verbosity;
   }
 
-std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> getSurfaceMapSilicon()
-{
-return _cluster_surface_map_silicon;
-}
+  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> getSurfaceMapSilicon()
+    {
+      return _cluster_surface_map_silicon;
+    }
   
   std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> getSurfaceMapTpc()
-  {
-return _cluster_surface_map_tpc;
-}
-
-    std::map<TrkrDefs::hitsetkey, TGeoNode*> getNodeMap()
     {
-return _cluster_node_map;
-}
-
-      double getSurfStepZ()
-      {
-return SurfStepZ;
-}
-	double getSurfStepPhi()
-	{
-return SurfStepPhi;
-}
-
-	  double getModuleStepPhi()
-	  {
-return ModuleStepPhi;
-}
-
-	    double getModulePhiStart()
-	    {
-return ModulePhiStart;
-}
-
-	      Acts::GeometryContext  getGeoContext()
-	      {
-return geo_ctxt;
-}
-
-		std::vector<std::shared_ptr<FW::IContextDecorator> > getContextDecorators()
-		{
-return contextDecorators;
-}
-
-
+      return _cluster_surface_map_tpc;
+    }
+  
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> getNodeMap()
+    {
+      return _cluster_node_map;
+    }
+  
+  double getSurfStepZ()
+  {
+    return SurfStepZ;
+  }
+  double getSurfStepPhi()
+  {
+    return SurfStepPhi;
+  }
+  
+  double getModuleStepPhi()
+  {
+    return ModuleStepPhi;
+  }
+  
+  double getModulePhiStart()
+  {
+    return ModulePhiStart;
+  }
+  
+  Acts::GeometryContext  getGeoContext()
+    {
+      return geo_ctxt;
+    }
+  
+  std::vector<std::shared_ptr<FW::IContextDecorator> > getContextDecorators()
+    {
+      return contextDecorators;
+    }
+  
+  double getMinSurfZ() { return MinSurfZ; }
+  double getMaxSurfZ() { return MaxSurfZ; }
+  double getNSurfZ() { return NSurfZ; }
+  double getNSurfPhi() { return NSurfPhi; }
+  
   //Flags of different kinds of outputs
   enum Flag
   {
     //all disabled
     NONE = 0,
   };
-
+  
   FW::TrkrClusterFittingAlgorithm::Config getFitCfg()
     {
       return fitCfg;
@@ -117,13 +120,13 @@ return contextDecorators;
  private:
 
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
-
+  
   //! Get all the nodes
   int GetNodes(PHCompositeNode*);
-
+  
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
-
+  
   // silicon layers made by BuildSiliconLayers and its helper functions
   void BuildSiliconLayers();
   int MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetector& detector);

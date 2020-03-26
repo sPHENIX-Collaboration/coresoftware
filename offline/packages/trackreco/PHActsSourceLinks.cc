@@ -1,5 +1,6 @@
 /// See header file for comments on class, functions, member variables
 #include "PHActsSourceLinks.h"
+#include "MakeActsGeometry.h"
 
 /// Tracking includes
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -47,25 +48,18 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_clusterMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
-  , m_clusterNodeMap(nullptr)
-  , m_clusterSurfaceMap(nullptr)
-  , m_clusterSurfaceMapTpc(nullptr)
+  //, m_clusterNodeMap(nullptr)
+  //, m_clusterSurfaceMap(nullptr)
+  //, m_clusterSurfaceMapTpc(nullptr)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
-  , m_minSurfZ(0.0)
-  , m_maxSurfZ(110.)
-  , m_nSurfZ(11)
-  , m_nSurfPhi(10)
+  , m_minSurfZ(0.0) /// Initialize these to 0, get from MakeActsGeometry
+  , m_maxSurfZ(0.0)
+  , m_nSurfZ(0)
+  , m_nSurfPhi(0)
 {
   Verbosity(0);
-
-  /// These are arbitrary subdivisions, and may change. Will get from
-  /// MakeActsGeometry once finished
-  m_surfStepZ = (m_maxSurfZ - m_minSurfZ) / (double) m_nSurfZ;
-  m_moduleStepPhi = 2.0 * M_PI / 12.0;
-  m_modulePhiStart = -M_PI;
-  m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
 }
 
 int PHActsSourceLinks::Init(PHCompositeNode *topNode)
@@ -75,20 +69,46 @@ int PHActsSourceLinks::Init(PHCompositeNode *topNode)
 
 int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 {
-  /// Check if Acts geometry has been built and is on the node tree
 
-  /// Check and create nodes that this module will build
-  createNodes(topNode);
+   if(Verbosity() > 10) 
+    {
+      std::cout << "Starting PHActsSourceLinks::InitRun" << std::endl;
+    }
 
-  return Fun4AllReturnCodes::EVENT_OK;
+   /// Check if Acts geometry has been built and is on the node tree
+   MakeActsGeometry *actsGeometry = new MakeActsGeometry();
+   actsGeometry->BuildAllGeometry(topNode);
+   
+   m_minSurfZ = actsGeometry->getMinSurfZ();
+   m_maxSurfZ = actsGeometry->getMaxSurfZ();
+   m_nSurfZ   = actsGeometry->getNSurfZ();
+   m_nSurfPhi = actsGeometry->getNSurfPhi();
+   
+   /// These are arbitrary TPC Surface subdivisions, set in MakeActsGeometry
+   m_surfStepZ = actsGeometry->getSurfStepZ();
+   m_moduleStepPhi = actsGeometry->getModuleStepPhi();
+   m_modulePhiStart = actsGeometry->getModulePhiStart();
+   m_surfStepPhi = actsGeometry->getSurfStepPhi();
+   
+   m_clusterNodeMap = actsGeometry->getNodeMap();
+   m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
+   m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
+   m_geoCtxt = actsGeometry->getGeoContext();
+
+   /// Check and create nodes that this module will build
+   createNodes(topNode);
+   if(Verbosity() > 10)
+     {
+       std::cout << "Finished PHActsSourceLinks::InitRun" << std::endl;
+     }
+   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    // std::cout << PHWHERE << "Events processed: " << event << std::endl;
-    std::cout << "Starting PHActsSourceLinks process_event" << std::endl;
+    std::cout << "Start PHActsSourceLinks process_event" << std::endl;
   }
 
   /// Get the nodes from the node tree
@@ -112,7 +132,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
     m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
-
+   
     /// Local coordinates and surface to be set by the correct tracking
     /// detector function below
     TMatrixD localErr(3, 3);
@@ -209,6 +229,19 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     hitId++;
   }
 
+  if(Verbosity() > 10)
+    {
+      //m_hitIdClusKey
+      std::map<TrkrDefs::cluskey, unsigned int>::iterator it = m_hitIdClusKey->begin();
+      while(it != m_hitIdClusKey->end())
+	{
+	  std::cout << "cluskey " << it->first << " has hitid " << it->second
+		    << std::endl;
+	  ++it;
+	}
+    }
+  
+
   /// Add the data to the nodes that were previously created (?)
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -286,15 +319,45 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
                                                         side, iPhiZ);
   std::map<TrkrDefs::cluskey, Surface>::iterator surfIter;
 
-  surfIter = m_clusterSurfaceMapTpc->find(surfkey);
-  if (surfIter == m_clusterSurfaceMapTpc->end())
+  surfIter = m_clusterSurfaceMapTpc.find(surfkey);
+  if (surfIter == m_clusterSurfaceMapTpc.end())
   {
     std::cout << PHWHERE << "Failed to find surface, should be impossible!" << std::endl;
     return nullptr;
   }
 
   Surface surface = surfIter->second->getSharedPtr();
-
+  
+  /// Transformation of cluster to local surface coords
+  /// Coords are r*phi relative to surface r-phi center, and z 
+  /// relative to surface z center
+  Acts::Vector3D center = surface->center(m_geoCtxt);
+  double surfRphiCenter = atan2(center[1], center[0]) * radius;
+  double surfZCenter = center[2];
+  if(Verbosity() > 0)
+    {
+      std::cout << "surface center readback:   x " << center[0] 
+		<< " y " << center[1] << " phi " 
+		<< atan2(center[1], center[0]) << " z " << center[2] 
+		<< " surf_rphi_center " << surfRphiCenter 
+		<< " surf_z_center " << surfZCenter 
+		<< std::endl;
+    }
+  
+  local2D[0] = rClusPhi - surfRphiCenter;
+  local2D[1] = zTpc - surfZCenter;
+  
+  if(Verbosity() > 0)
+    {
+      std::cout << "r_clusphi " << rClusPhi << " surf_rphi center " 
+		<< surfRphiCenter 
+		<< " ztpc " <<  zTpc  << " surf_z_center " << surfZCenter 
+		<< " local rphi " << local2D[0] << " local z " << local2D[1]
+		<< std::endl;
+    }
+  
+  localErr = transformCovarToLocal(clusPhi, worldErr);
+  
   return surface;
 }
 
@@ -329,7 +392,11 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
 
   const TrkrDefs::hitsetkey hitSetKey = InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
-
+  if(Verbosity() > 10)
+    {
+      std::cout <<  "Intt cluster with ladderzid " << ladderZId 
+		<< " ladderphid " << ladderPhiId << std::endl; 
+    }
   /// Get the TGeoNode
   const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
 
@@ -477,7 +544,7 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  /*
   m_clusterNodeMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, TGeoNode *>>(topNode, "ClusterNodeMapName");
 
   if (!m_clusterNodeMap)
@@ -489,6 +556,7 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
+  
   m_clusterSurfaceMapTpc = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "clusterSurfaceTpcMapName");
 
   if (!m_clusterSurfaceMapTpc)
@@ -510,7 +578,7 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
-
+  */
   m_geomContainerMvtx = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!m_geomContainerMvtx)
@@ -596,11 +664,11 @@ TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey
 {
   /// Get the TGeoNode for this hit set key
   std::map<TrkrDefs::hitsetkey, TGeoNode *>::iterator mapIter;
-  mapIter = m_clusterNodeMap->find(hitSetKey);
+  mapIter = m_clusterNodeMap.find(hitSetKey);
   TGeoNode *sensorNode;
 
   /// Make sure we found it
-  if (mapIter != m_clusterNodeMap->end())
+  if (mapIter != m_clusterNodeMap.end())
   {
     sensorNode = mapIter->second;
     if (Verbosity() > 0)
@@ -628,10 +696,10 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   std::map<TrkrDefs::hitsetkey, Surface>::iterator
       surfaceIter;
 
-  surfaceIter = m_clusterSurfaceMap->find(hitSetKey);
+  surfaceIter = m_clusterSurfaceMap.find(hitSetKey);
 
   /// Check to make sure we found the surface in the map
-  if (surfaceIter != m_clusterSurfaceMap->end())
+  if (surfaceIter != m_clusterSurfaceMap.end())
   {
     surface = surfaceIter->second;
     if (Verbosity() > 0)

@@ -14,6 +14,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/EventData/MeasurementHelpers.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
@@ -125,25 +126,29 @@ class PHActsSourceLinks : public SubsysReco
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
   /// Map relating hit set keys to TGeoNodes
-  std::map<TrkrDefs::hitsetkey, TGeoNode *> *m_clusterNodeMap;
+  std::map<TrkrDefs::hitsetkey, TGeoNode *> m_clusterNodeMap;
 
   /// Map relating hit set keys to Acts::Surfaces
-  std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
+  std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMap;
 
   /// Get the TPC surface cluster map
-  std::map<TrkrDefs::cluskey, Surface> *m_clusterSurfaceMapTpc;
+  std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
+
+  /// The Acts::GeometryContext built by MakeActsGeometry
+  Acts::GeometryContext m_geoCtxt;
 
   /// Tracking geometry objects
   PHG4CylinderGeomContainer *m_geomContainerMvtx;
   PHG4CylinderGeomContainer *m_geomContainerIntt;
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
 
-  /// TPC surface subdivisions. These will come from the ActsGeometry helper class once it is finished
+
   /// These don't change, we are building the tpc this way!
   const unsigned int m_nTpcLayers = 48;
   const unsigned int m_nTpcModulesPerLayer = 12;
   const unsigned int m_nTpcSides = 2;
 
+  /// TPC surface subdivisions. These come from MakeActsGeometry
   double m_minSurfZ;
   double m_maxSurfZ;
   unsigned int m_nSurfZ;
