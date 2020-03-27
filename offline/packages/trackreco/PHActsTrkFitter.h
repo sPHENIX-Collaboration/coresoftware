@@ -15,9 +15,7 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
-#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
-#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
-#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+
 
 #include <TMatrixDfwd.h>                      // for TMatrixD
 
@@ -26,27 +24,16 @@
 #include <string>
 #include <vector>
 
-
-class SvtxTrackMap;
-class PHCompositeNode;
-class PHG4CylinderGeomContainer;
-class PHG4CylinderCellGeomContainer;
-class TrkrClusterContainer;
-class TGeoManager;
-class TGeoNode;
-class SvtxTrack;
-
 namespace FW {
-  class IBaseDetector;
-  class IContextDecorator;
+  namespace Data {
+    class TrkrClusterSourceLink;
+  }
 }
+struct ActsTrack;
+struct FitCfgOptions;
 
-namespace Acts {
-  class Surface;
-  class TrackingGeometry;
-}
+using SourceLink = FW::Data::TrkrClusterSourceLink;
 
-//! \brief		Refit SvtxTracks with Acts.
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
@@ -65,62 +52,24 @@ class PHActsTrkFitter : public PHTrackFitting
 
   int Process();
 
-  //Flags of different kinds of outputs
-  enum Flag
-  {
-    //all disabled
-    NONE = 0,
-  };
+  
 
 
  private:
-  //! Event counter
-  int _event;
+  /// Event counter
+  int m_event;
 
-  //! Get all the nodes
-  int GetNodes(PHCompositeNode*);
+  /// Get all the nodes
+  int getNodes(PHCompositeNode*);
 
-  //!Create New nodes
-  int CreateNodes(PHCompositeNode*);
+  /// Create new nodes
+  int createNodes(PHCompositeNode*);
 
-  TMatrixD GetMvtxCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
-  TMatrixD GetInttCovarLocal(const unsigned int layer, const unsigned int staveid, const unsigned int chipid, TMatrixD world_err);
-  TMatrixD TransformCovarToLocal(const double ladderphi, TMatrixD world_err);
-  Acts::BoundSymMatrix getActsCovMatrix(SvtxTrack *track);
+  /// Vector of acts tracks created by PHActsTracks
+  std::vector<ActsTrack> *m_actsProtoTracks;
 
-  PHG4CylinderGeomContainer* _geom_container_mvtx;
-  PHG4CylinderGeomContainer* _geom_container_intt;
-  PHG4CylinderCellGeomContainer* _geom_container_tpc;
-
-  SvtxTrackMap* _trackmap;
-  TrkrClusterContainer* _clustermap;
-
-  TGeoManager* _geomanager;
-
-  Acts::GeometryContext  geo_ctxt;
-
-  std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators;
-
-  /// Several maps that connect Acts world to sPHENIX G4 world 
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> _cluster_node_map;
-  std::map<TrkrDefs::hitsetkey,std::shared_ptr<const Acts::Surface>> _cluster_surface_map_silicon;
-  std::map<TrkrDefs::cluskey, std::shared_ptr<const Acts::Surface>> _cluster_surface_map_tpc;
-  std::map<unsigned int, FW::Data::TrkrClusterSourceLink> hitidSourceLink;
-
-  // TPC surface subdivisions
-  double SurfStepPhi;
-  double SurfStepZ;
-  double ModuleStepPhi;
-  double ModulePhiStart;
-
-  // these don't change, we are building the tpc this way!
-  const unsigned int NTpcLayers = 48;
-  const unsigned int NTpcModulesPerLayer = 12;
-  const unsigned int NTpcSides = 2;
-
-  Acts::Logging::Level logLevel;
-  // The acts geometry object
-  TGeoDetector detector;
+  /// Options that Acts::Fitter needs to run from MakeActsGeometry
+  FitCfgOptions *m_fitCfgOptions;
 
 };
 
