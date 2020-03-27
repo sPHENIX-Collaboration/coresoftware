@@ -576,8 +576,8 @@ void PHG4TpcElectronDrift::SetDefaultParameters()
 
   // These are purely fudge factors, used to increase the resolution to 150 microns and 500 microns, respectively
   // override them from the macro to get a different resolution
-  set_default_double_param("added_smear_trans", 0.12);  // cm
-  set_default_double_param("added_smear_long", 0.15);   // cm
+  set_default_double_param("added_smear_trans", 0.085);  // cm
+  set_default_double_param("added_smear_long", 0.105);   // cm
 
   return;
 }
