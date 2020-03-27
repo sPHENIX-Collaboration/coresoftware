@@ -19,6 +19,8 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
+
+struct FitCfgOptions;
 class PHCompositeNode;
 class TrkrClusterContainer;
 class TrkrCluster;
@@ -136,6 +138,8 @@ class PHActsSourceLinks : public SubsysReco
 
   /// The Acts::GeometryContext built by MakeActsGeometry
   Acts::GeometryContext m_geoCtxt;
+
+  FitCfgOptions *m_fitCfgOptions;
 
   /// Tracking geometry objects
   PHG4CylinderGeomContainer *m_geomContainerMvtx;

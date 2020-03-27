@@ -95,6 +95,7 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
    m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
    m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
    m_geoCtxt = actsGeometry->getGeoContext();
+   m_fitCfgOptions = actsGeometry->getFitCfgOptions();
 
    /// Check and create nodes that this module will build
    createNodes(topNode);

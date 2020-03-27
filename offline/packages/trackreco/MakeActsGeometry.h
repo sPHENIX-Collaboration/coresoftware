@@ -14,8 +14,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
-#include <Acts/Utilities/CalibrationContext.hpp>
-#include <Acts/MagneticField/MagneticFieldContext.hpp>
+
 
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
@@ -41,7 +40,6 @@ namespace Acts {
   class Surface;
   class TrackingGeometry;
 }
-
 
 
 /**
