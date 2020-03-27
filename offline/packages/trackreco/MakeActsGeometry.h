@@ -13,9 +13,11 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
-#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
+#include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
 
+#include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 
 #include <map>
@@ -39,6 +41,32 @@ namespace Acts {
   class Surface;
   class TrackingGeometry;
 }
+
+
+
+/**
+ * A struct that contains the necessary geometry objects that the fitter
+ * needs in PHActsTrkFitter. To be put on the node tree
+ */
+struct FitCfgOptions 
+{
+  FitCfgOptions(){}
+  FitCfgOptions(FW::TrkrClusterFittingAlgorithm::Config cfg,
+		Acts::CalibrationContext calib,
+		Acts::GeometryContext geo,
+		Acts::MagneticFieldContext magField)
+  : config(cfg) 
+  , calibContext(calib)
+  , geoContext(geo)
+  , magFieldContext(magField)
+  {}
+
+  FW::TrkrClusterFittingAlgorithm::Config config;
+  Acts::CalibrationContext calibContext;
+  Acts::GeometryContext  geoContext;
+  Acts::MagneticFieldContext magFieldContext;
+};
+
 
 class MakeActsGeometry
 {
@@ -117,6 +145,8 @@ class MakeActsGeometry
       return fitCfg;
     }
   
+  FitCfgOptions* getFitCfgOptions() { return m_fitCfgOptions; }
+
  private:
 
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
@@ -168,13 +198,15 @@ class MakeActsGeometry
   // these don't change, we are building the tpc this way!
   const unsigned int NTpcLayers = 48;
   const unsigned int NTpcModulesPerLayer = 12;
-const unsigned int NTpcSides = 2;
+  const unsigned int NTpcSides = 2;
 
 
   Acts::Logging::Level logLevel;
   // The acts geometry object
   TGeoDetector detector;
 
+ 
+  FitCfgOptions *m_fitCfgOptions;
   int _verbosity;
 };
 

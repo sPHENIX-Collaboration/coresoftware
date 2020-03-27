@@ -52,6 +52,9 @@ Create acts geometry (makes (hitsetkey,surface) maps)
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/Utilities/CalibrationContext.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
+
 #include <ACTFW/Detector/IBaseDetector.hpp>
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
@@ -119,8 +122,7 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
   BuildTpcSurfaceMap();
 
-  // Put the surface map on the node tree
-  
+ 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -258,13 +260,14 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration 
-
-
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(tGeometry, 
   						    magneticField,
   						    logLevel);
+  m_fitCfgOptions = new FitCfgOptions(fitCfg, 
+				      context.calibContext,
+				      context.geoContext,
+				      context.magFieldContext);
   
-
 
   // this is not executed because contextDecorators has size 0
   /// Decorate the context
