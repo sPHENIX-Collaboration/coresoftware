@@ -14,10 +14,11 @@
 #include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
-
+#include <Acts/Geometry/TrackingGeometry.hpp>
 
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 
 #include <map>
 #include <memory>                // for shared_ptr
@@ -50,20 +51,25 @@ struct FitCfgOptions
 {
   /// Two constructor options
   FitCfgOptions(){}
-  FitCfgOptions(FW::TrkrClusterFittingAlgorithm::Config cfg,
+  FitCfgOptions(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+	        FW::Options::BFieldVariant mag,
 		Acts::CalibrationContext calib,
 		Acts::GeometryContext geo,
 		Acts::MagneticFieldContext magField)
-  : config(cfg) 
+  : tGeometry(tGeo)
+  , magField (mag)
   , calibContext(calib)
   , geoContext(geo)
   , magFieldContext(magField)
   {}
 
-  /// The fitting configuration which contains the fit algorithm info
-  FW::TrkrClusterFittingAlgorithm::Config config;
+  /// Acts tracking geometry
+  std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
 
-  /// Acts claibration context, grabbed from geometry building
+  /// Acts magnetic field
+  FW::Options::BFieldVariant magField;
+
+  /// Acts calibration context, grabbed from geometry building
   Acts::CalibrationContext calibContext;
   
   /// Acts geometry context, grabbed from geometry building

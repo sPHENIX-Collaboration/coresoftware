@@ -63,9 +63,11 @@ int PHActsTrkFitter::Process()
 
   /// FitCfg created by MakeActsGeometry
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
-  fitCfg = m_fitCfgOptions->config;
-  
-
+              
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction
+    (m_fitCfgOptions->tGeometry, 
+     m_fitCfgOptions->magField,
+     Acts::Logging::VERBOSE);
 
   std::vector<ActsTrack>::iterator trackIter;  
   
@@ -85,14 +87,11 @@ int PHActsTrkFitter::Process()
       Acts::KalmanFitterOptions kfOptions(m_fitCfgOptions->geoContext, 
 					  m_fitCfgOptions->magFieldContext,
 					  m_fitCfgOptions->calibContext,
-					  &(*pSurface));
-
-      
+					  &(*pSurface));    
 
       /// Run the fitter
-      std::cout <<" fitter "<<std::endl;
       auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
-      std::cout <<" didnt finish "<<std::endl;
+
       /// Check that the result is okay
       if(result.ok()) {
 	const auto& fitOutput = result.value();
@@ -100,12 +99,13 @@ int PHActsTrkFitter::Process()
 	  const auto& params = fitOutput.fittedParameters.value();
 	  /// Get position, momentum from params
 	  if(Verbosity() > 10){
-	    std::cout<<"Fitted parameters for track"<<std::endl;
-	    std::cout<<" position : " << params.position().transpose()<<std::endl;
-	    std::cout<<" momentum : " << params.momentum().transpose()<<std::endl;
+	    std::cout << "Fitted parameters for track" << std::endl;
+	    std::cout << " position : " << params.position().transpose()
+		      << std::endl;
+	    std::cout << " momentum : " << params.momentum().transpose()
+		     << std::endl;
 	    }
 	  }
-
 	}
 
 
@@ -121,7 +121,6 @@ int PHActsTrkFitter::Process()
 }
 
 
- 
 int PHActsTrkFitter::End(PHCompositeNode* topNode)
 {
   if(Verbosity() > 10)
@@ -136,13 +135,11 @@ PHActsTrkFitter::~PHActsTrkFitter()
 
 }
 
-
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
   
   return Fun4AllReturnCodes::EVENT_OK;
 }
-
 
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)

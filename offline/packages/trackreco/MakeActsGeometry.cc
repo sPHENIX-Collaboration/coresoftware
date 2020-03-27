@@ -46,7 +46,6 @@ Create acts geometry (makes (hitsetkey,surface) maps)
 
 #include <Acts/Geometry/GeometryContext.hpp>
 #include <Acts/Geometry/GeometryContext.hpp>
-#include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/Geometry/TrackingVolume.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
@@ -60,7 +59,6 @@ Create acts geometry (makes (hitsetkey,surface) maps)
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 #include <ACTFW/Framework/IContextDecorator.hpp>
 #include <ACTFW/Framework/WhiteBoard.hpp>
-#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/Geometry/CommonGeometry.hpp>
 #include <ACTFW/Options/CommonOptions.hpp>
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
@@ -259,12 +257,9 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
   // The geometry context
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
-  // Make a fit configuration 
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(tGeometry, 
-  						    magneticField,
-  						    logLevel);
-  m_fitCfgOptions = new FitCfgOptions(fitCfg, 
+  /// Put the fit configuration options into a struct for the node tree
+  m_fitCfgOptions = new FitCfgOptions(tGeometry,
+				      magneticField,
 				      context.calibContext,
 				      context.geoContext,
 				      context.magFieldContext);
