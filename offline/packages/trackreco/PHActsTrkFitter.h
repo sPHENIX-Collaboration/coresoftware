@@ -10,25 +10,21 @@
 
 #include "PHTrackFitting.h"
 
-#include <trackbase/TrkrDefs.h>
 
 #include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>                       // for Binne...
-#include <Acts/Utilities/Logger.hpp>                            // for getDe...
+#include <Acts/Utilities/BinnedArray.hpp>   
+#include <Acts/Utilities/Logger.hpp> 
 
 
-#include <TMatrixDfwd.h>                      // for TMatrixD
-
-#include <map>
-#include <memory>                // for shared_ptr
+#include <memory>             
 #include <string>
-#include <vector>
 
 namespace FW {
   namespace Data {
     class TrkrClusterSourceLink;
   }
 }
+
 struct ActsTrack;
 struct FitCfgOptions;
 
@@ -38,22 +34,21 @@ class PHActsTrkFitter : public PHTrackFitting
 {
  public:
 
-  //! Default constructor
+  /// Default constructor
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
 
-  //! dtor
+  /// Destructor
   ~PHActsTrkFitter();
 
 
-  //!End, write and close files
+  /// End, write and close files
   int End(PHCompositeNode*);
 
+  /// Get and create nodes
   int Setup(PHCompositeNode* topNode);
 
+  /// Process each event by calling the fitter
   int Process();
-
-  
-
 
  private:
   /// Event counter

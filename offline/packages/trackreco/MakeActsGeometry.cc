@@ -260,6 +260,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   // Make a fit configuration 
+  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(tGeometry, 
   						    magneticField,
   						    logLevel);

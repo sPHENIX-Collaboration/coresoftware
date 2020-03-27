@@ -48,6 +48,7 @@ namespace Acts {
  */
 struct FitCfgOptions 
 {
+  /// Two constructor options
   FitCfgOptions(){}
   FitCfgOptions(FW::TrkrClusterFittingAlgorithm::Config cfg,
 		Acts::CalibrationContext calib,
@@ -59,9 +60,16 @@ struct FitCfgOptions
   , magFieldContext(magField)
   {}
 
+  /// The fitting configuration which contains the fit algorithm info
   FW::TrkrClusterFittingAlgorithm::Config config;
+
+  /// Acts claibration context, grabbed from geometry building
   Acts::CalibrationContext calibContext;
-  Acts::GeometryContext  geoContext;
+  
+  /// Acts geometry context, grabbed from geometry building
+  Acts::GeometryContext geoContext;
+
+  /// Acts magnetic field context, grabbed from geometry building
   Acts::MagneticFieldContext magFieldContext;
 };
 
@@ -137,17 +145,10 @@ class MakeActsGeometry
     //all disabled
     NONE = 0,
   };
-  
-  FW::TrkrClusterFittingAlgorithm::Config getFitCfg()
-    {
-      return fitCfg;
-    }
-  
+    
   FitCfgOptions* getFitCfgOptions() { return m_fitCfgOptions; }
 
  private:
-
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
   
   //! Get all the nodes
   int GetNodes(PHCompositeNode*);
