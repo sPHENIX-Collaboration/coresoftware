@@ -48,6 +48,7 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_clusterMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
+  , m_fitCfgOptions(nullptr)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
@@ -76,6 +77,9 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
       std::cout << "Starting PHActsSourceLinks::InitRun" << std::endl;
     }
 
+   /// Check and create nodes that this module will build
+   createNodes(topNode);
+
    /// Check if Acts geometry has been built and is on the node tree
    MakeActsGeometry *actsGeometry = new MakeActsGeometry();
    actsGeometry->BuildAllGeometry(topNode);
@@ -94,11 +98,9 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
    m_clusterNodeMap = actsGeometry->getNodeMap();
    m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
    m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
-   m_geoCtxt = actsGeometry->getGeoContext();
    m_fitCfgOptions = actsGeometry->getFitCfgOptions();
 
-   /// Check and create nodes that this module will build
-   createNodes(topNode);
+ 
    if(Verbosity() > 10)
      {
        std::cout << "Finished PHActsSourceLinks::InitRun" << std::endl;
@@ -333,7 +335,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z 
   /// relative to surface z center
-  Acts::Vector3D center = surface->center(m_geoCtxt);
+  Acts::Vector3D center = surface->center(m_fitCfgOptions->geoContext);
   double surfRphiCenter = atan2(center[1], center[0]) * radius;
   double surfZCenter = center[2];
   if(Verbosity() > 0)
@@ -612,6 +614,15 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
         new PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>>(m_hitIdClusKey, "HitIDClusIDActsMap");
     svtxNode->addNode(hitMapNode);
   }
+
+  m_fitCfgOptions = findNode::getClass<FitCfgOptions>(topNode, "ActsFitCfg");
+  
+  if(!m_fitCfgOptions)
+    {
+      m_fitCfgOptions = new FitCfgOptions();
+      PHDataNode<FitCfgOptions> *fitNode = new PHDataNode<FitCfgOptions>(m_fitCfgOptions, "ActsFitCfg");
+      svtxNode->addNode(fitNode);
+    }
 
   /// Do the same for the SourceLink container
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");

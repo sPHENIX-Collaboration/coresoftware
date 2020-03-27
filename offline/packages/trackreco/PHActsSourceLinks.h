@@ -136,9 +136,8 @@ class PHActsSourceLinks : public SubsysReco
   /// Get the TPC surface cluster map
   std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
 
-  /// The Acts::GeometryContext built by MakeActsGeometry
-  Acts::GeometryContext m_geoCtxt;
-
+  /// The fit cfg options, created in MakeActsGeometry, to be put on node tree
+  /// for PHActsTrkFitter
   FitCfgOptions *m_fitCfgOptions;
 
   /// Tracking geometry objects
