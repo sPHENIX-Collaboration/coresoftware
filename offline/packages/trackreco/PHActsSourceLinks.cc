@@ -98,7 +98,11 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
    m_clusterNodeMap = actsGeometry->getNodeMap();
    m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
    m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
-   m_fitCfgOptions = actsGeometry->getFitCfgOptions();
+   m_fitCfgOptions->tGeometry = actsGeometry->getTGeometry();
+   m_fitCfgOptions->magField = actsGeometry->getMagField();
+   m_fitCfgOptions->geoContext = actsGeometry->getGeoContext();
+   m_fitCfgOptions->magFieldContext = actsGeometry->getMagFieldContext();
+   m_fitCfgOptions->calibContext = actsGeometry->getCalibContext();
 
  
    if(Verbosity() > 10)

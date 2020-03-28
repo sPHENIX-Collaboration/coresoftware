@@ -237,11 +237,11 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
   // The geometry, material and decoration
   auto geometry          = FW::Geometry::build(vm, detector);
   // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
-  auto tGeometry         = geometry.first;
+  tGeometry         = geometry.first;
   //std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators = geometry.second; 
   contextDecorators = geometry.second; 
 
-  auto magneticField = FW::Options::readBField(vm);
+  magneticField = FW::Options::readBField(vm);
 
   // The detectors
   // "MVTX" and "Silicon"
@@ -264,6 +264,9 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetec
 				      context.geoContext,
 				      context.magFieldContext);
   
+  calibContext = context.calibContext;
+  magFieldContext = context.magFieldContext;
+
 
   // this is not executed because contextDecorators has size 0
   /// Decorate the context

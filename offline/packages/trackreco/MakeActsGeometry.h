@@ -15,6 +15,9 @@
 #include <Acts/Utilities/Logger.hpp>                            // for getDe...
 #include <Acts/EventData/MeasurementHelpers.hpp>  // for GeometryContext
 #include <Acts/Geometry/TrackingGeometry.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
+#include <Acts/Utilities/CalibrationContext.hpp>
+
 
 #include <ACTFW/TGeoDetector/TGeoDetector.hpp>
 #include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
@@ -39,7 +42,6 @@ namespace FW {
 
 namespace Acts {
   class Surface;
-  class TrackingGeometry;
 }
 
 
@@ -154,6 +156,10 @@ class MakeActsGeometry
     
   FitCfgOptions* getFitCfgOptions() { return m_fitCfgOptions; }
 
+  std::shared_ptr<const Acts::TrackingGeometry> getTGeometry(){ return tGeometry;}
+  FW::Options::BFieldVariant getMagField(){ return magneticField;}
+  Acts::MagneticFieldContext getMagFieldContext() { return magFieldContext;}
+  Acts::CalibrationContext getCalibContext() { return calibContext;}
  private:
   
   //! Get all the nodes
@@ -210,7 +216,10 @@ class MakeActsGeometry
   // The acts geometry object
   TGeoDetector detector;
 
- 
+  std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
+  FW::Options::BFieldVariant magneticField;
+  Acts::CalibrationContext calibContext;
+  Acts::MagneticFieldContext magFieldContext;
   FitCfgOptions *m_fitCfgOptions;
   int _verbosity;
 };

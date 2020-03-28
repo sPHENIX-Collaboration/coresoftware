@@ -108,10 +108,10 @@ libtrack_reco_io_la_SOURCES = \
 
 if MAKE_ACTS
 ACTS_SOURCES = \
-  PHActsTrkFitter.cc \
+  MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
-  MakeActsGeometry.cc 
+  PHActsTrkFitter.cc
 
 ACTS_LIBS = \
   -lACTFramework \
