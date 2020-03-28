@@ -10,20 +10,20 @@
 
 #include "PHTrackFitting.h"
 
-
+#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>   
-#include <Acts/Utilities/Logger.hpp> 
+#include <Acts/Utilities/Logger.hpp>
 
-
-#include <memory>             
+#include <memory>
 #include <string>
 
-namespace FW {
-  namespace Data {
-    class TrkrClusterSourceLink;
-  }
+namespace FW
+{
+namespace Data
+{
+class TrkrClusterSourceLink;
 }
+}  // namespace FW
 
 struct ActsTrack;
 struct FitCfgOptions;
@@ -33,13 +33,11 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
 class PHActsTrkFitter : public PHTrackFitting
 {
  public:
-
   /// Default constructor
   PHActsTrkFitter(const std::string& name = "PHActsTrkFitter");
 
   /// Destructor
   ~PHActsTrkFitter();
-
 
   /// End, write and close files
   int End(PHCompositeNode*);
@@ -61,11 +59,10 @@ class PHActsTrkFitter : public PHTrackFitting
   int createNodes(PHCompositeNode*);
 
   /// Vector of acts tracks created by PHActsTracks
-  std::vector<ActsTrack> *m_actsProtoTracks;
+  std::vector<ActsTrack>* m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  FitCfgOptions *m_fitCfgOptions;
-
+  FitCfgOptions* m_fitCfgOptions;
 };
 
 #endif

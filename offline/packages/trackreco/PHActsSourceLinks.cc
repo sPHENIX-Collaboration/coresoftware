@@ -52,7 +52,7 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
-  , m_minSurfZ(0.0) /// Initialize these to 0, get from MakeActsGeometry
+  , m_minSurfZ(0.0)  /// Initialize these to 0, get from MakeActsGeometry
   , m_maxSurfZ(0.0)
   , m_nSurfZ(0)
   , m_nSurfPhi(0)
@@ -71,45 +71,43 @@ int PHActsSourceLinks::Init(PHCompositeNode *topNode)
 
 int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 {
+  if (Verbosity() > 10)
+  {
+    std::cout << "Starting PHActsSourceLinks::InitRun" << std::endl;
+  }
 
-   if(Verbosity() > 10) 
-    {
-      std::cout << "Starting PHActsSourceLinks::InitRun" << std::endl;
-    }
+  /// Check and create nodes that this module will build
+  createNodes(topNode);
 
-   /// Check and create nodes that this module will build
-   createNodes(topNode);
+  /// Check if Acts geometry has been built and is on the node tree
+  MakeActsGeometry *actsGeometry = new MakeActsGeometry();
+  actsGeometry->BuildAllGeometry(topNode);
 
-   /// Check if Acts geometry has been built and is on the node tree
-   MakeActsGeometry *actsGeometry = new MakeActsGeometry();
-   actsGeometry->BuildAllGeometry(topNode);
-   
-   m_minSurfZ = actsGeometry->getMinSurfZ();
-   m_maxSurfZ = actsGeometry->getMaxSurfZ();
-   m_nSurfZ   = actsGeometry->getNSurfZ();
-   m_nSurfPhi = actsGeometry->getNSurfPhi();
-   
-   /// These are arbitrary TPC Surface subdivisions, set in MakeActsGeometry
-   m_surfStepZ = actsGeometry->getSurfStepZ();
-   m_moduleStepPhi = actsGeometry->getModuleStepPhi();
-   m_modulePhiStart = actsGeometry->getModulePhiStart();
-   m_surfStepPhi = actsGeometry->getSurfStepPhi();
-   
-   m_clusterNodeMap = actsGeometry->getNodeMap();
-   m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
-   m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
-   m_fitCfgOptions->tGeometry = actsGeometry->getTGeometry();
-   m_fitCfgOptions->magField = actsGeometry->getMagField();
-   m_fitCfgOptions->geoContext = actsGeometry->getGeoContext();
-   m_fitCfgOptions->magFieldContext = actsGeometry->getMagFieldContext();
-   m_fitCfgOptions->calibContext = actsGeometry->getCalibContext();
+  m_minSurfZ = actsGeometry->getMinSurfZ();
+  m_maxSurfZ = actsGeometry->getMaxSurfZ();
+  m_nSurfZ = actsGeometry->getNSurfZ();
+  m_nSurfPhi = actsGeometry->getNSurfPhi();
 
- 
-   if(Verbosity() > 10)
-     {
-       std::cout << "Finished PHActsSourceLinks::InitRun" << std::endl;
-     }
-   return Fun4AllReturnCodes::EVENT_OK;
+  /// These are arbitrary TPC Surface subdivisions, set in MakeActsGeometry
+  m_surfStepZ = actsGeometry->getSurfStepZ();
+  m_moduleStepPhi = actsGeometry->getModuleStepPhi();
+  m_modulePhiStart = actsGeometry->getModulePhiStart();
+  m_surfStepPhi = actsGeometry->getSurfStepPhi();
+
+  m_clusterNodeMap = actsGeometry->getNodeMap();
+  m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
+  m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
+  m_fitCfgOptions->tGeometry = actsGeometry->getTGeometry();
+  m_fitCfgOptions->magField = actsGeometry->getMagField();
+  m_fitCfgOptions->geoContext = actsGeometry->getGeoContext();
+  m_fitCfgOptions->magFieldContext = actsGeometry->getMagFieldContext();
+  m_fitCfgOptions->calibContext = actsGeometry->getCalibContext();
+
+  if (Verbosity() > 10)
+  {
+    std::cout << "Finished PHActsSourceLinks::InitRun" << std::endl;
+  }
+  return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
@@ -140,7 +138,7 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     /// Create the clusKey hitId pair to insert into the map
     const unsigned int trkrId = TrkrDefs::getTrkrId(clusKey);
     m_hitIdClusKey->insert(std::pair<TrkrDefs::cluskey, unsigned int>(clusKey, hitId));
-   
+
     /// Local coordinates and surface to be set by the correct tracking
     /// detector function below
     TMatrixD localErr(3, 3);
@@ -237,18 +235,17 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     hitId++;
   }
 
-  if(Verbosity() > 10)
+  if (Verbosity() > 10)
+  {
+    //m_hitIdClusKey
+    std::map<TrkrDefs::cluskey, unsigned int>::iterator it = m_hitIdClusKey->begin();
+    while (it != m_hitIdClusKey->end())
     {
-      //m_hitIdClusKey
-      std::map<TrkrDefs::cluskey, unsigned int>::iterator it = m_hitIdClusKey->begin();
-      while(it != m_hitIdClusKey->end())
-	{
-	  std::cout << "cluskey " << it->first << " has hitid " << it->second
-		    << std::endl;
-	  ++it;
-	}
+      std::cout << "cluskey " << it->first << " has hitid " << it->second
+                << std::endl;
+      ++it;
     }
-  
+  }
 
   /// Add the data to the nodes that were previously created (?)
 
@@ -335,37 +332,37 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   }
 
   Surface surface = surfIter->second->getSharedPtr();
-  
+
   /// Transformation of cluster to local surface coords
-  /// Coords are r*phi relative to surface r-phi center, and z 
+  /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
   Acts::Vector3D center = surface->center(m_fitCfgOptions->geoContext);
   double surfRphiCenter = atan2(center[1], center[0]) * radius;
   double surfZCenter = center[2];
-  if(Verbosity() > 0)
-    {
-      std::cout << "surface center readback:   x " << center[0] 
-		<< " y " << center[1] << " phi " 
-		<< atan2(center[1], center[0]) << " z " << center[2] 
-		<< " surf_rphi_center " << surfRphiCenter 
-		<< " surf_z_center " << surfZCenter 
-		<< std::endl;
-    }
-  
+  if (Verbosity() > 0)
+  {
+    std::cout << "surface center readback:   x " << center[0]
+              << " y " << center[1] << " phi "
+              << atan2(center[1], center[0]) << " z " << center[2]
+              << " surf_rphi_center " << surfRphiCenter
+              << " surf_z_center " << surfZCenter
+              << std::endl;
+  }
+
   local2D[0] = rClusPhi - surfRphiCenter;
   local2D[1] = zTpc - surfZCenter;
-  
-  if(Verbosity() > 0)
-    {
-      std::cout << "r_clusphi " << rClusPhi << " surf_rphi center " 
-		<< surfRphiCenter 
-		<< " ztpc " <<  zTpc  << " surf_z_center " << surfZCenter 
-		<< " local rphi " << local2D[0] << " local z " << local2D[1]
-		<< std::endl;
-    }
-  
+
+  if (Verbosity() > 0)
+  {
+    std::cout << "r_clusphi " << rClusPhi << " surf_rphi center "
+              << surfRphiCenter
+              << " ztpc " << zTpc << " surf_z_center " << surfZCenter
+              << " local rphi " << local2D[0] << " local z " << local2D[1]
+              << std::endl;
+  }
+
   localErr = transformCovarToLocal(clusPhi, worldErr);
-  
+
   return surface;
 }
 
@@ -400,11 +397,11 @@ Surface PHActsSourceLinks::getInttLocalCoords(double (&local2D)[2],
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
 
   const TrkrDefs::hitsetkey hitSetKey = InttDefs::genHitSetKey(layer, ladderZId, ladderPhiId);
-  if(Verbosity() > 10)
-    {
-      std::cout <<  "Intt cluster with ladderzid " << ladderZId 
-		<< " ladderphid " << ladderPhiId << std::endl; 
-    }
+  if (Verbosity() > 10)
+  {
+    std::cout << "Intt cluster with ladderzid " << ladderZId
+              << " ladderphid " << ladderPhiId << std::endl;
+  }
   /// Get the TGeoNode
   const TGeoNode *sensorNode = getNodeFromClusterMap(hitSetKey);
 
@@ -552,7 +549,7 @@ int PHActsSourceLinks::getNodes(PHCompositeNode *topNode)
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
- 
+
   m_geomContainerMvtx = findNode::getClass<
       PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!m_geomContainerMvtx)
@@ -620,13 +617,13 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
   }
 
   m_fitCfgOptions = findNode::getClass<FitCfgOptions>(topNode, "ActsFitCfg");
-  
-  if(!m_fitCfgOptions)
-    {
-      m_fitCfgOptions = new FitCfgOptions();
-      PHDataNode<FitCfgOptions> *fitNode = new PHDataNode<FitCfgOptions>(m_fitCfgOptions, "ActsFitCfg");
-      svtxNode->addNode(fitNode);
-    }
+
+  if (!m_fitCfgOptions)
+  {
+    m_fitCfgOptions = new FitCfgOptions();
+    PHDataNode<FitCfgOptions> *fitNode = new PHDataNode<FitCfgOptions>(m_fitCfgOptions, "ActsFitCfg");
+    svtxNode->addNode(fitNode);
+  }
 
   /// Do the same for the SourceLink container
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");

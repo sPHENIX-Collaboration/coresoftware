@@ -100,7 +100,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 
     const FW::TrackParameters trackSeed(seedCov, seedPos,
                                         seedMom, trackQ, trackTime);
- 
+
     /// Start fresh for this track
     trackSourceLinks.clear();
     for (SvtxTrack::ConstClusterKeyIter clusIter = track->begin_cluster_keys();
@@ -132,7 +132,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     m_actsProtoTracks->push_back(actsTrack);
   }
 
-  if(Verbosity() > 20)
+  if (Verbosity() > 20)
     std::cout << "Finished PHActsTrack::process_event" << std::endl;
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -273,16 +273,14 @@ int PHActsTracks::getNodes(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-
   m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
 
   if (!m_hitIdClusKey)
-    {
-      std::cout << PHWHERE << "HitID cluster key map not found on node tree. Exiting. " 
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-
-    }
+  {
+    std::cout << PHWHERE << "HitID cluster key map not found on node tree. Exiting. "
+              << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

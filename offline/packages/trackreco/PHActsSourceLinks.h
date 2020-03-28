@@ -11,16 +11,18 @@
 #include <vector>
 
 /// Acts includes to create all necessary definitions
+#include <Acts/EventData/MeasurementHelpers.hpp>
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Utilities/CalibrationContext.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
-#include <Acts/EventData/MeasurementHelpers.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 
-
-struct FitCfgOptions;
 class PHCompositeNode;
 class TrkrClusterContainer;
 class TrkrCluster;
@@ -40,6 +42,43 @@ class Surface;
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
+
+/**
+ * A struct that contains the necessary geometry objects that the fitter
+ * needs in PHActsTrkFitter. To be put on the node tree
+ */
+struct FitCfgOptions
+{
+  /// Two constructor options
+  FitCfgOptions() {}
+  FitCfgOptions(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+                FW::Options::BFieldVariant mag,
+                Acts::CalibrationContext calib,
+                Acts::GeometryContext geo,
+                Acts::MagneticFieldContext magField)
+    : tGeometry(tGeo)
+    , magField(mag)
+    , calibContext(calib)
+    , geoContext(geo)
+    , magFieldContext(magField)
+  {
+  }
+
+  /// Acts tracking geometry
+  std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
+
+  /// Acts magnetic field
+  FW::Options::BFieldVariant magField;
+
+  /// Acts calibration context, grabbed from geometry building
+  Acts::CalibrationContext calibContext;
+
+  /// Acts geometry context, grabbed from geometry building
+  Acts::GeometryContext geoContext;
+
+  /// Acts magnetic field context, grabbed from geometry building
+  Acts::MagneticFieldContext magFieldContext;
+};
 
 /**
  * This class is responsible for creating Acts TrkrClusterSourceLinks from
@@ -128,7 +167,7 @@ class PHActsSourceLinks : public SubsysReco
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
   /// Map relating hit set keys to TGeoNodes
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
+  std::map<TrkrDefs::hitsetkey, TGeoNode *> m_clusterNodeMap;
 
   /// Map relating hit set keys to Acts::Surfaces
   std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMap;
@@ -144,7 +183,6 @@ class PHActsSourceLinks : public SubsysReco
   PHG4CylinderGeomContainer *m_geomContainerMvtx;
   PHG4CylinderGeomContainer *m_geomContainerIntt;
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
-
 
   /// These don't change, we are building the tpc this way!
   const unsigned int m_nTpcLayers = 48;
