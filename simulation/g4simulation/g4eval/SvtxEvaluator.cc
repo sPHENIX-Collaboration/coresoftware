@@ -1349,8 +1349,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	    float cellID = 0;
 	    float ecell = hit->getAdc();
 	    
-	    int phibin = NAN;
-	    int zbin = NAN;
+	    int phibin = -1;
+	    int zbin = -1;
 	    float phi = NAN;
 	    float z = NAN;
 	    
