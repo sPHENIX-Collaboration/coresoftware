@@ -1,10 +1,11 @@
 #include "PHSpaceChargeReconstruction.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4CylinderCellGeom.h>
+#include <g4detectors/PHG4CylinderCellGeomContainer.h>
 #include <phool/getClass.h>
 #include <phool/PHCompositeNode.h>
 #include <phool/PHNodeIterator.h>
-#include <trackbase/TrkrDefs.h>
 #include <trackbase/TrkrCluster.h>
 #include <trackbase/TrkrClusterContainer.h>
 #include <trackbase_historic/SvtxTrack.h>
@@ -118,9 +119,9 @@ int PHSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::End(PHCompositeNode* )
+int PHSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
-  calculate_distortions();
+  calculate_distortions( topNode );
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -162,6 +163,8 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
     }
 
     // should make sure that cluster belongs to TPC
+    const auto layer = TrkrDefs::getLayer(cluster_key);
+    if( layer < m_firstlayer_tpc || layer >= m_firstlayer_tpc + m_nlayers_tpc ) continue;
 
     // cluster r, phi and z
     const auto cluster_r = get_r( cluster->getX(), cluster->getY() );
@@ -248,7 +251,7 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
     if( std::abs( drp ) > max_residual ) continue;
 
     // get cell
-    const auto i = get_cell( cluster );
+    const auto i = get_cell( cluster_key, cluster );
 
     if( i < 0 || i >= m_totalbins ) continue;
 
@@ -275,19 +278,23 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-void  PHSpaceChargeReconstruction::calculate_distortions()
+void  PHSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
 {
+
+  // get tpc geometry
+  auto *geom_container = findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom_container)
+  {
+    std::cout << PHWHERE << " can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+    return;
+  }
+
   // calculate distortions in each volume elements
   std::vector<column_t> delta(m_totalbins);
   std::vector<matrix_t> cov(m_totalbins);
 
   for( int i = 0; i < m_totalbins; ++i )
   {
-    std::cout
-      << PHWHERE << " lhs[" << i << "]" << std::endl
-      << m_lhs[i]
-      << std::endl;
-
     cov[i] = m_lhs[i].inverse();
     delta[i] = m_lhs[i].partialPivLu().solve( m_rhs[i] );
   }
@@ -307,10 +314,14 @@ void  PHSpaceChargeReconstruction::calculate_distortions()
 
     for( int ir = 0; ir < m_rbins; ++ir )
     {
-      // get radius from index (see ::get_cell)
-      static constexpr float r_min = 30;
-      static constexpr float r_max = 80;
-      const float r = r_min + (0.5+ir) *(r_max-r_min)/m_rbins;
+
+      // get layers corresponding to bins
+      const int inner_layer = m_firstlayer_tpc + m_nlayers_tpc*ir/m_rbins;
+      const int outer_layer = m_firstlayer_tpc + m_nlayers_tpc*(ir+1)/m_rbins-1;
+
+      const auto inner_radius = geom_container->GetLayerCellGeom(inner_layer)->get_radius();
+      const auto outer_radius = geom_container->GetLayerCellGeom(outer_layer)->get_radius();
+      const float r = (inner_radius+outer_radius)/2;
 
       int index = get_cell( iz, ir, iphi );
       tg[tgindex]->SetPoint( ir, r, delta[index](icoord,0) );
@@ -337,14 +348,11 @@ int PHSpaceChargeReconstruction::get_cell( int iz, int ir, int iphi ) const
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::get_cell( TrkrCluster* cluster ) const
+int PHSpaceChargeReconstruction::get_cell( TrkrDefs::cluskey cluster_key, TrkrCluster* cluster ) const
 {
   // radius
-  // todo: define rbin as a function of layer index rather than position
-  const auto cluster_r = get_r( cluster->getX(), cluster->getY() );
-  static constexpr float r_min = 30;
-  static constexpr float r_max = 80;
-  const int ir = m_rbins*(cluster_r-r_min)/(r_max-r_min);
+  const auto layer = TrkrDefs::getLayer(cluster_key);
+  const int ir = m_rbins*(layer - m_firstlayer_tpc)/m_nlayers_tpc;
 
   // azimuth
   auto cluster_phi = get_phi( cluster->getX(), cluster->getY() );
