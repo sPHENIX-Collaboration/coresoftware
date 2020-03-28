@@ -2,6 +2,7 @@
 #define TRACKRECO_PHSPACECHARGERECONSTRUCTION_H
 
 #include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -68,13 +69,13 @@ class PHSpaceChargeReconstruction: public SubsysReco
   void process_track( SvtxTrack* );
 
   /// calculate distortions
-  void calculate_distortions();
+  void calculate_distortions( PHCompositeNode* );
 
   /// get cell from z, r and phi index
   int get_cell( int iz, int ir, int iphi ) const;
 
   /// get relevant cell for a given cluster
-  int get_cell( TrkrCluster* ) const;
+  int get_cell( TrkrDefs::cluskey, TrkrCluster* ) const;
 
   /// output file
   std::string m_outputfile = "PHSpaceChargeReconstruction.root";
