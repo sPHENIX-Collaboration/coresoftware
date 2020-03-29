@@ -11,13 +11,15 @@
 #include <vector>
 
 /// Acts includes to create all necessary definitions
+#include <Acts/Utilities/BinnedArray.hpp>
+#include <Acts/Utilities/Definitions.hpp>
+#include <Acts/Utilities/Logger.hpp>
+
 #include <Acts/EventData/MeasurementHelpers.hpp>
 #include <Acts/Geometry/TrackingGeometry.hpp>
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
-#include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
-#include <Acts/Utilities/Definitions.hpp>
-#include <Acts/Utilities/Logger.hpp>
+
 
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
