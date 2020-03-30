@@ -33,9 +33,6 @@ namespace
 
   /// radius
   template<class T> T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
-
-  /// phi
-  template<class T> T get_phi( T x, T y ) { return std::atan2( y, x ); }
 }
 
 //_____________________________________________________________________
@@ -141,7 +138,7 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
 
     // cluster r, phi and z
     const auto cluster_r = get_r( cluster->getX(), cluster->getY() );
-    const auto cluster_phi = get_phi( cluster->getX(), cluster->getY() );
+    const auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
     const auto cluster_z = cluster->getZ();
 
     // cluster errors
@@ -193,7 +190,7 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto track_x = state->get_x() + dr*track_dxdr;
     const auto track_y = state->get_y() + dr*track_dydr;
     const auto track_z = state->get_z() + dr*track_dzdr;
-    const auto track_phi = get_phi( track_x, track_y );
+    const auto track_phi = std::atan2( track_y, track_x );
 
     // get residual errors squared
     const auto erp = square(track_rphi_error) + square(cluster_rphi_error);
@@ -328,7 +325,7 @@ int PHSpaceChargeReconstruction::get_cell( TrkrDefs::cluskey cluster_key, TrkrCl
   const int ir = m_rbins*(layer - m_firstlayer_tpc)/m_nlayers_tpc;
 
   // azimuth
-  auto cluster_phi = get_phi( cluster->getX(), cluster->getY() );
+  auto cluster_phi = std::atan2( cluster->getY(), cluster->getX() );
   if( cluster_phi >= M_PI ) cluster_phi -= 2*M_PI;
   const int iphi = m_phibins*(cluster_phi + M_PI)/(2.*M_PI);
 
