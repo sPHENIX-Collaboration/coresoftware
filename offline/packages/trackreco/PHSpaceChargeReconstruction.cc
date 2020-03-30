@@ -36,33 +36,6 @@ namespace
 
   /// phi
   template<class T> T get_phi( T x, T y ) { return std::atan2( y, x ); }
-
-  /// get rphi error of a given track state
-  float get_rphi_error( SvtxTrackState* state )
-  {
-    using matrix_t = Eigen::Matrix<float, 3, 3>;
-    matrix_t covar;
-    for (unsigned int i = 0; i < 3; ++i)
-      for (unsigned int j = 0; j < 3; ++j)
-    { covar(i,j) = state->get_error(i, j); }
-
-    const auto phi = -get_phi( state->get_x(), state->get_y() );
-    const auto cosphi = std::cos( phi );
-    const auto sinphi = std::sin( phi );
-    matrix_t rotation;
-    rotation(0,0) = cosphi;
-    rotation(0,1) = -sinphi;
-    rotation(0,2) = 0;
-    rotation(1,0) = sinphi;
-    rotation(1,1) = cosphi;
-    rotation(1,2) = 0;
-    rotation(2,0) = 0;
-    rotation(2,1) = 0;
-    rotation(2,2) = 1;
-
-    const auto transformed = rotation*covar*rotation.transpose();
-    return std::sqrt(transformed(1,1));
-  }
 }
 
 //_____________________________________________________________________
@@ -200,8 +173,8 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
     const auto state = state_iter->second;
 
     // track errors
-    const auto track_rphi_error = get_rphi_error( state );
-    const auto track_z_error = std::sqrt( state->get_error(2,2) );
+    const auto track_rphi_error = state->get_rphi_error();
+    const auto track_z_error = state->get_z_error();
 
     // also cut on track errors
     // warning: smaller errors are probably needed when including outer tracker
