@@ -56,8 +56,14 @@ class SvtxTrackState_v1 : public SvtxTrackState
   std::string get_name() { return state_name; }
   void set_name(std::string &name) { state_name = name; }
 
- private:
-  unsigned int covar_index(unsigned int i, unsigned int j) const;
+
+  virtual float get_rphi_error() const;
+  virtual float get_phi_error() const;
+  virtual float get_z_error() const;
+
+  //@}
+
+  private:
 
   float _pathlength;
   float _pos[3];
