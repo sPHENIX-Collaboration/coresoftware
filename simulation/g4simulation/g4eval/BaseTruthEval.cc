@@ -19,7 +19,7 @@ using namespace std;
 BaseTruthEval::BaseTruthEval(PHCompositeNode* topNode)
   : m_TruthInfo(nullptr)
   , m_Strict(false)
-  , m_Verbosity(1)
+  , m_Verbosity(0)
   , m_Errors(0)
 {
   get_node_pointers(topNode);

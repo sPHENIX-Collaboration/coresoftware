@@ -13,6 +13,7 @@
 #include <trackbase/TrkrHitTruthAssoc.h>
 
 #include <g4main/PHG4Hit.h>  // for PHG4Hit
+#include <g4main/PHG4Particle.h>  // for PHG4Particle
 #include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4HitDefs.h>  // for keytype
 #include <g4main/PHG4TruthInfoContainer.h>
@@ -27,6 +28,8 @@
 #include <map>       // for multimap, map<>::c...
 #include <memory>
 #include <utility>  // for pair
+#include <cassert>
+#include <set>
 
 #define LogDebug(exp) std::cout << "DEBUG: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
 #define LogError(exp) std::cout << "ERROR: " << __FILE__ << ": " << __LINE__ << ": " << exp << std::endl
@@ -44,8 +47,8 @@ PHTruthTrackSeeding::PHTruthTrackSeeding(const std::string& name)
   , phg4hits_mvtx(nullptr)
   , hittruthassoc(nullptr)
   , clusterhitassoc(nullptr)
-  , _seeding_layers({7, 13, 19, 25, 31, 37, 40})
-  , _min_clusters_per_track(0)
+  , _min_clusters_per_track(3)
+  , _min_momentum(50e-3)  // default to p > 50 MeV
 {
 }
 
@@ -107,6 +110,42 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
 
         int particle_id = phg4hit->get_trkid();
 
+        // monentum cut-off
+        if (_min_momentum>0)
+        {
+          PHG4Particle* particle = _g4truth_container->GetParticle(particle_id);
+          if (!particle)
+          {
+            cout <<__PRETTY_FUNCTION__<<" - validity check failed: missing truth particle with ID of "<<particle_id<<". Exiting..."<<endl;
+            exit(1);
+          }
+          const double monentum2 =
+              particle->get_px() * particle->get_px()
+              +
+              particle->get_py() * particle->get_py()
+              +
+              particle->get_pz() * particle->get_pz()
+              ;
+
+          if (Verbosity() >= 10)
+          {
+            cout <<__PRETTY_FUNCTION__<<" check momentum for particle"<<particle_id<<" -> cluster "<<cluskey
+                <<" = "<<sqrt(monentum2)<<endl;;
+            particle->identify();
+          }
+
+          if (monentum2 < _min_momentum * _min_momentum)
+          {
+            if (Verbosity() >= 3)
+            {
+              cout <<__PRETTY_FUNCTION__<<" ignore low momentum particle"<<particle_id<<" -> cluster "<<cluskey<<endl;;
+              particle->identify();
+            }
+            continue;
+          }
+        }
+
+
         TrkClustersMap::iterator it = m_trackID_clusters.find(particle_id);
 
         if (it != m_trackID_clusters.end())
@@ -148,8 +187,28 @@ int PHTruthTrackSeeding::Process(PHCompositeNode* topNode)
   for (TrkClustersMap::const_iterator trk_clusters_itr = m_trackID_clusters.begin();
        trk_clusters_itr != m_trackID_clusters.end(); ++trk_clusters_itr)
   {
-    if (trk_clusters_itr->second.size() > _min_clusters_per_track)
+    if (trk_clusters_itr->second.size() <  _min_clusters_per_track)
+      continue;
+
+    // check number of layers also pass the _min_clusters_per_track cut to avoid tight loopers
+    set<uint8_t> layers;
+    for (TrkrCluster* cluster : trk_clusters_itr->second)
     {
+      assert(cluster);
+      const uint8_t layer = TrkrDefs::getLayer(cluster->getClusKey());
+      layers.insert(layer);
+    }
+    if (Verbosity()>2)
+    {
+      cout <<__PRETTY_FUNCTION__<<" particle "<<trk_clusters_itr->first<<" -> "
+          <<trk_clusters_itr->second.size()<<" clusters covering "<<layers.size()<<" layers."
+          <<" Layer/clusters cuts are > "<<_min_clusters_per_track
+          <<endl;
+    }
+
+    if (layers.size() >=  _min_clusters_per_track)
+    {
+
       std::unique_ptr<SvtxTrack_FastSim> svtx_track(new SvtxTrack_FastSim());
 
       svtx_track->set_id(_track_map->size());

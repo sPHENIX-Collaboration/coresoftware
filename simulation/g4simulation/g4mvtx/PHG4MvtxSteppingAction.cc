@@ -102,8 +102,8 @@ bool PHG4MvtxSteppingAction::UserSteppingAction(const G4Step* aStep, bool)
   // returns
   //  1 if in ladder belonging to this layer
   //  0 if not
-  int layer_id = NAN;
-  int stave_id = NAN;
+  int layer_id = -9999;
+  int stave_id = -9999;
   //cout << endl << "  In UserSteppingAction for layer " << layer_id << endl;
   G4VPhysicalVolume* vstave = touch->GetVolume(3);
   whichactive = m_Detector->IsInMvtx(vstave, layer_id, stave_id);

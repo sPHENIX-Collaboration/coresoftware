@@ -122,7 +122,7 @@ int MvtxClusterizer::InitRun(PHCompositeNode *topNode)
 	DetNode = new PHCompositeNode("TRKR");
 	dstNode->addNode(DetNode);
       }
-    
+
     trkrclusters = new TrkrClusterContainer();
     PHIODataNode<PHObject> *TrkrClusterContainerNode =
       new PHIODataNode<PHObject>(trkrclusters, "TRKR_CLUSTER", "PHObject");
@@ -219,10 +219,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
     if (Verbosity() > 2)
       hitset->identify();
-    
+
     // fill a vector of hits to make things easier
     std::vector <std::pair< TrkrDefs::hitkey, TrkrHit*> > hitvec;
-			   
+
     TrkrHitSet::ConstRange hitrangei = hitset->getHits();
     for (TrkrHitSet::ConstIterator hitr = hitrangei.first;
          hitr != hitrangei.second;
@@ -250,10 +250,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
     // Find the connections between the vertices of the graph (vertices are the rawhits,
     // connections are made when they are adjacent to one another)
     vector<int> component(num_vertices(G));
-    
+
     // this is the actual clustering, performed by boost
     connected_components(G, &component[0]);
-    
+
     // Loop over the components(hits) compiling a list of the
     // unique connected groups (ie. clusters).
     set<int> cluster_ids;  // unique components
@@ -264,26 +264,26 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	cluster_ids.insert(component[i]);
 	clusters.insert(make_pair(component[i], hitvec[i]));
       }
-    
+
     // loop over the componenets and make clusters
     for (set<int>::iterator clusiter = cluster_ids.begin(); clusiter != cluster_ids.end(); ++clusiter)
       {
 	int clusid = *clusiter;
-	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,  
+	pair<multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator,
 		      multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator>  clusrange = clusters.equal_range(clusid);
 	multimap<int, std::pair<TrkrDefs::hitkey, TrkrHit*>>::iterator mapiter = clusrange.first;
-	
+
 	if (Verbosity() > 2)
 	  cout << "Filling cluster id " << clusid << endl;
-	
+
 	// make the cluster directly in the node tree
 	TrkrDefs::cluskey ckey = MvtxDefs::genClusKey(hitset->getHitSetKey(), clusid);
 	TrkrClusterv1 *clus = static_cast<TrkrClusterv1 *>((m_clusterlist->findOrAddCluster(ckey))->second);
-	
+
 	// determine the size of the cluster in phi and z
 	set<int> phibins;
 	set<int> zbins;
-	
+
 	// determine the cluster position...
 	double xsum = 0.0;
 	double ysum = 0.0;
@@ -301,8 +301,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	  exit(1);
 
 	int chip = MvtxDefs::getChipId(ckey);
-	int stave =  MvtxDefs::getStaveId(ckey); 
-	
+	int stave =  MvtxDefs::getStaveId(ckey);
+
 	for (mapiter = clusrange.first; mapiter != clusrange.second; ++mapiter)
 	  {
 	    // size
@@ -311,14 +311,17 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	    zbins.insert(col);
 	    phibins.insert(row);
 
-	    int pixnum = layergeom->get_pixel_number_from_xbin_zbin(row, col);
-	    //cout << "   new mvtx clusterizer: cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave 
+	    //int pixnum = layergeom->get_pixel_number_from_xbin_zbin(row, col);
+	    //cout << "   new mvtx clusterizer: cluster key " << ckey << " layer " << layer << " chip " << chip << " stave " << stave
 	    //	 << " row " << row << " col " << col << " pixnum " << pixnum << endl;;
 
-	    TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
-	    TVector3 world_coords = layergeom->get_world_from_local_coords(stave, 0, 0, chip, local_coords);
+	    //TVector3 local_coords = layergeom->get_local_coords_from_pixel(pixnum);
+	    TVector3 world_coords = layergeom->get_world_from_local_coords(stave,
+                                                                     chip,
+                                                                     layergeom->get_local_coords_from_pixel(row,col)
+                                                                    );
 	    //cout << "   new: world coords: X " << world_coords.X() << " Y " << world_coords.Y() << " Z " << world_coords.Z() << endl;
-	    
+
 	    // find the center of the pixel in local coords
 	    xsum += world_coords.X();
 	    ysum += world_coords.Y();
@@ -326,40 +329,40 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 
 	    // add the association between this cluster key and this hitkey to the table
 	    m_clusterhitassoc->addAssoc(ckey, mapiter->second.first);
-	    
+
 	    ++nhits;
 	  }  //mapiter
-	
-	
+
+
 	// This is the global position
 	clusx = xsum / nhits;
 	clusy = ysum / nhits;
 	clusz = zsum / nhits;
 	//cout << "new mvtx clusterizer: clusx " << clusx << " clusy " << clusy << " clusz " << clusz << endl;
 	clus->setAdc(nhits);
-				
+
 	clus->setPosition(0, clusx);
 	clus->setPosition(1, clusy);
 	clus->setPosition(2, clusz);
 	clus->setGlobal();
-	
+
 	double thickness = layergeom->get_pixel_thickness();
 	double pitch = layergeom->get_pixel_x();
 	double length = layergeom->get_pixel_z();
 	double phisize = phibins.size() * pitch;
 	double zsize = zbins.size() * length;
-	
+
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
 	double ladderphi = atan2(ladder_location[1], ladder_location[0]);
 	ladderphi += layergeom->get_stave_phi_tilt();
-	
+
 	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
-	float tilt = 0.0;
-	
+	//float tilt = 0.0;
+
 	double invsqrt12 = 1.0 / sqrt(12.0);
-	
+
 	TMatrixF DIM(3, 3);
 	DIM[0][0] = pow(0.5 * thickness, 2);
 	DIM[0][1] = 0.0;
@@ -370,7 +373,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	DIM[2][0] = 0.0;
 	DIM[2][1] = 0.0;
 	DIM[2][2] = pow(0.5 * zsize, 2);
-	
+
 	TMatrixF ERR(3, 3);
 	ERR[0][0] = pow(0.5 * thickness * invsqrt12, 2);
 	ERR[0][1] = 0.0;
@@ -381,7 +384,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
 	ERR[2][2] = pow(0.5 * zsize * invsqrt12, 2);
-	
+
+	if(Verbosity() > 2)
+	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;
+
 	TMatrixF ROT(3, 3);
 	ROT[0][0] = cos(ladderphi);
 	ROT[0][1] = -1.0 * sin(ladderphi);
@@ -389,30 +395,31 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	ROT[1][0] = sin(ladderphi);
 	ROT[1][1] = cos(ladderphi);
 	ROT[1][2] = 0.0;
-	ROT[2][0] = 0.0; 
+	ROT[2][0] = 0.0;
 	ROT[2][1] = 0.0;
 	ROT[2][2] = 1.0;
-	
-	TMatrixF TILT(3, 3);
-	TILT[0][0] = 1.0;
-	TILT[0][1] = 0.0;
-	TILT[0][2] = 0.0;
-	TILT[1][0] = 0.0;
-	TILT[1][1] = cos(tilt);
-	TILT[1][2] = -1.0 * sin(tilt);
-	TILT[2][0] = 0.0;
-	TILT[2][1] = sin(tilt);
-	TILT[2][2] = cos(tilt);
-	
-	TMatrixF R(3, 3);
-	R = ROT * TILT;
-	
+
+	// TMatrixF TILT(3, 3);
+	// TILT[0][0] = 1.0;
+	// TILT[0][1] = 0.0;
+	// TILT[0][2] = 0.0;
+	// TILT[1][0] = 0.0;
+	// TILT[1][1] = cos(tilt);
+	// TILT[1][2] = -1.0 * sin(tilt);
+	// TILT[2][0] = 0.0;
+	// TILT[2][1] = sin(tilt);
+	// TILT[2][2] = cos(tilt);
+
+  TMatrixF &R = ROT;
+	//TMatrixF R(3, 3);
+	//R = ROT * TILT;
+
 	TMatrixF R_T(3, 3);
 	R_T.Transpose(R);
-	
+
 	TMatrixF COVAR_DIM(3, 3);
 	COVAR_DIM = R * DIM * R_T;
-	
+
 	clus->setSize(0, 0, COVAR_DIM[0][0]);
 	clus->setSize(0, 1, COVAR_DIM[0][1]);
 	clus->setSize(0, 2, COVAR_DIM[0][2]);
@@ -422,10 +429,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setSize(2, 0, COVAR_DIM[2][0]);
 	clus->setSize(2, 1, COVAR_DIM[2][1]);
 	clus->setSize(2, 2, COVAR_DIM[2][2]);
-	
+
 	TMatrixF COVAR_ERR(3, 3);
 	COVAR_ERR = R * ERR * R_T;
-	
+
 	clus->setError(0, 0, COVAR_ERR[0][0]);
 	clus->setError(0, 1, COVAR_ERR[0][1]);
 	clus->setError(0, 2, COVAR_ERR[0][2]);
@@ -435,13 +442,13 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	clus->setError(2, 0, COVAR_ERR[2][0]);
 	clus->setError(2, 1, COVAR_ERR[2][1]);
 	clus->setError(2, 2, COVAR_ERR[2][2]);
-	
-	
+
+
 	//cout << "MvtxClusterizer (x,y,z) = " << clusx << "  " << clusy << "  " << clusz << endl;
-	
+
 	if (Verbosity() > 2)
 	clus->identify();
-	
+
 	// Add the hit associations to the TrkrClusterHitAssoc node
 	// we need the cluster key and all associated hit keys
 	/*
@@ -452,7 +459,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	*/
       }  // clusitr
   }    // hitsetitr
-  
+
   if(Verbosity() > 1)
     {
       // check that the associations were written correctly

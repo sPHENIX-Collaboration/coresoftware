@@ -1,7 +1,5 @@
 #include "PHG4FPbScDetector.h"
 
-#include <g4main/PHG4Subsystem.h>          // for PHG4Subsystem
-
 #include <Geant4/G4Box.hh>
 #include <Geant4/G4Colour.hh>
 #include <Geant4/G4LogicalVolume.hh>

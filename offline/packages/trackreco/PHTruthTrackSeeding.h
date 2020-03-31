@@ -9,7 +9,6 @@
 
 #include "PHTrackSeeding.h"
 
-#include <set>
 #include <string>  // for string
 
 // forward declarations
@@ -43,15 +42,16 @@ class PHTruthTrackSeeding : public PHTrackSeeding
     _min_clusters_per_track = minClustersPerTrack;
   }
 
-  const std::set<unsigned int>& get_seeding_layers() const
+  //! minimal truth momentum cut
+  double get_min_momentum() const
   {
-    return _seeding_layers;
+    return _min_momentum;
   }
 
-  void set_seeding_layers(const unsigned int a[], const unsigned int n)
+  //! minimal truth momentum cut
+  void set_min_momentum(double m)
   {
-    _seeding_layers.clear();
-    for (unsigned int i = 0; i < n; ++i) _seeding_layers.insert(a[i]);
+    _min_momentum = m;
   }
 
  protected:
@@ -79,10 +79,10 @@ class PHTruthTrackSeeding : public PHTrackSeeding
   //PHG4CellContainer* cells_intt;
   //PHG4CellContainer* cells_maps;
 
-  /// seeding layers
-  std::set<unsigned int> _seeding_layers;
-
   unsigned int _min_clusters_per_track;
+
+  //! minimal truth momentum cut
+  double _min_momentum;
 };
 
 #endif

@@ -19,14 +19,6 @@ AM_LDFLAGS = \
   -L$(OFFLINE_MAIN)/lib
 
 pkginclude_HEADERS = \
-  SvtxHit.h \
-  SvtxHit_v1.h \
-  SvtxHitMap.h \
-  SvtxHitMap_v1.h \
-  SvtxCluster.h \
-  SvtxCluster_v1.h \
-  SvtxClusterMap.h \
-  SvtxClusterMap_v1.h \
   SvtxTrack.h \
   SvtxTrack_v1.h \
   SvtxTrack_FastSim.h \
@@ -40,14 +32,6 @@ pkginclude_HEADERS = \
   SvtxVertexMap_v1.h 
 
 ROOTDICTS = \
-  SvtxCluster_Dict.cc \
-  SvtxCluster_v1_Dict.cc \
-  SvtxClusterMap_Dict.cc \
-  SvtxClusterMap_v1_Dict.cc \
-  SvtxHitMap_Dict.cc \
-  SvtxHit_v1_Dict.cc \
-  SvtxHit_Dict.cc \
-  SvtxHitMap_v1_Dict.cc \
   SvtxTrack_Dict.cc \
   SvtxTrackState_Dict.cc \
   SvtxTrackState_v1_Dict.cc \
@@ -63,14 +47,6 @@ ROOTDICTS = \
 if MAKEROOT6
   pcmdir = $(libdir)
   nobase_dist_pcm_DATA = \
-    SvtxCluster_Dict_rdict.pcm \
-    SvtxCluster_v1_Dict_rdict.pcm \
-    SvtxClusterMap_Dict_rdict.pcm \
-    SvtxClusterMap_v1_Dict_rdict.pcm \
-    SvtxHitMap_Dict_rdict.pcm \
-    SvtxHit_v1_Dict_rdict.pcm \
-    SvtxHit_Dict_rdict.pcm \
-    SvtxHitMap_v1_Dict_rdict.pcm \
     SvtxTrack_Dict_rdict.pcm \
     SvtxTrackState_Dict_rdict.pcm \
     SvtxTrackState_v1_Dict_rdict.pcm \
@@ -87,10 +63,6 @@ endif
 # sources for io library
 libtrackbase_historic_io_la_SOURCES = \
   $(ROOTDICTS) \
-  SvtxCluster_v1.cc \
-  SvtxClusterMap_v1.cc \
-  SvtxHit_v1.cc \
-  SvtxHitMap_v1.cc \
   SvtxTrackState_v1.cc \
   SvtxTrack_v1.cc \
   SvtxTrack_FastSim.cc \

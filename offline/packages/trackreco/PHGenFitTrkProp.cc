@@ -527,10 +527,12 @@ int PHGenFitTrkProp::KalmanTrkProp()
    */  
   // A map is needed for each vertex location. This is a vector of maps
   _layer_thetaID_phiID_clusterID.clear();
-  for(unsigned int ivert=0; ivert<_vertex.size(); ++ivert)
+  /*  for(unsigned int ivert=0; ivert<_vertex.size(); ++ivert)
     {
       BuildLayerZPhiHitMap(ivert);      
     }
+  */
+  BuildLayerZPhiHitMap(0);
 
   vector<genfit::Track*> evt_disp_copy;
 
@@ -586,12 +588,13 @@ int PHGenFitTrkProp::KalmanTrkProp()
 	    }
 
 	  // associate this track with the same vertex as the seed track
-	  unsigned int ivert = tracklet->get_vertex_id();
+	  //	  unsigned int ivert = tracklet->get_vertex_id();
+	  unsigned int ivert = 0;
 	  gftrk_iter->second->set_vertex_id(ivert);
 	  //cout << PHWHERE << " read back track vertex ID from Genfit track " << gftrk_iter->second->get_vertex_id() << endl;
 	  if(ivert > _vertex.size())
 	    {
-	      cout << PHWHERE << " Track vertex is screwed up, have to quit! " << endl;
+	      cout << PHWHERE << " Track vertex is screwed up, have to quit! #" << ivert << " v_size: " << _vertex.size()  << endl;
 	      return Fun4AllReturnCodes::ABORTRUN;
 	    }
 	  
@@ -786,11 +789,20 @@ int PHGenFitTrkProp::OutputPHGenFitTrack(
   TVector3 mom = gf_state_vertex_ca->getMom();
   TVector3 pos = gf_state_vertex_ca->getPos();
   TMatrixDSym cov = gf_state_vertex_ca->get6DCov();
+
 #else
   TVectorD state = gftrk_iter->second->getGenFitTrack()->getStateSeed();
   TVector3 pos(state(0), state(1), state(2));
   TVector3 mom(state(3), state(4), state(5));
+  TMatrixDSym cov = gftrk_iter->second->getGenFitTrack()->getCovSeed();
 #endif
+
+  for(int i=0; i<6; i++){
+    for(int j=0; j<6; j++){
+      track->set_error(i, j, cov[i][j]);
+    }
+  }
+
   track->set_px(mom.Px());
   track->set_py(mom.Py());
   track->set_pz(mom.Pz());
@@ -898,7 +910,6 @@ int PHGenFitTrkProp::SvtxTrackToPHGenFitTracks(const SvtxTrack* svtxtrack)
       svtxtrack->get_pz());
 
   const float blowup_factor = 1.;
-
   TMatrixDSym seed_cov(6);
   for (int i = 0; i < 6; i++)
   {

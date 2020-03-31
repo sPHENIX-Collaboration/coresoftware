@@ -53,7 +53,24 @@ class SvtxTrackState : public PHObject
   virtual std::string get_name() { return ""; }
   virtual void set_name(std::string &name) {}
 
- protected:
+  ///@name convenience interface, also found in Trkrcluster
+  //@{
+
+  /// rphi error
+  virtual float get_rphi_error() const
+  { return NAN; }
+
+  /// phi error
+  virtual float get_phi_error() const
+  { return NAN; }
+
+  /// z error
+  virtual float get_z_error() const
+  { return NAN; }
+
+  //@}
+
+  protected:
   SvtxTrackState(float pathlength = 0.0) {}
 
   ClassDef(SvtxTrackState, 1);

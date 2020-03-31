@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <utility>                // for pair, make_pair
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;

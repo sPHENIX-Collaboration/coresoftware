@@ -28,6 +28,9 @@
 #include <TMatrixT.h>       // for TMatrixT, ope...
 #include <TMatrixTUtils.h>  // for TMatrixTRow
 
+#include <TNtuple.h>  
+#include <TFile.h>  
+
 #include <cmath>  // for sqrt, cos, sin
 #include <iostream>
 #include <map>  // for _Rb_tree_cons...
@@ -48,6 +51,8 @@ TpcClusterizer::TpcClusterizer(const string &name)
   , NPhiBinsMin(0)
   , NZBinsMax(0)
   , NZBinsMin(0)
+  , hit_nt(nullptr)
+  , cluster_nt(nullptr)
 {
 }
 
@@ -56,27 +61,23 @@ bool TpcClusterizer::is_local_maximum(int phibin, int zbin, std::vector<std::vec
 {
   bool retval = true;
   double centval = adcval[phibin][zbin];
-  //cout << "enter is_local_maximum for phibin " << phibin << " zbin " << zbin << " adcval " << centval <<  endl;
-
+  
   // search contiguous adc values for a larger signal
-  for (int iz = zbin - 4; iz <= zbin + 4; iz++)
-    for (int iphi = phibin - 2; iphi <= phibin + 2; iphi++)
-    {
-      //cout << " is_local_maximum: iphi " <<  iphi << " iz " << iz << " adcval " << adcval[iphi][iz] << endl;
-      if (iz >= NZBinsMax) continue;
-      if (iz < NZBinsMin) continue;
-
-      if (iphi >= NPhiBinsMax) continue;
-      if (iphi < NPhiBinsMin) continue;
-
-      if (adcval[iphi][iz] > centval)
+  for (int iz = zbin - 1; iz <= zbin + 1; iz++)
+    for (int iphi = phibin - 1; iphi <= phibin + 1; iphi++)
       {
-        retval = false;
+	if (iz >= NZBinsMax) continue;
+	if (iz < NZBinsMin) continue;
+	
+	if (iphi >= NPhiBinsMax) continue;
+	if (iphi < NPhiBinsMin) continue;
+	
+	if (adcval[iphi][iz] > centval)
+	  {
+	    retval = false;
+	  }
       }
-    }
-
-  //if(retval)  cout << "**********************   success: returning " << retval << endl;
-
+  
   return retval;
 }
 
@@ -187,12 +188,18 @@ int TpcClusterizer::InitRun(PHCompositeNode *topNode)
     DetNode->addNode(newNode);
   }
 
+  if(Verbosity() > 10)
+    {
+      hit_nt = new TNtuple("hit_nt", "TPC hits", "phibin:zbin:layer:adc");
+      cluster_nt = new TNtuple("cluster_nt", "TPC hits", "phibin:zbin:layer:adc");
+    }
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int TpcClusterizer::process_event(PHCompositeNode *topNode)
 {
-  int print_layer = 47;
+  int print_layer = 18;
 
   if (Verbosity() > 1000)
     std::cout << "TpcClusterizer::Process_Event" << std::endl;
@@ -247,16 +254,19 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
        ++hitsetitr)
   {
     TrkrHitSet *hitset = hitsetitr->second;
+    int layer = TrkrDefs::getLayer(hitsetitr->first);
     if (Verbosity() > 1)
-      cout << "TpcClusterizer process hitsetkey " << hitsetitr->first
-           << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
-           << " side " << (int) TpcDefs::getSide(hitsetitr->first)
-           << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
-           << endl;
-    if (Verbosity() > 2) hitset->identify();
+      if (layer == print_layer)
+      {
+	cout << "TpcClusterizer process hitsetkey " << hitsetitr->first
+	     << " layer " << (int) TrkrDefs::getLayer(hitsetitr->first)
+	     << " side " << (int) TpcDefs::getSide(hitsetitr->first)
+	     << " sector " << (int) TpcDefs::getSectorId(hitsetitr->first)
+	     << endl;
+	if (Verbosity() > 5) hitset->identify();
+      }
 
     // we have a single hitset, get the info that identifies the module
-    int layer = TrkrDefs::getLayer(hitsetitr->first);
     // int sector = TpcDefs::getSectorId(hitsetitr->first);
     int side = TpcDefs::getSide(hitsetitr->first);
 
@@ -289,13 +299,21 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       int phibin = TpcDefs::getPad(hitr->first);
       int zbin = TpcDefs::getTBin(hitr->first);
       if (hitr->second->getAdc() > 0)
-        adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
+	{
+	  adcval[phibin][zbin] = (double) hitr->second->getAdc() - pedestal;
 
-      if (Verbosity() > 2)
-        if (layer == print_layer)
-          cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
+	  if (Verbosity() > 2)
+	    if (layer == print_layer)
+	      cout << " add hit in layer " << layer << " with phibin " << phibin << " zbin " << zbin << " adcval " << adcval[phibin][zbin] << endl;
+	  
+	  if(Verbosity() > 10)
+	    //if (layer == print_layer)
+	    hit_nt->Fill(phibin, zbin, layer, adcval[phibin][zbin]);
+	}
     }
 
+    int phibin_last = -1;
+    int zbin_last = -1;
     vector<int> phibinlo;
     vector<int> phibinhi;
     vector<int> zbinlo;
@@ -308,6 +326,13 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       int phibin = TpcDefs::getPad(hitr->first);
       int zbin = TpcDefs::getTBin(hitr->first);
       if (!is_local_maximum(phibin, zbin, adcval)) continue;
+
+      // eliminate double counting when two contiguous adcvals are identical (both bins will register as local maximum)
+      if(phibin == phibin_last -1 || phibin == phibin_last || phibin == phibin_last + 1)
+	if(zbin == zbin_last -1 || zbin == zbin_last || zbin == zbin_last + 1)
+	  continue;
+      phibin_last = phibin;
+      zbin_last = zbin;
 
       int phiup = 0;
       int phidown = 0;
@@ -323,6 +348,10 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       phibinhi.push_back(phibin + phiup);
       zbinlo.push_back(zbin - zdown);
       zbinhi.push_back(zbin + zup);
+
+      if(Verbosity() > 10) 
+	//if (layer == print_layer)
+	cluster_nt->Fill(phibin, zbin, layer, adcval[phibin][zbin]);
 
       if (Verbosity() > 2)
         if (layer == print_layer)
@@ -513,17 +542,29 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
     }  // end loop over clusters for this hitset
   }    // end loop over hitsets
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 100)
   {
     cout << "Dump clusters after TpcClusterizer" << endl;
     m_clusterlist->identify();
   }
 
-  if (Verbosity() > 2)
+  if (Verbosity() > 100)
   {
     cout << "Dump cluster hit associations after TpcClusterizer" << endl;
     m_clusterhitassoc->identify();
   }
 
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int TpcClusterizer::End(PHCompositeNode *topNode)
+{
+  if (Verbosity() > 10)
+  {
+    TFile *outf = new TFile("cluster_nt_out.root", "recreate");
+    outf->WriteTObject(hit_nt);
+    outf->WriteTObject(cluster_nt);
+    outf->Close();
+  }
   return Fun4AllReturnCodes::EVENT_OK;
 }

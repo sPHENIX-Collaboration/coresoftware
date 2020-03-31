@@ -10,6 +10,7 @@ class PHCompositeNode;
 class TrkrHitSetContainer;
 class TrkrClusterContainer;
 class TrkrClusterHitAssoc;
+class TNtuple;
 
 class TpcClusterizer : public SubsysReco
 {
@@ -19,6 +20,7 @@ class TpcClusterizer : public SubsysReco
 
   int InitRun(PHCompositeNode *topNode);
   int process_event(PHCompositeNode *topNode);
+  int End(PHCompositeNode *topNode);
 
  private:
   bool is_local_maximum(int phi, int z, std::vector<std::vector<double>> &adcval);
@@ -36,6 +38,8 @@ class TpcClusterizer : public SubsysReco
   int NZBinsMax;
   int NZBinsMin;
 
+  TNtuple *hit_nt;
+  TNtuple *cluster_nt;
 };
 
 #endif

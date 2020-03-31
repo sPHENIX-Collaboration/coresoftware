@@ -21,8 +21,6 @@
 #include "DumpRawTowerContainer.h"
 #include "DumpRawTowerGeomContainer.h"
 #include "DumpRunHeader.h"
-#include "DumpSvtxClusterMap.h"
-#include "DumpSvtxHitMap.h"
 #include "DumpSvtxTrackMap.h"
 #include "DumpSvtxVertexMap.h"
 #include "DumpSyncObject.h"
@@ -247,14 +245,6 @@ int PHNodeDump::AddDumpObject(const string &NodeName, PHNode *node)
       else if (tmp->InheritsFrom("RunHeader"))
       {
         newdump = new DumpRunHeader(NodeName);
-      }
-      else if (tmp->InheritsFrom("SvtxClusterMap"))
-      {
-        newdump = new DumpSvtxClusterMap(NodeName);
-      }
-      else if (tmp->InheritsFrom("SvtxHitMap"))
-      {
-        newdump = new DumpSvtxHitMap(NodeName);
       }
       else if (tmp->InheritsFrom("SvtxTrackMap"))
       {

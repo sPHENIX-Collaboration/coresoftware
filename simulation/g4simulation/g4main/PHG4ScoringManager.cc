@@ -105,15 +105,13 @@ int PHG4ScoringManager::InitRun(PHCompositeNode *topNode)
   h->GetXaxis()->LabelsOption("v");
   hm->registerHisto(h);
 
-  hm->registerHisto(
-      new TH1D("hNChEta",  //
-               "Charged particle #eta distribution;#eta;Count",
-               1000, -5, 5));
+  hm->registerHisto(new TH1D("hNChEta",  //
+                             "Charged particle #eta distribution;#eta;Count",
+                             1000, -5, 5));
 
-  hm->registerHisto(
-      new TH1D("hVertexZ",  //
-               "Vertex z distribution;z [cm];Count",
-               1000, -200, 200));
+  hm->registerHisto(new TH1D("hVertexZ",  //
+                             "Vertex z distribution;z [cm];Count",
+                             1000, -200, 200));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -144,7 +142,7 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
     if (once)
     {
       once = false;
-      cout << "TPCDataStreamEmulator::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
+      cout << "PHG4ScoringManager::process_event - - missing node PHHepMCGenEventMap. Skipping HepMC stat." << std::endl;
     }
   }
   else
@@ -169,23 +167,20 @@ int PHG4ScoringManager::process_event(PHCompositeNode *topNode)
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
   if (!ineve)
   {
-    cout << "TPCDataStreamEmulator::process_event - Error - "
+    cout << "PHG4ScoringManager::process_event - Error - "
          << "unable to find DST node "
          << "PHG4INEVENT" << endl;
   }
   else
   {
-    const auto primary_range =
-        ineve->GetParticles();
-    for (auto particle_iter =
-             primary_range.first;
+    const auto primary_range = ineve->GetParticles();
+    for (auto particle_iter = primary_range.first;
          particle_iter != primary_range.second;
          ++particle_iter)
     {
       const PHG4Particle *p = particle_iter->second;
       assert(p);
-      TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(
-          p->get_pid());
+      TParticlePDG *pdg_p = TDatabasePDG::Instance()->GetParticle(p->get_pid());
       assert(pdg_p);
       if (fabs(pdg_p->Charge()) > 0)
       {
@@ -253,13 +248,20 @@ void PHG4ScoringManager::makeScoringHistograms()
     // process shape
     const G4ThreeVector meshSize = g4mesh->GetSize();
     const G4ThreeVector meshTranslate = g4mesh->GetTranslation();
+#if G4VERSION_NUMBER >= 1060
+    const G4VScoringMesh::MeshShape meshShape = g4mesh->GetShape();
+#else
     const MeshShape meshShape = g4mesh->GetShape();
+#endif
     //PHENIX units
     vector<double> meshBoundMin = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
     //PHENIX units
     vector<double> meshBoundMax = {std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN(), std::numeric_limits<double>::signaling_NaN()};
-
+#if G4VERSION_NUMBER >= 1060
+    if (meshShape == G4VScoringMesh::MeshShape::box)
+#else
     if (meshShape == boxMesh)
+#endif
     {
       meshBoundMin[0] = (-meshSize[0] + meshTranslate[0]) / cm;
       meshBoundMax[0] = (meshSize[0] + meshTranslate[0]) / cm;
@@ -272,7 +274,11 @@ void PHG4ScoringManager::makeScoringHistograms()
       divisionAxisNames[1] += " [cm]";
       divisionAxisNames[2] += " [cm]";
     }
+#if G4VERSION_NUMBER >= 1060
+    else if (meshShape == G4VScoringMesh::MeshShape::cylinder)
+#else
     else if (meshShape == cylinderMesh)
+#endif
     {
       //      fDivisionAxisNames[0] = "Z";
       //      fDivisionAxisNames[1] = "PHI";
@@ -296,13 +302,18 @@ void PHG4ScoringManager::makeScoringHistograms()
     }
     else
     {
-      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << meshShape << ". Skipping this mesh!" << endl;
+      cout << "PHG4ScoringManager::makeScoringHistograms - Error - unsupported mesh shape " << (int) meshShape << ". Skipping this mesh!" << endl;
       g4mesh->List();
       continue;
     }
 
+#if G4VERSION_NUMBER >= 1060
+    G4VScoringMesh::MeshScoreMap fSMap = g4mesh->GetScoreMap();
+    G4VScoringMesh::MeshScoreMap::const_iterator msMapItr = fSMap.begin();
+#else
     MeshScoreMap fSMap = g4mesh->GetScoreMap();
     MeshScoreMap::const_iterator msMapItr = fSMap.begin();
+#endif
     for (; msMapItr != fSMap.end(); ++msMapItr)
     {
       G4String psname = msMapItr->first;
@@ -318,6 +329,7 @@ void PHG4ScoringManager::makeScoringHistograms()
       const string htitle = boost::str(boost::format("Mesh %1%, Primitive scorer %2%: score [%3%]") % meshName.c_str() % psname.data() % unit.data());
 
       if (Verbosity())
+      {
         cout << "PHG4ScoringManager::makeScoringHistograms - processing mesh " << meshName
              << "  scorer " << psname
              << "  with axis: "
@@ -328,7 +340,7 @@ void PHG4ScoringManager::makeScoringHistograms()
              << "[unit: " << unit << "]."
              << " Saving to histogram " << hname << " : " << htitle
              << endl;
-
+      }
       //book histogram
       TH3 *h = new TH3D(hname.c_str(),   //
                         htitle.c_str(),  //
@@ -382,7 +394,7 @@ PHG4ScoringManager::getHistoManager()
   static string histname("PHG4ScoringManager_HISTOS");
   Fun4AllServer *se = Fun4AllServer::instance();
   Fun4AllHistoManager *hm = se->getHistoManager(histname);
-  if (not hm)
+  if (!hm)
   {
     if (Verbosity())
       cout

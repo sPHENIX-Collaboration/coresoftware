@@ -66,11 +66,14 @@ PHG4MvtxDetector::PHG4MvtxDetector(PHG4Subsystem* subsys, PHCompositeNode* Node,
     m_N_staves[ilayer] = params->get_int_param("N_staves");
     m_nominal_radius[ilayer] = params->get_double_param("layer_nominal_radius");
     m_nominal_phitilt[ilayer] = params->get_double_param("phitilt");
+    m_nominal_phi0[ilayer] = params->get_double_param("phi0");
   }
+  /*
   const PHParameters* alpide_params = m_ParamsContainer->GetParameters(PHG4MvtxDefs::ALPIDE_SEGMENTATION);
   m_PixelX = alpide_params->get_double_param("pixel_x");
   m_PixelZ = alpide_params->get_double_param("pixel_z");
   m_PixelThickness = alpide_params->get_double_param("pixel_thickness");
+  */
   if (Verbosity() > 0)
   {
     cout << "PHG4MvtxDetector constructor: making Mvtx detector. " << endl;
@@ -217,6 +220,7 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   int N_staves = m_N_staves[layer];
   G4double layer_nominal_radius = m_nominal_radius[layer];
   G4double phitilt = m_nominal_phitilt[layer];
+  G4double phi0    = m_nominal_phi0[layer]; //YCM: azimuthal offset for the first stave
 
   if (N_staves < 0)
   {
@@ -250,7 +254,8 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
          << " layer_nominal_radius " << layer_nominal_radius
          << " N_staves " << N_staves
          << " phistep " << phistep
-         << " phtilt " << phitilt
+         << " phitilt " << phitilt
+         << " phi0    " << phi0
          << endl;
   }
 
@@ -263,7 +268,8 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
   {
     // Place the ladder segment envelopes at the correct z and phi
     // This is the azimuthal angle at which we place the stave
-    G4double phi_rotation = (double) iphi * phistep;
+    // phi0 is the azimuthal offset for the first stave
+    G4double phi_rotation = phi0 + (double) iphi * phistep;
 
     G4RotationMatrix Ra;
     G4ThreeVector Ta;
@@ -274,7 +280,8 @@ int PHG4MvtxDetector::ConstructMvtx_Layer(int layer, G4AssemblyVolume* av_ITSUSt
     }
     // It  is first rotated in phi by the azimuthal angle phi_rotation, plus the 90 degrees needed to point the face of the sensor  at the origin,  plus the tilt (if a tilt is appropriate)
 
-    Ra.rotateZ(phi_rotation + phi_offset + phitilt);  // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
+    // note - if this is layer 0-2, phitilt is the additional tilt for clearance. Otherwise it is zero
+    Ra.rotateZ(phi_rotation + phi_offset + phitilt);
     // Then translated as follows
 
     Ta.setX(layer_nominal_radius * cos(phi_rotation));
@@ -323,7 +330,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
 {
   string material_name(lv->GetMaterial()->GetName());
 
-  if (Verbosity() >= 5)
+  if (Verbosity() >= 50)
   {
     cout << "SetDisplayProperty - LV " << lv->GetName() << " built with "
          << material_name << endl;
@@ -335,7 +342,7 @@ void PHG4MvtxDetector::SetDisplayProperty(G4LogicalVolume* lv)
     if (material_name.find(nam) != std::string::npos)
     {
       m_DisplayAction->AddVolume(lv, nam);
-      if (Verbosity() >= 5)
+      if (Verbosity() >= 50)
       {
         cout << "SetDisplayProperty - LV " << lv->GetName() << " display with " << nam << endl;
       }
@@ -366,7 +373,7 @@ void PHG4MvtxDetector::AddGeometryNode()
   {
     active |= isAct;
   }
-  if (active)
+  if (active) // At least one layer is active
   {
     ostringstream geonode;
     geonode << "CYLINDERGEOM_" << ((m_SuperDetector != "NONE") ? m_SuperDetector : m_Detector);
@@ -379,19 +386,17 @@ void PHG4MvtxDetector::AddGeometryNode()
       PHIODataNode<PHObject>* newNode = new PHIODataNode<PHObject>(geo, geonode.str().c_str(), "PHObject");
       runNode->addNode(newNode);
     }
-    // here in the detector class we have internal units, convert to cm
+    // here in the detector class we have internal units(mm), convert to cm
     // before putting into the geom object
     for (unsigned short ilayer = 0; ilayer < n_Layers; ++ilayer)
     {
       CylinderGeom_Mvtx* mygeom = new CylinderGeom_Mvtx(ilayer,
-                                                        0,
                                                         m_N_staves[ilayer],
                                                         m_nominal_radius[ilayer] / cm,
                                                         get_phistep(ilayer) / rad,
                                                         m_nominal_phitilt[ilayer] / rad,
-                                                        m_PixelX,
-                                                        m_PixelZ,
-                                                        m_PixelThickness);
+                                                        m_nominal_phi0[ilayer] / rad
+                                                        );
       geo->AddLayerGeom(ilayer, mygeom);
     }  // loop per layers
     if (Verbosity())

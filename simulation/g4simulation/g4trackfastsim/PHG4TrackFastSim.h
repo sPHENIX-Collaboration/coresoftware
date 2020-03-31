@@ -17,7 +17,15 @@
 
 // rootcint barfs with this header so we need to hide it
 #if !defined(__CINT__) || defined(__CLING__)
+// needed, it crashes on Ubuntu using singularity with local cvmfs install
+// shared pointer later on uses this, forward declaration does not cut it
 #include <gsl/gsl_rng.h>
+#include <phgenfit/Track.h>
+#else
+namespace PHGenFit
+{
+class Track;
+} /* namespace PHGenFit */
 #endif
 
 #include <climits>  // for UINT_MAX
@@ -62,10 +70,7 @@ class PHG4TrackFastSim : public SubsysReco
   explicit PHG4TrackFastSim(const std::string& name = "PHG4TrackFastSim");
 
   //! dtor
-  ~PHG4TrackFastSim();
-
-  //!Initialization, called for initialization
-  int Init(PHCompositeNode*);
+  virtual ~PHG4TrackFastSim();
 
   //!Initialization Run, called for initialization of a run
   int InitRun(PHCompositeNode*);
@@ -78,12 +83,12 @@ class PHG4TrackFastSim : public SubsysReco
 
   bool is_do_evt_display() const
   {
-    return _do_evt_display;
+    return m_DoEvtDisplayFlag;
   }
 
   void set_do_evt_display(bool doEvtDisplay)
   {
-    _do_evt_display = doEvtDisplay;
+    m_DoEvtDisplayFlag = doEvtDisplay;
   }
 
   const std::string& get_fit_alg_name() const
@@ -201,11 +206,13 @@ class PHG4TrackFastSim : public SubsysReco
     _vertexing_method = vertexingMethod;
   }
 
-  double get_vertex_min_ndf() const {
+  double get_vertex_min_ndf() const
+  {
     return _vertex_min_ndf;
   }
 
-  void set_vertex_min_ndf(double vertexMinPT) {
+  void set_vertex_min_ndf(double vertexMinPT)
+  {
     _vertex_min_ndf = vertexMinPT;
   }
 
@@ -213,6 +220,8 @@ class PHG4TrackFastSim : public SubsysReco
   {
     _do_vertexing = b;
   }
+
+  void DisplayEvent() const;
 
  private:
   /*!
@@ -305,7 +314,7 @@ class PHG4TrackFastSim : public SubsysReco
   int _primary_assumption_pid;
 
   //!
-  bool _do_evt_display;
+  bool m_DoEvtDisplayFlag;
 
   /*!
 	 * For PseudoPatternRecognition function.
