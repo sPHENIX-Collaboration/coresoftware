@@ -1,5 +1,5 @@
-#ifndef TRACKRECO_PHSPACECHARGERECONSTRUCTION_H
-#define TRACKRECO_PHSPACECHARGERECONSTRUCTION_H
+#ifndef TPCCALIB_TPCSPACECHARGERECONSTRUCTION_H
+#define TPCCALIB_TPCSPACECHARGERECONSTRUCTION_H
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -15,12 +15,12 @@ class SvtxTrackMap;
 class TrkrCluster;
 class TrkrClusterContainer;
 
-class PHSpaceChargeReconstruction: public SubsysReco
+class TpcSpaceChargeReconstruction: public SubsysReco
 {
   public:
 
   /// constructor
-  PHSpaceChargeReconstruction( const std::string& = "PHSPACECHARGERECONSTRUCTION" );
+  TpcSpaceChargeReconstruction( const std::string& = "TPCSPACECHARGERECONSTRUCTION" );
 
   ///@name configuration
   //@{
@@ -78,7 +78,7 @@ class PHSpaceChargeReconstruction: public SubsysReco
   int get_cell( TrkrDefs::cluskey, TrkrCluster* ) const;
 
   /// output file
-  std::string m_outputfile = "PHSpaceChargeReconstruction.root";
+  std::string m_outputfile = "TpcSpaceChargeReconstruction.root";
 
   // tpc layers
   unsigned int m_firstlayer_tpc = 7;

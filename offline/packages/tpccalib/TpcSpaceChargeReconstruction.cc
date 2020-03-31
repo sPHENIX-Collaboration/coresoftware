@@ -1,4 +1,4 @@
-#include "PHSpaceChargeReconstruction.h"
+#include "TpcSpaceChargeReconstruction.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <g4detectors/PHG4CylinderCellGeom.h>
@@ -36,19 +36,19 @@ namespace
 }
 
 //_____________________________________________________________________
-PHSpaceChargeReconstruction::PHSpaceChargeReconstruction( const std::string& name ):
+TpcSpaceChargeReconstruction::TpcSpaceChargeReconstruction( const std::string& name ):
   SubsysReco( name)
 {}
 
 //_____________________________________________________________________
-void PHSpaceChargeReconstruction::set_tpc_layers( unsigned int first_layer, unsigned int n_layers )
+void TpcSpaceChargeReconstruction::set_tpc_layers( unsigned int first_layer, unsigned int n_layers )
 {
   m_firstlayer_tpc = first_layer;
   m_nlayers_tpc = n_layers;
 }
 
 //_____________________________________________________________________
-void PHSpaceChargeReconstruction::set_grid_dimensions( int zbins, int rbins, int phibins )
+void TpcSpaceChargeReconstruction::set_grid_dimensions( int zbins, int rbins, int phibins )
 {
   m_zbins = zbins;
   m_rbins = rbins;
@@ -57,11 +57,11 @@ void PHSpaceChargeReconstruction::set_grid_dimensions( int zbins, int rbins, int
 }
 
 //_____________________________________________________________________
-void PHSpaceChargeReconstruction::set_outputfile( const std::string& filename )
+void TpcSpaceChargeReconstruction::set_outputfile( const std::string& filename )
 { m_outputfile = filename; }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
 {
 
   // resize vectors
@@ -73,11 +73,11 @@ int PHSpaceChargeReconstruction::Init(PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::InitRun(PHCompositeNode* )
+int TpcSpaceChargeReconstruction::InitRun(PHCompositeNode* )
 { return Fun4AllReturnCodes::EVENT_OK; }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
+int TpcSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   const auto res = load_nodes(topNode);
@@ -89,14 +89,14 @@ int PHSpaceChargeReconstruction::process_event(PHCompositeNode* topNode)
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::End(PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::End(PHCompositeNode* topNode )
 {
   calculate_distortions( topNode );
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
+int TpcSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 {
   // get necessary nodes
   m_track_map = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
@@ -105,7 +105,7 @@ int PHSpaceChargeReconstruction::load_nodes( PHCompositeNode* topNode )
 }
 
 //_____________________________________________________________________
-void PHSpaceChargeReconstruction::process_tracks()
+void TpcSpaceChargeReconstruction::process_tracks()
 {
   if( !( m_track_map && m_cluster_map ) ) return;
 
@@ -114,7 +114,7 @@ void PHSpaceChargeReconstruction::process_tracks()
 }
 
 //_____________________________________________________________________
-void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
+void TpcSpaceChargeReconstruction::process_track( SvtxTrack* track )
 {
 
   // running track state
@@ -248,7 +248,7 @@ void PHSpaceChargeReconstruction::process_track( SvtxTrack* track )
 }
 
 //_____________________________________________________________________
-void  PHSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
+void  TpcSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNode )
 {
 
   // get tpc geometry
@@ -309,7 +309,7 @@ void  PHSpaceChargeReconstruction::calculate_distortions( PHCompositeNode* topNo
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::get_cell( int iz, int ir, int iphi ) const
+int TpcSpaceChargeReconstruction::get_cell( int iz, int ir, int iphi ) const
 {
   if( ir < 0 || ir >= m_rbins ) return -1;
   if( iphi < 0 || iphi >= m_phibins ) return -1;
@@ -318,7 +318,7 @@ int PHSpaceChargeReconstruction::get_cell( int iz, int ir, int iphi ) const
 }
 
 //_____________________________________________________________________
-int PHSpaceChargeReconstruction::get_cell( TrkrDefs::cluskey cluster_key, TrkrCluster* cluster ) const
+int TpcSpaceChargeReconstruction::get_cell( TrkrDefs::cluskey cluster_key, TrkrCluster* cluster ) const
 {
   // radius
   const auto layer = TrkrDefs::getLayer(cluster_key);
