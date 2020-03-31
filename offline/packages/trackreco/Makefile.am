@@ -44,7 +44,6 @@ pkginclude_HEADERS = \
   PHCASeeding.h \
   PHInitVertexing.h \
   PHInitZVertexing.h \
-  	PHSpaceChargeReconstruction.h \
   PHTrackPropagating.h \
   PHTrackSeeding.h \
   PHTrackFitting.h \
@@ -129,7 +128,6 @@ libtrack_reco_la_SOURCES = \
 	$(ACTS_SOURCES) \
 	PHInitVertexing.cc \
 	PHInitZVertexing.cc \
-	PHSpaceChargeReconstruction.cc \
 	PHTrackSeeding.cc \
 	PHTrackSetMerging.cc \
 	PHTrackPropagating.cc \
