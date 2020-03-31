@@ -60,7 +60,7 @@ float RawClusterBuilderTopo::calculate_dR( float eta1, float eta2, float phi1, f
   float deta = eta1 - eta2;
   float dphi = phi1 - phi2;
   while ( dphi > 3.14159 ) dphi -= 2 * 3.14159;
-  while ( dphi < -3.14159 ) dphi -= 2 * 3.14159;
+  while ( dphi < -3.14159 ) dphi += 2 * 3.14159;
   return sqrt( pow( deta, 2 ) + pow( dphi ,2 ) );
 
 }
