@@ -330,6 +330,7 @@ int TpcSpaceChargeReconstruction::get_cell( TrkrDefs::cluskey cluster_key, TrkrC
   const int iphi = m_phibins*(cluster_phi + M_PI)/(2.*M_PI);
 
   // z
+  // TODO: get TPC dimension from recoconst ?
   const auto cluster_z = cluster->getZ();
   static constexpr float z_min = -212/2;
   static constexpr float z_max = 212/2;
