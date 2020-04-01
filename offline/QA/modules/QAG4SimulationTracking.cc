@@ -13,6 +13,7 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
+#include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
 #include <trackbase_historic/SvtxTrack.h>
 
 #include <g4eval/SvtxTrackEval.h>  // for SvtxTrackEval
@@ -93,6 +94,21 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
                "Reco tracks at truth p_{T};Truth p_{T} [GeV/c]", 200, 0.1, 50.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
+
+  // reco pT histogram vs tracker hits
+  h = new TH2F(TString(get_histo_prefix()) + "nMVTX_nReco_pTGen",
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{MVTX}", 200, 0.1, 50.5, 6, -.5, 5.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "nINTT_nReco_pTGen",
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{INTT}", 200, 0.1, 50.5, 10, -.5, 9.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+  h = new TH2F(TString(get_histo_prefix()) + "nTPC_nReco_pTGen",
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{TPC}", 200, 0.1, 50.5, 60, -.5, 59.5);
+  QAHistManagerDef::useLogBins(h->GetXaxis());
+  hm->registerHisto(h);
+
   // reco pT histogram
   h = new TH1F(TString(get_histo_prefix()) + "nGen_pTGen",
                ";Truth p_{T} [GeV/c];Track count / bin", 200, 0.1, 50.5);
@@ -158,6 +174,16 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   // reco histogram plotted at gen pT
   TH1 *h_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nReco_pTGen"));
   assert(h_nReco_pTGen);
+
+  // reco histogram plotted at gen pT
+  TH1 *h_nMVTX_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nMVTX_nReco_pTGen"));
+  assert(h_nMVTX_nReco_pTGen);
+  // reco histogram plotted at gen pT
+  TH1 *h_nINTT_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nINTT_nReco_pTGen"));
+  assert(h_nINTT_nReco_pTGen);
+  // reco histogram plotted at gen pT
+  TH1 *h_nTPC_nReco_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nTPC_nReco_pTGen"));
+  assert(h_nTPC_nReco_pTGen);
 
   // gen pT histogram
   TH1 *h_nGen_pTGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_pTGen"));
@@ -280,6 +306,31 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       h_pTRecoGenRatio->Fill(pt_ratio);
       h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
       h_norm->Fill("Reco Track", 1);
+
+      // tracker hit stat.
+      vector<unsigned int> nhits(3, 0);
+      // cluster stat.
+      for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+      {
+        const auto &cluster_key = *cluster_iter;
+
+        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+        if (trackerID == TrkrDefs::mvtxId)
+          ++nhits[0];
+        else if (trackerID == TrkrDefs::inttId)
+          ++nhits[1];
+        else if (trackerID == TrkrDefs::tpcId)
+          ++nhits[2];
+        else
+        {
+          if (Verbosity())
+            cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+        }
+      }  // for
+      h_nMVTX_nReco_pTGen->Fill(gpt, nhits[0]);
+      h_nINTT_nReco_pTGen->Fill(gpt, nhits[1]);
+      h_nTPC_nReco_pTGen->Fill(gpt, nhits[2]);
     }
   }
 
