@@ -101,7 +101,7 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH2F(TString(get_histo_prefix()) + "nINTT_nReco_pTGen",
-               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{INTT}", 200, 0.1, 50.5, 10, -.5, 9.5);
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{INTT}", 200, 0.1, 50.5, 6, -.5, 5.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH2F(TString(get_histo_prefix()) + "nTPC_nReco_pTGen",
