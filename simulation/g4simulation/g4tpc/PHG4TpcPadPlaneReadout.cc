@@ -9,6 +9,7 @@
 
 #include <g4main/PHG4Hit.h>                             // for PHG4Hit
 #include <g4main/PHG4HitContainer.h>
+#include <phool/PHRandomSeed.h>
 
 // Move to new storage containers
 #include <trackbase/TrkrDefs.h>                         // for hitkey, hitse...
@@ -23,7 +24,11 @@
 #include <TNtuple.h>
 #include <TSystem.h>
 
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
+
 #include <cmath>
+#include <cassert>
 #include <climits>                                     // for INT_MAX
 #include <cstdio>                                      // for sprintf
 #include <iostream>
@@ -59,7 +64,15 @@ PHG4TpcPadPlaneReadout::PHG4TpcPadPlaneReadout(const string &name)
     _gauss_weights[i] = std::exp( -square( x )/2 );
   }
 
+  RandomGenerator = gsl_rng_alloc(gsl_rng_mt19937);
+  gsl_rng_set(RandomGenerator, PHRandomSeed());  // fixed seed is handled in this funtcion
+
   return;
+}
+
+PHG4TpcPadPlaneReadout::~PHG4TpcPadPlaneReadout()
+{
+  gsl_rng_free(RandomGenerator);
 }
 
 int PHG4TpcPadPlaneReadout::CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo)
@@ -164,8 +177,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
   // amplify the single electron in the gem stack
   //===============================
 
-  // should be obtained from a distribution of avalanche gains, make constant for now
-  float nelec = 2000.0;
+  double nelec = getSingleEGEMAmplification();
+
 
   // Distribute the charge between the pads in phi
   //====================================
@@ -267,7 +280,10 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
+  {
+    assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+  }
 
   if (Verbosity() > 100)
     if (layernum == print_layer)
@@ -278,12 +294,30 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+      assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
 
   hit++;
 
   return;
+}
+
+double PHG4TpcPadPlaneReadout::getSingleEGEMAmplification()
+{
+
+
+  // Jin H.: For the GEM gain in sPHENIX TPC,
+  //         Bob pointed out the PHENIX HBD measured it as the Polya function with theta parameter = 0.8.
+  //         Just talked with Tom too, he suggest us to start the TPC modeling with simpler exponential function
+  //         with lambda parameter of 1/2000, (i.e. Polya function with theta parameter = 0, q_bar = 2000). Please note, this gain variation need to be sampled for each initial electron individually.
+  //         Summing over ~30 initial electrons, the distribution is pushed towards more Gauss like.
+  // Bob A.: I like Tom's suggestion to use the exponential distribution as a first approximation
+  //         for the single electron gain distribution -
+  //         and yes, the parameter you're looking for is of course the slope, which is the inverse gain.
+  double nelec = gsl_ran_exponential(RandomGenerator, averageGEMGain);
+
+  return nelec;
 }
 
 void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer, TrkrHitTruthAssoc *hittruthassoc, const double x_gem, const double y_gem, const double z_gem, PHG4HitContainer::ConstIterator hiter, TNtuple *ntpad, TNtuple *nthit)
@@ -342,8 +376,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
   // amplify the single electron in the gem stack
   //===============================
 
-  // should be obtained from a distribution of avalanche gains, make constant for now
-  float nelec = 2000.0;
+  double nelec = getSingleEGEMAmplification();
 
   // Distribute the charge between the pads in phi
   //====================================
@@ -460,14 +493,21 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
 
-      nthit->Fill(layernum, pad_num, zbin_num, neffelectrons);
+      if (Verbosity() > 0)
+      {
+        assert(nthit);
+        nthit->Fill(layernum, pad_num, zbin_num, neffelectrons);
+      }
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
+  {
+    assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+  }
 
   if (Verbosity() > 100)
     if (layernum == print_layer)
@@ -478,6 +518,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+
+      assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
 
@@ -757,6 +799,8 @@ void PHG4TpcPadPlaneReadout::SetDefaultParameters()
 
   set_default_int_param("zigzag_pads", 1);
 
+  set_default_double_param("gem_amplification", 2000); // GEM Gain
+
   return;
 }
 
@@ -808,4 +852,6 @@ void PHG4TpcPadPlaneReadout::UpdateInternalParameters()
   PhiBinWidth[2] = 2.0 * M_PI / (double) NPhiBins[2];
 
   zigzag_pads = get_int_param("zigzag_pads");
+
+  averageGEMGain = get_double_param("gem_amplification");
 }

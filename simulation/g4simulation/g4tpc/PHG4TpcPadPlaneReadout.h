@@ -5,7 +5,9 @@
 
 #include <g4main/PHG4HitContainer.h>
 
+// rootcint barfs with this header so we need to hide it
 #if !defined(__CINT__) || defined(__CLING__)
+#include <gsl/gsl_rng.h>
 #include <array>
 #endif
 
@@ -27,6 +29,8 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
 {
  public:
   PHG4TpcPadPlaneReadout(const std::string &name = "PHG4TpcPadPlaneReadout");
+
+  virtual ~PHG4TpcPadPlaneReadout();
 
   int CreateReadoutGeometry(PHCompositeNode *topNode, PHG4CylinderCellGeomContainer *seggeo);
 
@@ -79,12 +83,21 @@ class PHG4TpcPadPlaneReadout : public PHG4TpcPadPlane
   static constexpr double _nsigmas = 5;
   static constexpr int _ngauss_steps = 100;
   std::array<double, _ngauss_steps> _gauss_weights;
+
+  double averageGEMGain = NAN;
+
 #endif
 
   std::vector<int> adc_zbin;
   std::vector<int> pad_phibin;
   std::vector<double> pad_phibin_share;
   std::vector<double> adc_zbin_share;
+
+  // return random distribution of number of electrons after amplification of GEM for each initial ionizing electron
+  double getSingleEGEMAmplification();
+#if !defined(__CINT__) || defined(__CLING__)
+  gsl_rng *RandomGenerator;
+#endif
 };
 
 #endif
