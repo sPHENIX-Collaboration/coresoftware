@@ -10,12 +10,14 @@
 #include <fun4all/SubsysReco.h>
 
 #include <string>
+#include <set>
 
 class PHCompositeNode;
 class PHTimer;
 class SvtxEvalStack;
 class TFile;
 class TNtuple;
+class PHG4Hit;
 
 /// \class SvtxEvaluator
 ///
@@ -104,6 +106,12 @@ class SvtxEvaluator : public SubsysReco
 
   PHTimer *_timer;
 
+  void LayerClusterG4Particle();
+
+void LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, float layer, float *gx, float *gy, float *gz,  float *gt);
+
+
+  void LayerClusterG34Hits();
   float line_circle_intersection(float x[], float y[], float z[], float radius);
 
   // output subroutines
