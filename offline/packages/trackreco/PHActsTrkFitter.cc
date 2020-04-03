@@ -35,6 +35,10 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   Verbosity(0);
 }
 
+PHActsTrkFitter::~PHActsTrkFitter()
+{
+}
+
 int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
@@ -119,10 +123,6 @@ int PHActsTrkFitter::End(PHCompositeNode* topNode)
     std::cout << "Finished PHActsTrkFitter" << std::endl;
   }
   return Fun4AllReturnCodes::EVENT_OK;
-}
-
-PHActsTrkFitter::~PHActsTrkFitter()
-{
 }
 
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)

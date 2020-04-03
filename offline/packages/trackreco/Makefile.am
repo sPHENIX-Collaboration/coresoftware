@@ -37,6 +37,7 @@ pkginclude_HEADERS = \
   PHGenFitTrkFitter.h \
   PHActsSourceLinks.h \
   PHActsTracks.h \
+  PHActsTrkProp.h \
   PHActsTrkFitter.h \
   PHGenFitTrkProp.h \
   PHHoughSeeding.h \
@@ -111,6 +112,7 @@ ACTS_SOURCES = \
   MakeActsGeometry.cc \
   PHActsSourceLinks.cc \
   PHActsTracks.cc \
+  PHActsTrkProp.cc \
   PHActsTrkFitter.cc
 
 ACTS_LIBS = \

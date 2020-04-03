@@ -76,14 +76,15 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
        trackIter != m_trackMap->end(); ++trackIter)
   {
     const SvtxTrack *track = trackIter->second;
+
+    if (!track)
+      continue;
+
     if (Verbosity() > 1)
     {
       std::cout << "found SvtxTrack " << trackIter->first << std::endl;
       track->identify();
     }
-
-    if (!track)
-      continue;
 
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = getActsCovMatrix(track);
@@ -161,11 +162,7 @@ Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
 
   // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
   // x,y,phi/theta of p, qoverp, time
-  double phi = atan(py / px);
-  if (phi < -1 * M_PI)
-    phi += 2. * M_PI;
-  else if (phi > M_PI)
-    phi -= 2. * M_PI;
+  double phi = track->get_phi();
 
   const double pxfracerr = seed_cov[3][3] / (px * px);
   const double pyfracerr = seed_cov[4][4] / (py * py);
