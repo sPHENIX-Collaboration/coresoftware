@@ -30,7 +30,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
   , m_event(0)
   , m_actsProtoTracks(nullptr)
-  , m_fitCfgOptions(nullptr)
+  , m_actsGeometry(nullptr)
 {
   Verbosity(0);
 }
@@ -64,8 +64,8 @@ int PHActsTrkFitter::Process()
   /// FitCfg created by MakeActsGeometry
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_fitCfgOptions->tGeometry,
-                                                                   m_fitCfgOptions->magField,
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_actsGeometry->tGeometry,
+                                                                   m_actsGeometry->magField,
                                                                    Acts::Logging::VERBOSE);
 
   std::vector<ActsTrack>::iterator trackIter;
@@ -77,15 +77,15 @@ int PHActsTrkFitter::Process()
     ActsTrack track = *trackIter;
 
     std::vector<SourceLink> sourceLinks = track.sourceLinks;
-    FW::TrackParameters trackSeed = track.trackSeed;
+    FW::TrackParameters trackSeed = track.trackParams;
 
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
 
-    Acts::KalmanFitterOptions kfOptions(m_fitCfgOptions->geoContext,
-                                        m_fitCfgOptions->magFieldContext,
-                                        m_fitCfgOptions->calibContext,
+    Acts::KalmanFitterOptions kfOptions(m_actsGeometry->geoContext,
+                                        m_actsGeometry->magFieldContext,
+                                        m_actsGeometry->calibContext,
                                         &(*pSurface));
 
     /// Run the fitter
@@ -110,7 +110,7 @@ int PHActsTrkFitter::Process()
       }
     }
 
-    /// Add a new track to a container to put on the node tree
+    /// Update the acts track node on the node tree
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -141,11 +141,11 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_fitCfgOptions = findNode::getClass<FitCfgOptions>(topNode, "ActsFitCfg");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  if (!m_fitCfgOptions)
+  if (!m_actsGeometry)
   {
-    std::cout << "Acts FitCfgOptions not on node tree. Exiting."
+    std::cout << "ActsGeometry not on node tree. Exiting."
               << std::endl;
 
     return Fun4AllReturnCodes::ABORTEVENT;

@@ -35,14 +35,14 @@ struct ActsTrack
 {
   /// Default constructor. There is not a no argument constructor
   /// as source links don't have a no argument constructor
-  ActsTrack(FW::TrackParameters seed, const std::vector<SourceLink> &links)
-    : trackSeed(seed)
+  ActsTrack(FW::TrackParameters params, const std::vector<SourceLink> &links)
+    : trackParams(params)
     , sourceLinks(links)
   {
   }
 
   /// The acts track parameters for this track
-  FW::TrackParameters trackSeed;
+  FW::TrackParameters trackParams;
 
   /// The corresponding source links that are associated to the above track
   std::vector<SourceLink> sourceLinks;

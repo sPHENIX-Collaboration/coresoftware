@@ -49,20 +49,20 @@ using SourceLink = FW::Data::TrkrClusterSourceLink;
  * A struct that contains the necessary geometry objects that the fitter
  * needs in PHActsTrkFitter. To be put on the node tree
  */
-struct FitCfgOptions
+struct ActsGeometry
 {
   /// Two constructor options
-  FitCfgOptions() {}
-  FitCfgOptions(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
-                FW::Options::BFieldVariant mag,
-                Acts::CalibrationContext calib,
-                Acts::GeometryContext geo,
-                Acts::MagneticFieldContext magField)
-    : tGeometry(tGeo)
-    , magField(mag)
-    , calibContext(calib)
-    , geoContext(geo)
-    , magFieldContext(magField)
+  ActsGeometry() {}
+  ActsGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+	       FW::Options::BFieldVariant mag,
+	       Acts::CalibrationContext calib,
+	       Acts::GeometryContext geo,
+	       Acts::MagneticFieldContext magField)
+  : tGeometry(tGeo)
+  , magField(mag)
+  , calibContext(calib)
+  , geoContext(geo)
+  , magFieldContext(magField)
   {
   }
 
@@ -179,7 +179,7 @@ class PHActsSourceLinks : public SubsysReco
 
   /// The fit cfg options, created in MakeActsGeometry, to be put on node tree
   /// for PHActsTrkFitter
-  FitCfgOptions *m_fitCfgOptions;
+  ActsGeometry *m_actsGeometry;
 
   /// Tracking geometry objects
   PHG4CylinderGeomContainer *m_geomContainerMvtx;

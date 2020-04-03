@@ -48,7 +48,7 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_clusterMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
-  , m_fitCfgOptions(nullptr)
+  , m_actsGeometry(nullptr)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
@@ -97,11 +97,11 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   m_clusterNodeMap = actsGeometry->getNodeMap();
   m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
   m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
-  m_fitCfgOptions->tGeometry = actsGeometry->getTGeometry();
-  m_fitCfgOptions->magField = actsGeometry->getMagField();
-  m_fitCfgOptions->geoContext = actsGeometry->getGeoContext();
-  m_fitCfgOptions->magFieldContext = actsGeometry->getMagFieldContext();
-  m_fitCfgOptions->calibContext = actsGeometry->getCalibContext();
+  m_actsGeometry->tGeometry = actsGeometry->getTGeometry();
+  m_actsGeometry->magField = actsGeometry->getMagField();
+  m_actsGeometry->geoContext = actsGeometry->getGeoContext();
+  m_actsGeometry->magFieldContext = actsGeometry->getMagFieldContext();
+  m_actsGeometry->calibContext = actsGeometry->getCalibContext();
 
   if (Verbosity() > 10)
   {
@@ -336,7 +336,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
-  Acts::Vector3D center = surface->center(m_fitCfgOptions->geoContext);
+  Acts::Vector3D center = surface->center(m_actsGeometry->geoContext);
   double surfRphiCenter = atan2(center[1], center[0]) * radius;
   double surfZCenter = center[2];
   if (Verbosity() > 0)
@@ -616,12 +616,12 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
     svtxNode->addNode(hitMapNode);
   }
 
-  m_fitCfgOptions = findNode::getClass<FitCfgOptions>(topNode, "ActsFitCfg");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsFitCfg");
 
-  if (!m_fitCfgOptions)
+  if (!m_actsGeometry)
   {
-    m_fitCfgOptions = new FitCfgOptions();
-    PHDataNode<FitCfgOptions> *fitNode = new PHDataNode<FitCfgOptions>(m_fitCfgOptions, "ActsFitCfg");
+    m_actsGeometry = new ActsGeometry();
+    PHDataNode<ActsGeometry> *fitNode = new PHDataNode<ActsGeometry>(m_actsGeometry, "ActsGeometry");
     svtxNode->addNode(fitNode);
   }
 

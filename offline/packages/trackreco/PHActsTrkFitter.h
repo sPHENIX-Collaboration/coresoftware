@@ -26,7 +26,7 @@ class TrkrClusterSourceLink;
 }  // namespace FW
 
 struct ActsTrack;
-struct FitCfgOptions;
+struct ActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
@@ -62,7 +62,7 @@ class PHActsTrkFitter : public PHTrackFitting
   std::vector<ActsTrack>* m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  FitCfgOptions* m_fitCfgOptions;
+  ActsGeometry* m_actsGeometry;
 };
 
 #endif

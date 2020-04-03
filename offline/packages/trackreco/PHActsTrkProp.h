@@ -8,19 +8,24 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
+#include <Acts/Propagator/Propagator.hpp>
+#include <Acts/Propagator/detail/DebugOutputActor.hpp>
+#include <Acts/Propagator/detail/StandardAborters.hpp>
+#include <Acts/Propagator/detail/SteppingLogger.hpp>
+#include <Acts/Propagator/MaterialInteractor.hpp>
 
 #include <memory>
 #include <string>
 
-namespace FW
-{
-  namespace Data
-  {
-    class TrkrClusterSourceLink;
-  }
+namespace Acts {
 }
 
+struct ActsTrack;
+
 class SvtxTrack;
+using RecordedMaterial = Acts::MaterialInteractor::result_type;
+using PropagationOutput
+    = std::pair<std::vector<Acts::detail::Step>, RecordedMaterial>;
 
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
@@ -55,7 +60,13 @@ class PHActsTrkProp : public PHTrackPropagating
 
   Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
 
-  FitCfgOptions *m_fitCfgOptions;
+  PropagationOutput propagate(FW::TrackParameters parameters);
+
+  ActsGeometry *m_actsGeometry;
+
+  double m_minTrackPt;
+
+  std::vector<ActsTrack>* m_actsTracks;
 
 };
 

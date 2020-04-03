@@ -16,13 +16,26 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
+#include <Acts/EventData/ChargePolicy.hpp>
+#include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/EventData/NeutralParameters.hpp>
+#include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/Propagator/AbortList.hpp>
+#include <Acts/Propagator/ActionList.hpp>
+#include <Acts/Propagator/Navigator.hpp>
+#include <Acts/Surfaces/PerigeeSurface.hpp>
+#include <Acts/Utilities/Helpers.hpp>
+#include <Acts/Utilities/Units.hpp>
 
+#include <ACTFW/Framework/BareAlgorithm.hpp>
+#include <ACTFW/Framework/ProcessCode.hpp>
+#include <ACTFW/Framework/RandomNumbers.hpp>
+#include <ACTFW/Framework/WhiteBoard.hpp>
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 
 #include <cmath>
@@ -34,7 +47,8 @@
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
-  , m_fitCfgOptions(nullptr)
+  , m_actsGeometry(nullptr)
+  , m_minTrackPt(0.15)
 
 {
   Verbosity(0);
@@ -65,45 +79,17 @@ int PHActsTrkProp::Process()
   PerigeeSurface surface = Acts::Surface::makeShared<Acts::PerigeeSurface>
     (Acts::Vector3D(0., 0., 0.));
 
-
-  for(SvtxTrackMap::Iter trackIter = _track_map->begin();
-      trackIter != _track_map->end(); ++trackIter)
+  
+  for(std::vector<ActsTrack>::iterator trackIter = m_actsTracks->begin();
+      trackIter != m_actsTracks->end();
+      ++trackIter)
+	
     {
-      const SvtxTrack *track = trackIter->second;
-
-      if(!track) 
-	continue;
-
-      if(Verbosity() > 1)
-	{
-	  std::cout << "Found SvtxTrack " << trackIter->first << std::endl;
-	  track->identify();
-	}
-
-      const double x = track->get_x();
-      const double y = track->get_y();
-      const double d0 = sqrt(x*x + y*y);
-      const double z0 = track->get_z();
-      const double phi = track->get_phi();
-      const double theta = 2.*atan(exp(-1*track->get_eta()));
-      const int charge = track->get_charge();
-      const double qop = (double)charge / track->get_p();
-      /// Just set to 0 for now?
-      const double time = 0;
-
-      Acts::BoundSymMatrix cov = getActsCovMatrix(track);
-
-      Acts::BoundVector pars;
-      pars << d0, z0, phi, theta, qop, time;
-
-      Acts::Vector3D sPosition(0., 0., 0.);
-      Acts::Vector3D sMomentum(0., 0., 0.);
-      Acts::BoundParameters startParameters(
-          m_fitCfgOptions->geoContext, 
-	  std::move(cov), std::move(pars), surface);
-      sPosition = startParameters.position();
-      sMomentum = startParameters.momentum();
-
+      ActsTrack track = *trackIter;
+     
+      const FW::TrackParameters actsTrack = track.trackParams;
+      
+      PropagationOutput pOutput = propagate(actsTrack);
 
     }
 
@@ -120,6 +106,71 @@ int PHActsTrkProp::End(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+ 
+PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
+{
+  PropagationOutput pOutput;
+  
+  // The step length logger for testing & end of world aborter
+  using MaterialInteractor = Acts::MaterialInteractor;
+  using SteppingLogger     = Acts::detail::SteppingLogger;
+  using DebugOutput        = Acts::detail::DebugOutputActor;
+  using EndOfWorld         = Acts::detail::EndOfWorldReached;
+  
+  // Action list and abort list
+  using ActionList
+    = Acts::ActionList<SteppingLogger, MaterialInteractor, DebugOutput>;
+  using AbortList         = Acts::AbortList<EndOfWorld>;
+  using PropagatorOptions = Acts::PropagatorOptions<ActionList, AbortList>;
+  
+  PropagatorOptions options(m_actsGeometry->geoContext, 
+			    m_actsGeometry->magFieldContext);
+  options.pathLimit = std::numeric_limits<double>::max();
+  options.debug     = true;
+  
+  // Activate loop protection at some pt value
+  options.loopProtection
+    = (Acts::VectorHelpers::perp(parameters.momentum())
+       < m_minTrackPt);
+
+  // Switch the material interaction on/off & eventually into logging mode
+  // Should all of these switches be configurable from e.g. constructor?
+  auto& mInteractor = options.actionList.get<MaterialInteractor>();
+  mInteractor.multipleScattering = true;
+  mInteractor.energyLoss         = true;
+  mInteractor.recordInteractions = true;
+
+  // Set a maximum step size
+  options.maxStepSize = 3. * Acts::UnitConstants::mm;
+  
+  /*
+  // Propagate using the propagator
+  /// Will need to setup some acts class that creates the propagator
+  /// similar to the track fitter
+  const auto& result
+    = m_cfg.propagator.propagate(startParameters, options).value();
+
+  auto steppingResults = result.template get<SteppingLogger::result_type>();
+  
+  // Set the stepping result
+  pOutput.first = std::move(steppingResults.steps);
+  // Also set the material recording result - if configured
+  if (mInteractor.recordInteractions) {
+    auto materialResult
+      = result.template get<MaterialInteractor::result_type>();
+    pOutput.second = std::move(materialResult);
+  }
+  
+  if(Verbosity() > 1)
+    {
+      auto& debugResult = result.template get<DebugOutput::result_type>();
+      std::cout << "Acts Propagator Debug: " << debugResult.debugString 
+		<< std::endl;
+    }
+  */
+  return pOutput;
+ 
+}
 
 
 
@@ -130,35 +181,31 @@ Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
   const double py = track->get_py();
   const double pz = track->get_pz();
   const double p = sqrt(px * px + py * py + pz * pz);
-  const double x = track->get_x();
-  const double y = track->get_y();
 
-  const double d = sqrt(x*x + y*y);
-  
   // Get the track seed covariance matrix
   // These are the variances, so the std devs are sqrt(seed_cov[i][j])
-  TMatrixDSym cov(6);
+  TMatrixDSym seed_cov(6);
   for (int i = 0; i < 6; i++)
   {
     for (int j = 0; j < 6; j++)
     {
-      cov[i][j] = track->get_error(i, j);
+      seed_cov[i][j] = track->get_error(i, j);
     }
   }
-  const double sigmad = (1./d) * sqrt( x*x*cov[0][0] + y*y*cov[1][1]);
-  const double sigmap = sqrt(px * px * cov[3][3] + py * py * cov[4][4] + pz * pz * cov[5][5]) / p;
 
-  // Need to convert cov from x,y,z,px,py,pz basis to Acts basis of
+  const double sigmap = sqrt(px * px * seed_cov[3][3] + py * py * seed_cov[4][4] + pz * pz * seed_cov[5][5]) / p;
+
+  // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
   // x,y,phi/theta of p, qoverp, time
   double phi = track->get_phi();
 
-  const double pxfracerr = cov[3][3] / (px * px);
-  const double pyfracerr = cov[4][4] / (py * py);
+  const double pxfracerr = seed_cov[3][3] / (px * px);
+  const double pyfracerr = seed_cov[4][4] / (py * py);
   const double phiPrefactor = fabs(py) / (fabs(px) * (1 + (py / px) * (py / px)));
   const double sigmaPhi = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
   const double theta = acos(pz / p);
   const double thetaPrefactor = ((fabs(pz)) / (p * sqrt(1 - (pz / p) * (pz / p))));
-  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + cov[5][5] / (pz * pz));
+  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + seed_cov[5][5] / (pz * pz));
   const double sigmaQOverP = sigmap / (p * p);
 
   // Just set to 0 for now?
@@ -174,12 +221,11 @@ Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
     {
       for (int j = 0; j < 6; j++)
       {
-        std::cout << cov[i][j] << ", ";
+        std::cout << seed_cov[i][j] << ", ";
       }
       std::cout << std::endl;
     }
     std::cout << "Corresponding uncertainty calculations: " << std::endl;
-    std::cout << "d: " << d << " +/- " << sigmad << std::endl;
     std::cout << "perr: " << sigmap << std::endl;
     std::cout << "phi: " << phi << std::endl;
     std::cout << "pxfracerr: " << pxfracerr << std::endl;
@@ -193,9 +239,8 @@ Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
   }
 
   /// Seed covariances are already variances, so don't need to square them
-  /// Rest are std devs, so need to square them
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = sigmad * sigmad;
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = cov[2][2]; // z
+  matrix(Acts::eLOC_0, Acts::eLOC_0) = seed_cov[0][0];
+  matrix(Acts::eLOC_1, Acts::eLOC_1) = seed_cov[1][1];
   matrix(Acts::ePHI, Acts::ePHI) = sigmaPhi * sigmaPhi;
   matrix(Acts::eTHETA, Acts::eTHETA) = sigmaTheta * sigmaTheta;
   matrix(Acts::eQOP, Acts::eQOP) = sigmaQOverP * sigmaQOverP;
@@ -213,14 +258,26 @@ int PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
 {
 
-  m_fitCfgOptions = findNode::getClass<FitCfgOptions>(topNode, "ActsFitCfg");
+  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
-  if (!m_fitCfgOptions)
+  if (!m_actsGeometry)
   {
-    std::cout << "Acts FitCfgOptions not on node tree. Exiting."
+    std::cout << "ActsGeometry not on node tree. Exiting."
               << std::endl;
 
     return Fun4AllReturnCodes::ABORTEVENT;
   }
+
+  m_actsTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsTracks");
+  
+  if (!m_actsTracks)
+    {
+      std::cout << "ActsTracks not on node tree. Exiting."
+
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
