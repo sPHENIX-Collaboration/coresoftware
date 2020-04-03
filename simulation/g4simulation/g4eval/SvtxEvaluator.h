@@ -11,6 +11,7 @@
 
 #include <string>
 #include <set>
+#include <vector>
 
 class PHCompositeNode;
 class PHTimer;
@@ -50,6 +51,7 @@ class SvtxEvaluator : public SubsysReco
   void do_g4hit_eval(bool b) { _do_g4hit_eval = b; }
   void do_hit_eval(bool b) { _do_hit_eval = b; }
   void do_cluster_eval(bool b) { _do_cluster_eval = b; }
+  void do_g4cluster_eval(bool b) { _do_g4cluster_eval = b; }
   void do_gtrack_eval(bool b) { _do_gtrack_eval = b; }
   void do_track_eval(bool b) { _do_track_eval = b; }
   void do_gseed_eval(bool b) { _do_gseed_eval = b; }
@@ -77,6 +79,7 @@ class SvtxEvaluator : public SubsysReco
   bool _do_g4hit_eval;
   bool _do_hit_eval;
   bool _do_cluster_eval;
+  bool _do_g4cluster_eval;
   bool _do_gtrack_eval;
   bool _do_track_eval;
   bool _do_gseed_eval;
@@ -94,6 +97,7 @@ class SvtxEvaluator : public SubsysReco
   TNtuple *_ntp_g4hit;
   TNtuple *_ntp_hit;
   TNtuple *_ntp_cluster;
+  TNtuple *_ntp_g4cluster;
   TNtuple *_ntp_gtrack;
   TNtuple *_ntp_track;
   TNtuple *_ntp_gseed;
@@ -108,10 +112,8 @@ class SvtxEvaluator : public SubsysReco
 
   void LayerClusterG4Particle();
 
-void LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, float layer, float *gx, float *gy, float *gz,  float *gt);
+void LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy,float layer, float &gx, float &gy, float &gz,  float &gt, float &gedep);
 
-
-  void LayerClusterG34Hits();
   float line_circle_intersection(float x[], float y[], float z[], float radius);
 
   // output subroutines

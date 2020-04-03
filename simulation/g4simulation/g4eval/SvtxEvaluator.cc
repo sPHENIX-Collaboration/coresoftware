@@ -67,6 +67,7 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   , _do_g4hit_eval(true)
   , _do_hit_eval(true)
   , _do_cluster_eval(true)
+  , _do_g4cluster_eval(true)
   , _do_gtrack_eval(true)
   , _do_track_eval(true)
   , _do_gseed_eval(false)
@@ -146,6 +147,9 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                    "gembed:gprimary:efromtruth:nparticles:"
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
+  if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary"); 
+                                                       
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
                                                  "gnintt1:gnintt2:gnintt3:gnintt4:"
@@ -244,6 +248,7 @@ int SvtxEvaluator::End(PHCompositeNode* topNode)
   if (_ntp_g4hit) _ntp_g4hit->Write();
   if (_ntp_hit) _ntp_hit->Write();
   if (_ntp_cluster) _ntp_cluster->Write();
+  if (_ntp_g4cluster) _ntp_g4cluster->Write();
   if (_ntp_gtrack) _ntp_gtrack->Write();
   if (_ntp_track) _ntp_track->Write();
   if (_ntp_gseed) _ntp_gseed->Write();
@@ -1559,6 +1564,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gz = NAN;
         float gr = NAN;
         float gphi = NAN;
+        float gedep = NAN;
         float geta = NAN;
         float gt = NAN;
         float gtrackID = NAN;
@@ -1585,15 +1591,15 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         {
 	  // cluster the associated truth hits within the same layer to get the truth cluster position
 	   std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster_key);
-	   LayerClusterG4Hits(topNode, truth_hits, layer, &gx, &gy, &gz, &gt);
+	   std::vector<PHG4Hit*> contributing_hits;
+	   std::vector<double> contributing_hits_energy;
+	   LayerClusterG4Hits(topNode, truth_hits, contributing_hits, contributing_hits_energy, layer, gx, gy, gz, gt, gedep);
 
 	    g4hitID = g4hit->get_hit_id();
 	    TVector3 gpos(gx, gy, gz);
-	    gr = gpos.Perp();
+	    gr = gpos.Perp();  // c ould also be just the center of gthe layer
 	    gphi = gpos.Phi();
 	    geta = gpos.Eta();
-
-	  //if(layer < 7) cout << "           gx " << gx << " gy " << gy << " gz " << gz << " gphi " << gphi << " phi - gphi " << phi - gphi << endl; 
 
           if (g4particle)
           {
@@ -1765,6 +1771,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float gz = NAN;
 	  float gr = NAN;
 	  float gphi = NAN;
+	  float gedep = NAN;
 	  float geta = NAN;
 	  float gt = NAN;
 	  float gtrackID = NAN;
@@ -1789,8 +1796,11 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
           if (g4hit)
           {
+	    // cluster truth hits in layer
 	   std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster_key);
-	   LayerClusterG4Hits(topNode, truth_hits, layer, &gx, &gy, &gz, &gt);
+	   std::vector<PHG4Hit*> contributing_hits;
+	   std::vector<double> contributing_hits_energy;
+	   LayerClusterG4Hits(topNode, truth_hits, contributing_hits, contributing_hits_energy, layer, gx, gy, gz, gt, gedep);
 
 	    g4hitID = g4hit->get_hit_id();
 	    TVector3 gpos(gx, gy, gz);
@@ -1900,14 +1910,124 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     _timer->stop();
     cout << "cluster time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
   }
+
+  // fill the Cluster NTuple
+  //------------------------
+
+  if (Verbosity() > 0)
+  {
+    cout << "check for ntp_g4cluster" << endl;
+    _timer->restart();
+  }
+
+  if (_ntp_g4cluster)
+    {
+      if (Verbosity() > 0) cout << "Filling ntp_g4cluster " << endl;
+      
+      PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+      
+      PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
+      Float_t gntracks = (Float_t) truthinfo->GetNumPrimaryVertexParticles();
+      for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+           iter != range.second;
+           ++iter)
+	{
+	  
+	  PHG4Particle* g4particle = iter->second;
+	  
+	  if (_scan_for_embedded)
+	    {
+	      if (trutheval->get_embed(g4particle) <= 0) continue;
+	    }
+	  
+	  float gtrackID = g4particle->get_track_id();
+	  float gflavor = g4particle->get_pid();
+	  
+	  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(g4particle);
+	  //std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
+	  
+	  float ng4hits = g4hits.size();
+
+	  if(ng4hits == 0)  continue;
+	  cout << " ntp_g4cluster: gtrackID " << gtrackID << " gflavor " << gflavor << " ng4hits " << ng4hits << endl;
+
+	  // convert truth hits for this particle to truth clusters in each TPC layer
+
+	  // loop over layers
+	  for(float layer = 0; layer < _nlayers_maps+_nlayers_intt+_nlayers_tpc; ++layer)
+	    {
+	      float gx = NAN;
+	      float gy = NAN;
+	      float gz = NAN;
+	      float gt = NAN;
+	      float gedep = NAN;
+
+	      std::vector<PHG4Hit*> contributing_hits;
+	      std::vector<double> contributing_hits_energy;
+	      LayerClusterG4Hits(topNode, g4hits, contributing_hits, contributing_hits_energy, layer, gx, gy, gz, gt, gedep);
+	      if(!(gedep > 0)) continue;
+ 
+	      float gr = NAN;
+	      float gphi = NAN;
+	      float geta = NAN;
+
+	      TVector3 gpos(gx, gy, gz);
+	      gr = gpos.Perp();
+	      gphi = gpos.Phi();
+	      geta = gpos.Eta();
+	      
+	      float gembed = NAN;
+	      gembed = trutheval->get_embed(g4particle);
+	      float gprimary = NAN;
+              gprimary = trutheval->is_primary(g4particle);
+
+	      cout << "    layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
+
+	      // Find the matching TrkrCluster, if it exists
+	      for(int i=0; i< contributing_hits.size(); ++i)
+		{
+
+		  PHG4Hit* cont_g4hit = contributing_hits[i];
+		  double energy = contributing_hits_energy[i];
+
+		  std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(cont_g4hit);
+		  float nclusters = clusters.size();
+
+		  // best cluster reco'd
+		  TrkrDefs::cluskey cluster_key = clustereval->best_cluster_from(cont_g4hit);		  
+		  cout << "     g4hitID " << cont_g4hit->get_hit_id() << " nclusters " << nclusters << " energy " << energy << " best cluster_key " << cluster_key << endl;
+
+		}
+
+	      // add this cluster to the ntuple
+
+	      float g4cluster_data[] = {(float) _ievent,
+					layer,
+					gx,
+					gy,
+					gz,
+					gt,
+					gedep,
+					gr,
+					gphi,
+					geta,
+					gtrackID,
+					gflavor,
+					gembed,
+					gprimary};
+	      _ntp_g4cluster->Fill(g4cluster_data);
+	    }
+	}
+    }
+
   //------------------------
   // fill the Gtrack NTuple
   //------------------------
-
+  
   // need things off of the DST...
-
+  
   //cout << "check for ntp_gtrack" << endl;
-
+  
   //#ifdef FUCKER
   if (_ntp_gtrack)
   {
@@ -2714,176 +2834,177 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   //---------------------
   // fill the Gseed NTuple
   //---------------------
-
+  
   if (_ntp_gseed)
+    {
+      if (Verbosity() > 0)
+	{
+	  cout << "Filling ntp_gseed " << endl;
+	  _timer->restart();
+	}
+      
+      PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+      
+      float gx = NAN;
+      float gy = NAN;
+      float gz = NAN;
+      float gr = NAN;
+      float geta = NAN;
+      float gphi = NAN;
+      float glayer = NAN;
+      float gpx = NAN;
+      float gpy = NAN;
+      float gpz = NAN;
+      float gtpt = NAN;
+      float gtphi = NAN;
+      float gteta = NAN;
+      float gvx = NAN;
+      float gvy = NAN;
+      float gvz = NAN;
+      float gembed = NAN;
+      float gprimary = NAN;
+      float gflav = NAN;
+      float dphiprev = NAN;
+      float detaprev = NAN;
+      
+      float xval[_nlayers_maps + _nlayers_intt + _nlayers_tpc];
+      float yval[_nlayers_maps + _nlayers_intt + _nlayers_tpc];
+      float zval[_nlayers_maps + _nlayers_intt + _nlayers_tpc];
+      if (truthinfo)
+	{
+	  int ntrk = 0;
+	  PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
+	  for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
+	       iter != range.second;
+	       ++iter)
+	    {
+	      cout << " truth track " << ntrk << endl;
+	      
+	      ntrk++;
+	      PHG4Particle* g4particle = iter->second;
+	      for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc; i++)
+		{
+		  xval[i] = 0;
+		  yval[i] = 0;
+		  zval[i] = 0;
+		}
+	      std::set<PHG4Hit*> truth_hits = trutheval->all_truth_hits(g4particle);
+	      for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
+		   iter != truth_hits.end();
+		   ++iter)
+		{
+		  PHG4Hit* g4hit = *iter;
+		  unsigned int layer = g4hit->get_layer();
+		  //cout << "  g4hit " << g4hit->get_hit_id() << " layer = " << layer << endl;
+		  if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
+		    {
+		      //cout << PHWHERE << " skipping out of bounds detector id " << layer << endl;
+		      continue;
+		    }
+		  xval[layer] = g4hit->get_avg_x();
+		  yval[layer] = g4hit->get_avg_y();
+		  zval[layer] = g4hit->get_avg_z();
+		}
+	      
+	      for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc; i++)
+		{
+		  gx = xval[i];
+		  gy = yval[i];
+		  gz = zval[i];
+		  if (gx == 0 && gy == 0) continue;
+		  
+		  TVector3 vg4(gx, gy, gz);
+		  glayer = i;
+		  gr = vg4.Perp();
+		  geta = vg4.Eta();
+		  gphi = vg4.Phi();
+		  gpx = g4particle->get_px();
+		  gpy = g4particle->get_py();
+		  gpz = g4particle->get_pz();
+		  TVector3 vg4p(gpx, gpy, gpz);
+		  
+		  gtpt = vg4p.Perp();
+		  gtphi = vg4p.Phi();
+		  gteta = vg4p.Eta();
+		  
+		  PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
+		  
+		  if (vtx)
+		    {
+		      gvx = vtx->get_x();
+		      gvy = vtx->get_y();
+		      gvz = vtx->get_z();
+		    }
+		  
+		  gembed = trutheval->get_embed(g4particle);
+		  gprimary = trutheval->is_primary(g4particle);
+		  gflav = g4particle->get_pid();
+		  if (i >= 1)
+		    {
+		      if (xval[i - 1] != 0 && yval[i - 1] != 0)
+			{
+			  TVector3 vg4prev(xval[i - 1], yval[i - 1], zval[i - 1]);
+			  dphiprev = vg4.DeltaPhi(vg4prev);
+			  detaprev = geta - vg4prev.Eta();
+			}
+		    }
+		  
+		  float ntrk_f = ntrk;
+		  float _ievent_f = _ievent;
+		  float gseed_data[] = {_ievent_f,
+					ntrk_f,
+					gx,
+					gy,
+					gz,
+					gr,
+					geta,
+					gphi,
+					glayer,
+					gpx,
+					gpy,
+					gpz,
+					gtpt,
+					gtphi,
+					gteta,
+					gvx,
+					gvy,
+					gvz,
+					gembed,
+					gprimary,
+					gflav,
+					dphiprev,
+					detaprev,
+					nhit_tpc_all,
+					nhit_tpc_in,
+					nhit_tpc_mid,
+					nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
+		  
+		  _ntp_gseed->Fill(gseed_data);
+		}
+	    }
+	}
+      
+      if (Verbosity() >= 1)
+	{
+	  _timer->stop();
+	  cout << "g4hit time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
+	}
+    }
+  return;
+
+}
+
+  void SvtxEvaluator::LayerClusterG4Particle()
   {
-    if (Verbosity() > 0)
-    {
-      cout << "Filling ntp_gseed " << endl;
-      _timer->restart();
-    }
-
-    PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-
-    float gx = NAN;
-    float gy = NAN;
-    float gz = NAN;
-    float gr = NAN;
-    float geta = NAN;
-    float gphi = NAN;
-    float glayer = NAN;
-    float gpx = NAN;
-    float gpy = NAN;
-    float gpz = NAN;
-    float gtpt = NAN;
-    float gtphi = NAN;
-    float gteta = NAN;
-    float gvx = NAN;
-    float gvy = NAN;
-    float gvz = NAN;
-    float gembed = NAN;
-    float gprimary = NAN;
-    float gflav = NAN;
-    float dphiprev = NAN;
-    float detaprev = NAN;
-
-    float xval[_nlayers_maps + _nlayers_intt + _nlayers_tpc];
-    float yval[_nlayers_maps + _nlayers_intt + _nlayers_tpc];
-    float zval[_nlayers_maps + _nlayers_intt + _nlayers_tpc];
-    if (truthinfo)
-    {
-      int ntrk = 0;
-      PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
-      for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
-           iter != range.second;
-           ++iter)
-      {
-	cout << " truth track " << ntrk << endl;
-
-        ntrk++;
-        PHG4Particle* g4particle = iter->second;
-        for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc; i++)
-        {
-          xval[i] = 0;
-          yval[i] = 0;
-          zval[i] = 0;
-        }
-        std::set<PHG4Hit*> truth_hits = trutheval->all_truth_hits(g4particle);
-        for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
-             iter != truth_hits.end();
-             ++iter)
-        {
-          PHG4Hit* g4hit = *iter;
-          unsigned int layer = g4hit->get_layer();
-	  //cout << "  g4hit " << g4hit->get_hit_id() << " layer = " << layer << endl;
-          if (layer >= _nlayers_maps + _nlayers_intt + _nlayers_tpc)
-          {
-            //cout << PHWHERE << " skipping out of bounds detector id " << layer << endl;
-            continue;
-          }
-          xval[layer] = g4hit->get_avg_x();
-          yval[layer] = g4hit->get_avg_y();
-          zval[layer] = g4hit->get_avg_z();
-        }
-
-        for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc; i++)
-        {
-          gx = xval[i];
-          gy = yval[i];
-          gz = zval[i];
-          if (gx == 0 && gy == 0) continue;
-
-          TVector3 vg4(gx, gy, gz);
-          glayer = i;
-          gr = vg4.Perp();
-          geta = vg4.Eta();
-          gphi = vg4.Phi();
-          gpx = g4particle->get_px();
-          gpy = g4particle->get_py();
-          gpz = g4particle->get_pz();
-          TVector3 vg4p(gpx, gpy, gpz);
-
-          gtpt = vg4p.Perp();
-          gtphi = vg4p.Phi();
-          gteta = vg4p.Eta();
-
-          PHG4VtxPoint* vtx = trutheval->get_vertex(g4particle);
-
-          if (vtx)
-          {
-            gvx = vtx->get_x();
-            gvy = vtx->get_y();
-            gvz = vtx->get_z();
-          }
-
-          gembed = trutheval->get_embed(g4particle);
-          gprimary = trutheval->is_primary(g4particle);
-          gflav = g4particle->get_pid();
-          if (i >= 1)
-          {
-            if (xval[i - 1] != 0 && yval[i - 1] != 0)
-            {
-              TVector3 vg4prev(xval[i - 1], yval[i - 1], zval[i - 1]);
-              dphiprev = vg4.DeltaPhi(vg4prev);
-              detaprev = geta - vg4prev.Eta();
-            }
-          }
-
-          float ntrk_f = ntrk;
-          float _ievent_f = _ievent;
-          float gseed_data[] = {_ievent_f,
-                                ntrk_f,
-                                gx,
-                                gy,
-                                gz,
-                                gr,
-                                geta,
-                                gphi,
-                                glayer,
-                                gpx,
-                                gpy,
-                                gpz,
-                                gtpt,
-                                gtphi,
-                                gteta,
-                                gvx,
-                                gvy,
-                                gvz,
-                                gembed,
-                                gprimary,
-                                gflav,
-                                dphiprev,
-                                detaprev,
-                                nhit_tpc_all,
-                                nhit_tpc_in,
-                                nhit_tpc_mid,
-                                nhit_tpc_out, nclus_all, nclus_tpc, nclus_intt, nclus_maps};
-
-          _ntp_gseed->Fill(gseed_data);
-        }
-      }
-    }
-
-    if (Verbosity() >= 1)
-    {
-      _timer->stop();
-      cout << "g4hit time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
-    }
-  }
-  return;
-}
-
-void SvtxEvaluator::LayerClusterG4Particle()
-{
   // Given a g4particle, calculate the energy deposit and centroid within a given layer of the TPC
-
-
-
-
+  
+  
+  
+  
   return;
 }
-
-void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, float layer, float *x, float *y, float *z,  float *t)
+ 
+void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, float layer, float &x, float &y, float &z,  float &t, float &e)
 {
   // Given a set of g4hits, cluster them within a given layer of the TPC
 
@@ -2958,7 +3079,7 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	    continue;
 	  if (rbegin > rbout && rend > rbout)
 	    continue;
-	  
+
 	  float xin = xl[0];
 	  float yin = yl[0];
 	  float zin = zl[0];
@@ -2998,6 +3119,12 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	  gz += (zin + zout) * 0.5 * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 	  gt += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 	  gwt += this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
+
+	  // this_g4hit is inside the layer, add it to the vectors
+	  cout << "   adding g4hitID " << this_g4hit->get_hit_id() << " to vector " << endl;
+	  contributing_hits.push_back(this_g4hit);
+	  contributing_hits_energy.push_back( this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]) );
+
 	}  // loop over this_g4hit
       gx /= gwt;
       gy /= gwt;
@@ -3014,18 +3141,22 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	{
 	  
 	  PHG4Hit* this_g4hit = *iter;
+
+	  if(this_g4hit->get_layer() != (unsigned int) layer) continue;
 	  
 	  gx = this_g4hit->get_avg_x();
 	  gy = this_g4hit->get_avg_y();
 	  gz = this_g4hit->get_avg_z();
 	  gt = this_g4hit->get_avg_t();
+	  gwt += this_g4hit->get_edep();
 	}
     }  // not TPC
 
-  *x = gx;
-  *y = gy;
-  *z = gz;
-  *t = gt;
+  x = gx;
+  y = gy;
+  z = gz;
+  t = gt;
+  e = gwt;
 
   return;
 }
