@@ -148,7 +148,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:x:y:z:r:phi:eta:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
@@ -1923,9 +1923,10 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
   if (_ntp_g4cluster)
     {
       if (Verbosity() > 0) cout << "Filling ntp_g4cluster " << endl;
+
+      TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
       
-      PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-      
+      PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");      
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
       Float_t gntracks = (Float_t) truthinfo->GetNumPrimaryVertexParticles();
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
@@ -1949,7 +1950,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float ng4hits = g4hits.size();
 
 	  if(ng4hits == 0)  continue;
-	  cout << " ntp_g4cluster: gtrackID " << gtrackID << " gflavor " << gflavor << " ng4hits " << ng4hits << endl;
+
+	  if(Verbosity() > 1)
+	    cout << " ntp_g4cluster: gtrackID " << gtrackID << " gflavor " << gflavor << " ng4hits " << ng4hits << endl;
 
 	  // convert truth hits for this particle to truth clusters in each TPC layer
 
@@ -1981,21 +1984,73 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float gprimary = NAN;
               gprimary = trutheval->is_primary(g4particle);
 
-	      cout << "    layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
+	      if(Verbosity() > 1)
+		cout << "    layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
 
 	      // Find the matching TrkrCluster, if it exists
+	      float x = NAN;
+	      float y = NAN;
+	      float z = NAN;
+	      float r = NAN;
+	      float phi = NAN;
+	      float eta = NAN;
+	      float adc = NAN;
+
+	      TrkrDefs::cluskey reco_cluskey = 0;
+
+	      // loop over all conteributing hits, look up the associated clusters, pick the one in this layer.
 	      for(int i=0; i< contributing_hits.size(); ++i)
 		{
 
 		  PHG4Hit* cont_g4hit = contributing_hits[i];
 		  double energy = contributing_hits_energy[i];
 
-		  std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(cont_g4hit);
+		  std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(cont_g4hit);  // this returns clusters from this hit in any layer
 		  float nclusters = clusters.size();
+		  if(Verbosity() > 1)
+		    cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " nclusters " << nclusters << " energy " << energy << endl;
 
-		  // best cluster reco'd
-		  TrkrDefs::cluskey cluster_key = clustereval->best_cluster_from(cont_g4hit);		  
-		  cout << "     g4hitID " << cont_g4hit->get_hit_id() << " nclusters " << nclusters << " energy " << energy << " best cluster_key " << cluster_key << endl;
+		  for (std::set<TrkrDefs::cluskey>::iterator iter = clusters.begin();
+		       iter != clusters.end();
+		       ++iter)
+		    {
+		      TrkrDefs::cluskey this_cluskey = *iter;
+		      unsigned int clus_layer = TrkrDefs::getLayer(this_cluskey);
+		      if(clus_layer != layer)  continue;
+
+		      if(Verbosity() > 1)
+			cout << "             associated: this_cluskey " << this_cluskey << " clus_layer " << clus_layer << endl;
+
+		      // For now, we assume only one reco cluster matches, if there are multiple matches, keep the last one
+		      // In future, can make a list of clusters matching this g4cluster 
+		      reco_cluskey = this_cluskey;
+
+		    }
+		}
+
+	      if(reco_cluskey)
+		{
+		  TrkrCluster* cluster = clustermap->findCluster(reco_cluskey);
+		  
+		  x = cluster->getX();
+		  y = cluster->getY();
+		  z = cluster->getZ();
+
+		  TVector3 pos(x, y, z);
+		  r = pos.Perp();
+		  phi = pos.Phi();
+		  eta = pos.Eta();
+		  /*
+		  ex = sqrt(cluster->getError(0, 0));
+		  ey = sqrt(cluster->getError(1, 1));
+		  ez = cluster->getZError();		  
+		  ephi = cluster->getRPhiError();
+		  */
+		    
+		  adc = cluster->getAdc();
+
+		  if(Verbosity() > 1)
+		    cout << "             reco cluster x " << x << " y " << y << " z " << z << endl;
 
 		}
 
@@ -2014,12 +2069,19 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					gtrackID,
 					gflavor,
 					gembed,
-					gprimary};
+					gprimary,
+					x,
+					y,
+					z,
+					r,
+					phi,
+					eta,
+					adc };
 	      _ntp_g4cluster->Fill(g4cluster_data);
 	    }
 	}
     }
-
+  
   //------------------------
   // fill the Gtrack NTuple
   //------------------------
@@ -2878,8 +2940,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	       iter != range.second;
 	       ++iter)
 	    {
-	      cout << " truth track " << ntrk << endl;
-	      
 	      ntrk++;
 	      PHG4Particle* g4particle = iter->second;
 	      for (unsigned int i = 0; i < _nlayers_maps + _nlayers_intt + _nlayers_tpc; i++)
@@ -3121,7 +3181,6 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	  gwt += this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 
 	  // this_g4hit is inside the layer, add it to the vectors
-	  cout << "   adding g4hitID " << this_g4hit->get_hit_id() << " to vector " << endl;
 	  contributing_hits.push_back(this_g4hit);
 	  contributing_hits_energy.push_back( this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]) );
 
