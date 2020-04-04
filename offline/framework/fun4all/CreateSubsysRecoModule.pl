@@ -89,13 +89,13 @@ sub CreateImplementation()
     print F "$classname\:\:$classname(const std::string &name):\n";
     print F " SubsysReco(name)\n";
     print F "{\n";
-    print F "  cout << \"Calling ctor\" << endl;\n";
+    print F "  cout << \"$classname\:\:$classname(const std::string &name) Calling ctor\" << endl;\n";
     print F "}\n";
     print F "\n";
 
     print F "$classname\:\:~$classname()\n";
     print F "{\n";
-    print F "  cout << \"Calling dtor\" << endl;\n";
+    print F "  cout << \"$classname\:\:~$classname() Calling dtor\" << endl;\n";
     print F "}\n";
     print F "\n";
     print F "\n";
@@ -104,55 +104,56 @@ sub CreateImplementation()
 
     print F "int $classname\:\:Init(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  cout << \"Calling Init\" << endl;\n";
+    print F "  cout << \"$classname\:\:Init(PHCompositeNode *topNode) Initializing\" << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
 
     print F "int $classname\:\:InitRun(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  cout << \"Calling InitRun\" << endl;\n";
+    print F "  cout << \"$classname\:\:InitRun(PHCompositeNode *topNode) Initializing for Run XXX\" << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
 
     print F "int $classname\:\:process_event(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  cout << \"Calling process_event\" << endl;\n";
+    print F "  cout << \"$classname\:\:process_event(PHCompositeNode *topNode) Processing Event\" << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
 
     print F "int $classname\:\:ResetEvent(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  cout << \"Resetting internal structures after event processing\" << endl;\n";
+    print F "  cout << \"$classname\:\:ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event\" << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
 
     print F "int $classname\:\:EndRun(const int runnumber)\n";
     print F "{\n";
-    print F "  cout << \"Ending Run for run \" << runnumber << endl;\n";
+    print F "  cout << \"$classname\:\:EndRun(const int runnumber) Ending Run for Run \" << runnumber << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
 
     print F "int $classname\:\:End(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  cout << \"This is the End...\" << endl;\n";
+    print F "  cout << \"$classname\:\:End(PHCompositeNode *topNode) This is the End...\" << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
 
     print F "int $classname\:\:Reset(PHCompositeNode *topNode)\n";
     print F "{\n";
-    print F "  cout << \"being Reset()\" << endl;\n";
+    print F " cout << \"$classname\:\:Reset(PHCompositeNode *topNode) being Reset\" << endl;\n";
     print F "  return Fun4AllReturnCodes::EVENT_OK;\n";
     print F "}\n";
     print F "\n";
+
     print F "void $classname\:\:Print(const std::string &what) const\n";
     print F "{\n";
-    print F "  cout << \"Printing info for \" << what << endl;\n";
+    print F "  cout << \"$classname\:\:Print(const std::string &what) const Printing info for \" << what << endl;\n";
     print F "}\n";
     close(F);
 }
