@@ -332,6 +332,9 @@ libg4detectors_la_SOURCES = \
   PHG4mRICHSteppingAction.cc \
   PHG4mRICHSubsystem.cc
 
+bin_SCRIPTS = \
+  CreateG4Subsystem.pl
+
 # Rule for generating table CINT dictionaries.
 %_Dict.cc: %.h %LinkDef.h
 	rootcint -f $@ @CINTDEFS@ -c $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $^
