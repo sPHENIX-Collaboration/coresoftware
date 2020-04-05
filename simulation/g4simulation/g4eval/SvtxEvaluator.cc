@@ -1911,7 +1911,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     cout << "cluster time:                " << _timer->get_accumulated_time() / 1000. << " sec" << endl;
   }
 
-  // fill the Cluster NTuple
+  // fill the truth cluster NTuple
   //------------------------
 
   if (Verbosity() > 0)
@@ -1945,13 +1945,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  float gflavor = g4particle->get_pid();
 	  
 	  std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(g4particle);
-	  //std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
 	  
 	  float ng4hits = g4hits.size();
 
 	  if(ng4hits == 0)  continue;
 
-	  if(Verbosity() > 1)
+	  if(Verbosity() > 0)
 	    cout << " ntp_g4cluster: gtrackID " << gtrackID << " gflavor " << gflavor << " ng4hits " << ng4hits << endl;
 
 	  // convert truth hits for this particle to truth clusters in each TPC layer
@@ -1984,7 +1983,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float gprimary = NAN;
               gprimary = trutheval->is_primary(g4particle);
 
-	      if(Verbosity() > 1)
+	      if(Verbosity() > 0)
 		cout << "    layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
 
 	      // Find the matching TrkrCluster, if it exists
@@ -2007,7 +2006,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 		  std::set<TrkrDefs::cluskey> clusters = clustereval->all_clusters_from(cont_g4hit);  // this returns clusters from this hit in any layer
 		  float nclusters = clusters.size();
-		  if(Verbosity() > 1)
+		  if(Verbosity() > 0)
 		    cout << "       contributing g4hitID " << cont_g4hit->get_hit_id() << " nclusters " << nclusters << " energy " << energy << endl;
 
 		  for (std::set<TrkrDefs::cluskey>::iterator iter = clusters.begin();
@@ -2018,7 +2017,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		      unsigned int clus_layer = TrkrDefs::getLayer(this_cluskey);
 		      if(clus_layer != layer)  continue;
 
-		      if(Verbosity() > 1)
+		      if(Verbosity() > 0)
 			cout << "             associated: this_cluskey " << this_cluskey << " clus_layer " << clus_layer << endl;
 
 		      // For now, we assume only one reco cluster matches, if there are multiple matches, keep the last one
@@ -2049,7 +2048,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		    
 		  adc = cluster->getAdc();
 
-		  if(Verbosity() > 1)
+		  if(Verbosity() > 0)
 		    cout << "             reco cluster x " << x << " y " << y << " z " << z << endl;
 
 		}
@@ -3208,6 +3207,10 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	  gz = this_g4hit->get_avg_z();
 	  gt = this_g4hit->get_avg_t();
 	  gwt += this_g4hit->get_edep();
+
+	  // this_g4hit is inside the layer, add it to the vectors
+	  contributing_hits.push_back(this_g4hit);
+	  contributing_hits_energy.push_back( this_g4hit->get_edep() );
 	}
     }  // not TPC
 
