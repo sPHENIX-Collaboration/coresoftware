@@ -24,6 +24,9 @@ PHG4Hit::CopyFrom(const PHObject *phobj)
   set_hit_id(g4hit->get_hit_id());
   set_shower_id(g4hit->get_shower_id());
   set_trkid(g4hit->get_trkid());
+// This is a generic copy of ALL properties a hit has
+// do not add explicit copies, they will be added to
+// the new hits with their default value increasing memory use
   for (unsigned char ic = 0; ic < UCHAR_MAX; ic++)
     {
       PROPERTY prop_id = static_cast<PHG4Hit::PROPERTY> (ic);
