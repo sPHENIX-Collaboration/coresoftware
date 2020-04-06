@@ -115,10 +115,12 @@ sub CreateSteppingActionInclude()
     print F "#include <g4main/PHG4SteppingAction.h>\n";
     print F "\n";
 
+    print F "class $detectorclassname;\n";
+    print F "\n";
+
     print F "class G4Step;\n";
     print F "class G4VPhysicalVolume;\n";
     print F "class PHCompositeNode;\n";
-    print F "class $detectorclassname;\n";
     print F "class PHG4Hit;\n";
     print F "class PHG4HitContainer;\n";
     print F "class PHParameters;\n";
@@ -151,10 +153,10 @@ sub CreateSteppingActionInclude()
     print F "  PHG4HitContainer* m_HitContainer;\n";
     print F "  PHG4Hit* m_Hit;\n";
     print F "  PHG4HitContainer* m_SaveHitContainer;\n";
-    print F "\n";
-
     print F "  G4VPhysicalVolume* m_SaveVolPre;\n";
     print F "  G4VPhysicalVolume* m_SaveVolPost;\n";
+    print F "\n";
+
     print F "  int m_SaveTrackId;\n";
     print F "  int m_SavePreStepStatus;\n";
     print F "  int m_SavePostStepStatus;\n";
@@ -173,13 +175,36 @@ sub CreateSteppingActionImplementation()
 {
     my $file = shift;
     open(F,">$file");
+    print F "//____________________________________________________________________________..\n";
+    print F "//\n";
+    print F "// This is a working template for the Stepping Action which needs to be implemented\n";
+    print F "// for active detectors. Most of the code is error handling and access to the G4 objects\n";
+    print F "// and our data structures. It does not need any adjustment. The only thing you need to\n";
+    print F "// do is to add the properties of the G4Hits you want to save for later analysis\n";
+    print F "// This needs to be done in 2 places, G4Hits are generated when a G4 track enters a new\n";
+    print F "// volume (or is created). Here you give it an initial value. When the G4 track leaves\n";
+    print F "// the volume the final value needs to be set.\n";
+    print F "// The places to do this is marked by //implement your own here//\n";
+    print F "//\n";
+
+    print F "// As guidance you can look at the total (integrated over all steps in a volume) energy\n";
+    print F "// deposit which should always be saved.\n";
+    print F "// Additionally the total ionization energy is saved - this can be removed if you are not\n";
+    print F "// interested in this. Naturally you may want remove these comments in your version\n";
+    print F "//\n";
+    print F "//____________________________________________________________________________..\n";
+    print F "\n";
     print F "#include \"$steppingaction_includefile\"\n";
     print F "\n";
+
     print F "#include \"$detector_includefile\"\n";
     print F "\n";
+
     print F "#include <phparameter/PHParameters.h>\n";
+    print F "\n";
 
     print F "#include <g4detectors/PHG4StepStatusDecode.h>\n";
+    print F "\n";
 
     print F "#include <g4main/PHG4Hit.h>\n";
     print F "#include <g4main/PHG4HitContainer.h>\n";
@@ -187,10 +212,13 @@ sub CreateSteppingActionImplementation()
     print F "#include <g4main/PHG4Shower.h>\n";
     print F "#include <g4main/PHG4SteppingAction.h>\n";
     print F "#include <g4main/PHG4TrackUserInfoV1.h>\n";
+    print F "\n";
 
     print F "#include <phool/getClass.h>\n";
+    print F "\n";
 
     print F "#include <TSystem.h>\n";
+    print F "\n";
 
     print F "#include <Geant4/G4ParticleDefinition.hh> \n";
     print F "#include <Geant4/G4ReferenceCountedHandle.hh>\n";
@@ -207,14 +235,19 @@ sub CreateSteppingActionImplementation()
     print F "#include <Geant4/G4VPhysicalVolume.hh>\n";
     print F "#include <Geant4/G4VTouchable.hh>\n";
     print F "#include <Geant4/G4VUserTrackInformation.hh>\n";
+    print F "\n";
 
     print F "#include <cmath>\n";
     print F "#include <iostream>\n";
     print F "#include <string>\n";
+    print F "\n";
 
     print F "class PHCompositeNode;\n";
+    print F "\n";
 
     print F "using namespace std;\n";
+    print F "\n";
+
     print F "//____________________________________________________________________________..\n";
     print F "$steppingclassname\:\:$steppingclassname($detectorclassname *detector, const PHParameters *parameters)\n";
     print F "  : PHG4SteppingAction(detector->GetName())\n";
@@ -234,7 +267,9 @@ sub CreateSteppingActionImplementation()
     print F "  , m_EionSum(0)\n";
     print F "{\n";
     print F "}\n";
+    print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "$steppingclassname\:\:~$steppingclassname()\n";
     print F "{\n";
     print F "  // if the last hit was a zero energie deposit hit, it is just reset\n";
@@ -243,8 +278,10 @@ sub CreateSteppingActionImplementation()
     print F "  // legal to delete (it results in a no operation)\n";
     print F "  delete m_Hit;\n";
     print F "}\n";
+    print F "\n";
 
     print F "//____________________________________________________________________________..\n";
+    print F "// This is the implementation of the G4 UserSteppingAction\n";
     print F "bool $steppingclassname\:\:UserSteppingAction(const G4Step *aStep,bool was_used)\n";
     print F "{\n";
     print F "  G4TouchableHandle touch = aStep->GetPreStepPoint()->GetTouchableHandle();\n";
@@ -266,7 +303,7 @@ sub CreateSteppingActionImplementation()
     print F "  G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;\n";
     print F "  const G4Track *aTrack = aStep->GetTrack();\n";
 
-    print F "  // if this block stops everything, just put all kinetic energy into edep\n";
+    print F "  // if this detector stops everything, just put all kinetic energy into edep\n";
     print F "  if (m_BlackHoleFlag)\n";
     print F "  {\n";
     print F "    edep = aTrack->GetKineticEnergy() / GeV;\n";
@@ -274,6 +311,10 @@ sub CreateSteppingActionImplementation()
     print F "    killtrack->SetTrackStatus(fStopAndKill);\n";
     print F "  }\n";
 
+    print F "  // we use here only one detector in this simple example\n";
+    print F "  // if you deal with multiple detectors in this stepping action\n";
+    print F "  // the detector id can be used to distinguish between them\n";
+    print F "  // hits can easily be analyzed later according to their detector id\n";
     print F "  int detector_id = 0;  // we use here only one detector in this simple example\n";
     print F "  bool geantino = false;\n";
     print F "  // the check for the pdg code speeds things up, I do not want to make\n";
@@ -287,17 +328,31 @@ sub CreateSteppingActionImplementation()
     print F "  }\n";
     print F "  G4StepPoint *prePoint = aStep->GetPreStepPoint();\n";
     print F "  G4StepPoint *postPoint = aStep->GetPostStepPoint();\n";
-
+    print F "\n";
+    print F "// Here we have to decide if we need to create a new hit.  Normally this should \n";
+    print F "// only be neccessary if a G4 Track enters a new volume or is freshly created\n";
+    print F "// For this we look at the step status of the prePoint (beginning of the G4 Step).\n";
+    print F "// This should be either fGeomBoundary (G4 Track crosses into volume) or \n";
+    print F "// fUndefined (G4 Track newly created)\n";
+    print F "// Sadly over the years with different G4 versions we have observed cases where\n";
+    print F "// G4 produces \"impossible hits\" which we try to catch here\n";
+    print F "// These errors were always rare and it is not clear if they still exist but we\n";
+    print F "// still check for them for safety. We can reproduce G4 runs identically (if given\n";
+    print F "// the sequence of random number seeds you find in the log), the printouts help\n";
+    print F "// us giving the G4 support information about those failures\n";
+    print F "// \n";
     print F "  switch (prePoint->GetStepStatus())\n";
     print F "  {\n";
     print F "  case fPostStepDoItProc:\n";
     print F "    if (m_SavePostStepStatus != fGeomBoundary)\n";
     print F "    {\n";
+    print F "      // this is the okay case, fPostStepDoItProc called in a volume, not first thing inside\n";
+    print F "      // a new volume, just proceed here\n";
     print F "      break;\n";
     print F "    }\n";
     print F "    else\n";
     print F "    {\n";
-    print F "      // this is bad from G4 print out diagnostic to help debug, not sure if\n";
+    print F "      // this is an impossible G4 Step print out diagnostic to help debug, not sure if\n";
     print F "      // this is still with us\n";
     print F "      cout << GetName() << \": New Hit for  \" << endl;\n";
     print F "      cout << \"prestep status: \"\n";
@@ -315,6 +370,7 @@ sub CreateSteppingActionImplementation()
     print F "      cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
     print F "           << \" previous phys post vol: \" << m_SaveVolPost->GetName() << endl;\n";
     print F "    }\n";
+    print F "// These are the normal cases\n";
     print F "  case fGeomBoundary:\n";
     print F "  case fUndefined:\n";
     print F "    if (!m_Hit)\n";
@@ -333,6 +389,11 @@ sub CreateSteppingActionImplementation()
     print F "    m_SaveTrackId = aTrack->GetTrackID();\n";
     print F "    // set the initial energy deposit\n";
     print F "    m_EdepSum = 0;\n";
+    print F "    // implement your own here://\n";
+    print F "    // add the properties you are interested in via set_XXX methods\n";
+    print F "    // you can find existing set methods in \$OFFLINE_MAIN/include/g4main/PHG4Hit.h\n";
+    print F "    // this is initialization of your value. This is not needed you can just set the final\n";
+    print F "    // value at the last step in this volume later one\n";
     print F "    if (whichactive > 0)\n";
     print F "    {\n";
     print F "      m_EionSum = 0;  // assuming the ionization energy is only needed for active\n";
@@ -359,8 +420,10 @@ sub CreateSteppingActionImplementation()
     print F "  default:\n";
     print F "    break;\n";
     print F "  }\n";
+    print F "\n";
 
-    print F "  // some sanity checks for inconsistencies (aka bugs)\n";
+    print F "  // This section is called for every step\n";
+    print F "  // some sanity checks for inconsistencies (aka bugs) we have seen over the years\n";
     print F "  // check if this hit was created, if not print out last post step status\n";
     print F "  if (!m_Hit || !isfinite(m_Hit->get_x(0)))\n";
     print F "  {\n";
@@ -379,6 +442,7 @@ sub CreateSteppingActionImplementation()
     print F "         << \" post vol : \" << touchpost->GetVolume()->GetName() << endl;\n";
     print F "    cout << \" previous phys pre vol: \" << m_SaveVolPre->GetName()\n";
     print F "         << \" previous phys post vol: \" << m_SaveVolPost->GetName() << endl;\n";
+    print F "    // This is fatal - a hit from nowhere. This needs to be looked at and fixed\n";
     print F "    gSystem->Exit(1);\n";
     print F "  }\n";
     print F "  // check if track id matches the initial one when the hit was created\n";
@@ -389,9 +453,13 @@ sub CreateSteppingActionImplementation()
     print F "         << \", current trackid: \" << aTrack->GetTrackID()\n";
     print F "         << \", prestep status: \" << prePoint->GetStepStatus()\n";
     print F "         << \", previous post step status: \" << m_SavePostStepStatus << endl;\n";
-
+    print F "    // This is fatal - a hit from nowhere. This needs to be looked at and fixed\n";
     print F "    gSystem->Exit(1);\n";
     print F "  }\n";
+    print F "\n";
+
+    print F "// We need to cache a few things from one step to the next\n";
+    print F "// to identify impossible hits and subsequent debugging printout\n";
     print F "  m_SavePreStepStatus = prePoint->GetStepStatus();\n";
     print F "  m_SavePostStepStatus = postPoint->GetStepStatus();\n";
     print F "  m_SaveVolPre = volume;\n";
@@ -438,6 +506,8 @@ sub CreateSteppingActionImplementation()
     print F "      }\n";
     print F "      if (geantino)\n";
     print F "      {\n";
+    print F " //implement your own here://\n";
+    print F " // if you want to do something special for geantinos (normally you do not)\n";
     print F "        m_Hit->set_edep(-1);  // only energy=0 g4hits get dropped, this way\n";
     print F "                              // geantinos survive the g4hit compression\n";
     print F "        if (whichactive > 0)\n";
@@ -449,6 +519,8 @@ sub CreateSteppingActionImplementation()
     print F "      {\n";
     print F "        m_Hit->set_edep(m_EdepSum);\n";
     print F "      }\n";
+    print F " //implement your own here://\n";
+    print F " // what you set here will be saved in the output\n";
     print F "      if (whichactive > 0)\n";
     print F "      {\n";
     print F "        m_Hit->set_eion(m_EionSum);\n";
@@ -469,6 +541,7 @@ sub CreateSteppingActionImplementation()
     print F "  // return true to indicate the hit was used\n";
     print F "  return true;\n";
     print F "}\n";
+    print F "\n";
 
     print F "//____________________________________________________________________________..\n";
     print F "void $steppingclassname\:\:SetInterfacePointers(PHCompositeNode *topNode)\n";
@@ -492,6 +565,28 @@ sub CreateDetectorImplementation()
 {
     my $file = shift;
     open(F,">$file");
+    print F "//____________________________________________________________________________..\n";
+    print F "//\n";
+    print F "// This is a working template for the G4 Construct() method which needs to be implemented\n";
+    print F "// We wedge a method between the G4 Construct() to enable volume hierarchies on the macro\n";
+    print F "// so here it is called ConstructMe() but there is no functional difference\n";
+    print F "// Currently this installs a simple G4Box solid, creates a logical volume from it\n";
+    print F "// and places it. Put your own detector in place (just make sure all active volumes\n";
+    print F "// get inserted into the m_PhysicalVolumesSet)\n";
+    print F "// \n";
+    print F "// Rather than using hardcoded values you should consider using the parameter class\n";
+    print F "// Parameter names and defaults are set in $subsysclassname\:\:SetDefaultParameters()\n";
+    print F "// Only parameters defined there can be used (also to override in the macro)\n";
+    print F "// to avoids typos.\n";
+    print F "// IMPORTANT: parameters have no inherent units, there is a convention (cm/deg)\n";
+    print F "// but in any case you need to multiply them here with the correct CLHEP/G4 unit \n";
+    print F "// \n";
+    print F "// The place where you put your own detector is marked with\n";
+    print F "// //begin implement your own here://\n";
+    print F "// //end implement your own here://\n";
+    print F "// Do not forget to include the G4 includes for your volumes\n";
+    print F "//____________________________________________________________________________..\n";
+    print F "\n";
     print F "#include \"$detector_includefile\"\n";
     print F "\n";
     print F "#include <phparameter/PHParameters.h>\n";
@@ -519,6 +614,7 @@ sub CreateDetectorImplementation()
     print F "using namespace std;\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "$detectorclassname\:\:$detectorclassname(PHG4Subsystem *subsys,\n";
     print F "                                         PHCompositeNode *Node,\n";
     print F "                                         PHParameters *parameters,\n";
@@ -544,6 +640,8 @@ sub CreateDetectorImplementation()
     print F "//_______________________________________________________________\n";
     print F "void $detectorclassname\:\:ConstructMe(G4LogicalVolume *logicWorld)\n";
     print F "{\n";
+    print F " //begin implement your own here://\n";
+    print F " // Do not forget to multiply the parameters with their respective CLHEP/G4 unit !\n";
     print F "  double xdim = m_Params->get_double_param(\"size_x\") * cm;\n";
     print F "  double ydim = m_Params->get_double_param(\"size_y\") * cm;\n";
     print F "  double zdim = m_Params->get_double_param(\"size_z\") * cm;\n";
@@ -569,6 +667,7 @@ sub CreateDetectorImplementation()
     print F "  // add it to the list of placed volumes so the IsInDetector method\n";
     print F "  // picks them up\n";
     print F "  m_PhysicalVolumesSet.insert(phy);\n";
+    print F " //end implement your own here://\n";
     print F "  return;\n";
     print F "}\n";
     print F "\n";
@@ -748,6 +847,16 @@ sub CreateSubsystemImplementation()
 {
     my $file = shift;
     open(F,">$file");
+    print F "//____________________________________________________________________________..\n";
+    print F "//\n";
+    print F "// This is the interface to the framework. You only need to define the parameters\n";
+    print F "// you use for your detector in the SetDefaultParameters() method here\n";
+    print F "// The place to do this is marked by //implement your own here//\n";
+    print F "// The parameters have no units, they need to be converted in the\n";
+    print F "// $detectorclassname\:\:ConstructMe() method\n";
+    print F "// but the convention is as mentioned cm and deg\n";
+    print F "//____________________________________________________________________________..\n";
+    print F "//\n";
     print F "#include \"$subsystem_includefile\"\n";
     print F "\n";
     print F "#include \"$detector_includefile\"\n";
@@ -770,6 +879,7 @@ sub CreateSubsystemImplementation()
     print F "\n";
 
     print F "using namespace std;\n";
+    print F "\n";
 
     print F "//_______________________________________________________________________\n";
     print F "$subsysclassname\:\:$subsysclassname(const std::string &name)\n";
@@ -850,7 +960,8 @@ sub CreateSubsystemImplementation()
     print F "{\n";
     print F "  // sizes are in cm\n";
     print F "  // angles are in deg\n";
-    print F "  // units will be converted to G4 units when used\n";
+    print F "  // units should be converted to G4 units when used\n";
+    print F "  //implement your own here//\n";
     print F "  set_default_double_param(\"place_x\", 0.);\n";
     print F "  set_default_double_param(\"place_y\", 0.);\n";
     print F "  set_default_double_param(\"place_z\", 0.);\n";
@@ -862,7 +973,7 @@ sub CreateSubsystemImplementation()
     print F "  set_default_double_param(\"size_z\", 20.);\n";
     print F "\n";
 
-    print F "set_default_string_param(\"material\", \"G4_Cu\");\n";
+    print F "  set_default_string_param(\"material\", \"G4_Cu\");\n";
     print F "}\n";
 
     close(F);
