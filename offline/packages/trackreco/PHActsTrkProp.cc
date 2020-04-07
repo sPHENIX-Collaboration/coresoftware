@@ -64,6 +64,8 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_trackMap(nullptr)
   , m_clusterSurfaceMap(nullptr)
   , m_clusterSurfaceTpcMap(nullptr)
+  , m_actsProtoTracks(nullptr)
+  , m_sourceLinks(nullptr)
 {
   Verbosity(0);
 }
@@ -102,6 +104,7 @@ int PHActsTrkProp::Process()
     std::cout << "Start PHActsTrkProp::process_event" << std::endl;
   }
 
+
   PerigeeSurface surface = Acts::Surface::makeShared<Acts::PerigeeSurface>
     (Acts::Vector3D(0., 0., 0.));
 
@@ -135,6 +138,7 @@ int PHActsTrkProp::Process()
 
       const FW::TrackParameters trackParams(cov, pos, mom,
 					    q, time);
+      std::vector<SourceLink> sourceLinks;
       
       PropagationOutput pOutput = propagate(trackParams);
 
@@ -142,9 +146,28 @@ int PHActsTrkProp::Process()
       for (auto& step : steps){
 	
 	auto surface = step.surface;
+	Acts::Vector3D stepSurfNorm = surface.get()->normal(m_actsGeometry->geoContext);
+	Acts::Vector3D srcLinkSurfNorm;
 
+	std::map<unsigned int, SourceLink>::iterator srcLinkIter = m_sourceLinks->begin();
+	while(srcLinkIter != m_sourceLinks->end())
+	  {
+	    
+	    srcLinkSurfNorm = srcLinkIter->second.referenceSurface().normal(m_actsGeometry->geoContext);
+	    
+	    /// This is not ideal. Would like surfaces as built in acts to have
+	    /// an identifier
+	    if(stepSurfNorm(0) == srcLinkSurfNorm(0) 
+	       && stepSurfNorm(1) == srcLinkSurfNorm(1) 
+	       && stepSurfNorm(2) == srcLinkSurfNorm(2))
+	      {
+	        sourceLinks.push_back(srcLinkIter->second);
+		break;
+	      }
+	    ++srcLinkIter;
+	  }
 	/// associate surface to sphenix clusters with cluster-surface maps
-	
+
 	/// Get kinematic information of steps
 	/// global x,y,z
 	float x = step.position.x();
@@ -165,6 +188,11 @@ int PHActsTrkProp::Process()
 		      << ", " << dy << ", " << dz << std::endl;
 	  }
       }
+
+      /// Add the track with the found sourcelinks to the prototrack list
+      /// to be put on the node tree
+      ActsTrack actsTrack(trackParams, sourceLinks);
+      m_actsProtoTracks->push_back(actsTrack);
       
     }
 
@@ -247,12 +275,55 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
 
 int PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
+  PHNodeIterator iter(topNode);
+
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+
+  if (!dstNode)
+  {
+    std::cerr << "DST node is missing, quitting" << std::endl;
+    throw std::runtime_error("Failed to find DST node in PHActsTracks::createNodes");
+  }
+
+  PHCompositeNode *svtxNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "SVTX"));
+
+  if (!svtxNode)
+  {
+    svtxNode = new PHCompositeNode("SVTX");
+    dstNode->addNode(svtxNode);
+  }
+
+
+  m_actsProtoTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
+
+  if(!m_actsProtoTracks)
+    {
+      m_actsProtoTracks = new std::vector<ActsTrack>;
+
+      PHDataNode<std::vector<ActsTrack>> *protoTrackNode =
+        new PHDataNode<std::vector<ActsTrack>>(m_actsProtoTracks, "ActsProtoTracks");
+      
+      svtxNode->addNode(protoTrackNode);
+
+    }
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
 {
 
+  m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
+
+  if (!m_sourceLinks)
+    {
+      std::cout << PHWHERE << "TrkrClusterSourceLinks node not found on node tree. Exiting."
+		<< std::endl;
+      
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+  
   m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
 
   if (!m_actsGeometry)
