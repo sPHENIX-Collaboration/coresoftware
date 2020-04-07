@@ -324,8 +324,8 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
                                                         side, iPhiZ);
   std::map<TrkrDefs::cluskey, Surface>::iterator surfIter;
 
-  surfIter = m_clusterSurfaceMapTpc.find(surfkey);
-  if (surfIter == m_clusterSurfaceMapTpc.end())
+  surfIter = m_clusterSurfaceMapTpc->find(surfkey);
+  if (surfIter == m_clusterSurfaceMapTpc->end())
   {
     std::cout << PHWHERE << "Failed to find surface, should be impossible!" << std::endl;
     return nullptr;
@@ -616,6 +616,26 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
     svtxNode->addNode(hitMapNode);
   }
 
+  m_clusterSurfaceMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, Surface>>(topNode, "ClusterSurfaceActsMap");
+  
+  if(!m_clusterSurfaceMap)
+    {
+      m_clusterSurfaceMap = new std::map<TrkrDefs::hitsetkey, Surface>;
+      PHDataNode<std::map<TrkrDefs::hitsetkey, Surface>> *keySurfaceNode = 
+	new PHDataNode<std::map<TrkrDefs::hitsetkey, Surface>>(m_clusterSurfaceMap, "HitSetKeySurfaceActsMap");
+      svtxNode->addNode(keySurfaceNode);
+    }
+
+    m_clusterSurfaceMapTpc = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "ClusterTpcSurfaceActsMap");
+  
+  if(!m_clusterSurfaceMapTpc)
+    {
+      m_clusterSurfaceMapTpc = new std::map<TrkrDefs::cluskey, Surface>;
+      PHDataNode<std::map<TrkrDefs::cluskey, Surface>> *keyTpcSurfaceNode = 
+	new PHDataNode<std::map<TrkrDefs::cluskey, Surface>>(m_clusterSurfaceMapTpc, "ClusKeyTpcSurfaceActsMap");
+      svtxNode->addNode(keyTpcSurfaceNode);
+    }
+
   m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsFitCfg");
 
   if (!m_actsGeometry)
@@ -676,10 +696,10 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   std::map<TrkrDefs::hitsetkey, Surface>::iterator
       surfaceIter;
 
-  surfaceIter = m_clusterSurfaceMap.find(hitSetKey);
+  surfaceIter = m_clusterSurfaceMap->find(hitSetKey);
 
   /// Check to make sure we found the surface in the map
-  if (surfaceIter != m_clusterSurfaceMap.end())
+  if (surfaceIter != m_clusterSurfaceMap->end())
   {
     surface = surfaceIter->second;
     if (Verbosity() > 0)

@@ -49,6 +49,7 @@ using Stepper = Acts::EigenStepper<ConstantBField>;
 using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
 Propagator *propagator;
 
+#include <TMatrixDSym.h>
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -60,7 +61,9 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_actsGeometry(nullptr)
   , m_minTrackPt(0.15)
   , m_maxStepSize(3.)
-  , m_actsTracks(nullptr)
+  , m_trackMap(nullptr)
+  , m_clusterSurfaceMap(nullptr)
+  , m_clusterSurfaceTpcMap(nullptr)
 {
   Verbosity(0);
 }
@@ -84,13 +87,13 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   ConstantBField bField (0, 0, 1.4 * Acts::UnitConstants::T);
   Stepper stepper(bField);
   propagator = new Propagator(std::move(stepper), std::move(navigator));
-  //Propagator propagator(std::move(stepper), std::move(navigator));
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkProp::Process()
 {
+
   m_event++;
 
   if (Verbosity() > 1)
@@ -102,20 +105,46 @@ int PHActsTrkProp::Process()
   PerigeeSurface surface = Acts::Surface::makeShared<Acts::PerigeeSurface>
     (Acts::Vector3D(0., 0., 0.));
 
-  
-  for(std::vector<ActsTrack>::iterator trackIter = m_actsTracks->begin();
-      trackIter != m_actsTracks->end();
-      ++trackIter)
-	
+
+  for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
+       trackIter != m_trackMap->end(); ++trackIter)
     {
-      ActsTrack track = *trackIter;
-     
-      const FW::TrackParameters actsTrack = track.trackParams;
+
+      const SvtxTrack *track = trackIter->second;
+ 
+      if(!track)
+	continue;
       
-      PropagationOutput pOutput = propagate(actsTrack);
+      if(Verbosity() > 1)
+	{
+	  std::cout << "Found SvtxTrack: " << trackIter->first << std::endl;
+	  track->identify();
+	}
+
+      const Acts::BoundSymMatrix cov = getActsCovMatrix(track);
+      const Acts::Vector3D pos(track->get_x(),
+			       track->get_y(),
+			       track->get_z());
+      const Acts::Vector3D mom(track->get_px(),
+			       track->get_py(),
+			       track->get_pz());
+
+      /// just set to 0 for now?
+      const double time = 0;
+      const int q = track->get_charge();
+
+      const FW::TrackParameters trackParams(cov, pos, mom,
+					    q, time);
       
+      PropagationOutput pOutput = propagate(trackParams);
+
       std::vector<Acts::detail::Step> steps = pOutput.first;
       for (auto& step : steps){
+	
+	auto surface = step.surface;
+
+	/// associate surface to sphenix clusters with cluster-surface maps
+	
 	/// Get kinematic information of steps
 	/// global x,y,z
 	float x = step.position.x();
@@ -135,7 +164,6 @@ int PHActsTrkProp::Process()
 		      << " and momentum direction " << dx
 		      << ", " << dy << ", " << dz << std::endl;
 	  }
-
       }
       
     }
@@ -179,7 +207,7 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
   /// Activate loop protection at some pt value
   options.loopProtection
     = (Acts::VectorHelpers::perp(parameters.momentum())
-       < m_minTrackPt);
+       < m_minTrackPt * Acts::UnitConstants::GeV);
 
   /// Switch the material interaction on/off & eventually into logging mode
   /// Should all of these switches be configurable from e.g. constructor?
@@ -217,9 +245,6 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
  
 }
 
-
-
-
 int PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -238,14 +263,29 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  /// TODO - change the name of this to reflect the new node put on the node
-  /// tree from PHActsTrkFitter. Right now for testing, using ActsProtoTracks
-  m_actsTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
-  
-  if (!m_actsTracks)
+  m_trackMap = findNode::getClass<SvtxTrackMap>(topNode, "SvtxTrackMap");
+  if (!m_trackMap)
     {
-      std::cout << "ActsTracks not on node tree. Exiting."
+      std::cout << PHWHERE << " ERROR: Can't find SvtxTrackMap. Exiting " 
+		<< std::endl;
 
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_clusterSurfaceMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, Surface>>(topNode, "HitSetKeySurfaceActsMap");
+
+  if(!m_clusterSurfaceMap)
+    {
+      std::cout << PHWHERE <<"Can't find cluster-acts surface map Exiting."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+
+  m_clusterSurfaceTpcMap = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "ClusterTpcSurfaceActsMap");
+
+  if(m_clusterSurfaceTpcMap)
+    {
+      std::cout << PHWHERE <<"Can't find TPC cluster-acts surface map Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
     }
@@ -254,3 +294,78 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
+{
+  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
+  const double px = track->get_px();
+  const double py = track->get_py();
+  const double pz = track->get_pz();
+  const double p = sqrt(px * px + py * py + pz * pz);
+
+  // Get the track seed covariance matrix
+  // These are the variances, so the std devs are sqrt(seedCov[i][j])
+  TMatrixDSym seedCov(6);
+  for (int i = 0; i < 6; i++)
+  {
+    for (int j = 0; j < 6; j++)
+    {
+      seedCov[i][j] = track->get_error(i, j);
+    }
+  }
+
+  const double sigmap = sqrt(px * px * seedCov[3][3] + py * py * seedCov[4][4] + pz * pz * seedCov[5][5]) / p;
+
+  // Need to convert seedCov from x,y,z,px,py,pz basis to Acts basis of
+  // x,y,phi/theta of p, qoverp, time
+  double phi = track->get_phi();
+
+  const double pxfracerr = seedCov[3][3] / (px * px);
+  const double pyfracerr = seedCov[4][4] / (py * py);
+  const double phiPrefactor = fabs(py) / (fabs(px) * (1 + (py / px) * (py / px)));
+  const double sigmaPhi = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
+  const double theta = acos(pz / p);
+  const double thetaPrefactor = ((fabs(pz)) / (p * sqrt(1 - (pz / p) * (pz / p))));
+  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + seedCov[5][5] / (pz * pz));
+  const double sigmaQOverP = sigmap / (p * p);
+
+  // Just set to 0 for now?
+  const double sigmaTime = 0;
+
+  if (Verbosity() > 10)
+  {
+    std::cout << "Track (px,py,pz,p) = (" << px << "," << py
+              << "," << pz << "," << p << ")" << std::endl;
+    std::cout << "Track covariance matrix: " << std::endl;
+
+    for (int i = 0; i < 6; i++)
+    {
+      for (int j = 0; j < 6; j++)
+      {
+        std::cout << seedCov[i][j] << ", ";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << "Corresponding uncertainty calculations: " << std::endl;
+    std::cout << "perr: " << sigmap << std::endl;
+    std::cout << "phi: " << phi << std::endl;
+    std::cout << "pxfracerr: " << pxfracerr << std::endl;
+    std::cout << "pyfracerr: " << pyfracerr << std::endl;
+    std::cout << "phiPrefactor: " << phiPrefactor << std::endl;
+    std::cout << "sigmaPhi: " << sigmaPhi << std::endl;
+    std::cout << "theta: " << theta << std::endl;
+    std::cout << "thetaPrefactor: " << thetaPrefactor << std::endl;
+    std::cout << "sigmaTheta: " << sigmaTheta << std::endl;
+    std::cout << "sigmaQOverP: " << sigmaQOverP << std::endl;
+  }
+
+  /// Seed covariances are already variances, so don't need to square them
+  matrix(Acts::eLOC_0, Acts::eLOC_0) = seedCov[0][0];
+  matrix(Acts::eLOC_1, Acts::eLOC_1) = seedCov[1][1];
+  matrix(Acts::ePHI, Acts::ePHI) = sigmaPhi * sigmaPhi;
+  matrix(Acts::eTHETA, Acts::eTHETA) = sigmaTheta * sigmaTheta;
+  matrix(Acts::eQOP, Acts::eQOP) = sigmaQOverP * sigmaQOverP;
+  matrix(Acts::eT, Acts::eT) = sigmaTime;
+
+  return matrix;
+}

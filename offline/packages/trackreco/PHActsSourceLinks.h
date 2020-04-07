@@ -169,13 +169,13 @@ class PHActsSourceLinks : public SubsysReco
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
   /// Map relating hit set keys to TGeoNodes
-  std::map<TrkrDefs::hitsetkey, TGeoNode *> m_clusterNodeMap;
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
 
   /// Map relating hit set keys to Acts::Surfaces
-  std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMap;
+  std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
 
   /// Get the TPC surface cluster map
-  std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
+  std::map<TrkrDefs::cluskey, Surface> *m_clusterSurfaceMapTpc;
 
   /// The fit cfg options, created in MakeActsGeometry, to be put on node tree
   /// for PHActsTrkFitter

@@ -18,12 +18,14 @@
 
 struct ActsTrack;
 class SvtxTrack;
+class SvtxTrackMap;
 
 using RecordedMaterial = Acts::MaterialInteractor::result_type;
 using PropagationOutput
     = std::pair<std::vector<Acts::detail::Step>, RecordedMaterial>;
 
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
+using Surface = std::shared_ptr<const Acts::Surface>;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -53,6 +55,8 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
+  Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
+
   /// Run the propagation algorithm in acts. Returns result of propagation
   PropagationOutput propagate(FW::TrackParameters parameters);
 
@@ -65,9 +69,12 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Propagation step size, units of mm
   double m_maxStepSize; 
 
-  /// List of acts track fits, created by PHActsTrkFitter
-  std::vector<ActsTrack>* m_actsTracks;
+  /// Track map with Svtx objects
+  SvtxTrackMap *m_trackMap;
 
+  /// Cluster-surface association maps created in MakeActsGeometry
+  std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
+  std::map<TrkrDefs::cluskey, Surface> *m_clusterSurfaceTpcMap;
 };
 
 #endif
