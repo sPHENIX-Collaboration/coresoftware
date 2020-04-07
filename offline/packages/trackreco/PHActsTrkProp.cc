@@ -2,7 +2,6 @@
 #include "PHActsTrkProp.h"
 #include "PHActsTracks.h"
 
-
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -12,6 +11,10 @@
 #include <phool/PHObject.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
+
+/// Tracking includes
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
 
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
 #include <Acts/MagneticField/SharedBField.hpp>
@@ -57,6 +60,7 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
   , m_actsGeometry(nullptr)
   , m_minTrackPt(0.15)
   , m_maxStepSize(3.)
+  , m_actsTracks(nullptr)
 {
   Verbosity(0);
 }
@@ -109,11 +113,10 @@ int PHActsTrkProp::Process()
       const FW::TrackParameters actsTrack = track.trackParams;
       
       PropagationOutput pOutput = propagate(actsTrack);
-      /*
+      
       std::vector<Acts::detail::Step> steps = pOutput.first;
       for (auto& step : steps){
 	/// Get kinematic information of steps
-
 	/// global x,y,z
 	float x = step.position.x();
 	float y = step.position.y();
@@ -125,18 +128,16 @@ int PHActsTrkProp::Process()
 	float dy = direction.y();
 	float dz = direction.z();
 
-	double accuracy = step.stepSize.value(Acts::ConstrainedStep::accuracy);
-	double actor    = step.stepSize.value(Acts::ConstrainedStep::actor);
-	double aborter  = step.stepSize.value(Acts::ConstrainedStep::aborter);
-	double user     = step.stepSize.value(Acts::ConstrainedStep::user);
-	double act2     = actor * actor;
-	double acc2     = accuracy * accuracy;
-	double abo2     = aborter * aborter;
-	double usr2     = user * user;
-
+	if(Verbosity() > 1)
+	  {
+	    std::cout << "Acts track propagation step : "
+		      << x << ", " << y << ", " << z 
+		      << " and momentum direction " << dx
+		      << ", " << dy << ", " << dz << std::endl;
+	  }
 
       }
-      */
+      
     }
 
 
@@ -158,48 +159,47 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
   
   PropagationOutput pOutput;
   
-  // The step length logger for testing & end of world aborter
+  /// Set Acts namespace aliases to reduce code clutter
   using MaterialInteractor = Acts::MaterialInteractor;
   using SteppingLogger     = Acts::detail::SteppingLogger;
   using DebugOutput        = Acts::detail::DebugOutputActor;
   using EndOfWorld         = Acts::detail::EndOfWorldReached;
   
-  // Action list and abort list
   using ActionList
     = Acts::ActionList<SteppingLogger, MaterialInteractor, DebugOutput>;
   using AbortList         = Acts::AbortList<EndOfWorld>;
   using PropagatorOptions = Acts::PropagatorOptions<ActionList, AbortList>;
   
+  /// Setup propagator options to hold context, and propagator characteristics
   PropagatorOptions options(m_actsGeometry->geoContext, 
 			    m_actsGeometry->magFieldContext);
   options.pathLimit = std::numeric_limits<double>::max();
   options.debug     = true;
   
-  // Activate loop protection at some pt value
+  /// Activate loop protection at some pt value
   options.loopProtection
     = (Acts::VectorHelpers::perp(parameters.momentum())
        < m_minTrackPt);
 
-  // Switch the material interaction on/off & eventually into logging mode
-  // Should all of these switches be configurable from e.g. constructor?
+  /// Switch the material interaction on/off & eventually into logging mode
+  /// Should all of these switches be configurable from e.g. constructor?
   auto& mInteractor = options.actionList.get<MaterialInteractor>();
   mInteractor.multipleScattering = true;
   mInteractor.energyLoss         = true;
   mInteractor.recordInteractions = true;
 
-  // Set a maximum step size
+  /// Set the maximum step size
   options.maxStepSize = m_maxStepSize * Acts::UnitConstants::mm;
   
-  
-  // Propagate using the propagator
+  /// Propagate using Acts::Propagator
   const auto& result
     = propagator->propagate(parameters, options).value();
-
   auto steppingResults = result.template get<SteppingLogger::result_type>();
   
-  // Set the stepping result
+  /// Set the stepping result
   pOutput.first = std::move(steppingResults.steps);
-  // Also set the material recording result - if configured
+
+  /// Also set the material recording result - if configured
   if (mInteractor.recordInteractions) {
     auto materialResult
       = result.template get<MaterialInteractor::result_type>();
