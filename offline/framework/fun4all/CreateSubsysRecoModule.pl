@@ -68,7 +68,7 @@ if (defined $createall)
 {
     CreateAutogen();
     CreateMakefile();
-     CreateConfigure();
+    CreateConfigure();
 }
 exit(0);
 
@@ -76,16 +76,83 @@ sub CreateImplementation()
 {
     my $file = shift;
     open(F,">$file");
+    print F "//____________________________________________________________________________..\n";
+    print F "//\n";
+    print F "// This is a template for a Fun4All SubsysReco module with all methods from the\n";
+    print F "// \$OFFLINE_MAIN/include/fun4all/SubsysReco.h baseclass\n";
+    print F "// You do not have to implement all of them, you can just remove unused methods\n";
+    print F "// here and in $includefile.\n";
+    print F "//\n";
+    print F "// $classname(const std::string &name = \"$classname\")\n";
+    print F "// everything is keyed to $classname, duplicate names do work but it makes\n";
+    print F "// e.g. finding culprits in logs difficult or getting a pointer to the module\n";
+    print F "// from the command line\n";
+    print F "//\n";
+    print F "// $classname\:\:~$classname()\n";
+    print F "// this is called when the Fun4AllServer is deleted at the end of running. Be\n";
+    print F "// mindful what you delete - you do loose ownership of object you put on the node tree\n";
+    print F "//\n";
+    print F "// int $classname\:\:Init(PHCompositeNode *topNode)\n";
+    print F "// This method is called when the module is registered with the Fun4AllServer. You\n";
+    print F "// can create historgrams here or put objects on the node tree but be aware that\n";
+    print F "// modules which haven't been registered yet did not put antyhing on the node tree\n";
+    print F "//\n";
+    print F "// int $classname\:\:InitRun(PHCompositeNode *topNode)\n";
+    print F "// This method is called when the first event is read (or generated). At\n";
+    print F "// this point the run number is known (which is mainly interesting for raw data\n";
+    print F "// processing). Also all objects are on the node tree in case your module's action\n";
+    print F "// depends on what else is around. Last chance to put nodes under the DST Node\n";
+    print F "// We mix events during readback if branches are added after the first event\n";
+    print F "//\n";
+    print F "// int $classname\:\:process_event(PHCompositeNode *topNode)\n";
+    print F "// called for every event. Return codes trigger actions, you find them in\n";
+    print F "// \$OFFLINE_MAIN/include/fun4all/Fun4AllReturnCodes.h\n";
+    print F "//   everything is good:\n";
+    print F "//     return Fun4AllReturnCodes::EVENT_OK\n";
+    print F "//   abort event reconstruction, clear everything and process next event:\n";
+    print F "//     return Fun4AllReturnCodes::ABORT_EVENT; \n";
+    print F "//   proceed but do not save this event in output (needs output manager setting):\n";
+    print F "//     return Fun4AllReturnCodes::DISCARD_EVENT; \n";
+    print F "//   abort processing:\n";
+    print F "//     return Fun4AllReturnCodes::ABORT_RUN\n";
+    print F "// all other integers will lead to an error and abort of processing\n";
+    print F "//\n";
+    print F "// int $classname\:\:ResetEvent(PHCompositeNode *topNode)\n";
+    print F "// If you have internal data structures (arrays, stl containers) which needs clearing\n";
+    print F "// after each event, this is the place to do that. The nodes under the DST node are cleared\n";
+    print F "// by the framework\n";
+    print F "//\n";
+    print F "// int $classname\:\:EndRun(const int runnumber)\n";
+    print F "// This method is called at the end of a run when an event from a new run is\n";
+    print F "// encountered. Useful when analyzing multiple runs (raw data). Also called at\n";
+    print F "// the end of processing (before the End() method)\n";
+    print F "//\n";
+    print F "// int $classname\:\:End(PHCompositeNode *topNode)\n";
+    print F "// This is called at the end of processing. It needs to be called by the macro\n";
+    print F "// by Fun4AllServer::End(), so do not forget this in your macro\n";
+    print F "//\n";
+    print F "// int $classname\:\:Reset(PHCompositeNode *topNode)\n";
+    print F "// not really used - it is called before the dtor is called\n";
+    print F "//\n";
+    print F "// void $classname\:\:Print(const std::string &what) const\n";
+    print F "// Called from the command line - useful to print information when you need it\n";
+    print F "//\n";
+    print F "//____________________________________________________________________________..\n";
+    print F "\n";
+
     print F "#include \"$classname.h\"\n";
     print F "\n";
 
     print F "#include <fun4all/Fun4AllReturnCodes.h>\n";
+    print F "\n";
+
     print F "#include <phool/PHCompositeNode.h>\n";
     print F "\n";
 
     print F "using namespace std;\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "$classname\:\:$classname(const std::string &name):\n";
     print F " SubsysReco(name)\n";
     print F "{\n";
@@ -93,15 +160,14 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "$classname\:\:~$classname()\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:~$classname() Calling dtor\" << endl;\n";
     print F "}\n";
     print F "\n";
-    print F "\n";
 
-
-
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:Init(PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:Init(PHCompositeNode *topNode) Initializing\" << endl;\n";
@@ -109,6 +175,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:InitRun(PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:InitRun(PHCompositeNode *topNode) Initializing for Run XXX\" << endl;\n";
@@ -116,6 +183,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:process_event(PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:process_event(PHCompositeNode *topNode) Processing Event\" << endl;\n";
@@ -123,6 +191,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:ResetEvent(PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:ResetEvent(PHCompositeNode *topNode) Resetting internal structures, prepare for next event\" << endl;\n";
@@ -130,6 +199,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:EndRun(const int runnumber)\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:EndRun(const int runnumber) Ending Run for Run \" << runnumber << endl;\n";
@@ -137,6 +207,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:End(PHCompositeNode *topNode)\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:End(PHCompositeNode *topNode) This is the End...\" << endl;\n";
@@ -144,6 +215,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "int $classname\:\:Reset(PHCompositeNode *topNode)\n";
     print F "{\n";
     print F " cout << \"$classname\:\:Reset(PHCompositeNode *topNode) being Reset\" << endl;\n";
@@ -151,6 +223,7 @@ sub CreateImplementation()
     print F "}\n";
     print F "\n";
 
+    print F "//____________________________________________________________________________..\n";
     print F "void $classname\:\:Print(const std::string &what) const\n";
     print F "{\n";
     print F "  cout << \"$classname\:\:Print(const std::string &what) const Printing info for \" << what << endl;\n";
@@ -192,7 +265,8 @@ sub CreateInclude()
     print F "\n";
     print F "  /** Called for first event when run number is known.\n";
     print F "      Typically this is where you may want to fetch data from\n";
-    print F "      database, because you know the run number.\n";
+    print F "      database, because you know the run number. A place\n";
+    print F "      to book histograms which have to know the run number.\n";
     print F "   */\n";
     print F "  int InitRun(PHCompositeNode *topNode) override;\n";
     print F "\n";
@@ -325,4 +399,3 @@ sub CreateMakefile()
     print F "\trm -f \$(BUILT_SOURCES)\n";
     close(F);
 }
-
