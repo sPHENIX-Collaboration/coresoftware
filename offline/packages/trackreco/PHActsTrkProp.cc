@@ -2,6 +2,7 @@
 #include "PHActsTrkProp.h"
 #include "PHActsTracks.h"
 
+
 /// Fun4All includes
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/PHCompositeNode.h>
@@ -12,44 +13,50 @@
 #include <phool/getClass.h>
 #include <phool/phool.h>
 
-/// Tracking includes
-#include <trackbase_historic/SvtxTrack.h>
-#include <trackbase_historic/SvtxTrackMap.h>
+#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
+#include <Acts/MagneticField/SharedBField.hpp>
+#include <Acts/MagneticField/ConstantBField.hpp>
 
 #include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
-#include <Acts/Surfaces/PerigeeSurface.hpp>
-#include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
-#include <Acts/EventData/NeutralParameters.hpp>
-#include <Acts/EventData/TrackParameters.hpp>
+#include <Acts/Surfaces/PerigeeSurface.hpp>
+
+#include <Acts/Propagator/EigenStepper.hpp> // this include causes seg fault when put in header file for some reason
+#include <Acts/Propagator/Propagator.hpp>
+#include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/AbortList.hpp>
 #include <Acts/Propagator/ActionList.hpp>
-#include <Acts/Propagator/Navigator.hpp>
-#include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Utilities/Helpers.hpp>
 #include <Acts/Utilities/Units.hpp>
 
-#include <ACTFW/Framework/BareAlgorithm.hpp>
+#include <ACTFW/Plugins/BField/BFieldOptions.hpp>
+#include <ACTFW/Plugins/BField/ScalableBField.hpp>
 #include <ACTFW/Framework/ProcessCode.hpp>
-#include <ACTFW/Framework/RandomNumbers.hpp>
 #include <ACTFW/Framework/WhiteBoard.hpp>
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
+
+/// Setup aliases for creating propagator
+/// For some reason putting these in the header file, with appropriate headers
+/// causes seg fault. Propagator also must be instantiated immediately
+using ConstantBField = Acts::ConstantBField;
+using Stepper = Acts::EigenStepper<ConstantBField>;
+using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
+Propagator *propagator;
 
 #include <cmath>
 #include <iostream>
 #include <vector>
 #include <utility>
-#include <TMatrixDSym.h>
 
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
   , m_actsGeometry(nullptr)
   , m_minTrackPt(0.15)
-
+  , m_maxStepSize(3.)
 {
   Verbosity(0);
 }
@@ -63,6 +70,18 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
+  /// Get the magnetic field and tracking geometry to setup the Acts::Stepper
+  //FW::Options::BFieldVariant bFieldVar = m_actsGeometry->magField;
+   Acts::Navigator navigator(m_actsGeometry->tGeometry);
+
+  /// Just use the default magnetic field for now. Can access BField
+  /// from m_actsGeometry using std::visit, but can't figure out how to 
+  /// get necessary information out of lambda function
+  ConstantBField bField (0, 0, 1.4 * Acts::UnitConstants::T);
+  Stepper stepper(bField);
+  propagator = new Propagator(std::move(stepper), std::move(navigator));
+  //Propagator propagator(std::move(stepper), std::move(navigator));
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -73,7 +92,7 @@ int PHActsTrkProp::Process()
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
-    std::cout << "Start PHActsTrkfitter::process_event" << std::endl;
+    std::cout << "Start PHActsTrkProp::process_event" << std::endl;
   }
 
   PerigeeSurface surface = Acts::Surface::makeShared<Acts::PerigeeSurface>
@@ -90,14 +109,41 @@ int PHActsTrkProp::Process()
       const FW::TrackParameters actsTrack = track.trackParams;
       
       PropagationOutput pOutput = propagate(actsTrack);
+      /*
+      std::vector<Acts::detail::Step> steps = pOutput.first;
+      for (auto& step : steps){
+	/// Get kinematic information of steps
 
+	/// global x,y,z
+	float x = step.position.x();
+	float y = step.position.y();
+	float z = step.position.z();
+
+	auto direction = step.momentum.normalized();
+	///global direction x,y,yz
+	float dx = direction.x();
+	float dy = direction.y();
+	float dz = direction.z();
+
+	double accuracy = step.stepSize.value(Acts::ConstrainedStep::accuracy);
+	double actor    = step.stepSize.value(Acts::ConstrainedStep::actor);
+	double aborter  = step.stepSize.value(Acts::ConstrainedStep::aborter);
+	double user     = step.stepSize.value(Acts::ConstrainedStep::user);
+	double act2     = actor * actor;
+	double acc2     = accuracy * accuracy;
+	double abo2     = aborter * aborter;
+	double usr2     = user * user;
+
+
+      }
+      */
     }
 
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-int PHActsTrkProp::End(PHCompositeNode* topNode)
+int PHActsTrkProp::End()
 {
   if (Verbosity() > 10)
   {
@@ -106,9 +152,10 @@ int PHActsTrkProp::End(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
- 
+
 PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
 {
+  
   PropagationOutput pOutput;
   
   // The step length logger for testing & end of world aborter
@@ -141,14 +188,12 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
   mInteractor.recordInteractions = true;
 
   // Set a maximum step size
-  options.maxStepSize = 3. * Acts::UnitConstants::mm;
+  options.maxStepSize = m_maxStepSize * Acts::UnitConstants::mm;
   
-  /*
+  
   // Propagate using the propagator
-  /// Will need to setup some acts class that creates the propagator
-  /// similar to the track fitter
   const auto& result
-    = m_cfg.propagator.propagate(startParameters, options).value();
+    = propagator->propagate(parameters, options).value();
 
   auto steppingResults = result.template get<SteppingLogger::result_type>();
   
@@ -167,87 +212,12 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
       std::cout << "Acts Propagator Debug: " << debugResult.debugString 
 		<< std::endl;
     }
-  */
+  
   return pOutput;
  
 }
 
 
-
-Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
-{
-  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-  const double px = track->get_px();
-  const double py = track->get_py();
-  const double pz = track->get_pz();
-  const double p = sqrt(px * px + py * py + pz * pz);
-
-  // Get the track seed covariance matrix
-  // These are the variances, so the std devs are sqrt(seed_cov[i][j])
-  TMatrixDSym seed_cov(6);
-  for (int i = 0; i < 6; i++)
-  {
-    for (int j = 0; j < 6; j++)
-    {
-      seed_cov[i][j] = track->get_error(i, j);
-    }
-  }
-
-  const double sigmap = sqrt(px * px * seed_cov[3][3] + py * py * seed_cov[4][4] + pz * pz * seed_cov[5][5]) / p;
-
-  // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
-  // x,y,phi/theta of p, qoverp, time
-  double phi = track->get_phi();
-
-  const double pxfracerr = seed_cov[3][3] / (px * px);
-  const double pyfracerr = seed_cov[4][4] / (py * py);
-  const double phiPrefactor = fabs(py) / (fabs(px) * (1 + (py / px) * (py / px)));
-  const double sigmaPhi = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
-  const double theta = acos(pz / p);
-  const double thetaPrefactor = ((fabs(pz)) / (p * sqrt(1 - (pz / p) * (pz / p))));
-  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + seed_cov[5][5] / (pz * pz));
-  const double sigmaQOverP = sigmap / (p * p);
-
-  // Just set to 0 for now?
-  const double sigmaTime = 0;
-
-  if (Verbosity() > 10)
-  {
-    std::cout << "Track (px,py,pz,p) = (" << px << "," << py
-              << "," << pz << "," << p << ")" << std::endl;
-    std::cout << "Track covariance matrix: " << std::endl;
-
-    for (int i = 0; i < 6; i++)
-    {
-      for (int j = 0; j < 6; j++)
-      {
-        std::cout << seed_cov[i][j] << ", ";
-      }
-      std::cout << std::endl;
-    }
-    std::cout << "Corresponding uncertainty calculations: " << std::endl;
-    std::cout << "perr: " << sigmap << std::endl;
-    std::cout << "phi: " << phi << std::endl;
-    std::cout << "pxfracerr: " << pxfracerr << std::endl;
-    std::cout << "pyfracerr: " << pyfracerr << std::endl;
-    std::cout << "phiPrefactor: " << phiPrefactor << std::endl;
-    std::cout << "sigmaPhi: " << sigmaPhi << std::endl;
-    std::cout << "theta: " << theta << std::endl;
-    std::cout << "thetaPrefactor: " << thetaPrefactor << std::endl;
-    std::cout << "sigmaTheta: " << sigmaTheta << std::endl;
-    std::cout << "sigmaQOverP: " << sigmaQOverP << std::endl;
-  }
-
-  /// Seed covariances are already variances, so don't need to square them
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = seed_cov[0][0];
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = seed_cov[1][1];
-  matrix(Acts::ePHI, Acts::ePHI) = sigmaPhi * sigmaPhi;
-  matrix(Acts::eTHETA, Acts::eTHETA) = sigmaTheta * sigmaTheta;
-  matrix(Acts::eQOP, Acts::eQOP) = sigmaQOverP * sigmaQOverP;
-  matrix(Acts::eT, Acts::eT) = sigmaTime;
-
-  return matrix;
-}
 
 
 int PHActsTrkProp::createNodes(PHCompositeNode* topNode)
@@ -268,7 +238,9 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsTracks");
+  /// TODO - change the name of this to reflect the new node put on the node
+  /// tree from PHActsTrkFitter. Right now for testing, using ActsProtoTracks
+  m_actsTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
   
   if (!m_actsTracks)
     {
@@ -281,3 +253,4 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+

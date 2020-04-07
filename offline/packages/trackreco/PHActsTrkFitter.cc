@@ -54,7 +54,7 @@ int PHActsTrkFitter::Process()
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
-    std::cout << "Start PHActsTrkfitter::process_event" << std::endl;
+    std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
   }
 
   /// Construct a perigee surface as the target surface (?)

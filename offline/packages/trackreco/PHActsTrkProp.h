@@ -1,6 +1,5 @@
-
-#ifndef TRACKRECO_ACTSTRKPROP_H
-#define TRACKRECO_ACTSTRKPROP_H
+#ifndef TRACKRECO_PHACTSTRKPROP_H
+#define TRACKRECO_PHACTSTRKPROP_H
 
 #include "PHTrackPropagating.h"
 #include "PHActsSourceLinks.h"
@@ -8,7 +7,7 @@
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
-#include <Acts/Propagator/Propagator.hpp>
+
 #include <Acts/Propagator/detail/DebugOutputActor.hpp>
 #include <Acts/Propagator/detail/StandardAborters.hpp>
 #include <Acts/Propagator/detail/SteppingLogger.hpp>
@@ -17,18 +16,14 @@
 #include <memory>
 #include <string>
 
-namespace Acts {
-}
-
 struct ActsTrack;
-
 class SvtxTrack;
+
 using RecordedMaterial = Acts::MaterialInteractor::result_type;
 using PropagationOutput
     = std::pair<std::vector<Acts::detail::Step>, RecordedMaterial>;
 
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
-using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -40,7 +35,7 @@ class PHActsTrkProp : public PHTrackPropagating
   ~PHActsTrkProp();
 
   /// End, write and close files
-  int End(PHCompositeNode*);
+  int End();
 
   /// Get and create nodes
   int Setup(PHCompositeNode* topNode);
@@ -58,14 +53,19 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
-  Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
-
+  /// Run the propagation algorithm in acts. Returns result of propagation
   PropagationOutput propagate(FW::TrackParameters parameters);
 
+  /// The acts geometry constructed in MakeActsGeometry
   ActsGeometry *m_actsGeometry;
 
+  /// Minimum track pT to propagate, for acts propagator, units of GeV
   double m_minTrackPt;
 
+  /// Propagation step size, units of mm
+  double m_maxStepSize; 
+
+  /// List of acts track fits, created by PHActsTrkFitter
   std::vector<ActsTrack>* m_actsTracks;
 
 };
