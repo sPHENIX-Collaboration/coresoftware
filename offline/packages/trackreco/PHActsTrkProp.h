@@ -19,6 +19,7 @@
 struct ActsTrack;
 class SvtxTrack;
 class SvtxTrackMap;
+class TrkrClusterSourceLink; 
 
 using RecordedMaterial = Acts::MaterialInteractor::result_type;
 using PropagationOutput
@@ -50,10 +51,10 @@ class PHActsTrkProp : public PHTrackPropagating
   int m_event;
 
   /// Get all the nodes
-  int getNodes(PHCompositeNode*);
+  int getNodes(PHCompositeNode *topNode);
 
   /// Create new nodes
-  int createNodes(PHCompositeNode*);
+  void createNodes(PHCompositeNode *topNode);
 
   Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
 
@@ -75,6 +76,15 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Cluster-surface association maps created in MakeActsGeometry
   std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
   std::map<TrkrDefs::cluskey, Surface> *m_clusterSurfaceTpcMap;
+
+  /// Acts proto tracks to be put on the node tree by this module
+  std::vector<ActsTrack> *m_actsProtoTracks;
+
+  /// Acts source links created by PHActsSourceLinks
+  /// SourceLink is defined as TrkrClusterSourceLink elsewhere
+  std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+ 
 };
 
 #endif
