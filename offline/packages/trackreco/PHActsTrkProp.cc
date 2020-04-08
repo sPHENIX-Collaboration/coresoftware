@@ -76,6 +76,8 @@ PHActsTrkProp::PHActsTrkProp(const std::string& name)
 
 int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 {
+  createNodes(topNode);
+  
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
@@ -144,12 +146,14 @@ int PHActsTrkProp::Process()
 
       std::vector<Acts::detail::Step> steps = pOutput.first;
       for (auto& step : steps){
-	
 	auto surface = step.surface;
+	if(!surface)
+	  continue;
+
 	Acts::Vector3D stepSurfNorm = surface.get()->normal(m_actsGeometry->geoContext);
 	Acts::Vector3D srcLinkSurfNorm;
-
 	std::map<unsigned int, SourceLink>::iterator srcLinkIter = m_sourceLinks->begin();
+
 	while(srcLinkIter != m_sourceLinks->end())
 	  {
 	    
@@ -166,7 +170,6 @@ int PHActsTrkProp::Process()
 	      }
 	    ++srcLinkIter;
 	  }
-	/// associate surface to sphenix clusters with cluster-surface maps
 
 	/// Get kinematic information of steps
 	/// global x,y,z
@@ -188,6 +191,11 @@ int PHActsTrkProp::Process()
 		      << ", " << dy << ", " << dz << std::endl;
 	  }
       }
+
+      if(Verbosity() > 1)
+	{
+	  std::cout<<"Found "<<sourceLinks.size() <<" SrcLinks"<<std::endl;
+	}
 
       /// Add the track with the found sourcelinks to the prototrack list
       /// to be put on the node tree
@@ -273,7 +281,7 @@ PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
  
 }
 
-int PHActsTrkProp::createNodes(PHCompositeNode* topNode)
+void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
   PHNodeIterator iter(topNode);
 
@@ -308,7 +316,7 @@ int PHActsTrkProp::createNodes(PHCompositeNode* topNode)
     }
 
 
-  return Fun4AllReturnCodes::EVENT_OK;
+  return;
 }
 
 int PHActsTrkProp::getNodes(PHCompositeNode* topNode)

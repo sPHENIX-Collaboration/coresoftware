@@ -51,10 +51,10 @@ class PHActsTrkProp : public PHTrackPropagating
   int m_event;
 
   /// Get all the nodes
-  int getNodes(PHCompositeNode*);
+  int getNodes(PHCompositeNode *topNode);
 
   /// Create new nodes
-  int createNodes(PHCompositeNode*);
+  void createNodes(PHCompositeNode *topNode);
 
   Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
 
