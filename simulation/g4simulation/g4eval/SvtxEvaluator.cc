@@ -148,7 +148,7 @@ int SvtxEvaluator::Init(PHCompositeNode* topNode)
                                                    "nhittpcall:nhittpcin:nhittpcmid:nhittpcout:nclusall:nclustpc:nclusintt:nclusmaps");
 
   if (_do_g4cluster_eval) _ntp_g4cluster = new TNtuple("ntp_g4cluster", "g4cluster => max truth",
-						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:x:y:z:r:phi:eta:adc"); 
+						       "event:layer:gx:gy:gz:gt:gedep:gr:gphi:geta:gtrackID:gflavor:gembed:gprimary:g4phisize:g4zsize:x:y:z:r:phi:eta:ex:ey:ez:ephi:phisize:zsize:adc"); 
                                                        
   if (_do_gtrack_eval) _ntp_gtrack = new TNtuple("ntp_gtrack", "g4particle => best svtxtrack",
                                                  "event:gntracks:gtrackID:gflavor:gnhits:gnmaps:gnintt:"
@@ -1593,7 +1593,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	   std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster_key);
 	   std::vector<PHG4Hit*> contributing_hits;
 	   std::vector<double> contributing_hits_energy;
-	   LayerClusterG4Hits(topNode, truth_hits, contributing_hits, contributing_hits_energy, layer, gx, gy, gz, gt, gedep);
+	   std::vector<std::vector<double>> contributing_hits_entry;
+	   std::vector<std::vector<double>> contributing_hits_exit;
+	   LayerClusterG4Hits(topNode, truth_hits, contributing_hits, contributing_hits_energy, contributing_hits_entry, contributing_hits_exit, layer, gx, gy, gz, gt, gedep);
 
 	    g4hitID = g4hit->get_hit_id();
 	    TVector3 gpos(gx, gy, gz);
@@ -1800,7 +1802,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	   std::set<PHG4Hit*> truth_hits = clustereval->all_truth_hits(cluster_key);
 	   std::vector<PHG4Hit*> contributing_hits;
 	   std::vector<double> contributing_hits_energy;
-	   LayerClusterG4Hits(topNode, truth_hits, contributing_hits, contributing_hits_energy, layer, gx, gy, gz, gt, gedep);
+	   std::vector<std::vector<double>> contributing_hits_entry;
+	   std::vector<std::vector<double>> contributing_hits_exit;
+	   LayerClusterG4Hits(topNode, truth_hits, contributing_hits, contributing_hits_energy, contributing_hits_entry, contributing_hits_exit, layer, gx, gy, gz, gt, gedep);
 
 	    g4hitID = g4hit->get_hit_id();
 	    TVector3 gpos(gx, gy, gz);
@@ -1966,7 +1970,9 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 	      std::vector<PHG4Hit*> contributing_hits;
 	      std::vector<double> contributing_hits_energy;
-	      LayerClusterG4Hits(topNode, g4hits, contributing_hits, contributing_hits_energy, layer, gx, gy, gz, gt, gedep);
+	      std::vector<std::vector<double>> contributing_hits_entry;
+	      std::vector<std::vector<double>> contributing_hits_exit;
+	      LayerClusterG4Hits(topNode, g4hits, contributing_hits, contributing_hits_energy, contributing_hits_entry, contributing_hits_exit, layer, gx, gy, gz, gt, gedep);
 	      if(!(gedep > 0)) continue;
  
 	      float gr = NAN;
@@ -1984,7 +1990,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
               gprimary = trutheval->is_primary(g4particle);
 
 	      if(Verbosity() > 0)
-		cout << "    layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
+		cout << "layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
+
+	      // Estimate the size of the truth cluster
+	      float g4phisize = NAN;
+	      float g4zsize = NAN;
+	      G4ClusterSize( contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
 	      // Find the matching TrkrCluster, if it exists
 	      float x = NAN;
@@ -1993,6 +2004,12 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float r = NAN;
 	      float phi = NAN;
 	      float eta = NAN;
+	      float ex = NAN;
+	      float ey = NAN;
+	      float ez = NAN;
+	      float ephi = NAN;
+	      float phisize = NAN;
+	      float zsize = NAN;
 	      float adc = NAN;
 
 	      TrkrDefs::cluskey reco_cluskey = 0;
@@ -2023,7 +2040,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		      // For now, we assume only one reco cluster matches, if there are multiple matches, keep the last one
 		      // In future, can make a list of clusters matching this g4cluster 
 		      reco_cluskey = this_cluskey;
-
 		    }
 		}
 
@@ -2039,19 +2055,24 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  r = pos.Perp();
 		  phi = pos.Phi();
 		  eta = pos.Eta();
-		  /*
+
 		  ex = sqrt(cluster->getError(0, 0));
 		  ey = sqrt(cluster->getError(1, 1));
 		  ez = cluster->getZError();		  
 		  ephi = cluster->getRPhiError();
-		  */
-		    
+
+		  phisize = cluster->getPhiSize();
+		  zsize = cluster->getZSize();
+		  
 		  adc = cluster->getAdc();
 
 		  if(Verbosity() > 0)
 		    cout << "             reco cluster x " << x << " y " << y << " z " << z << endl;
 
 		}
+
+	      //cout << " g4phisize = " << g4phisize << " phisize " << phisize << endl;
+	      //cout << " g4zsize = " << g4zsize << " zsize " << zsize << endl;
 
 	      // add this cluster to the ntuple
 
@@ -2069,12 +2090,20 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 					gflavor,
 					gembed,
 					gprimary,
+					g4phisize,
+					g4zsize,
 					x,
 					y,
 					z,
 					r,
 					phi,
 					eta,
+					ex,
+					ey,
+					ez,
+					ephi,
+					phisize,
+					zsize,
 					adc };
 	      _ntp_g4cluster->Fill(g4cluster_data);
 	    }
@@ -3053,17 +3082,110 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 }
 
+/*
   void SvtxEvaluator::LayerClusterG4Particle()
   {
   // Given a g4particle, calculate the energy deposit and centroid within a given layer of the TPC
   
   
   
-  
   return;
 }
+*/
+
+void SvtxEvaluator::G4ClusterSize(std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
+{
+  // sort the contributing g4hits in radius
+  double inner_radius = 100.;
+  double inner_x = NAN;
+  double inner_y = NAN;
+  double inner_z = NAN;;
+
+  double outer_radius = 0.;
+  double outer_x = NAN;
+  double outer_y = NAN;
+  double outer_z = NAN;
+
+  for(int ihit=0;ihit<contributing_hits_entry.size(); ++ihit)
+    {
+      double rad1 = sqrt(pow(contributing_hits_entry[ihit][0], 2) + pow(contributing_hits_entry[ihit][1], 2));
+      //cout << "  g4hit: ihit " << ihit << " x " << contributing_hits_entry[ihit][0] << " y " << contributing_hits_entry[ihit][1] << " z " << contributing_hits_entry[ihit][2] << " rad1 " << rad1 << endl;
+      
+      if(rad1 < inner_radius)
+	{
+	  inner_radius = rad1;
+	  inner_x = contributing_hits_entry[ihit][0];
+	  inner_y = contributing_hits_entry[ihit][1];
+	  inner_z = contributing_hits_entry[ihit][2];    
+	}
+
+      double rad2 = sqrt(pow(contributing_hits_exit[ihit][0], 2) + pow(contributing_hits_exit[ihit][1], 2));
+      //cout << "  g4hit: ihit " << ihit << " x " << contributing_hits_exit[ihit][0] << " y " << contributing_hits_exit[ihit][1] << " z " << contributing_hits_exit[ihit][2] << " rad2 " << rad2 << endl;      
+      if(rad2 > outer_radius)
+	{
+	  outer_radius = rad2;
+	  outer_x = contributing_hits_exit[ihit][0];
+	  outer_y = contributing_hits_exit[ihit][1];
+	  outer_z = contributing_hits_exit[ihit][2];    
+	}
+    }
+
+  double inner_phi =  atan2(inner_y, inner_x);
+  double outer_phi =  atan2(outer_y, outer_x);
+  double avge_z = (outer_z + inner_z) / 2.0;
+
+  //cout << "  inner_radius " << inner_radius << " inner_x " << inner_x << " inner_y " << inner_y << " inner_z " << inner_z << endl;
+  //cout << "  outer_radius " << outer_radius << " outer_x " << outer_x << " outer_y " << outer_y << " outer_z " << outer_z << endl;
+  //cout << "    dphi " << outer_phi - inner_phi  << " dz " << outer_z - inner_z << endl;
+
+  // Now fold these with the expected diffusion and shaping widths
+  // assume 3 sigma diffusion and shaping when extending the size
+
+  double radius = (inner_radius + outer_radius)/2.;
+  if(radius > 28)  // TPC
+    {
+      double tpc_length = 210.0;  // cm
+      double drift_velocity = 8.0 / 1000.0;  // cm/ns
+      double diffusion_trans =  0.006;  // cm/SQRT(cm)
+      double diffusion_long = 0.015;  // cm/SQRT(cm)
+      double added_smear_trans = 0.085;
+      double added_smear_long = 0.105;
+
+      double phidiffusion = diffusion_trans * sqrt(tpc_length / 2. - fabs(avge_z));
+      phidiffusion = sqrt( pow(phidiffusion, 2) + pow(added_smear_trans, 2) );
+
+      double zdiffusion = diffusion_long * sqrt(tpc_length / 2. - fabs(avge_z)) ;
+      zdiffusion = sqrt( pow(zdiffusion, 2) +  pow(added_smear_long, 2) );
+
+      double zshaping_lead = 32.0 * drift_velocity;
+      double zshaping_tail = 48.0 * drift_velocity;
+
+      double gem_spread = 0.04;
+      //cout << " dz " << outer_z - inner_z << " zdiffusion " << zdiffusion << " zshaping_lead " << zshaping_lead << " zshaping_tail " << zshaping_tail << endl;
+      g4zsize = fabs(outer_z - inner_z) + 3.0*sqrt(pow(zdiffusion,2) + pow(zshaping_lead,2)) + 3.0*sqrt(pow(zdiffusion,2) + pow(zshaping_tail,2));
+      g4zsize *= 1.0;
+      //cout << " dphi " << outer_phi - inner_phi << " phidiffusion " << phidiffusion << " gem_spread " << gem_spread << endl;
+      g4phisize = fabs(outer_phi - inner_phi) + 6.0*sqrt( pow(phidiffusion,2) + pow(gem_spread,2) );
+      g4phisize /= radius; 
+      g4phisize *= 1.0;
+    }
+  else if(radius > 5 && radius < 20)  // INTT
+    {
+      double strip_width = 70e-4;
+      double strip_length = 1.6;
+      g4phisize = strip_width;
+      g4zsize = strip_length;
+    }
+  else  // MVTX
+    {
+      double padsize = 50e-4;
+      g4phisize = padsize;
+      g4zsize = padsize;
+    }
+
+}
  
-void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, float layer, float &x, float &y, float &z,  float &t, float &e)
+void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &x, float &y, float &z,  float &t, float &e)
 {
   // Given a set of g4hits, cluster them within a given layer of the TPC
 
@@ -3100,10 +3222,9 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	{
 	  
 	  PHG4Hit* this_g4hit = *iter;
-	  
 	  float rbegin = sqrt(this_g4hit->get_x(0) * this_g4hit->get_x(0) + this_g4hit->get_y(0) * this_g4hit->get_y(0));
 	  float rend = sqrt(this_g4hit->get_x(1) * this_g4hit->get_x(1) + this_g4hit->get_y(1) * this_g4hit->get_y(1));
-	  //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " rbegin " << rbegin << " rend " << rend << endl;
+	  //cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " layer " << layer << " rbegin " << rbegin << " rend " << rend << endl;
 	  
 	  // make sure the entry point is at lower radius
 	  float xl[2];
@@ -3138,6 +3259,7 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	    continue;
 	  if (rbegin > rbout && rend > rbout)
 	    continue;
+	  //cout << "   inside layer " << layer << "  with rbin " << rbin << " rbout " << rbout << " keep g4hit with rbegin " << rbegin << " rend " << rend << endl;
 
 	  float xin = xl[0];
 	  float yin = yl[0];
@@ -3179,9 +3301,21 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	  gt += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 	  gwt += this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
 
+	  // Capture entry and exit points
+	  std::vector<double> entry_loc;
+	  entry_loc.push_back(xin);
+	  entry_loc.push_back(yin);
+	  entry_loc.push_back(zin);
+	  std::vector<double> exit_loc;
+	  exit_loc.push_back(xout);
+	  exit_loc.push_back(yout);
+	  exit_loc.push_back(zout);
+
 	  // this_g4hit is inside the layer, add it to the vectors
 	  contributing_hits.push_back(this_g4hit);
 	  contributing_hits_energy.push_back( this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]) );
+	  contributing_hits_entry.push_back(entry_loc);
+	  contributing_hits_exit.push_back(exit_loc);
 
 	}  // loop over this_g4hit
       gx /= gwt;
@@ -3208,9 +3342,21 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	  gt = this_g4hit->get_avg_t();
 	  gwt += this_g4hit->get_edep();
 
+	  // Capture entry and exit points
+	  std::vector<double> entry_loc;
+	  entry_loc.push_back(this_g4hit->get_x(0));
+	  entry_loc.push_back(this_g4hit->get_y(0));
+	  entry_loc.push_back(this_g4hit->get_z(0));
+	  std::vector<double> exit_loc;
+	  exit_loc.push_back(this_g4hit->get_x(1));
+	  exit_loc.push_back(this_g4hit->get_y(1));
+	  exit_loc.push_back(this_g4hit->get_z(1));
+
 	  // this_g4hit is inside the layer, add it to the vectors
 	  contributing_hits.push_back(this_g4hit);
 	  contributing_hits_energy.push_back( this_g4hit->get_edep() );
+	  contributing_hits_entry.push_back(entry_loc);
+	  contributing_hits_exit.push_back(exit_loc);
 	}
     }  // not TPC
 
