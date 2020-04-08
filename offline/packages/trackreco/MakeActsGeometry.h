@@ -69,11 +69,11 @@ class MakeActsGeometry
   void SetVerbosity(int verbosity)
   { m_verbosity = verbosity; }
 
-  std::map<TrkrDefs::hitsetkey,Surface> getSurfaceMapSilicon()
-    { return m_clusterSurfaceMapSilicon; }
+  std::map<TrkrDefs::hitsetkey,Surface>* getSurfaceMapSilicon()
+    { return &m_clusterSurfaceMapSilicon; }
   
-  std::map<TrkrDefs::cluskey, Surface> getSurfaceMapTpc()
-    { return m_clusterSurfaceMapTpc; }
+  std::map<TrkrDefs::cluskey, Surface>* getSurfaceMapTpc()
+    { return &m_clusterSurfaceMapTpc; }
   
   std::map<TrkrDefs::hitsetkey, TGeoNode*> getNodeMap()
     { return m_clusterNodeMap; }
