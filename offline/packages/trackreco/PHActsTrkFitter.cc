@@ -7,7 +7,7 @@
 
 #include "PHActsTrkFitter.h"
 #include "PHActsSourceLinks.h"
-#include "PHActsTracks.h"
+#include "ActsTrack.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
@@ -76,8 +76,8 @@ int PHActsTrkFitter::Process()
   {
     ActsTrack track = *trackIter;
 
-    std::vector<SourceLink> sourceLinks = track.sourceLinks;
-    FW::TrackParameters trackSeed = track.trackParams;
+    std::vector<SourceLink> sourceLinks = track.getSourceLinks();
+    FW::TrackParameters trackSeed = track.getTrackParams();
 
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which

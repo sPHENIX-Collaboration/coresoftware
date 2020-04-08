@@ -25,7 +25,7 @@ class TrkrClusterSourceLink;
 }
 }  // namespace FW
 
-struct ActsTrack;
+class ActsTrack;
 struct ActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;

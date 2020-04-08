@@ -14,6 +14,8 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 
+#include "ActsTrack.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -24,29 +26,6 @@ class SvtxTrack;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
-/**
- * A struct that contains an Acts track seed and the corresponding source links,
- * to be put on the node tree by this module.
- * Need to use a struct instead of a std::map because the Acts classes do not 
- * have defined operators for "<", which means they can't be used as keys
- * according to stl libraries
- */
-struct ActsTrack
-{
-  /// Default constructor. There is not a no argument constructor
-  /// as source links don't have a no argument constructor
-  ActsTrack(FW::TrackParameters params, const std::vector<SourceLink> &links)
-    : trackParams(params)
-    , sourceLinks(links)
-  {
-  }
-
-  /// The acts track parameters for this track
-  FW::TrackParameters trackParams;
-
-  /// The corresponding source links that are associated to the above track
-  std::vector<SourceLink> sourceLinks;
-};
 
 /**
  * This class is responsible for taking SvtxTracks and converting them to track
