@@ -1,5 +1,3 @@
-// $Id: $
-
 /*!
  * \file PHFieldConfig.h
  * \brief 
@@ -14,6 +12,7 @@
 #include <phool/PHObject.h>
 
 #include <iostream>
+#include <limits>
 #include <string>
 
 /*!
@@ -26,18 +25,7 @@ class PHFieldConfig : public PHObject
   /** identify Function from PHObject
    @param os Output Stream
    */
-  virtual void
-  identify(std::ostream& os = std::cout) const;
-
-  /// Clear Event
-  virtual void
-  Reset();
-
-  /// isValid returns non zero if object contains vailid data
-  virtual int
-  isValid() const;
-
-  virtual PHObject* CloneMe() const {return nullptr;}
+  virtual void identify(std::ostream& os = std::cout) const;
 
   enum FieldConfigTypes
   {
@@ -47,6 +35,8 @@ class PHFieldConfig : public PHObject
     kField2D = 2,
     //! 3D field map expressed in cylindrical coordinates
     kField3DCylindrical = 3,
+    //! Beast field map from https://github.com/eic/BeastMagneticField
+    kFieldBeast = 4,
     //! 3D field map expressed in Cartesian coordinates
     Field3DCartesian = 1,
 
@@ -54,36 +44,36 @@ class PHFieldConfig : public PHObject
     kFieldInvalid = 9999
   };
 
-  virtual FieldConfigTypes get_field_config() const;
+  virtual FieldConfigTypes get_field_config() const {return kFieldInvalid;}
 
   std::string get_field_config_description() const;
 
-  virtual void set_field_config(FieldConfigTypes fieldConfig);
+  virtual void set_field_config(FieldConfigTypes fieldConfig) {return;}
 
-  virtual const std::string& get_filename() const;
+  virtual const std::string& get_filename() const {return kInvalid_FileName;}
 
-  virtual void set_filename(const std::string& filename);
+  virtual void set_filename(const std::string& filename) {return;}
 
-  virtual double get_magfield_rescale() const;
+  virtual double get_magfield_rescale() const {return std::numeric_limits<double>::signaling_NaN();}
 
-  virtual void set_magfield_rescale(double magfieldRescale);
-
-  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_x() const;
+  virtual void set_magfield_rescale(double magfieldRescale) {return;}
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual void set_field_mag_x(double fieldMagX);
+  virtual double get_field_mag_x() const {return std::numeric_limits<double>::signaling_NaN();}
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_y() const;
+  virtual void set_field_mag_x(double fieldMagX) {return;}
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual void set_field_mag_y(double fieldMagY);
+  virtual double get_field_mag_y() const {return std::numeric_limits<double>::signaling_NaN();}
 
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual double get_field_mag_z() const;
+  virtual void set_field_mag_y(double fieldMagY) {return;}
+
   //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
-  virtual void set_field_mag_z(double fieldMagZ);
+  virtual double get_field_mag_z() const {return std::numeric_limits<double>::signaling_NaN();}
+  //! field value in Tesla for uniform field model ONLY for PHFieldConfig_v2
+  virtual void set_field_mag_z(double fieldMagZ) {return;}
 
  protected:
   //! pure virtual interface class. not for direct use
