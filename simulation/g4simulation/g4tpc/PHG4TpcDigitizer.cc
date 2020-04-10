@@ -156,7 +156,7 @@ void PHG4TpcDigitizer::CalculateCylinderCellADCScale(PHCompositeNode *topNode)
 
 void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 {
-  unsigned int print_layer = 47;  // to print diagnostic output for layer 47
+  unsigned int print_layer = 18;  // to print diagnostic output for layer 47
 
   // Digitizes the Tpc cells that were created in PHG4CylinderCellTpcReco
   // These contain as edep the number of electrons out of the GEM stack, distributed between Z bins by shaper response and ADC clock window
@@ -320,7 +320,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		    TrkrDefs::hitkey hitkey =  phi_sorted_hits[iphi][iz]->first ;
 		    cout << "Adding hit to z vector for zbin " << zbin << "  hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) 
 			 << " z bin " << TpcDefs::getTBin(hitkey)   << "  energy " <<( phi_sorted_hits[iphi][iz]->second)->getEnergy() 
-			 << " adc " << (phi_sorted_hits[iphi][iz]->second)->getAdc() << endl;
+			 << endl;
 		  }
 	    }
 	      
@@ -344,9 +344,10 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 		  adc_hitid.push_back(z_sorted_hits[iz][0]->first);
 
 		  if(Verbosity() > 2)
-		    if(layer == print_layer) 
+		  if(layer == print_layer) 
 		      cout << "new: iphi " << iphi  << " iz " << iz << " edep " <<  (z_sorted_hits[iz][0]->second)->getEnergy() 
-			   << " adc gain " << ADCSignalConversionGain << " adc_input " << adc_input[iz] << endl;
+			   << " adc gain " << ADCSignalConversionGain << " adc_input_voltage " << adc_input_voltage << " noise voltage " << noise_voltage 
+			   <<  " adc_input " << adc_input[iz] << endl;
 		}
 	      else if (is_populated[iz] == 2)
 		{
@@ -552,7 +553,6 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
     }
 
 
-
   // Final hitset dump
   if(Verbosity() > 2) 
     cout << "From PHG4TpcDigitizer: hitsetcontainer dump at end after cleaning:" << endl;
@@ -568,7 +568,7 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
       if (layer != print_layer)  continue;
       const int sector = TpcDefs::getSectorId(hitsetkey);
       const int side = TpcDefs::getSide(hitsetkey);
-      if(Verbosity() > 2) 
+      if(Verbosity() > 2 && layer == print_layer) 
 	cout << "PHG4TpcDigitizer: hitset with key: " << hitsetkey << " in layer " << layer << " with sector " << sector << " side " << side << endl;
 
       // get all of the hits from this hitset      
@@ -581,12 +581,12 @@ void PHG4TpcDigitizer::DigitizeCylinderCells(PHCompositeNode *topNode)
 	  TrkrDefs::hitkey hitkey = hit_iter->first;
 	  TrkrHit *tpchit = hit_iter->second;
 	  if(Verbosity() > 2)
-	    cout << "      hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
+	  cout << "      LAYER " << layer << " hitkey " << hitkey << " pad " << TpcDefs::getPad(hitkey) << " z bin " << TpcDefs::getTBin(hitkey) 
 		 << "  energy " << tpchit->getEnergy() << " adc " << tpchit->getAdc() << endl;
 
 	  if(tpchit->getAdc() == 0)
 	    {
-		cout << "   Oops!                    --   this hit not digitized and not deleted!" << endl;
+	      cout << "   Oops!                    --   this hit not digitized and not deleted!" << endl;
 	    }
 	}
     }

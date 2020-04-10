@@ -19,7 +19,7 @@ class PHObject;
  *
  * Note - D. McGlinchey June 2018:
  *   CINT does not like "override", so ignore where CINT
- *   complains. Should be checked with ROOT 6 once 
+ *   complains. Should be checked with ROOT 6 once
  *   migration occurs.
  */
 class TrkrClusterv1 : public TrkrCluster
@@ -40,7 +40,7 @@ class TrkrClusterv1 : public TrkrCluster
   //
   // cluster position
   //
-  virtual float getX() const { return m_pos[0]; } 
+  virtual float getX() const { return m_pos[0]; }
   virtual void setX(float x) { m_pos[0] = x; }
   virtual float getY() const { return m_pos[1]; }
   virtual void setY(float y) { m_pos[1] = y; }
@@ -73,7 +73,6 @@ class TrkrClusterv1 : public TrkrCluster
   virtual float getZError() const;
 
  protected:
-  unsigned int covarIndex(unsigned int i, unsigned int j) const;
 
   TrkrDefs::cluskey m_cluskey;  //< unique identifier within container
   float m_pos[3];               //< mean position x,y,z

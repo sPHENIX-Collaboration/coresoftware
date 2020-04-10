@@ -91,6 +91,9 @@ libSubsysReco_la_LDFLAGS = \
   `root-config --libs`
 endif
 
+bin_SCRIPTS = \
+  CreateSubsysRecoModule.pl
+
 BUILT_SOURCES = testexternals.cc
 
 noinst_PROGRAMS = \

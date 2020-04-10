@@ -293,9 +293,17 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
 
   //! find vertices using final tracks
   std::vector<genfit::GFRaveVertex*> rave_vertices;
+
   if (rf_gf_tracks.size() >= 2)
   {
-    if(Verbosity() > 10) cout << "Call Rave vertex finder" << endl;
+    if(Verbosity() > 10)
+      {cout << "Call Rave vertex finder" << endl;
+  cout << " rf_gf_tracks size " << rf_gf_tracks.size() << endl;
+  for(long unsigned int i=0;i<rf_gf_tracks.size();++i)
+    {
+      cout << "   track " << i << " num points " << rf_gf_tracks[i]->getNumPointsWithMeasurement() << endl;
+    }
+      }
     try
     {
       _vertex_finder->findVertices(&rave_vertices, rf_gf_tracks);
@@ -365,6 +373,9 @@ int PHGenFitTrkFitter::process_event(PHCompositeNode* topNode)
         auto key = iter->first;
         ++iter;
         _trackmap->erase(key);
+        continue;
+      } else {
+        ++iter;
         continue;
       }
   }

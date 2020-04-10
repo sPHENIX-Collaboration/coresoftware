@@ -41,8 +41,6 @@ libphnodedump_la_SOURCES = \
   DumpRawTowerContainer.cc \
   DumpRawTowerGeomContainer.cc \
   DumpRunHeader.cc \
-  DumpSvtxClusterMap.cc \
-  DumpSvtxHitMap.cc \
   DumpSvtxTrackMap.cc \
   DumpSvtxVertexMap.cc \
   DumpSyncObject.cc \
