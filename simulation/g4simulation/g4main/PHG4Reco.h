@@ -9,9 +9,8 @@
 
 #include <phfield/PHFieldConfig.h>
 
-
 #include <list>
-#include <string>                   // for string
+#include <string>  // for string
 
 // Forward declerations
 class G4RunManager;
@@ -168,10 +167,10 @@ class PHG4Reco : public SubsysReco
   // visualization
   G4VisManager *m_VisManager;
 
-// Message interface to Fun4All
+  // Message interface to Fun4All
   G4UImessenger *m_Fun4AllMessenger;
 
-// for the G4 cmd line interface
+  // for the G4 cmd line interface
   G4UImanager *m_UImanager;
   double m_EtaCoverage;
   PHFieldConfig::FieldConfigTypes m_FieldConfigType;
@@ -181,8 +180,8 @@ class PHG4Reco : public SubsysReco
   std::string m_PhysicsList;
 
   // settings for the external Pythia6 decayer
-  bool m_ActiveDecayerFlag;          //< turn on/off decayer
-  bool m_ActiveForceDecayFlag;      //< turn on/off force decay channels
+  bool m_ActiveDecayerFlag;     //< turn on/off decayer
+  bool m_ActiveForceDecayFlag;  //< turn on/off force decay channels
   EDecayType m_ForceDecayType;  //< forced decay channel setting
 
   bool m_SaveDstGeometryFlag;

@@ -256,7 +256,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   if (m_ActiveDecayerFlag)
   {
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
-    if (m_ActiveForceDecayFlag) 
+    if (m_ActiveForceDecayFlag)
     {
       decayer->SetForceDecay(m_ForceDecayType);
     }
