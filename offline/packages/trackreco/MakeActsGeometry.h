@@ -33,6 +33,7 @@ class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
 class TGeoManager;
 class TGeoNode;
+class TGeoVolume;
 
 namespace FW {
   class IBaseDetector;
@@ -65,7 +66,9 @@ class MakeActsGeometry
   ~MakeActsGeometry();
 
   int BuildAllGeometry(PHCompositeNode *topNode);
-  
+  void EditTPCGeometry(const int verbosity = 1);
+  void AddActsTpcSurfaces(TGeoVolume *tpc_gas_vol, int verbosity = 1);
+
   void SetVerbosity(int verbosity)
   { m_verbosity = verbosity; }
 
@@ -132,6 +135,7 @@ class MakeActsGeometry
   PHG4CylinderCellGeomContainer* m_geomContainerTpc;
 
   TGeoManager* m_geoManager;
+  TGeoManager* m_geoManagerCopy;
 
   Acts::GeometryContext  m_geoCtxt;
 

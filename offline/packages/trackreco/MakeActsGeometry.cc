@@ -89,10 +89,10 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_geomContainerTpc(nullptr)
   , m_geoManager(nullptr)
   , m_minSurfZ(0.0)
-  , m_maxSurfZ(110.0)
+  , m_maxSurfZ(105.5)
   , m_nSurfZ(11)
   , m_nSurfPhi(10)
-  , m_verbosity(0)
+  , m_verbosity(1)
 {
   // These are arbitrary subdivisions, and may change
   m_surfStepZ = (m_maxSurfZ - m_minSurfZ) / (double) m_nSurfZ;
@@ -107,16 +107,195 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
 
   CreateNodes(topNode);  // for writing surface map
 
+  // Make a copy of the geoManager and put it on the node tree
+  m_geoManagerCopy = m_geoManager;
+
+  // Add the TPC surfaces to the copy
+  EditTPCGeometry(m_verbosity);
+
   // run Acts layer builder
   BuildSiliconLayers();
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
+  cout << " Calling MakeTgeoNodeMap" << endl;
   MakeTGeoNodeMap(topNode);
 
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
   BuildTpcSurfaceMap();
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+void MakeActsGeometry::EditTPCGeometry(const int verbosity)
+{
+
+  TGeoVolume *World_vol = m_geoManagerCopy->GetTopVolume();
+  TGeoNode *tpc_envelope_node = nullptr;
+  TGeoNode *tpc_gas_north_node = nullptr;
+
+  // find tpc north gas volume at path of World*/tpc_envelope*
+  if (verbosity)
+  {
+    cout << "EditTPCGeometry - searching under volume: ";
+    World_vol->Print();
+  }
+  for (int i = 0; i < World_vol->GetNdaughters(); i++)
+  {
+    TString node_name = World_vol->GetNode(i)->GetName();
+
+    //if (verbosity)
+    //cout << "EditTPCGeometry - searching node " << node_name << endl;
+
+    if (node_name.BeginsWith("tpc_envelope"))
+    {
+      if (verbosity)
+        cout << "EditTPCGeometry - found " << node_name << endl;
+
+      tpc_envelope_node = World_vol->GetNode(i);
+      break;
+    }
+  }
+  assert(tpc_envelope_node);
+
+  // find tpc north gas volume at path of World*/tpc_envelope*/tpc_gas_north*
+  TGeoVolume *tpc_envelope_vol = tpc_envelope_node->GetVolume();
+  assert(tpc_envelope_vol);
+  if (verbosity)
+  {
+    cout << "EditTPCGeometry - searching under volume: ";
+    tpc_envelope_vol->Print();
+  }
+  for (int i = 0; i < tpc_envelope_vol->GetNdaughters(); i++)
+  {
+    TString node_name = tpc_envelope_vol->GetNode(i)->GetName();
+
+    //if (verbosity)
+    //cout << "EditTPCGeometry - searching node " << node_name << endl;
+
+    if (node_name.BeginsWith("tpc_gas_north"))
+    {
+      if (verbosity)
+        cout << "EditTPCGeometry - found " << node_name << endl;
+
+      tpc_gas_north_node = tpc_envelope_vol->GetNode(i);
+      break;
+    }
+  }
+  assert(tpc_gas_north_node);
+  TGeoVolume *tpc_gas_north_vol = tpc_gas_north_node->GetVolume();
+  assert(tpc_gas_north_vol);
+
+  if (verbosity)
+  {
+    cout << "EditTPCGeometry - gas volume: ";
+    tpc_gas_north_vol->Print();
+  }
+
+  // adds surfaces to the underlying volume, so both north and south placements get them
+  AddActsTpcSurfaces(tpc_gas_north_vol, verbosity);
+
+  // Closing geometry implies checking the geometry validity,
+  // fixing shapes with negative parameters (run-time shapes)building the cache manager, voxelizing all volumes,
+  // counting the total number of physical nodes and registering the manager class to the browser.
+  //geoManager->CloseGeometry();
+
+  // save the edited geometry to DST persistent IO node for downstream DST files
+  //PHGeomUtility::UpdateIONode(topNode);
+}
+
+void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol, int verbosity)
+{
+  const double m_minRadius[3] = {30.0, 40.0, 60.0};
+  const double m_maxRadius[3] = {40.0, 60.0, 77.0};
+  double layer_thickness_sector[3] = {0};
+  double layer_radius[48]= {0};
+  double layer_thickness[48] = {0};
+
+  // prevent boxes from touching when placed
+  double half_width_clearance_thick = 0.4999;
+  double half_width_clearance_phi = 0.4999;
+  double half_width_clearance_z = 0.4999;
+ 
+  for(unsigned int isector = 0; isector < 3; ++isector)
+    {
+      layer_thickness_sector[isector] = (m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
+
+      for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
+	{
+	  layer_radius[isector*16 + ilayer] = m_minRadius[isector] + layer_thickness_sector[isector]*(double) ilayer + layer_thickness_sector[isector] / 2.0;
+	  layer_thickness[isector*16 + ilayer] = layer_thickness_sector[isector];
+	}
+    }
+  
+  TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
+  assert(tpc_gas_medium);
+
+  TGeoVolume *tpc_gas_measurement_vol[48];
+  double tan_half_phi = tan(m_surfStepPhi / 2.0);
+  for(unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
+    {
+      // make a box for this layer
+      char bname[500];
+      sprintf(bname,"tpc_gas_measurement_%i",ilayer);
+
+      // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
+      // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
+      double box_r_phi = 2.0 * tan_half_phi * (layer_radius[ilayer] - layer_thickness[ilayer] / 2.0);
+
+      tpc_gas_measurement_vol[ilayer] = m_geoManagerCopy->MakeBox(bname, tpc_gas_medium, 
+							    layer_thickness[ilayer]*half_width_clearance_thick, 
+							    box_r_phi*half_width_clearance_phi, 
+							    m_surfStepZ*half_width_clearance_z);
+
+      tpc_gas_measurement_vol[ilayer]->SetLineColor(kBlack);
+      tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
+      tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
+      cout << "Made box for layer " << ilayer << " with dx " << layer_thickness[ilayer] << " dy " 
+	   << box_r_phi << " ref arc " << m_surfStepPhi*layer_radius[ilayer] << " dz " << m_surfStepZ << endl;
+
+      tpc_gas_measurement_vol[ilayer]->Print();
+    }
+
+  int copy = 0;	      
+  for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
+    {
+      // The (half) tpc gas volume is 105.5 cm long and is symmetric around (x,y,z) = (0,0,0) in its frame
+      double z_center = -105.5/2.0 + m_surfStepZ / 2.0 + (double) iz * m_surfStepZ;
+      
+      for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
+	{
+	  for (unsigned int iphi = 0; iphi < m_nSurfPhi; ++iphi)
+	    {
+
+	      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi + (double) iphi * m_surfStepPhi;
+	      double phi_center = min_phi + m_surfStepPhi / 2.0;
+	      double phi_center_degrees = phi_center * 180.0 / 3.14159;
+	      
+	      for (unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
+		{
+		  copy++;
+		  
+		  // place copies of the gas volume to fill up the layer
+		  
+		  double x_center = layer_radius[ilayer] * cos(phi_center);
+		  double y_center = layer_radius[ilayer] * sin(phi_center);
+		  
+		  char rot_name[500];
+		  sprintf(rot_name,"tpc_gas_rotation_%i", copy);
+		  TGeoCombiTrans *tpc_gas_measurement_location = new TGeoCombiTrans(x_center, y_center, z_center,
+										    new TGeoRotation(rot_name,phi_center_degrees, 0, 0));
+		  
+		  tpc_gas_vol->AddNode(tpc_gas_measurement_vol[ilayer], copy, tpc_gas_measurement_location);
+		  
+		  if(verbosity && ilayer == 30) 
+		    {
+		      cout << " Made copy " << copy << " iz " << iz << " imod " << imod << " ilayer " << ilayer << " iphi " << iphi << endl;
+		      cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;
+		    }
+		}
+	    }
+	}      
+    }
 }
 
 void MakeActsGeometry::BuildTpcSurfaceMap()
@@ -483,13 +662,14 @@ TrkrDefs::hitsetkey MakeActsGeometry::GetInttHitSetKeyFromCoords(unsigned int la
 
 void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
 {
-  m_geoManager = PHGeomUtility::GetTGeoManager(topNode);
-  if (!m_geoManager)
+  cout << "Entering MakeTGeoNodeMap" << endl;
+
+  if (!m_geoManagerCopy)
   {
     cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
     return;
   }
-  TGeoVolume *topVol = m_geoManager->GetTopVolume();
+  TGeoVolume *topVol = m_geoManagerCopy->GetTopVolume();
   TObjArray *nodeArray = topVol->GetNodes();
 
   TIter iObj(nodeArray);
@@ -501,10 +681,12 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
     std::string mvtx("av_1");
     std::string intt("ladder");
     std::string intt_ext("ladderext");
+    std::string tpc("tpc_envelope");
 
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
-      if (m_verbosity > 100) cout << " node " << node->GetName() << " is in the MVTX" << endl;
+      //if (m_verbosity > 100) 
+	cout << " node " << node->GetName() << " is in the MVTX" << endl;
       getMvtxKeyFromNode(node);
     }
     else if (node_str.compare(0, intt.length(), intt) == 0)  // is it in the INTT?
@@ -513,9 +695,14 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
       if (node_str.compare(0, intt_ext.length(), intt_ext) == 0)
         continue;
 
-      if (m_verbosity > 100) cout << " node " << node->GetName() << " is in the INTT" << endl;
+      //if (m_verbosity > 100) 
+	cout << " node " << node->GetName() << " is in the INTT" << endl;
       getInttKeyFromNode(node);
     }
+    else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
+      {
+	cout << " node " << node->GetName() << " is in the TPC " << endl;
+      }
     else
       continue;
 
