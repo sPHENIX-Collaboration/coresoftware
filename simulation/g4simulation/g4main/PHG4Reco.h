@@ -60,7 +60,7 @@ class PHG4Reco : public SubsysReco
   //! register subsystem
   void registerSubsystem(PHG4Subsystem *subsystem)
   {
-    subsystems_.push_back(subsystem);
+    m_SubsystemList.push_back(subsystem);
   }
 
   //! interface to G4 cmd interpreter
@@ -74,7 +74,7 @@ class PHG4Reco : public SubsysReco
   //! set default magnetic field strength with a constant magnetic field. Only valid if set_field_map() is not used. If available, Field map setting on DST take higher priority.
   void set_field(const float tesla)
   {
-    magfield = tesla;
+    m_MagneticField = tesla;
   }
 
   //! Set default field map. If available, Field map setting on DST take higher priority.
@@ -82,42 +82,37 @@ class PHG4Reco : public SubsysReco
   //! \param[in] dim   Field map format. See PHFieldConfig::FieldConfigTypes for available formats.
   void set_field_map(const std::string &fmap, const PHFieldConfig::FieldConfigTypes dim)
   {
-    fieldmapfile = fmap;
-    mapdim = dim;
+    m_FieldMapFile = fmap;
+    m_FieldConfigType = dim;
   }
 
   //! set default scaling factor for input magnetic field map. If available, Field map setting on DST take higher priority.
-  void set_field_rescale(const float rescale) { magfield_rescale = rescale; }
+  void set_field_rescale(const float rescale) { m_MagneticFieldRescale = rescale; }
 
-  void set_decayer_active(bool b) { active_decayer_ = b; }
+  void set_decayer_active(bool b) { m_ActiveDecayerFlag = b; }
   void set_force_decay(EDecayType force_decay_type)
   {
-    active_decayer_ = true;
-    active_force_decay_ = true;
-    force_decay_type_ = force_decay_type;
+    m_ActiveDecayerFlag = true;
+    m_ActiveForceDecayFlag = true;
+    m_ForceDecayType = force_decay_type;
   }
 
   //! Save geometry from Geant4 to DST
-  void save_DST_geometry(bool b) { save_DST_geometry_ = b; }
-  void SetWorldSizeX(const double sx) { WorldSize[0] = sx; }
-  void SetWorldSizeY(const double sy) { WorldSize[1] = sy; }
-  void SetWorldSizeZ(const double sz) { WorldSize[2] = sz; }
-  double GetWorldSizeX() const { return WorldSize[0]; }
-  double GetWorldSizeY() const { return WorldSize[1]; }
-  double GetWorldSizeZ() const { return WorldSize[2]; }
-  void SetWorldShape(const std::string &s) { worldshape = s; }
-  void SetWorldMaterial(const std::string &s) { worldmaterial = s; }
-  void SetPhysicsList(const std::string &s) { physicslist = s; }
+  void save_DST_geometry(bool b) { m_SaveDstGeometryFlag = b; }
+  void SetWorldSizeX(const double sx) { m_WorldSize[0] = sx; }
+  void SetWorldSizeY(const double sy) { m_WorldSize[1] = sy; }
+  void SetWorldSizeZ(const double sz) { m_WorldSize[2] = sz; }
+  double GetWorldSizeX() const { return m_WorldSize[0]; }
+  double GetWorldSizeY() const { return m_WorldSize[1]; }
+  double GetWorldSizeZ() const { return m_WorldSize[2]; }
+  void SetWorldShape(const std::string &s) { m_WorldShape = s; }
+  void SetWorldMaterial(const std::string &s) { m_WorldMaterial = s; }
+  void SetPhysicsList(const std::string &s) { m_PhysicsList = s; }
   void set_rapidity_coverage(const double eta);
 
   int setupInputEventNodeReader(PHCompositeNode *);
 
   static void G4Seed(const unsigned int i);
-
-  // this is a hack to get ions working for CAD and NSRL
-  // our particle generators have pdg build in which doesn't work
-  // with ions, so the default generator action has to be replaced
-  //  void setGeneratorAction(PHG4PrimaryGeneratorAction *action);
 
   PHG4Subsystem *getSubsystem(const std::string &name);
   PHG4DisplayAction *GetDisplayAction() { return m_DisplayAction; }
@@ -134,63 +129,63 @@ class PHG4Reco : public SubsysReco
   int InitUImanager();
   void DefineMaterials();
   void DefineRegions();
-  float magfield;
-  float magfield_rescale;
-  double WorldSize[3];
+
+  float m_MagneticField;
+  float m_MagneticFieldRescale;
+  double m_WorldSize[3];
 
   //! magnetic field
-  G4TBMagneticFieldSetup *field_;
+  G4TBMagneticFieldSetup *m_Field;
 
   //! pointer to geant run manager
-  G4RunManager *runManager_;
+  G4RunManager *m_RunManager;
 
   //! pointer to geant ui session
-  PHG4UIsession *uisession_;
+  PHG4UIsession *m_UISession;
 
   //! pointer to detector
-  PHG4PhenixDetector *detector_;
+  PHG4PhenixDetector *m_Detector;
 
   //! pointer to main event action
-  PHG4PhenixEventAction *eventAction_;
+  PHG4PhenixEventAction *m_EventAction;
 
   //! pointer to main stepping action
-  PHG4PhenixSteppingAction *steppingAction_;
+  PHG4PhenixSteppingAction *m_SteppingAction;
 
   //! pointer to main tracking action
-  PHG4PhenixTrackingAction *trackingAction_;
+  PHG4PhenixTrackingAction *m_TrackingAction;
 
   //! display attribute setting
   /*! derives from PHG4DisplayAction */
   PHG4DisplayAction *m_DisplayAction;
 
   //! event generator (read from PHG4INEVENT node)
-  PHG4PrimaryGeneratorAction *generatorAction_;
+  PHG4PrimaryGeneratorAction *m_GeneratorAction;
 
   //! list of subsystems
-  typedef std::list<PHG4Subsystem *> SubsystemList;
-  SubsystemList subsystems_;
+  std::list<PHG4Subsystem *> m_SubsystemList;
 
   // visualization
-  G4VisManager *visManager;
+  G4VisManager *m_VisManager;
 
 // Message interface to Fun4All
   G4UImessenger *m_Fun4AllMessenger;
 
 // for the G4 cmd line interface
   G4UImanager *m_UImanager;
-  double _eta_coverage;
-  PHFieldConfig::FieldConfigTypes mapdim;
-  std::string fieldmapfile;
-  std::string worldshape;
-  std::string worldmaterial;
-  std::string physicslist;
+  double m_EtaCoverage;
+  PHFieldConfig::FieldConfigTypes m_FieldConfigType;
+  std::string m_FieldMapFile;
+  std::string m_WorldShape;
+  std::string m_WorldMaterial;
+  std::string m_PhysicsList;
 
   // settings for the external Pythia6 decayer
-  bool active_decayer_;          //< turn on/off decayer
-  bool active_force_decay_;      //< turn on/off force decay channels
-  EDecayType force_decay_type_;  //< forced decay channel setting
+  bool m_ActiveDecayerFlag;          //< turn on/off decayer
+  bool m_ActiveForceDecayFlag;      //< turn on/off force decay channels
+  EDecayType m_ForceDecayType;  //< forced decay channel setting
 
-  bool save_DST_geometry_;
+  bool m_SaveDstGeometryFlag;
   bool m_disableUserActions;
 };
 
