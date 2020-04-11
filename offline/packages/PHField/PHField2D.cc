@@ -5,7 +5,9 @@
 #include <TNtuple.h>
 #include <TDirectory.h>
 
-#include <CLHEP/Units/SystemOfUnits.h>
+#include <Geant4/G4SystemOfUnits.hh>
+
+#include <TSystem.h>
 
 #include <boost/tuple/tuple_comparison.hpp>
 
@@ -23,20 +25,21 @@ using namespace CLHEP;  // units
 
 PHField2D::PHField2D(const string &filename, const int verb, const float magfield_rescale)
   : PHField(verb)
+  , r_index0_cache(0)
+  , r_index1_cache(0)
+  , z_index0_cache(0)
+  , z_index1_cache(0)
 {
-  r_index0_cache = 0;
-  r_index1_cache = 0;
-  z_index0_cache = 0;
-  z_index1_cache = 0;
-
   if (Verbosity() > 0)
+  {
     cout << " ------------- PHField2D::PHField2D() ------------------" << endl;
-
+  }
   // open file
   TFile *rootinput = TFile::Open(filename.c_str());
   if (!rootinput)
   {
     cout << " could not open " << filename << " exiting now" << endl;
+    gSystem->Exit(1);
     exit(1);
   }
   if (Verbosity() > 0) cout << "  Field grid file: " << filename << endl;
