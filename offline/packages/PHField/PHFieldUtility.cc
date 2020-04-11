@@ -1,14 +1,13 @@
 #include "PHFieldUtility.h"
 
 #include "PHField.h"
-#include "PHFieldConfig.h"
-#include "PHFieldConfigv1.h"
-#include "PHFieldBeast.h"
-#include "PHFieldUniform.h"
 #include "PHField2D.h"
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
-
+#include "PHFieldBeast.h"
+#include "PHFieldConfig.h"
+#include "PHFieldConfigv1.h"
+#include "PHFieldUniform.h"
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
@@ -99,7 +98,7 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
 PHFieldConfig *PHFieldUtility::DefaultFieldConfig()
 {
   return new PHFieldConfigv1(PHFieldConfigv1::kField2D,
-			     (string(getenv("CALIBRATIONROOT")) + string("/Field/Map/sPHENIX.2d.root")),
+                             (string(getenv("CALIBRATIONROOT")) + string("/Field/Map/sPHENIX.2d.root")),
                              -1.4 / 1.5);
 }
 
