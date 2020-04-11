@@ -1,9 +1,9 @@
 #include "PHField2D.h"
 
 //root framework
+#include <TDirectory.h>
 #include <TFile.h>
 #include <TNtuple.h>
-#include <TDirectory.h>
 
 #include <Geant4/G4SystemOfUnits.hh>
 
