@@ -6,17 +6,15 @@
  */
 
 /*
-//modularizing:
-
 MakeActsGeometry  
   // Create acts geometry
   // Make (hitsetkey,surface) map and place on node tree
 
-Create acts geometry (makes (hitsetkey,surface) maps)
+  Create acts geometry (makes (hitsetkey,surface) maps)
   BuildSiliconLayers();  
       MakeActsGeometry  // makes (hitsetkey,surface) map for silicon
   BuildTpcSurfaceMap  // makes (hitsetkey,surface) map for silicon
-  MakeTGeoNodeMap(topNode);  // makes cluster-node map - not used?
+  MakeTGeoNodeMap(topNode);  // makes cluster-node map - not used
     isActive  // not used
 */
 
@@ -114,7 +112,6 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
   BuildSiliconLayers();
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
-  cout << " Calling MakeTgeoNodeMap" << endl;
   MakeTGeoNodeMap(topNode);
 
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
@@ -678,7 +675,7 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
 
     if (node_str.compare(0, mvtx.length(), mvtx) == 0)  // is it in the MVTX?
     {
-      if (m_verbosity > 100) 
+      if (m_verbosity > 2) 
 	cout << " node " << node->GetName() << " is in the MVTX" << endl;
       getMvtxKeyFromNode(node);
     }
@@ -688,13 +685,13 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
       if (node_str.compare(0, intt_ext.length(), intt_ext) == 0)
         continue;
 
-      if (m_verbosity > 100) 
+      if (m_verbosity > 2) 
 	cout << " node " << node->GetName() << " is in the INTT" << endl;
       getInttKeyFromNode(node);
     }
     else if (node_str.compare(0, tpc.length(), tpc) == 0)  // is it in the TPC?
       {
-	if(m_verbosity > 100)
+	if(m_verbosity > 2)
 	  cout << " node " << node->GetName() << " is in the TPC " << endl;
       }
     else
@@ -836,7 +833,7 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
     std::string dstr = module_node->GetDaughter(i)->GetName();
     if (dstr.compare(0, mvtx_chip.length(), mvtx_chip) == 0)
     {
-      if (m_verbosity > 1)
+      if (m_verbosity > 3)
         cout << "Found MVTX layer " << layer << " stave " << stave << " chip  " << i << " with node name " << module_node->GetDaughter(i)->GetName() << endl;
 
       // Make key for this chip
@@ -847,7 +844,7 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
       std::pair<TrkrDefs::hitsetkey, TGeoNode *> tmp = make_pair(node_key, sensor_node);
       m_clusterNodeMap.insert(tmp);
 
-      if (m_verbosity > 1)
+      if (m_verbosity > 3)
         std::cout << " MVTX layer " << layer << " stave " << stave << " chip " << chip << " name " << sensor_node->GetName() << std::endl;
     }
   }
@@ -864,6 +861,7 @@ void MakeActsGeometry::isActive(TGeoNode *gnode)
 
   std::string intt_refactive("siactive");
   std::string mvtx_refactive("MVTXSensor");
+  std::string tpc_refactive("tpc_gas_measurement");
 
   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
   {
@@ -880,8 +878,12 @@ void MakeActsGeometry::isActive(TGeoNode *gnode)
     cout << "          ******* Found MVTX active volume,  node is " << gnode->GetName()
          << " volume name is " << gnode->GetVolume()->GetName() << endl;
 
-    //const TGeoMatrix* tgMatrix = gnode->GetMatrix();
-    //tgMatrix->Print();
+    return;
+  }
+  else if (node_str.compare(0, tpc_refactive.length(), tpc_refactive) == 0)
+  {
+    cout << "          ******* Found TPC  active volume,  node is " << gnode->GetName()
+         << " volume name is " << gnode->GetVolume()->GetName() << endl;
 
     return;
   }
