@@ -66,8 +66,8 @@ class MakeActsGeometry
   ~MakeActsGeometry();
 
   int BuildAllGeometry(PHCompositeNode *topNode);
-  void EditTPCGeometry(const int verbosity = 1);
-  void AddActsTpcSurfaces(TGeoVolume *tpc_gas_vol, int verbosity = 1);
+  void EditTPCGeometry();
+  void AddActsTpcSurfaces(TGeoVolume *tpc_gas_vol);
 
   void SetVerbosity(int verbosity)
   { m_verbosity = verbosity; }
@@ -135,7 +135,6 @@ class MakeActsGeometry
   PHG4CylinderCellGeomContainer* m_geomContainerTpc;
 
   TGeoManager* m_geoManager;
-  TGeoManager* m_geoManagerCopy;
 
   Acts::GeometryContext  m_geoCtxt;
 
