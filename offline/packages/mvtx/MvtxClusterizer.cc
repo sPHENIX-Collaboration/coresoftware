@@ -37,6 +37,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
 
+#include <array>
 #include <cmath>
 #include <cstdlib>                                 // for exit
 #include <iostream>
@@ -48,6 +49,13 @@
 using namespace boost;
 using namespace std;
 
+namespace
+{
+
+  /// convenience square method
+  template<class T>
+    inline constexpr T square( const T& x ) { return x*x; }
+}
 
 bool MvtxClusterizer::are_adjacent(const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs)
 {
@@ -352,42 +360,65 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double phisize = phibins.size() * pitch;
 	double zsize = zbins.size() * length;
 
-	if(Verbosity() > 0)
-	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
+  static constexpr double invsqrt12 = 1./std::sqrt(12);
+
+  // scale factors (phi direction)
+  /*
+  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in phi and z
+  other clusters, which are very few and pathological, get a scale factor of 1
+  */
+  static constexpr std::array<double, 4> scalefactors_phi = {{ 0.2, 0.18, 0.6, 0.31 }};
+  double phierror = pitch*invsqrt12;
+  if( phibins.size() == 2 && zbins.size() == 2 ) phierror*=scalefactors_phi[0];
+  else if( phibins.size() == 2 && zbins.size() == 3 )  phierror*=scalefactors_phi[1];
+  else if( phibins.size() == 3 && zbins.size() == 2 )  phierror*=scalefactors_phi[2];
+  else if( phibins.size() == 3 && zbins.size() == 3 )  phierror*=scalefactors_phi[3];
+
+  // scale factors (z direction)
+  /*
+  they corresponds to clusters of size (2,2), (2,3), (3,2) and (3,3) in z and phi
+  other clusters, which are very few and pathological, get a scale factor of 1
+  */
+  static constexpr std::array<double, 4> scalefactors_z = {{ 0.47, 0.48, 0.71, 0.55 }};
+  double zerror = length*invsqrt12;
+  if( zbins.size() == 2 && phibins.size() == 2 ) zerror*=scalefactors_z[0];
+  else if( zbins.size() == 2 && phibins.size() == 3 )  zerror*=scalefactors_z[1];
+  else if( zbins.size() == 3 && phibins.size() == 2 )  zerror*=scalefactors_z[2];
+  else if( zbins.size() == 3 && phibins.size() == 3 )  zerror*=scalefactors_z[3];
+
+  if(Verbosity() > 0)
+	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize
 	       << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
-	
+
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
-	double ladderphi = atan2(ladder_location[1], ladder_location[0]);
-	ladderphi += layergeom->get_stave_phi_tilt();
+  const double ladderphi = std::atan2(ladder_location[1], ladder_location[0]) + layergeom->get_stave_phi_tilt();
 
 	// tilt refers to a rotation around the radial vector from the origin, and this is zero for the MVTX ladders
 	//float tilt = 0.0;
 
-	double invsqrt12 = 1.0 / sqrt(12.0);
-
 	TMatrixF DIM(3, 3);
-	DIM[0][0] = pow(0.5 * thickness, 2);
+	DIM[0][0] = square(0.5 * thickness);
 	DIM[0][1] = 0.0;
 	DIM[0][2] = 0.0;
 	DIM[1][0] = 0.0;
-	DIM[1][1] = pow(0.5 * phisize, 2);
+	DIM[1][1] = square(0.5 * phisize);
 	DIM[1][2] = 0.0;
 	DIM[2][0] = 0.0;
 	DIM[2][1] = 0.0;
-	DIM[2][2] = pow(0.5 * zsize, 2);
+	DIM[2][2] = square(0.5 * zsize);
 
 	TMatrixF ERR(3, 3);
-	ERR[0][0] = pow(0.5 * thickness * invsqrt12, 2);
+	ERR[0][0] = square(thickness*invsqrt12);
 	ERR[0][1] = 0.0;
 	ERR[0][2] = 0.0;
 	ERR[1][0] = 0.0;
-	ERR[1][1] = pow(0.5 * phisize * invsqrt12, 2);
+  ERR[1][1] = square( phierror );
 	ERR[1][2] = 0.0;
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
-	ERR[2][2] = pow(0.5 * zsize * invsqrt12, 2);
+  ERR[2][2] = square( zerror );
 
 	if(Verbosity() > 2)
 	  cout << " Local ERR = " << ERR[0][0] << "  " << ERR[1][1] << "  " << ERR[2][2] << endl;

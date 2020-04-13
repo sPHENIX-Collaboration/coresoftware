@@ -31,7 +31,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/connected_components.hpp>
 
-
+#include <array>
 #include <cmath>
 #include <iostream>
 #include <set>
@@ -39,6 +39,14 @@
 
 using namespace boost;
 using namespace std;
+
+namespace
+{
+
+  /// convenience square method
+  template<class T>
+    inline constexpr T square( const T& x ) { return x*x; }
+}
 
 bool InttClusterizer::ladder_are_adjacent( const std::pair<TrkrDefs::hitkey, TrkrHit*> &lhs, const std::pair<TrkrDefs::hitkey, TrkrHit*> &rhs, const int layer)
 {
@@ -422,6 +430,21 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 
 	float phisize = phibins.size() * pitch;
 	float zsize = zbins.size() * length;
+
+  static constexpr float invsqrt12 = 1./sqrt(12);
+
+  // scale factors (phi direction)
+  /*
+  they corresponds to clusters of size 1 and 2 in phi
+  other clusters, which are very few and pathological, get a scale factor of 1
+  */
+  static constexpr std::array<double, 2> scalefactors_phi = {{ 0.81, 0.31 }};
+  float phierror = pitch*invsqrt12;
+  if( phibins.size() == 1 ) phierror*=scalefactors_phi[0];
+  else if( phibins.size() == 2 )  phierror*=scalefactors_phi[1];
+
+  // z error. All clusters have a z-size of 1.
+  const float zerror = length*invsqrt12;
 	
 	double clusx = NAN;
 	double clusy = NAN;
@@ -445,8 +468,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	geom->find_segment_center(ladder_z_index,
 				  ladder_phi_index,
 				  ladder_location);
-	double ladderphi = atan2(ladder_location[1], ladder_location[0]);
-	ladderphi += geom->get_strip_phi_tilt();
+  const double ladderphi = atan2(ladder_location[1], ladder_location[0]) + geom->get_strip_phi_tilt();
 
 	// Fill the cluster fields
 	clus->setAdc(clus_adc);
@@ -454,32 +476,28 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setPosition(1, clusy);
 	clus->setPosition(2, clusz);
 	clus->setGlobal();
-
-	float invsqrt12 = 1.0 / sqrt(12.0);
 	
 	TMatrixF DIM(3, 3);
-	DIM[0][0] = pow(0.5 * thickness, 2);
+	DIM[0][0] = square(0.5 * thickness);
 	DIM[0][1] = 0.0;
 	DIM[0][2] = 0.0;
 	DIM[1][0] = 0.0;
-	DIM[1][1] = pow(0.5 * phisize, 2);
+	DIM[1][1] = square(0.5 * phisize);
 	DIM[1][2] = 0.0;
 	DIM[2][0] = 0.0;
 	DIM[2][1] = 0.0;
-	DIM[2][2] = pow(0.5 * zsize, 2);
-	
-	const float corr_factor = 1.0;  // ladder
-	
+	DIM[2][2] = square(0.5 * zsize);
+		
 	TMatrixF ERR(3, 3);
-	ERR[0][0] = pow(thickness * invsqrt12 * corr_factor, 2);
+  ERR[0][0] = square(thickness * invsqrt12);
 	ERR[0][1] = 0.0;
 	ERR[0][2] = 0.0;
 	ERR[1][0] = 0.0;
-	ERR[1][1] = pow(phisize * invsqrt12 * corr_factor, 2);
+  ERR[1][1] = square(phierror);
 	ERR[1][2] = 0.0;
 	ERR[2][0] = 0.0;
 	ERR[2][1] = 0.0;
-	ERR[2][2] = pow(zsize * invsqrt12 * corr_factor, 2);
+  ERR[2][2] = square(zerror);
 
 	TMatrixF ROT(3, 3);
 	ROT[0][0] = cos(ladderphi);
@@ -535,15 +553,6 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	clus->setError(2, 0, COVAR_ERR[2][0]);
 	clus->setError(2, 1, COVAR_ERR[2][1]);
 	clus->setError(2, 2, COVAR_ERR[2][2]);
-
-	// Add the hit associations to the TrkrClusterHitAssoc node
-	// we need the cluster key and all associated hit keys
-	/*
-	for(unsigned int i=0;i<hitvec.size();i++)
-	  {
-	    m_clusterhitassoc->addAssoc(ckey, hitvec[i].first);
-	  }
-	*/
 	
       } // end loop over cluster ID's
   }  // end loop over hitsets
