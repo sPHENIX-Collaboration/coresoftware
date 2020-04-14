@@ -116,6 +116,9 @@ class MakeActsGeometry
   
   void getMvtxKeyFromNode(TGeoNode *gnode);
   
+  void makeMvtxMapPairs(std::shared_ptr<const Acts::TrackingVolumeArray> &mvtxVolume);
+  void makeInttMapPairs(std::shared_ptr<const Acts::TrackingVolume> &inttVolume);
+
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, 
 						 std::vector<double> &world);
   

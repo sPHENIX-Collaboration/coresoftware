@@ -485,91 +485,23 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
   // Now get the individual TrackingVolumePtrs corresponding to each silicon volume
   
   auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
-  auto mvtxBarrel = mvtxVolumes->confinedVolumes()->arrayObjects().at(1);
- 
-  if(m_verbosity > 10)
-    {
-      std::cout << "MVTX Barrel name to step surfaces through is " 
-	      << mvtxBarrel->volumeName() << std::endl;
-    }
-  // Now get the LayerArrays corresponding to each volume
-  auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
+  auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+  
+  makeMvtxMapPairs(mvtxConfinedVolumes);
 
-  // This is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
-  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
-
-  // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
-  // the layer number has to be deduced from the radius
-  for (unsigned int i = 0; i < mvtxLayerVector1.size(); ++i)
-  {
-    // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
-    auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
-    if (surfaceArray == NULL)
-      continue;
-
-    double ref_rad[3] = {2.556, 3.359, 4.134};
-
-    // surfaceVector is an Acts::SurfaceVector, vector of surfaces
-    //std::vector<const Surface*>
-    auto surfaceVector = surfaceArray->surfaces();
-    std::cout<<"mvtx surface vector"<<std::endl;
-    for (unsigned int j = 0; j < surfaceVector.size(); j++)
-    {
-      auto surf = surfaceVector.at(j)->getSharedPtr();
-
-      auto vec3d = surf->center(context.geoContext);
-      std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
-      unsigned int layer = 0;
-      for (unsigned int i = 0; i < 3; ++i)
-      {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i;
-      }
-
-      TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
-
-      // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
-
-      m_clusterSurfaceMapSilicon.insert(tmp);
-
-      if (m_verbosity > 1)
-      {
-        unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
-        unsigned int chip = MvtxDefs::getChipId(hitsetkey);
-
-        // check it is in there
-        std::cout << "Layer radius " << layer_rad << " Layer " << layer << " stave " << stave << " chip " << chip
-                  << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
-        std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
-        std::cout << " surface type " << surf_iter->second->type() << std::endl;
-        surf_iter->second->toStream(m_geoCtxt, std::cout);
-        auto assoc_layer = surf->associatedLayer();
-        std::cout << std::endl
-                  << " Layer type " << assoc_layer->layerType() << std::endl;
-
-        auto assoc_det_element = surf->associatedDetectorElement();
-        if (assoc_det_element != nullptr)
-        {
-          std::cout << " Associated detElement has non-null pointer " << assoc_det_element << std::endl;
-          std::cout << std::endl
-                    << " Associated detElement found, thickness = " << assoc_det_element->thickness() << std::endl;
-        }
-        else
-          std::cout << std::endl
-                    << " Associated detElement is nullptr " << std::endl;
-      }
-    }
-  }
-
-  // end of MVTX
-  //=================================
-
-  // INTT only has one volume, so there is not an added iterator like for the  MVTX
+  // INTT only has one volume, so there is not an added iterator 
+  // like for the  MVTX
   //========================================================
   auto inttVolume =  siliconVolumes->arrayObjects().at(1);
 
+  makeInttMapPairs(inttVolume);
+
+  return 0;
+}
+
+void MakeActsGeometry::makeInttMapPairs(std::shared_ptr<const Acts::TrackingVolume> &inttVolume)
+{
+  
   if(m_verbosity > 10)
     {
       std::cout << "intt volume name: "  << inttVolume->volumeName()
@@ -596,7 +528,7 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();
 
-      auto vec3d = surf->center(context.geoContext);
+      auto vec3d = surf->center(m_geoCtxt);
 
       double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
 
@@ -647,11 +579,91 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
     }
   }
 
-  // end of INTT
-  //=================================
-
-  return 0;
 }
+
+void MakeActsGeometry::makeMvtxMapPairs(std::shared_ptr<const Acts::TrackingVolumeArray> &mvtxVolume)
+{
+  
+  auto mvtxBarrel = mvtxVolume->arrayObjects().at(1);
+ 
+  if(m_verbosity > 10)
+    {
+      std::cout << "MVTX Barrel name to step surfaces through is " 
+	      << mvtxBarrel->volumeName() << std::endl;
+    }
+  // Now get the LayerArrays corresponding to each volume
+  auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
+
+  // This is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
+  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
+
+  // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
+  // the layer number has to be deduced from the radius
+  for (unsigned int i = 0; i < mvtxLayerVector1.size(); ++i)
+  {
+    // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
+    auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
+    if (surfaceArray == NULL)
+      continue;
+
+    double ref_rad[3] = {2.556, 3.359, 4.134};
+
+    // surfaceVector is an Acts::SurfaceVector, vector of surfaces
+    //std::vector<const Surface*>
+    auto surfaceVector = surfaceArray->surfaces();
+    std::cout<<"mvtx surface vector"<<std::endl;
+    for (unsigned int j = 0; j < surfaceVector.size(); j++)
+    {
+      auto surf = surfaceVector.at(j)->getSharedPtr();
+
+      auto vec3d = surf->center(m_geoCtxt);
+      std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
+      unsigned int layer = 0;
+      for (unsigned int i = 0; i < 3; ++i)
+      {
+        if (fabs(layer_rad - ref_rad[i]) < 0.1)
+          layer = i;
+      }
+
+      TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
+
+      // Add this surface to the map
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
+
+      m_clusterSurfaceMapSilicon.insert(tmp);
+
+      if (m_verbosity > 1)
+      {
+        unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+        unsigned int chip = MvtxDefs::getChipId(hitsetkey);
+
+        // check it is in there
+        std::cout << "Layer radius " << layer_rad << " Layer " << layer << " stave " << stave << " chip " << chip
+                  << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
+        std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
+        std::cout << " surface type " << surf_iter->second->type() << std::endl;
+        surf_iter->second->toStream(m_geoCtxt, std::cout);
+        auto assoc_layer = surf->associatedLayer();
+        std::cout << std::endl
+                  << " Layer type " << assoc_layer->layerType() << std::endl;
+
+        auto assoc_det_element = surf->associatedDetectorElement();
+        if (assoc_det_element != nullptr)
+        {
+          std::cout << " Associated detElement has non-null pointer " << assoc_det_element << std::endl;
+          std::cout << std::endl
+                    << " Associated detElement found, thickness = " << assoc_det_element->thickness() << std::endl;
+        }
+        else
+          std::cout << std::endl
+                    << " Associated detElement is nullptr " << std::endl;
+      }
+    }
+  }
+
+}
+
 
 TrkrDefs::hitsetkey MakeActsGeometry::GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
