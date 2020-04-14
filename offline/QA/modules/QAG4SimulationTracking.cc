@@ -46,6 +46,7 @@ QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
   : SubsysReco(name)
   , _svtxEvalStack(nullptr)
   , m_etaRange(-1, 1)
+  , m_uniqueTrackingMatch(true)
   , _truthContainer(nullptr)
 {
 }
@@ -290,48 +291,81 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     SvtxTrack *track = trackeval->best_track_from(g4particle);
     if (track)
     {
-      h_nReco_etaGen->Fill(geta);
-      h_nReco_pTGen->Fill(gpt);
+      bool match_found(false);
 
-      double px = track->get_px();
-      double py = track->get_py();
-      double pz = track->get_pz();
-      double pt;
-      TVector3 v(px, py, pz);
-      pt = v.Pt();
-      //        eta = v.Pt();
-      //      phi = v.Pt();
-
-      float pt_ratio = (gpt != 0) ? pt / gpt : 0;
-      h_pTRecoGenRatio->Fill(pt_ratio);
-      h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
-      h_norm->Fill("Reco Track", 1);
-
-      // tracker hit stat.
-      vector<unsigned int> nhits(3, 0);
-      // cluster stat.
-      for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+      if (m_uniqueTrackingMatch)
       {
-        const auto &cluster_key = *cluster_iter;
+        PHG4Particle *g4particle_mathced = trackeval->max_truth_particle_by_nclusters(track);
 
-        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-        if (trackerID == TrkrDefs::mvtxId)
-          ++nhits[0];
-        else if (trackerID == TrkrDefs::inttId)
-          ++nhits[1];
-        else if (trackerID == TrkrDefs::tpcId)
-          ++nhits[2];
+        if (g4particle_mathced)
+        {
+          if (g4particle_mathced->get_track_id() == g4particle->get_track_id())
+          {
+            match_found = true;
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - found unique match for g4 particle " << g4particle->get_track_id() << endl;
+          }
+          else
+          {
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
+                   << ". The track belong to g4 particle " << g4particle_mathced->get_track_id() << endl;
+          }
+        }  //        if (g4particle_mathced)
         else
         {
           if (Verbosity())
-            cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+            cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
+                 << ". The track belong to no g4 particle!" << endl;
         }
-      }  // for
-      h_nMVTX_nReco_pTGen->Fill(gpt, nhits[0]);
-      h_nINTT_nReco_pTGen->Fill(gpt, nhits[1]);
-      h_nTPC_nReco_pTGen->Fill(gpt, nhits[2]);
-    }
+      }
+
+      if ((match_found and m_uniqueTrackingMatch) or (not m_uniqueTrackingMatch))
+      {
+        h_nReco_etaGen->Fill(geta);
+        h_nReco_pTGen->Fill(gpt);
+
+        double px = track->get_px();
+        double py = track->get_py();
+        double pz = track->get_pz();
+        double pt;
+        TVector3 v(px, py, pz);
+        pt = v.Pt();
+        //        eta = v.Pt();
+        //      phi = v.Pt();
+
+        float pt_ratio = (gpt != 0) ? pt / gpt : 0;
+        h_pTRecoGenRatio->Fill(pt_ratio);
+        h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
+        h_norm->Fill("Reco Track", 1);
+
+        // tracker hit stat.
+        vector<unsigned int> nhits(3, 0);
+        // cluster stat.
+        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+        {
+          const auto &cluster_key = *cluster_iter;
+
+          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+
+          if (trackerID == TrkrDefs::mvtxId)
+            ++nhits[0];
+          else if (trackerID == TrkrDefs::inttId)
+            ++nhits[1];
+          else if (trackerID == TrkrDefs::tpcId)
+            ++nhits[2];
+          else
+          {
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+          }
+        }  // for
+        h_nMVTX_nReco_pTGen->Fill(gpt, nhits[0]);
+        h_nINTT_nReco_pTGen->Fill(gpt, nhits[1]);
+        h_nTPC_nReco_pTGen->Fill(gpt, nhits[2]);
+      }  //      if (match_found)
+
+    }  //    if (track)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
