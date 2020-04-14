@@ -107,13 +107,24 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
 
   // Add the TPC surfaces to the copy
   EditTPCGeometry();
+  
+  if(m_verbosity > 1)
+    std::cout<<"UpdateIONode"<<std::endl;
+  // save the edited geometry to DST persistent IO node for downstream DST files
+  PHGeomUtility::UpdateIONode(topNode);
 
+  if(m_verbosity > 1)
+    std::cout<<"BuildActsSurfaces"<<std::endl;
   // run Acts layer builder
-  BuildSiliconLayers();
+  BuildActsSurfaces();
 
+  if(m_verbosity > 1)
+    std::cout<<"MakeTGeoNodeMap"<<std::endl;
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   MakeTGeoNodeMap(topNode);
 
+    if(m_verbosity > 1)
+      std::cout<<"BuiltTPCSurfaceMap"<<std::endl;
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
   BuildTpcSurfaceMap();
 
@@ -185,8 +196,7 @@ void MakeActsGeometry::EditTPCGeometry()
   // adds surfaces to the underlying volume, so both north and south placements get them
   AddActsTpcSurfaces(tpc_gas_north_vol);
 
-  // save the edited geometry to DST persistent IO node for downstream DST files
-  //PHGeomUtility::UpdateIONode(topNode);
+ 
 }
 
 void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
@@ -350,16 +360,19 @@ void MakeActsGeometry::BuildTpcSurfaceMap()
 }
 
 /**
- * Builds silicon layers in the ACTS surface world
+ * Builds silicon layers and TPC geometry in the ACTS surface world
  */
-void MakeActsGeometry::BuildSiliconLayers()
+void MakeActsGeometry::BuildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
 
   // Can hard code geometry options since the TGeo options are fixed by our detector design
-  const int argc = 28;
+  const int argc = 33;
   char *arg[argc];
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--output-obj", "true", "--bf-values", "0", "0", "1.4"};
+  //TPC +mvtx + intt args
+  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "xzy", "--bf-values", "0", "0", "1.4"};
+  //intt + mvtx args
+  //const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--bf-values", "0", "0", "1.4"};
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
@@ -371,10 +384,10 @@ void MakeActsGeometry::BuildSiliconLayers()
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  MakeSiliconGeometry(argc, arg, m_detector);
+  MakeGeometry(argc, arg, m_detector);
 }
 
-int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetector &detector)
+int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &detector)
 {
   // setup and parse options
   auto desc = FW::Options::makeDefaultOptions();
@@ -408,7 +421,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
   m_magneticField = FW::Options::readBField(vm);
 
   // The detectors
-  // "MVTX" and "Silicon"
+  // "MVTX" and "Silicon" and "TPC"
   read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
   size_t ievt = 0;
@@ -434,9 +447,14 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
 
   m_geoCtxt = context.geoContext;
 
-  // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
+
+  // m_tGeometry is a TrackingGeometry pointer
   auto vol = m_tGeometry->highestTrackingVolume();
   // vol is a TrackingVolume pointer
+
+  if(m_verbosity > 10 )
+    std::cout << "Highest Tracking Volume is "
+	      << vol->volumeName() << std::endl;
 
   // Get the confined volumes in the highest tracking volume
   // confinedVolumes is a shared_ptr<TrackingVolumeArray>
@@ -445,13 +463,43 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
   // volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
 
-  // The first entry is the MVTX
-  //=====================
-  auto mvtxVolumes = volumeVector.at(0)->confinedVolumes();
-  // mvtxVolumes is a shared_ptr<TrackingVolumeArray>
-  // Now get the individual TrackingVolumePtrs corresponding to each MVTX volume
-  auto mvtxBarrel = mvtxVolumes->arrayObjects().at(1);
+  // we have several volumes to walk through with the tpc and silicon
+  auto firstVolumes = volumeVector.at(0)->confinedVolumes();
+  auto topVolumesVector = firstVolumes->arrayObjects();
 
+  if(m_verbosity > 10 )
+    {
+      for(long unsigned int i =0; i<topVolumesVector.size(); i++)
+	{
+	  std::cout<< "TopVolume name: " << topVolumesVector.at(i)->volumeName()<<std::endl;
+	}
+    }
+
+  /// This actually contains the silicon volumes
+  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
+  
+  if(m_verbosity > 10 )
+    {
+      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
+	std::cout << "SiliconVolumeName: " 
+		  << siliconVolumes->arrayObjects().at(i)->volumeName()
+		  << std::endl;
+      }
+    }
+
+  // First do the MVTX
+  //=====================
+  // siliconVolumes is a shared_ptr<TrackingVolumeArray>
+  // Now get the individual TrackingVolumePtrs corresponding to each silicon volume
+  
+  auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
+  auto mvtxBarrel = mvtxVolumes->confinedVolumes()->arrayObjects().at(1);
+ 
+  if(m_verbosity > 10)
+    {
+      std::cout << "MVTX Barrel name to step surfaces through is " 
+	      << mvtxBarrel->volumeName() << std::endl;
+    }
   // Now get the LayerArrays corresponding to each volume
   auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
 
@@ -472,6 +520,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     //std::vector<const Surface*>
     auto surfaceVector = surfaceArray->surfaces();
+    std::cout<<"mvtx surface vector"<<std::endl;
     for (unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();
@@ -493,7 +542,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
 
       m_clusterSurfaceMapSilicon.insert(tmp);
 
-      if (m_verbosity > 0)
+      if (m_verbosity > 1)
       {
         unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
         unsigned int chip = MvtxDefs::getChipId(hitsetkey);
@@ -527,7 +576,14 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
 
   // INTT only has one volume, so there is not an added iterator like for the  MVTX
   //========================================================
-  auto inttVolume = volumeVector.at(1);
+  auto inttVolume =  siliconVolumes->arrayObjects().at(1);
+
+  if(m_verbosity > 10)
+    {
+      std::cout << "intt volume name: "  << inttVolume->volumeName()
+		<< std::endl;
+    }
+
   auto inttLayerArray = inttVolume->confinedLayers();
 
   auto inttLayerVector = inttLayerArray->arrayObjects();
@@ -543,6 +599,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
 
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     auto surfaceVector = surfaceArray->surfaces();
+    std::cout<<"intt surface vector"<<std::endl;
     for (unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();

@@ -108,9 +108,9 @@ class MakeActsGeometry
   int CreateNodes(PHCompositeNode*);
   
   // silicon layers made by BuildSiliconLayers and its helper functions
-  void BuildSiliconLayers();
+  void BuildActsSurfaces();
 
-  int MakeSiliconGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
+  int MakeGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
   
   void getInttKeyFromNode(TGeoNode *gnode);
   
