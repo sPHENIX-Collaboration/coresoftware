@@ -1980,7 +1980,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float geta = NAN;
 
 	      TVector3 gpos(gx, gy, gz);
-	      gr = gpos.Perp();
+	      gr = sqrt(gx*gx+gy*gy);
 	      gphi = gpos.Phi();
 	      geta = gpos.Eta();
 	      
@@ -2052,7 +2052,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  z = cluster->getZ();
 
 		  TVector3 pos(x, y, z);
-		  r = pos.Perp();
+		  r = sqrt(x*x+y*y);
 		  phi = pos.Phi();
 		  eta = pos.Eta();
 
@@ -3082,17 +3082,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 }
 
-/*
-  void SvtxEvaluator::LayerClusterG4Particle()
-  {
-  // Given a g4particle, calculate the energy deposit and centroid within a given layer of the TPC
-  
-  
-  
-  return;
-}
-*/
-
 void SvtxEvaluator::G4ClusterSize(std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
   // sort the contributing g4hits in radius
@@ -3192,13 +3181,14 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
   float gx = 0.0;
   float gy = 0.0;
   float gz = 0.0;
+  float gr = 0.0;
   float gt = 0.0;
   float gwt = 0.0;
   
   if (layer >= _nlayers_maps + _nlayers_intt)
     {
 
-      // This calculates the truth cluster position for the TPC from all of the contributing g4hits, typically 2-4 for the TPC
+      // This calculates the truth cluster position for the TPC from all of the contributing g4hits from a g4particle, typically 2-4 for the TPC
       // Complicated, since only the part of the energy that is collected within a layer contributes to the position
       //===============================================================================
       
@@ -3211,11 +3201,12 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	}
       
       PHG4CylinderCellGeom* GeoLayer = geom_container->GetLayerCellGeom(layer);
-      // get layer boundaries here (for nominal layer value) for later use
+      // get layer boundaries here for later use
       // radii of layer boundaries
       float rbin = GeoLayer->get_radius() - GeoLayer->get_thickness() / 2.0;
       float rbout = GeoLayer->get_radius() + GeoLayer->get_thickness() / 2.0;
-            
+
+      // we do not assume that the truth hits know what layer they are in            
       for (std::set<PHG4Hit*>::iterator iter = truth_hits.begin();
 	   iter != truth_hits.end();
 	   ++iter)
@@ -3253,13 +3244,16 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	    }
 	  
 	  // check that the g4hit is not completely outside the cluster layer. Just skip this g4hit if it is
-	  // this can happen because an electron moves across a layer boundary during drift and readout
-	  // so the g4hit is recorded in the cell as contributing to that layer, even though it was outside the boundaries
 	  if (rbegin < rbin && rend < rbin)
 	    continue;
 	  if (rbegin > rbout && rend > rbout)
 	    continue;
-	  //cout << "   inside layer " << layer << "  with rbin " << rbin << " rbout " << rbout << " keep g4hit with rbegin " << rbegin << " rend " << rend << endl;
+
+	  if(Verbosity() > 3)
+	    {
+	      cout << " Eval: g4hit " << this_g4hit->get_hit_id() <<  " layer " << layer << " rbegin " << rbegin << " rend " << rend << endl;
+	      cout << "   inside layer " << layer << "  with rbin " << rbin << " rbout " << rbout << " keep g4hit with rbegin " << rbegin << " rend " << rend << endl;
+	    }
 
 	  float xin = xl[0];
 	  float yin = yl[0];
@@ -3293,13 +3287,23 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 		  zout = zl[0] + t * (zl[1] - zl[0]);
 		}
 	    }
-	  
+
+	  double rin = sqrt(xin*xin + yin*yin);
+	  double rout = sqrt(xout*xout + yout*yout);
+
 	  // we want only the fraction of edep inside the layer
-	  gx += (xin + xout) * 0.5 * this_g4hit->get_edep() * (xout - xin) / (xl[1] - xl[0]);
-	  gy += (yin + yout) * 0.5 * this_g4hit->get_edep() * (yout - yin) / (yl[1] - yl[0]);
-	  gz += (zin + zout) * 0.5 * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
-	  gt += this_g4hit->get_avg_t() * this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
-	  gwt += this_g4hit->get_edep() * (zout - zin) / (zl[1] - zl[0]);
+	  double efrac =  this_g4hit->get_edep() * (rout - rin) / (rend - rbegin);
+	  gx += (xin + xout) * 0.5 * efrac;
+	  gy += (yin + yout) * 0.5 * efrac;
+	  gz += (zin + zout) * 0.5 * efrac;
+	  gt += this_g4hit->get_avg_t() * efrac;
+	  gr += (rin + rout) * 0.5 * efrac;
+	  gwt += efrac;
+
+	  if(Verbosity() > 3)
+	    cout << "     rin  " << rin << " rout " << rout << " edep " << this_g4hit->get_edep() 
+		 << " this_edep " <<  efrac << " xavge " << (xin+xout) * 0.5 << " yavge " << (yin+yout) * 0.5 << " zavge " << (zin+zout) * 0.5 << " ravge " << (rin+rout) * 0.5
+		 << endl;
 
 	  // Capture entry and exit points
 	  std::vector<double> entry_loc;
@@ -3318,11 +3322,75 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
 	  contributing_hits_exit.push_back(exit_loc);
 
 	}  // loop over this_g4hit
+
+      if(gwt == 0)
+	{
+	  e = gwt;	  
+	  return;  // will be discarded 
+	}
+
       gx /= gwt;
       gy /= gwt;
       gz /= gwt;
+      gr /= gwt;
       gt /= gwt;
-      //cout << " weighted means: gx " << gx << " gy " << gy << " gz " << gz << endl;
+
+      // The energy weighted values above have significant scatter due to fluctuations in the energy deposit from Geant
+      // Calculate the geometric mean positions instead
+      float rentry = 999.0;
+      float xentry = 999.0;
+      float yentry = 999.0;
+      float zentry = 999.0;
+      float rexit = - 999.0;
+      float xexit = -999.0;
+      float yexit = -999.0;
+      float zexit = -999.0;
+
+      for(unsigned int ientry = 0; ientry < contributing_hits_entry.size(); ++ientry)
+	{
+	  float tmpx = contributing_hits_entry[ientry][0];
+	  float tmpy = contributing_hits_entry[ientry][1];
+	  float tmpr = sqrt(tmpx*tmpx + tmpy*tmpy);
+
+	  if(tmpr < rentry)
+	    {
+	      rentry =  tmpr;
+	      xentry = contributing_hits_entry[ientry][0];
+	      yentry = contributing_hits_entry[ientry][1];
+	      zentry = contributing_hits_entry[ientry][2];
+	    }
+
+	  tmpx = contributing_hits_exit[ientry][0];
+	  tmpy = contributing_hits_exit[ientry][1];
+	  tmpr = sqrt(tmpx*tmpx + tmpy*tmpy);
+
+	  if(tmpr > rexit)
+	    {
+	      rexit =  tmpr;
+	      xexit = contributing_hits_exit[ientry][0];
+	      yexit = contributing_hits_exit[ientry][1];
+	      zexit = contributing_hits_exit[ientry][2];
+	    }
+	}
+
+      float geo_r = (rentry+rexit)*0.5;
+      float geo_x = (xentry+xexit)*0.5;
+      float geo_y = (yentry+yexit)*0.5;
+      float geo_z = (zentry+zexit)*0.5;
+
+      if(rexit > 0)
+	{
+	  gx = geo_x;
+	  gy = geo_y;
+	  gz = geo_z;
+	  gr = geo_r;
+	}
+
+      if(Verbosity() > 3)
+	{
+	  cout << " weighted means:   gx " << gx << " gy " << gy << " gz " << gz << " gr " << gr << endl;
+	  cout  << " geometric means: geo_x " << geo_x << " geo_y " << geo_y << " geo_z " << geo_z  << " geo r " << geo_r <<  endl;
+	}
     }  // if TPC
   else
     {
