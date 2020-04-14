@@ -107,24 +107,16 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
 
   // Add the TPC surfaces to the copy
   EditTPCGeometry();
-  
-  if(m_verbosity > 1)
-    std::cout<<"UpdateIONode"<<std::endl;
+
   // save the edited geometry to DST persistent IO node for downstream DST files
   PHGeomUtility::UpdateIONode(topNode);
 
-  if(m_verbosity > 1)
-    std::cout<<"BuildActsSurfaces"<<std::endl;
   // run Acts layer builder
   BuildActsSurfaces();
 
-  if(m_verbosity > 1)
-    std::cout<<"MakeTGeoNodeMap"<<std::endl;
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   MakeTGeoNodeMap(topNode);
 
-    if(m_verbosity > 1)
-      std::cout<<"BuiltTPCSurfaceMap"<<std::endl;
   // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
   BuildTpcSurfaceMap();
 
