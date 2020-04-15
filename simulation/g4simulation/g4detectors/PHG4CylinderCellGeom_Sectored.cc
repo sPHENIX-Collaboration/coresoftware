@@ -9,7 +9,7 @@
  */
 
 #include "PHG4CylinderCellGeom_Sectored.h"
-#include "PHG4CylinderCellDefs.h"
+//#include "PHG4CylinderCellDefs.h"
 
 #include <phool/phool.h>
 
