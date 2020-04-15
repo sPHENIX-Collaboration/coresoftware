@@ -4,8 +4,8 @@
 #include <fun4all/SubsysReco.h>
 
 #include <memory>
-#include <string>
 #include <set>
+#include <string>
 #include <utility>
 
 #if !defined(__CINT__) || defined(__CLING__)
@@ -25,7 +25,7 @@ class SvtxTrack;
 class QAG4SimulationTracking : public SubsysReco
 {
  public:
-  QAG4SimulationTracking(const std::string & name = "QAG4SimulationTracking");
+  QAG4SimulationTracking(const std::string &name = "QAG4SimulationTracking");
   virtual ~QAG4SimulationTracking() {}
 
   int Init(PHCompositeNode *topNode);
@@ -40,10 +40,17 @@ class QAG4SimulationTracking : public SubsysReco
   //! For EmbeddingID<0, all negative embedding IDs are accepted for pile up events.
   void addEmbeddingID(int embeddingID);
 
+  //! range of the truth track eta to be analyzed
   void setEtaRange(double low, double high)
   {
     m_etaRange.first = low;
     m_etaRange.second = high;
+  }
+
+  //! only count unique truth<->reco track pair in tracking efficiency
+  void setUniqueTrackingMatch(bool b)
+  {
+    m_uniqueTrackingMatch = b;
   }
 
  private:
@@ -52,7 +59,12 @@ class QAG4SimulationTracking : public SubsysReco
   std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
 #endif
+
+  //! range of the truth track eta to be analyzed
   std::pair<double, double> m_etaRange;
+
+  //! only count unique truth<->reco track pair in tracking efficiency
+  bool m_uniqueTrackingMatch;
 
   PHG4TruthInfoContainer *_truthContainer;
 };
