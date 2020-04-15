@@ -11,9 +11,10 @@
 #include "PHG4CylinderCellGeom_Sectored.h"
 #include "PHG4CylinderCellDefs.h"
 
-#include <boost/foreach.hpp>
+#include <phool/phool.h>
 
 #include <cassert>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -161,8 +162,8 @@ int PHG4CylinderCellGeom_Sectored::get_sector(const double phi){
   return floor(phi/sectorstep);
 }
   
-int PHG4CylinderCellGeom_Sectored::get_sector(const int i){
-  //gets the sector number for phibin i;
+int PHG4CylinderCellGeom_Sectored::get_sector(const int ibin){
+  //gets the sector number for phibin ibin;
    if (ibin < 0 || ibin > nphibins)    {
     cout << PHWHERE << " Asking for invalid bin in phi: " << ibin << endl;
     exit(1);

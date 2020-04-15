@@ -15,6 +15,9 @@
 
 #include "PHG4CylinderCellGeom.h"
 
+#include <phool/phool.h>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>                // for cout, ostream
 #include <map>
 #include <utility>                 // for pair
