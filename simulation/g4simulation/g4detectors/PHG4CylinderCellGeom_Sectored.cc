@@ -23,8 +23,9 @@
 using namespace std;
 
 PHG4CylinderCellGeom_Sectored::PHG4CylinderCellGeom_Sectored():
-  nphipersector(-1),
   nsectors(-1),
+  nphipersector(-1),
+  sectorstep(NAN)
   sectormargin(NAN)
 {
   return;
