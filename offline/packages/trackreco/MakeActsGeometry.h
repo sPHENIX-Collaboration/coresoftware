@@ -46,7 +46,7 @@ namespace Acts {
 
 using Surface = std::shared_ptr<const Acts::Surface>;
 using TrackingGeometry = std::shared_ptr<const Acts::TrackingGeometry>;
-
+using TrackingVolumePtr = std::shared_ptr<const Acts::TrackingVolume>;
 
 /**
  * This class is responsible for building the ActsGeometry from the sPHENIX
@@ -107,24 +107,31 @@ class MakeActsGeometry
   //!Create New nodes
   int CreateNodes(PHCompositeNode*);
   
-  // silicon layers made by BuildSiliconLayers and its helper functions
+  /// Silicon layers made by BuildSiliconLayers and its helper functions
   void BuildActsSurfaces();
 
+  /// Function that mimics ActsFW::GeometryExampleBase
   int MakeGeometry(int argc, char* argv[], FW::IBaseDetector& detector);
   
   void getInttKeyFromNode(TGeoNode *gnode);
   
   void getMvtxKeyFromNode(TGeoNode *gnode);
-  
-  void makeMvtxMapPairs(std::shared_ptr<const Acts::TrackingVolumeArray> &mvtxVolume);
-  void makeInttMapPairs(std::shared_ptr<const Acts::TrackingVolume> &inttVolume);
 
+  void getTpcKeyFromNode(TGeoNode *gnode);
+  
+  /// Make the Surface<-->TrkrDef::hitsetkey map pairs for each of 
+  /// the various subdetectors
+  void makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume);
+  void makeInttMapPairs(TrackingVolumePtr &inttVolume);
+  void makeTpcMapPairs(TrackingVolumePtr &tpcVolume);
+  
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, 
 						 std::vector<double> &world);
   
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer,
 						 std::vector<double> &world);
-  
+  TrkrDefs::hitsetkey GetTpcHitSetKeyFromCoords(unsigned int layer,
+						std::vector<double> &world);
   void isActive(TGeoNode *gnode);
 
   void BuildTpcSurfaceMap();
@@ -145,8 +152,14 @@ class MakeActsGeometry
 
   /// Several maps that connect Acts world to sPHENIX G4 world 
   std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
-  std::map<TrkrDefs::hitsetkey,Surface> m_clusterSurfaceMapSilicon;
+  std::map<TrkrDefs::hitsetkey, Surface> m_clusterSurfaceMapSilicon;
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> m_clusterSurfaceMapTpcEdit;
   std::map<TrkrDefs::cluskey, Surface> m_clusterSurfaceMapTpc;
+  
+  // these don't change, we are building the tpc this way!
+  const static unsigned int m_nTpcLayers = 48;
+  const unsigned int m_nTpcModulesPerLayer = 12;
+  const unsigned int m_nTpcSides = 2;
 
   // TPC surface subdivisions
   double m_minSurfZ;
@@ -158,10 +171,19 @@ class MakeActsGeometry
   double m_moduleStepPhi;
   double m_modulePhiStart;
 
-  // these don't change, we are building the tpc this way!
-  const unsigned int m_nTpcLayers = 48;
-  const unsigned int m_nTpcModulesPerLayer = 12;
-  const unsigned int m_nTpcSides = 2;
+  // New TPC Edit TGeo box surfaces subdivisions
+  const static int m_nTpcSectors = 3;
+
+  const double m_minRadius[m_nTpcSectors] = {30.0, 40.0, 60.0};
+  const double m_maxRadius[m_nTpcSectors] = {40.0, 60.0, 77.0};
+  double layer_thickness_sector[m_nTpcSectors] = {0};
+  double layer_radius[m_nTpcLayers] = {0};
+  double layer_thickness[m_nTpcLayers] = {0};
+
+  // Spaces to prevent boxes from touching when placed
+  const double half_width_clearance_thick = 0.4999;
+  const double half_width_clearance_phi = 0.4999;
+  const double half_width_clearance_z = 0.4999;
 
   // The acts geometry object
   TGeoDetector m_detector;
