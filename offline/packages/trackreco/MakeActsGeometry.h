@@ -159,6 +159,13 @@ class MakeActsGeometry
   const unsigned int m_nTpcLayers = 48;
   const unsigned int m_nTpcModulesPerLayer = 12;
   const unsigned int m_nTpcSides = 2;
+  const double m_TpcSecMinRadius[3] = {30.0, 40.0, 60.0};
+  const double m_TpcSecMaxRadius[3] = {40.0, 60.0, 77.0};
+
+  double layer_thickness_sector[3];
+  double layer_radius[48];
+  double layer_thickness[48];
+
 
   int nprint_tpc;
 

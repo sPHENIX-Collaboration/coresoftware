@@ -98,6 +98,17 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
 
+  for(unsigned int isector = 0; isector < 3; ++isector)
+    {
+      layer_thickness_sector[isector] = (m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
+
+      for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
+	{
+	  layer_radius[isector*16 + ilayer] = m_minRadius[isector] + layer_thickness_sector[isector]*(double) ilayer + layer_thickness_sector[isector] / 2.0;
+	  layer_thickness[isector*16 + ilayer] = layer_thickness_sector[isector];
+	}
+    }
+
   nprint_tpc = 0;
 
 }
@@ -200,27 +211,11 @@ void MakeActsGeometry::EditTPCGeometry()
 
 void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 {
-  const double m_minRadius[3] = {30.0, 40.0, 60.0};
-  const double m_maxRadius[3] = {40.0, 60.0, 77.0};
-  double layer_thickness_sector[3] = {0};
-  double layer_radius[48]= {0};
-  double layer_thickness[48] = {0};
-
   // prevent boxes from touching when placed
   double half_width_clearance_thick = 0.4999;
   double half_width_clearance_phi = 0.4999;
   double half_width_clearance_z = 0.4999;
  
-  for(unsigned int isector = 0; isector < 3; ++isector)
-    {
-      layer_thickness_sector[isector] = (m_maxRadius[isector] - m_minRadius[isector]) / 16.0;
-
-      for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
-	{
-	  layer_radius[isector*16 + ilayer] = m_minRadius[isector] + layer_thickness_sector[isector]*(double) ilayer + layer_thickness_sector[isector] / 2.0;
-	  layer_thickness[isector*16 + ilayer] = layer_thickness_sector[isector];
-	}
-    }
   
   TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
   assert(tpc_gas_medium);
@@ -310,7 +305,7 @@ void MakeActsGeometry::BuildTpcSurfaceMap()
       if (side == 0) z_center = -z_center;
 
       for (unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
-      {
+     {
         int tpc_layer = ilayer + 7;  // 3 MVTX and 4 INTT layers ahead of TPC
 
         PHG4CylinderCellGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(tpc_layer);
@@ -613,6 +608,50 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
   return 0;
 }
 
+TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(unsigned int &layer, std::vector<double> &world)
+{
+  // Look up TPC surface index values from world position of surface center
+
+  // The TPC surfaces are defined in this class, not during detector construction, so we do not have a geometry object for them
+
+  // layer 
+  layer = NAN;
+  double layer_rad = sqrt(pow(world[0],2) + pow(world[1],2));
+  for(ilayer=0;ilayer<m_nTpcLayers;++ilayer)
+    {
+      double tpc_ref_radius_low = m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0;
+      double tpc_ref_radius_high = m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0;
+      if(layer_rad >= tpc_ref_radius_low && layer_rad < tpc_ref_radius_high)
+	layer = ilayer + 7;
+    }
+  if(!layer) 
+    {
+      cout << PHWHERE << "Error: undefine layer, do nothing " << endl;
+      return 0;
+    }
+
+  // side -  from world z sign 
+  if(world[2] < 0)
+    side = 0;
+  else
+    side = 1;
+
+  // sector  - world phi range
+  unsigned int readout_mod;
+  double phi_world = atan2(world[1], world[0]);
+  for(unsigned int imod=0;imod<m_nTpcModulesPerLayer;++imod)
+    {
+
+    }
+
+  // z step - z within side
+
+  // phi step - dphi witin readout sector
+
+
+
+}
+
 TrkrDefs::hitsetkey MakeActsGeometry::GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
   // Look up the MVTX sensor index values from the world position of the surface center
@@ -668,7 +707,7 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
     cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
     return;
   }
-  TGeoVolume *topVol = m_geoManager->GetTopVolume();
+  TGeoVolume *topVol = m_geoManager->GetThopVolume();
   TObjArray *nodeArray = topVol->GetNodes();
 
   TIter iObj(nodeArray);
