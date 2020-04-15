@@ -68,6 +68,7 @@ pkginclude_HEADERS = \
   PHG4CylinderGeomContainer.h \
   PHG4CylinderCellDefs.h \
   PHG4CylinderCellGeom.h \
+  PHG4CylinderCellGeom_Sectored.h \
   PHG4CylinderCellGeom_Spacalv1.h \
   PHG4CylinderCellGeomContainer.h \
   PHG4CylinderCellReco.h \
@@ -125,6 +126,7 @@ ROOT_IO_DICTS = \
   PHG4CylinderCellv3_Dict.cc \
   PHG4CylinderCellContainer_Dict.cc \
   PHG4CylinderCellGeom_Dict.cc \
+  PHG4CylinderCellGeom_Sectored_Dict.cc \
   PHG4CylinderCellGeom_Spacalv1_Dict.cc \
   PHG4CylinderCellGeomContainer_Dict.cc \
   PHG4ScintillatorSlat_Dict.cc \
@@ -163,6 +165,7 @@ nobase_dist_pcm_DATA = \
   PHG4CylinderCellv3_Dict_rdict.pcm \
   PHG4CylinderCellContainer_Dict_rdict.pcm \
   PHG4CylinderCellGeom_Dict_rdict.pcm \
+  PHG4CylinderCellGeom_Sectored_Dict_rdict.pcm \
   PHG4CylinderCellGeom_Spacalv1_Dict_rdict.pcm \
   PHG4CylinderCellGeomContainer_Dict_rdict.pcm \
   PHG4ScintillatorSlat_Dict_rdict.pcm \
@@ -234,6 +237,7 @@ libg4detectors_io_la_SOURCES = \
   PHG4CylinderCellv3.cc \
   PHG4CylinderCellContainer.cc \
   PHG4CylinderCellGeom.cc \
+  PHG4CylinderCellGeom_Sectored.cc \
   PHG4CylinderCellGeom_Spacalv1.cc \
   PHG4CylinderCellGeomContainer.cc \
   PHG4ScintillatorSlatDefs.cc \
