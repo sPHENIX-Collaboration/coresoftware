@@ -97,6 +97,9 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
   m_surfStepPhi = 2.0 * M_PI / (double) (m_nSurfPhi * m_nTpcModulesPerLayer);
+
+  nprint_tpc = 0;
+
 }
 
 int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
@@ -187,6 +190,12 @@ void MakeActsGeometry::EditTPCGeometry()
 
   // save the edited geometry to DST persistent IO node for downstream DST files
   //PHGeomUtility::UpdateIONode(topNode);
+
+  /*
+  // export to a file
+ PHGeomUtility::ExportGeometry(se->topNode(),"TGeo_export.root");
+  cout <<"Done export Geometry to TGeo_export.root"<<endl;
+  */
 }
 
 void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
@@ -697,13 +706,15 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
     else
       continue;
 
-    bool print_sensor_paths = false;  // normally false
+    bool print_sensor_paths = true;  // normally false
     if (print_sensor_paths)
     {
       // Descends the node tree to find the active silicon nodes - used for information only
       cout << " Top Node is " << node->GetName() << " volume name is " << node->GetVolume()->GetName() << endl;
-      cout << " Top Node mother volume name is " << node->GetMotherVolume()->GetName() << endl;
-      isActive(node);
+      //cout << " Top Node mother volume name is " << node->GetMotherVolume()->GetName() << endl;
+
+      int nmax_print = 200;
+      isActive(node, nmax_print);
     }
   }
 }
@@ -852,8 +863,9 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
   return;
 }
 
-void MakeActsGeometry::isActive(TGeoNode *gnode)
+void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
 {
+
   // Not used in analysis: diagnostic, for looking at the node tree only.
   // Recursively searches gnode for silicon sensors, prints out heirarchy
 
@@ -866,39 +878,45 @@ void MakeActsGeometry::isActive(TGeoNode *gnode)
   if (node_str.compare(0, intt_refactive.length(), intt_refactive) == 0)
   {
     cout << "          ******* Found INTT active volume,  node is " << gnode->GetName()
-         << " volume name is " << gnode->GetVolume()->GetName() << endl;
-
+	 << " volume name is " << gnode->GetVolume()->GetName() << endl;
+    
     //const TGeoMatrix* tgMatrix = gnode->GetMatrix();
     //tgMatrix->Print();
-
+    
     return;
   }
   else if (node_str.compare(0, mvtx_refactive.length(), mvtx_refactive) == 0)
   {
     cout << "          ******* Found MVTX active volume,  node is " << gnode->GetName()
-         << " volume name is " << gnode->GetVolume()->GetName() << endl;
-
-    return;
+	 << " volume name is " << gnode->GetVolume()->GetName() << endl;
+ 
+     return;
   }
   else if (node_str.compare(0, tpc_refactive.length(), tpc_refactive) == 0)
   {
-    cout << "          ******* Found TPC  active volume,  node is " << gnode->GetName()
+    if(nprint_tpc < nmax_print)
+      {
+	cout << "          ******* Found TPC  active volume,  node is " << gnode->GetName()
          << " volume name is " << gnode->GetVolume()->GetName() << endl;
+      }
+    nprint_tpc++;
 
     return;
   }
 
   int ndaught = gnode->GetNdaughters();
+  /*
   if (ndaught == 0)
   {
     cout << "     No further daughters" << endl;
   }
+  */
 
   for (int i = 0; i < ndaught; ++i)
   {
-    cout << "     " << gnode->GetVolume()->GetName() << "  daughter " << i
-         << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
-    isActive(gnode->GetDaughter(i));
+    //cout << "     " << gnode->GetVolume()->GetName() << "  daughter " << i
+    //   << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
+    isActive(gnode->GetDaughter(i), nmax_print);
   }
 }
 

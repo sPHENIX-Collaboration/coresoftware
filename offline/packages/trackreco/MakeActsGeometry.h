@@ -122,7 +122,7 @@ class MakeActsGeometry
   TrkrDefs::hitsetkey GetInttHitSetKeyFromCoords(unsigned int layer,
 						 std::vector<double> &world);
   
-  void isActive(TGeoNode *gnode);
+  void isActive(TGeoNode *gnode, int nmax_print);
 
   void BuildTpcSurfaceMap();
 
@@ -159,6 +159,8 @@ class MakeActsGeometry
   const unsigned int m_nTpcLayers = 48;
   const unsigned int m_nTpcModulesPerLayer = 12;
   const unsigned int m_nTpcSides = 2;
+
+  int nprint_tpc;
 
   // The acts geometry object
   TGeoDetector m_detector;
