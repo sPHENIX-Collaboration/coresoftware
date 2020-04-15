@@ -22,6 +22,8 @@ class TH1;
 class TNtuple;
 class TrkrHitSetContainer;
 class TrkrHitTruthAssoc;
+class PHG4TpcDistortion;
+class PHG4TpcAnalyticSpaceChargeDistortion;
 
 class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
 {
@@ -46,9 +48,11 @@ class PHG4TpcElectronDrift : public SubsysReco, public PHParameterInterface
   TrkrHitSetContainer *temp_hitsetcontainer;
   TrkrHitTruthAssoc *hittruthassoc;
   PHG4TpcPadPlane *padplane;
+  PHG4TpcDistortion *distortion;
   TH1 *dlong;
   TH1 *dtrans;
   TNtuple *nt;
+  TNtuple *ntion;
   TNtuple *nthit;
   TNtuple *ntpad;
   std::string detector;

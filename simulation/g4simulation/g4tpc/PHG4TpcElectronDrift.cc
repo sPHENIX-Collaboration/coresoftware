@@ -3,6 +3,8 @@
 
 #include "PHG4TpcElectronDrift.h"
 #include "PHG4TpcPadPlane.h"                            // for PHG4TpcPadPlane
+#include "PHG4TpcDistortion.h"
+#include "PHG4TpcAnalyticSpaceChargeDistortion.h"
 
 #include <g4main/PHG4Hit.h>
 #include <g4main/PHG4HitContainer.h>
@@ -63,6 +65,7 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , temp_hitsetcontainer(new TrkrHitSetContainer())// this is used as a buffer for charge collection from a single g4hit
   , hittruthassoc(nullptr)
   , padplane(nullptr)
+  , distortion(new PHG4TpcAnalyticSpaceChargeDistortion())
   , dlong(nullptr)
   , dtrans(nullptr)
   , diffusion_trans(NAN)
@@ -87,6 +90,7 @@ PHG4TpcElectronDrift::~PHG4TpcElectronDrift()
   gsl_rng_free(RandomGenerator);
   delete padplane;
   delete temp_hitsetcontainer;
+  delete distortion;
 }
 
 int PHG4TpcElectronDrift::Init(PHCompositeNode *topNode)
@@ -231,9 +235,11 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
   nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
+  ntion = new TNtuple("ntion","gas ionization hits","hit:x:y:z:r:phi:n_e");
   nthit = new TNtuple("nthit", "hit stuff", "hit:layer:phi:phicenter:z_gem:zcenter:weight");
   ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
   se->registerHisto(nt);
+  se->registerHisto(ntion);
   se->registerHisto(nthit);
   se->registerHisto(ntpad);
   padplane->InitRun(topNode);
@@ -308,6 +314,7 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
       double t_start = hiter->second->get_t(0) + f * (hiter->second->get_t(1) - hiter->second->get_t(0));
 
       double radstart = sqrt(x_start * x_start + y_start * y_start);
+      double phistart = atan2(y_start,x_start);
       double r_sigma = diffusion_trans * sqrt(tpc_length / 2. - fabs(z_start));
       double rantrans = gsl_ran_gaussian(RandomGenerator, r_sigma);
       rantrans += gsl_ran_gaussian(RandomGenerator, added_smear_sigma_trans);
@@ -330,8 +337,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
         continue;
       }
       double ranphi = gsl_ran_flat(RandomGenerator, -M_PI, M_PI);
-      double x_final = x_start + rantrans * cos(ranphi);
-      double y_final = y_start + rantrans * sin(ranphi);
+      double distrphi= distortion->get_rphi_distortion(radstart,phistart,z_start);
+      double distr= distortion->get_r_distortion(radstart,phistart,z_start);
+      double x_final = x_start + rantrans * cos(ranphi)+distr*cos(phistart)+distrphi*sin(phistart);
+      double y_final = y_start + rantrans * sin(ranphi)+distr*sin(phistart)+distrphi*cos(phistart);
       double rad_final = sqrt(x_final * x_final + y_final * y_final);
       // remove electrons outside of our acceptance. Careful though, electrons from just inside 30 cm can contribute in the 1st active layer readout, so leave a little margin
       if (rad_final < min_active_radius - 2.0 || rad_final > max_active_radius + 1.0)
@@ -356,8 +365,11 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
              << " z_final " << z_final << " t_final " << t_final << " zdiff " << z_final - z_start << endl;
       }
 
-      if (Verbosity() > 0)
+      if (Verbosity() > 0){
         nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
+        ntion->Fill(ihit, x_start, y_start, z_start, radstart, phistart, 1);
+
+      }
 
       // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
       MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
@@ -483,6 +495,7 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
     outf->WriteTObject(nt);
     outf->WriteTObject(ntpad);
     outf->WriteTObject(nthit);
+    outf->WriteTObject(ntion);
     outf->Close();
   }
 

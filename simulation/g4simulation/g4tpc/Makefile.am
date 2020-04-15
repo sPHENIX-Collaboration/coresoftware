@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
   PHG4TpcDigitizer.h \
   PHG4TpcSubsystem.h \
   PHG4TpcDistortion.h \
+  PHG4TpcAnalyticSpaceChargeDistortion.h \
   PHG4TpcSpaceChargeDistortion.h 
 
 if MAKEROOT6
@@ -41,6 +42,7 @@ else
     PHG4TpcDigitizer_Dict.cc \
     PHG4TpcSubsystem_Dict.cc \
     PHG4TpcDistortion_Dict.cc\
+    PHG4TpcAnalyticSpaceChargeDistortion_Dict.cc \
     PHG4TpcSpaceChargeDistortion_Dict.cc 
 endif
 
@@ -54,6 +56,7 @@ libg4tpc_la_SOURCES = \
   PHG4TpcPadPlane.cc \
   PHG4TpcPadPlaneReadout.cc \
   PHG4TpcSpaceChargeDistortion.cc \
+  PHG4TpcAnalyticSpaceChargeDistortion.cc \
   PHG4TpcSteppingAction.cc \
   PHG4TpcSubsystem.cc
 
