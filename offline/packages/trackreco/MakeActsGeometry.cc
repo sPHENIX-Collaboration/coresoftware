@@ -119,7 +119,7 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
 
   CreateNodes(topNode);  // for writing surface map
 
-  // Add the TPC surfaces to the copy
+  // Add the TPC surfaces to the copy of the TGeoManager
   EditTPCGeometry();
 
   // save the edited geometry to DST persistent IO node for downstream DST files
@@ -130,9 +130,6 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   MakeTGeoNodeMap(topNode);
-
-  // TPC continuous readout geometry does not exist within ACTS, so we build our own surfaces
-  BuildTpcSurfaceMap();
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -279,68 +276,6 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 	    }
 	}      
     }
-}
-
-void MakeActsGeometry::BuildTpcSurfaceMap()
-{
-  // Make a map of surfaces corresponding to each TPC sectorid and side.
-  // There are 12 sectors and 2 sides of the membrane
-  // We additionally subdivide these surfaces into approximately plane surfaces segmented in Z and phi
-  // Subdivisions for creating TPC Acts::Surfaces are defined in constructor and header file
-  for (unsigned int iz = 0; iz < m_nSurfZ; ++iz)
-  {
-    for (unsigned int side = 0; side < m_nTpcSides; ++side)
-    {
-      double z_center = m_surfStepZ / 2.0 + (double) iz * m_surfStepZ;
-      if (side == 0) z_center = -z_center;
-
-      for (unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
-     {
-        int tpc_layer = ilayer + 7;  // 3 MVTX and 4 INTT layers ahead of TPC
-
-        PHG4CylinderCellGeom *layergeom = m_geomContainerTpc->GetLayerCellGeom(tpc_layer);
-        if (!layergeom)
-        {
-          std::cout << PHWHERE << "Did not get layergeom for layer " << tpc_layer << std::endl;
-          gSystem->Exit(1);
-        }
-
-        double radius = layergeom->get_radius();
-
-        for (unsigned int imod = 0; imod < m_nTpcModulesPerLayer; ++imod)
-        {
-          for (unsigned int iphi = 0; iphi < m_nSurfPhi; ++iphi)
-          {
-            double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi + (double) iphi * m_surfStepPhi;
-
-            double phi_center = min_phi + m_surfStepPhi / 2.0;
-            double x_center = radius * cos(phi_center);
-            double y_center = radius * sin(phi_center);
-
-            // There is a surface constructor that is a Vector3D for the center and a Vector3D for the normal.
-            Acts::Vector3D center_vec(x_center, y_center, z_center);
-
-            // The normal vector is a unit vector pointing to the center of the beam line at z = z_center
-            double x_norm = -x_center / sqrt(x_center * x_center + y_center * y_center);
-            double y_norm = -y_center / sqrt(x_center * x_center + y_center * y_center);
-            double z_norm = 0;
-
-            Acts::Vector3D center_norm(x_norm, y_norm, z_norm);
-
-            auto surf = Acts::Surface::makeShared<Acts::PlaneSurface>(center_vec, center_norm);
-
-            // make up a fake cluskey with the "cluster id" being composed of iphi and iz
-            unsigned int i_phi_z = iphi + 100 * iz;
-            TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(tpc_layer, imod, side, i_phi_z);
-
-            // Add this surface to the map
-            std::pair<TrkrDefs::cluskey, Surface> tmp = make_pair(surfkey, surf);
-            m_clusterSurfaceMapTpc.insert(tmp);
-          }
-        }
-      }
-    }
-  }
 }
 
 /**
@@ -548,31 +483,6 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 	}
     }
 
-  // Optionally check the map by searching for a fictional cluster
-  if(m_verbosity > 20)
-    {
-      bool check_map = true;
-      if(check_map)
-	{
-	  // make up a hitset and coords
-	  unsigned int layer = 30;
-	  unsigned int readout_mod = 3;
-	  unsigned int side = 1;
-	  TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, readout_mod, side);
-	  std::vector<double> world = {15.0, -47.0, 11.0};
-	  
-	  std::cout << std::endl << "Check map: layer " << layer 
-		    << " readout_mod " << readout_mod << " side " 
-		    << side << " hitsetkey " << hitsetkey 
-		    << " position " << world[0] << "  " << world[1] 
-		    << "  " << world[2] << std::endl;
-	  
-	  Surface surf = GetTpcSurfaceFromCoords(hitsetkey, world);
-	  
-	  std::cout << std::endl << "Stream of found surface: " << std::endl;
-	  surf->toStream(m_geoCtxt, std::cout);
-	}
-    }
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
@@ -745,6 +655,7 @@ Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
   if(mapIter == m_clusterSurfaceMapTpcEdit.end())
     {
       cout << PHWHERE << "Error: hitsetkey not found in clusterSrfaceMap, hitsetkey = " << hitsetkey << endl;
+      return nullptr;
     }
 
   double world_phi = atan2(world[1], world[0]);

@@ -273,51 +273,21 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
   const unsigned int sectorId = TpcDefs::getSectorId(clusKey);
   const unsigned int side = TpcDefs::getSide(clusKey);
-
-  const double modulePhiLow = m_actsGeometry->getModulePhiStart() + (double) sectorId *  m_actsGeometry->getModuleStepPhi();
-
-  const double surfStepPhi = m_actsGeometry->getSurfStepPhi();
-  const double surfStepZ = m_actsGeometry->getSurfStepZ();
-  
-  const unsigned int iPhi = (clusPhi - modulePhiLow) / surfStepPhi;
-  const unsigned int iZ = fabs(zTpc) / surfStepZ;
-  const unsigned int iPhiZ = iPhi + 100. * iZ;  /// for making a map key
-
-  if (Verbosity() > 0)
-  {
-    const double checkSurfRphiCenter = radius * (modulePhiLow + (double) iPhi * surfStepPhi + surfStepPhi / 2.0);
-    double checkSurfZCenter = (double) iZ * surfStepZ + surfStepZ / 2.0;
-    if (side == 0)
-      checkSurfZCenter = -checkSurfZCenter;
-
-    std::cout << " xworld " << world[0] << " yworld "
-              << world[1] << " clusphi " << clusPhi << std::endl;
-    std::cout << " sectorid " << sectorId << " side "
-              << side << " iphi " << iPhi << " iz "
-              << iZ << " i_phi_z " << iPhiZ << std::endl;
-    std::cout << "r_clusphi " << rClusPhi
-              << " check_surf_rphi center " << checkSurfRphiCenter
-              << " ztpc " << zTpc << " check_surf_z_center "
-              << checkSurfZCenter << std::endl;
-  }
-
-  /// Get the surface key to find the surface from the map
-  const TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(layer, sectorId,
-                                                        side, iPhiZ);
  
-    std::map<TrkrDefs::cluskey, Surface> clusterSurfaceMapTpc = 
-      m_actsGeometry->getSurfaceMapTpc();
-
-  std::map<TrkrDefs::cluskey, Surface>::iterator surfIter;
-
-  surfIter = clusterSurfaceMapTpc.find(surfkey);
-  if (surfIter == clusterSurfaceMapTpc.end())
-  {
-    std::cout << PHWHERE << "Failed to find surface, should be impossible!" << std::endl;
-    return nullptr;
-  }
-
-  Surface surface = surfIter->second->getSharedPtr();
+  /// Get the surface key to find the surface from the map
+  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
+  std::vector<double> worldVec = {world[0], world[1], world[2]};
+  /// MakeActsGeometry has a helper function since many surfaces can exist on
+  /// a given readout module
+  Surface surface = m_actsGeometry->GetTpcSurfaceFromCoords(tpcHitSetKey,
+							    worldVec);
+  assert(surface);
+  
+  if(Verbosity() > 10)
+    {
+      std::cout << "Stream of found TPC surface: " << std::endl;
+      surface->toStream(m_actsGeometry->m_geoCtxt, std::cout);
+    }
 
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z
@@ -639,7 +609,7 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
 
 TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
 {
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_actsGeometry->getNodeMap();
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_actsGeometry->getTGeoNodeMap();
 
   /// Get the TGeoNode for this hit set key
   std::map<TrkrDefs::hitsetkey, TGeoNode *>::iterator mapIter;
@@ -677,7 +647,6 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
   std::map<TrkrDefs::hitsetkey, Surface>::iterator
       surfaceIter;
 
-  
   surfaceIter = clusterSurfaceMap.find(hitSetKey);
 
   /// Check to make sure we found the surface in the map

@@ -75,10 +75,10 @@ class MakeActsGeometry
   std::map<TrkrDefs::hitsetkey,Surface> getSurfaceMapSilicon()
     { return m_clusterSurfaceMapSilicon; }
   
-  std::map<TrkrDefs::cluskey, Surface> getSurfaceMapTpc()
-    { return m_clusterSurfaceMapTpc; }
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>> getSurfaceMapTpc()
+    { return m_clusterSurfaceMapTpcEdit; }
   
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> getNodeMap()
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> getTGeoNodeMap()
     { return m_clusterNodeMap; }
   
   double getSurfStepZ() { return m_surfStepZ; }
@@ -147,8 +147,6 @@ class MakeActsGeometry
   void isActive(TGeoNode *gnode, int nmax_print);
 
   TrkrDefs::hitsetkey GetTpcHitSetKeyFromCoords(std::vector<double> &world);
-
-  void BuildTpcSurfaceMap();
 
   void MakeTGeoNodeMap(PHCompositeNode*);
 
