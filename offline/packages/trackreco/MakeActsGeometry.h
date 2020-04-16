@@ -72,11 +72,11 @@ class MakeActsGeometry
   void SetVerbosity(int verbosity)
   { m_verbosity = verbosity; }
 
-  std::map<TrkrDefs::hitsetkey,Surface>* getSurfaceMapSilicon()
-    { return &m_clusterSurfaceMapSilicon; }
+  std::map<TrkrDefs::hitsetkey,Surface> getSurfaceMapSilicon()
+    { return m_clusterSurfaceMapSilicon; }
   
-  std::map<TrkrDefs::cluskey, Surface>* getSurfaceMapTpc()
-    { return &m_clusterSurfaceMapTpc; }
+  std::map<TrkrDefs::cluskey, Surface> getSurfaceMapTpc()
+    { return m_clusterSurfaceMapTpc; }
   
   std::map<TrkrDefs::hitsetkey, TGeoNode*> getNodeMap()
     { return m_clusterNodeMap; }
@@ -99,6 +99,15 @@ class MakeActsGeometry
   Acts::MagneticFieldContext getMagFieldContext() { return m_magFieldContext; }
   Acts::CalibrationContext getCalibContext() { return m_calibContext; }
 
+  /// Gets tpc surface from a cluster coordinate and hitsetkey. Necessary
+  /// since there are many tpc surfaces per read out module
+  Surface GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
+    std::vector<double> &world);
+
+  Acts::GeometryContext  m_geoCtxt;  
+  FW::Options::BFieldVariant m_magneticField;
+  Acts::CalibrationContext m_calibContext;
+  Acts::MagneticFieldContext m_magFieldContext;
  private:
   
   //! Get all the nodes
@@ -125,7 +134,7 @@ class MakeActsGeometry
   void makeInttMapPairs(TrackingVolumePtr &inttVolume);
   void makeTpcMapPairs(TrackingVolumePtr &tpcVolume);
 
-  Surface GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world);
+ 
   
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, 
 						 std::vector<double> &world);
@@ -149,7 +158,7 @@ class MakeActsGeometry
 
   TGeoManager* m_geoManager;
 
-  Acts::GeometryContext  m_geoCtxt;
+ 
 
   std::vector<std::shared_ptr<FW::IContextDecorator> > m_contextDecorators;
 
@@ -194,9 +203,7 @@ class MakeActsGeometry
   TGeoDetector m_detector;
 
   TrackingGeometry m_tGeometry;
-  FW::Options::BFieldVariant m_magneticField;
-  Acts::CalibrationContext m_calibContext;
-  Acts::MagneticFieldContext m_magFieldContext;
+
 
   int m_verbosity;
 };

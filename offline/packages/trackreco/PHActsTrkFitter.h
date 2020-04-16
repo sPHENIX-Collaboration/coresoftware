@@ -14,21 +14,44 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
+#include <Acts/EventData/MeasurementHelpers.hpp>
+#include <Acts/Geometry/TrackingGeometry.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
+#include <Acts/Utilities/CalibrationContext.hpp>
+
 #include <memory>
 #include <string>
 
 namespace FW
 {
-namespace Data
-{
-class TrkrClusterSourceLink;
-}
+  namespace Data
+  {
+    class TrkrClusterSourceLink;
+  }
 }  // namespace FW
 
 class ActsTrack;
-struct ActsGeometry;
+class MakeActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
+
+
+struct Context{
+  Context(){}
+  Context(Acts::CalibrationContext calib,
+	  Acts::GeometryContext geo,
+	  Acts::MagneticFieldContext magField)
+  : calibContext(calib)
+  , geoContext(geo)
+    , magFieldContext(magField)
+  {}
+
+  Acts::CalibrationContext calibContext;
+  Acts::GeometryContext geoContext;
+  Acts::MagneticFieldContext magFieldContext;
+
+};
+
 
 class PHActsTrkFitter : public PHTrackFitting
 {
@@ -62,7 +85,7 @@ class PHActsTrkFitter : public PHTrackFitting
   std::vector<ActsTrack>* m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  ActsGeometry* m_actsGeometry;
+  MakeActsGeometry* m_actsGeometry;
 };
 
 #endif

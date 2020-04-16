@@ -1,5 +1,6 @@
 
 #include "PHActsTrkProp.h"
+#include "MakeActsGeometry.h"
 #include "ActsTrack.h"
 
 /// Fun4All includes
@@ -19,6 +20,7 @@
 #include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
 #include <Acts/MagneticField/SharedBField.hpp>
 #include <Acts/MagneticField/ConstantBField.hpp>
+#include <Acts/MagneticField/MagneticFieldContext.hpp>
 
 #include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
@@ -83,7 +85,7 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
 
   /// Get the magnetic field and tracking geometry to setup the Acts::Stepper
   //FW::Options::BFieldVariant bFieldVar = m_actsGeometry->magField;
-   Acts::Navigator navigator(m_actsGeometry->tGeometry);
+  Acts::Navigator navigator(m_actsGeometry->getTGeometry());
 
   /// Just use the default magnetic field for now. Can access BField
   /// from m_actsGeometry using std::visit, but can't figure out how to 
@@ -111,100 +113,6 @@ int PHActsTrkProp::Process()
     (Acts::Vector3D(0., 0., 0.));
 
 
-  for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
-       trackIter != m_trackMap->end(); ++trackIter)
-    {
-
-      const SvtxTrack *track = trackIter->second;
- 
-      if(!track)
-	continue;
-      
-      if(Verbosity() > 1)
-	{
-	  std::cout << "Found SvtxTrack: " << trackIter->first << std::endl;
-	  track->identify();
-	}
-
-      const Acts::BoundSymMatrix cov = getActsCovMatrix(track);
-      const Acts::Vector3D pos(track->get_x(),
-			       track->get_y(),
-			       track->get_z());
-      const Acts::Vector3D mom(track->get_px(),
-			       track->get_py(),
-			       track->get_pz());
-
-      /// just set to 0 for now?
-      const double time = 0;
-      const int q = track->get_charge();
-
-      const FW::TrackParameters trackParams(cov, pos, mom,
-					    q, time);
-      std::vector<SourceLink> sourceLinks;
-      
-      PropagationOutput pOutput = propagate(trackParams);
-
-      std::vector<Acts::detail::Step> steps = pOutput.first;
-      for (auto& step : steps){
-	auto surface = step.surface;
-	if(!surface)
-	  continue;
-
-	Acts::Vector3D stepSurfNorm = surface.get()->normal(m_actsGeometry->geoContext);
-	Acts::Vector3D srcLinkSurfNorm;
-	std::map<unsigned int, SourceLink>::iterator srcLinkIter = m_sourceLinks->begin();
-
-	while(srcLinkIter != m_sourceLinks->end())
-	  {
-	    
-	    srcLinkSurfNorm = srcLinkIter->second.referenceSurface().normal(m_actsGeometry->geoContext);
-	    
-	    /// This is not ideal. Would like surfaces as built in acts to have
-	    /// an identifier
-	    if(stepSurfNorm(0) == srcLinkSurfNorm(0) 
-	       && stepSurfNorm(1) == srcLinkSurfNorm(1) 
-	       && stepSurfNorm(2) == srcLinkSurfNorm(2))
-	      {
-	        sourceLinks.push_back(srcLinkIter->second);
-		break;
-	      }
-	    ++srcLinkIter;
-	  }
-
-	/// Get kinematic information of steps
-	/// global x,y,z
-	float x = step.position.x();
-	float y = step.position.y();
-	float z = step.position.z();
-
-	auto direction = step.momentum.normalized();
-	///global direction x,y,yz
-	float dx = direction.x();
-	float dy = direction.y();
-	float dz = direction.z();
-
-	if(Verbosity() > 1)
-	  {
-	    std::cout << "Acts track propagation step : "
-		      << x << ", " << y << ", " << z 
-		      << " and momentum direction " << dx
-		      << ", " << dy << ", " << dz << std::endl;
-	  }
-      }
-
-      if(Verbosity() > 1)
-	{
-	  std::cout<<"Found "<<sourceLinks.size() <<" SrcLinks"<<std::endl;
-	}
-
-      /// Add the track with the found sourcelinks to the prototrack list
-      /// to be put on the node tree
-      ActsTrack actsTrack(trackParams, sourceLinks);
-      m_actsProtoTracks->push_back(actsTrack);
-      
-    }
-
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -218,68 +126,6 @@ int PHActsTrkProp::End()
 }
 
 
-PropagationOutput PHActsTrkProp::propagate(FW::TrackParameters parameters)
-{
-  
-  PropagationOutput pOutput;
-  
-  /// Set Acts namespace aliases to reduce code clutter
-  using MaterialInteractor = Acts::MaterialInteractor;
-  using SteppingLogger     = Acts::detail::SteppingLogger;
-  using DebugOutput        = Acts::detail::DebugOutputActor;
-  using EndOfWorld         = Acts::detail::EndOfWorldReached;
-  
-  using ActionList
-    = Acts::ActionList<SteppingLogger, MaterialInteractor, DebugOutput>;
-  using AbortList         = Acts::AbortList<EndOfWorld>;
-  using PropagatorOptions = Acts::PropagatorOptions<ActionList, AbortList>;
-  
-  /// Setup propagator options to hold context, and propagator characteristics
-  PropagatorOptions options(m_actsGeometry->geoContext, 
-			    m_actsGeometry->magFieldContext);
-  options.pathLimit = std::numeric_limits<double>::max();
-  options.debug     = true;
-  
-  /// Activate loop protection at some pt value
-  options.loopProtection
-    = (Acts::VectorHelpers::perp(parameters.momentum())
-       < m_minTrackPt * Acts::UnitConstants::GeV);
-
-  /// Switch the material interaction on/off & eventually into logging mode
-  /// Should all of these switches be configurable from e.g. constructor?
-  auto& mInteractor = options.actionList.get<MaterialInteractor>();
-  mInteractor.multipleScattering = true;
-  mInteractor.energyLoss         = true;
-  mInteractor.recordInteractions = true;
-
-  /// Set the maximum step size
-  options.maxStepSize = m_maxStepSize * Acts::UnitConstants::mm;
-  
-  /// Propagate using Acts::Propagator
-  const auto& result
-    = propagator->propagate(parameters, options).value();
-  auto steppingResults = result.template get<SteppingLogger::result_type>();
-  
-  /// Set the stepping result
-  pOutput.first = std::move(steppingResults.steps);
-
-  /// Also set the material recording result - if configured
-  if (mInteractor.recordInteractions) {
-    auto materialResult
-      = result.template get<MaterialInteractor::result_type>();
-    pOutput.second = std::move(materialResult);
-  }
-  
-  if(Verbosity() > 1)
-    {
-      auto& debugResult = result.template get<DebugOutput::result_type>();
-      std::cout << "Acts Propagator Debug: " << debugResult.debugString 
-		<< std::endl;
-    }
-  
-  return pOutput;
- 
-}
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
@@ -332,7 +178,7 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
-  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
+  m_actsGeometry = findNode::getClass<MakeActsGeometry>(topNode, "MakeActsGeometry");
 
   if (!m_actsGeometry)
   {

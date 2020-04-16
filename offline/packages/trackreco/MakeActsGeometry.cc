@@ -92,7 +92,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_nSurfPhi(10)
   , m_verbosity(0)
 {
-  // These are arbitrary subdivisions, and may change
+  // These are arbitrary tpc subdivisions, and may change
   m_surfStepZ = (m_maxSurfZ - m_minSurfZ) / (double) m_nSurfZ;
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
@@ -379,7 +379,6 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
   FW::Options::addGeometryOptions(desc);
   FW::Options::addMaterialOptions(desc);
   FW::Options::addObjWriterOptions(desc);
-  //  FW::Options::addCsvWriterOptions(desc);
   FW::Options::addOutputOptions(desc);
   FW::Options::addBFieldOptions(desc);
 
@@ -393,13 +392,11 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
 
   // Now read the standard options
   auto logLevel = FW::Options::readLogLevel(vm);
-  //auto nEvents  = FW::Options::readSequencerConfig(vm).events;
 
   // The geometry, material and decoration
   auto geometry = FW::Geometry::build(vm, detector);
   // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   m_tGeometry = geometry.first;
-  //std::vector<std::shared_ptr<FW::IContextDecorator> > contextDecorators = geometry.second;
   m_contextDecorators = geometry.second;
 
   m_magneticField = FW::Options::readBField(vm);
@@ -528,6 +525,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 					      vec3d(2) / 10.0};
 	
 	  TrkrDefs::hitsetkey hitsetkey = GetTpcHitSetKeyFromCoords(world_center);
+
 	  /// If there is already an entry for this hitsetkey, add the surface
 	  /// to its corresponding vector
 	  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
@@ -551,25 +549,30 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
     }
 
   // Optionally check the map by searching for a fictional cluster
-  bool check_map = true;
-  if(check_map)
+  if(m_verbosity > 20)
     {
-      // make up a hitset and coords
-      unsigned int layer = 30;
-      unsigned int readout_mod = 3;
-      unsigned int side = 1;
-      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, readout_mod, side);
-      std::vector<double> world = {15.0, -47.0, 11.0};
-
-      cout << endl << "Check map: layer " << layer << " readout_mod " << readout_mod << " side " << side << " hitsetkey " << hitsetkey 
-	   << " position " << world[0] << "  " << world[1] << "  " << world[2] << endl;
-
-      Surface surf = GetTpcSurfaceFromCoords(hitsetkey, world);
-
-      cout << endl << "Stream of found surface: " << endl;
-      surf->toStream(m_geoCtxt, std::cout);
+      bool check_map = true;
+      if(check_map)
+	{
+	  // make up a hitset and coords
+	  unsigned int layer = 30;
+	  unsigned int readout_mod = 3;
+	  unsigned int side = 1;
+	  TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, readout_mod, side);
+	  std::vector<double> world = {15.0, -47.0, 11.0};
+	  
+	  std::cout << std::endl << "Check map: layer " << layer 
+		    << " readout_mod " << readout_mod << " side " 
+		    << side << " hitsetkey " << hitsetkey 
+		    << " position " << world[0] << "  " << world[1] 
+		    << "  " << world[2] << std::endl;
+	  
+	  Surface surf = GetTpcSurfaceFromCoords(hitsetkey, world);
+	  
+	  std::cout << std::endl << "Stream of found surface: " << std::endl;
+	  surf->toStream(m_geoCtxt, std::cout);
+	}
     }
-
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
@@ -736,7 +739,6 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
 
 Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
 {
-
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
   mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
   
@@ -747,7 +749,7 @@ Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
 
   double world_phi = atan2(world[1], world[0]);
   double world_z = world[2];
-      
+  
   std::vector<Surface> surf_vec = mapIter->second;
   unsigned int surf_index = 999;
   for(unsigned int i=0;i<surf_vec.size(); ++i)
@@ -756,7 +758,7 @@ Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
       /*
       cout << endl << "Stream of surface number " << i << endl;
       this_surf->toStream(m_geoCtxt, std::cout);   cout << endl;
-      */
+  */
       auto vec3d = this_surf->center(m_geoCtxt);
       std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
       double surf_phi = atan2(surf_center[1], surf_center[0]);
@@ -775,6 +777,7 @@ Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
     }
  
   return surf_vec[surf_index];
+
 }
 
 
