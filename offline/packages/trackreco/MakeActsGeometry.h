@@ -104,10 +104,12 @@ class MakeActsGeometry
   Surface GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
     std::vector<double> &world);
 
+  /// These are public so that std::reference_wrapper can access them
+  /// in the KalmanFitterOptions
   Acts::GeometryContext  m_geoCtxt;  
-  FW::Options::BFieldVariant m_magneticField;
   Acts::CalibrationContext m_calibContext;
   Acts::MagneticFieldContext m_magFieldContext;
+
  private:
   
   //! Get all the nodes
@@ -156,9 +158,7 @@ class MakeActsGeometry
   
   PHG4CylinderCellGeomContainer* m_geomContainerTpc;
 
-  TGeoManager* m_geoManager;
-
- 
+  TGeoManager* m_geoManager; 
 
   std::vector<std::shared_ptr<FW::IContextDecorator> > m_contextDecorators;
 
@@ -203,7 +203,8 @@ class MakeActsGeometry
   TGeoDetector m_detector;
 
   TrackingGeometry m_tGeometry;
-
+  
+  FW::Options::BFieldVariant m_magneticField;
 
   int m_verbosity;
 };

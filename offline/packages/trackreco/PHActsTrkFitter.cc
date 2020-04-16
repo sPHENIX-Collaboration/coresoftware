@@ -31,7 +31,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   , m_event(0)
   , m_actsProtoTracks(nullptr)
   , m_actsGeometry(nullptr)
-  , m_context(nullptr)
+  , m_tGeometry(nullptr)
 {
   Verbosity(0);
 }
@@ -66,8 +66,8 @@ int PHActsTrkFitter::Process()
   /// FitCfg created by MakeActsGeometry
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_context->tGeometry,
-								   m_context->magField,
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_tGeometry->tGeometry,
+								   m_tGeometry->magField,
                                                                    Acts::Logging::VERBOSE);
 
   std::vector<ActsTrack>::iterator trackIter;
@@ -84,9 +84,9 @@ int PHActsTrkFitter::Process()
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
-    Acts::KalmanFitterOptions kfOptions(m_context->geoContext,
-					m_context->magFieldContext,
-					m_context->calibContext,
+    Acts::KalmanFitterOptions kfOptions(m_actsGeometry->m_geoCtxt,
+					m_actsGeometry->m_magFieldContext,
+					m_actsGeometry->m_calibContext,
 					&(*pSurface));
 
   
@@ -152,8 +152,8 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_context = findNode::getClass<Context>(topNode, "ActsContext");
-  if(!m_context)
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
     {
       std::cout << "ActsContext not on node tree. Exiting."
 		<< std::endl;

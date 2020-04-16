@@ -45,25 +45,15 @@ class Surface;
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
-struct Context{
-  Context(){}
-  Context(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
-	  FW::Options::BFieldVariant mag,
-	  Acts::CalibrationContext calib,
-	  Acts::GeometryContext geo,
-	  Acts::MagneticFieldContext magField)
+struct ActsTrackingGeometry{
+  ActsTrackingGeometry(){}
+  ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+	  FW::Options::BFieldVariant mag)
   : tGeometry(tGeo)
   , magField(mag)
-  , calibContext(calib)
-  , geoContext(geo)
-  , magFieldContext(magField)
   {}
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
   FW::Options::BFieldVariant magField;
-  Acts::CalibrationContext calibContext;
-  Acts::GeometryContext geoContext;
-  Acts::MagneticFieldContext magFieldContext;
-
 };
 
 /**
@@ -159,7 +149,7 @@ class PHActsSourceLinks : public SubsysReco
   PHG4CylinderGeomContainer *m_geomContainerIntt;
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
 
-  Context *m_context;
+  ActsTrackingGeometry *m_tGeometry;
 
 };
 

@@ -69,7 +69,7 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   MakeActsGeometry* m_actsGeometry;
-  Context *m_context;
+  ActsTrackingGeometry *m_tGeometry;
 };
 
 #endif
