@@ -20,7 +20,6 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
@@ -46,6 +45,26 @@ class Surface;
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
+struct Context{
+  Context(){}
+  Context(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+	  FW::Options::BFieldVariant mag,
+	  Acts::CalibrationContext calib,
+	  Acts::GeometryContext geo,
+	  Acts::MagneticFieldContext magField)
+  : tGeometry(tGeo)
+  , magField(mag)
+  , calibContext(calib)
+  , geoContext(geo)
+  , magFieldContext(magField)
+  {}
+  std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
+  FW::Options::BFieldVariant magField;
+  Acts::CalibrationContext calibContext;
+  Acts::GeometryContext geoContext;
+  Acts::MagneticFieldContext magFieldContext;
+
+};
 
 /**
  * This class is responsible for creating Acts TrkrClusterSourceLinks from
@@ -140,7 +159,7 @@ class PHActsSourceLinks : public SubsysReco
   PHG4CylinderGeomContainer *m_geomContainerIntt;
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
 
-
+  Context *m_context;
 
 };
 

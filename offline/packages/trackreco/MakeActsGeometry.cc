@@ -231,9 +231,9 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
       tpc_gas_measurement_vol[ilayer]->SetFillColor(kYellow);
       tpc_gas_measurement_vol[ilayer]->SetVisibility(kTRUE);
 
-      if(m_verbosity > 2)
+      if(m_verbosity > 30)
 	{
-	  cout << "Made box for layer " << ilayer << " with dx " << m_layerThickness[ilayer] << " dy " 
+	  cout << m_verbosity << " Made box for layer " << ilayer << " with dx " << m_layerThickness[ilayer] << " dy " 
 	       << box_r_phi << " ref arc " << m_surfStepPhi*m_layerRadius[ilayer] << " dz " << m_surfStepZ << endl;
 	  tpc_gas_measurement_vol[ilayer]->Print();
 	}
@@ -270,7 +270,7 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 		  
 		  tpc_gas_vol->AddNode(tpc_gas_measurement_vol[ilayer], copy, tpc_gas_measurement_location);
 		  
-		  if(m_verbosity && ilayer == 30) 
+		  if(m_verbosity > 30 && ilayer == 30) 
 		    {
 		      cout << " Made copy " << copy << " iz " << iz << " imod " << imod << " ilayer " << ilayer << " iphi " << iphi << endl;
 		      cout << "    x_center " << x_center << " y_center " << y_center << " z_center " << z_center << " phi_center_degrees " << phi_center_degrees << endl;

@@ -9,6 +9,7 @@
 #define TRACKRECO_ACTSTRKFITTER_H
 
 #include "PHTrackFitting.h"
+#include "PHActsSourceLinks.h"
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -34,24 +35,6 @@ class ActsTrack;
 class MakeActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
-
-
-struct Context{
-  Context(){}
-  Context(Acts::CalibrationContext calib,
-	  Acts::GeometryContext geo,
-	  Acts::MagneticFieldContext magField)
-  : calibContext(calib)
-  , geoContext(geo)
-    , magFieldContext(magField)
-  {}
-
-  Acts::CalibrationContext calibContext;
-  Acts::GeometryContext geoContext;
-  Acts::MagneticFieldContext magFieldContext;
-
-};
-
 
 class PHActsTrkFitter : public PHTrackFitting
 {
@@ -86,6 +69,7 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   MakeActsGeometry* m_actsGeometry;
+  Context *m_context;
 };
 
 #endif

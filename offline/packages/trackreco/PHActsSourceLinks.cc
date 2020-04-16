@@ -52,6 +52,7 @@ PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
+  , m_context(nullptr)
  
 {
   Verbosity(0);
@@ -74,10 +75,15 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 
   /// Check if Acts geometry has been built and is on the node tree
   m_actsGeometry = new MakeActsGeometry();
+  
   m_actsGeometry->SetVerbosity(Verbosity());
   m_actsGeometry->BuildAllGeometry(topNode);
 
-
+  m_context->geoContext = m_actsGeometry->getGeoContext();
+  m_context->calibContext = m_actsGeometry->getCalibContext();
+  m_context->magFieldContext = m_actsGeometry->getMagFieldContext();
+  m_context->tGeometry = m_actsGeometry->getTGeometry();
+  m_context->magField = m_actsGeometry->getMagField();
 
   if (Verbosity() > 10)
   {
@@ -620,6 +626,16 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
 
     svtxNode->addNode(sourceLinkNode);
   }
+
+  m_context = findNode::getClass<Context>(topNode,"ActsContext");
+  if(!m_context)
+    {
+      m_context = new Context();
+      PHDataNode<Context> *contextNode = new PHDataNode<Context>(m_context,
+								 "ActsContext");
+      svtxNode->addNode(contextNode);
+    }
+
 
   return;
 }
