@@ -550,6 +550,26 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 	}
     }
 
+  // Optionally check the map by searching for a fictional cluster
+  bool check_map = true;
+  if(check_map)
+    {
+      // make up a hitset and coords
+      unsigned int layer = 30;
+      unsigned int readout_mod = 3;
+      unsigned int side = 1;
+      TrkrDefs::hitsetkey hitsetkey = TpcDefs::genHitSetKey(layer, readout_mod, side);
+      std::vector<double> world = {15.0, -47.0, 11.0};
+
+      cout << endl << "Check map: layer " << layer << " readout_mod " << readout_mod << " side " << side << " hitsetkey " << hitsetkey 
+	   << " position " << world[0] << "  " << world[1] << "  " << world[2] << endl;
+
+      Surface surf = GetTpcSurfaceFromCoords(hitsetkey, world);
+
+      cout << endl << "Stream of found surface: " << endl;
+      surf->toStream(m_geoCtxt, std::cout);
+    }
+
 }
 
 void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
@@ -712,8 +732,51 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
       }
     }
   }
-
 }
+
+Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
+{
+
+  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+  mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
+  
+  if(mapIter == m_clusterSurfaceMapTpcEdit.end())
+    {
+      cout << PHWHERE << "Error: hitsetkey not found in clusterSrfaceMap, hitsetkey = " << hitsetkey << endl;
+    }
+
+  double world_phi = atan2(world[1], world[0]);
+  double world_z = world[2];
+      
+  std::vector<Surface> surf_vec = mapIter->second;
+  unsigned int surf_index = 999;
+  for(unsigned int i=0;i<surf_vec.size(); ++i)
+    {
+      Surface this_surf = surf_vec[i];
+      /*
+      cout << endl << "Stream of surface number " << i << endl;
+      this_surf->toStream(m_geoCtxt, std::cout);   cout << endl;
+      */
+      auto vec3d = this_surf->center(m_geoCtxt);
+      std::vector<double> surf_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double surf_phi = atan2(surf_center[1], surf_center[0]);
+      double surf_z = surf_center[2];
+      if( (world_phi > surf_phi - m_surfStepPhi / 2.0 && world_phi < surf_phi + m_surfStepPhi / 2.0 ) &&
+	  (world_z > surf_z -m_surfStepZ / 2.0 && world_z < surf_z + m_surfStepZ / 2.0) )
+	{
+	  surf_index = i;	  
+	  break;
+	}
+    }
+  if(surf_index == 999)
+    {
+      cout << PHWHERE << "Error: surface index not defined, can't go on!" << endl;
+      exit(1);
+    }
+ 
+  return surf_vec[surf_index];
+}
+
 
 TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(std::vector<double> &world)
 {
@@ -726,7 +789,6 @@ TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(std::vector<doub
     {
       double tpc_ref_radius_low = m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0;
       double tpc_ref_radius_high = m_layerRadius[ilayer] + m_layerThickness[ilayer] / 2.0;
-      //cout << "   ilayer " << ilayer << " tpc_ref_radius_low " << tpc_ref_radius_low << " tpc_ref_radius_high " << tpc_ref_radius_high << " layer_rad " << layer_rad << endl;
       if(layer_rad >= tpc_ref_radius_low && layer_rad < tpc_ref_radius_high)
 	{
 	  layer = ilayer;

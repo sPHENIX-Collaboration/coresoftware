@@ -124,6 +124,8 @@ class MakeActsGeometry
   void makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume);
   void makeInttMapPairs(TrackingVolumePtr &inttVolume);
   void makeTpcMapPairs(TrackingVolumePtr &tpcVolume);
+
+  Surface GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world);
   
   TrkrDefs::hitsetkey GetMvtxHitSetKeyFromCoords(unsigned int layer, 
 						 std::vector<double> &world);
