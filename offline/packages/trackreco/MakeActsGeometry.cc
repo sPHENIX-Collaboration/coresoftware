@@ -104,8 +104,8 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
 
       for(unsigned int ilayer =0; ilayer < 16; ++ilayer)
 	{
-	  layer_radius[isector*16 + ilayer] = m_minRadius[isector] + layer_thickness_sector[isector]*(double) ilayer + layer_thickness_sector[isector] / 2.0;
-	  layer_thickness[isector*16 + ilayer] = layer_thickness_sector[isector];
+	  m_layerRadius[isector*16 + ilayer] = m_minRadius[isector] + layer_thickness_sector[isector]*(double) ilayer + layer_thickness_sector[isector] / 2.0;
+	  m_layerThickness[isector*16 + ilayer] = layer_thickness_sector[isector];
 	}
     }
 
@@ -122,8 +122,11 @@ int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
   // Add the TPC surfaces to the copy
   EditTPCGeometry();
 
+  // save the edited geometry to DST persistent IO node for downstream DST files
+  PHGeomUtility::UpdateIONode(topNode);
+
   // run Acts layer builder
-  BuildSiliconLayers();
+  BuildActsSurfaces();
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
   MakeTGeoNodeMap(topNode);
@@ -199,29 +202,16 @@ void MakeActsGeometry::EditTPCGeometry()
   // adds surfaces to the underlying volume, so both north and south placements get them
   AddActsTpcSurfaces(tpc_gas_north_vol);
 
-  // save the edited geometry to DST persistent IO node for downstream DST files
-  //PHGeomUtility::UpdateIONode(topNode);
-
-  /*
-  // export to a file
- PHGeomUtility::ExportGeometry(se->topNode(),"TGeo_export.root");
-  cout <<"Done export Geometry to TGeo_export.root"<<endl;
-  */
 }
 
 void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 {
-  // prevent boxes from touching when placed
-  double half_width_clearance_thick = 0.4999;
-  double half_width_clearance_phi = 0.4999;
-  double half_width_clearance_z = 0.4999;
- 
-  
   TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
   assert(tpc_gas_medium);
 
-  TGeoVolume *tpc_gas_measurement_vol[48];
+  TGeoVolume *tpc_gas_measurement_vol[m_nTpcLayers];
   double tan_half_phi = tan(m_surfStepPhi / 2.0);
+  
   for(unsigned int ilayer = 0; ilayer < m_nTpcLayers; ++ilayer)
     {
       // make a box for this layer
@@ -230,10 +220,10 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 
       // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
       // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
-      double box_r_phi = 2.0 * tan_half_phi * (layer_radius[ilayer] - layer_thickness[ilayer] / 2.0);
+      double box_r_phi = 2.0 * tan_half_phi * (m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0);
 
       tpc_gas_measurement_vol[ilayer] = m_geoManager->MakeBox(bname, tpc_gas_medium, 
-							    layer_thickness[ilayer]*half_width_clearance_thick, 
+							    m_layerThickness[ilayer]*half_width_clearance_thick, 
 							    box_r_phi*half_width_clearance_phi, 
 							    m_surfStepZ*half_width_clearance_z);
 
@@ -243,8 +233,8 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 
       if(m_verbosity > 2)
 	{
-	  cout << "Made box for layer " << ilayer << " with dx " << layer_thickness[ilayer] << " dy " 
-	       << box_r_phi << " ref arc " << m_surfStepPhi*layer_radius[ilayer] << " dz " << m_surfStepZ << endl;
+	  cout << "Made box for layer " << ilayer << " with dx " << m_layerThickness[ilayer] << " dy " 
+	       << box_r_phi << " ref arc " << m_surfStepPhi*m_layerRadius[ilayer] << " dz " << m_surfStepZ << endl;
 	  tpc_gas_measurement_vol[ilayer]->Print();
 	}
     }
@@ -270,8 +260,8 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 		  
 		  // place copies of the gas volume to fill up the layer
 		  
-		  double x_center = layer_radius[ilayer] * cos(phi_center);
-		  double y_center = layer_radius[ilayer] * sin(phi_center);
+		  double x_center = m_layerRadius[ilayer] * cos(phi_center);
+		  double y_center = m_layerRadius[ilayer] * sin(phi_center);
 		  
 		  char rot_name[500];
 		  sprintf(rot_name,"tpc_gas_rotation_%i", copy);
@@ -354,16 +344,19 @@ void MakeActsGeometry::BuildTpcSurfaceMap()
 }
 
 /**
- * Builds silicon layers in the ACTS surface world
+ * Builds silicon layers and TPC geometry in the ACTS surface world
  */
-void MakeActsGeometry::BuildSiliconLayers()
+void MakeActsGeometry::BuildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
 
   // Can hard code geometry options since the TGeo options are fixed by our detector design
-  const int argc = 28;
+  const int argc = 33;
   char *arg[argc];
-  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--output-obj", "true", "--bf-values", "0", "0", "1.4"};
+  //TPC +mvtx + intt args
+  const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "TPC", "--geo-tgeo-nlayers=0", "0", "0", "--geo-tgeo-clayers=1", "1", "1", "--geo-tgeo-players=0", "0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "tpc_gas_measurement", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive", "tpc_gas_measurement","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "xzy", "--bf-values", "0", "0", "1.4"};
+  //intt + mvtx args
+  //const std::string argstr[argc]{"-n1", "-l0", "--geo-tgeo-filename=none", "--geo-tgeo-worldvolume=\"World\"", "--geo-subdetectors", "MVTX", "Silicon", "--geo-tgeo-nlayers=0", "0", "--geo-tgeo-clayers=1", "1", "--geo-tgeo-players=0", "0", "--geo-tgeo-clayernames", "MVTX", "siactive", "--geo-tgeo-cmodulenames", "MVTXSensor", "siactive","--geo-tgeo-cmoduleaxes", "xzy", "yzx", "--bf-values", "0", "0", "1.4"};
 
   // Set vector of chars to arguments needed
   for (int i = 0; i < argc; ++i)
@@ -375,10 +368,10 @@ void MakeActsGeometry::BuildSiliconLayers()
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  MakeSiliconGeometry(argc, arg, m_detector);
+  MakeGeometry(argc, arg, m_detector);
 }
 
-int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetector &detector)
+int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &detector)
 {
   // setup and parse options
   auto desc = FW::Options::makeDefaultOptions();
@@ -412,7 +405,7 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
   m_magneticField = FW::Options::readBField(vm);
 
   // The detectors
-  // "MVTX" and "Silicon"
+  // "MVTX" and "Silicon" and "TPC"
   read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
   size_t ievt = 0;
@@ -438,9 +431,14 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
 
   m_geoCtxt = context.geoContext;
 
-  // tGeometry is a TrackingGeometry pointer, acquired in the first 20 lines/ of this file
+
+  // m_tGeometry is a TrackingGeometry pointer
   auto vol = m_tGeometry->highestTrackingVolume();
   // vol is a TrackingVolume pointer
+
+  if(m_verbosity > 10 )
+    std::cout << "Highest Tracking Volume is "
+	      << vol->volumeName() << std::endl;
 
   // Get the confined volumes in the highest tracking volume
   // confinedVolumes is a shared_ptr<TrackingVolumeArray>
@@ -449,89 +447,120 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
   // volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
 
-  // The first entry is the MVTX
-  //=====================
-  auto mvtxVolumes = volumeVector.at(0)->confinedVolumes();
-  // mvtxVolumes is a shared_ptr<TrackingVolumeArray>
-  // Now get the individual TrackingVolumePtrs corresponding to each MVTX volume
-  auto mvtxBarrel = mvtxVolumes->arrayObjects().at(1);
-
-  // Now get the LayerArrays corresponding to each volume
-  auto mvtxBarrelLayerArray = mvtxBarrel->confinedLayers();  // the barrel is all we care about
-
-  // This is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
-  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
-
-  // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
-  // the layer number has to be deduced from the radius
-  for (unsigned int i = 0; i < mvtxLayerVector1.size(); ++i)
-  {
-    // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
-    auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
-    if (surfaceArray == NULL)
-      continue;
-
-    double ref_rad[3] = {2.556, 3.359, 4.134};
-
-    // surfaceVector is an Acts::SurfaceVector, vector of surfaces
-    //std::vector<const Surface*>
-    auto surfaceVector = surfaceArray->surfaces();
-    for (unsigned int j = 0; j < surfaceVector.size(); j++)
+  // we have several volumes to walk through with the tpc and silicon
+  auto firstVolumes = volumeVector.at(0)->confinedVolumes();
+  auto topVolumesVector = firstVolumes->arrayObjects();
+  
+  if(m_verbosity > 10 )
     {
-      auto surf = surfaceVector.at(j)->getSharedPtr();
+      for(long unsigned int i = 0; i<topVolumesVector.size(); i++)
+	{
+	  std::cout<< "TopVolume name: " 
+		   << topVolumesVector.at(i)->volumeName() << std::endl;
+	}
+    }
 
-      auto vec3d = surf->center(context.geoContext);
-      std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
-      unsigned int layer = 0;
-      for (unsigned int i = 0; i < 3; ++i)
-      {
-        if (fabs(layer_rad - ref_rad[i]) < 0.1)
-          layer = i;
-      }
-
-      TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
-
-      // Add this surface to the map
-      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
-
-      m_clusterSurfaceMapSilicon.insert(tmp);
-
-      if (m_verbosity > 0)
-      {
-        unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
-        unsigned int chip = MvtxDefs::getChipId(hitsetkey);
-
-        // check it is in there
-        std::cout << "Layer radius " << layer_rad << " Layer " << layer << " stave " << stave << " chip " << chip
-                  << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
-        std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
-        std::cout << " surface type " << surf_iter->second->type() << std::endl;
-        surf_iter->second->toStream(m_geoCtxt, std::cout);
-        auto assoc_layer = surf->associatedLayer();
-        std::cout << std::endl
-                  << " Layer type " << assoc_layer->layerType() << std::endl;
-
-        auto assoc_det_element = surf->associatedDetectorElement();
-        if (assoc_det_element != nullptr)
-        {
-          std::cout << " Associated detElement has non-null pointer " << assoc_det_element << std::endl;
-          std::cout << std::endl
-                    << " Associated detElement found, thickness = " << assoc_det_element->thickness() << std::endl;
-        }
-        else
-          std::cout << std::endl
-                    << " Associated detElement is nullptr " << std::endl;
+  /// This actually contains the silicon volumes
+  auto siliconVolumes = topVolumesVector.at(1)->confinedVolumes();
+  
+  if(m_verbosity > 10 )
+    {
+      for(long unsigned int i =0; i<siliconVolumes->arrayObjects().size(); i++){
+	std::cout << "SiliconVolumeName: " 
+		  << siliconVolumes->arrayObjects().at(i)->volumeName()
+		  << std::endl;
       }
     }
-  }
 
-  // end of MVTX
-  //=================================
+  // First do the MVTX
+  //=====================
+  // siliconVolumes is a shared_ptr<TrackingVolumeArray>
+  // Now get the individual TrackingVolumePtrs corresponding to each silicon volume
+  
+  auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
+  auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
+  auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+  makeMvtxMapPairs(mvtxBarrel);
 
-  // INTT only has one volume, so there is not an added iterator like for the  MVTX
+  // INTT only has one volume, so there is not an added iterator 
+  // like for the  MVTX
   //========================================================
-  auto inttVolume = volumeVector.at(1);
+  auto inttVolume =  siliconVolumes->arrayObjects().at(1);
+
+  makeInttMapPairs(inttVolume);
+
+  // Same for the TPC - only one volume
+  auto tpcVolume = volumeVector.at(1);
+  
+  if(m_verbosity > 10)
+    std::cout << "TPC Volume name is : " <<tpcVolume->volumeName() << std::endl;
+
+  makeTpcMapPairs(tpcVolume);
+
+  return 0;
+}
+
+void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
+{
+
+  auto tpcLayerArray = tpcVolume->confinedLayers();
+  auto tpcLayerVector = tpcLayerArray->arrayObjects();
+
+  /// Need to unfold each layer that Acts builds
+  for(unsigned int i = 0; i < tpcLayerVector.size(); i++)
+    {
+      auto surfaceArray = tpcLayerVector.at(i)->surfaceArray();
+      if(surfaceArray == NULL){
+	continue;
+      }
+      /// surfaceVector is a vector of surfaces corresponding to the tpc layer
+      /// that acts builds
+      auto surfaceVector = surfaceArray->surfaces();
+      for( unsigned int j = 0; j < surfaceVector.size(); j++)
+	{
+	  auto surf = surfaceVector.at(j)->getSharedPtr();
+	  auto vec3d = surf->center(m_geoCtxt);
+	  
+
+	  /// convert to cm
+	  std::vector<double> world_center = {vec3d(0) / 10.0, 
+					      vec3d(1) / 10.0,
+					      vec3d(2) / 10.0};
+	
+	  TrkrDefs::hitsetkey hitsetkey = GetTpcHitSetKeyFromCoords(world_center);
+	  /// If there is already an entry for this hitsetkey, add the surface
+	  /// to its corresponding vector
+	  std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
+	  mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
+	  
+	  if(mapIter != m_clusterSurfaceMapTpcEdit.end())
+	    {
+	      mapIter->second.push_back(surf);
+	    }
+	  else
+	    {
+	      ///otherwise make a new map entry
+	      std::vector<Surface> dumvec;
+	      dumvec.push_back(surf);
+	      std::pair<TrkrDefs::hitsetkey, std::vector<Surface>> tmp = 
+		std::make_pair(hitsetkey, dumvec);
+	      m_clusterSurfaceMapTpcEdit.insert(tmp);
+	    }
+	  
+	}
+    }
+
+}
+
+void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
+{
+  
+  if(m_verbosity > 10)
+    {
+      std::cout << "intt volume name: "  << inttVolume->volumeName()
+		<< std::endl;
+    }
+
   auto inttLayerArray = inttVolume->confinedLayers();
 
   auto inttLayerVector = inttLayerArray->arrayObjects();
@@ -547,11 +576,12 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
 
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     auto surfaceVector = surfaceArray->surfaces();
+
     for (unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();
 
-      auto vec3d = surf->center(context.geoContext);
+      auto vec3d = surf->center(m_geoCtxt);
 
       double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
 
@@ -602,54 +632,146 @@ int MakeActsGeometry::MakeSiliconGeometry(int argc, char *argv[], FW::IBaseDetec
     }
   }
 
-  // end of INTT
-  //=================================
-
-  return 0;
 }
 
-TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(unsigned int &layer, std::vector<double> &world)
+void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
+{
+  
+  if(m_verbosity > 10)
+    {
+      std::cout << "MVTX Barrel name to step surfaces through is " 
+	      << mvtxVolume->volumeName() << std::endl;
+    }
+  // Now get the LayerArrays corresponding to each volume
+  auto mvtxBarrelLayerArray = mvtxVolume->confinedLayers();  // the barrel is all we care about
+
+  // This is a BinnedArray<LayerPtr>, but we care only about the sensitive surfaces
+  auto mvtxLayerVector1 = mvtxBarrelLayerArray->arrayObjects();  // the barrel is all we care about
+
+  // mvtxLayerVector has size 3, but only index 1 has any surfaces since the clayersplits option was removed
+  // the layer number has to be deduced from the radius
+  for (unsigned int i = 0; i < mvtxLayerVector1.size(); ++i)
+  {
+    // Get the Acts::SurfaceArray from each MVTX LayerPtr being iterated over
+    auto surfaceArray = mvtxLayerVector1.at(i)->surfaceArray();
+    if (surfaceArray == NULL)
+      continue;
+
+    double ref_rad[3] = {2.556, 3.359, 4.134};
+
+    // surfaceVector is an Acts::SurfaceVector, vector of surfaces
+    //std::vector<const Surface*>
+    auto surfaceVector = surfaceArray->surfaces();
+    std::cout<<"mvtx surface vector"<<std::endl;
+    for (unsigned int j = 0; j < surfaceVector.size(); j++)
+    {
+      auto surf = surfaceVector.at(j)->getSharedPtr();
+
+      auto vec3d = surf->center(m_geoCtxt);
+      std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
+      double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
+      unsigned int layer = 0;
+      for (unsigned int i = 0; i < 3; ++i)
+      {
+        if (fabs(layer_rad - ref_rad[i]) < 0.1)
+          layer = i;
+      }
+
+      TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
+
+      // Add this surface to the map
+      std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
+
+      m_clusterSurfaceMapSilicon.insert(tmp);
+
+      if (m_verbosity > 1)
+      {
+        unsigned int stave = MvtxDefs::getStaveId(hitsetkey);
+        unsigned int chip = MvtxDefs::getChipId(hitsetkey);
+
+        // check it is in there
+        std::cout << "Layer radius " << layer_rad << " Layer " << layer << " stave " << stave << " chip " << chip
+                  << " recover surface from m_clusterSurfaceMapSilicon " << std::endl;
+        std::map<TrkrDefs::hitsetkey, Surface>::iterator surf_iter = m_clusterSurfaceMapSilicon.find(hitsetkey);
+        std::cout << " surface type " << surf_iter->second->type() << std::endl;
+        surf_iter->second->toStream(m_geoCtxt, std::cout);
+        auto assoc_layer = surf->associatedLayer();
+        std::cout << std::endl
+                  << " Layer type " << assoc_layer->layerType() << std::endl;
+
+        auto assoc_det_element = surf->associatedDetectorElement();
+        if (assoc_det_element != nullptr)
+        {
+          std::cout << " Associated detElement has non-null pointer " << assoc_det_element << std::endl;
+          std::cout << std::endl
+                    << " Associated detElement found, thickness = " << assoc_det_element->thickness() << std::endl;
+        }
+        else
+          std::cout << std::endl
+                    << " Associated detElement is nullptr " << std::endl;
+      }
+    }
+  }
+
+}
+
+TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(std::vector<double> &world)
 {
   // Look up TPC surface index values from world position of surface center
 
-  // The TPC surfaces are defined in this class, not during detector construction, so we do not have a geometry object for them
-
-  // layer 
-  layer = NAN;
+  // layer
+  unsigned int layer = 999;
   double layer_rad = sqrt(pow(world[0],2) + pow(world[1],2));
-  for(ilayer=0;ilayer<m_nTpcLayers;++ilayer)
+  for(unsigned int ilayer=0;ilayer<m_nTpcLayers;++ilayer)
     {
       double tpc_ref_radius_low = m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0;
-      double tpc_ref_radius_high = m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0;
+      double tpc_ref_radius_high = m_layerRadius[ilayer] + m_layerThickness[ilayer] / 2.0;
+      //cout << "   ilayer " << ilayer << " tpc_ref_radius_low " << tpc_ref_radius_low << " tpc_ref_radius_high " << tpc_ref_radius_high << " layer_rad " << layer_rad << endl;
       if(layer_rad >= tpc_ref_radius_low && layer_rad < tpc_ref_radius_high)
-	layer = ilayer + 7;
+	{
+	  layer = ilayer;
+	  break;
+	}
     }
-  if(!layer) 
+  if(layer >= m_nTpcLayers) 
     {
-      cout << PHWHERE << "Error: undefine layer, do nothing " << endl;
-      return 0;
+      cout << PHWHERE << "Error: undefined layer, do nothing world =  " << world[0] << "  " << world[1] << "  " << world[2] << " layer " << layer << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
+  layer += 7;
 
   // side -  from world z sign 
+  unsigned int side;
   if(world[2] < 0)
     side = 0;
   else
     side = 1;
 
-  // sector  - world phi range
-  unsigned int readout_mod;
+  // readout module 
+  unsigned int readout_mod = 999;
   double phi_world = atan2(world[1], world[0]);
-  for(unsigned int imod=0;imod<m_nTpcModulesPerLayer;++imod)
+  for(unsigned int imod=0; imod<m_nTpcModulesPerLayer; ++imod)
     {
-
+      double min_phi = m_modulePhiStart + (double) imod * m_moduleStepPhi;
+      double max_phi = m_modulePhiStart + (double) (imod+1) * m_moduleStepPhi;
+      if(phi_world >=min_phi && phi_world < max_phi)
+	{
+	  readout_mod = imod;
+	  break;
+	}
+    }
+  if(readout_mod >= m_nTpcModulesPerLayer)
+    {
+      cout << PHWHERE << "Error: readout_mod is undefined, do nothing  phi_world = " << phi_world << endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  // z step - z within side
-
-  // phi step - dphi witin readout sector
-
-
-
+  TrkrDefs::hitsetkey hitset_key = TpcDefs::genHitSetKey(layer, readout_mod, side);
+  if(m_verbosity > 3)
+    if(layer == 30)
+      cout << "   world = " << world[0] << "  " << world[1] << "  " << world[2] << " phi_world " << phi_world*180/3.14159 << " layer " << layer << " readout_mod " << readout_mod << " side " << side << " hitsetkey " << hitset_key<< endl;
+  
+  return hitset_key;
 }
 
 TrkrDefs::hitsetkey MakeActsGeometry::GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
@@ -707,7 +829,7 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
     cout << PHWHERE << " Did not find TGeoManager, quit! " << endl;
     return;
   }
-  TGeoVolume *topVol = m_geoManager->GetThopVolume();
+  TGeoVolume *topVol = m_geoManager->GetTopVolume();
   TObjArray *nodeArray = topVol->GetNodes();
 
   TIter iObj(nodeArray);
@@ -741,11 +863,12 @@ void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
       {
 	if(m_verbosity > 2)
 	  cout << " node " << node->GetName() << " is in the TPC " << endl;
+	getTpcKeyFromNode(node);
       }
     else
       continue;
 
-    bool print_sensor_paths = true;  // normally false
+    bool print_sensor_paths = false;  // normally false
     if (print_sensor_paths)
     {
       // Descends the node tree to find the active silicon nodes - used for information only
@@ -827,7 +950,10 @@ void MakeActsGeometry::getInttKeyFromNode(TGeoNode *gnode)
 
   return;
 }
+void MakeActsGeometry::getTpcKeyFromNode(TGeoNode *gnode)
+{
 
+}
 void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 {
   int counter = 0;

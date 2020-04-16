@@ -81,6 +81,7 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
 
   /// Check if Acts geometry has been built and is on the node tree
   MakeActsGeometry *actsGeometry = new MakeActsGeometry();
+  actsGeometry->SetVerbosity(Verbosity());
   actsGeometry->BuildAllGeometry(topNode);
 
   m_minSurfZ = actsGeometry->getMinSurfZ();
