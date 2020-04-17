@@ -297,7 +297,7 @@ void MakeActsGeometry::buildActsSurfaces()
 void MakeActsGeometry::makeGeometry(int argc, char *argv[], 
 				    FW::IBaseDetector &detector)
 {
-  // setup and parse options
+  /// setup and parse options
   auto desc = FW::Options::makeDefaultOptions();
   FW::Options::addSequencerOptions(desc);
   FW::Options::addGeometryOptions(desc);
@@ -306,13 +306,9 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   FW::Options::addOutputOptions(desc);
   FW::Options::addBFieldOptions(desc);
 
-  // Add specific options for this geometry
+  /// Add specific options for this geometry
   detector.addOptions(desc);
   auto vm = FW::Options::parse(desc, argc, argv);
-  if (vm.empty())
-  {
-    return EXIT_FAILURE;
-  }
 
   /// Now read the standard options
   auto logLevel = FW::Options::readLogLevel(vm);
@@ -413,7 +409,7 @@ void MakeActsGeometry::makeGeometry(int argc, char *argv[],
   
   makeTpcMapPairs(tpcVolume);
 
-  return 0;
+  return;
 }
 
 void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
