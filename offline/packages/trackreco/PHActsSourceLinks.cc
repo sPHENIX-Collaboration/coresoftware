@@ -79,8 +79,12 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   m_actsGeometry->SetVerbosity(Verbosity());
   m_actsGeometry->BuildAllGeometry(topNode);
 
+  /// Set the tGeometry struct to be put on the node tree
   m_tGeometry->tGeometry = m_actsGeometry->getTGeometry();
   m_tGeometry->magField = m_actsGeometry->getMagField();
+  m_tGeometry->calibContext = m_actsGeometry->getCalibContext();
+  m_tGeometry->magFieldContext = m_actsGeometry->getMagFieldContext();
+  m_tGeometry->geoContext = m_actsGeometry->getGeoContext();
 
   if (Verbosity() > 10)
   {
@@ -286,7 +290,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   if(Verbosity() > 10)
     {
       std::cout << "Stream of found TPC surface: " << std::endl;
-      surface->toStream(m_actsGeometry->m_geoCtxt, std::cout);
+      surface->toStream(m_tGeometry->geoContext, std::cout);
     }
 
   /// Transformation of cluster to local surface coords
@@ -570,16 +574,6 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
     PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>> *hitMapNode =
         new PHDataNode<std::map<TrkrDefs::cluskey, unsigned int>>(m_hitIdClusKey, "HitIDClusIDActsMap");
     svtxNode->addNode(hitMapNode);
-  }
-
-
-  m_actsGeometry = findNode::getClass<MakeActsGeometry>(topNode, "MakeActsGeometry");
-
-  if (!m_actsGeometry)
-  {
-    m_actsGeometry = new MakeActsGeometry();
-    PHDataNode<MakeActsGeometry> *geomNode = new PHDataNode<MakeActsGeometry>(m_actsGeometry, "MakeActsGeometry");
-    svtxNode->addNode(geomNode);
   }
 
   /// Do the same for the SourceLink container

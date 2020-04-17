@@ -30,7 +30,6 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
   , m_event(0)
   , m_actsProtoTracks(nullptr)
-  , m_actsGeometry(nullptr)
   , m_tGeometry(nullptr)
 {
   Verbosity(0);
@@ -84,9 +83,9 @@ int PHActsTrkFitter::Process()
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
-    Acts::KalmanFitterOptions kfOptions(m_actsGeometry->m_geoCtxt,
-					m_actsGeometry->m_magFieldContext,
-					m_actsGeometry->m_calibContext,
+    Acts::KalmanFitterOptions kfOptions(m_tGeometry->geoContext,
+					m_tGeometry->magFieldContext,
+					m_tGeometry->calibContext,
 					&(*pSurface));
 
   
@@ -139,16 +138,6 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   {
     std::cout << "Acts proto tracks not on node tree. Exiting."
               << std::endl;
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
-
-  m_actsGeometry = findNode::getClass<MakeActsGeometry>(topNode, "MakeActsGeometry");
-
-  if (!m_actsGeometry)
-  {
-    std::cout << "ActsGeometry not on node tree. Exiting."
-              << std::endl;
-
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 

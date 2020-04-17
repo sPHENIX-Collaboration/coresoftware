@@ -68,7 +68,6 @@ class PHActsTrkFitter : public PHTrackFitting
   std::vector<ActsTrack>* m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
-  MakeActsGeometry* m_actsGeometry;
   ActsTrackingGeometry *m_tGeometry;
 };
 

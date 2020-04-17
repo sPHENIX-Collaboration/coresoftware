@@ -45,15 +45,28 @@ class Surface;
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
+/**
+ * A struct to carry around Acts geometry, so as to not put all of the
+ * MakeActsGeometry memory footprint on the node tree
+ */
 struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
   ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
-	  FW::Options::BFieldVariant mag)
+		       FW::Options::BFieldVariant mag,
+		       Acts::CalibrationContext calib,
+		       Acts::GeometryContext geoCtxt,
+		       Acts::MagneticFieldContext magFieldCtxt)
   : tGeometry(tGeo)
   , magField(mag)
+  , calibContext(calib)
+  , geoContext(geoCtxt)
+  , magFieldContext(magFieldCtxt)
   {}
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
   FW::Options::BFieldVariant magField;
+  Acts::CalibrationContext calibContext;
+  Acts::GeometryContext geoContext;
+  Acts::MagneticFieldContext magFieldContext;
 };
 
 /**

@@ -104,12 +104,6 @@ class MakeActsGeometry
   Surface GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, 
     std::vector<double> &world);
 
-  /// These are public so that std::reference_wrapper can access them
-  /// in the KalmanFitterOptions
-  Acts::GeometryContext  m_geoCtxt;  
-  Acts::CalibrationContext m_calibContext;
-  Acts::MagneticFieldContext m_magFieldContext;
-
  private:
   
   //! Get all the nodes
@@ -200,9 +194,12 @@ class MakeActsGeometry
   // The acts geometry object
   TGeoDetector m_detector;
 
+  /// Acts geometry objects that are needed to create (for example) the fitter
   TrackingGeometry m_tGeometry;
-  
   FW::Options::BFieldVariant m_magneticField;
+  Acts::GeometryContext  m_geoCtxt;  
+  Acts::CalibrationContext m_calibContext;
+  Acts::MagneticFieldContext m_magFieldContext;
 
   int m_verbosity;
 };
