@@ -76,8 +76,8 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   /// Check if Acts geometry has been built and is on the node tree
   m_actsGeometry = new MakeActsGeometry();
   
-  m_actsGeometry->SetVerbosity(Verbosity());
-  m_actsGeometry->BuildAllGeometry(topNode);
+  m_actsGeometry->setVerbosity(Verbosity());
+  m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree
   m_tGeometry->tGeometry = m_actsGeometry->getTGeometry();
@@ -283,7 +283,7 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   std::vector<double> worldVec = {world[0], world[1], world[2]};
   /// MakeActsGeometry has a helper function since many surfaces can exist on
   /// a given readout module
-  Surface surface = m_actsGeometry->GetTpcSurfaceFromCoords(tpcHitSetKey,
+  Surface surface = m_actsGeometry->getTpcSurfaceFromCoords(tpcHitSetKey,
 							    worldVec);
   assert(surface);
   

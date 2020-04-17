@@ -5,19 +5,6 @@
  *  \author	        Tony Frawley <afrawley@fsu.edu>
  */
 
-/*
-MakeActsGeometry  
-  // Create acts geometry
-  // Make (hitsetkey,surface) map and place on node tree
-
-  Create acts geometry (makes (hitsetkey,surface) maps)
-  BuildSiliconLayers();  
-      MakeActsGeometry  // makes (hitsetkey,surface) map for silicon
-  BuildTpcSurfaceMap  // makes (hitsetkey,surface) map for silicon
-  MakeTGeoNodeMap(topNode);  // makes cluster-node map - not used
-    isActive  // not used
-*/
-
 #include "MakeActsGeometry.h"
 
 #include <trackbase/TrkrDefs.h>
@@ -59,7 +46,6 @@ MakeActsGeometry
 #include <ACTFW/Geometry/CommonGeometry.hpp>
 #include <ACTFW/Options/CommonOptions.hpp>
 #include <ACTFW/Plugins/Obj/ObjWriterOptions.hpp>
-
 #include <ACTFW/Utilities/Options.hpp>
 
 #include <TGeoManager.h>
@@ -78,9 +64,7 @@ MakeActsGeometry
 
 using namespace std;
 
-/*
- * Constructor
- */
+
 MakeActsGeometry::MakeActsGeometry(const string &name)
   : m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
@@ -92,7 +76,8 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_nSurfPhi(10)
   , m_verbosity(0)
 {
-  // These are arbitrary tpc subdivisions, and may change
+  /// These are arbitrary tpc subdivisions, and may change
+  /// Setup how TPC boxes will be built for Acts::Surfaces
   m_surfStepZ = (m_maxSurfZ - m_minSurfZ) / (double) m_nSurfZ;
   m_moduleStepPhi = 2.0 * M_PI / 12.0;
   m_modulePhiStart = -M_PI;
@@ -113,28 +98,31 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
 
 }
 
-int MakeActsGeometry::BuildAllGeometry(PHCompositeNode *topNode)
-{
-  GetNodes(topNode);  // for geometry nodes
+MakeActsGeometry::~MakeActsGeometry()
+{}
 
-  CreateNodes(topNode);  // for writing surface map
+int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
+{
+  getNodes(topNode);  // for geometry nodes
+
+  createNodes(topNode);  // for writing surface map
 
   // Add the TPC surfaces to the copy of the TGeoManager
-  EditTPCGeometry();
+  editTPCGeometry();
 
   // save the edited geometry to DST persistent IO node for downstream DST files
   PHGeomUtility::UpdateIONode(topNode);
 
   // run Acts layer builder
-  BuildActsSurfaces();
+  buildActsSurfaces();
 
   // create a map of sensor TGeoNode pointers using the TrkrDefs:: hitsetkey as the key
-  MakeTGeoNodeMap(topNode);
+  makeTGeoNodeMap(topNode);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void MakeActsGeometry::EditTPCGeometry()
+void MakeActsGeometry::editTPCGeometry()
 {
 
   TGeoVolume *World_vol = m_geoManager->GetTopVolume();
@@ -197,11 +185,11 @@ void MakeActsGeometry::EditTPCGeometry()
   }
 
   // adds surfaces to the underlying volume, so both north and south placements get them
-  AddActsTpcSurfaces(tpc_gas_north_vol);
+  addActsTpcSurfaces(tpc_gas_north_vol);
 
 }
 
-void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
+void MakeActsGeometry::addActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 {
   TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
   assert(tpc_gas_medium);
@@ -281,7 +269,7 @@ void MakeActsGeometry::AddActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
 /**
  * Builds silicon layers and TPC geometry in the ACTS surface world
  */
-void MakeActsGeometry::BuildActsSurfaces()
+void MakeActsGeometry::buildActsSurfaces()
 {
   // define int argc and char* argv to provide options to processGeometry
 
@@ -303,10 +291,11 @@ void MakeActsGeometry::BuildActsSurfaces()
   // We replicate the relevant functionality of  acts-framework/Examples/Common/src/GeometryExampleBase::ProcessGeometry() in MakeActsGeometry()
   // so we get access to the results. The layer builder magically gets the TGeoManager
 
-  MakeGeometry(argc, arg, m_detector);
+  makeGeometry(argc, arg, m_detector);
 }
 
-int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &detector)
+void MakeActsGeometry::makeGeometry(int argc, char *argv[], 
+				    FW::IBaseDetector &detector)
 {
   // setup and parse options
   auto desc = FW::Options::makeDefaultOptions();
@@ -325,35 +314,35 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
     return EXIT_FAILURE;
   }
 
-  // Now read the standard options
+  /// Now read the standard options
   auto logLevel = FW::Options::readLogLevel(vm);
 
-  // The geometry, material and decoration
+  /// The geometry, material and decoration
   auto geometry = FW::Geometry::build(vm, detector);
-  // geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
+  /// Geometry is a pair of (tgeoTrackingGeometry, tgeoContextDecorators)
   m_tGeometry = geometry.first;
   m_contextDecorators = geometry.second;
 
   m_magneticField = FW::Options::readBField(vm);
 
-  // The detectors
-  // "MVTX" and "Silicon" and "TPC"
+  /// The detectors
+  /// "MVTX" and "Silicon" and "TPC"
   read_strings subDetectors = vm["geo-subdetectors"].as<read_strings>();
 
   size_t ievt = 0;
   size_t ialg = 0;
 
-  // Setup the event and algorithm context
+  /// Setup the event and algorithm context
   FW::WhiteBoard eventStore(Acts::getDefaultLogger("EventStore#" + std::to_string(ievt),
                                                    logLevel));
 
-  // The geometry context
+  /// The geometry context
   FW::AlgorithmContext context(ialg, ievt, eventStore);
 
   m_calibContext = context.calibContext;
   m_magFieldContext = context.magFieldContext;
 
-  // this is not executed because contextDecorators has size 0
+  /// This is not executed because contextDecorators has size 0
   /// Decorate the context
   for (auto &cdr : m_contextDecorators)
   {
@@ -364,22 +353,22 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
   m_geoCtxt = context.geoContext;
 
 
-  // m_tGeometry is a TrackingGeometry pointer
+  /// m_tGeometry is a TrackingGeometry pointer
+  /// vol is a TrackingVolume pointer  
   auto vol = m_tGeometry->highestTrackingVolume();
-  // vol is a TrackingVolume pointer
 
   if(m_verbosity > 10 )
     std::cout << "Highest Tracking Volume is "
 	      << vol->volumeName() << std::endl;
 
-  // Get the confined volumes in the highest tracking volume
-  // confinedVolumes is a shared_ptr<TrackingVolumeArray>
+  /// Get the confined volumes in the highest tracking volume
+  /// confinedVolumes is a shared_ptr<TrackingVolumeArray>
   auto confinedVolumes = vol->confinedVolumes();
 
-  // volumeVector is a std::vector<TrackingVolumePtrs>
+  /// volumeVector is a std::vector<TrackingVolumePtrs>
   auto volumeVector = confinedVolumes->arrayObjects();
 
-  // we have several volumes to walk through with the tpc and silicon
+  /// We have several volumes to walk through with the tpc and silicon
   auto firstVolumes = volumeVector.at(0)->confinedVolumes();
   auto topVolumesVector = firstVolumes->arrayObjects();
   
@@ -404,29 +393,24 @@ int MakeActsGeometry::MakeGeometry(int argc, char *argv[], FW::IBaseDetector &de
       }
     }
 
-  // First do the MVTX
-  //=====================
-  // siliconVolumes is a shared_ptr<TrackingVolumeArray>
-  // Now get the individual TrackingVolumePtrs corresponding to each silicon volume
+  /// siliconVolumes is a shared_ptr<TrackingVolumeArray>
+  /// Now get the individual TrackingVolumePtrs corresponding to each silicon volume
   
   auto mvtxVolumes = siliconVolumes->arrayObjects().at(0);
   auto mvtxConfinedVolumes = mvtxVolumes->confinedVolumes();
   auto mvtxBarrel = mvtxConfinedVolumes->arrayObjects().at(1);
+
   makeMvtxMapPairs(mvtxBarrel);
 
-  // INTT only has one volume, so there is not an added iterator 
-  // like for the  MVTX
-  //========================================================
+  /// INTT only has one volume, so there is not an added volume extraction
+  /// like for the MVTX
   auto inttVolume =  siliconVolumes->arrayObjects().at(1);
 
   makeInttMapPairs(inttVolume);
 
-  // Same for the TPC - only one volume
+  /// Same for the TPC - only one volume
   auto tpcVolume = volumeVector.at(1);
   
-  if(m_verbosity > 10)
-    std::cout << "TPC Volume name is : " <<tpcVolume->volumeName() << std::endl;
-
   makeTpcMapPairs(tpcVolume);
 
   return 0;
@@ -459,7 +443,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 					      vec3d(1) / 10.0,
 					      vec3d(2) / 10.0};
 	
-	  TrkrDefs::hitsetkey hitsetkey = GetTpcHitSetKeyFromCoords(world_center);
+	  TrkrDefs::hitsetkey hitsetkey = getTpcHitSetKeyFromCoords(world_center);
 
 	  /// If there is already an entry for this hitsetkey, add the surface
 	  /// to its corresponding vector
@@ -472,7 +456,7 @@ void MakeActsGeometry::makeTpcMapPairs(TrackingVolumePtr &tpcVolume)
 	    }
 	  else
 	    {
-	      ///otherwise make a new map entry
+	      /// Otherwise make a new map entry
 	      std::vector<Surface> dumvec;
 	      dumvec.push_back(surf);
 	      std::pair<TrkrDefs::hitsetkey, std::vector<Surface>> tmp = 
@@ -519,8 +503,9 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
       double ref_rad[4] = {8.987, 9.545, 10.835, 11.361};
 
       std::vector<double> world_center = {vec3d(0) / 10.0, vec3d(1) / 10.0, vec3d(2) / 10.0};  // convert from mm to cm
-      // The Acts geometry builder combines layers 4 and 5 together, and layers 6 and 7 together. We need to use the radius to figure
-      // out which layer to use to get the layergeom
+      /// The Acts geometry builder combines layers 4 and 5 together, 
+      /// and layers 6 and 7 together. We need to use the radius to figure
+      /// out which layer to use to get the layergeom
       double layer_rad = sqrt(pow(world_center[0], 2) + pow(world_center[1], 2));
 
       unsigned int layer = 0;
@@ -530,7 +515,7 @@ void MakeActsGeometry::makeInttMapPairs(TrackingVolumePtr &inttVolume)
           layer = i + 3;
       }
 
-      TrkrDefs::hitsetkey hitsetkey = GetInttHitSetKeyFromCoords(layer, world_center);
+      TrkrDefs::hitsetkey hitsetkey = getInttHitSetKeyFromCoords(layer, world_center);
 
       // Add this surface to the map
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
@@ -610,7 +595,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
           layer = i;
       }
 
-      TrkrDefs::hitsetkey hitsetkey = GetMvtxHitSetKeyFromCoords(layer, world_center);
+      TrkrDefs::hitsetkey hitsetkey = getMvtxHitSetKeyFromCoords(layer, world_center);
 
       // Add this surface to the map
       std::pair<TrkrDefs::hitsetkey, Surface> tmp = make_pair(hitsetkey, surf);
@@ -647,7 +632,7 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
   }
 }
 
-Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
+Surface MakeActsGeometry::getTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey, std::vector<double> &world)
 {
   std::map<TrkrDefs::hitsetkey, std::vector<Surface>>::iterator mapIter;
   mapIter = m_clusterSurfaceMapTpcEdit.find(hitsetkey);
@@ -692,10 +677,9 @@ Surface MakeActsGeometry::GetTpcSurfaceFromCoords(TrkrDefs::hitsetkey hitsetkey,
 }
 
 
-TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(std::vector<double> &world)
+TrkrDefs::hitsetkey MakeActsGeometry::getTpcHitSetKeyFromCoords(std::vector<double> &world)
 {
   // Look up TPC surface index values from world position of surface center
-
   // layer
   unsigned int layer = 999;
   double layer_rad = sqrt(pow(world[0],2) + pow(world[1],2));
@@ -750,7 +734,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::GetTpcHitSetKeyFromCoords(std::vector<doub
   return hitset_key;
 }
 
-TrkrDefs::hitsetkey MakeActsGeometry::GetMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
+TrkrDefs::hitsetkey MakeActsGeometry::getMvtxHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
   // Look up the MVTX sensor index values from the world position of the surface center
 
@@ -772,7 +756,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::GetMvtxHitSetKeyFromCoords(unsigned int la
   return mvtx_hitsetkey;
 }
 
-TrkrDefs::hitsetkey MakeActsGeometry::GetInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
+TrkrDefs::hitsetkey MakeActsGeometry::getInttHitSetKeyFromCoords(unsigned int layer, std::vector<double> &world)
 {
   // Look up the INTT sensor index values from the world position of the surface center
 
@@ -795,7 +779,7 @@ TrkrDefs::hitsetkey MakeActsGeometry::GetInttHitSetKeyFromCoords(unsigned int la
   return intt_hitsetkey;
 }
 
-void MakeActsGeometry::MakeTGeoNodeMap(PHCompositeNode *topNode)
+void MakeActsGeometry::makeTGeoNodeMap(PHCompositeNode *topNode)
 {
   // This is just a diagnostic method
   // it lets you list all of the nodes by setting print_sensors = true
@@ -1006,7 +990,6 @@ void MakeActsGeometry::getMvtxKeyFromNode(TGeoNode *gnode)
 
 void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
 {
-
   // Not used in analysis: diagnostic, for looking at the node tree only.
   // Recursively searches gnode for silicon sensors, prints out heirarchy
 
@@ -1046,26 +1029,20 @@ void MakeActsGeometry::isActive(TGeoNode *gnode, int nmax_print)
   }
 
   int ndaught = gnode->GetNdaughters();
-  /*
-  if (ndaught == 0)
-  {
-    cout << "     No further daughters" << endl;
-  }
-  */
 
   for (int i = 0; i < ndaught; ++i)
   {
-    //cout << "     " << gnode->GetVolume()->GetName() << "  daughter " << i
-    //   << " has name " << gnode->GetDaughter(i)->GetVolume()->GetName() << endl;
+    std::cout << "     " << gnode->GetVolume()->GetName() 
+	      << "  daughter " << i << " has name " 
+	      << gnode->GetDaughter(i)->GetVolume()->GetName() << std::endl;
+    
     isActive(gnode->GetDaughter(i), nmax_print);
   }
 }
 
-MakeActsGeometry::~MakeActsGeometry()
-{
-}
 
-int MakeActsGeometry::CreateNodes(PHCompositeNode *topNode)
+
+int MakeActsGeometry::createNodes(PHCompositeNode *topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1074,8 +1051,7 @@ int MakeActsGeometry::CreateNodes(PHCompositeNode *topNode)
  * GetNodes():
  *  Get all the all the required nodes off the node tree
  */
-
-int MakeActsGeometry::GetNodes(PHCompositeNode *topNode)
+int MakeActsGeometry::getNodes(PHCompositeNode *topNode)
 {
   m_geoManager = PHGeomUtility::GetTGeoManager(topNode);
   if (!m_geoManager)

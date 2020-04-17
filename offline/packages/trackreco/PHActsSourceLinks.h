@@ -46,8 +46,8 @@ using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 /**
- * A struct to carry around Acts geometry, so as to not put all of the
- * MakeActsGeometry memory footprint on the node tree
+ * A struct to carry around Acts geometry on node tree, so as to not put 
+ * all of the MakeActsGeometry tree
  */
 struct ActsTrackingGeometry{
   ActsTrackingGeometry(){}
@@ -62,8 +62,11 @@ struct ActsTrackingGeometry{
   , geoContext(geoCtxt)
   , magFieldContext(magFieldCtxt)
   {}
+  /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
   FW::Options::BFieldVariant magField;
+
+  /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;
   Acts::GeometryContext geoContext;
   Acts::MagneticFieldContext magFieldContext;
@@ -148,6 +151,7 @@ class PHActsSourceLinks : public SubsysReco
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap;
 
+  /// Geometry object to create all acts geometry
   MakeActsGeometry *m_actsGeometry;
 
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
