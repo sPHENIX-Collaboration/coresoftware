@@ -25,7 +25,6 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
   char buffer[256];
   // Read table dimensions
   int tmp;
-  int debug = 0;
   file >> nz >> ny >> nx >> tmp;  // first z, then y and x (y,x are 50, it does not matter)
   xField.resize(nx);
   yField.resize(nx);
@@ -33,7 +32,6 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
   int ix, iy, iz;
   for (ix = 0; ix < nx; ix++)
   {
-    if (debug > 2) printf("JLeicSolenoid3D:: resize vectors:: ix=%d of %d \n", ix, nx);
     xField[ix].resize(ny);
     yField[ix].resize(ny);
     zField[ix].resize(ny);
@@ -57,7 +55,6 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
   double xval, yval, zval, bx, by, bz;
   for (ix = 0; ix < nx; ix++)
   {
-    if (debug > 2) printf("JLeicSolenoid3D:: read file:: ix=%d of %d \n", ix, nx);
     for (iy = 0; iy < ny; iy++)
     {
       for (iz = 0; iz < nz; iz++)
