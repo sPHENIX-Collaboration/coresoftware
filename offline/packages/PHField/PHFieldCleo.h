@@ -3,7 +3,6 @@
 
 #include "PHField.h"
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -24,11 +23,20 @@ class PHFieldCleo : public PHField
   std::vector<std::vector<std::vector<double> > > zField;
 
   // The dimensions of the table
-  int nx, ny, nz;
+  int nx;
+  int ny;
+  int nz;
   // The physical limits of the defined region
-  double minx, maxx, miny, maxy, minz, maxz;
+  double minx;
+  double maxx;
+  double miny;
+  double maxy;
+  double minz;
+  double maxz;
   // The physical extent of the defined region
-  double dx, dy, dz;
+  double dx;
+  double dy;
+  double dz;
 
   float m_MagFieldScale;
 };

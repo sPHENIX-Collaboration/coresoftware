@@ -24,10 +24,9 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
   }
   char buffer[256];
   // Read table dimensions
-  //file >> nx >> ny >> nz; // Note dodgy order
   int tmp;
   int debug = 0;
-  file >> nz >> ny >> nx >> tmp;  // Note dodgy order
+  file >> nz >> ny >> nx >> tmp;  // first z, then y and x (y,x are 50, it does not matter)
   xField.resize(nx);
   yField.resize(nx);
   zField.resize(nx);
@@ -53,8 +52,7 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
   {
     file.getline(buffer, 256);
   } while (buffer[1] != '0');
-  double max_bz = 0;
-  double max_bz_z = 0;
+
   // Read in the data
   double xval, yval, zval, bx, by, bz;
   for (ix = 0; ix < nx; ix++)
@@ -65,11 +63,6 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
       for (iz = 0; iz < nz; iz++)
       {
         file >> xval >> yval >> zval >> bx >> by >> bz;
-        if (bz > max_bz)
-        {
-          max_bz = bz;
-          max_bz_z = zval;
-        }
         if (ix == 0 && iy == 0 && iz == 0)
         {
           minx = xval * cm;
