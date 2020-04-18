@@ -65,11 +65,11 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
       for (iz = 0; iz < nz; iz++)
       {
         file >> xval >> yval >> zval >> bx >> by >> bz;
-	if (bz > max_bz)
-	{
-	  max_bz = bz;
-	  max_bz_z = zval;
-	}
+        if (bz > max_bz)
+        {
+          max_bz = bz;
+          max_bz_z = zval;
+        }
         if (ix == 0 && iy == 0 && iz == 0)
         {
           minx = xval * cm;
@@ -83,12 +83,12 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
     }
   }
   file.close();
-    maxx = xval * cm;
-    maxy = yval * cm;
-    maxz = zval * cm;
-    dx = maxx - minx;
-    dy = maxy - miny;
-    dz = maxz - minz;
+  maxx = xval * cm;
+  maxy = yval * cm;
+  maxz = zval * cm;
+  dx = maxx - minx;
+  dy = maxy - miny;
+  dz = maxz - minz;
 }
 
 void PHFieldCleo::GetFieldValue(const double point[4], double *Bfield) const
@@ -123,17 +123,9 @@ void PHFieldCleo::GetFieldValue(const double point[4], double *Bfield) const
     int zindex = static_cast<int>(zdindex);
 
     // Full 3-dimensional version
-    Bfield[0] = xField[xindex][yindex][zindex] * (1 - xlocal) * (1 - ylocal) * (1 - zlocal)
- + xField[xindex][yindex][zindex + 1] * (1 - xlocal) * (1 - ylocal) * zlocal + xField[xindex][yindex + 1][zindex] * (1 - xlocal) * ylocal * (1 - zlocal) + xField[xindex][yindex + 1][zindex + 1] * (1 - xlocal) * ylocal * zlocal + xField[xindex + 1][yindex][zindex] * xlocal * (1 - ylocal) * (1 - zlocal) + xField[xindex + 1][yindex][zindex + 1] * xlocal * (1 - ylocal) * zlocal + xField[xindex + 1][yindex + 1][zindex] * xlocal * ylocal * (1 - zlocal) + xField[xindex + 1][yindex + 1][zindex + 1] * xlocal * ylocal * zlocal;
+    Bfield[0] = xField[xindex][yindex][zindex] * (1 - xlocal) * (1 - ylocal) * (1 - zlocal) + xField[xindex][yindex][zindex + 1] * (1 - xlocal) * (1 - ylocal) * zlocal + xField[xindex][yindex + 1][zindex] * (1 - xlocal) * ylocal * (1 - zlocal) + xField[xindex][yindex + 1][zindex + 1] * (1 - xlocal) * ylocal * zlocal + xField[xindex + 1][yindex][zindex] * xlocal * (1 - ylocal) * (1 - zlocal) + xField[xindex + 1][yindex][zindex + 1] * xlocal * (1 - ylocal) * zlocal + xField[xindex + 1][yindex + 1][zindex] * xlocal * ylocal * (1 - zlocal) + xField[xindex + 1][yindex + 1][zindex + 1] * xlocal * ylocal * zlocal;
     Bfield[1] = yField[xindex][yindex][zindex] * (1 - xlocal) * (1 - ylocal) * (1 - zlocal) + yField[xindex][yindex][zindex + 1] * (1 - xlocal) * (1 - ylocal) * zlocal + yField[xindex][yindex + 1][zindex] * (1 - xlocal) * ylocal * (1 - zlocal) + yField[xindex][yindex + 1][zindex + 1] * (1 - xlocal) * ylocal * zlocal + yField[xindex + 1][yindex][zindex] * xlocal * (1 - ylocal) * (1 - zlocal) + yField[xindex + 1][yindex][zindex + 1] * xlocal * (1 - ylocal) * zlocal + yField[xindex + 1][yindex + 1][zindex] * xlocal * ylocal * (1 - zlocal) + yField[xindex + 1][yindex + 1][zindex + 1] * xlocal * ylocal * zlocal;
-    Bfield[2] = zField[xindex][yindex][zindex] * (1 - xlocal) * (1 - ylocal) * (1 - zlocal)
-+ zField[xindex][yindex][zindex + 1] * (1 - xlocal) * (1 - ylocal) * zlocal
-+ zField[xindex][yindex + 1][zindex] * (1 - xlocal) * ylocal * (1 - zlocal)
-+ zField[xindex][yindex + 1][zindex + 1] * (1 - xlocal) * ylocal * zlocal
-+ zField[xindex + 1][yindex][zindex] * xlocal * (1 - ylocal) * (1 - zlocal)
-+ zField[xindex + 1][yindex][zindex + 1] * xlocal * (1 - ylocal) * zlocal
-+ zField[xindex + 1][yindex + 1][zindex] * xlocal * ylocal * (1 - zlocal)
-+ zField[xindex + 1][yindex + 1][zindex + 1] * xlocal * ylocal * zlocal;
+    Bfield[2] = zField[xindex][yindex][zindex] * (1 - xlocal) * (1 - ylocal) * (1 - zlocal) + zField[xindex][yindex][zindex + 1] * (1 - xlocal) * (1 - ylocal) * zlocal + zField[xindex][yindex + 1][zindex] * (1 - xlocal) * ylocal * (1 - zlocal) + zField[xindex][yindex + 1][zindex + 1] * (1 - xlocal) * ylocal * zlocal + zField[xindex + 1][yindex][zindex] * xlocal * (1 - ylocal) * (1 - zlocal) + zField[xindex + 1][yindex][zindex + 1] * xlocal * (1 - ylocal) * zlocal + zField[xindex + 1][yindex + 1][zindex] * xlocal * ylocal * (1 - zlocal) + zField[xindex + 1][yindex + 1][zindex + 1] * xlocal * ylocal * zlocal;
   }
   else
   {
