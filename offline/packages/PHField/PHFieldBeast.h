@@ -3,8 +3,6 @@
 
 #include "PHField.h"
 
-#include <boost/tuple/tuple.hpp>
-
 #include <map>
 #include <string>
 #include <vector>
