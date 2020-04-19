@@ -112,7 +112,7 @@ class SvtxEvaluator : public SubsysReco
 
   //  void LayerClusterG4Particle();
 
-  void G4ClusterSize( std::vector<std::vector<double>> contributing_hits_entry, std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
+  void G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry, std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize);
   void LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hit*> truth_hits, std::vector<PHG4Hit*> &contributing_hits, std::vector<double> &contributing_hits_energy, std::vector<std::vector<double>> &contributing_hits_entry, std::vector<std::vector<double>> &contributing_hits_exit, float layer, float &gx, float &gy, float &gz,  float &gt, float &gedep);
   
   float line_circle_intersection(float x[], float y[], float z[], float radius);

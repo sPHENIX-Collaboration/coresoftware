@@ -1960,7 +1960,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	  // convert truth hits for this particle to truth clusters in each TPC layer
 
 	  // loop over layers
-	  for(float layer = 0; layer < _nlayers_maps+_nlayers_intt+_nlayers_tpc; ++layer)
+	  for(float layer = 0; layer < _nlayers_maps + _nlayers_intt + _nlayers_tpc; ++layer)
 	    {
 	      float gx = NAN;
 	      float gy = NAN;
@@ -1995,7 +1995,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      // Estimate the size of the truth cluster
 	      float g4phisize = NAN;
 	      float g4zsize = NAN;
-	      G4ClusterSize( contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
+	      G4ClusterSize( topNode, layer, contributing_hits_entry, contributing_hits_exit, g4phisize, g4zsize);
 
 	      // Find the matching TrkrCluster, if it exists
 	      float x = NAN;
@@ -2061,13 +2061,13 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  ez = cluster->getZError();		  
 		  ephi = cluster->getRPhiError();
 
-		  phisize = cluster->getPhiSize();
-		  zsize = cluster->getZSize();
+		  phisize = cluster->getPhiSize();  
+		  zsize = cluster->getZSize();   
 		  
 		  adc = cluster->getAdc();
 
-		  if(Verbosity() > 0)
-		    cout << "             reco cluster x " << x << " y " << y << " z " << z << endl;
+		  //if(Verbosity() > 0)
+		  cout << "             reco cluster x " << x << " y " << y << " z " << z << " phisize " << phisize << " zsize " << zsize << endl;
 
 		}
 
@@ -3082,8 +3082,18 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 }
 
-void SvtxEvaluator::G4ClusterSize(std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
+void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
+
+  PHG4CylinderCellGeomContainer* geom_container =
+    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+  if (!geom_container)
+    {
+      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+      return;
+    }
+  PHG4CylinderCellGeom*layergeom = geom_container->GetLayerCellGeom(layer);
+
   // sort the contributing g4hits in radius
   double inner_radius = 100.;
   double inner_x = NAN;
@@ -3133,30 +3143,57 @@ void SvtxEvaluator::G4ClusterSize(std::vector<std::vector<double>> contributing_
   double radius = (inner_radius + outer_radius)/2.;
   if(radius > 28)  // TPC
     {
-      double tpc_length = 210.0;  // cm
+      double tpc_length = 211.0;  // cm
       double drift_velocity = 8.0 / 1000.0;  // cm/ns
+
+      // Phi size
+      //======
       double diffusion_trans =  0.006;  // cm/SQRT(cm)
-      double diffusion_long = 0.015;  // cm/SQRT(cm)
-      double added_smear_trans = 0.085;
-      double added_smear_long = 0.105;
+      double added_smear_trans = 0.085; // cm
 
       double phidiffusion = diffusion_trans * sqrt(tpc_length / 2. - fabs(avge_z));
       phidiffusion = sqrt( pow(phidiffusion, 2) + pow(added_smear_trans, 2) );
 
-      double zdiffusion = diffusion_long * sqrt(tpc_length / 2. - fabs(avge_z)) ;
-      zdiffusion = sqrt( pow(zdiffusion, 2) +  pow(added_smear_long, 2) );
-
-      double zshaping_lead = 32.0 * drift_velocity;
-      double zshaping_tail = 48.0 * drift_velocity;
-
-      double gem_spread = 0.04;
-      //cout << " dz " << outer_z - inner_z << " zdiffusion " << zdiffusion << " zshaping_lead " << zshaping_lead << " zshaping_tail " << zshaping_tail << endl;
-      g4zsize = fabs(outer_z - inner_z) + 3.0*sqrt(pow(zdiffusion,2) + pow(zshaping_lead,2)) + 3.0*sqrt(pow(zdiffusion,2) + pow(zshaping_tail,2));
-      g4zsize *= 1.0;
+      double gem_spread = 0.04;  // 400 microns
       //cout << " dphi " << outer_phi - inner_phi << " phidiffusion " << phidiffusion << " gem_spread " << gem_spread << endl;
+
       g4phisize = fabs(outer_phi - inner_phi) + 6.0*sqrt( pow(phidiffusion,2) + pow(gem_spread,2) );
       g4phisize /= radius; 
       g4phisize *= 1.0;
+
+
+      // Z size
+      //=====
+      double g4max_z = 0;
+      double g4min_z = 0;
+ 
+      outer_z = fabs(outer_z);
+      inner_z = fabs(inner_z);
+
+      double diffusion_long = 0.015;  // cm/SQRT(cm)
+      double zdiffusion = diffusion_long * sqrt(tpc_length / 2. - fabs(avge_z)) ;
+      double zshaping_lead = 32.0 * drift_velocity;  // ns * cm/ns = cm
+      double zshaping_tail = 48.0 * drift_velocity;
+      double added_smear_long = 0.105;  // cm
+
+      double sigmas = 2.0;
+      // largest z reaches gems first, make that the outer z
+      if(outer_z < inner_z) swap(outer_z, inner_z);
+      cout << " dz " << outer_z - inner_z << " zdiffusion " << zdiffusion << " zshaping_lead " << zshaping_lead << " zshaping_tail " << zshaping_tail << endl;
+      g4max_z = outer_z  + sigmas*sqrt(pow(zdiffusion,2) + pow(added_smear_long,2) + pow(zshaping_lead, 2));
+      g4min_z = inner_z  -  sigmas*sqrt(pow(zdiffusion,2) + pow(added_smear_long,2) + pow(zshaping_tail, 2));
+
+      cout << "   inner_z " << inner_z << " outer_z " << outer_z << " g4min_z " << g4min_z << " g4max_z " << g4max_z << endl;
+
+      // find the bins containing these max and min z edges
+      unsigned int binmin = layergeom->get_zbin(g4min_z);
+      unsigned int binmax = layergeom->get_zbin(g4max_z);
+      if(binmax < binmin) swap(binmax, binmin);
+      unsigned int binwidth = binmax - binmin + 1;
+
+      // multiply total number of bins that include the edges by the bin size
+      g4zsize = (double) binwidth * layergeom->get_zstep();
+      cout << "    layer " << layer << " g4size " << g4zsize << " binwidth " << binwidth << " binmax " << binmax << " binmin " << binmin << " binstepz " << layergeom->get_zstep() << endl;
     }
   else if(radius > 5 && radius < 20)  // INTT
     {
@@ -3187,6 +3224,7 @@ void SvtxEvaluator::LayerClusterG4Hits(PHCompositeNode* topNode, std::set<PHG4Hi
   
   if (layer >= _nlayers_maps + _nlayers_intt)
     {
+      //cout << "layer = " << layer << " _nlayers_maps " << _nlayers_maps << " _nlayers_intt " << _nlayers_intt << endl;
 
       // This calculates the truth cluster position for the TPC from all of the contributing g4hits from a g4particle, typically 2-4 for the TPC
       // Complicated, since only the part of the energy that is collected within a layer contributes to the position

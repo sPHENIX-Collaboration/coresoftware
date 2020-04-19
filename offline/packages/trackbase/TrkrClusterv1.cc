@@ -155,12 +155,12 @@ float TrkrClusterv1::getPhiSize() const
   TMatrixF trans(3, 3);
   trans = rot * covar * rotT;
 
-  return 2.0 * sqrt(trans[1][1]);
+  return sqrt(trans[1][1]);
 }
 
 float TrkrClusterv1::getZSize() const
 {
-  return 2.0 * sqrt(getSize(2, 2));
+  return sqrt(getSize(2, 2));
 }
 
 float TrkrClusterv1::getPhiError() const
