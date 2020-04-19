@@ -6,7 +6,7 @@
  */
 
 #include "PHActsTrkFitter.h"
-#include "PHActsSourceLinks.h"
+#include "MakeActsGeometry.h"
 #include "ActsTrack.h"
 
 #include <fun4all/Fun4AllReturnCodes.h>
@@ -30,7 +30,7 @@ PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
   , m_event(0)
   , m_actsProtoTracks(nullptr)
-  , m_actsGeometry(nullptr)
+  , m_tGeometry(nullptr)
 {
   Verbosity(0);
 }
@@ -43,7 +43,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 {
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
-
+  
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -57,15 +57,16 @@ int PHActsTrkFitter::Process()
     std::cout << "Start PHActsTrkFitter::process_event" << std::endl;
   }
 
+
   /// Construct a perigee surface as the target surface (?)
   auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
-      Acts::Vector3D{0., 0., 0.});
+	          Acts::Vector3D{0., 0., 0.});
 
   /// FitCfg created by MakeActsGeometry
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_actsGeometry->tGeometry,
-                                                                   m_actsGeometry->magField,
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_tGeometry->tGeometry,
+								   m_tGeometry->magField,
                                                                    Acts::Logging::VERBOSE);
 
   std::vector<ActsTrack>::iterator trackIter;
@@ -78,17 +79,16 @@ int PHActsTrkFitter::Process()
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
-
+      
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
+    Acts::KalmanFitterOptions kfOptions(m_tGeometry->geoContext,
+					m_tGeometry->magFieldContext,
+					m_tGeometry->calibContext,
+					&(*pSurface));
 
-    Acts::KalmanFitterOptions kfOptions(m_actsGeometry->geoContext,
-                                        m_actsGeometry->magFieldContext,
-                                        m_actsGeometry->calibContext,
-                                        &(*pSurface));
-
-    /// Run the fitter
+  
     auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
 
     /// Check that the result is okay
@@ -141,15 +141,14 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsGeometry");
-
-  if (!m_actsGeometry)
-  {
-    std::cout << "ActsGeometry not on node tree. Exiting."
-              << std::endl;
-
-    return Fun4AllReturnCodes::ABORTEVENT;
-  }
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      std::cout << "ActsContext not on node tree. Exiting."
+		<< std::endl;
+      
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

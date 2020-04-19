@@ -2,7 +2,9 @@
 #define TRACKRECO_PHACTSTRKPROP_H
 
 #include "PHTrackPropagating.h"
-#include "PHActsSourceLinks.h"
+
+#include <fun4all/SubsysReco.h>
+#include <trackbase/TrkrDefs.h>
 
 #include <Acts/Utilities/BinnedArray.hpp>
 #include <Acts/Utilities/Definitions.hpp>
@@ -13,13 +15,27 @@
 #include <Acts/Propagator/detail/SteppingLogger.hpp>
 #include <Acts/Propagator/MaterialInteractor.hpp>
 
+#include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
+#include <ACTFW/EventData/Track.hpp>
+
 #include <memory>
 #include <string>
+#include <map>
 
 struct ActsTrack;
+
+class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
-class TrkrClusterSourceLink; 
+
+namespace Acts
+{
+  class Surface;
+  class PerigeeSurface;
+}
+
+
+
 
 using RecordedMaterial = Acts::MaterialInteractor::result_type;
 using PropagationOutput
@@ -27,6 +43,7 @@ using PropagationOutput
 
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
 using Surface = std::shared_ptr<const Acts::Surface>;
+using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -62,7 +79,7 @@ class PHActsTrkProp : public PHTrackPropagating
   PropagationOutput propagate(FW::TrackParameters parameters);
 
   /// The acts geometry constructed in MakeActsGeometry
-  ActsGeometry *m_actsGeometry;
+  MakeActsGeometry *m_actsGeometry;
 
   /// Minimum track pT to propagate, for acts propagator, units of GeV
   double m_minTrackPt;
