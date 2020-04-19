@@ -5,6 +5,7 @@
 #include "PHField3DCartesian.h"
 #include "PHField3DCylindrical.h"
 #include "PHFieldBeast.h"
+#include "PHFieldCleo.h"
 #include "PHFieldConfig.h"
 #include "PHFieldConfigv1.h"
 #include "PHFieldUniform.h"
@@ -77,6 +78,15 @@ PHFieldUtility::BuildFieldMap(const PHFieldConfig *field_config, const int verbo
     //    return "2D Beast field map expressed in Cartesian coordinates";
     cout << "calling PHFieldBeast scale " << field_config->get_magfield_rescale() << endl;
     field = new PHFieldBeast(
+        field_config->get_filename(),
+        verbosity,
+        field_config->get_magfield_rescale());
+    break;
+
+  case PHFieldConfig::kFieldCleo:
+    //    return "2D Beast field map expressed in Cartesian coordinates";
+    cout << "calling PHFieldCleo scale " << field_config->get_magfield_rescale() << endl;
+    field = new PHFieldCleo(
         field_config->get_filename(),
         verbosity,
         field_config->get_magfield_rescale());

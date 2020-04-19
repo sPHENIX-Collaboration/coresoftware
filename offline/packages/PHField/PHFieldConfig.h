@@ -37,6 +37,8 @@ class PHFieldConfig : public PHObject
     kField3DCylindrical = 3,
     //! Beast field map from https://github.com/eic/BeastMagneticField
     kFieldBeast = 4,
+    //! Cleo field map from https://gitlab.com/eic/escalate/g4e/-/blob/master/SolenoidMag3D.TABLE
+    kFieldCleo = 5,
     //! 3D field map expressed in Cartesian coordinates
     Field3DCartesian = 1,
 

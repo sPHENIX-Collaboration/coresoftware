@@ -34,6 +34,9 @@ string PHFieldConfig::get_field_config_description() const
   case kFieldBeast:
     return "Beast Field";
     break;
+  case kFieldCleo:
+    return "Cleo Magnet Field";
+    break;
   default:
     return "Invalid Field";
   }
