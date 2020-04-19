@@ -23,6 +23,8 @@
 #include <g4detectors/PHG4CylinderGeomContainer.h>
 
 #include <phgeom/PHGeomUtility.h>
+#include <phgeom/PHGeomIOTGeo.h>
+#include <phgeom/PHGeomTGeo.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 
@@ -103,15 +105,14 @@ MakeActsGeometry::~MakeActsGeometry()
 
 int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
 {
+
+   // Add the TPC surfaces to the copy of the TGeoManager. Do this before
+  // anything else so that the geometry is finalized
+  editTPCGeometry(topNode);
+
   getNodes(topNode);  // for geometry nodes
 
   createNodes(topNode);  // for writing surface map
-
-  // Add the TPC surfaces to the copy of the TGeoManager
-  editTPCGeometry();
-
-  // save the edited geometry to DST persistent IO node for downstream DST files
-  PHGeomUtility::UpdateIONode(topNode);
 
   // run Acts layer builder
   buildActsSurfaces();
@@ -122,10 +123,27 @@ int MakeActsGeometry::buildAllGeometry(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void MakeActsGeometry::editTPCGeometry()
+void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
 {
+  
+  PHGeomTGeo *geomNode = PHGeomUtility::GetGeomTGeoNode(topNode, true);
+  assert(geomNode);
+  
+  /// Reset the geometry node, which we will recreate with the TPC edits
+  if(geomNode->isValid())
+    {
+      geomNode->Reset();
+    }
+  
+  PHGeomIOTGeo *dstGeomIO = PHGeomUtility::GetGeomIOTGeoNode(topNode, false);
+  assert(dstGeomIO);
+  assert(dstGeomIO->isValid());
 
-  TGeoVolume *World_vol = m_geoManager->GetTopVolume();
+  TGeoManager *geoManager = dstGeomIO->ConstructTGeoManager();
+  geomNode->SetGeometry(geoManager);
+  assert(geoManager);
+  
+  TGeoVolume *World_vol = geoManager->GetTopVolume();
   TGeoNode *tpc_envelope_node = nullptr;
   TGeoNode *tpc_gas_north_node = nullptr;
 
@@ -187,6 +205,11 @@ void MakeActsGeometry::editTPCGeometry()
   // adds surfaces to the underlying volume, so both north and south placements get them
   addActsTpcSurfaces(tpc_gas_north_vol);
 
+  geoManager->CloseGeometry();
+  
+  // save the edited geometry to DST persistent IO node for downstream DST files
+  PHGeomUtility::UpdateIONode(topNode);
+
 }
 
 void MakeActsGeometry::addActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
@@ -201,7 +224,7 @@ void MakeActsGeometry::addActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
     {
       // make a box for this layer
       char bname[500];
-      sprintf(bname,"tpc_gas_measurement_%i",ilayer);
+      sprintf(bname,"tpc_gas_measurement_%u",ilayer);
 
       // Because we use a box, not a section of a cylinder, we need this to prevent overlaps
       // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
