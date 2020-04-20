@@ -70,7 +70,7 @@ class MakeActsGeometry
   
   /// Functions to edit TGeoManager to include TPC boxes
   void editTPCGeometry(PHCompositeNode *topNode);
-  void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol);
+  void addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *geoManager);
 
   void setVerbosity(int verbosity)
   { m_verbosity = verbosity; }

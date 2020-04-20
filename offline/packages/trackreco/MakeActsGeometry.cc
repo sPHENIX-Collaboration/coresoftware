@@ -134,11 +134,10 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
     {
       geomNode->Reset();
     }
-  
   PHGeomIOTGeo *dstGeomIO = PHGeomUtility::GetGeomIOTGeoNode(topNode, false);
   assert(dstGeomIO);
   assert(dstGeomIO->isValid());
-
+  
   TGeoManager *geoManager = dstGeomIO->ConstructTGeoManager();
   geomNode->SetGeometry(geoManager);
   assert(geoManager);
@@ -203,16 +202,16 @@ void MakeActsGeometry::editTPCGeometry(PHCompositeNode *topNode)
   }
 
   // adds surfaces to the underlying volume, so both north and south placements get them
-  addActsTpcSurfaces(tpc_gas_north_vol);
+  addActsTpcSurfaces(tpc_gas_north_vol, geoManager);
 
   geoManager->CloseGeometry();
-  
+
   // save the edited geometry to DST persistent IO node for downstream DST files
   PHGeomUtility::UpdateIONode(topNode);
 
 }
 
-void MakeActsGeometry::addActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
+void MakeActsGeometry::addActsTpcSurfaces(TGeoVolume *tpc_gas_vol, TGeoManager *geoManager)
 {
   TGeoMedium *tpc_gas_medium = tpc_gas_vol->GetMedium();
   assert(tpc_gas_medium);
@@ -230,7 +229,7 @@ void MakeActsGeometry::addActsTpcSurfaces( TGeoVolume *tpc_gas_vol)
       // set the nominal r*phi dimension of the box so they just touch at the inner edge when placed 
       double box_r_phi = 2.0 * tan_half_phi * (m_layerRadius[ilayer] - m_layerThickness[ilayer] / 2.0);
 
-      tpc_gas_measurement_vol[ilayer] = m_geoManager->MakeBox(bname, tpc_gas_medium, 
+      tpc_gas_measurement_vol[ilayer] = geoManager->MakeBox(bname, tpc_gas_medium, 
 							    m_layerThickness[ilayer]*half_width_clearance_thick, 
 							    box_r_phi*half_width_clearance_phi, 
 							    m_surfStepZ*half_width_clearance_z);
@@ -599,7 +598,6 @@ void MakeActsGeometry::makeMvtxMapPairs(TrackingVolumePtr &mvtxVolume)
     // surfaceVector is an Acts::SurfaceVector, vector of surfaces
     //std::vector<const Surface*>
     auto surfaceVector = surfaceArray->surfaces();
-    std::cout<<"mvtx surface vector"<<std::endl;
     for (unsigned int j = 0; j < surfaceVector.size(); j++)
     {
       auto surf = surfaceVector.at(j)->getSharedPtr();
