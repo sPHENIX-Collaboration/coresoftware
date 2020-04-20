@@ -1,0 +1,342 @@
+#include "QAG4SimulationMvtx.h"
+#include "QAHistManagerDef.h"
+
+#include <fun4all/Fun4AllHistoManager.h>
+#include <fun4all/Fun4AllReturnCodes.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
+#include <phool/getClass.h>
+#include <trackbase/TrkrCluster.h>
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
+#include <trackbase/TrkrHitTruthAssoc.h>
+
+#include <TH1F.h>
+
+#include <cassert>
+
+//_____________________________________________________________________
+// local utility functions
+namespace
+{
+
+  /// square
+  template<class T> inline constexpr T square( T x ) { return x*x; }
+
+  /// radius
+  template<class T> inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
+
+  /// delta phi between [-pi, pi[
+  template<class T> inline T delta_phi( T phi1, T phi2 )
+  {
+    T out = phi1 - phi2;
+    while( out >= M_PI ) out -= 2*M_PI;
+    while( out < -M_PI ) out += 2*M_PI;
+    return out;
+  }
+
+  /// get radius from g4hit at either entrance or exit point
+  float get_r( PHG4Hit* hit, int i )
+  {  return get_r( hit->get_x(i), hit->get_y(i) ); }
+
+  /// calculate the best average of member function called on all members in collection, extrapolated at a given radius
+  /** each hit is weighted by its deposited energy */
+  template< float (PHG4Hit::*accessor)(int) const>
+  float interpolate( std::set<PHG4Hit*> hits, float rextrap )
+  {
+    // calculate all terms needed for the interpolation
+    // need to use double everywhere here due to numerical divergences
+    double sw = 0;
+    double swr = 0;
+    double swr2 = 0;
+    double swx = 0;
+    double swrx = 0;
+
+    bool valid( false );
+    for( const auto& hit:hits )
+    {
+
+      const double x0 = (hit->*accessor)(0);
+      const double x1 = (hit->*accessor)(1);
+      if( std::isnan( x0 ) || std::isnan( x1 ) ) continue;
+
+      const double w = hit->get_edep();
+      if( w < 0 ) continue;
+
+      valid = true;
+      const double r0 = get_r( hit, 0 );
+      const double r1 = get_r( hit, 1 );
+
+      sw += w*2;
+      swr += w*(r0 + r1);
+      swr2 += w*(square(r0) + square(r1));
+      swx += w*(x0 + x1);
+      swrx += w*(r0*x0 + r1*x1);
+    }
+
+    if( !valid ) return NAN;
+
+    const auto alpha = (sw*swrx - swr*swx);
+    const auto beta = (swr2*swx - swr*swrx);
+    const auto denom = (sw*swr2 - square(swr));
+
+    return ( alpha*rextrap + beta )/denom;
+  }
+
+}
+
+//________________________________________________________________________
+QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string &name)
+  : SubsysReco(name)
+{}
+
+//________________________________________________________________________
+int QAG4SimulationMvtx::Init(PHCompositeNode *topNode)
+{
+
+  // find mvtx geometry
+  auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  if (!geom_container)
+  {
+    std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_MVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
+
+  // histogram manager
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // get layers from mvtx geometry
+  const auto range = geom_container->get_begin_end();
+  for( auto iter = range.first; iter != range.second; ++iter )
+  { m_layers.insert( iter->first ); }
+
+  // create histograms
+  for( const auto& layer:m_layers )
+  {
+    std::cout << PHWHERE << " adding layer " << layer << std::endl;
+
+    {
+      // rphi residuals (cluster - truth)
+      auto h = new TH1F( Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi_{cluster-truth} %i", layer ), 100, -2e-3, 2e-3 );
+      h->GetXaxis()->SetTitle( "r#Delta#phi_{cluster-truth} (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // z residuals (cluster - truth)
+      auto h = new TH1F( Form( "%sdz_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth} %i", layer ), 100, -3e-3, 3e-3 );
+      h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth} (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // rphi cluster errors
+      auto h = new TH1F( Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi error %i", layer ), 100, 0, 1e-2 );
+      h->GetXaxis()->SetTitle( "r#Delta#phi error (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // z cluster errors
+      auto h = new TH1F( Form( "%sz_error_%i", get_histo_prefix().c_str(), layer ), Form( "z error %i", layer ), 100, 0, 1e-2 );
+      h->GetXaxis()->SetTitle( "z error (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // phi pulls (cluster - truth)
+      auto h = new TH1F( Form( "%sphi_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Delta#phi_{cluster-truth}/#sigma#phi %i", layer ), 100, -3, 3 );
+      h->GetXaxis()->SetTitle( "#Delta#phi_{cluster-truth}/#sigma#phi (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // z pulls (cluster - truth)
+      auto h = new TH1F( Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth}/#sigmaz %i", layer ), 100, -3, 3 );
+      h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth}/#sigmaz (cm)" );
+      hm->registerHisto(h);
+    }
+
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
+}
+
+//_____________________________________________________________________
+int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
+{
+
+  // load nodes
+  auto res =  load_nodes(topNode);
+  if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
+
+  // run evaluation
+  evaluate_clusters();
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//________________________________________________________________________
+std::string QAG4SimulationMvtx::get_histo_prefix() const
+{ return std::string("h_") + Name() + std::string("_"); }
+
+//________________________________________________________________________
+int QAG4SimulationMvtx::load_nodes( PHCompositeNode* topNode )
+{
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  if( !m_cluster_map )
+  {
+    std::cout << PHWHERE << " unable to find DST node TRKR_CLUSTER" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  if( !m_cluster_hit_map )
+  {
+    std::cout << PHWHERE << " unable to find DST node TRKR_CLUSTERHITASSOC" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
+  if( !m_hit_truth_map )
+  {
+    std::cout << PHWHERE << " unable to find DST node TRKR_HITTRUTHASSOC" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+  if( !m_g4hits_mvtx )
+  {
+    std::cout << PHWHERE << " unable to find DST node G4HIT_MVTX" << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;
+}
+
+//________________________________________________________________________
+void QAG4SimulationMvtx::evaluate_clusters()
+{
+
+  // histogram manager
+  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
+  // load relevant histograms
+  struct HistogramList
+  {
+    TH1* drphi = nullptr;
+    TH1* dz = nullptr;
+    TH1* rphi_error = nullptr;
+    TH1* z_error = nullptr;
+    TH1* phi_pulls = nullptr;
+    TH1* z_pulls = nullptr;
+  };
+
+  using HistogramMap = std::map<int,HistogramList>;
+  HistogramMap histograms;
+
+  for( const auto& layer: m_layers )
+  {
+    HistogramList h;
+    h.drphi = dynamic_cast<TH1*>( hm->getHisto(Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer )) );
+    h.dz = dynamic_cast<TH1*>( hm->getHisto(Form( "%sdz_%i", get_histo_prefix().c_str(), layer )) );
+    h.rphi_error = dynamic_cast<TH1*>( hm->getHisto(Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer )) );
+    h.z_error = dynamic_cast<TH1*>( hm->getHisto(Form( "%s_error_%i", get_histo_prefix().c_str(), layer )) );
+    h.phi_pulls = dynamic_cast<TH1*>( hm->getHisto(Form( "%sphi_pulls_%i", get_histo_prefix().c_str(), layer )) );
+    h.z_pulls = dynamic_cast<TH1*>( hm->getHisto(Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer )) );
+    histograms.insert( std::make_pair(layer,h));
+  }
+
+  auto range = m_cluster_map->getClusters();
+  for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+  {
+
+    // get cluster key, detector id and check
+    const auto& key = clusterIter->first;
+    const auto detId = TrkrDefs::getTrkrId( key );
+    if( detId != TrkrDefs::mvtxId ) continue;
+
+    // get cluster
+    const auto& cluster = clusterIter->second;
+
+    // get relevant cluster information
+    const auto r_cluster = get_r( cluster->getX(), cluster->getY() );
+    const auto z_cluster = cluster->getX();
+    const auto phi_cluster = std::atan2( cluster->getY(), cluster->getX() );
+    const auto phi_error = cluster->getPhiError();
+    const auto z_error = cluster->getZError();
+
+    // find associated g4hits
+    const auto g4hits = find_g4hits( key );
+
+    // get relevant truth information
+    const auto x_truth = interpolate<&PHG4Hit::get_x>( g4hits, r_cluster );
+    const auto y_truth = interpolate<&PHG4Hit::get_y>( g4hits, r_cluster );
+    const auto z_truth = interpolate<&PHG4Hit::get_z>( g4hits, r_cluster );
+    const auto phi_truth = std::atan2( y_truth, x_truth );
+
+    const auto dphi = delta_phi( phi_cluster, phi_truth );
+    const auto dz = z_cluster-z_truth;
+
+    // get layer, get histograms
+    const auto layer = TrkrDefs::getLayer(key);
+    const auto hiter = histograms.find( layer );
+    if( hiter == histograms.end() ) continue;
+
+    // fill histograms
+    auto fill = []( TH1* h, float value ) { if( h ) h->Fill( value ); };
+    fill( hiter->second.drphi, r_cluster*dphi );
+    fill( hiter->second.dz, dz );
+    fill( hiter->second.rphi_error, r_cluster*phi_error );
+    fill( hiter->second.z_error, z_error );
+    fill( hiter->second.phi_pulls, dphi/phi_error );
+    fill( hiter->second.z_pulls, dz/z_error );
+
+  }
+}
+
+//_____________________________________________________________________
+QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits( TrkrDefs::cluskey cluster_key ) const
+{
+
+  // check maps
+  if( !( m_cluster_hit_map && m_hit_truth_map ) ) return G4HitSet();
+
+  // find hitset associated to cluster
+  G4HitSet out;
+  const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+
+  // loop over hits associated to clusters
+  const auto range = m_cluster_hit_map->getHits(cluster_key);
+  for( auto iter = range.first; iter != range.second; ++iter )
+  {
+
+    // hit key
+    const auto& hit_key = iter->second;
+
+    // store hits to g4hit associations
+    TrkrHitTruthAssoc::MMap g4hit_map;
+    m_hit_truth_map->getG4Hits( hitset_key, hit_key, g4hit_map );
+
+    // find corresponding g4 hist
+    for( auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter )
+    {
+
+      // g4hit key
+      const auto g4hit_key = truth_iter->second.second;
+
+      // g4 hit
+      PHG4Hit* g4hit = ( TrkrDefs::getTrkrId( hitset_key ) == TrkrDefs::mvtxId ) ?
+        m_g4hits_mvtx->findHit( g4hit_key ):nullptr;
+
+      // insert in set
+      if( g4hit ) out.insert( g4hit );
+
+    }
+  }
+
+  return out;
+}
