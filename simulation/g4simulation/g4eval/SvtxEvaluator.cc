@@ -2066,8 +2066,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  
 		  adc = cluster->getAdc();
 
-		  //if(Verbosity() > 0)
-		  cout << "             reco cluster x " << x << " y " << y << " z " << z << " phisize " << phisize << " zsize " << zsize << endl;
+		  if(Verbosity() > 0)
+		    cout << "             reco cluster x " << x << " y " << y << " z " << z << " phisize " << phisize << " zsize " << zsize << endl;
 
 		}
 
@@ -3085,15 +3085,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, std::vector<std::vector<double>> contributing_hits_entry,std::vector<std::vector<double>> contributing_hits_exit, float &g4phisize, float &g4zsize)
 {
 
-  PHG4CylinderCellGeomContainer* geom_container =
-    findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
-  if (!geom_container)
-    {
-      std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
-      return;
-    }
-  PHG4CylinderCellGeom*layergeom = geom_container->GetLayerCellGeom(layer);
-
   // sort the contributing g4hits in radius
   double inner_radius = 100.;
   double inner_x = NAN;
@@ -3107,9 +3098,7 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
 
   for(int ihit=0;ihit<contributing_hits_entry.size(); ++ihit)
     {
-      double rad1 = sqrt(pow(contributing_hits_entry[ihit][0], 2) + pow(contributing_hits_entry[ihit][1], 2));
-      //cout << "  g4hit: ihit " << ihit << " x " << contributing_hits_entry[ihit][0] << " y " << contributing_hits_entry[ihit][1] << " z " << contributing_hits_entry[ihit][2] << " rad1 " << rad1 << endl;
-      
+      double rad1 = sqrt(pow(contributing_hits_entry[ihit][0], 2) + pow(contributing_hits_entry[ihit][1], 2));      
       if(rad1 < inner_radius)
 	{
 	  inner_radius = rad1;
@@ -3119,7 +3108,6 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
 	}
 
       double rad2 = sqrt(pow(contributing_hits_exit[ihit][0], 2) + pow(contributing_hits_exit[ihit][1], 2));
-      //cout << "  g4hit: ihit " << ihit << " x " << contributing_hits_exit[ihit][0] << " y " << contributing_hits_exit[ihit][1] << " z " << contributing_hits_exit[ihit][2] << " rad2 " << rad2 << endl;      
       if(rad2 > outer_radius)
 	{
 	  outer_radius = rad2;
@@ -3133,34 +3121,46 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
   double outer_phi =  atan2(outer_y, outer_x);
   double avge_z = (outer_z + inner_z) / 2.0;
 
-  //cout << "  inner_radius " << inner_radius << " inner_x " << inner_x << " inner_y " << inner_y << " inner_z " << inner_z << endl;
-  //cout << "  outer_radius " << outer_radius << " outer_x " << outer_x << " outer_y " << outer_y << " outer_z " << outer_z << endl;
-  //cout << "    dphi " << outer_phi - inner_phi  << " dz " << outer_z - inner_z << endl;
-
   // Now fold these with the expected diffusion and shaping widths
-  // assume 3 sigma diffusion and shaping when extending the size
+  // assume spread is +/- equals this many sigmas times diffusion and shaping when extending the size
+  double sigmas = 2.0;
 
   double radius = (inner_radius + outer_radius)/2.;
   if(radius > 28)  // TPC
     {
+      PHG4CylinderCellGeomContainer* geom_container =
+	findNode::getClass<PHG4CylinderCellGeomContainer>(topNode, "CYLINDERCELLGEOM_SVTX");
+      if (!geom_container)
+	{
+	  std::cout << PHWHERE << "ERROR: Can't find node CYLINDERCELLGEOM_SVTX" << std::endl;
+	  return;
+	}
+      PHG4CylinderCellGeom*layergeom = geom_container->GetLayerCellGeom(layer);
+
       double tpc_length = 211.0;  // cm
       double drift_velocity = 8.0 / 1000.0;  // cm/ns
 
       // Phi size
       //======
       double diffusion_trans =  0.006;  // cm/SQRT(cm)
-      double added_smear_trans = 0.085; // cm
-
       double phidiffusion = diffusion_trans * sqrt(tpc_length / 2. - fabs(avge_z));
-      phidiffusion = sqrt( pow(phidiffusion, 2) + pow(added_smear_trans, 2) );
 
+      double added_smear_trans = 0.085; // cm
       double gem_spread = 0.04;  // 400 microns
-      //cout << " dphi " << outer_phi - inner_phi << " phidiffusion " << phidiffusion << " gem_spread " << gem_spread << endl;
 
-      g4phisize = fabs(outer_phi - inner_phi) + 6.0*sqrt( pow(phidiffusion,2) + pow(gem_spread,2) );
-      g4phisize /= radius; 
-      g4phisize *= 1.0;
+      double maxphi = outer_phi;
+      double minphi = inner_phi;
+      if(outer_phi < inner_phi) swap(outer_phi, inner_phi);
 
+      // convert diffusion from cm to radians
+      double g4max_phi =  outer_phi + sigmas * sqrt(  pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2) ) / radius;
+      double g4min_phi =  inner_phi - sigmas * sqrt(  pow(phidiffusion, 2) + pow(added_smear_trans, 2) + pow(gem_spread, 2) ) / radius;
+
+      // find the bins containing these max and min z edges
+      unsigned int phibinmin = layergeom->get_phibin(g4min_phi);
+      unsigned int phibinmax = layergeom->get_phibin(g4max_phi);
+      unsigned int phibinwidth = phibinmax - phibinmin + 1;
+      g4phisize = (double) phibinwidth * layergeom->get_phistep();
 
       // Z size
       //=====
@@ -3176,14 +3176,12 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
       double zshaping_tail = 48.0 * drift_velocity;
       double added_smear_long = 0.105;  // cm
 
-      double sigmas = 2.0;
       // largest z reaches gems first, make that the outer z
       if(outer_z < inner_z) swap(outer_z, inner_z);
-      cout << " dz " << outer_z - inner_z << " zdiffusion " << zdiffusion << " zshaping_lead " << zshaping_lead << " zshaping_tail " << zshaping_tail << endl;
       g4max_z = outer_z  + sigmas*sqrt(pow(zdiffusion,2) + pow(added_smear_long,2) + pow(zshaping_lead, 2));
       g4min_z = inner_z  -  sigmas*sqrt(pow(zdiffusion,2) + pow(added_smear_long,2) + pow(zshaping_tail, 2));
 
-      cout << "   inner_z " << inner_z << " outer_z " << outer_z << " g4min_z " << g4min_z << " g4max_z " << g4max_z << endl;
+      //cout << "   inner_z " << inner_z << " outer_z " << outer_z << " g4min_z " << g4min_z << " g4max_z " << g4max_z << endl;
 
       // find the bins containing these max and min z edges
       unsigned int binmin = layergeom->get_zbin(g4min_z);
@@ -3193,7 +3191,6 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
 
       // multiply total number of bins that include the edges by the bin size
       g4zsize = (double) binwidth * layergeom->get_zstep();
-      cout << "    layer " << layer << " g4size " << g4zsize << " binwidth " << binwidth << " binmax " << binmax << " binmin " << binmin << " binstepz " << layergeom->get_zstep() << endl;
     }
   else if(radius > 5 && radius < 20)  // INTT
     {
