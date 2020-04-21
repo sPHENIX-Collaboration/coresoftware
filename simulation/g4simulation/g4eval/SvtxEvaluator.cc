@@ -2128,7 +2128,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
     }
 
     PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
-    //TrkrClusterContainer* clustermap = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
     if (truthinfo)
     {
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetPrimaryParticleRange();
@@ -2148,7 +2147,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
         float gtrackID = g4particle->get_track_id();
         float gflavor = g4particle->get_pid();
 
-        //std::set<PHG4Hit*> g4hits = trutheval->all_truth_hits(g4particle);
         std::set<TrkrDefs::cluskey> g4clusters = clustereval->all_clusters_from(g4particle);
 
         float ng4hits = g4clusters.size();

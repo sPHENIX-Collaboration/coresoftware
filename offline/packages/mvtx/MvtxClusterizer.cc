@@ -453,14 +453,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if (Verbosity() > 2)
 	clus->identify();
 
-	// Add the hit associations to the TrkrClusterHitAssoc node
-	// we need the cluster key and all associated hit keys
-	/*
-	for(unsigned int i=0;i<hitvec.size();i++)
-	  {
-	    m_clusterhitassoc->addAssoc(ckey, hitvec[i].first);
-	  }
-	*/
       }  // clusitr
   }    // hitsetitr
 

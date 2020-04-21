@@ -467,15 +467,11 @@ int TpcClusterizer::process_event(PHCompositeNode *topNode)
       DIM[0][1] = 0.0;
       DIM[0][2] = 0.0;
       DIM[1][0] = 0.0;
-      //DIM[1][1] = pow(0.5 * phi_size / radius,2);  //cluster_v1 expects polar coordinates covariance
-      DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects polar coordinates covariance
-      //DIM[1][1] = pow(phi_size / radius,2);  //cluster_v1 expects polar coordinates covariance
+      DIM[1][1] = pow(0.5 * phi_size,2);  //cluster_v1 expects 1/2 of actual size
       DIM[1][2] = 0.0;
       DIM[2][0] = 0.0;
       DIM[2][1] = 0.0;
       DIM[2][2] = pow(0.5 * z_size,2);
-      //DIM[2][2] = pow(z_size,2);
-
 
       TMatrixF ERR(3, 3);
       ERR[0][0] = 0.0;
