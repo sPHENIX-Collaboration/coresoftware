@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef BEAMLINEMAGNETMAGNETDETECTOR_H
-#define BEAMLINEMAGNETMAGNETDETECTOR_H
+#ifndef G4DETECTORS_BEAMLINEMAGNETMAGNETDETECTOR_H
+#define G4DETECTORS_BEAMLINEMAGNETMAGNETDETECTOR_H
 
 #include <g4main/PHG4Detector.h>
 
@@ -44,4 +44,4 @@ class BeamLineMagnetDetector : public PHG4Detector
   std::string superdetector;
 };
 
-#endif //  BEAMLINEMAGNETMAGNETDETECTOR_H
+#endif  //  G4DETECTORS_BEAMLINEMAGNETMAGNETDETECTOR_H

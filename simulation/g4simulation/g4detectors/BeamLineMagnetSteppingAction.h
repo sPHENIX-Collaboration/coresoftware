@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef BEAMLINEMAGNETSTEPPINGACTION_H
-#define BEAMLINEMAGNETSTEPPINGACTION_H
+#ifndef G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H
+#define G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H
 
 #include <g4main/PHG4SteppingAction.h>
 
@@ -17,7 +17,7 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
 {
  public:
   //! constructor
-  BeamLineMagnetSteppingAction(BeamLineMagnetDetector*, const PHParameters *parameters);
+  BeamLineMagnetSteppingAction(BeamLineMagnetDetector*, const PHParameters* parameters);
 
   //! destructor
   virtual ~BeamLineMagnetSteppingAction();
@@ -46,4 +46,4 @@ class BeamLineMagnetSteppingAction : public PHG4SteppingAction
   double m_EionSum;
 };
 
-#endif  // BEAMLINEMAGNETSTEPPINGACTION_H
+#endif  // G4DETECTORS_BEAMLINEMAGNETSTEPPINGACTION_H

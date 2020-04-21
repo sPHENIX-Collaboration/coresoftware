@@ -47,7 +47,7 @@ void BeamLineMagnetDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     {
       visatt->SetColour(G4Color(0.2, 0.8, 0.2, 0.8));
     }
-    else if (it.second == "FIELDVOLUME" || it.second == "OFF" )
+    else if (it.second == "FIELDVOLUME" || it.second == "OFF")
     {
       visatt->SetVisibility(false);
       visatt->SetForceSolid(false);

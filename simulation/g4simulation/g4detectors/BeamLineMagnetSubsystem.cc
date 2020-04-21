@@ -5,15 +5,15 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>   // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>          // for PHIODataNode
-#include <phool/PHNode.h>                // for PHNode
-#include <phool/PHNodeIterator.h>        // for PHNodeIterator
-#include <phool/PHObject.h>              // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
 #include <cmath>     // for NAN
@@ -25,7 +25,7 @@ class PHG4Detector;
 using namespace std;
 
 //_______________________________________________________________________
-BeamLineMagnetSubsystem::BeamLineMagnetSubsystem(const std::string& na, const int lyr)
+BeamLineMagnetSubsystem::BeamLineMagnetSubsystem(const std::string &na, const int lyr)
   : PHG4DetectorSubsystem(na, lyr)
   , m_Detector(nullptr)
   , m_SteppingAction(nullptr)
@@ -37,15 +37,15 @@ BeamLineMagnetSubsystem::BeamLineMagnetSubsystem(const std::string& na, const in
 //_______________________________________________________________________
 BeamLineMagnetSubsystem::~BeamLineMagnetSubsystem()
 {
-  delete  m_DisplayAction;
+  delete m_DisplayAction;
 }
 
 //_______________________________________________________________________
-int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
+int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
-    PHNodeIterator iter(topNode);
-    PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
-    PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
+  PHNodeIterator iter(topNode);
+  PHCompositeNode *dstNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "DST"));
+  PHCompositeNode *runNode = dynamic_cast<PHCompositeNode *>(iter.findFirst("PHCompositeNode", "RUN"));
 
   // create display settings before detector
   BeamLineMagnetDisplayAction *displayaction = new BeamLineMagnetDisplayAction(Name());
@@ -127,7 +127,7 @@ int BeamLineMagnetSubsystem::InitRunSubsystem(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-int BeamLineMagnetSubsystem::process_event(PHCompositeNode* topNode)
+int BeamLineMagnetSubsystem::process_event(PHCompositeNode *topNode)
 {
   // pass top node to stepping action so that it gets
   // relevant nodes needed internally
@@ -139,7 +139,7 @@ int BeamLineMagnetSubsystem::process_event(PHCompositeNode* topNode)
 }
 
 //_______________________________________________________________________
-PHG4Detector* BeamLineMagnetSubsystem::GetDetector(void) const
+PHG4Detector *BeamLineMagnetSubsystem::GetDetector(void) const
 {
   return m_Detector;
 }
@@ -164,7 +164,7 @@ void BeamLineMagnetSubsystem::SetDefaultParameters()
   set_default_double_param("outer_radius", 100);
 }
 
-void BeamLineMagnetSubsystem::Print(const string& what) const
+void BeamLineMagnetSubsystem::Print(const string &what) const
 {
   cout << Name() << " Parameters: " << endl;
   if (!BeginRunExecuted())

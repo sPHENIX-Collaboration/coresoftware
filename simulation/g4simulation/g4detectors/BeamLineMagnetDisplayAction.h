@@ -1,7 +1,7 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-#ifndef BEAMLINEMAGNETDISPLAYACTION_H
-#define BEAMLINEMAGNETDISPLAYACTION_H
+#ifndef G4DETECTORS_BEAMLINEMAGNETDISPLAYACTION_H
+#define G4DETECTORS_BEAMLINEMAGNETDISPLAYACTION_H
 
 #include <g4main/PHG4DisplayAction.h>
 
@@ -28,4 +28,4 @@ class BeamLineMagnetDisplayAction : public PHG4DisplayAction
   std::vector<G4VisAttributes *> m_VisAttVec;
 };
 
-#endif  // BEAMLINEMAGNETDISPLAYACTION_H
+#endif  // G4DETECTORS_BEAMLINEMAGNETDISPLAYACTION_H
