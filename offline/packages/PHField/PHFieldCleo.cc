@@ -53,6 +53,8 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
 
   // Read in the data
   double xval, yval, zval, bx, by, bz;
+  double save_x = NAN;
+  double save_y = NAN;
   for (ix = 0; ix < nx; ix++)
   {
     for (iy = 0; iy < ny; iy++)
@@ -60,6 +62,32 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
       for (iz = 0; iz < nz; iz++)
       {
         file >> xval >> yval >> zval >> bx >> by >> bz;
+        if (!isfinite(save_x))
+        {
+          save_x = xval;
+        }
+        else
+        {
+          if (save_x != xval)
+          {
+            cout << "mismatch expected x coordinate: " << save_x
+                 << " read " << xval << endl;
+            gSystem->Exit(1);
+          }
+        }
+        if (!isfinite(save_y))
+        {
+          save_y = yval;
+        }
+        else
+        {
+          if (save_y != yval)
+          {
+            cout << "mismatch expected y coordinate: " << save_y
+                 << " read " << yval << endl;
+            gSystem->Exit(1);
+          }
+        }
         if (ix == 0 && iy == 0 && iz == 0)
         {
           minx = xval * cm;
@@ -70,7 +98,9 @@ PHFieldCleo::PHFieldCleo(const string &filename, const int verb, const float mag
         yField[ix][iy][iz] = by * gauss * m_MagFieldScale;
         zField[ix][iy][iz] = bz * gauss * m_MagFieldScale;
       }
+      save_y = NAN;
     }
+    save_x = NAN;
   }
   file.close();
   maxx = xval * cm;
