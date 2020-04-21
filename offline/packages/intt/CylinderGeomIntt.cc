@@ -70,6 +70,29 @@ void CylinderGeomIntt::find_segment_center(const int segment_z_bin, const int se
   //cout << "radius " << m_SensorRadius << " offsetphi " << m_OffsetPhi << " rad  dphi_ " << m_dPhi << " rad  segment_phi_bin " << segment_phi_bin << " phi " << phi  << " rad " << endl;
 }
 
+void CylinderGeomIntt::find_indices_from_world_location(int &segment_z_bin, int &segment_phi_bin, double location[])
+{
+  double signz = (location[2] > 0)? 1.  : -1;
+  double phi = atan2(location[1], location[0]);
+  if(phi < 0) phi += 2.0*M_PI;
+  double segment_phi_bin_tmp = (phi - m_OffsetPhi)/m_dPhi;
+  segment_phi_bin = round(segment_phi_bin_tmp);
+
+  double z_tmp = location[2]  / signz;
+
+  // decide if this is a type A (0) or type B (1) sensor
+  int itype;
+  if( fabs((1.0 - z_tmp / m_LadderZ[0])) < 0.01) 
+    itype = 0;
+  else
+    itype = 1;
+
+  if(signz <0)
+    segment_z_bin = itype;    // 0 = itype 0 +z,  1 = itype 1 +z,  2 = itupe 1 -z, 3 = itype 1 -z
+  else
+    segment_z_bin = itype + 2;
+}
+
 void CylinderGeomIntt::find_indices_from_segment_center(int &segment_z_bin, int &segment_phi_bin, double location[])
 {
   double signz = (location[2] > 0)? 1.  : -1;
