@@ -18,7 +18,7 @@ class BeamLineMagnetDetector : public PHG4Detector
 {
  public:
   //! constructor
-  BeamLineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int layer = 0);
+  BeamLineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int magnetid = 0);
 
   //! destructor
   virtual ~BeamLineMagnetDetector(void)
@@ -31,7 +31,7 @@ class BeamLineMagnetDetector : public PHG4Detector
   int IsInBeamLineMagnet(const G4VPhysicalVolume *) const;
   void SuperDetector(const std::string &name) { superdetector = name; }
   const std::string SuperDetector() const { return superdetector; }
-  int get_Layer() const { return layer; }
+  int get_MagnetId() const { return m_MagnetId; }
 
  private:
   PHParameters *params;
@@ -40,7 +40,7 @@ class BeamLineMagnetDetector : public PHG4Detector
   G4VPhysicalVolume *magnet_iron_physi;
   BeamLineMagnetDisplayAction *m_DisplayAction;
 
-  int layer;
+  int m_MagnetId;
   std::string superdetector;
 };
 

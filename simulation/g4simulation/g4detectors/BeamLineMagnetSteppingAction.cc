@@ -86,7 +86,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
   G4double eion = (aStep->GetTotalEnergyDeposit() - aStep->GetNonIonizingEnergyDeposit()) / GeV;
   const G4Track* aTrack = aStep->GetTrack();
 
-  int layer_id = whichactive - 1;  // layer id is +1 in detector description
+  int magnet_id = volume->GetCopyNo();  // magnet id is stored in copy number
   bool geantino = false;
   // the check for the pdg code speeds things up, I do not want to make
   // an expensive string compare for every track when we know
@@ -129,7 +129,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
     {
       m_Hit = new PHG4Hitv1();
     }
-    m_Hit->set_layer(layer_id);
+    m_Hit->set_layer(magnet_id);
     //here we set the entrance values in cm
     m_Hit->set_x(0, prePoint->GetPosition().x() / cm);
     m_Hit->set_y(0, prePoint->GetPosition().y() / cm);
@@ -261,7 +261,7 @@ bool BeamLineMagnetSteppingAction::UserSteppingAction(const G4Step* aStep, bool 
       {
         m_Hit->set_eion(m_EionSum);
       }
-      m_SaveHitContainer->AddHit(layer_id, m_Hit);
+      m_SaveHitContainer->AddHit(magnet_id, m_Hit);
       // ownership has been transferred to container, set to null
       // so we will create a new hit for the next track
       m_Hit = nullptr;

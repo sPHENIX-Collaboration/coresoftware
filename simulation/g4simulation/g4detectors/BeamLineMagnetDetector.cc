@@ -42,13 +42,13 @@ class PHG4Subsystem;
 using namespace std;
 
 //_______________________________________________________________
-BeamLineMagnetDetector::BeamLineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int lyr)
+BeamLineMagnetDetector::BeamLineMagnetDetector(PHG4Subsystem *subsys, PHCompositeNode *Node, PHParameters *parameters, const std::string &dnam, const int magnet_id)
   : PHG4Detector(subsys, Node, dnam)
   , params(parameters)
   , magnet_physi(nullptr)
   , magnet_iron_physi(nullptr)
   , m_DisplayAction(dynamic_cast<BeamLineMagnetDisplayAction *>(subsys->GetDisplayAction()))
-  , layer(lyr)
+  ,  m_MagnetId(magnet_id)
 {
 }
 
@@ -93,7 +93,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   magnet_iron_physi = new G4PVPlacement(G4Transform3D(*rotm, origin),
                                         magnet_mother_logic,
                                         G4String(GetName().append("_Mother").c_str()),
-                                        logicMother, 0, false, OverlapCheck());
+                                        logicMother, false, m_MagnetId, OverlapCheck());
 
   /* Creating a magnetic field */
   G4MagneticField *magField = nullptr;
@@ -151,7 +151,7 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   magnet_iron_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
                                         magnet_iron_logic,
                                         G4String(GetName().append("_Solid").c_str()),
-                                        magnet_mother_logic, 0, false, OverlapCheck());
+                                        magnet_mother_logic, false, m_MagnetId, OverlapCheck());
 
   G4VSolid *magnet_field_solid = new G4Tubs(G4String(GetName().append("_Field_Solid").c_str()),
                                             0,
@@ -184,5 +184,5 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   magnet_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
                                    magnet_field_logic,
                                    G4String(GetName().c_str()),
-                                   magnet_mother_logic, 0, false, OverlapCheck());
+                                   magnet_mother_logic, false, m_MagnetId, OverlapCheck());
 }
