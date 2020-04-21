@@ -115,39 +115,39 @@ using namespace std;
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
-  , magfield(1.4)
-  , magfield_rescale(1.0)
-  , field_(nullptr)
-  , runManager_(nullptr)
-  , uisession_(nullptr)
-  , detector_(nullptr)
-  , eventAction_(nullptr)
-  , steppingAction_(nullptr)
-  , trackingAction_(nullptr)
+  , m_MagneticField(1.4)
+  , m_MagneticFieldRescale(1.0)
+  , m_Field(nullptr)
+  , m_RunManager(nullptr)
+  , m_UISession(nullptr)
+  , m_Detector(nullptr)
+  , m_EventAction(nullptr)
+  , m_SteppingAction(nullptr)
+  , m_TrackingAction(nullptr)
   , m_DisplayAction(nullptr)
-  , generatorAction_(nullptr)
-  , visManager(nullptr)
+  , m_GeneratorAction(nullptr)
+  , m_VisManager(nullptr)
   , m_Fun4AllMessenger(new Fun4AllMessenger(Fun4AllServer::instance()))
   , m_UImanager(nullptr)
-  , _eta_coverage(1.0)
-  , mapdim(PHFieldConfig::kFieldUniform)
-  , fieldmapfile("NONE")
-  , worldshape("G4Tubs")
-  , worldmaterial("G4_AIR")
+  , m_EtaCoverage(1.0)
+  , m_FieldConfigType(PHFieldConfig::kFieldUniform)
+  , m_FieldMapFile("NONE")
+  , m_WorldShape("G4Tubs")
+  , m_WorldMaterial("G4_AIR")
 #if G4VERSION_NUMBER >= 1033
-  , physicslist("FTFP_BERT")
+  , m_PhysicsList("FTFP_BERT")
 #else
-  , physicslist("QGSP_BERT")
+  , m_PhysicsList("QGSP_BERT")
 #endif
-  , active_decayer_(true)
-  , active_force_decay_(false)
-  , force_decay_type_(kAll)
-  , save_DST_geometry_(true)
+  , m_ActiveDecayerFlag(true)
+  , m_ActiveForceDecayFlag(false)
+  , m_ForceDecayType(kAll)
+  , m_SaveDstGeometryFlag(true)
   , m_disableUserActions(false)
 {
   for (int i = 0; i < 3; i++)
   {
-    WorldSize[i] = 1000.;
+    m_WorldSize[i] = 1000.;
   }
   return;
 }
@@ -157,15 +157,15 @@ PHG4Reco::~PHG4Reco(void)
 {
   // one can delete null pointer (it results in a nop), so checking if
   // they are non zero is not needed
-  delete field_;
-  delete runManager_;
-  delete uisession_;
-  delete visManager;
+  delete m_Field;
+  delete m_RunManager;
+  delete m_UISession;
+  delete m_VisManager;
   delete m_Fun4AllMessenger;
-  while (subsystems_.begin() != subsystems_.end())
+  while (m_SubsystemList.begin() != m_SubsystemList.end())
   {
-    delete subsystems_.back();
-    subsystems_.pop_back();
+    delete m_SubsystemList.back();
+    m_SubsystemList.pop_back();
   }
   delete m_DisplayAction;
 }
@@ -188,82 +188,85 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   if (0)
   {
     G4UImanager *uimanager = G4UImanager::GetUIpointer();
-    uisession_ = new PHG4UIsession();
-    uimanager->SetSession(uisession_);
-    uimanager->SetCoutDestination(uisession_);
+    m_UISession = new PHG4UIsession();
+    uimanager->SetSession(m_UISession);
+    uimanager->SetCoutDestination(m_UISession);
   }
 
-  runManager_ = new G4RunManager();
+  m_RunManager = new G4RunManager();
 
   DefineMaterials();
   // create physics processes
   G4VModularPhysicsList *myphysicslist = nullptr;
-  if (physicslist == "FTFP_BERT")
+  if (m_PhysicsList == "FTFP_BERT")
   {
     myphysicslist = new FTFP_BERT(Verbosity());
   }
-  else if (physicslist == "FTFP_BERT_HP")
+  else if (m_PhysicsList == "FTFP_BERT_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new FTFP_BERT_HP(Verbosity());
   }
-  else if (physicslist == "FTFP_INCLXX")
+  else if (m_PhysicsList == "FTFP_INCLXX")
   {
     myphysicslist = new FTFP_INCLXX(Verbosity());
   }
-  else if (physicslist == "FTFP_INCLXX_HP")
+  else if (m_PhysicsList == "FTFP_INCLXX_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new FTFP_INCLXX_HP(Verbosity());
   }
-  else if (physicslist == "QGSP_BERT")
+  else if (m_PhysicsList == "QGSP_BERT")
   {
     myphysicslist = new QGSP_BERT(Verbosity());
   }
-  else if (physicslist == "QGSP_BERT_HP")
+  else if (m_PhysicsList == "QGSP_BERT_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_BERT_HP(Verbosity());
   }
-  else if (physicslist == "QGSP_BIC")
+  else if (m_PhysicsList == "QGSP_BIC")
   {
     myphysicslist = new QGSP_BIC(Verbosity());
   }
-  else if (physicslist == "QGSP_BIC_HP")
+  else if (m_PhysicsList == "QGSP_BIC_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_BIC_HP(Verbosity());
   }
-  else if (physicslist == "QGSP_INCLXX")
+  else if (m_PhysicsList == "QGSP_INCLXX")
   {
     myphysicslist = new QGSP_INCLXX(Verbosity());
   }
-  else if (physicslist == "QGSP_INCLXX_HP")
+  else if (m_PhysicsList == "QGSP_INCLXX_HP")
   {
     setenv("AllowForHeavyElements", "1", 1);
     myphysicslist = new QGSP_INCLXX_HP(Verbosity());
   }
-  else if (physicslist == "EIC")
+  else if (m_PhysicsList == "EIC")
   {
     myphysicslist = new EICPhysicsList();
   }
   else
   {
-    cout << "Physics List " << physicslist << " not implemented" << endl;
+    cout << "Physics List " << m_PhysicsList << " not implemented" << endl;
     gSystem->Exit(1);
   }
 
-  if (active_decayer_)
+  if (m_ActiveDecayerFlag)
   {
     P6DExtDecayerPhysics *decayer = new P6DExtDecayerPhysics();
-    if (active_force_decay_) decayer->SetForceDecay(force_decay_type_);
+    if (m_ActiveForceDecayFlag)
+    {
+      decayer->SetForceDecay(m_ForceDecayType);
+    }
     myphysicslist->RegisterPhysics(decayer);
   }
   myphysicslist->RegisterPhysics(new G4StepLimiterPhysics());
   // initialize cuts so we can ask the world region for it's default
   // cuts to propagate them to other regions in DefineRegions()
   myphysicslist->SetCutsWithDefault();
-  runManager_->SetUserInitialization(myphysicslist);
+  m_RunManager->SetUserInitialization(myphysicslist);
 
   DefineRegions();
 #if G4VERSION_NUMBER >= 1033
@@ -274,7 +277,7 @@ int PHG4Reco::Init(PHCompositeNode *topNode)
   }
 #endif
   // initialize registered subsystems
-  BOOST_FOREACH (SubsysReco *reco, subsystems_)
+  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
   {
     reco->Init(topNode);
   }
@@ -292,13 +295,13 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
 
   unique_ptr<PHFieldConfig> default_field_cfg(nullptr);
 
-  if (fieldmapfile != "NONE")
+  if (m_FieldMapFile != "NONE")
   {
-    default_field_cfg.reset(new PHFieldConfigv1(mapdim, fieldmapfile, magfield_rescale));
+    default_field_cfg.reset(new PHFieldConfigv1(m_FieldConfigType, m_FieldMapFile, m_MagneticFieldRescale));
   }
   else
   {
-    default_field_cfg.reset(new PHFieldConfigv2(0, 0, magfield * magfield_rescale));
+    default_field_cfg.reset(new PHFieldConfigv2(0, 0, m_MagneticField * m_MagneticFieldRescale));
   }
 
   if (Verbosity() > 1) cout << "PHG4Reco::InitField - create magnetic field setup" << endl;
@@ -306,7 +309,7 @@ int PHG4Reco::InitField(PHCompositeNode *topNode)
   PHField *phfield = PHFieldUtility::GetFieldMapNode(default_field_cfg.get(), topNode, Verbosity() + 1);
   assert(phfield);
 
-  field_ = new G4TBMagneticFieldSetup(phfield);
+  m_Field = new G4TBMagneticFieldSetup(phfield);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -334,7 +337,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   recoConsts *rc = recoConsts::instance();
 
-  //setup the constant field
+  //setup the global field
   const int field_ret = InitField(topNode);
   if (field_ret != Fun4AllReturnCodes::EVENT_OK)
   {
@@ -343,10 +346,12 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   }
 
   // initialize registered subsystems
-  BOOST_FOREACH (SubsysReco *reco, subsystems_)
+  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
   {
     if (Verbosity() >= 1)
+    {
       cout << "PHG4Reco::InitRun - " << reco->Name() << "->InitRun" << endl;
+    }
     reco->InitRun(topNode);
   }
 
@@ -354,26 +359,26 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   // create display settings before detector
   m_DisplayAction = new PHG4PhenixDisplayAction(Name());
   if (Verbosity() > 1) cout << "PHG4Reco::Init - create detector" << endl;
-  detector_ = new PHG4PhenixDetector(this);
-  detector_->Verbosity(Verbosity());
-  detector_->SetWorldSizeX(WorldSize[0] * cm);
-  detector_->SetWorldSizeY(WorldSize[1] * cm);
-  detector_->SetWorldSizeZ(WorldSize[2] * cm);
-  detector_->SetWorldShape(worldshape);
-  detector_->SetWorldMaterial(worldmaterial);
+  m_Detector = new PHG4PhenixDetector(this);
+  m_Detector->Verbosity(Verbosity());
+  m_Detector->SetWorldSizeX(m_WorldSize[0] * cm);
+  m_Detector->SetWorldSizeY(m_WorldSize[1] * cm);
+  m_Detector->SetWorldSizeZ(m_WorldSize[2] * cm);
+  m_Detector->SetWorldShape(m_WorldShape);
+  m_Detector->SetWorldMaterial(m_WorldMaterial);
 
-  rc->set_FloatFlag("WorldSizex", WorldSize[0]);
-  rc->set_FloatFlag("WorldSizey", WorldSize[1]);
-  rc->set_FloatFlag("WorldSizez", WorldSize[2]);
+  rc->set_FloatFlag("WorldSizex", m_WorldSize[0]);
+  rc->set_FloatFlag("WorldSizey", m_WorldSize[1]);
+  rc->set_FloatFlag("WorldSizez", m_WorldSize[2]);
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
     if (g4sub->GetDetector())
     {
-      detector_->AddDetector(g4sub->GetDetector());
+      m_Detector->AddDetector(g4sub->GetDetector());
     }
   }
-  runManager_->SetUserInitialization(detector_);
+  m_RunManager->SetUserInitialization(m_Detector);
 
   if (m_disableUserActions)
   {
@@ -384,25 +389,25 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   setupInputEventNodeReader(topNode);
   // create main event action, add subsystemts and register to GEANT
-  eventAction_ = new PHG4PhenixEventAction();
+  m_EventAction = new PHG4PhenixEventAction();
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
     PHG4EventAction *evtact = g4sub->GetEventAction();
     if (evtact)
     {
-      eventAction_->AddAction(evtact);
+      m_EventAction->AddAction(evtact);
     }
   }
 
   if (not m_disableUserActions)
   {
-    runManager_->SetUserAction(eventAction_);
+    m_RunManager->SetUserAction(m_EventAction);
   }
 
   // create main stepping action, add subsystems and register to GEANT
-  steppingAction_ = new PHG4PhenixSteppingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
+  m_SteppingAction = new PHG4PhenixSteppingAction();
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
     PHG4SteppingAction *action = g4sub->GetSteppingAction();
     if (action)
@@ -412,20 +417,20 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
         cout << "Adding steppingaction for " << g4sub->Name() << endl;
       }
 
-      steppingAction_->AddAction(g4sub->GetSteppingAction());
+      m_SteppingAction->AddAction(g4sub->GetSteppingAction());
     }
   }
 
   if (not m_disableUserActions)
   {
-    runManager_->SetUserAction(steppingAction_);
+    m_RunManager->SetUserAction(m_SteppingAction);
   }
 
   // create main tracking action, add subsystems and register to GEANT
-  trackingAction_ = new PHG4PhenixTrackingAction();
-  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
+  m_TrackingAction = new PHG4PhenixTrackingAction();
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
-    trackingAction_->AddAction(g4sub->GetTrackingAction());
+    m_TrackingAction->AddAction(g4sub->GetTrackingAction());
 
     // not all subsystems define a user tracking action
     if (g4sub->GetTrackingAction())
@@ -440,11 +445,11 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 
   if (not m_disableUserActions)
   {
-    runManager_->SetUserAction(trackingAction_);
+    m_RunManager->SetUserAction(m_TrackingAction);
   }
 
   // initialize
-  runManager_->Initialize();
+  m_RunManager->Initialize();
 
   // add cerenkov and optical photon processes
   // cout << endl << "Ignore the next message - we implemented this correctly" << endl;
@@ -512,17 +517,15 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
   G4HadronicProcessStore::Instance()->SetVerbose(0);
   G4LossTableManager::Instance()->SetVerbose(1);
 
-  if ((Verbosity() < 1) && (uisession_))
+  if ((Verbosity() < 1) && (m_UISession))
   {
-    uisession_->Verbosity(1);  // let messages after setup come through
+    m_UISession->Verbosity(1);  // let messages after setup come through
   }
 
   // Geometry export to DST
-  if (save_DST_geometry_)
+  if (m_SaveDstGeometryFlag)
   {
-    const string filename =
-        PHGeomUtility::
-            GenerateGeometryFileName("gdml");
+    const string filename = PHGeomUtility::GenerateGeometryFileName("gdml");
     cout << "PHG4Reco::InitRun - export geometry to DST via tmp file " << filename << endl;
 
     Dump_GDML(filename);
@@ -544,7 +547,7 @@ int PHG4Reco::InitRun(PHCompositeNode *topNode)
 //Dump TGeo File
 void PHG4Reco::Dump_GDML(const std::string &filename)
 {
-  PHG4GDMLUtility ::Dump_GDML(filename, detector_->GetPhysicalVolume());
+  PHG4GDMLUtility ::Dump_GDML(filename, m_Detector->GetPhysicalVolume());
 }
 
 //_________________________________________________________________
@@ -575,8 +578,8 @@ int PHG4Reco::InitUImanager()
   {
     // Get the pointer to the User Interface manager
     // Initialize visualization
-    visManager = new G4VisExecutive;
-    visManager->Initialize();
+    m_VisManager = new G4VisExecutive;
+    m_VisManager->Initialize();
     m_UImanager = G4UImanager::GetUIpointer();
   }
   return 0;
@@ -587,9 +590,9 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 {
   // make sure Actions and subsystems have the relevant pointers set
   PHG4InEvent *ineve = findNode::getClass<PHG4InEvent>(topNode, "PHG4INEVENT");
-  generatorAction_->SetInEvent(ineve);
+  m_GeneratorAction->SetInEvent(ineve);
 
-  BOOST_FOREACH (SubsysReco *reco, subsystems_)
+  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
   {
     if (Verbosity() >= 2)
       cout << "PHG4Reco::process_event - " << reco->Name() << "->process_event" << endl;
@@ -614,9 +617,9 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
          << "run one event :" << endl;
     ineve->identify();
   }
-  runManager_->BeamOn(1);
+  m_RunManager->BeamOn(1);
 
-  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)
   {
     if (Verbosity() >= 2)
       cout << " PHG4Reco::process_event - " << g4sub->Name() << "->process_after_geant" << endl;
@@ -637,7 +640,7 @@ int PHG4Reco::process_event(PHCompositeNode *topNode)
 
 int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 {
-  BOOST_FOREACH (SubsysReco *reco, subsystems_)
+  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
   {
     reco->ResetEvent(topNode);
   }
@@ -646,7 +649,7 @@ int PHG4Reco::ResetEvent(PHCompositeNode *topNode)
 
 void PHG4Reco::Print(const std::string &what) const
 {
-  BOOST_FOREACH (SubsysReco *reco, subsystems_)
+  BOOST_FOREACH (SubsysReco *reco, m_SubsystemList)
   {
     if (what.empty() || what == "ALL" || (reco->Name()).find(what) != string::npos)
     {
@@ -672,23 +675,17 @@ int PHG4Reco::setupInputEventNodeReader(PHCompositeNode *topNode)
     dstNode->addNode(newNode);
   }
   // check if we have already registered a generator before creating the default which uses PHG4InEvent Node
-  if (!generatorAction_)
+  if (!m_GeneratorAction)
   {
-    generatorAction_ = new PHG4PrimaryGeneratorAction();
+    m_GeneratorAction = new PHG4PrimaryGeneratorAction();
   }
-  runManager_->SetUserAction(generatorAction_);
+  m_RunManager->SetUserAction(m_GeneratorAction);
   return 0;
 }
 
-// void PHG4Reco::setGeneratorAction(PHG4PrimaryGeneratorAction *action)
-// {
-//   generatorAction_ = action;
-//   return;
-// }
-
 void PHG4Reco::set_rapidity_coverage(const double eta)
 {
-  _eta_coverage = eta;
+  m_EtaCoverage = eta;
   PHG4Utils::SetPseudoRapidityCoverage(eta);
 }
 
@@ -1387,7 +1384,7 @@ void PHG4Reco::DefineRegions()
 PHG4Subsystem *
 PHG4Reco::getSubsystem(const string &name)
 {
-  BOOST_FOREACH (PHG4Subsystem *subsys, subsystems_)
+  BOOST_FOREACH (PHG4Subsystem *subsys, m_SubsystemList)
   {
     if (subsys->Name() == name)
     {
@@ -1404,21 +1401,21 @@ PHG4Reco::getSubsystem(const string &name)
 
 void PHG4Reco::G4Verbosity(const int i)
 {
-  if (runManager_)
+  if (m_RunManager)
   {
-    runManager_->SetVerboseLevel(i);
+    m_RunManager->SetVerboseLevel(i);
   }
 }
 
 void PHG4Reco::ApplyDisplayAction()
 {
-  if (!detector_)
+  if (!m_Detector)
   {
     return;
   }
-  G4VPhysicalVolume *physworld = detector_->GetPhysicalVolume();
+  G4VPhysicalVolume *physworld = m_Detector->GetPhysicalVolume();
   m_DisplayAction->ApplyDisplayAction(physworld);
-  BOOST_FOREACH (PHG4Subsystem *g4sub, subsystems_)  //for (PHG4Subsystem g4sub: subsystems_)
+  BOOST_FOREACH (PHG4Subsystem *g4sub, m_SubsystemList)  //for (PHG4Subsystem g4sub: m_SubsystemList)
   {
     PHG4DisplayAction *action = g4sub->GetDisplayAction();
     if (action)

@@ -28,6 +28,7 @@
 #include <gsl/gsl_rng.h>                                // for gsl_rng_alloc
 
 #include <cmath>
+#include <cassert>
 #include <climits>                                     // for INT_MAX
 #include <cstdio>                                      // for sprintf
 #include <iostream>
@@ -279,7 +280,10 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
+  {
+    assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+  }
 
   if (Verbosity() > 100)
     if (layernum == print_layer)
@@ -290,6 +294,7 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(PHG4CellContainer *g4cells, const dou
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+      assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
 
@@ -488,14 +493,21 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // Either way, add the energy to it  -- adc values will be added at digitization
       hit->addEnergy(neffelectrons);
 
-      nthit->Fill(layernum, pad_num, zbin_num, neffelectrons);
+      if (Verbosity() > 0)
+      {
+        assert(nthit);
+        nthit->Fill(layernum, pad_num, zbin_num, neffelectrons);
+      }
 
     }  // end of loop over adc Z bins
   }    // end of loop over zigzag pads
 
   // Capture the input values at the gem stack and the quick clustering results, elecron-by-electron
   if (Verbosity() > 0)
+  {
+    assert(ntpad);
     ntpad->Fill(layernum, phi, phi_integral / weight, z_gem, z_integral / weight);
+  }
 
   if (Verbosity() > 100)
     if (layernum == print_layer)
@@ -506,6 +518,8 @@ void PHG4TpcPadPlaneReadout::MapToPadPlane(TrkrHitSetContainer *hitsetcontainer,
       // For a single track event, this captures the distribution of single electron centroids on the pad plane for layer print_layer.
       // The centroid of that should match the cluster centroid found by PHG4TpcClusterizer for layer print_layer, if everything is working
       //   - matches to < .01 cm for a few cases that I checked
+
+      assert(nthit);
       nthit->Fill(hit, layernum, phi, phi_integral / weight, z_gem, z_integral / weight, weight);
     }
 

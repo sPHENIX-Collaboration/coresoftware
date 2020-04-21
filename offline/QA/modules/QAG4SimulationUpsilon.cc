@@ -395,15 +395,12 @@ int QAG4SimulationUpsilon::process_event(PHCompositeNode *topNode)
                 pair_neg.second->get_pz()),
             daughter_mass);
 
-
         const CLHEP::HepLorentzVector v_quakonium = v_pos + v_neg;
-
 
         h_nReco_Pair_InvMassReco->Fill(v_quakonium.m());
         h_norm->Fill("Reco Upsilon", 1);
 
-      }//      if (pair_pos.second and pair_neg.second)
-
+      }  //      if (pair_pos.second and pair_neg.second)
 
     }  //    for (const auto &pair_neg : truth_reco_set_neg)
 

@@ -1,8 +1,6 @@
 #include "PHFieldUniform.h"
 
-#include <CLHEP/Units/SystemOfUnits.h>
-
-using namespace CLHEP;  // units
+#include <Geant4/G4SystemOfUnits.hh>
 
 PHFieldUniform::PHFieldUniform(
     double field_mag_x,

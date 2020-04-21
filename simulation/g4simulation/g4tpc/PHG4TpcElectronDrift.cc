@@ -65,6 +65,11 @@ PHG4TpcElectronDrift::PHG4TpcElectronDrift(const std::string &name)
   , padplane(nullptr)
   , dlong(nullptr)
   , dtrans(nullptr)
+  , m_outf(nullptr)
+  , nt(nullptr)
+  , nthit(nullptr)
+  , ntfinalhit(nullptr)
+  , ntpad(nullptr)
   , diffusion_trans(NAN)
   , diffusion_long(NAN)
   , drift_velocity(NAN)
@@ -230,13 +235,19 @@ int PHG4TpcElectronDrift::InitRun(PHCompositeNode *topNode)
   se->registerHisto(dlong);
   dtrans = new TH1F("difftrans", "transversal diffusion", 100, diffusion_trans - diffusion_trans / 2., diffusion_trans + diffusion_trans / 2.);
   se->registerHisto(dtrans);
-  nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
-  nthit = new TNtuple("nthit", "TrkrHit collecting", "layer:phipad:zbin:neffelectrons");
-  ntfinalhit = new TNtuple("ntfinalhit", "TrkrHit collecting", "layer:phipad:zbin:neffelectrons");
-  ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
-  se->registerHisto(nt);
-  se->registerHisto(nthit);
-  se->registerHisto(ntpad);
+
+  if (Verbosity())
+  {
+    // eval tree only when verbosity is on
+    m_outf = new TFile("nt_out.root", "recreate");
+    nt = new TNtuple("nt", "electron drift stuff", "hit:ts:tb:tsig:rad:zstart:zfinal");
+    nthit = new TNtuple("nthit", "TrkrHit collecting", "layer:phipad:zbin:neffelectrons");
+    ntfinalhit = new TNtuple("ntfinalhit", "TrkrHit collecting", "layer:phipad:zbin:neffelectrons");
+    ntpad = new TNtuple("ntpad", "electron by electron pad centroid", "layer:phigem:phiclus:zgem:zclus");
+    se->registerHisto(nt);
+    se->registerHisto(nthit);
+    se->registerHisto(ntpad);
+  }
   padplane->InitRun(topNode);
   padplane->CreateReadoutGeometry(topNode, seggeo);
 
@@ -362,7 +373,10 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	    }
 
 	  if (Verbosity() > 0)
-	    nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
+	  {
+	    assert(nt);
+      nt->Fill(ihit, t_start, t_final, t_sigma, rad_final, z_start, z_final);
+	  }
 
 	  // this fills the cells and updates the hits in temp_hitsetcontainer for this drifted electron hitting the GEM stack
 	  MapToPadPlane(x_final, y_final, z_final, hiter, ntpad, nthit);
@@ -515,12 +529,18 @@ int PHG4TpcElectronDrift::End(PHCompositeNode *topNode)
 {
   if (Verbosity() > 0)
   {
-    TFile *outf = new TFile("nt_out.root", "recreate");
-    outf->WriteTObject(nt);
-    outf->WriteTObject(ntpad);
-    outf->WriteTObject(nthit);
-    outf->WriteTObject(ntfinalhit);
-    outf->Close();
+    assert(m_outf);
+    assert(nt);
+    assert(ntpad);
+    assert(nthit);
+    assert(ntfinalhit);
+
+    m_outf->cd();
+    nt->Write();
+    ntpad->Write();
+    nthit->Write();
+    ntfinalhit->Write();
+    m_outf->Close();
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

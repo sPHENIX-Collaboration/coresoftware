@@ -214,19 +214,15 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_Z, "sensor_edge_phi", 0.13);
     set_default_double_param(SEGMENTATION_Z, "sensor_edge_z", 0.1);
     set_default_double_param(SEGMENTATION_Z, "sensor_offset_y", 0.304);
-    set_default_double_param(SEGMENTATION_Z, "stave_straight_cooler_y", 0.47);
-    set_default_double_param(SEGMENTATION_Z, "stave_straight_inner_y", 0.1);
-    set_default_double_param(SEGMENTATION_Z, "stave_straight_outer_y", 0.672);
     set_default_double_param(SEGMENTATION_Z, "strip_x", 0.032);
     set_default_double_param(SEGMENTATION_Z, "strip_y", 1.6);
     set_default_double_param(SEGMENTATION_Z, "strip_z_0", 0.01406);
     set_default_double_param(SEGMENTATION_Z, "strip_z_1", 0.01406);
-
-    set_default_int_param(SEGMENTATION_Z, "carbon_stave_type", 1);
-    set_default_double_param(SEGMENTATION_Z, "waterstave_straight_cooler_y", 0.47);
-    set_default_double_param(SEGMENTATION_Z, "waterstave_slant_cooler_y", 1.4362);
-    set_default_double_param(SEGMENTATION_Z, "waterstave_straight_outer_y", 0.672);
-    set_default_double_param(SEGMENTATION_Z, "waterstave_straight_rohacell_y", 0.57181);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_cooler_x", 0.01905);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_cooler_y", 0.47);
+    set_default_double_param(SEGMENTATION_Z, "stave_slant_cooler_y", 1.4362);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_outer_y", 0.672);
+    set_default_double_param(SEGMENTATION_Z, "stave_straight_rohacell_y", 0.57181);
 
     set_default_int_param(SEGMENTATION_PHI, "nstrips_phi_cell", 256);
     set_default_int_param(SEGMENTATION_PHI, "nstrips_phi_sensor", 256);
@@ -247,19 +243,15 @@ void PHG4InttSubsystem::SetDefaultParameters()
     set_default_double_param(SEGMENTATION_PHI, "sensor_edge_phi", 0.13);
     set_default_double_param(SEGMENTATION_PHI, "sensor_edge_z", 0.1);
     set_default_double_param(SEGMENTATION_PHI, "sensor_offset_y", 0.);
-    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_y", 0.47);
-    set_default_double_param(SEGMENTATION_PHI, "stave_straight_inner_y", 0.344);
-    set_default_double_param(SEGMENTATION_PHI, "stave_straight_outer_y", 0.522);
     set_default_double_param(SEGMENTATION_PHI, "strip_x", 0.032);
     set_default_double_param(SEGMENTATION_PHI, "strip_y", 0.0078);
     set_default_double_param(SEGMENTATION_PHI, "strip_z_0", 1.6);
     set_default_double_param(SEGMENTATION_PHI, "strip_z_1", 2.);
-
-    set_default_int_param(SEGMENTATION_PHI, "carbon_stave_type", 1);
-    set_default_double_param(SEGMENTATION_PHI, "waterstave_straight_cooler_y", 1.47684);
-    set_default_double_param(SEGMENTATION_PHI, "waterstave_slant_cooler_y", 0.6345120525);
-    set_default_double_param(SEGMENTATION_PHI, "waterstave_straight_outer_y", 0.33451);
-    set_default_double_param(SEGMENTATION_PHI, "waterstave_straight_rohacell_y", 0.58842);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_x", 0.01905);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_cooler_y", 1.47684);
+    set_default_double_param(SEGMENTATION_PHI, "stave_slant_cooler_y", 0.6345120525);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_outer_y", 0.33451);
+    set_default_double_param(SEGMENTATION_PHI, "stave_straight_rohacell_y", 0.58842);
 
     set_default_int_param(SUPPORTPARAMS, "supportactive", 0);
 
