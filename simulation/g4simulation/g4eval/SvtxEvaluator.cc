@@ -1991,8 +1991,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      float gprimary = NAN;
               gprimary = trutheval->is_primary(g4particle);
 
-	      if(Verbosity() > 0)
-		cout << "layer " << layer << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
+	      //if(Verbosity() > 0)
+		cout << "layer " << layer << " gr " << gr << " gx " << gx << " gy " << gy << " gz " << gz << " gedep " << gedep << endl; 
 
 	      // Estimate the size of the truth cluster
 	      float g4phisize = NAN;
@@ -2070,7 +2070,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 
 		  //if(Verbosity() > 0)
 		  if(layer < 3)
-		    cout << "             reco cluster x " << x << " y " << y << " z " << z << " phisize " << phisize << " zsize " << zsize << endl;
+		    cout << "             reco cluster r " << r << " x " << x << " y " << y << " z " << z << " phisize " << phisize << " zsize " << zsize << endl;
 
 		}
 
@@ -3163,7 +3163,7 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
       unsigned int phibinmin = layergeom->get_phibin(g4min_phi);
       unsigned int phibinmax = layergeom->get_phibin(g4max_phi);
       unsigned int phibinwidth = phibinmax - phibinmin + 1;
-      g4phisize = (double) phibinwidth * layergeom->get_phistep();
+      g4phisize = (double) phibinwidth * layergeom->get_phistep() * layergeom->get_radius();
 
       // Z size
       //=====
@@ -3224,8 +3224,8 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
       int column, column_outer;
 
       // add diffusion to entry and exit locations
-      //double max_diffusion_radius = 25.0e-4;  // 25 microns
-      double max_diffusion_radius = 0.0;  // 25 microns
+      double max_diffusion_radius = 25.0e-4;  // 25 microns
+      double min_diffusion_radius = 8.0e-4;  // 8 microns
 
       PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
       CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
@@ -3244,13 +3244,13 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
       TVector3 local_outer = layergeom->get_local_from_world_coords(stave_outer, chip_outer, world_outer);
       //cout << "  stave_outer " << stave_outer << " local_outer = " << local_outer[0] << "  " << local_outer[1] << "  " << local_outer[2] << endl;
 
-      double diff =  max_diffusion_radius;
+      double diff =  max_diffusion_radius * 0.6;  // factor of 0.6 gives decent agreement with low occupancy reco clusters
       if(local_outer[0] < local_inner[0]) 
 	diff = -diff;
       local_outer[0] += diff;
       local_inner[0] -= diff;
 
-      double diff_outer = max_diffusion_radius;
+      double diff_outer = min_diffusion_radius * 0.6;
       if(local_outer[2] < local_inner[2]) 
 	diff_outer = -diff_outer;
       local_outer[2] += diff_outer;
@@ -3267,7 +3267,8 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
       unsigned int columns = column_outer - column + 1;
       g4zsize = (double) columns * layergeom->get_pixel_z();
 
-      cout << " MVTX: layer " << layer << " rows " << rows << " g4phisize "<< g4phisize << " columns " << columns << " g4zsize " << g4zsize << endl;
+      cout << " MVTX: layer " << layer << " rows " << rows << " pixel x " <<  layergeom->get_pixel_x() << " g4phisize "<< g4phisize 
+	   << " columns " << columns << " pixel_z " <<  layergeom->get_pixel_z() << " g4zsize " << g4zsize << endl;
 
       //cout << " pixel_x " <<  layergeom->get_pixel_x() << " g4phisize " << g4phisize << " pixel_z " <<  layergeom->get_pixel_z() << " g4zsize " << g4zsize << endl << endl;
 

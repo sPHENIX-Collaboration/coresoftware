@@ -351,6 +351,8 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double length = layergeom->get_pixel_z();
 	double phisize = phibins.size() * pitch;
 	double zsize = zbins.size() * length;
+	cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
+	     << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
 
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
