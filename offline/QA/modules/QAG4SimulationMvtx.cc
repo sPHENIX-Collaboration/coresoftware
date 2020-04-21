@@ -28,7 +28,13 @@ namespace
   template<class T> inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
 
   /// angle difference between [-pi, pi[
-  template<class T> inline constexpr T delta_phi( T phi1, T phi2 ) { return std::fmod( phi1 - phi2, 2*M_PI )-M_PI; }
+  template<class T> inline const T delta_phi( T phi1, T phi2 )
+  {
+    auto out = phi1-phi2;
+    while( out >= M_PI ) out -= 2*M_PI;
+    while( out < -M_PI ) out += 2*M_PI;
+    return out;
+  }
 
   /// get radius from g4hit at either entrance or exit point
   float get_r( PHG4Hit* hit, int i )
@@ -88,6 +94,11 @@ QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string &name)
 //________________________________________________________________________
 int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
 {
+
+  // prevent multiple creations of histograms
+  if( m_initialized ) return Fun4AllReturnCodes::EVENT_OK;
+  else m_initialized = true;
+
   // find mvtx geometry
   auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geom_container)

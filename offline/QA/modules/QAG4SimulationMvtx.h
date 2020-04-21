@@ -42,6 +42,9 @@ class QAG4SimulationMvtx : public SubsysReco
   using G4HitSet = std::set<PHG4Hit*>;
   G4HitSet find_g4hits( TrkrDefs::cluskey ) const;
 
+  /// true if histograms are initialized
+  bool m_initialized = false;
+
   /// cluster map
   TrkrClusterContainer* m_cluster_map = nullptr;
 
