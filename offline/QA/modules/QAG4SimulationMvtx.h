@@ -24,7 +24,7 @@ class QAG4SimulationMvtx : public SubsysReco
   /// constructor
   QAG4SimulationMvtx(const std::string & name = "QAG4SimulationMvtx");
 
-  int Init(PHCompositeNode *topNode) override;
+  int InitRun(PHCompositeNode *topNode) override;
   int process_event(PHCompositeNode *topNode) override;
 
   private:

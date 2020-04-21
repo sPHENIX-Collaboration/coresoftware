@@ -27,14 +27,8 @@ namespace
   /// radius
   template<class T> inline constexpr T get_r( T x, T y ) { return std::sqrt( square(x) + square(y) ); }
 
-  /// delta phi between [-pi, pi[
-  template<class T> inline T delta_phi( T phi1, T phi2 )
-  {
-    T out = phi1 - phi2;
-    while( out >= M_PI ) out -= 2*M_PI;
-    while( out < -M_PI ) out += 2*M_PI;
-    return out;
-  }
+  /// angle difference between [-pi, pi[
+  template<class T> inline constexpr T delta_phi( T phi1, T phi2 ) { return std::fmod( phi1 - phi2, 2*M_PI )-M_PI; }
 
   /// get radius from g4hit at either entrance or exit point
   float get_r( PHG4Hit* hit, int i )
@@ -92,9 +86,8 @@ QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string &name)
 {}
 
 //________________________________________________________________________
-int QAG4SimulationMvtx::Init(PHCompositeNode *topNode)
+int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
 {
-
   // find mvtx geometry
   auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
   if (!geom_container)
@@ -103,58 +96,57 @@ int QAG4SimulationMvtx::Init(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // histogram manager
-  auto hm = QAHistManagerDef::getHistoManager();
-  assert(hm);
-
   // get layers from mvtx geometry
   const auto range = geom_container->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   { m_layers.insert( iter->first ); }
 
+  // histogram manager
+  auto hm = QAHistManagerDef::getHistoManager();
+  assert(hm);
+
   // create histograms
   for( const auto& layer:m_layers )
   {
     std::cout << PHWHERE << " adding layer " << layer << std::endl;
-
     {
       // rphi residuals (cluster - truth)
-      auto h = new TH1F( Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi_{cluster-truth} %i", layer ), 100, -2e-3, 2e-3 );
+      auto h = new TH1F( Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi_{cluster-truth} layer_%i", layer ), 100, -2e-3, 2e-3 );
       h->GetXaxis()->SetTitle( "r#Delta#phi_{cluster-truth} (cm)" );
       hm->registerHisto(h);
     }
 
     {
-      // z residuals (cluster - truth)
-      auto h = new TH1F( Form( "%sdz_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth} %i", layer ), 100, -3e-3, 3e-3 );
-      h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth} (cm)" );
-      hm->registerHisto(h);
-    }
-
-    {
       // rphi cluster errors
-      auto h = new TH1F( Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi error %i", layer ), 100, 0, 1e-2 );
+      auto h = new TH1F( Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi error layer_%i", layer ), 100, 0, 2e-3 );
       h->GetXaxis()->SetTitle( "r#Delta#phi error (cm)" );
       hm->registerHisto(h);
     }
 
     {
-      // z cluster errors
-      auto h = new TH1F( Form( "%sz_error_%i", get_histo_prefix().c_str(), layer ), Form( "z error %i", layer ), 100, 0, 1e-2 );
-      h->GetXaxis()->SetTitle( "z error (cm)" );
-      hm->registerHisto(h);
-    }
-
-    {
       // phi pulls (cluster - truth)
-      auto h = new TH1F( Form( "%sphi_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Delta#phi_{cluster-truth}/#sigma#phi %i", layer ), 100, -3, 3 );
+      auto h = new TH1F( Form( "%sphi_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Delta#phi_{cluster-truth}/#sigma#phi layer_%i", layer ), 100, -3, 3 );
       h->GetXaxis()->SetTitle( "#Delta#phi_{cluster-truth}/#sigma#phi (cm)" );
       hm->registerHisto(h);
     }
 
     {
+      // z residuals (cluster - truth)
+      auto h = new TH1F( Form( "%sdz_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth} layer_%i", layer ), 100, -3e-3, 3e-3 );
+      h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth} (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
+      // z cluster errors
+      auto h = new TH1F( Form( "%sz_error_%i", get_histo_prefix().c_str(), layer ), Form( "z error layer_%i", layer ), 100, 0, 3e-3 );
+      h->GetXaxis()->SetTitle( "z error (cm)" );
+      hm->registerHisto(h);
+    }
+
+    {
       // z pulls (cluster - truth)
-      auto h = new TH1F( Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth}/#sigmaz %i", layer ), 100, -3, 3 );
+      auto h = new TH1F( Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth}/#sigmaz layer_%i", layer ), 100, -3, 3 );
       h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth}/#sigmaz (cm)" );
       hm->registerHisto(h);
     }
@@ -168,7 +160,6 @@ int QAG4SimulationMvtx::Init(PHCompositeNode *topNode)
 //_____________________________________________________________________
 int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
 {
-
   // load nodes
   auto res =  load_nodes(topNode);
   if( res != Fun4AllReturnCodes::EVENT_OK ) return res;
@@ -221,17 +212,18 @@ void QAG4SimulationMvtx::evaluate_clusters()
 {
 
   // histogram manager
-  Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
+  auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
   // load relevant histograms
   struct HistogramList
   {
     TH1* drphi = nullptr;
-    TH1* dz = nullptr;
     TH1* rphi_error = nullptr;
-    TH1* z_error = nullptr;
     TH1* phi_pulls = nullptr;
+
+    TH1* dz = nullptr;
+    TH1* z_error = nullptr;
     TH1* z_pulls = nullptr;
   };
 
@@ -242,11 +234,13 @@ void QAG4SimulationMvtx::evaluate_clusters()
   {
     HistogramList h;
     h.drphi = dynamic_cast<TH1*>( hm->getHisto(Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer )) );
-    h.dz = dynamic_cast<TH1*>( hm->getHisto(Form( "%sdz_%i", get_histo_prefix().c_str(), layer )) );
     h.rphi_error = dynamic_cast<TH1*>( hm->getHisto(Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer )) );
-    h.z_error = dynamic_cast<TH1*>( hm->getHisto(Form( "%s_error_%i", get_histo_prefix().c_str(), layer )) );
     h.phi_pulls = dynamic_cast<TH1*>( hm->getHisto(Form( "%sphi_pulls_%i", get_histo_prefix().c_str(), layer )) );
+
+    h.dz = dynamic_cast<TH1*>( hm->getHisto(Form( "%sdz_%i", get_histo_prefix().c_str(), layer )) );
+    h.z_error = dynamic_cast<TH1*>( hm->getHisto(Form( "%sz_error_%i", get_histo_prefix().c_str(), layer )) );
     h.z_pulls = dynamic_cast<TH1*>( hm->getHisto(Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer )) );
+
     histograms.insert( std::make_pair(layer,h));
   }
 
@@ -264,7 +258,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
 
     // get relevant cluster information
     const auto r_cluster = get_r( cluster->getX(), cluster->getY() );
-    const auto z_cluster = cluster->getX();
+    const auto z_cluster = cluster->getZ();
     const auto phi_cluster = std::atan2( cluster->getY(), cluster->getX() );
     const auto phi_error = cluster->getPhiError();
     const auto z_error = cluster->getZError();
@@ -289,10 +283,11 @@ void QAG4SimulationMvtx::evaluate_clusters()
     // fill histograms
     auto fill = []( TH1* h, float value ) { if( h ) h->Fill( value ); };
     fill( hiter->second.drphi, r_cluster*dphi );
-    fill( hiter->second.dz, dz );
     fill( hiter->second.rphi_error, r_cluster*phi_error );
-    fill( hiter->second.z_error, z_error );
     fill( hiter->second.phi_pulls, dphi/phi_error );
+
+    fill( hiter->second.dz, dz );
+    fill( hiter->second.z_error, z_error );
     fill( hiter->second.z_pulls, dz/z_error );
 
   }
