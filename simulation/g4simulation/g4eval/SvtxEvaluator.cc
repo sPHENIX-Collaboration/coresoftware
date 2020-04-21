@@ -31,6 +31,8 @@
 
 #include <g4detectors/PHG4CylinderCellGeom.h>
 #include <g4detectors/PHG4CylinderCellGeomContainer.h>
+#include <g4detectors/PHG4CylinderGeomContainer.h>
+#include <mvtx/CylinderGeom_Mvtx.h>
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/SubsysReco.h>
@@ -2066,7 +2068,8 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 		  
 		  adc = cluster->getAdc();
 
-		  if(Verbosity() > 0)
+		  //if(Verbosity() > 0)
+		  if(layer < 3)
 		    cout << "             reco cluster x " << x << " y " << y << " z " << z << " phisize " << phisize << " zsize " << zsize << endl;
 
 		}
@@ -3194,16 +3197,80 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
     }
   else if(radius > 5 && radius < 20)  // INTT
     {
-      double strip_width = 70e-4;
-      double strip_length = 1.6;
+      // which sensor is this hit in?
+
+      /*
+      PHG4CylinderGeomContainer *geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
+      CylinderGeomIntt *layergeom = dynamic_cast<CylinderGeomIntt *>(geom_container->GetLayerGeom(layer));
+
+      // location
+      TVector3 world_inner = {inner_x, inner_y, inner_z};
+
+      get_local_from_world_coords(const int segment_z_bin, const int segment_phi_bin, TVector3 world)
+
+      find_strip_index_values(const int segment_z_bin, const double yin, const double zin, int &strip_y_index, int &strip_z_index)
+      */
+      double strip_width = 0.014; // cm
+      double strip_length = 0.014; // cm
+
       g4phisize = strip_width;
       g4zsize = strip_length;
     }
   else  // MVTX
     {
-      double padsize = 50e-4;
-      g4phisize = padsize;
-      g4zsize = padsize;
+      unsigned int stave, stave_outer;
+      unsigned int chip, chip_outer;
+      int row, row_outer;
+      int column, column_outer;
+
+      // add diffusion to entry and exit locations
+      //double max_diffusion_radius = 25.0e-4;  // 25 microns
+      double max_diffusion_radius = 0.0;  // 25 microns
+
+      PHG4CylinderGeomContainer* geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+      CylinderGeom_Mvtx *layergeom = dynamic_cast<CylinderGeom_Mvtx *>(geom_container->GetLayerGeom(layer));
+
+      TVector3 world_inner = {inner_x, inner_y, inner_z};
+      std::vector<double> world_inner_vec = { world_inner[0], world_inner[1], world_inner[2] };
+      //cout << "  world_inner = " << world_inner[0] << "  " << world_inner[1] << "  " << world_inner[2] << endl;
+      layergeom->get_sensor_indices_from_world_coords(world_inner_vec, stave, chip);
+      TVector3 local_inner = layergeom->get_local_from_world_coords(stave, chip, world_inner);
+      //cout << "  stave " << stave << " local_inner = " << local_inner[0] << "  " << local_inner[1] << "  " << local_inner[2] << endl;
+
+      TVector3 world_outer = {outer_x, outer_y, outer_z};
+      std::vector<double> world_outer_vec = { world_outer[0], world_outer[1], world_outer[2] };
+      //cout << "  world_outer = " << world_outer[0] << "  " << world_outer[1] << "  " << world_outer[2] << endl;
+      layergeom->get_sensor_indices_from_world_coords(world_outer_vec, stave_outer, chip_outer);
+      TVector3 local_outer = layergeom->get_local_from_world_coords(stave_outer, chip_outer, world_outer);
+      //cout << "  stave_outer " << stave_outer << " local_outer = " << local_outer[0] << "  " << local_outer[1] << "  " << local_outer[2] << endl;
+
+      double diff =  max_diffusion_radius;
+      if(local_outer[0] < local_inner[0]) 
+	diff = -diff;
+      local_outer[0] += diff;
+      local_inner[0] -= diff;
+
+      double diff_outer = max_diffusion_radius;
+      if(local_outer[2] < local_inner[2]) 
+	diff_outer = -diff_outer;
+      local_outer[2] += diff_outer;
+      local_inner[2] -= diff_outer;
+
+      layergeom->get_pixel_from_local_coords(local_inner, row, column);
+      layergeom->get_pixel_from_local_coords(local_outer, row_outer, column_outer);
+
+      if(row_outer < row) swap(row_outer, row);
+      unsigned int rows = row_outer - row + 1;
+      g4phisize = (double) rows * layergeom->get_pixel_x();
+
+      if(column_outer < column) swap(column_outer, column);
+      unsigned int columns = column_outer - column + 1;
+      g4zsize = (double) columns * layergeom->get_pixel_z();
+
+      cout << " MVTX: layer " << layer << " rows " << rows << " g4phisize "<< g4phisize << " columns " << columns << " g4zsize " << g4zsize << endl;
+
+      //cout << " pixel_x " <<  layergeom->get_pixel_x() << " g4phisize " << g4phisize << " pixel_z " <<  layergeom->get_pixel_z() << " g4zsize " << g4zsize << endl << endl;
+
     }
 
 }
