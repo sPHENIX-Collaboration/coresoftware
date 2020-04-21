@@ -45,20 +45,20 @@ void BeamLineMagnetDisplayAction::ApplyDisplayAction(G4VPhysicalVolume *physvol)
     m_VisAttVec.push_back(visatt);  // for later deletion
     if (it.second == "DIPOLE")
     {
-      visatt->SetColour(G4Color(0.2, 0.8, 0.2, 1.));
+      visatt->SetColour(G4Color(0.2, 0.8, 0.2, 0.8));
     }
-    else if (it.second == "FIELDVOLUME")
+    else if (it.second == "FIELDVOLUME" || it.second == "OFF" )
     {
-      visatt->SetColour(G4Colour::Gray());
+      visatt->SetVisibility(false);
       visatt->SetForceSolid(false);
     }
     else if (it.second == "QUADRUPOLE")
     {
-      visatt->SetColour(G4Color(0.8, 0.3, 0.1, 0.9));
+      visatt->SetColour(G4Color(0., 0.3, 0.7, 0.8));
     }
-    else if (it.second == "SOLENOID")
+    else if (it.second == "SEXTUPOLE")
     {
-      visatt->SetColour(G4Color(1., 0.5, 0.7, 1.));
+      visatt->SetColour(G4Color(1., 0.5, 0.7, 0.8));
     }
     else
     {

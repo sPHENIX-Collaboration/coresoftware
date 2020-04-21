@@ -81,6 +81,21 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
   rotm->rotateY(params->get_double_param("rot_y") * deg);
   rotm->rotateZ(params->get_double_param("rot_z") * deg);
 
+// creating mother volume (cylinder for the time being)
+  G4VSolid *magnet_mother_solid = new G4Tubs(G4String(GetName().append("_Mother").c_str()),
+					     0,
+					     params->get_double_param("outer_radius") * cm,
+					     params->get_double_param("length") * cm / 2., 0, twopi);
+  G4LogicalVolume *magnet_mother_logic = new G4LogicalVolume(magnet_mother_solid,
+							     G4Material::GetMaterial("G4_Galactic"),
+							     G4String(GetName().c_str()),
+							     0, 0, 0);
+  m_DisplayAction->AddVolume(magnet_mother_logic,"OFF");
+  magnet_iron_physi = new G4PVPlacement(G4Transform3D(*rotm,origin),
+                                     magnet_mother_logic,
+                                     G4String(GetName().append("_Mother").c_str()),
+                                     logicMother, 0, false, OverlapCheck());
+
   /* Creating a magnetic field */
   G4MagneticField *magField = nullptr;
 
@@ -124,10 +139,9 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
 	 << " of type " << magnettype << endl;
   }
 
-
   /* Add volume with solid magnet material */
   G4VSolid *magnet_iron_solid = new G4Tubs(G4String(GetName().append("_Solid").c_str()),
-                                        0,
+                                        params->get_double_param("inner_radius") * cm,
 					   params->get_double_param("outer_radius") * cm,
                                         params->get_double_param("length") * cm / 2., 0, twopi);
   G4LogicalVolume *magnet_iron_logic = new G4LogicalVolume(magnet_iron_solid,
@@ -135,17 +149,19 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
                                                         G4String(GetName().c_str()),
                                                         0, 0, 0);
   m_DisplayAction->AddVolume(magnet_iron_logic,magnettype);
-  magnet_iron_physi = new G4PVPlacement(G4Transform3D(*rotm,origin),
+  magnet_iron_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
                                      magnet_iron_logic,
                                      G4String(GetName().append("_Solid").c_str()),
-                                     logicMother, 0, false, OverlapCheck());
+                                     magnet_mother_logic, 0, false, OverlapCheck());
 
-  G4VSolid *magnet_solid = new G4Tubs(G4String(GetName().c_str()),
+
+
+  G4VSolid *magnet_field_solid = new G4Tubs(G4String(GetName().append("_Field_Solid").c_str()),
                                       0,
                                       params->get_double_param("inner_radius") * cm,
                                       params->get_double_param("length") * cm / 2., 0, twopi);
 
-  G4LogicalVolume *magnet_logic = new G4LogicalVolume(magnet_solid,
+  G4LogicalVolume *magnet_field_logic = new G4LogicalVolume(magnet_field_solid,
                                                       G4Material::GetMaterial("G4_Galactic"),
                                                       G4String(GetName().c_str()),
                                                       0, 0, 0);
@@ -162,15 +178,15 @@ void BeamLineMagnetDetector::ConstructMe(G4LogicalVolume *logicMother)
     G4FieldManager *fieldMgr = new G4FieldManager();
     fieldMgr->SetDetectorField(magField);
     fieldMgr->SetChordFinder(localChordFinder);
-    magnet_logic->SetFieldManager(fieldMgr, true);
+    magnet_field_logic->SetFieldManager(fieldMgr, true);
   }
-  m_DisplayAction->AddVolume(magnet_logic,"FIELDVOLUME");
+  m_DisplayAction->AddVolume(magnet_field_logic,"FIELDVOLUME");
 
   /* create magnet physical volume */
 
   magnet_physi = new G4PVPlacement(nullptr, G4ThreeVector(0, 0, 0),
-                                   magnet_logic,
+                                   magnet_field_logic,
                                    G4String(GetName().c_str()),
-                                   magnet_iron_logic, 0, false, OverlapCheck());
+                                   magnet_mother_logic, 0, false, OverlapCheck());
 
 }
