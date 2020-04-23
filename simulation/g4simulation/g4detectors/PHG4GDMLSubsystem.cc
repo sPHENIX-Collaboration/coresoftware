@@ -135,4 +135,6 @@ void PHG4GDMLSubsystem::SetDefaultParameters()
 
   set_default_string_param("GDMPath", "DefaultParameters-InvadPath");
   set_default_string_param("TopVolName", "DefaultParameters-InvadVol");
+
+  set_default_int_param("skip_DST_geometry_export", 0.);
 }
