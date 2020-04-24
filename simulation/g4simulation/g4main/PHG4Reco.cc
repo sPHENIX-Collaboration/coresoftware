@@ -115,7 +115,7 @@ using namespace std;
 //_________________________________________________________________
 PHG4Reco::PHG4Reco(const string &name)
   : SubsysReco(name)
-  , m_MagneticField(1.4)
+  , m_MagneticField(0.)
   , m_MagneticFieldRescale(1.0)
   , m_Field(nullptr)
   , m_RunManager(nullptr)
