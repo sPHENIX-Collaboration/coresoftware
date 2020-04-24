@@ -25,7 +25,8 @@ PHG4HitEval::PHG4HitEval() :
 
 }
 
-PHG4HitEval::PHG4HitEval(const PHG4Hit *g4hit)
+PHG4HitEval::PHG4HitEval(const PHG4Hit *g4hit) :
+    eion(NAN), scint_id(-9999), light_yield(NAN), path_length(NAN)
 {
   CopyFrom(g4hit);
 }
