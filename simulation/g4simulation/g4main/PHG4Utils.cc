@@ -199,8 +199,6 @@ std::pair<bool, std::pair<double, double>> PHG4Utils::lines_intersect(
   // First check if an infinite line defined by A and B intersects
   // segment (C,D). If h is from 0 to 1 line and line segment intersect
   // Then check in intersection point is between C and D
-  double rx = NAN;
-  double ry = NAN;
   double ex = bx - ax;  // E=B-A
   double ey = by - ay;
   double fx = dx - cx;  // F=D-C
@@ -222,8 +220,8 @@ std::pair<bool, std::pair<double, double>> PHG4Utils::lines_intersect(
   //intersection point R = C + F*h
   if (h > 0. && h < 1.)
   {
-    rx = cx + fx * h;
-    ry = cy + fy * h;
+    double rx = cx + fx * h;
+    double ry = cy + fy * h;
     //cout << "      line/segment intersection coordinates: " << *rx << " " << *ry << endl;
     if ((rx > ax && rx > bx) || (rx < ax && rx < bx) || (ry < ay && ry < by) || (ry > ay && ry > by))
     {
