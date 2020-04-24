@@ -1,6 +1,6 @@
 // Tell emacs that this is a C++ source
 //  -*- C++ -*-.
-// $Id: $                                                                                             
+// $Id: $
 
 /*!
  * \file PHG4HitEval.h
@@ -23,13 +23,12 @@ class PHObject;
  */
 class PHG4HitEval : public PHG4Hitv1
 {
-public:
+ public:
   PHG4HitEval();
 
   PHG4HitEval(const PHG4Hit *g4hit);
 
-  virtual
-    ~PHG4HitEval(){}
+  virtual ~PHG4HitEval() {}
 
   virtual void CopyFrom(const PHObject *phobj);
 
@@ -44,8 +43,7 @@ public:
     eion = f;
   }
 
-  int
-  get_scint_id() const
+  int get_scint_id() const
   {
     return scint_id;
   }
@@ -80,8 +78,7 @@ public:
     path_length = pathLength;
   }
 
-protected:
-
+ protected:
   float eion;
 
   int scint_id;
@@ -92,7 +89,7 @@ protected:
   //! path length of the track to the hit
   float path_length;
 
-ClassDef(PHG4HitEval,1)
+  ClassDef(PHG4HitEval, 1)
 };
 
 #endif /* PHG4HITEVAL_H_ */
