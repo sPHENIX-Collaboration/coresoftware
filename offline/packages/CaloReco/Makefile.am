@@ -30,7 +30,6 @@ pkginclude_HEADERS = \
   RawClusterBuilderGraph.h \
   RawClusterBuilderTopo.h \
   RawClusterBuilderTemplate.h \
-  RawClusterBuilderTemplateFEMC.h \
   RawClusterPositionCorrection.h \
   RawTowerCalibration.h
 
@@ -40,8 +39,6 @@ if ! MAKEROOT6
   RawClusterBuilderGraph_Dict.cc \
   RawClusterBuilderTopo_Dict.cc \
   RawClusterBuilderTemplate_Dict.cc \
-  RawClusterBuilderTemplateFEMC_Dict.cc \
-  RawClusterBuilderTemplateEEMC_Dict.cc \
   RawClusterBuilderFwd_Dict.cc \
   RawClusterPositionCorrection_Dict.cc \
   RawClusterDeadAreaMask_Dict.cc \
@@ -63,8 +60,6 @@ libcalo_reco_la_SOURCES = \
   RawClusterBuilderGraph.cc \
   RawClusterBuilderTopo.cc \
   RawClusterBuilderTemplate.cc \
-  RawClusterBuilderTemplateFEMC.cc \
-  RawClusterBuilderTemplateEEMC.cc \
   RawClusterBuilderFwd.cc \
   RawClusterPositionCorrection.cc \
   RawClusterDeadAreaMask.cc \

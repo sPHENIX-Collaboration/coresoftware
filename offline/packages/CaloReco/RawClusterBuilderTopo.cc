@@ -746,17 +746,72 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
 	continue;
       }
 
-      if ( Verbosity() > 2 ) {
-	std::cout << "RawClusterBuilderTopo::process_event in cluster " << cl << ", tower ID " << tower_ID << " is LOCAL MAXIMUM with layer / E / N_neighbor = " << get_ilayer_from_ID( tower_ID ) << " / " << get_E_from_ID( tower_ID ) << " / " << neighbors_in_cluster << ", ";
-	std::cout << " eta / phi = " << _geom_containers[ get_ilayer_from_ID( tower_ID ) ]->get_etacenter( get_ieta_from_ID( tower_ID ) ) << " / " << _geom_containers[ get_ilayer_from_ID( tower_ID ) ]->get_phicenter( get_iphi_from_ID( tower_ID ) ) << std::endl;
-      }
-
       local_maxima_ID.push_back( std::pair<int,float>( tower_ID , get_E_from_ID( tower_ID ) ) );
 
     }
 
-    // TODO: check for possible EMCal-OHCal seed overlaps
+    // check for possible EMCal-OHCal seed overlaps
 
+    for (unsigned int n = 0; n < local_maxima_ID.size(); n++) {
+
+      // only look at I/OHCal local maxima
+      std::pair<int,float> this_LM = local_maxima_ID.at( n );
+      if ( get_ilayer_from_ID( this_LM.first ) == 2 ) continue;
+
+      float this_phi = _geom_containers[ get_ilayer_from_ID( this_LM.first ) ]->get_phicenter( get_iphi_from_ID( this_LM.first ) );
+      if ( this_phi > 3.14159 ) this_phi -= 2 * 3.14159;
+      float this_eta = _geom_containers[ get_ilayer_from_ID( this_LM.first ) ]->get_etacenter( get_ieta_from_ID( this_LM.first ) );
+
+      bool has_EM_overlap = false;
+
+      // check all other local maxima for overlaps 
+      for (unsigned int n2 = 0; n2 < local_maxima_ID.size(); n2++) {
+
+	if ( n == n2 ) continue; // don't check the same one 
+
+	// only look at EMCal local mazima
+	std::pair<int,float> this_LM2 = local_maxima_ID.at( n2 );
+	if ( get_ilayer_from_ID( this_LM2.first ) != 2 ) continue;
+
+	float this_phi2 = _geom_containers[ get_ilayer_from_ID( this_LM2.first ) ]->get_phicenter( get_iphi_from_ID( this_LM2.first ) );
+	if ( this_phi2 > 3.14159 ) this_phi -= 2 * 3.14159;
+	float this_eta2 = _geom_containers[ get_ilayer_from_ID( this_LM2.first ) ]->get_etacenter( get_ieta_from_ID( this_LM2.first ) );
+
+	// calculate geometric dR
+	float dR = calculate_dR( this_eta, this_eta2, this_phi, this_phi2 );
+
+	// check for and report overlaps
+	if ( dR < 0.15 ) {
+	  has_EM_overlap = true;
+	  if (Verbosity() > 2) {
+	    std::cout << "RawClusterBuilderTopo::process_event : removing I/OHal local maximum (ID,E,phi,eta = " << this_LM.first << ", " << this_LM.second << ", " << this_phi << ", " << this_eta << "), ";
+	    std::cout << "due to EM overlap (ID,E,phi,eta = " << this_LM2.first << ", " << this_LM2.second << ", " << this_phi2 << ", " << this_eta2 << "), dR = " << dR << std::endl;
+	  }
+	  break;
+	}
+      }
+
+      if ( has_EM_overlap ) {
+	// remove the I/OHCal local maximum from the list
+	local_maxima_ID.erase( local_maxima_ID.begin() + n );
+	// make sure to back up one index...
+	n = n - 1;
+      } // otherwise, keep this local maximum
+    }
+
+    // only now print out full set of local maxima
+    if ( Verbosity() > 2 ) {
+      for (unsigned int n = 0; n < local_maxima_ID.size(); n++) {
+	std::pair<int,float> this_LM = local_maxima_ID.at( n );
+	int tower_ID = this_LM.first;
+	std::cout << "RawClusterBuilderTopo::process_event in cluster " << cl << ", tower ID " << tower_ID << " is LOCAL MAXIMUM with layer / E = " << get_ilayer_from_ID( tower_ID ) << " / " << get_E_from_ID( tower_ID ) << ", ";
+	float this_phi = _geom_containers[ get_ilayer_from_ID( tower_ID ) ]->get_phicenter( get_iphi_from_ID( tower_ID ) );
+	if ( this_phi > 3.14159 ) this_phi -= 2 * 3.14159;
+	std::cout << " eta / phi = " << _geom_containers[ get_ilayer_from_ID( tower_ID ) ]->get_etacenter( get_ieta_from_ID( tower_ID ) ) << " / " << this_phi << std::endl;
+      }
+      
+    }
+    
     // do we have only 1 or 0 local maxima?
     if ( local_maxima_ID.size() <= 1 ) {
 
@@ -1078,7 +1133,7 @@ int RawClusterBuilderTopo::process_event(PHCompositeNode *topNode)
  
   }
   
-  if ( Verbosity() > 0 ) {
+  if ( Verbosity() > 1 ) {
     std::cout << "RawClusterBuilderTopo::process_event after splitting (if any) final clusters output to node are: " << std::endl;
     RawClusterContainer::ConstRange begin_end = _clusters->getClusters();
     int ncl = 0;
