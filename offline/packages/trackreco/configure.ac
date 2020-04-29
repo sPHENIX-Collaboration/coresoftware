@@ -17,7 +17,7 @@ dnl  ;;
 dnl esac
 
 if test $ac_cv_prog_gxx = yes; then
-     CXXFLAGS="$CXXFLAGS -Wall -Werror"
+     CXXFLAGS="$CXXFLAGS -Wall -Werror -Wno-error=unused-local-typedefs -Wno-error=sign-compare -Wno-error=switch"
 fi
 
 AM_CONDITIONAL([MAKE_ACTS],false)
