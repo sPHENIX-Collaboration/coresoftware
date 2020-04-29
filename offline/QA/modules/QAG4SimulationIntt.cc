@@ -1,4 +1,4 @@
-#include "QAG4SimulationMvtx.h"
+#include "QAG4SimulationIntt.h"
 #include "QAG4Util.h"
 #include "QAHistManagerDef.h"
 
@@ -18,27 +18,27 @@
 #include <cassert>
 
 //________________________________________________________________________
-QAG4SimulationMvtx::QAG4SimulationMvtx(const std::string &name)
+QAG4SimulationIntt::QAG4SimulationIntt(const std::string &name)
   : SubsysReco(name)
 {}
 
 //________________________________________________________________________
-int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
+int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
 {
 
   // prevent multiple creations of histograms
   if( m_initialized ) return Fun4AllReturnCodes::EVENT_OK;
   else m_initialized = true;
 
-  // find mvtx geometry
-  auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_MVTX");
+  // find intt geometry
+  auto geom_container = findNode::getClass<PHG4CylinderGeomContainer>(topNode, "CYLINDERGEOM_INTT");
   if (!geom_container)
   {
-    std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_MVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node CYLINDERGEOM_INTT" << std::endl;
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  // get layers from mvtx geometry
+  // get layers from intt geometry
   const auto range = geom_container->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   { m_layers.insert( iter->first ); }
@@ -100,7 +100,7 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
 }
 
 //_____________________________________________________________________
-int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
+int QAG4SimulationIntt::process_event(PHCompositeNode* topNode)
 {
   // load nodes
   auto res =  load_nodes(topNode);
@@ -112,11 +112,11 @@ int QAG4SimulationMvtx::process_event(PHCompositeNode* topNode)
 }
 
 //________________________________________________________________________
-std::string QAG4SimulationMvtx::get_histo_prefix() const
+std::string QAG4SimulationIntt::get_histo_prefix() const
 { return std::string("h_") + Name() + std::string("_"); }
 
 //________________________________________________________________________
-int QAG4SimulationMvtx::load_nodes( PHCompositeNode* topNode )
+int QAG4SimulationIntt::load_nodes( PHCompositeNode* topNode )
 {
   m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
   if( !m_cluster_map )
@@ -139,10 +139,10 @@ int QAG4SimulationMvtx::load_nodes( PHCompositeNode* topNode )
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
-  m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
-  if( !m_g4hits_mvtx )
+  m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
+  if( !m_g4hits_intt )
   {
-    std::cout << PHWHERE << " unable to find DST node G4HIT_MVTX" << std::endl;
+    std::cout << PHWHERE << " unable to find DST node G4HIT_INTT" << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -150,7 +150,7 @@ int QAG4SimulationMvtx::load_nodes( PHCompositeNode* topNode )
 }
 
 //________________________________________________________________________
-void QAG4SimulationMvtx::evaluate_clusters()
+void QAG4SimulationIntt::evaluate_clusters()
 {
 
   // histogram manager
@@ -193,7 +193,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
     // get cluster key, detector id and check
     const auto& key = clusterIter->first;
     const auto detId = TrkrDefs::getTrkrId( key );
-    if( detId != TrkrDefs::mvtxId ) continue;
+    if( detId != TrkrDefs::inttId ) continue;
 
     // get cluster
     const auto& cluster = clusterIter->second;
@@ -236,7 +236,7 @@ void QAG4SimulationMvtx::evaluate_clusters()
 }
 
 //_____________________________________________________________________
-QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits( TrkrDefs::cluskey cluster_key ) const
+QAG4SimulationIntt::G4HitSet QAG4SimulationIntt::find_g4hits( TrkrDefs::cluskey cluster_key ) const
 {
 
   // check maps
@@ -266,8 +266,8 @@ QAG4SimulationMvtx::G4HitSet QAG4SimulationMvtx::find_g4hits( TrkrDefs::cluskey 
       const auto g4hit_key = truth_iter->second.second;
 
       // g4 hit
-      PHG4Hit* g4hit = ( TrkrDefs::getTrkrId( hitset_key ) == TrkrDefs::mvtxId ) ?
-        m_g4hits_mvtx->findHit( g4hit_key ):nullptr;
+      PHG4Hit* g4hit = ( TrkrDefs::getTrkrId( hitset_key ) == TrkrDefs::inttId ) ?
+        m_g4hits_intt->findHit( g4hit_key ):nullptr;
 
       // insert in set
       if( g4hit ) out.insert( g4hit );
