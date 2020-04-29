@@ -84,11 +84,11 @@ int PHActsTrkFitter::Process()
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
     Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
-	         m_tGeometry->geoContext;
-		 m_tGeometry->magFieldContext,
-		 m_tGeometry->calibContext,
-		 Acts::VoidOutlierFinder(),
-		 &(*pSurface));
+      m_tGeometry->geoContext,
+      m_tGeometry->magFieldContext,
+      m_tGeometry->calibContext,
+      Acts::VoidOutlierFinder(),
+      &(*pSurface));
   
     auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
 
