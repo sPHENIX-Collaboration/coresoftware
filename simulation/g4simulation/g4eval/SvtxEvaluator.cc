@@ -1935,7 +1935,6 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
       
       PHG4TruthInfoContainer* truthinfo = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");      
       PHG4TruthInfoContainer::ConstRange range = truthinfo->GetParticleRange();
-      Float_t gntracks = (Float_t) truthinfo->GetNumPrimaryVertexParticles();
       for (PHG4TruthInfoContainer::ConstIterator iter = range.first;
            iter != range.second;
            ++iter)
@@ -2018,7 +2017,7 @@ void SvtxEvaluator::fillOutputNtuples(PHCompositeNode* topNode)
 	      TrkrDefs::cluskey reco_cluskey = 0;
 
 	      // loop over all conteributing hits, look up the associated clusters, pick the one in this layer.
-	      for(int i=0; i< contributing_hits.size(); ++i)
+	      for(unsigned int i=0; i< contributing_hits.size(); ++i)
 		{
 
 		  PHG4Hit* cont_g4hit = contributing_hits[i];
@@ -3094,7 +3093,7 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
   double outer_y = NAN;
   double outer_z = NAN;
 
-  for(int ihit=0;ihit<contributing_hits_entry.size(); ++ihit)
+  for(unsigned int ihit=0;ihit<contributing_hits_entry.size(); ++ihit)
     {
       double rad1 = sqrt(pow(contributing_hits_entry[ihit][0], 2) + pow(contributing_hits_entry[ihit][1], 2));      
       if(rad1 < inner_radius)
@@ -3146,8 +3145,6 @@ void SvtxEvaluator::G4ClusterSize(PHCompositeNode* topNode, unsigned int layer, 
       double added_smear_trans = 0.085; // cm
       double gem_spread = 0.04;  // 400 microns
 
-      double maxphi = outer_phi;
-      double minphi = inner_phi;
       if(outer_phi < inner_phi) swap(outer_phi, inner_phi);
 
       // convert diffusion from cm to radians
