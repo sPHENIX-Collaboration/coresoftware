@@ -6,9 +6,10 @@ AM_CPPFLAGS = \
   -I`root-config --incdir` \
   -I$(OFFLINE_MAIN)/include/eigen3
 
-libPHGenFit_la_LDFLAGS = \
+AM_LDFLAGS = \
   -L$(libdir) \
   -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
   `root-config --libs`
 
 lib_LTLIBRARIES = \
