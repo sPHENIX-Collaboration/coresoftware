@@ -84,13 +84,10 @@ Fitter::Fitter(
 
 Fitter::~Fitter()
 {
-  if (_fitter)
-    delete _fitter;
-  if (_tgeo_manager)
-    //delete _tgeo_manager;
-    //_tgeo_manager->Delete();
-    if (_display)
-      delete _display;
+  delete _fitter;
+  //delete _tgeo_manager;
+  //_tgeo_manager->Delete();
+  delete _display;
 }
 
 int Fitter::processTrack(PHGenFit::Track* track, const bool save_to_evt_disp)
