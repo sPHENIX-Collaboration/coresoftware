@@ -116,14 +116,19 @@ ACTS_SOURCES = \
   PHActsTrkProp.cc \
   PHActsTrkFitter.cc
 
+AM_CPPFLAGS += -I$(OFFLINE_MAIN)/include/ActsFatras
+
 ACTS_LIBS = \
-  -lACTFramework \
   -lActsCore \
+  -lActsFatras \
   -lActsTGeoPlugin \
-  -lACTFWTGeoDetector \
+  -lActsExamplesCommon \
   -lActsTGeoPlugin \
-  -lACTFWFatras \
-  -lACTFWExamplesCommon
+  -lActsExamplesFitting \
+  -lActsExamplesDetectorTGeo \
+  -lActsExamplesFramework \
+  -lActsExamplesIoRoot \
+  -lActsExamplesMagneticField
 endif
 
 libtrack_reco_la_SOURCES = \

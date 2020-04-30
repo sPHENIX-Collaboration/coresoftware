@@ -290,14 +290,8 @@ int PHG4TpcElectronDrift::process_event(PHCompositeNode *topNode)
 	     << " entry z " << hiter->second->get_z(0) << " exit z " << hiter->second->get_z(1) << " avg z" << (hiter->second->get_z(0) + hiter->second->get_z(1)) / 2.0
 	     << endl;
 
-      if (n_electrons <= 0)
+      if (n_electrons == 0) // gsl_ran_poisson returns unsigned int, cannot be < 0
 	{
-	  if (n_electrons < 0)
-	    {
-	      cout << "really bad number of electrons: " << n_electrons
-		   << ", eion: " << eion
-		   << endl;
-	    }
 	  continue;
 	}
 
