@@ -352,6 +352,10 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double phisize = phibins.size() * pitch;
 	double zsize = zbins.size() * length;
 
+	if(Verbosity() > 0)
+	  cout << " MvtxClusterizer: layer " << layer << " rad " << layergeom->get_radius() << " phibins " << phibins.size() << " pitch " << pitch << " phisize " << phisize 
+	       << " zbins " << zbins.size() << " length " << length << " zsize " << zsize << endl;
+	
 	double ladder_location[3] = {0.0, 0.0, 0.0};
 	// returns the center of the sensor in world coordinates - used to get the ladder phi location
 	layergeom->find_sensor_center(stave, 0, 0, chip, ladder_location);
@@ -449,14 +453,6 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	if (Verbosity() > 2)
 	clus->identify();
 
-	// Add the hit associations to the TrkrClusterHitAssoc node
-	// we need the cluster key and all associated hit keys
-	/*
-	for(unsigned int i=0;i<hitvec.size();i++)
-	  {
-	    m_clusterhitassoc->addAssoc(ckey, hitvec[i].first);
-	  }
-	*/
       }  // clusitr
   }    // hitsetitr
 

@@ -7,6 +7,7 @@
 #define MVTX_ALPIDE_SEGMENTATION_H
 
 #include <TVector3.h>
+#include <iostream>
 
 class SegmentationAlpide
 {

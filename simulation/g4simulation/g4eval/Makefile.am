@@ -23,6 +23,8 @@ libg4eval_la_LIBADD = \
   -ltrackbase_historic_io \
   -ltrack_io \
   -ltpc_io \
+  -lmvtx_io \
+  -lintt_io \
   -lphg4hit
 
 pkginclude_HEADERS = \
