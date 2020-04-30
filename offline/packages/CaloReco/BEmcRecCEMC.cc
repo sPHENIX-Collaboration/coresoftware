@@ -42,7 +42,8 @@ float BEmcRecCEMC::GetProb(vector<EmcModule> HitList, float ecl, float xg, float
   float theta_tr = atan2(zg-fVz,rg);
   float theta = fabs(theta_tr - theta_twr);
 
-  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta);
+  float phi = atan2(yg,xg);
+  if( _emcprof != nullptr ) prob = _emcprof->GetProb(&HitList,fNx,ecl,theta,phi);
 
   return prob;
 }
@@ -260,20 +261,20 @@ void BEmcRecCEMC::CorrectECore(float Ecore, float x, float y, float* Ecorr)
 
 
 void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
-                                  float* pxc, float* pyc)
+                                  float& xc, float& yc)
 {
   // Corrects the Shower Center of Gravity for the systematic shift due to
   // limited tower size
   //
   // Everything here is in tower units.
-  // (x,y) - CG position, (*pxc,*pyc) - corrected position
+  // (x,y) - CG position, (xc,yc) - corrected position
 
   float xZero, yZero, bx, by;
   float t, x0, y0;
   int ix0, iy0;
 
-  *pxc = x;
-  *pyc = y;
+  xc = x;
+  yc = y;
 
   if (Energy < 0.01) return;
   /*
@@ -323,7 +324,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
   if( fabs(x8)>3.3 ) dx=0; // Don't correct near the module edge
   //  dx = 0;
 
-  *pxc = x0-dx;
+  xc = x0-dx;
 
   y0 = y + yZero;
   iy0 = EmcCluster::lowint(y0 + 0.5);
@@ -337,7 +338,7 @@ void BEmcRecCEMC::CorrectPosition(float Energy, float x, float y,
     y0 = y;
     printf("????? Something wrong in BEmcRecCEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
   }
-  *pyc = y0;
+  yc = y0;
 
 }
 
