@@ -85,6 +85,7 @@ SvtxEvaluator::SvtxEvaluator(const string& name, const string& filename, const s
   , _ntp_g4hit(nullptr)
   , _ntp_hit(nullptr)
   , _ntp_cluster(nullptr)
+  , _ntp_g4cluster(nullptr)
   , _ntp_gtrack(nullptr)
   , _ntp_track(nullptr)
   , _ntp_gseed(nullptr)
