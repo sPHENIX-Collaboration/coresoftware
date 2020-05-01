@@ -143,34 +143,41 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
 {
   Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-    const double px = track->get_px();
+  
+  const double px = track->get_px();
   const double py = track->get_py();
   const double pz = track->get_pz();
   const double p = sqrt(px * px + py * py + pz * pz);
   const double phiPos = atan2(track->get_x(), track->get_y());
   const int charge = track->get_charge();
+
   // Get the track seed covariance matrix
   // These are the variances, so the std devs are sqrt(seedCov[i][j])
   Acts::BoundSymMatrix seedCov = Acts::BoundSymMatrix::Zero();
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 6; i++)
   {
     for (int j = 0; j < 6; j++)
     {
       /// Track covariance matrix is in basis (x,y,z,px,py,pz). Need to put
       /// it in form of (x,y,px,py,pz,time) for acts
-      if(i < 2) /// get x,y components
-	seedCov(i, j) = track->get_error(i, j);
-      else if(i < 5) /// get px,py,pz components 1 row up
-	seedCov(i,j) = track->get_error(i+1, j);
-      else if (i == 5) /// Get z components, scale by drift velocity
-	seedCov(i,j) = track->get_error(2, j) * 8.; //cm per millisec drift vel
+      if(i < 2)
+	{
+	  /// get x,y components
+	  seedCov(i, j) = track->get_error(i, j);
+	}
+      else if(i < 5) 
+	{
+	  /// get px,py,pz components 1 row up
+	  seedCov(i,j) = track->get_error(i+1, j);
+	}
+      else if (i == 5) 
+	{
+	  /// convert the global z position covariances to timing covariances
+	  /// TPC z position resolution is 0.05 cm, drift velocity is 8cm/ms
+	  seedCov(i,j) = track->get_error(2, j) * 8. * Acts::UnitConstants::ms; 
+	}
     }
   }
-  std::cout<<track->get_x()<<std::endl;
-  /// convert the global z position covariances to timing covariances
-  /// TPC z position resolution is 0.05 cm, drift velocity is 8cm/ms
-  /// --> therefore timing resolution is ~6 microseconds
-  seedCov(5,5) = 6 * Acts::UnitConstants::us;
 
   /// Need to transform from global to local coordinate frame. 
   /// Amounts to the local transformation as in PHActsSourceLinks as well as
