@@ -2,6 +2,7 @@
 #define TRACKRECO_PHACTSTRKPROP_H
 
 #include "PHTrackPropagating.h"
+#include "PHActsSourceLinks.h"
 
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
@@ -10,8 +11,7 @@
 #include <Acts/Utilities/Definitions.hpp>
 #include <Acts/Utilities/Logger.hpp>
 
-//#include <Acts/Propagator/detail/DebugOutputActor.hpp>
-//#include <Acts/Propagator/detail/StandardAborters.hpp>
+#include <Acts/TrackFinder/CKFSourceLinkSelector.hpp>
 #include <Acts/Propagator/detail/SteppingLogger.hpp>
 #include <Acts/Propagator/MaterialInteractor.hpp>
 
@@ -22,28 +22,30 @@
 #include <string>
 #include <map>
 
-struct ActsTrack;
-
+class ActsTrack;
 class MakeActsGeometry;
 class SvtxTrack;
 class SvtxTrackMap;
 
+namespace FW
+{
+  namespace Data
+  {
+    class TrkrClusterSourceLink;
+  }
+}
 namespace Acts
 {
   class Surface;
   class PerigeeSurface;
 }
 
-
-
-
-using RecordedMaterial = Acts::MaterialInteractor::result_type;
-using PropagationOutput
-    = std::pair<std::vector<Acts::detail::Step>, RecordedMaterial>;
-
 using PerigeeSurface = std::shared_ptr<const Acts::PerigeeSurface>;
 using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
+
+using SourceLinkSelector = Acts::CKFSourceLinkSelector;
+using SourceLinkSelectorConfig = typename SourceLinkSelector::Config;
 
 class PHActsTrkProp : public PHTrackPropagating
 {
@@ -75,24 +77,10 @@ class PHActsTrkProp : public PHTrackPropagating
 
   Acts::BoundSymMatrix getActsCovMatrix(const SvtxTrack *track);
 
-  /// Run the propagation algorithm in acts. Returns result of propagation
-  PropagationOutput propagate(FW::TrackParameters parameters);
-
-  /// The acts geometry constructed in MakeActsGeometry
-  MakeActsGeometry *m_actsGeometry;
-
-  /// Minimum track pT to propagate, for acts propagator, units of GeV
-  double m_minTrackPt;
-
-  /// Propagation step size, units of mm
-  double m_maxStepSize; 
+  ActsTrackingGeometry *m_tGeometry;
 
   /// Track map with Svtx objects
   SvtxTrackMap *m_trackMap;
-
-  /// Cluster-surface association maps created in MakeActsGeometry
-  std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
-  std::map<TrkrDefs::cluskey, Surface> *m_clusterSurfaceTpcMap;
 
   /// Acts proto tracks to be put on the node tree by this module
   std::vector<ActsTrack> *m_actsProtoTracks;
@@ -101,6 +89,7 @@ class PHActsTrkProp : public PHTrackPropagating
   /// SourceLink is defined as TrkrClusterSourceLink elsewhere
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
+  SourceLinkSelectorConfig m_sourceLinkSelectorConfig;
  
 };
 
