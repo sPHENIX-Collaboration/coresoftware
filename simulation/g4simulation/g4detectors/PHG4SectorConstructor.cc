@@ -209,6 +209,8 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   }
 
   m_DisplayAction->AddVolume(DetectorLog_Det, "DetectorBox");
+  if (Verbosity() > 1)
+  {
   G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
          << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
          << G4endl;
@@ -217,6 +219,7 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
          << map_phy_vol.size() << " physical volume constructed; "
          << map_active_phy_vol.size() << " is active." << G4endl;
+  }
 }
 
 G4VSolid *
