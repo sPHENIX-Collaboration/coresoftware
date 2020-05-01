@@ -35,6 +35,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <climits>
 
 using namespace PHG4Sector;
 using namespace std;
@@ -88,10 +89,13 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
 
   const G4Transform3D transform_Hall_to_Det(transform_Det_to_Hall.inverse());
 
+  // during GDML export, numerical value may change at the large digit and go beyond the 0 or pi limit.
+  // therefore recess 0/pi by a small amount to avoid such problem
+  static const double epsilon = numeric_limits<float>::epsilon();
   const double sph_min_polar_angle =
-      (geom.get_min_polar_edge() == Sector_Geometry::kConeEdge) ? geom.get_min_polar_angle() : 0;
+      (geom.get_min_polar_edge() == Sector_Geometry::kConeEdge) ? geom.get_min_polar_angle() : (0 + epsilon);
   const double sph_max_polar_angle =
-      (geom.get_max_polar_edge() == Sector_Geometry::kConeEdge) ? geom.get_max_polar_angle() : pi;
+      (geom.get_max_polar_edge() == Sector_Geometry::kConeEdge) ? geom.get_max_polar_angle() : (pi - epsilon);
 
   G4VSolid *SecConeBoundary_Hall = new G4Sphere("SecConeBoundary_Hall",                                           //
                                                 geom.get_normal_start(), geom.get_max_R(),                        // G4double pRmin, G4double pRmax,
