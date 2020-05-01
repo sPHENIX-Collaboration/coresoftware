@@ -84,20 +84,20 @@ float BEmcRecEEMC::GetImpactAngle(float e, float x, float y)
 }
 
 void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
-                                  float* pxc, float* pyc)
+                                  float& xc, float& yc)
 {
   // Corrects the Shower Center of Gravity for the systematic shift due to
   // the limited tower size
   //
   // Everything here is in tower units.
-  // (x,y) - CG position, (*pxc,*pyc) - corrected position
+  // (x,y) - CG position, (xc,yc) - corrected position
 
   float xZero, yZero, bx, by;
   float t, x0, y0;
   int ix0, iy0;
 
-  *pxc = x;
-  *pyc = y;
+  xc = x;
+  yc = y;
   //  return;
 
   if (Energy < 0.01) return;
@@ -135,11 +135,11 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(x0 - ix0) <= 0.5)
   {
     x0 = (ix0 - xZero) + bx * asinh(2. * (x0 - ix0) * sinh(0.5 / bx));
-    *pxc = x0;
+    xc = x0;
   }
   else
   {
-    *pxc = x;
+    xc = x;
     printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: x=%f  dx=%f\n", x, x0 - ix0);
   }
 
@@ -149,11 +149,11 @@ void BEmcRecEEMC::CorrectPosition(float Energy, float x, float y,
   if (EmcCluster::ABS(y0 - iy0) <= 0.5)
   {
     y0 = (iy0 - yZero) + by * asinh(2. * (y0 - iy0) * sinh(0.5 / by));
-    *pyc = y0;
+    yc = y0;
   }
   else
   {
-    *pyc = y;
+    yc = y;
     printf("????? Something wrong in BEmcRecEEMC::CorrectPosition: y=%f  dy=%f\n", y, y0 - iy0);
   }
 }

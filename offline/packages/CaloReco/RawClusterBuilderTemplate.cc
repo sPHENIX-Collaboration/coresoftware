@@ -175,7 +175,7 @@ int RawClusterBuilderTemplate::InitRun(PHCompositeNode *topNode)
   BINY0 = iymin;
   NBINY = iymax - iymin + 1;
 
-  bemc->SetGeometry(NBINX, NBINY, 1, 1);  // !!!!! The last parameter not used for now
+  bemc->SetDim(NBINX, NBINY);
 
   itr_geom = begin_end_geom.first;
   for (; itr_geom != begin_end_geom.second; ++itr_geom)
@@ -300,7 +300,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   int ncl = bemc->FindClusters();
   if (ncl < 0)
   {
-    printf("!!! Error in BEmcRec::FindClusters(): Too many clusters, fgMaxLen parameter needs to be increased\n");
+    printf("!!! Error in BEmcRec::FindClusters(): numbers of cluster %d ?\n",ncl);
     return Fun4AllReturnCodes::ABORTEVENT;
   }
 
@@ -308,15 +308,15 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
   std::vector<EmcCluster> *ClusterList = bemc->GetClusters();
   std::vector<EmcCluster>::iterator pc;
 
-  std::vector<EmcPeakarea>::iterator pp;
+  std::vector<EmcCluster>::iterator pp;
   float ecl, ecore, xcg, ycg, xx, xy, yy;
   //  float xcorr, ycorr;
   EmcModule hmax;
   RawCluster *cluster;
 
-  std::vector<EmcPeakarea> PList;
+  std::vector<EmcCluster> PList;
   std::vector<EmcModule> Peaks;
-  std::vector<EmcPeakarea> *pPList = &PList;
+  std::vector<EmcCluster> *pPList = &PList;
   std::vector<EmcModule> *pPeaks = &Peaks;
 
   float prob, chi2;
@@ -332,7 +332,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
     //    ecl = pc->GetTotalEnergy();
     //    pc->GetMoments( &xcg, &ycg, &xx, &xy, &yy );
 
-    int npk = pc->GetPeaks(pPList, pPeaks);
+    int npk = pc->GetSubClusters(pPList, pPeaks);
     if (npk < 0) return Fun4AllReturnCodes::ABORTEVENT;
 
     //    printf("  iCl=%d (%d): E=%f  x=%f  y=%f\n",ncl,npk,ecl,xcg,ycg);
@@ -347,7 +347,7 @@ int RawClusterBuilderTemplate::process_event(PHCompositeNode *topNode)
       // Ecore (basically near 2x2 energy around center of gravity)
       //ecore = pp->GetECore();
       // Center of Gravity etc.
-      pp->GetMoments(&xcg, &ycg, &xx, &xy, &yy);
+      pp->GetMoments(xcg, ycg, xx, xy, yy);
       pp->GetGlobalPos(xg, yg, zg);
 
       // Tower with max energy
