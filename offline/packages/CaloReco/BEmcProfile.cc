@@ -125,7 +125,7 @@ BEmcProfile::~BEmcProfile()
   }
 }
 
-float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, float theta)
+float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, float theta, float phi)
 {
   float enoise = 0.01;  // 10 MeV per tower
 
@@ -210,7 +210,7 @@ float BEmcProfile::GetProb(std::vector<EmcModule>* plist, int NX, float en, floa
   float err[NP];
   for (int ip = 0; ip < NP; ip++)
   {
-    PredictEnergy(ip, en, theta, ddz, ddy, ep[ip], err[ip]);
+    PredictEnergy(ip, en, theta, phi, ddz, ddy, ep[ip], err[ip]);
     if (ep[ip] < 0) return -1;
     if (ip < 3)
       err[ip] = sqrt(err[ip] * err[ip] + 4 * enoise * enoise / etot / etot);
@@ -324,7 +324,7 @@ float BEmcProfile::GetProbTest(std::vector<EmcModule>* plist, int NX, float en, 
 }
 */
 
-void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float ddz, float ddy, float& ep, float& err)
+void BEmcProfile::PredictEnergy(int ip, float energy, float theta, float phi, float ddz, float ddy, float& ep, float& err)
 // ip changes from 0 to NP-1, meaning the profile index 1,2,..,NP
 {
   ep = err = -1;

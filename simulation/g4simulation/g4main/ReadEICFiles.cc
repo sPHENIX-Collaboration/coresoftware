@@ -139,6 +139,13 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
        * http://www.star.bnl.gov/~tpb/eic-smear/classerhic_1_1_virtual_particle.html */
       erhic::ParticleMC * track_ii = GenEvent->GetTrack(ii);
 
+      if(Verbosity()>1){
+	cout << __PRETTY_FUNCTION__<<" : "<<__LINE__<<endl;
+	cout<<"\ttrack "<<ii<<endl;
+	cout<<"\t4mom\t"<<track_ii->GetPx()<<"\t"<<track_ii->GetPy()<<"\t"<<track_ii->GetPz()<<"\t"<<track_ii->GetE()<<endl;
+	cout<<"\tstatus= "<<track_ii->GetStatus()<<"\tindex= "<<track_ii->GetIndex()<<"\tmass= "<<track_ii->GetM()<<endl;
+      }
+
       /* Create HepMC particle record */
       HepMC::GenParticle *hepmcpart = new HepMC::GenParticle( HepMC::FourVector(track_ii->GetPx(),
                                                                                 track_ii->GetPy(),
@@ -281,6 +288,11 @@ ReadEICFiles::process_event(PHCompositeNode *topNode)
 
   /* pass HepMC to PHNode*/
   PHHepMCGenEvent * success = hepmc_helper . insert_event(evt);
+  if(Verbosity()>1){
+    cout << __PRETTY_FUNCTION__<<" : "<<__LINE__<<endl;
+    evt->print();
+  }
+
   if (!success) {
     cout << "ReadEICFiles::process_event - Failed to add event to HepMC record!" << endl;
     return Fun4AllReturnCodes::ABORTRUN;
