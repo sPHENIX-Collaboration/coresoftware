@@ -360,11 +360,11 @@ int BEmcRec::FindClusters()
 	//        return -1;
 	int* LenCltmp = new int[MaxLen];
 	CopyVector(LenCl,LenCltmp,MaxLen);
-	delete LenCl;
+	delete[] LenCl;
 	LenCl = new int[MaxLen*2];
 	ZeroVector(LenCl,MaxLen*2);
 	CopyVector(LenCltmp,LenCl,MaxLen);
-	delete LenCltmp;
+	delete[] LenCltmp;
 	MaxLen *= 2;
 	//	printf("Extend array size to %d\n",MaxLen);
       }
@@ -467,7 +467,7 @@ void BEmcRec::Momenta(vector<EmcModule>* phit, float& pe, float& px,
       emax = a;
       ichmax = ph->ich;
     }
-    ph++;
+    ++ph;
   }
   if (emax <= 0) return;
 
