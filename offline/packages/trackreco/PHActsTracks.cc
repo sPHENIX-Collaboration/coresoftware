@@ -218,6 +218,7 @@ Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
   /// time rotation
   rotation(5,5) = 1;
 
+  /// Rotate the covariance matrix by the jacobian rotation matrix
   matrix = rotation * seedCov * rotation.transpose();
 
   return matrix;
