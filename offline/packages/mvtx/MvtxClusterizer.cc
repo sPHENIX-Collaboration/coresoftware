@@ -360,7 +360,7 @@ void MvtxClusterizer::ClusterMvtx(PHCompositeNode *topNode)
 	double phisize = phibins.size() * pitch;
 	double zsize = zbins.size() * length;
 
-  static constexpr double invsqrt12 = 1./std::sqrt(12);
+  static const double invsqrt12 = 1./std::sqrt(12);
 
   // scale factors (phi direction)
   /*

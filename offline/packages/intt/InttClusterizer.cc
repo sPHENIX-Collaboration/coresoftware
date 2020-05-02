@@ -431,7 +431,7 @@ void InttClusterizer::ClusterLadderCells(PHCompositeNode* topNode)
 	float phisize = phibins.size() * pitch;
 	float zsize = zbins.size() * length;
 
-  static constexpr float invsqrt12 = 1./sqrt(12);
+  static const float invsqrt12 = 1./sqrt(12);
 
   // scale factors (phi direction)
   /*
