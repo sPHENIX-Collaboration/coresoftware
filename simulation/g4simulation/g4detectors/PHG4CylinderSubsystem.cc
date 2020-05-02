@@ -19,8 +19,6 @@
 #include <phool/PHObject.h>              // for PHObject
 #include <phool/getClass.h>
 
-#include <Geant4/G4Types.hh>             // for G4double
-
 #include <cmath>                        // for NAN
 #include <iostream>                      // for operator<<, basic_ostream, endl
 #include <sstream>
@@ -50,9 +48,15 @@ PHG4CylinderSubsystem::~PHG4CylinderSubsystem()
 int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 {
   // create hit list only for active layers
-  if (GetParams()->get_int_param("lengthviarapidity"))
+  double detlength = GetParams()->get_double_param("length");
+  if (!isfinite(detlength) && GetParams()->get_int_param("lengthviarapidity"))
   {
     GetParams()->set_double_param("length", PHG4Utils::GetLengthForRapidityCoverage(GetParams()->get_double_param("radius") + GetParams()->get_double_param("thickness")) * 2);
+    detlength = GetParams()->get_double_param("length");
+  }
+  else
+  {
+    GetParams()->set_double_param("lengthviarapidity",0);
   }
   // create display settings before detector
   PHG4CylinderDisplayAction *disp_action = new PHG4CylinderDisplayAction(Name(), GetParams());
@@ -67,7 +71,6 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
 
   // create detector
   m_Detector = new PHG4CylinderDetector(this, topNode, GetParams(), Name(), GetLayer());
-  G4double detlength = GetParams()->get_double_param("length");
   m_Detector->SuperDetector(SuperDetector());
   m_Detector->OverlapCheck(CheckOverlap());
   if (GetParams()->get_int_param("active"))
@@ -145,17 +148,17 @@ int PHG4CylinderSubsystem::process_event(PHCompositeNode *topNode)
 
 void PHG4CylinderSubsystem::SetDefaultParameters()
 {
-  set_default_double_param("length", 100);
+  set_default_double_param("length", NAN);
   set_default_double_param("place_x", 0.);
   set_default_double_param("place_y", 0.);
   set_default_double_param("place_z", 0.);
-  set_default_double_param("radius", 100);
+  set_default_double_param("radius", NAN);
   set_default_double_param("steplimits", NAN);
-  set_default_double_param("thickness", 100);
+  set_default_double_param("thickness", NAN);
   set_default_double_param("tmin", NAN);
   set_default_double_param("tmax", NAN);
 
-  set_default_int_param("lengthviarapidity", 0);
+  set_default_int_param("lengthviarapidity", 1);
   set_default_int_param("lightyield", 0);
   set_default_int_param("use_g4steps", 0);
 
