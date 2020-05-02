@@ -44,6 +44,7 @@ PHG4SectorConstructor::PHG4SectorConstructor(const std::string &name, PHG4Subsys
   : overlapcheck_sector(false)
   , name_base(name)
   , m_DisplayAction(dynamic_cast<PHG4SectorDisplayAction *>(subsys->GetDisplayAction()))
+  , m_Verbosity(0)
 {
 }
 
@@ -213,14 +214,17 @@ void PHG4SectorConstructor::Construct_Sectors(G4LogicalVolume *WorldLog)
   }
 
   m_DisplayAction->AddVolume(DetectorLog_Det, "DetectorBox");
-  G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
-         << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
-         << G4endl;
-  G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-         << map_log_vol.size() << " logical volume constructed" << G4endl;
-  G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
-         << map_phy_vol.size() << " physical volume constructed; "
-         << map_active_phy_vol.size() << " is active." << G4endl;
+  if (Verbosity() > 1)
+  {
+    G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base
+	   << " - total thickness = " << geom.get_total_thickness() / cm << " cm"
+	   << G4endl;
+    G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
+	   << map_log_vol.size() << " logical volume constructed" << G4endl;
+    G4cout << "PHG4SectorConstructor::Construct_Sectors::" << name_base << " - "
+	   << map_phy_vol.size() << " physical volume constructed; "
+	   << map_active_phy_vol.size() << " is active." << G4endl;
+  }
 }
 
 G4VSolid *

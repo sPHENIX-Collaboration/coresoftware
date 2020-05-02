@@ -258,10 +258,11 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
 
   GetDisplayAction()->AddVolume(RICHHBDLog, "HBD");
 
-  G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
-         << " logical volume constructed" << G4endl;
-  G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_phy_vol.size()
-         << " physical volume constructed" << G4endl;
+// if you want this printout - put some verbosity around it
+  // G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
+  //        << " logical volume constructed" << G4endl;
+  // G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_phy_vol.size()
+  //        << " physical volume constructed" << G4endl;
 
   return WorldLog;
 }
