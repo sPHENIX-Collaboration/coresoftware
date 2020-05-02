@@ -7,20 +7,20 @@
 
 #include <phparameter/PHParameters.h>
 
-#include <g4main/PHG4DisplayAction.h>    // for PHG4DisplayAction
+#include <g4main/PHG4DisplayAction.h>  // for PHG4DisplayAction
 #include <g4main/PHG4HitContainer.h>
-#include <g4main/PHG4SteppingAction.h>   // for PHG4SteppingAction
+#include <g4main/PHG4SteppingAction.h>  // for PHG4SteppingAction
 #include <g4main/PHG4Utils.h>
 
 #include <phool/PHCompositeNode.h>
-#include <phool/PHIODataNode.h>          // for PHIODataNode
-#include <phool/PHNode.h>                // for PHNode
-#include <phool/PHNodeIterator.h>        // for PHNodeIterator
-#include <phool/PHObject.h>              // for PHObject
+#include <phool/PHIODataNode.h>    // for PHIODataNode
+#include <phool/PHNode.h>          // for PHNode
+#include <phool/PHNodeIterator.h>  // for PHNodeIterator
+#include <phool/PHObject.h>        // for PHObject
 #include <phool/getClass.h>
 
-#include <cmath>                        // for NAN
-#include <iostream>                      // for operator<<, basic_ostream, endl
+#include <cmath>     // for NAN
+#include <iostream>  // for operator<<, basic_ostream, endl
 #include <sstream>
 
 class PHG4CylinderGeom;
@@ -56,7 +56,7 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   }
   else
   {
-    GetParams()->set_double_param("lengthviarapidity",0);
+    GetParams()->set_double_param("lengthviarapidity", 0);
   }
   // create display settings before detector
   PHG4CylinderDisplayAction *disp_action = new PHG4CylinderDisplayAction(Name(), GetParams());
@@ -65,7 +65,7 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
       isfinite(m_ColorArray[2]) &&
       isfinite(m_ColorArray[3]))
   {
-    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1],m_ColorArray[2],m_ColorArray[3]);
+    disp_action->SetColor(m_ColorArray[0], m_ColorArray[1], m_ColorArray[2], m_ColorArray[3]);
   }
   m_DisplayAction = disp_action;
 
