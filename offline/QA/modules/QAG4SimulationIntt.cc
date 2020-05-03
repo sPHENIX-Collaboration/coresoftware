@@ -42,7 +42,7 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
   const auto range = geom_container->get_begin_end();
   for( auto iter = range.first; iter != range.second; ++iter )
   { m_layers.insert( iter->first ); }
-
+  
   // histogram manager
   auto hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -53,14 +53,14 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
     std::cout << PHWHERE << " adding layer " << layer << std::endl;
     {
       // rphi residuals (cluster - truth)
-      auto h = new TH1F( Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi_{cluster-truth} layer_%i", layer ), 100, -2e-3, 2e-3 );
+      auto h = new TH1F( Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi_{cluster-truth} layer_%i", layer ), 100, -1e-2, 1e-2 );
       h->GetXaxis()->SetTitle( "r#Delta#phi_{cluster-truth} (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
-      auto h = new TH1F( Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi error layer_%i", layer ), 100, 0, 2e-3 );
+      auto h = new TH1F( Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi error layer_%i", layer ), 100, 0, 1e-2 );
       h->GetXaxis()->SetTitle( "r#Delta#phi error (cm)" );
       hm->registerHisto(h);
     }
@@ -74,14 +74,14 @@ int QAG4SimulationIntt::InitRun(PHCompositeNode *topNode)
 
     {
       // z residuals (cluster - truth)
-      auto h = new TH1F( Form( "%sdz_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth} layer_%i", layer ), 100, -3e-3, 3e-3 );
+      auto h = new TH1F( Form( "%sdz_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth} layer_%i", layer ), 100, -2.5, 2.5 );
       h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth} (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
-      auto h = new TH1F( Form( "%sz_error_%i", get_histo_prefix().c_str(), layer ), Form( "z error layer_%i", layer ), 100, 0, 3e-3 );
+      auto h = new TH1F( Form( "%sz_error_%i", get_histo_prefix().c_str(), layer ), Form( "z error layer_%i", layer ), 100, 0, 2.5 );
       h->GetXaxis()->SetTitle( "z error (cm)" );
       hm->registerHisto(h);
     }
