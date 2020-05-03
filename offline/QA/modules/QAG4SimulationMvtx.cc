@@ -54,42 +54,42 @@ int QAG4SimulationMvtx::InitRun(PHCompositeNode *topNode)
     {
       // rphi residuals (cluster - truth)
       auto h = new TH1F( Form( "%sdrphi_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi_{cluster-truth} layer_%i", layer ), 100, -2e-3, 2e-3 );
-      h->GetXaxis()->SetTitle( "r#Delta#phi_{cluster-truth} (cm)" );
+      h->GetXaxis()->SetTitle( "MVTX r#Delta#phi_{cluster-truth} (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // rphi cluster errors
       auto h = new TH1F( Form( "%srphi_error_%i", get_histo_prefix().c_str(), layer ), Form( "r#Delta#phi error layer_%i", layer ), 100, 0, 2e-3 );
-      h->GetXaxis()->SetTitle( "r#Delta#phi error (cm)" );
+      h->GetXaxis()->SetTitle( "MVTX r#Delta#phi error (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // phi pulls (cluster - truth)
       auto h = new TH1F( Form( "%sphi_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Delta#phi_{cluster-truth}/#sigma#phi layer_%i", layer ), 100, -3, 3 );
-      h->GetXaxis()->SetTitle( "#Delta#phi_{cluster-truth}/#sigma#phi (cm)" );
+      h->GetXaxis()->SetTitle( "MVTX #Delta#phi_{cluster-truth}/#sigma#phi (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // z residuals (cluster - truth)
       auto h = new TH1F( Form( "%sdz_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth} layer_%i", layer ), 100, -3e-3, 3e-3 );
-      h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth} (cm)" );
+      h->GetXaxis()->SetTitle( "MVTX #Delta#z_{cluster-truth} (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // z cluster errors
       auto h = new TH1F( Form( "%sz_error_%i", get_histo_prefix().c_str(), layer ), Form( "z error layer_%i", layer ), 100, 0, 3e-3 );
-      h->GetXaxis()->SetTitle( "z error (cm)" );
+      h->GetXaxis()->SetTitle( "MVTX z error (cm)" );
       hm->registerHisto(h);
     }
 
     {
       // z pulls (cluster - truth)
       auto h = new TH1F( Form( "%sz_pulls_%i", get_histo_prefix().c_str(), layer ), Form( "#Deltaz_{cluster-truth}/#sigmaz layer_%i", layer ), 100, -3, 3 );
-      h->GetXaxis()->SetTitle( "#Delta#z_{cluster-truth}/#sigmaz (cm)" );
+      h->GetXaxis()->SetTitle( "MVTX #Delta#z_{cluster-truth}/#sigmaz (cm)" );
       hm->registerHisto(h);
     }
 
