@@ -39,6 +39,7 @@ PHG4CylinderSubsystem::PHG4CylinderSubsystem(const std::string &na, const int ly
   InitializeParameters();
 }
 
+//_______________________________________________________________________
 PHG4CylinderSubsystem::~PHG4CylinderSubsystem()
 {
   delete m_DisplayAction;
@@ -56,7 +57,7 @@ int PHG4CylinderSubsystem::InitRunSubsystem(PHCompositeNode *topNode)
   }
   else
   {
-    GetParams()->set_double_param("lengthviarapidity", 0);
+    GetParams()->set_int_param("lengthviarapidity",0);
   }
   // create display settings before detector
   PHG4CylinderDisplayAction *disp_action = new PHG4CylinderDisplayAction(Name(), GetParams());

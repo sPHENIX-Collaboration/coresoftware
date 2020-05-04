@@ -367,6 +367,27 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
   return;
 }
 
+void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodename, const int detid)
+{
+  // write itself since this class is fine with saving by root
+  PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
+  if (!nodeparamcontainer)
+  {
+    cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
+	 << " which must exist" << endl;
+    gSystem->Exit(1);
+  }
+  PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(detid);
+  if (! nodeparams)
+  {
+    cout << PHWHERE << " could not find PdbParameterMap for detector " << detid
+	 << " which must exist" << endl;
+    gSystem->Exit(1);
+  }
+  CopyToPdbParameterMap(nodeparams);
+  return;
+}
+
 int PHParameters::WriteToDB()
 {
   PdbBankManager *bankManager = PdbBankManager::instance();

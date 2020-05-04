@@ -131,8 +131,12 @@ PHG4DetectorSubsystem::InitRun( PHCompositeNode* topNode )
 	  runNode->addNode(RunDetNode);
 	}
     }
+// put parameters on the node tree so the subsystem can read them from there (it does not have to)
   params->SaveToNodeTree(RunDetNode,paramnodename,layer);
   int iret = InitRunSubsystem(topNode);
+// update parameters on node tree in case the subsystem has changed them
+// In the end the parameters on the node tree must reflect what was actually used
+  params->UpdateNodeTree(RunDetNode,paramnodename,layer);
   if (Verbosity() > 0)
     {
       PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode,paramnodename);
