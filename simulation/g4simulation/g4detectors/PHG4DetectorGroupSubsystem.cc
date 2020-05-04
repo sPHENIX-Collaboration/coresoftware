@@ -17,6 +17,7 @@
 #include <TSystem.h>
 
 #include <boost/format.hpp>
+#include <boost/stacktrace.hpp>
 
 #include <cassert>                                // for assert
 #include <cstdlib>                                // for exit
@@ -146,6 +147,7 @@ int PHG4DetectorGroupSubsystem::InitRun(PHCompositeNode *topNode)
   }
   m_ParamsContainer->SaveToNodeTree(RunDetNode, paramnodename);
   int iret = InitRunSubsystem(topNode);
+  m_ParamsContainer->UpdateNodeTree(RunDetNode, paramnodename);
   if (Verbosity() > 0)
   {
     PdbParameterMapContainer *nodeparams = findNode::getClass<PdbParameterMapContainer>(topNode, paramnodename);
@@ -507,9 +509,13 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int i
   //     iret = params->ReadFromDB();
   //   }
 //  if (iret)
+  cout << boost::stacktrace::stacktrace();
+  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << endl;
   {
     cout << "problem reading from DB" << endl;
   }
+  gSystem->Exit(1);
   return iret;
 }
 
@@ -556,9 +562,12 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG
   int iret = 1;
   //  int iret = params->ReadFromFile(name, extension, layer, issuper, m_CalibFileDir);
 //  if (iret)
-  {
-    cout << "problem reading from " << extension << " file " << endl;
-  }
+  cout << boost::stacktrace::stacktrace();
+  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << endl;
+  cout << "problem reading from " << extension << " file " << endl;
+  cout << "problem reading from DB" << endl;
+  gSystem->Exit(1);
   return iret;
 }
 
