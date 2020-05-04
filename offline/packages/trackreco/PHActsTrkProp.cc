@@ -31,7 +31,7 @@
 #include <Acts/Utilities/Units.hpp>
 #include <Acts/TrackFinder/CombinatorialKalmanFilter.hpp>
 
-#include <ACTFW/Fitting/TrkrClusterFindingAlgorithm.hpp>
+
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/Plugins/BField/ScalableBField.hpp>
 #include <ACTFW/Framework/ProcessCode.hpp>
@@ -49,8 +49,10 @@
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
+  , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
   , m_actsProtoTracks(nullptr)
+  , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
 {
   Verbosity(0);
@@ -67,16 +69,23 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  // Implement different chi2 criteria for different pixel (volumeID: 2)
-  // layers:
-  m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
-  // Implement different chi2 criteria for pixel (volumeID: 2) and strip
-  // (volumeID: 3):
-  m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
+  /// Need to implement different chi2 criteria for the different layers
+  /// and volumes to help the CKF out a little 
+  /// First need to walk through layers/volumes to figure out appropriate
+  /// numerical identifiers
+  /// m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
+  /// m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
   m_sourceLinkSelectorConfig.maxChi2 = 8;
   // Set the allowed maximum number of source links to be large enough
   m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
  
+  findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
+                   m_tGeometry->tGeometry,
+		   m_tGeometry->magField,
+		   Acts::Logging::VERBOSE);
+
+
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -91,21 +100,26 @@ int PHActsTrkProp::Process()
     std::cout << "Start PHActsTrkProp::process_event" << std::endl;
   }
 
-  FW::TrkrClusterFindingAlgorithm::Config findCfg;
-  findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
-                   m_tGeometry->tGeometry,
-		   m_tGeometry->magField,
-		   Acts::Logging::VERBOSE);
 
   PerigeeSurface pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>
     (Acts::Vector3D(0., 0., 0.));
 
+  /// Collect all source links for the CKF
   std::vector<SourceLink> sourceLinks;
-
   std::map<unsigned int, SourceLink>::iterator slIter = m_sourceLinks->begin();
   while(slIter != m_sourceLinks->end())
     {
       sourceLinks.push_back(slIter->second);
+      
+      if(Verbosity() > 10)
+	{
+	  std::cout << std::endl 
+		    << "Adding source link to list for track finding: " 
+		    << slIter->second.hitID() <<" and surface : " 
+		    << std::endl;
+	  slIter->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  
+	}
       ++slIter;
     }
 
@@ -140,6 +154,8 @@ int PHActsTrkProp::Process()
 					  seedMom, trackQ, trackTime);
       
       
+      /// Construct the options to pass to the CKF.
+      /// SourceLinkSelector set in Init()
       Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
 	        m_tGeometry->geoContext, 
 		m_tGeometry->magFieldContext, 
@@ -147,22 +163,48 @@ int PHActsTrkProp::Process()
 		m_sourceLinkSelectorConfig, 
 		&(*pSurface));
       
+      /// Run the CKF for all source links and the constructed track seed
       auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
       
       if(result.ok())
 	{
 	  const auto& fitOutput = result.value();
 	  auto parameterMap = fitOutput.fittedParameters;
-	  /*
+
+	  /// how to get the associated source links from fit result?
+	  std::vector<size_t> allSourceLinks = fitOutput.sourcelinkCandidateIndices;  
+	  std::vector<SourceLink> trackSourceLinks;
+	      
+	  for(size_t i = 0; i < allSourceLinks.size(); ++i)
+	    {
+	      trackSourceLinks.push_back(sourceLinks.at(allSourceLinks.at(i)));
+	    }
+	
 	  for(auto element : parameterMap)
 	    {
-	      if(element.second)
+	      const auto& params = element.second;
+	      if(Verbosity() > 10)
 		{
-		  const auto& params = element.second.value();
+		  std::cout << "Fitted parameters for track finder" << std::endl;
+		  std::cout << "Position : " << params.position().transpose()
+			    << std::endl;
+		  std::cout << "Momentum : " << params.momentum().transpose()
+			    << std::endl;
+
 		}
 
+
+	      /// Get the finder results into a FW::TrackParameters 
+	      const FW::TrackParameters trackSeed(element.second.covariance(),
+						  element.second.position(),
+						  element.second.momentum(),
+						  element.second.charge(),
+						  element.second.time());
+	      
+	      ActsTrack actsProtoTrack(trackSeed, trackSourceLinks);
+	      m_actsProtoTracks->push_back(actsProtoTrack);
 	    }
-	  */
+	  
 	}
     }
 
@@ -325,6 +367,15 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
+  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  if(!m_hitIdClusKey)
+    {
+      std::cout << PHWHERE << "ERROR: Can't find HitIdClusIdActsMap. Exiting."
+		<< std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+
+    }
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }

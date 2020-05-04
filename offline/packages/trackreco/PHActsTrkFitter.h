@@ -20,6 +20,8 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
+#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
+
 #include <memory>
 #include <string>
 
@@ -69,6 +71,11 @@ class PHActsTrkFitter : public PHTrackFitting
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;
+
+  /// Configuration containing the fitting function instance
+  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
+
+
 };
 
 #endif

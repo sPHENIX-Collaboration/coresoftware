@@ -17,6 +17,7 @@
 
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/EventData/Track.hpp>
+#include <ACTFW/Fitting/TrkrClusterFindingAlgorithm.hpp>
 
 #include <memory>
 #include <string>
@@ -85,12 +86,20 @@ class PHActsTrkProp : public PHTrackPropagating
   /// Acts proto tracks to be put on the node tree by this module
   std::vector<ActsTrack> *m_actsProtoTracks;
 
+  /// Map of cluster keys to hit ids, for debugging statements
+  std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
+
   /// Acts source links created by PHActsSourceLinks
   /// SourceLink is defined as TrkrClusterSourceLink elsewhere
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
+  /// SourceLinkSelector to help the CKF identify which source links 
+  /// may belong to a track seed based on geometry considerations
   SourceLinkSelectorConfig m_sourceLinkSelectorConfig;
  
+  /// Configuration containing the finding function instance
+  FW::TrkrClusterFindingAlgorithm::Config findCfg;
+
 };
 
 #endif
