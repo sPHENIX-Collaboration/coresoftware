@@ -76,7 +76,8 @@ int PHParameters::get_int_param(const std::string &name) const
        << " does not exist (forgot to set?)" << endl;
   cout << "Here is the stacktrace: " << endl;
   cout << boost::stacktrace::stacktrace();
-  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << endl
+       << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
   gSystem->Exit(1);
   exit(1);
@@ -118,7 +119,8 @@ PHParameters::get_double_param(const std::string &name) const
        << " does not exist (forgot to set?)" << endl;
   cout << "Here is the stacktrace: " << endl;
   cout << boost::stacktrace::stacktrace();
-  cout <<  endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << endl
+       << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
 
   gSystem->Exit(1);
@@ -205,7 +207,8 @@ PHParameters::get_string_param(const std::string &name) const
        << " does not exist (forgot to set?)" << endl;
   cout << "Here is the stacktrace: " << endl;
   cout << boost::stacktrace::stacktrace();
-  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << endl
+       << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
   gSystem->Exit(1);
   exit(1);
@@ -352,7 +355,7 @@ void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodena
   if (!nodeparams)
   {
     cout << PHWHERE << " could not find PdbParameterMap " << nodename
-	 << " which must exist" << endl;
+         << " which must exist" << endl;
     gSystem->Exit(1);
   }
   CopyToPdbParameterMap(nodeparams);
@@ -390,14 +393,14 @@ void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodena
   if (!nodeparamcontainer)
   {
     cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
-	 << " which must exist" << endl;
+         << " which must exist" << endl;
     gSystem->Exit(1);
   }
   PdbParameterMap *nodeparams = nodeparamcontainer->GetParametersToModify(detid);
-  if (! nodeparams)
+  if (!nodeparams)
   {
     cout << PHWHERE << " could not find PdbParameterMap for detector " << detid
-	 << " which must exist" << endl;
+         << " which must exist" << endl;
     gSystem->Exit(1);
   }
   CopyToPdbParameterMap(nodeparams);
