@@ -1,6 +1,6 @@
 #include "PHG4DetectorGroupSubsystem.h"
 
-#include <g4main/PHG4Subsystem.h>                  // for PHG4Subsystem
+#include <g4main/PHG4Subsystem.h>  // for PHG4Subsystem
 
 #include <phparameter/PHParameters.h>
 #include <phparameter/PHParametersContainer.h>
@@ -9,7 +9,7 @@
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHDataNode.h>
-#include <phool/PHNode.h>                          // for PHNode
+#include <phool/PHNode.h>  // for PHNode
 #include <phool/PHNodeIterator.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -19,8 +19,8 @@
 #include <boost/format.hpp>
 #include <boost/stacktrace.hpp>
 
-#include <cassert>                                // for assert
-#include <cstdlib>                                // for exit
+#include <cassert>  // for assert
+#include <cstdlib>  // for exit
 #include <iostream>
 #include <sstream>
 
@@ -508,9 +508,10 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromDB(const string &name, const int i
   //   {
   //     iret = params->ReadFromDB();
   //   }
-//  if (iret)
+  //  if (iret)
   cout << boost::stacktrace::stacktrace();
-  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << endl
+       << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << endl;
   {
     cout << "problem reading from DB" << endl;
@@ -561,9 +562,10 @@ int PHG4DetectorGroupSubsystem::ReadParamsFromFile(const string &name, const PHG
   }
   int iret = 1;
   //  int iret = params->ReadFromFile(name, extension, layer, issuper, m_CalibFileDir);
-//  if (iret)
+  //  if (iret)
   cout << boost::stacktrace::stacktrace();
-  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
+  cout << endl
+       << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "This method is a dummy, tell the offline gurus about it and give this stack trace" << endl;
   cout << "problem reading from " << extension << " file " << endl;
   cout << "problem reading from DB" << endl;
