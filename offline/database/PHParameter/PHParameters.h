@@ -65,8 +65,11 @@ class PHParameters : public PHObject
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   // save parameters in container on node tree
   void SaveToNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
+
 // update parameters on node tree (in case the subsystem modified them)
+  void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename);
   void UpdateNodeTree(PHCompositeNode *topNode, const std::string &nodename, const int layer);
+
   int WriteToDB();
   int ReadFromDB();
   int ReadFromDB(const std::string &name, const int layer);
