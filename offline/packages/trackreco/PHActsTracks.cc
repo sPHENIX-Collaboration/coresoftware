@@ -12,6 +12,7 @@
 
 #include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
+#include <Acts/Utilities/Units.hpp>
 
 /// Tracking includes
 #include <trackbase_historic/SvtxTrack.h>
@@ -142,74 +143,83 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
 {
   Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
+  
   const double px = track->get_px();
   const double py = track->get_py();
   const double pz = track->get_pz();
   const double p = sqrt(px * px + py * py + pz * pz);
+  const double phiPos = atan2(track->get_x(), track->get_y());
+  const int charge = track->get_charge();
 
   // Get the track seed covariance matrix
-  // These are the variances, so the std devs are sqrt(seed_cov[i][j])
-  TMatrixDSym seed_cov(6);
+  // These are the variances, so the std devs are sqrt(seedCov[i][j])
+  Acts::BoundSymMatrix seedCov = Acts::BoundSymMatrix::Zero();
   for (int i = 0; i < 6; i++)
   {
     for (int j = 0; j < 6; j++)
     {
-      seed_cov[i][j] = track->get_error(i, j);
+      /// Track covariance matrix is in basis (x,y,z,px,py,pz). Need to put
+      /// it in form of (x,y,px,py,pz,time) for acts
+      if(i < 2)
+	{
+	  /// get x,y components
+	  seedCov(i, j) = track->get_error(i, j);
+	}
+      else if(i < 5) 
+	{
+	  /// get px,py,pz components 1 row up
+	  seedCov(i,j) = track->get_error(i+1, j);
+	}
+      else if (i == 5) 
+	{
+	  /// convert the global z position covariances to timing covariances
+	  /// TPC z position resolution is 0.05 cm, drift velocity is 8cm/ms
+	  seedCov(i,j) = track->get_error(2, j) * 8. * Acts::UnitConstants::ms; 
+	}
     }
   }
 
-  const double sigmap = sqrt(px * px * seed_cov[3][3] + py * py * seed_cov[4][4] + pz * pz * seed_cov[5][5]) / p;
+  /// Need to transform from global to local coordinate frame. 
+  /// Amounts to the local transformation as in PHActsSourceLinks as well as
+  /// a rotation from cartesian to spherical coordinates for the momentum
+  /// Rotating from (x_G, y_G, px, py, pz, time) to (x_L, y_L, phi, theta, q/p,time)
 
-  // Need to convert seed_cov from x,y,z,px,py,pz basis to Acts basis of
-  // x,y,phi/theta of p, qoverp, time
-  double phi = track->get_phi();
+  /// Make a unit p vector for the rotation
+  const double uPx = px / p;
+  const double uPy = py / p;
+  const double uPz = pz / p;
+  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
+  
+  /// This needs to rotate to (x_L, y_l, phi, theta, q/p, t)
+  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
 
-  const double pxfracerr = seed_cov[3][3] / (px * px);
-  const double pyfracerr = seed_cov[4][4] / (py * py);
-  const double phiPrefactor = fabs(py) / (fabs(px) * (1 + (py / px) * (py / px)));
-  const double sigmaPhi = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
-  const double theta = acos(pz / p);
-  const double thetaPrefactor = ((fabs(pz)) / (p * sqrt(1 - (pz / p) * (pz / p))));
-  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + seed_cov[5][5] / (pz * pz));
-  const double sigmaQOverP = sigmap / (p * p);
+  /// Local position rotations
+  rotation(0,0) = cos(phiPos);
+  rotation(0,1) = sin(phiPos);
+  rotation(1,0) = -1 * sin(phiPos);
+  rotation(1,1) = cos(phiPos);
 
-  // Just set to 0 for now?
-  const double sigmaTime = 0;
+  /// Momentum vector rotations
+  /// phi rotation
+  rotation(2,3) = -1 * uPy / (uPx * uPx + uPy * uPy);
+  rotation(2,4) = -1 * uPx / (uPx * uPx + uPy * uPy);
 
-  if (Verbosity() > 10)
-  {
-    std::cout << "Track (px,py,pz,p) = (" << px << "," << py
-              << "," << pz << "," << p << ")" << std::endl;
-    std::cout << "Track covariance matrix: " << std::endl;
+  /// theta rotation
+  /// Leave uP in for clarity, even though it is trivially unity
+  rotation(3,3) = (uPx * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
+  rotation(3,4) = (uPy * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
+  rotation(3,5) = (-1 * sqrt(uPx * uPx + uPy * uPy)) / (uP * uP);
+  
+  /// q/p rotation
+  rotation(4,3) = charge / uPx;
+  rotation(4,4) = charge / uPy;
+  rotation(4,5) = charge / uPz;
 
-    for (int i = 0; i < 6; i++)
-    {
-      for (int j = 0; j < 6; j++)
-      {
-        std::cout << seed_cov[i][j] << ", ";
-      }
-      std::cout << std::endl;
-    }
-    std::cout << "Corresponding uncertainty calculations: " << std::endl;
-    std::cout << "perr: " << sigmap << std::endl;
-    std::cout << "phi: " << phi << std::endl;
-    std::cout << "pxfracerr: " << pxfracerr << std::endl;
-    std::cout << "pyfracerr: " << pyfracerr << std::endl;
-    std::cout << "phiPrefactor: " << phiPrefactor << std::endl;
-    std::cout << "sigmaPhi: " << sigmaPhi << std::endl;
-    std::cout << "theta: " << theta << std::endl;
-    std::cout << "thetaPrefactor: " << thetaPrefactor << std::endl;
-    std::cout << "sigmaTheta: " << sigmaTheta << std::endl;
-    std::cout << "sigmaQOverP: " << sigmaQOverP << std::endl;
-  }
+  /// time rotation
+  rotation(5,5) = 1;
 
-  /// Seed covariances are already variances, so don't need to square them
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = seed_cov[0][0];
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = seed_cov[1][1];
-  matrix(Acts::ePHI, Acts::ePHI) = sigmaPhi * sigmaPhi;
-  matrix(Acts::eTHETA, Acts::eTHETA) = sigmaTheta * sigmaTheta;
-  matrix(Acts::eQOP, Acts::eQOP) = sigmaQOverP * sigmaQOverP;
-  matrix(Acts::eT, Acts::eT) = sigmaTime;
+  /// Rotate the covariance matrix by the jacobian rotation matrix
+  matrix = rotation * seedCov * rotation.transpose();
 
   return matrix;
 }
