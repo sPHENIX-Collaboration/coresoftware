@@ -76,6 +76,7 @@ int PHParameters::get_int_param(const std::string &name) const
        << " does not exist (forgot to set?)" << endl;
   cout << "Here is the stacktrace: " << endl;
   cout << boost::stacktrace::stacktrace();
+  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
   gSystem->Exit(1);
   exit(1);
@@ -117,6 +118,7 @@ PHParameters::get_double_param(const std::string &name) const
        << " does not exist (forgot to set?)" << endl;
   cout << "Here is the stacktrace: " << endl;
   cout << boost::stacktrace::stacktrace();
+  cout <<  endl << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
 
   gSystem->Exit(1);
@@ -203,6 +205,7 @@ PHParameters::get_string_param(const std::string &name) const
        << " does not exist (forgot to set?)" << endl;
   cout << "Here is the stacktrace: " << endl;
   cout << boost::stacktrace::stacktrace();
+  cout << endl << "DO NOT PANIC - this is not a segfault" << endl;
   cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
   gSystem->Exit(1);
   exit(1);
@@ -342,6 +345,20 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
   return;
 }
 
+void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodename)
+{
+  PdbParameterMap *nodeparams = findNode::getClass<PdbParameterMap>(topNode,
+                                                                    nodename);
+  if (!nodeparams)
+  {
+    cout << PHWHERE << " could not find PdbParameterMap " << nodename
+	 << " which must exist" << endl;
+    gSystem->Exit(1);
+  }
+  CopyToPdbParameterMap(nodeparams);
+  return;
+}
+
 void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodename, const int detid)
 {
   // write itself since this class is fine with saving by root
@@ -369,7 +386,6 @@ void PHParameters::SaveToNodeTree(PHCompositeNode *topNode, const string &nodena
 
 void PHParameters::UpdateNodeTree(PHCompositeNode *topNode, const string &nodename, const int detid)
 {
-  // write itself since this class is fine with saving by root
   PdbParameterMapContainer *nodeparamcontainer = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
   if (!nodeparamcontainer)
   {
