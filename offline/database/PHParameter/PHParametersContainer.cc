@@ -103,6 +103,8 @@ PHParametersContainer::GetParameters(const int detid) const
          << endl;
     cout << "Here is the stacktrace: " << endl;
     cout << boost::stacktrace::stacktrace();
+    cout << endl
+         << "DO NOT PANIC - this is not a segfault" << endl;
     cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
     gSystem->Exit(1);
     exit(1);
@@ -209,6 +211,17 @@ void PHParametersContainer::CopyToPdbParameterMapContainer(PdbParameterMapContai
   return;
 }
 
+void PHParametersContainer::UpdatePdbParameterMapContainer(PdbParameterMapContainer *myparmap)
+{
+  std::map<int, PHParameters *>::const_iterator iter;
+  for (iter = parametermap.begin(); iter != parametermap.end(); ++iter)
+  {
+    PdbParameterMap *nodeparams = myparmap->GetParametersToModify(iter->first);
+    iter->second->CopyToPdbParameterMap(nodeparams);
+  }
+  return;
+}
+
 void PHParametersContainer::Print(Option_t *option) const
 {
   cout << "Name: " << Name() << endl;
@@ -236,6 +249,19 @@ void PHParametersContainer::SaveToNodeTree(PHCompositeNode *topNode, const strin
     myparmap->Reset();
   }
   CopyToPdbParameterMapContainer(myparmap);
+  return;
+}
+
+void PHParametersContainer::UpdateNodeTree(PHCompositeNode *topNode, const string &nodename)
+{
+  PdbParameterMapContainer *myparmap = findNode::getClass<PdbParameterMapContainer>(topNode, nodename);
+  if (!myparmap)
+  {
+    cout << PHWHERE << " could not find PdbParameterMapContainer " << nodename
+         << " which must exist" << endl;
+    gSystem->Exit(1);
+  }
+  UpdatePdbParameterMapContainer(myparmap);
   return;
 }
 

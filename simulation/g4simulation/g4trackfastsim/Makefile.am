@@ -15,8 +15,9 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = \
   -L$(libdir) \
-  -L$(ROOTSYS)/lib \
-  -L$(OFFLINE_MAIN)/lib
+  -L$(OFFLINE_MAIN)/lib \
+  -L$(OFFLINE_MAIN)/lib64 \
+  -L$(ROOTSYS)/lib
 
 libg4trackfastsim_la_LIBADD = \
   -lfun4all \

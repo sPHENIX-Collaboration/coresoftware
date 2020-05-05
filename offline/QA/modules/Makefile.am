@@ -25,6 +25,7 @@ libqa_modules_la_LIBADD = \
 pkginclude_HEADERS = \
 	QAG4SimulationCalorimeter.h \
 	QAG4SimulationCalorimeterSum.h \
+	QAG4SimulationIntt.h \
 	QAG4SimulationJet.h \
 	QAG4SimulationMvtx.h \
 	QAG4SimulationTracking.h \
@@ -35,6 +36,7 @@ if ! MAKEROOT6
 	ROOT5DICTS = \
 		QAG4SimulationCalorimeter_Dict.cc \
 		QAG4SimulationCalorimeterSum_Dict.cc \
+		QAG4SimulationIntt_Dict.cc \
 		QAG4SimulationJet_Dict.cc \
 		QAG4SimulationMvtx_Dict.cc \
 		QAG4SimulationTracking_Dict.cc \
@@ -46,6 +48,7 @@ libqa_modules_la_SOURCES = \
 	$(ROOT5DICTS) \
 	QAG4SimulationCalorimeter.cc \
 	QAG4SimulationCalorimeterSum.cc \
+	QAG4SimulationIntt.cc \
 	QAG4SimulationJet.cc \
 	QAG4SimulationMvtx.cc \
 	QAG4SimulationTracking.cc \

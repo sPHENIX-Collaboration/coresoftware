@@ -19,7 +19,6 @@
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 
 #include <cmath>
@@ -44,6 +43,11 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
+               m_tGeometry->tGeometry,
+	       m_tGeometry->magField,
+	       Acts::Logging::VERBOSE);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -62,13 +66,6 @@ int PHActsTrkFitter::Process()
   auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 	          Acts::Vector3D{0., 0., 0.});
 
-  /// FitCfg created by MakeActsGeometry
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
-
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_tGeometry->tGeometry,
-								   m_tGeometry->magField,
-                                                                   Acts::Logging::VERBOSE);
-
   std::vector<ActsTrack>::iterator trackIter;
 
   for (trackIter = m_actsProtoTracks->begin();
@@ -83,11 +80,12 @@ int PHActsTrkFitter::Process()
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
-    Acts::KalmanFitterOptions kfOptions(m_tGeometry->geoContext,
-					m_tGeometry->magFieldContext,
-					m_tGeometry->calibContext,
-					&(*pSurface));
-
+    Acts::KalmanFitterOptions<Acts::VoidOutlierFinder> kfOptions(
+      m_tGeometry->geoContext,
+      m_tGeometry->magFieldContext,
+      m_tGeometry->calibContext,
+      Acts::VoidOutlierFinder(),
+      &(*pSurface));
   
     auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
 

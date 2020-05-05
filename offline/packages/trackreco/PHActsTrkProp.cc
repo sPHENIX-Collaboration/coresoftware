@@ -17,24 +17,20 @@
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
 
-#include <Acts/MagneticField/InterpolatedBFieldMap.hpp>
-#include <Acts/MagneticField/SharedBField.hpp>
-#include <Acts/MagneticField/ConstantBField.hpp>
-#include <Acts/MagneticField/MagneticFieldContext.hpp>
-
 #include <Acts/EventData/ChargePolicy.hpp>
 #include <Acts/EventData/SingleCurvilinearTrackParameters.hpp>
 #include <Acts/EventData/TrackParameters.hpp>
 #include <Acts/Surfaces/Surface.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 
-#include <Acts/Propagator/EigenStepper.hpp> // this include causes seg fault when put in header file for some reason
 #include <Acts/Propagator/Propagator.hpp>
 #include <Acts/Propagator/Navigator.hpp>
 #include <Acts/Propagator/AbortList.hpp>
 #include <Acts/Propagator/ActionList.hpp>
 #include <Acts/Utilities/Helpers.hpp>
 #include <Acts/Utilities/Units.hpp>
+#include <Acts/TrackFinder/CombinatorialKalmanFilter.hpp>
+
 
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
 #include <ACTFW/Plugins/BField/ScalableBField.hpp>
@@ -43,13 +39,6 @@
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 
-/// Setup aliases for creating propagator
-/// For some reason putting these in the header file, with appropriate headers
-/// causes seg fault. Propagator also must be instantiated immediately
-using ConstantBField = Acts::ConstantBField;
-using Stepper = Acts::EigenStepper<ConstantBField>;
-using Propagator = Acts::Propagator<Stepper, Acts::Navigator>;
-Propagator *propagator;
 
 #include <TMatrixDSym.h>
 #include <cmath>
@@ -60,13 +49,10 @@ Propagator *propagator;
 PHActsTrkProp::PHActsTrkProp(const std::string& name)
   : PHTrackPropagating(name)
   , m_event(0)
-  , m_actsGeometry(nullptr)
-  , m_minTrackPt(0.15)
-  , m_maxStepSize(3.)
+  , m_tGeometry(nullptr)
   , m_trackMap(nullptr)
-  , m_clusterSurfaceMap(nullptr)
-  , m_clusterSurfaceTpcMap(nullptr)
   , m_actsProtoTracks(nullptr)
+  , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
 {
   Verbosity(0);
@@ -83,16 +69,22 @@ int PHActsTrkProp::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
 
-  /// Get the magnetic field and tracking geometry to setup the Acts::Stepper
-  //FW::Options::BFieldVariant bFieldVar = m_actsGeometry->magField;
-  Acts::Navigator navigator(m_actsGeometry->getTGeometry());
+  /// Need to implement different chi2 criteria for the different layers
+  /// and volumes to help the CKF out a little 
+  /// First need to walk through layers/volumes to figure out appropriate
+  /// numerical identifiers
+  /// m_sourceLinkSelectorConfig.layerMaxChi2 = {{2, {{2, 8}, {4, 7}}}};
+  /// m_sourceLinkSelectorConfig.volumeMaxChi2 = {{2, 7}, {3, 8}};
+  m_sourceLinkSelectorConfig.maxChi2 = 8;
+  // Set the allowed maximum number of source links to be large enough
+  m_sourceLinkSelectorConfig.maxNumSourcelinksOnSurface = 100;
+ 
+  findCfg.finder = FW::TrkrClusterFindingAlgorithm::makeFinderFunction(
+                   m_tGeometry->tGeometry,
+		   m_tGeometry->magField,
+		   Acts::Logging::VERBOSE);
 
-  /// Just use the default magnetic field for now. Can access BField
-  /// from m_actsGeometry using std::visit, but can't figure out how to 
-  /// get necessary information out of lambda function
-  ConstantBField bField (0, 0, 1.4 * Acts::UnitConstants::T);
-  Stepper stepper(bField);
-  propagator = new Propagator(std::move(stepper), std::move(navigator));
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -109,8 +101,112 @@ int PHActsTrkProp::Process()
   }
 
 
-  PerigeeSurface surface = Acts::Surface::makeShared<Acts::PerigeeSurface>
+  PerigeeSurface pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>
     (Acts::Vector3D(0., 0., 0.));
+
+  /// Collect all source links for the CKF
+  std::vector<SourceLink> sourceLinks;
+  std::map<unsigned int, SourceLink>::iterator slIter = m_sourceLinks->begin();
+  while(slIter != m_sourceLinks->end())
+    {
+      sourceLinks.push_back(slIter->second);
+      
+      if(Verbosity() > 10)
+	{
+	  std::cout << std::endl 
+		    << "Adding source link to list for track finding: " 
+		    << slIter->second.hitID() <<" and surface : " 
+		    << std::endl;
+	  slIter->second.referenceSurface().toStream(m_tGeometry->geoContext, std::cout);
+	  
+	}
+      ++slIter;
+    }
+
+  for (SvtxTrackMap::Iter trackIter = m_trackMap->begin();
+       trackIter != m_trackMap->end(); ++trackIter)
+    {
+      const SvtxTrack *track = trackIter->second;
+      
+      if (!track)
+	continue;
+      
+      if (Verbosity() > 1)
+	{
+	  std::cout << "found SvtxTrack " << trackIter->first << std::endl;
+	  track->identify();
+	}
+      
+      /// Get the necessary parameters and values for the TrackParameters
+      const Acts::BoundSymMatrix seedCov = getActsCovMatrix(track);
+      const Acts::Vector3D seedPos(track->get_x(),
+				   track->get_y(),
+				   track->get_z());
+      const Acts::Vector3D seedMom(track->get_px(),
+				   track->get_py(),
+				   track->get_pz());
+      
+      // just set to 0 for now?
+      const double trackTime = 0;
+      const int trackQ = track->get_charge();
+      
+      const FW::TrackParameters trackSeed(seedCov, seedPos,
+					  seedMom, trackQ, trackTime);
+      
+      
+      /// Construct the options to pass to the CKF.
+      /// SourceLinkSelector set in Init()
+      Acts::CombinatorialKalmanFilterOptions<SourceLinkSelector> ckfOptions(
+	        m_tGeometry->geoContext, 
+		m_tGeometry->magFieldContext, 
+		m_tGeometry->calibContext, 
+		m_sourceLinkSelectorConfig, 
+		&(*pSurface));
+      
+      /// Run the CKF for all source links and the constructed track seed
+      auto result = findCfg.finder(sourceLinks, trackSeed, ckfOptions);
+      
+      if(result.ok())
+	{
+	  const auto& fitOutput = result.value();
+	  auto parameterMap = fitOutput.fittedParameters;
+
+	  /// how to get the associated source links from fit result?
+	  std::vector<size_t> allSourceLinks = fitOutput.sourcelinkCandidateIndices;  
+	  std::vector<SourceLink> trackSourceLinks;
+	      
+	  for(size_t i = 0; i < allSourceLinks.size(); ++i)
+	    {
+	      trackSourceLinks.push_back(sourceLinks.at(allSourceLinks.at(i)));
+	    }
+	
+	  for(auto element : parameterMap)
+	    {
+	      const auto& params = element.second;
+	      if(Verbosity() > 10)
+		{
+		  std::cout << "Fitted parameters for track finder" << std::endl;
+		  std::cout << "Position : " << params.position().transpose()
+			    << std::endl;
+		  std::cout << "Momentum : " << params.momentum().transpose()
+			    << std::endl;
+
+		}
+
+
+	      /// Get the finder results into a FW::TrackParameters 
+	      const FW::TrackParameters trackSeed(element.second.covariance(),
+						  element.second.position(),
+						  element.second.momentum(),
+						  element.second.charge(),
+						  element.second.time());
+	      
+	      ActsTrack actsProtoTrack(trackSeed, trackSourceLinks);
+	      m_actsProtoTracks->push_back(actsProtoTrack);
+	    }
+	  
+	}
+    }
 
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -125,7 +221,81 @@ int PHActsTrkProp::End()
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
+{
+  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
+    const double px = track->get_px();
+  const double py = track->get_py();
+  const double pz = track->get_pz();
+  const double p = sqrt(px * px + py * py + pz * pz);
+  const double phiPos = atan2(track->get_x(), track->get_y());
+  const int charge = track->get_charge();
+  // Get the track seed covariance matrix
+  // These are the variances, so the std devs are sqrt(seedCov[i][j])
+  Acts::BoundSymMatrix seedCov = Acts::BoundSymMatrix::Zero();
+  for (int i = 0; i < 5; i++)
+  {
+    for (int j = 0; j < 6; j++)
+    {
+      /// Track covariance matrix is in basis (x,y,z,px,py,pz). Need to put
+      /// it in form of (x,y,px,py,pz,time) for acts
+      if(i < 2) /// get x,y components
+	seedCov(i, j) = track->get_error(i, j);
+      else if(i < 5) /// get px,py,pz components 1 row up
+	seedCov(i,j) = track->get_error(i+1, j);
+      else if (i == 5) /// Get z components, scale by drift velocity
+	seedCov(i,j) = track->get_error(2, j) * 8.; //cm per millisec drift vel
+    }
+  }
+  std::cout<<track->get_x()<<std::endl;
+  /// convert the global z position covariances to timing covariances
+  /// TPC z position resolution is 0.05 cm, drift velocity is 8cm/ms
+  /// --> therefore timing resolution is ~6 microseconds
+  seedCov(5,5) = 6 * Acts::UnitConstants::us;
 
+  /// Need to transform from global to local coordinate frame. 
+  /// Amounts to the local transformation as in PHActsSourceLinks as well as
+  /// a rotation from cartesian to spherical coordinates for the momentum
+  /// Rotating from (x_G, y_G, px, py, pz, time) to (x_L, y_L, phi, theta, q/p,time)
+
+  /// Make a unit p vector for the rotation
+  const double uPx = px / p;
+  const double uPy = py / p;
+  const double uPz = pz / p;
+  const double uP = sqrt(uPx * uPx + uPy * uPy + uPz * uPz);
+  
+  /// This needs to rotate to (x_L, y_l, phi, theta, q/p, t)
+  Acts::BoundSymMatrix rotation = Acts::BoundSymMatrix::Zero();
+
+  /// Local position rotations
+  rotation(0,0) = cos(phiPos);
+  rotation(0,1) = sin(phiPos);
+  rotation(1,0) = -1 * sin(phiPos);
+  rotation(1,1) = cos(phiPos);
+
+  /// Momentum vector rotations
+  /// phi rotation
+  rotation(2,3) = -1 * uPy / (uPx * uPx + uPy * uPy);
+  rotation(2,4) = -1 * uPx / (uPx * uPx + uPy * uPy);
+
+  /// theta rotation
+  /// Leave uP in for clarity, even though it is trivially unity
+  rotation(3,3) = (uPx * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
+  rotation(3,4) = (uPy * uPz) / (uP * uP * sqrt( uPx * uPx + uPy * uPy) );
+  rotation(3,5) = (-1 * sqrt(uPx * uPx + uPy * uPy)) / (uP * uP);
+  
+  /// q/p rotation
+  rotation(4,3) = charge / uPx;
+  rotation(4,4) = charge / uPy;
+  rotation(4,5) = charge / uPz;
+
+  /// time rotation
+  rotation(5,5) = 1;
+
+  matrix = rotation * seedCov * rotation.transpose();
+
+  return matrix;
+}
 
 void PHActsTrkProp::createNodes(PHCompositeNode* topNode)
 {
@@ -178,9 +348,9 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
   
-  m_actsGeometry = findNode::getClass<MakeActsGeometry>(topNode, "MakeActsGeometry");
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
 
-  if (!m_actsGeometry)
+  if (!m_tGeometry)
   {
     std::cout << "ActsGeometry not on node tree. Exiting."
               << std::endl;
@@ -197,100 +367,16 @@ int PHActsTrkProp::getNodes(PHCompositeNode* topNode)
       return Fun4AllReturnCodes::ABORTEVENT;
     }
 
-  m_clusterSurfaceMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, Surface>>(topNode, "HitSetKeySurfaceActsMap");
-
-  if(!m_clusterSurfaceMap)
+  m_hitIdClusKey = findNode::getClass<std::map<TrkrDefs::cluskey, unsigned int>>(topNode, "HitIDClusIDActsMap");
+  if(!m_hitIdClusKey)
     {
-      std::cout << PHWHERE <<"Can't find cluster-acts surface map Exiting."
+      std::cout << PHWHERE << "ERROR: Can't find HitIdClusIdActsMap. Exiting."
 		<< std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
+
     }
-
-  m_clusterSurfaceTpcMap = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "ClusterTpcSurfaceActsMap");
-
-  if(m_clusterSurfaceTpcMap)
-    {
-      std::cout << PHWHERE <<"Can't find TPC cluster-acts surface map Exiting."
-		<< std::endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-
+  
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-
-Acts::BoundSymMatrix PHActsTrkProp::getActsCovMatrix(const SvtxTrack *track)
-{
-  Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
-  const double px = track->get_px();
-  const double py = track->get_py();
-  const double pz = track->get_pz();
-  const double p = sqrt(px * px + py * py + pz * pz);
-
-  // Get the track seed covariance matrix
-  // These are the variances, so the std devs are sqrt(seedCov[i][j])
-  TMatrixDSym seedCov(6);
-  for (int i = 0; i < 6; i++)
-  {
-    for (int j = 0; j < 6; j++)
-    {
-      seedCov[i][j] = track->get_error(i, j);
-    }
-  }
-
-  const double sigmap = sqrt(px * px * seedCov[3][3] + py * py * seedCov[4][4] + pz * pz * seedCov[5][5]) / p;
-
-  // Need to convert seedCov from x,y,z,px,py,pz basis to Acts basis of
-  // x,y,phi/theta of p, qoverp, time
-  double phi = track->get_phi();
-
-  const double pxfracerr = seedCov[3][3] / (px * px);
-  const double pyfracerr = seedCov[4][4] / (py * py);
-  const double phiPrefactor = fabs(py) / (fabs(px) * (1 + (py / px) * (py / px)));
-  const double sigmaPhi = phi * phiPrefactor * sqrt(pxfracerr + pyfracerr);
-  const double theta = acos(pz / p);
-  const double thetaPrefactor = ((fabs(pz)) / (p * sqrt(1 - (pz / p) * (pz / p))));
-  const double sigmaTheta = thetaPrefactor * sqrt(sigmap * sigmap / (p * p) + seedCov[5][5] / (pz * pz));
-  const double sigmaQOverP = sigmap / (p * p);
-
-  // Just set to 0 for now?
-  const double sigmaTime = 0;
-
-  if (Verbosity() > 10)
-  {
-    std::cout << "Track (px,py,pz,p) = (" << px << "," << py
-              << "," << pz << "," << p << ")" << std::endl;
-    std::cout << "Track covariance matrix: " << std::endl;
-
-    for (int i = 0; i < 6; i++)
-    {
-      for (int j = 0; j < 6; j++)
-      {
-        std::cout << seedCov[i][j] << ", ";
-      }
-      std::cout << std::endl;
-    }
-    std::cout << "Corresponding uncertainty calculations: " << std::endl;
-    std::cout << "perr: " << sigmap << std::endl;
-    std::cout << "phi: " << phi << std::endl;
-    std::cout << "pxfracerr: " << pxfracerr << std::endl;
-    std::cout << "pyfracerr: " << pyfracerr << std::endl;
-    std::cout << "phiPrefactor: " << phiPrefactor << std::endl;
-    std::cout << "sigmaPhi: " << sigmaPhi << std::endl;
-    std::cout << "theta: " << theta << std::endl;
-    std::cout << "thetaPrefactor: " << thetaPrefactor << std::endl;
-    std::cout << "sigmaTheta: " << sigmaTheta << std::endl;
-    std::cout << "sigmaQOverP: " << sigmaQOverP << std::endl;
-  }
-
-  /// Seed covariances are already variances, so don't need to square them
-  matrix(Acts::eLOC_0, Acts::eLOC_0) = seedCov[0][0];
-  matrix(Acts::eLOC_1, Acts::eLOC_1) = seedCov[1][1];
-  matrix(Acts::ePHI, Acts::ePHI) = sigmaPhi * sigmaPhi;
-  matrix(Acts::eTHETA, Acts::eTHETA) = sigmaTheta * sigmaTheta;
-  matrix(Acts::eQOP, Acts::eQOP) = sigmaQOverP * sigmaQOverP;
-  matrix(Acts::eT, Acts::eT) = sigmaTime;
-
-  return matrix;
-}

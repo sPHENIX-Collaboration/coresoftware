@@ -13,7 +13,9 @@
 
 #include <g4main/PHG4Detector.h>  // for PHG4Detector
 
+#include <Geant4/G4ProductionCuts.hh>  // for G4ProductionCuts
 #include <Geant4/G4Region.hh>  // for G4Region
+#include <Geant4/G4RegionStore.hh>
 
 #include <boost/foreach.hpp>
 
@@ -41,7 +43,10 @@ PHG4RICHDetector::PHG4RICHDetector(PHG4Subsystem *subsys, PHCompositeNode *Node,
 
 void PHG4RICHDetector::ConstructMe(G4LogicalVolume *logicWorld)
 {
-  _region = new G4Region("FCALREGION");
+  const G4RegionStore *theRegionStore = G4RegionStore::GetInstance();
+  G4ProductionCuts *gcuts = new G4ProductionCuts(*(theRegionStore->GetRegion("DefaultRegionForTheWorld")->GetProductionCuts()));
+  _region = new G4Region("REGION_RICH");
+  _region->SetProductionCuts(gcuts);
   _region->SetRegionalSteppingAction(new PHG4RICHSteppingAction(this));
 
   ePHENIXRICHConstruction::Construct_RICH(logicWorld);
