@@ -19,7 +19,6 @@
 #include <Acts/Surfaces/Surface.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
-#include <ACTFW/Fitting/TrkrClusterFittingAlgorithm.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
 
 #include <cmath>
@@ -44,6 +43,11 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   if (getNodes(topNode) != Fun4AllReturnCodes::EVENT_OK)
     return Fun4AllReturnCodes::ABORTEVENT;
   
+  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
+               m_tGeometry->tGeometry,
+	       m_tGeometry->magField,
+	       Acts::Logging::VERBOSE);
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -61,13 +65,6 @@ int PHActsTrkFitter::Process()
   /// Construct a perigee surface as the target surface (?)
   auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 	          Acts::Vector3D{0., 0., 0.});
-
-  /// FitCfg created by MakeActsGeometry
-  FW::TrkrClusterFittingAlgorithm::Config fitCfg;
-
-  fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(m_tGeometry->tGeometry,
-								   m_tGeometry->magField,
-                                                                   Acts::Logging::VERBOSE);
 
   std::vector<ActsTrack>::iterator trackIter;
 
