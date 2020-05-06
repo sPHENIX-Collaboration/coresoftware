@@ -48,21 +48,21 @@ QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
 
 int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
 {
-  _truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
                                                                "G4TruthInfo");
-  if (!_truthContainer)
+  if (!m_truthContainer)
   {
     cout << "QAG4SimulationTracking::InitRun - Fatal Error - "
          << "unable to find DST node "
          << "G4TruthInfo" << endl;
-    assert(_truthContainer);
+    assert(m_truthContainer);
   }
 
-  if (!_svtxEvalStack)
+  if (!m_svtxEvalStack)
   {
-    _svtxEvalStack.reset(new SvtxEvalStack(topNode));
-    _svtxEvalStack->set_strict(true);
-    _svtxEvalStack->set_verbosity(Verbosity() + 1);
+    m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
+    m_svtxEvalStack->set_strict(true);
+    m_svtxEvalStack->set_verbosity(Verbosity() + 1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -155,12 +155,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  if (_svtxEvalStack)
-    _svtxEvalStack->next_event(topNode);
+  if (m_svtxEvalStack)
+    m_svtxEvalStack->next_event(topNode);
 
-  SvtxTrackEval *trackeval = _svtxEvalStack->get_track_eval();
+  SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
   assert(trackeval);
-  SvtxTruthEval *trutheval = _svtxEvalStack->get_truth_eval();
+  SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
   assert(trutheval);
 
   // reco pT / gen pT histogram
@@ -207,13 +207,13 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   h_norm->Fill("Event", 1);
 
   // fill histograms that need truth information
-  if (!_truthContainer)
+  if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTracking::process_event - fatal error - missing _truthContainer! ";
+    cout << "QAG4SimulationTracking::process_event - fatal error - missing m_truthContainer! ";
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TruthInfoContainer::ConstRange range = _truthContainer->GetPrimaryParticleRange();
+  PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
     // get the truth particle information
