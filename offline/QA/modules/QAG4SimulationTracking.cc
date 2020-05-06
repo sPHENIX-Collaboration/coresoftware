@@ -122,6 +122,10 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
+  // clusters per layer and per track histogram
+  h = new TH1F(TString(get_histo_prefix()) + "nClus_layer", "Reco Clusters per layer per track", 64, 0, 64 );
+  hm->registerHisto(h);
+  
   // n events and n tracks histogram
   h = new TH1F(TString(get_histo_prefix()) + "Normalization",
                TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
@@ -193,6 +197,10 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH1 *h_nGen_etaGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_etaGen"));
   assert(h_nGen_etaGen);
 
+  // clusters per layer and per track histogram
+  auto h_nClus_layer = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layer"));
+  assert( h_nClus_layer );
+  
   // n events and n tracks histogram
   TH1 *h_norm = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "Normalization"));
   assert(h_norm);
@@ -290,11 +298,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
 
       if (m_uniqueTrackingMatch)
       {
-        PHG4Particle *g4particle_mathced = trackeval->max_truth_particle_by_nclusters(track);
+        PHG4Particle *g4particle_matched = trackeval->max_truth_particle_by_nclusters(track);
 
-        if (g4particle_mathced)
+        if (g4particle_matched)
         {
-          if (g4particle_mathced->get_track_id() == g4particle->get_track_id())
+          if (g4particle_matched->get_track_id() == g4particle->get_track_id())
           {
             match_found = true;
             if (Verbosity())
@@ -304,9 +312,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
           {
             if (Verbosity())
               cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
-                   << ". The track belong to g4 particle " << g4particle_mathced->get_track_id() << endl;
+                   << ". The track belong to g4 particle " << g4particle_matched->get_track_id() << endl;
           }
-        }  //        if (g4particle_mathced)
+        }  //        if (g4particle_matched)
         else
         {
           if (Verbosity())
@@ -340,9 +348,11 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
         {
           const auto &cluster_key = *cluster_iter;
-
+          const auto layer = TrkrDefs::getLayer(cluster_key);           
           const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
+ 
+          h_nClus_layer->Fill( layer );
+ 
           if (trackerID == TrkrDefs::mvtxId)
             ++nhits[0];
           else if (trackerID == TrkrDefs::inttId)
