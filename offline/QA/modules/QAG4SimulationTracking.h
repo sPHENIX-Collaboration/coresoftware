@@ -8,12 +8,6 @@
 #include <string>
 #include <utility>
 
-#if !defined(__CINT__) || defined(__CLING__)
-#include <cstdint>
-#else
-#include <stdint.h>
-#endif
-
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
 class PHG4Particle;
@@ -54,11 +48,9 @@ class QAG4SimulationTracking : public SubsysReco
   }
 
  private:
-#if !defined(__CINT__) || defined(__CLING__)
-  //CINT is not c++11 compatible
+
   std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
-#endif
 
   //! range of the truth track eta to be analyzed
   std::pair<double, double> m_etaRange;
