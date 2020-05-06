@@ -49,16 +49,16 @@ class QAG4SimulationTracking : public SubsysReco
 
  private:
 
-  std::shared_ptr<SvtxEvalStack> _svtxEvalStack;
+  std::unique_ptr<SvtxEvalStack> _svtxEvalStack;
   std::set<int> m_embeddingIDs;
 
   //! range of the truth track eta to be analyzed
-  std::pair<double, double> m_etaRange;
+  std::pair<double, double> m_etaRange = {-1, 1};
 
   //! only count unique truth<->reco track pair in tracking efficiency
-  bool m_uniqueTrackingMatch;
+  bool m_uniqueTrackingMatch = true;
 
-  PHG4TruthInfoContainer *_truthContainer;
+  PHG4TruthInfoContainer *_truthContainer = nullptr;
 };
 
 #endif  // QA_QAG4SimulationTracking_H

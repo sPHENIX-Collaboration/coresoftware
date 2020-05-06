@@ -44,12 +44,7 @@ using namespace std;
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
   : SubsysReco(name)
-  , _svtxEvalStack(nullptr)
-  , m_etaRange(-1, 1)
-  , m_uniqueTrackingMatch(true)
-  , _truthContainer(nullptr)
-{
-}
+{}
 
 int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
 {
