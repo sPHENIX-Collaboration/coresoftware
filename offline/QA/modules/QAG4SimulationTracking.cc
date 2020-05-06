@@ -123,7 +123,7 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   hm->registerHisto(h);
 
   // clusters per layer and per track histogram
-  h = new TH1F(TString(get_histo_prefix()) + "nClus_layer", "Reco Clusters per layer per track", 64, 0, 64 );
+  h = new TH1F(TString(get_histo_prefix()) + "nClus_layer", "Reco Clusters per layer per track;Layer;nHit", 64, 0, 64 );
   hm->registerHisto(h);
   
   // n events and n tracks histogram
