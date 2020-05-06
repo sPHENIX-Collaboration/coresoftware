@@ -1,6 +1,8 @@
 #ifndef TRACKRECO_PHACTSTRACKS_H
 #define TRACKRECO_PHACTSTRACKS_H
 
+#include "PHActsSourceLinks.h" 
+
 #include <fun4all/SubsysReco.h>
 #include <trackbase/TrkrDefs.h>
 
@@ -23,6 +25,7 @@
 class PHCompositeNode;
 class SvtxTrackMap;
 class SvtxTrack;
+class MakeActsGeometry;
 
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
@@ -79,6 +82,8 @@ class PHActsTracks : public SubsysReco
 
   /// Map of hitid:SourceLinks created in PHActsSourceLinks
   std::map<unsigned int, SourceLink> *m_sourceLinks;
+
+  ActsTrackingGeometry *m_tGeometry;
 };
 
 #endif

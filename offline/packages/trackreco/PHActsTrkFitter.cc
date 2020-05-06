@@ -46,7 +46,7 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
   fitCfg.fit = FW::TrkrClusterFittingAlgorithm::makeFitterFunction(
                m_tGeometry->tGeometry,
 	       m_tGeometry->magField,
-	       Acts::Logging::VERBOSE);
+	       Acts::Logging::INFO);
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -77,6 +77,13 @@ int PHActsTrkFitter::Process()
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
       
+    if(Verbosity() > 10)
+      {
+	std::cout << " Processing proto track with position:" 
+		  << trackSeed.position() << std::endl 
+		  << "momentum: " << trackSeed.momentum() << std::endl;
+
+      }
     /// Call KF now. Have a vector of sourceLinks corresponding to clusters
     /// associated to this track and the corresponding track seed which
     /// corresponds to the PHGenFitTrkProp track seeds
@@ -92,9 +99,11 @@ int PHActsTrkFitter::Process()
     /// Check that the result is okay
     if (result.ok())
     {
+      std::cout<<"Result is okay"<<std::endl;
       const auto& fitOutput = result.value();
       if (fitOutput.fittedParameters)
       {
+	std::cout<<"got fitted parameters"<<std::endl;
         const auto& params = fitOutput.fittedParameters.value();
         /// Get position, momentum from params
         if (Verbosity() > 10)
@@ -142,7 +151,7 @@ int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
   m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode, "ActsTrackingGeometry");
   if(!m_tGeometry)
     {
-      std::cout << "ActsContext not on node tree. Exiting."
+      std::cout << "ActsTrackingGeometry not on node tree. Exiting."
 		<< std::endl;
       
       return Fun4AllReturnCodes::ABORTEVENT;

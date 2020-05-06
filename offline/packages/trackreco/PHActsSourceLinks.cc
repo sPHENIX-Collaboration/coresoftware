@@ -26,10 +26,12 @@
 #include <phool/phool.h>
 
 /// Acts includes
-#include <ACTFW/Utilities/Options.hpp>
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/Utilities/Units.hpp>
+
+#include <ACTFW/Utilities/Options.hpp>
 
 /// std (and the like) includes
 #include <cmath>
@@ -76,7 +78,7 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   /// Check if Acts geometry has been built and is on the node tree
   m_actsGeometry = new MakeActsGeometry();
   
-  m_actsGeometry->setVerbosity(Verbosity());
+  m_actsGeometry->setVerbosity(0);
   m_actsGeometry->buildAllGeometry(topNode);
 
   /// Set the tGeometry struct to be put on the node tree
@@ -175,10 +177,10 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// Get the 2D location covariance uncertainty for the cluster
     Acts::BoundMatrix cov = Acts::BoundMatrix::Zero();
-    cov(Acts::eLOC_0, Acts::eLOC_0) = localErr[0][0];
-    cov(Acts::eLOC_1, Acts::eLOC_0) = localErr[1][0];
-    cov(Acts::eLOC_0, Acts::eLOC_1) = localErr[0][1];
-    cov(Acts::eLOC_1, Acts::eLOC_1) = localErr[1][1];
+    cov(Acts::eLOC_0, Acts::eLOC_0) = localErr[0][0] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_1, Acts::eLOC_0) = localErr[1][0] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_0, Acts::eLOC_1) = localErr[0][1] * Acts::UnitConstants::cm2;
+    cov(Acts::eLOC_1, Acts::eLOC_1) = localErr[1][1] * Acts::UnitConstants::cm2;
 
     /// local and localErr contain the position and covariance
     /// matrix in local coords
@@ -197,8 +199,8 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
 
     /// Cluster positions on GeoObject/Surface
     Acts::BoundVector loc = Acts::BoundVector::Zero();
-    loc[Acts::eLOC_0] = local2D[0];
-    loc[Acts::eLOC_1] = local2D[1];
+    loc[Acts::eLOC_0] = local2D[0] * Acts::UnitConstants::cm;
+    loc[Acts::eLOC_1] = local2D[1] * Acts::UnitConstants::cm;
 
     if (Verbosity() > 0)
     {
@@ -652,6 +654,8 @@ Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKe
       std::cout << "Got surface pair " << surface->name()
                 << " surface type " << surface->type()
                 << std::endl;
+      surface->toStream(m_tGeometry->geoContext, std::cout);
+      std::cout<<std::endl;
     }
   }
   else

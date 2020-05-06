@@ -146,8 +146,8 @@ int PHActsTrkProp::Process()
 				   track->get_py(),
 				   track->get_pz());
       
-      // just set to 0 for now?
-      const double trackTime = 0;
+      // just set to 40 ns for now?
+      const double trackTime = 40 * Acts::UnitConstants::ns;
       const int trackQ = track->get_charge();
       
       const FW::TrackParameters trackSeed(seedCov, seedPos,
