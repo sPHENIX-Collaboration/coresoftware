@@ -2,6 +2,7 @@
 #define QA_QAG4SimulationTracking_H
 
 #include <fun4all/SubsysReco.h>
+#include <g4eval/SvtxEvalStack.h>
 
 #include <memory>
 #include <set>
@@ -10,9 +11,6 @@
 
 class PHCompositeNode;
 class PHG4TruthInfoContainer;
-class PHG4Particle;
-class CaloEvalStack;
-class SvtxEvalStack;
 class SvtxTrack;
 
 /// \class QAG4SimulationTracking
@@ -20,7 +18,7 @@ class QAG4SimulationTracking : public SubsysReco
 {
  public:
   QAG4SimulationTracking(const std::string &name = "QAG4SimulationTracking");
-  virtual ~QAG4SimulationTracking() {}
+  virtual ~QAG4SimulationTracking() = default;
 
   int Init(PHCompositeNode *topNode);
   int InitRun(PHCompositeNode *topNode);
