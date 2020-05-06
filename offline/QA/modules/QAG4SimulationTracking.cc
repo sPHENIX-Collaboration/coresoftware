@@ -5,6 +5,8 @@
 #include <g4eval/CaloRawClusterEval.h>
 #include <g4eval/SvtxEvalStack.h>
 
+#include <g4main/PHG4Hit.h>
+#include <g4main/PHG4HitContainer.h>
 #include <g4main/PHG4Particle.h>
 #include <g4main/PHG4TruthInfoContainer.h>
 
@@ -13,7 +15,10 @@
 #include <calobase/RawTowerContainer.h>
 #include <calobase/RawTowerGeomContainer.h>
 
+#include <trackbase/TrkrClusterContainer.h>
+#include <trackbase/TrkrClusterHitAssoc.h>
 #include <trackbase/TrkrDefs.h>  // for cluskey, getLayer
+#include <trackbase/TrkrHitTruthAssoc.h>
 #include <trackbase_historic/SvtxTrack.h>
 
 #include <g4eval/SvtxTrackEval.h>  // for SvtxTrackEval
@@ -49,15 +54,6 @@ QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
 
 int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
 {
-  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
-                                                               "G4TruthInfo");
-  if (!m_truthContainer)
-  {
-    cout << "QAG4SimulationTracking::InitRun - Fatal Error - "
-         << "unable to find DST node "
-         << "G4TruthInfo" << endl;
-    assert(m_truthContainer);
-  }
 
   if (!m_svtxEvalStack)
   {
@@ -127,6 +123,10 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   h = new TH1F(TString(get_histo_prefix()) + "nClus_layer", "Reco Clusters per layer per track;Layer;nCluster", 64, 0, 64 );
   hm->registerHisto(h);
   
+  // clusters per layer and per generated track histogram
+  h = new TH1F(TString(get_histo_prefix()) + "nClus_layerGen", "Reco Clusters per layer per truth track;Layer;nCluster", 64, 0, 64 );
+  hm->registerHisto(h);
+
   // n events and n tracks histogram
   h = new TH1F(TString(get_histo_prefix()) + "Normalization",
                TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
@@ -152,6 +152,9 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   if (Verbosity() > 2)
     cout << "QAG4SimulationTracking::process_event() entered" << endl;
 
+  // load relevant nodes from NodeTree
+  load_nodes( topNode );
+  
   // histogram manager
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
@@ -198,8 +201,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH1 *h_nGen_etaGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_etaGen"));
   assert(h_nGen_etaGen);
 
-  // clusters per layer and per track histogram
+  // clusters per layer and per track
   auto h_nClus_layer = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layer"));
+  assert( h_nClus_layer );
+
+  // clusters per layer and per generated track
+  auto h_nClus_layerGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layerGen"));
   assert( h_nClus_layer );
   
   // n events and n tracks histogram
@@ -214,6 +221,35 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
+  // build map of clusters associated to G4Particles
+  /* inspired from PHTruthTrackSeeding code */
+  using KeySet = std::set<TrkrDefs::cluskey>;
+  using ParticleMap = std::map<int,KeySet>;
+  ParticleMap g4particle_map;
+  
+  {
+    // loop over clusters
+    const auto range = m_cluster_map->getClusters();
+    for( auto clusterIter = range.first; clusterIter != range.second; ++clusterIter )
+    {
+      // store cluster key
+      const auto& key = clusterIter->first;
+      
+      // loop over associated g4hits
+      for( const auto& g4hit:find_g4hits( key ) )
+      {
+        const int trkid = g4hit->get_trkid();
+        auto iter = g4particle_map.lower_bound( trkid );
+        if( iter != g4particle_map.end() && iter->first == trkid )
+        { 
+          iter->second.insert( key ); 
+        } else {        
+          g4particle_map.insert( iter, std::make_pair( trkid, KeySet( {key} ) ) );        
+        }      
+      } // loop over g4hits
+    }   // loop over clusters
+  }
+  
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
@@ -291,6 +327,18 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     h_nGen_pTGen->Fill(gpt);
     h_nGen_etaGen->Fill(geta);
 
+    // loop over clusters associated to this G4Particle
+    {
+      const auto mapIter = g4particle_map.find( iter->first );
+      if( mapIter != g4particle_map.cend() )
+      {
+        for( const auto& cluster_key:mapIter->second )
+        { h_nClus_layerGen->Fill( TrkrDefs::getLayer(cluster_key) ); }
+      } else {
+        std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << iter->first << std::endl;
+      }
+    }
+    
     // look for best matching track in reco data & get its information
     SvtxTrack *track = trackeval->best_track_from(g4particle);
     if (track)
@@ -378,8 +426,94 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+int QAG4SimulationTracking::load_nodes( PHCompositeNode* topNode )
+{
+  
+  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode, "G4TruthInfo");
+  if (!m_truthContainer)
+  {
+    cout << "QAG4SimulationTracking::load_nodes - Fatal Error - "
+         << "unable to find DST node "
+         << "G4TruthInfo" << endl;
+    assert(m_truthContainer);
+  }
+
+  // cluster map
+  m_cluster_map = findNode::getClass<TrkrClusterContainer>(topNode, "TRKR_CLUSTER");
+  assert(m_cluster_map);
+
+  // cluster hit association map
+  m_cluster_hit_map = findNode::getClass<TrkrClusterHitAssoc>(topNode, "TRKR_CLUSTERHITASSOC");
+  assert(m_cluster_hit_map);
+
+  // cluster hit association map
+  m_hit_truth_map = findNode::getClass<TrkrHitTruthAssoc>(topNode,"TRKR_HITTRUTHASSOC");
+  assert(m_hit_truth_map);
+
+  // g4hits
+  m_g4hits_tpc = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_TPC");
+  m_g4hits_intt = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_INTT");
+  m_g4hits_mvtx = findNode::getClass<PHG4HitContainer>(topNode, "G4HIT_MVTX");
+      
+  return Fun4AllReturnCodes::EVENT_OK;
+  
+}
+
 string
 QAG4SimulationTracking::get_histo_prefix()
 {
   return string("h_") + Name() + string("_");
+}
+
+QAG4SimulationTracking::G4HitSet QAG4SimulationTracking::find_g4hits( TrkrDefs::cluskey cluster_key ) const
+{
+
+  // find hitset associated to cluster
+  G4HitSet out;
+  const auto hitset_key = TrkrDefs::getHitSetKeyFromClusKey(cluster_key);
+
+  // loop over hits associated to clusters
+  const auto range = m_cluster_hit_map->getHits(cluster_key);
+  for( auto iter = range.first; iter != range.second; ++iter )
+  {
+
+    // hit key
+    const auto& hit_key = iter->second;
+
+    // store hits to g4hit associations
+    TrkrHitTruthAssoc::MMap g4hit_map;
+    m_hit_truth_map->getG4Hits( hitset_key, hit_key, g4hit_map );
+
+    // find corresponding g4 hist
+    for( auto truth_iter = g4hit_map.begin(); truth_iter != g4hit_map.end(); ++truth_iter )
+    {
+
+      const auto g4hit_key = truth_iter->second.second;
+      PHG4Hit* g4hit = nullptr;
+
+      switch( TrkrDefs::getTrkrId( hitset_key ) )
+      {
+        
+        case TrkrDefs::mvtxId:
+        if( m_g4hits_mvtx ) g4hit = m_g4hits_mvtx->findHit( g4hit_key );
+        break;
+
+        case TrkrDefs::inttId:
+        if( m_g4hits_intt ) g4hit = m_g4hits_intt->findHit( g4hit_key );
+        break;
+
+        case TrkrDefs::tpcId:
+        if( m_g4hits_tpc ) g4hit = m_g4hits_tpc->findHit( g4hit_key );
+        break;
+
+        default: break;
+      }
+
+      if( g4hit ) out.insert( g4hit );
+
+    }
+  }
+
+  return out;
+  
 }
