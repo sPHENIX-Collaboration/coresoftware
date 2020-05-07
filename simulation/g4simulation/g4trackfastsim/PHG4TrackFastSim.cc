@@ -1017,16 +1017,16 @@ PHGenFit::PlanarMeasurement* PHG4TrackFastSim::PHG4HitToMeasurementCylinder(
 {
   TVector3 pos(g4hit->get_avg_x(), g4hit->get_avg_y(), g4hit->get_avg_z());
 
-  TVector3 v(0, 0, pos.Z());
-  v = 1 / v.Mag() * v;
+  TVector3 v(0, 0, 1);
 
   TVector3 u = v.Cross(TVector3(pos.X(), pos.Y(), 0));
   u = 1 / u.Mag() * u;
 
   double u_smear = gsl_ran_gaussian(m_RandomGenerator, phi_resolution);
   double v_smear = gsl_ran_gaussian(m_RandomGenerator, z_resolution);
-  pos.SetX(g4hit->get_avg_x() + u_smear * u.X() + v_smear * v.X());
-  pos.SetY(g4hit->get_avg_y() + u_smear * u.Y() + v_smear * v.Y());
+  pos.SetX(g4hit->get_avg_x() + u_smear * u.X());
+  pos.SetY(g4hit->get_avg_y() + u_smear * u.Y());
+  pos.SetZ(g4hit->get_avg_z() + v_smear);
 
   PHGenFit::PlanarMeasurement* meas = new PHGenFit::PlanarMeasurement(pos, u, v, phi_resolution,
                                                                       z_resolution);
