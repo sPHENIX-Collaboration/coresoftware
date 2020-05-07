@@ -35,7 +35,8 @@ namespace FW
 
 class ActsTrack;
 class MakeActsGeometry;
-
+class SvtxTrack;
+class SvtxTrackMap;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 class PHActsTrkFitter : public PHTrackFitting
@@ -66,8 +67,11 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
-  /// Vector of acts tracks created by PHActsTracks
-  std::vector<ActsTrack>* m_actsProtoTracks;
+  /// Convert the acts track fit result to an svtx track
+  SvtxTrack* convertActsToSvtx(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey);
+
+  /// Map of acts tracks and track key created by PHActsTracks
+  std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
 
   /// Options that Acts::Fitter needs to run from MakeActsGeometry
   ActsTrackingGeometry *m_tGeometry;

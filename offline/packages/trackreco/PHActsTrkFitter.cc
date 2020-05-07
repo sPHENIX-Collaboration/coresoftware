@@ -9,6 +9,10 @@
 #include "MakeActsGeometry.h"
 #include "ActsTrack.h"
 
+/// Tracking includes
+#include <trackbase_historic/SvtxTrack.h>
+#include <trackbase_historic/SvtxTrackMap.h>
+
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <phool/getClass.h>
 #include <phool/phool.h>
@@ -53,8 +57,10 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::Process()
 {
-  m_event++;
 
+  m_event++;
+  if(m_event % 10 == 0)
+    std::cout << "Processed " << m_event << " events " << std::endl;
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
@@ -66,13 +72,15 @@ int PHActsTrkFitter::Process()
   auto pSurface = Acts::Surface::makeShared<Acts::PerigeeSurface>(
 	          Acts::Vector3D{0., 0., 0.});
 
-  std::vector<ActsTrack>::iterator trackIter;
+  std::map<unsigned int, ActsTrack>::iterator trackIter;
 
   for (trackIter = m_actsProtoTracks->begin();
        trackIter != m_actsProtoTracks->end();
        ++trackIter)
   {
-    ActsTrack track = *trackIter;
+    ActsTrack track = trackIter->second;
+    /// Can correlate with the SvtxTrackMap with the key
+    const unsigned int trackKey = trackIter->first;
 
     std::vector<SourceLink> sourceLinks = track.getSourceLinks();
     FW::TrackParameters trackSeed = track.getTrackParams();
@@ -98,12 +106,13 @@ int PHActsTrkFitter::Process()
 
     /// Check that the result is okay
     if (result.ok())
-    {
-      std::cout<<"Result is okay"<<std::endl;
-      const auto& fitOutput = result.value();
+    {  
+      const Acts::KalmanFitterResult<SourceLink>& fitOutput = result.value();
       if (fitOutput.fittedParameters)
       {
-	std::cout<<"got fitted parameters"<<std::endl;
+	SvtxTrack *track = convertActsToSvtx(fitOutput, trackKey);
+	if(!track)
+	  std::cout<<std::endl;
         const auto& params = fitOutput.fittedParameters.value();
         /// Get position, momentum from params
         if (Verbosity() > 10)
@@ -118,6 +127,9 @@ int PHActsTrkFitter::Process()
     }
 
     /// Update the acts track node on the node tree
+    
+
+
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -132,6 +144,13 @@ int PHActsTrkFitter::End(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+SvtxTrack* PHActsTrkFitter::convertActsToSvtx(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey)
+{
+
+  return nullptr;
+}
+
+
 int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 {
   return Fun4AllReturnCodes::EVENT_OK;
@@ -139,7 +158,7 @@ int PHActsTrkFitter::createNodes(PHCompositeNode* topNode)
 
 int PHActsTrkFitter::getNodes(PHCompositeNode* topNode)
 {
-  m_actsProtoTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
+  m_actsProtoTracks = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
 
   if (!m_actsProtoTracks)
   {

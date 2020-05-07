@@ -71,9 +71,8 @@ class PHActsTracks : public SubsysReco
   /// A vector to hold the source links corresponding to a particular SvtxTrack
   std::vector<SourceLink> m_trackSourceLinks;
 
-  /// A map of an Acts track seed and Acts-sPHENIX source links corresponding
-  /// to that track seed
-  std::vector<ActsTrack> *m_actsProtoTracks;
+  /// A map corresponding the ActsTrack instance to the SvtxTrack key
+  std::map<unsigned int , ActsTrack> *m_actsTrackMap;
 
   /// Trackmap that contains SvtxTracks
   SvtxTrackMap *m_trackMap;

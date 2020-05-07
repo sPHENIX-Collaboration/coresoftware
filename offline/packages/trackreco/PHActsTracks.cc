@@ -29,7 +29,7 @@
 
 PHActsTracks::PHActsTracks(const std::string &name)
   : SubsysReco(name)
-  , m_actsProtoTracks(nullptr)
+  , m_actsTrackMap(nullptr)
   , m_trackMap(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
@@ -80,7 +80,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
        trackIter != m_trackMap->end(); ++trackIter)
   {
     const SvtxTrack *track = trackIter->second;
-
+    const unsigned int trackKey = trackIter->first;
     if (!track)
       continue;
 
@@ -140,7 +140,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
     }
 
     ActsTrack actsTrack(trackSeed, trackSourceLinks);
-    m_actsProtoTracks->push_back(actsTrack);
+    m_actsTrackMap->insert(std::pair<unsigned int, ActsTrack>(trackKey, actsTrack));
   }
 
   if (Verbosity() > 20)
@@ -153,7 +153,7 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
 int PHActsTracks::ResetEvent(PHCompositeNode *topNode)
 {
   /// Reset the proto track vector after each event
-  m_actsProtoTracks->clear();
+  m_actsTrackMap->clear();
   return Fun4AllReturnCodes::EVENT_OK;
 }
 Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
@@ -365,17 +365,16 @@ void PHActsTracks::createNodes(PHCompositeNode *topNode)
     dstNode->addNode(svtxNode);
   }
 
-  m_actsProtoTracks = findNode::getClass<std::vector<ActsTrack>>(topNode, "ActsProtoTracks");
+  m_actsTrackMap = findNode::getClass<std::map<unsigned int, ActsTrack>>(topNode, "ActsTrackMap");
+  
+  if(!m_actsTrackMap)
+    {
+      m_actsTrackMap = new std::map<unsigned int, ActsTrack>;
+      PHDataNode<std::map<unsigned int, ActsTrack>> *actsTrackMapNode = 
+	new PHDataNode<std::map<unsigned int, ActsTrack>>(m_actsTrackMap, "ActsTrackMap");
+      svtxNode->addNode(actsTrackMapNode);
+    }
 
-  if (!m_actsProtoTracks)
-  {
-    m_actsProtoTracks = new std::vector<ActsTrack>;
-
-    PHDataNode<std::vector<ActsTrack>> *protoTrackNode =
-        new PHDataNode<std::vector<ActsTrack>>(m_actsProtoTracks, "ActsProtoTracks");
-
-    svtxNode->addNode(protoTrackNode);
-  }
 
   return;
 }
