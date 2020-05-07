@@ -244,10 +244,10 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
         { 
           iter->second.insert( key ); 
         } else {        
-          g4particle_map.insert( iter, std::make_pair( trkid, KeySet( {key} ) ) );        
+          g4particle_map.insert( iter, std::make_pair( trkid, KeySet({key}) ) );        
         }      
-      } // loop over g4hits
-    }   // loop over clusters
+      }
+    }
   }
   
   PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
@@ -334,7 +334,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       {
         for( const auto& cluster_key:mapIter->second )
         { h_nClus_layerGen->Fill( TrkrDefs::getLayer(cluster_key) ); }
-      } else {
+      } else if( Verbosity() ) {
         std::cout << "QAG4SimulationTracking::process_event - could nof find clusters associated to G4Particle " << iter->first << std::endl;
       }
     }
