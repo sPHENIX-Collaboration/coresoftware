@@ -18,10 +18,6 @@
 
 #include "ActsTrack.h"
 
-#include <TFile.h>
-#include <TH1.h>
-#include <TH2.h>
-
 #include <map>
 #include <string>
 #include <vector>
@@ -72,8 +68,6 @@ class PHActsTracks : public SubsysReco
    * Member variables
    */
 
-  TFile *outfile;
-  TH1F *h_x, *h_y, *h_z;
   /// A vector to hold the source links corresponding to a particular SvtxTrack
   std::vector<SourceLink> m_trackSourceLinks;
 
