@@ -67,8 +67,10 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
+  Acts::BoundSymMatrix rotateCovarianceLocalToGlobal(const Acts::KalmanFitterResult<SourceLink>& fitOutput);
+
   /// Convert the acts track fit result to an svtx track
-  SvtxTrack* convertActsToSvtx(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey);
+  void convertActsToSvtx(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey);
 
   /// Map of acts tracks and track key created by PHActsTracks
   std::map<unsigned int, ActsTrack>* m_actsProtoTracks;
@@ -79,6 +81,8 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Configuration containing the fitting function instance
   FW::TrkrClusterFittingAlgorithm::Config fitCfg;
 
+  /// TrackMap containing SvtxTracks
+  SvtxTrackMap *m_trackMap;
 
 };
 
