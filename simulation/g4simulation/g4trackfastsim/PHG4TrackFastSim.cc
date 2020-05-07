@@ -698,6 +698,9 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               << "searching for hits from  " << _phg4hits.size() << " PHG4Hit nodes" << endl;
   }
 
+  // order measurement with g4hit time via stl multimap
+  multimap<double, PHGenFit::Measurement*> ordered_measurements;
+
   for (unsigned int ilayer = 0; ilayer < _phg4hits.size(); ilayer++)
   {
     if (!_phg4hits[ilayer])
@@ -772,7 +775,8 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
               LogError("Type not implemented!");
               return Fun4AllReturnCodes::ABORTEVENT;
             }
-            meas_out.push_back(meas);
+            //            meas_out.push_back(meas);
+            ordered_measurements.insert(make_pair(hit->get_avg_t(), meas));
 
             //meas->getMeasurement()->Print(); //DEBUG
           }
@@ -780,6 +784,17 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
       }
     } /*Loop layers within one detector layer*/
   }   /*Loop detector layers*/
+
+  for (auto& pair : ordered_measurements)
+  {
+    meas_out.push_back(pair.second);
+
+    if (Verbosity())
+    {
+      std::cout << "PHG4TrackFastSim::PseudoPatternRecognition - measruement at t =  " << pair.first << " ns: ";
+      pair.second->getMeasurement()->Print();
+    }
+  }
 
   if (Verbosity())
   {
