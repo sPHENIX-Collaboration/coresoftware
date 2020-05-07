@@ -59,8 +59,7 @@ int PHActsTrkFitter::Process()
 {
 
   m_event++;
-  if(m_event % 10 == 0)
-    std::cout << "Processed " << m_event << " events " << std::endl;
+
   if (Verbosity() > 1)
   {
     std::cout << PHWHERE << "Events processed: " << m_event << std::endl;
