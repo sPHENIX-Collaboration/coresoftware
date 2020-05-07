@@ -177,7 +177,7 @@ Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
     {
       /// Track covariance matrix is in basis (x,y,z,px,py,pz). Need to put
       /// it in form of (x,y,px,py,pz,time) for acts
-   int row = -1;
+      int row = -1;
       int col = -1;
       if( i < 2)
 	row = i;
