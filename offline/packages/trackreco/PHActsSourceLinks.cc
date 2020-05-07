@@ -232,9 +232,19 @@ int PHActsSourceLinks::process_event(PHCompositeNode *topNode)
     }
   }
 
-  /// Add the data to the nodes that were previously created (?)
 
   return Fun4AllReturnCodes::EVENT_OK;
+}
+
+int PHActsSourceLinks::ResetEvent(PHCompositeNode *topNode)
+{
+  /// Clear out the maps for the next event
+  m_hitIdClusKey->clear();
+  m_sourceLinks->clear();
+  
+
+  return Fun4AllReturnCodes::EVENT_OK;
+
 }
 
 int PHActsSourceLinks::End(PHCompositeNode *topNode)

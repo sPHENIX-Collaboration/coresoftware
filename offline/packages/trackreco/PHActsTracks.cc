@@ -40,6 +40,13 @@ PHActsTracks::PHActsTracks(const std::string &name)
 
 int PHActsTracks::End(PHCompositeNode *topNode)
 {
+  outfile->cd();
+  h_x->Write();
+  h_y->Write();
+  h_z->Write();
+  outfile->Write();
+  outfile->Close();
+
   if (Verbosity() > 10)
   {
     std::cout << "Finished PHActsTracks" << std::endl;
@@ -50,6 +57,10 @@ int PHActsTracks::End(PHCompositeNode *topNode)
 
 int PHActsTracks::Init(PHCompositeNode *topNode)
 {
+  outfile = new TFile("trackPropAnalysis.root","RECREATE");
+  h_x = new TH1F("h_x",";x [cm]",50,-5,5);
+  h_y = new TH1F("h_y",";y [cm]",50,-5,5);
+  h_z = new TH1F("h_z",";z [cm]",100,-50,50);
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -88,6 +99,10 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
       std::cout << "found SvtxTrack " << trackIter->first << std::endl;
       track->identify();
     }
+
+    h_x->Fill(track->get_x());
+    h_y->Fill(track->get_y());
+    h_z->Fill(track->get_z());
 
     /// Get the necessary parameters and values for the TrackParameters
     const Acts::BoundSymMatrix seedCov = getActsCovMatrix(track);
@@ -148,6 +163,13 @@ int PHActsTracks::process_event(PHCompositeNode *topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
+
+int PHActsTracks::ResetEvent(PHCompositeNode *topNode)
+{
+  /// Reset the proto track vector after each event
+  m_actsProtoTracks->clear();
+  return Fun4AllReturnCodes::EVENT_OK;
+}
 Acts::BoundSymMatrix PHActsTracks::getActsCovMatrix(const SvtxTrack *track)
 {
   Acts::BoundSymMatrix matrix = Acts::BoundSymMatrix::Zero();
