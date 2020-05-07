@@ -110,7 +110,7 @@ int PHActsTrkFitter::Process()
       const Acts::KalmanFitterResult<SourceLink>& fitOutput = result.value();
       if (fitOutput.fittedParameters)
       {
-	convertActsToSvtx(fitOutput, trackKey);
+        updateSvtxTrack(fitOutput, trackKey);
 
         /// Get position, momentum from params
         if (Verbosity() > 10)
@@ -140,16 +140,17 @@ int PHActsTrkFitter::End(PHCompositeNode* topNode)
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
-void PHActsTrkFitter::convertActsToSvtx(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey)
+void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>& fitOutput, const unsigned int trackKey)
 {
   const auto& params = fitOutput.fittedParameters.value();
  
   SvtxTrackMap::Iter trackIter = m_trackMap->find(trackKey);
   SvtxTrack *track = trackIter->second;
 
-  track->set_x(params.position()(0));
-  track->set_y(params.position()(1));
-  track->set_z(params.position()(2));
+  /// Acts default unit is mm. So convert to cm
+  track->set_x(params.position()(0) / Acts::UnitConstants::cm);
+  track->set_y(params.position()(1) / Acts::UnitConstants::cm);
+  track->set_z(params.position()(2) / Acts::UnitConstants::cm);
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
@@ -160,15 +161,12 @@ void PHActsTrkFitter::convertActsToSvtx(const Acts::KalmanFitterResult<SourceLin
    
       Acts::BoundSymMatrix rotatedCov = rotateCovarianceLocalToGlobal(fitOutput);
       for(int i = 0; i < 6; i++)
-	{
-	  for(int j = 0; j < 6; j++)
-	    {
-	      track->set_error(i,j, rotatedCov(i,j));
-	    }
-	}
+	for(int j = 0; j < 6; j++)
+	  track->set_error(i,j, rotatedCov(i,j));
+    
     }
  
-
+  return;
 
 }
 
@@ -243,6 +241,17 @@ Acts::BoundSymMatrix PHActsTrkFitter::rotateCovarianceLocalToGlobal(
   /// Undoing the rotation, so R^TCR instead of RCR^T
   matrix = rotation.transpose() * matrix * rotation;
   
+  if(Verbosity() > 20)
+    {
+      std::cout<<"Rotated Matrix"<<std::endl;
+      for(int i =0;i<6; i++)
+	{
+	  for(int j =0; j<6; j++)
+	    std::cout<<matrix(i,j)<<", ";
+	  std::cout<<std::endl;
+	}
+    }
+
   /// Now matrix is in basis (x_g, y_g, px, py, pz, t)
   /// Shift rows and columns to get like (x_g, y_g, z, px, py, pz)
   Acts::BoundSymMatrix svtxCovariance = Acts::BoundSymMatrix::Zero();
@@ -267,9 +276,25 @@ Acts::BoundSymMatrix PHActsTrkFitter::rotateCovarianceLocalToGlobal(
 	    col = 2;
 	  
 	  svtxCovariance(row,col) = matrix(i, j);
+	  
+	  if(row < 2 && col < 2)
+	    svtxCovariance(row,col) /= Acts::UnitConstants::cm2;
+	  else if(row < 2 && col < 5)
+	    svtxCovariance(row,col) /= Acts::UnitConstants::cm;
+	  else if (row < 5 && col < 2)
+	    svtxCovariance(row,col) /= Acts::UnitConstants::cm;
 	}
     }
-
+  if(Verbosity() > 20)
+    {
+      std::cout << "shiftd matrix"<<std::endl;
+      for(int i =0;i<6;i++)
+	{
+	  for(int j =0;j<6; j++)
+	    std::cout<<svtxCovariance(i,j)<<", ";
+	  std::cout<<std::endl;
+	}
+    }
 
   return svtxCovariance;
 }
