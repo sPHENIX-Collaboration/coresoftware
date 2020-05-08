@@ -21,6 +21,7 @@
 #include <Acts/Surfaces/PerigeeSurface.hpp>
 #include <Acts/Surfaces/PlaneSurface.hpp>
 #include <Acts/Surfaces/Surface.hpp>
+#include <Acts/EventData/MultiTrajectory.hpp>
 
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/Framework/AlgorithmContext.hpp>
@@ -153,7 +154,9 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
   track->set_px(params.momentum()(0));
   track->set_py(params.momentum()(1));
   track->set_pz(params.momentum()(2));
-  
+
+  /// This will contain the chi2/ndf
+  Acts::MultiTrajectory<SourceLink> states = fitOutput.fittedStates;
 
   if(params.covariance())
     {
