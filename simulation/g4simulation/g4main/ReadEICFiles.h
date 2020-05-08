@@ -77,12 +77,11 @@ class ReadEICFiles : public SubsysReco
   /** Creade node on node tree */
   int CreateNodeTree(PHCompositeNode *topNode);
 
-enum EvtGen
-{
-  Milou = 1,
-  Unknown = 100
-};
-
+  enum EvtGen
+  {
+    Milou = 1,
+    Unknown = 100
+  };
 
   /** Name of file containing input tree */
   std::string filename;
@@ -96,7 +95,7 @@ enum EvtGen
   /** Number of current event being used from input tree */
   int entry;
 
-/** Event Generator id */
+  /** Event Generator id */
   int m_EvtGenId;
 
   /** Pinter to event record in tree (= branch).
@@ -104,7 +103,7 @@ enum EvtGen
       event types (erhic::EventMilou etc) inherit from. */
   erhic::EventMC *GenEvent;
 
-  TClass* thisClass;
+  TClass *thisClass;
 
   // output
   std::string _node_name;

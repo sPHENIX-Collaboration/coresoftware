@@ -12,34 +12,34 @@
 #include <string>
 #include <utility>
 
-class EicEventHeader: public PHObject
+class EicEventHeader : public PHObject
 {
  public:
   EicEventHeader() {}
   virtual ~EicEventHeader();
 
   virtual void identify(std::ostream& os = std::cout) const;
-  virtual void CopyFrom(const PHObject *phobj);
+  virtual void CopyFrom(const PHObject* phobj);
 
   virtual void Reset();
 
-  virtual void set_eventgenerator_type(const int i) {return;}
-  virtual int get_eventgenerator_type() const {return -99999;}
+  virtual void set_eventgenerator_type(const int i) { return; }
+  virtual int get_eventgenerator_type() const { return -99999; }
 
-// Milou
+  // Milou
 
-  virtual void set_milou_weight(const float val) {return;}
-  virtual float get_milou_weight() const {return NAN;}
-  virtual void set_milou_trueX(const float val) {return;}
-  virtual float get_milou_trueX() const {return NAN;}
-  virtual void set_milou_trueQ2(const float val) {return;}
-  virtual float get_milou_trueQ2() const {return NAN;}
+  virtual void set_milou_weight(const float val) { return; }
+  virtual float get_milou_weight() const { return NAN; }
+  virtual void set_milou_trueX(const float val) { return; }
+  virtual float get_milou_trueX() const { return NAN; }
+  virtual void set_milou_trueQ2(const float val) { return; }
+  virtual float get_milou_trueQ2() const { return NAN; }
 
-   //! Procedure to add a new PROPERTY tag:
+  //! Procedure to add a new PROPERTY tag:
   //! 1.add new tag below with unique value,
   //! 2.add a short name to EicEventHeader::get_property_info
-  enum PROPERTY 
-  {//
+  enum PROPERTY
+  {  //
     prop_eventgen = 1,
     prop_milou_weight = 2,
     prop_milou_truex = 3,
@@ -49,8 +49,8 @@ class EicEventHeader: public PHObject
     prop_MAX_NUMBER = UCHAR_MAX
   };
 
-  enum PROPERTY_TYPE 
-  {//
+  enum PROPERTY_TYPE
+  {  //
     type_int = 1,
     type_uint = 2,
     type_float = 3,
@@ -62,24 +62,24 @@ class EicEventHeader: public PHObject
     Milou = 1
   };
 
-  virtual bool  has_property(const PROPERTY prop_id) const {return false;}
-  virtual float get_property_float(const PROPERTY prop_id) const {return NAN;}
-  virtual int   get_property_int(const PROPERTY prop_id) const {return INT_MIN;}
-  virtual unsigned int   get_property_uint(const PROPERTY prop_id) const {return UINT_MAX;}
-  virtual void  set_property(const PROPERTY prop_id, const float value) {return;}
-  virtual void  set_property(const PROPERTY prop_id, const int value) {return;}
-  virtual void  set_property(const PROPERTY prop_id, const unsigned int value) {return;}
-  static std::pair<const std::string,PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
+  virtual bool has_property(const PROPERTY prop_id) const { return false; }
+  virtual float get_property_float(const PROPERTY prop_id) const { return NAN; }
+  virtual int get_property_int(const PROPERTY prop_id) const { return INT_MIN; }
+  virtual unsigned int get_property_uint(const PROPERTY prop_id) const { return UINT_MAX; }
+  virtual void set_property(const PROPERTY prop_id, const float value) { return; }
+  virtual void set_property(const PROPERTY prop_id, const int value) { return; }
+  virtual void set_property(const PROPERTY prop_id, const unsigned int value) { return; }
+  static std::pair<const std::string, PROPERTY_TYPE> get_property_info(PROPERTY prop_id);
   static bool check_property(const PROPERTY prop_id, const PROPERTY_TYPE prop_type);
   static std::string get_property_type(const PROPERTY_TYPE prop_type);
 
  protected:
-  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const {return UINT_MAX;}
-  virtual void set_property_nocheck(const PROPERTY prop_id,const unsigned int) {return;}
+  virtual unsigned int get_property_nocheck(const PROPERTY prop_id) const { return UINT_MAX; }
+  virtual void set_property_nocheck(const PROPERTY prop_id, const unsigned int) { return; }
 
-  std::map<std::string,double> evInfo;
+  std::map<std::string, double> evInfo;
 
-  ClassDef(EicEventHeader,1)
+  ClassDef(EicEventHeader, 1)
 };
 
 #endif
