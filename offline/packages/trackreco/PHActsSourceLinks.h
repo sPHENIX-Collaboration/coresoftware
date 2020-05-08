@@ -20,7 +20,6 @@
 #include <Acts/MagneticField/MagneticFieldContext.hpp>
 #include <Acts/Utilities/CalibrationContext.hpp>
 
-
 #include <ACTFW/EventData/Track.hpp>
 #include <ACTFW/EventData/TrkrClusterSourceLink.hpp>
 #include <ACTFW/Plugins/BField/BFieldOptions.hpp>
@@ -31,6 +30,7 @@ class TrkrCluster;
 class TGeoNode;
 class PHG4CylinderGeomContainer;
 class PHG4CylinderCellGeomContainer;
+class MakeActsGeometry;
 
 namespace FW
 {
@@ -46,39 +46,29 @@ using Surface = std::shared_ptr<const Acts::Surface>;
 using SourceLink = FW::Data::TrkrClusterSourceLink;
 
 /**
- * A struct that contains the necessary geometry objects that the fitter
- * needs in PHActsTrkFitter. To be put on the node tree
+ * A struct to carry around Acts geometry on node tree, so as to not put 
+ * all of the MakeActsGeometry tree
  */
-struct ActsGeometry
-{
-  /// Two constructor options
-  ActsGeometry() {}
-  ActsGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
-	       FW::Options::BFieldVariant mag,
-	       Acts::CalibrationContext calib,
-	       Acts::GeometryContext geo,
-	       Acts::MagneticFieldContext magField)
+struct ActsTrackingGeometry{
+  ActsTrackingGeometry(){}
+  ActsTrackingGeometry(std::shared_ptr<const Acts::TrackingGeometry> tGeo,
+		       FW::Options::BFieldVariant mag,
+		       Acts::CalibrationContext calib,
+		       Acts::GeometryContext geoCtxt,
+		       Acts::MagneticFieldContext magFieldCtxt)
   : tGeometry(tGeo)
   , magField(mag)
   , calibContext(calib)
-  , geoContext(geo)
-  , magFieldContext(magField)
-  {
-  }
-
-  /// Acts tracking geometry
+  , geoContext(geoCtxt)
+  , magFieldContext(magFieldCtxt)
+  {}
+  /// Tracking geometry and magnetic field, for fitter function
   std::shared_ptr<const Acts::TrackingGeometry> tGeometry;
-
-  /// Acts magnetic field
   FW::Options::BFieldVariant magField;
 
-  /// Acts calibration context, grabbed from geometry building
+  /// Acts context, for Kalman options
   Acts::CalibrationContext calibContext;
-
-  /// Acts geometry context, grabbed from geometry building
   Acts::GeometryContext geoContext;
-
-  /// Acts magnetic field context, grabbed from geometry building
   Acts::MagneticFieldContext magFieldContext;
 };
 
@@ -161,6 +151,9 @@ class PHActsSourceLinks : public SubsysReco
   /// SvtxCluster node
   TrkrClusterContainer *m_clusterMap;
 
+  /// Geometry object to create all acts geometry
+  MakeActsGeometry *m_actsGeometry;
+
   /// Map relating arbitrary hitid to TrkrDef::cluskey for SourceLink, to be put
   /// on node tree by this module
   std::map<TrkrDefs::cluskey, unsigned int> *m_hitIdClusKey;
@@ -168,38 +161,13 @@ class PHActsSourceLinks : public SubsysReco
   /// Map for source hitid:sourcelink, to be put on node tree by this module
   std::map<unsigned int, SourceLink> *m_sourceLinks;
 
-  /// Map relating hit set keys to TGeoNodes
-  std::map<TrkrDefs::hitsetkey, TGeoNode*> m_clusterNodeMap;
-
-  /// Map relating hit set keys to Acts::Surfaces
-  std::map<TrkrDefs::hitsetkey, Surface> *m_clusterSurfaceMap;
-
-  /// Get the TPC surface cluster map
-  std::map<TrkrDefs::cluskey, Surface> *m_clusterSurfaceMapTpc;
-
-  /// The fit cfg options, created in MakeActsGeometry, to be put on node tree
-  /// for PHActsTrkFitter
-  ActsGeometry *m_actsGeometry;
-
   /// Tracking geometry objects
   PHG4CylinderGeomContainer *m_geomContainerMvtx;
   PHG4CylinderGeomContainer *m_geomContainerIntt;
   PHG4CylinderCellGeomContainer *m_geomContainerTpc;
 
-  /// These don't change, we are building the tpc this way!
-  const unsigned int m_nTpcLayers = 48;
-  const unsigned int m_nTpcModulesPerLayer = 12;
-  const unsigned int m_nTpcSides = 2;
+  ActsTrackingGeometry *m_tGeometry;
 
-  /// TPC surface subdivisions. These come from MakeActsGeometry
-  double m_minSurfZ;
-  double m_maxSurfZ;
-  unsigned int m_nSurfZ;
-  unsigned int m_nSurfPhi;
-  double m_surfStepPhi;
-  double m_surfStepZ;
-  double m_moduleStepPhi;
-  double m_modulePhiStart;
 };
 
 #endif

@@ -3,6 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 AM_CPPFLAGS = \
   -I$(includedir) \
   -I$(OFFLINE_MAIN)/include  \
+  -I$(G4_MAIN)/include \
   -I`root-config --incdir`
 
 lib_LTLIBRARIES = \
@@ -17,8 +18,9 @@ libphfield_io_la_LIBADD = \
   -lphool
 
 libphfield_la_LIBADD = \
+  libphfield_io.la \
   -lfun4all \
-  libphfield_io.la
+  -lbmf
 
 pkginclude_HEADERS = \
   PHFieldConfig.h \
@@ -54,6 +56,8 @@ libphfield_la_SOURCES = \
   PHField2D.cc \
   PHField3DCylindrical.cc \
   PHField3DCartesian.cc \
+  PHFieldBeast.cc \
+  PHFieldCleo.cc \
   PHFieldUtility.cc 
 
 # Rule for generating table CINT dictionaries.

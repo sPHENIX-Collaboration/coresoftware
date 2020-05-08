@@ -9,12 +9,14 @@
 #include <TFile.h>
 #include <TSystem.h>
 
+#include <boost/stacktrace.hpp>
+
+#include <unistd.h>
 #include <algorithm>
 #include <cctype>
 #include <ctime>
 #include <iostream>
 #include <sstream>
-#include <unistd.h>
 
 using namespace std;
 
@@ -53,6 +55,11 @@ void PdbParameterMapContainer::AddPdbParameterMap(const int layer, PdbParameterM
   if (parametermap.find(layer) != parametermap.end())
   {
     cout << PHWHERE << " layer " << layer << " already exists" << endl;
+    cout << "Here is the stacktrace: " << endl;
+    cout << boost::stacktrace::stacktrace();
+    cout << endl
+         << "DO NOT PANIC - this is not a segfault" << endl;
+    cout << "Check the stacktrace for the guilty party (typically #2)" << endl;
     gSystem->Exit(1);
   }
   parametermap[layer] = params;

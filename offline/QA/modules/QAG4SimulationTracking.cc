@@ -33,6 +33,7 @@
 #include <TString.h>
 #include <TVector3.h>
 
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -44,29 +45,25 @@ using namespace std;
 
 QAG4SimulationTracking::QAG4SimulationTracking(const std::string &name)
   : SubsysReco(name)
-  , _svtxEvalStack(nullptr)
-  , m_etaRange(-1, 1)
-  , _truthContainer(nullptr)
-{
-}
+{}
 
 int QAG4SimulationTracking::InitRun(PHCompositeNode *topNode)
 {
-  _truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
+  m_truthContainer = findNode::getClass<PHG4TruthInfoContainer>(topNode,
                                                                "G4TruthInfo");
-  if (!_truthContainer)
+  if (!m_truthContainer)
   {
     cout << "QAG4SimulationTracking::InitRun - Fatal Error - "
          << "unable to find DST node "
          << "G4TruthInfo" << endl;
-    assert(_truthContainer);
+    assert(m_truthContainer);
   }
 
-  if (!_svtxEvalStack)
+  if (!m_svtxEvalStack)
   {
-    _svtxEvalStack.reset(new SvtxEvalStack(topNode));
-    _svtxEvalStack->set_strict(true);
-    _svtxEvalStack->set_verbosity(Verbosity() + 1);
+    m_svtxEvalStack.reset(new SvtxEvalStack(topNode));
+    m_svtxEvalStack->set_strict(true);
+    m_svtxEvalStack->set_verbosity(Verbosity() + 1);
   }
 
   return Fun4AllReturnCodes::EVENT_OK;
@@ -95,17 +92,17 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
-  // reco pT histogram vs tracker hits
+  // reco pT histogram vs tracker clusters
   h = new TH2F(TString(get_histo_prefix()) + "nMVTX_nReco_pTGen",
-               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{MVTX}", 200, 0.1, 50.5, 6, -.5, 5.5);
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nCluster_{MVTX}", 200, 0.1, 50.5, 6, -.5, 5.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH2F(TString(get_histo_prefix()) + "nINTT_nReco_pTGen",
-               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{INTT}", 200, 0.1, 50.5, 6, -.5, 5.5);
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nCluster_{INTT}", 200, 0.1, 50.5, 6, -.5, 5.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
   h = new TH2F(TString(get_histo_prefix()) + "nTPC_nReco_pTGen",
-               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nHit_{TPC}", 200, 0.1, 50.5, 60, -.5, 59.5);
+               "Reco tracks at truth p_{T};Truth p_{T} [GeV/c];nCluster_{TPC}", 200, 0.1, 50.5, 60, -.5, 59.5);
   QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
@@ -126,6 +123,10 @@ int QAG4SimulationTracking::Init(PHCompositeNode *topNode)
   //  QAHistManagerDef::useLogBins(h->GetXaxis());
   hm->registerHisto(h);
 
+  // clusters per layer and per track histogram
+  h = new TH1F(TString(get_histo_prefix()) + "nClus_layer", "Reco Clusters per layer per track;Layer;nCluster", 64, 0, 64 );
+  hm->registerHisto(h);
+  
   // n events and n tracks histogram
   h = new TH1F(TString(get_histo_prefix()) + "Normalization",
                TString(get_histo_prefix()) + " Normalization;Items;Count", 10, .5, 10.5);
@@ -155,12 +156,12 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   Fun4AllHistoManager *hm = QAHistManagerDef::getHistoManager();
   assert(hm);
 
-  if (_svtxEvalStack)
-    _svtxEvalStack->next_event(topNode);
+  if (m_svtxEvalStack)
+    m_svtxEvalStack->next_event(topNode);
 
-  SvtxTrackEval *trackeval = _svtxEvalStack->get_track_eval();
+  SvtxTrackEval *trackeval = m_svtxEvalStack->get_track_eval();
   assert(trackeval);
-  SvtxTruthEval *trutheval = _svtxEvalStack->get_truth_eval();
+  SvtxTruthEval *trutheval = m_svtxEvalStack->get_truth_eval();
   assert(trutheval);
 
   // reco pT / gen pT histogram
@@ -197,19 +198,23 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
   TH1 *h_nGen_etaGen = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nGen_etaGen"));
   assert(h_nGen_etaGen);
 
+  // clusters per layer and per track histogram
+  auto h_nClus_layer = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "nClus_layer"));
+  assert( h_nClus_layer );
+  
   // n events and n tracks histogram
   TH1 *h_norm = dynamic_cast<TH1 *>(hm->getHisto(get_histo_prefix() + "Normalization"));
   assert(h_norm);
   h_norm->Fill("Event", 1);
 
   // fill histograms that need truth information
-  if (!_truthContainer)
+  if (!m_truthContainer)
   {
-    cout << "QAG4SimulationTracking::process_event - fatal error - missing _truthContainer! ";
+    cout << "QAG4SimulationTracking::process_event - fatal error - missing m_truthContainer! ";
     return Fun4AllReturnCodes::ABORTRUN;
   }
 
-  PHG4TruthInfoContainer::ConstRange range = _truthContainer->GetPrimaryParticleRange();
+  PHG4TruthInfoContainer::ConstRange range = m_truthContainer->GetPrimaryParticleRange();
   for (PHG4TruthInfoContainer::ConstIterator iter = range.first; iter != range.second; ++iter)
   {
     // get the truth particle information
@@ -221,7 +226,7 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
       g4particle->identify();
     }
 
-    if (m_embeddingIDs.size() > 0)
+    if (!m_embeddingIDs.empty())
     {
       //only analyze subset of particle with proper embedding IDs
       int candidate_embedding_id = trutheval->get_embed(g4particle);
@@ -290,48 +295,84 @@ int QAG4SimulationTracking::process_event(PHCompositeNode *topNode)
     SvtxTrack *track = trackeval->best_track_from(g4particle);
     if (track)
     {
-      h_nReco_etaGen->Fill(geta);
-      h_nReco_pTGen->Fill(gpt);
+      bool match_found(false);
 
-      double px = track->get_px();
-      double py = track->get_py();
-      double pz = track->get_pz();
-      double pt;
-      TVector3 v(px, py, pz);
-      pt = v.Pt();
-      //        eta = v.Pt();
-      //      phi = v.Pt();
-
-      float pt_ratio = (gpt != 0) ? pt / gpt : 0;
-      h_pTRecoGenRatio->Fill(pt_ratio);
-      h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
-      h_norm->Fill("Reco Track", 1);
-
-      // tracker hit stat.
-      vector<unsigned int> nhits(3, 0);
-      // cluster stat.
-      for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+      if (m_uniqueTrackingMatch)
       {
-        const auto &cluster_key = *cluster_iter;
+        PHG4Particle *g4particle_matched = trackeval->max_truth_particle_by_nclusters(track);
 
-        const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
-
-        if (trackerID == TrkrDefs::mvtxId)
-          ++nhits[0];
-        else if (trackerID == TrkrDefs::inttId)
-          ++nhits[1];
-        else if (trackerID == TrkrDefs::tpcId)
-          ++nhits[2];
+        if (g4particle_matched)
+        {
+          if (g4particle_matched->get_track_id() == g4particle->get_track_id())
+          {
+            match_found = true;
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - found unique match for g4 particle " << g4particle->get_track_id() << endl;
+          }
+          else
+          {
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
+                   << ". The track belong to g4 particle " << g4particle_matched->get_track_id() << endl;
+          }
+        }  //        if (g4particle_matched)
         else
         {
           if (Verbosity())
-            cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+            cout << "QAG4SimulationTracking::process_event - none unique match for g4 particle " << g4particle->get_track_id()
+                 << ". The track belong to no g4 particle!" << endl;
         }
-      }  // for
-      h_nMVTX_nReco_pTGen->Fill(gpt, nhits[0]);
-      h_nINTT_nReco_pTGen->Fill(gpt, nhits[1]);
-      h_nTPC_nReco_pTGen->Fill(gpt, nhits[2]);
-    }
+      }
+
+      if ((match_found and m_uniqueTrackingMatch) or (not m_uniqueTrackingMatch))
+      {
+        h_nReco_etaGen->Fill(geta);
+        h_nReco_pTGen->Fill(gpt);
+
+        double px = track->get_px();
+        double py = track->get_py();
+        double pz = track->get_pz();
+        double pt;
+        TVector3 v(px, py, pz);
+        pt = v.Pt();
+        //        eta = v.Pt();
+        //      phi = v.Pt();
+
+        float pt_ratio = (gpt != 0) ? pt / gpt : 0;
+        h_pTRecoGenRatio->Fill(pt_ratio);
+        h_pTRecoGenRatio_pTGen->Fill(gpt, pt_ratio);
+        h_norm->Fill("Reco Track", 1);
+
+        // tracker cluster stat.
+        std::array<unsigned int,3> nclusters = {{0,0,0}};
+
+        // cluster stat.
+        for (auto cluster_iter = track->begin_cluster_keys(); cluster_iter != track->end_cluster_keys(); ++cluster_iter)
+        {
+          const auto &cluster_key = *cluster_iter;
+          const auto layer = TrkrDefs::getLayer(cluster_key);           
+          const auto trackerID = TrkrDefs::getTrkrId(cluster_key);
+ 
+          h_nClus_layer->Fill( layer );
+ 
+          if (trackerID == TrkrDefs::mvtxId)
+            ++nclusters[0];
+          else if (trackerID == TrkrDefs::inttId)
+            ++nclusters[1];
+          else if (trackerID == TrkrDefs::tpcId)
+            ++nclusters[2];
+          else
+          {
+            if (Verbosity())
+              cout << "QAG4SimulationTracking::process_event - unkown tracker ID = " << trackerID << " from cluster " << cluster_key << endl;
+          }
+        }  // for
+        h_nMVTX_nReco_pTGen->Fill(gpt, nclusters[0]);
+        h_nINTT_nReco_pTGen->Fill(gpt, nclusters[1]);
+        h_nTPC_nReco_pTGen->Fill(gpt, nclusters[2]);
+      }  //      if (match_found)
+
+    }  //    if (track)
   }
 
   return Fun4AllReturnCodes::EVENT_OK;

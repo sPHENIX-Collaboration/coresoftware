@@ -106,6 +106,15 @@ class PHG4TrackFastSim : public SubsysReco
     return _phg4hits_names;
   }
 
+  //! adding hits from a PHG4Hit node, which usually belong to one detector or a sub group of detectors
+  //! Orders of adding detectors do not matter as the hits are internally assembled in the time order
+  //! \param[in] phg4hitsNames node name such as "G4HIT_SVTX"
+  //! \param[in] PHG4TrackFastSim::Vertical_Plane or PHG4TrackFastSim::Cylinder
+  //! \param[in] radres radial resolution [cm], not used for PHG4TrackFastSim::Cylinder
+  //! \param[in] phires azimuthal resolution [cm]
+  //! \param[in] lonres z-resolution [cm], not used for PHG4TrackFastSim::Vertical_Plane
+  //! \param[in] eff    Efficiency [0-1] for a existing hit to be included in the tracking
+  //! \param[in] noise  Noise hit propability [0-1]
   void add_phg4hits(
       const std::string& phg4hitsNames,
       const DETECTOR_TYPE phg4dettype,

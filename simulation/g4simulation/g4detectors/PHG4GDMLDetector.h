@@ -25,6 +25,7 @@ class G4UserSteppingAction;
 class PHCompositeNode;
 class PHG4Subsystem;
 class PHParameters;
+class PHG4GDMLConfig;
 
 /*!
  * \brief PHG4GDMLDetector is a generic detector built from a GDML import
@@ -60,6 +61,11 @@ class PHG4GDMLDetector : public PHG4Detector
   G4double m_rotationX;
   G4double m_rotationY;
   G4double m_rotationZ;
+
+  int m_skipDSTGeometryExport;
+
+  //! registry for volumes that should not be exported, i.e. fibers
+  PHG4GDMLConfig* gdml_config;
 };
 
 #endif /* PHG4GDMLDetector_H_ */

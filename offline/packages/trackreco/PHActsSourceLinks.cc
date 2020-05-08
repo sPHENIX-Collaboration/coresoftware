@@ -46,20 +46,14 @@
 PHActsSourceLinks::PHActsSourceLinks(const std::string &name)
   : SubsysReco(name)
   , m_clusterMap(nullptr)
+  , m_actsGeometry(nullptr)
   , m_hitIdClusKey(nullptr)
   , m_sourceLinks(nullptr)
-  , m_actsGeometry(nullptr)
   , m_geomContainerMvtx(nullptr)
   , m_geomContainerIntt(nullptr)
   , m_geomContainerTpc(nullptr)
-  , m_minSurfZ(0.0)  /// Initialize these to 0, get from MakeActsGeometry
-  , m_maxSurfZ(0.0)
-  , m_nSurfZ(0)
-  , m_nSurfPhi(0)
-  , m_surfStepPhi(0.0)
-  , m_surfStepZ(0.0)
-  , m_moduleStepPhi(0.0)
-  , m_modulePhiStart(0.0)
+  , m_tGeometry(nullptr)
+ 
 {
   Verbosity(0);
 }
@@ -80,28 +74,17 @@ int PHActsSourceLinks::InitRun(PHCompositeNode *topNode)
   createNodes(topNode);
 
   /// Check if Acts geometry has been built and is on the node tree
-  MakeActsGeometry *actsGeometry = new MakeActsGeometry();
-  actsGeometry->BuildAllGeometry(topNode);
+  m_actsGeometry = new MakeActsGeometry();
+  
+  m_actsGeometry->setVerbosity(Verbosity());
+  m_actsGeometry->buildAllGeometry(topNode);
 
-  m_minSurfZ = actsGeometry->getMinSurfZ();
-  m_maxSurfZ = actsGeometry->getMaxSurfZ();
-  m_nSurfZ = actsGeometry->getNSurfZ();
-  m_nSurfPhi = actsGeometry->getNSurfPhi();
-
-  /// These are arbitrary TPC Surface subdivisions, set in MakeActsGeometry
-  m_surfStepZ = actsGeometry->getSurfStepZ();
-  m_moduleStepPhi = actsGeometry->getModuleStepPhi();
-  m_modulePhiStart = actsGeometry->getModulePhiStart();
-  m_surfStepPhi = actsGeometry->getSurfStepPhi();
-
-  m_clusterNodeMap = actsGeometry->getNodeMap();
-  m_clusterSurfaceMap = actsGeometry->getSurfaceMapSilicon();
-  m_clusterSurfaceMapTpc = actsGeometry->getSurfaceMapTpc();
-  m_actsGeometry->tGeometry = actsGeometry->getTGeometry();
-  m_actsGeometry->magField = actsGeometry->getMagField();
-  m_actsGeometry->geoContext = actsGeometry->getGeoContext();
-  m_actsGeometry->magFieldContext = actsGeometry->getMagFieldContext();
-  m_actsGeometry->calibContext = actsGeometry->getCalibContext();
+  /// Set the tGeometry struct to be put on the node tree
+  m_tGeometry->tGeometry = m_actsGeometry->getTGeometry();
+  m_tGeometry->magField = m_actsGeometry->getMagField();
+  m_tGeometry->calibContext = m_actsGeometry->getCalibContext();
+  m_tGeometry->magFieldContext = m_actsGeometry->getMagFieldContext();
+  m_tGeometry->geoContext = m_actsGeometry->getGeoContext();
 
   if (Verbosity() > 10)
   {
@@ -294,49 +277,26 @@ Surface PHActsSourceLinks::getTpcLocalCoords(double (&local2D)[2],
   const unsigned int layer = TrkrDefs::getLayer(clusKey);
   const unsigned int sectorId = TpcDefs::getSectorId(clusKey);
   const unsigned int side = TpcDefs::getSide(clusKey);
-
-  const double modulePhiLow = m_modulePhiStart + (double) sectorId * m_moduleStepPhi;
-
-  const unsigned int iPhi = (clusPhi - modulePhiLow) / m_surfStepPhi;
-  const unsigned int iZ = fabs(zTpc) / m_surfStepZ;
-  const unsigned int iPhiZ = iPhi + 100. * iZ;  /// for making a map key
-
-  if (Verbosity() > 0)
-  {
-    const double checkSurfRphiCenter = radius * (modulePhiLow + (double) iPhi * m_surfStepPhi + m_surfStepPhi / 2.0);
-    double checkSurfZCenter = (double) iZ * m_surfStepZ + m_surfStepZ / 2.0;
-    if (side == 0)
-      checkSurfZCenter = -checkSurfZCenter;
-
-    std::cout << " xworld " << world[0] << " yworld "
-              << world[1] << " clusphi " << clusPhi << std::endl;
-    std::cout << " sectorid " << sectorId << " side "
-              << side << " iphi " << iPhi << " iz "
-              << iZ << " i_phi_z " << iPhiZ << std::endl;
-    std::cout << "r_clusphi " << rClusPhi
-              << " check_surf_rphi center " << checkSurfRphiCenter
-              << " ztpc " << zTpc << " check_surf_z_center "
-              << checkSurfZCenter << std::endl;
-  }
-
+ 
   /// Get the surface key to find the surface from the map
-  const TrkrDefs::cluskey surfkey = TpcDefs::genClusKey(layer, sectorId,
-                                                        side, iPhiZ);
-  std::map<TrkrDefs::cluskey, Surface>::iterator surfIter;
-
-  surfIter = m_clusterSurfaceMapTpc->find(surfkey);
-  if (surfIter == m_clusterSurfaceMapTpc->end())
-  {
-    std::cout << PHWHERE << "Failed to find surface, should be impossible!" << std::endl;
-    return nullptr;
-  }
-
-  Surface surface = surfIter->second->getSharedPtr();
+  TrkrDefs::hitsetkey tpcHitSetKey = TpcDefs::genHitSetKey(layer, sectorId, side);
+  std::vector<double> worldVec = {world[0], world[1], world[2]};
+  /// MakeActsGeometry has a helper function since many surfaces can exist on
+  /// a given readout module
+  Surface surface = m_actsGeometry->getTpcSurfaceFromCoords(tpcHitSetKey,
+							    worldVec);
+  assert(surface);
+  
+  if(Verbosity() > 10)
+    {
+      std::cout << "Stream of found TPC surface: " << std::endl;
+      surface->toStream(m_tGeometry->geoContext, std::cout);
+    }
 
   /// Transformation of cluster to local surface coords
   /// Coords are r*phi relative to surface r-phi center, and z
   /// relative to surface z center
-  Acts::Vector3D center = surface->center(m_actsGeometry->geoContext);
+  Acts::Vector3D center = surface->center(m_actsGeometry->getGeoContext());
   double surfRphiCenter = atan2(center[1], center[0]) * radius;
   double surfZCenter = center[2];
   if (Verbosity() > 0)
@@ -616,35 +576,6 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
     svtxNode->addNode(hitMapNode);
   }
 
-  m_clusterSurfaceMap = findNode::getClass<std::map<TrkrDefs::hitsetkey, Surface>>(topNode, "ClusterSurfaceActsMap");
-  
-  if(!m_clusterSurfaceMap)
-    {
-      m_clusterSurfaceMap = new std::map<TrkrDefs::hitsetkey, Surface>;
-      PHDataNode<std::map<TrkrDefs::hitsetkey, Surface>> *keySurfaceNode = 
-	new PHDataNode<std::map<TrkrDefs::hitsetkey, Surface>>(m_clusterSurfaceMap, "HitSetKeySurfaceActsMap");
-      svtxNode->addNode(keySurfaceNode);
-    }
-
-    m_clusterSurfaceMapTpc = findNode::getClass<std::map<TrkrDefs::cluskey, Surface>>(topNode, "ClusterTpcSurfaceActsMap");
-  
-  if(!m_clusterSurfaceMapTpc)
-    {
-      m_clusterSurfaceMapTpc = new std::map<TrkrDefs::cluskey, Surface>;
-      PHDataNode<std::map<TrkrDefs::cluskey, Surface>> *keyTpcSurfaceNode = 
-	new PHDataNode<std::map<TrkrDefs::cluskey, Surface>>(m_clusterSurfaceMapTpc, "ClusKeyTpcSurfaceActsMap");
-      svtxNode->addNode(keyTpcSurfaceNode);
-    }
-
-  m_actsGeometry = findNode::getClass<ActsGeometry>(topNode, "ActsFitCfg");
-
-  if (!m_actsGeometry)
-  {
-    m_actsGeometry = new ActsGeometry();
-    PHDataNode<ActsGeometry> *fitNode = new PHDataNode<ActsGeometry>(m_actsGeometry, "ActsGeometry");
-    svtxNode->addNode(fitNode);
-  }
-
   /// Do the same for the SourceLink container
   m_sourceLinks = findNode::getClass<std::map<unsigned int, SourceLink>>(topNode, "TrkrClusterSourceLinks");
 
@@ -657,23 +588,35 @@ void PHActsSourceLinks::createNodes(PHCompositeNode *topNode)
     svtxNode->addNode(sourceLinkNode);
   }
 
+  m_tGeometry = findNode::getClass<ActsTrackingGeometry>(topNode,"ActsTrackingGeometry");
+  if(!m_tGeometry)
+    {
+      m_tGeometry = new ActsTrackingGeometry();
+      PHDataNode<ActsTrackingGeometry> *tGeoNode = new PHDataNode<ActsTrackingGeometry>(m_tGeometry,
+								 "ActsTrackingGeometry");
+      svtxNode->addNode(tGeoNode);
+    }
+
+
   return;
 }
 
 TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
 {
+  std::map<TrkrDefs::hitsetkey, TGeoNode*> clusterNodeMap = m_actsGeometry->getTGeoNodeMap();
+
   /// Get the TGeoNode for this hit set key
   std::map<TrkrDefs::hitsetkey, TGeoNode *>::iterator mapIter;
-  mapIter = m_clusterNodeMap.find(hitSetKey);
+  mapIter = clusterNodeMap.find(hitSetKey);
   TGeoNode *sensorNode;
 
   /// Make sure we found it
-  if (mapIter != m_clusterNodeMap.end())
+  if (mapIter != clusterNodeMap.end())
   {
     sensorNode = mapIter->second;
     if (Verbosity() > 0)
     {
-      std::cout << "Found TGeoNode in m_clusterNodeMap for hitsetkey "
+      std::cout << "Found TGeoNode in clusterNodeMap for hitsetkey "
                 << hitSetKey
                 << " node " << sensorNode->GetName()
                 << std::endl;
@@ -692,14 +635,16 @@ TGeoNode *PHActsSourceLinks::getNodeFromClusterMap(TrkrDefs::hitsetkey hitSetKey
 Surface PHActsSourceLinks::getSurfaceFromClusterMap(TrkrDefs::hitsetkey hitSetKey)
 {
   Surface surface;
+  std::map<TrkrDefs::hitsetkey, Surface> clusterSurfaceMap = 
+    m_actsGeometry->getSurfaceMapSilicon();
 
   std::map<TrkrDefs::hitsetkey, Surface>::iterator
       surfaceIter;
 
-  surfaceIter = m_clusterSurfaceMap->find(hitSetKey);
+  surfaceIter = clusterSurfaceMap.find(hitSetKey);
 
   /// Check to make sure we found the surface in the map
-  if (surfaceIter != m_clusterSurfaceMap->end())
+  if (surfaceIter != clusterSurfaceMap.end())
   {
     surface = surfaceIter->second;
     if (Verbosity() > 0)

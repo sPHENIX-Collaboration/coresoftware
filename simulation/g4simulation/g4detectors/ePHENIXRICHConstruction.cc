@@ -121,9 +121,9 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                                                                geom.get_z_shift() * geom.get_frontwindow_DisplaceRatio()));
 
   G4VSolid *RICHConeBoundary = new G4Cons("RICHConeBoundary",  //
-                                          geom.get_R_beam_pipe(),
+                                          geom.get_R_beam_pipe_front(),
                                           geom.get_z_shift() / 2 * std::tan(2 * std::atan(std::exp(-geom.get_min_eta()))),  //            G4double pRmin1, G4double pRmax1,
-                                          geom.get_R_beam_pipe(),
+                                          geom.get_R_beam_pipe_back(),
                                           geom.get_cone_size_z() * std::tan(2 * std::atan(std::exp(-geom.get_min_eta()))),  //            G4double pRmin2, G4double pRmax2,
                                           (geom.get_cone_size_z() - (geom.get_z_shift() / 2)) / 2,                          //            G4double pDz,
                                           0, 2 * pi                                                                         //            G4double pSPhi, G4double pDPhi
@@ -137,7 +137,7 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
                                                               (geom.get_cone_size_z() - (geom.get_z_shift() / 2)) / 2 + (geom.get_z_shift() / 2)));
 
   G4VSolid *RICHSecBoundary = new G4Tubs("RICHSecBoundary",                       //
-                                         geom.get_R_beam_pipe(),                  //            G4double pRMin,
+                                         0,                  //            G4double pRMin,
                                          geom.get_cone_size_z(),                  //            G4double pRMax,
                                          geom.get_cone_size_z(),                  //            G4double pDz,
                                          pi / 2 - pi / geom.get_N_RICH_Sector(),  //            G4double pSPhi,
@@ -258,10 +258,11 @@ ePHENIXRICHConstruction::Construct_RICH(G4LogicalVolume *WorldLog)
 
   GetDisplayAction()->AddVolume(RICHHBDLog, "HBD");
 
-  G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
-         << " logical volume constructed" << G4endl;
-  G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_phy_vol.size()
-         << " physical volume constructed" << G4endl;
+// if you want this printout - put some verbosity around it
+  // G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_log_vol.size()
+  //        << " logical volume constructed" << G4endl;
+  // G4cout << "ePHENIXRICHConstruction::Construct_RICH - " << map_phy_vol.size()
+  //        << " physical volume constructed" << G4endl;
 
   return WorldLog;
 }
@@ -420,7 +421,8 @@ void RICH_Geometry::SetDefault()
 {
   N_RICH_Sector = 8;
   min_eta = 1;
-  R_beam_pipe = 3 * cm;
+  R_beam_pipe_front = 3 * cm;
+  R_beam_pipe_back = 3 * cm;
   z_shift = 100 * cm;
   R_shift = 40 * cm;
   frontwindow_DisplaceRatio = .85;  // Displace R,Z and radius simultainously
