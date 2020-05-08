@@ -11,6 +11,7 @@
 
 class PHCompositeNode;
 class TChain;
+class TClass;
 
 namespace erhic
 {
@@ -68,12 +69,20 @@ class ReadEICFiles : public SubsysReco
   //! negative IDs are backgrounds, .e.g out of time pile up collisions
   //! Usually, ID = 0 means the primary Au+Au collision background
   void set_embedding_id(int id) { hepmc_helper.set_embedding_id(id); }
- protected:
+
+ private:
   /** Get tree from input file */
   void GetTree();
 
   /** Creade node on node tree */
   int CreateNodeTree(PHCompositeNode *topNode);
+
+enum EvtGen
+{
+  Milou = 1,
+  Unknown = 100
+};
+
 
   /** Name of file containing input tree */
   std::string filename;
@@ -87,10 +96,15 @@ class ReadEICFiles : public SubsysReco
   /** Number of current event being used from input tree */
   int entry;
 
+/** Event Generator id */
+  int m_EvtGenId;
+
   /** Pinter to event record in tree (= branch).
       Use 'abstract' EventMC class pointer from which all
       event types (erhic::EventMilou etc) inherit from. */
   erhic::EventMC *GenEvent;
+
+  TClass* thisClass;
 
   // output
   std::string _node_name;
