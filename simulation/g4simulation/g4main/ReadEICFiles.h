@@ -11,7 +11,6 @@
 
 class PHCompositeNode;
 class TChain;
-class TClass;
 
 namespace erhic
 {
@@ -102,8 +101,6 @@ class ReadEICFiles : public SubsysReco
       Use 'abstract' EventMC class pointer from which all
       event types (erhic::EventMilou etc) inherit from. */
   erhic::EventMC *GenEvent;
-
-  TClass *thisClass;
 
   // output
   std::string _node_name;
