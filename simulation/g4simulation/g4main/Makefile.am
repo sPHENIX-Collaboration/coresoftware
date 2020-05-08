@@ -67,6 +67,8 @@ libg4testbench_la_LIBADD = \
 # following a simple naming convention, please change this accordingly and
 # let me know
 ROOTHITDICTS = \
+  EicEventHeader_Dict.cc \
+  EicEventHeaderv1_Dict.cc \
   PHG4EventHeader_Dict.cc \
   PHG4EventHeaderv1_Dict.cc \
   PHG4Hit_Dict.cc \
@@ -93,6 +95,8 @@ if MAKEROOT6
 # to install other files in libdir, this construct gets around this
 pcmdir = $(libdir)
 nobase_dist_pcm_DATA = \
+  EicEventHeader_Dict_rdict.pcm \
+  EicEventHeaderv1_Dict_rdict.pcm \
   PHG4EventHeader_Dict_rdict.pcm \
   PHG4EventHeaderv1_Dict_rdict.pcm \
   PHG4Hit_Dict_rdict.pcm \
@@ -138,6 +142,8 @@ endif
 libphg4hit_la_SOURCES = \
   $(ROOTHITDICTS) \
   $(ROOT5HITDICTS) \
+  EicEventHeader.cc \
+  EicEventHeaderv1.cc \
   PHG4EventHeaderv1.cc \
   PHG4Hit.cc \
   PHG4Hitv1.cc \
@@ -203,6 +209,7 @@ libg4testbench_la_SOURCES = \
 # please add new classes in alphabetical order
 
 pkginclude_HEADERS = \
+  EicEventHeader.h \
   HepMCNodeReader.h \
   PHBBox.h \
   PHG4ColorDefs.h \
