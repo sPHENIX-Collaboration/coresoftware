@@ -139,13 +139,11 @@ class PHG4TrackFastSim : public SubsysReco
 // add saving of state at plane in z
   void add_zplane_state(const std::string& stateName, const double zplane)
   {
-    m_ZStateMap.insert(std::make_pair(stateName,zplane));
     m_StateMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Vertical_Plane,zplane)));
   }
 
   void add_cylinder_state(const std::string& stateName, const double radius)
   {
-    m_CylinderStateMap.insert(std::make_pair(stateName,radius));
     m_StateMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Cylinder,radius)));
   }
 
@@ -354,9 +352,8 @@ class PHG4TrackFastSim : public SubsysReco
   //!
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
+
   std::map<std::string, std::pair<int, double>> m_StateMap;
-  std::map<std::string, double> m_CylinderStateMap;
-  std::map<std::string, double> m_ZStateMap;
 
 #if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
