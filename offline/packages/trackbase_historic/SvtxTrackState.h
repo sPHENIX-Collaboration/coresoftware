@@ -58,19 +58,25 @@ class SvtxTrackState : public PHObject
 
   /// rphi error
   virtual float get_rphi_error() const
-  { return NAN; }
+  {
+    return NAN;
+  }
 
   /// phi error
   virtual float get_phi_error() const
-  { return NAN; }
+  {
+    return NAN;
+  }
 
   /// z error
   virtual float get_z_error() const
-  { return NAN; }
+  {
+    return NAN;
+  }
 
   //@}
 
-  protected:
+ protected:
   SvtxTrackState(float pathlength = 0.0) {}
 
   ClassDef(SvtxTrackState, 1);
