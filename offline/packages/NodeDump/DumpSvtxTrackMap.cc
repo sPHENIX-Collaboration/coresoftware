@@ -4,6 +4,7 @@
 
 #include <trackbase_historic/SvtxTrack.h>
 #include <trackbase_historic/SvtxTrackMap.h>
+#include <trackbase_historic/SvtxTrackState.h>
 
 #include <map>
 #include <ostream>
@@ -48,6 +49,27 @@ int DumpSvtxTrackMap::process_Node(PHNode *myNode)
       *fout << "px: " << hiter->second->get_px() << endl;
       *fout << "py: " << hiter->second->get_py() << endl;
       *fout << "pz: " << hiter->second->get_pz() << endl;
+      for (SvtxTrack::ConstStateIter trkstates = hiter->second->begin_states();
+	   trkstates != hiter->second->end_states();
+	   ++trkstates)
+      {
+	*fout << "trackstate path length: " << trkstates->first << endl;
+	*fout << "trackstate name: " << trkstates->second->get_name() << endl;
+	*fout << "trackstate x: " << trkstates->second->get_x() << endl;
+	*fout << "trackstate y: " << trkstates->second->get_y() << endl;
+	*fout << "trackstate z: " << trkstates->second->get_z() << endl;
+	*fout << "trackstate px: " << trkstates->second->get_px() << endl;
+	*fout << "trackstate py: " << trkstates->second->get_py() << endl;
+	*fout << "trackstate pz: " << trkstates->second->get_pz() << endl;
+	for (int i=0; i<5; i++)
+	{
+	  for (int j=0; j<5; j++)
+	  {
+	    *fout <<  "trkstate covar[" << i << ", " << j << "]: "
+		  << trkstates->second->get_error(i,j) << endl;
+	  }
+	}
+      }
     }
   }
   return 0;
