@@ -83,12 +83,12 @@ class PHG4TrackFastSim : public SubsysReco
 
   const std::string& get_fit_alg_name() const
   {
-    return _fit_alg_name;
+    return m_FitAlgoName;
   }
 
   void set_fit_alg_name(const std::string& fitAlgName)
   {
-    _fit_alg_name = fitAlgName;
+    m_FitAlgoName = fitAlgName;
   }
 
   const std::vector<std::string>& get_phg4hits_names() const
@@ -115,12 +115,12 @@ class PHG4TrackFastSim : public SubsysReco
       const float noise)
   {
     m_PHG4HitsNames.push_back(phg4hitsNames);
-    _phg4_detector_type.push_back(phg4dettype);
-    _phg4_detector_radres.push_back(radres);
-    _phg4_detector_phires.push_back(phires);
-    _phg4_detector_lonres.push_back(lonres);
-    _phg4_detector_hitfindeff.push_back(eff);
-    _phg4_detector_noise.push_back(noise);
+    m_phg4_detector_type.push_back(phg4dettype);
+    m_phg4_detector_radres.push_back(radres);
+    m_phg4_detector_phires.push_back(phires);
+    m_phg4_detector_lonres.push_back(lonres);
+    m_phg4_detector_hitfindeff.push_back(eff);
+    m_phg4_detector_noise.push_back(noise);
   }
 
 // legacy interface for Babar calorimeter projections
@@ -139,94 +139,94 @@ class PHG4TrackFastSim : public SubsysReco
 
   const std::string& get_trackmap_out_name() const
   {
-    return _trackmap_out_name;
+    return m_TrackmapOutNodeName;
   }
 
   void set_trackmap_out_name(const std::string& trackmapOutName)
   {
-    _trackmap_out_name = trackmapOutName;
+    m_TrackmapOutNodeName = trackmapOutName;
   }
 
   const std::string& get_sub_top_node_name() const
   {
-    return _sub_top_node_name;
+    return m_SubTopnodeName;
   }
 
   void set_sub_top_node_name(const std::string& subTopNodeName)
   {
-    _sub_top_node_name = subTopNodeName;
+    m_SubTopnodeName = subTopNodeName;
   }
 
   bool is_use_vertex_in_fitting() const
   {
-    return _use_vertex_in_fitting;
+    return m_UseVertexInFittingFlag;
   }
 
   void set_use_vertex_in_fitting(bool useVertexInFitting)
   {
-    _use_vertex_in_fitting = useVertexInFitting;
+    m_UseVertexInFittingFlag = useVertexInFitting;
   }
 
   double get_vertex_xy_resolution() const
   {
-    return _vertex_xy_resolution;
+    return m_VertexXYResolution;
   }
 
   void set_vertex_xy_resolution(double vertexXyResolution)
   {
-    _vertex_xy_resolution = vertexXyResolution;
+    m_VertexXYResolution = vertexXyResolution;
   }
 
   double get_vertex_z_resolution() const
   {
-    return _vertex_z_resolution;
+    return m_VertexZResolution;
   }
 
   void set_vertex_z_resolution(double vertexZResolution)
   {
-    _vertex_z_resolution = vertexZResolution;
+    m_VertexZResolution = vertexZResolution;
   }
 
   int get_primary_assumption_pid() const
   {
-    return _primary_assumption_pid;
+    return m_PrimaryAssumptionPid;
   }
 
   void set_primary_assumption_pid(int primaryAssumptionPid)
   {
-    _primary_assumption_pid = primaryAssumptionPid;
+    m_PrimaryAssumptionPid = primaryAssumptionPid;
   }
 
   void set_primary_tracking(int pTrk)
   {
-    _primary_tracking = pTrk;
+    m_PrimaryTrackingFlag = pTrk;
   }
 
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   const std::string& get_vertexing_method() const
   {
-    return _vertexing_method;
+    return m_VertexingMethod;
   }
 
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
   void set_vertexing_method(const std::string& vertexingMethod)
   {
-    _vertexing_method = vertexingMethod;
+    m_VertexingMethod = vertexingMethod;
   }
 
   double get_vertex_min_ndf() const
   {
-    return _vertex_min_ndf;
+    return m_VertexMinNdf;
   }
 
-  void set_vertex_min_ndf(double vertexMinPT)
+  void set_vertex_min_ndf(double vertexMinNdf)
   {
-    _vertex_min_ndf = vertexMinPT;
+    m_VertexMinNdf = vertexMinNdf;
   }
 
   void enable_vertexing(const bool& b = true)
   {
-    _do_vertexing = b;
+    m_DoVertexingFlag = b;
   }
 
   void DisplayEvent() const;
@@ -277,43 +277,43 @@ class PHG4TrackFastSim : public SubsysReco
   bool FillSvtxVertexMap(const std::vector<genfit::GFRaveVertex*>& rave_vertices,
 			 const GenFitTrackMap& gf_tracks);
 
-  //! Event counter
-  int m_EventCnt;
 
-  bool m_SmearingFlag;
-
-  //! Input Node pointers
-  PHG4TruthInfoContainer* m_TruthContainer;
-
-  std::vector<PHG4HitContainer*> m_PHG4HitContainer;
-  std::vector<std::string> m_PHG4HitsNames;
-  std::vector<DETECTOR_TYPE> _phg4_detector_type;
-  std::vector<float> _phg4_detector_radres;
-  std::vector<float> _phg4_detector_phires;
-  std::vector<float> _phg4_detector_lonres;
-  std::vector<float> _phg4_detector_hitfindeff;
-  std::vector<float> _phg4_detector_noise;
-
-  //! Output Node pointers
-
-  std::string _sub_top_node_name;
-  //	std::string _clustermap_out_name;
-  std::string _trackmap_out_name;
-
-  //	SvtxClusterMap* _clustermap_out;
-
-  SvtxTrackMap* _trackmap_out;
-  SvtxVertexMap* _vertexmap;
+// Pointers first
+  //! random generator that conform with sPHENIX standard
+  gsl_rng* m_RandomGenerator;
 
   /*!
 	 *	GenFit fitter interface
 	 */
-  PHGenFit::Fitter* _fitter;
-  genfit::GFRaveVertexFactory* _vertex_finder;
+  PHGenFit::Fitter* m_Fitter;
+  genfit::GFRaveVertexFactory* m_RaveVertexFactory;
+
+  //! Input Node pointers
+  PHG4TruthInfoContainer* m_TruthContainer;
+
+  SvtxTrackMap* m_SvtxTrackMapOut;
+  SvtxVertexMap* m_SvtxVertexMap;
+
+
+
+  std::vector<PHG4HitContainer*> m_PHG4HitContainer;
+  std::vector<std::string> m_PHG4HitsNames;
+  std::vector<DETECTOR_TYPE> m_phg4_detector_type;
+  std::vector<float> m_phg4_detector_radres;
+  std::vector<float> m_phg4_detector_phires;
+  std::vector<float> m_phg4_detector_lonres;
+  std::vector<float> m_phg4_detector_hitfindeff;
+  std::vector<float> m_phg4_detector_noise;
+
+  //! 
+  std::map<std::string, std::pair<int, double>> m_ProjectionsMap;
+
+
+  std::string m_SubTopnodeName;
+  std::string m_TrackmapOutNodeName;
   //! https://rave.hepforge.org/trac/wiki/RaveMethods
-  std::string _vertexing_method;
-  double _vertex_min_ndf;
-  bool _do_vertexing;
+  std::string m_VertexingMethod;
+
 
   /*!
 	 * Available choices:
@@ -322,10 +322,18 @@ class PHG4TrackFastSim : public SubsysReco
 	 * DafSimple
 	 * DafRef
 	 */
-  std::string _fit_alg_name;
+  std::string m_FitAlgoName;
 
-  //!
-  int _primary_assumption_pid;
+  double m_VertexMinNdf;
+  double m_VertexXYResolution;
+  double m_VertexZResolution;
+
+  //! Event counter
+  int m_EventCnt;
+
+  int m_PrimaryAssumptionPid;
+
+  bool m_SmearingFlag;
 
   //!
   bool m_DoEvtDisplayFlag;
@@ -334,18 +342,12 @@ class PHG4TrackFastSim : public SubsysReco
 	 * For PseudoPatternRecognition function.
 	 */
 
-  bool _use_vertex_in_fitting;
+  bool m_UseVertexInFittingFlag;
 
-  double _vertex_xy_resolution;
-  double _vertex_z_resolution;
   //!
-  int _primary_tracking;
+  int m_PrimaryTrackingFlag;
 
-  //! 
-  std::map<std::string, std::pair<int, double>> m_ProjectionsMap;
-
-  //! random generator that conform with sPHENIX standard
-  gsl_rng* m_RandomGenerator;
+  bool m_DoVertexingFlag;
 };
 
 #endif /*__PHG4TrackFastSim_H__*/
