@@ -15,18 +15,8 @@
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TVector3.h>
 
-// rootcint barfs with this header so we need to hide it
-#if !defined(__CINT__) || defined(__CLING__)
-// needed, it crashes on Ubuntu using singularity with local cvmfs install
-// shared pointer later on uses this, forward declaration does not cut it
 #include <gsl/gsl_rng.h>
 #include <phgenfit/Track.h>
-#else
-namespace PHGenFit
-{
-class Track;
-} /* namespace PHGenFit */
-#endif
 
 #include <climits>  // for UINT_MAX
 #include <iostream>
@@ -139,12 +129,12 @@ class PHG4TrackFastSim : public SubsysReco
 // add saving of state at plane in z
   void add_zplane_state(const std::string& stateName, const double zplane)
   {
-    m_StateMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Vertical_Plane,zplane)));
+    m_ProjectionsMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Vertical_Plane,zplane)));
   }
 
   void add_cylinder_state(const std::string& stateName, const double radius)
   {
-    m_StateMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Cylinder,radius)));
+    m_ProjectionsMap.insert(std::make_pair(stateName,std::make_pair(DETECTOR_TYPE::Cylinder,radius)));
   }
 
   const std::string& get_trackmap_out_name() const
@@ -288,7 +278,6 @@ class PHG4TrackFastSim : public SubsysReco
   int _event;
 
   bool m_SmearingFlag;
-  //  DETECTOR_TYPE _detector_type;  // deprecated
 
   //! Input Node pointers
   PHG4TruthInfoContainer* _truth_container;
@@ -349,16 +338,11 @@ class PHG4TrackFastSim : public SubsysReco
   //!
   int _primary_tracking;
 
-  //!
-  std::vector<std::string> _state_names;
-  std::vector<double> _state_location;
+  //! 
+  std::map<std::string, std::pair<int, double>> m_ProjectionsMap;
 
-  std::map<std::string, std::pair<int, double>> m_StateMap;
-
-#if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
   gsl_rng* m_RandomGenerator;
-#endif
 };
 
 #endif /*__PHG4TrackFastSim_H__*/

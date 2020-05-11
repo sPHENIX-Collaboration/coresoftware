@@ -160,7 +160,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
 
   // tower geometry for track states
 
-  for (map<string,pair<int,double>>::iterator iter = m_StateMap.begin(); iter !=  m_StateMap.end(); ++iter)
+  for (map<string,pair<int,double>>::iterator iter = m_ProjectionsMap.begin(); iter !=  m_ProjectionsMap.end(); ++iter)
   {
     if (isfinite(iter->second.second))
     {
@@ -683,7 +683,7 @@ int PHG4TrackFastSim::PseudoPatternRecognition(const PHG4Particle* particle,
                     particle->get_pz());
     if (do_smearing)
     {
-      const double momSmear = 3. / 180. * TMath::Pi();  // rad
+      const double momSmear = 3. / 180. * M_PI;  // rad
       const double momMagSmear = 0.1;                   // relative
 
       seed_mom.SetMag(
@@ -897,7 +897,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     }
   }
 // make the projections for all detector types
-  for (map<string,pair<int,double>>::iterator iter = m_StateMap.begin(); iter !=  m_StateMap.end(); ++iter)
+  for (map<string,pair<int,double>>::iterator iter = m_ProjectionsMap.begin(); iter !=  m_ProjectionsMap.end(); ++iter)
   {
     switch (iter->second.first)
     {
@@ -939,42 +939,6 @@ case DETECTOR_TYPE::Vertical_Plane:
     delete state;
 
   }
-
-  //  // State Projections
-  //  {
-  //    // Project to a cylinder at fixed r
-  //    pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, 2., TVector3(0., 0., 0.),
-  //                                                                  TVector3(0., 0., 1.), 0, -1);
-  //
-  //    SvtxTrackState* state = new SvtxTrackState_v1(pathlenth_from_first_meas - pathlenth_orig_from_first_meas);
-  //    state->set_x(gf_state->getPos().x());
-  //    state->set_y(gf_state->getPos().y());
-  //    state->set_z(gf_state->getPos().z());
-  //
-  //    state->set_px(gf_state->getMom().x());
-  //    state->set_py(gf_state->getMom().y());
-  //    state->set_pz(gf_state->getMom().z());
-  //
-  //    //    state->set_name(string("BeamPipe"));
-  //
-  //    for (int i = 0; i < 6; i++)
-  //    {
-  //      for (int j = i; j < 6; j++)
-  //      {
-  //        state->set_error(i, j, gf_state->get6DCov()[i][j]);
-  //      }
-  //    }
-  //    out_track->insert_state(state);
-  //
-  //    cout << __PRETTY_FUNCTION__ << __LINE__;
-  //    state->identify();
-  //
-  //    // the state is cloned on insert_state, so delete this copy here!
-  //    delete state;
-  //  }
-  //
-  //  cout << __PRETTY_FUNCTION__ << __LINE__;
-  //  out_track->identify();
 
   return static_cast<SvtxTrack*>(out_track);
 }
@@ -1080,14 +1044,13 @@ void PHG4TrackFastSim::DisplayEvent() const
 
 void PHG4TrackFastSim::add_state_name(const std::string& stateName)
 {
-    _state_names.push_back(stateName);
     if (stateName == "FEMC" || stateName == "FHCAL" || stateName == "EEMC")
     {
-      m_StateMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Vertical_Plane,NAN)));
+      m_ProjectionsMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Vertical_Plane,NAN)));
     }
     else if (stateName == "CEMC" || stateName == "HCALIN" || stateName == "HCALOUT")
     {
-      m_StateMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Cylinder,NAN)));
+      m_ProjectionsMap.insert(make_pair(stateName,make_pair(DETECTOR_TYPE::Cylinder,NAN)));
     }
     return;
 }
