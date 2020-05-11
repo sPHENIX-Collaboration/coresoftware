@@ -63,6 +63,7 @@
 #include <TMatrixDSymfwd.h>  // for TMatrixDSym
 #include <TMatrixTSym.h>     // for TMatrixTSym
 #include <TMatrixTUtils.h>   // for TMatrixTRow
+#include <TSystem.h>
 #include <TVector3.h>        // for TVector3, operator*
 #include <TVectorDfwd.h>     // for TVectorD
 #include <TVectorT.h>        // for TVectorT
@@ -158,6 +159,50 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
   _fitter->set_verbosity(Verbosity());
 
   // tower geometry for track states
+
+  for (map<string,pair<int,double>>::iterator iter = m_StateMap.begin(); iter !=  m_StateMap.end(); ++iter)
+  {
+    if (isfinite(iter->second.second))
+    {
+      continue;
+    }
+    switch (iter->second.first)
+    {
+    case REFERENCE::cylinder:
+    {
+      string nodename = "TOWERGEOM_" + iter->first;
+      RawTowerGeomContainer* geo = findNode::getClass<RawTowerGeomContainer>(topNode, nodename);
+      if (geo)
+      {
+	iter->second.second=geo->get_radius();
+      }
+      break;
+    }
+    case REFERENCE::zplane:
+    {
+      string towergeonodename = "TOWERGEOM_" + iter->first;
+      RawTowerGeomContainer* towergeo = findNode::getClass<RawTowerGeomContainer>(topNode, towergeonodename);
+      if (!towergeo)
+      {
+        cout << PHWHERE << " ERROR: Can't find node " << towergeonodename << endl;
+        return Fun4AllReturnCodes::ABORTEVENT;
+      }
+
+      // Grab the first tower, us it to get the
+      // location along the beamline
+      RawTowerGeomContainer::ConstRange twr_range = towergeo->get_tower_geometries();
+      RawTowerGeomContainer::ConstIterator twr_iter = twr_range.first;
+      RawTowerGeom* temp_geo = twr_iter->second;
+
+      //Changed by Barak on 12/10/19
+      iter->second.second=temp_geo->get_center_z();
+      break;
+    }
+    default:
+      cout << "invalid state reference: " << iter->second.first << endl;
+      gSystem->Exit(1);
+    }
+  }
 
   for (map<string,double>::iterator iter = m_ZStateMap.begin(); iter != m_ZStateMap.end(); ++iter)
   {
@@ -1197,10 +1242,12 @@ void PHG4TrackFastSim::add_state_name(const std::string& stateName)
     _state_names.push_back(stateName);
     if (stateName == "FEMC" || stateName == "FHCAL" || stateName == "EEMC")
     {
+      m_StateMap.insert(make_pair(stateName,make_pair(REFERENCE::zplane,NAN)));
       m_ZStateMap.insert(make_pair(stateName,NAN));
     }
     else if (stateName == "CEMC" || stateName == "HCALIN" || stateName == "HCALOUT")
     {
+      m_StateMap.insert(make_pair(stateName,make_pair(REFERENCE::cylinder,NAN)));
       m_CylinderStateMap.insert(make_pair(stateName,NAN));
     }
     return;

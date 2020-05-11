@@ -140,11 +140,13 @@ class PHG4TrackFastSim : public SubsysReco
   void add_zplane_state(const std::string& stateName, const double zplane)
   {
     m_ZStateMap.insert(std::make_pair(stateName,zplane));
+    m_StateMap.insert(std::make_pair(stateName,std::make_pair(REFERENCE::zplane,zplane)));
   }
 
   void add_cylinder_state(const std::string& stateName, const double radius)
   {
     m_CylinderStateMap.insert(std::make_pair(stateName,radius));
+    m_StateMap.insert(std::make_pair(stateName,std::make_pair(REFERENCE::cylinder,radius)));
   }
 
   const std::string& get_trackmap_out_name() const
@@ -244,6 +246,12 @@ class PHG4TrackFastSim : public SubsysReco
   void Smearing(const bool b) {m_SmearingFlag = b;}
 
  private:
+
+  enum REFERENCE
+  {
+    zplane = 0,
+    cylinder = 1,
+  };
   /*!
 	 * Create needed nodes.
 	 */
@@ -351,7 +359,7 @@ class PHG4TrackFastSim : public SubsysReco
   //!
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
-
+  std::map<std::string, std::pair<int, double>> m_StateMap;
   std::map<std::string, double> m_CylinderStateMap;
   std::map<std::string, double> m_ZStateMap;
 
