@@ -247,54 +247,7 @@ int PHG4TrackFastSim::InitRun(PHCompositeNode* topNode)
       }
   }
 
-/*
-  for (unsigned int i = 0; i < _state_names.size(); i++)
-  {
 
-    if ((_state_names[i] == "FHCAL") || (_state_names[i] == "FEMC") || (_state_names[i] == "EEMC"))
-    {
-      // Get the z-location of the detector plane
-
-      string towergeonodename = "TOWERGEOM_" + _state_names[i];
-      RawTowerGeomContainer* towergeo = findNode::getClass<RawTowerGeomContainer>(topNode, towergeonodename.c_str());
-      if (!towergeo)
-      {
-        cerr << PHWHERE << " ERROR: Can't find node " << towergeonodename << endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-
-      // Grab the first tower, us it to get the
-      // location along the beamline
-      RawTowerGeomContainer::ConstRange twr_range = towergeo->get_tower_geometries();
-      RawTowerGeomContainer::ConstIterator twr_iter = twr_range.first;
-      RawTowerGeom* temp_geo = twr_iter->second;
-
-      //Changed by Barak on 12/10/19
-      _state_location.push_back(temp_geo->get_center_z());
-    }
-    else if ((_state_names[i] == "CEMC") || (_state_names[i] == "HCALIN") || (_state_names[i] == "OHCAL"))
-    {
-      // Get the calorimeter radius
-
-      string nodename = "TOWERGEOM_" + _state_names[i];
-      RawTowerGeomContainer* geo = findNode::getClass<RawTowerGeomContainer>(topNode, nodename.c_str());
-      if (geo)
-      {
-        _state_location.push_back(geo->get_radius());
-      }
-      else
-      {
-        cerr << PHWHERE << " ERROR: Can't find node " << nodename << endl;
-        return Fun4AllReturnCodes::ABORTEVENT;
-      }
-    }
-    else
-    {
-      cerr << PHWHERE << " ERROR: Unrecognized detector name for state projection:  " << _state_names[i] << endl;
-      return Fun4AllReturnCodes::ABORTEVENT;
-    }
-  }
-*/
   if (_do_vertexing)
   {
     _vertex_finder = new genfit::GFRaveVertexFactory(Verbosity(), true);
@@ -987,6 +940,51 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
       out_track->set_error(i, j, cov[i][j]);
     }
   }
+
+  for (map<string,pair<int,double>>::iterator iter = m_StateMap.begin(); iter !=  m_StateMap.end(); ++iter)
+  {
+    switch (iter->second.first)
+    {
+    case DETECTOR_TYPE::Cylinder:
+    pathlenth_from_first_meas = phgf_track->extrapolateToCylinder(*gf_state, iter->second.second, TVector3(0., 0., 0.),
+								  TVector3(0., 0., 1.), 0);
+    break;
+case DETECTOR_TYPE::Vertical_Plane:
+    pathlenth_from_first_meas = phgf_track->extrapolateToPlane(*gf_state, TVector3(0., 0.,iter->second.second),
+							       TVector3(1., 0., iter->second.second), 0);
+    break;
+    default:
+      cout << "how in the world did you get here??????" << endl;
+      gSystem->Exit(1);
+    }
+    if ( pathlenth_from_first_meas <  -999990)
+    {
+      continue;
+    }
+    SvtxTrackState* state = new SvtxTrackState_v1(pathlenth_from_first_meas - pathlenth_orig_from_first_meas);
+    state->set_x(gf_state->getPos().x());
+    state->set_y(gf_state->getPos().y());
+    state->set_z(gf_state->getPos().z());
+
+    state->set_px(gf_state->getMom().x());
+    state->set_py(gf_state->getMom().y());
+    state->set_pz(gf_state->getMom().z());
+
+    state->set_name(iter->first);
+    for (int i = 0; i < 6; i++)
+    {
+      for (int j = i; j < 6; j++)
+      {
+        state->set_error(i, j, gf_state->get6DCov()[i][j]);
+      }
+    }
+    out_track->insert_state(state);
+    // the state is cloned on insert_state, so delete this copy here!
+    delete state;
+
+  }
+
+/*
   // State Projections
   map<string,double> state_name_path_map;
   for (map<string,double>::iterator iter = m_ZStateMap.begin(); iter != m_ZStateMap.end(); ++iter)
@@ -1052,6 +1050,7 @@ SvtxTrack* PHG4TrackFastSim::MakeSvtxTrack(const PHGenFit::Track* phgf_track,
     // the state is cloned on insert_state, so delete this copy here!
     delete state;
   }
+*/
 /*  
   for (unsigned int i = 0; i < _state_names.size(); i++)
   {
