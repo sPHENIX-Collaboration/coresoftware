@@ -29,12 +29,15 @@
 #include <cmath>
 #include <iostream>
 #include <vector>
+#include <chrono>
+using namespace std::chrono;
 
 PHActsTrkFitter::PHActsTrkFitter(const std::string& name)
   : PHTrackFitting(name)
   , m_event(0)
   , m_actsProtoTracks(nullptr)
   , m_tGeometry(nullptr)
+  , m_timeAnalysis(false)
 {
   Verbosity(0);
 }
@@ -53,12 +56,17 @@ int PHActsTrkFitter::Setup(PHCompositeNode* topNode)
 	       m_tGeometry->magField,
 	       Acts::Logging::INFO);
 
+  if(m_timeAnalysis)
+    {
+      timeFile = new TFile("ActsTimeFile.root","RECREATE");
+      h_eventTime = new TH1F("h_eventTime",";time [ms]",100,0,100);
+    }		 
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkFitter::Process()
 {
-
+  auto startTime = high_resolution_clock::now();
   m_event++;
 
   if (Verbosity() > 1)
@@ -104,15 +112,16 @@ int PHActsTrkFitter::Process()
   
     auto result = fitCfg.fit(sourceLinks, trackSeed, kfOptions);
 
-    /// Check that the result is okay
+    /// Check that the track fit result did not return an error
     if (result.ok())
     {  
       const Acts::KalmanFitterResult<SourceLink>& fitOutput = result.value();
       if (fitOutput.fittedParameters)
       {
+	/// Get position, momentum from the Acts output. Update the values of
+	/// the proto track
         updateSvtxTrack(fitOutput, trackKey);
 
-        /// Get position, momentum from params
         if (Verbosity() > 10)
         {
 	  const auto& params = fitOutput.fittedParameters.value();
@@ -128,11 +137,25 @@ int PHActsTrkFitter::Process()
 
   }
 
+  auto stopTime = high_resolution_clock::now();
+  auto eventTime = duration_cast<milliseconds>(stopTime - startTime);
+
+  if(m_timeAnalysis)
+    h_eventTime->Fill(eventTime.count());
+
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
 int PHActsTrkFitter::End(PHCompositeNode* topNode)
 {
+  if(m_timeAnalysis)
+    {
+      timeFile->cd();
+      h_eventTime->Write();
+      timeFile->Write();
+      timeFile->Close();
+    } 
+
   if (Verbosity() > 10)
   {
     std::cout << "Finished PHActsTrkFitter" << std::endl;
@@ -165,7 +188,6 @@ void PHActsTrkFitter::updateSvtxTrack(const Acts::KalmanFitterResult<SourceLink>
       for(int i = 0; i < 6; i++)
 	for(int j = 0; j < 6; j++)
 	  track->set_error(i,j, rotatedCov(i,j));
-    
     }
  
   return;

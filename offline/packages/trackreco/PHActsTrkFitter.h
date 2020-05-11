@@ -24,6 +24,8 @@
 
 #include <memory>
 #include <string>
+#include <TFile.h>
+#include <TH1.h>
 
 namespace FW
 {
@@ -57,6 +59,8 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Process each event by calling the fitter
   int Process();
 
+  void setTimeAnalysis(bool time){m_timeAnalysis = time;}
+
  private:
   /// Event counter
   int m_event;
@@ -67,6 +71,8 @@ class PHActsTrkFitter : public PHTrackFitting
   /// Create new nodes
   int createNodes(PHCompositeNode*);
 
+  /// Rotate the covariance from Acts local coordinates back to 
+  /// sPHENIX global coordinates
   Acts::BoundSymMatrix rotateCovarianceLocalToGlobal(const Acts::KalmanFitterResult<SourceLink>& fitOutput);
 
   /// Convert the acts track fit result to an svtx track
@@ -84,6 +90,11 @@ class PHActsTrkFitter : public PHTrackFitting
   /// TrackMap containing SvtxTracks
   SvtxTrackMap *m_trackMap;
 
+  /// Variables for doing event time execution analysis
+  bool m_timeAnalysis;
+  TFile *timeFile;
+  TH1 *h_eventTime;
+  
 };
 
 #endif

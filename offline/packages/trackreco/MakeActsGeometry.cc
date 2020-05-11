@@ -74,7 +74,7 @@ MakeActsGeometry::MakeActsGeometry(const string &name)
   , m_geoManager(nullptr)
   , m_minSurfZ(0.0)
   , m_maxSurfZ(105.5)
-  , m_nSurfZ(11)
+  , m_nSurfZ(1)
   , m_nSurfPhi(10)
   , m_verbosity(0)
 {
