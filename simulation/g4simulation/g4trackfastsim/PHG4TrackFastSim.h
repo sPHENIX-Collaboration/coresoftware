@@ -133,9 +133,18 @@ class PHG4TrackFastSim : public SubsysReco
     _phg4_detector_noise.push_back(noise);
   }
 
-  void add_state_name(const std::string& stateName)
+// legacy interface for Babar calorimeter projections
+  void add_state_name(const std::string& stateName);
+
+// add saving of state at plane in z
+  void add_zplane_state(const std::string& stateName, const double zplane)
   {
-    _state_names.push_back(stateName);
+    m_ZStateMap.insert(std::make_pair(stateName,zplane));
+  }
+
+  void add_cylinder_state(const std::string& stateName, const double radius)
+  {
+    m_CylinderStateMap.insert(std::make_pair(stateName,radius));
   }
 
   const std::string& get_trackmap_out_name() const
@@ -232,6 +241,8 @@ class PHG4TrackFastSim : public SubsysReco
 
   void DisplayEvent() const;
 
+  void Smearing(const bool b) {m_SmearingFlag = b;}
+
  private:
   /*!
 	 * Create needed nodes.
@@ -275,6 +286,7 @@ class PHG4TrackFastSim : public SubsysReco
   //! Event counter
   int _event;
 
+  bool m_SmearingFlag;
   //  DETECTOR_TYPE _detector_type;  // deprecated
 
   //! Input Node pointers
@@ -339,6 +351,9 @@ class PHG4TrackFastSim : public SubsysReco
   //!
   std::vector<std::string> _state_names;
   std::vector<double> _state_location;
+
+  std::map<std::string, double> m_CylinderStateMap;
+  std::map<std::string, double> m_ZStateMap;
 
 #if !defined(__CINT__) || defined(__CLING__)
   //! random generator that conform with sPHENIX standard
